@@ -1,0 +1,90 @@
+# GeoConflict Project Status
+
+_Last updated: 2025-11-03_
+
+## Project Overview
+- **Game**: GeoConflict – fork of OpenFront (real-time strategy web game).
+- **Tech stack**: Node.js, TypeScript, Webpack, React client, Express/WS server, Nginx reverse proxy, Docker.
+- **Licensing**:
+  - Source code: GNU AGPL v3 with additional attribution clause (display “Based on OpenFront”, etc. on the main/title screen).
+  - Assets: Creative Commons BY-SA 4.0 (credit original authors, share derivatives under same license).
+  - Ensure build artifacts reference the commit (container writes `static/commit.txt`).
+
+## Deployment Strategy
+- Each environment (dev / staging / prod) runs on its own VPS and is accessed via IP.
+- Docker image: `flashist/geoconflict-dev` (container name `geoconflict-<env>`).
+- Build scripts (`build.sh`) push multi-arch images to Docker Hub.
+- Deploy scripts (`deploy.sh`, `update.sh`) upload env files to the VPS and restart containers.
+- Environment configuration stored in `.env` / `.env.<env>` (ignored by git). Dev VPS details are already populated.
+- HTTP served directly from the container (port 80). HTTPS/TLS pending.
+
+## Environments
+| Environment | VPS Host/IP      | Public Endpoint            | Notes |
+|-------------|------------------|----------------------------|-------|
+| dev         | `79.174.91.179`  | `http://79.174.91.179`     | Active. Requires `sshpass` or SSH key for scripted deploys. |
+| staging     | _TBD_            | _TBD_                      | Needs VPS allocation. |
+| prod        | _TBD_            | _TBD_                      | Needs VPS allocation + HTTPS plan. |
+
+### Dev Credentials (stored in `.env`)
+- `SSH_USER_DEV` / `DEV_VPS_LOGIN`
+- `SSH_PASS_DEV` / `DEV_VPS_PASSWORD` (or `SSH_KEY`)
+- `DOCKER_USERNAME=flashist`
+- `DOCKER_REPO=geoconflict-dev`
+- `ADMIN_TOKEN`, `API_KEY`, `DOCKER_TOKEN` (set)
+
+## Worklog & Status
+
+### Completed ✅
+- Removed Cloudflare dependency (deleted tunnel management code, updated Dockerfile/startup scripts).
+- Refactored config system to support per-environment public host/IP metadata (`RuntimeConfig`, `/api/env` updates).
+- Adjusted client (`src/client/jwt.ts`) for IP-based deployments, safe cookies, and runtime API resolution.
+- Updated deployment tooling:
+  - `deploy.sh` supports per-env SSH user/password (via `.env`), uses `sshpass` fallback.
+  - `update.sh` ensures containers publish port 80 and names them `geoconflict-<env>`.
+- Added operational docs: `docs/vps-migration-plan.md`, `docs/vps-deployment-guide.md`.
+- Validated lint/tests (`npm run lint`, `npm test -- --runInBand`).
+- Live dev environment redeployed and serving `/api/env`.
+
+### In Progress 🟡
+- Manual verification of gameplay flows on dev VPS (browser smoke test via Atlas or human).
+- Documenting operational runbooks for staging/prod (pending VPS info).
+- Tracking license compliance checklist in UI (attribution still needs to be confirmed in-game).
+
+### Backlog / Open Tasks 📝
+1. Provision staging & production VPSes, populate `.env`, and run initial deploys.
+2. Add HTTPS termination strategy (e.g., Caddy or Nginx + Certbot); update scripts accordingly.
+3. Automate smoke tests (Atlas script or Playwright) post-deploy.
+4. Confirm/implement in-game attribution text per license.
+5. Monitor/logging enhancements (promtail/otel traces) once staging/prod up.
+
+## How to Work With This Repo
+### Local Setup
+```bash
+npm install
+npm run dev          # runs combined client/server (dev mode)
+npm run lint
+npm test -- --runInBand
+```
+
+### Build & Deploy
+```bash
+# Build + deploy dev with timestamp tag
+./build-deploy.sh dev
+
+# Deploy existing tag (no rebuild)
+./deploy.sh dev <tag>
+```
+- Requires Docker daemon and Docker Hub credentials (`DOCKER_TOKEN` or prior `docker login`).
+- For password-based SSH, install `sshpass` locally (`brew install hudochenkov/sshpass/sshpass` on macOS).
+
+### Remote Validation Checklist
+1. `ssh <user>@<ip>` → `docker ps` (`geoconflict-<env>` should show `0.0.0.0:80->80/tcp`).
+2. `curl http://<ip>/api/env` (verify metadata).
+3. Browser visit `http://<ip>` → confirm assets/auth.
+
+## Reference Docs
+- `docs/vps-migration-plan.md` – design/implementation notes for Cloudflare removal.
+- `docs/vps-deployment-guide.md` – detailed operator workflow.
+- `LICENSE`, `LICENSE-ASSETS` – licensing terms.
+
+Keep this file updated as environments evolve or new tasks are added. Feel free to append “Decision Log” entries for significant changes.
