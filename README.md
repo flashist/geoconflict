@@ -103,6 +103,17 @@ To connect to production api servers:
 npm run dev:prod
 ```
 
+### Remote Development Server
+
+If you want to use the remote dev backend while keeping the client running locally, make sure your `.env` contains the dev public host metadata (or export `DEV_REMOTE_ORIGIN` manually), then run:
+
+```bash
+npm run dev:remote
+```
+
+This command only launches the webpack dev server and proxies WebSocket/API calls to the remote dev VPS.
+The remote origin is resolved from `DEV_REMOTE_ORIGIN` (if set) or from the `PUBLIC_PROTOCOL_DEV`, `PUBLIC_HOST_DEV`, and `PUBLIC_PORT_DEV` entries in your `.env`. Set `API_BASE_URL_DEV` when the API is exposed on a different port.
+
 ## 🛠️ Development Tools
 
 - **Format code**:

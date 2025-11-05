@@ -1,10 +1,135 @@
 import { execSync } from "child_process";
 import CopyPlugin from "copy-webpack-plugin";
+import dotenv from "dotenv";
 import ESLintPlugin from "eslint-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import path from "path";
 import { fileURLToPath } from "url";
 import webpack from "webpack";
+
+dotenv.config();
+
+function parseBoolean(value) {
+  if (!value) return false;
+  switch (value.toLowerCase()) {
+    case "1":
+    case "true":
+    case "yes":
+    case "on":
+      return true;
+    default:
+      return false;
+  }
+}
+
+function buildOrigin(protocol, host, port) {
+  if (!host) return undefined;
+  const normalizedProtocol = (protocol ?? "http").replace(/:$/, "").toLowerCase();
+  const defaultPort = normalizedProtocol === "https" ? "443" : "80";
+  const trimmedPort = (port ?? "").trim();
+  const portSegment =
+    trimmedPort.length > 0 && trimmedPort !== defaultPort ? `:${trimmedPort}` : "";
+  return `${normalizedProtocol}://${host}${portSegment}`;
+}
+
+function resolveRemoteOrigin() {
+  if (process.env.DEV_REMOTE_ORIGIN && process.env.DEV_REMOTE_ORIGIN.length > 0) {
+    return process.env.DEV_REMOTE_ORIGIN;
+  }
+  if (parseBoolean(process.env.USE_REMOTE_DEV ?? "")) {
+    return buildOrigin(
+      process.env.PUBLIC_PROTOCOL_DEV ?? "http",
+      process.env.PUBLIC_HOST_DEV,
+      process.env.PUBLIC_PORT_DEV,
+    );
+  }
+  return undefined;
+}
+
+function createRemoteProxyConfig(remoteOrigin) {
+  if (!remoteOrigin) return [];
+  const normalizedOrigin = remoteOrigin.replace(/\/$/, "");
+  const remoteUrl = new URL(normalizedOrigin);
+  const secure = remoteUrl.protocol === "https:";
+  const contexts = [
+    "/socket",
+    "/ws",
+    "/w",
+    "/api",
+    "/matchmaking",
+    "/login",
+    "/cosmetics",
+  ];
+
+  const matchContext = (pathname = "") =>
+    contexts.some((prefix) => pathname.startsWith(prefix));
+
+  return [
+    {
+      context: matchContext,
+      target: normalizedOrigin,
+      ws: true,
+      changeOrigin: true,
+      secure,
+      logLevel: "debug",
+    },
+  ];
+}
+
+function createLocalProxyConfig() {
+  const workerProxy = (index) => {
+    const pathKey = `/w${index}`;
+    const basePort = 3001 + index;
+    return [
+      {
+        context: [pathKey],
+        target: `ws://localhost:${basePort}`,
+        ws: true,
+        secure: false,
+        changeOrigin: true,
+        logLevel: "debug",
+      },
+      {
+        context: [pathKey],
+        target: `http://localhost:${basePort}`,
+        pathRewrite: { [`^${pathKey}`]: "" },
+        secure: false,
+        changeOrigin: true,
+        logLevel: "debug",
+      },
+    ];
+  };
+
+  const workerConfigs = [0, 1, 2].flatMap((index) => workerProxy(index));
+
+  return [
+    {
+      context: ["/socket"],
+      target: "ws://localhost:3000",
+      ws: true,
+      changeOrigin: true,
+      logLevel: "debug",
+    },
+    ...workerConfigs,
+    {
+      context: [
+        "/api/env",
+        "/api/game",
+        "/api/public_lobbies",
+        "/api/join_game",
+        "/api/start_game",
+        "/api/create_game",
+        "/api/archive_singleplayer_game",
+        "/api/auth/callback",
+        "/api/auth/discord",
+        "/api/kick_player",
+      ],
+      target: "http://localhost:3000",
+      secure: false,
+      changeOrigin: true,
+    },
+  ];
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,6 +139,15 @@ const gitCommit =
 
 export default async (env, argv) => {
   const isProduction = argv.mode === "production";
+  const remoteOrigin = resolveRemoteOrigin();
+  const proxyConfig = remoteOrigin
+    ? createRemoteProxyConfig(remoteOrigin)
+    : createLocalProxyConfig();
+  const resolvedApiDomain =
+    process.env.API_DOMAIN ??
+    (remoteOrigin
+      ? process.env.API_BASE_URL_DEV ?? remoteOrigin
+      : undefined);
 
   return {
     entry: "./src/client/Main.ts",
@@ -136,7 +270,7 @@ export default async (env, argv) => {
         "process.env.STRIPE_PUBLISHABLE_KEY": JSON.stringify(
           process.env.STRIPE_PUBLISHABLE_KEY,
         ),
-        "process.env.API_DOMAIN": JSON.stringify(process.env.API_DOMAIN),
+        "process.env.API_DOMAIN": JSON.stringify(resolvedApiDomain),
       }),
       new CopyPlugin({
         patterns: [
@@ -180,84 +314,7 @@ export default async (env, argv) => {
           historyApiFallback: true,
           compress: true,
           port: 9000,
-          proxy: [
-            // WebSocket proxies
-            {
-              context: ["/socket"],
-              target: "ws://localhost:3000",
-              ws: true,
-              changeOrigin: true,
-              logLevel: "debug",
-            },
-            // Worker WebSocket proxies - using direct paths without /socket suffix
-            {
-              context: ["/w0"],
-              target: "ws://localhost:3001",
-              ws: true,
-              secure: false,
-              changeOrigin: true,
-              logLevel: "debug",
-            },
-            {
-              context: ["/w1"],
-              target: "ws://localhost:3002",
-              ws: true,
-              secure: false,
-              changeOrigin: true,
-              logLevel: "debug",
-            },
-            {
-              context: ["/w2"],
-              target: "ws://localhost:3003",
-              ws: true,
-              secure: false,
-              changeOrigin: true,
-              logLevel: "debug",
-            },
-            // Worker proxies for HTTP requests
-            {
-              context: ["/w0"],
-              target: "http://localhost:3001",
-              pathRewrite: { "^/w0": "" },
-              secure: false,
-              changeOrigin: true,
-              logLevel: "debug",
-            },
-            {
-              context: ["/w1"],
-              target: "http://localhost:3002",
-              pathRewrite: { "^/w1": "" },
-              secure: false,
-              changeOrigin: true,
-              logLevel: "debug",
-            },
-            {
-              context: ["/w2"],
-              target: "http://localhost:3003",
-              pathRewrite: { "^/w2": "" },
-              secure: false,
-              changeOrigin: true,
-              logLevel: "debug",
-            },
-            // Original API endpoints
-            {
-              context: [
-                "/api/env",
-                "/api/game",
-                "/api/public_lobbies",
-                "/api/join_game",
-                "/api/start_game",
-                "/api/create_game",
-                "/api/archive_singleplayer_game",
-                "/api/auth/callback",
-                "/api/auth/discord",
-                "/api/kick_player",
-              ],
-              target: "http://localhost:3000",
-              secure: false,
-              changeOrigin: true,
-            },
-          ],
+          proxy: proxyConfig,
         },
   };
 };
