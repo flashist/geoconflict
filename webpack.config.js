@@ -51,24 +51,46 @@ function createRemoteProxyConfig(remoteOrigin) {
   const normalizedOrigin = remoteOrigin.replace(/\/$/, "");
   const remoteUrl = new URL(normalizedOrigin);
   const secure = remoteUrl.protocol === "https:";
-  const contexts = [
-    "/socket",
-    "/ws",
-    "/w",
-    "/api",
-    "/matchmaking",
-    "/login",
-    "/cosmetics",
-  ];
+  const websocketOrigin = `${secure ? "wss" : "ws"}://${remoteUrl.host}`;
 
-  const matchContext = (pathname = "") =>
-    contexts.some((prefix) => pathname.startsWith(prefix));
+  const httpPrefixes = ["/api", "/matchmaking", "/login", "/cosmetics"];
+
+  const isWorkerPath = (pathname = "") => /^\/w\d+(\/|$)/.test(pathname);
+
+  const httpContext = (pathname = "", req) => {
+    const upgradeHeader = req?.headers?.upgrade;
+    if (upgradeHeader && upgradeHeader.toLowerCase() === "websocket") {
+      return false;
+    }
+    if (pathname?.startsWith("/socket") || isWorkerPath(pathname)) {
+      return true;
+    }
+    return httpPrefixes.some((prefix) => pathname?.startsWith(prefix));
+  };
+
+  const websocketContext = (pathname = "", req) => {
+    const upgradeHeader = req?.headers?.upgrade;
+    if (!upgradeHeader || upgradeHeader.toLowerCase() !== "websocket") {
+      return false;
+    }
+    if (pathname?.startsWith("/socket")) {
+      return true;
+    }
+    return isWorkerPath(pathname);
+  };
 
   return [
     {
-      context: matchContext,
-      target: normalizedOrigin,
+      context: websocketContext,
+      target: websocketOrigin,
       ws: true,
+      changeOrigin: true,
+      secure,
+      logLevel: "debug",
+    },
+    {
+      context: httpContext,
+      target: normalizedOrigin,
       changeOrigin: true,
       secure,
       logLevel: "debug",
