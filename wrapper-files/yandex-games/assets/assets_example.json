@@ -1,0 +1,326 @@
+{
+  "files": [
+    {
+      "id": "NotoSans",
+      "src": "assets/fonts/NotoSans/NotoSans-Regular.ttf",
+      "fileType": "font",
+      "loadGroups": [
+        "init"
+      ],
+      "fontFace": {
+        "font-family": "NotoSans",
+        "font-style": "normal"
+      }
+    },
+    {
+      "id": "NotoSansBold",
+      "src": "assets/fonts/NotoSans/NotoSans-Bold.ttf",
+      "fileType": "font",
+      "loadGroups": [
+        "init"
+      ],
+      "fontFace": {
+        "font-family": "NotoSans",
+        "font-style": "normal",
+        "font-weight": "bold"
+      }
+    },
+    {
+      "id": "Background",
+      "src": "assets/images/template-slot/backgrounds/bg.jpg",
+      "fileType": "image",
+      "loadGroups": [
+        "preload"
+      ]
+    },
+
+    {
+      "id": "PreloaderSpritesheet",
+      "src": "assets/spritesheets/preloader.json",
+      "fileType": "spritesheet",
+      "loadGroups": [
+        "preload"
+      ]
+    },
+
+    {
+      "id": "UiCommonSpritesheet",
+      "src": "assets/spritesheets/ui_common.json",
+      "fileType": "spritesheet",
+      "loadGroups": [
+        "preload"
+      ]
+    },
+
+    {
+      "id": "Reelhouse",
+      "src": "assets/images/template-slot/reels/reels.png",
+      "fileType": "image",
+      "loadGroups": [
+        "init"
+      ]
+    },
+
+    {
+      "id": "UiMenuBackground",
+      "src": "assets/images/common/UI Menu Background.png",
+      "fileType": "image",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "UiMenuSpritesheet",
+      "src": "assets/spritesheets/ui_menu.json",
+      "fileType": "spritesheet",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "SymbolsSpritesheet",
+      "src": "assets/spritesheets/symbols.json",
+      "fileType": "spritesheet",
+      "loadGroups": [
+        "init"
+      ]
+    },
+
+    {
+      "id": "symbolAnimScatterRed",
+      "src": "assets/animations/spine/scatter_red/Spine/scatter_red.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "symbolAnimScatterBlue",
+      "src": "assets/animations/spine/scatter_blue/Spine/scatter_blue.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "symbolAnimScatterGreen",
+      "src": "assets/animations/spine/scatter_green/Spine/scatter_green.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "symbolAnimTen",
+      "src": "assets/animations/spine/10/Spine/10.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "symbolAnimA",
+      "src": "assets/animations/spine/a/Spine/a.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "symbolAnimJ",
+      "src": "assets/animations/spine/j/Spine/J.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "symbolAnimQ",
+      "src": "assets/animations/spine/q/Spine/q.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "symbolAnimK",
+      "src": "assets/animations/spine/k/Spine/k.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "symbolAnimT1",
+      "src": "assets/animations/spine/t1_sceptor/Spine/scepter_t1.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "symbolAnimT2",
+      "src": "assets/animations/spine/t2_peach/Spine/t2_peach.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "symbolAnimT3",
+      "src": "assets/animations/spine/t3_vase/Spine/t3_vase.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "symbolAnimWild",
+      "src": "assets/animations/spine/wild/Spine/wild.json",
+      "fileType": "spine",
+      "loadGroups": [
+        "init"
+      ]
+    },
+
+    {
+      "id": "PaytableSpritesheet-0",
+      "src": "assets/spritesheets/paytable-0.json",
+      "fileType": "spritesheet",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "PaytableSpritesheet-1",
+      "src": "assets/spritesheets/paytable-1.json",
+      "fileType": "spritesheet",
+      "loadGroups": [
+        "init"
+      ]
+    },
+
+    {
+      "id": "MinusButtonSound",
+      "src": "assets/sounds/ui/Minus Button.{extension}",
+      "extensions": [
+        "webm",
+        "mp3"
+      ],
+      "fileType": "sound",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "PlusButtonSound",
+      "src": "assets/sounds/ui/Plus Button.{extension}",
+      "extensions": [
+        "webm",
+        "mp3"
+      ],
+      "fileType": "sound",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "SpinStartButtonSound",
+      "src": "assets/sounds/ui/Play Start Button.{extension}",
+      "extensions": [
+        "webm",
+        "mp3"
+      ],
+      "fileType": "sound",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "SpinStopButtonSound",
+      "src": "assets/sounds/ui/Play Stop Button.{extension}",
+      "extensions": [
+        "webm",
+        "mp3"
+      ],
+      "fileType": "sound",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "SingleReelStopSound",
+      "src": "assets/sounds/reels/Reel Stop 16bit.{extension}",
+      "extensions": [
+        "webm",
+        "mp3"
+      ],
+      "fileType": "sound",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "WinTickupSound",
+      "src": "assets/sounds/win/Tickup.{extension}",
+      "extensions": [
+        "webm",
+        "mp3"
+      ],
+      "fileType": "sound",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "WinCapSound",
+      "src": "assets/sounds/win/Win Cap.{extension}",
+      "extensions": [
+        "webm",
+        "mp3"
+      ],
+      "fileType": "sound",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "PreMegaWinSound",
+      "src": "assets/sounds/win/PreMegaWin.{extension}",
+      "extensions": [
+        "webm",
+        "mp3"
+      ],
+      "fileType": "sound",
+      "loadGroups": [
+        "init"
+      ]
+    },
+
+    {
+      "id": "CelebrationSpritesheet",
+      "src": "assets/spritesheets/celebration.json",
+      "fileType": "spritesheet",
+      "loadGroups": [
+        "init"
+      ]
+    },
+    {
+      "id": "CoinShowerSpritesheet",
+      "src": "assets/spritesheets/coins_shower.json",
+      "fileType": "spritesheet",
+      "loadGroups": [
+        "init"
+      ]
+    },
+
+    {
+      "id": "BigWinFont",
+      "src": "assets/fonts/big-win/BigWinFont.fnt",
+      "fileType": "file",
+      "loadGroups": [
+        "init"
+      ]
+    }
+  ]
+}

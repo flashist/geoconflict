@@ -1,0 +1,36 @@
+import { Facade } from "@flashist/appframework/facade/Facade";
+import { Align, Point, VAlign } from "@flashist/flibs";
+import { IframeAppScaleFitType, IframeAppScaleType } from "./modules/iframe-app/tools/IframeAppScaleTools";
+import { Orientation } from "./modules/html/Orientation";
+export declare class GameFacade extends Facade {
+    protected iframeParentElement: Node;
+    protected iframeElement: HTMLIFrameElement;
+    protected iframeBaseSizeMin: Point;
+    protected iframeBaseSizeMax: Point;
+    protected defineIframeBaseSizeOnInit: boolean;
+    protected iframeForcedOrientaton: Orientation;
+    protected iframeScaleType: IframeAppScaleType;
+    protected iframeScaleFitType: IframeAppScaleFitType;
+    protected iframeAlign: Align;
+    protected iframeValign: VAlign;
+    protected iframeParentCSS: CSSStyleDeclaration;
+    protected iframeCSS: CSSStyleDeclaration;
+    protected minInterstitialBreakApprovesCountToActivateMarketing: number;
+    protected askToReviewMinTimeout: number;
+    protected wasAskedToReview: boolean;
+    protected askToInstallMinTimeout: number;
+    protected wasAskedToInstall: boolean;
+    protected addModules(): void;
+    protected initApp(): Promise<void>;
+    protected activateExperiments(): Promise<void>;
+    protected activateIframeApp(): Promise<void>;
+    protected addListeners(): void;
+    protected onPreloaderLoadingComplete(): void;
+    protected onPreloaderLoadingEndAnimComplete(): void;
+    protected onWindowResize(): void;
+    protected processScaleFill(): void;
+    protected processScaleFit(): void;
+    protected lastProcessedSessionDuration: number;
+    protected lastProcessedTotalUsageDuration: number;
+    protected onDurationChange(): void;
+}

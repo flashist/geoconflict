@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "id": "PreloaderLogo",
+      "src": "assets/images/preloader/preloader_logo.png",
+      "fileType": "image",
+      "loadGroups": [
+        "preload",
+        "prepareGame"
+      ]
+    },
+    {
+      "id": "OpenSansSemiBold",
+      "src": "assets/fonts/OpenSans/OpenSans-SemiBold.ttf",
+      "fileType": "font",
+      "loadGroups": [
+        "prepareGame"
+      ],
+      "fontFace": {
+        "font-family": "OpenSans",
+        "font-weight": 600
+      }
+    }
+  ]
+}
