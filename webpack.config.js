@@ -274,15 +274,31 @@ export default async (env, argv) => {
         // Add optimization for HTML
         minify: isProduction
           ? {
-              collapseWhitespace: true,
-              removeComments: true,
-              removeRedundantAttributes: true,
-              removeScriptTypeAttributes: true,
-              removeStyleLinkTypeAttributes: true,
-              useShortDoctype: true,
-            }
+            collapseWhitespace: true,
+            removeComments: true,
+            removeRedundantAttributes: true,
+            removeScriptTypeAttributes: true,
+            removeStyleLinkTypeAttributes: true,
+            useShortDoctype: true,
+          }
           : false,
       }),
+      new HtmlWebpackPlugin({
+        template: "./src/client/yandex-games_iframe.html",
+        filename: "yandex-games_iframe.html",
+        // Add optimization for HTML
+        minify: isProduction
+          ? {
+            collapseWhitespace: true,
+            removeComments: true,
+            removeRedundantAttributes: true,
+            removeScriptTypeAttributes: true,
+            removeStyleLinkTypeAttributes: true,
+            useShortDoctype: true,
+          }
+          : false,
+      }),
+
       new webpack.DefinePlugin({
         "process.env.WEBSOCKET_URL": JSON.stringify(
           isProduction ? "" : "localhost:3000",
@@ -329,14 +345,14 @@ export default async (env, argv) => {
     devServer: isProduction
       ? {}
       : {
-          devMiddleware: { writeToDisk: true },
-          static: {
-            directory: path.join(__dirname, "static"),
-          },
-          historyApiFallback: true,
-          compress: true,
-          port: 9000,
-          proxy: proxyConfig,
+        devMiddleware: { writeToDisk: true },
+        static: {
+          directory: path.join(__dirname, "static"),
         },
+        historyApiFallback: true,
+        compress: true,
+        port: 9000,
+        proxy: proxyConfig,
+      },
   };
 };
