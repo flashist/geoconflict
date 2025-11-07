@@ -360,7 +360,8 @@
     "terrain_enabled": "Представление рельефа включено",
     "terrain_disabled": "Представление рельефа выключено",
     "exit_game_label": "Выйти из игры",
-    "exit_game_info": "Вернуться в главное меню"
+    "exit_game_info": "Вернуться в главное меню",
+    "sound_effects_volume": "Звук"
   },
   "chat": {
     "title": "Быстрый чат",

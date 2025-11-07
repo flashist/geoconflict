@@ -212,6 +212,9 @@ export class SettingsModal extends LitElement implements Layer {
           <div class="p-4 space-y-3">
             <div
               class="flex gap-3 items-center w-full text-left p-3 hover:bg-slate-700 rounded text-white transition-colors"
+
+              // Flashist Adaptation
+              style="display: none;"
             >
               <img src=${musicIcon} alt="musicIcon" width="20" height="20" />
               <div class="flex-1">
