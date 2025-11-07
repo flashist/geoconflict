@@ -174,7 +174,7 @@ export class AccountModal extends LitElement {
               />
               <span
                 >${translateText("main.login_discord") ||
-                "Login with Discord"}</span
+      "Login with Discord"}</span
               >
             </button>
           </div>
@@ -247,7 +247,10 @@ export class AccountModal extends LitElement {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          redirectDomain: window.location.origin,
+          // Flashist Adaptation
+          // redirectDomain: window.location.origin,
+          redirectDomain: (window as any).flashist_windowOrigin,
+
           email: this.email,
         }),
       });

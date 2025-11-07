@@ -82,6 +82,16 @@ declare global {
 
 // Flashist Adaptation : START
 
+// CONSTANTS
+(window as any).flashist_windowOrigin = window.location.origin + window.location.pathname;
+(window as any).flashist_rootPathname = window.location.pathname;
+
+// Single place for working with URLS
+(window as any).flashist_changeHref = (value) => {
+  // window.location.href = value;
+  window.location.href = value;
+}
+
 // Flashist Adaptation: Yandex Games Init
 declare let YaGames: any;
 let yaGamesAvailable = false;
@@ -539,7 +549,10 @@ class Client {
       }
     }
     if (decodedHash.startsWith("#refresh")) {
-      window.location.href = "/";
+
+      // Flashist Adaptation
+      // window.location.href = "/";
+      (window as any).flashist_changeHref((window as any).flashist_rootPathname);
     }
   }
 
@@ -633,9 +646,13 @@ class Client {
 
         // Ensure there's a homepage entry in history before adding the lobby entry
         if (window.location.hash === "" || window.location.hash === "#") {
-          history.pushState(null, "", window.location.origin + "#refresh");
+
+          // Flashist Adaptation
+          // history.pushState(null, "", window.location.origin + "#refresh");
+          history.pushState(null, "", (window as any).flashist_windowOrigin + "#refresh");
+
         }
-        // history.pushState(null, "", `#join=${lobby.gameID}`);
+        history.pushState(null, "", `#join=${lobby.gameID}`);
       },
     );
   }

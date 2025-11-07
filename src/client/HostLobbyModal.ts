@@ -85,14 +85,13 @@ export class HostLobbyModal extends LitElement {
         <div class="lobby-id-box">
           <button class="lobby-id-button">
             <!-- Visibility toggle icon on the left -->
-            ${
-              this.lobbyIdVisible
-                ? html`<svg
+            ${this.lobbyIdVisible
+        ? html`<svg
                     class="visibility-icon"
                     @click=${() => {
-                      this.lobbyIdVisible = !this.lobbyIdVisible;
-                      this.requestUpdate();
-                    }}
+            this.lobbyIdVisible = !this.lobbyIdVisible;
+            this.requestUpdate();
+          }}
                     style="margin-right: 8px; cursor: pointer;"
                     stroke="currentColor"
                     fill="currentColor"
@@ -106,12 +105,12 @@ export class HostLobbyModal extends LitElement {
                       d="M256 105c-101.8 0-188.4 62.7-224 151 35.6 88.3 122.2 151 224 151s188.4-62.7 224-151c-35.6-88.3-122.2-151-224-151zm0 251.7c-56 0-101.7-45.7-101.7-101.7S200 153.3 256 153.3 357.7 199 357.7 255 312 356.7 256 356.7zm0-161.1c-33 0-59.4 26.4-59.4 59.4s26.4 59.4 59.4 59.4 59.4-26.4 59.4-59.4-26.4-59.4-59.4-59.4z"
                     ></path>
                   </svg>`
-                : html`<svg
+        : html`<svg
                     class="visibility-icon"
                     @click=${() => {
-                      this.lobbyIdVisible = !this.lobbyIdVisible;
-                      this.requestUpdate();
-                    }}
+            this.lobbyIdVisible = !this.lobbyIdVisible;
+            this.requestUpdate();
+          }}
                     style="margin-right: 8px; cursor: pointer;"
                     stroke="currentColor"
                     fill="currentColor"
@@ -135,7 +134,7 @@ export class HostLobbyModal extends LitElement {
                       stroke-linecap="round"
                     ></path>
                   </svg>`
-            }
+      }
             <!-- Lobby ID (conditionally shown) -->
             <span class="lobby-id" @click=${this.copyToClipboard} style="cursor: pointer;">
               ${this.lobbyIdVisible ? this.lobbyId : "••••••••"}
@@ -143,10 +142,9 @@ export class HostLobbyModal extends LitElement {
 
             <!-- Copy icon/success indicator -->
             <div @click=${this.copyToClipboard} style="margin-left: 8px; cursor: pointer;">
-              ${
-                this.copySuccess
-                  ? html`<span class="copy-success-icon">✓</span>`
-                  : html`
+              ${this.copySuccess
+        ? html`<span class="copy-success-icon">✓</span>`
+        : html`
                       <svg
                         class="clipboard-icon"
                         stroke="currentColor"
@@ -162,7 +160,7 @@ export class HostLobbyModal extends LitElement {
                         ></path>
                       </svg>
                     `
-              }
+      }
             </div>
           </button>
         </div>
@@ -173,7 +171,7 @@ export class HostLobbyModal extends LitElement {
             <div class="option-cards flex-col">
               <!-- Use the imported mapCategories -->
               ${Object.entries(mapCategories).map(
-                ([categoryKey, maps]) => html`
+        ([categoryKey, maps]) => html`
                   <div class="w-full mb-4">
                     <h3
                       class="text-lg font-semibold mb-2 text-center text-gray-300"
@@ -182,34 +180,33 @@ export class HostLobbyModal extends LitElement {
                     </h3>
                     <div class="flex flex-row flex-wrap justify-center gap-4">
                       ${maps.map((mapValue) => {
-                        const mapKey = Object.keys(GameMapType).find(
-                          (key) =>
-                            GameMapType[key as keyof typeof GameMapType] ===
-                            mapValue,
-                        );
-                        return html`
+          const mapKey = Object.keys(GameMapType).find(
+            (key) =>
+              GameMapType[key as keyof typeof GameMapType] ===
+              mapValue,
+          );
+          return html`
                           <div
                             @click=${() => this.handleMapSelection(mapValue)}
                           >
                             <map-display
                               .mapKey=${mapKey}
                               .selected=${!this.useRandomMap &&
-                              this.selectedMap === mapValue}
+            this.selectedMap === mapValue}
                               .translation=${translateText(
-                                `map.${mapKey?.toLowerCase()}`,
-                              )}
+              `map.${mapKey?.toLowerCase()}`,
+            )}
                             ></map-display>
                           </div>
                         `;
-                      })}
+        })}
                     </div>
                   </div>
                 `,
-              )}
+      )}
               <div
-                class="option-card random-map ${
-                  this.useRandomMap ? "selected" : ""
-                }"
+                class="option-card random-map ${this.useRandomMap ? "selected" : ""
+      }"
                 @click=${this.handleRandomMapToggle}
               >
                 <div class="option-image">
@@ -231,13 +228,13 @@ export class HostLobbyModal extends LitElement {
             <div class="option-title">${translateText("difficulty.difficulty")}</div>
             <div class="option-cards">
               ${Object.entries(Difficulty)
-                .filter(([key]) => isNaN(Number(key)))
-                .map(
-                  ([key, value]) => html`
+        .filter(([key]) => isNaN(Number(key)))
+        .map(
+          ([key, value]) => html`
                     <div
                       class="option-card ${this.selectedDifficulty === value
-                        ? "selected"
-                        : ""}"
+              ? "selected"
+              : ""}"
                       @click=${() => this.handleDifficultySelection(value)}
                     >
                       <difficulty-display
@@ -248,7 +245,7 @@ export class HostLobbyModal extends LitElement {
                       </p>
                     </div>
                   `,
-                )}
+        )}
             </div>
           </div>
 
@@ -275,10 +272,9 @@ export class HostLobbyModal extends LitElement {
             </div>
           </div>
 
-          ${
-            this.gameMode === GameMode.FFA
-              ? ""
-              : html`
+          ${this.gameMode === GameMode.FFA
+        ? ""
+        : html`
                   <!-- Team Count Selection -->
                   <div class="options-section">
                     <div class="option-title">
@@ -286,40 +282,40 @@ export class HostLobbyModal extends LitElement {
                     </div>
                     <div class="option-cards">
                       ${[
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        Quads,
-                        Trios,
-                        Duos,
-                        HumansVsNations,
-                      ].map(
-                        (o) => html`
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            Quads,
+            Trios,
+            Duos,
+            HumansVsNations,
+          ].map(
+            (o) => html`
                           <div
                             class="option-card ${this.teamCount === o
-                              ? "selected"
-                              : ""}"
+                ? "selected"
+                : ""}"
                             @click=${() => this.handleTeamCountSelection(o)}
                           >
                             <div class="option-card-title">
                               ${typeof o === "string"
-                                ? o === HumansVsNations
-                                  ? translateText("public_lobby.teams_hvn")
-                                  : translateText(`public_lobby.teams_${o}`)
-                                : translateText("public_lobby.teams", {
-                                    num: o,
-                                  })}
+                ? o === HumansVsNations
+                  ? translateText("public_lobby.teams_hvn")
+                  : translateText(`public_lobby.teams_${o}`)
+                : translateText("public_lobby.teams", {
+                  num: o,
+                })}
                             </div>
                           </div>
                         `,
-                      )}
+          )}
                     </div>
                   </div>
                 `
-          }
+      }
 
           <!-- Game Options -->
           <div class="options-section">
@@ -339,25 +335,23 @@ export class HostLobbyModal extends LitElement {
                     .value="${String(this.bots)}"
                   />
                   <div class="option-card-title">
-                    <span>${translateText("host_modal.bots")}</span>${
-                      this.bots === 0
-                        ? translateText("host_modal.bots_disabled")
-                        : this.bots
-                    }
+                    <span>${translateText("host_modal.bots")}</span>${this.bots === 0
+        ? translateText("host_modal.bots_disabled")
+        : this.bots
+      }
                   </div>
                 </label>
 
-                ${
-                  !(
-                    this.gameMode === GameMode.Team &&
-                    this.teamCount === HumansVsNations
-                  )
-                    ? html`
+                ${!(
+        this.gameMode === GameMode.Team &&
+        this.teamCount === HumansVsNations
+      )
+        ? html`
                         <label
                           for="disable-npcs"
                           class="option-card ${this.disableNPCs
-                            ? "selected"
-                            : ""}"
+            ? "selected"
+            : ""}"
                         >
                           <div class="checkbox-icon"></div>
                           <input
@@ -371,8 +365,8 @@ export class HostLobbyModal extends LitElement {
                           </div>
                         </label>
                       `
-                    : ""
-                }
+        : ""
+      }
 
                 <label
                   for="instant-build"
@@ -478,19 +472,18 @@ export class HostLobbyModal extends LitElement {
                     type="checkbox"
                     id="max-timer"
                     @change=${(e: Event) => {
-                      const checked = (e.target as HTMLInputElement).checked;
-                      if (!checked) {
-                        this.maxTimerValue = undefined;
-                      }
-                      this.maxTimer = checked;
-                      this.putGameConfig();
-                    }}
+        const checked = (e.target as HTMLInputElement).checked;
+        if (!checked) {
+          this.maxTimerValue = undefined;
+        }
+        this.maxTimer = checked;
+        this.putGameConfig();
+      }}
                     .checked=${this.maxTimer}
                   />
-                    ${
-                      this.maxTimer === false
-                        ? ""
-                        : html`<input
+                    ${this.maxTimer === false
+        ? ""
+        : html`<input
                             type="number"
                             id="end-timer-value"
                             min="0"
@@ -500,7 +493,7 @@ export class HostLobbyModal extends LitElement {
                             @input=${this.handleMaxTimerValueChanges}
                             @keydown=${this.handleMaxTimerValueKeyDown}
                           />`
-                    }
+      }
                   <div class="option-card-title">
                     ${translateText("host_modal.max_timer")}
                   </div>
@@ -517,9 +510,9 @@ export class HostLobbyModal extends LitElement {
                   style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;"
                 >
                    ${renderUnitTypeOptions({
-                     disabledUnits: this.disabledUnits,
-                     toggleUnit: this.toggleUnit.bind(this),
-                   })}
+        disabledUnits: this.disabledUnits,
+        toggleUnit: this.toggleUnit.bind(this),
+      })}
                   </div>
                 </div>
               </div>
@@ -530,23 +523,22 @@ export class HostLobbyModal extends LitElement {
         <div class="options-section">
           <div class="option-title">
             ${this.clients.length}
-            ${
-              this.clients.length === 1
-                ? translateText("host_modal.player")
-                : translateText("host_modal.players")
-            }
+            ${this.clients.length === 1
+        ? translateText("host_modal.player")
+        : translateText("host_modal.players")
+      }
           </div>
 
           <div class="players-list">
             ${this.clients.map(
-              (client) => html`
+        (client) => html`
                 <span class="player-tag">
                   ${client.username}
                   ${client.clientID === this.lobbyCreatorClientID
-                    ? html`<span class="host-badge"
+            ? html`<span class="host-badge"
                         >(${translateText("host_modal.host_badge")})</span
                       >`
-                    : html`
+            : html`
                         <button
                           class="remove-player-btn"
                           @click=${() => this.kickPlayer(client.clientID)}
@@ -557,7 +549,7 @@ export class HostLobbyModal extends LitElement {
                       `}
                 </span>
               `,
-            )}
+      )}
         </div>
 
         <div class="start-game-button-container">
@@ -566,11 +558,10 @@ export class HostLobbyModal extends LitElement {
             ?disabled=${this.clients.length < 2}
             class="start-game-button"
           >
-            ${
-              this.clients.length === 1
-                ? translateText("host_modal.waiting")
-                : translateText("host_modal.start")
-            }
+            ${this.clients.length === 1
+        ? translateText("host_modal.waiting")
+        : translateText("host_modal.start")
+      }
           </button>
         </div>
 
@@ -731,7 +722,11 @@ export class HostLobbyModal extends LitElement {
   private async putGameConfig() {
     const config = await getServerConfigFromClient();
     const response = await fetch(
-      `${window.location.origin}/${config.workerPath(this.lobbyId)}/api/game/${this.lobbyId}`,
+
+      // Flashist Adaptation
+      // `${window.location.origin}/${config.workerPath(this.lobbyId)}/api/game/${this.lobbyId}`,
+      `${(window as any).flashist_windowOrigin}/${config.workerPath(this.lobbyId)}/api/game/${this.lobbyId}`,
+
       {
         method: "PUT",
         headers: {
@@ -753,13 +748,13 @@ export class HostLobbyModal extends LitElement {
           disabledUnits: this.disabledUnits,
           playerTeams: this.teamCount,
           ...(this.gameMode === GameMode.Team &&
-          this.teamCount === HumansVsNations
+            this.teamCount === HumansVsNations
             ? {
-                disableNPCs: false,
-              }
+              disableNPCs: false,
+            }
             : {
-                disableNPCs: this.disableNPCs,
-              }),
+              disableNPCs: this.disableNPCs,
+            }),
           maxTimerValue:
             this.maxTimer === true ? this.maxTimerValue : undefined,
         } satisfies Partial<GameConfig>),
@@ -795,7 +790,11 @@ export class HostLobbyModal extends LitElement {
     this.close();
     const config = await getServerConfigFromClient();
     const response = await fetch(
-      `${window.location.origin}/${config.workerPath(this.lobbyId)}/api/start_game/${this.lobbyId}`,
+
+      // Flashist Adaptation
+      // `${window.location.origin}/${config.workerPath(this.lobbyId)}/api/start_game/${this.lobbyId}`,
+      `${(window as any).flashist_windowOrigin}/${config.workerPath(this.lobbyId)}/api/start_game/${this.lobbyId}`,
+
       {
         method: "POST",
         headers: {
@@ -810,7 +809,11 @@ export class HostLobbyModal extends LitElement {
     try {
       //TODO: Convert id to url and copy
       await navigator.clipboard.writeText(
-        `${location.origin}/#join=${this.lobbyId}`,
+
+        // Flashist Adaptation
+        // `${location.origin}/#join=${this.lobbyId}`,
+        `${(window as any).flashist_windowOrigin}/#join=${this.lobbyId}`,
+
       );
       this.copySuccess = true;
       setTimeout(() => {

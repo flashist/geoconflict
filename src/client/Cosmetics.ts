@@ -28,7 +28,11 @@ export async function handlePurchase(
       },
       body: JSON.stringify({
         priceId: pattern.product.priceId,
-        hostname: window.location.origin,
+
+        // Flashist Adaptation
+        // hostname: window.location.origin,
+        hostname: (window as any).flashist_windowOrigin,
+
         colorPaletteName: colorPalette?.name,
       }),
     },
@@ -49,7 +53,10 @@ export async function handlePurchase(
   const { url } = await response.json();
 
   // Redirect to Stripe checkout
-  window.location.href = url;
+
+  // Flashist Adaptation
+  // window.location.href = url;
+  (window as any).flashist_changeHref(url);
 }
 
 export async function fetchCosmetics(): Promise<Cosmetics | null> {

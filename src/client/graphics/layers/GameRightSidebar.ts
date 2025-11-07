@@ -104,7 +104,10 @@ export class GameRightSidebar extends LitElement implements Layer {
       if (!isConfirmed) return;
     }
     // redirect to the home page
-    window.location.href = "/";
+
+    // Flashist Adaptation
+    // window.location.href = "/";
+    (window as any).flashist_changeHref((window as any).flashist_rootPathname);
   }
 
   private onSettingsButtonClick() {
@@ -118,15 +121,13 @@ export class GameRightSidebar extends LitElement implements Layer {
 
     return html`
       <aside
-        class=${`flex flex-col max-h-[calc(100vh-80px)] overflow-y-auto p-2 bg-gray-800/70 backdrop-blur-sm shadow-xs rounded-tl-lg rounded-bl-lg transition-transform duration-300 ease-out transform ${
-          this._isVisible ? "translate-x-0" : "translate-x-full"
-        }`}
+        class=${`flex flex-col max-h-[calc(100vh-80px)] overflow-y-auto p-2 bg-gray-800/70 backdrop-blur-sm shadow-xs rounded-tl-lg rounded-bl-lg transition-transform duration-300 ease-out transform ${this._isVisible ? "translate-x-0" : "translate-x-full"
+      }`}
         @contextmenu=${(e: Event) => e.preventDefault()}
       >
         <div
-          class=${`flex justify-end items-center gap-2 text-white ${
-            this._isReplayVisible ? "mb-2" : ""
-          }`}
+          class=${`flex justify-end items-center gap-2 text-white ${this._isReplayVisible ? "mb-2" : ""
+      }`}
         >
           ${this.maybeRenderReplayButtons()}
           <div
@@ -150,9 +151,9 @@ export class GameRightSidebar extends LitElement implements Layer {
           <div
             class="w-[70px] h-8 lg:w-24 lg:h-10 border border-slate-400 p-0.5 text-xs md:text-sm lg:text-base flex items-center justify-center text-white px-1"
             style="${this.game.config().gameConfig().maxTimerValue !==
-              undefined && this.timer < 60
-              ? "color: #ff8080;"
-              : ""}"
+        undefined && this.timer < 60
+        ? "color: #ff8080;"
+        : ""}"
           >
             ${this.secondsToHms(this.timer)}
           </div>

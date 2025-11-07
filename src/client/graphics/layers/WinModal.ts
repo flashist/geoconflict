@@ -51,8 +51,8 @@ export class WinModal extends LitElement implements Layer {
     return html`
       <div
         class="${this.isVisible
-          ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800/70 p-6 rounded-lg z-[9999] shadow-2xl backdrop-blur-sm text-white w-[350px] max-w-[90%] md:w-[700px] md:max-w-[700px] animate-fadeIn"
-          : "hidden"}"
+        ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-800/70 p-6 rounded-lg z-[9999] shadow-2xl backdrop-blur-sm text-white w-[350px] max-w-[90%] md:w-[700px] md:max-w-[700px] animate-fadeIn"
+        : "hidden"}"
       >
         <h2 class="m-0 mb-4 text-[26px] text-center text-white">
           ${this._title || ""}
@@ -60,8 +60,8 @@ export class WinModal extends LitElement implements Layer {
         ${this.innerHtml()}
         <div
           class="${this.showButtons
-            ? "flex justify-between gap-2.5"
-            : "hidden"}"
+        ? "flex justify-between gap-2.5"
+        : "hidden"}"
         >
           <button
             @click=${this._handleExit}
@@ -74,8 +74,8 @@ export class WinModal extends LitElement implements Layer {
             class="flex-1 px-3 py-3 text-base cursor-pointer bg-blue-500/60 text-white border-0 rounded transition-all duration-200 hover:bg-blue-500/80 hover:-translate-y-px active:translate-y-px"
           >
             ${this.isWin
-              ? translateText("win_modal.keep")
-              : translateText("win_modal.spectate")}
+        ? translateText("win_modal.keep")
+        : translateText("win_modal.spectate")}
           </button>
         </div>
       </div>
@@ -162,17 +162,17 @@ export class WinModal extends LitElement implements Layer {
     this.patternContent = html`
       <div class="flex gap-4 flex-wrap justify-start">
         ${selectedPatterns.map(
-          ({ pattern, colorPalette }) => html`
+      ({ pattern, colorPalette }) => html`
             <pattern-button
               .pattern=${pattern}
               .colorPalette=${colorPalette}
               .requiresPurchase=${true}
-              .onSelect=${(p: Pattern | null) => {}}
+              .onSelect=${(p: Pattern | null) => { }}
               .onPurchase=${(p: Pattern, colorPalette: ColorPalette | null) =>
-                handlePurchase(p, colorPalette)}
+          handlePurchase(p, colorPalette)}
             ></pattern-button>
           `,
-        )}
+    )}
       </div>
     `;
   }
@@ -208,10 +208,13 @@ export class WinModal extends LitElement implements Layer {
 
   private _handleExit() {
     this.hide();
-    window.location.href = "/";
+
+    // Flashist Adaptation
+    // window.location.href = "/";
+    (window as any).flashist_changeHref((window as any).flashist_rootPathname);
   }
 
-  init() {}
+  init() { }
 
   tick() {
     const myPlayer = this.game.myPlayer();
@@ -269,7 +272,7 @@ export class WinModal extends LitElement implements Layer {
     });
   }
 
-  renderLayer(/* context: CanvasRenderingContext2D */) {}
+  renderLayer(/* context: CanvasRenderingContext2D */) { }
 
   shouldTransform(): boolean {
     return false;

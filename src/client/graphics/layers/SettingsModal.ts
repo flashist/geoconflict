@@ -23,7 +23,7 @@ export class ShowSettingsModalEvent {
     public readonly isVisible: boolean = true,
     public readonly shouldPause: boolean = false,
     public readonly isPaused: boolean = false,
-  ) {}
+  ) { }
 }
 
 @customElement("settings-modal")
@@ -153,7 +153,10 @@ export class SettingsModal extends LitElement implements Layer {
 
   private onExitButtonClick() {
     // redirect to the home page
-    window.location.href = "/";
+
+    // Flashist Adaptation
+    // window.location.href = "/";
+    (window as any).flashist_changeHref((window as any).flashist_rootPathname);
   }
 
   private onVolumeChange(event: Event) {
@@ -271,8 +274,8 @@ export class SettingsModal extends LitElement implements Layer {
               </div>
               <div class="text-sm text-slate-400">
                 ${this.alternateView
-                  ? translateText("user_setting.on")
-                  : translateText("user_setting.off")}
+        ? translateText("user_setting.on")
+        : translateText("user_setting.off")}
               </div>
             </button>
 
@@ -291,8 +294,8 @@ export class SettingsModal extends LitElement implements Layer {
               </div>
               <div class="text-sm text-slate-400">
                 ${this.userSettings.emojis()
-                  ? translateText("user_setting.on")
-                  : translateText("user_setting.off")}
+        ? translateText("user_setting.on")
+        : translateText("user_setting.off")}
               </div>
             </button>
 
@@ -316,8 +319,8 @@ export class SettingsModal extends LitElement implements Layer {
               </div>
               <div class="text-sm text-slate-400">
                 ${this.userSettings.darkMode()
-                  ? translateText("user_setting.on")
-                  : translateText("user_setting.off")}
+        ? translateText("user_setting.on")
+        : translateText("user_setting.off")}
               </div>
             </button>
 
@@ -341,8 +344,8 @@ export class SettingsModal extends LitElement implements Layer {
               </div>
               <div class="text-sm text-slate-400">
                 ${this.userSettings.fxLayer()
-                  ? translateText("user_setting.on")
-                  : translateText("user_setting.off")}
+        ? translateText("user_setting.on")
+        : translateText("user_setting.off")}
               </div>
             </button>
 
@@ -366,8 +369,8 @@ export class SettingsModal extends LitElement implements Layer {
               </div>
               <div class="text-sm text-slate-400">
                 ${this.userSettings.structureSprites()
-                  ? translateText("user_setting.on")
-                  : translateText("user_setting.off")}
+        ? translateText("user_setting.on")
+        : translateText("user_setting.off")}
               </div>
             </button>
 
@@ -386,8 +389,8 @@ export class SettingsModal extends LitElement implements Layer {
               </div>
               <div class="text-sm text-slate-400">
                 ${this.userSettings.anonymousNames()
-                  ? translateText("user_setting.on")
-                  : translateText("user_setting.off")}
+        ? translateText("user_setting.on")
+        : translateText("user_setting.off")}
               </div>
             </button>
 
@@ -406,8 +409,8 @@ export class SettingsModal extends LitElement implements Layer {
               </div>
               <div class="text-sm text-slate-400">
                 ${this.userSettings.leftClickOpensMenu()
-                  ? translateText("user_setting.on")
-                  : translateText("user_setting.off")}
+        ? translateText("user_setting.on")
+        : translateText("user_setting.off")}
               </div>
             </button>
 
@@ -431,8 +434,8 @@ export class SettingsModal extends LitElement implements Layer {
               </div>
               <div class="text-sm text-slate-400">
                 ${this.userSettings.performanceOverlay()
-                  ? translateText("user_setting.on")
-                  : translateText("user_setting.off")}
+        ? translateText("user_setting.on")
+        : translateText("user_setting.off")}
               </div>
             </button>
 
