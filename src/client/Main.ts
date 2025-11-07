@@ -1,4 +1,5 @@
 import version from "../../resources/version.txt";
+import { translateText } from "../client/Utils";
 import { UserMeResponse } from "../core/ApiSchemas";
 import { EventBus } from "../core/EventBus";
 import { GameRecord, GameStartInfo, ID } from "../core/Schemas";
@@ -79,6 +80,73 @@ declare global {
   }
 }
 
+// Flashist Adaptation : START
+
+// Flashist Adaptation: Yandex Games Init
+declare let YaGames: any;
+let yaGamesAvailable = false;
+if (typeof YaGames !== 'undefined') {
+  yaGamesAvailable = true;
+}
+let yandexGamesSDK: any;
+const yandexInit = async () => {
+  if (yaGamesAvailable) {
+    await YaGames
+      .init()
+      .then(
+        (sdk) => {
+          console.log("Flashist Adaptation __ Main | yandexInit > then __ sdk: ", sdk);
+
+          yandexGamesSDK = sdk;
+        }
+      )
+  }
+}
+//
+let yandexGamesReadyCallback = () => {
+  console.log("Flashist Adaptation __ yandexGamesReadyCallback | yandexGamesSDK: ", yandexGamesSDK);
+
+  if (yandexGamesSDK) {
+    console.log("Flashist Adaptation __ yandexGamesReadyCallback | ready callback __ BEFORE");
+    yandexGamesSDK.features?.LoadingAPI?.ready();
+    console.log("Flashist Adaptation __ yandexGamesReadyCallback | ready callback __ AFTER");
+  }
+};
+//
+(window as any).showInterstitial = async () => {
+  if (!yandexGamesSDK) {
+    console.log("Flashist Adaptation __ Main | showInterstitial __ ERROR! No yandexGamesSDK: ", yandexGamesSDK);
+    return;
+  }
+
+  return new Promise(
+    (resolve: Function, reject: Function) => {
+      try {
+        console.log("Flashist Adaptation __ Main | showInterstitial __ showFullscreenAdv __ BEFORE");
+        yandexGamesSDK.adv.showFullscreenAdv({
+          callbacks: {
+            onClose: (wasShown) => {
+              console.log("Flashist Adaptation __ Main | showInterstitial __ showFullscreenAdv __ onClose __ wasShown: ", wasShown);
+              // some action after close
+              resolve(wasShown);
+            },
+            onError: (error) => {
+              console.log("Flashist Adaptation __ Main | showInterstitial __ showFullscreenAdv __ onError __ error: ", error);
+              // some action on error
+              reject(error);
+            }
+          }
+        });
+
+      } catch (error) {
+        console.log("Flashist Adaptation __ Main | showInterstitial __ showFullscreenAdv __ catch __ error: ", error);
+        reject(error);
+      }
+    }
+  );
+}
+// Flashist Adaptation: END
+
 export interface JoinLobbyEvent {
   clientID: string;
   // Multiplayer games only have gameID, gameConfig is not known until game starts.
@@ -106,7 +174,7 @@ class Client {
 
   private gutterAds: GutterAds;
 
-  constructor() {}
+  constructor() { }
 
   initialize(): void {
     const gameVersion = document.getElementById(
@@ -116,6 +184,9 @@ class Client {
       console.warn("Game version element not found");
     }
     gameVersion.innerText = version;
+
+    // Flashist Adaptation: showing the name of the game instead of version
+    gameVersion.innerText = translateText("main.title") ?? document.title;
 
     const newsModal = document.querySelector("news-modal") as NewsModal;
     if (!newsModal || !(newsModal instanceof NewsModal)) {
@@ -282,7 +353,7 @@ class Client {
         // Authorized
         console.log(
           `Your player ID is ${userMeResponse.player.publicId}\n` +
-            "Sharing this ID will allow others to view your game history and stats.",
+          "Sharing this ID will allow others to view your game history and stats.",
         );
       }
     };
@@ -613,8 +684,14 @@ class Client {
 }
 
 // Initialize the client when the DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  // Flashist Adaptation
+  await yandexInit();
+
   new Client().initialize();
+
+  // Flashist Adaptation
+  yandexGamesReadyCallback();
 });
 
 // WARNING: DO NOT EXPOSE THIS ID
