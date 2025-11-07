@@ -1,7 +1,9 @@
 import { Howl } from "howler";
-import of4 from "../../../proprietary/sounds/music/of4.mp3";
-import openfront from "../../../proprietary/sounds/music/openfront.mp3";
-import war from "../../../proprietary/sounds/music/war.mp3";
+
+// Flashist Adaptation: disabling music
+// import of4 from "../../../proprietary/sounds/music/of4.mp3";
+// import openfront from "../../../proprietary/sounds/music/openfront.mp3";
+// import war from "../../../proprietary/sounds/music/war.mp3";
 import kaChingSound from "../../../resources/sounds/effects/ka-ching.mp3";
 
 export enum SoundEffect {
@@ -17,24 +19,25 @@ class SoundManager {
 
   constructor() {
     this.backgroundMusic = [
-      new Howl({
-        src: [of4],
-        loop: false,
-        onend: this.playNext.bind(this),
-        volume: 0,
-      }),
-      new Howl({
-        src: [openfront],
-        loop: false,
-        onend: this.playNext.bind(this),
-        volume: 0,
-      }),
-      new Howl({
-        src: [war],
-        loop: false,
-        onend: this.playNext.bind(this),
-        volume: 0,
-      }),
+      // Flashist Adaptation: disabling music
+      // new Howl({
+      //   src: [of4],
+      //   loop: false,
+      //   onend: this.playNext.bind(this),
+      //   volume: 0,
+      // }),
+      // new Howl({
+      //   src: [openfront],
+      //   loop: false,
+      //   onend: this.playNext.bind(this),
+      //   volume: 0,
+      // }),
+      // new Howl({
+      //   src: [war],
+      //   loop: false,
+      //   onend: this.playNext.bind(this),
+      //   volume: 0,
+      // }),
     ];
     this.loadSoundEffect(SoundEffect.KaChing, kaChingSound);
   }
