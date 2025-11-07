@@ -68,7 +68,7 @@ docker run -d \
     --restart="${RESTART}" \
     --env-file "$ENV_FILE" \
     --name "${CONTAINER_NAME}" \
-    -p 80:80 \
+    -p 127.0.0.1:3000:80 \
     "${DOCKER_IMAGE}"
 
 if [ $? -eq 0 ]; then
