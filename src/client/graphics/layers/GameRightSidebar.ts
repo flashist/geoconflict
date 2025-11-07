@@ -95,7 +95,9 @@ export class GameRightSidebar extends LitElement implements Layer {
     this.eventBus.emit(new PauseGameEvent(this.isPaused));
   }
 
-  private onExitButtonClick() {
+  // Flashist Adaptation
+  // private onExitButtonClick() {
+  private async onExitButtonClick() {
     const isAlive = this.game.myPlayer()?.isAlive();
     if (isAlive) {
       const isConfirmed = confirm(
@@ -104,6 +106,9 @@ export class GameRightSidebar extends LitElement implements Layer {
       if (!isConfirmed) return;
     }
     // redirect to the home page
+
+    // Flashist Adaptaiton: interstitial
+    await (window as any).showInterstitial();
 
     // Flashist Adaptation
     // window.location.href = "/";
