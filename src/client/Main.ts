@@ -123,7 +123,7 @@ let yandexGamesReadyCallback = () => {
   }
 
   // TEST
-  console.log("Flashist Adaptation __ yandexGamesReadyCallback __ yandexGamesReadyCallback __ COMPLETE");
+  console.log("Flashist Adaptation __ yandexGamesReadyCallback __ yandexGamesReadyCallback __ COMPLETE _ 2");
 };
 //
 (window as any).showInterstitial = async () => {
