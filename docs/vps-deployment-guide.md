@@ -4,28 +4,24 @@ This project now targets per-environment VPS instances (dev, staging, prod) that
 
 ## 1. Prepare Environment Variables
 
-1. Copy `example.env` to `.env` and fill in global credentials (`SSH_KEY`, `DOCKER_*`, `ADMIN_TOKEN`, `API_KEY`, optional storage/telemetry keys).
-2. For each environment (`DEV`, `STAGING`, `PROD`) provide:
-   - `SERVER_HOST_<ENV>` – SSH hostname or IP of the VPS.
-   - `PUBLIC_HOST_<ENV>` – Public IP/host players will use (defaults to `SERVER_HOST_<ENV>` when omitted).
-   - `PUBLIC_PROTOCOL_<ENV>` – `http` or `https` (defaults to `http`).
-   - `PUBLIC_PORT_<ENV>` – External port (defaults: `80` for http, `443` for https).
-   - `DEPLOYMENT_ID_<ENV>` – Optional identifier used in container naming (defaults to the environment name).
-   - `API_BASE_URL_<ENV>` / `JWT_ISSUER_<ENV>` / `JWT_AUDIENCE_<ENV>` – Override when the game server talks to a separate API host or expects a specific JWT audience.
-3. Optional: `BASIC_AUTH_USER` and `BASIC_AUTH_PASS` enable HTTP basic auth via `--enable_basic_auth` flag.
-
-Environment overrides can live in `.env`, `.env.<env>`, or both. Values set in `.env.<env>` take precedence when deploying that environment.
+1. Copy `example.env` to `.env` and fill in values that are shared across every environment (`SSH_KEY`, `DOCKER_USERNAME`, `DOCKER_TOKEN`, `ADMIN_TOKEN`, `API_KEY`, optional storage/telemetry keys, default `PUBLIC_PROTOCOL`/`PUBLIC_PORT`, etc.).
+2. Create one file per environment (`.env.dev`, `.env.staging`, `.env.prod`). Each file should at minimum define:
+   - `VPS_IP` – SSH hostname or IP of the VPS you are deploying to.
+   - `VPS_LOGIN` / `VPS_PASSWORD` (or rely on `SSH_KEY` from `.env`) – credentials for the user that runs deployments.
+   - `DOCKER_REPO` – image repository/tag suffix for that environment (e.g., `geoconflict-dev`, `geoconflict-prod`).
+   - Optional overrides such as `PUBLIC_HOST`, `PUBLIC_PROTOCOL`, `PUBLIC_PORT`, `DEPLOYMENT_ID`, `API_BASE_URL`, `JWT_ISSUER`, `JWT_AUDIENCE`, `BASIC_AUTH_*`.
+3. Deployment scripts load `.env` first and then `.env.<env>`, so the per-environment file automatically overrides any shared defaults.
 
 ## 2. Provision a VPS
 
-Run the setup helper once per server to install Docker, create the `openfront` user, and configure telemetry:
+Run the setup helper once per server to install Docker, create the `openfront` user, configure telemetry, provision a swap file, **and** set up a host-level Nginx reverse proxy that forwards `:80` to the container on `127.0.0.1:3000`:
 
 ```bash
 scp setup.sh root@<server-ip>:/tmp/setup-openfront.sh
 ssh root@<server-ip> "chmod +x /tmp/setup-openfront.sh && /tmp/setup-openfront.sh"
 ```
 
-Ensure the `openfront` user can log in via SSH with the key referenced by `SSH_KEY`.
+Ensure the `openfront` user can log in via SSH with the key referenced by `SSH_KEY`. After the script finishes, `swapon --show` should list `/swapfile` and `systemctl status nginx` should report a listener on port 80 that proxies to the container.
 
 ## 3. Build & Deploy
 
@@ -71,7 +67,7 @@ If browser testing needs to be delegated, share the public IP, protocol, and any
 
 ## 6. Troubleshooting
 
-- **Wrong API host:** Ensure `API_BASE_URL_<ENV>` or `JWT_ISSUER_<ENV>` points to the correct service. The client falls back to the container’s `PUBLIC_*` values only when runtime overrides are missing.
+- **Wrong API host:** Ensure the per-environment env file sets `API_BASE_URL` / `JWT_ISSUER` (or the legacy `*_ENV` variants) to the correct service. The client falls back to the container’s `PUBLIC_*` values only when runtime overrides are missing.
 - **Cookie domain warnings:** Check that `JWT_AUDIENCE_<ENV>` contains a hostname (without protocol). For IP-only deployments it can be the IP or omitted—the client handles IP-based cookies.
 - **Container not restarting after reboot:** The deploy script defaults to `--restart=always` for `prod` and `--restart=no` otherwise. Adjust logic in `update.sh` if you prefer different semantics.
 

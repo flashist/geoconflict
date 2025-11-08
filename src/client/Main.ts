@@ -121,6 +121,9 @@ let yandexGamesReadyCallback = () => {
     yandexGamesSDK.features?.LoadingAPI?.ready();
     console.log("Flashist Adaptation __ yandexGamesReadyCallback | ready callback __ AFTER");
   }
+
+  // TEST
+  console.log("Flashist Adaptation __ yandexGamesReadyCallback __ yandexGamesReadyCallback __ COMPLETE");
 };
 //
 (window as any).showInterstitial = async () => {

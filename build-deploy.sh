@@ -52,6 +52,7 @@ fi
 
 print_header "STEP 1: BUILD IMAGE"
 ./build.sh "$ENV" "$VERSION_TAG"
+# ./build.sh "$ENV" "$VERSION_TAG" "TEST-DEV-VERSION"
 
 print_header "STEP 2: DEPLOY IMAGE"
 ./deploy.sh "$ENV" "$VERSION_TAG" $ENABLE_BASIC_AUTH

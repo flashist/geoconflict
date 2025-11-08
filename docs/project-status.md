@@ -23,14 +23,12 @@ _Last updated: 2025-11-03_
 |-------------|------------------|----------------------------|-------|
 | dev         | `79.174.91.179`  | `http://79.174.91.179`     | Active. Requires `sshpass` or SSH key for scripted deploys. |
 | staging     | _TBD_            | _TBD_                      | Needs VPS allocation. |
-| prod        | _TBD_            | _TBD_                      | Needs VPS allocation + HTTPS plan. |
+| prod        | `91.197.98.116`  | `http://91.197.98.116`     | Fresh VPS; HTTPS and DNS still pending. |
 
-### Dev Credentials (stored in `.env`)
-- `SSH_USER_DEV` / `DEV_VPS_LOGIN`
-- `SSH_PASS_DEV` / `DEV_VPS_PASSWORD` (or `SSH_KEY`)
-- `DOCKER_USERNAME=flashist`
-- `DOCKER_REPO=geoconflict-dev`
-- `ADMIN_TOKEN`, `API_KEY`, `DOCKER_TOKEN` (set)
+### Environment Credentials
+- `.env` – shared tokens (`DOCKER_USERNAME`, `DOCKER_TOKEN`, `ADMIN_TOKEN`, `API_KEY`, optional storage/telemetry defaults).
+- `.env.dev` – `VPS_IP`, `VPS_LOGIN`, `VPS_PASSWORD`, `DOCKER_REPO=geoconflict-dev`.
+- `.env.prod` – `VPS_IP`, `VPS_LOGIN`, `VPS_PASSWORD`, `DOCKER_REPO=geoconflict-prod`.
 
 ## Worklog & Status
 

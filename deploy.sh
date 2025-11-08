@@ -64,8 +64,11 @@ fi
 
 SERVER_HOST_VAR="SERVER_HOST_${uppercase_env}"
 SERVER_HOST=$(lookup_env_value "$SERVER_HOST_VAR")
+if [ -z "$SERVER_HOST" ] && [ -n "$VPS_IP" ]; then
+    SERVER_HOST="$VPS_IP"
+fi
 if [ -z "$SERVER_HOST" ]; then
-    echo "Error: ${SERVER_HOST_VAR} not defined in environment"
+    echo "Error: Define ${SERVER_HOST_VAR} or set VPS_IP in the ${ENV} env file"
     exit 1
 fi
 
@@ -129,6 +132,10 @@ if [ -z "$REMOTE_USER" ]; then
     REMOTE_USER=$(lookup_env_value "$FALLBACK_USER_VAR")
 fi
 
+if [ -z "$REMOTE_USER" ] && [ -n "$VPS_LOGIN" ]; then
+    REMOTE_USER="$VPS_LOGIN"
+fi
+
 if [ -z "$REMOTE_USER" ]; then
     REMOTE_USER="openfront"
 fi
@@ -147,6 +154,10 @@ SSH_PASSWORD=$(lookup_env_value "$SSH_PASS_VAR")
 if [ -z "$SSH_PASSWORD" ]; then
     FALLBACK_PASS_VAR="${uppercase_env}_VPS_PASSWORD"
     SSH_PASSWORD=$(lookup_env_value "$FALLBACK_PASS_VAR")
+fi
+
+if [ -z "$SSH_PASSWORD" ] && [ -n "$VPS_PASSWORD" ]; then
+    SSH_PASSWORD="$VPS_PASSWORD"
 fi
 
 if [ -z "$SSH_KEY_PATH" ] && [ -z "$SSH_PASSWORD" ]; then

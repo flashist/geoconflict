@@ -150,6 +150,69 @@ else
     exit 1
 fi
 
+# ----------------------------------------------------------
+# Swap file (prevents OOM-killing sshd during spikes)
+# ----------------------------------------------------------
+SWAP_SIZE="${SETUP_SWAP_SIZE:-4G}"
+if ! swapon --show | grep -q "/swapfile"; then
+    echo "🧠 Creating ${SWAP_SIZE} swap file..."
+    fallocate -l "$SWAP_SIZE" /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=$(( ${SWAP_SIZE%G} * 1024 ))
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    if ! grep -q "/swapfile" /etc/fstab; then
+        echo "/swapfile none swap sw 0 0" >> /etc/fstab
+    fi
+    sysctl -w vm.swappiness=20 >/dev/null
+    sysctl -w vm.vfs_cache_pressure=50 >/dev/null
+    echo "✅ Swap enabled"
+else
+    echo "Swap file already present"
+fi
+
+# ----------------------------------------------------------
+# Host-level reverse proxy (Nginx) for 0.0.0.0:80 -> 127.0.0.1:3000
+# ----------------------------------------------------------
+echo "🌐 Installing and configuring host Nginx reverse proxy..."
+apt-get install -y nginx >/dev/null
+
+PUBLIC_HOST_VALUE="${PUBLIC_HOST:-${SERVER_HOST_PROD:-${SERVER_HOST_DEV:-$VPS_IP}}}"
+if [ -z "$PUBLIC_HOST_VALUE" ]; then
+    PUBLIC_HOST_VALUE="$HOSTNAME"
+fi
+
+NGINX_HOST_CONF="/etc/nginx/sites-available/geoconflict"
+cat > "$NGINX_HOST_CONF" <<EOF
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name ${PUBLIC_HOST_VALUE} _;
+
+    # Allow ACME HTTP-01 challenges (Certbot)
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        allow all;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+EOF
+
+ln -sf "$NGINX_HOST_CONF" /etc/nginx/sites-enabled/geoconflict
+mkdir -p /var/www/certbot
+systemctl enable nginx >/dev/null
+systemctl restart nginx
+echo "✅ Host Nginx is proxying 0.0.0.0:80 -> 127.0.0.1:3000"
+
 echo "====================================================="
 echo "🎉 SETUP COMPLETE!"
 echo "====================================================="
