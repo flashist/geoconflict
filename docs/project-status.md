@@ -16,6 +16,7 @@ _Last updated: 2025-11-03_
 - Build scripts (`build.sh`) push multi-arch images to Docker Hub.
 - Deploy scripts (`deploy.sh`, `update.sh`) upload env files to the VPS and restart containers.
 - Environment configuration stored in `.env` / `.env.<env>` (ignored by git). Dev VPS details are already populated.
+- `setup.sh` installs Docker, telemetry sidecars, provisions a swap file, and configures host-level Nginx to proxy `:80` to the container on `127.0.0.1:3000`.
 - HTTP served directly from the container (port 80). HTTPS/TLS pending.
 
 ## Environments

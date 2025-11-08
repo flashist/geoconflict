@@ -29,10 +29,10 @@
 3. **Docker Image Simplification**
    - Delete `cloudflared` installation and volume setup from the Dockerfile.
    - Ensure startup scripts and supervisor config still run Node + Nginx without tunnel prerequisites.
-4. **Deployment Script Updates**
+4. **Deployment Script & Setup Updates**
    - Simplify `build.sh`, `deploy.sh`, `update.sh` to drop tunnel credentials and subdomain requirement.
    - Introduce per-environment IP awareness (e.g., `SERVER_HOST_PROD_IP`) and container naming tied to environment.
-   - Validate `setup.sh` no longer tunes kernel parameters solely for Cloudflare.
+   - Extend `setup.sh` to provision Docker, telemetry, swap, and host-level Nginx that proxies 0.0.0.0:80 to the container.
 5. **Client & Server URL Handling**
    - Update client helpers (`jwt.ts`) to correctly detect IP-based hosts and respect configurable API origins.
    - Revisit cookie domain handling to accommodate IP-based deployments.
@@ -48,4 +48,3 @@
 - HTTPS termination strategy per VPS (self-signed vs. managed certs) still to be defined; plan assumes HTTP or pre-provisioned TLS.
 - Replacement for Cloudflare R2 depends on available infrastructure; defaulting to optional S3-compatible configuration unless otherwise specified.
 - OTP/telemetry endpoints remain unchanged; revisit if they used Cloudflare-specific networking.
-

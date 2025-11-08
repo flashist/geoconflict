@@ -114,6 +114,10 @@ npm run dev:remote
 This command only launches the webpack dev server and proxies WebSocket/API calls to the remote dev VPS.
 The remote origin is resolved from `DEV_REMOTE_ORIGIN` (if set) or from the `PUBLIC_PROTOCOL_DEV`, `PUBLIC_HOST_DEV`, and `PUBLIC_PORT_DEV` entries in your `.env`. Set `API_BASE_URL_DEV` when the API is exposed on a different port.
 
+### Environment files
+
+Environment variables are layered: copy `example.env` to `.env` for shared defaults (Docker credentials, tokens, optional VPS fallbacks) and create one file per target (e.g., `.env.dev`, `.env.prod`). Each `.env.<env>` must define `VPS_IP`, `VPS_LOGIN`, `VPS_PASSWORD`, `DOCKER_REPO`, and any public host/API/JWT overrides. The deploy scripts source `.env` first and then `.env.<env>`, so the per-environment file always wins.
+
 ## 🛠️ Development Tools
 
 - **Format code**:
