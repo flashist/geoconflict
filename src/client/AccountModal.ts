@@ -19,6 +19,7 @@ import {
   logOut,
 } from "./jwt";
 import { isInIframe, translateText } from "./Utils";
+import { FlashistFacade } from "./FlashistFacade";
 
 @customElement("account-modal")
 export class AccountModal extends LitElement {
@@ -249,7 +250,7 @@ export class AccountModal extends LitElement {
         body: JSON.stringify({
           // Flashist Adaptation
           // redirectDomain: window.location.origin,
-          redirectDomain: (window as any).flashist_windowOrigin,
+          redirectDomain: FlashistFacade.instance.windowOrigin,
 
           email: this.email,
         }),

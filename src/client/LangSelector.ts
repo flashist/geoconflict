@@ -34,6 +34,7 @@ import tp from "../../resources/lang/tp.json";
 import tr from "../../resources/lang/tr.json";
 import uk from "../../resources/lang/uk.json";
 import zh_CN from "../../resources/lang/zh-CN.json";
+import { FlashistFacade } from "./FlashistFacade";
 
 @customElement("lang-selector")
 export class LangSelector extends LitElement {
@@ -88,6 +89,7 @@ export class LangSelector extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.setupDebugKey();
+
     this.initializeLanguage();
   }
 
@@ -117,7 +119,16 @@ export class LangSelector extends LitElement {
   }
 
   private async initializeLanguage() {
-    const browserLocale = navigator.language;
+    // Flashist Adaptation: localization
+    // const browserLocale = navigator.language;
+    let browserLocale = navigator.language;
+    //
+    let yandexSdkLangCode = await FlashistFacade.instance.getLanguageCode();
+    if (yandexSdkLangCode) {
+      browserLocale = yandexSdkLangCode;
+    }
+    //
+
     const savedLang = localStorage.getItem("lang");
     const userLang = this.getClosestSupportedLang(savedLang ?? browserLocale);
 
@@ -284,16 +295,16 @@ export class LangSelector extends LitElement {
       this.languageList.find((l) => l.code === this.currentLang) ??
       (this.currentLang === "debug"
         ? {
-            code: "debug",
-            native: "Debug",
-            en: "Debug",
-            svg: "xx",
-          }
+          code: "debug",
+          native: "Debug",
+          en: "Debug",
+          svg: "xx",
+        }
         : {
-            native: "English",
-            en: "English",
-            svg: "uk_us_flag",
-          });
+          native: "English",
+          en: "English",
+          svg: "uk_us_flag",
+        });
 
     return html`
       <div class="container__row">
@@ -317,7 +328,7 @@ export class LangSelector extends LitElement {
         .languageList=${this.languageList}
         .currentLang=${this.currentLang}
         @language-selected=${(e: CustomEvent) =>
-          this.changeLanguage(e.detail.lang)}
+        this.changeLanguage(e.detail.lang)}
         @close-modal=${() => (this.showModal = false)}
       ></language-modal>
     `;

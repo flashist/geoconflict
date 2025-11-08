@@ -13,6 +13,7 @@ import { DarkModeButton } from "./DarkModeButton";
 import "./FlagInput";
 import { FlagInput } from "./FlagInput";
 import { FlagInputModal } from "./FlagInputModal";
+import { flashist_getLangSelector, FlashistFacade } from "./FlashistFacade";
 import { GameStartingModal } from "./GameStartingModal";
 import "./GoogleAdElement";
 import { GutterAds } from "./GutterAds";
@@ -80,86 +81,6 @@ declare global {
   }
 }
 
-// Flashist Adaptation : START
-
-// CONSTANTS
-(window as any).flashist_windowOrigin = window.location.origin + window.location.pathname;
-(window as any).flashist_rootPathname = window.location.pathname;
-
-// Single place for working with URLS
-(window as any).flashist_changeHref = (value) => {
-  // window.location.href = value;
-  window.location.href = value;
-}
-
-// Flashist Adaptation: Yandex Games Init
-declare let YaGames: any;
-let yaGamesAvailable = false;
-if (typeof YaGames !== 'undefined') {
-  yaGamesAvailable = true;
-}
-let yandexGamesSDK: any;
-const yandexInit = async () => {
-  if (yaGamesAvailable) {
-    await YaGames
-      .init()
-      .then(
-        (sdk) => {
-          console.log("Flashist Adaptation __ Main | yandexInit > then __ sdk: ", sdk);
-
-          yandexGamesSDK = sdk;
-        }
-      )
-  }
-}
-//
-let yandexGamesReadyCallback = () => {
-  console.log("Flashist Adaptation __ yandexGamesReadyCallback | yandexGamesSDK: ", yandexGamesSDK);
-
-  if (yandexGamesSDK) {
-    console.log("Flashist Adaptation __ yandexGamesReadyCallback | ready callback __ BEFORE");
-    yandexGamesSDK.features?.LoadingAPI?.ready();
-    console.log("Flashist Adaptation __ yandexGamesReadyCallback | ready callback __ AFTER");
-  }
-
-  // TEST
-  console.log("Flashist Adaptation __ yandexGamesReadyCallback __ yandexGamesReadyCallback __ COMPLETE _ 2");
-};
-//
-(window as any).showInterstitial = async () => {
-  if (!yandexGamesSDK) {
-    console.log("Flashist Adaptation __ Main | showInterstitial __ ERROR! No yandexGamesSDK: ", yandexGamesSDK);
-    return;
-  }
-
-  return new Promise(
-    (resolve: Function, reject: Function) => {
-      try {
-        console.log("Flashist Adaptation __ Main | showInterstitial __ showFullscreenAdv __ BEFORE");
-        yandexGamesSDK.adv.showFullscreenAdv({
-          callbacks: {
-            onClose: (wasShown) => {
-              console.log("Flashist Adaptation __ Main | showInterstitial __ showFullscreenAdv __ onClose __ wasShown: ", wasShown);
-              // some action after close
-              resolve(wasShown);
-            },
-            onError: (error) => {
-              console.log("Flashist Adaptation __ Main | showInterstitial __ showFullscreenAdv __ onError __ error: ", error);
-              // some action on error
-              reject(error);
-            }
-          }
-        });
-
-      } catch (error) {
-        console.log("Flashist Adaptation __ Main | showInterstitial __ showFullscreenAdv __ catch __ error: ", error);
-        reject(error);
-      }
-    }
-  );
-}
-// Flashist Adaptation: END
-
 export interface JoinLobbyEvent {
   clientID: string;
   // Multiplayer games only have gameID, gameConfig is not known until game starts.
@@ -215,9 +136,12 @@ class Client {
     // Comment out to show news button.
     // newsButton.hidden = true;
 
-    const langSelector = document.querySelector(
-      "lang-selector",
-    ) as LangSelector;
+    // Flashist Adaptation
+    // const langSelector = document.querySelector(
+    //   "lang-selector",
+    // ) as LangSelector;
+    const langSelector = flashist_getLangSelector();
+
     const languageModal = document.querySelector(
       "language-modal",
     ) as LanguageModal;
@@ -555,7 +479,7 @@ class Client {
 
       // Flashist Adaptation
       // window.location.href = "/";
-      (window as any).flashist_changeHref((window as any).flashist_rootPathname);
+      FlashistFacade.instance.changeHref(FlashistFacade.instance.rootPathname);
     }
   }
 
@@ -652,7 +576,7 @@ class Client {
 
           // Flashist Adaptation
           // history.pushState(null, "", window.location.origin + "#refresh");
-          history.pushState(null, "", (window as any).flashist_windowOrigin + "#refresh");
+          history.pushState(null, "", FlashistFacade.instance.windowOrigin + "#refresh");
 
         }
         history.pushState(null, "", `#join=${lobby.gameID}`);
@@ -705,13 +629,11 @@ class Client {
 
 // Initialize the client when the DOM is loaded
 document.addEventListener("DOMContentLoaded", async () => {
-  // Flashist Adaptation
-  await yandexInit();
-
   new Client().initialize();
 
   // Flashist Adaptation
-  yandexGamesReadyCallback();
+  await FlashistFacade.instance.yandexInitPromise;
+  FlashistFacade.instance.yandexGamesReadyCallback();
 });
 
 // WARNING: DO NOT EXPOSE THIS ID

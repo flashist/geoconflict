@@ -17,6 +17,7 @@ import { PauseGameEvent } from "../../Transport";
 import { translateText } from "../../Utils";
 import SoundManager from "../../sound/SoundManager";
 import { Layer } from "./Layer";
+import { FlashistFacade } from "../../FlashistFacade";
 
 export class ShowSettingsModalEvent {
   constructor(
@@ -156,7 +157,7 @@ export class SettingsModal extends LitElement implements Layer {
 
     // Flashist Adaptation
     // window.location.href = "/";
-    (window as any).flashist_changeHref((window as any).flashist_rootPathname);
+    FlashistFacade.instance.changeHref(FlashistFacade.instance.rootPathname);
   }
 
   private onVolumeChange(event: Event) {

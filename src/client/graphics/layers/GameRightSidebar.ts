@@ -15,6 +15,7 @@ import { translateText } from "../../Utils";
 import { Layer } from "./Layer";
 import { ShowReplayPanelEvent } from "./ReplayPanel";
 import { ShowSettingsModalEvent } from "./SettingsModal";
+import { FlashistFacade } from "../../FlashistFacade";
 
 @customElement("game-right-sidebar")
 export class GameRightSidebar extends LitElement implements Layer {
@@ -108,11 +109,11 @@ export class GameRightSidebar extends LitElement implements Layer {
     // redirect to the home page
 
     // Flashist Adaptaiton: interstitial
-    await (window as any).showInterstitial();
+    await FlashistFacade.instance.showInterstitial();
 
     // Flashist Adaptation
     // window.location.href = "/";
-    (window as any).flashist_changeHref((window as any).flashist_rootPathname);
+    FlashistFacade.instance.changeHref(FlashistFacade.instance.rootPathname);
   }
 
   private onSettingsButtonClick() {

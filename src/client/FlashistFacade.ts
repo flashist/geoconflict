@@ -1,0 +1,145 @@
+import { LitElement } from "lit";
+import { LangSelector } from "./LangSelector";
+
+// declare let YaGames: any;
+
+export class FlashistFacade {
+
+    private static _instance: FlashistFacade;
+    public static get instance(): FlashistFacade {
+        if (!FlashistFacade._instance) {
+            FlashistFacade._instance = new FlashistFacade();
+        }
+
+        return FlashistFacade._instance;
+    }
+
+    // CONSTANTS
+    public windowOrigin: string = window.location.origin + window.location.pathname;
+    public rootPathname: string = window.location.pathname;
+
+    public yaGamesAvailable: boolean = false;
+
+    public yandexGamesSDK: any;
+
+    constructor() {
+        if (typeof (window as any).YaGames !== 'undefined') {
+            this.yaGamesAvailable = true;
+        }
+
+        this.yandexInitPromise = this.yandexSdkInit();
+    }
+
+    // Single place for working with URLS
+    public changeHref(value) {
+        // window.location.href = value;
+        window.location.href = value;
+    }
+
+    public yandexInitPromise: Promise<any>;
+    private async yandexSdkInit() {
+        if (this.yaGamesAvailable) {
+            await (window as any).YaGames
+                .init()
+                .then(
+                    (sdk) => {
+                        console.log("FlashistFacade | Main | yandexInit > then __ sdk: ", sdk);
+
+                        this.yandexGamesSDK = sdk;
+                    }
+                )
+        }
+    }
+
+    public yandexGamesReadyCallback() {
+        console.log("FlashistFacade | yandexGamesReadyCallback | yandexGamesSDK: ", this.yandexGamesSDK);
+
+        if (this.yandexGamesSDK) {
+            console.log("FlashistFacade | yandexGamesReadyCallback | ready callback __ BEFORE");
+            this.yandexGamesSDK.features?.LoadingAPI?.ready();
+            console.log("FlashistFacade | yandexGamesReadyCallback | ready callback __ AFTER");
+        }
+
+        // TEST
+        console.log("FlashistFacade | yandexGamesReadyCallback __ yandexGamesReadyCallback __ COMPLETE _ 2");
+    };
+
+    public async showInterstitial() {
+        if (!this.yandexGamesSDK) {
+            console.log("FlashistFacade | Main | showInterstitial __ ERROR! No yandexGamesSDK: ", this.yandexGamesSDK);
+            return;
+        }
+
+        return new Promise(
+            (resolve: Function, reject: Function) => {
+                try {
+                    console.log("FlashistFacade | Main | showInterstitial __ showFullscreenAdv __ BEFORE");
+                    this.yandexGamesSDK.adv.showFullscreenAdv({
+                        callbacks: {
+                            onClose: (wasShown) => {
+                                console.log("FlashistFacade | Main | showInterstitial __ showFullscreenAdv __ onClose __ wasShown: ", wasShown);
+                                // some action after close
+                                resolve(wasShown);
+                            },
+                            onError: (error) => {
+                                console.log("FlashistFacade | Main | showInterstitial __ showFullscreenAdv __ onError __ error: ", error);
+                                // some action on error
+                                reject(error);
+                            }
+                        }
+                    });
+
+                } catch (error) {
+                    console.log("FlashistFacade | Main | showInterstitial __ showFullscreenAdv __ catch __ error: ", error);
+                    reject(error);
+                }
+            }
+        );
+    }
+
+    public async getLanguageCode(): Promise<string> {
+
+        // Waiting for the init to complete first
+        await this.yandexInitPromise;
+
+        let result: string = "";
+
+        if (this.yandexGamesSDK) {
+            console.log("FlashistFacade | Main | getLanguageCode __ yandexGamesSDK?.sdk?.environment?.i18n?.lang: ", this.yandexGamesSDK?.sdk?.environment?.i18n?.lang);
+            let tempLocale = "";
+            if (this.yandexGamesSDK?.sdk?.environment?.i18n?.lang) {
+                tempLocale = this.yandexGamesSDK.sdk.environment.i18n.lang;
+            }
+
+            const supportedLocales = {
+                // English
+                "default": "en",
+
+                // Russian
+                "ru": "ru",
+                "be": "ru",
+                "kk": "ru",
+                "uk": "ru",
+                "uz": "ru"
+            };
+            if (supportedLocales[tempLocale]) {
+                result = supportedLocales[tempLocale];
+            } else {
+                result = supportedLocales.default;
+            }
+
+        } else {
+            console.log("FlashistFacade | Main | getLanguageCode __ ERROR! No yandexGamesSDK: ", this.yandexGamesSDK);
+        }
+
+        return result;
+    }
+}
+
+export const flashist_getLangSelector = (): LangSelector => {
+    let result: LangSelector = document.querySelector(
+        "lang-selector",
+    ) as LangSelector;
+
+    return result;
+}

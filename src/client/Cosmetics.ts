@@ -5,6 +5,7 @@ import {
   CosmeticsSchema,
   Pattern,
 } from "../core/CosmeticSchemas";
+import { FlashistFacade } from "./FlashistFacade";
 import { getApiBase, getAuthHeader } from "./jwt";
 import { getPersistentID } from "./Main";
 
@@ -31,7 +32,7 @@ export async function handlePurchase(
 
         // Flashist Adaptation
         // hostname: window.location.origin,
-        hostname: (window as any).flashist_windowOrigin,
+        hostname: FlashistFacade.instance.windowOrigin,
 
         colorPaletteName: colorPalette?.name,
       }),
@@ -56,7 +57,7 @@ export async function handlePurchase(
 
   // Flashist Adaptation
   // window.location.href = url;
-  (window as any).flashist_changeHref(url);
+  FlashistFacade.instance.changeHref(url);
 }
 
 export async function fetchCosmetics(): Promise<Cosmetics | null> {

@@ -28,6 +28,7 @@ import "./components/Difficulties";
 import "./components/Maps";
 import { JoinLobbyEvent } from "./Main";
 import { renderUnitTypeOptions } from "./utilities/RenderUnitTypeOptions";
+import { FlashistFacade } from "./FlashistFacade";
 
 @customElement("host-lobby-modal")
 export class HostLobbyModal extends LitElement {
@@ -725,7 +726,7 @@ export class HostLobbyModal extends LitElement {
 
       // Flashist Adaptation
       // `${window.location.origin}/${config.workerPath(this.lobbyId)}/api/game/${this.lobbyId}`,
-      `${(window as any).flashist_windowOrigin}/${config.workerPath(this.lobbyId)}/api/game/${this.lobbyId}`,
+      `${FlashistFacade.instance.windowOrigin}/${config.workerPath(this.lobbyId)}/api/game/${this.lobbyId}`,
 
       {
         method: "PUT",
@@ -793,7 +794,7 @@ export class HostLobbyModal extends LitElement {
 
       // Flashist Adaptation
       // `${window.location.origin}/${config.workerPath(this.lobbyId)}/api/start_game/${this.lobbyId}`,
-      `${(window as any).flashist_windowOrigin}/${config.workerPath(this.lobbyId)}/api/start_game/${this.lobbyId}`,
+      `${FlashistFacade.instance.windowOrigin}/${config.workerPath(this.lobbyId)}/api/start_game/${this.lobbyId}`,
 
       {
         method: "POST",
@@ -812,7 +813,7 @@ export class HostLobbyModal extends LitElement {
 
         // Flashist Adaptation
         // `${location.origin}/#join=${this.lobbyId}`,
-        `${(window as any).flashist_windowOrigin}/#join=${this.lobbyId}`,
+        `${FlashistFacade.instance.windowOrigin}/#join=${this.lobbyId}`,
 
       );
       this.copySuccess = true;

@@ -298,6 +298,21 @@ export default async (env, argv) => {
           }
           : false,
       }),
+      new HtmlWebpackPlugin({
+        template: "./src/client/yandex-games_iframe-parent.html",
+        filename: "yandex-games_iframe-parent.html",
+        // Add optimization for HTML
+        minify: isProduction
+          ? {
+            collapseWhitespace: true,
+            removeComments: true,
+            removeRedundantAttributes: true,
+            removeScriptTypeAttributes: true,
+            removeStyleLinkTypeAttributes: true,
+            useShortDoctype: true,
+          }
+          : false,
+      }),
 
       new webpack.DefinePlugin({
         "process.env.WEBSOCKET_URL": JSON.stringify(
