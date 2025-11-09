@@ -1,5 +1,7 @@
 <!doctype html>
-<html lang="en" class="h-full" translate="no">
+<!-- <html lang="en" class="fh-full" translate="no"> -->
+<html lang="en" class="fh-full noscroll noselect preload" oncontextmenu="return false;" translate="no">
+<!-- <html lang="en" class="noselect noscroll" oncontextmenu="return false;" translate="no"> -->
 
 <head>
   <meta charset="UTF-8" />
@@ -11,6 +13,29 @@
   <!-- Flashist Adaptation: Yandex Games (iframe) -->
   <!-- Yandex Games SDK -->
   <script src="https://sdk.games.s3.yandex.net/sdk.js"></script>
+
+  <!-- Flashist Adaptation -->
+  <style>
+    .noselect {
+      -webkit-touch-callout: none;
+      /* iOS Safari */
+      -webkit-user-select: none;
+      /* Safari */
+      -khtml-user-select: none;
+      /* Konqueror HTML */
+      -moz-user-select: none;
+      /* Old versions of Firefox */
+      -ms-user-select: none;
+      /* Internet Explorer/Edge */
+      user-select: none;
+      /* Non-prefixed version, currently
+								supported by Chrome, Edge, Opera and Firefox */
+    }
+
+    .noscroll {
+      overflow: hidden;
+    }
+  </style>
 
   <!-- SEO -->
   <link rel="canonical" href="https://geoconflict.ru/" />
@@ -85,7 +110,7 @@
 
   <!-- Immediate execution to prevent FOUC -->
   <script>
-    document.documentElement.className = "preload";
+    // document.documentElement.className = "preload";
   </script>
 
 
