@@ -105,10 +105,10 @@ export class FlashistFacade {
         let result: string = "";
 
         if (this.yandexGamesSDK) {
-            console.log("FlashistFacade | Main | getLanguageCode __ yandexGamesSDK?.sdk?.environment?.i18n?.lang: ", this.yandexGamesSDK?.sdk?.environment?.i18n?.lang);
+            console.log("FlashistFacade | Main | getLanguageCode __ this.yandexGamesSDK?.environment?.i18n?.lang: ", this.yandexGamesSDK?.environment?.i18n?.lang);
             let tempLocale = "";
-            if (this.yandexGamesSDK?.sdk?.environment?.i18n?.lang) {
-                tempLocale = this.yandexGamesSDK.sdk.environment.i18n.lang;
+            if (this.yandexGamesSDK?.environment?.i18n?.lang) {
+                tempLocale = this.yandexGamesSDK.environment.i18n.lang;
             }
 
             const supportedLocales = {

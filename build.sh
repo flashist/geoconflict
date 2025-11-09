@@ -40,6 +40,11 @@ print_header() {
     echo "======================================================"
 }
 
+# Ensure BuildKit prints detailed progress (can be overridden)
+export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-1}"
+export BUILDKIT_PROGRESS="${DOCKER_BUILD_PROGRESS:-plain}"
+BUILD_PROGRESS_MODE="${BUILDKIT_PROGRESS}"
+
 # Load common environment variables first
 if [ -f .env ]; then
     echo "Loading common configuration from .env file..."
@@ -86,6 +91,7 @@ docker buildx build \
     --build-arg GIT_COMMIT=$GIT_COMMIT \
     --metadata-file $METADATA_FILE \
     -t $DOCKER_IMAGE \
+    --progress="${BUILD_PROGRESS_MODE}" \
     --push \
     .
 
