@@ -399,8 +399,15 @@
   <script>
     // Remove preload class after everything is loaded
     window.addEventListener("load", function () {
-      requestAnimationFrame(() => {
+
+      // Flashist Adaptation
+      // requestAnimationFrame(() => {
+      requestAnimationFrame(async () => {
         document.documentElement.classList.remove("preload");
+
+        // // Flashist Adaptation
+        await window.FlashistFacade.instance.yandexInitPromise;
+        window.FlashistFacade.instance.yandexGamesReadyCallback();
       });
     });
   </script>

@@ -143,3 +143,5 @@ export const flashist_getLangSelector = (): LangSelector => {
 
     return result;
 }
+
+(window as any).FlashistFacade = FlashistFacade;

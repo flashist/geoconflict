@@ -631,9 +631,9 @@ class Client {
 document.addEventListener("DOMContentLoaded", async () => {
   new Client().initialize();
 
-  // Flashist Adaptation
-  await FlashistFacade.instance.yandexInitPromise;
-  FlashistFacade.instance.yandexGamesReadyCallback();
+  // // Flashist Adaptation
+  // await FlashistFacade.instance.yandexInitPromise;
+  // FlashistFacade.instance.yandexGamesReadyCallback();
 });
 
 // WARNING: DO NOT EXPOSE THIS ID
