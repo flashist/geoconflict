@@ -101,9 +101,10 @@ export class WinModal extends LitElement implements Layer {
   }
 
   innerHtml() {
-    if (isInIframe() || this.rand < 0.25) {
-      return this.steamWishlist();
-    }
+    // Flashist Adaptation: removing the steam wishlist link
+    // if (isInIframe() || this.rand < 0.25) {
+    //   return this.steamWishlist();
+    // }
     return this.renderPatternButton();
   }
 
@@ -179,16 +180,18 @@ export class WinModal extends LitElement implements Layer {
   }
 
   steamWishlist(): TemplateResult {
-    return html`<p class="m-0 mb-5 text-center bg-black/30 p-2.5 rounded">
-      <a
-        href="https://store.steampowered.com/app/3560670"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-[#4a9eff] underline font-medium transition-colors duration-200 text-2xl hover:text-[#6db3ff]"
-      >
-        ${translateText("win_modal.wishlist")}
-      </a>
-    </p>`;
+    // Flashist Adaptation: disabling even a possibility of shwing the steam text anywhere in the game
+    return html``;
+    // return html`<p class="m-0 mb-5 text-center bg-black/30 p-2.5 rounded">
+    //   <a
+    //     href="https://store.steampowered.com/app/3560670"
+    //     target="_blank"
+    //     rel="noopener noreferrer"
+    //     class="text-[#4a9eff] underline font-medium transition-colors duration-200 text-2xl hover:text-[#6db3ff]"
+    //   >
+    //     ${translateText("win_modal.wishlist")}
+    //   </a>
+    // </p>`;
   }
 
   async show() {
