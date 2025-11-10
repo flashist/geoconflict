@@ -579,7 +579,9 @@ class Client {
           history.pushState(null, "", FlashistFacade.instance.windowOrigin + "#refresh");
 
         }
-        history.pushState(null, "", `#join=${lobby.gameID}`);
+
+        // Flashist Adaptation: disabling the #join URL, cuz it's not clear how to handle it for now at Yandex Games
+        // history.pushState(null, "", `#join=${lobby.gameID}`);
       },
     );
   }

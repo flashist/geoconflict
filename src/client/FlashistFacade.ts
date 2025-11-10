@@ -65,6 +65,8 @@ export class FlashistFacade {
     };
 
     public async showInterstitial() {
+        console.log("FlashistFacade | Main | showInterstitial");
+
         if (!this.yandexGamesSDK) {
             console.log("FlashistFacade | Main | showInterstitial __ ERROR! No yandexGamesSDK: ", this.yandexGamesSDK);
             return;

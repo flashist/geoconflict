@@ -780,6 +780,10 @@ export class HostLobbyModal extends LitElement {
   }
 
   private async startGame() {
+
+    // Flashist Adaptation: interstitial adv
+    await FlashistFacade.instance.showInterstitial();
+
     if (this.useRandomMap) {
       this.selectedMap = this.getRandomMap();
     }
