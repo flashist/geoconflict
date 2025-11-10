@@ -1,6 +1,7 @@
 <!doctype html>
 <!-- <html lang="en" class="fh-full" translate="no"> -->
-<html lang="en" class="fh-full noscroll noselect preload" oncontextmenu="return false;" translate="no">
+<!-- <html lang="en" class="fh-full noscroll noselect preload" oncontextmenu="return false;" translate="no"> -->
+<html lang="en" class="fh-full noscroll noselect flashist-preload-image" oncontextmenu="return false;" translate="no">
 <!-- <html lang="en" class="noselect noscroll" oncontextmenu="return false;" translate="no"> -->
 
 <head>
@@ -58,6 +59,18 @@
 
   <!-- Critical CSS to prevent FOUC -->
   <style>
+    /* Flashist Adaptation */
+    .flashist-preload {
+      visibility: hidden;
+      /* opacity: 0; */
+    }
+
+    .flashist-preload-image {
+      background: url("/images/Loading_Icon.gif");
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
     .preload * {
       -webkit-transition: none !important;
       -moz-transition: none !important;
@@ -110,6 +123,7 @@
 
   <!-- Immediate execution to prevent FOUC -->
   <script>
+    // Flashist Adaptation: the class preload is already added to the needed HTML elements
     // document.documentElement.className = "preload";
   </script>
 
@@ -159,8 +173,11 @@
 
 </head>
 
-<body
-  class="h-full select-none font-sans min-h-screen bg-opacity-0 bg-cover bg-center bg-fixed transition-opacity duration-300 ease-in-out flex flex-col">
+<!-- Flashist Adaptation -->
+<!-- <body class="h-full select-none font-sans min-h-screen bg-opacity-0 bg-cover bg-center bg-fixed transition-opacity duration-300 ease-in-out flex flex-col"> -->
+
+<body class="h-full select-none font-sans min-h-screen bg-opacity-0 bg-cover bg-center bg-fixed transition-opacity duration-300 ease-in-out flex flex-col
+  flashist-preload">
 
 
   <!-- Yandex Games SDK -->
@@ -403,7 +420,11 @@
       // Flashist Adaptation
       // requestAnimationFrame(() => {
       requestAnimationFrame(async () => {
-        document.documentElement.classList.remove("preload");
+
+        // Flashist Adaptation
+        // document.documentElement.classList.remove("preload");
+        // document.body.classList.remove("preload");
+        document.body.classList.remove("flashist-preload");
 
         // Flashist Adaptation
         await window.FlashistFacade.instance.yandexInitPromise;

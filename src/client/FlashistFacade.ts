@@ -86,14 +86,16 @@ export class FlashistFacade {
                             onError: (error) => {
                                 console.log("FlashistFacade | Main | showInterstitial __ showFullscreenAdv __ onError __ error: ", error);
                                 // some action on error
-                                reject(error);
+                                // reject(error);
+                                resolve(false);
                             }
                         }
                     });
 
                 } catch (error) {
                     console.log("FlashistFacade | Main | showInterstitial __ showFullscreenAdv __ catch __ error: ", error);
-                    reject(error);
+                    // reject(error);
+                    resolve(false);
                 }
             }
         );
