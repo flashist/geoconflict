@@ -405,7 +405,7 @@
       requestAnimationFrame(async () => {
         document.documentElement.classList.remove("preload");
 
-        // // Flashist Adaptation
+        // Flashist Adaptation
         await window.FlashistFacade.instance.yandexInitPromise;
         window.FlashistFacade.instance.yandexGamesReadyCallback();
       });
