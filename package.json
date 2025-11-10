@@ -122,6 +122,7 @@
     "express": "^4.21.1",
     "express-rate-limit": "^7.5.0",
     "fastpriorityqueue": "^0.7.5",
+    "gameanalytics": "^4.4.7",
     "howler": "^2.2.4",
     "intl-messageformat": "^10.7.16",
     "ip-anonymize": "^0.1.0",

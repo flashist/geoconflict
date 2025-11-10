@@ -1,5 +1,6 @@
 import { LitElement } from "lit";
 import { LangSelector } from "./LangSelector";
+import { GameAnalytics } from "gameanalytics";
 
 // declare let YaGames: any;
 
@@ -28,6 +29,13 @@ export class FlashistFacade {
         }
 
         this.yandexInitPromise = this.yandexSdkInit();
+
+        // Setting up Game Analytics
+        GameAnalytics.setEnabledInfoLog(true);
+        GameAnalytics.setEnabledVerboseLog(true);
+
+        // GameAnalytics.configureBuild(this.analyticsConfig.buildId);
+        GameAnalytics.initialize("a1f0fb4335fe32696c3b76eb49612ead", "ba57db678bc9a1181bde9430bad83c6fa3b71862");
     }
 
     // Single place for working with URLS
