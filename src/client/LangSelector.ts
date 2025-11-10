@@ -130,7 +130,12 @@ export class LangSelector extends LitElement {
     //
 
     const savedLang = localStorage.getItem("lang");
-    const userLang = this.getClosestSupportedLang(savedLang ?? browserLocale);
+    let userLang = this.getClosestSupportedLang(savedLang ?? browserLocale);
+
+
+    // Flashist Adaptation
+    // TEST
+    // userLang = "en";
 
     this.defaultTranslations = this.loadLanguage("en");
     this.translations = this.loadLanguage(userLang);
