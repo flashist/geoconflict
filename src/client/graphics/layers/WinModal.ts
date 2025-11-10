@@ -109,17 +109,19 @@ export class WinModal extends LitElement implements Layer {
   }
 
   renderPatternButton() {
-    return html`
-      <div class="text-center mb-6 bg-black/30 p-2.5 rounded">
-        <h3 class="text-xl font-semibold text-white mb-3">
-          ${translateText("win_modal.support_openfront")}
-        </h3>
-        <p class="text-white mb-3">
-          ${translateText("win_modal.territory_pattern")}
-        </p>
-        <div class="flex justify-center">${this.patternContent}</div>
-      </div>
-    `;
+    // Flashist Adaptation: removing the open-front mention
+    return html``;
+    // return html`
+    //   <div class="text-center mb-6 bg-black/30 p-2.5 rounded">
+    //     <h3 class="text-xl font-semibold text-white mb-3">
+    //       ${translateText("win_modal.support_openfront")}
+    //     </h3>
+    //     <p class="text-white mb-3">
+    //       ${translateText("win_modal.territory_pattern")}
+    //     </p>
+    //     <div class="flex justify-center">${this.patternContent}</div>
+    //   </div>
+    // `;
   }
 
   async loadPatternContent() {

@@ -9,7 +9,6 @@ import {
   AllianceRequest,
   Cell,
   ColoredTeams,
-  Duos,
   EmojiMessage,
   Execution,
   Game,
@@ -23,14 +22,16 @@ import {
   PlayerID,
   PlayerInfo,
   PlayerType,
-  Quads,
   Team,
   TerrainType,
   TerraNullius,
-  Trios,
   Unit,
   UnitInfo,
   UnitType,
+  // Flashist Adaptation
+  // Duos,
+  // Trios,
+  // Quads,
 } from "./Game";
 import { GameMap, TileRef, TileUpdate } from "./GameMap";
 import { GameUpdate, GameUpdateType } from "./GameUpdates";
@@ -116,15 +117,18 @@ export class GameImpl implements Game {
     if (typeof numPlayerTeams !== "number") {
       const players = this._humans.length + this._nations.length;
       switch (numPlayerTeams) {
-        case Duos:
-          numPlayerTeams = Math.ceil(players / 2);
-          break;
-        case Trios:
-          numPlayerTeams = Math.ceil(players / 3);
-          break;
-        case Quads:
-          numPlayerTeams = Math.ceil(players / 4);
-          break;
+
+        // Flashist Adaptation: disabling duos-trios-quads game modes
+        // case Duos:
+        //   numPlayerTeams = Math.ceil(players / 2);
+        //   break;
+        // case Trios:
+        //   numPlayerTeams = Math.ceil(players / 3);
+        //   break;
+        // case Quads:
+        //   numPlayerTeams = Math.ceil(players / 4);
+        //   break;
+
         default:
           throw new Error(`Unknown TeamCountConfig ${numPlayerTeams}`);
       }

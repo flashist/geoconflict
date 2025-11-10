@@ -2,7 +2,6 @@ import { JWK } from "jose";
 import { z } from "zod";
 import {
   Difficulty,
-  Duos,
   Game,
   GameMapType,
   GameMode,
@@ -12,13 +11,16 @@ import {
   Player,
   PlayerInfo,
   PlayerType,
-  Quads,
   TerrainType,
   TerraNullius,
   Tick,
-  Trios,
   UnitInfo,
   UnitType,
+
+  // Flashist Adaptation
+  // Duos,
+  // Trios,
+  // Quads,
 } from "../game/Game";
 import { TileRef } from "../game/GameMap";
 import { PlayerView } from "../game/GameView";
@@ -271,15 +273,18 @@ export abstract class DefaultServerConfig implements ServerConfig {
     let p = Math.min(mode === GameMode.Team ? Math.ceil(base * 1.5) : base, l);
     if (numPlayerTeams === undefined) return p;
     switch (numPlayerTeams) {
-      case Duos:
-        p -= p % 2;
-        break;
-      case Trios:
-        p -= p % 3;
-        break;
-      case Quads:
-        p -= p % 4;
-        break;
+
+      // Flashist Adaptation: disabling duos-trios-quads game modes
+      // case Duos:
+      //   p -= p % 2;
+      //   break;
+      // case Trios:
+      //   p -= p % 3;
+      //   break;
+      // case Quads:
+      //   p -= p % 4;
+      //   break;
+
       case HumansVsNations:
         // For HumansVsNations, return the base team player count
         break;
@@ -315,7 +320,7 @@ export class DefaultConfig implements Config {
     private _gameConfig: GameConfig,
     private _userSettings: UserSettings | null,
     private _isReplay: boolean,
-  ) {}
+  ) { }
 
   stripePublishableKey(): string {
     return process.env.STRIPE_PUBLISHABLE_KEY ?? "";
@@ -479,7 +484,7 @@ export class DefaultConfig implements Config {
     // Geometric mean of base spawn rate and port multiplier
     const combined = Math.sqrt(
       this.tradeShipBaseSpawn(numTradeShips, numPlayerTradeShips) *
-        this.tradeShipPortMultiplier(numPlayerPorts),
+      this.tradeShipPortMultiplier(numPlayerPorts),
     );
 
     return Math.floor(25 / combined);
@@ -903,11 +908,11 @@ export class DefaultConfig implements Config {
       player.type() === PlayerType.Human && this.infiniteTroops()
         ? 1_000_000_000
         : 2 * (Math.pow(player.numTilesOwned(), 0.6) * 1000 + 50000) +
-          player
-            .units(UnitType.City)
-            .map((city) => city.level())
-            .reduce((a, b) => a + b, 0) *
-            this.cityTroopIncrease();
+        player
+          .units(UnitType.City)
+          .map((city) => city.level())
+          .reduce((a, b) => a + b, 0) *
+        this.cityTroopIncrease();
 
     if (player.type() === PlayerType.Bot) {
       return maxTroops / 3;

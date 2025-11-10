@@ -4,16 +4,19 @@ import randomMap from "../../resources/images/RandomMap.webp";
 import { translateText } from "../client/Utils";
 import {
   Difficulty,
-  Duos,
   GameMapSize,
   GameMapType,
   GameMode,
   GameType,
   HumansVsNations,
-  Quads,
-  Trios,
   UnitType,
   mapCategories,
+
+  // Flashist Adaptation: disabling duos-trios-quads game modes
+  // Duos,
+  // Trios,
+  // Quads,
+
 } from "../core/game/Game";
 import { UserSettings } from "../core/game/UserSettings";
 import { TeamCountConfig } from "../core/Schemas";
@@ -204,9 +207,12 @@ export class SinglePlayerModal extends LitElement {
             5,
             6,
             7,
-            Quads,
-            Trios,
-            Duos,
+
+            // Flashist Adaptation: disabling duos-trios-quads game modes
+            // Quads,
+            // Trios,
+            // Duos,
+
             HumansVsNations,
           ].map(
             (o) => html`

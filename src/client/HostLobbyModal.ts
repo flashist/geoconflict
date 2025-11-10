@@ -5,15 +5,17 @@ import { translateText } from "../client/Utils";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import {
   Difficulty,
-  Duos,
   GameMapSize,
   GameMapType,
   GameMode,
   HumansVsNations,
-  Quads,
-  Trios,
   UnitType,
   mapCategories,
+
+  // Flashist Adaptation: disabling duos-trios-quads game modes
+  // Duos,
+  // Trios,
+  // Quads,
 } from "../core/game/Game";
 import { UserSettings } from "../core/game/UserSettings";
 import {
@@ -289,9 +291,12 @@ export class HostLobbyModal extends LitElement {
             5,
             6,
             7,
-            Quads,
-            Trios,
-            Duos,
+
+            // Flashist Adaptation: disabling duos-trios-quads game modes
+            // Quads,
+            // Trios,
+            // Duos,
+
             HumansVsNations,
           ].map(
             (o) => html`

@@ -1,15 +1,16 @@
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import {
   Difficulty,
-  Duos,
   GameMapName,
   GameMapSize,
   GameMapType,
   GameMode,
   GameType,
   HumansVsNations,
-  Quads,
-  Trios,
+  // Flashist Adaptation
+  // Duos,
+  // Quads,
+  // Trios,
 } from "../core/game/Game";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { GameConfig, TeamCountConfig } from "../core/Schemas";
@@ -65,16 +66,19 @@ const TEAM_COUNTS = [
   5,
   6,
   7,
-  Duos,
-  Trios,
-  Quads,
+
+  // Flashist Adaptation: disabling duos-trios-quads game modes
+  // Duos,
+  // Trios,
+  // Quads,
+
   HumansVsNations,
 ] as const satisfies TeamCountConfig[];
 
 export class MapPlaylist {
   private mapsPlaylist: MapWithMode[] = [];
 
-  constructor(private disableTeams: boolean = false) {}
+  constructor(private disableTeams: boolean = false) { }
 
   public gameConfig(): GameConfig {
     const { map, mode } = this.getNextMap();
