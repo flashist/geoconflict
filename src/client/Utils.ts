@@ -7,8 +7,13 @@ export function renderDuration(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   let time = "";
-  if (minutes > 0) time += `${minutes}min `;
-  time += `${seconds}s`;
+
+  // Flashist Adaptation
+  // if (minutes > 0) time += `${minutes}min `;
+  // time += `${seconds}s`;
+  if (minutes > 0) time += `${minutes}:`;
+  time += `${seconds}`;
+
   return time.trim();
 }
 

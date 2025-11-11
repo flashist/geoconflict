@@ -180,7 +180,9 @@
     "japan": "Япония",
     "yenisei": "Енисей",
     "pluto": "Плутон",
-    "montreal": "Монреаль"
+    "montreal": "Монреаль",
+    "achiran": "Архиран",
+    "baikalnukewars": "Байкал (Ядерные Войны)"
   },
   "map_categories": {
     "continental": "Континентальные",
@@ -575,7 +577,21 @@
     "no": "Нет",
     "none": "Ничего",
     "alliances": "Союзы",
-    "flag": "Флаг"
+    "flag": "Флаг",
+    "trading": "Торговля",
+    "active": "Активно",
+    "stopped": "Остановлено",
+    "stop_trade_all": "Прекратить торговлю со всеми",
+    "start_trade_all": "Начать торговлю со всеми",
+    "chat": "Чат",
+    "target": "Цель",
+    "break": "Разорвать",
+    "break_alliance": "Разорвать союз",
+    "alliance": "Союз",
+    "send_alliance": "Отправить союз",
+    "send_troops": "Отправить войска",
+    "send_gold": "Отправить золото",
+    "emotes": "Эмодзи"
   },
   "replay_panel": {
     "replay_speed": "Скорость повтора",

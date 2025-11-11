@@ -249,6 +249,8 @@ export class UserSettingModal extends LitElement {
               >
                 ${translateText("user_setting.tab_basic")}
               </button>
+
+              <!-- Flashist Adaptation: commenting the key-binding button -->
               <!-- <button
                 class="w-1/2 text-center px-3 py-1 rounded-r 
       ${this.settingsMode === "keybinds"
