@@ -551,6 +551,11 @@
     "upgrade": "Улучшить",
     "level": "Уровень"
   },
+  "player_type": {
+    "player": "Игрок",
+    "nation": "Нация",
+    "bot": "Бот"
+  },
   "relation": {
     "hostile": "Враждебное",
     "distrustful": "Недоверчивое",
