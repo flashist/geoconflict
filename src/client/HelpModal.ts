@@ -51,10 +51,13 @@ export class HelpModal extends LitElement {
               </tr>
             </thead>
             <tbody class="text-left">
-              <tr>
+
+              <!-- Flashist Adaptation: hiding the SPACE BUTTON info (cuz it causes problems with Yandex Games) -->
+              <!-- <tr>
                 <td><span class="key">Space</span></td>
                 <td>${translateText("help_modal.action_alt_view")}</td>
-              </tr>
+              </tr> -->
+
               <tr>
                 <td>
                   <div class="scroll-combo-horizontal">
