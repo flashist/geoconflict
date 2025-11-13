@@ -123,16 +123,17 @@ export class MapDisplay extends LitElement {
     return html`
       <div class="option-card ${this.selected ? "selected" : ""}">
         ${this.isLoading
-          ? html`<div class="option-image">
+        ? html`<div class="option-image">
               ${translateText("map_component.loading")}
             </div>`
-          : this.mapWebpPath
-            ? html`<img
+        : this.mapWebpPath
+          ? html`<img
                 src="${this.mapWebpPath}"
                 alt="${this.mapKey}"
                 class="option-image"
+                draggable="false"
               />`
-            : html`<div class="option-image">Error</div>`}
+          : html`<div class="option-image">Error</div>`}
         <div class="option-card-title">${this.translation || this.mapName}</div>
       </div>
     `;
