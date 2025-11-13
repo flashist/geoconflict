@@ -116,11 +116,24 @@ class Client {
     ) as HTMLDivElement;
     if (!gameVersion) {
       console.warn("Game version element not found");
-    }
-    gameVersion.innerText = version;
+    } else {
+      gameVersion.innerText = version;
 
-    // Flashist Adaptation: showing the name of the game instead of version
-    gameVersion.innerText = translateText("main.title") ?? document.title;
+      // Flashist Adaptation: showing the name of the game instead of version
+      gameVersion.innerText = translateText("main.title") ?? document.title;
+    }
+
+    // Flashist Adaptation: bottom bar
+    const licenseCredits = document.getElementById(
+      "license-credits",
+    ) as HTMLDivElement;
+    if (!licenseCredits) {
+      console.warn("License Credits element not found");
+
+    } else {
+      // Flashist Adaptation: showing the name of the game instead of version
+      licenseCredits.innerText = translateText("main.license_text");
+    }
 
     const newsModal = document.querySelector("news-modal") as NewsModal;
     if (!newsModal || !(newsModal instanceof NewsModal)) {
