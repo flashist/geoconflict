@@ -33,6 +33,10 @@
 								supported by Chrome, Edge, Opera and Firefox */
     }
 
+    .body-noselect {
+      touch-action: none;
+    }
+
     .noscroll {
       overflow: hidden;
     }
@@ -176,7 +180,7 @@
 <!-- Flashist Adaptation -->
 <!-- <body class="h-full select-none font-sans min-h-screen bg-opacity-0 bg-cover bg-center bg-fixed transition-opacity duration-300 ease-in-out flex flex-col"> -->
 
-<body class="h-full select-none font-sans min-h-screen bg-opacity-0 bg-cover bg-center bg-fixed transition-opacity duration-300 ease-in-out flex flex-col
+<body class="body-noselect h-full select-none font-sans min-h-screen bg-opacity-0 bg-cover bg-center bg-fixed transition-opacity duration-300 ease-in-out flex flex-col
   flashist-preload">
 
 
