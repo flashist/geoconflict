@@ -450,7 +450,9 @@
       // requestAnimationFrame(() => {
       requestAnimationFrame(async () => {
         // Flashist Adaptation
-        await window.FlashistFacade.instance.yandexInitPromise;
+        // Flashist Adaptation
+        await window.flashist_waitGameInitComplete();
+        //
         window.FlashistFacade.instance.yandexGamesReadyCallback();
 
         // Flashist Adaptation

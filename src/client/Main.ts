@@ -13,7 +13,7 @@ import { DarkModeButton } from "./DarkModeButton";
 import "./FlagInput";
 import { FlagInput } from "./FlagInput";
 import { FlagInputModal } from "./FlagInputModal";
-import { flashist_getLangSelector, FlashistFacade } from "./FlashistFacade";
+import { flashist_getLangSelector, flashist_waitGameInitComplete, FlashistFacade } from "./FlashistFacade";
 import { GameStartingModal } from "./GameStartingModal";
 import "./GoogleAdElement";
 import { GutterAds } from "./GutterAds";
@@ -644,6 +644,9 @@ class Client {
 
 // Initialize the client when the DOM is loaded
 document.addEventListener("DOMContentLoaded", async () => {
+  // Flashist Adaptation
+  await flashist_waitGameInitComplete();
+
   new Client().initialize();
 
   // // Flashist Adaptation

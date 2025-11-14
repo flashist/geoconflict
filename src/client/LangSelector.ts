@@ -86,8 +86,17 @@ export class LangSelector extends LitElement {
     return this;
   }
 
+  // Flashist Adaptation
+  public langReadyPromise: Promise<void>;
+  public langReadyPromiseResolve: Function;
+
   connectedCallback() {
     super.connectedCallback();
+
+    this.langReadyPromise = new Promise((resolve) => {
+      this.langReadyPromiseResolve = resolve;
+    });
+
     this.setupDebugKey();
 
     this.initializeLanguage();
@@ -131,7 +140,7 @@ export class LangSelector extends LitElement {
     //       () => {
     //         resolve();
     //       },
-    //       10000
+    //       1000
     //     )
     //   }
     // );
@@ -144,7 +153,6 @@ export class LangSelector extends LitElement {
     const savedLang = localStorage.getItem("lang");
     let userLang = this.getClosestSupportedLang(savedLang ?? browserLocale);
 
-
     // Flashist Adaptation
     // TEST
     // userLang = "en";
@@ -155,6 +163,9 @@ export class LangSelector extends LitElement {
 
     await this.loadLanguageList();
     this.applyTranslation();
+
+    // Flashist Adaptation
+    this.langReadyPromiseResolve();
   }
 
   private loadLanguage(lang: string): Record<string, string> {

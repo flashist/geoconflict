@@ -156,4 +156,12 @@ export const flashist_getLangSelector = (): LangSelector => {
     return result;
 }
 
+export const flashist_waitGameInitComplete = async (): Promise<void> => {
+    await FlashistFacade.instance.yandexInitPromise;
+    //
+    const langSelector = flashist_getLangSelector();
+    await langSelector.langReadyPromise;
+}
+(window as any).flashist_waitGameInitComplete = flashist_waitGameInitComplete;
+
 (window as any).FlashistFacade = FlashistFacade;
