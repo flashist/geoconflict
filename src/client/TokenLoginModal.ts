@@ -44,8 +44,8 @@ export class TokenLoginModal extends LitElement {
   private loginSuccess(email: string) {
     return html`<p>
       ${translateText("token_login_modal.success", {
-        email,
-      })}
+      email,
+    })}
     </p> `;
   }
 
@@ -69,7 +69,8 @@ export class TokenLoginModal extends LitElement {
     }
     if (this.attemptCount > 3) {
       this.close();
-      alert("Login failed. Please try again later.");
+      // alert("Login failed. Please try again later.");
+      console.log("ERROR! Login failed. Please try again later.");
       return;
     }
     this.attemptCount++;

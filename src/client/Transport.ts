@@ -28,28 +28,28 @@ import { LobbyConfig } from "./ClientGameRunner";
 import { LocalServer } from "./LocalServer";
 
 export class PauseGameEvent implements GameEvent {
-  constructor(public readonly paused: boolean) {}
+  constructor(public readonly paused: boolean) { }
 }
 
 export class SendAllianceRequestIntentEvent implements GameEvent {
   constructor(
     public readonly requestor: PlayerView,
     public readonly recipient: PlayerView,
-  ) {}
+  ) { }
 }
 
 export class SendBreakAllianceIntentEvent implements GameEvent {
   constructor(
     public readonly requestor: PlayerView,
     public readonly recipient: PlayerView,
-  ) {}
+  ) { }
 }
 
 export class SendUpgradeStructureIntentEvent implements GameEvent {
   constructor(
     public readonly unitId: number,
     public readonly unitType: UnitType,
-  ) {}
+  ) { }
 }
 
 export class SendAllianceReplyIntentEvent implements GameEvent {
@@ -58,22 +58,22 @@ export class SendAllianceReplyIntentEvent implements GameEvent {
     public readonly requestor: PlayerView,
     public readonly recipient: PlayerView,
     public readonly accepted: boolean,
-  ) {}
+  ) { }
 }
 
 export class SendAllianceExtensionIntentEvent implements GameEvent {
-  constructor(public readonly recipient: PlayerView) {}
+  constructor(public readonly recipient: PlayerView) { }
 }
 
 export class SendSpawnIntentEvent implements GameEvent {
-  constructor(public readonly tile: TileRef) {}
+  constructor(public readonly tile: TileRef) { }
 }
 
 export class SendAttackIntentEvent implements GameEvent {
   constructor(
     public readonly targetID: PlayerID | null,
     public readonly troops: number,
-  ) {}
+  ) { }
 }
 
 export class SendBoatAttackIntentEvent implements GameEvent {
@@ -82,39 +82,39 @@ export class SendBoatAttackIntentEvent implements GameEvent {
     public readonly dst: TileRef,
     public readonly troops: number,
     public readonly src: TileRef | null = null,
-  ) {}
+  ) { }
 }
 
 export class BuildUnitIntentEvent implements GameEvent {
   constructor(
     public readonly unit: UnitType,
     public readonly tile: TileRef,
-  ) {}
+  ) { }
 }
 
 export class SendTargetPlayerIntentEvent implements GameEvent {
-  constructor(public readonly targetID: PlayerID) {}
+  constructor(public readonly targetID: PlayerID) { }
 }
 
 export class SendEmojiIntentEvent implements GameEvent {
   constructor(
     public readonly recipient: PlayerView | typeof AllPlayers,
     public readonly emoji: number,
-  ) {}
+  ) { }
 }
 
 export class SendDonateGoldIntentEvent implements GameEvent {
   constructor(
     public readonly recipient: PlayerView,
     public readonly gold: Gold | null,
-  ) {}
+  ) { }
 }
 
 export class SendDonateTroopsIntentEvent implements GameEvent {
   constructor(
     public readonly recipient: PlayerView,
     public readonly troops: number | null,
-  ) {}
+  ) { }
 }
 
 export class SendQuickChatEvent implements GameEvent {
@@ -122,54 +122,54 @@ export class SendQuickChatEvent implements GameEvent {
     public readonly recipient: PlayerView,
     public readonly quickChatKey: string,
     public readonly target?: PlayerID,
-  ) {}
+  ) { }
 }
 
 export class SendEmbargoIntentEvent implements GameEvent {
   constructor(
     public readonly target: PlayerView,
     public readonly action: "start" | "stop",
-  ) {}
+  ) { }
 }
 
 export class SendEmbargoAllIntentEvent implements GameEvent {
-  constructor(public readonly action: "start" | "stop") {}
+  constructor(public readonly action: "start" | "stop") { }
 }
 
 export class SendDeleteUnitIntentEvent implements GameEvent {
-  constructor(public readonly unitId: number) {}
+  constructor(public readonly unitId: number) { }
 }
 
 export class CancelAttackIntentEvent implements GameEvent {
-  constructor(public readonly attackID: string) {}
+  constructor(public readonly attackID: string) { }
 }
 
 export class CancelBoatIntentEvent implements GameEvent {
-  constructor(public readonly unitID: number) {}
+  constructor(public readonly unitID: number) { }
 }
 
 export class SendWinnerEvent implements GameEvent {
   constructor(
     public readonly winner: Winner,
     public readonly allPlayersStats: AllPlayersStats,
-  ) {}
+  ) { }
 }
 export class SendHashEvent implements GameEvent {
   constructor(
     public readonly tick: Tick,
     public readonly hash: number,
-  ) {}
+  ) { }
 }
 
 export class MoveWarshipIntentEvent implements GameEvent {
   constructor(
     public readonly unitId: number,
     public readonly tile: number,
-  ) {}
+  ) { }
 }
 
 export class SendKickPlayerIntentEvent implements GameEvent {
-  constructor(public readonly target: string) {}
+  constructor(public readonly target: string) { }
 }
 
 export class Transport {
@@ -358,7 +358,9 @@ export class Transport {
       );
       if (event.code === 1002) {
         // TODO: make this a modal
-        alert(`connection refused: ${event.reason}`);
+        // alert(`connection refused: ${event.reason}`);
+        console.log(`ERROR! connection refused: ${event.reason}`);
+
       } else if (event.code !== 1000) {
         console.log(`received error code ${event.code}, reconnecting`);
         this.reconnect();

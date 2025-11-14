@@ -414,7 +414,8 @@ class Client {
       );
 
     const alertAndStrip = (message: string) => {
-      alert(message);
+      // alert(message);
+      console.log("ERROR! alertAndStrip __ message: ", message);
       strip();
     };
 
@@ -436,7 +437,8 @@ class Client {
 
       const patternName = params.get("pattern");
       if (!patternName) {
-        alert("Something went wrong. Please contact support.");
+        // alert("Something went wrong. Please contact support.");
+        console.log("ERROR! Something went wrong. Please contact support. if (!patternName) {");
         console.error("purchase-completed but no pattern name");
         return;
       }
