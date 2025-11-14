@@ -3,7 +3,12 @@ import { MessageType } from "../core/game/Game";
 import { LangSelector } from "./LangSelector";
 
 export function renderDuration(totalSeconds: number): string {
-  if (totalSeconds <= 0) return "0s";
+  // Flashist Adaptation
+  // if (totalSeconds <= 0) return "0s";
+  if (totalSeconds < 0) {
+    totalSeconds = 0;
+  };
+
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   let time = "";
@@ -11,8 +16,8 @@ export function renderDuration(totalSeconds: number): string {
   // Flashist Adaptation
   // if (minutes > 0) time += `${minutes}min `;
   // time += `${seconds}s`;
-  if (minutes > 0) time += `${minutes}:`;
-  time += `${seconds}`;
+  if (minutes > 0) time += `${minutes}${translateText("common.minutes_short")} `;
+  time += `${seconds}${translateText("common.seconds_short")}`;
 
   return time.trim();
 }

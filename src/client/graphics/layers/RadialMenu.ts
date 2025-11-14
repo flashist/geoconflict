@@ -12,7 +12,7 @@ import {
 } from "./RadialMenuElements";
 
 export class CloseRadialMenuEvent implements GameEvent {
-  constructor() {}
+  constructor() { }
 }
 
 export interface TooltipItem {
@@ -338,8 +338,7 @@ export class RadialMenu implements Layer {
       )
       .style(
         "transition",
-        `filter ${this.config.menuTransitionDuration / 2}ms, stroke-width ${
-          this.config.menuTransitionDuration / 2
+        `filter ${this.config.menuTransitionDuration / 2}ms, stroke-width ${this.config.menuTransitionDuration / 2
         }ms, fill ${this.config.menuTransitionDuration / 2}ms`,
       )
       .attr("data-id", (d) => d.data.id);
@@ -575,7 +574,11 @@ export class RadialMenu implements Layer {
             content
               .append("text")
               .attr("class", `cooldown-text`)
-              .text(cooldown + "s")
+
+              // Flashist Adaptation
+              // .text(cooldown + "s")
+              .text(cooldown + translateText("common.seconds_short"))
+
               .attr("fill", "white")
               .attr("opacity", disabled ? 0.5 : 1)
               .attr("font-size", "14px")
@@ -1035,7 +1038,9 @@ export class RadialMenu implements Layer {
             if (cooldown <= 0) {
               cooldownElement.remove();
             } else {
-              cooldownElement.text(cooldown + "s");
+              // Flashist Adaptation
+              // cooldownElement.text(cooldown + "s");
+              cooldownElement.text(cooldown + translateText("common.seconds_short"));
             }
           }
         }

@@ -184,7 +184,7 @@ export class EventsDisplay extends LitElement implements Layer {
     this.outgoingBoats = [];
   }
 
-  init() {}
+  init() { }
 
   tick() {
     this.active = true;
@@ -308,7 +308,7 @@ export class EventsDisplay extends LitElement implements Layer {
           {
             text: translateText("events_display.ignore"),
             className: "btn-info",
-            action: () => {},
+            action: () => { },
           },
         ],
         highlight: true,
@@ -337,7 +337,7 @@ export class EventsDisplay extends LitElement implements Layer {
     return false;
   }
 
-  renderLayer(): void {}
+  renderLayer(): void { }
 
   onDisplayMessageEvent(event: DisplayMessageUpdate) {
     const myPlayer = this.game.myPlayer();
@@ -547,8 +547,8 @@ export class EventsDisplay extends LitElement implements Layer {
         traitorDuration === 1
           ? translateText("events_display.duration_second")
           : translateText("events_display.duration_seconds_plural", {
-              seconds: traitorDuration,
-            });
+            seconds: traitorDuration,
+          });
 
       this.addEvent({
         description: translateText("events_display.betrayal_description", {
@@ -741,23 +741,23 @@ export class EventsDisplay extends LitElement implements Layer {
       ${this.incomingAttacks.length > 0
         ? html`
             ${this.incomingAttacks.map(
-              (attack) => html`
+          (attack) => html`
                 ${this.renderButton({
-                  content: html`
+            content: html`
                     ${renderTroops(attack.troops)}
                     ${(
-                      this.game.playerBySmallID(attack.attackerID) as PlayerView
-                    )?.name()}
+                this.game.playerBySmallID(attack.attackerID) as PlayerView
+              )?.name()}
                     ${attack.retreating
-                      ? `(${translateText("events_display.retreating")}...)`
-                      : ""}
+                ? `(${translateText("events_display.retreating")}...)`
+                : ""}
                   `,
-                  onClick: () => this.attackWarningOnClick(attack),
-                  className: "text-left text-red-400",
-                  translate: false,
-                })}
+            onClick: () => this.attackWarningOnClick(attack),
+            className: "text-left text-red-400",
+            translate: false,
+          })}
               `,
-            )}
+        )}
           `
         : ""}
     `;
@@ -769,36 +769,36 @@ export class EventsDisplay extends LitElement implements Layer {
         ? html`
             <div class="flex flex-wrap gap-y-1 gap-x-2">
               ${this.outgoingAttacks.map(
-                (attack) => html`
+          (attack) => html`
                   <div class="inline-flex items-center gap-1">
                     ${this.renderButton({
-                      content: html`
+            content: html`
                         ${renderTroops(attack.troops)}
                         ${(
-                          this.game.playerBySmallID(
-                            attack.targetID,
-                          ) as PlayerView
-                        )?.name()}
+                this.game.playerBySmallID(
+                  attack.targetID,
+                ) as PlayerView
+              )?.name()}
                       `,
-                      onClick: async () => this.attackWarningOnClick(attack),
-                      className: "text-left text-blue-400",
-                      translate: false,
-                    })}
+            onClick: async () => this.attackWarningOnClick(attack),
+            className: "text-left text-blue-400",
+            translate: false,
+          })}
                     ${!attack.retreating
-                      ? this.renderButton({
-                          content: "❌",
-                          onClick: () => this.emitCancelAttackIntent(attack.id),
-                          className: "text-left flex-shrink-0",
-                          disabled: attack.retreating,
-                        })
-                      : html`<span class="flex-shrink-0 text-blue-400"
+              ? this.renderButton({
+                content: "❌",
+                onClick: () => this.emitCancelAttackIntent(attack.id),
+                className: "text-left flex-shrink-0",
+                disabled: attack.retreating,
+              })
+              : html`<span class="flex-shrink-0 text-blue-400"
                           >(${translateText(
-                            "events_display.retreating",
-                          )}...)</span
+                "events_display.retreating",
+              )}...)</span
                         >`}
                   </div>
                 `,
-              )}
+        )}
             </div>
           `
         : ""}
@@ -811,30 +811,30 @@ export class EventsDisplay extends LitElement implements Layer {
         ? html`
             <div class="flex flex-wrap gap-y-1 gap-x-2">
               ${this.outgoingLandAttacks.map(
-                (landAttack) => html`
+          (landAttack) => html`
                   <div class="inline-flex items-center gap-1">
                     ${this.renderButton({
-                      content: html`${renderTroops(landAttack.troops)}
+            content: html`${renderTroops(landAttack.troops)}
                       ${translateText("help_modal.ui_wilderness")}`,
-                      className: "text-left text-gray-400",
-                      translate: false,
-                    })}
+            className: "text-left text-gray-400",
+            translate: false,
+          })}
                     ${!landAttack.retreating
-                      ? this.renderButton({
-                          content: "❌",
-                          onClick: () =>
-                            this.emitCancelAttackIntent(landAttack.id),
-                          className: "text-left flex-shrink-0",
-                          disabled: landAttack.retreating,
-                        })
-                      : html`<span class="flex-shrink-0 text-blue-400"
+              ? this.renderButton({
+                content: "❌",
+                onClick: () =>
+                  this.emitCancelAttackIntent(landAttack.id),
+                className: "text-left flex-shrink-0",
+                disabled: landAttack.retreating,
+              })
+              : html`<span class="flex-shrink-0 text-blue-400"
                           >(${translateText(
-                            "events_display.retreating",
-                          )}...)</span
+                "events_display.retreating",
+              )}...)</span
                         >`}
                   </div>
                 `,
-              )}
+        )}
             </div>
           `
         : ""}
@@ -847,30 +847,30 @@ export class EventsDisplay extends LitElement implements Layer {
         ? html`
             <div class="flex flex-wrap gap-y-1 gap-x-2">
               ${this.outgoingBoats.map(
-                (boat) => html`
+          (boat) => html`
                   <div class="inline-flex items-center gap-1">
                     ${this.renderButton({
-                      content: html`${translateText("events_display.boat")}:
+            content: html`${translateText("events_display.boat")}:
                       ${renderTroops(boat.troops())}`,
-                      onClick: () => this.emitGoToUnitEvent(boat),
-                      className: "text-left text-blue-400",
-                      translate: false,
-                    })}
+            onClick: () => this.emitGoToUnitEvent(boat),
+            className: "text-left text-blue-400",
+            translate: false,
+          })}
                     ${!boat.retreating()
-                      ? this.renderButton({
-                          content: "❌",
-                          onClick: () => this.emitBoatCancelIntent(boat.id()),
-                          className: "text-left flex-shrink-0",
-                          disabled: boat.retreating(),
-                        })
-                      : html`<span class="flex-shrink-0 text-blue-400"
+              ? this.renderButton({
+                content: "❌",
+                onClick: () => this.emitBoatCancelIntent(boat.id()),
+                className: "text-left flex-shrink-0",
+                disabled: boat.retreating(),
+              })
+              : html`<span class="flex-shrink-0 text-blue-400"
                           >(${translateText(
-                            "events_display.retreating",
-                          )}...)</span
+                "events_display.retreating",
+              )}...)</span
                         >`}
                   </div>
                 `,
-              )}
+        )}
             </div>
           `
         : ""}
@@ -925,19 +925,22 @@ export class EventsDisplay extends LitElement implements Layer {
         ? html`
             <div class="relative w-fit lg:bottom-2.5 lg:right-2.5 z-50">
               ${this.renderButton({
-                content: html`
-                  Events
+          // Flashist Adaptation
+          // content: html`
+          //   Events
+          content: html`
+                  ${translateText("events_display.title_hidden")}
                   <span
                     class="${this.newEvents
-                      ? ""
-                      : "hidden"} inline-block px-2 bg-red-500 rounded-xl text-sm"
+              ? ""
+              : "hidden"} inline-block px-2 bg-red-500 rounded-xl text-sm"
                     >${this.newEvents}</span
                   >
                 `,
-                onClick: this.toggleHidden,
-                className:
-                  "text-white cursor-pointer pointer-events-auto w-fit p-2 lg:p-3 rounded-md bg-gray-800/70 backdrop-blur",
-              })}
+          onClick: this.toggleHidden,
+          className:
+            "text-white cursor-pointer pointer-events-auto w-fit p-2 lg:p-3 rounded-md bg-gray-800/70 backdrop-blur",
+        })}
             </div>
           `
         : html`
@@ -952,39 +955,39 @@ export class EventsDisplay extends LitElement implements Layer {
                 <div class="flex justify-between items-center">
                   <div class="flex gap-4">
                     ${this.renderToggleButton(
-                      swordIcon,
-                      MessageCategory.ATTACK,
-                    )}
+          swordIcon,
+          MessageCategory.ATTACK,
+        )}
                     ${this.renderToggleButton(nukeIcon, MessageCategory.NUKE)}
                     ${this.renderToggleButton(
-                      donateGoldIcon,
-                      MessageCategory.TRADE,
-                    )}
+          donateGoldIcon,
+          MessageCategory.TRADE,
+        )}
                     ${this.renderToggleButton(
-                      allianceIcon,
-                      MessageCategory.ALLIANCE,
-                    )}
+          allianceIcon,
+          MessageCategory.ALLIANCE,
+        )}
                     ${this.renderToggleButton(chatIcon, MessageCategory.CHAT)}
                   </div>
                   <div class="flex items-center gap-3">
                     ${this.latestGoldAmount !== null
-                      ? html`<span
+            ? html`<span
                           class="text-green-400 font-semibold transition-all duration-300 ${this
-                            .goldAmountAnimating
-                            ? "animate-pulse scale-110"
-                            : "scale-100"}"
+                .goldAmountAnimating
+                ? "animate-pulse scale-110"
+                : "scale-100"}"
                           style="animation: ${this.goldAmountAnimating
-                            ? "goldBounce 0.6s ease-out"
-                            : "none"}"
+                ? "goldBounce 0.6s ease-out"
+                : "none"}"
                           >+${renderNumber(this.latestGoldAmount)}</span
                         >`
-                      : ""}
+            : ""}
                     ${this.renderButton({
-                      content: translateText("leaderboard.hide"),
-                      onClick: this.toggleHidden,
-                      className:
-                        "text-white cursor-pointer pointer-events-auto",
-                    })}
+              content: translateText("leaderboard.hide"),
+              onClick: this.toggleHidden,
+              className:
+                "text-white cursor-pointer pointer-events-auto",
+            })}
                   </div>
                 </div>
               </div>
@@ -1000,127 +1003,127 @@ export class EventsDisplay extends LitElement implements Layer {
                   >
                     <tbody>
                       ${filteredEvents.map(
-                        (event, index) => html`
+              (event, index) => html`
                           <tr>
                             <td
                               class="lg:px-2 lg:py-1 p-1 text-left ${getMessageTypeClasses(
-                                event.type,
-                              )}"
+                event.type,
+              )}"
                             >
                               ${event.focusID
-                                ? this.renderButton({
-                                    content: this.getEventDescription(event),
-                                    onClick: () => {
-                                      if (event.focusID)
-                                        this.emitGoToPlayerEvent(event.focusID);
-                                    },
-                                    className: "text-left",
-                                  })
-                                : event.unitView
-                                  ? this.renderButton({
-                                      content: this.getEventDescription(event),
-                                      onClick: () => {
-                                        if (event.unitView)
-                                          this.emitGoToUnitEvent(
-                                            event.unitView,
-                                          );
-                                      },
-                                      className: "text-left",
-                                    })
-                                  : this.getEventDescription(event)}
+                  ? this.renderButton({
+                    content: this.getEventDescription(event),
+                    onClick: () => {
+                      if (event.focusID)
+                        this.emitGoToPlayerEvent(event.focusID);
+                    },
+                    className: "text-left",
+                  })
+                  : event.unitView
+                    ? this.renderButton({
+                      content: this.getEventDescription(event),
+                      onClick: () => {
+                        if (event.unitView)
+                          this.emitGoToUnitEvent(
+                            event.unitView,
+                          );
+                      },
+                      className: "text-left",
+                    })
+                    : this.getEventDescription(event)}
                               <!-- Events with buttons (Alliance requests) -->
                               ${event.buttons
-                                ? html`
+                  ? html`
                                     <div class="flex flex-wrap gap-1.5 mt-1">
                                       ${event.buttons.map(
-                                        (btn) => html`
+                    (btn) => html`
                                           <button
                                             class="inline-block px-3 py-1 text-white rounded text-md md:text-sm cursor-pointer transition-colors duration-300
                             ${btn.className.includes("btn-info")
-                                              ? "bg-blue-500 hover:bg-blue-600"
-                                              : btn.className.includes(
-                                                    "btn-gray",
-                                                  )
-                                                ? "bg-gray-500 hover:bg-gray-600"
-                                                : "bg-green-600 hover:bg-green-700"}"
+                        ? "bg-blue-500 hover:bg-blue-600"
+                        : btn.className.includes(
+                          "btn-gray",
+                        )
+                          ? "bg-gray-500 hover:bg-gray-600"
+                          : "bg-green-600 hover:bg-green-700"}"
                                             @click=${() => {
-                                              btn.action();
-                                              if (!btn.preventClose) {
-                                                const originalIndex =
-                                                  this.events.findIndex(
-                                                    (e) => e === event,
-                                                  );
-                                                if (originalIndex !== -1) {
-                                                  this.removeEvent(
-                                                    originalIndex,
-                                                  );
-                                                }
-                                              }
-                                              this.requestUpdate();
-                                            }}
+                        btn.action();
+                        if (!btn.preventClose) {
+                          const originalIndex =
+                            this.events.findIndex(
+                              (e) => e === event,
+                            );
+                          if (originalIndex !== -1) {
+                            this.removeEvent(
+                              originalIndex,
+                            );
+                          }
+                        }
+                        this.requestUpdate();
+                      }}
                                           >
                                             ${btn.text}
                                           </button>
                                         `,
-                                      )}
+                  )}
                                     </div>
                                   `
-                                : ""}
+                  : ""}
                             </td>
                           </tr>
                         `,
-                      )}
+            )}
                       <!--- Incoming attacks row -->
                       ${this.incomingAttacks.length > 0
-                        ? html`
+            ? html`
                             <tr class="lg:px-2 lg:py-1 p-1">
                               <td class="lg:px-2 lg:py-1 p-1 text-left">
                                 ${this.renderIncomingAttacks()}
                               </td>
                             </tr>
                           `
-                        : ""}
+            : ""}
 
                       <!--- Outgoing attacks row -->
                       ${this.outgoingAttacks.length > 0
-                        ? html`
+            ? html`
                             <tr class="lg:px-2 lg:py-1 p-1">
                               <td class="lg:px-2 lg:py-1 p-1 text-left">
                                 ${this.renderOutgoingAttacks()}
                               </td>
                             </tr>
                           `
-                        : ""}
+            : ""}
 
                       <!--- Outgoing land attacks row -->
                       ${this.outgoingLandAttacks.length > 0
-                        ? html`
+            ? html`
                             <tr class="lg:px-2 lg:py-1 p-1">
                               <td class="lg:px-2 lg:py-1 p-1 text-left">
                                 ${this.renderOutgoingLandAttacks()}
                               </td>
                             </tr>
                           `
-                        : ""}
+            : ""}
 
                       <!--- Boats row -->
                       ${this.outgoingBoats.length > 0
-                        ? html`
+            ? html`
                             <tr class="lg:px-2 lg:py-1 p-1">
                               <td class="lg:px-2 lg:py-1 p-1 text-left">
                                 ${this.renderBoats()}
                               </td>
                             </tr>
                           `
-                        : ""}
+            : ""}
 
                       <!--- Empty row when no events or attacks -->
                       ${filteredEvents.length === 0 &&
-                      this.incomingAttacks.length === 0 &&
-                      this.outgoingAttacks.length === 0 &&
-                      this.outgoingLandAttacks.length === 0 &&
-                      this.outgoingBoats.length === 0
-                        ? html`
+            this.incomingAttacks.length === 0 &&
+            this.outgoingAttacks.length === 0 &&
+            this.outgoingLandAttacks.length === 0 &&
+            this.outgoingBoats.length === 0
+            ? html`
                             <tr>
                               <td
                                 class="lg:px-2 lg:py-1 p-1 min-w-72 text-left"
@@ -1129,7 +1132,7 @@ export class EventsDisplay extends LitElement implements Layer {
                               </td>
                             </tr>
                           `
-                        : ""}
+            : ""}
                     </tbody>
                   </table>
                 </div>

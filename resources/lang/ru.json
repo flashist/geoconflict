@@ -17,7 +17,11 @@
     "cap_tooltip": "Осталось",
     "target_dead": "Цель уничтожена",
     "target_dead_note": "Нельзя отправить ресурсы уничтоженному игроку.",
-    "none": "Ничего"
+    "none": "Ничего",
+    "seconds": "секунды",
+    "seconds_short": "с",
+    "minutes": "минуты",
+    "minutes_short": "м"
   },
   "main": {
     "title": "Геоконфликт",
@@ -36,7 +40,11 @@
     "privacy_policy": "Политика конфиденциальности",
     "terms_of_service": "Пользовательское соглашение",
     "reddit": "Reddit",
-    "license_text": "Основано на OpenFront"
+    "license_text": "Основано на OpenFront",
+    "seconds": "секунды",
+    "seconds_short": "с",
+    "minutes": "минуты",
+    "minutes_short": "м"
   },
   "news": {
     "see_all_releases": "Посмотреть все выпуски",
@@ -569,6 +577,7 @@
     "levels": "Уровни"
   },
   "events_display": {
+    "title_hidden": "События",
     "retreating": "отступает",
     "boat": "Лодка",
     "alliance_request_status": "{name} {status} ваш запрос",
