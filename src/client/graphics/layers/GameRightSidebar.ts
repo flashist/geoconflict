@@ -101,10 +101,11 @@ export class GameRightSidebar extends LitElement implements Layer {
   private async onExitButtonClick() {
     const isAlive = this.game.myPlayer()?.isAlive();
     if (isAlive) {
-      const isConfirmed = confirm(
-        translateText("help_modal.exit_confirmation"),
-      );
-      if (!isConfirmed) return;
+      // Flashist Adaptation: disabling the logic of confirming exit from the game
+      // const isConfirmed = confirm(
+      //   translateText("help_modal.exit_confirmation"),
+      // );
+      // if (!isConfirmed) return;
     }
     // redirect to the home page
 
