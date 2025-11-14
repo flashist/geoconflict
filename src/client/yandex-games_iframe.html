@@ -449,15 +449,14 @@
       // Flashist Adaptation
       // requestAnimationFrame(() => {
       requestAnimationFrame(async () => {
+        // Flashist Adaptation
+        await window.FlashistFacade.instance.yandexInitPromise;
+        window.FlashistFacade.instance.yandexGamesReadyCallback();
 
         // Flashist Adaptation
         // document.documentElement.classList.remove("preload");
         // document.body.classList.remove("preload");
         document.body.classList.remove("flashist-preload");
-
-        // Flashist Adaptation
-        await window.FlashistFacade.instance.yandexInitPromise;
-        window.FlashistFacade.instance.yandexGamesReadyCallback();
       });
     });
   </script>

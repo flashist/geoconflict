@@ -124,6 +124,18 @@ export class LangSelector extends LitElement {
     let browserLocale = navigator.language;
     //
     let yandexSdkLangCode = await FlashistFacade.instance.getLanguageCode();
+    // // TEST
+    // await new Promise<void>(
+    //   (resolve) => {
+    //     setTimeout(
+    //       () => {
+    //         resolve();
+    //       },
+    //       10000
+    //     )
+    //   }
+    // );
+    //
     if (yandexSdkLangCode) {
       browserLocale = yandexSdkLangCode;
     }
