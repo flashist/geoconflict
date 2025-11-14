@@ -155,8 +155,7 @@ const TeamCountConfigSchema = z.union([
   // z.literal(Duos),
   // z.literal(Trios),
   // z.literal(Quads),
-
-  z.literal(HumansVsNations),
+  // z.literal(HumansVsNations),
 ]);
 export type TeamCountConfig = z.infer<typeof TeamCountConfigSchema>;
 

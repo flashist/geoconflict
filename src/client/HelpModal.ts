@@ -36,7 +36,7 @@ export class HelpModal extends LitElement {
     return html`
       <o-modal
         id="helpModal"
-        title="Instructions"
+        flashistAdaptation_title="Instructions"
         translationKey="main.instructions"
       >
         <div class="flex flex-col items-center">
@@ -166,7 +166,7 @@ export class HelpModal extends LitElement {
             <img
               src="/images/helpModal/leaderboard2.webp"
               alt="Leaderboard"
-              title="Leaderboard"
+              flashistAdaptation_title="Leaderboard"
               class="default-image"
               loading="lazy"
             />
@@ -186,7 +186,7 @@ export class HelpModal extends LitElement {
             <img
               src="/images/helpModal/controlPanel.webp"
               alt="Control panel"
-              title="Control panel"
+              flashistAdaptation_title="Control panel"
               class="default-image"
               loading="lazy"
             />
@@ -213,14 +213,14 @@ export class HelpModal extends LitElement {
               <img
                 src="/images/helpModal/eventsPanel.webp"
                 alt="Event panel"
-                title="Event panel"
+                flashistAdaptation_Event panel"
                 class="default-image"
                 loading="lazy"
               />
               <img
                 src="/images/helpModal/eventsPanelAttack.webp"
                 alt="Event panel"
-                title="Event panel"
+                flashistAdaptation_Event panel"
                 class="default-image"
                 loading="lazy"
               />
@@ -252,7 +252,7 @@ export class HelpModal extends LitElement {
             <img
               src="/images/helpModal/options2.webp"
               alt="Options"
-              title="Options"
+              flashistAdaptation_title="Options"
               class="default-image"
               loading="lazy"
             />
@@ -280,7 +280,7 @@ export class HelpModal extends LitElement {
             <img
               src="/images/helpModal/playerInfoOverlay.webp"
               alt="Player info overlay"
-              title="Player info overlay"
+              flashistAdaptation_title="Player info overlay"
               class="default-image"
               loading="lazy"
             />
@@ -303,14 +303,14 @@ export class HelpModal extends LitElement {
             <img
               src="/images/helpModal/radialMenu2.webp"
               alt="Radial menu"
-              title="Radial menu"
+              flashistAdaptation_title="Radial menu"
               class="default-image"
               loading="lazy"
             />
             <img
               src="/images/helpModal/radialMenuAlly.webp"
               alt="Radial menu ally"
-              title="Radial menu ally"
+              flashistAdaptation_title="Radial menu ally"
               class="default-image"
               loading="lazy"
             />
@@ -362,7 +362,7 @@ export class HelpModal extends LitElement {
               <img
                 src="/images/helpModal/infoMenu2.webp"
                 alt="Enemy info panel"
-                title="Enemy info panel"
+                flashistAdaptation_title="Enemy info panel"
                 class="info-panel-img"
                 loading="lazy"
               />
@@ -406,7 +406,7 @@ export class HelpModal extends LitElement {
               <img
                 src="/images/helpModal/infoMenu2Ally.webp"
                 alt="Ally info panel"
-                title="Ally info panel"
+                flashistAdaptation_title="Ally info panel"
                 class="info-panel-img"
                 loading="lazy"
               />
@@ -521,7 +521,7 @@ export class HelpModal extends LitElement {
               <img
                 src="/images/helpModal/crown.webp"
                 alt="Number 1 player"
-                title="Number 1 player"
+                flashistAdaptation_title="Number 1 player"
                 class="player-icon-img w-full"
                 loading="lazy"
               />
@@ -538,7 +538,7 @@ export class HelpModal extends LitElement {
               <img
                 src="/images/helpModal/traitor2.webp"
                 alt="Traitor"
-                title="Traitor"
+                flashistAdaptation_Traitor"
                 class="player-icon-img w-full"
                 loading="lazy"
               />
@@ -555,7 +555,7 @@ export class HelpModal extends LitElement {
               <img
                 src="/images/helpModal/ally2.webp"
                 alt="Ally"
-                title="Ally"
+                flashistAdaptation_title="Ally"
                 class="player-icon-img w-full"
                 loading="lazy"
               />
@@ -574,7 +574,7 @@ export class HelpModal extends LitElement {
               <img
                 src="/images/helpModal/embargo.webp"
                 alt="Stopped trading"
-                title="Stopped trading"
+                flashistAdaptation_title="Stopped trading"
                 class="player-icon-img w-full"
                 loading="lazy"
               />
@@ -591,7 +591,7 @@ export class HelpModal extends LitElement {
               <img
                 src="/images/helpModal/allianceRequest.webp"
                 alt="Alliance Request"
-                title="Alliance Request"
+                flashistAdaptation_title="Alliance Request"
                 class="player-icon-img w-full"
                 loading="lazy"
               />

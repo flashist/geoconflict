@@ -285,9 +285,11 @@ export abstract class DefaultServerConfig implements ServerConfig {
       //   p -= p % 4;
       //   break;
 
-      case HumansVsNations:
-        // For HumansVsNations, return the base team player count
-        break;
+      // Flashist Adaptation: disabling some game modes
+      // case HumansVsNations:
+      //   // For HumansVsNations, return the base team player count
+      //   break;
+
       default:
         p -= p % numPlayerTeams;
         break;

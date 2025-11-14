@@ -34,7 +34,7 @@ export class DarkModeButton extends LitElement {
   render() {
     return html`
       <button
-        title="Toggle Dark Mode"
+        flashistAdaptation_title="Toggle Dark Mode"
         class="absolute top-0 left-0 md:top-[10px] md:left-[10px] border-none bg-none cursor-pointer text-2xl"
         @click=${() => this.toggleDarkMode()}
       >

@@ -71,8 +71,7 @@ const TEAM_COUNTS = [
   // Duos,
   // Trios,
   // Quads,
-
-  HumansVsNations,
+  // HumansVsNations,
 ] as const satisfies TeamCountConfig[];
 
 export class MapPlaylist {
@@ -99,7 +98,11 @@ export class MapPlaylist {
       infiniteTroops: false,
       maxTimerValue: undefined,
       instantBuild: false,
-      disableNPCs: mode === GameMode.Team && playerTeams !== HumansVsNations,
+
+      // Flashist Adaptation: Disabling some game modes
+      // disableNPCs: mode === GameMode.Team && playerTeams !== HumansVsNations,
+      disableNPCs: mode === GameMode.Team,
+
       gameMode: mode,
       playerTeams,
       bots: 400,

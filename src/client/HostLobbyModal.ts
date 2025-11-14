@@ -296,8 +296,8 @@ export class HostLobbyModal extends LitElement {
             // Quads,
             // Trios,
             // Duos,
+            // HumansVsNations,
 
-            HumansVsNations,
           ].map(
             (o) => html`
                           <div
@@ -349,8 +349,11 @@ export class HostLobbyModal extends LitElement {
                 </label>
 
                 ${!(
-        this.gameMode === GameMode.Team &&
-        this.teamCount === HumansVsNations
+
+        // Flashist Adaptation: disabling some game modes
+        this.gameMode === GameMode.Team
+        // this.gameMode === GameMode.Team &&
+        // this.teamCount === HumansVsNations
       )
         ? html`
                         <label
@@ -753,8 +756,11 @@ export class HostLobbyModal extends LitElement {
           gameMode: this.gameMode,
           disabledUnits: this.disabledUnits,
           playerTeams: this.teamCount,
-          ...(this.gameMode === GameMode.Team &&
-            this.teamCount === HumansVsNations
+
+          // Flashist Adaptation: Disabling some game modes
+          ...(this.gameMode === GameMode.Team
+            // ...(this.gameMode === GameMode.Team &&
+            // this.teamCount === HumansVsNations
             ? {
               disableNPCs: false,
             }
