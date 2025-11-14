@@ -6,6 +6,7 @@ import { GameID, GameInfo } from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { JoinLobbyEvent } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
+import { flashist_waitGameInitComplete } from "./FlashistFacade";
 
 @customElement("public-lobby")
 export class PublicLobby extends LitElement {
@@ -25,11 +26,18 @@ export class PublicLobby extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    this.fetchAndUpdateLobbies();
-    this.lobbiesInterval = window.setInterval(
-      () => this.fetchAndUpdateLobbies(),
-      1000,
-    );
+
+    // Flashist Adaptation
+    flashist_waitGameInitComplete()
+      .then(
+        () => {
+          this.fetchAndUpdateLobbies();
+          this.lobbiesInterval = window.setInterval(
+            () => this.fetchAndUpdateLobbies(),
+            1000,
+          );
+        }
+      );
   }
 
   disconnectedCallback() {
@@ -129,21 +137,21 @@ export class PublicLobby extends LitElement {
         @click=${() => this.lobbyClicked(lobby)}
         ?disabled=${this.isButtonDebounced}
         class="isolate grid h-40 grid-cols-[100%] grid-rows-[100%] place-content-stretch w-full overflow-hidden ${this
-          .isLobbyHighlighted
-          ? "bg-gradient-to-r from-green-600 to-green-500"
-          : "bg-gradient-to-r from-blue-600 to-blue-500"} text-white font-medium rounded-xl transition-opacity duration-200 hover:opacity-90 ${this
+        .isLobbyHighlighted
+        ? "bg-gradient-to-r from-green-600 to-green-500"
+        : "bg-gradient-to-r from-blue-600 to-blue-500"} text-white font-medium rounded-xl transition-opacity duration-200 hover:opacity-90 ${this
           .isButtonDebounced
           ? "opacity-70 cursor-not-allowed"
           : ""}"
       >
         ${mapImageSrc
-          ? html`<img
+        ? html`<img
               src="${mapImageSrc}"
               alt="${lobby.gameConfig.gameMap}"
               class="place-self-start col-span-full row-span-full h-full -z-10"
               style="mask-image: linear-gradient(to left, transparent, #fff)"
             />`
-          : html`<div
+        : html`<div
               class="place-self-start col-span-full row-span-full h-full -z-10 bg-gray-300"
             ></div>`}
         <div
@@ -156,21 +164,21 @@ export class PublicLobby extends LitElement {
             <div class="text-md font-medium text-blue-100">
               <span
                 class="text-sm ${this.isLobbyHighlighted
-                  ? "text-green-600"
-                  : "text-blue-600"} bg-white rounded-sm px-1"
+        ? "text-green-600"
+        : "text-blue-600"} bg-white rounded-sm px-1"
               >
                 ${lobby.gameConfig.gameMode === GameMode.Team
-                  ? typeof teamCount === "string"
-                    ? translateText(`public_lobby.teams_${teamCount}`)
-                    : translateText("public_lobby.teams", {
-                        num: teamCount ?? 0,
-                      })
-                  : translateText("game_mode.ffa")}</span
+        ? typeof teamCount === "string"
+          ? translateText(`public_lobby.teams_${teamCount}`)
+          : translateText("public_lobby.teams", {
+            num: teamCount ?? 0,
+          })
+        : translateText("game_mode.ffa")}</span
               >
               <span
                 >${translateText(
-                  `map.${lobby.gameConfig.gameMap.toLowerCase().replace(/\s+/g, "")}`,
-                )}</span
+          `map.${lobby.gameConfig.gameMap.toLowerCase().replace(/\s+/g, "")}`,
+        )}</span
               >
             </div>
           </div>
