@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import megaphone from "../../../resources/images/Megaphone.svg";
-import version from "../../../resources/version.txt";
+import version from "../../version";
 import { NewsModal } from "../NewsModal";
 import { translateText } from "../Utils";
 

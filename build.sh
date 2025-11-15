@@ -82,9 +82,6 @@ echo "Git commit: $GIT_COMMIT"
 if [ -n "$CHANGELOG_MD" ]; then
     echo "$CHANGELOG_MD" > resources/changelog.md
 fi
-if [ -n "$VERSION_TXT" ]; then
-    echo "$VERSION_TXT" > resources/version.txt
-fi
 
 docker buildx build \
     --platform linux/amd64 \
