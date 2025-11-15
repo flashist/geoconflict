@@ -17,45 +17,66 @@
   "name": "Strait of Gibraltar",
   "nations": [
     {
-      "coordinates": [1941, 1031],
+      "coordinates": [
+        1941,
+        1031
+      ],
       "flag": "Rif",
-      "name": "Rif",
+      "name": "Ifr",
       "strength": 2
     },
     {
-      "coordinates": [2733, 1190],
+      "coordinates": [
+        2733,
+        1190
+      ],
       "flag": "dz",
-      "name": "Algeria",
+      "name": "Eriaalg",
       "strength": 2
     },
     {
-      "coordinates": [1287, 1175],
+      "coordinates": [
+        1287,
+        1175
+      ],
       "flag": "ma",
-      "name": "Morocco",
+      "name": "Occomor",
       "strength": 2
     },
     {
-      "coordinates": [414, 59],
+      "coordinates": [
+        414,
+        59
+      ],
       "flag": "pt",
-      "name": "Portugal",
+      "name": "Ugalport",
       "strength": 2
     },
     {
-      "coordinates": [2675, 49],
+      "coordinates": [
+        2675,
+        49
+      ],
       "flag": "es",
-      "name": "Spain",
+      "name": "Ainsp",
       "strength": 2
     },
     {
-      "coordinates": [1271, 1393],
+      "coordinates": [
+        1271,
+        1393
+      ],
       "flag": "Shilha",
-      "name": "Shilha",
+      "name": "Lhashi",
       "strength": 1
     },
     {
-      "coordinates": [1555, 258],
+      "coordinates": [
+        1555,
+        258
+      ],
       "flag": "Andalusia",
-      "name": "Andalusia",
+      "name": "Lusiaanda",
       "strength": 2
     }
   ]

@@ -17,189 +17,282 @@
   "name": "Europe",
   "nations": [
     {
-      "coordinates": [171, 171],
+      "coordinates": [
+        171,
+        171
+      ],
       "flag": "is",
-      "name": "Iceland",
+      "name": "Landice",
       "strength": 1
     },
     {
-      "coordinates": [477, 473],
+      "coordinates": [
+        477,
+        473
+      ],
       "flag": "ie",
-      "name": "Ireland",
+      "name": "Landire",
       "strength": 1
     },
     {
-      "coordinates": [650, 500],
+      "coordinates": [
+        650,
+        500
+      ],
       "flag": "gb",
-      "name": "United Kingdom",
+      "name": "Teduni Gdomkin",
       "strength": 3
     },
     {
-      "coordinates": [560, 800],
+      "coordinates": [
+        560,
+        800
+      ],
       "flag": "es",
-      "name": "Spain",
+      "name": "Ainsp",
       "strength": 2
     },
     {
-      "coordinates": [726, 616],
+      "coordinates": [
+        726,
+        616
+      ],
       "flag": "fr",
-      "name": "France",
+      "name": "Ncefra",
       "strength": 2
     },
     {
-      "coordinates": [1050, 745],
+      "coordinates": [
+        1050,
+        745
+      ],
       "flag": "it",
-      "name": "Italy",
+      "name": "Alyit",
       "strength": 1
     },
     {
-      "coordinates": [872, 634],
+      "coordinates": [
+        872,
+        634
+      ],
       "flag": "ch",
-      "name": "Switzerland",
+      "name": "Erlandswitz",
       "strength": 1
     },
     {
-      "coordinates": [960, 271],
+      "coordinates": [
+        960,
+        271
+      ],
       "flag": "no",
-      "name": "Norway",
+      "name": "Waynor",
       "strength": 1
     },
     {
-      "coordinates": [1095, 336],
+      "coordinates": [
+        1095,
+        336
+      ],
       "flag": "se",
-      "name": "Sweden",
+      "name": "Denswe",
       "strength": 1
     },
     {
-      "coordinates": [1403, 235],
+      "coordinates": [
+        1403,
+        235
+      ],
       "flag": "fi",
-      "name": "Finland",
+      "name": "Landfin",
       "strength": 1
     },
     {
-      "coordinates": [775, 541],
+      "coordinates": [
+        775,
+        541
+      ],
       "flag": "be",
-      "name": "Belgium",
+      "name": "Giumbel",
       "strength": 1
     },
     {
-      "coordinates": [868, 487],
+      "coordinates": [
+        868,
+        487
+      ],
       "flag": "nl",
-      "name": "Netherlands",
+      "name": "Rlandsnethe",
       "strength": 1
     },
     {
-      "coordinates": [1000, 480],
+      "coordinates": [
+        1000,
+        480
+      ],
       "flag": "de",
-      "name": "Germany",
+      "name": "Manyger",
       "strength": 1
     },
     {
-      "coordinates": [1017, 628],
+      "coordinates": [
+        1017,
+        628
+      ],
       "flag": "at",
-      "name": "Austria",
+      "name": "Triaaus",
       "strength": 1
     },
     {
-      "coordinates": [1120, 477],
+      "coordinates": [
+        1120,
+        477
+      ],
       "flag": "pl",
-      "name": "Poland",
+      "name": "Andpol",
       "strength": 1
     },
     {
-      "coordinates": [1060, 530],
+      "coordinates": [
+        1060,
+        530
+      ],
       "flag": "cz",
-      "name": "Czech Republic",
+      "name": "Echcz Blicrepu",
       "strength": 1
     },
     {
-      "coordinates": [1540, 602],
+      "coordinates": [
+        1540,
+        602
+      ],
       "flag": "ua",
-      "name": "Ukraine",
+      "name": "Aineukr",
       "strength": 1
     },
     {
-      "coordinates": [1500, 440],
+      "coordinates": [
+        1500,
+        440
+      ],
       "flag": "by",
-      "name": "Belarus",
+      "name": "Arusbel",
       "strength": 1
     },
     {
-      "coordinates": [1400, 670],
+      "coordinates": [
+        1400,
+        670
+      ],
       "flag": "ro",
-      "name": "Romania",
+      "name": "Aniarom",
       "strength": 1
     },
     {
-      "coordinates": [1580, 834],
+      "coordinates": [
+        1580,
+        834
+      ],
       "flag": "tr",
-      "name": "Turkey",
+      "name": "Keytur",
       "strength": 1
     },
     {
-      "coordinates": [525, 955],
+      "coordinates": [
+        525,
+        955
+      ],
       "flag": "ma",
-      "name": "Morocco",
+      "name": "Occomor",
       "strength": 1
     },
     {
-      "coordinates": [1674, 449],
+      "coordinates": [
+        1674,
+        449
+      ],
       "flag": "ru",
-      "name": "Russia",
+      "name": "Siarus",
       "strength": 3
     },
     {
-      "coordinates": [1750, 950],
+      "coordinates": [
+        1750,
+        950
+      ],
       "flag": "sy",
-      "name": "Syrian Arab Republic",
+      "name": "Iansyr Abar Blicrepu",
       "strength": 1
     },
     {
-      "coordinates": [1930, 950],
+      "coordinates": [
+        1930,
+        950
+      ],
       "flag": "iq",
-      "name": "Iraq",
+      "name": "Aqir",
       "strength": 1
     },
     {
-      "coordinates": [1900, 720],
+      "coordinates": [
+        1900,
+        720
+      ],
       "flag": "ge",
-      "name": "Georgia",
+      "name": "Rgiageo",
       "strength": 1
     },
     {
-      "coordinates": [950, 930],
+      "coordinates": [
+        950,
+        930
+      ],
       "flag": "tn",
-      "name": "Tunisia",
+      "name": "Isiatun",
       "strength": 1
     },
     {
-      "coordinates": [740, 940],
+      "coordinates": [
+        740,
+        940
+      ],
       "flag": "dz",
-      "name": "Algeria",
+      "name": "Eriaalg",
       "strength": 1
     },
     {
-      "coordinates": [460, 830],
+      "coordinates": [
+        460,
+        830
+      ],
       "flag": "pt",
-      "name": "Portugal",
+      "name": "Ugalport",
       "strength": 1
     },
     {
-      "coordinates": [1300, 830],
+      "coordinates": [
+        1300,
+        830
+      ],
       "flag": "gr",
-      "name": "Greece",
+      "name": "Ecegre",
       "strength": 1
     },
     {
-      "coordinates": [1270, 700],
+      "coordinates": [
+        1270,
+        700
+      ],
       "flag": "rs",
-      "name": "Serbia",
+      "name": "Biaser",
       "strength": 1
     },
     {
-      "coordinates": [1200, 630],
+      "coordinates": [
+        1200,
+        630
+      ],
       "flag": "hu",
-      "name": "Hungary",
+      "name": "Garyhun",
       "strength": 1
     }
   ]

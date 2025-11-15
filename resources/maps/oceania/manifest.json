@@ -17,195 +17,291 @@
   "name": "Oceania",
   "nations": [
     {
-      "coordinates": [718, 738],
+      "coordinates": [
+        718,
+        738
+      ],
       "flag": "au",
-      "name": "Australia",
+      "name": "Raliaaust",
       "strength": 1
     },
     {
-      "coordinates": [1050, 809],
+      "coordinates": [
+        1050,
+        809
+      ],
       "flag": "nz",
-      "name": "New Zealand",
+      "name": "Ewn Landzea",
       "strength": 1
     },
     {
-      "coordinates": [436, 407],
+      "coordinates": [
+        436,
+        407
+      ],
       "flag": "tl",
-      "name": "Timor-Leste",
+      "name": "Morti-Stele",
       "strength": 1
     },
     {
-      "coordinates": [182, 378],
+      "coordinates": [
+        182,
+        378
+      ],
       "flag": "id",
-      "name": "Indonesia",
+      "name": "Nesiaindo",
       "strength": 1
     },
     {
-      "coordinates": [292, 243],
+      "coordinates": [
+        292,
+        243
+      ],
       "flag": "bn",
-      "name": "Brunei Darussalam",
+      "name": "Neibru Salamdarus",
       "strength": 1
     },
     {
-      "coordinates": [152, 282],
+      "coordinates": [
+        152,
+        282
+      ],
       "flag": "sg",
-      "name": "Singapore",
+      "name": "Aporesing",
       "strength": 1
     },
     {
-      "coordinates": [120, 261],
+      "coordinates": [
+        120,
+        261
+      ],
       "flag": "my",
-      "name": "Malaysia",
+      "name": "Ysiamala",
       "strength": 1
     },
     {
-      "coordinates": [106, 129],
+      "coordinates": [
+        106,
+        129
+      ],
       "flag": "th",
-      "name": "Thailand",
+      "name": "Landthai",
       "strength": 1
     },
     {
-      "coordinates": [51, 42],
+      "coordinates": [
+        51,
+        42
+      ],
       "flag": "mm",
-      "name": "Myanmar",
+      "name": "Nmarmya",
       "strength": 1
     },
     {
-      "coordinates": [158, 162],
+      "coordinates": [
+        158,
+        162
+      ],
       "flag": "kh",
-      "name": "Cambodia",
+      "name": "Odiacamb",
       "strength": 1
     },
     {
-      "coordinates": [182, 43],
+      "coordinates": [
+        182,
+        43
+      ],
       "flag": "vn",
-      "name": "Vietnam",
+      "name": "Tnamvie",
       "strength": 1
     },
     {
-      "coordinates": [143, 37],
+      "coordinates": [
+        143,
+        37
+      ],
       "flag": "la",
-      "name": "Lao PDR",
+      "name": "Aol Drp",
       "strength": 1
     },
     {
-      "coordinates": [278, 18],
+      "coordinates": [
+        278,
+        18
+      ],
       "flag": "hk",
-      "name": "Hong Kong",
+      "name": "Ngho Ngko",
       "strength": 1
     },
     {
-      "coordinates": [359, 1],
+      "coordinates": [
+        359,
+        1
+      ],
       "flag": "tw",
-      "name": "Taiwan, Province of China",
+      "name": "Wantai, Inceprov Fo Inach",
       "strength": 1
     },
     {
-      "coordinates": [366, 119],
+      "coordinates": [
+        366,
+        119
+      ],
       "flag": "ph",
-      "name": "Philippines",
+      "name": "Ppinesphili",
       "strength": 1
     },
     {
-      "coordinates": [536, 207],
+      "coordinates": [
+        536,
+        207
+      ],
       "flag": "pw",
-      "name": "Palau",
+      "name": "Laupa",
       "strength": 1
     },
     {
-      "coordinates": [834, 215],
+      "coordinates": [
+        834,
+        215
+      ],
       "flag": "fm",
-      "name": "Micronesia",
+      "name": "Nesiamicro",
       "strength": 1
     },
     {
-      "coordinates": [664, 113],
+      "coordinates": [
+        664,
+        113
+      ],
       "flag": "gu",
-      "name": "Guam",
+      "name": "Amgu",
       "strength": 1
     },
     {
-      "coordinates": [1042, 317],
+      "coordinates": [
+        1042,
+        317
+      ],
       "flag": "mh",
-      "name": "Marshall Islands",
+      "name": "Hallmars Andsisl",
       "strength": 1
     },
     {
-      "coordinates": [799, 385],
+      "coordinates": [
+        799,
+        385
+      ],
       "flag": "pg",
-      "name": "Papua New Guinea",
+      "name": "Puapa Ewn Neagui",
       "strength": 1
     },
     {
-      "coordinates": [862, 442],
+      "coordinates": [
+        862,
+        442
+      ],
       "flag": "sb",
-      "name": "Solomon Islands",
+      "name": "Omonsol Andsisl",
       "strength": 1
     },
     {
-      "coordinates": [945, 497],
+      "coordinates": [
+        945,
+        497
+      ],
       "flag": "vu",
-      "name": "Vanuatu",
+      "name": "Uatuvan",
       "strength": 1
     },
     {
-      "coordinates": [930, 574],
+      "coordinates": [
+        930,
+        574
+      ],
       "flag": "nc",
-      "name": "New Caledonia",
+      "name": "Ewn Doniacale",
       "strength": 1
     },
     {
-      "coordinates": [1085, 526],
+      "coordinates": [
+        1085,
+        526
+      ],
       "flag": "fj",
-      "name": "Fiji",
+      "name": "Jifi",
       "strength": 1
     },
     {
-      "coordinates": [1169, 568],
+      "coordinates": [
+        1169,
+        568
+      ],
       "flag": "to",
-      "name": "Tonga",
+      "name": "Ngato",
       "strength": 1
     },
     {
-      "coordinates": [1236, 541],
+      "coordinates": [
+        1236,
+        541
+      ],
       "flag": "nu",
-      "name": "Niue",
+      "name": "Ueni",
       "strength": 1
     },
     {
-      "coordinates": [1204, 473],
+      "coordinates": [
+        1204,
+        473
+      ],
       "flag": "ws",
-      "name": "Samoa",
+      "name": "Moasa",
       "strength": 1
     },
     {
-      "coordinates": [1491, 523],
+      "coordinates": [
+        1491,
+        523
+      ],
       "flag": "ck",
-      "name": "Cook Islands",
+      "name": "Okco Andsisl",
       "strength": 1
     },
     {
-      "coordinates": [1623, 424],
+      "coordinates": [
+        1623,
+        424
+      ],
       "flag": "pf",
-      "name": "French Polynesia",
+      "name": "Nchfre Nesiapoly",
       "strength": 1
     },
     {
-      "coordinates": [1393, 278],
+      "coordinates": [
+        1393,
+        278
+      ],
       "flag": "ki",
-      "name": "Kiribati",
+      "name": "Batikiri",
       "strength": 1
     },
     {
-      "coordinates": [1420, 56],
+      "coordinates": [
+        1420,
+        56
+      ],
       "flag": "us",
-      "name": "United States",
+      "name": "Teduni Tessta",
       "strength": 1
     },
     {
-      "coordinates": [1996, 644],
+      "coordinates": [
+        1996,
+        644
+      ],
       "flag": "cl",
-      "name": "Chile",
+      "name": "Ilech",
       "strength": 1
     }
   ]

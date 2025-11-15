@@ -17,45 +17,66 @@
   "name": "Australia",
   "nations": [
     {
-      "coordinates": [460, 720],
+      "coordinates": [
+        460,
+        720
+      ],
       "flag": "aus_wesaus",
-      "name": "Western Australia",
+      "name": "Ternwes Raliaaust",
       "strength": 2
     },
     {
-      "coordinates": [965, 340],
+      "coordinates": [
+        965,
+        340
+      ],
       "flag": "aus_norter",
-      "name": "Northern Territory",
+      "name": "Hernnort Itoryterr",
       "strength": 2
     },
     {
-      "coordinates": [920, 915],
+      "coordinates": [
+        920,
+        915
+      ],
       "flag": "aus_souaus",
-      "name": "South Australia",
+      "name": "Uthso Raliaaust",
       "strength": 1
     },
     {
-      "coordinates": [1435, 1220],
+      "coordinates": [
+        1435,
+        1220
+      ],
       "flag": "aus_vic",
-      "name": "Victoria",
+      "name": "Oriavict",
       "strength": 2
     },
     {
-      "coordinates": [1490, 555],
+      "coordinates": [
+        1490,
+        555
+      ],
       "flag": "aus_quelan",
-      "name": "Queensland",
+      "name": "Slandqueen",
       "strength": 2
     },
     {
-      "coordinates": [1605, 1025],
+      "coordinates": [
+        1605,
+        1025
+      ],
       "flag": "aus_nsw",
-      "name": "New South Wales",
+      "name": "Ewn Uthso Leswa",
       "strength": 2
     },
     {
-      "coordinates": [1595, 1380],
+      "coordinates": [
+        1595,
+        1380
+      ],
       "flag": "aus_tas",
-      "name": "Tasmania",
+      "name": "Aniatasm",
       "strength": 2
     }
   ]

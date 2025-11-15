@@ -17,75 +17,111 @@
   "name": "Italia",
   "nations": [
     {
-      "coordinates": [1038, 993],
+      "coordinates": [
+        1038,
+        993
+      ],
       "flag": "custom:Kingdom of the Two Sicilies",
-      "name": "Kingdom of the Two Sicilies",
+      "name": "Gdomkin Fo Het Wot Liessici",
       "strength": 2
     },
     {
-      "coordinates": [370, 1137],
+      "coordinates": [
+        370,
+        1137
+      ],
       "flag": "tn",
-      "name": "Beylik of Tunis",
+      "name": "Likbey Fo Nistu",
       "strength": 1
     },
     {
-      "coordinates": [785, 578],
+      "coordinates": [
+        785,
+        578
+      ],
       "flag": "va",
-      "name": "Papal States",
+      "name": "Palpa Tessta",
       "strength": 2
     },
     {
-      "coordinates": [625, 534],
+      "coordinates": [
+        625,
+        534
+      ],
       "flag": "custom:Tuscany",
-      "name": "Tuscany",
+      "name": "Canytus",
       "strength": 1
     },
     {
-      "coordinates": [595, 190],
+      "coordinates": [
+        595,
+        190
+      ],
       "flag": "venice",
-      "name": "Venice",
+      "name": "Iceven",
       "strength": 2
     },
     {
-      "coordinates": [469, 386],
+      "coordinates": [
+        469,
+        386
+      ],
       "flag": "custom:Modena",
-      "name": "Modena",
+      "name": "Enamod",
       "strength": 1
     },
     {
-      "coordinates": [391, 254],
+      "coordinates": [
+        391,
+        254
+      ],
       "flag": "custom:Parma",
-      "name": "Parma",
+      "name": "Rmapa",
       "strength": 1
     },
     {
-      "coordinates": [361, 68],
+      "coordinates": [
+        361,
+        68
+      ],
       "flag": "ch",
-      "name": "Switzerland",
+      "name": "Erlandswitz",
       "strength": 1
     },
     {
-      "coordinates": [278, 774],
+      "coordinates": [
+        278,
+        774
+      ],
       "flag": "custom:Kingdom of Sardinia",
-      "name": "Kingdom of Sardinia",
+      "name": "Gdomkin Fo Iniasard",
       "strength": 2
     },
     {
-      "coordinates": [29, 266],
+      "coordinates": [
+        29,
+        266
+      ],
       "flag": "fr",
-      "name": "France",
+      "name": "Ncefra",
       "strength": 3
     },
     {
-      "coordinates": [747, 39],
+      "coordinates": [
+        747,
+        39
+      ],
       "flag": "Habsburg Austria",
-      "name": "Austrian Empire",
+      "name": "Rianaust Ireemp",
       "strength": 3
     },
     {
-      "coordinates": [1238, 349],
+      "coordinates": [
+        1238,
+        349
+      ],
       "flag": "custom:Ottoman Empire2",
-      "name": "Ottoman Empire",
+      "name": "Omanott Ireemp",
       "strength": 3
     }
   ]

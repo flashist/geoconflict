@@ -20,7 +20,7 @@ export class PrivilegeCheckerImpl implements PrivilegeChecker {
   constructor(
     private cosmetics: Cosmetics,
     private b64urlDecode: (base64: string) => Uint8Array,
-  ) {}
+  ) { }
 
   isAllowed(flares: string[], refs: PlayerCosmeticRefs): CosmeticResult {
     const cosmetics: PlayerCosmetics = {};
@@ -50,7 +50,8 @@ export class PrivilegeCheckerImpl implements PrivilegeChecker {
           reason: "invalid flag: " + result.error.message,
         };
       }
-      cosmetics.flag = result.data;
+      // Flashist AdaptatioN: disabling flags
+      // cosmetics.flag = result.data;
     }
 
     return { type: "allowed", cosmetics };

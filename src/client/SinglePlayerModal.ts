@@ -550,10 +550,11 @@ export class SinglePlayerModal extends LitElement {
                 clientID,
                 username: usernameInput.getCurrentUsername(),
                 cosmetics: {
-                  flag:
-                    flagInput.getCurrentFlag() === "xx"
-                      ? ""
-                      : flagInput.getCurrentFlag(),
+                  // Flashist AdaptatioN: disabling flags
+                  // flag:
+                  //   flagInput.getCurrentFlag() === "xx"
+                  //     ? ""
+                  //     : flagInput.getCurrentFlag(),
                   pattern: selectedPattern ?? undefined,
                   color: selectedColor ? { color: selectedColor } : undefined,
                 },

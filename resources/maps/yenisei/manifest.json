@@ -17,39 +17,57 @@
   "name": "Yenisei",
   "nations": [
     {
-      "coordinates": [1730, 900],
+      "coordinates": [
+        1730,
+        900
+      ],
       "flag": "ru",
-      "name": "Baikalovsk",
+      "name": "Lovskbaika",
       "strength": 2
     },
     {
-      "coordinates": [1880, 2110],
+      "coordinates": [
+        1880,
+        2110
+      ],
       "flag": "ru",
-      "name": "Mungui",
+      "name": "Guimun",
       "strength": 2
     },
     {
-      "coordinates": [560, 2020],
+      "coordinates": [
+        560,
+        2020
+      ],
       "flag": "ru",
-      "name": "Polykarpovsk",
+      "name": "Rpovskpolyka",
       "strength": 1
     },
     {
-      "coordinates": [580, 1270],
+      "coordinates": [
+        580,
+        1270
+      ],
       "flag": "ru",
-      "name": "Central Island",
+      "name": "Tralcen Andisl",
       "strength": 2
     },
     {
-      "coordinates": [80, 460],
+      "coordinates": [
+        80,
+        460
+      ],
       "flag": "ru",
-      "name": "West Coast",
+      "name": "Stwe Astco",
       "strength": 2
     },
     {
-      "coordinates": [725, 630],
+      "coordinates": [
+        725,
+        630
+      ],
       "flag": "ru",
-      "name": "Northern Island",
+      "name": "Hernnort Andisl",
       "strength": 2
     }
   ]

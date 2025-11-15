@@ -1,0 +1,449 @@
+Achill
+Afghanistan
+African Space Agency
+Airgialla
+Alaska
+Albermarle
+Algeria
+Amazonas
+An Anti-Pope
+Andalusia
+Angola
+Antarctica
+Arab Republic of Egypt
+Argentina
+Argentinian Claim
+Arizona
+Armenia
+Australia
+Australian Colony
+Austria
+Austrian Empire
+Azerbaijan
+Baguettes
+Baikalovsk
+Bangladesh
+Belarus
+Belgium
+Belize
+Benin
+Berkeley
+Beylik of Tunis
+Bhutan
+Blainville
+Bolivia
+Bolshoy Ushkan Island
+Bosnia and Herzegovina
+Botswana
+Brazil
+Brunei Darussalam
+Bulgaria
+Burma
+Byelorussian SSR
+California
+Cambodia
+Canada
+Cape Khoboy
+Capital Region
+Catalonia
+Central African Republic
+Central Island
+Chad
+Chanchur
+Chateauguay
+Chile
+Chilean Claim
+Chilean Colony
+China
+Chinese Colony
+Chivyrkuisky Bay
+Chubu
+Chugoku
+Circassia
+City of Cordoba
+City of Paris
+City of Seville
+Colombia
+Colorado
+Concordia
+Connacht
+Cook Islands
+County of Armagnac
+County of Provence
+Cuba
+Cyprus
+Czech Republic
+DR Congo
+Dalriata
+Dominican Republic
+Duchy of Aquitaine
+Duchy of Normandy
+Dumnonia
+Dyfed
+East Anglia
+East Antarctica
+East Falkland
+East Germany
+Eastern Region
+Ecuador
+Egypt
+Emirate of Granada
+England
+Eritrea
+Essex
+Ethiopia
+European Space Agency
+Eysturoy Region
+Federal Republic of Germany
+Fiji
+Finland
+Florida
+Fortriu
+Fox Bay
+France
+Franks
+Free Pluto State
+French Claim
+French Foreign Legion
+French Guyana
+French Polynesia
+French Republic
+Frost Giants
+Gabon
+Georgia
+Georgian SSR
+Germany
+Greece
+Greenland
+Guam
+Guatemala
+Guyana
+Gwent
+Gwynedd
+Haiti
+Hashemite Kingdom of Jordan
+Hawaii
+Hellenic Republic
+Hochelaga Archipelago
+Hokkaido
+Honduras
+Hong Kong
+Hungary
+Iceland
+Idaho
+Illinois
+India
+Indian Colony
+Indonesia
+Inisheer
+Inishmann
+Inishmore
+Iran
+Iraq
+Ireland
+Irish Colony
+Irkutsk Oblast
+Islamic Republic Of Iran
+Islamic Republic of Iran
+Israel
+Italian Republic
+Italy
+Japan
+Japanese Colony
+Jordan
+Just Otters
+Kanesatake Lands
+Kansai
+Kansas
+Kanto
+Kassandra
+Kazakh SSR
+Kazakhstan
+Kent
+Kentucky
+Kenya
+Kilkis
+Kingdom of Belgium
+Kingdom of Brittany
+Kingdom of Burgundy
+Kingdom of Castille
+Kingdom of Denmark
+Kingdom of Galicia
+Kingdom of Leon
+Kingdom of Morocco
+Kingdom of Norway
+Kingdom of Sardinia
+Kingdom of Spain
+Kingdom of Sweden
+Kingdom of Valencia
+Kingdom of the Netherlands
+Kingdom of the Two Sicilies
+Kinki
+Kiribati
+Kuwait
+Kyoto
+Kyushu
+Laigin
+Lao PDR
+Latvia
+Laval
+Lebanese Republic
+Lebanon
+Liberia
+Libya
+Libyan Arab Jamahiriya
+Listvyanka
+Louisiana
+Lower Australian Claim
+Madagascar
+Maine
+Malaysia
+Mali
+Marshall Islands
+Mauritania
+Mercia
+Mexico
+Michigan
+Micronesia
+Minnesota
+Mirabel
+Mississippi
+Missouri
+Modena
+Moldova
+Mongolia
+Montana
+Morocco
+Mount Athos
+Mount Fuji
+Mozambique
+Mungui
+Munster
+Myanmar
+Namibia
+Nawan-mirri
+Nebraska
+Nepal
+Netherlands
+Nevada
+New Caledonia
+New Mexico
+New South Wales
+New York
+New Zealand
+New Zealand Claim
+Newfoundland
+Nicaragua
+Niger
+Nigeria
+Niue
+Nordoyar Region
+Normal Capybaras
+North Dakota
+North Korea
+North Korean Colony
+North Lefonia
+North Vietnam
+North Yemen
+Northeastern Region
+Northern Ireland
+Northern Island
+Northern Territory
+Northern Uí Néill
+Northumbria
+Northwestern Region
+Norway
+Norwegian Claim
+Nunavut
+Ogoi Island
+Ohio
+Oki Islands
+Okinawa
+Oklahoma
+Olkhon Island
+Oman
+Oregon
+Ottoman Empire
+Pakistan
+Palau
+Palestinian Territory
+Panama
+Papal States
+Papua New Guinea
+Paraguay
+Parma
+Penguin Empire
+Pennsylvania
+Perrot Island
+Peru
+Philippines
+Pointe-aux-Trembles
+Poland
+Polar Bears
+Polish Colony
+Polygyros
+Polykarpovsk
+Portugal
+Portuguese Republic
+Powys
+Principality of Asturias
+Qatar
+Quebec
+Queensland
+Republic of Albania
+Republic of Armenia
+Republic of Austria
+Republic of Azerbaijan
+Republic of Belarus
+Republic of Bulgaria
+Republic of Buryatia
+Republic of Croatia
+Republic of Estonia
+Republic of Finland
+Republic of Hungary
+Republic of Iraq
+Republic of Ireland
+Republic of Latvia
+Republic of Lithuania
+Republic of Poland
+Republic of Serbia
+Republic of Tunisia
+Republic of Turkiye
+Rhodesia
+Rif
+Romania
+Royal Mount park
+Russia
+Russian Colony
+Russian Federation
+Russian SSR
+Sado Island
+Saint-Eustache
+Saint-Lambert
+Sakhalin
+Sakurajima
+Samoa
+San Carlos
+Sandoy Region
+Santa Claus
+Sapmi
+Sardines
+Saudi Arabia
+Saunders and Dunbar
+Scotland
+Senegal
+Seoul
+Serbia
+Serres
+Shikoku
+Shilha
+Shiretoko Peninsula
+Siberia
+Sierra Leone
+Singapore
+Sithonia
+Slovak Republic
+Solomon Islands
+Somalia
+South Africa
+South African Colony
+South Australia
+South Carolina
+South Dakota
+South Korea
+South Lefonia
+South Sudan
+South Vietnam
+South West Africa
+South Yemen
+Southern Peninsula
+Southern Region
+Southern Uí Néill
+Spain
+Stanley
+State of Israel
+State of Libya
+Strathclyde
+Streymoy Region
+Sudan
+Suduroy Region
+Suriname
+Sussex
+Svyatoy Nos Peninsula
+Sweden
+Swiss Confederation
+Switzerland
+Syria
+Syrian Arab Republic
+Taiwan
+Taiwan, Province of China
+Tajikistan
+Tamazgha
+Tanzania
+Tasmania
+Tennessee
+Texas
+Thailand
+The Basque
+The Biggest Snakes
+The Old Ones
+Thessaloniki
+Thrace
+Timor-Leste
+Tohoku
+Tokyo
+Tonga
+Tunisia
+Turkey
+Turkiye
+Turkmen SSR
+Turkmenistan
+Tuscany
+Türkiye
+USA
+USSR
+Ukraine
+Ukrainian SSR
+Ulaid
+United Arab Emirates
+United Arab Republic
+United Kingdom
+United Kingdom Claim
+United Kingdom Colony
+United Nations Base
+United States
+United States Colony
+Upper Australian Claim
+Uruguay
+Utah
+Uzbekistan
+Vagar Region
+Vanuatu
+Venezuela
+Venice
+Vermont
+Victoria
+Vietnam
+Virginia
+Wales
+Washington
+Weddell
+Wessex
+West Antarctica
+West Coast
+West Germany
+Western Australia
+Western Region
+Westfjords
+Westmount
+Wickham and Fitzroy
+Wine
+Wyoming
+Yemen
+Yugoslavia
+Yukon
+Zabaykalsky National Park
+Zaire
+Zambia
+Zheleznogorsk
+Zimbabwe

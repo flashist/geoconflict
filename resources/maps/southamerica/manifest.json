@@ -17,147 +17,219 @@
   "name": "Americas",
   "nations": [
     {
-      "coordinates": [438, 58],
+      "coordinates": [
+        438,
+        58
+      ],
       "flag": "cu",
-      "name": "Cuba",
+      "name": "Bacu",
       "strength": 1
     },
     {
-      "coordinates": [686, 133],
+      "coordinates": [
+        686,
+        133
+      ],
       "flag": "do",
-      "name": "Dominican Republic",
+      "name": "Nicandomi Blicrepu",
       "strength": 1
     },
     {
-      "coordinates": [601, 128],
+      "coordinates": [
+        601,
+        128
+      ],
       "flag": "ht",
-      "name": "Haiti",
+      "name": "Itiha",
       "strength": 1
     },
     {
-      "coordinates": [112, 209],
+      "coordinates": [
+        112,
+        209
+      ],
       "flag": "bz",
-      "name": "Belize",
+      "name": "Izebel",
       "strength": 1
     },
     {
-      "coordinates": [71, 282],
+      "coordinates": [
+        71,
+        282
+      ],
       "flag": "gt",
-      "name": "Guatemala",
+      "name": "Emalaguat",
       "strength": 1
     },
     {
-      "coordinates": [214, 249],
+      "coordinates": [
+        214,
+        249
+      ],
       "flag": "hn",
-      "name": "Honduras",
+      "name": "Urashond",
       "strength": 1
     },
     {
-      "coordinates": [238, 326],
+      "coordinates": [
+        238,
+        326
+      ],
       "flag": "ni",
-      "name": "Nicaragua",
+      "name": "Raguanica",
       "strength": 1
     },
     {
-      "coordinates": [375, 436],
+      "coordinates": [
+        375,
+        436
+      ],
       "flag": "pa",
-      "name": "Panama",
+      "name": "Amapan",
       "strength": 3
     },
     {
-      "coordinates": [740, 1180],
+      "coordinates": [
+        740,
+        1180
+      ],
       "flag": "bo",
-      "name": "Bolivia",
+      "name": "Iviabol",
       "strength": 1
     },
     {
-      "coordinates": [849, 1770],
+      "coordinates": [
+        849,
+        1770
+      ],
       "flag": "ar",
-      "name": "Argentina",
+      "name": "Ntinaarge",
       "strength": 2
     },
     {
-      "coordinates": [1394, 1309],
+      "coordinates": [
+        1394,
+        1309
+      ],
       "flag": "br",
-      "name": "Brazil",
+      "name": "Zilbra",
       "strength": 2
     },
     {
-      "coordinates": [691, 1371],
+      "coordinates": [
+        691,
+        1371
+      ],
       "flag": "cl",
-      "name": "Chile",
+      "name": "Ilech",
       "strength": 2
     },
     {
-      "coordinates": [527, 503],
+      "coordinates": [
+        527,
+        503
+      ],
       "flag": "co",
-      "name": "Colombia",
+      "name": "Mbiacolo",
       "strength": 2
     },
     {
-      "coordinates": [384, 746],
+      "coordinates": [
+        384,
+        746
+      ],
       "flag": "ec",
-      "name": "Ecuador",
+      "name": "Adorecu",
       "strength": 1
     },
     {
-      "coordinates": [933, 423],
+      "coordinates": [
+        933,
+        423
+      ],
       "flag": "gf",
-      "name": "French Guyana",
+      "name": "Nchfre Anaguy",
       "strength": 1
     },
     {
-      "coordinates": [800, 410],
+      "coordinates": [
+        800,
+        410
+      ],
       "flag": "gy",
-      "name": "Guyana",
+      "name": "Anaguy",
       "strength": 1
     },
     {
-      "coordinates": [541, 1092],
+      "coordinates": [
+        541,
+        1092
+      ],
       "flag": "pe",
-      "name": "Peru",
+      "name": "Rupe",
       "strength": 2
     },
     {
-      "coordinates": [960, 1496],
+      "coordinates": [
+        960,
+        1496
+      ],
       "flag": "py",
-      "name": "Paraguay",
+      "name": "Guaypara",
       "strength": 1
     },
     {
-      "coordinates": [890, 610],
+      "coordinates": [
+        890,
+        610
+      ],
       "flag": "sr",
-      "name": "Suriname",
+      "name": "Namesuri",
       "strength": 1
     },
     {
-      "coordinates": [1091, 1635],
+      "coordinates": [
+        1091,
+        1635
+      ],
       "flag": "uy",
-      "name": "Uruguay",
+      "name": "Guayuru",
       "strength": 1
     },
     {
-      "coordinates": [678, 904],
+      "coordinates": [
+        678,
+        904
+      ],
       "flag": "ve",
-      "name": "Venezuela",
+      "name": "Zuelavene",
       "strength": 2
     },
     {
-      "coordinates": [1270, 1035],
+      "coordinates": [
+        1270,
+        1035
+      ],
       "flag": "Aztec Empire",
-      "name": "The Biggest Snakes",
+      "name": "Het Gestbig Kessna",
       "strength": 3
     },
     {
-      "coordinates": [894, 693],
+      "coordinates": [
+        894,
+        693
+      ],
       "flag": "",
-      "name": "Normal Capybaras",
+      "name": "Malnor Barascapy",
       "strength": 3
     },
     {
-      "coordinates": [884, 832],
+      "coordinates": [
+        884,
+        832
+      ],
       "flag": "",
-      "name": "Just Otters",
+      "name": "Stju Ersott",
       "strength": 3
     }
   ]

@@ -17,153 +17,228 @@
   "name": "Asia",
   "nations": [
     {
-      "coordinates": [165, 422],
+      "coordinates": [
+        165,
+        422
+      ],
       "flag": "ru",
-      "name": "Russia",
+      "name": "Siarus",
       "strength": 3
     },
     {
-      "coordinates": [83, 612],
+      "coordinates": [
+        83,
+        612
+      ],
       "flag": "tr",
-      "name": "Türkiye",
+      "name": "Kiyetür",
       "strength": 2
     },
     {
-      "coordinates": [278, 789],
+      "coordinates": [
+        278,
+        789
+      ],
       "flag": "sa",
-      "name": "Saudi Arabia",
+      "name": "Udisa Biaara",
       "strength": 1
     },
     {
-      "coordinates": [238, 907],
+      "coordinates": [
+        238,
+        907
+      ],
       "flag": "ye",
-      "name": "Yemen",
+      "name": "Menye",
       "strength": 2
     },
     {
-      "coordinates": [126, 710],
+      "coordinates": [
+        126,
+        710
+      ],
       "flag": "jo",
-      "name": "Jordan",
+      "name": "Danjor",
       "strength": 3
     },
     {
-      "coordinates": [239, 689],
+      "coordinates": [
+        239,
+        689
+      ],
       "flag": "iq",
-      "name": "Iraq",
+      "name": "Aqir",
       "strength": 3
     },
     {
-      "coordinates": [327, 655],
+      "coordinates": [
+        327,
+        655
+      ],
       "flag": "ir",
-      "name": "Iran",
+      "name": "Anir",
       "strength": 3
     },
     {
-      "coordinates": [594, 675],
+      "coordinates": [
+        594,
+        675
+      ],
       "flag": "pk",
-      "name": "Pakistan",
+      "name": "Stanpaki",
       "strength": 3
     },
     {
-      "coordinates": [654, 745],
+      "coordinates": [
+        654,
+        745
+      ],
       "flag": "in",
-      "name": "India",
+      "name": "Diain",
       "strength": 2
     },
     {
-      "coordinates": [830, 808],
+      "coordinates": [
+        830,
+        808
+      ],
       "flag": "bd",
-      "name": "Bangladesh",
+      "name": "Adeshbangl",
       "strength": 1
     },
     {
-      "coordinates": [909, 845],
+      "coordinates": [
+        909,
+        845
+      ],
       "flag": "mm",
-      "name": "Myanmar",
+      "name": "Nmarmya",
       "strength": 3
     },
     {
-      "coordinates": [1035, 845],
+      "coordinates": [
+        1035,
+        845
+      ],
       "flag": "vn",
-      "name": "Vietnam",
+      "name": "Tnamvie",
       "strength": 2
     },
     {
-      "coordinates": [980, 1055],
+      "coordinates": [
+        980,
+        1055
+      ],
       "flag": "my",
-      "name": "Malaysia",
+      "name": "Ysiamala",
       "strength": 1
     },
     {
-      "coordinates": [1046, 1170],
+      "coordinates": [
+        1046,
+        1170
+      ],
       "flag": "id",
-      "name": "Indonesia",
+      "name": "Nesiaindo",
       "strength": 1
     },
     {
-      "coordinates": [1129, 909],
+      "coordinates": [
+        1129,
+        909
+      ],
       "flag": "ph",
-      "name": "Philippines",
+      "name": "Ppinesphili",
       "strength": 2
     },
     {
-      "coordinates": [1237, 791],
+      "coordinates": [
+        1237,
+        791
+      ],
       "flag": "tw",
-      "name": "Taiwan",
+      "name": "Wantai",
       "strength": 2
     },
     {
-      "coordinates": [1166, 661],
+      "coordinates": [
+        1166,
+        661
+      ],
       "flag": "cn",
-      "name": "China",
+      "name": "Inach",
       "strength": 2
     },
     {
-      "coordinates": [1314, 639],
+      "coordinates": [
+        1314,
+        639
+      ],
       "flag": "kr",
-      "name": "South Korea",
+      "name": "Uthso Reako",
       "strength": 3
     },
     {
-      "coordinates": [1485, 659],
+      "coordinates": [
+        1485,
+        659
+      ],
       "flag": "jp",
-      "name": "Japan",
+      "name": "Panja",
       "strength": 1
     },
     {
-      "coordinates": [591, 492],
+      "coordinates": [
+        591,
+        492
+      ],
       "flag": "kz",
-      "name": "Kazakhstan",
+      "name": "Hstankazak",
       "strength": 2
     },
     {
-      "coordinates": [546, 629],
+      "coordinates": [
+        546,
+        629
+      ],
       "flag": "tj",
-      "name": "Tajikistan",
+      "name": "Istantajik",
       "strength": 3
     },
     {
-      "coordinates": [1053, 528],
+      "coordinates": [
+        1053,
+        528
+      ],
       "flag": "mn",
-      "name": "Mongolia",
+      "name": "Oliamong",
       "strength": 1
     },
     {
-      "coordinates": [243, 1067],
+      "coordinates": [
+        243,
+        1067
+      ],
       "flag": "so",
-      "name": "Somalia",
+      "name": "Aliasom",
       "strength": 1
     },
     {
-      "coordinates": [61, 733],
+      "coordinates": [
+        61,
+        733
+      ],
       "flag": "eg",
-      "name": "Egypt",
+      "name": "Ypteg",
       "strength": 3
     },
     {
-      "coordinates": [59, 490],
+      "coordinates": [
+        59,
+        490
+      ],
       "flag": "ua",
-      "name": "Ukraine",
+      "name": "Aineukr",
       "strength": 2
     }
   ]

@@ -18,75 +18,111 @@
   "name": "japan",
   "nations": [
     {
-      "coordinates": [1895, 288],
+      "coordinates": [
+        1895,
+        288
+      ],
       "flag": "jp",
-      "name": "Hokkaido",
+      "name": "Aidohokk",
       "strength": 2
     },
     {
-      "coordinates": [1647, 897],
+      "coordinates": [
+        1647,
+        897
+      ],
       "flag": "jp",
-      "name": "Tohoku",
+      "name": "Okutoh",
       "strength": 2
     },
     {
-      "coordinates": [1613, 1133],
+      "coordinates": [
+        1613,
+        1133
+      ],
       "flag": "jp",
-      "name": "Kanto",
+      "name": "Ntoka",
       "strength": 2
     },
     {
-      "coordinates": [1391, 1194],
+      "coordinates": [
+        1391,
+        1194
+      ],
       "flag": "jp",
-      "name": "Chubu",
+      "name": "Ubuch",
       "strength": 2
     },
     {
-      "coordinates": [1191, 1370],
+      "coordinates": [
+        1191,
+        1370
+      ],
       "flag": "jp",
-      "name": "Kansai",
+      "name": "Saikan",
       "strength": 2
     },
     {
-      "coordinates": [932, 1308],
+      "coordinates": [
+        932,
+        1308
+      ],
       "flag": "jp",
-      "name": "Chugoku",
+      "name": "Gokuchu",
       "strength": 2
     },
     {
-      "coordinates": [949, 1454],
+      "coordinates": [
+        949,
+        1454
+      ],
       "flag": "jp",
-      "name": "Shikoku",
+      "name": "Kokushi",
       "strength": 2
     },
     {
-      "coordinates": [709, 1570],
+      "coordinates": [
+        709,
+        1570
+      ],
       "flag": "jp",
-      "name": "Kyushu",
+      "name": "Shukyu",
       "strength": 2
     },
     {
-      "coordinates": [397, 2283],
+      "coordinates": [
+        397,
+        2283
+      ],
       "flag": "jp",
-      "name": "Okinawa",
+      "name": "Nawaoki",
       "strength": 1
     },
     {
-      "coordinates": [1493, 1246],
+      "coordinates": [
+        1493,
+        1246
+      ],
       "flag": "jp",
-      "name": "Mount Fuji",
+      "name": "Untmo Jifu",
       "strength": 1
     },
     {
-      "coordinates": [1565, 1178],
+      "coordinates": [
+        1565,
+        1178
+      ],
       "flag": "jp",
-      "name": "Tokyo",
+      "name": "Otoky",
       "strength": 3
     },
     {
-      "coordinates": [1158, 1290],
+      "coordinates": [
+        1158,
+        1290
+      ],
       "flag": "jp",
-      "name": "Kyoto",
+      "name": "Otoky",
       "strength": 3
     }
   ],

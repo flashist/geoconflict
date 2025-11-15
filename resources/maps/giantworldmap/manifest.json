@@ -17,585 +17,876 @@
   "name": "Giant_World_Map",
   "nations": [
     {
-      "coordinates": [2309, 535],
+      "coordinates": [
+        2309,
+        535
+      ],
       "flag": "tr",
-      "name": "Türkiye",
+      "name": "Kiyetür",
       "strength": 1
     },
     {
-      "coordinates": [2030, 409],
+      "coordinates": [
+        2030,
+        409
+      ],
       "flag": "west_germany",
-      "name": "West Germany",
+      "name": "Stwe Manyger",
       "strength": 1
     },
     {
-      "coordinates": [2074, 382],
+      "coordinates": [
+        2074,
+        382
+      ],
       "flag": "east_germany",
-      "name": "East Germany",
+      "name": "Stea Manyger",
       "strength": 1
     },
     {
-      "coordinates": [1966, 442],
+      "coordinates": [
+        1966,
+        442
+      ],
       "flag": "fr",
-      "name": "France",
+      "name": "Ncefra",
       "strength": 1
     },
     {
-      "coordinates": [1872, 528],
+      "coordinates": [
+        1872,
+        528
+      ],
       "flag": "Fascist Spain",
-      "name": "Spain",
+      "name": "Ainsp",
       "strength": 1
     },
     {
-      "coordinates": [2074, 498],
+      "coordinates": [
+        2074,
+        498
+      ],
       "flag": "it",
-      "name": "Italy",
+      "name": "Alyit",
       "strength": 1
     },
     {
-      "coordinates": [1912, 379],
+      "coordinates": [
+        1912,
+        379
+      ],
       "flag": "gb",
-      "name": "United Kingdom",
+      "name": "Teduni Gdomkin",
       "strength": 1
     },
     {
-      "coordinates": [1841, 373],
+      "coordinates": [
+        1841,
+        373
+      ],
       "flag": "ie",
-      "name": "Ireland",
+      "name": "Landire",
       "strength": 1
     },
     {
-      "coordinates": [2153, 378],
+      "coordinates": [
+        2153,
+        378
+      ],
       "flag": "pl",
-      "name": "Poland",
+      "name": "Andpol",
       "strength": 1
     },
     {
-      "coordinates": [2178, 539],
+      "coordinates": [
+        2178,
+        539
+      ],
       "flag": "gr",
-      "name": "Greece",
+      "name": "Ecegre",
       "strength": 1
     },
     {
-      "coordinates": [2222, 493],
+      "coordinates": [
+        2222,
+        493
+      ],
       "flag": "bg",
-      "name": "Bulgaria",
+      "name": "Ariabulg",
       "strength": 1
     },
     {
-      "coordinates": [2135, 481],
+      "coordinates": [
+        2135,
+        481
+      ],
       "flag": "yugoslavia",
-      "name": "Yugoslavia",
+      "name": "Laviayugos",
       "strength": 1
     },
     {
-      "coordinates": [2242, 461],
+      "coordinates": [
+        2242,
+        461
+      ],
       "flag": "Communist Romania",
-      "name": "Romania",
+      "name": "Aniarom",
       "strength": 1
     },
     {
-      "coordinates": [2163, 441],
+      "coordinates": [
+        2163,
+        441
+      ],
       "flag": "hu",
-      "name": "Hungary",
+      "name": "Garyhun",
       "strength": 1
     },
     {
-      "coordinates": [2272, 418],
+      "coordinates": [
+        2272,
+        418
+      ],
       "flag": "Ukrainian SSR",
-      "name": "Ukrainian SSR",
+      "name": "Inianukra Srs",
       "strength": 1
     },
     {
-      "coordinates": [2093, 297],
+      "coordinates": [
+        2093,
+        297
+      ],
       "flag": "se",
-      "name": "Sweden",
+      "name": "Denswe",
       "strength": 1
     },
     {
-      "coordinates": [2027, 282],
+      "coordinates": [
+        2027,
+        282
+      ],
       "flag": "no",
-      "name": "Norway",
+      "name": "Waynor",
       "strength": 1
     },
     {
-      "coordinates": [2191, 194],
+      "coordinates": [
+        2191,
+        194
+      ],
       "flag": "Sami flag",
-      "name": "Sapmi",
+      "name": "Pmisa",
       "strength": 1
     },
     {
-      "coordinates": [2206, 262],
+      "coordinates": [
+        2206,
+        262
+      ],
       "flag": "fi",
-      "name": "Finland",
+      "name": "Landfin",
       "strength": 1
     },
     {
-      "coordinates": [2376, 363],
+      "coordinates": [
+        2376,
+        363
+      ],
       "flag": "Russian SSR",
-      "name": "Russian SSR",
+      "name": "Sianrus Srs",
       "strength": 1
     },
     {
-      "coordinates": [2222, 371],
+      "coordinates": [
+        2222,
+        371
+      ],
       "flag": "Byelorussian SSR",
-      "name": "Byelorussian SSR",
+      "name": "Ussianbyelor Srs",
       "strength": 1
     },
     {
-      "coordinates": [2441, 507],
+      "coordinates": [
+        2441,
+        507
+      ],
       "flag": "Georgian SSR",
-      "name": "Georgian SSR",
+      "name": "Giangeor Srs",
       "strength": 1
     },
     {
-      "coordinates": [2402, 580],
+      "coordinates": [
+        2402,
+        580
+      ],
       "flag": "Second Republic of Iraq",
-      "name": "Iraq",
+      "name": "Aqir",
       "strength": 1
     },
     {
-      "coordinates": [2353, 595],
+      "coordinates": [
+        2353,
+        595
+      ],
       "flag": "sy",
-      "name": "Syria",
+      "name": "Riasy",
       "strength": 1
     },
     {
-      "coordinates": [2414, 679],
+      "coordinates": [
+        2414,
+        679
+      ],
       "flag": "sa",
-      "name": "Saudi Arabia",
+      "name": "Udisa Biaara",
       "strength": 1
     },
     {
-      "coordinates": [2434, 815],
+      "coordinates": [
+        2434,
+        815
+      ],
       "flag": "North yemen",
-      "name": "North Yemen",
+      "name": "Rthno Menye",
       "strength": 1
     },
     {
-      "coordinates": [2479, 824],
+      "coordinates": [
+        2479,
+        824
+      ],
       "flag": "south yemen",
-      "name": "South Yemen",
+      "name": "Uthso Menye",
       "strength": 1
     },
     {
-      "coordinates": [2554, 724],
+      "coordinates": [
+        2554,
+        724
+      ],
       "flag": "ae",
-      "name": "United Arab Emirates",
+      "name": "Teduni Abar Atesemir",
       "strength": 1
     },
     {
-      "coordinates": [2532, 609],
+      "coordinates": [
+        2532,
+        609
+      ],
       "flag": "Pahlavi Iran",
-      "name": "Iran",
+      "name": "Anir",
       "strength": 1
     },
     {
-      "coordinates": [2683, 650],
+      "coordinates": [
+        2683,
+        650
+      ],
       "flag": "pk",
-      "name": "Pakistan",
+      "name": "Stanpaki",
       "strength": 1
     },
     {
-      "coordinates": [2654, 580],
+      "coordinates": [
+        2654,
+        580
+      ],
       "flag": "af",
-      "name": "Afghanistan",
+      "name": "Nistanafgha",
       "strength": 1
     },
     {
-      "coordinates": [2727, 416],
+      "coordinates": [
+        2727,
+        416
+      ],
       "flag": "Kazakh SSR",
-      "name": "Kazakh SSR",
+      "name": "Akhkaz Srs",
       "strength": 1
     },
     {
-      "coordinates": [2556, 544],
+      "coordinates": [
+        2556,
+        544
+      ],
       "flag": "Turkmen SSR",
-      "name": "Turkmen SSR",
+      "name": "Kmentur Srs",
       "strength": 1
     },
     {
-      "coordinates": [2947, 362],
+      "coordinates": [
+        2947,
+        362
+      ],
       "flag": "Zheleznogorsk",
-      "name": "Zheleznogorsk",
+      "name": "Nogorskzhelez",
       "strength": 1
     },
     {
-      "coordinates": [3252, 229],
+      "coordinates": [
+        3252,
+        229
+      ],
       "flag": "Siberia",
-      "name": "Siberia",
+      "name": "Eriasib",
       "strength": 1
     },
     {
-      "coordinates": [2810, 744],
+      "coordinates": [
+        2810,
+        744
+      ],
       "flag": "in",
-      "name": "India",
+      "name": "Diain",
       "strength": 1
     },
     {
-      "coordinates": [1717, 237],
+      "coordinates": [
+        1717,
+        237
+      ],
       "flag": "is",
-      "name": "Iceland",
+      "name": "Landice",
       "strength": 1
     },
     {
-      "coordinates": [2944, 709],
+      "coordinates": [
+        2944,
+        709
+      ],
       "flag": "bd",
-      "name": "Bangladesh",
+      "name": "Adeshbangl",
       "strength": 1
     },
     {
-      "coordinates": [2868, 635],
+      "coordinates": [
+        2868,
+        635
+      ],
       "flag": "np",
-      "name": "Nepal",
+      "name": "Palne",
       "strength": 1
     },
     {
-      "coordinates": [3254, 672],
+      "coordinates": [
+        3254,
+        672
+      ],
       "flag": "cn",
-      "name": "China",
+      "name": "Inach",
       "strength": 1
     },
     {
-      "coordinates": [3373, 521],
+      "coordinates": [
+        3373,
+        521
+      ],
       "flag": "kp",
-      "name": "North Korea",
+      "name": "Rthno Reako",
       "strength": 1
     },
     {
-      "coordinates": [3389, 573],
+      "coordinates": [
+        3389,
+        573
+      ],
       "flag": "kr",
-      "name": "South Korea",
+      "name": "Uthso Reako",
       "strength": 1
     },
     {
-      "coordinates": [3515, 571],
+      "coordinates": [
+        3515,
+        571
+      ],
       "flag": "jp",
-      "name": "Japan",
+      "name": "Panja",
       "strength": 1
     },
     {
-      "coordinates": [3026, 457],
+      "coordinates": [
+        3026,
+        457
+      ],
       "flag": "mn",
-      "name": "Mongolia",
+      "name": "Oliamong",
       "strength": 1
     },
     {
-      "coordinates": [3229, 995],
+      "coordinates": [
+        3229,
+        995
+      ],
       "flag": "id",
-      "name": "Indonesia",
+      "name": "Nesiaindo",
       "strength": 1
     },
     {
-      "coordinates": [3121, 755],
+      "coordinates": [
+        3121,
+        755
+      ],
       "flag": "vn",
-      "name": "North Vietnam",
+      "name": "Rthno Tnamvie",
       "strength": 1
     },
     {
-      "coordinates": [3153, 833],
+      "coordinates": [
+        3153,
+        833
+      ],
       "flag": "South Vietnam",
-      "name": "South Vietnam",
+      "name": "Uthso Tnamvie",
       "strength": 1
     },
     {
-      "coordinates": [3013, 722],
+      "coordinates": [
+        3013,
+        722
+      ],
       "flag": "Burma2",
-      "name": "Burma",
+      "name": "Rmabu",
       "strength": 1
     },
     {
-      "coordinates": [3095, 822],
+      "coordinates": [
+        3095,
+        822
+      ],
       "flag": "kh",
-      "name": "Cambodia",
+      "name": "Odiacamb",
       "strength": 1
     },
     {
-      "coordinates": [3538, 1067],
+      "coordinates": [
+        3538,
+        1067
+      ],
       "flag": "pg",
-      "name": "Papua New Guinea",
+      "name": "Puapa Ewn Neagui",
       "strength": 1
     },
     {
-      "coordinates": [3542, 1356],
+      "coordinates": [
+        3542,
+        1356
+      ],
       "flag": "au",
-      "name": "Australia",
+      "name": "Raliaaust",
       "strength": 1
     },
     {
-      "coordinates": [3422, 1203],
+      "coordinates": [
+        3422,
+        1203
+      ],
       "flag": "Australian Aboriginal Flag",
-      "name": "Nawan-mirri",
+      "name": "Wanna-Rrimi",
       "strength": 1
     },
     {
-      "coordinates": [3880, 1521],
+      "coordinates": [
+        3880,
+        1521
+      ],
       "flag": "nz",
-      "name": "New Zealand",
+      "name": "Ewn Landzea",
       "strength": 1
     },
     {
-      "coordinates": [2632, 1893],
+      "coordinates": [
+        2632,
+        1893
+      ],
       "flag": "aq",
-      "name": "Antarctica",
+      "name": "Cticaantar",
       "strength": 1
     },
     {
-      "coordinates": [2038, 590],
+      "coordinates": [
+        2038,
+        590
+      ],
       "flag": "tn",
-      "name": "Tunisia",
+      "name": "Isiatun",
       "strength": 1
     },
     {
-      "coordinates": [2116, 653],
+      "coordinates": [
+        2116,
+        653
+      ],
       "flag": "ly",
-      "name": "Libya",
+      "name": "Byali",
       "strength": 1
     },
     {
-      "coordinates": [2281, 653],
+      "coordinates": [
+        2281,
+        653
+      ],
       "flag": "United Arab Republic",
-      "name": "United Arab Republic",
+      "name": "Teduni Abar Blicrepu",
       "strength": 1
     },
     {
-      "coordinates": [1859, 613],
+      "coordinates": [
+        1859,
+        613
+      ],
       "flag": "ma",
-      "name": "Morocco",
+      "name": "Occomor",
       "strength": 1
     },
     {
-      "coordinates": [1943, 615],
+      "coordinates": [
+        1943,
+        615
+      ],
       "flag": "dz",
-      "name": "Algeria",
+      "name": "Eriaalg",
       "strength": 1
     },
     {
-      "coordinates": [2317, 754],
+      "coordinates": [
+        2317,
+        754
+      ],
       "flag": "sd",
-      "name": "Sudan",
+      "name": "Dansu",
       "strength": 1
     },
     {
-      "coordinates": [2466, 918],
+      "coordinates": [
+        2466,
+        918
+      ],
       "flag": "so",
-      "name": "Somalia",
+      "name": "Aliasom",
       "strength": 1
     },
     {
-      "coordinates": [2352, 895],
+      "coordinates": [
+        2352,
+        895
+      ],
       "flag": "Imperial Ethiopia",
-      "name": "Ethiopia",
+      "name": "Opiaethi",
       "strength": 1
     },
     {
-      "coordinates": [1790, 729],
+      "coordinates": [
+        1790,
+        729
+      ],
       "flag": "Mauritania",
-      "name": "Mauritania",
+      "name": "Taniamauri",
       "strength": 1
     },
     {
-      "coordinates": [2154, 764],
+      "coordinates": [
+        2154,
+        764
+      ],
       "flag": "td",
-      "name": "Chad",
+      "name": "Adch",
       "strength": 1
     },
     {
-      "coordinates": [2051, 745],
+      "coordinates": [
+        2051,
+        745
+      ],
       "flag": "ne",
-      "name": "Niger",
+      "name": "Gerni",
       "strength": 1
     },
     {
-      "coordinates": [2040, 930],
+      "coordinates": [
+        2040,
+        930
+      ],
       "flag": "ng",
-      "name": "Nigeria",
+      "name": "Erianig",
       "strength": 1
     },
     {
-      "coordinates": [1805, 907],
+      "coordinates": [
+        1805,
+        907
+      ],
       "flag": "lr",
-      "name": "Liberia",
+      "name": "Erialib",
       "strength": 1
     },
     {
-      "coordinates": [2195, 918],
+      "coordinates": [
+        2195,
+        918
+      ],
       "flag": "cf",
-      "name": "Central African Republic",
+      "name": "Tralcen Icanafr Blicrepu",
       "strength": 1
     },
     {
-      "coordinates": [2197, 1070],
+      "coordinates": [
+        2197,
+        1070
+      ],
       "flag": "Zaire",
-      "name": "Zaire",
+      "name": "Ireza",
       "strength": 1
     },
     {
-      "coordinates": [2189, 1372],
+      "coordinates": [
+        2189,
+        1372
+      ],
       "flag": "Apartheid South Africa",
-      "name": "South Africa",
+      "name": "Uthso Icaafr",
       "strength": 1
     },
     {
-      "coordinates": [2452, 1247],
+      "coordinates": [
+        2452,
+        1247
+      ],
       "flag": "mg",
-      "name": "Madagascar",
+      "name": "Ascarmadag",
       "strength": 1
     },
     {
-      "coordinates": [2356, 1165],
+      "coordinates": [
+        2356,
+        1165
+      ],
       "flag": "mz",
-      "name": "Mozambique",
+      "name": "Biquemozam",
       "strength": 1
     },
     {
-      "coordinates": [2368, 1032],
+      "coordinates": [
+        2368,
+        1032
+      ],
       "flag": "tz",
-      "name": "Tanzania",
+      "name": "Aniatanz",
       "strength": 1
     },
     {
-      "coordinates": [1934, 762],
+      "coordinates": [
+        1934,
+        762
+      ],
       "flag": "ml",
-      "name": "Mali",
+      "name": "Lima",
       "strength": 1
     },
     {
-      "coordinates": [2128, 1292],
+      "coordinates": [
+        2128,
+        1292
+      ],
       "flag": "Apartheid South Africa",
-      "name": "South West Africa",
+      "name": "Uthso Stwe Icaafr",
       "strength": 1
     },
     {
-      "coordinates": [2099, 1178],
+      "coordinates": [
+        2099,
+        1178
+      ],
       "flag": "ao",
-      "name": "Angola",
+      "name": "Olaang",
       "strength": 1
     },
     {
-      "coordinates": [1375, 1121],
+      "coordinates": [
+        1375,
+        1121
+      ],
       "flag": "br",
-      "name": "Brazil",
+      "name": "Zilbra",
       "strength": 1
     },
     {
-      "coordinates": [1203, 1059],
+      "coordinates": [
+        1203,
+        1059
+      ],
       "flag": "amazonas",
-      "name": "Amazonas",
+      "name": "Onasamaz",
       "strength": 1
     },
     {
-      "coordinates": [1210, 1395],
+      "coordinates": [
+        1210,
+        1395
+      ],
       "flag": "ar",
-      "name": "Argentina",
+      "name": "Ntinaarge",
       "strength": 1
     },
     {
-      "coordinates": [1107, 1419],
+      "coordinates": [
+        1107,
+        1419
+      ],
       "flag": "cl",
-      "name": "Chile",
+      "name": "Ilech",
       "strength": 1
     },
     {
-      "coordinates": [1064, 1114],
+      "coordinates": [
+        1064,
+        1114
+      ],
       "flag": "pe",
-      "name": "Peru",
+      "name": "Rupe",
       "strength": 1
     },
     {
-      "coordinates": [1065, 938],
+      "coordinates": [
+        1065,
+        938
+      ],
       "flag": "co",
-      "name": "Colombia",
+      "name": "Mbiacolo",
       "strength": 1
     },
     {
-      "coordinates": [1192, 938],
+      "coordinates": [
+        1192,
+        938
+      ],
       "flag": "ve",
-      "name": "Venezuela",
+      "name": "Zuelavene",
       "strength": 1
     },
     {
-      "coordinates": [913, 833],
+      "coordinates": [
+        913,
+        833
+      ],
       "flag": "ni",
-      "name": "Nicaragua",
+      "name": "Raguanica",
       "strength": 1
     },
     {
-      "coordinates": [788, 744],
+      "coordinates": [
+        788,
+        744
+      ],
       "flag": "mx",
-      "name": "Mexico",
+      "name": "Icomex",
       "strength": 1
     },
     {
-      "coordinates": [1011, 555],
+      "coordinates": [
+        1011,
+        555
+      ],
       "flag": "us",
-      "name": "USA",
+      "name": "Sau",
       "strength": 1
     },
     {
-      "coordinates": [800, 624],
+      "coordinates": [
+        800,
+        624
+      ],
       "flag": "Texas",
-      "name": "Texas",
+      "name": "Xaste",
       "strength": 1
     },
     {
-      "coordinates": [551, 564],
+      "coordinates": [
+        551,
+        564
+      ],
       "flag": "California",
-      "name": "California",
+      "name": "Orniacalif",
       "strength": 1
     },
     {
-      "coordinates": [703, 483],
+      "coordinates": [
+        703,
+        483
+      ],
       "flag": "Utah",
-      "name": "Utah",
+      "name": "Ahut",
       "strength": 1
     },
     {
-      "coordinates": [1077, 444],
+      "coordinates": [
+        1077,
+        444
+      ],
       "flag": "Quebec",
-      "name": "Quebec",
+      "name": "Becque",
       "strength": 1
     },
     {
-      "coordinates": [1231, 395],
+      "coordinates": [
+        1231,
+        395
+      ],
       "flag": "Newfoundland",
-      "name": "Newfoundland",
+      "name": "Ndlandnewfou",
       "strength": 1
     },
     {
-      "coordinates": [967, 418],
+      "coordinates": [
+        967,
+        418
+      ],
       "flag": "ca",
-      "name": "Canada",
+      "name": "Adacan",
       "strength": 1
     },
     {
-      "coordinates": [170, 244],
+      "coordinates": [
+        170,
+        244
+      ],
       "flag": "Alaska",
-      "name": "Alaska",
+      "name": "Skaala",
       "strength": 1
     },
     {
-      "coordinates": [741, 234],
+      "coordinates": [
+        741,
+        234
+      ],
       "flag": "Nunavut",
-      "name": "Nunavut",
+      "name": "Avutnun",
       "strength": 1
     },
     {
-      "coordinates": [484, 256],
+      "coordinates": [
+        484,
+        256
+      ],
       "flag": "Yukon",
-      "name": "Yukon",
+      "name": "Konyu",
       "strength": 1
     },
     {
-      "coordinates": [1434, 223],
+      "coordinates": [
+        1434,
+        223
+      ],
       "flag": "gl",
-      "name": "Greenland",
+      "name": "Nlandgree",
       "strength": 1
     },
     {
-      "coordinates": [2247, 1229],
+      "coordinates": [
+        2247,
+        1229
+      ],
       "flag": "Rhodesia",
-      "name": "Rhodesia",
+      "name": "Esiarhod",
       "strength": 1
     }
   ]

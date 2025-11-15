@@ -17,39 +17,57 @@
   "name": "Mars",
   "nations": [
     {
-      "coordinates": [650, 415],
+      "coordinates": [
+        650,
+        415
+      ],
       "flag": "us",
-      "name": "United States",
+      "name": "Teduni Tessta",
       "strength": 3
     },
     {
-      "coordinates": [122, 750],
+      "coordinates": [
+        122,
+        750
+      ],
       "flag": "ussr",
-      "name": "USSR",
+      "name": "Srus",
       "strength": 2
     },
     {
-      "coordinates": [1232, 735],
+      "coordinates": [
+        1232,
+        735
+      ],
       "flag": "ru",
-      "name": "Russia",
+      "name": "Siarus",
       "strength": 2
     },
     {
-      "coordinates": [966, 511],
+      "coordinates": [
+        966,
+        511
+      ],
       "flag": "",
-      "name": "European Space Agency",
+      "name": "Peaneuro Acesp Ncyage",
       "strength": 2
     },
     {
-      "coordinates": [1460, 488],
+      "coordinates": [
+        1460,
+        488
+      ],
       "flag": "gb",
-      "name": "United Kingdom",
+      "name": "Teduni Gdomkin",
       "strength": 3
     },
     {
-      "coordinates": [1850, 415],
+      "coordinates": [
+        1850,
+        415
+      ],
       "flag": "cn",
-      "name": "China",
+      "name": "Inach",
       "strength": 3
     }
   ]

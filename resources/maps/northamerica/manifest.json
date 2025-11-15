@@ -17,297 +17,444 @@
   "name": "NorthAmerica",
   "nations": [
     {
-      "coordinates": [1625, 1040],
+      "coordinates": [
+        1625,
+        1040
+      ],
       "flag": "Florida",
-      "name": "Florida",
+      "name": "Ridaflo",
       "strength": 3
     },
     {
-      "coordinates": [1010, 435],
+      "coordinates": [
+        1010,
+        435
+      ],
       "flag": "ca",
-      "name": "Canada",
+      "name": "Adacan",
       "strength": 2
     },
     {
-      "coordinates": [1250, 1130],
+      "coordinates": [
+        1250,
+        1130
+      ],
       "flag": "mx",
-      "name": "Mexico",
+      "name": "Icomex",
       "strength": 2
     },
     {
-      "coordinates": [1460, 1275],
+      "coordinates": [
+        1460,
+        1275
+      ],
       "flag": "gt",
-      "name": "Guatemala",
+      "name": "Emalaguat",
       "strength": 1
     },
     {
-      "coordinates": [1530, 1290],
+      "coordinates": [
+        1530,
+        1290
+      ],
       "flag": "hn",
-      "name": "Honduras",
+      "name": "Urashond",
       "strength": 1
     },
     {
-      "coordinates": [1570, 1350],
+      "coordinates": [
+        1570,
+        1350
+      ],
       "flag": "ni",
-      "name": "Nicaragua",
+      "name": "Raguanica",
       "strength": 1
     },
     {
-      "coordinates": [1734, 1403],
+      "coordinates": [
+        1734,
+        1403
+      ],
       "flag": "pa",
-      "name": "Panama",
+      "name": "Amapan",
       "strength": 1
     },
     {
-      "coordinates": [1821, 1395],
+      "coordinates": [
+        1821,
+        1395
+      ],
       "flag": "co",
-      "name": "Colombia",
+      "name": "Mbiacolo",
       "strength": 1
     },
     {
-      "coordinates": [1896, 1379],
+      "coordinates": [
+        1896,
+        1379
+      ],
       "flag": "ve",
-      "name": "Venezuela",
+      "name": "Zuelavene",
       "strength": 1
     },
     {
-      "coordinates": [1725, 1180],
+      "coordinates": [
+        1725,
+        1180
+      ],
       "flag": "cu",
-      "name": "Cuba",
+      "name": "Bacu",
       "strength": 1
     },
     {
-      "coordinates": [467, 333],
+      "coordinates": [
+        467,
+        333
+      ],
       "flag": "Alaska",
-      "name": "Alaska",
+      "name": "Skaala",
       "strength": 1
     },
     {
-      "coordinates": [1154, 914],
+      "coordinates": [
+        1154,
+        914
+      ],
       "flag": "Arizona",
-      "name": "Arizona",
+      "name": "Zonaari",
       "strength": 1
     },
     {
-      "coordinates": [1010, 865],
+      "coordinates": [
+        1010,
+        865
+      ],
       "flag": "California",
-      "name": "California",
+      "name": "Orniacalif",
       "strength": 1
     },
     {
-      "coordinates": [1307, 863],
+      "coordinates": [
+        1307,
+        863
+      ],
       "flag": "Colorado",
-      "name": "Colorado",
+      "name": "Radocolo",
       "strength": 1
     },
     {
-      "coordinates": [1673, 965],
+      "coordinates": [
+        1673,
+        965
+      ],
       "flag": "Georgia_US",
-      "name": "Georgia",
+      "name": "Rgiageo",
       "strength": 1
     },
     {
-      "coordinates": [250, 1200],
+      "coordinates": [
+        250,
+        1200
+      ],
       "flag": "Hawaii",
-      "name": "Hawaii",
+      "name": "Aiihaw",
       "strength": 1
     },
     {
-      "coordinates": [1120, 760],
+      "coordinates": [
+        1120,
+        760
+      ],
       "flag": "Idaho",
-      "name": "Idaho",
+      "name": "Ahoid",
       "strength": 1
     },
     {
-      "coordinates": [1551, 813],
+      "coordinates": [
+        1551,
+        813
+      ],
       "flag": "Illinois",
-      "name": "Illinois",
+      "name": "Noisilli",
       "strength": 1
     },
     {
-      "coordinates": [1412, 873],
+      "coordinates": [
+        1412,
+        873
+      ],
       "flag": "Kansas",
-      "name": "Kansas",
+      "name": "Saskan",
       "strength": 1
     },
     {
-      "coordinates": [1651, 880],
+      "coordinates": [
+        1651,
+        880
+      ],
       "flag": "Kentucky",
-      "name": "Kentucky",
+      "name": "Uckykent",
       "strength": 1
     },
     {
-      "coordinates": [1514, 1007],
+      "coordinates": [
+        1514,
+        1007
+      ],
       "flag": "Louisiana",
-      "name": "Louisiana",
+      "name": "Sianaloui",
       "strength": 1
     },
     {
-      "coordinates": [1884, 735],
+      "coordinates": [
+        1884,
+        735
+      ],
       "flag": "Maine",
-      "name": "Maine",
+      "name": "Inema",
       "strength": 1
     },
     {
-      "coordinates": [1634, 764],
+      "coordinates": [
+        1634,
+        764
+      ],
       "flag": "Michigan",
-      "name": "Michigan",
+      "name": "Iganmich",
       "strength": 1
     },
     {
-      "coordinates": [1556, 965],
+      "coordinates": [
+        1556,
+        965
+      ],
       "flag": "Mississippi",
-      "name": "Mississippi",
+      "name": "Ssippimissi",
       "strength": 1
     },
     {
-      "coordinates": [1527, 728],
+      "coordinates": [
+        1527,
+        728
+      ],
       "flag": "Minnesota",
-      "name": "Minnesota",
+      "name": "Esotaminn",
       "strength": 1
     },
     {
-      "coordinates": [1529, 880],
+      "coordinates": [
+        1529,
+        880
+      ],
       "flag": "Missouri",
-      "name": "Missouri",
+      "name": "Ourimiss",
       "strength": 1
     },
     {
-      "coordinates": [1225, 754],
+      "coordinates": [
+        1225,
+        754
+      ],
       "flag": "Montana",
-      "name": "Montana",
+      "name": "Tanamon",
       "strength": 1
     },
     {
-      "coordinates": [1413, 789],
+      "coordinates": [
+        1413,
+        789
+      ],
       "flag": "Nebraska",
-      "name": "Nebraska",
+      "name": "Askanebr",
       "strength": 1
     },
     {
-      "coordinates": [1090, 852],
+      "coordinates": [
+        1090,
+        852
+      ],
       "flag": "Nevada",
-      "name": "Nevada",
+      "name": "Adanev",
       "strength": 1
     },
     {
-      "coordinates": [1253, 933],
+      "coordinates": [
+        1253,
+        933
+      ],
       "flag": "New_Mexico",
-      "name": "New Mexico",
+      "name": "Ewn Icomex",
       "strength": 1
     },
     {
-      "coordinates": [1833, 792],
+      "coordinates": [
+        1833,
+        792
+      ],
       "flag": "New_York",
-      "name": "New York",
+      "name": "Ewn Rkyo",
       "strength": 1
     },
     {
-      "coordinates": [1444, 716],
+      "coordinates": [
+        1444,
+        716
+      ],
       "flag": "North_Dakota",
-      "name": "North Dakota",
+      "name": "Rthno Otadak",
       "strength": 1
     },
     {
-      "coordinates": [1704, 812],
+      "coordinates": [
+        1704,
+        812
+      ],
       "flag": "Ohio",
-      "name": "Ohio",
+      "name": "Iooh",
       "strength": 1
     },
     {
-      "coordinates": [1397, 921],
+      "coordinates": [
+        1397,
+        921
+      ],
       "flag": "Oklahoma",
-      "name": "Oklahoma",
+      "name": "Homaokla",
       "strength": 1
     },
     {
-      "coordinates": [976, 754],
+      "coordinates": [
+        976,
+        754
+      ],
       "flag": "Oregon",
-      "name": "Oregon",
+      "name": "Gonore",
       "strength": 1
     },
     {
-      "coordinates": [1752, 716],
+      "coordinates": [
+        1752,
+        716
+      ],
       "flag": "Pennsylvania",
-      "name": "Pennsylvania",
+      "name": "Lvaniapennsy",
       "strength": 1
     },
     {
-      "coordinates": [1716, 937],
+      "coordinates": [
+        1716,
+        937
+      ],
       "flag": "South_Carolina",
-      "name": "South Carolina",
+      "name": "Uthso Linacaro",
       "strength": 1
     },
     {
-      "coordinates": [1419, 753],
+      "coordinates": [
+        1419,
+        753
+      ],
       "flag": "South_Dakota",
-      "name": "South Dakota",
+      "name": "Uthso Otadak",
       "strength": 1
     },
     {
-      "coordinates": [1648, 981],
+      "coordinates": [
+        1648,
+        981
+      ],
       "flag": "Tennessee",
-      "name": "Tennessee",
+      "name": "Esseetenn",
       "strength": 1
     },
     {
-      "coordinates": [1407, 1005],
+      "coordinates": [
+        1407,
+        1005
+      ],
       "flag": "Texas",
-      "name": "Texas",
+      "name": "Xaste",
       "strength": 1
     },
     {
-      "coordinates": [1827, 742],
+      "coordinates": [
+        1827,
+        742
+      ],
       "flag": "Vermont",
-      "name": "Vermont",
+      "name": "Montver",
       "strength": 1
     },
     {
-      "coordinates": [1767, 857],
+      "coordinates": [
+        1767,
+        857
+      ],
       "flag": "Virginia",
-      "name": "Virginia",
+      "name": "Iniavirg",
       "strength": 1
     },
     {
-      "coordinates": [994, 700],
+      "coordinates": [
+        994,
+        700
+      ],
       "flag": "Washington",
-      "name": "Washington",
+      "name": "Ngtonwashi",
       "strength": 1
     },
     {
-      "coordinates": [1261, 759],
+      "coordinates": [
+        1261,
+        759
+      ],
       "flag": "Wyoming",
-      "name": "Wyoming",
+      "name": "Mingwyo",
       "strength": 1
     },
     {
-      "coordinates": [1867, 561],
+      "coordinates": [
+        1867,
+        561
+      ],
       "flag": "Quebec",
-      "name": "Quebec",
+      "name": "Becque",
       "strength": 1
     },
     {
-      "coordinates": [1738, 80],
+      "coordinates": [
+        1738,
+        80
+      ],
       "flag": "santa_claus",
-      "name": "Santa Claus",
+      "name": "Ntasa Auscl",
       "strength": 3
     },
     {
-      "coordinates": [1189, 240],
+      "coordinates": [
+        1189,
+        240
+      ],
       "flag": "polar_bears",
-      "name": "Polar Bears",
+      "name": "Larpo Arsbe",
       "strength": 3
     },
     {
-      "coordinates": [1480, 350],
+      "coordinates": [
+        1480,
+        350
+      ],
       "flag": "frost_giant",
-      "name": "Frost Giants",
+      "name": "Ostfr Ntsgia",
       "strength": 3
     },
     {
-      "coordinates": [2399, 171],
+      "coordinates": [
+        2399,
+        171
+      ],
       "flag": "gl",
-      "name": "Greenland",
+      "name": "Nlandgree",
       "strength": 3
     }
   ]

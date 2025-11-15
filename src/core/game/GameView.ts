@@ -222,8 +222,8 @@ export class PlayerView {
     if (this.team() === null) {
       this._territoryColor = colord(
         this.cosmetics.color?.color ??
-          this.cosmetics.pattern?.colorPalette?.primaryColor ??
-          defaultTerritoryColor.toHex(),
+        this.cosmetics.pattern?.colorPalette?.primaryColor ??
+        defaultTerritoryColor.toHex(),
       );
     } else {
       this._territoryColor = defaultTerritoryColor;
@@ -236,8 +236,8 @@ export class PlayerView {
 
     this._borderColor = new Colord(
       pattern?.colorPalette?.secondaryColor ??
-        this.cosmetics.color?.color ??
-        maybeFocusedBorderColor.toHex(),
+      this.cosmetics.color?.color ??
+      maybeFocusedBorderColor.toHex(),
     );
 
     this._defendedBorderColors = this.game
@@ -439,7 +439,7 @@ export class PlayerView {
       Math.max(
         0,
         this.game.config().deleteUnitCooldown() -
-          (this.game.ticks() + 1 - this.lastDeleteUnitTick()),
+        (this.game.ticks() + 1 - this.lastDeleteUnitTick()),
       ) / 10
     );
   }
@@ -479,7 +479,8 @@ export class GameView implements GameMap {
     for (const nation of this._mapData.nations) {
       // Nations don't have client ids, so we use their name as the key instead.
       this._cosmetics.set(nation.name, {
-        flag: nation.flag,
+        // Flashist AdaptatioN: disabling flags
+        // flag: nation.flag,
       } satisfies PlayerCosmetics);
     }
   }
@@ -521,8 +522,8 @@ export class GameView implements GameMap {
             gu.playerNameViewData[pu.id],
             // First check human by clientID, then check nation by name.
             this._cosmetics.get(pu.clientID ?? "") ??
-              this._cosmetics.get(pu.name) ??
-              {},
+            this._cosmetics.get(pu.name) ??
+            {},
           ),
         );
       }

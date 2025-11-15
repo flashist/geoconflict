@@ -17,177 +17,264 @@
   "name": "Pangaea",
   "nations": [
     {
-      "coordinates": [389, 800],
+      "coordinates": [
+        389,
+        800
+      ],
       "flag": "za",
-      "name": "South Africa",
+      "name": "Uthso Icaafr",
       "strength": 2
     },
     {
-      "coordinates": [500, 780],
+      "coordinates": [
+        500,
+        780
+      ],
       "flag": "mg",
-      "name": "Madagascar",
+      "name": "Ascarmadag",
       "strength": 1
     },
     {
-      "coordinates": [515, 600],
+      "coordinates": [
+        515,
+        600
+      ],
       "flag": "eg",
-      "name": "Egypt",
+      "name": "Ypteg",
       "strength": 2
     },
     {
-      "coordinates": [180, 420],
+      "coordinates": [
+        180,
+        420
+      ],
       "flag": "us",
-      "name": "United States",
+      "name": "Teduni Tessta",
       "strength": 3
     },
     {
-      "coordinates": [200, 310],
+      "coordinates": [
+        200,
+        310
+      ],
       "flag": "ca",
-      "name": "Canada",
+      "name": "Adacan",
       "strength": 2
     },
     {
-      "coordinates": [150, 460],
+      "coordinates": [
+        150,
+        460
+      ],
       "flag": "mx",
-      "name": "Mexico",
+      "name": "Icomex",
       "strength": 1
     },
     {
-      "coordinates": [160, 600],
+      "coordinates": [
+        160,
+        600
+      ],
       "flag": "co",
-      "name": "Colombia",
+      "name": "Mbiacolo",
       "strength": 1
     },
     {
-      "coordinates": [280, 800],
+      "coordinates": [
+        280,
+        800
+      ],
       "flag": "ar",
-      "name": "Argentina",
+      "name": "Ntinaarge",
       "strength": 1
     },
     {
-      "coordinates": [250, 600],
+      "coordinates": [
+        250,
+        600
+      ],
       "flag": "br",
-      "name": "Brazil",
+      "name": "Zilbra",
       "strength": 1
     },
     {
-      "coordinates": [470, 890],
+      "coordinates": [
+        470,
+        890
+      ],
       "flag": "aq",
-      "name": "Antarctica",
+      "name": "Cticaantar",
       "strength": 3
     },
     {
-      "coordinates": [400, 340],
+      "coordinates": [
+        400,
+        340
+      ],
       "flag": "gl",
-      "name": "Greenland",
+      "name": "Nlandgree",
       "strength": 2
     },
     {
-      "coordinates": [550, 440],
+      "coordinates": [
+        550,
+        440
+      ],
       "flag": "es",
-      "name": "Spain",
+      "name": "Ainsp",
       "strength": 1
     },
     {
-      "coordinates": [550, 450],
+      "coordinates": [
+        550,
+        450
+      ],
       "flag": "fr",
-      "name": "France",
+      "name": "Ncefra",
       "strength": 2
     },
     {
-      "coordinates": [510, 380],
+      "coordinates": [
+        510,
+        380
+      ],
       "flag": "de",
-      "name": "Germany",
+      "name": "Manyger",
       "strength": 1
     },
     {
-      "coordinates": [480, 365],
+      "coordinates": [
+        480,
+        365
+      ],
       "flag": "se",
-      "name": "Sweden",
+      "name": "Denswe",
       "strength": 1
     },
     {
-      "coordinates": [605, 370],
+      "coordinates": [
+        605,
+        370
+      ],
       "flag": "tr",
-      "name": "Turkey",
+      "name": "Keytur",
       "strength": 1
     },
     {
-      "coordinates": [480, 335],
+      "coordinates": [
+        480,
+        335
+      ],
       "flag": "fi",
-      "name": "Finland",
+      "name": "Landfin",
       "strength": 1
     },
     {
-      "coordinates": [570, 340],
+      "coordinates": [
+        570,
+        340
+      ],
       "flag": "ua",
-      "name": "Ukraine",
+      "name": "Aineukr",
       "strength": 1
     },
     {
-      "coordinates": [570, 290],
+      "coordinates": [
+        570,
+        290
+      ],
       "flag": "ru",
-      "name": "Russia",
+      "name": "Siarus",
       "strength": 3
     },
     {
-      "coordinates": [490, 150],
+      "coordinates": [
+        490,
+        150
+      ],
       "flag": "mn",
-      "name": "Mongolia",
+      "name": "Oliamong",
       "strength": 1
     },
     {
-      "coordinates": [550, 70],
+      "coordinates": [
+        550,
+        70
+      ],
       "flag": "cn",
-      "name": "China",
+      "name": "Inach",
       "strength": 3
     },
     {
-      "coordinates": [620, 650],
+      "coordinates": [
+        620,
+        650
+      ],
       "flag": "in",
-      "name": "India",
+      "name": "Diain",
       "strength": 2
     },
     {
-      "coordinates": [545, 200],
+      "coordinates": [
+        545,
+        200
+      ],
       "flag": "kz",
-      "name": "Kazakhstan",
+      "name": "Hstankazak",
       "strength": 1
     },
     {
-      "coordinates": [600, 600],
+      "coordinates": [
+        600,
+        600
+      ],
       "flag": "sa",
-      "name": "Saudi Arabia",
+      "name": "Udisa Biaara",
       "strength": 1
     },
     {
-      "coordinates": [680, 830],
+      "coordinates": [
+        680,
+        830
+      ],
       "flag": "au",
-      "name": "Australia",
+      "name": "Raliaaust",
       "strength": 2
     },
     {
-      "coordinates": [540, 650],
+      "coordinates": [
+        540,
+        650
+      ],
       "flag": "et",
-      "name": "Ethiopia",
+      "name": "Opiaethi",
       "strength": 1
     },
     {
-      "coordinates": [400, 500],
+      "coordinates": [
+        400,
+        500
+      ],
       "flag": "td",
-      "name": "Chad",
+      "name": "Adch",
       "strength": 1
     },
     {
-      "coordinates": [420, 25],
+      "coordinates": [
+        420,
+        25
+      ],
       "flag": "jp",
-      "name": "Japan",
+      "name": "Panja",
       "strength": 1
     },
     {
-      "coordinates": [480, 410],
+      "coordinates": [
+        480,
+        410
+      ],
       "flag": "gb",
-      "name": "United Kingdom",
+      "name": "Teduni Gdomkin",
       "strength": 2
     }
   ]

@@ -17,93 +17,138 @@
   "name": "BetweenTwoSeas",
   "nations": [
     {
-      "coordinates": [40, 674],
+      "coordinates": [
+        40,
+        674
+      ],
       "flag": "bg",
-      "name": "Bulgaria",
+      "name": "Ariabulg",
       "strength": 2
     },
     {
-      "coordinates": [354, 820],
+      "coordinates": [
+        354,
+        820
+      ],
       "flag": "tr",
-      "name": "Republic of Turkiye",
+      "name": "Blicrepu Fo Kiyetur",
       "strength": 3
     },
     {
-      "coordinates": [105, 474],
+      "coordinates": [
+        105,
+        474
+      ],
       "flag": "ro",
-      "name": "Romania",
+      "name": "Aniarom",
       "strength": 2
     },
     {
-      "coordinates": [172, 382],
+      "coordinates": [
+        172,
+        382
+      ],
       "flag": "md",
-      "name": "Moldova",
+      "name": "Dovamol",
       "strength": 2
     },
     {
-      "coordinates": [465, 296],
+      "coordinates": [
+        465,
+        296
+      ],
       "flag": "ua",
-      "name": "Ukraine",
+      "name": "Aineukr",
       "strength": 3
     },
     {
-      "coordinates": [980, 24],
+      "coordinates": [
+        980,
+        24
+      ],
       "flag": "ru",
-      "name": "Russian Federation",
+      "name": "Sianrus Ationfeder",
       "strength": 3
     },
     {
-      "coordinates": [1003, 674],
+      "coordinates": [
+        1003,
+        674
+      ],
       "flag": "ge",
-      "name": "Georgia",
+      "name": "Rgiageo",
       "strength": 1
     },
     {
-      "coordinates": [1131, 804],
+      "coordinates": [
+        1131,
+        804
+      ],
       "flag": "am",
-      "name": "Republic of Armenia",
+      "name": "Blicrepu Fo Eniaarm",
       "strength": 1
     },
     {
-      "coordinates": [856, 1044],
+      "coordinates": [
+        856,
+        1044
+      ],
       "flag": "sy",
-      "name": "Syrian Arab Republic",
+      "name": "Iansyr Abar Blicrepu",
       "strength": 2
     },
     {
-      "coordinates": [1355, 1022],
+      "coordinates": [
+        1355,
+        1022
+      ],
       "flag": "ir",
-      "name": "Islamic Republic of Iran",
+      "name": "Amicisl Blicrepu Fo Anir",
       "strength": 3
     },
     {
-      "coordinates": [1355, 18],
+      "coordinates": [
+        1355,
+        18
+      ],
       "flag": "az",
-      "name": "Republic of Azerbaijan",
+      "name": "Blicrepu Fo Aijanazerb",
       "strength": 1
     },
     {
-      "coordinates": [334, 18],
+      "coordinates": [
+        334,
+        18
+      ],
       "flag": "by",
-      "name": "Belarus",
+      "name": "Arusbel",
       "strength": 1
     },
     {
-      "coordinates": [1689, 467],
+      "coordinates": [
+        1689,
+        467
+      ],
       "flag": "kz",
-      "name": "Kazakhstan",
+      "name": "Hstankazak",
       "strength": 1
     },
     {
-      "coordinates": [1727, 831],
+      "coordinates": [
+        1727,
+        831
+      ],
       "flag": "tm",
-      "name": "Turkmenistan",
+      "name": "Nistanturkme",
       "strength": 1
     },
     {
-      "coordinates": [851, 589],
+      "coordinates": [
+        851,
+        589
+      ],
       "flag": "Circassia",
-      "name": "Circassia",
+      "name": "Assiacirc",
       "strength": 1
     }
   ]
