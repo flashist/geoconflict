@@ -81,7 +81,12 @@ export class ObserveOpenGames extends LitElement {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      this.games = Array.isArray(data.games) ? data.games : [];
+      const games = Array.isArray(data.games) ? data.games : [];
+      this.games = games.filter((game) => {
+        const activePlayers =
+          game.numClients ?? game.clients?.length ?? 0;
+        return activePlayers > 0;
+      });
       this.games.forEach((game) => {
         if (game.gameConfig && !this.mapImages.has(game.gameID)) {
           this.loadMapImage(game.gameID, game.gameConfig.gameMap);
@@ -197,15 +202,7 @@ export class ObserveOpenGames extends LitElement {
     }
 
     if (this.games.length === 0) {
-      return html`
-        <div
-          class="mt-4 rounded-xl bg-white/80 dark:bg-slate-800/70 p-4 border border-slate-300/80 dark:border-slate-600/60"
-        >
-          <div class="text-base text-slate-600 dark:text-slate-300">
-            ${translateText("observe_games.empty")}
-          </div>
-        </div>
-      `;
+      return html``;
     }
 
     return html`
