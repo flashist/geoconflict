@@ -138,6 +138,7 @@ function createLocalProxyConfig() {
         "/api/env",
         "/api/game",
         "/api/public_lobbies",
+        "/api/public_active_games",
         "/api/join_game",
         "/api/start_game",
         "/api/create_game",

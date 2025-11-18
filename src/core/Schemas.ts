@@ -130,6 +130,9 @@ export interface GameInfo {
   numClients?: number;
   msUntilStart?: number;
   gameConfig?: GameConfig;
+  startedAt?: number;
+  createdAt?: number;
+  hasStarted?: boolean;
 }
 export interface ClientInfo {
   clientID: ClientID;

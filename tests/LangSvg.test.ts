@@ -3,7 +3,9 @@ import path from "path";
 
 describe("Lang SVG Field and File Existence Check", () => {
   const langDir = path.join(__dirname, "../resources/lang");
-  const flagDir = path.join(__dirname, "../resources/flags");
+  // Flashist Adaptation
+  // const flagDir = path.join(__dirname, "../resources/flags");
+  const flagDir = path.join(__dirname, "../resources/flags_source");
 
   test("each lang.json file has a valid lang.svg string and the SVG file exists", () => {
     const files = fs

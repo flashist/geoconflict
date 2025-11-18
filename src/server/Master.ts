@@ -161,6 +161,22 @@ app.get("/api/public_lobbies", async (req, res) => {
   res.send(publicLobbiesJsonStr);
 });
 
+app.get("/api/public_active_games", async (req, res) => {
+  const rawLimit = Array.isArray(req.query.limit)
+    ? req.query.limit[0]
+    : req.query.limit;
+  const limitParam = typeof rawLimit === "string" ? rawLimit : undefined;
+  const parsedLimit = Number.parseInt(limitParam ?? "", 10);
+  const limit = Number.isFinite(parsedLimit) ? parsedLimit : 5;
+  try {
+    const games = await fetchActivePublicGames(limit);
+    res.json({ games });
+  } catch (error) {
+    log.error("Error fetching active public games:", error);
+    res.status(500).json({ error: "Failed to fetch active games" });
+  }
+});
+
 app.post("/api/kick_player/:gameID/:clientID", async (req, res) => {
   if (req.headers[config.adminHeader()] !== config.adminToken()) {
     res.status(401).send("Unauthorized");
@@ -266,6 +282,41 @@ async function fetchLobbies(): Promise<number> {
   });
 
   return publicLobbyIDs.size;
+}
+
+async function fetchActivePublicGames(limit: number): Promise<GameInfo[]> {
+  const perWorkerLimit = Math.max(1, Math.min(limit, 20));
+  const workerPromises: Promise<GameInfo[]>[] = [];
+
+  for (let workerIndex = 0; workerIndex < config.numWorkers(); workerIndex++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2000);
+    const promise = fetch(
+      `http://localhost:${config.workerPortByIndex(workerIndex)}/api/public_active_games?limit=${perWorkerLimit}`,
+      {
+        signal: controller.signal,
+      },
+    )
+      .then((resp) => resp.json())
+      .then((json) => (json.games as GameInfo[]) ?? [])
+      .catch((error) => {
+        log.error(`Error fetching active public games on worker ${workerIndex}:`, error);
+        return [];
+      })
+      .finally(() => clearTimeout(timeout));
+
+    workerPromises.push(promise);
+  }
+
+  const results = await Promise.all(workerPromises);
+  return results
+    .flat()
+    .sort((a, b) => {
+      const aStart = a.startedAt ?? a.createdAt ?? 0;
+      const bStart = b.startedAt ?? b.createdAt ?? 0;
+      return bStart - aStart;
+    })
+    .slice(0, perWorkerLimit);
 }
 
 // Function to schedule a new public game

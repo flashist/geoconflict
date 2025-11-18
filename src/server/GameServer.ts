@@ -596,6 +596,10 @@ export class GameServer {
         clientID: c.clientID,
       })),
       gameConfig: this.gameConfig,
+      numClients: this.numClients(),
+      createdAt: this.createdAt,
+      startedAt: this._startTime ?? undefined,
+      hasStarted: this._hasStarted,
       msUntilStart: this.isPublic()
         ? this.createdAt + this.config.gameCreationRate()
         : undefined,

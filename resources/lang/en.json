@@ -42,6 +42,15 @@
     "reddit": "Reddit",
     "license_text": "Based on OpenFront"
   },
+  "observe_games": {
+    "title": "Observe Live Games",
+    "loading": "Loading live games...",
+    "empty": "No open games are running right now.",
+    "error": "Unable to load live games.",
+    "players": "{current}/{max} players",
+    "started": "Started {time} ago",
+    "observe_label": "Live game"
+  },
   "news": {
     "see_all_releases": "See all releases",
     "github_link": "on GitHub",

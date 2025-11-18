@@ -286,6 +286,18 @@ export async function startWorker() {
     res.status(200).send("Player kicked successfully");
   });
 
+  app.get("/api/public_active_games", (req, res) => {
+    const rawLimit = Array.isArray(req.query.limit)
+      ? req.query.limit[0]
+      : req.query.limit;
+    const limitParam = typeof rawLimit === "string" ? rawLimit : undefined;
+    const parsedLimit = Number.parseInt(limitParam ?? "", 10);
+    const limit = Number.isFinite(parsedLimit) ? parsedLimit : 5;
+    res.json({
+      games: gm.publicActiveGames(limit),
+    });
+  });
+
   // WebSocket handling
   wss.on("connection", (ws: WebSocket, req) => {
     ws.on("message", async (message: string) => {

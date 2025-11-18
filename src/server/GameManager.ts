@@ -7,7 +7,7 @@ import {
   GameMode,
   GameType,
 } from "../core/game/Game";
-import { GameConfig, GameID } from "../core/Schemas";
+import { GameConfig, GameID, GameInfo } from "../core/Schemas";
 import { Client } from "./Client";
 import { GamePhase, GameServer } from "./GameServer";
 
@@ -77,6 +77,31 @@ export class GameManager {
       totalClients += game.activeClients.length;
     });
     return totalClients;
+  }
+
+  publicActiveGames(limit: number): GameInfo[] {
+    const sanitizedLimit = Math.max(1, Math.min(limit, 20));
+    return Array.from(this.games.values())
+      .filter(
+        (game) =>
+          game.isPublic() &&
+          game.hasStarted() &&
+          game.phase() === GamePhase.Active,
+      )
+      .map((game) => ({
+        gameID: game.id,
+        numClients: game.numClients(),
+        gameConfig: game.gameConfig,
+        startedAt: game.startTime(),
+        createdAt: game.createdAt,
+        hasStarted: game.hasStarted(),
+      }))
+      .sort((a, b) => {
+        const aStart = a.startedAt ?? a.createdAt ?? 0;
+        const bStart = b.startedAt ?? b.createdAt ?? 0;
+        return bStart - aStart;
+      })
+      .slice(0, sanitizedLimit);
   }
 
   tick() {

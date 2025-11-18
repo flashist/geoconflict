@@ -46,6 +46,15 @@
     "minutes": "минуты",
     "minutes_short": "м"
   },
+  "observe_games": {
+    "title": "Наблюдать активные игры",
+    "loading": "Загрузка активных игр...",
+    "empty": "Нет открытых игр для наблюдения.",
+    "error": "Не удалось загрузить список игр.",
+    "players": "{current}/{max} игроков",
+    "started": "{time}",
+    "observe_label": "Игра в эфире"
+  },
   "news": {
     "see_all_releases": "Посмотреть все выпуски",
     "github_link": "на GitHub",
