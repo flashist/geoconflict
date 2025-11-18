@@ -165,3 +165,45 @@ export const flashist_waitGameInitComplete = async (): Promise<void> => {
 (window as any).flashist_waitGameInitComplete = flashist_waitGameInitComplete;
 
 (window as any).FlashistFacade = FlashistFacade;
+
+// Working iwth unhendled errors
+const flashist_logErrorToAnalytics = (errorText) => {
+    GameAnalytics.addErrorEvent("Error", errorText);
+}
+window.onerror = function (msg, url, line, col, error) {
+    // Note that col & error are new to the HTML 5 spec and may not be 
+    // supported in every browser.  It worked for me in Chrome.
+    var extra = !col ? '' : '\ncolumn: ' + col;
+    extra += !error ? '' : '\nerror: ' + error;
+
+    // You can view the information in an alert to see things working like this:
+    // alert("Error: " + msg + "\nurl: " + url + "\nline: " + line + extra);
+    const errorText = "Error: " + msg + "\nurl: " + url + "\nline: " + line + extra;
+
+    // TODO: Report this error via ajax so you can keep track
+    //       of what pages have JS issues
+
+    // var suppressErrorAlert = true;
+    // // If you return true, then error alerts (like in older versions of 
+    // // Internet Explorer) will be suppressed.
+    // return suppressErrorAlert;
+
+    // GameIframeCommunicationManager.sendErrorAnalyticsEvent(errorText, ErrorEventSeverity.ERROR);
+    flashist_logErrorToAnalytics(errorText);
+
+    return false;
+};
+window.addEventListener(
+    'unhandledrejection',
+    (event) => {
+        // console.error('Unhandled rejection (promise: ', event.promise, ', reason: ', event.reason, ').');
+        let errorText = 'Unhandled rejection:\npromise: ' + event.promise + ',\nreason: ' + event.reason;
+        if (event.reason?.stack) {
+            errorText += ",\nstack: " + event.reason?.stack;
+        }
+        errorText += '\n).';
+
+        // GameIframeCommunicationManager.sendErrorAnalyticsEvent(errorText, ErrorEventSeverity.ERROR);
+        flashist_logErrorToAnalytics(errorText);
+    }
+);
