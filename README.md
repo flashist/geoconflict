@@ -25,13 +25,15 @@ OpenFront source code is licensed under the **GNU Affero General Public License 
 See the `ADDITIONAL TERMS` section in [LICENSE](LICENSE) for complete requirements.
 
 For asset licensing, see [LICENSE-ASSETS](LICENSE-ASSETS).  
-For license history, see [LICENSING.md](LICENSING.md).
+For license history, see [LICENSING.md](LICENSING.md).  
+For contributor knowledge, conventions, and internal guides, check the [docs/](docs) directory.
 
 ## 🌟 Features
 
 - **Real-time Strategy Gameplay**: Expand your territory and engage in strategic battles
 - **Alliance System**: Form alliances with other players for mutual defense
 - **Multiple Maps**: Play across various geographical regions including Europe, Asia, Africa, and more
+- **Live Spectating**: Instantly observe currently active public games right from the main menu
 - **Resource Management**: Balance your expansion with defensive capabilities
 - **Cross-platform**: Play in any modern web browser
 
