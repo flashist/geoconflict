@@ -51,7 +51,7 @@
     "loading": "Загрузка активных игр...",
     "empty": "Нет открытых игр для наблюдения.",
     "error": "Не удалось загрузить список игр.",
-    "players": "{current}/{max} игроков",
+    "players": "{current}/{max}",
     "started": "{time}",
     "observe_label": "Игра в эфире"
   },

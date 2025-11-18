@@ -47,7 +47,7 @@
     "loading": "Loading live games...",
     "empty": "No open games are running right now.",
     "error": "Unable to load live games.",
-    "players": "{current}/{max} players",
+    "players": "{current}/{max}",
     "started": "Started {time} ago",
     "observe_label": "Live game"
   },
@@ -234,7 +234,7 @@
     "version_mismatch": "This game was created with a different version. Cannot join."
   },
   "public_lobby": {
-    "join": "Join next Game",
+    "join": "Join Game",
     "waiting": "players waiting",
     "teams_Duos": "Duos (teams of 2)",
     "teams_Trios": "Trios (teams of 3)",

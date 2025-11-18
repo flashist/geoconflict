@@ -5,7 +5,7 @@ import { GameMode, GameMapType } from "../core/game/Game";
 import { generateID } from "../core/Util";
 import { flashist_waitGameInitComplete } from "./FlashistFacade";
 import { JoinLobbyEvent } from "./Main";
-import { renderDuration, translateText } from "./Utils";
+import { translateText } from "./Utils";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 
 @customElement("observe-open-games")
@@ -123,24 +123,10 @@ export class ObserveOpenGames extends LitElement {
     if (!game.gameConfig) {
       return null;
     }
-    const playerCount = game.numClients ?? game.clients?.length ?? 0;
-    const maxPlayers = game.gameConfig.maxPlayers ?? "?";
-    const startReference = game.startedAt ?? game.createdAt ?? Date.now();
-    const secondsSinceStart = Math.max(
-      0,
-      Math.floor((this.now - startReference) / 1000),
-    );
     const mapKey = `map.${game.gameConfig.gameMap
       .toLowerCase()
       .replace(/\s+/g, "")}`;
     const isTeamGame = game.gameConfig.gameMode === GameMode.Team;
-    const timeDisplay = translateText("observe_games.started", {
-      time: renderDuration(secondsSinceStart),
-    });
-    const playerText = translateText("observe_games.players", {
-      current: playerCount,
-      max: maxPlayers,
-    });
     const mapImageSrc = this.mapImages.get(game.gameID);
 
     let modeText = translateText("game_mode.ffa");
@@ -156,7 +142,7 @@ export class ObserveOpenGames extends LitElement {
 
     return html`
       <button
-        class="isolate grid h-32 grid-cols-[100%] grid-rows-[100%] place-content-stretch w-full overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-xl transition-opacity duration-200 hover:opacity-90"
+        class="isolate grid h-16 grid-cols-[100%] grid-rows-[100%] place-content-stretch w-full overflow-hidden bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-xl transition-opacity duration-200 hover:opacity-90"
         @click=${() => this.observe(game)}
       >
         ${mapImageSrc
@@ -170,7 +156,7 @@ export class ObserveOpenGames extends LitElement {
               class="place-self-start col-span-full row-span-full h-full -z-10 bg-gray-300"
             ></div>`}
         <div
-          class="flex flex-col justify-between h-full col-span-full row-span-full p-4 md:p-6 text-right z-0"
+          class="flex flex-col justify-between h-full col-span-full row-span-full p-2 md:p-3 text-right z-0"
         >
           <div>
             
@@ -182,12 +168,6 @@ export class ObserveOpenGames extends LitElement {
             </div>
           </div>
 
-          <div>
-            <div class="text-sm font-medium text-blue-100">
-              ${playerText}
-            </div>
-            <div class="text-sm font-medium text-blue-100">${timeDisplay}</div>
-          </div>
         </div>
       </button>
     `;
