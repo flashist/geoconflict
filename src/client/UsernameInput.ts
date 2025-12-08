@@ -7,6 +7,7 @@ import {
   MAX_USERNAME_LENGTH,
   validateUsername,
 } from "../core/validations/username";
+import { FlashistFacade } from "./flashist/FlashistFacade";
 
 const usernameKey: string = "username";
 
@@ -28,9 +29,14 @@ export class UsernameInput extends LitElement {
     return this.username;
   }
 
-  connectedCallback() {
+  // Flashist Adaptation
+  // connectedCallback() {
+  async connectedCallback() {
     super.connectedCallback();
-    this.username = this.getStoredUsername();
+
+    // Flashist Adaptation
+    // this.username = this.getStoredUsername();
+    this.username = await this.getStoredUsername();
     this.dispatchUsernameEvent();
   }
 
@@ -69,12 +75,20 @@ export class UsernameInput extends LitElement {
     }
   }
 
-  private getStoredUsername(): string {
-    const storedUsername = localStorage.getItem(usernameKey);
-    if (storedUsername) {
-      return storedUsername;
+  // Flashist Adaptation
+  // private getStoredUsername(): string {
+  private async getStoredUsername(): Promise<string> {
+    let result: string | null = "";
+
+    result = await FlashistFacade.instance.getCurPlayerName();
+    if (!result) {
+      result = localStorage.getItem(usernameKey);
+      if (!result) {
+        result = this.generateNewUsername();
+      }
     }
-    return this.generateNewUsername();
+
+    return result;
   }
 
   private storeUsername(username: string) {

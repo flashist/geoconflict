@@ -73,6 +73,7 @@ export class FlashistFacade {
         }
 
         this.yandexInitPromise = this.yandexSdkInit();
+        this.yandexSdkInitPlayerPromise = this.initPlayer();
 
         // Setting up Game Analytics
         GameAnalytics.setEnabledInfoLog(true);
@@ -115,6 +116,57 @@ export class FlashistFacade {
         // TEST
         console.log("FlashistFacade | yandexGamesReadyCallback __ yandexGamesReadyCallback __ COMPLETE _ 2");
     };
+
+    // PLAYER
+    protected yandexSdkInitPlayerPromise: Promise<void>;
+    protected yandexSdkPlayerObject: any;
+    protected async initPlayer() {
+        return new Promise<void>(
+            async (resolve, reject) => {
+                await this.yandexInitPromise;
+
+                if (this.yandexGamesSDK) {
+                    try {
+                        await this.yandexGamesSDK.getPlayer()
+                            .then(
+                                (player) => {
+                                    this.yandexSdkPlayerObject = player;
+
+                                    resolve();
+                                }
+                            );
+
+                    } catch (error) {
+                        flashist_logErrorToAnalytics(`ERROR! FlashistFacade | initPlayer __ error: ${error}`);
+
+                        reject();
+                    }
+                }
+            }
+        );
+    }
+
+    public async getCurPlayerName(): Promise<string> {
+        await this.yandexSdkInitPlayerPromise;
+
+        let result: string = "";
+
+        if (this.yandexSdkPlayerObject) {
+            try {
+                if (this.yandexSdkPlayerObject.isAuthorized()) {
+                    result = this.yandexSdkPlayerObject.getName();
+                }
+
+            } catch (error) {
+                flashist_logErrorToAnalytics(`ERROR! FlashistFacade | getCurPlayerName __ error: ${error}`);
+            }
+        }
+
+        return result;
+    }
+
+
+    // ADV
 
     public async showInterstitial() {
         console.log("FlashistFacade | Main | showInterstitial");
