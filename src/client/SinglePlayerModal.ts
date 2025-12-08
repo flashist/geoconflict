@@ -30,7 +30,7 @@ import { FlagInput } from "./FlagInput";
 import { JoinLobbyEvent } from "./Main";
 import { UsernameInput } from "./UsernameInput";
 import { renderUnitTypeOptions } from "./utilities/RenderUnitTypeOptions";
-import { FlashistFacade } from "./FlashistFacade";
+import { FlashistFacade } from "./flashist/FlashistFacade";
 
 @customElement("single-player-modal")
 export class SinglePlayerModal extends LitElement {

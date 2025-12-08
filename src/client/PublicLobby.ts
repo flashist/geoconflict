@@ -6,7 +6,7 @@ import { GameID, GameInfo } from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { JoinLobbyEvent } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
-import { flashist_waitGameInitComplete } from "./FlashistFacade";
+import { flashist_waitGameInitComplete } from "./flashist/FlashistFacade";
 
 @customElement("public-lobby")
 export class PublicLobby extends LitElement {

@@ -30,7 +30,7 @@ import "./components/Difficulties";
 import "./components/Maps";
 import { JoinLobbyEvent } from "./Main";
 import { renderUnitTypeOptions } from "./utilities/RenderUnitTypeOptions";
-import { FlashistFacade } from "./FlashistFacade";
+import { FlashistFacade } from "./flashist/FlashistFacade";
 
 @customElement("host-lobby-modal")
 export class HostLobbyModal extends LitElement {

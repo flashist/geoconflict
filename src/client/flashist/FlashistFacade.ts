@@ -1,6 +1,7 @@
 import { LitElement } from "lit";
-import { LangSelector } from "./LangSelector";
+import { LangSelector } from "../LangSelector";
 import { GameAnalytics } from "gameanalytics";
+import { boolean } from "zod";
 
 // Working iwth unhendled errors
 const flashist_logErrorToAnalytics = (errorText) => {
@@ -186,6 +187,124 @@ export class FlashistFacade {
         } else {
             console.log("FlashistFacade | Main | getLanguageCode __ ERROR! No yandexGamesSDK: ", this.yandexGamesSDK);
         }
+
+        return result;
+    }
+
+    // CHECK AVAILABLE METHODS
+    protected sdkMethodsStatusCacheMap: { [method: string]: { isAvailable: boolean } } = {};
+    protected async checkIfSdkMethodAvailable(sdkMethod: string): Promise<boolean> {
+        let result: boolean = false;
+
+        await this.yandexInitPromise;
+
+        if (this.yandexGamesSDK) {
+            if (this.sdkMethodsStatusCacheMap[sdkMethod]) {
+                result = this.sdkMethodsStatusCacheMap[sdkMethod].isAvailable;
+            } else {
+                let isAvailable: boolean = await this.yandexGamesSDK.isAvailableMethod(sdkMethod);
+                this.sdkMethodsStatusCacheMap[sdkMethod] = {
+                    isAvailable: isAvailable
+                }
+
+                result = isAvailable;
+            }
+        }
+
+        return result;
+    }
+
+    // LEADERBOARD
+    protected defaultLeaderboardId: string = "default";
+    protected async getCurPlayerLeaderboardScore(leaderboardId?: string): Promise<number> {
+        if (!leaderboardId) {
+            leaderboardId = this.defaultLeaderboardId;
+        }
+
+        await this.yandexInitPromise;
+
+        return new Promise(
+            async (resolve, reject) => {
+                let result: number = 0;
+
+                if (this.yandexGamesSDK) {
+                    let isAvailable: boolean = await this.checkIfSdkMethodAvailable("leaderboards.getPlayerEntry");
+                    if (isAvailable) {
+                        this.yandexGamesSDK.leaderboards.getPlayerEntry(leaderboardId)
+                            .then(
+                                (data) => {
+                                    // console.log(res);
+                                    if (data) {
+                                        result = data.score;
+                                    } else {
+                                        flashist_logErrorToAnalytics("ERROR! Flashist Facade | getCurPlayerLeaderboardScore __ then __ no data!");
+                                    }
+
+                                    resolve(result);
+                                })
+                            .catch(
+                                (error) => {
+                                    flashist_logErrorToAnalytics(error.code);
+
+                                    reject(error);
+                                    // if (err.code === 'LEADERBOARD_PLAYER_NOT_PRESENT') {
+                                    //     // Срабатывает, если у игрока нет записи в лидерборде.
+                                    // }
+                                }
+                            );
+
+                    } else {
+                        resolve(result);
+                    }
+
+                } else {
+                    resolve(result);
+                }
+            }
+        );
+    }
+
+    public async setCurPlayerLeaderboardScore(score: number, leaderboardId?: string): Promise<boolean> {
+        let result: boolean = false;
+
+        if (!leaderboardId) {
+            leaderboardId = this.defaultLeaderboardId;
+        }
+
+        await this.yandexInitPromise;
+
+        if (this.yandexGamesSDK) {
+            let isAvailable: boolean = await this.checkIfSdkMethodAvailable("leaderboards.setScore");
+            if (isAvailable) {
+                result = await this.yandexGamesSDK.leaderboards.setScore(leaderboardId, score)
+            }
+        }
+
+        return result;
+    }
+
+    public async increaseCurPlayerLeaderboardScore(increase: number, leaderboardId?: string): Promise<boolean> {
+
+        let result: boolean = false;
+
+        if (!leaderboardId) {
+            leaderboardId = this.defaultLeaderboardId;
+        }
+
+        let playerPrevMaxScore: number = 0;
+        try {
+            let isAvailable: boolean = await this.checkIfSdkMethodAvailable("leaderboards.getPlayerEntry");
+            if (isAvailable) {
+                const curPlayerLeaderboardScore: number = await this.getCurPlayerLeaderboardScore();
+                playerPrevMaxScore = curPlayerLeaderboardScore;
+            }
+
+        } catch (error) {
+            console.error("YandexGamesPlatformAdapter | setLeaderboardScore __ error: ", error);
+        }
+
+        let newScore: number = playerPrevMaxScore + increase;
+        result = await this.setCurPlayerLeaderboardScore(newScore, leaderboardId);
 
         return result;
     }

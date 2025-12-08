@@ -13,7 +13,7 @@ import { DarkModeButton } from "./DarkModeButton";
 import "./FlagInput";
 import { FlagInput } from "./FlagInput";
 import { FlagInputModal } from "./FlagInputModal";
-import { flashist_getLangSelector, flashist_waitGameInitComplete, FlashistFacade } from "./FlashistFacade";
+import { flashist_getLangSelector, flashist_waitGameInitComplete, FlashistFacade } from "./flashist/FlashistFacade";
 import { GameStartingModal } from "./GameStartingModal";
 import "./GoogleAdElement";
 import { GutterAds } from "./GutterAds";

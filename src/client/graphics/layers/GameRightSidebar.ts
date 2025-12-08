@@ -15,7 +15,7 @@ import { translateText } from "../../Utils";
 import { Layer } from "./Layer";
 import { ShowReplayPanelEvent } from "./ReplayPanel";
 import { ShowSettingsModalEvent } from "./SettingsModal";
-import { FlashistFacade } from "../../FlashistFacade";
+import { FlashistFacade } from "../../flashist/FlashistFacade";
 
 @customElement("game-right-sidebar")
 export class GameRightSidebar extends LitElement implements Layer {

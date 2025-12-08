@@ -14,7 +14,7 @@ import {
 import { getUserMe } from "../../jwt";
 import { SendWinnerEvent } from "../../Transport";
 import { Layer } from "./Layer";
-import { FlashistFacade } from "../../FlashistFacade";
+import { FlashistFacade } from "../../flashist/FlashistFacade";
 
 @customElement("win-modal")
 export class WinModal extends LitElement implements Layer {

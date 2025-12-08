@@ -5,7 +5,7 @@ import {
   CosmeticsSchema,
   Pattern,
 } from "../core/CosmeticSchemas";
-import { FlashistFacade } from "./FlashistFacade";
+import { FlashistFacade } from "./flashist/FlashistFacade";
 import { getApiBase, getAuthHeader } from "./jwt";
 import { getPersistentID } from "./Main";
 

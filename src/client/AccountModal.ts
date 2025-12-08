@@ -19,7 +19,7 @@ import {
   logOut,
 } from "./jwt";
 import { isInIframe, translateText } from "./Utils";
-import { FlashistFacade } from "./FlashistFacade";
+import { FlashistFacade } from "./flashist/FlashistFacade";
 
 @customElement("account-modal")
 export class AccountModal extends LitElement {

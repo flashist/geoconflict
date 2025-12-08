@@ -12,7 +12,7 @@ import {
 import { createPartialGameRecord, replacer } from "../core/Util";
 import { ServerConfig } from "../core/configuration/Config";
 import { getConfig } from "../core/configuration/ConfigLoader";
-import { PlayerActions, UnitType } from "../core/game/Game";
+import { PlayerActions, PlayerType, UnitType } from "../core/game/Game";
 import { TileRef } from "../core/game/GameMap";
 import { GameMapLoader } from "../core/game/GameMapLoader";
 import {
@@ -48,6 +48,11 @@ import {
 import { createCanvas } from "./Utils";
 import { createRenderer, GameRenderer } from "./graphics/GameRenderer";
 import SoundManager from "./sound/SoundManager";
+import {
+  reportParticipation,
+  reportPlacement,
+} from "./leaderboard/LeaderboardReporter";
+import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
 
 export interface LobbyConfig {
   serverConfig: ServerConfig;
@@ -194,6 +199,8 @@ async function createClientGame(
 export class ClientGameRunner {
   private myPlayer: PlayerView | null = null;
   private isActive = false;
+  private hasReportedParticipation = false;
+  private hasProcessedWin = false;
 
   private turnsSeen = 0;
   private hasJoined = false;
@@ -243,6 +250,38 @@ export class ClientGameRunner {
     endGame(record);
   }
 
+  private reportPlacements(_winUpdate: WinUpdate) {
+    const me = this.myPlayer ?? this.gameView.myPlayer();
+    if (!me || me.type() !== PlayerType.Human) return;
+
+    const humanPlayers = this.gameView
+      .players()
+      .filter((p) => p.type() === PlayerType.Human);
+    if (humanPlayers.length === 0) return;
+
+    const ranked = humanPlayers
+      .slice()
+      .sort((a, b) => b.numTilesOwned() - a.numTilesOwned());
+
+    const myIndex = ranked.findIndex((p) => p === me);
+    if (myIndex === -1 || myIndex > 2) return; // only 1st/2nd/3rd
+
+    const awardTable = [
+      FlashistGameSettings.PLACE_1_POINTS,
+      FlashistGameSettings.PLACE_2_POINTS,
+      FlashistGameSettings.PLACE_3_POINTS
+    ];
+    const points = awardTable[myIndex];
+    const placement = + 1;
+
+    reportPlacement({
+      gameId: this.lobby.gameID,
+      player: me,
+      placement,
+      points,
+    });
+  }
+
   public start() {
     SoundManager.playBackgroundMusic();
     console.log("starting client game");
@@ -290,10 +329,29 @@ export class ClientGameRunner {
         this.eventBus.emit(new SendHashEvent(hu.tick, hu.hash));
       });
       this.gameView.update(gu);
+
+      this.myPlayer ??= this.gameView.myPlayer();
+      if (
+        !this.hasReportedParticipation &&
+        this.myPlayer !== null &&
+        this.lobby.gameRecord === undefined
+      ) {
+        this.hasReportedParticipation = true;
+        reportParticipation({
+          gameId: this.lobby.gameID,
+          player: this.myPlayer,
+        });
+      }
+
       this.renderer.tick();
 
       if (gu.updates[GameUpdateType.Win].length > 0) {
-        this.saveGame(gu.updates[GameUpdateType.Win][0]);
+        const winUpdate = gu.updates[GameUpdateType.Win][0];
+        this.saveGame(winUpdate);
+        if (!this.hasProcessedWin && this.lobby.gameRecord === undefined) {
+          this.hasProcessedWin = true;
+          this.reportPlacements(winUpdate);
+        }
       }
     });
     const worker = this.worker;

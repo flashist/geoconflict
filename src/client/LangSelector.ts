@@ -34,7 +34,7 @@ import tp from "../../resources/lang/tp.json";
 import tr from "../../resources/lang/tr.json";
 import uk from "../../resources/lang/uk.json";
 import zh_CN from "../../resources/lang/zh-CN.json";
-import { FlashistFacade } from "./FlashistFacade";
+import { FlashistFacade } from "./flashist/FlashistFacade";
 
 @customElement("lang-selector")
 export class LangSelector extends LitElement {
