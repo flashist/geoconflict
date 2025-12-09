@@ -26,7 +26,7 @@ export async function reportParticipation(
     return;
   }
 
-  let result: boolean = await FlashistFacade.instance.increaseCurPlayerLeaderboardScore(FlashistGameSettings.PARTICIPATION_POINTS);
+  let result: boolean = await FlashistFacade.instance.increaseCurPlayerLeaderboardScore(FlashistGameSettings.leaderboardPoints.participation);
 
   // TODO: integrate platform leaderboard API (participation)
   console.debug(

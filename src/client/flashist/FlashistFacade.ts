@@ -2,9 +2,10 @@ import { LitElement } from "lit";
 import { LangSelector } from "../LangSelector";
 import { GameAnalytics } from "gameanalytics";
 import { boolean } from "zod";
+import { GameEnv } from "../../core/configuration/Config";
 
 // Working iwth unhendled errors
-const flashist_logErrorToAnalytics = (errorText) => {
+export const flashist_logErrorToAnalytics = (errorText) => {
     GameAnalytics.addErrorEvent("Error", errorText);
 }
 window.onerror = function (msg, url, line, col, error) {
@@ -33,6 +34,10 @@ window.onerror = function (msg, url, line, col, error) {
 window.addEventListener(
     'unhandledrejection',
     (event) => {
+        if (GameEnv.Dev) {
+
+        }
+
         // console.error('Unhandled rejection (promise: ', event.promise, ', reason: ', event.reason, ').');
         let errorText = 'Unhandled rejection:\npromise: ' + event.promise + ',\nreason: ' + event.reason;
         if (event.reason?.stack) {
@@ -74,6 +79,7 @@ export class FlashistFacade {
 
         this.yandexInitPromise = this.yandexSdkInit();
         this.yandexSdkInitPlayerPromise = this.initPlayer();
+        this.initExperimentFlags();
 
         // Setting up Game Analytics
         GameAnalytics.setEnabledInfoLog(true);
@@ -118,13 +124,52 @@ export class FlashistFacade {
     };
 
     // FLAGS (Experiments)
-    public async getExperimentFlags(): Promise<string[]> {
+    protected yandexInitExperimentsPromise: Promise<any>;
+    protected yandexExperimentFlags: any;
+    protected async initExperimentFlags(): Promise<void> {
         await this.yandexInitPromise;
 
-        let result: string[] = [];
+        if (!this.yandexInitExperimentsPromise) {
+            this.yandexInitExperimentsPromise = new Promise<void>(
+                async (resolve) => {
+                    let experiments: any;
 
-        if (this.yandexGamesSDK) {
-            this.yandexGamesSDK.getFlags();
+                    if (this.yandexGamesSDK) {
+                        try {
+                            experiments = await this.yandexGamesSDK.getFlags();
+                            if (!experiments) {
+                                experiments = {};
+                            }
+                        } catch (error) {
+                            flashist_logErrorToAnalytics(`ERROR! FlashistFacade | initExperimentFlags __ error: ${error}`);
+                        }
+                    }
+
+                    this.yandexExperimentFlags = experiments;
+
+                    resolve();
+                }
+            );
+        }
+
+        return this.yandexInitExperimentsPromise;
+    }
+
+    // public async getExperimentFlags(): Promise<any> {
+    //     await this.initExperimentFlags();
+
+    //     return this.yandexExperimentFlags;
+    // }
+
+    public async checkExperimentFlag(name: string, value: string): Promise<boolean> {
+        await this.initExperimentFlags();
+
+        let result: boolean = false;
+
+        if (this.yandexExperimentFlags) {
+            if (this.yandexExperimentFlags[name] == value) {
+                result = true;
+            }
         }
 
         return result;

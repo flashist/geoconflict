@@ -7,7 +7,8 @@ import {
   MAX_USERNAME_LENGTH,
   validateUsername,
 } from "../core/validations/username";
-import { FlashistFacade } from "./flashist/FlashistFacade";
+import { flashist_logErrorToAnalytics, FlashistFacade } from "./flashist/FlashistFacade";
+import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
 
 const usernameKey: string = "username";
 
@@ -80,7 +81,22 @@ export class UsernameInput extends LitElement {
   private async getStoredUsername(): Promise<string> {
     let result: string | null = "";
 
-    result = await FlashistFacade.instance.getCurPlayerName();
+    // Flashist Adaptation: experiment (username from platform)
+    try {
+      let isPlatformUsernameActive: boolean = false;
+      isPlatformUsernameActive = await FlashistFacade.instance.checkExperimentFlag(
+        FlashistGameSettings.experiments.yandexGamesUsernames.id,
+        FlashistGameSettings.experiments.yandexGamesUsernames.values.active
+      );
+
+      if (isPlatformUsernameActive) {
+        result = await FlashistFacade.instance.getCurPlayerName();
+      }
+
+    } catch (error) {
+      flashist_logErrorToAnalytics(`ERROR! UsernameInput | getStoredUsername __ error: ${error}`);
+    }
+
     if (!result) {
       result = localStorage.getItem(usernameKey);
       if (!result) {

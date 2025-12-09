@@ -267,9 +267,9 @@ export class ClientGameRunner {
     if (myIndex === -1 || myIndex > 2) return; // only 1st/2nd/3rd
 
     const awardTable = [
-      FlashistGameSettings.PLACE_1_POINTS,
-      FlashistGameSettings.PLACE_2_POINTS,
-      FlashistGameSettings.PLACE_3_POINTS
+      FlashistGameSettings.leaderboardPoints.first,
+      FlashistGameSettings.leaderboardPoints.second,
+      FlashistGameSettings.leaderboardPoints.third
     ];
     const points = awardTable[myIndex];
     const placement = + 1;
