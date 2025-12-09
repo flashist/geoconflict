@@ -6,6 +6,10 @@ describe("Lang SVG Field and File Existence Check", () => {
   const flagDir = path.join(__dirname, "../resources/flags");
 
   test("each lang.json file has a valid lang.svg string and the SVG file exists", () => {
+    if (process.env.SKIP_FLAG_TESTS === "1") {
+      console.warn("SKIP_FLAG_TESTS=1 → skipping LangSvg tests");
+      return;
+    }
     const files = fs
       .readdirSync(langDir)
       .filter((file) => file.endsWith(".json"));

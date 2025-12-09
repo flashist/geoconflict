@@ -17,7 +17,7 @@ import { PauseGameEvent } from "../../Transport";
 import { translateText } from "../../Utils";
 import SoundManager from "../../sound/SoundManager";
 import { Layer } from "./Layer";
-import { FlashistFacade } from "../../FlashistFacade";
+import { FlashistFacade } from "../../flashist/FlashistFacade";
 
 export class ShowSettingsModalEvent {
   constructor(

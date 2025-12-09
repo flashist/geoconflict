@@ -14,7 +14,7 @@ import {
 import { getUserMe } from "../../jwt";
 import { SendWinnerEvent } from "../../Transport";
 import { Layer } from "./Layer";
-import { FlashistFacade } from "../../FlashistFacade";
+import { FlashistFacade } from "../../flashist/FlashistFacade";
 
 @customElement("win-modal")
 export class WinModal extends LitElement implements Layer {
@@ -206,14 +206,21 @@ export class WinModal extends LitElement implements Layer {
     }, 3000);
   }
 
-  hide() {
+  // hide() {
+  async hide() {
+    // Flashist Adaptation: interstitial adv
+    await FlashistFacade.instance.showInterstitial();
+
     this.isVisible = false;
     this.showButtons = false;
     this.requestUpdate();
   }
 
-  private _handleExit() {
-    this.hide();
+  // Flashist Adaptation
+  // private _handleExit() {
+  private async _handleExit() {
+    // this.hide();
+    await this.hide();
 
     // Flashist Adaptation
     // window.location.href = "/";

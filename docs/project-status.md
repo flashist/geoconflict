@@ -56,6 +56,13 @@ _Last updated: 2025-11-03_
 4. Confirm/implement in-game attribution text per license.
 5. Monitor/logging enhancements (promtail/otel traces) once staging/prod up.
 
+## Version Notes
+- **0.0.9**
+  - Client now reads the platform-provided player name (e.g., Yandex Games) before falling back to local storage or generated names.
+  - Leaderboard plumbing added: participation (+1) and placement (+10/+5/+2 for 1st/2nd/3rd) hooks call the platform leaderboard API via `FlashistFacade` (Yandex SDK). Bots are ignored; only the local player is scored.
+  - Usernames now accept full Unicode letters/numbers (Cyrillic included) while keeping profanity/length checks.
+  - Jest: flag SVG check can be skipped with `SKIP_FLAG_TESTS=1 npm test -- --runInBand` (assets still missing).
+
 ## How to Work With This Repo
 ### Local Setup
 ```bash

@@ -7,6 +7,8 @@ import {
   MAX_USERNAME_LENGTH,
   validateUsername,
 } from "../core/validations/username";
+import { flashist_logErrorToAnalytics, FlashistFacade } from "./flashist/FlashistFacade";
+import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
 
 const usernameKey: string = "username";
 
@@ -28,9 +30,14 @@ export class UsernameInput extends LitElement {
     return this.username;
   }
 
-  connectedCallback() {
+  // Flashist Adaptation
+  // connectedCallback() {
+  async connectedCallback() {
     super.connectedCallback();
-    this.username = this.getStoredUsername();
+
+    // Flashist Adaptation
+    // this.username = this.getStoredUsername();
+    this.username = await this.getStoredUsername();
     this.dispatchUsernameEvent();
   }
 
@@ -69,12 +76,35 @@ export class UsernameInput extends LitElement {
     }
   }
 
-  private getStoredUsername(): string {
-    const storedUsername = localStorage.getItem(usernameKey);
-    if (storedUsername) {
-      return storedUsername;
+  // Flashist Adaptation
+  // private getStoredUsername(): string {
+  private async getStoredUsername(): Promise<string> {
+    let result: string | null = "";
+
+    // Flashist Adaptation: experiment (username from platform)
+    try {
+      let isPlatformUsernameActive: boolean = false;
+      isPlatformUsernameActive = await FlashistFacade.instance.checkExperimentFlag(
+        FlashistGameSettings.experiments.yandexGamesUsernames.id,
+        FlashistGameSettings.experiments.yandexGamesUsernames.values.active
+      );
+
+      if (isPlatformUsernameActive) {
+        result = await FlashistFacade.instance.getCurPlayerName();
+      }
+
+    } catch (error) {
+      flashist_logErrorToAnalytics(`ERROR! UsernameInput | getStoredUsername __ error: ${error}`);
     }
-    return this.generateNewUsername();
+
+    if (!result) {
+      result = localStorage.getItem(usernameKey);
+      if (!result) {
+        result = this.generateNewUsername();
+      }
+    }
+
+    return result;
   }
 
   private storeUsername(username: string) {

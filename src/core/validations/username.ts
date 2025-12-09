@@ -22,7 +22,8 @@ const matcher = new RegExpMatcher({
 export const MIN_USERNAME_LENGTH = 3;
 export const MAX_USERNAME_LENGTH = 27;
 
-const validPattern = /^[a-zA-Z0-9_[\] 🐈🍀üÜ]+$/u;
+// Allow any letter/number in any script, plus a small set of legacy symbols we previously allowed.
+const validPattern = /^[\p{L}\p{N}_\[\]\s🐈🍀]+$/u;
 
 const shadowNames = [
   "NicePeopleOnly",
