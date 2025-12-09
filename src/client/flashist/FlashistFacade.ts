@@ -117,6 +117,19 @@ export class FlashistFacade {
         console.log("FlashistFacade | yandexGamesReadyCallback __ yandexGamesReadyCallback __ COMPLETE _ 2");
     };
 
+    // FLAGS (Experiments)
+    public async getExperimentFlags(): Promise<string[]> {
+        await this.yandexInitPromise;
+
+        let result: string[] = [];
+
+        if (this.yandexGamesSDK) {
+            this.yandexGamesSDK.getFlags();
+        }
+
+        return result;
+    }
+
     // PLAYER
     protected yandexSdkInitPlayerPromise: Promise<void>;
     protected yandexSdkPlayerObject: any;
