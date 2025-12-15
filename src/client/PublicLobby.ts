@@ -7,6 +7,7 @@ import { generateID } from "../core/Util";
 import { JoinLobbyEvent } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import { flashist_waitGameInitComplete } from "./flashist/FlashistFacade";
+import { FlashistFacade } from "./flashist/FlashistFacade";
 
 @customElement("public-lobby")
 export class PublicLobby extends LitElement {
@@ -199,7 +200,9 @@ export class PublicLobby extends LitElement {
     this.currLobby = null;
   }
 
-  private lobbyClicked(lobby: GameInfo) {
+  // Flashist Adaptation
+  // private lobbyClicked(lobby: GameInfo) {
+  private async lobbyClicked(lobby: GameInfo) {
     if (this.isButtonDebounced) {
       return;
     }
@@ -215,6 +218,27 @@ export class PublicLobby extends LitElement {
     if (this.currLobby === null) {
       this.isLobbyHighlighted = true;
       this.currLobby = lobby;
+
+      // Flashist Adaptation: show interstitial ad when enough time and slots remain before game start
+      const startTime = this.lobbyIDToStart.get(lobby.gameID) ?? 0;
+      const timeRemaining = Math.max(
+        0,
+        Math.floor((startTime - Date.now()) / 1000),
+      );
+      const maxPlayers = lobby.gameConfig?.maxPlayers ?? 0;
+      const currentPlayers = lobby.numClients ?? lobby.clients?.length ?? 0;
+      const openSlots = Math.max(0, maxPlayers - currentPlayers);
+      // Flashist Adaptation: Show interstitial ads only for the cases when there is enough time for it
+      // and when there are still some avaialble slots for other people to join
+      // (otherwise, the game would start earielr, than should)
+      if (timeRemaining >= 30 && openSlots >= 5) {
+        try {
+          await FlashistFacade.instance.showInterstitial();
+        } catch (error) {
+          console.error("Failed to show interstitial:", error);
+        }
+      }
+
       this.dispatchEvent(
         new CustomEvent("join-lobby", {
           detail: {
