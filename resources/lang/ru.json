@@ -555,7 +555,9 @@
     "cities": "Города",
     "show_control": "Показать подконтрольные площади",
     "show_units": "Показать сооружения",
-    "real_players_only": "Только игроки"
+    "real_players_only": "Только игроки",
+    "show_all": "Показать всех",
+    "show_top": "Показать 5 лучших"
   },
   "player_info_overlay": {
     "type": "Тип",
