@@ -554,7 +554,8 @@
     "warships": "Военные корабли",
     "cities": "Города",
     "show_control": "Показать подконтрольные площади",
-    "show_units": "Показать сооружения"
+    "show_units": "Показать сооружения",
+    "real_players_only": "Только игроки"
   },
   "player_info_overlay": {
     "type": "Тип",
