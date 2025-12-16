@@ -11,6 +11,7 @@ import {
 import { PlayerType } from "../../../core/game/Game";
 import { renderNumber } from "../../Utils";
 import { Layer } from "./Layer";
+import humanPlayerIcon from "../../../../resources/images/HumanPlayerIcon.svg";
 
 interface Entry {
   name: string;
@@ -20,6 +21,7 @@ interface Entry {
   troops: string;
   isMyPlayer: boolean;
   isOnSameTeam: boolean;
+  isHuman: boolean;
   player: PlayerView;
 }
 
@@ -129,6 +131,7 @@ export class Leaderboard extends LitElement implements Layer {
         troops: renderNumber(troops),
         isMyPlayer: player === myPlayer,
         isOnSameTeam: player === myPlayer || player.isOnSameTeam(myPlayer!),
+        isHuman: player.type() === PlayerType.Human,
         player: player,
       };
     });
@@ -158,6 +161,7 @@ export class Leaderboard extends LitElement implements Layer {
           troops: renderNumber(myPlayerTroops),
           isMyPlayer: true,
           isOnSameTeam: true,
+          isHuman: myPlayer.type() === PlayerType.Human,
           player: myPlayer,
         });
       }
@@ -275,7 +279,17 @@ export class Leaderboard extends LitElement implements Layer {
                 <div
                   class="py-1 md:py-2 text-center border-b border-slate-500 truncate"
                 >
-                  ${player.name}
+                  <div class="flex items-center justify-center gap-1">
+                    ${player.isHuman
+                      ? html`<img
+                          src=${humanPlayerIcon}
+                          alt=""
+                          aria-hidden="true"
+                          class="h-4 w-4"
+                        />`
+                      : null}
+                    <span class="truncate">${player.name}</span>
+                  </div>
                 </div>
                 <div class="py-1 md:py-2 text-center border-b border-slate-500">
                   ${player.score}
