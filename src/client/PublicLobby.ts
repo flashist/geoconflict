@@ -219,7 +219,21 @@ export class PublicLobby extends LitElement {
       this.isLobbyHighlighted = true;
       this.currLobby = lobby;
 
+      this.dispatchEvent(
+        new CustomEvent("join-lobby", {
+          detail: {
+            gameID: lobby.gameID,
+            clientID: generateID(),
+          } as JoinLobbyEvent,
+          bubbles: true,
+          composed: true,
+        }),
+      );
+
       // Flashist Adaptation: show interstitial ad when enough time and slots remain before game start
+      // IMPORTANT: showing the adv AFTER we sent command to join the lobby
+      // to make sure that the adv is not disrupting anything from the joining process
+      // and the current user "reserves" a seat for them to play
       const startTime = this.lobbyIDToStart.get(lobby.gameID) ?? 0;
       const timeRemaining = Math.max(
         0,
@@ -239,16 +253,6 @@ export class PublicLobby extends LitElement {
         }
       }
 
-      this.dispatchEvent(
-        new CustomEvent("join-lobby", {
-          detail: {
-            gameID: lobby.gameID,
-            clientID: generateID(),
-          } as JoinLobbyEvent,
-          bubbles: true,
-          composed: true,
-        }),
-      );
     } else {
       this.dispatchEvent(
         new CustomEvent("leave-lobby", {
