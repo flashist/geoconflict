@@ -376,7 +376,7 @@ export class FlashistFacade {
                                 })
                             .catch(
                                 (error) => {
-                                    flashist_logErrorToAnalytics("ERROR! Flashist Facade | getCurPlayerLeaderboardScore __ error.code: " + error.code, flashist_logErrorTypes.ERROR);
+                                    flashist_logErrorToAnalytics("ERROR! Flashist Facade | getCurPlayerLeaderboardScore __ error.code: " + error.code, flashist_logErrorTypes.DEBUG);
 
                                     reject(error);
                                     // if (err.code === 'LEADERBOARD_PLAYER_NOT_PRESENT') {
