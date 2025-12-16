@@ -60,7 +60,7 @@ class Donation {
   constructor(
     public readonly recipient: Player,
     public readonly tick: Tick,
-  ) {}
+  ) { }
 }
 
 export class PlayerImpl implements Player {
@@ -1128,11 +1128,9 @@ export class PlayerImpl implements Player {
     );
   }
   toString(): string {
-    return `Player:{name:${this.info().name},clientID:${
-      this.info().clientID
-    },isAlive:${this.isAlive()},troops:${
-      this._troops
-    },numTileOwned:${this.numTilesOwned()}}]`;
+    return `Player:{name:${this.info().name},clientID:${this.info().clientID
+      },isAlive:${this.isAlive()},troops:${this._troops
+      },numTileOwned:${this.numTilesOwned()}}]`;
   }
 
   public playerProfile(): PlayerProfile {
@@ -1180,8 +1178,8 @@ export class PlayerImpl implements Player {
     if (
       this.mg.hasOwner(tile) &&
       this.mg.config().numSpawnPhaseTurns() +
-        this.mg.config().spawnImmunityDuration() >
-        this.mg.ticks()
+      this.mg.config().spawnImmunityDuration() >
+      this.mg.ticks()
     ) {
       return false;
     }

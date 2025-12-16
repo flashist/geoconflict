@@ -5,6 +5,7 @@ import { translateText } from "../client/Utils";
 import { UserSettings } from "../core/game/UserSettings";
 import {
   MAX_USERNAME_LENGTH,
+  sanitizeUsername,
   validateUsername,
 } from "../core/validations/username";
 import { flashist_logErrorToAnalytics, flashist_logErrorTypes, FlashistFacade } from "./flashist/FlashistFacade";
@@ -90,11 +91,24 @@ export class UsernameInput extends LitElement {
     }
 
     if (!result) {
-      result = localStorage.getItem(usernameKey);
-      if (!result) {
-        result = this.generateNewUsername();
+      let localStorageUserName = localStorage.getItem(usernameKey);
+      if (localStorageUserName) {
+        result = localStorageUserName;
       }
     }
+
+    // Make sure the username is always checked for being correct
+    if (result) {
+      result = sanitizeUsername(result);
+    }
+    // Make sure the edge cases are handled when due to some reason we don't have a user name
+    if (!result) {
+      result = this.generateNewUsername();
+    }
+
+    // Make sure we're updating the saved in the local storage data about the username
+    // (needed for correct migration from the previous versions of the app)
+    this.storeUsername(result);
 
     return result;
   }
