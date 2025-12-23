@@ -3,9 +3,15 @@ import { customElement, property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 import { translateText } from "../../../client/Utils";
 import { EventBus, GameEvent } from "../../../core/EventBus";
-import { GameView, PlayerView, UnitView } from "../../../core/game/GameView";
+import {
+  GameView,
+  PlayerView,
+  UnitView,
+} from "../../../core/game/GameView";
+import { PlayerType } from "../../../core/game/Game";
 import { renderNumber } from "../../Utils";
 import { Layer } from "./Layer";
+import humanPlayerIcon from "../../../../resources/images/HumanPlayerIcon.svg";
 
 interface Entry {
   name: string;
@@ -15,6 +21,7 @@ interface Entry {
   troops: string;
   isMyPlayer: boolean;
   isOnSameTeam: boolean;
+  isHuman: boolean;
   player: PlayerView;
 }
 
@@ -49,6 +56,9 @@ export class Leaderboard extends LitElement implements Layer {
   @state()
   private _sortOrder: "asc" | "desc" = "desc";
 
+  @state()
+  private _showRealPlayersOnly = false;
+
   createRenderRoot() {
     return this; // use light DOM for Tailwind support
   }
@@ -78,6 +88,10 @@ export class Leaderboard extends LitElement implements Layer {
     const myPlayer = this.game.myPlayer();
 
     let sorted = this.game.playerViews();
+
+    if (this._showRealPlayersOnly) {
+      sorted = sorted.filter((player) => player.type() === PlayerType.Human);
+    }
 
     const compare = (a: number, b: number) =>
       this._sortOrder === "asc" ? a - b : b - a;
@@ -117,6 +131,7 @@ export class Leaderboard extends LitElement implements Layer {
         troops: renderNumber(troops),
         isMyPlayer: player === myPlayer,
         isOnSameTeam: player === myPlayer || player.isOnSameTeam(myPlayer!),
+        isHuman: player.type() === PlayerType.Human,
         player: player,
       };
     });
@@ -146,6 +161,7 @@ export class Leaderboard extends LitElement implements Layer {
           troops: renderNumber(myPlayerTroops),
           isMyPlayer: true,
           isOnSameTeam: true,
+          isHuman: myPlayer.type() === PlayerType.Human,
           player: myPlayer,
         });
       }
@@ -170,6 +186,30 @@ export class Leaderboard extends LitElement implements Layer {
       return html``;
     }
     return html`
+      <div class="mb-1 flex items-center justify-between text-white text-xs md:text-xs lg:text-sm">
+        <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            class="h-4 w-4 accent-blue-500"
+            .checked=${this._showRealPlayersOnly}
+            @change=${(e: Event) => {
+              const target = e.target as HTMLInputElement;
+              this._showRealPlayersOnly = target.checked;
+              this.updateLeaderboard();
+            }}
+          />
+          <span>${translateText("leaderboard.real_players_only")}</span>
+        </label>
+        <button
+          class="px-1.5 py-0.5 md:px-2 md:py-0.5 text-xs md:text-xs lg:text-sm border border-white/20 hover:bg-white/10 text-white"
+          @click=${() => {
+            this.showTopFive = !this.showTopFive;
+            this.updateLeaderboard();
+          }}
+        >
+          ${this.showTopFive ? translateText("leaderboard.show_all") : translateText("leaderboard.show_top")}
+        </button>
+      </div>
       <div
         class="max-h-[35vh] overflow-y-auto text-white text-xs md:text-xs lg:text-sm md:max-h-[50vh]  ${this
           .visible
@@ -239,7 +279,17 @@ export class Leaderboard extends LitElement implements Layer {
                 <div
                   class="py-1 md:py-2 text-center border-b border-slate-500 truncate"
                 >
-                  ${player.name}
+                  <div class="flex items-center justify-center gap-1">
+                    ${player.isHuman
+                      ? html`<img
+                          src=${humanPlayerIcon}
+                          alt=""
+                          aria-hidden="true"
+                          class="h-4 w-4"
+                        />`
+                      : null}
+                    <span class="truncate">${player.name}</span>
+                  </div>
                 </div>
                 <div class="py-1 md:py-2 text-center border-b border-slate-500">
                   ${player.score}
@@ -255,16 +305,6 @@ export class Leaderboard extends LitElement implements Layer {
           )}
         </div>
       </div>
-
-      <button
-        class="mt-1 px-1.5 py-0.5 md:px-2 md:py-0.5 text-xs md:text-xs lg:text-sm border border-white/20 hover:bg-white/10 text-white mx-auto block"
-        @click=${() => {
-          this.showTopFive = !this.showTopFive;
-          this.updateLeaderboard();
-        }}
-      >
-        ${this.showTopFive ? "+" : "-"}
-      </button>
     `;
   }
 }

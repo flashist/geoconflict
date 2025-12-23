@@ -22,8 +22,9 @@ const matcher = new RegExpMatcher({
 export const MIN_USERNAME_LENGTH = 3;
 export const MAX_USERNAME_LENGTH = 27;
 
-// Allow any letter/number in any script, plus a small set of legacy symbols we previously allowed.
-const validPattern = /^[\p{L}\p{N}_\[\]\s🐈🍀]+$/u;
+// Allow any letter/number in any script plus limited legacy symbols (underscore, brackets, whitespace).
+// Emojis are disallowed entirely.
+const validPattern = /^[\p{L}\p{N}_\[\]\s]+$/u;
 
 const shadowNames = [
   "NicePeopleOnly",

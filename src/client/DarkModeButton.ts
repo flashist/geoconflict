@@ -35,7 +35,7 @@ export class DarkModeButton extends LitElement {
     return html`
       <button
         flashistAdaptation_title="Toggle Dark Mode"
-        class="absolute top-0 left-0 md:top-[10px] md:left-[10px] border-none bg-none cursor-pointer text-2xl"
+        class="absolute bottom-[10px] left-[10px] border-none bg-none cursor-pointer text-2xl"
         @click=${() => this.toggleDarkMode()}
       >
         ${this.darkMode ? "☀️" : "🌙"}

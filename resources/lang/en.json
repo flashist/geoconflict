@@ -533,7 +533,10 @@
     "warships": "Warships",
     "cities": "Cities",
     "show_control": "Show Control",
-    "show_units": "Show Units"
+    "show_units": "Show Units",
+    "real_players_only": "Players only",
+    "show_all": "Show all",
+    "show_top": "Show top 5"
   },
   "player_info_overlay": {
     "type": "Type",

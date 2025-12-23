@@ -5,8 +5,30 @@ import { boolean } from "zod";
 import { GameEnv } from "../../core/configuration/Config";
 
 // Working iwth unhendled errors
-export const flashist_logErrorToAnalytics = (errorText) => {
-    GameAnalytics.addErrorEvent("Error", errorText);
+export const flashist_logErrorTypes = {
+    UNDEFINED: "Undefined",
+    ERROR: "Error",
+    DEBUG: "Debug",
+    INFO: "Info",
+    WARNING: "Warning",
+    CRITICAL: "Critical"
+}
+export const flashist_logErrorToAnalytics = (errorText, severity?: string) => {
+    if (!severity) {
+        severity = flashist_logErrorTypes.ERROR;
+    }
+
+    // Available strings for severity
+    // "Undefined", "Debug", "Info", "Warning", "Error", "Critical"
+    // GameAnalytics.addErrorEvent("Error", errorText);
+    GameAnalytics.addErrorEvent(severity, errorText);
+
+    //     EGAErrorSeverity[EGAErrorSeverity[] = 0] = "Undefined";
+    //     EGAErrorSeverity[EGAErrorSeverity[] = 1] = "Debug";
+    //     EGAErrorSeverity[EGAErrorSeverity[] = 2] = "Info";
+    //     EGAErrorSeverity[EGAErrorSeverity[] = 3] = "Warning";
+    //     EGAErrorSeverity[EGAErrorSeverity[] = 4] = "Error";
+    //     EGAErrorSeverity[EGAErrorSeverity[] = 5] = "Critical";
 }
 window.onerror = function (msg, url, line, col, error) {
     // Note that col & error are new to the HTML 5 spec and may not be 
@@ -27,7 +49,7 @@ window.onerror = function (msg, url, line, col, error) {
     // return suppressErrorAlert;
 
     // GameIframeCommunicationManager.sendErrorAnalyticsEvent(errorText, ErrorEventSeverity.ERROR);
-    flashist_logErrorToAnalytics(errorText);
+    flashist_logErrorToAnalytics(errorText, flashist_logErrorTypes.ERROR);
 
     return false;
 };
@@ -46,7 +68,7 @@ window.addEventListener(
         errorText += '\n).';
 
         // GameIframeCommunicationManager.sendErrorAnalyticsEvent(errorText, ErrorEventSeverity.ERROR);
-        flashist_logErrorToAnalytics(errorText);
+        flashist_logErrorToAnalytics(errorText, flashist_logErrorTypes.DEBUG);
     }
 );
 
@@ -141,7 +163,7 @@ export class FlashistFacade {
                                 experiments = {};
                             }
                         } catch (error) {
-                            flashist_logErrorToAnalytics(`ERROR! FlashistFacade | initExperimentFlags __ error: ${error}`);
+                            flashist_logErrorToAnalytics(`ERROR! FlashistFacade | initExperimentFlags __ error: ${error}`, flashist_logErrorTypes.DEBUG);
                         }
                     }
 
@@ -195,7 +217,7 @@ export class FlashistFacade {
                             );
 
                     } catch (error) {
-                        flashist_logErrorToAnalytics(`ERROR! FlashistFacade | initPlayer __ error: ${error}`);
+                        flashist_logErrorToAnalytics(`ERROR! FlashistFacade | initPlayer __ error: ${error}`, flashist_logErrorTypes.DEBUG);
 
                         reject();
                     }
@@ -216,7 +238,7 @@ export class FlashistFacade {
                 }
 
             } catch (error) {
-                flashist_logErrorToAnalytics(`ERROR! FlashistFacade | getCurPlayerName __ error: ${error}`);
+                flashist_logErrorToAnalytics(`ERROR! FlashistFacade | getCurPlayerName __ error: ${error}`, flashist_logErrorTypes.DEBUG);
             }
         }
 
@@ -347,14 +369,14 @@ export class FlashistFacade {
                                     if (data) {
                                         result = data.score;
                                     } else {
-                                        flashist_logErrorToAnalytics("ERROR! Flashist Facade | getCurPlayerLeaderboardScore __ then __ no data!");
+                                        flashist_logErrorToAnalytics("ERROR! Flashist Facade | getCurPlayerLeaderboardScore __ then __ no data!", flashist_logErrorTypes.DEBUG);
                                     }
 
                                     resolve(result);
                                 })
                             .catch(
                                 (error) => {
-                                    flashist_logErrorToAnalytics(error.code);
+                                    flashist_logErrorToAnalytics("ERROR! Flashist Facade | getCurPlayerLeaderboardScore __ error.code: " + error.code, flashist_logErrorTypes.DEBUG);
 
                                     reject(error);
                                     // if (err.code === 'LEADERBOARD_PLAYER_NOT_PRESENT') {
