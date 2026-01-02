@@ -44,6 +44,7 @@ _Last updated: 2025-11-03_
 - Validated lint/tests (`npm run lint`, `npm test -- --runInBand`).
 - Live dev environment redeployed and serving `/api/env`.
 - Implemented single-play missions with deterministic map selection and nation difficulty ramp.
+- Added max troops display to Player Info Overlay.
 
 ### In Progress 🟡
 - Manual verification of gameplay flows on dev VPS (browser smoke test via Atlas or human).

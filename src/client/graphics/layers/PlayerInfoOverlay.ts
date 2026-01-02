@@ -230,6 +230,7 @@ export class PlayerInfoOverlay extends LitElement implements Layer {
       .outgoingAttacks()
       .map((a) => a.troops)
       .reduce((a, b) => a + b, 0);
+    const maxTroops = this.game.config().maxTroops(player);
 
     if (
       player.type() === PlayerType.FakeHuman &&
@@ -341,6 +342,12 @@ export class PlayerInfoOverlay extends LitElement implements Layer {
                     </span>
                   </div>`
                 : ""}
+              <div class="flex gap-2 text-sm opacity-80" translate="no">
+                ${translateText("player_info_overlay.maxTroops")}
+                <span class="ml-auto mr-0 font-bold">
+                  ${renderTroops(maxTroops)}
+                </span>
+              </div>
               <div
                 class="flex p-1 mb-1 mt-1 w-full border rounded-md border-yellow-400
                           font-bold text-yellow-400 text-sm opacity-80"
