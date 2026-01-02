@@ -222,8 +222,13 @@ export abstract class DefaultServerConfig implements ServerConfig {
   }
   abstract numWorkers(): number;
   abstract env(): GameEnv;
+  // Flashist Adaptation: experimenting with game speed
+  private flashist_gameSpeedCoef = 1.5;
+  // turnIntervalMs(): number {
+  //   return 100;
+  // }
   turnIntervalMs(): number {
-    return 100;
+    return 100 / this.flashist_gameSpeedCoef;
   }
   gameCreationRate(): number {
     return 120 * 1000;
