@@ -62,16 +62,29 @@ export async function createGameRunner(
   const nations = gameStart.config.disableNPCs
     ? []
     : gameMap.nations.map((n, index) => {
-        const nationDifficulty =
-          gameStart.config.nationDifficulties?.[index] ??
-          defaultNationDifficulty;
-        return new Nation(
-          new Cell(n.coordinates[0], n.coordinates[1]),
-          n.strength,
-          new PlayerInfo(n.name, PlayerType.FakeHuman, null, random.nextID()),
-          nationDifficulty,
-        );
-      });
+      const nationDifficulty =
+        gameStart.config.nationDifficulties?.[index] ??
+        defaultNationDifficulty;
+      const difficultyLabel =
+        nationDifficulty === "Easy"
+          ? "E"
+          : nationDifficulty === "Medium"
+            ? "M"
+            : nationDifficulty === "Hard"
+              ? "H"
+              : "I";
+      return new Nation(
+        new Cell(n.coordinates[0], n.coordinates[1]),
+        n.strength,
+        new PlayerInfo(
+          `${n.name} ${difficultyLabel}`,
+          PlayerType.FakeHuman,
+          null,
+          random.nextID(),
+        ),
+        nationDifficulty,
+      );
+    });
 
   const game: Game = createGame(
     humans,
@@ -101,7 +114,7 @@ export class GameRunner {
     public game: Game,
     private execManager: Executor,
     private callBack: (gu: GameUpdateViewData | ErrorUpdate) => void,
-  ) {}
+  ) { }
 
   init() {
     if (this.game.config().bots() > 0) {
