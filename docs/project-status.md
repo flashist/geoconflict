@@ -45,6 +45,7 @@ _Last updated: 2025-11-03_
 - Live dev environment redeployed and serving `/api/env`.
 - Implemented single-play missions with deterministic map selection and nation difficulty ramp.
 - Added max troops display to Player Info Overlay.
+- Appended difficulty markers to nation names (E/M/H/I).
 
 ### In Progress 🟡
 - Manual verification of gameplay flows on dev VPS (browser smoke test via Atlas or human).
