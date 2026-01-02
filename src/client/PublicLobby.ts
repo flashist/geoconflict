@@ -6,7 +6,7 @@ import { GameID, GameInfo } from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { JoinLobbyEvent } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
-import { flashist_waitGameInitComplete } from "./flashist/FlashistFacade";
+import { flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants } from "./flashist/FlashistFacade";
 import { FlashistFacade } from "./flashist/FlashistFacade";
 
 @customElement("public-lobby")
@@ -206,6 +206,11 @@ export class PublicLobby extends LitElement {
     if (this.isButtonDebounced) {
       return;
     }
+
+    //
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.UI_CLICK_MULTIPLAYER_BUTTON
+    );
 
     // Set debounce state
     this.isButtonDebounced = true;

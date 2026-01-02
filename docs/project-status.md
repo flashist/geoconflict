@@ -43,6 +43,10 @@ _Last updated: 2025-11-03_
 - Added operational docs: `docs/vps-migration-plan.md`, `docs/vps-deployment-guide.md`.
 - Validated lint/tests (`npm run lint`, `npm test -- --runInBand`).
 - Live dev environment redeployed and serving `/api/env`.
+- Implemented single-play missions with deterministic map selection and nation difficulty ramp.
+- Added max troops display to Player Info Overlay.
+- Appended difficulty markers to nation names (E/M/H/I).
+- Added bomb planning trajectory preview matching the in-flight nuke path.
 
 ### In Progress 🟡
 - Manual verification of gameplay flows on dev VPS (browser smoke test via Atlas or human).

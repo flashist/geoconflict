@@ -32,6 +32,7 @@
     "log_out": "Выйти",
     "create_lobby": "Создать лобби",
     "join_lobby": "Присоединиться к лобби",
+    "play_mission": "Играть миссию: {level}",
     "single_player": "Одиночная игра",
     "instructions": "Инструкции",
     "how_to_play": "Как играть",
@@ -44,7 +45,8 @@
     "seconds": "секунды",
     "seconds_short": "с",
     "minutes": "минуты",
-    "minutes_short": "м"
+    "minutes_short": "м",
+    "single_play_mission": "Одиночная миссия"
   },
   "news": {
     "see_all_releases": "Посмотреть все выпуски",
@@ -567,6 +569,7 @@
     "team": "Команда",
     "alliance_timeout": "Конец союза через",
     "troops": "Войска",
+    "maxTroops": "Макс. войск",
     "a_troops": "Войска атаки",
     "gold": "Золото",
     "ports": "Порты",

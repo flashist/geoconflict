@@ -4,6 +4,14 @@ import { UserMeResponse } from "../core/ApiSchemas";
 import { EventBus } from "../core/EventBus";
 import { GameRecord, GameStartInfo, ID } from "../core/Schemas";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
+import {
+  Difficulty,
+  GameMapSize,
+  GameMapType,
+  GameMode,
+  GameType,
+  UnitType,
+} from "../core/game/Game";
 import { UserSettings } from "../core/game/UserSettings";
 import "./AccountModal";
 import { joinLobby } from "./ClientGameRunner";
@@ -13,7 +21,7 @@ import { DarkModeButton } from "./DarkModeButton";
 import "./FlagInput";
 import { FlagInput } from "./FlagInput";
 import { FlagInputModal } from "./FlagInputModal";
-import { flashist_getLangSelector, flashist_waitGameInitComplete, FlashistFacade } from "./flashist/FlashistFacade";
+import { flashist_getLangSelector, flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
 import { GameStartingModal } from "./GameStartingModal";
 import "./GoogleAdElement";
 import { GutterAds } from "./GutterAds";
@@ -40,6 +48,11 @@ import {
   incrementGamesPlayed,
   isInIframe,
 } from "./Utils";
+import {
+  getNextMissionLevel,
+  setNextMissionLevel,
+} from "./SinglePlayMissionStorage";
+import { generateID } from "../core/Util";
 import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
 import "./components/baseComponents/Button";
@@ -210,9 +223,40 @@ class Client {
       console.warn("Singleplayer modal element not found");
     }
 
+    const missionButton = document.getElementById(
+      "single-play-mission",
+    ) as (HTMLElement & { title: string; disable: boolean }) | null;
+    if (!missionButton) {
+      console.warn("Single play mission button element not found");
+    } else {
+      const updateMissionButtonLabel = () => {
+        const level = getNextMissionLevel();
+        missionButton.title = translateText("main.play_mission", { level });
+        missionButton.disable = Object.values(GameMapType).length === 0;
+      };
+      updateMissionButtonLabel();
+      missionButton.addEventListener("click", async () => {
+        if (!this.usernameInput?.isValid()) {
+          return;
+        }
+
+        if (missionButton.disable) {
+          return;
+        }
+
+        await this.startSinglePlayMission();
+        updateMissionButtonLabel();
+      });
+    }
+
     const singlePlayer = document.getElementById("single-player");
     if (singlePlayer === null) throw new Error("Missing single-player");
     singlePlayer.addEventListener("click", () => {
+      //
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.UI_CLICK_SINGLE_PLAYER_BUTTON
+      );
+
       if (this.usernameInput?.isValid()) {
         spModal.open();
       }
@@ -599,6 +643,80 @@ class Client {
         // Flashist Adaptation: disabling the #join URL, cuz it's not clear how to handle it for now at Yandex Games
         // history.pushState(null, "", `#join=${lobby.gameID}`);
       },
+    );
+  }
+
+  private async startSinglePlayMission() {
+    //
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.UI_CLICK_SINGLE_MISSION_BUTTON
+    );
+
+    await FlashistFacade.instance.showInterstitial();
+
+    const clientID = generateID();
+    const gameID = generateID();
+    const level = getNextMissionLevel();
+    setNextMissionLevel(level);
+
+    const usernameInput = document.querySelector(
+      "username-input",
+    ) as UsernameInput;
+    if (!usernameInput) {
+      console.warn("Username input element not found");
+      return;
+    }
+    const username = usernameInput.getCurrentUsername();
+
+    const cosmetics = await fetchCosmetics();
+    let selectedPattern = this.userSettings.getSelectedPatternName(cosmetics);
+    selectedPattern ??= cosmetics
+      ? (this.userSettings.getDevOnlyPattern() ?? null)
+      : null;
+
+    const selectedColor = this.userSettings.getSelectedColor();
+
+    document.dispatchEvent(
+      new CustomEvent("join-lobby", {
+        detail: {
+          clientID,
+          gameID,
+          gameStartInfo: {
+            gameID,
+            players: [
+              {
+                clientID,
+                username,
+                cosmetics: {
+                  pattern: selectedPattern ?? undefined,
+                  color: selectedColor ? { color: selectedColor } : undefined,
+                },
+              },
+            ],
+            config: {
+              gameMap: GameMapType.World,
+              gameMapSize: GameMapSize.Normal,
+              gameType: GameType.Singleplayer,
+              gameMode: GameMode.FFA,
+              playerTeams: 2,
+              difficulty: Difficulty.Medium,
+              bots: 400,
+              infiniteGold: false,
+              donateGold: true,
+              donateTroops: true,
+              infiniteTroops: false,
+              instantBuild: false,
+              disabledUnits: [],
+              disableNPCs: false,
+              singlePlayMission: {
+                level,
+              },
+            },
+          },
+        } satisfies JoinLobbyEvent,
+        bubbles: true,
+        composed: true,
+      }),
     );
   }
 

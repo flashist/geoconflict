@@ -21,7 +21,8 @@
     "seconds": "seconds",
     "seconds_short": "s",
     "minutes": "minutes",
-    "minutes_short": "m"
+    "minutes_short": "m",
+    "single_play_mission": "Одиночная миссия"
   },
   "main": {
     "title": "Geoconflict (ALPHA)",
@@ -32,6 +33,7 @@
     "log_out": "Log out",
     "create_lobby": "Create Lobby",
     "join_lobby": "Join Lobby",
+    "play_mission": "Play Mission: {level}",
     "single_player": "Single Player",
     "instructions": "Instructions",
     "how_to_play": "How to Play",
@@ -546,6 +548,7 @@
     "team": "Team",
     "alliance_timeout": "Alliance ends in",
     "troops": "Troops",
+    "maxTroops": "Max troops",
     "a_troops": "Attacking troops",
     "gold": "Gold",
     "ports": "Ports",

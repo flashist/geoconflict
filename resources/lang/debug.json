@@ -9,6 +9,7 @@
     "join_discord": "main.join_discord",
     "create_lobby": "main.create_lobby",
     "join_lobby": "main.join_lobby",
+    "play_mission": "main.play_mission",
     "single_player": "main.single_player",
     "instructions": "main.instructions",
     "how_to_play": "main.how_to_play",
@@ -164,6 +165,27 @@
     "Balanced": "difficulty.Balanced",
     "Intense": "difficulty.Intense",
     "Impossible": "difficulty.Impossible"
+  },
+  "player_info_overlay": {
+    "type": "player_info_overlay.type",
+    "bot": "player_info_overlay.bot",
+    "nation": "player_info_overlay.nation",
+    "player": "player_info_overlay.player",
+    "team": "player_info_overlay.team",
+    "alliance_timeout": "player_info_overlay.alliance_timeout",
+    "troops": "player_info_overlay.troops",
+    "maxTroops": "player_info_overlay.maxTroops",
+    "a_troops": "player_info_overlay.a_troops",
+    "gold": "player_info_overlay.gold",
+    "ports": "player_info_overlay.ports",
+    "cities": "player_info_overlay.cities",
+    "factories": "player_info_overlay.factories",
+    "missile_launchers": "player_info_overlay.missile_launchers",
+    "sams": "player_info_overlay.sams",
+    "warships": "player_info_overlay.warships",
+    "health": "player_info_overlay.health",
+    "attitude": "player_info_overlay.attitude",
+    "levels": "player_info_overlay.levels"
   },
   "heads_up_message": {
     "choose_spawn": "heads_up_message.choose_spawn"

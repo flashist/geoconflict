@@ -23,6 +23,7 @@ import { Leaderboard } from "./layers/Leaderboard";
 import { MainRadialMenu } from "./layers/MainRadialMenu";
 import { MultiTabModal } from "./layers/MultiTabModal";
 import { NameLayer } from "./layers/NameLayer";
+import { NukePlanningLayer } from "./layers/NukePlanningLayer";
 import { PlayerInfoOverlay } from "./layers/PlayerInfoOverlay";
 import { PlayerPanel } from "./layers/PlayerPanel";
 import { RailroadLayer } from "./layers/RailroadLayer";
@@ -238,6 +239,7 @@ export function createRenderer(
     new RailroadLayer(game, transformHandler),
     structureLayer,
     samRadiusLayer,
+    new NukePlanningLayer(game, eventBus, transformHandler, uiState),
     new UnitLayer(game, eventBus, transformHandler),
     new FxLayer(game),
     new UILayer(game, eventBus, transformHandler),
