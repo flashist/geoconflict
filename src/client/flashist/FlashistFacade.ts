@@ -3,6 +3,47 @@ import { LangSelector } from "../LangSelector";
 import { GameAnalytics } from "gameanalytics";
 import { boolean } from "zod";
 import { GameEnv } from "../../core/configuration/Config";
+import { error } from "console";
+
+//
+export const flashistConstants = {
+    analyticEvents: {
+        UI_CLICK_MULTIPLAYER_BUTTON: "UI_CLICK_MULTIPLAYER_BUTTON",
+        UI_CLICK_SINGLE_PLAYER_BUTTON: "UI_CLICK_SINGLE_PLAYER_BUTTON",
+        UI_CLICK_SINGLE_MISSION_BUTTON: "UI_CLICK_SINGLE_MISSION_BUTTON",
+
+        GAME_START: "GAME_START",
+        GAME_END: "GAME_END",
+        GAME_WIN: "GAME_WIN",
+        GAME_LOSS: "GAME_LOSS"
+    },
+
+    progressionEventStatus: {
+        Undefined: 0,
+        Start: 1,
+        Complete: 2,
+        Fail: 3
+    }
+};
+
+// Working with analytics logs
+export const flashist_logEventAnalytics = (event: string, value?: number) => {
+    try {
+        GameAnalytics.addDesignEvent(event, value);
+
+    } catch (error) {
+        flashist_logErrorToAnalytics("ERROR! flashist_logEventAnalytics | logEvent __ error: ", error);
+    }
+}
+//
+// export const logProgressionEvent = (status, id1, id2?, id3?) => {
+//     try {
+//         GameAnalytics.addProgressionEvent(status, id1, id2, id3);
+
+//     } catch (error) {
+//         flashist_logErrorToAnalytics("ERROR! logProgressionEvent | addProgressionEvent __ error: ", error);
+//     }
+// }
 
 // Working iwth unhendled errors
 export const flashist_logErrorTypes = {
@@ -13,7 +54,9 @@ export const flashist_logErrorTypes = {
     WARNING: "Warning",
     CRITICAL: "Critical"
 }
-export const flashist_logErrorToAnalytics = (errorText, severity?: string) => {
+export const flashist_logErrorToAnalytics = (errorText: string, severity?: string) => {
+    console.log("flashist_logErrorToAnalytics __ errorText: ", errorText, " | severity: ", severity);
+
     if (!severity) {
         severity = flashist_logErrorTypes.ERROR;
     }

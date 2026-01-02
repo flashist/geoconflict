@@ -21,7 +21,7 @@ import { DarkModeButton } from "./DarkModeButton";
 import "./FlagInput";
 import { FlagInput } from "./FlagInput";
 import { FlagInputModal } from "./FlagInputModal";
-import { flashist_getLangSelector, flashist_waitGameInitComplete, FlashistFacade } from "./flashist/FlashistFacade";
+import { flashist_getLangSelector, flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
 import { GameStartingModal } from "./GameStartingModal";
 import "./GoogleAdElement";
 import { GutterAds } from "./GutterAds";
@@ -239,9 +239,11 @@ class Client {
         if (!this.usernameInput?.isValid()) {
           return;
         }
+
         if (missionButton.disable) {
           return;
         }
+
         await this.startSinglePlayMission();
         updateMissionButtonLabel();
       });
@@ -250,6 +252,11 @@ class Client {
     const singlePlayer = document.getElementById("single-player");
     if (singlePlayer === null) throw new Error("Missing single-player");
     singlePlayer.addEventListener("click", () => {
+      //
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.UI_CLICK_SINGLE_PLAYER_BUTTON
+      );
+
       if (this.usernameInput?.isValid()) {
         spModal.open();
       }
@@ -640,6 +647,11 @@ class Client {
   }
 
   private async startSinglePlayMission() {
+    //
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.UI_CLICK_SINGLE_MISSION_BUTTON
+    );
+
     await FlashistFacade.instance.showInterstitial();
 
     const clientID = generateID();

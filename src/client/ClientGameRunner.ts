@@ -53,6 +53,7 @@ import {
   reportPlacement,
 } from "./leaderboard/LeaderboardReporter";
 import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
+import { flashist_logEventAnalytics, flashistConstants } from "./flashist/FlashistFacade";
 
 export interface LobbyConfig {
   serverConfig: ServerConfig;
@@ -370,6 +371,12 @@ export class ClientGameRunner {
     const onmessage = (message: ServerMessage) => {
       this.lastMessageTime = Date.now();
       if (message.type === "start") {
+
+        //
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.GAME_START
+        );
+
         this.hasJoined = true;
         console.log("starting game!");
         for (const turn of message.turns) {

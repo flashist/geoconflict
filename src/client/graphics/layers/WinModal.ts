@@ -14,7 +14,7 @@ import {
 import { getUserMe } from "../../jwt";
 import { SendWinnerEvent } from "../../Transport";
 import { Layer } from "./Layer";
-import { FlashistFacade } from "../../flashist/FlashistFacade";
+import { flashist_logEventAnalytics, flashistConstants, FlashistFacade } from "../../flashist/FlashistFacade";
 import {
   getNextMissionLevel,
   markMissionCompleted,
@@ -254,17 +254,35 @@ export class WinModal extends LitElement implements Layer {
       if (wu.winner === undefined) {
         // ...
       } else if (wu.winner[0] === "team") {
+
+        //
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.GAME_END
+        );
+
         this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
         if (wu.winner[1] === this.game.myPlayer()?.team()) {
           this._title = translateText("win_modal.your_team");
           this.isWin = true;
+
+          //
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.GAME_WIN
+          );
+
         } else {
           this._title = translateText("win_modal.other_team", {
             team: wu.winner[1],
           });
           this.isWin = false;
+
+          //
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.GAME_LOSS
+          );
         }
         this.show();
+
       } else {
         const winner = this.game.playerByClientID(wu.winner[1]);
         if (!winner?.isPlayer()) return;
