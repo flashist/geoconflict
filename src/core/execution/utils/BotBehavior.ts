@@ -37,6 +37,7 @@ export class BotBehavior {
     private triggerRatio: number,
     private reserveRatio: number,
     private expandRatio: number,
+    private difficultyOverride?: Difficulty,
   ) {}
 
   handleAllianceRequests() {
@@ -118,11 +119,9 @@ export class BotBehavior {
     if (other.isTraitor()) {
       return false;
     }
-    const { difficulty } = this.game.config().gameConfig();
-    if (
-      difficulty === Difficulty.Hard ||
-      difficulty === Difficulty.Impossible
-    ) {
+    const difficulty =
+      this.difficultyOverride ?? this.game.config().gameConfig().difficulty;
+    if (difficulty === Difficulty.Hard || difficulty === Difficulty.Impossible) {
       return false;
     }
     if (other.type() !== PlayerType.Human) {

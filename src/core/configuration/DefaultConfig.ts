@@ -23,6 +23,7 @@ import {
   // Quads,
 } from "../game/Game";
 import { TileRef } from "../game/GameMap";
+import { mapPlayerCounts } from "../game/MapPlayers";
 import { PlayerView } from "../game/GameView";
 import { UserSettings } from "../game/UserSettings";
 import { GameConfig, GameID, TeamCountConfig } from "../Schemas";
@@ -48,40 +49,6 @@ const JwksSchema = z.object({
     .min(1),
 });
 
-const numPlayersConfig = {
-  [GameMapType.Africa]: [100, 70, 50],
-  [GameMapType.Asia]: [50, 40, 30],
-  [GameMapType.Australia]: [70, 40, 30],
-  [GameMapType.Achiran]: [40, 36, 30],
-  [GameMapType.Baikal]: [100, 70, 50],
-  [GameMapType.BaikalNukeWars]: [100, 70, 50],
-  [GameMapType.BetweenTwoSeas]: [70, 50, 40],
-  [GameMapType.BlackSea]: [50, 30, 30],
-  [GameMapType.Britannia]: [50, 30, 20],
-  [GameMapType.DeglaciatedAntarctica]: [50, 40, 30],
-  [GameMapType.EastAsia]: [50, 30, 20],
-  [GameMapType.Europe]: [100, 70, 50],
-  [GameMapType.EuropeClassic]: [50, 30, 30],
-  [GameMapType.FalklandIslands]: [50, 30, 20],
-  [GameMapType.FaroeIslands]: [20, 15, 10],
-  [GameMapType.GatewayToTheAtlantic]: [100, 70, 50],
-  [GameMapType.GiantWorldMap]: [100, 70, 50],
-  [GameMapType.Halkidiki]: [100, 50, 40],
-  [GameMapType.Iceland]: [50, 40, 30],
-  [GameMapType.Italia]: [50, 30, 20],
-  [GameMapType.Japan]: [20, 15, 10],
-  [GameMapType.Mars]: [70, 40, 30],
-  [GameMapType.Mena]: [70, 50, 40],
-  [GameMapType.Montreal]: [60, 40, 30],
-  [GameMapType.NorthAmerica]: [70, 40, 30],
-  [GameMapType.Oceania]: [10, 10, 10],
-  [GameMapType.Pangaea]: [20, 15, 10],
-  [GameMapType.Pluto]: [100, 70, 50],
-  [GameMapType.SouthAmerica]: [70, 50, 40],
-  [GameMapType.StraitOfGibraltar]: [100, 70, 50],
-  [GameMapType.World]: [50, 30, 20],
-  [GameMapType.Yenisei]: [150, 100, 70],
-} as const satisfies Record<GameMapType, [number, number, number]>;
 
 export abstract class DefaultServerConfig implements ServerConfig {
   allowedFlares(): string[] | undefined {
@@ -267,7 +234,7 @@ export abstract class DefaultServerConfig implements ServerConfig {
     mode: GameMode,
     numPlayerTeams: TeamCountConfig | undefined,
   ): number {
-    const [l, m, s] = numPlayersConfig[map] ?? [50, 30, 20];
+    const [l, m, s] = mapPlayerCounts[map] ?? [50, 30, 20];
     const r = Math.random();
     const base = r < 0.3 ? l : r < 0.6 ? m : s;
     let p = Math.min(mode === GameMode.Team ? Math.ceil(base * 1.5) : base, l);

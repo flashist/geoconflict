@@ -21,6 +21,15 @@ import { LobbyConfig } from "./ClientGameRunner";
 import { ReplaySpeedChangeEvent } from "./InputHandler";
 import { getPersistentID } from "./Main";
 import { defaultReplaySpeedMultiplier } from "./utilities/ReplaySpeedMultiplier";
+import { terrainMapFileLoader } from "./TerrainMapFileLoader";
+import {
+  assignNationDifficulties,
+  computeTierCounts,
+  deriveMissionSeed,
+  selectMissionMap,
+} from "../core/game/SinglePlayMissions";
+import { GameMapType, GameType } from "../core/game/Game";
+import { PseudoRandom } from "../core/PseudoRandom";
 
 export class LocalServer {
   // All turns from the game record on replay.
@@ -50,7 +59,8 @@ export class LocalServer {
     private eventBus: EventBus,
   ) {}
 
-  start() {
+  async start() {
+    await this.buildMissionConfigIfNeeded();
     this.turnCheckInterval = setInterval(() => {
       const turnIntervalMs =
         this.lobbyConfig.serverConfig.turnIntervalMs() *
@@ -85,6 +95,50 @@ export class LocalServer {
       gameStartInfo: this.lobbyConfig.gameStartInfo,
       turns: [],
     } satisfies ServerStartGameMessage);
+  }
+
+  private async buildMissionConfigIfNeeded(): Promise<void> {
+    if (this.lobbyConfig.gameRecord !== undefined) {
+      return;
+    }
+    const gameStartInfo = this.lobbyConfig.gameStartInfo;
+    if (!gameStartInfo) {
+      return;
+    }
+    const { config } = gameStartInfo;
+    if (!config.singlePlayMission) {
+      return;
+    }
+    if (
+      config.gameType !== GameType.Singleplayer ||
+      config.singlePlayMission.level === undefined
+    ) {
+      return;
+    }
+
+    try {
+      const level = config.singlePlayMission.level;
+      const maps = Object.values(GameMapType) as GameMapType[];
+      const selectedMap = selectMissionMap(level, maps);
+      const manifest = await terrainMapFileLoader
+        .getMapData(selectedMap)
+        .manifest();
+      const seed = deriveMissionSeed(selectedMap, level);
+      const counts = computeTierCounts(level, manifest.nations.length);
+      const rng = new PseudoRandom(seed);
+      const nationDifficulties = assignNationDifficulties(
+        manifest.nations.length,
+        counts,
+        rng,
+      );
+
+      config.gameMap = selectedMap;
+      config.disableNPCs = false;
+      config.nationDifficulties = nationDifficulties;
+      config.singlePlayMission.seed = seed;
+    } catch (error) {
+      console.error("Failed to build single play mission config:", error);
+    }
   }
 
   pause() {

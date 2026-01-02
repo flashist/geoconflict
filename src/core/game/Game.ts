@@ -310,6 +310,7 @@ export class Nation {
     public readonly spawnCell: Cell,
     public readonly strength: number,
     public readonly playerInfo: PlayerInfo,
+    public readonly difficulty?: Difficulty,
   ) { }
 }
 

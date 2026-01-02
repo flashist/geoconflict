@@ -176,6 +176,13 @@ export const GameConfigSchema = z.object({
   maxTimerValue: z.number().int().min(1).max(120).optional(),
   disabledUnits: z.enum(UnitType).array().optional(),
   playerTeams: TeamCountConfigSchema.optional(),
+  singlePlayMission: z
+    .object({
+      level: z.number().int().min(1),
+      seed: z.number().int().nonnegative().optional(),
+    })
+    .optional(),
+  nationDifficulties: z.enum(Difficulty).array().optional(),
 });
 
 export const TeamSchema = z.string();

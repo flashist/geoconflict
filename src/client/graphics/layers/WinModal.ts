@@ -15,6 +15,11 @@ import { getUserMe } from "../../jwt";
 import { SendWinnerEvent } from "../../Transport";
 import { Layer } from "./Layer";
 import { FlashistFacade } from "../../flashist/FlashistFacade";
+import {
+  getNextMissionLevel,
+  markMissionCompleted,
+  setNextMissionLevel,
+} from "../../SinglePlayMissionStorage";
 
 @customElement("win-modal")
 export class WinModal extends LitElement implements Layer {
@@ -22,6 +27,7 @@ export class WinModal extends LitElement implements Layer {
   public eventBus: EventBus;
 
   private hasShownDeathModal = false;
+  private missionProgressed = false;
 
   @state()
   isVisible = false;
@@ -282,7 +288,22 @@ export class WinModal extends LitElement implements Layer {
         }
         this.show();
       }
+      this.handleMissionProgress();
     });
+  }
+
+  private handleMissionProgress() {
+    if (this.missionProgressed || !this.isWin) {
+      return;
+    }
+    const missionLevel = this.game.config().gameConfig().singlePlayMission?.level;
+    if (!missionLevel) {
+      return;
+    }
+    const nextLevel = Math.max(getNextMissionLevel(), missionLevel + 1);
+    setNextMissionLevel(nextLevel);
+    markMissionCompleted();
+    this.missionProgressed = true;
   }
 
   renderLayer(/* context: CanvasRenderingContext2D */) { }

@@ -9,6 +9,7 @@
     "join_discord": "main.join_discord",
     "create_lobby": "main.create_lobby",
     "join_lobby": "main.join_lobby",
+    "play_mission": "main.play_mission",
     "single_player": "main.single_player",
     "instructions": "main.instructions",
     "how_to_play": "main.how_to_play",

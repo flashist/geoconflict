@@ -33,6 +33,7 @@ For license history, see [LICENSING.md](LICENSING.md).
 - **Alliance System**: Form alliances with other players for mutual defense
 - **Multiple Maps**: Play across various geographical regions including Europe, Asia, Africa, and more
 - **Resource Management**: Balance your expansion with defensive capabilities
+- **Single-Play Missions**: Progression ladder with deterministic map selection and nation difficulty ramp
 - **Cross-platform**: Play in any modern web browser
 
 ## 📋 Prerequisites
