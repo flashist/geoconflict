@@ -34,6 +34,7 @@ For license history, see [LICENSING.md](LICENSING.md).
 - **Multiple Maps**: Play across various geographical regions including Europe, Asia, Africa, and more
 - **Resource Management**: Balance your expansion with defensive capabilities
 - **Single-Play Missions**: Progression ladder with deterministic map selection and nation difficulty ramp
+- **Public Lobby AI Players**: Countdown lobbies fill with AI players to reduce waiting without changing UI labels
 - **Cross-platform**: Play in any modern web browser
 
 ## 📋 Prerequisites
