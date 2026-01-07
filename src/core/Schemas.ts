@@ -129,6 +129,7 @@ export interface GameInfo {
   gameID: GameID;
   clients?: ClientInfo[];
   numClients?: number;
+  aiPlayersCount?: number;
   msUntilStart?: number;
   gameConfig?: GameConfig;
 }

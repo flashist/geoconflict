@@ -826,6 +826,7 @@ export class GameServer {
         clientID: c.clientID,
       })),
       numClients: this.activeClients.length + this.aiPlayers.length,
+      aiPlayersCount: this.aiPlayers.length,
       gameConfig: this.gameConfig,
       msUntilStart: this.isPublic()
         ? this.createdAt + this.config.gameCreationRate()

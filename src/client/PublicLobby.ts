@@ -8,6 +8,7 @@ import { JoinLobbyEvent } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import { flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants } from "./flashist/FlashistFacade";
 import { FlashistFacade } from "./flashist/FlashistFacade";
+import { isDevModeEnabled, onDevModeChange } from "./DevMode";
 
 @customElement("public-lobby")
 export class PublicLobby extends LitElement {
@@ -20,6 +21,7 @@ export class PublicLobby extends LitElement {
   private debounceDelay: number = 750;
   private lobbyIDToStart = new Map<GameID, number>();
   private lobbiesFetchInFlight: Promise<GameInfo[]> | null = null;
+  private devModeUnsubscribe: (() => void) | null = null;
 
   createRenderRoot() {
     return this;
@@ -39,6 +41,10 @@ export class PublicLobby extends LitElement {
           );
         }
       );
+
+    this.devModeUnsubscribe = onDevModeChange(() => {
+      this.requestUpdate();
+    });
   }
 
   disconnectedCallback() {
@@ -46,6 +52,10 @@ export class PublicLobby extends LitElement {
     if (this.lobbiesInterval !== null) {
       clearInterval(this.lobbiesInterval);
       this.lobbiesInterval = null;
+    }
+    if (this.devModeUnsubscribe) {
+      this.devModeUnsubscribe();
+      this.devModeUnsubscribe = null;
     }
   }
 
@@ -132,6 +142,10 @@ export class PublicLobby extends LitElement {
         : null;
 
     const mapImageSrc = this.mapImages.get(lobby.gameID);
+    const aiPlayersCount = lobby.aiPlayersCount ?? 0;
+    const playerCountDisplay = isDevModeEnabled()
+      ? `${lobby.numClients} / ${lobby.gameConfig.maxPlayers} (${aiPlayersCount})`
+      : `${lobby.numClients} / ${lobby.gameConfig.maxPlayers}`;
 
     return html`
       <button
@@ -186,7 +200,7 @@ export class PublicLobby extends LitElement {
 
           <div>
             <div class="text-md font-medium text-blue-100">
-              ${lobby.numClients} / ${lobby.gameConfig.maxPlayers}
+              ${playerCountDisplay}
             </div>
             <div class="text-md font-medium text-blue-100">${timeDisplay}</div>
           </div>

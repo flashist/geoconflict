@@ -234,6 +234,7 @@ async function fetchLobbies(): Promise<number> {
       return {
         gameID: gi.gameID,
         numClients: gi.numClients ?? gi?.clients?.length ?? 0,
+        aiPlayersCount: gi.aiPlayersCount ?? 0,
         gameConfig: gi.gameConfig,
         msUntilStart: (gi.msUntilStart ?? Date.now()) - Date.now(),
       } as GameInfo;

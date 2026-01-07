@@ -43,6 +43,7 @@ import { SendKickPlayerIntentEvent } from "./Transport";
 import { UserSettingModal } from "./UserSettingModal";
 import "./UsernameInput";
 import { UsernameInput } from "./UsernameInput";
+import { toggleDevMode } from "./DevMode";
 import {
   generateCryptoRandomUUID,
   incrementGamesPlayed,
@@ -204,6 +205,18 @@ class Client {
       console.log("Browser is closing");
       if (this.gameStop !== null) {
         this.gameStop();
+      }
+    });
+    window.addEventListener("keydown", (event: KeyboardEvent) => {
+      if (
+        event.code === "KeyD" &&
+        event.shiftKey &&
+        !event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey
+      ) {
+        event.preventDefault();
+        toggleDevMode();
       }
     });
 
