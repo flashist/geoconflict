@@ -56,7 +56,10 @@ export class PastelTheme implements Theme {
     if (team !== null) {
       return this.teamColorAllocator.assignTeamPlayerColor(team, player.id());
     }
-    if (player.type() === PlayerType.Human) {
+    if (
+      player.type() === PlayerType.Human ||
+      player.type() === PlayerType.AiPlayer
+    ) {
       return this.humanColorAllocator.assignColor(player.id());
     }
     if (player.type() === PlayerType.Bot) {
@@ -85,7 +88,10 @@ export class PastelTheme implements Theme {
   }
 
   textColor(player: PlayerView): string {
-    return player.type() === PlayerType.Human ? "#000000" : "#4D4D4D";
+    return player.type() === PlayerType.Human ||
+      player.type() === PlayerType.AiPlayer
+      ? "#000000"
+      : "#4D4D4D";
   }
 
   terrainColor(gm: GameMap, tile: TileRef): Colord {

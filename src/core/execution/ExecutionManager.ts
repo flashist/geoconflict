@@ -1,4 +1,4 @@
-import { Execution, Game } from "../game/Game";
+import { Difficulty, Execution, Game, PlayerInfo } from "../game/Game";
 import { PseudoRandom } from "../PseudoRandom";
 import { ClientID, GameID, Intent, Turn } from "../Schemas";
 import { simpleHash } from "../Util";
@@ -134,8 +134,25 @@ export class Executor {
   fakeHumanExecutions(): Execution[] {
     const execs: Execution[] = [];
     for (const nation of this.mg.nations()) {
-      execs.push(new FakeHumanExecution(this.gameID, nation));
+      execs.push(
+        new FakeHumanExecution(
+          this.gameID,
+          nation.playerInfo,
+          nation.difficulty ?? this.mg.config().gameConfig().difficulty,
+          nation.spawnCell,
+        ),
+      );
     }
     return execs;
+  }
+
+  aiPlayerExecutions(
+    players: PlayerInfo[],
+    difficulty: Difficulty,
+  ): Execution[] {
+    return players.map(
+      (player) =>
+        new FakeHumanExecution(this.gameID, player, difficulty, null),
+    );
   }
 }

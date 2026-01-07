@@ -1,7 +1,7 @@
 import { UnitInfo, UnitType } from "../game/Game";
 import { UserSettings } from "../game/UserSettings";
 import { GameConfig } from "../Schemas";
-import { GameEnv, ServerConfig } from "./Config";
+import { AiPlayersConfig, GameEnv, ServerConfig } from "./Config";
 import { DefaultConfig, DefaultServerConfig } from "./DefaultConfig";
 import { getRuntimeConfig } from "./RuntimeConfig";
 
@@ -20,6 +20,13 @@ export class DevServerConfig extends DefaultServerConfig {
 
   gameCreationRate(): number {
     return 5 * 1000;
+  }
+
+  aiPlayersConfig(): AiPlayersConfig {
+    return {
+      ...super.aiPlayersConfig(),
+      enabled: true,
+    };
   }
 
   samWarheadHittingChance(): number {

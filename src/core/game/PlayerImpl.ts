@@ -598,7 +598,8 @@ export class PlayerImpl implements Player {
       return false;
     }
     if (
-      recipient.type() === PlayerType.Human &&
+      (recipient.type() === PlayerType.Human ||
+        recipient.type() === PlayerType.AiPlayer) &&
       this.mg.config().donateGold() === false
     ) {
       return false;
@@ -625,7 +626,8 @@ export class PlayerImpl implements Player {
       return false;
     }
     if (
-      recipient.type() === PlayerType.Human &&
+      (recipient.type() === PlayerType.Human ||
+        recipient.type() === PlayerType.AiPlayer) &&
       this.mg.config().donateTroops() === false
     ) {
       return false;

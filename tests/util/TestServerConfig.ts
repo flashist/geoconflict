@@ -1,6 +1,10 @@
 import { JWK } from "jose";
-import { GameEnv, ServerConfig } from "../../src/core/configuration/Config";
-import { GameMapType } from "../../src/core/game/Game";
+import {
+  AiPlayersConfig,
+  GameEnv,
+  ServerConfig,
+} from "../../src/core/configuration/Config";
+import { Difficulty, GameMapType } from "../../src/core/game/Game";
 import { GameID } from "../../src/core/Schemas";
 
 export class TestServerConfig implements ServerConfig {
@@ -55,7 +59,25 @@ export class TestServerConfig implements ServerConfig {
   gameCreationRate(): number {
     throw new Error("Method not implemented.");
   }
-  lobbyMaxPlayers(map: GameMapType): number {
+  aiPlayersConfig(): AiPlayersConfig {
+    return {
+      enabled: false,
+      tickMs: 500,
+      targetTotalByTimeout: 0,
+      aiPlayersMax: 0,
+      humanPriority: true,
+      minHumanSlots: 1,
+      joinJitterMs: { min: 0, max: 0 },
+      name: { prefix: "Anon", start: 0, reserve: 1000 },
+      difficulty: Difficulty.Medium,
+      timeoutSec: undefined,
+    };
+  }
+  lobbyMaxPlayers(
+    map: GameMapType,
+    mode?: unknown,
+    numPlayerTeams?: unknown,
+  ): number {
     throw new Error("Method not implemented.");
   }
   numWorkers(): number {

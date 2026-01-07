@@ -29,7 +29,14 @@ import { UserSettings } from "../game/UserSettings";
 import { GameConfig, GameID, TeamCountConfig } from "../Schemas";
 import { NukeType } from "../StatsSchemas";
 import { assertNever, sigmoid, simpleHash, within } from "../Util";
-import { Config, GameEnv, NukeMagnitude, ServerConfig, Theme } from "./Config";
+import {
+  AiPlayersConfig,
+  Config,
+  GameEnv,
+  NukeMagnitude,
+  ServerConfig,
+  Theme,
+} from "./Config";
 import { getRuntimeConfig } from "./RuntimeConfig";
 import { PastelTheme } from "./PastelTheme";
 import { PastelThemeDark } from "./PastelThemeDark";
@@ -232,6 +239,20 @@ export abstract class DefaultServerConfig implements ServerConfig {
   }
   gameCreationRate(): number {
     return 120 * 1000;
+  }
+  aiPlayersConfig(): AiPlayersConfig {
+    return {
+      enabled: false,
+      tickMs: 500,
+      targetTotalByTimeout: 10,
+      aiPlayersMax: 10,
+      humanPriority: true,
+      minHumanSlots: 1,
+      joinJitterMs: { min: 300, max: 2000 },
+      name: { prefix: "Anon", start: 0, reserve: 1000 },
+      difficulty: Difficulty.Medium,
+      timeoutSec: undefined,
+    };
   }
 
   lobbyMaxPlayers(
@@ -624,7 +645,11 @@ export class DefaultConfig implements Config {
     ...types: UnitType[]
   ): (p: Player) => bigint {
     return (p: Player) => {
-      if (p.type() === PlayerType.Human && this.infiniteGold()) {
+      if (
+        (p.type() === PlayerType.Human ||
+          p.type() === PlayerType.AiPlayer) &&
+        this.infiniteGold()
+      ) {
         return 0n;
       }
       const numUnits = types.reduce(
@@ -753,7 +778,8 @@ export class DefaultConfig implements Config {
         mag = 0;
       }
       if (
-        attacker.type() === PlayerType.Human &&
+        (attacker.type() === PlayerType.Human ||
+          attacker.type() === PlayerType.AiPlayer) &&
         defender.type() === PlayerType.Bot
       ) {
         mag *= 0.8;
@@ -879,7 +905,9 @@ export class DefaultConfig implements Config {
 
   maxTroops(player: Player | PlayerView): number {
     const maxTroops =
-      player.type() === PlayerType.Human && this.infiniteTroops()
+      (player.type() === PlayerType.Human ||
+        player.type() === PlayerType.AiPlayer) &&
+      this.infiniteTroops()
         ? 1_000_000_000
         : 2 * (Math.pow(player.numTilesOwned(), 0.6) * 1000 + 50000) +
         player
@@ -892,7 +920,10 @@ export class DefaultConfig implements Config {
       return maxTroops / 3;
     }
 
-    if (player.type() === PlayerType.Human) {
+    if (
+      player.type() === PlayerType.Human ||
+      player.type() === PlayerType.AiPlayer
+    ) {
       return maxTroops;
     }
 

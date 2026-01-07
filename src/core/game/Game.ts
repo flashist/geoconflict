@@ -349,6 +349,7 @@ export enum TerrainType {
 export enum PlayerType {
   Bot = "BOT",
   Human = "HUMAN",
+  AiPlayer = "AIPLAYER",
   FakeHuman = "FAKEHUMAN",
 }
 

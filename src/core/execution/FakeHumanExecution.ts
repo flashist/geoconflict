@@ -1,11 +1,13 @@
 import {
   Cell,
+  Difficulty,
   Execution,
   Game,
   Gold,
   Nation,
   Player,
   PlayerID,
+  PlayerInfo,
   PlayerType,
   Relation,
   TerrainType,
@@ -34,6 +36,9 @@ export class FakeHumanExecution implements Execution {
   private behavior: BotBehavior | null = null; // Shared behavior logic for both bots and fakehumans
   private mg: Game;
   private player: Player | null = null;
+  private playerInfo: PlayerInfo;
+  private difficulty: Difficulty;
+  private spawnCell: Cell | null;
 
   private attackRate: number;
   private attackTick: number;
@@ -68,10 +73,22 @@ export class FakeHumanExecution implements Execution {
 
   constructor(
     gameID: GameID,
-    private nation: Nation, // Nation contains PlayerInfo with PlayerType.FakeHuman
+    playerInfoOrNation: PlayerInfo | Nation, // Nation contains PlayerInfo with PlayerType.FakeHuman
+    difficulty?: Difficulty,
+    spawnCell?: Cell | null,
   ) {
+    if ("playerInfo" in playerInfoOrNation) {
+      this.playerInfo = playerInfoOrNation.playerInfo;
+      this.difficulty =
+        playerInfoOrNation.difficulty ?? Difficulty.Medium;
+      this.spawnCell = playerInfoOrNation.spawnCell;
+    } else {
+      this.playerInfo = playerInfoOrNation;
+      this.difficulty = difficulty ?? Difficulty.Medium;
+      this.spawnCell = spawnCell ?? null;
+    }
     this.random = new PseudoRandom(
-      simpleHash(nation.playerInfo.id) + simpleHash(gameID),
+      simpleHash(this.playerInfo.id) + simpleHash(gameID),
     );
     this.attackRate = this.random.nextInt(40, 80);
     this.attackTick = this.random.nextInt(0, this.attackRate);
@@ -82,6 +99,9 @@ export class FakeHumanExecution implements Execution {
 
   init(mg: Game) {
     this.mg = mg;
+    if (this.spawnCell === null) {
+      this.spawnCell = this.pickSpawnCell();
+    }
     if (this.random.chance(10)) {
       // this.isTraitor = true
     }
@@ -140,16 +160,16 @@ export class FakeHumanExecution implements Execution {
     if (this.mg.inSpawnPhase()) {
       const rl = this.randomSpawnLand();
       if (rl === null) {
-        console.warn(`cannot spawn ${this.nation.playerInfo.name}`);
+        console.warn(`cannot spawn ${this.playerInfo.name}`);
         return;
       }
-      this.mg.addExecution(new SpawnExecution(this.nation.playerInfo, rl));
+      this.mg.addExecution(new SpawnExecution(this.playerInfo, rl));
       return;
     }
 
     if (this.player === null) {
       this.player =
-        this.mg.players().find((p) => p.id() === this.nation.playerInfo.id) ??
+        this.mg.players().find((p) => p.id() === this.playerInfo.id) ??
         null;
       if (this.player === null) {
         return;
@@ -170,7 +190,7 @@ export class FakeHumanExecution implements Execution {
         this.triggerRatio,
         this.reserveRatio,
         this.expandRatio,
-        this.nation.difficulty,
+        this.difficulty,
       );
 
       // Send an attack on the first tick
@@ -248,7 +268,12 @@ export class FakeHumanExecution implements Execution {
 
   private maybeSendEmoji(enemy: Player) {
     if (this.player === null) throw new Error("not initialized");
-    if (enemy.type() !== PlayerType.Human) return;
+    if (
+      enemy.type() !== PlayerType.Human &&
+      enemy.type() !== PlayerType.AiPlayer
+    ) {
+      return;
+    }
     const lastSent = this.lastEmojiSent.get(enemy) ?? -300;
     if (this.mg.ticks() - lastSent <= 300) return;
     this.lastEmojiSent.set(enemy, this.mg.ticks());
@@ -619,9 +644,12 @@ export class FakeHumanExecution implements Execution {
   randomSpawnLand(): TileRef | null {
     const delta = 25;
     let tries = 0;
+    const cell = this.spawnCell;
+    if (cell === null) {
+      return null;
+    }
     while (tries < 50) {
       tries++;
-      const cell = this.nation.spawnCell;
       const x = this.random.nextInt(cell.x - delta, cell.x + delta);
       const y = this.random.nextInt(cell.y - delta, cell.y + delta);
       if (!this.mg.isValidCoord(x, y)) {
@@ -637,6 +665,20 @@ export class FakeHumanExecution implements Execution {
         }
         return tile;
       }
+    }
+    return null;
+  }
+
+  private pickSpawnCell(): Cell | null {
+    const maxTries = 2000;
+    for (let tries = 0; tries < maxTries; tries++) {
+      const x = this.random.nextInt(0, this.mg.width());
+      const y = this.random.nextInt(0, this.mg.height());
+      const tile = this.mg.ref(x, y);
+      if (!this.mg.isLand(tile)) {
+        continue;
+      }
+      return new Cell(x, y);
     }
     return null;
   }

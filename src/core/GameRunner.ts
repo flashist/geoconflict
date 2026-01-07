@@ -58,6 +58,16 @@ export async function createGameRunner(
       ),
   );
 
+  const aiPlayers = (gameStart.aiPlayers ?? []).map(
+    (p) =>
+      new PlayerInfo(
+        sanitize(p.username),
+        PlayerType.AiPlayer,
+        p.clientID,
+        random.nextID(),
+      ),
+  );
+
   const defaultNationDifficulty = gameStart.config.difficulty;
   const nations = gameStart.config.disableNPCs
     ? []
@@ -87,7 +97,7 @@ export async function createGameRunner(
     });
 
   const game: Game = createGame(
-    humans,
+    [...humans, ...aiPlayers],
     nations,
     gameMap.gameMap,
     gameMap.miniGameMap,
@@ -97,6 +107,7 @@ export async function createGameRunner(
   const gr = new GameRunner(
     game,
     new Executor(game, gameStart.gameID, clientID),
+    aiPlayers,
     callBack,
   );
   gr.init();
@@ -113,6 +124,7 @@ export class GameRunner {
   constructor(
     public game: Game,
     private execManager: Executor,
+    private aiPlayers: PlayerInfo[],
     private callBack: (gu: GameUpdateViewData | ErrorUpdate) => void,
   ) { }
 
@@ -124,6 +136,13 @@ export class GameRunner {
     }
     if (this.game.config().spawnNPCs()) {
       this.game.addExecution(...this.execManager.fakeHumanExecutions());
+    }
+    if (this.aiPlayers.length > 0) {
+      const difficulty =
+        this.game.config().serverConfig().aiPlayersConfig().difficulty;
+      this.game.addExecution(
+        ...this.execManager.aiPlayerExecutions(this.aiPlayers, difficulty),
+      );
     }
     this.game.addExecution(new WinCheckExecution());
   }
@@ -168,7 +187,9 @@ export class GameRunner {
         .players()
         .filter(
           (p) =>
-            p.type() === PlayerType.Human || p.type() === PlayerType.FakeHuman,
+            p.type() === PlayerType.Human ||
+            p.type() === PlayerType.AiPlayer ||
+            p.type() === PlayerType.FakeHuman,
         )
         .forEach(
           (p) => (this.playerViewData[p.id()] = placeName(this.game, p)),

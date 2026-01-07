@@ -226,18 +226,20 @@ async function fetchLobbies(): Promise<number> {
   const results = await Promise.all(fetchPromises);
 
   // Filter out any null results from failed fetches
-  const lobbyInfos: GameInfo[] = results
-    .filter((result) => result !== null)
-    .map((gi: GameInfo) => {
+  const validResults = results.filter(
+    (result): result is GameInfo => result !== null,
+  );
+
+  const lobbyInfos: GameInfo[] = validResults.map((gi: GameInfo) => {
       return {
         gameID: gi.gameID,
-        numClients: gi?.clients?.length ?? 0,
+        numClients: gi.numClients ?? gi?.clients?.length ?? 0,
         gameConfig: gi.gameConfig,
         msUntilStart: (gi.msUntilStart ?? Date.now()) - Date.now(),
       } as GameInfo;
     });
 
-  lobbyInfos.forEach((l) => {
+  lobbyInfos.forEach((l, index) => {
     if (
       "msUntilStart" in l &&
       l.msUntilStart !== undefined &&
@@ -247,14 +249,13 @@ async function fetchLobbies(): Promise<number> {
       return;
     }
 
+    const humanClients = validResults[index]?.clients?.length ?? 0;
     if (
       "gameConfig" in l &&
       l.gameConfig !== undefined &&
       "maxPlayers" in l.gameConfig &&
       l.gameConfig.maxPlayers !== undefined &&
-      "numClients" in l &&
-      l.numClients !== undefined &&
-      l.gameConfig.maxPlayers <= l.numClients
+      l.gameConfig.maxPlayers <= humanClients
     ) {
       publicLobbyIDs.delete(l.gameID);
       return;
