@@ -29,14 +29,7 @@ import { UserSettings } from "../game/UserSettings";
 import { GameConfig, GameID, TeamCountConfig } from "../Schemas";
 import { NukeType } from "../StatsSchemas";
 import { assertNever, sigmoid, simpleHash, within } from "../Util";
-import {
-  AiPlayersConfig,
-  Config,
-  GameEnv,
-  NukeMagnitude,
-  ServerConfig,
-  Theme,
-} from "./Config";
+import { Config, GameEnv, NukeMagnitude, ServerConfig, Theme } from "./Config";
 import { getRuntimeConfig } from "./RuntimeConfig";
 import { PastelTheme } from "./PastelTheme";
 import { PastelThemeDark } from "./PastelThemeDark";
@@ -56,54 +49,6 @@ const JwksSchema = z.object({
     .min(1),
 });
 
-const AiPlayersConfigSchema = z.object({
-  enabled: z.boolean(),
-  timeoutSec: z.number().int().positive(),
-  tickMs: z.number().int().positive(),
-  targetTotalByTimeout: z.number().int().nonnegative(),
-  aiPlayersMax: z.number().int().nonnegative(),
-  humanPriority: z.boolean(),
-  minHumanSlots: z.number().int().nonnegative(),
-  joinJitterMs: z.object({
-    min: z.number().int().nonnegative(),
-    max: z.number().int().nonnegative(),
-  }),
-  name: z.object({
-    prefix: z.string(),
-    start: z.number().int().nonnegative(),
-    reserve: z.number().int().positive(),
-  }),
-  difficulty: z.enum(Difficulty),
-});
-
-function mergeAiPlayersConfig(
-  base: AiPlayersConfig,
-  overrides: Partial<AiPlayersConfig>,
-): AiPlayersConfig {
-  return {
-    ...base,
-    ...overrides,
-    joinJitterMs: {
-      ...base.joinJitterMs,
-      ...overrides.joinJitterMs,
-    },
-    name: {
-      ...base.name,
-      ...overrides.name,
-    },
-  };
-}
-
-function parseAiPlayersConfig(
-  raw: unknown,
-  defaults: AiPlayersConfig,
-): AiPlayersConfig {
-  const parsed = AiPlayersConfigSchema.partial().safeParse(raw);
-  if (!parsed.success) {
-    return defaults;
-  }
-  return mergeAiPlayersConfig(defaults, parsed.data);
-}
 
 export abstract class DefaultServerConfig implements ServerConfig {
   allowedFlares(): string[] | undefined {
@@ -332,45 +277,6 @@ export abstract class DefaultServerConfig implements ServerConfig {
   }
   workerPort(gameID: GameID): number {
     return this.workerPortByIndex(this.workerIndex(gameID));
-  }
-
-  aiPlayersConfig(): AiPlayersConfig {
-    const defaults: AiPlayersConfig = {
-      enabled: true,
-      timeoutSec: Math.max(1, Math.round(this.gameCreationRate() / 1000)),
-      tickMs: 500,
-      targetTotalByTimeout: 10,
-      aiPlayersMax: 10,
-      humanPriority: true,
-      minHumanSlots: 1,
-      joinJitterMs: { min: 300, max: 2000 },
-      name: { prefix: "Anon", start: 0, reserve: 1000 },
-      difficulty: Difficulty.Medium,
-    };
-
-    const runtime = this.runtimeConfig();
-    const runtimeConfig = runtime.aiPlayersConfig;
-    if (runtimeConfig) {
-      return parseAiPlayersConfig(runtimeConfig, defaults);
-    }
-
-    const envConfig = process.env.AI_PLAYERS_CONFIG;
-    if (envConfig) {
-      try {
-        return parseAiPlayersConfig(JSON.parse(envConfig), defaults);
-      } catch {
-        return defaults;
-      }
-    }
-
-    const enabledEnv = process.env.AI_PLAYERS_ENABLED;
-    if (enabledEnv !== undefined) {
-      return mergeAiPlayersConfig(defaults, {
-        enabled: enabledEnv.toLowerCase() === "true",
-      });
-    }
-
-    return defaults;
   }
   workerPortByIndex(index: number): number {
     return 3001 + index;

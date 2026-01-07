@@ -130,17 +130,17 @@ export class UsernameInput extends LitElement {
   }
 
   private generateNewUsername(): string {
-    const newUsername = "Anon" + this.uuidToFourDigits();
+    const newUsername = "Anon" + this.uuidToThreeDigits();
     this.storeUsername(newUsername);
     return newUsername;
   }
 
-  private uuidToFourDigits(): string {
+  private uuidToThreeDigits(): string {
     const uuid = uuidv4();
     const cleanUuid = uuid.replace(/-/g, "").toLowerCase();
     const decimal = BigInt(`0x${cleanUuid}`);
-    const fourDigits = (decimal % 9000n) + 1000n;
-    return fourDigits.toString().padStart(4, "0");
+    const threeDigits = decimal % 1000n;
+    return threeDigits.toString().padStart(3, "0");
   }
 
   public isValid(): boolean {

@@ -7,7 +7,6 @@ import {
   Attack,
   Cell,
   Game,
-  GameType,
   GameUpdates,
   NameViewData,
   Nation,
@@ -32,13 +31,6 @@ import { PseudoRandom } from "./PseudoRandom";
 import { ClientID, GameStartInfo, Turn } from "./Schemas";
 import { sanitize, simpleHash } from "./Util";
 import { fixProfaneUsername } from "./validations/username";
-import {
-  allocateAiNamesFromOrder,
-  computeDesiredAi,
-  computeMaxAiAllowed,
-  deterministicShuffleIndices,
-  shuffledAiNameIndices,
-} from "./ai/AiPlayers";
 
 export async function createGameRunner(
   gameStart: GameStartInfo,
@@ -67,43 +59,6 @@ export async function createGameRunner(
   );
 
   const defaultNationDifficulty = gameStart.config.difficulty;
-  const aiConfig = config.serverConfig().aiPlayersConfig();
-  const aiNamesByNationIndex = new Map<number, string>();
-
-  if (
-    aiConfig.enabled &&
-    gameStart.config.gameType === GameType.Public &&
-    !gameStart.config.disableNPCs
-  ) {
-    const capacity = gameStart.config.maxPlayers ?? gameStart.players.length;
-    const humans = gameStart.players.length;
-    const minHumanSlots = aiConfig.humanPriority ? aiConfig.minHumanSlots : 0;
-    const maxAiAllowedNow = computeMaxAiAllowed(
-      capacity,
-      minHumanSlots,
-      humans,
-      aiConfig.aiPlayersMax,
-    );
-    const targetTotal = Math.min(capacity, aiConfig.targetTotalByTimeout);
-    const desiredAi = computeDesiredAi(humans, targetTotal, maxAiAllowedNow);
-    const existingNames = gameStart.players.map((p) => p.username);
-    const { names: aiNames } = allocateAiNamesFromOrder(
-      Math.min(desiredAi, gameMap.nations.length),
-      existingNames,
-      shuffledAiNameIndices(gameStart.gameID, aiConfig),
-      0,
-      aiConfig,
-    );
-    const shuffledIndices = deterministicShuffleIndices(
-      gameStart.gameID,
-      gameMap.nations.length,
-    );
-    const selectedIndices = shuffledIndices.slice(0, aiNames.length);
-    selectedIndices.forEach((nationIndex, i) => {
-      aiNamesByNationIndex.set(nationIndex, aiNames[i]);
-    });
-  }
-
   const nations = gameStart.config.disableNPCs
     ? []
     : gameMap.nations.map((n, index) => {
@@ -118,13 +73,11 @@ export async function createGameRunner(
             : nationDifficulty === "Hard"
               ? "H"
               : "I";
-      const aiName = aiNamesByNationIndex.get(index);
-      const nationName = aiName ? aiName : `${n.name} ${difficultyLabel}`;
       return new Nation(
         new Cell(n.coordinates[0], n.coordinates[1]),
         n.strength,
         new PlayerInfo(
-          nationName,
+          `${n.name} ${difficultyLabel}`,
           PlayerType.FakeHuman,
           null,
           random.nextID(),

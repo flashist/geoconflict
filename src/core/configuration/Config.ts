@@ -63,20 +63,6 @@ export interface ServerConfig {
   stripePublishableKey(): string;
   allowedFlares(): string[] | undefined;
   enableMatchmaking(): boolean;
-  aiPlayersConfig(): AiPlayersConfig;
-}
-
-export interface AiPlayersConfig {
-  enabled: boolean;
-  timeoutSec: number;
-  tickMs: number;
-  targetTotalByTimeout: number;
-  aiPlayersMax: number;
-  humanPriority: boolean;
-  minHumanSlots: number;
-  joinJitterMs: { min: number; max: number };
-  name: { prefix: string; start: number; reserve: number };
-  difficulty: Difficulty;
 }
 
 export interface NukeMagnitude {

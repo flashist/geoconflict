@@ -49,7 +49,6 @@ export async function getServerConfigFromClient(): Promise<ServerConfig> {
     apiBaseUrl: config.apiBaseUrl ?? config.api_base_url,
     jwtIssuer: config.jwtIssuer ?? config.jwt_issuer,
     jwtAudience: config.jwtAudience ?? config.jwt_audience,
-    aiPlayersConfig: config.aiPlayersConfig ?? config.ai_players_config,
   });
 
   const gameEnv = config.gameEnv ?? config.game_env;

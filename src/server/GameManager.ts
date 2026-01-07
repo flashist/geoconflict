@@ -18,9 +18,7 @@ export class GameManager {
     private config: ServerConfig,
     private log: Logger,
   ) {
-    const aiConfig = this.config.aiPlayersConfig();
-    const tickMs = aiConfig.enabled ? aiConfig.tickMs : 1000;
-    setInterval(() => this.tick(), tickMs);
+    setInterval(() => this.tick(), 1000);
   }
 
   public game(id: GameID): GameServer | null {
@@ -85,7 +83,6 @@ export class GameManager {
     const active = new Map<GameID, GameServer>();
     for (const [id, game] of this.games) {
       const phase = game.phase();
-      game.tickLobbyAi(Date.now());
       if (phase === GamePhase.Active) {
         if (!game.hasStarted()) {
           // Prestart tells clients to start loading the game.
