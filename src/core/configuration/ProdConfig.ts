@@ -1,4 +1,4 @@
-import { GameEnv } from "./Config";
+import { AiPlayersConfig, GameEnv } from "./Config";
 import { DefaultServerConfig } from "./DefaultConfig";
 import { getRuntimeConfig } from "./RuntimeConfig";
 
@@ -8,6 +8,12 @@ export const prodConfig = new (class extends DefaultServerConfig {
   }
   env(): GameEnv {
     return GameEnv.Prod;
+  }
+  aiPlayersConfig(): AiPlayersConfig {
+    return {
+      ...super.aiPlayersConfig(),
+      enabled: true,
+    };
   }
   jwtAudience(): string {
     const runtime = getRuntimeConfig();
