@@ -44,6 +44,7 @@ import { ChatModal } from "./ChatModal";
 import { EmojiTable } from "./EmojiTable";
 import { Layer } from "./Layer";
 import "./SendResourceModal";
+import { isAiPlayerName } from "../../../core/ai/AiPlayers";
 
 @customElement("player-panel")
 export class PlayerPanel extends LitElement implements Layer {
@@ -275,9 +276,12 @@ export class PlayerPanel extends LitElement implements Layer {
     this.hide();
   }
 
-  private identityChipProps(type: PlayerType) {
+  private identityChipProps(type: PlayerType, isAiPlayer: boolean) {
     switch (type) {
       case PlayerType.FakeHuman:
+        if (isAiPlayer) {
+          return this.identityChipProps(PlayerType.Human, false);
+        }
         return {
           labelKey: "player_type.nation",
           aria: "Nation player",
@@ -389,7 +393,9 @@ export class PlayerPanel extends LitElement implements Layer {
   }
 
   private renderRelationPillIfNation(other: PlayerView, my: PlayerView) {
-    if (other.type() !== PlayerType.FakeHuman) return html``;
+    if (other.type() !== PlayerType.FakeHuman || isAiPlayerName(other.name())) {
+      return html``;
+    }
     if (other.isTraitor()) return html``;
     if (my?.isAlliedWith && my.isAlliedWith(other)) return html``;
     if (!this.otherProfile || !my) return html``;
@@ -413,10 +419,11 @@ export class PlayerPanel extends LitElement implements Layer {
         ? Countries.find((c) => c.code === flagCode)
         : undefined;
 
+    const isAiPlayer = isAiPlayerName(other.name());
     const chip =
-      other.type() === PlayerType.Human
+      other.type() === PlayerType.Human || isAiPlayer
         ? null
-        : this.identityChipProps(other.type());
+        : this.identityChipProps(other.type(), isAiPlayer);
 
     // Flashist Adaptation: disabling flags
     return html`

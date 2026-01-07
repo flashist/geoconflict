@@ -8,6 +8,7 @@ import {
   PlayerView,
   UnitView,
 } from "../../../core/game/GameView";
+import { isAiPlayerName } from "../../../core/ai/AiPlayers";
 import { PlayerType } from "../../../core/game/Game";
 import { renderNumber } from "../../Utils";
 import { Layer } from "./Layer";
@@ -90,7 +91,12 @@ export class Leaderboard extends LitElement implements Layer {
     let sorted = this.game.playerViews();
 
     if (this._showRealPlayersOnly) {
-      sorted = sorted.filter((player) => player.type() === PlayerType.Human);
+      sorted = sorted.filter(
+        (player) =>
+          player.type() === PlayerType.Human ||
+          (player.type() === PlayerType.FakeHuman &&
+            isAiPlayerName(player.name())),
+      );
     }
 
     const compare = (a: number, b: number) =>
@@ -308,6 +314,8 @@ export class Leaderboard extends LitElement implements Layer {
     `;
   }
 }
+
+// Uses shared helper.
 
 function formatPercentage(value: number): string {
   const perc = value * 100;

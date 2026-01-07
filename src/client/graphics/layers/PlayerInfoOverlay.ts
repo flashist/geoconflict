@@ -11,6 +11,7 @@ import portIcon from "../../../../resources/images/PortIcon.svg";
 import samLauncherIcon from "../../../../resources/images/SamLauncherIconWhite.svg";
 import { renderPlayerFlag } from "../../../core/CustomFlag";
 import { EventBus } from "../../../core/EventBus";
+import { isAiPlayerName } from "../../../core/ai/AiPlayers";
 import {
   PlayerProfile,
   PlayerType,
@@ -234,6 +235,7 @@ export class PlayerInfoOverlay extends LitElement implements Layer {
 
     if (
       player.type() === PlayerType.FakeHuman &&
+      !isAiPlayerName(player.name()) &&
       myPlayer !== null &&
       !isAllied
     ) {
@@ -272,7 +274,9 @@ export class PlayerInfoOverlay extends LitElement implements Layer {
         playerType = translateText("player_type.bot");
         break;
       case PlayerType.FakeHuman:
-        playerType = translateText("player_type.nation");
+        playerType = isAiPlayerName(player.name())
+          ? translateText("player_type.player")
+          : translateText("player_type.nation");
         break;
       case PlayerType.Human:
         playerType = translateText("player_type.player");

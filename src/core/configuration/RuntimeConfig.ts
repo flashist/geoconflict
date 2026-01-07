@@ -1,3 +1,5 @@
+import type { AiPlayersConfig } from "./Config";
+
 export interface RuntimeConfigData {
   publicHost?: string;
   publicProtocol?: string;
@@ -6,6 +8,7 @@ export interface RuntimeConfigData {
   apiBaseUrl?: string;
   jwtIssuer?: string;
   jwtAudience?: string;
+  aiPlayersConfig?: AiPlayersConfig;
 }
 
 const runtimeConfig: RuntimeConfigData = {};

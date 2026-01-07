@@ -152,6 +152,7 @@ app.get("/api/env", async (req, res) => {
     apiBaseUrl: config.apiBaseUrl(),
     jwtIssuer: config.jwtIssuer(),
     jwtAudience: config.jwtAudience(),
+    aiPlayersConfig: config.aiPlayersConfig(),
   };
   if (!envConfig.gameEnv) return res.sendStatus(500);
   res.json(envConfig);
@@ -231,7 +232,8 @@ async function fetchLobbies(): Promise<number> {
     .map((gi: GameInfo) => {
       return {
         gameID: gi.gameID,
-        numClients: gi?.clients?.length ?? 0,
+        clients: gi.clients,
+        numClients: gi.numClients ?? gi?.clients?.length ?? 0,
         gameConfig: gi.gameConfig,
         msUntilStart: (gi.msUntilStart ?? Date.now()) - Date.now(),
       } as GameInfo;
@@ -252,18 +254,20 @@ async function fetchLobbies(): Promise<number> {
       l.gameConfig !== undefined &&
       "maxPlayers" in l.gameConfig &&
       l.gameConfig.maxPlayers !== undefined &&
-      "numClients" in l &&
-      l.numClients !== undefined &&
-      l.gameConfig.maxPlayers <= l.numClients
+      "clients" in l &&
+      l.clients !== undefined &&
+      l.gameConfig.maxPlayers <= l.clients.length
     ) {
       publicLobbyIDs.delete(l.gameID);
       return;
     }
   });
 
+  const publicLobbyInfos = lobbyInfos.map(({ clients, ...rest }) => rest);
+
   // Update the JSON string
   publicLobbiesJsonStr = JSON.stringify({
-    lobbies: lobbyInfos,
+    lobbies: publicLobbyInfos,
   });
 
   return publicLobbyIDs.size;

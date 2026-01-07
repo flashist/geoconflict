@@ -1,10 +1,22 @@
+import fs from "fs";
 import ipAnonymize from "ip-anonymize";
+import path from "path";
 import { Logger } from "winston";
 import WebSocket from "ws";
 import { z } from "zod";
-import { GameEnv, ServerConfig } from "../core/configuration/Config";
-import { GameType } from "../core/game/Game";
 import {
+  aiJoinDelayMs,
+  allocateAiNamesFromOrder,
+  computeDesiredAi,
+  computeMaxAiAllowed,
+  computeTargetTotal,
+  deterministicAiClientId,
+  shuffledAiNameIndices,
+} from "../core/ai/AiPlayers";
+import { GameEnv, ServerConfig } from "../core/configuration/Config";
+import { GameMapType, GameType } from "../core/game/Game";
+import {
+  ClientInfo,
   ClientID,
   ClientMessageSchema,
   ClientSendWinnerMessage,
@@ -24,6 +36,40 @@ import {
 import { createPartialGameRecord, getClanTag } from "../core/Util";
 import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
+
+const mapNationCounts = new Map<GameMapType, number>();
+
+function mapFolderName(map: GameMapType): string | null {
+  const key = Object.keys(GameMapType).find(
+    (k) => GameMapType[k as keyof typeof GameMapType] === map,
+  );
+  return key?.toLowerCase() ?? null;
+}
+
+function loadNationCount(map: GameMapType): number | null {
+  if (mapNationCounts.has(map)) {
+    return mapNationCounts.get(map) ?? null;
+  }
+  const folder = mapFolderName(map);
+  if (!folder) return null;
+  const manifestPath = path.resolve(
+    process.cwd(),
+    "resources",
+    "maps",
+    folder,
+    "manifest.json",
+  );
+  try {
+    const raw = fs.readFileSync(manifestPath, "utf8");
+    const manifest = JSON.parse(raw) as { nations?: unknown[] };
+    const count = manifest.nations?.length ?? 0;
+    mapNationCounts.set(map, count);
+    return count;
+  } catch {
+    return null;
+  }
+}
+
 export enum GamePhase {
   Lobby = "LOBBY",
   Active = "ACTIVE",
@@ -68,6 +114,13 @@ export class GameServer {
     string,
     { winner: ClientSendWinnerMessage; ips: Set<string> }
   > = new Map();
+
+  private aiLobbyPlayers: ClientInfo[] = [];
+  private pendingAiJoins: { dueAt: number; joinIndex: number }[] = [];
+  private nextAiJoinIndex = 0;
+  private nextAiNameIndex = 0;
+  private aiNationCount: number | null = null;
+  private aiNameOrder: number[] | null = null;
 
   constructor(
     public readonly id: string,
@@ -129,6 +182,7 @@ export class GameServer {
   }
 
   public addClient(client: Client, lastTurn: number) {
+    this.displaceAiForHumanJoin();
     this.websockets.add(client.ws);
     if (this.kickedClients.has(client.clientID)) {
       this.log.warn(`cannot add client, already kicked`, {
@@ -359,6 +413,7 @@ export class GameServer {
       return;
     }
     this._hasPrestarted = true;
+    this.clearLobbyAi();
 
     const prestartMsg = ServerPrestartMessageSchema.safeParse({
       type: "prestart",
@@ -390,6 +445,7 @@ export class GameServer {
     if (this._hasStarted) {
       return;
     }
+    this.clearLobbyAi();
     this._hasStarted = true;
     this._startTime = Date.now();
     // Set last ping to start so we don't immediately stop the game
@@ -589,12 +645,14 @@ export class GameServer {
   }
 
   public gameInfo(): GameInfo {
+    const aiCount = this.aiLobbyEnabled() ? this.aiLobbyPlayers.length : 0;
     return {
       gameID: this.id,
       clients: this.activeClients.map((c) => ({
         username: c.username,
         clientID: c.clientID,
       })),
+      numClients: this.activeClients.length + aiCount,
       gameConfig: this.gameConfig,
       msUntilStart: this.isPublic()
         ? this.createdAt + this.config.gameCreationRate()
@@ -604,6 +662,166 @@ export class GameServer {
 
   public isPublic(): boolean {
     return this.gameConfig.gameType === GameType.Public;
+  }
+
+  private aiLobbyEnabled(): boolean {
+    const cfg = this.config.aiPlayersConfig();
+    if (!cfg.enabled) return false;
+    if (!this.isPublic()) return false;
+    if (this.gameConfig.disableNPCs) return false;
+    return true;
+  }
+
+  private aiCapacityLimit(): number | null {
+    if (this.aiNationCount === null) {
+      this.aiNationCount = loadNationCount(this.gameConfig.gameMap);
+    }
+    return this.aiNationCount;
+  }
+
+  private displaceAiForHumanJoin(): void {
+    if (!this.aiLobbyEnabled()) return;
+    if (!this.config.aiPlayersConfig().humanPriority) return;
+    const capacity = this.gameConfig.maxPlayers;
+    if (!capacity) return;
+    const total = this.activeClients.length + this.aiLobbyPlayers.length;
+    if (total < capacity) return;
+    if (this.aiLobbyPlayers.length === 0) return;
+    this.aiLobbyPlayers.pop();
+  }
+
+  private clearLobbyAi(): void {
+    this.aiLobbyPlayers = [];
+    this.pendingAiJoins = [];
+    this.nextAiJoinIndex = 0;
+    this.nextAiNameIndex = 0;
+    this.aiNameOrder = null;
+  }
+
+  private getAiNameOrder(): number[] {
+    if (this.aiNameOrder === null) {
+      this.aiNameOrder = shuffledAiNameIndices(
+        this.id,
+        this.config.aiPlayersConfig(),
+      );
+    }
+    return this.aiNameOrder;
+  }
+
+  private applyAiJoin(
+    joinIndex: number,
+    existingNames: Iterable<string>,
+  ): void {
+    const cfg = this.config.aiPlayersConfig();
+    const { names, nextIndex } = allocateAiNamesFromOrder(
+      1,
+      existingNames,
+      this.getAiNameOrder(),
+      this.nextAiNameIndex,
+      cfg,
+    );
+    this.nextAiNameIndex = nextIndex;
+    if (names.length === 0) return;
+    const name = names[0];
+    const clientID = deterministicAiClientId(this.id, joinIndex);
+    this.aiLobbyPlayers.push({ username: name, clientID });
+  }
+
+  private scheduleAiJoin(count: number, now: number): void {
+    const cfg = this.config.aiPlayersConfig();
+    const endTime = this.createdAt + cfg.timeoutSec * 1000;
+    for (let i = 0; i < count; i += 1) {
+      const joinIndex = this.nextAiJoinIndex;
+      this.nextAiJoinIndex += 1;
+      const delayMs = aiJoinDelayMs(this.id, joinIndex, cfg);
+      const dueAt = Math.min(now + delayMs, endTime - 1);
+      this.pendingAiJoins.push({ dueAt, joinIndex });
+    }
+    this.pendingAiJoins.sort((a, b) => a.dueAt - b.dueAt);
+  }
+
+  private processPendingAiJoins(
+    now: number,
+    capacity: number,
+    desiredAi: number,
+  ): void {
+    const existingNames = new Set<string>([
+      ...this.activeClients.map((c) => c.username),
+      ...this.aiLobbyPlayers.map((p) => p.username),
+    ]);
+
+    while (this.pendingAiJoins.length > 0) {
+      const next = this.pendingAiJoins[0];
+      if (next.dueAt > now) {
+        break;
+      }
+      if (this.aiLobbyPlayers.length >= desiredAi) {
+        break;
+      }
+      if (this.activeClients.length + this.aiLobbyPlayers.length >= capacity) {
+        break;
+      }
+      this.pendingAiJoins.shift();
+      this.applyAiJoin(next.joinIndex, existingNames);
+    }
+  }
+
+  private clampDesiredAiToNations(desiredAi: number): number {
+    const nationCount = this.aiCapacityLimit();
+    if (nationCount === null) return desiredAi;
+    return Math.min(desiredAi, nationCount);
+  }
+
+  public tickLobbyAi(now: number): void {
+    if (!this.aiLobbyEnabled()) return;
+    if (this.hasStarted()) return;
+    const capacity = this.gameConfig.maxPlayers;
+    if (!capacity) return;
+
+    const cfg = this.config.aiPlayersConfig();
+    const tPassedSec = Math.max(0, (now - this.createdAt) / 1000);
+    const targetTotal = computeTargetTotal(
+      capacity,
+      tPassedSec,
+      cfg.timeoutSec,
+      cfg.targetTotalByTimeout,
+    );
+
+    const humans = this.activeClients.length;
+    const minHumanSlots = cfg.humanPriority ? cfg.minHumanSlots : 0;
+    let maxAiAllowedNow = computeMaxAiAllowed(
+      capacity,
+      minHumanSlots,
+      humans,
+      cfg.aiPlayersMax,
+    );
+    maxAiAllowedNow = this.clampDesiredAiToNations(maxAiAllowedNow);
+
+    while (
+      this.activeClients.length + this.aiLobbyPlayers.length > capacity &&
+      this.aiLobbyPlayers.length > 0
+    ) {
+      this.aiLobbyPlayers.pop();
+    }
+
+    while (this.aiLobbyPlayers.length > maxAiAllowedNow) {
+      this.aiLobbyPlayers.pop();
+    }
+
+    const desiredAi = this.clampDesiredAiToNations(
+      computeDesiredAi(humans, targetTotal, maxAiAllowedNow),
+    );
+
+    const currentAiTotal =
+      this.aiLobbyPlayers.length + this.pendingAiJoins.length;
+    if (currentAiTotal > desiredAi) {
+      const keepPending = Math.max(0, desiredAi - this.aiLobbyPlayers.length);
+      this.pendingAiJoins = this.pendingAiJoins.slice(0, keepPending);
+    } else if (currentAiTotal < desiredAi) {
+      this.scheduleAiJoin(desiredAi - currentAiTotal, now);
+    }
+
+    this.processPendingAiJoins(now, capacity, desiredAi);
   }
 
   public kickClient(clientID: ClientID): void {
