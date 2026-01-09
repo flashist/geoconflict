@@ -173,7 +173,10 @@ export class TerritoryLayer implements Layer {
 
     const humans = this.game
       .playerViews()
-      .filter((p) => p.type() === PlayerType.Human);
+      .filter(
+        (p) =>
+          p.type() === PlayerType.Human || p.type() === PlayerType.AiPlayer,
+      );
 
     const focusedPlayer = this.game.focusedPlayer();
     const teamColors = Object.values(ColoredTeams);

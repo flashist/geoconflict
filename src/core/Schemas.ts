@@ -117,6 +117,7 @@ export type ClientHashMessage = z.infer<typeof ClientHashSchema>;
 
 export type AllPlayersStats = z.infer<typeof AllPlayersStatsSchema>;
 export type Player = z.infer<typeof PlayerSchema>;
+export type AiPlayer = z.infer<typeof AiPlayerSchema>;
 export type PlayerCosmetics = z.infer<typeof PlayerCosmeticsSchema>;
 export type PlayerCosmeticRefs = z.infer<typeof PlayerCosmeticRefsSchema>;
 export type PlayerPattern = z.infer<typeof PlayerPatternSchema>;
@@ -128,6 +129,7 @@ export interface GameInfo {
   gameID: GameID;
   clients?: ClientInfo[];
   numClients?: number;
+  aiPlayersCount?: number;
   msUntilStart?: number;
   gameConfig?: GameConfig;
 }
@@ -437,10 +439,16 @@ export const PlayerSchema = z.object({
   cosmetics: PlayerCosmeticsSchema.optional(),
 });
 
+export const AiPlayerSchema = z.object({
+  clientID: ID,
+  username: UsernameSchema,
+});
+
 export const GameStartInfoSchema = z.object({
   gameID: ID,
   config: GameConfigSchema,
   players: PlayerSchema.array(),
+  aiPlayers: AiPlayerSchema.array().optional(),
 });
 
 export const WinnerSchema = z

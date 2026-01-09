@@ -21,7 +21,8 @@ import {
   ServerTurnMessage,
   Turn,
 } from "../core/Schemas";
-import { createPartialGameRecord, getClanTag } from "../core/Util";
+import { createPartialGameRecord, getClanTag, simpleHash } from "../core/Util";
+import { PseudoRandom } from "../core/PseudoRandom";
 import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
 export enum GamePhase {
@@ -29,6 +30,18 @@ export enum GamePhase {
   Active = "ACTIVE",
   Finished = "FINISHED",
 }
+
+type AiLobbyPlayer = {
+  clientID: ClientID;
+  username: string;
+  joinIndex: number;
+  joinedAt: number;
+};
+
+type PendingAiJoin = {
+  joinIndex: number;
+  dueAt: number;
+};
 
 export class GameServer {
   private sentDesyncMessageClients = new Set<ClientID>();
@@ -63,6 +76,11 @@ export class GameServer {
   private outOfSyncClients: Set<ClientID> = new Set();
 
   private websockets: Set<WebSocket> = new Set();
+  private aiPlayers: AiLobbyPlayer[] = [];
+  private pendingAiJoins: PendingAiJoin[] = [];
+  private aiPlayerJoinSequence = 0;
+  private aiNameOrder: number[] | null = null;
+  private aiLobbyIntervalID: ReturnType<typeof setInterval> | undefined;
 
   private winnerVotes: Map<
     string,
@@ -79,6 +97,13 @@ export class GameServer {
   ) {
     this.log = log_.child({ gameID: id });
     this.LobbyCreatorID = lobbyCreatorID ?? undefined;
+    const aiConfig = this.config.aiPlayersConfig();
+    if (this.gameConfig.gameType === GameType.Public && aiConfig.enabled) {
+      this.aiLobbyIntervalID = setInterval(
+        () => this.tickAiLobby(),
+        aiConfig.tickMs,
+      );
+    }
   }
 
   public updateGameConfig(gameConfig: Partial<GameConfig>): void {
@@ -204,6 +229,21 @@ export class GameServer {
       client.reportedWinner = existing.reportedWinner;
 
       this.activeClients = this.activeClients.filter((c) => c !== existing);
+    }
+
+    if (
+      existing === undefined &&
+      this.isPublic() &&
+      this.aiPlayers.length > 0 &&
+      this.config.aiPlayersConfig().humanPriority
+    ) {
+      const capacity = this.gameConfig.maxPlayers ?? 0;
+      if (
+        capacity > 0 &&
+        this.activeClients.length + this.aiPlayers.length >= capacity
+      ) {
+        this.removeAiPlayers(1);
+      }
     }
 
     // Client connection accepted
@@ -342,7 +382,7 @@ export class GameServer {
   }
 
   public numClients(): number {
-    return this.activeClients.length;
+    return this.activeClients.length + this.aiPlayers.length;
   }
 
   public startTime(): number {
@@ -392,6 +432,7 @@ export class GameServer {
     }
     this._hasStarted = true;
     this._startTime = Date.now();
+    this.stopAiLobbyInterval();
     // Set last ping to start so we don't immediately stop the game
     // if no client connects/pings.
     this.lastPingUpdate = Date.now();
@@ -403,6 +444,10 @@ export class GameServer {
         username: c.username,
         clientID: c.clientID,
         cosmetics: c.cosmetics,
+      })),
+      aiPlayers: this.aiPlayers.map((ai) => ({
+        username: ai.username,
+        clientID: ai.clientID,
       })),
     });
     if (!result.success) {
@@ -423,6 +468,190 @@ export class GameServer {
       });
       this.sendStartGameMsg(c.ws, 0);
     });
+  }
+
+  private tickAiLobby() {
+    const aiConfig = this.config.aiPlayersConfig();
+    if (!aiConfig.enabled || !this.isPublic() || this.hasStarted()) {
+      return;
+    }
+
+    const capacity = this.gameConfig.maxPlayers ?? 0;
+    if (capacity <= 0) {
+      return;
+    }
+
+    const now = Date.now();
+    this.processPendingAiJoins(now);
+
+    const humans = this.activeClients.length;
+    const timeoutSec =
+      aiConfig.timeoutSec ?? this.config.gameCreationRate() / 1000;
+    if (timeoutSec <= 0) {
+      return;
+    }
+
+    const tPassed = Math.max(0, (now - this.createdAt) / 1000);
+    const coef = Math.min(1, Math.max(0, tPassed / timeoutSec));
+    const targetTotal = Math.floor(
+      Math.min(capacity, aiConfig.targetTotalByTimeout) * coef,
+    );
+
+    const minHumanSlots = aiConfig.humanPriority ? aiConfig.minHumanSlots : 0;
+    const maxAiAllowedNow = Math.max(
+      0,
+      Math.min(
+        aiConfig.aiPlayersMax,
+        capacity - Math.max(0, minHumanSlots - humans),
+      ),
+    );
+
+    const total = humans + this.aiPlayers.length;
+    if (total > capacity) {
+      this.removeAiPlayers(total - capacity);
+    }
+
+    if (this.aiPlayers.length > maxAiAllowedNow) {
+      this.removeAiPlayers(this.aiPlayers.length - maxAiAllowedNow);
+    }
+
+    const requiredTotal = Math.max(humans, targetTotal);
+    const desiredAi = Math.max(
+      0,
+      Math.min(maxAiAllowedNow, requiredTotal - humans),
+    );
+
+    this.trimPendingAiJoins(desiredAi);
+
+    const pendingCount = this.pendingAiJoins.length;
+    if (this.aiPlayers.length + pendingCount < desiredAi) {
+      const needed = desiredAi - (this.aiPlayers.length + pendingCount);
+      this.scheduleAiJoins(needed, now);
+    }
+  }
+
+  private processPendingAiJoins(now: number) {
+    if (this.pendingAiJoins.length === 0) {
+      return;
+    }
+    const due = this.pendingAiJoins.filter((p) => p.dueAt <= now);
+    if (due.length === 0) {
+      return;
+    }
+
+    this.pendingAiJoins = this.pendingAiJoins.filter((p) => p.dueAt > now);
+    due.sort((a, b) => a.joinIndex - b.joinIndex);
+    for (const join of due) {
+      this.addAiPlayer(join.joinIndex, now);
+    }
+  }
+
+  private scheduleAiJoins(count: number, now: number) {
+    const aiConfig = this.config.aiPlayersConfig();
+    for (let i = 0; i < count; i++) {
+      const joinIndex = this.aiPlayerJoinSequence++;
+      const delay = this.aiJoinDelayMs(joinIndex, aiConfig.joinJitterMs);
+      this.pendingAiJoins.push({ joinIndex, dueAt: now + delay });
+    }
+    this.pendingAiJoins.sort(
+      (a, b) => a.dueAt - b.dueAt || a.joinIndex - b.joinIndex,
+    );
+  }
+
+  private aiJoinDelayMs(
+    joinIndex: number,
+    jitter: { min: number; max: number },
+  ): number {
+    const min = Math.max(0, Math.min(jitter.min, jitter.max));
+    const max = Math.max(jitter.min, jitter.max);
+    const random = new PseudoRandom(simpleHash(this.id) + joinIndex * 17);
+    return random.nextInt(min, max + 1);
+  }
+
+  private addAiPlayer(joinIndex: number, now: number) {
+    const ai = this.buildAiPlayer(joinIndex, now);
+    this.aiPlayers.push(ai);
+  }
+
+  private buildAiPlayer(joinIndex: number, now: number): AiLobbyPlayer {
+    const name = this.aiNameForJoin(joinIndex);
+    const clientID = this.aiClientIdForJoin(joinIndex);
+    return {
+      clientID,
+      username: name,
+      joinIndex,
+      joinedAt: now,
+    };
+  }
+
+  private aiNameForJoin(joinIndex: number): string {
+    this.ensureAiNameOrder();
+    const aiConfig = this.config.aiPlayersConfig();
+    const order = this.aiNameOrder!;
+    const slot = order[joinIndex % order.length];
+    const width = Math.max(
+      4,
+      String(aiConfig.name.start + aiConfig.name.reserve - 1).length,
+    );
+    return `${aiConfig.name.prefix}${String(slot).padStart(width, "0")}`;
+  }
+
+  private aiClientIdForJoin(joinIndex: number): ClientID {
+    const baseSeed = simpleHash(this.id) + joinIndex;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const random = new PseudoRandom(baseSeed + attempt * 101);
+      const id = random.nextID() as ClientID;
+      if (!this.isClientIdTaken(id)) {
+        return id;
+      }
+    }
+    return new PseudoRandom(baseSeed + 999).nextID() as ClientID;
+  }
+
+  private isClientIdTaken(id: ClientID): boolean {
+    if (this.activeClients.some((c) => c.clientID === id)) {
+      return true;
+    }
+    if (this.aiPlayers.some((ai) => ai.clientID === id)) {
+      return true;
+    }
+    return false;
+  }
+
+  private ensureAiNameOrder() {
+    if (this.aiNameOrder !== null) {
+      return;
+    }
+    const aiConfig = this.config.aiPlayersConfig();
+    const ids = Array.from({ length: aiConfig.name.reserve }, (_, i) =>
+      aiConfig.name.start + i,
+    );
+    const random = new PseudoRandom(simpleHash(this.id));
+    this.aiNameOrder = random.shuffleArray(ids);
+  }
+
+  private removeAiPlayers(count: number) {
+    if (count <= 0) {
+      return;
+    }
+    const toRemove = Math.min(count, this.aiPlayers.length);
+    this.aiPlayers.splice(-toRemove, toRemove);
+  }
+
+  private trimPendingAiJoins(desiredAi: number) {
+    const overflow =
+      this.aiPlayers.length + this.pendingAiJoins.length - desiredAi;
+    if (overflow <= 0) {
+      return;
+    }
+    this.pendingAiJoins.splice(-overflow, overflow);
+  }
+
+  private stopAiLobbyInterval() {
+    if (this.aiLobbyIntervalID) {
+      clearInterval(this.aiLobbyIntervalID);
+      this.aiLobbyIntervalID = undefined;
+    }
   }
 
   private addIntent(intent: Intent) {
@@ -473,6 +702,7 @@ export class GameServer {
     if (this.endTurnIntervalID) {
       clearInterval(this.endTurnIntervalID);
     }
+    this.stopAiLobbyInterval();
     this.websockets.forEach((ws) => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.close(1000, "game has ended");
@@ -595,6 +825,8 @@ export class GameServer {
         username: c.username,
         clientID: c.clientID,
       })),
+      numClients: this.activeClients.length + this.aiPlayers.length,
+      aiPlayersCount: this.aiPlayers.length,
       gameConfig: this.gameConfig,
       msUntilStart: this.isPublic()
         ? this.createdAt + this.config.gameCreationRate()

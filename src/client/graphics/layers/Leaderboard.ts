@@ -90,7 +90,11 @@ export class Leaderboard extends LitElement implements Layer {
     let sorted = this.game.playerViews();
 
     if (this._showRealPlayersOnly) {
-      sorted = sorted.filter((player) => player.type() === PlayerType.Human);
+      sorted = sorted.filter(
+        (player) =>
+          player.type() === PlayerType.Human ||
+          player.type() === PlayerType.AiPlayer,
+      );
     }
 
     const compare = (a: number, b: number) =>
@@ -131,7 +135,9 @@ export class Leaderboard extends LitElement implements Layer {
         troops: renderNumber(troops),
         isMyPlayer: player === myPlayer,
         isOnSameTeam: player === myPlayer || player.isOnSameTeam(myPlayer!),
-        isHuman: player.type() === PlayerType.Human,
+        isHuman:
+          player.type() === PlayerType.Human ||
+          player.type() === PlayerType.AiPlayer,
         player: player,
       };
     });
@@ -161,7 +167,9 @@ export class Leaderboard extends LitElement implements Layer {
           troops: renderNumber(myPlayerTroops),
           isMyPlayer: true,
           isOnSameTeam: true,
-          isHuman: myPlayer.type() === PlayerType.Human,
+          isHuman:
+            myPlayer.type() === PlayerType.Human ||
+            myPlayer.type() === PlayerType.AiPlayer,
           player: myPlayer,
         });
       }

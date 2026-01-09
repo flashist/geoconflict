@@ -60,7 +60,8 @@ export class BotBehavior {
       // If Friendly or Bot, always agree to extend. If Neutral, have random chance decide
       const human = alliance.other(this.player);
       if (
-        this.player.type() === PlayerType.FakeHuman &&
+        (this.player.type() === PlayerType.FakeHuman ||
+          this.player.type() === PlayerType.AiPlayer) &&
         this.player.relation(human) === Relation.Neutral
       ) {
         if (!this.random.chance(1.5)) continue;
@@ -73,7 +74,12 @@ export class BotBehavior {
   }
 
   private emoji(player: Player, emoji: number) {
-    if (player.type() !== PlayerType.Human) return;
+    if (
+      player.type() !== PlayerType.Human &&
+      player.type() !== PlayerType.AiPlayer
+    ) {
+      return;
+    }
     this.game.addExecution(new EmojiExecution(this.player, player.id(), emoji));
   }
 
@@ -124,7 +130,10 @@ export class BotBehavior {
     if (difficulty === Difficulty.Hard || difficulty === Difficulty.Impossible) {
       return false;
     }
-    if (other.type() !== PlayerType.Human) {
+    if (
+      other.type() !== PlayerType.Human &&
+      other.type() !== PlayerType.AiPlayer
+    ) {
       return false;
     }
     // Only discourage attacks on Humans who are not traitors on easy or medium difficulty.

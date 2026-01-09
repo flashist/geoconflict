@@ -292,6 +292,7 @@ export class PlayerPanel extends LitElement implements Layer {
           icon: "🤖",
         };
       case PlayerType.Human:
+      case PlayerType.AiPlayer:
       default:
         return {
           labelKey: "player_type.player",
@@ -414,7 +415,7 @@ export class PlayerPanel extends LitElement implements Layer {
         : undefined;
 
     const chip =
-      other.type() === PlayerType.Human
+      other.type() === PlayerType.Human || other.type() === PlayerType.AiPlayer
         ? null
         : this.identityChipProps(other.type());
 

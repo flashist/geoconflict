@@ -61,6 +61,9 @@ _Last updated: 2025-11-03_
 5. Monitor/logging enhancements (promtail/otel traces) once staging/prod up.
 
 ## Version Notes
+- **0.0.10 (unreleased)**
+  - Public lobbies now inject AI players during the countdown; AI players are indistinguishable in UI and appear in leaderboards.
+  - Anonymous name ranges: humans use `Anon1000–Anon9999`; AI players use `Anon0000–Anon0999`.
 - **0.0.9**
   - Client now reads the platform-provided player name (e.g., Yandex Games) before falling back to local storage or generated names.
   - Leaderboard plumbing added: participation (+1) and placement (+10/+5/+2 for 1st/2nd/3rd) hooks call the platform leaderboard API via `FlashistFacade` (Yandex SDK). Bots are ignored; only the local player is scored.

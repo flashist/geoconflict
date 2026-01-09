@@ -274,6 +274,7 @@ export class PlayerInfoOverlay extends LitElement implements Layer {
       case PlayerType.FakeHuman:
         playerType = translateText("player_type.nation");
         break;
+      case PlayerType.AiPlayer:
       case PlayerType.Human:
         playerType = translateText("player_type.player");
         break;

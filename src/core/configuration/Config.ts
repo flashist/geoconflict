@@ -29,6 +29,7 @@ export enum GameEnv {
 export interface ServerConfig {
   turnIntervalMs(): number;
   gameCreationRate(): number;
+  aiPlayersConfig(): AiPlayersConfig;
   lobbyMaxPlayers(
     map: GameMapType,
     mode: GameMode,
@@ -64,6 +65,19 @@ export interface ServerConfig {
   allowedFlares(): string[] | undefined;
   enableMatchmaking(): boolean;
 }
+
+export type AiPlayersConfig = {
+  enabled: boolean;
+  tickMs: number;
+  targetTotalByTimeout: number;
+  aiPlayersMax: number;
+  humanPriority: boolean;
+  minHumanSlots: number;
+  joinJitterMs: { min: number; max: number };
+  name: { prefix: string; start: number; reserve: number };
+  difficulty: Difficulty;
+  timeoutSec?: number;
+};
 
 export interface NukeMagnitude {
   inner: number;
