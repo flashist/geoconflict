@@ -10,6 +10,9 @@ OpenFront is a real-time strategy browser game focused on territorial control an
 
 ```bash
 npm run dev              # Run client + server with hot reload
+npm run dev:staging      # Client + server, API points to api.openfront.dev
+npm run dev:prod         # Client + server, API points to api.openfront.io
+npm run dev:remote       # Client only, proxies WS/API to remote dev VPS
 npm run start:client     # Client only with hot reload
 npm run start:server-dev # Server only with dev settings
 npm test                 # Run all tests
@@ -17,7 +20,15 @@ npm test -- path/to/test # Run specific test file
 npm run lint             # Check for lint errors
 npm run lint:fix         # Fix lint errors
 npm run format           # Format code with Prettier
+npm run gen-maps         # Regenerate maps via Go tool in map-generator/
+npm run perf             # Run performance benchmarks in tests/perf/
 ```
+
+## Codebase Context
+
+This is a fork/adaptation of [OpenFront.io](https://openfront.io/). Local divergences from upstream are marked with `// Flashist Adaptation` comments. When reading code, treat these as intentional customizations (e.g., some game modes like Duos/Trios/Quads are disabled).
+
+Feature specifications live in `ai-agents/tasks/`.
 
 ## Architecture
 
@@ -56,6 +67,8 @@ Key execution types: `AttackExecution`, `SpawnExecution`, `BuildExecution`, `All
 **Events**: `EventBus` pattern for decoupled communication throughout client.
 
 **Game State**: `GameImpl.ts` holds players, units (via `UnitGrid`), attacks, alliances, tile ownership.
+
+**Configuration**: `src/core/configuration/` contains environment-specific configs (`DevConfig.ts`, `PreprodConfig.ts`, `ProdConfig.ts`). Selected via `GAME_ENV` env var. `Config.ts` defines the full interface; `DefaultConfig.ts` provides base values.
 
 ### Critical Files
 
