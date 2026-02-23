@@ -610,6 +610,16 @@ Source: `ai-agents/tasks/feature_spec_ai_players_standalone.md`.
 | `src/client/Transport.ts` | WebSocket communication + event definitions |
 | `src/client/graphics/GameRenderer.ts` | Rendering layer orchestration |
 | `ai-agents/tasks/feature_spec_ai_players_standalone.md` | AI Players feature specification |
+| `src/core/CosmeticSchemas.ts` | Pattern, ColorPalette, Product Zod schemas |
+| `src/core/PatternDecoder.ts` | Binary pattern decoder (base64url → bitmap) |
+| `src/core/ApiSchemas.ts` | User profile and flare schemas |
+| `src/server/Privilege.ts` | Server-side flare/privilege checker |
+| `src/server/PrivilegeRefresher.ts` | Loads + caches `cosmetics.json` every 3 min |
+| `src/client/Cosmetics.ts` | Client cosmetics fetcher + Stripe purchase handler |
+| `src/client/TerritoryPatternsModal.ts` | Shop UI modal (Patterns tab + Colors tab) |
+| `src/client/components/PatternButton.ts` | Pattern preview canvas component |
+| `src/client/GutterAds.ts` | Fuse network ad integration |
+| `resources/cosmetics/cosmetics.json` | Master cosmetics definitions (35+ patterns, 40+ flag layers, 30+ colors) |
 
 ### Execution classes directory
 
@@ -687,3 +697,154 @@ Any intentional deviation from upstream OpenFront.io must be marked:
 5. **FakeHuman vs AiPlayer**: nations are `FakeHuman` with `clientID === null`. AI Players are `AiPlayer` with real synthetic `clientID`. Never conflate them.
 6. **Cost pool sharing**: Port and Factory share the same `unitsOwned` pool for cost purposes — building one raises the price of the other.
 7. **Turn interval is Flashist-overridden**: the base is 100ms but this fork runs at ≈67ms (1.5× speed). Any time-based reasoning must account for this.
+
+---
+
+## 10. Cosmetics, Shop & Monetization
+
+### 10.1 Overview
+
+Players can customize their territory appearance with **patterns** and **colors**. These cosmetics are purely visual. A **flare**-based access system controls which cosmetics each player can use. Cosmetics are purchased via Stripe checkout.
+
+**Status summary:**
+
+| System | Status |
+|--------|--------|
+| Patterns | Active — 35+ patterns, purchasable via Stripe |
+| Pattern color palettes | Active — per-pattern color variants |
+| Territory base color | Active — custom hex colors |
+| Flags | **Disabled** (Flashist Adaptation — defined but not served to clients) |
+| Ads | Active — Fuse network gutter ads; hidden if user owns any pattern |
+
+### 10.2 Cosmetics Data Model
+
+**PlayerCosmetics** (sent during game join, stored by server per player):
+```ts
+{
+  flag?: string;          // Country code OR "!" prefix for custom; CURRENTLY DISABLED
+  pattern?: {
+    name: string;         // Alphanumeric + underscore, max 32 chars
+    patternData: string;  // Base64url-encoded binary bitmap (see §10.3)
+    colorPalette?: {
+      name: string;
+      primaryColor: string;   // Hex
+      secondaryColor: string; // Hex
+    };
+  };
+  color?: { color: string };  // Hex territory color
+}
+```
+
+The client sends only **refs** (names) in the join message; the server resolves them to full data via `Privilege.ts` + `cosmetics.json`.
+
+Schema sources: `src/core/Schemas.ts` (`PlayerCosmeticsSchema`, `PlayerCosmeticRefsSchema`), `src/core/CosmeticSchemas.ts`.
+
+### 10.3 Pattern Binary Format
+
+Patterns are stored as base64url-encoded binary in `cosmetics.json` and sent to clients. The `PatternDecoder` class (`src/core/PatternDecoder.ts`) decodes them:
+
+| Byte | Contents |
+|------|----------|
+| 0 | Version (must be 0) |
+| 1 | Scale (bits 0–2) + width high bits (bits 3–7) |
+| 2 | Height (bits 0–5) + width low bits (bits 6–7) |
+| 3+ | Bitmap data (1 bit per pixel, row-major) |
+
+Max dimensions: 130 × 66 tiles. Scale encodes the rendered size multiplier.
+
+### 10.4 Cosmetics Database (`resources/cosmetics/cosmetics.json`)
+
+Loaded by `PrivilegeRefresher.ts` and refreshed every 3 minutes (with jitter).
+
+Structure:
+```json
+{
+  "role_groups": {
+    "donor": ["Discord_ID_..."],
+    "creator": ["Discord_ID_..."]
+  },
+  "patterns": {
+    "<base64url_key>": {
+      "name": "pattern_name",
+      "role_group": "donor" | "creator" | null,
+      "colorPalettes": [{ "name": "...", "isArchived": false }],
+      "product": { "productId": "...", "priceId": "...", "price": 4.99 },
+      "affiliateCode": null
+    }
+  },
+  "flag": {
+    "layers": { "<id>": { "name": "...", "role_group": "..." } },
+    "color": { "<id>": { "color": "#xxxxxx", "name": "..." } }
+  }
+}
+```
+
+Current contents: 35+ patterns (stripes, checkerboard, symbols, etc.); 40+ flag layers; 30+ flag colors including special effects (rainbow, gold-glow, lava, neon, water).
+
+### 10.5 Flare / Privilege System (`src/server/Privilege.ts`)
+
+A **flare** is a string stored in the user's API profile that grants access to specific cosmetics. The server validates flares on every game join; clients only receive cosmetics they are entitled to.
+
+**Flare format:**
+
+| Flare string | Grants |
+|--------------|--------|
+| `pattern:*` | All patterns (unlocked) |
+| `pattern:{name}` | Specific pattern (no color palette) |
+| `pattern:{name}:{colorPaletteName}` | Specific pattern + specific color palette |
+| `color:{hexcode}` | Specific territory base color (6-digit hex without `#`; `#` is prepended during comparison) |
+
+**Validation flow:**
+1. Client sends `PlayerCosmeticRefs` (names only) in the `join` message.
+2. Server calls `Privilege.getPlayerCosmetics(refs, flares)`.
+3. Checker verifies: pattern exists in `cosmetics.json`, data is valid base64url, user has required flare(s), color palette not archived.
+4. Returns resolved `PlayerCosmetics` or an error.
+
+### 10.6 Purchase Flow (Stripe)
+
+1. User opens `TerritoryPatternsModal`, sees patterns marked `purchasable` (not owned, has `product`, not archived, matching `affiliateCode`).
+2. User clicks **Purchase** on a `PatternButton`.
+3. `Cosmetics.handlePurchase()` in `src/client/Cosmetics.ts` calls:
+   ```
+   POST /stripe/create-checkout-session
+   Headers: Authorization (JWT), X-Persistent-Id
+   Body: { priceId, hostname, colorPaletteName }
+   ```
+4. API (external, hosted separately) returns a Stripe checkout URL.
+5. Client redirects to Stripe checkout.
+6. Post-payment: Stripe webhook updates user's flares in the API database.
+7. Next game join, the server resolves the new flare and the cosmetic is available.
+
+The Stripe publishable key is exposed via `Config.stripePublishableKey()` (env var `STRIPE_PUBLISHABLE_KEY`).
+
+### 10.7 Ads System (`src/client/GutterAds.ts`)
+
+- Uses **Fuse network** ad platform.
+- Shown only on main site (not in iframes), only on screens ≥ 1400px wide.
+- **Hidden automatically** if the user owns `pattern:*` flare (i.e., any pattern owner is ad-free).
+- Two side-by-side gutter ad slots.
+
+### 10.8 Flags (Disabled)
+
+Flags are defined in `cosmetics.json` with 40+ layer definitions and 30+ colors, and the schema (`FlagSchema`) supports country codes (2-letter ISO) and `"!"` prefix for custom flags. However:
+
+```ts
+// Flashist AdaptatioN: disabling flags
+// cosmetics.flag = result.data;   ← this line is commented out in Privilege.ts
+```
+
+Flag data is never sent to clients. Do not build features relying on flags without re-enabling this.
+
+### 10.9 External API Endpoints
+
+The cosmetics and auth endpoints are served by a separate API server (not in this repo):
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/cosmetics.json` | Fetch cosmetics definitions |
+| GET | `/users/@me` | Get user profile including flares |
+| POST | `/login/discord` | Discord OAuth login |
+| POST | `/refresh` | Refresh JWT |
+| POST | `/stripe/create-checkout-session` | Initiate Stripe checkout |
+
+API base URL: determined by `getApiBase()` in `src/client/jwt.ts` (defaults to `https://api.{domain}`, overridable via localStorage on localhost).
