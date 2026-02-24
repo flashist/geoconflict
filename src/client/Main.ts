@@ -472,9 +472,17 @@ class Client {
         slider.addEventListener("input", () => updateSliderProgress(slider));
       });
 
-    checkReconnectSession().then((session) => {
-      if (session) this.showReconnectBanner(session);
-    });
+    FlashistFacade.instance
+      .checkExperimentFlag(
+        flashistConstants.experiments.RECONNECT_FLAG_NAME,
+        flashistConstants.experiments.RECONNECT_FLAG_VALUE,
+      )
+      .then((enabled) => {
+        if (!enabled) return;
+        checkReconnectSession().then((session) => {
+          if (session) this.showReconnectBanner(session);
+        });
+      });
 
     this.initializeFuseTag();
   }

@@ -22,6 +22,13 @@ export const flashistConstants = {
         Start: 1,
         Complete: 2,
         Fail: 3
+    },
+
+    experiments: {
+        // Yandex.Games remote flag for tab-crash reconnection.
+        // Set flag "reconnect" = "enabled" in the Yandex Games dashboard to activate.
+        RECONNECT_FLAG_NAME: "reconnect",
+        RECONNECT_FLAG_VALUE: "enabled",
     }
 };
 

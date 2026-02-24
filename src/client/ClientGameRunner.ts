@@ -36,6 +36,7 @@ import {
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
 import { saveReconnectSession } from "./ReconnectSession";
+import { flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
 import { getPersistentID } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import {
@@ -381,7 +382,16 @@ export class ClientGameRunner {
 
         this.hasJoined = true;
         if (!this.transport.isLocal) {
-          saveReconnectSession(this.lobby.gameID, this.lobby.clientID);
+          FlashistFacade.instance
+            .checkExperimentFlag(
+              flashistConstants.experiments.RECONNECT_FLAG_NAME,
+              flashistConstants.experiments.RECONNECT_FLAG_VALUE,
+            )
+            .then((enabled) => {
+              if (enabled) {
+                saveReconnectSession(this.lobby.gameID, this.lobby.clientID);
+              }
+            });
         }
         console.log("starting game!");
         for (const turn of message.turns) {
