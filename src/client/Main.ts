@@ -39,7 +39,7 @@ import { PublicLobby } from "./PublicLobby";
 import { SinglePlayerModal } from "./SinglePlayerModal";
 import { TerritoryPatternsModal } from "./TerritoryPatternsModal";
 import { TokenLoginModal } from "./TokenLoginModal";
-import { SendKickPlayerIntentEvent } from "./Transport";
+import { SendKickPlayerIntentEvent, SendWinnerEvent } from "./Transport";
 import { UserSettingModal } from "./UserSettingModal";
 import "./UsernameInput";
 import { UsernameInput } from "./UsernameInput";
@@ -107,6 +107,8 @@ export interface JoinLobbyEvent {
 
 class Client {
   private gameStop: (() => void) | null = null;
+  private gameHasStarted = false;
+  private gameHasEnded = false;
   private eventBus: EventBus = new EventBus();
 
   private usernameInput: UsernameInput | null = null;
@@ -204,6 +206,9 @@ class Client {
     window.addEventListener("beforeunload", () => {
       console.log("Browser is closing");
       if (this.gameStop !== null) {
+        if (this.gameHasStarted && !this.gameHasEnded) {
+          flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_ABANDON);
+        }
         this.gameStop();
       }
     });
@@ -224,6 +229,8 @@ class Client {
     if (!(gutterAds instanceof GutterAds))
       throw new Error("Missing gutter-ads");
     this.gutterAds = gutterAds;
+
+    this.eventBus.on(SendWinnerEvent, () => { this.gameHasEnded = true; });
 
     document.addEventListener("join-lobby", this.handleJoinLobby.bind(this));
     document.addEventListener("leave-lobby", this.handleLeaveLobby.bind(this));
@@ -559,6 +566,8 @@ class Client {
   private async handleJoinLobby(event: CustomEvent<JoinLobbyEvent>) {
     const lobby = event.detail;
     console.log(`joining lobby ${lobby.gameID}`);
+    this.gameHasStarted = false;
+    this.gameHasEnded = false;
     if (this.gameStop !== null) {
       console.log("joining lobby, stopping existing game");
       this.gameStop();
@@ -636,6 +645,7 @@ class Client {
         this.gutterAds.hide();
       },
       () => {
+        this.gameHasStarted = true;
         this.joinModal.close();
         this.publicLobby.stop();
         incrementGamesPlayed();

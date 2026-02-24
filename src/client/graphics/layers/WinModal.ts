@@ -28,6 +28,7 @@ export class WinModal extends LitElement implements Layer {
 
   private hasShownDeathModal = false;
   private missionProgressed = false;
+  private eliminationTracked = false;
 
   @state()
   isVisible = false;
@@ -233,10 +234,17 @@ export class WinModal extends LitElement implements Layer {
     FlashistFacade.instance.changeHref(FlashistFacade.instance.rootPathname);
   }
 
-  init() { }
+  init() {
+    this.hasShownDeathModal = false;
+    this.eliminationTracked = false;
+  }
 
   tick() {
     const myPlayer = this.game.myPlayer();
+    if (!this.eliminationTracked && myPlayer && !myPlayer.isAlive() && !this.game.inSpawnPhase() && myPlayer.hasSpawned()) {
+      this.eliminationTracked = true;
+      flashist_logEventAnalytics(flashistConstants.analyticEvents.PLAYER_ELIMINATED, this.game.ticks());
+    }
     if (
       !this.hasShownDeathModal &&
       myPlayer &&
@@ -257,7 +265,8 @@ export class WinModal extends LitElement implements Layer {
 
         //
         flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.GAME_END
+          flashistConstants.analyticEvents.GAME_END,
+          this.game.ticks()
         );
 
         this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
@@ -292,17 +301,36 @@ export class WinModal extends LitElement implements Layer {
             new SendWinnerEvent(["player", winnerClient], wu.allPlayersStats),
           );
         }
+
+        //
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.GAME_END,
+          this.game.ticks()
+        );
+
         if (
           winnerClient !== null &&
           winnerClient === this.game.myPlayer()?.clientID()
         ) {
           this._title = translateText("win_modal.you_won");
           this.isWin = true;
+
+          //
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.GAME_WIN
+          );
+
         } else {
           this._title = translateText("win_modal.other_won", {
             player: winner.name(),
           });
           this.isWin = false;
+
+          //
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.GAME_LOSS
+          );
+
         }
         this.show();
       }

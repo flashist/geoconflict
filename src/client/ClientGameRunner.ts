@@ -374,7 +374,8 @@ export class ClientGameRunner {
 
         //
         flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.GAME_START
+          flashistConstants.analyticEvents.GAME_START,
+          message.gameStartInfo.players.length
         );
 
         this.hasJoined = true;
