@@ -15,6 +15,7 @@ import { getUserMe } from "../../jwt";
 import { SendWinnerEvent } from "../../Transport";
 import { Layer } from "./Layer";
 import { flashist_logEventAnalytics, flashistConstants, FlashistFacade } from "../../flashist/FlashistFacade";
+import { clearReconnectSession } from "../../ReconnectSession";
 import {
   getNextMissionLevel,
   markMissionCompleted,
@@ -253,6 +254,7 @@ export class WinModal extends LitElement implements Layer {
       myPlayer.hasSpawned()
     ) {
       this.hasShownDeathModal = true;
+      clearReconnectSession();
       this._title = translateText("win_modal.died");
       this.show();
     }
@@ -290,6 +292,7 @@ export class WinModal extends LitElement implements Layer {
             flashistConstants.analyticEvents.GAME_LOSS
           );
         }
+        clearReconnectSession();
         this.show();
 
       } else {
@@ -332,6 +335,7 @@ export class WinModal extends LitElement implements Layer {
           );
 
         }
+        clearReconnectSession();
         this.show();
       }
       this.handleMissionProgress();

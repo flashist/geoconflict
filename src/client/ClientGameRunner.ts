@@ -35,6 +35,7 @@ import {
   MouseUpEvent,
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
+import { saveReconnectSession } from "./ReconnectSession";
 import { getPersistentID } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import {
@@ -379,6 +380,9 @@ export class ClientGameRunner {
         );
 
         this.hasJoined = true;
+        if (!this.transport.isLocal) {
+          saveReconnectSession(this.lobby.gameID, this.lobby.clientID);
+        }
         console.log("starting game!");
         for (const turn of message.turns) {
           if (turn.turnNumber < this.turnsSeen) {

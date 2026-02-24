@@ -216,6 +216,11 @@ export async function startWorker() {
     });
   });
 
+  app.get("/api/game/:id/active", (req, res) => {
+    const game = gm.game(req.params.id);
+    res.json({ active: game !== null && game.isActive() });
+  });
+
   app.get("/api/game/:id", async (req, res) => {
     const game = gm.game(req.params.id);
     if (game === null) {
