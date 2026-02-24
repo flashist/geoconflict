@@ -205,7 +205,6 @@ export class ClientGameRunner {
 
   private turnsSeen = 0;
   private hasJoined = false;
-  private gameStartTime = 0;
   private lastMousePosition: { x: number; y: number } | null = null;
 
   private lastMessageTime: number = 0;
@@ -374,7 +373,6 @@ export class ClientGameRunner {
       if (message.type === "start") {
 
         //
-        this.gameStartTime = Date.now();
         flashist_logEventAnalytics(
           flashistConstants.analyticEvents.GAME_START,
           message.gameStartInfo.players.length

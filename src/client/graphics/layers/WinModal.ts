@@ -298,17 +298,36 @@ export class WinModal extends LitElement implements Layer {
             new SendWinnerEvent(["player", winnerClient], wu.allPlayersStats),
           );
         }
+
+        //
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.GAME_END,
+          this.game.ticks()
+        );
+
         if (
           winnerClient !== null &&
           winnerClient === this.game.myPlayer()?.clientID()
         ) {
           this._title = translateText("win_modal.you_won");
           this.isWin = true;
+
+          //
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.GAME_WIN
+          );
+
         } else {
           this._title = translateText("win_modal.other_won", {
             player: winner.name(),
           });
           this.isWin = false;
+
+          //
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.GAME_LOSS
+          );
+
         }
         this.show();
       }
