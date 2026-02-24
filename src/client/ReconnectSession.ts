@@ -46,8 +46,10 @@ export async function checkReconnectSession(): Promise<ReconnectSession | null> 
     const { active } = (await resp.json()) as { active: boolean };
     if (active) return session;
   } catch {
-    /* network error — don't clear, try later */
-    return session;
+    // Network error: server unreachable. Don't clear the session (preserve it
+    // for the next page load), but also don't show the banner — clicking
+    // "Rejoin" while offline would silently fail.
+    return null;
   }
   clearReconnectSession();
   return null;

@@ -491,6 +491,7 @@ class Client {
     const banner = document.createElement("div");
     banner.id = "reconnect-banner";
     banner.className = "reconnect-banner";
+    banner.setAttribute("role", "alert");
 
     const msg = document.createElement("span");
     msg.textContent = translateText("reconnect.prompt");
@@ -510,6 +511,7 @@ class Client {
 
     const dismissBtn = document.createElement("button");
     dismissBtn.textContent = "✕";
+    dismissBtn.setAttribute("aria-label", "Dismiss");
     dismissBtn.addEventListener("click", () => {
       clearReconnectSession();
       banner.remove();
@@ -619,6 +621,7 @@ class Client {
     console.log(`joining lobby ${lobby.gameID}`);
     this.gameHasStarted = false;
     this.gameHasEnded = false;
+    document.getElementById("reconnect-banner")?.remove();
     if (this.gameStop !== null) {
       console.log("joining lobby, stopping existing game");
       this.gameStop();

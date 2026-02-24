@@ -36,7 +36,6 @@ import {
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
 import { saveReconnectSession } from "./ReconnectSession";
-import { flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
 import { getPersistentID } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import {
@@ -55,7 +54,7 @@ import {
   reportPlacement,
 } from "./leaderboard/LeaderboardReporter";
 import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
-import { flashist_logEventAnalytics, flashistConstants } from "./flashist/FlashistFacade";
+import { flashist_logEventAnalytics, flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
 
 export interface LobbyConfig {
   serverConfig: ServerConfig;
