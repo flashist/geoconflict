@@ -8,12 +8,34 @@ Additionally, Yandex Games promotes titles that generate more revenue per player
 
 ---
 
+## Experiments Policy
+
+Yandex Games provides a built-in A/B experiments API (https://yandex.ru/dev/games/doc/ru/sdk/sdk-config) that allows features to be tested on a subset of players before full rollout.
+
+**Default rule: if a feature is additive and does not break backward compatibility, it must be tested via the Yandex experiments API before full rollout.**
+
+A feature is considered suitable for experiments if:
+- It adds something new without removing or changing existing behavior for players who are not in the experiment group
+- The previous experience remains fully intact for the control group
+- Running two versions in parallel does not create fairness issues or support complexity
+
+Features are **excluded** from experiments if:
+- They are part of the analytics/measurement layer itself (experimenting on the tool you use to measure results is circular)
+- Rolling back or maintaining two parallel versions would require disproportionate additional engineering work
+- The change affects all users uniformly by nature (e.g. rendering performance fixes)
+- The feature involves an economy or pricing model where two parallel versions would create player fairness issues
+
+Each task below is marked with its experiments status and reasoning.
+
+---
+
 ## Sprint 1 — Stop the Bleeding
 
 **Goal:** Reduce the ghost rate (30–50% of lobby players never becoming active) and crash-driven abandonment. All items are small and can ship within one week.
 
 ### 1. Analytics — Session & Match Event Tracking
 **Effort:** 1–2 days
+**Experiments:** ❌ Excluded — this is the measurement layer itself. Experimenting on analytics would make results unreadable.
 
 Right now decisions are made without data. A lightweight event system is the foundation for measuring whether anything else works.
 
@@ -34,6 +56,7 @@ The choice of storage and tooling is up to the developer — a simple self-hoste
 
 ### 2. Tab Crash Reconnection
 **Effort:** 2–3 days
+**Experiments:** ✅ Test via Yandex experiments API — the reconnection prompt is purely additive. Players not in the experiment group simply never see the prompt and experience no change. Success metric: match completion rate for the experiment group vs control group.
 
 A significant portion of the ghost rate is likely players whose browser tab crashes mid-match, especially on mobile. Currently they have no way back in.
 
@@ -51,6 +74,7 @@ The codebase already tracks player disconnection state server-side via `MarkDisc
 
 ### 3. Mobile Quick Wins
 **Effort:** 2–3 days
+**Experiments:** ❌ Excluded — applying different rendering settings to a subset of mobile users would produce inconsistent crash data and make analytics results unreadable. Ship to all mobile users and measure impact via analytics (Task 1) instead.
 
 Mobile players are abandoning or crashing at a disproportionate rate. Several high-impact fixes require only configuration or conditional rendering changes — no architecture work.
 
@@ -71,6 +95,7 @@ The developer is welcome to identify and implement other low-risk mobile optimiz
 
 ### 4. Tutorial — Guided First Bot Match
 **Effort:** 1–2 weeks
+**Experiments:** ✅ Test via Yandex experiments API — the tutorial is purely additive and only triggers for first-time players. Players not in the experiment group simply don't see it. Success metric: second-session rate (do players who completed the tutorial come back for a second match?) and match completion rate for new players.
 
 Currently there is no tutorial. A first-time player opening Geoconflict faces a complex map with no context — territory expansion, economy, alliances, nukes — and will close the tab within 90 seconds without guidance.
 
@@ -94,6 +119,7 @@ The singleplayer mission infrastructure is already built. A tutorial is essentia
 
 ### 5. Deep Mobile Rendering Optimization
 **Effort:** 3–6 weeks
+**Experiments:** ❌ Excluded — rendering architecture changes affect all users uniformly by nature, and maintaining two parallel rendering pipelines would require disproportionate engineering effort. Ship to all users and measure via analytics.
 
 The underlying problem for mid-range Android devices is that Pixi.js canvas rendering with multiple layers, real-time unit movement, and 32 tile types is genuinely heavy. The `TerrainLayer` and `TerritoryLayer` redrawing on every tick is the likely primary culprit for tab crashes.
 
@@ -112,6 +138,7 @@ Proper fixes include:
 
 ### 6. Rewarded Ads — Minimal Version
 **Effort:** 2–3 days
+**Experiments:** ✅ Test via Yandex experiments API — the post-match rewarded ad prompt is purely additive. Players not in the experiment group see the normal post-match screen. Success metric: rewarded ad engagement rate and session length comparison between groups.
 
 Rewarded ads can add 10–20% to ad-generated revenue and — critically — signal monetization activity to Yandex's promotion algorithm. The Yandex SDK is already partially integrated.
 
@@ -126,6 +153,7 @@ This validates whether players engage with rewarded ads at all. That data inform
 
 ### 7. Leaderboard — Core System
 **Effort:** 1–2 weeks
+**Experiments:** ✅ Test via Yandex experiments API — the leaderboard is a new UI surface that can be shown to an experiment group while the control group continues using (or not seeing) the existing Yandex built-in. Success metric: Yandex login conversion rate and return visit rate between groups.
 
 The current Yandex built-in leaderboard is buggy and causes players to lose their scores. A robust server-side leaderboard builds trust and creates a meaningful reason to keep playing and to log in with Yandex.
 
@@ -140,7 +168,7 @@ The current Yandex built-in leaderboard is buggy and causes players to lose thei
 
 **Score metric:** the developer should propose the most appropriate metric to rank players on, based on the existing stats tracking system (`Stats.ts`). Likely candidates are total tiles conquered, matches won, or a weighted combination. This decision should be discussed before implementation begins.
 
-**Architectural requirement:** the player name row in the leaderboard must be designed from the start to accommodate future additions next to the name — specifically a verification mark (Task 8) and leaderboard rank badges (Task 10), and eventually nickname styling (Task 8a). Build the row with this in mind rather than retrofitting it later. Placeholder space is sufficient at this stage.
+**Architectural requirement:** the player name row in the leaderboard must be designed from the start to accommodate future additions next to the name — specifically a verification mark (Task 8), leaderboard rank badges (Task 10), and nickname styling (Task 8a). Build the row with this in mind rather than retrofitting it later. Placeholder space is sufficient at this stage.
 
 **Key requirement:** the system must be robust. Players must never lose their scores due to a bug or data issue. This is the primary reason we are replacing the Yandex built-in.
 
@@ -148,6 +176,7 @@ The current Yandex built-in leaderboard is buggy and causes players to lose thei
 
 ### 8. Verified Nickname — Purchase & Review System
 **Effort:** 1 week
+**Experiments:** ✅ Test via Yandex experiments API — the verification mark and purchase option are additive. Players not in the experiment group see no change. Success metric: purchase conversion rate and whether verified nickname owners show higher return visit rates than non-owners.
 
 Currently non-logged-in players are `AnonXXXX`. Yandex-logged-in players use their Yandex username. A paid verified nickname gives players identity expression while respecting Yandex's strict UGC rules through manual review. Crucially, verified nicknames must be visually distinct from regular names — this is what makes the purchase socially motivating, not just functionally useful.
 
@@ -174,6 +203,7 @@ Currently non-logged-in players are `AnonXXXX`. Yandex-logged-in players use the
 
 ### 9. Re-enable Flags
 **Effort:** 1 week
+**Experiments:** ✅ Test via Yandex experiments API — flags are purely additive. Players not in the experiment group see no flags at all (current behavior). Success metric: Yandex login conversion rate for the experiment group vs control.
 
 Flag data is fully defined in `cosmetics.json` (40+ layer definitions, 30+ colors including special effects). The feature is disabled by a single commented-out line in `Privilege.ts`. Country flags are a deeply personal feature in a territorial strategy game.
 
@@ -189,6 +219,7 @@ Proposed approach:
 
 ### 10. Leaderboard — Rewards Layer
 **Effort:** 3–5 days
+**Experiments:** ✅ Test via Yandex experiments API — badges and rank icons are additive display elements. Players not in the experiment group see the leaderboard without badges. Success metric: return visit rate and match frequency for top-ranked players in the experiment group vs control.
 
 Once the core leaderboard system (Task 7) is live and players are engaging with it, add a reward layer that gives top finishers visible recognition.
 
@@ -209,6 +240,7 @@ The exact visual design of badges and icons is a separate design task. The devel
 
 ### 8a. Nickname Styling System
 **Effort:** 1–2 weeks
+**Experiments:** ✅ Test via Yandex experiments API — styling options are purely additive and only visible to players who have already purchased a verified nickname. Players not in the experiment group simply don't see the styling purchase options. Success metric: upsell conversion rate among verified nickname owners.
 
 **Depends on:** Task 8 (verified nickname purchase and centralized name rendering component must exist first)
 
@@ -236,6 +268,7 @@ Once players can purchase a verified nickname (Task 8), offer additional purchas
 
 ### 11. Coin Economy + Rewarded Ads Full Version
 **Effort:** 3–4 weeks
+**Experiments:** ❌ Excluded — running two parallel economic models creates player fairness issues (players in different groups earn and spend at different rates) and significant support complexity. Ship to all users simultaneously.
 
 Once rewarded ads are validated in Sprint 4, build the proper economy layer using real engagement data to set earn and spend rates.
 
@@ -251,6 +284,7 @@ Design:
 
 ### 12. Clans
 **Effort:** 3–4 weeks
+**Experiments:** ✅ Test via Yandex experiments API — clan creation, clan tags, and auto-team placement are additive. Players not in the experiment group see no clan-related UI. Success metric: session frequency and match completion rate for clan members vs non-clan players.
 
 The highest long-term retention upside, but requires healthy lobby fill to feel meaningful. If the auto-team placement mechanic rarely triggers because clan members can't find each other in matches, the feature will feel broken.
 
@@ -265,6 +299,7 @@ Gate this on lobby health: only build clans when analytics shows lobbies are con
 
 ### 13. Replay Access as Premium Feature
 **Effort:** 3–5 days
+**Experiments:** ❌ Excluded — depends on Task 11's tier and pricing system. Introducing two parallel pricing models during an experiment creates fairness and support issues. Ship alongside or after Task 11.
 
 The replay system is fully built. Extended replay history is a natural premium feature for competitive players.
 
@@ -277,19 +312,19 @@ Design:
 
 ## Complete Priority Table
 
-| # | Item | Effort | Primary Benefit | Sprint |
-|---|------|--------|-----------------|--------|
-| 1 | Analytics — session & match event tracking | 1–2 days | Informs everything else, baseline measurement | 1 |
-| 2 | Tab crash reconnection | 2–3 days | Reduces ghost rate, more ad impressions | 1 |
-| 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | Reduces crash abandonment, more ad impressions | 1 |
-| 4 | Tutorial — guided first bot match | 1–2 weeks | Biggest new player conversion lever | 2 |
-| 5 | Deep mobile rendering optimization | 3–6 weeks | Only if analytics confirms mobile worth the investment | 3 |
-| 6 | Rewarded ads — minimal version (no coin economy) | 2–3 days | Yandex algorithm boost, first monetization signal | 4 |
-| 7 | Leaderboard — core system (global + monthly, auth gate) | 1–2 weeks | Replaces buggy Yandex built-in, drives Yandex login conversion | 4 |
-| 8 | Verified nickname — purchase & review system | 1 week | Direct revenue, social motivation via verification mark | 4 |
-| 9 | Re-enable flags | 1 week | Identity feature, drives Yandex login, upsell surface | 4 |
-| 10 | Leaderboard — rewards layer (badges, collectible period awards) | 3–5 days | Competitive motivation, social proof, long-term prestige | 5 |
-| 8a | Nickname styling system (backgrounds, borders, text color) | 1–2 weeks | ARPU upsell for nickname buyers, social visibility | 5 |
-| 11 | Coin economy + rewarded ads full version | 3–4 weeks | Core F2P engagement loop | 5 |
-| 12 | Clans | 3–4 weeks | Long-term retention, social monetization | 5 |
-| 13 | Replay access as premium feature | 3–5 days | ARPU increase, needs tier system from #11 first | 5 |
+| # | Item | Effort | Experiments | Primary Benefit | Sprint |
+|---|------|--------|-------------|-----------------|--------|
+| 1 | Analytics — session & match event tracking | 1–2 days | ❌ Excluded | Informs everything else, baseline measurement | 1 |
+| 2 | Tab crash reconnection | 2–3 days | ✅ Test | Reduces ghost rate, more ad impressions | 1 |
+| 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
+| 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
+| 5 | Deep mobile rendering optimization | 3–6 weeks | ❌ Excluded | Only if analytics confirms mobile worth the investment | 3 |
+| 6 | Rewarded ads — minimal version (no coin economy) | 2–3 days | ✅ Test | Yandex algorithm boost, first monetization signal | 4 |
+| 7 | Leaderboard — core system (global + monthly, auth gate) | 1–2 weeks | ✅ Test | Replaces buggy Yandex built-in, drives Yandex login conversion | 4 |
+| 8 | Verified nickname — purchase & review system | 1 week | ✅ Test | Direct revenue, social motivation via verification mark | 4 |
+| 9 | Re-enable flags | 1 week | ✅ Test | Identity feature, drives Yandex login, upsell surface | 4 |
+| 10 | Leaderboard — rewards layer (badges, collectible period awards) | 3–5 days | ✅ Test | Competitive motivation, social proof, long-term prestige | 5 |
+| 8a | Nickname styling system (backgrounds, borders, text color) | 1–2 weeks | ✅ Test | ARPU upsell for nickname buyers, social visibility | 5 |
+| 11 | Coin economy + rewarded ads full version | 3–4 weeks | ❌ Excluded | Core F2P engagement loop | 5 |
+| 12 | Clans | 3–4 weeks | ✅ Test | Long-term retention, social monetization | 5 |
+| 13 | Replay access as premium feature | 3–5 days | ❌ Excluded | ARPU increase, needs tier system from #11 first | 5 |
