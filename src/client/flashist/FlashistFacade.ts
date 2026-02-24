@@ -1,9 +1,6 @@
-import { LitElement } from "lit";
 import { LangSelector } from "../LangSelector";
 import { GameAnalytics } from "gameanalytics";
-import { boolean } from "zod";
 import { GameEnv } from "../../core/configuration/Config";
-import { error } from "console";
 
 //
 export const flashistConstants = {
@@ -154,7 +151,7 @@ export class FlashistFacade {
 
         // Platform custom dimensions
         const isMobile = window.matchMedia("(pointer: coarse)").matches || /Android|iPhone|iPad/i.test(navigator.userAgent);
-        const isYandex = typeof (window as any).YaGames !== "undefined";
+        const isYandex = this.yaGamesAvailable;
         GameAnalytics.setCustomDimension01(isMobile ? "mobile" : "desktop");
         GameAnalytics.setCustomDimension02(isYandex ? "yandex" : "web");
 

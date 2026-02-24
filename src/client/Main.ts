@@ -107,6 +107,7 @@ export interface JoinLobbyEvent {
 
 class Client {
   private gameStop: (() => void) | null = null;
+  private gameHasStarted = false;
   private gameHasEnded = false;
   private eventBus: EventBus = new EventBus();
 
@@ -205,7 +206,7 @@ class Client {
     window.addEventListener("beforeunload", () => {
       console.log("Browser is closing");
       if (this.gameStop !== null) {
-        if (!this.gameHasEnded) {
+        if (this.gameHasStarted && !this.gameHasEnded) {
           flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_ABANDON);
         }
         this.gameStop();
@@ -565,6 +566,7 @@ class Client {
   private async handleJoinLobby(event: CustomEvent<JoinLobbyEvent>) {
     const lobby = event.detail;
     console.log(`joining lobby ${lobby.gameID}`);
+    this.gameHasStarted = false;
     this.gameHasEnded = false;
     if (this.gameStop !== null) {
       console.log("joining lobby, stopping existing game");
@@ -643,6 +645,7 @@ class Client {
         this.gutterAds.hide();
       },
       () => {
+        this.gameHasStarted = true;
         this.joinModal.close();
         this.publicLobby.stop();
         incrementGamesPlayed();

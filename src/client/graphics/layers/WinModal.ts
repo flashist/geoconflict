@@ -234,11 +234,14 @@ export class WinModal extends LitElement implements Layer {
     FlashistFacade.instance.changeHref(FlashistFacade.instance.rootPathname);
   }
 
-  init() { }
+  init() {
+    this.hasShownDeathModal = false;
+    this.eliminationTracked = false;
+  }
 
   tick() {
     const myPlayer = this.game.myPlayer();
-    if (!this.eliminationTracked && myPlayer && !myPlayer.isAlive() && myPlayer.hasSpawned()) {
+    if (!this.eliminationTracked && myPlayer && !myPlayer.isAlive() && !this.game.inSpawnPhase() && myPlayer.hasSpawned()) {
       this.eliminationTracked = true;
       flashist_logEventAnalytics(flashistConstants.analyticEvents.PLAYER_ELIMINATED, this.game.ticks());
     }
