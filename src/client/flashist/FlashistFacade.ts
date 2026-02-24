@@ -15,7 +15,9 @@ export const flashistConstants = {
         GAME_START: "GAME_START",
         GAME_END: "GAME_END",
         GAME_WIN: "GAME_WIN",
-        GAME_LOSS: "GAME_LOSS"
+        GAME_LOSS: "GAME_LOSS",
+        GAME_ABANDON: "GAME_ABANDON",
+        PLAYER_ELIMINATED: "PLAYER_ELIMINATED"
     },
 
     progressionEventStatus: {
@@ -149,6 +151,12 @@ export class FlashistFacade {
         // Setting up Game Analytics
         GameAnalytics.setEnabledInfoLog(true);
         GameAnalytics.setEnabledVerboseLog(true);
+
+        // Platform custom dimensions
+        const isMobile = window.matchMedia("(pointer: coarse)").matches || /Android|iPhone|iPad/i.test(navigator.userAgent);
+        const isYandex = typeof (window as any).YaGames !== "undefined";
+        GameAnalytics.setCustomDimension01(isMobile ? "mobile" : "desktop");
+        GameAnalytics.setCustomDimension02(isYandex ? "yandex" : "web");
 
         // GameAnalytics.configureBuild(this.analyticsConfig.buildId);
         GameAnalytics.initialize("a1f0fb4335fe32696c3b76eb49612ead", "ba57db678bc9a1181bde9430bad83c6fa3b71862");

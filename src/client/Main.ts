@@ -204,6 +204,7 @@ class Client {
     window.addEventListener("beforeunload", () => {
       console.log("Browser is closing");
       if (this.gameStop !== null) {
+        flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_ABANDON);
         this.gameStop();
       }
     });

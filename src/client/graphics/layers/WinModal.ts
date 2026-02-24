@@ -28,6 +28,7 @@ export class WinModal extends LitElement implements Layer {
 
   private hasShownDeathModal = false;
   private missionProgressed = false;
+  private eliminationTracked = false;
 
   @state()
   isVisible = false;
@@ -237,6 +238,10 @@ export class WinModal extends LitElement implements Layer {
 
   tick() {
     const myPlayer = this.game.myPlayer();
+    if (!this.eliminationTracked && myPlayer && !myPlayer.isAlive() && myPlayer.hasSpawned()) {
+      this.eliminationTracked = true;
+      flashist_logEventAnalytics(flashistConstants.analyticEvents.PLAYER_ELIMINATED, this.game.ticks());
+    }
     if (
       !this.hasShownDeathModal &&
       myPlayer &&
@@ -257,7 +262,8 @@ export class WinModal extends LitElement implements Layer {
 
         //
         flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.GAME_END
+          flashistConstants.analyticEvents.GAME_END,
+          this.game.ticks()
         );
 
         this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
