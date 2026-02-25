@@ -521,6 +521,10 @@
     "spectate": "Spectate",
     "wishlist": "Wishlist on Steam!"
   },
+  "reconnect": {
+    "prompt": "Your match is still in progress!",
+    "rejoin": "Rejoin"
+  },
   "leaderboard": {
     "title": "Leaderboard",
     "hide": "Hide",

@@ -657,3 +657,18 @@ news-button .active button::after {
 .remove-player-btn:hover {
   background: #ff6666;
 }
+
+.reconnect-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: rgba(30, 60, 120, 0.92);
+  color: white;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}

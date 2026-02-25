@@ -35,6 +35,7 @@ import {
   MouseUpEvent,
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
+import { saveReconnectSession } from "./ReconnectSession";
 import { getPersistentID } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import {
@@ -53,7 +54,7 @@ import {
   reportPlacement,
 } from "./leaderboard/LeaderboardReporter";
 import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
-import { flashist_logEventAnalytics, flashistConstants } from "./flashist/FlashistFacade";
+import { flashist_logEventAnalytics, flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
 
 export interface LobbyConfig {
   serverConfig: ServerConfig;
@@ -379,6 +380,18 @@ export class ClientGameRunner {
         );
 
         this.hasJoined = true;
+        if (!this.transport.isLocal) {
+          FlashistFacade.instance
+            .checkExperimentFlag(
+              flashistConstants.experiments.RECONNECT_FLAG_NAME,
+              flashistConstants.experiments.RECONNECT_FLAG_VALUE,
+            )
+            .then((enabled) => {
+              if (enabled) {
+                saveReconnectSession(this.lobby.gameID, this.lobby.clientID);
+              }
+            });
+        }
         console.log("starting game!");
         for (const turn of message.turns) {
           if (turn.turnNumber < this.turnsSeen) {

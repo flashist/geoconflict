@@ -15,6 +15,11 @@ import {
 import { UserSettings } from "../core/game/UserSettings";
 import "./AccountModal";
 import { joinLobby } from "./ClientGameRunner";
+import {
+  checkReconnectSession,
+  clearReconnectSession,
+  ReconnectSession,
+} from "./ReconnectSession";
 import { fetchCosmetics } from "./Cosmetics";
 import "./DarkModeButton";
 import { DarkModeButton } from "./DarkModeButton";
@@ -467,7 +472,55 @@ class Client {
         slider.addEventListener("input", () => updateSliderProgress(slider));
       });
 
+    FlashistFacade.instance
+      .checkExperimentFlag(
+        flashistConstants.experiments.RECONNECT_FLAG_NAME,
+        flashistConstants.experiments.RECONNECT_FLAG_VALUE,
+      )
+      .then((enabled) => {
+        if (!enabled) return;
+        checkReconnectSession().then((session) => {
+          if (session) this.showReconnectBanner(session);
+        });
+      });
+
     this.initializeFuseTag();
+  }
+
+  private showReconnectBanner(session: ReconnectSession): void {
+    const banner = document.createElement("div");
+    banner.id = "reconnect-banner";
+    banner.className = "reconnect-banner";
+    banner.setAttribute("role", "alert");
+
+    const msg = document.createElement("span");
+    msg.textContent = translateText("reconnect.prompt");
+
+    const rejoinBtn = document.createElement("button");
+    rejoinBtn.textContent = translateText("reconnect.rejoin");
+    rejoinBtn.addEventListener("click", () => {
+      banner.remove();
+      document.dispatchEvent(
+        new CustomEvent("join-lobby", {
+          detail: { clientID: session.clientID, gameID: session.gameID },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    });
+
+    const dismissBtn = document.createElement("button");
+    dismissBtn.textContent = "✕";
+    dismissBtn.setAttribute("aria-label", "Dismiss");
+    dismissBtn.addEventListener("click", () => {
+      clearReconnectSession();
+      banner.remove();
+    });
+
+    banner.appendChild(msg);
+    banner.appendChild(rejoinBtn);
+    banner.appendChild(dismissBtn);
+    document.body.prepend(banner);
   }
 
   private handleHash() {
@@ -568,6 +621,7 @@ class Client {
     console.log(`joining lobby ${lobby.gameID}`);
     this.gameHasStarted = false;
     this.gameHasEnded = false;
+    document.getElementById("reconnect-banner")?.remove();
     if (this.gameStop !== null) {
       console.log("joining lobby, stopping existing game");
       this.gameStop();
@@ -750,6 +804,7 @@ class Client {
     console.log("leaving lobby, cancelling game");
     this.gameStop();
     this.gameStop = null;
+    clearReconnectSession();
     this.gutterAds.hide();
     this.publicLobby.leaveLobby();
   }
