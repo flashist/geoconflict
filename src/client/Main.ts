@@ -491,9 +491,10 @@ class Client {
   }
 
   private showReconnectBanner(session: ReconnectSession): void {
-    (document.querySelector("reconnect-modal") as ReconnectModal)?.show(
-      session,
-    );
+    const modal = document.querySelector("reconnect-modal");
+    if (modal instanceof ReconnectModal) {
+      modal.show(session);
+    }
   }
 
   private handleHash() {
@@ -594,7 +595,10 @@ class Client {
     console.log(`joining lobby ${lobby.gameID}`);
     this.gameHasStarted = false;
     this.gameHasEnded = false;
-    (document.querySelector("reconnect-modal") as ReconnectModal)?.hide();
+    const reconnectModal = document.querySelector("reconnect-modal");
+    if (reconnectModal instanceof ReconnectModal) {
+      reconnectModal.hide();
+    }
     if (this.gameStop !== null) {
       console.log("joining lobby, stopping existing game");
       this.gameStop();

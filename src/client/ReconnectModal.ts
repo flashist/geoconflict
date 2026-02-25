@@ -6,6 +6,7 @@ import { clearReconnectSession, ReconnectSession } from "./ReconnectSession";
 @customElement("reconnect-modal")
 export class ReconnectModal extends LitElement {
   @state() private isVisible = false;
+  @state() private mode: "offer" | "connecting" | "failed" = "offer";
   private session: ReconnectSession | null = null;
 
   static styles = css`
@@ -57,24 +58,28 @@ export class ReconnectModal extends LitElement {
         background-color 0.15s,
         transform 0.1s;
     }
-    button:hover {
+    button:not(:disabled):hover {
       transform: translateY(-1px);
     }
-    button:active {
+    button:not(:disabled):active {
       transform: translateY(1px);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
     .btn-rejoin {
       background: rgba(37, 99, 235, 0.8);
       color: white;
     }
-    .btn-rejoin:hover {
+    .btn-rejoin:not(:disabled):hover {
       background: rgba(37, 99, 235, 1);
     }
     .btn-dismiss {
       background: rgba(100, 100, 120, 0.5);
       color: white;
     }
-    .btn-dismiss:hover {
+    .btn-dismiss:not(:disabled):hover {
       background: rgba(100, 100, 120, 0.75);
     }
     @keyframes fadeIn {
@@ -88,16 +93,38 @@ export class ReconnectModal extends LitElement {
   `;
 
   render() {
+    const isFailed = this.mode === "failed";
+    const isConnecting = this.mode === "connecting";
+    const title = isFailed
+      ? translateText("reconnect.failed_title")
+      : translateText("reconnect.title");
+    const prompt = isFailed
+      ? translateText("reconnect.failed_prompt")
+      : translateText("reconnect.prompt");
+    const rejoinLabel = isConnecting
+      ? translateText("reconnect.connecting")
+      : translateText("reconnect.rejoin");
+
     return html`
       <div class="modal-overlay ${this.isVisible ? "visible" : ""}">
         <div class="modal-box">
-          <h2>${translateText("reconnect.title")}</h2>
-          <p>${translateText("reconnect.prompt")}</p>
+          <h2>${title}</h2>
+          <p>${prompt}</p>
           <div class="buttons">
-            <button class="btn-rejoin" @click=${this._handleRejoin}>
-              ${translateText("reconnect.rejoin")}
-            </button>
-            <button class="btn-dismiss" @click=${this._handleDismiss}>
+            ${!isFailed
+              ? html`<button
+                  class="btn-rejoin"
+                  ?disabled=${isConnecting}
+                  @click=${this._handleRejoin}
+                >
+                  ${rejoinLabel}
+                </button>`
+              : ""}
+            <button
+              class="btn-dismiss"
+              ?disabled=${isConnecting}
+              @click=${this._handleDismiss}
+            >
               ${translateText("reconnect.dismiss")}
             </button>
           </div>
@@ -114,14 +141,38 @@ export class ReconnectModal extends LitElement {
 
   public hide(): void {
     this.isVisible = false;
+    this.mode = "offer";
     this.session = null;
     this.requestUpdate();
   }
 
-  private _handleRejoin(): void {
+  private async _handleRejoin(): Promise<void> {
     const session = this.session;
-    this.hide();
     if (!session) return;
+
+    this.mode = "connecting";
+    this.requestUpdate();
+
+    try {
+      const resp = await fetch(`/api/game/${session.gameID}/active`);
+      const body = resp.ok
+        ? ((await resp.json()) as { active: boolean })
+        : { active: false };
+      if (!body.active) {
+        clearReconnectSession();
+        this.mode = "failed";
+        this.requestUpdate();
+        return;
+      }
+    } catch {
+      // Network unreachable — treat as failure
+      clearReconnectSession();
+      this.mode = "failed";
+      this.requestUpdate();
+      return;
+    }
+
+    // Game is still active — hand off to Main.ts (which will call modal.hide())
     document.dispatchEvent(
       new CustomEvent("join-lobby", {
         detail: { clientID: session.clientID, gameID: session.gameID },
@@ -134,5 +185,22 @@ export class ReconnectModal extends LitElement {
   private _handleDismiss(): void {
     clearReconnectSession();
     this.hide();
+  }
+
+  private _onReconnectFailed = () => {
+    clearReconnectSession();
+    this.mode = "failed";
+    this.isVisible = true;
+    this.requestUpdate();
+  };
+
+  connectedCallback() {
+    super.connectedCallback();
+    document.addEventListener("reconnect-failed", this._onReconnectFailed);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener("reconnect-failed", this._onReconnectFailed);
   }
 }
