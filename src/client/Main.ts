@@ -478,8 +478,10 @@ class Client {
         flashistConstants.experiments.RECONNECT_FLAG_VALUE,
       )
       .then((enabled) => {
+        console.log("[Reconnect] experiment flag enabled =", enabled);
         if (!enabled) return;
         checkReconnectSession().then((session) => {
+          console.log("[Reconnect] session after check =", session);
           if (session) this.showReconnectBanner(session);
         });
       });

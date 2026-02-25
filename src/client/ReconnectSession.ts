@@ -7,6 +7,7 @@ export interface ReconnectSession {
 
 export function saveReconnectSession(gameID: string, clientID: string): void {
   localStorage.setItem(KEY, JSON.stringify({ gameID, clientID }));
+  console.log("[Reconnect] session saved", { gameID, clientID });
 }
 
 export function clearReconnectSession(): void {
@@ -33,9 +34,11 @@ export function loadReconnectSession(): ReconnectSession | null {
 // Queries server; clears stale session if game is no longer active.
 export async function checkReconnectSession(): Promise<ReconnectSession | null> {
   const session = loadReconnectSession();
+  console.log("[Reconnect] checkReconnectSession: stored session =", session);
   if (!session) return null;
   try {
     const resp = await fetch(`/api/game/${session.gameID}/active`);
+    console.log("[Reconnect] /active response: status =", resp.status);
     if (!resp.ok) {
       // Only clear on definitive "game gone" responses; preserve on transient errors
       if (resp.status === 404 || resp.status === 410) {
@@ -43,12 +46,14 @@ export async function checkReconnectSession(): Promise<ReconnectSession | null> 
       }
       return null;
     }
-    const { active } = (await resp.json()) as { active: boolean };
-    if (active) return session;
-  } catch {
+    const body = (await resp.json()) as { active: boolean };
+    console.log("[Reconnect] /active body =", body);
+    if (body.active) return session;
+  } catch (err) {
     // Network error: server unreachable. Don't clear the session (preserve it
     // for the next page load), but also don't show the banner — clicking
     // "Rejoin" while offline would silently fail.
+    console.log("[Reconnect] /active fetch error =", err);
     return null;
   }
   clearReconnectSession();

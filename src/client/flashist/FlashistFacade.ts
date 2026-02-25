@@ -239,6 +239,10 @@ export class FlashistFacade {
     // }
 
     public async checkExperimentFlag(name: string, value: string): Promise<boolean> {
+        if (process.env.GAME_ENV === "dev") {
+            return true;
+        }
+
         await this.initExperimentFlags();
 
         let result: boolean = false;

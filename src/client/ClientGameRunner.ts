@@ -380,6 +380,7 @@ export class ClientGameRunner {
         );
 
         this.hasJoined = true;
+        console.log("[Reconnect] start received, isLocal =", this.transport.isLocal);
         if (!this.transport.isLocal) {
           FlashistFacade.instance
             .checkExperimentFlag(
@@ -387,6 +388,7 @@ export class ClientGameRunner {
               flashistConstants.experiments.RECONNECT_FLAG_VALUE,
             )
             .then((enabled) => {
+              console.log("[Reconnect] save flag enabled =", enabled);
               if (enabled) {
                 saveReconnectSession(this.lobby.gameID, this.lobby.clientID);
               }
