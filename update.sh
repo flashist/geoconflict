@@ -33,6 +33,10 @@ echo "======================================================"
 # Container and image configuration
 CONTAINER_NAME="geoconflict-${DEPLOYMENT_NAME}"
 
+echo "Cleaning up unused Docker images to free disk space..."
+docker image prune -a -f
+echo "Cleanup complete."
+
 echo "Pulling ${DOCKER_IMAGE} from Docker Hub..."
 docker pull "${DOCKER_IMAGE}"
 
