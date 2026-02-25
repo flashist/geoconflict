@@ -111,6 +111,27 @@ The tutorial should:
 
 The singleplayer mission infrastructure is already built. A tutorial is essentially Mission Level 0 with a tooltip overlay system added on top.
 
+**Note:** the spawn selection tooltip in the tutorial should reflect the auto-spawn mechanic introduced in Task 4a. Instead of *"Click the map to choose your starting location"*, it should say something like *"You've been placed automatically — tap anywhere to choose a different spot"*.
+
+---
+
+### 4a. Auto-Spawn — Automatic Starting Location for Inactive Players
+**Effort:** 1–2 days
+**Experiments:** ❌ Excluded — this is a universal UX fix that applies to all players in all matches. Running it as an experiment would mean a portion of new players continue to experience the broken state we already know is a problem. Ship to all players.
+
+A significant number of new players never make their first action because they don't realize they need to click the map to choose a spawn location. Even though a text prompt exists, it is easy to miss — especially on mobile. The result is a player who sits through the entire spawn phase and enters the match without a territory, or misses the window entirely.
+
+**The fix:** if a player has not chosen a spawn location within the first 3–5 seconds of the spawn phase, place them automatically at a valid location. They retain the ability to tap or click a different location at any point during the remaining spawn phase if they want to reposition.
+
+**Key behaviors:**
+- Auto-placement triggers after 3–5 seconds of inactivity at the start of the spawn phase — not instantly, so experienced players who know what they are doing still get first choice of location
+- When a player is auto-placed, show a brief contextual message near their location: *"You've been placed here. Tap anywhere to choose a different starting point"*
+- The message must be clearly visible on mobile screens
+- If the player actively clicks a location before the 3–5 second threshold, auto-placement does not trigger
+- This applies to all match types — singleplayer, public, and private
+
+**Spawn location quality:** purely random placement can put a new player in a poor strategic position — surrounded by strong opponents with no room to expand — leading to early elimination before they've understood the game. The developer should check whether the existing spawn logic can be extended to bias auto-placement toward lower-competition areas such as map edges or zones with fewer nearby opponents. If this is straightforward, it should be included. If it adds significant complexity, random placement is acceptable for V1 and can be refined later.
+
 ---
 
 ## Sprint 3 — Deepen Retention (Data-Driven)
@@ -317,6 +338,7 @@ Design:
 | 1 | Analytics — session & match event tracking | 1–2 days | ❌ Excluded | Informs everything else, baseline measurement | 1 |
 | 2 | Tab crash reconnection | 2–3 days | ✅ Test | Reduces ghost rate, more ad impressions | 1 |
 | 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
+| 4a | Auto-spawn — automatic starting location for inactive players | 1–2 days | ❌ All users | Reduces zero-action abandonment at match start | 2 |
 | 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
 | 5 | Deep mobile rendering optimization | 3–6 weeks | ❌ Excluded | Only if analytics confirms mobile worth the investment | 3 |
 | 6 | Rewarded ads — minimal version (no coin economy) | 2–3 days | ✅ Test | Yandex algorithm boost, first monetization signal | 4 |
