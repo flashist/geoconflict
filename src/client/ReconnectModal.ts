@@ -107,7 +107,6 @@ export class ReconnectModal extends LitElement {
   }
 
   public show(session: ReconnectSession): void {
-    console.log("[ReconnectModal] show() called, isVisible →", true);
     this.session = session;
     this.isVisible = true;
     this.requestUpdate();
