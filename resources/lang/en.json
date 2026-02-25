@@ -522,8 +522,10 @@
     "wishlist": "Wishlist on Steam!"
   },
   "reconnect": {
+    "title": "Match in progress",
     "prompt": "Your match is still in progress!",
-    "rejoin": "Rejoin"
+    "rejoin": "Rejoin",
+    "dismiss": "Dismiss"
   },
   "leaderboard": {
     "title": "Leaderboard",
