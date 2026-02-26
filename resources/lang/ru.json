@@ -286,6 +286,19 @@
     "green": "Зелёный",
     "bot": "Бот"
   },
+  "feedback_modal": {
+    "title": "Обратная связь",
+    "category_bug": "Ошибка",
+    "category_suggestion": "Предложение",
+    "category_other": "Другое",
+    "text_placeholder": "Опишите проблему или предложение…",
+    "contact_placeholder": "Email или Telegram (необязательно)",
+    "send": "Отправить",
+    "sending": "Отправка…",
+    "success": "Спасибо, мы читаем каждый отзыв",
+    "error": "Ошибка отправки. Попробуйте ещё раз.",
+    "button_tooltip": "Обратная связь"
+  },
   "game_starting_modal": {
     "title": "Игра начинается...",
     "credits": "Авторы",

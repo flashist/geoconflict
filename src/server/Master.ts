@@ -4,6 +4,7 @@ import rateLimit from "express-rate-limit";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { z } from "zod";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import { GameInfo, ID } from "../core/Schemas";
 import { generateID } from "../core/Util";
@@ -161,6 +162,114 @@ app.get("/api/env", async (req, res) => {
 app.get("/api/public_lobbies", async (req, res) => {
   res.send(publicLobbiesJsonStr);
 });
+
+const FEEDBACK_WEBHOOK_URL = process.env.FEEDBACK_WEBHOOK_URL ?? null;
+const FEEDBACK_TELEGRAM_TOKEN = process.env.FEEDBACK_TELEGRAM_TOKEN ?? null;
+const FEEDBACK_TELEGRAM_CHAT_ID = process.env.FEEDBACK_TELEGRAM_CHAT_ID ?? null;
+
+const FeedbackSchema = z.object({
+  category: z.enum(["Bug", "Suggestion", "Other"]),
+  text: z.string().max(2000).optional(),
+  contact: z.string().max(200).optional(),
+  platform: z.string().max(50),
+  yandexStatus: z.string().max(50),
+  version: z.string().max(100),
+  matchId: z.string().max(100).optional(),
+  screenSource: z.enum(["start", "battle"]),
+});
+
+app.post(
+  "/api/feedback",
+  rateLimit({ windowMs: 60_000, max: 5 }),
+  async (req, res) => {
+    const parsed = FeedbackSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Invalid payload" });
+      return;
+    }
+
+    const d = parsed.data;
+
+    if (FEEDBACK_WEBHOOK_URL) {
+      const body = JSON.stringify({
+        embeds: [
+          {
+            title: `[${d.category}] Feedback`,
+            description: d.text ?? "_(no text)_",
+            color:
+              d.category === "Bug"
+                ? 0xff4444
+                : d.category === "Suggestion"
+                  ? 0x4488ff
+                  : 0x888888,
+            fields: [
+              { name: "Screen", value: d.screenSource, inline: true },
+              { name: "Platform", value: d.platform, inline: true },
+              { name: "Yandex", value: d.yandexStatus, inline: true },
+              { name: "Version", value: d.version, inline: true },
+              { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
+              { name: "Contact", value: d.contact ?? "n/a", inline: true },
+              { name: "Time", value: new Date().toISOString(), inline: false },
+            ],
+          },
+        ],
+      });
+      try {
+        const webhookResp = await fetch(FEEDBACK_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
+        if (!webhookResp.ok) {
+          log.warn(`[feedback] webhook responded with ${webhookResp.status}`);
+        }
+      } catch (err) {
+        log.error("[feedback] webhook delivery failed:", err);
+      }
+    }
+
+    if (FEEDBACK_TELEGRAM_TOKEN && FEEDBACK_TELEGRAM_CHAT_ID) {
+      const esc = (s: string) =>
+        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const lines = [
+        `<b>[${d.category}] Feedback</b>`,
+        d.text ? `\n${esc(d.text)}` : "",
+        `\n<b>Screen:</b> ${d.screenSource}  <b>Platform:</b> ${d.platform}`,
+        `<b>Yandex:</b> ${d.yandexStatus}  <b>Version:</b> ${esc(d.version)}`,
+        `<b>Match:</b> ${d.matchId ? esc(d.matchId) : "n/a"}  <b>Contact:</b> ${d.contact ? esc(d.contact) : "n/a"}`,
+        `<b>Time:</b> ${new Date().toISOString()}`,
+      ];
+      const telegramBody = JSON.stringify({
+        chat_id: FEEDBACK_TELEGRAM_CHAT_ID,
+        text: lines.filter(Boolean).join("\n"),
+        parse_mode: "HTML",
+      });
+      try {
+        const telegramResp = await fetch(
+          `https://api.telegram.org/bot${FEEDBACK_TELEGRAM_TOKEN}/sendMessage`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: telegramBody,
+          },
+        );
+        if (!telegramResp.ok) {
+          log.warn(
+            `[feedback] telegram responded with ${telegramResp.status}`,
+          );
+        }
+      } catch (err) {
+        log.error("[feedback] telegram delivery failed:", err);
+      }
+    }
+
+    if (!FEEDBACK_WEBHOOK_URL && !FEEDBACK_TELEGRAM_TOKEN) {
+      log.info(`[feedback] ${JSON.stringify(d)}`);
+    }
+
+    res.json({ ok: true });
+  },
+);
 
 app.post("/api/kick_player/:gameID/:clientID", async (req, res) => {
   if (req.headers[config.adminHeader()] !== config.adminToken()) {

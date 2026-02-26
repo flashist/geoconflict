@@ -213,6 +213,12 @@
   </main>
 
   <!-- User Setting -->
+  <!-- Feedback button: right: 104px = settings(80px) + right-4(16px) + gap(8px) -->
+  <button id="feedback-button" title="Feedback"
+    class="fixed bottom-4 z-50 rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center"
+    style="width: 40px; height: 40px; background-color: #0075ff; right: 104px;">
+    <img src="../../resources/images/FeedbackIconWhite.svg" alt="Feedback" style="width: 28px; height: 28px" />
+  </button>
   <button id="settings-button" title="Settings"
     class="fixed bottom-4 right-4 z-50 rounded-full p-2 shadow-lg transition-colors duration-300 flex items-center justify-center"
     style="width: 80px; height: 80px; background-color: #0075ff">
@@ -279,6 +285,7 @@
   </footer>
   <account-button></account-button>
   <!-- Game modals and overlays -->
+  <feedback-modal></feedback-modal>
   <reconnect-modal></reconnect-modal>
   <single-player-modal></single-player-modal>
   <host-lobby-modal></host-lobby-modal>

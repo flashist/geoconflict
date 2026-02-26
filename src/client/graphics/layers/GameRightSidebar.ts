@@ -1,6 +1,7 @@
 import { html, LitElement } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import exitIcon from "../../../../resources/images/ExitIconWhite.svg";
+import feedbackIcon from "../../../../resources/images/FeedbackIconWhite.svg";
 import pauseIcon from "../../../../resources/images/PauseIconWhite.svg";
 import playIcon from "../../../../resources/images/PlayIconWhite.svg";
 import replayRegularIcon from "../../../../resources/images/ReplayRegularIconWhite.svg";
@@ -141,6 +142,13 @@ export class GameRightSidebar extends LitElement implements Layer {
     );
   }
 
+  private onFeedbackButtonClick() {
+    const matchId: string | undefined = this.game?.gameID();
+    window.dispatchEvent(
+      new CustomEvent("show-feedback-modal", { detail: { matchId } }),
+    );
+  }
+
   render() {
     if (this.game === undefined) return html``;
 
@@ -155,6 +163,19 @@ export class GameRightSidebar extends LitElement implements Layer {
       }`}
         >
           ${this.maybeRenderReplayButtons()}
+          <div
+            class="w-6 h-6 cursor-pointer"
+            title=${translateText("feedback_modal.button_tooltip")}
+            @click=${this.onFeedbackButtonClick}
+          >
+            <img
+              src=${feedbackIcon}
+              alt="feedback"
+              width="20"
+              height="20"
+              style="vertical-align: middle;"
+            />
+          </div>
           <div
             class="w-6 h-6 cursor-pointer"
             @click=${this.onSettingsButtonClick}
