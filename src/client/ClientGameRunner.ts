@@ -216,6 +216,7 @@ export class ClientGameRunner {
   private catchUpProcessed = 0;
   private catchUpOverlay: HTMLDivElement | null = null;
   private static readonly CATCHUP_THRESHOLD = 30; // turns (~30 s)
+  private static readonly CATCHUP_BATCH_SIZE = 10; // heartbeats per RAF frame during catch-up
 
   constructor(
     private lobby: LobbyConfig,
@@ -376,7 +377,12 @@ export class ClientGameRunner {
     const worker = this.worker;
     const keepWorkerAlive = () => {
       if (this.isActive) {
-        worker.sendHeartbeat();
+        const batch = this.catchingUp
+          ? ClientGameRunner.CATCHUP_BATCH_SIZE
+          : 1;
+        for (let i = 0; i < batch; i++) {
+          worker.sendHeartbeat();
+        }
         requestAnimationFrame(keepWorkerAlive);
       }
     };
