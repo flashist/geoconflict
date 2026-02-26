@@ -352,10 +352,11 @@ export class ClientGameRunner {
         });
       }
 
+      const gameEnded = gu.updates[GameUpdateType.Win].length > 0;
       if (this.catchingUp) {
         this.catchUpProcessed++;
         this.updateCatchUpOverlay();
-        if (this.catchUpProcessed >= this.catchUpTarget) {
+        if (this.catchUpProcessed >= this.catchUpTarget || gameEnded) {
           this.catchingUp = false;
           this.renderer.tick();
           this.renderer.redraw();
@@ -365,7 +366,7 @@ export class ClientGameRunner {
         this.renderer.tick();
       }
 
-      if (gu.updates[GameUpdateType.Win].length > 0) {
+      if (gameEnded) {
         const winUpdate = gu.updates[GameUpdateType.Win][0];
         this.saveGame(winUpdate);
         if (!this.hasProcessedWin && this.lobby.gameRecord === undefined) {
