@@ -175,7 +175,6 @@ const FeedbackSchema = z.object({
   yandexStatus: z.string().max(50),
   version: z.string().max(100),
   matchId: z.string().max(100).optional(),
-  timestamp: z.string().max(30),
   screenSource: z.enum(["start", "battle"]),
 });
 
@@ -183,88 +182,92 @@ app.post(
   "/api/feedback",
   rateLimit({ windowMs: 60_000, max: 5 }),
   async (req, res) => {
-  const parsed = FeedbackSchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid payload" });
-    return;
-  }
-
-  const d = parsed.data;
-
-  if (FEEDBACK_WEBHOOK_URL) {
-    const body = JSON.stringify({
-      embeds: [
-        {
-          title: `[${d.category}] Feedback`,
-          description: d.text ?? "_(no text)_",
-          color:
-            d.category === "Bug"
-              ? 0xff4444
-              : d.category === "Suggestion"
-                ? 0x4488ff
-                : 0x888888,
-          fields: [
-            { name: "Screen", value: d.screenSource, inline: true },
-            { name: "Platform", value: d.platform, inline: true },
-            { name: "Yandex", value: d.yandexStatus, inline: true },
-            { name: "Version", value: d.version, inline: true },
-            { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
-            { name: "Contact", value: d.contact ?? "n/a", inline: true },
-            { name: "Time", value: d.timestamp, inline: false },
-          ],
-        },
-      ],
-    });
-    try {
-      const webhookResp = await fetch(FEEDBACK_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-      });
-      if (!webhookResp.ok) {
-        log.warn(`[feedback] webhook responded with ${webhookResp.status}`);
-      }
-    } catch (err) {
-      log.error("[feedback] webhook delivery failed:", err);
+    const parsed = FeedbackSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Invalid payload" });
+      return;
     }
-  }
 
-  if (FEEDBACK_TELEGRAM_TOKEN && FEEDBACK_TELEGRAM_CHAT_ID) {
-    const lines = [
-      `<b>[${d.category}] Feedback</b>`,
-      d.text ? `\n${d.text}` : "",
-      `\n<b>Screen:</b> ${d.screenSource}  <b>Platform:</b> ${d.platform}`,
-      `<b>Yandex:</b> ${d.yandexStatus}  <b>Version:</b> ${d.version}`,
-      `<b>Match:</b> ${d.matchId ?? "n/a"}  <b>Contact:</b> ${d.contact ?? "n/a"}`,
-      `<b>Time:</b> ${d.timestamp}`,
-    ];
-    const telegramBody = JSON.stringify({
-      chat_id: FEEDBACK_TELEGRAM_CHAT_ID,
-      text: lines.filter(Boolean).join("\n"),
-      parse_mode: "HTML",
-    });
-    try {
-      const telegramResp = await fetch(
-        `https://api.telegram.org/bot${FEEDBACK_TELEGRAM_TOKEN}/sendMessage`,
-        {
+    const d = parsed.data;
+
+    if (FEEDBACK_WEBHOOK_URL) {
+      const body = JSON.stringify({
+        embeds: [
+          {
+            title: `[${d.category}] Feedback`,
+            description: d.text ?? "_(no text)_",
+            color:
+              d.category === "Bug"
+                ? 0xff4444
+                : d.category === "Suggestion"
+                  ? 0x4488ff
+                  : 0x888888,
+            fields: [
+              { name: "Screen", value: d.screenSource, inline: true },
+              { name: "Platform", value: d.platform, inline: true },
+              { name: "Yandex", value: d.yandexStatus, inline: true },
+              { name: "Version", value: d.version, inline: true },
+              { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
+              { name: "Contact", value: d.contact ?? "n/a", inline: true },
+              { name: "Time", value: new Date().toISOString(), inline: false },
+            ],
+          },
+        ],
+      });
+      try {
+        const webhookResp = await fetch(FEEDBACK_WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: telegramBody,
-        },
-      );
-      if (!telegramResp.ok) {
-        log.warn(`[feedback] telegram responded with ${telegramResp.status}`);
+          body,
+        });
+        if (!webhookResp.ok) {
+          log.warn(`[feedback] webhook responded with ${webhookResp.status}`);
+        }
+      } catch (err) {
+        log.error("[feedback] webhook delivery failed:", err);
       }
-    } catch (err) {
-      log.error("[feedback] telegram delivery failed:", err);
     }
-  }
 
-  if (!FEEDBACK_WEBHOOK_URL && !FEEDBACK_TELEGRAM_TOKEN) {
-    log.info(`[feedback] ${JSON.stringify(d)}`);
-  }
+    if (FEEDBACK_TELEGRAM_TOKEN && FEEDBACK_TELEGRAM_CHAT_ID) {
+      const esc = (s: string) =>
+        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const lines = [
+        `<b>[${d.category}] Feedback</b>`,
+        d.text ? `\n${esc(d.text)}` : "",
+        `\n<b>Screen:</b> ${d.screenSource}  <b>Platform:</b> ${d.platform}`,
+        `<b>Yandex:</b> ${d.yandexStatus}  <b>Version:</b> ${esc(d.version)}`,
+        `<b>Match:</b> ${d.matchId ? esc(d.matchId) : "n/a"}  <b>Contact:</b> ${d.contact ? esc(d.contact) : "n/a"}`,
+        `<b>Time:</b> ${new Date().toISOString()}`,
+      ];
+      const telegramBody = JSON.stringify({
+        chat_id: FEEDBACK_TELEGRAM_CHAT_ID,
+        text: lines.filter(Boolean).join("\n"),
+        parse_mode: "HTML",
+      });
+      try {
+        const telegramResp = await fetch(
+          `https://api.telegram.org/bot${FEEDBACK_TELEGRAM_TOKEN}/sendMessage`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: telegramBody,
+          },
+        );
+        if (!telegramResp.ok) {
+          log.warn(
+            `[feedback] telegram responded with ${telegramResp.status}`,
+          );
+        }
+      } catch (err) {
+        log.error("[feedback] telegram delivery failed:", err);
+      }
+    }
 
-  res.json({ ok: true });
+    if (!FEEDBACK_WEBHOOK_URL && !FEEDBACK_TELEGRAM_TOKEN) {
+      log.info(`[feedback] ${JSON.stringify(d)}`);
+    }
+
+    res.json({ ok: true });
   },
 );
 

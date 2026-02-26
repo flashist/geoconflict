@@ -216,7 +216,6 @@ export class FeedbackModal extends LitElement {
       yandexStatus,
       version,
       matchId: this.matchId,
-      timestamp: new Date().toISOString(),
       screenSource: this.screenSource,
     };
 
