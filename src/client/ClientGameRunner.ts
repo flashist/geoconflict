@@ -351,14 +351,17 @@ export class ClientGameRunner {
         });
       }
 
-      this.renderer.tick();
       if (this.catchingUp) {
         this.catchUpProcessed++;
         this.updateCatchUpOverlay();
         if (this.catchUpProcessed >= this.catchUpTarget) {
           this.catchingUp = false;
+          this.renderer.tick();
+          this.renderer.redraw();
           this.hideCatchUpOverlay();
         }
+      } else {
+        this.renderer.tick();
       }
 
       if (gu.updates[GameUpdateType.Win].length > 0) {
