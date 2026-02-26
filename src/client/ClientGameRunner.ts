@@ -211,6 +211,12 @@ export class ClientGameRunner {
   private lastMessageTime: number = 0;
   private connectionCheckInterval: NodeJS.Timeout | null = null;
 
+  private catchingUp = false;
+  private catchUpTarget = 0;
+  private catchUpProcessed = 0;
+  private catchUpOverlay: HTMLDivElement | null = null;
+  private static readonly CATCHUP_THRESHOLD = 30; // turns (~30 s)
+
   constructor(
     private lobby: LobbyConfig,
     private eventBus: EventBus,
@@ -346,6 +352,14 @@ export class ClientGameRunner {
       }
 
       this.renderer.tick();
+      if (this.catchingUp) {
+        this.catchUpProcessed++;
+        this.updateCatchUpOverlay();
+        if (this.catchUpProcessed >= this.catchUpTarget) {
+          this.catchingUp = false;
+          this.hideCatchUpOverlay();
+        }
+      }
 
       if (gu.updates[GameUpdateType.Win].length > 0) {
         const winUpdate = gu.updates[GameUpdateType.Win][0];
@@ -395,6 +409,7 @@ export class ClientGameRunner {
             });
         }
         console.log("starting game!");
+        let turnsQueued = 0;
         for (const turn of message.turns) {
           if (turn.turnNumber < this.turnsSeen) {
             continue;
@@ -405,9 +420,17 @@ export class ClientGameRunner {
               intents: [],
             });
             this.turnsSeen++;
+            turnsQueued++;
           }
           this.worker.sendTurn(turn);
           this.turnsSeen++;
+          turnsQueued++;
+        }
+        if (turnsQueued > ClientGameRunner.CATCHUP_THRESHOLD) {
+          this.catchingUp = true;
+          this.catchUpTarget = turnsQueued;
+          this.catchUpProcessed = 0;
+          this.showCatchUpOverlay();
         }
       }
       if (message.type === "desync") {
@@ -453,10 +476,70 @@ export class ClientGameRunner {
     this.transport.connect(onconnect, onmessage);
   }
 
+  private showCatchUpOverlay(): void {
+    const overlay = document.createElement("div");
+    overlay.id = "catch-up-overlay";
+    Object.assign(overlay.style, {
+      position: "fixed",
+      inset: "0",
+      backgroundColor: "rgba(0,0,0,0.75)",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: "9998",
+      color: "white",
+      fontFamily: "sans-serif",
+      gap: "16px",
+    });
+
+    const title = document.createElement("div");
+    title.textContent = translateText("reconnect.catching_up");
+    title.style.fontSize = "20px";
+
+    const barOuter = document.createElement("div");
+    Object.assign(barOuter.style, {
+      width: "220px",
+      height: "5px",
+      backgroundColor: "rgba(255,255,255,0.2)",
+      borderRadius: "3px",
+    });
+    const barFill = document.createElement("div");
+    barFill.id = "catch-up-bar-fill";
+    Object.assign(barFill.style, {
+      height: "100%",
+      width: "0%",
+      backgroundColor: "rgba(37,99,235,0.9)",
+      borderRadius: "3px",
+      transition: "width 0.1s",
+    });
+    barOuter.appendChild(barFill);
+
+    overlay.appendChild(title);
+    overlay.appendChild(barOuter);
+    this.catchUpOverlay = overlay;
+    document.body.appendChild(overlay);
+  }
+
+  private updateCatchUpOverlay(): void {
+    const fill = document.getElementById("catch-up-bar-fill");
+    if (fill) {
+      const pct = Math.round(
+        (this.catchUpProcessed / this.catchUpTarget) * 100,
+      );
+      fill.style.width = `${pct}%`;
+    }
+  }
+
+  private hideCatchUpOverlay(): void {
+    this.catchUpOverlay?.remove();
+    this.catchUpOverlay = null;
+  }
+
   public stop() {
     SoundManager.stopBackgroundMusic();
     if (!this.isActive) return;
-
+    this.hideCatchUpOverlay();
     this.isActive = false;
     this.worker.cleanup();
     this.transport.leaveGame();
