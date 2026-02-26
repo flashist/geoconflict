@@ -11,6 +11,7 @@ import { GameType } from "../../../core/game/Game";
 import { GameUpdateType } from "../../../core/game/GameUpdates";
 import { GameView } from "../../../core/game/GameView";
 import { PauseGameEvent } from "../../Transport";
+import { clearReconnectSession } from "../../ReconnectSession";
 import { translateText } from "../../Utils";
 import { Layer } from "./Layer";
 import { ShowReplayPanelEvent } from "./ReplayPanel";
@@ -126,6 +127,8 @@ export class GameRightSidebar extends LitElement implements Layer {
 
     // Flashist Adaptaiton: interstitial
     await FlashistFacade.instance.showInterstitial();
+
+    clearReconnectSession();
 
     // Flashist Adaptation
     // window.location.href = "/";
