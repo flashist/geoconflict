@@ -43,8 +43,8 @@ export async function checkReconnectSession(): Promise<ReconnectSession | null> 
       }
       return null;
     }
-    const { active } = (await resp.json()) as { active: boolean };
-    if (active) return session;
+    const body = (await resp.json()) as { active: boolean };
+    if (body.active) return session;
   } catch {
     // Network error: server unreachable. Don't clear the session (preserve it
     // for the next page load), but also don't show the banner — clicking

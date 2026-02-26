@@ -301,6 +301,26 @@ async function schedulePublicGame(playlist: MapPlaylist) {
   }
 }
 
+app.get("/api/game/:id/active", async (req, res) => {
+  const gameID = req.params.id;
+
+  if (!ID.safeParse(gameID).success) {
+    return res.status(400).json({ active: false });
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:${config.workerPort(gameID)}/api/game/${gameID}/active`,
+    );
+    if (!response.ok) {
+      return res.json({ active: false });
+    }
+    res.json(await response.json());
+  } catch {
+    res.json({ active: false });
+  }
+});
+
 // SPA fallback route
 app.get("*", function (req, res) {
   res.sendFile(path.join(__dirname, "../../static/index.html"));

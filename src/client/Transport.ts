@@ -357,10 +357,10 @@ export class Transport {
         `WebSocket closed. Code: ${event.code}, Reason: ${event.reason}`,
       );
       if (event.code === 1002) {
-        // TODO: make this a modal
-        // alert(`connection refused: ${event.reason}`);
         console.log(`ERROR! connection refused: ${event.reason}`);
-
+        document.dispatchEvent(
+          new CustomEvent("reconnect-failed", { bubbles: true, composed: true }),
+        );
       } else if (event.code !== 1000) {
         console.log(`received error code ${event.code}, reconnecting`);
         this.reconnect();

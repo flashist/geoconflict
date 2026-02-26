@@ -11,6 +11,7 @@ import { GameType } from "../../../core/game/Game";
 import { GameUpdateType } from "../../../core/game/GameUpdates";
 import { GameView } from "../../../core/game/GameView";
 import { PauseGameEvent } from "../../Transport";
+import { clearReconnectSession } from "../../ReconnectSession";
 import { translateText } from "../../Utils";
 import { Layer } from "./Layer";
 import { ShowReplayPanelEvent } from "./ReplayPanel";
@@ -62,14 +63,29 @@ export class GameRightSidebar extends LitElement implements Layer {
     if (maxTimerValue !== undefined) {
       if (this.game.inSpawnPhase()) {
         this.timer = maxTimerValue * 60;
-      } else if (!this.hasWinner && this.game.ticks() % 10 === 0) {
-        this.timer = Math.max(0, this.timer - 1);
+      } else if (!this.hasWinner) {
+        const expected = Math.max(
+          0,
+          maxTimerValue * 60 - Math.floor(this.game.ticks() / 10),
+        );
+        if (Math.abs(this.timer - expected) > 5) {
+          // Timer is out of sync (e.g. after reconnection catch-up) — snap to correct value
+          this.timer = expected;
+        } else if (this.game.ticks() % 10 === 0) {
+          this.timer = Math.max(0, this.timer - 1);
+        }
       }
     } else {
       if (this.game.inSpawnPhase()) {
         this.timer = 0;
-      } else if (!this.hasWinner && this.game.ticks() % 10 === 0) {
-        this.timer++;
+      } else if (!this.hasWinner) {
+        const expected = Math.floor(this.game.ticks() / 10);
+        if (Math.abs(this.timer - expected) > 5) {
+          // Timer is out of sync (e.g. after reconnection catch-up) — snap to correct value
+          this.timer = expected;
+        } else if (this.game.ticks() % 10 === 0) {
+          this.timer++;
+        }
       }
     }
   }
@@ -111,6 +127,8 @@ export class GameRightSidebar extends LitElement implements Layer {
 
     // Flashist Adaptaiton: interstitial
     await FlashistFacade.instance.showInterstitial();
+
+    clearReconnectSession();
 
     // Flashist Adaptation
     // window.location.href = "/";

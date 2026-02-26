@@ -48,6 +48,7 @@ import { SendKickPlayerIntentEvent, SendWinnerEvent } from "./Transport";
 import { UserSettingModal } from "./UserSettingModal";
 import "./UsernameInput";
 import { UsernameInput } from "./UsernameInput";
+import { ReconnectModal } from "./ReconnectModal";
 import { toggleDevMode } from "./DevMode";
 import {
   generateCryptoRandomUUID,
@@ -488,39 +489,10 @@ class Client {
   }
 
   private showReconnectBanner(session: ReconnectSession): void {
-    const banner = document.createElement("div");
-    banner.id = "reconnect-banner";
-    banner.className = "reconnect-banner";
-    banner.setAttribute("role", "alert");
-
-    const msg = document.createElement("span");
-    msg.textContent = translateText("reconnect.prompt");
-
-    const rejoinBtn = document.createElement("button");
-    rejoinBtn.textContent = translateText("reconnect.rejoin");
-    rejoinBtn.addEventListener("click", () => {
-      banner.remove();
-      document.dispatchEvent(
-        new CustomEvent("join-lobby", {
-          detail: { clientID: session.clientID, gameID: session.gameID },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-    });
-
-    const dismissBtn = document.createElement("button");
-    dismissBtn.textContent = "✕";
-    dismissBtn.setAttribute("aria-label", "Dismiss");
-    dismissBtn.addEventListener("click", () => {
-      clearReconnectSession();
-      banner.remove();
-    });
-
-    banner.appendChild(msg);
-    banner.appendChild(rejoinBtn);
-    banner.appendChild(dismissBtn);
-    document.body.prepend(banner);
+    const modal = document.querySelector("reconnect-modal");
+    if (modal instanceof ReconnectModal) {
+      modal.show(session);
+    }
   }
 
   private handleHash() {
@@ -621,7 +593,10 @@ class Client {
     console.log(`joining lobby ${lobby.gameID}`);
     this.gameHasStarted = false;
     this.gameHasEnded = false;
-    document.getElementById("reconnect-banner")?.remove();
+    const reconnectModal = document.querySelector("reconnect-modal");
+    if (reconnectModal instanceof ReconnectModal) {
+      reconnectModal.hide();
+    }
     if (this.gameStop !== null) {
       console.log("joining lobby, stopping existing game");
       this.gameStop();

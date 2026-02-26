@@ -522,8 +522,14 @@
     "wishlist": "Wishlist on Steam!"
   },
   "reconnect": {
+    "title": "Match in progress",
     "prompt": "Your match is still in progress!",
-    "rejoin": "Rejoin"
+    "rejoin": "Rejoin",
+    "dismiss": "Dismiss",
+    "connecting": "Connecting...",
+    "failed_title": "Reconnection Failed",
+    "failed_prompt": "Your session has expired. This match can no longer be rejoined.",
+    "catching_up": "Loading game state..."
   },
   "leaderboard": {
     "title": "Leaderboard",

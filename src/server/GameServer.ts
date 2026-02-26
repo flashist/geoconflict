@@ -48,7 +48,7 @@ export class GameServer {
 
   private maxGameDuration = 3 * 60 * 60 * 1000; // 3 hours
 
-  private disconnectedTimeout = 1 * 30 * 1000; // 30 seconds
+  private disconnectedTimeout = 1 * 60 * 1000; // 60 seconds
 
   private turns: Turn[] = [];
   private intents: Intent[] = [];
