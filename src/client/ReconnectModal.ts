@@ -136,14 +136,12 @@ export class ReconnectModal extends LitElement {
   public show(session: ReconnectSession): void {
     this.session = session;
     this.isVisible = true;
-    this.requestUpdate();
   }
 
   public hide(): void {
     this.isVisible = false;
     this.mode = "offer";
     this.session = null;
-    this.requestUpdate();
   }
 
   private async _handleRejoin(): Promise<void> {
@@ -151,7 +149,6 @@ export class ReconnectModal extends LitElement {
     if (!session) return;
 
     this.mode = "connecting";
-    this.requestUpdate();
 
     try {
       const resp = await fetch(`/api/game/${session.gameID}/active`);
@@ -161,14 +158,12 @@ export class ReconnectModal extends LitElement {
       if (!body.active) {
         clearReconnectSession();
         this.mode = "failed";
-        this.requestUpdate();
         return;
       }
     } catch {
       // Network unreachable — treat as failure
       clearReconnectSession();
       this.mode = "failed";
-      this.requestUpdate();
       return;
     }
 
@@ -188,10 +183,13 @@ export class ReconnectModal extends LitElement {
   }
 
   private _onReconnectFailed = () => {
+    // Only show failure UI if this modal is already active (i.e. the player
+    // explicitly attempted a rejoin). A code-1002 on an initial connection
+    // for a first-time player should not surface a "Reconnection Failed" message.
+    if (this.session === null) return;
     clearReconnectSession();
     this.mode = "failed";
     this.isVisible = true;
-    this.requestUpdate();
   };
 
   connectedCallback() {

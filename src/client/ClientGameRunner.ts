@@ -404,7 +404,6 @@ export class ClientGameRunner {
         );
 
         this.hasJoined = true;
-        console.log("[Reconnect] start received, isLocal =", this.transport.isLocal);
         if (!this.transport.isLocal) {
           FlashistFacade.instance
             .checkExperimentFlag(
@@ -412,7 +411,6 @@ export class ClientGameRunner {
               flashistConstants.experiments.RECONNECT_FLAG_VALUE,
             )
             .then((enabled) => {
-              console.log("[Reconnect] save flag enabled =", enabled);
               if (enabled) {
                 saveReconnectSession(this.lobby.gameID, this.lobby.clientID);
               }
@@ -532,7 +530,7 @@ export class ClientGameRunner {
   }
 
   private updateCatchUpOverlay(): void {
-    const fill = document.getElementById("catch-up-bar-fill");
+    const fill = this.catchUpOverlay?.querySelector<HTMLElement>("#catch-up-bar-fill");
     if (fill) {
       const pct = Math.round(
         (this.catchUpProcessed / this.catchUpTarget) * 100,
@@ -550,6 +548,7 @@ export class ClientGameRunner {
     SoundManager.stopBackgroundMusic();
     if (!this.isActive) return;
     this.hideCatchUpOverlay();
+    this.catchingUp = false;
     this.isActive = false;
     this.worker.cleanup();
     this.transport.leaveGame();
