@@ -2,6 +2,7 @@ import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { translateText } from "./Utils";
 import { clearReconnectSession, ReconnectSession } from "./ReconnectSession";
+import { flashist_logEventAnalytics, flashistConstants } from "./flashist/FlashistFacade";
 
 @customElement("reconnect-modal")
 export class ReconnectModal extends LitElement {
@@ -136,6 +137,7 @@ export class ReconnectModal extends LitElement {
   public show(session: ReconnectSession): void {
     this.session = session;
     this.isVisible = true;
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.RECONNECT_PROMPT_SHOWN);
   }
 
   public hide(): void {
@@ -149,6 +151,7 @@ export class ReconnectModal extends LitElement {
     if (!session) return;
 
     this.mode = "connecting";
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.RECONNECT_ACCEPTED);
 
     try {
       const resp = await fetch(`/api/game/${session.gameID}/active`);
@@ -157,17 +160,20 @@ export class ReconnectModal extends LitElement {
         : { active: false };
       if (!body.active) {
         clearReconnectSession();
+        flashist_logEventAnalytics(flashistConstants.analyticEvents.RECONNECT_FAILED);
         this.mode = "failed";
         return;
       }
     } catch {
       // Network unreachable — treat as failure
       clearReconnectSession();
+      flashist_logEventAnalytics(flashistConstants.analyticEvents.RECONNECT_FAILED);
       this.mode = "failed";
       return;
     }
 
     // Game is still active — hand off to Main.ts (which will call modal.hide())
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.RECONNECT_SUCCEEDED);
     document.dispatchEvent(
       new CustomEvent("join-lobby", {
         detail: { clientID: session.clientID, gameID: session.gameID },
@@ -178,6 +184,7 @@ export class ReconnectModal extends LitElement {
   }
 
   private _handleDismiss(): void {
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.RECONNECT_DECLINED);
     clearReconnectSession();
     this.hide();
   }
@@ -188,6 +195,7 @@ export class ReconnectModal extends LitElement {
     // for a first-time player should not surface a "Reconnection Failed" message.
     if (this.session === null) return;
     clearReconnectSession();
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.RECONNECT_FAILED);
     this.mode = "failed";
     this.isVisible = true;
   };
