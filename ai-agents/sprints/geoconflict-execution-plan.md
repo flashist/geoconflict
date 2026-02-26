@@ -55,20 +55,75 @@ The choice of storage and tooling is up to the developer — a simple self-hoste
 ---
 
 ### 2. Tab Crash Reconnection
-**Effort:** 2–3 days
+**Status: Already implemented**
 **Experiments:** ✅ Test via Yandex experiments API — the reconnection prompt is purely additive. Players not in the experiment group simply never see the prompt and experience no change. Success metric: match completion rate for the experiment group vs control group.
 
-A significant portion of the ghost rate is likely players whose browser tab crashes mid-match, especially on mobile. Currently they have no way back in.
+When a player's browser tab crashes or closes unexpectedly mid-match and they reopen the game, they are automatically detected as having an interrupted session and offered the chance to rejoin their active match — if that match is still ongoing and their character is still alive in it.
 
-When a player's browser tab crashes or closes unexpectedly mid-match and they reopen the game, they should be automatically detected as having an interrupted session and offered the chance to rejoin their active match — if that match is still ongoing and their character is still alive in it.
+See Task 2a for the analytics instrumentation that should be added on top of this feature.
 
-Key behavior:
-- If the match is still active and the player is still alive: show a rejoin prompt
-- If the match has ended while they were gone: land on the main screen normally, no prompt
-- If the player was eliminated while disconnected: no reconnection prompt — reconnecting a player into a match they have already lost is worse than not reconnecting at all
-- If the player exited through the normal in-game exit flow: no prompt on next open
+---
 
-The codebase already tracks player disconnection state server-side via `MarkDisconnectedExecution`. The developer should use this as a starting point. The reconnection prompt should be unobtrusive — it must not block the player from ignoring it and starting a new game instead.
+### 2a. Reconnection Analytics
+**Effort:** half a day — 1 day
+**Experiments:** ❌ Excluded — this is a measurement addition to an already-shipped feature, not a new behavior being tested.
+
+The reconnection feature (Task 2) is already implemented, but without specific tracking we cannot tell whether it is working, how often players encounter it, or whether reconnection attempts succeed or fail. General match completion analytics from Task 1 are not granular enough to answer these questions.
+
+The following events should be tracked inside the reconnection flow:
+
+- **Reconnection prompt shown** — a player opened the game and was shown the rejoin prompt. This tells us how frequently unexpected exits and crashes actually occur.
+- **Reconnection accepted** — the player tapped the rejoin button. Combined with the above, this gives the prompt's conversion rate.
+- **Reconnection declined** — the player dismissed the prompt and went to the main menu instead.
+- **Reconnection succeeded** — the player rejoined and was confirmed active in the match. This is distinct from accepted — the rejoin attempt could still fail server-side.
+- **Reconnection failed** — the player accepted the prompt but the server reported the match had already ended or the player had been eliminated by the time they tried to rejoin.
+
+These five events form a complete funnel: how often the problem occurs → how many players attempt to fix it → how many succeed. Without the last two events in particular, it is impossible to distinguish between "the feature works but players don't use it" and "the feature is broken and rejoin attempts are silently failing."
+
+All events should include the standard device and platform context from Task 1 (mobile/desktop, Yandex login status).
+
+---
+
+### 2b. In-Game Feedback Button
+**Effort:** 2–3 days
+**Experiments:** ❌ Excluded — this is a utility feature that should be available to all players from day one. Limiting it to an experiment group means a portion of players have no way to report problems, which defeats the purpose.
+
+Currently the only way for players to send feedback is through Yandex's built-in review mechanism, which is slow and designed for post-session star ratings — not for reporting specific bugs or problems mid-experience. An in-game feedback button catches issues in the moment, with full context, producing far more actionable reports. It should be shipped as early as possible — as each new feature lands, player feedback becomes increasingly valuable.
+
+**Placement — two locations:**
+
+- **Start screen:** bottom bar, next to the existing settings gear icon (bottom right). The bottom bar already establishes itself as the place for meta/utility actions. The feedback button belongs in the same category — discoverable but not competing with the primary actions (join game, play mission, singleplayer).
+- **Battle screen:** top right corner, next to the existing settings and exit icons. This is already where utility controls live, so placement there is consistent with the existing UI language.
+
+The button must use the same icon and color in both locations so players who discover it in one context immediately recognize it in the other. A small speech bubble or flag icon is recommended — universally understood as "feedback" or "report." Avoid red as the button color since red typically signals errors or alerts in game UI.
+
+**What happens when the button is tapped:**
+
+A lightweight overlay appears — not a full-screen form. It must be dismissible instantly so players in the middle of a match are not pulled out of the game. The form contains:
+- A category selector: Bug / Suggestion / Other
+- A free-text field (optional, not mandatory)
+- A send button
+- A brief confirmation after sending: *"Thanks, we read every report"*
+- An optional contact field for players who want a response (not mandatory)
+
+**Automatically attach context with every submission:**
+- Platform (mobile / desktop)
+- Yandex login status
+- Current game version
+- Last match ID (if the player just finished or is currently in a match)
+- Timestamp
+
+This context turns vague reports like "the game crashed" into actionable ones without requiring the player to provide technical details themselves.
+
+**Admin side:** submissions need to be readable somewhere. A simple list view — category, text, attached context, timestamp — is sufficient for V1. No complex tooling required.
+
+**Dependency:** if Task 1 analytics infrastructure is already live, the automatic context attachment can reuse the same event/session data. If not, the context should still be collected and attached directly to the feedback submission independently.
+
+**Analytics tracking:** two events should be tracked as part of this task:
+- **Feedback button opened** — player tapped the feedback button and the form appeared. Tracks visibility and discoverability of the button.
+- **Feedback submitted** — player completed and sent a feedback report. The ratio between opened and submitted reveals whether the form itself is causing drop-off.
+
+Both events should include which screen the button was opened from (start screen or battle screen) so we can compare discoverability across both placements.
 
 ---
 
@@ -115,19 +170,19 @@ The singleplayer mission infrastructure is already built. A tutorial is essentia
 
 ---
 
-### 4a. Auto-Spawn — Automatic Starting Location for Inactive Players
+### 4a. Auto-Spawn — Automatic Starting Location on Join
 **Effort:** 1–2 days
 **Experiments:** ❌ Excluded — this is a universal UX fix that applies to all players in all matches. Running it as an experiment would mean a portion of new players continue to experience the broken state we already know is a problem. Ship to all players.
 
 A significant number of new players never make their first action because they don't realize they need to click the map to choose a spawn location. Even though a text prompt exists, it is easy to miss — especially on mobile. The result is a player who sits through the entire spawn phase and enters the match without a territory, or misses the window entirely.
 
-**The fix:** if a player has not chosen a spawn location within the first 3–5 seconds of the spawn phase, place them automatically at a valid location. They retain the ability to tap or click a different location at any point during the remaining spawn phase if they want to reposition.
+**The fix:** place every player automatically at a valid spawn location the moment they join the match. They retain the ability to tap or click a different location at any point during the spawn phase if they want to reposition. There is no delay — instant placement is strictly better because it immediately communicates to the player that they are in the game and have a position on the map. Experienced players who have a preferred location will simply click it immediately, overriding the auto-placement as before.
 
 **Key behaviors:**
-- Auto-placement triggers after 3–5 seconds of inactivity at the start of the spawn phase — not instantly, so experienced players who know what they are doing still get first choice of location
-- When a player is auto-placed, show a brief contextual message near their location: *"You've been placed here. Tap anywhere to choose a different starting point"*
+- Auto-placement happens instantly on join, before the player has taken any action
+- Show a brief contextual message near their placed location: *"You've been placed here. Tap anywhere to choose a different starting point"*
 - The message must be clearly visible on mobile screens
-- If the player actively clicks a location before the 3–5 second threshold, auto-placement does not trigger
+- The player can reposition at any point during the remaining spawn phase by tapping or clicking any valid location
 - This applies to all match types — singleplayer, public, and private
 
 **Spawn location quality:** purely random placement can put a new player in a poor strategic position — surrounded by strong opponents with no room to expand — leading to early elimination before they've understood the game. The developer should check whether the existing spawn logic can be extended to bias auto-placement toward lower-competition areas such as map edges or zones with fewer nearby opponents. If this is straightforward, it should be included. If it adds significant complexity, random placement is acceptable for V1 and can be refined later.
@@ -336,9 +391,11 @@ Design:
 | # | Item | Effort | Experiments | Primary Benefit | Sprint |
 |---|------|--------|-------------|-----------------|--------|
 | 1 | Analytics — session & match event tracking | 1–2 days | ❌ Excluded | Informs everything else, baseline measurement | 1 |
-| 2 | Tab crash reconnection | 2–3 days | ✅ Test | Reduces ghost rate, more ad impressions | 1 |
+| 2 | Tab crash reconnection | Already implemented | ✅ Test | Reduces ghost rate, more ad impressions | 1 |
+| 2a | Reconnection analytics instrumentation | 0.5–1 day | ❌ All users | Measures whether reconnection is actually working and being used | 1 |
+| 2b | In-game feedback button (start screen + battle screen) | 2–3 days | ❌ All users | Opens player feedback channel before further changes ship | 1 |
 | 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
-| 4a | Auto-spawn — automatic starting location for inactive players | 1–2 days | ❌ All users | Reduces zero-action abandonment at match start | 2 |
+| 4a | Auto-spawn — automatic starting location on join | 1–2 days | ❌ All users | Eliminates zero-action abandonment at match start | 2 |
 | 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
 | 5 | Deep mobile rendering optimization | 3–6 weeks | ❌ Excluded | Only if analytics confirms mobile worth the investment | 3 |
 | 6 | Rewarded ads — minimal version (no coin economy) | 2–3 days | ✅ Test | Yandex algorithm boost, first monetization signal | 4 |
