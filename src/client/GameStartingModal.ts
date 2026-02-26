@@ -8,54 +8,54 @@ export class GameStartingModal extends LitElement {
   isVisible = false;
 
   static styles = css`
-    .modal {
+    .modal-overlay {
       display: none;
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: rgba(30, 30, 30, 0.7);
-      padding: 25px;
-      border-radius: 10px;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.4);
       z-index: 9999;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
-      color: white;
-      width: 300px;
-      text-align: center;
-      transition:
-        opacity 0.3s ease-in-out,
-        visibility 0.3s ease-in-out;
+      align-items: center;
+      justify-content: center;
     }
 
-    .modal.visible {
-      display: block;
+    .modal-overlay.visible {
+      display: flex;
       animation: fadeIn 0.3s ease-out;
     }
 
     @keyframes fadeIn {
       from {
         opacity: 0;
-        transform: translate(-50%, -48%);
       }
       to {
         opacity: 1;
-        transform: translate(-50%, -50%);
       }
     }
 
-    .modal h2 {
+    .modal-box {
+      background-color: rgba(30, 30, 30, 0.7);
+      backdrop-filter: blur(5px);
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      color: white;
+      width: 300px;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .modal-box h2 {
       margin-bottom: 15px;
       font-size: 22px;
       color: white;
     }
 
-    .modal p {
+    .modal-box p {
       margin: 2px 0;
       font-size: 14px;
     }
 
-    .modal .loading {
+    .modal-box .loading {
       font-size: 16px;
       margin-top: 20px;
       margin-bottom: 20px;
@@ -70,7 +70,7 @@ export class GameStartingModal extends LitElement {
       gap: 10px;
     }
 
-    .modal button {
+    .modal-box button {
       padding: 12px;
       font-size: 16px;
       cursor: pointer;
@@ -83,12 +83,12 @@ export class GameStartingModal extends LitElement {
         transform 0.1s ease;
     }
 
-    .modal button:hover {
+    .modal-box button:hover {
       background: rgba(255, 100, 100, 0.9);
       transform: translateY(-1px);
     }
 
-    .modal button:active {
+    .modal-box button:active {
       transform: translateY(1px);
     }
 
@@ -99,7 +99,7 @@ export class GameStartingModal extends LitElement {
       opacity: 1;
     }
 
-    .modal a {
+    .modal-box a {
       display: block;
       margin-top: 10px;
       margin-bottom: 15px;
@@ -109,7 +109,7 @@ export class GameStartingModal extends LitElement {
       transition: color 0.2s ease;
     }
 
-    .modal a:hover {
+    .modal-box a:hover {
       color: #6bb0ff;
       text-decoration: underline;
     }
@@ -118,8 +118,10 @@ export class GameStartingModal extends LitElement {
   render() {
     // Flashist Adaptation
     return html`
-      <div class="modal ${this.isVisible ? "visible" : ""}">
-        <p class="loading">${translateText("game_starting_modal.title")}</p>
+      <div class="modal-overlay ${this.isVisible ? "visible" : ""}">
+        <div class="modal-box">
+          <p class="loading">${translateText("game_starting_modal.title")}</p>
+        </div>
       </div>
     `;
     // return html`
