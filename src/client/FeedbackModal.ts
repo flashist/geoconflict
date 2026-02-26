@@ -294,7 +294,7 @@ export class FeedbackModal extends LitElement {
                   : ""}
                 <button
                   class="send-btn"
-                  ?disabled=${this.loading}
+                  ?disabled=${this.loading || !this.text.trim()}
                   @click=${this.onSubmit}
                 >
                   ${this.loading

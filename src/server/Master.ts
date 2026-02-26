@@ -179,7 +179,10 @@ const FeedbackSchema = z.object({
   screenSource: z.enum(["start", "battle"]),
 });
 
-app.post("/api/feedback", async (req, res) => {
+app.post(
+  "/api/feedback",
+  rateLimit({ windowMs: 60_000, max: 5 }),
+  async (req, res) => {
   const parsed = FeedbackSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid payload" });
@@ -262,7 +265,8 @@ app.post("/api/feedback", async (req, res) => {
   }
 
   res.json({ ok: true });
-});
+  },
+);
 
 app.post("/api/kick_player/:gameID/:clientID", async (req, res) => {
   if (req.headers[config.adminHeader()] !== config.adminToken()) {

@@ -165,7 +165,7 @@ export class GameRightSidebar extends LitElement implements Layer {
           ${this.maybeRenderReplayButtons()}
           <div
             class="w-6 h-6 cursor-pointer"
-            title="Обратная связь"
+            title=${translateText("feedback_modal.button_tooltip")}
             @click=${this.onFeedbackButtonClick}
           >
             <img

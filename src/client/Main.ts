@@ -407,14 +407,15 @@ class Client {
     ) as FeedbackModal;
     if (!feedbackModal || !(feedbackModal instanceof FeedbackModal)) {
       console.warn("Feedback modal element not found");
+    } else {
+      document.getElementById("feedback-button")?.addEventListener("click", () => {
+        feedbackModal.show("start");
+      });
+      window.addEventListener("show-feedback-modal", (e: Event) => {
+        const detail = (e as CustomEvent<{ matchId?: string }>).detail;
+        feedbackModal.show("battle", detail?.matchId);
+      });
     }
-    document.getElementById("feedback-button")?.addEventListener("click", () => {
-      feedbackModal.show("start");
-    });
-    window.addEventListener("show-feedback-modal", (e: Event) => {
-      const detail = (e as CustomEvent<{ matchId?: string }>).detail;
-      feedbackModal.show("battle", detail?.matchId);
-    });
 
     const hostModal = document.querySelector(
       "host-lobby-modal",
