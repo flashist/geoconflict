@@ -145,6 +145,7 @@ function createLocalProxyConfig() {
         "/api/auth/callback",
         "/api/auth/discord",
         "/api/kick_player",
+        "/api/feedback",
       ],
       target: "http://localhost:3000",
       secure: false,

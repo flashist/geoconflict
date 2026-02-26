@@ -14,6 +14,8 @@ import {
 } from "../core/game/Game";
 import { UserSettings } from "../core/game/UserSettings";
 import "./AccountModal";
+import "./FeedbackModal";
+import { FeedbackModal } from "./FeedbackModal";
 import { joinLobby } from "./ClientGameRunner";
 import {
   checkReconnectSession,
@@ -399,6 +401,20 @@ class Client {
       ?.addEventListener("click", () => {
         settingsModal.open();
       });
+
+    const feedbackModal = document.querySelector(
+      "feedback-modal",
+    ) as FeedbackModal;
+    if (!feedbackModal || !(feedbackModal instanceof FeedbackModal)) {
+      console.warn("Feedback modal element not found");
+    }
+    document.getElementById("feedback-button")?.addEventListener("click", () => {
+      feedbackModal.show("start");
+    });
+    window.addEventListener("show-feedback-modal", (e: Event) => {
+      const detail = (e as CustomEvent<{ matchId?: string }>).detail;
+      feedbackModal.show("battle", detail?.matchId);
+    });
 
     const hostModal = document.querySelector(
       "host-lobby-modal",

@@ -282,6 +282,19 @@
     "green": "Green",
     "bot": "Bot"
   },
+  "feedback_modal": {
+    "title": "Feedback",
+    "category_bug": "Bug",
+    "category_suggestion": "Suggestion",
+    "category_other": "Other",
+    "text_placeholder": "Describe the issue or suggestion…",
+    "contact_placeholder": "Email or Telegram (optional)",
+    "send": "Send",
+    "sending": "Sending…",
+    "success": "Thank you, we read every message",
+    "error": "Failed to send. Please try again.",
+    "button_tooltip": "Feedback"
+  },
   "game_starting_modal": {
     "title": "Game is Starting...",
     "credits": "Credits",
