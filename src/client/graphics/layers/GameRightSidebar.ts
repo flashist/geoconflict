@@ -62,14 +62,29 @@ export class GameRightSidebar extends LitElement implements Layer {
     if (maxTimerValue !== undefined) {
       if (this.game.inSpawnPhase()) {
         this.timer = maxTimerValue * 60;
-      } else if (!this.hasWinner && this.game.ticks() % 10 === 0) {
-        this.timer = Math.max(0, this.timer - 1);
+      } else if (!this.hasWinner) {
+        const expected = Math.max(
+          0,
+          maxTimerValue * 60 - Math.floor(this.game.ticks() / 10),
+        );
+        if (Math.abs(this.timer - expected) > 5) {
+          // Timer is out of sync (e.g. after reconnection catch-up) — snap to correct value
+          this.timer = expected;
+        } else if (this.game.ticks() % 10 === 0) {
+          this.timer = Math.max(0, this.timer - 1);
+        }
       }
     } else {
       if (this.game.inSpawnPhase()) {
         this.timer = 0;
-      } else if (!this.hasWinner && this.game.ticks() % 10 === 0) {
-        this.timer++;
+      } else if (!this.hasWinner) {
+        const expected = Math.floor(this.game.ticks() / 10);
+        if (Math.abs(this.timer - expected) > 5) {
+          // Timer is out of sync (e.g. after reconnection catch-up) — snap to correct value
+          this.timer = expected;
+        } else if (this.game.ticks() % 10 === 0) {
+          this.timer++;
+        }
       }
     }
   }
