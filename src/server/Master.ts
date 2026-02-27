@@ -177,6 +177,7 @@ const FeedbackSchema = z.object({
   matchId: z.string().max(100).optional(),
   screenSource: z.enum(["start", "battle"]),
   username: z.string().max(100).optional(),
+  deviceInfo: z.record(z.string(), z.union([z.string(), z.number()])).refine(r => Object.keys(r).length > 0, { message: "deviceInfo must not be empty" }).optional(),
 });
 
 app.post(
@@ -192,6 +193,12 @@ app.post(
     const d = parsed.data;
     const esc = (s: string) =>
       s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    const formatDeviceInfo = (info: Record<string, string | number>) =>
+      Object.entries(info)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(" | ")
+        .slice(0, 500);
 
     if (FEEDBACK_WEBHOOK_URL) {
       const body = JSON.stringify({
@@ -214,6 +221,9 @@ app.post(
               { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
               { name: "Contact", value: d.contact ? esc(d.contact) : "n/a", inline: true },
               { name: "Time", value: new Date().toISOString(), inline: false },
+              ...(d.deviceInfo
+                ? [{ name: "Device Info", value: formatDeviceInfo(d.deviceInfo), inline: false }]
+                : []),
             ],
           },
         ],
@@ -241,6 +251,7 @@ app.post(
         `<b>Version:</b> ${esc(d.version)}`,
         `<b>Match:</b> ${d.matchId ? esc(d.matchId) : "n/a"}  <b>Contact:</b> ${d.contact ? esc(d.contact) : "n/a"}`,
         `<b>Time:</b> ${new Date().toISOString()}`,
+        ...(d.deviceInfo ? [`\n<b>Device:</b> ${esc(formatDeviceInfo(d.deviceInfo))}`] : []),
       ];
       const telegramBody = JSON.stringify({
         chat_id: FEEDBACK_TELEGRAM_CHAT_ID,

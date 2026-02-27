@@ -197,6 +197,51 @@ export class FeedbackModal extends LitElement {
     this.error = "";
   }
 
+  private collectDeviceInfo(): Record<string, string | number> {
+    const info: Record<string, string | number> = {};
+
+    try {
+      const ua = navigator.userAgent;
+      let browser = "unknown";
+      if (/Edg\//.test(ua))        browser = "Edge "    + (ua.match(/Edg\/([\d.]+)/)?.[1]     ?? "");
+      else if (/OPR\//.test(ua))   browser = "Opera "   + (ua.match(/OPR\/([\d.]+)/)?.[1]     ?? "");
+      else if (/Chrome\//.test(ua)) browser = "Chrome " + (ua.match(/Chrome\/([\d.]+)/)?.[1]  ?? "");
+      else if (/Firefox\//.test(ua)) browser = "Firefox "+ (ua.match(/Firefox\/([\d.]+)/)?.[1] ?? "");
+      else if (/Safari\//.test(ua)) browser = "Safari " + (ua.match(/Version\/([\d.]+)/)?.[1] ?? "");
+      info.browser = browser.trim();
+    } catch { /* silent */ }
+
+    try {
+      const ua = navigator.userAgent;
+      let os = "unknown";
+      if (/Windows NT/.test(ua))   os = "Windows";
+      else if (/Android/.test(ua)) os = "Android " + (ua.match(/Android ([\d.]+)/)?.[1] ?? "");
+      else if (/iPhone|iPad/.test(ua)) os = "iOS " + (ua.match(/OS ([\d_]+)/)?.[1]?.replace(/_/g, ".") ?? "");
+      else if (/Mac OS X/.test(ua)) os = "macOS " + (ua.match(/Mac OS X ([\d_]+)/)?.[1]?.replace(/_/g, ".") ?? "");
+      else if (/Linux/.test(ua))   os = "Linux";
+      info.os = os.trim();
+    } catch { /* silent */ }
+
+    try { info.screen = `${screen.width}x${screen.height}`; info.dpr = window.devicePixelRatio; } catch { /* silent */ }
+    try { if (typeof navigator.hardwareConcurrency === "number") info.cpuCores = navigator.hardwareConcurrency; } catch { /* silent */ }
+    try { const mem = (navigator as any).deviceMemory; if (typeof mem === "number") info.ram = mem; } catch { /* silent */ }
+    try { info.language = navigator.language; } catch { /* silent */ }
+
+    try {
+      const canvas = document.createElement("canvas");
+      const gl = canvas.getContext("webgl") ?? canvas.getContext("experimental-webgl");
+      if (gl) {
+        const ext = (gl as WebGLRenderingContext).getExtension("WEBGL_debug_renderer_info");
+        if (ext) {
+          const renderer = (gl as WebGLRenderingContext).getParameter(ext.UNMASKED_RENDERER_WEBGL);
+          if (renderer) info.gpu = renderer;
+        }
+      }
+    } catch { /* silent */ }
+
+    return info;
+  }
+
   private async onSubmit() {
     this.loading = true;
     this.error = "";
@@ -212,6 +257,8 @@ export class FeedbackModal extends LitElement {
     const usernameEl = document.querySelector("username-input") as UsernameInput | null;
     const username = usernameEl?.getCurrentUsername() ?? "";
 
+    const deviceInfo = this.collectDeviceInfo();
+
     const payload = {
       category: this.category,
       text: this.text || undefined,
@@ -222,6 +269,7 @@ export class FeedbackModal extends LitElement {
       matchId: this.matchId,
       screenSource: this.screenSource,
       username: username || undefined,
+      deviceInfo: Object.keys(deviceInfo).length > 0 ? deviceInfo : undefined,
     };
 
     try {
