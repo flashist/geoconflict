@@ -177,7 +177,7 @@ const FeedbackSchema = z.object({
   matchId: z.string().max(100).optional(),
   screenSource: z.enum(["start", "battle"]),
   username: z.string().max(100).optional(),
-  deviceInfo: z.record(z.string(), z.union([z.string(), z.number()])).refine(r => Object.keys(r).length > 0).optional(),
+  deviceInfo: z.record(z.string(), z.union([z.string(), z.number()])).refine(r => Object.keys(r).length > 0, { message: "deviceInfo must not be empty" }).optional(),
 });
 
 app.post(
