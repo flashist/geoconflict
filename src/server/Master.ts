@@ -190,13 +190,15 @@ app.post(
     }
 
     const d = parsed.data;
+    const esc = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
     if (FEEDBACK_WEBHOOK_URL) {
       const body = JSON.stringify({
         embeds: [
           {
             title: `[${d.category}] Feedback`,
-            description: d.text ?? "_(no text)_",
+            description: d.text ? esc(d.text) : "_(no text)_",
             color:
               d.category === "Bug"
                 ? 0xff4444
@@ -207,10 +209,10 @@ app.post(
               { name: "Screen", value: d.screenSource, inline: true },
               { name: "Platform", value: d.platform, inline: true },
               { name: "Yandex", value: d.yandexStatus, inline: true },
-              { name: "Username", value: d.username ?? "n/a", inline: true },
+              { name: "Username", value: d.username ? esc(d.username) : "n/a", inline: true },
               { name: "Version", value: d.version, inline: true },
               { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
-              { name: "Contact", value: d.contact ?? "n/a", inline: true },
+              { name: "Contact", value: d.contact ? esc(d.contact) : "n/a", inline: true },
               { name: "Time", value: new Date().toISOString(), inline: false },
             ],
           },
@@ -231,8 +233,6 @@ app.post(
     }
 
     if (FEEDBACK_TELEGRAM_TOKEN && FEEDBACK_TELEGRAM_CHAT_ID) {
-      const esc = (s: string) =>
-        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const lines = [
         `<b>[${d.category}] Feedback</b>`,
         d.text ? `\n${esc(d.text)}` : "",
