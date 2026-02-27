@@ -127,6 +127,32 @@ Both events should include which screen the button was opened from (start screen
 
 ---
 
+### 2c. Automatic Device & Environment Info Collection
+**Effort:** 1–2 days
+**Experiments:** ❌ Excluded — this is a data enrichment layer on top of the already-shipped feedback system. Should be available for all feedback submissions from all players.
+
+**Depends on:** Task 2b (feedback button must exist first)
+
+When a player submits feedback, automatically collect and attach device and environment information that would be useful for reproducing bugs. Players should never need to provide this manually — it is collected silently in the background at the moment of submission.
+
+**Data to collect (all best-effort — some values may be unavailable depending on browser):**
+
+- **User agent string** — full browser user agent, from which browser name, version, and OS can be parsed
+- **Browser name and version** — parsed from user agent for readability in the admin view
+- **Device type** — mobile or desktop (can be derived from user agent or screen size)
+- **CPU cores** — available via `navigator.hardwareConcurrency`
+- **RAM (approximate)** — available via `navigator.deviceMemory`; returns rounded values (0.25, 0.5, 1, 2, 4, 8 GB) rather than exact figures, but sufficient for device class identification
+- **GPU / renderer info** — available via WebGL renderer string; note that some browsers block this for fingerprinting protection, so this field may not always be populated
+- **Screen resolution and pixel ratio** — useful for identifying HiDPI/retina devices and screen size class
+- **Browser language** — useful for understanding which player market a report is coming from
+
+**Important notes for the developer:**
+- All fields are best-effort. If a value is unavailable or blocked by the browser, it should be omitted gracefully rather than causing an error or blocking the submission.
+- This data is collected for bug reproduction purposes only — it is attached to feedback submissions, not stored as a general player profile.
+- GPU info via WebGL may be absent on privacy-focused browsers or when the user has blocked canvas fingerprinting. The developer should handle this silently.
+
+---
+
 ### 3. Mobile Quick Wins
 **Effort:** 2–3 days
 **Experiments:** ❌ Excluded — applying different rendering settings to a subset of mobile users would produce inconsistent crash data and make analytics results unreadable. Ship to all mobile users and measure impact via analytics (Task 1) instead.
@@ -394,6 +420,7 @@ Design:
 | 2 | Tab crash reconnection | Already implemented | ✅ Test | Reduces ghost rate, more ad impressions | 1 |
 | 2a | Reconnection analytics instrumentation | 0.5–1 day | ❌ All users | Measures whether reconnection is actually working and being used | 1 |
 | 2b | In-game feedback button (start screen + battle screen) | 2–3 days | ❌ All users | Opens player feedback channel before further changes ship | 1 |
+| 2c | Automatic device & environment info collection | 1–2 days | ❌ All users | Enriches feedback reports with device context for bug reproduction | 1 |
 | 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
 | 4a | Auto-spawn — automatic starting location on join | 1–2 days | ❌ All users | Eliminates zero-action abandonment at match start | 2 |
 | 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
