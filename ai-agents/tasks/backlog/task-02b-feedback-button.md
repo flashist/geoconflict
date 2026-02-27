@@ -36,10 +36,13 @@ The following should be attached automatically — the player should never need 
 
 - Platform (mobile / desktop)
 - Yandex login status (logged in / anonymous)
+- Username (Yandex username if logged in, AnonXXXX if anonymous)
 - Current game version
 - Last match ID (if the player just finished or is currently in a match)
 - Timestamp
 - Which screen the button was opened from (start screen or battle screen)
+
+The username is particularly useful for follow-up: a Yandex-logged-in player can be looked up or contacted directly via Yandex Games for further investigation of a reported issue.
 
 ## Admin Side
 
