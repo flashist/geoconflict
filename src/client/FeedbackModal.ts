@@ -200,8 +200,6 @@ export class FeedbackModal extends LitElement {
   private collectDeviceInfo(): Record<string, string | number> {
     const info: Record<string, string | number> = {};
 
-    try { info.userAgent = navigator.userAgent; } catch { /* silent */ }
-
     try {
       const ua = navigator.userAgent;
       let browser = "unknown";

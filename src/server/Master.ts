@@ -221,7 +221,7 @@ app.post(
               { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
               { name: "Contact", value: d.contact ? esc(d.contact) : "n/a", inline: true },
               { name: "Time", value: new Date().toISOString(), inline: false },
-              ...(d.deviceInfo
+              ...(d.deviceInfo && Object.keys(d.deviceInfo).length > 0
                 ? [{ name: "Device Info", value: formatDeviceInfo(d.deviceInfo), inline: false }]
                 : []),
             ],
