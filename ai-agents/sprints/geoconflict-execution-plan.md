@@ -153,9 +153,55 @@ When a player submits feedback, automatically collect and attach device and envi
 
 ---
 
+### 2d. Additional Analytics Events — Session Depth & Spawn Behavior
+**Effort:** 1–2 days
+**Experiments:** ❌ Excluded — this is a measurement layer addition. Analytics must be available for all players to produce valid data.
+
+**Depends on:** Task 1 (analytics infrastructure must be live)
+
+Task 1 delivered match-level and player-level events. This task adds the missing events needed for funnel construction and session depth analysis.
+
+**Session:Start — custom Design Event**
+GameAnalytics funnels only support Design Events and Progression Events — the built-in automatic session event is not available in the funnel builder. A custom `Session:Start` Design Event must be fired once on game load, immediately after the SDK initializes. This is the top step of every funnel we will build. Without it, no player-conversion funnels are possible.
+
+**Session:Heartbeat — every 5 minutes**
+Fired periodically while the player is active, using a named interval: `Session:Heartbeat:05`, `Session:Heartbeat:10`, `Session:Heartbeat:15`, and so on. Each event represents a player still present at that point in their session. This creates a session depth curve — you can see what percentage of players reach 5 minutes, 10 minutes, 15 minutes, and so on. Combined with match events from Task 1, this tells you whether players are losing interest between matches or during them. Must be broken down by mobile vs desktop context (attach platform to each event) — this data directly informs Tasks 3 and 5. Stop firing after the player closes the game or becomes inactive.
+
+**Session:FirstAction**
+Fired once per session the first time a player takes any meaningful action on the start screen — joining a lobby, clicking play mission, opening settings, or clicking anything interactive. Players who open the game but never trigger this event are pure zero-action abandonment. This is a direct measurement of the problem Task 4a is solving and should be tracked before and after Task 4a ships to confirm it is working.
+
+**Match:SpawnChosen and Match:SpawnAuto**
+Two mutually exclusive events fired during the spawn phase of every match:
+- `Match:SpawnChosen` — the player actively clicked or tapped a spawn location themselves
+- `Match:SpawnAuto` — the player was auto-placed (Task 4a mechanic triggered)
+
+These events directly measure the scale of the spawn confusion problem and track whether it improves over time. Once Task 4a ships, the ratio of SpawnAuto to SpawnChosen tells you how many players were still confused even after auto-spawn existed — useful for determining if additional guidance is needed.
+
+---
+
+### 2e. Performance Monitoring Events
+**Effort:** 2–3 days
+**Experiments:** ❌ Excluded — performance monitoring must cover all players to produce valid data, particularly across mobile device classes.
+
+**Depends on:** Task 1 (analytics infrastructure must be live)
+
+Currently we have no visibility into how the game actually performs on players' devices. We know mobile players crash and abandon at a higher rate, but we don't know which device classes are most affected or how framerate varies across the player base. This task adds periodic performance sampling that gives us that visibility.
+
+**Performance:FPS snapshot**
+Sample the current framerate at regular intervals (every 60 seconds is sufficient) and fire a Design Event with the value. Use buckets rather than exact values to keep the data clean: `Performance:FPS:Above30`, `Performance:FPS:15to30`, `Performance:FPS:Below15`. Below 15fps is the crash-risk zone. This must be broken down by mobile vs desktop. This data is the primary measurement tool for Tasks 3 and 5 — it tells you whether mobile quick wins (Task 3) actually improved framerate, and it is one of the key inputs for the gate decision on deep rendering optimization (Task 5).
+
+**Performance:MemoryPressure** (best-effort)
+If the browser exposes memory information via `performance.memory` (Chrome only, not available in all browsers), sample available heap size at the same 60-second interval and fire a bucketed event: `Performance:Memory:Low`, `Performance:Memory:Medium`, `Performance:Memory:High`. Low memory correlates strongly with tab crashes on mobile. Handle unavailability silently — this is a best-effort event, not a required one.
+
+**Critical implementation constraint:** performance sampling must run on a low-priority interval and must never affect game performance or determinism. If sampling itself causes a framerate drop, it defeats the purpose. The developer should verify that adding these events has no measurable impact on frame timing before shipping.
+
+This task is intentionally separated from Task 2d because performance monitoring involves framerate sampling, timing logic, and rendering pipeline awareness — it is more complex than simple behavioral event tracking and should not block Task 2d from shipping.
+
+---
+
 ### 3. Mobile Quick Wins
 **Effort:** 2–3 days
-**Experiments:** ❌ Excluded — applying different rendering settings to a subset of mobile users would produce inconsistent crash data and make analytics results unreadable. Ship to all mobile users and measure impact via analytics (Task 1) instead.
+**Experiments:** ❌ Excluded — applying different rendering settings to a subset of mobile users would produce inconsistent crash data and make analytics results unreadable. Ship to all mobile users and measure impact via Task 2d Session:Heartbeat and Task 2e Performance:FPS events.
 
 Mobile players are abandoning or crashing at a disproportionate rate. Several high-impact fixes require only configuration or conditional rendering changes — no architecture work.
 
@@ -168,6 +214,8 @@ Minimum changes to implement on mobile:
 
 The developer is welcome to identify and implement other low-risk mobile optimizations beyond this list. This task is explicitly scoped to configuration and conditional rendering changes only — it is not the time to refactor the rendering pipeline. That is a separate larger task (Task 5).
 
+**How impact will be measured:** after this task ships, watch `Session:Heartbeat` events (Task 2d) filtered to mobile players — session depth should increase. Watch `Performance:FPS` events (Task 2e) on mobile — the proportion of players in the `Below15` bucket should decrease. These two signals together confirm whether this task had the intended effect.
+
 ---
 
 ## Sprint 2 — Fix Onboarding
@@ -176,7 +224,7 @@ The developer is welcome to identify and implement other low-risk mobile optimiz
 
 ### 4. Tutorial — Guided First Bot Match
 **Effort:** 1–2 weeks
-**Experiments:** ✅ Test via Yandex experiments API — the tutorial is purely additive and only triggers for first-time players. Players not in the experiment group simply don't see it. Success metric: second-session rate (do players who completed the tutorial come back for a second match?) and match completion rate for new players.
+**Experiments:** ✅ Test via Yandex experiments API — the tutorial is purely additive and only triggers for first-time players. Players not in the experiment group simply don't see it. Success metrics: second-session rate (do players who completed the tutorial come back for a second match?), match completion rate for new players, and `Session:FirstAction` rate (Task 2d) — the tutorial should increase the proportion of new players who take any meaningful action at all.
 
 Currently there is no tutorial. A first-time player opening Geoconflict faces a complex map with no context — territory expansion, economy, alliances, nukes — and will close the tab within 90 seconds without guidance.
 
@@ -199,6 +247,8 @@ The singleplayer mission infrastructure is already built. A tutorial is essentia
 ### 4a. Auto-Spawn — Automatic Starting Location on Join
 **Effort:** 1–2 days
 **Experiments:** ❌ Excluded — this is a universal UX fix that applies to all players in all matches. Running it as an experiment would mean a portion of new players continue to experience the broken state we already know is a problem. Ship to all players.
+
+**How impact will be measured:** the `Match:SpawnAuto` and `Match:SpawnChosen` events (Task 2d) directly measure this task's effect. Before Task 4a ships, SpawnAuto should be zero (no auto-placement exists). After it ships, the ratio of SpawnAuto to total spawn events tells you how many players were being missed by the old flow. Over time, as players learn the mechanic, SpawnChosen should increase relative to SpawnAuto.
 
 A significant number of new players never make their first action because they don't realize they need to click the map to choose a spawn location. Even though a text prompt exists, it is easy to miss — especially on mobile. The result is a player who sits through the entire spawn phase and enters the match without a territory, or misses the window entirely.
 
@@ -230,7 +280,11 @@ Proper fixes include:
 - Viewport culling: don't render tiles outside the visible screen area
 - Texture atlasing review and optimization
 
-**This task is gated on data.** Only proceed if analytics from Sprint 1 shows that mobile represents a significant portion of active (non-ghost) players and that mobile session duration remains significantly lower than desktop after Task 3 ships. Do not invest 3–6 weeks based on assumption.
+**This task is gated on data.** Only proceed if the following two conditions are both true after Task 3 has been live for at least two weeks:
+- `Session:Heartbeat` events (Task 2d) show that mobile players are still dropping off significantly earlier than desktop players — meaning Task 3 did not close the gap sufficiently
+- `Performance:FPS` events (Task 2e) show a meaningful proportion of mobile players still in the `Below15` or `15to30` buckets after Task 3 shipped
+
+If Task 3 moved both metrics to acceptable levels, this task should be deprioritized in favor of other roadmap items. Do not invest 3–6 weeks based on assumption.
 
 ---
 
@@ -421,6 +475,8 @@ Design:
 | 2a | Reconnection analytics instrumentation | 0.5–1 day | ❌ All users | Measures whether reconnection is actually working and being used | 1 |
 | 2b | In-game feedback button (start screen + battle screen) | 2–3 days | ❌ All users | Opens player feedback channel before further changes ship | 1 |
 | 2c | Automatic device & environment info collection | 1–2 days | ❌ All users | Enriches feedback reports with device context for bug reproduction | 1 |
+| 2d | Additional analytics events — session depth & spawn behavior | 1–2 days | ❌ All users | Enables funnel construction; measures spawn confusion and session drop-off | 1 |
+| 2e | Performance monitoring events (FPS & memory sampling) | 2–3 days | ❌ All users | Measures rendering performance by device class; gates Task 5 decision | 1 |
 | 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
 | 4a | Auto-spawn — automatic starting location on join | 1–2 days | ❌ All users | Eliminates zero-action abandonment at match start | 2 |
 | 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
