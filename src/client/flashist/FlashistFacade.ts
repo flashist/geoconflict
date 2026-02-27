@@ -179,7 +179,7 @@ export class FlashistFacade {
 
         // GameAnalytics.configureBuild(this.analyticsConfig.buildId);
         GameAnalytics.initialize("a1f0fb4335fe32696c3b76eb49612ead", "ba57db678bc9a1181bde9430bad83c6fa3b71862");
-        flashist_logEventAnalytics("Session:Start");
+        flashist_logEventAnalytics(flashistConstants.analyticEvents.SESSION_START);
     }
 
     // Single place for working with URLS

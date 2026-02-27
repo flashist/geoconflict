@@ -516,8 +516,10 @@ class Client {
     this.initializeFuseTag();
 
     // Session:Heartbeat — fires every 5 real-clock minutes, skipped when tab is hidden
-    const hbPlatform = window.matchMedia("(pointer: coarse)").matches ||
-      /Android|iPhone|iPad/i.test(navigator.userAgent) ? "mobile" : "desktop";
+    const hbPlatform = (
+      window.matchMedia("(pointer: coarse)").matches ||
+      /Android|iPhone|iPad/i.test(navigator.userAgent)
+    ) ? "mobile" : "desktop";
     let hbMinutes = 0;
     const hbInterval = window.setInterval(() => {
       hbMinutes += 5;
