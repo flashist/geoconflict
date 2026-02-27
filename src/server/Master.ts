@@ -177,7 +177,7 @@ const FeedbackSchema = z.object({
   matchId: z.string().max(100).optional(),
   screenSource: z.enum(["start", "battle"]),
   username: z.string().max(100).optional(),
-  deviceInfo: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+  deviceInfo: z.record(z.string(), z.union([z.string(), z.number()])).refine(r => Object.keys(r).length > 0).optional(),
 });
 
 app.post(
@@ -221,7 +221,7 @@ app.post(
               { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
               { name: "Contact", value: d.contact ? esc(d.contact) : "n/a", inline: true },
               { name: "Time", value: new Date().toISOString(), inline: false },
-              ...(d.deviceInfo && Object.keys(d.deviceInfo).length > 0
+              ...(d.deviceInfo
                 ? [{ name: "Device Info", value: formatDeviceInfo(d.deviceInfo), inline: false }]
                 : []),
             ],
