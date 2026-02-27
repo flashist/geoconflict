@@ -2,6 +2,7 @@ import { EventBus } from "../../../core/EventBus";
 import { PlayerActions, PlayerID } from "../../../core/game/Game";
 import { TileRef } from "../../../core/game/GameMap";
 import { PlayerView } from "../../../core/game/GameView";
+import { flashist_logEventAnalytics, flashistConstants } from "../../flashist/FlashistFacade";
 import {
   SendAllianceRequestIntentEvent,
   SendAttackIntentEvent,
@@ -63,6 +64,7 @@ export class PlayerActionHandler {
   }
 
   handleSpawn(tile: TileRef) {
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_SPAWN_CHOSEN);
     this.eventBus.emit(new SendSpawnIntentEvent(tile));
   }
 

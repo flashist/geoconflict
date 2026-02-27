@@ -24,6 +24,12 @@ export const flashistConstants = {
 
         FEEDBACK_BUTTON_OPENED: "FEEDBACK_BUTTON_OPENED",
         FEEDBACK_SUBMITTED: "FEEDBACK_SUBMITTED",
+
+        SESSION_START: "Session:Start",
+        SESSION_HEARTBEAT: "Session:Heartbeat",
+        SESSION_FIRST_ACTION: "Session:FirstAction",
+        MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
+        MATCH_SPAWN_AUTO: "Match:SpawnAuto",
     },
 
     progressionEventStatus: {
@@ -173,6 +179,7 @@ export class FlashistFacade {
 
         // GameAnalytics.configureBuild(this.analyticsConfig.buildId);
         GameAnalytics.initialize("a1f0fb4335fe32696c3b76eb49612ead", "ba57db678bc9a1181bde9430bad83c6fa3b71862");
+        flashist_logEventAnalytics("Session:Start");
     }
 
     // Single place for working with URLS

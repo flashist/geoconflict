@@ -118,6 +118,13 @@ class Client {
   private gameHasStarted = false;
   private gameHasEnded = false;
   private eventBus: EventBus = new EventBus();
+  private firstActionFired = false;
+
+  private fireFirstAction() {
+    if (this.firstActionFired) return;
+    this.firstActionFired = true;
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.SESSION_FIRST_ACTION);
+  }
 
   private usernameInput: UsernameInput | null = null;
   private flagInput: FlagInput | null = null;
@@ -264,6 +271,7 @@ class Client {
       };
       updateMissionButtonLabel();
       missionButton.addEventListener("click", async () => {
+        this.fireFirstAction();
         if (!this.usernameInput?.isValid()) {
           return;
         }
@@ -280,7 +288,7 @@ class Client {
     const singlePlayer = document.getElementById("single-player");
     if (singlePlayer === null) throw new Error("Missing single-player");
     singlePlayer.addEventListener("click", () => {
-      //
+      this.fireFirstAction();
       flashist_logEventAnalytics(
         flashistConstants.analyticEvents.UI_CLICK_SINGLE_PLAYER_BUTTON
       );
@@ -297,6 +305,7 @@ class Client {
     const helpButton = document.getElementById("help-button");
     if (helpButton === null) throw new Error("Missing help-button");
     helpButton.addEventListener("click", () => {
+      this.fireFirstAction();
       hlpModal.open();
     });
 
@@ -426,6 +435,7 @@ class Client {
     const hostLobbyButton = document.getElementById("host-lobby-button");
     if (hostLobbyButton === null) throw new Error("Missing host-lobby-button");
     hostLobbyButton.addEventListener("click", () => {
+      this.fireFirstAction();
       if (this.usernameInput?.isValid()) {
         hostModal.open();
         this.publicLobby.leaveLobby();
@@ -444,6 +454,7 @@ class Client {
     if (joinPrivateLobbyButton === null)
       throw new Error("Missing join-private-lobby-button");
     joinPrivateLobbyButton.addEventListener("click", () => {
+      this.fireFirstAction();
       if (this.usernameInput?.isValid()) {
         this.joinModal.open();
       }
@@ -503,6 +514,23 @@ class Client {
       });
 
     this.initializeFuseTag();
+
+    // Session:Heartbeat — fires every 5 real-clock minutes, skipped when tab is hidden
+    const hbPlatform = window.matchMedia("(pointer: coarse)").matches ||
+      /Android|iPhone|iPad/i.test(navigator.userAgent) ? "mobile" : "desktop";
+    let hbMinutes = 0;
+    const hbInterval = window.setInterval(() => {
+      hbMinutes += 5;
+      if (hbMinutes > 60) {
+        clearInterval(hbInterval);
+        return;
+      }
+      if (document.visibilityState === "hidden") return;
+      const label = String(hbMinutes).padStart(2, "0");
+      flashist_logEventAnalytics(
+        `${flashistConstants.analyticEvents.SESSION_HEARTBEAT}:${label}:${hbPlatform}`
+      );
+    }, 5 * 60 * 1000);
   }
 
   private showReconnectBanner(session: ReconnectSession): void {
@@ -606,6 +634,7 @@ class Client {
   }
 
   private async handleJoinLobby(event: CustomEvent<JoinLobbyEvent>) {
+    this.fireFirstAction();
     const lobby = event.detail;
     console.log(`joining lobby ${lobby.gameID}`);
     this.gameHasStarted = false;
