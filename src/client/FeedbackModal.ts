@@ -6,6 +6,7 @@ import {
   flashistConstants,
 } from "./flashist/FlashistFacade";
 import { translateText } from "./Utils";
+import type { UsernameInput } from "./UsernameInput";
 
 @customElement("feedback-modal")
 export class FeedbackModal extends LitElement {
@@ -208,6 +209,9 @@ export class FeedbackModal extends LitElement {
     const yandexStatus =
       typeof (window as any).YaGames !== "undefined" ? "yandex" : "anonymous";
 
+    const usernameEl = document.querySelector("username-input") as UsernameInput | null;
+    const username = usernameEl?.getCurrentUsername() ?? "";
+
     const payload = {
       category: this.category,
       text: this.text || undefined,
@@ -217,6 +221,7 @@ export class FeedbackModal extends LitElement {
       version,
       matchId: this.matchId,
       screenSource: this.screenSource,
+      username: username || undefined,
     };
 
     try {
