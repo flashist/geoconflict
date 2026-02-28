@@ -159,13 +159,13 @@ When a player submits feedback, automatically collect and attach device and envi
 
 **Depends on:** Task 1 (analytics infrastructure must be live)
 
-Task 1 delivered match-level and player-level events. This task adds the missing events needed for funnel construction and session depth analysis.
+Task 1 delivered match-level and player-level events. This task adds the missing events needed for funnel construction and session depth tracking.
 
 **Session:Start — custom Design Event**
 GameAnalytics funnels only support Design Events and Progression Events — the built-in automatic session event is not available in the funnel builder. A custom `Session:Start` Design Event must be fired once on game load, immediately after the SDK initializes. This is the top step of every funnel we will build. Without it, no player-conversion funnels are possible.
 
 **Session:Heartbeat — every 5 minutes**
-Fired periodically while the player is active, using a named interval: `Session:Heartbeat:05`, `Session:Heartbeat:10`, `Session:Heartbeat:15`, and so on. Each event represents a player still present at that point in their session. This creates a session depth curve — you can see what percentage of players reach 5 minutes, 10 minutes, 15 minutes, and so on. Combined with match events from Task 1, this tells you whether players are losing interest between matches or during them. Must be broken down by mobile vs desktop context (attach platform to each event) — this data directly informs Tasks 3 and 5. Stop firing after the player closes the game or becomes inactive.
+Fired periodically while the player is active, using a named interval: `Session:Heartbeat:05`, `Session:Heartbeat:10`, `Session:Heartbeat:15`, and so on. Each event represents a player still present at that point in their session. This creates a session depth curve — you can see what percentage of players reach 5 minutes, 10 minutes, 15 minutes, and so on. Combined with match events from Task 1, this tells you whether players are losing interest between matches or during them. Stop firing after the player closes the game or becomes inactive.
 
 **Session:FirstAction**
 Fired once per session the first time a player takes any meaningful action on the start screen — joining a lobby, clicking play mission, opening settings, or clicking anything interactive. Players who open the game but never trigger this event are pure zero-action abandonment. This is a direct measurement of the problem Task 4a is solving and should be tracked before and after Task 4a ships to confirm it is working.
@@ -196,6 +196,30 @@ If the browser exposes memory information via `performance.memory` (Chrome only,
 **Critical implementation constraint:** performance sampling must run on a low-priority interval and must never affect game performance or determinism. If sampling itself causes a framerate drop, it defeats the purpose. The developer should verify that adding these events has no measurable impact on frame timing before shipping.
 
 This task is intentionally separated from Task 2d because performance monitoring involves framerate sampling, timing logic, and rendering pipeline awareness — it is more complex than simple behavioral event tracking and should not block Task 2d from shipping.
+
+---
+
+### 2f. Device Type Analytics Event
+**Effort:** half a day
+**Experiments:** ❌ Excluded — measurement layer. Must cover all players to produce valid funnel data.
+
+**Depends on:** Task 2d (Session:Start event must exist, as Device:Type fires immediately after it)
+
+**The problem:** attaching platform context (mobile/desktop) to individual events allows filtering in the GameAnalytics Explore tool, but it does not allow splitting funnels by device class from the top. To build separate mobile vs desktop conversion funnels and compare them directly — which is essential for measuring the impact of Tasks 3 and 5 — a dedicated Design Event must fire at the start of every session.
+
+**Event to implement: Device:Type**
+
+Fired once per session, immediately after `Session:Start`, identifying the player's device class:
+- `Device:mobile`
+- `Device:desktop`
+- `Device:tablet`
+- `Device:tv`
+
+Device class should be detected from the user agent string at session start. This is a single event, fired once, with no ongoing sampling — it is a very small task.
+
+**Why this is a separate task from 2d:** Task 2d is already implemented. This event was identified as missing after 2d shipped. It should be added as a standalone change rather than reopening the 2d implementation.
+
+**What this enables:** once aggregated (24–48 hours after first fire), it becomes possible to build device-segmented funnels in GameAnalytics — for example, the new player conversion funnel run separately for mobile and desktop players, showing whether drop-off patterns differ by device class. This is the primary measurement tool for comparing mobile vs desktop retention before and after Tasks 3 and 5.
 
 ---
 
@@ -330,30 +354,51 @@ The current Yandex built-in leaderboard is buggy and causes players to lose thei
 
 ---
 
-### 8. Verified Nickname — Purchase & Review System
-**Effort:** 1 week
-**Experiments:** ✅ Test via Yandex experiments API — the verification mark and purchase option are additive. Players not in the experiment group see no change. Success metric: purchase conversion rate and whether verified nickname owners show higher return visit rates than non-owners.
+### 8. Verified Player (Citizen) Tier — Identity & Membership System
+**Effort:** 1–2 weeks
+**Experiments:** ✅ Test via Yandex experiments API — verification mark and purchase/earn options are additive. Players not in the experiment group see no change. Success metric: citizen tier adoption rate (earned + purchased combined), return visit rate for citizens vs non-citizens, and progress bar engagement rate.
 
-Currently non-logged-in players are `AnonXXXX`. Yandex-logged-in players use their Yandex username. A paid verified nickname gives players identity expression while respecting Yandex's strict UGC rules through manual review. Crucially, verified nicknames must be visually distinct from regular names — this is what makes the purchase socially motivating, not just functionally useful.
+This task establishes the **Citizen tier** — a community membership layer for committed players. Citizens get a visible verification mark that other players see during matches, and over time they gain access to participation mechanics (map voting, tournaments, moderation trust) that regular players don't have. The tier is about community membership and influence, not pay-to-win — every privilege it grants affects the meta-experience around the game, never the game outcome itself.
 
-**What the player gets:**
-- A custom nickname of their choice, subject to review
-- A visible verification mark (a small icon or checkmark) displayed next to their name in every context where their name appears — in-match above their territory, on the leaderboard, in the post-match summary, and in the diplomacy/alliance UI. Other players see this mark during matches, which is the primary social driver of purchase desire.
+**Two paths to citizenship — both lead to the same tier:**
 
-**Purchase and review flow:**
-- One-time purchase (suggested: 149–199 rubles)
+**Path 1 — Earned (free):** complete 50 qualifying matches. A match qualifies if the player was alive past the halfway point of the match — this prevents the obvious exploit of joining and immediately quitting. The exact threshold (halfway point, or a fixed minimum duration) should be determined by the developer based on average match length data from analytics.
+
+A progress bar is displayed to all non-citizen players showing their current count toward 50. This is one of the most important retention mechanics in this task — a player who can see they are at 34/50 has a specific reason to come back. The progress bar must always be visible, not buried in a settings menu.
+
+**Path 2 — Instant purchase (cheap):** pay a small fee (suggested: 49–99 rubles) to unlock citizenship immediately. This option is shown alongside the progress bar with clear framing — players who want to skip the grind can do so at minimal cost. The low price is intentional: citizenship is a hook for retention, not a primary revenue source. Revenue comes from the privileges citizens spend on (nickname, styling, patterns), not from citizenship itself.
+
+**What a citizen gets:**
+- Verification mark displayed next to their name in all contexts — in-match, leaderboard, post-match, diplomacy UI
+- Custom nickname (separate purchase, see below)
+- Access to map voting (Task 14)
+- Future privileges as the tier evolves (tournaments, moderation trust, early access)
+
+**Custom nickname — a citizenship privilege, not a separate product:**
+
+The ability to change and verify your nickname is a privilege that comes with citizenship. There is no separate "nickname purchase" flow. If a non-citizen player tries to change their nickname, they are directed to the citizenship flow — earn it or buy it — and once they become a citizen, the nickname change proceeds.
+
+The rules for nickname changes once a player is a citizen:
+
+| Situation | Cost |
+|---|---|
+| Citizen, has never changed nickname | First change is free |
+| Citizen, has already changed nickname once or more | Small fee per subsequent change (suggested: 29–49 rubles) |
+
+Every nickname change — including the first free one — goes through manual review due to Yandex's UGC rules. The review process and admin panel apply to all changes.
+
+**Nickname change and review flow:**
+- Player initiates a nickname change (free or paid depending on their history, per the table above)
 - Clear upfront communication: review takes 24–72 hours
-- If the name is rejected (vulgar, against Yandex rules, against game rules): full automatic refund, player is notified with the reason
-- Simple admin panel: review queue with approve/reject buttons and automatic player notification on outcome
+- If the name is rejected: fee is refunded if paid, free slot is returned if it was a free change — player is notified with the reason
+- Admin panel: review queue with approve/reject and automatic player notification
 
-**Architectural requirement — centralized name rendering:** player names appear in multiple places across the game. The verification mark, and any future nickname styling (Task 8a), must be implemented through a single centralized name rendering component — not patched separately in each UI location. This is a hard requirement. If name display is handled inconsistently across the codebase today, this task is the right moment to unify it. Future tasks (8a, 10) will depend on this foundation.
+**Architectural requirement — centralized name rendering:** player names appear in multiple places across the game. The verification mark must be implemented through a single centralized name rendering component. This is a hard requirement. Future tasks (8a, 10, 14) depend on this foundation.
 
-**Key risks to manage:**
-- The review queue needs a real SLA. Silent delays beyond the stated window will cause chargebacks and negative platform reviews.
-- Verify whether Yandex's platform payment cut applies to this transaction and price accordingly.
-- Nickname changes must propagate correctly to the leaderboard display (coordinate with Task 7).
-
-**Out of scope for this task:** nickname visual styling (backgrounds, borders, text color) is a separate purchasable layer covered in Task 8a. This task delivers the verified name and the verification mark only.
+**Key risks:**
+- Progress bar count must be accurate and never lose progress — losing tracked match count would feel like a betrayal to players close to the threshold
+- Review queue SLA must be honored for nickname purchases
+- Verify Yandex platform payment cut applies to both purchase paths and price accordingly
 
 ---
 
@@ -366,6 +411,25 @@ Flag data is fully defined in `cosmetics.json` (40+ layer definitions, 30+ color
 Proposed approach:
 - Re-enable basic country flags as a free feature tied to Yandex account login. Logging in = your flag appears automatically. This directly incentivizes Yandex authorization.
 - Premium flag customization (special effects: rainbow, gold-glow, lava, neon, water; custom layer combinations) as a paid upsell via the existing Stripe flow.
+
+---
+
+### 9a. Re-enable Territory Patterns
+**Effort:** 1 week
+**Experiments:** ✅ Test via Yandex experiments API — territory patterns are purely additive. Players not in the experiment group see no patterns (current behavior). Success metric: purchase conversion rate and session length comparison between groups.
+
+**Depends on:** Task 9 (flags should ship first as the simpler of the two re-enables; patterns follow immediately after)
+
+Territory patterns are a disabled cosmetic layer that applies a visual pattern to a player's entire territory on the map — stripes, textures, gradients, and similar designs overlaid on the color fill. This is more visually impactful than flags because it affects the entire territory area rather than a small icon, making it immediately noticeable to every player in a match.
+
+Like flags, the pattern data is already defined in `cosmetics.json` and the feature is disabled via `Privilege.ts` or equivalent. The re-enable work is expected to be similar in scope to Task 9.
+
+**Proposed approach:**
+- A small set of basic patterns available free with Yandex login — gives players a reason to log in and a taste of the feature
+- Premium patterns (more complex designs, animated or special effects if technically feasible) as a paid upsell via the existing Stripe flow
+- Patterns should be compatible with flags — a player should be able to use both simultaneously without visual conflicts
+
+**Note for the developer:** check whether patterns interact with the territory rendering in ways that could affect mobile performance. If applying patterns adds significant rendering overhead on low-end devices, consider making them desktop-only or adding a mobile quality setting that disables them. Coordinate with the mobile optimization work (Tasks 3 and 5) if needed.
 
 ---
 
@@ -453,6 +517,48 @@ Gate this on lobby health: only build clans when analytics shows lobbies are con
 
 ---
 
+### 14. Map Voting for Verified Players
+**Effort:** 1–2 weeks
+**Experiments:** ✅ Test via Yandex experiments API — map voting UI is additive and only visible to verified players. Non-verified players and the control group see no change. Success metric: voting participation rate among verified players, and whether sessions containing a voted map show higher match completion rates than sessions with random maps only.
+
+**Depends on:** Task 8 (Verified Player tier must exist — voting is gated to verified players only)
+
+**The mechanic:**
+
+Maps alternate in a fixed sequence: **random map → voted map → random map → voted map**, repeating indefinitely. While a random map is being played, verified players can cast their vote for what the next voted map will be. By the time the random map ends, the vote is settled and the winning map plays immediately after. Then while the voted map runs, the next random map is already queued, and voting opens again for the one after.
+
+This means:
+- There is always an active vote in progress
+- Voting happens during dead time — players are in a match, not staring at a vote screen
+- Half of all maps are always random, regardless of votes — the game never feels fully controlled by a small verified group
+- Verified players always know their vote will be acted on
+
+**Winner selection rules:**
+- The map with the most votes wins
+- On any tie — including the case where every eligible map has zero votes — the winner is chosen randomly among all tied maps
+- This means even a single vote is decisive if no other map matches it. A verified player's vote always matters. There is no fallback to "fully random" — zero votes across all maps is simply a tie among all of them, resolved randomly
+
+**Map eligibility and cooldown:**
+- All maps are eligible for voting by default
+- Any map played in the last N cycles (random or voted) is placed on cooldown and excluded from the vote pool until the cooldown expires. The developer should propose a sensible N based on the total number of available maps — the goal is to prevent the same popular maps from dominating every vote while still allowing them to recur over a reasonable time window
+
+**Where voting appears:**
+- A small voting panel visible to verified players during the spawn phase and early match phase of random maps
+- Shows the eligible maps with current vote counts
+- Non-verified players can see the vote panel and current standings but cannot cast a vote — this makes the verified tier visibly meaningful to players who haven't purchased it yet
+
+**What "done" looks like:**
+- The random/voted alternation sequence is running in production
+- Verified players can cast one vote per voting cycle
+- Vote results are correctly determining the next voted map
+- Tiebreaking is random among tied maps
+- Recently played maps are excluded from the pool via cooldown
+- Non-verified players can see the vote panel but the vote button is disabled with a clear explanation
+
+**Architectural note:** the voting system needs to know which players are verified. This relies on the verified player status introduced in Task 8. Coordinate with Task 8's data model to ensure verified status is queryable server-side at the time votes are cast.
+
+---
+
 ### 13. Replay Access as Premium Feature
 **Effort:** 3–5 days
 **Experiments:** ❌ Excluded — depends on Task 11's tier and pricing system. Introducing two parallel pricing models during an experiment creates fairness and support issues. Ship alongside or after Task 11.
@@ -477,16 +583,19 @@ Design:
 | 2c | Automatic device & environment info collection | 1–2 days | ❌ All users | Enriches feedback reports with device context for bug reproduction | 1 |
 | 2d | Additional analytics events — session depth & spawn behavior | 1–2 days | ❌ All users | Enables funnel construction; measures spawn confusion and session drop-off | 1 |
 | 2e | Performance monitoring events (FPS & memory sampling) | 2–3 days | ❌ All users | Measures rendering performance by device class; gates Task 5 decision | 1 |
+| 2f | Device type analytics event | 0.5 days | ❌ All users | Enables device-segmented funnels (mobile vs desktop) | 1 |
 | 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
 | 4a | Auto-spawn — automatic starting location on join | 1–2 days | ❌ All users | Eliminates zero-action abandonment at match start | 2 |
 | 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
 | 5 | Deep mobile rendering optimization | 3–6 weeks | ❌ Excluded | Only if analytics confirms mobile worth the investment | 3 |
 | 6 | Rewarded ads — minimal version (no coin economy) | 2–3 days | ✅ Test | Yandex algorithm boost, first monetization signal | 4 |
 | 7 | Leaderboard — core system (global + monthly, auth gate) | 1–2 weeks | ✅ Test | Replaces buggy Yandex built-in, drives Yandex login conversion | 4 |
-| 8 | Verified nickname — purchase & review system | 1 week | ✅ Test | Direct revenue, social motivation via verification mark | 4 |
+| 8 | Citizen tier — earned path + instant purchase + nickname system | 1–2 weeks | ✅ Test | Retention hook (progress bar); community membership; revenue foundation | 4 |
 | 9 | Re-enable flags | 1 week | ✅ Test | Identity feature, drives Yandex login, upsell surface | 4 |
+| 9a | Re-enable territory patterns | 1 week | ✅ Test | High-visibility cosmetic; upsell surface; more impactful than flags | 4 |
 | 10 | Leaderboard — rewards layer (badges, collectible period awards) | 3–5 days | ✅ Test | Competitive motivation, social proof, long-term prestige | 5 |
 | 8a | Nickname styling system (backgrounds, borders, text color) | 1–2 weeks | ✅ Test | ARPU upsell for nickname buyers, social visibility | 5 |
 | 11 | Coin economy + rewarded ads full version | 3–4 weeks | ❌ Excluded | Core F2P engagement loop | 5 |
 | 12 | Clans | 3–4 weeks | ✅ Test | Long-term retention, social monetization | 5 |
+| 14 | Map voting for verified players | 1–2 weeks | ✅ Test | Verified tier participation mechanic; retention for engaged players | 5 |
 | 13 | Replay access as premium feature | 3–5 days | ❌ Excluded | ARPU increase, needs tier system from #11 first | 5 |

@@ -67,5 +67,6 @@ Do not run sampling logic inside the main game loop or on the rendering thread. 
 
 - Depends on Task 1 (analytics infrastructure must be live for events to be sent)
 - This task is intentionally separated from Task 2d (behavioral events). Performance sampling involves framerate timing and rendering pipeline awareness — it is more complex and should not block Task 2d from shipping first.
+- Platform context (mobile/desktop) attached to each FPS event enables filtering in the GameAnalytics Explore tool. For full device-segmented funnel analysis, Task 2f (Device:Type session event) must also be live — 2e and 2f are complementary. 2e can ship independently of 2f.
 - Memory sampling via `performance.memory` is a non-standard API. Do not attempt to polyfill or approximate it on unsupported browsers. Silent absence is the correct behavior.
 - 60-second sampling interval is the recommended default. It is frequent enough to catch performance degradation during a match (typical match length is 15–30 minutes) without generating excessive event volume.
