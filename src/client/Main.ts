@@ -523,10 +523,6 @@ class Client {
     this.initializeFuseTag();
 
     // Session:Heartbeat — fires every 5 real-clock minutes, skipped when tab is hidden
-    const hbPlatform = (
-      window.matchMedia("(pointer: coarse)").matches ||
-      /Android|iPhone|iPad/i.test(navigator.userAgent)
-    ) ? "mobile" : "desktop";
     let hbMinutes = 0;
     const hbInterval = window.setInterval(() => {
       hbMinutes += 5;
@@ -537,7 +533,7 @@ class Client {
       if (document.visibilityState === "hidden") return;
       const label = String(hbMinutes).padStart(2, "0");
       flashist_logEventAnalytics(
-        `${flashistConstants.analyticEvents.SESSION_HEARTBEAT}:${label}:${hbPlatform}`
+        `${flashistConstants.analyticEvents.SESSION_HEARTBEAT}:${label}`
       );
     }, 5 * 60 * 1000);
   }
