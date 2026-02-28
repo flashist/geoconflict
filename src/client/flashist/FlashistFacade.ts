@@ -30,6 +30,13 @@ export const flashistConstants = {
         SESSION_FIRST_ACTION: "Session:FirstAction",
         MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
         MATCH_SPAWN_AUTO: "Match:SpawnAuto",
+
+        PERFORMANCE_FPS_ABOVE30: "Performance:FPS:Above30",
+        PERFORMANCE_FPS_15TO30: "Performance:FPS:15to30",
+        PERFORMANCE_FPS_BELOW15: "Performance:FPS:Below15",
+        PERFORMANCE_MEMORY_USAGE_HIGH: "Performance:Memory:Usage:High",
+        PERFORMANCE_MEMORY_USAGE_MEDIUM: "Performance:Memory:Usage:Medium",
+        PERFORMANCE_MEMORY_USAGE_LOW: "Performance:Memory:Usage:Low",
     },
 
     progressionEventStatus: {
@@ -49,6 +56,10 @@ export const flashistConstants = {
 
 // Working with analytics logs
 export const flashist_logEventAnalytics = (event: string, value?: number) => {
+    if (process.env.GAME_ENV === "dev") {
+        console.log("flashist_logEventAnalytics | logEvent __ event: ", event, " | value: ", value);
+    }
+
     try {
         GameAnalytics.addDesignEvent(event, value);
 
@@ -120,10 +131,6 @@ window.onerror = function (msg, url, line, col, error) {
 window.addEventListener(
     'unhandledrejection',
     (event) => {
-        if (GameEnv.Dev) {
-
-        }
-
         // console.error('Unhandled rejection (promise: ', event.promise, ', reason: ', event.reason, ').');
         let errorText = 'Unhandled rejection:\npromise: ' + event.promise + ',\nreason: ' + event.reason;
         if (event.reason?.stack) {
