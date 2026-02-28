@@ -49,13 +49,13 @@ export function startPerformanceMonitor(): () => void {
       const ratio = mem.usedJSHeapSize / mem.jsHeapSizeLimit;
       let memKey: string;
       if (ratio > 0.8) {
-        memKey = flashistConstants.analyticEvents.PERFORMANCE_MEMORY_LOW;
+        memKey = flashistConstants.analyticEvents.PERFORMANCE_MEMORY_USAGE_HIGH;
       } else if (ratio > 0.5) {
-        memKey = flashistConstants.analyticEvents.PERFORMANCE_MEMORY_MEDIUM;
+        memKey = flashistConstants.analyticEvents.PERFORMANCE_MEMORY_USAGE_MEDIUM;
       } else {
-        memKey = flashistConstants.analyticEvents.PERFORMANCE_MEMORY_HIGH;
+        memKey = flashistConstants.analyticEvents.PERFORMANCE_MEMORY_USAGE_LOW;
       }
-      flashist_logEventAnalytics(memKey);
+      flashist_logEventAnalytics(`${memKey}:${platform}`);
     }
   }, 60 * 1000);
 

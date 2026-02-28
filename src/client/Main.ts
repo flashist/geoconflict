@@ -248,7 +248,11 @@ class Client {
       throw new Error("Missing gutter-ads");
     this.gutterAds = gutterAds;
 
-    this.eventBus.on(SendWinnerEvent, () => { this.gameHasEnded = true; });
+    this.eventBus.on(SendWinnerEvent, () => {
+      this.gameHasEnded = true;
+      this.perfMonitorStop?.();
+      this.perfMonitorStop = null;
+    });
 
     document.addEventListener("join-lobby", this.handleJoinLobby.bind(this));
     document.addEventListener("leave-lobby", this.handleLeaveLobby.bind(this));

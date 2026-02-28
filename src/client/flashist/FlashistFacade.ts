@@ -34,9 +34,9 @@ export const flashistConstants = {
         PERFORMANCE_FPS_ABOVE30: "Performance:FPS:Above30",
         PERFORMANCE_FPS_15TO30: "Performance:FPS:15to30",
         PERFORMANCE_FPS_BELOW15: "Performance:FPS:Below15",
-        PERFORMANCE_MEMORY_LOW: "Performance:Memory:Low",
-        PERFORMANCE_MEMORY_MEDIUM: "Performance:Memory:Medium",
-        PERFORMANCE_MEMORY_HIGH: "Performance:Memory:High",
+        PERFORMANCE_MEMORY_USAGE_HIGH: "Performance:Memory:Usage:High",
+        PERFORMANCE_MEMORY_USAGE_MEDIUM: "Performance:Memory:Usage:Medium",
+        PERFORMANCE_MEMORY_USAGE_LOW: "Performance:Memory:Usage:Low",
     },
 
     progressionEventStatus: {
