@@ -50,7 +50,7 @@ export const flashistConstants = {
         PLATFORM_LINUX: "Platform:linux",
         PLATFORM_OTHER: "Platform:other",
 
-        PLAYER_NEW:       "Player:New",
+        PLAYER_NEW: "Player:New",
         PLAYER_RETURNING: "Player:Returning",
     },
 
@@ -238,11 +238,15 @@ export class FlashistFacade {
 
         // Player:New / Player:Returning — fired once per session after Platform:OS
         const FIRST_SEEN_KEY = "geoconflict.player.firstSeen";
-        if (localStorage.getItem(FIRST_SEEN_KEY) === null) {
-            localStorage.setItem(FIRST_SEEN_KEY, String(Date.now()));
-            flashist_logEventAnalytics(flashistConstants.analyticEvents.PLAYER_NEW);
-        } else {
-            flashist_logEventAnalytics(flashistConstants.analyticEvents.PLAYER_RETURNING);
+        try {
+            if (localStorage.getItem(FIRST_SEEN_KEY) === null) {
+                localStorage.setItem(FIRST_SEEN_KEY, String(Date.now()));
+                flashist_logEventAnalytics(flashistConstants.analyticEvents.PLAYER_NEW);
+            } else {
+                flashist_logEventAnalytics(flashistConstants.analyticEvents.PLAYER_RETURNING);
+            }
+        } catch {
+            // silently skip if storage is unavailable (e.g. sandboxed iframe)
         }
     }
 
