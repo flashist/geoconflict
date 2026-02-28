@@ -1,4 +1,4 @@
-# Task 2f — Device Type Analytics Event
+# Task 2f — Device Type & Platform OS Analytics Events
 
 ## Context
 
@@ -6,45 +6,66 @@ Task 2d added the `Session:Start` custom Design Event which makes funnels possib
 
 However, there is still a gap: it is not possible to build separate funnels for mobile players vs desktop players and compare them side by side. Attaching platform context to individual events allows filtering *within* a single funnel, but GameAnalytics funnel segmentation requires a dedicated Design Event fired at the start of the session to split players into groups from the top of the funnel downward.
 
-Without this event, we cannot answer questions like: "Do mobile players drop off at a different point in the new player conversion funnel than desktop players?" or "Is the ghost rate problem worse on mobile or desktop?" — which are exactly the questions that Tasks 3 and 5 are trying to answer.
+Additionally, knowing a player is on "mobile" is useful but not fully actionable — iOS and Android are completely different rendering environments with different browser engines and vastly different device fragmentation. Knowing *which* OS is affected by a crash or performance problem changes what you focus on in Tasks 3 and 5.
 
-This is a very small task — a single event, fired once per session.
+This task adds two events, both fired once per session at startup.
 
 ## Goal
 
-Fire a `Device:Type` Design Event once per session, immediately after `Session:Start`, identifying the player's device class. This enables device-segmented funnels in GameAnalytics.
+Fire `Device:Type` and `Platform:OS` Design Events once per session, immediately after `Session:Start`, identifying the player's device class and operating system. Together these enable device-segmented and OS-segmented funnels in GameAnalytics.
 
-## Event to Implement
+## Events to Implement
 
-**Device:Type** — fired once per session, immediately after `Session:Start`.
+All three session-start events fire in sequence: `Session:Start` → `Device:Type` → `Platform:OS`.
 
-Four possible values:
+---
+
+### Device:Type
+
+Fired once per session, immediately after `Session:Start`. Four possible values:
 - `Device:mobile`
 - `Device:desktop`
 - `Device:tablet`
 - `Device:tv`
 
-Device class should be detected from the user agent string at session start. The detection logic does not need to be sophisticated — a standard user agent check that distinguishes mobile/tablet from desktop is sufficient. TV detection (Smart TV browsers, game console browsers) is a nice-to-have; if it adds complexity, collapsing TV into `Device:other` is acceptable.
+Device class should be detected from the user agent string at session start. TV detection (Smart TV browsers, game console browsers) is a nice-to-have — if it adds complexity, collapsing TV into `Device:other` is acceptable.
+
+---
+
+### Platform:OS
+
+Fired once per session, immediately after `Device:Type`. Values:
+- `Platform:android`
+- `Platform:ios`
+- `Platform:windows`
+- `Platform:macos`
+- `Platform:linux`
+- `Platform:other` — for Chrome OS, obscure Linux distributions, or any unrecognized OS
+
+On mobile, OS detection from user agent is reliable — iOS and Android are clearly identifiable. On desktop, Windows/Mac/Linux are equally reliable. Chrome OS should map to `Platform:other` rather than introducing a separate bucket. Unknown or unrecognized OS strings should also map to `Platform:other` rather than causing an error.
 
 ## What "Done" Looks Like
 
-- `Device:Type` fires once per session for every player, immediately after `Session:Start`
-- The event appears in GameAnalytics as a Design Event within 24–48 hours of aggregation
-- It is possible to build a funnel in GameAnalytics using `Device:mobile` or `Device:desktop` as the first step, producing a device-specific conversion funnel
+- `Device:Type` and `Platform:OS` fire once per session for every player, in sequence after `Session:Start`
+- Both events appear in GameAnalytics as Design Events within 24–48 hours of aggregation
+- It is possible to build device-segmented and OS-segmented funnels in GameAnalytics
 - No visible change to the player experience whatsoever
 
 ## How This Data Is Used
 
-Once aggregated, this event enables device-segmented versions of every funnel built on top of `Session:Start`. The most important use cases:
+**Device-segmented funnels:** once aggregated, `Device:Type` enables separate conversion funnels for mobile vs desktop players — showing where each group drops off differently.
 
-- **New player conversion funnel by device:** `Device:mobile` → `Session:FirstAction` → `Match:Started` → `Match:Completed`. Compare the drop-off curve for mobile vs desktop to identify where mobile players specifically are being lost.
-- **Ghost rate by device:** what proportion of mobile vs desktop players who start a match never become active.
-- **Task 3 and Task 5 validation:** after mobile quick wins (Task 3) ship, compare the mobile conversion funnel before and after. If the funnel improves, Task 3 worked. If not, Task 5 is needed. This comparison is only possible if device type is a funnel dimension from the start.
+**OS-segmented crash diagnosis:** `Platform:OS` combined with `Performance:FPS` events (Task 2e) tells you whether the crash and performance problems are Android-specific or affect iOS equally. Android has far more device fragmentation and is the likely primary source of mobile crashes. Confirming this changes what Tasks 3 and 5 should prioritize — for example, Android-specific rendering workarounds vs broad mobile optimizations.
+
+**Key funnel use cases:**
+- New player conversion by device: `Device:mobile` → `Session:FirstAction` → `Match:Started` → `Match:Completed`
+- FPS distribution by OS: `Platform:android` vs `Platform:ios` in the Explore tool alongside `Performance:FPS` events
+- Ghost rate by device class: proportion of mobile vs desktop players who join a match but never become active
 
 ## Dependencies and Notes
 
-- Depends on Task 2d — `Session:Start` must exist before `Device:Type` can fire immediately after it. The two events are fired in sequence at session start; they are not independent.
-- Does not depend on Task 2e — this event and the FPS/memory events from 2e are complementary but independent. Either can ship first.
-- This task is intentionally a standalone item because Task 2d is already implemented and should not be reopened. This is a one-line addition conceptually, but it has its own aggregation cycle in GameAnalytics and its own funnel-building implications.
-- GameAnalytics aggregates new Design Events within 24–48 hours of first receipt. Device-segmented funnels cannot be built until the event has been seen and aggregated — this is expected behavior, not a bug.
-- The user agent detection should use the same detection logic already used elsewhere in the codebase (Task 2e, Task 3, and the feedback system all detect mobile/desktop). Reuse that logic rather than introducing a second detection method.
+- Depends on Task 2d — `Session:Start` must exist before these events can fire immediately after it
+- Does not depend on Task 2e — these events and the FPS/memory events from 2e are complementary but independent. Either can ship first.
+- This task is intentionally standalone because Task 2d is already implemented and should not be reopened.
+- GameAnalytics aggregates new Design Events within 24–48 hours of first receipt. Segmented funnels cannot be built until events have been aggregated — expected behavior, not a bug.
+- The user agent detection should reuse whatever detection logic already exists in the codebase from Task 2e, Task 3, and the feedback system. Do not introduce a second detection implementation — reuse the existing one.

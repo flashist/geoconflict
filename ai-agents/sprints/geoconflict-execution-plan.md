@@ -199,27 +199,25 @@ This task is intentionally separated from Task 2d because performance monitoring
 
 ---
 
-### 2f. Device Type Analytics Event
+### 2f. Device Type & Platform OS Analytics Events
 **Effort:** half a day
 **Experiments:** ❌ Excluded — measurement layer. Must cover all players to produce valid funnel data.
 
-**Depends on:** Task 2d (Session:Start event must exist, as Device:Type fires immediately after it)
+**Depends on:** Task 2d (Session:Start event must exist, as these events fire immediately after it)
 
-**The problem:** attaching platform context (mobile/desktop) to individual events allows filtering in the GameAnalytics Explore tool, but it does not allow splitting funnels by device class from the top. To build separate mobile vs desktop conversion funnels and compare them directly — which is essential for measuring the impact of Tasks 3 and 5 — a dedicated Design Event must fire at the start of every session.
+Two events, both fired once per session immediately after `Session:Start`. All three session-start events fire in sequence: `Session:Start` → `Device:Type` → `Platform:OS`.
 
-**Event to implement: Device:Type**
+**Device:Type** — identifies the player's device class:
+- `Device:mobile`, `Device:desktop`, `Device:tablet`, `Device:tv`
 
-Fired once per session, immediately after `Session:Start`, identifying the player's device class:
-- `Device:mobile`
-- `Device:desktop`
-- `Device:tablet`
-- `Device:tv`
+Enables device-segmented funnels — essential for comparing mobile vs desktop conversion and drop-off patterns before and after Tasks 3 and 5.
 
-Device class should be detected from the user agent string at session start. This is a single event, fired once, with no ongoing sampling — it is a very small task.
+**Platform:OS** — identifies the player's operating system:
+- `Platform:android`, `Platform:ios`, `Platform:windows`, `Platform:macos`, `Platform:linux`, `Platform:other`
 
-**Why this is a separate task from 2d:** Task 2d is already implemented. This event was identified as missing after 2d shipped. It should be added as a standalone change rather than reopening the 2d implementation.
+Enables OS-segmented analysis. Knowing crashes are on "mobile" is useful; knowing they are specifically on Android vs iOS is actionable — these are different rendering environments with different browser engines and device fragmentation profiles. Combined with `Performance:FPS` events (Task 2e), this tells you whether mobile performance problems are Android-specific or affect both platforms equally, which directly shapes what Tasks 3 and 5 should prioritize.
 
-**What this enables:** once aggregated (24–48 hours after first fire), it becomes possible to build device-segmented funnels in GameAnalytics — for example, the new player conversion funnel run separately for mobile and desktop players, showing whether drop-off patterns differ by device class. This is the primary measurement tool for comparing mobile vs desktop retention before and after Tasks 3 and 5.
+Both events should reuse whatever user agent detection logic already exists in the codebase from Tasks 2e, 3, and the feedback system. Do not introduce a second detection implementation.
 
 ---
 
@@ -583,7 +581,7 @@ Design:
 | 2c | Automatic device & environment info collection | 1–2 days | ❌ All users | Enriches feedback reports with device context for bug reproduction | 1 |
 | 2d | Additional analytics events — session depth & spawn behavior | 1–2 days | ❌ All users | Enables funnel construction; measures spawn confusion and session drop-off | 1 |
 | 2e | Performance monitoring events (FPS & memory sampling) | 2–3 days | ❌ All users | Measures rendering performance by device class; gates Task 5 decision | 1 |
-| 2f | Device type analytics event | 0.5 days | ❌ All users | Enables device-segmented funnels (mobile vs desktop) | 1 |
+| 2f | Device type & platform OS analytics events | 0.5 days | ❌ All users | Enables device- and OS-segmented funnels (mobile vs desktop, Android vs iOS) | 1 |
 | 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
 | 4a | Auto-spawn — automatic starting location on join | 1–2 days | ❌ All users | Eliminates zero-action abandonment at match start | 2 |
 | 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
