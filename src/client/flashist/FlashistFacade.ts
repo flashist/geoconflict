@@ -236,7 +236,7 @@ export class FlashistFacade {
         }
         flashist_logEventAnalytics(osType);
 
-        // Player:New / Player:Returning — fired once per session after Platform:OS
+        // Player:New — fired once ever (first visit); Player:Returning — fired every subsequent session start
         const FIRST_SEEN_KEY = "geoconflict.player.firstSeen";
         try {
             if (localStorage.getItem(FIRST_SEEN_KEY) === null) {
