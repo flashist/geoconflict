@@ -38,17 +38,17 @@ export const flashistConstants = {
         PERFORMANCE_MEMORY_USAGE_MEDIUM: "Performance:Memory:Usage:Medium",
         PERFORMANCE_MEMORY_USAGE_LOW: "Performance:Memory:Usage:Low",
 
-        DEVICE_MOBILE:    "Device:mobile",
-        DEVICE_DESKTOP:   "Device:desktop",
-        DEVICE_TABLET:    "Device:tablet",
-        DEVICE_TV:        "Device:tv",
+        DEVICE_MOBILE: "Device:mobile",
+        DEVICE_DESKTOP: "Device:desktop",
+        DEVICE_TABLET: "Device:tablet",
+        DEVICE_TV: "Device:tv",
 
         PLATFORM_ANDROID: "Platform:android",
-        PLATFORM_IOS:     "Platform:ios",
+        PLATFORM_IOS: "Platform:ios",
         PLATFORM_WINDOWS: "Platform:windows",
-        PLATFORM_MACOS:   "Platform:macos",
-        PLATFORM_LINUX:   "Platform:linux",
-        PLATFORM_OTHER:   "Platform:other",
+        PLATFORM_MACOS: "Platform:macos",
+        PLATFORM_LINUX: "Platform:linux",
+        PLATFORM_OTHER: "Platform:other",
     },
 
     progressionEventStatus: {
