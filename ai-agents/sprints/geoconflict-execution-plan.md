@@ -239,6 +239,44 @@ Detection: check for a first-open flag stored server-side (preferred) or in loca
 
 ---
 
+### 2h. Sentry Integration — Error & Crash Monitoring
+**Effort:** half a day
+**Experiments:** ❌ Excluded — monitoring infrastructure, must cover all players.
+
+Sentry captures unhandled JavaScript exceptions, promise rejections, and runtime errors in real time with full stack traces and browser/OS context. This fills the gap that GameAnalytics cannot — it tells us *what the application is doing wrong*, not just what players are doing.
+
+Must ship before Task 3 so that the current error baseline is captured. After Task 3 ships, Sentry will confirm whether the crashes causing mobile abandonment have been resolved or whether different errors have emerged.
+
+**Critical requirements:**
+- Initialize Sentry before any other game logic — it must be running before anything else can throw
+- Upload source maps as part of the deployment pipeline — without them, stack traces point to minified code and are unreadable
+- Attach player identity (Yandex username or AnonXXXX) to error reports via `Sentry.setUser()`
+- Tag events with `release` (current game version) and `environment: "production"`
+
+Free tier: 5,000 errors/month — sufficient at current scale. Do not enable Sentry's built-in session replay; Microsoft Clarity (Task 2i) handles this better.
+
+---
+
+### 2i. Microsoft Clarity — Session Recordings & Heatmaps
+**Effort:** half a day
+**Status:** ⏸ Deferred — do not ship until after Task 3 has been live for at least two weeks and mobile performance is confirmed stable via `Performance:FPS` and `Session:Heartbeat` analytics.
+**Experiments:** ❌ Excluded — monitoring infrastructure, must cover all players.
+
+Clarity provides session recordings and heatmaps that would be valuable for diagnosing the ghost rate, spawn confusion, and mobile UX problems. However, Clarity works by snapshotting the Pixi.js canvas at a continuous interval, which carries a real risk of causing frame drops on mid-range and low-end mobile devices — exactly the players most at risk of abandonment.
+
+Without a large QA device pool to validate performance impact before shipping, there is no safe way to confirm Clarity doesn't worsen the mobile experience before it reaches real users. Sentry (Task 2h) and the existing analytics events provide sufficient diagnostic coverage in the meantime.
+
+**Gate conditions before shipping Clarity:**
+- Task 3 has been live for at least two weeks
+- `Performance:FPS` events show mobile FPS has stabilized — the `Below15` bucket is not growing
+- `Session:Heartbeat` shows mobile session depth is not declining
+
+When these conditions are met, ship Clarity with mobile session sampling configured at 20–30% (not 100%) to limit canvas snapshotting overhead on mobile. Record 100% of desktop sessions. After shipping, monitor `Performance:FPS` and `Session:Heartbeat` for any regression within the first 48 hours.
+
+**Note:** the custom Clarity tags (deviceType, playerType, authStatus) should reuse detection logic from Tasks 2f and 2g when this task eventually ships.
+
+---
+
 ### 3. Mobile Quick Wins
 **Effort:** 2–3 days
 **Experiments:** ❌ Excluded — applying different rendering settings to a subset of mobile users would produce inconsistent crash data and make analytics results unreadable. Ship to all mobile users and measure impact via Task 2d Session:Heartbeat and Task 2e Performance:FPS events.
@@ -601,6 +639,8 @@ Design:
 | 2e | Performance monitoring events (FPS & memory sampling) | 2–3 days | ❌ All users | Measures rendering performance by device class; gates Task 5 decision | 1 |
 | 2f | Device type & platform OS analytics events | Already implemented ✅ | ❌ All users | Enables device- and OS-segmented funnels (mobile vs desktop, Android vs iOS) | 1 |
 | 2g | New vs returning player analytics event | 0.5 days | ❌ All users | Enables new/returning segmentation in funnels; clean measurement of Task 4 impact | 1 |
+| 2h | Sentry integration — error & crash monitoring | 0.5 days | ❌ All users | Captures JS errors and stack traces; establishes crash baseline before Task 3 | 1 |
+| 2i | Microsoft Clarity — session recordings & heatmaps | ⏸ Deferred (after Task 3 stable) | ❌ All users | Qualitative diagnosis of ghost rate, spawn confusion, mobile UX — deferred until mobile perf confirmed stable | 1→3 |
 | 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
 | 4a | Auto-spawn — automatic starting location on join | 1–2 days | ❌ All users | Eliminates zero-action abandonment at match start | 2 |
 | 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
