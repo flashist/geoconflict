@@ -86,6 +86,7 @@ fi
 docker buildx build \
     --platform linux/amd64 \
     --build-arg GIT_COMMIT=$GIT_COMMIT \
+    --build-arg SENTRY_AUTH_TOKEN="$SENTRY_AUTH_TOKEN" \
     --metadata-file $METADATA_FILE \
     -t $DOCKER_IMAGE \
     --progress="${BUILD_PROGRESS_MODE}" \

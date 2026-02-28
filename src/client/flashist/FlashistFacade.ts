@@ -1,6 +1,7 @@
 import { LangSelector } from "../LangSelector";
 import { GameAnalytics } from "gameanalytics";
 import { GameEnv } from "../../core/configuration/Config";
+import * as Sentry from "@sentry/browser";
 
 //
 export const flashistConstants = {
@@ -188,6 +189,12 @@ export class FlashistFacade {
         this.yandexInitPromise = this.yandexSdkInit();
         this.yandexSdkInitPlayerPromise = this.initPlayer();
         this.initExperimentFlags();
+
+        // Attach Yandex player identity to Sentry error reports where available
+        void this.yandexSdkInitPlayerPromise
+            .then(() => this.getCurPlayerName())
+            .then((name) => { if (name) Sentry.setUser({ username: name }); })
+            .catch(() => { /* silently ignore — user context is best-effort */ });
 
         // Setting up Game Analytics
         GameAnalytics.setEnabledInfoLog(true);

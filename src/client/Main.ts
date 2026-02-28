@@ -1,3 +1,4 @@
+import "./SentryInit"; // Must be first — initializes Sentry before any other module
 import version from "../version";
 import { translateText } from "../client/Utils";
 import { UserMeResponse } from "../core/ApiSchemas";

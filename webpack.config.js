@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import ESLintPlugin from "eslint-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import path from "path";
+import { sentryWebpackPlugin } from "@sentry/webpack-plugin";
 import { fileURLToPath } from "url";
 import webpack from "webpack";
 
@@ -174,6 +175,7 @@ export default async (env, argv) => {
 
   return {
     entry: "./src/client/Main.ts",
+    devtool: isProduction ? "source-map" : false,
     output: {
       publicPath: "/",
       filename: "js/[name].[contenthash].js", // Added content hash
@@ -344,6 +346,18 @@ export default async (env, argv) => {
       new ESLintPlugin({
         context: __dirname,
       }),
+      ...(isProduction && process.env.SENTRY_AUTH_TOKEN
+        ? [sentryWebpackPlugin({
+            org: "flashist",
+            project: "geoconflict",
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+            release: { name: gitCommit },
+            sourcemaps: {
+              assets: "./static/**",
+              deleteFilesAfterUpload: ["./static/**/*.map"],
+            },
+          })]
+        : []),
     ],
     optimization: {
       // Add optimization configuration for better caching
