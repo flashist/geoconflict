@@ -29,6 +29,7 @@ import "./FlagInput";
 import { FlagInput } from "./FlagInput";
 import { FlagInputModal } from "./FlagInputModal";
 import { flashist_getLangSelector, flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
+import { startPerformanceMonitor } from "./PerformanceMonitor";
 import { GameStartingModal } from "./GameStartingModal";
 import "./GoogleAdElement";
 import { GutterAds } from "./GutterAds";
@@ -117,6 +118,7 @@ class Client {
   private gameStop: (() => void) | null = null;
   private gameHasStarted = false;
   private gameHasEnded = false;
+  private perfMonitorStop: (() => void) | null = null;
   private eventBus: EventBus = new EventBus();
   private firstActionFired = false;
 
@@ -220,6 +222,7 @@ class Client {
 
     window.addEventListener("beforeunload", () => {
       console.log("Browser is closing");
+      this.perfMonitorStop?.();
       if (this.gameStop !== null) {
         if (this.gameHasStarted && !this.gameHasEnded) {
           flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_ABANDON);
@@ -723,6 +726,7 @@ class Client {
       },
       () => {
         this.gameHasStarted = true;
+        this.perfMonitorStop = startPerformanceMonitor();
         this.joinModal.close();
         this.publicLobby.stop();
         incrementGamesPlayed();
@@ -827,6 +831,8 @@ class Client {
     console.log("leaving lobby, cancelling game");
     this.gameStop();
     this.gameStop = null;
+    this.perfMonitorStop?.();
+    this.perfMonitorStop = null;
     clearReconnectSession();
     this.gutterAds.hide();
     this.publicLobby.leaveLobby();

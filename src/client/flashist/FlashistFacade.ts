@@ -30,6 +30,13 @@ export const flashistConstants = {
         SESSION_FIRST_ACTION: "Session:FirstAction",
         MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
         MATCH_SPAWN_AUTO: "Match:SpawnAuto",
+
+        PERFORMANCE_FPS_ABOVE30: "Performance:FPS:Above30",
+        PERFORMANCE_FPS_15TO30: "Performance:FPS:15to30",
+        PERFORMANCE_FPS_BELOW15: "Performance:FPS:Below15",
+        PERFORMANCE_MEMORY_LOW: "Performance:Memory:Low",
+        PERFORMANCE_MEMORY_MEDIUM: "Performance:Memory:Medium",
+        PERFORMANCE_MEMORY_HIGH: "Performance:Memory:High",
     },
 
     progressionEventStatus: {
