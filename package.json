@@ -1,6 +1,6 @@
 {
   "name": "geoconflict",
-  "version": "0.0.62",
+  "version": "0.0.63",
   "scripts": {
     "build-dev": "webpack --config webpack.config.js --mode development",
     "build-prod": "webpack --config webpack.config.js --mode production",
