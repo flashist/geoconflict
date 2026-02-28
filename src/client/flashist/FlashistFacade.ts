@@ -37,6 +37,18 @@ export const flashistConstants = {
         PERFORMANCE_MEMORY_USAGE_HIGH: "Performance:Memory:Usage:High",
         PERFORMANCE_MEMORY_USAGE_MEDIUM: "Performance:Memory:Usage:Medium",
         PERFORMANCE_MEMORY_USAGE_LOW: "Performance:Memory:Usage:Low",
+
+        DEVICE_MOBILE: "Device:mobile",
+        DEVICE_DESKTOP: "Device:desktop",
+        DEVICE_TABLET: "Device:tablet",
+        DEVICE_TV: "Device:tv",
+
+        PLATFORM_ANDROID: "Platform:android",
+        PLATFORM_IOS: "Platform:ios",
+        PLATFORM_WINDOWS: "Platform:windows",
+        PLATFORM_MACOS: "Platform:macos",
+        PLATFORM_LINUX: "Platform:linux",
+        PLATFORM_OTHER: "Platform:other",
     },
 
     progressionEventStatus: {
@@ -187,6 +199,39 @@ export class FlashistFacade {
         // GameAnalytics.configureBuild(this.analyticsConfig.buildId);
         GameAnalytics.initialize("a1f0fb4335fe32696c3b76eb49612ead", "ba57db678bc9a1181bde9430bad83c6fa3b71862");
         flashist_logEventAnalytics(flashistConstants.analyticEvents.SESSION_START);
+
+        // Device:Type — fired once per session after Session:Start
+        const ua = navigator.userAgent;
+        let deviceType: string;
+        if (/SmartTV|SMART-TV|HbbTV|Tizen|WebOS|VIDAA|PlayStation|Xbox|Nintendo/i.test(ua)) {
+            deviceType = flashistConstants.analyticEvents.DEVICE_TV;
+        } else if (/iPad|Android(?!.*Mobile)/i.test(ua)) {
+            deviceType = flashistConstants.analyticEvents.DEVICE_TABLET;
+        } else if (window.matchMedia("(pointer: coarse)").matches || /Android|iPhone/i.test(ua)) {
+            deviceType = flashistConstants.analyticEvents.DEVICE_MOBILE;
+        } else {
+            deviceType = flashistConstants.analyticEvents.DEVICE_DESKTOP;
+        }
+        flashist_logEventAnalytics(deviceType);
+
+        // Platform:OS — fired once per session after Device:Type
+        let osType: string;
+        if (/Android/i.test(ua)) {
+            osType = flashistConstants.analyticEvents.PLATFORM_ANDROID;
+        } else if (/iPhone|iPad|iPod/i.test(ua)) {
+            osType = flashistConstants.analyticEvents.PLATFORM_IOS;
+        } else if (/Windows/i.test(ua)) {
+            osType = flashistConstants.analyticEvents.PLATFORM_WINDOWS;
+        } else if (/Mac OS X/i.test(ua)) {
+            osType = flashistConstants.analyticEvents.PLATFORM_MACOS;
+        } else if (/CrOS/i.test(ua)) {
+            osType = flashistConstants.analyticEvents.PLATFORM_OTHER;  // Chrome OS → other
+        } else if (/Linux/i.test(ua)) {
+            osType = flashistConstants.analyticEvents.PLATFORM_LINUX;
+        } else {
+            osType = flashistConstants.analyticEvents.PLATFORM_OTHER;
+        }
+        flashist_logEventAnalytics(osType);
     }
 
     // Single place for working with URLS
