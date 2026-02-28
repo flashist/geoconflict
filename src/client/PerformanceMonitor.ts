@@ -4,12 +4,6 @@ import {
 } from "./flashist/FlashistFacade";
 
 export function startPerformanceMonitor(): () => void {
-  const platform =
-    window.matchMedia("(pointer: coarse)").matches ||
-    /Android|iPhone|iPad/i.test(navigator.userAgent)
-      ? "mobile"
-      : "desktop";
-
   // Lightweight rAF frame counter — independent of the game render chain
   let frameCount = 0;
   let rafId: number;
@@ -30,7 +24,7 @@ export function startPerformanceMonitor(): () => void {
     frameCount = 0;
     lastSampleTime = now;
 
-    // FPS bucket (with platform suffix for GA segmentation)
+    // FPS bucket
     let fpsBucket: string;
     if (fps > 30) {
       fpsBucket = flashistConstants.analyticEvents.PERFORMANCE_FPS_ABOVE30;
@@ -39,7 +33,7 @@ export function startPerformanceMonitor(): () => void {
     } else {
       fpsBucket = flashistConstants.analyticEvents.PERFORMANCE_FPS_BELOW15;
     }
-    flashist_logEventAnalytics(`${fpsBucket}:${platform}`);
+    flashist_logEventAnalytics(fpsBucket);
 
     // Memory pressure (best-effort — Chrome/Chromium only)
     const mem = (performance as any).memory as
@@ -55,7 +49,7 @@ export function startPerformanceMonitor(): () => void {
       } else {
         memKey = flashistConstants.analyticEvents.PERFORMANCE_MEMORY_USAGE_LOW;
       }
-      flashist_logEventAnalytics(`${memKey}:${platform}`);
+      flashist_logEventAnalytics(memKey);
     }
   }, 60 * 1000);
 
