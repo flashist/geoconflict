@@ -56,6 +56,10 @@ export const flashistConstants = {
 
 // Working with analytics logs
 export const flashist_logEventAnalytics = (event: string, value?: number) => {
+    if (process.env.GAME_ENV === "dev") {
+        console.log("flashist_logEventAnalytics | logEvent __ event: ", event, " | value: ", value);
+    }
+
     try {
         GameAnalytics.addDesignEvent(event, value);
 
@@ -127,10 +131,6 @@ window.onerror = function (msg, url, line, col, error) {
 window.addEventListener(
     'unhandledrejection',
     (event) => {
-        if (GameEnv.Dev) {
-
-        }
-
         // console.error('Unhandled rejection (promise: ', event.promise, ', reason: ', event.reason, ').');
         let errorText = 'Unhandled rejection:\npromise: ' + event.promise + ',\nreason: ' + event.reason;
         if (event.reason?.stack) {
