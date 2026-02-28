@@ -20,6 +20,7 @@ RUN sed -i 's/worker_connections [0-9]*/worker_connections 8192/' /etc/nginx/ngi
 FROM dependencies AS build
 ARG GIT_COMMIT=unknown
 ENV GIT_COMMIT="$GIT_COMMIT"
+ARG SENTRY_AUTH_TOKEN
 # Disable Husky hooks
 ENV HUSKY=0
 # Copy package.json and package-lock.json
