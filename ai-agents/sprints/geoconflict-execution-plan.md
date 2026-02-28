@@ -200,7 +200,7 @@ This task is intentionally separated from Task 2d because performance monitoring
 ---
 
 ### 2f. Device Type & Platform OS Analytics Events
-**Effort:** half a day
+**Effort:** Already implemented and deployed ✅
 **Experiments:** ❌ Excluded — measurement layer. Must cover all players to produce valid funnel data.
 
 **Depends on:** Task 2d (Session:Start event must exist, as these events fire immediately after it)
@@ -218,6 +218,24 @@ Enables device-segmented funnels — essential for comparing mobile vs desktop c
 Enables OS-segmented analysis. Knowing crashes are on "mobile" is useful; knowing they are specifically on Android vs iOS is actionable — these are different rendering environments with different browser engines and device fragmentation profiles. Combined with `Performance:FPS` events (Task 2e), this tells you whether mobile performance problems are Android-specific or affect both platforms equally, which directly shapes what Tasks 3 and 5 should prioritize.
 
 Both events should reuse whatever user agent detection logic already exists in the codebase from Tasks 2e, 3, and the feedback system. Do not introduce a second detection implementation.
+
+---
+
+### 2g. New vs Returning Player Analytics Event
+**Effort:** half a day
+**Experiments:** ❌ Excluded — measurement layer. Must cover all players to produce valid funnel data.
+
+**Depends on:** Task 2d (Session:Start must exist; this event fires in the same session-start sequence)
+
+One additional event to add to the session-start sequence alongside `Device:Type` and `Platform:OS`. The full sequence becomes: `Session:Start` → `Device:Type` → `Platform:OS` → `Player:New` or `Player:Returning`.
+
+**Event to implement:**
+- `Player:New` — fired on the player's very first session
+- `Player:Returning` — fired on every subsequent session
+
+Detection: check for a first-open flag stored server-side (preferred) or in localStorage. If the flag is absent, fire `Player:New` and set the flag. If present, fire `Player:Returning`.
+
+**Why this matters:** GameAnalytics tracks new vs returning users automatically in its summary metrics, but cannot segment *funnels* by this dimension without a dedicated Design Event. Without it, the impact of the tutorial (Task 4) is difficult to measure cleanly — new and returning players get mixed together in the same funnel, diluting the signal. With it, you can run the new player conversion funnel exclusively on `Player:New` sessions and see Task 4's effect without noise from returning players who already know how to play.
 
 ---
 
@@ -581,7 +599,8 @@ Design:
 | 2c | Automatic device & environment info collection | 1–2 days | ❌ All users | Enriches feedback reports with device context for bug reproduction | 1 |
 | 2d | Additional analytics events — session depth & spawn behavior | 1–2 days | ❌ All users | Enables funnel construction; measures spawn confusion and session drop-off | 1 |
 | 2e | Performance monitoring events (FPS & memory sampling) | 2–3 days | ❌ All users | Measures rendering performance by device class; gates Task 5 decision | 1 |
-| 2f | Device type & platform OS analytics events | 0.5 days | ❌ All users | Enables device- and OS-segmented funnels (mobile vs desktop, Android vs iOS) | 1 |
+| 2f | Device type & platform OS analytics events | Already implemented ✅ | ❌ All users | Enables device- and OS-segmented funnels (mobile vs desktop, Android vs iOS) | 1 |
+| 2g | New vs returning player analytics event | 0.5 days | ❌ All users | Enables new/returning segmentation in funnels; clean measurement of Task 4 impact | 1 |
 | 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
 | 4a | Auto-spawn — automatic starting location on join | 1–2 days | ❌ All users | Eliminates zero-action abandonment at match start | 2 |
 | 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
