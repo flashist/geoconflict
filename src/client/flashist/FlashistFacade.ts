@@ -49,6 +49,9 @@ export const flashistConstants = {
         PLATFORM_MACOS: "Platform:macos",
         PLATFORM_LINUX: "Platform:linux",
         PLATFORM_OTHER: "Platform:other",
+
+        PLAYER_NEW:       "Player:New",
+        PLAYER_RETURNING: "Player:Returning",
     },
 
     progressionEventStatus: {
@@ -232,6 +235,15 @@ export class FlashistFacade {
             osType = flashistConstants.analyticEvents.PLATFORM_OTHER;
         }
         flashist_logEventAnalytics(osType);
+
+        // Player:New / Player:Returning — fired once per session after Platform:OS
+        const FIRST_SEEN_KEY = "geoconflict.player.firstSeen";
+        if (localStorage.getItem(FIRST_SEEN_KEY) === null) {
+            localStorage.setItem(FIRST_SEEN_KEY, String(Date.now()));
+            flashist_logEventAnalytics(flashistConstants.analyticEvents.PLAYER_NEW);
+        } else {
+            flashist_logEventAnalytics(flashistConstants.analyticEvents.PLAYER_RETURNING);
+        }
     }
 
     // Single place for working with URLS
