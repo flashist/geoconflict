@@ -12,6 +12,8 @@ All analytics event strings use `Category:Action` or `Category:Subcategory:Value
 
 All future events must follow this convention. The TypeScript enum serves as the single source of truth — event strings are never written inline in game code, always referenced through the enum.
 
+> **Migration note:** Event strings were migrated from `SCREAMING_SNAKE_CASE` values (e.g. `"GAME_START"`) to the `Category:Action` format (e.g. `"Game:Start"`) on 2026-03-01. Historical data collected before this date appears under the old names in the analytics dashboard.
+
 ---
 
 ## Complete Event Reference
@@ -100,70 +102,9 @@ Sampled every 60 seconds during active gameplay via a `setInterval` independent 
 
 ---
 
-## Updated TypeScript Enum
+## TypeScript Enum
 
-```typescript
-const AnalyticsEvent = {
-    // Session
-    SESSION_START:              "Session:Start",
-    SESSION_HEARTBEAT:          "Session:Heartbeat",        // append :05, :10, :15 etc.
-    SESSION_FIRST_ACTION:       "Session:FirstAction",
-
-    // Device segmentation
-    DEVICE_MOBILE:              "Device:mobile",
-    DEVICE_DESKTOP:             "Device:desktop",
-    DEVICE_TABLET:              "Device:tablet",
-    DEVICE_TV:                  "Device:tv",
-
-    // Platform segmentation
-    PLATFORM_ANDROID:           "Platform:android",
-    PLATFORM_IOS:               "Platform:ios",
-    PLATFORM_WINDOWS:           "Platform:windows",
-    PLATFORM_MACOS:             "Platform:macos",
-    PLATFORM_LINUX:             "Platform:linux",
-    PLATFORM_OTHER:             "Platform:other",
-
-    // Player segmentation
-    PLAYER_NEW:                 "Player:New",
-    PLAYER_RETURNING:           "Player:Returning",
-
-    // Game / match
-    GAME_START:                 "Game:Start",
-    GAME_END:                   "Game:End",
-    GAME_WIN:                   "Game:Win",
-    GAME_LOSS:                  "Game:Loss",
-    GAME_ABANDON:               "Game:Abandon",
-    PLAYER_ELIMINATED:          "Player:Eliminated",
-
-    // Spawn
-    MATCH_SPAWN_CHOSEN:         "Match:SpawnChosen",
-    MATCH_SPAWN_AUTO:           "Match:SpawnAuto",
-
-    // Reconnection
-    RECONNECT_PROMPT_SHOWN:     "Reconnect:PromptShown",
-    RECONNECT_ACCEPTED:         "Reconnect:Accepted",
-    RECONNECT_DECLINED:         "Reconnect:Declined",
-    RECONNECT_SUCCEEDED:        "Reconnect:Succeeded",
-    RECONNECT_FAILED:           "Reconnect:Failed",
-
-    // Feedback
-    FEEDBACK_BUTTON_OPENED:     "Feedback:ButtonOpened",
-    FEEDBACK_SUBMITTED:         "Feedback:Submitted",
-
-    // UI
-    UI_CLICK_MULTIPLAYER:       "UI:ClickMultiplayer",
-    UI_CLICK_SINGLE_PLAYER:     "UI:ClickSinglePlayer",
-    UI_CLICK_MISSION:           "UI:ClickMission",
-
-    // Performance
-    PERFORMANCE_FPS_ABOVE30:            "Performance:FPS:Above30",
-    PERFORMANCE_FPS_15TO30:             "Performance:FPS:15to30",
-    PERFORMANCE_FPS_BELOW15:            "Performance:FPS:Below15",
-    PERFORMANCE_MEMORY_HIGH:            "Performance:Memory:High",
-    PERFORMANCE_MEMORY_MEDIUM:          "Performance:Memory:Medium",
-    PERFORMANCE_MEMORY_LOW:             "Performance:Memory:Low",
-} as const;
-```
+The live enum is in `src/client/flashist/FlashistFacade.ts` (`flashistConstants.analyticEvents`). That file is the authoritative source — do not maintain a duplicate here.
 
 ---
 
