@@ -86,7 +86,7 @@ fi
 docker buildx build \
     --platform linux/amd64 \
     --build-arg GIT_COMMIT=$GIT_COMMIT \
-    --build-arg DEPLOY_ENV=$DEPLOY_ENV \
+    --build-arg DEPLOY_ENV="$DEPLOY_ENV" \
     --build-arg SENTRY_AUTH_TOKEN="$SENTRY_AUTH_TOKEN" \
     --metadata-file $METADATA_FILE \
     -t $DOCKER_IMAGE \
