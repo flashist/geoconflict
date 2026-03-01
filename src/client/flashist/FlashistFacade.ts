@@ -2,6 +2,7 @@ import { LangSelector } from "../LangSelector";
 import { GameAnalytics } from "gameanalytics";
 import { GameEnv } from "../../core/configuration/Config";
 import * as Sentry from "@sentry/browser";
+import { isMobileDevice } from "../Utils";
 
 //
 export const flashistConstants = {
@@ -201,7 +202,7 @@ export class FlashistFacade {
         GameAnalytics.setEnabledVerboseLog(true);
 
         // Platform custom dimensions
-        const isMobile = window.matchMedia("(pointer: coarse)").matches || /Android|iPhone|iPad/i.test(navigator.userAgent);
+        const isMobile = isMobileDevice();
         const isYandex = this.yaGamesAvailable;
         GameAnalytics.setCustomDimension01(isMobile ? "mobile" : "desktop");
         GameAnalytics.setCustomDimension02(isYandex ? "yandex" : "web");

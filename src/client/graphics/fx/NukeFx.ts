@@ -2,6 +2,7 @@ import { GameView } from "../../../core/game/GameView";
 import { AnimatedSpriteLoader } from "../AnimatedSpriteLoader";
 import { Fx, FxType } from "./Fx";
 import { FadeFx, SpriteFx } from "./SpriteFx";
+import { isMobileDevice } from "../../Utils";
 
 /**
  * Shockwave effect: draw a growing 1px white circle
@@ -83,15 +84,16 @@ export function nukeFxFactory(
   // Shockwave animation
   nukeFx.push(new ShockwaveFx(x, y, 1500, radius * 1.5));
   // Ruins and desolation sprites
+  const densityFactor = isMobileDevice() ? 0.4 : 1.0;
   const debrisPlan: Array<{
     type: FxType;
     radiusFactor: number;
     density: number;
   }> = [
-    { type: FxType.MiniFire, radiusFactor: 1.0, density: 1 / 25 },
-    { type: FxType.MiniSmoke, radiusFactor: 1.0, density: 1 / 28 },
-    { type: FxType.MiniBigSmoke, radiusFactor: 0.9, density: 1 / 70 },
-    { type: FxType.MiniSmokeAndFire, radiusFactor: 0.9, density: 1 / 70 },
+    { type: FxType.MiniFire, radiusFactor: 1.0, density: (1 / 25) * densityFactor },
+    { type: FxType.MiniSmoke, radiusFactor: 1.0, density: (1 / 28) * densityFactor },
+    { type: FxType.MiniBigSmoke, radiusFactor: 0.9, density: (1 / 70) * densityFactor },
+    { type: FxType.MiniSmokeAndFire, radiusFactor: 0.9, density: (1 / 70) * densityFactor },
   ];
 
   for (const { type, radiusFactor, density } of debrisPlan) {

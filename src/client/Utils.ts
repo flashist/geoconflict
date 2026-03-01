@@ -256,6 +256,13 @@ export function isInIframe(): boolean {
   }
 }
 
+export function isMobileDevice(): boolean {
+  return (
+    window.matchMedia("(pointer: coarse)").matches ||
+    /Android|iPhone/i.test(navigator.userAgent)
+  );
+}
+
 export async function getSvgAspectRatio(src: string): Promise<number | null> {
   const self = getSvgAspectRatio as any;
   self.svgAspectRatioCache ??= new Map();
