@@ -322,6 +322,9 @@ export default async (env, argv) => {
           isProduction ? "" : "localhost:3000",
         ),
         "process.env.GAME_ENV": JSON.stringify(isProduction ? "prod" : "dev"),
+        "process.env.DEPLOY_ENV": JSON.stringify(
+          process.env.DEPLOY_ENV ?? (isProduction ? "prod" : "dev"),
+        ),
         "process.env.GIT_COMMIT": JSON.stringify(gitCommit),
         "process.env.STRIPE_PUBLISHABLE_KEY": JSON.stringify(
           process.env.STRIPE_PUBLISHABLE_KEY,
