@@ -298,7 +298,7 @@ class Client {
     singlePlayer.addEventListener("click", () => {
       this.fireFirstAction();
       flashist_logEventAnalytics(
-        flashistConstants.analyticEvents.UI_CLICK_SINGLE_PLAYER_BUTTON
+        flashistConstants.analyticEvents.UI_CLICK_SINGLE_PLAYER
       );
 
       if (this.usernameInput?.isValid()) {
@@ -754,7 +754,7 @@ class Client {
   private async startSinglePlayMission() {
     //
     flashist_logEventAnalytics(
-      flashistConstants.analyticEvents.UI_CLICK_SINGLE_MISSION_BUTTON
+      flashistConstants.analyticEvents.UI_CLICK_MISSION
     );
 
     await FlashistFacade.instance.showInterstitial();
