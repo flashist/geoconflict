@@ -223,7 +223,7 @@ export class PublicLobby extends LitElement {
 
     //
     flashist_logEventAnalytics(
-      flashistConstants.analyticEvents.UI_CLICK_MULTIPLAYER_BUTTON
+      flashistConstants.analyticEvents.UI_CLICK_MULTIPLAYER
     );
 
     // Set debounce state
