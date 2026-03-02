@@ -576,6 +576,9 @@ export class ClientGameRunner {
       !this.gameView.hasOwner(tile) &&
       this.gameView.inSpawnPhase()
     ) {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.MATCH_SPAWN_CHOSEN,
+      );
       this.eventBus.emit(new SendSpawnIntentEvent(tile));
       return;
     }
