@@ -40,7 +40,7 @@ import { UILayer } from "./layers/UILayer";
 import { UnitDisplay } from "./layers/UnitDisplay";
 import { UnitLayer } from "./layers/UnitLayer";
 import { WinModal } from "./layers/WinModal";
-import { isMobileDevice } from "../Utils";
+import { isMobileRenderingEnabled } from "../Utils";
 
 export function createRenderer(
   canvas: HTMLCanvasElement,
@@ -344,7 +344,7 @@ export class GameRenderer {
 
   renderGame() {
     const now = performance.now();
-    if (isMobileDevice() && now - this.lastRenderTime < 1000 / 30) {
+    if (isMobileRenderingEnabled() && now - this.lastRenderTime < 1000 / 30) {
       requestAnimationFrame(() => this.renderGame());
       return;
     }

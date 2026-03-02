@@ -2,7 +2,7 @@ import { GameView } from "../../../core/game/GameView";
 import { AnimatedSpriteLoader } from "../AnimatedSpriteLoader";
 import { Fx, FxType } from "./Fx";
 import { FadeFx, SpriteFx } from "./SpriteFx";
-import { isMobileDevice } from "../../Utils";
+import { isMobileRenderingEnabled } from "../../Utils";
 
 /**
  * Shockwave effect: draw a growing 1px white circle
@@ -84,7 +84,7 @@ export function nukeFxFactory(
   // Shockwave animation
   nukeFx.push(new ShockwaveFx(x, y, 1500, radius * 1.5));
   // Ruins and desolation sprites
-  const densityFactor = isMobileDevice() ? 0.4 : 1.0;
+  const densityFactor = isMobileRenderingEnabled() ? 0.4 : 1.0;
   const debrisPlan: Array<{
     type: FxType;
     radiusFactor: number;

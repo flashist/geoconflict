@@ -68,6 +68,11 @@ export const flashistConstants = {
         // Set flag "reconnect" = "enabled" in the Yandex Games dashboard to activate.
         RECONNECT_FLAG_NAME: "reconnect",
         RECONNECT_FLAG_VALUE: "enabled",
+
+        // Yandex.Games remote flag for mobile rendering optimizations (Task 3).
+        // Set flag "mobile_rendering" = "enabled" in the Yandex Games dashboard to activate.
+        MOBILE_RENDERING_FLAG_NAME: "mobile_rendering",
+        MOBILE_RENDERING_FLAG_VALUE: "enabled",
     }
 };
 

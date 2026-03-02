@@ -8,7 +8,7 @@ import {
 } from "../../../core/game/GameUpdates";
 import { GameView, UnitView } from "../../../core/game/GameView";
 import SoundManager, { SoundEffect } from "../../sound/SoundManager";
-import { isMobileDevice, renderNumber } from "../../Utils";
+import { isMobileRenderingEnabled, renderNumber } from "../../Utils";
 import { AnimatedSpriteLoader } from "../AnimatedSpriteLoader";
 import { conquestFxFactory } from "../fx/ConquestFx";
 import { Fx, FxType } from "../fx/Fx";
@@ -48,7 +48,7 @@ export class FxLayer implements Layer {
       return;
     }
     // Skip decorative ambient effects on mobile — no gameplay impact
-    if (!isMobileDevice()) {
+    if (!isMobileRenderingEnabled()) {
       this.lastRandomEvent += 1;
       if (this.lastRandomEvent > this.randomEventRate) {
         this.lastRandomEvent = 0;
