@@ -277,6 +277,26 @@ When these conditions are met, ship Clarity with mobile session sampling configu
 
 ---
 
+### 2j. Spawn Behavior Anomaly Investigation 🚨 Urgent
+**Effort:** half a day (investigation) + up to 1 day (fix, if needed)
+**Experiments:** ❌ Excluded — investigation and bug fix.
+
+Funnel 7 (Spawn Behavior) is showing an extreme and unexpected discrepancy: desktop players complete the spawn phase at 8.8% vs 78.7% on mobile — a 9x gap in the wrong direction. This must be investigated before Task 4a (auto-spawn) is designed and before Funnel 7 data is trusted.
+
+**Most likely cause:** `Match:SpawnChosen` is triggered by a touch event listener only, meaning mouse clicks on desktop never fire the event. The 91.2% desktop drop-off would then be a measurement artifact, not real player behavior.
+
+**Investigation steps in priority order:**
+1. Check the `Match:SpawnChosen` trigger code — does it handle mouse click (`click` / `mousedown`) in addition to touch events? If touch-only, add mouse handling and redeploy.
+2. Check raw `Match:SpawnChosen` event volume on `Device:desktop` in the GameAnalytics Explore tool independent of the funnel — near-zero absolute counts confirm the event is not firing.
+3. Manually test the spawn phase on desktop in Chrome and at least one other browser — verify a mouse click registers a spawn correctly.
+4. If no code issue is found, wait for full 48-hour aggregation and recheck.
+
+**Why urgent:** if the event listener is touch-only, all desktop spawn data is invalid, Task 4a is being designed on false assumptions, and every funnel containing `Match:SpawnChosen` is producing wrong data for desktop. The fix itself is likely trivial — an hour of work. The investigation needs to happen now.
+
+Can run in parallel with Task 3.
+
+---
+
 ### 3. Mobile Quick Wins
 **Effort:** 2–3 days
 **Experiments:** ❌ Excluded — applying different rendering settings to a subset of mobile users would produce inconsistent crash data and make analytics results unreadable. Ship to all mobile users and measure impact via Task 2d Session:Heartbeat and Task 2e Performance:FPS events.
@@ -363,6 +383,22 @@ Proper fixes include:
 - `Performance:FPS` events (Task 2e) show a meaningful proportion of mobile players still in the `Below15` or `15to30` buckets after Task 3 shipped
 
 If Task 3 moved both metrics to acceptable levels, this task should be deprioritized in favor of other roadmap items. Do not invest 3–6 weeks based on assumption.
+
+---
+
+### 5b. Server Restart UX — Notification & Auto-Refresh
+**Effort:** 2–3 days
+**Experiments:** ❌ Excluded — infrastructure and UX fix, applies to all players.
+
+Currently when the production server is restarted for updates, connected clients drop silently. The game freezes with no message and no recovery path. Players see a frozen screen until they manually refresh — if they realize they need to at all. This happens on every deployment.
+
+**Part A — Pre-restart notification:** before deploying, an admin endpoint triggers a server broadcast warning all connected clients: "Server update in approximately 2 minutes — the game will reload automatically when ready." Clients display this as a non-dismissible banner. After the warning period, the server shuts down. V1 can be triggered manually as part of the deployment process; automation into the pipeline is a nice-to-have.
+
+**Part B — Auto-refresh on recovery (higher priority):** when the client detects a lost connection, it enters a silent polling loop — checking a lightweight server health endpoint every 5–10 seconds — and displays "Server update in progress, you'll be back shortly." When the server responds, the client reloads automatically. No time limit on polling.
+
+**Important:** this polling flow is separate from the Task 2 reconnection flow. Task 2 handles individual player disconnects with a 1-minute match-rejoin window. This flow handles server-wide restarts with no time limit and no match state restoration — just wait and reload. The heuristic for distinguishing them: if the server is unreachable entirely, use the restart polling flow.
+
+Part B can ship independently of Part A and should be prioritized first — it resolves the silent freeze with no deployment process changes required.
 
 ---
 
@@ -641,10 +677,12 @@ Design:
 | 2g | New vs returning player analytics event | 0.5 days | ❌ All users | Enables new/returning segmentation in funnels; clean measurement of Task 4 impact | 1 |
 | 2h | Sentry integration — error & crash monitoring | 0.5 days | ❌ All users | Captures JS errors and stack traces; establishes crash baseline before Task 3 | 1 |
 | 2i | Microsoft Clarity — session recordings & heatmaps | ⏸ Deferred (after Task 3 stable) | ❌ All users | Qualitative diagnosis of ghost rate, spawn confusion, mobile UX — deferred until mobile perf confirmed stable | 1→3 |
+| 2j | Spawn behavior anomaly investigation 🚨 | 0.5–1 day | ❌ Excluded | Urgent: 91.2% desktop spawn drop-off likely caused by touch-only event listener — must fix before Task 4a | 1 |
 | 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
 | 4a | Auto-spawn — automatic starting location on join | 1–2 days | ❌ All users | Eliminates zero-action abandonment at match start | 2 |
 | 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
 | 5 | Deep mobile rendering optimization | 3–6 weeks | ❌ Excluded | Only if analytics confirms mobile worth the investment | 3 |
+| 5b | Server restart UX — notification & auto-refresh | 2–3 days | ❌ Excluded | Eliminates silent freeze on deployments; Part B ships first | 3 |
 | 6 | Rewarded ads — minimal version (no coin economy) | 2–3 days | ✅ Test | Yandex algorithm boost, first monetization signal | 4 |
 | 7 | Leaderboard — core system (global + monthly, auth gate) | 1–2 weeks | ✅ Test | Replaces buggy Yandex built-in, drives Yandex login conversion | 4 |
 | 8 | Citizen tier — earned path + instant purchase + nickname system | 1–2 weeks | ✅ Test | Retention hook (progress bar); community membership; revenue foundation | 4 |
