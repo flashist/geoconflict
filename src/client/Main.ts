@@ -1,6 +1,6 @@
 import "./SentryInit"; // Must be first — initializes Sentry before any other module
 import version from "../version";
-import { translateText } from "../client/Utils";
+import { enableMobileRenderingOpts, translateText } from "../client/Utils";
 import { UserMeResponse } from "../core/ApiSchemas";
 import { EventBus } from "../core/EventBus";
 import { GameRecord, GameStartInfo, ID } from "../core/Schemas";
@@ -519,6 +519,15 @@ class Client {
         checkReconnectSession().then((session) => {
           if (session) this.showReconnectBanner(session);
         });
+      });
+
+    FlashistFacade.instance
+      .checkExperimentFlag(
+        flashistConstants.experiments.MOBILE_RENDERING_FLAG_NAME,
+        flashistConstants.experiments.MOBILE_RENDERING_FLAG_VALUE,
+      )
+      .then((enabled) => {
+        if (enabled) enableMobileRenderingOpts();
       });
 
     this.initializeFuseTag();

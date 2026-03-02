@@ -256,6 +256,29 @@ export function isInIframe(): boolean {
   }
 }
 
+// Evaluated once at module load — device type cannot change mid-session.
+// iPads are intentionally excluded: they are classified as DEVICE_TABLET in
+// analytics and have large enough screens to handle full rendering.
+const _isMobileDevice: boolean =
+  window.matchMedia("(pointer: coarse)").matches ||
+  /Android|iPhone/i.test(navigator.userAgent);
+
+// Gated by the "mobile_rendering" experiment flag. Call enableMobileRenderingOpts()
+// once the flag resolves to activate all mobile rendering optimizations.
+let _mobileOptsEnabled = false;
+
+export function enableMobileRenderingOpts(): void {
+  _mobileOptsEnabled = true;
+}
+
+export function isMobileDevice(): boolean {
+  return _isMobileDevice;
+}
+
+export function isMobileRenderingEnabled(): boolean {
+  return _isMobileDevice && _mobileOptsEnabled;
+}
+
 export async function getSvgAspectRatio(src: string): Promise<number | null> {
   const self = getSvgAspectRatio as any;
   self.svgAspectRatioCache ??= new Map();

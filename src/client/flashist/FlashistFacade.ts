@@ -2,6 +2,7 @@ import { LangSelector } from "../LangSelector";
 import { GameAnalytics } from "gameanalytics";
 import { GameEnv } from "../../core/configuration/Config";
 import * as Sentry from "@sentry/browser";
+import { isMobileDevice } from "../Utils";
 
 //
 export const flashistConstants = {
@@ -67,6 +68,11 @@ export const flashistConstants = {
         // Set flag "reconnect" = "enabled" in the Yandex Games dashboard to activate.
         RECONNECT_FLAG_NAME: "reconnect",
         RECONNECT_FLAG_VALUE: "enabled",
+
+        // Yandex.Games remote flag for mobile rendering optimizations (Task 3).
+        // Set flag "mobile_rendering" = "enabled" in the Yandex Games dashboard to activate.
+        MOBILE_RENDERING_FLAG_NAME: "mobile_rendering",
+        MOBILE_RENDERING_FLAG_VALUE: "enabled",
     }
 };
 
@@ -201,7 +207,7 @@ export class FlashistFacade {
         GameAnalytics.setEnabledVerboseLog(true);
 
         // Platform custom dimensions
-        const isMobile = window.matchMedia("(pointer: coarse)").matches || /Android|iPhone|iPad/i.test(navigator.userAgent);
+        const isMobile = isMobileDevice();
         const isYandex = this.yaGamesAvailable;
         GameAnalytics.setCustomDimension01(isMobile ? "mobile" : "desktop");
         GameAnalytics.setCustomDimension02(isYandex ? "yandex" : "web");

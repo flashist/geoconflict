@@ -40,6 +40,7 @@ import { UILayer } from "./layers/UILayer";
 import { UnitDisplay } from "./layers/UnitDisplay";
 import { UnitLayer } from "./layers/UnitLayer";
 import { WinModal } from "./layers/WinModal";
+import { isMobileRenderingEnabled } from "../Utils";
 
 export function createRenderer(
   canvas: HTMLCanvasElement,
@@ -289,6 +290,7 @@ export function createRenderer(
 
 export class GameRenderer {
   private context: CanvasRenderingContext2D;
+  private lastRenderTime: number = 0;
 
   constructor(
     private game: GameView,
@@ -341,7 +343,13 @@ export class GameRenderer {
   }
 
   renderGame() {
-    const start = performance.now();
+    const now = performance.now();
+    if (isMobileRenderingEnabled() && now - this.lastRenderTime < 1000 / 30) {
+      requestAnimationFrame(() => this.renderGame());
+      return;
+    }
+    this.lastRenderTime = now;
+    const start = now;
     // Set background
     this.context.fillStyle = this.game
       .config()
@@ -394,8 +402,4 @@ export class GameRenderer {
     this.layers.forEach((l) => l.tick?.());
   }
 
-  resize(width: number, height: number): void {
-    this.canvas.width = Math.ceil(width / window.devicePixelRatio);
-    this.canvas.height = Math.ceil(height / window.devicePixelRatio);
-  }
 }
