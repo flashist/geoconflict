@@ -439,7 +439,14 @@ Source: `src/core/Schemas.ts`.
   - **Web Worker**: tick simulation, pathfinding, hash computation (off-main-thread for responsiveness).
 - Game state flows: Worker → serialized updates → Main thread renderer.
 
-Source: `src/client/Transport.ts`, `src/client/ClientGameRunner.ts`.
+**The Web Worker is a hard requirement.** It is not an optional optimization — without a successfully initialized worker the game cannot run at all. `ClientGameRunner` blocks on `await worker.initialize()` before creating any game state or renderer; if the worker fails to send the `initialized` acknowledgement within 5 seconds, initialization rejects and the player sees a frozen blank screen with no error message.
+
+Sources of worker initialization failure:
+- Any runtime error thrown during module load inside the worker (e.g. accessing `window` in a worker context — see `src/client/Utils.ts`)
+- `createGameRunner` throwing during game setup (map load failure, schema validation error, etc.)
+- Network/browser restrictions preventing worker creation
+
+Source: `src/client/Transport.ts`, `src/client/ClientGameRunner.ts`, `src/core/worker/WorkerClient.ts`, `src/core/worker/Worker.worker.ts`.
 
 ### 4.6 Intent → Execution Pipeline
 

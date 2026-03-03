@@ -256,12 +256,12 @@ export function isInIframe(): boolean {
   }
 }
 
-// Evaluated once at module load — device type cannot change mid-session.
+// Lazily initialized on first call — avoids `window` access at import time,
+// which would crash in the Web Worker context. Device type cannot change
+// mid-session, so the cached value is computed only once.
 // iPads are intentionally excluded: they are classified as DEVICE_TABLET in
 // analytics and have large enough screens to handle full rendering.
-const _isMobileDevice: boolean =
-  window.matchMedia("(pointer: coarse)").matches ||
-  /Android|iPhone/i.test(navigator.userAgent);
+let _isMobileDevice: boolean | undefined;
 
 // Gated by the "mobile_rendering" experiment flag. Call enableMobileRenderingOpts()
 // once the flag resolves to activate all mobile rendering optimizations.
@@ -271,12 +271,18 @@ export function enableMobileRenderingOpts(): void {
   _mobileOptsEnabled = true;
 }
 
+// MAIN THREAD ONLY — accesses `window`. Must not be called from Web Worker context.
 export function isMobileDevice(): boolean {
+  if (_isMobileDevice === undefined) {
+    _isMobileDevice =
+      window.matchMedia("(pointer: coarse)").matches ||
+      /Android|iPhone/i.test(navigator.userAgent);
+  }
   return _isMobileDevice;
 }
 
 export function isMobileRenderingEnabled(): boolean {
-  return _isMobileDevice && _mobileOptsEnabled;
+  return isMobileDevice() && _mobileOptsEnabled;
 }
 
 export async function getSvgAspectRatio(src: string): Promise<number | null> {
