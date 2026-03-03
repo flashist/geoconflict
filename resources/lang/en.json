@@ -690,7 +690,8 @@
     "copy_clipboard": "Copy to clipboard",
     "copied": "Copied!",
     "failed_copy": "Failed to copy",
-    "desync_notice": "You are desynced from other players. What you see might differ from other players."
+    "desync_notice": "You are desynced from other players. What you see might differ from other players.",
+    "worker_init_failed": "Failed to start the game — please try refreshing the page."
   },
   "heads_up_message": {
     "choose_spawn": "Choose a starting location"

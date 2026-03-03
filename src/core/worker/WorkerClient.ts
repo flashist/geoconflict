@@ -18,6 +18,7 @@ export class WorkerClient {
   private gameUpdateCallback?: (
     update: GameUpdateViewData | ErrorUpdate,
   ) => void;
+  private initReject?: (err: Error) => void;
 
   constructor(
     private gameStartInfo: GameStartInfo,
@@ -31,6 +32,14 @@ export class WorkerClient {
       "message",
       this.handleWorkerMessage.bind(this),
     );
+
+    // Propagate worker crashes immediately instead of waiting for the timeout
+    this.worker.addEventListener("error", (event: ErrorEvent) => {
+      if (this.initReject) {
+        this.initReject(new Error(`Worker crashed: ${event.message}`));
+        this.initReject = undefined;
+      }
+    });
   }
 
   private handleWorkerMessage(event: MessageEvent<WorkerMessage>) {
@@ -56,11 +65,14 @@ export class WorkerClient {
 
   initialize(): Promise<void> {
     return new Promise((resolve, reject) => {
+      this.initReject = reject;
+
       const messageId = generateID();
 
       this.messageHandlers.set(messageId, (message) => {
         if (message.type === "initialized") {
           this.isInitialized = true;
+          this.initReject = undefined;
           resolve();
         }
       });
@@ -75,6 +87,7 @@ export class WorkerClient {
       // Add timeout for initialization
       setTimeout(() => {
         if (!this.isInitialized) {
+          this.initReject = undefined;
           this.messageHandlers.delete(messageId);
           reject(new Error("Worker initialization timeout"));
         }

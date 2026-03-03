@@ -54,6 +54,9 @@ export const flashistConstants = {
 
         PLAYER_NEW: "Player:New",
         PLAYER_RETURNING: "Player:Returning",
+
+        WORKER_INIT_SUCCESS: "Worker:InitSuccess",
+        WORKER_INIT_FAILED: "Worker:InitFailed",
     },
 
     progressionEventStatus: {
