@@ -100,6 +100,14 @@ Sampled every 60 seconds during active gameplay via a `setInterval` independent 
 | `PERFORMANCE_MEMORY_MEDIUM` | `Performance:Memory:Medium` | Heap is under moderate pressure |
 | `PERFORMANCE_MEMORY_LOW` | `Performance:Memory:Low` | Heap is heavily constrained — crash risk |
 
+### Worker Initialization Events
+Fired once per game session attempt, before gameplay starts.
+
+| Enum Key | Event String | When Fired |
+|---|---|---|
+| `WORKER_INIT_SUCCESS` | `Worker:InitSuccess` | Web Worker initialized successfully; game will start |
+| `WORKER_INIT_FAILED` | `Worker:InitFailed` | Worker construction or initialization failed; error modal shown to user |
+
 ---
 
 ## TypeScript Enum

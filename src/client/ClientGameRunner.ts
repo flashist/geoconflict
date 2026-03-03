@@ -118,7 +118,7 @@ export function joinLobby(
         userSettings,
         terrainLoad,
         terrainMapFileLoader,
-      ).then((r) => r.start());
+      ).then((r) => r?.start());
     }
     if (message.type === "error") {
       showErrorModal(
@@ -146,7 +146,7 @@ async function createClientGame(
   userSettings: UserSettings,
   terrainLoad: Promise<TerrainMapData> | null,
   mapLoader: GameMapLoader,
-): Promise<ClientGameRunner> {
+): Promise<ClientGameRunner | undefined> {
   if (lobbyConfig.gameStartInfo === undefined) {
     throw new Error("missing gameStartInfo");
   }
@@ -166,11 +166,27 @@ async function createClientGame(
       mapLoader,
     );
   }
-  const worker = new WorkerClient(
-    lobbyConfig.gameStartInfo,
-    lobbyConfig.clientID,
-  );
-  await worker.initialize();
+  let worker: WorkerClient;
+  try {
+    worker = new WorkerClient(
+      lobbyConfig.gameStartInfo,
+      lobbyConfig.clientID,
+    );
+    await worker.initialize();
+  } catch (err) {
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.WORKER_INIT_FAILED);
+    showErrorModal(
+      err instanceof Error ? err.message : String(err),
+      undefined,
+      lobbyConfig.gameStartInfo.gameID,
+      lobbyConfig.clientID,
+      true,
+      false,
+      "error_modal.worker_init_failed",
+    );
+    return;
+  }
+  flashist_logEventAnalytics(flashistConstants.analyticEvents.WORKER_INIT_SUCCESS);
   const gameView = new GameView(
     worker,
     config,
