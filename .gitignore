@@ -12,3 +12,4 @@ resources/.DS_Store
 .idea/
 .DS_Store
 CLAUDE.local.md
+/.playwright-mcp
