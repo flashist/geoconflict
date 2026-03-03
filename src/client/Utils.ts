@@ -271,6 +271,7 @@ export function enableMobileRenderingOpts(): void {
   _mobileOptsEnabled = true;
 }
 
+// MAIN THREAD ONLY — accesses `window`. Must not be called from Web Worker context.
 export function isMobileDevice(): boolean {
   if (_isMobileDevice === undefined) {
     _isMobileDevice =
