@@ -363,6 +363,40 @@ A significant number of new players never make their first action because they d
 
 ---
 
+### 4c. Auto-Expansion for Inactive Players (Multiplayer Only)
+**Effort:** 2–3 days
+**Experiments:** ❌ Excluded — affects ghost players who by definition aren't making decisions, so experiment group assignment is meaningless.
+
+After spawning, ghost players who make no input sit as a static dot and get swallowed immediately. This adds a short-lived automatic expansion that activates only when a player has made no input since spawning, only in multiplayer, and only into unoccupied (terra nullius) tiles — never into opponent territory.
+
+**Behavior:** one auto-expansion intent emitted every 10 seconds, for a maximum of 1 minute (6 expansions total). Uses the same `AttackExecution` intent pipeline as a normal player click — not a special case. Troop send amount follows the normal default (~30% of current troops). Stops immediately and permanently the moment the player makes any input.
+
+**Critical constraints:**
+- Multiplayer only — never activates in `GameType.Singleplayer`
+- Never targets another player's or bot's territory
+- Must be fully deterministic — use `PseudoRandom`, never `Math.random()`; tile selection must be consistent across all clients
+- Duration (60s) and interval (10s) must be named constants, not hardcoded
+
+**Depends on:** Task 4a (auto-spawn) — most valuable when combined, since auto-spawned players are more likely to be inactive. Can ship alongside 4a.
+
+---
+
+### 4b. Zoom to Territory — Pan & Zoom on Player Name Click
+**Effort:** 1–2 days
+**Experiments:** ❌ Excluded — UX fix, applies to all players.
+
+Players are reporting they cannot find themselves on the map. The existing click-on-name behavior in the player table only pans the map — it does not change zoom level. If the map is zoomed out and the player's territory is small, the territory ends up centered but still an unreadable dot.
+
+**Two changes:**
+
+1. **Unified zoom-to-territory on all name clicks:** extend the existing pan logic to also set zoom level based on territory size. Small territories zoom in to a close-up; large territories zoom to fit with a minimum zoom cap so labels remain legible. Smooth animated transition. `TransformHandler` is the right entry point.
+
+2. **Dedicated "find me" button:** adds a persistent button in the match UI that calls the same zoom-to-territory logic targeting the local player's own territory. Must be easily tappable on mobile (44×44px minimum). Addresses the player feedback directly without requiring the player to find their own name in the table.
+
+Pure client-side change — no server involvement, no determinism concerns.
+
+---
+
 ## Sprint 3 — Deepen Retention (Data-Driven)
 
 **Goal:** Address deeper mobile performance issues, but only once analytics from Sprint 1 confirms the investment is justified.
@@ -681,6 +715,8 @@ Design:
 | 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
 | 4a | Auto-spawn — automatic starting location on join | 1–2 days | ❌ All users | Eliminates zero-action abandonment at match start | 2 |
 | 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
+| 4b | Zoom to territory — pan & zoom on player name click | 1–2 days | ❌ All users | Fixes "can't find myself" player feedback; find-me button + smart zoom on all name clicks | 2 |
+| 4c | Auto-expansion for inactive players | 2–3 days | ❌ All users | Gives ghost players a minimal foothold; stops on first player input; multiplayer only; fully deterministic | 2 |
 | 5 | Deep mobile rendering optimization | 3–6 weeks | ❌ Excluded | Only if analytics confirms mobile worth the investment | 3 |
 | 5b | Server restart UX — notification & auto-refresh | 2–3 days | ❌ Excluded | Eliminates silent freeze on deployments; Part B ships first | 3 |
 | 6 | Rewarded ads — minimal version (no coin economy) | 2–3 days | ✅ Test | Yandex algorithm boost, first monetization signal | 4 |
