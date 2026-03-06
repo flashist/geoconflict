@@ -20,7 +20,8 @@ export function startPerformanceMonitor(): () => void {
 
     const now = performance.now();
     const elapsed = (now - lastSampleTime) / 1000; // seconds
-    const fps = elapsed > 0 ? frameCount / elapsed : 0;
+    let fps = elapsed > 0 ? frameCount / elapsed : 0;
+    fps = Math.round(fps);
     frameCount = 0;
     lastSampleTime = now;
 
@@ -34,6 +35,7 @@ export function startPerformanceMonitor(): () => void {
       fpsBucket = flashistConstants.analyticEvents.PERFORMANCE_FPS_BELOW15;
     }
     flashist_logEventAnalytics(fpsBucket);
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.PERFORMANCE_FPS_AVERAGE, fps);
 
     // Memory pressure (best-effort — Chrome/Chromium only)
     const mem = (performance as any).memory as

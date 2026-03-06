@@ -93,6 +93,7 @@ Sampled every 60 seconds during active gameplay via a `setInterval` independent 
 
 | Enum Key | Event String | When Fired |
 |---|---|---|
+| `PERFORMANCE_FPS_AVERAGE` | `Performance:FPSAverage` | Current average FPS value (will be passed into the analytic event as the value parameter) |
 | `PERFORMANCE_FPS_ABOVE30` | `Performance:FPS:Above30` | Current FPS ≥ 30 |
 | `PERFORMANCE_FPS_15TO30` | `Performance:FPS:15to30` | Current FPS between 15 and 30 |
 | `PERFORMANCE_FPS_BELOW15` | `Performance:FPS:Below15` | Current FPS < 15 — crash risk zone |
