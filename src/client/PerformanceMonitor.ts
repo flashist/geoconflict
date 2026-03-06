@@ -35,7 +35,6 @@ export function startPerformanceMonitor(): () => void {
       fpsBucket = flashistConstants.analyticEvents.PERFORMANCE_FPS_BELOW15;
     }
     flashist_logEventAnalytics(fpsBucket);
-    //
     flashist_logEventAnalytics(flashistConstants.analyticEvents.PERFORMANCE_FPS_AVERAGE, fps);
 
     // Memory pressure (best-effort — Chrome/Chromium only)
