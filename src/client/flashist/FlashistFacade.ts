@@ -33,7 +33,7 @@ export const flashistConstants = {
         MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
         MATCH_SPAWN_AUTO: "Match:SpawnAuto",
 
-        PERFORMANCE_AVERAGE_FPS: "Performance:AverageFPS",
+        PERFORMANCE_FPS_AVERAGE: "Performance:FPSAverage",
         PERFORMANCE_FPS_ABOVE30: "Performance:FPS:Above30",
         PERFORMANCE_FPS_15TO30: "Performance:FPS:15to30",
         PERFORMANCE_FPS_BELOW15: "Performance:FPS:Below15",
@@ -88,7 +88,7 @@ export const flashist_logEventAnalytics = (event: string, value?: number) => {
 
     try {
         let isNeedToSendValue: boolean = false;
-        if (value || value === 0) {
+        if (value !== undefined) {
             isNeedToSendValue = true;
         }
         GameAnalytics.addDesignEvent(event, value, isNeedToSendValue);

@@ -36,7 +36,7 @@ export function startPerformanceMonitor(): () => void {
     }
     flashist_logEventAnalytics(fpsBucket);
     //
-    flashist_logEventAnalytics(flashistConstants.analyticEvents.PERFORMANCE_AVERAGE_FPS, fps)
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.PERFORMANCE_FPS_AVERAGE, fps);
 
     // Memory pressure (best-effort — Chrome/Chromium only)
     const mem = (performance as any).memory as
