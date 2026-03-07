@@ -11,8 +11,8 @@ import {
 export const GOTO_INTERVAL_MS = 16;
 export const CAMERA_MAX_SPEED = 15;
 export const CAMERA_SMOOTHING = 0.03;
-export const MIN_ZOOM = 1.5;
-export const MAX_ZOOM = 8.0;
+export const ZOOM_TO_PLAYER_MIN = 1;
+export const ZOOM_TO_PLAYER_MAX = 3;
 
 export class TransformHandler {
   public scale: number = 1.8;
@@ -159,20 +159,20 @@ export class TransformHandler {
     };
   }
 
-  private calculateZoom(player: PlayerView): number {
+  private calculateZoomForPlayer(player: PlayerView): number {
     const tiles = Math.max(player.numTilesOwned(), 1);
     const diameter = Math.sqrt(tiles) * 3;
     const rect = this.boundingRect();
     const viewportMin = Math.min(rect.width, rect.height);
     const target = (viewportMin * 0.4) / diameter;
-    return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, target));
+    return Math.max(ZOOM_TO_PLAYER_MIN, Math.min(ZOOM_TO_PLAYER_MAX, target));
   }
 
   zoomToPlayer(player: PlayerView): void {
     this.clearTarget();
     const nameLocation = player.nameLocation();
     if (!nameLocation) return;
-    this.scale = this.calculateZoom(player);
+    this.scale = this.calculateZoomForPlayer(player);
     this.clampOffsets();
     this.changed = true;
     this.target = new Cell(nameLocation.x, nameLocation.y);

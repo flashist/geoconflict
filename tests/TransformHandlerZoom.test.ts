@@ -5,23 +5,23 @@
 // Leaderboard uses LitElement decorators which SWC can't process in tests
 jest.mock("../src/client/graphics/layers/Leaderboard", () => ({
   GoToPlayerEvent: class {
-    constructor(public player: any) {}
+    constructor(public player: any) { }
   },
   GoToPositionEvent: class {
     constructor(
       public x: number,
       public y: number,
-    ) {}
+    ) { }
   },
   GoToUnitEvent: class {
-    constructor(public unit: any) {}
+    constructor(public unit: any) { }
   },
 }));
 
 import {
   TransformHandler,
-  MIN_ZOOM,
-  MAX_ZOOM,
+  ZOOM_TO_PLAYER_MIN,
+  ZOOM_TO_PLAYER_MAX,
 } from "../src/client/graphics/TransformHandler";
 import { EventBus } from "../src/core/EventBus";
 
@@ -44,7 +44,7 @@ function makeHandler(viewportW: number, viewportH: number): TransformHandler {
     right: viewportW,
     x: 0,
     y: 0,
-    toJSON: () => {},
+    toJSON: () => { },
   } as DOMRect);
   return new TransformHandler(mockGameView, new EventBus(), canvas);
 }
@@ -53,32 +53,32 @@ function mockPlayer(tiles: number) {
   return { numTilesOwned: () => tiles, nameLocation: () => null } as any;
 }
 
-describe("TransformHandler.calculateZoom", () => {
-  test("clamps to MAX_ZOOM for very small territory (1 tile)", () => {
+describe("TransformHandler.calculateZoomForPlayer", () => {
+  test("clamps to ZOOM_TO_PLAYER_MAX for very small territory (1 tile)", () => {
     const handler = makeHandler(800, 600);
-    const zoom = (handler as any).calculateZoom(mockPlayer(1));
-    expect(zoom).toBe(MAX_ZOOM);
+    const zoom = (handler as any).calculateZoomForPlayer(mockPlayer(1));
+    expect(zoom).toBe(ZOOM_TO_PLAYER_MAX);
   });
 
-  test("clamps to MIN_ZOOM for very large territory (1 000 000 tiles)", () => {
+  test("clamps to ZOOM_TO_PLAYER_MIN for very large territory (1 000 000 tiles)", () => {
     const handler = makeHandler(800, 600);
-    const zoom = (handler as any).calculateZoom(mockPlayer(1_000_000));
-    expect(zoom).toBe(MIN_ZOOM);
+    const zoom = (handler as any).calculateZoomForPlayer(mockPlayer(1_000_000));
+    expect(zoom).toBe(ZOOM_TO_PLAYER_MIN);
   });
 
   test("zooms closer for small territory than for large territory", () => {
     const handler = makeHandler(800, 600);
-    const smallZoom = (handler as any).calculateZoom(mockPlayer(100));
-    const largeZoom = (handler as any).calculateZoom(mockPlayer(5000));
+    const smallZoom = (handler as any).calculateZoomForPlayer(mockPlayer(100));
+    const largeZoom = (handler as any).calculateZoomForPlayer(mockPlayer(5000));
     expect(smallZoom).toBeGreaterThan(largeZoom);
   });
 
-  test("result is always within [MIN_ZOOM, MAX_ZOOM] for various sizes", () => {
+  test("result is always within [ZOOM_TO_PLAYER_MIN, ZOOM_TO_PLAYER_MAX] for various sizes", () => {
     const handler = makeHandler(800, 600);
     for (const tiles of [1, 10, 100, 1000, 10000, 100000]) {
-      const zoom = (handler as any).calculateZoom(mockPlayer(tiles));
-      expect(zoom).toBeGreaterThanOrEqual(MIN_ZOOM);
-      expect(zoom).toBeLessThanOrEqual(MAX_ZOOM);
+      const zoom = (handler as any).calculateZoomForPlayer(mockPlayer(tiles));
+      expect(zoom).toBeGreaterThanOrEqual(ZOOM_TO_PLAYER_MIN);
+      expect(zoom).toBeLessThanOrEqual(ZOOM_TO_PLAYER_MAX);
     }
   });
 
@@ -86,16 +86,16 @@ describe("TransformHandler.calculateZoom", () => {
     // Both have the same smaller dimension (300px), so zoom should be equal
     const wideHandler = makeHandler(800, 300);
     const tallHandler = makeHandler(300, 800);
-    const wideZoom = (wideHandler as any).calculateZoom(mockPlayer(500));
-    const tallZoom = (tallHandler as any).calculateZoom(mockPlayer(500));
+    const wideZoom = (wideHandler as any).calculateZoomForPlayer(mockPlayer(500));
+    const tallZoom = (tallHandler as any).calculateZoomForPlayer(mockPlayer(500));
     expect(wideZoom).toBeCloseTo(tallZoom);
   });
 
   test("larger viewport produces higher zoom for same territory size", () => {
     const smallViewport = makeHandler(400, 300);
     const largeViewport = makeHandler(800, 600);
-    const zoom400 = (smallViewport as any).calculateZoom(mockPlayer(1000));
-    const zoom800 = (largeViewport as any).calculateZoom(mockPlayer(1000));
+    const zoom400 = (smallViewport as any).calculateZoomForPlayer(mockPlayer(1000));
+    const zoom800 = (largeViewport as any).calculateZoomForPlayer(mockPlayer(1000));
     expect(zoom800).toBeGreaterThan(zoom400);
   });
 });
