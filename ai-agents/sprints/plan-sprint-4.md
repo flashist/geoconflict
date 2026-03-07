@@ -148,29 +148,22 @@ Citizens can watch any ongoing public match as a spectator without participating
 
 ---
 
-### 8d. Announcements System — Global Changelog & Personal Inbox
-**Effort:** 3–5 days
-**Experiments:** ❌ Excluded — informational feature, applies to all players (Part A) and all citizens (Part B).
+### 8d. Personal Inbox — Citizens Only (Part B)
+**Effort:** 2–3 days
+**Experiments:** ❌ Excluded — informational feature for all citizens.
 
-The original OpenFront codebase includes a disabled announcements feature — a bell icon that opens a game news popup with an unread badge. Re-enabling it becomes increasingly important as citizenship perks accumulate — players who haven't opened the game in a week may not know that private lobbies or ad removal exist.
+**Note:** Part A (global changelog re-enable) shipped in Sprint 2. This task adds the personal citizen inbox tab to the existing announcements popup.
 
-**Part A — Global announcements (re-enable, no new backend needed):**
-- Bell icon in the main UI opens a popup with a reverse-chronological changelog
-- Content is a JSON file in the repo — updated by deploying a new version
-- Unread badge via localStorage comparison against latest entry timestamp/ID
-- No auto-open — the badge is the signal, the player opens it when ready
-- Part A can ship independently of Part B at any time
+**Depends on:** Task 8 (citizenship system), Task 8d Part A (bell icon and popup UI already exist — this adds a second tab to that popup)
 
 **Part B — Personal inbox (citizens only, requires new backend):**
-- Separate tab in the same popup, visible only to citizens
+- Separate tab in the announcements popup, visible only to citizens
 - One-way messages from the game to a specific citizen — no replies
 - Persists across devices — stored server-side in the player database
 - Unread badge covers both global and personal unread counts
 - Messages sent automatically as side effects of existing admin actions (nickname approved/rejected, citizenship granted via cosmetic purchase)
 - New endpoints needed: `GET /player/messages`, `POST /admin/player-message`, bulk mark-as-read
 - Simple schema: `id`, `player_id`, `title`, `body`, `sent_at`, `read_at`
-
-**Depends on:** Part B depends on Task 8 (citizenship system). Part A has no dependencies.
 
 ---
 

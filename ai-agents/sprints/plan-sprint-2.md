@@ -84,3 +84,28 @@ Players are reporting they cannot find themselves on the map. The existing click
 Pure client-side change — no server involvement, no determinism concerns.
 
 ---
+
+### 8d (Part A only). Global Announcements — Re-enable Changelog Feature
+**Effort:** 1–2 days
+**Experiments:** ❌ Excluded — informational feature, applies to all players.
+
+**Note:** Part B (personal citizen inbox) remains in Sprint 4 — it requires citizenship infrastructure and new backend endpoints. Only Part A moves to Sprint 2.
+
+Pulled forward from Sprint 4 because the game now has enough shipped features worth announcing, and the announcements channel becomes more valuable the earlier it exists. Players who haven't opened the game in two weeks have no way of knowing that auto-spawn, auto-expansion, zoom-to-territory, or mobile quick wins have shipped. An unread badge on a bell icon is the in-game equivalent of a changelog notification — it brings players back and gives them a reason to re-engage.
+
+**What it does:**
+- Bell/announcement icon in the main UI opens a popup with a reverse-chronological changelog
+- Unread badge appears on the icon when there are entries the player hasn't seen since their last visit
+- No auto-open — the badge is the signal, the player opens it when ready
+- Content is a JSON file in the repo, updated and deployed when new announcements are needed
+
+**At launch, seed the JSON with entries covering:**
+- Mobile performance improvements (Task 3)
+- Auto-spawn (Task 4a)
+- Auto-expansion (Task 4c)
+- Zoom-to-territory / find me button (Task 4b)
+- Any other Sprint 1–2 features worth highlighting
+
+**Unread detection:** store the ID or timestamp of the last-seen entry in localStorage. On game load, compare against the latest entry in the JSON — if newer entries exist, show the badge. When the player opens the popup, mark all as read.
+
+**No backend required** — purely client-side. JSON file in the repo is the content store.

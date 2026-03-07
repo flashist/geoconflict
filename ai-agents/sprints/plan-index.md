@@ -63,12 +63,14 @@ Features are **excluded** from experiments if:
 | 5 | Deep mobile rendering optimization | ⏸ Parked | ❌ Excluded | Parked: desktop is core audience. Revisit if mobile DAU > 1,500. | — |
 | 5b | Server restart UX — notification & auto-refresh | 2–3 days | ❌ Excluded | Eliminates silent freeze on deployments; Part B ships first | 3 |
 | 5c | Mobile warning screen | 0.5 days | ❌ All users | Sets honest expectations for mobile players; improves Yandex retention signals | 3 |
+| 5d | Server performance investigation & Sentry instrumentation | 2–3 days | ❌ Excluded | Investigates lag reports from desktop users; threshold-based Sentry transactions on server turn processing | 3 |
 | 6 | Rewarded ads — minimal version | 2–3 days | ✅ Test | Yandex algorithm boost, first monetization signal | 4 |
 | 7 | Leaderboard — core system | 1–2 weeks | ✅ Test | Replaces buggy Yandex built-in, drives Yandex login conversion | 4 |
 | 8 | Citizen tier — supporter membership system | 1–2 weeks | ✅ Experiment | Three paths; paid citizens get no interstitials; all citizens get full emoji set; non-citizens get 5-10 core emojis only | 4 |
 | 8b | Private lobbies — citizens only | 1–2 weeks | ❌ Citizens only | Directly requested by players; creates friend-invite conversion loop | 4 |
 | 8c | Spectating — citizens only | 1 week | ❌ Citizens only | Watch any live public match; zero match balance impact | 4 |
-| 8d | Announcements — global changelog & personal inbox | 3–5 days | ❌ Excluded | Part A: re-enable existing feature. Part B: citizen-only personal inbox. | 4 |
+| 8d (A) | Announcements — global changelog re-enable | 1–2 days | ❌ Excluded | Re-enable existing OpenFront feature; JSON-driven; no backend; seed with Sprint 1–2 features | 2 |
+| 8d (B) | Announcements — personal citizen inbox | 2–3 days | ❌ Excluded | Citizen-only; server-side; triggered by admin actions (nickname review, citizenship grant) | 4 |
 | 9 | Re-enable flags | 1 week | ✅ Test | Identity feature, drives Yandex login, upsell surface | 4 |
 | 9a | Re-enable territory patterns | 1 week | ✅ Test | High-visibility cosmetic; upsell surface | 4 |
 | 10 | Leaderboard — rewards layer | 3–5 days | ✅ Test | Competitive motivation, social proof, long-term prestige | 5 |
