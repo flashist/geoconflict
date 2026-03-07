@@ -208,25 +208,15 @@ export class Leaderboard extends LitElement implements Layer {
           />
           <span>${translateText("leaderboard.real_players_only")}</span>
         </label>
-        <div class="flex items-center gap-1">
-          <button
-            class="px-1.5 py-0.5 md:px-2 md:py-0.5 text-xs md:text-xs lg:text-sm border border-white/20 hover:bg-white/10 text-white"
-            @click=${() => {
-              this.showTopFive = !this.showTopFive;
-              this.updateLeaderboard();
-            }}
-          >
-            ${this.showTopFive ? translateText("leaderboard.show_all") : translateText("leaderboard.show_top")}
-          </button>
-          <button
-            class="px-2 py-1 min-h-[44px] min-w-[44px] text-xs md:text-xs lg:text-sm border border-white/20 hover:bg-white/10 text-white flex items-center justify-center"
-            title=${translateText("leaderboard.find_me")}
-            @click=${() => {
-              const me = this.game?.myPlayer();
-              if (me) this.eventBus?.emit(new GoToPlayerEvent(me));
-            }}
-          >⊕</button>
-        </div>
+        <button
+          class="px-1.5 py-0.5 md:px-2 md:py-0.5 text-xs md:text-xs lg:text-sm border border-white/20 hover:bg-white/10 text-white"
+          @click=${() => {
+            this.showTopFive = !this.showTopFive;
+            this.updateLeaderboard();
+          }}
+        >
+          ${this.showTopFive ? translateText("leaderboard.show_all") : translateText("leaderboard.show_top")}
+        </button>
       </div>
       <div
         class="max-h-[35vh] overflow-y-auto text-white text-xs md:text-xs lg:text-sm md:max-h-[50vh]  ${this

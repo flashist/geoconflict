@@ -6,6 +6,7 @@ import { Gold } from "../../../core/game/Game";
 import { GameView } from "../../../core/game/GameView";
 import { ClientID } from "../../../core/Schemas";
 import { AttackRatioEvent } from "../../InputHandler";
+import { GoToPlayerEvent } from "./Leaderboard";
 import { renderNumber, renderTroops } from "../../Utils";
 import { UIState } from "../UIState";
 import { Layer } from "./Layer";
@@ -223,6 +224,14 @@ export class ControlPanel extends LitElement implements Layer {
             />
           </div>
         </div>
+
+        <button
+          class="mt-2 w-full py-2 min-h-[44px] text-sm sm:text-base border border-white/20 hover:bg-white/10 text-white flex items-center justify-center gap-1"
+          @click=${() => {
+            const me = this.game?.myPlayer();
+            if (me) this.eventBus.emit(new GoToPlayerEvent(me));
+          }}
+        >⊕ ${translateText("leaderboard.find_me")}</button>
       </div>
     `;
   }
