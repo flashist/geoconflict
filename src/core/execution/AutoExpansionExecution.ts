@@ -2,9 +2,9 @@ import { Execution, Game, Player } from "../game/Game";
 import { AttackExecution } from "./AttackExecution";
 
 // Constants — adjust here if tuning is needed
-const AUTO_EXPANSION_INTERVAL_TICKS = 150; // ~10 seconds at ~15 ticks/s
-const AUTO_EXPANSION_MAX_COUNT = 6; // at most 6 expansions (~1 minute)
-const AUTO_EXPANSION_WINDOW_TICKS = 900; // ~1 minute at ~15 ticks/s
+export const AUTO_EXPANSION_INTERVAL_TICKS = 50;
+export const AUTO_EXPANSION_MAX_COUNT = 6; // at most 6 expansions (~1 minute)
+export const AUTO_EXPANSION_WINDOW_TICKS = 900; // ~1 minute at ~15 ticks/s
 
 export class AutoExpansionExecution implements Execution {
   private active = true;
@@ -12,7 +12,7 @@ export class AutoExpansionExecution implements Execution {
   private spawnTick: number = 0;
   private expansionCount = 0;
 
-  constructor(private readonly player: Player) {}
+  constructor(private readonly player: Player) { }
 
   init(mg: Game, ticks: number) {
     this.mg = mg;
