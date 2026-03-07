@@ -51,6 +51,11 @@ export class Executor {
       return new NoOpExecution();
     }
 
+    // Mark player as having acted for any gameplay intent
+    if (intent.type !== "spawn" && intent.type !== "mark_disconnected") {
+      player.setHasActed(true);
+    }
+
     // create execution
     switch (intent.type) {
       case "attack": {
