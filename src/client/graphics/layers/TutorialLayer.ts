@@ -81,6 +81,10 @@ export class TutorialLayer implements Layer {
   constructor(private game: GameView) {}
 
   init() {
+    // Hide the top-right game UI (settings/sidebar) so it doesn't overlap the skip button
+    const topRight = document.getElementById("game-top-right");
+    if (topRight) topRight.style.display = "none";
+
     const btn = document.createElement("button");
     btn.textContent = translateText("tutorial.skip");
     applyStyles(btn, SKIP_BUTTON_STYLE);
