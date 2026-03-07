@@ -185,7 +185,7 @@ export class TutorialLayer implements Layer {
     // Near-pause the game while tooltip is visible
     this.eventBus.emit(new ReplaySpeedChangeEvent(100 as ReplaySpeedMultiplier));
     flashist_logEventAnalytics(
-      flashistConstants.analyticEvents[`TUTORIAL_TOOLTIP_SHOWN_${n}`],
+      flashistConstants.analyticEvents.TUTORIAL_TOOLTIP_SHOWN_FIRST_PART + n,
     );
     this.showTooltipDOM(n);
   }
@@ -231,12 +231,18 @@ export class TutorialLayer implements Layer {
   }
 
   private dismissTooltip() {
-    const wasLastTooltip = this.activeTooltip === 7;
+    const dismissedTooltip = this.activeTooltip;
+    const wasLastTooltip = dismissedTooltip === 7;
     this.tooltipBackdrop?.remove();
     this.tooltipBackdrop = null;
     this.activeTooltip = null;
     // Restore normal game speed
     this.eventBus.emit(new ReplaySpeedChangeEvent(ReplaySpeedMultiplier.normal));
+    if (dismissedTooltip !== null) {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.TUTORIAL_TOOLTIP_CLOSED_FIRST_PART + dismissedTooltip,
+      );
+    }
     // Mark tutorial complete when the final tooltip is dismissed
     if (wasLastTooltip) {
       localStorage.setItem(TUTORIAL_COMPLETED_KEY, "true");
