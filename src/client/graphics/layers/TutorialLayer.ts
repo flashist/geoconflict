@@ -1,4 +1,4 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { translateText } from "../../../client/Utils";
 import { EventBus } from "../../../core/EventBus";
@@ -26,65 +26,9 @@ export class TutorialLayer extends LitElement implements Layer {
   private initialNPCCount: number | null = null;
   private tutorialStartTime = Date.now();
 
-  static styles = css`
-    .tutorial-skip {
-      position: fixed;
-      top: 12px;
-      right: 12px;
-      z-index: 10001;
-      padding: 8px 16px;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      pointer-events: all;
-      transition: background 0.2s;
-    }
-    .tutorial-skip:hover {
-      background: rgba(0, 0, 0, 0.8);
-    }
-    .tutorial-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: all;
-    }
-    .tutorial-box {
-      background: rgba(20, 20, 30, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 12px;
-      padding: 28px 32px;
-      max-width: 380px;
-      width: 90%;
-      color: white;
-      text-align: center;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-    }
-    .tutorial-box p {
-      font-size: 16px;
-      line-height: 1.5;
-      margin: 0 0 20px 0;
-    }
-    .tutorial-got-it {
-      padding: 10px 28px;
-      background: rgba(74, 158, 255, 0.8);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .tutorial-got-it:hover {
-      background: rgba(74, 158, 255, 1);
-    }
-  `;
+  createRenderRoot() {
+    return this;
+  }
 
   tick() {
     const myPlayer = this.game.myPlayer();
@@ -165,6 +109,65 @@ export class TutorialLayer extends LitElement implements Layer {
 
   render() {
     return html`
+      <style>
+        .tutorial-skip {
+          position: fixed;
+          top: 12px;
+          right: 12px;
+          z-index: 10001;
+          padding: 8px 16px;
+          background: rgba(0, 0, 0, 0.6);
+          color: white;
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+          pointer-events: all;
+          transition: background 0.2s;
+        }
+        .tutorial-skip:hover {
+          background: rgba(0, 0, 0, 0.8);
+        }
+        .tutorial-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: all;
+        }
+        .tutorial-box {
+          background: rgba(20, 20, 30, 0.9);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 12px;
+          padding: 28px 32px;
+          max-width: 380px;
+          width: 90%;
+          color: white;
+          text-align: center;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+        .tutorial-box p {
+          font-size: 16px;
+          line-height: 1.5;
+          margin: 0 0 20px 0;
+        }
+        .tutorial-got-it {
+          padding: 10px 28px;
+          background: rgba(74, 158, 255, 0.8);
+          color: white;
+          border: none;
+          border-radius: 6px;
+          font-size: 15px;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+        .tutorial-got-it:hover {
+          background: rgba(74, 158, 255, 1);
+        }
+      </style>
       <button class="tutorial-skip" @click=${this.skipTutorial}>
         ${translateText("tutorial.skip")}
       </button>
