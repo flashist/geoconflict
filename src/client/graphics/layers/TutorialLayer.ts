@@ -186,8 +186,10 @@ export class TutorialLayer implements Layer {
     // Reset radial menu flag when tooltip 4 shows, so tooltip 5 only fires
     // after the player opens the radial menu in response to tooltip 4's instruction
     if (n === 4) this.radialMenuOpened = false;
-    // Near-pause the game while tooltip is visible
+    // Near-pause the game while tooltip is visible.
+    // LocalServer multiplies turnIntervalMs by this value, so 100 = 100× longer interval = near-pause.
     this.eventBus.emit(new ReplaySpeedChangeEvent(100 as ReplaySpeedMultiplier));
+    // Event string is assembled at runtime: prefix + tooltip number (e.g. "Tutorial:TooltipShown:3")
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents.TUTORIAL_TOOLTIP_SHOWN_FIRST_PART + n,
     );
@@ -253,6 +255,7 @@ export class TutorialLayer implements Layer {
     // Restore normal game speed
     this.eventBus.emit(new ReplaySpeedChangeEvent(ReplaySpeedMultiplier.normal));
     if (dismissedTooltip !== null) {
+      // Event string is assembled at runtime: prefix + tooltip number (e.g. "Tutorial:TooltipClosed:3")
       flashist_logEventAnalytics(
         flashistConstants.analyticEvents.TUTORIAL_TOOLTIP_CLOSED_FIRST_PART + dismissedTooltip,
       );

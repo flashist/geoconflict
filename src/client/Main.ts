@@ -770,7 +770,7 @@ class Client {
     const usernameInput = document.querySelector("username-input") as UsernameInput;
     const username = usernameInput?.getCurrentUsername() ?? "Player";
 
-    const cosmetics = await fetchCosmetics();
+    const cosmetics = await fetchCosmetics().catch(() => null);
     let selectedPattern = this.userSettings.getSelectedPatternName(cosmetics);
     selectedPattern ??= cosmetics
       ? (this.userSettings.getDevOnlyPattern() ?? null)
