@@ -427,16 +427,7 @@ export class ClientGameRunner {
 
         this.hasJoined = true;
         if (!this.transport.isLocal) {
-          FlashistFacade.instance
-            .checkExperimentFlag(
-              flashistConstants.experiments.RECONNECT_FLAG_NAME,
-              flashistConstants.experiments.RECONNECT_FLAG_VALUE,
-            )
-            .then((enabled) => {
-              if (enabled) {
-                saveReconnectSession(this.lobby.gameID, this.lobby.clientID);
-              }
-            });
+          saveReconnectSession(this.lobby.gameID, this.lobby.clientID);
         }
         console.log("starting game!");
         let turnsQueued = 0;
