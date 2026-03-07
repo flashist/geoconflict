@@ -9,7 +9,8 @@ import {
   PlayerRecord,
   ServerMessage,
 } from "../core/Schemas";
-import { createPartialGameRecord, replacer } from "../core/Util";
+import { createPartialGameRecord, replacer, simpleHash } from "../core/Util";
+import { PseudoRandom } from "../core/PseudoRandom";
 import { ServerConfig } from "../core/configuration/Config";
 import { getConfig } from "../core/configuration/ConfigLoader";
 import { PlayerActions, PlayerType, UnitType } from "../core/game/Game";
@@ -219,6 +220,7 @@ export class ClientGameRunner {
   private isActive = false;
   private hasReportedParticipation = false;
   private hasProcessedWin = false;
+  private _autoSpawnSent = false;
 
   private turnsSeen = 0;
   private hasJoined = false;
@@ -354,6 +356,7 @@ export class ClientGameRunner {
         this.eventBus.emit(new SendHashEvent(hu.tick, hu.hash));
       });
       this.gameView.update(gu);
+      this.tryAutoSpawn();
 
       this.myPlayer ??= this.gameView.myPlayer();
       if (
@@ -571,6 +574,27 @@ export class ClientGameRunner {
     if (this.connectionCheckInterval) {
       clearInterval(this.connectionCheckInterval);
       this.connectionCheckInterval = null;
+    }
+  }
+
+  private tryAutoSpawn(): void {
+    if (this._autoSpawnSent) return;
+    if (!this.gameView.inSpawnPhase()) return;
+    if (this.gameView.ticks() === 0) return;
+
+    const random = new PseudoRandom(simpleHash(this.lobby.clientID));
+    for (let i = 0; i < 1000; i++) {
+      const x = random.nextInt(0, this.gameView.width());
+      const y = random.nextInt(0, this.gameView.height());
+      const tile = this.gameView.ref(x, y);
+      if (this.gameView.isLand(tile) && !this.gameView.hasOwner(tile)) {
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.MATCH_SPAWN_AUTO,
+        );
+        this.eventBus.emit(new SendSpawnIntentEvent(tile));
+        this._autoSpawnSent = true;
+        return;
+      }
     }
   }
 
