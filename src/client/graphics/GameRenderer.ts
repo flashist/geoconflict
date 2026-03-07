@@ -280,13 +280,7 @@ export function createRenderer(
 
   // Add TutorialLayer for tutorial matches
   if (game.config().gameConfig().isTutorial) {
-    const tutorialLayer = document.createElement(
-      "tutorial-layer",
-    ) as TutorialLayer;
-    document.body.appendChild(tutorialLayer);
-    tutorialLayer.game = game;
-    tutorialLayer.eventBus = eventBus;
-    layers.push(tutorialLayer);
+    layers.push(new TutorialLayer(game));
   }
 
   return new GameRenderer(
