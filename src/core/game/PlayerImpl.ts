@@ -102,6 +102,9 @@ export class PlayerImpl implements Player {
   public _outgoingLandAttacks: Attack[] = [];
 
   private _hasSpawned = false;
+  // Not included in PlayerUpdate — correctly reconstructed via deterministic
+  // turn replay (set by ExecutionManager.createExec on every replayed intent).
+  private _hasActed = false;
   private _isDisconnected = false;
 
   constructor(
@@ -345,6 +348,14 @@ export class PlayerImpl implements Player {
 
   setHasSpawned(hasSpawned: boolean): void {
     this._hasSpawned = hasSpawned;
+  }
+
+  hasActed(): boolean {
+    return this._hasActed;
+  }
+
+  setHasActed(hasActed: boolean): void {
+    this._hasActed = hasActed;
   }
 
   incomingAllianceRequests(): AllianceRequest[] {

@@ -1,5 +1,6 @@
-import { Execution, Game, Player, PlayerInfo, PlayerType } from "../game/Game";
+import { Execution, Game, GameType, Player, PlayerInfo, PlayerType } from "../game/Game";
 import { TileRef } from "../game/GameMap";
+import { AutoExpansionExecution } from "./AutoExpansionExecution";
 import { BotExecution } from "./BotExecution";
 import { PlayerExecution } from "./PlayerExecution";
 import { getSpawnTiles } from "./Util";
@@ -46,6 +47,14 @@ export class SpawnExecution implements Execution {
       this.mg.addExecution(new PlayerExecution(player));
       if (player.type() === PlayerType.Bot) {
         this.mg.addExecution(new BotExecution(player));
+      }
+      // Auto-expansion for human players in multiplayer only
+      const gameType = this.mg.config().gameConfig().gameType;
+      if (
+        player.type() === PlayerType.Human &&
+        (gameType === GameType.Public || gameType === GameType.Private)
+      ) {
+        this.mg.addExecution(new AutoExpansionExecution(player));
       }
     }
     player.setHasSpawned(true);
