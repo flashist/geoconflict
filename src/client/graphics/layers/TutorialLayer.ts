@@ -11,7 +11,7 @@ import {
   flashistConstants,
   FlashistFacade,
 } from "../../flashist/FlashistFacade";
-import { TUTORIAL_COMPLETED_KEY } from "../../TutorialStorage";
+import { TUTORIAL_COMPLETED_KEY, TUTORIAL_START_TIME_KEY } from "../../TutorialStorage";
 import { Layer } from "./Layer";
 
 const CITY_GOLD_COST = 125_000; // gold needed to show tooltip 3
@@ -79,7 +79,7 @@ export class TutorialLayer implements Layer {
   private tooltipBackdrop: HTMLDivElement | null = null;
   private activeTooltip: 1 | 2 | 3 | 4 | 5 | 6 | 7 | null = null;
   private shownTooltips = [false, false, false, false, false, false, false];
-  private tutorialStartTime = Date.now();
+  private tutorialStartTime = 0;
   private radialMenuOpened = false;
   private cityBuilt = false;
 
@@ -90,6 +90,10 @@ export class TutorialLayer implements Layer {
   ) {}
 
   init() {
+    // Record start time in both memory and sessionStorage so WinModal can read it
+    this.tutorialStartTime = Date.now();
+    sessionStorage.setItem(TUTORIAL_START_TIME_KEY, String(this.tutorialStartTime));
+
     // Hide the top-right game UI (settings/sidebar) so it doesn't overlap the skip button
     const topRight = document.getElementById("game-top-right");
     if (topRight) topRight.style.display = "none";
@@ -255,8 +259,10 @@ export class TutorialLayer implements Layer {
     }
     // Mark tutorial complete when the final tooltip is dismissed
     if (wasLastTooltip) {
+      const duration = Math.floor((Date.now() - this.tutorialStartTime) / 1000);
       localStorage.setItem(TUTORIAL_COMPLETED_KEY, "true");
       flashist_logEventAnalytics(flashistConstants.analyticEvents.TUTORIAL_COMPLETED);
+      flashist_logEventAnalytics(flashistConstants.analyticEvents.TUTORIAL_DURATION, duration);
     }
   }
 

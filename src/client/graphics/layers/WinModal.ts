@@ -21,7 +21,7 @@ import {
   markMissionCompleted,
   setNextMissionLevel,
 } from "../../SinglePlayMissionStorage";
-import { TUTORIAL_COMPLETED_KEY } from "../../TutorialStorage";
+import { TUTORIAL_COMPLETED_KEY, TUTORIAL_START_TIME_KEY } from "../../TutorialStorage";
 
 @customElement("win-modal")
 export class WinModal extends LitElement implements Layer {
@@ -352,8 +352,11 @@ export class WinModal extends LitElement implements Layer {
 
     // Tutorial win path
     if (this.game.config().gameConfig().isTutorial) {
+      const startTime = Number(sessionStorage.getItem(TUTORIAL_START_TIME_KEY) ?? 0);
+      const duration = startTime > 0 ? Math.floor((Date.now() - startTime) / 1000) : 0;
       localStorage.setItem(TUTORIAL_COMPLETED_KEY, "true");
       flashist_logEventAnalytics(flashistConstants.analyticEvents.TUTORIAL_COMPLETED);
+      flashist_logEventAnalytics(flashistConstants.analyticEvents.TUTORIAL_DURATION, duration);
       this.missionProgressed = true;
       return;
     }

@@ -119,7 +119,7 @@ Fired during the tutorial match (only for players who see the tutorial experimen
 | `TUTORIAL_TOOLTIP_CLOSED_FIRST_PART` | `Tutorial:TooltipClosed:` + N | Tooltip N is dismissed by the player (N = 1–7); string is built at runtime by appending the tooltip number |
 | `TUTORIAL_SKIPPED` | `Tutorial:Skipped` | Player clicks the "Skip tutorial" button |
 | `TUTORIAL_COMPLETED` | `Tutorial:Completed` | Tutorial finishes (player wins the mission or closes the final tooltip) |
-| `TUTORIAL_DURATION` | `Tutorial:Duration` | Fired alongside `Tutorial:Skipped`; value = seconds elapsed since tutorial started |
+| `TUTORIAL_DURATION` | `Tutorial:Duration` | Fired alongside `Tutorial:Skipped` or `Tutorial:Completed`; value = seconds elapsed since tutorial started |
 
 ---
 
