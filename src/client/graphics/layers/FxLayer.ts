@@ -92,7 +92,7 @@ export class FxLayer implements Layer {
       const myPlayer = this.game.myPlayer();
       if (myPlayer !== null) {
         const center = myPlayer.nameLocation();
-        if (center !== null) {
+        if (center) {
           this.spawnIndicatorShown = true;
           this.spawnIndicatorLastRefresh = Date.now();
           // nameLocation returns absolute tile coords; world context origin is map center
