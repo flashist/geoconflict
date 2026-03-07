@@ -185,6 +185,7 @@ export const GameConfigSchema = z.object({
     })
     .optional(),
   nationDifficulties: z.enum(Difficulty).array().optional(),
+  isTutorial: z.boolean().optional(),
 });
 
 export const TeamSchema = z.string();

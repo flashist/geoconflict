@@ -40,6 +40,7 @@ import { UILayer } from "./layers/UILayer";
 import { UnitDisplay } from "./layers/UnitDisplay";
 import { UnitLayer } from "./layers/UnitLayer";
 import { WinModal } from "./layers/WinModal";
+import { TutorialLayer } from "./layers/TutorialLayer";
 import { isMobileRenderingEnabled } from "../Utils";
 
 export function createRenderer(
@@ -276,6 +277,17 @@ export function createRenderer(
     alertFrame,
     fpsDisplay,
   ];
+
+  // Add TutorialLayer for tutorial matches
+  if (game.config().gameConfig().isTutorial) {
+    const tutorialLayer = document.createElement(
+      "tutorial-layer",
+    ) as TutorialLayer;
+    document.body.appendChild(tutorialLayer);
+    tutorialLayer.game = game;
+    tutorialLayer.eventBus = eventBus;
+    layers.push(tutorialLayer);
+  }
 
   return new GameRenderer(
     game,

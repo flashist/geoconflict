@@ -58,6 +58,15 @@ export const flashistConstants = {
 
         WORKER_INIT_SUCCESS: "Worker:InitSuccess",
         WORKER_INIT_FAILED: "Worker:InitFailed",
+
+        TUTORIAL_STARTED: "Tutorial:Started",
+        TUTORIAL_TOOLTIP_SHOWN_1: "Tutorial:TooltipShown:1",
+        TUTORIAL_TOOLTIP_SHOWN_2: "Tutorial:TooltipShown:2",
+        TUTORIAL_TOOLTIP_SHOWN_3: "Tutorial:TooltipShown:3",
+        TUTORIAL_TOOLTIP_SHOWN_4: "Tutorial:TooltipShown:4",
+        TUTORIAL_SKIPPED: "Tutorial:Skipped",
+        TUTORIAL_COMPLETED: "Tutorial:Completed",
+        TUTORIAL_DURATION: "Tutorial:Duration",
     },
 
     progressionEventStatus: {
@@ -77,6 +86,11 @@ export const flashistConstants = {
         // Set flag "mobile_rendering" = "enabled" in the Yandex Games dashboard to activate.
         MOBILE_RENDERING_FLAG_NAME: "mobile_rendering",
         MOBILE_RENDERING_FLAG_VALUE: "enabled",
+
+        // Yandex.Games remote flag for guided first-match tutorial (Task 4).
+        // Set flag "tutorial" = "enabled" in the Yandex Games dashboard to activate.
+        TUTORIAL_FLAG_NAME: "tutorial",
+        TUTORIAL_FLAG_VALUE: "enabled",
     }
 };
 

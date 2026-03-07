@@ -63,6 +63,7 @@ import {
   getNextMissionLevel,
   setNextMissionLevel,
 } from "./SinglePlayMissionStorage";
+import { TUTORIAL_COMPLETED_KEY } from "./TutorialStorage";
 import { generateID } from "../core/Util";
 import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
@@ -760,6 +761,64 @@ class Client {
     );
   }
 
+  async startTutorial(): Promise<void> {
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.TUTORIAL_STARTED);
+
+    const clientID = generateID();
+    const gameID = generateID();
+
+    const usernameInput = document.querySelector("username-input") as UsernameInput;
+    const username = usernameInput?.getCurrentUsername() ?? "Player";
+
+    const cosmetics = await fetchCosmetics();
+    let selectedPattern = this.userSettings.getSelectedPatternName(cosmetics);
+    selectedPattern ??= cosmetics
+      ? (this.userSettings.getDevOnlyPattern() ?? null)
+      : null;
+    const selectedColor = this.userSettings.getSelectedColor();
+
+    document.dispatchEvent(
+      new CustomEvent("join-lobby", {
+        detail: {
+          clientID,
+          gameID,
+          gameStartInfo: {
+            gameID,
+            players: [
+              {
+                clientID,
+                username,
+                cosmetics: {
+                  pattern: selectedPattern ?? undefined,
+                  color: selectedColor ? { color: selectedColor } : undefined,
+                },
+              },
+            ],
+            config: {
+              gameMap: GameMapType.World, // overridden by LocalServer.buildMissionConfigIfNeeded
+              gameMapSize: GameMapSize.Compact,
+              gameType: GameType.Singleplayer,
+              gameMode: GameMode.FFA,
+              playerTeams: 2,
+              difficulty: Difficulty.Easy,
+              bots: 400,
+              infiniteGold: false,
+              donateGold: true,
+              donateTroops: true,
+              infiniteTroops: false,
+              instantBuild: false,
+              disabledUnits: [],
+              disableNPCs: false,
+              isTutorial: true,
+            },
+          },
+        } satisfies JoinLobbyEvent,
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
   private async startSinglePlayMission() {
     //
     flashist_logEventAnalytics(
@@ -885,7 +944,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Flashist Adaptation
   await flashist_waitGameInitComplete();
 
-  new Client().initialize();
+  const client = new Client();
+
+  // Tutorial: auto-launch for first-time players if experiment flag is enabled
+  const tutorialEnabled = await FlashistFacade.instance.checkExperimentFlag(
+    flashistConstants.experiments.TUTORIAL_FLAG_NAME,
+    flashistConstants.experiments.TUTORIAL_FLAG_VALUE,
+  );
+  if (tutorialEnabled && !localStorage.getItem(TUTORIAL_COMPLETED_KEY)) {
+    client.initialize();
+    await client.startTutorial();
+    return;
+  }
+
+  client.initialize();
 
   // // Flashist Adaptation
   // await FlashistFacade.instance.yandexInitPromise;
