@@ -830,7 +830,7 @@
     "mode_team": "Team"
   },
   "tutorial": {
-    "tooltip_1": "You are here. Tap a neighboring land tile to start capturing territory.",
+    "tooltip_1": "You are here. Tap any land tile to choose your starting position.",
     "tooltip_2": "Tap a neighboring territory to attack.",
     "tooltip_3": "You have enough gold to build a City. Tap your territory to build.",
     "tooltip_4": "Great job! Keep capturing territory to win.",
