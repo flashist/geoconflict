@@ -9,7 +9,6 @@ import {
 import { TUTORIAL_COMPLETED_KEY } from "../../TutorialStorage";
 import { Layer } from "./Layer";
 
-const ATTACK_TROOP_THRESHOLD = 100; // troops needed to show tooltip 2
 const CITY_GOLD_COST = 125_000; // gold needed to show tooltip 3
 
 const SKIP_BUTTON_STYLE: Partial<CSSStyleDeclaration> = {
@@ -114,7 +113,7 @@ export class TutorialLayer implements Layer {
     if (
       !this.shownTooltips[1] &&
       this.shownTooltips[0] &&
-      myPlayer.troops() >= ATTACK_TROOP_THRESHOLD
+      !this.game.inSpawnPhase()
     ) {
       this.triggerTooltip(2);
       return;
