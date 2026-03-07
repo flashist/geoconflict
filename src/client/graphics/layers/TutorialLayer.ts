@@ -4,6 +4,7 @@ import { UnitType } from "../../../core/game/Game";
 import { GameUpdateType } from "../../../core/game/GameUpdates";
 import { GameView } from "../../../core/game/GameView";
 import { ContextMenuEvent } from "../../InputHandler";
+import { TransformHandler } from "../TransformHandler";
 import {
   flashist_logEventAnalytics,
   flashistConstants,
@@ -84,6 +85,7 @@ export class TutorialLayer implements Layer {
   constructor(
     private game: GameView,
     private eventBus: EventBus,
+    private transformHandler: TransformHandler,
   ) {}
 
   init() {
@@ -91,9 +93,16 @@ export class TutorialLayer implements Layer {
     const topRight = document.getElementById("game-top-right");
     if (topRight) topRight.style.display = "none";
 
-    // Track radial menu opens so tooltip 5 only shows after the player opens it
-    this.eventBus.on(ContextMenuEvent, () => {
-      this.radialMenuOpened = true;
+    // Track radial menu opens over own territory so tooltip 5 only shows
+    // when the build menu is actually available
+    this.eventBus.on(ContextMenuEvent, (event) => {
+      const world = this.transformHandler.screenToWorldCoordinates(event.x, event.y);
+      if (!this.game.isValidCoord(world.x, world.y)) return;
+      const tile = this.game.ref(world.x, world.y);
+      const myPlayer = this.game.myPlayer();
+      if (myPlayer && this.game.owner(tile) === myPlayer) {
+        this.radialMenuOpened = true;
+      }
     });
 
     const btn = document.createElement("button");

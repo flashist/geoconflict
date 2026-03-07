@@ -280,7 +280,7 @@ export function createRenderer(
 
   // Add TutorialLayer for tutorial matches
   if (game.config().gameConfig().isTutorial) {
-    layers.push(new TutorialLayer(game, eventBus));
+    layers.push(new TutorialLayer(game, eventBus, transformHandler));
   }
 
   return new GameRenderer(
