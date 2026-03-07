@@ -32,8 +32,7 @@ import { Difficulty, GameMapType, GameType } from "../core/game/Game";
 import { PseudoRandom } from "../core/PseudoRandom";
 
 // Tutorial configuration — adjust after playtesting
-// Swap to GameMapType.Oceania (10 nations) if Faroe Islands proves too hard for new players
-const TUTORIAL_MAP = GameMapType.FaroeIslands;
+const TUTORIAL_MAP = GameMapType.Iceland;
 
 export class LocalServer {
   // All turns from the game record on replay.
@@ -61,7 +60,7 @@ export class LocalServer {
     private clientMessage: (message: ServerMessage) => void,
     private isReplay: boolean,
     private eventBus: EventBus,
-  ) {}
+  ) { }
 
   async start() {
     await this.buildMissionConfigIfNeeded();
