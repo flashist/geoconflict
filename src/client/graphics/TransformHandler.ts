@@ -162,10 +162,8 @@ export class TransformHandler {
   private calculateZoom(player: PlayerView): number {
     const tiles = Math.max(player.numTilesOwned(), 1);
     const diameter = Math.sqrt(tiles) * 3;
-    const viewportMin = Math.min(
-      this.boundingRect().width,
-      this.boundingRect().height,
-    );
+    const rect = this.boundingRect();
+    const viewportMin = Math.min(rect.width, rect.height);
     const target = (viewportMin * 0.4) / diameter;
     return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, target));
   }
