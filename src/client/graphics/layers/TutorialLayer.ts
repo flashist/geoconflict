@@ -198,8 +198,8 @@ export class TutorialLayer implements Layer {
     const box = document.createElement("div");
     applyStyles(box, BOX_STYLE);
 
-    const textKey =
-      n === 2 && mobile ? `tutorial.tooltip_${n}_mobile` : `tutorial.tooltip_${n}`;
+    const hasMobileVariant = mobile && (n === 2 || n === 4);
+    const textKey = hasMobileVariant ? `tutorial.tooltip_${n}_mobile` : `tutorial.tooltip_${n}`;
     const text = document.createElement("p");
     text.textContent = translateText(textKey);
     applyStyles(text, TEXT_STYLE);

@@ -835,6 +835,7 @@
     "tooltip_2_mobile": "Tap a neighboring territory and select the attack icon to attack.",
     "tooltip_3": "You have enough gold to build a City.",
     "tooltip_4": "Right-click on your territory.",
+    "tooltip_4_mobile": "Tap on your territory.",
     "tooltip_5": "Open the build menu and select City.",
     "tooltip_6": "Cities increase your maximum population.",
     "tooltip_7": "You're ready for real matches! Find tips and controls in the instructions anytime.",
