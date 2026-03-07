@@ -1,4 +1,4 @@
-import { translateText } from "../../../client/Utils";
+import { isMobileDevice, translateText } from "../../../client/Utils";
 import { EventBus } from "../../../core/EventBus";
 import { UnitType } from "../../../core/game/Game";
 import { GameUpdateType } from "../../../core/game/GameUpdates";
@@ -191,17 +191,27 @@ export class TutorialLayer implements Layer {
   }
 
   private showTooltipDOM(n: 1 | 2 | 3 | 4 | 5 | 6 | 7) {
+    const mobile = isMobileDevice();
     const backdrop = document.createElement("div");
     applyStyles(backdrop, BACKDROP_STYLE);
 
     const box = document.createElement("div");
     applyStyles(box, BOX_STYLE);
 
+    const textKey =
+      n === 2 && mobile ? `tutorial.tooltip_${n}_mobile` : `tutorial.tooltip_${n}`;
     const text = document.createElement("p");
-    text.textContent = translateText(`tutorial.tooltip_${n}`);
+    text.textContent = translateText(textKey);
     applyStyles(text, TEXT_STYLE);
 
     box.appendChild(text);
+
+    if (n === 2 && mobile) {
+      const img = document.createElement("img");
+      img.src = "/images/helpModal/radialMenu3.webp";
+      applyStyles(img, { display: "block", maxWidth: "80%", borderRadius: "6px", margin: "0 auto 20px" });
+      box.appendChild(img);
+    }
 
     if (n === 5) {
       const images = [
