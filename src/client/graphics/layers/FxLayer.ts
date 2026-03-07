@@ -15,6 +15,7 @@ import { Fx, FxType } from "../fx/Fx";
 import { NukeAreaFx } from "../fx/NukeAreaFx";
 import { nukeFxFactory, ShockwaveFx } from "../fx/NukeFx";
 import { FadeFx, MoveSpriteFx, SpriteFx } from "../fx/SpriteFx";
+import { SpawnRingFx } from "../fx/SpawnRingFx";
 import { TargetFx } from "../fx/TargetFx";
 import { TextFx } from "../fx/TextFx";
 import { UnitExplosionFx } from "../fx/UnitExplosionFx";
@@ -34,6 +35,10 @@ export class FxLayer implements Layer {
   private allFx: Fx[] = [];
   private boatTargetFxByUnitId: Map<number, TargetFx> = new Map();
   private nukeTargetFxByUnitId: Map<number, NukeAreaFx> = new Map();
+
+  private spawnIndicatorFx: SpawnRingFx | null = null;
+  private spawnIndicatorShown = false;
+  private spawnIndicatorLastRefresh = 0;
 
   constructor(private game: GameView) {
     this.theme = this.game.config().theme();
@@ -82,6 +87,23 @@ export class FxLayer implements Layer {
         if (update === undefined) return;
         this.onConquestEvent(update);
       });
+
+    if (!this.spawnIndicatorShown) {
+      const myPlayer = this.game.myPlayer();
+      if (myPlayer !== null) {
+        const center = myPlayer.nameLocation();
+        if (center) {
+          this.spawnIndicatorShown = true;
+          this.spawnIndicatorLastRefresh = Date.now();
+          // nameLocation returns absolute tile coords; world context origin is map center
+          this.spawnIndicatorFx = new SpawnRingFx(
+            center.x - this.game.width() / 2,
+            center.y - this.game.height() / 2,
+            myPlayer.territoryColor(),
+          );
+        }
+      }
+    }
   }
 
   private manageBoatTargetFx() {
@@ -459,6 +481,14 @@ export class FxLayer implements Layer {
         this.game.width(),
         this.game.height(),
       );
+    }
+
+    if (this.spawnIndicatorFx !== null) {
+      const delta = now - this.spawnIndicatorLastRefresh;
+      this.spawnIndicatorLastRefresh = now;
+      if (!this.spawnIndicatorFx.renderTick(delta, context)) {
+        this.spawnIndicatorFx = null;
+      }
     }
   }
 
