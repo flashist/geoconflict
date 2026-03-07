@@ -231,11 +231,17 @@ export class TutorialLayer implements Layer {
   }
 
   private dismissTooltip() {
+    const wasLastTooltip = this.activeTooltip === 7;
     this.tooltipBackdrop?.remove();
     this.tooltipBackdrop = null;
     this.activeTooltip = null;
     // Restore normal game speed
     this.eventBus.emit(new ReplaySpeedChangeEvent(ReplaySpeedMultiplier.normal));
+    // Mark tutorial complete when the final tooltip is dismissed
+    if (wasLastTooltip) {
+      localStorage.setItem(TUTORIAL_COMPLETED_KEY, "true");
+      flashist_logEventAnalytics(flashistConstants.analyticEvents.TUTORIAL_COMPLETED);
+    }
   }
 
   private skipTutorial() {
