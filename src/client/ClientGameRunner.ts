@@ -47,6 +47,7 @@ import {
   SendUpgradeStructureIntentEvent,
   Transport,
 } from "./Transport";
+import { GoToPlayerEvent } from "./graphics/layers/Leaderboard";
 import { createCanvas } from "./Utils";
 import { createRenderer, GameRenderer } from "./graphics/GameRenderer";
 import SoundManager from "./sound/SoundManager";
@@ -221,6 +222,7 @@ export class ClientGameRunner {
   private hasReportedParticipation = false;
   private hasProcessedWin = false;
   private _autoSpawnSent = false;
+  private _autoZoomDone = false;
 
   private turnsSeen = 0;
   private hasJoined = false;
@@ -357,6 +359,7 @@ export class ClientGameRunner {
       });
       this.gameView.update(gu);
       this.tryAutoSpawn();
+      this.tryAutoZoom();
 
       this.myPlayer ??= this.gameView.myPlayer();
       if (
@@ -574,6 +577,15 @@ export class ClientGameRunner {
     if (this.connectionCheckInterval) {
       clearInterval(this.connectionCheckInterval);
       this.connectionCheckInterval = null;
+    }
+  }
+
+  private tryAutoZoom(): void {
+    if (this._autoZoomDone) return;
+    const player = this.gameView.myPlayer();
+    if (player?.hasSpawned() && player.nameLocation()) {
+      this.eventBus.emit(new GoToPlayerEvent(player));
+      this._autoZoomDone = true;
     }
   }
 
