@@ -1,6 +1,9 @@
 import { translateText } from "../../../client/Utils";
-import { PlayerType } from "../../../core/game/Game";
+import { EventBus } from "../../../core/EventBus";
+import { PlayerType, UnitType } from "../../../core/game/Game";
+import { GameUpdateType } from "../../../core/game/GameUpdates";
 import { GameView } from "../../../core/game/GameView";
+import { ContextMenuEvent } from "../../InputHandler";
 import {
   flashist_logEventAnalytics,
   flashistConstants,
@@ -72,17 +75,27 @@ function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
 export class TutorialLayer implements Layer {
   private skipButton: HTMLButtonElement | null = null;
   private tooltipBackdrop: HTMLDivElement | null = null;
-  private activeTooltip: 1 | 2 | 3 | 4 | null = null;
-  private shownTooltips = [false, false, false, false];
+  private activeTooltip: 1 | 2 | 3 | 4 | 5 | 6 | 7 | null = null;
+  private shownTooltips = [false, false, false, false, false, false, false];
   private initialNPCCount: number | null = null;
   private tutorialStartTime = Date.now();
+  private radialMenuOpened = false;
+  private cityBuilt = false;
 
-  constructor(private game: GameView) {}
+  constructor(
+    private game: GameView,
+    private eventBus: EventBus,
+  ) {}
 
   init() {
     // Hide the top-right game UI (settings/sidebar) so it doesn't overlap the skip button
     const topRight = document.getElementById("game-top-right");
     if (topRight) topRight.style.display = "none";
+
+    // Track radial menu opens so tooltip 5 only shows after the player opens it
+    this.eventBus.on(ContextMenuEvent, () => {
+      this.radialMenuOpened = true;
+    });
 
     const btn = document.createElement("button");
     btn.textContent = translateText("tutorial.skip");
@@ -101,6 +114,23 @@ export class TutorialLayer implements Layer {
       this.initialNPCCount = [...this.game.players()].filter(
         (p) => p.type() === PlayerType.Bot && p.isAlive(),
       ).length;
+    }
+
+    // Detect when the player builds their first city
+    if (!this.cityBuilt) {
+      const updates = this.game.updatesSinceLastTick();
+      const unitUpdates = updates !== null ? updates[GameUpdateType.Unit] : [];
+      const playerSmallID = myPlayer.smallID();
+      for (const u of unitUpdates) {
+        if (
+          u.unitType === UnitType.City &&
+          u.ownerID === playerSmallID &&
+          u.isActive
+        ) {
+          this.cityBuilt = true;
+          break;
+        }
+      }
     }
 
     // Only trigger if no tooltip is currently active
@@ -126,30 +156,46 @@ export class TutorialLayer implements Layer {
       this.triggerTooltip(3);
       return;
     }
+    // Tooltips 4, 5, 6 fire sequentially immediately after the previous is dismissed
+    if (!this.shownTooltips[3] && this.shownTooltips[2]) {
+      this.triggerTooltip(4);
+      return;
+    }
+    if (!this.shownTooltips[4] && this.shownTooltips[3] && this.radialMenuOpened) {
+      this.triggerTooltip(5);
+      return;
+    }
+    if (!this.shownTooltips[5] && this.shownTooltips[4] && this.cityBuilt) {
+      this.triggerTooltip(6);
+      return;
+    }
     if (
-      !this.shownTooltips[3] &&
-      this.shownTooltips[2] &&
+      !this.shownTooltips[6] &&
+      this.shownTooltips[5] &&
       this.initialNPCCount !== null
     ) {
       const alive = [...this.game.players()].filter(
         (p) => p.type() === PlayerType.Bot && p.isAlive(),
       ).length;
       if (alive < this.initialNPCCount) {
-        this.triggerTooltip(4);
+        this.triggerTooltip(7);
       }
     }
   }
 
-  private triggerTooltip(n: 1 | 2 | 3 | 4) {
+  private triggerTooltip(n: 1 | 2 | 3 | 4 | 5 | 6 | 7) {
     this.shownTooltips[n - 1] = true;
     this.activeTooltip = n;
+    // Reset radial menu flag when tooltip 4 shows, so tooltip 5 only fires
+    // after the player opens the radial menu in response to tooltip 4's instruction
+    if (n === 4) this.radialMenuOpened = false;
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents[`TUTORIAL_TOOLTIP_SHOWN_${n}`],
     );
     this.showTooltipDOM(n);
   }
 
-  private showTooltipDOM(n: 1 | 2 | 3 | 4) {
+  private showTooltipDOM(n: 1 | 2 | 3 | 4 | 5 | 6 | 7) {
     const backdrop = document.createElement("div");
     applyStyles(backdrop, BACKDROP_STYLE);
 
@@ -160,12 +206,29 @@ export class TutorialLayer implements Layer {
     text.textContent = translateText(`tutorial.tooltip_${n}`);
     applyStyles(text, TEXT_STYLE);
 
+    box.appendChild(text);
+
+    if (n === 4) {
+      const images = [
+        "/images/helpModal/radialMenu4.webp",
+        "/images/helpModal/radialMenu5.webp",
+      ];
+      const row = document.createElement("div");
+      applyStyles(row, { display: "flex", gap: "12px", justifyContent: "center", marginBottom: "20px" });
+      for (const src of images) {
+        const img = document.createElement("img");
+        img.src = src;
+        applyStyles(img, { maxWidth: "45%", borderRadius: "6px" });
+        row.appendChild(img);
+      }
+      box.appendChild(row);
+    }
+
     const gotIt = document.createElement("button");
     gotIt.textContent = translateText("tutorial.got_it");
     applyStyles(gotIt, GOT_IT_STYLE);
     gotIt.addEventListener("click", () => this.dismissTooltip());
 
-    box.appendChild(text);
     box.appendChild(gotIt);
     backdrop.appendChild(box);
     document.body.appendChild(backdrop);

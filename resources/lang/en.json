@@ -832,8 +832,11 @@
   "tutorial": {
     "tooltip_1": "You are here. Tap any land tile to choose your starting position.",
     "tooltip_2": "Tap a neighboring territory to attack.",
-    "tooltip_3": "You have enough gold to build a City. Tap your territory to build.",
-    "tooltip_4": "Great job! Keep capturing territory to win.",
+    "tooltip_3": "You have enough gold to build a City.",
+    "tooltip_4": "Right-click on your territory.",
+    "tooltip_5": "Open the build menu and select City.",
+    "tooltip_6": "Cities increase your maximum population.",
+    "tooltip_7": "Great job! Keep capturing territory to win.",
     "got_it": "Got it",
     "skip": "Skip tutorial"
   }
