@@ -694,7 +694,7 @@
     "worker_init_failed": "Failed to start the game — please try refreshing the page."
   },
   "heads_up_message": {
-    "choose_spawn": "You've been placed here. Click or tap any land tile to choose a different location."
+    "choose_spawn": "You will be placed automatically — tap any land tile to choose your starting location."
   },
   "territory_patterns": {
     "title": "Skins",
