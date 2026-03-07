@@ -69,19 +69,38 @@ After spawning, ghost players who make no input sit as a static dot and get swal
 
 ---
 
-### 4b. Zoom to Territory — Pan & Zoom on Player Name Click
+### 4b. Zoom to Territory — Pan & Zoom on Player Name Click + Auto-Zoom on Spawn
 **Effort:** 1–2 days
 **Experiments:** ❌ Excluded — UX fix, applies to all players.
 
-Players are reporting they cannot find themselves on the map. The existing click-on-name behavior in the player table only pans the map — it does not change zoom level. If the map is zoomed out and the player's territory is small, the territory ends up centered but still an unreadable dot.
+Players are reporting they cannot find themselves on the map. The existing click-on-name behavior only pans — it does not change zoom level. If the map is zoomed out and the player's territory is small, the territory ends up centered but still an unreadable dot.
 
-**Two changes:**
-
-1. **Unified zoom-to-territory on all name clicks:** extend the existing pan logic to also set zoom level based on territory size. Small territories zoom in to a close-up; large territories zoom to fit with a minimum zoom cap so labels remain legible. Smooth animated transition. `TransformHandler` is the right entry point.
-
-2. **Dedicated "find me" button:** adds a persistent button in the match UI that calls the same zoom-to-territory logic targeting the local player's own territory. Must be easily tappable on mobile (44×44px minimum). Addresses the player feedback directly without requiring the player to find their own name in the table.
+**Three uses of one function:**
+1. **Name click:** clicking any player name in the player table pans AND zooms to their territory. Zoom level is territory-size-aware — small territories zoom in close, large territories zoom to fit with a legibility cap. Smooth animated transition via `TransformHandler`.
+2. **"Find me" button:** persistent button in match UI calling the same function targeting the local player. Minimum 44×44px touch target, visible at all times.
+3. **Auto-zoom on spawn:** the moment the player is placed on the map (auto-spawn or manual), the map automatically zooms to their territory once using the same function. Fires once, then the player is free to navigate normally — no locking or re-centering.
 
 Pure client-side change — no server involvement, no determinism concerns.
+
+**Note:** Task 4e (spawn indicator visibility) should ship immediately after — together they fully solve the "can't find myself on spawn" problem.
+
+---
+
+### 4e. Spawn Indicator Visibility Improvement
+**Effort:** 1 day
+**Experiments:** ❌ Excluded — visual UX fix, applies to all players.
+
+**Depends on:** Task 4b (auto-zoom on spawn should exist first so the indicator size can be calibrated to the spawn zoom level)
+
+The current spawn indicator — a small white glowing circle — is too subtle to reliably spot, especially after auto-spawn places the player without them choosing a location themselves.
+
+**The fix:** replace with a more visible animation in the player's own territory color. Recommended approach: an expanding ring pulse (radar-style) that repeats 2–3 times over ~3–4 seconds then fades out completely. If the ring is complex to implement, a larger pulsing filled circle (3–4× current size) in the player's territory color is an acceptable alternative.
+
+Key requirements:
+- Uses the player's territory color, not a fixed white or yellow
+- Fades out automatically after 3–4 seconds — does not persist through the match
+- Rendering-only change — no changes to `src/core/`, no determinism implications
+- Extend existing animation system (`FxLayer`) rather than building parallel infrastructure
 
 ---
 

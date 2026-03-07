@@ -58,7 +58,8 @@ Features are **excluded** from experiments if:
 | 3 | Mobile quick wins (retina off, 30fps cap, FX reduction) | 2–3 days | ❌ Excluded | Reduces crash abandonment, more ad impressions | 1 |
 | 4 | Tutorial — guided first bot match | 1–2 weeks | ✅ Test | Biggest new player conversion lever | 2 |
 | 4a | Auto-spawn — automatic starting location on join | 1–2 days | ❌ All users | Eliminates zero-action abandonment at match start | 2 |
-| 4b | Zoom to territory — pan & zoom on player name click | 1–2 days | ❌ All users | Fixes "can't find myself" player feedback; find-me button + smart zoom | 2 |
+| 4b | Zoom to territory — name click + auto-zoom on spawn | 1–2 days | ❌ All users | Single function: name click zoom, find-me button, auto-zoom on spawn | 2 |
+| 4e | Spawn indicator visibility improvement | 1 day | ❌ All users | Expanding ring pulse in player's territory color; fades after 3–4s; depends on 4b | 2 |
 | 4c | Auto-expansion for inactive players | 2–3 days | ❌ All users | Gives ghost players a minimal foothold; multiplayer only; fully deterministic | 2 |
 | 5 | Deep mobile rendering optimization | ⏸ Parked | ❌ Excluded | Parked: desktop is core audience. Revisit if mobile DAU > 1,500. | — |
 | 5b | Server restart UX — notification & auto-refresh | 2–3 days | ❌ Excluded | Eliminates silent freeze on deployments; Part B ships first | 3 |
