@@ -28,8 +28,11 @@ import {
   deriveMissionSeed,
   selectMissionMap,
 } from "../core/game/SinglePlayMissions";
-import { GameMapType, GameType } from "../core/game/Game";
+import { Difficulty, GameMapType, GameType } from "../core/game/Game";
 import { PseudoRandom } from "../core/PseudoRandom";
+
+// Tutorial configuration — adjust after playtesting
+const TUTORIAL_MAP = GameMapType.Iceland;
 
 export class LocalServer {
   // All turns from the game record on replay.
@@ -57,7 +60,7 @@ export class LocalServer {
     private clientMessage: (message: ServerMessage) => void,
     private isReplay: boolean,
     private eventBus: EventBus,
-  ) {}
+  ) { }
 
   async start() {
     await this.buildMissionConfigIfNeeded();
@@ -106,6 +109,22 @@ export class LocalServer {
       return;
     }
     const { config } = gameStartInfo;
+
+    // Tutorial: pre-set map and all-Easy difficulties, bypass mission level logic
+    if (config.isTutorial) {
+      try {
+        const manifest = await terrainMapFileLoader
+          .getMapData(TUTORIAL_MAP)
+          .manifest();
+        config.gameMap = TUTORIAL_MAP;
+        config.disableNPCs = false;
+        config.nationDifficulties = Array(manifest.nations.length).fill(Difficulty.Easy);
+      } catch (error) {
+        console.error("Failed to build tutorial config:", error);
+      }
+      return;
+    }
+
     if (!config.singlePlayMission) {
       return;
     }

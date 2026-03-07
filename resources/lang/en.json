@@ -828,5 +828,18 @@
     "stats_games_played": "Games Played",
     "mode_ffa": "Free-for-All",
     "mode_team": "Team"
+  },
+  "tutorial": {
+    "tooltip_1": "You are here. Tap any land tile to choose your starting position.",
+    "tooltip_2": "Tap a neighboring territory to attack.",
+    "tooltip_2_mobile": "Tap a neighboring territory and select the attack icon to attack.",
+    "tooltip_3": "You have enough gold to build a City.",
+    "tooltip_4": "Right-click on your territory.",
+    "tooltip_4_mobile": "Tap on your territory.",
+    "tooltip_5": "Open the build menu and select City.",
+    "tooltip_6": "Cities increase your maximum population.",
+    "tooltip_7": "You're ready for real matches! Find tips and controls in the instructions anytime.",
+    "got_it": "Got it",
+    "skip": "Skip tutorial"
   }
 }

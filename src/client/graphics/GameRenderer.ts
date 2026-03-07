@@ -40,6 +40,7 @@ import { UILayer } from "./layers/UILayer";
 import { UnitDisplay } from "./layers/UnitDisplay";
 import { UnitLayer } from "./layers/UnitLayer";
 import { WinModal } from "./layers/WinModal";
+import { TutorialLayer } from "./layers/TutorialLayer";
 import { isMobileRenderingEnabled } from "../Utils";
 
 export function createRenderer(
@@ -276,6 +277,11 @@ export function createRenderer(
     alertFrame,
     fpsDisplay,
   ];
+
+  // Add TutorialLayer for tutorial matches
+  if (game.config().gameConfig().isTutorial) {
+    layers.push(new TutorialLayer(game, eventBus, transformHandler));
+  }
 
   return new GameRenderer(
     game,

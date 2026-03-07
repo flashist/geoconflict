@@ -21,6 +21,7 @@ import {
   markMissionCompleted,
   setNextMissionLevel,
 } from "../../SinglePlayMissionStorage";
+import { TUTORIAL_COMPLETED_KEY, TUTORIAL_START_TIME_KEY } from "../../TutorialStorage";
 
 @customElement("win-modal")
 export class WinModal extends LitElement implements Layer {
@@ -216,8 +217,10 @@ export class WinModal extends LitElement implements Layer {
 
   // hide() {
   async hide() {
-    // Flashist Adaptation: interstitial adv
-    await FlashistFacade.instance.showInterstitial();
+    // Flashist Adaptation: interstitial adv — skipped for tutorial matches
+    if (!this.game.config().gameConfig().isTutorial) {
+      await FlashistFacade.instance.showInterstitial();
+    }
 
     this.isVisible = false;
     this.showButtons = false;
@@ -346,6 +349,18 @@ export class WinModal extends LitElement implements Layer {
     if (this.missionProgressed || !this.isWin) {
       return;
     }
+
+    // Tutorial win path
+    if (this.game.config().gameConfig().isTutorial) {
+      const startTime = Number(sessionStorage.getItem(TUTORIAL_START_TIME_KEY) ?? 0);
+      const duration = startTime > 0 ? Math.floor((Date.now() - startTime) / 1000) : 0;
+      localStorage.setItem(TUTORIAL_COMPLETED_KEY, "true");
+      flashist_logEventAnalytics(flashistConstants.analyticEvents.TUTORIAL_COMPLETED);
+      flashist_logEventAnalytics(flashistConstants.analyticEvents.TUTORIAL_DURATION, duration);
+      this.missionProgressed = true;
+      return;
+    }
+
     const missionLevel = this.game.config().gameConfig().singlePlayMission?.level;
     if (!missionLevel) {
       return;
