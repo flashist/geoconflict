@@ -37,21 +37,23 @@ export class AutoExpansionExecution implements Execution {
     const elapsed = ticks - this.spawnTick;
     if (elapsed === 0 || elapsed % AUTO_EXPANSION_INTERVAL_TICKS !== 0) return;
 
-    // Find adjacent unoccupied land tiles (terra nullius only)
+    // Check whether any adjacent unoccupied (terra nullius) land tile exists.
+    // AttackExecution with null targetID handles tile selection internally.
     const seen = new Set<number>();
-    const candidates: number[] = [];
-    for (const borderTile of this.player.borderTiles()) {
+    let hasTerraNulliusNeighbor = false;
+    outer: for (const borderTile of this.player.borderTiles()) {
       for (const neighbor of this.mg.map().neighbors(borderTile)) {
         if (seen.has(neighbor)) continue;
         seen.add(neighbor);
         const owner = this.mg.owner(neighbor);
         if (!owner.isPlayer() && this.mg.map().isLand(neighbor)) {
-          candidates.push(neighbor);
+          hasTerraNulliusNeighbor = true;
+          break outer;
         }
       }
     }
 
-    if (candidates.length === 0) {
+    if (!hasTerraNulliusNeighbor) {
       this.active = false;
       return;
     }

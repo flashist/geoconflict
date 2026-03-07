@@ -56,19 +56,8 @@ describe("AutoExpansionExecution", () => {
     game.addExecution(exec);
     game.executeNextTick(); // init
 
-    let attacksFired = 0;
-    // Run well past the max count, counting each attack wave
-    for (let i = 0; i < AUTO_EXPANSION_MAX_COUNT + 5; i++) {
-      const before = player.outgoingAttacks().length;
-      executeTicks(game, AUTO_EXPANSION_INTERVAL_TICKS);
-      const after = player.outgoingAttacks().length;
-      if (after > before || (after === 0 && before > 0 && attacksFired < AUTO_EXPANSION_MAX_COUNT)) {
-        // Count attacks via expansionCount by tracking exec.isActive()
-      }
-    }
-
-    // After MAX_COUNT intervals the execution should be inactive
-    executeTicks(game, AUTO_EXPANSION_INTERVAL_TICKS * AUTO_EXPANSION_MAX_COUNT);
+    // Run past max count — (MAX_COUNT + 1) intervals is sufficient
+    executeTicks(game, AUTO_EXPANSION_INTERVAL_TICKS * (AUTO_EXPANSION_MAX_COUNT + 1));
     expect(exec.isActive()).toBe(false);
   });
 
