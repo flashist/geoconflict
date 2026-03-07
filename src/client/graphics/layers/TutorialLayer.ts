@@ -1,6 +1,6 @@
 import { translateText } from "../../../client/Utils";
 import { EventBus } from "../../../core/EventBus";
-import { PlayerType, UnitType } from "../../../core/game/Game";
+import { UnitType } from "../../../core/game/Game";
 import { GameUpdateType } from "../../../core/game/GameUpdates";
 import { GameView } from "../../../core/game/GameView";
 import { ContextMenuEvent } from "../../InputHandler";
@@ -77,7 +77,6 @@ export class TutorialLayer implements Layer {
   private tooltipBackdrop: HTMLDivElement | null = null;
   private activeTooltip: 1 | 2 | 3 | 4 | 5 | 6 | 7 | null = null;
   private shownTooltips = [false, false, false, false, false, false, false];
-  private initialNPCCount: number | null = null;
   private tutorialStartTime = Date.now();
   private radialMenuOpened = false;
   private cityBuilt = false;
@@ -108,13 +107,6 @@ export class TutorialLayer implements Layer {
   tick() {
     const myPlayer = this.game.myPlayer();
     if (!myPlayer) return;
-
-    // Track initial NPC count once spawn phase ends
-    if (this.initialNPCCount === null && !this.game.inSpawnPhase()) {
-      this.initialNPCCount = [...this.game.players()].filter(
-        (p) => p.type() === PlayerType.Bot && p.isAlive(),
-      ).length;
-    }
 
     // Detect when the player builds their first city
     if (!this.cityBuilt) {
@@ -169,17 +161,8 @@ export class TutorialLayer implements Layer {
       this.triggerTooltip(6);
       return;
     }
-    if (
-      !this.shownTooltips[6] &&
-      this.shownTooltips[5] &&
-      this.initialNPCCount !== null
-    ) {
-      const alive = [...this.game.players()].filter(
-        (p) => p.type() === PlayerType.Bot && p.isAlive(),
-      ).length;
-      if (alive < this.initialNPCCount) {
-        this.triggerTooltip(7);
-      }
+    if (!this.shownTooltips[6] && this.shownTooltips[5]) {
+      this.triggerTooltip(7);
     }
   }
 
@@ -208,7 +191,7 @@ export class TutorialLayer implements Layer {
 
     box.appendChild(text);
 
-    if (n === 4) {
+    if (n === 5) {
       const images = [
         "/images/helpModal/radialMenu4.webp",
         "/images/helpModal/radialMenu5.webp",
