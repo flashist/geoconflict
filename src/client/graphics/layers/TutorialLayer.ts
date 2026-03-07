@@ -3,8 +3,9 @@ import { EventBus } from "../../../core/EventBus";
 import { UnitType } from "../../../core/game/Game";
 import { GameUpdateType } from "../../../core/game/GameUpdates";
 import { GameView } from "../../../core/game/GameView";
-import { ContextMenuEvent } from "../../InputHandler";
+import { ContextMenuEvent, ReplaySpeedChangeEvent } from "../../InputHandler";
 import { TransformHandler } from "../TransformHandler";
+import { ReplaySpeedMultiplier } from "../../utilities/ReplaySpeedMultiplier";
 import {
   flashist_logEventAnalytics,
   flashistConstants,
@@ -181,6 +182,8 @@ export class TutorialLayer implements Layer {
     // Reset radial menu flag when tooltip 4 shows, so tooltip 5 only fires
     // after the player opens the radial menu in response to tooltip 4's instruction
     if (n === 4) this.radialMenuOpened = false;
+    // Near-pause the game while tooltip is visible
+    this.eventBus.emit(new ReplaySpeedChangeEvent(100 as ReplaySpeedMultiplier));
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents[`TUTORIAL_TOOLTIP_SHOWN_${n}`],
     );
@@ -231,9 +234,13 @@ export class TutorialLayer implements Layer {
     this.tooltipBackdrop?.remove();
     this.tooltipBackdrop = null;
     this.activeTooltip = null;
+    // Restore normal game speed
+    this.eventBus.emit(new ReplaySpeedChangeEvent(ReplaySpeedMultiplier.normal));
   }
 
   private skipTutorial() {
+    // Restore normal speed before navigating away (in case tooltip was active)
+    this.eventBus.emit(new ReplaySpeedChangeEvent(ReplaySpeedMultiplier.normal));
     const duration = Math.floor((Date.now() - this.tutorialStartTime) / 1000);
     flashist_logEventAnalytics(flashistConstants.analyticEvents.TUTORIAL_SKIPPED);
     flashist_logEventAnalytics(
