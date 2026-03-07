@@ -1,6 +1,6 @@
 import { EventBus } from "../../core/EventBus";
 import { Cell } from "../../core/game/Game";
-import { GameView } from "../../core/game/GameView";
+import { GameView, PlayerView } from "../../core/game/GameView";
 import { CenterCameraEvent, DragEvent, ZoomEvent } from "../InputHandler";
 import {
   GoToPlayerEvent,
@@ -11,6 +11,8 @@ import {
 export const GOTO_INTERVAL_MS = 16;
 export const CAMERA_MAX_SPEED = 15;
 export const CAMERA_SMOOTHING = 0.03;
+export const ZOOM_TO_PLAYER_MIN = 1;
+export const ZOOM_TO_PLAYER_MAX = 3;
 
 export class TransformHandler {
   public scale: number = 1.8;
@@ -157,14 +159,28 @@ export class TransformHandler {
     };
   }
 
-  onGoToPlayer(event: GoToPlayerEvent) {
+  private calculateZoomForPlayer(player: PlayerView): number {
+    const tiles = Math.max(player.numTilesOwned(), 1);
+    const diameter = Math.sqrt(tiles) * 3;
+    const rect = this.boundingRect();
+    const viewportMin = Math.min(rect.width, rect.height);
+    const target = (viewportMin * 0.4) / diameter;
+    return Math.max(ZOOM_TO_PLAYER_MIN, Math.min(ZOOM_TO_PLAYER_MAX, target));
+  }
+
+  zoomToPlayer(player: PlayerView): void {
     this.clearTarget();
-    const nameLocation = event.player.nameLocation();
-    if (!nameLocation) {
-      return;
-    }
+    const nameLocation = player.nameLocation();
+    if (!nameLocation) return;
+    this.scale = this.calculateZoomForPlayer(player);
+    this.clampOffsets();
+    this.changed = true;
     this.target = new Cell(nameLocation.x, nameLocation.y);
     this.intervalID = setInterval(() => this.goTo(), GOTO_INTERVAL_MS);
+  }
+
+  onGoToPlayer(event: GoToPlayerEvent) {
+    this.zoomToPlayer(event.player);
   }
 
   onGoToPosition(event: GoToPositionEvent) {
@@ -183,11 +199,9 @@ export class TransformHandler {
   }
 
   centerCamera() {
-    this.clearTarget();
     const player = this.game.myPlayer();
-    if (!player || !player.nameLocation()) return;
-    this.target = new Cell(player.nameLocation().x, player.nameLocation().y);
-    this.intervalID = setInterval(() => this.goTo(), GOTO_INTERVAL_MS);
+    if (!player) return;
+    this.zoomToPlayer(player);
   }
 
   private goTo() {

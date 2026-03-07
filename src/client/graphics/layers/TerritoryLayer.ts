@@ -21,6 +21,7 @@ import {
 } from "../../InputHandler";
 import { TransformHandler } from "../TransformHandler";
 import { Layer } from "./Layer";
+import { GoToPlayerEvent } from "./Leaderboard";
 
 export class TerritoryLayer implements Layer {
   private userSettings: UserSettings;
@@ -57,6 +58,10 @@ export class TerritoryLayer implements Layer {
 
   private lastFocusedPlayer: PlayerView | null = null;
 
+  private _findMeAnimTime = 0;
+  private _findMeAnimEnd = 0;
+  private _findMePlayer: PlayerView | null = null;
+
   constructor(
     private game: GameView,
     private eventBus: EventBus,
@@ -82,6 +87,15 @@ export class TerritoryLayer implements Layer {
   tick() {
     if (this.game.inSpawnPhase()) {
       this.spawnHighlight();
+    }
+
+    if (this._findMePlayer !== null) {
+      if (Date.now() < this._findMeAnimEnd) {
+        this.drawFindMeGlow();
+      } else {
+        this.highlightContext.clearRect(0, 0, this.game.width(), this.game.height());
+        this._findMePlayer = null;
+      }
     }
 
     this.game.recentlyUpdatedTiles().forEach((t) => this.enqueueTile(t));
@@ -271,6 +285,13 @@ export class TerritoryLayer implements Layer {
       // TODO: consider re-enabling this on mobile or low end devices for smoother dragging.
       // this.lastDragTime = Date.now();
     });
+    this.eventBus.on(GoToPlayerEvent, (e) => {
+      if (e.player === this.game.myPlayer() && !this.game.inSpawnPhase()) {
+        this._findMePlayer = e.player;
+        this._findMeAnimTime = 0;
+        this._findMeAnimEnd = Date.now() + 3000;
+      }
+    });
     this.redraw();
   }
 
@@ -433,7 +454,7 @@ export class TerritoryLayer implements Layer {
       this.game.width(),
       this.game.height(),
     );
-    if (this.game.inSpawnPhase()) {
+    if (this.game.inSpawnPhase() || this._findMePlayer !== null) {
       context.drawImage(
         this.highlightCanvas,
         -this.game.width() / 2,
@@ -587,6 +608,23 @@ export class TerritoryLayer implements Layer {
     const x = this.game.x(tile);
     const y = this.game.y(tile);
     this.highlightContext.clearRect(x, y, 1, 1);
+  }
+
+  private drawFindMeGlow(): void {
+    if (this.game.inSpawnPhase()) return;
+    const center = this._findMePlayer!.nameLocation();
+    if (!center) return;
+
+    this.highlightContext.clearRect(0, 0, this.game.width(), this.game.height());
+    this._findMeAnimTime += 0.5;
+
+    const minRad = 8;
+    const maxRad = 24;
+    const radius =
+      minRad + (maxRad - minRad) * (0.5 + 0.5 * Math.sin(this._findMeAnimTime));
+
+    const color = this.theme.spawnHighlightSelfColor();
+    this.drawBreathingRing(center.x, center.y, minRad, maxRad, radius, color, color);
   }
 
   private drawBreathingRing(
