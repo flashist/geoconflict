@@ -121,6 +121,36 @@ Fired during the tutorial match (only for players who see the tutorial experimen
 | `TUTORIAL_COMPLETED` | `Tutorial:Completed` | Tutorial finishes (player wins the mission or closes the final tooltip) |
 | `TUTORIAL_DURATION` | `Tutorial:Duration` | Fired alongside `Tutorial:Skipped` or `Tutorial:Completed`; value = seconds elapsed since tutorial started |
 
+### Experiment Events
+Fired once per new player session at the point where the experiment flag is evaluated — regardless of which variant the player is assigned to. This gives a clean cohort anchor for both sides of every experiment, enabling proper funnel comparison between groups.
+
+**Convention:** `Experiment:{ExperimentName}:{Variant}`
+
+The event string is built at runtime by combining the experiment name and variant. Both parts are PascalCase. The enum key stores only the prefix; the full string is assembled at the call site — same pattern as `Tutorial:TooltipShown:N`.
+
+**Current experiments:**
+
+| Enum Key | Event String | When Fired |
+|---|---|---|
+| `EXPERIMENT_TUTORIAL_FIRST_PART` | `Experiment:Tutorial:Enabled` | Player is assigned to the tutorial experiment group |
+| `EXPERIMENT_TUTORIAL_FIRST_PART` | `Experiment:Tutorial:Disabled` | Player is assigned to the control group (no tutorial) |
+
+**Firing point:** immediately after the Yandex experiment flag is read in `src/client/Main.ts`, before any branching logic executes. Both variants fire at the same code location — one line apart.
+
+**Required for all future experiments:** every new Yandex experiment must fire a corresponding pair of `Experiment:{Name}:{Variant}` events at the flag evaluation point. This is not optional — without these events, control group behavior is invisible in analytics and experiment results cannot be properly measured.
+
+**Example funnels enabled by experiment events:**
+
+Control group:
+```
+Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen → Session:Heartbeat:05
+```
+
+Experiment group:
+```
+Experiment:Tutorial:Enabled → Tutorial:Started → Tutorial:Completed → Game:Start → Match:SpawnChosen → Session:Heartbeat:05
+```
+
 ---
 
 ## TypeScript Enum
@@ -133,7 +163,7 @@ The live enum is in `src/client/flashist/FlashistFacade.ts` (`flashistConstants.
 
 1. **Format:** `Category:Action` or `Category:Subcategory:Value` — always PascalCase, always colon-separated
 2. **No underscores** anywhere in the event string
-3. **Category** should be a noun: `Game`, `Session`, `Player`, `Match`, `UI`, `Performance`, `Reconnect`, `Feedback`
+3. **Category** should be a noun: `Game`, `Session`, `Player`, `Match`, `UI`, `Performance`, `Reconnect`, `Feedback`, `Experiment`
 4. **Action** should be PascalCase verb or state: `Start`, `End`, `ButtonOpened`, `SpawnChosen`
 5. **Values/buckets** use the same casing as established: `Above30`, `mobile`, `android` (follow existing patterns within the category)
 6. **Enum keys** use `SCREAMING_SNAKE_CASE` — this is the internal TypeScript identifier and is independent of the event string

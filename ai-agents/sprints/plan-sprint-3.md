@@ -8,7 +8,37 @@
 
 **Goal:** address infrastructure quality and UX issues that affect all players. Mobile performance work has been formally parked based on analytics data — see Task 5 below.
 
-### 5. Deep Mobile Rendering Optimization — ⏸ Parked
+### ⚡ TOP PRIORITY — Experiment Analytics Events
+**Effort:** 2–3 hours
+**Experiments:** ❌ Excluded — analytics infrastructure.
+
+The tutorial experiment is live but control group behavior is currently invisible in analytics. Ship this as a hotfix before anything else in Sprint 3.
+
+Two new events fired at the Yandex experiment flag evaluation point in `Main.ts`:
+- `Experiment:Tutorial:Enabled` — player assigned to tutorial variant
+- `Experiment:Tutorial:Disabled` — player assigned to control variant (no tutorial)
+
+Both fire at the same code location, one line apart. No game logic changes — purely analytics. Without this, the experiment cannot be properly evaluated and control group data is being lost every day.
+
+This task also establishes the required convention for all future experiments: every Yandex experiment must fire `Experiment:{Name}:{Variant}` events for all variants at the flag evaluation point.
+
+See full brief: `task-experiment-analytics.md`
+
+---
+
+### Humans vs Nations — Re-enable Existing Mode
+**Effort:** half a day (assuming single flag/config reversal — see brief)
+**Experiments:** ❌ Excluded — ships to all players.
+
+Humans vs Nations is an existing mode where human players compete against AI-controlled nation bots. Disabled early due to low concurrent player counts and observed errors. Safe to re-enable now — unlike Teams mode, AI nations fill all non-human slots regardless of lobby size, so the match runs correctly even with one human player.
+
+Key steps: identify exactly how it was disabled (flag, config, commented-out code), confirm the errors at disable time were Teams-mode-specific not this mode, verify locally, then re-enable. If re-enabling requires more than reversing a single gate, escalate before proceeding.
+
+Teams mode stays disabled — the lobby composition error for that mode is unresolved.
+
+See full brief: `task-humans-vs-nations.md`
+
+---
 **Effort:** 3–6 weeks (if revisited)
 
 **Parked based on analytics data collected March 2026:**
@@ -57,5 +87,23 @@ Currently when the production server is restarted for updates, connected clients
 **Important:** this polling flow is separate from the Task 2 reconnection flow. Task 2 handles individual player disconnects with a 1-minute match-rejoin window. This flow handles server-wide restarts with no time limit and no match state restoration — just wait and reload. The heuristic for distinguishing them: if the server is unreachable entirely, use the restart polling flow.
 
 Part B can ship independently of Part A and should be prioritized first — it resolves the silent freeze with no deployment process changes required.
+
+---
+
+### 5d. Server Performance Investigation & Sentry Instrumentation
+**Effort:** 2–3 days
+**Experiments:** ❌ Excluded — diagnostic and monitoring infrastructure.
+
+Desktop players with decent hardware are reporting occasional lag. Client hardware is not the bottleneck — server-side causes or network are the likely candidates. Lag appears infrequent.
+
+**Part A — Investigation first:** map out where server-side lag can theoretically originate — turn processing budget overruns, Node.js GC pauses, intent queue pressure, WebSocket broadcast cost, worker load imbalance, blocking I/O during turn processing. Produce a short written findings document with ranked suspects before any instrumentation begins.
+
+**Part B — Sentry server-side integration:**
+- Error tracking always on — unhandled server exceptions currently produce no external signal
+- Turn processing wrapped in threshold-based Sentry transactions: capture only if total duration exceeds **100ms** (~1.5× the 67ms tick budget). Normal turns produce zero overhead and zero noise. Slow turns captured with full span breakdown: `intent.collection` → `game.execute` → `turn.broadcast`
+- Threshold is a named constant — adjustable without code search
+- Separate Sentry project or environment tag from client-side errors
+
+The span breakdown directly identifies the lag source: slow `game.execute` → GC or expensive logic; slow `turn.broadcast` → serialization or WebSocket pressure; all spans slow together → GC pause affecting the entire event loop.
 
 ---
