@@ -114,7 +114,7 @@ Fired during the tutorial match (only for players who see the tutorial experimen
 
 | Enum Key | Event String | When Fired |
 |---|---|---|
-| `TUTORIAL_STARTED` | `Tutorial:Started` | Tutorial match begins |
+| `TUTORIAL_STARTED` | `Tutorial:Started` | Tutorial match begins (**Historical note:** before `Experiment:Tutorial:Enabled` shipped, this event served as an imperfect proxy for experiment group assignment; data from that period has no `Experiment:Tutorial:*` events — use `Tutorial:Started` as the cohort anchor for historical comparisons) |
 | `TUTORIAL_TOOLTIP_SHOWN_FIRST_PART` | `Tutorial:TooltipShown:` + N | Tooltip N appears (N = 1–7); string is built at runtime by appending the tooltip number |
 | `TUTORIAL_TOOLTIP_CLOSED_FIRST_PART` | `Tutorial:TooltipClosed:` + N | Tooltip N is dismissed by the player (N = 1–7); string is built at runtime by appending the tooltip number |
 | `TUTORIAL_SKIPPED` | `Tutorial:Skipped` | Player clicks the "Skip tutorial" button |
@@ -122,22 +122,13 @@ Fired during the tutorial match (only for players who see the tutorial experimen
 | `TUTORIAL_DURATION` | `Tutorial:Duration` | Fired alongside `Tutorial:Skipped` or `Tutorial:Completed`; value = seconds elapsed since tutorial started |
 
 ### Experiment Events
-Fired once per new player session at the point where the experiment flag is evaluated — regardless of which variant the player is assigned to. This gives a clean cohort anchor for both sides of every experiment, enabling proper funnel comparison between groups.
+Fired once per session immediately after Yandex experiment flags are loaded — one event per flag, for every player regardless of variant. This gives a clean cohort anchor for both sides of every experiment, enabling proper funnel comparison between groups.
 
-**Convention:** `Experiment:{ExperimentName}:{Variant}`
+**Convention:** `Experiment:{flagName}:{flagValue}`
 
-The event string is built at runtime by combining the experiment name and variant. Both parts are PascalCase. The enum key stores only the prefix; the full string is assembled at the call site — same pattern as `Tutorial:TooltipShown:N`.
+The event string is built at runtime from the raw Yandex flag key and value. No enum constant needed — events fire automatically for all flags returned by Yandex via `FlashistFacade.logExperimentEvent(name, value)`, called inside `initExperimentFlags()` as soon as the flags response arrives.
 
-**Current experiments:**
-
-| Enum Key | Event String | When Fired |
-|---|---|---|
-| `EXPERIMENT_TUTORIAL_FIRST_PART` | `Experiment:Tutorial:Enabled` | Player is assigned to the tutorial experiment group |
-| `EXPERIMENT_TUTORIAL_FIRST_PART` | `Experiment:Tutorial:Disabled` | Player is assigned to the control group (no tutorial) |
-
-**Firing point:** immediately after the Yandex experiment flag is read in `src/client/Main.ts`, before any branching logic executes. Both variants fire at the same code location — one line apart.
-
-**Required for all future experiments:** every new Yandex experiment must fire a corresponding pair of `Experiment:{Name}:{Variant}` events at the flag evaluation point. This is not optional — without these events, control group behavior is invisible in analytics and experiment results cannot be properly measured.
+**Firing point:** inside `FlashistFacade.initExperimentFlags()` in `src/client/flashist/FlashistFacade.ts`, immediately after `this.yandexExperimentFlags` is populated. No manual call sites required — adding a new flag in the Yandex dashboard is sufficient.
 
 **Example funnels enabled by experiment events:**
 

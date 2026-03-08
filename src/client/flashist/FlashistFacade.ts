@@ -348,6 +348,14 @@ export class FlashistFacade {
 
                     this.yandexExperimentFlags = experiments;
 
+                    // Fire one analytics event per flag as soon as flags are loaded.
+                    // Format: "Experiment:{flagName}:{flagValue}"
+                    if (this.yandexExperimentFlags) {
+                        for (const [name, value] of Object.entries(this.yandexExperimentFlags)) {
+                            this.logExperimentEvent(name, String(value));
+                        }
+                    }
+
                     resolve();
                 }
             );
@@ -378,6 +386,10 @@ export class FlashistFacade {
         }
 
         return result;
+    }
+
+    public logExperimentEvent(name: string, value: string): void {
+        flashist_logEventAnalytics(`Experiment:${name}:${value}`);
     }
 
     // PLAYER
