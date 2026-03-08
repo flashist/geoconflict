@@ -296,7 +296,7 @@ export class HostLobbyModal extends LitElement {
             // Quads,
             // Trios,
             // Duos,
-            // HumansVsNations,
+            HumansVsNations,
 
           ].map(
             (o) => html`
