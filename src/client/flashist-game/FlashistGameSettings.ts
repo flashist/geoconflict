@@ -1,12 +1,12 @@
 export const FlashistGameSettings = {
-    experiments: {
-        yandexGamesUsernames: {
-            id: "yandexGames-userNames",
-            values: {
-                active: "true"
-            }
-        }
-    },
+    // experiments: {
+    //     yandexGamesUsernames: {
+    //         id: "yandexGames-userNames",
+    //         values: {
+    //             active: "true"
+    //         }
+    //     }
+    // },
     leaderboardPoints: {
         participation: 1,
         first: 10,
