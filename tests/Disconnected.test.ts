@@ -198,6 +198,7 @@ describe("Disconnected", () => {
           playerTeams: 2, // ignore player2 "kicked" console warn
         },
         [player1Info, player2Info],
+        [],
         undefined,
         UseRealAttackLogic, // don't use TestConfig's mock attackLogic
       );

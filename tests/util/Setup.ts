@@ -7,6 +7,7 @@ import {
   GameMapType,
   GameMode,
   GameType,
+  Nation,
   PlayerInfo,
   PlayerType,
 } from "../../src/core/game/Game";
@@ -24,6 +25,7 @@ export async function setup(
   mapName: string,
   _gameConfig: Partial<GameConfig> = {},
   humans: PlayerInfo[] = [],
+  nations: Nation[] = [],
   currentDir: string = __dirname,
   ConfigClass: typeof TestConfig = TestConfig,
 ): Promise<Game> {
@@ -77,7 +79,7 @@ export async function setup(
     false,
   );
 
-  return createGame(humans, [], gameMap, miniGameMap, config);
+  return createGame(humans, nations, gameMap, miniGameMap, config);
 }
 
 export function playerInfo(name: string, type: PlayerType): PlayerInfo {
