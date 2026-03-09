@@ -400,13 +400,9 @@ export class FlashistFacade {
     }
 
     public logUiTapEvent(elementId: string): void {
-        this.logAnalyticsEvent(
+        flashist_logEventAnalytics(
             flashistConstants.analyticEvents.UI_TAP_FIRST_PART + elementId,
         );
-    }
-
-    public logAnalyticsEvent(event: string, value?: number): void {
-        flashist_logEventAnalytics(event, value);
     }
 
     // PLAYER
