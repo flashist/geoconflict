@@ -181,7 +181,7 @@ export class RailroadLayer implements Layer {
       this.paintBridge(this.context, x, y, railType);
     }
     const owner = this.game.owner(tile);
-    const recipient = owner.isPlayer() ? owner : null;
+    const recipient = owner?.isPlayer() ? owner : null;
     const color = recipient
       ? recipient.borderColor()
       : colord("rgba(255,255,255,1)");

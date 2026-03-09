@@ -145,10 +145,10 @@ export class TerritoryLayer implements Layer {
         }
       });
       updates?.[GameUpdateType.EmbargoEvent]?.forEach((update) => {
-        const player = this.game.playerBySmallID(update.playerID) as PlayerView;
-        const embargoed = this.game.playerBySmallID(
-          update.embargoedID,
-        ) as PlayerView;
+        const player = this.game.playerBySmallID(update.playerID);
+        const embargoed = this.game.playerBySmallID(update.embargoedID);
+        if (!(player instanceof PlayerView) || !(embargoed instanceof PlayerView))
+          return;
 
         if (
           player.id() === myPlayer?.id() ||

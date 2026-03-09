@@ -118,6 +118,7 @@ export class PlayerInfoOverlay extends LitElement implements Layer {
     if (!tile) return;
 
     const owner = this.game.owner(tile);
+    if (owner === null) return;
 
     if (owner && owner.isPlayer()) {
       this.player = owner as PlayerView;

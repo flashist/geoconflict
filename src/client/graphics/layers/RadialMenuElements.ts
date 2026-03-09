@@ -431,7 +431,7 @@ export const deleteUnitElement: MenuElement = {
     const tileOwner = params.game.owner(params.tile);
     const isLand = params.game.isLand(params.tile);
 
-    if (!tileOwner.isPlayer() || tileOwner.id() !== params.myPlayer.id()) {
+    if (!tileOwner?.isPlayer() || tileOwner.id() !== params.myPlayer.id()) {
       return true;
     }
 
@@ -544,7 +544,7 @@ export const centerButtonElement: CenterButtonElement = {
       return true;
     }
     if (params.game.inSpawnPhase()) {
-      if (tileOwner.isPlayer()) {
+      if (tileOwner?.isPlayer()) {
         return true;
       }
       return false;
@@ -578,7 +578,7 @@ export const rootMenuElement: MenuElement = {
 
     const tileOwner = params.game.owner(params.tile);
     const isOwnTerritory =
-      tileOwner.isPlayer() &&
+      tileOwner?.isPlayer() &&
       (tileOwner as PlayerView).id() === params.myPlayer.id();
 
     const menuItems: (MenuElement | null)[] = [
