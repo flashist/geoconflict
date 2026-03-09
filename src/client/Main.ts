@@ -687,6 +687,7 @@ class Client {
       () => {
         console.log("Closing modals");
         document.getElementById("settings-button")?.classList.add("hidden");
+        document.getElementById("feedback-button")?.classList.add("hidden");
         document
           .getElementById("username-validation-error")
           ?.classList.add("hidden");
