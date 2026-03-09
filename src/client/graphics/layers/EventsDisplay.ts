@@ -233,8 +233,9 @@ export class EventsDisplay extends LitElement implements Layer {
 
     // Update attacks
     this.incomingAttacks = myPlayer.incomingAttacks().filter((a) => {
-      const t = (this.game.playerBySmallID(a.attackerID) as PlayerView).type();
-      return t !== PlayerType.Bot;
+      const p = this.game.playerBySmallID(a.attackerID);
+      if (!(p instanceof PlayerView)) return false;
+      return p.type() !== PlayerType.Bot;
     });
 
     this.outgoingAttacks = myPlayer
@@ -436,12 +437,10 @@ export class EventsDisplay extends LitElement implements Layer {
       return;
     }
 
-    const requestor = this.game.playerBySmallID(
-      update.requestorID,
-    ) as PlayerView;
-    const recipient = this.game.playerBySmallID(
-      update.recipientID,
-    ) as PlayerView;
+    const requestor = this.game.playerBySmallID(update.requestorID);
+    const recipient = this.game.playerBySmallID(update.recipientID);
+    if (!(requestor instanceof PlayerView) || !(recipient instanceof PlayerView))
+      return;
 
     this.addEvent({
       description: translateText("events_display.request_alliance", {
@@ -507,9 +506,8 @@ export class EventsDisplay extends LitElement implements Layer {
       return;
     }
 
-    const recipient = this.game.playerBySmallID(
-      update.request.recipientID,
-    ) as PlayerView;
+    const recipient = this.game.playerBySmallID(update.request.recipientID);
+    if (!(recipient instanceof PlayerView)) return;
     this.addEvent({
       description: translateText("events_display.alliance_request_status", {
         name: recipient.name(),
@@ -530,8 +528,10 @@ export class EventsDisplay extends LitElement implements Layer {
     const myPlayer = this.game.myPlayer();
     if (!myPlayer) return;
 
-    const betrayed = this.game.playerBySmallID(update.betrayedID) as PlayerView;
-    const traitor = this.game.playerBySmallID(update.traitorID) as PlayerView;
+    const betrayed = this.game.playerBySmallID(update.betrayedID);
+    const traitor = this.game.playerBySmallID(update.traitorID);
+    if (!(betrayed instanceof PlayerView) || !(traitor instanceof PlayerView))
+      return;
 
     if (betrayed.isDisconnected()) return; // Do not send the message if betraying a disconnected player
 
@@ -609,11 +609,17 @@ export class EventsDisplay extends LitElement implements Layer {
   }
 
   onTargetPlayerEvent(event: TargetPlayerUpdate) {
-    const other = this.game.playerBySmallID(event.playerID) as PlayerView;
-    const myPlayer = this.game.myPlayer() as PlayerView;
-    if (!myPlayer || !myPlayer.isFriendly(other)) return;
+    const other = this.game.playerBySmallID(event.playerID);
+    const myPlayer = this.game.myPlayer();
+    if (
+      !myPlayer ||
+      !(other instanceof PlayerView) ||
+      !myPlayer.isFriendly(other)
+    )
+      return;
 
-    const target = this.game.playerBySmallID(event.targetID) as PlayerView;
+    const target = this.game.playerBySmallID(event.targetID);
+    if (!(target instanceof PlayerView)) return;
 
     this.addEvent({
       description: translateText("events_display.attack_request", {
@@ -661,9 +667,8 @@ export class EventsDisplay extends LitElement implements Layer {
       update.emoji.recipientID === AllPlayers
         ? AllPlayers
         : this.game.playerBySmallID(update.emoji.recipientID);
-    const sender = this.game.playerBySmallID(
-      update.emoji.senderID,
-    ) as PlayerView;
+    const sender = this.game.playerBySmallID(update.emoji.senderID);
+    if (!(sender instanceof PlayerView)) return;
 
     if (recipient === myPlayer) {
       this.addEvent({
@@ -674,7 +679,7 @@ export class EventsDisplay extends LitElement implements Layer {
         createdAt: this.game.ticks(),
         focusID: update.emoji.senderID,
       });
-    } else if (sender === myPlayer && recipient !== AllPlayers) {
+    } else if (sender === myPlayer && recipient !== AllPlayers && recipient !== null) {
       this.addEvent({
         description: translateText("events_display.sent_emoji", {
           name: (recipient as PlayerView).displayName(),
@@ -718,7 +723,7 @@ export class EventsDisplay extends LitElement implements Layer {
 
   private async attackWarningOnClick(attack: AttackUpdate) {
     const playerView = this.game.playerBySmallID(attack.attackerID);
-    if (playerView !== undefined) {
+    if (playerView !== null) {
       if (playerView instanceof PlayerView) {
         const averagePosition = await playerView.attackAveragePosition(
           attack.attackerID,
@@ -746,7 +751,9 @@ export class EventsDisplay extends LitElement implements Layer {
             content: html`
                     ${renderTroops(attack.troops)}
                     ${(
-                this.game.playerBySmallID(attack.attackerID) as PlayerView
+                this.game.playerBySmallID(
+                  attack.attackerID,
+                ) as PlayerView | null
               )?.name()}
                     ${attack.retreating
                 ? `(${translateText("events_display.retreating")}...)`

@@ -636,9 +636,11 @@ export class ClientGameRunner {
     this.myPlayer.actions(tile).then((actions) => {
       if (this.myPlayer === null) return;
       if (actions.canAttack) {
+        const ownerId = this.gameView.owner(tile)?.id();
+        if (ownerId === undefined) return;
         this.eventBus.emit(
           new SendAttackIntentEvent(
-            this.gameView.owner(tile).id(),
+            ownerId,
             this.myPlayer.troops() * this.renderer.uiState.attackRatio,
           ),
         );
@@ -752,9 +754,11 @@ export class ClientGameRunner {
     this.myPlayer.actions(tile).then((actions) => {
       if (this.myPlayer === null) return;
       if (actions.canAttack) {
+        const ownerId = this.gameView.owner(tile)?.id();
+        if (ownerId === undefined) return;
         this.eventBus.emit(
           new SendAttackIntentEvent(
-            this.gameView.owner(tile).id(),
+            ownerId,
             this.myPlayer.troops() * this.renderer.uiState.attackRatio,
           ),
         );
@@ -795,9 +799,11 @@ export class ClientGameRunner {
 
     this.myPlayer.bestTransportShipSpawn(tile).then((spawn: number | false) => {
       if (this.myPlayer === null) throw new Error("not initialized");
+      const ownerId = this.gameView.owner(tile)?.id();
+      if (ownerId === undefined) return;
       this.eventBus.emit(
         new SendBoatAttackIntentEvent(
-          this.gameView.owner(tile).id(),
+          ownerId,
           tile,
           this.myPlayer.troops() * this.renderer.uiState.attackRatio,
           spawn === false ? null : spawn,

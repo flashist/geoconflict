@@ -94,6 +94,7 @@ export class AlertFrame extends LitElement implements Layer {
     if (!myPlayer) return;
 
     const betrayed = this.game.playerBySmallID(update.betrayedID);
+    if (!betrayed) return;
 
     // Only trigger alert if the current player is the betrayed one
     if (betrayed === myPlayer) {

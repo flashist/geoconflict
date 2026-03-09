@@ -350,14 +350,14 @@ export class PlayerView {
     return this.data.tilesOwned;
   }
   allies(): PlayerView[] {
-    return this.data.allies.map(
-      (a) => this.game.playerBySmallID(a) as PlayerView,
-    );
+    return this.data.allies
+      .map((a) => this.game.playerBySmallID(a))
+      .filter((p): p is PlayerView => p instanceof PlayerView);
   }
   targets(): PlayerView[] {
-    return this.data.targets.map(
-      (id) => this.game.playerBySmallID(id) as PlayerView,
-    );
+    return this.data.targets
+      .map((id) => this.game.playerBySmallID(id))
+      .filter((p): p is PlayerView => p instanceof PlayerView);
   }
   gold(): Gold {
     return this.data.gold;
@@ -606,14 +606,12 @@ export class GameView implements GameMap {
     return Array.from(this._players.values());
   }
 
-  playerBySmallID(id: number): PlayerView | TerraNullius {
+  playerBySmallID(id: number): PlayerView | TerraNullius | null {
     if (id === 0) {
       return new TerraNulliusImpl();
     }
     const playerId = this.smallIDToID.get(id);
-    if (playerId === undefined) {
-      throw new Error(`small id ${id} not found`);
-    }
+    if (playerId === undefined) return null;
     return this.player(playerId);
   }
 
@@ -634,7 +632,7 @@ export class GameView implements GameMap {
     return Array.from(this._players.values());
   }
 
-  owner(tile: TileRef): PlayerView | TerraNullius {
+  owner(tile: TileRef): PlayerView | TerraNullius | null {
     return this.playerBySmallID(this.ownerID(tile));
   }
 
