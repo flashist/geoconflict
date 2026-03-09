@@ -173,18 +173,18 @@ export class TransformHandler {
     const nameLocation = player.nameLocation();
     if (!nameLocation) return;
     this.scale = this.calculateZoomForPlayer(player);
+
     if (instant) {
       const { screenX, screenY } = this.screenCenter();
       this.offsetX += nameLocation.x - screenX;
       this.offsetY += nameLocation.y - screenY;
-      this.clampOffsets();
-      this.changed = true;
     } else {
-      this.clampOffsets();
-      this.changed = true;
       this.target = new Cell(nameLocation.x, nameLocation.y);
       this.intervalID = setInterval(() => this.goTo(), GOTO_INTERVAL_MS);
     }
+
+    this.clampOffsets();
+    this.changed = true;
   }
 
   onGoToPlayer(event: GoToPlayerEvent) {
