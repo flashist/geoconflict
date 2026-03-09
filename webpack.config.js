@@ -351,15 +351,20 @@ export default async (env, argv) => {
       }),
       ...(isProduction && process.env.SENTRY_AUTH_TOKEN
         ? [sentryWebpackPlugin({
-            org: "flashist",
-            project: "geoconflict",
-            authToken: process.env.SENTRY_AUTH_TOKEN,
-            release: { name: gitCommit },
-            sourcemaps: {
-              assets: "./static/**",
-              deleteFilesAfterUpload: ["./static/**/*.map"],
-            },
-          })]
+          // Sentry: Main Account
+          // org: "flashist",
+          // project: "geoconflict",
+          // Sentry: Backup Account
+          org: "flashist-backup",
+          project: "geoconflict-backup",
+
+          authToken: process.env.SENTRY_AUTH_TOKEN,
+          release: { name: gitCommit },
+          sourcemaps: {
+            assets: "./static/**",
+            deleteFilesAfterUpload: ["./static/**/*.map"],
+          },
+        })]
         : []),
     ],
     optimization: {
