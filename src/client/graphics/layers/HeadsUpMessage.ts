@@ -16,6 +16,7 @@ export class HeadsUpMessage extends LitElement implements Layer {
   }
 
   init() {
+    if (this.game.config().gameConfig().isTutorial) return;
     this.isVisible = true;
     this.requestUpdate();
   }
@@ -34,10 +35,11 @@ export class HeadsUpMessage extends LitElement implements Layer {
 
     return html`
       <div
-        class="flex items-center relative
-                    w-full justify-evenly md:top-[70px] left-0 lg:left-4
+        class="fixed bottom-4 left-1/2 -translate-x-1/2
+                    max-w-[90vw] w-max
                     bg-opacity-60 bg-gray-900 rounded-md lg:rounded-lg
-                    backdrop-blur-md text-white text-md lg:text-xl p-2 lg:p-3"
+                    backdrop-blur-md text-white text-md lg:text-xl p-2 lg:p-3
+                    text-center"
         @contextmenu=${(e: MouseEvent) => e.preventDefault()}
       >
         ${translateText("heads_up_message.choose_spawn")}
