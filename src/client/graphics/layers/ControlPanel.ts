@@ -122,6 +122,7 @@ export class ControlPanel extends LitElement implements Layer {
   render() {
     return html`
       <style>
+        control-panel { pointer-events: none; }
         input[type="range"] {
           -webkit-appearance: none;
           background: transparent;
@@ -162,7 +163,7 @@ export class ControlPanel extends LitElement implements Layer {
       </style>
       <div
         class="${this._isVisible
-          ? "w-full sm:max-w-[320px] text-sm sm:text-base bg-gray-800/70 p-2 pr-3 sm:p-4 shadow-lg sm:rounded-lg backdrop-blur"
+          ? "w-full sm:max-w-[320px] text-sm sm:text-base bg-gray-800/70 p-2 pr-3 sm:p-4 shadow-lg sm:rounded-lg backdrop-blur pointer-events-none"
           : "hidden"}"
         @contextmenu=${(e: MouseEvent) => e.preventDefault()}
       >
@@ -220,13 +221,13 @@ export class ControlPanel extends LitElement implements Layer {
                   parseInt((e.target as HTMLInputElement).value) / 100;
                 this.onAttackRatioChange(this.attackRatio);
               }}
-              class="absolute left-0 right-0 top-2 m-0 h-4 cursor-pointer attackRatio"
+              class="absolute left-0 right-0 top-2 m-0 h-4 cursor-pointer attackRatio pointer-events-auto"
             />
           </div>
         </div>
 
         <button
-          class="mt-2 w-full py-2 min-h-[44px] text-sm sm:text-base border border-white/20 hover:bg-white/10 text-white flex items-center justify-center gap-1"
+          class="mt-2 w-full py-2 min-h-[44px] text-sm sm:text-base border border-white/20 hover:bg-white/10 text-white flex items-center justify-center gap-1 pointer-events-auto"
           @click=${() => {
             const me = this.game?.myPlayer();
             if (me) this.eventBus.emit(new GoToPlayerEvent(me));
