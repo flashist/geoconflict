@@ -26,7 +26,10 @@ interface Entry {
 }
 
 export class GoToPlayerEvent implements GameEvent {
-  constructor(public player: PlayerView) {}
+  constructor(
+    public player: PlayerView,
+    public instant: boolean = false,
+  ) {}
 }
 
 export class GoToPositionEvent implements GameEvent {

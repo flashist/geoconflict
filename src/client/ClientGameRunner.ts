@@ -575,7 +575,7 @@ export class ClientGameRunner {
     if (this._autoZoomDone) return;
     const player = this.gameView.myPlayer();
     if (player?.hasSpawned() && player.nameLocation()) {
-      this.eventBus.emit(new GoToPlayerEvent(player));
+      this.eventBus.emit(new GoToPlayerEvent(player, true));
       this._autoZoomDone = true;
     }
   }
