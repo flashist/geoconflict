@@ -31,6 +31,7 @@ Features are **excluded** from experiments if:
 
 | File | Sprint | Goal |
 |------|--------|------|
+| [hotfix-post-sprint2.md](hotfix-post-sprint2.md) | Post-Sprint 2 Hotfix | Experiment flag analytics, tutorial skip button, UI tap analytics |
 | [plan-sprint-1.md](plan-sprint-1.md) | Sprint 1 — Stop the Bleeding | Reduce ghost rate and crash-driven abandonment |
 | [plan-sprint-2.md](plan-sprint-2.md) | Sprint 2 — Fix Onboarding | Convert new players into players who complete at least one full match |
 | [plan-sprint-3.md](plan-sprint-3.md) | Sprint 3 — Deepen Retention | Infrastructure quality and UX; mobile performance parked |
@@ -62,8 +63,11 @@ Features are **excluded** from experiments if:
 | 4e | Spawn indicator visibility improvement | 1 day | ❌ All users | Expanding ring pulse in player's territory color; fades after 3–4s; depends on 4b | 2 |
 | 4c | Auto-expansion for inactive players | 2–3 days | ❌ All users | Gives ghost players a minimal foothold; multiplayer only; fully deterministic | 2 |
 | 5 | Deep mobile rendering optimization | ⏸ Parked | ❌ Excluded | Parked: desktop is core audience. Revisit if mobile DAU > 1,500. | — |
-| ⚡ | Experiment analytics events | 2–3 hours | ❌ Excluded | Hotfix: fire Experiment:Tutorial:Enabled/Disabled at flag eval point; unblocks control group funnels; establishes convention for all future experiments | 3 |
-| — | Humans vs Nations re-enable | 0.5 days | ❌ All users | Re-enable existing mode; AI fills empty slots so safe at current DAU; investigate disable mechanism first | 3 | — notification & auto-refresh | 2–3 days | ❌ Excluded | Eliminates silent freeze on deployments; Part B ships first | 3 |
+| HF-1 | Experiment flag analytics | 2–3 hours | ❌ Excluded | Hotfix: fire Experiment:Tutorial:Enabled/Disabled at flag eval point; unblocks control group funnels; establishes convention for all future experiments | Hotfix |
+| HF-2 | Tutorial skip button — inline link | 1–2 hours | ❌ Excluded | Hotfix: add secondary skip link below "Got it" in each tooltip modal; reduces silent tab-close exits | Hotfix |
+| HF-3 | UI tap analytics — UI:Tap:{ElementId} | 2–3 hours | ❌ Excluded | Hotfix: establish convention; V1 instruments TutorialSkipCorner and TutorialSkipInline only | Hotfix |
+| — | Humans vs Nations re-enable | 0.5 days | ❌ All users | Re-enable existing mode; AI fills empty slots so safe at current DAU; investigate disable mechanism first | 3 |
+| 5b | Server restart UX — notification & auto-refresh | 2–3 days | ❌ Excluded | Eliminates silent freeze on deployments; Part B ships first | 3 |
 | 5c | Mobile warning screen | 0.5 days | ❌ All users | Sets honest expectations for mobile players; improves Yandex retention signals | 3 |
 | 5d | Server performance investigation & Sentry instrumentation | 2–3 days | ❌ Excluded | Investigates lag reports from desktop users; threshold-based Sentry transactions on server turn processing | 3 |
 | 6 | Rewarded ads — minimal version | 2–3 days | ✅ Test | Yandex algorithm boost, first monetization signal | 4 |

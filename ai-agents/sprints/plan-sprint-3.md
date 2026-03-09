@@ -8,23 +8,9 @@
 
 **Goal:** address infrastructure quality and UX issues that affect all players. Mobile performance work has been formally parked based on analytics data — see Task 5 below.
 
-### ⚡ TOP PRIORITY — Experiment Analytics Events
-**Effort:** 2–3 hours
-**Experiments:** ❌ Excluded — analytics infrastructure.
+> **Note:** Before Sprint 3 begins, a small hotfix release ships three changes: experiment flag analytics (HF-1), tutorial skip button inline link (HF-2), and UI tap analytics (HF-3). See `hotfix-post-sprint2.md` for details.
 
-The tutorial experiment is live but control group behavior is currently invisible in analytics. Ship this as a hotfix before anything else in Sprint 3.
 
-Two new events fired at the Yandex experiment flag evaluation point in `Main.ts`:
-- `Experiment:Tutorial:Enabled` — player assigned to tutorial variant
-- `Experiment:Tutorial:Disabled` — player assigned to control variant (no tutorial)
-
-Both fire at the same code location, one line apart. No game logic changes — purely analytics. Without this, the experiment cannot be properly evaluated and control group data is being lost every day.
-
-This task also establishes the required convention for all future experiments: every Yandex experiment must fire `Experiment:{Name}:{Variant}` events for all variants at the flag evaluation point.
-
-See full brief: `task-experiment-analytics.md`
-
----
 
 ### Humans vs Nations — Re-enable Existing Mode
 **Effort:** half a day (assuming single flag/config reversal — see brief)
