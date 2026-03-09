@@ -57,9 +57,21 @@ Establish `UI:Tap:{ElementId}` as the standard convention for tracking UI elemen
 
 ---
 
+## HF-4. Mobile Control Panel Hit Area Bug
+**Effort:** 1–2 hours
+**Brief:** `hotfix-hf4-control-panel-hit-area.md`
+**Status:** Pending
+
+Critical mobile bug. The `control-panel` container has a full-width hit area on mobile even though its visible content is only ~320px wide. The transparent right portion intercepts all touch events, blocking map interactions on the right half of the screen for all mobile players in all match types.
+
+Fix: `pointer-events: none` on the container with `pointer-events: auto` restored on interactive children — or constrain container width to match content width on mobile.
+
+---
+
 ## Hotfix Release Checklist
 
 - [ ] HF-1 deployed and verified — `Experiment:Tutorial:Enabled/Disabled` appearing in GameAnalytics
 - [ ] HF-2 deployed and verified — inline skip link visible in all tooltip modals
 - [ ] HF-3 deployed and verified — `UI:Tap:TutorialSkipCorner` and `UI:Tap:TutorialSkipInline` appearing in GameAnalytics
-- [ ] No new Sentry errors introduced by any of the three changes
+- [ ] HF-4 deployed and verified — right half of map tappable on mobile while control panel is visible
+- [ ] No new Sentry errors introduced by any of the four changes
