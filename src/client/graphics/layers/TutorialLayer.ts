@@ -47,7 +47,7 @@ const BOX_STYLE: Partial<CSSStyleDeclaration> = {
   background: "rgba(20, 20, 30, 0.9)",
   border: "1px solid rgba(255, 255, 255, 0.2)",
   borderRadius: "12px",
-  padding: "28px 32px",
+  padding: "14px 16px",
   maxWidth: "380px",
   width: "90%",
   color: "white",
