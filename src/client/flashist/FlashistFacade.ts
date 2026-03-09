@@ -72,6 +72,13 @@ export const flashistConstants = {
         TUTORIAL_SKIPPED: "Tutorial:Skipped",
         TUTORIAL_COMPLETED: "Tutorial:Completed",
         TUTORIAL_DURATION: "Tutorial:Duration",
+
+        UI_TAP_FIRST_PART: "UI:Tap:",
+    },
+
+    uiElementIds: {
+        tutorialSkipBtnCorner: "TutorialSkipBtnCorner",
+        tutorialSkipBtnInline: "TutorialSkipBtnInline",
     },
 
     progressionEventStatus: {
@@ -390,6 +397,12 @@ export class FlashistFacade {
 
     public logExperimentEvent(name: string, value: string): void {
         flashist_logEventAnalytics(`Experiment:${name}:${value}`);
+    }
+
+    public logUiTapEvent(elementId: string): void {
+        flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.UI_TAP_FIRST_PART + elementId,
+        );
     }
 
     // PLAYER
