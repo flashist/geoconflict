@@ -679,10 +679,10 @@ export class EventsDisplay extends LitElement implements Layer {
         createdAt: this.game.ticks(),
         focusID: update.emoji.senderID,
       });
-    } else if (sender === myPlayer && recipient !== AllPlayers && recipient !== null) {
+    } else if (sender === myPlayer && recipient instanceof PlayerView) {
       this.addEvent({
         description: translateText("events_display.sent_emoji", {
-          name: (recipient as PlayerView).displayName(),
+          name: recipient.displayName(),
           emoji: update.emoji.message,
         }),
         unsafeDescription: true,

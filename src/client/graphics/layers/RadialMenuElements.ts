@@ -578,7 +578,7 @@ export const rootMenuElement: MenuElement = {
 
     const tileOwner = params.game.owner(params.tile);
     const isOwnTerritory =
-      tileOwner?.isPlayer() === true &&
+      tileOwner?.isPlayer() &&
       (tileOwner as PlayerView).id() === params.myPlayer.id();
 
     const menuItems: (MenuElement | null)[] = [
