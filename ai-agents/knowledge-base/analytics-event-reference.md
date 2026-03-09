@@ -88,6 +88,14 @@ Fired for both multiplayer and single-player missions.
 | `UI_CLICK_SINGLE_PLAYER` | `UI:ClickSinglePlayer` | Player clicks the single player button |
 | `UI_CLICK_MISSION` | `UI:ClickMission` | Player clicks a specific mission |
 
+#### UI:Tap events
+| Element ID constant | Full event string | When fired |
+|---|---|---|
+| `uiElementIds.tutorialSkipBtnCorner` | `UI:Tap:TutorialSkipBtnCorner` | Player clicks the corner skip button during tutorial |
+| `uiElementIds.tutorialSkipBtnInline` | `UI:Tap:TutorialSkipBtnInline` | Player clicks the inline skip link during tutorial |
+
+> **UI:Tap convention:** `UI:Tap:{ElementId}` is the standard pattern for tracking specific UI element interactions. The prefix is `flashistConstants.analyticEvents.UI_TAP_FIRST_PART`. Element IDs are registered in `flashistConstants.uiElementIds` (PascalCase, descriptive). Fire via `FlashistFacade.instance.logUiTapEvent(flashistConstants.uiElementIds.yourElement)`. This is opt-in — only elements listed in this document are instrumented.
+
 ### Performance Events
 Sampled every 60 seconds during active gameplay via a `setInterval` independent of the render loop.
 

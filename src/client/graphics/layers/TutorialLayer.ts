@@ -126,7 +126,12 @@ export class TutorialLayer implements Layer {
     const btn = document.createElement("button");
     btn.textContent = translateText("tutorial.skip");
     applyStyles(btn, SKIP_BUTTON_STYLE);
-    btn.addEventListener("click", () => this.skipTutorial());
+    btn.addEventListener("click", () => {
+      FlashistFacade.instance.logUiTapEvent(
+        flashistConstants.uiElementIds.tutorialSkipBtnCorner,
+      );
+      this.skipTutorial();
+    });
     document.body.appendChild(btn);
     this.skipButton = btn;
   }
@@ -259,7 +264,12 @@ export class TutorialLayer implements Layer {
     const skipLink = document.createElement("button");
     skipLink.textContent = translateText("tutorial.skip");
     applyStyles(skipLink, INLINE_SKIP_STYLE);
-    skipLink.addEventListener("click", () => this.skipTutorial());
+    skipLink.addEventListener("click", () => {
+      FlashistFacade.instance.logUiTapEvent(
+        flashistConstants.uiElementIds.tutorialSkipBtnInline,
+      );
+      this.skipTutorial();
+    });
     backdrop.appendChild(skipLink);
     document.body.appendChild(backdrop);
     this.tooltipBackdrop = backdrop;
