@@ -37,6 +37,7 @@ const BACKDROP_STYLE: Partial<CSSStyleDeclaration> = {
   background: "rgba(0, 0, 0, 0.5)",
   zIndex: "10000",
   display: "flex",
+  flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
   pointerEvents: "all",
@@ -68,6 +69,18 @@ const GOT_IT_STYLE: Partial<CSSStyleDeclaration> = {
   borderRadius: "6px",
   fontSize: "15px",
   cursor: "pointer",
+};
+
+const INLINE_SKIP_STYLE: Partial<CSSStyleDeclaration> = {
+  display: "block",
+  marginTop: "28px",
+  color: "white",
+  fontSize: "16px",
+  textDecoration: "underline",
+  cursor: "pointer",
+  background: "none",
+  border: "none",
+  padding: "0",
 };
 
 function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
@@ -242,6 +255,12 @@ export class TutorialLayer implements Layer {
 
     box.appendChild(gotIt);
     backdrop.appendChild(box);
+
+    const skipLink = document.createElement("button");
+    skipLink.textContent = translateText("tutorial.skip");
+    applyStyles(skipLink, INLINE_SKIP_STYLE);
+    skipLink.addEventListener("click", () => this.skipTutorial());
+    backdrop.appendChild(skipLink);
     document.body.appendChild(backdrop);
     this.tooltipBackdrop = backdrop;
   }
