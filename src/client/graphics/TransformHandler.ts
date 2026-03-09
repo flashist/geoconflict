@@ -168,19 +168,27 @@ export class TransformHandler {
     return Math.max(ZOOM_TO_PLAYER_MIN, Math.min(ZOOM_TO_PLAYER_MAX, target));
   }
 
-  zoomToPlayer(player: PlayerView): void {
+  zoomToPlayer(player: PlayerView, instant: boolean = false): void {
     this.clearTarget();
     const nameLocation = player.nameLocation();
     if (!nameLocation) return;
     this.scale = this.calculateZoomForPlayer(player);
-    this.clampOffsets();
-    this.changed = true;
-    this.target = new Cell(nameLocation.x, nameLocation.y);
-    this.intervalID = setInterval(() => this.goTo(), GOTO_INTERVAL_MS);
+    if (instant) {
+      const { screenX, screenY } = this.screenCenter();
+      this.offsetX += nameLocation.x - screenX;
+      this.offsetY += nameLocation.y - screenY;
+      this.clampOffsets();
+      this.changed = true;
+    } else {
+      this.clampOffsets();
+      this.changed = true;
+      this.target = new Cell(nameLocation.x, nameLocation.y);
+      this.intervalID = setInterval(() => this.goTo(), GOTO_INTERVAL_MS);
+    }
   }
 
   onGoToPlayer(event: GoToPlayerEvent) {
-    this.zoomToPlayer(event.player);
+    this.zoomToPlayer(event.player, event.instant);
   }
 
   onGoToPosition(event: GoToPositionEvent) {
