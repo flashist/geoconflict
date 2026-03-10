@@ -172,7 +172,7 @@ const MatchHistoryEntrySchema = z.object({
   gameType: z.string().max(50),
   gameMap: z.string().max(50),
   outcome: z.enum(["win", "loss", "abandoned"]),
-  timestamp: z.number(),
+  timestamp: z.number().nonnegative().max(Date.now() + 60_000),
 });
 
 const FeedbackSchema = z.object({

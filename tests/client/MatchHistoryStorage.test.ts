@@ -5,9 +5,8 @@ import {
   readMatchHistory,
   writeMatchStart,
   updateMatchOutcome,
+  STORAGE_KEY,
 } from "../../src/client/MatchHistoryStorage";
-
-const STORAGE_KEY = "geoconflict_match_history";
 
 beforeEach(() => {
   localStorage.clear();

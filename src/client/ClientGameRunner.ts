@@ -289,6 +289,8 @@ export class ClientGameRunner {
     if (update.winner?.[0] === "player") {
       outcome = update.winner[1] === myClientID ? "win" : "loss";
     } else if (update.winner?.[0] === "team") {
+      // myTeam is null in FFA; FFA winners always emit ["player", clientID] so
+      // this branch only fires in team mode where myTeam is always set.
       outcome = update.winner[1] === myTeam ? "win" : "loss";
     } else {
       outcome = "abandoned";

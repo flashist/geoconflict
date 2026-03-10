@@ -244,7 +244,7 @@ export type DisplayChatMessageUpdate = {
 export interface WinUpdate {
   type: GameUpdateType.Win;
   allPlayersStats: AllPlayersStats;
-  allPlayersHasActed: Record<string, boolean>;
+  allPlayersHasActed?: Record<string, boolean>;
   winner: Winner;
   winReason?: WinReason;
 }

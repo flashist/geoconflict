@@ -79,6 +79,10 @@ export class WinCheckExecution implements Execution {
     }
   }
 
+  // Note: last_standing is not implemented for team mode. Ghost bots in team
+  // games aggregate into teamToTiles by team, so a team of ghost bots holding
+  // spawn tiles could in theory delay detection — but team mode always has
+  // real players per team, making this a non-issue in practice today.
   checkWinnerTeam(): void {
     if (this.mg === null) throw new Error("Not initialized");
     const teamToTiles = new Map<Team, number>();
