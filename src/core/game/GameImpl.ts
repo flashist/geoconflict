@@ -1,6 +1,6 @@
 import { renderNumber } from "../../client/Utils";
 import { Config } from "../configuration/Config";
-import { AllPlayersStats, ClientID, Winner, WinReason } from "../Schemas";
+import { AllPlayersStats, ClientID, Winner } from "../Schemas";
 import { simpleHash } from "../Util";
 import { AllianceImpl } from "./AllianceImpl";
 import { AllianceRequestImpl } from "./AllianceRequestImpl";
@@ -660,19 +660,11 @@ export class GameImpl implements Game {
     });
   }
 
-  setWinner(winner: Player | Team, allPlayersStats: AllPlayersStats, winReason?: WinReason): void {
-    const allPlayersHasActed: Record<string, boolean> = {};
-    for (const player of this.players()) {
-      const clientID = player.clientID();
-      if (clientID === null) continue;
-      allPlayersHasActed[clientID] = player.hasActed();
-    }
+  setWinner(winner: Player | Team, allPlayersStats: AllPlayersStats): void {
     this.addUpdate({
       type: GameUpdateType.Win,
       winner: this.makeWinner(winner),
       allPlayersStats,
-      allPlayersHasActed,
-      winReason,
     });
   }
 

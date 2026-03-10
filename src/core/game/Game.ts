@@ -1,5 +1,5 @@
 import { Config } from "../configuration/Config";
-import { AllPlayersStats, ClientID, WinReason } from "../Schemas";
+import { AllPlayersStats, ClientID } from "../Schemas";
 import { getClanTag } from "../Util";
 import { GameMap, TileRef } from "./GameMap";
 import {
@@ -699,7 +699,7 @@ export interface Game extends GameMap {
   ticks(): Tick;
   inSpawnPhase(): boolean;
   executeNextTick(): GameUpdates;
-  setWinner(winner: Player | Team, allPlayersStats: AllPlayersStats, winReason?: WinReason): void;
+  setWinner(winner: Player | Team, allPlayersStats: AllPlayersStats): void;
   config(): Config;
 
   // Units

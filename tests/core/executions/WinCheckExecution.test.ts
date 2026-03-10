@@ -47,7 +47,7 @@ describe("WinCheckExecution", () => {
     mg.numLandTiles = jest.fn(() => 100);
     mg.numTilesWithFallout = jest.fn(() => 0);
     winCheck.checkWinnerFFA();
-    expect(mg.setWinner).toHaveBeenCalledWith(player, expect.anything(), "tile_percentage");
+    expect(mg.setWinner).toHaveBeenCalledWith(player, expect.anything());
   });
 
   it("should set winner in FFA if timer is 0", () => {
@@ -69,7 +69,7 @@ describe("WinCheckExecution", () => {
       mg.executeNextTick();
     }
     winCheck.checkWinnerFFA();
-    expect(mg.setWinner).toHaveBeenCalledWith(player, expect.any(Object), "timer");
+    expect(mg.setWinner).toHaveBeenCalledWith(player, expect.any(Object));
   });
 
   it("should not set winner if no players", () => {
@@ -80,82 +80,5 @@ describe("WinCheckExecution", () => {
 
   it("should return false for activeDuringSpawnPhase", () => {
     expect(winCheck.activeDuringSpawnPhase()).toBe(false);
-  });
-
-  it("last_standing: human wins when only ghost bots remain with tiles", () => {
-    const human = {
-      numTilesOwned: jest.fn(() => 30),
-      hasActed: jest.fn(() => true),
-      name: jest.fn(() => "Human"),
-    };
-    const ghostBot1 = {
-      numTilesOwned: jest.fn(() => 10),
-      hasActed: jest.fn(() => false),
-      name: jest.fn(() => "GhostBot1"),
-    };
-    const ghostBot2 = {
-      numTilesOwned: jest.fn(() => 5),
-      hasActed: jest.fn(() => false),
-      name: jest.fn(() => "GhostBot2"),
-    };
-    mg.players = jest.fn(() => [human, ghostBot1, ghostBot2]);
-    mg.numLandTiles = jest.fn(() => 100);
-    mg.numTilesWithFallout = jest.fn(() => 0);
-    winCheck.checkWinnerFFA();
-    expect(mg.setWinner).toHaveBeenCalledWith(human, expect.anything(), "last_standing");
-  });
-
-  it("last_standing: no winner when multiple active players still hold tiles", () => {
-    const player1 = {
-      numTilesOwned: jest.fn(() => 30),
-      hasActed: jest.fn(() => true),
-      name: jest.fn(() => "P1"),
-    };
-    const player2 = {
-      numTilesOwned: jest.fn(() => 25),
-      hasActed: jest.fn(() => true),
-      name: jest.fn(() => "P2"),
-    };
-    mg.players = jest.fn(() => [player1, player2]);
-    mg.numLandTiles = jest.fn(() => 100);
-    mg.numTilesWithFallout = jest.fn(() => 0);
-    winCheck.checkWinnerFFA();
-    expect(mg.setWinner).not.toHaveBeenCalled();
-  });
-
-  it("last_standing: no winner when all remaining players are ghosts", () => {
-    const ghostBot1 = {
-      numTilesOwned: jest.fn(() => 30),
-      hasActed: jest.fn(() => false),
-      name: jest.fn(() => "GhostBot1"),
-    };
-    const ghostBot2 = {
-      numTilesOwned: jest.fn(() => 20),
-      hasActed: jest.fn(() => false),
-      name: jest.fn(() => "GhostBot2"),
-    };
-    mg.players = jest.fn(() => [ghostBot1, ghostBot2]);
-    mg.numLandTiles = jest.fn(() => 100);
-    mg.numTilesWithFallout = jest.fn(() => 0);
-    winCheck.checkWinnerFFA();
-    expect(mg.setWinner).not.toHaveBeenCalled();
-  });
-
-  it("last_standing: ghost bots with 0 tiles do not block win", () => {
-    const human = {
-      numTilesOwned: jest.fn(() => 40),
-      hasActed: jest.fn(() => true),
-      name: jest.fn(() => "Human"),
-    };
-    const ghostBot = {
-      numTilesOwned: jest.fn(() => 0),
-      hasActed: jest.fn(() => false),
-      name: jest.fn(() => "GhostBot"),
-    };
-    mg.players = jest.fn(() => [human, ghostBot]);
-    mg.numLandTiles = jest.fn(() => 100);
-    mg.numTilesWithFallout = jest.fn(() => 0);
-    winCheck.checkWinnerFFA();
-    expect(mg.setWinner).toHaveBeenCalledWith(human, expect.anything(), "last_standing");
   });
 });

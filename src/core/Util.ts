@@ -10,7 +10,6 @@ import {
   PlayerRecord,
   Turn,
   Winner,
-  WinReason,
 } from "./Schemas";
 
 import {
@@ -195,7 +194,6 @@ export function createPartialGameRecord(
   start: number,
   end: number,
   winner: Winner,
-  winReason?: WinReason,
 ): PartialGameRecord {
   const duration = Math.floor((end - start) / 1000);
   const num_turns = allTurns.length;
@@ -212,7 +210,6 @@ export function createPartialGameRecord(
       duration,
       num_turns,
       winner,
-      winReason,
     },
     version: "v0.0.2",
     turns,

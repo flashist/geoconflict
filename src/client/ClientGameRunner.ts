@@ -36,7 +36,6 @@ import {
   MouseUpEvent,
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
-import { updateMatchOutcome } from "./MatchHistoryStorage";
 import { saveReconnectSession } from "./ReconnectSession";
 import { getPersistentID } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
@@ -279,27 +278,8 @@ export class ClientGameRunner {
       startTime(),
       Date.now(),
       update.winner,
-      update.winReason,
     );
     endGame(record);
-
-    const myClientID = this.lobby.clientID;
-    const myTeam = this.myPlayer.team();
-    let outcome: "win" | "loss" | "abandoned";
-    if (update.winner?.[0] === "player") {
-      outcome = update.winner[1] === myClientID ? "win" : "loss";
-    } else if (update.winner?.[0] === "team") {
-      // myTeam is null in FFA; FFA winners always emit ["player", clientID] so
-      // this branch only fires in team mode where myTeam is always set.
-      outcome = update.winner[1] === myTeam ? "win" : "loss";
-    } else {
-      outcome = "abandoned";
-    }
-    // "abandoned" means no winner was set; writeMatchStart already wrote this
-    // entry with outcome: "abandoned", so no update is needed.
-    if (outcome !== "abandoned") {
-      updateMatchOutcome(this.lobby.gameStartInfo.gameID, outcome);
-    }
   }
 
   private reportPlacements(_winUpdate: WinUpdate) {

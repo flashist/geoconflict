@@ -13,7 +13,6 @@ export const flashistConstants = {
 
         GAME_START: "Game:Start",
         GAME_END: "Game:End",
-        GAME_WIN_DETECTED: "Game:WinDetected",
         GAME_WIN: "Game:Win",
         GAME_LOSS: "Game:Loss",
         GAME_ABANDON: "Game:Abandon",
