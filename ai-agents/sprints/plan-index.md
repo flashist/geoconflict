@@ -67,6 +67,7 @@ Features are **excluded** from experiments if:
 | HF-2 | Tutorial skip button — inline link | 1–2 hours | ❌ Excluded | Hotfix: add secondary skip link below "Got it" in each tooltip modal; reduces silent tab-close exits | Hotfix |
 | HF-3 | UI tap analytics — UI:Tap:{ElementId} | 2–3 hours | ❌ Excluded | Hotfix: establish convention; V1 instruments TutorialSkipCorner and TutorialSkipInline only | Hotfix |
 | HF-4 | Mobile control panel hit area bug | 1–2 hours | ❌ Excluded | Critical: transparent container area blocks right half of map on mobile; pointer-events fix | Hotfix |
+| HF-5 | Win condition detection bug | 1–3 days | ❌ Excluded | Critical: win screen not appearing after match completion; investigation + fix; primary suspect is ghost players blocking win check | Hotfix |
 | — | Humans vs Nations re-enable | 0.5 days | ❌ All users | Re-enable existing mode; AI fills empty slots so safe at current DAU; investigate disable mechanism first | 3 |
 | 5b | Server restart UX — notification & auto-refresh | 2–3 days | ❌ Excluded | Eliminates silent freeze on deployments; Part B ships first | 3 |
 | 5c | Mobile warning screen | 0.5 days | ❌ All users | Sets honest expectations for mobile players; improves Yandex retention signals | 3 |

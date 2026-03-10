@@ -68,10 +68,24 @@ Fix: `pointer-events: none` on the container with `pointer-events: auto` restore
 
 ---
 
+## HF-5. Win Condition Detection Bug
+**Effort:** 1–3 days (investigation + fix; scope depends on root cause)
+**Brief:** `hotfix-hf5-win-condition-bug.md`
+**Status:** Pending
+
+Critical retention bug. Players completing singleplayer missions after 30–60 minutes report the win dialogue never appears. Root cause unknown — structured as Part A (investigation) then Part B (fix).
+
+Primary suspects: ghost players blocking the win condition check (~20% ghost rate means one in five players could be an unresolved game state entry), bot elimination event not firing on last territory capture, race condition between last capture and win check, or WinModal failing to render silently.
+
+Part A must complete before any code is written.
+
+---
+
 ## Hotfix Release Checklist
 
 - [ ] HF-1 deployed and verified — `Experiment:Tutorial:Enabled/Disabled` appearing in GameAnalytics
 - [ ] HF-2 deployed and verified — inline skip link visible in all tooltip modals
 - [ ] HF-3 deployed and verified — `UI:Tap:TutorialSkipCorner` and `UI:Tap:TutorialSkipInline` appearing in GameAnalytics
 - [ ] HF-4 deployed and verified — right half of map tappable on mobile while control panel is visible
-- [ ] No new Sentry errors introduced by any of the four changes
+- [ ] HF-5 deployed and verified — win screen appears correctly after eliminating all opponents in singleplayer and multiplayer; `Game:WinDetected` firing in GameAnalytics
+- [ ] No new Sentry errors introduced by any of the five changes
