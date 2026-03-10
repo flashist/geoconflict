@@ -7,6 +7,7 @@ import {
 } from "./flashist/FlashistFacade";
 import { translateText } from "./Utils";
 import type { UsernameInput } from "./UsernameInput";
+import { readMatchHistory } from "./MatchHistoryStorage";
 
 @customElement("feedback-modal")
 export class FeedbackModal extends LitElement {
@@ -267,6 +268,7 @@ export class FeedbackModal extends LitElement {
       yandexStatus,
       version,
       matchId: this.matchId,
+      recentMatches: readMatchHistory().slice(0, 3),
       screenSource: this.screenSource,
       username: username || undefined,
       deviceInfo: Object.keys(deviceInfo).length > 0 ? deviceInfo : undefined,

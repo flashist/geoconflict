@@ -36,6 +36,7 @@ import {
   MouseUpEvent,
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
+import { updateMatchOutcome } from "./MatchHistoryStorage";
 import { saveReconnectSession } from "./ReconnectSession";
 import { getPersistentID } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
@@ -281,6 +282,18 @@ export class ClientGameRunner {
       update.winReason,
     );
     endGame(record);
+
+    const myClientID = this.lobby.clientID;
+    const myTeam = this.myPlayer.team();
+    let outcome: "win" | "loss";
+    if (update.winner?.[0] === "player") {
+      outcome = update.winner[1] === myClientID ? "win" : "loss";
+    } else if (update.winner?.[0] === "team") {
+      outcome = update.winner[1] === myTeam ? "win" : "loss";
+    } else {
+      outcome = "loss";
+    }
+    updateMatchOutcome(this.lobby.gameStartInfo.gameID, outcome);
   }
 
   private reportPlacements(_winUpdate: WinUpdate) {
