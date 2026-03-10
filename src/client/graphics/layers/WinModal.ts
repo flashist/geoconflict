@@ -67,6 +67,9 @@ export class WinModal extends LitElement implements Layer {
         <h2 class="m-0 mb-4 text-[26px] text-center text-white">
           ${this._title || ""}
         </h2>
+        <p class="m-0 mb-4 text-center text-gray-400 text-sm">
+          ${translateText("win_modal.game_id")}: ${this.game.gameID()}
+        </p>
         ${this.innerHtml()}
         <div
           class="${this.showButtons
@@ -274,7 +277,7 @@ export class WinModal extends LitElement implements Layer {
           this.game.ticks()
         );
 
-        this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
+        this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats, wu.winReason));
         if (wu.winner[1] === this.game.myPlayer()?.team()) {
           this._title = translateText("win_modal.your_team");
           this.isWin = true;
@@ -304,7 +307,7 @@ export class WinModal extends LitElement implements Layer {
         const winnerClient = winner.clientID();
         if (winnerClient !== null) {
           this.eventBus.emit(
-            new SendWinnerEvent(["player", winnerClient], wu.allPlayersStats),
+            new SendWinnerEvent(["player", winnerClient], wu.allPlayersStats, wu.winReason),
           );
         }
 

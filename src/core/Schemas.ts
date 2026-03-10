@@ -460,6 +460,11 @@ export const WinnerSchema = z
   .optional();
 export type Winner = z.infer<typeof WinnerSchema>;
 
+export const WinReasonSchema = z
+  .enum(["tile_percentage", "timer"])
+  .optional();
+export type WinReason = z.infer<typeof WinReasonSchema>;
+
 //
 // Server
 //
@@ -517,6 +522,7 @@ export const ServerMessageSchema = z.discriminatedUnion("type", [
 export const ClientSendWinnerSchema = z.object({
   type: z.literal("winner"),
   winner: WinnerSchema,
+  winReason: WinReasonSchema,
   allPlayersStats: AllPlayersStatsSchema,
 });
 
@@ -580,6 +586,7 @@ export const GameEndInfoSchema = GameStartInfoSchema.extend({
   duration: z.number().nonnegative(),
   num_turns: z.number(),
   winner: WinnerSchema,
+  winReason: WinReasonSchema,
 });
 export type GameEndInfo = z.infer<typeof GameEndInfoSchema>;
 

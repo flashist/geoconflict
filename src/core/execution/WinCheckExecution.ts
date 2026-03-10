@@ -49,13 +49,14 @@ export class WinCheckExecution implements Execution {
       (this.mg.ticks() - this.mg.config().numSpawnPhaseTurns()) / 10;
     const numTilesWithoutFallout =
       this.mg.numLandTiles() - this.mg.numTilesWithFallout();
-    if (
+    const timerExpired =
+      this.mg.config().gameConfig().maxTimerValue !== undefined &&
+      timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0;
+    const tileThresholdMet =
       (max.numTilesOwned() / numTilesWithoutFallout) * 100 >
-        this.mg.config().percentageTilesOwnedToWin() ||
-      (this.mg.config().gameConfig().maxTimerValue !== undefined &&
-        timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0)
-    ) {
-      this.mg.setWinner(max, this.mg.stats().stats());
+      this.mg.config().percentageTilesOwnedToWin();
+    if (tileThresholdMet || timerExpired) {
+      this.mg.setWinner(max, this.mg.stats().stats(), timerExpired ? "timer" : "tile_percentage");
       console.log(`${max.name()} has won the game`);
       this.active = false;
     }
@@ -85,13 +86,14 @@ export class WinCheckExecution implements Execution {
     const numTilesWithoutFallout =
       this.mg.numLandTiles() - this.mg.numTilesWithFallout();
     const percentage = (max[1] / numTilesWithoutFallout) * 100;
-    if (
-      percentage > this.mg.config().percentageTilesOwnedToWin() ||
-      (this.mg.config().gameConfig().maxTimerValue !== undefined &&
-        timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0)
-    ) {
+    const timerExpired =
+      this.mg.config().gameConfig().maxTimerValue !== undefined &&
+      timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0;
+    const tileThresholdMet =
+      percentage > this.mg.config().percentageTilesOwnedToWin();
+    if (tileThresholdMet || timerExpired) {
       if (max[0] === ColoredTeams.Bot) return;
-      this.mg.setWinner(max[0], this.mg.stats().stats());
+      this.mg.setWinner(max[0], this.mg.stats().stats(), timerExpired ? "timer" : "tile_percentage");
       console.log(`${max[0]} has won the game`);
       this.active = false;
     }

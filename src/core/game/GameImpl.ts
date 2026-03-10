@@ -1,6 +1,6 @@
 import { renderNumber } from "../../client/Utils";
 import { Config } from "../configuration/Config";
-import { AllPlayersStats, ClientID, Winner } from "../Schemas";
+import { AllPlayersStats, ClientID, Winner, WinReason } from "../Schemas";
 import { simpleHash } from "../Util";
 import { AllianceImpl } from "./AllianceImpl";
 import { AllianceRequestImpl } from "./AllianceRequestImpl";
@@ -660,11 +660,22 @@ export class GameImpl implements Game {
     });
   }
 
-  setWinner(winner: Player | Team, allPlayersStats: AllPlayersStats): void {
+  setWinner(winner: Player | Team, allPlayersStats: AllPlayersStats, winReason?: WinReason): void {
+    // Enrich per-player stats with hasActed flag from live player state.
+    const enriched: AllPlayersStats = { ...allPlayersStats };
+    for (const player of this.players()) {
+      const clientID = player.clientID();
+      if (clientID === null) continue;
+      enriched[clientID] = {
+        ...(enriched[clientID] ?? {}),
+        hasActed: player.hasActed(),
+      };
+    }
     this.addUpdate({
       type: GameUpdateType.Win,
       winner: this.makeWinner(winner),
-      allPlayersStats,
+      allPlayersStats: enriched,
+      winReason,
     });
   }
 

@@ -47,7 +47,7 @@ describe("WinCheckExecution", () => {
     mg.numLandTiles = jest.fn(() => 100);
     mg.numTilesWithFallout = jest.fn(() => 0);
     winCheck.checkWinnerFFA();
-    expect(mg.setWinner).toHaveBeenCalledWith(player, expect.anything());
+    expect(mg.setWinner).toHaveBeenCalledWith(player, expect.anything(), "tile_percentage");
   });
 
   it("should set winner in FFA if timer is 0", () => {
@@ -69,7 +69,7 @@ describe("WinCheckExecution", () => {
       mg.executeNextTick();
     }
     winCheck.checkWinnerFFA();
-    expect(mg.setWinner).toHaveBeenCalledWith(player, expect.any(Object));
+    expect(mg.setWinner).toHaveBeenCalledWith(player, expect.any(Object), "timer");
   });
 
   it("should not set winner if no players", () => {

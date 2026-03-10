@@ -22,6 +22,7 @@ import {
   ServerMessage,
   ServerMessageSchema,
   Winner,
+  WinReason,
 } from "../core/Schemas";
 import { replacer } from "../core/Util";
 import { LobbyConfig } from "./ClientGameRunner";
@@ -152,6 +153,7 @@ export class SendWinnerEvent implements GameEvent {
   constructor(
     public readonly winner: Winner,
     public readonly allPlayersStats: AllPlayersStats,
+    public readonly winReason?: WinReason,
   ) { }
 }
 export class SendHashEvent implements GameEvent {
@@ -571,6 +573,7 @@ export class Transport {
       this.sendMsg({
         type: "winner",
         winner: event.winner,
+        winReason: event.winReason,
         allPlayersStats: event.allPlayersStats,
       } satisfies ClientSendWinnerMessage);
     } else {

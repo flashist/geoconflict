@@ -278,6 +278,7 @@ export class ClientGameRunner {
       startTime(),
       Date.now(),
       update.winner,
+      update.winReason,
     );
     endGame(record);
   }

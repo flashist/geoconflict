@@ -276,6 +276,7 @@ export class LocalServer {
       this.startedAt,
       Date.now(),
       this.winner?.winner,
+      this.winner?.winReason,
     );
 
     const result = PartialGameRecordSchema.safeParse(record);
