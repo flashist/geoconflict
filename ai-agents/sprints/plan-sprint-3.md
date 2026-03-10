@@ -8,7 +8,7 @@
 
 **Goal:** address infrastructure quality and UX issues that affect all players. Mobile performance work has been formally parked based on analytics data — see Task 5 below.
 
-> **Note:** Before Sprint 3 begins, a small hotfix release ships three changes: experiment flag analytics (HF-1), tutorial skip button inline link (HF-2), and UI tap analytics (HF-3). See `hotfix-post-sprint2.md` for details.
+> **Note:** Before Sprint 3 begins, a small hotfix release ships five changes: experiment flag analytics (HF-1), tutorial skip button inline link (HF-2), UI tap analytics (HF-3), mobile control panel hit area bug (HF-4), and win condition detection bug fix (HF-5). See `hotfix-post-sprint2.md` for details.
 
 
 
@@ -25,6 +25,20 @@ Teams mode stays disabled — the lobby composition error for that mode is unres
 See full brief: `task-humans-vs-nations.md`
 
 ---
+
+### Feedback — Attach Last Match IDs to Submissions (Simple)
+**Effort:** 2–3 hours
+**Experiments:** ❌ Excluded — backend debugging infrastructure.
+
+Replaces the cancelled `task-feedback-match-history.md`. Narrower scope: read the last 3 game IDs from the existing `localStorage['game-records']` structure (already written by `LocalPersistantStats.ts`) and attach them to the feedback payload. No new localStorage writes, no new data structures.
+
+A match ID is all that is needed to look up the full match in the archive API and attempt replay or diagnosis. Client-side only change — no server changes required.
+
+See full brief: `task-feedback-match-ids-simple.md`
+
+---
+
+### 5. Deep Mobile Rendering Optimization — ⏸ Parked
 **Effort:** 3–6 weeks (if revisited)
 
 **Parked based on analytics data collected March 2026:**
