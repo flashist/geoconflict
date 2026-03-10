@@ -101,3 +101,77 @@ Add to the analytics event reference under Game Events.
 - Treat Part A as blocking — do not write a fix until the root cause is confirmed. A fix written against the wrong hypothesis will not resolve the bug and may introduce new ones.
 - If the investigation reveals multiple simultaneous causes (e.g. ghost players AND a race condition both contribute), fix both in the same task rather than shipping a partial fix.
 - Given the volume of player feedback, consider adding a temporary server-side log (in addition to Sentry) that records game state at match end for any match where `Game:WinDetected` does not fire within a reasonable time after the last bot elimination. This would capture production instances without requiring players to reproduce locally.
+
+---
+
+## Investigation Results (Part A Complete)
+
+**Status: Root cause confirmed. Ready to implement Part B.**
+
+### Root Cause
+
+`WinCheckExecution.checkWinnerFFA()` (`src/core/execution/WinCheckExecution.ts`) only triggers a win under two conditions:
+1. The leading player owns **>80% of non-fallout tiles** (`percentageTilesOwnedToWin()` returns `80` for FFA)
+2. The optional game timer expires
+
+**There is no "last player standing" check.** This is the bug.
+
+In singleplayer FFA missions (all singleplayer missions use `GameMode.FFA`, confirmed in `src/client/Main.ts:797,869`):
+- Player eliminates all *active* bots
+- Ghost bots — bots that spawned (own spawn tiles, `hasSpawned() === true`) but never acted (`hasActed() === false`) — remain alive in `mg.players()` with their spawn territory
+- Ghost rate is ~20%, so a typical mission has 1–2 ghost bots holding 20–30% of the map
+- Human player owns 50–70%, below the 80% threshold
+- Win condition never fires, game stalls indefinitely
+
+`hasActed()` is on the `Player` interface (`src/core/game/Game.ts:555`) — accessible in `WinCheckExecution`. `PlayerType` is also available for filtering bots.
+
+### Key Files
+
+| File | Finding |
+|------|---------|
+| `src/core/execution/WinCheckExecution.ts` | The bug: `checkWinnerFFA()` has no last-player-standing check (lines 39–62) |
+| `src/core/game/PlayerImpl.ts` | `_hasActed = false` (line 107), `isAlive() = _tiles.size > 0` (line 341) |
+| `src/core/game/Game.ts` | `hasActed()` on Player interface (line 555); `PlayerType` enum available |
+| `src/core/game/GameImpl.ts` | `players()` returns only alive players (line 426) — ghost bots included if they have tiles |
+| `src/core/configuration/DefaultConfig.ts` | `percentageTilesOwnedToWin()` returns `80` for FFA (line 704–709) |
+| `src/client/graphics/layers/WinModal.ts` | `GAME_WIN` analytics fires on win update received (lines 283–285, 325–327) |
+| `tests/core/executions/WinCheckExecution.test.ts` | Existing test file — add new cases here |
+
+### Implementation Plan (Part B)
+
+**1. `src/core/execution/WinCheckExecution.ts`** — Add `PlayerType` import. In `checkWinnerFFA()`, after the existing tile%/timer `if` block, add:
+
+```typescript
+// Last meaningful player standing:
+// ghost bots (spawned but never acted) do not count as real opponents
+const meaningfulPlayers = sorted.filter(
+  (p) => p.type() !== PlayerType.Bot || p.hasActed(),
+);
+if (meaningfulPlayers.length === 1) {
+  this.mg.setWinner(meaningfulPlayers[0], this.mg.stats().stats());
+  console.log(`${meaningfulPlayers[0].name()} wins as last player standing`);
+  this.active = false;
+}
+```
+
+**2. `src/client/flashist/FlashistFacade.ts`** — Add to `flashistConstants.analyticEvents`:
+
+```typescript
+GAME_WIN_DETECTED: "Game:WinDetected",
+```
+
+**3. `src/client/graphics/layers/WinModal.ts`** — At the top of `winUpdates.forEach`, before `if (wu.winner === undefined)`, fire:
+
+```typescript
+flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_WIN_DETECTED);
+```
+
+**4. `ai-agents/knowledge-base/analytics-event-reference.md`** — Add to Game Events table:
+
+| Enum Key | Event String | When Fired |
+|---|---|---|
+| `GAME_WIN_DETECTED` | `Game:WinDetected` | Win condition evaluates to true — fires at detection, before WinModal renders |
+
+**5. `tests/core/executions/WinCheckExecution.test.ts`** — Add two tests:
+- Human + ghost bots (hasActed=false) → human wins with <80% tiles
+- Human + active bot (hasActed=true) → no win at <80% tiles
