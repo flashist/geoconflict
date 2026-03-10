@@ -1,7 +1,7 @@
 export const STORAGE_KEY = "geoconflict_match_history";
 // Keep 5 entries locally so the buffer survives mid-game tab closes;
 // feedback submissions only send the 3 most recent (server validates max(3)).
-const MAX_ENTRIES = 5;
+export const MAX_ENTRIES = 5;
 
 export interface MatchHistoryEntry {
   gameID: string;
