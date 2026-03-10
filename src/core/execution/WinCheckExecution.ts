@@ -70,12 +70,17 @@ export class WinCheckExecution implements Execution {
     // mg.players() returns only alive players, so the numTilesOwned() > 0 guard
     // is not needed here.
     const meaningfulPlayers = sorted.filter((p) => p.hasActed());
+    // meaningfulPlayers.length === 0 means all remaining alive players are ghosts.
+    // No winner is declared this tick; the timer win condition is the only escape
+    // hatch. If maxTimerValue is undefined, such a game could run indefinitely —
+    // acceptable since singleplayer missions always have a timer configured.
     if (meaningfulPlayers.length === 1) {
       this.mg.setWinner(
         meaningfulPlayers[0],
         this.mg.stats().stats(),
         "last_standing",
       );
+      console.log(`${meaningfulPlayers[0].name()} has won the game`);
       this.active = false;
       return;
     }

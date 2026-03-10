@@ -16,7 +16,10 @@ export function readMatchHistory(): MatchHistoryEntry[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (e) => e !== null && typeof e === "object" && typeof e.gameID === "string",
+    );
   } catch {
     return [];
   }

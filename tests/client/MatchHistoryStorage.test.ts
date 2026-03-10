@@ -27,6 +27,21 @@ describe("readMatchHistory", () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ foo: "bar" }));
     expect(readMatchHistory()).toEqual([]);
   });
+
+  it("filters out entries missing gameID", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([
+        { gameID: "abc", gameType: "", gameMap: "", outcome: "win", timestamp: 1 },
+        { gameType: "", outcome: "win" }, // missing gameID
+        null,                              // null entry
+        42,                                // non-object
+      ]),
+    );
+    const result = readMatchHistory();
+    expect(result).toHaveLength(1);
+    expect(result[0].gameID).toBe("abc");
+  });
 });
 
 describe("writeMatchStart", () => {
