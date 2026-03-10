@@ -77,6 +77,7 @@ export class WinCheckExecution implements Execution {
         "last_standing",
       );
       this.active = false;
+      return;
     }
   }
 

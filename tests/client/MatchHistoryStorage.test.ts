@@ -6,6 +6,7 @@ import {
   writeMatchStart,
   updateMatchOutcome,
   STORAGE_KEY,
+  MAX_ENTRIES,
 } from "../../src/client/MatchHistoryStorage";
 
 beforeEach(() => {
@@ -52,11 +53,11 @@ describe("writeMatchStart", () => {
     expect(history[1].gameID).toBe("game2");
   });
 
-  it("trims to MAX_ENTRIES (5)", () => {
-    for (let i = 0; i < 7; i++) {
+  it("trims to MAX_ENTRIES", () => {
+    for (let i = 0; i < MAX_ENTRIES + 2; i++) {
       writeMatchStart(`game${i}`, "", "");
     }
-    expect(readMatchHistory()).toHaveLength(5);
+    expect(readMatchHistory()).toHaveLength(MAX_ENTRIES);
   });
 
   it("most recent entry is at index 0", () => {
