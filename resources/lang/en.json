@@ -532,7 +532,8 @@
     "exit": "Exit Game",
     "keep": "Keep Playing",
     "spectate": "Spectate",
-    "wishlist": "Wishlist on Steam!"
+    "wishlist": "Wishlist on Steam!",
+    "game_id": "Match ID"
   },
   "reconnect": {
     "title": "Match in progress",

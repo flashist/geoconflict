@@ -1,5 +1,6 @@
 import { GameConfig, GameID, PartialGameRecord } from "../core/Schemas";
 import { replacer } from "../core/Util";
+import { writeMatchStart } from "./MatchHistoryStorage";
 
 export interface LocalStatsData {
   [key: GameID]: {
@@ -35,6 +36,7 @@ export function startGame(id: GameID, lobby: Partial<GameConfig>) {
   const stats = getStats();
   stats[id] = { lobby };
   save(stats);
+  writeMatchStart(id, lobby.gameType ?? "", lobby.gameMap ?? "");
 }
 
 export function startTime() {

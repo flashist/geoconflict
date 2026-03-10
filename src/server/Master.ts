@@ -167,6 +167,14 @@ const FEEDBACK_WEBHOOK_URL = process.env.FEEDBACK_WEBHOOK_URL ?? null;
 const FEEDBACK_TELEGRAM_TOKEN = process.env.FEEDBACK_TELEGRAM_TOKEN ?? null;
 const FEEDBACK_TELEGRAM_CHAT_ID = process.env.FEEDBACK_TELEGRAM_CHAT_ID ?? null;
 
+const MatchHistoryEntrySchema = z.object({
+  gameID: z.string().max(20),
+  gameType: z.string().max(50),
+  gameMap: z.string().max(50),
+  outcome: z.enum(["win", "loss", "abandoned"]),
+  timestamp: z.number(),
+});
+
 const FeedbackSchema = z.object({
   category: z.enum(["Bug", "Suggestion", "Other"]),
   text: z.string().max(2000).optional(),
@@ -175,6 +183,7 @@ const FeedbackSchema = z.object({
   yandexStatus: z.string().max(50),
   version: z.string().max(100),
   matchId: z.string().max(100).optional(),
+  recentMatches: MatchHistoryEntrySchema.array().max(3).optional(),
   screenSource: z.enum(["start", "battle"]),
   username: z.string().max(100).optional(),
   deviceInfo: z.record(z.string(), z.union([z.string(), z.number()])).refine(r => Object.keys(r).length > 0, { message: "deviceInfo must not be empty" }).optional(),
@@ -220,6 +229,13 @@ app.post(
               { name: "Version", value: d.version, inline: true },
               { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
               { name: "Contact", value: d.contact ? esc(d.contact) : "n/a", inline: true },
+              {
+                name: "Recent Matches",
+                value: d.recentMatches?.length
+                  ? d.recentMatches.map(m => `${m.gameID} · ${m.gameMap} · ${m.outcome}`).join("\n")
+                  : "n/a",
+                inline: false,
+              },
               { name: "Time", value: new Date().toISOString(), inline: false },
               ...(d.deviceInfo
                 ? [{ name: "Device Info", value: formatDeviceInfo(d.deviceInfo), inline: false }]
@@ -250,6 +266,9 @@ app.post(
         `<b>Yandex:</b> ${d.yandexStatus}  <b>Username:</b> ${d.username ? esc(d.username) : "n/a"}`,
         `<b>Version:</b> ${esc(d.version)}`,
         `<b>Match:</b> ${d.matchId ? esc(d.matchId) : "n/a"}  <b>Contact:</b> ${d.contact ? esc(d.contact) : "n/a"}`,
+        ...(d.recentMatches?.length
+          ? [`<b>Recent matches:</b>\n${d.recentMatches.map(m => `• ${m.gameID} — ${m.gameMap} — ${m.outcome}`).join("\n")}`]
+          : []),
         `<b>Time:</b> ${new Date().toISOString()}`,
         ...(d.deviceInfo ? [`\n<b>Device:</b> ${esc(formatDeviceInfo(d.deviceInfo))}`] : []),
       ];

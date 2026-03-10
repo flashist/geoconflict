@@ -49,18 +49,50 @@ export class WinCheckExecution implements Execution {
       (this.mg.ticks() - this.mg.config().numSpawnPhaseTurns()) / 10;
     const numTilesWithoutFallout =
       this.mg.numLandTiles() - this.mg.numTilesWithFallout();
-    if (
+    const timerExpired =
+      this.mg.config().gameConfig().maxTimerValue !== undefined &&
+      timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0;
+    const tileThresholdMet =
       (max.numTilesOwned() / numTilesWithoutFallout) * 100 >
-        this.mg.config().percentageTilesOwnedToWin() ||
-      (this.mg.config().gameConfig().maxTimerValue !== undefined &&
-        timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0)
-    ) {
-      this.mg.setWinner(max, this.mg.stats().stats());
-      console.log(`${max.name()} has won the game`);
+      this.mg.config().percentageTilesOwnedToWin();
+    if (tileThresholdMet || timerExpired) {
+      this.mg.setWinner(max, this.mg.stats().stats(), timerExpired ? "timer" : "tile_percentage");
       this.active = false;
+      return;
+    }
+
+    // Last-standing: if only one player who has taken meaningful action
+    // (hasActed === true) remains, declare them the winner. This prevents ghost
+    // bots — spawned but never acted — from holding spawn tiles and blocking the
+    // tile% threshold from being reached.
+    // Note: intentionally uses hasActed rather than type() !== Bot, so an AFK
+    // human who joined but never moved also doesn't block or claim the win.
+    // mg.players() returns only alive players, so the numTilesOwned() > 0 guard
+    // is not needed here.
+    const meaningfulPlayers = sorted.filter((p) => p.hasActed());
+    if (meaningfulPlayers.length === 0) {
+      // All alive players are ghosts (spawned but never acted). No last-standing
+      // winner can be declared; the timer win condition is the only escape hatch.
+      // Singleplayer missions always configure a timer, so this does not hang in
+      // practice. A timerless multiplayer game with all-ghost players would stall
+      // indefinitely — not a currently supported configuration.
+      return;
+    }
+    if (meaningfulPlayers.length === 1) {
+      this.mg.setWinner(
+        meaningfulPlayers[0],
+        this.mg.stats().stats(),
+        "last_standing",
+      );
+      this.active = false;
+      return;
     }
   }
 
+  // Note: last_standing is not implemented for team mode. Ghost bots in team
+  // games aggregate into teamToTiles by team, so a team of ghost bots holding
+  // spawn tiles could in theory delay detection — but team mode always has
+  // real players per team, making this a non-issue in practice today.
   checkWinnerTeam(): void {
     if (this.mg === null) throw new Error("Not initialized");
     const teamToTiles = new Map<Team, number>();
@@ -85,14 +117,14 @@ export class WinCheckExecution implements Execution {
     const numTilesWithoutFallout =
       this.mg.numLandTiles() - this.mg.numTilesWithFallout();
     const percentage = (max[1] / numTilesWithoutFallout) * 100;
-    if (
-      percentage > this.mg.config().percentageTilesOwnedToWin() ||
-      (this.mg.config().gameConfig().maxTimerValue !== undefined &&
-        timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0)
-    ) {
+    const timerExpired =
+      this.mg.config().gameConfig().maxTimerValue !== undefined &&
+      timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0;
+    const tileThresholdMet =
+      percentage > this.mg.config().percentageTilesOwnedToWin();
+    if (tileThresholdMet || timerExpired) {
       if (max[0] === ColoredTeams.Bot) return;
-      this.mg.setWinner(max[0], this.mg.stats().stats());
-      console.log(`${max[0]} has won the game`);
+      this.mg.setWinner(max[0], this.mg.stats().stats(), timerExpired ? "timer" : "tile_percentage");
       this.active = false;
     }
   }

@@ -1,4 +1,4 @@
-import { AllPlayersStats, ClientID, Winner } from "../Schemas";
+import { AllPlayersStats, ClientID, Winner, WinReason } from "../Schemas";
 import {
   EmojiMessage,
   GameUpdates,
@@ -244,7 +244,9 @@ export type DisplayChatMessageUpdate = {
 export interface WinUpdate {
   type: GameUpdateType.Win;
   allPlayersStats: AllPlayersStats;
+  allPlayersHasActed?: Record<string, boolean>;
   winner: Winner;
+  winReason?: WinReason;
 }
 
 export interface HashUpdate {
