@@ -267,10 +267,10 @@ export class WinModal extends LitElement implements Layer {
     const updates = this.game.updatesSinceLastTick();
     const winUpdates = updates !== null ? updates[GameUpdateType.Win] : [];
     winUpdates.forEach((wu) => {
-      flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_WIN_DETECTED);
       if (wu.winner === undefined) {
         // ...
       } else if (wu.winner[0] === "team") {
+        flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_WIN_DETECTED);
 
         //
         flashist_logEventAnalytics(
@@ -305,6 +305,7 @@ export class WinModal extends LitElement implements Layer {
         this.show();
 
       } else {
+        flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_WIN_DETECTED);
         const winner = this.game.playerByClientID(wu.winner[1]);
         if (!winner?.isPlayer()) return;
         const winnerClient = winner.clientID();

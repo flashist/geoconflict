@@ -123,6 +123,24 @@ describe("WinCheckExecution", () => {
     expect(mg.setWinner).not.toHaveBeenCalled();
   });
 
+  it("last_standing: no winner when all remaining players are ghosts", () => {
+    const ghostBot1 = {
+      numTilesOwned: jest.fn(() => 30),
+      hasActed: jest.fn(() => false),
+      name: jest.fn(() => "GhostBot1"),
+    };
+    const ghostBot2 = {
+      numTilesOwned: jest.fn(() => 20),
+      hasActed: jest.fn(() => false),
+      name: jest.fn(() => "GhostBot2"),
+    };
+    mg.players = jest.fn(() => [ghostBot1, ghostBot2]);
+    mg.numLandTiles = jest.fn(() => 100);
+    mg.numTilesWithFallout = jest.fn(() => 0);
+    winCheck.checkWinnerFFA();
+    expect(mg.setWinner).not.toHaveBeenCalled();
+  });
+
   it("last_standing: ghost bots with 0 tiles do not block win", () => {
     const human = {
       numTilesOwned: jest.fn(() => 40),
