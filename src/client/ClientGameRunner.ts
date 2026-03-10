@@ -295,6 +295,8 @@ export class ClientGameRunner {
     } else {
       outcome = "abandoned";
     }
+    // "abandoned" means no winner was set; writeMatchStart already wrote this
+    // entry with outcome: "abandoned", so no update is needed.
     if (outcome !== "abandoned") {
       updateMatchOutcome(this.lobby.gameStartInfo.gameID, outcome);
     }
