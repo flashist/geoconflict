@@ -245,7 +245,7 @@ export interface WinUpdate {
   type: GameUpdateType.Win;
   allPlayersStats: AllPlayersStats;
   winner: Winner;
-  winReason: WinReason;
+  winReason?: WinReason;
 }
 
 export interface HashUpdate {

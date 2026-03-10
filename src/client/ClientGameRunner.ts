@@ -285,15 +285,17 @@ export class ClientGameRunner {
 
     const myClientID = this.lobby.clientID;
     const myTeam = this.myPlayer.team();
-    let outcome: "win" | "loss";
+    let outcome: "win" | "loss" | "abandoned";
     if (update.winner?.[0] === "player") {
       outcome = update.winner[1] === myClientID ? "win" : "loss";
     } else if (update.winner?.[0] === "team") {
       outcome = update.winner[1] === myTeam ? "win" : "loss";
     } else {
-      outcome = "loss";
+      outcome = "abandoned";
     }
-    updateMatchOutcome(this.lobby.gameStartInfo.gameID, outcome);
+    if (outcome !== "abandoned") {
+      updateMatchOutcome(this.lobby.gameStartInfo.gameID, outcome);
+    }
   }
 
   private reportPlacements(_winUpdate: WinUpdate) {
