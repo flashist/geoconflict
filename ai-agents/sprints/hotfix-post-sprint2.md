@@ -81,11 +81,25 @@ Part A must complete before any code is written.
 
 ---
 
+## HF-6. Auto-Spawn Failure — Player Stuck Unable to Place
+**Effort:** 1–2 days (investigation + fix)
+**Brief:** `task-autospawn-bug-investigation.md`
+**Status:** Pending
+
+Critical gameplay bug. Auto-spawn places the player on an invalid tile (suspected: water, edge, or null) and fails silently — but may corrupt spawn state in a way that also breaks manual placement clicks. Player is stuck watching the match with no ability to participate. Especially severe in the tutorial where auto-spawn is the first interaction.
+
+Primary suspects: tile selection not filtering invalid tiles, failed placement setting `hasSpawned = true` regardless of outcome, or a race condition between auto-spawn and spawn phase initialisation.
+
+Investigation must confirm root cause before fix is written.
+
+---
+
 ## Hotfix Release Checklist
 
 - [ ] HF-1 deployed and verified — `Experiment:Tutorial:Enabled/Disabled` appearing in GameAnalytics
 - [ ] HF-2 deployed and verified — inline skip link visible in all tooltip modals
 - [ ] HF-3 deployed and verified — `UI:Tap:TutorialSkipCorner` and `UI:Tap:TutorialSkipInline` appearing in GameAnalytics
 - [ ] HF-4 deployed and verified — right half of map tappable on mobile while control panel is visible
-- [ ] HF-5 deployed and verified — win screen appears correctly after eliminating all opponents in singleplayer and multiplayer; `Game:WinDetected` firing in GameAnalytics
-- [ ] No new Sentry errors introduced by any of the five changes
+- [ ] HF-5 — ⛔ Cancelled & reverted. See cancelled-tasks.md
+- [ ] HF-6 deployed and verified — auto-spawn places on valid tile; manual placement works correctly if auto-spawn fails
+- [ ] No new Sentry errors introduced

@@ -69,6 +69,7 @@ Features are **excluded** from experiments if:
 | HF-3 | UI tap analytics — UI:Tap:{ElementId} | 2–3 hours | ❌ Excluded | Hotfix: establish convention; V1 instruments TutorialSkipCorner and TutorialSkipInline only | Hotfix |
 | HF-4 | Mobile control panel hit area bug | 1–2 hours | ❌ Excluded | Critical: transparent container area blocks right half of map on mobile; pointer-events fix | Hotfix |
 | HF-5 | Win condition detection bug | ~~1–3 days~~ | ❌ Excluded | ⛔ Cancelled & reverted — ghost-bot logic too entangled, contradicting test instructions. See cancelled-tasks.md | Hotfix |
+| HF-6 | Auto-spawn failure — player stuck unable to place | 1–2 days | ❌ Excluded | Critical: auto-spawn may corrupt spawn state on failure, blocking manual placement too; investigation + fix; especially severe in tutorial | Hotfix |
 | — | Humans vs Nations re-enable | 0.5 days | ❌ All users | Re-enable existing mode; AI fills empty slots so safe at current DAU; investigate disable mechanism first | 3 |
 | — | Feedback — attach match history | ~~1 day~~ | ❌ Excluded | ⛔ Cancelled & reverted — too many moving parts. Replaced by simpler task below. See cancelled-tasks.md | 3 |
 | — | Feedback — attach last match IDs (simple) | 2–3 hours | ❌ Excluded | Read last 3 game IDs from existing localStorage['game-records'] and attach to feedback payload. No new writes. | 3 |
