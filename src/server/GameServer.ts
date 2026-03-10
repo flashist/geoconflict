@@ -925,6 +925,7 @@ export class GameServer {
           username: player.username,
           persistentID:
             this.allClients.get(player.clientID)?.persistentID ?? "",
+          hasActed: this.winner?.allPlayersHasActed?.[player.clientID],
           stats,
           cosmetics: player.cosmetics,
           clanTag: getClanTag(player.username) ?? undefined,

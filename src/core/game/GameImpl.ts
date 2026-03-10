@@ -661,20 +661,17 @@ export class GameImpl implements Game {
   }
 
   setWinner(winner: Player | Team, allPlayersStats: AllPlayersStats, winReason?: WinReason): void {
-    // Enrich per-player stats with hasActed flag from live player state.
-    const enriched: AllPlayersStats = { ...allPlayersStats };
+    const allPlayersHasActed: Record<string, boolean> = {};
     for (const player of this.players()) {
       const clientID = player.clientID();
       if (clientID === null) continue;
-      enriched[clientID] = {
-        ...(enriched[clientID] ?? {}),
-        hasActed: player.hasActed(),
-      };
+      allPlayersHasActed[clientID] = player.hasActed();
     }
     this.addUpdate({
       type: GameUpdateType.Win,
       winner: this.makeWinner(winner),
-      allPlayersStats: enriched,
+      allPlayersStats,
+      allPlayersHasActed,
       winReason,
     });
   }

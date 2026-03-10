@@ -461,7 +461,7 @@ export const WinnerSchema = z
 export type Winner = z.infer<typeof WinnerSchema>;
 
 export const WinReasonSchema = z
-  .enum(["tile_percentage", "timer"])
+  .enum(["tile_percentage", "timer", "last_standing"])
   .optional();
 export type WinReason = z.infer<typeof WinReasonSchema>;
 
@@ -524,6 +524,7 @@ export const ClientSendWinnerSchema = z.object({
   winner: WinnerSchema,
   winReason: WinReasonSchema,
   allPlayersStats: AllPlayersStatsSchema,
+  allPlayersHasActed: z.record(ID, z.boolean()).optional(),
 });
 
 export const ClientHashSchema = z.object({
@@ -575,6 +576,7 @@ export const ClientMessageSchema = z.discriminatedUnion("type", [
 export const PlayerRecordSchema = PlayerSchema.extend({
   persistentID: PersistentIdSchema.nullable(), // WARNING: PII
   clanTag: z.string().optional(),
+  hasActed: z.boolean().optional(),
   stats: PlayerStatsSchema,
 });
 export type PlayerRecord = z.infer<typeof PlayerRecordSchema>;

@@ -154,6 +154,7 @@ export class SendWinnerEvent implements GameEvent {
     public readonly winner: Winner,
     public readonly allPlayersStats: AllPlayersStats,
     public readonly winReason?: WinReason,
+    public readonly allPlayersHasActed?: Record<string, boolean>,
   ) { }
 }
 export class SendHashEvent implements GameEvent {
@@ -575,6 +576,7 @@ export class Transport {
         winner: event.winner,
         winReason: event.winReason,
         allPlayersStats: event.allPlayersStats,
+        allPlayersHasActed: event.allPlayersHasActed,
       } satisfies ClientSendWinnerMessage);
     } else {
       console.log(

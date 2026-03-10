@@ -59,6 +59,23 @@ export class WinCheckExecution implements Execution {
       this.mg.setWinner(max, this.mg.stats().stats(), timerExpired ? "timer" : "tile_percentage");
       console.log(`${max.name()} has won the game`);
       this.active = false;
+      return;
+    }
+
+    // Last-standing: if only one player who has taken meaningful action (hasActed)
+    // still holds tiles, declare them the winner. Prevents ghost bots from
+    // blocking the win screen when they hold spawn tiles but never played.
+    const meaningfulPlayers = sorted.filter(
+      (p) => p.numTilesOwned() > 0 && p.hasActed(),
+    );
+    if (meaningfulPlayers.length === 1) {
+      this.mg.setWinner(
+        meaningfulPlayers[0],
+        this.mg.stats().stats(),
+        "last_standing",
+      );
+      console.log(`${meaningfulPlayers[0].name()} has won the game`);
+      this.active = false;
     }
   }
 
