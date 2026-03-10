@@ -236,7 +236,10 @@ export class ClientGameRunner {
   private catchUpProcessed = 0;
   private catchUpOverlay: HTMLDivElement | null = null;
   private static readonly CATCHUP_THRESHOLD = 30; // turns (~30 s)
-  private static readonly CATCHUP_BATCH_SIZE = 10; // heartbeats per RAF frame during catch-up
+  // heartbeats per RAF frame during catch-up
+  // Originally was 10x of normal speed of the game
+  // private static readonly CATCHUP_BATCH_SIZE = 10; 
+  private static readonly CATCHUP_BATCH_SIZE = 20;
 
   constructor(
     private lobby: LobbyConfig,
