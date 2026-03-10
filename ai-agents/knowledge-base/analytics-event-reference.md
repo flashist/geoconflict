@@ -55,6 +55,7 @@ Fired for both multiplayer and single-player missions.
 |---|---|---|
 | `GAME_START` | `Game:Start` | Match begins |
 | `GAME_END` | `Game:End` | Match ends for any reason |
+| `GAME_WIN_DETECTED` | `Game:WinDetected` | Win condition triggered (WinUpdate received by client, before modal renders) |
 | `GAME_WIN` | `Game:Win` | Player wins the match |
 | `GAME_LOSS` | `Game:Loss` | Player loses the match |
 | `GAME_ABANDON` | `Game:Abandon` | Player explicitly abandons |

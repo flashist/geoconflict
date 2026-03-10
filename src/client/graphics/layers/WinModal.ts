@@ -267,6 +267,7 @@ export class WinModal extends LitElement implements Layer {
     const updates = this.game.updatesSinceLastTick();
     const winUpdates = updates !== null ? updates[GameUpdateType.Win] : [];
     winUpdates.forEach((wu) => {
+      flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_WIN_DETECTED);
       if (wu.winner === undefined) {
         // ...
       } else if (wu.winner[0] === "team") {
