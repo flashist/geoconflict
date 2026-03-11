@@ -12,7 +12,7 @@ export class SpawnExecution implements Execution {
   constructor(
     private playerInfo: PlayerInfo,
     public readonly tile: TileRef,
-  ) { }
+  ) {}
 
   init(mg: Game, ticks: number) {
     this.mg = mg;
@@ -26,18 +26,10 @@ export class SpawnExecution implements Execution {
       return;
     }
 
-    // NORMAL BEHAVIOUR
     if (!this.mg.inSpawnPhase()) {
       this.active = false;
       return;
     }
-    // BROKEN AUTO-SPAWN TESTS
-    // TEST MODE B — Timing race (Failure Mode 1)
-    // if (true || !this.mg.inSpawnPhase()) {
-    //   console.warn(`[spawn] REJECTED - not in spawn phase, ticks=${ticks}, tile=${this.tile}, player=${this.playerInfo.id}`);
-    //   this.active = false;
-    //   return;
-    // }
 
     let player: Player | null = null;
     if (this.mg.hasPlayer(this.playerInfo.id)) {
@@ -47,15 +39,7 @@ export class SpawnExecution implements Execution {
     }
 
     player.tiles().forEach((t) => player.relinquish(t));
-
-    // NORMAL BEHAVIOUR
-    const spawnTiles = getSpawnTiles(this.mg, this.tile);
-    // BROKEN AUTO-SPAWN TESTS
-    // TEST MODE A: force empty spawn cluster
-    // const spawnTiles: TileRef[] = []; // was: getSpawnTiles(this.mg, this.tile);
-
-    console.log(`[spawn] cluster size ${spawnTiles.length}, validRef=${this.mg.isValidRef(this.tile)}, inSpawnPhase=${this.mg.inSpawnPhase()}, ticks=${ticks}, player=${this.playerInfo.id}`);
-    spawnTiles.forEach((t) => {
+    getSpawnTiles(this.mg, this.tile).forEach((t) => {
       player.conquer(t);
     });
 
