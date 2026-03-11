@@ -584,6 +584,9 @@ export class ClientGameRunner {
   }
 
   private tryAutoSpawn(): void {
+    console.log('[autospawn] tick', this.gameView.ticks(),
+      'inSpawnPhase', this.gameView.inSpawnPhase(),
+      'alreadySent', this._autoSpawnSent);
     if (this._autoSpawnSent) return;
     if (!this.gameView.inSpawnPhase()) return;
     if (this.gameView.ticks() === 0) return;
@@ -594,6 +597,7 @@ export class ClientGameRunner {
       const y = random.nextInt(0, this.gameView.height());
       const tile = this.gameView.ref(x, y);
       if (this.gameView.isLand(tile) && !this.gameView.hasOwner(tile)) {
+        console.log('[autospawn] placing at', x, y, 'tile', tile);
         flashist_logEventAnalytics(
           flashistConstants.analyticEvents.MATCH_SPAWN_AUTO,
         );
@@ -602,6 +606,7 @@ export class ClientGameRunner {
         return;
       }
     }
+    console.log('[autospawn] FAILED - no valid tile in 1000 iterations');
   }
 
   private inputEvent(event: MouseUpEvent) {
