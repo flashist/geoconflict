@@ -101,3 +101,53 @@ This pattern — auto-spawn fired, player never manually repositioned, session e
 - If the investigation confirms that a failed auto-spawn sets `hasSpawned = true` regardless of outcome, the fix is to make state updates conditional on successful placement — but verify this is actually the case before implementing it.
 - The tutorial is the highest-risk context for this bug — if auto-spawn fails in the tutorial, the player has no way to proceed and will abandon. Prioritise reproducing in tutorial context if possible.
 - Once the root cause is identified, add a Sentry breadcrumb at the auto-spawn execution point logging the selected tile type and coordinates — this will catch future regressions in production without requiring player reports.
+
+---
+
+## Investigation Findings (March 2026)
+
+### Root Cause Identified: Timing Race (Failure Mode 1)
+
+The bug is a **timing race between the client catch-up and the server spawn phase**. It is not caused by an invalid tile selection.
+
+**Mechanism:**
+1. Player joins a game mid-match (reconnect or late join). Client enters catch-up mode, replaying old turns at high speed (20 heartbeats/frame).
+2. During catch-up, `tryAutoSpawn()` fires at tick 1 — the client's local game view still shows `inSpawnPhase() = true` because it hasn't caught up yet.
+3. The spawn intent travels: client → server → next turn broadcast → worker queue.
+4. By the time `SpawnExecution.tick()` runs, the game has advanced past `numSpawnPhaseTurns` → `!inSpawnPhase()` → early return, player never added to game.
+5. `_autoSpawnSent = true` was already set on the client at step 2, blocking all retries.
+6. Spawn phase ends on the client view → manual `inputEvent()` spawn branch is skipped (requires `inSpawnPhase()`) → falls to attack branch → `myPlayer === null` (never added to game) → **all clicks silently ignored**.
+
+**Key files and lines:**
+- `src/client/ClientGameRunner.ts:594–613` — `tryAutoSpawn()`: sets `_autoSpawnSent = true` optimistically before server confirmation
+- `src/client/ClientGameRunner.ts:609` — the critical line: `_autoSpawnSent = true` fires before knowing if spawn succeeded
+- `src/core/execution/SpawnExecution.ts:29–33` — silent early return when `!inSpawnPhase()`, no state written, no error surfaced to client
+- `src/core/configuration/DefaultConfig.ts:713–715` — spawn phase duration: 100 ticks singleplayer, 300 ticks multiplayer
+
+**Confirmed by:** Forcing `SpawnExecution.tick()` to always reject spawns (regardless of spawn phase) reliably reproduced both symptoms — no auto-spawn and manual clicks silently ignored.
+
+**Secondary failure mode (not the primary bug):** `getSpawnTiles()` can return `[]` for a coastal/isolated tile. In this case `setHasSpawned(true)` is still called but the player owns 0 tiles. This does NOT block manual clicks (manual respawn during spawn phase still works), so it does not explain both symptoms simultaneously. Already caught by existing Jest tests.
+
+---
+
+### Two Distinct Sub-Problems
+
+Investigation revealed the bug is actually two problems that compound each other:
+
+**Problem 1 — Premature send (timing race):** `_autoSpawnSent = true` is set before server confirmation. Fix: guard `tryAutoSpawn()` with `if (this.catchingUp) return;` so the intent is only sent after catch-up ends, when the server's spawn phase is still active.
+
+**Problem 2 — No recovery path when spawn phase expires:** If catch-up lasts longer than the spawn phase (player joins very late), even the Problem 1 fix does not help — spawn phase ends during catch-up, and after catch-up the player has no way to spawn at all (spawn branch requires `inSpawnPhase()`, attack branch requires `myPlayer !== null`). This requires a separate, more involved fix.
+
+The one-line fix (`if (this.catchingUp) return;`) addresses Problem 1 only and is safe to ship. Problem 2 requires further design.
+
+---
+
+### Fix Phase Requirements
+
+**Before writing the fix:**
+1. **Create a clean, stable reproduction** that triggers both symptoms simultaneously (no auto-spawn AND manual clicks ignored). The current simulation (50-tick fake catch-up + reject at `ticks < 50`) only partially reproduces the bug — manual clicks still work because spawn phase (100 ticks) outlasts the catch-up window. A full reproduction requires catch-up to outlast the spawn phase, but that also requires a more complete fix (Problem 2 above). Resolve this tension before implementing anything.
+2. Only proceed to the fix once the reproduction is confirmed to show both symptoms reliably and cleanly.
+
+**After the fix is applied:**
+1. Add an analytics event to measure how often the fix actually saves players in production. Suggested event: fire a new `Match:SpawnRetryAfterCatchup` event (or similar name, following the `Category:Action` convention) whenever auto-spawn is **blocked** by the catch-up guard and then fires successfully after catch-up ends. This makes the fix's real-world impact visible in GameAnalytics without requiring player reports.
+2. Check the analytics signal described in the "Analytics Signal to Check" section above to measure before/after rates of broken sessions.
