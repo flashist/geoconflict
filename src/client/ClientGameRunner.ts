@@ -222,6 +222,7 @@ export class ClientGameRunner {
   private hasReportedParticipation = false;
   private hasProcessedWin = false;
   private _autoSpawnSent = false;
+  private _spawnMissedReported = false;
   private _autoZoomDone = false;
 
   private turnsSeen = 0;
@@ -362,6 +363,18 @@ export class ClientGameRunner {
       });
       this.gameView.update(gu);
       this.tryAutoSpawn();
+      if (
+        !this._spawnMissedReported &&
+        !this.gameView.inSpawnPhase() &&
+        this.gameView.myPlayer() === null
+      ) {
+        this._spawnMissedReported = true;
+        flashist_logEventAnalytics(
+          this._autoSpawnSent
+            ? flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_TIMING_RACE
+            : flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_NO_ATTEMPT,
+        );
+      }
       this.tryAutoZoom();
 
       this.myPlayer ??= this.gameView.myPlayer();
