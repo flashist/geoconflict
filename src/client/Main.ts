@@ -63,7 +63,10 @@ import {
   getNextMissionLevel,
   setNextMissionLevel,
 } from "./SinglePlayMissionStorage";
-import { TUTORIAL_COMPLETED_KEY } from "./TutorialStorage";
+import {
+  TUTORIAL_COMPLETED_KEY,
+  incrementAndGetTutorialAttemptCount,
+} from "./TutorialStorage";
 import { generateID } from "../core/Util";
 import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
@@ -71,6 +74,7 @@ import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
 import { getUserMe, isLoggedIn } from "./jwt";
 import "./styles.css";
+
 
 declare global {
   interface Window {
@@ -742,13 +746,16 @@ class Client {
           (ad as HTMLElement).style.display = "none";
         });
 
-        // Ensure there's a homepage entry in history before adding the lobby entry
-        if (window.location.hash === "" || window.location.hash === "#") {
-
+        // Ensure there's a homepage entry in history before adding the lobby entry.
+        // Skip for tutorial games: #join is disabled for them, so #refresh would get
+        // stuck in the URL and cause a double reload on the next browser refresh.
+        if (
+          (window.location.hash === "" || window.location.hash === "#") &&
+          !lobby.gameStartInfo?.config?.isTutorial
+        ) {
           // Flashist Adaptation
           // history.pushState(null, "", window.location.origin + "#refresh");
           history.pushState(null, "", FlashistFacade.instance.windowOrigin + "#refresh");
-
         }
 
         // Flashist Adaptation: disabling the #join URL, cuz it's not clear how to handle it for now at Yandex Games
@@ -758,7 +765,11 @@ class Client {
   }
 
   async startTutorial(): Promise<void> {
-    flashist_logEventAnalytics(flashistConstants.analyticEvents.TUTORIAL_STARTED);
+    const attemptNumber = incrementAndGetTutorialAttemptCount();
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.TUTORIAL_STARTED,
+      attemptNumber,
+    );
 
     const clientID = generateID();
     const gameID = generateID();

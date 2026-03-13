@@ -124,7 +124,7 @@ Fired during the tutorial match (only for players who see the tutorial experimen
 
 | Enum Key | Event String | When Fired |
 |---|---|---|
-| `TUTORIAL_STARTED` | `Tutorial:Started` | Tutorial match begins (**Historical note:** before `Experiment:Tutorial:Enabled` shipped, this event served as an imperfect proxy for experiment group assignment; data from that period has no `Experiment:Tutorial:*` events — use `Tutorial:Started` as the cohort anchor for historical comparisons) |
+| `TUTORIAL_STARTED` | `Tutorial:Started` | Tutorial match begins. **Value:** lifetime attempt count (1 = first ever attempt, 2 = second, etc.), persisted in `localStorage` under `tutorialAttemptCount`. Use this to separate first-time abandonment from repeat attempts. (**Historical note:** before `Experiment:Tutorial:Enabled` shipped, this event served as an imperfect proxy for experiment group assignment; data from that period has no `Experiment:Tutorial:*` events — use `Tutorial:Started` as the cohort anchor for historical comparisons. Events fired before the attempt-count change carry no value.) |
 | `TUTORIAL_TOOLTIP_SHOWN_FIRST_PART` | `Tutorial:TooltipShown:` + N | Tooltip N appears (N = 1–7); string is built at runtime by appending the tooltip number |
 | `TUTORIAL_TOOLTIP_CLOSED_FIRST_PART` | `Tutorial:TooltipClosed:` + N | Tooltip N is dismissed by the player (N = 1–7); string is built at runtime by appending the tooltip number |
 | `TUTORIAL_SKIPPED` | `Tutorial:Skipped` | Player clicks the "Skip tutorial" button |
