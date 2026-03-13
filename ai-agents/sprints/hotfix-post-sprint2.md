@@ -94,6 +94,19 @@ Investigation must confirm root cause before fix is written.
 
 ---
 
+## HF-7. Build Number Tracking via GameAnalytics Custom Dimension
+**Effort:** 1–2 hours
+**Brief:** `hotfix-hf7-build-number.md`
+**Status:** Pending — urgent, ship before further analytics investigation
+
+Without build segmentation, any metric change after a deployment is unattributable. Especially critical right now with the tutorial experiment running across multiple deployments.
+
+Implementation: configure Custom Dimension 01 in the GameAnalytics dashboard, define a `BUILD_NUMBER` constant in the codebase, call `setCustomDimension01(BUILD_NUMBER)` immediately after SDK init. All subsequent events carry the build value automatically — no event schema changes needed.
+
+**Important:** new build values must be pre-registered in the GA dashboard before each deploy, otherwise the dimension value is rejected.
+
+---
+
 ## Hotfix Release Checklist
 
 - [ ] HF-1 deployed and verified — `Experiment:Tutorial:Enabled/Disabled` appearing in GameAnalytics
@@ -102,4 +115,5 @@ Investigation must confirm root cause before fix is written.
 - [ ] HF-4 deployed and verified — right half of map tappable on mobile while control panel is visible
 - [ ] HF-5 — ⛔ Cancelled & reverted. See cancelled-tasks.md
 - [ ] HF-6 deployed and verified — auto-spawn places on valid tile; manual placement works correctly if auto-spawn fails
+- [ ] HF-7 deployed and verified — Custom Dimension 01 showing correct build value in GameAnalytics Explorer
 - [ ] No new Sentry errors introduced
