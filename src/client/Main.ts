@@ -63,7 +63,10 @@ import {
   getNextMissionLevel,
   setNextMissionLevel,
 } from "./SinglePlayMissionStorage";
-import { TUTORIAL_COMPLETED_KEY } from "./TutorialStorage";
+import {
+  TUTORIAL_COMPLETED_KEY,
+  incrementAndGetTutorialAttemptCount,
+} from "./TutorialStorage";
 import { generateID } from "../core/Util";
 import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
@@ -758,7 +761,11 @@ class Client {
   }
 
   async startTutorial(): Promise<void> {
-    flashist_logEventAnalytics(flashistConstants.analyticEvents.TUTORIAL_STARTED);
+    const attemptNumber = incrementAndGetTutorialAttemptCount();
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.TUTORIAL_STARTED,
+      attemptNumber,
+    );
 
     const clientID = generateID();
     const gameID = generateID();
