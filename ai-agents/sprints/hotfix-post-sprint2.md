@@ -107,6 +107,16 @@ Implementation: configure Custom Dimension 01 in the GameAnalytics dashboard, de
 
 ---
 
+## HF-8. Tutorial Attempt Number on Tutorial:Started Event
+**Effort:** 1–2 hours
+**Brief:** `hotfix-hf8-tutorial-attempt-count.md`
+**Status:** Pending
+**Depends on:** HF-7 — deploy after build number tracking so attempt data is immediately segmentable by build
+
+Extends `Tutorial:Started` with a lifetime attempt count as the event value. A new `tutorialAttemptCount` key in localStorage is incremented on each `Tutorial:Started` fire and persisted across sessions. Value 1 = first ever attempt, 2 = second, etc. Enables distinguishing first-time abandonment from restart loops in the 2.9K vs 731 gap analysis. No new event, no funnel breakage, no GA dashboard configuration required.
+
+---
+
 ## Hotfix Release Checklist
 
 - [ ] HF-1 deployed and verified — `Experiment:Tutorial:Enabled/Disabled` appearing in GameAnalytics
@@ -116,4 +126,5 @@ Implementation: configure Custom Dimension 01 in the GameAnalytics dashboard, de
 - [ ] HF-5 — ⛔ Cancelled & reverted. See cancelled-tasks.md
 - [ ] HF-6 deployed and verified — auto-spawn places on valid tile; manual placement works correctly if auto-spawn fails
 - [ ] HF-7 deployed and verified — Custom Dimension 01 showing correct build value in GameAnalytics Explorer
+- [ ] HF-8 deployed and verified — `Tutorial:Started` events showing attempt values > 1 for returning players in GameAnalytics Explorer
 - [ ] No new Sentry errors introduced
