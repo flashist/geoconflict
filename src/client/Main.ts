@@ -75,9 +75,6 @@ import "./components/baseComponents/Modal";
 import { getUserMe, isLoggedIn } from "./jwt";
 import "./styles.css";
 
-//
-const TEST_SESSION_RANDOM_ID = Date.now() + "_" + Math.floor(Math.random() * 1000);
-//
 
 declare global {
   interface Window {
@@ -769,7 +766,6 @@ class Client {
 
   async startTutorial(): Promise<void> {
     const attemptNumber = incrementAndGetTutorialAttemptCount();
-    console.log("DEBUG! startTutorial __ attemptNumber: ", attemptNumber);
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents.TUTORIAL_STARTED,
       attemptNumber,
@@ -952,8 +948,6 @@ class Client {
 
 // Initialize the client when the DOM is loaded
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("DEBUG! DOMContentLoaded __ sessionId: ", TEST_SESSION_RANDOM_ID);
-
   // Flashist Adaptation
   await flashist_waitGameInitComplete();
 

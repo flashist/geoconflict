@@ -4,9 +4,8 @@ export const TUTORIAL_ATTEMPT_COUNT_KEY = "tutorialAttemptCount";
 
 export function incrementAndGetTutorialAttemptCount(): number {
   const stored = localStorage.getItem(TUTORIAL_ATTEMPT_COUNT_KEY);
-  console.log("DEBUG! incrementAndGetTutorialAttemptCount __ stored: ", stored);
-  const next = (stored ? parseInt(stored, 10) : 0) + 1;
+  const parsed = parseInt(stored ?? "", 10);
+  const next = (Number.isNaN(parsed) ? 0 : parsed) + 1;
   localStorage.setItem(TUTORIAL_ATTEMPT_COUNT_KEY, String(next));
-  console.log("DEBUG! incrementAndGetTutorialAttemptCount __ next: ", next);
   return next;
 }
