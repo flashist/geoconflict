@@ -3,6 +3,7 @@ import { GameAnalytics } from "gameanalytics";
 import { GameEnv } from "../../core/configuration/Config";
 import * as Sentry from "@sentry/browser";
 import { isMobileDevice } from "../Utils";
+import version from "../../version";
 
 //
 export const flashistConstants = {
@@ -248,7 +249,7 @@ export class FlashistFacade {
         GameAnalytics.setCustomDimension01(isMobile ? "mobile" : "desktop");
         GameAnalytics.setCustomDimension02(isYandex ? "yandex" : "web");
 
-        // GameAnalytics.configureBuild(this.analyticsConfig.buildId);
+        GameAnalytics.configureBuild(version);
         GameAnalytics.initialize("a1f0fb4335fe32696c3b76eb49612ead", "ba57db678bc9a1181bde9430bad83c6fa3b71862");
         flashist_logEventAnalytics(flashistConstants.analyticEvents.SESSION_START);
 
