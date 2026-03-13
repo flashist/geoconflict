@@ -117,6 +117,16 @@ Extends `Tutorial:Started` with a lifetime attempt count as the event value. A n
 
 ---
 
+## HF-9. Remove `#refresh` History Push for All Non-Tutorial Game Types
+**Effort:** 30 minutes
+**Brief:** `hotfix-hf9-remove-refresh-push.md`
+**Status:** Pending — urgent
+**Context:** PR #45 (merged & deployed) fixed the double-reload for tutorial games. This task completes the fix for all remaining game types by removing the `#refresh` push entirely — it was part of a two-step history pattern whose second step (`#join=gameID`) is disabled for all game types in this codebase.
+
+One-line change: delete the `history.pushState` block in `handleJoinLobby()` in `Main.ts`. Low risk, high impact on analytics data quality.
+
+---
+
 ## Hotfix Release Checklist
 
 - [ ] HF-1 deployed and verified — `Experiment:Tutorial:Enabled/Disabled` appearing in GameAnalytics
@@ -127,4 +137,6 @@ Extends `Tutorial:Started` with a lifetime attempt count as the event value. A n
 - [ ] HF-6 deployed and verified — auto-spawn places on valid tile; manual placement works correctly if auto-spawn fails
 - [ ] HF-7 deployed and verified — Custom Dimension 01 showing correct build value in GameAnalytics Explorer
 - [ ] HF-8 deployed and verified — `Tutorial:Started` events showing attempt values > 1 for returning players in GameAnalytics Explorer
+- [ ] HF-9 deployed and verified — single `Session:Start` per session after browser refresh following a non-tutorial game
+- [x] PR #45 merged and deployed — double-reload fixed for tutorial games, NaN guard on attempt counter
 - [ ] No new Sentry errors introduced
