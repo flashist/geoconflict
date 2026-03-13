@@ -75,6 +75,10 @@ import "./components/baseComponents/Modal";
 import { getUserMe, isLoggedIn } from "./jwt";
 import "./styles.css";
 
+//
+const TEST_SESSION_RANDOM_ID = Date.now() + "_" + Math.floor(Math.random() * 1000);
+//
+
 declare global {
   interface Window {
     enableAds: boolean;
@@ -745,13 +749,16 @@ class Client {
           (ad as HTMLElement).style.display = "none";
         });
 
-        // Ensure there's a homepage entry in history before adding the lobby entry
-        if (window.location.hash === "" || window.location.hash === "#") {
-
+        // Ensure there's a homepage entry in history before adding the lobby entry.
+        // Skip for tutorial games: #join is disabled for them, so #refresh would get
+        // stuck in the URL and cause a double reload on the next browser refresh.
+        if (
+          (window.location.hash === "" || window.location.hash === "#") &&
+          !lobby.gameStartInfo?.config?.isTutorial
+        ) {
           // Flashist Adaptation
           // history.pushState(null, "", window.location.origin + "#refresh");
           history.pushState(null, "", FlashistFacade.instance.windowOrigin + "#refresh");
-
         }
 
         // Flashist Adaptation: disabling the #join URL, cuz it's not clear how to handle it for now at Yandex Games
@@ -762,6 +769,7 @@ class Client {
 
   async startTutorial(): Promise<void> {
     const attemptNumber = incrementAndGetTutorialAttemptCount();
+    console.log("DEBUG! startTutorial __ attemptNumber: ", attemptNumber);
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents.TUTORIAL_STARTED,
       attemptNumber,
@@ -944,6 +952,8 @@ class Client {
 
 // Initialize the client when the DOM is loaded
 document.addEventListener("DOMContentLoaded", async () => {
+  console.log("DEBUG! DOMContentLoaded __ sessionId: ", TEST_SESSION_RANDOM_ID);
+
   // Flashist Adaptation
   await flashist_waitGameInitComplete();
 
