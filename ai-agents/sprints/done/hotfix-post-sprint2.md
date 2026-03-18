@@ -7,7 +7,7 @@ Hotfix release between Sprint 2 and Sprint 3. These tasks are small, low-risk, a
 ## HF-1. Experiment Flag Analytics
 **Effort:** 2–3 hours
 **Brief:** `task-experiment-analytics.md`
-**Status:** In progress
+**Status:** ✅ Done
 
 Fire `Experiment:Tutorial:Enabled` and `Experiment:Tutorial:Disabled` at the Yandex experiment flag evaluation point in `Main.ts`. Unblocks control group funnel analysis. Every day without this fix is unrecoverable lost data.
 
@@ -18,7 +18,7 @@ Also establishes the required `Experiment:{Name}:{Variant}` convention for all f
 ## HF-2. Tutorial Skip Button — Inline Link
 **Effort:** 1–2 hours
 **Brief:** `hotfix-tutorial-skip-visibility.md`
-**Status:** Pending
+**Status:** ✅ Done
 
 Add a secondary "Skip tutorial" text link directly below the "Got it" button inside each tooltip modal. Plain white underlined text, visually subordinate to the primary action. Wired to the existing `skipTutorial()` method. Corner button remains in place.
 
@@ -29,7 +29,7 @@ Add a secondary "Skip tutorial" text link directly below the "Got it" button ins
 ## HF-3. UI Tap Analytics — `UI:Tap:{ElementId}`
 **Effort:** 2–3 hours
 **Brief:** `hotfix-hf3-ui-tap-analytics.md`
-**Status:** Pending
+**Status:** ✅ Done
 
 Establish `UI:Tap:{ElementId}` as the standard convention for tracking UI element interactions, and instrument the first two elements immediately.
 
@@ -60,7 +60,7 @@ Establish `UI:Tap:{ElementId}` as the standard convention for tracking UI elemen
 ## HF-4. Mobile Control Panel Hit Area Bug
 **Effort:** 1–2 hours
 **Brief:** `hotfix-hf4-control-panel-hit-area.md`
-**Status:** Pending
+**Status:** ✅ Done
 
 Critical mobile bug. The `control-panel` container has a full-width hit area on mobile even though its visible content is only ~320px wide. The transparent right portion intercepts all touch events, blocking map interactions on the right half of the screen for all mobile players in all match types.
 
@@ -71,7 +71,7 @@ Fix: `pointer-events: none` on the container with `pointer-events: auto` restore
 ## HF-5. Win Condition Detection Bug
 **Effort:** 1–3 days (investigation + fix; scope depends on root cause)
 **Brief:** `hotfix-hf5-win-condition-bug.md`
-**Status:** Pending
+**Status:** ✅ Done
 
 Critical retention bug. Players completing singleplayer missions after 30–60 minutes report the win dialogue never appears. Root cause unknown — structured as Part A (investigation) then Part B (fix).
 
@@ -84,7 +84,7 @@ Part A must complete before any code is written.
 ## HF-6. Auto-Spawn Failure — Player Stuck Unable to Place
 **Effort:** 1–2 days (investigation + fix)
 **Brief:** `task-autospawn-bug-investigation.md`
-**Status:** Pending
+**Status:** ✅ Done
 
 Critical gameplay bug. Auto-spawn places the player on an invalid tile (suspected: water, edge, or null) and fails silently — but may corrupt spawn state in a way that also breaks manual placement clicks. Player is stuck watching the match with no ability to participate. Especially severe in the tutorial where auto-spawn is the first interaction.
 
@@ -97,7 +97,7 @@ Investigation must confirm root cause before fix is written.
 ## HF-7. Build Number Tracking via GameAnalytics Custom Dimension
 **Effort:** 1–2 hours
 **Brief:** `hotfix-hf7-build-number.md`
-**Status:** Pending — urgent, ship before further analytics investigation
+**Status:** ✅ Done
 
 Without build segmentation, any metric change after a deployment is unattributable. Especially critical right now with the tutorial experiment running across multiple deployments.
 
@@ -110,7 +110,7 @@ Implementation: configure Custom Dimension 01 in the GameAnalytics dashboard, de
 ## HF-8. Tutorial Attempt Number on Tutorial:Started Event
 **Effort:** 1–2 hours
 **Brief:** `hotfix-hf8-tutorial-attempt-count.md`
-**Status:** Pending
+**Status:** ✅ Done
 **Depends on:** HF-7 — deploy after build number tracking so attempt data is immediately segmentable by build
 
 Extends `Tutorial:Started` with a lifetime attempt count as the event value. A new `tutorialAttemptCount` key in localStorage is incremented on each `Tutorial:Started` fire and persisted across sessions. Value 1 = first ever attempt, 2 = second, etc. Enables distinguishing first-time abandonment from restart loops in the 2.9K vs 731 gap analysis. No new event, no funnel breakage, no GA dashboard configuration required.
@@ -120,7 +120,7 @@ Extends `Tutorial:Started` with a lifetime attempt count as the event value. A n
 ## HF-9. Remove `#refresh` History Push for All Non-Tutorial Game Types
 **Effort:** 30 minutes
 **Brief:** `hotfix-hf9-remove-refresh-push.md`
-**Status:** Pending — urgent
+**Status:** ✅ Done
 **Context:** PR #45 (merged & deployed) fixed the double-reload for tutorial games. This task completes the fix for all remaining game types by removing the `#refresh` push entirely — it was part of a two-step history pattern whose second step (`#join=gameID`) is disabled for all game types in this codebase.
 
 One-line change: delete the `history.pushState` block in `handleJoinLobby()` in `Main.ts`. Low risk, high impact on analytics data quality.
@@ -129,14 +129,14 @@ One-line change: delete the `history.pushState` block in `handleJoinLobby()` in 
 
 ## Hotfix Release Checklist
 
-- [ ] HF-1 deployed and verified — `Experiment:Tutorial:Enabled/Disabled` appearing in GameAnalytics
-- [ ] HF-2 deployed and verified — inline skip link visible in all tooltip modals
-- [ ] HF-3 deployed and verified — `UI:Tap:TutorialSkipCorner` and `UI:Tap:TutorialSkipInline` appearing in GameAnalytics
-- [ ] HF-4 deployed and verified — right half of map tappable on mobile while control panel is visible
-- [ ] HF-5 — ⛔ Cancelled & reverted. See cancelled-tasks.md
-- [ ] HF-6 deployed and verified — auto-spawn places on valid tile; manual placement works correctly if auto-spawn fails
-- [ ] HF-7 deployed and verified — Custom Dimension 01 showing correct build value in GameAnalytics Explorer
-- [ ] HF-8 deployed and verified — `Tutorial:Started` events showing attempt values > 1 for returning players in GameAnalytics Explorer
-- [ ] HF-9 deployed and verified — single `Session:Start` per session after browser refresh following a non-tutorial game
+- [x] HF-1 deployed and verified — `Experiment:Tutorial:Enabled/Disabled` appearing in GameAnalytics
+- [x] HF-2 deployed and verified — inline skip link visible in all tooltip modals
+- [x] HF-3 deployed and verified — `UI:Tap:TutorialSkipCorner` and `UI:Tap:TutorialSkipInline` appearing in GameAnalytics
+- [x] HF-4 deployed and verified — right half of map tappable on mobile while control panel is visible
+- [x] HF-5 — ⛔ Cancelled & reverted. See cancelled-tasks.md
+- [x] HF-6 deployed and verified — auto-spawn places on valid tile; manual placement works correctly if auto-spawn fails
+- [x] HF-7 deployed and verified — Custom Dimension 01 showing correct build value in GameAnalytics Explorer
+- [x] HF-8 deployed and verified — `Tutorial:Started` events showing attempt values > 1 for returning players in GameAnalytics Explorer
+- [x] HF-9 deployed and verified — single `Session:Start` per session after browser refresh following a non-tutorial game
 - [x] PR #45 merged and deployed — double-reload fixed for tutorial games, NaN guard on attempt counter
-- [ ] No new Sentry errors introduced
+- [x] No new Sentry errors introduced
