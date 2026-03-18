@@ -746,17 +746,10 @@ class Client {
           (ad as HTMLElement).style.display = "none";
         });
 
-        // Ensure there's a homepage entry in history before adding the lobby entry.
-        // Skip for tutorial games: #join is disabled for them, so #refresh would get
-        // stuck in the URL and cause a double reload on the next browser refresh.
-        if (
-          (window.location.hash === "" || window.location.hash === "#") &&
-          !lobby.gameStartInfo?.config?.isTutorial
-        ) {
-          // Flashist Adaptation
-          // history.pushState(null, "", window.location.origin + "#refresh");
-          history.pushState(null, "", FlashistFacade.instance.windowOrigin + "#refresh");
-        }
+        // Removed: #refresh history push.
+        // Originally part of a two-step history pattern (#refresh → #join=gameID).
+        // #join=gameID is disabled for all game types (Flashist Adaptation),
+        // making #refresh a no-op that caused double page reloads on browser refresh.
 
         // Flashist Adaptation: disabling the #join URL, cuz it's not clear how to handle it for now at Yandex Games
         // history.pushState(null, "", `#join=${lobby.gameID}`);
