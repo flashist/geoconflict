@@ -99,8 +99,8 @@ export const flashistConstants = {
 
         // Yandex.Games remote flag for mobile rendering optimizations (Task 3).
         // Set flag "mobile_rendering" = "enabled" in the Yandex Games dashboard to activate.
-        MOBILE_RENDERING_FLAG_NAME: "mobile_rendering",
-        MOBILE_RENDERING_FLAG_VALUE: "enabled",
+        // MOBILE_RENDERING_FLAG_NAME: "mobile_rendering",
+        // MOBILE_RENDERING_FLAG_VALUE: "enabled",
 
         // Yandex.Games remote flag for guided first-match tutorial (Task 4).
         // Set flag "tutorial" = "enabled" in the Yandex Games dashboard to activate.
