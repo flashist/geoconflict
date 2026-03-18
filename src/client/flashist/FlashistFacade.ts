@@ -233,7 +233,6 @@ export class FlashistFacade {
 
         this.yandexInitPromise = this.yandexSdkInit();
         this.yandexSdkInitPlayerPromise = this.initPlayer();
-        this.initExperimentFlags();
 
         // Setting up Game Analytics
         GameAnalytics.setEnabledInfoLog(true);
@@ -298,17 +297,25 @@ export class FlashistFacade {
         this.initializationPromise = this._initialize();
     }
 
-    public initializationPromise: Promise<void>;
+    public readonly initializationPromise: Promise<void>;
 
     private async _initialize(): Promise<void> {
-        // 1. SDK must be ready first
+        // 1. SDK must be ready first — both initPlayer() and initExperimentFlags() await it
+        //    internally, so this explicit gate makes the dependency clear and ensures step 2
+        //    starts only after the SDK object is available.
         await this.yandexInitPromise;
 
         // 2. Player and experiment flags can proceed in parallel
-        await Promise.allSettled([
+        const [playerResult, flagsResult] = await Promise.allSettled([
             this.yandexSdkInitPlayerPromise,
             this.initExperimentFlags(),
         ]);
+        if (playerResult.status === "rejected") {
+            console.warn("Init step failed: player init", playerResult.reason);
+        }
+        if (flagsResult.status === "rejected") {
+            console.warn("Init step failed: experiment flags", flagsResult.reason);
+        }
 
         // 3. Apply experiment-driven config mutations — guaranteed to be after flags are loaded
         const joinMoreAdsEnabled = await this.checkExperimentFlag(
@@ -320,7 +327,7 @@ export class FlashistFacade {
         }
 
         // 4. Sentry user context (best-effort)
-        const name = await this.getCurPlayerName().catch(() => "");
+        const name = await this.getCurPlayerName().catch(() => undefined);
         if (name) Sentry.setUser({ username: name });
     }
 
