@@ -235,24 +235,6 @@ export class FlashistFacade {
         this.yandexSdkInitPlayerPromise = this.initPlayer();
         this.initExperimentFlags();
 
-        // Multiplayer Join: More Interstitial Ads Experiment
-        this.checkExperimentFlag(
-            flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
-            flashistConstants.experiments.JOIN_MORE_ADS_FLAG_VALUE,
-        )
-            .then((enabled) => {
-                if (enabled) {
-                    // If the experiment is enabled, rewrite configs of join-related
-                    flashistConstants.ads.interstitial.join = flashistConstants.ads.interstitial.joinMoreAds;
-                }
-            });
-
-        // Attach Yandex player identity to Sentry error reports where available
-        void this.yandexSdkInitPlayerPromise
-            .then(() => this.getCurPlayerName())
-            .then((name) => { if (name) Sentry.setUser({ username: name }); })
-            .catch(() => { /* silently ignore — user context is best-effort */ });
-
         // Setting up Game Analytics
         GameAnalytics.setEnabledInfoLog(true);
         GameAnalytics.setEnabledVerboseLog(true);
@@ -312,6 +294,34 @@ export class FlashistFacade {
         } catch {
             // silently skip if storage is unavailable (e.g. sandboxed iframe)
         }
+
+        this.initializationPromise = this._initialize();
+    }
+
+    public initializationPromise: Promise<void>;
+
+    private async _initialize(): Promise<void> {
+        // 1. SDK must be ready first
+        await this.yandexInitPromise;
+
+        // 2. Player and experiment flags can proceed in parallel
+        await Promise.allSettled([
+            this.yandexSdkInitPlayerPromise,
+            this.initExperimentFlags(),
+        ]);
+
+        // 3. Apply experiment-driven config mutations — guaranteed to be after flags are loaded
+        const joinMoreAdsEnabled = await this.checkExperimentFlag(
+            flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
+            flashistConstants.experiments.JOIN_MORE_ADS_FLAG_VALUE,
+        );
+        if (joinMoreAdsEnabled) {
+            flashistConstants.ads.interstitial.join = flashistConstants.ads.interstitial.joinMoreAds;
+        }
+
+        // 4. Sentry user context (best-effort)
+        const name = await this.getCurPlayerName().catch(() => "");
+        if (name) Sentry.setUser({ username: name });
     }
 
     // Single place for working with URLS
@@ -446,6 +456,8 @@ export class FlashistFacade {
 
                         reject();
                     }
+                } else {
+                    resolve(); // No SDK available — nothing to initialize
                 }
             }
         );
@@ -676,8 +688,7 @@ export const flashist_getLangSelector = (): LangSelector => {
 }
 
 export const flashist_waitGameInitComplete = async (): Promise<void> => {
-    await FlashistFacade.instance.yandexInitPromise;
-    //
+    await FlashistFacade.instance.initializationPromise;
     const langSelector = flashist_getLangSelector();
     await langSelector.langReadyPromise;
 }
