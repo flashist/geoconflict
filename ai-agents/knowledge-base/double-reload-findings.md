@@ -67,7 +67,7 @@ Result: two loads, two sets of initialization analytics, two localStorage writes
 
 **File:** `src/client/Main.ts`
 
-The `#refresh` push is now skipped when the game being joined is a tutorial:
+The `#refresh` push was skipped when the game being joined is a tutorial:
 
 ```ts
 if (
@@ -79,6 +79,21 @@ if (
 ```
 
 **Rationale:** Tutorial games never push `#join=...` either (it was already disabled). There is no "back button" scenario to support for tutorials. So `#refresh` served no purpose and only caused the double-reload.
+
+### All game types: `#refresh` push removed entirely (HF-9)
+
+**File:** `src/client/Main.ts`
+
+The entire `if` block above was removed. The `#refresh` push no longer happens for any game type:
+
+```ts
+// Removed: #refresh history push.
+// Originally part of a two-step history pattern (#refresh → #join=gameID).
+// #join=gameID is disabled for all game types (Flashist Adaptation),
+// making #refresh a no-op that caused double page reloads on browser refresh.
+```
+
+**Rationale:** Since `#join=gameID` is disabled for all game types, the two-step history pattern it was part of never completes. `#refresh` alone serves no navigational purpose and causes the double-reload on every browser refresh after any game.
 
 ### Tutorial attempt counter: NaN guard added (PR #45)
 
@@ -95,13 +110,7 @@ Prevents a corrupted localStorage value from permanently breaking the counter.
 
 ## What is NOT fixed
 
-### All non-tutorial game types still push `#refresh`
-
-Multiplayer games, single-player missions, and any future game type all go through the same `onJoin` callback and still push `#refresh`. Since `#join=gameID` is disabled for all of them too, the same double-reload will happen whenever a user refreshes after completing or abandoning any game.
-
-**Location:** `src/client/Main.ts`, inside the `onJoin` callback in `handleJoinLobby()`, around the comment "Ensure there's a homepage entry in history before adding the lobby entry."
-
-**Possible fix (not yet applied):** Either remove the `#refresh` push entirely (since `#join` is disabled for all game types, the history pattern it was designed for no longer applies), or extend the `isTutorial` guard to a broader condition that covers all cases where `#join` is not pushed.
+*(All known double-reload causes are now resolved as of HF-9.)*
 
 ---
 
