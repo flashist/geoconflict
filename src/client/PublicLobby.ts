@@ -264,7 +264,8 @@ export class PublicLobby extends LitElement {
       // Flashist Adaptation: Show interstitial ads only for the cases when there is enough time for it
       // and when there are still some avaialble slots for other people to join
       // (otherwise, the game would start earielr, than should)
-      if (timeRemaining >= 30 && openSlots >= 5) {
+      if (timeRemaining >= flashistConstants.ads.interstitial.join.minDurationBeforeGameSec &&
+        openSlots >= flashistConstants.ads.interstitial.join.minOpenSlotsCount) {
         try {
           await FlashistFacade.instance.showInterstitial();
         } catch (error) {

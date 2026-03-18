@@ -521,14 +521,15 @@ class Client {
         }
       });
 
-    FlashistFacade.instance
-      .checkExperimentFlag(
-        flashistConstants.experiments.MOBILE_RENDERING_FLAG_NAME,
-        flashistConstants.experiments.MOBILE_RENDERING_FLAG_VALUE,
-      )
-      .then((enabled) => {
-        if (enabled) enableMobileRenderingOpts();
-      });
+    // Disabling mobile-rendering experiments, due to bad AB test results
+    // FlashistFacade.instance
+    //   .checkExperimentFlag(
+    //     flashistConstants.experiments.MOBILE_RENDERING_FLAG_NAME,
+    //     flashistConstants.experiments.MOBILE_RENDERING_FLAG_VALUE,
+    //   )
+    //   .then((enabled) => {
+    //     if (enabled) enableMobileRenderingOpts();
+    //   });
 
     this.initializeFuseTag();
 
@@ -946,12 +947,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const client = new Client();
 
-  // Tutorial: auto-launch for first-time players if experiment flag is enabled
-  const tutorialEnabled = await FlashistFacade.instance.checkExperimentFlag(
-    flashistConstants.experiments.TUTORIAL_FLAG_NAME,
-    flashistConstants.experiments.TUTORIAL_FLAG_VALUE,
-  );
-  if (tutorialEnabled && !localStorage.getItem(TUTORIAL_COMPLETED_KEY)) {
+  // Tutorial: auto-launch for first-time players
+  if (!localStorage.getItem(TUTORIAL_COMPLETED_KEY)) {
     client.initialize();
     await client.startTutorial();
     return;
