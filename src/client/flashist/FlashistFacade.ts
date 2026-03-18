@@ -92,21 +92,6 @@ export const flashistConstants = {
     },
 
     experiments: {
-        // Yandex.Games remote flag for tab-crash reconnection.
-        // Set flag "reconnect" = "enabled" in the Yandex Games dashboard to activate.
-        // RECONNECT_FLAG_NAME: "reconnect",
-        // RECONNECT_FLAG_VALUE: "enabled",
-
-        // Yandex.Games remote flag for mobile rendering optimizations (Task 3).
-        // Set flag "mobile_rendering" = "enabled" in the Yandex Games dashboard to activate.
-        // MOBILE_RENDERING_FLAG_NAME: "mobile_rendering",
-        // MOBILE_RENDERING_FLAG_VALUE: "enabled",
-
-        // Yandex.Games remote flag for guided first-match tutorial (Task 4).
-        // Set flag "tutorial" = "enabled" in the Yandex Games dashboard to activate.
-        // TUTORIAL_FLAG_NAME: "tutorial",
-        // TUTORIAL_FLAG_VALUE: "enabled",
-
         // Yandex.Games remote flag for testing of showing more ads during interstitial
         JOIN_MORE_ADS_FLAG_NAME: "join_more_ads",
         JOIN_MORE_ADS_FLAG_VALUE: "enabled",
@@ -253,7 +238,7 @@ export class FlashistFacade {
         // Multiplayer Join: More Interstitial Ads Experiment
         this.checkExperimentFlag(
             flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
-            flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
+            flashistConstants.experiments.JOIN_MORE_ADS_FLAG_VALUE,
         )
             .then((enabled) => {
                 if (enabled) {
@@ -327,10 +312,6 @@ export class FlashistFacade {
         } catch {
             // silently skip if storage is unavailable (e.g. sandboxed iframe)
         }
-    }
-
-    protected async commitInitExperimentsData() {
-
     }
 
     // Single place for working with URLS
