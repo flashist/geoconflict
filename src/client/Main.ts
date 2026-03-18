@@ -521,14 +521,15 @@ class Client {
         }
       });
 
-    FlashistFacade.instance
-      .checkExperimentFlag(
-        flashistConstants.experiments.MOBILE_RENDERING_FLAG_NAME,
-        flashistConstants.experiments.MOBILE_RENDERING_FLAG_VALUE,
-      )
-      .then((enabled) => {
-        if (enabled) enableMobileRenderingOpts();
-      });
+    // Disabling mobile-rendering experiments, due to bad AB test results
+    // FlashistFacade.instance
+    //   .checkExperimentFlag(
+    //     flashistConstants.experiments.MOBILE_RENDERING_FLAG_NAME,
+    //     flashistConstants.experiments.MOBILE_RENDERING_FLAG_VALUE,
+    //   )
+    //   .then((enabled) => {
+    //     if (enabled) enableMobileRenderingOpts();
+    //   });
 
     this.initializeFuseTag();
 
