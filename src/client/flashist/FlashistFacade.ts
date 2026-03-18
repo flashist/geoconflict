@@ -106,6 +106,23 @@ export const flashistConstants = {
         // Set flag "tutorial" = "enabled" in the Yandex Games dashboard to activate.
         // TUTORIAL_FLAG_NAME: "tutorial",
         // TUTORIAL_FLAG_VALUE: "enabled",
+
+        // Yandex.Games remote flag for testing of showing more ads during interstitial
+        JOIN_MORE_ADS_FLAG_NAME: "join_more_ads",
+        JOIN_MORE_ADS_FLAG_VALUE: "enabled",
+    },
+
+    ads: {
+        interstitial: {
+            join: {
+                minDurationBeforeGameSec: 30,
+                minOpenSlotsCount: 5
+            },
+            joinMoreAds: {
+                minDurationBeforeGameSec: 15,
+                minOpenSlotsCount: 3
+            }
+        }
     }
 };
 
@@ -233,6 +250,18 @@ export class FlashistFacade {
         this.yandexSdkInitPlayerPromise = this.initPlayer();
         this.initExperimentFlags();
 
+        // Multiplayer Join: More Interstitial Ads Experiment
+        this.checkExperimentFlag(
+            flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
+            flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
+        )
+            .then((enabled) => {
+                if (enabled) {
+                    // If the experiment is enabled, rewrite configs of join-related
+                    flashistConstants.ads.interstitial.join = flashistConstants.ads.interstitial.joinMoreAds;
+                }
+            });
+
         // Attach Yandex player identity to Sentry error reports where available
         void this.yandexSdkInitPlayerPromise
             .then(() => this.getCurPlayerName())
@@ -298,6 +327,10 @@ export class FlashistFacade {
         } catch {
             // silently skip if storage is unavailable (e.g. sandboxed iframe)
         }
+    }
+
+    protected async commitInitExperimentsData() {
+
     }
 
     // Single place for working with URLS
