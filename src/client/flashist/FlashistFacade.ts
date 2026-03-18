@@ -104,8 +104,8 @@ export const flashistConstants = {
 
         // Yandex.Games remote flag for guided first-match tutorial (Task 4).
         // Set flag "tutorial" = "enabled" in the Yandex Games dashboard to activate.
-        TUTORIAL_FLAG_NAME: "tutorial",
-        TUTORIAL_FLAG_VALUE: "enabled",
+        // TUTORIAL_FLAG_NAME: "tutorial",
+        // TUTORIAL_FLAG_VALUE: "enabled",
     }
 };
 
