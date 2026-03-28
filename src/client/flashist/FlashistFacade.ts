@@ -93,17 +93,13 @@ export const flashistConstants = {
 
     experiments: {
         // Yandex.Games remote flag for testing of showing more ads during interstitial
-        JOIN_MORE_ADS_FLAG_NAME: "join_more_ads",
-        JOIN_MORE_ADS_FLAG_VALUE: "enabled",
+        // JOIN_MORE_ADS_FLAG_NAME: "join_more_ads",
+        // JOIN_MORE_ADS_FLAG_VALUE: "enabled",
     },
 
     ads: {
         interstitial: {
             join: {
-                minDurationBeforeGameSec: 30,
-                minOpenSlotsCount: 5
-            },
-            joinMoreAds: {
                 minDurationBeforeGameSec: 15,
                 minOpenSlotsCount: 3
             }
@@ -318,13 +314,13 @@ export class FlashistFacade {
         }
 
         // 3. Apply experiment-driven config mutations — guaranteed to be after flags are loaded
-        const joinMoreAdsEnabled = await this.checkExperimentFlag(
-            flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
-            flashistConstants.experiments.JOIN_MORE_ADS_FLAG_VALUE,
-        );
-        if (joinMoreAdsEnabled) {
-            flashistConstants.ads.interstitial.join = flashistConstants.ads.interstitial.joinMoreAds;
-        }
+        // const joinMoreAdsEnabled = await this.checkExperimentFlag(
+        //     flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
+        //     flashistConstants.experiments.JOIN_MORE_ADS_FLAG_VALUE,
+        // );
+        // if (joinMoreAdsEnabled) {
+        //     flashistConstants.ads.interstitial.join = flashistConstants.ads.interstitial.joinMoreAds;
+        // }
 
         // 4. Sentry user context (best-effort)
         const name = await this.getCurPlayerName().catch(() => undefined);
