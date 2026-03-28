@@ -127,6 +127,15 @@ One-line change: delete the `history.pushState` block in `handleJoinLobby()` in 
 
 ---
 
+## HF-10. Cache Busting & Build Freshness Guarantee
+**Effort:** 2–4 hours (investigation + config changes)
+**Brief:** `hotfix-hf10-cache-busting.md`
+**Status:** Pending — critical, include in next release
+
+Players are running stale cached builds, reporting analytics under old or missing build numbers and potentially still experiencing already-fixed bugs. Three-part fix: (A) investigate current cache configuration, (B) add content hash to bundle filenames so changed bundles get new URLs, (C) set `Cache-Control: no-cache` on the HTML entry point so it is always fetched fresh. Also confirm whether Yandex Games has its own CDN caching layer that requires a separate invalidation step on publish.
+
+---
+
 ## Hotfix Release Checklist
 
 - [x] HF-1 deployed and verified — `Experiment:Tutorial:Enabled/Disabled` appearing in GameAnalytics
@@ -138,5 +147,6 @@ One-line change: delete the `history.pushState` block in `handleJoinLobby()` in 
 - [x] HF-7 deployed and verified — Custom Dimension 01 showing correct build value in GameAnalytics Explorer
 - [x] HF-8 deployed and verified — `Tutorial:Started` events showing attempt values > 1 for returning players in GameAnalytics Explorer
 - [x] HF-9 deployed and verified — single `Session:Start` per session after browser refresh following a non-tutorial game
+- [ ] HF-10 deployed and verified — no events appearing under old build versions 48h after deploy; HTML entry point serving no-cache headers
 - [x] PR #45 merged and deployed — double-reload fixed for tutorial games, NaN guard on attempt counter
 - [x] No new Sentry errors introduced
