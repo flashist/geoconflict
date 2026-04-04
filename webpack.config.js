@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 import ESLintPlugin from "eslint-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import path from "path";
-import { sentryWebpackPlugin } from "@sentry/webpack-plugin";
 import { fileURLToPath } from "url";
 import webpack from "webpack";
 
@@ -330,6 +329,9 @@ export default async (env, argv) => {
           process.env.STRIPE_PUBLISHABLE_KEY,
         ),
         "process.env.API_DOMAIN": JSON.stringify(resolvedApiDomain),
+        "process.env.OTEL_EXPORTER_OTLP_ENDPOINT": JSON.stringify(
+          process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "",
+        ),
       }),
       new CopyPlugin({
         patterns: [
@@ -349,23 +351,6 @@ export default async (env, argv) => {
       new ESLintPlugin({
         context: __dirname,
       }),
-      ...(isProduction && process.env.SENTRY_AUTH_TOKEN
-        ? [sentryWebpackPlugin({
-          // Sentry: Main Account
-          // org: "flashist",
-          // project: "geoconflict",
-          // Sentry: Backup Account
-          org: "flashist-backup",
-          project: "geoconflict-backup",
-
-          authToken: process.env.SENTRY_AUTH_TOKEN,
-          release: { name: gitCommit },
-          sourcemaps: {
-            assets: "./static/**",
-            deleteFilesAfterUpload: ["./static/**/*.map"],
-          },
-        })]
-        : []),
     ],
     optimization: {
       // Add optimization configuration for better caching

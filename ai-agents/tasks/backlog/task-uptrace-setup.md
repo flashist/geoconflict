@@ -129,63 +129,13 @@ docker compose version
 
 ## Part C — Deploy Uptrace via Docker Compose
 
-### 1. Create working directory
+Run the automated deploy pipeline from your local machine:
 
 ```bash
-mkdir -p /opt/uptrace/backups && cd /opt/uptrace
+./build-deploy-telemetry.sh
 ```
 
-### 2. Download official config files
-
-```bash
-curl -sS https://raw.githubusercontent.com/uptrace/uptrace/master/example/docker/docker-compose.yml -o docker-compose.yml
-curl -sS https://raw.githubusercontent.com/uptrace/uptrace/master/example/docker/uptrace.yml -o uptrace.yml
-```
-
-### 3. Configure uptrace.yml
-
-**Project token:**
-```yaml
-projects:
-  - id: 1
-    name: geoconflict
-    token: "REPLACE_WITH_STRONG_RANDOM_SECRET"  # openssl rand -hex 32
-```
-
-**Secret key:**
-```yaml
-secret_key: "REPLACE_WITH_ANOTHER_STRONG_RANDOM_SECRET"  # openssl rand -hex 32
-```
-
-**Data retention:**
-```yaml
-ch_schema:
-  spans:
-    ttl_delete: "90 DAY"    # keep error traces 90 days for cross-release comparison
-  metrics:
-    ttl_delete: "90 DAY"
-```
-
-**Why 90 days for spans:** error history has ongoing diagnostic value. Being able to compare whether an error existed before or after a specific deploy requires sufficient historical depth. 90 days covers roughly 3 sprints worth of releases.
-
-**ClickHouse memory limit** — add to the ClickHouse service in `docker-compose.yml`:
-```yaml
-environment:
-  - CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO=0.6
-```
-
-### 4. Start all services
-
-```bash
-docker compose up -d
-docker compose logs -f uptrace  # watch startup progress
-```
-
-### 5. Verify
-
-```bash
-docker compose ps  # all four services should show Up
-```
+This script reads credentials from `.env.telemetry`, uploads `setup-telemetry.sh` to the server, and executes it remotely. It creates `/opt/uptrace`, writes all config files, and starts all services.
 
 ---
 
