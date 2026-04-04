@@ -1,6 +1,6 @@
 #!/bin/bash
-# deploy-telemetry.sh - Deploy/re-run Uptrace setup on the telemetry VPS
-# Usage: ./deploy-telemetry.sh
+# build-deploy-telemetry.sh - Deploy/re-run Uptrace setup on the telemetry VPS
+# Usage: ./build-deploy-telemetry.sh
 #
 # Reads credentials from .env and .env.telemetry.
 # Uploads setup-telemetry.sh and runs it on the remote server.

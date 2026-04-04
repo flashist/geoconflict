@@ -20,7 +20,7 @@
     "lint:fix": "eslint --fix",
     "prepare": "husky",
     "gen-maps": "cd map-generator && go run . && npm run format",
-    "deploy:telemetry": "./deploy-telemetry.sh"
+    "deploy:telemetry": "./build-deploy-telemetry.sh"
   },
   "lint-staged": {
     "**/*": [

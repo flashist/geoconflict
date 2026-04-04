@@ -2,7 +2,7 @@
 # setup-telemetry.sh - One-time setup for the Uptrace observability server
 # Run on the Uptrace VPS as root.
 #
-# Required env vars (passed by deploy-telemetry.sh):
+# Required env vars (passed by build-deploy-telemetry.sh):
 #   UPTRACE_PROJECT_TOKEN  — project token for OTLP auth (auto-generated if blank)
 #   UPTRACE_SECRET_KEY     — Uptrace secret key (auto-generated if blank)
 #   UPTRACE_ADMIN_PASSWORD — dashboard admin password (default: change_me_immediately)
@@ -273,7 +273,7 @@ services:
     restart: on-failure
     volumes:
       - ./otel-collector.yaml:/etc/otelcol-contrib/config.yaml
-    # These ports must be firewalled to game-server IP only (see deploy-telemetry.sh output)
+    # These ports must be firewalled to game-server IP only (see build-deploy-telemetry.sh output)
     ports:
       - "4317:4317"   # OTLP gRPC
       - "4318:4318"   # OTLP HTTP
@@ -297,11 +297,7 @@ echo "Waiting for all services to become healthy..."
 TIMEOUT=120
 ELAPSED=0
 while [ $ELAPSED -lt $TIMEOUT ]; do
-    UNHEALTHY=$(docker compose ps --format json 2>/dev/null | \
-        grep -c '"Health":"starting\|unhealthy"' || \
-        docker compose ps | grep -cE "starting|unhealthy" || true)
-    ALL_UP=$(docker compose ps | grep -cE "Up|running" || true)
-    if [ "$UNHEALTHY" -eq 0 ] && [ "$ALL_UP" -ge 4 ]; then
+    if ! docker compose ps | grep -qE "starting|unhealthy"; then
         break
     fi
     sleep 3
