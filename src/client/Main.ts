@@ -1,4 +1,4 @@
-import "./SentryInit"; // Must be first — initializes Sentry before any other module
+import "./OtelBrowserInit"; // Must be first — initializes OTEL error tracking before any other module
 import version from "../version";
 import { enableMobileRenderingOpts, translateText } from "../client/Utils";
 import { UserMeResponse } from "../core/ApiSchemas";

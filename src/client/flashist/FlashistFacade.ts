@@ -1,7 +1,7 @@
 import { LangSelector } from "../LangSelector";
 import { GameAnalytics } from "gameanalytics";
 import { GameEnv } from "../../core/configuration/Config";
-import * as Sentry from "@sentry/browser";
+import { setOtelUser } from "../OtelBrowserInit";
 import { isMobileDevice } from "../Utils";
 import version from "../../version";
 
@@ -322,9 +322,9 @@ export class FlashistFacade {
         //     flashistConstants.ads.interstitial.join = flashistConstants.ads.interstitial.joinMoreAds;
         // }
 
-        // 4. Sentry user context (best-effort)
+        // 4. OTEL user context (best-effort)
         const name = await this.getCurPlayerName().catch(() => undefined);
-        if (name) Sentry.setUser({ username: name });
+        if (name) setOtelUser(name);
     }
 
     // Single place for working with URLS

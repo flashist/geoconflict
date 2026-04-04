@@ -163,6 +163,11 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - "*"
+          allowed_headers:
+            - "*"
 
 processors:
   batch:
@@ -367,13 +372,13 @@ echo "Tokens (save these — they cannot be recovered):"
 echo "  UPTRACE_PROJECT_TOKEN=${UPTRACE_PROJECT_TOKEN}"
 echo "  UPTRACE_SECRET_KEY=${UPTRACE_SECRET_KEY}"
 echo ""
-echo "⚠️  FIREWALL: restrict ports 4317 and 4318 to the game server IP only:"
+echo "⚠️  FIREWALL: port 4317 (gRPC) — restrict to game server only; port 4318 (HTTP) — open to all for browser clients:"
 echo "   ufw allow from GAME_SERVER_IP to any port 4317"
-echo "   ufw allow from GAME_SERVER_IP to any port 4318"
 echo "   ufw deny 4317"
-echo "   ufw deny 4318"
+echo "   ufw allow 4318"
 echo "   ufw deny 14317"
 echo "   ufw deny 14318"
+echo "   ufw enable"
 echo ""
 echo "Change the admin password immediately after first login."
 echo "======================================================"
