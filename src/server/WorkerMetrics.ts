@@ -18,7 +18,7 @@ export function initWorkerMetrics(gameManager: GameManager): void {
   const resource = getOtelResource();
 
   const headers: Record<string, string> = {};
-  if (config.otelAuthHeader()) {
+  if (config.otelEnabled() && config.otelAuthHeader()) {
     headers["Authorization"] = "Basic " + config.otelAuthHeader();
   }
 
