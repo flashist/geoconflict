@@ -196,12 +196,25 @@ echo "Uploaded to ${REMOTE_SCRIPT}"
 
 print_header "RUNNING SETUP ON REMOTE SERVER"
 
-# Pass tokens as env vars so the same tokens survive re-runs
+# Write secrets to a temp file and copy via SCP.
+# This avoids embedding values inline in the SSH command, which would expose
+# them in ps aux / /proc/<pid>/cmdline on the remote server for the script duration.
+LOCAL_TMPENV=$(mktemp)
+chmod 600 "$LOCAL_TMPENV"
+cat > "$LOCAL_TMPENV" << EOF
+export UPTRACE_PROJECT_TOKEN='${UPTRACE_PROJECT_TOKEN}'
+export UPTRACE_SECRET_KEY='${UPTRACE_SECRET_KEY}'
+export UPTRACE_ADMIN_PASSWORD='${UPTRACE_ADMIN_PASSWORD}'
+EOF
+REMOTE_ENV="/root/.uptrace-deploy-env-$$"
+"${SCP_CMD[@]}" "$LOCAL_TMPENV" "${REMOTE_USER}@${TELEMETRY_SERVER_HOST}:${REMOTE_ENV}"
+rm -f "$LOCAL_TMPENV"
+
 "${SSH_CMD[@]}" "${REMOTE_USER}@${TELEMETRY_SERVER_HOST}" \
-    "chmod +x ${REMOTE_SCRIPT} && \
-    UPTRACE_PROJECT_TOKEN='${UPTRACE_PROJECT_TOKEN}' \
-    UPTRACE_SECRET_KEY='${UPTRACE_SECRET_KEY}' \
-    UPTRACE_ADMIN_PASSWORD='${UPTRACE_ADMIN_PASSWORD}' \
+    "chmod 600 ${REMOTE_ENV} && \
+    chmod +x ${REMOTE_SCRIPT} && \
+    . ${REMOTE_ENV} && \
+    rm -f ${REMOTE_ENV} && \
     ${REMOTE_SCRIPT}"
 
 print_header "DONE"

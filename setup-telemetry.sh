@@ -353,13 +353,17 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # PostgreSQL backup every Sunday at 3:00am
 0 3 * * 0 root cd $UPTRACE_DIR && docker compose exec -T postgres pg_dump -U uptrace uptrace > $BACKUP_DIR/pg-\$(date +\\%Y\\%m\\%d).sql 2>&1
 
-# ClickHouse live filesystem snapshot every Sunday at 3:30am (no downtime)
+# ClickHouse live filesystem snapshot every Sunday at 3:30am (no downtime).
+# Known limitation: snapshot is not crash-consistent if ClickHouse is writing during tar.
+# Acceptable for a telemetry system — upgrade to ClickHouse native BACKUP TO Disk
+# if strict consistency becomes a requirement.
 30 3 * * 0 root tar czf $BACKUP_DIR/clickhouse-\$(date +\\%Y\\%m\\%d).tar.gz /var/lib/docker/volumes/uptrace_clickhouse_data 2>&1
 
 # Prune old backups — keep last 4 weeks
 0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +28 -delete && find $BACKUP_DIR -name "clickhouse-*.tar.gz" -mtime +28 -delete
 
-# Disk usage alert — daily at 8:00am (logs to /var/log/disk-warnings.log if usage > 70%)
+# Disk usage alert — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 70%.
+# Log-only (no email/webhook) — check the log manually or configure a notification if needed.
 0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '%'); if [ "\$USAGE" -gt 70 ]; then echo "\$(date) -- disk usage \${USAGE}%" >> /var/log/disk-warnings.log; fi
 EOF
 

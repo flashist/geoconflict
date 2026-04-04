@@ -11,6 +11,9 @@ import {
 
 let currentUsername: string | null = null;
 
+// setOtelUser is always safe to call — it's a no-op when OTEL is disabled
+// (endpoint not set or DEPLOY_ENV === "dev"), since currentUsername is only
+// read inside the error listeners that are never registered in that case.
 export function setOtelUser(username: string): void {
   currentUsername = username;
 }
