@@ -120,15 +120,13 @@ EOFCFG
     # making it safe to run locally without running services.
     # Exit code is the sole signal — no output grepping.
     UPTRACE_VERSION=$(grep 'image: uptrace/uptrace:' "$SETUP_SCRIPT" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-    VALIDATE_OUT=$(docker run --rm \
+    if VALIDATE_OUT=$(docker run --rm \
         -v "$TMPDIR/config.yml:/etc/uptrace/config.yml" \
         "uptrace/uptrace:${UPTRACE_VERSION}" \
-        /uptrace --config=/etc/uptrace/config.yml help 2>&1)
-    VALIDATE_EXIT=$?
-    if [ $VALIDATE_EXIT -eq 0 ]; then
+        --config=/etc/uptrace/config.yml help 2>&1); then
         echo "✅ Config valid"
     else
-        echo "❌ Config validation failed (exit $VALIDATE_EXIT):"
+        echo "❌ Config validation failed:"
         echo "$VALIDATE_OUT"
         rm -rf "$TMPDIR"
         exit 1
