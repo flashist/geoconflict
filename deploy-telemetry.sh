@@ -45,6 +45,103 @@ if [ ! -f "$SETUP_SCRIPT" ]; then
     exit 1
 fi
 
+# ── Validate config locally before touching the server ────────────────────────
+
+print_header "VALIDATING CONFIG (local dry-run)"
+
+if command -v docker &> /dev/null; then
+    # Write a temp config the same way setup-telemetry.sh would, then ask Uptrace to validate it
+    TMPDIR=$(mktemp -d)
+    UPTRACE_PROJECT_TOKEN="${UPTRACE_PROJECT_TOKEN:-dryrun_token}"
+    UPTRACE_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-dryrun_password}"
+    cat > "$TMPDIR/config.yml" << EOFCFG
+service:
+  secret: '${UPTRACE_SECRET_KEY:-dryrun_secret}'
+site:
+  url: 'http://localhost:14318'
+listen:
+  http:
+    addr: ':80'
+  grpc:
+    addr: ':4317'
+auth: {}
+pg:
+  addr: postgres:5432
+  user: uptrace
+  password: uptrace
+  database: uptrace
+ch_cluster:
+  cluster: uptrace1
+  replicated: false
+  distributed: false
+  shards:
+    - replicas:
+        - addr: clickhouse:9000
+          user: uptrace
+          password: uptrace
+          database: uptrace
+redis_cache:
+  addrs:
+    1: redis:6379
+seed_data:
+  update: true
+  delete: true
+  users:
+    - key: admin_user
+      name: Admin
+      email: admin@geoconflict.ru
+      password: '${UPTRACE_ADMIN_PASSWORD}'
+      email_confirmed: true
+  orgs:
+    - key: geoconflict_org
+      name: Geoconflict
+  org_users:
+    - key: geoconflict_org_user
+      org_key: geoconflict_org
+      user_key: admin_user
+      role: owner
+  projects:
+    - key: geoconflict_project
+      name: geoconflict
+      org_key: geoconflict_org
+  project_tokens:
+    - key: geoconflict_token
+      project_key: geoconflict_project
+      token: '${UPTRACE_PROJECT_TOKEN}'
+  project_users:
+    - key: geoconflict_project_user
+      project_key: geoconflict_project
+      org_user_key: geoconflict_org_user
+      perm_level: admin
+EOFCFG
+
+    # Run uptrace config validation — exits non-zero and prints the offending field if invalid
+    UPTRACE_VERSION=$(grep 'image: uptrace/uptrace:' "$SETUP_SCRIPT" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+    if docker run --rm \
+        -v "$TMPDIR/config.yml:/etc/uptrace/config.yml" \
+        "uptrace/uptrace:${UPTRACE_VERSION}" \
+        /uptrace --config=/etc/uptrace/config.yml help > /dev/null 2>&1; then
+        echo "✅ Config valid"
+    else
+        # Capture actual output to distinguish config errors from help text
+        VALIDATE_OUT=$(docker run --rm \
+            -v "$TMPDIR/config.yml:/etc/uptrace/config.yml" \
+            "uptrace/uptrace:${UPTRACE_VERSION}" \
+            /uptrace --config=/etc/uptrace/config.yml help 2>&1 || true)
+        if echo "$VALIDATE_OUT" | grep -q "invalid.*config\|unknown field\|cannot unmarshal"; then
+            echo "❌ Config validation failed:"
+            echo "$VALIDATE_OUT"
+            rm -rf "$TMPDIR"
+            exit 1
+        else
+            echo "✅ Config valid"
+        fi
+    fi
+    rm -rf "$TMPDIR"
+else
+    echo "Docker not available locally — skipping config validation"
+fi
+
 REMOTE_USER="${TELEMETRY_VPS_LOGIN:-root}"
 SSH_PASSWORD="${TELEMETRY_VPS_PASSWORD:-}"
 SSH_KEY_PATH="${TELEMETRY_SSH_KEY:-}"

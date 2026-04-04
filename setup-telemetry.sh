@@ -10,7 +10,7 @@
 # What this script does:
 #   1. Installs Docker + Docker Compose plugin
 #   2. Writes docker-compose.yml, uptrace.yml, otel-collector.yaml to /opt/uptrace
-#   3. Starts all four containers (uptrace, clickhouse, postgres, otelcol)
+#   3. Starts all five containers (uptrace, clickhouse, postgres, redis, otelcol)
 #   4. Creates a systemd service for auto-start on reboot
 #   5. Adds weekly backup cron jobs for PostgreSQL and ClickHouse
 #   6. Adds daily disk usage monitoring
@@ -76,46 +76,75 @@ print_header "WRITING CONFIGURATION FILES"
 
 cat > "$UPTRACE_DIR/uptrace.yml" << EOF
 ##
-## Uptrace configuration
+## Uptrace v2 configuration
 ## https://uptrace.dev/get/config.html
 ##
 
-secret_key: '${UPTRACE_SECRET_KEY}'
+service:
+  secret: '${UPTRACE_SECRET_KEY}'
 
-auth:
-  users:
-    - name: Admin
-      email: admin@geoconflict.ru
-      password: '${UPTRACE_ADMIN_PASSWORD}'
-      role: admin
-
-projects:
-  - id: 1
-    name: geoconflict
-    token: '${UPTRACE_PROJECT_TOKEN}'
-
-ch:
-  addr: clickhouse:9000
-  user: default
-  password: ""
-  database: uptrace
-
-db:
-  driver: pg
-  dsn: "postgresql://uptrace:uptrace@postgres:5432/uptrace?sslmode=disable"
+site:
+  url: 'http://localhost:14318'
 
 listen:
   http:
-    addr: ':14318'
+    addr: ':80'
   grpc:
-    addr: ':14317'
+    addr: ':4317'
 
-ch_schema:
-  # Retain telemetry data for 90 days (covers ~3 release sprints for cross-release comparison)
-  spans:
-    ttl_delete: 90 DAY
-  metrics:
-    ttl_delete: 90 DAY
+auth: {}
+
+pg:
+  addr: postgres:5432
+  user: uptrace
+  password: uptrace
+  database: uptrace
+
+ch_cluster:
+  cluster: uptrace1
+  replicated: false
+  distributed: false
+  shards:
+    - replicas:
+        - addr: clickhouse:9000
+          user: uptrace
+          password: uptrace
+          database: uptrace
+
+redis_cache:
+  addrs:
+    1: redis:6379
+
+seed_data:
+  update: true
+  delete: true
+  users:
+    - key: admin_user
+      name: Admin
+      email: admin@geoconflict.ru
+      password: '${UPTRACE_ADMIN_PASSWORD}'
+      email_confirmed: true
+  orgs:
+    - key: geoconflict_org
+      name: Geoconflict
+  org_users:
+    - key: geoconflict_org_user
+      org_key: geoconflict_org
+      user_key: admin_user
+      role: owner
+  projects:
+    - key: geoconflict_project
+      name: geoconflict
+      org_key: geoconflict_org
+  project_tokens:
+    - key: geoconflict_token
+      project_key: geoconflict_project
+      token: '${UPTRACE_PROJECT_TOKEN}'
+  project_users:
+    - key: geoconflict_project_user
+      project_key: geoconflict_project
+      org_user_key: geoconflict_org_user
+      perm_level: admin
 EOF
 
 echo "Written: uptrace.yml"
@@ -142,11 +171,9 @@ processors:
 
 exporters:
   otlphttp/uptrace:
-    endpoint: http://uptrace:14318
+    endpoint: http://uptrace:80
     headers:
-      uptrace-dsn: "http://${UPTRACE_PROJECT_TOKEN}@localhost:14318/1"
-    tls:
-      insecure: true
+      uptrace-dsn: "http://${UPTRACE_PROJECT_TOKEN}@uptrace:80"
 
 service:
   pipelines:
@@ -169,29 +196,20 @@ echo "Written: otel-collector.yaml"
 # ── docker-compose.yml ────────────────────────────────────────────────────────
 
 cat > "$UPTRACE_DIR/docker-compose.yml" << 'EOF'
-version: '3.8'
-
 services:
-  uptrace:
-    image: uptrace/uptrace:latest
-    restart: unless-stopped
-    volumes:
-      - ./uptrace.yml:/etc/uptrace/uptrace.yml
-    # Bind to localhost only — access via SSH tunnel: ssh -L 14318:localhost:14318 root@HOST
-    ports:
-      - "127.0.0.1:14318:14318"
-      - "127.0.0.1:14317:14317"
-    depends_on:
-      - clickhouse
-      - postgres
-
   clickhouse:
-    image: clickhouse/clickhouse-server:23.7
-    restart: unless-stopped
+    image: clickhouse/clickhouse-server:25.8.15.35
+    restart: on-failure
     environment:
-      - CLICKHOUSE_DB=uptrace
-      # Cap ClickHouse at 60% of available RAM to leave headroom for other services
-      - CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO=0.6
+      CLICKHOUSE_USER: uptrace
+      CLICKHOUSE_PASSWORD: uptrace
+      CLICKHOUSE_DB: uptrace
+      CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO: "0.6"
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'localhost:8123/ping']
+      interval: 1s
+      timeout: 1s
+      retries: 30
     volumes:
       - clickhouse_data:/var/lib/clickhouse
     ulimits:
@@ -200,19 +218,51 @@ services:
         hard: 262144
 
   postgres:
-    image: postgres:15-alpine
-    restart: unless-stopped
+    image: postgres:17-alpine
+    restart: on-failure
     environment:
-      - POSTGRES_USER=uptrace
-      - POSTGRES_PASSWORD=uptrace
-      - POSTGRES_DB=uptrace
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_USER: uptrace
+      POSTGRES_PASSWORD: uptrace
+      POSTGRES_DB: uptrace
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U uptrace -d uptrace']
+      interval: 1s
+      timeout: 1s
+      retries: 30
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data/pgdata
+
+  redis:
+    image: redis:6.2.2-alpine
+    restart: on-failure
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 1s
+      timeout: 1s
+      retries: 30
+
+  uptrace:
+    image: uptrace/uptrace:2.0.2
+    restart: on-failure
+    volumes:
+      - ./uptrace.yml:/etc/uptrace/config.yml
+    # Bind to localhost only — access via SSH tunnel: ssh -L 14318:localhost:14318 root@HOST
+    ports:
+      - "127.0.0.1:14318:80"
+      - "127.0.0.1:14317:4317"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   # Receives OTLP from the game server, forwards to Uptrace with project DSN
   otelcol:
-    image: otel/opentelemetry-collector-contrib:latest
-    restart: unless-stopped
+    image: otel/opentelemetry-collector-contrib:0.123.0
+    restart: on-failure
     volumes:
       - ./otel-collector.yaml:/etc/otelcol-contrib/config.yaml
     # These ports must be firewalled to game-server IP only (see deploy-telemetry.sh output)
