@@ -242,7 +242,7 @@ services:
       - postgres_data:/var/lib/postgresql/data/pgdata
 
   redis:
-    image: redis:6.2.2-alpine
+    image: redis:7-alpine
     restart: on-failure
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
@@ -372,7 +372,7 @@ echo "✅ Cron jobs written to $CRON_FILE"
 
 # ── Print connection info ─────────────────────────────────────────────────────
 
-SERVER_IP=$(curl -s --max-time 5 http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || hostname -I | awk '{print $1}')
+SERVER_IP="${TELEMETRY_SERVER_HOST:-$(hostname -I | awk '{print $1}')}"
 
 print_header "SETUP COMPLETE"
 echo ""
