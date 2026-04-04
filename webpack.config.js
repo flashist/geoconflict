@@ -174,7 +174,7 @@ export default async (env, argv) => {
 
   return {
     entry: "./src/client/Main.ts",
-    devtool: false,
+    devtool: isProduction ? "source-map" : false,
     output: {
       publicPath: "/",
       filename: "js/[name].[contenthash].js", // Added content hash

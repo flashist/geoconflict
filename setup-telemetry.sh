@@ -117,7 +117,7 @@ redis_cache:
 
 seed_data:
   update: true
-  delete: true
+  delete: false
   users:
     - key: admin_user
       name: Admin
@@ -164,6 +164,9 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
         cors:
+          # Wildcard is intentional — browser clients connect from any origin.
+          # Anyone can send spans to port 4318, which may pollute telemetry.
+          # Acceptable trade-off for a game; tighten to your domain if needed.
           allowed_origins:
             - "*"
           allowed_headers:
@@ -289,8 +292,21 @@ echo "Written: docker-compose.yml"
 print_header "STARTING UPTRACE SERVICES"
 
 docker compose up -d
-echo "Waiting 15 seconds for services to initialise..."
-sleep 15
+
+echo "Waiting for all services to become healthy..."
+TIMEOUT=120
+ELAPSED=0
+while [ $ELAPSED -lt $TIMEOUT ]; do
+    UNHEALTHY=$(docker compose ps --format json 2>/dev/null | \
+        grep -c '"Health":"starting\|unhealthy"' || \
+        docker compose ps | grep -cE "starting|unhealthy" || true)
+    ALL_UP=$(docker compose ps | grep -cE "Up|running" || true)
+    if [ "$UNHEALTHY" -eq 0 ] && [ "$ALL_UP" -ge 4 ]; then
+        break
+    fi
+    sleep 3
+    ELAPSED=$((ELAPSED + 3))
+done
 
 if docker compose ps | grep -E "(Exit|unhealthy)" > /dev/null 2>&1; then
     echo "⚠️  One or more containers may have issues:"
@@ -341,8 +357,8 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # PostgreSQL backup every Sunday at 3:00am
 0 3 * * 0 root cd $UPTRACE_DIR && docker compose exec -T postgres pg_dump -U uptrace uptrace > $BACKUP_DIR/pg-\$(date +\\%Y\\%m\\%d).sql 2>&1
 
-# ClickHouse filesystem backup every Sunday at 3:30am (stop briefly to snapshot)
-30 3 * * 0 root docker compose -f $UPTRACE_DIR/docker-compose.yml stop clickhouse && tar czf $BACKUP_DIR/clickhouse-\$(date +\\%Y\\%m\\%d).tar.gz /var/lib/docker/volumes/uptrace_clickhouse_data && docker compose -f $UPTRACE_DIR/docker-compose.yml start clickhouse 2>&1
+# ClickHouse live filesystem snapshot every Sunday at 3:30am (no downtime)
+30 3 * * 0 root tar czf $BACKUP_DIR/clickhouse-\$(date +\\%Y\\%m\\%d).tar.gz /var/lib/docker/volumes/uptrace_clickhouse_data 2>&1
 
 # Prune old backups — keep last 4 weeks
 0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +28 -delete && find $BACKUP_DIR -name "clickhouse-*.tar.gz" -mtime +28 -delete

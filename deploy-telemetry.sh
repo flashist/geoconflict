@@ -85,7 +85,7 @@ redis_cache:
     1: redis:6379
 seed_data:
   update: true
-  delete: true
+  delete: false
   users:
     - key: admin_user
       name: Admin
@@ -160,6 +160,9 @@ if [ -z "$SSH_KEY_PATH" ] && [ -z "$SSH_PASSWORD" ]; then
 fi
 
 # Build SSH/SCP command prefix
+# StrictHostKeyChecking=no avoids interactive prompts in automated deploys.
+# Trade-off: won't detect a changed host key (e.g. after VPS rebuild).
+# If the key changes, run: ssh-keygen -R <host> and verify the new fingerprint manually.
 SCP_CMD=(scp -o StrictHostKeyChecking=no)
 SSH_CMD=(ssh -o StrictHostKeyChecking=no)
 
