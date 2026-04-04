@@ -115,27 +115,23 @@ seed_data:
       perm_level: admin
 EOFCFG
 
-    # Run uptrace config validation — exits non-zero and prints the offending field if invalid
+    # Run uptrace config validation — loads the config file and exits non-zero if it fails to parse.
+    # We use the `help` subcommand because it reads the config but does not attempt DB connections,
+    # making it safe to run locally without running services.
+    # Exit code is the sole signal — no output grepping.
     UPTRACE_VERSION=$(grep 'image: uptrace/uptrace:' "$SETUP_SCRIPT" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-    if docker run --rm \
+    VALIDATE_OUT=$(docker run --rm \
         -v "$TMPDIR/config.yml:/etc/uptrace/config.yml" \
         "uptrace/uptrace:${UPTRACE_VERSION}" \
-        /uptrace --config=/etc/uptrace/config.yml help > /dev/null 2>&1; then
+        /uptrace --config=/etc/uptrace/config.yml help 2>&1)
+    VALIDATE_EXIT=$?
+    if [ $VALIDATE_EXIT -eq 0 ]; then
         echo "✅ Config valid"
     else
-        # Capture actual output to distinguish config errors from help text
-        VALIDATE_OUT=$(docker run --rm \
-            -v "$TMPDIR/config.yml:/etc/uptrace/config.yml" \
-            "uptrace/uptrace:${UPTRACE_VERSION}" \
-            /uptrace --config=/etc/uptrace/config.yml help 2>&1 || true)
-        if echo "$VALIDATE_OUT" | grep -q "invalid.*config\|unknown field\|cannot unmarshal"; then
-            echo "❌ Config validation failed:"
-            echo "$VALIDATE_OUT"
-            rm -rf "$TMPDIR"
-            exit 1
-        else
-            echo "✅ Config valid"
-        fi
+        echo "❌ Config validation failed (exit $VALIDATE_EXIT):"
+        echo "$VALIDATE_OUT"
+        rm -rf "$TMPDIR"
+        exit 1
     fi
     rm -rf "$TMPDIR"
 else

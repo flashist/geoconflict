@@ -129,13 +129,13 @@ docker compose version
 
 ## Part C — Deploy Uptrace via Docker Compose
 
-Copy `scripts/setup-uptrace-server.sh` from the repo to the server and run it:
+Run the automated deploy pipeline from your local machine:
 
 ```bash
-bash setup-uptrace-server.sh
+./build-deploy-telemetry.sh
 ```
 
-This script creates `/opt/uptrace`, downloads `docker-compose.yml` from the official Uptrace repo, writes the correct `uptrace.yml` with verified v2 field names, and starts all services.
+This script reads credentials from `.env.telemetry`, uploads `setup-telemetry.sh` to the server, and executes it remotely. It creates `/opt/uptrace`, writes all config files, and starts all services.
 
 ---
 
