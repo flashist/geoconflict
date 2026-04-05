@@ -15,10 +15,7 @@ const config = getServerConfigFromServer();
 
 const resource = getOtelResource();
 
-// Initialize the OpenTelemetry Logger Provider
-const loggerProvider = new LoggerProvider({
-  resource,
-});
+let loggerProvider: LoggerProvider;
 
 if (config.otelEnabled()) {
   console.log("OTEL enabled");
@@ -26,20 +23,17 @@ if (config.otelEnabled()) {
   if (config.otelAuthHeader()) {
     headers["Authorization"] = "Basic " + config.otelAuthHeader();
   }
-  // Add OTLP exporter for logs
   const logExporter = new OTLPLogExporter({
     url: `${config.otelEndpoint()}/v1/logs`,
     headers,
   });
-
-  // Add a log processor with the exporter
-  loggerProvider.addLogRecordProcessor(
-    new SimpleLogRecordProcessor(logExporter),
-  );
-
-  // Set as the global logger provider
+  loggerProvider = new LoggerProvider({
+    resource,
+    processors: [new SimpleLogRecordProcessor(logExporter)],
+  });
   logsAPI.logs.setGlobalLoggerProvider(loggerProvider);
 } else {
+  loggerProvider = new LoggerProvider({ resource });
   console.log(
     "No OTLP endpoint and credentials provided, remote logging disabled",
   );
