@@ -1,12 +1,12 @@
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { Resource } from "@opentelemetry/resources";
+import { resourceFromAttributes } from "@opentelemetry/resources";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
-  ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
+  SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 } from "@opentelemetry/semantic-conventions";
 
 let currentUsername: string | null = null;
@@ -19,18 +19,20 @@ export function setOtelUser(username: string): void {
 }
 
 if (process.env.DEPLOY_ENV !== "dev" && process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
-  const resource = new Resource({
+  const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: "geoconflict-client",
     [ATTR_SERVICE_VERSION]: process.env.GIT_COMMIT ?? "unknown",
-    [ATTR_DEPLOYMENT_ENVIRONMENT_NAME]: process.env.DEPLOY_ENV ?? "prod",
+    [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: process.env.DEPLOY_ENV ?? "prod",
   });
 
   const exporter = new OTLPTraceExporter({
     url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}/v1/traces`,
   });
 
-  const provider = new WebTracerProvider({ resource });
-  provider.addSpanProcessor(new BatchSpanProcessor(exporter));
+  const provider = new WebTracerProvider({
+    resource,
+    spanProcessors: [new BatchSpanProcessor(exporter)],
+  });
   provider.register();
 
   const tracer = trace.getTracer("geoconflict-client");
