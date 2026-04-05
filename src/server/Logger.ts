@@ -20,7 +20,7 @@ let loggerProvider: LoggerProvider;
 if (config.otelEnabled()) {
   console.log("OTEL enabled");
   const headers: Record<string, string> = {};
-  if (config.otelEnabled() && config.otelAuthHeader()) {
+  if (config.otelAuthHeader()) {
     headers["Authorization"] = "Basic " + config.otelAuthHeader();
   }
   const logExporter = new OTLPLogExporter({
