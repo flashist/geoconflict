@@ -18,7 +18,7 @@ export function setOtelUser(username: string): void {
   currentUsername = username;
 }
 
-if (process.env.DEPLOY_ENV !== "dev" && process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
+if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: "geoconflict-client",
     [ATTR_SERVICE_VERSION]: process.env.GIT_COMMIT ?? "unknown",
