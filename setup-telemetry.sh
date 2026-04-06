@@ -340,7 +340,7 @@ if [ -n "$TELEMETRY_DOMAIN" ]; then
         --non-interactive \
         --agree-tos \
         --keep-until-expiring \
-        -m admin@geoconflict.ru \
+        -m ruflashist@gmail.com \
         -d "$TELEMETRY_DOMAIN"
 
     cat > /etc/nginx/sites-available/telemetry << NGINXEOF
