@@ -74,6 +74,12 @@ cd "$UPTRACE_DIR"
 
 print_header "WRITING CONFIGURATION FILES"
 
+if [ -n "$TELEMETRY_DOMAIN" ]; then
+    UPTRACE_SITE_URL="https://${TELEMETRY_DOMAIN}"
+else
+    UPTRACE_SITE_URL="http://localhost:14318"
+fi
+
 cat > "$UPTRACE_DIR/uptrace.yml" << EOF
 ##
 ## Uptrace v2 configuration
@@ -84,7 +90,7 @@ service:
   secret: '${UPTRACE_SECRET_KEY}'
 
 site:
-  url: 'http://localhost:14318'
+  url: '${UPTRACE_SITE_URL}'
 
 listen:
   http:
@@ -298,6 +304,7 @@ echo "Written: docker-compose.yml"
 print_header "STARTING UPTRACE SERVICES"
 
 docker compose up -d
+docker compose restart uptrace
 
 echo "Waiting for all services to become healthy..."
 TIMEOUT=120
@@ -343,6 +350,8 @@ server {
     return 301 https://\$host\$request_uri;
 }
 
+# OTLP collector + Uptrace dashboard on the same domain/port
+# /v1/* → otelcol (OTLP HTTP); everything else → Uptrace dashboard
 server {
     listen 443 ssl;
     server_name ${TELEMETRY_DOMAIN};
@@ -352,13 +361,37 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
 
-    location / {
+    # OTLP HTTP — /v1/traces, /v1/logs, /v1/metrics
+    location /v1/ {
         proxy_pass http://127.0.0.1:4318;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_read_timeout 30s;
+    }
+
+    # Uptrace dashboard
+    # sub_filter rewrites the hardcoded localhost:14318 in the pre-built JS bundle
+    # so API calls resolve to the public domain instead of failing in the browser.
+    # proxy_set_header Accept-Encoding "" + gunzip on: upstream sends gzip; gunzip
+    # decompresses before sub_filter runs, then nginx re-compresses for the client.
+    # proxy_hide_header Cache-Control + no-store: upstream caches assets for ~1 year;
+    # we strip that so browsers always re-fetch the rewritten JS.
+    location / {
+        proxy_pass http://127.0.0.1:14318;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header Accept-Encoding "";
+        proxy_read_timeout 30s;
+        proxy_hide_header Cache-Control;
+        add_header Cache-Control "no-store";
+        gunzip on;
+        sub_filter 'http://localhost:14318' 'https://${TELEMETRY_DOMAIN}';
+        sub_filter_once off;
+        sub_filter_types text/html application/javascript text/javascript;
     }
 }
 NGINXEOF
@@ -436,9 +469,14 @@ SERVER_IP="${TELEMETRY_SERVER_HOST:-$(hostname -I | awk '{print $1}')}"
 
 print_header "SETUP COMPLETE"
 echo ""
-echo "Dashboard (via SSH tunnel only):"
-echo "  ssh -L 14318:localhost:14318 root@${SERVER_IP}"
-echo "  Open: http://localhost:14318"
+if [ -n "$TELEMETRY_DOMAIN" ]; then
+    echo "Dashboard:"
+    echo "  Open: https://${TELEMETRY_DOMAIN}"
+else
+    echo "Dashboard (via SSH tunnel only):"
+    echo "  ssh -L 14318:localhost:14318 root@${SERVER_IP}"
+    echo "  Open: http://localhost:14318"
+fi
 echo "  Login: admin@geoconflict.ru / ${UPTRACE_ADMIN_PASSWORD}"
 echo ""
 echo "Game server env vars — add to .env.prod:"
@@ -455,8 +493,8 @@ echo "  UPTRACE_SECRET_KEY=${UPTRACE_SECRET_KEY}"
 echo ""
 if [ -n "$TELEMETRY_DOMAIN" ]; then
     echo "⚠️  FIREWALL:"
-    echo "   ufw allow 80    # HTTP (certbot renewal challenge)"
-    echo "   ufw allow 443   # HTTPS OTLP for browser + server"
+    echo "   ufw allow 80     # HTTP (certbot renewal challenge)"
+    echo "   ufw allow 443    # HTTPS — OTLP + Uptrace dashboard"
     echo "   ufw allow from GAME_SERVER_IP to any port 4317   # gRPC (optional)"
     echo "   ufw deny 4317 && ufw deny 4318 && ufw deny 14317 && ufw deny 14318"
     echo "   ufw enable"

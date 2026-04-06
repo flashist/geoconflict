@@ -54,11 +54,13 @@ if command -v docker &> /dev/null; then
     TMPDIR=$(mktemp -d)
     UPTRACE_PROJECT_TOKEN="${UPTRACE_PROJECT_TOKEN:-dryrun_token}"
     UPTRACE_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-dryrun_password}"
+    DRY_RUN_SITE_URL="${TELEMETRY_DOMAIN:+https://${TELEMETRY_DOMAIN}}"
+    DRY_RUN_SITE_URL="${DRY_RUN_SITE_URL:-http://localhost:14318}"
     cat > "$TMPDIR/config.yml" << EOFCFG
 service:
   secret: '${UPTRACE_SECRET_KEY:-dryrun_secret}'
 site:
-  url: 'http://localhost:14318'
+  url: '${DRY_RUN_SITE_URL}'
 listen:
   http:
     addr: ':80'
