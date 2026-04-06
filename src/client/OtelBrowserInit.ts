@@ -1,8 +1,12 @@
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { resourceFromAttributes } from "@opentelemetry/resources";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
+import { BatchLogRecordProcessor, LoggerProvider } from "@opentelemetry/sdk-logs";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
+import * as logsAPI from "@opentelemetry/api-logs";
+import { SeverityNumber } from "@opentelemetry/api-logs";
 import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
@@ -38,26 +42,86 @@ if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
     });
     provider.register();
 
+    const logExporter = new OTLPLogExporter({
+      url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT}/v1/logs`,
+      timeoutMillis: 5000,
+    });
+    const loggerProvider = new LoggerProvider({
+      resource,
+      processors: [new BatchLogRecordProcessor(logExporter)],
+    });
+    logsAPI.logs.setGlobalLoggerProvider(loggerProvider);
+    const otelLogger = logsAPI.logs.getLogger("geoconflict-client");
+
     const tracer = trace.getTracer("geoconflict-client");
 
+    // Intercept console.error so caught errors that are logged (not rethrown)
+    // also appear in telemetry — e.g. try/catch blocks that call console.error().
+    const originalConsoleError = console.error.bind(console);
+    console.error = (...args: unknown[]) => {
+      originalConsoleError(...args);
+      const error = args.find((a): a is Error => a instanceof Error);
+      const body = args
+        .map((a) => (a instanceof Error ? a.message : String(a)))
+        .join(" ");
+      otelLogger.emit({
+        severityNumber: SeverityNumber.ERROR,
+        severityText: "ERROR",
+        body,
+        attributes: {
+          ...(error
+            ? {
+                "exception.type": error.name,
+                "exception.message": error.message,
+                "exception.stacktrace": error.stack ?? "",
+              }
+            : {}),
+          ...(currentUsername ? { "enduser.id": currentUsername } : {}),
+        },
+      });
+    };
+
     window.addEventListener("error", (event) => {
+      const error = event.error ?? new Error(event.message);
       const span = tracer.startSpan("unhandled_error");
-      span.recordException(event.error ?? new Error(event.message));
+      span.recordException(error);
       span.setStatus({ code: SpanStatusCode.ERROR, message: event.message });
       if (currentUsername) span.setAttribute("enduser.id", currentUsername);
       span.end();
+      otelLogger.emit({
+        severityNumber: SeverityNumber.ERROR,
+        severityText: "ERROR",
+        body: error.message,
+        attributes: {
+          "exception.type": error.name,
+          "exception.message": error.message,
+          "exception.stacktrace": error.stack ?? "",
+          ...(currentUsername ? { "enduser.id": currentUsername } : {}),
+        },
+      });
     });
 
     window.addEventListener("unhandledrejection", (event) => {
-      const span = tracer.startSpan("unhandled_rejection");
       const error =
         event.reason instanceof Error
           ? event.reason
           : new Error(String(event.reason));
+      const span = tracer.startSpan("unhandled_rejection");
       span.recordException(error);
       span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
       if (currentUsername) span.setAttribute("enduser.id", currentUsername);
       span.end();
+      otelLogger.emit({
+        severityNumber: SeverityNumber.ERROR,
+        severityText: "ERROR",
+        body: error.message,
+        attributes: {
+          "exception.type": error.name,
+          "exception.message": error.message,
+          "exception.stacktrace": error.stack ?? "",
+          ...(currentUsername ? { "enduser.id": currentUsername } : {}),
+        },
+      });
     });
   } catch (e) {
     flashist_logErrorToAnalytics(
