@@ -1,6 +1,6 @@
 {
   "name": "geoconflict",
-  "version": "0.0.111",
+  "version": "0.0.118",
   "scripts": {
     "build-dev": "webpack --config webpack.config.js --mode development",
     "build-prod": "webpack --config webpack.config.js --mode production",
@@ -20,7 +20,8 @@
     "lint:fix": "eslint --fix",
     "prepare": "husky",
     "gen-maps": "cd map-generator && go run . && npm run format",
-    "deploy:telemetry": "./build-deploy-telemetry.sh"
+    "deploy:telemetry": "./build-deploy-telemetry.sh",
+    "telemetry:tunnel": "bash -c 'set -o allexport; source .env.telemetry; set +o allexport; sshpass -p \"$TELEMETRY_VPS_PASSWORD\" ssh -o StrictHostKeyChecking=no -N -L 14318:localhost:14318 ${TELEMETRY_VPS_LOGIN:-root}@$TELEMETRY_SERVER_HOST'"
   },
   "lint-staged": {
     "**/*": [

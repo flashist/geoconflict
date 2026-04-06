@@ -188,7 +188,7 @@ export abstract class DefaultServerConfig implements ServerConfig {
     return this.publicKey;
   }
   otelEnabled(): boolean {
-    return this.env() !== GameEnv.Dev && Boolean(this.otelEndpoint());
+    return Boolean(this.otelEndpoint());
   }
   otelEndpoint(): string {
     return process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? "";

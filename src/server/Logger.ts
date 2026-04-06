@@ -1,8 +1,8 @@
 import * as logsAPI from "@opentelemetry/api-logs";
 import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import {
+  BatchLogRecordProcessor,
   LoggerProvider,
-  SimpleLogRecordProcessor,
 } from "@opentelemetry/sdk-logs";
 import { OpenTelemetryTransportV3 } from "@opentelemetry/winston-transport";
 import * as dotenv from "dotenv";
@@ -26,10 +26,11 @@ if (config.otelEnabled()) {
   const logExporter = new OTLPLogExporter({
     url: `${config.otelEndpoint()}/v1/logs`,
     headers,
+    timeoutMillis: 5000,
   });
   loggerProvider = new LoggerProvider({
     resource,
-    processors: [new SimpleLogRecordProcessor(logExporter)],
+    processors: [new BatchLogRecordProcessor(logExporter)],
   });
   logsAPI.logs.setGlobalLoggerProvider(loggerProvider);
 } else {
