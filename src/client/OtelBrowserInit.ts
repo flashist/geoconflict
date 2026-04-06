@@ -7,12 +7,12 @@ import { BatchLogRecordProcessor, LoggerProvider } from "@opentelemetry/sdk-logs
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import * as logsAPI from "@opentelemetry/api-logs";
 import { SeverityNumber } from "@opentelemetry/api-logs";
+import { flashist_logErrorToAnalytics } from "./flashist/FlashistFacade";
 import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
   SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
 } from "@opentelemetry/semantic-conventions";
-import { flashist_logErrorToAnalytics } from "./flashist/FlashistFacade";
 
 let currentUsername: string | null = null;
 
@@ -58,27 +58,34 @@ if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
     // Intercept console.error so caught errors that are logged (not rethrown)
     // also appear in telemetry — e.g. try/catch blocks that call console.error().
     const originalConsoleError = console.error.bind(console);
+    let emitting = false;
     console.error = (...args: unknown[]) => {
       originalConsoleError(...args);
+      if (emitting) return;
+      emitting = true;
       const error = args.find((a): a is Error => a instanceof Error);
       const body = args
         .map((a) => (a instanceof Error ? a.message : String(a)))
         .join(" ");
-      otelLogger.emit({
-        severityNumber: SeverityNumber.ERROR,
-        severityText: "ERROR",
-        body,
-        attributes: {
-          ...(error
-            ? {
-                "exception.type": error.name,
-                "exception.message": error.message,
-                "exception.stacktrace": error.stack ?? "",
-              }
-            : {}),
-          ...(currentUsername ? { "enduser.id": currentUsername } : {}),
-        },
-      });
+      try {
+        otelLogger.emit({
+          severityNumber: SeverityNumber.ERROR,
+          severityText: "ERROR",
+          body,
+          attributes: {
+            ...(error
+              ? {
+                  "exception.type": error.name,
+                  "exception.message": error.message,
+                  "exception.stacktrace": error.stack ?? "",
+                }
+              : {}),
+            ...(currentUsername ? { "enduser.id": currentUsername } : {}),
+          },
+        });
+      } finally {
+        emitting = false;
+      }
     };
 
     window.addEventListener("error", (event) => {

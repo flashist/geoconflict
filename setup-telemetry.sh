@@ -304,7 +304,6 @@ echo "Written: docker-compose.yml"
 print_header "STARTING UPTRACE SERVICES"
 
 docker compose up -d
-docker compose restart uptrace
 
 echo "Waiting for all services to become healthy..."
 TIMEOUT=120
@@ -462,7 +461,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '%'); if [ "\$USAGE" -gt 70 ]; then echo "\$(date) -- disk usage \${USAGE}%" >> /var/log/disk-warnings.log; fi
 
 # Certbot renewal — twice daily (Let's Encrypt recommendation)
-0 0,12 * * * root certbot renew --quiet --post-hook "systemctl reload nginx" 2>&1
+0 0,12 * * * root certbot renew --quiet --post-hook "systemctl reload nginx" >> /var/log/certbot-renew.log 2>&1
 EOF
 
 chmod 644 "$CRON_FILE"
