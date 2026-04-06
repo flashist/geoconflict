@@ -203,7 +203,13 @@ echo "Written: otel-collector.yaml"
 
 # ── docker-compose.yml ────────────────────────────────────────────────────────
 
-cat > "$UPTRACE_DIR/docker-compose.yml" << 'EOF'
+if [ -n "$TELEMETRY_DOMAIN" ]; then
+    OTELCOL_HTTP_PORT="127.0.0.1:4318:4318"   # nginx proxies; no direct external access
+else
+    OTELCOL_HTTP_PORT="4318:4318"              # plain HTTP, exposed directly
+fi
+
+cat > "$UPTRACE_DIR/docker-compose.yml" << EOF
 services:
   clickhouse:
     image: clickhouse/clickhouse-server:25.8.15.35
@@ -275,8 +281,8 @@ services:
       - ./otel-collector.yaml:/etc/otelcol-contrib/config.yaml
     # These ports must be firewalled to game-server IP only (see build-deploy-telemetry.sh output)
     ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
+      - "4317:4317"                 # OTLP gRPC
+      - "${OTELCOL_HTTP_PORT}"      # OTLP HTTP (127.0.0.1 only when HTTPS mode)
     depends_on:
       - uptrace
 
@@ -311,6 +317,57 @@ if docker compose ps | grep -E "(Exit|unhealthy)" > /dev/null 2>&1; then
 else
     echo "✅ All containers running:"
     docker compose ps
+fi
+
+# ── HTTPS via nginx + Let's Encrypt ──────────────────────────────────────────
+
+if [ -n "$TELEMETRY_DOMAIN" ]; then
+    print_header "CONFIGURING HTTPS ($TELEMETRY_DOMAIN)"
+
+    apt-get install -y nginx certbot
+
+    # Stop nginx so certbot --standalone can own port 80 for the HTTP-01 challenge.
+    # --keep-until-expiring is a no-op if the cert is still fresh (safe to re-run).
+    systemctl stop nginx || true
+    certbot certonly --standalone \
+        --non-interactive \
+        --agree-tos \
+        --keep-until-expiring \
+        -m admin@geoconflict.ru \
+        -d "$TELEMETRY_DOMAIN"
+
+    cat > /etc/nginx/sites-available/telemetry << NGINXEOF
+server {
+    listen 80;
+    server_name ${TELEMETRY_DOMAIN};
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name ${TELEMETRY_DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/${TELEMETRY_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${TELEMETRY_DOMAIN}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    location / {
+        proxy_pass http://127.0.0.1:4318;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 30s;
+    }
+}
+NGINXEOF
+
+    ln -sf /etc/nginx/sites-available/telemetry /etc/nginx/sites-enabled/telemetry
+    rm -f /etc/nginx/sites-enabled/default
+    nginx -t
+    systemctl enable --now nginx
+    echo "✅ nginx running with TLS for $TELEMETRY_DOMAIN"
 fi
 
 # ── systemd service (auto-start on reboot) ────────────────────────────────────
@@ -365,6 +422,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # Disk usage alert — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 70%.
 # Log-only (no email/webhook) — check the log manually or configure a notification if needed.
 0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '%'); if [ "\$USAGE" -gt 70 ]; then echo "\$(date) -- disk usage \${USAGE}%" >> /var/log/disk-warnings.log; fi
+
+# Certbot renewal — twice daily (Let's Encrypt recommendation)
+0 0,12 * * * root certbot renew --quiet --post-hook "systemctl reload nginx" 2>&1
 EOF
 
 chmod 644 "$CRON_FILE"
@@ -382,19 +442,29 @@ echo "  Open: http://localhost:14318"
 echo "  Login: admin@geoconflict.ru / ${UPTRACE_ADMIN_PASSWORD}"
 echo ""
 echo "Game server env vars — add to .env.prod:"
-echo "  OTEL_EXPORTER_OTLP_ENDPOINT=http://${SERVER_IP}:4318"
+if [ -n "$TELEMETRY_DOMAIN" ]; then
+    OTLP_ENDPOINT="https://${TELEMETRY_DOMAIN}"
+else
+    OTLP_ENDPOINT="http://${SERVER_IP}:4318"
+fi
+echo "  OTEL_EXPORTER_OTLP_ENDPOINT=${OTLP_ENDPOINT}"
 echo ""
 echo "Tokens (save these — they cannot be recovered):"
 echo "  UPTRACE_PROJECT_TOKEN=${UPTRACE_PROJECT_TOKEN}"
 echo "  UPTRACE_SECRET_KEY=${UPTRACE_SECRET_KEY}"
 echo ""
-echo "⚠️  FIREWALL: port 4317 (gRPC) — restrict to game server only; port 4318 (HTTP) — open to all for browser clients:"
-echo "   ufw allow from GAME_SERVER_IP to any port 4317"
-echo "   ufw deny 4317"
-echo "   ufw allow 4318"
-echo "   ufw deny 14317"
-echo "   ufw deny 14318"
-echo "   ufw enable"
+if [ -n "$TELEMETRY_DOMAIN" ]; then
+    echo "⚠️  FIREWALL:"
+    echo "   ufw allow 80    # HTTP (certbot renewal challenge)"
+    echo "   ufw allow 443   # HTTPS OTLP for browser + server"
+    echo "   ufw allow from GAME_SERVER_IP to any port 4317   # gRPC (optional)"
+    echo "   ufw deny 4317 && ufw deny 4318 && ufw deny 14317 && ufw deny 14318"
+    echo "   ufw enable"
+else
+    echo "⚠️  FIREWALL: port 4317 (gRPC) — restrict to game server only; port 4318 (HTTP) — open to all for browser clients:"
+    echo "   ufw allow from GAME_SERVER_IP to any port 4317"
+    echo "   ufw deny 4317 && ufw allow 4318 && ufw deny 14317 && ufw deny 14318 && ufw enable"
+fi
 echo ""
 echo "Change the admin password immediately after first login."
 echo "======================================================"
