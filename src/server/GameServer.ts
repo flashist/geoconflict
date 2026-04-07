@@ -1,3 +1,4 @@
+import { context, trace } from "@opentelemetry/api";
 import ipAnonymize from "ip-anonymize";
 import { Logger } from "winston";
 import WebSocket from "ws";
@@ -25,6 +26,8 @@ import { createPartialGameRecord, getClanTag, simpleHash } from "../core/Util";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
+const SLOW_TURN_THRESHOLD_MS = 100;
+
 export enum GamePhase {
   Lobby = "LOBBY",
   Active = "ACTIVE",
@@ -679,15 +682,21 @@ export class GameServer {
   }
 
   private endTurn() {
+    const t0 = Date.now();
+
     const pastTurn: Turn = {
       turnNumber: this.turns.length,
       intents: this.intents,
     };
     this.turns.push(pastTurn);
-    this.intents = [];
+    this.intents.length = 0;
+
+    const t1 = Date.now();
 
     this.handleSynchronization();
     this.checkDisconnectedStatus();
+
+    const t2 = Date.now();
 
     const msg = JSON.stringify({
       type: "turn",
@@ -696,6 +705,47 @@ export class GameServer {
     this.activeClients.forEach((c) => {
       c.ws.send(msg);
     });
+
+    const t3 = Date.now();
+    const totalMs = t3 - t0;
+
+    if (totalMs > SLOW_TURN_THRESHOLD_MS) {
+      const tracer = trace.getTracer("server-turns");
+      const rootSpan = tracer.startSpan("server.turn.process", {
+        startTime: t0,
+      });
+      rootSpan.setAttribute("game.id", this.id);
+      rootSpan.setAttribute("turn.number", pastTurn.turnNumber);
+      rootSpan.setAttribute("intents.count", pastTurn.intents.length);
+      rootSpan.setAttribute("clients.active", this.activeClients.length);
+      rootSpan.setAttribute("message.size_bytes", msg.length);
+      rootSpan.setAttribute("turn.duration_ms", totalMs);
+
+      const ctx = trace.setSpan(context.active(), rootSpan);
+
+      const collectSpan = tracer.startSpan(
+        "intent.collection",
+        { startTime: t0 },
+        ctx,
+      );
+      collectSpan.end(t1);
+
+      const syncSpan = tracer.startSpan(
+        "synchronization",
+        { startTime: t1 },
+        ctx,
+      );
+      syncSpan.end(t2);
+
+      const broadcastSpan = tracer.startSpan(
+        "turn.broadcast",
+        { startTime: t2 },
+        ctx,
+      );
+      broadcastSpan.end(t3);
+
+      rootSpan.end(t3);
+    }
   }
 
   async end() {
