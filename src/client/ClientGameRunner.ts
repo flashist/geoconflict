@@ -56,7 +56,8 @@ import {
   reportPlacement,
 } from "./leaderboard/LeaderboardReporter";
 import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
-import { flashist_logEventAnalytics, flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
+import { flashist_logEventAnalytics, flashistConstants } from "./flashist/FlashistFacade";
+import { logOtelWarn } from "./OtelBrowserInit";
 
 export interface LobbyConfig {
   serverConfig: ServerConfig;
@@ -222,6 +223,7 @@ export class ClientGameRunner {
   private hasReportedParticipation = false;
   private hasProcessedWin = false;
   private _autoSpawnSent = false;
+  private _autoSpawnBlockedByCatchup = false;
   private _spawnMissedReported = false;
   private _autoZoomDone = false;
 
@@ -372,7 +374,9 @@ export class ClientGameRunner {
         flashist_logEventAnalytics(
           this._autoSpawnSent
             ? flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_TIMING_RACE
-            : flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_NO_ATTEMPT,
+            : this._autoSpawnBlockedByCatchup
+              ? flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_CATCHUP_TOO_LONG
+              : flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_NO_ATTEMPT,
         );
       }
       this.tryAutoZoom();
@@ -598,6 +602,19 @@ export class ClientGameRunner {
 
   private tryAutoSpawn(): void {
     if (this._autoSpawnSent) return;
+    // Hold spawn until catch-up is complete so the intent reaches the server
+    // while the spawn phase is still active. This method is called on every
+    // tick (unconditionally, not gated on inSpawnPhase), so it will naturally
+    // retry on the next tick after catch-up ends.
+    // catchingUp is set when queued turns exceed CATCHUP_THRESHOLD on initial
+    // batch receive, and cleared when the batch is fully processed.
+    if (this.catchingUp) {
+      // One-way latch: stays true after catch-up ends so the missed-spawn
+      // reporter can distinguish "catch-up outlasted spawn phase" (Problem 2)
+      // from "never attempted at all".
+      this._autoSpawnBlockedByCatchup = true;
+      return;
+    }
     if (!this.gameView.inSpawnPhase()) return;
     if (this.gameView.ticks() === 0) return;
 
@@ -607,9 +624,21 @@ export class ClientGameRunner {
       const y = random.nextInt(0, this.gameView.height());
       const tile = this.gameView.ref(x, y);
       if (this.gameView.isLand(tile) && !this.gameView.hasOwner(tile)) {
+        // Only emit OTEL breadcrumb for deferred spawns (catch-up retries) to
+        // avoid per-player log volume on every normal auto-spawn.
+        if (this._autoSpawnBlockedByCatchup) {
+          logOtelWarn(
+            `tryAutoSpawn: tile (${x}, ${y}) deferred from catch-up, retrying for player ${this.lobby.clientID}`,
+          );
+        }
         flashist_logEventAnalytics(
           flashistConstants.analyticEvents.MATCH_SPAWN_AUTO,
         );
+        if (this._autoSpawnBlockedByCatchup) {
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.MATCH_SPAWN_RETRY_AFTER_CATCHUP,
+          );
+        }
         this.eventBus.emit(new SendSpawnIntentEvent(tile));
         this._autoSpawnSent = true;
         return;

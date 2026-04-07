@@ -27,6 +27,9 @@ export class SpawnExecution implements Execution {
     }
 
     if (!this.mg.inSpawnPhase()) {
+      console.warn(
+        `SpawnExecution: spawn phase over, tile (${this.mg.x(this.tile)}, ${this.mg.y(this.tile)}) rejected for player ${this.playerInfo.id}`,
+      );
       this.active = false;
       return;
     }

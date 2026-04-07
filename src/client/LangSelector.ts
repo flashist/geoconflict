@@ -88,7 +88,7 @@ export class LangSelector extends LitElement {
 
   // Flashist Adaptation
   public langReadyPromise: Promise<void>;
-  public langReadyPromiseResolve: Function;
+  public langReadyPromiseResolve: () => void;
 
   connectedCallback() {
     super.connectedCallback();
