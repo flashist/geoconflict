@@ -1,3 +1,4 @@
+import "./OtelBrowserInit"; // Must be first — initializes OTEL error tracking before any other module
 import { translateText } from "../client/Utils";
 import { UserMeResponse } from "../core/ApiSchemas";
 import { EventBus } from "../core/EventBus";
@@ -35,7 +36,6 @@ import { LanguageModal } from "./LanguageModal";
 import "./Matchmaking";
 import { MatchmakingModal } from "./Matchmaking";
 import { NewsModal } from "./NewsModal";
-import "./OtelBrowserInit"; // Must be first — initializes OTEL error tracking before any other module
 import { startPerformanceMonitor } from "./PerformanceMonitor";
 import "./PublicLobby";
 import { PublicLobby } from "./PublicLobby";

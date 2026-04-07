@@ -602,7 +602,13 @@ export class ClientGameRunner {
 
   private tryAutoSpawn(): void {
     if (this._autoSpawnSent) return;
+    // Hold spawn until catch-up is complete so the intent reaches the server
+    // while the spawn phase is still active. This method is called on every
+    // tick, so it will naturally retry on the next tick after catch-up ends.
     if (this.catchingUp) {
+      // One-way latch: stays true after catch-up ends so the missed-spawn
+      // reporter can distinguish "catch-up outlasted spawn phase" (Problem 2)
+      // from "never attempted at all".
       this._autoSpawnBlockedByCatchup = true;
       return;
     }
@@ -615,6 +621,8 @@ export class ClientGameRunner {
       const y = random.nextInt(0, this.gameView.height());
       const tile = this.gameView.ref(x, y);
       if (this.gameView.isLand(tile) && !this.gameView.hasOwner(tile)) {
+        // Breadcrumb for all auto-spawn attempts — logs tile coordinates to
+        // OTEL so regression investigations can confirm what tile was chosen.
         logOtelWarn(
           `tryAutoSpawn: tile (${x}, ${y}) selected for player ${this.lobby.clientID}${this._autoSpawnBlockedByCatchup ? " (deferred from catch-up)" : ""}`,
         );

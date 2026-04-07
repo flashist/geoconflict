@@ -66,8 +66,9 @@ const logger = winston.createLogger({
   ],
 });
 
-// Forward console.warn to Winston so warns from src/core/ (e.g. SpawnExecution)
-// reach Uptrace without needing to import the logger there.
+// Intentional global interception: forwards ALL console.warn calls in this
+// Node.js process to Winston so warns from src/core/ (e.g. SpawnExecution)
+// reach Uptrace without coupling core code to the server logger.
 const originalConsoleWarn = console.warn.bind(console);
 console.warn = (...args: unknown[]) => {
   originalConsoleWarn(...args);
