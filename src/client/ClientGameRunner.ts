@@ -604,7 +604,9 @@ export class ClientGameRunner {
     if (this._autoSpawnSent) return;
     // Hold spawn until catch-up is complete so the intent reaches the server
     // while the spawn phase is still active. This method is called on every
-    // tick, so it will naturally retry on the next tick after catch-up ends.
+    // tick (unconditionally, not gated on inSpawnPhase), so it will naturally
+    // retry on the next tick after catch-up ends.
+    // catchingUp is set at line ~471 and cleared at line ~403.
     if (this.catchingUp) {
       // One-way latch: stays true after catch-up ends so the missed-spawn
       // reporter can distinguish "catch-up outlasted spawn phase" (Problem 2)

@@ -47,6 +47,7 @@ describe("SpawnExecution", () => {
       expect.stringContaining("spawn phase over"),
     );
     expect(game.hasPlayer("pid1")).toBe(false);
+    expect(exec.isActive()).toBe(false);
     warnSpy.mockRestore();
   });
 });
