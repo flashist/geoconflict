@@ -374,7 +374,9 @@ export class ClientGameRunner {
         flashist_logEventAnalytics(
           this._autoSpawnSent
             ? flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_TIMING_RACE
-            : flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_NO_ATTEMPT,
+            : this._autoSpawnBlockedByCatchup
+              ? flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_CATCHUP_TOO_LONG
+              : flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_NO_ATTEMPT,
         );
       }
       this.tryAutoZoom();
