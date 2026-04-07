@@ -67,6 +67,7 @@ Fired for both multiplayer and single-player missions.
 | `MATCH_SPAWN_AUTO` | `Match:SpawnAuto` | Player was auto-placed (Task 4a mechanic) |
 | `MATCH_SPAWN_MISSED_TIMING_RACE` | `Match:SpawnMissed:TimingRace` | Fired once when spawn phase ends, player never placed, and auto-spawn intent was sent (timing race — intent rejected by server) |
 | `MATCH_SPAWN_MISSED_NO_ATTEMPT` | `Match:SpawnMissed:NoAttempt` | Fired once when spawn phase ends, player never placed, and auto-spawn never even ran |
+| `MATCH_SPAWN_RETRY_AFTER_CATCHUP` | `Match:SpawnRetryAfterCatchup` | Auto-spawn was blocked during catch-up and then fired successfully after catch-up ended (fix for timing race bug) |
 
 ### Reconnection Events
 | Enum Key | Event String | When Fired |

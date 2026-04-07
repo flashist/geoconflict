@@ -222,6 +222,7 @@ export class ClientGameRunner {
   private hasReportedParticipation = false;
   private hasProcessedWin = false;
   private _autoSpawnSent = false;
+  private _autoSpawnBlockedByCatchup = false;
   private _spawnMissedReported = false;
   private _autoZoomDone = false;
 
@@ -598,6 +599,10 @@ export class ClientGameRunner {
 
   private tryAutoSpawn(): void {
     if (this._autoSpawnSent) return;
+    if (this.catchingUp) {
+      this._autoSpawnBlockedByCatchup = true;
+      return;
+    }
     if (!this.gameView.inSpawnPhase()) return;
     if (this.gameView.ticks() === 0) return;
 
@@ -610,6 +615,11 @@ export class ClientGameRunner {
         flashist_logEventAnalytics(
           flashistConstants.analyticEvents.MATCH_SPAWN_AUTO,
         );
+        if (this._autoSpawnBlockedByCatchup) {
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.MATCH_SPAWN_RETRY_AFTER_CATCHUP,
+          );
+        }
         this.eventBus.emit(new SendSpawnIntentEvent(tile));
         this._autoSpawnSent = true;
         return;

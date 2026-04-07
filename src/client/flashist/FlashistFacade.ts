@@ -35,6 +35,7 @@ export const flashistConstants = {
         MATCH_SPAWN_AUTO: "Match:SpawnAuto",
         MATCH_SPAWN_MISSED_TIMING_RACE: "Match:SpawnMissed:TimingRace",
         MATCH_SPAWN_MISSED_NO_ATTEMPT: "Match:SpawnMissed:NoAttempt",
+        MATCH_SPAWN_RETRY_AFTER_CATCHUP: "Match:SpawnRetryAfterCatchup",
 
         PERFORMANCE_FPS_AVERAGE: "Performance:FPSAverage",
         PERFORMANCE_FPS_ABOVE30: "Performance:FPS:Above30",
