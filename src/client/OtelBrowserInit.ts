@@ -15,11 +15,11 @@ import {
 } from "@opentelemetry/semantic-conventions";
 
 let currentUsername: string | null = null;
-let otelLogger: logsAPI.Logger | null = null;
+let _otelLogger: logsAPI.Logger | null = null;
 
 export function logOtelWarn(body: string): void {
-  if (!otelLogger) return;
-  otelLogger.emit({
+  if (!_otelLogger) return;
+  _otelLogger.emit({
     severityNumber: SeverityNumber.WARN,
     severityText: "WARN",
     body,
@@ -62,7 +62,8 @@ if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
       processors: [new BatchLogRecordProcessor(logExporter)],
     });
     logsAPI.logs.setGlobalLoggerProvider(loggerProvider);
-    otelLogger = logsAPI.logs.getLogger("geoconflict-client");
+    const otelLogger = logsAPI.logs.getLogger("geoconflict-client");
+    _otelLogger = otelLogger;
 
     const tracer = trace.getTracer("geoconflict-client");
 
