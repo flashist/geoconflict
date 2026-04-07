@@ -56,7 +56,8 @@ import {
   reportPlacement,
 } from "./leaderboard/LeaderboardReporter";
 import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
-import { flashist_logEventAnalytics, flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
+import { flashist_logEventAnalytics, flashistConstants } from "./flashist/FlashistFacade";
+import { logOtelWarn } from "./OtelBrowserInit";
 
 export interface LobbyConfig {
   serverConfig: ServerConfig;
@@ -612,6 +613,9 @@ export class ClientGameRunner {
       const y = random.nextInt(0, this.gameView.height());
       const tile = this.gameView.ref(x, y);
       if (this.gameView.isLand(tile) && !this.gameView.hasOwner(tile)) {
+        logOtelWarn(
+          `tryAutoSpawn: tile (${x}, ${y}) selected for player ${this.lobby.clientID}${this._autoSpawnBlockedByCatchup ? " (deferred from catch-up)" : ""}`,
+        );
         flashist_logEventAnalytics(
           flashistConstants.analyticEvents.MATCH_SPAWN_AUTO,
         );

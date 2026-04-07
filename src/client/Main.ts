@@ -1,36 +1,29 @@
-import "./OtelBrowserInit"; // Must be first — initializes OTEL error tracking before any other module
-import version from "../version";
-import { enableMobileRenderingOpts, translateText } from "../client/Utils";
+import { translateText } from "../client/Utils";
 import { UserMeResponse } from "../core/ApiSchemas";
 import { EventBus } from "../core/EventBus";
 import { GameRecord, GameStartInfo, ID } from "../core/Schemas";
+import { generateID } from "../core/Util";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import {
   Difficulty,
   GameMapSize,
   GameMapType,
   GameMode,
-  GameType,
-  UnitType,
+  GameType
 } from "../core/game/Game";
 import { UserSettings } from "../core/game/UserSettings";
+import version from "../version";
 import "./AccountModal";
-import "./FeedbackModal";
-import { FeedbackModal } from "./FeedbackModal";
 import { joinLobby } from "./ClientGameRunner";
-import {
-  checkReconnectSession,
-  clearReconnectSession,
-  ReconnectSession,
-} from "./ReconnectSession";
 import { fetchCosmetics } from "./Cosmetics";
 import "./DarkModeButton";
 import { DarkModeButton } from "./DarkModeButton";
+import { toggleDevMode } from "./DevMode";
+import "./FeedbackModal";
+import { FeedbackModal } from "./FeedbackModal";
 import "./FlagInput";
 import { FlagInput } from "./FlagInput";
 import { FlagInputModal } from "./FlagInputModal";
-import { flashist_getLangSelector, flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
-import { startPerformanceMonitor } from "./PerformanceMonitor";
 import { GameStartingModal } from "./GameStartingModal";
 import "./GoogleAdElement";
 import { GutterAds } from "./GutterAds";
@@ -38,40 +31,45 @@ import { HelpModal } from "./HelpModal";
 import { HostLobbyModal as HostPrivateLobbyModal } from "./HostLobbyModal";
 import { JoinPrivateLobbyModal } from "./JoinPrivateLobbyModal";
 import "./LangSelector";
-import { LangSelector } from "./LangSelector";
 import { LanguageModal } from "./LanguageModal";
 import "./Matchmaking";
 import { MatchmakingModal } from "./Matchmaking";
 import { NewsModal } from "./NewsModal";
+import "./OtelBrowserInit"; // Must be first — initializes OTEL error tracking before any other module
+import { startPerformanceMonitor } from "./PerformanceMonitor";
 import "./PublicLobby";
 import { PublicLobby } from "./PublicLobby";
+import { ReconnectModal } from "./ReconnectModal";
+import {
+  checkReconnectSession,
+  clearReconnectSession,
+  ReconnectSession,
+} from "./ReconnectSession";
+import {
+  getNextMissionLevel,
+  setNextMissionLevel,
+} from "./SinglePlayMissionStorage";
 import { SinglePlayerModal } from "./SinglePlayerModal";
 import { TerritoryPatternsModal } from "./TerritoryPatternsModal";
 import { TokenLoginModal } from "./TokenLoginModal";
 import { SendKickPlayerIntentEvent, SendWinnerEvent } from "./Transport";
+import {
+  incrementAndGetTutorialAttemptCount,
+  TUTORIAL_COMPLETED_KEY,
+} from "./TutorialStorage";
 import { UserSettingModal } from "./UserSettingModal";
 import "./UsernameInput";
 import { UsernameInput } from "./UsernameInput";
-import { ReconnectModal } from "./ReconnectModal";
-import { toggleDevMode } from "./DevMode";
 import {
   generateCryptoRandomUUID,
   incrementGamesPlayed,
   isInIframe,
 } from "./Utils";
-import {
-  getNextMissionLevel,
-  setNextMissionLevel,
-} from "./SinglePlayMissionStorage";
-import {
-  TUTORIAL_COMPLETED_KEY,
-  incrementAndGetTutorialAttemptCount,
-} from "./TutorialStorage";
-import { generateID } from "../core/Util";
 import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
+import { flashist_getLangSelector, flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
 import { getUserMe, isLoggedIn } from "./jwt";
 import "./styles.css";
 

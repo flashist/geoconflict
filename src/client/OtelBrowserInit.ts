@@ -15,6 +15,17 @@ import {
 } from "@opentelemetry/semantic-conventions";
 
 let currentUsername: string | null = null;
+let otelLogger: logsAPI.Logger | null = null;
+
+export function logOtelWarn(body: string): void {
+  if (!otelLogger) return;
+  otelLogger.emit({
+    severityNumber: SeverityNumber.WARN,
+    severityText: "WARN",
+    body,
+    attributes: currentUsername ? { "enduser.id": currentUsername } : {},
+  });
+}
 
 // setOtelUser is always safe to call — it's a no-op when OTEL is disabled
 // (endpoint not set), since currentUsername is only read inside the error
@@ -51,7 +62,7 @@ if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
       processors: [new BatchLogRecordProcessor(logExporter)],
     });
     logsAPI.logs.setGlobalLoggerProvider(loggerProvider);
-    const otelLogger = logsAPI.logs.getLogger("geoconflict-client");
+    otelLogger = logsAPI.logs.getLogger("geoconflict-client");
 
     const tracer = trace.getTracer("geoconflict-client");
 
