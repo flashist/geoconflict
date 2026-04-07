@@ -41,7 +41,7 @@ A single late-game match with 30+ active clients means `ws.send()` fires 30+ tim
 Two main sources of allocation pressure:
 
 - **`this.turns` grows indefinitely.** A 3-hour match at 15 turns/second ≈ 162,000 Turn objects retained in memory for the match lifetime. Each Turn holds a reference to the intents array for that turn. The `archiveGame()` call at match end eventually releases them, but during the match this is a large, live heap.
-- **`this.intents = []` runs every ~67ms.** This allocates a new empty array (and discards the previous one) 15 times per second. Over a long session, this is ~54,000 empty array allocations per hour of gameplay, adding steady minor-GC pressure. See **Quick Fix** below.
+- **`this.intents = []` runs every ~67ms.** This allocates a new empty array (and discards the previous one) 15 times per second. Over a long session, this is ~54,000 empty array allocations per hour of gameplay, adding steady minor-GC pressure. The obvious optimization (`this.intents.length = 0`) is not safe here: `pastTurn.intents` holds a reference to the same array, so clearing in place would corrupt the turn before it is broadcast.
 - **`JSON.stringify()` per broadcast** allocates a transient string proportional to the Turn's intent count. At high activity (match start burst, late game) this string can be significant.
 
 Node.js GC pauses in the 50–300ms range are possible on a loaded heap. At 67ms per tick, a 150ms pause causes two full ticks of delay simultaneously affecting all matches on that worker.
@@ -82,32 +82,20 @@ No queue depth limit — `this.intents` grows unbounded until `endTurn()` clears
 
 ---
 
-## Quick Fix
+## Instrumentation (implemented)
 
-**File:** `src/server/GameServer.ts:687`
+`endTurn()` is now wrapped with threshold-based OTEL spans (`src/server/GameServer.ts`). Spans are emitted to Uptrace only when a turn exceeds `SLOW_TURN_THRESHOLD_MS` (100ms). Zero overhead on normal turns.
 
-```typescript
-// Before (allocates new array every ~67ms):
-this.intents = [];
-
-// After (clears in place, no new allocation):
-this.intents.length = 0;
+Span structure:
+```
+server.turn.process          attributes: game.id, turn.number, intents.count, clients.active, message.size_bytes, turn.duration_ms
+  intent.collection
+  synchronization
+  turn.broadcast
 ```
 
-This eliminates ~15 empty array allocations per second per active match, reducing minor-GC pressure over long matches. Low risk, zero behavior change.
-
----
-
-## Instrumentation Priorities
-
-Based on the above, instrument in this order:
-
-1. **`server.turn.process`** root span with child spans for `intent.collection`, `synchronization`, `turn.broadcast` — threshold-based (emit only when > 100ms)
-2. **`message.size_bytes`** attribute on broadcast span — reveals serialization cost spikes
-3. **`intents.count`** on root span — correlates bursts with slow turns
-4. **`clients.active`** on root span — correlates player count with broadcast cost
-
-If `turn.broadcast` is consistently the slow span → serialization/WebSocket pressure.
-If `synchronization` spikes every 10 turns → hash comparison scaling issue.
-If all spans slow together → GC pause (no single phase to blame).
-If slow turns cluster on specific workers → worker overload from hash routing.
+Reading the data:
+- `turn.broadcast` slow, others fast → serialization/WebSocket pressure at high client count
+- `synchronization` spikes every 10 turns → hash comparison cost scaling with player count
+- All spans slow together → likely a GC pause affecting the whole event loop
+- Slow turns cluster on specific workers → worker overload from hash-based routing
