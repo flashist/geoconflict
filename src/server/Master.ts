@@ -185,6 +185,7 @@ const FeedbackSchema = z.object({
   screenSource: z.enum(["start", "battle"]),
   username: z.string().max(100).optional(),
   deviceInfo: z.record(z.string(), z.union([z.string(), z.number()])).refine(r => Object.keys(r).length > 0, { message: "deviceInfo must not be empty" }).optional(),
+  recentMatchIds: z.array(z.string().max(20)).max(3).optional(),
 });
 
 app.post(
@@ -226,6 +227,7 @@ app.post(
               { name: "Username", value: d.username ? esc(d.username) : "n/a", inline: true },
               { name: "Version", value: d.version, inline: true },
               { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
+              { name: "Recent Matches", value: d.recentMatchIds?.map(esc).join(", ") ?? "n/a", inline: false },
               { name: "Contact", value: d.contact ? esc(d.contact) : "n/a", inline: true },
               { name: "Time", value: new Date().toISOString(), inline: false },
               ...(d.deviceInfo
@@ -257,6 +259,7 @@ app.post(
         `<b>Yandex:</b> ${d.yandexStatus}  <b>Username:</b> ${d.username ? esc(d.username) : "n/a"}`,
         `<b>Version:</b> ${esc(d.version)}`,
         `<b>Match:</b> ${d.matchId ? esc(d.matchId) : "n/a"}  <b>Contact:</b> ${d.contact ? esc(d.contact) : "n/a"}`,
+        ...(d.recentMatchIds?.length ? [`<b>Recent matches:</b> ${d.recentMatchIds.map(esc).join(", ")}`] : []),
         `<b>Time:</b> ${new Date().toISOString()}`,
         ...(d.deviceInfo ? [`\n<b>Device:</b> ${esc(formatDeviceInfo(d.deviceInfo))}`] : []),
       ];

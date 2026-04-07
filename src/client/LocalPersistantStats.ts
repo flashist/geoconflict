@@ -4,6 +4,7 @@ import { replacer } from "../core/Util";
 export interface LocalStatsData {
   [key: GameID]: {
     lobby: Partial<GameConfig>;
+    startTime?: number;
     // Only once the game is over
     gameRecord?: PartialGameRecord;
   };
@@ -31,9 +32,10 @@ export function startGame(id: GameID, lobby: Partial<GameConfig>) {
     return;
   }
 
-  _startTime = Date.now();
+  const startTime = Date.now();
+  _startTime = startTime;
   const stats = getStats();
-  stats[id] = { lobby };
+  stats[id] = { lobby, startTime };
   save(stats);
 }
 

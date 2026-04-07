@@ -242,6 +242,20 @@ export class FeedbackModal extends LitElement {
     return info;
   }
 
+  private getRecentMatchIds(): string[] {
+    try {
+      const raw = localStorage.getItem("game-records");
+      if (!raw) return [];
+      const records = JSON.parse(raw) as Record<string, { startTime?: number }>;
+      return Object.entries(records)
+        .sort(([, a], [, b]) => (b.startTime ?? 0) - (a.startTime ?? 0))
+        .slice(0, 3)
+        .map(([id]) => id);
+    } catch {
+      return [];
+    }
+  }
+
   private async onSubmit() {
     this.loading = true;
     this.error = "";
@@ -270,6 +284,7 @@ export class FeedbackModal extends LitElement {
       screenSource: this.screenSource,
       username: username || undefined,
       deviceInfo: Object.keys(deviceInfo).length > 0 ? deviceInfo : undefined,
+      recentMatchIds: this.getRecentMatchIds(),
     };
 
     try {
