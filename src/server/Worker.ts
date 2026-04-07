@@ -468,10 +468,10 @@ export async function startWorker() {
     log.error(`uncaught exception: ${err.message}`, { stack: err.stack });
   });
 
-  process.on("unhandledRejection", (reason, promise) => {
+  process.on("unhandledRejection", (reason) => {
     const message = reason instanceof Error ? reason.message : String(reason);
     const stack = reason instanceof Error ? reason.stack : undefined;
-    log.error(`unhandled rejection at: ${message}`, { stack, promise: String(promise) });
+    log.error(`unhandled rejection at: ${message}`, { stack });
   });
 }
 

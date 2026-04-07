@@ -689,7 +689,7 @@ export class GameServer {
       intents: this.intents,
     };
     this.turns.push(pastTurn);
-    this.intents.length = 0;
+    this.intents = [];
 
     const t1 = Date.now();
 
