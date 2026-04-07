@@ -89,10 +89,12 @@ No queue depth limit — `this.intents` grows unbounded until `endTurn()` clears
 Span structure:
 ```
 server.turn.process          attributes: game.id, turn.number, intents.count, clients.active, message.size_bytes, turn.duration_ms
-  intent.collection
-  synchronization
-  turn.broadcast
+  turn.assembly              — build Turn object, push to this.turns, reset this.intents
+  synchronization            — handleSynchronization() + checkDisconnectedStatus()
+  turn.broadcast             — JSON.stringify + ws.send to all clients
 ```
+
+Note: intents are collected continuously via WebSocket handlers throughout the tick interval, not in `turn.assembly`. That phase only assembles and resets the accumulated array.
 
 Reading the data:
 - `turn.broadcast` slow, others fast → serialization/WebSocket pressure at high client count

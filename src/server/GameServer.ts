@@ -724,7 +724,7 @@ export class GameServer {
       const ctx = trace.setSpan(context.active(), rootSpan);
 
       const collectSpan = tracer.startSpan(
-        "intent.collection",
+        "turn.assembly",
         { startTime: t0 },
         ctx,
       );
