@@ -26,7 +26,6 @@ import { createPartialGameRecord, getClanTag, simpleHash } from "../core/Util";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
-const SLOW_TURN_THRESHOLD_MS = 100;
 
 export enum GamePhase {
   Lobby = "LOBBY",
@@ -681,6 +680,9 @@ export class GameServer {
     }
   }
 
+  // Emit OTEL spans for turns that exceed this budget (in ms).
+  private static readonly SLOW_TURN_THRESHOLD_MS = 100;
+
   private endTurn() {
     const t0 = Date.now();
 
@@ -709,7 +711,7 @@ export class GameServer {
     const t3 = Date.now();
     const totalMs = t3 - t0;
 
-    if (totalMs > SLOW_TURN_THRESHOLD_MS) {
+    if (totalMs > GameServer.SLOW_TURN_THRESHOLD_MS) {
       const tracer = trace.getTracer("server-turns");
       const rootSpan = tracer.startSpan("server.turn.process", {
         startTime: t0,
