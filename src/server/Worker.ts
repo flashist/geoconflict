@@ -27,6 +27,7 @@ import { logger } from "./Logger";
 import { MapPlaylist } from "./MapPlaylist";
 import { PrivilegeRefresher } from "./PrivilegeRefresher";
 import { initWorkerMetrics } from "./WorkerMetrics";
+import { initOtelTracing } from "./OtelTracing";
 
 const config = getServerConfigFromServer();
 
@@ -61,6 +62,7 @@ export async function startWorker() {
 
   if (config.otelEnabled()) {
     initWorkerMetrics(gm);
+    initOtelTracing();
   }
 
   const privilegeRefresher = new PrivilegeRefresher(
@@ -463,11 +465,13 @@ export async function startWorker() {
 
   // Process-level error handlers
   process.on("uncaughtException", (err) => {
-    log.error(`uncaught exception:`, err);
+    log.error(`uncaught exception: ${err.message}`, { stack: err.stack });
   });
 
-  process.on("unhandledRejection", (reason, promise) => {
-    log.error(`unhandled rejection at:`, promise, "reason:", reason);
+  process.on("unhandledRejection", (reason) => {
+    const message = reason instanceof Error ? reason.message : String(reason);
+    const stack = reason instanceof Error ? reason.stack : undefined;
+    log.error(`unhandled rejection at: ${message}`, { stack });
   });
 }
 
