@@ -606,7 +606,8 @@ export class ClientGameRunner {
     // while the spawn phase is still active. This method is called on every
     // tick (unconditionally, not gated on inSpawnPhase), so it will naturally
     // retry on the next tick after catch-up ends.
-    // catchingUp is set at line ~471 and cleared at line ~403.
+    // catchingUp is set when queued turns exceed CATCHUP_THRESHOLD on initial
+    // batch receive, and cleared when the batch is fully processed.
     if (this.catchingUp) {
       // One-way latch: stays true after catch-up ends so the missed-spawn
       // reporter can distinguish "catch-up outlasted spawn phase" (Problem 2)
@@ -623,11 +624,13 @@ export class ClientGameRunner {
       const y = random.nextInt(0, this.gameView.height());
       const tile = this.gameView.ref(x, y);
       if (this.gameView.isLand(tile) && !this.gameView.hasOwner(tile)) {
-        // Breadcrumb for all auto-spawn attempts — logs tile coordinates to
-        // OTEL so regression investigations can confirm what tile was chosen.
-        logOtelWarn(
-          `tryAutoSpawn: tile (${x}, ${y}) selected for player ${this.lobby.clientID}${this._autoSpawnBlockedByCatchup ? " (deferred from catch-up)" : ""}`,
-        );
+        // Only emit OTEL breadcrumb for deferred spawns (catch-up retries) to
+        // avoid per-player log volume on every normal auto-spawn.
+        if (this._autoSpawnBlockedByCatchup) {
+          logOtelWarn(
+            `tryAutoSpawn: tile (${x}, ${y}) deferred from catch-up, retrying for player ${this.lobby.clientID}`,
+          );
+        }
         flashist_logEventAnalytics(
           flashistConstants.analyticEvents.MATCH_SPAWN_AUTO,
         );
