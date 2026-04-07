@@ -26,4 +26,6 @@ export function initOtelTracing(): void {
   });
 
   trace.setGlobalTracerProvider(provider);
+
+  process.on("SIGTERM", () => provider.shutdown());
 }
