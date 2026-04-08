@@ -17,9 +17,10 @@ function getCpuTimes(): { idle: number; total: number } {
   let idle = 0;
   let total = 0;
   for (const cpu of cpus) {
-    idle += cpu.times.idle;
-    total +=
-      cpu.times.user + cpu.times.nice + cpu.times.sys + cpu.times.irq + cpu.times.idle;
+    const times = cpu.times as Record<string, number>;
+    idle += times.idle;
+    // Include steal/guest if present (Linux VMs report hypervisor overhead here)
+    total += Object.values(times).reduce((sum, t) => sum + t, 0);
   }
   return { idle, total };
 }
@@ -85,7 +86,7 @@ export function initWorkerMetrics(gameManager: GameManager): void {
   let prevCpu = getCpuTimes();
 
   const cpuGauge = meter.createObservableGauge(
-    "geoconflict.server.cpu.usage",
+    "openfront.server.cpu.usage",
     { description: "CPU usage percentage", unit: "percent" },
   );
 
@@ -100,30 +101,34 @@ export function initWorkerMetrics(gameManager: GameManager): void {
 
   // Memory: heap used, heap total, RSS
   const heapUsedGauge = meter.createObservableGauge(
-    "geoconflict.server.memory.heap.used",
+    "openfront.server.memory.heap.used",
     { description: "Heap memory used", unit: "bytes" },
   );
 
   const heapTotalGauge = meter.createObservableGauge(
-    "geoconflict.server.memory.heap.total",
+    "openfront.server.memory.heap.total",
     { description: "Total heap memory allocated", unit: "bytes" },
   );
 
   const rssGauge = meter.createObservableGauge(
-    "geoconflict.server.memory.rss",
+    "openfront.server.memory.rss",
     { description: "Resident set size", unit: "bytes" },
   );
 
+  // Single call per export cycle, shared across all three memory gauges
+  let memSnapshot = process.memoryUsage();
+
   heapUsedGauge.addCallback((result) => {
-    result.observe(process.memoryUsage().heapUsed, getPromLabels());
+    memSnapshot = process.memoryUsage();
+    result.observe(memSnapshot.heapUsed, getPromLabels());
   });
 
   heapTotalGauge.addCallback((result) => {
-    result.observe(process.memoryUsage().heapTotal, getPromLabels());
+    result.observe(memSnapshot.heapTotal, getPromLabels());
   });
 
   rssGauge.addCallback((result) => {
-    result.observe(process.memoryUsage().rss, getPromLabels());
+    result.observe(memSnapshot.rss, getPromLabels());
   });
 
   // Event loop lag
@@ -131,7 +136,7 @@ export function initWorkerMetrics(gameManager: GameManager): void {
   eventLoopHistogram.enable();
 
   const eventLoopLagGauge = meter.createObservableGauge(
-    "geoconflict.server.eventloop.lag",
+    "openfront.server.eventloop.lag",
     { description: "Event loop lag", unit: "ms" },
   );
 
@@ -143,12 +148,12 @@ export function initWorkerMetrics(gameManager: GameManager): void {
 
   // Network I/O (cumulative counters)
   const bytesSentCounter = meter.createObservableCounter(
-    "geoconflict.server.network.bytes_sent",
+    "openfront.server.network.bytes_sent",
     { description: "Total bytes sent via WebSocket", unit: "bytes" },
   );
 
   const bytesRecvCounter = meter.createObservableCounter(
-    "geoconflict.server.network.bytes_recv",
+    "openfront.server.network.bytes_recv",
     { description: "Total bytes received via WebSocket", unit: "bytes" },
   );
 
@@ -162,7 +167,7 @@ export function initWorkerMetrics(gameManager: GameManager): void {
 
   // Active matches (games currently processing turns)
   const turnsActiveGauge = meter.createObservableGauge(
-    "geoconflict.server.turns.active",
+    "openfront.server.turns.active",
     { description: "Number of matches currently processing turns" },
   );
 

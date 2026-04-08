@@ -262,7 +262,8 @@ export class GameServer {
 
     client.ws.removeAllListeners("message");
     client.ws.on("message", async (message: string) => {
-      this.bytesReceived += message.length;
+      // Buffer.byteLength is correct for both Buffer and string (handles multi-byte chars)
+      this.bytesReceived += Buffer.byteLength(message);
       try {
         const parsed = ClientMessageSchema.safeParse(JSON.parse(message));
         if (!parsed.success) {
