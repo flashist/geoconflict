@@ -163,8 +163,8 @@ export function initWorkerMetrics(gameManager: GameManager): void {
 
   // Active matches (games currently processing turns)
   const turnsActiveGauge = meter.createObservableGauge(
-    "geoconflict.server.turns.active",
-    { description: "Number of matches currently processing turns" },
+    "geoconflict.server.matches.active",
+    { description: "Number of matches currently started on this worker" },
   );
 
   turnsActiveGauge.addCallback((result) => {

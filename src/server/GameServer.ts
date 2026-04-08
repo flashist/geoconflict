@@ -712,6 +712,7 @@ export class GameServer {
     this.activeClients.forEach((c) => {
       c.ws.send(msg);
     });
+    // Buffer.byteLength is correct for both Buffer and string (handles multi-byte chars)
     this.bytesSent += Buffer.byteLength(msg) * this.activeClients.length;
 
     const t3 = Date.now();
