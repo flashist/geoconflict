@@ -99,7 +99,7 @@ export function initWorkerMetrics(gameManager: GameManager): void {
     result.observe(usage, getPromLabels());
   });
 
-  // Memory: heap used, heap total, RSS
+  // Memory: heap used, heap total, RSS — single snapshot per export cycle via batch callback
   const heapUsedGauge = meter.createObservableGauge(
     "geoconflict.server.memory.heap.used",
     { description: "Heap memory used", unit: "bytes" },
@@ -115,21 +115,21 @@ export function initWorkerMetrics(gameManager: GameManager): void {
     { description: "Resident set size", unit: "bytes" },
   );
 
-  heapUsedGauge.addCallback((result) => {
-    result.observe(process.memoryUsage().heapUsed, getPromLabels());
-  });
+  meter.addBatchObservableCallback((result) => {
+    const mem = process.memoryUsage();
+    result.observe(heapUsedGauge, mem.heapUsed, getPromLabels());
+    result.observe(heapTotalGauge, mem.heapTotal, getPromLabels());
+    result.observe(rssGauge, mem.rss, getPromLabels());
+  }, [heapUsedGauge, heapTotalGauge, rssGauge]);
 
-  heapTotalGauge.addCallback((result) => {
-    result.observe(process.memoryUsage().heapTotal, getPromLabels());
-  });
-
-  rssGauge.addCallback((result) => {
-    result.observe(process.memoryUsage().rss, getPromLabels());
-  });
-
-  // Event loop lag
+  // Event loop lag — histogram read/reset on a fixed interval, decoupled from OTEL callbacks
   const eventLoopHistogram = monitorEventLoopDelay({ resolution: 20 });
   eventLoopHistogram.enable();
+  let lastEventLoopLagMs = 0;
+  setInterval(() => {
+    lastEventLoopLagMs = eventLoopHistogram.mean / 1e6; // nanoseconds → milliseconds
+    eventLoopHistogram.reset();
+  }, 15000);
 
   const eventLoopLagGauge = meter.createObservableGauge(
     "geoconflict.server.eventloop.lag",
@@ -137,9 +137,7 @@ export function initWorkerMetrics(gameManager: GameManager): void {
   );
 
   eventLoopLagGauge.addCallback((result) => {
-    const lagMs = eventLoopHistogram.mean / 1e6; // nanoseconds → milliseconds
-    result.observe(lagMs, getPromLabels());
-    eventLoopHistogram.reset();
+    result.observe(lastEventLoopLagMs, getPromLabels());
   });
 
   // Network I/O (cumulative counters)
