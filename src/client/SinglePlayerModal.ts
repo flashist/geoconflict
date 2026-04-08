@@ -212,7 +212,7 @@ export class SinglePlayerModal extends LitElement {
             // Quads,
             // Trios,
             // Duos,
-            // HumansVsNations,
+            HumansVsNations,
           ].map(
             (o) => html`
                         <div
@@ -261,10 +261,8 @@ export class SinglePlayerModal extends LitElement {
               </label>
 
              ${!(
-        // Flashist Adaptation: Disabling some game modes
-        this.gameMode === GameMode.Team
-        // this.gameMode === GameMode.Team &&
-        // this.teamCount === HumansVsNations
+        this.gameMode === GameMode.Team &&
+        this.teamCount === HumansVsNations
       )
         ? html`
                     <label
@@ -580,10 +578,8 @@ export class SinglePlayerModal extends LitElement {
                 .map((u) => Object.values(UnitType).find((ut) => ut === u))
                 .filter((ut): ut is UnitType => ut !== undefined),
 
-              // Flashist Adaptation: disabling some game modes
-              ...(this.gameMode === GameMode.Team
-                // ...(this.gameMode === GameMode.Team &&
-                //   this.teamCount === HumansVsNations
+              ...(this.gameMode === GameMode.Team &&
+                this.teamCount === HumansVsNations
                 ? {
                   disableNPCs: false,
                 }
