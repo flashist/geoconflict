@@ -712,7 +712,7 @@ export class GameServer {
     this.activeClients.forEach((c) => {
       c.ws.send(msg);
     });
-    this.bytesSent += msg.length * this.activeClients.length;
+    this.bytesSent += Buffer.byteLength(msg) * this.activeClients.length;
 
     const t3 = Date.now();
     const totalMs = t3 - t0;

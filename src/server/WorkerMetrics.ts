@@ -115,20 +115,16 @@ export function initWorkerMetrics(gameManager: GameManager): void {
     { description: "Resident set size", unit: "bytes" },
   );
 
-  // Single call per export cycle, shared across all three memory gauges
-  let memSnapshot = process.memoryUsage();
-
   heapUsedGauge.addCallback((result) => {
-    memSnapshot = process.memoryUsage();
-    result.observe(memSnapshot.heapUsed, getPromLabels());
+    result.observe(process.memoryUsage().heapUsed, getPromLabels());
   });
 
   heapTotalGauge.addCallback((result) => {
-    result.observe(memSnapshot.heapTotal, getPromLabels());
+    result.observe(process.memoryUsage().heapTotal, getPromLabels());
   });
 
   rssGauge.addCallback((result) => {
-    result.observe(memSnapshot.rss, getPromLabels());
+    result.observe(process.memoryUsage().rss, getPromLabels());
   });
 
   // Event loop lag
