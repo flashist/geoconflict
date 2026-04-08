@@ -755,10 +755,8 @@ export class HostLobbyModal extends LitElement {
           disabledUnits: this.disabledUnits,
           playerTeams: this.teamCount,
 
-          // Flashist Adaptation: Disabling some game modes
-          ...(this.gameMode === GameMode.Team
-            // ...(this.gameMode === GameMode.Team &&
-            // this.teamCount === HumansVsNations
+          ...(this.gameMode === GameMode.Team &&
+            this.teamCount === HumansVsNations
             ? {
               disableNPCs: false,
             }
