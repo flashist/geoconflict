@@ -79,6 +79,30 @@ export class GameManager {
     return totalClients;
   }
 
+  activeMatches(): number {
+    let count = 0;
+    this.games.forEach((game: GameServer) => {
+      if (game.hasStarted()) count++;
+    });
+    return count;
+  }
+
+  totalBytesSent(): number {
+    let total = 0;
+    this.games.forEach((game: GameServer) => {
+      total += game.bytesSent;
+    });
+    return total;
+  }
+
+  totalBytesReceived(): number {
+    let total = 0;
+    this.games.forEach((game: GameServer) => {
+      total += game.bytesReceived;
+    });
+    return total;
+  }
+
   tick() {
     const active = new Map<GameID, GameServer>();
     for (const [id, game] of this.games) {
