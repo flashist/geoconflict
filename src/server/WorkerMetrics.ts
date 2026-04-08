@@ -86,7 +86,7 @@ export function initWorkerMetrics(gameManager: GameManager): void {
   let prevCpu = getCpuTimes();
 
   const cpuGauge = meter.createObservableGauge(
-    "openfront.server.cpu.usage",
+    "geoconflict.server.cpu.usage",
     { description: "CPU usage percentage", unit: "percent" },
   );
 
@@ -101,17 +101,17 @@ export function initWorkerMetrics(gameManager: GameManager): void {
 
   // Memory: heap used, heap total, RSS
   const heapUsedGauge = meter.createObservableGauge(
-    "openfront.server.memory.heap.used",
+    "geoconflict.server.memory.heap.used",
     { description: "Heap memory used", unit: "bytes" },
   );
 
   const heapTotalGauge = meter.createObservableGauge(
-    "openfront.server.memory.heap.total",
+    "geoconflict.server.memory.heap.total",
     { description: "Total heap memory allocated", unit: "bytes" },
   );
 
   const rssGauge = meter.createObservableGauge(
-    "openfront.server.memory.rss",
+    "geoconflict.server.memory.rss",
     { description: "Resident set size", unit: "bytes" },
   );
 
@@ -132,7 +132,7 @@ export function initWorkerMetrics(gameManager: GameManager): void {
   eventLoopHistogram.enable();
 
   const eventLoopLagGauge = meter.createObservableGauge(
-    "openfront.server.eventloop.lag",
+    "geoconflict.server.eventloop.lag",
     { description: "Event loop lag", unit: "ms" },
   );
 
@@ -144,12 +144,12 @@ export function initWorkerMetrics(gameManager: GameManager): void {
 
   // Network I/O (cumulative counters)
   const bytesSentCounter = meter.createObservableCounter(
-    "openfront.server.network.bytes_sent",
+    "geoconflict.server.network.bytes_sent",
     { description: "Total bytes sent via WebSocket", unit: "bytes" },
   );
 
   const bytesRecvCounter = meter.createObservableCounter(
-    "openfront.server.network.bytes_recv",
+    "geoconflict.server.network.bytes_recv",
     { description: "Total bytes received via WebSocket", unit: "bytes" },
   );
 
@@ -163,7 +163,7 @@ export function initWorkerMetrics(gameManager: GameManager): void {
 
   // Active matches (games currently processing turns)
   const turnsActiveGauge = meter.createObservableGauge(
-    "openfront.server.turns.active",
+    "geoconflict.server.turns.active",
     { description: "Number of matches currently processing turns" },
   );
 
