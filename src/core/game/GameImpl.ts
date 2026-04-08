@@ -109,11 +109,10 @@ export class GameImpl implements Game {
     let numPlayerTeams = this._config.playerTeams();
 
     // HumansVsNations mode always has exactly 2 teams
-    // Flashist AdaptatioN: disabling some game modes
-    // if (numPlayerTeams === HumansVsNations) {
-    //   this.playerTeams = [ColoredTeams.Humans, ColoredTeams.Nations];
-    //   return;
-    // }
+    if (numPlayerTeams === HumansVsNations) {
+      this.playerTeams = [ColoredTeams.Humans, ColoredTeams.Nations];
+      return;
+    }
 
     if (typeof numPlayerTeams !== "number") {
       const players = this._humans.length + this._nations.length;
@@ -158,14 +157,13 @@ export class GameImpl implements Game {
       return;
     }
 
-    // Flashist Adpatation: disabling some game modes
-    // if (this._config.playerTeams() === HumansVsNations) {
-    //   this._humans.forEach((p) => this.addPlayer(p, ColoredTeams.Humans));
-    //   this._nations.forEach((n) =>
-    //     this.addPlayer(n.playerInfo, ColoredTeams.Nations),
-    //   );
-    //   return;
-    // }
+    if (this._config.playerTeams() === HumansVsNations) {
+      this._humans.forEach((p) => this.addPlayer(p, ColoredTeams.Humans));
+      this._nations.forEach((n) =>
+        this.addPlayer(n.playerInfo, ColoredTeams.Nations),
+      );
+      return;
+    }
 
     // Team mode
     const allPlayers = [

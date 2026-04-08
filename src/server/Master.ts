@@ -12,8 +12,7 @@ import { logger } from "./Logger";
 import { MapPlaylist } from "./MapPlaylist";
 
 const config = getServerConfigFromServer();
-// Auto-created public games should be FFA-only.
-const playlist = new MapPlaylist(true);
+const playlist = new MapPlaylist(false);
 const readyWorkers = new Set();
 
 const app = express();

@@ -1,4 +1,4 @@
-# Task — Re-enable Humans vs Nations Mode
+# Task — Re-enable Humans vs Nations Mode (+ All Team Modes)
 
 ## Priority
 Sprint 3. Low effort, directly addresses player feedback asking for more play modes.
@@ -7,9 +7,11 @@ Sprint 3. Low effort, directly addresses player feedback asking for more play mo
 
 Humans vs Nations is an existing play mode where human players compete against AI-controlled nation bots. The mode was disabled early in the game's lifecycle due to insufficient concurrent player counts and some observed errors. It ships to all players — no A/B test.
 
-Unlike Teams mode (which remains disabled), Humans vs Nations does not have a lobby composition problem. AI nations fill all non-human slots regardless of how many humans join — so the match runs correctly even if only one human player is present. This makes it safe to re-enable at current DAU levels (~4,000–4,500).
+The original plan was to re-enable only Humans vs Nations while keeping regular Team modes (2–7 teams) disabled due to a suspected lobby composition problem (uneven or empty team slots at low player counts).
 
-The errors observed when the mode was disabled were likely related to Teams mode lobby composition (uneven or empty team slots) rather than this mode specifically. This needs to be confirmed during the investigation step below.
+### Scope change: all Team modes re-enabled
+
+During investigation, we found that the suspected lobby composition problem does not actually cause errors. The AI lobby system (`tickAiLobby()` in `GameServer.ts`) fills empty slots with AI bots before the game starts, regardless of game mode. Even with only 1 human player, a Team game starts correctly — AI bots fill the remaining slots and are distributed evenly across teams via `assignTeams()`. The only downside is experience quality (a solo human on a team of AI bots), not stability. Given this finding, all Team modes were re-enabled alongside Humans vs Nations to maximize play mode variety.
 
 ## What "Done" Looks Like
 
@@ -22,13 +24,15 @@ The errors observed when the mode was disabled were likely related to Teams mode
 **Step 2 — Re-enable:**
 - Reverse the disable mechanism identified in Step 1
 - Humans vs Nations should appear in the game mode selection UI alongside the existing All vs All mode
+- Re-enable all Team modes in the public game rotation (`disableTeams=false` in Worker.ts and Master.ts)
 - No new UI, no new server infrastructure — this is a restoration of existing functionality
 
 **Step 3 — Verify in staging/local before production deploy:**
 - Solo human join: one human player joins, all other slots filled by AI nations — match starts and runs correctly
 - Multiple human players: 2–3 humans join the same lobby — match starts correctly, nations fill remaining slots
+- Regular Team mode (e.g. 3 teams): match starts correctly, AI bots fill slots, teams are balanced
 - Match completes normally: win condition triggers, results screen shows correctly
-- No errors in Sentry during either scenario
+- No errors in Sentry during any scenario
 - Ad events fire correctly at match end (interstitial should fire the same as in All vs All)
 
 ## Error Handling Requirement
@@ -43,9 +47,9 @@ After re-enabling, it is worth monitoring via the Explore tool whether Humans vs
 
 ## What Stays Disabled
 
-Teams mode remains disabled. The lobby composition error (match starting with empty or uneven team slots) has not been fixed and requires a separate task before Teams can be safely re-enabled. Do not re-enable Teams as part of this task.
+Duos, Trios, and Quads modes remain disabled. These modes use string-based team count values (`"Duos"`, `"Trios"`, `"Quads"`) rather than numeric counts. They were disabled alongside HumansVsNations and are not re-enabled as part of this task — their re-enablement would require uncommenting additional code in Schemas.ts, GameImpl.ts, DefaultConfig.ts, and the UI modals.
 
 ## Notes
 
 - If Step 1 reveals that re-enabling requires more than reversing a single flag or config — for example, if substantial server-side code was removed rather than just gated — escalate before proceeding. The effort estimate assumes restoration of existing code, not a rebuild.
-- If any Sentry errors appear in the first 48 hours after re-enabling that are specific to this mode, disable it again immediately and investigate before re-enabling.
+- If any Sentry errors appear in the first 48 hours after re-enabling that are specific to these modes, disable them again immediately and investigate before re-enabling.
