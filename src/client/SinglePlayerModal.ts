@@ -212,7 +212,7 @@ export class SinglePlayerModal extends LitElement {
             // Quads,
             // Trios,
             // Duos,
-            // HumansVsNations,
+            HumansVsNations,
           ].map(
             (o) => html`
                         <div
@@ -261,10 +261,8 @@ export class SinglePlayerModal extends LitElement {
               </label>
 
              ${!(
-        // Flashist Adaptation: Disabling some game modes
-        this.gameMode === GameMode.Team
-        // this.gameMode === GameMode.Team &&
-        // this.teamCount === HumansVsNations
+        this.gameMode === GameMode.Team &&
+        this.teamCount === HumansVsNations
       )
         ? html`
                     <label

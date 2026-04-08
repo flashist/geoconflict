@@ -296,7 +296,7 @@ export class HostLobbyModal extends LitElement {
             // Quads,
             // Trios,
             // Duos,
-            // HumansVsNations,
+            HumansVsNations,
 
           ].map(
             (o) => html`
@@ -350,10 +350,8 @@ export class HostLobbyModal extends LitElement {
 
                 ${!(
 
-        // Flashist Adaptation: disabling some game modes
-        this.gameMode === GameMode.Team
-        // this.gameMode === GameMode.Team &&
-        // this.teamCount === HumansVsNations
+        this.gameMode === GameMode.Team &&
+        this.teamCount === HumansVsNations
       )
         ? html`
                         <label
