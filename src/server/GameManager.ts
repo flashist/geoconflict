@@ -13,6 +13,8 @@ import { GamePhase, GameServer } from "./GameServer";
 
 export class GameManager {
   private games: Map<GameID, GameServer> = new Map();
+  private _totalBytesSent: number = 0;
+  private _totalBytesReceived: number = 0;
 
   constructor(
     private config: ServerConfig,
@@ -88,7 +90,7 @@ export class GameManager {
   }
 
   totalBytesSent(): number {
-    let total = 0;
+    let total = this._totalBytesSent;
     this.games.forEach((game: GameServer) => {
       total += game.bytesSent;
     });
@@ -96,7 +98,7 @@ export class GameManager {
   }
 
   totalBytesReceived(): number {
-    let total = 0;
+    let total = this._totalBytesReceived;
     this.games.forEach((game: GameServer) => {
       total += game.bytesReceived;
     });
@@ -123,6 +125,8 @@ export class GameManager {
       }
 
       if (phase === GamePhase.Finished) {
+        this._totalBytesSent += game.bytesSent;
+        this._totalBytesReceived += game.bytesReceived;
         try {
           game.end();
         } catch (error) {
