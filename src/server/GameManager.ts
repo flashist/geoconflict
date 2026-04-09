@@ -10,7 +10,7 @@ import {
 import { GameConfig, GameID } from "../core/Schemas";
 import { Client } from "./Client";
 import { GamePhase, GameServer } from "./GameServer";
-import { fmtError } from "./Logger";
+import { formatError } from "./Logger";
 
 export class GameManager {
   private games: Map<GameID, GameServer> = new Map();
@@ -119,7 +119,7 @@ export class GameManager {
             try {
               game.start();
             } catch (error) {
-              this.log.error(`error starting game ${id}: ${fmtError(error)}`);
+              this.log.error(`error starting game ${id}: ${formatError(error)}`);
             }
           }, 2000);
         }
@@ -134,7 +134,7 @@ export class GameManager {
         try {
           game.end();
         } catch (error) {
-          this.log.error(`error ending game ${id}: ${fmtError(error)}`);
+          this.log.error(`error ending game ${id}: ${formatError(error)}`);
         }
       } else {
         active.set(id, game);

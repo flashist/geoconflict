@@ -8,7 +8,7 @@ import { z } from "zod";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import { GameInfo, ID } from "../core/Schemas";
 import { generateID } from "../core/Util";
-import { fmtError, logger } from "./Logger";
+import { formatError, logger } from "./Logger";
 import { MapPlaylist } from "./MapPlaylist";
 
 const config = getServerConfigFromServer();
@@ -103,7 +103,7 @@ export async function startMaster() {
 
         const scheduleLobbies = () => {
           schedulePublicGame(playlist).catch((error) => {
-            log.error(`Error scheduling public game: ${fmtError(error)}`);
+            log.error(`Error scheduling public game: ${formatError(error)}`);
           });
         };
 
@@ -246,7 +246,7 @@ app.post(
           log.warn(`[feedback] webhook responded with ${webhookResp.status}`);
         }
       } catch (err) {
-        log.error(`[feedback] webhook delivery failed: ${fmtError(err)}`);
+        log.error(`[feedback] webhook delivery failed: ${formatError(err)}`);
       }
     }
 
@@ -282,7 +282,7 @@ app.post(
           );
         }
       } catch (err) {
-        log.error(`[feedback] telegram delivery failed: ${fmtError(err)}`);
+        log.error(`[feedback] telegram delivery failed: ${formatError(err)}`);
       }
     }
 
@@ -324,7 +324,7 @@ app.post("/api/kick_player/:gameID/:clientID", async (req, res) => {
 
     res.status(200).send("Player kicked successfully");
   } catch (error) {
-    log.error(`Error kicking player from game ${gameID}: ${fmtError(error)}`);
+    log.error(`Error kicking player from game ${gameID}: ${formatError(error)}`);
     res.status(500).send("Failed to kick player");
   }
 });
@@ -345,7 +345,7 @@ async function fetchLobbies(): Promise<number> {
         return json as GameInfo;
       })
       .catch((error) => {
-        log.error(`Error fetching game ${gameID}: ${fmtError(error)}`);
+        log.error(`Error fetching game ${gameID}: ${formatError(error)}`);
         // Return null or a placeholder if fetch fails
         publicLobbyIDs.delete(gameID);
         return null;
@@ -363,14 +363,14 @@ async function fetchLobbies(): Promise<number> {
   );
 
   const lobbyInfos: GameInfo[] = validResults.map((gi: GameInfo) => {
-      return {
-        gameID: gi.gameID,
-        numClients: gi.numClients ?? gi?.clients?.length ?? 0,
-        aiPlayersCount: gi.aiPlayersCount ?? 0,
-        gameConfig: gi.gameConfig,
-        msUntilStart: (gi.msUntilStart ?? Date.now()) - Date.now(),
-      } as GameInfo;
-    });
+    return {
+      gameID: gi.gameID,
+      numClients: gi.numClients ?? gi?.clients?.length ?? 0,
+      aiPlayersCount: gi.aiPlayersCount ?? 0,
+      gameConfig: gi.gameConfig,
+      msUntilStart: (gi.msUntilStart ?? Date.now()) - Date.now(),
+    } as GameInfo;
+  });
 
   lobbyInfos.forEach((l, index) => {
     if (
@@ -428,7 +428,7 @@ async function schedulePublicGame(playlist: MapPlaylist) {
       throw new Error(`Failed to schedule public game: ${response.statusText}`);
     }
   } catch (error) {
-    log.error(`Failed to schedule public game on worker ${workerPath}: ${fmtError(error)}`);
+    log.error(`Failed to schedule public game on worker ${workerPath}: ${formatError(error)}`);
     throw error;
   }
 }
@@ -460,9 +460,9 @@ app.get("*", function (req, res) {
 
 // Process-level error handlers
 process.on("uncaughtException", (err) => {
-  log.error(`uncaught exception: ${fmtError(err)}`);
+  log.error(`uncaught exception: ${formatError(err)}`);
 });
 
 process.on("unhandledRejection", (reason) => {
-  log.error(`unhandled rejection at: ${fmtError(reason)}`);
+  log.error(`unhandled rejection at: ${formatError(reason)}`);
 });

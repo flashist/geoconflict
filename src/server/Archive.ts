@@ -8,7 +8,7 @@ import {
   PartialGameRecord,
 } from "../core/Schemas";
 import { replacer } from "../core/Util";
-import { fmtError, logger } from "./Logger";
+import { formatError, logger } from "./Logger";
 
 const config = getServerConfigFromServer();
 
@@ -35,7 +35,7 @@ export async function archive(gameRecord: GameRecord) {
       return;
     }
   } catch (error) {
-    log.error(`error archiving game record (gameID: ${gameRecord.info.gameID}): ${fmtError(error)}`);
+    log.error(`error archiving game record (gameID: ${gameRecord.info.gameID}): ${formatError(error)}`);
     return;
   }
 }
@@ -62,7 +62,7 @@ export async function readGameRecord(
     }
     return GameRecordSchema.parse(record);
   } catch (error) {
-    log.error(`error reading game record (gameID: ${gameId}): ${fmtError(error)}`);
+    log.error(`error reading game record (gameID: ${gameId}): ${formatError(error)}`);
     return null;
   }
 }

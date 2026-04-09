@@ -22,7 +22,7 @@ import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
 import { GameManager } from "./GameManager";
 import { getUserMe, verifyClientToken } from "./jwt";
-import { fmtError, logger } from "./Logger";
+import { formatError, logger } from "./Logger";
 
 import { MapPlaylist } from "./MapPlaylist";
 import { PrivilegeRefresher } from "./PrivilegeRefresher";
@@ -270,7 +270,7 @@ export async function startWorker() {
         success: true,
       });
     } catch (error) {
-      log.error(`Error processing archive request: ${fmtError(error)}`);
+      log.error(`Error processing archive request: ${formatError(error)}`);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -300,7 +300,7 @@ export async function startWorker() {
       const ip = Array.isArray(forwarded)
         ? forwarded[0]
         : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          forwarded || req.socket.remoteAddress || "unknown";
+        forwarded || req.socket.remoteAddress || "unknown";
 
       try {
         // Parse and handle client messages
@@ -459,17 +459,17 @@ export async function startWorker() {
 
   // Global error handler
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    log.error(`Error in ${req.method} ${req.path}: ${fmtError(err)}`);
+    log.error(`Error in ${req.method} ${req.path}: ${formatError(err)}`);
     res.status(500).json({ error: "An unexpected error occurred" });
   });
 
   // Process-level error handlers
   process.on("uncaughtException", (err) => {
-    log.error(`uncaught exception: ${fmtError(err)}`);
+    log.error(`uncaught exception: ${formatError(err)}`);
   });
 
   process.on("unhandledRejection", (reason) => {
-    log.error(`unhandled rejection at: ${fmtError(reason)}`);
+    log.error(`unhandled rejection at: ${formatError(reason)}`);
   });
 }
 
@@ -521,7 +521,7 @@ async function pollLobby(gm: GameManager) {
       }, 5000);
     }
   } catch (error) {
-    log.error(`Error polling lobby: ${fmtError(error)}`);
+    log.error(`Error polling lobby: ${formatError(error)}`);
   } finally {
     setTimeout(
       () => {
