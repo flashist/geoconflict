@@ -73,19 +73,19 @@ export function initWorkerMetrics(gameManager: GameManager): void {
 
   // --- New system metrics ---
 
-  // CPU usage (percent)
+  // CPU utilization — OTEL convention: ratio 0.0–1.0, unit "1"
   let prevCpu = getCpuTimes();
 
   const cpuGauge = meter.createObservableGauge(
     "geoconflict.server.cpu.usage",
-    { description: "CPU usage percentage", unit: "percent" },
+    { description: "CPU utilization ratio (0.0–1.0)", unit: "1" },
   );
 
   cpuGauge.addCallback((result) => {
     const curr = getCpuTimes();
     const idleDelta = curr.idle - prevCpu.idle;
     const totalDelta = curr.total - prevCpu.total;
-    const usage = totalDelta > 0 ? ((totalDelta - idleDelta) / totalDelta) * 100 : 0;
+    const usage = totalDelta > 0 ? (totalDelta - idleDelta) / totalDelta : 0;
     prevCpu = curr;
     result.observe(usage, getPromLabels());
   });
