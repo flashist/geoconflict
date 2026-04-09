@@ -111,8 +111,9 @@ export const flashistConstants = {
 
 // Working with analytics logs
 export const flashist_logEventAnalytics = (event: string, value?: number) => {
-    if (process.env.GAME_ENV === "dev") {
+    if (process.env.DEPLOY_ENV !== "prod") {
         console.log("flashist_logEventAnalytics | logEvent __ event: ", event, " | value: ", value);
+        return;
     }
 
     try {
@@ -147,6 +148,10 @@ export const flashist_logErrorTypes = {
 }
 export const flashist_logErrorToAnalytics = (errorText: string, severity?: string) => {
     console.log("flashist_logErrorToAnalytics __ errorText: ", errorText, " | severity: ", severity);
+
+    if (process.env.DEPLOY_ENV !== "prod") {
+        return;
+    }
 
     if (!severity) {
         severity = flashist_logErrorTypes.ERROR;
@@ -232,19 +237,22 @@ export class FlashistFacade {
         this.yandexInitPromise = this.yandexSdkInit();
         this.yandexSdkInitPlayerPromise = this.initPlayer();
 
-        // Setting up Game Analytics
-        GameAnalytics.setEnabledInfoLog(true);
-        GameAnalytics.setEnabledVerboseLog(true);
+        // Setting up Game Analytics — disabled for dev and staging builds to avoid
+        // polluting production analytics data with non-production sessions.
+        if (process.env.DEPLOY_ENV === "prod") {
+            GameAnalytics.setEnabledInfoLog(true);
+            GameAnalytics.setEnabledVerboseLog(true);
 
-        // Platform custom dimensions
-        const isMobile = isMobileDevice();
-        const isYandex = this.yaGamesAvailable;
-        GameAnalytics.setCustomDimension01(isMobile ? "mobile" : "desktop");
-        GameAnalytics.setCustomDimension02(isYandex ? "yandex" : "web");
+            // Platform custom dimensions
+            const isMobile = isMobileDevice();
+            const isYandex = this.yaGamesAvailable;
+            GameAnalytics.setCustomDimension01(isMobile ? "mobile" : "desktop");
+            GameAnalytics.setCustomDimension02(isYandex ? "yandex" : "web");
 
-        GameAnalytics.configureBuild(version);
-        GameAnalytics.initialize("a1f0fb4335fe32696c3b76eb49612ead", "ba57db678bc9a1181bde9430bad83c6fa3b71862");
-        flashist_logEventAnalytics(flashistConstants.analyticEvents.SESSION_START);
+            GameAnalytics.configureBuild(version);
+            GameAnalytics.initialize("a1f0fb4335fe32696c3b76eb49612ead", "ba57db678bc9a1181bde9430bad83c6fa3b71862");
+            flashist_logEventAnalytics(flashistConstants.analyticEvents.SESSION_START);
+        }
 
         // Device:Type — fired once per session after Session:Start
         const ua = navigator.userAgent;
