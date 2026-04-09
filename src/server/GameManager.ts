@@ -125,6 +125,9 @@ export class GameManager {
       }
 
       if (phase === GamePhase.Finished) {
+        // Accumulate before removing from this.games so totalBytesSent/Received
+        // never double-counts — Node.js single-threaded event loop guarantees
+        // tick() runs to completion before any OTEL callback can observe totals.
         this._totalBytesSent += game.bytesSent;
         this._totalBytesReceived += game.bytesReceived;
         try {
