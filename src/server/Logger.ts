@@ -76,10 +76,12 @@ console.warn = (...args: unknown[]) => {
 };
 
 // Formats an unknown thrown value into a log-ready string with stack trace.
-// Use inside template literals: log.error(`Something failed: ${fmtError(error)}`);
+// Use inside template literals: log.error(`Something failed: ${formatError(error)}`);
 export function formatError(error: unknown): string {
-  const err = error instanceof Error ? error : new Error(String(error));
-  return `${err.message}${err.stack ? "\n" + err.stack : ""}`;
+  if (error instanceof Error) {
+    return error.stack ?? error.message;
+  }
+  return String(error);
 }
 
 // Export both the main logger and the child logger factory
