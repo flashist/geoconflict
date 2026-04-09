@@ -63,21 +63,12 @@ export function initWorkerMetrics(gameManager: GameManager): void {
     { description: "Number of connected clients on this worker" },
   );
 
-  const memoryUsageGauge = meter.createObservableGauge(
-    "openfront.memory_usage.bytes",
-    { description: "Current memory usage of the worker process in bytes" },
-  );
-
   activeGamesGauge.addCallback((result) => {
     result.observe(gameManager.activeGames(), getPromLabels());
   });
 
   connectedClientsGauge.addCallback((result) => {
     result.observe(gameManager.activeClients(), getPromLabels());
-  });
-
-  memoryUsageGauge.addCallback((result) => {
-    result.observe(process.memoryUsage().heapUsed, getPromLabels());
   });
 
   // --- New system metrics ---
