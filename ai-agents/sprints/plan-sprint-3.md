@@ -90,20 +90,88 @@ Part B can ship independently of Part A and should be prioritized first — it r
 
 ---
 
-### 5d. Server Performance Investigation & Sentry Instrumentation
-**Effort:** 2–3 days
-**Experiments:** ❌ Excluded — diagnostic and monitoring infrastructure.
+### 5d-A. Server System Metrics Monitoring via OpenTelemetry
+**Effort:** 2–4 days (including Part A investigation and possible backend setup)
+**Experiments:** ❌ Excluded — monitoring infrastructure.
 
-Desktop players with decent hardware are reporting occasional lag. Client hardware is not the bottleneck — server-side causes or network are the likely candidates. Lag appears infrequent.
+Player lag reports may be caused by server resource exhaustion — CPU pressure, memory/GC pauses, or bandwidth saturation — on modest hardware (16GB RAM, unknown bandwidth). The server already uses OTEL but it is unconfirmed whether it is connected to a live backend in production.
 
-**Part A — Investigation first:** map out where server-side lag can theoretically originate — turn processing budget overruns, Node.js GC pauses, intent queue pressure, WebSocket broadcast cost, worker load imbalance, blocking I/O during turn processing. Produce a short written findings document with ranked suspects before any instrumentation begins.
+**Part A — investigation first:** confirm OTEL is active and connected. If no backend exists, set one up (Grafana + Prometheus + OTEL Collector). Use existing OTEL infrastructure — no parallel monitoring solutions.
 
-**Part B — Sentry server-side integration:**
-- Error tracking always on — unhandled server exceptions currently produce no external signal
-- Turn processing wrapped in threshold-based Sentry transactions: capture only if total duration exceeds **100ms** (~1.5× the 67ms tick budget). Normal turns produce zero overhead and zero noise. Slow turns captured with full span breakdown: `intent.collection` → `game.execute` → `turn.broadcast`
-- Threshold is a named constant — adjustable without code search
-- Separate Sentry project or environment tag from client-side errors
+**Part B — collect eight metrics every 60 seconds:** CPU usage, memory used/total, active match count, connected players, network I/O bytes sent/received, and Node.js event loop lag. Event loop lag is the most critical — a 50–200ms block causes simultaneous freezes for all players in all active matches.
 
-The span breakdown directly identifies the lag source: slow `game.execute` → GC or expensive logic; slow `turn.broadcast` → serialization or WebSocket pressure; all spans slow together → GC pause affecting the entire event loop.
+**Part C — basic dashboard:** all eight metrics visible over time, enabling direct correlation with 5d-B Sentry transaction data.
+
+See full brief: `task-5d-a-server-metrics.md`
 
 ---
+
+### 5d-B. Server Performance Investigation & Uptrace Instrumentation
+**Status:** ✅ Largely complete — instrumentation shipped, awaiting data
+**Experiments:** ❌ Excluded — diagnostic and monitoring infrastructure.
+
+Investigation complete (see `server-performance-investigation.md`). Key finding: **the server does not execute game logic** — `executeNextTick()` runs on the client. Server per-tick work is turn assembly, sync check, and WebSocket broadcast only.
+
+**Ranked suspects:** (1) Worker overload from hash-based routing — multiple large matches on one worker, invisible until now; (2) GC pauses from `this.turns` growing indefinitely — ~162,000 Turn objects retained per 3-hour match; (3) Turn broadcast serialization cost at high client counts.
+
+**Instrumentation shipped:** `endTurn()` wrapped with threshold-based OTEL spans (>100ms threshold). Span structure: `server.turn.process → turn.assembly → synchronization → turn.broadcast` with attributes including `game.id`, `turn.number`, `intents.count`, `clients.active`, `message.size_bytes`. Zero overhead on normal turns.
+
+**What remains:** wait for slow turn data to accumulate in Uptrace, then correlate with 5d-A system metrics to confirm which suspect is responsible.
+
+**Technical debt flagged:** `this.turns` growing indefinitely is a memory concern at scale — not urgent now but worth a dedicated cleanup task before player counts grow significantly.
+
+See full brief: `task-server-performance.md`
+
+---
+### HF-11a. Stale Build Sessions — Investigation
+**Effort:** 1–2 hours
+**Experiments:** ❌ Excluded.
+**Blocks:** HF-11b, HF-11c, HF-11d
+
+Plot decay rate of `0.0.102` returning users over 7 days post `0.0.118` deploy to confirm zombie tabs as primary cause. Check Yandex CDN and browser cache hypotheses. No code — analysis only. Document findings before any code is written.
+
+See full brief: `hf11a-hotfix-stale-build-investigation.md`
+
+---
+
+### HF-11b. Stale Build Sessions — Version Endpoint
+**Effort:** 1–2 hours
+**Experiments:** ❌ Excluded.
+**Depends on:** HF-11a
+
+Add `GET /api/version` endpoint returning `{ "build": "CURRENT_BUILD" }` with `Cache-Control: no-cache, no-store` headers. Pure server-side change. Unblocks HF-11c.
+
+See full brief: `hf11b-hotfix-version-endpoint.md`
+
+---
+
+### HF-11c. Stale Build Sessions — Client Detection
+**Effort:** 2–3 hours
+**Experiments:** ❌ Excluded.
+**Depends on:** HF-11b deployed
+
+Three detection triggers: on startup, polling every 5 minutes, on tab focus. Fires `Build:StaleDetected` analytics event. Ships without UI — immediately starts producing analytics data while HF-11d is implemented.
+
+See full brief: `hf11c-hotfix-stale-build-detection.md`
+
+---
+
+### HF-11d. Stale Build Sessions — Blocking Modal
+**Effort:** 2–3 hours
+**Experiments:** ❌ Excluded.
+**Depends on:** HF-11c deployed
+
+Wire detection to existing modal component. Non-dismissible overlay with REFRESH button and "Contact support" text link. Applies in all game states including mid-match.
+
+See full brief: `hf11d-hotfix-stale-build-modal.md`
+
+---
+
+### HF-11e. Stale Build Sessions — BUILD_NUMBER Automation
+**Effort:** 1–2 hours
+**Experiments:** ❌ Excluded.
+**Depends on:** HF-11a findings
+
+Automate BUILD_NUMBER injection from build pipeline via Vite config + env variable. Eliminates manual update step from deploy checklist permanently.
+
+See full brief: `hf11e-hotfix-build-number-automation.md`

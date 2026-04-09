@@ -86,11 +86,11 @@ Part A must complete before any code is written.
 **Brief:** `task-autospawn-bug-investigation.md`
 **Status:** ✅ Done
 
-Critical gameplay bug. Auto-spawn places the player on an invalid tile (suspected: water, edge, or null) and fails silently — but may corrupt spawn state in a way that also breaks manual placement clicks. Player is stuck watching the match with no ability to participate. Especially severe in the tutorial where auto-spawn is the first interaction.
+Root cause confirmed: auto-spawn was firing during the client catch-up fast-forward window (for late joiners), before the client was in sync with the server. The spawn intent was sent but rejected server-side, while the client marked itself as already having attempted — leaving the player permanently stuck. Affected ~0.36% of spawn sessions (1 in 275).
 
-Primary suspects: tile selection not filtering invalid tiles, failed placement setting `hasSpawned = true` regardless of outcome, or a race condition between auto-spawn and spawn phase initialisation.
+Fix: auto-spawn now waits until fast-forward is fully complete before sending the spawn request. New event `Match:SpawnRetryAfterCatchup` fires when the fix saves a player — this is the key signal to watch after deploy.
 
-Investigation must confirm root cause before fix is written.
+**Known limitation not yet fixed:** if catch-up takes longer than the entire spawn phase, the player is still stuck. Tracked as `Match:SpawnMissed:CatchupTooLong` — separate task required.
 
 ---
 
@@ -135,6 +135,22 @@ One-line change: delete the `history.pushState` block in `handleJoinLobby()` in 
 Players are running stale cached builds, reporting analytics under old or missing build numbers and potentially still experiencing already-fixed bugs. Three-part fix: (A) investigate current cache configuration, (B) add content hash to bundle filenames so changed bundles get new URLs, (C) set `Cache-Control: no-cache` on the HTML entry point so it is always fetched fresh. Also confirm whether Yandex Games has its own CDN caching layer that requires a separate invalidation step on publish.
 
 ---
+
+
+---
+
+## HF-11. Stale Build Sessions — Investigation & Fix
+**Effort:** R&D — 2–5 days depending on findings
+**Brief:** `hf11-hotfix-stale-build-sessions.md`
+**Status:** Pending — high priority
+
+Returning users on old builds (0.0.99, 0.0.102, 0.0.104) persist in analytics despite newer builds being deployed. Players on stale builds may be experiencing broken gameplay silently — feedback data shows old-build players are not submitting reports, suggesting the feedback form itself may be non-functional for them.
+
+Primary hypothesis: zombie tabs — players who opened the game before the latest deploy and never closed the tab. The old JavaScript bundle continues running in memory indefinitely; no cache-busting mechanism can reach an already-loaded page.
+
+Secondary hypotheses: Yandex CDN caching old HTML, aggressive browser cache persistence, BUILD_NUMBER not updated on deploy.
+
+**Investigation first** — confirm which hypothesis explains the data before implementing fixes. Primary fix direction (if zombie tabs confirmed): version polling endpoint + client-side stale build detection with a non-dismissible update banner. Never auto-reload during an active match.
 
 ## Hotfix Release Checklist
 
