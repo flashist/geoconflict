@@ -54,8 +54,8 @@ export function initWorkerMetrics(gameManager: GameManager): void {
   // --- Existing metrics ---
 
   const activeGamesGauge = meter.createObservableGauge(
-    "geoconflict.server.games.active",
-    { description: "Number of active games on this worker" },
+    "geoconflict.server.games.total",
+    { description: "Total games managed on this worker (lobby + started)" },
   );
 
   const connectedClientsGauge = meter.createObservableGauge(
@@ -149,8 +149,8 @@ export function initWorkerMetrics(gameManager: GameManager): void {
 
   // Active matches (games currently processing turns)
   const turnsActiveGauge = meter.createObservableGauge(
-    "geoconflict.server.matches.active",
-    { description: "Number of matches currently started on this worker" },
+    "geoconflict.server.games.started",
+    { description: "Games that have started processing turns on this worker (excludes lobby)" },
   );
 
   turnsActiveGauge.addCallback((result) => {
