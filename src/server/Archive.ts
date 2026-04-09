@@ -31,7 +31,7 @@ export async function archive(gameRecord: GameRecord) {
       },
     });
     if (!response.ok) {
-      log.error(`error archiving game record: ${response.statusText} (gameID: ${gameRecord.info.gameID})`);
+      log.error(`error archiving game record (gameID: ${gameRecord.info.gameID}): ${response.statusText}`);
       return;
     }
   } catch (error) {
@@ -57,7 +57,7 @@ export async function readGameRecord(
     });
     const record = await response.json();
     if (!response.ok) {
-      log.error(`error reading game record: ${response.statusText} (gameID: ${gameId})`);
+      log.error(`error reading game record (gameID: ${gameId}): ${response.statusText}`);
       return null;
     }
     return GameRecordSchema.parse(record);
