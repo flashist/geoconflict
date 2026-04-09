@@ -122,14 +122,9 @@ export function initWorkerMetrics(gameManager: GameManager): void {
     result.observe(rssGauge, mem.rss, getPromLabels());
   }, [heapUsedGauge, heapTotalGauge, rssGauge]);
 
-  // Event loop lag — histogram read/reset on a fixed interval, decoupled from OTEL callbacks
+  // Event loop lag
   const eventLoopHistogram = monitorEventLoopDelay({ resolution: 20 });
   eventLoopHistogram.enable();
-  let lastEventLoopLagMs = 0;
-  setInterval(() => {
-    lastEventLoopLagMs = eventLoopHistogram.mean / 1e6; // nanoseconds → milliseconds
-    eventLoopHistogram.reset();
-  }, 15000);
 
   const eventLoopLagGauge = meter.createObservableGauge(
     "geoconflict.server.eventloop.lag",
@@ -137,7 +132,9 @@ export function initWorkerMetrics(gameManager: GameManager): void {
   );
 
   eventLoopLagGauge.addCallback((result) => {
-    result.observe(lastEventLoopLagMs, getPromLabels());
+    const lagMs = eventLoopHistogram.mean / 1e6; // nanoseconds → milliseconds
+    eventLoopHistogram.reset();
+    result.observe(lagMs, getPromLabels());
   });
 
   // Network I/O (cumulative counters)
