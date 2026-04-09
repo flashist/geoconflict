@@ -10,6 +10,7 @@ import {
 import { GameConfig, GameID } from "../core/Schemas";
 import { Client } from "./Client";
 import { GamePhase, GameServer } from "./GameServer";
+import { fmtError } from "./Logger";
 
 export class GameManager {
   private games: Map<GameID, GameServer> = new Map();
@@ -118,8 +119,7 @@ export class GameManager {
             try {
               game.start();
             } catch (error) {
-              const err = error instanceof Error ? error : new Error(String(error));
-              this.log.error(`error starting game ${id}: ${err.message}\n${err.stack ?? ""}`);
+              this.log.error(`error starting game ${id}: ${fmtError(error)}`);
             }
           }, 2000);
         }
@@ -134,8 +134,7 @@ export class GameManager {
         try {
           game.end();
         } catch (error) {
-          const err = error instanceof Error ? error : new Error(String(error));
-          this.log.error(`error ending game ${id}: ${err.message}\n${err.stack ?? ""}`);
+          this.log.error(`error ending game ${id}: ${fmtError(error)}`);
         }
       } else {
         active.set(id, game);

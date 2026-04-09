@@ -1,4 +1,5 @@
 import { base64url } from "jose";
+import { fmtError } from "./Logger";
 import { Logger } from "winston";
 import { CosmeticsSchema } from "../core/CosmeticSchemas";
 import {
@@ -61,8 +62,7 @@ export class PrivilegeRefresher {
       );
       this.log.info(`Privilege checker loaded successfully`);
     } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      this.log.error(`Failed to fetch cosmetics from ${this.endpoint}: ${err.message}\n${err.stack ?? ""}`);
+      this.log.error(`Failed to fetch cosmetics from ${this.endpoint}: ${fmtError(error)}`);
       throw error;
     }
   }

@@ -22,7 +22,7 @@ import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
 import { GameManager } from "./GameManager";
 import { getUserMe, verifyClientToken } from "./jwt";
-import { logger } from "./Logger";
+import { fmtError, logger } from "./Logger";
 
 import { MapPlaylist } from "./MapPlaylist";
 import { PrivilegeRefresher } from "./PrivilegeRefresher";
@@ -270,8 +270,7 @@ export async function startWorker() {
         success: true,
       });
     } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      log.error(`Error processing archive request: ${err.message}\n${err.stack ?? ""}`);
+      log.error(`Error processing archive request: ${fmtError(error)}`);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -460,19 +459,17 @@ export async function startWorker() {
 
   // Global error handler
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    log.error(`Error in ${req.method} ${req.path}: ${err.message}\n${err.stack ?? ""}`);
+    log.error(`Error in ${req.method} ${req.path}: ${fmtError(err)}`);
     res.status(500).json({ error: "An unexpected error occurred" });
   });
 
   // Process-level error handlers
   process.on("uncaughtException", (err) => {
-    log.error(`uncaught exception: ${err.message}\n${err.stack ?? ""}`);
+    log.error(`uncaught exception: ${fmtError(err)}`);
   });
 
   process.on("unhandledRejection", (reason) => {
-    const message = reason instanceof Error ? reason.message : String(reason);
-    const stack = reason instanceof Error ? (reason.stack ?? "") : "";
-    log.error(`unhandled rejection at: ${message}\n${stack}`);
+    log.error(`unhandled rejection at: ${fmtError(reason)}`);
   });
 }
 
@@ -524,8 +521,7 @@ async function pollLobby(gm: GameManager) {
       }, 5000);
     }
   } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    log.error(`Error polling lobby: ${err.message}\n${err.stack ?? ""}`);
+    log.error(`Error polling lobby: ${fmtError(error)}`);
   } finally {
     setTimeout(
       () => {
