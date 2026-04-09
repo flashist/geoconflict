@@ -78,6 +78,9 @@ export class GameServer {
   private kickedClients: Set<ClientID> = new Set();
   private outOfSyncClients: Set<ClientID> = new Set();
 
+  public bytesSent: number = 0;
+  public bytesReceived: number = 0;
+
   private websockets: Set<WebSocket> = new Set();
   private aiPlayers: AiLobbyPlayer[] = [];
   private pendingAiJoins: PendingAiJoin[] = [];
@@ -259,6 +262,8 @@ export class GameServer {
 
     client.ws.removeAllListeners("message");
     client.ws.on("message", async (message: string) => {
+      // Buffer.byteLength is correct for both Buffer and string (handles multi-byte chars)
+      this.bytesReceived += Buffer.byteLength(message);
       try {
         const parsed = ClientMessageSchema.safeParse(JSON.parse(message));
         if (!parsed.success) {
@@ -707,6 +712,8 @@ export class GameServer {
     this.activeClients.forEach((c) => {
       c.ws.send(msg);
     });
+    // Approximation: counts bytes for all clients regardless of individual send failures
+    this.bytesSent += Buffer.byteLength(msg) * this.activeClients.length;
 
     const t3 = Date.now();
     const totalMs = t3 - t0;

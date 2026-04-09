@@ -13,6 +13,8 @@ import { GamePhase, GameServer } from "./GameServer";
 
 export class GameManager {
   private games: Map<GameID, GameServer> = new Map();
+  private _totalBytesSent: number = 0;
+  private _totalBytesReceived: number = 0;
 
   constructor(
     private config: ServerConfig,
@@ -79,6 +81,30 @@ export class GameManager {
     return totalClients;
   }
 
+  activeMatches(): number {
+    let count = 0;
+    this.games.forEach((game: GameServer) => {
+      if (game.hasStarted()) count++;
+    });
+    return count;
+  }
+
+  totalBytesSent(): number {
+    let total = this._totalBytesSent;
+    this.games.forEach((game: GameServer) => {
+      total += game.bytesSent;
+    });
+    return total;
+  }
+
+  totalBytesReceived(): number {
+    let total = this._totalBytesReceived;
+    this.games.forEach((game: GameServer) => {
+      total += game.bytesReceived;
+    });
+    return total;
+  }
+
   tick() {
     const active = new Map<GameID, GameServer>();
     for (const [id, game] of this.games) {
@@ -99,6 +125,11 @@ export class GameManager {
       }
 
       if (phase === GamePhase.Finished) {
+        // Accumulate before removing from this.games so totalBytesSent/Received
+        // never double-counts — Node.js single-threaded event loop guarantees
+        // tick() runs to completion before any OTEL callback can observe totals.
+        this._totalBytesSent += game.bytesSent;
+        this._totalBytesReceived += game.bytesReceived;
         try {
           game.end();
         } catch (error) {
