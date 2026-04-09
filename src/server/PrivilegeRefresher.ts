@@ -61,7 +61,8 @@ export class PrivilegeRefresher {
       );
       this.log.info(`Privilege checker loaded successfully`);
     } catch (error) {
-      this.log.error(`Failed to fetch cosmetics from ${this.endpoint}:`, error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.log.error(`Failed to fetch cosmetics from ${this.endpoint}: ${err.message}\n${err.stack ?? ""}`);
       throw error;
     }
   }

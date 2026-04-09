@@ -270,7 +270,8 @@ export async function startWorker() {
         success: true,
       });
     } catch (error) {
-      log.error("Error processing archive request:", error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      log.error(`Error processing archive request: ${err.message}\n${err.stack ?? ""}`);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -459,19 +460,19 @@ export async function startWorker() {
 
   // Global error handler
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    log.error(`Error in ${req.method} ${req.path}:`, err);
+    log.error(`Error in ${req.method} ${req.path}: ${err.message}\n${err.stack ?? ""}`);
     res.status(500).json({ error: "An unexpected error occurred" });
   });
 
   // Process-level error handlers
   process.on("uncaughtException", (err) => {
-    log.error(`uncaught exception: ${err.message}`, { stack: err.stack });
+    log.error(`uncaught exception: ${err.message}\n${err.stack ?? ""}`);
   });
 
   process.on("unhandledRejection", (reason) => {
     const message = reason instanceof Error ? reason.message : String(reason);
-    const stack = reason instanceof Error ? reason.stack : undefined;
-    log.error(`unhandled rejection at: ${message}`, { stack });
+    const stack = reason instanceof Error ? (reason.stack ?? "") : "";
+    log.error(`unhandled rejection at: ${message}\n${stack}`);
   });
 }
 
@@ -523,7 +524,8 @@ async function pollLobby(gm: GameManager) {
       }, 5000);
     }
   } catch (error) {
-    log.error(`Error polling lobby:`, error);
+    const err = error instanceof Error ? error : new Error(String(error));
+    log.error(`Error polling lobby: ${err.message}\n${err.stack ?? ""}`);
   } finally {
     setTimeout(
       () => {

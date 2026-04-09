@@ -118,7 +118,8 @@ export class GameManager {
             try {
               game.start();
             } catch (error) {
-              this.log.error(`error starting game ${id}: ${error}`);
+              const err = error instanceof Error ? error : new Error(String(error));
+            this.log.error(`error starting game ${id}: ${err.message}\n${err.stack ?? ""}`);
             }
           }, 2000);
         }
@@ -133,7 +134,8 @@ export class GameManager {
         try {
           game.end();
         } catch (error) {
-          this.log.error(`error ending game ${id}: ${error}`);
+          const err = error instanceof Error ? error : new Error(String(error));
+          this.log.error(`error ending game ${id}: ${err.message}\n${err.stack ?? ""}`);
         }
       } else {
         active.set(id, game);

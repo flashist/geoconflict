@@ -18,9 +18,7 @@ export async function archive(gameRecord: GameRecord) {
   try {
     const parsed = GameRecordSchema.safeParse(gameRecord);
     if (!parsed.success) {
-      log.error(`invalid game record: ${z.prettifyError(parsed.error)}`, {
-        gameID: gameRecord.info.gameID,
-      });
+      log.error(`invalid game record (gameID: ${gameRecord.info.gameID}): ${z.prettifyError(parsed.error)}`);
       return;
     }
     const url = `${config.jwtIssuer()}/game/${gameRecord.info.gameID}`;
@@ -33,15 +31,12 @@ export async function archive(gameRecord: GameRecord) {
       },
     });
     if (!response.ok) {
-      log.error(`error archiving game record: ${response.statusText}`, {
-        gameID: gameRecord.info.gameID,
-      });
+      log.error(`error archiving game record: ${response.statusText} (gameID: ${gameRecord.info.gameID})`);
       return;
     }
   } catch (error) {
-    log.error(`error archiving game record: ${error}`, {
-      gameID: gameRecord.info.gameID,
-    });
+    const err = error instanceof Error ? error : new Error(String(error));
+    log.error(`error archiving game record (gameID: ${gameRecord.info.gameID}): ${err.message}\n${err.stack ?? ""}`);
     return;
   }
 }
@@ -63,16 +58,13 @@ export async function readGameRecord(
     });
     const record = await response.json();
     if (!response.ok) {
-      log.error(`error reading game record: ${response.statusText}`, {
-        gameID: gameId,
-      });
+      log.error(`error reading game record: ${response.statusText} (gameID: ${gameId})`);
       return null;
     }
     return GameRecordSchema.parse(record);
   } catch (error) {
-    log.error(`error reading game record: ${error}`, {
-      gameID: gameId,
-    });
+    const err = error instanceof Error ? error : new Error(String(error));
+    log.error(`error reading game record (gameID: ${gameId}): ${err.message}\n${err.stack ?? ""}`);
     return null;
   }
 }

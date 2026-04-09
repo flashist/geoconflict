@@ -103,7 +103,8 @@ export async function startMaster() {
 
         const scheduleLobbies = () => {
           schedulePublicGame(playlist).catch((error) => {
-            log.error("Error scheduling public game:", error);
+            const err = error instanceof Error ? error : new Error(String(error));
+            log.error(`Error scheduling public game: ${err.message}\n${err.stack ?? ""}`);
           });
         };
 
@@ -246,7 +247,8 @@ app.post(
           log.warn(`[feedback] webhook responded with ${webhookResp.status}`);
         }
       } catch (err) {
-        log.error("[feedback] webhook delivery failed:", err);
+        const e = err instanceof Error ? err : new Error(String(err));
+        log.error(`[feedback] webhook delivery failed: ${e.message}\n${e.stack ?? ""}`);
       }
     }
 
@@ -282,7 +284,8 @@ app.post(
           );
         }
       } catch (err) {
-        log.error("[feedback] telegram delivery failed:", err);
+        const e = err instanceof Error ? err : new Error(String(err));
+        log.error(`[feedback] telegram delivery failed: ${e.message}\n${e.stack ?? ""}`);
       }
     }
 
@@ -324,7 +327,8 @@ app.post("/api/kick_player/:gameID/:clientID", async (req, res) => {
 
     res.status(200).send("Player kicked successfully");
   } catch (error) {
-    log.error(`Error kicking player from game ${gameID}:`, error);
+    const err = error instanceof Error ? error : new Error(String(error));
+    log.error(`Error kicking player from game ${gameID}: ${err.message}\n${err.stack ?? ""}`);
     res.status(500).send("Failed to kick player");
   }
 });
@@ -345,7 +349,8 @@ async function fetchLobbies(): Promise<number> {
         return json as GameInfo;
       })
       .catch((error) => {
-        log.error(`Error fetching game ${gameID}:`, error);
+        const err = error instanceof Error ? error : new Error(String(error));
+        log.error(`Error fetching game ${gameID}: ${err.message}\n${err.stack ?? ""}`);
         // Return null or a placeholder if fetch fails
         publicLobbyIDs.delete(gameID);
         return null;
@@ -428,7 +433,8 @@ async function schedulePublicGame(playlist: MapPlaylist) {
       throw new Error(`Failed to schedule public game: ${response.statusText}`);
     }
   } catch (error) {
-    log.error(`Failed to schedule public game on worker ${workerPath}:`, error);
+    const err = error instanceof Error ? error : new Error(String(error));
+    log.error(`Failed to schedule public game on worker ${workerPath}: ${err.message}\n${err.stack ?? ""}`);
     throw error;
   }
 }
@@ -456,4 +462,15 @@ app.get("/api/game/:id/active", async (req, res) => {
 // SPA fallback route
 app.get("*", function (req, res) {
   res.sendFile(path.join(__dirname, "../../static/index.html"));
+});
+
+// Process-level error handlers
+process.on("uncaughtException", (err) => {
+  log.error(`uncaught exception: ${err.message}\n${err.stack ?? ""}`);
+});
+
+process.on("unhandledRejection", (reason) => {
+  const message = reason instanceof Error ? reason.message : String(reason);
+  const stack = reason instanceof Error ? (reason.stack ?? "") : "";
+  log.error(`unhandled rejection at: ${message}\n${stack}`);
 });
