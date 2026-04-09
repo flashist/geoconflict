@@ -119,7 +119,7 @@ export class GameManager {
               game.start();
             } catch (error) {
               const err = error instanceof Error ? error : new Error(String(error));
-            this.log.error(`error starting game ${id}: ${err.message}\n${err.stack ?? ""}`);
+              this.log.error(`error starting game ${id}: ${err.message}\n${err.stack ?? ""}`);
             }
           }, 2000);
         }
