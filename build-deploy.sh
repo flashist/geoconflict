@@ -42,7 +42,7 @@ fi
 VERSION_TAG=$(date +"%Y%m%d-%H%M%S")
 
 print_header "STEP 0: BUMP PACKAGE VERSION"
-PACKAGE_VERSION=$(node ./scripts/bump-version.js)
+PACKAGE_VERSION=$(node ./scripts/bump-version.js "$ENV")
 echo "New package.json version: $PACKAGE_VERSION"
 
 print_header "BUILD AND DEPLOY START"
