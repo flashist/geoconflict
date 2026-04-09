@@ -54,12 +54,12 @@ export function initWorkerMetrics(gameManager: GameManager): void {
   // --- Existing metrics ---
 
   const activeGamesGauge = meter.createObservableGauge(
-    "openfront.active_games.gauge",
+    "geoconflict.server.games.active",
     { description: "Number of active games on this worker" },
   );
 
   const connectedClientsGauge = meter.createObservableGauge(
-    "openfront.connected_clients.gauge",
+    "geoconflict.server.clients.connected",
     { description: "Number of connected clients on this worker" },
   );
 
