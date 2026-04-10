@@ -98,7 +98,7 @@ export function joinLobby(
       console.log(
         `lobby: game prestarting: ${JSON.stringify(message, replacer)}`,
       );
-      const wasPreloaded = isMapCached(message.gameMap);
+      const wasPreloaded = isMapCached(message.gameMap, message.gameMapSize);
       terrainLoad = loadTerrainMap(
         message.gameMap,
         message.gameMapSize,

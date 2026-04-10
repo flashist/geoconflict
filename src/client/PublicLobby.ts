@@ -302,7 +302,10 @@ export class PublicLobby extends LitElement {
     } else {
       // User explicitly cancels from lobby wait — discard preloaded assets
       if (this.currLobby?.gameConfig) {
-        clearPreloadedMap(this.currLobby.gameConfig.gameMap as GameMapType);
+        clearPreloadedMap(
+          this.currLobby.gameConfig.gameMap as GameMapType,
+          this.currLobby.gameConfig.gameMapSize,
+        );
       }
       this.dispatchEvent(
         new CustomEvent("leave-lobby", {

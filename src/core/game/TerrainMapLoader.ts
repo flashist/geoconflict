@@ -8,8 +8,14 @@ export type TerrainMapData = {
   miniGameMap: GameMap;
 };
 
-const loadedMaps = new Map<GameMapType, TerrainMapData>();
-const inFlightLoads = new Map<GameMapType, Promise<TerrainMapData>>();
+type TerrainCacheKey = `${GameMapType}:${GameMapSize}`;
+
+function terrainCacheKey(map: GameMapType, mapSize: GameMapSize): TerrainCacheKey {
+  return `${map}:${mapSize}`;
+}
+
+const loadedMaps = new Map<TerrainCacheKey, TerrainMapData>();
+const inFlightLoads = new Map<TerrainCacheKey, Promise<TerrainMapData>>();
 
 export interface MapMetadata {
   width: number;
@@ -37,10 +43,12 @@ export async function loadTerrainMap(
   mapSize: GameMapSize,
   terrainMapFileLoader: GameMapLoader,
 ): Promise<TerrainMapData> {
-  const cached = loadedMaps.get(map);
+  const key = terrainCacheKey(map, mapSize);
+
+  const cached = loadedMaps.get(key);
   if (cached !== undefined) return cached;
 
-  const inFlight = inFlightLoads.get(map);
+  const inFlight = inFlightLoads.get(key);
   if (inFlight !== undefined) return inFlight;
 
   const promise = (async () => {
@@ -75,24 +83,25 @@ export async function loadTerrainMap(
         gameMap: gameMap,
         miniGameMap: miniMap,
       };
-      loadedMaps.set(map, result);
+      loadedMaps.set(key, result);
       return result;
     } finally {
-      inFlightLoads.delete(map);
+      inFlightLoads.delete(key);
     }
   })();
 
-  inFlightLoads.set(map, promise);
+  inFlightLoads.set(key, promise);
   return promise;
 }
 
-export function isMapCached(map: GameMapType): boolean {
-  return loadedMaps.has(map);
+export function isMapCached(map: GameMapType, mapSize: GameMapSize): boolean {
+  return loadedMaps.has(terrainCacheKey(map, mapSize));
 }
 
-export function clearPreloadedMap(map: GameMapType): void {
-  loadedMaps.delete(map);
-  inFlightLoads.delete(map);
+export function clearPreloadedMap(map: GameMapType, mapSize: GameMapSize): void {
+  const key = terrainCacheKey(map, mapSize);
+  loadedMaps.delete(key);
+  inFlightLoads.delete(key);
 }
 
 export async function genTerrainFromBin(
