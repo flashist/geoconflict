@@ -213,9 +213,6 @@ export class PublicLobby extends LitElement {
   }
 
   leaveLobby() {
-    if (this.currLobby?.gameConfig) {
-      clearPreloadedMap(this.currLobby.gameConfig.gameMap as GameMapType);
-    }
     this.isLobbyHighlighted = false;
     this.currLobby = null;
   }
@@ -303,6 +300,10 @@ export class PublicLobby extends LitElement {
       }
 
     } else {
+      // User explicitly cancels from lobby wait — discard preloaded assets
+      if (this.currLobby?.gameConfig) {
+        clearPreloadedMap(this.currLobby.gameConfig.gameMap as GameMapType);
+      }
       this.dispatchEvent(
         new CustomEvent("leave-lobby", {
           detail: { lobby: this.currLobby },
