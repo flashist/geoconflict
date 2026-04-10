@@ -79,6 +79,8 @@ export const flashistConstants = {
         TUTORIAL_DURATION: "Tutorial:Duration",
 
         UI_TAP_FIRST_PART: "UI:Tap:",
+
+        BUILD_STALE_DETECTED: "Build:StaleDetected",
     },
 
     uiElementIds: {

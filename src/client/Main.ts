@@ -15,6 +15,7 @@ import {
 import { UserSettings } from "../core/game/UserSettings";
 import version from "../version";
 import "./AccountModal";
+import { startBuildVersionChecker } from "./BuildVersionChecker";
 import { joinLobby } from "./ClientGameRunner";
 import { fetchCosmetics } from "./Cosmetics";
 import "./DarkModeButton";
@@ -942,6 +943,8 @@ class Client {
 document.addEventListener("DOMContentLoaded", async () => {
   // Flashist Adaptation
   await flashist_waitGameInitComplete();
+
+  startBuildVersionChecker();
 
   const client = new Client();
 
