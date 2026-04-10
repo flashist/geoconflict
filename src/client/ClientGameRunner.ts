@@ -593,10 +593,25 @@ export class ClientGameRunner {
 
   private tryAutoZoom(): void {
     if (this._autoZoomDone) return;
+    if (this.catchingUp) return;
     const player = this.gameView.myPlayer();
     if (player?.hasSpawned() && player.nameLocation()) {
       this.eventBus.emit(new GoToPlayerEvent(player, true));
       this._autoZoomDone = true;
+      if (this._autoSpawnSent) {
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.MATCH_SPAWN_AUTO,
+        );
+        if (this._autoSpawnBlockedByCatchup) {
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.MATCH_SPAWN_RETRY_AFTER_CATCHUP,
+          );
+        }
+      } else {
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.MATCH_SPAWN_CHOSEN,
+        );
+      }
     }
   }
 
@@ -631,14 +646,6 @@ export class ClientGameRunner {
             `tryAutoSpawn: tile (${x}, ${y}) deferred from catch-up, retrying for player ${this.lobby.clientID}`,
           );
         }
-        flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.MATCH_SPAWN_AUTO,
-        );
-        if (this._autoSpawnBlockedByCatchup) {
-          flashist_logEventAnalytics(
-            flashistConstants.analyticEvents.MATCH_SPAWN_RETRY_AFTER_CATCHUP,
-          );
-        }
         this.eventBus.emit(new SendSpawnIntentEvent(tile));
         this._autoSpawnSent = true;
         return;
@@ -664,9 +671,6 @@ export class ClientGameRunner {
       !this.gameView.hasOwner(tile) &&
       this.gameView.inSpawnPhase()
     ) {
-      flashist_logEventAnalytics(
-        flashistConstants.analyticEvents.MATCH_SPAWN_CHOSEN,
-      );
       this.eventBus.emit(new SendSpawnIntentEvent(tile));
       return;
     }
