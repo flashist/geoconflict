@@ -182,3 +182,18 @@ On slow connections, the camera zoom and spawn indicator animation fire at inten
 Fix: move camera zoom (`zoomToTerritory()`) and spawn indicator animation to fire when the server's spawn confirmation is received by the client, not when the intent is dispatched. Manual spawn tap camera behaviour must not change — only auto-spawn is affected.
 
 See full brief: `hf12-hotfix-spawn-camera-timing.md`
+
+---
+
+### HF-13. Map File Preloading on JOIN
+**Effort:** 1–2 days (investigation + implementation)
+**Experiments:** ❌ Excluded — performance improvement.
+**Depends on:** HF-6 deployed ✅
+
+Reduces frequency of `Match:SpawnMissed:CatchupTooLong` by starting map asset loading as soon as the player clicks JOIN — before the match starts. Map identity is known at JOIN time so preloading is precise, not speculative. Assets load silently in the background during lobby wait; match initialisation uses the cached assets instead of loading from scratch, shortening the catch-up window.
+
+Key requirements: fire-and-forget at JOIN, no duplicate loading if match starts mid-preload, graceful failure fallback, assets released on lobby cancel.
+
+Analytics: `Match:PreloadHit` with value = seconds saved is the key metric for evaluating impact on `CatchupTooLong` rate.
+
+See full brief: `hf13-hotfix-map-preload.md`
