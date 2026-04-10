@@ -11,6 +11,8 @@ export const flashistConstants = {
         UI_CLICK_MULTIPLAYER: "UI:ClickMultiplayer",
         UI_CLICK_SINGLE_PLAYER: "UI:ClickSinglePlayer",
         UI_CLICK_MISSION: "UI:ClickMission",
+        UI_CLICK_STALE_BUILD_REFRESH: "UI:ClickStaleBuildRefresh",
+        UI_CLICK_STALE_BUILD_CONTACT: "UI:ClickStaleBuildContact",
 
         GAME_START: "Game:Start",
         GAME_END: "Game:End",

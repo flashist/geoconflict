@@ -1,7 +1,8 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import type { FeedbackModal } from "./FeedbackModal";
+import { FeedbackModalScreenSource, showFeedbackModal, type FeedbackModal } from "./FeedbackModal";
 import { translateText } from "./Utils";
+import { flashist_logEventAnalytics, flashistConstants } from "./flashist/FlashistFacade";
 
 @customElement("stale-build-modal")
 export class StaleBuildModal extends LitElement {
@@ -83,14 +84,19 @@ export class StaleBuildModal extends LitElement {
   `;
 
   private onRefreshClick(): void {
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.UI_CLICK_STALE_BUILD_REFRESH
+    );
+
     window.location.reload();
   }
 
   private onContactClick(): void {
-    const feedbackModal = document.querySelector(
-      "feedback-modal",
-    ) as FeedbackModal;
-    feedbackModal?.show("start");
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.UI_CLICK_STALE_BUILD_CONTACT
+    );
+
+    showFeedbackModal(FeedbackModalScreenSource.staleBuild);
   }
 
   render() {
