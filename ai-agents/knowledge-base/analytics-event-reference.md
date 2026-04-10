@@ -113,6 +113,12 @@ Sampled every 60 seconds during active gameplay via a `setInterval` independent 
 | `PERFORMANCE_MEMORY_MEDIUM` | `Performance:Memory:Medium` | Heap is under moderate pressure |
 | `PERFORMANCE_MEMORY_LOW` | `Performance:Memory:Low` | Heap is heavily constrained — crash risk |
 
+### Build Version Events
+
+| Enum Key | Event String | When Fired |
+|---|---|---|
+| `BUILD_STALE_DETECTED` | `Build:StaleDetected` | Client is running an older build than the server. Fired at most once per session. **Value:** minutes since page load (integer). `0` = detected on startup (CDN/cache issue). `>0` = detected mid-session (zombie tab). |
+
 ### Worker Initialization Events
 Fired once per game session attempt, before gameplay starts.
 
