@@ -172,7 +172,7 @@ class Client {
     } else {
       // Flashist Adaptation: showing the name of the game instead of version
       licenseCredits.title = version;
-      licenseCredits.innerText = translateText("main.license_text");
+      licenseCredits.innerText = translateText("main.license_text") + "\n" + version;
     }
 
     const newsModal = document.querySelector("news-modal") as NewsModal;
