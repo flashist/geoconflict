@@ -126,11 +126,11 @@ See full brief: `task-server-performance.md`
 ### HF-11a. Stale Build Sessions — Investigation
 **Effort:** 1–2 hours
 **Experiments:** ❌ Excluded.
-**Blocks:** HF-11b, HF-11c, HF-11d
+**Status:** ✅ Complete — see `hf11a-stale-build-findings.md`
 
-Plot decay rate of `0.0.102` returning users over 7 days post `0.0.118` deploy to confirm zombie tabs as primary cause. Check Yandex CDN and browser cache hypotheses. No code — analysis only. Document findings before any code is written.
+Zombie tabs confirmed as sole cause. CDN, browser cache, and BUILD_NUMBER hypotheses all ruled out. HF-11b/c/d fix direction confirmed correct and complete. `null` build sessions (140 users) flagged as separate minor anomaly to investigate separately.
 
-See full brief: `hf11a-hotfix-stale-build-investigation.md`
+See findings: `hf11a-stale-build-findings.md`
 
 ---
 
@@ -168,10 +168,4 @@ See full brief: `hf11d-hotfix-stale-build-modal.md`
 ---
 
 ### HF-11e. Stale Build Sessions — BUILD_NUMBER Automation
-**Effort:** 1–2 hours
-**Experiments:** ❌ Excluded.
-**Depends on:** HF-11a findings
-
-Automate BUILD_NUMBER injection from build pipeline via Vite config + env variable. Eliminates manual update step from deploy checklist permanently.
-
-See full brief: `hf11e-hotfix-build-number-automation.md`
+**Status:** ⛔ Cancelled — HF-11a confirmed BUILD_NUMBER is already automated via `scripts/bump-version.js` in `build-deploy.sh`. Hypothesis 4 ruled out. No action needed.

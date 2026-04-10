@@ -137,22 +137,7 @@ Players are running stale cached builds, reporting analytics under old or missin
 ---
 
 
----
-
-## HF-11. Stale Build Sessions — Investigation & Fix
-**Effort:** R&D — 2–5 days depending on findings
-**Brief:** `hf11-hotfix-stale-build-sessions.md`
-**Status:** Pending — high priority
-
-Returning users on old builds (0.0.99, 0.0.102, 0.0.104) persist in analytics despite newer builds being deployed. Players on stale builds may be experiencing broken gameplay silently — feedback data shows old-build players are not submitting reports, suggesting the feedback form itself may be non-functional for them.
-
-Primary hypothesis: zombie tabs — players who opened the game before the latest deploy and never closed the tab. The old JavaScript bundle continues running in memory indefinitely; no cache-busting mechanism can reach an already-loaded page.
-
-Secondary hypotheses: Yandex CDN caching old HTML, aggressive browser cache persistence, BUILD_NUMBER not updated on deploy.
-
-**Investigation first** — confirm which hypothesis explains the data before implementing fixes. Primary fix direction (if zombie tabs confirmed): version polling endpoint + client-side stale build detection with a non-dismissible update banner. Never auto-reload during an active match.
-
-## Hotfix Release Checklist
+-## Hotfix Release Checklist
 
 - [x] HF-1 deployed and verified — `Experiment:Tutorial:Enabled/Disabled` appearing in GameAnalytics
 - [x] HF-2 deployed and verified — inline skip link visible in all tooltip modals
