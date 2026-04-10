@@ -169,3 +169,16 @@ See full brief: `hf11d-hotfix-stale-build-modal.md`
 
 ### HF-11e. Stale Build Sessions — BUILD_NUMBER Automation
 **Status:** ⛔ Cancelled — HF-11a confirmed BUILD_NUMBER is already automated via `scripts/bump-version.js` in `build-deploy.sh`. Hypothesis 4 ruled out. No action needed.
+
+---
+
+### HF-12. Spawn Camera/Animation Fires Before Confirmed Placement
+**Effort:** half a day (investigation + fix)
+**Experiments:** ❌ Excluded — bug fix.
+**Depends on:** Task 4b, Task 4e, HF-6 all deployed ✅
+
+On slow connections, the camera zoom and spawn indicator animation fire at intent-send time rather than confirmed-placement time. The player sees the camera move and the animation play at a position where they are not actually placed — they end up spawned elsewhere with the camera pointing at the wrong spot.
+
+Fix: move camera zoom (`zoomToTerritory()`) and spawn indicator animation to fire when the server's spawn confirmation is received by the client, not when the intent is dispatched. Manual spawn tap camera behaviour must not change — only auto-spawn is affected.
+
+See full brief: `hf12-hotfix-spawn-camera-timing.md`
