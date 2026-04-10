@@ -1,6 +1,7 @@
 import cluster from "cluster";
 import express from "express";
 import rateLimit from "express-rate-limit";
+import fs from "fs";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -22,6 +23,11 @@ const log = logger.child({ comp: "m" });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const buildVersion: string =
+  JSON.parse(fs.readFileSync(path.join(__dirname, "../../package.json"), "utf8"))
+    .version ?? "0.0.0";
+
 app.use(express.json());
 app.use((req, res, next) => {
   if (req.path.endsWith(".map")) {
@@ -167,6 +173,16 @@ app.get("/api/env", async (req, res) => {
 // Add lobbies endpoint to list public games for this worker
 app.get("/api/public_lobbies", async (req, res) => {
   res.send(publicLobbiesJsonStr);
+});
+
+app.get("/api/version", (_req, res) => {
+  res.setHeader(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate",
+  );
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.json({ build: buildVersion });
 });
 
 const FEEDBACK_WEBHOOK_URL = process.env.FEEDBACK_WEBHOOK_URL ?? null;
