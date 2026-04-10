@@ -16,13 +16,14 @@ import { UserSettings } from "../core/game/UserSettings";
 import version from "../version";
 import "./AccountModal";
 import { startBuildVersionChecker } from "./BuildVersionChecker";
+import "./StaleBuildModal";
 import { joinLobby } from "./ClientGameRunner";
 import { fetchCosmetics } from "./Cosmetics";
 import "./DarkModeButton";
 import { DarkModeButton } from "./DarkModeButton";
 import { toggleDevMode } from "./DevMode";
 import "./FeedbackModal";
-import { FeedbackModal } from "./FeedbackModal";
+import { FeedbackModal, FeedbackModalScreenSource, showFeedbackModal } from "./FeedbackModal";
 import "./FlagInput";
 import { FlagInput } from "./FlagInput";
 import { FlagInputModal } from "./FlagInputModal";
@@ -423,20 +424,13 @@ class Client {
         settingsModal.open();
       });
 
-    const feedbackModal = document.querySelector(
-      "feedback-modal",
-    ) as FeedbackModal;
-    if (!feedbackModal || !(feedbackModal instanceof FeedbackModal)) {
-      console.warn("Feedback modal element not found");
-    } else {
-      document.getElementById("feedback-button")?.addEventListener("click", () => {
-        feedbackModal.show("start");
-      });
-      window.addEventListener("show-feedback-modal", (e: Event) => {
-        const detail = (e as CustomEvent<{ matchId?: string }>).detail;
-        feedbackModal.show("battle", detail?.matchId);
-      });
-    }
+    document.getElementById("feedback-button")?.addEventListener("click", () => {
+      showFeedbackModal(FeedbackModalScreenSource.start);
+    });
+    window.addEventListener("show-feedback-modal", (e: Event) => {
+      const detail = (e as CustomEvent<{ matchId?: string }>).detail;
+      showFeedbackModal(FeedbackModalScreenSource.battle, detail?.matchId);
+    });
 
     const hostModal = document.querySelector(
       "host-lobby-modal",

@@ -91,6 +91,8 @@ Fired for both multiplayer and single-player missions.
 | `UI_CLICK_MULTIPLAYER` | `UI:ClickMultiplayer` | Player clicks the multiplayer button |
 | `UI_CLICK_SINGLE_PLAYER` | `UI:ClickSinglePlayer` | Player clicks the single player button |
 | `UI_CLICK_MISSION` | `UI:ClickMission` | Player clicks a specific mission |
+| `UI_CLICK_STALE_BUILD_REFRESH` | `UI:ClickStaleBuildRefresh` | Player clicks the REFRESH button on the stale build modal |
+| `UI_CLICK_STALE_BUILD_CONTACT` | `UI:ClickStaleBuildContact` | Player clicks the "Contact support" link on the stale build modal |
 
 #### UI:Tap events
 | Element ID constant | Full event string | When fired |

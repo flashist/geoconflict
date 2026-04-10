@@ -8,6 +8,24 @@ import {
 import { translateText } from "./Utils";
 import type { UsernameInput } from "./UsernameInput";
 
+export const showFeedbackModal = (screenSource: FeedbackModalScreenSource, matchId?: string) => {
+  const feedbackModal = document.querySelector(
+    "feedback-modal",
+  ) as FeedbackModal;
+
+  if (!feedbackModal || !(feedbackModal instanceof FeedbackModal)) {
+    console.warn("Feedback modal element not found");
+  }
+
+  feedbackModal?.show(screenSource, matchId);
+}
+
+export enum FeedbackModalScreenSource {
+  start = "start",
+  battle = "battle",
+  staleBuild = "staleBuild"
+}
+
 @customElement("feedback-modal")
 export class FeedbackModal extends LitElement {
   @state() isVisible = false;
@@ -18,7 +36,7 @@ export class FeedbackModal extends LitElement {
   @state() loading = false;
   @state() error = "";
 
-  private screenSource: "start" | "battle" = "start";
+  private screenSource: FeedbackModalScreenSource;
   private matchId: string | undefined;
   private hideTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -165,7 +183,7 @@ export class FeedbackModal extends LitElement {
     }
   `;
 
-  show(screenSource: "start" | "battle", matchId?: string) {
+  show(screenSource: FeedbackModalScreenSource, matchId?: string) {
     if (this.isVisible) return;
     this.screenSource = screenSource;
     this.matchId = matchId;
@@ -178,8 +196,8 @@ export class FeedbackModal extends LitElement {
     this.error = "";
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents.FEEDBACK_BUTTON_OPENED +
-        ":" +
-        screenSource,
+      ":" +
+      screenSource,
     );
   }
 
@@ -203,10 +221,10 @@ export class FeedbackModal extends LitElement {
     try {
       const ua = navigator.userAgent;
       let browser = "unknown";
-      if (/Edg\//.test(ua))        browser = "Edge "    + (ua.match(/Edg\/([\d.]+)/)?.[1]     ?? "");
-      else if (/OPR\//.test(ua))   browser = "Opera "   + (ua.match(/OPR\/([\d.]+)/)?.[1]     ?? "");
-      else if (/Chrome\//.test(ua)) browser = "Chrome " + (ua.match(/Chrome\/([\d.]+)/)?.[1]  ?? "");
-      else if (/Firefox\//.test(ua)) browser = "Firefox "+ (ua.match(/Firefox\/([\d.]+)/)?.[1] ?? "");
+      if (/Edg\//.test(ua)) browser = "Edge " + (ua.match(/Edg\/([\d.]+)/)?.[1] ?? "");
+      else if (/OPR\//.test(ua)) browser = "Opera " + (ua.match(/OPR\/([\d.]+)/)?.[1] ?? "");
+      else if (/Chrome\//.test(ua)) browser = "Chrome " + (ua.match(/Chrome\/([\d.]+)/)?.[1] ?? "");
+      else if (/Firefox\//.test(ua)) browser = "Firefox " + (ua.match(/Firefox\/([\d.]+)/)?.[1] ?? "");
       else if (/Safari\//.test(ua)) browser = "Safari " + (ua.match(/Version\/([\d.]+)/)?.[1] ?? "");
       info.browser = browser.trim();
     } catch { /* silent */ }
@@ -214,11 +232,11 @@ export class FeedbackModal extends LitElement {
     try {
       const ua = navigator.userAgent;
       let os = "unknown";
-      if (/Windows NT/.test(ua))   os = "Windows";
+      if (/Windows NT/.test(ua)) os = "Windows";
       else if (/Android/.test(ua)) os = "Android " + (ua.match(/Android ([\d.]+)/)?.[1] ?? "");
       else if (/iPhone|iPad/.test(ua)) os = "iOS " + (ua.match(/OS ([\d_]+)/)?.[1]?.replace(/_/g, ".") ?? "");
       else if (/Mac OS X/.test(ua)) os = "macOS " + (ua.match(/Mac OS X ([\d_]+)/)?.[1]?.replace(/_/g, ".") ?? "");
-      else if (/Linux/.test(ua))   os = "Linux";
+      else if (/Linux/.test(ua)) os = "Linux";
       info.os = os.trim();
     } catch { /* silent */ }
 
@@ -262,7 +280,7 @@ export class FeedbackModal extends LitElement {
 
     const platform =
       window.matchMedia("(pointer: coarse)").matches ||
-      /Android|iPhone|iPad/i.test(navigator.userAgent)
+        /Android|iPhone|iPad/i.test(navigator.userAgent)
         ? "mobile"
         : "desktop";
     const yandexStatus =
@@ -296,8 +314,8 @@ export class FeedbackModal extends LitElement {
       if (!resp.ok) throw new Error("Server error");
       flashist_logEventAnalytics(
         flashistConstants.analyticEvents.FEEDBACK_SUBMITTED +
-          ":" +
-          this.screenSource,
+        ":" +
+        this.screenSource,
       );
       this.submitted = true;
       this.loading = false;
@@ -314,59 +332,59 @@ export class FeedbackModal extends LitElement {
         <div class="modal-box" @click=${(e: Event) => e.stopPropagation()}>
           <button class="close-btn" @click=${this.hide}>✕</button>
           ${this.submitted
-            ? html`<p class="success-text">
+        ? html`<p class="success-text">
                 ${translateText("feedback_modal.success")}
               </p>`
-            : html`
+        : html`
                 <h2>${translateText("feedback_modal.title")}</h2>
                 <div class="category-row">
                   ${(
-                    [
-                      ["Bug", "feedback_modal.category_bug"],
-                      ["Suggestion", "feedback_modal.category_suggestion"],
-                      ["Other", "feedback_modal.category_other"],
-                    ] as const
-                  ).map(
-                    ([cat, key]) => html`
+            [
+              ["Bug", "feedback_modal.category_bug"],
+              ["Suggestion", "feedback_modal.category_suggestion"],
+              ["Other", "feedback_modal.category_other"],
+            ] as const
+          ).map(
+            ([cat, key]) => html`
                       <button
                         class="chip ${this.category === cat ? "selected" : ""}"
                         @click=${() => {
-                          this.category = cat;
-                        }}
+                this.category = cat;
+              }}
                       >
                         ${translateText(key)}
                       </button>
                     `,
-                  )}
+          )}
                 </div>
                 <textarea
                   placeholder=${translateText("feedback_modal.text_placeholder")}
                   .value=${this.text}
                   @input=${(e: Event) => {
-                    this.text = (e.target as HTMLTextAreaElement).value;
-                  }}
+            this.text = (e.target as HTMLTextAreaElement).value;
+          }}
                 ></textarea>
                 <input
                   type="text"
                   placeholder=${translateText(
-                    "feedback_modal.contact_placeholder",
-                  )}
+            "feedback_modal.contact_placeholder",
+          )}
                   .value=${this.contact}
                   @input=${(e: Event) => {
-                    this.contact = (e.target as HTMLInputElement).value;
-                  }}
+            this.contact = (e.target as HTMLInputElement).value;
+          }}
                 />
                 ${this.error
-                  ? html`<p class="error-text">${this.error}</p>`
-                  : ""}
+            ? html`<p class="error-text">${this.error}</p>`
+            : ""}
                 <button
                   class="send-btn"
                   ?disabled=${this.loading || !this.text.trim()}
                   @click=${this.onSubmit}
                 >
                   ${this.loading
-                    ? translateText("feedback_modal.sending")
-                    : translateText("feedback_modal.send")}
+            ? translateText("feedback_modal.sending")
+            : translateText("feedback_modal.send")}
                 </button>
               `}
         </div>

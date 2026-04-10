@@ -3,6 +3,7 @@ import {
   flashist_logEventAnalytics,
   flashistConstants,
 } from "./flashist/FlashistFacade";
+import type { StaleBuildModal } from "./StaleBuildModal";
 
 const PAGE_LOAD_TIMESTAMP = Date.now();
 const VERSION_CHECK_INTERVAL_MS = 5 * 60 * 1000;
@@ -38,7 +39,8 @@ function onStaleBuildDetected(): void {
     minutesSinceLoad,
   );
 
-  // TODO HF-11d: showStaleBuildModal();
+  const modal = document.querySelector("stale-build-modal") as StaleBuildModal;
+  modal?.show();
 }
 
 function onVisibilityChange(): void {
