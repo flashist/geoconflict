@@ -13,6 +13,7 @@ let pollingInterval: ReturnType<typeof setInterval> | undefined;
 async function checkVersion(): Promise<void> {
   try {
     const res = await fetch("/api/version", { cache: "no-store" });
+    if (!res.ok) return;
     const { build } = await res.json();
     if (build !== version) {
       onStaleBuildDetected();
