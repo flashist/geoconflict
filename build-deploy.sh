@@ -45,6 +45,14 @@ print_header "STEP 0: BUMP PACKAGE VERSION"
 PACKAGE_VERSION=$(node ./scripts/bump-version.js "$ENV")
 echo "New package.json version: $PACKAGE_VERSION"
 
+print_header "STEP 0.5: COMMIT VERSION BUMP AND TAG"
+git add package.json package-lock.json
+git commit -m "DEPLOY ${ENV}: bump version to ${PACKAGE_VERSION}"
+git tag "${PACKAGE_VERSION}"
+git push origin HEAD
+git push origin "${PACKAGE_VERSION}"
+echo "✅ Committed, tagged, and pushed: ${PACKAGE_VERSION}"
+
 print_header "BUILD AND DEPLOY START"
 echo "Environment: $ENV"
 echo "Version tag: $VERSION_TAG"
