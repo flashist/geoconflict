@@ -12,11 +12,12 @@ export const showFeedbackModal = (screenSource: FeedbackModalScreenSource, match
   const feedbackModal = document.querySelector(
     "feedback-modal",
   ) as FeedbackModal;
+
   if (!feedbackModal || !(feedbackModal instanceof FeedbackModal)) {
     console.warn("Feedback modal element not found");
   }
 
-  feedbackModal.show(screenSource, matchId);
+  feedbackModal?.show(screenSource, matchId);
 }
 
 export enum FeedbackModalScreenSource {

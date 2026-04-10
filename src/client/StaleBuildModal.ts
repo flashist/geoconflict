@@ -1,6 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { FeedbackModalScreenSource, showFeedbackModal, type FeedbackModal } from "./FeedbackModal";
+import { FeedbackModalScreenSource, showFeedbackModal } from "./FeedbackModal";
 import { translateText } from "./Utils";
 import { flashist_logEventAnalytics, flashistConstants } from "./flashist/FlashistFacade";
 
