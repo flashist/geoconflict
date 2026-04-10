@@ -257,18 +257,25 @@ export class PublicLobby extends LitElement {
 
       // Begin preloading map assets in the background — fire and forget
       if (lobby.gameConfig) {
-        const preloadStart = Date.now();
-        flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_PRELOAD_STARTED);
-        loadTerrainMap(
-          lobby.gameConfig.gameMap,
-          lobby.gameConfig.gameMapSize,
-          terrainMapFileLoader,
-        ).then(() => {
-          const seconds = (Date.now() - preloadStart) / 1000;
-          flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_PRELOAD_READY, seconds);
-        }).catch(() => {
-          // Silently discard — normal loading will proceed at match start
-        });
+        const preloadEnabled = await FlashistFacade.instance.checkExperimentFlag(
+          flashistConstants.experiments.MAP_PRELOAD_FLAG_NAME,
+          flashistConstants.experiments.MAP_PRELOAD_FLAG_VALUE,
+        ).catch(() => false);
+
+        if (preloadEnabled) {
+          const preloadStart = Date.now();
+          flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_PRELOAD_STARTED);
+          loadTerrainMap(
+            lobby.gameConfig.gameMap,
+            lobby.gameConfig.gameMapSize,
+            terrainMapFileLoader,
+          ).then(() => {
+            const seconds = (Date.now() - preloadStart) / 1000;
+            flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_PRELOAD_READY, seconds);
+          }).catch(() => {
+            // Silently discard — normal loading will proceed at match start
+          });
+        }
       }
 
       // Flashist Adaptation: show interstitial ad when enough time and slots remain before game start

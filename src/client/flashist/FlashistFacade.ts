@@ -106,6 +106,9 @@ export const flashistConstants = {
         // Yandex.Games remote flag for testing of showing more ads during interstitial
         // JOIN_MORE_ADS_FLAG_NAME: "join_more_ads",
         // JOIN_MORE_ADS_FLAG_VALUE: "enabled",
+
+        MAP_PRELOAD_FLAG_NAME: "map_preload",
+        MAP_PRELOAD_FLAG_VALUE: "enabled",
     },
 
     ads: {
