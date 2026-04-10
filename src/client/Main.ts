@@ -16,6 +16,7 @@ import { UserSettings } from "../core/game/UserSettings";
 import version from "../version";
 import "./AccountModal";
 import { startBuildVersionChecker } from "./BuildVersionChecker";
+import "./StaleBuildModal";
 import { joinLobby } from "./ClientGameRunner";
 import { fetchCosmetics } from "./Cosmetics";
 import "./DarkModeButton";
