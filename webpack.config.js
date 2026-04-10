@@ -136,6 +136,7 @@ function createLocalProxyConfig() {
     {
       context: [
         "/api/env",
+        "/api/version",
         "/api/game",
         "/api/public_lobbies",
         "/api/join_game",
