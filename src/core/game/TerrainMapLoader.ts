@@ -9,6 +9,7 @@ export type TerrainMapData = {
 };
 
 const loadedMaps = new Map<GameMapType, TerrainMapData>();
+const inFlightLoads = new Map<GameMapType, Promise<TerrainMapData>>();
 
 export interface MapMetadata {
   width: number;
@@ -38,38 +39,60 @@ export async function loadTerrainMap(
 ): Promise<TerrainMapData> {
   const cached = loadedMaps.get(map);
   if (cached !== undefined) return cached;
-  const mapFiles = terrainMapFileLoader.getMapData(map);
-  const manifest = await mapFiles.manifest();
 
-  const gameMap =
-    mapSize === GameMapSize.Normal
-      ? await genTerrainFromBin(manifest.map, await mapFiles.mapBin())
-      : await genTerrainFromBin(manifest.map4x, await mapFiles.map4xBin());
+  const inFlight = inFlightLoads.get(map);
+  if (inFlight !== undefined) return inFlight;
 
-  const miniMap =
-    mapSize === GameMapSize.Normal
-      ? await genTerrainFromBin(
-          mapSize === GameMapSize.Normal ? manifest.map4x : manifest.map16x,
-          await mapFiles.map4xBin(),
-        )
-      : await genTerrainFromBin(manifest.map16x, await mapFiles.map16xBin());
+  const promise = (async () => {
+    try {
+      const mapFiles = terrainMapFileLoader.getMapData(map);
+      const manifest = await mapFiles.manifest();
 
-  if (mapSize === GameMapSize.Compact) {
-    manifest.nations.forEach((nation) => {
-      nation.coordinates = [
-        Math.floor(nation.coordinates[0] / 2),
-        Math.floor(nation.coordinates[1] / 2),
-      ];
-    });
-  }
+      const gameMap =
+        mapSize === GameMapSize.Normal
+          ? await genTerrainFromBin(manifest.map, await mapFiles.mapBin())
+          : await genTerrainFromBin(manifest.map4x, await mapFiles.map4xBin());
 
-  const result = {
-    nations: manifest.nations,
-    gameMap: gameMap,
-    miniGameMap: miniMap,
-  };
-  loadedMaps.set(map, result);
-  return result;
+      const miniMap =
+        mapSize === GameMapSize.Normal
+          ? await genTerrainFromBin(
+              mapSize === GameMapSize.Normal ? manifest.map4x : manifest.map16x,
+              await mapFiles.map4xBin(),
+            )
+          : await genTerrainFromBin(manifest.map16x, await mapFiles.map16xBin());
+
+      if (mapSize === GameMapSize.Compact) {
+        manifest.nations.forEach((nation) => {
+          nation.coordinates = [
+            Math.floor(nation.coordinates[0] / 2),
+            Math.floor(nation.coordinates[1] / 2),
+          ];
+        });
+      }
+
+      const result = {
+        nations: manifest.nations,
+        gameMap: gameMap,
+        miniGameMap: miniMap,
+      };
+      loadedMaps.set(map, result);
+      return result;
+    } finally {
+      inFlightLoads.delete(map);
+    }
+  })();
+
+  inFlightLoads.set(map, promise);
+  return promise;
+}
+
+export function isMapCached(map: GameMapType): boolean {
+  return loadedMaps.has(map);
+}
+
+export function clearPreloadedMap(map: GameMapType): void {
+  loadedMaps.delete(map);
+  inFlightLoads.delete(map);
 }
 
 export async function genTerrainFromBin(

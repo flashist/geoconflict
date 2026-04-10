@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { renderDuration, translateText } from "../client/Utils";
 import { GameMapType, GameMode, HumansVsNations } from "../core/game/Game";
+import { clearPreloadedMap, loadTerrainMap } from "../core/game/TerrainMapLoader";
 import { GameID, GameInfo } from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { JoinLobbyEvent } from "./Main";
@@ -212,6 +213,9 @@ export class PublicLobby extends LitElement {
   }
 
   leaveLobby() {
+    if (this.currLobby?.gameConfig) {
+      clearPreloadedMap(this.currLobby.gameConfig.gameMap as GameMapType);
+    }
     this.isLobbyHighlighted = false;
     this.currLobby = null;
   }
@@ -250,6 +254,22 @@ export class PublicLobby extends LitElement {
           composed: true,
         }),
       );
+
+      // Begin preloading map assets in the background — fire and forget
+      if (lobby.gameConfig) {
+        const preloadStart = Date.now();
+        flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_PRELOAD_STARTED);
+        loadTerrainMap(
+          lobby.gameConfig.gameMap,
+          lobby.gameConfig.gameMapSize,
+          terrainMapFileLoader,
+        ).then(() => {
+          const seconds = (Date.now() - preloadStart) / 1000;
+          flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_PRELOAD_READY, seconds);
+        }).catch(() => {
+          // Silently discard — normal loading will proceed at match start
+        });
+      }
 
       // Flashist Adaptation: show interstitial ad when enough time and slots remain before game start
       // IMPORTANT: showing the adv AFTER we sent command to join the lobby

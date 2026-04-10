@@ -70,6 +70,16 @@ Fired for both multiplayer and single-player missions.
 | `MATCH_SPAWN_RETRY_AFTER_CATCHUP` | `Match:SpawnRetryAfterCatchup` | Auto-spawn was blocked during catch-up and then deferred and retried after catch-up ended — fires at intent-send time, not on confirmed server placement. Always fires together with `Match:SpawnAuto` in the same tick. |
 | `MATCH_SPAWN_MISSED_CATCHUP_TOO_LONG` | `Match:SpawnMissed:CatchupTooLong` | Catch-up lasted longer than the entire spawn phase — player never placed, no recovery path (Problem 2, not yet fixed) |
 
+### Map Preload Events
+Fired to measure the impact of map asset preloading (HF-13). Together these events quantify how often preloading succeeds and how much time it saves — the key metric for evaluating the reduction in `Match:SpawnMissed:CatchupTooLong`.
+
+| Enum Key | Event String | When Fired |
+|---|---|---|
+| `MATCH_PRELOAD_STARTED` | `Match:PreloadStarted` | Map asset preload begins on JOIN button click |
+| `MATCH_PRELOAD_READY` | `Match:PreloadReady` | Preload completes successfully before match start. **Value:** seconds taken to load (float). |
+| `MATCH_PRELOAD_HIT` | `Match:PreloadHit` | Match "prestart" fires and the map is already cached — preload was useful |
+| `MATCH_PRELOAD_MISS` | `Match:PreloadMiss` | Match "prestart" fires and the map is not yet cached — preload failed, was still in-flight, or did not happen |
+
 ### Reconnection Events
 | Enum Key | Event String | When Fired |
 |---|---|---|

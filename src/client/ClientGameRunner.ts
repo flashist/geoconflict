@@ -24,7 +24,7 @@ import {
   WinUpdate,
 } from "../core/game/GameUpdates";
 import { GameView, PlayerView } from "../core/game/GameView";
-import { loadTerrainMap, TerrainMapData } from "../core/game/TerrainMapLoader";
+import { isMapCached, loadTerrainMap, TerrainMapData } from "../core/game/TerrainMapLoader";
 import { UserSettings } from "../core/game/UserSettings";
 import { WorkerClient } from "../core/worker/WorkerClient";
 import {
@@ -98,11 +98,17 @@ export function joinLobby(
       console.log(
         `lobby: game prestarting: ${JSON.stringify(message, replacer)}`,
       );
+      const wasPreloaded = isMapCached(message.gameMap);
       terrainLoad = loadTerrainMap(
         message.gameMap,
         message.gameMapSize,
         terrainMapFileLoader,
       );
+      if (wasPreloaded) {
+        flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_PRELOAD_HIT);
+      } else {
+        flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_PRELOAD_MISS);
+      }
       onPrestart();
     }
     if (message.type === "start") {
