@@ -296,7 +296,7 @@
     "button_tooltip": "Feedback"
   },
   "stale_build_modal": {
-    "message": "The version of the game you're playing is outdated. Please refresh the page. If this popup keeps appearing, contact us.",
+    "message": "The version of the game you're playing is outdated. Please refresh the page. If this popup keeps appearing, try clearing your browser cache and refreshing again, or contact us.",
     "refresh_button": "REFRESH",
     "contact_link": "Contact support"
   },
