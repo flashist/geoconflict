@@ -5,6 +5,7 @@ import fs from "fs";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { ProxyAgent } from "undici";
 import { z } from "zod";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import { GameInfo, ID } from "../core/Schemas";
@@ -188,6 +189,8 @@ app.get("/api/version", (_req, res) => {
 const FEEDBACK_WEBHOOK_URL = process.env.FEEDBACK_WEBHOOK_URL ?? null;
 const FEEDBACK_TELEGRAM_TOKEN = process.env.FEEDBACK_TELEGRAM_TOKEN ?? null;
 const FEEDBACK_TELEGRAM_CHAT_ID = process.env.FEEDBACK_TELEGRAM_CHAT_ID ?? null;
+const TELEGRAM_PROXY_URL = process.env.TELEGRAM_PROXY_URL ?? null;
+const telegramProxyAgent = TELEGRAM_PROXY_URL ? new ProxyAgent(TELEGRAM_PROXY_URL) : undefined;
 
 const FeedbackSchema = z.object({
   category: z.enum(["Bug", "Suggestion", "Other"]),
@@ -290,6 +293,8 @@ app.post(
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: telegramBody,
+            // @ts-ignore — undici dispatcher option, not in standard fetch types
+            dispatcher: telegramProxyAgent,
           },
         );
         if (!telegramResp.ok) {
