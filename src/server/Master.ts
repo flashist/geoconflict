@@ -197,7 +197,7 @@ const FeedbackSchema = z.object({
   yandexStatus: z.string().max(50),
   version: z.string().max(100),
   matchId: z.string().max(100).optional(),
-  screenSource: z.enum(["start", "battle"]),
+  screenSource: z.enum(["start", "battle", "staleBuild"]),
   username: z.string().max(100).optional(),
   deviceInfo: z.record(z.string(), z.union([z.string(), z.number()])).refine(r => Object.keys(r).length > 0, { message: "deviceInfo must not be empty" }).optional(),
   recentMatchIds: z.array(z.string().max(20)).max(3).optional(),
