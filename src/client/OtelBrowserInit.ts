@@ -104,6 +104,17 @@ if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
       const error = event.error ?? new Error(event.message);
       const span = tracer.startSpan("unhandled_error");
       span.recordException(error);
+      // Mirror exception data as span attributes (recordException only creates span events,
+      // which are not visible in Uptrace's ATTRS tab)
+      span.setAttribute("exception.type", error.name);
+      span.setAttribute("exception.message", error.message);
+      span.setAttribute("exception.stacktrace", error.stack ?? "");
+      // Location metadata — populated for same-origin errors, empty for cross-origin "Script error."
+      if (event.filename) span.setAttribute("error.filename", event.filename);
+      if (event.lineno) span.setAttribute("error.lineno", event.lineno);
+      if (event.colno) span.setAttribute("error.colno", event.colno);
+      // Flag sanitized cross-origin/worker errors so they can be filtered in Uptrace
+      if (!event.error) span.setAttribute("error.cross_origin_or_worker", true);
       span.setStatus({ code: SpanStatusCode.ERROR, message: event.message });
       if (currentUsername) span.setAttribute("enduser.id", currentUsername);
       span.end();
@@ -127,6 +138,10 @@ if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
           : new Error(String(event.reason));
       const span = tracer.startSpan("unhandled_rejection");
       span.recordException(error);
+      // Mirror exception data as span attributes (recordException only creates span events)
+      span.setAttribute("exception.type", error.name);
+      span.setAttribute("exception.message", error.message);
+      span.setAttribute("exception.stacktrace", error.stack ?? "");
       span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
       if (currentUsername) span.setAttribute("enduser.id", currentUsername);
       span.end();
