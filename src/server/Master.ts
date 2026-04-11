@@ -5,7 +5,7 @@ import fs from "fs";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
-import { ProxyAgent } from "undici";
+import { fetch, ProxyAgent } from "undici";
 import { z } from "zod";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import { GameInfo, ID } from "../core/Schemas";
@@ -293,7 +293,6 @@ app.post(
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: telegramBody,
-            // @ts-ignore — undici dispatcher option, not in standard fetch types
             dispatcher: telegramProxyAgent,
           },
         );
