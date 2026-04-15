@@ -102,6 +102,43 @@ npm run test:coverage             # Coverage report
 - Use nullish coalescing (`??`) over logical or (`||`) for defaults
 - TypeScript with strict null checks enabled
 
+## Knowledge Base & Wiki
+
+A structured wiki lives in `karpathy-vault/` following the [Karpathy LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). It contains synthesized knowledge about systems, features, decisions, and tasks — things not easily derived from the code alone.
+
+**Before starting any non-trivial task**, check if relevant wiki pages exist:
+```bash
+# Search the wiki for a topic
+/wiki-query <your question>
+```
+
+**Three slash commands are available:**
+
+| Command | Purpose |
+|---|---|
+| `/wiki-ingest <path or keyword>` | Ingest source files into the wiki. Keywords: `architecture`, `knowledge-base`, `all tasks` |
+| `/wiki-query <question>` | Answer a question using wiki pages + source files |
+| `/wiki-lint` | Health-check the wiki: broken links, stale claims, missing back-links |
+
+**Wiki structure:**
+```
+karpathy-vault/
+  schema.md          ← conventions and templates (read this first)
+  index.md           ← master catalog of all pages
+  log.md             ← append-only activity log
+  wiki/
+    features/        ← game mechanics and feature pages
+    systems/         ← technical system pages
+    decisions/       ← architectural and product decisions (ADRs)
+    tasks/           ← task summaries from ai-agents/tasks/
+  sources/           ← raw source files for ingestion
+```
+
+**When to update the wiki:**
+- After completing a task: run `/wiki-ingest ai-agents/tasks/done/<task-file>`
+- After an investigation or bug fix: run `/wiki-ingest ai-agents/knowledge-base/<findings-file>`
+- When the wiki seems outdated: run `/wiki-lint`
+
 ## Adding New Game Features
 
 1. Define intent schema in `src/core/Schemas.ts`
