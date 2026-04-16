@@ -10,7 +10,26 @@
 
 > **Note:** Before Sprint 3 begins, a small hotfix release ships five changes: experiment flag analytics (HF-1), tutorial skip button inline link (HF-2), UI tap analytics (HF-3), mobile control panel hit area bug (HF-4), and win condition detection bug fix (HF-5). See `hotfix-post-sprint2.md` for details.
 
+## Sprint 3 Status
 
+| Status | Task | Brief |
+|---|---|---|
+| ⬜ Backlog | Humans vs Nations — Re-enable | `s3-humans-vs-nations-task.md` |
+| ⬜ Backlog | Feedback — Attach Last Match IDs | `s3-feedback-match-ids-simple-task.md` |
+| ⛔ Parked | Deep Mobile Rendering Optimization | — |
+| ⬜ Backlog | 5c. Mobile Warning Screen | `s3-5c-task-mobile-warning.md` |
+| ⬜ Backlog | 5b. Server Restart UX | `s3-5b-task-server-restart-ux.md` |
+| ✅ Done | 5d-A. Server System Metrics (OTEL) | `s3-5d-a-task-server-metrics.md` |
+| ✅ Done | 5d-B. Server Performance & Uptrace Instrumentation | `s3-5d-b-task-server-performance.md` |
+| ✅ Done | HF-11a. Stale Builds — Investigation | `s3-hf11a-hotfix-stale-build-investigation.md` |
+| ✅ Done | HF-11b. Stale Builds — Version Endpoint | `s3-hf11b-hotfix-version-endpoint.md` |
+| ✅ Done | HF-11c. Stale Builds — Client Detection | `s3-hf11c-hotfix-stale-build-detection.md` |
+| ✅ Done | HF-11d. Stale Builds — Blocking Modal | `s3-hf11d-hotfix-stale-build-modal.md` |
+| ⛔ Cancelled | HF-11e. Stale Builds — BUILD_NUMBER Automation | `s3-hf11e-hotfix-build-number-automation.md` |
+| ✅ Done | HF-12. Spawn Camera/Animation Timing Fix | `s3-hf12-hotfix-spawn-camera-timing.md` |
+| ⬜ Backlog | HF-13. Map File Preloading on JOIN | `s3-hf13-hotfix-map-preload.md` |
+
+---
 
 ### Humans vs Nations — Re-enable Existing Mode
 **Effort:** half a day (assuming single flag/config reversal — see brief)
@@ -137,7 +156,7 @@ See findings: `hf11a-stale-build-findings.md`
 ### HF-11b. Stale Build Sessions — Version Endpoint
 **Effort:** 1–2 hours
 **Experiments:** ❌ Excluded.
-**Depends on:** HF-11a
+**Status:** ✅ Complete
 
 Add `GET /api/version` endpoint returning `{ "build": "CURRENT_BUILD" }` with `Cache-Control: no-cache, no-store` headers. Pure server-side change. Unblocks HF-11c.
 
@@ -148,9 +167,9 @@ See full brief: `hf11b-hotfix-version-endpoint.md`
 ### HF-11c. Stale Build Sessions — Client Detection
 **Effort:** 2–3 hours
 **Experiments:** ❌ Excluded.
-**Depends on:** HF-11b deployed
+**Status:** ✅ Complete
 
-Three detection triggers: on startup, polling every 5 minutes, on tab focus. Fires `Build:StaleDetected` analytics event. Ships without UI — immediately starts producing analytics data while HF-11d is implemented.
+Three detection triggers: on startup, polling every 5 minutes, on tab focus. Fires `Build:StaleDetected` analytics event.
 
 See full brief: `hf11c-hotfix-stale-build-detection.md`
 
@@ -159,9 +178,9 @@ See full brief: `hf11c-hotfix-stale-build-detection.md`
 ### HF-11d. Stale Build Sessions — Blocking Modal
 **Effort:** 2–3 hours
 **Experiments:** ❌ Excluded.
-**Depends on:** HF-11c deployed
+**Status:** ✅ Complete
 
-Wire detection to existing modal component. Non-dismissible overlay with REFRESH button and "Contact support" text link. Applies in all game states including mid-match.
+Wire detection to existing modal component. Non-dismissible overlay with REFRESH button and "Contact support" text link. Confirmed working — `0.0.122` → `0.0.125` transition showed sharp 24-hour cliff vs multi-week decay on older builds without the fix.
 
 See full brief: `hf11d-hotfix-stale-build-modal.md`
 
@@ -175,6 +194,7 @@ See full brief: `hf11d-hotfix-stale-build-modal.md`
 ### HF-12. Spawn Camera/Animation Fires Before Confirmed Placement
 **Effort:** half a day (investigation + fix)
 **Experiments:** ❌ Excluded — bug fix.
+**Status:** ✅ Done
 **Depends on:** Task 4b, Task 4e, HF-6 all deployed ✅
 
 On slow connections, the camera zoom and spawn indicator animation fire at intent-send time rather than confirmed-placement time. The player sees the camera move and the animation play at a position where they are not actually placed — they end up spawned elsewhere with the camera pointing at the wrong spot.

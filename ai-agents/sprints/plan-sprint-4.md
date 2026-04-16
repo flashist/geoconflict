@@ -12,6 +12,24 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 
 ---
 
+## Sprint 4 Status
+
+| Status | Task | Brief |
+|---|---|---|
+| ⬜ Backlog | Investigation A — Player Profile Store | `s4-investigation-player-store.md` |
+| ⬜ Backlog | Investigation B — Yandex Payments Catalog | `s4-investigation-yandex-payments.md` |
+| ⬜ Backlog | 8d-A. Global Announcements Re-enable | `s4-8d-a-task-global-announcements.md` |
+| ⬜ Backlog | Player Profile Store — Implementation | TBD after investigation |
+| ⬜ Backlog | Yandex Payments — Catalog Fetch & Caching | TBD after investigation |
+| ⬜ Backlog | Citizenship Core — Match Counter & Progress UI | TBD after investigation |
+| ⬜ Backlog | Citizenship Core — Earned Citizenship | TBD after investigation |
+| ⬜ Backlog | Citizenship Core — Paid Citizenship | TBD after investigation |
+| ⬜ Backlog | 8d-B. Personal Inbox | `s4-8d-b-task-personal-inbox.md` |
+| ⬜ Backlog | Name Change (Citizens Only) | TBD after investigation |
+| ⬜ Backlog | Citizen Verified Icon | TBD after investigation |
+
+---
+
 ## Sprint Structure
 
 Sprint 4 runs in two phases:
@@ -28,7 +46,7 @@ Full implementation scope locked in based on findings. Briefs written at that po
 
 ### Investigation A — Player Profile Store
 **Effort:** 1–2 days
-**Brief:** `sprint4-investigation-player-store.md`
+**Brief:** `s4-investigation-player-store.md`
 **Blocks:** all citizenship implementation tasks
 
 First persistent per-player database in the codebase. Findings needed on: database technology, hosting location, initial schema, match completion tracking approach, and guest player handling.
@@ -37,7 +55,7 @@ First persistent per-player database in the codebase. Findings needed on: databa
 
 ### Investigation B — Yandex Payments Catalog Integration
 **Effort:** 1 day
-**Brief:** `sprint4-investigation-yandex-payments.md`
+**Brief:** `s4-investigation-yandex-payments.md`
 **Blocks:** all purchase UI tasks
 
 Findings needed on: Yandex payments SDK API, catalog fetch architecture, dashboard setup requirements and approval timeline, purchase-to-server notification approach.
@@ -52,7 +70,7 @@ Findings needed on: Yandex payments SDK API, catalog fetch architecture, dashboa
 
 ### 8d-A. Global Announcements Re-enable
 **Effort:** half a day
-**Brief:** `8d-a-task-global-announcements.md`
+**Brief:** `s4-8d-a-task-global-announcements.md`
 **Status:** Pending
 
 Re-enable the existing OpenFront announcements feature. JSON-driven content, no backend. Provides the communication channel to announce citizenship before it launches. Ship early in Sprint 4 with seed content announcing citizenship is coming.
@@ -94,7 +112,7 @@ Purchase path via Yandex catalog. 99 rubles. On successful purchase: flip `isCit
 ---
 
 ### 8d-B. Personal Inbox
-**Brief:** `8d-b-task-personal-inbox.md`
+**Brief:** `s4-8d-b-task-personal-inbox.md`
 Direct messages from game to citizens. Personal tab in announcements popup. Messages stored server-side. Initial triggers: citizenship earned/purchased, name change approved/rejected.
 
 **Depends on:** 8d-A live, player profile store live
