@@ -1,0 +1,12 @@
+#!/bin/bash
+# Tracks ai-agents/ file changes after each commit so /wiki-sync has an exact queue.
+# Setup: git config core.hooksPath .githooks
+
+CHANGED=$(git diff-tree --no-commit-id -r --diff-filter=AMR --name-only HEAD | grep '^ai-agents/')
+
+if [ -n "$CHANGED" ]; then
+  mkdir -p .claude
+  echo "$CHANGED" >> .claude/wiki-pending.txt
+  COUNT=$(echo "$CHANGED" | wc -l | tr -d ' ')
+  echo "  📝 wiki-pending: $COUNT ai-agents file(s) queued (run /wiki-sync to update wiki)"
+fi
