@@ -121,6 +121,15 @@ redis_cache:
   addrs:
     1: redis:6379
 
+# Data retention — controls ClickHouse TTL.
+# At ~3-4 GB/day of trace volume on this VPS, 7d traces ≈ 25-28 GB,
+# leaving headroom on the 59 GB disk. Raise if you expand storage.
+# Metrics are tiny; 90d gives useful trend history.
+retention:
+  traces: 7d
+  logs: 7d
+  metrics: 90d
+
 seed_data:
   update: true
   delete: false
@@ -456,9 +465,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # Prune old backups — keep last 4 weeks
 0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +28 -delete && find $BACKUP_DIR -name "clickhouse-*.tar.gz" -mtime +28 -delete
 
-# Disk usage alert — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 70%.
+# Disk usage alert — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.
 # Log-only (no email/webhook) — check the log manually or configure a notification if needed.
-0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '%'); if [ "\$USAGE" -gt 70 ]; then echo "\$(date) -- disk usage \${USAGE}%" >> /var/log/disk-warnings.log; fi
+0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '%'); if [ "\$USAGE" -gt 60 ]; then echo "\$(date) -- disk usage \${USAGE}%" >> /var/log/disk-warnings.log; fi
 
 # Certbot renewal — twice daily (Let's Encrypt recommendation)
 0 0,12 * * * root certbot renew --quiet --post-hook "systemctl reload nginx" >> /var/log/certbot-renew.log 2>&1

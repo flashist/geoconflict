@@ -85,6 +85,10 @@ ch_cluster:
 redis_cache:
   addrs:
     1: redis:6379
+retention:
+  traces: 7d
+  logs: 7d
+  metrics: 90d
 seed_data:
   update: true
   delete: false
