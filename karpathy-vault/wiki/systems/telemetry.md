@@ -76,6 +76,7 @@ Child spans:
 ## Related
 
 - [[systems/game-overview]] — overall project context
+- [[decisions/sprint-3]] — sprint where OTEL metrics and slow-turn spans were implemented (5d-A/B)
 - [[systems/analytics]] — player behaviour tracking (GameAnalytics), complementary
 - [[systems/server-performance]] — performance investigation using these spans
 - [[systems/match-logging]] — what is and isn't logged per match

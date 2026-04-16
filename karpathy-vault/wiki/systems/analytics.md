@@ -75,10 +75,16 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 ## Related
 
 - [[systems/game-overview]] — overall project context
+- [[decisions/product-strategy]] — why analytics was built first (Sprint 1)
 - [[systems/telemetry]] — server observability (Uptrace), complementary to analytics
 - [[features/tutorial]] — Tutorial events and completion tracking
 - [[decisions/autospawn-late-join-fix]] — spawn analytics used to measure the fix
 - [[decisions/double-reload-fix]] — caused analytics double-fire before HF-9
 - [[decisions/stale-build-zombie-tabs]] — `Build:StaleDetected` event context
+- [[features/reconnection]] — Reconnect event category
+- [[features/feedback-button]] — Feedback event category and match ID attachment
+- [[tasks/session-start-sequence]] — Session start event sequence and conventions
+- [[tasks/mobile-quick-wins]] — `Performance:FPS:*` events measured here
+- [[tasks/stale-build-detection]] — `Build:StaleDetected` event implementation
 
 > **LINT WARNING:** `[[systems/flashist-init]]` is linked here but the page does not exist yet. Run `/wiki-ingest architecture` to create it from `CLAUDE.md` and `FlashistFacade.ts` init chain docs.

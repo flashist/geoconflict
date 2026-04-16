@@ -68,3 +68,4 @@ No queue depth limit. Match-start bursts increase JSON payload for that one turn
 - [[systems/telemetry]] — OTEL instrumentation for observing these issues
 - [[systems/match-logging]] — what match data is captured
 - [[systems/game-overview]] — overall architecture context
+- [[decisions/sprint-3]] — sprint where this investigation and instrumentation were done (5d-B)

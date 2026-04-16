@@ -36,3 +36,6 @@ This ensures the spawn intent only goes to the server when the client is in sync
 
 - [[systems/analytics]] — spawn analytics events that instrument this fix
 - [[features/tutorial]] — tutorial context where this bug was most damaging
+- [[decisions/hotfix-post-sprint2]] — sprint this fix shipped in (HF-6)
+- [[features/reconnection]] — reconnection flow also involves late-join timing
+- [[tasks/spawn-ux]] — zoom-to-territory camera timing fix (HF-12) builds on correct spawn intent timing established here

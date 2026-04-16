@@ -39,7 +39,7 @@ Three-tier structure:
 |---|---|
 | `Human` | Real player |
 | `Bot` | Simple server-spawned bot |
-| `AiPlayer` | In-development AI (indistinguishable from human in UI) |
+| `AiPlayer` | AI player in public lobbies (indistinguishable from human in UI); see [[features/ai-players]] |
 | `FakeHuman` | NPC nation from map data (`clientID === null`) |
 
 ## Spawn Phase
@@ -95,6 +95,7 @@ Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adapta
 - [[systems/telemetry]] — server observability
 - [[systems/server-performance]] — server-side lag analysis and endTurn() pipeline
 - [[systems/match-logging]] — what is recorded per match
+- [[features/ai-players]] — AI Players feature spec (`PlayerType.AiPlayer` documented here)
 
 > **LINT WARNING:** The following related pages are not yet created. Run `/wiki-ingest architecture` to generate them from `CLAUDE.md`:
 > - `[[systems/game-loop]]` — tick execution detail

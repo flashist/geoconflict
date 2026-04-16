@@ -44,6 +44,7 @@ Source: `ai-agents/knowledge-base/double-reload-findings.md`
 ## Related
 
 - [[systems/game-overview]] — `#join=gameID` disable context (Flashist Adaptation)
+- [[decisions/hotfix-post-sprint2]] — HF-9 + PR #45 shipped here
 - [[systems/analytics]] — events affected by the double-fire
 - [[features/tutorial]] — `Tutorial:Started` was the symptom that revealed this bug
 - [[decisions/stale-build-zombie-tabs]] — separate but related browser/tab lifecycle issue

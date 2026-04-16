@@ -66,5 +66,9 @@ Tooltip 4 resets `radialMenuOpened` flag so tooltip 5 only fires after tooltip 4
 ## Related
 
 - [[systems/analytics]] — analytics infrastructure and event conventions
+- [[decisions/sprint-1]] — analytics baseline and Sentry shipped to support tutorial measurement
+- [[decisions/sprint-2]] — sprint where tutorial was built and shipped
+- [[decisions/hotfix-post-sprint2]] — HF-1/2/3 tightened tutorial analytics and skip UX
 - [[decisions/autospawn-late-join-fix]] — auto-spawn bug was especially damaging in tutorial context
 - [[decisions/double-reload-fix]] — caused `Tutorial:Started` double-fire before HF-9
+- [[tasks/session-start-sequence]] — `Player:New` segmentation is primary mechanism for measuring tutorial impact
