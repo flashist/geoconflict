@@ -1,5 +1,6 @@
 #!/bin/bash
-# Tracks ai-agents/ file changes after each commit so /wiki-sync has an exact queue.
+# Tracks ai-agents/ file changes after each commit as a convenience indicator.
+# /wiki-sync uses .claude/wiki-watermark (commit SHA) as the authoritative resume point, not this file.
 # Setup: git config core.hooksPath .githooks
 
 CHANGED=$(git diff-tree --no-commit-id -r --diff-filter=AMR --name-only HEAD | grep '^ai-agents/')

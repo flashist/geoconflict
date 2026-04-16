@@ -7,22 +7,25 @@ Arguments: $ARGUMENTS
 
 ### Step 1 — Determine the sync window
 
-If `$ARGUMENTS` contains a date (YYYY-MM-DD format), use that as the since-date.
+If `$ARGUMENTS` contains a date (YYYY-MM-DD format), use `git log --since="<date>"` in Step 2.
 
-Otherwise, read `karpathy-vault/log.md` and find the most recent `## YYYY-MM-DD — ingest` entry. Extract the date. That is the since-date.
+If `$ARGUMENTS` is "force", skip to Step 2 and list all files under `ai-agents/`.
 
-If no ingest entry exists in log.md, set since-date to 7 days ago (fallback for first run).
+Otherwise, check `.claude/wiki-watermark` for a commit SHA written by the previous successful sync:
+- **If the file exists and contains a SHA:** use that SHA as the base in Step 2 (`git log <sha>..HEAD`). This is exact — it picks up every commit since the last sync regardless of when it ran.
+- **If the file is missing (first run or reset):** treat this as `force` — skip git and list all eligible `ai-agents/` files so no history is missed.
 
 ### Step 2 — Find changed files
 
-Run:
+Run one of:
 ```
-git log --since="<since-date>" --diff-filter=AMR --name-only --format="" -- ai-agents/
+git log <sha>..HEAD --diff-filter=AMR --name-only --format="" -- ai-agents/   # watermark mode
+git log --since="<date>" --diff-filter=AMR --name-only --format="" -- ai-agents/  # date-override mode
 ```
+
+Or, for force / first-run: list all files under `ai-agents/`.
 
 Deduplicate the results (a file may appear in multiple commits). This is the candidate list.
-
-If `$ARGUMENTS` is "force", skip git and instead list all files under `ai-agents/`.
 
 ### Step 3 — Filter to ingest-worthy files
 
@@ -63,13 +66,15 @@ For each page created or updated in Step 5:
 - Check that linked pages have a back-link to this page
 - Fix any one-way links found
 
-### Step 7 — Update log.md
+### Step 7 — Update watermark and log.md
+
+Run `git rev-parse HEAD` and write the resulting SHA to `.claude/wiki-watermark` (overwrite, single line). This is the precise resume point for the next sync.
 
 Append a single entry to `karpathy-vault/log.md`:
 
 ```
 ## YYYY-MM-DD — ingest
-- Sync window: <since-date> → today
+- Sync window: <watermark-sha-or-date> → HEAD (<new-sha>)
 - Changed source files detected: N
 - Ingested: `<path>` → created/updated [[wiki/<path>]]
   (one line per file processed)
