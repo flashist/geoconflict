@@ -14,3 +14,7 @@ resources/.DS_Store
 CLAUDE.local.md
 /.playwright-mcp
 *.obsidian/
+karpathy-vault/.obsidian/
+.claude/wiki-pending.txt
+.claude/wiki-watermark
+
