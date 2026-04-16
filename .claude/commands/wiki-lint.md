@@ -8,7 +8,7 @@ Health-check the geoconflict wiki at `karpathy-vault/` and fix issues found.
 4. Check for the following issues and fix them:
 
    **Structural issues**
-   - Pages missing required frontmatter fields (Status, Source files, Key files, Date)
+   - Pages missing required metadata fields as defined in schema.md (e.g. `**Status**:`, `**Key files**:`, `**Date**:` — inline bold fields, not YAML frontmatter)
    - Pages that don't follow the template from schema.md
    - Index entries that point to non-existent files (broken links)
    - Wiki pages that exist but are missing from `index.md`

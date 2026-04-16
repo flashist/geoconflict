@@ -11,13 +11,6 @@ Question: $ARGUMENTS
 5. Compose a clear, cited answer:
    - Reference wiki pages as [[wiki/path]]
    - Reference source files as `src/...`
-6. If the answer is valuable enough to save (novel synthesis, non-obvious insight, decision rationale), create a new wiki page for it:
-   - Use type `decisions/` or `systems/` as appropriate
-   - Update `karpathy-vault/index.md`
-   - Append to `karpathy-vault/log.md`:
-     ```
-     ## YYYY-MM-DD — query
-     - Query: "<question>"
-     - Filed as: [[wiki/<path>]]
-     ```
-7. If the wiki is missing information needed to answer well, note the gap explicitly and suggest running `/wiki-ingest` on the relevant source.
+6. If the wiki is missing information needed to answer well, note the gap explicitly and suggest running `/wiki-ingest` on the relevant source.
+
+> **Read-only**: Do not create wiki pages, update `index.md`, or append to `log.md` during a query. If the answer reveals something worth persisting, tell the user and suggest running `/wiki-ingest` explicitly.
