@@ -1,6 +1,6 @@
 # Sprint 3 — Deepen Retention (Data-Driven)
 
-**Date**: 2026 (current/active)
+**Date**: 2026
 **Status**: accepted
 
 ## Context
@@ -13,42 +13,45 @@ Source: `ai-agents/sprints/plan-sprint-3.md`
 
 | Task | Description | Status |
 |---|---|---|
-| Humans vs Nations | Re-enable existing mode (AI fills all non-human slots) | Pending |
+| Humans vs Nations | Re-enable Humans vs Nations; investigation expanded scope and all team modes were restored | ✅ Done |
 | Feedback — match IDs | Attach last 3 game IDs from `localStorage['game-records']` to feedback payload | ✅ Done |
 | 5 — Mobile rendering | Deep rendering optimization | ⏸ Parked |
-| 5c — Mobile warning | Non-blocking screen for mobile players with "Continue anyway" button | Pending |
-| 5b — Server restart UX | Part A: pre-restart broadcast notification. Part B: auto-refresh polling loop | Pending |
+| 5c — Mobile warning | Non-blocking screen for mobile players with "Continue anyway" button | ➡️ Moved to Sprint 6 |
+| 5b — Server restart UX | Part A: pre-restart broadcast notification. Part B: auto-refresh polling loop | Backlog |
 | 5d-A — OTEL metrics | Server system metrics (CPU, memory, event loop lag, etc.) via OpenTelemetry | ✅ Done |
-| 5d-B — Server perf | Threshold-based OTEL spans on `endTurn()` — awaiting data accumulation | ✅ Instrumentation done |
+| 5d-B — Server perf | Threshold-based OTEL spans on `endTurn()` and investigation findings in Uptrace | ✅ Done |
 | HF-11a — Stale build investigation | Root cause: zombie tabs confirmed | ✅ Done |
-| HF-11b — Version endpoint | `GET /api/version` returning `{ "build": "CURRENT_BUILD" }` | Pending |
-| HF-11c — Client detection | Poll `/api/version`, fire `Build:StaleDetected` | Pending |
-| HF-11d — Blocking modal | Non-dismissible REFRESH overlay when stale build detected | Pending |
-| HF-11e — BUILD_NUMBER automation | ⛔ Cancelled — already automated via `scripts/bump-version.js` | Cancelled |
-| HF-12 — Spawn camera timing | Fix: camera zoom fires at intent-send, should fire at confirmed placement | Pending |
-| HF-13 — Map preloading | Preload map assets on JOIN to reduce `CatchupTooLong` | Pending |
+| HF-11b — Version endpoint | `GET /api/version` returning `{ "build": "CURRENT_BUILD" }` | ✅ Done |
+| HF-11c — Client detection | Poll `/api/version`, fire `Build:StaleDetected` | ✅ Done |
+| HF-11d — Blocking modal | Non-dismissible REFRESH overlay when stale build detected | ✅ Done |
+| HF-11e — BUILD_NUMBER automation | Already automated via `scripts/bump-version.js` | ⛔ Cancelled |
+| HF-12 — Spawn camera timing | Move auto-spawn camera/indicator from intent-send to confirmed placement | ✅ Done |
+| HF-13 — Map preloading | Preload map assets on JOIN to reduce `CatchupTooLong` | ✅ Done |
+| UI:ClickMultiplayer investigation | Verify exact firing point before using the metric as a funnel anchor | Backlog |
 
 ## Key Decisions
 
-**Mobile rendering parked:** desktop is core audience (3,500 DAU vs 700 mobile). Mobile deep optimization is a 3–6 week investment for users at half the engagement depth. Condition to revisit: mobile DAU > 1,500 consistently. Mobile quick wins (Task 3) already shipped.
+**Mobile rendering parked:** desktop is the core audience (3,500 DAU vs 700 mobile). Mobile deep optimization remains a 3–6 week investment for users at roughly half the engagement depth. Condition to revisit: mobile DAU > 1,500 consistently. Mobile quick wins (Task 3) already shipped.
 
 **Server restart UX — Part B first:** Part B (auto-refresh polling loop) ships independently and has higher priority — resolves silent freeze with no deployment process changes. Part A (pre-restart notification) is a nice-to-have.
 
 **Feedback match IDs (simple):** the cancelled `task-feedback-match-history.md` scope was too large. Replacement: read existing `localStorage['game-records']` (keyed by game ID, already written by `LocalPersistantStats.ts`) and attach last 3 IDs. No new write logic.
 
-**Humans vs Nations safe to re-enable:** unlike Teams mode, AI fills all non-human slots regardless of lobby size. Teams mode stays disabled.
+**Humans vs Nations scope expanded:** investigation showed the suspected lobby-composition failure was not a stability problem. AI fills empty slots before match start, so all team modes were re-enabled, not just Humans vs Nations.
 
 ## Consequences
 
-- HF-11b/c/d is the complete fix for zombie tabs — no other CDN or cache changes needed
-- 5d-B spans are in production — check Uptrace for slow-turn patterns once data accumulates
-- `Match:SpawnMissed:CatchupTooLong` still unresolved — HF-13 (map preloading) is the mitigation path
+- HF-11b/c/d is the complete stale-build detection flow on the client and server
+- 5d-B spans are in production; correlate them with 5d-A system metrics in Uptrace when slow-turn data accumulates
+- HF-13 reduces `Match:SpawnMissed:CatchupTooLong` by moving map loading earlier, but it does not eliminate every spawn failure case
+- Mobile warning was deferred out of this sprint and now lives in [[decisions/sprint-6]]
 
 ## Related
 
 - [[decisions/product-strategy]] — sprint ordering rationale
 - [[decisions/hotfix-post-sprint2]] — what shipped before this sprint
 - [[decisions/sprint-4]] — next sprint
+- [[decisions/sprint-6]] — mobile warning moved here as a later content-supporting task
 - [[decisions/stale-build-zombie-tabs]] — HF-11a findings detail
 - [[decisions/cancelled-tasks]] — HF-11e, feedback match history
 - [[tasks/stale-build-detection]] — HF-11b/c/d implementation spec (version endpoint, client polling, modal)

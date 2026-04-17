@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/sprints/cancelled-tasks.md`, `ai-agents/sprints/done/hotfix-post-sprint2.md`
+Source: `ai-agents/sprints/cancelled-tasks.md`, `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`
 
 ---
 

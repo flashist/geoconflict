@@ -27,6 +27,7 @@
 - [[decisions/sprint-3]] — Sprint 3 (current): server observability, stale builds, server restart UX, mobile warning
 - [[decisions/sprint-4]] — Sprint 4 (planned): citizenship system, Yandex payments, personal inbox, leaderboard
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
+- [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
 - [[decisions/cancelled-tasks]] — HF-5 (win condition), feedback match history, HF-11e — with reasons and re-attempt guidance
 
 ### Bug Fixes & Investigations

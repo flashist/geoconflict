@@ -48,3 +48,4 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 
 - [[decisions/product-strategy]] — sprint ordering
 - [[decisions/sprint-4]] — previous sprint, provides citizenship infrastructure this sprint builds on
+- [[decisions/sprint-6]] — next planned sprint, focused on map content after monetization foundations

@@ -5,9 +5,9 @@
 
 ## Context
 
-Small hotfix release between Sprint 2 and Sprint 3. Tutorial was live and generating data — time-sensitive fixes to analytics and UX.
+Small hotfix release between Sprint 2 and Sprint 3. Tutorial was live and generating data, so the release prioritized time-sensitive analytics and UX fixes. The cache-busting work tracked as HF-10 began here and was later completed as follow-up implementation work.
 
-Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`
+Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`, `ai-agents/tasks/done/hotfix-hf10-cache-busting.md`
 
 ## What Was Shipped
 
@@ -22,7 +22,7 @@ Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`
 | HF-7 | Build number tracking via GameAnalytics Custom Dimension 01 | ✅ Done |
 | HF-8 | Tutorial attempt count on `Tutorial:Started` event value | ✅ Done |
 | HF-9 | Remove `#refresh` history push for all game types (double-reload fix) | ✅ Done |
-| HF-10 | Cache busting & build freshness guarantee | ⏳ Pending |
+| HF-10 | Cache busting & build freshness guarantee | ✅ Done later as follow-up work |
 | PR #45 | Double-reload fix for tutorial games + NaN guard on attempt counter | ✅ Done |
 
 ## Key Decisions
@@ -35,11 +35,13 @@ Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`
 
 **HF-9 (double-reload):** one-line change — delete `history.pushState` block in `handleJoinLobby()`. Completed the fix for all game types after PR #45 fixed tutorial only.
 
+**HF-10 (cache busting):** the hotfix plan left it as the next critical release item, but the follow-up task shipped the missing parts: content-hashed asset filenames plus `no-cache` HTML entry-point headers to force fresh builds on reload.
+
 ## Consequences
 
 - `Experiment:Tutorial:*` events now exist — control group funnels unblocked
 - Build number segmentation enables per-deploy metric attribution
-- HF-10 still pending — stale build sessions still possible until cache busting ships
+- Cache busting reduced the risk of players staying on stale bundles between deploys, but existing already-open sessions still required the later Sprint 3 stale-build detection flow
 
 ## Related
 
@@ -48,6 +50,7 @@ Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`
 - [[decisions/autospawn-late-join-fix]] — HF-6 detail
 - [[decisions/double-reload-fix]] — HF-9 + PR #45 detail
 - [[decisions/cancelled-tasks]] — HF-5 cancellation detail
+- [[decisions/stale-build-zombie-tabs]] — later stale-build detection work that complements HF-10
 - [[systems/analytics]] — event conventions established here
 - [[features/tutorial]] — tutorial context for HF-1/2/3
 - [[features/feedback-button]] — HF-3 established UI:Tap convention used by feedback button's analytics

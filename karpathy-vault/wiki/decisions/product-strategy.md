@@ -18,8 +18,9 @@ Source: `ai-agents/sprints/plan-index.md`
 - **Sprint 1** — Stop the Bleeding (ghost rate, crashes, analytics baseline)
 - **Sprint 2** — Fix Onboarding (tutorial, auto-spawn, UX clarity)
 - **Sprint 3** — Deepen Retention (infra quality, UX fixes, observability)
-- **Sprint 4** — First Monetization Layer (citizenship, Yandex payments, leaderboard)
+- **Sprint 4** — In-App Monetization & Citizenship (citizenship, Yandex payments, player profile store)
 - **Sprint 5** — Full F2P Loop (coin economy, clans, cosmetics, social features)
+- **Sprint 6** — More Content (historical multiplayer maps, paid campaign map packs)
 
 ## Experiments Policy
 
@@ -44,7 +45,7 @@ Mobile deep optimization parked — desktop is core audience. Revisit if mobile 
 
 - **Task ordering is intentional** — do not skip retention work to ship monetization early
 - **Feature flags/experiments preferred** for all additive features
-- **Mobile warning screen ships** (Sprint 3) to set expectations before deeper investment
+- **Mobile warning screen moved** from Sprint 3 to Sprint 6, where it supports a content-led acquisition push on mobile
 
 ## Related
 
@@ -53,6 +54,7 @@ Mobile deep optimization parked — desktop is core audience. Revisit if mobile 
 - [[decisions/sprint-3]] — deepen retention (current)
 - [[decisions/sprint-4]] — first monetization layer
 - [[decisions/sprint-5]] — full F2P loop
+- [[decisions/sprint-6]] — content expansion after payments/cosmetics infrastructure exists
 - [[decisions/cancelled-tasks]] — work cancelled with reasons
 - [[systems/analytics]] — analytics infrastructure built in Sprint 1
 - [[tasks/mobile-quick-wins]] — Task 3 mobile optimizations; Task 5 gate conditions documented here
