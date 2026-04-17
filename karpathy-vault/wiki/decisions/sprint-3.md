@@ -9,7 +9,7 @@ Goal: address infrastructure quality and UX issues affecting all players. Mobile
 
 Source: `ai-agents/sprints/plan-sprint-3.md`
 
-## Tasks & Status
+## Decision
 
 | Task | Description | Status |
 |---|---|---|

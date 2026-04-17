@@ -36,7 +36,7 @@ The execution pipeline is the deterministic path from player action to state mut
 ## Gotchas / Known Issues
 
 - The pipeline depends on shared schemas; adding a new action means updating schema, transport, execution dispatch, and usually UI trigger code
-- Some execution names are historical: AI players currently reuse `FakeHumanExecution` through `Executor.aiPlayerExecutions()`
+- Some execution names are historical: AI players currently reuse `FakeHumanExecution` through `ExecutionManager.aiPlayerExecutions()`
 - `player.setHasActed(true)` is applied for most gameplay intents inside `ExecutionManager`, so changing that rule affects win-condition and ghost-player behavior
 - `GameUpdate`s are the supported downstream contract; bypassing them for ad hoc UI state would break replay/catch-up assumptions
 

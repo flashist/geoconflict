@@ -11,14 +11,15 @@ Goal: launch the citizenship system and the in-app purchase foundation. Give loy
 
 Source: `ai-agents/sprints/plan-sprint-4.md`
 
-## Sprint Structure
+## Decision
+
+Sprint 4 remains the planned citizenship and payments sprint, but the wiki now reflects one important roadmap change: `8d-A` (global announcements) was already pulled forward and shipped in Sprint 2, so it is no longer upcoming Sprint 4 scope.
 
 **Phase 1 — Investigations (run in parallel):**
 - **Investigation A:** Player Profile Store — first persistent per-player database. Findings needed: DB technology, hosting, initial schema, match completion tracking, guest player handling.
 - **Investigation B:** Yandex Payments Catalog — SDK API, catalog fetch architecture, dashboard setup + approval timeline. **Action required immediately:** register catalog items in Yandex Games dashboard (approval takes days).
 
-**Phase 1 — Independent (no investigation dependency):**
-- 8d-A (Global Announcements) remains part of Sprint 4 and can ship in parallel with the investigation work.
+**Already shipped earlier:** `8d-A` (Global Announcements) was pulled forward into Sprint 2 and should be treated as an available dependency for Sprint 4 work, not a Sprint 4 deliverable.
 
 **Phase 2 — Implementation (after investigation findings reviewed with Mark):**
 Briefs to be written after findings. Confirmed scope:
@@ -30,7 +31,6 @@ Briefs to be written after findings. Confirmed scope:
 | Citizenship — match counter | Track 50 qualifying matches server-side + progress UI |
 | Citizenship — earned path | At 50 matches: flip `isCitizen = true`, send inbox message, in-game notification |
 | Citizenship — paid path | 99 rubles via Yandex catalog. `isPaidCitizen = true` on purchase |
-| 8d-A — Global announcements | Re-enable the existing OpenFront announcements channel with seed content for citizenship rollout |
 | 8d-B — Personal inbox | Direct messages from game to citizens (citizenship earned/purchased, name review) |
 | Name change | First citizenship benefit — citizens only, requires moderation |
 | Citizen verified icon | Visible in lobbies and match player list |
@@ -51,8 +51,8 @@ Briefs to be written after findings. Confirmed scope:
 
 - Register Yandex catalog items immediately — approval takes days and should not block implementation
 - Phase 2 briefs written only after both investigation findings reviewed
-- 8d-A can ship early in Sprint 4 and provides the communication channel for upcoming citizenship messaging
-- 8d-B (personal inbox) depends on both 8d-A live and player profile store live
+- 8d-A is already live from Sprint 2 and provides the communication channel Sprint 4 can build on
+- 8d-B (personal inbox) depends on both 8d-A already being live and the player profile store going live
 
 ## Related
 

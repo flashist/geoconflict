@@ -9,7 +9,7 @@ Goal: long-term engagement and monetization systems. Only start once retention m
 
 Source: `ai-agents/sprints/plan-sprint-5.md`
 
-## Planned Work
+## Decision
 
 | Task | Effort | A/B? | Description |
 |---|---|---|---|

@@ -31,6 +31,10 @@ Expanding ring pulse animation at spawn point:
 
 **Critical (HF-12):** indicator fires at confirmed placement time, same as camera zoom.
 
+## Outcome
+
+Players can reliably find their territory after spawn without depending on map familiarity. HF-12 aligned both visual cues with confirmed placement, which removed the misleading early camera jump/indicator case for delayed or catch-up spawns.
+
 ## Related
 
 - [[decisions/sprint-2]] — sprint where these shipped

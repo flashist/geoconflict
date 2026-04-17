@@ -9,7 +9,7 @@ Goal: expand the game with historical and thematic map content. The commercial t
 
 Source: `ai-agents/sprints/plan-sprint-6.md`
 
-## Planned Work
+## Decision
 
 | Task | Status | Description |
 |---|---|---|

@@ -25,8 +25,8 @@ Evidence: smooth exponential decay of returning users on old builds (~90% drop o
 - **BUILD_NUMBER not updated on deploy:** Ruled out — fully automated via `scripts/bump-version.js` in `build-deploy.sh`
 
 **Fix: HF-11b/c/d** — version polling + blocking reload modal:
-- **HF-11b:** Server-side `/version` endpoint
-- **HF-11c:** Client-side periodic polling of `/version`
+- **HF-11b:** Server-side `/api/version` endpoint
+- **HF-11c:** Client-side periodic polling of `/api/version`
 - **HF-11d:** Blocking modal that forces reload when client detects it's behind
 
 Targets the exact mechanism: a loaded tab that will not self-update.

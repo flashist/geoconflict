@@ -9,13 +9,13 @@ Small hotfix release between Sprint 2 and Sprint 3. Tutorial was live and genera
 
 Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`, `ai-agents/tasks/done/hotfix-hf10-cache-busting.md`
 
-## What Was Shipped
+## Decision
 
 | HF | Description | Status |
 |---|---|---|
 | HF-1 | Experiment flag analytics — `Experiment:Tutorial:Enabled/Disabled` at flag eval point | ✅ Done |
 | HF-2 | Tutorial skip button — inline "Skip tutorial" link in each tooltip modal | ✅ Done |
-| HF-3 | UI:Tap analytics — `UI:Tap:TutorialSkipCorner` + `UI:Tap:TutorialSkipInline` convention | ✅ Done |
+| HF-3 | UI:Tap analytics — `UI:Tap:TutorialSkipBtnCorner` + `UI:Tap:TutorialSkipBtnInline` convention | ✅ Done |
 | HF-4 | Mobile control panel hit area bug — transparent container blocked right half of map | ✅ Done |
 | HF-5 | Win condition detection bug | ⛔ Cancelled & reverted |
 | HF-6 | Auto-spawn failure on late join (catch-up window bug) | ✅ Done |
@@ -27,7 +27,7 @@ Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`, `ai-agents/tasks/done/h
 
 ## Key Decisions
 
-**HF-3 convention established:** `UI:Tap:{ElementId}` is opt-in tracking for specific UI elements. ElementIds are PascalCase, registered in `flashistConstants.uiElementIds`. Fire via `logUiTapEvent()`. This convention applies to all future UI instrumentation.
+**HF-3 convention established:** `UI:Tap:{ElementId}` is opt-in tracking for specific UI elements. ElementIds are PascalCase, registered in `flashistConstants.uiElementIds`. The currently shipped tutorial events are `UI:Tap:TutorialSkipBtnCorner` and `UI:Tap:TutorialSkipBtnInline`. Fire via `logUiTapEvent()`. This convention applies to all future UI instrumentation.
 
 **HF-5 cancelled:** ghost-bot logic in `WinCheckExecution.ts` too entangled. Reverted. See [[decisions/cancelled-tasks]] for details and re-attempt guidance.
 

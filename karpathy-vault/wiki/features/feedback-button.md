@@ -50,16 +50,16 @@ There is no core-game intent/execution path for this feature. It is client UI on
 1. Player taps a feedback button on the start or battle screen
 2. `showFeedbackModal(screenSource, matchId?)` opens `FeedbackModal`
 3. On submit, the modal collects device/build/match context and sends the payload to the feedback backend
-4. Analytics events `Feedback:Opened:<screen>` and `Feedback:Submitted:<screen>` are fired from the client flow
+4. Analytics events `Feedback:ButtonOpened:<screen>` and `Feedback:Submitted:<screen>` are fired from the client flow
 
 ## Analytics Events
 
 | Event | When |
 |---|---|
-| `Feedback:Opened` | Player tapped the button |
+| `Feedback:ButtonOpened` | Player tapped the button |
 | `Feedback:Submitted` | Player sent a report |
 
-Both include which screen the button was opened from.
+Both include the screen source as a suffix, for example `Feedback:ButtonOpened:start` and `Feedback:Submitted:battle`. The same modal is also reused from the stale-build support flow as `staleBuild`.
 
 ## Admin View
 

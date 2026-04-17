@@ -34,11 +34,11 @@ Five events covering the complete reconnection funnel:
 
 | Event | Description |
 |---|---|
-| `Match:ReconnectPromptShown` | Player saw the rejoin prompt (funnel top) |
-| `Match:ReconnectAccepted` | Player tapped rejoin |
-| `Match:ReconnectDeclined` | Player dismissed, went to main menu |
-| `Match:ReconnectSucceeded` | Player accepted and was confirmed active in match |
-| `Match:ReconnectFailed` | Player accepted but match ended or player was eliminated |
+| `Reconnect:PromptShown` | Player saw the rejoin prompt (funnel top) |
+| `Reconnect:Accepted` | Player tapped rejoin |
+| `Reconnect:Declined` | Player dismissed, went to main menu |
+| `Reconnect:Succeeded` | Player accepted and was confirmed active in match |
+| `Reconnect:Failed` | Player accepted but match ended or player was eliminated |
 
 Events 4 and 5 distinguish "feature works but players don't use it" from "feature is broken."
 

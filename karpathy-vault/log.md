@@ -88,3 +88,9 @@
 - Changed source files detected: 2
 - Ingested: `ai-agents/sprints/plan-sprint-3.md` → updated [[wiki/decisions/sprint-3]]
 - Ingested: `ai-agents/sprints/plan-sprint-6.md` → updated [[wiki/decisions/sprint-6]]
+
+## 2026-04-17 — lint
+- Issues found: 13
+- Issues fixed: 13
+- Issues flagged for human review: 0
+- Corrected decision/task template drift, fixed stale analytics and endpoint references against current code, and removed the Sprint 4/8d-A roadmap contradiction

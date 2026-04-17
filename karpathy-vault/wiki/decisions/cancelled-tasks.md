@@ -11,6 +11,10 @@ Source: `ai-agents/sprints/cancelled-tasks.md`, `ai-agents/tasks/cancelled/hotfi
 
 ---
 
+## Decision
+
+Keep cancelled work in one durable page instead of deleting context from the wiki. Each cancelled item records why it stopped, what was learned, and what would need to change before retrying it safely.
+
 ## HF-5 — Win Condition Detection Bug Fix
 
 **Sprint:** Post-Sprint 2 Hotfix
@@ -50,6 +54,11 @@ Source: `ai-agents/sprints/cancelled-tasks.md`, `ai-agents/tasks/cancelled/hotfi
 **Status:** Cancelled — not needed
 
 **Why cancelled:** HF-11a investigation confirmed BUILD_NUMBER is already fully automated via `scripts/bump-version.js` in `build-deploy.sh`. Hypothesis 4 (manual version error) ruled out. No action needed.
+
+## Consequences
+
+- Future retries should start from the narrower follow-up guidance recorded under each cancelled item, not from the original cancelled scope
+- This page is the canonical place to resolve "was this tried already?" questions during planning
 
 ## Related
 
