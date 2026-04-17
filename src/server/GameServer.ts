@@ -237,6 +237,9 @@ export class GameServer {
       this.activeClients = this.activeClients.filter((c) => c !== existing);
     }
 
+    // Client connection accepted
+    this.activeClients.push(client);
+
     if (
       existing === undefined &&
       this.isPublic() &&
@@ -251,9 +254,6 @@ export class GameServer {
         this.removeAiPlayers(1);
       }
     }
-
-    // Client connection accepted
-    this.activeClients.push(client);
     client.lastPing = Date.now();
 
     this.markClientDisconnected(client.clientID, false);
@@ -503,12 +503,12 @@ export class GameServer {
       Math.min(capacity, aiConfig.targetTotalByTimeout) * coef,
     );
 
-    const minHumanSlots = aiConfig.humanPriority ? aiConfig.minHumanSlots : 0;
+    const reservedForHumans = aiConfig.humanPriority ? aiConfig.minHumanSlots : 0;
     const maxAiAllowedNow = Math.max(
       0,
       Math.min(
         aiConfig.aiPlayersMax,
-        capacity - Math.max(0, minHumanSlots - humans),
+        capacity - humans - reservedForHumans,
       ),
     );
 
@@ -860,7 +860,8 @@ export class GameServer {
     const notEnoughPlayers =
       this.gameConfig.gameType === GameType.Public &&
       this.gameConfig.maxPlayers &&
-      this.activeClients.length < this.gameConfig.maxPlayers;
+      (this.activeClients.length < this.gameConfig.maxPlayers ||
+        this.aiPlayers.length > 0);
     if (lessThanLifetime && notEnoughPlayers) {
       return GamePhase.Lobby;
     }

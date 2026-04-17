@@ -69,9 +69,16 @@ export interface ServerConfig {
 export type AiPlayersConfig = {
   enabled: boolean;
   tickMs: number;
+  // Maximum total players (real + AI) the lobby targets by the end of the countdown.
+  // When humanPriority is true, AI can fill at most targetTotalByTimeout - minHumanSlots
+  // players, so the visible lobby total will be that value until real players join.
   targetTotalByTimeout: number;
   aiPlayersMax: number;
   humanPriority: boolean;
+  // When humanPriority is true, this many slots are permanently kept open for incoming
+  // real players regardless of how many humans are already present. AI fill is capped at
+  // (capacity - currentHumans - minHumanSlots), so the lobby always shows at least
+  // minHumanSlots available spots. The effective max visible total is (capacity - minHumanSlots).
   minHumanSlots: number;
   joinJitterMs: { min: number; max: number };
   name: { prefix: string; start: number; reserve: number };
