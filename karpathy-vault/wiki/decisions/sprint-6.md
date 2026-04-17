@@ -13,6 +13,7 @@ Source: `ai-agents/sprints/plan-sprint-6.md`
 
 | Task | Status | Description |
 |---|---|---|
+| 5b — Server restart UX | Backlog | Moved from Sprint 3; pre-restart warning plus blocking auto-refresh when the server returns |
 | 5c — Mobile warning screen | Backlog | Moved from Sprint 3; one-time mobile warning with a "Continue anyway" path |
 | Historical multiplayer maps | Backlog | Add 1–2 free historical maps to the normal multiplayer rotation |
 | Paid campaign map packs | Backlog | Sell themed map bundles, starting with WW2, after payments infrastructure is live |
@@ -20,6 +21,8 @@ Source: `ai-agents/sprints/plan-sprint-6.md`
 ## Key Decisions
 
 **Dependencies are explicit:** Sprint 4 and Sprint 5 must ship first. Paid map packs depend on Yandex catalog/payment flow and likely reuse the cosmetics-store surface.
+
+**Server restart UX is now part of Sprint 6:** the task moved from Sprint 3 because the product is functional without it, releases now happen less aggressively, and deployment risk outweighed the current player benefit.
 
 **Free maps ship before paid packs:** historical multiplayer maps are the demand-validation step. They test whether players actually engage with themed content before the project invests in paid campaign production.
 

@@ -17,7 +17,7 @@ Source: `ai-agents/sprints/plan-sprint-3.md`
 | Feedback — match IDs | Attach last 3 game IDs from `localStorage['game-records']` to feedback payload | ✅ Done |
 | 5 — Mobile rendering | Deep rendering optimization | ⏸ Parked |
 | 5c — Mobile warning | Non-blocking screen for mobile players with "Continue anyway" button | ➡️ Moved to Sprint 6 |
-| 5b — Server restart UX | Part A: pre-restart broadcast notification. Part B: auto-refresh polling loop | Backlog |
+| 5b — Server restart UX | Part A: pre-restart broadcast notification. Part B: auto-refresh polling loop | ➡️ Moved to Sprint 6 |
 | 5d-A — OTEL metrics | Server system metrics (CPU, memory, event loop lag, etc.) via OpenTelemetry | ✅ Done |
 | 5d-B — Server perf | Threshold-based OTEL spans on `endTurn()` and investigation findings in Uptrace | ✅ Done |
 | HF-11a — Stale build investigation | Root cause: zombie tabs confirmed | ✅ Done |
@@ -33,7 +33,7 @@ Source: `ai-agents/sprints/plan-sprint-3.md`
 
 **Mobile rendering parked:** desktop is the core audience (3,500 DAU vs 700 mobile). Mobile deep optimization remains a 3–6 week investment for users at roughly half the engagement depth. Condition to revisit: mobile DAU > 1,500 consistently. Mobile quick wins (Task 3) already shipped.
 
-**Server restart UX — Part B first:** Part B (auto-refresh polling loop) ships independently and has higher priority — resolves silent freeze with no deployment process changes. Part A (pre-restart notification) is a nice-to-have.
+**Server restart UX moved out:** Part B (auto-refresh polling loop) remains the more important half, but the whole task moved to Sprint 6 because the game remains usable without it and the current reduced weekend release cadence lowers its urgency.
 
 **Feedback match IDs (simple):** the cancelled `task-feedback-match-history.md` scope was too large. Replacement: read existing `localStorage['game-records']` (keyed by game ID, already written by `LocalPersistantStats.ts`) and attach last 3 IDs. No new write logic.
 
@@ -44,6 +44,7 @@ Source: `ai-agents/sprints/plan-sprint-3.md`
 - HF-11b/c/d is the complete stale-build detection flow on the client and server
 - 5d-B spans are in production; correlate them with 5d-A system metrics in Uptrace when slow-turn data accumulates
 - HF-13 reduces `Match:SpawnMissed:CatchupTooLong` by moving map loading earlier, but it does not eliminate every spawn failure case
+- Server restart UX no longer sits in Sprint 3 backlog; it is deferred to [[decisions/sprint-6]]
 - Mobile warning was deferred out of this sprint and now lives in [[decisions/sprint-6]]
 
 ## Related

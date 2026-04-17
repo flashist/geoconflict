@@ -82,3 +82,9 @@
 - Ingested: `CLAUDE.md` → updated [[wiki/systems/game-overview]]
 - Ingested: `CLAUDE.md` → updated [[wiki/systems/analytics]]
 - Ingested: `CLAUDE.md` → updated `karpathy-vault/index.md`
+
+## 2026-04-17 — ingest
+- Sync window: `2bca900ac4da0761b860c76d52186091383b6d75` → HEAD (`6b47389dab53093b59b5e946b2c1e7bd7a3f6474`)
+- Changed source files detected: 2
+- Ingested: `ai-agents/sprints/plan-sprint-3.md` → updated [[wiki/decisions/sprint-3]]
+- Ingested: `ai-agents/sprints/plan-sprint-6.md` → updated [[wiki/decisions/sprint-6]]
