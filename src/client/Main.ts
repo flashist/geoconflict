@@ -115,9 +115,14 @@ export interface JoinLobbyEvent {
   // Multiplayer games only have gameID, gameConfig is not known until game starts.
   gameID: string;
   // GameConfig only exists when playing a singleplayer game.
-  gameStartInfo?: GameStartInfo;
+  singlePlayGameStartInfo?: GameStartInfo;
   // GameRecord exists when replaying an archived game.
   gameRecord?: GameRecord;
+
+  preloadMapData?: {
+    mapType: GameMapType,
+    mapSize: GameMapSize
+  };
 }
 
 class Client {
@@ -679,8 +684,9 @@ class Client {
         playerName: this.usernameInput?.getCurrentUsername() ?? "",
         token: getPlayToken(),
         clientID: lobby.clientID,
-        gameStartInfo: lobby.gameStartInfo ?? lobby.gameRecord?.info,
+        gameStartInfo: lobby.singlePlayGameStartInfo ?? lobby.gameRecord?.info,
         gameRecord: lobby.gameRecord,
+        preloadMapData: event.detail.preloadMapData,
       },
       () => {
         console.log("Closing modals");
@@ -776,7 +782,7 @@ class Client {
         detail: {
           clientID,
           gameID,
-          gameStartInfo: {
+          singlePlayGameStartInfo: {
             gameID,
             players: [
               {
@@ -848,7 +854,7 @@ class Client {
         detail: {
           clientID,
           gameID,
-          gameStartInfo: {
+          singlePlayGameStartInfo: {
             gameID,
             players: [
               {

@@ -13,7 +13,7 @@ import { createPartialGameRecord, replacer, simpleHash } from "../core/Util";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { ServerConfig } from "../core/configuration/Config";
 import { getConfig } from "../core/configuration/ConfigLoader";
-import { PlayerActions, PlayerType, UnitType } from "../core/game/Game";
+import { GameMapSize, GameMapType, PlayerActions, PlayerType, UnitType } from "../core/game/Game";
 import { TileRef } from "../core/game/GameMap";
 import { GameMapLoader } from "../core/game/GameMapLoader";
 import {
@@ -70,6 +70,11 @@ export interface LobbyConfig {
   gameStartInfo?: GameStartInfo;
   // GameRecord exists when replaying an archived game.
   gameRecord?: GameRecord;
+
+  preloadMapData?: {
+    mapType: GameMapType,
+    mapSize: GameMapSize
+  }
 }
 
 export function joinLobby(
@@ -93,16 +98,33 @@ export function joinLobby(
   };
   let terrainLoad: Promise<TerrainMapData> | null = null;
 
+  const preloadMap = (mapType: GameMapType, mapSize: GameMapSize) => {
+    if (terrainLoad) {
+      return;
+    }
+    terrainLoad = loadTerrainMap(
+      mapType,
+      mapSize,
+      terrainMapFileLoader,
+    );
+  }
+
+  // Preloading maps when players click the "join-multiplayer" button
+  if (lobbyConfig.preloadMapData) {
+    preloadMap(
+      lobbyConfig.preloadMapData.mapType,
+      lobbyConfig.preloadMapData.mapSize
+    );
+  }
+
   const onmessage = (message: ServerMessage) => {
     if (message.type === "prestart") {
       console.log(
         `lobby: game prestarting: ${JSON.stringify(message, replacer)}`,
       );
-      terrainLoad = loadTerrainMap(
-        message.gameMap,
-        message.gameMapSize,
-        terrainMapFileLoader,
-      );
+
+      preloadMap(message.gameMap, message.gameMapSize);
+
       onPrestart();
     }
     if (message.type === "start") {

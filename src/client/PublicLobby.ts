@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { renderDuration, translateText } from "../client/Utils";
-import { GameMapType, GameMode, HumansVsNations } from "../core/game/Game";
+import { GameMapSize, GameMapType, GameMode, HumansVsNations } from "../core/game/Game";
 import { GameID, GameInfo } from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { JoinLobbyEvent } from "./Main";
@@ -9,6 +9,7 @@ import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import { flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants } from "./flashist/FlashistFacade";
 import { FlashistFacade } from "./flashist/FlashistFacade";
 import { isDevModeEnabled, onDevModeChange } from "./DevMode";
+import { mapSize } from "pixi.js";
 
 @customElement("public-lobby")
 export class PublicLobby extends LitElement {
@@ -240,11 +241,20 @@ export class PublicLobby extends LitElement {
       this.isLobbyHighlighted = true;
       this.currLobby = lobby;
 
+      let preloadMapData: { mapType: GameMapType, mapSize: GameMapSize } | undefined = undefined;
+      if (lobby.gameConfig) {
+        preloadMapData = {
+          mapType: lobby.gameConfig.gameMap,
+          mapSize: lobby.gameConfig.gameMapSize
+        }
+      }
+
       this.dispatchEvent(
         new CustomEvent("join-lobby", {
           detail: {
             gameID: lobby.gameID,
             clientID: generateID(),
+            preloadMapData: preloadMapData
           } as JoinLobbyEvent,
           bubbles: true,
           composed: true,
