@@ -100,3 +100,9 @@
 - Issues fixed: 0
 - Issues flagged for human review: 0
 - Revalidated all indexed wiki pages; schema compliance, index coverage, backlinks, and source/code references are currently clean
+
+## 2026-04-17 — ingest
+- Sync window: `6b47389dab53093b59b5e946b2c1e7bd7a3f6474` → HEAD (`4f88b59075f488fcd6843db777526ff6031f46fc`)
+- Changed source files detected: 5
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
+- Skipped: `ai-agents/tasks/backlog/s4-ai-lobby-slot-bug.md`, `ai-agents/tasks/backlog/s4-nations-balance-task.md`, `ai-agents/tasks/backlog/s4-tutorial-action-pause.md`, `ai-agents/tasks/backlog/s4-tutorial-no-nations.md` — backlog files are not ingest-worthy in `wiki-sync`; their scope is reflected through [[wiki/decisions/sprint-4]]

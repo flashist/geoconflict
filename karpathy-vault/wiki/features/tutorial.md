@@ -77,6 +77,7 @@ Tooltip 4 resets `radialMenuOpened` flag so tooltip 5 only fires after tooltip 4
 - [[systems/analytics]] — analytics infrastructure and event conventions
 - [[decisions/sprint-1]] — analytics baseline and Sentry shipped to support tutorial measurement
 - [[decisions/sprint-2]] — sprint where tutorial was built and shipped
+- [[decisions/sprint-4]] — later backlog adds pause-window and nation-removal tutorial follow-up fixes
 - [[decisions/hotfix-post-sprint2]] — HF-1/2/3 tightened tutorial analytics and skip UX
 - [[decisions/autospawn-late-join-fix]] — auto-spawn bug was especially damaging in tutorial context
 - [[decisions/double-reload-fix]] — caused `Tutorial:Started` double-fire before HF-9

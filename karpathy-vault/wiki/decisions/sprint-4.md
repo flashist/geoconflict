@@ -13,13 +13,25 @@ Source: `ai-agents/sprints/plan-sprint-4.md`
 
 ## Decision
 
-Sprint 4 remains the planned citizenship and payments sprint, but the wiki now reflects one important roadmap change: `8d-A` (global announcements) was already pulled forward and shipped in Sprint 2, so it is no longer upcoming Sprint 4 scope.
+Sprint 4 remains the planned citizenship and payments sprint, but the wiki now reflects two roadmap updates from the latest source brief:
+
+- `8d-A` (global announcements) was already pulled forward and shipped in Sprint 2, so it is no longer upcoming Sprint 4 scope
+- Sprint 4 now also carries four small independent backlog items that can ship alongside the monetization track without waiting on the investigation work
 
 **Phase 1 — Investigations (run in parallel):**
 - **Investigation A:** Player Profile Store — first persistent per-player database. Findings needed: DB technology, hosting, initial schema, match completion tracking, guest player handling.
 - **Investigation B:** Yandex Payments Catalog — SDK API, catalog fetch architecture, dashboard setup + approval timeline. **Action required immediately:** register catalog items in Yandex Games dashboard (approval takes days).
 
 **Already shipped earlier:** `8d-A` (Global Announcements) was pulled forward into Sprint 2 and should be treated as an available dependency for Sprint 4 work, not a Sprint 4 deliverable.
+
+**Independent Sprint 4 backlog additions:**
+
+| Task | Effort | Notes |
+|---|---|---|
+| Humans vs Nations — Balance Nation Count | half a day | Balance fix. Target nation count as close to 1:1 with human players as lobby capacity allows |
+| AI Lobby Slot Bug — Always Keep One Slot Free | half a day | Bug fix. Preserve one human-joinable slot and only auto-start when no AI players remain |
+| Tutorial — Pause During Action-Required Steps | half a day | Tutorial polish. Keep the match near-paused until the expected tutorial action is detected |
+| Tutorial — Remove Nations, Keep Only Bots | 1-2 hours | Config-only tutorial simplification to remove aggressive nation opponents |
 
 **Phase 2 — Implementation (after investigation findings reviewed with Mark):**
 Briefs to be written after findings. Confirmed scope:
@@ -53,6 +65,7 @@ Briefs to be written after findings. Confirmed scope:
 - Phase 2 briefs written only after both investigation findings reviewed
 - 8d-A is already live from Sprint 2 and provides the communication channel Sprint 4 can build on
 - 8d-B (personal inbox) depends on both 8d-A already being live and the player profile store going live
+- Sprint 4 is no longer purely monetization scope; it also bundles two tutorial fixes and two lobby/balance fixes that can be scheduled independently
 
 ## Related
 
@@ -60,4 +73,5 @@ Briefs to be written after findings. Confirmed scope:
 - [[decisions/sprint-3]] — previous sprint
 - [[decisions/sprint-5]] — next sprint
 - [[decisions/sprint-6]] — later content sprint depends on this payments/citizenship layer
+- [[features/tutorial]] — tutorial follow-up fixes were added to the Sprint 4 backlog
 - [[features/ai-players]] — AI Players feature (already active in production)

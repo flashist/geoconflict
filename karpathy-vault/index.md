@@ -30,7 +30,7 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/9
 - [[decisions/sprint-3]] — Sprint 3 (current): server observability, stale builds, server restart UX, mobile warning
-- [[decisions/sprint-4]] — Sprint 4 (planned): citizenship system, Yandex payments, personal inbox, leaderboard
+- [[decisions/sprint-4]] — Sprint 4 (planned): citizenship system, Yandex payments, player profile store, inbox, tutorial/lobby fixes
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
 - [[decisions/cancelled-tasks]] — HF-5 (win condition), feedback match history, HF-11e — with reasons and re-attempt guidance
