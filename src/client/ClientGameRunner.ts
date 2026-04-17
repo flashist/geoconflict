@@ -37,7 +37,7 @@ import {
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
 import { saveReconnectSession } from "./ReconnectSession";
-import { getPersistentID, IPreloadMapConfig } from "./Main";
+import { getPersistentID, PreloadMapConfig } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import {
   SendAttackIntentEvent,
@@ -71,7 +71,7 @@ export interface LobbyConfig {
   // GameRecord exists when replaying an archived game.
   gameRecord?: GameRecord;
 
-  preloadMapData?: IPreloadMapConfig
+  preloadMapData?: PreloadMapConfig
 }
 
 export function joinLobby(
@@ -100,7 +100,7 @@ export function joinLobby(
   //
   const resetPreloadMap = () => {
     terrainLoad = null;
-  }
+  };
   const preloadMap = (mapType: GameMapType, mapSize: GameMapSize) => {
     if (terrainLoad) {
       if (mapType === lastPreloadGameMapType && mapSize === lastPreloadGameMapSize) {
@@ -125,7 +125,7 @@ export function joinLobby(
         resetPreloadMap();
       }
     );
-  }
+  };
 
   // Preloading maps when players click the "join-multiplayer" button
   if (lobbyConfig.preloadMapData) {
