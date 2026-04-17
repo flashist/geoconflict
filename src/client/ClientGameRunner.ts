@@ -24,7 +24,7 @@ import {
   WinUpdate,
 } from "../core/game/GameUpdates";
 import { GameView, PlayerView } from "../core/game/GameView";
-import { loadTerrainMap, TerrainMapData } from "../core/game/TerrainMapLoader";
+import { getCachedMap, loadTerrainMap, TerrainMapData } from "../core/game/TerrainMapLoader";
 import { UserSettings } from "../core/game/UserSettings";
 import { WorkerClient } from "../core/worker/WorkerClient";
 import {
@@ -219,11 +219,22 @@ async function createClientGame(
   let gameMap: TerrainMapData | null = null;
 
   if (terrainLoad) {
-    flashist_logEventAnalytics(
-      flashistConstants.analyticEvents.MATCH_PRELOAD_HIT,
-      preloadStartTime !== null ? Math.floor((Date.now() - preloadStartTime) / 1000) : undefined,
-    );
+    const cachedMap = getCachedMap(lobbyConfig.gameStartInfo.config.gameMap, lobbyConfig.gameStartInfo.config.gameMapSize);
+    // Checking if the preloaded map is already loaded, if yes, then trigger one analytic event,
+    // if not trigger another analytic event
+    if (cachedMap) {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.MATCH_PRELOAD_HIT_LOADED,
+        preloadStartTime !== null ? Math.floor((Date.now() - preloadStartTime) / 1000) : undefined,
+      );
+    } else {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.MATCH_PRELOAD_HIT_NOT_LOADED,
+        preloadStartTime !== null ? Math.floor((Date.now() - preloadStartTime) / 1000) : undefined,
+      );
+    }
     gameMap = await terrainLoad;
+
   } else {
     flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_PRELOAD_MISS);
     gameMap = await loadTerrainMap(

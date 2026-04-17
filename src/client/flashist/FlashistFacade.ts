@@ -42,7 +42,8 @@ export const flashistConstants = {
 
         MATCH_PRELOAD_STARTED: "Match:PreloadStarted",
         MATCH_PRELOAD_READY: "Match:PreloadReady",
-        MATCH_PRELOAD_HIT: "Match:PreloadHit",
+        MATCH_PRELOAD_HIT_LOADED: "Match:PreloadHitLoaded",
+        MATCH_PRELOAD_HIT_NOT_LOADED: "Match:PreloadHitNotLoaded",
         MATCH_PRELOAD_MISS: "Match:PreloadMiss",
 
         PERFORMANCE_FPS_AVERAGE: "Performance:FPSAverage",
