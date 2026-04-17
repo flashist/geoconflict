@@ -27,6 +27,10 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⬜ Backlog | 8d-B. Personal Inbox | `s4-8d-b-task-personal-inbox.md` |
 | ⬜ Backlog | Name Change (Citizens Only) | TBD after investigation |
 | ⬜ Backlog | Citizen Verified Icon | TBD after investigation |
+| ⬜ Backlog | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` |
+| ⬜ Backlog | AI Lobby Slot Bug — Always Keep One Slot Free | `s4-ai-lobby-slot-bug.md` |
+| ⬜ Backlog | Tutorial — Pause During Action-Required Steps | `s4-tutorial-action-pause.md` |
+| ⬜ Backlog | Tutorial — Remove Nations, Keep Only Bots | `s4-tutorial-no-nations.md` |
 
 ---
 
@@ -155,6 +159,56 @@ Citizen icon visible in lobbies and match player list. Distinguishes citizens fr
 |---|---|---|
 | Citizenship | 99 rubles | ~50% to Yandex + taxes |
 | Cosmetics (Sprint 5) | 149–199 rubles | Includes citizenship automatically |
+
+## Humans vs Nations — Balance Nation Count to Players
+
+**Effort:** half a day
+**Experiments:** ❌ Excluded — balance fix, ships to all players.
+**Independent** — no dependency on citizenship or payment tasks.
+
+Humans vs Nations mode currently adds too few nation bots relative to the number of human players, making the mode too easy. Fix: set nation count as close to 1:1 with human players as the lobby maximum allows.
+
+Formula: `nation_count = min(human_player_count, lobby_max_players - human_player_count)`
+
+See full brief: `s4-nations-balance-task.md`
+
+---
+
+## AI Player Lobby Slot Bug — Always Keep One Slot Free
+
+**Effort:** half a day
+**Experiments:** ❌ Excluded — bug fix.
+**Note:** may interact with the Humans vs Nations balance task — implement together or in sequence.
+
+AI players can currently fill all lobby slots including the last one, causing the lobby to show 10/10 with a mix of real and AI players. The game does not start and real players cannot join — the lobby is stuck.
+
+Fix: enforce `ai_count ≤ lobby_max - 1` at all times. When a real player joins a full-AI lobby, displace one AI to restore the free slot. Update the "lobby full → start" condition to only fire when no AI players remain.
+
+See full brief: `s4-ai-lobby-slot-bug.md`
+
+---
+
+## Tutorial — Pause During Action-Required Steps
+
+**Effort:** half a day
+**Experiments:** ❌ Excluded — tutorial improvement.
+
+The tutorial already near-pauses during tooltip display, but resumes when the player dismisses a tooltip to perform the required action. Bots can attack and eliminate the player during this window. Fix: keep the game near-paused after dismissal until the expected action is detected (spawn chosen, attack sent, radial menu opened, city built). Affects tooltips 1, 2, 4, and 5.
+
+See full brief: `s4-tutorial-action-pause.md`
+
+---
+
+## Tutorial — Remove Nations, Keep Only Bots
+
+**Effort:** 1–2 hours (config change only)
+**Experiments:** ❌ Excluded — tutorial improvement.
+
+Tutorial currently includes nation bots which can be aggressive even on Easy difficulty. Remove nations from the tutorial match entirely — keep only regular small bots. Makes the tutorial trivially winnable so new players learn mechanics without frustration.
+
+See full brief: `s4-tutorial-no-nations.md`
+
+---
 
 ## Notes
 
