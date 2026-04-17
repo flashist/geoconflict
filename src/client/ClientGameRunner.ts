@@ -37,7 +37,7 @@ import {
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
 import { saveReconnectSession } from "./ReconnectSession";
-import { getPersistentID } from "./Main";
+import { getPersistentID, IPreloadMapConfig } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import {
   SendAttackIntentEvent,
@@ -71,10 +71,7 @@ export interface LobbyConfig {
   // GameRecord exists when replaying an archived game.
   gameRecord?: GameRecord;
 
-  preloadMapData?: {
-    mapType: GameMapType,
-    mapSize: GameMapSize
-  }
+  preloadMapData?: IPreloadMapConfig
 }
 
 export function joinLobby(

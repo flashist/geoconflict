@@ -119,10 +119,12 @@ export interface JoinLobbyEvent {
   // GameRecord exists when replaying an archived game.
   gameRecord?: GameRecord;
 
-  preloadMapData?: {
-    mapType: GameMapType,
-    mapSize: GameMapSize
-  };
+  preloadMapData?: IPreloadMapConfig
+}
+
+export interface IPreloadMapConfig {
+  mapType: GameMapType,
+  mapSize: GameMapSize
 }
 
 class Client {
