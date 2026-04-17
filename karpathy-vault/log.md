@@ -94,3 +94,9 @@
 - Issues fixed: 13
 - Issues flagged for human review: 0
 - Corrected decision/task template drift, fixed stale analytics and endpoint references against current code, and removed the Sprint 4/8d-A roadmap contradiction
+
+## 2026-04-17 — lint
+- Issues found: 0
+- Issues fixed: 0
+- Issues flagged for human review: 0
+- Revalidated all indexed wiki pages; schema compliance, index coverage, backlinks, and source/code references are currently clean
