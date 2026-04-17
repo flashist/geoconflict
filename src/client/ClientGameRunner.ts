@@ -98,14 +98,35 @@ export function joinLobby(
   };
   let terrainLoad: Promise<TerrainMapData> | null = null;
 
+  let lastPreloadGameMapType: GameMapType;
+  let lastPreloadGameMapSize: GameMapSize;
+  //
+  const resetPreloadMap = () => {
+    terrainLoad = null;
+  }
   const preloadMap = (mapType: GameMapType, mapSize: GameMapSize) => {
     if (terrainLoad) {
-      return;
+      if (mapType === lastPreloadGameMapType && mapSize === lastPreloadGameMapSize) {
+        return;
+
+      } else {
+        resetPreloadMap();
+      }
     }
+
+    lastPreloadGameMapType = mapType;
+    lastPreloadGameMapSize = mapSize;
+
     terrainLoad = loadTerrainMap(
       mapType,
       mapSize,
       terrainMapFileLoader,
+    );
+
+    terrainLoad.catch(
+      () => {
+        resetPreloadMap();
+      }
     );
   }
 

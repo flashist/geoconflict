@@ -9,7 +9,6 @@ import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import { flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants } from "./flashist/FlashistFacade";
 import { FlashistFacade } from "./flashist/FlashistFacade";
 import { isDevModeEnabled, onDevModeChange } from "./DevMode";
-import { mapSize } from "pixi.js";
 
 @customElement("public-lobby")
 export class PublicLobby extends LitElement {
