@@ -8,8 +8,8 @@ export type TerrainMapData = {
   miniGameMap: GameMap;
 };
 
-const getMapTypeSizeKey = (map: GameMapType, mapSize: GameMapSize): string => {
-  return `${map}:${mapSize}`;
+const getMapTypeSizeKey = (mapType: GameMapType, mapSize: GameMapSize): string => {
+  return `${mapType}:${mapSize}`;
 }
 
 const loadingInProgressMapsPromises = new Map<string, Promise<TerrainMapData>>();
@@ -18,6 +18,13 @@ const loadedMaps = new Map<string, TerrainMapData>();
 export function clearTerrainMapCache(): void {
   loadedMaps.clear();
   loadingInProgressMapsPromises.clear();
+}
+
+export function getCachedMap(mapType: GameMapType, mapSize: GameMapSize): TerrainMapData | undefined {
+  const mapTypeSizeId = getMapTypeSizeKey(mapType, mapSize);
+
+  const result: TerrainMapData | undefined = loadedMaps.get(mapTypeSizeId);
+  return result;
 }
 
 export interface MapMetadata {
@@ -42,14 +49,14 @@ export interface Nation {
 }
 
 export async function loadTerrainMap(
-  map: GameMapType,
+  mapType: GameMapType,
   mapSize: GameMapSize,
   terrainMapFileLoader: GameMapLoader,
 ): Promise<TerrainMapData> {
 
-  const mapTypeSizeId = getMapTypeSizeKey(map, mapSize);
+  const mapTypeSizeId = getMapTypeSizeKey(mapType, mapSize);
 
-  const cached = loadedMaps.get(mapTypeSizeId);
+  const cached = getCachedMap(mapType, mapSize);
   if (cached !== undefined) return cached;
 
   const loadingInProgressSingleMapPromise = loadingInProgressMapsPromises.get(mapTypeSizeId);
@@ -59,7 +66,7 @@ export async function loadTerrainMap(
 
   const loadingSinglePromise = (async (): Promise<TerrainMapData> => {
 
-    const mapFiles = terrainMapFileLoader.getMapData(map);
+    const mapFiles = terrainMapFileLoader.getMapData(mapType);
     const manifest = await mapFiles.manifest();
 
     const gameMap =

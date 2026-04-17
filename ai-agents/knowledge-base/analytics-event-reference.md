@@ -162,6 +162,20 @@ Experiment group:
 Experiment:Tutorial:Enabled → Tutorial:Started → Tutorial:Completed → Game:Start → Match:SpawnChosen → Session:Heartbeat:05
 ```
 
+### Map Preload Events
+
+Fired during the JOIN → match-start flow to measure the impact of background map preloading on `Match:SpawnMissed:CatchupTooLong`.
+
+| Enum Key | Event String | When Fired | Value |
+|---|---|---|---|
+| `MATCH_PRELOAD_STARTED` | `Match:PreloadStarted` | `preloadMap()` begins a new terrain load | — |
+| `MATCH_PRELOAD_READY` | `Match:PreloadReady` | Preload promise resolves successfully | Seconds taken to load |
+| `MATCH_PRELOAD_HIT_LOADED` | `Match:PreloadHitLoaded` | Match init uses the preloaded assets - loading complete (cache hit) | Seconds elapsed since preload started |
+| `MATCH_PRELOAD_HIT_NOT_LOADED` | `Match:PreloadHitNotLoaded` | Match init uses the preloaded assets - loading NOT complete (in progress) (cache hit) | Seconds elapsed since preload started |
+| `MATCH_PRELOAD_MISS` | `Match:PreloadMiss` | Match init falls back to fresh load (no preload or failed) | — |
+
+`Match:PreloadHit` value approximates how much loading time was moved to background. Compare `Match:SpawnMissed:CatchupTooLong` rate before and after deploying HF-13 to evaluate impact.
+
 ---
 
 ## TypeScript Enum

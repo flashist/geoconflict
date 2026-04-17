@@ -40,6 +40,12 @@ export const flashistConstants = {
         MATCH_SPAWN_RETRY_AFTER_CATCHUP: "Match:SpawnRetryAfterCatchup",
         MATCH_SPAWN_MISSED_CATCHUP_TOO_LONG: "Match:SpawnMissed:CatchupTooLong",
 
+        MATCH_PRELOAD_STARTED: "Match:PreloadStarted",
+        MATCH_PRELOAD_READY: "Match:PreloadReady",
+        MATCH_PRELOAD_HIT_LOADED: "Match:PreloadHitLoaded",
+        MATCH_PRELOAD_HIT_NOT_LOADED: "Match:PreloadHitNotLoaded",
+        MATCH_PRELOAD_MISS: "Match:PreloadMiss",
+
         PERFORMANCE_FPS_AVERAGE: "Performance:FPSAverage",
         PERFORMANCE_FPS_ABOVE30: "Performance:FPS:Above30",
         PERFORMANCE_FPS_15TO30: "Performance:FPS:15to30",
