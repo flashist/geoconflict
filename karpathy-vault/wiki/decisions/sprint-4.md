@@ -59,4 +59,5 @@ Briefs to be written after findings. Confirmed scope:
 - [[decisions/product-strategy]] — sprint ordering
 - [[decisions/sprint-3]] — previous sprint
 - [[decisions/sprint-5]] — next sprint
+- [[decisions/sprint-6]] — later content sprint depends on this payments/citizenship layer
 - [[features/ai-players]] — AI Players feature (already active in production)

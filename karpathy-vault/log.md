@@ -66,3 +66,9 @@
 - Ingested: `ai-agents/sprints/cancelled-tasks.md` + `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md` + `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md` → updated [[wiki/decisions/cancelled-tasks]]
 - Ingested: `karpathy-vault/index.md` → updated decision index entry for [[wiki/decisions/sprint-6]]
 - Skipped (already covered): 53 remaining eligible `ai-agents/knowledge-base/*.md`, `ai-agents/sprints/done/*.md`, and `ai-agents/tasks/done/*.md` files were already represented by existing wiki pages; this sync only refreshed the stale decision pages and added the missing Sprint 6 page
+
+## 2026-04-17 — lint
+- Issues found: 29
+- Issues fixed: 24
+- Issues flagged for human review: 5
+- Most significant: fixed template drift on feature/task pages, corrected stale HF-11 status and trigger details against current code, and closed all bidirectional cross-link gaps; remaining warnings are the five still-missing architecture/system pages (`flashist-init`, `game-loop`, `networking`, `execution-pipeline`, `rendering`)

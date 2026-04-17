@@ -50,6 +50,7 @@ Source: `ai-agents/sprints/plan-sprint-3.md`
 
 - [[decisions/product-strategy]] — sprint ordering rationale
 - [[decisions/hotfix-post-sprint2]] — what shipped before this sprint
+- [[decisions/sprint-2]] — previous feature sprint whose onboarding work this sprint refined
 - [[decisions/sprint-4]] — next sprint
 - [[decisions/sprint-6]] — mobile warning moved here as a later content-supporting task
 - [[decisions/stale-build-zombie-tabs]] — HF-11a findings detail
@@ -58,3 +59,4 @@ Source: `ai-agents/sprints/plan-sprint-3.md`
 - [[tasks/spawn-ux]] — HF-12 moves camera/animation from intent-send to confirmed-placement time
 - [[systems/telemetry]] — 5d-A/B OTEL instrumentation
 - [[systems/server-performance]] — 5d-B performance investigation
+- [[features/feedback-button]] — Sprint 3 extended the feedback payload with last 3 match IDs

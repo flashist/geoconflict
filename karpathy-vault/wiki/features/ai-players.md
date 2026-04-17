@@ -17,7 +17,7 @@ Source: `ai-agents/tasks/done/feature_spec_ai_players_standalone.md`
 
 **Out:** explicit AI disclosure in UI, nations renamed/repurposed, persistent AI profiles, new chat behaviors.
 
-## Architecture
+## Implementation
 
 ### Entity Type
 
@@ -81,7 +81,17 @@ All AI names, IDs, and execution randomness must be seeded deterministically. An
 6. Update UI to treat `AiPlayer` as human
 7. Verify winner flow
 
+## Intent → Execution Flow
+
+There is no direct player-facing intent for AI creation. The server and shared core synthesize the flow:
+
+1. Public-lobby server logic decides whether to inject AI joiners into `gameStartInfo.aiPlayers`
+2. `GameRunner` materializes those entries as `PlayerType.AiPlayer`
+3. `ExecutionManager` includes them in automated execution scheduling
+4. `BotBehavior`-driven AI actions emit the same normal game `Intent` objects and downstream `GameUpdate`s as any other player
+
 ## Related
 
 - [[systems/game-overview]] — overall game architecture; `PlayerType.AiPlayer` documented in player types table
 - [[features/tutorial]] — tutorial also uses bot-filled lobbies for context
+- [[decisions/sprint-4]] — planning pages now explicitly treat AI Players as already-live context

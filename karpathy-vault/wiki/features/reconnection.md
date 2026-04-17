@@ -1,7 +1,7 @@
 # Crash Reconnection Feature
 
 **Status**: active
-**Source files**: TBD (reconnection prompt logic, `MarkDisconnectedExecution`)
+**Source files**: `src/client/ReconnectModal.ts`, `src/client/ReconnectSession.ts`, `src/client/Main.ts`, `src/core/execution/MarkDisconnectedExecution.ts`
 
 ## Summary
 
@@ -18,6 +18,15 @@ Source: `ai-agents/tasks/done/task-02-crash-reconnection.md`
 **Explicit exit vs crash:** only unexpected exits (tab close/crash) trigger the prompt. A player who exits through the normal in-game exit flow does not see a reconnection prompt on next open.
 
 **Edge case:** if a player was eliminated while disconnected, no reconnection is offered — joining a match you've already lost is a worse experience than starting fresh.
+
+## Intent → Execution Flow
+
+This feature spans client session recovery plus one core execution:
+
+1. Unexpected disconnect persists reconnect session state in the client
+2. On next load, `ReconnectModal` offers a rejoin if that session exists
+3. Accepting the prompt checks `/api/game/{gameID}/active` and dispatches `join-lobby` if still valid
+4. During the original disconnect, `MarkDisconnectedExecution` records the player's disconnected state in core game logic
 
 ## Analytics Events
 

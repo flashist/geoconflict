@@ -1,6 +1,6 @@
 # Session Start Analytics Sequence
 
-**Source**: `ai-agents/tasks/done/task-02d-additional-analytics-events.md`, `task-02f-device-type-analytics.md`, `task-02g-new-returning-player.md`
+**Source**: `ai-agents/tasks/done/task-02d-additional-analytics-events.md`, `ai-agents/tasks/done/task-02f-device-type-analytics.md`, `ai-agents/tasks/done/task-02g-new-returning-player.md`
 **Status**: done
 **Sprint/Tag**: Sprint 1
 

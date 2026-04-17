@@ -42,4 +42,6 @@ Targets the exact mechanism: a loaded tab that will not self-update.
 - [[systems/analytics]] — `Build:StaleDetected` event
 - [[decisions/double-reload-fix]] — separate but related browser/tab lifecycle issue
 - [[decisions/sprint-3]] — HF-11a/b/c/d context
+- [[decisions/hotfix-post-sprint2]] — HF-10 cache-busting reduced stale asset risk before this full zombie-tab fix
+- [[decisions/cancelled-tasks]] — HF-11e cancellation belongs to the same investigation thread
 - [[tasks/stale-build-detection]] — HF-11b/c/d implementation spec (version endpoint, client polling, modal)

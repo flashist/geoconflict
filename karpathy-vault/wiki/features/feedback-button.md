@@ -1,13 +1,17 @@
 # Feedback Button
 
 **Status**: active
-**Source files**: `src/client/` (FeedbackModal or similar), `FeedbackIconWhite.svg`
+**Source files**: `src/client/FeedbackModal.ts`, `src/client/Main.ts`, `src/client/graphics/layers/GameRightSidebar.ts`, `resources/images/FeedbackIconWhite.svg`
 
 ## Summary
 
 An in-game feedback button on both the start screen and battle screen lets players submit bug reports, suggestions, or general feedback at any time. Reports arrive with automatic context (device, build, match IDs) so they are actionable without requiring the player to provide technical details.
 
 Source: `ai-agents/tasks/done/task-02b-feedback-button.md`
+
+## Implementation
+
+`Main.ts` wires the button entry points on the start screen and battle screen via `showFeedbackModal()`. `FeedbackModal.ts` owns the overlay UI, category/text/contact fields, automatic context collection, and analytics firing. The battle-screen button is rendered from `GameRightSidebar.ts`; the shared icon asset is `FeedbackIconWhite.svg`.
 
 ## Placement
 
@@ -38,6 +42,15 @@ Lightweight overlay (not full-screen). Contains:
 | Device info | UA, screen resolution, CPU cores, RAM, GPU string (best-effort) |
 
 The last 3 match IDs are included silently — not shown to the player. See `ai-agents/tasks/done/task-feedback-match-ids-simple.md` for the match ID attachment implementation.
+
+## Intent → Execution Flow
+
+There is no core-game intent/execution path for this feature. It is client UI only:
+
+1. Player taps a feedback button on the start or battle screen
+2. `showFeedbackModal(screenSource, matchId?)` opens `FeedbackModal`
+3. On submit, the modal collects device/build/match context and sends the payload to the feedback backend
+4. Analytics events `Feedback:Opened:<screen>` and `Feedback:Submitted:<screen>` are fired from the client flow
 
 ## Analytics Events
 

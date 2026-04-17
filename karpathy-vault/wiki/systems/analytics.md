@@ -76,6 +76,9 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 
 - [[systems/game-overview]] — overall project context
 - [[decisions/product-strategy]] — why analytics was built first (Sprint 1)
+- [[decisions/sprint-1]] — analytics baseline and session conventions were built here
+- [[decisions/sprint-2]] — tutorial and spawn funnels depended on this system
+- [[decisions/hotfix-post-sprint2]] — HF-1/3/7/8/9 extended analytics conventions and build tracking
 - [[systems/telemetry]] — server observability (Uptrace), complementary to analytics
 - [[features/tutorial]] — Tutorial events and completion tracking
 - [[decisions/autospawn-late-join-fix]] — spawn analytics used to measure the fix

@@ -1,7 +1,7 @@
 # Stale Build Detection & Blocking Modal (HF-11b/c/d)
 
-**Source**: `ai-agents/tasks/done/hf11b-hotfix-version-endpoint.md`, `hf11c-hotfix-stale-build-detection.md`, `hf11d-hotfix-stale-build-modal.md`
-**Status**: pending (Sprint 3)
+**Source**: `ai-agents/tasks/done/hf11b-hotfix-version-endpoint.md`, `ai-agents/tasks/done/hf11c-hotfix-stale-build-detection.md`, `ai-agents/tasks/done/hf11d-hotfix-stale-build-modal.md`
+**Status**: done
 **Sprint/Tag**: Sprint 3 / HF-11
 
 ## Goal
@@ -27,8 +27,8 @@ checkVersion();  // calls GET /api/version with { cache: 'no-store' }
 // 2. Polling every 5 minutes (catches zombie tabs mid-session)
 setInterval(checkVersion, 5 * 60 * 1000);
 
-// 3. On tab focus (catches long-idle tabs)
-window.addEventListener('focus', checkVersion);
+// 3. On tab visible again (catches long-idle tabs)
+document.addEventListener('visibilitychange', onVisibilityChange);
 ```
 
 Once detected, cancel interval + remove listener (fires exactly once per session).
@@ -39,15 +39,17 @@ Analytics event: `Build:StaleDetected` with value = minutes since page load (0 =
 
 Non-dismissible full-screen overlay wired to `onStaleBuildDetected()`:
 - Copy: *"The version of the game you're playing is outdated. Please refresh the page. If this popup keeps appearing, contact us."*
-- Primary action: `REFRESH` button → `window.location.reload(true)` (hard reload, bypasses browser cache)
+- Primary action: `REFRESH` button → `window.location.reload()`
 - Secondary: "Contact support" link opens feedback form without dismissing modal
 - No close button, no clicking outside to dismiss — mid-match players on stale builds are already on a broken build
 
-Uses the **existing modal component** (same one used for Task 5b server restart UX). Check if 5b has already parameterised it before implementing.
+Implemented as a dedicated `StaleBuildModal.ts` Lit component rather than reusing a generic modal wrapper.
 
 ## Outcome
 
 After HF-11b/c/d all ship, the stale build tail in GameAnalytics should decay to near-zero within one natural polling cycle (5 minutes). Monitor with `Build:StaleDetected` analytics events.
+
+The implementation is present in the repo: `Master.ts` serves `GET /api/version`, `BuildVersionChecker.ts` runs startup/polling/visibility checks, and `StaleBuildModal.ts` shows the blocking reload UI.
 
 ## Related
 

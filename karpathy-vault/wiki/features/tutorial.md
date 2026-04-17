@@ -24,6 +24,15 @@ On `init()`:
 
 **Tooltip rendering:** Full-screen semi-transparent backdrop (`z-index: 10000`) + centered modal. While active: game near-paused via `ReplaySpeedChangeEvent(100)` (100× interval). Speed restored on dismiss or skip.
 
+## Intent → Execution Flow
+
+There is no tutorial-specific core execution class. The flow is a client-side orchestration layer around the normal game:
+
+1. `Main.ts` detects tutorial eligibility and dispatches `join-lobby` with `config.isTutorial = true`
+2. `LocalServer.buildMissionConfigIfNeeded()` rewrites the mission config for the Iceland all-bot tutorial scenario
+3. `GameRenderer` mounts `TutorialLayer` when `game.config().gameConfig().isTutorial` is true
+4. `TutorialLayer` watches normal game state and `GameUpdate` events to advance the tooltip sequence
+
 ## Tooltip Sequence (7 steps)
 
 | # | Trigger | Content |
@@ -72,3 +81,4 @@ Tooltip 4 resets `radialMenuOpened` flag so tooltip 5 only fires after tooltip 4
 - [[decisions/autospawn-late-join-fix]] — auto-spawn bug was especially damaging in tutorial context
 - [[decisions/double-reload-fix]] — caused `Tutorial:Started` double-fire before HF-9
 - [[tasks/session-start-sequence]] — `Player:New` segmentation is primary mechanism for measuring tutorial impact
+- [[features/ai-players]] — bot-filled matches are also used here, but tutorial remains a separate guided flow
