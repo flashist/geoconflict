@@ -43,3 +43,7 @@ karpathy-vault/
 - After an investigation or bug fix: run `/wiki-ingest ai-agents/knowledge-base/<findings-file>`
 - When the wiki seems outdated: run `/wiki-lint`
 - To sync all recent changes at once: run `/wiki-sync`
+
+## Project Overview
+
+OpenFront is a real-time strategy browser game focused on territorial control and alliance building. Players compete to expand territory, build structures, and form alliances on maps based on real-world geography.
