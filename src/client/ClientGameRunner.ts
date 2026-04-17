@@ -149,6 +149,14 @@ export function joinLobby(
       onPrestart();
     }
     if (message.type === "start") {
+      // Re-call the preloading logic, to make sure the correct type+size of map is loaded,
+      // and to make sure there are not edge-cases with unsync
+      // (when the preloaded map differs from what actually should be preloaded based on the information from the server)
+      preloadMap(
+        message.gameStartInfo.config.gameMap,
+        message.gameStartInfo.config.gameMapSize
+      );
+
       // Trigger prestart for singleplayer games
       onPrestart();
       console.log(
