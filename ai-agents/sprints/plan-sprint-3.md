@@ -18,7 +18,7 @@
 | ✅ Done | Feedback — Attach Last Match IDs | `s3-feedback-match-ids-simple-task.md` |
 | ⛔ Parked | Deep Mobile Rendering Optimization | — |
 | ➡️ Moved | 5c. Mobile Warning Screen → Sprint 6 | `s3-5c-task-mobile-warning.md` |
-| ⬜ Backlog | 5b. Server Restart UX | `s3-5b-task-server-restart-ux.md` |
+| ➡️ Moved | 5b. Server Restart UX → Sprint 6 | `s3-5b-task-server-restart-ux.md` |
 | ✅ Done | 5d-A. Server System Metrics (OTEL) | `s3-5d-a-task-server-metrics.md` |
 | ✅ Done | 5d-B. Server Performance & Uptrace Instrumentation | `s3-5d-b-task-server-performance.md` |
 | ✅ Done | HF-11a. Stale Builds — Investigation | `s3-hf11a-hotfix-stale-build-investigation.md` |
@@ -100,6 +100,7 @@ A simple, honest screen shown to mobile players before they enter the game. The 
 ### 5b. Server Restart UX — Notification & Auto-Refresh
 **Effort:** 2–3 days
 **Experiments:** ❌ Excluded — infrastructure and UX fix, applies to all players.
+**Status:** ➡️ Moved to Sprint 6 — game fully functional without it; deployment risk outweighs current benefit given reduced release cadence strategy
 
 Currently when the production server is restarted for updates, connected clients drop silently. The game freezes with no message and no recovery path. Players see a frozen screen until they manually refresh — if they realize they need to at all. This happens on every deployment.
 

@@ -16,6 +16,7 @@ Expand game content with historical and thematic maps. Convert engaged free-tier
 
 | Status | Task | Brief |
 |---|---|---|
+| ⬜ Backlog | 5b. Server Restart UX | `s3-5b-task-server-restart-ux.md` |
 | ⬜ Backlog | 5c. Mobile Warning Screen | `s3-5c-task-mobile-warning.md` |
 | ⬜ Backlog | Historical Multiplayer Maps (free, 1–2 maps) | TBD |
 | ⬜ Backlog | Paid Campaign Map Packs | TBD |
@@ -28,7 +29,15 @@ Multiple unprompted feedback messages requesting specific maps (Russia, WW2). Hi
 
 ---
 
-## Task 0 — Mobile Warning Screen
+## Task 0b — Server Restart UX
+
+Moved from Sprint 3. Blocking modal with auto-reload when server recovers (Part B) and pre-restart broadcast notification (Part A). Deferred because the game functions correctly without it, deployment risk is non-trivial, and the weekly release cadence (deployed during low-traffic weekend hours) already minimises player impact.
+
+See full brief: `s3-5b-task-server-restart-ux.md`
+
+---
+
+## Task 0c — Mobile Warning Screen
 
 Moved from Sprint 3. A simple non-blocking screen shown to mobile players on game load informing them that Geoconflict is optimised for desktop. Includes a "Continue anyway" button. Shown once per player (localStorage flag). Not a priority at current DAU levels but worth shipping when content work begins to set honest expectations for mobile players discovering the game through new map content.
 
