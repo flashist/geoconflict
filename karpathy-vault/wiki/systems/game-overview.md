@@ -96,9 +96,7 @@ Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adapta
 - [[systems/server-performance]] — server-side lag analysis and endTurn() pipeline
 - [[systems/match-logging]] — what is recorded per match
 - [[features/ai-players]] — AI Players feature spec (`PlayerType.AiPlayer` documented here)
-
-> **LINT WARNING:** The following related pages are not yet created. Run `/wiki-ingest architecture` to generate them from `CLAUDE.md`:
-> - `[[systems/game-loop]]` — tick execution detail
-> - `[[systems/networking]]` — WebSocket + intent pipeline
-> - `[[systems/execution-pipeline]]` — Intent → Execution → GameUpdate flow
-> - `[[systems/rendering]]` — Pixi.js layer architecture
+- [[systems/game-loop]] — tick execution detail
+- [[systems/networking]] — worker-routed WebSocket and HTTP flow
+- [[systems/execution-pipeline]] — Intent → Execution → GameUpdate flow
+- [[systems/rendering]] — client layer stack and camera/render orchestration

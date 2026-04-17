@@ -89,5 +89,4 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/session-start-sequence]] — Session start event sequence and conventions
 - [[tasks/mobile-quick-wins]] — `Performance:FPS:*` events measured here
 - [[tasks/stale-build-detection]] — `Build:StaleDetected` event implementation
-
-> **LINT WARNING:** `[[systems/flashist-init]]` is linked here but the page does not exist yet. Run `/wiki-ingest architecture` to create it from `CLAUDE.md` and `FlashistFacade.ts` init chain docs.
+- [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization

@@ -7,11 +7,16 @@
 - [[features/tutorial]] — Guided singleplayer bot match for first-time players; 7-step tooltip sequence, Yandex A/B gated
 - [[features/reconnection]] — Crash reconnection: rejoin prompt when tab closes/crashes mid-match
 - [[features/feedback-button]] — In-game feedback form on start screen and battle screen with automatic context
-- [[features/ai-players]] — AI Players in public lobbies: indistinguishable from humans, planned for Sprint 4+
+- [[features/ai-players]] — AI Players in public lobbies: active, indistinguishable from humans in UI
 
 ## Systems
 
 - [[systems/game-overview]] — Project overview: game types, maps, units, economy, combat, tick system
+- [[systems/game-loop]] — Deterministic turn replay from server turns into worker-executed core simulation
+- [[systems/networking]] — Worker-routed WebSocket/HTTP flow with Zod-validated client/server messages
+- [[systems/execution-pipeline]] — Client input to Intent to Execution to GameUpdate path
+- [[systems/rendering]] — Layered client rendering, mixed canvas/Lit UI, and camera transform orchestration
+- [[systems/flashist-init]] — FlashistFacade startup ordering, Yandex SDK bootstrap, and experiment flag init
 - [[systems/analytics]] — GameAnalytics player behaviour tracking: event conventions, categories, experiment funnels
 - [[systems/telemetry]] — OTEL/Uptrace server observability: logs, metrics, slow-turn spans, investigation workflows
 - [[systems/server-performance]] — Server-side lag candidates ranked by likelihood; `endTurn()` performance analysis

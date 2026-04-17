@@ -72,3 +72,13 @@
 - Issues fixed: 24
 - Issues flagged for human review: 5
 - Most significant: fixed template drift on feature/task pages, corrected stale HF-11 status and trigger details against current code, and closed all bidirectional cross-link gaps; remaining warnings are the five still-missing architecture/system pages (`flashist-init`, `game-loop`, `networking`, `execution-pipeline`, `rendering`)
+
+## 2026-04-17 — ingest
+- Ingested: `CLAUDE.md` → created [[wiki/systems/game-loop]]
+- Ingested: `CLAUDE.md` → created [[wiki/systems/networking]]
+- Ingested: `CLAUDE.md` → created [[wiki/systems/execution-pipeline]]
+- Ingested: `CLAUDE.md` → created [[wiki/systems/rendering]]
+- Ingested: `CLAUDE.md` → created [[wiki/systems/flashist-init]]
+- Ingested: `CLAUDE.md` → updated [[wiki/systems/game-overview]]
+- Ingested: `CLAUDE.md` → updated [[wiki/systems/analytics]]
+- Ingested: `CLAUDE.md` → updated `karpathy-vault/index.md`
