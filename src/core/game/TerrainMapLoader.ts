@@ -15,6 +15,11 @@ const getMapTypeSizeKey = (map: GameMapType, mapSize: GameMapSize): string => {
 const loadingInProgressMapsPromises = new Map<string, Promise<TerrainMapData>>();
 const loadedMaps = new Map<string, TerrainMapData>();
 
+export function clearTerrainMapCache(): void {
+  loadedMaps.clear();
+  loadingInProgressMapsPromises.clear();
+}
+
 export interface MapMetadata {
   width: number;
   height: number;
