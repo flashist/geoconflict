@@ -8,7 +8,17 @@ export type TerrainMapData = {
   miniGameMap: GameMap;
 };
 
-const loadedMaps = new Map<GameMapType, TerrainMapData>();
+const getMapTypeSizeKey = (map: GameMapType, mapSize: GameMapSize): string => {
+  return `${map}:${mapSize}`;
+}
+
+const loadingInProgressMapsPromises = new Map<string, Promise<TerrainMapData>>();
+const loadedMaps = new Map<string, TerrainMapData>();
+
+export function clearTerrainMapCache(): void {
+  loadedMaps.clear();
+  loadingInProgressMapsPromises.clear();
+}
 
 export interface MapMetadata {
   width: number;
@@ -36,40 +46,75 @@ export async function loadTerrainMap(
   mapSize: GameMapSize,
   terrainMapFileLoader: GameMapLoader,
 ): Promise<TerrainMapData> {
-  const cached = loadedMaps.get(map);
+
+  const mapTypeSizeId = getMapTypeSizeKey(map, mapSize);
+
+  const cached = loadedMaps.get(mapTypeSizeId);
   if (cached !== undefined) return cached;
-  const mapFiles = terrainMapFileLoader.getMapData(map);
-  const manifest = await mapFiles.manifest();
 
-  const gameMap =
-    mapSize === GameMapSize.Normal
-      ? await genTerrainFromBin(manifest.map, await mapFiles.mapBin())
-      : await genTerrainFromBin(manifest.map4x, await mapFiles.map4xBin());
+  const loadingInProgressSingleMapPromise = loadingInProgressMapsPromises.get(mapTypeSizeId);
+  if (loadingInProgressSingleMapPromise) {
+    return loadingInProgressSingleMapPromise;
+  }
 
-  const miniMap =
-    mapSize === GameMapSize.Normal
-      ? await genTerrainFromBin(
+  const loadingSinglePromise = (async (): Promise<TerrainMapData> => {
+
+    const mapFiles = terrainMapFileLoader.getMapData(map);
+    const manifest = await mapFiles.manifest();
+
+    const gameMap =
+      mapSize === GameMapSize.Normal
+        ? await genTerrainFromBin(manifest.map, await mapFiles.mapBin())
+        : await genTerrainFromBin(manifest.map4x, await mapFiles.map4xBin());
+
+    const miniMap =
+      mapSize === GameMapSize.Normal
+        ? await genTerrainFromBin(
+          // It looks like the double condition for the GameMapSize.Normal is reduntant,
+          // because it's already checked just above
           mapSize === GameMapSize.Normal ? manifest.map4x : manifest.map16x,
           await mapFiles.map4xBin(),
         )
-      : await genTerrainFromBin(manifest.map16x, await mapFiles.map16xBin());
+        : await genTerrainFromBin(manifest.map16x, await mapFiles.map16xBin());
 
-  if (mapSize === GameMapSize.Compact) {
-    manifest.nations.forEach((nation) => {
-      nation.coordinates = [
-        Math.floor(nation.coordinates[0] / 2),
-        Math.floor(nation.coordinates[1] / 2),
-      ];
-    });
-  }
+    if (mapSize === GameMapSize.Compact) {
+      manifest.nations.forEach((nation) => {
+        nation.coordinates = [
+          Math.floor(nation.coordinates[0] / 2),
+          Math.floor(nation.coordinates[1] / 2),
+        ];
+      });
+    }
 
-  const result = {
-    nations: manifest.nations,
-    gameMap: gameMap,
-    miniGameMap: miniMap,
-  };
-  loadedMaps.set(map, result);
-  return result;
+    const result = {
+      nations: manifest.nations,
+      gameMap: gameMap,
+      miniGameMap: miniMap,
+    };
+    loadedMaps.set(mapTypeSizeId, result);
+
+    // Remove the map from the loading promises, because it's just loaded
+    loadingInProgressMapsPromises.delete(mapTypeSizeId);
+
+    return result;
+  })();
+
+  // Save information about the "in progress loading"
+  loadingInProgressMapsPromises.set(mapTypeSizeId, loadingSinglePromise);
+  // Process error during the loading process
+  loadingSinglePromise.catch(
+    (error: unknown) => {
+      console.error(
+        `TerrainMapLoader: failed to load map "${mapTypeSizeId}":`,
+        error instanceof Error ? error : new Error(String(error))
+      );
+
+      // Remove the map from the loading promises, because loading failed
+      loadingInProgressMapsPromises.delete(mapTypeSizeId);
+    }
+  );
+
+  return loadingSinglePromise;
 }
 
 export async function genTerrainFromBin(

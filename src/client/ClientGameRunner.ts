@@ -13,7 +13,7 @@ import { createPartialGameRecord, replacer, simpleHash } from "../core/Util";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { ServerConfig } from "../core/configuration/Config";
 import { getConfig } from "../core/configuration/ConfigLoader";
-import { PlayerActions, PlayerType, UnitType } from "../core/game/Game";
+import { GameMapSize, GameMapType, PlayerActions, PlayerType, UnitType } from "../core/game/Game";
 import { TileRef } from "../core/game/GameMap";
 import { GameMapLoader } from "../core/game/GameMapLoader";
 import {
@@ -37,7 +37,7 @@ import {
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
 import { saveReconnectSession } from "./ReconnectSession";
-import { getPersistentID } from "./Main";
+import { getPersistentID, PreloadMapConfig } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import {
   SendAttackIntentEvent,
@@ -70,6 +70,8 @@ export interface LobbyConfig {
   gameStartInfo?: GameStartInfo;
   // GameRecord exists when replaying an archived game.
   gameRecord?: GameRecord;
+
+  preloadMapData?: PreloadMapConfig
 }
 
 export function joinLobby(
@@ -93,19 +95,65 @@ export function joinLobby(
   };
   let terrainLoad: Promise<TerrainMapData> | null = null;
 
+  let lastPreloadGameMapType: GameMapType;
+  let lastPreloadGameMapSize: GameMapSize;
+  //
+  const resetPreloadMap = () => {
+    terrainLoad = null;
+  };
+  const preloadMap = (mapType: GameMapType, mapSize: GameMapSize) => {
+    if (terrainLoad) {
+      if (mapType === lastPreloadGameMapType && mapSize === lastPreloadGameMapSize) {
+        return;
+
+      } else {
+        resetPreloadMap();
+      }
+    }
+
+    lastPreloadGameMapType = mapType;
+    lastPreloadGameMapSize = mapSize;
+
+    terrainLoad = loadTerrainMap(
+      mapType,
+      mapSize,
+      terrainMapFileLoader,
+    );
+
+    terrainLoad.catch(
+      () => {
+        resetPreloadMap();
+      }
+    );
+  };
+
+  // Preloading maps when players click the "join-multiplayer" button
+  if (lobbyConfig.preloadMapData) {
+    preloadMap(
+      lobbyConfig.preloadMapData.mapType,
+      lobbyConfig.preloadMapData.mapSize
+    );
+  }
+
   const onmessage = (message: ServerMessage) => {
     if (message.type === "prestart") {
       console.log(
         `lobby: game prestarting: ${JSON.stringify(message, replacer)}`,
       );
-      terrainLoad = loadTerrainMap(
-        message.gameMap,
-        message.gameMapSize,
-        terrainMapFileLoader,
-      );
+
+      preloadMap(message.gameMap, message.gameMapSize);
+
       onPrestart();
     }
     if (message.type === "start") {
+      // Re-call the preloading logic, to make sure the correct type+size of map is loaded,
+      // and to make sure there are not edge-cases with unsync
+      // (when the preloaded map differs from what actually should be preloaded based on the information from the server)
+      preloadMap(
+        message.gameStartInfo.config.gameMap,
+        message.gameStartInfo.config.gameMapSize
+      );
+
       // Trigger prestart for singleplayer games
       onPrestart();
       console.log(

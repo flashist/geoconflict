@@ -541,7 +541,7 @@ export class SinglePlayerModal extends LitElement {
         detail: {
           clientID: clientID,
           gameID: gameID,
-          gameStartInfo: {
+          singlePlayGameStartInfo: {
             gameID: gameID,
             players: [
               {
