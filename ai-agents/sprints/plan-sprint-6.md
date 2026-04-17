@@ -16,6 +16,7 @@ Expand game content with historical and thematic maps. Convert engaged free-tier
 
 | Status | Task | Brief |
 |---|---|---|
+| ⬜ Backlog | 5c. Mobile Warning Screen | `s3-5c-task-mobile-warning.md` |
 | ⬜ Backlog | Historical Multiplayer Maps (free, 1–2 maps) | TBD |
 | ⬜ Backlog | Paid Campaign Map Packs | TBD |
 
@@ -24,6 +25,14 @@ Expand game content with historical and thematic maps. Convert engaged free-tier
 ## Player Demand Signal
 
 Multiple unprompted feedback messages requesting specific maps (Russia, WW2). High-intent signal — players are asking for content they would actively seek out, not casually suggesting improvements.
+
+---
+
+## Task 0 — Mobile Warning Screen
+
+Moved from Sprint 3. A simple non-blocking screen shown to mobile players on game load informing them that Geoconflict is optimised for desktop. Includes a "Continue anyway" button. Shown once per player (localStorage flag). Not a priority at current DAU levels but worth shipping when content work begins to set honest expectations for mobile players discovering the game through new map content.
+
+See full brief: `s3-5c-task-mobile-warning.md`
 
 ---
 

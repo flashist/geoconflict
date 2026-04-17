@@ -14,10 +14,10 @@
 
 | Status | Task | Brief |
 |---|---|---|
-| ⬜ Backlog | Humans vs Nations — Re-enable | `s3-humans-vs-nations-task.md` |
-| ⬜ Backlog | Feedback — Attach Last Match IDs | `s3-feedback-match-ids-simple-task.md` |
+| ✅ Done | Humans vs Nations — Re-enable (all team modes re-enabled) | `s3-humans-vs-nations-task.md` |
+| ✅ Done | Feedback — Attach Last Match IDs | `s3-feedback-match-ids-simple-task.md` |
 | ⛔ Parked | Deep Mobile Rendering Optimization | — |
-| ⬜ Backlog | 5c. Mobile Warning Screen | `s3-5c-task-mobile-warning.md` |
+| ➡️ Moved | 5c. Mobile Warning Screen → Sprint 6 | `s3-5c-task-mobile-warning.md` |
 | ⬜ Backlog | 5b. Server Restart UX | `s3-5b-task-server-restart-ux.md` |
 | ✅ Done | 5d-A. Server System Metrics (OTEL) | `s3-5d-a-task-server-metrics.md` |
 | ✅ Done | 5d-B. Server Performance & Uptrace Instrumentation | `s3-5d-b-task-server-performance.md` |
@@ -27,13 +27,15 @@
 | ✅ Done | HF-11d. Stale Builds — Blocking Modal | `s3-hf11d-hotfix-stale-build-modal.md` |
 | ⛔ Cancelled | HF-11e. Stale Builds — BUILD_NUMBER Automation | `s3-hf11e-hotfix-build-number-automation.md` |
 | ✅ Done | HF-12. Spawn Camera/Animation Timing Fix | `s3-hf12-hotfix-spawn-camera-timing.md` |
-| ⬜ Backlog | HF-13. Map File Preloading on JOIN | `s3-hf13-hotfix-map-preload.md` |
+| ✅ Done | HF-13. Map File Preloading on JOIN | `s3-hf13-hotfix-map-preload.md` |
+| ⬜ Backlog | Investigation — UI:ClickMultiplayer firing point | `s3-investigation-ui-click-multiplayer.md` |
 
 ---
 
 ### Humans vs Nations — Re-enable Existing Mode
 **Effort:** half a day (assuming single flag/config reversal — see brief)
 **Experiments:** ❌ Excluded — ships to all players.
+**Status:** ✅ Done — scope expanded, all team-mode matches re-enabled
 
 Humans vs Nations is an existing mode where human players compete against AI-controlled nation bots. Disabled early due to low concurrent player counts and observed errors. Safe to re-enable now — unlike Teams mode, AI nations fill all non-human slots regardless of lobby size, so the match runs correctly even with one human player.
 
@@ -48,6 +50,7 @@ See full brief: `task-humans-vs-nations.md`
 ### Feedback — Attach Last Match IDs to Submissions (Simple)
 **Effort:** 2–3 hours
 **Experiments:** ❌ Excluded — backend debugging infrastructure.
+**Status:** ✅ Done
 
 Replaces the cancelled `task-feedback-match-history.md`. Narrower scope: read the last 3 game IDs from the existing `localStorage['game-records']` structure (already written by `LocalPersistantStats.ts`) and attach them to the feedback payload. No new localStorage writes, no new data structures.
 
@@ -77,6 +80,7 @@ The data shows desktop is the core audience and the platform generating meaningf
 ### 5c. Mobile Warning Screen
 **Effort:** half a day
 **Experiments:** ❌ Excluded — applies to all mobile players.
+**Status:** ➡️ Moved to Sprint 6 — not a priority at current stage
 
 A simple, honest screen shown to mobile players before they enter the game. The game was designed for desktop and the current mobile experience is limited — players discovering this mid-match is worse than being told upfront.
 
@@ -209,6 +213,7 @@ See full brief: `hf12-hotfix-spawn-camera-timing.md`
 **Effort:** 1–2 days (investigation + implementation)
 **Experiments:** ❌ Excluded — performance improvement.
 **Depends on:** HF-6 deployed ✅
+**Status:** ✅ Done
 
 Reduces frequency of `Match:SpawnMissed:CatchupTooLong` by starting map asset loading as soon as the player clicks JOIN — before the match starts. Map identity is known at JOIN time so preloading is precise, not speculative. Assets load silently in the background during lobby wait; match initialisation uses the cached assets instead of loading from scratch, shortening the catch-up window.
 
