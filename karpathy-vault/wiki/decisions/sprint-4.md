@@ -21,7 +21,7 @@ Sprint 4 remains the planned citizenship and payments sprint, but the wiki now r
 
 **Phase 1 — Investigations (run in parallel):**
 - **Investigation A:** Player Profile Store — complete. Recommended PostgreSQL on the game VPS as a sibling service, an initial `player_profiles` + idempotent `player_match_credits` schema, server-side match crediting at match end, and a verified Yandex identity claim in the join/auth path because the current server only sees `persistentID`. See [[tasks/player-profile-store-investigation]].
-- **Investigation B:** Yandex Payments Catalog — SDK API, catalog fetch architecture, dashboard setup + approval timeline. **Action required immediately:** register catalog items in Yandex Games dashboard (approval takes days).
+- **Investigation B:** Yandex Payments Catalog — complete. Recommended signed Yandex purchases, a memoized session catalog cache in `FlashistFacade`, and signed client-to-server verification plus startup reconciliation through `getPurchases()`, with post-grant consumption after the entitlement has been durably stored on the game server. No documented Yandex Games purchase webhook was found in the official docs reviewed on 2026-04-18. See [[tasks/yandex-payments-investigation]].
 
 **Already shipped earlier:** `8d-A` (Global Announcements) was pulled forward into Sprint 2 and should be treated as an available dependency for Sprint 4 work, not a Sprint 4 deliverable.
 
@@ -66,6 +66,7 @@ Briefs to be written after findings. Confirmed scope:
 
 - Register Yandex catalog items immediately — approval takes days and should not block implementation
 - Player Profile Store investigation concluded that the current codebase needs a verified Yandex identity in the join/auth path before Yandex-keyed paid entitlements are safe
+- Yandex Payments investigation concluded that paid citizenship should use signed purchase verification on the server, startup reconciliation via `getPurchases()`, and post-grant consumption once the entitlement is durably stored; purchase UI should be hidden when the dashboard catalog item is absent or unavailable
 - Qualifying-match crediting should happen on the game server at match end, but implementation needs one additional end-of-match per-player state summary because the server does not currently simulate spawn/elimination itself
 - Phase 2 briefs written only after both investigation findings reviewed
 - 8d-A is already live from Sprint 2 and provides the communication channel Sprint 4 can build on
@@ -83,6 +84,7 @@ Briefs to be written after findings. Confirmed scope:
 - [[features/tutorial]] — tutorial follow-up fixes were added to the Sprint 4 backlog
 - [[features/ai-players]] — AI Players feature (already active in production)
 - [[tasks/player-profile-store-investigation]] — completed Sprint 4 investigation for player-store technology, hosting, schema, and match-crediting approach
+- [[tasks/yandex-payments-investigation]] — completed Sprint 4 investigation for Yandex payments SDK usage, catalog caching, dashboard setup, and purchase verification flow
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 bug fix for mixed real-plus-AI full lobbies
 - [[tasks/tutorial-no-nations]] — Sprint 4 tutorial simplification that removed nation opponents
 - [[tasks/tutorial-build-menu-lock]] — Sprint 4 tooltip-5 build-menu guardrail

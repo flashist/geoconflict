@@ -17,7 +17,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | Status | Task | Brief |
 |---|---|---|
 | ✅ Done | Investigation A — Player Profile Store | `sprint4-player-profile-store-findings.md` + `sprint4-investigation-player-store.md` |
-| ⬜ Backlog | Investigation B — Yandex Payments Catalog | `s4-investigation-yandex-payments.md` |
+| ✅ Done | Investigation B — Yandex Payments Catalog | `sprint4-investigation-yandex-payments.md` |
 | ⬜ Backlog | 8d-A. Global Announcements Re-enable | `s4-8d-a-task-global-announcements.md` |
 | ⬜ Backlog | Player Profile Store — Implementation | TBD after investigation |
 | ⬜ Backlog | Yandex Payments — Catalog Fetch & Caching | TBD after investigation |
@@ -62,10 +62,12 @@ First persistent per-player database in the codebase. Findings needed on: databa
 
 ### Investigation B — Yandex Payments Catalog Integration
 **Effort:** 1 day
-**Brief:** `s4-investigation-yandex-payments.md`
+**Brief:** `sprint4-investigation-yandex-payments.md`
 **Blocks:** all purchase UI tasks
 
 Findings needed on: Yandex payments SDK API, catalog fetch architecture, dashboard setup requirements and approval timeline, purchase-to-server notification approach.
+
+**Status:** complete. Findings recorded in `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`.
 
 **Action required immediately:** register catalog items in the Yandex Games dashboard as soon as possible — approval can take several days:
 - Citizenship: 99 rubles

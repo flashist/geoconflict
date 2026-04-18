@@ -1,5 +1,7 @@
 # Sprint 4 Investigation — Yandex Payments Catalog Integration
 
+Status: complete. Findings recorded in `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`.
+
 ## Priority
 First task of Sprint 4, runs in parallel with player profile store investigation. All purchase UI tasks depend on this. Do not build any purchase-related UI until findings are documented.
 
