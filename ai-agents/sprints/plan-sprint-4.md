@@ -31,6 +31,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⬜ Backlog | AI Lobby Slot Bug — Always Keep One Slot Free | `s4-ai-lobby-slot-bug.md` |
 | ⬜ Backlog | Tutorial — Pause During Action-Required Steps | `s4-tutorial-action-pause.md` |
 | ⬜ Backlog | Tutorial — Remove Nations, Keep Only Bots | `s4-tutorial-no-nations.md` |
+| ⬜ Backlog | Tutorial — Lock Build Menu to City During Tooltip 5 | `s4-tutorial-build-menu-lock.md` |
 
 ---
 
@@ -207,6 +208,18 @@ See full brief: `s4-tutorial-action-pause.md`
 Tutorial currently includes nation bots which can be aggressive even on Easy difficulty. Remove nations from the tutorial match entirely — keep only regular small bots. Makes the tutorial trivially winnable so new players learn mechanics without frustration.
 
 See full brief: `s4-tutorial-no-nations.md`
+
+---
+
+## Tutorial — Lock Build Menu to City During Tooltip 5
+
+**Effort:** half a day
+**Experiments:** ❌ Excluded — tutorial bug fix.
+**Interaction:** coordinate with action-pause task (`s4-tutorial-action-pause.md`) — both modify tooltip 5 behaviour.
+
+During tooltip 5 (build a City), all non-City building icons are clickable even if the player can afford them. A player who accidentally builds the wrong structure breaks the tooltip sequence (tooltip 6 only fires on City built). Fix: force all non-City icons into the same disabled state used when a player lacks sufficient gold. City icon remains fully enabled. Normal state restored when tooltip 5 is dismissed, City is built, or tutorial is skipped.
+
+See full brief: `s4-tutorial-build-menu-lock.md`
 
 ---
 
