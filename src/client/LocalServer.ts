@@ -117,7 +117,7 @@ export class LocalServer {
           .getMapData(TUTORIAL_MAP)
           .manifest();
         config.gameMap = TUTORIAL_MAP;
-        config.disableNPCs = false;
+        config.disableNPCs = true;
         config.nationDifficulties = Array(manifest.nations.length).fill(Difficulty.Easy);
       } catch (error) {
         console.error("Failed to build tutorial config:", error);
