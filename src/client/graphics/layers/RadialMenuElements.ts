@@ -24,6 +24,7 @@ import targetIcon from "../../../../resources/images/TargetIconWhite.svg";
 import traitorIcon from "../../../../resources/images/TraitorIconWhite.svg";
 import xIcon from "../../../../resources/images/XIcon.svg";
 import { EventBus } from "../../../core/EventBus";
+import { TutorialLayer } from "./TutorialLayer";
 
 export interface MenuElementParams {
   myPlayer: PlayerView;
@@ -38,7 +39,7 @@ export interface MenuElementParams {
   chatIntegration: ChatIntegration;
   eventBus: EventBus;
   closeMenu: () => void;
-  tutorialAllowedUnitTypes?: Set<UnitType>;
+  tutorialLayer?: TutorialLayer;
 }
 
 export interface MenuElement {
@@ -374,8 +375,8 @@ function createMenuElements(
         : item.unitType.toString(),
       disabled: (params: MenuElementParams) =>
         !params.buildMenu.canBuildOrUpgrade(item) ||
-        (params.tutorialAllowedUnitTypes !== undefined &&
-          !params.tutorialAllowedUnitTypes.has(item.unitType)),
+        (params.tutorialLayer?.isRestrictedToCityBuild() === true &&
+          item.unitType !== UnitType.City),
       color: params.buildMenu.canBuildOrUpgrade(item)
         ? filterType === "attack"
           ? COLORS.attack

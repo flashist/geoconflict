@@ -34,6 +34,7 @@ import {
 import { renderNumber } from "../../Utils";
 import { TransformHandler } from "../TransformHandler";
 import { Layer } from "./Layer";
+import { TutorialLayer } from "./TutorialLayer";
 
 export interface BuildItemDisplay {
   unitType: UnitType;
@@ -129,10 +130,14 @@ export class BuildMenu extends LitElement implements Layer {
   public playerActions: PlayerActions | null;
   private filteredBuildTable: BuildItemDisplay[][] = buildTable;
   public transformHandler: TransformHandler;
+  public tutorialLayer?: TutorialLayer;
 
   init() {
     this.eventBus.on(ShowBuildMenuEvent, (e) => {
       if (!this.game.myPlayer()?.isAlive()) {
+        return;
+      }
+      if (this.tutorialLayer?.isRestrictedToCityBuild()) {
         return;
       }
       if (!this._hidden) {

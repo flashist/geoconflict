@@ -236,6 +236,10 @@ export function createRenderer(
     ? new TutorialLayer(game, eventBus, transformHandler)
     : undefined;
 
+  if (tutorialLayer) {
+    buildMenu.tutorialLayer = tutorialLayer;
+  }
+
   // When updating these layers please be mindful of the order.
   // Try to group layers by the return value of shouldTransform.
   // Not grouping the layers may cause excessive calls to context.save() and context.restore().
