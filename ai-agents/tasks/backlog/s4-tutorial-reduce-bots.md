@@ -23,6 +23,10 @@ In `LocalServer.ts`, in `buildMissionConfigIfNeeded()` where the tutorial missio
 
 This should be a single config value change. Confirm there is no other place where the bot count is set or overridden for tutorial matches.
 
+## Developer Note
+
+The task description pointed to `LocalServer.ts` as the location of the change — this was incorrect. `LocalServer.buildMissionConfigIfNeeded()` does not touch the `bots` field at all; it only overrides `gameMap`, `disableNPCs`, and `nationDifficulties`. The `bots` value is set in `Main.ts` as part of the `JoinLobbyEvent` config that gets dispatched when the tutorial is started (`bots: 400` → `bots: 100` at `Main.ts:806`). `LocalServer` receives that value as-is and never overrides it. The actual change was a single line in `Main.ts`, not `LocalServer.ts`.
+
 ## Verification
 
 1. Start the tutorial — confirm approximately 100 bots are present on the Iceland map (not 400)
