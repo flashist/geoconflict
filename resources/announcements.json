@@ -1,0 +1,23 @@
+[
+  {
+    "id": "2026-04-citizenship-coming",
+    "date": "2026-04-18",
+    "title": "Citizenship is coming to Geoconflict",
+    "body": "The next update introduces citizenship for committed players. Keep playing now to be ready for launch, and watch this panel for the full rollout details.",
+    "tag": "upcoming"
+  },
+  {
+    "id": "2026-04-faster-joins",
+    "date": "2026-04-10",
+    "title": "Faster joins are live",
+    "body": "Background terrain preloading is now live. Match joins should feel more consistent, especially on slower devices and long public-lobby sessions.",
+    "tag": "update"
+  },
+  {
+    "id": "2026-03-feedback-button",
+    "date": "2026-03-28",
+    "title": "Feedback is now in the game",
+    "body": "You can now send bug reports and suggestions directly from the UI. Include what happened and we will use it to prioritize fixes.",
+    "tag": "new"
+  }
+]
