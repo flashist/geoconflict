@@ -803,7 +803,7 @@ class Client {
               gameMode: GameMode.FFA,
               playerTeams: 2,
               difficulty: Difficulty.Easy,
-              bots: 400,
+              bots: 100,
               infiniteGold: false,
               donateGold: true,
               donateTroops: true,
