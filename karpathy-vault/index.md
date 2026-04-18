@@ -33,11 +33,12 @@
 - [[decisions/sprint-4]] — Sprint 4 (planned): citizenship system, Yandex payments, player profile store, inbox, tutorial/lobby fixes
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
-- [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause — with reasons and re-attempt guidance
+- [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance no-ship — with reasons and re-attempt guidance
 
 ### Bug Fixes & Investigations
 - [[decisions/autospawn-late-join-fix]] — Fix for auto-spawn failure when joining during catch-up (late join / reconnect)
 - [[decisions/double-reload-fix]] — Fix for double page reload on browser refresh caused by orphaned `#refresh` history push
+- [[decisions/hvn-balance-pr70-no-ship]] — No-ship review for the cancelled Sprint 4 Humans vs Nations balance attempt
 - [[decisions/stale-build-zombie-tabs]] — Investigation and fix for users persisting on old builds (HF-11a/b/c/d)
 
 ## Tasks
@@ -51,3 +52,4 @@
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 fix preserving one human slot in mixed AI/public lobbies
 - [[tasks/tutorial-no-nations]] — Tutorial config change removing nation-controlled opponents
 - [[tasks/tutorial-build-menu-lock]] — Tooltip-5 guardrail that restricts building to City
+- [[tasks/tutorial-reduce-bots]] — Tutorial config change lowering tutorial bot count from 400 to 100

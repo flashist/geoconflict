@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/sprints/cancelled-tasks.md`, `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`
+Source: `ai-agents/sprints/cancelled-tasks.md`, `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
 
 ---
 
@@ -74,6 +74,25 @@ Keep cancelled work in one durable page instead of deleting context from the wik
 - Tie the unpause moment to the detected action, not tooltip dismissal
 - Ensure skip/navigation paths always restore `ReplaySpeedMultiplier.normal` before leaving the tutorial
 
+---
+
+## Humans vs Nations — Balance Nation Count to Player Count
+
+**Sprint:** Sprint 4
+**Status:** Cancelled / no-ship
+
+**Why cancelled:** the attempted implementation converted removed nation slots into regular Bots, turning a nominal Humans-vs-Nations mode into a three-faction match. It also only changed public HvN, while private and singleplayer HvN flows still exposed the old behavior.
+
+**What was learned:**
+- HvN balancing cannot be treated as a simple slot-fill formula if the result introduces `ColoredTeams.Bot` into a mode that is expected to stay Humans vs Nations.
+- Product rules have to be locked before implementation: supported entry points, whether AI Players count toward the human side, and whether regular Bots are allowed at all.
+- The current failed implementation is documented in [[decisions/hvn-balance-pr70-no-ship]] and should not be used as the starting point for a retry.
+
+**If revisited:**
+- Start from a fresh brief instead of reopening the rejected implementation
+- Define whether HvN is strictly two-faction across public, private, and singleplayer flows
+- Define the roster-counting rule before any code work starts
+
 ## Consequences
 
 - Future retries should start from the narrower follow-up guidance recorded under each cancelled item, not from the original cancelled scope
@@ -84,6 +103,7 @@ Keep cancelled work in one durable page instead of deleting context from the wik
 - [[decisions/product-strategy]] — overall strategic context
 - [[decisions/sprint-3]] — sprint where feedback-match-ids and HF-11e were active
 - [[decisions/sprint-4]] — sprint where the cancelled tutorial pause-window follow-up was planned
+- [[decisions/hvn-balance-pr70-no-ship]] — no-ship review for the cancelled HvN balance attempt
 - [[decisions/hotfix-post-sprint2]] — sprint where HF-5 was attempted
 - [[decisions/stale-build-zombie-tabs]] — HF-11e context
 - [[features/tutorial]] — tutorial follow-up work and the narrower fixes that shipped instead

@@ -5,10 +5,10 @@
 
 ## Summary
 
-Guided singleplayer bot match auto-launched for first-time players. Gated behind a Yandex A/B experiment flag (`tutorial = enabled`) and `localStorage.tutorialCompleted`. Runs on Iceland map with nation opponents disabled so the player only faces the smaller tutorial bots. The 7-step tooltip sequence teaches territory control, attacking, and building.
+Guided singleplayer bot match auto-launched for first-time players. Gated behind a Yandex A/B experiment flag (`tutorial = enabled`) and `localStorage.tutorialCompleted`. Runs on Iceland map with nation opponents disabled and tutorial bot count reduced to 100, so the player only faces a smaller, easier-to-read field of tutorial bots. The 7-step tooltip sequence teaches territory control, attacking, and building.
 
 Source: `ai-agents/knowledge-base/tutorial-technical-description.md`
-Follow-up sources: `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`
+Follow-up sources: `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`
 
 ## Implementation
 
@@ -30,9 +30,10 @@ On `init()`:
 There is no tutorial-specific core execution class. The flow is a client-side orchestration layer around the normal game:
 
 1. `Main.ts` detects tutorial eligibility and dispatches `join-lobby` with `config.isTutorial = true`
-2. `LocalServer.buildMissionConfigIfNeeded()` rewrites the mission config for the Iceland all-bot tutorial scenario
-3. `GameRenderer` mounts `TutorialLayer` when `game.config().gameConfig().isTutorial` is true
-4. `TutorialLayer` watches normal game state and `GameUpdate` events to advance the tooltip sequence
+2. The same tutorial `join-lobby` config in `Main.ts` caps tutorial bots at 100 instead of 400
+3. `LocalServer.buildMissionConfigIfNeeded()` rewrites the mission config for the Iceland all-bot tutorial scenario
+4. `GameRenderer` mounts `TutorialLayer` when `game.config().gameConfig().isTutorial` is true
+5. `TutorialLayer` watches normal game state and `GameUpdate` events to advance the tooltip sequence
 
 ## Tooltip Sequence (7 steps)
 
@@ -53,6 +54,7 @@ Tooltip 4 resets `radialMenuOpened` flag so tooltip 5 only fires after tooltip 4
 Sprint 4 follow-up work tightened the tutorial without changing the overall 7-step flow:
 
 - Nation-controlled opponents are disabled for tutorial matches, making the scenario much safer for first-time players.
+- Tutorial match config now uses 100 bots instead of 400, reducing early-game chaos without changing the scripted tooltip flow.
 - During tooltip 5, `TutorialLayer.isRestrictedToCityBuild()` keeps every non-City build option in the normal disabled state until the first City is built or the tutorial is skipped. The guardrail lives in `RadialMenuElements.ts`, so the City restriction reuses the existing build-menu disable path instead of inventing a tutorial-only UI mode.
 
 ## Completion Paths
@@ -93,4 +95,5 @@ Sprint 4 follow-up work tightened the tutorial without changing the overall 7-st
 - [[tasks/session-start-sequence]] — `Player:New` segmentation is primary mechanism for measuring tutorial impact
 - [[tasks/tutorial-no-nations]] — Sprint 4 config change removing nation opponents from tutorial matches
 - [[tasks/tutorial-build-menu-lock]] — Sprint 4 tooltip-5 guardrail restricting the build menu to City
+- [[tasks/tutorial-reduce-bots]] — Sprint 4 config change lowering tutorial bot count from 400 to 100
 - [[features/ai-players]] — bot-filled matches are also used here, but tutorial remains a separate guided flow

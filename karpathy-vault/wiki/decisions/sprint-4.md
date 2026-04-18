@@ -10,6 +10,7 @@ Goal: launch the citizenship system and the in-app purchase foundation. Give loy
 **Rewarded ads explicitly deferred** — no reward mechanic exists yet. Rewarded ads ship in Sprint 5 once citizenship benefits give players something worth watching an ad for.
 
 Source: `ai-agents/sprints/plan-sprint-4.md`
+Follow-up sources: `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
 
 ## Decision
 
@@ -33,6 +34,7 @@ Sprint 4 remains the planned citizenship and payments sprint, but the wiki now r
 | Tutorial — Pause During Action-Required Steps | half a day | Tutorial polish. Keep the match near-paused until the expected tutorial action is detected |
 | Tutorial — Remove Nations, Keep Only Bots | 1-2 hours | Config-only tutorial simplification to remove aggressive nation opponents |
 | Tutorial — Lock Build Menu to City During Tooltip 5 | half a day | Tutorial guardrail so the player cannot stall tooltip 5 by building the wrong structure |
+| Tutorial — Reduce Bot Count from 400 to 100 | 30 minutes | Tutorial simplification to make Iceland less crowded and easier to follow |
 
 **Phase 2 — Implementation (after investigation findings reviewed with Mark):**
 Briefs to be written after findings. Confirmed scope:
@@ -66,8 +68,9 @@ Briefs to be written after findings. Confirmed scope:
 - Phase 2 briefs written only after both investigation findings reviewed
 - 8d-A is already live from Sprint 2 and provides the communication channel Sprint 4 can build on
 - 8d-B (personal inbox) depends on both 8d-A already being live and the player profile store going live
-- Sprint 4 is no longer purely monetization scope; it also bundles three tutorial follow-ups and two lobby/balance fixes that can be scheduled independently
-- Tutorial follow-up work later resolved into two shipped fixes (`[[tasks/tutorial-no-nations]]`, `[[tasks/tutorial-build-menu-lock]]`) plus one cancelled pause-window attempt recorded in [[decisions/cancelled-tasks]]
+- Sprint 4 is no longer purely monetization scope; it also bundles four tutorial follow-ups and two lobby/balance fixes that can be scheduled independently
+- Tutorial follow-up work later resolved into three shipped fixes (`[[tasks/tutorial-no-nations]]`, `[[tasks/tutorial-build-menu-lock]]`, `[[tasks/tutorial-reduce-bots]]`) plus one cancelled pause-window attempt recorded in [[decisions/cancelled-tasks]]
+- The Humans vs Nations balance task was later rejected as no-ship and cancelled after review; see [[decisions/hvn-balance-pr70-no-ship]]
 
 ## Related
 
@@ -80,4 +83,6 @@ Briefs to be written after findings. Confirmed scope:
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 bug fix for mixed real-plus-AI full lobbies
 - [[tasks/tutorial-no-nations]] — Sprint 4 tutorial simplification that removed nation opponents
 - [[tasks/tutorial-build-menu-lock]] — Sprint 4 tooltip-5 build-menu guardrail
+- [[tasks/tutorial-reduce-bots]] — Sprint 4 tutorial config change that lowered tutorial bot count from 400 to 100
+- [[decisions/hvn-balance-pr70-no-ship]] — no-ship review and cancellation outcome for the HvN balance attempt
 - [[decisions/cancelled-tasks]] — cancelled action-pause variant for tutorial follow-up work
