@@ -12,10 +12,10 @@ Source: `ai-agents/knowledge-base/server-match-logging-state.md`
 ## Architecture
 
 ### Match ID
-8-character Base57 string generated in `Master.ts` via `generateID()` (`src/core/Util.ts:249`). Same ID used on client and server — passed in `GameStartInfo` → stored as `lobbyConfig.gameID`.
+8-character Base57 string generated in `Master.ts` via `generateID()` (`src/core/Util.ts`). Same ID used on client and server — passed in `GameStartInfo` → stored as `lobbyConfig.gameID`.
 
 ### Where Logs Go
-- **stdout** — Winston JSON logger (`src/server/Logger.ts:52`), always active
+- **stdout** — Winston JSON logger (`src/server/Logger.ts`), always active
 - **OTEL/Uptrace** — active only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set (prod only)
 - **Archive endpoint** — full game records POSTed to external server (`config.jwtIssuer()/game/{gameID}`) at match end — this is the **authoritative historical store**
 - No local database or file writes

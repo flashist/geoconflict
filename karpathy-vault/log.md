@@ -128,3 +128,9 @@
 - Ingested: `ai-agents/tasks/cancelled/s4-nations-balance-task.md` → updated [[wiki/decisions/cancelled-tasks]]
 - Ingested: `ai-agents/tasks/done/s4-tutorial-reduce-bots.md` → created [[wiki/tasks/tutorial-reduce-bots]]
 - Skipped (already covered): `ai-agents/tasks/backlog/s4-tutorial-reduce-bots.md` — backlog files are not ingest-worthy in `wiki-sync`; the completed task file was processed instead
+
+## 2026-04-18 — lint
+- Issues found: 2
+- Issues fixed: 2
+- Issues flagged for human review: 0
+- Fixed stale `src/...:line` source references in [[wiki/systems/match-logging]]; index coverage, wikilinks, backlinks, and required page templates all validated clean
