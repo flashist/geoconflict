@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/sprints/cancelled-tasks.md`, `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`
+Source: `ai-agents/sprints/cancelled-tasks.md`, `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`
 
 ---
 
@@ -55,6 +55,25 @@ Keep cancelled work in one durable page instead of deleting context from the wik
 
 **Why cancelled:** HF-11a investigation confirmed BUILD_NUMBER is already fully automated via `scripts/bump-version.js` in `build-deploy.sh`. Hypothesis 4 (manual version error) ruled out. No action needed.
 
+---
+
+## Tutorial — Pause During Action-Required Steps
+
+**Sprint:** Sprint 4
+**Status:** Cancelled
+
+**Why cancelled:** the task file was moved to `ai-agents/tasks/cancelled/`, but it does not record an explicit cancellation rationale. The safe conclusion is that the broader pause-window change was dropped while narrower tutorial fixes shipped separately.
+
+**What was learned:**
+- `TutorialLayer.ts` already exposes the core trigger points a future implementation would need: spawn completion, spawn-phase end, radial-menu open, and first-City build
+- The shipped Sprint 4 tutorial fixes took the narrower path instead: remove nation opponents from the tutorial and lock tooltip 5 to City-only building
+- Current tutorial behaviour still only near-pauses while the tooltip modal is visible; there is no shipped "stay paused until the expected action happens" state machine
+
+**If revisited:**
+- Reuse the existing tutorial trigger points in `TutorialLayer.ts` rather than inventing new detection paths
+- Tie the unpause moment to the detected action, not tooltip dismissal
+- Ensure skip/navigation paths always restore `ReplaySpeedMultiplier.normal` before leaving the tutorial
+
 ## Consequences
 
 - Future retries should start from the narrower follow-up guidance recorded under each cancelled item, not from the original cancelled scope
@@ -64,5 +83,7 @@ Keep cancelled work in one durable page instead of deleting context from the wik
 
 - [[decisions/product-strategy]] — overall strategic context
 - [[decisions/sprint-3]] — sprint where feedback-match-ids and HF-11e were active
+- [[decisions/sprint-4]] — sprint where the cancelled tutorial pause-window follow-up was planned
 - [[decisions/hotfix-post-sprint2]] — sprint where HF-5 was attempted
 - [[decisions/stale-build-zombie-tabs]] — HF-11e context
+- [[features/tutorial]] — tutorial follow-up work and the narrower fixes that shipped instead

@@ -32,6 +32,7 @@ Sprint 4 remains the planned citizenship and payments sprint, but the wiki now r
 | AI Lobby Slot Bug — Always Keep One Slot Free | half a day | Bug fix. Preserve one human-joinable slot and only auto-start when no AI players remain |
 | Tutorial — Pause During Action-Required Steps | half a day | Tutorial polish. Keep the match near-paused until the expected tutorial action is detected |
 | Tutorial — Remove Nations, Keep Only Bots | 1-2 hours | Config-only tutorial simplification to remove aggressive nation opponents |
+| Tutorial — Lock Build Menu to City During Tooltip 5 | half a day | Tutorial guardrail so the player cannot stall tooltip 5 by building the wrong structure |
 
 **Phase 2 — Implementation (after investigation findings reviewed with Mark):**
 Briefs to be written after findings. Confirmed scope:
@@ -65,7 +66,8 @@ Briefs to be written after findings. Confirmed scope:
 - Phase 2 briefs written only after both investigation findings reviewed
 - 8d-A is already live from Sprint 2 and provides the communication channel Sprint 4 can build on
 - 8d-B (personal inbox) depends on both 8d-A already being live and the player profile store going live
-- Sprint 4 is no longer purely monetization scope; it also bundles two tutorial fixes and two lobby/balance fixes that can be scheduled independently
+- Sprint 4 is no longer purely monetization scope; it also bundles three tutorial follow-ups and two lobby/balance fixes that can be scheduled independently
+- Tutorial follow-up work later resolved into two shipped fixes (`[[tasks/tutorial-no-nations]]`, `[[tasks/tutorial-build-menu-lock]]`) plus one cancelled pause-window attempt recorded in [[decisions/cancelled-tasks]]
 
 ## Related
 
@@ -75,3 +77,7 @@ Briefs to be written after findings. Confirmed scope:
 - [[decisions/sprint-6]] — later content sprint depends on this payments/citizenship layer
 - [[features/tutorial]] — tutorial follow-up fixes were added to the Sprint 4 backlog
 - [[features/ai-players]] — AI Players feature (already active in production)
+- [[tasks/ai-lobby-slot-bug]] — Sprint 4 bug fix for mixed real-plus-AI full lobbies
+- [[tasks/tutorial-no-nations]] — Sprint 4 tutorial simplification that removed nation opponents
+- [[tasks/tutorial-build-menu-lock]] — Sprint 4 tooltip-5 build-menu guardrail
+- [[decisions/cancelled-tasks]] — cancelled action-pause variant for tutorial follow-up work

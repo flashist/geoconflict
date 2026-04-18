@@ -5,15 +5,16 @@
 
 ## Summary
 
-Guided singleplayer bot match auto-launched for first-time players. Gated behind a Yandex A/B experiment flag (`tutorial = enabled`) and `localStorage.tutorialCompleted`. Runs on Iceland map with all-Easy bots. 7-step tooltip sequence teaches territory control, attacking, and building.
+Guided singleplayer bot match auto-launched for first-time players. Gated behind a Yandex A/B experiment flag (`tutorial = enabled`) and `localStorage.tutorialCompleted`. Runs on Iceland map with nation opponents disabled so the player only faces the smaller tutorial bots. The 7-step tooltip sequence teaches territory control, attacking, and building.
 
 Source: `ai-agents/knowledge-base/tutorial-technical-description.md`
+Follow-up sources: `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`
 
 ## Implementation
 
 **Entry point:** `src/client/Main.ts` — checked early in initialization before normal lobby. Requires experiment flag active AND `localStorage.tutorialCompleted` not set. Calls `startTutorial()` → dispatches `join-lobby` event with `config.isTutorial = true`.
 
-**Map setup:** `LocalServer.ts` detects `isTutorial` in `buildMissionConfigIfNeeded()` → sets Iceland map, all nations to `Difficulty.Easy`.
+**Map setup:** `LocalServer.ts` detects `isTutorial` in `buildMissionConfigIfNeeded()` → sets Iceland map and `disableNPCs = true`, removing nation-controlled opponents from the tutorial scenario.
 
 **TutorialLayer:** Plain class implementing `Layer` interface (not LitElement). Instantiated by `GameRenderer` when `game.config().gameConfig().isTutorial` is true.
 
@@ -47,6 +48,13 @@ There is no tutorial-specific core execution class. The flow is a client-side or
 
 Tooltip 4 resets `radialMenuOpened` flag so tooltip 5 only fires after tooltip 4's instruction is followed.
 
+## Tutorial Guardrails
+
+Sprint 4 follow-up work tightened the tutorial without changing the overall 7-step flow:
+
+- Nation-controlled opponents are disabled for tutorial matches, making the scenario much safer for first-time players.
+- During tooltip 5, `TutorialLayer.isRestrictedToCityBuild()` keeps every non-City build option in the normal disabled state until the first City is built or the tutorial is skipped. The guardrail lives in `RadialMenuElements.ts`, so the City restriction reuses the existing build-menu disable path instead of inventing a tutorial-only UI mode.
+
 ## Completion Paths
 
 | Path | Outcome |
@@ -78,8 +86,11 @@ Tooltip 4 resets `radialMenuOpened` flag so tooltip 5 only fires after tooltip 4
 - [[decisions/sprint-1]] — analytics baseline and Sentry shipped to support tutorial measurement
 - [[decisions/sprint-2]] — sprint where tutorial was built and shipped
 - [[decisions/sprint-4]] — later backlog adds pause-window and nation-removal tutorial follow-up fixes
+- [[decisions/cancelled-tasks]] — cancelled pause-window follow-up is recorded here
 - [[decisions/hotfix-post-sprint2]] — HF-1/2/3 tightened tutorial analytics and skip UX
 - [[decisions/autospawn-late-join-fix]] — auto-spawn bug was especially damaging in tutorial context
 - [[decisions/double-reload-fix]] — caused `Tutorial:Started` double-fire before HF-9
 - [[tasks/session-start-sequence]] — `Player:New` segmentation is primary mechanism for measuring tutorial impact
+- [[tasks/tutorial-no-nations]] — Sprint 4 config change removing nation opponents from tutorial matches
+- [[tasks/tutorial-build-menu-lock]] — Sprint 4 tooltip-5 guardrail restricting the build menu to City
 - [[features/ai-players]] — bot-filled matches are also used here, but tutorial remains a separate guided flow

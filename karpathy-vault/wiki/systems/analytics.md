@@ -5,7 +5,7 @@
 
 ## Summary
 
-GameAnalytics-based player behaviour tracking. Used for A/B experiment evaluation, funnel analysis, session retention, and tutorial completion rates. **Not** for server observability — that's Uptrace. See [[systems/telemetry]] for server-side instrumentation.
+GameAnalytics-based player behaviour tracking. Used for A/B experiment evaluation, funnel analysis, session retention, tutorial completion rates, and public-lobby join/start diagnostics. **Not** for server observability — that's Uptrace. See [[systems/telemetry]] for server-side instrumentation.
 
 All event strings follow `Category:Action` or `Category:Subcategory:Value` format (PascalCase, colon-separated — no underscores). The TypeScript enum `flashistConstants.analyticEvents` in `FlashistFacade.ts` is the **single source of truth** — never write event strings inline in game code.
 
@@ -56,6 +56,21 @@ Match:SpawnMissed:CatchupTooLong — catch-up outlasted entire spawn phase (Prob
 
 See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrument.
 
+## Join Funnel & Map Preload Events
+
+`UI:ClickMultiplayer` fires in `src/client/PublicLobby.ts` when the player clicks JOIN on a specific public lobby entry, before the `join-lobby` event is dispatched. The handler is debounced, so rapid repeat taps collapse into one event, but distinct later join attempts still emit distinct events. This makes it a valid funnel anchor for public-match join attempts.
+
+`src/client/ClientGameRunner.ts` then carries the preload instrumentation around a single reusable `terrainLoad` promise:
+
+| Event | When |
+|---|---|
+| `UI:ClickMultiplayer` | Player clicks JOIN on a specific lobby row |
+| `Match:PreloadStarted` | Background terrain preload begins |
+| `Match:PreloadReady` | Preload promise resolves successfully; value = seconds from preload start |
+| `Match:PreloadHitLoaded` | Match start reuses a completed preload |
+| `Match:PreloadHitNotLoaded` | Match start waits on an in-progress preload |
+| `Match:PreloadMiss` | Match start falls back to a fresh terrain load |
+
 ## Experiment Event Pattern
 
 `Experiment:{flagName}:{flagValue}` — built at runtime from Yandex flag response. Enables per-cohort funnel comparison:
@@ -89,4 +104,6 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/session-start-sequence]] — Session start event sequence and conventions
 - [[tasks/mobile-quick-wins]] — `Performance:FPS:*` events measured here
 - [[tasks/stale-build-detection]] — `Build:StaleDetected` event implementation
+- [[tasks/ui-click-multiplayer]] — confirms the multiplayer JOIN click is the funnel anchor
+- [[tasks/map-preload]] — HF-13 preload instrumentation at JOIN and match start
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization

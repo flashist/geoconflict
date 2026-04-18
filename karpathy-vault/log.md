@@ -106,3 +106,16 @@
 - Changed source files detected: 5
 - Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
 - Skipped: `ai-agents/tasks/backlog/s4-ai-lobby-slot-bug.md`, `ai-agents/tasks/backlog/s4-nations-balance-task.md`, `ai-agents/tasks/backlog/s4-tutorial-action-pause.md`, `ai-agents/tasks/backlog/s4-tutorial-no-nations.md` — backlog files are not ingest-worthy in `wiki-sync`; their scope is reflected through [[wiki/decisions/sprint-4]]
+
+## 2026-04-18 — ingest
+- Sync window: `4f88b59075f488fcd6843db777526ff6031f46fc` → HEAD (`255d6cb79003a82a2a66184c586976058c1c0503`)
+- Changed source files detected: 9
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md` → updated [[wiki/decisions/cancelled-tasks]]
+- Ingested: `ai-agents/tasks/done/s3-investigation-ui-click-multiplayer.md` → created [[wiki/tasks/ui-click-multiplayer]]; updated [[wiki/decisions/sprint-3]], [[wiki/systems/analytics]]
+- Ingested: `ai-agents/tasks/done/hf13-hotfix-map-preload.md` → created [[wiki/tasks/map-preload]]; updated [[wiki/decisions/sprint-3]], [[wiki/systems/analytics]]
+- Ingested: `ai-agents/tasks/done/s4-ai-lobby-slot-bug.md` → created [[wiki/tasks/ai-lobby-slot-bug]]; updated [[wiki/decisions/sprint-4]], [[wiki/features/ai-players]]
+- Ingested: `ai-agents/tasks/done/s4-tutorial-no-nations.md` → created [[wiki/tasks/tutorial-no-nations]]; updated [[wiki/features/tutorial]]
+- Ingested: `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md` → created [[wiki/tasks/tutorial-build-menu-lock]]; updated [[wiki/features/tutorial]]
+- Skipped (already covered): `ai-agents/tasks/backlog/s4-tutorial-build-menu-lock.md` — backlog files are not ingest-worthy in `wiki-sync`; the completed task file was processed instead

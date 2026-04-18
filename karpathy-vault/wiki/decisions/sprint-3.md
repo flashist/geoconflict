@@ -27,7 +27,7 @@ Source: `ai-agents/sprints/plan-sprint-3.md`
 | HF-11e — BUILD_NUMBER automation | Already automated via `scripts/bump-version.js` | ⛔ Cancelled |
 | HF-12 — Spawn camera timing | Move auto-spawn camera/indicator from intent-send to confirmed placement | ✅ Done |
 | HF-13 — Map preloading | Preload map assets on JOIN to reduce `CatchupTooLong` | ✅ Done |
-| UI:ClickMultiplayer investigation | Verify exact firing point before using the metric as a funnel anchor | Backlog |
+| UI:ClickMultiplayer investigation | Verify exact firing point before using the metric as a funnel anchor | ✅ Done |
 
 ## Key Decisions
 
@@ -38,6 +38,8 @@ Source: `ai-agents/sprints/plan-sprint-3.md`
 **Feedback match IDs (simple):** the cancelled `task-feedback-match-history.md` scope was too large. Replacement: read existing `localStorage['game-records']` (keyed by game ID, already written by `LocalPersistantStats.ts`) and attach last 3 IDs. No new write logic.
 
 **Humans vs Nations scope expanded:** investigation showed the suspected lobby-composition failure was not a stability problem. AI fills empty slots before match start, so all team modes were re-enabled, not just Humans vs Nations.
+
+**`UI:ClickMultiplayer` kept as the funnel anchor:** investigation confirmed the event fires on the specific public-lobby JOIN click in `PublicLobby.lobbyClicked()` before `join-lobby` dispatch. Debounce removes accidental double taps, but separate join attempts still emit separate events, so no replacement event was needed.
 
 ## Consequences
 
@@ -58,6 +60,8 @@ Source: `ai-agents/sprints/plan-sprint-3.md`
 - [[decisions/cancelled-tasks]] — HF-11e, feedback match history
 - [[tasks/stale-build-detection]] — HF-11b/c/d implementation spec (version endpoint, client polling, modal)
 - [[tasks/spawn-ux]] — HF-12 moves camera/animation from intent-send to confirmed-placement time
+- [[tasks/ui-click-multiplayer]] — investigation confirming the JOIN click funnel anchor
+- [[tasks/map-preload]] — HF-13 terrain preloading and preload-hit analytics
 - [[systems/telemetry]] — 5d-A/B OTEL instrumentation
 - [[systems/server-performance]] — 5d-B performance investigation
 - [[features/feedback-button]] — Sprint 3 extended the feedback payload with last 3 match IDs

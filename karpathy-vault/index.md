@@ -33,7 +33,7 @@
 - [[decisions/sprint-4]] — Sprint 4 (planned): citizenship system, Yandex payments, player profile store, inbox, tutorial/lobby fixes
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
-- [[decisions/cancelled-tasks]] — HF-5 (win condition), feedback match history, HF-11e — with reasons and re-attempt guidance
+- [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause — with reasons and re-attempt guidance
 
 ### Bug Fixes & Investigations
 - [[decisions/autospawn-late-join-fix]] — Fix for auto-spawn failure when joining during catch-up (late join / reconnect)
@@ -46,3 +46,8 @@
 - [[tasks/mobile-quick-wins]] — Task 3: retina off, 30fps cap, particles reduced on mobile
 - [[tasks/spawn-ux]] — Tasks 4b + 4e: zoom-to-territory function and expanding ring spawn indicator
 - [[tasks/stale-build-detection]] — HF-11b/c/d: `/api/version` endpoint, client polling, non-dismissible refresh modal
+- [[tasks/ui-click-multiplayer]] — Investigation confirming `UI:ClickMultiplayer` fires on per-lobby JOIN attempts
+- [[tasks/map-preload]] — HF-13 background terrain preload on JOIN with preload-hit analytics
+- [[tasks/ai-lobby-slot-bug]] — Sprint 4 fix preserving one human slot in mixed AI/public lobbies
+- [[tasks/tutorial-no-nations]] — Tutorial config change removing nation-controlled opponents
+- [[tasks/tutorial-build-menu-lock]] — Tooltip-5 guardrail that restricts building to City
