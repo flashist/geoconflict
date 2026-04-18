@@ -88,6 +88,9 @@ function applyStyles(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
 }
 
 export class TutorialLayer implements Layer {
+  // Index into shownTooltips[] for the city-build instruction (tooltip 5, 0-indexed)
+  private static readonly CITY_BUILD_TOOLTIP_INDEX = 4;
+
   private skipButton: HTMLButtonElement | null = null;
   private tooltipBackdrop: HTMLDivElement | null = null;
   private activeTooltip: 1 | 2 | 3 | 4 | 5 | 6 | 7 | null = null;
@@ -299,7 +302,7 @@ export class TutorialLayer implements Layer {
   }
 
   isRestrictedToCityBuild(): boolean {
-    return this.shownTooltips[4] && !this.cityBuilt;
+    return this.shownTooltips[TutorialLayer.CITY_BUILD_TOOLTIP_INDEX] && !this.cityBuilt;
   }
 
   private skipTutorial() {
