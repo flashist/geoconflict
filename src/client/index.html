@@ -180,7 +180,6 @@
             title="Pick a pattern!"></button>
         </territory-patterns-modal>
         <username-input class="relative w-full"></username-input>
-        <news-button class="w-[20%] md:w-[15%] component-hideable"></news-button>
       </div>
       <div></div>
       <div>
@@ -213,17 +212,19 @@
   </main>
 
   <!-- User Setting -->
-  <!-- Feedback button: right: 104px = settings(80px) + right-4(16px) + gap(8px) -->
-  <button id="feedback-button" title="Feedback"
-    class="fixed bottom-4 z-50 rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center"
-    style="width: 40px; height: 40px; background-color: #0075ff; right: 104px;">
-    <img src="../../resources/images/FeedbackIconWhite.svg" alt="Feedback" style="width: 28px; height: 28px" />
-  </button>
-  <button id="settings-button" title="Settings"
-    class="fixed bottom-4 right-4 z-50 rounded-full p-2 shadow-lg transition-colors duration-300 flex items-center justify-center"
-    style="width: 80px; height: 80px; background-color: #0075ff">
-    <img src="../../resources/images/SettingIconWhite.svg" alt="Settings" style="width: 72px; height: 72px" />
-  </button>
+  <div id="start-screen-utility-buttons" class="fixed bottom-4 right-4 z-50 flex items-end gap-2">
+    <news-button class="component-hideable"></news-button>
+    <button id="feedback-button" title="Feedback"
+      class="rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center"
+      style="width: 40px; height: 40px; background-color: #0075ff;">
+      <img src="../../resources/images/FeedbackIconWhite.svg" alt="Feedback" style="width: 28px; height: 28px" />
+    </button>
+    <button id="settings-button" title="Settings"
+      class="rounded-full p-2 shadow-lg transition-colors duration-300 flex items-center justify-center"
+      style="width: 80px; height: 80px; background-color: #0075ff">
+      <img src="../../resources/images/SettingIconWhite.svg" alt="Settings" style="width: 72px; height: 72px" />
+    </button>
+  </div>
 
   <!-- Game components -->
   <div id="customMenu" class="mt-4 sm:mt-6 lg:mt-8">

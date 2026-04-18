@@ -55,19 +55,18 @@ export class NewsButton extends LitElement {
   render() {
     return html`
       <div
-        class="flex relative ${this.hidden ? "parent-hidden" : ""} ${this
-          .isActive
+        class="relative ${this.hidden ? "parent-hidden" : ""} ${this.isActive
           ? "active"
           : ""}"
       >
         <button
-          class="border p-[4px] rounded-lg flex cursor-pointer border-black/30 dark:border-gray-300/60 bg-white/70 dark:bg-[rgba(55,65,81,0.7)]"
+          class="flex size-10 cursor-pointer items-center justify-center rounded-full bg-[#0075ff] text-white shadow-lg transition-colors duration-300 hover:bg-[#0068de] focus:outline-none"
           @click=${this.handleClick}
           title=${translateText("announcements.title")}
           aria-label=${translateText("announcements.title")}
         >
           <img
-            class="size-[48px] dark:invert"
+            class="size-7 brightness-0 invert"
             src="${bellIcon}"
             alt=${translateText("announcements.title")}
           />
