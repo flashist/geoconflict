@@ -157,6 +157,7 @@ export class GameServer {
     if (gameConfig.playerTeams !== undefined) {
       this.gameConfig.playerTeams = gameConfig.playerTeams;
     }
+
   }
 
   public addClient(client: Client, lastTurn: number) {

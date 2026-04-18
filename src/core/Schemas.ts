@@ -178,6 +178,8 @@ export const GameConfigSchema = z.object({
   maxTimerValue: z.number().int().min(1).max(120).optional(),
   disabledUnits: z.enum(UnitType).array().optional(),
   playerTeams: TeamCountConfigSchema.optional(),
+  nationCount: z.number().int().min(0).optional(),
+  botCountOverride: z.number().int().min(0).optional(),
   singlePlayMission: z
     .object({
       level: z.number().int().min(1),

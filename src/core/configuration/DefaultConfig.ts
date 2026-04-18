@@ -410,7 +410,7 @@ export class DefaultConfig implements Config {
   }
 
   bots(): number {
-    return this._gameConfig.bots;
+    return this._gameConfig.botCountOverride ?? this._gameConfig.bots;
   }
   instantBuild(): boolean {
     return this._gameConfig.instantBuild;

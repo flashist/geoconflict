@@ -7,7 +7,10 @@ import {
   Attack,
   Cell,
   Game,
+  GameMode,
+  GameType,
   GameUpdates,
+  HumansVsNations,
   NameViewData,
   Nation,
   Player,
@@ -28,9 +31,59 @@ import {
 } from "./game/GameUpdates";
 import { loadTerrainMap as loadGameMap } from "./game/TerrainMapLoader";
 import { PseudoRandom } from "./PseudoRandom";
-import { ClientID, GameStartInfo, Turn } from "./Schemas";
+import { ClientID, GameConfig, GameStartInfo, Turn } from "./Schemas";
 import { sanitize, simpleHash } from "./Util";
 import { fixProfaneUsername } from "./validations/username";
+
+type IndexedNation = {
+  nation: import("./game/TerrainMapLoader").Nation;
+  originalIndex: number;
+};
+
+function isHumansVsNations(gameConfig: GameConfig): boolean {
+  return (
+    gameConfig.gameType === GameType.Public &&
+    gameConfig.gameMode === GameMode.Team &&
+    gameConfig.playerTeams === HumansVsNations &&
+    !gameConfig.disableNPCs
+  );
+}
+
+export function normalizeHumansVsNationsConfig(
+  gameConfig: GameConfig,
+  humanSideCount: number,
+  availableNationCount: number,
+): GameConfig {
+  const requestedNationCount = Math.min(humanSideCount, gameConfig.bots);
+  const actualNationCount = Math.min(requestedNationCount, availableNationCount);
+
+  return {
+    ...gameConfig,
+    nationCount: actualNationCount,
+    botCountOverride: Math.max(0, gameConfig.bots - actualNationCount),
+  };
+}
+
+function selectNations(
+  gameID: string,
+  nations: import("./game/TerrainMapLoader").Nation[],
+  nationCount: number | undefined,
+): IndexedNation[] {
+  const indexedNations = nations.map((nation, originalIndex) => ({
+    nation,
+    originalIndex,
+  }));
+
+  if (nationCount === undefined) {
+    return indexedNations;
+  }
+
+  const random = new PseudoRandom(simpleHash(gameID));
+  return random
+    .shuffleArray([...indexedNations])
+    .slice(0, nationCount)
+    .sort((a, b) => a.originalIndex - b.originalIndex);
+}
 
 export async function createGameRunner(
   gameStart: GameStartInfo,
@@ -38,11 +91,22 @@ export async function createGameRunner(
   mapLoader: GameMapLoader,
   callBack: (gu: GameUpdateViewData | ErrorUpdate) => void,
 ): Promise<GameRunner> {
-  const config = await getConfig(gameStart.config, null);
   const gameMap = await loadGameMap(
     gameStart.config.gameMap,
     gameStart.config.gameMapSize,
     mapLoader,
+  );
+  const normalizedGameConfig = isHumansVsNations(gameStart.config)
+    ? normalizeHumansVsNationsConfig(
+        gameStart.config,
+        gameStart.players.length + (gameStart.aiPlayers?.length ?? 0),
+        gameMap.nations.length,
+      )
+    : gameStart.config;
+  const actualNationCount = normalizedGameConfig.nationCount;
+  const config = await getConfig(
+    normalizedGameConfig,
+    null,
   );
   const random = new PseudoRandom(simpleHash(gameStart.gameID));
 
@@ -68,12 +132,17 @@ export async function createGameRunner(
       ),
   );
 
-  const defaultNationDifficulty = gameStart.config.difficulty;
-  const nations = gameStart.config.disableNPCs
+  const defaultNationDifficulty = normalizedGameConfig.difficulty;
+  const selectedNations = selectNations(
+    gameStart.gameID,
+    gameMap.nations,
+    actualNationCount,
+  );
+  const nations = normalizedGameConfig.disableNPCs
     ? []
-    : gameMap.nations.map((n, index) => {
+    : selectedNations.map(({ nation: n, originalIndex }) => {
       const nationDifficulty =
-        gameStart.config.nationDifficulties?.[index] ??
+        normalizedGameConfig.nationDifficulties?.[originalIndex] ??
         defaultNationDifficulty;
       const difficultyLabel =
         nationDifficulty === "Easy"
