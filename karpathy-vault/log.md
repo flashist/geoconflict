@@ -134,3 +134,6 @@
 - Issues fixed: 2
 - Issues flagged for human review: 0
 - Fixed stale `src/...:line` source references in [[wiki/systems/match-logging]]; index coverage, wikilinks, backlinks, and required page templates all validated clean
+
+## 2026-04-18 — ingest
+- Ingested: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md` → created [[wiki/tasks/player-profile-store-investigation]]; updated [[wiki/decisions/sprint-4]]

@@ -1,5 +1,7 @@
 # Sprint 4 Investigation — Player Profile Store
 
+Status: complete. Findings recorded in `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`.
+
 ## Priority
 First task of Sprint 4. All citizenship, name change, and cosmetics tasks depend on this. Do not begin implementation of any citizenship feature until findings are documented and reviewed.
 

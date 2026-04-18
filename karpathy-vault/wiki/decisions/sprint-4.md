@@ -10,7 +10,7 @@ Goal: launch the citizenship system and the in-app purchase foundation. Give loy
 **Rewarded ads explicitly deferred** — no reward mechanic exists yet. Rewarded ads ship in Sprint 5 once citizenship benefits give players something worth watching an ad for.
 
 Source: `ai-agents/sprints/plan-sprint-4.md`
-Follow-up sources: `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
+Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
 
 ## Decision
 
@@ -20,7 +20,7 @@ Sprint 4 remains the planned citizenship and payments sprint, but the wiki now r
 - Sprint 4 now also carries four small independent backlog items that can ship alongside the monetization track without waiting on the investigation work
 
 **Phase 1 — Investigations (run in parallel):**
-- **Investigation A:** Player Profile Store — first persistent per-player database. Findings needed: DB technology, hosting, initial schema, match completion tracking, guest player handling.
+- **Investigation A:** Player Profile Store — complete. Recommended PostgreSQL on the game VPS as a sibling service, an initial `player_profiles` + idempotent `player_match_credits` schema, server-side match crediting at match end, and a verified Yandex identity claim in the join/auth path because the current server only sees `persistentID`. See [[tasks/player-profile-store-investigation]].
 - **Investigation B:** Yandex Payments Catalog — SDK API, catalog fetch architecture, dashboard setup + approval timeline. **Action required immediately:** register catalog items in Yandex Games dashboard (approval takes days).
 
 **Already shipped earlier:** `8d-A` (Global Announcements) was pulled forward into Sprint 2 and should be treated as an available dependency for Sprint 4 work, not a Sprint 4 deliverable.
@@ -65,6 +65,8 @@ Briefs to be written after findings. Confirmed scope:
 ## Consequences
 
 - Register Yandex catalog items immediately — approval takes days and should not block implementation
+- Player Profile Store investigation concluded that the current codebase needs a verified Yandex identity in the join/auth path before Yandex-keyed paid entitlements are safe
+- Qualifying-match crediting should happen on the game server at match end, but implementation needs one additional end-of-match per-player state summary because the server does not currently simulate spawn/elimination itself
 - Phase 2 briefs written only after both investigation findings reviewed
 - 8d-A is already live from Sprint 2 and provides the communication channel Sprint 4 can build on
 - 8d-B (personal inbox) depends on both 8d-A already being live and the player profile store going live
@@ -80,6 +82,7 @@ Briefs to be written after findings. Confirmed scope:
 - [[decisions/sprint-6]] — later content sprint depends on this payments/citizenship layer
 - [[features/tutorial]] — tutorial follow-up fixes were added to the Sprint 4 backlog
 - [[features/ai-players]] — AI Players feature (already active in production)
+- [[tasks/player-profile-store-investigation]] — completed Sprint 4 investigation for player-store technology, hosting, schema, and match-crediting approach
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 bug fix for mixed real-plus-AI full lobbies
 - [[tasks/tutorial-no-nations]] — Sprint 4 tutorial simplification that removed nation opponents
 - [[tasks/tutorial-build-menu-lock]] — Sprint 4 tooltip-5 build-menu guardrail

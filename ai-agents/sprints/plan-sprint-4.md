@@ -16,7 +16,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 
 | Status | Task | Brief |
 |---|---|---|
-| ⬜ Backlog | Investigation A — Player Profile Store | `s4-investigation-player-store.md` |
+| ✅ Done | Investigation A — Player Profile Store | `sprint4-player-profile-store-findings.md` + `sprint4-investigation-player-store.md` |
 | ⬜ Backlog | Investigation B — Yandex Payments Catalog | `s4-investigation-yandex-payments.md` |
 | ⬜ Backlog | 8d-A. Global Announcements Re-enable | `s4-8d-a-task-global-announcements.md` |
 | ⬜ Backlog | Player Profile Store — Implementation | TBD after investigation |
@@ -52,7 +52,8 @@ Full implementation scope locked in based on findings. Briefs written at that po
 
 ### Investigation A — Player Profile Store
 **Effort:** 1–2 days
-**Brief:** `s4-investigation-player-store.md`
+**Task file:** `sprint4-investigation-player-store.md`
+**Findings:** `sprint4-player-profile-store-findings.md`
 **Blocks:** all citizenship implementation tasks
 
 First persistent per-player database in the codebase. Findings needed on: database technology, hosting location, initial schema, match completion tracking approach, and guest player handling.
