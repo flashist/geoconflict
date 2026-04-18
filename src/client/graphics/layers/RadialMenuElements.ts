@@ -38,6 +38,7 @@ export interface MenuElementParams {
   chatIntegration: ChatIntegration;
   eventBus: EventBus;
   closeMenu: () => void;
+  tutorialAllowedUnitTypes?: Set<UnitType>;
 }
 
 export interface MenuElement {
@@ -372,7 +373,9 @@ function createMenuElements(
         ? item.key.replace("unit_type.", "")
         : item.unitType.toString(),
       disabled: (params: MenuElementParams) =>
-        !params.buildMenu.canBuildOrUpgrade(item),
+        !params.buildMenu.canBuildOrUpgrade(item) ||
+        (params.tutorialAllowedUnitTypes !== undefined &&
+          !params.tutorialAllowedUnitTypes.has(item.unitType)),
       color: params.buildMenu.canBuildOrUpgrade(item)
         ? filterType === "attack"
           ? COLORS.attack

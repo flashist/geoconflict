@@ -298,6 +298,10 @@ export class TutorialLayer implements Layer {
     }
   }
 
+  isRestrictedToCityBuild(): boolean {
+    return this.shownTooltips[4] && !this.cityBuilt;
+  }
+
   private skipTutorial() {
     // Restore normal speed before navigating away (in case tooltip was active)
     this.eventBus.emit(new ReplaySpeedChangeEvent(ReplaySpeedMultiplier.normal));
