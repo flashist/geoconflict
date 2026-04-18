@@ -232,6 +232,14 @@ export function createRenderer(
   spawnTimer.game = game;
   spawnTimer.transformHandler = transformHandler;
 
+  const tutorialLayer = game.config().gameConfig().isTutorial
+    ? new TutorialLayer(game, eventBus, transformHandler)
+    : undefined;
+
+  if (tutorialLayer) {
+    buildMenu.tutorialLayer = tutorialLayer;
+  }
+
   // When updating these layers please be mindful of the order.
   // Try to group layers by the return value of shouldTransform.
   // Not grouping the layers may cause excessive calls to context.save() and context.restore().
@@ -258,6 +266,7 @@ export function createRenderer(
       buildMenu,
       uiState,
       playerPanel,
+      tutorialLayer,
     ),
     spawnTimer,
     leaderboard,
@@ -278,9 +287,8 @@ export function createRenderer(
     fpsDisplay,
   ];
 
-  // Add TutorialLayer for tutorial matches
-  if (game.config().gameConfig().isTutorial) {
-    layers.push(new TutorialLayer(game, eventBus, transformHandler));
+  if (tutorialLayer) {
+    layers.push(tutorialLayer);
   }
 
   return new GameRenderer(

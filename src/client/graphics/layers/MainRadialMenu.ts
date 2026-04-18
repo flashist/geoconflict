@@ -22,6 +22,7 @@ import {
 
 import swordIcon from "../../../../resources/images/SwordIconWhite.svg";
 import { ContextMenuEvent } from "../../InputHandler";
+import { TutorialLayer } from "./TutorialLayer";
 
 @customElement("main-radial-menu")
 export class MainRadialMenu extends LitElement implements Layer {
@@ -40,6 +41,7 @@ export class MainRadialMenu extends LitElement implements Layer {
     private buildMenu: BuildMenu,
     private uiState: UIState,
     private playerPanel: PlayerPanel,
+    private tutorialLayer?: TutorialLayer,
   ) {
     super();
 
@@ -130,6 +132,7 @@ export class MainRadialMenu extends LitElement implements Layer {
       chatIntegration: this.chatIntegration,
       closeMenu: () => this.closeMenu(),
       eventBus: this.eventBus,
+      tutorialLayer: this.tutorialLayer,
     };
 
     this.radialMenu.setParams(params);
