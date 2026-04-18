@@ -32,6 +32,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⛔ Cancelled | Tutorial — Pause During Action-Required Steps | `s4-tutorial-action-pause.md` |
 | ⬜ Backlog | Tutorial — Remove Nations, Keep Only Bots | `s4-tutorial-no-nations.md` |
 | ⬜ Backlog | Tutorial — Lock Build Menu to City During Tooltip 5 | `s4-tutorial-build-menu-lock.md` |
+| ⬜ Backlog | Tutorial — Reduce Bot Count from 400 to 100 | `s4-tutorial-reduce-bots.md` |
 
 ---
 
@@ -217,6 +218,17 @@ See full brief: `s4-tutorial-no-nations.md`
 During tooltip 5 (build a City), all non-City building icons are clickable even if the player can afford them. A player who accidentally builds the wrong structure breaks the tooltip sequence (tooltip 6 only fires on City built). Fix: force all non-City icons into the same disabled state used when a player lacks sufficient gold. City icon remains fully enabled. Normal state restored when tooltip 5 is dismissed, City is built, or tutorial is skipped.
 
 See full brief: `s4-tutorial-build-menu-lock.md`
+
+---
+
+## Tutorial — Reduce Bot Count from 400 to 100
+
+**Effort:** 30 minutes (single config value change)
+**Experiments:** ❌ Excluded — tutorial improvement.
+
+Tutorial currently spawns 400 bots — same order of magnitude as a full multiplayer match. Reduces to 100 to make the map less chaotic and give new players more room to learn without being immediately overwhelmed.
+
+See full brief: `s4-tutorial-reduce-bots.md`
 
 ---
 
