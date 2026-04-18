@@ -29,7 +29,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⬜ Backlog | Citizen Verified Icon | TBD after investigation |
 | ⬜ Backlog | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` |
 | ⬜ Backlog | AI Lobby Slot Bug — Always Keep One Slot Free | `s4-ai-lobby-slot-bug.md` |
-| ⬜ Backlog | Tutorial — Pause During Action-Required Steps | `s4-tutorial-action-pause.md` |
+| ⛔ Cancelled | Tutorial — Pause During Action-Required Steps | `s4-tutorial-action-pause.md` |
 | ⬜ Backlog | Tutorial — Remove Nations, Keep Only Bots | `s4-tutorial-no-nations.md` |
 | ⬜ Backlog | Tutorial — Lock Build Menu to City During Tooltip 5 | `s4-tutorial-build-menu-lock.md` |
 
@@ -191,10 +191,7 @@ See full brief: `s4-ai-lobby-slot-bug.md`
 
 ## Tutorial — Pause During Action-Required Steps
 
-**Effort:** half a day
-**Experiments:** ❌ Excluded — tutorial improvement.
-
-The tutorial already near-pauses during tooltip display, but resumes when the player dismisses a tooltip to perform the required action. Bots can attack and eliminate the player during this window. Fix: keep the game near-paused after dismissal until the expected action is detected (spawn chosen, attack sent, radial menu opened, city built). Affects tooltips 1, 2, 4, and 5.
+**Status:** ⛔ Cancelled — created too many implementation problems.
 
 See full brief: `s4-tutorial-action-pause.md`
 
