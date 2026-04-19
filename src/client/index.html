@@ -84,6 +84,12 @@
     document.documentElement.className = "preload";
   </script>
 
+  <!-- Flashist Adaptation: custom styles -->
+  <style>
+    .flashist-hide {
+      display: none;
+    }
+  </style>
 
   <!-- Flashist Adaptation - removing unclear logic (ADS?) -->
   <!-- Publift/Fuse ads -->
@@ -212,8 +218,10 @@
   </main>
 
   <!-- User Setting -->
-  <div id="start-screen-utility-buttons" class="fixed bottom-4 right-4 z-50 flex items-end gap-2">
+  <div id="start-screen-announcements-button" class="fixed left-4 bottom-16 z-50">
     <news-button class="component-hideable"></news-button>
+  </div>
+  <div id="start-screen-utility-buttons" class="fixed bottom-4 right-4 z-50 flex items-end gap-2">
     <button id="feedback-button" title="Feedback"
       class="rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center"
       style="width: 40px; height: 40px; background-color: #0075ff;">
@@ -306,7 +314,7 @@
   <player-panel></player-panel>
   <spawn-timer></spawn-timer>
   <help-modal></help-modal>
-  <dark-mode-button></dark-mode-button>
+  <dark-mode-button class="flashist-hide"></dark-mode-button>
   <alert-frame></alert-frame>
   <chat-modal></chat-modal>
   <user-setting></user-setting>
