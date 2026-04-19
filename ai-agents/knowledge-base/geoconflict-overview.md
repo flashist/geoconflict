@@ -397,13 +397,18 @@ Source: `src/core/configuration/DefaultConfig.ts` — `workerIndex()`, `workerPo
 
 Each server turn:
 1. Collect all intents received since last turn.
-2. Broadcast `turn` message (intents + turn number + optional hash).
-3. Client receives turn → `GameRunner.addTurn()` → `executeNextTick()`.
-4. `Executor.createExecs(turn)` converts intents to `Execution` objects.
-5. `game.executeNextTick()` ticks all active executions → emits `GameUpdates`.
-6. `WinCheckExecution.tick()` checks win condition every 10 ticks.
+2. In `GameServer.endTurn()`, assemble and store `Turn { turnNumber, intents }`, then reset `this.intents`.
+3. Every 10 turns, run `handleSynchronization()` to compare client hashes and detect desync.
+4. Every 5 turns, run `checkDisconnectedStatus()` to sweep for ping timeouts and enqueue `mark_disconnected` intents.
+5. Broadcast the `turn` message to connected clients.
+6. Client receives the turn and forwards it to the Web Worker via `GameRunner.addTurn()`.
+7. Worker heartbeat calls `executeNextTick()`; `Executor.createExecs(turn)` converts intents to `Execution` objects.
+8. `game.executeNextTick()` ticks all active executions and emits `GameUpdates`.
+9. `WinCheckExecution.tick()` checks win condition every 10 ticks.
 
-Source: `src/core/GameRunner.ts`.
+The server is authoritative for turn ordering and relay, but it does not run the shared simulation tick itself; `GameImpl.executeNextTick()` runs on the client Web Worker.
+
+Source: `src/server/GameServer.ts`, `src/core/GameRunner.ts`, `src/core/worker/Worker.worker.ts`.
 
 ### 4.4 Networking Protocol
 
