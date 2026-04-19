@@ -49,6 +49,15 @@
     "github_link": "on GitHub",
     "title": "Release Notes"
   },
+  "announcements": {
+    "title": "Announcements",
+    "empty": "No announcements yet. Check back after the next update.",
+    "tag": {
+      "new": "New",
+      "upcoming": "Upcoming",
+      "update": "Update"
+    }
+  },
   "help_modal": {
     "hotkeys": "Hotkeys",
     "table_key": "Key",

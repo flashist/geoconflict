@@ -23,7 +23,7 @@ import "./DarkModeButton";
 import { DarkModeButton } from "./DarkModeButton";
 import { toggleDevMode } from "./DevMode";
 import "./FeedbackModal";
-import { FeedbackModal, FeedbackModalScreenSource, showFeedbackModal } from "./FeedbackModal";
+import { FeedbackModalScreenSource, showFeedbackModal } from "./FeedbackModal";
 import "./FlagInput";
 import { FlagInput } from "./FlagInput";
 import { FlagInputModal } from "./FlagInputModal";
@@ -51,6 +51,7 @@ import {
   getNextMissionLevel,
   setNextMissionLevel,
 } from "./SinglePlayMissionStorage";
+import { setStartScreenControlsHidden } from "./StartScreenControls";
 import { SinglePlayerModal } from "./SinglePlayerModal";
 import { TerritoryPatternsModal } from "./TerritoryPatternsModal";
 import { TokenLoginModal } from "./TokenLoginModal";
@@ -692,8 +693,7 @@ class Client {
       },
       () => {
         console.log("Closing modals");
-        document.getElementById("settings-button")?.classList.add("hidden");
-        document.getElementById("feedback-button")?.classList.add("hidden");
+        setStartScreenControlsHidden(true);
         document
           .getElementById("username-validation-error")
           ?.classList.add("hidden");
@@ -907,6 +907,7 @@ class Client {
     clearReconnectSession();
     this.gutterAds.hide();
     this.publicLobby.leaveLobby();
+    setStartScreenControlsHidden(false);
   }
 
   private handleKickPlayer(event: CustomEvent) {

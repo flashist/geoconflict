@@ -81,7 +81,7 @@ Retreat incurs 25% casualty. Alliance breaks on attack: −80 relation penalty +
 
 ## Tick System
 
-Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adaptation). Both client and server run identical game logic deterministically. Hash verification every 10 turns detects desync.
+Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adaptation). In multiplayer, the server assembles and relays turns, runs periodic synchronization and disconnect checks, and the client Web Worker replays those turns through the shared simulation. Hash verification every 10 turns detects desync.
 
 ## Gotchas / Known Issues
 

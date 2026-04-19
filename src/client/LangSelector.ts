@@ -132,7 +132,7 @@ export class LangSelector extends LitElement {
     // const browserLocale = navigator.language;
     let browserLocale = navigator.language;
     //
-    let yandexSdkLangCode = await FlashistFacade.instance.getLanguageCode();
+    const yandexSdkLangCode = await FlashistFacade.instance.getLanguageCode();
     // // TEST
     // await new Promise<void>(
     //   (resolve) => {
@@ -151,7 +151,7 @@ export class LangSelector extends LitElement {
     //
 
     const savedLang = localStorage.getItem("lang");
-    let userLang = this.getClosestSupportedLang(savedLang ?? browserLocale);
+    const userLang = this.getClosestSupportedLang(savedLang ?? browserLocale);
 
     // Flashist Adaptation
     // TEST
@@ -266,6 +266,8 @@ export class LangSelector extends LitElement {
       "o-modal",
       "o-button",
       "territory-patterns-modal",
+      "news-modal",
+      "news-button",
     ];
 
     document.title = this.translateText("main.title") ?? document.title;

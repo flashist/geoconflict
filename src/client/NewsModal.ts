@@ -1,9 +1,15 @@
 import { LitElement, css, html } from "lit";
-import { resolveMarkdown } from "lit-markdown";
-import { customElement, property, query } from "lit/decorators.js";
-import changelog from "../../resources/changelog.md";
+import { customElement, query } from "lit/decorators.js";
+import {
+  AnnouncementEntry,
+  getAnnouncements,
+  markAnnouncementsRead,
+} from "./Announcements";
+import {
+  flashistConstants,
+  flashist_logEventAnalytics,
+} from "./flashist/FlashistFacade";
 import { translateText } from "../client/Utils";
-import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
 
 @customElement("news-modal")
@@ -12,6 +18,7 @@ export class NewsModal extends LitElement {
     open: () => void;
     close: () => void;
   };
+  private isOpen = false;
 
   connectedCallback() {
     super.connectedCallback();
@@ -30,10 +37,6 @@ export class NewsModal extends LitElement {
     }
   };
 
-  @property({ type: String }) markdown = "Loading...";
-
-  private initialized: boolean = false;
-
   static styles = css`
     :host {
       display: block;
@@ -47,82 +50,155 @@ export class NewsModal extends LitElement {
       gap: 1.5rem;
     }
 
-    .news-content {
+    .announcement-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      color: #f4f4f5;
+      line-height: 1.5;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .announcement-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .announcement-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #fff;
+    }
+
+    .announcement-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      color: #d4d4d8;
+      font-size: 0.92rem;
+    }
+
+    .announcement-tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+    }
+
+    .announcement-tag.new {
+      background: rgba(34, 197, 94, 0.16);
+      color: #86efac;
+    }
+
+    .announcement-tag.upcoming {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fcd34d;
+    }
+
+    .announcement-tag.update {
+      background: rgba(59, 130, 246, 0.16);
+      color: #93c5fd;
+    }
+
+    .announcement-body {
+      margin: 0;
+      white-space: pre-wrap;
+      color: #e4e4e7;
+    }
+
+    .empty-state {
       color: #ddd;
       line-height: 1.5;
       background: rgba(0, 0, 0, 0.6);
       border-radius: 8px;
       padding: 1rem;
     }
-
-    .news-content a {
-      color: #4a9eff !important;
-      text-decoration: underline !important;
-      transition: color 0.2s ease;
-    }
-
-    .news-content a:hover {
-      color: #6fb3ff !important;
-    }
   `;
 
   render() {
+    const entries = getAnnouncements();
+
     return html`
-      <o-modal title=${translateText("news.title")}>
+      <o-modal
+        title=${translateText("announcements.title")}
+        @modal-close=${this.handleModalClosed}
+      >
         <div class="options-layout">
           <div class="options-section">
             <div class="news-container">
-              <div class="news-content">
-                ${resolveMarkdown(this.markdown, {
-                  includeImages: true,
-                  includeCodeBlockClassNames: true,
-                })}
-              </div>
+              ${entries.length === 0
+                ? html`
+                    <div class="empty-state">
+                      ${translateText("announcements.empty")}
+                    </div>
+                  `
+                : entries.map((entry) => this.renderAnnouncement(entry))}
             </div>
           </div>
         </div>
-
-        <div>
-          ${translateText("news.see_all_releases")}
-          <a
-            href="https://github.com/openfrontio/OpenFrontIO/releases"
-            target="_blank"
-            >${translateText("news.github_link")}</a
-          >.
-        </div>
-
-        <o-button
-          title=${translateText("common.close")}
-          @click=${this.close}
-          blockDesktop
-        ></o-button>
       </o-modal>
     `;
   }
 
+  private renderAnnouncement(entry: AnnouncementEntry) {
+    return html`
+      <article class="announcement-card">
+        <div class="announcement-header">
+          <h3 class="announcement-title">${entry.title}</h3>
+          <div class="announcement-meta">
+            <span>${entry.date}</span>
+            ${entry.tag
+              ? html`
+                  <span class="announcement-tag ${entry.tag}">
+                    ${translateText(`announcements.tag.${entry.tag}`)}
+                  </span>
+                `
+              : null}
+          </div>
+        </div>
+        <p class="announcement-body">${entry.body}</p>
+      </article>
+    `;
+  }
+
   public open() {
-    if (!this.initialized) {
-      this.initialized = true;
-      fetch(changelog)
-        .then((response) => (response.ok ? response.text() : "Failed to load"))
-        .then((markdown) =>
-          markdown
-            .replace(
-              /(?<!\()\bhttps:\/\/github\.com\/openfrontio\/OpenFrontIO\/pull\/(\d+)\b/g,
-              (_match, prNumber) =>
-                `[#${prNumber}](https://github.com/openfrontio/OpenFrontIO/pull/${prNumber})`,
-            )
-            .replace(
-              /(?<!\()\bhttps:\/\/github\.com\/openfrontio\/OpenFrontIO\/compare\/([\w.-]+)\b/g,
-              (_match, comparison) =>
-                `[${comparison}](https://github.com/openfrontio/OpenFrontIO/compare/${comparison})`,
-            ),
-        )
-        .then((markdown) => (this.markdown = markdown));
+    if (this.isOpen) {
+      return;
     }
+
+    markAnnouncementsRead();
+    window.dispatchEvent(new CustomEvent("announcements-state-changed"));
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.ANNOUNCEMENTS_OPENED,
+    );
+    this.isOpen = true;
     this.requestUpdate();
     this.modalEl?.open();
   }
+
+  private handleModalClosed = () => {
+    if (!this.isOpen) {
+      return;
+    }
+
+    this.isOpen = false;
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.ANNOUNCEMENTS_CLOSED,
+    );
+  };
 
   private close() {
     this.modalEl?.close();

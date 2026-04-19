@@ -140,3 +140,13 @@
 
 ## 2026-04-18 — ingest
 - Ingested: `ai-agents/tasks/done/sprint4-investigation-yandex-payments.md`, `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md` → created [[wiki/tasks/yandex-payments-investigation]]; updated [[wiki/decisions/sprint-4]]
+
+## 2026-04-19 — ingest
+- Ingested: `ai-agents/knowledge-base/geoconflict-overview.md` → updated [[wiki/systems/game-overview]]
+
+## 2026-04-19 — ingest
+- Ingested: `ai-agents/knowledge-base/announcements-system-guide.md` → created [[wiki/features/announcements]]
+
+## 2026-04-19 — ingest
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
+- Ingested: `ai-agents/knowledge-base/announcements-system-guide.md` → updated [[wiki/features/announcements]]

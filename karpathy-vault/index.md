@@ -7,6 +7,7 @@
 - [[features/tutorial]] — Guided singleplayer bot match for first-time players; 7-step tooltip sequence, Yandex A/B gated
 - [[features/reconnection]] — Crash reconnection: rejoin prompt when tab closes/crashes mid-match
 - [[features/feedback-button]] — In-game feedback form on start screen and battle screen with automatic context
+- [[features/announcements]] — Start-screen bell and popup for repo-authored player update messages with unread badge
 - [[features/ai-players]] — AI Players in public lobbies: active, indistinguishable from humans in UI
 
 ## Systems

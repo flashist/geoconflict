@@ -1,0 +1,41 @@
+[
+  {
+    "id": "2026-04-citizenship-coming",
+    "date": "2026-04-18",
+    "title": {
+      "en": "Citizenship is coming to Geoconflict",
+      "ru": "Гражданство скоро появится в Geoconflict"
+    },
+    "body": {
+      "en": "The next update introduces citizenship for committed players. Keep playing now to be ready for launch, and watch this panel for the full rollout details.",
+      "ru": "Следующее обновление добавит гражданство для постоянных игроков. Продолжайте играть уже сейчас, чтобы быть готовыми к запуску, и следите за этим разделом, чтобы не пропустить полные детали выхода."
+    },
+    "tag": "upcoming"
+  },
+  {
+    "id": "2026-04-faster-joins",
+    "date": "2026-04-10",
+    "title": {
+      "en": "Faster joins are live",
+      "ru": "Быстрые подключения уже доступны"
+    },
+    "body": {
+      "en": "Background terrain preloading is now live. Match joins should feel more consistent, especially on slower devices and long public-lobby sessions.",
+      "ru": "Фоновая предзагрузка карты уже работает. Подключение к матчам должно стать стабильнее, особенно на медленных устройствах и после долгих сессий в публичных лобби."
+    },
+    "tag": "update"
+  },
+  {
+    "id": "2026-03-feedback-button",
+    "date": "2026-03-28",
+    "title": {
+      "en": "Feedback is now in the game",
+      "ru": "Обратная связь теперь прямо в игре"
+    },
+    "body": {
+      "en": "You can now send bug reports and suggestions directly from the UI. Include what happened and we will use it to prioritize fixes.",
+      "ru": "Теперь вы можете отправлять сообщения об ошибках и предложения прямо из интерфейса. Опишите, что произошло, и мы используем это, чтобы точнее расставлять приоритеты для исправлений."
+    },
+    "tag": "new"
+  }
+]

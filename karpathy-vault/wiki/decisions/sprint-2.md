@@ -40,6 +40,7 @@ Source: `ai-agents/sprints/done/plan-sprint-2.md`
 - [[decisions/sprint-1]] — previous sprint
 - [[decisions/hotfix-post-sprint2]] — hotfixes shipped after Sprint 2
 - [[decisions/sprint-3]] — next sprint
+- [[features/announcements]] — JSON-driven update bell and popup shipped in this sprint
 - [[features/tutorial]] — tutorial system detail
 - [[decisions/autospawn-late-join-fix]] — bug in auto-spawn fixed in hotfix
 - [[systems/analytics]] — spawn analytics events
