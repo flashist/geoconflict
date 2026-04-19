@@ -107,3 +107,4 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/ui-click-multiplayer]] — confirms the multiplayer JOIN click is the funnel anchor
 - [[tasks/map-preload]] — HF-13 preload instrumentation at JOIN and match start
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
+- [[features/announcements]] — `UI:Tap:AnnouncementsBell` and `Announcements:Opened`

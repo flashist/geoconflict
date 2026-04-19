@@ -143,3 +143,6 @@
 
 ## 2026-04-19 — ingest
 - Ingested: `ai-agents/knowledge-base/geoconflict-overview.md` → updated [[wiki/systems/game-overview]]
+
+## 2026-04-19 — ingest
+- Ingested: `ai-agents/knowledge-base/announcements-system-guide.md` → created [[wiki/features/announcements]]
