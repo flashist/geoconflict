@@ -146,3 +146,7 @@
 
 ## 2026-04-19 — ingest
 - Ingested: `ai-agents/knowledge-base/announcements-system-guide.md` → created [[wiki/features/announcements]]
+
+## 2026-04-19 — ingest
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
+- Ingested: `ai-agents/knowledge-base/announcements-system-guide.md` → updated [[wiki/features/announcements]]

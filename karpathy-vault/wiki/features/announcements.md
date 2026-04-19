@@ -13,7 +13,7 @@ The feature is intentionally low-ops: there is no backend or admin UI. Announcem
 
 `resources/announcements.json` is the source of truth. Entries are stored newest-first and include a stable `id`, display `date`, optional `tag`, and localized `title` / `body` maps. `src/client/Announcements.ts` normalizes the raw JSON, enforces `title.en` / `body.en` as required fields, resolves the current language at runtime, and falls back per field to English when a localization is missing.
 
-`src/client/components/NewsButton.ts` renders the start-screen bell, checks unread state from `localStorage["geoconflict.announcements.lastSeenId"]`, and fires `UI:Tap:AnnouncementsBell` before opening the popup. `src/client/NewsModal.ts` renders the popup, marks the newest announcement as read on open, dispatches `announcements-state-changed` so the bell refreshes immediately, and logs `Announcements:Opened`.
+`src/client/components/NewsButton.ts` renders the start-screen bell, checks unread state from `localStorage["geoconflict.announcements.lastSeenId"]`, and fires `UI:Tap:AnnouncementsBell` before opening the popup. `src/client/NewsModal.ts` renders the popup, marks the newest announcement as read on open, dispatches `announcements-state-changed` so the bell refreshes immediately, logs `Announcements:Opened` on open, and logs `Announcements:Closed` when the modal closes.
 
 Mount points live in `src/client/index.html` and `src/client/yandex-games_iframe.html` under `#start-screen-announcements-button`. `src/client/Main.ts` hides that container when the match-start flow begins so the bell is only visible on the start screen. The unread indicator is a simple orange dot styled in `src/client/styles.css`.
 
@@ -25,7 +25,8 @@ There is no core-game intent/execution path for this feature. It is client UI on
 2. `NewsButton` compares the newest announcement ID against the last-seen ID stored in localStorage.
 3. If the player taps the bell, `UI:Tap:AnnouncementsBell` is fired.
 4. `NewsModal.open()` stores the latest ID as read, emits `announcements-state-changed`, logs `Announcements:Opened`, and opens the modal.
-5. The modal renders localized announcement text for the player’s current language, with English fallback.
+5. When the modal closes through any standard close path, `Announcements:Closed` is fired.
+6. The modal renders localized announcement text for the player’s current language, with English fallback.
 
 ## Gotchas / Known Issues
 
@@ -39,4 +40,3 @@ There is no core-game intent/execution path for this feature. It is client UI on
 - [[systems/analytics]] — bell tap and popup open analytics events
 - [[decisions/sprint-2]] — Sprint where announcements were pulled forward and shipped
 - [[decisions/sprint-4]] — Sprint planning context showing 8d-A was no longer future scope
-

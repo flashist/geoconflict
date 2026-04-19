@@ -14,6 +14,7 @@ export const flashistConstants = {
     UI_CLICK_STALE_BUILD_REFRESH: "UI:ClickStaleBuildRefresh",
     UI_CLICK_STALE_BUILD_CONTACT: "UI:ClickStaleBuildContact",
     ANNOUNCEMENTS_OPENED: "Announcements:Opened",
+    ANNOUNCEMENTS_CLOSED: "Announcements:Closed",
 
     GAME_START: "Game:Start",
     GAME_END: "Game:End",

@@ -103,6 +103,7 @@ Fired for both multiplayer and single-player missions.
 | `UI_CLICK_STALE_BUILD_REFRESH` | `UI:ClickStaleBuildRefresh` | Player clicks the REFRESH button on the stale build modal                                                    |
 | `UI_CLICK_STALE_BUILD_CONTACT` | `UI:ClickStaleBuildContact` | Player clicks the "Contact support" link on the stale build modal                                            |
 | `ANNOUNCEMENTS_OPENED`         | `Announcements:Opened`      | Player opens the announcements popup                                                                         |
+| `ANNOUNCEMENTS_CLOSED`         | `Announcements:Closed`      | Player closes the announcements popup                                                                        |
 
 #### UI:Tap events
 

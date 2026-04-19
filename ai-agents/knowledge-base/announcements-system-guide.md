@@ -284,6 +284,7 @@ The system currently emits two analytics signals.
 |-------|---------|
 | `UI:Tap:AnnouncementsBell` | Player tapped the bell on the start screen |
 | `Announcements:Opened` | Announcements popup opened |
+| `Announcements:Closed` | Announcements popup closed |
 
 Why this matters:
 

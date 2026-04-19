@@ -18,6 +18,7 @@ export class NewsModal extends LitElement {
     open: () => void;
     close: () => void;
   };
+  private isOpen = false;
 
   connectedCallback() {
     super.connectedCallback();
@@ -131,7 +132,10 @@ export class NewsModal extends LitElement {
     const entries = getAnnouncements();
 
     return html`
-      <o-modal title=${translateText("announcements.title")}>
+      <o-modal
+        title=${translateText("announcements.title")}
+        @modal-close=${this.handleModalClosed}
+      >
         <div class="options-layout">
           <div class="options-section">
             <div class="news-container">
@@ -171,14 +175,30 @@ export class NewsModal extends LitElement {
   }
 
   public open() {
+    if (this.isOpen) {
+      return;
+    }
+
     markAnnouncementsRead();
     window.dispatchEvent(new CustomEvent("announcements-state-changed"));
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents.ANNOUNCEMENTS_OPENED,
     );
+    this.isOpen = true;
     this.requestUpdate();
     this.modalEl?.open();
   }
+
+  private handleModalClosed = () => {
+    if (!this.isOpen) {
+      return;
+    }
+
+    this.isOpen = false;
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.ANNOUNCEMENTS_CLOSED,
+    );
+  };
 
   private close() {
     this.modalEl?.close();
