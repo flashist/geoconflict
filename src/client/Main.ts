@@ -695,6 +695,9 @@ class Client {
         document.getElementById("settings-button")?.classList.add("hidden");
         document.getElementById("feedback-button")?.classList.add("hidden");
         document
+          .getElementById("start-screen-announcements-button")
+          ?.classList.add("hidden");
+        document
           .getElementById("username-validation-error")
           ?.classList.add("hidden");
         [
