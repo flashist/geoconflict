@@ -25,3 +25,4 @@ Guest players should not have the citizenship feature silently hidden. The recom
 ## Related
 
 - [[decisions/sprint-4]] — Sprint 4 roadmap and dependencies for citizenship and payments
+- [[tasks/yandex-payments-investigation]] — parallel Sprint 4 investigation; both findings gate the safe paid-citizenship path

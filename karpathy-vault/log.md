@@ -162,3 +162,9 @@
 - Skipped (already covered): `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md` and `ai-agents/tasks/done/sprint4-investigation-yandex-payments.md` → current content already reflected in [[wiki/tasks/yandex-payments-investigation]] and [[wiki/decisions/sprint-4]]
 - Skipped (already covered): `ai-agents/sprints/plan-sprint-4.md` → current content already reflected in [[wiki/decisions/sprint-4]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-email-subscribe-task.md`, `ai-agents/tasks/backlog/s4-legal-vat-investigation.md` — backlog files are not yet ready for wiki task pages
+
+## 2026-04-19 — lint
+- Issues found: 3
+- Issues fixed: 3
+- Issues flagged for human review: 0
+- Fixed three backlink gaps: Sprint 4 now links back to announcements, Flashist init links back to the Yandex payments investigation, and the player-profile investigation links back to the parallel payments investigation

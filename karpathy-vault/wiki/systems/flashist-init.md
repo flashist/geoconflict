@@ -39,3 +39,4 @@
 ## Related
 
 - [[systems/analytics]] — event conventions and GameAnalytics usage built on top of this facade
+- [[tasks/yandex-payments-investigation]] — recommends adding memoized Yandex payments/catalog caching into `FlashistFacade`
