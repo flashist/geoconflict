@@ -704,7 +704,7 @@ export class FlashistFacade {
             .catch((error) => {
               flashist_logErrorToAnalytics(
                 "ERROR! Flashist Facade | getCurPlayerLeaderboardScore __ error.code: " +
-                  error.code,
+                error.code,
                 flashist_logErrorTypes.DEBUG,
               );
 

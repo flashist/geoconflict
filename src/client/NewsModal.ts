@@ -10,7 +10,6 @@ import {
   flashist_logEventAnalytics,
 } from "./flashist/FlashistFacade";
 import { translateText } from "../client/Utils";
-import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
 
 @customElement("news-modal")
@@ -146,12 +145,6 @@ export class NewsModal extends LitElement {
             </div>
           </div>
         </div>
-
-        <o-button
-          title=${translateText("common.close")}
-          @click=${this.close}
-          blockDesktop
-        ></o-button>
       </o-modal>
     `;
   }
