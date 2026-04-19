@@ -33,6 +33,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⬜ Backlog | Tutorial — Remove Nations, Keep Only Bots | `s4-tutorial-no-nations.md` |
 | ⬜ Backlog | Tutorial — Lock Build Menu to City During Tooltip 5 | `s4-tutorial-build-menu-lock.md` |
 | ⬜ Backlog | Tutorial — Reduce Bot Count from 400 to 100 | `s4-tutorial-reduce-bots.md` |
+| ⬜ Backlog | Email Subscription Modal | `s4-email-subscribe-task.md` |
 
 ---
 
@@ -229,6 +230,18 @@ See full brief: `s4-tutorial-build-menu-lock.md`
 Tutorial currently spawns 400 bots — same order of magnitude as a full multiplayer match. Reduces to 100 to make the map less chaotic and give new players more room to learn without being immediately overwhelmed.
 
 See full brief: `s4-tutorial-reduce-bots.md`
+
+---
+
+## Email Subscription Modal
+
+**Effort:** half a day
+**Experiments:** ❌ Excluded — new feature, ships to all players.
+**Independent** — no dependencies.
+
+Add a "Subscribe to updates" modal with a single email input field. Entry point buttons added to both the match start and match end modals. On submit, the email is sent to the Telegram bot via the existing feedback pipeline as a new message type. No frequency capping or duplicate checks in v1.
+
+See full brief: `s4-email-subscribe-task.md`
 
 ---
 
