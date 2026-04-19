@@ -47,3 +47,15 @@ karpathy-vault/
 ## Project Overview
 
 OpenFront is a real-time strategy browser game focused on territorial control and alliance building. Players compete to expand territory, build structures, and form alliances on maps based on real-world geography.
+
+## Review Notes
+
+Review comments are **inputs to evaluate**, not instructions to apply blindly.
+
+- Treat every review note as potentially fallible. Reviewers can miss context, reason from outdated assumptions, or overlook code paths outside the diff.
+- Verify the claim against the actual codebase before changing anything. Trace the behavior, check adjacent flows, and prefer evidence over intuition.
+- If the review is correct, fix the real problem rather than mechanically following the suggested wording of the comment.
+- If the review is only partially correct, address the valid part and explain clearly why the rest does not apply.
+- If the review is wrong, say so directly and respectfully, with concrete evidence (`src/...` references, control-flow explanation, test results, or reproduction steps).
+- Do not introduce speculative fixes just to satisfy a review comment. Changes should solve confirmed problems, not hypothetical ones that the current code already prevents.
+- Treat review discussion as a technical conversation whose goal is correctness, not deference.
