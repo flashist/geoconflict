@@ -1,8 +1,8 @@
 import { LitElement, css, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import {
-  announcements,
   AnnouncementEntry,
+  getAnnouncements,
   markAnnouncementsRead,
 } from "./Announcements";
 import {
@@ -35,8 +35,6 @@ export class NewsModal extends LitElement {
       this.close();
     }
   };
-
-  private readonly entries: AnnouncementEntry[] = announcements;
 
   static styles = css`
     :host {
@@ -130,18 +128,20 @@ export class NewsModal extends LitElement {
   `;
 
   render() {
+    const entries = getAnnouncements();
+
     return html`
       <o-modal title=${translateText("announcements.title")}>
         <div class="options-layout">
           <div class="options-section">
             <div class="news-container">
-              ${this.entries.length === 0
+              ${entries.length === 0
                 ? html`
                     <div class="empty-state">
                       ${translateText("announcements.empty")}
                     </div>
                   `
-                : this.entries.map((entry) => this.renderAnnouncement(entry))}
+                : entries.map((entry) => this.renderAnnouncement(entry))}
             </div>
           </div>
         </div>
@@ -171,7 +171,7 @@ export class NewsModal extends LitElement {
   }
 
   public open() {
-    markAnnouncementsRead(this.entries);
+    markAnnouncementsRead();
     window.dispatchEvent(new CustomEvent("announcements-state-changed"));
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents.ANNOUNCEMENTS_OPENED,
