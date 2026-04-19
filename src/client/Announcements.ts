@@ -83,18 +83,19 @@ function normalizeAnnouncementEntry(
     return null;
   }
 
-  if (
-    tag !== undefined &&
-    (typeof tag !== "string" || !VALID_TAGS.has(tag as AnnouncementTag))
-  ) {
-    console.warn(`Announcement ${id} has an invalid tag and was ignored.`);
-    return null;
-  }
-
   const normalizedTitle = normalizeLocalizedAnnouncementText(title, "title", id);
   const normalizedBody = normalizeLocalizedAnnouncementText(body, "body", id);
   if (!normalizedTitle || !normalizedBody) {
     return null;
+  }
+
+  let normalizedTag: AnnouncementTag | undefined;
+  if (tag !== undefined) {
+    if (typeof tag === "string" && VALID_TAGS.has(tag as AnnouncementTag)) {
+      normalizedTag = tag as AnnouncementTag;
+    } else {
+      console.warn(`Announcement ${id} has an invalid tag and will render without a badge.`);
+    }
   }
 
   return {
@@ -102,11 +103,11 @@ function normalizeAnnouncementEntry(
     date,
     title: normalizedTitle,
     body: normalizedBody,
-    tag: tag as AnnouncementTag | undefined,
+    tag: normalizedTag,
   };
 }
 
-function normalizeAnnouncements(value: unknown): AnnouncementSourceEntry[] {
+export function normalizeAnnouncements(value: unknown): AnnouncementSourceEntry[] {
   if (!Array.isArray(value)) {
     console.warn(
       "Announcements JSON is not an array. Falling back to empty list.",

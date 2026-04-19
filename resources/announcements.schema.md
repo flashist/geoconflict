@@ -39,6 +39,7 @@ The file must contain a JSON array of objects in newest-first order:
 - Do not reuse or edit old `id` values after they ship.
 - English source text is mandatory for every entry because the client falls back to `en` when the current locale is missing.
 - Localized fields fall back per field, not per entry. If `title.ru` exists but `body.ru` does not, the Russian title renders with the English body.
+- Invalid `tag` values do not hide the announcement; the client logs a warning and renders the entry without a badge.
 - Announcement content is plain text in V1. Do not use Markdown or HTML.
 - Additional locales can be added later by adding more keys inside `title` and `body`.
 - Publishing a new announcement requires a client deploy because the JSON is bundled with the app.

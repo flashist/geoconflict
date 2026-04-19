@@ -3,6 +3,7 @@ import {
   getAnnouncements,
   getLatestAnnouncementId,
   hasUnreadAnnouncements,
+  normalizeAnnouncements,
   resolveLocalizedAnnouncementText,
 } from "../../src/client/Announcements";
 
@@ -101,5 +102,43 @@ describe("announcements helpers", () => {
     expect(resolveLocalizedAnnouncementText(entries[0].title, "ru-RU")).toBe(
       "Последнее",
     );
+  });
+
+  it("keeps announcements with invalid tags and drops only the badge", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+    expect(
+      normalizeAnnouncements([
+        {
+          id: "invalid-tag",
+          date: "2026-04-20",
+          title: {
+            en: "Entry survives",
+          },
+          body: {
+            en: "Body survives too",
+          },
+          tag: "typo",
+        },
+      ]),
+    ).toEqual([
+      {
+        id: "invalid-tag",
+        date: "2026-04-20",
+        title: {
+          en: "Entry survives",
+        },
+        body: {
+          en: "Body survives too",
+        },
+        tag: undefined,
+      },
+    ]);
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      "Announcement invalid-tag has an invalid tag and will render without a badge.",
+    );
+
+    warnSpy.mockRestore();
   });
 });
