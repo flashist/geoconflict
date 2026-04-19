@@ -1,7 +1,7 @@
 # Announcements
 
 **Status**: active
-**Source files**: `ai-agents/knowledge-base/announcements-system-guide.md`, `src/client/Announcements.ts`, `src/client/components/NewsButton.ts`, `src/client/NewsModal.ts`, `resources/announcements.json`
+**Source files**: `ai-agents/knowledge-base/announcements-system-guide.md`, `ai-agents/tasks/done/8d-a-task-global-announcements.md`, `src/client/Announcements.ts`, `src/client/components/NewsButton.ts`, `src/client/NewsModal.ts`, `resources/announcements.json`
 
 ## Summary
 
@@ -40,3 +40,4 @@ There is no core-game intent/execution path for this feature. It is client UI on
 - [[systems/analytics]] — bell tap and popup open analytics events
 - [[decisions/sprint-2]] — Sprint where announcements were pulled forward and shipped
 - [[decisions/sprint-4]] — Sprint planning context showing 8d-A was no longer future scope
+- [[tasks/global-announcements]] — original re-enable task brief and shipped outcome

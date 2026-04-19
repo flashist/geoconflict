@@ -51,6 +51,7 @@
 - [[tasks/ui-click-multiplayer]] — Investigation confirming `UI:ClickMultiplayer` fires on per-lobby JOIN attempts
 - [[tasks/player-profile-store-investigation]] — Sprint 4 investigation recommending Postgres on the game VPS and identifying the Yandex identity gap
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
+- [[tasks/global-announcements]] — Re-enabled repo-authored announcements bell and popup with unread badge
 - [[tasks/map-preload]] — HF-13 background terrain preload on JOIN with preload-hit analytics
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 fix preserving one human slot in mixed AI/public lobbies
 - [[tasks/tutorial-no-nations]] — Tutorial config change removing nation-controlled opponents

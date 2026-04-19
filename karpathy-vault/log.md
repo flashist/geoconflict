@@ -150,3 +150,15 @@
 ## 2026-04-19 — ingest
 - Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
 - Ingested: `ai-agents/knowledge-base/announcements-system-guide.md` → updated [[wiki/features/announcements]]
+
+## 2026-04-19 — ingest
+- Sync window: 1e857a0432d72de4a9e006b0f7e2cd51ace40bd6 → HEAD (9090a390027b748eba242affc07c0d29333dd285)
+- Changed source files detected: 11
+- Ingested: `ai-agents/tasks/done/8d-a-task-global-announcements.md` → created [[wiki/tasks/global-announcements]]; updated [[wiki/features/announcements]], [[wiki/decisions/sprint-2]]
+- Skipped (already covered): `ai-agents/knowledge-base/analytics-event-reference.md` → current content already reflected in [[wiki/systems/analytics]]
+- Skipped (already covered): `ai-agents/knowledge-base/announcements-system-guide.md` → current content already reflected in [[wiki/features/announcements]]
+- Skipped (already covered): `ai-agents/knowledge-base/geoconflict-overview.md` → current content already reflected in [[wiki/systems/game-overview]]
+- Skipped (already covered): `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md` and `ai-agents/tasks/done/sprint4-investigation-player-store.md` → current content already reflected in [[wiki/tasks/player-profile-store-investigation]] and [[wiki/decisions/sprint-4]]
+- Skipped (already covered): `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md` and `ai-agents/tasks/done/sprint4-investigation-yandex-payments.md` → current content already reflected in [[wiki/tasks/yandex-payments-investigation]] and [[wiki/decisions/sprint-4]]
+- Skipped (already covered): `ai-agents/sprints/plan-sprint-4.md` → current content already reflected in [[wiki/decisions/sprint-4]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-email-subscribe-task.md`, `ai-agents/tasks/backlog/s4-legal-vat-investigation.md` — backlog files are not yet ready for wiki task pages
