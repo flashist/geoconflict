@@ -29,6 +29,7 @@ The reference doc is `ai-agents/knowledge-base/analytics-event-reference.md`.
 | `Match` | Spawn flow (chosen, auto, missed, retry) |
 | `Reconnect` | Disconnect/reconnect flow |
 | `Feedback` | Feedback form interactions |
+| `Subscribe` | Email subscription modal open and submit events |
 | `UI` | Button clicks; `UI:Tap:{ElementId}` for specific elements |
 | `Performance` | FPS and memory sampled every 60s during gameplay |
 | `Build` | Stale build detection |
@@ -101,6 +102,7 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[decisions/stale-build-zombie-tabs]] — `Build:StaleDetected` event context
 - [[features/reconnection]] — Reconnect event category
 - [[features/feedback-button]] — Feedback event category and match ID attachment
+- [[tasks/email-subscribe-modal]] — `Subscribe:Opened` and `Subscribe:Submitted` for the email opt-in flow
 - [[tasks/session-start-sequence]] — Session start event sequence and conventions
 - [[tasks/mobile-quick-wins]] — `Performance:FPS:*` events measured here
 - [[tasks/stale-build-detection]] — `Build:StaleDetected` event implementation

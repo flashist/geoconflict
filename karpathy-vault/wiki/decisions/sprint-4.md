@@ -10,7 +10,7 @@ Goal: launch the citizenship system and the in-app purchase foundation. Give loy
 **Rewarded ads explicitly deferred** — no reward mechanic exists yet. Rewarded ads ship in Sprint 5 once citizenship benefits give players something worth watching an ad for.
 
 Source: `ai-agents/sprints/plan-sprint-4.md`
-Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
+Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/tasks/done/s4-email-subscribe-task.md`, `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
 
 ## Decision
 
@@ -35,6 +35,7 @@ Sprint 4 remains the planned citizenship and payments sprint, but the wiki now r
 | Tutorial — Remove Nations, Keep Only Bots | 1-2 hours | Config-only tutorial simplification to remove aggressive nation opponents |
 | Tutorial — Lock Build Menu to City During Tooltip 5 | half a day | Tutorial guardrail so the player cannot stall tooltip 5 by building the wrong structure |
 | Tutorial — Reduce Bot Count from 400 to 100 | 30 minutes | Tutorial simplification to make Iceland less crowded and easier to follow |
+| Email Subscription Modal | half a day | Add start-screen and win-screen opt-in entry points that send emails through the existing Telegram-backed feedback infrastructure |
 
 **Phase 2 — Implementation (after investigation findings reviewed with Mark):**
 Briefs to be written after findings. Confirmed scope:
@@ -87,6 +88,7 @@ Briefs to be written after findings. Confirmed scope:
 - [[tasks/player-profile-store-investigation]] — completed Sprint 4 investigation for player-store technology, hosting, schema, and match-crediting approach
 - [[tasks/yandex-payments-investigation]] — completed Sprint 4 investigation for Yandex payments SDK usage, catalog caching, dashboard setup, and purchase verification flow
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 bug fix for mixed real-plus-AI full lobbies
+- [[tasks/email-subscribe-modal]] — Sprint 4 email opt-in modal on start and win screens
 - [[tasks/tutorial-no-nations]] — Sprint 4 tutorial simplification that removed nation opponents
 - [[tasks/tutorial-build-menu-lock]] — Sprint 4 tooltip-5 build-menu guardrail
 - [[tasks/tutorial-reduce-bots]] — Sprint 4 tutorial config change that lowered tutorial bot count from 400 to 100

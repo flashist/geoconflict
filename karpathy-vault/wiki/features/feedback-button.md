@@ -77,3 +77,4 @@ Submissions land in a simple list view: category, free text, attached context, t
 - [[decisions/sprint-1]] — sprint where feedback button was built
 - [[decisions/hotfix-post-sprint2]] — HF-3 added `UI:Tap:*` events for tutorial skip buttons (same `UI:Tap` convention)
 - [[decisions/sprint-3]] — Sprint 3 added last 3 match IDs to feedback payload
+- [[tasks/email-subscribe-modal]] — separate opt-in modal that reuses the same Telegram delivery path

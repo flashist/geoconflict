@@ -168,3 +168,9 @@
 - Issues fixed: 3
 - Issues flagged for human review: 0
 - Fixed three backlink gaps: Sprint 4 now links back to announcements, Flashist init links back to the Yandex payments investigation, and the player-profile investigation links back to the parallel payments investigation
+
+## 2026-04-20 — ingest
+- Sync window: 9090a390027b748eba242affc07c0d29333dd285 → HEAD (9cff2b65036320c6ed505ba7ae714a26c84ef52e)
+- Changed source files detected: 2
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
+- Ingested: `ai-agents/tasks/done/s4-email-subscribe-task.md` → created [[wiki/tasks/email-subscribe-modal]]; updated [[wiki/decisions/sprint-4]], [[wiki/features/feedback-button]], [[wiki/systems/analytics]]
