@@ -174,3 +174,9 @@
 - Changed source files detected: 2
 - Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
 - Ingested: `ai-agents/tasks/done/s4-email-subscribe-task.md` → created [[wiki/tasks/email-subscribe-modal]]; updated [[wiki/decisions/sprint-4]], [[wiki/features/feedback-button]], [[wiki/systems/analytics]]
+
+## 2026-04-20 — lint
+- Issues found: 0
+- Issues fixed: 0
+- Issues flagged for human review: 0
+- Full index/schema audit passed: 42 indexed pages, 42 on-disk pages, with no broken targets, stale path references, backlink gaps, or template violations detected
