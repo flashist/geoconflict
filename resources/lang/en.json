@@ -304,6 +304,16 @@
     "error": "Failed to send. Please try again.",
     "button_tooltip": "Feedback"
   },
+  "email_subscribe_modal": {
+    "title": "Subscribe to updates",
+    "placeholder": "Your email address",
+    "submit": "Subscribe",
+    "sending": "Subscribing…",
+    "success": "You're subscribed! We'll be in touch.",
+    "error": "Failed to subscribe. Please try again.",
+    "invalid_email": "Please enter a valid email address.",
+    "subscribe_button": "Subscribe to updates"
+  },
   "stale_build_modal": {
     "message": "The version of the game you're playing is outdated. Please refresh the page. If this popup keeps appearing, try clearing your browser cache and refreshing again, or contact us.",
     "refresh_button": "REFRESH",

@@ -32,6 +32,9 @@ export const flashistConstants = {
     FEEDBACK_BUTTON_OPENED: "Feedback:ButtonOpened",
     FEEDBACK_SUBMITTED: "Feedback:Submitted",
 
+    SUBSCRIBE_BUTTON_OPENED: "Subscribe:Opened",
+    SUBSCRIBE_SUBMITTED: "Subscribe:Submitted",
+
     SESSION_START: "Session:Start",
     SESSION_HEARTBEAT: "Session:Heartbeat",
     SESSION_FIRST_ACTION: "Session:FirstAction",

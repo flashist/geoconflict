@@ -314,6 +314,64 @@ app.post(
   },
 );
 
+const SubscribeSchema = z.object({
+  email: z.string().email().max(200),
+});
+
+app.post(
+  "/api/subscribe",
+  rateLimit({ windowMs: 60_000, max: 3 }),
+  async (req, res) => {
+    const parsed = SubscribeSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Invalid payload" });
+      return;
+    }
+
+    const { email } = parsed.data;
+    const esc = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    if (FEEDBACK_TELEGRAM_TOKEN && FEEDBACK_TELEGRAM_CHAT_ID) {
+      const telegramBody = JSON.stringify({
+        chat_id: FEEDBACK_TELEGRAM_CHAT_ID,
+        text: [
+          `<b>[Subscription] Email</b>`,
+          `<b>Email:</b> ${esc(email)}`,
+          `<b>Time:</b> ${new Date().toISOString()}`,
+        ].join("\n"),
+        parse_mode: "HTML",
+      });
+      try {
+        const telegramResp = await fetch(
+          `https://api.telegram.org/bot${FEEDBACK_TELEGRAM_TOKEN}/sendMessage`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: telegramBody,
+            dispatcher: telegramProxyAgent,
+          },
+        );
+        if (!telegramResp.ok) {
+          log.error(
+            `[subscribe] telegram responded with ${telegramResp.status}`,
+          );
+          res.status(500).json({ error: "Delivery failed" });
+          return;
+        }
+      } catch (err) {
+        log.error(`[subscribe] telegram delivery failed: ${formatError(err)}`);
+        res.status(500).json({ error: "Delivery failed" });
+        return;
+      }
+    } else {
+      log.info(`[subscribe] ${email}`);
+    }
+
+    res.json({ ok: true });
+  },
+);
+
 app.post("/api/kick_player/:gameID/:clientID", async (req, res) => {
   if (req.headers[config.adminHeader()] !== config.adminToken()) {
     res.status(401).send("Unauthorized");

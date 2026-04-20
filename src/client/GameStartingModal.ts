@@ -1,6 +1,7 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { translateText } from "./Utils";
+import "./EmailSubscribeModal";
 
 @customElement("game-starting-modal")
 export class GameStartingModal extends LitElement {
@@ -113,6 +114,30 @@ export class GameStartingModal extends LitElement {
       color: #6bb0ff;
       text-decoration: underline;
     }
+
+    .modal-box .subscribe-btn {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(22, 163, 74, 0.6);
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+      box-sizing: border-box;
+    }
+
+    .modal-box .subscribe-btn:hover {
+      background: rgba(22, 163, 74, 0.8);
+      transform: translateY(-1px);
+    }
+
+    .modal-box .subscribe-btn:active {
+      transform: translateY(1px);
+    }
   `;
 
   render() {
@@ -121,6 +146,9 @@ export class GameStartingModal extends LitElement {
       <div class="modal-overlay ${this.isVisible ? "visible" : ""}">
         <div class="modal-box">
           <p class="loading">${translateText("game_starting_modal.title")}</p>
+          <button class="subscribe-btn" @click=${this.openSubscribeModal}>
+            ${translateText("email_subscribe_modal.subscribe_button")}
+          </button>
         </div>
       </div>
     `;
@@ -137,6 +165,11 @@ export class GameStartingModal extends LitElement {
     //     <p class="loading">${translateText("game_starting_modal.title")}</p>
     //   </div>
     // `;
+  }
+
+  private openSubscribeModal() {
+    const modal = document.querySelector("email-subscribe-modal") as any;
+    modal?.show();
   }
 
   show() {
