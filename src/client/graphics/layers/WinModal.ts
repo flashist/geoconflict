@@ -88,6 +88,14 @@ export class WinModal extends LitElement implements Layer {
         : translateText("win_modal.spectate")}
           </button>
         </div>
+        <button
+          @click=${this.openSubscribeModal}
+          class="${this.showButtons
+        ? "w-full mt-2.5 px-3 py-3 text-base cursor-pointer bg-green-600/60 text-white border-0 rounded transition-all duration-200 hover:bg-green-600/80 hover:-translate-y-px active:translate-y-px"
+        : "hidden"}"
+        >
+          ${translateText("email_subscribe_modal.subscribe_button")}
+        </button>
       </div>
 
       <style>
@@ -203,6 +211,11 @@ export class WinModal extends LitElement implements Layer {
     //     ${translateText("win_modal.wishlist")}
     //   </a>
     // </p>`;
+  }
+
+  private openSubscribeModal() {
+    const modal = document.querySelector("email-subscribe-modal") as any;
+    modal?.show();
   }
 
   async show() {

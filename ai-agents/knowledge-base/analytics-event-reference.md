@@ -90,8 +90,10 @@ Fired for both multiplayer and single-player missions.
 
 | Enum Key                 | Event String            | When Fired                     |
 | ------------------------ | ----------------------- | ------------------------------ |
-| `FEEDBACK_BUTTON_OPENED` | `Feedback:ButtonOpened` | Player opens the feedback form |
-| `FEEDBACK_SUBMITTED`     | `Feedback:Submitted`    | Player submits feedback        |
+| `FEEDBACK_BUTTON_OPENED`  | `Feedback:ButtonOpened` | Player opens the feedback form         |
+| `FEEDBACK_SUBMITTED`      | `Feedback:Submitted`    | Player submits feedback                |
+| `SUBSCRIBE_BUTTON_OPENED` | `Subscribe:Opened`      | Player opens the email subscribe modal |
+| `SUBSCRIBE_SUBMITTED`     | `Subscribe:Submitted`   | Player submits email subscription      |
 
 ### UI Events
 
