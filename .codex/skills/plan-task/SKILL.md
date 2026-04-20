@@ -1,0 +1,48 @@
+---
+name: plan-task
+description: Use when the user wants Codex to read a task file and produce an implementation plan before writing code. Trigger for requests like `$plan-task ai-agents/tasks/backlog/my-task.md`, planning a task from a markdown file, reviewing a backlog task, breaking a task into implementation steps, or gathering context and proposing an execution plan that must be approved before any edits are made. The plan should account for realistic edge cases, including non-obvious but plausible failure modes, where they could materially affect implementation, correctness, or testing.
+---
+
+# Plan Task
+
+## Overview
+
+Use this skill to turn a task file into a concrete implementation plan without making code changes. The goal is to gather the necessary context, identify the likely work areas, and present a step-by-step plan for approval before implementation begins.
+
+## Workflow
+
+1. State clearly that this run is planning-only and that no code will be written yet.
+2. Read the task file path passed by the user when invoking the skill.
+3. If `karpathy-vault/` exists, use the `$wiki-query` skill to gather relevant project context before proceeding.
+4. Read any files referenced by the task, including specs, related tasks, and knowledge-base documents.
+5. Identify the implementation scope, constraints, dependencies, risks, and likely validation steps.
+6. Produce a concrete step-by-step plan.
+7. Present the plan to the user and stop for approval before making any code changes.
+
+## Planning Requirements
+
+The plan should be specific enough that implementation can begin immediately after approval.
+
+Include when relevant:
+- likely files or subsystems to change
+- sequencing of work
+- dependencies or blockers
+- testing and validation steps
+- open questions or assumptions that could affect the implementation
+- realistic edge cases and non-obvious but plausible failure modes that may affect implementation, correctness, or testing
+
+## Guardrails
+
+- Do not write or edit code while using this skill.
+- Do not skip referenced documents if they materially affect the task.
+- Do not present a vague high-level outline when the task file supports a concrete plan.
+- If the task is underspecified, surface the missing details explicitly in the plan.
+
+## Usage
+
+Invoke this skill by naming the skill and passing the task file path in the request.
+
+Examples:
+- `$plan-task ai-agents/tasks/backlog/improve-lobby-flow.md`
+- `$plan-task ai-agents/tasks/backlog/fix-reconnect-state.md`
+- `$plan-task ai-agents/tasks/done/refactor-matchmaking.md`
