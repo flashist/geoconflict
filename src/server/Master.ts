@@ -353,10 +353,16 @@ app.post(
           },
         );
         if (!telegramResp.ok) {
-          log.warn(`[subscribe] telegram responded with ${telegramResp.status}`);
+          log.error(
+            `[subscribe] telegram responded with ${telegramResp.status}`,
+          );
+          res.status(500).json({ error: "Delivery failed" });
+          return;
         }
       } catch (err) {
         log.error(`[subscribe] telegram delivery failed: ${formatError(err)}`);
+        res.status(500).json({ error: "Delivery failed" });
+        return;
       }
     } else {
       log.info(`[subscribe] ${email}`);
