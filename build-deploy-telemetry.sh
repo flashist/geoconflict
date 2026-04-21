@@ -102,10 +102,12 @@ ch_cluster:
 redis_cache:
   addrs:
     1: redis:6379
-retention:
-  traces: 7d
-  logs: 7d
-  metrics: 90d
+ch:
+  retention:
+    ttl:
+      traces: 7 DAY
+      logs: 7 DAY
+      metrics: 90 DAY
 seed_data:
   update: true
   delete: false
