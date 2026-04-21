@@ -208,3 +208,7 @@
 - Sync window: `89e3d81c687a3207ec137dae97e3a1df113553ae` → HEAD (`97ff570e508164df8d5ec2a12a959102cd9d1da9`)
 - Changed source files detected: 1
 - Ingested: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md` → created [[wiki/systems/project-operations]]; updated [[wiki/systems/game-overview]], [[wiki/systems/analytics]], [[wiki/systems/telemetry]], [[wiki/decisions/product-strategy]], [[wiki/decisions/sprint-4]]
+
+## 2026-04-21 — restructure
+- Reorganized producer guidance from `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md` into dedicated [[wiki/systems/producer-workflow]]
+- Updated index entry and backlinks in [[wiki/systems/project-operations]], [[wiki/systems/analytics]], [[wiki/decisions/product-strategy]], and [[wiki/decisions/sprint-4]]

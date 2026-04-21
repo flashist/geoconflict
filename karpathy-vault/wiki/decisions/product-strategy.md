@@ -57,5 +57,6 @@ Mobile deep optimization parked — desktop is core audience. Revisit if mobile 
 - [[decisions/sprint-6]] — content expansion after payments/cosmetics infrastructure exists
 - [[decisions/cancelled-tasks]] — work cancelled with reasons
 - [[systems/analytics]] — analytics infrastructure built in Sprint 1
+- [[systems/producer-workflow]] — producer prioritization and decision-boundary rules derived from this strategy
 - [[systems/project-operations]] — operational handbook for team roles, release workflow, and roadmap constraints
 - [[tasks/mobile-quick-wins]] — Task 3 mobile optimizations; Task 5 gate conditions documented here

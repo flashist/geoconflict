@@ -14,7 +14,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 ### Ownership and decision flow
 - Mark owns product direction, sprint priorities, release decisions, and community-facing coordination
 - The coding agent implements approved briefs and maintains the wiki, but does not make product decisions unilaterally
-- The producer agent plans sprints, writes briefs, interprets analytics, and maintains operational context without editing product code
+- Producer-specific responsibilities and guardrails are documented in [[systems/producer-workflow]]
 
 ### Runtime and infrastructure boundaries
 - Gameplay is split across `src/client/`, `src/core/`, and `src/server/`, but authoritative per-tick simulation still runs in the client Web Worker; the server assembles and relays turns rather than simulating combat itself
@@ -42,6 +42,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 ## Related
 
 - [[systems/game-overview]] — gameplay, architecture, and mechanics baseline
+- [[systems/producer-workflow]] — dedicated producer-role behaviour and coordination rules
 - [[systems/analytics]] — player-behaviour instrumentation and release verification rules
 - [[systems/telemetry]] — production-only server observability boundaries
 - [[decisions/product-strategy]] — retention-first sequencing and experiment policy

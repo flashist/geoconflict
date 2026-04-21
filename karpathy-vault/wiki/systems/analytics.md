@@ -91,6 +91,7 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 ## Related
 
 - [[systems/game-overview]] — overall project context
+- [[systems/producer-workflow]] — producer release validation depends on these analytics conventions
 - [[systems/project-operations]] — operational workflow and release guardrails that depend on analytics
 - [[decisions/product-strategy]] — why analytics was built first (Sprint 1)
 - [[decisions/sprint-1]] — analytics baseline and session conventions were built here
