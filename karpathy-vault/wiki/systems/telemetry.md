@@ -77,6 +77,7 @@ Child spans:
 ## Related
 
 - [[systems/game-overview]] — overall project context
+- [[systems/project-operations]] — environment and operational boundaries for production-only observability
 - [[decisions/sprint-3]] — sprint where OTEL metrics and slow-turn spans were implemented (5d-A/B)
 - [[decisions/vps-credential-leak-response]] — incident response that also repaired telemetry setup drift
 - [[systems/analytics]] — player behaviour tracking (GameAnalytics), complementary

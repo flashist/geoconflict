@@ -13,6 +13,7 @@
 ## Systems
 
 - [[systems/game-overview]] — Project overview: game types, maps, units, economy, combat, tick system
+- [[systems/project-operations]] — Operational handbook: team roles, environment boundaries, sprint workflow, and roadmap constraints
 - [[systems/game-loop]] — Deterministic turn replay from server turns into worker-executed core simulation
 - [[systems/networking]] — Worker-routed WebSocket/HTTP flow with Zod-validated client/server messages
 - [[systems/execution-pipeline]] — Client input to Intent to Execution to GameUpdate path

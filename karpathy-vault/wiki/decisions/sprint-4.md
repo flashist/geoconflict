@@ -82,6 +82,7 @@ Briefs to be written after findings. Confirmed scope:
 - [[decisions/sprint-3]] — previous sprint
 - [[decisions/sprint-5]] — next sprint
 - [[decisions/sprint-6]] — later content sprint depends on this payments/citizenship layer
+- [[systems/project-operations]] — operational context and source brief covering Sprint 4 planning constraints
 - [[features/announcements]] — already-live dependency Sprint 4 can build on for global and future personal messaging
 - [[features/tutorial]] — tutorial follow-up fixes were added to the Sprint 4 backlog
 - [[features/ai-players]] — AI Players feature (already active in production)
