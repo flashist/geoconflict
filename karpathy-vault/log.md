@@ -180,3 +180,7 @@
 - Issues fixed: 0
 - Issues flagged for human review: 0
 - Full index/schema audit passed: 42 indexed pages, 42 on-disk pages, with no broken targets, stale path references, backlink gaps, or template violations detected
+
+## 2026-04-21 — ingest
+- Ingested: `ai-agents/knowledge-base/security-vps-credential-leak-postmortem.md` → created [[wiki/decisions/vps-credential-leak-response]]
+- Ingested: `ai-agents/knowledge-base/security-vps-credential-leak-postmortem.md` → updated [[wiki/systems/telemetry]]

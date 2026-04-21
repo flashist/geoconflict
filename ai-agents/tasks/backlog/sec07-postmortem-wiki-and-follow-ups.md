@@ -88,3 +88,22 @@ At minimum, record:
 
 - Durable project memory of the incident
 - Clear follow-up queue for future hardening
+
+## Implementation Notes
+
+- Wrote the postmortem source document: `ai-agents/knowledge-base/security-vps-credential-leak-postmortem.md`
+- Recorded the final root-cause conclusion as: unsafe Docker build context plus broad `COPY . .` around operator-local env files
+- Captured final policy decisions:
+  - real VPS IPs should not remain in repo docs
+  - password deploys remain temporary emergency fallback only
+  - pre-hardening images are untrusted
+- Created explicit follow-up backlog tasks:
+  - `sec08-ci-docker-secret-boundary-check.md`
+  - `sec09-registry-visibility-and-image-retention-policy.md`
+  - `sec10-remove-password-deploy-fallbacks.md`
+  - `sec11-secret-management-beyond-env-files.md`
+- Updated the wiki with a dedicated decision page and telemetry cross-reference
+
+## Remaining Validation Gap
+
+- `sec02` registry/image exposure work was not completed as a full historical forensic audit during the active incident; it has been converted into the follow-up policy task `sec09`

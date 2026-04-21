@@ -5,11 +5,11 @@ Security incident coordination runbook.
 
 ## Current Status
 
-- Incident state: active
+- Incident state: closed
 - Severity: high
-- Blocking risk: production access credentials and adjacent env secrets may be compromised
-- Selected working theory: a Docker image built from a local workspace likely exposed `.env*` contents
-- Coordination file owner: assign one human owner before continuing
+- Blocking risk: none remaining on the live path; residual hardening captured as follow-up backlog
+- Final root-cause conclusion: a hardened repo review confirmed an unsafe Docker build path that could package operator-local `.env*` files into image layers
+- Final postmortem source: `ai-agents/knowledge-base/security-vps-credential-leak-postmortem.md`
 
 ## Purpose
 
@@ -90,13 +90,13 @@ The following repo facts are already confirmed and should be treated as the star
 
 | Task | Purpose | Owner | Status | Evidence Collected | Blockers |
 |---|---|---|---|---|---|
-| `sec01` | Immediate containment and secret rotation | _unassigned_ | pending | no | none recorded |
-| `sec02` | Registry and image exposure audit | _unassigned_ | pending | no | none recorded |
-| `sec03` | VPS access audit and host hardening | _unassigned_ | pending | no | none recorded |
-| `sec04` | Repo build-context hardening | _unassigned_ | pending | no | none recorded |
-| `sec05` | Deployment credential model hardening | _unassigned_ | pending | no | depends on `sec03`, `sec04` |
-| `sec06` | Clean rebuild, redeploy, and validation | _unassigned_ | pending | no | depends on `sec01`, `sec02`, `sec03`, `sec04`, `sec05` |
-| `sec07` | Postmortem, wiki, and follow-ups | _unassigned_ | pending | no | depends on `sec01`-`sec06` |
+| `sec01` | Immediate containment and secret rotation | _unassigned_ | done | yes | none |
+| `sec02` | Registry and image exposure audit | _unassigned_ | deferred to follow-up | partial | converted into `sec09` |
+| `sec03` | VPS access audit and host hardening | _unassigned_ | done | yes | none |
+| `sec04` | Repo build-context hardening | _unassigned_ | done | yes | none |
+| `sec05` | Deployment credential model hardening | _unassigned_ | done | yes | none |
+| `sec06` | Clean rebuild, redeploy, and validation | _unassigned_ | done | yes | none |
+| `sec07` | Postmortem, wiki, and follow-ups | _unassigned_ | done | yes | none |
 
 Update this table as the incident progresses. Do not let status drift into chat-only knowledge.
 
@@ -136,15 +136,14 @@ Only reference those artifacts here by sanitized path or identifier. Do not copy
 
 ## Immediate Next Actions
 
-1. Assign a human incident owner and fill the task tracker owner column.
-2. Execute `sec01` before any new deployment or registry reuse.
-3. Start `sec02`, `sec03`, and `sec04` in parallel immediately after containment begins.
-4. Keep this file updated after each completed action, not at the very end.
+1. Complete the follow-up backlog items created during `sec07`.
+2. Remove temporary password deploy fallbacks after SSH-key rollout is complete.
+3. Record the final registry policy before reusing any legacy image tags.
 
 ## Done Criteria
 
 - Every downstream runbook has either completed evidence attached or a documented blocker
-- One person owns the incident state and keeps this index updated while the incident is open
+- Remaining hardening work has been converted into explicit backlog tasks
 - The team can answer:
   - what likely leaked
   - where it likely leaked from
@@ -161,9 +160,9 @@ Only reference those artifacts here by sanitized path or identifier. Do not copy
 
 ## Outputs For Next Steps
 
-- Incident owner
-- Link or path to all collected evidence
-- Status of each runbook: pending, in progress, blocked, done
+- Final postmortem source
+- Follow-up backlog list
+- Final status of each runbook
 
 ## Completion Notes
 
@@ -173,3 +172,10 @@ When `sec07` is complete, convert this file from an active dashboard into a clos
 - linking the final postmortem
 - noting the trusted deployment model and image policy
 - linking the wiki ingest result
+
+This conversion is now complete. Remaining work is tracked in:
+
+- `sec08-ci-docker-secret-boundary-check.md`
+- `sec09-registry-visibility-and-image-retention-policy.md`
+- `sec10-remove-password-deploy-fallbacks.md`
+- `sec11-secret-management-beyond-env-files.md`
