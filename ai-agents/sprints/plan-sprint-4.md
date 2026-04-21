@@ -16,9 +16,9 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 
 | Status | Task | Brief |
 |---|---|---|
-| ⬜ Backlog | Investigation A — Player Profile Store | `s4-investigation-player-store.md` |
-| ⬜ Backlog | Investigation B — Yandex Payments Catalog | `s4-investigation-yandex-payments.md` |
-| ⬜ Backlog | 8d-A. Global Announcements Re-enable | `s4-8d-a-task-global-announcements.md` |
+| ✅ Done | Investigation A — Player Profile Store | `s4-investigation-player-store.md` |
+| ✅ Done | Investigation B — Yandex Payments Catalog | `s4-investigation-yandex-payments.md` |
+| ✅ Done | 8d-A. Global Announcements Re-enable | `s4-8d-a-task-global-announcements.md` |
 | ⬜ Backlog | Player Profile Store — Implementation | TBD after investigation |
 | ⬜ Backlog | Yandex Payments — Catalog Fetch & Caching | TBD after investigation |
 | ⬜ Backlog | Citizenship Core — Match Counter & Progress UI | TBD after investigation |
@@ -30,10 +30,10 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⬜ Backlog | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` |
 | ⬜ Backlog | AI Lobby Slot Bug — Always Keep One Slot Free | `s4-ai-lobby-slot-bug.md` |
 | ⛔ Cancelled | Tutorial — Pause During Action-Required Steps | `s4-tutorial-action-pause.md` |
-| ⬜ Backlog | Tutorial — Remove Nations, Keep Only Bots | `s4-tutorial-no-nations.md` |
-| ⬜ Backlog | Tutorial — Lock Build Menu to City During Tooltip 5 | `s4-tutorial-build-menu-lock.md` |
-| ⬜ Backlog | Tutorial — Reduce Bot Count from 400 to 100 | `s4-tutorial-reduce-bots.md` |
-| ⬜ Backlog | Email Subscription Modal | `s4-email-subscribe-task.md` |
+| ✅ Done | Tutorial — Remove Nations, Keep Only Bots | `s4-tutorial-no-nations.md` |
+| ✅ Done | Tutorial — Lock Build Menu to City During Tooltip 5 | `s4-tutorial-build-menu-lock.md` |
+| ✅ Done | Tutorial — Reduce Bot Count from 400 to 100 | `s4-tutorial-reduce-bots.md` |
+| ✅ Done | Email Subscription Modal | `s4-email-subscribe-task.md` |
 
 ---
 
