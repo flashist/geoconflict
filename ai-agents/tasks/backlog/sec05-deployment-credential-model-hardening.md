@@ -84,3 +84,17 @@ Confirm a deploy operator can:
 
 - Final deployment model for `sec06`
 - Policy decisions to capture in `sec07`
+
+## Implementation Notes
+
+- `deploy.sh` now treats SSH keys as the standard path and blocks password-only deploys unless `ALLOW_SSH_PASSWORD_FALLBACK=1` is set explicitly
+- Environment-specific SSH keys are supported via `SSH_KEY_<ENV>`
+- Legacy `VPS_LOGIN` and `VPS_PASSWORD` values still work only as deprecated fallback inputs, with warnings
+- Telemetry deploy and tunnel flows now prefer `TELEMETRY_SSH_KEY` / `TELEMETRY_SSH_USER`
+- Password-based telemetry access now also requires explicit opt-in via `ALLOW_TELEMETRY_SSH_PASSWORD_FALLBACK=1` or `ALLOW_SSH_PASSWORD_FALLBACK=1`
+- Repo docs and examples now describe gitignored secret overlays and no longer present host passwords as the normal operator workflow
+- `docs/project-status.md` no longer keeps real environment IPs in repo history
+
+## Remaining Validation Gap
+
+- A live key-only deploy was not executed from this workspace, so the operator workflow is verified at script and documentation level but not yet proven against a real VPS in this turn

@@ -15,21 +15,21 @@ _Last updated: 2025-11-03_
 - Docker image: `flashist/geoconflict-dev` (container name `geoconflict-<env>`).
 - Build scripts (`build.sh`) push multi-arch images to Docker Hub.
 - Deploy scripts (`deploy.sh`, `update.sh`) upload env files to the VPS and restart containers.
-- Environment configuration stored in `.env` / `.env.<env>` (ignored by git). Dev VPS details are already populated.
+- Environment configuration stored in local gitignored env files. Sensitive overlays now live in `.env.secret` / `.env.<env>.secret`.
 - `setup.sh` installs Docker, telemetry sidecars, provisions a swap file, and configures host-level Nginx to proxy `:80` to the container on `127.0.0.1:3000`.
 - HTTP served directly from the container (port 80). HTTPS/TLS pending.
 
 ## Environments
 | Environment | VPS Host/IP      | Public Endpoint            | Notes |
 |-------------|------------------|----------------------------|-------|
-| dev         | `79.174.91.179`  | `http://79.174.91.179`     | Active. Requires `sshpass` or SSH key for scripted deploys. |
-| staging     | _TBD_            | _TBD_                      | Needs VPS allocation. |
-| prod        | `91.197.98.116`  | `http://91.197.98.116`     | Fresh VPS; HTTPS and DNS still pending. |
+| dev         | private          | private                    | Active. Access details are intentionally kept out of repo docs. |
+| staging     | private / TBD    | private / TBD              | Needs VPS allocation. |
+| prod        | private          | private                    | Access details are intentionally kept out of repo docs. |
 
 ### Environment Credentials
 - `.env` – shared tokens (`DOCKER_USERNAME`, `DOCKER_TOKEN`, `ADMIN_TOKEN`, `API_KEY`, optional storage/telemetry defaults).
-- `.env.dev` – `VPS_IP`, `VPS_LOGIN`, `VPS_PASSWORD`, `DOCKER_REPO=geoconflict-dev`.
-- `.env.prod` – `VPS_IP`, `VPS_LOGIN`, `VPS_PASSWORD`, `DOCKER_REPO=geoconflict-prod`.
+- `.env.<env>` – non-secret environment settings such as `VPS_IP`, `DOCKER_REPO`, `PUBLIC_HOST`, `API_BASE_URL`.
+- `.env.secret` / `.env.<env>.secret` – gitignored secrets such as tokens and SSH key paths. Host passwords are deprecated and should not be part of the standard deploy path.
 
 ## Worklog & Status
 
@@ -38,7 +38,7 @@ _Last updated: 2025-11-03_
 - Refactored config system to support per-environment public host/IP metadata (`RuntimeConfig`, `/api/env` updates).
 - Adjusted client (`src/client/jwt.ts`) for IP-based deployments, safe cookies, and runtime API resolution.
 - Updated deployment tooling:
-  - `deploy.sh` supports per-env SSH user/password (via `.env`), uses `sshpass` fallback.
+  - `deploy.sh` now treats SSH keys as the supported deploy path and only allows password fallback with explicit opt-in.
   - `update.sh` ensures containers publish port 80 and names them `geoconflict-<env>`.
 - Added operational docs: `docs/vps-migration-plan.md`, `docs/vps-deployment-guide.md`.
 - Validated lint/tests (`npm run lint`, `npm test -- --runInBand`).
@@ -88,7 +88,7 @@ npm test -- --runInBand
 ./deploy.sh dev <tag>
 ```
 - Requires Docker daemon and Docker Hub credentials (`DOCKER_TOKEN` or prior `docker login`).
-- For password-based SSH, install `sshpass` locally (`brew install hudochenkov/sshpass/sshpass` on macOS).
+- Standard deploys use SSH keys. Password-based SSH is deprecated emergency fallback only.
 
 ### Remote Validation Checklist
 1. `ssh <user>@<ip>` → `docker ps` (`geoconflict-<env>` should show `0.0.0.0:80->80/tcp`).

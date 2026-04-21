@@ -21,7 +21,7 @@
     "prepare": "husky",
     "gen-maps": "cd map-generator && go run . && npm run format",
     "deploy:telemetry": "./build-deploy-telemetry.sh",
-    "telemetry:tunnel": "bash -c 'set -o allexport; [ -f .env.telemetry ] && source .env.telemetry; [ -f .env.telemetry.secret ] && source .env.telemetry.secret; set +o allexport; sshpass -p \"$TELEMETRY_VPS_PASSWORD\" ssh -o StrictHostKeyChecking=no -N -L 14318:localhost:14318 ${TELEMETRY_VPS_LOGIN:-root}@$TELEMETRY_SERVER_HOST'"
+    "telemetry:tunnel": "./scripts/telemetry-tunnel.sh"
   },
   "lint-staged": {
     "**/*": [

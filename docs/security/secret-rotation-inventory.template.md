@@ -15,8 +15,8 @@ Do not commit real values, real account identifiers, real image digests, real su
 
 | Secret / key name | Scope / system | Found in | Rotation owner | Rotated at | Old credential disabled? | Verification note | Blockers |
 |---|---|---|---|---|---|---|---|
-| `VPS_PASSWORD` | prod VPS | `.env.prod` |  |  |  |  |  |
 | `SSH_KEY` / deploy key | prod VPS | operator machine |  |  |  |  |  |
+| `SSH_PASS_PROD` or `VPS_PASSWORD` | prod VPS | `.env.prod.secret` emergency fallback only |  |  |  |  |  |
 | `DOCKER_TOKEN` | registry | `.env` |  |  |  |  |  |
 | `ADMIN_TOKEN` | game server | `.env` / remote env file |  |  |  |  |  |
 | `API_KEY` | game server | `.env` / remote env file |  |  |  |  |  |
@@ -26,7 +26,8 @@ Do not commit real values, real account identifiers, real image digests, real su
 | `OTEL_PASSWORD` | telemetry | `.env` / remote env file |  |  |  |  |  |
 | `FEEDBACK_WEBHOOK_URL` | webhook | `.env` / remote env file |  |  |  |  |  |
 | `FEEDBACK_TELEGRAM_TOKEN` | Telegram | `.env` / remote env file |  |  |  |  |  |
-| `TELEMETRY_VPS_PASSWORD` | telemetry VPS | `.env.telemetry` |  |  |  |  |  |
+| `TELEMETRY_SSH_KEY` | telemetry VPS | operator machine |  |  |  |  |  |
+| `TELEMETRY_SSH_PASSWORD` or `TELEMETRY_VPS_PASSWORD` | telemetry VPS | `.env.telemetry.secret` emergency fallback only |  |  |  |  |  |
 | `UPTRACE_PROJECT_TOKEN` | Uptrace | `.env.telemetry` |  |  |  |  |  |
 | `UPTRACE_SECRET_KEY` | Uptrace | `.env.telemetry` |  |  |  |  |  |
 | `UPTRACE_ADMIN_PASSWORD` | Uptrace | `.env.telemetry` |  |  |  |  |  |
