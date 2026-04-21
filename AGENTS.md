@@ -36,7 +36,7 @@ karpathy-vault/
 
 **log.md is append-only** — never edit or rewrite existing entries, only append new ones at the bottom.
 
-**Sync watermark** lives at `.claude/wiki-watermark` (a single commit SHA). The wiki-sync skill reads and writes this file to track the last sync point. Do not delete or modify it manually.
+**Sync watermark** lives at `karpathy-vault/.wiki-watermark` (a single commit SHA). The wiki-sync skill reads and writes this file to track the last sync point. Do not delete or modify it manually.
 
 **When to update the wiki:**
 - After completing a task: run `/wiki-ingest ai-agents/tasks/done/<task-file>`
