@@ -28,7 +28,7 @@
 | ⛔ Cancelled | HF-11e. Stale Builds — BUILD_NUMBER Automation | `s3-hf11e-hotfix-build-number-automation.md` |
 | ✅ Done | HF-12. Spawn Camera/Animation Timing Fix | `s3-hf12-hotfix-spawn-camera-timing.md` |
 | ✅ Done | HF-13. Map File Preloading on JOIN | `s3-hf13-hotfix-map-preload.md` |
-| ⬜ Backlog | Investigation — UI:ClickMultiplayer firing point | `s3-investigation-ui-click-multiplayer.md` |
+| ✅ Done | Investigation — UI:ClickMultiplayer firing point | `s3-investigation-ui-click-multiplayer.md` |
 
 ---
 
