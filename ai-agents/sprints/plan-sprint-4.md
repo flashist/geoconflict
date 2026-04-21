@@ -27,8 +27,8 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⬜ Backlog | 8d-B. Personal Inbox | `s4-8d-b-task-personal-inbox.md` |
 | ⬜ Backlog | Name Change (Citizens Only) | TBD after investigation |
 | ⬜ Backlog | Citizen Verified Icon | TBD after investigation |
-| ⬜ Backlog | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` |
-| ⬜ Backlog | AI Lobby Slot Bug — Always Keep One Slot Free | `s4-ai-lobby-slot-bug.md` |
+| ⛔ Cancelled | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` |
+| ✅ Done | AI Lobby Slot Bug — Always Keep One Slot Free | `s4-ai-lobby-slot-bug.md` |
 | ⛔ Cancelled | Tutorial — Pause During Action-Required Steps | `s4-tutorial-action-pause.md` |
 | ✅ Done | Tutorial — Remove Nations, Keep Only Bots | `s4-tutorial-no-nations.md` |
 | ✅ Done | Tutorial — Lock Build Menu to City During Tooltip 5 | `s4-tutorial-build-menu-lock.md` |
