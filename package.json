@@ -18,6 +18,7 @@
     "format": "prettier --ignore-unknown --write .",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
+    "check:docker-secret-boundary": "./scripts/check-docker-secret-boundary.sh",
     "prepare": "husky",
     "gen-maps": "cd map-generator && go run . && npm run format",
     "deploy:telemetry": "./build-deploy-telemetry.sh",

@@ -81,6 +81,9 @@ echo "Metadata file: $METADATA_FILE"
 GIT_COMMIT=$(git rev-parse HEAD 2> /dev/null || echo "unknown")
 echo "Git commit: $GIT_COMMIT"
 
+print_header "DOCKER SECRET BOUNDARY CHECK"
+./scripts/check-docker-secret-boundary.sh --runtime-image-check
+
 if [ -n "$CHANGELOG_MD" ]; then
     echo "$CHANGELOG_MD" > resources/changelog.md
 fi
