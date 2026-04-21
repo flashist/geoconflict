@@ -212,3 +212,9 @@
 ## 2026-04-21 — restructure
 - Reorganized producer guidance from `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md` into dedicated [[wiki/systems/producer-workflow]]
 - Updated index entry and backlinks in [[wiki/systems/project-operations]], [[wiki/systems/analytics]], [[wiki/decisions/product-strategy]], and [[wiki/decisions/sprint-4]]
+
+## 2026-04-21 — lint
+- Issues found: 2
+- Issues fixed: 2
+- Issues flagged for human review: 0
+- Fixed two backlink gaps by linking [[wiki/systems/game-overview]] back to [[wiki/decisions/vps-credential-leak-response]] and [[wiki/decisions/registry-image-policy]]; index coverage, metadata fields, and source-path references all validated clean

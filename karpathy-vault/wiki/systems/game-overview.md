@@ -96,6 +96,8 @@ Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adapta
 - [[systems/project-operations]] — team roles, sprint workflow, and operational constraints
 - [[systems/server-performance]] — server-side lag analysis and endTurn() pipeline
 - [[systems/match-logging]] — what is recorded per match
+- [[decisions/vps-credential-leak-response]] — live deployment and recovery constraints for the production game stack
+- [[decisions/registry-image-policy]] — trusted image and rollback rules for deploy operations around the live game
 - [[features/ai-players]] — AI Players feature spec (`PlayerType.AiPlayer` documented here)
 - [[systems/game-loop]] — tick execution detail
 - [[systems/networking]] — worker-routed WebSocket and HTTP flow
