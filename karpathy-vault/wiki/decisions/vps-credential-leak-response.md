@@ -38,5 +38,6 @@ The final trusted recovery workflow is:
 
 ## Related
 
+- [[decisions/registry-image-policy]] — trusted/untrusted image and retention rules introduced as a follow-up policy
 - [[systems/telemetry]] — telemetry redeploy and Uptrace retention-config drift were part of the incident closure
 - [[systems/game-overview]] — operational context for the live game deployment model

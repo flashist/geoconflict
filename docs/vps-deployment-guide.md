@@ -49,6 +49,14 @@ To deploy an existing image without rebuilding, run:
 
 The tag accepts either a version string or a `sha256:` digest.
 
+For `prod`, prefer deploying by digest when you have the trusted digest recorded:
+
+```bash
+./deploy.sh prod sha256:<trusted-digest>
+```
+
+Registry trust and retention rules are documented in [docs/security/registry-image-policy.md](docs/security/registry-image-policy.md).
+
 If `deploy.sh` sees only a password and no SSH key, it now fails by default with an explicit message. That is intentional. The supported happy path is SSH-key-based deploy.
 
 ## 4. Runtime Behaviour

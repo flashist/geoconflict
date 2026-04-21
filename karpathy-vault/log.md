@@ -184,3 +184,6 @@
 ## 2026-04-21 — ingest
 - Ingested: `ai-agents/knowledge-base/security-vps-credential-leak-postmortem.md` → created [[wiki/decisions/vps-credential-leak-response]]
 - Ingested: `ai-agents/knowledge-base/security-vps-credential-leak-postmortem.md` → updated [[wiki/systems/telemetry]]
+
+## 2026-04-21 — ingest
+- Ingested: `docs/security/registry-image-policy.md` → created [[wiki/decisions/registry-image-policy]]

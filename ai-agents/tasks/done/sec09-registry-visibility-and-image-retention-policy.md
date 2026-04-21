@@ -28,3 +28,19 @@ The incident response treated pre-hardening images as untrusted, but that policy
 ## Outputs
 
 - final registry policy and trusted tag rules
+
+## Implementation Notes
+
+- Added the operator-facing policy doc: `docs/security/registry-image-policy.md`
+- Documented:
+  - preferred private/restricted registry visibility
+  - the compensating-controls rule for any public repo
+  - trusted vs untrusted image classification
+  - production deploy-by-digest guidance
+  - rollback and retention rules
+- Updated `docs/vps-deployment-guide.md` to recommend digest-based production deploys and point to the policy doc
+- Updated `README.md` to stop describing the old password-based env model and to link to the registry policy
+
+## Remaining Validation Gap
+
+- This task documents the policy in-repo, but it does not mutate live Docker Hub visibility settings or delete historical tags; those actions still require registry-admin access outside this workspace
