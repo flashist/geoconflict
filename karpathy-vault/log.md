@@ -187,3 +187,19 @@
 
 ## 2026-04-21 — ingest
 - Ingested: `docs/security/registry-image-policy.md` → created [[wiki/decisions/registry-image-policy]]
+
+## 2026-04-21 — ingest
+- Sync window: `9cff2b65036320c6ed505ba7ae714a26c84ef52e` → HEAD (`89e3d81c687a3207ec137dae97e3a1df113553ae`)
+- Changed source files detected: 23
+- Ingested: `ai-agents/tasks/done/sec00-incident-index.md` → created [[wiki/tasks/incident-response-index]]; updated [[wiki/decisions/vps-credential-leak-response]]
+- Ingested: `ai-agents/tasks/done/sec01-immediate-containment.md` → created [[wiki/tasks/immediate-containment]]; updated [[wiki/decisions/vps-credential-leak-response]]
+- Ingested: `ai-agents/tasks/done/sec02-registry-image-exposure-audit.md` → created [[wiki/tasks/registry-image-audit]]; updated [[wiki/decisions/vps-credential-leak-response]], [[wiki/decisions/registry-image-policy]]
+- Ingested: `ai-agents/tasks/done/sec03-vps-access-audit-and-hardening.md` → created [[wiki/tasks/vps-access-hardening]]; updated [[wiki/decisions/vps-credential-leak-response]]
+- Ingested: `ai-agents/tasks/done/sec04-repo-build-context-hardening.md` → created [[wiki/tasks/repo-build-context-hardening]]; updated [[wiki/decisions/vps-credential-leak-response]]
+- Ingested: `ai-agents/tasks/done/sec05-deployment-credential-model-hardening.md` → created [[wiki/tasks/deployment-credential-hardening]]; updated [[wiki/decisions/vps-credential-leak-response]]
+- Ingested: `ai-agents/tasks/done/sec06-clean-rebuild-redeploy-and-validation.md` → created [[wiki/tasks/clean-redeploy-validation]]; updated [[wiki/decisions/vps-credential-leak-response]]
+- Ingested: `ai-agents/tasks/done/sec07-postmortem-wiki-and-follow-ups.md` → created [[wiki/tasks/incident-postmortem-followups]]; updated [[wiki/decisions/vps-credential-leak-response]], [[wiki/decisions/registry-image-policy]]
+- Ingested: `ai-agents/tasks/done/sec08-ci-docker-secret-boundary-check.md` → created [[wiki/tasks/docker-secret-boundary-check]]; updated [[wiki/tasks/incident-postmortem-followups]], [[wiki/decisions/vps-credential-leak-response]]
+- Ingested: `ai-agents/tasks/done/sec09-registry-visibility-and-image-retention-policy.md` → created [[wiki/tasks/registry-image-policy-followup]]; updated [[wiki/tasks/incident-postmortem-followups]], [[wiki/decisions/vps-credential-leak-response]], [[wiki/decisions/registry-image-policy]]
+- Skipped (already covered): `ai-agents/knowledge-base/security-vps-credential-leak-postmortem.md` — current content already reflected in [[wiki/decisions/vps-credential-leak-response]] and [[wiki/systems/telemetry]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/sec00-incident-index.md`, `ai-agents/tasks/backlog/sec01-immediate-containment.md`, `ai-agents/tasks/backlog/sec02-registry-image-exposure-audit.md`, `ai-agents/tasks/backlog/sec03-vps-access-audit-and-hardening.md`, `ai-agents/tasks/backlog/sec04-repo-build-context-hardening.md`, `ai-agents/tasks/backlog/sec05-deployment-credential-model-hardening.md`, `ai-agents/tasks/backlog/sec06-clean-rebuild-redeploy-and-validation.md`, `ai-agents/tasks/backlog/sec07-postmortem-wiki-and-follow-ups.md`, `ai-agents/tasks/backlog/sec08-ci-docker-secret-boundary-check.md`, `ai-agents/tasks/backlog/sec09-registry-visibility-and-image-retention-policy.md`, `ai-agents/tasks/backlog/sec10-remove-password-deploy-fallbacks.md`, `ai-agents/tasks/backlog/sec11-secret-management-beyond-env-files.md` — backlog files are not eligible for `wiki-sync`

@@ -34,3 +34,6 @@ The trust anchor for a production image is the combination of repo commit, image
 
 - [[decisions/vps-credential-leak-response]] — incident that prompted the policy
 - [[systems/game-overview]] — deploy and runtime context
+- [[tasks/registry-image-audit]] — source investigation that established the need for explicit image classification
+- [[tasks/incident-postmortem-followups]] — closure task that turned the incident rule into a follow-up policy item
+- [[tasks/registry-image-policy-followup]] — task that authored the in-repo policy and deployment-doc updates

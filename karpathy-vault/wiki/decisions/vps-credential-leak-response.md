@@ -33,7 +33,7 @@ The final trusted recovery workflow is:
 
 - Docker build refactors now require deliberate allowlist maintenance; missing files can cause build regressions, but secret leakage risk is materially reduced
 - password-based deploys remain available only as an emergency bridge and should be removed once all environments are key-based
-- historical registry policy still needs explicit follow-up; this incident response did not complete a full historical image forensic audit
+- historical image trust is now captured in [[decisions/registry-image-policy]], but live registry visibility changes and old-tag cleanup still require operator action outside the repo
 - telemetry setup is now safer for clean rebuilds, and the repo documents the retention-config drift that caused the transient `502`
 
 ## Related
@@ -41,3 +41,13 @@ The final trusted recovery workflow is:
 - [[decisions/registry-image-policy]] — trusted/untrusted image and retention rules introduced as a follow-up policy
 - [[systems/telemetry]] — telemetry redeploy and Uptrace retention-config drift were part of the incident closure
 - [[systems/game-overview]] — operational context for the live game deployment model
+- [[tasks/incident-response-index]] — incident-wide coordination file and final closure state
+- [[tasks/immediate-containment]] — secret rotation and unsafe-deploy freeze during the response
+- [[tasks/registry-image-audit]] — historical image trust investigation that was resolved conservatively
+- [[tasks/vps-access-hardening]] — host-access review and SSH hardening requirements
+- [[tasks/repo-build-context-hardening]] — Docker secret-boundary fix in the repo
+- [[tasks/deployment-credential-hardening]] — key-first deploy contract and doc cleanup
+- [[tasks/clean-redeploy-validation]] — trusted image rebuild and post-deploy validation path
+- [[tasks/incident-postmortem-followups]] — postmortem capture and explicit follow-up queue
+- [[tasks/docker-secret-boundary-check]] — automated regression guard for the Docker boundary
+- [[tasks/registry-image-policy-followup]] — follow-up task that wrote the durable registry policy

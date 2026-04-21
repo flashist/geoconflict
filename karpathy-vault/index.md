@@ -60,3 +60,13 @@
 - [[tasks/tutorial-no-nations]] — Tutorial config change removing nation-controlled opponents
 - [[tasks/tutorial-build-menu-lock]] — Tooltip-5 guardrail that restricts building to City
 - [[tasks/tutorial-reduce-bots]] — Tutorial config change lowering tutorial bot count from 400 to 100
+- [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
+- [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response
+- [[tasks/registry-image-audit]] — Historical image-trust audit plan; outcome was conservative pre-hardening image quarantine
+- [[tasks/vps-access-hardening]] — Host-access review and SSH hardening checklist after leaked VPS credentials
+- [[tasks/repo-build-context-hardening]] — `.dockerignore` plus allowlist Docker copies to block env-file leakage
+- [[tasks/deployment-credential-hardening]] — SSH-key-first deploy contract and password-fallback demotion
+- [[tasks/clean-redeploy-validation]] — Trusted post-hardening rebuild, redeploy, and validation workflow
+- [[tasks/incident-postmortem-followups]] — Final postmortem capture and explicit security follow-up queue
+- [[tasks/docker-secret-boundary-check]] — Automated guard against `.env*` or `COPY . .` regressions in Docker builds
+- [[tasks/registry-image-policy-followup]] — Task that authored the registry visibility and image-retention policy
