@@ -24,12 +24,24 @@ if [ -f .env ]; then
     set +o allexport
 fi
 
+if [ -f .env.secret ]; then
+    set -o allexport
+    source .env.secret
+    set +o allexport
+fi
+
 if [ -f .env.telemetry ]; then
     set -o allexport
     source .env.telemetry
     set +o allexport
 else
     echo "Warning: .env.telemetry not found — using env vars from .env or shell"
+fi
+
+if [ -f .env.telemetry.secret ]; then
+    set -o allexport
+    source .env.telemetry.secret
+    set +o allexport
 fi
 
 # ── Validate ──────────────────────────────────────────────────────────────────

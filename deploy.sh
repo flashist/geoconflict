@@ -48,19 +48,20 @@ lookup_env_value() {
     eval "printf '%s' \"\${$key}\""
 }
 
-if [ -f .env ]; then
-    echo "Loading common configuration from .env file..."
-    set -o allexport
-    source .env
-    set +o allexport
-fi
+load_env_file() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        echo "Loading configuration from $file..."
+        set -o allexport
+        source "$file"
+        set +o allexport
+    fi
+}
 
-if [ -f ".env.$ENV" ]; then
-    echo "Loading $ENV-specific configuration from .env.$ENV file..."
-    set -o allexport
-    source ".env.$ENV"
-    set +o allexport
-fi
+load_env_file ".env"
+load_env_file ".env.secret"
+load_env_file ".env.$ENV"
+load_env_file ".env.$ENV.secret"
 
 SERVER_HOST_VAR="SERVER_HOST_${uppercase_env}"
 SERVER_HOST=$(lookup_env_value "$SERVER_HOST_VAR")

@@ -100,3 +100,19 @@ Document the exact reason for the change in the task notes or PR description so 
 
 - Hardened build baseline for `sec06`
 - Repo diff summary for `sec07`
+
+## Implementation Notes
+
+- Root `.dockerignore` added to exclude `.env*`, repo metadata, local tooling folders, docs, and generated outputs from the Docker build context
+- `Dockerfile` no longer uses `COPY . .`; build and runtime stages now use explicit allowlist copies only
+- `build.sh`, `deploy.sh`, and `build-deploy-telemetry.sh` now load secret overlay files such as `.env.secret`, `.env.prod.secret`, and `.env.telemetry.secret`
+- `package.json` telemetry tunnel command now reads `.env.telemetry.secret`
+- Validation completed:
+  - shell syntax checks passed for the touched scripts
+  - no `COPY . .` remains in `Dockerfile`
+  - a local `runtime-source` Docker build succeeded with a reduced build context
+  - container inspection returned no `.env*` or `*.secret` files inside the image stage
+
+## Remaining Validation Gap
+
+- A full final-image `docker build` is still blocked by an existing unrelated `canvas` / `node-gyp` Python dependency issue in the build stage; this does not affect the secret-boundary proof above

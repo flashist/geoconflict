@@ -40,26 +40,28 @@ print_header() {
     echo "======================================================"
 }
 
+load_env_file() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        echo "Loading configuration from $file..."
+        set -o allexport
+        source "$file"
+        set +o allexport
+    fi
+}
+
 # Ensure BuildKit prints detailed progress (can be overridden)
 export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-1}"
 export BUILDKIT_PROGRESS="${DOCKER_BUILD_PROGRESS:-plain}"
 BUILD_PROGRESS_MODE="${BUILDKIT_PROGRESS}"
 
 # Load common environment variables first
-if [ -f .env ]; then
-    echo "Loading common configuration from .env file..."
-    set -o allexport
-    source .env
-    set +o allexport
-fi
+load_env_file ".env"
+load_env_file ".env.secret"
 
 # Load environment-specific variables
-if [ -f .env.$DEPLOY_ENV ]; then
-    echo "Loading $DEPLOY_ENV-specific configuration from .env.$DEPLOY_ENV file..."
-    set -o allexport
-    source .env.$DEPLOY_ENV
-    set +o allexport
-fi
+load_env_file ".env.$DEPLOY_ENV"
+load_env_file ".env.$DEPLOY_ENV.secret"
 
 # Check required environment variables for build
 if [ -z "$DOCKER_USERNAME" ] || [ -z "$DOCKER_REPO" ]; then
