@@ -19,6 +19,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | Investigation A — Player Profile Store | `s4-investigation-player-store.md` |
 | ✅ Done | Investigation B — Yandex Payments Catalog | `s4-investigation-yandex-payments.md` |
 | ✅ Done | 8d-A. Global Announcements Re-enable | `s4-8d-a-task-global-announcements.md` |
+| ⚠️ Urgent | Yandex Catalog Registration (manual, non-engineering) | `s4-yandex-catalog-registration.md` |
 | ⬜ Backlog | Player Profile Store — Implementation | TBD after investigation |
 | ⬜ Backlog | Yandex Payments — Catalog Fetch & Caching | TBD after investigation |
 | ⬜ Backlog | Citizenship Core — Match Counter & Progress UI | TBD after investigation |
