@@ -11,7 +11,10 @@ Non-technical — requires personal action, not engineering work.
 Investigate legal and tax obligations related to in-app purchase revenue. Requires direct consultation with relevant professionals (tax consultants, banks, or legal advisors). Not something the technical specialist handles.
 
 ## Status
-⬜ Pending — action required by Mark personally.
+✅ Done — completed 2026-04-21.
+
+## Findings
+Current legal status is fine. No additional registration, account changes, or structural steps required before in-app purchases go live. No blockers.
 
 ## Notes
-Must be resolved before in-app purchases go live.
+This gate is cleared. Yandex payments implementation can proceed without waiting on any legal or tax prerequisite.
