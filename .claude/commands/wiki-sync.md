@@ -11,7 +11,7 @@ If `$ARGUMENTS` contains a date (YYYY-MM-DD format), use `git log --since="<date
 
 If `$ARGUMENTS` is "force", skip to Step 2 and list all files under `ai-agents/`.
 
-Otherwise, check `.claude/wiki-watermark` for a commit SHA written by the previous successful sync:
+Otherwise, check `karpathy-vault/.wiki-watermark` for a commit SHA written by the previous successful sync:
 - **If the file exists and contains a SHA:** use that SHA as the base in Step 2 (`git log <sha>..HEAD`). This is exact — it picks up every commit since the last sync regardless of when it ran.
 - **If the file is missing (first run or reset):** treat this as `force` — skip git and list all eligible `ai-agents/` files so no history is missed.
 
@@ -68,7 +68,7 @@ For each page created or updated in Step 5:
 
 ### Step 7 — Update watermark and log.md
 
-Run `git rev-parse HEAD` and write the resulting SHA to `.claude/wiki-watermark` (overwrite, single line). This is the precise resume point for the next sync.
+Run `git rev-parse HEAD` and write the resulting SHA to `karpathy-vault/.wiki-watermark` (overwrite, single line). This is the precise resume point for the next sync.
 
 Append a single entry to `karpathy-vault/log.md`:
 
