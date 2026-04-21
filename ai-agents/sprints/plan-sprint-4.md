@@ -20,14 +20,15 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | Investigation B — Yandex Payments Catalog | `s4-investigation-yandex-payments.md` |
 | ✅ Done | 8d-A. Global Announcements Re-enable | `s4-8d-a-task-global-announcements.md` |
 | ⚠️ Urgent | Yandex Catalog Registration (manual, non-engineering) | `s4-yandex-catalog-registration.md` |
-| ⬜ Backlog | Player Profile Store — Implementation | TBD after investigation |
+| ⚠️ Urgent | Start Screen Redesign — Tab Layout Investigation (design, non-engineering) | `s4-start-screen-redesign-investigation.md` |
+| ⬜ Backlog | Player Profile Store — Implementation | `s4-player-profile-store-impl.md` |
 | ⬜ Backlog | Yandex Payments — Catalog Fetch & Caching | TBD after investigation |
-| ⬜ Backlog | Citizenship Core — Match Counter & Progress UI | TBD after investigation |
-| ⬜ Backlog | Citizenship Core — Earned Citizenship | TBD after investigation |
-| ⬜ Backlog | Citizenship Core — Paid Citizenship | TBD after investigation |
-| ⬜ Backlog | 8d-B. Personal Inbox | `s4-8d-b-task-personal-inbox.md` |
-| ⬜ Backlog | Name Change (Citizens Only) | TBD after investigation |
-| ⬜ Backlog | Citizen Verified Icon | TBD after investigation |
+| ⬜ Backlog | Citizenship Core — Match Counter & Progress UI *(blocked: start screen redesign)* | TBD |
+| ⬜ Backlog | Citizenship Core — Earned Citizenship *(blocked: start screen redesign)* | TBD |
+| ⬜ Backlog | Citizenship Core — Paid Citizenship *(blocked: catalog registration + start screen redesign)* | TBD |
+| ⬜ Backlog | 8d-B. Personal Inbox *(blocked: start screen redesign)* | `s4-8d-b-task-personal-inbox.md` |
+| ⬜ Backlog | Name Change (Citizens Only) *(blocked: start screen redesign)* | TBD |
+| ⬜ Backlog | Citizen Verified Icon *(blocked: start screen redesign)* | TBD |
 | ⛔ Cancelled | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` |
 | ✅ Done | AI Lobby Slot Bug — Always Keep One Slot Free | `s4-ai-lobby-slot-bug.md` |
 | ⛔ Cancelled | Tutorial — Pause During Action-Required Steps | `s4-tutorial-action-pause.md` |
