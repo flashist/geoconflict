@@ -32,7 +32,7 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 # Explicit allowlist copy so local secret files can never ride along via repo-wide COPY.
-COPY tsconfig.json webpack.config.js postcss.config.js eslint.config.js ./
+COPY tsconfig.json webpack.config.js postcss.config.js tailwind.config.js eslint.config.js ./
 COPY src ./src
 COPY resources ./resources
 COPY proprietary ./proprietary
