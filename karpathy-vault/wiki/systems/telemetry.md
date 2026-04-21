@@ -72,11 +72,13 @@ Child spans:
 - Winston OTEL transport silently drops extra arguments — embed all error details in the message string
 - Structured fields passed as second arg to `log.info()` may not arrive as attributes in Uptrace — verify in live instance
 - `OTEL_EXPORTER_OTLP_ENDPOINT` absent in dev → no telemetry data for dev environments
+- `setup-telemetry.sh` must use `ch.retention.ttl` for Uptrace retention on the current stack; the older top-level `retention.traces/logs/metrics` format crashes Uptrace on startup and shows up externally as nginx `502 Bad Gateway`
 
 ## Related
 
 - [[systems/game-overview]] — overall project context
 - [[decisions/sprint-3]] — sprint where OTEL metrics and slow-turn spans were implemented (5d-A/B)
+- [[decisions/vps-credential-leak-response]] — incident response that also repaired telemetry setup drift
 - [[systems/analytics]] — player behaviour tracking (GameAnalytics), complementary
 - [[systems/server-performance]] — performance investigation using these spans
 - [[systems/match-logging]] — what is and isn't logged per match

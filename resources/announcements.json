@@ -1,5 +1,18 @@
 [
   {
+    "id": "2026-04-subscribe-to-updates",
+    "date": "2026-04-21",
+    "title": {
+      "en": "Subscribe to updates is live",
+      "ru": "Подписка на обновления уже работает"
+    },
+    "body": {
+      "en": "You can now subscribe to game updates directly from the game. Use the Subscribe to updates button on the start screen or after a match to leave your email and stay informed about major releases.",
+      "ru": "Теперь вы можете подписаться на обновления прямо в игре. Используйте кнопку Подписаться на обновления на стартовом экране или после матча, чтобы оставить email и получать новости о крупных обновлениях."
+    },
+    "tag": "new"
+  },
+  {
     "id": "2026-04-citizenship-coming",
     "date": "2026-04-18",
     "title": {

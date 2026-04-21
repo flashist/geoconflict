@@ -4,13 +4,15 @@ This project now targets per-environment VPS instances (dev, staging, prod) that
 
 ## 1. Prepare Environment Variables
 
-1. Copy `example.env` to `.env` and fill in values that are shared across every environment (`SSH_KEY`, `DOCKER_USERNAME`, `DOCKER_TOKEN`, `ADMIN_TOKEN`, `API_KEY`, optional storage/telemetry keys, default `PUBLIC_PROTOCOL`/`PUBLIC_PORT`, etc.).
+1. Copy `example.env` to `.env` and fill in values that are shared across every environment (`SSH_KEY`, `SSH_USER`, `DOCKER_USERNAME`, `DOCKER_TOKEN`, `ADMIN_TOKEN`, `API_KEY`, optional storage/telemetry keys, default `PUBLIC_PROTOCOL` / `PUBLIC_PORT`, etc.).
 2. Create one file per environment (`.env.dev`, `.env.staging`, `.env.prod`). Each file should at minimum define:
-   - `VPS_IP` – SSH hostname or IP of the VPS you are deploying to.
-   - `VPS_LOGIN` / `VPS_PASSWORD` (or rely on `SSH_KEY` from `.env`) – credentials for the user that runs deployments.
-   - `DOCKER_REPO` – image repository/tag suffix for that environment (e.g., `geoconflict-dev`, `geoconflict-prod`).
-   - Optional overrides such as `PUBLIC_HOST`, `PUBLIC_PROTOCOL`, `PUBLIC_PORT`, `DEPLOYMENT_ID`, `API_BASE_URL`, `JWT_ISSUER`, `JWT_AUDIENCE`, `BASIC_AUTH_*`.
-3. Deployment scripts load `.env` first and then `.env.<env>`, so the per-environment file automatically overrides any shared defaults.
+   - `VPS_IP` or `SERVER_HOST_<ENV>` – SSH hostname or IP of the VPS you are deploying to.
+   - `DOCKER_REPO` – image repository/tag suffix for that environment (e.g. `geoconflict-dev`, `geoconflict-prod`).
+   - Optional overrides such as `SSH_USER`, `SSH_KEY_<ENV>`, `PUBLIC_HOST`, `PUBLIC_PROTOCOL`, `PUBLIC_PORT`, `DEPLOYMENT_ID`, `API_BASE_URL`, `JWT_ISSUER`, `JWT_AUDIENCE`, `BASIC_AUTH_*`.
+3. Keep high-value secrets in gitignored overlay files such as `.env.secret`, `.env.prod.secret`, and `.env.telemetry.secret`.
+4. Deployment scripts load `.env`, `.env.secret`, `.env.<env>`, and `.env.<env>.secret` in that order, so environment-specific values override shared defaults.
+
+Password-based SSH is no longer the normal deploy path. If you temporarily need it for emergency recovery, keep the password only in a gitignored secret file and opt in explicitly with `ALLOW_SSH_PASSWORD_FALLBACK=1`.
 
 ## 2. Provision a VPS
 
@@ -21,7 +23,7 @@ scp setup.sh root@<server-ip>:/tmp/setup-openfront.sh
 ssh root@<server-ip> "chmod +x /tmp/setup-openfront.sh && /tmp/setup-openfront.sh"
 ```
 
-Ensure the `openfront` user can log in via SSH with the key referenced by `SSH_KEY`. After the script finishes, `swapon --show` should list `/swapfile` and `systemctl status nginx` should report a listener on port 80 that proxies to the container.
+Ensure the deploy user can log in via SSH with the key referenced by `SSH_KEY` or `SSH_KEY_<ENV>`. After the script finishes, `swapon --show` should list `/swapfile` and `systemctl status nginx` should report a listener on port 80 that proxies to the container.
 
 ## 3. Build & Deploy
 
@@ -46,6 +48,16 @@ To deploy an existing image without rebuilding, run:
 ```
 
 The tag accepts either a version string or a `sha256:` digest.
+
+For `prod`, prefer deploying by digest when you have the trusted digest recorded:
+
+```bash
+./deploy.sh prod sha256:<trusted-digest>
+```
+
+Registry trust and retention rules are documented in [docs/security/registry-image-policy.md](docs/security/registry-image-policy.md).
+
+If `deploy.sh` sees only a password and no SSH key, it now fails by default with an explicit message. That is intentional. The supported happy path is SSH-key-based deploy.
 
 ## 4. Runtime Behaviour
 

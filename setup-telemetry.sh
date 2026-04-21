@@ -125,10 +125,12 @@ redis_cache:
 # At ~3-4 GB/day of trace volume on this VPS, 7d traces ≈ 25-28 GB,
 # leaving headroom on the 59 GB disk. Raise if you expand storage.
 # Metrics are tiny; 90d gives useful trend history.
-retention:
-  traces: 7d
-  logs: 7d
-  metrics: 90d
+ch:
+  retention:
+    ttl:
+      traces: 7 DAY
+      logs: 7 DAY
+      metrics: 90 DAY
 
 seed_data:
   update: true

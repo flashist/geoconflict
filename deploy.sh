@@ -48,19 +48,31 @@ lookup_env_value() {
     eval "printf '%s' \"\${$key}\""
 }
 
-if [ -f .env ]; then
-    echo "Loading common configuration from .env file..."
-    set -o allexport
-    source .env
-    set +o allexport
-fi
+is_truthy() {
+    case "$1" in
+        1|true|TRUE|yes|YES|on|ON)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
 
-if [ -f ".env.$ENV" ]; then
-    echo "Loading $ENV-specific configuration from .env.$ENV file..."
-    set -o allexport
-    source ".env.$ENV"
-    set +o allexport
-fi
+load_env_file() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        echo "Loading configuration from $file..."
+        set -o allexport
+        source "$file"
+        set +o allexport
+    fi
+}
+
+load_env_file ".env"
+load_env_file ".env.secret"
+load_env_file ".env.$ENV"
+load_env_file ".env.$ENV.secret"
 
 SERVER_HOST_VAR="SERVER_HOST_${uppercase_env}"
 SERVER_HOST=$(lookup_env_value "$SERVER_HOST_VAR")
@@ -126,23 +138,34 @@ fi
 
 SSH_USER_VAR="SSH_USER_${uppercase_env}"
 REMOTE_USER=$(lookup_env_value "$SSH_USER_VAR")
+if [ -z "$REMOTE_USER" ] && [ -n "$SSH_USER" ]; then
+    REMOTE_USER="$SSH_USER"
+fi
 
 if [ -z "$REMOTE_USER" ]; then
     FALLBACK_USER_VAR="${uppercase_env}_VPS_LOGIN"
     REMOTE_USER=$(lookup_env_value "$FALLBACK_USER_VAR")
+    if [ -n "$REMOTE_USER" ]; then
+        echo "Warning: ${FALLBACK_USER_VAR} is deprecated. Prefer ${SSH_USER_VAR} or SSH_USER."
+    fi
 fi
 
 if [ -z "$REMOTE_USER" ] && [ -n "$VPS_LOGIN" ]; then
     REMOTE_USER="$VPS_LOGIN"
+    echo "Warning: VPS_LOGIN is deprecated. Prefer ${SSH_USER_VAR} or SSH_USER."
 fi
 
 if [ -z "$REMOTE_USER" ]; then
     REMOTE_USER="openfront"
 fi
 
-SSH_KEY_PATH=""
-if [ -n "$SSH_KEY" ]; then
-    SSH_KEY_PATH="${SSH_KEY/#\~/$HOME}"
+SSH_KEY_VAR="SSH_KEY_${uppercase_env}"
+SSH_KEY_PATH=$(lookup_env_value "$SSH_KEY_VAR")
+if [ -z "$SSH_KEY_PATH" ] && [ -n "$SSH_KEY" ]; then
+    SSH_KEY_PATH="$SSH_KEY"
+fi
+if [ -n "$SSH_KEY_PATH" ]; then
+    SSH_KEY_PATH="${SSH_KEY_PATH/#\~/$HOME}"
     if [ ! -f "$SSH_KEY_PATH" ]; then
         echo "Error: SSH key not found at $SSH_KEY_PATH"
         exit 1
@@ -151,17 +174,32 @@ fi
 
 SSH_PASS_VAR="SSH_PASS_${uppercase_env}"
 SSH_PASSWORD=$(lookup_env_value "$SSH_PASS_VAR")
+if [ -z "$SSH_PASSWORD" ] && [ -n "$SSH_PASS" ]; then
+    SSH_PASSWORD="$SSH_PASS"
+fi
 if [ -z "$SSH_PASSWORD" ]; then
     FALLBACK_PASS_VAR="${uppercase_env}_VPS_PASSWORD"
     SSH_PASSWORD=$(lookup_env_value "$FALLBACK_PASS_VAR")
+    if [ -n "$SSH_PASSWORD" ]; then
+        echo "Warning: ${FALLBACK_PASS_VAR} is deprecated. Prefer SSH keys."
+    fi
 fi
 
 if [ -z "$SSH_PASSWORD" ] && [ -n "$VPS_PASSWORD" ]; then
     SSH_PASSWORD="$VPS_PASSWORD"
+    echo "Warning: VPS_PASSWORD is deprecated. Prefer SSH keys."
+fi
+
+ALLOW_PASSWORD_FALLBACK_VAR="ALLOW_SSH_PASSWORD_FALLBACK_${uppercase_env}"
+ALLOW_PASSWORD_FALLBACK=$(lookup_env_value "$ALLOW_PASSWORD_FALLBACK_VAR")
+if [ -z "$ALLOW_PASSWORD_FALLBACK" ]; then
+    ALLOW_PASSWORD_FALLBACK="$ALLOW_SSH_PASSWORD_FALLBACK"
 fi
 
 if [ -z "$SSH_KEY_PATH" ] && [ -z "$SSH_PASSWORD" ]; then
-    echo "Error: Provide either SSH_KEY or password for $ENV deployment"
+    echo "Error: No SSH authentication configured for $ENV."
+    echo "Provide SSH_KEY or ${SSH_KEY_VAR}. Password-based deploys are deprecated."
+    echo "Emergency fallback only: set ALLOW_SSH_PASSWORD_FALLBACK=1 and provide SSH_PASS or SSH_PASS_${uppercase_env}."
     exit 1
 fi
 
@@ -197,10 +235,17 @@ chmod +x "$UPDATE_SCRIPT"
 SCP_CMD=(scp)
 SSH_CMD=(ssh)
 if [ -n "$SSH_PASSWORD" ] && [ -z "$SSH_KEY_PATH" ]; then
-    if ! command -v sshpass >/dev/null 2>&1; then
-        echo "Error: sshpass is required for password-based SSH. Please install it or provide an SSH key via SSH_KEY."
+    if ! is_truthy "$ALLOW_PASSWORD_FALLBACK"; then
+        echo "Error: Password-based deploy is disabled by default."
+        echo "Configure SSH_KEY or ${SSH_KEY_VAR} for the standard path."
+        echo "For temporary emergency fallback, set ALLOW_SSH_PASSWORD_FALLBACK=1 and rerun."
         exit 1
     fi
+    if ! command -v sshpass >/dev/null 2>&1; then
+        echo "Error: sshpass is required for password-based SSH. Provide an SSH key instead, or install sshpass for emergency fallback."
+        exit 1
+    fi
+    echo "Warning: Using deprecated password-based SSH fallback for ${ENV} deployment."
     SCP_CMD=(sshpass -p "$SSH_PASSWORD" scp)
     SSH_CMD=(sshpass -p "$SSH_PASSWORD" ssh)
 elif [ -n "$SSH_KEY_PATH" ]; then

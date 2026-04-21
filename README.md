@@ -118,7 +118,7 @@ The remote origin is resolved from `DEV_REMOTE_ORIGIN` (if set) or from the `PUB
 
 ### Environment files
 
-Environment variables are layered: copy `example.env` to `.env` for shared defaults (Docker credentials, tokens, optional VPS fallbacks) and create one file per target (e.g., `.env.dev`, `.env.prod`). Each `.env.<env>` must define `VPS_IP`, `VPS_LOGIN`, `VPS_PASSWORD`, `DOCKER_REPO`, and any public host/API/JWT overrides. The deploy scripts source `.env` first and then `.env.<env>`, so the per-environment file always wins.
+Environment variables are layered: copy `example.env` to `.env` for shared defaults (Docker credentials, tokens, SSH key path, public-host defaults) and create one file per target (e.g. `.env.dev`, `.env.prod`). Keep sensitive values in gitignored overlays such as `.env.secret` and `.env.<env>.secret`. The deploy scripts load `.env`, `.env.secret`, `.env.<env>`, and `.env.<env>.secret` in that order. SSH keys are the supported deploy path; password fallback is emergency-only.
 
 ## 🛠️ Development Tools
 
@@ -155,6 +155,7 @@ Environment variables are layered: copy `example.env` to `.env` for shared defau
 ## 🚢 Deployment
 
 Detailed VPS deployment steps (environment variables, server setup, build & release commands) are documented in [docs/vps-deployment-guide.md](docs/vps-deployment-guide.md).
+Registry trust and retention rules are documented in [docs/security/registry-image-policy.md](docs/security/registry-image-policy.md).
 
 ## 🤝 Contributing
 

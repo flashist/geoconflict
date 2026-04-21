@@ -31,17 +31,22 @@ ENV HUSKY=0
 COPY package*.json ./
 # Install dependencies
 RUN npm ci
-# Copy the rest of the application code
-COPY . .
+# Explicit allowlist copy so local secret files can never ride along via repo-wide COPY.
+COPY tsconfig.json webpack.config.js postcss.config.js tailwind.config.js eslint.config.js ./
+COPY src ./src
+COPY resources ./resources
+COPY proprietary ./proprietary
 # Build the client-side application
 RUN npm run build-prod
 # So we can see which commit was used to build the container
 # https://openfront.io/commit.txt
 RUN echo "$GIT_COMMIT" > static/commit.txt
 
-# Remove maps data from final image
-FROM base AS prod-files
-COPY . .
+# Runtime app sources without the heavy client-only map payload.
+FROM base AS runtime-source
+COPY package.json tsconfig.json ./
+COPY src ./src
+COPY resources ./resources
 RUN rm -rf resources/maps
 
 FROM dependencies AS npm-dependencies
@@ -70,10 +75,12 @@ COPY --from=dependencies /etc/nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Copy npm dependencies
 COPY --from=npm-dependencies /usr/src/app/node_modules node_modules
-COPY package.json .
+COPY --from=runtime-source /usr/src/app/package.json .
+COPY --from=runtime-source /usr/src/app/tsconfig.json .
 
-# Copy the rest of the application code
-COPY --from=prod-files /usr/src/app/ /usr/src/app/
+# Copy only the runtime server sources and shared resources.
+COPY --from=runtime-source /usr/src/app/src /usr/src/app/src
+COPY --from=runtime-source /usr/src/app/resources /usr/src/app/resources
 
 # Copy frontend
 COPY --from=build /usr/src/app/static static
