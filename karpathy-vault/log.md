@@ -239,3 +239,9 @@
 - Issues fixed: 4
 - Issues flagged for human review: 0
 - Fixed two decision-page schema heading mismatches, one stale cancelled-task source path, and one stale Sprint 4 threshold note; full index/link/source-path audit passed
+
+## 2026-04-22 — lint
+- Issues found: 10
+- Issues fixed: 10
+- Issues flagged for human review: 0
+- Normalized 10 decision-page `Date` fields to schema-compliant `YYYY-MM-DD` values using git history; full structural/link/source-path audit passed

@@ -1,6 +1,6 @@
 # Sprint 6 — More Content
 
-**Date**: planned
+**Date**: 2026-04-17
 **Status**: proposed
 
 ## Context

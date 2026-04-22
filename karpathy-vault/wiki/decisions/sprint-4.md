@@ -1,6 +1,6 @@
 # Sprint 4 — In-App Monetization & Citizenship
 
-**Date**: 2026
+**Date**: 2026-04-16
 **Status**: proposed
 
 ## Context

@@ -1,6 +1,6 @@
 # Sprint 2 — Fix Onboarding
 
-**Date**: 2026 (completed)
+**Date**: 2026-04-16
 **Status**: accepted
 
 ## Context

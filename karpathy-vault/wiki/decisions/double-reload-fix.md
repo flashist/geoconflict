@@ -1,6 +1,6 @@
 # Double Page Reload Fix
 
-**Date**: 2026-04-07 (PR #45) / HF-9
+**Date**: 2026-04-15
 **Status**: accepted
 
 ## Context

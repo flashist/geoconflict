@@ -1,6 +1,6 @@
 # Sprint 5 — Full F2P Loop & Social Features
 
-**Date**: planned (after Sprint 4 ships and retention metrics are positive)
+**Date**: 2026-04-16
 **Status**: proposed
 
 ## Context

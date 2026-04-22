@@ -1,6 +1,6 @@
 # Sprint 3 — Deepen Retention (Data-Driven)
 
-**Date**: 2026
+**Date**: 2026-04-16
 **Status**: accepted
 
 ## Context

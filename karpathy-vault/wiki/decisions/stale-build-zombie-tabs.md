@@ -1,6 +1,6 @@
 # Stale Build — Zombie Tab Investigation & Fix
 
-**Date**: 2026-04-10 (HF-11a investigation) / HF-11b/c/d (fix)
+**Date**: 2026-04-15
 **Status**: accepted
 
 ## Context

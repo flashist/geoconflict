@@ -1,6 +1,6 @@
 # Hotfix Release — Post-Sprint 2
 
-**Date**: 2026 (completed)
+**Date**: 2026-04-16
 **Status**: accepted
 
 ## Context
