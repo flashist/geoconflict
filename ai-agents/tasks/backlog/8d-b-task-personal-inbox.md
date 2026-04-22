@@ -55,7 +55,7 @@ Personal messages are sent automatically as side effects of server-side events â
 
 | Trigger | Message title | Message body |
 |---|---|---|
-| Citizenship earned (50 matches) | "You've earned Geoconflict Citizenship!" | "You've completed 50 matches and earned citizenship. You now have access to [citizen benefits]." |
+| Citizenship earned (1,000 XP) | "You've earned Geoconflict Citizenship!" | "You've reached 1,000 XP and earned citizenship. You now have access to citizen benefits." |
 | Citizenship purchased | "Welcome, Citizen!" | "Your citizenship purchase was successful. You now have access to [citizen benefits]." |
 | Name change approved | "Your name change was approved" | "Your new display name '[name]' is now active." |
 | Name change rejected | "Your name change request was rejected" | "Your requested name '[name]' was not approved â€” [reason]. You can submit a new request at any time." |

@@ -6,6 +6,9 @@ Sprint 4
 ## Type
 Design investigation — requires Mark's decisions, not engineering work.
 
+## Status
+✅ Closed — all decisions made 2026-04-22.
+
 ## Priority
 High — blocks all citizenship UI implementation tasks. Engineering cannot start the citizenship UI until the layout direction is confirmed and fits the smallest supported screen.
 
@@ -55,25 +58,16 @@ The guest (locked) state must also be accounted for — it needs enough room to 
 - Does the selected tab persist across sessions?
 - What happens on the win screen — does the return-to-menu action land on Multiplayer tab?
 
-## Decided
+## All Decisions
 
-- **"Single Player" button renamed** — the button that launches a freeplay match on a chosen map against bots will be renamed:
+- **Minimum supported screen size:** 360×430px — the usable game area when iPhone SE is used inside the Yandex Games iframe.
+- **Tab layout:** confirmed workable at 360×430px via Claude Design prototypes (reviewed 2026-04-22). Two-tab layout adopted.
+- **Citizenship UI placement:** above the tabs, full-width card. Guest state: lock icon + "Гражданство" + "Войдите, чтобы сохранить прогресс" + "Войти в Яндекс" button. Citizen state: avatar/flag, "ГРАЖДАНИН" badge, username, XP progress bar.
+- **Tab defaults:** Multiplayer tab shown on first visit. Last active tab persists across sessions.
+- **Win screen return:** not yet decided — note as open item in the redesign implementation brief.
+- **"Инструкции" (Instructions):** shown on both tabs.
+- **"Single Player" button renamed:**
   - English: `Custom Game`
   - Russian: `Своя игра`
   - Must be updated in both `en.json` and `ru.json` when implemented.
-
-## Output
-
-A short written decision (can be a reply in this session or a note added to this file) covering:
-- Confirmed minimum screen size
-- Tab layout confirmed workable at that size (or an alternative if tabs don't fit)
-- Citizenship UI placement and approximate height budget
-- Tab default behaviour answers
-
-Engineering does not start citizenship UI or tab implementation until these are answered.
-
-## Notes
-
-- This investigation is design-only. No code changes, no prototypes needed.
-- The tab concept also has implications for analytics: `UI:ClickMultiplayer` currently fires on the join card click. If the tab structure changes the funnel, the analytics event map may need updating. Flag this when the layout is confirmed.
-- Private lobbies and paid campaign packs do not need to be designed now — reserve space for them in the sketches but leave them as placeholders.
+- **Analytics:** new tab-switch events use `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab`. Must be added to `ai-agents/knowledge-base/analytics-event-reference.md` when implemented.
