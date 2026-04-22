@@ -55,6 +55,13 @@ The guest (locked) state must also be accounted for — it needs enough room to 
 - Does the selected tab persist across sessions?
 - What happens on the win screen — does the return-to-menu action land on Multiplayer tab?
 
+## Decided
+
+- **"Single Player" button renamed** — the button that launches a freeplay match on a chosen map against bots will be renamed:
+  - English: `Custom Game`
+  - Russian: `Своя игра`
+  - Must be updated in both `en.json` and `ru.json` when implemented.
+
 ## Output
 
 A short written decision (can be a reply in this session or a note added to this file) covering:
