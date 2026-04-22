@@ -90,7 +90,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Player Profile Store investigation concluded that the current codebase needs a verified Yandex identity in the join/auth path before Yandex-keyed paid entitlements are safe
 - Yandex Payments investigation concluded that paid citizenship should use signed purchase verification on the server, startup reconciliation via `getPurchases()`, and post-grant consumption once the entitlement is durably stored; purchase UI should be hidden when the dashboard catalog item is absent or unavailable
 - Qualifying-match crediting should happen on the game server at match end, but implementation needs one additional end-of-match per-player state summary because the server does not currently simulate spawn/elimination itself
-- The current sprint brief contains older 50-match wording alongside the newer XP table; the wiki treats the explicit XP table as the canonical latest plan
+- The source brief now consistently uses the XP-based citizenship threshold, reducing ambiguity across the Sprint 4 progression tasks
 - 8d-A is already done and provides the communication channel Sprint 4 can build on
 - 8d-B (personal inbox) depends on both 8d-A already being live and the player profile store going live
 - Sprint 4 is no longer purely monetization scope; it also bundles completed tutorial/lobby fixes and a now-locked start-screen redesign direction

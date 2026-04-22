@@ -9,7 +9,7 @@ Goal: convert curious new players into players who complete at least one full ma
 
 Source: `ai-agents/sprints/done/plan-sprint-2.md`
 
-## Decision / What Was Built
+## Decision
 
 | Task | Description | Status |
 |---|---|---|

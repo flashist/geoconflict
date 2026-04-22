@@ -9,7 +9,7 @@ Goal: reduce ghost rate (30–50% of lobby players never becoming active) and cr
 
 Source: `ai-agents/sprints/done/plan-sprint-1.md`
 
-## Decision / What Was Built
+## Decision
 
 | Task | Description | Status |
 |---|---|---|

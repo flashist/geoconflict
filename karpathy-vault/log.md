@@ -233,3 +233,9 @@
 - Issues fixed: 1
 - Issues flagged for human review: 0
 - Fixed one backlink gap by linking [[wiki/tasks/global-announcements]] back to [[wiki/decisions/sprint-4]]; targeted changed-page link audit otherwise passed
+
+## 2026-04-22 — lint
+- Issues found: 4
+- Issues fixed: 4
+- Issues flagged for human review: 0
+- Fixed two decision-page schema heading mismatches, one stale cancelled-task source path, and one stale Sprint 4 threshold note; full index/link/source-path audit passed
