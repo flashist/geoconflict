@@ -8,21 +8,20 @@ High — foundation for all citizenship and payments tasks. Nothing else in Phas
 
 ## Context
 
-Investigation A (complete, findings in `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`) produced the following decisions:
+Investigation A is complete (`ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`). The design has since been updated with the following product decisions:
 
-- **Database:** PostgreSQL, running as a sibling service/container on the existing game-server VPS. Not embedded in the Node.js process, not on the Uptrace VPS.
-- **Schema:** relational `player_profiles` + idempotent `player_match_credits` tables.
-- **Match crediting:** server-side at match end in an idempotent transaction. Requires one small protocol extension (per-player end-of-match state summary).
-- **Identity gap:** the game server currently has no verified Yandex player ID. This must be solved in this task before paid entitlements or Yandex-keyed profiles are safe.
-- **Guest UX:** show citizenship in a locked state with a Yandex login CTA — do not silently hide it.
+- **XP system, not match counter.** Citizenship is earned at 1,000 XP. Each qualifying match awards 10 XP (flat). XP continues accumulating past citizenship.
+- **Guest-first architecture.** Player profile data must be preserved even when the player is not logged in, and transferred to server-side storage when they eventually authenticate.
+- **Versioned JSON schema.** The profile payload should include a `schema_version` field to enable forward-compatible reads and on-the-fly schema upgrades. The exact database storage strategy (JSONB column vs. rigid columns) is an **open question for the technical specialist** — see Part B.
+- **Server wins on conflict.** If a server-side profile already exists for an authenticated player, it takes precedence. Local storage data is discarded. No merging.
 
-This task has four parts that should be implemented in order, since each unblocks the next.
+This task is complex and requires careful planning. The technical specialist should validate the open questions in Part B before writing any migration or storage code.
 
 ---
 
 ## Part A — Add Verified Yandex Identity to the Join/Auth Path
 
-The game server currently only sees an internal `persistentID` (resolved in `src/server/jwt.ts`). It never receives or verifies a Yandex player ID. That must change before Yandex-keyed profiles are safe.
+The game server currently only sees an internal `persistentID` (`src/server/jwt.ts`). It never receives or verifies a Yandex player ID. That must change before Yandex-keyed profiles are safe for paid entitlements.
 
 ### Client side
 
@@ -38,61 +37,80 @@ The game server currently only sees an internal `persistentID` (resolved in `src
 
 ### Server side
 
-4. In `src/server/Worker.ts`, where a `Client` is created from a join message, store `yandexPlayerId` on the `Client` object (`src/server/Client.ts`). No additional verification step is required for the earned-match path in Sprint 4 — the ID is used only as a stable store key. For the paid-citizenship path, verification must use Yandex SDK server-side token checks; that requirement should be noted in the Yandex Payments task brief, not done here.
+4. In `src/server/Worker.ts`, store `yandexPlayerId` on the `Client` object (`src/server/Client.ts`). For the earned-XP path in Sprint 4, no additional Yandex signature verification is required — the ID is used as a stable store key. Paid citizenship verification is handled in the Yandex Payments task.
 
 ---
 
-## Part B — PostgreSQL Service Setup and Schema Migration
+## Part B — Profile JSON Schema and Storage Strategy
 
-### Infrastructure
+### Profile JSON schema
 
-1. Add a `postgres` service to the game-server Docker Compose configuration (or equivalent deployment config). It should:
-   - Use the official `postgres:16-alpine` image
-   - Persist data to a named volume (`postgres_data`)
-   - Expose only on `localhost` (not externally)
-   - Be started before the game server container
+The player profile payload should be a versioned JSON object used consistently on both the client (localStorage) and the server (database). The structure for Sprint 4:
 
-2. Add `DATABASE_URL` (Postgres connection string) to the environment config. Follow the existing `GAME_ENV`-based config pattern in `src/core/configuration/`. Do not commit real credentials — reference the env var only.
+```json
+{
+  "schema_version": 1,
+  "yandex_player_id": "string | null",
+  "persistent_id": "string",
+  "xp": 0,
+  "is_citizen": false,
+  "is_paid_citizen": false,
+  "citizenship_earned_at": "ISO8601 | null",
+  "citizenship_purchased_at": "ISO8601 | null",
+  "display_name": "string | null",
+  "created_at": "ISO8601",
+  "updated_at": "ISO8601"
+}
+```
 
-3. Update the deployment documentation if it exists (`docs/vps-deployment-guide.md`) to note the new Postgres service and required env var.
+The `schema_version` field allows the application to detect old profiles and migrate them on read without requiring a database migration. Migration functions should be pure: `migrateProfile(raw: unknown): PlayerProfile`.
 
-### Migration
+### Open question for the technical specialist — database storage strategy
 
-Create an initial migration file (`migrations/001_player_profiles.sql` or equivalent) containing the following tables. Run it once on first deploy:
+The investigation recommended PostgreSQL with rigid columns. The product requirement is now a versioned JSON schema that can be extended without breaking old readers. The technical specialist must evaluate and decide between two approaches before implementation starts:
+
+**Option A — JSONB column**
+Store the entire profile as a single `profile jsonb` column alongside a top-level `yandex_player_id` primary key. Flexible, schema-less, easy to extend. Trade-off: no column-level constraints or indexes without expression indexes; queries on profile fields are more verbose.
+
+**Option B — Rigid columns + JSONB overflow**
+Keep critical fields as typed Postgres columns (`xp`, `is_citizen`, `display_name`, etc.) for constraint enforcement and indexing. Add a `extra jsonb` column for future fields not yet known. The `schema_version` is a regular integer column. Trade-off: schema migrations still needed when promoting a field from `extra` to a column.
+
+Both options should store `player_match_xp_credits` as a separate table with `(game_id, yandex_player_id)` as the primary key for idempotent XP crediting — this part is not in dispute.
+
+**The technical specialist should document their choice and reasoning before writing the first migration.**
+
+### Proposed tables (regardless of storage strategy)
 
 ```sql
+-- Primary profile table (column shape TBD by storage strategy decision)
 create table player_profiles (
   yandex_player_id text primary key,
   persistent_id uuid unique,
-  qualifying_match_count integer not null default 0,
+  xp integer not null default 0 check (xp >= 0),
   is_citizen boolean not null default false,
   is_paid_citizen boolean not null default false,
   citizenship_earned_at timestamptz,
   citizenship_purchased_at timestamptz,
   display_name text,
+  schema_version integer not null default 1,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  check (qualifying_match_count >= 0),
-  check (citizenship_earned_at is null or is_citizen),
-  check (citizenship_purchased_at is null or is_paid_citizen)
+  updated_at timestamptz not null default now()
 );
 
 create unique index player_profiles_display_name_uq
   on player_profiles (lower(display_name))
   where display_name is not null;
 
-create table player_match_credits (
+-- Idempotent XP credit ledger
+create table player_match_xp_credits (
   game_id text not null,
   yandex_player_id text not null references player_profiles(yandex_player_id) on delete cascade,
-  outcome text not null check (outcome in ('eliminated', 'survived')),
+  xp_awarded integer not null default 10,
   credited_at timestamptz not null default now(),
   primary key (game_id, yandex_player_id)
 );
-```
 
-Also create the future-aware tables in the same migration (columns but no application logic yet):
-
-```sql
+-- Future-aware tables (create now, no application logic yet)
 create table player_name_history (
   id bigserial primary key,
   yandex_player_id text not null references player_profiles(yandex_player_id) on delete cascade,
@@ -115,21 +133,49 @@ create table player_cosmetic_ownership (
 
 ---
 
-## Part C — Repository Layer and Match-End Crediting
+## Part C — Guest Profile (localStorage)
 
-### Repository layer
+For players who are not authenticated with Yandex, the profile is stored locally in localStorage using the same versioned JSON schema defined in Part B.
 
-Create `src/server/PlayerProfileRepository.ts`. This module owns all SQL queries — the rest of the server interacts with the database through this interface only. Minimum functions needed for Sprint 4:
+### Storage key
+`geoconflict_profile_<persistentID>` — scoped to the player's internal persistent ID to avoid collisions on shared devices.
 
-- `upsertProfile(yandexPlayerId: string, persistentId: string): Promise<void>` — creates a profile on first join, updates `persistent_id` linkage if it changes. Use `INSERT ... ON CONFLICT DO NOTHING` or `ON CONFLICT DO UPDATE` as appropriate.
-- `creditQualifyingMatch(gameId: string, yandexPlayerId: string, outcome: 'eliminated' | 'survived'): Promise<void>` — inserts into `player_match_credits` and increments `qualifying_match_count` in `player_profiles` atomically. Must be idempotent: if `(game_id, yandex_player_id)` already exists, do nothing.
-- `getProfile(yandexPlayerId: string): Promise<PlayerProfile | null>` — returns the profile row for a given player.
+### On each qualifying match end (guest)
+Read the local profile, increment `xp` by 10, update `updated_at`, write back. Check if `xp >= 1000` and flip `is_citizen = true` if so (local citizenship is a UI-only state until authenticated).
+
+### On app init (guest)
+Read the local profile. If none exists, create a fresh one with `schema_version: 1` and `xp: 0`. If one exists with an older `schema_version`, run the migration function before use.
+
+### Durability tradeoff
+localStorage clears on browser data wipe. This is an accepted tradeoff for v1 — guest profile data is best-effort, not guaranteed. No server-side fallback for guest profiles.
+
+---
+
+## Part D — PostgreSQL Service Setup
+
+1. Add a `postgres` service to the game-server Docker Compose configuration. It should:
+   - Use `postgres:16-alpine`
+   - Persist data to a named volume (`postgres_data`)
+   - Expose only on `localhost`
+   - Start before the game server container
+
+2. Add `DATABASE_URL` to the environment config following the existing `GAME_ENV` pattern in `src/core/configuration/`. Do not commit real credentials.
+
+3. Create an initial migration file (`migrations/001_player_profiles.sql`) with the tables from Part B.
+
+---
+
+## Part E — Repository Layer and Match-End XP Crediting
+
+Create `src/server/PlayerProfileRepository.ts`. Minimum interface for Sprint 4:
+
+- `upsertProfile(yandexPlayerId: string, persistentId: string): Promise<void>` — creates a profile on first authenticated join; updates `persistent_id` linkage if it changes.
+- `creditMatchXp(gameId: string, yandexPlayerId: string, xpAwarded: number): Promise<void>` — inserts into `player_match_xp_credits` and increments `xp` in `player_profiles` atomically. Idempotent: if `(game_id, yandex_player_id)` already exists, do nothing.
+- `getProfile(yandexPlayerId: string): Promise<PlayerProfile | null>`
 
 ### Protocol extension for match-end state
 
-`GameServer.endTurn()` in `src/server/GameServer.ts` currently receives `allPlayersStats` from `ClientSendWinnerMessage` (`src/core/Schemas.ts`). It does not have authoritative `hasSpawned` or final participation state.
-
-1. Add an optional per-player participation summary to `ClientSendWinnerMessage` in `src/core/Schemas.ts`:
+Extend `ClientSendWinnerMessage` in `src/core/Schemas.ts` with an optional per-player participation summary:
 
 ```ts
 playerParticipation: z.array(z.object({
@@ -140,43 +186,57 @@ playerParticipation: z.array(z.object({
 })).optional()
 ```
 
-2. On the client, populate this field before sending the winner message. The client simulation already knows spawn state and elimination events.
+On the client, populate this before sending the winner message.
 
-3. On the server, in `GameServer.endTurn()`, after the game concludes, iterate over connected clients. For each client with a `yandexPlayerId`, find their entry in `playerParticipation` and credit a qualifying match if all of the following are true:
-   - `hasSpawned === true`
-   - Player did not voluntarily leave (`disconnectReason !== 'leave'` or equivalent)
-   - Player was not disconnected at the end without returning
-   - `isAliveAtEnd === true` OR `killedAt` is set (meaning they participated fully)
+On the server in `GameServer.endTurn()`, for each client with a `yandexPlayerId`, credit 10 XP via `PlayerProfileRepository.creditMatchXp()` only if:
+- `hasSpawned === true`
+- Player did not voluntarily leave
+- Player was not disconnected at end without returning
+- `isAliveAtEnd === true` OR `killedAt` is set
 
-Call `PlayerProfileRepository.creditQualifyingMatch()` for each qualifying player. Do not await all of them serially — use `Promise.all()`.
+Use `Promise.all()` for concurrent credits — do not await serially.
 
 ---
 
-## Part D — Guest UX
+## Part F — Guest-to-Authenticated Migration (on login)
 
-In the citizenship UI component (to be built in the Citizenship Core task), the component should call `FlashistFacade.isYandexAuthorized()` on mount. If the player is not authorized:
+When a guest player authenticates with Yandex for the first time in a session:
 
-- Render the citizenship card in a locked/disabled visual state
-- Show copy such as: "Log in with Yandex to track qualifying matches and earn citizenship"
-- Tapping the card (or a CTA button on it) should call the Yandex SDK login flow
+1. Call `getYandexUniqueId()` to get their Yandex player ID.
+2. Call `PlayerProfileRepository.getProfile(yandexPlayerId)`.
+3. **If a server-side profile exists:** use it. Discard the localStorage profile — do not merge. Update the local state from the server profile.
+4. **If no server-side profile exists:** read the localStorage profile, POST it to the server, create a new `player_profiles` row from the local data (preserving accumulated XP). Clear the localStorage profile after successful server write.
 
-Do not hide the card entirely. Guest players should understand the feature exists and how to unlock it.
+This migration should happen at the point in `FlashistFacade` where Yandex authentication completes, before the UI reflects any profile state.
+
+---
+
+## Part G — Guest UX
+
+In the citizenship UI component (built in the Citizenship Core task), on mount call `FlashistFacade.isYandexAuthorized()`. If not authorized:
+
+- Render the citizenship card locked: lock icon, "Войдите, чтобы сохранить прогресс", "Войти в Яндекс" button.
+- Do not hide the card. Guest XP still accumulates locally — the locked state communicates that progress won't persist without login, not that the feature is unavailable.
+- Tapping "Войти в Яндекс" triggers the Yandex SDK login flow, then Part F migration runs.
 
 ---
 
 ## Verification
 
-1. **Profile creation:** join a match as an authorized Yandex player. Confirm a `player_profiles` row exists in the database after joining.
-2. **Match crediting (idempotency):** complete a qualifying match. Confirm one row in `player_match_credits` and `qualifying_match_count = 1`. Trigger the end-of-match flow again with the same `game_id` — confirm the count does not increment a second time.
-3. **Disqualified outcomes:** complete a match where a player never spawns, and one where a player leaves mid-match. Confirm neither produces a `player_match_credits` row.
-4. **Guest UX:** open the citizenship surface without Yandex authorization. Confirm the locked state and login CTA render. Confirm the card is not hidden.
-5. **No regression:** normal match flow (join, play, end) works with no errors in server logs related to the new database calls.
+1. **Guest XP accumulation:** play a qualifying match without logging in. Confirm `xp` increments by 10 in localStorage. Play a disqualified match (leave mid-game) — confirm no increment.
+2. **Guest-to-authenticated migration (no server profile):** accumulate XP as guest, then log in. Confirm XP transfers to server profile. Confirm localStorage profile is cleared.
+3. **Guest-to-authenticated migration (server profile exists):** create a server profile manually, then log in from a guest session with local XP. Confirm server profile wins, local data discarded.
+4. **Idempotency:** trigger match-end crediting twice with the same `game_id`. Confirm XP is credited only once.
+5. **Citizenship threshold:** reach 1,000 XP. Confirm `is_citizen` flips to `true`.
+6. **Schema version:** write a profile with `schema_version: 1`, then run the migration function with a future hypothetical v2 schema — confirm it returns a valid v2 object without errors.
+7. **No regression:** normal match flow works with no errors in server logs related to database calls.
 
 ---
 
 ## Notes
 
-- Paid-citizenship verification (checking Yandex purchase signatures on the server) is in scope for the Yandex Payments task, not this one. This task only needs the Yandex player ID to be present in the join path as a stable store key.
-- The Citizenship Core task (match counter + progress UI) depends on this task being live — do not start it until Part C is verified in production.
-- If Yandex identity cannot be added in time, the fallback is to key profiles on `persistent_id` and make `yandex_player_id` nullable. Do not ship paid citizenship in that state.
-- Do not expose the Postgres port publicly. Access must be localhost-only from the game server process.
+- Paid-citizenship server-side verification is in scope for the Yandex Payments task, not here.
+- The Citizenship Core UI task depends on this task being live. Do not start it until Part E is verified in production.
+- The technical specialist must document the JSONB vs rigid columns decision (Part B) before writing any migration code.
+- Do not expose the Postgres port publicly. Localhost-only from the game server process.
+- Rewarded ad XP doubling (2× per match) is Sprint 5 scope. The `xp_awarded` column in `player_match_xp_credits` is designed to support variable XP values when that ships.

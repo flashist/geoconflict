@@ -148,9 +148,21 @@ Citizen icon visible in lobbies and match player list. Distinguishes citizens fr
 
 ---
 
+## XP Economy (locked)
+
+| Parameter | Value |
+|---|---|
+| XP per qualifying match | 10 XP (flat) |
+| Citizenship threshold | 1,000 XP (~100 matches) |
+| XP past citizenship | Continues accumulating |
+| Levels in Sprint 4 | 1 (citizenship is the only milestone) |
+| Rewarded ad XP boost | 2× XP for that match — Sprint 5 scope, not Sprint 4 |
+
 ## Qualifying Match Definition (locked)
 
-| Outcome | Counts? |
+A match awards XP only when all of the following are true:
+
+| Outcome | Awards XP? |
 |---|---|
 | Eliminated by another player or bot | ✅ Yes |
 | Survived to match end (any win condition) | ✅ Yes |
