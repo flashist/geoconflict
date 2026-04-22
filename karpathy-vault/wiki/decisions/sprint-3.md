@@ -5,9 +5,9 @@
 
 ## Context
 
-Goal: address infrastructure quality and UX issues affecting all players. Mobile performance work formally parked based on analytics data. Ships after post-Sprint 2 hotfix.
+Goal: address infrastructure quality and UX issues affecting all players. Mobile performance work formally parked based on analytics data. The source brief is now archived under `ai-agents/sprints/done/`, which marks Sprint 3 as complete rather than current roadmap work.
 
-Source: `ai-agents/sprints/plan-sprint-3.md`
+Source: `ai-agents/sprints/done/plan-sprint-3.md`
 
 ## Decision
 
@@ -43,6 +43,7 @@ Source: `ai-agents/sprints/plan-sprint-3.md`
 
 ## Consequences
 
+- Sprint 3 is now an archived completed sprint; active roadmap planning has moved on to [[decisions/sprint-4]] and later sprint pages
 - HF-11b/c/d is the complete stale-build detection flow on the client and server
 - 5d-B spans are in production; correlate them with 5d-A system metrics in Uptrace when slow-turn data accumulates
 - HF-13 reduces `Match:SpawnMissed:CatchupTooLong` by moving map loading earlier, but it does not eliminate every spawn failure case

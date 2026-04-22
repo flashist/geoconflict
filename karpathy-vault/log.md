@@ -218,3 +218,18 @@
 - Issues fixed: 2
 - Issues flagged for human review: 0
 - Fixed two backlink gaps by linking [[wiki/systems/game-overview]] back to [[wiki/decisions/vps-credential-leak-response]] and [[wiki/decisions/registry-image-policy]]; index coverage, metadata fields, and source-path references all validated clean
+
+## 2026-04-22 — ingest
+- Sync window: `97ff570e508164df8d5ec2a12a959102cd9d1da9` → HEAD (`5c01322634ccd38c80c68dce10b3c4a386ce809d`)
+- Changed source files detected: 14
+- Ingested: `ai-agents/sprints/done/plan-sprint-3.md` → updated [[wiki/decisions/sprint-3]]
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/tasks/done/s4-legal-vat-investigation.md` → created [[wiki/tasks/legal-vat-investigation]]; updated [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/tasks/done/s4-start-screen-redesign-investigation.md` → created [[wiki/tasks/start-screen-redesign-investigation]]; updated [[wiki/decisions/sprint-4]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/8d-b-task-personal-inbox.md`, `ai-agents/tasks/backlog/s4-citizenship-earned.md`, `ai-agents/tasks/backlog/s4-citizenship-paid.md`, `ai-agents/tasks/backlog/s4-citizenship-xp-progress-ui.md`, `ai-agents/tasks/backlog/s4-legal-vat-investigation.md`, `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-start-screen-redesign-impl.md`, `ai-agents/tasks/backlog/s4-start-screen-redesign-investigation.md`, `ai-agents/tasks/backlog/s4-yandex-catalog-registration.md`, `ai-agents/tasks/backlog/s4-yandex-payments-impl.md` — backlog files are not eligible for `wiki-sync`
+
+## 2026-04-22 — lint
+- Issues found: 1
+- Issues fixed: 1
+- Issues flagged for human review: 0
+- Fixed one backlink gap by linking [[wiki/tasks/global-announcements]] back to [[wiki/decisions/sprint-4]]; targeted changed-page link audit otherwise passed

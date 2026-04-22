@@ -32,8 +32,8 @@
 - [[decisions/sprint-1]] — Sprint 1 (done): analytics baseline, Sentry, mobile quick wins, ghost rate investigation
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/9
-- [[decisions/sprint-3]] — Sprint 3 (current): server observability, stale builds, server restart UX, mobile warning
-- [[decisions/sprint-4]] — Sprint 4 (planned): citizenship system, Yandex payments, player profile store, inbox, tutorial/lobby fixes
+- [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
+- [[decisions/sprint-4]] — Sprint 4 (planned/in progress): citizenship XP economy, Yandex payments, player profile store, start-screen redesign, and tutorial/lobby follow-ups
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
 - [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance no-ship — with reasons and re-attempt guidance
@@ -55,6 +55,8 @@
 - [[tasks/ui-click-multiplayer]] — Investigation confirming `UI:ClickMultiplayer` fires on per-lobby JOIN attempts
 - [[tasks/player-profile-store-investigation]] — Sprint 4 investigation recommending Postgres on the game VPS and identifying the Yandex identity gap
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
+- [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement
+- [[tasks/legal-vat-investigation]] — External VAT/legal check that cleared the pre-launch payments gate
 - [[tasks/global-announcements]] — Re-enabled repo-authored announcements bell and popup with unread badge
 - [[tasks/email-subscribe-modal]] — Start-screen and win-screen email opt-in modal backed by Telegram delivery
 - [[tasks/map-preload]] — HF-13 background terrain preload on JOIN with preload-hit analytics

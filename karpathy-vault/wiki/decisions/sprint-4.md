@@ -1,78 +1,99 @@
 # Sprint 4 — In-App Monetization & Citizenship
 
-**Date**: planned
+**Date**: 2026
 **Status**: proposed
 
 ## Context
 
-Goal: launch the citizenship system and the in-app purchase foundation. Give loyal players a visible long-term goal (50 qualifying matches), a direct purchase path (99 rubles), and the first meaningful citizenship benefit (name change). Establish the payment infrastructure and player profile store that future monetization depends on.
+Goal: launch the citizenship system and the in-app purchase foundation. Establish the payment infrastructure, player profile store, and start-screen UI foundation that future monetization depends on.
+
+The latest sprint brief now frames citizenship progression as an XP system: `10 XP` per qualifying match and `1,000 XP` for citizenship, or roughly `100` qualifying matches. This supersedes the older Sprint 4 shorthand that described the goal as a 50-match milestone.
 
 **Rewarded ads explicitly deferred** — no reward mechanic exists yet. Rewarded ads ship in Sprint 5 once citizenship benefits give players something worth watching an ad for.
 
 Source: `ai-agents/sprints/plan-sprint-4.md`
-Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/tasks/done/s4-email-subscribe-task.md`, `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
+Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/tasks/done/sprint4-investigation-yandex-payments.md`, `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`, `ai-agents/tasks/done/8d-a-task-global-announcements.md`, `ai-agents/tasks/done/s4-start-screen-redesign-investigation.md`, `ai-agents/tasks/done/s4-legal-vat-investigation.md`, `ai-agents/tasks/done/s4-ai-lobby-slot-bug.md`, `ai-agents/tasks/done/s4-email-subscribe-task.md`, `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
 
 ## Decision
 
-Sprint 4 remains the planned citizenship and payments sprint, but the wiki now reflects two roadmap updates from the latest source brief:
+Sprint 4 is no longer just a future plan. The latest source brief records a mixed state: the two technical investigations are complete, several independent fixes are shipped, two side tasks were cancelled, and the core payments/citizenship implementation track remains blocked on redesign and infrastructure prerequisites.
 
-- `8d-A` (global announcements) was already pulled forward and shipped in Sprint 2, so it is no longer upcoming Sprint 4 scope
-- Sprint 4 now also carries four small independent backlog items that can ship alongside the monetization track without waiting on the investigation work
+**Completed groundwork:**
+- **Investigation A: Player Profile Store** is complete. It recommends PostgreSQL on the game VPS, an initial `player_profiles` plus idempotent `player_match_credits` schema, server-side match crediting at match end, and a verified Yandex identity claim in the join/auth path because the current server only sees `persistentID`. See [[tasks/player-profile-store-investigation]].
+- **Investigation B: Yandex Payments Catalog** is complete. It recommends signed Yandex purchases, a memoized session catalog cache in `FlashistFacade`, signed client-to-server verification plus startup reconciliation through `getPurchases()`, and post-grant consumption after durable entitlement storage. See [[tasks/yandex-payments-investigation]].
+- **Global announcements (`8d-A`)** are complete and available as the base communication surface for future inbox or citizenship messaging. See [[tasks/global-announcements]].
+- **Start screen redesign investigation** is complete and locks the layout direction for citizenship UI. See [[tasks/start-screen-redesign-investigation]].
+- **Legal/VAT investigation** is complete and clears the external legal/tax gate for in-app purchases. See [[tasks/legal-vat-investigation]].
 
-**Phase 1 — Investigations (run in parallel):**
-- **Investigation A:** Player Profile Store — complete. Recommended PostgreSQL on the game VPS as a sibling service, an initial `player_profiles` + idempotent `player_match_credits` schema, server-side match crediting at match end, and a verified Yandex identity claim in the join/auth path because the current server only sees `persistentID`. See [[tasks/player-profile-store-investigation]].
-- **Investigation B:** Yandex Payments Catalog — complete. Recommended signed Yandex purchases, a memoized session catalog cache in `FlashistFacade`, and signed client-to-server verification plus startup reconciliation through `getPurchases()`, with post-grant consumption after the entitlement has been durably stored on the game server. No documented Yandex Games purchase webhook was found in the official docs reviewed on 2026-04-18. See [[tasks/yandex-payments-investigation]].
+**Completed independent Sprint 4 tasks:**
+- AI Lobby Slot Bug — done
+- Tutorial: remove nations — done
+- Tutorial: lock build menu to City during tooltip 5 — done
+- Tutorial: reduce bot count from 400 to 100 — done
+- Email Subscription Modal — done
 
-**Already shipped earlier:** `8d-A` (Global Announcements) was pulled forward into Sprint 2 and should be treated as an available dependency for Sprint 4 work, not a Sprint 4 deliverable.
+**Cancelled side tasks:**
+- Humans vs Nations balance task — cancelled after no-ship review
+- Tutorial action-pause variant — cancelled due to implementation complexity
 
-**Independent Sprint 4 backlog additions:**
+**Remaining implementation track:**
 
-| Task | Effort | Notes |
+| Task | Status | Notes |
 |---|---|---|
-| Humans vs Nations — Balance Nation Count | half a day | Balance fix. Target nation count as close to 1:1 with human players as lobby capacity allows |
-| AI Lobby Slot Bug — Always Keep One Slot Free | half a day | Bug fix. Preserve one human-joinable slot and only auto-start when no AI players remain |
-| Tutorial — Pause During Action-Required Steps | half a day | Tutorial polish. Keep the match near-paused until the expected tutorial action is detected |
-| Tutorial — Remove Nations, Keep Only Bots | 1-2 hours | Config-only tutorial simplification to remove aggressive nation opponents |
-| Tutorial — Lock Build Menu to City During Tooltip 5 | half a day | Tutorial guardrail so the player cannot stall tooltip 5 by building the wrong structure |
-| Tutorial — Reduce Bot Count from 400 to 100 | 30 minutes | Tutorial simplification to make Iceland less crowded and easier to follow |
-| Email Subscription Modal | half a day | Add start-screen and win-screen opt-in entry points that send emails through the existing Telegram-backed feedback infrastructure |
+| Start Screen Redesign — Implementation | backlog | Required before citizenship progress UI can fit on the start screen |
+| Player Profile Store — Implementation | backlog | Depends on Investigation A conclusions and verified Yandex identity work |
+| Yandex Payments — Catalog Fetch & Purchase Infrastructure | backlog | Depends on Investigation B conclusions and catalog readiness |
+| Citizenship Core — XP Counter & Progress UI | backlog | Blocked by start screen redesign implementation |
+| Citizenship Core — Earned Citizenship | backlog | Blocked by player profile store |
+| Citizenship Core — Paid Citizenship | backlog | Blocked by payments implementation plus catalog approval |
+| 8d-B — Personal Inbox | backlog | Blocked by player profile store; builds on announcements |
+| Name Change (Citizens Only) | backlog | First user-facing citizenship benefit |
+| Citizen Verified Icon | backlog | Visible identity/status marker in lobbies and match UI |
 
-**Phase 2 — Implementation (after investigation findings reviewed with Mark):**
-Briefs to be written after findings. Confirmed scope:
-
-| Task | Description |
-|---|---|
-| Player Profile Store | Database + schema from Investigation A |
-| Yandex Payments | Catalog fetch + caching from Investigation B |
-| Citizenship — match counter | Track 50 qualifying matches server-side + progress UI |
-| Citizenship — earned path | At 50 matches: flip `isCitizen = true`, send inbox message, in-game notification |
-| Citizenship — paid path | 99 rubles via Yandex catalog. `isPaidCitizen = true` on purchase |
-| 8d-B — Personal inbox | Direct messages from game to citizens (citizenship earned/purchased, name review) |
-| Name change | First citizenship benefit — citizens only, requires moderation |
-| Citizen verified icon | Visible in lobbies and match player list |
+**External/manual blocker:**
+- Yandex catalog registration and approval is the remaining urgent non-engineering prerequisite called out directly in the sprint brief
 
 ## Locked Decisions
+
+**XP economy:**
+- `10 XP` per qualifying match
+- `1,000 XP` citizenship threshold, or roughly `100` matches
+- XP keeps accumulating after citizenship
+- Sprint 4 has only one XP milestone: citizenship
+- Rewarded-ad XP boosts remain Sprint 5 scope
 
 **Qualifying match definition:**
 - ✅ Counts: eliminated by another player/bot, survived to match end (any outcome)
 - ❌ Does not count: voluntary Leave mid-match, disconnected without return, never spawned
 
+**Start screen redesign decisions:**
+- Minimum supported usable area: `360x430`
+- Adopted layout: two tabs, with Multiplayer as the default first tab
+- Citizenship surface placement: full-width card above the tabs
+- Guest state must show a Yandex login CTA rather than silently hiding progress
+- The last active tab should persist across sessions
+- "Single Player" should be renamed to `Custom Game` / `Своя игра` when implemented
+- `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab` are the planned analytics events for the redesign implementation
+- Win-screen return target remains the only explicitly open product question from the redesign investigation
+
 **Pricing:**
 - Citizenship: **99 rubles** (~50% to Yandex + taxes)
 - Cosmetics (Sprint 5): 149–199 rubles (includes citizenship automatically)
 
-**Earned path is independent of payments** — 50-match counter can ship before Yandex catalog approval.
+**Earned path is independent of payments** — the XP/progression path can ship before Yandex catalog approval once the player profile store and redesigned UI exist.
 
 ## Consequences
 
-- Register Yandex catalog items immediately — approval takes days and should not block implementation
+- Start screen redesign implementation is now a prerequisite for the citizenship XP/progress UI, not a nice-to-have polish task
+- The VAT/tax gate is cleared; payments work no longer waits on extra legal registration, bank changes, or company-structure changes
+- Register Yandex catalog items immediately — approval takes days and remains the main non-engineering blocker
 - Player Profile Store investigation concluded that the current codebase needs a verified Yandex identity in the join/auth path before Yandex-keyed paid entitlements are safe
 - Yandex Payments investigation concluded that paid citizenship should use signed purchase verification on the server, startup reconciliation via `getPurchases()`, and post-grant consumption once the entitlement is durably stored; purchase UI should be hidden when the dashboard catalog item is absent or unavailable
 - Qualifying-match crediting should happen on the game server at match end, but implementation needs one additional end-of-match per-player state summary because the server does not currently simulate spawn/elimination itself
-- Phase 2 briefs written only after both investigation findings reviewed
-- 8d-A is already live from Sprint 2 and provides the communication channel Sprint 4 can build on
+- The current sprint brief contains older 50-match wording alongside the newer XP table; the wiki treats the explicit XP table as the canonical latest plan
+- 8d-A is already done and provides the communication channel Sprint 4 can build on
 - 8d-B (personal inbox) depends on both 8d-A already being live and the player profile store going live
-- Sprint 4 is no longer purely monetization scope; it also bundles four tutorial follow-ups and two lobby/balance fixes that can be scheduled independently
+- Sprint 4 is no longer purely monetization scope; it also bundles completed tutorial/lobby fixes and a now-locked start-screen redesign direction
 - Tutorial follow-up work later resolved into three shipped fixes (`[[tasks/tutorial-no-nations]]`, `[[tasks/tutorial-build-menu-lock]]`, `[[tasks/tutorial-reduce-bots]]`) plus one cancelled pause-window attempt recorded in [[decisions/cancelled-tasks]]
 - The Humans vs Nations balance task was later rejected as no-ship and cancelled after review; see [[decisions/hvn-balance-pr70-no-ship]]
 
@@ -89,6 +110,9 @@ Briefs to be written after findings. Confirmed scope:
 - [[features/ai-players]] — AI Players feature (already active in production)
 - [[tasks/player-profile-store-investigation]] — completed Sprint 4 investigation for player-store technology, hosting, schema, and match-crediting approach
 - [[tasks/yandex-payments-investigation]] — completed Sprint 4 investigation for Yandex payments SDK usage, catalog caching, dashboard setup, and purchase verification flow
+- [[tasks/global-announcements]] — completed `8d-A` dependency for future inbox and citizenship messaging
+- [[tasks/start-screen-redesign-investigation]] — locked tab layout, viewport target, and citizenship placement decisions
+- [[tasks/legal-vat-investigation]] — external gate-clear task confirming no additional legal/tax blocker before payments
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 bug fix for mixed real-plus-AI full lobbies
 - [[tasks/email-subscribe-modal]] — Sprint 4 email opt-in modal on start and win screens
 - [[tasks/tutorial-no-nations]] — Sprint 4 tutorial simplification that removed nation opponents

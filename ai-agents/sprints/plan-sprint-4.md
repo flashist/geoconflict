@@ -6,7 +6,7 @@
 
 ## Sprint 4 Goal
 
-Launch the citizenship system and in-app purchase foundation. Give loyal players a visible long-term goal (50 qualifying matches), a direct purchase path (99 rubles), and the first meaningful citizenship benefit (name change). Establish the payment infrastructure and player profile store that all future monetization builds on.
+Launch the citizenship system and in-app purchase foundation. Give loyal players a visible long-term goal (1,000 XP, earned at 10 XP per qualifying match), a direct purchase path (99 rubles), and the first meaningful citizenship benefit (name change). Establish the payment infrastructure and player profile store that all future monetization builds on.
 
 **Rewarded ads are explicitly deferred** — no reward mechanic exists yet. Rewarded ads ship in Sprint 5 once citizenship benefits give players something worth watching an ad for.
 
@@ -103,7 +103,7 @@ Implement the catalog fetch at session start, caching, and graceful failure hand
 ---
 
 ### Citizenship Core — Match Counter & Progress UI
-Track qualifying matches server-side toward the 50-match threshold. Progress visible to authorized players in the UI. Guest players see no progress UI.
+Track qualifying matches server-side as XP toward the 1,000 XP citizenship threshold. Progress visible to authorized players in the UI. Guest players see no progress UI.
 
 **Qualifying match definition:**
 - ✅ Counts: eliminated by another player or bot, survived to match end (any outcome)
@@ -112,7 +112,7 @@ Track qualifying matches server-side toward the 50-match threshold. Progress vis
 ---
 
 ### Citizenship Core — Earned Citizenship
-When a player reaches 50 qualifying matches: flip `isCitizen = true`, send personal inbox message ("You've earned Geoconflict Citizenship!"), show real-time in-game notification.
+When a player reaches 1,000 XP: flip `isCitizen = true`, send personal inbox message ("You've earned Geoconflict Citizenship!"), show real-time in-game notification.
 
 ---
 
@@ -263,5 +263,5 @@ See full brief: `s4-email-subscribe-task.md`
 ## Notes
 
 - **Register Yandex catalog items immediately** — approval takes days and should not block implementation
-- **Earned path is independent of payments** — the 50-match counter can ship before the Yandex payment catalog is approved
+- **Earned path is independent of payments** — the XP progression path can ship before the Yandex payment catalog is approved
 - **Phase 2 briefs will be written** once both investigation findings are reviewed with Mark
