@@ -5,7 +5,8 @@ import { setOtelUser } from "../OtelBrowserInit";
 import { isMobileDevice } from "../Utils";
 import version from "../../version";
 
-//
+export const TELEGRAM_CHANNEL_URL = "https://t.me/gameworldwar";
+
 export const flashistConstants = {
   analyticEvents: {
     UI_CLICK_MULTIPLAYER: "UI:ClickMultiplayer",
@@ -98,6 +99,9 @@ export const flashistConstants = {
 
   uiElementIds: {
     announcementsBell: "AnnouncementsBell",
+    telegramLinkFooter: "TelegramLinkFooter",
+    telegramLinkStartScreen: "TelegramLinkStartScreen",
+    telegramLinkGameEnd: "TelegramLinkGameEnd",
     tutorialSkipBtnCorner: "TutorialSkipBtnCorner",
     tutorialSkipBtnInline: "TutorialSkipBtnInline",
   },
@@ -115,6 +119,8 @@ export const flashistConstants = {
     // JOIN_MORE_ADS_FLAG_VALUE: "enabled",
     EMAIL_SUBSCRIBE_BUTTON_FLAG_NAME: "email_subscribe_button",
     EMAIL_SUBSCRIBE_BUTTON_ENABLED_VALUE: "enabled",
+    TELEGRAM_LINK_FLAG_NAME: "telegram_link",
+    TELEGRAM_LINK_ENABLED_VALUE: "enabled",
   },
 
   ads: {
@@ -498,6 +504,13 @@ export class FlashistFacade {
     return this.checkExperimentFlag(
       flashistConstants.experiments.EMAIL_SUBSCRIBE_BUTTON_FLAG_NAME,
       flashistConstants.experiments.EMAIL_SUBSCRIBE_BUTTON_ENABLED_VALUE,
+    );
+  }
+
+  public async isTelegramLinkEnabled(): Promise<boolean> {
+    return this.checkExperimentFlag(
+      flashistConstants.experiments.TELEGRAM_LINK_FLAG_NAME,
+      flashistConstants.experiments.TELEGRAM_LINK_ENABLED_VALUE,
     );
   }
 

@@ -72,7 +72,14 @@ import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
-import { flashist_getLangSelector, flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
+import {
+  flashist_getLangSelector,
+  flashist_logEventAnalytics,
+  flashist_waitGameInitComplete,
+  flashistConstants,
+  FlashistFacade,
+  TELEGRAM_CHANNEL_URL,
+} from "./flashist/FlashistFacade";
 import { getUserMe, isLoggedIn } from "./jwt";
 import "./styles.css";
 
@@ -181,6 +188,27 @@ class Client {
       // Flashist Adaptation: showing the name of the game instead of version
       licenseCredits.title = version;
       licenseCredits.innerText = translateText("main.license_text") + "\n" + version;
+    }
+
+    const telegramLinkFooter = document.getElementById(
+      "telegram-link-footer",
+    ) as HTMLAnchorElement;
+    if (!telegramLinkFooter) {
+      console.warn("Telegram link footer element not found");
+    } else {
+      telegramLinkFooter.href = TELEGRAM_CHANNEL_URL;
+      void FlashistFacade.instance.isTelegramLinkEnabled().then((enabled) => {
+        if (!enabled) return;
+        telegramLinkFooter.style.display = "";
+        telegramLinkFooter.innerText = translateText(
+          "telegram_link.footer_text",
+        );
+        telegramLinkFooter.addEventListener("click", () => {
+          FlashistFacade.instance.logUiTapEvent(
+            flashistConstants.uiElementIds.telegramLinkFooter,
+          );
+        });
+      });
     }
 
     const newsModal = document.querySelector("news-modal") as NewsModal;

@@ -112,6 +112,9 @@ Fired for both multiplayer and single-player missions.
 | Element ID constant                  | Full event string              | When fired                                                       |
 | ------------------------------------ | ------------------------------ | ---------------------------------------------------------------- |
 | `uiElementIds.announcementsBell`     | `UI:Tap:AnnouncementsBell`     | Player clicks or taps the announcements bell on the start screen |
+| `uiElementIds.telegramLinkFooter`    | `UI:Tap:TelegramLinkFooter`    | Player clicks the Telegram link in the footer                    |
+| `uiElementIds.telegramLinkStartScreen` | `UI:Tap:TelegramLinkStartScreen` | Player clicks the Telegram link on the start screen           |
+| `uiElementIds.telegramLinkGameEnd`   | `UI:Tap:TelegramLinkGameEnd`   | Player clicks the Telegram link on the game-end screen           |
 | `uiElementIds.tutorialSkipBtnCorner` | `UI:Tap:TutorialSkipBtnCorner` | Player clicks the corner skip button during tutorial             |
 | `uiElementIds.tutorialSkipBtnInline` | `UI:Tap:TutorialSkipBtnInline` | Player clicks the inline skip link during tutorial               |
 

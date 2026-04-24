@@ -314,6 +314,10 @@
     "invalid_email": "Please enter a valid email address.",
     "subscribe_button": "Subscribe to updates"
   },
+  "telegram_link": {
+    "cta_text": "Join our Telegram",
+    "footer_text": "Join our Telegram"
+  },
   "stale_build_modal": {
     "message": "The version of the game you're playing is outdated. Please refresh the page. If this popup keeps appearing, try clearing your browser cache and refreshing again, or contact us.",
     "refresh_button": "REFRESH",
