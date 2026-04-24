@@ -1,7 +1,11 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { EmailSubscribeModal } from "./EmailSubscribeModal";
-import { FlashistFacade } from "./flashist/FlashistFacade";
+import {
+  flashistConstants,
+  FlashistFacade,
+  TELEGRAM_CHANNEL_URL,
+} from "./flashist/FlashistFacade";
 import { translateText } from "./Utils";
 
 @customElement("game-starting-modal")
@@ -12,16 +16,22 @@ export class GameStartingModal extends LitElement {
   @state()
   private isSubscribeButtonEnabled = false;
 
+  @state()
+  private isTelegramLinkVisible = false;
+
   connectedCallback() {
     super.connectedCallback();
-    void this.loadSubscribeButtonFlag();
+    void this.loadCtaFlags();
   }
 
-  private async loadSubscribeButtonFlag(): Promise<void> {
-    const isEnabled =
-      await FlashistFacade.instance.isEmailSubscribeButtonEnabled();
+  private async loadCtaFlags(): Promise<void> {
+    const [isSubscribeEnabled, isTelegramLinkEnabled] = await Promise.all([
+      FlashistFacade.instance.isEmailSubscribeButtonEnabled(),
+      FlashistFacade.instance.isTelegramLinkEnabled(),
+    ]);
     if (!this.isConnected) return;
-    this.isSubscribeButtonEnabled = isEnabled;
+    this.isSubscribeButtonEnabled = isSubscribeEnabled;
+    this.isTelegramLinkVisible = isTelegramLinkEnabled;
   }
 
   static styles = css`
@@ -154,6 +164,20 @@ export class GameStartingModal extends LitElement {
     .modal-box .subscribe-btn:active {
       transform: translateY(1px);
     }
+
+    .modal-box .telegram-link {
+      display: inline-block;
+      margin-top: 12px;
+      color: #60a5fa;
+      font-size: 16px;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      transition: color 0.2s ease;
+    }
+
+    .modal-box .telegram-link:hover {
+      color: #93c5fd;
+    }
   `;
 
   render() {
@@ -170,6 +194,19 @@ export class GameStartingModal extends LitElement {
                 >
                   ${translateText("email_subscribe_modal.subscribe_button")}
                 </button>
+              `
+            : nothing}
+          ${this.isTelegramLinkVisible
+            ? html`
+                <a
+                  href=${TELEGRAM_CHANNEL_URL}
+                  target="_blank"
+                  rel="noopener"
+                  class="telegram-link"
+                  @click=${this.onTelegramLinkClick}
+                >
+                  ${translateText("telegram_link.cta_text")}
+                </a>
               `
             : nothing}
         </div>
@@ -195,6 +232,12 @@ export class GameStartingModal extends LitElement {
     const modal = document.querySelector("email-subscribe-modal");
     if (!(modal instanceof EmailSubscribeModal)) return;
     void modal.show();
+  }
+
+  private onTelegramLinkClick() {
+    FlashistFacade.instance.logUiTapEvent(
+      flashistConstants.uiElementIds.telegramLinkStartScreen,
+    );
   }
 
   show() {

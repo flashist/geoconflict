@@ -72,7 +72,14 @@ import "./components/NewsButton";
 import { NewsButton } from "./components/NewsButton";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
-import { flashist_getLangSelector, flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants, FlashistFacade } from "./flashist/FlashistFacade";
+import {
+  flashist_getLangSelector,
+  flashist_logEventAnalytics,
+  flashist_waitGameInitComplete,
+  flashistConstants,
+  FlashistFacade,
+  TELEGRAM_CHANNEL_URL,
+} from "./flashist/FlashistFacade";
 import { getUserMe, isLoggedIn } from "./jwt";
 import "./styles.css";
 

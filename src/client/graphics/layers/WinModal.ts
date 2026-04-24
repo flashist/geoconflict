@@ -19,6 +19,7 @@ import {
   flashist_logEventAnalytics,
   flashistConstants,
   FlashistFacade,
+  TELEGRAM_CHANNEL_URL,
 } from "../../flashist/FlashistFacade";
 import { clearReconnectSession } from "../../ReconnectSession";
 import {
@@ -52,6 +53,9 @@ export class WinModal extends LitElement implements Layer {
   @state()
   private isSubscribeButtonEnabled = false;
 
+  @state()
+  private isTelegramLinkVisible = false;
+
   private _title: string;
 
   private rand = Math.random();
@@ -67,14 +71,17 @@ export class WinModal extends LitElement implements Layer {
 
   connectedCallback() {
     super.connectedCallback();
-    void this.loadSubscribeButtonFlag();
+    void this.loadCtaFlags();
   }
 
-  private async loadSubscribeButtonFlag(): Promise<void> {
-    const isEnabled =
-      await FlashistFacade.instance.isEmailSubscribeButtonEnabled();
+  private async loadCtaFlags(): Promise<void> {
+    const [isSubscribeEnabled, isTelegramLinkEnabled] = await Promise.all([
+      FlashistFacade.instance.isEmailSubscribeButtonEnabled(),
+      FlashistFacade.instance.isTelegramLinkEnabled(),
+    ]);
     if (!this.isConnected) return;
-    this.isSubscribeButtonEnabled = isEnabled;
+    this.isSubscribeButtonEnabled = isSubscribeEnabled;
+    this.isTelegramLinkVisible = isTelegramLinkEnabled;
   }
 
   render() {
@@ -116,6 +123,19 @@ export class WinModal extends LitElement implements Layer {
               >
                 ${translateText("email_subscribe_modal.subscribe_button")}
               </button>
+            `
+          : nothing}
+        ${this.showButtons && this.isTelegramLinkVisible
+          ? html`
+              <a
+                href=${TELEGRAM_CHANNEL_URL}
+                target="_blank"
+                rel="noopener"
+                class="mt-2.5 block text-center text-base text-blue-300 underline underline-offset-2 transition-colors duration-200 hover:text-blue-200"
+                @click=${this.onTelegramLinkClick}
+              >
+                ${translateText("telegram_link.cta_text")}
+              </a>
             `
           : nothing}
       </div>
@@ -240,6 +260,12 @@ export class WinModal extends LitElement implements Layer {
     const modal = document.querySelector("email-subscribe-modal");
     if (!(modal instanceof EmailSubscribeModal)) return;
     void modal.show();
+  }
+
+  private onTelegramLinkClick() {
+    FlashistFacade.instance.logUiTapEvent(
+      flashistConstants.uiElementIds.telegramLinkGameEnd,
+    );
   }
 
   async show() {
