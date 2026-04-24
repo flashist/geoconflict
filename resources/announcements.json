@@ -1,5 +1,18 @@
 [
   {
+    "id": "2026-04-telegram-channel-link",
+    "date": "2026-04-24",
+    "title": {
+      "en": "Our Telegram channel is now linked in the game",
+      "ru": "Ссылка на наш Telegram-канал теперь есть в игре"
+    },
+    "body": {
+      "en": "You can now open our Telegram channel directly from the game. Look for the link on the start screen or after a match to follow major updates and announcements.",
+      "ru": "Теперь наш Telegram-канал можно открыть прямо из игры. Ищите ссылку на стартовом экране или после матча, чтобы следить за крупными обновлениями и объявлениями."
+    },
+    "tag": "update"
+  },
+  {
     "id": "2026-04-subscribe-to-updates",
     "date": "2026-04-21",
     "title": {
