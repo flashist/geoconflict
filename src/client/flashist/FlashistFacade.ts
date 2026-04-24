@@ -99,7 +99,6 @@ export const flashistConstants = {
 
   uiElementIds: {
     announcementsBell: "AnnouncementsBell",
-    telegramLinkFooter: "TelegramLinkFooter",
     telegramLinkStartScreen: "TelegramLinkStartScreen",
     telegramLinkGameEnd: "TelegramLinkGameEnd",
     tutorialSkipBtnCorner: "TutorialSkipBtnCorner",
