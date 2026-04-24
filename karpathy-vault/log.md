@@ -251,3 +251,8 @@
 - Issues fixed: 0
 - Issues flagged for human review: 0
 - Full structural/link/source-path audit passed; no new issues beyond the existing intentional warning in [[wiki/systems/match-logging]]
+
+## 2026-04-24 — ingest
+- Sync window: `5c01322634ccd38c80c68dce10b3c4a386ce809d` → HEAD (`33de62b78f9994165cbb91fecbedfa8f45cbe7f6`)
+- Changed source files detected: 1
+- Skipped (already covered): `ai-agents/sprints/plan-sprint-4.md` — current XP-based Sprint 4 framing is already reflected in [[wiki/decisions/sprint-4]]
