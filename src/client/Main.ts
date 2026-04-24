@@ -190,26 +190,26 @@ class Client {
       licenseCredits.innerText = translateText("main.license_text") + "\n" + version;
     }
 
-    const telegramLinkFooter = document.getElementById(
-      "telegram-link-footer",
-    ) as HTMLAnchorElement;
-    if (!telegramLinkFooter) {
-      console.warn("Telegram link footer element not found");
-    } else {
-      telegramLinkFooter.href = TELEGRAM_CHANNEL_URL;
-      void FlashistFacade.instance.isTelegramLinkEnabled().then((enabled) => {
-        if (!enabled) return;
-        telegramLinkFooter.style.display = "";
-        telegramLinkFooter.innerText = translateText(
-          "telegram_link.footer_text",
-        );
-        telegramLinkFooter.addEventListener("click", () => {
-          FlashistFacade.instance.logUiTapEvent(
-            flashistConstants.uiElementIds.telegramLinkFooter,
-          );
-        });
-      });
-    }
+    // const telegramLinkFooter = document.getElementById(
+    //   "telegram-link-footer",
+    // ) as HTMLAnchorElement;
+    // if (!telegramLinkFooter) {
+    //   console.warn("Telegram link footer element not found");
+    // } else {
+    //   telegramLinkFooter.href = TELEGRAM_CHANNEL_URL;
+    //   void FlashistFacade.instance.isTelegramLinkEnabled().then((enabled) => {
+    //     if (!enabled) return;
+    //     telegramLinkFooter.style.display = "";
+    //     telegramLinkFooter.innerText = translateText(
+    //       "telegram_link.footer_text",
+    //     );
+    //     telegramLinkFooter.addEventListener("click", () => {
+    //       FlashistFacade.instance.logUiTapEvent(
+    //         flashistConstants.uiElementIds.telegramLinkFooter,
+    //       );
+    //     });
+    //   });
+    // }
 
     const newsModal = document.querySelector("news-modal") as NewsModal;
     if (!newsModal || !(newsModal instanceof NewsModal)) {
