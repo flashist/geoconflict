@@ -2,6 +2,7 @@ import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import {
   flashist_logEventAnalytics,
+  FlashistFacade,
   flashistConstants,
 } from "./flashist/FlashistFacade";
 import { translateText } from "./Utils";
@@ -13,6 +14,7 @@ export class EmailSubscribeModal extends LitElement {
   @state() submitted = false;
   @state() loading = false;
   @state() error = "";
+  @state() private isSubscribeButtonEnabled = false;
 
   private hideTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -117,8 +119,24 @@ export class EmailSubscribeModal extends LitElement {
     }
   `;
 
-  show() {
-    if (this.isVisible) return;
+  connectedCallback() {
+    super.connectedCallback();
+    void this.loadSubscribeButtonFlag();
+  }
+
+  private async loadSubscribeButtonFlag(): Promise<void> {
+    const isEnabled =
+      await FlashistFacade.instance.isEmailSubscribeButtonEnabled();
+    if (!this.isConnected) return;
+    this.isSubscribeButtonEnabled = isEnabled;
+  }
+
+  async show() {
+    const isEnabled =
+      this.isSubscribeButtonEnabled ||
+      (await FlashistFacade.instance.isEmailSubscribeButtonEnabled());
+    this.isSubscribeButtonEnabled = isEnabled;
+    if (!isEnabled || this.isVisible) return;
     this.isVisible = true;
     this.email = "";
     this.submitted = false;

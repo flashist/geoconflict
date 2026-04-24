@@ -10,12 +10,26 @@ export default {
     "\\.(css|less)$": "<rootDir>/__mocks__/fileMock.js",
   },
   transform: {
-    "^.+\\.tsx?$": ["@swc/jest"],
+    "^.+\\.tsx?$": [
+      "@swc/jest",
+      {
+        jsc: {
+          parser: {
+            syntax: "typescript",
+            decorators: true,
+          },
+          transform: {
+            legacyDecorator: true,
+            decoratorMetadata: false,
+          },
+        },
+      },
+    ],
     "^.+\\.mjs$": ["@swc/jest"],
     "^.+\\.js$": ["@swc/jest"],
   },
   transformIgnorePatterns: [
-    "node_modules/(?!(nanoid|@jsep|fastpriorityqueue|@datastructures-js)/)",
+    "node_modules/(?!(nanoid|@jsep|fastpriorityqueue|@datastructures-js|lit|lit-html|lit-element|@lit)/)",
   ],
   collectCoverageFrom: ["src/**/*.ts", "!src/**/*.d.ts"],
   coverageThreshold: {
