@@ -113,6 +113,8 @@ export const flashistConstants = {
     // Yandex.Games remote flag for testing of showing more ads during interstitial
     // JOIN_MORE_ADS_FLAG_NAME: "join_more_ads",
     // JOIN_MORE_ADS_FLAG_VALUE: "enabled",
+    EMAIL_SUBSCRIBE_BUTTON_FLAG_NAME: "email_subscribe_button",
+    EMAIL_SUBSCRIBE_BUTTON_ENABLED_VALUE: "enabled",
   },
 
   ads: {
@@ -490,6 +492,13 @@ export class FlashistFacade {
     }
 
     return result;
+  }
+
+  public async isEmailSubscribeButtonEnabled(): Promise<boolean> {
+    return this.checkExperimentFlag(
+      flashistConstants.experiments.EMAIL_SUBSCRIBE_BUTTON_FLAG_NAME,
+      flashistConstants.experiments.EMAIL_SUBSCRIBE_BUTTON_ENABLED_VALUE,
+    );
   }
 
   public logExperimentEvent(name: string, value: string): void {

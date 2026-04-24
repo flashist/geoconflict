@@ -1,4 +1,4 @@
-import { LitElement, TemplateResult, html } from "lit";
+import { LitElement, TemplateResult, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { isInIframe, translateText } from "../../../client/Utils";
 import { ColorPalette, Pattern } from "../../../core/CosmeticSchemas";
@@ -11,10 +11,15 @@ import {
   handlePurchase,
   patternRelationship,
 } from "../../Cosmetics";
+import { EmailSubscribeModal } from "../../EmailSubscribeModal";
 import { getUserMe } from "../../jwt";
 import { SendWinnerEvent } from "../../Transport";
 import { Layer } from "./Layer";
-import { flashist_logEventAnalytics, flashistConstants, FlashistFacade } from "../../flashist/FlashistFacade";
+import {
+  flashist_logEventAnalytics,
+  flashistConstants,
+  FlashistFacade,
+} from "../../flashist/FlashistFacade";
 import { clearReconnectSession } from "../../ReconnectSession";
 import {
   getNextMissionLevel,
@@ -44,6 +49,9 @@ export class WinModal extends LitElement implements Layer {
   @state()
   private patternContent: TemplateResult | null = null;
 
+  @state()
+  private isSubscribeButtonEnabled = false;
+
   private _title: string;
 
   private rand = Math.random();
@@ -55,6 +63,18 @@ export class WinModal extends LitElement implements Layer {
 
   constructor() {
     super();
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    void this.loadSubscribeButtonFlag();
+  }
+
+  private async loadSubscribeButtonFlag(): Promise<void> {
+    const isEnabled =
+      await FlashistFacade.instance.isEmailSubscribeButtonEnabled();
+    if (!this.isConnected) return;
+    this.isSubscribeButtonEnabled = isEnabled;
   }
 
   render() {
@@ -88,14 +108,16 @@ export class WinModal extends LitElement implements Layer {
         : translateText("win_modal.spectate")}
           </button>
         </div>
-        <button
-          @click=${this.openSubscribeModal}
-          class="${this.showButtons
-        ? "w-full mt-2.5 px-3 py-3 text-base cursor-pointer bg-green-600/60 text-white border-0 rounded transition-all duration-200 hover:bg-green-600/80 hover:-translate-y-px active:translate-y-px"
-        : "hidden"}"
-        >
-          ${translateText("email_subscribe_modal.subscribe_button")}
-        </button>
+        ${this.showButtons && this.isSubscribeButtonEnabled
+          ? html`
+              <button
+                @click=${this.openSubscribeModal}
+                class="w-full mt-2.5 px-3 py-3 text-base cursor-pointer bg-green-600/60 text-white border-0 rounded transition-all duration-200 hover:bg-green-600/80 hover:-translate-y-px active:translate-y-px"
+              >
+                ${translateText("email_subscribe_modal.subscribe_button")}
+              </button>
+            `
+          : nothing}
       </div>
 
       <style>
@@ -214,8 +236,10 @@ export class WinModal extends LitElement implements Layer {
   }
 
   private openSubscribeModal() {
-    const modal = document.querySelector("email-subscribe-modal") as any;
-    modal?.show();
+    if (!this.isSubscribeButtonEnabled) return;
+    const modal = document.querySelector("email-subscribe-modal");
+    if (!(modal instanceof EmailSubscribeModal)) return;
+    void modal.show();
   }
 
   async show() {

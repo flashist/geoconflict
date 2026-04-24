@@ -1,12 +1,28 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { EmailSubscribeModal } from "./EmailSubscribeModal";
+import { FlashistFacade } from "./flashist/FlashistFacade";
 import { translateText } from "./Utils";
-import "./EmailSubscribeModal";
 
 @customElement("game-starting-modal")
 export class GameStartingModal extends LitElement {
   @state()
   isVisible = false;
+
+  @state()
+  private isSubscribeButtonEnabled = false;
+
+  connectedCallback() {
+    super.connectedCallback();
+    void this.loadSubscribeButtonFlag();
+  }
+
+  private async loadSubscribeButtonFlag(): Promise<void> {
+    const isEnabled =
+      await FlashistFacade.instance.isEmailSubscribeButtonEnabled();
+    if (!this.isConnected) return;
+    this.isSubscribeButtonEnabled = isEnabled;
+  }
 
   static styles = css`
     .modal-overlay {
@@ -146,9 +162,16 @@ export class GameStartingModal extends LitElement {
       <div class="modal-overlay ${this.isVisible ? "visible" : ""}">
         <div class="modal-box">
           <p class="loading">${translateText("game_starting_modal.title")}</p>
-          <button class="subscribe-btn" @click=${this.openSubscribeModal}>
-            ${translateText("email_subscribe_modal.subscribe_button")}
-          </button>
+          ${this.isSubscribeButtonEnabled
+            ? html`
+                <button
+                  class="subscribe-btn"
+                  @click=${this.openSubscribeModal}
+                >
+                  ${translateText("email_subscribe_modal.subscribe_button")}
+                </button>
+              `
+            : nothing}
         </div>
       </div>
     `;
@@ -168,8 +191,10 @@ export class GameStartingModal extends LitElement {
   }
 
   private openSubscribeModal() {
-    const modal = document.querySelector("email-subscribe-modal") as any;
-    modal?.show();
+    if (!this.isSubscribeButtonEnabled) return;
+    const modal = document.querySelector("email-subscribe-modal");
+    if (!(modal instanceof EmailSubscribeModal)) return;
+    void modal.show();
   }
 
   show() {
