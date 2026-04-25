@@ -49,6 +49,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 | 8d-B — Personal Inbox | backlog | Blocked by player profile store; builds on announcements |
 | Name Change (Citizens Only) | backlog | First user-facing citizenship benefit |
 | Citizen Verified Icon | backlog | Visible identity/status marker in lobbies and match UI |
+| Telegram Channel Link | backlog | Low-priority community CTA for start-screen and game-end placements |
 
 **External/manual blocker:**
 - Yandex catalog registration and approval is the remaining urgent non-engineering prerequisite called out directly in the sprint brief

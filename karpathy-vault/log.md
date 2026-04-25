@@ -256,3 +256,10 @@
 - Sync window: `5c01322634ccd38c80c68dce10b3c4a386ce809d` → HEAD (`33de62b78f9994165cbb91fecbedfa8f45cbe7f6`)
 - Changed source files detected: 1
 - Skipped (already covered): `ai-agents/sprints/plan-sprint-4.md` — current XP-based Sprint 4 framing is already reflected in [[wiki/decisions/sprint-4]]
+
+## 2026-04-25 — ingest
+- Sync window: `33de62b78f9994165cbb91fecbedfa8f45cbe7f6` → HEAD (`f569e78954f0290ff9ff20b2c75c2334f7eb959f`)
+- Changed source files detected: 3
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-telegram-link.md` — backlog files do not get wiki task pages during `wiki-sync`

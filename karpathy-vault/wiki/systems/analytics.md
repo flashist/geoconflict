@@ -30,7 +30,7 @@ The reference doc is `ai-agents/knowledge-base/analytics-event-reference.md`.
 | `Reconnect` | Disconnect/reconnect flow |
 | `Feedback` | Feedback form interactions |
 | `Subscribe` | Email subscription modal open and submit events |
-| `UI` | Button clicks; `UI:Tap:{ElementId}` for specific elements |
+| `UI` | Button clicks; `UI:Tap:{ElementId}` for specific elements and placement-specific CTA tracking |
 | `Performance` | FPS and memory sampled every 60s during gameplay |
 | `Build` | Stale build detection |
 | `Worker` | Web Worker init success/failure |
@@ -71,6 +71,8 @@ See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrumen
 | `Match:PreloadHitLoaded` | Match start reuses a completed preload |
 | `Match:PreloadHitNotLoaded` | Match start waits on an in-progress preload |
 | `Match:PreloadMiss` | Match start falls back to a fresh terrain load |
+
+The analytics reference now also defines two placement-specific Telegram CTA tap IDs: `UI:Tap:TelegramLinkStartScreen` and `UI:Tap:TelegramLinkGameEnd`. The current Sprint 4 sources still treat that work as backlog, but the event names are now reserved so those surfaces can be segmented cleanly if and when the links ship.
 
 ## Experiment Event Pattern
 
