@@ -278,3 +278,6 @@
 
 ## 2026-04-28 — ingest
 - Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
+
+## 2026-04-28 — ingest
+- Ingested: `ai-agents/knowledge-base/server-match-logging-state.md` → updated [[wiki/systems/match-logging]]

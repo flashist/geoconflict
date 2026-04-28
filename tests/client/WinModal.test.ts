@@ -92,7 +92,7 @@ describe("WinModal solo opponent wins", () => {
         winUpdates: [
           {
             type: GameUpdateType.Win,
-            winner: undefined,
+            winner: ["opponent", "Nation"],
             allPlayersStats: { me: { gold: 0 } },
           },
         ],
@@ -116,6 +116,10 @@ describe("WinModal solo opponent wins", () => {
       ),
     ).toHaveLength(1);
     expect(eventBus.emit).toHaveBeenCalledTimes(1);
+    expect(eventBus.emit.mock.calls[0][0].winner).toEqual([
+      "opponent",
+      "Nation",
+    ]);
   });
 
   it("does not use the solo opponent loss state in tutorial matches", async () => {
@@ -128,7 +132,7 @@ describe("WinModal solo opponent wins", () => {
         winUpdates: [
           {
             type: GameUpdateType.Win,
-            winner: undefined,
+            winner: ["opponent", "Nation"],
             allPlayersStats: {},
           },
         ],
@@ -145,7 +149,7 @@ describe("WinModal solo opponent wins", () => {
     expect(eventBus.emit).not.toHaveBeenCalled();
   });
 
-  it("keeps the elimination modal when a dead player receives an undefined solo win update", async () => {
+  it("keeps the elimination modal when a dead player receives a solo opponent win update", async () => {
     const eventBus = { emit: jest.fn() };
     const modal = await appendModal({
       eventBus,
@@ -156,7 +160,7 @@ describe("WinModal solo opponent wins", () => {
         winUpdates: [
           {
             type: GameUpdateType.Win,
-            winner: undefined,
+            winner: ["opponent", "Nation"],
             allPlayersStats: {},
           },
         ],

@@ -1,5 +1,20 @@
+jest.mock("jose", () => ({
+  base64url: {
+    decode: jest.fn(),
+  },
+}));
+
 import { WinCheckExecution } from "../../../src/core/execution/WinCheckExecution";
-import { ColoredTeams, GameMode, GameType } from "../../../src/core/game/Game";
+import { PartialGameRecordSchema, Winner } from "../../../src/core/Schemas";
+import { createPartialGameRecord } from "../../../src/core/Util";
+import {
+  ColoredTeams,
+  GameMode,
+  GameType,
+  PlayerInfo,
+  PlayerType,
+} from "../../../src/core/game/Game";
+import { GameUpdateType } from "../../../src/core/game/GameUpdates";
 import { setup } from "../../util/Setup";
 
 describe("WinCheckExecution", () => {
@@ -124,6 +139,70 @@ describe("WinCheckExecution", () => {
     winCheck.checkWinnerTeam();
 
     expect(mg.setWinner).not.toHaveBeenCalled();
+  });
+
+  it("emits an explicit opponent winner for a clientless FFA nation that reaches the threshold", async () => {
+    const humanInfo = new PlayerInfo(
+      "human",
+      PlayerType.Human,
+      "human001",
+      "human_id",
+    );
+    const game = await setup(
+      "big_plains",
+      {
+        gameMode: GameMode.FFA,
+        gameType: GameType.Singleplayer,
+        maxTimerValue: undefined,
+      },
+      [humanInfo],
+    );
+    const fakeHumanInfo = new PlayerInfo(
+      "winner_fakehuman",
+      PlayerType.FakeHuman,
+      null,
+      "fake_id",
+    );
+    game.addPlayer(fakeHumanInfo);
+
+    while (game.inSpawnPhase()) {
+      game.executeNextTick();
+    }
+
+    const fakeHuman = game.player(fakeHumanInfo.id);
+    const targetTiles = Math.floor(game.numLandTiles() * 0.82);
+    let conqueredTiles = 0;
+    game.forEachTile((tile) => {
+      if (
+        conqueredTiles < targetTiles &&
+        game.map().isLand(tile) &&
+        !game.map().hasOwner(tile)
+      ) {
+        fakeHuman.conquer(tile);
+        conqueredTiles++;
+      }
+    });
+
+    const execution = new WinCheckExecution();
+    execution.init(game, game.ticks());
+    execution.checkWinnerFFA();
+
+    const winUpdates = (game as any).updates[GameUpdateType.Win];
+    expect(winUpdates).toHaveLength(1);
+    expect(winUpdates[0].winner).toEqual(["opponent", "winner_fakehuman"]);
+
+    const record = createPartialGameRecord(
+      "game0001",
+      game.config().gameConfig(),
+      [],
+      [],
+      0,
+      1000,
+      winUpdates[0].winner as Winner,
+    );
+    const result = PartialGameRecordSchema.safeParse(record);
+    expect(result.success).toBe(true);
+    expect(result.data?.info.winner).toEqual(["opponent", "winner_fakehuman"]);
   });
 
   it("should return false for activeDuringSpawnPhase", () => {

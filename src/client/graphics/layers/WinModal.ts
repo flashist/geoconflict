@@ -344,7 +344,7 @@ export class WinModal extends LitElement implements Layer {
         this.showSoloOpponentWinLoss(wu);
         return;
       }
-      if (wu.winner === undefined) {
+      if (wu.winner === undefined || wu.winner[0] === "opponent") {
         // ...
       } else if (wu.winner[0] === "team") {
 
@@ -443,12 +443,12 @@ export class WinModal extends LitElement implements Layer {
       return false;
     }
 
-    if (winner === undefined) {
-      return true;
-    }
-
     if (!Array.isArray(winner)) {
       return false;
+    }
+
+    if (winner[0] === "opponent") {
+      return true;
     }
 
     if (winner[0] === "team") {
