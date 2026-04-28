@@ -101,10 +101,10 @@ export class WinModal extends LitElement implements Layer {
           ${this._title || ""}
         </h2>
         ${this._body
-          ? html`<p class="m-0 mb-5 text-center text-white">
+        ? html`<p class="m-0 mb-5 text-center text-white">
               ${this._body}
             </p>`
-          : nothing}
+        : nothing}
         ${this.innerHtml()}
         <div
           class="${this.showButtons
@@ -127,7 +127,7 @@ export class WinModal extends LitElement implements Layer {
           </button>
         </div>
         ${this.showButtons && this.isSubscribeButtonEnabled
-          ? html`
+        ? html`
               <button
                 @click=${this.openSubscribeModal}
                 class="w-full mt-2.5 px-3 py-3 text-base cursor-pointer bg-green-600/60 text-white border-0 rounded transition-all duration-200 hover:bg-green-600/80 hover:-translate-y-px active:translate-y-px"
@@ -135,9 +135,9 @@ export class WinModal extends LitElement implements Layer {
                 ${translateText("email_subscribe_modal.subscribe_button")}
               </button>
             `
-          : nothing}
+        : nothing}
         ${this.showButtons && this.isTelegramLinkVisible
-          ? html`
+        ? html`
               <a
                 href=${TELEGRAM_CHANNEL_URL}
                 target="_blank"
@@ -148,7 +148,7 @@ export class WinModal extends LitElement implements Layer {
                 ${translateText("telegram_link.cta_text")}
               </a>
             `
-          : nothing}
+        : nothing}
       </div>
 
       <style>
@@ -468,13 +468,14 @@ export class WinModal extends LitElement implements Layer {
     }
     this.opponentWinLossTracked = true;
     flashist_logEventAnalytics(
-      flashistConstants.analyticEvents.MATCH_LOSS_OPPONENT_WON,
-    );
-    flashist_logEventAnalytics(
       flashistConstants.analyticEvents.GAME_END,
       this.game.ticks(),
     );
     flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_LOSS);
+
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.MATCH_LOSS_OPPONENT_WON,
+    );
 
     this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
     clearReconnectSession();
