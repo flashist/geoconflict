@@ -1,5 +1,5 @@
 import { WinCheckExecution } from "../../../src/core/execution/WinCheckExecution";
-import { GameMode } from "../../../src/core/game/Game";
+import { ColoredTeams, GameMode, GameType } from "../../../src/core/game/Game";
 import { setup } from "../../util/Setup";
 
 describe("WinCheckExecution", () => {
@@ -75,6 +75,54 @@ describe("WinCheckExecution", () => {
   it("should not set winner if no players", () => {
     mg.players = jest.fn(() => []);
     winCheck.checkWinnerFFA();
+    expect(mg.setWinner).not.toHaveBeenCalled();
+  });
+
+  it("sets a Bot team winner in singleplayer so the client can show a solo loss", () => {
+    const botTeamPlayer = {
+      numTilesOwned: jest.fn(() => 81),
+      team: jest.fn(() => ColoredTeams.Bot),
+    };
+    mg.players = jest.fn(() => [botTeamPlayer]);
+    mg.numLandTiles = jest.fn(() => 100);
+    mg.numTilesWithFallout = jest.fn(() => 0);
+    mg.stats = jest.fn(() => ({ stats: () => ({ mocked: true }) }));
+    mg.config = jest.fn(() => ({
+      gameConfig: jest.fn(() => ({
+        gameMode: GameMode.Team,
+        gameType: GameType.Singleplayer,
+      })),
+      percentageTilesOwnedToWin: jest.fn(() => 80),
+      numSpawnPhaseTurns: jest.fn(() => 0),
+    }));
+
+    winCheck.checkWinnerTeam();
+
+    expect(mg.setWinner).toHaveBeenCalledWith(
+      ColoredTeams.Bot,
+      expect.anything(),
+    );
+  });
+
+  it("keeps Bot team wins ignored outside singleplayer", () => {
+    const botTeamPlayer = {
+      numTilesOwned: jest.fn(() => 81),
+      team: jest.fn(() => ColoredTeams.Bot),
+    };
+    mg.players = jest.fn(() => [botTeamPlayer]);
+    mg.numLandTiles = jest.fn(() => 100);
+    mg.numTilesWithFallout = jest.fn(() => 0);
+    mg.config = jest.fn(() => ({
+      gameConfig: jest.fn(() => ({
+        gameMode: GameMode.Team,
+        gameType: GameType.Public,
+      })),
+      percentageTilesOwnedToWin: jest.fn(() => 80),
+      numSpawnPhaseTurns: jest.fn(() => 0),
+    }));
+
+    winCheck.checkWinnerTeam();
+
     expect(mg.setWinner).not.toHaveBeenCalled();
   });
 

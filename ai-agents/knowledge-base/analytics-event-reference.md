@@ -65,6 +65,12 @@ Fired for both multiplayer and single-player missions.
 | `GAME_ABANDON`      | `Game:Abandon`      | Player explicitly abandons     |
 | `PLAYER_ELIMINATED` | `Player:Eliminated` | Player is eliminated mid-match |
 
+### Match Loss Events
+
+| Enum Key                  | Event String             | When Fired                                     |
+| ------------------------- | ------------------------ | ---------------------------------------------- |
+| `MATCH_LOSS_OPPONENT_WON` | `Match:Loss:OpponentWon` | Solo loss screen shown because an opponent won |
+
 ### Spawn Events
 
 | Enum Key                              | Event String                       | When Fired                                                                                                                                                                                                               |
@@ -88,8 +94,8 @@ Fired for both multiplayer and single-player missions.
 
 ### Feedback Events
 
-| Enum Key                 | Event String            | When Fired                     |
-| ------------------------ | ----------------------- | ------------------------------ |
+| Enum Key                  | Event String            | When Fired                             |
+| ------------------------- | ----------------------- | -------------------------------------- |
 | `FEEDBACK_BUTTON_OPENED`  | `Feedback:ButtonOpened` | Player opens the feedback form         |
 | `FEEDBACK_SUBMITTED`      | `Feedback:Submitted`    | Player submits feedback                |
 | `SUBSCRIBE_BUTTON_OPENED` | `Subscribe:Opened`      | Player opens the email subscribe modal |
@@ -109,13 +115,13 @@ Fired for both multiplayer and single-player missions.
 
 #### UI:Tap events
 
-| Element ID constant                  | Full event string              | When fired                                                       |
-| ------------------------------------ | ------------------------------ | ---------------------------------------------------------------- |
-| `uiElementIds.announcementsBell`     | `UI:Tap:AnnouncementsBell`     | Player clicks or taps the announcements bell on the start screen |
-| `uiElementIds.telegramLinkStartScreen` | `UI:Tap:TelegramLinkStartScreen` | Player clicks the Telegram link on the start screen           |
-| `uiElementIds.telegramLinkGameEnd`   | `UI:Tap:TelegramLinkGameEnd`   | Player clicks the Telegram link on the game-end screen           |
-| `uiElementIds.tutorialSkipBtnCorner` | `UI:Tap:TutorialSkipBtnCorner` | Player clicks the corner skip button during tutorial             |
-| `uiElementIds.tutorialSkipBtnInline` | `UI:Tap:TutorialSkipBtnInline` | Player clicks the inline skip link during tutorial               |
+| Element ID constant                    | Full event string                | When fired                                                       |
+| -------------------------------------- | -------------------------------- | ---------------------------------------------------------------- |
+| `uiElementIds.announcementsBell`       | `UI:Tap:AnnouncementsBell`       | Player clicks or taps the announcements bell on the start screen |
+| `uiElementIds.telegramLinkStartScreen` | `UI:Tap:TelegramLinkStartScreen` | Player clicks the Telegram link on the start screen              |
+| `uiElementIds.telegramLinkGameEnd`     | `UI:Tap:TelegramLinkGameEnd`     | Player clicks the Telegram link on the game-end screen           |
+| `uiElementIds.tutorialSkipBtnCorner`   | `UI:Tap:TutorialSkipBtnCorner`   | Player clicks the corner skip button during tutorial             |
+| `uiElementIds.tutorialSkipBtnInline`   | `UI:Tap:TutorialSkipBtnInline`   | Player clicks the inline skip link during tutorial               |
 
 > **UI:Tap convention:** `UI:Tap:{ElementId}` is the standard pattern for tracking specific UI element interactions. The prefix is `flashistConstants.analyticEvents.UI_TAP_FIRST_PART`. Element IDs are registered in `flashistConstants.uiElementIds` (PascalCase, descriptive). Fire via `FlashistFacade.instance.logUiTapEvent(flashistConstants.uiElementIds.yourElement)`. This is opt-in — only elements listed in this document are instrumented.
 

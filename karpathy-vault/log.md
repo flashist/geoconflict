@@ -275,3 +275,6 @@
 - Issues fixed: 2
 - Issues flagged for human review: 0
 - Fixed two stale/unqualified task filename references for the feedback match-ID replacement; full index/schema/link/source-path audit passed, with only the pre-existing [[wiki/systems/match-logging]] line-number warning remaining.
+
+## 2026-04-28 — ingest
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]

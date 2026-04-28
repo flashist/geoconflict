@@ -45,6 +45,7 @@ export const flashistConstants = {
     MATCH_SPAWN_MISSED_NO_ATTEMPT: "Match:SpawnMissed:NoAttempt",
     MATCH_SPAWN_RETRY_AFTER_CATCHUP: "Match:SpawnRetryAfterCatchup",
     MATCH_SPAWN_MISSED_CATCHUP_TOO_LONG: "Match:SpawnMissed:CatchupTooLong",
+    MATCH_LOSS_OPPONENT_WON: "Match:Loss:OpponentWon",
 
     MATCH_PRELOAD_STARTED: "Match:PreloadStarted",
     MATCH_PRELOAD_READY: "Match:PreloadReady",
