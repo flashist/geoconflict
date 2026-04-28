@@ -4,6 +4,7 @@ import {
   Execution,
   Game,
   GameMode,
+  GameType,
   Player,
   Team,
 } from "../game/Game";
@@ -90,7 +91,12 @@ export class WinCheckExecution implements Execution {
       (this.mg.config().gameConfig().maxTimerValue !== undefined &&
         timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0)
     ) {
-      if (max[0] === ColoredTeams.Bot) return;
+      if (
+        max[0] === ColoredTeams.Bot &&
+        this.mg.config().gameConfig().gameType !== GameType.Singleplayer
+      ) {
+        return;
+      }
       this.mg.setWinner(max[0], this.mg.stats().stats());
       console.log(`${max[0]} has won the game`);
       this.active = false;

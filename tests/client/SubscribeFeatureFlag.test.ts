@@ -36,7 +36,9 @@ import { GameStartingModal } from "../../src/client/GameStartingModal";
 import { WinModal } from "../../src/client/graphics/layers/WinModal";
 
 describe("subscribe feature flag", () => {
-  const appendElement = async <T extends HTMLElement>(element: T): Promise<T> => {
+  const appendElement = async <T extends HTMLElement>(
+    element: T,
+  ): Promise<T> => {
     document.body.appendChild(element);
     await flushAsyncState();
     await waitForUpdateComplete(element);
@@ -79,9 +81,11 @@ describe("subscribe feature flag", () => {
     mockSubscribeFlag(true);
 
     const modal = await appendElement(new GameStartingModal());
-    await (modal as unknown as {
-      loadSubscribeButtonFlag: () => Promise<void>;
-    }).loadSubscribeButtonFlag();
+    await (
+      modal as unknown as {
+        loadCtaFlags: () => Promise<void>;
+      }
+    ).loadCtaFlags();
     modal.requestUpdate();
     await modal.updateComplete;
 
@@ -131,10 +135,9 @@ describe("subscribe feature flag", () => {
   });
 
   function mockSubscribeFlag(isEnabled: boolean): void {
-    jest
-      .spyOn(FlashistFacade, "instance", "get")
-      .mockReturnValue({
-        isEmailSubscribeButtonEnabled: jest.fn().mockResolvedValue(isEnabled),
-      } as unknown as FlashistFacade);
+    jest.spyOn(FlashistFacade, "instance", "get").mockReturnValue({
+      isEmailSubscribeButtonEnabled: jest.fn().mockResolvedValue(isEnabled),
+      isTelegramLinkEnabled: jest.fn().mockResolvedValue(false),
+    } as unknown as FlashistFacade);
   }
 });

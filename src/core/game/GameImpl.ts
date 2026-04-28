@@ -13,6 +13,7 @@ import {
   Execution,
   Game,
   GameMode,
+  GameType,
   GameUpdates,
   HumansVsNations,
   MessageType,
@@ -106,7 +107,7 @@ export class GameImpl implements Game {
   }
 
   private populateTeams() {
-    let numPlayerTeams = this._config.playerTeams();
+    const numPlayerTeams = this._config.playerTeams();
 
     // HumansVsNations mode always has exactly 2 teams
     if (numPlayerTeams === HumansVsNations) {
@@ -115,7 +116,6 @@ export class GameImpl implements Game {
     }
 
     if (typeof numPlayerTeams !== "number") {
-      const players = this._humans.length + this._nations.length;
       switch (numPlayerTeams) {
 
         // Flashist Adaptation: disabling duos-trios-quads game modes
@@ -677,7 +677,16 @@ export class GameImpl implements Game {
       ];
     } else {
       const clientId = winner.clientID();
-      if (clientId === null) return;
+      if (clientId === null) {
+        const gameConfig = this.config().gameConfig();
+        if (
+          gameConfig.gameType === GameType.Singleplayer &&
+          !gameConfig.isTutorial
+        ) {
+          return ["opponent", winner.name()];
+        }
+        return;
+      }
       return [
         "player",
         clientId,

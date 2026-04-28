@@ -26,7 +26,7 @@ The reference doc is `ai-agents/knowledge-base/analytics-event-reference.md`.
 | `Device` / `Platform` | Segmentation — fired once per session after `Session:Start` |
 | `Player` | New vs. returning |
 | `Game` | Match start/end/win/loss/abandon |
-| `Match` | Spawn flow (chosen, auto, missed, retry) |
+| `Match` | Spawn flow (chosen, auto, missed, retry) and match-specific loss reasons |
 | `Reconnect` | Disconnect/reconnect flow |
 | `Feedback` | Feedback form interactions |
 | `Subscribe` | Email subscription modal open and submit events |
@@ -56,6 +56,10 @@ Match:SpawnMissed:CatchupTooLong — catch-up outlasted entire spawn phase (Prob
 ```
 
 See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrument.
+
+## Match Loss Events
+
+`Match:Loss:OpponentWon` fires when a solo-mode loss screen is shown because an opponent met the win condition before the player. This is distinct from `Player:Eliminated`: the player can still have territory, but the match is over because the opponent won.
 
 ## Join Funnel & Map Preload Events
 

@@ -557,6 +557,8 @@
     "other_team": "{team} team has won!",
     "you_won": "You Won!",
     "other_won": "{player} has won!",
+    "opponent_won_title": "You lost",
+    "opponent_won_body": "An opponent captured enough territory to win.",
     "exit": "Exit Game",
     "keep": "Keep Playing",
     "spectate": "Spectate",

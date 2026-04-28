@@ -1,9 +1,10 @@
 import { LitElement, TemplateResult, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { isInIframe, translateText } from "../../../client/Utils";
+import { translateText } from "../../../client/Utils";
 import { ColorPalette, Pattern } from "../../../core/CosmeticSchemas";
 import { EventBus } from "../../../core/EventBus";
-import { GameUpdateType } from "../../../core/game/GameUpdates";
+import { GameType } from "../../../core/game/Game";
+import { GameUpdateType, WinUpdate } from "../../../core/game/GameUpdates";
 import { GameView } from "../../../core/game/GameView";
 import "../../components/PatternButton";
 import {
@@ -27,7 +28,10 @@ import {
   markMissionCompleted,
   setNextMissionLevel,
 } from "../../SinglePlayMissionStorage";
-import { TUTORIAL_COMPLETED_KEY, TUTORIAL_START_TIME_KEY } from "../../TutorialStorage";
+import {
+  TUTORIAL_COMPLETED_KEY,
+  TUTORIAL_START_TIME_KEY,
+} from "../../TutorialStorage";
 
 @customElement("win-modal")
 export class WinModal extends LitElement implements Layer {
@@ -37,6 +41,7 @@ export class WinModal extends LitElement implements Layer {
   private hasShownDeathModal = false;
   private missionProgressed = false;
   private eliminationTracked = false;
+  private opponentWinLossTracked = false;
 
   @state()
   isVisible = false;
@@ -57,6 +62,7 @@ export class WinModal extends LitElement implements Layer {
   private isTelegramLinkVisible = false;
 
   private _title: string;
+  private _body = "";
 
   private rand = Math.random();
 
@@ -94,6 +100,11 @@ export class WinModal extends LitElement implements Layer {
         <h2 class="m-0 mb-4 text-[26px] text-center text-white">
           ${this._title || ""}
         </h2>
+        ${this._body
+        ? html`<p class="m-0 mb-5 text-center text-white">
+              ${this._body}
+            </p>`
+        : nothing}
         ${this.innerHtml()}
         <div
           class="${this.showButtons
@@ -116,7 +127,7 @@ export class WinModal extends LitElement implements Layer {
           </button>
         </div>
         ${this.showButtons && this.isSubscribeButtonEnabled
-          ? html`
+        ? html`
               <button
                 @click=${this.openSubscribeModal}
                 class="w-full mt-2.5 px-3 py-3 text-base cursor-pointer bg-green-600/60 text-white border-0 rounded transition-all duration-200 hover:bg-green-600/80 hover:-translate-y-px active:translate-y-px"
@@ -124,9 +135,9 @@ export class WinModal extends LitElement implements Layer {
                 ${translateText("email_subscribe_modal.subscribe_button")}
               </button>
             `
-          : nothing}
+        : nothing}
         ${this.showButtons && this.isTelegramLinkVisible
-          ? html`
+        ? html`
               <a
                 href=${TELEGRAM_CHANNEL_URL}
                 target="_blank"
@@ -137,7 +148,7 @@ export class WinModal extends LitElement implements Layer {
                 ${translateText("telegram_link.cta_text")}
               </a>
             `
-          : nothing}
+        : nothing}
       </div>
 
       <style>
@@ -304,6 +315,7 @@ export class WinModal extends LitElement implements Layer {
   init() {
     this.hasShownDeathModal = false;
     this.eliminationTracked = false;
+    this.opponentWinLossTracked = false;
   }
 
   tick() {
@@ -322,12 +334,17 @@ export class WinModal extends LitElement implements Layer {
       this.hasShownDeathModal = true;
       clearReconnectSession();
       this._title = translateText("win_modal.died");
+      this._body = "";
       this.show();
     }
     const updates = this.game.updatesSinceLastTick();
     const winUpdates = updates !== null ? updates[GameUpdateType.Win] : [];
     winUpdates.forEach((wu) => {
-      if (wu.winner === undefined) {
+      if (this.isSoloOpponentWin(wu.winner)) {
+        this.showSoloOpponentWinLoss(wu);
+        return;
+      }
+      if (wu.winner === undefined || wu.winner[0] === "opponent") {
         // ...
       } else if (wu.winner[0] === "team") {
 
@@ -340,6 +357,7 @@ export class WinModal extends LitElement implements Layer {
         this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
         if (wu.winner[1] === this.game.myPlayer()?.team()) {
           this._title = translateText("win_modal.your_team");
+          this._body = "";
           this.isWin = true;
 
           //
@@ -351,6 +369,7 @@ export class WinModal extends LitElement implements Layer {
           this._title = translateText("win_modal.other_team", {
             team: wu.winner[1],
           });
+          this._body = "";
           this.isWin = false;
 
           //
@@ -382,6 +401,7 @@ export class WinModal extends LitElement implements Layer {
           winnerClient === this.game.myPlayer()?.clientID()
         ) {
           this._title = translateText("win_modal.you_won");
+          this._body = "";
           this.isWin = true;
 
           //
@@ -393,6 +413,7 @@ export class WinModal extends LitElement implements Layer {
           this._title = translateText("win_modal.other_won", {
             player: winner.name(),
           });
+          this._body = "";
           this.isWin = false;
 
           //
@@ -406,6 +427,62 @@ export class WinModal extends LitElement implements Layer {
       }
       this.handleMissionProgress();
     });
+  }
+
+  private isSoloOpponentWin(winner: unknown): boolean {
+    const gameConfig = this.game.config().gameConfig();
+    if (
+      gameConfig.gameType !== GameType.Singleplayer ||
+      gameConfig.isTutorial
+    ) {
+      return false;
+    }
+
+    const myPlayer = this.game.myPlayer();
+    if (myPlayer === null || this.hasShownDeathModal || !myPlayer.isAlive()) {
+      return false;
+    }
+
+    if (!Array.isArray(winner)) {
+      return false;
+    }
+
+    if (winner[0] === "opponent") {
+      return true;
+    }
+
+    if (winner[0] === "team") {
+      return winner[1] !== myPlayer.team();
+    }
+
+    if (winner[0] === "player") {
+      return winner[1] !== myPlayer.clientID();
+    }
+
+    return false;
+  }
+
+  private showSoloOpponentWinLoss(wu: WinUpdate): void {
+    if (this.opponentWinLossTracked) {
+      return;
+    }
+    this.opponentWinLossTracked = true;
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.GAME_END,
+      this.game.ticks(),
+    );
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_LOSS);
+
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.MATCH_LOSS_OPPONENT_WON,
+    );
+
+    this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
+    clearReconnectSession();
+    this._title = translateText("win_modal.opponent_won_title");
+    this._body = translateText("win_modal.opponent_won_body");
+    this.isWin = false;
+    this.show();
   }
 
   private handleMissionProgress() {

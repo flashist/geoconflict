@@ -27,7 +27,7 @@ Source: `ai-agents/knowledge-base/server-match-logging-state.md`
 | Client (re)joins | `GameServer.ts:172` | `gameID, clientID, persistentID` |
 | Game start sent | `GameServer.ts:466` | `clientID, persistentID` |
 | Game ends | `GameServer.ts:717` | `gameID, turns.length` |
-| Game archived | `GameServer.ts:911` | `gameID, winner` (tuple: `["player", clientID]` or `["team", teamName]`) |
+| Game archived | `GameServer.ts:911` | `gameID, winner` (tuple: `["player", clientID]`, `["team", teamName]`, or `["opponent", opponentName]` for solo clientless winners) |
 | Client disconnects | `GameServer.ts:365` | `clientID, persistentID` |
 | Max duration exceeded | `GameServer.ts:777` | `gameID` |
 | Winner determined | `GameServer.ts:1083` | `gameID`, winner, vote counts |
