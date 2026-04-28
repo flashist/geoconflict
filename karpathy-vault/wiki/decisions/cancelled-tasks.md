@@ -42,7 +42,7 @@ Keep cancelled work in one durable page instead of deleting context from the wik
 
 **Why cancelled:** too many moving parts — writing structured match records to localStorage on every match end, reading/trimming entries, modifying feedback payload. Not worth the complexity at this stage.
 
-**Replacement:** `task-feedback-match-ids-simple.md` — narrower scope: read last 3 game IDs from existing `localStorage['game-records']` (no new write logic needed; `LocalPersistantStats.ts` already writes this). Match IDs alone are sufficient for archive lookup.
+**Replacement:** `ai-agents/tasks/done/task-feedback-match-ids-simple.md` — narrower scope: read last 3 game IDs from existing `localStorage['game-records']` (no new write logic needed; `LocalPersistantStats.ts` already writes this). Match IDs alone are sufficient for archive lookup.
 
 **What was learned:** `localStorage['game-records']` already exists and is keyed by game ID. The simpler approach should have been the starting point.
 

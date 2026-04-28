@@ -35,7 +35,7 @@ Source: `ai-agents/sprints/done/plan-sprint-3.md`
 
 **Server restart UX moved out:** Part B (auto-refresh polling loop) remains the more important half, but the whole task moved to Sprint 6 because the game remains usable without it and the current reduced weekend release cadence lowers its urgency.
 
-**Feedback match IDs (simple):** the cancelled `task-feedback-match-history.md` scope was too large. Replacement: read existing `localStorage['game-records']` (keyed by game ID, already written by `LocalPersistantStats.ts`) and attach last 3 IDs. No new write logic.
+**Feedback match IDs (simple):** the cancelled match-history scope was too large. Replacement: read existing `localStorage['game-records']` (keyed by game ID, already written by `LocalPersistantStats.ts`) and attach last 3 IDs. No new write logic. The shipped brief is `ai-agents/tasks/done/task-feedback-match-ids-simple.md`.
 
 **Humans vs Nations scope expanded:** investigation showed the suspected lobby-composition failure was not a stability problem. AI fills empty slots before match start, so all team modes were re-enabled, not just Humans vs Nations.
 

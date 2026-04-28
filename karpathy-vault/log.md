@@ -263,3 +263,15 @@
 - Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
 - Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-telegram-link.md` — backlog files do not get wiki task pages during `wiki-sync`
+
+## 2026-04-28 — ingest
+- Sync window: `f569e78954f0290ff9ff20b2c75c2334f7eb959f` → HEAD (`3060792ef4fb87562d03e6a1cbb08e09e884da46`)
+- Changed source files detected: 2
+- Skipped (already covered): `ai-agents/knowledge-base/analytics-event-reference.md` — current wiki already reserves only `UI:Tap:TelegramLinkStartScreen` and `UI:Tap:TelegramLinkGameEnd` in [[wiki/systems/analytics]]
+- Skipped (already covered): `ai-agents/sprints/plan-sprint-4.md` — current Sprint 4 page already lists Telegram Channel Link as start-screen and game-end only in [[wiki/decisions/sprint-4]]
+
+## 2026-04-28 — lint
+- Issues found: 2
+- Issues fixed: 2
+- Issues flagged for human review: 0
+- Fixed two stale/unqualified task filename references for the feedback match-ID replacement; full index/schema/link/source-path audit passed, with only the pre-existing [[wiki/systems/match-logging]] line-number warning remaining.
