@@ -142,52 +142,10 @@ describe("WinCheckExecution", () => {
   });
 
   it("emits an explicit opponent winner for a clientless FFA nation that reaches the threshold", async () => {
-    const humanInfo = new PlayerInfo(
-      "human",
-      PlayerType.Human,
-      "human001",
-      "human_id",
+    const { game, winUpdates } = await clientlessFfaWinUpdates(
+      GameType.Singleplayer,
     );
-    const game = await setup(
-      "big_plains",
-      {
-        gameMode: GameMode.FFA,
-        gameType: GameType.Singleplayer,
-        maxTimerValue: undefined,
-      },
-      [humanInfo],
-    );
-    const fakeHumanInfo = new PlayerInfo(
-      "winner_fakehuman",
-      PlayerType.FakeHuman,
-      null,
-      "fake_id",
-    );
-    game.addPlayer(fakeHumanInfo);
 
-    while (game.inSpawnPhase()) {
-      game.executeNextTick();
-    }
-
-    const fakeHuman = game.player(fakeHumanInfo.id);
-    const targetTiles = Math.floor(game.numLandTiles() * 0.82);
-    let conqueredTiles = 0;
-    game.forEachTile((tile) => {
-      if (
-        conqueredTiles < targetTiles &&
-        game.map().isLand(tile) &&
-        !game.map().hasOwner(tile)
-      ) {
-        fakeHuman.conquer(tile);
-        conqueredTiles++;
-      }
-    });
-
-    const execution = new WinCheckExecution();
-    execution.init(game, game.ticks());
-    execution.checkWinnerFFA();
-
-    const winUpdates = (game as any).updates[GameUpdateType.Win];
     expect(winUpdates).toHaveLength(1);
     expect(winUpdates[0].winner).toEqual(["opponent", "winner_fakehuman"]);
 
@@ -205,7 +163,80 @@ describe("WinCheckExecution", () => {
     expect(result.data?.info.winner).toEqual(["opponent", "winner_fakehuman"]);
   });
 
+  it("keeps public FFA clientless winners on the pre-existing undefined winner path", async () => {
+    const { winUpdates } = await clientlessFfaWinUpdates(GameType.Public);
+
+    expect(winUpdates).toHaveLength(1);
+    expect(winUpdates[0].winner).toBeUndefined();
+  });
+
+  it("does not emit an explicit opponent winner for tutorial clientless winners", async () => {
+    const { winUpdates } = await clientlessFfaWinUpdates(
+      GameType.Singleplayer,
+      true,
+    );
+
+    expect(winUpdates).toHaveLength(1);
+    expect(winUpdates[0].winner).toBeUndefined();
+  });
+
   it("should return false for activeDuringSpawnPhase", () => {
     expect(winCheck.activeDuringSpawnPhase()).toBe(false);
   });
 });
+
+async function clientlessFfaWinUpdates(
+  gameType: GameType,
+  isTutorial = false,
+) {
+  const humanInfo = new PlayerInfo(
+    "human",
+    PlayerType.Human,
+    "human001",
+    "human_id",
+  );
+  const game = await setup(
+    "big_plains",
+    {
+      gameMode: GameMode.FFA,
+      gameType,
+      isTutorial,
+      maxTimerValue: undefined,
+    },
+    [humanInfo],
+  );
+  const fakeHumanInfo = new PlayerInfo(
+    "winner_fakehuman",
+    PlayerType.FakeHuman,
+    null,
+    "fake_id",
+  );
+  game.addPlayer(fakeHumanInfo);
+
+  while (game.inSpawnPhase()) {
+    game.executeNextTick();
+  }
+
+  const fakeHuman = game.player(fakeHumanInfo.id);
+  const targetTiles = Math.floor(game.numLandTiles() * 0.82);
+  let conqueredTiles = 0;
+  game.forEachTile((tile) => {
+    if (
+      conqueredTiles < targetTiles &&
+      game.map().isLand(tile) &&
+      !game.map().hasOwner(tile)
+    ) {
+      fakeHuman.conquer(tile);
+      conqueredTiles++;
+    }
+  });
+
+  const execution = new WinCheckExecution();
+  execution.init(game, game.ticks());
+  execution.checkWinnerFFA();
+
+  return {
+    game,
+    winUpdates: (game as any).updates[GameUpdateType.Win],
+  };
+}
