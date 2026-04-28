@@ -439,7 +439,7 @@ export class WinModal extends LitElement implements Layer {
     }
 
     const myPlayer = this.game.myPlayer();
-    if (myPlayer === null) {
+    if (myPlayer === null || this.hasShownDeathModal || !myPlayer.isAlive()) {
       return false;
     }
 

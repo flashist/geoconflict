@@ -144,6 +144,39 @@ describe("WinModal solo opponent wins", () => {
     );
     expect(eventBus.emit).not.toHaveBeenCalled();
   });
+
+  it("keeps the elimination modal when a dead player receives an undefined solo win update", async () => {
+    const eventBus = { emit: jest.fn() };
+    const modal = await appendModal({
+      eventBus,
+      game: createGame({
+        gameType: GameType.Singleplayer,
+        isAlive: false,
+        isTutorial: false,
+        winUpdates: [
+          {
+            type: GameUpdateType.Win,
+            winner: undefined,
+            allPlayersStats: {},
+          },
+        ],
+      }),
+    });
+
+    modal.tick();
+    await flushLit(modal);
+
+    expect(modal.textContent).toContain("win_modal.died");
+    expect(modal.textContent).not.toContain("win_modal.opponent_won_title");
+    expect(flashist_logEventAnalytics).toHaveBeenCalledWith(
+      flashistConstants.analyticEvents.PLAYER_ELIMINATED,
+      120,
+    );
+    expect(flashist_logEventAnalytics).not.toHaveBeenCalledWith(
+      flashistConstants.analyticEvents.MATCH_LOSS_OPPONENT_WON,
+    );
+    expect(eventBus.emit).not.toHaveBeenCalled();
+  });
 });
 
 async function appendModal({
@@ -165,8 +198,10 @@ function createGame({
   gameType,
   isTutorial,
   winUpdates,
+  isAlive = true,
 }: {
   gameType: GameType;
+  isAlive?: boolean;
   isTutorial: boolean;
   winUpdates: unknown[];
 }) {
@@ -181,9 +216,10 @@ function createGame({
     myPlayer: () => ({
       clientID: () => "me",
       hasSpawned: () => true,
-      isAlive: () => true,
+      isAlive: () => isAlive,
       team: () => null,
     }),
+    inSpawnPhase: () => false,
     ticks: () => 120,
     updatesSinceLastTick: () => ({
       [GameUpdateType.Win]: winUpdates,
