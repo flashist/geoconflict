@@ -20,6 +20,10 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | Investigation B — Yandex Payments Catalog | `s4-investigation-yandex-payments.md` |
 | ✅ Done | 8d-A. Global Announcements Re-enable | `s4-8d-a-task-global-announcements.md` |
 | ⚠️ Urgent | Yandex Catalog Registration (manual, non-engineering) | `s4-yandex-catalog-registration.md` |
+| ⬜ Backlog | Solo Mode: Opponent Win Condition Not Triggering Loss | `s4-solo-win-condition-fix.md` |
+| ⬜ Backlog | Investigation — Missions Mode Difficulty Curve | `s4-missions-difficulty-investigation.md` |
+| ⬜ Backlog | Nuke Pre-Launch Trajectory: Increase Line Thickness | `s4-nuke-trajectory-visibility.md` |
+| ⬜ Backlog | Teams Mode: Cap Maximum Teams at 4 | `s4-teams-mode-max-teams.md` |
 | ✅ Done | Start Screen Redesign — Tab Layout Investigation (design) | `s4-start-screen-redesign-investigation.md` |
 | ⬜ Backlog | Start Screen Redesign — Implementation | `s4-start-screen-redesign-impl.md` |
 | ⬜ Backlog | Player Profile Store — Implementation | `s4-player-profile-store-impl.md` |
