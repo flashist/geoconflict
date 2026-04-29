@@ -40,7 +40,7 @@ describe("MatchLifecycleAnalytics", () => {
   });
 
   it("fires Game:Start followed by the multiplayer mode classification", () => {
-    trackGameStart(GameType.Public, 12);
+    trackGameStart("game-1", GameType.Public, 12);
 
     expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
       1,
@@ -54,7 +54,7 @@ describe("MatchLifecycleAnalytics", () => {
   });
 
   it("fires Game:Start followed by the solo mode classification", () => {
-    trackGameStart(GameType.Singleplayer, 1);
+    trackGameStart("game-1", GameType.Singleplayer, 1);
 
     expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
       1,
@@ -69,7 +69,7 @@ describe("MatchLifecycleAnalytics", () => {
 
   it("fires confirmed spawn once with elapsed seconds", () => {
     jest.spyOn(Date, "now").mockReturnValue(1000);
-    trackGameStart(GameType.Public, 4);
+    trackGameStart("game-1", GameType.Public, 4);
     (flashist_logEventAnalytics as jest.Mock).mockClear();
 
     jest.spyOn(Date, "now").mockReturnValue(3500);
@@ -86,7 +86,7 @@ describe("MatchLifecycleAnalytics", () => {
 
   it("fires match duration once alongside Game:End", () => {
     jest.spyOn(Date, "now").mockReturnValue(1000);
-    trackGameStart(GameType.Public, 4);
+    trackGameStart("game-1", GameType.Public, 4);
     (flashist_logEventAnalytics as jest.Mock).mockClear();
 
     jest.spyOn(Date, "now").mockReturnValue(30_700);
@@ -106,5 +106,43 @@ describe("MatchLifecycleAnalytics", () => {
         ([event]) => event === flashistConstants.analyticEvents.MATCH_DURATION,
       ),
     ).toHaveLength(1);
+  });
+
+  it("does not reset lifecycle state for a duplicate start message from the same game", () => {
+    jest.spyOn(Date, "now").mockReturnValue(1000);
+    trackGameStart("game-1", GameType.Public, 4);
+    (flashist_logEventAnalytics as jest.Mock).mockClear();
+
+    jest.spyOn(Date, "now").mockReturnValue(20_000);
+    trackGameStart("game-1", GameType.Public, 4);
+
+    expect(flashist_logEventAnalytics).not.toHaveBeenCalled();
+
+    jest.spyOn(Date, "now").mockReturnValue(31_000);
+    trackGameEnd();
+
+    expect(flashist_logEventAnalytics).toHaveBeenCalledWith(
+      flashistConstants.analyticEvents.MATCH_DURATION,
+      30,
+    );
+  });
+
+  it("starts a fresh lifecycle for a different game id", () => {
+    jest.spyOn(Date, "now").mockReturnValue(1000);
+    trackGameStart("game-1", GameType.Public, 4);
+    (flashist_logEventAnalytics as jest.Mock).mockClear();
+
+    jest.spyOn(Date, "now").mockReturnValue(20_000);
+    trackGameStart("game-2", GameType.Singleplayer, 1);
+
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      1,
+      flashistConstants.analyticEvents.GAME_START,
+      1,
+    );
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      2,
+      flashistConstants.analyticEvents.GAME_MODE_SOLO,
+    );
   });
 });

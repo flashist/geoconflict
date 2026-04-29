@@ -197,7 +197,7 @@ describe("WinModal solo opponent wins", () => {
 
   it("fires match duration once alongside Game:End", async () => {
     jest.spyOn(Date, "now").mockReturnValue(1000);
-    trackGameStart(GameType.Singleplayer, 1);
+    trackGameStart("game-1", GameType.Singleplayer, 1);
     (flashist_logEventAnalytics as jest.Mock).mockClear();
     jest.spyOn(Date, "now").mockReturnValue(31_400);
 

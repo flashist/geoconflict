@@ -4,6 +4,7 @@ import {
   flashistConstants,
 } from "../flashist/FlashistFacade";
 
+let activeGameId: string | null = null;
 let matchStartTimeMs: number | null = null;
 let spawnConfirmedReported = false;
 let matchDurationReported = false;
@@ -15,7 +16,16 @@ function elapsedSeconds(): number | null {
   return Math.round((Date.now() - matchStartTimeMs) / 1000);
 }
 
-export function trackGameStart(gameType: GameType, playerCount: number): void {
+export function trackGameStart(
+  gameId: string,
+  gameType: GameType,
+  playerCount: number,
+): void {
+  if (activeGameId === gameId && matchStartTimeMs !== null) {
+    return;
+  }
+
+  activeGameId = gameId;
   matchStartTimeMs = Date.now();
   spawnConfirmedReported = false;
   matchDurationReported = false;
@@ -74,6 +84,7 @@ export function trackMatchDuration(): void {
 }
 
 export function resetMatchLifecycleAnalyticsForTests(): void {
+  activeGameId = null;
   matchStartTimeMs = null;
   spawnConfirmedReported = false;
   matchDurationReported = false;

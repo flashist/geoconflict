@@ -518,6 +518,7 @@ export class ClientGameRunner {
       this.lastMessageTime = Date.now();
       if (message.type === "start") {
         trackGameStart(
+          message.gameStartInfo.gameID,
           message.gameStartInfo.config.gameType,
           message.gameStartInfo.players.length,
         );
