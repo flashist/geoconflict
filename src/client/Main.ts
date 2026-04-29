@@ -80,7 +80,6 @@ import {
   FlashistFacade,
 } from "./flashist/FlashistFacade";
 import { getUserMe, isLoggedIn } from "./jwt";
-import { trackGameEnd } from "./analytics/MatchLifecycleAnalytics";
 import "./styles.css";
 
 declare global {
@@ -245,7 +244,6 @@ class Client {
       this.perfMonitorStop?.();
       if (this.gameStop !== null) {
         if (this.gameHasStarted && !this.gameHasEnded) {
-          trackGameEnd();
           flashist_logEventAnalytics(
             flashistConstants.analyticEvents.GAME_ABANDON,
           );
