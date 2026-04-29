@@ -290,3 +290,6 @@
 
 ## 2026-04-29 — ingest
 - Ingested: zero-nation mission map exclusion follow-up → updated `ai-agents/knowledge-base/s4-missions-difficulty-findings.md` and [[wiki/tasks/missions-difficulty-investigation]]
+
+## 2026-04-29 — ingest
+- Ingested: Medium nation ramp tuning follow-up (`floor(level / 5)`) → updated `ai-agents/knowledge-base/s4-missions-difficulty-findings.md` and [[wiki/tasks/missions-difficulty-investigation]]

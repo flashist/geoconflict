@@ -51,7 +51,7 @@ export function mapNationCount(map: GameMapType): number {
 export function computeTierCounts(
   level: number,
   nationCount: number,
-  divisors = { medium: 1, hard: 10, impossible: 50 },
+  divisors = { medium: 5, hard: 10, impossible: 50 },
 ): MissionTierCounts {
   const impossible = Math.min(
     nationCount,

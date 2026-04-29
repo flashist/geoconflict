@@ -16,6 +16,21 @@ describe("SinglePlayMissions", () => {
     );
   });
 
+  test("computeTierCounts ramps medium nations every five levels", () => {
+    expect(computeTierCounts(9, 8)).toEqual({
+      easy: 7,
+      medium: 1,
+      hard: 0,
+      impossible: 0,
+    });
+    expect(computeTierCounts(10, 8)).toEqual({
+      easy: 5,
+      medium: 2,
+      hard: 1,
+      impossible: 0,
+    });
+  });
+
   test("assignNationDifficulties is deterministic per seed", () => {
     const seed = deriveMissionSeed(GameMapType.World, 7);
     const counts = computeTierCounts(7, 5);

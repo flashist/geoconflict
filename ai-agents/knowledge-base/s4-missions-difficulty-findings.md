@@ -4,7 +4,7 @@
 
 Missions mode does not use a finite list of authored mission configs. It is a generated, sequential level system backed by localStorage. Each mission level starts from one shared singleplayer config, then `LocalServer.buildMissionConfigIfNeeded()` derives the map and per-nation difficulties from the mission level.
 
-The original structure created a steep difficulty curve early because every mission used 400 generic bots, nations were enabled, maps were ordered by `mapMaxPlayers()`, and the nation difficulty mix ramped directly from the level number. A follow-up implementation now prebuilds map nation counts into `src/core/game/MapNationCounts.json`, excludes maps with zero nation slots, and orders mission maps by nation count instead of max players.
+The original structure created a steep difficulty curve early because every mission used 400 generic bots, nations were enabled, maps were ordered by `mapMaxPlayers()`, and the nation difficulty mix ramped directly from the level number. Follow-up implementations now prebuild map nation counts into `src/core/game/MapNationCounts.json`, exclude maps with zero nation slots, order mission maps by nation count instead of max players, and slow the Medium nation ramp to one Medium nation per five levels.
 
 This document is findings only. It does not implement or recommend a specific tuning choice.
 
@@ -82,7 +82,7 @@ There is no formal mission `difficulty` property. Difficulty is emergent from sh
 |---|---:|
 | Impossible | `min(nationCount, floor(level / 50))` |
 | Hard | `min(remaining, floor(level / 10))` |
-| Medium | `min(remaining, floor(level / 1))` |
+| Medium | `min(remaining, floor(level / 5))` |
 | Easy | remaining nations |
 
 `assignNationDifficulties()` randomly assigns those tier counts to nation indices using a deterministic seed derived from map and level.
@@ -99,37 +99,37 @@ Shared values for every row below: 400 generic bots, FFA, Normal map size, no ti
 
 | Mission | Map | Land tiles | Nations | Easy | Medium | Hard | Impossible |
 |---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | Achiran | 1,149,943 | 4 | 3 | 1 | 0 | 0 |
-| 2 | Faroe Islands | 424,994 | 6 | 4 | 2 | 0 | 0 |
-| 3 | Mars | 1,354,047 | 6 | 3 | 3 | 0 | 0 |
-| 4 | Yenisei | 3,371,389 | 6 | 2 | 4 | 0 | 0 |
-| 5 | Australia | 1,319,763 | 7 | 2 | 5 | 0 | 0 |
-| 6 | Strait of Gibraltar | 1,941,359 | 7 | 1 | 6 | 0 | 0 |
-| 7 | Halkidiki | 1,729,369 | 8 | 1 | 7 | 0 | 0 |
-| 8 | Iceland | 1,098,655 | 8 | 0 | 8 | 0 | 0 |
-| 9 | Black Sea | 1,153,632 | 9 | 0 | 9 | 0 | 0 |
-| 10 | Deglaciated Antarctica | 1,079,790 | 9 | 0 | 8 | 1 | 0 |
-| 11 | Baikal | 2,181,746 | 11 | 0 | 10 | 1 | 0 |
-| 12 | Falkland Islands | 859,274 | 12 | 0 | 11 | 1 | 0 |
-| 13 | Italia | 780,495 | 12 | 0 | 11 | 1 | 0 |
-| 14 | Japan | 488,183 | 12 | 0 | 11 | 1 | 0 |
-| 15 | Montreal | 1,954,940 | 12 | 0 | 11 | 1 | 0 |
-| 16 | Between Two Seas | 1,478,803 | 15 | 0 | 14 | 1 | 0 |
-| 17 | Pluto | 1,987,279 | 16 | 0 | 15 | 1 | 0 |
-| 18 | East Asia | 879,264 | 22 | 3 | 18 | 1 | 0 |
-| 19 | Britannia | 933,860 | 23 | 3 | 19 | 1 | 0 |
-| 20 | South America | 1,411,064 | 24 | 2 | 20 | 2 | 0 |
-| 21 | Asia | 1,079,855 | 25 | 2 | 21 | 2 | 0 |
-| 22 | Pangaea | 420,336 | 29 | 5 | 22 | 2 | 0 |
-| 23 | Gateway to the Atlantic | 2,239,818 | 30 | 5 | 23 | 2 | 0 |
-| 24 | Europe Classic | 1,008,469 | 31 | 5 | 24 | 2 | 0 |
-| 25 | Oceania | 194,648 | 32 | 5 | 25 | 2 | 0 |
-| 26 | Mena | 1,621,317 | 35 | 7 | 26 | 2 | 0 |
-| 27 | Africa | 2,183,186 | 36 | 7 | 27 | 2 | 0 |
-| 28 | Europe | 2,311,229 | 49 | 19 | 28 | 2 | 0 |
-| 29 | North America | 1,243,623 | 49 | 18 | 29 | 2 | 0 |
-| 30 | World | 651,609 | 61 | 28 | 30 | 3 | 0 |
-| 31 | Giant World Map | 2,333,974 | 97 | 63 | 31 | 3 | 0 |
+| 1 | Achiran | 1,149,943 | 4 | 4 | 0 | 0 | 0 |
+| 2 | Faroe Islands | 424,994 | 6 | 6 | 0 | 0 | 0 |
+| 3 | Mars | 1,354,047 | 6 | 6 | 0 | 0 | 0 |
+| 4 | Yenisei | 3,371,389 | 6 | 6 | 0 | 0 | 0 |
+| 5 | Australia | 1,319,763 | 7 | 6 | 1 | 0 | 0 |
+| 6 | Strait of Gibraltar | 1,941,359 | 7 | 6 | 1 | 0 | 0 |
+| 7 | Halkidiki | 1,729,369 | 8 | 7 | 1 | 0 | 0 |
+| 8 | Iceland | 1,098,655 | 8 | 7 | 1 | 0 | 0 |
+| 9 | Black Sea | 1,153,632 | 9 | 8 | 1 | 0 | 0 |
+| 10 | Deglaciated Antarctica | 1,079,790 | 9 | 6 | 2 | 1 | 0 |
+| 11 | Baikal | 2,181,746 | 11 | 8 | 2 | 1 | 0 |
+| 12 | Falkland Islands | 859,274 | 12 | 9 | 2 | 1 | 0 |
+| 13 | Italia | 780,495 | 12 | 9 | 2 | 1 | 0 |
+| 14 | Japan | 488,183 | 12 | 9 | 2 | 1 | 0 |
+| 15 | Montreal | 1,954,940 | 12 | 8 | 3 | 1 | 0 |
+| 16 | Between Two Seas | 1,478,803 | 15 | 11 | 3 | 1 | 0 |
+| 17 | Pluto | 1,987,279 | 16 | 12 | 3 | 1 | 0 |
+| 18 | East Asia | 879,264 | 22 | 18 | 3 | 1 | 0 |
+| 19 | Britannia | 933,860 | 23 | 19 | 3 | 1 | 0 |
+| 20 | South America | 1,411,064 | 24 | 18 | 4 | 2 | 0 |
+| 21 | Asia | 1,079,855 | 25 | 19 | 4 | 2 | 0 |
+| 22 | Pangaea | 420,336 | 29 | 23 | 4 | 2 | 0 |
+| 23 | Gateway to the Atlantic | 2,239,818 | 30 | 24 | 4 | 2 | 0 |
+| 24 | Europe Classic | 1,008,469 | 31 | 25 | 4 | 2 | 0 |
+| 25 | Oceania | 194,648 | 32 | 25 | 5 | 2 | 0 |
+| 26 | Mena | 1,621,317 | 35 | 28 | 5 | 2 | 0 |
+| 27 | Africa | 2,183,186 | 36 | 29 | 5 | 2 | 0 |
+| 28 | Europe | 2,311,229 | 49 | 42 | 5 | 2 | 0 |
+| 29 | North America | 1,243,623 | 49 | 42 | 5 | 2 | 0 |
+| 30 | World | 651,609 | 61 | 52 | 6 | 3 | 0 |
+| 31 | Giant World Map | 2,333,974 | 97 | 88 | 6 | 3 | 0 |
 
 Representative later levels:
 
@@ -137,8 +137,8 @@ Representative later levels:
 |---:|---|---:|---:|---:|---:|---:|
 | 32 | Achiran | 4 | 0 | 1 | 3 | 0 |
 | 33 | Faroe Islands | 6 | 0 | 3 | 3 | 0 |
-| 50 | Britannia | 23 | 0 | 17 | 5 | 1 |
-| 62 | Giant World Map | 97 | 28 | 62 | 6 | 1 |
+| 50 | Britannia | 23 | 7 | 10 | 5 | 1 |
+| 62 | Giant World Map | 97 | 78 | 12 | 6 | 1 |
 | 100 | Halkidiki | 8 | 0 | 0 | 6 | 2 |
 
 ## Available Tuning Levers
@@ -205,6 +205,6 @@ These are implementation options for Mark and the technical specialist to evalua
 - Read wiki context before implementation planning.
 - Traced mission entry, mission generation, win/loss, and analytics paths in source.
 - Generated the first mission-cycle table from current `GameMapType`, `MapPlayers`, and map manifests.
-- Follow-up implementation added `scripts/generate-map-nation-counts.js`, `src/core/game/MapNationCounts.json`, and nation-count-based mission sorting.
+- Follow-up implementation added `scripts/generate-map-nation-counts.js`, `src/core/game/MapNationCounts.json`, nation-count-based mission sorting, zero-nation map exclusion, and the slower `floor(level / 5)` Medium nation ramp.
 
 No game tuning or runtime code changes were made.
