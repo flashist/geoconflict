@@ -42,6 +42,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | Tutorial — Reduce Bot Count from 400 to 100 | `s4-tutorial-reduce-bots.md` |
 | ✅ Done | Email Subscription Modal | `s4-email-subscribe-task.md` |
 | ⬜ Backlog | Telegram Channel Link (start screen, game-end screen) | `s4-telegram-link.md` |
+| ⬜ Backlog | VK Channel Link (start screen, game-end screen) | `s4-vk-link.md` |
 
 ---
 
