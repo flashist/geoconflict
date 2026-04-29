@@ -127,10 +127,11 @@ export class GameRightSidebar extends LitElement implements Layer {
     }
     // redirect to the home page
 
+    trackGameAbandon();
+
     // Flashist Adaptaiton: interstitial
     await FlashistFacade.instance.showInterstitial();
 
-    trackGameAbandon();
     clearReconnectSession();
 
     // Flashist Adaptation
