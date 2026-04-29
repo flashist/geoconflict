@@ -38,6 +38,7 @@ jest.mock("../../src/client/TutorialStorage", () => ({
 }));
 jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   TELEGRAM_CHANNEL_URL: "https://example.com/telegram",
+  VK_CHANNEL_URL: "https://example.com/vk",
   flashistConstants: {
     analyticEvents: {
       GAME_END: "Game:End",
@@ -50,6 +51,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     },
     uiElementIds: {
       telegramLinkGameEnd: "TelegramLinkGameEnd",
+      vkLinkGameEnd: "VkLinkGameEnd",
     },
   },
   flashist_logEventAnalytics: jest.fn(),
@@ -57,6 +59,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     instance: {
       isEmailSubscribeButtonEnabled: jest.fn().mockResolvedValue(false),
       isTelegramLinkEnabled: jest.fn().mockResolvedValue(false),
+      isVkLinkEnabled: jest.fn().mockResolvedValue(false),
       showInterstitial: jest.fn(),
       changeHref: jest.fn(),
       logUiTapEvent: jest.fn(),

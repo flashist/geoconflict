@@ -318,6 +318,9 @@
     "cta_text": "Join our Telegram",
     "footer_text": "Join our Telegram"
   },
+  "vk_link": {
+    "cta_text": "Join our VK"
+  },
   "stale_build_modal": {
     "message": "The version of the game you're playing is outdated. Please refresh the page. If this popup keeps appearing, try clearing your browser cache and refreshing again, or contact us.",
     "refresh_button": "REFRESH",

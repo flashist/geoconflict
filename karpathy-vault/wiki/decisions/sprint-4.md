@@ -34,6 +34,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Missions difficulty investigation and follow-up mission-generation tuning — done
 - Solo opponent win-condition fix — done
 - Telegram Channel Link — done
+- VK Channel Link — done
 
 **Cancelled side tasks:**
 - Humans vs Nations balance task — cancelled after no-ship review
@@ -100,6 +101,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Mission-mode follow-up work has moved beyond investigation: the wiki now records the generated mission structure, zero-nation map exclusion, nation-count map ordering, and slower Medium nation ramp in [[tasks/missions-difficulty-investigation]]
 - Solo mode no longer stalls indefinitely when an opponent reaches the win threshold; the player sees a distinct opponent-win loss state and `Match:Loss:OpponentWon` tracks that reason
 - Telegram Channel Link shipped as an experiment-gated CTA on the start/loading and game-end modals, with placement-specific `UI:Tap:*` analytics
+- VK Channel Link mirrors the Telegram community CTA with its own `vk_link` experiment flag, live `https://vk.com/gameworldwar` URL, and placement-specific `UI:Tap:VkLinkStartScreen` / `UI:Tap:VkLinkGameEnd` analytics.
 - Tutorial follow-up work later resolved into three shipped fixes (`[[tasks/tutorial-no-nations]]`, `[[tasks/tutorial-build-menu-lock]]`, `[[tasks/tutorial-reduce-bots]]`) plus one cancelled pause-window attempt recorded in [[decisions/cancelled-tasks]]
 - The Humans vs Nations balance task was later rejected as no-ship and cancelled after review; see [[decisions/hvn-balance-pr70-no-ship]]
 
@@ -127,5 +129,6 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/missions-difficulty-investigation]] — Sprint 4 findings on generated mission difficulty, tuning levers, and analytics gaps
 - [[tasks/solo-win-condition-fix]] — Sprint 4 bug fix for opponent-win loss handling in solo modes
 - [[tasks/telegram-link]] — Sprint 4 experiment-gated Telegram CTA on start and game-end screens
+- [[tasks/vk-link]] — Sprint 4 experiment-gated VK CTA on start and game-end screens
 - [[decisions/hvn-balance-pr70-no-ship]] — no-ship review and cancellation outcome for the HvN balance attempt
 - [[decisions/cancelled-tasks]] — cancelled action-pause variant for tutorial follow-up work

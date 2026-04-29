@@ -76,7 +76,7 @@ See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrumen
 | `Match:PreloadHitNotLoaded` | Match start waits on an in-progress preload |
 | `Match:PreloadMiss` | Match start falls back to a fresh terrain load |
 
-The analytics reference also defines two placement-specific Telegram CTA tap IDs: `UI:Tap:TelegramLinkStartScreen` and `UI:Tap:TelegramLinkGameEnd`. These are emitted by the shipped [[tasks/telegram-link]] flow so start-screen and game-end CTA taps can be segmented separately.
+The analytics reference also defines placement-specific community CTA tap IDs. `UI:Tap:TelegramLinkStartScreen` and `UI:Tap:TelegramLinkGameEnd` are emitted by the shipped [[tasks/telegram-link]] flow; `UI:Tap:VkLinkStartScreen` and `UI:Tap:VkLinkGameEnd` are emitted by [[tasks/vk-link]]. This keeps start-screen and game-end CTA taps segmented separately.
 
 ## Experiment Event Pattern
 
@@ -112,6 +112,7 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[features/feedback-button]] — Feedback event category and match ID attachment
 - [[tasks/email-subscribe-modal]] — `Subscribe:Opened` and `Subscribe:Submitted` for the email opt-in flow
 - [[tasks/telegram-link]] — placement-specific Telegram CTA taps on start and game-end screens
+- [[tasks/vk-link]] — placement-specific VK CTA taps on start and game-end screens
 - [[tasks/solo-win-condition-fix]] — `Match:Loss:OpponentWon` reason event
 - [[tasks/session-start-sequence]] — Session start event sequence and conventions
 - [[tasks/mobile-quick-wins]] — `Performance:FPS:*` events measured here

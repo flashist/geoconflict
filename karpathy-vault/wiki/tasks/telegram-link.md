@@ -27,3 +27,4 @@ The Telegram CTA can now be turned on or off without a deploy through the Yandex
 - [[decisions/sprint-4]] — Sprint 4 community/retention CTA context
 - [[systems/analytics]] — `UI:Tap:{ElementId}` convention and Telegram tap events
 - [[tasks/email-subscribe-modal]] — adjacent start-screen and game-end opt-in surfaces
+- [[tasks/vk-link]] — adjacent VK CTA that mirrors this placement and flag pattern
