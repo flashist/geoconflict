@@ -311,3 +311,6 @@
 
 ## 2026-04-29 — ingest
 - Ingested: `ai-agents/tasks/backlog/s4-vk-link.md` → created [[wiki/tasks/vk-link]]; updated [[wiki/systems/analytics]], [[wiki/tasks/telegram-link]], [[wiki/decisions/sprint-4]]
+
+## 2026-04-29 — ingest
+- Ingested: VK link real URL follow-up (`https://vk.com/gameworldwar`) → updated [[wiki/tasks/vk-link]], [[wiki/decisions/sprint-4]]

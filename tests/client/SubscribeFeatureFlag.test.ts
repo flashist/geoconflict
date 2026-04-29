@@ -33,6 +33,7 @@ jest.mock("../../src/client/TutorialStorage", () => ({
 import {
   flashistConstants,
   FlashistFacade,
+  VK_CHANNEL_URL,
 } from "../../src/client/flashist/FlashistFacade";
 import { EmailSubscribeModal } from "../../src/client/EmailSubscribeModal";
 import { GameStartingModal } from "../../src/client/GameStartingModal";
@@ -155,7 +156,7 @@ describe("subscribe feature flag", () => {
     modal.requestUpdate();
     await modal.updateComplete;
 
-    expect(modal.querySelector('a[href="PLACEHOLDER_VK_URL"]')).toBeNull();
+    expect(modal.querySelector(`a[href="${VK_CHANNEL_URL}"]`)).toBeNull();
   });
 
   it("shows the win modal VK link when the flag is on", async () => {
@@ -165,7 +166,7 @@ describe("subscribe feature flag", () => {
     modal.showButtons = true;
     modal.requestUpdate();
     await modal.updateComplete;
-    const link = modal.querySelector('a[href="PLACEHOLDER_VK_URL"]');
+    const link = modal.querySelector(`a[href="${VK_CHANNEL_URL}"]`);
 
     expect(link).not.toBeNull();
 

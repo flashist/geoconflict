@@ -10,7 +10,7 @@ Add a Yandex-experiment-gated VK community CTA on the start/loading modal and th
 
 ## Key Changes
 
-- Added `VK_CHANNEL_URL` in `src/client/flashist/FlashistFacade.ts` as the shared VK URL source. It currently remains `PLACEHOLDER_VK_URL` until the real VK community URL is supplied.
+- Added `VK_CHANNEL_URL` in `src/client/flashist/FlashistFacade.ts` as the shared VK URL source (`https://vk.com/gameworldwar`).
 - Added the `vk_link = enabled` experiment flag constants and `FlashistFacade.isVkLinkEnabled()`.
 - Added `vkLinkStartScreen` and `vkLinkGameEnd` UI element IDs, producing `UI:Tap:VkLinkStartScreen` and `UI:Tap:VkLinkGameEnd` through `logUiTapEvent()`.
 - Updated `src/client/GameStartingModal.ts` to load the VK flag alongside the subscribe and Telegram flags, then render a localized VK link when enabled.
@@ -22,7 +22,7 @@ Add a Yandex-experiment-gated VK community CTA on the start/loading modal and th
 
 The VK CTA can be enabled independently from Telegram through the `vk_link` Yandex experiment flag. When both community CTAs are enabled, VK renders below Telegram on both start/loading and game-end surfaces, and each placement has separate `UI:Tap:*` analytics.
 
-The remaining ship blocker is replacing `PLACEHOLDER_VK_URL` with the real VK community URL before enabling the experiment in production.
+The VK URL is now set to the live community URL, so the remaining production gate is enabling the `vk_link` experiment flag when ready.
 
 ## Related
 
