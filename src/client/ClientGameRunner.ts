@@ -58,6 +58,10 @@ import {
 import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
 import { flashist_logEventAnalytics, flashistConstants } from "./flashist/FlashistFacade";
 import { logOtelWarn } from "./OtelBrowserInit";
+import {
+  trackGameStart,
+  trackSpawnConfirmed,
+} from "./analytics/MatchLifecycleAnalytics";
 
 export interface LobbyConfig {
   serverConfig: ServerConfig;
@@ -438,6 +442,7 @@ export class ClientGameRunner {
         this.eventBus.emit(new SendHashEvent(hu.tick, hu.hash));
       });
       this.gameView.update(gu);
+      trackSpawnConfirmed(this.gameView.myPlayer()?.hasSpawned() ?? false);
       this.tryAutoSpawn();
       if (
         !this._spawnMissedReported &&
@@ -512,11 +517,9 @@ export class ClientGameRunner {
     const onmessage = (message: ServerMessage) => {
       this.lastMessageTime = Date.now();
       if (message.type === "start") {
-
-        //
-        flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.GAME_START,
-          message.gameStartInfo.players.length
+        trackGameStart(
+          message.gameStartInfo.config.gameType,
+          message.gameStartInfo.players.length,
         );
 
         this.hasJoined = true;

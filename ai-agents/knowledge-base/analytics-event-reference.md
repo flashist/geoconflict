@@ -56,14 +56,25 @@ Session:Start → Device:[class] → Platform:[os] → Player:New/Returning
 
 Fired for both multiplayer and single-player missions.
 
-| Enum Key            | Event String        | When Fired                     |
-| ------------------- | ------------------- | ------------------------------ |
-| `GAME_START`        | `Game:Start`        | Match begins                   |
-| `GAME_END`          | `Game:End`          | Match ends for any reason      |
-| `GAME_WIN`          | `Game:Win`          | Player wins the match          |
-| `GAME_LOSS`         | `Game:Loss`         | Player loses the match         |
-| `GAME_ABANDON`      | `Game:Abandon`      | Player explicitly abandons     |
-| `PLAYER_ELIMINATED` | `Player:Eliminated` | Player is eliminated mid-match |
+| Enum Key                | Event String            | When Fired                                                               |
+| ----------------------- | ----------------------- | ------------------------------------------------------------------------ |
+| `GAME_START`            | `Game:Start`            | Match begins                                                             |
+| `GAME_END`              | `Game:End`              | Match ends for any reason                                                |
+| `GAME_MODE_MULTIPLAYER` | `Game:Mode:Multiplayer` | Immediately after `Game:Start` for public or private multiplayer matches |
+| `GAME_MODE_SOLO`        | `Game:Mode:Solo`        | Immediately after `Game:Start` for solo, mission, or tutorial matches    |
+| `GAME_WIN`              | `Game:Win`              | Player wins the match                                                    |
+| `GAME_LOSS`             | `Game:Loss`             | Player loses the match                                                   |
+| `GAME_ABANDON`          | `Game:Abandon`          | Player explicitly abandons                                               |
+| `PLAYER_ELIMINATED`     | `Player:Eliminated`     | Player is eliminated mid-match                                           |
+
+Full match-start sequence:
+
+```
+Game:Start → Game:Mode:Multiplayer
+Game:Start → Game:Mode:Solo
+```
+
+Exactly one mode classification event fires immediately after `Game:Start`.
 
 ### Match Loss Events
 
@@ -77,10 +88,17 @@ Fired for both multiplayer and single-player missions.
 | ------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `MATCH_SPAWN_CHOSEN`                  | `Match:SpawnChosen`                | Player actively selected a spawn location                                                                                                                                                                                |
 | `MATCH_SPAWN_AUTO`                    | `Match:SpawnAuto`                  | Player was auto-placed (Task 4a mechanic)                                                                                                                                                                                |
+| `MATCH_SPAWNED_CONFIRMED`             | `Match:Spawned`                    | Server-confirmed placement is reflected in client state for the first time. **Value:** seconds from `Game:Start` to confirmed spawn. Fires once per match per player.                                                    |
 | `MATCH_SPAWN_MISSED_TIMING_RACE`      | `Match:SpawnMissed:TimingRace`     | Fired once when spawn phase ends, player never placed, and auto-spawn intent was sent (timing race — intent rejected by server)                                                                                          |
 | `MATCH_SPAWN_MISSED_NO_ATTEMPT`       | `Match:SpawnMissed:NoAttempt`      | Fired once when spawn phase ends, player never placed, and auto-spawn never even ran                                                                                                                                     |
 | `MATCH_SPAWN_RETRY_AFTER_CATCHUP`     | `Match:SpawnRetryAfterCatchup`     | Auto-spawn was blocked during catch-up and then deferred and retried after catch-up ended — fires at intent-send time, not on confirmed server placement. Always fires together with `Match:SpawnAuto` in the same tick. |
 | `MATCH_SPAWN_MISSED_CATCHUP_TOO_LONG` | `Match:SpawnMissed:CatchupTooLong` | Catch-up lasted longer than the entire spawn phase — player never placed, no recovery path (Problem 2, not yet fixed)                                                                                                    |
+
+### Match Duration Events
+
+| Enum Key         | Event String     | When Fired                                                                                       |
+| ---------------- | ---------------- | ------------------------------------------------------------------------------------------------ |
+| `MATCH_DURATION` | `Match:Duration` | Fired alongside `Game:End`. **Value:** seconds from `Game:Start` to `Game:End`, rounded integer. |
 
 ### Reconnection Events
 

@@ -20,6 +20,8 @@ export const flashistConstants = {
 
     GAME_START: "Game:Start",
     GAME_END: "Game:End",
+    GAME_MODE_MULTIPLAYER: "Game:Mode:Multiplayer",
+    GAME_MODE_SOLO: "Game:Mode:Solo",
     GAME_WIN: "Game:Win",
     GAME_LOSS: "Game:Loss",
     GAME_ABANDON: "Game:Abandon",
@@ -42,11 +44,13 @@ export const flashistConstants = {
     SESSION_FIRST_ACTION: "Session:FirstAction",
     MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
     MATCH_SPAWN_AUTO: "Match:SpawnAuto",
+    MATCH_SPAWNED_CONFIRMED: "Match:Spawned",
     MATCH_SPAWN_MISSED_TIMING_RACE: "Match:SpawnMissed:TimingRace",
     MATCH_SPAWN_MISSED_NO_ATTEMPT: "Match:SpawnMissed:NoAttempt",
     MATCH_SPAWN_RETRY_AFTER_CATCHUP: "Match:SpawnRetryAfterCatchup",
     MATCH_SPAWN_MISSED_CATCHUP_TOO_LONG: "Match:SpawnMissed:CatchupTooLong",
     MATCH_LOSS_OPPONENT_WON: "Match:Loss:OpponentWon",
+    MATCH_DURATION: "Match:Duration",
 
     MATCH_PRELOAD_STARTED: "Match:PreloadStarted",
     MATCH_PRELOAD_READY: "Match:PreloadReady",

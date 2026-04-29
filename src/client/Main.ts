@@ -78,11 +78,10 @@ import {
   flashist_waitGameInitComplete,
   flashistConstants,
   FlashistFacade,
-  TELEGRAM_CHANNEL_URL,
 } from "./flashist/FlashistFacade";
 import { getUserMe, isLoggedIn } from "./jwt";
+import { trackGameEnd } from "./analytics/MatchLifecycleAnalytics";
 import "./styles.css";
-
 
 declare global {
   interface Window {
@@ -246,7 +245,10 @@ class Client {
       this.perfMonitorStop?.();
       if (this.gameStop !== null) {
         if (this.gameHasStarted && !this.gameHasEnded) {
-          flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_ABANDON);
+          trackGameEnd();
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.GAME_ABANDON,
+          );
         }
         this.gameStop();
       }

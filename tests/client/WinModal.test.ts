@@ -41,9 +41,13 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   VK_CHANNEL_URL: "https://example.com/vk",
   flashistConstants: {
     analyticEvents: {
+      GAME_START: "Game:Start",
       GAME_END: "Game:End",
+      GAME_MODE_MULTIPLAYER: "Game:Mode:Multiplayer",
+      GAME_MODE_SOLO: "Game:Mode:Solo",
       GAME_LOSS: "Game:Loss",
       MATCH_LOSS_OPPONENT_WON: "Match:Loss:OpponentWon",
+      MATCH_DURATION: "Match:Duration",
       PLAYER_ELIMINATED: "Player:Eliminated",
       GAME_WIN: "Game:Win",
       TUTORIAL_COMPLETED: "Tutorial:Completed",
@@ -73,16 +77,22 @@ import {
   flashistConstants,
   flashist_logEventAnalytics,
 } from "../../src/client/flashist/FlashistFacade";
+import {
+  resetMatchLifecycleAnalyticsForTests,
+  trackGameStart,
+} from "../../src/client/analytics/MatchLifecycleAnalytics";
 import { WinModal } from "../../src/client/graphics/layers/WinModal";
 
 describe("WinModal solo opponent wins", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
     jest.clearAllMocks();
+    resetMatchLifecycleAnalyticsForTests();
   });
 
   afterEach(() => {
     document.body.innerHTML = "";
+    jest.restoreAllMocks();
   });
 
   it("shows a distinct solo loss when an opponent without a client id wins", async () => {
@@ -184,6 +194,46 @@ describe("WinModal solo opponent wins", () => {
     );
     expect(eventBus.emit).not.toHaveBeenCalled();
   });
+
+  it("fires match duration once alongside Game:End", async () => {
+    jest.spyOn(Date, "now").mockReturnValue(1000);
+    trackGameStart(GameType.Singleplayer, 1);
+    (flashist_logEventAnalytics as jest.Mock).mockClear();
+    jest.spyOn(Date, "now").mockReturnValue(31_400);
+
+    const eventBus = { emit: jest.fn() };
+    const modal = await appendModal({
+      eventBus,
+      game: createGame({
+        gameType: GameType.Singleplayer,
+        isTutorial: false,
+        winUpdates: [
+          {
+            type: GameUpdateType.Win,
+            winner: ["player", "me"],
+            allPlayersStats: {},
+          },
+        ],
+      }),
+    });
+
+    modal.tick();
+    modal.tick();
+
+    expect(flashist_logEventAnalytics).toHaveBeenCalledWith(
+      flashistConstants.analyticEvents.GAME_END,
+      120,
+    );
+    expect(flashist_logEventAnalytics).toHaveBeenCalledWith(
+      flashistConstants.analyticEvents.MATCH_DURATION,
+      30,
+    );
+    expect(
+      (flashist_logEventAnalytics as jest.Mock).mock.calls.filter(
+        ([event]) => event === flashistConstants.analyticEvents.MATCH_DURATION,
+      ),
+    ).toHaveLength(1);
+  });
 });
 
 async function appendModal({
@@ -230,6 +280,11 @@ function createGame({
     ticks: () => 120,
     updatesSinceLastTick: () => ({
       [GameUpdateType.Win]: winUpdates,
+    }),
+    playerByClientID: () => ({
+      clientID: () => "me",
+      isPlayer: () => true,
+      name: () => "Player",
     }),
   };
 }
