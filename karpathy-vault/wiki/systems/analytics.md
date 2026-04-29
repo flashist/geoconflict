@@ -116,5 +116,6 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/stale-build-detection]] — `Build:StaleDetected` event implementation
 - [[tasks/ui-click-multiplayer]] — confirms the multiplayer JOIN click is the funnel anchor
 - [[tasks/map-preload]] — HF-13 preload instrumentation at JOIN and match start
+- [[tasks/missions-difficulty-investigation]] — mission-level drop-off cannot be derived from current coarse mission events
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
 - [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, and `Announcements:Closed`

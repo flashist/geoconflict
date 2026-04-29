@@ -281,3 +281,18 @@
 
 ## 2026-04-28 — ingest
 - Ingested: `ai-agents/knowledge-base/server-match-logging-state.md` → updated [[wiki/systems/match-logging]]
+
+## 2026-04-29 — ingest
+- Ingested: `ai-agents/knowledge-base/s4-missions-difficulty-findings.md` → created [[wiki/tasks/missions-difficulty-investigation]]; updated [[wiki/features/tutorial]], [[wiki/systems/analytics]], [[wiki/decisions/sprint-4]]
+
+## 2026-04-29 — ingest
+- Ingested: `ai-agents/knowledge-base/s4-missions-difficulty-findings.md` follow-up mission map ordering implementation → updated [[wiki/tasks/missions-difficulty-investigation]]
+
+## 2026-04-29 — ingest
+- Ingested: zero-nation mission map exclusion follow-up → updated `ai-agents/knowledge-base/s4-missions-difficulty-findings.md` and [[wiki/tasks/missions-difficulty-investigation]]
+
+## 2026-04-29 — ingest
+- Ingested: Medium nation ramp tuning follow-up (`floor(level / 5)`) → updated `ai-agents/knowledge-base/s4-missions-difficulty-findings.md` and [[wiki/tasks/missions-difficulty-investigation]]
+
+## 2026-04-29 — ingest
+- Ingested: generic-bot difficulty clarification → updated `ai-agents/knowledge-base/s4-missions-difficulty-findings.md` and [[wiki/tasks/missions-difficulty-investigation]]

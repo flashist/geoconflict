@@ -119,5 +119,6 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/tutorial-no-nations]] — Sprint 4 tutorial simplification that removed nation opponents
 - [[tasks/tutorial-build-menu-lock]] — Sprint 4 tooltip-5 build-menu guardrail
 - [[tasks/tutorial-reduce-bots]] — Sprint 4 tutorial config change that lowered tutorial bot count from 400 to 100
+- [[tasks/missions-difficulty-investigation]] — Sprint 4 findings on generated mission difficulty, tuning levers, and analytics gaps
 - [[decisions/hvn-balance-pr70-no-ship]] — no-ship review and cancellation outcome for the HvN balance attempt
 - [[decisions/cancelled-tasks]] — cancelled action-pause variant for tutorial follow-up work
