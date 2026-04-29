@@ -21,6 +21,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | 8d-A. Global Announcements Re-enable | `s4-8d-a-task-global-announcements.md` |
 | ⚠️ Urgent | Yandex Catalog Registration (manual, non-engineering) | `s4-yandex-catalog-registration.md` |
 | ⬜ Backlog | Solo Mode: Opponent Win Condition Not Triggering Loss | `s4-solo-win-condition-fix.md` |
+| ⬜ Backlog | Fix: Space Key Blocked in Feedback Modal During Match | `s4-feedback-modal-space-key.md` |
 | ⬜ Backlog | Investigation — Missions Mode Difficulty Curve | `s4-missions-difficulty-investigation.md` |
 | ⬜ Backlog | Nuke Pre-Launch Trajectory: Increase Line Thickness | `s4-nuke-trajectory-visibility.md` |
 | ⬜ Backlog | Teams Mode: Cap Maximum Teams at 4 | `s4-teams-mode-max-teams.md` |
