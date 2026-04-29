@@ -31,7 +31,11 @@ export function selectMissionMap(
   if (maps.length === 0) {
     throw new Error("mission map list is empty");
   }
-  const sorted = [...maps].sort((a, b) => {
+  const mapsWithNations = maps.filter((map) => mapNationCount(map) > 0);
+  if (mapsWithNations.length === 0) {
+    throw new Error("mission map list has no maps with nations");
+  }
+  const sorted = mapsWithNations.sort((a, b) => {
     const nationDiff = mapNationCount(a) - mapNationCount(b);
     if (nationDiff !== 0) return nationDiff;
     return String(a).localeCompare(String(b));

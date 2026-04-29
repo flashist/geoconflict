@@ -30,6 +30,20 @@ describe("SinglePlayMissions", () => {
     expect(selected).toBe(GameMapType.Asia);
   });
 
+  test("selectMissionMap excludes maps without nation slots", () => {
+    const selected = selectMissionMap(1, [
+      GameMapType.BaikalNukeWars,
+      GameMapType.Achiran,
+    ]);
+    expect(selected).toBe(GameMapType.Achiran);
+  });
+
+  test("selectMissionMap fails when all maps lack nation slots", () => {
+    expect(() => selectMissionMap(1, [GameMapType.BaikalNukeWars])).toThrow(
+      "mission map list has no maps with nations",
+    );
+  });
+
   test("mapNationCount reads prebuilt manifest nation counts", () => {
     expect(mapNationCount(GameMapType.Achiran)).toBe(4);
     expect(mapNationCount(GameMapType.BaikalNukeWars)).toBe(0);

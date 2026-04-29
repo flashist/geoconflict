@@ -4,7 +4,7 @@
 
 Missions mode does not use a finite list of authored mission configs. It is a generated, sequential level system backed by localStorage. Each mission level starts from one shared singleplayer config, then `LocalServer.buildMissionConfigIfNeeded()` derives the map and per-nation difficulties from the mission level.
 
-The original structure created a steep difficulty curve early because every mission used 400 generic bots, nations were enabled, maps were ordered by `mapMaxPlayers()`, and the nation difficulty mix ramped directly from the level number. A follow-up implementation now prebuilds map nation counts into `src/core/game/MapNationCounts.json` and orders mission maps by nation count instead of max players.
+The original structure created a steep difficulty curve early because every mission used 400 generic bots, nations were enabled, maps were ordered by `mapMaxPlayers()`, and the nation difficulty mix ramped directly from the level number. A follow-up implementation now prebuilds map nation counts into `src/core/game/MapNationCounts.json`, excludes maps with zero nation slots, and orders mission maps by nation count instead of max players.
 
 This document is findings only. It does not implement or recommend a specific tuning choice.
 
@@ -38,14 +38,15 @@ There is no fixed count of missions in source. Levels are effectively unbounded 
 const index = (level - 1) % sorted.length;
 ```
 
-There are currently 32 maps in `GameMapType`, so the first map cycle is missions 1-32, then mission 33 returns to the first map with a higher level number and therefore harder nation difficulty counts.
+There are currently 32 maps in `GameMapType`, but one map (`Baikal (Nuke Wars)`) has zero nation slots and is excluded from missions. The first playable map cycle is therefore missions 1-31, then mission 32 returns to the first map with a higher level number and therefore harder nation difficulty counts.
 
 Map order is deterministic:
 
 1. Generate `MapNationCounts.json` from `resources/maps/*/manifest.json` at build/test time.
-2. Sort all `GameMapType` values by `mapNationCount(map)`.
-3. Break ties by the display string.
-4. Pick `(level - 1) % mapCount`.
+2. Exclude maps where `mapNationCount(map) <= 0`.
+3. Sort remaining maps by `mapNationCount(map)`.
+4. Break ties by the display string.
+5. Pick `(level - 1) % mapCount`.
 
 Each mission starts from the shared config in `Main.startSinglePlayMission()`:
 
@@ -98,47 +99,47 @@ Shared values for every row below: 400 generic bots, FFA, Normal map size, no ti
 
 | Mission | Map | Land tiles | Nations | Easy | Medium | Hard | Impossible |
 |---:|---|---:|---:|---:|---:|---:|---:|
-| 1 | Baikal (Nuke Wars) | 1,968,430 | 0 | 0 | 0 | 0 | 0 |
-| 2 | Achiran | 1,149,943 | 4 | 2 | 2 | 0 | 0 |
-| 3 | Faroe Islands | 424,994 | 6 | 3 | 3 | 0 | 0 |
-| 4 | Mars | 1,354,047 | 6 | 2 | 4 | 0 | 0 |
-| 5 | Yenisei | 3,371,389 | 6 | 1 | 5 | 0 | 0 |
-| 6 | Australia | 1,319,763 | 7 | 1 | 6 | 0 | 0 |
-| 7 | Strait of Gibraltar | 1,941,359 | 7 | 0 | 7 | 0 | 0 |
-| 8 | Halkidiki | 1,729,369 | 8 | 0 | 8 | 0 | 0 |
-| 9 | Iceland | 1,098,655 | 8 | 0 | 8 | 0 | 0 |
-| 10 | Black Sea | 1,153,632 | 9 | 0 | 8 | 1 | 0 |
-| 11 | Deglaciated Antarctica | 1,079,790 | 9 | 0 | 8 | 1 | 0 |
-| 12 | Baikal | 2,181,746 | 11 | 0 | 10 | 1 | 0 |
-| 13 | Falkland Islands | 859,274 | 12 | 0 | 11 | 1 | 0 |
-| 14 | Italia | 780,495 | 12 | 0 | 11 | 1 | 0 |
-| 15 | Japan | 488,183 | 12 | 0 | 11 | 1 | 0 |
-| 16 | Montreal | 1,954,940 | 12 | 0 | 11 | 1 | 0 |
-| 17 | Between Two Seas | 1,478,803 | 15 | 0 | 14 | 1 | 0 |
-| 18 | Pluto | 1,987,279 | 16 | 0 | 15 | 1 | 0 |
-| 19 | East Asia | 879,264 | 22 | 2 | 19 | 1 | 0 |
-| 20 | Britannia | 933,860 | 23 | 1 | 20 | 2 | 0 |
-| 21 | South America | 1,411,064 | 24 | 1 | 21 | 2 | 0 |
-| 22 | Asia | 1,079,855 | 25 | 1 | 22 | 2 | 0 |
-| 23 | Pangaea | 420,336 | 29 | 4 | 23 | 2 | 0 |
-| 24 | Gateway to the Atlantic | 2,239,818 | 30 | 4 | 24 | 2 | 0 |
-| 25 | Europe Classic | 1,008,469 | 31 | 4 | 25 | 2 | 0 |
-| 26 | Oceania | 194,648 | 32 | 4 | 26 | 2 | 0 |
-| 27 | Mena | 1,621,317 | 35 | 6 | 27 | 2 | 0 |
-| 28 | Africa | 2,183,186 | 36 | 6 | 28 | 2 | 0 |
-| 29 | Europe | 2,311,229 | 49 | 18 | 29 | 2 | 0 |
-| 30 | North America | 1,243,623 | 49 | 16 | 30 | 3 | 0 |
-| 31 | World | 651,609 | 61 | 27 | 31 | 3 | 0 |
-| 32 | Giant World Map | 2,333,974 | 97 | 62 | 32 | 3 | 0 |
+| 1 | Achiran | 1,149,943 | 4 | 3 | 1 | 0 | 0 |
+| 2 | Faroe Islands | 424,994 | 6 | 4 | 2 | 0 | 0 |
+| 3 | Mars | 1,354,047 | 6 | 3 | 3 | 0 | 0 |
+| 4 | Yenisei | 3,371,389 | 6 | 2 | 4 | 0 | 0 |
+| 5 | Australia | 1,319,763 | 7 | 2 | 5 | 0 | 0 |
+| 6 | Strait of Gibraltar | 1,941,359 | 7 | 1 | 6 | 0 | 0 |
+| 7 | Halkidiki | 1,729,369 | 8 | 1 | 7 | 0 | 0 |
+| 8 | Iceland | 1,098,655 | 8 | 0 | 8 | 0 | 0 |
+| 9 | Black Sea | 1,153,632 | 9 | 0 | 9 | 0 | 0 |
+| 10 | Deglaciated Antarctica | 1,079,790 | 9 | 0 | 8 | 1 | 0 |
+| 11 | Baikal | 2,181,746 | 11 | 0 | 10 | 1 | 0 |
+| 12 | Falkland Islands | 859,274 | 12 | 0 | 11 | 1 | 0 |
+| 13 | Italia | 780,495 | 12 | 0 | 11 | 1 | 0 |
+| 14 | Japan | 488,183 | 12 | 0 | 11 | 1 | 0 |
+| 15 | Montreal | 1,954,940 | 12 | 0 | 11 | 1 | 0 |
+| 16 | Between Two Seas | 1,478,803 | 15 | 0 | 14 | 1 | 0 |
+| 17 | Pluto | 1,987,279 | 16 | 0 | 15 | 1 | 0 |
+| 18 | East Asia | 879,264 | 22 | 3 | 18 | 1 | 0 |
+| 19 | Britannia | 933,860 | 23 | 3 | 19 | 1 | 0 |
+| 20 | South America | 1,411,064 | 24 | 2 | 20 | 2 | 0 |
+| 21 | Asia | 1,079,855 | 25 | 2 | 21 | 2 | 0 |
+| 22 | Pangaea | 420,336 | 29 | 5 | 22 | 2 | 0 |
+| 23 | Gateway to the Atlantic | 2,239,818 | 30 | 5 | 23 | 2 | 0 |
+| 24 | Europe Classic | 1,008,469 | 31 | 5 | 24 | 2 | 0 |
+| 25 | Oceania | 194,648 | 32 | 5 | 25 | 2 | 0 |
+| 26 | Mena | 1,621,317 | 35 | 7 | 26 | 2 | 0 |
+| 27 | Africa | 2,183,186 | 36 | 7 | 27 | 2 | 0 |
+| 28 | Europe | 2,311,229 | 49 | 19 | 28 | 2 | 0 |
+| 29 | North America | 1,243,623 | 49 | 18 | 29 | 2 | 0 |
+| 30 | World | 651,609 | 61 | 28 | 30 | 3 | 0 |
+| 31 | Giant World Map | 2,333,974 | 97 | 63 | 31 | 3 | 0 |
 
 Representative later levels:
 
 | Mission | Map | Nations | Easy | Medium | Hard | Impossible |
 |---:|---|---:|---:|---:|---:|---:|
-| 33 | Baikal (Nuke Wars) | 0 | 0 | 0 | 0 | 0 |
-| 50 | Pluto | 16 | 0 | 10 | 5 | 1 |
-| 64 | Giant World Map | 97 | 26 | 64 | 6 | 1 |
-| 100 | Mars | 6 | 0 | 0 | 4 | 2 |
+| 32 | Achiran | 4 | 0 | 1 | 3 | 0 |
+| 33 | Faroe Islands | 6 | 0 | 3 | 3 | 0 |
+| 50 | Britannia | 23 | 0 | 17 | 5 | 1 |
+| 62 | Giant World Map | 97 | 28 | 62 | 6 | 1 |
+| 100 | Halkidiki | 8 | 0 | 0 | 6 | 2 |
 
 ## Available Tuning Levers
 
@@ -149,7 +150,7 @@ Representative later levels:
 | Nation enabled/disabled | `disableNPCs = false` in `LocalServer` for missions | No, global mission edit only | Could be made level-aware in code. |
 | Nation difficulty mix | `computeTierCounts(level, nationCount)` | Yes, but only by code formula | No data file. Ranges constrained by nation count. |
 | Specific nation difficulty assignment | deterministic shuffle by seed | No direct config | Could be made explicit per mission or weighted by nation strength, but needs code/data design. |
-| Map order | `selectMissionMap()` sort by prebuilt nation count and name | Yes, but code/generated data only | No authored mission list. |
+| Map order | `selectMissionMap()` excludes zero-nation maps, then sorts by prebuilt nation count and name | Yes, but code/generated data only | No authored mission list. |
 | Map size | `GameMapSize.Normal` | No, global mission edit only | Tutorial uses Compact, missions use Normal. |
 | Player starting resources | default game economy | No | No mission-specific player head start found. |
 | Player starting location | player chooses/auto-spawns normally | No | No mission-specific spawn location found. |
