@@ -12,6 +12,7 @@ interface MatchLifecycleState {
   matchStartTimeMs: number;
   spawnConfirmedReported: boolean;
   matchDurationReported: boolean;
+  abandonReported: boolean;
 }
 
 let activeGameId: string | null = null;
@@ -19,6 +20,7 @@ let activeClientId: string | null = null;
 let matchStartTimeMs: number | null = null;
 let spawnConfirmedReported = false;
 let matchDurationReported = false;
+let abandonReported = false;
 
 function readStoredState(
   gameId: string,
@@ -41,6 +43,7 @@ function readStoredState(
         matchStartTimeMs: parsed.matchStartTimeMs,
         spawnConfirmedReported: parsed.spawnConfirmedReported === true,
         matchDurationReported: parsed.matchDurationReported === true,
+        abandonReported: parsed.abandonReported === true,
       };
     }
   } catch {
@@ -67,6 +70,7 @@ function writeStoredState(): void {
         matchStartTimeMs,
         spawnConfirmedReported,
         matchDurationReported,
+        abandonReported,
       } satisfies MatchLifecycleState),
     );
   } catch {
@@ -80,6 +84,7 @@ function restoreState(state: MatchLifecycleState): void {
   matchStartTimeMs = state.matchStartTimeMs;
   spawnConfirmedReported = state.spawnConfirmedReported;
   matchDurationReported = state.matchDurationReported;
+  abandonReported = state.abandonReported;
 }
 
 function elapsedSeconds(): number | null {
@@ -114,6 +119,7 @@ export function trackGameStart(
   matchStartTimeMs = Date.now();
   spawnConfirmedReported = false;
   matchDurationReported = false;
+  abandonReported = false;
   writeStoredState();
 
   flashist_logEventAnalytics(
@@ -145,15 +151,21 @@ export function trackSpawnConfirmed(hasSpawned: boolean): void {
   );
 }
 
-export function trackGameEnd(gameEndValue?: number): void {
+export function trackGameEnd(
+  gameEndValue?: number,
+  options: { persistDuration?: boolean } = {},
+): void {
   flashist_logEventAnalytics(
     flashistConstants.analyticEvents.GAME_END,
     gameEndValue,
   );
-  trackMatchDuration();
+  trackMatchDuration(options);
 }
 
-export function trackMatchDuration(): void {
+export function trackMatchDuration(
+  options: { persistDuration?: boolean } = {},
+): void {
+  const persistDuration = options.persistDuration ?? true;
   if (matchDurationReported) {
     return;
   }
@@ -163,12 +175,30 @@ export function trackMatchDuration(): void {
     return;
   }
 
-  matchDurationReported = true;
-  writeStoredState();
+  if (persistDuration) {
+    matchDurationReported = true;
+    writeStoredState();
+  }
   flashist_logEventAnalytics(
     flashistConstants.analyticEvents.MATCH_DURATION,
     seconds,
   );
+}
+
+export function trackGameAbandon(
+  options: { persistDuration?: boolean } = {},
+): void {
+  const persistDuration = options.persistDuration ?? true;
+  if (abandonReported) {
+    return;
+  }
+
+  trackGameEnd(undefined, { persistDuration });
+  abandonReported = true;
+  if (persistDuration) {
+    writeStoredState();
+  }
+  flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_ABANDON);
 }
 
 export function resetMatchLifecycleAnalyticsForTests(
@@ -179,6 +209,7 @@ export function resetMatchLifecycleAnalyticsForTests(
   matchStartTimeMs = null;
   spawnConfirmedReported = false;
   matchDurationReported = false;
+  abandonReported = false;
   if (!preserveStorage) {
     localStorage.removeItem(STORAGE_KEY);
   }

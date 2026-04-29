@@ -80,6 +80,7 @@ import {
   FlashistFacade,
 } from "./flashist/FlashistFacade";
 import { getUserMe, isLoggedIn } from "./jwt";
+import { trackGameAbandon } from "./analytics/MatchLifecycleAnalytics";
 import "./styles.css";
 
 declare global {
@@ -244,9 +245,7 @@ class Client {
       this.perfMonitorStop?.();
       if (this.gameStop !== null) {
         if (this.gameHasStarted && !this.gameHasEnded) {
-          flashist_logEventAnalytics(
-            flashistConstants.analyticEvents.GAME_ABANDON,
-          );
+          trackGameAbandon({ persistDuration: false });
         }
         this.gameStop();
       }
@@ -907,6 +906,9 @@ class Client {
       return;
     }
     console.log("leaving lobby, cancelling game");
+    if (this.gameHasStarted && !this.gameHasEnded) {
+      trackGameAbandon();
+    }
     this.gameStop();
     this.gameStop = null;
     this.perfMonitorStop?.();

@@ -18,6 +18,7 @@ import { Layer } from "./Layer";
 import { ShowReplayPanelEvent } from "./ReplayPanel";
 import { ShowSettingsModalEvent } from "./SettingsModal";
 import { FlashistFacade } from "../../flashist/FlashistFacade";
+import { trackGameAbandon } from "../../analytics/MatchLifecycleAnalytics";
 
 @customElement("game-right-sidebar")
 export class GameRightSidebar extends LitElement implements Layer {
@@ -129,6 +130,7 @@ export class GameRightSidebar extends LitElement implements Layer {
     // Flashist Adaptaiton: interstitial
     await FlashistFacade.instance.showInterstitial();
 
+    trackGameAbandon();
     clearReconnectSession();
 
     // Flashist Adaptation
