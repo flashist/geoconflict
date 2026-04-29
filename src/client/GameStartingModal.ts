@@ -5,6 +5,7 @@ import {
   flashistConstants,
   FlashistFacade,
   TELEGRAM_CHANNEL_URL,
+  VK_CHANNEL_URL,
 } from "./flashist/FlashistFacade";
 import { translateText } from "./Utils";
 
@@ -19,19 +20,25 @@ export class GameStartingModal extends LitElement {
   @state()
   private isTelegramLinkVisible = false;
 
+  @state()
+  private isVkLinkVisible = false;
+
   connectedCallback() {
     super.connectedCallback();
     void this.loadCtaFlags();
   }
 
   private async loadCtaFlags(): Promise<void> {
-    const [isSubscribeEnabled, isTelegramLinkEnabled] = await Promise.all([
-      FlashistFacade.instance.isEmailSubscribeButtonEnabled(),
-      FlashistFacade.instance.isTelegramLinkEnabled(),
-    ]);
+    const [isSubscribeEnabled, isTelegramLinkEnabled, isVkLinkEnabled] =
+      await Promise.all([
+        FlashistFacade.instance.isEmailSubscribeButtonEnabled(),
+        FlashistFacade.instance.isTelegramLinkEnabled(),
+        FlashistFacade.instance.isVkLinkEnabled(),
+      ]);
     if (!this.isConnected) return;
     this.isSubscribeButtonEnabled = isSubscribeEnabled;
     this.isTelegramLinkVisible = isTelegramLinkEnabled;
+    this.isVkLinkVisible = isVkLinkEnabled;
   }
 
   static styles = css`
@@ -165,7 +172,8 @@ export class GameStartingModal extends LitElement {
       transform: translateY(1px);
     }
 
-    .modal-box .telegram-link {
+    .modal-box .telegram-link,
+    .modal-box .vk-link {
       display: inline-block;
       margin-top: 12px;
       color: #60a5fa;
@@ -175,7 +183,12 @@ export class GameStartingModal extends LitElement {
       transition: color 0.2s ease;
     }
 
-    .modal-box .telegram-link:hover {
+    .modal-box .vk-link {
+      margin-top: 8px;
+    }
+
+    .modal-box .telegram-link:hover,
+    .modal-box .vk-link:hover {
       color: #93c5fd;
     }
   `;
@@ -209,6 +222,19 @@ export class GameStartingModal extends LitElement {
                 </a>
               `
             : nothing}
+          ${this.isVkLinkVisible
+            ? html`
+                <a
+                  href=${VK_CHANNEL_URL}
+                  target="_blank"
+                  rel="noopener"
+                  class="vk-link"
+                  @click=${this.onVkLinkClick}
+                >
+                  ${translateText("vk_link.cta_text")}
+                </a>
+              `
+            : nothing}
         </div>
       </div>
     `;
@@ -237,6 +263,12 @@ export class GameStartingModal extends LitElement {
   private onTelegramLinkClick() {
     FlashistFacade.instance.logUiTapEvent(
       flashistConstants.uiElementIds.telegramLinkStartScreen,
+    );
+  }
+
+  private onVkLinkClick() {
+    FlashistFacade.instance.logUiTapEvent(
+      flashistConstants.uiElementIds.vkLinkStartScreen,
     );
   }
 

@@ -120,6 +120,8 @@ Fired for both multiplayer and single-player missions.
 | `uiElementIds.announcementsBell`       | `UI:Tap:AnnouncementsBell`       | Player clicks or taps the announcements bell on the start screen |
 | `uiElementIds.telegramLinkStartScreen` | `UI:Tap:TelegramLinkStartScreen` | Player clicks the Telegram link on the start screen              |
 | `uiElementIds.telegramLinkGameEnd`     | `UI:Tap:TelegramLinkGameEnd`     | Player clicks the Telegram link on the game-end screen           |
+| `uiElementIds.vkLinkStartScreen`       | `UI:Tap:VkLinkStartScreen`       | Player clicks the VK link on the start screen                    |
+| `uiElementIds.vkLinkGameEnd`           | `UI:Tap:VkLinkGameEnd`           | Player clicks the VK link on the game-end screen                 |
 | `uiElementIds.tutorialSkipBtnCorner`   | `UI:Tap:TutorialSkipBtnCorner`   | Player clicks the corner skip button during tutorial             |
 | `uiElementIds.tutorialSkipBtnInline`   | `UI:Tap:TutorialSkipBtnInline`   | Player clicks the inline skip link during tutorial               |
 

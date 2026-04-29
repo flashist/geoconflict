@@ -21,6 +21,7 @@ import {
   flashistConstants,
   FlashistFacade,
   TELEGRAM_CHANNEL_URL,
+  VK_CHANNEL_URL,
 } from "../../flashist/FlashistFacade";
 import { clearReconnectSession } from "../../ReconnectSession";
 import {
@@ -61,6 +62,9 @@ export class WinModal extends LitElement implements Layer {
   @state()
   private isTelegramLinkVisible = false;
 
+  @state()
+  private isVkLinkVisible = false;
+
   private _title: string;
   private _body = "";
 
@@ -81,13 +85,16 @@ export class WinModal extends LitElement implements Layer {
   }
 
   private async loadCtaFlags(): Promise<void> {
-    const [isSubscribeEnabled, isTelegramLinkEnabled] = await Promise.all([
-      FlashistFacade.instance.isEmailSubscribeButtonEnabled(),
-      FlashistFacade.instance.isTelegramLinkEnabled(),
-    ]);
+    const [isSubscribeEnabled, isTelegramLinkEnabled, isVkLinkEnabled] =
+      await Promise.all([
+        FlashistFacade.instance.isEmailSubscribeButtonEnabled(),
+        FlashistFacade.instance.isTelegramLinkEnabled(),
+        FlashistFacade.instance.isVkLinkEnabled(),
+      ]);
     if (!this.isConnected) return;
     this.isSubscribeButtonEnabled = isSubscribeEnabled;
     this.isTelegramLinkVisible = isTelegramLinkEnabled;
+    this.isVkLinkVisible = isVkLinkEnabled;
   }
 
   render() {
@@ -149,6 +156,19 @@ export class WinModal extends LitElement implements Layer {
               </a>
             `
         : nothing}
+        ${this.showButtons && this.isVkLinkVisible
+          ? html`
+              <a
+                href=${VK_CHANNEL_URL}
+                target="_blank"
+                rel="noopener"
+                class="mt-2 block text-center text-base text-blue-300 underline underline-offset-2 transition-colors duration-200 hover:text-blue-200"
+                @click=${this.onVkLinkClick}
+              >
+                ${translateText("vk_link.cta_text")}
+              </a>
+            `
+          : nothing}
       </div>
 
       <style>
@@ -276,6 +296,12 @@ export class WinModal extends LitElement implements Layer {
   private onTelegramLinkClick() {
     FlashistFacade.instance.logUiTapEvent(
       flashistConstants.uiElementIds.telegramLinkGameEnd,
+    );
+  }
+
+  private onVkLinkClick() {
+    FlashistFacade.instance.logUiTapEvent(
+      flashistConstants.uiElementIds.vkLinkGameEnd,
     );
   }
 

@@ -30,7 +30,10 @@ jest.mock("../../src/client/TutorialStorage", () => ({
   TUTORIAL_START_TIME_KEY: "tutorial-start-time",
 }));
 
-import { FlashistFacade } from "../../src/client/flashist/FlashistFacade";
+import {
+  flashistConstants,
+  FlashistFacade,
+} from "../../src/client/flashist/FlashistFacade";
 import { EmailSubscribeModal } from "../../src/client/EmailSubscribeModal";
 import { GameStartingModal } from "../../src/client/GameStartingModal";
 import { WinModal } from "../../src/client/graphics/layers/WinModal";
@@ -92,6 +95,36 @@ describe("subscribe feature flag", () => {
     expect(modal.shadowRoot?.querySelector(".subscribe-btn")).not.toBeNull();
   });
 
+  it("hides the start modal VK link when the flag is off", async () => {
+    mockCtaFlags({ vk: false });
+
+    const modal = await appendElement(new GameStartingModal());
+
+    expect(modal.shadowRoot?.querySelector(".vk-link")).toBeNull();
+  });
+
+  it("shows the start modal VK link when the flag is on", async () => {
+    const facade = mockCtaFlags({ vk: true });
+
+    const modal = await appendElement(new GameStartingModal());
+    await (
+      modal as unknown as {
+        loadCtaFlags: () => Promise<void>;
+      }
+    ).loadCtaFlags();
+    modal.requestUpdate();
+    await modal.updateComplete;
+    const link = modal.shadowRoot?.querySelector(".vk-link");
+
+    expect(link).not.toBeNull();
+
+    link?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(facade.logUiTapEvent).toHaveBeenCalledWith(
+      flashistConstants.uiElementIds.vkLinkStartScreen,
+    );
+  });
+
   it("hides the win modal subscribe button when the flag is off", async () => {
     mockSubscribeFlag(false);
 
@@ -112,6 +145,35 @@ describe("subscribe feature flag", () => {
     await modal.updateComplete;
 
     expect(modal.querySelector("button.w-full")).not.toBeNull();
+  });
+
+  it("hides the win modal VK link when the flag is off", async () => {
+    mockCtaFlags({ vk: false });
+
+    const modal = await appendElement(new WinModal());
+    modal.showButtons = true;
+    modal.requestUpdate();
+    await modal.updateComplete;
+
+    expect(modal.querySelector('a[href="PLACEHOLDER_VK_URL"]')).toBeNull();
+  });
+
+  it("shows the win modal VK link when the flag is on", async () => {
+    const facade = mockCtaFlags({ vk: true });
+
+    const modal = await appendElement(new WinModal());
+    modal.showButtons = true;
+    modal.requestUpdate();
+    await modal.updateComplete;
+    const link = modal.querySelector('a[href="PLACEHOLDER_VK_URL"]');
+
+    expect(link).not.toBeNull();
+
+    link?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(facade.logUiTapEvent).toHaveBeenCalledWith(
+      flashistConstants.uiElementIds.vkLinkGameEnd,
+    );
   });
 
   it("does not open the subscribe modal when the flag is off", async () => {
@@ -135,9 +197,32 @@ describe("subscribe feature flag", () => {
   });
 
   function mockSubscribeFlag(isEnabled: boolean): void {
+    mockCtaFlags({ subscribe: isEnabled });
+  }
+
+  function mockCtaFlags({
+    subscribe = false,
+    telegram = false,
+    vk = false,
+  }: {
+    subscribe?: boolean;
+    telegram?: boolean;
+    vk?: boolean;
+  }): {
+    isEmailSubscribeButtonEnabled: jest.Mock<Promise<boolean>>;
+    isTelegramLinkEnabled: jest.Mock<Promise<boolean>>;
+    isVkLinkEnabled: jest.Mock<Promise<boolean>>;
+    logUiTapEvent: jest.Mock<void>;
+  } {
+    const facade = {
+      isEmailSubscribeButtonEnabled: jest.fn().mockResolvedValue(subscribe),
+      isTelegramLinkEnabled: jest.fn().mockResolvedValue(telegram),
+      isVkLinkEnabled: jest.fn().mockResolvedValue(vk),
+      logUiTapEvent: jest.fn(),
+    };
     jest.spyOn(FlashistFacade, "instance", "get").mockReturnValue({
-      isEmailSubscribeButtonEnabled: jest.fn().mockResolvedValue(isEnabled),
-      isTelegramLinkEnabled: jest.fn().mockResolvedValue(false),
+      ...facade,
     } as unknown as FlashistFacade);
+    return facade;
   }
 });

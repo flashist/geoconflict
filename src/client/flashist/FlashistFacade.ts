@@ -6,6 +6,7 @@ import { isMobileDevice } from "../Utils";
 import version from "../../version";
 
 export const TELEGRAM_CHANNEL_URL = "https://t.me/gameworldwar";
+export const VK_CHANNEL_URL = "https://vk.com/gameworldwar";
 
 export const flashistConstants = {
   analyticEvents: {
@@ -102,6 +103,8 @@ export const flashistConstants = {
     announcementsBell: "AnnouncementsBell",
     telegramLinkStartScreen: "TelegramLinkStartScreen",
     telegramLinkGameEnd: "TelegramLinkGameEnd",
+    vkLinkStartScreen: "VkLinkStartScreen",
+    vkLinkGameEnd: "VkLinkGameEnd",
     tutorialSkipBtnCorner: "TutorialSkipBtnCorner",
     tutorialSkipBtnInline: "TutorialSkipBtnInline",
   },
@@ -121,6 +124,8 @@ export const flashistConstants = {
     EMAIL_SUBSCRIBE_BUTTON_ENABLED_VALUE: "enabled",
     TELEGRAM_LINK_FLAG_NAME: "telegram_link",
     TELEGRAM_LINK_ENABLED_VALUE: "enabled",
+    VK_LINK_FLAG_NAME: "vk_link",
+    VK_LINK_ENABLED_VALUE: "enabled",
   },
 
   ads: {
@@ -511,6 +516,13 @@ export class FlashistFacade {
     return this.checkExperimentFlag(
       flashistConstants.experiments.TELEGRAM_LINK_FLAG_NAME,
       flashistConstants.experiments.TELEGRAM_LINK_ENABLED_VALUE,
+    );
+  }
+
+  public async isVkLinkEnabled(): Promise<boolean> {
+    return this.checkExperimentFlag(
+      flashistConstants.experiments.VK_LINK_FLAG_NAME,
+      flashistConstants.experiments.VK_LINK_ENABLED_VALUE,
     );
   }
 

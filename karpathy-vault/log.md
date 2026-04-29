@@ -308,3 +308,6 @@
 - Skipped (already covered): `ai-agents/knowledge-base/server-match-logging-state.md` — current content already reflected in [[wiki/systems/match-logging]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-feedback-modal-space-key.md`, `ai-agents/tasks/backlog/s4-missions-difficulty-investigation.md`, `ai-agents/tasks/backlog/s4-nuke-trajectory-visibility.md`, `ai-agents/tasks/backlog/s4-solo-win-condition-fix.md`, `ai-agents/tasks/backlog/s4-teams-mode-max-teams.md`, `ai-agents/tasks/backlog/s4-vk-link.md` — backlog files are not eligible for `wiki-sync`
 - Skipped (not a sprint plan ingest): `ai-agents/sprints/sprint-backlog.md` — no-sprint holding list, no completed task or sprint decision page created
+
+## 2026-04-29 — ingest
+- Ingested: `ai-agents/tasks/backlog/s4-vk-link.md` → created [[wiki/tasks/vk-link]]; updated [[wiki/systems/analytics]], [[wiki/tasks/telegram-link]], [[wiki/decisions/sprint-4]]
