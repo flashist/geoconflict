@@ -59,25 +59,32 @@ interface MapWithMode {
   mode: GameMode;
 }
 
-const TEAM_COUNTS = [
-  2,
-  3,
-  4,
-  5,
-  6,
-  7,
+export const REGULAR_TEAM_COUNTS = [
+  2, 3, 4,
+] as const satisfies readonly TeamCountConfig[];
+
+export const TEAM_COUNTS = [
+  ...REGULAR_TEAM_COUNTS,
+
+  // Flashist Adaptation: keep Humans vs Nations in the public rotation.
+  HumansVsNations,
 
   // Flashist Adaptation: disabling duos-trios-quads game modes
   // Duos,
   // Trios,
   // Quads,
-  HumansVsNations,
-] as const satisfies TeamCountConfig[];
+] as const satisfies readonly TeamCountConfig[];
+
+export function randomTeamCount(
+  random: () => number = Math.random,
+): TeamCountConfig {
+  return TEAM_COUNTS[Math.floor(random() * TEAM_COUNTS.length)];
+}
 
 export class MapPlaylist {
   private mapsPlaylist: MapWithMode[] = [];
 
-  constructor(private disableTeams: boolean = false) { }
+  constructor(private disableTeams: boolean = false) {}
 
   public gameConfig(): GameConfig {
     const { map, mode } = this.getNextMap();
@@ -109,7 +116,7 @@ export class MapPlaylist {
   }
 
   private getTeamCount(): TeamCountConfig {
-    return TEAM_COUNTS[Math.floor(Math.random() * TEAM_COUNTS.length)];
+    return randomTeamCount();
   }
 
   private getNextMap(): MapWithMode {

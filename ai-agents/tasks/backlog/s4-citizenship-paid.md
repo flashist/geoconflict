@@ -8,6 +8,7 @@ High — the monetization milestone of the sprint. Blocked on Yandex catalog app
 
 ## Dependencies
 - **Yandex Payments (s4-yandex-payments-impl.md)** must be live — purchase flow and server verification infrastructure is defined there.
+- **Analytics:** this task owns `Purchase:Started:Citizenship`, `Purchase:Completed:Citizenship`, and `Purchase:Abandoned:Citizenship`. Read `analytics-p1-citizenship-funnel.md` before starting — events must be wired during implementation, not added later.
 - **Player Profile Store** must be live — `is_paid_citizen` is stored there.
 - **Personal Inbox (8d-B)** must be live — paid citizenship triggers an inbox message.
 - **Yandex catalog item** (`citizenship` at 99 rubles) must be approved in the Yandex Games dashboard.

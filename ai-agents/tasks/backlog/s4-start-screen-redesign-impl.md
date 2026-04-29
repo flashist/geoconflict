@@ -16,6 +16,8 @@ Claude.Design has produced the implementation-ready design file. The coding agen
 
 Read the design file before reading the rest of this brief — the visual spec is authoritative. This brief defines scope boundaries, technical requirements, and what is explicitly out of scope.
 
+> **Analytics:** this task owns `Citizenship:Seen` and `UI:Tap:CitizenshipLoginToEarn`. Read `analytics-p1-citizenship-funnel.md` before starting — events must be wired during implementation, not added later.
+
 ---
 
 ## Scope
