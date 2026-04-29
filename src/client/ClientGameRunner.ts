@@ -519,6 +519,7 @@ export class ClientGameRunner {
       if (message.type === "start") {
         trackGameStart(
           message.gameStartInfo.gameID,
+          this.lobby.clientID,
           message.gameStartInfo.config.gameType,
           message.gameStartInfo.players.length,
         );
