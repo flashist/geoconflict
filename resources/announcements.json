@@ -1,5 +1,18 @@
 [
   {
+    "id": "2026-04-29-game-update",
+    "date": "2026-04-29",
+    "title": {
+      "en": "Game update",
+      "ru": "Обновление игры"
+    },
+    "body": {
+      "en": "This update brings several gameplay and community improvements:\n- Solo and mission matches now end correctly when an opponent wins, with a clear loss message instead of the old ambiguous ending.\n- Missions have been tuned: maps without nations are no longer selected, mission maps now progress by nation count, and Medium nations ramp up more gradually.\n- Teams-mode public lobbies now generate 2, 3, or 4 teams only, so matches should be less fragmented.\n- The nuke targeting trajectory is thicker and easier to see before launch.\n- A VK community link can now appear on the start screen and after matches when enabled.",
+      "ru": "В этом обновлении появилось несколько улучшений для игры и сообщества:\n- Одиночные матчи и миссии теперь корректно завершаются, когда побеждает соперник: вместо прежнего неоднозначного завершения показывается понятное сообщение о поражении.\n- Миссии стали сбалансированнее: карты без наций больше не выбираются, порядок карт теперь учитывает количество наций, а сложность наций уровня Medium растет плавнее.\n- Публичные лобби командного режима теперь создаются только с 2, 3 или 4 командами, поэтому матчи должны меньше дробиться.\n- Траектория наведения ядерной ракеты стала толще и заметнее перед запуском.\n- Ссылка на сообщество VK теперь может появляться на стартовом экране и после матчей, когда она включена."
+    },
+    "tag": "update"
+  },
+  {
     "id": "2026-04-telegram-channel-link",
     "date": "2026-04-24",
     "title": {
