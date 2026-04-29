@@ -1,4 +1,4 @@
-import { colord, Colord } from "colord";
+import { Colord } from "colord";
 import { EventBus } from "../../../core/EventBus";
 import { Theme } from "../../../core/configuration/Config";
 import { UnitType } from "../../../core/game/Game";
@@ -15,6 +15,9 @@ type PlannedPath = {
   to: TileRef;
   color: Colord;
 };
+
+const NUKE_PLANNING_LINE_THICKNESS = 3;
+const NUKE_PLANNING_LINE_ALPHA = 150;
 
 export class NukePlanningLayer implements Layer {
   private canvas: HTMLCanvasElement;
@@ -177,13 +180,9 @@ export class NukePlanningLayer implements Layer {
       true,
     );
     const tiles = pathFinder.allTiles();
+    const painted = new Set<string>();
     for (const tile of tiles) {
-      this.paintCell(
-        this.game.x(tile),
-        this.game.y(tile),
-        planned.color,
-        150,
-      );
+      this.paintCell(this.game.x(tile), this.game.y(tile), planned.color, painted);
     }
   }
 
@@ -191,13 +190,30 @@ export class NukePlanningLayer implements Layer {
     x: number,
     y: number,
     color: Colord,
-    alpha: number,
+    painted: Set<string>,
   ) {
     if (this.alternateView) {
       this.context.fillStyle = this.theme.selfColor().toRgbString();
     } else {
-      this.context.fillStyle = color.alpha(alpha / 255).toRgbString();
+      this.context.fillStyle = color
+        .alpha(NUKE_PLANNING_LINE_ALPHA / 255)
+        .toRgbString();
     }
-    this.context.fillRect(x, y, 1, 1);
+    const offset = Math.floor(NUKE_PLANNING_LINE_THICKNESS / 2);
+    for (let dx = -offset; dx <= offset; dx++) {
+      for (let dy = -offset; dy <= offset; dy++) {
+        const px = x + dx;
+        const py = y + dy;
+        if (!this.game.isValidCoord(px, py)) {
+          continue;
+        }
+        const key = `${px}:${py}`;
+        if (painted.has(key)) {
+          continue;
+        }
+        painted.add(key);
+        this.context.fillRect(px, py, 1, 1);
+      }
+    }
   }
 }
