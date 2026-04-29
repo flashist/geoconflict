@@ -4,7 +4,7 @@
 
 Missions mode does not use a finite list of authored mission configs. It is a generated, sequential level system backed by localStorage. Each mission level starts from one shared singleplayer config, then `LocalServer.buildMissionConfigIfNeeded()` derives the map and per-nation difficulties from the mission level.
 
-The original structure created a steep difficulty curve early because every mission used 400 generic bots, nations were enabled, maps were ordered by `mapMaxPlayers()`, and the nation difficulty mix ramped directly from the level number. Follow-up implementations now prebuild map nation counts into `src/core/game/MapNationCounts.json`, exclude maps with zero nation slots, order mission maps by nation count instead of max players, and slow the Medium nation ramp to one Medium nation per five levels.
+The original structure created a steep difficulty curve early because nations were enabled, maps were ordered by `mapMaxPlayers()`, and the nation difficulty mix ramped directly from the level number. Follow-up implementations now prebuild map nation counts into `src/core/game/MapNationCounts.json`, exclude maps with zero nation slots, order mission maps by nation count instead of max players, and slow the Medium nation ramp to one Medium nation per five levels.
 
 This document is findings only. It does not implement or recommend a specific tuning choice.
 
@@ -72,7 +72,7 @@ Each mission starts from the shared config in `Main.startSinglePlayMission()`:
 - `nationDifficulties` is generated from level and nation count.
 - `singlePlayMission.seed` is set from map and level.
 
-There is no formal mission `difficulty` property. Difficulty is emergent from shared config, selected map, 400 generic bots, nation count, generated nation difficulties, map land area, and the global win threshold.
+There is no formal mission `difficulty` property. Difficulty is emergent from shared config, selected map, nation count, generated nation difficulties, map land area, and the global win threshold.
 
 ## Difficulty Formula
 
@@ -92,6 +92,7 @@ The global nation AI behavior changes materially by difficulty:
 - Easy and Medium discourage attacks on human players who are not traitors.
 - Hard and Impossible do not apply that protection.
 - Generic bots do not have a public per-mission difficulty setting; their behavior uses randomized attack cadence and troop ratios.
+- Product read: generic bots are not considered a meaningful mission difficulty driver after tutorial completion. They are passive enough that competent players mostly use them as food for growth; the difficulty pressure comes from nations, nation difficulty, map shape/scale, and win/loss conditions.
 
 ## Current Mission Parameters: First Map Cycle
 
@@ -195,7 +196,7 @@ These are implementation options for Mark and the technical specialist to evalua
 
 | Option | Concrete change | Effort | Tradeoff |
 |---|---|---:|---|
-| Reduce mission bot count globally | Change `bots: 400` in `startSinglePlayMission()` to a lower value. | Low | Very small patch, but affects every mission equally and does not address nation difficulty spikes. |
+| Reduce mission bot count globally | Change `bots: 400` in `startSinglePlayMission()` to a lower value. | Low | Technically small, but likely the wrong lever unless playtests show very early players are overwhelmed before understanding expansion. Bots mostly serve as growth food after tutorial completion. |
 | Slow the nation difficulty ramp | Change `computeTierCounts()` divisors, for example Medium starting slower than every level and Hard later than level 10. | Low-Medium | Keeps generated mission structure, but requires playtesting because later missions shift too. |
 | Add early-mission safety rules | In `LocalServer`, special-case early levels to reduce or disable nations and/or keep all nations Easy. | Medium | Directly targets first-session difficulty, but adds more generated-mission rules. |
 | Introduce authored mission config | Add a mission config table/schema for at least the first N missions with map, bots, nation policy, and optional win/time settings. | Medium-High | Gives best tuning control, but is a larger data/model change and needs tests plus analytics naming decisions. |

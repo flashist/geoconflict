@@ -16,7 +16,7 @@ The main finding is that missions are not a finite authored list. They are an un
 
 Every mission currently starts with the same shared config: Singleplayer FFA, Normal map size, 400 generic bots, nations enabled, no time limit, default Medium nation difficulty fallback, and the global FFA 80% territory win threshold. `LocalServer` then overwrites the map, forces nations on, generates `nationDifficulties`, and records a deterministic mission seed.
 
-Difficulty is emergent rather than a formal per-mission property. It comes from 400 generic bots, selected map and land area, nation count, generated nation difficulty counts, global win threshold, and normal singleplayer economy/spawn rules.
+Difficulty is emergent rather than a formal per-mission property. It comes from selected map and land area, nation count, generated nation difficulty counts, global win threshold, and normal singleplayer economy/spawn rules. Generic bots are not considered a meaningful mission difficulty driver after tutorial completion; they are passive enough that competent players mostly use them as food for growth.
 
 The nation difficulty formula is:
 
@@ -35,7 +35,7 @@ Current analytics is too coarse for mission-level drop-off analysis. `UI:ClickMi
 
 The findings document provides the full first-cycle mission table and identifies available tuning levers:
 
-- Global mission bot count can be changed with a small config edit, but not per mission without code/config changes.
+- Global mission bot count can be changed with a small config edit, but bots are not the main difficulty lever; after tutorial completion they mostly act as growth food rather than pressure.
 - Nation difficulty ramp can be changed in `computeTierCounts()`, but it is a code formula rather than data.
 - Nation enablement can be changed globally or with new level-aware logic in `LocalServer`.
 - Map order is code-derived from prebuilt map nation counts, excludes zero-nation maps, and is not authored.
