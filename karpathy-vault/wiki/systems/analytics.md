@@ -59,7 +59,7 @@ See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrumen
 
 ## Match Loss Events
 
-`Match:Loss:OpponentWon` fires when a solo-mode loss screen is shown because an opponent met the win condition before the player. This is distinct from `Player:Eliminated`: the player can still have territory, but the match is over because the opponent won.
+`Match:Loss:OpponentWon` fires when a solo-mode loss screen is shown because an opponent met the win condition before the player. This is distinct from `Player:Eliminated`: the player can still have territory, but the match is over because the opponent won. See [[tasks/solo-win-condition-fix]].
 
 ## Join Funnel & Map Preload Events
 
@@ -76,7 +76,7 @@ See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrumen
 | `Match:PreloadHitNotLoaded` | Match start waits on an in-progress preload |
 | `Match:PreloadMiss` | Match start falls back to a fresh terrain load |
 
-The analytics reference now also defines two placement-specific Telegram CTA tap IDs: `UI:Tap:TelegramLinkStartScreen` and `UI:Tap:TelegramLinkGameEnd`. The current Sprint 4 sources still treat that work as backlog, but the event names are now reserved so those surfaces can be segmented cleanly if and when the links ship.
+The analytics reference also defines two placement-specific Telegram CTA tap IDs: `UI:Tap:TelegramLinkStartScreen` and `UI:Tap:TelegramLinkGameEnd`. These are emitted by the shipped [[tasks/telegram-link]] flow so start-screen and game-end CTA taps can be segmented separately.
 
 ## Experiment Event Pattern
 
@@ -111,6 +111,8 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[features/reconnection]] — Reconnect event category
 - [[features/feedback-button]] — Feedback event category and match ID attachment
 - [[tasks/email-subscribe-modal]] — `Subscribe:Opened` and `Subscribe:Submitted` for the email opt-in flow
+- [[tasks/telegram-link]] — placement-specific Telegram CTA taps on start and game-end screens
+- [[tasks/solo-win-condition-fix]] — `Match:Loss:OpponentWon` reason event
 - [[tasks/session-start-sequence]] — Session start event sequence and conventions
 - [[tasks/mobile-quick-wins]] — `Performance:FPS:*` events measured here
 - [[tasks/stale-build-detection]] — `Build:StaleDetected` event implementation

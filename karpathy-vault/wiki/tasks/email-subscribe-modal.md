@@ -25,3 +25,4 @@ Geoconflict now has a shipped email opt-in surface on both major post-load conve
 - [[decisions/sprint-4]] — Sprint 4 backlog item and shipped opt-in flow
 - [[systems/analytics]] — `Subscribe:Opened` and `Subscribe:Submitted`
 - [[features/feedback-button]] — shares the existing Telegram delivery infrastructure
+- [[tasks/telegram-link]] — adjacent Telegram CTA shown near subscribe entry points when enabled

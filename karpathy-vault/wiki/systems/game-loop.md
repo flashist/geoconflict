@@ -42,3 +42,4 @@ The game loop is a deterministic turn replay system. The server accumulates play
 - [[systems/execution-pipeline]] — how a turn’s intents become concrete executions and updates
 - [[systems/networking]] — how turns reach the client and worker
 - [[systems/rendering]] — main-thread consumer of the worker-produced update stream
+- [[tasks/solo-win-condition-fix]] — win-condition execution behavior for solo opponent victories

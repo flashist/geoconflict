@@ -1,6 +1,6 @@
 # Missions Difficulty Investigation
 
-**Source**: `ai-agents/knowledge-base/s4-missions-difficulty-findings.md`
+**Source**: `ai-agents/tasks/done/s4-missions-difficulty-investigation.md`, `ai-agents/knowledge-base/s4-missions-difficulty-findings.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4
 

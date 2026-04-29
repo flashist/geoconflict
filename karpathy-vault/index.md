@@ -33,7 +33,7 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
-- [[decisions/sprint-4]] — Sprint 4 (planned/in progress): citizenship XP economy, Yandex payments, player profile store, start-screen redesign, and tutorial/lobby follow-ups
+- [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation plus shipped tutorial, missions, solo-loss, email, Telegram, and AI-lobby follow-ups
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
 - [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance no-ship — with reasons and re-attempt guidance
@@ -64,7 +64,9 @@
 - [[tasks/tutorial-no-nations]] — Tutorial config change removing nation-controlled opponents
 - [[tasks/tutorial-build-menu-lock]] — Tooltip-5 guardrail that restricts building to City
 - [[tasks/tutorial-reduce-bots]] — Tutorial config change lowering tutorial bot count from 400 to 100
-- [[tasks/missions-difficulty-investigation]] — Sprint 4 investigation finding missions are generated, not authored; follow-up excludes zero-nation maps and sorts by prebuilt nation counts
+- [[tasks/missions-difficulty-investigation]] — Sprint 4 investigation finding missions are generated, not authored; follow-ups exclude zero-nation maps, sort by prebuilt nation counts, and slow the Medium nation ramp
+- [[tasks/solo-win-condition-fix]] — Solo-mode fix showing a distinct loss when an opponent reaches the win threshold
+- [[tasks/telegram-link]] — Experiment-gated Telegram channel CTA on start/loading and game-end screens
 - [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
 - [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response
 - [[tasks/registry-image-audit]] — Historical image-trust audit plan; outcome was conservative pre-hardening image quarantine

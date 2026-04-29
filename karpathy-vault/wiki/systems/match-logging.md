@@ -65,3 +65,4 @@ For active/in-memory games: `GET /api/game/:id` (`Worker.ts:224`) — only works
 - [[systems/game-overview]] — overall project context
 - [[systems/telemetry]] — OTEL/Uptrace infrastructure this logging flows into
 - [[systems/server-performance]] — performance context for `endTurn()` / turn logging
+- [[tasks/solo-win-condition-fix]] — solo opponent winners can be archived as explicit opponent winners

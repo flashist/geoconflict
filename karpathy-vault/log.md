@@ -296,3 +296,15 @@
 
 ## 2026-04-29 — ingest
 - Ingested: generic-bot difficulty clarification → updated `ai-agents/knowledge-base/s4-missions-difficulty-findings.md` and [[wiki/tasks/missions-difficulty-investigation]]
+
+## 2026-04-29 — ingest
+- Sync window: `3060792ef4fb87562d03e6a1cbb08e09e884da46` → HEAD (`b9d7f1071341c2259669aadf772bce548dcac3f9`)
+- Changed source files detected: 14
+- Ingested: `ai-agents/tasks/done/s4-solo-win-condition-fix.md` → created [[wiki/tasks/solo-win-condition-fix]]; updated [[wiki/systems/analytics]], [[wiki/systems/match-logging]], [[wiki/systems/execution-pipeline]], [[wiki/systems/game-loop]], [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/tasks/done/s4-telegram-link.md` → created [[wiki/tasks/telegram-link]]; updated [[wiki/systems/analytics]], [[wiki/tasks/email-subscribe-modal]], [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/tasks/done/s4-missions-difficulty-investigation.md` + `ai-agents/knowledge-base/s4-missions-difficulty-findings.md` → updated [[wiki/tasks/missions-difficulty-investigation]], [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
+- Skipped (already covered): `ai-agents/knowledge-base/server-match-logging-state.md` — current content already reflected in [[wiki/systems/match-logging]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-feedback-modal-space-key.md`, `ai-agents/tasks/backlog/s4-missions-difficulty-investigation.md`, `ai-agents/tasks/backlog/s4-nuke-trajectory-visibility.md`, `ai-agents/tasks/backlog/s4-solo-win-condition-fix.md`, `ai-agents/tasks/backlog/s4-teams-mode-max-teams.md`, `ai-agents/tasks/backlog/s4-vk-link.md` — backlog files are not eligible for `wiki-sync`
+- Skipped (not a sprint plan ingest): `ai-agents/sprints/sprint-backlog.md` — no-sprint holding list, no completed task or sprint decision page created
