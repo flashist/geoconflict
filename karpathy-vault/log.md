@@ -314,3 +314,6 @@
 
 ## 2026-04-29 — ingest
 - Ingested: VK link real URL follow-up (`https://vk.com/gameworldwar`) → updated [[wiki/tasks/vk-link]], [[wiki/decisions/sprint-4]]
+
+## 2026-04-29 — ingest
+- Ingested: `ai-agents/tasks/done/s4-nuke-trajectory-visibility.md` → created [[wiki/tasks/nuke-trajectory-visibility]]; updated [[wiki/systems/rendering]]

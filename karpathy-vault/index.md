@@ -68,6 +68,7 @@
 - [[tasks/solo-win-condition-fix]] — Solo-mode fix showing a distinct loss when an opponent reaches the win threshold
 - [[tasks/telegram-link]] — Experiment-gated Telegram channel CTA on start/loading and game-end screens
 - [[tasks/vk-link]] — Experiment-gated VK community CTA on start/loading and game-end screens
+- [[tasks/nuke-trajectory-visibility]] — Sprint 4 visual polish making the nuke pre-launch targeting arc thicker
 - [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
 - [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response
 - [[tasks/registry-image-audit]] — Historical image-trust audit plan; outcome was conservative pre-hardening image quarantine

@@ -39,3 +39,4 @@ Rendering is a layered canvas pipeline on the client main thread. `GameRenderer`
 
 - [[systems/game-overview]] — project-level architecture context
 - [[systems/game-loop]] — source of `GameUpdateViewData` consumed by the renderer
+- [[tasks/nuke-trajectory-visibility]] — nuke targeting preview thickness tuning in `NukePlanningLayer`
