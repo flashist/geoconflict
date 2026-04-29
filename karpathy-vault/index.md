@@ -64,6 +64,7 @@
 - [[tasks/tutorial-no-nations]] — Tutorial config change removing nation-controlled opponents
 - [[tasks/tutorial-build-menu-lock]] — Tooltip-5 guardrail that restricts building to City
 - [[tasks/tutorial-reduce-bots]] — Tutorial config change lowering tutorial bot count from 400 to 100
+- [[tasks/missions-difficulty-investigation]] — Sprint 4 investigation finding missions are generated, not authored; follow-up sorts mission maps by prebuilt nation counts
 - [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
 - [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response
 - [[tasks/registry-image-audit]] — Historical image-trust audit plan; outcome was conservative pre-hardening image quarantine

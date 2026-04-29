@@ -3,6 +3,7 @@ import {
   assignNationDifficulties,
   computeTierCounts,
   deriveMissionSeed,
+  mapNationCount,
   selectMissionMap,
 } from "../../../src/core/game/SinglePlayMissions";
 import { PseudoRandom } from "../../../src/core/PseudoRandom";
@@ -23,10 +24,15 @@ describe("SinglePlayMissions", () => {
     expect(first).toEqual(second);
   });
 
-  test("selectMissionMap orders by maxPlayers then id", () => {
+  test("selectMissionMap orders by nation count then id", () => {
     const maps = [GameMapType.Oceania, GameMapType.Asia, GameMapType.Africa];
     const selected = selectMissionMap(1, maps);
-    expect(selected).toBe(GameMapType.Oceania);
+    expect(selected).toBe(GameMapType.Asia);
+  });
+
+  test("mapNationCount reads prebuilt manifest nation counts", () => {
+    expect(mapNationCount(GameMapType.Achiran)).toBe(4);
+    expect(mapNationCount(GameMapType.BaikalNukeWars)).toBe(0);
   });
 
   test("assignNationDifficulties defaults to Easy when counts are zero", () => {

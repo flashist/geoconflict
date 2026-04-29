@@ -1,5 +1,5 @@
 import { Difficulty, GameMapType } from "./Game";
-import { mapMaxPlayers } from "./MapPlayers";
+import mapNationCounts from "./MapNationCounts.json" with { type: "json" };
 import { PseudoRandom } from "../PseudoRandom";
 
 export const MISSION_SEED_VERSION = "spm:v1";
@@ -32,12 +32,16 @@ export function selectMissionMap(
     throw new Error("mission map list is empty");
   }
   const sorted = [...maps].sort((a, b) => {
-    const playersDiff = mapMaxPlayers(a) - mapMaxPlayers(b);
-    if (playersDiff !== 0) return playersDiff;
+    const nationDiff = mapNationCount(a) - mapNationCount(b);
+    if (nationDiff !== 0) return nationDiff;
     return String(a).localeCompare(String(b));
   });
   const index = (level - 1) % sorted.length;
   return sorted[index];
+}
+
+export function mapNationCount(map: GameMapType): number {
+  return (mapNationCounts as Record<GameMapType, number>)[map] ?? 0;
 }
 
 export function computeTierCounts(

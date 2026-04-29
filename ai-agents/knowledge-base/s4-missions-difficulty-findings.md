@@ -1,0 +1,209 @@
+# Sprint 4 Missions Difficulty Findings
+
+## Summary
+
+Missions mode does not use a finite list of authored mission configs. It is a generated, sequential level system backed by localStorage. Each mission level starts from one shared singleplayer config, then `LocalServer.buildMissionConfigIfNeeded()` derives the map and per-nation difficulties from the mission level.
+
+The original structure created a steep difficulty curve early because every mission used 400 generic bots, nations were enabled, maps were ordered by `mapMaxPlayers()`, and the nation difficulty mix ramped directly from the level number. A follow-up implementation now prebuilds map nation counts into `src/core/game/MapNationCounts.json` and orders mission maps by nation count instead of max players.
+
+This document is findings only. It does not implement or recommend a specific tuning choice.
+
+## Source Files Checked
+
+- `src/client/Main.ts`
+- `src/client/LocalServer.ts`
+- `src/client/SinglePlayMissionStorage.ts`
+- `src/core/game/SinglePlayMissions.ts`
+- `src/core/game/MapNationCounts.json`
+- `src/core/game/MapPlayers.ts`
+- `src/core/configuration/DefaultConfig.ts`
+- `src/core/Schemas.ts`
+- `src/core/GameRunner.ts`
+- `src/core/execution/BotExecution.ts`
+- `src/core/execution/FakeHumanExecution.ts`
+- `src/core/execution/utils/BotBehavior.ts`
+- `src/client/graphics/layers/WinModal.ts`
+- `src/client/flashist/FlashistFacade.ts`
+- `resources/maps/*/manifest.json`
+- `ai-agents/tasks/backlog/s4-missions-difficulty-investigation.md`
+- `ai-agents/tasks/done/s4-solo-win-condition-fix.md`
+
+## Mission Structure
+
+Missions are numbered sequentially by `geoconflict.sp.nextMissionLevel` in localStorage. `getNextMissionLevel()` defaults to mission 1 when the value is missing, invalid, or below 1. On win, `WinModal.handleMissionProgress()` advances the stored next level to at least the completed level plus one.
+
+There is no fixed count of missions in source. Levels are effectively unbounded because map selection wraps through the available maps:
+
+```ts
+const index = (level - 1) % sorted.length;
+```
+
+There are currently 32 maps in `GameMapType`, so the first map cycle is missions 1-32, then mission 33 returns to the first map with a higher level number and therefore harder nation difficulty counts.
+
+Map order is deterministic:
+
+1. Generate `MapNationCounts.json` from `resources/maps/*/manifest.json` at build/test time.
+2. Sort all `GameMapType` values by `mapNationCount(map)`.
+3. Break ties by the display string.
+4. Pick `(level - 1) % mapCount`.
+
+Each mission starts from the shared config in `Main.startSinglePlayMission()`:
+
+| Parameter | Current mission value |
+|---|---:|
+| `gameType` | `Singleplayer` |
+| `gameMode` | `FFA` |
+| `gameMap` | `World`, then overwritten by `LocalServer` |
+| `gameMapSize` | `Normal` |
+| `difficulty` | `Medium` default nation difficulty fallback |
+| `bots` | `400` |
+| `disableNPCs` | `false` |
+| `playerTeams` | `2` |
+| `infiniteGold` | `false` |
+| `infiniteTroops` | `false` |
+| `instantBuild` | `false` |
+| `maxTimerValue` | unset |
+
+`LocalServer` overwrites mission fields after the join config is created:
+
+- `gameMap` becomes the selected mission map.
+- `disableNPCs` is forced to `false`.
+- `nationDifficulties` is generated from level and nation count.
+- `singlePlayMission.seed` is set from map and level.
+
+There is no formal mission `difficulty` property. Difficulty is emergent from shared config, selected map, 400 generic bots, nation count, generated nation difficulties, map land area, and the global win threshold.
+
+## Difficulty Formula
+
+`computeTierCounts(level, nationCount)` currently uses:
+
+| Tier | Count formula |
+|---|---:|
+| Impossible | `min(nationCount, floor(level / 50))` |
+| Hard | `min(remaining, floor(level / 10))` |
+| Medium | `min(remaining, floor(level / 1))` |
+| Easy | remaining nations |
+
+`assignNationDifficulties()` randomly assigns those tier counts to nation indices using a deterministic seed derived from map and level.
+
+The global nation AI behavior changes materially by difficulty:
+
+- Easy and Medium discourage attacks on human players who are not traitors.
+- Hard and Impossible do not apply that protection.
+- Generic bots do not have a public per-mission difficulty setting; their behavior uses randomized attack cadence and troop ratios.
+
+## Current Mission Parameters: First Map Cycle
+
+Shared values for every row below: 400 generic bots, FFA, Normal map size, no time limit, nations enabled, 80% territory win threshold.
+
+| Mission | Map | Land tiles | Nations | Easy | Medium | Hard | Impossible |
+|---:|---|---:|---:|---:|---:|---:|---:|
+| 1 | Baikal (Nuke Wars) | 1,968,430 | 0 | 0 | 0 | 0 | 0 |
+| 2 | Achiran | 1,149,943 | 4 | 2 | 2 | 0 | 0 |
+| 3 | Faroe Islands | 424,994 | 6 | 3 | 3 | 0 | 0 |
+| 4 | Mars | 1,354,047 | 6 | 2 | 4 | 0 | 0 |
+| 5 | Yenisei | 3,371,389 | 6 | 1 | 5 | 0 | 0 |
+| 6 | Australia | 1,319,763 | 7 | 1 | 6 | 0 | 0 |
+| 7 | Strait of Gibraltar | 1,941,359 | 7 | 0 | 7 | 0 | 0 |
+| 8 | Halkidiki | 1,729,369 | 8 | 0 | 8 | 0 | 0 |
+| 9 | Iceland | 1,098,655 | 8 | 0 | 8 | 0 | 0 |
+| 10 | Black Sea | 1,153,632 | 9 | 0 | 8 | 1 | 0 |
+| 11 | Deglaciated Antarctica | 1,079,790 | 9 | 0 | 8 | 1 | 0 |
+| 12 | Baikal | 2,181,746 | 11 | 0 | 10 | 1 | 0 |
+| 13 | Falkland Islands | 859,274 | 12 | 0 | 11 | 1 | 0 |
+| 14 | Italia | 780,495 | 12 | 0 | 11 | 1 | 0 |
+| 15 | Japan | 488,183 | 12 | 0 | 11 | 1 | 0 |
+| 16 | Montreal | 1,954,940 | 12 | 0 | 11 | 1 | 0 |
+| 17 | Between Two Seas | 1,478,803 | 15 | 0 | 14 | 1 | 0 |
+| 18 | Pluto | 1,987,279 | 16 | 0 | 15 | 1 | 0 |
+| 19 | East Asia | 879,264 | 22 | 2 | 19 | 1 | 0 |
+| 20 | Britannia | 933,860 | 23 | 1 | 20 | 2 | 0 |
+| 21 | South America | 1,411,064 | 24 | 1 | 21 | 2 | 0 |
+| 22 | Asia | 1,079,855 | 25 | 1 | 22 | 2 | 0 |
+| 23 | Pangaea | 420,336 | 29 | 4 | 23 | 2 | 0 |
+| 24 | Gateway to the Atlantic | 2,239,818 | 30 | 4 | 24 | 2 | 0 |
+| 25 | Europe Classic | 1,008,469 | 31 | 4 | 25 | 2 | 0 |
+| 26 | Oceania | 194,648 | 32 | 4 | 26 | 2 | 0 |
+| 27 | Mena | 1,621,317 | 35 | 6 | 27 | 2 | 0 |
+| 28 | Africa | 2,183,186 | 36 | 6 | 28 | 2 | 0 |
+| 29 | Europe | 2,311,229 | 49 | 18 | 29 | 2 | 0 |
+| 30 | North America | 1,243,623 | 49 | 16 | 30 | 3 | 0 |
+| 31 | World | 651,609 | 61 | 27 | 31 | 3 | 0 |
+| 32 | Giant World Map | 2,333,974 | 97 | 62 | 32 | 3 | 0 |
+
+Representative later levels:
+
+| Mission | Map | Nations | Easy | Medium | Hard | Impossible |
+|---:|---|---:|---:|---:|---:|---:|
+| 33 | Baikal (Nuke Wars) | 0 | 0 | 0 | 0 | 0 |
+| 50 | Pluto | 16 | 0 | 10 | 5 | 1 |
+| 64 | Giant World Map | 97 | 26 | 64 | 6 | 1 |
+| 100 | Mars | 6 | 0 | 0 | 4 | 2 |
+
+## Available Tuning Levers
+
+| Lever | Current value/path | Can tune per mission now? | Notes |
+|---|---|---|---|
+| Generic bot count | `bots: 400` in `Main.startSinglePlayMission()` | No, global mission edit only | Schema allows 0-400. Per-mission counts require code/config schema changes. |
+| Generic bot behavior | `BotExecution` randomized attack cadence and ratios | No | No mission-specific aggression setting exists for generic bots. |
+| Nation enabled/disabled | `disableNPCs = false` in `LocalServer` for missions | No, global mission edit only | Could be made level-aware in code. |
+| Nation difficulty mix | `computeTierCounts(level, nationCount)` | Yes, but only by code formula | No data file. Ranges constrained by nation count. |
+| Specific nation difficulty assignment | deterministic shuffle by seed | No direct config | Could be made explicit per mission or weighted by nation strength, but needs code/data design. |
+| Map order | `selectMissionMap()` sort by prebuilt nation count and name | Yes, but code/generated data only | No authored mission list. |
+| Map size | `GameMapSize.Normal` | No, global mission edit only | Tutorial uses Compact, missions use Normal. |
+| Player starting resources | default game economy | No | No mission-specific player head start found. |
+| Player starting location | player chooses/auto-spawns normally | No | No mission-specific spawn location found. |
+| Nation starting territory | map manifest nation spawn coordinates and strength | No practical per-mission lever | Requires map data edits or separate spawn/strength override logic. |
+| Win threshold | `DefaultConfig.percentageTilesOwnedToWin()` returns 80 for FFA | No | Global FFA threshold, not mission-specific. |
+| Time limit | unset in mission config | No, but supported by `maxTimerValue` schema | Could be added per mission with code/config; not currently used. |
+| Disabled units | empty array | No, global mission edit only | Per-mission unit restrictions would need generated/authored mission config. |
+
+## Analytics Signal
+
+Source instrumentation provides only coarse mission signals:
+
+- `UI:ClickMission` fires when the mission button is clicked.
+- `Game:Start` fires at game start with the number of human players as value.
+- `Game:Win` and `Game:Loss` fire at match end.
+- `Match:Loss:OpponentWon` fires for solo loss when an opponent reaches the win threshold.
+
+No mission level, mission map, seed, or difficulty tier mix is attached to those events. GameAnalytics Design Events in this code path use only one optional numeric value, and existing mission events do not pass the mission level. I do not have live GameAnalytics dashboard access from the repo, but the source does not currently expose enough per-mission event data to compute mission-specific fail or abandon rates.
+
+Analytics gap: add mission-level instrumentation if tuning decisions need production evidence. Candidate events could track mission start, win, loss, opponent-win loss, and abandon with mission level as the numeric value, plus a naming/dimension strategy for map if GameAnalytics constraints allow it.
+
+## Tutorial Comparison
+
+Tutorial and missions share the local singleplayer runtime, but their configuration paths diverge before the match starts.
+
+| Parameter | Tutorial | Missions |
+|---|---|---|
+| Entry point | `Main.startTutorial()` | `Main.startSinglePlayMission()` |
+| Bot count | 100 | 400 |
+| Map size | Compact | Normal |
+| Map | Iceland | Generated by mission level |
+| Nations | Disabled by `LocalServer` | Enabled by `LocalServer` |
+| Nation difficulties | all Easy, but irrelevant because nations disabled | generated by level |
+| Tutorial UI | `isTutorial: true`, `TutorialLayer` active | none |
+| Mission progress | tutorial completion localStorage | next mission level localStorage |
+
+Tutorial-style tuning does not apply as a simple config copy because tutorial is explicitly special-cased before mission generation. However, the same kinds of levers exist in adjacent code: bot count can be changed in the start config, and nation participation can be changed in `LocalServer`.
+
+## Candidate Tuning Options
+
+These are implementation options for Mark and the technical specialist to evaluate. This findings task does not choose one.
+
+| Option | Concrete change | Effort | Tradeoff |
+|---|---|---:|---|
+| Reduce mission bot count globally | Change `bots: 400` in `startSinglePlayMission()` to a lower value. | Low | Very small patch, but affects every mission equally and does not address nation difficulty spikes. |
+| Slow the nation difficulty ramp | Change `computeTierCounts()` divisors, for example Medium starting slower than every level and Hard later than level 10. | Low-Medium | Keeps generated mission structure, but requires playtesting because later missions shift too. |
+| Add early-mission safety rules | In `LocalServer`, special-case early levels to reduce or disable nations and/or keep all nations Easy. | Medium | Directly targets first-session difficulty, but adds more generated-mission rules. |
+| Introduce authored mission config | Add a mission config table/schema for at least the first N missions with map, bots, nation policy, and optional win/time settings. | Medium-High | Gives best tuning control, but is a larger data/model change and needs tests plus analytics naming decisions. |
+
+## Validation Performed
+
+- Read wiki context before implementation planning.
+- Traced mission entry, mission generation, win/loss, and analytics paths in source.
+- Generated the first mission-cycle table from current `GameMapType`, `MapPlayers`, and map manifests.
+- Follow-up implementation added `scripts/generate-map-nation-counts.js`, `src/core/game/MapNationCounts.json`, and nation-count-based mission sorting.
+
+No game tuning or runtime code changes were made.

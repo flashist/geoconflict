@@ -281,3 +281,9 @@
 
 ## 2026-04-28 — ingest
 - Ingested: `ai-agents/knowledge-base/server-match-logging-state.md` → updated [[wiki/systems/match-logging]]
+
+## 2026-04-29 — ingest
+- Ingested: `ai-agents/knowledge-base/s4-missions-difficulty-findings.md` → created [[wiki/tasks/missions-difficulty-investigation]]; updated [[wiki/features/tutorial]], [[wiki/systems/analytics]], [[wiki/decisions/sprint-4]]
+
+## 2026-04-29 — ingest
+- Ingested: `ai-agents/knowledge-base/s4-missions-difficulty-findings.md` follow-up mission map ordering implementation → updated [[wiki/tasks/missions-difficulty-investigation]]
