@@ -1,6 +1,6 @@
 {
   "name": "geoconflict",
-  "version": "0.0.129",
+  "version": "0.0.129-dev.1",
   "scripts": {
     "generate-map-nation-counts": "node scripts/generate-map-nation-counts.js",
     "prebuild-dev": "npm run generate-map-nation-counts",
