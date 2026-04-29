@@ -8,6 +8,7 @@ High — the primary citizenship path for most players. Independent of Yandex Pa
 
 ## Dependencies
 - **Player Profile Store** must be live — XP crediting and profile writes happen there.
+- **Analytics:** this task owns `Citizenship:Earned:XP`. Read `analytics-p1-citizenship-funnel.md` before starting — events must be wired during implementation, not added later.
 - **Personal Inbox (8d-B)** must be live — citizenship earned triggers an inbox message.
 - **Citizenship XP Progress UI** must be live — the notification and UI state change depend on the card component being in place.
 

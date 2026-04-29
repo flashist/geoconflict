@@ -8,6 +8,7 @@ High — the visible face of the entire citizenship system. Blocks nothing downs
 
 ## Dependencies
 - **Start screen redesign** must be implemented — the citizenship card lives in the tab layout introduced by that task.
+- **Analytics:** this task owns `UI:Tap:CitizenshipBuy` and `UI:Tap:CitizenshipLearnMore`. Read `analytics-p1-citizenship-funnel.md` before starting — events must be wired during implementation, not added later.
 - **Player Profile Store** must be live — the card reads XP from the local guest profile or server profile.
 
 ## Context
