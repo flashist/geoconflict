@@ -346,3 +346,9 @@
 - Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
 - Ingested: `ai-agents/tasks/done/analytics-p0-game-mode-segmentation.md` → created [[wiki/tasks/analytics-p0-game-mode-segmentation]]; updated [[wiki/systems/analytics]], [[wiki/decisions/sprint-4]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/analytics-p0-game-mode-segmentation.md`, `ai-agents/tasks/backlog/analytics-p0-match-duration.md`, `ai-agents/tasks/backlog/analytics-p0-spawn-confirmation.md` — backlog files are not eligible for `wiki-sync`
+
+## 2026-04-30 — lint
+- Issues found: 1
+- Issues fixed: 1
+- Issues flagged for human review: 0
+- Fixed one stale `Worker.ts` line reference in [[wiki/systems/match-logging]]; full structural, index, backlink, orphan, and exact source-path checks passed for 66 pages.
