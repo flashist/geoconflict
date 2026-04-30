@@ -525,12 +525,12 @@ export class ClientGameRunner {
           flashistConstants.analyticEvents.GAME_START,
           message.gameStartInfo.players.length
         );
+        flashist_logEventAnalytics(
+          message.gameStartInfo.config.gameType === GameType.Singleplayer
+            ? flashistConstants.analyticEvents.GAME_MODE_SOLO
+            : flashistConstants.analyticEvents.GAME_MODE_MULTIPLAYER
+        );
         if (!this.hasJoined) {
-          flashist_logEventAnalytics(
-            message.gameStartInfo.config.gameType === GameType.Singleplayer
-              ? flashistConstants.analyticEvents.GAME_MODE_SOLO
-              : flashistConstants.analyticEvents.GAME_MODE_MULTIPLAYER
-          );
           this.matchStartTime = Date.now();
         }
 
@@ -762,6 +762,7 @@ export class ClientGameRunner {
       !this.gameView.hasOwner(tile) &&
       this.gameView.inSpawnPhase()
     ) {
+      flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_SPAWN_CHOSEN);
       this.eventBus.emit(new SendSpawnIntentEvent(tile));
       return;
     }
