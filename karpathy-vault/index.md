@@ -73,6 +73,7 @@
 - [[tasks/monetization-analytics-spec]] — Sprint 4 analytics baseline for identity, match lifecycle, citizenship funnel, and ad-tier measurement
 - [[tasks/analytics-p0-game-mode-segmentation]] — P0 analytics event pair segmenting fresh match starts into multiplayer versus solo
 - [[tasks/analytics-p0-spawn-confirmation]] — P0 analytics event measuring server-confirmed spawn and time-to-spawn
+- [[tasks/analytics-p0-match-duration]] — P0 analytics event measuring seconds from fresh match start to match end
 - [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
 - [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response
 - [[tasks/registry-image-audit]] — Historical image-trust audit plan; outcome was conservative pre-hardening image quarantine

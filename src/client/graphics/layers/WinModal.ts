@@ -33,6 +33,7 @@ import {
   TUTORIAL_COMPLETED_KEY,
   TUTORIAL_START_TIME_KEY,
 } from "../../TutorialStorage";
+import { logMatchEndAnalytics } from "../../MatchStartAnalytics";
 
 @customElement("win-modal")
 export class WinModal extends LitElement implements Layer {
@@ -374,11 +375,7 @@ export class WinModal extends LitElement implements Layer {
         // ...
       } else if (wu.winner[0] === "team") {
 
-        //
-        flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.GAME_END,
-          this.game.ticks()
-        );
+        logMatchEndAnalytics(this.game.ticks());
 
         this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
         if (wu.winner[1] === this.game.myPlayer()?.team()) {
@@ -416,11 +413,7 @@ export class WinModal extends LitElement implements Layer {
           );
         }
 
-        //
-        flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.GAME_END,
-          this.game.ticks()
-        );
+        logMatchEndAnalytics(this.game.ticks());
 
         if (
           winnerClient !== null &&
@@ -493,10 +486,7 @@ export class WinModal extends LitElement implements Layer {
       return;
     }
     this.opponentWinLossTracked = true;
-    flashist_logEventAnalytics(
-      flashistConstants.analyticEvents.GAME_END,
-      this.game.ticks(),
-    );
+    logMatchEndAnalytics(this.game.ticks());
     flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_LOSS);
 
     flashist_logEventAnalytics(

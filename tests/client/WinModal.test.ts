@@ -43,6 +43,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     analyticEvents: {
       GAME_END: "Game:End",
       GAME_LOSS: "Game:Loss",
+      MATCH_DURATION: "Match:Duration",
       MATCH_LOSS_OPPONENT_WON: "Match:Loss:OpponentWon",
       PLAYER_ELIMINATED: "Player:Eliminated",
       GAME_WIN: "Game:Win",
