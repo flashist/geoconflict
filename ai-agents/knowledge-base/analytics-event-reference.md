@@ -54,16 +54,18 @@ Session:Start → Device:[class] → Platform:[os] → Player:New/Returning
 
 ### Game Events
 
-Fired for both multiplayer and single-player missions.
+Fired for first real match starts only. Reconnect handshakes and archived replay views do not emit these events.
 
-| Enum Key            | Event String        | When Fired                     |
-| ------------------- | ------------------- | ------------------------------ |
-| `GAME_START`        | `Game:Start`        | Match begins                   |
-| `GAME_END`          | `Game:End`          | Match ends for any reason      |
-| `GAME_WIN`          | `Game:Win`          | Player wins the match          |
-| `GAME_LOSS`         | `Game:Loss`         | Player loses the match         |
-| `GAME_ABANDON`      | `Game:Abandon`      | Player explicitly abandons     |
-| `PLAYER_ELIMINATED` | `Player:Eliminated` | Player is eliminated mid-match |
+| Enum Key                | Event String            | When Fired                                                                   |
+| ----------------------- | ----------------------- | ---------------------------------------------------------------------------- |
+| `GAME_START`            | `Game:Start`            | First real, non-replay, non-reconnect match start                             |
+| `GAME_MODE_MULTIPLAYER` | `Game:Mode:Multiplayer` | Immediately after `Game:Start` for public or private multiplayer lobbies      |
+| `GAME_MODE_SOLO`        | `Game:Mode:Solo`        | Immediately after `Game:Start` for solo mode, missions, and tutorial matches  |
+| `GAME_END`              | `Game:End`              | Match ends for any reason                                                    |
+| `GAME_WIN`              | `Game:Win`              | Player wins the match                                                        |
+| `GAME_LOSS`             | `Game:Loss`             | Player loses the match                                                       |
+| `GAME_ABANDON`          | `Game:Abandon`          | Player explicitly abandons                                                   |
+| `PLAYER_ELIMINATED`     | `Player:Eliminated`     | Player is eliminated mid-match                                               |
 
 ### Match Loss Events
 

@@ -19,6 +19,8 @@ export const flashistConstants = {
     ANNOUNCEMENTS_CLOSED: "Announcements:Closed",
 
     GAME_START: "Game:Start",
+    GAME_MODE_MULTIPLAYER: "Game:Mode:Multiplayer",
+    GAME_MODE_SOLO: "Game:Mode:Solo",
     GAME_END: "Game:End",
     GAME_WIN: "Game:Win",
     GAME_LOSS: "Game:Loss",

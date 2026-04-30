@@ -36,6 +36,7 @@ import {
   MouseUpEvent,
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
+import { logMatchStartAnalytics } from "./MatchStartAnalytics";
 import { saveReconnectSession } from "./ReconnectSession";
 import { getPersistentID, PreloadMapConfig } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
@@ -70,6 +71,7 @@ export interface LobbyConfig {
   gameStartInfo?: GameStartInfo;
   // GameRecord exists when replaying an archived game.
   gameRecord?: GameRecord;
+  isReconnect?: boolean;
 
   preloadMapData?: PreloadMapConfig
 }
@@ -514,10 +516,11 @@ export class ClientGameRunner {
       if (message.type === "start") {
 
         //
-        flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.GAME_START,
-          message.gameStartInfo.players.length
-        );
+        logMatchStartAnalytics(message.gameStartInfo, {
+          hasJoined: this.hasJoined,
+          isReconnect: this.lobby.isReconnect === true,
+          isReplay: this.lobby.gameRecord !== undefined,
+        });
 
         this.hasJoined = true;
         if (!this.transport.isLocal) {

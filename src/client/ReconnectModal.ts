@@ -176,7 +176,11 @@ export class ReconnectModal extends LitElement {
     flashist_logEventAnalytics(flashistConstants.analyticEvents.RECONNECT_SUCCEEDED);
     document.dispatchEvent(
       new CustomEvent("join-lobby", {
-        detail: { clientID: session.clientID, gameID: session.gameID },
+        detail: {
+          clientID: session.clientID,
+          gameID: session.gameID,
+          isReconnect: true,
+        },
         bubbles: true,
         composed: true,
       }),

@@ -44,6 +44,17 @@ Session:Start → Device:[class] → Platform:[os] → Player:New/Returning
 ```
 Fired in this order, once per session, from `FlashistFacade` constructor on module evaluation.
 
+## Game Mode Segmentation
+
+First real match starts classify the mode immediately after `Game:Start`, using the `GameConfig.gameType` available in `src/client/ClientGameRunner.ts`:
+
+```
+Game:Start → Game:Mode:Multiplayer
+Game:Start → Game:Mode:Solo
+```
+
+`Game:Mode:Multiplayer` fires for public and private multiplayer lobbies. `Game:Mode:Solo` fires for solo mode, missions, and tutorial matches. Reconnect handshakes and archived replay views are analytics-silent for `Game:Start` and `Game:Mode:*`, so GameAnalytics funnels segment downstream match lifecycle events without counting recovery or replay traffic as fresh starts.
+
 ## Spawn Flow Events
 
 ```
