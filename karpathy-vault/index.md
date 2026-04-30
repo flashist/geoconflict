@@ -20,7 +20,7 @@
 - [[systems/execution-pipeline]] — Client input to Intent to Execution to GameUpdate path
 - [[systems/rendering]] — Layered client rendering, mixed canvas/Lit UI, and camera transform orchestration
 - [[systems/flashist-init]] — FlashistFacade startup ordering, Yandex SDK bootstrap, and experiment flag init
-- [[systems/analytics]] — GameAnalytics player behaviour tracking: event conventions, categories, experiment funnels
+- [[systems/analytics]] — GameAnalytics player behaviour tracking: event conventions, experiment funnels, and monetization measurement baselines
 - [[systems/telemetry]] — OTEL/Uptrace server observability: logs, metrics, slow-turn spans, investigation workflows
 - [[systems/server-performance]] — Server-side lag candidates ranked by likelihood; `endTurn()` performance analysis
 - [[systems/match-logging]] — What is recorded per match, where it goes, and what cannot be retrieved
@@ -69,6 +69,8 @@
 - [[tasks/telegram-link]] — Experiment-gated Telegram channel CTA on start/loading and game-end screens
 - [[tasks/vk-link]] — Experiment-gated VK community CTA on start/loading and game-end screens
 - [[tasks/nuke-trajectory-visibility]] — Sprint 4 visual polish making the nuke pre-launch targeting arc thicker
+- [[tasks/teams-mode-max-teams]] — Sprint 4 server-side cap limiting regular public teams lobbies to 2, 3, or 4 teams
+- [[tasks/monetization-analytics-spec]] — Sprint 4 analytics baseline for identity, match lifecycle, citizenship funnel, and ad-tier measurement
 - [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
 - [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response
 - [[tasks/registry-image-audit]] — Historical image-trust audit plan; outcome was conservative pre-hardening image quarantine

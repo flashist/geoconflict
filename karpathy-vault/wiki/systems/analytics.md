@@ -1,7 +1,7 @@
 # Analytics System
 
 **Layer**: client
-**Key files**: `src/client/flashist/FlashistFacade.ts`
+**Key files**: `src/client/flashist/FlashistFacade.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
 ## Summary
 
@@ -9,7 +9,7 @@ GameAnalytics-based player behaviour tracking. Used for A/B experiment evaluatio
 
 All event strings follow `Category:Action` or `Category:Subcategory:Value` format (PascalCase, colon-separated — no underscores). The TypeScript enum `flashistConstants.analyticEvents` in `FlashistFacade.ts` is the **single source of truth** — never write event strings inline in game code.
 
-The reference doc is `ai-agents/knowledge-base/analytics-event-reference.md`.
+The reference docs are `ai-agents/knowledge-base/analytics-event-reference.md` and the monetization planning spec in `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`.
 
 ## Architecture
 
@@ -78,6 +78,17 @@ See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrumen
 
 The analytics reference also defines placement-specific community CTA tap IDs. `UI:Tap:TelegramLinkStartScreen` and `UI:Tap:TelegramLinkGameEnd` are emitted by the shipped [[tasks/telegram-link]] flow; `UI:Tap:VkLinkStartScreen` and `UI:Tap:VkLinkGameEnd` are emitted by [[tasks/vk-link]]. This keeps start-screen and game-end CTA taps segmented separately.
 
+## Monetization Measurement Baseline
+
+The Sprint 4 monetization analytics spec in [[tasks/monetization-analytics-spec]] defines the measurement gate before citizenship and payments decisions should be treated as validated:
+
+- **P0 identity/session baseline:** record Yandex login status, platform, returning/new status, session depth, and all-time match-count inputs.
+- **P0 match lifecycle:** measure match start, player spawned, match completed, outcome, duration, spawn status, and all-time match count so the earned citizenship threshold is grounded in actual retention depth.
+- **P1 citizenship funnel:** instrument citizenship surface impressions, CTA clicks, purchase flow start/completion/abandonment, earned citizenship, and high-intent unconverted cohorts.
+- **P1 ad impact:** segment ad impressions by player tier (`guest`, `free`, `earned_citizen`, `paid_citizen`) before making citizens ad-free, so the real revenue tradeoff can be modeled.
+
+Open implementation questions remain around analytics backend constraints, whether guest `persistentID` is stable enough for match-count attribution, which events need server-side authority, and whether old match history should be backfilled.
+
 ## Experiment Event Pattern
 
 `Experiment:{flagName}:{flagValue}` — built at runtime from Yandex flag response. Enables per-cohort funnel comparison:
@@ -93,6 +104,7 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - **Double-reload:** Before HF-9, a browser refresh after any game caused two full initialization sequences, doubling all `Session:Start`, `Device:*`, `Platform:*`, and `Experiment:*` events. Fixed in HF-9. See [[decisions/double-reload-fix]].
 - **`Player:New` inflation:** During the double-reload era, new users fired both `Player:New` (first load) and `Player:Returning` (second load). Historical cohort data for new users from before HF-9 is affected.
 - **Stale build sessions:** Users on zombie tabs (old builds) still fire analytics — `Build:StaleDetected` identifies them. See [[decisions/stale-build-zombie-tabs]].
+- **Monetization event naming:** The monetization spec uses product-level event names as requirements, but implementation must still conform to the established `Category:Action` analytics naming convention and the TypeScript enum source-of-truth rule.
 
 ## Related
 
@@ -120,5 +132,6 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/ui-click-multiplayer]] — confirms the multiplayer JOIN click is the funnel anchor
 - [[tasks/map-preload]] — HF-13 preload instrumentation at JOIN and match start
 - [[tasks/missions-difficulty-investigation]] — mission-level drop-off cannot be derived from current coarse mission events
+- [[tasks/monetization-analytics-spec]] — P0/P1 measurement plan for Sprint 4 citizenship, payments, and ad-tier decisions
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
 - [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, and `Announcements:Closed`

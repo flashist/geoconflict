@@ -23,7 +23,7 @@ Three-tier structure:
 | Dimension | Values |
 |---|---|
 | GameType | `Singleplayer`, `Public`, `Private` |
-| GameMode | `Free For All (FFA)`, `Team` |
+| GameMode | `Free For All (FFA)`, `Team`; regular public team lobbies are capped at 2, 3, or 4 teams by [[tasks/teams-mode-max-teams]] |
 | Disabled | ~~Duos~~, ~~Trios~~, ~~Quads~~ (Flashist Adaptation — too few players) |
 
 ## Maps
@@ -99,6 +99,7 @@ Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adapta
 - [[decisions/vps-credential-leak-response]] — live deployment and recovery constraints for the production game stack
 - [[decisions/registry-image-policy]] — trusted image and rollback rules for deploy operations around the live game
 - [[features/ai-players]] — AI Players feature spec (`PlayerType.AiPlayer` documented here)
+- [[tasks/teams-mode-max-teams]] — public teams-mode lobby generation cap
 - [[systems/game-loop]] — tick execution detail
 - [[systems/networking]] — worker-routed WebSocket and HTTP flow
 - [[systems/execution-pipeline]] — Intent → Execution → GameUpdate flow

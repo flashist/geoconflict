@@ -317,3 +317,13 @@
 
 ## 2026-04-29 — ingest
 - Ingested: `ai-agents/tasks/done/s4-nuke-trajectory-visibility.md` → created [[wiki/tasks/nuke-trajectory-visibility]]; updated [[wiki/systems/rendering]]
+
+## 2026-04-30 — ingest
+- Sync window: `b9d7f1071341c2259669aadf772bce548dcac3f9` → HEAD (`a033288a638b2444c4512dc6b5e5e516957c8e79`)
+- Changed source files detected: 13
+- Ingested: `ai-agents/tasks/done/s4-teams-mode-max-teams.md` → created [[wiki/tasks/teams-mode-max-teams]]; updated [[wiki/decisions/sprint-4]], [[wiki/systems/game-overview]]
+- Ingested: `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md` → created [[wiki/tasks/monetization-analytics-spec]]; updated [[wiki/systems/analytics]], [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
+- Ingested: `ai-agents/tasks/done/s4-vk-link.md` → updated [[wiki/tasks/vk-link]]
+- Ingested: `ai-agents/tasks/done/s4-nuke-trajectory-visibility.md` → updated [[wiki/tasks/nuke-trajectory-visibility]], [[wiki/decisions/sprint-4]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/analytics-p0-match-lifecycle.md`, `ai-agents/tasks/backlog/analytics-p0-session-enrichment.md`, `ai-agents/tasks/backlog/analytics-p1-ad-impression-tier.md`, `ai-agents/tasks/backlog/analytics-p1-citizenship-funnel.md`, `ai-agents/tasks/backlog/s4-citizenship-earned.md`, `ai-agents/tasks/backlog/s4-citizenship-paid.md`, `ai-agents/tasks/backlog/s4-citizenship-xp-progress-ui.md`, `ai-agents/tasks/backlog/s4-start-screen-redesign-impl.md` — backlog files are not eligible for `wiki-sync`

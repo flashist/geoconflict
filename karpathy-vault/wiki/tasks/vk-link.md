@@ -1,6 +1,6 @@
 # VK Channel Link
 
-**Source**: `ai-agents/tasks/backlog/s4-vk-link.md`
+**Source**: `ai-agents/tasks/done/s4-vk-link.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4
 

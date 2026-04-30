@@ -12,7 +12,7 @@ The latest sprint brief now frames citizenship progression as an XP system: `10 
 **Rewarded ads explicitly deferred** — no reward mechanic exists yet. Rewarded ads ship in Sprint 5 once citizenship benefits give players something worth watching an ad for.
 
 Source: `ai-agents/sprints/plan-sprint-4.md`
-Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/tasks/done/sprint4-investigation-yandex-payments.md`, `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`, `ai-agents/tasks/done/8d-a-task-global-announcements.md`, `ai-agents/tasks/done/s4-start-screen-redesign-investigation.md`, `ai-agents/tasks/done/s4-legal-vat-investigation.md`, `ai-agents/tasks/done/s4-ai-lobby-slot-bug.md`, `ai-agents/tasks/done/s4-email-subscribe-task.md`, `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/done/s4-missions-difficulty-investigation.md`, `ai-agents/knowledge-base/s4-missions-difficulty-findings.md`, `ai-agents/tasks/done/s4-solo-win-condition-fix.md`, `ai-agents/tasks/done/s4-telegram-link.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
+Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/tasks/done/sprint4-investigation-yandex-payments.md`, `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`, `ai-agents/tasks/done/8d-a-task-global-announcements.md`, `ai-agents/tasks/done/s4-start-screen-redesign-investigation.md`, `ai-agents/tasks/done/s4-legal-vat-investigation.md`, `ai-agents/tasks/done/s4-ai-lobby-slot-bug.md`, `ai-agents/tasks/done/s4-email-subscribe-task.md`, `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/done/s4-missions-difficulty-investigation.md`, `ai-agents/knowledge-base/s4-missions-difficulty-findings.md`, `ai-agents/tasks/done/s4-solo-win-condition-fix.md`, `ai-agents/tasks/done/s4-telegram-link.md`, `ai-agents/tasks/done/s4-vk-link.md`, `ai-agents/tasks/done/s4-nuke-trajectory-visibility.md`, `ai-agents/tasks/done/s4-teams-mode-max-teams.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
 
 ## Decision
 
@@ -24,6 +24,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - **Global announcements (`8d-A`)** are complete and available as the base communication surface for future inbox or citizenship messaging. See [[tasks/global-announcements]].
 - **Start screen redesign investigation** is complete and locks the layout direction for citizenship UI. See [[tasks/start-screen-redesign-investigation]].
 - **Legal/VAT investigation** is complete and clears the external legal/tax gate for in-app purchases. See [[tasks/legal-vat-investigation]].
+- **Monetization analytics spec** is captured as the P0/P1 measurement baseline for identity, match lifecycle, citizenship funnel, and ad-tier revenue questions. See [[tasks/monetization-analytics-spec]].
 
 **Completed independent Sprint 4 tasks:**
 - AI Lobby Slot Bug — done
@@ -35,6 +36,8 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Solo opponent win-condition fix — done
 - Telegram Channel Link — done
 - VK Channel Link — done
+- Nuke trajectory visibility — done
+- Teams mode max teams cap — done
 
 **Cancelled side tasks:**
 - Humans vs Nations balance task — cancelled after no-ship review
@@ -102,6 +105,9 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Solo mode no longer stalls indefinitely when an opponent reaches the win threshold; the player sees a distinct opponent-win loss state and `Match:Loss:OpponentWon` tracks that reason
 - Telegram Channel Link shipped as an experiment-gated CTA on the start/loading and game-end modals, with placement-specific `UI:Tap:*` analytics
 - VK Channel Link mirrors the Telegram community CTA with its own `vk_link` experiment flag, live `https://vk.com/gameworldwar` URL, and placement-specific `UI:Tap:VkLinkStartScreen` / `UI:Tap:VkLinkGameEnd` analytics.
+- Nuke trajectory visibility increased the pre-launch targeting arc thickness while leaving color, alpha, and launch mechanics unchanged; see [[tasks/nuke-trajectory-visibility]].
+- Teams mode max teams caps regular auto-generated public team lobbies to 2, 3, or 4 teams while preserving Humans vs Nations in the public rotation; see [[tasks/teams-mode-max-teams]].
+- Monetization launch decisions should use the analytics spec's P0/P1 gates instead of treating the 1,000 XP threshold, purchase funnel, or ad-removal economics as validated without identity, match-depth, and ad-tier data.
 - Tutorial follow-up work later resolved into three shipped fixes (`[[tasks/tutorial-no-nations]]`, `[[tasks/tutorial-build-menu-lock]]`, `[[tasks/tutorial-reduce-bots]]`) plus one cancelled pause-window attempt recorded in [[decisions/cancelled-tasks]]
 - The Humans vs Nations balance task was later rejected as no-ship and cancelled after review; see [[decisions/hvn-balance-pr70-no-ship]]
 
@@ -121,6 +127,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/global-announcements]] — completed `8d-A` dependency for future inbox and citizenship messaging
 - [[tasks/start-screen-redesign-investigation]] — locked tab layout, viewport target, and citizenship placement decisions
 - [[tasks/legal-vat-investigation]] — external gate-clear task confirming no additional legal/tax blocker before payments
+- [[tasks/monetization-analytics-spec]] — P0/P1 analytics baseline for citizenship, payments, match lifecycle, and ad-tier measurement
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 bug fix for mixed real-plus-AI full lobbies
 - [[tasks/email-subscribe-modal]] — Sprint 4 email opt-in modal on start and win screens
 - [[tasks/tutorial-no-nations]] — Sprint 4 tutorial simplification that removed nation opponents
@@ -130,5 +137,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/solo-win-condition-fix]] — Sprint 4 bug fix for opponent-win loss handling in solo modes
 - [[tasks/telegram-link]] — Sprint 4 experiment-gated Telegram CTA on start and game-end screens
 - [[tasks/vk-link]] — Sprint 4 experiment-gated VK CTA on start and game-end screens
+- [[tasks/nuke-trajectory-visibility]] — Sprint 4 nuke targeting arc visual polish
+- [[tasks/teams-mode-max-teams]] — Sprint 4 cap for regular public teams-mode lobby team counts
 - [[decisions/hvn-balance-pr70-no-ship]] — no-ship review and cancellation outcome for the HvN balance attempt
 - [[decisions/cancelled-tasks]] — cancelled action-pause variant for tutorial follow-up work
