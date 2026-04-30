@@ -13,7 +13,7 @@ import { createPartialGameRecord, replacer, simpleHash } from "../core/Util";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { ServerConfig } from "../core/configuration/Config";
 import { getConfig } from "../core/configuration/ConfigLoader";
-import { GameMapSize, GameMapType, PlayerActions, PlayerType, UnitType } from "../core/game/Game";
+import { GameMapSize, GameMapType, GameType, PlayerActions, PlayerType, UnitType } from "../core/game/Game";
 import { TileRef } from "../core/game/GameMap";
 import { GameMapLoader } from "../core/game/GameMapLoader";
 import {
@@ -300,6 +300,7 @@ export class ClientGameRunner {
   private _autoSpawnBlockedByCatchup = false;
   private _spawnMissedReported = false;
   private _autoZoomDone = false;
+  private matchStartTime: number | null = null;
 
   private turnsSeen = 0;
   private hasJoined = false;
@@ -483,6 +484,12 @@ export class ClientGameRunner {
       }
 
       if (gameEnded) {
+        if (this.matchStartTime !== null) {
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.MATCH_DURATION,
+            Math.round((Date.now() - this.matchStartTime) / 1000),
+          );
+        }
         const winUpdate = gu.updates[GameUpdateType.Win][0];
         this.saveGame(winUpdate);
         if (!this.hasProcessedWin && this.lobby.gameRecord === undefined) {
@@ -518,6 +525,12 @@ export class ClientGameRunner {
           flashistConstants.analyticEvents.GAME_START,
           message.gameStartInfo.players.length
         );
+        flashist_logEventAnalytics(
+          message.gameStartInfo.config.gameType === GameType.Singleplayer
+            ? flashistConstants.analyticEvents.GAME_MODE_SOLO
+            : flashistConstants.analyticEvents.GAME_MODE_MULTIPLAYER
+        );
+        this.matchStartTime = Date.now();
 
         this.hasJoined = true;
         if (!this.transport.isLocal) {
@@ -672,6 +685,12 @@ export class ClientGameRunner {
     if (player?.hasSpawned() && player.nameLocation()) {
       this.eventBus.emit(new GoToPlayerEvent(player, true));
       this._autoZoomDone = true;
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.MATCH_SPAWNED_CONFIRMED,
+        this.matchStartTime !== null
+          ? Math.round((Date.now() - this.matchStartTime) / 1000)
+          : undefined,
+      );
       if (this._autoSpawnSent) {
         flashist_logEventAnalytics(
           flashistConstants.analyticEvents.MATCH_SPAWN_AUTO,

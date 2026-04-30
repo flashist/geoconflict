@@ -139,6 +139,7 @@ class Client {
   private gameStop: (() => void) | null = null;
   private gameHasStarted = false;
   private gameHasEnded = false;
+  private matchStartTime: number | null = null;
   private perfMonitorStop: (() => void) | null = null;
   private eventBus: EventBus = new EventBus();
   private firstActionFired = false;
@@ -247,6 +248,12 @@ class Client {
       if (this.gameStop !== null) {
         if (this.gameHasStarted && !this.gameHasEnded) {
           flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_ABANDON);
+          if (this.matchStartTime !== null) {
+            flashist_logEventAnalytics(
+              flashistConstants.analyticEvents.MATCH_DURATION,
+              Math.round((Date.now() - this.matchStartTime) / 1000),
+            );
+          }
         }
         this.gameStop();
       }
@@ -663,6 +670,7 @@ class Client {
     console.log(`joining lobby ${lobby.gameID}`);
     this.gameHasStarted = false;
     this.gameHasEnded = false;
+    this.matchStartTime = null;
     const reconnectModal = document.querySelector("reconnect-modal");
     if (reconnectModal instanceof ReconnectModal) {
       reconnectModal.hide();
@@ -746,6 +754,7 @@ class Client {
       },
       () => {
         this.gameHasStarted = true;
+        this.matchStartTime = Date.now();
         this.perfMonitorStop = startPerformanceMonitor();
         this.joinModal.close();
         this.publicLobby.stop();
