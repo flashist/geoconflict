@@ -37,6 +37,7 @@ import "./LangSelector";
 import { LanguageModal } from "./LanguageModal";
 import "./Matchmaking";
 import { MatchmakingModal } from "./Matchmaking";
+import { logMatchEndAnalytics } from "./MatchStartAnalytics";
 import { NewsModal } from "./NewsModal";
 import { startPerformanceMonitor } from "./PerformanceMonitor";
 import "./PublicLobby";
@@ -246,9 +247,7 @@ class Client {
       console.log("Browser is closing");
       this.perfMonitorStop?.();
       if (this.gameStop !== null) {
-        if (this.gameHasStarted && !this.gameHasEnded) {
-          flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_ABANDON);
-        }
+        this.logActiveMatchAbandon();
         this.gameStop();
       }
     });
@@ -909,6 +908,7 @@ class Client {
       return;
     }
     console.log("leaving lobby, cancelling game");
+    this.logActiveMatchAbandon();
     this.gameStop();
     this.gameStop = null;
     this.perfMonitorStop?.();
@@ -917,6 +917,16 @@ class Client {
     this.gutterAds.hide();
     this.publicLobby.leaveLobby();
     setStartScreenControlsHidden(false);
+  }
+
+  private logActiveMatchAbandon(): void {
+    if (!this.gameHasStarted || this.gameHasEnded) {
+      return;
+    }
+
+    this.gameHasEnded = true;
+    logMatchEndAnalytics();
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_ABANDON);
   }
 
   private handleKickPlayer(event: CustomEvent) {

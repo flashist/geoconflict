@@ -55,6 +55,10 @@ Game:Start → Game:Mode:Solo
 
 `Game:Mode:Multiplayer` fires for public and private multiplayer lobbies. `Game:Mode:Solo` fires for solo mode, missions, and tutorial matches. Reconnect handshakes and archived replay views are analytics-silent for `Game:Start` and `Game:Mode:*`, so GameAnalytics funnels segment downstream match lifecycle events without counting recovery or replay traffic as fresh starts.
 
+## Match Duration
+
+`Match:Duration` fires alongside `Game:End` when a fresh `Game:Start` timestamp is available. The value is an integer number of seconds from match start to the player's match-end event. Outcome remains segmented by the existing `Game:Win`, `Game:Loss`, and `Game:Abandon` events. See [[tasks/analytics-p0-match-duration]].
+
 ## Spawn Flow Events
 
 ```
@@ -149,5 +153,6 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/monetization-analytics-spec]] — P0/P1 measurement plan for Sprint 4 citizenship, payments, and ad-tier decisions
 - [[tasks/analytics-p0-game-mode-segmentation]] — P0 mode classifier emitted immediately after `Game:Start`
 - [[tasks/analytics-p0-spawn-confirmation]] — P0 confirmed-spawn event for time-to-spawn and ghost-rate measurement
+- [[tasks/analytics-p0-match-duration]] — P0 duration event emitted alongside `Game:End`
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
 - [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, and `Announcements:Closed`

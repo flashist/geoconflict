@@ -67,6 +67,12 @@ Fired for first real match starts only. Reconnect handshakes and archived replay
 | `GAME_ABANDON`          | `Game:Abandon`          | Player explicitly abandons                                                   |
 | `PLAYER_ELIMINATED`     | `Player:Eliminated`     | Player is eliminated mid-match                                               |
 
+### Match Duration Events
+
+| Enum Key         | Event String     | When Fired                                                                                                  |
+| ---------------- | ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| `MATCH_DURATION` | `Match:Duration` | Fired alongside `Game:End`; value = integer seconds from fresh `Game:Start` to the player's match end event |
+
 ### Match Loss Events
 
 | Enum Key                  | Event String             | When Fired                                     |

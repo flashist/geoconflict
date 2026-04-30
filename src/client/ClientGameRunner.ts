@@ -49,6 +49,7 @@ import { endGame, startGame, startTime } from "./LocalPersistantStats";
 import {
   logMatchSpawnedConfirmedAnalytics,
   logMatchStartAnalytics,
+  setActiveMatchStartTime,
   shouldLogMatchSpawnedConfirmedAnalytics,
 } from "./MatchStartAnalytics";
 import { saveReconnectSession } from "./ReconnectSession";
@@ -557,6 +558,7 @@ export class ClientGameRunner {
         );
         if (didLogMatchStartAnalytics) {
           this.matchStartTimeMs = Date.now();
+          setActiveMatchStartTime(this.matchStartTimeMs);
         }
 
         this.hasJoined = true;

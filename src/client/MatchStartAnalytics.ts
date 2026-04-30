@@ -18,6 +18,8 @@ export interface MatchSpawnedConfirmedAnalyticsState {
   tilesOwned: number;
 }
 
+let activeMatchStartTimeMs: number | null = null;
+
 export function shouldLogMatchStartAnalytics({
   hasJoined,
   isReconnect,
@@ -48,6 +50,43 @@ export function logMatchStartAnalytics(
     gameModeAnalyticsEvent(gameStartInfo.config.gameType),
   );
   return true;
+}
+
+export function setActiveMatchStartTime(matchStartTimeMs: number): void {
+  activeMatchStartTimeMs = matchStartTimeMs;
+}
+
+export function clearActiveMatchStartTime(): void {
+  activeMatchStartTimeMs = null;
+}
+
+export function activeMatchDurationSeconds(nowMs = Date.now()): number | null {
+  if (activeMatchStartTimeMs === null) {
+    return null;
+  }
+  return secondsSinceMatchStart(activeMatchStartTimeMs, nowMs);
+}
+
+export function logMatchEndAnalytics(value?: number, nowMs = Date.now()): void {
+  if (value === undefined) {
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_END);
+  } else {
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.GAME_END,
+      value,
+    );
+  }
+
+  const durationSeconds = activeMatchDurationSeconds(nowMs);
+  if (durationSeconds === null) {
+    return;
+  }
+
+  flashist_logEventAnalytics(
+    flashistConstants.analyticEvents.MATCH_DURATION,
+    durationSeconds,
+  );
+  clearActiveMatchStartTime();
 }
 
 export function shouldLogMatchSpawnedConfirmedAnalytics({

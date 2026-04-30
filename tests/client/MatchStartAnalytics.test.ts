@@ -4,7 +4,9 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       GAME_START: "Game:Start",
       GAME_MODE_MULTIPLAYER: "Game:Mode:Multiplayer",
       GAME_MODE_SOLO: "Game:Mode:Solo",
+      GAME_END: "Game:End",
       MATCH_SPAWNED_CONFIRMED: "Match:Spawned",
+      MATCH_DURATION: "Match:Duration",
     },
   },
   flashist_logEventAnalytics: jest.fn(),
@@ -23,9 +25,12 @@ import {
 } from "../../src/core/game/Game";
 import { GameStartInfo } from "../../src/core/Schemas";
 import {
+  clearActiveMatchStartTime,
+  logMatchEndAnalytics,
   logMatchSpawnedConfirmedAnalytics,
   logMatchStartAnalytics,
   secondsSinceMatchStart,
+  setActiveMatchStartTime,
   shouldLogMatchSpawnedConfirmedAnalytics,
   shouldLogMatchStartAnalytics,
 } from "../../src/client/MatchStartAnalytics";
@@ -174,6 +179,70 @@ describe("confirmed spawn analytics", () => {
         tilesOwned: 1,
       }),
     ).toBe(true);
+  });
+});
+
+describe("match duration analytics", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    clearActiveMatchStartTime();
+  });
+
+  it("emits Match:Duration alongside Game:End when a match start timestamp exists", () => {
+    setActiveMatchStartTime(1_000);
+
+    logMatchEndAnalytics(120, 31_400);
+
+    expect(flashist_logEventAnalytics).toHaveBeenCalledTimes(2);
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      1,
+      flashistConstants.analyticEvents.GAME_END,
+      120,
+    );
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      2,
+      flashistConstants.analyticEvents.MATCH_DURATION,
+      30,
+    );
+  });
+
+  it("does not emit Match:Duration without a fresh match start timestamp", () => {
+    logMatchEndAnalytics(120, 31_400);
+
+    expect(flashist_logEventAnalytics).toHaveBeenCalledTimes(1);
+    expect(flashist_logEventAnalytics).toHaveBeenCalledWith(
+      flashistConstants.analyticEvents.GAME_END,
+      120,
+    );
+  });
+
+  it("clears the match start timestamp after emitting duration", () => {
+    setActiveMatchStartTime(1_000);
+
+    logMatchEndAnalytics(120, 31_400);
+    logMatchEndAnalytics(120, 35_000);
+
+    expect(
+      (flashist_logEventAnalytics as jest.Mock).mock.calls.filter(
+        ([event]) => event === flashistConstants.analyticEvents.MATCH_DURATION,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("supports abandon paths that do not have a Game:End value", () => {
+    setActiveMatchStartTime(1_000);
+
+    logMatchEndAnalytics(undefined, 31_400);
+
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      1,
+      flashistConstants.analyticEvents.GAME_END,
+    );
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      2,
+      flashistConstants.analyticEvents.MATCH_DURATION,
+      30,
+    );
   });
 });
 

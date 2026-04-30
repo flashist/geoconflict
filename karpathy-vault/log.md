@@ -362,3 +362,6 @@
 - Ingested: `ai-agents/tasks/done/analytics-p0-spawn-confirmation.md` → created [[wiki/tasks/analytics-p0-spawn-confirmation]]; updated [[wiki/systems/analytics]]
 - Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
 - Skipped (already covered): none
+
+## 2026-04-30 — ingest
+- Ingested: `ai-agents/tasks/done/analytics-p0-match-duration.md` → created [[wiki/tasks/analytics-p0-match-duration]]; updated [[wiki/systems/analytics]], [[wiki/decisions/sprint-4]]
