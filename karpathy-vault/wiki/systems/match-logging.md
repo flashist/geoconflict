@@ -24,13 +24,14 @@ Source: `ai-agents/knowledge-base/server-match-logging-state.md`
 
 | Event | File:line | Data |
 |---|---|---|
-| Client (re)joins | `GameServer.ts:172` | `gameID, clientID, persistentID` |
-| Game start sent | `GameServer.ts:466` | `clientID, persistentID` |
-| Game ends | `GameServer.ts:717` | `gameID, turns.length` |
-| Game archived | `GameServer.ts:911` | `gameID, winner` (tuple: `["player", clientID]`, `["team", teamName]`, or `["opponent", opponentName]` for solo clientless winners) |
-| Client disconnects | `GameServer.ts:365` | `clientID, persistentID` |
-| Max duration exceeded | `GameServer.ts:777` | `gameID` |
-| Winner determined | `GameServer.ts:1083` | `gameID`, winner, vote counts |
+| Client (re)joins | `GameServer.ts:177` | `clientID, persistentID, clientIP, isRejoin` |
+| Game start sent | `GameServer.ts:471` | `clientID, persistentID` |
+| Game ends | `GameServer.ts:774` | `turns.length` in message; `gameID` from logger context |
+| Game archived | `GameServer.ts:969` | `gameID, winner` (tuple: `["player", clientID]`, `["team", teamName]`, or `["opponent", opponentName]` for solo clientless winners) |
+| Client disconnects | `GameServer.ts:370` | `clientID, persistentID` |
+| Max duration exceeded | `GameServer.ts:834` | `gameID` |
+| Winner vote received | `GameServer.ts:1128` | winner vote and ratio in message; `clientID` as structured field |
+| Winner determined | `GameServer.ts:1141` | winner ratio in message; `winnerKey` as structured field |
 
 ### What Is Archived (external endpoint)
 Full `GameEndInfo`: map config, game mode, player list with stats, start/end timestamps, duration, turn count, winner.
@@ -56,8 +57,7 @@ For active/in-memory games: `GET /api/game/:id` (`Worker.ts:224`) — only works
 ## Gotchas / Known Issues
 
 - Structured fields passed as second argument to `log.info()` (e.g. `{ clientID, persistentID }`) may not appear as attributes in Uptrace — only the message string is guaranteed. See [[systems/telemetry]].
-
-> **LINT WARNING:** Line numbers in the log events table (e.g. `GameServer.ts:172`) were verified against the 2026-04-07 snapshot. They may have drifted. Re-verify with `grep` if using for code navigation.
+- File-line references in the log events table were re-verified against `src/server/GameServer.ts` on 2026-04-30.
 - 140 returning users reported `null` build version (as of 2026-04-09) — likely sessions before `configureBuild()` was wired, unrelated to logging
 
 ## Related

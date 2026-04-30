@@ -327,3 +327,9 @@
 - Ingested: `ai-agents/tasks/done/s4-vk-link.md` → updated [[wiki/tasks/vk-link]]
 - Ingested: `ai-agents/tasks/done/s4-nuke-trajectory-visibility.md` → updated [[wiki/tasks/nuke-trajectory-visibility]], [[wiki/decisions/sprint-4]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/analytics-p0-match-lifecycle.md`, `ai-agents/tasks/backlog/analytics-p0-session-enrichment.md`, `ai-agents/tasks/backlog/analytics-p1-ad-impression-tier.md`, `ai-agents/tasks/backlog/analytics-p1-citizenship-funnel.md`, `ai-agents/tasks/backlog/s4-citizenship-earned.md`, `ai-agents/tasks/backlog/s4-citizenship-paid.md`, `ai-agents/tasks/backlog/s4-citizenship-xp-progress-ui.md`, `ai-agents/tasks/backlog/s4-start-screen-redesign-impl.md` — backlog files are not eligible for `wiki-sync`
+
+## 2026-04-30 — lint
+- Issues found: 1
+- Issues fixed: 1
+- Issues flagged for human review: 0
+- Re-verified stale `GameServer.ts` line references in [[wiki/systems/match-logging]] and removed the resolved lint warning; structural, index, backlink, orphan, and source-path checks passed.
