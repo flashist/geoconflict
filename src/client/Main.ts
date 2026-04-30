@@ -139,6 +139,7 @@ class Client {
   private gameStop: (() => void) | null = null;
   private gameHasStarted = false;
   private gameHasEnded = false;
+  private isLiveMatch = false;
   private matchStartTime: number | null = null;
   private perfMonitorStop: (() => void) | null = null;
   private eventBus: EventBus = new EventBus();
@@ -246,7 +247,7 @@ class Client {
       console.log("Browser is closing");
       this.perfMonitorStop?.();
       if (this.gameStop !== null) {
-        if (this.gameHasStarted && !this.gameHasEnded) {
+        if (this.gameHasStarted && !this.gameHasEnded && this.isLiveMatch) {
           flashist_logEventAnalytics(flashistConstants.analyticEvents.GAME_ABANDON);
           if (this.matchStartTime !== null) {
             flashist_logEventAnalytics(
@@ -670,6 +671,7 @@ class Client {
     console.log(`joining lobby ${lobby.gameID}`);
     this.gameHasStarted = false;
     this.gameHasEnded = false;
+    this.isLiveMatch = false;
     this.matchStartTime = null;
     const reconnectModal = document.querySelector("reconnect-modal");
     if (reconnectModal instanceof ReconnectModal) {
@@ -754,7 +756,10 @@ class Client {
       },
       () => {
         this.gameHasStarted = true;
-        this.matchStartTime = Date.now();
+        this.isLiveMatch = lobby.gameRecord === undefined;
+        if (this.isLiveMatch) {
+          this.matchStartTime = Date.now();
+        }
         this.perfMonitorStop = startPerformanceMonitor();
         this.joinModal.close();
         this.publicLobby.stop();

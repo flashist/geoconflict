@@ -702,10 +702,6 @@ export class ClientGameRunner {
             flashistConstants.analyticEvents.MATCH_SPAWN_RETRY_AFTER_CATCHUP,
           );
         }
-      } else {
-        flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.MATCH_SPAWN_CHOSEN,
-        );
       }
     }
   }
