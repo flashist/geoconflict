@@ -4,6 +4,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       GAME_START: "Game:Start",
       GAME_MODE_MULTIPLAYER: "Game:Mode:Multiplayer",
       GAME_MODE_SOLO: "Game:Mode:Solo",
+      MATCH_SPAWNED_CONFIRMED: "Match:Spawned",
     },
   },
   flashist_logEventAnalytics: jest.fn(),
@@ -22,7 +23,10 @@ import {
 } from "../../src/core/game/Game";
 import { GameStartInfo } from "../../src/core/Schemas";
 import {
+  logMatchSpawnedConfirmedAnalytics,
   logMatchStartAnalytics,
+  secondsSinceMatchStart,
+  shouldLogMatchSpawnedConfirmedAnalytics,
   shouldLogMatchStartAnalytics,
 } from "../../src/client/MatchStartAnalytics";
 
@@ -99,6 +103,77 @@ describe("match start analytics", () => {
     expect(didLog).toBe(false);
     expect(shouldLogMatchStartAnalytics(state)).toBe(false);
     expect(flashist_logEventAnalytics).not.toHaveBeenCalled();
+  });
+});
+
+describe("confirmed spawn analytics", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("emits Match:Spawned with positive elapsed seconds", () => {
+    logMatchSpawnedConfirmedAnalytics(1_000, 1_200);
+
+    expect(flashist_logEventAnalytics).toHaveBeenCalledWith(
+      flashistConstants.analyticEvents.MATCH_SPAWNED_CONFIRMED,
+      1,
+    );
+  });
+
+  it("rounds elapsed seconds from the match start timestamp", () => {
+    expect(secondsSinceMatchStart(1_000, 3_600)).toBe(3);
+  });
+
+  it.each([
+    {
+      name: "missing match start timestamp",
+      state: {
+        matchStartTimeMs: null,
+        hasReportedSpawnConfirmed: false,
+        hasSpawned: true,
+        tilesOwned: 1,
+      },
+    },
+    {
+      name: "already reported",
+      state: {
+        matchStartTimeMs: 1_000,
+        hasReportedSpawnConfirmed: true,
+        hasSpawned: true,
+        tilesOwned: 1,
+      },
+    },
+    {
+      name: "server has not confirmed spawned flag",
+      state: {
+        matchStartTimeMs: 1_000,
+        hasReportedSpawnConfirmed: false,
+        hasSpawned: false,
+        tilesOwned: 1,
+      },
+    },
+    {
+      name: "spawned flag without territory ownership",
+      state: {
+        matchStartTimeMs: 1_000,
+        hasReportedSpawnConfirmed: false,
+        hasSpawned: true,
+        tilesOwned: 0,
+      },
+    },
+  ])("does not allow confirmed spawn analytics for $name", ({ state }) => {
+    expect(shouldLogMatchSpawnedConfirmedAnalytics(state)).toBe(false);
+  });
+
+  it("allows confirmed spawn analytics once the player has spawned with territory", () => {
+    expect(
+      shouldLogMatchSpawnedConfirmedAnalytics({
+        matchStartTimeMs: 1_000,
+        hasReportedSpawnConfirmed: false,
+        hasSpawned: true,
+        tilesOwned: 1,
+      }),
+    ).toBe(true);
   });
 });
 

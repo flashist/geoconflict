@@ -44,6 +44,7 @@ export const flashistConstants = {
     SESSION_FIRST_ACTION: "Session:FirstAction",
     MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
     MATCH_SPAWN_AUTO: "Match:SpawnAuto",
+    MATCH_SPAWNED_CONFIRMED: "Match:Spawned",
     MATCH_SPAWN_MISSED_TIMING_RACE: "Match:SpawnMissed:TimingRace",
     MATCH_SPAWN_MISSED_NO_ATTEMPT: "Match:SpawnMissed:NoAttempt",
     MATCH_SPAWN_RETRY_AFTER_CATCHUP: "Match:SpawnRetryAfterCatchup",

@@ -58,9 +58,9 @@ Fired for first real match starts only. Reconnect handshakes and archived replay
 
 | Enum Key                | Event String            | When Fired                                                                   |
 | ----------------------- | ----------------------- | ---------------------------------------------------------------------------- |
-| `GAME_START`            | `Game:Start`            | First real, non-replay, non-reconnect match start                             |
-| `GAME_MODE_MULTIPLAYER` | `Game:Mode:Multiplayer` | Immediately after `Game:Start` for public or private multiplayer lobbies      |
-| `GAME_MODE_SOLO`        | `Game:Mode:Solo`        | Immediately after `Game:Start` for solo mode, missions, and tutorial matches  |
+| `GAME_START`            | `Game:Start`            | First real, non-replay, non-reconnect match start                            |
+| `GAME_MODE_MULTIPLAYER` | `Game:Mode:Multiplayer` | Immediately after `Game:Start` for public or private multiplayer lobbies     |
+| `GAME_MODE_SOLO`        | `Game:Mode:Solo`        | Immediately after `Game:Start` for solo mode, missions, and tutorial matches |
 | `GAME_END`              | `Game:End`              | Match ends for any reason                                                    |
 | `GAME_WIN`              | `Game:Win`              | Player wins the match                                                        |
 | `GAME_LOSS`             | `Game:Loss`             | Player loses the match                                                       |
@@ -79,6 +79,7 @@ Fired for first real match starts only. Reconnect handshakes and archived replay
 | ------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `MATCH_SPAWN_CHOSEN`                  | `Match:SpawnChosen`                | Player actively selected a spawn location                                                                                                                                                                                |
 | `MATCH_SPAWN_AUTO`                    | `Match:SpawnAuto`                  | Player was auto-placed (Task 4a mechanic)                                                                                                                                                                                |
+| `MATCH_SPAWNED_CONFIRMED`             | `Match:Spawned`                    | Server-confirmed spawn is reflected in client state for the first time; value = positive integer seconds from `Game:Start` to confirmed territory ownership                                                              |
 | `MATCH_SPAWN_MISSED_TIMING_RACE`      | `Match:SpawnMissed:TimingRace`     | Fired once when spawn phase ends, player never placed, and auto-spawn intent was sent (timing race — intent rejected by server)                                                                                          |
 | `MATCH_SPAWN_MISSED_NO_ATTEMPT`       | `Match:SpawnMissed:NoAttempt`      | Fired once when spawn phase ends, player never placed, and auto-spawn never even ran                                                                                                                                     |
 | `MATCH_SPAWN_RETRY_AFTER_CATCHUP`     | `Match:SpawnRetryAfterCatchup`     | Auto-spawn was blocked during catch-up and then deferred and retried after catch-up ended — fires at intent-send time, not on confirmed server placement. Always fires together with `Match:SpawnAuto` in the same tick. |

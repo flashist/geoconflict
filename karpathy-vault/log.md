@@ -352,3 +352,6 @@
 - Issues fixed: 1
 - Issues flagged for human review: 0
 - Fixed one stale `Worker.ts` line reference in [[wiki/systems/match-logging]]; full structural, index, backlink, orphan, and exact source-path checks passed for 66 pages.
+
+## 2026-04-30 — ingest
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
