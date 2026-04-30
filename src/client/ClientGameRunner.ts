@@ -13,7 +13,7 @@ import { createPartialGameRecord, replacer, simpleHash } from "../core/Util";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { ServerConfig } from "../core/configuration/Config";
 import { getConfig } from "../core/configuration/ConfigLoader";
-import { GameMapSize, GameMapType, PlayerActions, PlayerType, UnitType } from "../core/game/Game";
+import { GameMapSize, GameMapType, GameType, PlayerActions, PlayerType, UnitType } from "../core/game/Game";
 import { TileRef } from "../core/game/GameMap";
 import { GameMapLoader } from "../core/game/GameMapLoader";
 import {
@@ -516,7 +516,12 @@ export class ClientGameRunner {
         //
         flashist_logEventAnalytics(
           flashistConstants.analyticEvents.GAME_START,
-          message.gameStartInfo.players.length
+          message.gameStartInfo.players.length,
+        );
+        flashist_logEventAnalytics(
+          message.gameStartInfo.config.gameType === GameType.Singleplayer
+            ? flashistConstants.analyticEvents.GAME_MODE_SOLO
+            : flashistConstants.analyticEvents.GAME_MODE_MULTIPLAYER,
         );
 
         this.hasJoined = true;

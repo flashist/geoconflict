@@ -333,3 +333,6 @@
 - Issues fixed: 1
 - Issues flagged for human review: 0
 - Re-verified stale `GameServer.ts` line references in [[wiki/systems/match-logging]] and removed the resolved lint warning; structural, index, backlink, orphan, and source-path checks passed.
+
+## 2026-04-30 — ingest
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
