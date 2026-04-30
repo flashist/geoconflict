@@ -148,5 +148,6 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/missions-difficulty-investigation]] — mission-level drop-off cannot be derived from current coarse mission events
 - [[tasks/monetization-analytics-spec]] — P0/P1 measurement plan for Sprint 4 citizenship, payments, and ad-tier decisions
 - [[tasks/analytics-p0-game-mode-segmentation]] — P0 mode classifier emitted immediately after `Game:Start`
+- [[tasks/analytics-p0-spawn-confirmation]] — P0 confirmed-spawn event for time-to-spawn and ghost-rate measurement
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
 - [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, and `Announcements:Closed`
