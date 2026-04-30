@@ -11,6 +11,13 @@ export interface MatchStartAnalyticsState {
   isReplay: boolean;
 }
 
+export interface MatchSpawnedConfirmedAnalyticsState {
+  matchStartTimeMs: number | null;
+  hasReportedSpawnConfirmed: boolean;
+  hasSpawned: boolean;
+  tilesOwned: number;
+}
+
 export function shouldLogMatchStartAnalytics({
   hasJoined,
   isReconnect,
@@ -41,4 +48,35 @@ export function logMatchStartAnalytics(
     gameModeAnalyticsEvent(gameStartInfo.config.gameType),
   );
   return true;
+}
+
+export function shouldLogMatchSpawnedConfirmedAnalytics({
+  matchStartTimeMs,
+  hasReportedSpawnConfirmed,
+  hasSpawned,
+  tilesOwned,
+}: MatchSpawnedConfirmedAnalyticsState): boolean {
+  return (
+    matchStartTimeMs !== null &&
+    !hasReportedSpawnConfirmed &&
+    hasSpawned &&
+    tilesOwned > 0
+  );
+}
+
+export function secondsSinceMatchStart(
+  matchStartTimeMs: number,
+  nowMs = Date.now(),
+): number {
+  return Math.max(1, Math.round((nowMs - matchStartTimeMs) / 1000));
+}
+
+export function logMatchSpawnedConfirmedAnalytics(
+  matchStartTimeMs: number,
+  nowMs = Date.now(),
+): void {
+  flashist_logEventAnalytics(
+    flashistConstants.analyticEvents.MATCH_SPAWNED_CONFIRMED,
+    secondsSinceMatchStart(matchStartTimeMs, nowMs),
+  );
 }

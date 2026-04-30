@@ -60,11 +60,14 @@ Game:Start → Game:Mode:Solo
 ```
 Match:SpawnChosen           — player placed manually
 Match:SpawnAuto             — auto-placed
+Match:Spawned               — server-confirmed spawn reflected in client state; value = seconds from Game:Start
 Match:SpawnRetryAfterCatchup — spawn held during catch-up, fired after retry succeeds (always with SpawnAuto)
 Match:SpawnMissed:TimingRace — spawn phase closed before intent was accepted (server-side reject)
 Match:SpawnMissed:NoAttempt  — spawn never attempted
 Match:SpawnMissed:CatchupTooLong — catch-up outlasted entire spawn phase (Problem 2, unfixed)
 ```
+
+`Match:Spawned` is the confirmed placement signal for ghost-rate and time-to-spawn analysis. It is emitted at most once per fresh non-reconnect/non-replay match after a server `GameUpdate` makes the local player's spawned state and territory ownership visible in `src/client/ClientGameRunner.ts`; sessions with `Game:Start` and no `Match:Spawned` are treated as ghosts.
 
 See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrument.
 

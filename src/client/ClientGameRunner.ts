@@ -13,7 +13,13 @@ import { createPartialGameRecord, replacer, simpleHash } from "../core/Util";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { ServerConfig } from "../core/configuration/Config";
 import { getConfig } from "../core/configuration/ConfigLoader";
-import { GameMapSize, GameMapType, PlayerActions, PlayerType, UnitType } from "../core/game/Game";
+import {
+  GameMapSize,
+  GameMapType,
+  PlayerActions,
+  PlayerType,
+  UnitType,
+} from "../core/game/Game";
 import { TileRef } from "../core/game/GameMap";
 import { GameMapLoader } from "../core/game/GameMapLoader";
 import {
@@ -24,7 +30,11 @@ import {
   WinUpdate,
 } from "../core/game/GameUpdates";
 import { GameView, PlayerView } from "../core/game/GameView";
-import { getCachedMap, loadTerrainMap, TerrainMapData } from "../core/game/TerrainMapLoader";
+import {
+  getCachedMap,
+  loadTerrainMap,
+  TerrainMapData,
+} from "../core/game/TerrainMapLoader";
 import { UserSettings } from "../core/game/UserSettings";
 import { WorkerClient } from "../core/worker/WorkerClient";
 import {
@@ -36,7 +46,11 @@ import {
   MouseUpEvent,
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
-import { logMatchStartAnalytics } from "./MatchStartAnalytics";
+import {
+  logMatchSpawnedConfirmedAnalytics,
+  logMatchStartAnalytics,
+  shouldLogMatchSpawnedConfirmedAnalytics,
+} from "./MatchStartAnalytics";
 import { saveReconnectSession } from "./ReconnectSession";
 import { getPersistentID, PreloadMapConfig } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
@@ -57,7 +71,10 @@ import {
   reportPlacement,
 } from "./leaderboard/LeaderboardReporter";
 import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
-import { flashist_logEventAnalytics, flashistConstants } from "./flashist/FlashistFacade";
+import {
+  flashist_logEventAnalytics,
+  flashistConstants,
+} from "./flashist/FlashistFacade";
 import { logOtelWarn } from "./OtelBrowserInit";
 
 export interface LobbyConfig {
@@ -73,7 +90,7 @@ export interface LobbyConfig {
   gameRecord?: GameRecord;
   isReconnect?: boolean;
 
-  preloadMapData?: PreloadMapConfig
+  preloadMapData?: PreloadMapConfig;
 }
 
 export function joinLobby(
@@ -107,9 +124,11 @@ export function joinLobby(
   };
   const preloadMap = (mapType: GameMapType, mapSize: GameMapSize) => {
     if (terrainLoad) {
-      if (mapType === lastPreloadGameMapType && mapSize === lastPreloadGameMapSize) {
+      if (
+        mapType === lastPreloadGameMapType &&
+        mapSize === lastPreloadGameMapSize
+      ) {
         return;
-
       } else {
         resetPreloadMap();
       }
@@ -119,29 +138,31 @@ export function joinLobby(
     lastPreloadGameMapSize = mapSize;
 
     preloadStartTime = Date.now();
-    flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_PRELOAD_STARTED);
-
-    terrainLoad = loadTerrainMap(
-      mapType,
-      mapSize,
-      terrainMapFileLoader,
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.MATCH_PRELOAD_STARTED,
     );
 
-    terrainLoad.then(() => {
-      flashist_logEventAnalytics(
-        flashistConstants.analyticEvents.MATCH_PRELOAD_READY,
-        preloadStartTime !== null ? Math.floor((Date.now() - preloadStartTime) / 1000) : undefined,
-      );
-    }).catch(() => {
-      resetPreloadMap();
-    });
+    terrainLoad = loadTerrainMap(mapType, mapSize, terrainMapFileLoader);
+
+    terrainLoad
+      .then(() => {
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.MATCH_PRELOAD_READY,
+          preloadStartTime !== null
+            ? Math.floor((Date.now() - preloadStartTime) / 1000)
+            : undefined,
+        );
+      })
+      .catch(() => {
+        resetPreloadMap();
+      });
   };
 
   // Preloading maps when players click the "join-multiplayer" button
   if (lobbyConfig.preloadMapData) {
     preloadMap(
       lobbyConfig.preloadMapData.mapType,
-      lobbyConfig.preloadMapData.mapSize
+      lobbyConfig.preloadMapData.mapSize,
     );
   }
 
@@ -161,7 +182,7 @@ export function joinLobby(
       // (when the preloaded map differs from what actually should be preloaded based on the information from the server)
       preloadMap(
         message.gameStartInfo.config.gameMap,
-        message.gameStartInfo.config.gameMapSize
+        message.gameStartInfo.config.gameMapSize,
       );
 
       // Trigger prestart for singleplayer games
@@ -221,24 +242,32 @@ async function createClientGame(
   let gameMap: TerrainMapData | null = null;
 
   if (terrainLoad) {
-    const cachedMap = getCachedMap(lobbyConfig.gameStartInfo.config.gameMap, lobbyConfig.gameStartInfo.config.gameMapSize);
+    const cachedMap = getCachedMap(
+      lobbyConfig.gameStartInfo.config.gameMap,
+      lobbyConfig.gameStartInfo.config.gameMapSize,
+    );
     // Checking if the preloaded map is already loaded, if yes, then trigger one analytic event,
     // if not trigger another analytic event
     if (cachedMap) {
       flashist_logEventAnalytics(
         flashistConstants.analyticEvents.MATCH_PRELOAD_HIT_LOADED,
-        preloadStartTime !== null ? Math.floor((Date.now() - preloadStartTime) / 1000) : undefined,
+        preloadStartTime !== null
+          ? Math.floor((Date.now() - preloadStartTime) / 1000)
+          : undefined,
       );
     } else {
       flashist_logEventAnalytics(
         flashistConstants.analyticEvents.MATCH_PRELOAD_HIT_NOT_LOADED,
-        preloadStartTime !== null ? Math.floor((Date.now() - preloadStartTime) / 1000) : undefined,
+        preloadStartTime !== null
+          ? Math.floor((Date.now() - preloadStartTime) / 1000)
+          : undefined,
       );
     }
     gameMap = await terrainLoad;
-
   } else {
-    flashist_logEventAnalytics(flashistConstants.analyticEvents.MATCH_PRELOAD_MISS);
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.MATCH_PRELOAD_MISS,
+    );
     gameMap = await loadTerrainMap(
       lobbyConfig.gameStartInfo.config.gameMap,
       lobbyConfig.gameStartInfo.config.gameMapSize,
@@ -247,13 +276,12 @@ async function createClientGame(
   }
   let worker: WorkerClient;
   try {
-    worker = new WorkerClient(
-      lobbyConfig.gameStartInfo,
-      lobbyConfig.clientID,
-    );
+    worker = new WorkerClient(lobbyConfig.gameStartInfo, lobbyConfig.clientID);
     await worker.initialize();
   } catch (err) {
-    flashist_logEventAnalytics(flashistConstants.analyticEvents.WORKER_INIT_FAILED);
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.WORKER_INIT_FAILED,
+    );
     showErrorModal(
       err instanceof Error ? err.message : String(err),
       undefined,
@@ -265,7 +293,9 @@ async function createClientGame(
     );
     return;
   }
-  flashist_logEventAnalytics(flashistConstants.analyticEvents.WORKER_INIT_SUCCESS);
+  flashist_logEventAnalytics(
+    flashistConstants.analyticEvents.WORKER_INIT_SUCCESS,
+  );
   const gameView = new GameView(
     worker,
     config,
@@ -302,6 +332,8 @@ export class ClientGameRunner {
   private _autoSpawnBlockedByCatchup = false;
   private _spawnMissedReported = false;
   private _autoZoomDone = false;
+  private matchStartTimeMs: number | null = null;
+  private hasReportedSpawnConfirmed = false;
 
   private turnsSeen = 0;
   private hasJoined = false;
@@ -317,7 +349,7 @@ export class ClientGameRunner {
   private static readonly CATCHUP_THRESHOLD = 30; // turns (~30 s)
   // heartbeats per RAF frame during catch-up
   // Originally was 10x of normal speed of the game
-  // private static readonly CATCHUP_BATCH_SIZE = 10; 
+  // private static readonly CATCHUP_BATCH_SIZE = 10;
   private static readonly CATCHUP_BATCH_SIZE = 20;
 
   constructor(
@@ -380,10 +412,10 @@ export class ClientGameRunner {
     const awardTable = [
       FlashistGameSettings.leaderboardPoints.first,
       FlashistGameSettings.leaderboardPoints.second,
-      FlashistGameSettings.leaderboardPoints.third
+      FlashistGameSettings.leaderboardPoints.third,
     ];
     const points = awardTable[myIndex];
-    const placement = + 1;
+    const placement = +1;
 
     reportPlacement({
       gameId: this.lobby.gameID,
@@ -441,6 +473,7 @@ export class ClientGameRunner {
       });
       this.gameView.update(gu);
       this.tryAutoSpawn();
+      this.tryLogSpawnConfirmed();
       if (
         !this._spawnMissedReported &&
         !this.gameView.inSpawnPhase() &&
@@ -451,7 +484,8 @@ export class ClientGameRunner {
           this._autoSpawnSent
             ? flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_TIMING_RACE
             : this._autoSpawnBlockedByCatchup
-              ? flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_CATCHUP_TOO_LONG
+              ? flashistConstants.analyticEvents
+                  .MATCH_SPAWN_MISSED_CATCHUP_TOO_LONG
               : flashistConstants.analyticEvents.MATCH_SPAWN_MISSED_NO_ATTEMPT,
         );
       }
@@ -496,9 +530,7 @@ export class ClientGameRunner {
     const worker = this.worker;
     const keepWorkerAlive = () => {
       if (this.isActive) {
-        const batch = this.catchingUp
-          ? ClientGameRunner.CATCHUP_BATCH_SIZE
-          : 1;
+        const batch = this.catchingUp ? ClientGameRunner.CATCHUP_BATCH_SIZE : 1;
         for (let i = 0; i < batch; i++) {
           worker.sendHeartbeat();
         }
@@ -514,13 +546,18 @@ export class ClientGameRunner {
     const onmessage = (message: ServerMessage) => {
       this.lastMessageTime = Date.now();
       if (message.type === "start") {
-
         //
-        logMatchStartAnalytics(message.gameStartInfo, {
-          hasJoined: this.hasJoined,
-          isReconnect: this.lobby.isReconnect === true,
-          isReplay: this.lobby.gameRecord !== undefined,
-        });
+        const didLogMatchStartAnalytics = logMatchStartAnalytics(
+          message.gameStartInfo,
+          {
+            hasJoined: this.hasJoined,
+            isReconnect: this.lobby.isReconnect === true,
+            isReplay: this.lobby.gameRecord !== undefined,
+          },
+        );
+        if (didLogMatchStartAnalytics) {
+          this.matchStartTimeMs = Date.now();
+        }
 
         this.hasJoined = true;
         if (!this.transport.isLocal) {
@@ -640,7 +677,8 @@ export class ClientGameRunner {
   }
 
   private updateCatchUpOverlay(): void {
-    const fill = this.catchUpOverlay?.querySelector<HTMLElement>("#catch-up-bar-fill");
+    const fill =
+      this.catchUpOverlay?.querySelector<HTMLElement>("#catch-up-bar-fill");
     if (fill) {
       const pct = Math.round(
         (this.catchUpProcessed / this.catchUpTarget) * 100,
@@ -675,25 +713,31 @@ export class ClientGameRunner {
     if (player?.hasSpawned() && player.nameLocation()) {
       this.eventBus.emit(new GoToPlayerEvent(player, true));
       this._autoZoomDone = true;
-      if (this._autoSpawnSent) {
-        flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.MATCH_SPAWN_AUTO,
-        );
-        if (this._autoSpawnBlockedByCatchup) {
-          flashist_logEventAnalytics(
-            flashistConstants.analyticEvents.MATCH_SPAWN_RETRY_AFTER_CATCHUP,
-          );
-        }
-      } else {
-        flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.MATCH_SPAWN_CHOSEN,
-        );
-      }
     }
+  }
+
+  private tryLogSpawnConfirmed(): void {
+    const player = this.gameView.myPlayer();
+    const matchStartTimeMs = this.matchStartTimeMs;
+    if (
+      !shouldLogMatchSpawnedConfirmedAnalytics({
+        matchStartTimeMs,
+        hasReportedSpawnConfirmed: this.hasReportedSpawnConfirmed,
+        hasSpawned: player?.hasSpawned() ?? false,
+        tilesOwned: player?.numTilesOwned() ?? 0,
+      }) ||
+      matchStartTimeMs === null
+    ) {
+      return;
+    }
+
+    this.hasReportedSpawnConfirmed = true;
+    logMatchSpawnedConfirmedAnalytics(matchStartTimeMs);
   }
 
   private tryAutoSpawn(): void {
     if (this._autoSpawnSent) return;
+    if (this.gameView.myPlayer()?.hasSpawned()) return;
     // Hold spawn until catch-up is complete so the intent reaches the server
     // while the spawn phase is still active. This method is called on every
     // tick (unconditionally, not gated on inSpawnPhase), so it will naturally
@@ -725,6 +769,14 @@ export class ClientGameRunner {
         }
         this.eventBus.emit(new SendSpawnIntentEvent(tile));
         this._autoSpawnSent = true;
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.MATCH_SPAWN_AUTO,
+        );
+        if (this._autoSpawnBlockedByCatchup) {
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.MATCH_SPAWN_RETRY_AFTER_CATCHUP,
+          );
+        }
         return;
       }
     }
@@ -748,6 +800,9 @@ export class ClientGameRunner {
       !this.gameView.hasOwner(tile) &&
       this.gameView.inSpawnPhase()
     ) {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.MATCH_SPAWN_CHOSEN,
+      );
       this.eventBus.emit(new SendSpawnIntentEvent(tile));
       return;
     }
