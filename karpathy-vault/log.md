@@ -339,3 +339,10 @@
 
 ## 2026-04-30 — ingest
 - Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` reconnect/replay guard follow-up → updated [[wiki/systems/analytics]]
+
+## 2026-04-30 — ingest
+- Sync window: `a033288a638b2444c4512dc6b5e5e516957c8e79` → HEAD (`53205390e64866bcfa73b72fffd8a4e6d7140916`)
+- Changed source files detected: 5
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
+- Ingested: `ai-agents/tasks/done/analytics-p0-game-mode-segmentation.md` → created [[wiki/tasks/analytics-p0-game-mode-segmentation]]; updated [[wiki/systems/analytics]], [[wiki/decisions/sprint-4]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/analytics-p0-game-mode-segmentation.md`, `ai-agents/tasks/backlog/analytics-p0-match-duration.md`, `ai-agents/tasks/backlog/analytics-p0-spawn-confirmation.md` — backlog files are not eligible for `wiki-sync`

@@ -5,7 +5,7 @@
 
 ## Summary
 
-GameAnalytics-based player behaviour tracking. Used for A/B experiment evaluation, funnel analysis, session retention, tutorial completion rates, and public-lobby join/start diagnostics. **Not** for server observability — that's Uptrace. See [[systems/telemetry]] for server-side instrumentation.
+GameAnalytics-based player behaviour tracking. Used for A/B experiment evaluation, funnel analysis, session retention, tutorial completion rates, mode-segmented match funnels, and public-lobby join/start diagnostics. **Not** for server observability — that's Uptrace. See [[systems/telemetry]] for server-side instrumentation.
 
 All event strings follow `Category:Action` or `Category:Subcategory:Value` format (PascalCase, colon-separated — no underscores). The TypeScript enum `flashistConstants.analyticEvents` in `FlashistFacade.ts` is the **single source of truth** — never write event strings inline in game code.
 
@@ -25,7 +25,7 @@ The reference docs are `ai-agents/knowledge-base/analytics-event-reference.md` a
 | `Session` | Session lifecycle, heartbeats, first action |
 | `Device` / `Platform` | Segmentation — fired once per session after `Session:Start` |
 | `Player` | New vs. returning |
-| `Game` | Match start/end/win/loss/abandon |
+| `Game` | Match start, mode classification, end, win, loss, abandon |
 | `Match` | Spawn flow (chosen, auto, missed, retry) and match-specific loss reasons |
 | `Reconnect` | Disconnect/reconnect flow |
 | `Feedback` | Feedback form interactions |
@@ -144,5 +144,6 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/map-preload]] — HF-13 preload instrumentation at JOIN and match start
 - [[tasks/missions-difficulty-investigation]] — mission-level drop-off cannot be derived from current coarse mission events
 - [[tasks/monetization-analytics-spec]] — P0/P1 measurement plan for Sprint 4 citizenship, payments, and ad-tier decisions
+- [[tasks/analytics-p0-game-mode-segmentation]] — P0 mode classifier emitted immediately after `Game:Start`
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
 - [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, and `Announcements:Closed`
