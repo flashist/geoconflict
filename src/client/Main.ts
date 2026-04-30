@@ -126,6 +126,7 @@ export interface JoinLobbyEvent {
   singlePlayGameStartInfo?: GameStartInfo;
   // GameRecord exists when replaying an archived game.
   gameRecord?: GameRecord;
+  isReconnect?: boolean;
 
   preloadMapData?: PreloadMapConfig
 }
@@ -696,6 +697,7 @@ class Client {
         clientID: lobby.clientID,
         gameStartInfo: lobby.singlePlayGameStartInfo ?? lobby.gameRecord?.info,
         gameRecord: lobby.gameRecord,
+        isReconnect: lobby.isReconnect,
         preloadMapData: event.detail.preloadMapData,
       },
       () => {

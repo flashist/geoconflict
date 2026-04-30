@@ -336,3 +336,6 @@
 
 ## 2026-04-30 — ingest
 - Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
+
+## 2026-04-30 — ingest
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` reconnect/replay guard follow-up → updated [[wiki/systems/analytics]]

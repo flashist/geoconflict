@@ -13,7 +13,7 @@ import { createPartialGameRecord, replacer, simpleHash } from "../core/Util";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { ServerConfig } from "../core/configuration/Config";
 import { getConfig } from "../core/configuration/ConfigLoader";
-import { GameMapSize, GameMapType, GameType, PlayerActions, PlayerType, UnitType } from "../core/game/Game";
+import { GameMapSize, GameMapType, PlayerActions, PlayerType, UnitType } from "../core/game/Game";
 import { TileRef } from "../core/game/GameMap";
 import { GameMapLoader } from "../core/game/GameMapLoader";
 import {
@@ -36,6 +36,7 @@ import {
   MouseUpEvent,
 } from "./InputHandler";
 import { endGame, startGame, startTime } from "./LocalPersistantStats";
+import { logMatchStartAnalytics } from "./MatchStartAnalytics";
 import { saveReconnectSession } from "./ReconnectSession";
 import { getPersistentID, PreloadMapConfig } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
@@ -70,6 +71,7 @@ export interface LobbyConfig {
   gameStartInfo?: GameStartInfo;
   // GameRecord exists when replaying an archived game.
   gameRecord?: GameRecord;
+  isReconnect?: boolean;
 
   preloadMapData?: PreloadMapConfig
 }
@@ -514,15 +516,11 @@ export class ClientGameRunner {
       if (message.type === "start") {
 
         //
-        flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.GAME_START,
-          message.gameStartInfo.players.length,
-        );
-        flashist_logEventAnalytics(
-          message.gameStartInfo.config.gameType === GameType.Singleplayer
-            ? flashistConstants.analyticEvents.GAME_MODE_SOLO
-            : flashistConstants.analyticEvents.GAME_MODE_MULTIPLAYER,
-        );
+        logMatchStartAnalytics(message.gameStartInfo, {
+          hasJoined: this.hasJoined,
+          isReconnect: this.lobby.isReconnect === true,
+          isReplay: this.lobby.gameRecord !== undefined,
+        });
 
         this.hasJoined = true;
         if (!this.transport.isLocal) {
