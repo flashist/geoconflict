@@ -484,7 +484,7 @@ export class ClientGameRunner {
       }
 
       if (gameEnded) {
-        if (this.matchStartTime !== null) {
+        if (this.matchStartTime !== null && this.lobby.gameRecord === undefined) {
           flashist_logEventAnalytics(
             flashistConstants.analyticEvents.MATCH_DURATION,
             Math.round((Date.now() - this.matchStartTime) / 1000),
@@ -525,12 +525,14 @@ export class ClientGameRunner {
           flashistConstants.analyticEvents.GAME_START,
           message.gameStartInfo.players.length
         );
-        flashist_logEventAnalytics(
-          message.gameStartInfo.config.gameType === GameType.Singleplayer
-            ? flashistConstants.analyticEvents.GAME_MODE_SOLO
-            : flashistConstants.analyticEvents.GAME_MODE_MULTIPLAYER
-        );
-        this.matchStartTime = Date.now();
+        if (!this.hasJoined) {
+          flashist_logEventAnalytics(
+            message.gameStartInfo.config.gameType === GameType.Singleplayer
+              ? flashistConstants.analyticEvents.GAME_MODE_SOLO
+              : flashistConstants.analyticEvents.GAME_MODE_MULTIPLAYER
+          );
+          this.matchStartTime = Date.now();
+        }
 
         this.hasJoined = true;
         if (!this.transport.isLocal) {
