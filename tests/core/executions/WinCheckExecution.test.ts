@@ -11,6 +11,7 @@ import {
   ColoredTeams,
   GameMode,
   GameType,
+  HumansVsNations,
   PlayerInfo,
   PlayerType,
 } from "../../../src/core/game/Game";
@@ -142,6 +143,38 @@ describe("WinCheckExecution", () => {
       ColoredTeams.Nations,
       expect.anything(),
     );
+  });
+
+  it("serializes a clientless Nations team winner in singleplayer Humans vs Nations", async () => {
+    const humanInfo = new PlayerInfo(
+      "human",
+      PlayerType.Human,
+      "human001",
+      "human_id",
+    );
+    const game = await setup(
+      "big_plains",
+      {
+        gameMode: GameMode.Team,
+        gameType: GameType.Singleplayer,
+        playerTeams: HumansVsNations,
+        maxTimerValue: undefined,
+      },
+      [humanInfo],
+    );
+    const nationInfo = new PlayerInfo(
+      "nation",
+      PlayerType.FakeHuman,
+      null,
+      "nation_id",
+    );
+    (game as any).addPlayer(nationInfo, ColoredTeams.Nations);
+
+    game.setWinner(ColoredTeams.Nations, {} as any);
+
+    const winUpdates = (game as any).updates[GameUpdateType.Win];
+    expect(winUpdates).toHaveLength(1);
+    expect(winUpdates[0].winner).toEqual(["team", ColoredTeams.Nations]);
   });
 
   it("keeps Bot team wins ignored outside singleplayer", () => {

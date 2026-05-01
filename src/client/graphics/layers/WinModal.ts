@@ -367,6 +367,9 @@ export class WinModal extends LitElement implements Layer {
     const updates = this.game.updatesSinceLastTick();
     const winUpdates = updates !== null ? updates[GameUpdateType.Win] : [];
     winUpdates.forEach((wu) => {
+      if (this.hasShownDeathModal) {
+        return;
+      }
       if (this.isSoloOpponentWin(wu.winner)) {
         this.showSoloOpponentWinLoss(wu);
         return;

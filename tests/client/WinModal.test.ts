@@ -68,7 +68,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   },
 }));
 
-import { GameMode, GameType } from "../../src/core/game/Game";
+import { ColoredTeams, GameMode, GameType } from "../../src/core/game/Game";
 import { GameUpdateType } from "../../src/core/game/GameUpdates";
 import {
   flashistConstants,
@@ -153,6 +153,41 @@ describe("WinModal solo opponent wins", () => {
     expect(eventBus.emit).not.toHaveBeenCalled();
   });
 
+  it("shows a distinct solo loss when an opposing team wins", async () => {
+    const eventBus = { emit: jest.fn() };
+    const modal = await appendModal({
+      eventBus,
+      game: createGame({
+        gameType: GameType.Singleplayer,
+        gameMode: GameMode.Team,
+        isTutorial: false,
+        playerTeam: ColoredTeams.Humans,
+        winUpdates: [
+          {
+            type: GameUpdateType.Win,
+            winner: ["team", ColoredTeams.Nations],
+            allPlayersStats: { me: { gold: 0 } },
+          },
+        ],
+      }),
+    });
+
+    modal.tick();
+    await flushLit(modal);
+
+    expect(modal.textContent).toContain("win_modal.opponent_won_title");
+    expect(modal.textContent).toContain("win_modal.opponent_won_body");
+    expect(modal.textContent).not.toContain("win_modal.other_team");
+    expect(flashist_logEventAnalytics).toHaveBeenCalledWith(
+      flashistConstants.analyticEvents.MATCH_LOSS_OPPONENT_WON,
+    );
+    expect(eventBus.emit).toHaveBeenCalledTimes(1);
+    expect(eventBus.emit.mock.calls[0][0].winner).toEqual([
+      "team",
+      ColoredTeams.Nations,
+    ]);
+  });
+
   it("keeps the elimination modal when a dead player receives a solo opponent win update", async () => {
     const eventBus = { emit: jest.fn() };
     const modal = await appendModal({
@@ -165,6 +200,41 @@ describe("WinModal solo opponent wins", () => {
           {
             type: GameUpdateType.Win,
             winner: ["opponent", "Nation"],
+            allPlayersStats: {},
+          },
+        ],
+      }),
+    });
+
+    modal.tick();
+    await flushLit(modal);
+
+    expect(modal.textContent).toContain("win_modal.died");
+    expect(modal.textContent).not.toContain("win_modal.opponent_won_title");
+    expect(flashist_logEventAnalytics).toHaveBeenCalledWith(
+      flashistConstants.analyticEvents.PLAYER_ELIMINATED,
+      120,
+    );
+    expect(flashist_logEventAnalytics).not.toHaveBeenCalledWith(
+      flashistConstants.analyticEvents.MATCH_LOSS_OPPONENT_WON,
+    );
+    expect(eventBus.emit).not.toHaveBeenCalled();
+  });
+
+  it("keeps the elimination modal when a dead player receives a solo team win update", async () => {
+    const eventBus = { emit: jest.fn() };
+    const modal = await appendModal({
+      eventBus,
+      game: createGame({
+        gameType: GameType.Singleplayer,
+        gameMode: GameMode.Team,
+        isAlive: false,
+        isTutorial: false,
+        playerTeam: ColoredTeams.Humans,
+        winUpdates: [
+          {
+            type: GameUpdateType.Win,
+            winner: ["team", ColoredTeams.Nations],
             allPlayersStats: {},
           },
         ],
@@ -204,19 +274,23 @@ async function appendModal({
 
 function createGame({
   gameType,
+  gameMode = GameMode.FFA,
   isTutorial,
   winUpdates,
   isAlive = true,
+  playerTeam = null,
 }: {
   gameType: GameType;
+  gameMode?: GameMode;
   isAlive?: boolean;
   isTutorial: boolean;
+  playerTeam?: string | null;
   winUpdates: unknown[];
 }) {
   return {
     config: () => ({
       gameConfig: () => ({
-        gameMode: GameMode.FFA,
+        gameMode,
         gameType,
         isTutorial,
       }),
@@ -225,7 +299,7 @@ function createGame({
       clientID: () => "me",
       hasSpawned: () => true,
       isAlive: () => isAlive,
-      team: () => null,
+      team: () => playerTeam,
     }),
     inSpawnPhase: () => false,
     ticks: () => 120,
