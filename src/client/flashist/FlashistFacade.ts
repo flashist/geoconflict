@@ -270,6 +270,7 @@ window.addEventListener("unhandledrejection", (event) => {
 // declare let YaGames: any;
 
 export class FlashistFacade {
+  private static readonly YANDEX_SDK_INIT_TIMEOUT_MS = 1000;
   private static readonly YANDEX_LOGIN_STATUS_TIMEOUT_MS = 1000;
   private static _instance: FlashistFacade;
   public static get instance(): FlashistFacade {
@@ -322,27 +323,29 @@ export class FlashistFacade {
   public readonly initializationPromise: Promise<void>;
 
   private async _initialize(): Promise<void> {
-    // 1. SDK must be ready first so player authorization can be included in
-    //    the session-start analytics sequence.
-    await this.yandexInitPromise;
+    // 1. SDK bootstrap is useful but not allowed to suppress the core session
+    //    baseline when Yandex startup is degraded.
+    const yandexSdkReady = await this.waitForYandexSdkForSession();
 
     // 2. Start experiment fetch while player init is still resolving. Event
     //    emission remains below the session baseline.
-    const experimentFlagsPromise = this.loadExperimentFlags();
+    const experimentFlagsPromise = yandexSdkReady
+      ? this.loadExperimentFlags()
+      : undefined;
 
     // 3. Player auth is useful segmentation, but the session baseline must
-    //    still fire if Yandex player lookup is slow or stuck.
-    const yandexLoginStatus = await this.resolveYandexLoginStatus();
+    //    still fire if Yandex SDK/player lookup is slow or stuck.
+    const yandexLoginStatus = yandexSdkReady
+      ? await this.resolveYandexLoginStatus()
+      : this.yaGamesAvailable
+        ? "unknown"
+        : "guest";
     this.logSessionStartSequence(yandexLoginStatus);
 
-    // 4. Experiment flags intentionally log after the session baseline so
-    //    Experiment:* events cannot interleave between Player:* session events.
-    try {
-      await experimentFlagsPromise;
-      this.logExperimentEvents();
-    } catch (reason) {
-      console.warn("Init step failed: experiment flags", reason);
-    }
+    // 4. SDK-dependent follow-up work is best-effort and must not delay
+    //    Flashist initialization or erase degraded-startup sessions.
+    this.scheduleExperimentEvents(experimentFlagsPromise);
+    this.scheduleOtelUserContext();
 
     // 5. Apply experiment-driven config mutations — guaranteed to be after flags are loaded
     // const joinMoreAdsEnabled = await this.checkExperimentFlag(
@@ -353,12 +356,6 @@ export class FlashistFacade {
     //     flashistConstants.ads.interstitial.join = flashistConstants.ads.interstitial.joinMoreAds;
     // }
 
-    // 6. OTEL user context (best-effort). Avoid re-awaiting an unbounded
-    //    player init after the login-status timeout path.
-    if (yandexLoginStatus !== "unknown") {
-      const name = await this.getCurPlayerName().catch(() => undefined);
-      if (name) setOtelUser(name);
-    }
   }
 
   private logSessionStartSequence(
@@ -450,9 +447,32 @@ export class FlashistFacade {
     }
   }
 
+  private async waitForYandexSdkForSession(): Promise<boolean> {
+    if (!this.yaGamesAvailable) {
+      return false;
+    }
+
+    return Promise.race([
+      this.yandexInitPromise
+        .then(() => this.yandexGamesSDK !== undefined)
+        .catch((reason) => {
+          console.warn("Init step failed: Yandex SDK", reason);
+          return false;
+        }),
+      this.timeout(
+        FlashistFacade.YANDEX_SDK_INIT_TIMEOUT_MS,
+        false,
+      ),
+    ]);
+  }
+
   private async resolveYandexLoginStatus(): Promise<YandexLoginStatus> {
     if (!this.yaGamesAvailable) {
       return "guest";
+    }
+
+    if (!this.yandexGamesSDK) {
+      return "unknown";
     }
 
     const playerInitStatus = await Promise.race([
@@ -493,6 +513,27 @@ export class FlashistFacade {
     });
   }
 
+  private scheduleExperimentEvents(
+    experimentFlagsPromise?: Promise<void>,
+  ): void {
+    const flagsPromise = experimentFlagsPromise ?? this.loadExperimentFlags();
+    void flagsPromise
+      .then(() => {
+        this.logExperimentEvents();
+      })
+      .catch((reason) => {
+        console.warn("Init step failed: experiment flags", reason);
+      });
+  }
+
+  private scheduleOtelUserContext(): void {
+    void this.getCurPlayerName()
+      .then((name) => {
+        if (name) setOtelUser(name);
+      })
+      .catch(() => undefined);
+  }
+
   // Single place for working with URLS
   public changeHref(value) {
     // window.location.href = value;
@@ -502,11 +543,17 @@ export class FlashistFacade {
   public yandexInitPromise: Promise<any>;
   private async yandexSdkInit() {
     if (this.yaGamesAvailable) {
-      await (window as any).YaGames.init().then((sdk) => {
+      try {
+        const sdk = await (window as any).YaGames.init();
         console.log("FlashistFacade | Main | yandexInit > then __ sdk: ", sdk);
 
         this.yandexGamesSDK = sdk;
-      });
+      } catch (error) {
+        flashist_logErrorToAnalytics(
+          `ERROR! FlashistFacade | yandexSdkInit __ error: ${error}`,
+          flashist_logErrorTypes.DEBUG,
+        );
+      }
     }
   }
 

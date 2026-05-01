@@ -57,15 +57,15 @@ describe("FlashistFacade startup analytics", () => {
       getFlags: jest.fn(() => new Promise(() => {})),
     });
 
-    new FlashistFacade();
-    await flushPromises();
+    const facade = new FlashistFacade();
+    await flushStartupPromises();
 
     expect(eventNames()).not.toContain(
       flashistConstants.analyticEvents.SESSION_START,
     );
 
-    jest.advanceTimersByTime(1_000);
-    await flushPromises();
+    await jest.advanceTimersByTimeAsync(1_000);
+    await facade.initializationPromise;
 
     expect(eventNames()).toEqual(
       expect.arrayContaining([
@@ -84,7 +84,7 @@ describe("FlashistFacade startup analytics", () => {
     });
 
     const facade = new FlashistFacade();
-    await flushPromises();
+    await flushStartupPromises();
 
     expect(getFlags).toHaveBeenCalledTimes(1);
 
@@ -92,8 +92,9 @@ describe("FlashistFacade startup analytics", () => {
     await flushPromises();
     expect(eventNames()).not.toContain("Experiment:Tutorial:Enabled");
 
-    jest.advanceTimersByTime(1_000);
+    await jest.advanceTimersByTimeAsync(1_000);
     await facade.initializationPromise;
+    await flushPromises();
 
     expectEventOrder([
       flashistConstants.analyticEvents.SESSION_START,
@@ -123,6 +124,41 @@ describe("FlashistFacade startup analytics", () => {
       flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN,
     );
   });
+
+  it("emits the session baseline with unknown Yandex status when SDK init never resolves", async () => {
+    installYandexInit(jest.fn(() => new Promise(() => {})));
+
+    const facade = new FlashistFacade();
+    await flushStartupPromises();
+
+    expect(eventNames()).not.toContain(
+      flashistConstants.analyticEvents.SESSION_START,
+    );
+
+    await jest.advanceTimersByTimeAsync(1_000);
+    await facade.initializationPromise;
+
+    expect(eventNames()).toEqual(
+      expect.arrayContaining([
+        flashistConstants.analyticEvents.SESSION_START,
+        flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN,
+      ]),
+    );
+  });
+
+  it("emits the session baseline with unknown Yandex status when SDK init rejects", async () => {
+    installYandexInit(jest.fn(() => Promise.reject(new Error("sdk failed"))));
+
+    const facade = new FlashistFacade();
+    await facade.initializationPromise;
+
+    expect(eventNames()).toEqual(
+      expect.arrayContaining([
+        flashistConstants.analyticEvents.SESSION_START,
+        flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN,
+      ]),
+    );
+  });
 });
 
 function installYandexSdk({
@@ -140,6 +176,10 @@ function installYandexSdk({
       }),
     ),
   };
+}
+
+function installYandexInit(init: jest.Mock): void {
+  (window as Window & { YaGames?: unknown }).YaGames = { init };
 }
 
 function eventNames(): string[] {
@@ -171,4 +211,9 @@ async function flushPromises(): Promise<void> {
   await Promise.resolve();
   await Promise.resolve();
   await Promise.resolve();
+}
+
+async function flushStartupPromises(): Promise<void> {
+  await jest.advanceTimersByTimeAsync(0);
+  await flushPromises();
 }
