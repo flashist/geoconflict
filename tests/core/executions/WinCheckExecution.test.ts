@@ -145,6 +145,33 @@ describe("WinCheckExecution", () => {
     );
   });
 
+  it("sets a Nations team winner in public Humans vs Nations games", () => {
+    const nationTeamPlayer = {
+      numTilesOwned: jest.fn(() => 81),
+      team: jest.fn(() => ColoredTeams.Nations),
+    };
+    mg.players = jest.fn(() => [nationTeamPlayer]);
+    mg.numLandTiles = jest.fn(() => 100);
+    mg.numTilesWithFallout = jest.fn(() => 0);
+    mg.stats = jest.fn(() => ({ stats: () => ({ mocked: true }) }));
+    mg.config = jest.fn(() => ({
+      gameConfig: jest.fn(() => ({
+        gameMode: GameMode.Team,
+        gameType: GameType.Public,
+        playerTeams: HumansVsNations,
+      })),
+      percentageTilesOwnedToWin: jest.fn(() => 80),
+      numSpawnPhaseTurns: jest.fn(() => 0),
+    }));
+
+    winCheck.checkWinnerTeam();
+
+    expect(mg.setWinner).toHaveBeenCalledWith(
+      ColoredTeams.Nations,
+      expect.anything(),
+    );
+  });
+
   it("serializes a clientless Nations team winner in singleplayer Humans vs Nations", async () => {
     const humanInfo = new PlayerInfo(
       "human",
