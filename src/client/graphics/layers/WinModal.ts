@@ -368,6 +368,7 @@ export class WinModal extends LitElement implements Layer {
     const winUpdates = updates !== null ? updates[GameUpdateType.Win] : [];
     winUpdates.forEach((wu) => {
       if (this.hasShownDeathModal) {
+        this.reportWinnerAfterDeath(wu);
         return;
       }
       if (this.isSoloOpponentWin(wu.winner)) {
@@ -449,6 +450,17 @@ export class WinModal extends LitElement implements Layer {
       }
       this.handleMissionProgress();
     });
+  }
+
+  private reportWinnerAfterDeath(wu: WinUpdate): void {
+    if (this.game.config().gameConfig().gameType === GameType.Singleplayer) {
+      return;
+    }
+    if (wu.winner === undefined || wu.winner[0] === "opponent") {
+      return;
+    }
+    logMatchEndAnalytics(this.game.ticks());
+    this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
   }
 
   private isSoloOpponentWin(winner: unknown): boolean {

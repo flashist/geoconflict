@@ -96,7 +96,7 @@ describe("WinCheckExecution", () => {
     expect(mg.setWinner).not.toHaveBeenCalled();
   });
 
-  it("keeps Bot team wins ignored in singleplayer team games", () => {
+  it("sets a Bot team winner in singleplayer team games", () => {
     const botTeamPlayer = {
       numTilesOwned: jest.fn(() => 81),
       team: jest.fn(() => ColoredTeams.Bot),
@@ -116,7 +116,10 @@ describe("WinCheckExecution", () => {
 
     winCheck.checkWinnerTeam();
 
-    expect(mg.setWinner).not.toHaveBeenCalled();
+    expect(mg.setWinner).toHaveBeenCalledWith(
+      ColoredTeams.Bot,
+      expect.anything(),
+    );
   });
 
   it("sets a non-Bot team winner in singleplayer team games", () => {

@@ -97,9 +97,12 @@ export class WinCheckExecution implements Execution {
       (this.mg.config().gameConfig().maxTimerValue !== undefined &&
         timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0)
     ) {
-      // Regular fill bots are match filler, not an intended team winner.
+      // Regular fill bots are match filler in multiplayer, not an intended team winner.
       // Other clientless teams, such as Nations in Humans vs Nations, are valid.
-      if (max[0] === ColoredTeams.Bot) {
+      if (
+        max[0] === ColoredTeams.Bot &&
+        this.mg.config().gameConfig().gameType !== GameType.Singleplayer
+      ) {
         return;
       }
       this.mg.setWinner(max[0], this.mg.stats().stats());

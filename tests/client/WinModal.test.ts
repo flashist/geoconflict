@@ -255,6 +255,38 @@ describe("WinModal solo opponent wins", () => {
     );
     expect(eventBus.emit).not.toHaveBeenCalled();
   });
+
+  it("reports a multiplayer team winner after death without replacing the elimination modal", async () => {
+    const eventBus = { emit: jest.fn() };
+    const modal = await appendModal({
+      eventBus,
+      game: createGame({
+        gameType: GameType.Public,
+        gameMode: GameMode.Team,
+        isAlive: false,
+        isTutorial: false,
+        playerTeam: ColoredTeams.Humans,
+        winUpdates: [
+          {
+            type: GameUpdateType.Win,
+            winner: ["team", ColoredTeams.Nations],
+            allPlayersStats: {},
+          },
+        ],
+      }),
+    });
+
+    modal.tick();
+    await flushLit(modal);
+
+    expect(modal.textContent).toContain("win_modal.died");
+    expect(modal.textContent).not.toContain("win_modal.other_team");
+    expect(eventBus.emit).toHaveBeenCalledTimes(1);
+    expect(eventBus.emit.mock.calls[0][0].winner).toEqual([
+      "team",
+      ColoredTeams.Nations,
+    ]);
+  });
 });
 
 async function appendModal({
