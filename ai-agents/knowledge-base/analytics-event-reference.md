@@ -21,36 +21,41 @@ All future events must follow this convention. The TypeScript enum serves as the
 
 ### Session Events
 
-| Enum Key               | Event String                                        | When Fired                                                                |
-| ---------------------- | --------------------------------------------------- | ------------------------------------------------------------------------- |
-| `SESSION_START`        | `Session:Start`                                     | Once per session, on game load after SDK init. Top step of all funnels.   |
-| `SESSION_HEARTBEAT`    | `Session:Heartbeat:05`, `Session:Heartbeat:10`, ... | Every 5 minutes while player is active. Stops on inactivity or tab close. |
-| `SESSION_FIRST_ACTION` | `Session:FirstAction`                               | Once per session, on first meaningful interaction on the start screen.    |
+| Enum Key                 | Event String                                        | When Fired                                                                                            |
+| ------------------------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `SESSION_MATCHES_PLAYED` | `Session:MatchesPlayed`                             | At the next session start when a previous session-end payload exists; value = integer matches started |
+| `SESSION_START`          | `Session:Start`                                     | Once per session, on game load after SDK/player init. Top step of all funnels.                        |
+| `SESSION_HEARTBEAT`      | `Session:Heartbeat:05`, `Session:Heartbeat:10`, ... | Every 5 minutes while player is active. Stops on inactivity or tab close.                             |
+| `SESSION_FIRST_ACTION`   | `Session:FirstAction`                               | Once per session, on first meaningful interaction on the start screen.                                |
 
 ### Device & Platform Segmentation Events
 
 Fired once per session immediately after `Session:Start`, in this order:
 
-| Enum Key           | Event String       | When Fired                          |
-| ------------------ | ------------------ | ----------------------------------- |
-| `DEVICE_MOBILE`    | `Device:mobile`    | Device class is mobile              |
-| `DEVICE_DESKTOP`   | `Device:desktop`   | Device class is desktop             |
-| `DEVICE_TABLET`    | `Device:tablet`    | Device class is tablet              |
-| `DEVICE_TV`        | `Device:tv`        | Device class is TV/console          |
-| `PLATFORM_ANDROID` | `Platform:android` | OS is Android                       |
-| `PLATFORM_IOS`     | `Platform:ios`     | OS is iOS                           |
-| `PLATFORM_WINDOWS` | `Platform:windows` | OS is Windows                       |
-| `PLATFORM_MACOS`   | `Platform:macos`   | OS is macOS                         |
-| `PLATFORM_LINUX`   | `Platform:linux`   | OS is Linux                         |
-| `PLATFORM_OTHER`   | `Platform:other`   | OS is unrecognized (ChromeOS, etc.) |
-| `PLAYER_NEW`       | `Player:New`       | Player's very first session ever    |
-| `PLAYER_RETURNING` | `Player:Returning` | Every session after the first       |
+| Enum Key                  | Event String            | When Fired                                 |
+| ------------------------- | ----------------------- | ------------------------------------------ |
+| `DEVICE_MOBILE`           | `Device:mobile`         | Device class is mobile                     |
+| `DEVICE_DESKTOP`          | `Device:desktop`        | Device class is desktop                    |
+| `DEVICE_TABLET`           | `Device:tablet`         | Device class is tablet                     |
+| `DEVICE_TV`               | `Device:tv`             | Device class is TV/console                 |
+| `PLATFORM_ANDROID`        | `Platform:android`      | OS is Android                              |
+| `PLATFORM_IOS`            | `Platform:ios`          | OS is iOS                                  |
+| `PLATFORM_WINDOWS`        | `Platform:windows`      | OS is Windows                              |
+| `PLATFORM_MACOS`          | `Platform:macos`        | OS is macOS                                |
+| `PLATFORM_LINUX`          | `Platform:linux`        | OS is Linux                                |
+| `PLATFORM_OTHER`          | `Platform:other`        | OS is unrecognized (ChromeOS, etc.)        |
+| `PLAYER_NEW`              | `Player:New`            | Player's very first session ever           |
+| `PLAYER_RETURNING`        | `Player:Returning`      | Every session after the first              |
+| `PLAYER_YANDEX_LOGGED_IN` | `Player:YandexLoggedIn` | Yandex SDK reports the player is logged in |
+| `PLAYER_YANDEX_GUEST`     | `Player:YandexGuest`    | Yandex SDK reports guest mode              |
 
 Full session-start sequence:
 
 ```
-Session:Start → Device:[class] → Platform:[os] → Player:New/Returning
+Session:Start → Device:[class] → Platform:[os] → Player:New/Returning → Player:YandexLoggedIn/Player:YandexGuest
 ```
+
+If a previous session wrote a pending close-time payload, `Session:MatchesPlayed` fires before `Session:Start` during the next session startup.
 
 ### Game Events
 

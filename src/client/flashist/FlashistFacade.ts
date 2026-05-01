@@ -2,6 +2,10 @@ import { LangSelector } from "../LangSelector";
 import { GameAnalytics } from "gameanalytics";
 import { GameEnv } from "../../core/configuration/Config";
 import { setOtelUser } from "../OtelBrowserInit";
+import {
+  consumePendingSessionEnd,
+  startSessionMatchTracking,
+} from "../SessionMatchAnalytics";
 import { isMobileDevice } from "../Utils";
 import version from "../../version";
 
@@ -42,6 +46,7 @@ export const flashistConstants = {
     SESSION_START: "Session:Start",
     SESSION_HEARTBEAT: "Session:Heartbeat",
     SESSION_FIRST_ACTION: "Session:FirstAction",
+    SESSION_MATCHES_PLAYED: "Session:MatchesPlayed",
     MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
     MATCH_SPAWN_AUTO: "Match:SpawnAuto",
     MATCH_SPAWNED_CONFIRMED: "Match:Spawned",
@@ -80,6 +85,8 @@ export const flashistConstants = {
 
     PLAYER_NEW: "Player:New",
     PLAYER_RETURNING: "Player:Returning",
+    PLAYER_YANDEX_LOGGED_IN: "Player:YandexLoggedIn",
+    PLAYER_YANDEX_GUEST: "Player:YandexGuest",
 
     WORKER_INIT_SUCCESS: "Worker:InitSuccess",
     WORKER_INIT_FAILED: "Worker:InitFailed",
@@ -303,52 +310,126 @@ export class FlashistFacade {
         "a1f0fb4335fe32696c3b76eb49612ead",
         "ba57db678bc9a1181bde9430bad83c6fa3b71862",
       );
-      flashist_logEventAnalytics(
-        flashistConstants.analyticEvents.SESSION_START,
-      );
     }
 
-    // Device:Type — fired once per session after Session:Start
+    this.initializationPromise = this._initialize();
+  }
+
+  public readonly initializationPromise: Promise<void>;
+
+  private async _initialize(): Promise<void> {
+    // 1. SDK must be ready first so player authorization can be included in
+    //    the session-start analytics sequence.
+    await this.yandexInitPromise;
+
+    // 2. Player init must settle before the session sequence, otherwise
+    //    Player:YandexLoggedIn/Guest would race SDK authorization state.
+    try {
+      await this.yandexSdkInitPlayerPromise;
+    } catch (reason) {
+      console.warn("Init step failed: player init", reason);
+    }
+
+    this.logSessionStartSequence();
+
+    // 3. Experiment flags intentionally load after the session baseline so
+    //    Experiment:* events cannot interleave between Player:* session events.
+    try {
+      await this.initExperimentFlags();
+    } catch (reason) {
+      console.warn("Init step failed: experiment flags", reason);
+    }
+
+    // 4. Apply experiment-driven config mutations — guaranteed to be after flags are loaded
+    // const joinMoreAdsEnabled = await this.checkExperimentFlag(
+    //     flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
+    //     flashistConstants.experiments.JOIN_MORE_ADS_FLAG_VALUE,
+    // );
+    // if (joinMoreAdsEnabled) {
+    //     flashistConstants.ads.interstitial.join = flashistConstants.ads.interstitial.joinMoreAds;
+    // }
+
+    // 5. OTEL user context (best-effort)
+    const name = await this.getCurPlayerName().catch(() => undefined);
+    if (name) setOtelUser(name);
+  }
+
+  private logSessionStartSequence(): void {
+    consumePendingSessionEnd((matchesPlayed) => {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.SESSION_MATCHES_PLAYED,
+        matchesPlayed,
+      );
+    });
+
+    const sessionStartTime = Date.now();
+    flashist_logEventAnalytics(flashistConstants.analyticEvents.SESSION_START);
+    startSessionMatchTracking(sessionStartTime);
+
+    flashist_logEventAnalytics(this.deviceTypeAnalyticsEvent());
+    flashist_logEventAnalytics(this.platformOsAnalyticsEvent());
+    this.logPlayerNewReturningEvent();
+    flashist_logEventAnalytics(
+      this.isYandexLoggedIn()
+        ? flashistConstants.analyticEvents.PLAYER_YANDEX_LOGGED_IN
+        : flashistConstants.analyticEvents.PLAYER_YANDEX_GUEST,
+    );
+  }
+
+  private deviceTypeAnalyticsEvent(): string {
     const ua = navigator.userAgent;
-    let deviceType: string;
     if (
       /SmartTV|SMART-TV|HbbTV|Tizen|WebOS|VIDAA|PlayStation|Xbox|Nintendo/i.test(
         ua,
       )
     ) {
-      deviceType = flashistConstants.analyticEvents.DEVICE_TV;
-    } else if (/iPad|Android(?!.*Mobile)/i.test(ua)) {
-      deviceType = flashistConstants.analyticEvents.DEVICE_TABLET;
-    } else if (
+      return flashistConstants.analyticEvents.DEVICE_TV;
+    }
+
+    if (/iPad|Android(?!.*Mobile)/i.test(ua)) {
+      return flashistConstants.analyticEvents.DEVICE_TABLET;
+    }
+
+    if (
       window.matchMedia("(pointer: coarse)").matches ||
       /Android|iPhone/i.test(ua)
     ) {
-      deviceType = flashistConstants.analyticEvents.DEVICE_MOBILE;
-    } else {
-      deviceType = flashistConstants.analyticEvents.DEVICE_DESKTOP;
+      return flashistConstants.analyticEvents.DEVICE_MOBILE;
     }
-    flashist_logEventAnalytics(deviceType);
 
-    // Platform:OS — fired once per session after Device:Type
-    let osType: string;
+    return flashistConstants.analyticEvents.DEVICE_DESKTOP;
+  }
+
+  private platformOsAnalyticsEvent(): string {
+    const ua = navigator.userAgent;
     if (/Android/i.test(ua)) {
-      osType = flashistConstants.analyticEvents.PLATFORM_ANDROID;
-    } else if (/iPhone|iPad|iPod/i.test(ua)) {
-      osType = flashistConstants.analyticEvents.PLATFORM_IOS;
-    } else if (/Windows/i.test(ua)) {
-      osType = flashistConstants.analyticEvents.PLATFORM_WINDOWS;
-    } else if (/Mac OS X/i.test(ua)) {
-      osType = flashistConstants.analyticEvents.PLATFORM_MACOS;
-    } else if (/CrOS/i.test(ua)) {
-      osType = flashistConstants.analyticEvents.PLATFORM_OTHER; // Chrome OS → other
-    } else if (/Linux/i.test(ua)) {
-      osType = flashistConstants.analyticEvents.PLATFORM_LINUX;
-    } else {
-      osType = flashistConstants.analyticEvents.PLATFORM_OTHER;
+      return flashistConstants.analyticEvents.PLATFORM_ANDROID;
     }
-    flashist_logEventAnalytics(osType);
 
-    // Player:New — fired once ever (first visit); Player:Returning — fired every subsequent session start
+    if (/iPhone|iPad|iPod/i.test(ua)) {
+      return flashistConstants.analyticEvents.PLATFORM_IOS;
+    }
+
+    if (/Windows/i.test(ua)) {
+      return flashistConstants.analyticEvents.PLATFORM_WINDOWS;
+    }
+
+    if (/Mac OS X/i.test(ua)) {
+      return flashistConstants.analyticEvents.PLATFORM_MACOS;
+    }
+
+    if (/CrOS/i.test(ua)) {
+      return flashistConstants.analyticEvents.PLATFORM_OTHER;
+    }
+
+    if (/Linux/i.test(ua)) {
+      return flashistConstants.analyticEvents.PLATFORM_LINUX;
+    }
+
+    return flashistConstants.analyticEvents.PLATFORM_OTHER;
+  }
+
+  private logPlayerNewReturningEvent(): void {
     const FIRST_SEEN_KEY = "geoconflict.player.firstSeen";
     try {
       if (localStorage.getItem(FIRST_SEEN_KEY) === null) {
@@ -360,44 +441,8 @@ export class FlashistFacade {
         );
       }
     } catch {
-      // silently skip if storage is unavailable (e.g. sandboxed iframe)
+      // Silently skip if storage is unavailable (e.g. sandboxed iframe).
     }
-
-    this.initializationPromise = this._initialize();
-  }
-
-  public readonly initializationPromise: Promise<void>;
-
-  private async _initialize(): Promise<void> {
-    // 1. SDK must be ready first — both initPlayer() and initExperimentFlags() await it
-    //    internally, so this explicit gate makes the dependency clear and ensures step 2
-    //    starts only after the SDK object is available.
-    await this.yandexInitPromise;
-
-    // 2. Player and experiment flags can proceed in parallel
-    const [playerResult, flagsResult] = await Promise.allSettled([
-      this.yandexSdkInitPlayerPromise,
-      this.initExperimentFlags(),
-    ]);
-    if (playerResult.status === "rejected") {
-      console.warn("Init step failed: player init", playerResult.reason);
-    }
-    if (flagsResult.status === "rejected") {
-      console.warn("Init step failed: experiment flags", flagsResult.reason);
-    }
-
-    // 3. Apply experiment-driven config mutations — guaranteed to be after flags are loaded
-    // const joinMoreAdsEnabled = await this.checkExperimentFlag(
-    //     flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
-    //     flashistConstants.experiments.JOIN_MORE_ADS_FLAG_VALUE,
-    // );
-    // if (joinMoreAdsEnabled) {
-    //     flashistConstants.ads.interstitial.join = flashistConstants.ads.interstitial.joinMoreAds;
-    // }
-
-    // 4. OTEL user context (best-effort)
-    const name = await this.getCurPlayerName().catch(() => undefined);
-    if (name) setOtelUser(name);
   }
 
   // Single place for working with URLS
@@ -587,6 +632,22 @@ export class FlashistFacade {
     }
 
     return result;
+  }
+
+  public isYandexLoggedIn(): boolean {
+    if (!this.yandexSdkPlayerObject) {
+      return false;
+    }
+
+    try {
+      return this.yandexSdkPlayerObject.isAuthorized() === true;
+    } catch (error) {
+      flashist_logErrorToAnalytics(
+        `ERROR! FlashistFacade | isYandexLoggedIn __ error: ${error}`,
+        flashist_logErrorTypes.DEBUG,
+      );
+      return false;
+    }
   }
 
   // ADV

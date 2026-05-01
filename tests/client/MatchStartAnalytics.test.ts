@@ -12,10 +12,15 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   flashist_logEventAnalytics: jest.fn(),
 }));
 
+jest.mock("../../src/client/SessionMatchAnalytics", () => ({
+  recordSessionMatchStart: jest.fn(),
+}));
+
 import {
   flashistConstants,
   flashist_logEventAnalytics,
 } from "../../src/client/flashist/FlashistFacade";
+import { recordSessionMatchStart } from "../../src/client/SessionMatchAnalytics";
 import {
   Difficulty,
   GameMapSize,
@@ -60,6 +65,7 @@ describe("match start analytics", () => {
         2,
         flashistConstants.analyticEvents.GAME_MODE_MULTIPLAYER,
       );
+      expect(recordSessionMatchStart).toHaveBeenCalledTimes(1);
     },
   );
 
@@ -84,6 +90,7 @@ describe("match start analytics", () => {
       2,
       flashistConstants.analyticEvents.GAME_MODE_SOLO,
     );
+    expect(recordSessionMatchStart).toHaveBeenCalledTimes(1);
   });
 
   it.each([
@@ -108,6 +115,7 @@ describe("match start analytics", () => {
     expect(didLog).toBe(false);
     expect(shouldLogMatchStartAnalytics(state)).toBe(false);
     expect(flashist_logEventAnalytics).not.toHaveBeenCalled();
+    expect(recordSessionMatchStart).not.toHaveBeenCalled();
   });
 });
 
