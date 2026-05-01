@@ -48,11 +48,12 @@ Fired once per session immediately after `Session:Start`, in this order:
 | `PLAYER_RETURNING`        | `Player:Returning`      | Every session after the first              |
 | `PLAYER_YANDEX_LOGGED_IN` | `Player:YandexLoggedIn` | Yandex SDK reports the player is logged in |
 | `PLAYER_YANDEX_GUEST`     | `Player:YandexGuest`    | Yandex SDK reports guest mode              |
+| `PLAYER_YANDEX_UNKNOWN`   | `Player:YandexUnknown`  | Yandex player lookup fails or times out    |
 
 Full session-start sequence:
 
 ```
-Session:Start → Device:[class] → Platform:[os] → Player:New/Returning → Player:YandexLoggedIn/Player:YandexGuest
+Session:Start → Device:[class] → Platform:[os] → Player:New/Returning → Player:YandexLoggedIn/Player:YandexGuest/Player:YandexUnknown
 ```
 
 If a previous session wrote a pending close-time payload, `Session:MatchesPlayed` fires before `Session:Start` during the next session startup.

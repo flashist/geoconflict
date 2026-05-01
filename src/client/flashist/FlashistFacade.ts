@@ -87,6 +87,7 @@ export const flashistConstants = {
     PLAYER_RETURNING: "Player:Returning",
     PLAYER_YANDEX_LOGGED_IN: "Player:YandexLoggedIn",
     PLAYER_YANDEX_GUEST: "Player:YandexGuest",
+    PLAYER_YANDEX_UNKNOWN: "Player:YandexUnknown",
 
     WORKER_INIT_SUCCESS: "Worker:InitSuccess",
     WORKER_INIT_FAILED: "Worker:InitFailed",
@@ -148,6 +149,8 @@ export const flashistConstants = {
     },
   },
 };
+
+type YandexLoginStatus = "logged-in" | "guest" | "unknown";
 
 // Working with analytics logs
 export const flashist_logEventAnalytics = (event: string, value?: number) => {
@@ -267,6 +270,7 @@ window.addEventListener("unhandledrejection", (event) => {
 // declare let YaGames: any;
 
 export class FlashistFacade {
+  private static readonly YANDEX_LOGIN_STATUS_TIMEOUT_MS = 1000;
   private static _instance: FlashistFacade;
   public static get instance(): FlashistFacade {
     if (!FlashistFacade._instance) {
@@ -322,25 +326,25 @@ export class FlashistFacade {
     //    the session-start analytics sequence.
     await this.yandexInitPromise;
 
-    // 2. Player init must settle before the session sequence, otherwise
-    //    Player:YandexLoggedIn/Guest would race SDK authorization state.
-    try {
-      await this.yandexSdkInitPlayerPromise;
-    } catch (reason) {
-      console.warn("Init step failed: player init", reason);
-    }
+    // 2. Start experiment fetch while player init is still resolving. Event
+    //    emission remains below the session baseline.
+    const experimentFlagsPromise = this.loadExperimentFlags();
 
-    this.logSessionStartSequence();
+    // 3. Player auth is useful segmentation, but the session baseline must
+    //    still fire if Yandex player lookup is slow or stuck.
+    const yandexLoginStatus = await this.resolveYandexLoginStatus();
+    this.logSessionStartSequence(yandexLoginStatus);
 
-    // 3. Experiment flags intentionally load after the session baseline so
+    // 4. Experiment flags intentionally log after the session baseline so
     //    Experiment:* events cannot interleave between Player:* session events.
     try {
-      await this.initExperimentFlags();
+      await experimentFlagsPromise;
+      this.logExperimentEvents();
     } catch (reason) {
       console.warn("Init step failed: experiment flags", reason);
     }
 
-    // 4. Apply experiment-driven config mutations — guaranteed to be after flags are loaded
+    // 5. Apply experiment-driven config mutations — guaranteed to be after flags are loaded
     // const joinMoreAdsEnabled = await this.checkExperimentFlag(
     //     flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
     //     flashistConstants.experiments.JOIN_MORE_ADS_FLAG_VALUE,
@@ -349,12 +353,17 @@ export class FlashistFacade {
     //     flashistConstants.ads.interstitial.join = flashistConstants.ads.interstitial.joinMoreAds;
     // }
 
-    // 5. OTEL user context (best-effort)
-    const name = await this.getCurPlayerName().catch(() => undefined);
-    if (name) setOtelUser(name);
+    // 6. OTEL user context (best-effort). Avoid re-awaiting an unbounded
+    //    player init after the login-status timeout path.
+    if (yandexLoginStatus !== "unknown") {
+      const name = await this.getCurPlayerName().catch(() => undefined);
+      if (name) setOtelUser(name);
+    }
   }
 
-  private logSessionStartSequence(): void {
+  private logSessionStartSequence(
+    yandexLoginStatus: YandexLoginStatus,
+  ): void {
     consumePendingSessionEnd((matchesPlayed) => {
       flashist_logEventAnalytics(
         flashistConstants.analyticEvents.SESSION_MATCHES_PLAYED,
@@ -369,11 +378,7 @@ export class FlashistFacade {
     flashist_logEventAnalytics(this.deviceTypeAnalyticsEvent());
     flashist_logEventAnalytics(this.platformOsAnalyticsEvent());
     this.logPlayerNewReturningEvent();
-    flashist_logEventAnalytics(
-      this.isYandexLoggedIn()
-        ? flashistConstants.analyticEvents.PLAYER_YANDEX_LOGGED_IN
-        : flashistConstants.analyticEvents.PLAYER_YANDEX_GUEST,
-    );
+    flashist_logEventAnalytics(this.yandexLoginStatusAnalyticsEvent(yandexLoginStatus));
   }
 
   private deviceTypeAnalyticsEvent(): string {
@@ -445,6 +450,49 @@ export class FlashistFacade {
     }
   }
 
+  private async resolveYandexLoginStatus(): Promise<YandexLoginStatus> {
+    if (!this.yaGamesAvailable) {
+      return "guest";
+    }
+
+    const playerInitStatus = await Promise.race([
+      this.yandexSdkInitPlayerPromise
+        .then(() => "ready" as const)
+        .catch((reason) => {
+          console.warn("Init step failed: player init", reason);
+          return "unknown" as const;
+        }),
+      this.timeout(
+        FlashistFacade.YANDEX_LOGIN_STATUS_TIMEOUT_MS,
+        "unknown" as const,
+      ),
+    ]);
+
+    if (playerInitStatus !== "ready") {
+      return "unknown";
+    }
+
+    return this.isYandexLoggedIn() ? "logged-in" : "guest";
+  }
+
+  private yandexLoginStatusAnalyticsEvent(status: YandexLoginStatus): string {
+    if (status === "logged-in") {
+      return flashistConstants.analyticEvents.PLAYER_YANDEX_LOGGED_IN;
+    }
+
+    if (status === "guest") {
+      return flashistConstants.analyticEvents.PLAYER_YANDEX_GUEST;
+    }
+
+    return flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN;
+  }
+
+  private timeout<T>(ms: number, value: T): Promise<T> {
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(value), ms);
+    });
+  }
+
   // Single place for working with URLS
   public changeHref(value) {
     // window.location.href = value;
@@ -487,44 +535,55 @@ export class FlashistFacade {
   // FLAGS (Experiments)
   protected yandexInitExperimentsPromise: Promise<any>;
   protected yandexExperimentFlags: any;
-  protected async initExperimentFlags(): Promise<void> {
+  private hasLoggedExperimentEvents = false;
+
+  protected async loadExperimentFlags(): Promise<void> {
     await this.yandexInitPromise;
 
     if (!this.yandexInitExperimentsPromise) {
-      this.yandexInitExperimentsPromise = new Promise<void>(async (resolve) => {
+      this.yandexInitExperimentsPromise = new Promise<void>((resolve) => {
         let experiments: any;
 
-        if (this.yandexGamesSDK) {
-          try {
-            experiments = await this.yandexGamesSDK.getFlags();
-            if (!experiments) {
-              experiments = {};
+        const load = async () => {
+          if (this.yandexGamesSDK) {
+            try {
+              experiments = await this.yandexGamesSDK.getFlags();
+              if (!experiments) {
+                experiments = {};
+              }
+            } catch (error) {
+              flashist_logErrorToAnalytics(
+                `ERROR! FlashistFacade | initExperimentFlags __ error: ${error}`,
+                flashist_logErrorTypes.DEBUG,
+              );
             }
-          } catch (error) {
-            flashist_logErrorToAnalytics(
-              `ERROR! FlashistFacade | initExperimentFlags __ error: ${error}`,
-              flashist_logErrorTypes.DEBUG,
-            );
           }
-        }
 
-        this.yandexExperimentFlags = experiments;
+          this.yandexExperimentFlags = experiments;
+          resolve();
+        };
 
-        // Fire one analytics event per flag as soon as flags are loaded.
-        // Format: "Experiment:{flagName}:{flagValue}"
-        if (this.yandexExperimentFlags) {
-          for (const [name, value] of Object.entries(
-            this.yandexExperimentFlags,
-          )) {
-            this.logExperimentEvent(name, String(value));
-          }
-        }
-
-        resolve();
+        void load();
       });
     }
 
     return this.yandexInitExperimentsPromise;
+  }
+
+  protected async initExperimentFlags(): Promise<void> {
+    await this.loadExperimentFlags();
+    this.logExperimentEvents();
+  }
+
+  private logExperimentEvents(): void {
+    if (!this.yandexExperimentFlags || this.hasLoggedExperimentEvents) {
+      return;
+    }
+
+    this.hasLoggedExperimentEvents = true;
+    for (const [name, value] of Object.entries(this.yandexExperimentFlags)) {
+      this.logExperimentEvent(name, String(value));
+    }
   }
 
   // public async getExperimentFlags(): Promise<any> {

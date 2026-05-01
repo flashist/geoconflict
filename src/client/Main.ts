@@ -48,7 +48,6 @@ import {
   clearReconnectSession,
   ReconnectSession,
 } from "./ReconnectSession";
-import { persistPendingSessionEnd } from "./SessionMatchAnalytics";
 import {
   getNextMissionLevel,
   setNextMissionLevel,
@@ -246,15 +245,11 @@ class Client {
 
     window.addEventListener("beforeunload", () => {
       console.log("Browser is closing");
-      persistPendingSessionEnd();
       this.perfMonitorStop?.();
       if (this.gameStop !== null) {
         this.logActiveMatchAbandon();
         this.gameStop();
       }
-    });
-    window.addEventListener("pagehide", () => {
-      persistPendingSessionEnd();
     });
     window.addEventListener("keydown", (event: KeyboardEvent) => {
       if (

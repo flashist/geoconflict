@@ -8,11 +8,24 @@ import {
 describe("session match analytics", () => {
   let storage: Storage;
   let logMatchesPlayed: jest.Mock;
+  let originalAddEventListener: typeof globalThis.addEventListener | undefined;
 
   beforeEach(() => {
     storage = createMemoryStorage();
     logMatchesPlayed = jest.fn();
     startSessionMatchTracking(1_000);
+  });
+
+  beforeAll(() => {
+    originalAddEventListener = globalThis.addEventListener;
+  });
+
+  afterAll(() => {
+    if (originalAddEventListener) {
+      globalThis.addEventListener = originalAddEventListener;
+    } else {
+      delete (globalThis as Partial<typeof globalThis>).addEventListener;
+    }
   });
 
   it("persists and consumes a zero-match session", () => {
@@ -69,6 +82,22 @@ describe("session match analytics", () => {
     consumePendingSessionEnd(logMatchesPlayed, storage);
 
     expect(logMatchesPlayed).toHaveBeenCalledWith(2);
+  });
+
+  it("installs close-time persistence handlers when session tracking starts", () => {
+    const addEventListener = jest.fn();
+    globalThis.addEventListener = addEventListener;
+
+    startSessionMatchTracking(2_000);
+
+    expect(addEventListener).toHaveBeenCalledWith(
+      "beforeunload",
+      expect.any(Function),
+    );
+    expect(addEventListener).toHaveBeenCalledWith(
+      "pagehide",
+      expect.any(Function),
+    );
   });
 });
 

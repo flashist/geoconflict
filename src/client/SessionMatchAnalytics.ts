@@ -10,10 +10,12 @@ interface PendingSessionEnd {
 
 let sessionMatchCount = 0;
 let sessionStartTimestamp: number | null = null;
+let sessionEndPersistenceHandlersInstalled = false;
 
 export function startSessionMatchTracking(nowMs = Date.now()): void {
   sessionMatchCount = 0;
   sessionStartTimestamp = nowMs;
+  installSessionEndPersistenceHandlers();
 }
 
 export function recordSessionMatchStart(): void {
@@ -90,4 +92,25 @@ function safeLocalStorage(): SessionStorageLike | undefined {
   } catch {
     return undefined;
   }
+}
+
+function installSessionEndPersistenceHandlers(): void {
+  if (sessionEndPersistenceHandlersInstalled) {
+    return;
+  }
+
+  const eventTarget = globalThis as typeof globalThis & {
+    addEventListener?: Window["addEventListener"];
+  };
+  if (typeof eventTarget.addEventListener !== "function") {
+    return;
+  }
+
+  eventTarget.addEventListener("beforeunload", () => {
+    persistPendingSessionEnd();
+  });
+  eventTarget.addEventListener("pagehide", () => {
+    persistPendingSessionEnd();
+  });
+  sessionEndPersistenceHandlersInstalled = true;
 }
