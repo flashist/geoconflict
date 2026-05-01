@@ -34,7 +34,7 @@ describe("session match analytics", () => {
     consumePendingSessionEnd(logMatchesPlayed, storage);
 
     expect(logMatchesPlayed).toHaveBeenCalledWith(0);
-    expect(storage.getItem("geoconflict_pending_session_end")).toBeNull();
+    expect(storage.length).toBe(0);
   });
 
   it("persists and consumes matches started during the session", () => {
@@ -50,7 +50,7 @@ describe("session match analytics", () => {
   it("does not throw when persisting without storage", () => {
     persistPendingSessionEnd(undefined, 5_000);
 
-    expect(storage.getItem("geoconflict_pending_session_end")).toBeNull();
+    expect(storage.length).toBe(0);
   });
 
   it("removes malformed pending data without logging", () => {
@@ -60,6 +60,48 @@ describe("session match analytics", () => {
 
     expect(logMatchesPlayed).not.toHaveBeenCalled();
     expect(storage.getItem("geoconflict_pending_session_end")).toBeNull();
+  });
+
+  it("consumes multiple pending sessions without overwriting multi-tab payloads", () => {
+    storage.setItem(
+      "geoconflict_pending_session_end:tab-a",
+      JSON.stringify({
+        matchesPlayed: 1,
+        sessionStartTime: 1_000,
+        firedAt: 2_000,
+      }),
+    );
+    storage.setItem(
+      "geoconflict_pending_session_end:tab-b",
+      JSON.stringify({
+        matchesPlayed: 3,
+        sessionStartTime: 1_500,
+        firedAt: 3_000,
+      }),
+    );
+
+    consumePendingSessionEnd(logMatchesPlayed, storage);
+
+    expect(logMatchesPlayed.mock.calls.map(([value]) => value).sort()).toEqual([
+      1, 3,
+    ]);
+    expect(storage.length).toBe(0);
+  });
+
+  it("still consumes the legacy singleton pending session key", () => {
+    storage.setItem(
+      "geoconflict_pending_session_end",
+      JSON.stringify({
+        matchesPlayed: 4,
+        sessionStartTime: 1_000,
+        firedAt: 2_000,
+      }),
+    );
+
+    consumePendingSessionEnd(logMatchesPlayed, storage);
+
+    expect(logMatchesPlayed).toHaveBeenCalledWith(4);
+    expect(storage.length).toBe(0);
   });
 
   it("does not throw when storage is unavailable", () => {

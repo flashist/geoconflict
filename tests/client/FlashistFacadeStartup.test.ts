@@ -51,7 +51,7 @@ describe("FlashistFacade startup analytics", () => {
     process.env.DEPLOY_ENV = originalDeployEnv;
   });
 
-  it("emits the session baseline with unknown Yandex status when player init never resolves", async () => {
+  it("emits the session baseline without permanently marking unknown when player init never resolves", async () => {
     installYandexSdk({
       getPlayer: jest.fn(() => new Promise(() => {})),
       getFlags: jest.fn(() => new Promise(() => {})),
@@ -60,18 +60,24 @@ describe("FlashistFacade startup analytics", () => {
     const facade = new FlashistFacade();
     await flushStartupPromises();
 
-    expect(eventNames()).not.toContain(
+    expect(eventNames()).toContain(
       flashistConstants.analyticEvents.SESSION_START,
     );
-
-    await jest.advanceTimersByTimeAsync(1_000);
     await facade.initializationPromise;
 
     expect(eventNames()).toEqual(
       expect.arrayContaining([
         flashistConstants.analyticEvents.SESSION_START,
-        flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN,
       ]),
+    );
+    expect(eventNames()).not.toContain(
+      flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN,
+    );
+    expect(eventNames()).not.toContain(
+      flashistConstants.analyticEvents.PLAYER_YANDEX_LOGGED_IN,
+    );
+    expect(eventNames()).not.toContain(
+      flashistConstants.analyticEvents.PLAYER_YANDEX_GUEST,
     );
   });
 
@@ -90,15 +96,12 @@ describe("FlashistFacade startup analytics", () => {
 
     flags.resolve({ Tutorial: "Enabled" });
     await flushPromises();
-    expect(eventNames()).not.toContain("Experiment:Tutorial:Enabled");
 
-    await jest.advanceTimersByTimeAsync(1_000);
     await facade.initializationPromise;
     await flushPromises();
 
     expectEventOrder([
       flashistConstants.analyticEvents.SESSION_START,
-      flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN,
       "Experiment:Tutorial:Enabled",
     ]);
   });
@@ -116,11 +119,66 @@ describe("FlashistFacade startup analytics", () => {
 
     const facade = new FlashistFacade();
     await facade.initializationPromise;
+    await flushPromises();
 
     expect(eventNames()).toContain(
       flashistConstants.analyticEvents.PLAYER_YANDEX_LOGGED_IN,
     );
     expect(eventNames()).not.toContain(
+      flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN,
+    );
+  });
+
+  it("emits logged-in status when slow player authorization resolves after the session baseline", async () => {
+    const player = deferred<{
+      getName: () => string;
+      isAuthorized: () => boolean;
+    }>();
+    installYandexSdk({
+      getPlayer: jest.fn(() => player.promise),
+      getFlags: jest.fn(() => Promise.resolve({})),
+    });
+
+    const facade = new FlashistFacade();
+    await flushStartupPromises();
+    await jest.advanceTimersByTimeAsync(1_000);
+    await facade.initializationPromise;
+
+    expect(eventNames()).toContain(
+      flashistConstants.analyticEvents.SESSION_START,
+    );
+    expect(eventNames()).not.toContain(
+      flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN,
+    );
+    expect(eventNames()).not.toContain(
+      flashistConstants.analyticEvents.PLAYER_YANDEX_LOGGED_IN,
+    );
+
+    player.resolve({
+      getName: () => "Slow Authorized Player",
+      isAuthorized: () => true,
+    });
+    await flushPromises();
+
+    expect(eventNames()).toContain(
+      flashistConstants.analyticEvents.PLAYER_YANDEX_LOGGED_IN,
+    );
+    expect(eventNames()).not.toContain(
+      flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN,
+    );
+  });
+
+  it("emits unknown Yandex status when player init rejects", async () => {
+    installYandexSdk({
+      getPlayer: jest.fn(() => Promise.reject(new Error("player failed"))),
+      getFlags: jest.fn(() => Promise.resolve({})),
+    });
+
+    const facade = new FlashistFacade();
+    await facade.initializationPromise;
+    await flushPromises();
+
+    expect(eventNames()).toContain(
       flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN,
     );
   });

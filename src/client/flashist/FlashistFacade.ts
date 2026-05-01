@@ -271,7 +271,6 @@ window.addEventListener("unhandledrejection", (event) => {
 
 export class FlashistFacade {
   private static readonly YANDEX_SDK_INIT_TIMEOUT_MS = 1000;
-  private static readonly YANDEX_LOGIN_STATUS_TIMEOUT_MS = 1000;
   private static _instance: FlashistFacade;
   public static get instance(): FlashistFacade {
     if (!FlashistFacade._instance) {
@@ -289,6 +288,7 @@ export class FlashistFacade {
   public yaGamesAvailable: boolean = false;
 
   public yandexGamesSDK: any;
+  private hasLoggedYandexLoginStatus = false;
 
   constructor() {
     if (typeof (window as any).YaGames !== "undefined") {
@@ -334,16 +334,19 @@ export class FlashistFacade {
       : undefined;
 
     // 3. Player auth is useful segmentation, but the session baseline must
-    //    still fire if Yandex SDK/player lookup is slow or stuck.
-    const yandexLoginStatus = yandexSdkReady
-      ? await this.resolveYandexLoginStatus()
+    //    not wait for player lookup. Slow lookups log their real status later.
+    const immediateYandexLoginStatus = yandexSdkReady
+      ? undefined
       : this.yaGamesAvailable
         ? "unknown"
         : "guest";
-    this.logSessionStartSequence(yandexLoginStatus);
+    this.logSessionStartSequence(immediateYandexLoginStatus);
 
     // 4. SDK-dependent follow-up work is best-effort and must not delay
     //    Flashist initialization or erase degraded-startup sessions.
+    if (yandexSdkReady) {
+      this.scheduleYandexLoginStatusEvent();
+    }
     this.scheduleExperimentEvents(experimentFlagsPromise);
     this.scheduleOtelUserContext();
 
@@ -359,7 +362,7 @@ export class FlashistFacade {
   }
 
   private logSessionStartSequence(
-    yandexLoginStatus: YandexLoginStatus,
+    yandexLoginStatus?: YandexLoginStatus,
   ): void {
     consumePendingSessionEnd((matchesPlayed) => {
       flashist_logEventAnalytics(
@@ -375,7 +378,9 @@ export class FlashistFacade {
     flashist_logEventAnalytics(this.deviceTypeAnalyticsEvent());
     flashist_logEventAnalytics(this.platformOsAnalyticsEvent());
     this.logPlayerNewReturningEvent();
-    flashist_logEventAnalytics(this.yandexLoginStatusAnalyticsEvent(yandexLoginStatus));
+    if (yandexLoginStatus) {
+      this.logYandexLoginStatusEvent(yandexLoginStatus);
+    }
   }
 
   private deviceTypeAnalyticsEvent(): string {
@@ -475,24 +480,23 @@ export class FlashistFacade {
       return "unknown";
     }
 
-    const playerInitStatus = await Promise.race([
-      this.yandexSdkInitPlayerPromise
-        .then(() => "ready" as const)
-        .catch((reason) => {
-          console.warn("Init step failed: player init", reason);
-          return "unknown" as const;
-        }),
-      this.timeout(
-        FlashistFacade.YANDEX_LOGIN_STATUS_TIMEOUT_MS,
-        "unknown" as const,
-      ),
-    ]);
-
-    if (playerInitStatus !== "ready") {
+    try {
+      await this.yandexSdkInitPlayerPromise;
+    } catch (reason) {
+      console.warn("Init step failed: player init", reason);
       return "unknown";
     }
 
     return this.isYandexLoggedIn() ? "logged-in" : "guest";
+  }
+
+  private logYandexLoginStatusEvent(status: YandexLoginStatus): void {
+    if (this.hasLoggedYandexLoginStatus) {
+      return;
+    }
+
+    this.hasLoggedYandexLoginStatus = true;
+    flashist_logEventAnalytics(this.yandexLoginStatusAnalyticsEvent(status));
   }
 
   private yandexLoginStatusAnalyticsEvent(status: YandexLoginStatus): string {
@@ -524,6 +528,12 @@ export class FlashistFacade {
       .catch((reason) => {
         console.warn("Init step failed: experiment flags", reason);
       });
+  }
+
+  private scheduleYandexLoginStatusEvent(): void {
+    void this.resolveYandexLoginStatus().then((status) => {
+      this.logYandexLoginStatusEvent(status);
+    });
   }
 
   private scheduleOtelUserContext(): void {

@@ -1,6 +1,10 @@
-const PENDING_SESSION_END_KEY = "geoconflict_pending_session_end";
+const LEGACY_PENDING_SESSION_END_KEY = "geoconflict_pending_session_end";
+const PENDING_SESSION_END_KEY_PREFIX = "geoconflict_pending_session_end:";
 
-type SessionStorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+type SessionStorageLike = Pick<
+  Storage,
+  "getItem" | "key" | "length" | "removeItem" | "setItem"
+>;
 
 interface PendingSessionEnd {
   matchesPlayed: number;
@@ -10,11 +14,13 @@ interface PendingSessionEnd {
 
 let sessionMatchCount = 0;
 let sessionStartTimestamp: number | null = null;
+let sessionId: string | null = null;
 let sessionEndPersistenceHandlersInstalled = false;
 
 export function startSessionMatchTracking(nowMs = Date.now()): void {
   sessionMatchCount = 0;
   sessionStartTimestamp = nowMs;
+  sessionId = createSessionId(nowMs);
   installSessionEndPersistenceHandlers();
 }
 
@@ -37,7 +43,7 @@ export function persistPendingSessionEnd(
   };
 
   try {
-    storage.setItem(PENDING_SESSION_END_KEY, JSON.stringify(pending));
+    storage.setItem(pendingSessionEndKey(), JSON.stringify(pending));
   } catch {
     // Best-effort close-time persistence only.
   }
@@ -51,9 +57,20 @@ export function consumePendingSessionEnd(
     return;
   }
 
+  const keys = pendingSessionEndKeys(storage);
+  for (const key of keys) {
+    consumePendingSessionEndKey(key, logMatchesPlayed, storage);
+  }
+}
+
+function consumePendingSessionEndKey(
+  key: string,
+  logMatchesPlayed: (matchesPlayed: number) => void,
+  storage: SessionStorageLike,
+): void {
   let raw: string | null;
   try {
-    raw = storage.getItem(PENDING_SESSION_END_KEY);
+    raw = storage.getItem(key);
   } catch {
     return;
   }
@@ -71,11 +88,30 @@ export function consumePendingSessionEnd(
     // Drop malformed data so one bad write cannot poison future sessions.
   } finally {
     try {
-      storage.removeItem(PENDING_SESSION_END_KEY);
+      storage.removeItem(key);
     } catch {
       // Nothing useful to do during startup analytics.
     }
   }
+}
+
+function pendingSessionEndKeys(storage: SessionStorageLike): string[] {
+  const keys: string[] = [];
+  try {
+    for (let index = 0; index < storage.length; index++) {
+      const key = storage.key(index);
+      if (
+        key === LEGACY_PENDING_SESSION_END_KEY ||
+        key?.startsWith(PENDING_SESSION_END_KEY_PREFIX)
+      ) {
+        keys.push(key);
+      }
+    }
+  } catch {
+    return [];
+  }
+
+  return keys;
 }
 
 function normalizeMatchCount(matchesPlayed: number): number {
@@ -92,6 +128,22 @@ function safeLocalStorage(): SessionStorageLike | undefined {
   } catch {
     return undefined;
   }
+}
+
+function pendingSessionEndKey(): string {
+  return PENDING_SESSION_END_KEY_PREFIX + (sessionId ?? createSessionId());
+}
+
+function createSessionId(nowMs = Date.now()): string {
+  try {
+    return globalThis.crypto?.randomUUID?.() ?? fallbackSessionId(nowMs);
+  } catch {
+    return fallbackSessionId(nowMs);
+  }
+}
+
+function fallbackSessionId(nowMs: number): string {
+  return `${nowMs}-${Math.random().toString(36).slice(2)}`;
 }
 
 function installSessionEndPersistenceHandlers(): void {

@@ -56,7 +56,9 @@ Full session-start sequence:
 Session:Start → Device:[class] → Platform:[os] → Player:New/Returning → Player:YandexLoggedIn/Player:YandexGuest/Player:YandexUnknown
 ```
 
-If a previous session wrote a pending close-time payload, `Session:MatchesPlayed` fires before `Session:Start` during the next session startup.
+`Player:YandexLoggedIn` / `Player:YandexGuest` fires when Yandex player initialization resolves. On normal startup this follows `Player:New/Returning`; if player lookup is slow, the core session baseline still fires first and the login-status event is emitted later. `Player:YandexUnknown` is reserved for SDK/player initialization failure paths.
+
+If previous sessions wrote pending close-time payloads, `Session:MatchesPlayed` fires once per payload before `Session:Start` during the next session startup.
 
 ### Game Events
 
