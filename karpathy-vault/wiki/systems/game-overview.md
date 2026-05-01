@@ -40,7 +40,22 @@ Three-tier structure:
 | `Human` | Real player |
 | `Bot` | Simple server-spawned bot |
 | `AiPlayer` | AI player in public lobbies (indistinguishable from human in UI); see [[features/ai-players]] |
-| `FakeHuman` | NPC nation from map data (`clientID === null`) |
+| `FakeHuman` | NPC nation from map data (`clientID === null`); colloquially called "nations" |
+
+## Team Types
+
+In `GameMode.Team` games, players are grouped by `ColoredTeams` identifiers (defined in `src/core/game/Game.ts`). Two team values are meaningful beyond color labels:
+
+| Team (`ColoredTeams`) | Meaning |
+|---|---|
+| `Bot` | Team assigned to all `PlayerType.Bot` players in team mode games. Win checks suppress `ColoredTeams.Bot` wins in multiplayer; singleplayer allows them so the human player sees a loss screen when bots dominate. |
+| `Nations` | Team assigned to `PlayerType.FakeHuman` (NPC nation) players in the `HumansVsNations` game mode. |
+
+**"Bots" vs "Bot team":** The word *bots* in general usage (e.g. tutorial bot count, mission bot count) refers to `PlayerType.Bot` player entities. *Bot team* refers to the `ColoredTeams.Bot` team identifier used in win-condition logic. They are related — Bot players form the Bot team — but the distinction matters in `WinCheckExecution.checkWinnerTeam()`, which guards on the team value, not the player type.
+
+**"Nations" disambiguation:** The word *nations* is used in two senses:
+- **As players:** `PlayerType.FakeHuman` NPCs loaded from map data; present in singleplayer, missions, and the tutorial (when not disabled). Always have `clientID === null`.
+- **As a team:** `ColoredTeams.Nations` in the `HumansVsNations` multiplayer mode, where FakeHuman players are grouped on one side against human players.
 
 ## Spawn Phase
 
