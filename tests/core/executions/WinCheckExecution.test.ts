@@ -57,6 +57,7 @@ describe("WinCheckExecution", () => {
     const player = {
       numTilesOwned: jest.fn(() => 81),
       name: jest.fn(() => "P1"),
+      clientID: jest.fn(() => "p1_client"),
     };
     mg.players = jest.fn(() => [player]);
     mg.numLandTiles = jest.fn(() => 100);
@@ -69,6 +70,7 @@ describe("WinCheckExecution", () => {
     const player = {
       numTilesOwned: jest.fn(() => 10),
       name: jest.fn(() => "P1"),
+      clientID: jest.fn(() => "p1_client"),
     };
     mg.players = jest.fn(() => [player]);
     mg.numLandTiles = jest.fn(() => 100);
@@ -93,7 +95,7 @@ describe("WinCheckExecution", () => {
     expect(mg.setWinner).not.toHaveBeenCalled();
   });
 
-  it("sets a Bot team winner in singleplayer so the client can show a solo loss", () => {
+  it("keeps Bot team wins ignored in singleplayer team games", () => {
     const botTeamPlayer = {
       numTilesOwned: jest.fn(() => 81),
       team: jest.fn(() => ColoredTeams.Bot),
@@ -113,8 +115,31 @@ describe("WinCheckExecution", () => {
 
     winCheck.checkWinnerTeam();
 
+    expect(mg.setWinner).not.toHaveBeenCalled();
+  });
+
+  it("sets a non-Bot team winner in singleplayer team games", () => {
+    const nationTeamPlayer = {
+      numTilesOwned: jest.fn(() => 81),
+      team: jest.fn(() => ColoredTeams.Nations),
+    };
+    mg.players = jest.fn(() => [nationTeamPlayer]);
+    mg.numLandTiles = jest.fn(() => 100);
+    mg.numTilesWithFallout = jest.fn(() => 0);
+    mg.stats = jest.fn(() => ({ stats: () => ({ mocked: true }) }));
+    mg.config = jest.fn(() => ({
+      gameConfig: jest.fn(() => ({
+        gameMode: GameMode.Team,
+        gameType: GameType.Singleplayer,
+      })),
+      percentageTilesOwnedToWin: jest.fn(() => 80),
+      numSpawnPhaseTurns: jest.fn(() => 0),
+    }));
+
+    winCheck.checkWinnerTeam();
+
     expect(mg.setWinner).toHaveBeenCalledWith(
-      ColoredTeams.Bot,
+      ColoredTeams.Nations,
       expect.anything(),
     );
   });
@@ -163,11 +188,25 @@ describe("WinCheckExecution", () => {
     expect(result.data?.info.winner).toEqual(["opponent", "winner_fakehuman"]);
   });
 
-  it("keeps public FFA clientless winners on the pre-existing undefined winner path", async () => {
+  it("does not emit a public FFA win update for clientless winners", async () => {
     const { winUpdates } = await clientlessFfaWinUpdates(GameType.Public);
 
+    expect(winUpdates).toHaveLength(0);
+  });
+
+  it("emits a normal public FFA player winner for AI players with client ids", async () => {
+    const { winUpdates } = await ffaWinUpdates(
+      GameType.Public,
+      new PlayerInfo(
+        "winner_ai",
+        PlayerType.AiPlayer,
+        "ai_client",
+        "ai_player_id",
+      ),
+    );
+
     expect(winUpdates).toHaveLength(1);
-    expect(winUpdates[0].winner).toBeUndefined();
+    expect(winUpdates[0].winner).toEqual(["player", "ai_client"]);
   });
 
   it("does not emit an explicit opponent winner for tutorial clientless winners", async () => {
@@ -189,6 +228,23 @@ async function clientlessFfaWinUpdates(
   gameType: GameType,
   isTutorial = false,
 ) {
+  return ffaWinUpdates(
+    gameType,
+    new PlayerInfo(
+      "winner_fakehuman",
+      PlayerType.FakeHuman,
+      null,
+      "fake_id",
+    ),
+    isTutorial,
+  );
+}
+
+async function ffaWinUpdates(
+  gameType: GameType,
+  winnerInfo: PlayerInfo,
+  isTutorial = false,
+) {
   const humanInfo = new PlayerInfo(
     "human",
     PlayerType.Human,
@@ -205,19 +261,13 @@ async function clientlessFfaWinUpdates(
     },
     [humanInfo],
   );
-  const fakeHumanInfo = new PlayerInfo(
-    "winner_fakehuman",
-    PlayerType.FakeHuman,
-    null,
-    "fake_id",
-  );
-  game.addPlayer(fakeHumanInfo);
+  game.addPlayer(winnerInfo);
 
   while (game.inSpawnPhase()) {
     game.executeNextTick();
   }
 
-  const fakeHuman = game.player(fakeHumanInfo.id);
+  const winner = game.player(winnerInfo.id);
   const targetTiles = Math.floor(game.numLandTiles() * 0.82);
   let conqueredTiles = 0;
   game.forEachTile((tile) => {
@@ -226,7 +276,7 @@ async function clientlessFfaWinUpdates(
       game.map().isLand(tile) &&
       !game.map().hasOwner(tile)
     ) {
-      fakeHuman.conquer(tile);
+      winner.conquer(tile);
       conqueredTiles++;
     }
   });

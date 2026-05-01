@@ -56,6 +56,12 @@ export class WinCheckExecution implements Execution {
       (this.mg.config().gameConfig().maxTimerValue !== undefined &&
         timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0)
     ) {
+      if (
+        max.clientID() === null &&
+        this.mg.config().gameConfig().gameType !== GameType.Singleplayer
+      ) {
+        return;
+      }
       this.mg.setWinner(max, this.mg.stats().stats());
       console.log(`${max.name()} has won the game`);
       this.active = false;
@@ -91,10 +97,7 @@ export class WinCheckExecution implements Execution {
       (this.mg.config().gameConfig().maxTimerValue !== undefined &&
         timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0)
     ) {
-      if (
-        max[0] === ColoredTeams.Bot &&
-        this.mg.config().gameConfig().gameType !== GameType.Singleplayer
-      ) {
+      if (max[0] === ColoredTeams.Bot) {
         return;
       }
       this.mg.setWinner(max[0], this.mg.stats().stats());
