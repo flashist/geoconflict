@@ -12,7 +12,7 @@ The latest sprint brief now frames citizenship progression as an XP system: `10 
 **Rewarded ads explicitly deferred** — no reward mechanic exists yet. Rewarded ads ship in Sprint 5 once citizenship benefits give players something worth watching an ad for.
 
 Source: `ai-agents/sprints/plan-sprint-4.md`
-Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/tasks/done/sprint4-investigation-yandex-payments.md`, `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`, `ai-agents/tasks/done/analytics-p0-game-mode-segmentation.md`, `ai-agents/tasks/done/analytics-p0-match-duration.md`, `ai-agents/tasks/done/analytics-p0-player-days-played.md`, `ai-agents/tasks/done/8d-a-task-global-announcements.md`, `ai-agents/tasks/done/s4-start-screen-redesign-investigation.md`, `ai-agents/tasks/done/s4-legal-vat-investigation.md`, `ai-agents/tasks/done/s4-ai-lobby-slot-bug.md`, `ai-agents/tasks/done/s4-email-subscribe-task.md`, `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/done/s4-missions-difficulty-investigation.md`, `ai-agents/knowledge-base/s4-missions-difficulty-findings.md`, `ai-agents/tasks/done/s4-solo-win-condition-fix.md`, `ai-agents/tasks/done/s4-telegram-link.md`, `ai-agents/tasks/done/s4-vk-link.md`, `ai-agents/tasks/done/s4-nuke-trajectory-visibility.md`, `ai-agents/tasks/done/s4-teams-mode-max-teams.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
+Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/tasks/done/sprint4-investigation-yandex-payments.md`, `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`, `ai-agents/tasks/done/analytics-p0-game-mode-segmentation.md`, `ai-agents/tasks/done/analytics-p0-match-duration.md`, `ai-agents/tasks/done/analytics-p0-player-days-played.md`, `ai-agents/tasks/done/analytics-p0-yandex-login-status.md`, `ai-agents/tasks/done/8d-a-task-global-announcements.md`, `ai-agents/tasks/done/s4-start-screen-redesign-investigation.md`, `ai-agents/tasks/done/s4-legal-vat-investigation.md`, `ai-agents/tasks/done/s4-ai-lobby-slot-bug.md`, `ai-agents/tasks/done/s4-email-subscribe-task.md`, `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/done/s4-missions-difficulty-investigation.md`, `ai-agents/knowledge-base/s4-missions-difficulty-findings.md`, `ai-agents/tasks/done/s4-solo-win-condition-fix.md`, `ai-agents/tasks/done/s4-telegram-link.md`, `ai-agents/tasks/done/s4-vk-link.md`, `ai-agents/tasks/done/s4-nuke-trajectory-visibility.md`, `ai-agents/tasks/done/s4-teams-mode-max-teams.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
 
 ## Decision
 
@@ -37,6 +37,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Analytics P0: game mode segmentation — done
 - Analytics P0: match duration — done
 - Analytics P0: player days played — done
+- Analytics P0: Yandex login status — done
 - Telegram Channel Link — done
 - VK Channel Link — done
 - Nuke trajectory visibility — done
@@ -108,6 +109,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Solo mode no longer stalls indefinitely when an opponent reaches the win threshold; the player sees a distinct opponent-win loss state and `Match:Loss:OpponentWon` tracks that reason
 - `Game:Start` analytics now emits an immediate `Game:Mode:Multiplayer` or `Game:Mode:Solo` classifier for first real match starts; see [[tasks/analytics-p0-game-mode-segmentation]].
 - `Player:DaysPlayed` now records cumulative unique local calendar days opened, giving the citizenship funnel a loyalty-depth signal beyond `Player:New` and `Player:Returning`; see [[tasks/analytics-p0-player-days-played]].
+- Yandex login status now emits one of `Player:YandexLoggedIn`, `Player:YandexGuest`, or `Player:YandexUnknown` per session, so citizenship planning can measure authenticated reach before launch; see [[tasks/analytics-p0-yandex-login-status]].
 - Telegram Channel Link shipped as an experiment-gated CTA on the start/loading and game-end modals, with placement-specific `UI:Tap:*` analytics
 - VK Channel Link mirrors the Telegram community CTA with its own `vk_link` experiment flag, live `https://vk.com/gameworldwar` URL, and placement-specific `UI:Tap:VkLinkStartScreen` / `UI:Tap:VkLinkGameEnd` analytics.
 - Nuke trajectory visibility increased the pre-launch targeting arc thickness while leaving color, alpha, and launch mechanics unchanged; see [[tasks/nuke-trajectory-visibility]].
@@ -142,6 +144,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/solo-win-condition-fix]] — Sprint 4 bug fix for opponent-win loss handling in solo modes
 - [[tasks/analytics-p0-game-mode-segmentation]] — Sprint 4 P0 analytics classifier for multiplayer versus solo match starts
 - [[tasks/analytics-p0-player-days-played]] — Sprint 4 P0 analytics loyalty-depth event for unique calendar days opened
+- [[tasks/analytics-p0-yandex-login-status]] — Sprint 4 P0 analytics identity-reach event for Yandex logged-in, guest, and unknown states
 - [[tasks/telegram-link]] — Sprint 4 experiment-gated Telegram CTA on start and game-end screens
 - [[tasks/vk-link]] — Sprint 4 experiment-gated VK CTA on start and game-end screens
 - [[tasks/nuke-trajectory-visibility]] — Sprint 4 nuke targeting arc visual polish
