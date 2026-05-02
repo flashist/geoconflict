@@ -366,8 +366,8 @@ export class FlashistFacade {
 
     // Player:DaysPlayed — cumulative unique calendar days the player has opened the game
     try {
-      const LAST_PLAYED_KEY = "geoconflict_last_played_date";
-      const DAYS_PLAYED_KEY = "geoconflict_days_played";
+      const LAST_PLAYED_KEY = "geoconflict.player.lastPlayedDate";
+      const DAYS_PLAYED_KEY = "geoconflict.player.daysPlayed";
       const d = new Date();
       const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const lastDate = localStorage.getItem(LAST_PLAYED_KEY);
