@@ -80,6 +80,7 @@ export const flashistConstants = {
 
     PLAYER_NEW: "Player:New",
     PLAYER_RETURNING: "Player:Returning",
+    PLAYER_DAYS_PLAYED: "Player:DaysPlayed",
 
     WORKER_INIT_SUCCESS: "Worker:InitSuccess",
     WORKER_INIT_FAILED: "Worker:InitFailed",
@@ -357,6 +358,36 @@ export class FlashistFacade {
       } else {
         flashist_logEventAnalytics(
           flashistConstants.analyticEvents.PLAYER_RETURNING,
+        );
+      }
+    } catch {
+      // silently skip if storage is unavailable (e.g. sandboxed iframe)
+    }
+
+    // Player:DaysPlayed — cumulative unique calendar days the player has opened the game
+    try {
+      const LAST_PLAYED_KEY = "geoconflict_last_played_date";
+      const DAYS_PLAYED_KEY = "geoconflict_days_played";
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const lastDate = localStorage.getItem(LAST_PLAYED_KEY);
+      if (lastDate === null || lastDate !== today) {
+        const stored = parseInt(
+          localStorage.getItem(DAYS_PLAYED_KEY) ?? "0",
+          10,
+        );
+        const days = isNaN(stored) ? 0 : stored;
+        localStorage.setItem(DAYS_PLAYED_KEY, String(days + 1));
+        localStorage.setItem(LAST_PLAYED_KEY, today);
+      }
+      const daysValue = parseInt(
+        localStorage.getItem(DAYS_PLAYED_KEY) ?? "0",
+        10,
+      );
+      if (!isNaN(daysValue) && daysValue > 0) {
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.PLAYER_DAYS_PLAYED,
+          daysValue,
         );
       }
     } catch {
