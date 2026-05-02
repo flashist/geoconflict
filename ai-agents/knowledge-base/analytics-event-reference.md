@@ -21,11 +21,12 @@ All future events must follow this convention. The TypeScript enum serves as the
 
 ### Session Events
 
-| Enum Key               | Event String                                        | When Fired                                                                |
-| ---------------------- | --------------------------------------------------- | ------------------------------------------------------------------------- |
-| `SESSION_START`        | `Session:Start`                                     | Once per session, on game load after SDK init. Top step of all funnels.   |
-| `SESSION_HEARTBEAT`    | `Session:Heartbeat:05`, `Session:Heartbeat:10`, ... | Every 5 minutes while player is active. Stops on inactivity or tab close. |
-| `SESSION_FIRST_ACTION` | `Session:FirstAction`                               | Once per session, on first meaningful interaction on the start screen.    |
+| Enum Key                  | Event String                                        | When Fired                                                                                                                                                       |
+| ------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SESSION_MATCHES_PLAYED`  | `Session:MatchesPlayed`                             | Once per session, **before** `Session:Start`, when a previous session's pending entry is consumed from localStorage; **value** = integer match starts recorded in that prior session (0 if no matches played). Fires once per tab that closed; multi-tab sessions produce one event each. |
+| `SESSION_START`           | `Session:Start`                                     | Once per session, on game load after SDK init. Top step of all funnels.                                                                                          |
+| `SESSION_HEARTBEAT`       | `Session:Heartbeat:05`, `Session:Heartbeat:10`, ... | Every 5 minutes while player is active. Stops on inactivity or tab close.                                                                                        |
+| `SESSION_FIRST_ACTION`    | `Session:FirstAction`                               | Once per session, on first meaningful interaction on the start screen.                                                                                           |
 
 ### Device & Platform Segmentation Events
 
@@ -53,7 +54,8 @@ Fired once per session immediately after `Session:Start`, in this order:
 Full session-start sequence:
 
 ```
-Session:Start → Device:[class] → Platform:[os] → Player:New/Returning → Player:DaysPlayed
+Session:MatchesPlayed (0..N, from prior session) → Session:Start → Device:[class] → Platform:[os]
+→ Player:New/Returning → Player:DaysPlayed
 → Player:YandexLoggedIn / Player:YandexGuest / Player:YandexUnknown  (async, after player auth)
 ```
 
