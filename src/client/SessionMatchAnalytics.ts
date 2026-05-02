@@ -1,5 +1,4 @@
 const PENDING_PREFIX = "geoconflict.session.pendingEnd:";
-const LEGACY_KEY = "geoconflict.session.pendingEnd";
 
 export interface StorageLike {
   getItem(key: string): string | null;
@@ -72,9 +71,6 @@ export function consumePendingSessionEnd(
       if (k !== null && k.startsWith(PENDING_PREFIX)) {
         keys.push(k);
       }
-    }
-    if (storage.getItem(LEGACY_KEY) !== null) {
-      keys.push(LEGACY_KEY);
     }
     for (const k of keys) {
       try {

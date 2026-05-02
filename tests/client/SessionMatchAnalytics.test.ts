@@ -21,7 +21,6 @@ import {
 } from "../../src/client/SessionMatchAnalytics";
 
 const PENDING_PREFIX = "geoconflict.session.pendingEnd:";
-const LEGACY_KEY = "geoconflict.session.pendingEnd";
 
 function makeStorage(
   initial: Record<string, string> = {},
@@ -219,22 +218,6 @@ describe("SessionMatchAnalytics", () => {
       const counts = log.mock.calls.map(([c]) => c).sort((a, b) => a - b);
       expect(counts).toEqual([1, 3]);
       expect(Object.keys(storage.data)).toHaveLength(0);
-    });
-
-    it("handles the legacy key (no UUID suffix)", () => {
-      const storage = makeStorage({
-        [LEGACY_KEY]: JSON.stringify({
-          matchesPlayed: 2,
-          sessionStartTime: 1000,
-          firedAt: 2000,
-        }),
-      });
-
-      const log = jest.fn();
-      consumePendingSessionEnd(log, storage);
-
-      expect(log).toHaveBeenCalledWith(2);
-      expect(storage.data[LEGACY_KEY]).toBeUndefined();
     });
 
     it("silently drops and removes a malformed JSON entry", () => {
