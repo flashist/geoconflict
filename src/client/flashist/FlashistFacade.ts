@@ -5,6 +5,10 @@ import { setOtelUser } from "../OtelBrowserInit";
 import { isMobileDevice } from "../Utils";
 import version from "../../version";
 import { logDaysPlayedAnalytics } from "../DaysPlayedAnalytics";
+import {
+  consumePendingSessionEnd,
+  startSessionMatchTracking,
+} from "../SessionMatchAnalytics";
 
 export const TELEGRAM_CHANNEL_URL = "https://t.me/gameworldwar";
 export const VK_CHANNEL_URL = "https://vk.com/gameworldwar";
@@ -43,6 +47,7 @@ export const flashistConstants = {
     SESSION_START: "Session:Start",
     SESSION_HEARTBEAT: "Session:Heartbeat",
     SESSION_FIRST_ACTION: "Session:FirstAction",
+    SESSION_MATCHES_PLAYED: "Session:MatchesPlayed",
     MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
     MATCH_SPAWN_AUTO: "Match:SpawnAuto",
     MATCH_SPAWNED_CONFIRMED: "Match:Spawned",
@@ -296,6 +301,13 @@ export class FlashistFacade {
     this.yandexInitPromise = this.yandexSdkInit();
     this.yandexSdkInitPlayerPromise = this.initPlayer();
 
+    consumePendingSessionEnd((matchesPlayed) => {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.SESSION_MATCHES_PLAYED,
+        matchesPlayed,
+      );
+    });
+
     // Setting up Game Analytics — disabled for dev and staging builds to avoid
     // polluting production analytics data with non-production sessions.
     if (process.env.DEPLOY_ENV === "prod") {
@@ -317,6 +329,8 @@ export class FlashistFacade {
         flashistConstants.analyticEvents.SESSION_START,
       );
     }
+
+    startSessionMatchTracking();
 
     // Device:Type — fired once per session after Session:Start
     const ua = navigator.userAgent;
