@@ -432,7 +432,7 @@ export class FlashistFacade {
   }
 
   private async resolveYandexLoginStatus(): Promise<YandexLoginStatus> {
-    await this.yandexSdkInitPlayerPromise;
+    await this.yandexSdkInitPlayerPromise.catch(() => {});
     return this.isYandexLoggedIn() ? "logged-in" : "guest";
   }
 
