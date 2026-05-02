@@ -633,7 +633,7 @@ export class FlashistFacade {
     });
   }
 
-  public isYandexLoggedIn(): boolean {
+  private isYandexLoggedIn(): boolean {
     try {
       return !!this.yandexSdkPlayerObject?.isAuthorized();
     } catch {
