@@ -4,6 +4,7 @@ import {
   flashist_logEventAnalytics,
   flashistConstants,
 } from "./flashist/FlashistFacade";
+import { recordSessionMatchStart } from "./SessionMatchAnalytics";
 
 export interface MatchStartAnalyticsState {
   hasJoined: boolean;
@@ -49,6 +50,7 @@ export function logMatchStartAnalytics(
   flashist_logEventAnalytics(
     gameModeAnalyticsEvent(gameStartInfo.config.gameType),
   );
+  recordSessionMatchStart();
   return true;
 }
 
