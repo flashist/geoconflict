@@ -4,6 +4,7 @@ import { GameEnv } from "../../core/configuration/Config";
 import { setOtelUser } from "../OtelBrowserInit";
 import { isMobileDevice } from "../Utils";
 import version from "../../version";
+import { logDaysPlayedAnalytics } from "../DaysPlayedAnalytics";
 
 export const TELEGRAM_CHANNEL_URL = "https://t.me/gameworldwar";
 export const VK_CHANNEL_URL = "https://vk.com/gameworldwar";
@@ -364,38 +365,7 @@ export class FlashistFacade {
       // silently skip if storage is unavailable (e.g. sandboxed iframe)
     }
 
-    // Player:DaysPlayed — cumulative unique calendar days the player has opened the game
-    try {
-      const LAST_PLAYED_KEY = "geoconflict.player.lastPlayedDate";
-      const DAYS_PLAYED_KEY = "geoconflict.player.daysPlayed";
-      const d = new Date();
-      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const lastDate = localStorage.getItem(LAST_PLAYED_KEY);
-      let daysValue: number;
-      if (lastDate !== today) {
-        const stored = parseInt(
-          localStorage.getItem(DAYS_PLAYED_KEY) ?? "0",
-          10,
-        );
-        daysValue = (isNaN(stored) ? 0 : stored) + 1;
-        localStorage.setItem(DAYS_PLAYED_KEY, String(daysValue));
-        localStorage.setItem(LAST_PLAYED_KEY, today);
-      } else {
-        const stored = parseInt(
-          localStorage.getItem(DAYS_PLAYED_KEY) ?? "0",
-          10,
-        );
-        daysValue = isNaN(stored) ? 0 : stored;
-      }
-      if (daysValue > 0) {
-        flashist_logEventAnalytics(
-          flashistConstants.analyticEvents.PLAYER_DAYS_PLAYED,
-          daysValue,
-        );
-      }
-    } catch {
-      // silently skip if storage is unavailable (e.g. sandboxed iframe)
-    }
+    logDaysPlayedAnalytics();
 
     this.initializationPromise = this._initialize();
   }
