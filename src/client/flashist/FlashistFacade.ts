@@ -82,6 +82,9 @@ export const flashistConstants = {
     PLAYER_NEW: "Player:New",
     PLAYER_RETURNING: "Player:Returning",
     PLAYER_DAYS_PLAYED: "Player:DaysPlayed",
+    PLAYER_YANDEX_LOGGED_IN: "Player:YandexLoggedIn",
+    PLAYER_YANDEX_GUEST: "Player:YandexGuest",
+    PLAYER_YANDEX_UNKNOWN: "Player:YandexUnknown",
 
     WORKER_INIT_SUCCESS: "Worker:InitSuccess",
     WORKER_INIT_FAILED: "Worker:InitFailed",
@@ -261,6 +264,9 @@ window.addEventListener("unhandledrejection", (event) => {
 
 // declare let YaGames: any;
 
+const YANDEX_SDK_INIT_TIMEOUT_MS = 1000;
+type YandexLoginStatus = "logged-in" | "guest" | "unknown";
+
 export class FlashistFacade {
   private static _instance: FlashistFacade;
   public static get instance(): FlashistFacade {
@@ -277,6 +283,8 @@ export class FlashistFacade {
   public rootPathname: string = window.location.pathname;
 
   public yaGamesAvailable: boolean = false;
+  private hasLoggedYandexLoginStatus = false;
+  private hasLoggedExperimentEvents = false;
 
   public yandexGamesSDK: any;
 
@@ -373,16 +381,25 @@ export class FlashistFacade {
   public readonly initializationPromise: Promise<void>;
 
   private async _initialize(): Promise<void> {
-    // 1. SDK must be ready first — both initPlayer() and initExperimentFlags() await it
-    //    internally, so this explicit gate makes the dependency clear and ensures step 2
-    //    starts only after the SDK object is available.
-    await this.yandexInitPromise;
+    const sdkReady = await this.waitForYandexSdkForSession();
 
-    // 2. Player and experiment flags can proceed in parallel
+    if (!sdkReady) {
+      // SDK timed out — yaGamesAvailable distinguishes "slow Yandex" from "no Yandex"
+      this.logYandexLoginStatusEvent(this.yaGamesAvailable ? "unknown" : "guest");
+    } else if (!this.yandexGamesSDK) {
+      // SDK resolved but not a Yandex platform (yandexSdkInit resolved instantly with no SDK)
+      this.logYandexLoginStatusEvent("guest");
+    } else {
+      // SDK ready in time — schedule deferred status after player auth resolves
+      this.scheduleYandexLoginStatusEvent();
+    }
+
     const [playerResult, flagsResult] = await Promise.allSettled([
       this.yandexSdkInitPlayerPromise,
-      this.initExperimentFlags(),
+      this.loadExperimentFlags(),
     ]);
+    this.logExperimentEvents();
+
     if (playerResult.status === "rejected") {
       console.warn("Init step failed: player init", playerResult.reason);
     }
@@ -390,7 +407,7 @@ export class FlashistFacade {
       console.warn("Init step failed: experiment flags", flagsResult.reason);
     }
 
-    // 3. Apply experiment-driven config mutations — guaranteed to be after flags are loaded
+    // Apply experiment-driven config mutations — guaranteed to be after flags are loaded
     // const joinMoreAdsEnabled = await this.checkExperimentFlag(
     //     flashistConstants.experiments.JOIN_MORE_ADS_FLAG_NAME,
     //     flashistConstants.experiments.JOIN_MORE_ADS_FLAG_VALUE,
@@ -399,9 +416,48 @@ export class FlashistFacade {
     //     flashistConstants.ads.interstitial.join = flashistConstants.ads.interstitial.joinMoreAds;
     // }
 
-    // 4. OTEL user context (best-effort)
+    // OTEL user context (best-effort)
     const name = await this.getCurPlayerName().catch(() => undefined);
     if (name) setOtelUser(name);
+  }
+
+  private waitForYandexSdkForSession(): Promise<boolean> {
+    const timeout = new Promise<false>((resolve) =>
+      setTimeout(() => resolve(false), YANDEX_SDK_INIT_TIMEOUT_MS),
+    );
+    return Promise.race([
+      this.yandexInitPromise.then(() => true as const),
+      timeout,
+    ]);
+  }
+
+  private async resolveYandexLoginStatus(): Promise<YandexLoginStatus> {
+    await this.yandexSdkInitPlayerPromise;
+    return this.isYandexLoggedIn() ? "logged-in" : "guest";
+  }
+
+  private logYandexLoginStatusEvent(status: YandexLoginStatus): void {
+    if (this.hasLoggedYandexLoginStatus) return;
+    this.hasLoggedYandexLoginStatus = true;
+    if (status === "logged-in") {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.PLAYER_YANDEX_LOGGED_IN,
+      );
+    } else if (status === "guest") {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.PLAYER_YANDEX_GUEST,
+      );
+    } else {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.PLAYER_YANDEX_UNKNOWN,
+      );
+    }
+  }
+
+  private scheduleYandexLoginStatusEvent(): void {
+    this.resolveYandexLoginStatus().then((status) => {
+      this.logYandexLoginStatusEvent(status);
+    });
   }
 
   // Single place for working with URLS
@@ -446,7 +502,8 @@ export class FlashistFacade {
   // FLAGS (Experiments)
   protected yandexInitExperimentsPromise: Promise<any>;
   protected yandexExperimentFlags: any;
-  protected async initExperimentFlags(): Promise<void> {
+
+  protected async loadExperimentFlags(): Promise<void> {
     await this.yandexInitPromise;
 
     if (!this.yandexInitExperimentsPromise) {
@@ -461,29 +518,33 @@ export class FlashistFacade {
             }
           } catch (error) {
             flashist_logErrorToAnalytics(
-              `ERROR! FlashistFacade | initExperimentFlags __ error: ${error}`,
+              `ERROR! FlashistFacade | loadExperimentFlags __ error: ${error}`,
               flashist_logErrorTypes.DEBUG,
             );
           }
         }
 
         this.yandexExperimentFlags = experiments;
-
-        // Fire one analytics event per flag as soon as flags are loaded.
-        // Format: "Experiment:{flagName}:{flagValue}"
-        if (this.yandexExperimentFlags) {
-          for (const [name, value] of Object.entries(
-            this.yandexExperimentFlags,
-          )) {
-            this.logExperimentEvent(name, String(value));
-          }
-        }
-
         resolve();
       });
     }
 
     return this.yandexInitExperimentsPromise;
+  }
+
+  protected logExperimentEvents(): void {
+    if (this.hasLoggedExperimentEvents) return;
+    this.hasLoggedExperimentEvents = true;
+    if (this.yandexExperimentFlags) {
+      for (const [name, value] of Object.entries(this.yandexExperimentFlags)) {
+        this.logExperimentEvent(name, String(value));
+      }
+    }
+  }
+
+  protected async initExperimentFlags(): Promise<void> {
+    await this.loadExperimentFlags();
+    this.logExperimentEvents();
   }
 
   // public async getExperimentFlags(): Promise<any> {
@@ -570,6 +631,14 @@ export class FlashistFacade {
         resolve(); // No SDK available — nothing to initialize
       }
     });
+  }
+
+  public isYandexLoggedIn(): boolean {
+    try {
+      return !!this.yandexSdkPlayerObject?.isAuthorized();
+    } catch {
+      return false;
+    }
   }
 
   public async getCurPlayerName(): Promise<string> {
