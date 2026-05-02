@@ -14,15 +14,17 @@ interface PendingSessionEntry {
   firedAt: number;
 }
 
-let sessionMatchCount = 0;
-let sessionId: string | null = null;
-let sessionStartTimeMs: number | null = null;
+interface ActiveSession {
+  id: string;
+  startTime: number;
+  matchCount: number;
+}
+
+let activeSession: ActiveSession | null = null;
 let handlersInstalled = false;
 
 export function startSessionMatchTracking(nowMs = Date.now()): void {
-  sessionMatchCount = 0;
-  sessionStartTimeMs = nowMs;
-  sessionId = crypto.randomUUID();
+  activeSession = { id: crypto.randomUUID(), startTime: nowMs, matchCount: 0 };
   if (!handlersInstalled) {
     handlersInstalled = true;
     const persist = (): void => persistPendingSessionEnd();
@@ -32,31 +34,29 @@ export function startSessionMatchTracking(nowMs = Date.now()): void {
 }
 
 export function recordSessionMatchStart(): void {
-  if (sessionId === null) return;
-  sessionMatchCount++;
+  if (activeSession === null) return;
+  activeSession.matchCount++;
 }
 
 export function persistPendingSessionEnd(
   storage: StorageLike = localStorage,
   nowMs = Date.now(),
 ): void {
-  if (sessionId === null) return;
+  if (activeSession === null) return;
   try {
     const entry: PendingSessionEntry = {
-      matchesPlayed: sessionMatchCount,
-      sessionStartTime: sessionStartTimeMs!,
+      matchesPlayed: activeSession.matchCount,
+      sessionStartTime: activeSession.startTime,
       firedAt: nowMs,
     };
-    storage.setItem(`${PENDING_PREFIX}${sessionId}`, JSON.stringify(entry));
+    storage.setItem(`${PENDING_PREFIX}${activeSession.id}`, JSON.stringify(entry));
   } catch {
     // silently skip if storage is unavailable (e.g. sandboxed iframe)
   }
 }
 
 export function resetForTesting(): void {
-  sessionMatchCount = 0;
-  sessionId = null;
-  sessionStartTimeMs = null;
+  activeSession = null;
   handlersInstalled = false;
 }
 
