@@ -4,6 +4,7 @@ import { GameEnv } from "../../core/configuration/Config";
 import { setOtelUser } from "../OtelBrowserInit";
 import { isMobileDevice } from "../Utils";
 import version from "../../version";
+import { logDaysPlayedAnalytics } from "../DaysPlayedAnalytics";
 
 export const TELEGRAM_CHANNEL_URL = "https://t.me/gameworldwar";
 export const VK_CHANNEL_URL = "https://vk.com/gameworldwar";
@@ -80,6 +81,7 @@ export const flashistConstants = {
 
     PLAYER_NEW: "Player:New",
     PLAYER_RETURNING: "Player:Returning",
+    PLAYER_DAYS_PLAYED: "Player:DaysPlayed",
 
     WORKER_INIT_SUCCESS: "Worker:InitSuccess",
     WORKER_INIT_FAILED: "Worker:InitFailed",
@@ -362,6 +364,8 @@ export class FlashistFacade {
     } catch {
       // silently skip if storage is unavailable (e.g. sandboxed iframe)
     }
+
+    logDaysPlayedAnalytics();
 
     this.initializationPromise = this._initialize();
   }

@@ -31,6 +31,15 @@ This event fills that gap by tracking how many distinct calendar days the player
 | `geoconflict_days_played` | integer (stored as string) | Cumulative unique days count |
 | `geoconflict_last_played_date` | string (YYYY-MM-DD) | Last calendar date a session was opened |
 
+> **Implementation note:** The keys above use underscore notation as originally specified. In the actual implementation the dot-notation convention was applied instead, to match the pre-existing key `geoconflict.player.firstSeen` used by the `Player:New/Returning` logic in the same block. The keys as shipped are:
+>
+> | As specified | As implemented |
+> |---|---|
+> | `geoconflict_days_played` | `geoconflict.player.daysPlayed` |
+> | `geoconflict_last_played_date` | `geoconflict.player.lastPlayedDate` |
+>
+> Any future keys in this namespace should follow the `geoconflict.player.*` dot-notation pattern.
+
 Use the player's **local calendar date** (not UTC) — a player's "day" should match their wall clock. Derive today's date as:
 ```ts
 const d = new Date();

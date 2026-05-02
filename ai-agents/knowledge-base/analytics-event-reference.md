@@ -43,13 +43,14 @@ Fired once per session immediately after `Session:Start`, in this order:
 | `PLATFORM_MACOS`   | `Platform:macos`   | OS is macOS                         |
 | `PLATFORM_LINUX`   | `Platform:linux`   | OS is Linux                         |
 | `PLATFORM_OTHER`   | `Platform:other`   | OS is unrecognized (ChromeOS, etc.) |
-| `PLAYER_NEW`       | `Player:New`       | Player's very first session ever    |
-| `PLAYER_RETURNING` | `Player:Returning` | Every session after the first       |
+| `PLAYER_NEW`         | `Player:New`         | Player's very first session ever                                                       |
+| `PLAYER_RETURNING`   | `Player:Returning`   | Every session after the first                                                          |
+| `PLAYER_DAYS_PLAYED` | `Player:DaysPlayed`  | Once per session, immediately after `Player:New/Returning`; **value** = integer cumulative unique calendar days the game was opened (local time, not UTC; a gap of N days still increments by 1, not N) |
 
 Full session-start sequence:
 
 ```
-Session:Start → Device:[class] → Platform:[os] → Player:New/Returning
+Session:Start → Device:[class] → Platform:[os] → Player:New/Returning → Player:DaysPlayed
 ```
 
 ### Game Events
