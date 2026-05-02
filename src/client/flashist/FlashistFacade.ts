@@ -371,7 +371,7 @@ export class FlashistFacade {
       const d = new Date();
       const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const lastDate = localStorage.getItem(LAST_PLAYED_KEY);
-      if (lastDate === null || lastDate !== today) {
+      if (lastDate !== today) {
         const stored = parseInt(
           localStorage.getItem(DAYS_PLAYED_KEY) ?? "0",
           10,
