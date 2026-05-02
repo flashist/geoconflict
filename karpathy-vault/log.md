@@ -365,3 +365,11 @@
 
 ## 2026-04-30 — ingest
 - Ingested: `ai-agents/tasks/done/analytics-p0-match-duration.md` → created [[wiki/tasks/analytics-p0-match-duration]]; updated [[wiki/systems/analytics]], [[wiki/decisions/sprint-4]]
+
+## 2026-05-02 — ingest
+- Sync window: `30a232eb76e62cbeeae6dd188286e0210f411e1a` → HEAD (`a5568a3255440662403231d251f3490fc520be68`)
+- Changed source files detected: 7
+- Ingested: `ai-agents/tasks/done/analytics-p0-player-days-played.md` → created [[wiki/tasks/analytics-p0-player-days-played]]; updated [[wiki/systems/analytics]], [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
+- Skipped (already covered): `ai-agents/tasks/done/analytics-p0-match-duration.md` — current wiki page and backlinks were already created in the 2026-04-30 manual ingest
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/analytics-p0-player-days-played.md`, `ai-agents/tasks/backlog/s4-win-check-multiplayer-regression-investigation.md`, `ai-agents/tasks/backlog/analytics-p0-session-match-count.md`, `ai-agents/tasks/backlog/analytics-p0-yandex-login-status.md` — backlog files are not eligible for `wiki-sync`

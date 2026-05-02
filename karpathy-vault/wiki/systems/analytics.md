@@ -24,7 +24,7 @@ The reference docs are `ai-agents/knowledge-base/analytics-event-reference.md` a
 |---|---|
 | `Session` | Session lifecycle, heartbeats, first action |
 | `Device` / `Platform` | Segmentation — fired once per session after `Session:Start` |
-| `Player` | New vs. returning |
+| `Player` | New vs. returning, loyalty depth, and identity/session enrichment |
 | `Game` | Match start, mode classification, end, win, loss, abandon |
 | `Match` | Spawn flow (chosen, auto, missed, retry) and match-specific loss reasons |
 | `Reconnect` | Disconnect/reconnect flow |
@@ -40,9 +40,11 @@ The reference docs are `ai-agents/knowledge-base/analytics-event-reference.md` a
 ## Session Start Sequence
 
 ```
-Session:Start → Device:[class] → Platform:[os] → Player:New/Returning
+Session:Start → Device:[class] → Platform:[os] → Player:New/Returning → Player:DaysPlayed
 ```
 Fired in this order, once per session, from `FlashistFacade` constructor on module evaluation.
+
+`Player:DaysPlayed` is the cumulative count of unique local calendar days on which the player opened the game. Same-day repeat sessions fire with the same value; returning after a gap increments by exactly `1`, not by the gap length. The shipped storage keys are `geoconflict.player.daysPlayed` and `geoconflict.player.lastPlayedDate`, matching the existing `geoconflict.player.*` namespace. See [[tasks/analytics-p0-player-days-played]].
 
 ## Game Mode Segmentation
 
@@ -154,5 +156,6 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/analytics-p0-game-mode-segmentation]] — P0 mode classifier emitted immediately after `Game:Start`
 - [[tasks/analytics-p0-spawn-confirmation]] — P0 confirmed-spawn event for time-to-spawn and ghost-rate measurement
 - [[tasks/analytics-p0-match-duration]] — P0 duration event emitted alongside `Game:End`
+- [[tasks/analytics-p0-player-days-played]] — P0 loyalty-depth event emitted after `Player:New` or `Player:Returning`
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
 - [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, and `Announcements:Closed`
