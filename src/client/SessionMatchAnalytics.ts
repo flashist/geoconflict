@@ -58,6 +58,8 @@ export function persistPendingSessionEnd(
 export function resetForTesting(): void {
   activeSession = null;
   handlersInstalled = false;
+  // Does not remove previously installed window event listeners — tests mock
+  // window.addEventListener so no real handlers are registered in Jest.
 }
 
 export function consumePendingSessionEnd(
