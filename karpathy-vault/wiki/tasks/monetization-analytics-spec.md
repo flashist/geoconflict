@@ -24,3 +24,4 @@ The spec is a planning baseline, not an implementation result. It should be used
 
 - [[systems/analytics]]
 - [[decisions/sprint-4]]
+- [[tasks/analytics-p0-session-match-count]] — ships the per-session match-count input needed for the P0 match-lifecycle baseline

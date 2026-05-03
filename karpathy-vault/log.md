@@ -387,3 +387,9 @@
 - Ingested: `ai-agents/tasks/done/analytics-p0-session-match-count.md` → created [[wiki/tasks/analytics-p0-session-match-count]]; updated [[wiki/systems/analytics]], [[wiki/tasks/analytics-p0-yandex-login-status]]
 - Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]] (Session:MatchesPlayed added to sequence; session start sequence updated)
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/streamer-program.md` — backlog file, not eligible for `wiki-sync`
+
+## 2026-05-03 — lint
+- Issues found: 6
+- Issues fixed: 6
+- Issues flagged for human review: 0
+- Fixed 5 missing bidirectional back-links (flashist-init, monetization-analytics-spec, analytics-p0-game-mode-segmentation, sprint-4 ×2) and updated stale session-start-sequence task page to include Session:MatchesPlayed before Session:Start

@@ -13,8 +13,10 @@ Establish a standardised session-start event sequence that enables funnels segme
 ### Event Sequence (fires in this order on every session start)
 
 ```
-Session:Start → Device:{Type} → Platform:{OS} → Player:New / Player:Returning
+Session:MatchesPlayed (0..N, from prior session) → Session:Start → Device:{Type} → Platform:{OS} → Player:New / Player:Returning
 ```
+
+**`Session:MatchesPlayed`** — fires **before** `Session:Start`, once per pending localStorage entry left by a prior closed tab. Value = integer match starts in that prior session (0 if no matches played). Added in Sprint 4; see [[tasks/analytics-p0-session-match-count]].
 
 **`Session:Start`** — custom Design Event fired immediately after SDK init. Required as the top step of all funnels; the built-in SDK session event is not available in the funnel builder.
 
@@ -44,3 +46,4 @@ Enables device-segmented and OS-segmented funnels. Critical for:
 - [[systems/analytics]] — full analytics event reference and conventions
 - [[decisions/sprint-1]] — sprint where these events were shipped
 - [[features/tutorial]] — primary beneficiary of `Player:New` segmentation
+- [[tasks/analytics-p0-session-match-count]] — Sprint 4 addition: `Session:MatchesPlayed` now precedes `Session:Start`

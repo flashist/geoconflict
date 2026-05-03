@@ -38,6 +38,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Analytics P0: match duration — done
 - Analytics P0: player days played — done
 - Analytics P0: Yandex login status — done
+- Analytics P0: session match count — done
 - Telegram Channel Link — done
 - VK Channel Link — done
 - Nuke trajectory visibility — done
@@ -110,6 +111,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - `Game:Start` analytics now emits an immediate `Game:Mode:Multiplayer` or `Game:Mode:Solo` classifier for first real match starts; see [[tasks/analytics-p0-game-mode-segmentation]].
 - `Player:DaysPlayed` now records cumulative unique local calendar days opened, giving the citizenship funnel a loyalty-depth signal beyond `Player:New` and `Player:Returning`; see [[tasks/analytics-p0-player-days-played]].
 - Yandex login status now emits one of `Player:YandexLoggedIn`, `Player:YandexGuest`, or `Player:YandexUnknown` per session, so citizenship planning can measure authenticated reach before launch; see [[tasks/analytics-p0-yandex-login-status]].
+- Session match count now fires `Session:MatchesPlayed` before `Session:Start` on each new session using UUID-keyed localStorage entries, giving per-session match depth data for citizenship XP threshold analysis; see [[tasks/analytics-p0-session-match-count]].
 - Telegram Channel Link shipped as an experiment-gated CTA on the start/loading and game-end modals, with placement-specific `UI:Tap:*` analytics
 - VK Channel Link mirrors the Telegram community CTA with its own `vk_link` experiment flag, live `https://vk.com/gameworldwar` URL, and placement-specific `UI:Tap:VkLinkStartScreen` / `UI:Tap:VkLinkGameEnd` analytics.
 - Nuke trajectory visibility increased the pre-launch targeting arc thickness while leaving color, alpha, and launch mechanics unchanged; see [[tasks/nuke-trajectory-visibility]].
@@ -145,6 +147,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/analytics-p0-game-mode-segmentation]] — Sprint 4 P0 analytics classifier for multiplayer versus solo match starts
 - [[tasks/analytics-p0-player-days-played]] — Sprint 4 P0 analytics loyalty-depth event for unique calendar days opened
 - [[tasks/analytics-p0-yandex-login-status]] — Sprint 4 P0 analytics identity-reach event for Yandex logged-in, guest, and unknown states
+- [[tasks/analytics-p0-session-match-count]] — Sprint 4 P0 analytics per-session match starts for citizenship XP threshold analysis
 - [[tasks/telegram-link]] — Sprint 4 experiment-gated Telegram CTA on start and game-end screens
 - [[tasks/vk-link]] — Sprint 4 experiment-gated VK CTA on start and game-end screens
 - [[tasks/nuke-trajectory-visibility]] — Sprint 4 nuke targeting arc visual polish

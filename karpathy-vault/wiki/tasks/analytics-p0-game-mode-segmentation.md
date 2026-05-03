@@ -24,3 +24,4 @@ GameAnalytics funnels can now use `Game:Start -> Game:Mode:Multiplayer` and `Gam
 
 - [[systems/analytics]]
 - [[decisions/sprint-4]]
+- [[tasks/analytics-p0-session-match-count]] — related P0 task; `recordSessionMatchStart()` is called from the same `logMatchStartAnalytics()` path
