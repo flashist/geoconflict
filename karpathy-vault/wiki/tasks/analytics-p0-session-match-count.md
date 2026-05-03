@@ -39,6 +39,7 @@ The session baseline now records per-session match depth. This is a required P0 
 - [[systems/analytics]]
 - [[systems/flashist-init]]
 - [[decisions/sprint-4]]
+- [[tasks/session-start-sequence]] — documents the full session-start sequence that this event now precedes
 - [[tasks/analytics-p0-yandex-login-status]]
 - [[tasks/analytics-p0-game-mode-segmentation]]
 - [[tasks/monetization-analytics-spec]]

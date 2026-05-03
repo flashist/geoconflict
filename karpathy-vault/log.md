@@ -393,3 +393,9 @@
 - Issues fixed: 6
 - Issues flagged for human review: 0
 - Fixed 5 missing bidirectional back-links (flashist-init, monetization-analytics-spec, analytics-p0-game-mode-segmentation, sprint-4 ×2) and updated stale session-start-sequence task page to include Session:MatchesPlayed before Session:Start
+
+## 2026-05-03 — lint
+- Issues found: 1
+- Issues fixed: 1
+- Issues flagged for human review: 0
+- Fixed one-way link introduced by previous lint: session-start-sequence → analytics-p0-session-match-count lacked the reverse back-link
