@@ -1,5 +1,18 @@
 [
   {
+    "id": "2026-05-03-game-update",
+    "date": "2026-05-03",
+    "title": {
+      "en": "Game update",
+      "ru": "Обновление игры"
+    },
+    "body": {
+      "en": "- Fixed a bug where spaces could not be typed in the feedback form while inside a match.\n- Game analytic updates.",
+      "ru": "- Исправление ошибки, при которой нельзя было вставлять пробелы в сообщения обратной связи, находясь внутри матча.\n- Обновление игровой аналитики."
+    },
+    "tag": "update"
+  },
+  {
     "id": "2026-04-29-game-update",
     "date": "2026-04-29",
     "title": {
