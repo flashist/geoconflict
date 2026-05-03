@@ -254,7 +254,7 @@ describe("SessionMatchAnalytics", () => {
         },
         setItem: () => {},
         removeItem: () => {},
-        get length() {
+        get length(): number {
           throw new Error("unavailable");
         },
         key: () => null,
