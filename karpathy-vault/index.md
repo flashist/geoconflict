@@ -76,6 +76,7 @@
 - [[tasks/analytics-p0-match-duration]] — P0 analytics event measuring seconds from fresh match start to match end
 - [[tasks/analytics-p0-player-days-played]] — P0 analytics event measuring cumulative unique local calendar days opened
 - [[tasks/analytics-p0-yandex-login-status]] — P0 analytics event measuring Yandex logged-in, guest, and unknown session states
+- [[tasks/analytics-p0-session-match-count]] — P0 analytics event measuring match starts per session via UUID-keyed localStorage, consumed before Session:Start
 - [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
 - [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response
 - [[tasks/registry-image-audit]] — Historical image-trust audit plan; outcome was conservative pre-hardening image quarantine

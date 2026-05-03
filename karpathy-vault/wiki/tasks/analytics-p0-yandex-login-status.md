@@ -27,3 +27,4 @@ The session baseline now records Yandex identity reach without delaying session-
 - [[systems/analytics]]
 - [[systems/flashist-init]]
 - [[decisions/sprint-4]]
+- [[tasks/analytics-p0-session-match-count]]

@@ -40,10 +40,13 @@ The reference docs are `ai-agents/knowledge-base/analytics-event-reference.md` a
 ## Session Start Sequence
 
 ```
-Session:Start → Device:[class] → Platform:[os] → Player:New/Returning → Player:DaysPlayed
-→ Player:YandexLoggedIn / Player:YandexGuest / Player:YandexUnknown
+Session:MatchesPlayed (0..N, from prior session) → Session:Start → Device:[class] → Platform:[os]
+→ Player:New/Returning → Player:DaysPlayed
+→ Player:YandexLoggedIn / Player:YandexGuest / Player:YandexUnknown  (async, after player auth)
 ```
 The baseline events fire once per session from `FlashistFacade`; Yandex login status may arrive asynchronously after player auth resolves.
+
+`Session:MatchesPlayed` fires **before** `Session:Start`, once per pending localStorage entry written by a prior closed tab. Value = integer match starts recorded in that prior session (0 if no matches were played). Multi-tab sessions produce one event per closed tab. Implemented in `src/client/SessionMatchAnalytics.ts`; pending entries are keyed by UUID under `geoconflict.session.pendingEnd:{uuid}`. See [[tasks/analytics-p0-session-match-count]].
 
 `Player:DaysPlayed` is the cumulative count of unique local calendar days on which the player opened the game. Same-day repeat sessions fire with the same value; returning after a gap increments by exactly `1`, not by the gap length. The shipped storage keys are `geoconflict.player.daysPlayed` and `geoconflict.player.lastPlayedDate`, matching the existing `geoconflict.player.*` namespace. See [[tasks/analytics-p0-player-days-played]].
 
@@ -105,7 +108,7 @@ The analytics reference also defines placement-specific community CTA tap IDs. `
 
 The Sprint 4 monetization analytics spec in [[tasks/monetization-analytics-spec]] defines the measurement gate before citizenship and payments decisions should be treated as validated:
 
-- **P0 identity/session baseline:** record Yandex login status, platform, returning/new status, session depth, and all-time match-count inputs. Yandex login status is now covered by [[tasks/analytics-p0-yandex-login-status]], and loyalty depth is covered by [[tasks/analytics-p0-player-days-played]].
+- **P0 identity/session baseline:** record Yandex login status, platform, returning/new status, session depth, and all-time match-count inputs. Yandex login status is now covered by [[tasks/analytics-p0-yandex-login-status]], loyalty depth is covered by [[tasks/analytics-p0-player-days-played]], and per-session match count is covered by [[tasks/analytics-p0-session-match-count]].
 - **P0 match lifecycle:** measure match start, player spawned, match completed, outcome, duration, spawn status, and all-time match count so the earned citizenship threshold is grounded in actual retention depth.
 - **P1 citizenship funnel:** instrument citizenship surface impressions, CTA clicks, purchase flow start/completion/abandonment, earned citizenship, and high-intent unconverted cohorts.
 - **P1 ad impact:** segment ad impressions by player tier (`guest`, `free`, `earned_citizen`, `paid_citizen`) before making citizens ad-free, so the real revenue tradeoff can be modeled.
@@ -161,5 +164,6 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/analytics-p0-match-duration]] — P0 duration event emitted alongside `Game:End`
 - [[tasks/analytics-p0-player-days-played]] — P0 loyalty-depth event emitted after `Player:New` or `Player:Returning`
 - [[tasks/analytics-p0-yandex-login-status]] — P0 identity-reach event emitted as logged-in, guest, or unknown
+- [[tasks/analytics-p0-session-match-count]] — P0 per-session match starts recorded via localStorage and consumed on next session open
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
 - [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, and `Announcements:Closed`

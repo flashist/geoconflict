@@ -380,3 +380,10 @@
 - Ingested: `ai-agents/tasks/done/analytics-p0-yandex-login-status.md` → created [[wiki/tasks/analytics-p0-yandex-login-status]]; updated [[wiki/systems/analytics]], [[wiki/systems/flashist-init]], [[wiki/decisions/sprint-4]]
 - Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]]
 - Skipped (already covered): none
+
+## 2026-05-03 — ingest
+- Sync window: `bfb764f7cf9fd1c51ac630cdca223a834e929d80` → HEAD (`425be224a054ba027053667f3898d0a7227aa361`)
+- Changed source files detected: 3
+- Ingested: `ai-agents/tasks/done/analytics-p0-session-match-count.md` → created [[wiki/tasks/analytics-p0-session-match-count]]; updated [[wiki/systems/analytics]], [[wiki/tasks/analytics-p0-yandex-login-status]]
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]] (Session:MatchesPlayed added to sequence; session start sequence updated)
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/streamer-program.md` — backlog file, not eligible for `wiki-sync`
