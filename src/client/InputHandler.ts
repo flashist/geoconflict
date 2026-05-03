@@ -273,6 +273,7 @@ export class InputHandler {
     }, 1);
 
     window.addEventListener("keydown", (e) => {
+      if (this.isTextInputActive()) return;
       if (e.code === this.keybinds.toggleView) {
         e.preventDefault();
         if (!this.alternateView) {
@@ -314,6 +315,7 @@ export class InputHandler {
       }
     });
     window.addEventListener("keyup", (e) => {
+      if (this.isTextInputActive()) return;
       if (e.code === this.keybinds.toggleView) {
         e.preventDefault();
         this.alternateView = false;
@@ -573,6 +575,20 @@ export class InputHandler {
       (this.keybinds.modifierKey === "ShiftLeft" && event.shiftKey) ||
       (this.keybinds.modifierKey === "MetaLeft" && event.metaKey)
     );
+  }
+
+  private isTextInputActive(): boolean {
+    const active = document.activeElement;
+    if (!active) return false;
+    const tag = active.tagName.toLowerCase();
+    if (tag === "input" || tag === "textarea" || (active as HTMLElement).isContentEditable) return true;
+    if (active.shadowRoot) {
+      const shadowActive = active.shadowRoot.activeElement;
+      if (!shadowActive) return false;
+      const shadowTag = shadowActive.tagName.toLowerCase();
+      return shadowTag === "input" || shadowTag === "textarea" || (shadowActive as HTMLElement).isContentEditable;
+    }
+    return false;
   }
 
   isAltKeyPressed(event: PointerEvent): boolean {
