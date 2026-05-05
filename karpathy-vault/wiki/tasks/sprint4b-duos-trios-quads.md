@@ -42,3 +42,4 @@ Public matchmaking can now generate Duos, Trios, and Quads lobbies alongside reg
 - [[features/ai-players]]
 - [[tasks/sprint4b-mini-mode-investigation]]
 - [[tasks/teams-mode-max-teams]]
+- [[systems/clans]] — Clan-based team grouping runs through `assignTeams()`, the same function called by these modes

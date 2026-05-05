@@ -430,3 +430,6 @@
 
 ## 2026-05-05 — ingest
 - Ingested: `ai-agents/tasks/done/sprint4b-duos-trios-quads.md` → updated [[wiki/tasks/sprint4b-duos-trios-quads]] to record singleplayer/private lobby UI exposure and the unchanged low-participant limitation
+
+## 2026-05-05 — ingest
+- Ingested: `ai-agents/knowledge-base/clans-system-findings.md` → created [[wiki/systems/clans]], created [[wiki/tasks/investigate-clans-system]]; updated [[wiki/decisions/sprint-5]], [[wiki/tasks/sprint4b-duos-trios-quads]], index.md
