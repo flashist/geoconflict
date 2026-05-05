@@ -1,6 +1,6 @@
 # Sprint 4b Mini Mode Investigation
 
-**Source**: `ai-agents/tasks/backlog/sprint4b-mini-mode-investigation.md`, `ai-agents/knowledge-base/sprint4b-mini-mode-findings.md`
+**Source**: `ai-agents/tasks/done/sprint4b-mini-mode-investigation.md`, `ai-agents/knowledge-base/sprint4b-mini-mode-findings.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4b
 

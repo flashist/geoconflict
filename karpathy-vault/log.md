@@ -417,3 +417,10 @@
 
 ## 2026-05-05 — ingest
 - Updated: `ai-agents/knowledge-base/sprint4b-mini-mode-findings.md` and [[wiki/tasks/sprint4b-mini-mode-investigation]] to record that compact water-centered nation coordinates are accepted as non-blocking spawn-distribution risks, not map exclusions.
+
+## 2026-05-05 — ingest
+- Sync window: `79afbc7c3a6cf99aaa7a57f48502e5228d88eb36` → HEAD (`980493298860097205308d0f7488dbdf57f9c80e`)
+- Changed source files detected: 2
+- Ingested: `ai-agents/tasks/done/sprint4b-mini-mode-investigation.md` → updated [[wiki/tasks/sprint4b-mini-mode-investigation]]
+- Ingested: `ai-agents/knowledge-base/sprint4b-mini-mode-findings.md` → updated [[wiki/tasks/sprint4b-mini-mode-investigation]]
+- Skipped (already covered): none
