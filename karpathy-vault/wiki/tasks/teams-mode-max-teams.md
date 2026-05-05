@@ -23,3 +23,4 @@ Server-generated public team lobbies no longer create 5+ regular teams. The cap 
 
 - [[decisions/sprint-4]]
 - [[systems/game-overview]]
+- [[tasks/sprint4b-mini-mode-investigation]]

@@ -71,6 +71,7 @@
 - [[tasks/vk-link]] — Experiment-gated VK community CTA on start/loading and game-end screens
 - [[tasks/nuke-trajectory-visibility]] — Sprint 4 visual polish making the nuke pre-launch targeting arc thicker
 - [[tasks/teams-mode-max-teams]] — Sprint 4 server-side cap limiting regular public teams lobbies to 2, 3, or 4 teams
+- [[tasks/sprint4b-mini-mode-investigation]] — Sprint 4b investigation finding compact nation-spawn risks and confirming Duos/Trios/Quads AI-fill compatibility
 - [[tasks/monetization-analytics-spec]] — Sprint 4 analytics baseline for identity, match lifecycle, citizenship funnel, and ad-tier measurement
 - [[tasks/analytics-p0-game-mode-segmentation]] — P0 analytics event pair segmenting fresh match starts into multiplayer versus solo
 - [[tasks/analytics-p0-spawn-confirmation]] — P0 analytics event measuring server-confirmed spawn and time-to-spawn

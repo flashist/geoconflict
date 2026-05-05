@@ -40,3 +40,4 @@ No analytics are planned for these new features in Sprint 4b.
 - [[decisions/sprint-5]] — later full F2P loop after citizenship infrastructure resumes
 - [[systems/producer-workflow]] — investigation-first planning and Mark approval boundaries
 - [[systems/project-operations]] — sprint/task workflow and release constraints
+- [[tasks/sprint4b-mini-mode-investigation]] — compatibility findings for compact maps plus Duos/Trios/Quads

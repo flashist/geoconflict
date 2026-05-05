@@ -411,3 +411,9 @@
 - Issues fixed: 1
 - Issues flagged for human review: 0
 - Fixed one missing backlink from [[wiki/decisions/sprint-4]] to [[wiki/tasks/analytics-p0-match-duration]]; full structural, index, backlink, orphan, and source-path checks passed for 72 pages.
+
+## 2026-05-05 — ingest
+- Ingested: `ai-agents/knowledge-base/sprint4b-mini-mode-findings.md` → created [[wiki/tasks/sprint4b-mini-mode-investigation]]; updated [[wiki/decisions/sprint-4b]], [[wiki/features/ai-players]], [[wiki/tasks/teams-mode-max-teams]]
+
+## 2026-05-05 — ingest
+- Updated: `ai-agents/knowledge-base/sprint4b-mini-mode-findings.md` and [[wiki/tasks/sprint4b-mini-mode-investigation]] to record that compact water-centered nation coordinates are accepted as non-blocking spawn-distribution risks, not map exclusions.

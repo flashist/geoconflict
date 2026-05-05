@@ -95,4 +95,5 @@ There is no direct player-facing intent for AI creation. The server and shared c
 - [[systems/game-overview]] — overall game architecture; `PlayerType.AiPlayer` documented in player types table
 - [[features/tutorial]] — tutorial also uses bot-filled lobbies for context
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 bug fix documenting human-priority slot preservation
+- [[tasks/sprint4b-mini-mode-investigation]] — confirmed AI Players can fill Duos/Trios/Quads public lobbies
 - [[decisions/sprint-4]] — planning pages now explicitly treat AI Players as already-live context
