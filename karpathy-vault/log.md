@@ -424,3 +424,6 @@
 - Ingested: `ai-agents/tasks/done/sprint4b-mini-mode-investigation.md` → updated [[wiki/tasks/sprint4b-mini-mode-investigation]]
 - Ingested: `ai-agents/knowledge-base/sprint4b-mini-mode-findings.md` → updated [[wiki/tasks/sprint4b-mini-mode-investigation]]
 - Skipped (already covered): none
+
+## 2026-05-05 — ingest
+- Ingested: `ai-agents/tasks/done/sprint4b-duos-trios-quads.md` → created [[wiki/tasks/sprint4b-duos-trios-quads]]; updated [[wiki/decisions/sprint-4b]], [[wiki/features/ai-players]], [[wiki/tasks/sprint4b-mini-mode-investigation]], [[wiki/tasks/teams-mode-max-teams]]

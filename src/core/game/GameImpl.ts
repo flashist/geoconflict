@@ -23,16 +23,15 @@ import {
   PlayerID,
   PlayerInfo,
   PlayerType,
+  Duos,
+  Trios,
+  Quads,
   Team,
   TerrainType,
   TerraNullius,
   Unit,
   UnitInfo,
   UnitType,
-  // Flashist Adaptation
-  // Duos,
-  // Trios,
-  // Quads,
 } from "./Game";
 import { GameMap, TileRef, TileUpdate } from "./GameMap";
 import { GameUpdate, GameUpdateType } from "./GameUpdates";
@@ -107,7 +106,7 @@ export class GameImpl implements Game {
   }
 
   private populateTeams() {
-    const numPlayerTeams = this._config.playerTeams();
+    let numPlayerTeams = this._config.playerTeams();
 
     // HumansVsNations mode always has exactly 2 teams
     if (numPlayerTeams === HumansVsNations) {
@@ -116,19 +115,17 @@ export class GameImpl implements Game {
     }
 
     if (typeof numPlayerTeams !== "number") {
+      const players = this._humans.length + this._nations.length;
       switch (numPlayerTeams) {
-
-        // Flashist Adaptation: disabling duos-trios-quads game modes
-        // case Duos:
-        //   numPlayerTeams = Math.ceil(players / 2);
-        //   break;
-        // case Trios:
-        //   numPlayerTeams = Math.ceil(players / 3);
-        //   break;
-        // case Quads:
-        //   numPlayerTeams = Math.ceil(players / 4);
-        //   break;
-
+        case Duos:
+          numPlayerTeams = Math.ceil(players / 2);
+          break;
+        case Trios:
+          numPlayerTeams = Math.ceil(players / 3);
+          break;
+        case Quads:
+          numPlayerTeams = Math.ceil(players / 4);
+          break;
         default:
           throw new Error(`Unknown TeamCountConfig ${numPlayerTeams}`);
       }

@@ -4,10 +4,15 @@ import { SpawnExecution } from "../../../src/core/execution/SpawnExecution";
 import { AllianceRequestExecution } from "../../../src/core/execution/alliance/AllianceRequestExecution";
 import { AllianceRequestReplyExecution } from "../../../src/core/execution/alliance/AllianceRequestReplyExecution";
 import {
+  ColoredTeams,
+  Duos,
   Game,
+  GameMode,
   Player,
   PlayerInfo,
   PlayerType,
+  Quads,
+  Trios,
 } from "../../../src/core/game/Game";
 import { TileRef } from "../../../src/core/game/GameMap";
 import { setup } from "../../util/Setup";
@@ -132,5 +137,92 @@ describe("GameImpl", () => {
 
     expect(attacker.isTraitor()).toBe(true);
     expect(attacker.allianceWith(defender)).toBeFalsy();
+  });
+});
+
+describe("GameImpl team-size modes", () => {
+  const aiPlayers = (count: number): PlayerInfo[] =>
+    Array.from(
+      { length: count },
+      (_, index) =>
+        new PlayerInfo(
+          `AI ${index}`,
+          PlayerType.AiPlayer,
+          `ai${index}`,
+          `ai-${index}`,
+        ),
+    );
+
+  test.each([
+    [
+      Duos,
+      10,
+      [
+        ColoredTeams.Bot,
+        ColoredTeams.Red,
+        ColoredTeams.Blue,
+        ColoredTeams.Yellow,
+        ColoredTeams.Green,
+        ColoredTeams.Purple,
+      ],
+    ],
+    [
+      Trios,
+      10,
+      [
+        ColoredTeams.Bot,
+        ColoredTeams.Red,
+        ColoredTeams.Blue,
+        ColoredTeams.Yellow,
+        ColoredTeams.Green,
+      ],
+    ],
+    [
+      Quads,
+      10,
+      [
+        ColoredTeams.Bot,
+        ColoredTeams.Red,
+        ColoredTeams.Blue,
+        ColoredTeams.Yellow,
+      ],
+    ],
+  ])(
+    "%s derives teams from AI-filled participant count",
+    async (mode, participants, expectedTeams) => {
+      const game = await setup(
+        "plains",
+        {
+          gameMode: GameMode.Team,
+          playerTeams: mode,
+          disableNPCs: true,
+        },
+        aiPlayers(participants),
+      );
+
+      expect(game.teams()).toEqual(expectedTeams);
+      expect(game.allPlayers()).toHaveLength(participants);
+      expect(game.allPlayers().every((player) => player.team() !== null)).toBe(
+        true,
+      );
+    },
+  );
+
+  test.each([
+    [Duos, 1],
+    [Trios, 2],
+    [Quads, 3],
+  ])("%s still rejects too few participants", async (mode, participants) => {
+    await expect(
+      setup(
+        "plains",
+        {
+          gameMode: GameMode.Team,
+          playerTeams: mode,
+          disableNPCs: true,
+        },
+        aiPlayers(participants),
+      ),
+    ).rejects.toThrow("Too few teams: 1");
   });
 });

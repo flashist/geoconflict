@@ -1,16 +1,15 @@
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import {
   Difficulty,
+  Duos,
   GameMapName,
   GameMapSize,
   GameMapType,
   GameMode,
   GameType,
   HumansVsNations,
-  // Flashist Adaptation
-  // Duos,
-  // Quads,
-  // Trios,
+  Quads,
+  Trios,
 } from "../core/game/Game";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { GameConfig, TeamCountConfig } from "../core/Schemas";
@@ -68,11 +67,9 @@ export const TEAM_COUNTS = [
 
   // Flashist Adaptation: keep Humans vs Nations in the public rotation.
   HumansVsNations,
-
-  // Flashist Adaptation: disabling duos-trios-quads game modes
-  // Duos,
-  // Trios,
-  // Quads,
+  Duos,
+  Trios,
+  Quads,
 ] as const satisfies readonly TeamCountConfig[];
 
 export function randomTeamCount(

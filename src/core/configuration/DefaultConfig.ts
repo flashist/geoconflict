@@ -2,6 +2,7 @@ import { JWK } from "jose";
 import { z } from "zod";
 import {
   Difficulty,
+  Duos,
   Game,
   GameMapType,
   GameMode,
@@ -11,16 +12,13 @@ import {
   Player,
   PlayerInfo,
   PlayerType,
+  Quads,
   TerrainType,
   TerraNullius,
   Tick,
+  Trios,
   UnitInfo,
   UnitType,
-
-  // Flashist Adaptation
-  // Duos,
-  // Trios,
-  // Quads,
 } from "../game/Game";
 import { TileRef } from "../game/GameMap";
 import { mapPlayerCounts } from "../game/MapPlayers";
@@ -262,18 +260,15 @@ export abstract class DefaultServerConfig implements ServerConfig {
     let p = Math.min(mode === GameMode.Team ? Math.ceil(base * 1.5) : base, l);
     if (numPlayerTeams === undefined) return p;
     switch (numPlayerTeams) {
-
-      // Flashist Adaptation: disabling duos-trios-quads game modes
-      // case Duos:
-      //   p -= p % 2;
-      //   break;
-      // case Trios:
-      //   p -= p % 3;
-      //   break;
-      // case Quads:
-      //   p -= p % 4;
-      //   break;
-
+      case Duos:
+        p -= p % 2;
+        break;
+      case Trios:
+        p -= p % 3;
+        break;
+      case Quads:
+        p -= p % 4;
+        break;
       case HumansVsNations:
         // For HumansVsNations, return the base team player count
         break;
