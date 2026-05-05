@@ -1,6 +1,6 @@
 # Investigate Clans System
 
-**Source**: `ai-agents/tasks/backlog/investigate-clans-system.md`
+**Source**: `ai-agents/tasks/done/investigate-clans-system.md`
 **Findings**: `ai-agents/knowledge-base/clans-system-findings.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4b / pre-Sprint 5

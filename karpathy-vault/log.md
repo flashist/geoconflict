@@ -433,3 +433,11 @@
 
 ## 2026-05-05 — ingest
 - Ingested: `ai-agents/knowledge-base/clans-system-findings.md` → created [[wiki/systems/clans]], created [[wiki/tasks/investigate-clans-system]]; updated [[wiki/decisions/sprint-5]], [[wiki/tasks/sprint4b-duos-trios-quads]], index.md
+
+## 2026-05-05 — sync
+- Sync window: `980493298860097205308d0f7488dbdf57f9c80e` → HEAD (`62b460292ac07c05cf3c79295a976e2c43dcd42e`)
+- Changed source files detected: 4
+- Skipped (already covered): `ai-agents/knowledge-base/clans-system-findings.md` — [[wiki/systems/clans]] already comprehensive from prior manual ingest
+- Skipped (already covered): `ai-agents/tasks/done/sprint4b-duos-trios-quads.md` — [[wiki/tasks/sprint4b-duos-trios-quads]] already up to date
+- Updated: `ai-agents/tasks/done/investigate-clans-system.md` → fixed stale source path in [[wiki/tasks/investigate-clans-system]] (`backlog/` → `done/`)
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/investigate-clans-system.md` — backlog file
