@@ -20,6 +20,8 @@ Restored the runtime team derivation in `src/core/game/GameImpl.ts`:
 | Trios | `Math.ceil(players / 3)` |
 | Quads | `Math.ceil(players / 4)` |
 
+`players` is `this._humans.length + this._nations.length` (line 118) — nations count alongside human players when computing the team count. This is the key invariant for single-player and private lobbies.
+
 Restored capacity rounding in `src/core/configuration/DefaultConfig.ts` so generated lobby capacities remain divisible by the intended team size.
 
 Added Duos, Trios, and Quads to public server rotation in `src/server/MapPlaylist.ts` while keeping `REGULAR_TEAM_COUNTS` unchanged as `[2, 3, 4]`.
@@ -32,7 +34,7 @@ Added test coverage in `tests/server/MapPlaylist.test.ts` and `tests/core/game/G
 
 Public matchmaking can now generate Duos, Trios, and Quads lobbies alongside regular 2/3/4-team matches and Humans vs Nations. Singleplayer and private lobby creators can also select these modes manually. AI Players are compatible in public lobbies because `GameRunner` passes them into `createGame()` as `PlayerType.AiPlayer` entries and `GameImpl.addPlayers()` assigns them through the same team balancing path as human players.
 
-Known limitation: Duos with 1 participant, Trios with 1-2 participants, and Quads with 1-3 participants still throw `Too few teams: 1`. This is acceptable for public matchmaking with AI fill; singleplayer and private lobby exposure is currently for manual testing and may need a later start guard.
+**Nations prevent the too-few-teams error in practice.** Because `players` counts both humans and nations, single-player mode always has enough players to produce `numPlayerTeams >= 2` — tested and confirmed. The `Too few teams: 1` guard at `GameImpl.ts:133` is only reachable when nations are absent (`disableNPCs: true`) *and* the human count is below the threshold: fewer than 3 humans for Duos, fewer than 4 for Trios, fewer than 5 for Quads. That combination requires deliberate configuration and cannot happen accidentally in either public matchmaking or normal single-player.
 
 ## Related
 
