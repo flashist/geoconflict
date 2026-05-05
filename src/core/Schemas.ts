@@ -9,17 +9,15 @@ import {
 import {
   AllPlayers,
   Difficulty,
+  Duos,
   GameMapSize,
   GameMapType,
   GameMode,
   GameType,
   HumansVsNations,
+  Quads,
+  Trios,
   UnitType,
-
-  // Flashist Adaptation
-  // Duos,
-  // Trios,
-  // Quads,
 } from "./game/Game";
 import { PlayerStatsSchema } from "./StatsSchemas";
 import { flattenedEmojiTable } from "./Util";
@@ -151,12 +149,9 @@ export enum LogSeverity {
 
 const TeamCountConfigSchema = z.union([
   z.number(),
-
-  // Flashist Adaptation
-  // Removing the modes when too few people might cause errors
-  // z.literal(Duos),
-  // z.literal(Trios),
-  // z.literal(Quads),
+  z.literal(Duos),
+  z.literal(Trios),
+  z.literal(Quads),
   z.literal(HumansVsNations),
 ]);
 export type TeamCountConfig = z.infer<typeof TeamCountConfigSchema>;

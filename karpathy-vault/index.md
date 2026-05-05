@@ -24,6 +24,7 @@
 - [[systems/telemetry]] — OTEL/Uptrace server observability: logs, metrics, slow-turn spans, investigation workflows
 - [[systems/server-performance]] — Server-side lag candidates ranked by likelihood; `endTurn()` performance analysis
 - [[systems/match-logging]] — What is recorded per match, where it goes, and what cannot be retrieved
+- [[systems/clans]] — Name-tag clan grouping system: parsing, team assignment logic, gaps, and no-UI status
 
 ## Decisions
 
@@ -72,6 +73,7 @@
 - [[tasks/nuke-trajectory-visibility]] — Sprint 4 visual polish making the nuke pre-launch targeting arc thicker
 - [[tasks/teams-mode-max-teams]] — Sprint 4 server-side cap limiting regular public teams lobbies to 2, 3, or 4 teams
 - [[tasks/sprint4b-mini-mode-investigation]] — Sprint 4b investigation finding compact nation-spawn risks and confirming Duos/Trios/Quads AI-fill compatibility
+- [[tasks/sprint4b-duos-trios-quads]] — Sprint 4b public-only re-enable of Duos/Trios/Quads team-size modes with AI-fill coverage
 - [[tasks/monetization-analytics-spec]] — Sprint 4 analytics baseline for identity, match lifecycle, citizenship funnel, and ad-tier measurement
 - [[tasks/analytics-p0-game-mode-segmentation]] — P0 analytics event pair segmenting fresh match starts into multiplayer versus solo
 - [[tasks/analytics-p0-spawn-confirmation]] — P0 analytics event measuring server-confirmed spawn and time-to-spawn
@@ -89,3 +91,4 @@
 - [[tasks/incident-postmortem-followups]] — Final postmortem capture and explicit security follow-up queue
 - [[tasks/docker-secret-boundary-check]] — Automated guard against `.env*` or `COPY . .` regressions in Docker builds
 - [[tasks/registry-image-policy-followup]] — Task that authored the registry visibility and image-retention policy
+- [[tasks/investigate-clans-system]] — Investigation confirming clans parse/team-assign works; silent kick bug and no-UI gap documented

@@ -96,4 +96,5 @@ There is no direct player-facing intent for AI creation. The server and shared c
 - [[features/tutorial]] — tutorial also uses bot-filled lobbies for context
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 bug fix documenting human-priority slot preservation
 - [[tasks/sprint4b-mini-mode-investigation]] — confirmed AI Players can fill Duos/Trios/Quads public lobbies
+- [[tasks/sprint4b-duos-trios-quads]] — re-enabled public Duos/Trios/Quads lobbies using AI-filled participant counts
 - [[decisions/sprint-4]] — planning pages now explicitly treat AI Players as already-live context

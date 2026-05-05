@@ -41,3 +41,4 @@ No analytics are planned for these new features in Sprint 4b.
 - [[systems/producer-workflow]] — investigation-first planning and Mark approval boundaries
 - [[systems/project-operations]] — sprint/task workflow and release constraints
 - [[tasks/sprint4b-mini-mode-investigation]] — compatibility findings for compact maps plus Duos/Trios/Quads
+- [[tasks/sprint4b-duos-trios-quads]] — public-only implementation of Duos/Trios/Quads after the compatibility investigation

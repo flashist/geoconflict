@@ -50,11 +50,9 @@ export const isDifficulty = (value: unknown): value is Difficulty =>
 
 export type Team = string;
 
-// Flashist Adaptation
-// Removing the modes when too few people might cause errors
-// export const Duos = "Duos" as const;
-// export const Trios = "Trios" as const;
-// export const Quads = "Quads" as const;
+export const Duos = "Duos" as const;
+export const Trios = "Trios" as const;
+export const Quads = "Quads" as const;
 
 export const HumansVsNations = "Humans Vs Nations" as const;
 
