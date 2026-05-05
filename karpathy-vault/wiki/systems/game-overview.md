@@ -24,7 +24,7 @@ Three-tier structure:
 |---|---|
 | GameType | `Singleplayer`, `Public`, `Private` |
 | GameMode | `Free For All (FFA)`, `Team`; regular public team lobbies are capped at 2, 3, or 4 teams by [[tasks/teams-mode-max-teams]] |
-| Disabled | ~~Duos~~, ~~Trios~~, ~~Quads~~ (Flashist Adaptation — too few players) |
+| Enabled (Sprint 4b) | Duos, Trios, Quads — team-size modes where teams scale with participant count; AI Players fill public lobbies. See [[tasks/sprint4b-duos-trios-quads]]. |
 
 ## Maps
 
@@ -101,7 +101,7 @@ Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adapta
 ## Gotchas / Known Issues
 
 - Server turn interval is 1.5× faster than upstream OpenFront.io (Flashist Adaptation)
-- Game modes Duos/Trios/Quads are disabled
+- Duos/Trios/Quads were previously disabled (Flashist Adaptation — too few players) but were re-enabled in Sprint 4b; see [[tasks/sprint4b-duos-trios-quads]]
 - `#join=gameID` URL push is disabled (Flashist Adaptation) — see [[decisions/double-reload-fix]]
 
 ## Related

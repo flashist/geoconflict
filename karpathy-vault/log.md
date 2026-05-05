@@ -434,6 +434,12 @@
 ## 2026-05-05 — ingest
 - Ingested: `ai-agents/knowledge-base/clans-system-findings.md` → created [[wiki/systems/clans]], created [[wiki/tasks/investigate-clans-system]]; updated [[wiki/decisions/sprint-5]], [[wiki/tasks/sprint4b-duos-trios-quads]], index.md
 
+## 2026-05-05 — lint
+- Issues found: 3
+- Issues fixed: 3
+- Issues flagged for human review: 0
+- Stale claim: game-overview listed Duos/Trios/Quads as "Disabled" in two places — updated to reflect Sprint 4b re-enable; fixed two one-way links (sprint-5 and sprint4b-duos-trios-quads both now link back to investigate-clans-system)
+
 ## 2026-05-05 — sync
 - Sync window: `980493298860097205308d0f7488dbdf57f9c80e` → HEAD (`62b460292ac07c05cf3c79295a976e2c43dcd42e`)
 - Changed source files detected: 4

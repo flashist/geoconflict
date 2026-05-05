@@ -53,3 +53,4 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 - [[decisions/sprint-4b]] — interim variety sprint between Sprint 4 and Sprint 5
 - [[decisions/sprint-6]] — next planned sprint, focused on map content after monetization foundations
 - [[systems/clans]] — Existing clan tag + team assignment implementation (foundation for Task 12)
+- [[tasks/investigate-clans-system]] — Investigation findings: what is implemented, what is broken, and recommended next steps for Task 12
