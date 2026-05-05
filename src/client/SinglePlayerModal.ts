@@ -4,19 +4,16 @@ import randomMap from "../../resources/images/RandomMap.webp";
 import { translateText } from "../client/Utils";
 import {
   Difficulty,
+  Duos,
   GameMapSize,
   GameMapType,
   GameMode,
   GameType,
   HumansVsNations,
+  Quads,
+  Trios,
   UnitType,
   mapCategories,
-
-  // Flashist Adaptation: disabling duos-trios-quads game modes
-  // Duos,
-  // Trios,
-  // Quads,
-
 } from "../core/game/Game";
 import { UserSettings } from "../core/game/UserSettings";
 import { TeamCountConfig } from "../core/Schemas";
@@ -83,7 +80,7 @@ export class SinglePlayerModal extends LitElement {
             <div class="option-cards flex-col">
               <!-- Use the imported mapCategories -->
               ${Object.entries(mapCategories).map(
-      ([categoryKey, maps]) => html`
+                ([categoryKey, maps]) => html`
                   <div class="w-full mb-4">
                     <h3
                       class="text-lg font-semibold mb-2 text-center text-gray-300"
@@ -92,34 +89,34 @@ export class SinglePlayerModal extends LitElement {
                     </h3>
                     <div class="flex flex-row flex-wrap justify-center gap-4">
                       ${maps.map((mapValue) => {
-        const mapKey = Object.keys(GameMapType).find(
-          (key) =>
-            GameMapType[key as keyof typeof GameMapType] ===
-            mapValue,
-        );
-        return html`
+                        const mapKey = Object.keys(GameMapType).find(
+                          (key) =>
+                            GameMapType[key as keyof typeof GameMapType] ===
+                            mapValue,
+                        );
+                        return html`
                           <div
                             @click=${() => this.handleMapSelection(mapValue)}
                           >
                             <map-display
                               .mapKey=${mapKey}
                               .selected=${!this.useRandomMap &&
-          this.selectedMap === mapValue}
+                              this.selectedMap === mapValue}
                               .translation=${translateText(
-            `map.${mapKey?.toLowerCase()}`,
-          )}
+                                `map.${mapKey?.toLowerCase()}`,
+                              )}
                             ></map-display>
                           </div>
                         `;
-      })}
+                      })}
                     </div>
                   </div>
                 `,
-    )}
+              )}
               <div
                 class="option-card random-map ${this.useRandomMap
-        ? "selected"
-        : ""}"
+                  ? "selected"
+                  : ""}"
                 @click=${this.handleRandomMapToggle}
               >
                 <div class="option-image">
@@ -143,13 +140,13 @@ export class SinglePlayerModal extends LitElement {
             </div>
             <div class="option-cards">
               ${Object.entries(Difficulty)
-        .filter(([key]) => isNaN(Number(key)))
-        .map(
-          ([key, value]) => html`
+                .filter(([key]) => isNaN(Number(key)))
+                .map(
+                  ([key, value]) => html`
                     <div
                       class="option-card ${this.selectedDifficulty === value
-              ? "selected"
-              : ""}"
+                        ? "selected"
+                        : ""}"
                       @click=${() => this.handleDifficultySelection(value)}
                     >
                       <difficulty-display
@@ -160,7 +157,7 @@ export class SinglePlayerModal extends LitElement {
                       </p>
                     </div>
                   `,
-        )}
+                )}
             </div>
           </div>
 
@@ -170,8 +167,8 @@ export class SinglePlayerModal extends LitElement {
             <div class="option-cards">
               <div
                 class="option-card ${this.gameMode === GameMode.FFA
-        ? "selected"
-        : ""}"
+                  ? "selected"
+                  : ""}"
                 @click=${() => this.handleGameModeSelection(GameMode.FFA)}
               >
                 <div class="option-card-title">
@@ -180,8 +177,8 @@ export class SinglePlayerModal extends LitElement {
               </div>
               <div
                 class="option-card ${this.gameMode === GameMode.Team
-        ? "selected"
-        : ""}"
+                  ? "selected"
+                  : ""}"
                 @click=${() => this.handleGameModeSelection(GameMode.Team)}
               >
                 <div class="option-card-title">
@@ -192,8 +189,8 @@ export class SinglePlayerModal extends LitElement {
           </div>
 
           ${this.gameMode === GameMode.FFA
-        ? ""
-        : html`
+            ? ""
+            : html`
                 <!-- Team Count Selection -->
                 <div class="options-section">
                   <div class="option-title">
@@ -201,36 +198,34 @@ export class SinglePlayerModal extends LitElement {
                   </div>
                   <div class="option-cards">
                     ${[
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-
-            // Flashist Adaptation: disabling duos-trios-quads game modes
-            // Quads,
-            // Trios,
-            // Duos,
-            HumansVsNations,
-          ].map(
-            (o) => html`
+                      2,
+                      3,
+                      4,
+                      5,
+                      6,
+                      7,
+                      Quads,
+                      Trios,
+                      Duos,
+                      HumansVsNations,
+                    ].map(
+                      (o) => html`
                         <div
                           class="option-card ${this.teamCount === o
-                ? "selected"
-                : ""}"
+                            ? "selected"
+                            : ""}"
                           @click=${() => this.handleTeamCountSelection(o)}
                         >
                           <div class="option-card-title">
                             ${typeof o === "string"
-                ? o === HumansVsNations
-                  ? translateText("public_lobby.teams_hvn")
-                  : translateText(`public_lobby.teams_${o}`)
-                : translateText(`public_lobby.teams`, { num: o })}
+                              ? o === HumansVsNations
+                                ? translateText("public_lobby.teams_hvn")
+                                : translateText(`public_lobby.teams_${o}`)
+                              : translateText(`public_lobby.teams`, { num: o })}
                           </div>
                         </div>
                       `,
-          )}
+                    )}
                   </div>
                 </div>
               `}
@@ -254,17 +249,17 @@ export class SinglePlayerModal extends LitElement {
                 />
                 <div class="option-card-title">
                   <span>${translateText("single_modal.bots")}</span>${this
-        .bots === 0
-        ? translateText("single_modal.bots_disabled")
-        : this.bots}
+                    .bots === 0
+                    ? translateText("single_modal.bots_disabled")
+                    : this.bots}
                 </div>
               </label>
 
-             ${!(
-        this.gameMode === GameMode.Team &&
-        this.teamCount === HumansVsNations
-      )
-        ? html`
+              ${!(
+                this.gameMode === GameMode.Team &&
+                this.teamCount === HumansVsNations
+              )
+                ? html`
                     <label
                       for="singleplayer-modal-disable-npcs"
                       class="option-card ${this.disableNPCs ? "selected" : ""}"
@@ -281,7 +276,7 @@ export class SinglePlayerModal extends LitElement {
                       </div>
                     </label>
                   `
-        : ""}
+                : ""}
 
               <label
                 for="singleplayer-modal-instant-build"
@@ -354,17 +349,17 @@ export class SinglePlayerModal extends LitElement {
                   type="checkbox"
                   id="end-timer"
                   @change=${(e: Event) => {
-        const checked = (e.target as HTMLInputElement).checked;
-        if (!checked) {
-          this.maxTimerValue = undefined;
-        }
-        this.maxTimer = checked;
-      }}
+                    const checked = (e.target as HTMLInputElement).checked;
+                    if (!checked) {
+                      this.maxTimerValue = undefined;
+                    }
+                    this.maxTimer = checked;
+                  }}
                   .checked=${this.maxTimer}
                 />
                 ${this.maxTimer === false
-        ? ""
-        : html`<input
+                  ? ""
+                  : html`<input
                       type="number"
                       id="end-timer-value"
                       min="0"
@@ -392,9 +387,9 @@ export class SinglePlayerModal extends LitElement {
               style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;"
             >
               ${renderUnitTypeOptions({
-          disabledUnits: this.disabledUnits,
-          toggleUnit: this.toggleUnit.bind(this),
-        })}
+                disabledUnits: this.disabledUnits,
+                toggleUnit: this.toggleUnit.bind(this),
+              })}
             </div>
           </div>
         </div>
@@ -502,7 +497,6 @@ export class SinglePlayerModal extends LitElement {
   }
 
   private async startGame() {
-
     // Flashist Adaptation: interstitial adv
     await FlashistFacade.instance.showInterstitial();
 
@@ -579,13 +573,13 @@ export class SinglePlayerModal extends LitElement {
                 .filter((ut): ut is UnitType => ut !== undefined),
 
               ...(this.gameMode === GameMode.Team &&
-                this.teamCount === HumansVsNations
+              this.teamCount === HumansVsNations
                 ? {
-                  disableNPCs: false,
-                }
+                    disableNPCs: false,
+                  }
                 : {
-                  disableNPCs: this.disableNPCs,
-                }),
+                    disableNPCs: this.disableNPCs,
+                  }),
             },
           },
         } satisfies JoinLobbyEvent,

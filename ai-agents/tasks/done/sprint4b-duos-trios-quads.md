@@ -88,3 +88,11 @@ Mark will review the Russian wording before release.
 
 - Do not change `REGULAR_TEAM_COUNTS` — that constant is used elsewhere and should stay as `[2, 3, 4]`.
 - If the investigation finds a remaining failure mode that is not fixed by AI player fill, flag it to Mark before shipping rather than shipping with a known error path.
+
+---
+
+## Follow-up — Singleplayer and Private Lobby Exposure
+
+Duos/Trios/Quads were later exposed in the singleplayer and private lobby team-count selectors for manual testing. This follow-up intentionally did not add a start guard or force Nations on.
+
+Known limitation remains: Duos with 1 participant, Trios with 1-2 participants, and Quads with 1-3 participants still throw `Too few teams: 1`.

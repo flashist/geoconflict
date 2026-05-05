@@ -427,3 +427,6 @@
 
 ## 2026-05-05 — ingest
 - Ingested: `ai-agents/tasks/done/sprint4b-duos-trios-quads.md` → created [[wiki/tasks/sprint4b-duos-trios-quads]]; updated [[wiki/decisions/sprint-4b]], [[wiki/features/ai-players]], [[wiki/tasks/sprint4b-mini-mode-investigation]], [[wiki/tasks/teams-mode-max-teams]]
+
+## 2026-05-05 — ingest
+- Ingested: `ai-agents/tasks/done/sprint4b-duos-trios-quads.md` → updated [[wiki/tasks/sprint4b-duos-trios-quads]] to record singleplayer/private lobby UI exposure and the unchanged low-participant limitation
