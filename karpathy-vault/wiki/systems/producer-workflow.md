@@ -47,7 +47,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 ## Gotchas / Known Issues
 
 - The producer source file is broader than this page: it also contains project overview, infrastructure, and roadmap context, which belong in adjacent system and decision pages rather than being duplicated here
-- Some outcomes in the source are time-bound sprint context; this page should focus on behavioural rules and operating model, while sprint-specific decisions stay in [[decisions/sprint-4]] and other sprint pages
+- Some outcomes in the source are time-bound sprint context; this page should focus on behavioural rules and operating model, while sprint-specific decisions stay in [[decisions/sprint-4]], [[decisions/sprint-4b]], and other sprint pages
 - The server does not simulate gameplay itself, so producers should not assume authoritative per-player outcome data already exists when defining server-side progression or entitlement features
 - Community-facing communication must stay within approved disclosures even when internal documents contain more operational detail
 
@@ -57,3 +57,4 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - [[systems/analytics]] — release verification and event-convention rules the producer depends on
 - [[decisions/product-strategy]] — strategic sequencing that shapes producer prioritization
 - [[decisions/sprint-4]] — current planning example captured by the source brief
+- [[decisions/sprint-4b]] — investigation-first interim sprint planning example

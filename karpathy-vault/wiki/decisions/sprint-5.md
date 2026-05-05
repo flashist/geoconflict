@@ -7,6 +7,8 @@
 
 Goal: long-term engagement and monetization systems. Only start once retention metrics from Sprints 1–3 are moving positively.
 
+Sprint 4b now sits between Sprint 4 and Sprint 5 as a short interim public-match variety update; it does not replace the citizenship/payment prerequisites that Sprint 5 depends on.
+
 Source: `ai-agents/sprints/plan-sprint-5.md`
 
 ## Decision
@@ -48,4 +50,5 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 
 - [[decisions/product-strategy]] — sprint ordering
 - [[decisions/sprint-4]] — previous sprint, provides citizenship infrastructure this sprint builds on
+- [[decisions/sprint-4b]] — interim variety sprint between Sprint 4 and Sprint 5
 - [[decisions/sprint-6]] — next planned sprint, focused on map content after monetization foundations

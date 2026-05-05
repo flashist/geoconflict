@@ -399,3 +399,9 @@
 - Issues fixed: 1
 - Issues flagged for human review: 0
 - Fixed one-way link introduced by previous lint: session-start-sequence → analytics-p0-session-match-count lacked the reverse back-link
+
+## 2026-05-05 — ingest
+- Sync window: `425be224a054ba027053667f3898d0a7227aa361` → HEAD (`79afbc7c3a6cf99aaa7a57f48502e5228d88eb36`)
+- Changed source files detected: 5
+- Ingested: `ai-agents/sprints/plan-sprint-4b.md` → created [[wiki/decisions/sprint-4b]]; updated [[wiki/decisions/product-strategy]], [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-5]], [[wiki/systems/project-operations]], [[wiki/systems/producer-workflow]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/sprint4b-compact-map-rotation.md`, `ai-agents/tasks/backlog/sprint4b-duos-trios-quads.md`, `ai-agents/tasks/backlog/sprint4b-mini-mode-investigation.md`, `ai-agents/tasks/backlog/sprint4b-weird-setting-modifier.md` — backlog files are not eligible for `wiki-sync`
