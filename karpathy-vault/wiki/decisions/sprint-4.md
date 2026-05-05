@@ -147,6 +147,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/missions-difficulty-investigation]] — Sprint 4 findings on generated mission difficulty, tuning levers, and analytics gaps
 - [[tasks/solo-win-condition-fix]] — Sprint 4 bug fix for opponent-win loss handling in solo modes
 - [[tasks/analytics-p0-game-mode-segmentation]] — Sprint 4 P0 analytics classifier for multiplayer versus solo match starts
+- [[tasks/analytics-p0-match-duration]] — Sprint 4 P0 analytics duration event from fresh match start to match end
 - [[tasks/analytics-p0-player-days-played]] — Sprint 4 P0 analytics loyalty-depth event for unique calendar days opened
 - [[tasks/analytics-p0-yandex-login-status]] — Sprint 4 P0 analytics identity-reach event for Yandex logged-in, guest, and unknown states
 - [[tasks/analytics-p0-session-match-count]] — Sprint 4 P0 analytics per-session match starts for citizenship XP threshold analysis

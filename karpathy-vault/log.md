@@ -405,3 +405,9 @@
 - Changed source files detected: 5
 - Ingested: `ai-agents/sprints/plan-sprint-4b.md` → created [[wiki/decisions/sprint-4b]]; updated [[wiki/decisions/product-strategy]], [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-5]], [[wiki/systems/project-operations]], [[wiki/systems/producer-workflow]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/sprint4b-compact-map-rotation.md`, `ai-agents/tasks/backlog/sprint4b-duos-trios-quads.md`, `ai-agents/tasks/backlog/sprint4b-mini-mode-investigation.md`, `ai-agents/tasks/backlog/sprint4b-weird-setting-modifier.md` — backlog files are not eligible for `wiki-sync`
+
+## 2026-05-05 — lint
+- Issues found: 1
+- Issues fixed: 1
+- Issues flagged for human review: 0
+- Fixed one missing backlink from [[wiki/decisions/sprint-4]] to [[wiki/tasks/analytics-p0-match-duration]]; full structural, index, backlink, orphan, and source-path checks passed for 72 pages.
