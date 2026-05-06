@@ -18,12 +18,14 @@ Add three types of game variety to public matchmaking — compact maps, Duos/Tri
 
 ## Sprint 4b Status
 
+**Closed — all tasks shipped.**
+
 | Status | Task | Brief |
 |---|---|---|
-| ⬜ Backlog | Investigation — Compact Map + Duos/Trios/Quads Compatibility | `sprint4b-mini-mode-investigation.md` |
-| ⬜ Backlog | Re-enable Duos/Trios/Quads Modes | `sprint4b-duos-trios-quads.md` |
-| ⬜ Backlog | Compact Map in Public Rotation + Mini Badge | `sprint4b-compact-map-rotation.md` |
-| ⬜ Backlog | Weird-Setting Modifier in Public Rotation + Badge | `sprint4b-weird-setting-modifier.md` |
+| ✅ Done | Investigation — Compact Map + Duos/Trios/Quads Compatibility | `sprint4b-mini-mode-investigation.md` |
+| ✅ Done | Re-enable Duos/Trios/Quads Modes | `sprint4b-duos-trios-quads.md` |
+| ✅ Done | Compact Map in Public Rotation + Mini Badge | `sprint4b-compact-map-rotation.md` |
+| ✅ Done | Weird-Setting Modifier in Public Rotation + Badge | `sprint4b-weird-setting-modifier.md` |
 
 ---
 
