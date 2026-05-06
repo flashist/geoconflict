@@ -20,7 +20,7 @@ Add compact maps to regular public matchmaking and make compact lobbies visible 
 
 Compact public matches can now be produced through the shared modifier path, with no schema changes because `gameMapSize` already flows through `GameConfig` to public lobby rendering and match start.
 
-The current registry contains only `mini_map`. While that remains true, the configured 20% modified-match rate means compact maps are selected for about 20% of public matches; once the weird-setting task adds its registry entry, the same 20% modified-match pool will split uniformly across compact and weird-setting matches.
+The registry now contains `mini_map` and `weird_setting`, so the configured 20% modified-match rate splits uniformly across compact and weird-setting matches. Compact maps are selected for about 10% of public matches.
 
 No compact map exclusion list was added. The prior investigation accepted the known water-centered nation-coordinate cases as spawn-distribution risks rather than release blockers.
 
@@ -28,3 +28,4 @@ No compact map exclusion list was added. The prior investigation accepted the kn
 
 - [[decisions/sprint-4b]]
 - [[tasks/sprint4b-mini-mode-investigation]]
+- [[tasks/sprint4b-weird-setting-modifier]]

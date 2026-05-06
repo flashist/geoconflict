@@ -465,3 +465,10 @@
 - Issues fixed: 5
 - Issues flagged for human review: 0
 - Fixed two one-way backlinks (`systems/clans` ↔ `systems/execution-pipeline`, `systems/game-overview` ↔ `tasks/sprint4b-duos-trios-quads`) and normalized stale-looking source references with line ranges in the clans pages.
+
+## 2026-05-06 — ingest
+- Sync window: `2d47933a26471929b417f617c57b88c66d5f0c85` → HEAD (`37b1beb37c02216d1613c09733c808affdb11a89`)
+- Changed source files detected: 3
+- Ingested: `ai-agents/sprints/done/plan-sprint-4b.md` → updated [[wiki/decisions/sprint-4b]], index.md
+- Ingested: `ai-agents/tasks/done/sprint4b-weird-setting-modifier.md` → created [[wiki/tasks/sprint4b-weird-setting-modifier]]; updated [[wiki/decisions/sprint-4b]], [[wiki/tasks/sprint4b-compact-map-rotation]], index.md
+- Skipped (already covered): `ai-agents/sprints/plan-sprint-4b.md` — renamed to `ai-agents/sprints/done/plan-sprint-4b.md` and ingested from the done path

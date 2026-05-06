@@ -35,7 +35,7 @@
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
 - [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation plus shipped tutorial, missions, solo-loss, email, Telegram, and AI-lobby follow-ups
-- [[decisions/sprint-4b]] — Sprint 4b (planned): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
+- [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
 - [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance no-ship — with reasons and re-attempt guidance
@@ -75,6 +75,7 @@
 - [[tasks/sprint4b-mini-mode-investigation]] — Sprint 4b investigation finding compact nation-spawn risks and confirming Duos/Trios/Quads AI-fill compatibility
 - [[tasks/sprint4b-duos-trios-quads]] — Sprint 4b public-only re-enable of Duos/Trios/Quads team-size modes with AI-fill coverage
 - [[tasks/sprint4b-compact-map-rotation]] — Sprint 4b public compact-map modifier plus Mini/Мини lobby badge
+- [[tasks/sprint4b-weird-setting-modifier]] — Sprint 4b weird-setting public modifiers and lobby badges
 - [[tasks/monetization-analytics-spec]] — Sprint 4 analytics baseline for identity, match lifecycle, citizenship funnel, and ad-tier measurement
 - [[tasks/analytics-p0-game-mode-segmentation]] — P0 analytics event pair segmenting fresh match starts into multiplayer versus solo
 - [[tasks/analytics-p0-spawn-confirmation]] — P0 analytics event measuring server-confirmed spawn and time-to-spawn
