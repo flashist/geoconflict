@@ -6,8 +6,9 @@ import {
   GameMapType,
   GameMode,
   HumansVsNations,
+  UnitType,
 } from "../core/game/Game";
-import { GameID, GameInfo } from "../core/Schemas";
+import { GameConfig, GameID, GameInfo } from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { PreloadMapConfig, JoinLobbyEvent } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
@@ -18,6 +19,22 @@ import {
 } from "./flashist/FlashistFacade";
 import { FlashistFacade } from "./flashist/FlashistFacade";
 import { isDevModeEnabled, onDevModeChange } from "./DevMode";
+
+function getWeirdModifierLabel(gameConfig: GameConfig): string | null {
+  if (gameConfig.infiniteGold) {
+    return translateText("public_lobby.modifier_infinite_gold");
+  }
+  if (gameConfig.infiniteTroops) {
+    return translateText("public_lobby.modifier_infinite_army");
+  }
+  if (gameConfig.disabledUnits?.includes(UnitType.MissileSilo)) {
+    return translateText("public_lobby.modifier_no_nukes");
+  }
+  if (gameConfig.disabledUnits?.includes(UnitType.SAMLauncher)) {
+    return translateText("public_lobby.modifier_no_sam");
+  }
+  return null;
+}
 
 @customElement("public-lobby")
 export class PublicLobby extends LitElement {
@@ -152,6 +169,7 @@ export class PublicLobby extends LitElement {
     const playerCountDisplay = isDevModeEnabled()
       ? `${lobby.numClients} / ${lobby.gameConfig.maxPlayers} (${aiPlayersCount})`
       : `${lobby.numClients} / ${lobby.gameConfig.maxPlayers}`;
+    const weirdModifierLabel = getWeirdModifierLabel(lobby.gameConfig);
 
     return html`
       <button
@@ -200,6 +218,15 @@ export class PublicLobby extends LitElement {
                       })
                   : translateText("game_mode.ffa")}</span
               >
+              ${weirdModifierLabel
+                ? html`<span
+                    class="text-sm ${this.isLobbyHighlighted
+                      ? "text-green-600"
+                      : "text-blue-600"} bg-white rounded-sm px-1"
+                  >
+                    ${weirdModifierLabel}
+                  </span>`
+                : nothing}
               ${lobby.gameConfig.gameMapSize === GameMapSize.Compact
                 ? html`<span
                     class="text-sm ${this.isLobbyHighlighted
