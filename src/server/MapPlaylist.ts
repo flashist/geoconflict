@@ -20,8 +20,7 @@ const log = logger.child({});
 
 const config = getServerConfigFromServer();
 
-// export const MODIFIED_MATCH_RATE = 0.2;
-export const MODIFIED_MATCH_RATE = 0.9;
+export const MODIFIED_MATCH_RATE = 0.2;
 
 export type MatchModifier = {
   id: string;
