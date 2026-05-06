@@ -238,6 +238,7 @@
   "public_lobby": {
     "join": "Join next Game",
     "waiting": "players waiting",
+    "mini_map": "Mini",
     "teams_Duos": "Duos (teams of 2)",
     "teams_Trios": "Trios (teams of 3)",
     "teams_Quads": "Quads (teams of 4)",

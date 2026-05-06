@@ -1,12 +1,21 @@
-import { LitElement, html } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { renderDuration, translateText } from "../client/Utils";
-import { GameMapSize, GameMapType, GameMode, HumansVsNations } from "../core/game/Game";
+import {
+  GameMapSize,
+  GameMapType,
+  GameMode,
+  HumansVsNations,
+} from "../core/game/Game";
 import { GameID, GameInfo } from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { PreloadMapConfig, JoinLobbyEvent } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
-import { flashist_logEventAnalytics, flashist_waitGameInitComplete, flashistConstants } from "./flashist/FlashistFacade";
+import {
+  flashist_logEventAnalytics,
+  flashist_waitGameInitComplete,
+  flashistConstants,
+} from "./flashist/FlashistFacade";
 import { FlashistFacade } from "./flashist/FlashistFacade";
 import { isDevModeEnabled, onDevModeChange } from "./DevMode";
 
@@ -31,16 +40,13 @@ export class PublicLobby extends LitElement {
     super.connectedCallback();
 
     // Flashist Adaptation
-    flashist_waitGameInitComplete()
-      .then(
-        () => {
-          this.fetchAndUpdateLobbies();
-          this.lobbiesInterval = window.setInterval(
-            () => this.fetchAndUpdateLobbies(),
-            1000,
-          );
-        }
+    flashist_waitGameInitComplete().then(() => {
+      this.fetchAndUpdateLobbies();
+      this.lobbiesInterval = window.setInterval(
+        () => this.fetchAndUpdateLobbies(),
+        1000,
       );
+    });
 
     this.devModeUnsubscribe = onDevModeChange(() => {
       this.requestUpdate();
@@ -152,21 +158,21 @@ export class PublicLobby extends LitElement {
         @click=${() => this.lobbyClicked(lobby)}
         ?disabled=${this.isButtonDebounced}
         class="isolate grid h-40 grid-cols-[100%] grid-rows-[100%] place-content-stretch w-full overflow-hidden ${this
-        .isLobbyHighlighted
-        ? "bg-gradient-to-r from-green-600 to-green-500"
-        : "bg-gradient-to-r from-blue-600 to-blue-500"} text-white font-medium rounded-xl transition-opacity duration-200 hover:opacity-90 ${this
+          .isLobbyHighlighted
+          ? "bg-gradient-to-r from-green-600 to-green-500"
+          : "bg-gradient-to-r from-blue-600 to-blue-500"} text-white font-medium rounded-xl transition-opacity duration-200 hover:opacity-90 ${this
           .isButtonDebounced
           ? "opacity-70 cursor-not-allowed"
           : ""}"
       >
         ${mapImageSrc
-        ? html`<img
+          ? html`<img
               src="${mapImageSrc}"
               alt="${lobby.gameConfig.gameMap}"
               class="place-self-start col-span-full row-span-full h-full -z-10"
               style="mask-image: linear-gradient(to left, transparent, #fff)"
             />`
-        : html`<div
+          : html`<div
               class="place-self-start col-span-full row-span-full h-full -z-10 bg-gray-300"
             ></div>`}
         <div
@@ -176,26 +182,37 @@ export class PublicLobby extends LitElement {
             <div class="text-lg md:text-2xl font-semibold">
               ${translateText("public_lobby.join")}
             </div>
-            <div class="text-md font-medium text-blue-100">
+            <div
+              class="flex flex-wrap items-center justify-end gap-2 text-md font-medium text-blue-100"
+            >
               <span
                 class="text-sm ${this.isLobbyHighlighted
-        ? "text-green-600"
-        : "text-blue-600"} bg-white rounded-sm px-1"
+                  ? "text-green-600"
+                  : "text-blue-600"} bg-white rounded-sm px-1"
               >
                 ${lobby.gameConfig.gameMode === GameMode.Team
-        ? typeof teamCount === "string"
-          ? teamCount === HumansVsNations
-            ? translateText("public_lobby.teams_hvn")
-            : translateText(`public_lobby.teams_${teamCount}`)
-          : translateText("public_lobby.teams", {
-            num: teamCount ?? 0,
-          })
-        : translateText("game_mode.ffa")}</span
+                  ? typeof teamCount === "string"
+                    ? teamCount === HumansVsNations
+                      ? translateText("public_lobby.teams_hvn")
+                      : translateText(`public_lobby.teams_${teamCount}`)
+                    : translateText("public_lobby.teams", {
+                        num: teamCount ?? 0,
+                      })
+                  : translateText("game_mode.ffa")}</span
               >
+              ${lobby.gameConfig.gameMapSize === GameMapSize.Compact
+                ? html`<span
+                    class="text-sm ${this.isLobbyHighlighted
+                      ? "text-green-600"
+                      : "text-blue-600"} bg-white rounded-sm px-1"
+                  >
+                    ${translateText("public_lobby.mini_map")}
+                  </span>`
+                : nothing}
               <span
                 >${translateText(
-          `map.${lobby.gameConfig.gameMap.toLowerCase().replace(/\s+/g, "")}`,
-        )}</span
+                  `map.${lobby.gameConfig.gameMap.toLowerCase().replace(/\s+/g, "")}`,
+                )}</span
               >
             </div>
           </div>
@@ -225,7 +242,7 @@ export class PublicLobby extends LitElement {
 
     //
     flashist_logEventAnalytics(
-      flashistConstants.analyticEvents.UI_CLICK_MULTIPLAYER
+      flashistConstants.analyticEvents.UI_CLICK_MULTIPLAYER,
     );
 
     // Set debounce state
@@ -244,8 +261,8 @@ export class PublicLobby extends LitElement {
       if (lobby.gameConfig) {
         preloadMapData = {
           mapType: lobby.gameConfig.gameMap,
-          mapSize: lobby.gameConfig.gameMapSize
-        }
+          mapSize: lobby.gameConfig.gameMapSize,
+        };
       }
 
       this.dispatchEvent(
@@ -253,7 +270,7 @@ export class PublicLobby extends LitElement {
           detail: {
             gameID: lobby.gameID,
             clientID: generateID(),
-            preloadMapData: preloadMapData
+            preloadMapData: preloadMapData,
           } as JoinLobbyEvent,
           bubbles: true,
           composed: true,
@@ -275,15 +292,17 @@ export class PublicLobby extends LitElement {
       // Flashist Adaptation: Show interstitial ads only for the cases when there is enough time for it
       // and when there are still some avaialble slots for other people to join
       // (otherwise, the game would start earielr, than should)
-      if (timeRemaining >= flashistConstants.ads.interstitial.join.minDurationBeforeGameSec &&
-        openSlots >= flashistConstants.ads.interstitial.join.minOpenSlotsCount) {
+      if (
+        timeRemaining >=
+          flashistConstants.ads.interstitial.join.minDurationBeforeGameSec &&
+        openSlots >= flashistConstants.ads.interstitial.join.minOpenSlotsCount
+      ) {
         try {
           await FlashistFacade.instance.showInterstitial();
         } catch (error) {
           console.error("Failed to show interstitial:", error);
         }
       }
-
     } else {
       this.dispatchEvent(
         new CustomEvent("leave-lobby", {

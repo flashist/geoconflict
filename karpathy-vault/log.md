@@ -447,3 +447,9 @@
 - Skipped (already covered): `ai-agents/tasks/done/sprint4b-duos-trios-quads.md` — [[wiki/tasks/sprint4b-duos-trios-quads]] already up to date
 - Updated: `ai-agents/tasks/done/investigate-clans-system.md` → fixed stale source path in [[wiki/tasks/investigate-clans-system]] (`backlog/` → `done/`)
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/investigate-clans-system.md` — backlog file
+
+## 2026-05-06 — ingest
+- Ingested: `ai-agents/tasks/done/sprint4b-compact-map-rotation.md` → created [[wiki/tasks/sprint4b-compact-map-rotation]]; updated [[wiki/decisions/sprint-4b]], [[wiki/tasks/sprint4b-mini-mode-investigation]], index.md
+
+## 2026-05-06 — correction
+- Reverted premature task-file move and wiki task ingest for `ai-agents/tasks/backlog/sprint4b-compact-map-rotation.md`; task remains in backlog until human testing/verification moves it to done.

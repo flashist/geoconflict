@@ -19,6 +19,20 @@ const log = logger.child({});
 
 const config = getServerConfigFromServer();
 
+export const MODIFIED_MATCH_RATE = 0.2;
+
+export type MatchModifier = {
+  id: string;
+  apply: () => Partial<GameConfig>;
+};
+
+export const MATCH_MODIFIERS: MatchModifier[] = [
+  {
+    id: "mini_map",
+    apply: () => ({ gameMapSize: GameMapSize.Compact }),
+  },
+];
+
 // How many times each map should appear in the playlist.
 // Note: The Partial should eventually be removed for better type safety.
 const frequency: Partial<Record<GameMapName, number>> = {
@@ -78,6 +92,22 @@ export function randomTeamCount(
   return TEAM_COUNTS[Math.floor(random() * TEAM_COUNTS.length)];
 }
 
+export function applyMatchModifier(
+  gameConfig: GameConfig,
+  random: () => number = Math.random,
+): void {
+  if (MATCH_MODIFIERS.length === 0 || random() >= MODIFIED_MATCH_RATE) {
+    return;
+  }
+
+  const modifierIndex = Math.min(
+    Math.floor(random() * MATCH_MODIFIERS.length),
+    MATCH_MODIFIERS.length - 1,
+  );
+  const modifier = MATCH_MODIFIERS[modifierIndex];
+  Object.assign(gameConfig, modifier.apply());
+}
+
 export class MapPlaylist {
   private mapsPlaylist: MapWithMode[] = [];
 
@@ -90,7 +120,7 @@ export class MapPlaylist {
       mode === GameMode.Team ? this.getTeamCount() : undefined;
 
     // Create the default public game config (from your GameManager)
-    return {
+    const gameConfig = {
       donateGold: mode === GameMode.Team,
       donateTroops: mode === GameMode.Team,
       gameMap: map,
@@ -110,6 +140,9 @@ export class MapPlaylist {
       bots: 400,
       disabledUnits: [],
     } satisfies GameConfig;
+
+    applyMatchModifier(gameConfig);
+    return gameConfig;
   }
 
   private getTeamCount(): TeamCountConfig {
