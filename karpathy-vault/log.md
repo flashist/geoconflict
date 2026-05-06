@@ -472,3 +472,9 @@
 - Ingested: `ai-agents/sprints/done/plan-sprint-4b.md` → updated [[wiki/decisions/sprint-4b]], index.md
 - Ingested: `ai-agents/tasks/done/sprint4b-weird-setting-modifier.md` → created [[wiki/tasks/sprint4b-weird-setting-modifier]]; updated [[wiki/decisions/sprint-4b]], [[wiki/tasks/sprint4b-compact-map-rotation]], index.md
 - Skipped (already covered): `ai-agents/sprints/plan-sprint-4b.md` — renamed to `ai-agents/sprints/done/plan-sprint-4b.md` and ingested from the done path
+
+## 2026-05-06 — lint
+- Issues found: 0
+- Issues fixed: 0
+- Issues flagged for human review: 0
+- Full structural, index, backlink, orphan, source-path, and targeted stale-wording checks passed for 78 indexed pages.
