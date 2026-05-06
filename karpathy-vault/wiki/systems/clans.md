@@ -11,7 +11,7 @@ The clans system lets players self-identify as a group by embedding a short tag 
 
 ### Tag Parsing
 
-`getClanTag(name)` — `src/core/Util.ts:329`
+`getClanTag(name)` — `src/core/Util.ts`, line 329
 
 ```typescript
 export function getClanTag(name: string): string | null {
@@ -26,15 +26,15 @@ export function getClanTag(name: string): string | null {
 
 ### Player Model
 
-`PlayerInfo.clan` — `src/core/game/Game.ts:410–421`
+`PlayerInfo.clan` — `src/core/game/Game.ts`, lines 410-421
 
-A read-only field set once in the `PlayerInfo` constructor via `getClanTag(name)`. It is NOT a Zod schema field — it lives directly on the TypeScript class. Exposed via the `Player.clan()` interface (`Game.ts:605`) and `PlayerImpl.clan()` (`PlayerImpl.ts:208`).
+A read-only field set once in the `PlayerInfo` constructor via `getClanTag(name)`. It is NOT a Zod schema field — it lives directly on the TypeScript class. Exposed via the `Player.clan()` interface (`src/core/game/Game.ts`, line 605) and `PlayerImpl.clan()` (`src/core/game/PlayerImpl.ts`, line 208).
 
 ### Team Assignment
 
 `assignTeams(players, teams)` — `src/core/game/TeamAssignment.ts` (full file, 89 lines)
 
-Called only in `GameMode.Team` (`GameImpl.ts:102`). Algorithm:
+Called only in `GameMode.Team` (`src/core/game/GameImpl.ts`, line 102). Algorithm:
 
 1. Group players by `player.clan` tag into `Map<string, PlayerInfo[]>`.
 2. Players with no clan tag go to a separate `noClanPlayers` list.
@@ -44,15 +44,15 @@ Called only in `GameMode.Team` (`GameImpl.ts:102`). Algorithm:
 6. Non-clan players fill remaining slots: `FakeHuman` (nations) shuffled randomly; human players assigned deterministically.
 7. Returns `Map<PlayerInfo, Team | "kicked">`.
 
-In `GameImpl.addPlayers()` (`GameImpl.ts:170–177`): kicked players are skipped with `console.warn` — they are never added to the game.
+In `GameImpl.addPlayers()` (`src/core/game/GameImpl.ts`, lines 170-177): kicked players are skipped with `console.warn` — they are never added to the game.
 
 ### Analytics Record
 
-`clanTag: z.string().optional()` in `PlayerRecordSchema` — `src/core/Schemas.ts:567`
+`clanTag: z.string().optional()` in `PlayerRecordSchema` — `src/core/Schemas.ts`, line 567
 
 This is a separate, analytics-only field populated at game end. Not the same as `PlayerInfo.clan`. Populated at:
-- Server: `src/server/GameServer.ts:988` — `clanTag: getClanTag(player.username) ?? undefined`
-- Singleplayer: `src/client/LocalServer.ts:265` — same call
+- Server: `src/server/GameServer.ts`, line 988 — `clanTag: getClanTag(player.username) ?? undefined`
+- Singleplayer: `src/client/LocalServer.ts`, line 265 — same call
 
 Both paths work correctly.
 
@@ -60,7 +60,7 @@ Both paths work correctly.
 
 ### Kicked Players Get No Notification (Bug)
 
-`GameImpl.ts:172–174`: A player whose clan overflows a team slot is silently omitted from the game with only `console.warn`. No disconnect message, no toast, no redirect is sent to the client. The player connects and never appears in the game without explanation.
+`src/core/game/GameImpl.ts`, lines 172-174: A player whose clan overflows a team slot is silently omitted from the game with only `console.warn`. No disconnect message, no toast, no redirect is sent to the client. The player connects and never appears in the game without explanation.
 
 ### Clan Tags Are Unverified
 
@@ -68,7 +68,7 @@ Anyone can claim any tag by typing it in their display name. Abuse surface: tag 
 
 ### FFA Mode — Tag Parsed But Unused
 
-In `GameMode.FFA`, `assignTeams()` is never called (`GameImpl.ts:151–154`). `PlayerInfo.clan` is populated but has no effect on gameplay. The tag IS written to `PlayerRecord` for analytics.
+In `GameMode.FFA`, `assignTeams()` is never called (`src/core/game/GameImpl.ts`, lines 151-154). `PlayerInfo.clan` is populated but has no effect on gameplay. The tag IS written to `PlayerRecord` for analytics.
 
 ### No Clan UI
 

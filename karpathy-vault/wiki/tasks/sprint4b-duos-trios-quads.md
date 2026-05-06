@@ -39,6 +39,7 @@ Public matchmaking can now generate Duos, Trios, and Quads lobbies alongside reg
 ## Related
 
 - [[decisions/sprint-4b]]
+- [[systems/game-overview]] — team-size modes are summarized in the game mode catalog
 - [[features/ai-players]]
 - [[tasks/sprint4b-mini-mode-investigation]]
 - [[tasks/teams-mode-max-teams]]

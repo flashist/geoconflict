@@ -13,7 +13,7 @@ Produce a complete picture of the existing (undocumented) clans system: what is 
 
 No source code was modified. This was a pure investigation.
 
-**Files read:** `src/core/Util.ts:329`, `src/core/game/Game.ts:410–421,605`, `src/core/game/TeamAssignment.ts`, `src/core/game/GameImpl.ts:102–177`, `src/core/game/PlayerImpl.ts:208`, `src/core/Schemas.ts:567`, `src/server/GameServer.ts:988`, `src/client/LocalServer.ts:265`
+**Files read:** `src/core/Util.ts` line 329, `src/core/game/Game.ts` lines 410-421 and 605, `src/core/game/TeamAssignment.ts`, `src/core/game/GameImpl.ts` lines 102-177, `src/core/game/PlayerImpl.ts` line 208, `src/core/Schemas.ts` line 567, `src/server/GameServer.ts` line 988, `src/client/LocalServer.ts` line 265
 
 **All client files in `src/client/`** were searched for clan rendering — zero instances found.
 
@@ -29,7 +29,7 @@ No source code was modified. This was a pure investigation.
 
 ### What Is Broken
 
-**Critical — kicked players get no notification.** `GameImpl.ts:172–174`: players whose clan overflows a team slot are silently omitted from the game. Only `console.warn` is emitted. The player's client connects but the player never appears, with no explanation.
+**Critical — kicked players get no notification.** `src/core/game/GameImpl.ts`, lines 172-174: players whose clan overflows a team slot are silently omitted from the game. Only `console.warn` is emitted. The player's client connects but the player never appears, with no explanation.
 
 ### What Is Missing
 
@@ -40,7 +40,7 @@ No source code was modified. This was a pure investigation.
 
 ### Recommended Next Steps (ranked)
 
-1. **Critical:** Surface a kick notification to players removed due to clan overflow (`GameImpl.ts:172`).
+1. **Critical:** Surface a kick notification to players removed due to clan overflow (`src/core/game/GameImpl.ts`, line 172).
 2. **High:** Add clan tag indicator to the pre-game lobby UI.
 3. **High:** Display clan tag on in-game name plates and leaderboard.
 4. **Medium:** Add analytics events for clan grouping (members kept together, members kicked).

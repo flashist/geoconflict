@@ -459,3 +459,9 @@
 - Changed source files detected: 1
 - Ingested: `ai-agents/tasks/done/sprint4b-compact-map-rotation.md` → created [[wiki/tasks/sprint4b-compact-map-rotation]]; updated [[wiki/decisions/sprint-4b]], [[wiki/tasks/sprint4b-mini-mode-investigation]], index.md
 - Skipped (already covered): none
+
+## 2026-05-06 — lint
+- Issues found: 5
+- Issues fixed: 5
+- Issues flagged for human review: 0
+- Fixed two one-way backlinks (`systems/clans` ↔ `systems/execution-pipeline`, `systems/game-overview` ↔ `tasks/sprint4b-duos-trios-quads`) and normalized stale-looking source references with line ranges in the clans pages.
