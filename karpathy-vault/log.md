@@ -453,3 +453,9 @@
 
 ## 2026-05-06 — correction
 - Reverted premature task-file move and wiki task ingest for `ai-agents/tasks/backlog/sprint4b-compact-map-rotation.md`; task remains in backlog until human testing/verification moves it to done.
+
+## 2026-05-06 — ingest
+- Sync window: `62b460292ac07c05cf3c79295a976e2c43dcd42e` → HEAD (`2d47933a26471929b417f617c57b88c66d5f0c85`)
+- Changed source files detected: 1
+- Ingested: `ai-agents/tasks/done/sprint4b-compact-map-rotation.md` → created [[wiki/tasks/sprint4b-compact-map-rotation]]; updated [[wiki/decisions/sprint-4b]], [[wiki/tasks/sprint4b-mini-mode-investigation]], index.md
+- Skipped (already covered): none

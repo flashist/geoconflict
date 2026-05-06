@@ -59,5 +59,6 @@ The public-lobby localization keys for Duos/Trios/Quads already exist in `resour
 
 - [[decisions/sprint-4b]]
 - [[features/ai-players]]
+- [[tasks/sprint4b-compact-map-rotation]]
 - [[tasks/sprint4b-duos-trios-quads]]
 - [[tasks/teams-mode-max-teams]]

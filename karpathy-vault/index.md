@@ -74,6 +74,7 @@
 - [[tasks/teams-mode-max-teams]] — Sprint 4 server-side cap limiting regular public teams lobbies to 2, 3, or 4 teams
 - [[tasks/sprint4b-mini-mode-investigation]] — Sprint 4b investigation finding compact nation-spawn risks and confirming Duos/Trios/Quads AI-fill compatibility
 - [[tasks/sprint4b-duos-trios-quads]] — Sprint 4b public-only re-enable of Duos/Trios/Quads team-size modes with AI-fill coverage
+- [[tasks/sprint4b-compact-map-rotation]] — Sprint 4b public compact-map modifier plus Mini/Мини lobby badge
 - [[tasks/monetization-analytics-spec]] — Sprint 4 analytics baseline for identity, match lifecycle, citizenship funnel, and ad-tier measurement
 - [[tasks/analytics-p0-game-mode-segmentation]] — P0 analytics event pair segmenting fresh match starts into multiplayer versus solo
 - [[tasks/analytics-p0-spawn-confirmation]] — P0 analytics event measuring server-confirmed spawn and time-to-spawn

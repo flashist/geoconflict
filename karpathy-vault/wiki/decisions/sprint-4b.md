@@ -30,6 +30,7 @@ No analytics are planned for these new features in Sprint 4b.
 - Sprint 4b deliberately avoids citizenship, payments, player profile store, and start-screen redesign work while Sprint 4's core monetization track is paused.
 - The compact-map and Duos/Trios/Quads work must wait for investigation findings so map scale, player count, and AI-fill risks can be scoped before implementation.
 - The modifier system is mutually exclusive by design: a public match can be normal, compact, or weird-setting, but never compact and weird-setting at the same time.
+- The compact-map modifier and public lobby badge are implemented; the registry currently contains only `mini_map` until the weird-setting task adds its entry.
 - Weird-setting badge wording is left to implementation, but Mark must review it before release.
 - The win-check regression investigation, sec10, and sec11 stay in backlog until after Mark returns.
 
@@ -41,4 +42,5 @@ No analytics are planned for these new features in Sprint 4b.
 - [[systems/producer-workflow]] — investigation-first planning and Mark approval boundaries
 - [[systems/project-operations]] — sprint/task workflow and release constraints
 - [[tasks/sprint4b-mini-mode-investigation]] — compatibility findings for compact maps plus Duos/Trios/Quads
+- [[tasks/sprint4b-compact-map-rotation]] — compact-map public modifier and Mini/Мини lobby badge implementation
 - [[tasks/sprint4b-duos-trios-quads]] — public-only implementation of Duos/Trios/Quads after the compatibility investigation
