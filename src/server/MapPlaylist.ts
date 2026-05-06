@@ -10,6 +10,7 @@ import {
   HumansVsNations,
   Quads,
   Trios,
+  UnitType,
 } from "../core/game/Game";
 import { PseudoRandom } from "../core/PseudoRandom";
 import { GameConfig, TeamCountConfig } from "../core/Schemas";
@@ -19,17 +20,35 @@ const log = logger.child({});
 
 const config = getServerConfigFromServer();
 
-export const MODIFIED_MATCH_RATE = 0.2;
+// export const MODIFIED_MATCH_RATE = 0.2;
+export const MODIFIED_MATCH_RATE = 0.9;
 
 export type MatchModifier = {
   id: string;
   apply: () => Partial<GameConfig>;
 };
 
+export const WEIRD_SETTING_OPTIONS: Array<() => Partial<GameConfig>> = [
+  () => ({ infiniteGold: true }),
+  () => ({ infiniteTroops: true }),
+  () => ({ disabledUnits: [UnitType.MissileSilo] }),
+  () => ({ disabledUnits: [UnitType.SAMLauncher] }),
+];
+
 export const MATCH_MODIFIERS: MatchModifier[] = [
   {
     id: "mini_map",
     apply: () => ({ gameMapSize: GameMapSize.Compact }),
+  },
+  {
+    id: "weird_setting",
+    apply: () => {
+      const optionIndex = Math.min(
+        Math.floor(Math.random() * WEIRD_SETTING_OPTIONS.length),
+        WEIRD_SETTING_OPTIONS.length - 1,
+      );
+      return WEIRD_SETTING_OPTIONS[optionIndex]();
+    },
   },
 ];
 
@@ -111,7 +130,7 @@ export function applyMatchModifier(
 export class MapPlaylist {
   private mapsPlaylist: MapWithMode[] = [];
 
-  constructor(private disableTeams: boolean = false) {}
+  constructor(private disableTeams: boolean = false) { }
 
   public gameConfig(): GameConfig {
     const { map, mode } = this.getNextMap();

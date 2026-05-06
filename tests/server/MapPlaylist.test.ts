@@ -8,6 +8,7 @@ import {
   HumansVsNations,
   Quads,
   Trios,
+  UnitType,
 } from "../../src/core/game/Game";
 import { GameConfig } from "../../src/core/Schemas";
 import {
@@ -17,6 +18,7 @@ import {
   MODIFIED_MATCH_RATE,
   REGULAR_TEAM_COUNTS,
   TEAM_COUNTS,
+  WEIRD_SETTING_OPTIONS,
   randomTeamCount,
 } from "../../src/server/MapPlaylist";
 
@@ -79,13 +81,23 @@ describe("MapPlaylist", () => {
     expect(MODIFIED_MATCH_RATE).toBe(0.2);
   });
 
-  test("compact map modifier is registered for public rotation", () => {
+  test("public rotation modifiers are registered", () => {
     expect(MATCH_MODIFIERS).toEqual([
       expect.objectContaining({ id: "mini_map" }),
+      expect.objectContaining({ id: "weird_setting" }),
     ]);
     expect(MATCH_MODIFIERS[0].apply()).toEqual({
       gameMapSize: GameMapSize.Compact,
     });
+  });
+
+  test("weird setting options cover the expected public variants", () => {
+    expect(WEIRD_SETTING_OPTIONS.map((option) => option())).toEqual([
+      { infiniteGold: true },
+      { infiniteTroops: true },
+      { disabledUnits: [UnitType.MissileSilo] },
+      { disabledUnits: [UnitType.SAMLauncher] },
+    ]);
   });
 
   test("modifier application leaves normal configs unchanged outside the rate", () => {
@@ -103,5 +115,22 @@ describe("MapPlaylist", () => {
     applyMatchModifier(gameConfig, () => randomValues.shift() ?? 0);
 
     expect(gameConfig.gameMapSize).toBe(GameMapSize.Compact);
+  });
+
+  test("modifier application can select a weird setting without compact maps", () => {
+    const gameConfig = testGameConfig();
+    const randomValues = [0, 0.75];
+    const mathRandomSpy = jest.spyOn(Math, "random").mockReturnValue(0.5);
+
+    try {
+      applyMatchModifier(gameConfig, () => randomValues.shift() ?? 0);
+    } finally {
+      mathRandomSpy.mockRestore();
+    }
+
+    expect(gameConfig.gameMapSize).toBe(GameMapSize.Normal);
+    expect(gameConfig.infiniteGold).toBe(false);
+    expect(gameConfig.infiniteTroops).toBe(false);
+    expect(gameConfig.disabledUnits).toEqual([UnitType.MissileSilo]);
   });
 });
