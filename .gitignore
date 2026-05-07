@@ -20,3 +20,4 @@ karpathy-vault/.obsidian/
 
 .DS_Store
 .playwright-cli/
+/output/playwright
