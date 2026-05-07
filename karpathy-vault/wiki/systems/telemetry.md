@@ -1,7 +1,7 @@
 # Telemetry System (OTEL / Uptrace)
 
 **Layer**: server
-**Key files**: `src/server/Logger.ts`, `src/server/WorkerMetrics.ts`, `src/server/OtelTracing.ts`, `src/server/GameServer.ts`
+**Key files**: `src/server/Logger.ts`, `src/server/WorkerMetrics.ts`, `src/server/OtelTracing.ts`, `src/server/GameServer.ts`, `src/server/PrivilegeRefresher.ts`, `src/server/Archive.ts`, `src/client/LocalServer.ts`
 
 ## Summary
 
@@ -10,7 +10,7 @@ OpenTelemetry-based server observability. Production server emits logs, metrics,
 **Uptrace is for:** lag spikes, server errors, resource usage, per-worker correlation.
 **Uptrace is NOT for:** player behaviour, funnels, A/B tests, tutorial completion — use GameAnalytics for those (see [[systems/analytics]]).
 
-Source: `ai-agents/knowledge-base/uptrace-knowledge-base.md`
+Sources: `ai-agents/knowledge-base/uptrace-knowledge-base.md`, `ai-agents/knowledge-base/telemetry-recovery-hardening-2026-05-07.md`, `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`
 
 ## Architecture
 
@@ -66,13 +66,31 @@ Child spans:
 1. Uptrace → Logs → search `gameID` string → shows join/start/end/archive events
 2. Uptrace → Tracing → filter `game.id = <gameID>` → shows any slow turns for that match
 
+## Current Error Priorities (2026-05-07)
+
+A 1-hour Uptrace review on 2026-05-07 (14:57-15:57 Moscow time) found the most actionable production error families:
+
+| Priority | Error family | Approx. rate | Severity | Likely fix difficulty | Primary paths |
+|---|---:|---:|---|---|---|
+| 1 | Cosmetics fetch/config failures | 138.6/min | Medium-high | Low-medium | `src/client/Cosmetics.ts`, `src/server/PrivilegeRefresher.ts` |
+| 2 | Singleplayer/local hash crash | 31.0/min | High | Low-medium | `src/client/LocalServer.ts` |
+| 3 | Archive endpoint/body-limit failures | 26.6/min | Medium-high | Medium | `src/server/Archive.ts`, `src/server/Worker.ts`, `src/client/LocalServer.ts` |
+| 4 | Public lobby/map fetch failures | 9.3/min | Medium | Medium | `src/client/PublicLobby.ts`, `src/core/game/TerrainMapLoader.ts` |
+| 5 | Minified client null-id/null-object errors | 1.8/min | Medium | Medium-high | Needs source maps/context |
+| 6 | Mobile memory/WebGL rendering failures | 0.4/min | Medium-high for affected users | High | `src/client/graphics/**` |
+
+Recommended order: fix cosmetics serving and `PrivilegeRefresher` failure handling first to remove the largest telemetry noise source; guard `LocalServer` hash assignment next because it is a direct client crash; then fix archive routing/body limits to preserve match history and replay/debug data.
+
 ## Gotchas / Known Issues
 
 - `BasicTracerProvider` v2 has no `.register()` — use `trace.setGlobalTracerProvider(provider)` instead
 - Winston OTEL transport silently drops extra arguments — embed all error details in the message string
 - Structured fields passed as second arg to `log.info()` may not arrive as attributes in Uptrace — verify in live instance
 - `OTEL_EXPORTER_OTLP_ENDPOINT` absent in dev → no telemetry data for dev environments
-- `setup-telemetry.sh` must use `ch.retention.ttl` for Uptrace retention on the current stack; the older top-level `retention.traces/logs/metrics` format crashes Uptrace on startup and shows up externally as nginx `502 Bad Gateway`
+- `setup-telemetry.sh` must not generate top-level `ch:` config for Uptrace `2.0.2`; that config shape crashes Uptrace on startup and can surface externally as nginx `502 Bad Gateway`
+- Local ClickHouse filesystem tar backups are disabled because they can fill the 59 GB telemetry VPS disk. Preserve the `uptrace_clickhouse_data` Docker volume; do not use `docker compose down --volumes`, `docker volume prune`, or manual volume deletion as a recovery step.
+- Weekly PostgreSQL backups remain enabled and are pruned after 14 days. The disk warning cron only writes to `/var/log/disk-warnings.log`; it is not an active notification.
+- Current telemetry noise is dominated by cosmetics fetch failures, `LocalServer` hash assignment crashes, and archive failures; see "Current Error Priorities (2026-05-07)" before choosing telemetry cleanup work.
 
 ## Related
 
