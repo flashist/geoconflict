@@ -490,3 +490,6 @@
 
 ## 2026-05-07 — ingest
 - Ingested: `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` → updated [[wiki/systems/telemetry]] with deploy-secret placeholder guard and retention row-count retry notes
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` → updated [[wiki/systems/telemetry]] with separate 90-day metrics retention

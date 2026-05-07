@@ -6,7 +6,8 @@
 #   UPTRACE_PROJECT_TOKEN  — project token for OTLP auth (auto-generated if blank)
 #   UPTRACE_SECRET_KEY     — Uptrace secret key (auto-generated if blank)
 #   UPTRACE_ADMIN_PASSWORD — dashboard admin password (default: change_me_immediately)
-#   UPTRACE_RETENTION_DAYS — telemetry retention in days (default: 7)
+#   UPTRACE_RETENTION_DAYS — span/log/event retention in days (default: 7)
+#   UPTRACE_METRICS_RETENTION_DAYS — metrics retention in days (default: 90)
 #
 # What this script does:
 #   1. Installs Docker + Docker Compose plugin
@@ -44,11 +45,17 @@ fi
 
 UPTRACE_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-change_me_immediately}"
 UPTRACE_RETENTION_DAYS="${UPTRACE_RETENTION_DAYS:-7}"
+UPTRACE_METRICS_RETENTION_DAYS="${UPTRACE_METRICS_RETENTION_DAYS:-90}"
 if ! [[ "$UPTRACE_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$UPTRACE_RETENTION_DAYS" -lt 1 ]; then
     echo "Error: UPTRACE_RETENTION_DAYS must be a positive integer."
     exit 1
 fi
+if ! [[ "$UPTRACE_METRICS_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$UPTRACE_METRICS_RETENTION_DAYS" -lt 1 ]; then
+    echo "Error: UPTRACE_METRICS_RETENTION_DAYS must be a positive integer."
+    exit 1
+fi
 UPTRACE_RETENTION_NS=$((UPTRACE_RETENTION_DAYS * 86400 * 1000000000))
+UPTRACE_METRICS_RETENTION_NS=$((UPTRACE_METRICS_RETENTION_DAYS * 86400 * 1000000000))
 
 # ── System update ─────────────────────────────────────────────────────────────
 
@@ -351,7 +358,7 @@ for attempt in {1..30}; do
             set spans_ttl = ${UPTRACE_RETENTION_NS},
                 logs_ttl = ${UPTRACE_RETENTION_NS},
                 events_ttl = ${UPTRACE_RETENTION_NS},
-                metrics_ttl = ${UPTRACE_RETENTION_NS},
+                metrics_ttl = ${UPTRACE_METRICS_RETENTION_NS},
                 updated_at = now()
             where _key = 'geoconflict_project' or name = 'geoconflict'
             returning 1

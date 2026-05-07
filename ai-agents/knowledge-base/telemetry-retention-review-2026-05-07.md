@@ -16,6 +16,7 @@ PR review flagged that removing the old Uptrace `ch:` block also removed explici
 - The live default values on 2026-05-07 were 28 days for all four TTLs.
 - Uptrace 2.0.2 includes `uptrace retention check`, which applies storage retention.
 - Uptrace project TTL fields are stored as nanoseconds.
+- Metrics retention should stay separate from high-volume telemetry retention. Spans, logs, and events default to 7 days; metrics default to 90 days because they are comparatively small and useful for performance trend analysis.
 - The deploy wrapper must not let dry-run placeholder values escape into the real remote setup. `build-deploy-telemetry.sh` now keeps dry-run values in separate local variables and fails if required Uptrace deploy secrets are missing or use dry-run placeholders.
 - Retention updates must check affected rows. `setup-telemetry.sh` now retries until the seeded project row exists and uses a SQL CTE with `select count(*)` to fail if no project was updated.
 
@@ -23,7 +24,7 @@ PR review flagged that removing the old Uptrace `ch:` block also removed explici
 
 Keep the Uptrace 2.x-compatible YAML shape and restore explicit retention control by setting project-level TTL fields in PostgreSQL during telemetry setup.
 
-`UPTRACE_RETENTION_DAYS` now defaults to 7. `setup-telemetry.sh` converts that to nanoseconds and writes it to `spans_ttl`, `logs_ttl`, `events_ttl`, and `metrics_ttl` for the `geoconflict` project. The setup script also runs `uptrace retention check` once and installs a daily cron retry.
+`UPTRACE_RETENTION_DAYS` now defaults to 7 for spans, logs, and events. `UPTRACE_METRICS_RETENTION_DAYS` defaults to 90 for metrics. `setup-telemetry.sh` converts both values to nanoseconds and writes them to the `geoconflict` project. The setup script also runs `uptrace retention check` once and installs a daily cron retry.
 
 The deployment wrapper requires explicit real values for `UPTRACE_PROJECT_TOKEN`, `UPTRACE_SECRET_KEY`, and `UPTRACE_ADMIN_PASSWORD`; dry-run placeholders are only valid inside local config validation.
 
