@@ -75,7 +75,7 @@ export async function handlePurchase(
 }
 
 export async function fetchCosmetics(): Promise<Cosmetics | null> {
-  const cosmeticsUrl = `${getApiBase()}/cosmetics.json`;
+  const cosmeticsUrl = "/cosmetics.json";
   try {
     const response = await fetch(cosmeticsUrl);
     if (!response.ok) {

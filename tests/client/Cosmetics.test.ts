@@ -48,8 +48,8 @@ describe("fetchCosmetics", () => {
 
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith(
-      "Unable to load optional cosmetics config from http://api.test/cosmetics.json: HTTP 404",
+      "Unable to load optional cosmetics config from /cosmetics.json: HTTP 404",
     );
-    expect(global.fetch).toHaveBeenCalledWith("http://api.test/cosmetics.json");
+    expect(global.fetch).toHaveBeenCalledWith("/cosmetics.json");
   });
 });
