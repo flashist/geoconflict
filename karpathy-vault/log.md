@@ -496,3 +496,11 @@
 
 ## 2026-05-07 — ingest
 - Ingested: `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` → updated [[wiki/systems/telemetry]] with PostgreSQL backup-pruning rationale
+
+## 2026-05-07 — ingest
+- Sync window: `37b1beb37c02216d1613c09733c808affdb11a89` → HEAD (`a7a7798dd8d337c930eed9ea9a289f94a578e672`)
+- Changed source files detected: 4
+- Skipped (already covered): `ai-agents/knowledge-base/telemetry-recovery-hardening-2026-05-07.md` — already ingested into [[wiki/systems/telemetry]] earlier on 2026-05-07
+- Skipped (already covered): `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md` — already ingested into [[wiki/systems/telemetry]] earlier on 2026-05-07
+- Skipped (already covered): `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` — already ingested into [[wiki/systems/telemetry]] earlier on 2026-05-07
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/ux-quick-message-access.md` — backlog task
