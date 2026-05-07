@@ -528,3 +528,9 @@
 - Changed source files detected: 7
 - Ingested: `ai-agents/sprints/plan-sprint-4c.md` → created [[wiki/decisions/sprint-4c]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4c-fix-archive-endpoint.md`, `ai-agents/tasks/backlog/s4c-fix-cosmetics-serving.md`, `ai-agents/tasks/backlog/s4c-fix-local-server-hash-guard.md`, `ai-agents/tasks/backlog/s4c-investigate-lobby-map-fetch.md`, `ai-agents/tasks/backlog/s4c-investigate-null-id-errors.md`, `ai-agents/tasks/backlog/s4c-mobile-webgl-rendering.md` — backlog files are not ingested by wiki-sync; their scope is summarized through [[wiki/decisions/sprint-4c]]
+
+## 2026-05-07 — ingest
+- Sync window: `a93739abe46faa7a3e2387498b73a090e28dd87c` → HEAD (`866018fe6bec57ddde7f16ec3718c8bf29f94076`)
+- Changed source files detected: 1
+- Ingested: `ai-agents/tasks/done/s4c-fix-cosmetics-serving.md` → updated [[wiki/tasks/cosmetics-serving]], [[wiki/systems/configuration]]
+- Skipped (already covered): none

@@ -29,3 +29,4 @@ Shared runtime and gameplay configuration for Geoconflict. The system selects en
 - [[systems/project-operations]] — environment boundaries and deploy workflow
 - [[systems/networking]] — worker routing and public endpoint configuration
 - [[systems/telemetry]] — OTEL endpoint and production-only observability configuration
+- [[tasks/cosmetics-serving]] — same-origin and internal-origin handling for the optional cosmetics config endpoint
