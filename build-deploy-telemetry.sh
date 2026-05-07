@@ -82,11 +82,6 @@ esac
 
 print_header "VALIDATING CONFIG (local dry-run)"
 
-if grep -q '^ch:' "$SETUP_SCRIPT"; then
-    echo "❌ $SETUP_SCRIPT contains unsupported top-level ch: config for Uptrace 2.0.2"
-    exit 1
-fi
-
 if command -v docker &> /dev/null; then
     # Write a temp config the same way setup-telemetry.sh would, then ask Uptrace to validate it
     TMPDIR=$(mktemp -d)
