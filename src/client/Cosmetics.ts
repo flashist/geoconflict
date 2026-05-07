@@ -9,6 +9,20 @@ import { FlashistFacade } from "./flashist/FlashistFacade";
 import { getApiBase, getAuthHeader } from "./jwt";
 import { getPersistentID } from "./Main";
 
+const loggedCosmeticsFetchFailures = new Set<string>();
+
+function warnCosmeticsFetchFailure(message: string, error?: unknown) {
+  if (loggedCosmeticsFetchFailures.has(message)) {
+    return;
+  }
+  loggedCosmeticsFetchFailures.add(message);
+  if (error === undefined) {
+    console.warn(message);
+    return;
+  }
+  console.warn(message, error);
+}
+
 export async function handlePurchase(
   pattern: Pattern,
   colorPalette: ColorPalette | null,
@@ -61,20 +75,29 @@ export async function handlePurchase(
 }
 
 export async function fetchCosmetics(): Promise<Cosmetics | null> {
+  const cosmeticsUrl = `${getApiBase()}/cosmetics.json`;
   try {
-    const response = await fetch(`${getApiBase()}/cosmetics.json`);
+    const response = await fetch(cosmeticsUrl);
     if (!response.ok) {
-      console.error(`HTTP error! status: ${response.status}`);
+      warnCosmeticsFetchFailure(
+        `Unable to load optional cosmetics config from ${cosmeticsUrl}: HTTP ${response.status}`,
+      );
       return null;
     }
     const result = CosmeticsSchema.safeParse(await response.json());
     if (!result.success) {
-      console.error(`Invalid cosmetics: ${result.error.message}`);
+      warnCosmeticsFetchFailure(
+        `Unable to load optional cosmetics config from ${cosmeticsUrl}: invalid JSON schema`,
+        result.error,
+      );
       return null;
     }
     return result.data;
   } catch (error) {
-    console.error("Error getting cosmetics:", error);
+    warnCosmeticsFetchFailure(
+      `Unable to load optional cosmetics config from ${cosmeticsUrl}: fetch failed`,
+      error,
+    );
     return null;
   }
 }

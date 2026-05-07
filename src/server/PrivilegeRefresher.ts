@@ -14,6 +14,7 @@ export class PrivilegeRefresher {
   private privilegeChecker: PrivilegeChecker | null = null;
   private failOpenPrivilegeChecker: PrivilegeChecker =
     new FailOpenPrivilegeChecker();
+  private lastFailureKey: string | null = null;
 
   private log: Logger;
 
@@ -30,11 +31,15 @@ export class PrivilegeRefresher {
       `Starting privilege refresher with interval ${this.refreshInterval}`,
     );
     // Add some jitter to the initial load and the interval.
-    setTimeout(() => this.loadPrivilegeChecker(), Math.random() * 1000);
+    setTimeout(() => void this.refreshNow(), Math.random() * 1000);
     setInterval(
-      () => this.loadPrivilegeChecker(),
+      () => void this.refreshNow(),
       this.refreshInterval + Math.random() * 1000,
     );
+  }
+
+  public async refreshNow(): Promise<void> {
+    await this.loadPrivilegeChecker();
   }
 
   public get(): PrivilegeChecker {
@@ -60,10 +65,20 @@ export class PrivilegeRefresher {
         result.data,
         base64url.decode,
       );
+      if (this.lastFailureKey !== null) {
+        this.log.info(
+          `Privilege checker recovered after cosmetics fetch failure`,
+        );
+        this.lastFailureKey = null;
+      }
       this.log.info(`Privilege checker loaded successfully`);
     } catch (error) {
-      this.log.error(`Failed to fetch cosmetics from ${this.endpoint}: ${formatError(error)}`);
-      throw error;
+      const failureKey = error instanceof Error ? error.message : String(error);
+      const failureMessage = `Failed to fetch cosmetics from ${this.endpoint}: ${formatError(error)}`;
+      if (failureKey !== this.lastFailureKey) {
+        this.log.warn(failureMessage);
+        this.lastFailureKey = failureKey;
+      }
     }
   }
 }

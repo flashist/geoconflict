@@ -510,3 +510,6 @@
 - Issues fixed: 2
 - Issues flagged for human review: 0
 - Added missing canonical system pages for [[wiki/systems/configuration]] and [[wiki/systems/localization]], updated index entries, and added bidirectional links from related pages.
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/tasks/backlog/s4c-fix-cosmetics-serving.md` → created [[wiki/tasks/cosmetics-serving]]; updated [[wiki/systems/telemetry]], index.md

@@ -10,6 +10,7 @@ import { z } from "zod";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import { GameInfo, ID } from "../core/Schemas";
 import { generateID } from "../core/Util";
+import { loadCosmeticsConfig } from "./CosmeticsConfig";
 import { formatError, logger } from "./Logger";
 import { MapPlaylist } from "./MapPlaylist";
 
@@ -528,6 +529,18 @@ app.get("/api/game/:id/active", async (req, res) => {
     res.json(await response.json());
   } catch {
     res.json({ active: false });
+  }
+});
+
+app.get("/cosmetics.json", (_req, res) => {
+  try {
+    res
+      .type("application/json")
+      .set("Cache-Control", "public, max-age=300")
+      .json(loadCosmeticsConfig());
+  } catch (error) {
+    log.error(`Failed to serve cosmetics config: ${formatError(error)}`);
+    res.status(500).json({ error: "Invalid cosmetics config" });
   }
 });
 
