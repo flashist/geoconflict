@@ -510,3 +510,15 @@
 - Issues fixed: 2
 - Issues flagged for human review: 0
 - Added missing canonical system pages for [[wiki/systems/configuration]] and [[wiki/systems/localization]], updated index entries, and added bidirectional links from related pages.
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/tasks/backlog/s4c-fix-cosmetics-serving.md` → created [[wiki/tasks/cosmetics-serving]]; updated [[wiki/systems/telemetry]], index.md
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/tasks/backlog/s4c-fix-cosmetics-serving.md` → updated [[wiki/tasks/cosmetics-serving]] with same-origin cosmetics fetch and local dev proxy notes
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/tasks/backlog/s4c-fix-cosmetics-serving.md` → updated [[wiki/tasks/cosmetics-serving]] with worker-side local master cosmetics endpoint review fix
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/tasks/backlog/s4c-fix-cosmetics-serving.md` → updated [[wiki/tasks/cosmetics-serving]] with `MASTER_INTERNAL_ORIGIN` override for worker cosmetics fetches

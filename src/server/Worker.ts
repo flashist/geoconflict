@@ -28,6 +28,7 @@ import { MapPlaylist } from "./MapPlaylist";
 import { PrivilegeRefresher } from "./PrivilegeRefresher";
 import { initWorkerMetrics } from "./WorkerMetrics";
 import { initOtelTracing } from "./OtelTracing";
+import { localCosmeticsJsonUrl } from "./ServerEndpoints";
 
 const config = getServerConfigFromServer();
 
@@ -66,7 +67,7 @@ export async function startWorker() {
   }
 
   const privilegeRefresher = new PrivilegeRefresher(
-    config.jwtIssuer() + "/cosmetics.json",
+    localCosmeticsJsonUrl(),
     log,
   );
   privilegeRefresher.start();

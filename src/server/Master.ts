@@ -10,8 +10,10 @@ import { z } from "zod";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import { GameInfo, ID } from "../core/Schemas";
 import { generateID } from "../core/Util";
+import { loadCosmeticsConfig } from "./CosmeticsConfig";
 import { formatError, logger } from "./Logger";
 import { MapPlaylist } from "./MapPlaylist";
+import { COSMETICS_JSON_PATH, MASTER_HTTP_PORT } from "./ServerEndpoints";
 
 const config = getServerConfigFromServer();
 const playlist = new MapPlaylist(false);
@@ -150,7 +152,7 @@ export async function startMaster() {
     );
   });
 
-  const PORT = 3000;
+  const PORT = MASTER_HTTP_PORT;
   server.listen(PORT, () => {
     log.info(`Master HTTP server listening on port ${PORT}`);
   });
@@ -528,6 +530,18 @@ app.get("/api/game/:id/active", async (req, res) => {
     res.json(await response.json());
   } catch {
     res.json({ active: false });
+  }
+});
+
+app.get(COSMETICS_JSON_PATH, (_req, res) => {
+  try {
+    res
+      .type("application/json")
+      .set("Cache-Control", "public, max-age=300")
+      .json(loadCosmeticsConfig());
+  } catch (error) {
+    log.error(`Failed to serve cosmetics config: ${formatError(error)}`);
+    res.status(500).json({ error: "Invalid cosmetics config" });
   }
 });
 
