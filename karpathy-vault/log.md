@@ -484,3 +484,6 @@
 
 ## 2026-05-07 — ingest
 - Ingested: `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md` → updated [[wiki/systems/telemetry]]
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` → updated [[wiki/systems/telemetry]]

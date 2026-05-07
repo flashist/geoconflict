@@ -6,6 +6,7 @@
 #   UPTRACE_PROJECT_TOKEN  — project token for OTLP auth (auto-generated if blank)
 #   UPTRACE_SECRET_KEY     — Uptrace secret key (auto-generated if blank)
 #   UPTRACE_ADMIN_PASSWORD — dashboard admin password (default: change_me_immediately)
+#   UPTRACE_RETENTION_DAYS — telemetry retention in days (default: 7)
 #
 # What this script does:
 #   1. Installs Docker + Docker Compose plugin
@@ -42,6 +43,12 @@ if [ -z "$UPTRACE_SECRET_KEY" ]; then
 fi
 
 UPTRACE_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-change_me_immediately}"
+UPTRACE_RETENTION_DAYS="${UPTRACE_RETENTION_DAYS:-7}"
+if ! [[ "$UPTRACE_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$UPTRACE_RETENTION_DAYS" -lt 1 ]; then
+    echo "Error: UPTRACE_RETENTION_DAYS must be a positive integer."
+    exit 1
+fi
+UPTRACE_RETENTION_US=$((UPTRACE_RETENTION_DAYS * 86400 * 1000000))
 
 # ── System update ─────────────────────────────────────────────────────────────
 
@@ -329,6 +336,34 @@ else
     docker compose ps
 fi
 
+# ── Retention control ────────────────────────────────────────────────────────
+
+print_header "CONFIGURING RETENTION"
+
+# Uptrace 2.x stores telemetry retention as project-level TTLs in PostgreSQL.
+# The older top-level ch.retention/ch_schema TTL config is not compatible with
+# the generated v2 config shape used by uptrace/uptrace:2.0.2.
+docker compose exec -T postgres psql -U uptrace -d uptrace \
+    -c "update projects
+        set spans_ttl = ${UPTRACE_RETENTION_US},
+            logs_ttl = ${UPTRACE_RETENTION_US},
+            events_ttl = ${UPTRACE_RETENTION_US},
+            metrics_ttl = ${UPTRACE_RETENTION_US},
+            updated_at = now()
+        where _key = 'geoconflict_project' or name = 'geoconflict';"
+
+docker compose exec -T postgres psql -U uptrace -d uptrace \
+    -c "select id, name,
+               spans_ttl / 86400000000000.0 as spans_days,
+               logs_ttl / 86400000000000.0 as logs_days,
+               events_ttl / 86400000000000.0 as events_days,
+               metrics_ttl / 86400000000000.0 as metrics_days
+        from projects
+        order by id;"
+
+docker compose exec -T uptrace /uptrace --config=/etc/uptrace/config.yml retention check || \
+    echo "⚠️  Retention check failed; cron will retry daily. Check Uptrace logs if this persists."
+
 # ── HTTPS via nginx + Let's Encrypt ──────────────────────────────────────────
 
 if [ -n "$TELEMETRY_DOMAIN" ]; then
@@ -460,6 +495,10 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # Disk usage log warning — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.
 # Local log only (no email/webhook) — check the log manually or configure a notification if needed.
 0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '%'); if [ "\$USAGE" -gt 60 ]; then echo "\$(date) -- disk usage \${USAGE}%" >> /var/log/disk-warnings.log; fi
+
+# Enforce project-level telemetry TTL daily. Uptrace 2.x stores TTLs in Postgres
+# as spans_ttl/logs_ttl/events_ttl/metrics_ttl and applies them via this command.
+15 4 * * * root cd $UPTRACE_DIR && docker compose exec -T uptrace /uptrace --config=/etc/uptrace/config.yml retention check >> /var/log/uptrace-retention.log 2>&1
 
 # Certbot renewal — twice daily (Let's Encrypt recommendation)
 0 0,12 * * * root certbot renew --quiet --post-hook "systemctl reload nginx" >> /var/log/certbot-renew.log 2>&1
