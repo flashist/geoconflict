@@ -62,6 +62,22 @@ if [ ! -f "$SETUP_SCRIPT" ]; then
     exit 1
 fi
 
+for required_var in UPTRACE_PROJECT_TOKEN UPTRACE_SECRET_KEY UPTRACE_ADMIN_PASSWORD; do
+    if [ -z "${!required_var}" ]; then
+        echo "Error: ${required_var} is not set."
+        echo "Set it in .env.telemetry.secret before deploying telemetry."
+        exit 1
+    fi
+done
+
+case "$UPTRACE_PROJECT_TOKEN:$UPTRACE_SECRET_KEY:$UPTRACE_ADMIN_PASSWORD" in
+    *dryrun_token*|*dryrun_secret*|*dryrun_password*)
+        echo "Error: dry-run placeholder value found in Uptrace deploy secrets."
+        echo "Replace placeholder values in .env.telemetry.secret before deploying telemetry."
+        exit 1
+        ;;
+esac
+
 # ── Validate config locally before touching the server ────────────────────────
 
 print_header "VALIDATING CONFIG (local dry-run)"
@@ -74,8 +90,8 @@ fi
 if command -v docker &> /dev/null; then
     # Write a temp config the same way setup-telemetry.sh would, then ask Uptrace to validate it
     TMPDIR=$(mktemp -d)
-    UPTRACE_PROJECT_TOKEN="${UPTRACE_PROJECT_TOKEN:-dryrun_token}"
-    UPTRACE_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-dryrun_password}"
+    DRY_RUN_PROJECT_TOKEN="${UPTRACE_PROJECT_TOKEN:-dryrun_token}"
+    DRY_RUN_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-dryrun_password}"
     DRY_RUN_SITE_URL="${TELEMETRY_DOMAIN:+https://${TELEMETRY_DOMAIN}}"
     DRY_RUN_SITE_URL="${DRY_RUN_SITE_URL:-http://localhost:14318}"
     cat > "$TMPDIR/config.yml" << EOFCFG
@@ -114,7 +130,7 @@ seed_data:
     - key: admin_user
       name: Admin
       email: admin@geoconflict.ru
-      password: '${UPTRACE_ADMIN_PASSWORD}'
+      password: '${DRY_RUN_ADMIN_PASSWORD}'
       email_confirmed: true
   orgs:
     - key: geoconflict_org
@@ -131,7 +147,7 @@ seed_data:
   project_tokens:
     - key: geoconflict_token
       project_key: geoconflict_project
-      token: '${UPTRACE_PROJECT_TOKEN}'
+      token: '${DRY_RUN_PROJECT_TOKEN}'
   project_users:
     - key: geoconflict_project_user
       project_key: geoconflict_project

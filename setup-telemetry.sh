@@ -343,14 +343,34 @@ print_header "CONFIGURING RETENTION"
 # Uptrace 2.x stores telemetry retention as project-level TTLs in PostgreSQL.
 # The older top-level ch.retention/ch_schema TTL config is not compatible with
 # the generated v2 config shape used by uptrace/uptrace:2.0.2.
-docker compose exec -T postgres psql -U uptrace -d uptrace \
-    -c "update projects
-        set spans_ttl = ${UPTRACE_RETENTION_NS},
-            logs_ttl = ${UPTRACE_RETENTION_NS},
-            events_ttl = ${UPTRACE_RETENTION_NS},
-            metrics_ttl = ${UPTRACE_RETENTION_NS},
-            updated_at = now()
-        where _key = 'geoconflict_project' or name = 'geoconflict';"
+RETENTION_UPDATED=0
+for attempt in {1..30}; do
+    RETENTION_UPDATED=$(docker compose exec -T postgres psql -U uptrace -d uptrace -tAc "
+        with updated as (
+            update projects
+            set spans_ttl = ${UPTRACE_RETENTION_NS},
+                logs_ttl = ${UPTRACE_RETENTION_NS},
+                events_ttl = ${UPTRACE_RETENTION_NS},
+                metrics_ttl = ${UPTRACE_RETENTION_NS},
+                updated_at = now()
+            where _key = 'geoconflict_project' or name = 'geoconflict'
+            returning 1
+        )
+        select count(*) from updated;")
+
+    if [ "$RETENTION_UPDATED" -gt 0 ]; then
+        echo "✅ Retention updated for ${RETENTION_UPDATED} project(s)"
+        break
+    fi
+
+    echo "Retention target project not found yet (attempt ${attempt}/30); waiting for Uptrace seed data..."
+    sleep 2
+done
+
+if [ "$RETENTION_UPDATED" -eq 0 ]; then
+    echo "Error: retention was not applied because the geoconflict project row was not found."
+    exit 1
+fi
 
 docker compose exec -T postgres psql -U uptrace -d uptrace \
     -c "select id, name,
@@ -521,7 +541,7 @@ else
     echo "  ssh -L 14318:localhost:14318 root@${SERVER_IP}"
     echo "  Open: http://localhost:14318"
 fi
-echo "  Login: admin@geoconflict.ru / ${UPTRACE_ADMIN_PASSWORD}"
+echo "  Login: admin@geoconflict.ru / <configured UPTRACE_ADMIN_PASSWORD>"
 echo ""
 echo "Game server env vars — add to .env.prod:"
 if [ -n "$TELEMETRY_DOMAIN" ]; then
@@ -531,9 +551,8 @@ else
 fi
 echo "  OTEL_EXPORTER_OTLP_ENDPOINT=${OTLP_ENDPOINT}"
 echo ""
-echo "Tokens (save these — they cannot be recovered):"
-echo "  UPTRACE_PROJECT_TOKEN=${UPTRACE_PROJECT_TOKEN}"
-echo "  UPTRACE_SECRET_KEY=${UPTRACE_SECRET_KEY}"
+echo "Tokens:"
+echo "  Values are managed by .env.telemetry.secret / the deployment environment."
 echo ""
 if [ -n "$TELEMETRY_DOMAIN" ]; then
     echo "⚠️  FIREWALL:"
