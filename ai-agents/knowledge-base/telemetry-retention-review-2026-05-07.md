@@ -20,7 +20,7 @@ PR review flagged that removing the old Uptrace `ch:` block also removed explici
 
 Keep the Uptrace 2.x-compatible YAML shape and restore explicit retention control by setting project-level TTL fields in PostgreSQL during telemetry setup.
 
-`UPTRACE_RETENTION_DAYS` now defaults to 7. `setup-telemetry.sh` converts that to microseconds and writes it to `spans_ttl`, `logs_ttl`, `events_ttl`, and `metrics_ttl` for the `geoconflict` project. The setup script also runs `uptrace retention check` once and installs a daily cron retry.
+`UPTRACE_RETENTION_DAYS` now defaults to 7. `setup-telemetry.sh` converts that to nanoseconds and writes it to `spans_ttl`, `logs_ttl`, `events_ttl`, and `metrics_ttl` for the `geoconflict` project. The setup script also runs `uptrace retention check` once and installs a daily cron retry.
 
 ## Files Changed
 

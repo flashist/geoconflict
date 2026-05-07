@@ -48,7 +48,7 @@ if ! [[ "$UPTRACE_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$UPTRACE_RETENTION_DAYS" 
     echo "Error: UPTRACE_RETENTION_DAYS must be a positive integer."
     exit 1
 fi
-UPTRACE_RETENTION_US=$((UPTRACE_RETENTION_DAYS * 86400 * 1000000))
+UPTRACE_RETENTION_NS=$((UPTRACE_RETENTION_DAYS * 86400 * 1000000000))
 
 # ── System update ─────────────────────────────────────────────────────────────
 
@@ -345,10 +345,10 @@ print_header "CONFIGURING RETENTION"
 # the generated v2 config shape used by uptrace/uptrace:2.0.2.
 docker compose exec -T postgres psql -U uptrace -d uptrace \
     -c "update projects
-        set spans_ttl = ${UPTRACE_RETENTION_US},
-            logs_ttl = ${UPTRACE_RETENTION_US},
-            events_ttl = ${UPTRACE_RETENTION_US},
-            metrics_ttl = ${UPTRACE_RETENTION_US},
+        set spans_ttl = ${UPTRACE_RETENTION_NS},
+            logs_ttl = ${UPTRACE_RETENTION_NS},
+            events_ttl = ${UPTRACE_RETENTION_NS},
+            metrics_ttl = ${UPTRACE_RETENTION_NS},
             updated_at = now()
         where _key = 'geoconflict_project' or name = 'geoconflict';"
 
