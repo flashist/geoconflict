@@ -516,3 +516,9 @@
 
 ## 2026-05-07 — ingest
 - Ingested: `ai-agents/tasks/backlog/s4c-fix-cosmetics-serving.md` → updated [[wiki/tasks/cosmetics-serving]] with same-origin cosmetics fetch and local dev proxy notes
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/tasks/backlog/s4c-fix-cosmetics-serving.md` → updated [[wiki/tasks/cosmetics-serving]] with worker-side local master cosmetics endpoint review fix
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/tasks/backlog/s4c-fix-cosmetics-serving.md` → updated [[wiki/tasks/cosmetics-serving]] with `MASTER_INTERNAL_ORIGIN` override for worker cosmetics fetches
