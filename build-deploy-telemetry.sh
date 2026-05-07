@@ -62,6 +62,22 @@ if [ ! -f "$SETUP_SCRIPT" ]; then
     exit 1
 fi
 
+for required_var in UPTRACE_PROJECT_TOKEN UPTRACE_SECRET_KEY UPTRACE_ADMIN_PASSWORD; do
+    if [ -z "${!required_var}" ]; then
+        echo "Error: ${required_var} is not set."
+        echo "Set it in .env.telemetry.secret before deploying telemetry."
+        exit 1
+    fi
+done
+
+case "$UPTRACE_PROJECT_TOKEN:$UPTRACE_SECRET_KEY:$UPTRACE_ADMIN_PASSWORD" in
+    *dryrun_token*|*dryrun_secret*|*dryrun_password*)
+        echo "Error: dry-run placeholder value found in Uptrace deploy secrets."
+        echo "Replace placeholder values in .env.telemetry.secret before deploying telemetry."
+        exit 1
+        ;;
+esac
+
 # ── Validate config locally before touching the server ────────────────────────
 
 print_header "VALIDATING CONFIG (local dry-run)"
@@ -69,8 +85,8 @@ print_header "VALIDATING CONFIG (local dry-run)"
 if command -v docker &> /dev/null; then
     # Write a temp config the same way setup-telemetry.sh would, then ask Uptrace to validate it
     TMPDIR=$(mktemp -d)
-    UPTRACE_PROJECT_TOKEN="${UPTRACE_PROJECT_TOKEN:-dryrun_token}"
-    UPTRACE_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-dryrun_password}"
+    DRY_RUN_PROJECT_TOKEN="${UPTRACE_PROJECT_TOKEN:-dryrun_token}"
+    DRY_RUN_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-dryrun_password}"
     DRY_RUN_SITE_URL="${TELEMETRY_DOMAIN:+https://${TELEMETRY_DOMAIN}}"
     DRY_RUN_SITE_URL="${DRY_RUN_SITE_URL:-http://localhost:14318}"
     cat > "$TMPDIR/config.yml" << EOFCFG
@@ -102,12 +118,6 @@ ch_cluster:
 redis_cache:
   addrs:
     1: redis:6379
-ch:
-  retention:
-    ttl:
-      traces: 7 DAY
-      logs: 7 DAY
-      metrics: 90 DAY
 seed_data:
   update: true
   delete: false
@@ -115,7 +125,7 @@ seed_data:
     - key: admin_user
       name: Admin
       email: admin@geoconflict.ru
-      password: '${UPTRACE_ADMIN_PASSWORD}'
+      password: '${DRY_RUN_ADMIN_PASSWORD}'
       email_confirmed: true
   orgs:
     - key: geoconflict_org
@@ -132,7 +142,7 @@ seed_data:
   project_tokens:
     - key: geoconflict_token
       project_key: geoconflict_project
-      token: '${UPTRACE_PROJECT_TOKEN}'
+      token: '${DRY_RUN_PROJECT_TOKEN}'
   project_users:
     - key: geoconflict_project_user
       project_key: geoconflict_project
@@ -140,11 +150,18 @@ seed_data:
       perm_level: admin
 EOFCFG
 
+    UPTRACE_VERSION=$(grep 'image: uptrace/uptrace:' "$SETUP_SCRIPT" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+
+    if grep -q '^ch:' "$TMPDIR/config.yml"; then
+        echo "❌ Dry-run config contains unsupported top-level ch: config for Uptrace ${UPTRACE_VERSION}"
+        rm -rf "$TMPDIR"
+        exit 1
+    fi
+
     # Run uptrace config validation — loads the config file and exits non-zero if it fails to parse.
     # We use the `help` subcommand because it reads the config but does not attempt DB connections,
     # making it safe to run locally without running services.
     # Exit code is the sole signal — no output grepping.
-    UPTRACE_VERSION=$(grep 'image: uptrace/uptrace:' "$SETUP_SCRIPT" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
     if VALIDATE_OUT=$(docker run --rm \
         -v "$TMPDIR/config.yml:/etc/uptrace/config.yml" \
         "uptrace/uptrace:${UPTRACE_VERSION}" \
@@ -245,6 +262,8 @@ cat > "$LOCAL_TMPENV" << EOF
 export UPTRACE_PROJECT_TOKEN='${UPTRACE_PROJECT_TOKEN}'
 export UPTRACE_SECRET_KEY='${UPTRACE_SECRET_KEY}'
 export UPTRACE_ADMIN_PASSWORD='${UPTRACE_ADMIN_PASSWORD}'
+export UPTRACE_RETENTION_DAYS='${UPTRACE_RETENTION_DAYS:-7}'
+export UPTRACE_METRICS_RETENTION_DAYS='${UPTRACE_METRICS_RETENTION_DAYS:-90}'
 export TELEMETRY_SERVER_HOST='${TELEMETRY_SERVER_HOST}'
 export TELEMETRY_DOMAIN='${TELEMETRY_DOMAIN}'
 EOF

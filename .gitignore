@@ -19,3 +19,5 @@ karpathy-vault/.obsidian/
 .claude/wiki-watermark
 
 .DS_Store
+.playwright-cli/
+/output/playwright

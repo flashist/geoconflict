@@ -478,3 +478,21 @@
 - Issues fixed: 0
 - Issues flagged for human review: 0
 - Full structural, index, backlink, orphan, source-path, and targeted stale-wording checks passed for 78 indexed pages.
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-recovery-hardening-2026-05-07.md` → updated [[wiki/systems/telemetry]]
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md` → updated [[wiki/systems/telemetry]]
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` → updated [[wiki/systems/telemetry]]
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` → updated [[wiki/systems/telemetry]] with deploy-secret placeholder guard and retention row-count retry notes
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` → updated [[wiki/systems/telemetry]] with separate 90-day metrics retention
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` → updated [[wiki/systems/telemetry]] with PostgreSQL backup-pruning rationale

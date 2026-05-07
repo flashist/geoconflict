@@ -1,0 +1,39 @@
+# Telemetry Retention Review - 2026-05-07
+
+## Context
+
+PR review flagged that removing the old Uptrace `ch:` block also removed explicit telemetry TTL configuration. The concern was valid: `setup-telemetry.sh` no longer generated any retention setting, and the telemetry VPS has only about 59 GB of disk while observed trace volume was previously about 3-4 GB/day.
+
+## Findings
+
+- Uptrace `uptrace/uptrace:2.0.2` rejects the old top-level `ch:` config shape used by earlier retention examples.
+- The current `uptrace/uptrace:2.0.2 config create` output uses `ch_cluster` and does not include YAML retention keys.
+- The live Uptrace PostgreSQL `projects` table has project-level TTL fields:
+  - `spans_ttl`
+  - `logs_ttl`
+  - `events_ttl`
+  - `metrics_ttl`
+- The live default values on 2026-05-07 were 28 days for all four TTLs.
+- Uptrace 2.0.2 includes `uptrace retention check`, which applies storage retention.
+- Uptrace project TTL fields are stored as nanoseconds.
+- Metrics retention should stay separate from high-volume telemetry retention. Spans, logs, and events default to 7 days; metrics default to 90 days because they are comparatively small and useful for performance trend analysis.
+- PostgreSQL backup pruning stays at 14 days to preserve two weekly metadata restore points while keeping local backup storage conservative on the 59 GB telemetry VPS.
+- The deploy wrapper must not let dry-run placeholder values escape into the real remote setup. `build-deploy-telemetry.sh` now keeps dry-run values in separate local variables and fails if required Uptrace deploy secrets are missing or use dry-run placeholders.
+- Retention updates must check affected rows. `setup-telemetry.sh` now retries until the seeded project row exists and uses a SQL CTE with `select count(*)` to fail if no project was updated.
+
+## Decision
+
+Keep the Uptrace 2.x-compatible YAML shape and restore explicit retention control by setting project-level TTL fields in PostgreSQL during telemetry setup.
+
+`UPTRACE_RETENTION_DAYS` now defaults to 7 for spans, logs, and events. `UPTRACE_METRICS_RETENTION_DAYS` defaults to 90 for metrics. `setup-telemetry.sh` converts both values to nanoseconds and writes them to the `geoconflict` project. The setup script also runs `uptrace retention check` once and installs a daily cron retry.
+
+The deployment wrapper requires explicit real values for `UPTRACE_PROJECT_TOKEN`, `UPTRACE_SECRET_KEY`, and `UPTRACE_ADMIN_PASSWORD`; dry-run placeholders are only valid inside local config validation.
+
+## Files Changed
+
+- `setup-telemetry.sh`
+- `build-deploy-telemetry.sh`
+
+## Operational Note
+
+The repo fix does not by itself change the already-running telemetry VPS until the setup/deploy path is run, or until the equivalent SQL update is applied manually. Before the fix, the live telemetry project had 28-day TTLs.

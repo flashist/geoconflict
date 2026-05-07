@@ -6,13 +6,15 @@
 #   UPTRACE_PROJECT_TOKEN  — project token for OTLP auth (auto-generated if blank)
 #   UPTRACE_SECRET_KEY     — Uptrace secret key (auto-generated if blank)
 #   UPTRACE_ADMIN_PASSWORD — dashboard admin password (default: change_me_immediately)
+#   UPTRACE_RETENTION_DAYS — span/log/event retention in days (default: 7)
+#   UPTRACE_METRICS_RETENTION_DAYS — metrics retention in days (default: 90)
 #
 # What this script does:
 #   1. Installs Docker + Docker Compose plugin
 #   2. Writes docker-compose.yml, uptrace.yml, otel-collector.yaml to /opt/uptrace
 #   3. Starts all five containers (uptrace, clickhouse, postgres, redis, otelcol)
 #   4. Creates a systemd service for auto-start on reboot
-#   5. Adds weekly backup cron jobs for PostgreSQL and ClickHouse
+#   5. Adds weekly backup cron jobs for PostgreSQL
 #   6. Adds daily disk usage monitoring
 #   7. Prints connection info and DSN for the game server
 
@@ -42,6 +44,18 @@ if [ -z "$UPTRACE_SECRET_KEY" ]; then
 fi
 
 UPTRACE_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-change_me_immediately}"
+UPTRACE_RETENTION_DAYS="${UPTRACE_RETENTION_DAYS:-7}"
+UPTRACE_METRICS_RETENTION_DAYS="${UPTRACE_METRICS_RETENTION_DAYS:-90}"
+if ! [[ "$UPTRACE_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$UPTRACE_RETENTION_DAYS" -lt 1 ]; then
+    echo "Error: UPTRACE_RETENTION_DAYS must be a positive integer."
+    exit 1
+fi
+if ! [[ "$UPTRACE_METRICS_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$UPTRACE_METRICS_RETENTION_DAYS" -lt 1 ]; then
+    echo "Error: UPTRACE_METRICS_RETENTION_DAYS must be a positive integer."
+    exit 1
+fi
+UPTRACE_RETENTION_NS=$((UPTRACE_RETENTION_DAYS * 86400 * 1000000000))
+UPTRACE_METRICS_RETENTION_NS=$((UPTRACE_METRICS_RETENTION_DAYS * 86400 * 1000000000))
 
 # ── System update ─────────────────────────────────────────────────────────────
 
@@ -121,17 +135,6 @@ redis_cache:
   addrs:
     1: redis:6379
 
-# Data retention — controls ClickHouse TTL.
-# At ~3-4 GB/day of trace volume on this VPS, 7d traces ≈ 25-28 GB,
-# leaving headroom on the 59 GB disk. Raise if you expand storage.
-# Metrics are tiny; 90d gives useful trend history.
-ch:
-  retention:
-    ttl:
-      traces: 7 DAY
-      logs: 7 DAY
-      metrics: 90 DAY
-
 seed_data:
   update: true
   delete: false
@@ -165,6 +168,10 @@ seed_data:
 EOF
 
 echo "Written: uptrace.yml"
+if grep -q '^ch:' "$UPTRACE_DIR/uptrace.yml"; then
+    echo "Error: generated uptrace.yml contains unsupported top-level ch: config for Uptrace 2.0.2"
+    exit 1
+fi
 
 # ── otel-collector.yaml ───────────────────────────────────────────────────────
 
@@ -336,6 +343,54 @@ else
     docker compose ps
 fi
 
+# ── Retention control ────────────────────────────────────────────────────────
+
+print_header "CONFIGURING RETENTION"
+
+# Uptrace 2.x stores telemetry retention as project-level TTLs in PostgreSQL.
+# The older top-level ch.retention/ch_schema TTL config is not compatible with
+# the generated v2 config shape used by uptrace/uptrace:2.0.2.
+RETENTION_UPDATED=0
+for attempt in {1..30}; do
+    RETENTION_UPDATED=$(docker compose exec -T postgres psql -U uptrace -d uptrace -tAc "
+        with updated as (
+            update projects
+            set spans_ttl = ${UPTRACE_RETENTION_NS},
+                logs_ttl = ${UPTRACE_RETENTION_NS},
+                events_ttl = ${UPTRACE_RETENTION_NS},
+                metrics_ttl = ${UPTRACE_METRICS_RETENTION_NS},
+                updated_at = now()
+            where _key = 'geoconflict_project' or name = 'geoconflict'
+            returning 1
+        )
+        select count(*) from updated;")
+
+    if [ "$RETENTION_UPDATED" -gt 0 ]; then
+        echo "✅ Retention updated for ${RETENTION_UPDATED} project(s)"
+        break
+    fi
+
+    echo "Retention target project not found yet (attempt ${attempt}/30); waiting for Uptrace seed data..."
+    sleep 2
+done
+
+if [ "$RETENTION_UPDATED" -eq 0 ]; then
+    echo "Error: retention was not applied because the geoconflict project row was not found."
+    exit 1
+fi
+
+docker compose exec -T postgres psql -U uptrace -d uptrace \
+    -c "select id, name,
+               spans_ttl / 86400000000000.0 as spans_days,
+               logs_ttl / 86400000000000.0 as logs_days,
+               events_ttl / 86400000000000.0 as events_days,
+               metrics_ttl / 86400000000000.0 as metrics_days
+        from projects
+        order by id;"
+
+docker compose exec -T uptrace /uptrace --config=/etc/uptrace/config.yml retention check || \
+    echo "⚠️  Retention check failed; cron will retry daily. Check Uptrace logs if this persists."
+
 # ── HTTPS via nginx + Let's Encrypt ──────────────────────────────────────────
 
 if [ -n "$TELEMETRY_DOMAIN" ]; then
@@ -458,18 +513,21 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # PostgreSQL backup every Sunday at 3:00am
 0 3 * * 0 root cd $UPTRACE_DIR && docker compose exec -T postgres pg_dump -U uptrace uptrace > $BACKUP_DIR/pg-\$(date +\\%Y\\%m\\%d).sql 2>&1
 
-# ClickHouse live filesystem snapshot every Sunday at 3:30am (no downtime).
-# Known limitation: snapshot is not crash-consistent if ClickHouse is writing during tar.
-# Acceptable for a telemetry system — upgrade to ClickHouse native BACKUP TO Disk
-# if strict consistency becomes a requirement.
-30 3 * * 0 root tar czf $BACKUP_DIR/clickhouse-\$(date +\\%Y\\%m\\%d).tar.gz /var/lib/docker/volumes/uptrace_clickhouse_data 2>&1
+# ClickHouse local tar backups are intentionally disabled.
+# They filled the 59 GB telemetry VPS disk and are not crash-consistent.
 
-# Prune old backups — keep last 4 weeks
-0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +28 -delete && find $BACKUP_DIR -name "clickhouse-*.tar.gz" -mtime +28 -delete
+# Prune old PostgreSQL backups — keep last 14 days.
+# This preserves two weekly metadata restore points while keeping all local
+# backup storage conservative on the 59 GB telemetry VPS.
+0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +14 -delete
 
-# Disk usage alert — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.
-# Log-only (no email/webhook) — check the log manually or configure a notification if needed.
+# Disk usage log warning — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.
+# Local log only (no email/webhook) — check the log manually or configure a notification if needed.
 0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '%'); if [ "\$USAGE" -gt 60 ]; then echo "\$(date) -- disk usage \${USAGE}%" >> /var/log/disk-warnings.log; fi
+
+# Enforce project-level telemetry TTL daily. Uptrace 2.x stores TTLs in Postgres
+# as spans_ttl/logs_ttl/events_ttl/metrics_ttl and applies them via this command.
+15 4 * * * root cd $UPTRACE_DIR && docker compose exec -T uptrace /uptrace --config=/etc/uptrace/config.yml retention check >> /var/log/uptrace-retention.log 2>&1
 
 # Certbot renewal — twice daily (Let's Encrypt recommendation)
 0 0,12 * * * root certbot renew --quiet --post-hook "systemctl reload nginx" >> /var/log/certbot-renew.log 2>&1
@@ -492,7 +550,7 @@ else
     echo "  ssh -L 14318:localhost:14318 root@${SERVER_IP}"
     echo "  Open: http://localhost:14318"
 fi
-echo "  Login: admin@geoconflict.ru / ${UPTRACE_ADMIN_PASSWORD}"
+echo "  Login: admin@geoconflict.ru / <configured UPTRACE_ADMIN_PASSWORD>"
 echo ""
 echo "Game server env vars — add to .env.prod:"
 if [ -n "$TELEMETRY_DOMAIN" ]; then
@@ -502,9 +560,8 @@ else
 fi
 echo "  OTEL_EXPORTER_OTLP_ENDPOINT=${OTLP_ENDPOINT}"
 echo ""
-echo "Tokens (save these — they cannot be recovered):"
-echo "  UPTRACE_PROJECT_TOKEN=${UPTRACE_PROJECT_TOKEN}"
-echo "  UPTRACE_SECRET_KEY=${UPTRACE_SECRET_KEY}"
+echo "Tokens:"
+echo "  Values are managed by .env.telemetry.secret / the deployment environment."
 echo ""
 if [ -n "$TELEMETRY_DOMAIN" ]; then
     echo "⚠️  FIREWALL:"
