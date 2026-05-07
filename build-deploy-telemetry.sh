@@ -66,6 +66,11 @@ fi
 
 print_header "VALIDATING CONFIG (local dry-run)"
 
+if grep -q '^ch:' "$SETUP_SCRIPT"; then
+    echo "❌ $SETUP_SCRIPT contains unsupported top-level ch: config for Uptrace 2.0.2"
+    exit 1
+fi
+
 if command -v docker &> /dev/null; then
     # Write a temp config the same way setup-telemetry.sh would, then ask Uptrace to validate it
     TMPDIR=$(mktemp -d)
@@ -102,12 +107,6 @@ ch_cluster:
 redis_cache:
   addrs:
     1: redis:6379
-ch:
-  retention:
-    ttl:
-      traces: 7 DAY
-      logs: 7 DAY
-      metrics: 90 DAY
 seed_data:
   update: true
   delete: false
@@ -140,11 +139,18 @@ seed_data:
       perm_level: admin
 EOFCFG
 
+    UPTRACE_VERSION=$(grep 'image: uptrace/uptrace:' "$SETUP_SCRIPT" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+
+    if grep -q '^ch:' "$TMPDIR/config.yml"; then
+        echo "❌ Dry-run config contains unsupported top-level ch: config for Uptrace ${UPTRACE_VERSION}"
+        rm -rf "$TMPDIR"
+        exit 1
+    fi
+
     # Run uptrace config validation — loads the config file and exits non-zero if it fails to parse.
     # We use the `help` subcommand because it reads the config but does not attempt DB connections,
     # making it safe to run locally without running services.
     # Exit code is the sole signal — no output grepping.
-    UPTRACE_VERSION=$(grep 'image: uptrace/uptrace:' "$SETUP_SCRIPT" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
     if VALIDATE_OUT=$(docker run --rm \
         -v "$TMPDIR/config.yml:/etc/uptrace/config.yml" \
         "uptrace/uptrace:${UPTRACE_VERSION}" \

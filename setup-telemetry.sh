@@ -12,7 +12,7 @@
 #   2. Writes docker-compose.yml, uptrace.yml, otel-collector.yaml to /opt/uptrace
 #   3. Starts all five containers (uptrace, clickhouse, postgres, redis, otelcol)
 #   4. Creates a systemd service for auto-start on reboot
-#   5. Adds weekly backup cron jobs for PostgreSQL and ClickHouse
+#   5. Adds weekly backup cron jobs for PostgreSQL
 #   6. Adds daily disk usage monitoring
 #   7. Prints connection info and DSN for the game server
 
@@ -121,17 +121,6 @@ redis_cache:
   addrs:
     1: redis:6379
 
-# Data retention — controls ClickHouse TTL.
-# At ~3-4 GB/day of trace volume on this VPS, 7d traces ≈ 25-28 GB,
-# leaving headroom on the 59 GB disk. Raise if you expand storage.
-# Metrics are tiny; 90d gives useful trend history.
-ch:
-  retention:
-    ttl:
-      traces: 7 DAY
-      logs: 7 DAY
-      metrics: 90 DAY
-
 seed_data:
   update: true
   delete: false
@@ -165,6 +154,10 @@ seed_data:
 EOF
 
 echo "Written: uptrace.yml"
+if grep -q '^ch:' "$UPTRACE_DIR/uptrace.yml"; then
+    echo "Error: generated uptrace.yml contains unsupported top-level ch: config for Uptrace 2.0.2"
+    exit 1
+fi
 
 # ── otel-collector.yaml ───────────────────────────────────────────────────────
 
@@ -458,17 +451,14 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # PostgreSQL backup every Sunday at 3:00am
 0 3 * * 0 root cd $UPTRACE_DIR && docker compose exec -T postgres pg_dump -U uptrace uptrace > $BACKUP_DIR/pg-\$(date +\\%Y\\%m\\%d).sql 2>&1
 
-# ClickHouse live filesystem snapshot every Sunday at 3:30am (no downtime).
-# Known limitation: snapshot is not crash-consistent if ClickHouse is writing during tar.
-# Acceptable for a telemetry system — upgrade to ClickHouse native BACKUP TO Disk
-# if strict consistency becomes a requirement.
-30 3 * * 0 root tar czf $BACKUP_DIR/clickhouse-\$(date +\\%Y\\%m\\%d).tar.gz /var/lib/docker/volumes/uptrace_clickhouse_data 2>&1
+# ClickHouse local tar backups are intentionally disabled.
+# They filled the 59 GB telemetry VPS disk and are not crash-consistent.
 
-# Prune old backups — keep last 4 weeks
-0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +28 -delete && find $BACKUP_DIR -name "clickhouse-*.tar.gz" -mtime +28 -delete
+# Prune old PostgreSQL backups — keep last 14 days
+0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +14 -delete
 
-# Disk usage alert — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.
-# Log-only (no email/webhook) — check the log manually or configure a notification if needed.
+# Disk usage log warning — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.
+# Local log only (no email/webhook) — check the log manually or configure a notification if needed.
 0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '%'); if [ "\$USAGE" -gt 60 ]; then echo "\$(date) -- disk usage \${USAGE}%" >> /var/log/disk-warnings.log; fi
 
 # Certbot renewal — twice daily (Let's Encrypt recommendation)
