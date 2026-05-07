@@ -516,7 +516,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # ClickHouse local tar backups are intentionally disabled.
 # They filled the 59 GB telemetry VPS disk and are not crash-consistent.
 
-# Prune old PostgreSQL backups — keep last 14 days
+# Prune old PostgreSQL backups — keep last 14 days.
+# This preserves two weekly metadata restore points while keeping all local
+# backup storage conservative on the 59 GB telemetry VPS.
 0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +14 -delete
 
 # Disk usage log warning — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.

@@ -493,3 +493,6 @@
 
 ## 2026-05-07 — ingest
 - Ingested: `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` → updated [[wiki/systems/telemetry]] with separate 90-day metrics retention
+
+## 2026-05-07 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` → updated [[wiki/systems/telemetry]] with PostgreSQL backup-pruning rationale

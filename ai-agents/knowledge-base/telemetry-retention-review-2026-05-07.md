@@ -17,6 +17,7 @@ PR review flagged that removing the old Uptrace `ch:` block also removed explici
 - Uptrace 2.0.2 includes `uptrace retention check`, which applies storage retention.
 - Uptrace project TTL fields are stored as nanoseconds.
 - Metrics retention should stay separate from high-volume telemetry retention. Spans, logs, and events default to 7 days; metrics default to 90 days because they are comparatively small and useful for performance trend analysis.
+- PostgreSQL backup pruning stays at 14 days to preserve two weekly metadata restore points while keeping local backup storage conservative on the 59 GB telemetry VPS.
 - The deploy wrapper must not let dry-run placeholder values escape into the real remote setup. `build-deploy-telemetry.sh` now keeps dry-run values in separate local variables and fails if required Uptrace deploy secrets are missing or use dry-run placeholders.
 - Retention updates must check affected rows. `setup-telemetry.sh` now retries until the seeded project row exists and uses a SQL CTE with `select count(*)` to fail if no project was updated.
 
