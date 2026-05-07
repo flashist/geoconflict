@@ -27,3 +27,4 @@ The game server now owns a valid root `/cosmetics.json` response from the bundle
 
 - [[systems/telemetry]]
 - [[systems/configuration]]
+- [[decisions/sprint-4c]]

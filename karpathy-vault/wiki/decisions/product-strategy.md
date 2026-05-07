@@ -20,6 +20,7 @@ Source: `ai-agents/sprints/plan-index.md`
 - **Sprint 3** — Deepen Retention (infra quality, UX fixes, observability)
 - **Sprint 4** — In-App Monetization & Citizenship (citizenship, Yandex payments, player profile store)
 - **Sprint 4b** — Interim Game Variety Update (compact maps, Duos/Trios/Quads, weird-setting modifiers while Sprint 4 core work is paused)
+- **Sprint 4c** — Production Stabilization (top Uptrace error families before Mark's May 15 travel pause)
 - **Sprint 5** — Full F2P Loop (coin economy, clans, cosmetics, social features)
 - **Sprint 6** — More Content (historical multiplayer maps, paid campaign map packs)
 
@@ -47,7 +48,7 @@ Mobile deep optimization parked — desktop is core audience. Revisit if mobile 
 - **Task ordering is intentional** — do not skip retention work to ship monetization early
 - **Feature flags/experiments preferred** for all additive features
 - **Mobile warning screen moved** from Sprint 3 to Sprint 6, where it supports a content-led acquisition push on mobile
-- **Sprint 4b is an intermission**, not a monetization pivot: it preserves player-facing momentum while citizenship and payments work waits for Mark's post-travel availability
+- **Sprint 4b and Sprint 4c are intermissions**, not monetization pivots: Sprint 4b preserves player-facing momentum, while Sprint 4c cleans production errors before citizenship and payments work waits for Mark's post-travel availability
 
 ## Related
 
@@ -56,6 +57,7 @@ Mobile deep optimization parked — desktop is core audience. Revisit if mobile 
 - [[decisions/sprint-3]] — deepen retention (current)
 - [[decisions/sprint-4]] — first monetization layer
 - [[decisions/sprint-4b]] — interim public-match variety while Sprint 4 core work is paused
+- [[decisions/sprint-4c]] — production stabilization before the travel pause
 - [[decisions/sprint-5]] — full F2P loop
 - [[decisions/sprint-6]] — content expansion after payments/cosmetics infrastructure exists
 - [[decisions/cancelled-tasks]] — work cancelled with reasons

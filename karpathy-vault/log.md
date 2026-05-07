@@ -522,3 +522,9 @@
 
 ## 2026-05-07 — ingest
 - Ingested: `ai-agents/tasks/backlog/s4c-fix-cosmetics-serving.md` → updated [[wiki/tasks/cosmetics-serving]] with `MASTER_INTERNAL_ORIGIN` override for worker cosmetics fetches
+
+## 2026-05-07 — ingest
+- Sync window: `a7a7798dd8d337c930eed9ea9a289f94a578e672` → HEAD (`a93739abe46faa7a3e2387498b73a090e28dd87c`)
+- Changed source files detected: 7
+- Ingested: `ai-agents/sprints/plan-sprint-4c.md` → created [[wiki/decisions/sprint-4c]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4c-fix-archive-endpoint.md`, `ai-agents/tasks/backlog/s4c-fix-cosmetics-serving.md`, `ai-agents/tasks/backlog/s4c-fix-local-server-hash-guard.md`, `ai-agents/tasks/backlog/s4c-investigate-lobby-map-fetch.md`, `ai-agents/tasks/backlog/s4c-investigate-null-id-errors.md`, `ai-agents/tasks/backlog/s4c-mobile-webgl-rendering.md` — backlog files are not ingested by wiki-sync; their scope is summarized through [[wiki/decisions/sprint-4c]]

@@ -27,7 +27,7 @@ No analytics are planned for these new features in Sprint 4b.
 
 ## Consequences
 
-- Sprint 4b deliberately avoids citizenship, payments, player profile store, and start-screen redesign work while Sprint 4's core monetization track is paused.
+- Sprint 4b deliberately avoids citizenship, payments, player profile store, and start-screen redesign work while Sprint 4's core monetization track is paused; [[decisions/sprint-4c]] continues that pause with production stabilization instead of player-facing variety.
 - The compact-map and Duos/Trios/Quads work waited for investigation findings so map scale, player count, and AI-fill risks could be scoped before implementation.
 - The modifier system is mutually exclusive by design: a public match can be normal, compact, or weird-setting, but never compact and weird-setting at the same time.
 - The modifier registry now contains both `mini_map` and `weird_setting`, giving about 10% of public matches to each modifier family under the 20% modified-match rate.
@@ -38,6 +38,7 @@ No analytics are planned for these new features in Sprint 4b.
 
 - [[decisions/product-strategy]] — retention and content sequencing context
 - [[decisions/sprint-4]] — paused citizenship and payments foundation sprint
+- [[decisions/sprint-4c]] — follow-up production stabilization sprint before the same travel pause
 - [[decisions/sprint-5]] — later full F2P loop after citizenship infrastructure resumes
 - [[systems/producer-workflow]] — investigation-first planning and Mark approval boundaries
 - [[systems/project-operations]] — sprint/task workflow and release constraints

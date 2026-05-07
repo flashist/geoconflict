@@ -31,6 +31,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - Product sequencing is retention first, monetization second, then content expansion; see [[decisions/product-strategy]]
 - The source document records Sprint 4 as the active citizenship and Yandex payments foundation sprint, with independent tutorial and lobby fixes able to ship in parallel; see [[decisions/sprint-4]]
 - Sprint 4b is a short interim variety sprint that keeps public matchmaking fresh while Sprint 4's citizenship/payment work is paused; see [[decisions/sprint-4b]]
+- Sprint 4c is a short production stabilization sprint that converts the 2026-05-07 Uptrace error-priority review into deployable fixes before the May 15 travel pause; see [[decisions/sprint-4c]]
 - Community operations, monetization planning, and internal dashboards are treated as operational context, not game-client features
 
 ## Gotchas / Known Issues
@@ -51,3 +52,4 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - [[decisions/product-strategy]] — retention-first sequencing and experiment policy
 - [[decisions/sprint-4]] — current citizenship and payments planning context captured by the source
 - [[decisions/sprint-4b]] — interim public-match variety sprint and deadline constraints
+- [[decisions/sprint-4c]] — production stabilization sprint and May 15 deadline constraints

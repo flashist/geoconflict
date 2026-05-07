@@ -96,7 +96,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 
 ## Consequences
 
-- Sprint 4's core citizenship, payments, player profile store, and start-screen implementation track is temporarily paused during Mark's May 15 to June 1, 2026 travel window; [[decisions/sprint-4b]] covers the interim player-facing variety sprint and explicitly excludes this monetization infrastructure.
+- Sprint 4's core citizenship, payments, player profile store, and start-screen implementation track is temporarily paused during Mark's May 15 to June 1, 2026 travel window; [[decisions/sprint-4b]] covers the interim player-facing variety sprint and [[decisions/sprint-4c]] covers production stabilization, both explicitly excluding this monetization infrastructure.
 - Start screen redesign implementation is now a prerequisite for the citizenship XP/progress UI, not a nice-to-have polish task
 - The VAT/tax gate is cleared; payments work no longer waits on extra legal registration, bank changes, or company-structure changes
 - Register Yandex catalog items immediately — approval takes days and remains the main non-engineering blocker
@@ -126,6 +126,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[decisions/product-strategy]] — sprint ordering
 - [[decisions/sprint-3]] — previous sprint
 - [[decisions/sprint-4b]] — interim public-match variety sprint while this sprint's core monetization track is paused
+- [[decisions/sprint-4c]] — production stabilization sprint while this sprint's core monetization track is paused
 - [[decisions/sprint-5]] — next sprint
 - [[decisions/sprint-6]] — later content sprint depends on this payments/citizenship layer
 - [[systems/producer-workflow]] — producer operating model and brief-writing guardrails reflected in this sprint plan
