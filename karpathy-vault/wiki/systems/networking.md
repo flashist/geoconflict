@@ -41,3 +41,4 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[systems/game-overview]] — high-level architecture context
 - [[systems/game-loop]] — what happens after turns arrive
 - [[systems/execution-pipeline]] — how validated intents are turned into executions
+- [[systems/configuration]] — worker path, port, public host, and API base URL selection

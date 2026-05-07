@@ -22,6 +22,8 @@
 - [[systems/flashist-init]] — FlashistFacade startup ordering, Yandex SDK bootstrap, and experiment flag init
 - [[systems/analytics]] — GameAnalytics player behaviour tracking: event conventions, experiment funnels, and monetization measurement baselines
 - [[systems/telemetry]] — OTEL/Uptrace server observability: logs, metrics, slow-turn spans, investigation workflows
+- [[systems/configuration]] — GAME_ENV, /api/env, runtime public settings, and gameplay/server config selection
+- [[systems/localization]] — LangSelector and translateText flow for bundled UI translations and English fallback
 - [[systems/server-performance]] — Server-side lag candidates ranked by likelihood; `endTurn()` performance analysis
 - [[systems/match-logging]] — What is recorded per match, where it goes, and what cannot be retrieved
 - [[systems/clans]] — Name-tag clan grouping system: parsing, team assignment logic, gaps, and no-UI status

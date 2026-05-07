@@ -109,6 +109,7 @@ Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adapta
 - [[systems/analytics]] — player behaviour tracking
 - [[systems/telemetry]] — server observability
 - [[systems/project-operations]] — team roles, sprint workflow, and operational constraints
+- [[systems/configuration]] — runtime and gameplay configuration that backs modes, maps, and combat constants
 - [[systems/server-performance]] — server-side lag analysis and endTurn() pipeline
 - [[systems/match-logging]] — what is recorded per match
 - [[decisions/vps-credential-leak-response]] — live deployment and recovery constraints for the production game stack

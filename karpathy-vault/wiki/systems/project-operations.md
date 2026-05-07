@@ -46,6 +46,8 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - [[systems/producer-workflow]] — dedicated producer-role behaviour and coordination rules
 - [[systems/analytics]] — player-behaviour instrumentation and release verification rules
 - [[systems/telemetry]] — production-only server observability boundaries
+- [[systems/configuration]] — environment selection, runtime public config, and deploy-sensitive defaults
+- [[systems/localization]] — bundled UI copy and language fallback workflow that release changes depend on
 - [[decisions/product-strategy]] — retention-first sequencing and experiment policy
 - [[decisions/sprint-4]] — current citizenship and payments planning context captured by the source
 - [[decisions/sprint-4b]] — interim public-match variety sprint and deadline constraints

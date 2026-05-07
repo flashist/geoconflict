@@ -42,6 +42,7 @@
 ## Related
 
 - [[systems/analytics]] — event conventions and GameAnalytics usage built on top of this facade
+- [[systems/localization]] — language initialization waits on Yandex SDK locale lookup through the facade
 - [[tasks/analytics-p0-yandex-login-status]] — Yandex auth-status session enrichment and experiment-event idempotency changes
 - [[tasks/analytics-p0-session-match-count]] — `consumePendingSessionEnd` and `startSessionMatchTracking` integrated into `_initialize()` here
 - [[tasks/yandex-payments-investigation]] — recommends adding memoized Yandex payments/catalog caching into `FlashistFacade`

@@ -504,3 +504,9 @@
 - Skipped (already covered): `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md` — already ingested into [[wiki/systems/telemetry]] earlier on 2026-05-07
 - Skipped (already covered): `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md` — already ingested into [[wiki/systems/telemetry]] earlier on 2026-05-07
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/ux-quick-message-access.md` — backlog task
+
+## 2026-05-07 — lint
+- Issues found: 2
+- Issues fixed: 2
+- Issues flagged for human review: 0
+- Added missing canonical system pages for [[wiki/systems/configuration]] and [[wiki/systems/localization]], updated index entries, and added bidirectional links from related pages.

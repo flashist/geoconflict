@@ -38,6 +38,7 @@ There is no core-game intent/execution path for this feature. It is client UI on
 ## Related
 
 - [[systems/analytics]] — bell tap and popup open analytics events
+- [[systems/localization]] — current-language resolution and English fallback behavior
 - [[decisions/sprint-2]] — Sprint where announcements were pulled forward and shipped
 - [[decisions/sprint-4]] — Sprint planning context showing 8d-A was no longer future scope
 - [[tasks/global-announcements]] — original re-enable task brief and shipped outcome
