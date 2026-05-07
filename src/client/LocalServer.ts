@@ -182,6 +182,12 @@ export class LocalServer {
     if (clientMsg.type === "hash") {
       if (!this.lobbyConfig.gameRecord) {
         if (clientMsg.turnNumber % 100 === 0) {
+          if (this.turns[clientMsg.turnNumber] === undefined) {
+            console.warn(
+              `hash guard: turn ${clientMsg.turnNumber} not yet in turns (length=${this.turns.length}) at t=${Date.now()}, skipping`,
+            );
+            return;
+          }
           // In singleplayer, only store hash every 100 turns to reduce size of game record.
           this.turns[clientMsg.turnNumber].hash = clientMsg.hash;
         }
