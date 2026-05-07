@@ -14,6 +14,8 @@ Restore the production `/cosmetics.json` endpoint and remove repeated cosmetics-
 - Added `GET /cosmetics.json` in `src/server/Master.ts`, before the SPA fallback, so production returns JSON instead of a 404 HTML page.
 - Changed `src/server/PrivilegeRefresher.ts` so failed refreshes do not rethrow from timer callbacks; repeated failures are deduplicated and the fail-open checker remains active.
 - Changed `src/client/Cosmetics.ts` so optional cosmetics fetch failures return `null` with deduplicated `console.warn` entries instead of repeated `console.error` noise.
+- Changed client cosmetics loading to request same-origin `/cosmetics.json` instead of `getApiBase() + "/cosmetics.json"` so HTTPS/Yandex builds do not fetch the raw HTTP VPS IP and trigger browser mixed-content blocking.
+- Added a local webpack dev-server proxy for `/cosmetics.json` to the server on port 3000.
 - Added focused tests for cosmetics normalization, `PrivilegeRefresher` failure handling, and client warning deduplication.
 
 ## Outcome
