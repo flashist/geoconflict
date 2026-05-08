@@ -20,6 +20,7 @@ import {
 import { LobbyConfig } from "./ClientGameRunner";
 import { ReplaySpeedChangeEvent } from "./InputHandler";
 import { getPersistentID } from "./Main";
+import { logOtelWarn } from "./OtelBrowserInit";
 import { defaultReplaySpeedMultiplier } from "./utilities/ReplaySpeedMultiplier";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import {
@@ -182,6 +183,13 @@ export class LocalServer {
     if (clientMsg.type === "hash") {
       if (!this.lobbyConfig.gameRecord) {
         if (clientMsg.turnNumber % 100 === 0) {
+          if (this.turns[clientMsg.turnNumber] === undefined) {
+            const delta = clientMsg.turnNumber - this.turns.length;
+            const msg = `hash guard: turn=${clientMsg.turnNumber} turns.length=${this.turns.length} delta=${delta} t=${Date.now()}`;
+            console.warn(msg);
+            logOtelWarn(msg);
+            return;
+          }
           // In singleplayer, only store hash every 100 turns to reduce size of game record.
           this.turns[clientMsg.turnNumber].hash = clientMsg.hash;
         }
