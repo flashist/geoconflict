@@ -44,3 +44,4 @@ Tasks 4-6 are investigation or high-complexity work and should only start if tim
 - [[decisions/sprint-4b]] — preceding interim variety sprint
 - [[systems/project-operations]] — sprint/task workflow and release guardrails
 - [[tasks/cosmetics-serving]] — first quick-win task from the Sprint 4c priority list
+- [[tasks/local-server-hash-guard]] — second quick-win task preventing the local/singleplayer hash crash

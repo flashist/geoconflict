@@ -534,3 +534,9 @@
 - Changed source files detected: 1
 - Ingested: `ai-agents/tasks/done/s4c-fix-cosmetics-serving.md` → updated [[wiki/tasks/cosmetics-serving]], [[wiki/systems/configuration]]
 - Skipped (already covered): none
+
+## 2026-05-08 — ingest
+- Sync window: `866018fe6bec57ddde7f16ec3718c8bf29f94076` → HEAD (`6b7ab395d34772e8a9f9d37488796393eda9fe31`)
+- Changed source files detected: 1
+- Ingested: `ai-agents/tasks/done/s4c-fix-local-server-hash-guard.md` → created [[wiki/tasks/local-server-hash-guard]]; updated [[wiki/systems/telemetry]], [[wiki/decisions/sprint-4c]], index.md
+- Skipped (already covered): none

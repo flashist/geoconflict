@@ -87,6 +87,7 @@
 - [[tasks/analytics-p0-yandex-login-status]] — P0 analytics event measuring Yandex logged-in, guest, and unknown session states
 - [[tasks/analytics-p0-session-match-count]] — P0 analytics event measuring match starts per session via UUID-keyed localStorage, consumed before Session:Start
 - [[tasks/cosmetics-serving]] — Sprint 4c fix restoring `/cosmetics.json` serving and deduplicating cosmetics fetch telemetry noise
+- [[tasks/local-server-hash-guard]] — Sprint 4c guard preventing missing-turn hash messages from crashing local/singleplayer matches
 - [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
 - [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response
 - [[tasks/registry-image-audit]] — Historical image-trust audit plan; outcome was conservative pre-hardening image quarantine
