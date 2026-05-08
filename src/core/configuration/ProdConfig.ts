@@ -2,6 +2,18 @@ import { AiPlayersConfig, GameEnv } from "./Config";
 import { DefaultServerConfig } from "./DefaultConfig";
 import { getRuntimeConfig } from "./RuntimeConfig";
 
+function publicHostFallback(): string {
+  const runtime = getRuntimeConfig();
+  if (runtime.publicHost && runtime.publicHost.trim().length > 0) {
+    return runtime.publicHost.trim();
+  }
+  const envValue = process.env.PUBLIC_HOST;
+  if (envValue && envValue.trim().length > 0) {
+    return envValue.trim();
+  }
+  return "";
+}
+
 export const prodConfig = new (class extends DefaultServerConfig {
   numWorkers(): number {
     return 20;
@@ -24,6 +36,6 @@ export const prodConfig = new (class extends DefaultServerConfig {
     if (envValue && envValue.trim().length > 0) {
       return envValue.trim();
     }
-    return "openfront.io";
+    return publicHostFallback();
   }
 })();
