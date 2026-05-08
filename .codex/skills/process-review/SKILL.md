@@ -1,43 +1,89 @@
 ---
 name: process-review
-description: Evaluate and process external PR/code review feedback before making changes. Use when the user provides review comments, reviewer findings, "PR Review:" text, no-ship notes, requested changes, or asks Codex to address external reviewer feedback. Verify each claim against the codebase, identify wrong or incomplete reviewer assumptions, choose the best fix for valid issues, and account for edge cases and regressions before implementation.
+description: Critically evaluate external reviewer feedback before acting — verifies every claim against the codebase, classifies findings, and gates any code changes on explicit user approval. Use when processing Codex reviews, GitHub review comments, or any external feedback before deciding what to act on.
 ---
 
-# Process Review
+Review text to evaluate:
 
-## Overview
+> $ARGUMENTS
 
-Use this skill to handle external review feedback as technical evidence to evaluate, not instructions to obey blindly. The goal is to decide which review claims are valid, explain wrong or incomplete claims clearly, and implement only changes that solve confirmed problems.
+## Your job
 
-## Workflow
+You are a critical filter between an external reviewer and the codebase. Reviewers can be wrong. They may lack project context, misread the diff, reason from outdated assumptions, or propose a fix that addresses symptoms rather than the root cause. Your job is to evaluate each finding independently and present a verdict backed by evidence — not by deference.
 
-1. **Preserve the review text.** Identify every distinct claim, severity, file/line reference, reproduction path, and suggested fix.
-2. **Ground in repo context before editing.** Follow project instructions first, including wiki or task checks when required. Inspect the branch diff, relevant call paths, adjacent code, types/schemas, tests, and docs before deciding.
-3. **Verify each claim.** For every review note, decide whether it is:
-   - **Correct:** the described bug/risk exists.
-   - **Partially correct:** the core concern is real but details or scope are wrong.
-   - **Wrong:** the code already prevents it, the reviewer missed context, or the premise does not match current behavior.
-   - **Unproven:** plausible but not supported enough to change code without more evidence.
-4. **Think beyond the suggestion.** Consider edge cases the reviewer may have missed: alternate entry points, retries/reconnects, stale state, replays/backfills, concurrency/races, old data compatibility, failure paths, and downstream tests/docs.
-5. **Choose the fix deliberately.** If the reviewer’s suggested implementation is not the best solution, say so and use the smallest root-cause fix that preserves existing behavior. Do not add speculative changes just to satisfy a comment.
-6. **Implement only confirmed changes.** Keep edits scoped to the validated issue. Do not revert unrelated user work or refactor unrelated code.
-7. **Validate the corrected behavior.** Add or update focused tests where practical. Run targeted tests/build/static checks that cover the reviewed risk and any new edge cases.
-8. **Report the outcome.** Summarize which review claims were accepted, rejected, or adjusted, what changed, and what validation passed.
+**Never apply a fix just because a reviewer suggested it. Verify first, then ask.**
 
-## Decision Rules
+---
 
-- Do not implement a reviewer suggestion until the claim has been traced through the actual code.
-- If a review is wrong, tell the user directly and cite concrete evidence such as file references, control flow, tests, or reproduction results.
-- If a review is partially right, fix the real issue and explain which parts of the review did not apply.
-- If a valid issue exposes a broader class of bugs, address the class only when it is clearly in scope and can be validated.
-- If the safe fix changes product behavior or public contracts, surface that tradeoff before or while implementing, depending on urgency and user instructions.
-- Keep analytics, telemetry, migrations, and docs aligned when the reviewed change affects measurement, persistence, or external behavior.
+## Step 1 — Parse the review
 
-## Suggested Response Shape
+Break `$ARGUMENTS` into individual findings. Number them. For each, note:
+- What the reviewer claims is wrong or missing
+- What change they are recommending (explicitly or implicitly)
 
-When reporting back after processing review feedback, use this structure when useful:
+If the review is a single block of prose with no clear numbered items, infer the logical findings yourself.
 
-- **Accepted:** valid findings fixed, with short rationale.
-- **Adjusted:** valid concern, but implemented differently from the reviewer’s suggestion, with why.
-- **Rejected:** incorrect findings, with evidence.
-- **Validation:** tests/build/checks run and any remaining risk.
+---
+
+## Step 2 — Verify each finding against the codebase
+
+For each finding, **read the actual code** at the referenced location. Read enough surrounding context to understand the full flow — not just the line the reviewer cited.
+
+Before forming a verdict, ask:
+- Is the claim factually accurate given the current code?
+- Does the reviewer understand how this code path is actually reached?
+- Are they missing project-specific context (architecture, deployment model, config, test coverage)?
+- Are they reasoning from an incorrect assumption about control flow, data shape, or ownership?
+- Is their recommended fix solving the right problem, or just masking a symptom?
+
+Do not rely on the reviewer's description of what the code does. Read it yourself.
+
+---
+
+## Step 3 — Classify each finding and respond
+
+Assign one of four verdicts:
+
+**CORRECT** — The claim is accurate and the fix addresses a real problem.
+→ Describe precisely what needs to change and why, citing `src/...` locations.
+→ Do not touch any code yet. Present the proposed change and ask the user for explicit approval.
+
+**PARTIALLY CORRECT** — The finding identifies a real issue, but the diagnosis or fix is wrong, too narrow, or creates a new problem.
+→ Explain which part holds up and which part does not, with evidence from the code.
+→ Propose what the correct fix looks like.
+→ Ask the user for explicit approval before touching any code.
+
+**INCORRECT** — The claim does not hold up.
+→ Explain why, citing the specific file paths, line numbers, control flow, or config facts that disprove it.
+→ Do not implement anything. Do not offer a "just in case" change.
+→ If the reviewer's concern reveals a gap in their understanding worth noting, say so briefly.
+
+**INCOMPLETE** — The finding is correct but misses something important: a related bug, an uncovered edge, a missing test, a broader pattern.
+→ Confirm what the reviewer got right.
+→ Describe what they missed and why it matters.
+→ Propose a full fix covering both the reviewer's finding and the gap.
+→ Ask the user for explicit approval before touching any code.
+
+---
+
+## Step 4 — Summary table
+
+After all findings, output:
+
+| # | Verdict | One-line description |
+|---|---------|----------------------|
+| 1 | CORRECT / PARTIALLY CORRECT / INCORRECT / INCOMPLETE | ... |
+
+Then state clearly: **what, if anything, requires a code change** and wait for explicit user approval before proceeding.
+
+If the user approves, implement only what was approved — no scope creep, no bonus cleanup.
+
+---
+
+## Hard rules
+
+- Read the code. Do not speculate about what it probably does.
+- Cite `src/...` with line numbers when making claims about behavior.
+- Never change code without explicit approval in this conversation turn.
+- All four verdict outcomes are equally valid. Do not bias toward confirming the reviewer.
+- A review being from an automated tool (Codex, CI, linter) does not make it more authoritative — evaluate it the same way.
