@@ -12,7 +12,11 @@ jest.mock("../src/client/OtelBrowserInit", () => ({
 
 jest.mock("../src/client/ClientGameRunner", () => ({}));
 
-import { LocalServer } from "../src/client/LocalServer";
+import {
+  LocalServer,
+  SINGLEPLAYER_ARCHIVE_KEEPALIVE_LIMIT_BYTES,
+  shouldUseArchiveKeepalive,
+} from "../src/client/LocalServer";
 import { EventBus } from "../src/core/EventBus";
 import { logOtelWarn } from "../src/client/OtelBrowserInit";
 
@@ -26,7 +30,13 @@ function makeServer(gameRecord?: unknown) {
     token: "token",
     gameRecord,
   };
-  const server = new LocalServer(lobbyConfig, jest.fn(), jest.fn(), false, new EventBus());
+  const server = new LocalServer(
+    lobbyConfig,
+    jest.fn(),
+    jest.fn(),
+    false,
+    new EventBus(),
+  );
   return server;
 }
 
@@ -65,5 +75,17 @@ describe("LocalServer onMessage hash guard", () => {
       server.onMessage({ type: "hash", turnNumber: 1, hash: 7 });
     }).not.toThrow();
     expect(warnSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("singleplayer archive keepalive threshold", () => {
+  it("uses keepalive only for request bodies below the browser-safe threshold", () => {
+    expect(shouldUseArchiveKeepalive(1)).toBe(true);
+    expect(
+      shouldUseArchiveKeepalive(SINGLEPLAYER_ARCHIVE_KEEPALIVE_LIMIT_BYTES),
+    ).toBe(true);
+    expect(
+      shouldUseArchiveKeepalive(SINGLEPLAYER_ARCHIVE_KEEPALIVE_LIMIT_BYTES + 1),
+    ).toBe(false);
   });
 });

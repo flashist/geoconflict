@@ -35,6 +35,24 @@ const config = getServerConfigFromServer();
 const workerId = parseInt(process.env.WORKER_ID ?? "0");
 const log = logger.child({ comp: `w_${workerId}` });
 const playlist = new MapPlaylist(false);
+const DEFAULT_JSON_BODY_LIMIT = "100kb";
+// body-parser applies this after gzip inflation; keep it route-scoped.
+export const SINGLEPLAYER_ARCHIVE_JSON_LIMIT = "5mb";
+
+type RequestBodyError = Error & {
+  status?: number;
+  type?: string;
+  limit?: number;
+  length?: number;
+};
+
+function isPayloadTooLargeError(error: RequestBodyError): boolean {
+  return error.status === 413 || error.type === "entity.too.large";
+}
+
+function bytesForLog(value: number | undefined): string {
+  return typeof value === "number" ? String(value) : "unknown";
+}
 
 // Worker setup
 export async function startWorker() {
@@ -99,7 +117,17 @@ export async function startWorker() {
 
   app.set("trust proxy", 3);
   app.use(compression());
-  app.use(express.json());
+  const defaultJsonParser = express.json({ limit: DEFAULT_JSON_BODY_LIMIT });
+  const singleplayerArchiveJsonParser = express.json({
+    limit: SINGLEPLAYER_ARCHIVE_JSON_LIMIT,
+  });
+  app.use((req, res, next) => {
+    const parser =
+      req.path === "/api/archive_singleplayer_game"
+        ? singleplayerArchiveJsonParser
+        : defaultJsonParser;
+    parser(req, res, next);
+  });
   app.use(express.static(path.join(__dirname, "../../out")));
   app.use(
     rateLimit({
@@ -459,10 +487,23 @@ export async function startWorker() {
   });
 
   // Global error handler
-  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    log.error(`Error in ${req.method} ${req.path}: ${formatError(err)}`);
-    res.status(500).json({ error: "An unexpected error occurred" });
-  });
+  app.use(
+    (
+      err: RequestBodyError,
+      req: Request,
+      res: Response,
+      next: NextFunction,
+    ) => {
+      if (isPayloadTooLargeError(err)) {
+        log.warn(
+          `Request body too large in ${req.method} ${req.path}: limit=${bytesForLog(err.limit)} length=${bytesForLog(err.length)}`,
+        );
+        return res.status(413).json({ error: "Request body too large" });
+      }
+      log.error(`Error in ${req.method} ${req.path}: ${formatError(err)}`);
+      res.status(500).json({ error: "An unexpected error occurred" });
+    },
+  );
 
   // Process-level error handlers
   process.on("uncaughtException", (err) => {

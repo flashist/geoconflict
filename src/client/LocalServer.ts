@@ -34,6 +34,12 @@ import { PseudoRandom } from "../core/PseudoRandom";
 
 // Tutorial configuration — adjust after playtesting
 const TUTORIAL_MAP = GameMapType.Iceland;
+const ARCHIVE_RESPONSE_EXCERPT_LIMIT = 200;
+export const SINGLEPLAYER_ARCHIVE_KEEPALIVE_LIMIT_BYTES = 60 * 1024;
+
+export function shouldUseArchiveKeepalive(bodyBytes: number): boolean {
+  return bodyBytes <= SINGLEPLAYER_ARCHIVE_KEEPALIVE_LIMIT_BYTES;
+}
 
 export class LocalServer {
   // All turns from the game record on replay.
@@ -300,6 +306,7 @@ export class LocalServer {
 
     compress(jsonString)
       .then((compressedData) => {
+        const compressedBytes = compressedData.byteLength;
         return fetch(`/${workerPath}/api/archive_singleplayer_game`, {
           method: "POST",
           headers: {
@@ -307,12 +314,42 @@ export class LocalServer {
             "Content-Encoding": "gzip",
           },
           body: compressedData,
-          keepalive: true, // Ensures request completes even if page unloads
+          keepalive: shouldUseArchiveKeepalive(compressedBytes),
+        }).then(async (response) => {
+          if (!response.ok) {
+            console.warn(
+              `Failed to archive singleplayer game: status=${response.status} ${response.statusText} compressedBytes=${compressedBytes} jsonBytes=${jsonString.length} body="${await responseExcerpt(response)}"`,
+            );
+          }
         });
       })
       .catch((error) => {
-        console.error("Failed to archive singleplayer game:", error);
+        console.warn(
+          `Failed to archive singleplayer game: ${formatForWarn(error)}`,
+        );
       });
+  }
+}
+
+function formatForWarn(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
+async function responseExcerpt(response: Response): Promise<string> {
+  try {
+    const normalized = (await response.text()).replace(/\s+/g, " ").trim();
+    if (normalized.length === 0) {
+      return "<empty>";
+    }
+    if (normalized.length <= ARCHIVE_RESPONSE_EXCERPT_LIMIT) {
+      return normalized;
+    }
+    return `${normalized.slice(0, ARCHIVE_RESPONSE_EXCERPT_LIMIT)}...`;
+  } catch (error) {
+    return `<unreadable response body: ${formatForWarn(error)}>`;
   }
 }
 
