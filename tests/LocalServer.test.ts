@@ -6,10 +6,15 @@ jest.mock("../src/client/Main", () => ({
   getPersistentID: jest.fn(() => "test-persistent-id"),
 }));
 
+jest.mock("../src/client/OtelBrowserInit", () => ({
+  logOtelWarn: jest.fn(),
+}));
+
 jest.mock("../src/client/ClientGameRunner", () => ({}));
 
 import { LocalServer } from "../src/client/LocalServer";
 import { EventBus } from "../src/core/EventBus";
+import { logOtelWarn } from "../src/client/OtelBrowserInit";
 
 function makeServer(gameRecord?: unknown) {
   const lobbyConfig: any = {
@@ -36,14 +41,14 @@ describe("LocalServer onMessage hash guard", () => {
     warnSpy.mockRestore();
   });
 
-  it("does not throw and logs a warning when hash arrives for a missing turn", () => {
+  it("does not throw, logs console.warn and logOtelWarn with delta when hash arrives for a missing turn", () => {
     const server = makeServer();
     expect(() => {
       server.onMessage({ type: "hash", turnNumber: 0, hash: 42 });
     }).not.toThrow();
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("turn 0"),
-    );
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("turn=0"));
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("delta="));
+    expect(logOtelWarn).toHaveBeenCalledWith(expect.stringContaining("delta="));
   });
 
   it("stores hash when the turn entry exists at index", () => {
