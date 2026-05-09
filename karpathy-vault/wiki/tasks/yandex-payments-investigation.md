@@ -23,8 +23,11 @@ The investigation concludes that Sprint 4 should use `ysdk.getPayments({ signed:
 
 The main non-SDK risk remains identity binding: paid citizenship should not ship until the verified Yandex identity work from [[tasks/player-profile-store-investigation]] is in place, so a successful signed purchase can be attached to the correct long-lived player profile.
 
+The licensing brief adds a separate non-SDK constraint for monetization scale: GeoConflict can sell paid content on Yandex.Games, but must maintain AGPL source access and respect OpenFront asset/trademark boundaries. See [[decisions/licensing-compliance]].
+
 ## Related
 
 - [[decisions/sprint-4]] — Sprint 4 roadmap and dependencies for citizenship and payments
+- [[decisions/licensing-compliance]] — AGPL/source-access and asset-use obligations around monetization
 - [[tasks/player-profile-store-investigation]] — the parallel Sprint 4 investigation that identified the verified Yandex identity gap
 - [[systems/flashist-init]] — existing client startup hub where payments/catalog caching should be added

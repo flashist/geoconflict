@@ -18,6 +18,9 @@ Determine whether Geoconflict needs any legal, tax, or banking changes before en
 
 The Sprint 4 payments track no longer has a known VAT or legal-setup blocker. The remaining immediate external dependency is Yandex catalog registration and approval, not tax registration or legal restructuring.
 
+This finding is scoped to VAT/tax and company setup. It does not cover OpenFront-derived IP/licensing compliance; the separate licensing brief now tracks AGPL source-access obligations, asset restrictions, and trademark caution in [[decisions/licensing-compliance]].
+
 ## Related
 
 - [[decisions/sprint-4]] — Sprint 4 roadmap and remaining non-engineering dependencies
+- [[decisions/licensing-compliance]] — separate AGPL/source access and asset-license compliance posture

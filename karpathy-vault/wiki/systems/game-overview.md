@@ -5,7 +5,7 @@
 
 ## Summary
 
-Geoconflict is a fork/adaptation of OpenFront.io — a real-time territorial strategy browser game. Players expand territory, build structures, form alliances, and deploy weapons to dominate a map. All intentional divergences from upstream are marked `// Flashist Adaptation`.
+Geoconflict is a fork/adaptation of OpenFront.io — a real-time territorial strategy browser game. Players expand territory, build structures, form alliances, and deploy weapons to dominate a map. All intentional divergences from upstream are marked `// Flashist Adaptation`. The fork status carries AGPL/source-access and asset-license obligations; see [[decisions/licensing-compliance]].
 
 Source: `ai-agents/knowledge-base/geoconflict-overview.md`, `CLAUDE.md`
 
@@ -103,6 +103,7 @@ Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adapta
 - Server turn interval is 1.5× faster than upstream OpenFront.io (Flashist Adaptation)
 - Duos/Trios/Quads were previously disabled (Flashist Adaptation — too few players) but were re-enabled in Sprint 4b; see [[tasks/sprint4b-duos-trios-quads]]
 - `#join=gameID` URL push is disabled (Flashist Adaptation) — see [[decisions/double-reload-fix]]
+- Do not treat upstream OpenFront assets or services as generally available: `/resources` assets carry CC BY-SA obligations, while `/proprietary` and OpenFront-hosted CDN/API/database assets are off-limits. See [[decisions/licensing-compliance]].
 
 ## Related
 
@@ -114,6 +115,7 @@ Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adapta
 - [[systems/match-logging]] — what is recorded per match
 - [[decisions/vps-credential-leak-response]] — live deployment and recovery constraints for the production game stack
 - [[decisions/registry-image-policy]] — trusted image and rollback rules for deploy operations around the live game
+- [[decisions/licensing-compliance]] — legal posture for the OpenFront-derived code and assets
 - [[features/ai-players]] — AI Players feature spec (`PlayerType.AiPlayer` documented here)
 - [[tasks/teams-mode-max-teams]] — public teams-mode lobby generation cap
 - [[systems/game-loop]] — tick execution detail

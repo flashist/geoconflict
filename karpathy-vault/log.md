@@ -557,3 +557,9 @@
 - Issues fixed: 0
 - Issues flagged for human review: 0
 - Full wiki health-check passed: index/file coverage, required metadata, wiki-link resolution, backlinks, and local source-path references are clean.
+
+## 2026-05-09 — ingest
+- Sync window: `2f8a4a178878ea6a88cea075ee7dcc54605bc589` → HEAD (`4850f82bbd43267eb3c34c62639eb81d273649ad`)
+- Changed source files detected: 1
+- Ingested: `ai-agents/knowledge-base/GeoConflict-Licensing-Brief.md` → created [[wiki/decisions/licensing-compliance]]; updated [[wiki/systems/game-overview]], [[wiki/systems/project-operations]], [[wiki/decisions/product-strategy]], [[wiki/decisions/sprint-4]], [[wiki/tasks/legal-vat-investigation]], [[wiki/tasks/yandex-payments-investigation]], index.md
+- Skipped (already covered): none

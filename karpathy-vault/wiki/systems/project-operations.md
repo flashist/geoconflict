@@ -33,6 +33,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - Sprint 4b is a short interim variety sprint that keeps public matchmaking fresh while Sprint 4's citizenship/payment work is paused; see [[decisions/sprint-4b]]
 - Sprint 4c is a short production stabilization sprint that converts the 2026-05-07 Uptrace error-priority review into deployable fixes before the May 15 travel pause; see [[decisions/sprint-4c]]
 - Community operations, monetization planning, and internal dashboards are treated as operational context, not game-client features
+- Licensing compliance is an operational release constraint: GeoConflict's public source repository must track what is deployed, players need a visible source-code access path, and production bundles must not include OpenFront `/proprietary` or hosted-only assets. See [[decisions/licensing-compliance]].
 
 ## Gotchas / Known Issues
 
@@ -40,6 +41,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - `this.turns` accumulation in `src/server/GameServer.ts` remains open technical debt and is called out here as a future scaling risk
 - Historical analytics before the double-reload and stale-build fixes have known data-quality problems; operational decisions should use the corrected post-fix windows where possible
 - Sensitive infrastructure details are intentionally omitted from git-tracked docs; operational pages should describe boundaries and workflow, not secrets
+- The VAT/tax gate and the OpenFront-derived licensing posture are separate. The former cleared in Sprint 4; the latter still needs a public-source/source-link process and eventual IP-lawyer review before monetization scales.
 
 ## Related
 
@@ -53,3 +55,4 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - [[decisions/sprint-4]] — current citizenship and payments planning context captured by the source
 - [[decisions/sprint-4b]] — interim public-match variety sprint and deadline constraints
 - [[decisions/sprint-4c]] — production stabilization sprint and May 15 deadline constraints
+- [[decisions/licensing-compliance]] — AGPL/source access, asset-use, and trademark constraints for releases

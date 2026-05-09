@@ -49,6 +49,7 @@ Mobile deep optimization parked — desktop is core audience. Revisit if mobile 
 - **Feature flags/experiments preferred** for all additive features
 - **Mobile warning screen moved** from Sprint 3 to Sprint 6, where it supports a content-led acquisition push on mobile
 - **Sprint 4b and Sprint 4c are intermissions**, not monetization pivots: Sprint 4b preserves player-facing momentum, while Sprint 4c cleans production errors before citizenship and payments work waits for Mark's post-travel availability
+- **Licensing shapes monetization defensibility** — GeoConflict can monetize, but AGPL and CC BY-SA obligations mean the durable moat is live operations, Yandex integration, localization, community, and iteration speed rather than exclusive control of forked code or modified OpenFront resource assets.
 
 ## Related
 
@@ -64,4 +65,5 @@ Mobile deep optimization parked — desktop is core audience. Revisit if mobile 
 - [[systems/analytics]] — analytics infrastructure built in Sprint 1
 - [[systems/producer-workflow]] — producer prioritization and decision-boundary rules derived from this strategy
 - [[systems/project-operations]] — operational handbook for team roles, release workflow, and roadmap constraints
+- [[decisions/licensing-compliance]] — AGPL/source access and asset-license constraints that affect monetization strategy
 - [[tasks/mobile-quick-wins]] — Task 3 mobile optimizations; Task 5 gate conditions documented here
