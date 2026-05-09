@@ -543,3 +543,17 @@
 
 ## 2026-05-08 — ingest
 - Ingested: `ai-agents/knowledge-base/telemetry-clickhouse-system-log-retention-2026-05-08.md` → updated [[wiki/systems/telemetry]]
+
+## 2026-05-09 — ingest
+- Sync window: `6b7ab395d34772e8a9f9d37488796393eda9fe31` → HEAD (`2f8a4a178878ea6a88cea075ee7dcc54605bc589`)
+- Changed source files detected: 4
+- Ingested: `ai-agents/knowledge-base/plan-fix-archive-endpoint.md` → created [[wiki/tasks/archive-endpoint-failures]]; updated [[wiki/systems/match-logging]], [[wiki/systems/telemetry]], [[wiki/tasks/cosmetics-serving]], index.md
+- Ingested: `ai-agents/sprints/plan-sprint-4c.md` → updated [[wiki/decisions/sprint-4c]]
+- Skipped (already covered): `ai-agents/knowledge-base/telemetry-clickhouse-system-log-retention-2026-05-08.md` — already reflected in [[wiki/systems/telemetry]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4c-leaderboard-player-count.md` — backlog task; summarized through [[wiki/decisions/sprint-4c]]
+
+## 2026-05-09 — lint
+- Issues found: 0
+- Issues fixed: 0
+- Issues flagged for human review: 0
+- Full wiki health-check passed: index/file coverage, required metadata, wiki-link resolution, backlinks, and local source-path references are clean.

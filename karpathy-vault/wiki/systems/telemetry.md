@@ -132,3 +132,4 @@ Default ClickHouse internal log settings:
 - [[systems/match-logging]] — what is and isn't logged per match
 - [[tasks/cosmetics-serving]] — Sprint 4c fix for the highest-rate cosmetics error family
 - [[tasks/local-server-hash-guard]] — Sprint 4c guard for the singleplayer/local hash crash family
+- [[tasks/archive-endpoint-failures]] — Sprint 4c plan for the archive endpoint/body-limit error family

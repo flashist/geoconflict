@@ -17,7 +17,7 @@ Source: `ai-agents/knowledge-base/server-match-logging-state.md`
 ### Where Logs Go
 - **stdout** — Winston JSON logger (`src/server/Logger.ts`), always active
 - **OTEL/Uptrace** — active only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set (prod only)
-- **Archive endpoint** — full game records POSTed to external server (`config.jwtIssuer()/game/{gameID}`) at match end — this is the **authoritative historical store**
+- **Archive endpoint** — full game records POSTed to external server (`config.jwtIssuer()/game/{gameID}`) at match end — this is intended to be the **authoritative historical store**, but Sprint 4c found the inherited route is currently failing in production
 - No local database or file writes
 
 ### What Is Logged (stdout/OTEL)
@@ -58,6 +58,7 @@ For active/in-memory games: `GET /api/game/:id` (`Worker.ts:226`) — only works
 
 - Structured fields passed as second argument to `log.info()` (e.g. `{ clientID, persistentID }`) may not appear as attributes in Uptrace — only the message string is guaranteed. See [[systems/telemetry]].
 - File-line references in the log events table were re-verified against `src/server/GameServer.ts` on 2026-04-30; the active-game lookup reference was re-verified against `src/server/Worker.ts` on 2026-04-30.
+- Sprint 4c archive investigation found production `Not Found` errors because the geoconflict server does not currently expose the inherited `/game/:gameID` route used by `Archive.ts`; singleplayer archive uploads also hit body-size and browser `keepalive` limits. See [[tasks/archive-endpoint-failures]].
 - 140 returning users reported `null` build version (as of 2026-04-09) — likely sessions before `configureBuild()` was wired, unrelated to logging
 
 ## Related
@@ -66,3 +67,4 @@ For active/in-memory games: `GET /api/game/:id` (`Worker.ts:226`) — only works
 - [[systems/telemetry]] — OTEL/Uptrace infrastructure this logging flows into
 - [[systems/server-performance]] — performance context for `endTurn()` / turn logging
 - [[tasks/solo-win-condition-fix]] — solo opponent winners can be archived as explicit opponent winners
+- [[tasks/archive-endpoint-failures]] — Sprint 4c plan to restore reliable archived match storage

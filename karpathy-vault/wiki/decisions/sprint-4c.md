@@ -29,12 +29,15 @@ Tasks 4-6 are investigation or high-complexity work and should only start if tim
 | 5 | Investigate client null-id/null-object errors | 1.8/min | Wait until higher-rate telemetry noise is removed |
 | 6 | Mobile memory and WebGL rendering failures | 0.4/min | Treat as out of scope unless all earlier work ships early |
 
+The sprint plan also tracks one low-priority UX quick win outside the production-error list: add a human-player count to the leaderboard's "Players only" label. It is intentionally separate from the telemetry-driven stabilization priorities and should not displace Tasks 1-3.
+
 ## Consequences
 
 - Sprint 4c explicitly excludes citizenship, payments, player profile store work, new game mechanics, new features, and backend infrastructure changes.
 - Error-rate reduction is the delivery metric: clean Uptrace data is expected to make the post-travel return to Sprint 4 development safer.
 - The cosmetics task is the highest-leverage first fix because it removes the largest telemetry noise family and improves signal quality for all lower-rate investigations.
 - Any fix whose implementation timeline becomes unclear should defer to the post-travel backlog rather than risking the May 15 deadline.
+- Backlog additions that are not production-error fixes, such as the leaderboard human-count label, remain opportunistic and should not change the sprint's stabilization goal.
 
 ## Related
 
@@ -45,3 +48,4 @@ Tasks 4-6 are investigation or high-complexity work and should only start if tim
 - [[systems/project-operations]] — sprint/task workflow and release guardrails
 - [[tasks/cosmetics-serving]] — first quick-win task from the Sprint 4c priority list
 - [[tasks/local-server-hash-guard]] — second quick-win task preventing the local/singleplayer hash crash
+- [[tasks/archive-endpoint-failures]] — third quick-win task covering multiplayer archive 404s and singleplayer archive upload limits
