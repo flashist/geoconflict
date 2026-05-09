@@ -10,34 +10,80 @@ Three production error groups are silently discarding match history and replay d
 | `TypeError: Failed to archive singleplayer game: Failed to fetch` | 9.64/min |
 | `Error in POST /api/archive_singleplayer_game: PayloadTooLargeError` | 0.64/min |
 
-Root causes identified from code inspection:
+---
 
-1. **Archive.ts** uses `config.jwtIssuer()` as the archive base URL, but `jwtIssuer()` points to the auth/JWT service — not the game record storage service. `config.apiBaseUrl()` already exists in the Config interface with its own `API_BASE_URL` env var override, and is the correct base to use. The error log also only captures `response.statusText`, losing the status code and response body.
+## Root Cause Analysis
 
-2. **Worker.ts** registers `app.use(express.json())` globally with the default 100 KB limit. Singleplayer records (gzip-compressed) can exceed this, causing 413 before the route handler ever runs.
+### Issue 1 — Multiplayer archive 404 (`Archive.ts`)
 
-3. **LocalServer.ts** uses `keepalive: true` on the archive `fetch()`. Browsers (Chrome/Chromium) cap keepalive request bodies at 64 KB; any compressed record larger than that immediately throws `TypeError: Failed to fetch` on the client side, regardless of the server body limit. The error is also logged at `console.error` despite archive being non-critical.
+`Archive.ts` constructs archive URLs using `config.jwtIssuer()`, which in `.env.prod` resolves to `http://91.197.98.116`. So it posts to `http://91.197.98.116/game/{gameID}` — but **no `/game/:gameID` route exists anywhere in the geoconflict server code**. The request hits nginx → Node.js port 3000 → 404.
+
+The upstream openfront.io had an external Cloudflare Worker at `api.openfront.io/game/:gameID`. The geoconflict fork inherited the archive client but never built the matching endpoint.
+
+**Confirmed env values in `.env.prod`:**
+```
+JWT_ISSUER=http://91.197.98.116
+API_BASE_URL=http://91.197.98.116
+```
+
+**Precedent — cosmetics fix (`s4c-fix-cosmetics-serving`):**
+The same pattern occurred with `cosmetics.json` (also fetched from `config.jwtIssuer() + "/cosmetics.json"`, also returning 404, also blocked in Yandex.Games iframe context by the raw IP). That fix:
+1. Added `GET /cosmetics.json` to `Master.ts`, serving the file from disk.
+2. Added `localCosmeticsJsonUrl()` to `ServerEndpoints.ts` — uses `localMasterUrl()` → `http://127.0.0.1:3000/cosmetics.json`.
+3. Replaced `config.jwtIssuer() + "/cosmetics.json"` in `Worker.ts` with `localCosmeticsJsonUrl()`.
+
+The archive fix follows the same approach.
 
 ---
 
-## Implementation
+### Issue 2 — Singleplayer archive body too large (`Worker.ts`)
 
-### 1. `src/server/Archive.ts`
+`app.use(express.json())` at `src/server/Worker.ts:102` uses the default 100 KB limit. Singleplayer records are gzip-compressed before POST; compressed size can exceed 100 KB. Express fires 413 before the route handler runs.
 
-**Lines 24 and 51** — switch URL base from `config.jwtIssuer()` to `config.apiBaseUrl()`:
+---
 
+### Issue 3 — Singleplayer archive `Failed to fetch` (`LocalServer.ts`)
+
+`src/client/LocalServer.ts:310` uses `keepalive: true`. Browsers (Chrome/Chromium) cap keepalive request bodies at **64 KB**; larger compressed records trigger `TypeError: Failed to fetch` immediately on the client. The catch also logs at `console.error` despite archive being non-critical.
+
+---
+
+## Implementation Plan
+
+### 1. Add `POST /game/:id` and `GET /game/:id` to `Master.ts`
+
+Mirror the cosmetics pattern. Store game records as JSON files on disk under `data/game-records/`.
+
+**`src/server/ServerEndpoints.ts`** — add path constant and URL helper:
 ```ts
-// line 24 (archive POST)
-const url = `${config.apiBaseUrl()}/game/${gameRecord.info.gameID}`;
+export const GAME_RECORD_PATH = "/game";
 
-// line 51 (readGameRecord GET)
-const url = `${config.apiBaseUrl()}/game/${gameId}`;
+export function localGameRecordUrl(gameId: string): string {
+  return localMasterUrl(`${GAME_RECORD_PATH}/${gameId}`);
+}
 ```
 
-`apiBaseUrl()` is already on the `Config` interface (`src/core/configuration/Config.ts:56`) and implemented in `DefaultConfig.ts:142–151`. It checks `API_BASE_URL` env var and falls back to `jwtIssuer()`, so no config change is needed in non-overriding environments — but it provides the ops team the correct knob to point archive at a separate host.
+**New file `src/server/GameRecordStorage.ts`** — disk-based read/write:
+```ts
+// Reads/writes GameRecord JSON files under data/game-records/<gameId>.json
+// Throws on write failure; returns null if not found on read.
+```
 
-**Line 34** — improve the error log to include status code and a safe body excerpt:
+**`src/server/Master.ts`** — add two routes (before the SPA fallback):
+```ts
+app.post("/game/:id", async (req, res) => { /* write to disk */ });
+app.get("/game/:id",  async (req, res) => { /* read from disk */ });
+```
 
+**`src/server/Archive.ts`** — replace `config.jwtIssuer()` with `localMasterUrl()`:
+```ts
+// line 24
+const url = localMasterUrl(`/game/${gameRecord.info.gameID}`);
+// line 51
+const url = localMasterUrl(`/game/${gameId}`);
+```
+
+Also improve the error log at line 34 to include status code + response body excerpt:
 ```ts
 const body = await response.text().catch(() => "");
 log.error(
@@ -46,21 +92,21 @@ log.error(
 );
 ```
 
-### 2. `src/server/Worker.ts`
+---
 
-**Line 102** — increase the body limit from the default 100 KB to 10 MB:
+### 2. Increase body limit (`Worker.ts:102`)
 
 ```ts
 app.use(express.json({ limit: "10mb" }));
 ```
 
-**Rationale for 10 MB**: the archive body is gzip-compressed JSON. Body-parser checks the compressed byte count against the limit. A long singleplayer game replay can produce several MB of compressed data. 10 MB is the proposed ceiling — please confirm or adjust before merging. Rate limiting (20 req/s per IP, line 105–109) provides the abuse backstop.
+Rationale: body-parser checks compressed byte count. Long singleplayer replays can produce several MB compressed. Rate limiter (20 req/s per IP) provides abuse backstop. **Confirm 10 MB with Mark before merging.**
 
-The route error handler at lines 273–276 already catches `PayloadTooLargeError` via the surrounding try/catch, but Express fires the 413 **before** the route handler, so the body limit itself must be raised.
+---
 
-### 3. `src/client/LocalServer.ts`
+### 3. Fix singleplayer archive fetch (`LocalServer.ts:301–315`)
 
-**Lines 310, 314** — remove `keepalive: true` and demote the error log:
+Remove `keepalive: true`, demote error to `console.warn`:
 
 ```ts
 compress(jsonString)
@@ -72,8 +118,7 @@ compress(jsonString)
         "Content-Encoding": "gzip",
       },
       body: compressedData,
-      // keepalive removed: browser caps keepalive bodies at 64 KB; large
-      // records cause TypeError before the request is even sent.
+      // keepalive removed: browser 64 KB cap causes TypeError for large records
     });
   })
   .catch((error) => {
@@ -81,30 +126,31 @@ compress(jsonString)
   });
 ```
 
-The archive is fire-and-forget and non-critical to match completion, so `console.warn` is appropriate. Removing `keepalive` means the request may be cancelled if the user navigates away immediately after game-over, which is acceptable for a best-effort archive.
-
 ---
 
 ## Files Changed
 
-| File | Lines | Change |
-|---|---|---|
-| `src/server/Archive.ts` | 24, 34–36, 51 | `apiBaseUrl()` + richer error log |
-| `src/server/Worker.ts` | 102 | `express.json({ limit: "10mb" })` |
-| `src/client/LocalServer.ts` | 310, 314 | remove `keepalive`, `console.warn` |
+| File | Change |
+|---|---|
+| `src/server/ServerEndpoints.ts` | Add `GAME_RECORD_PATH`, `localGameRecordUrl()` |
+| `src/server/GameRecordStorage.ts` | New file — disk-based game record read/write |
+| `src/server/Master.ts` | Add `POST /game/:id` and `GET /game/:id` routes |
+| `src/server/Archive.ts` | Use `localMasterUrl()` instead of `config.jwtIssuer()`; richer error log |
+| `src/server/Worker.ts` | `express.json({ limit: "10mb" })` |
+| `src/client/LocalServer.ts` | Remove `keepalive: true`, `console.error` → `console.warn` |
 
 ---
 
-## Open Question for Mark
+## Open Questions
 
-**Body limit value**: 10 MB is proposed for the Express body limit. This covers the compressed byte count of singleplayer records. If you have Uptrace data on typical `Content-Length` sizes for singleplayer archive requests, a tighter value could be used. Should I proceed with 10 MB or adjust?
+**Body limit value**: 10 MB proposed. Confirm or adjust based on Uptrace `Content-Length` data for singleplayer archive requests.
 
 ---
 
 ## Verification
 
-1. Deploy and watch the `Not Found` archive error group in Uptrace — should disappear.
-2. Singleplayer game end should produce a `200 { success: true }` response on the archive route (check network tab or server logs).
-3. For an oversized record, the server should return 413 with a clean log (`Error processing archive request: ...`) — not an unhandled rejection.
-4. In browser devtools: no `TypeError: Failed to archive singleplayer game` after removing `keepalive`.
-5. Archive failure (if archive service is down) should appear only as a `console.warn`, not a red `console.error`.
+1. `POST /game/:id` in production returns 200; `Not Found` error group in Uptrace disappears.
+2. `GET /game/:id` returns the stored record.
+3. Singleplayer game end produces `200 { success: true }` — no 413 for normal-sized records.
+4. No `TypeError: Failed to archive singleplayer game` in browser console after removing `keepalive`.
+5. Archive failure logs appear as `console.warn` / `log.warn`, not errors.
