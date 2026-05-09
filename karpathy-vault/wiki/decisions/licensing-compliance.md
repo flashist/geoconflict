@@ -30,6 +30,16 @@ GeoConflict can continue development, publication, and monetization on Yandex.Ga
 - Sprint 4's VAT/tax clearance does not by itself clear IP/licensing compliance; the two legal tracks are separate.
 - Backend work that links against or combines with OpenFront code should be presumed AGPL-covered unless legal review confirms a separate-work boundary.
 
+## Open Items
+
+One engineering prerequisite remains before paid in-app purchases go live:
+
+| Task | Brief | Status |
+|---|---|---|
+| Audit production bundle for proprietary/CDN assets | `ai-agents/tasks/backlog/s4-licensing-asset-audit.md` | Backlog |
+
+If the audit finds no violations, this gate is clear. If violations are found, a follow-up fix task will be scoped from the findings.
+
 ## Related
 
 - [[systems/game-overview]] — fork/adaptation context and upstream divergence notes

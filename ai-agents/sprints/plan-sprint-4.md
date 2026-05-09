@@ -37,6 +37,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⬜ Backlog | Citizen Verified Icon | TBD |
 | ⛔ Cancelled | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` |
 | ✅ Done | AI Lobby Slot Bug — Always Keep One Slot Free | `s4-ai-lobby-slot-bug.md` |
+| ⬜ Backlog | Asset audit: confirm no proprietary/CDN assets in production bundle *(prerequisite: paid citizenship)* | `s4-licensing-asset-audit.md` |
 | ⛔ Cancelled | Tutorial — Pause During Action-Required Steps | `s4-tutorial-action-pause.md` |
 | ✅ Done | Tutorial — Remove Nations, Keep Only Bots | `s4-tutorial-no-nations.md` |
 | ✅ Done | Tutorial — Lock Build Menu to City During Tooltip 5 | `s4-tutorial-build-menu-lock.md` |
@@ -155,6 +156,7 @@ Citizen icon visible in lobbies and match player list. Distinguishes citizens fr
 - Cosmetics purchase flow (depends on citizenship purchase infrastructure)
 
 ---
+
 
 ## XP Economy (locked)
 
