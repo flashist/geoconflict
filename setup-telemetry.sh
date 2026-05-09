@@ -445,7 +445,12 @@ clickhouse_table_exists() {
 }
 
 clickhouse_system_log_ttl_days() {
-    case "$1" in
+    local table="$1"
+    if [[ "$table" =~ ^(.+)_[0-9]+$ ]]; then
+        table="${BASH_REMATCH[1]}"
+    fi
+
+    case "$table" in
         query_log|query_thread_log|query_views_log|part_log)
             echo "$CLICKHOUSE_QUERY_LOG_RETENTION_DAYS"
             ;;
@@ -455,21 +460,34 @@ clickhouse_system_log_ttl_days() {
     esac
 }
 
-CLICKHOUSE_SYSTEM_LOG_TABLES=(
-    trace_log
-    text_log
-    metric_log
-    asynchronous_metric_log
-    processors_profile_log
-    query_log
-    query_thread_log
-    query_views_log
-    part_log
-)
+clickhouse_system_log_tables() {
+    clickhouse_query "
+        select name
+        from system.tables
+        where database = 'system'
+          and (
+              name in (
+                  'trace_log',
+                  'text_log',
+                  'metric_log',
+                  'asynchronous_metric_log',
+                  'processors_profile_log',
+                  'query_log',
+                  'query_thread_log',
+                  'query_views_log',
+                  'part_log'
+              )
+              or match(name, '^(trace_log|text_log|metric_log|asynchronous_metric_log|processors_profile_log|query_log|query_thread_log|query_views_log|part_log)_[0-9]+$')
+          )
+        order by name
+        format TSV"
+}
 
 clickhouse_query "SYSTEM FLUSH LOGS" || echo "⚠️  Could not flush ClickHouse system logs before cleanup"
 
-for table in "${CLICKHOUSE_SYSTEM_LOG_TABLES[@]}"; do
+while IFS= read -r table; do
+    [ -n "$table" ] || continue
+
     if ! clickhouse_table_exists "$table"; then
         echo "Skipping missing ClickHouse system table: system.${table}"
         continue
@@ -489,7 +507,7 @@ for table in "${CLICKHOUSE_SYSTEM_LOG_TABLES[@]}"; do
             echo "⚠️  Could not truncate system.${table}; continuing"
         fi
     fi
-done
+done < <(clickhouse_system_log_tables)
 
 docker compose exec -T clickhouse clickhouse-client -u uptrace --password uptrace -q "
     select database, table, active, formatReadableSize(sum(bytes_on_disk)) as size

@@ -25,7 +25,7 @@ The telemetry VPS disk rose from 74% to 86% used even after Uptrace project TTLs
 - lowers `text_log` capture to `warning`;
 - disables default query and memory profiling samples in the ClickHouse default profile to stop `system.trace_log` from growing rapidly on a small VPS;
 - mounts those ClickHouse config files into the ClickHouse container;
-- applies TTLs to already-created `system.*_log` tables during setup;
+- applies TTLs to already-created `system.*_log` tables during setup, including numeric suffix tables such as `system.trace_log_0` and `system.text_log_0` that ClickHouse can leave behind when system log table definitions change;
 - truncates existing ClickHouse system log tables by default during setup, controlled by `CLICKHOUSE_TRUNCATE_SYSTEM_LOGS`.
 
 Defaults:
@@ -37,6 +37,8 @@ Defaults:
 ## Operational Notes
 
 This cleanup affects ClickHouse internal diagnostic logs only. It must not truncate any `uptrace.*` telemetry tables or delete Docker volumes.
+
+After the first redeploy with ClickHouse system log config, ClickHouse preserved the old bloated diagnostic tables as suffixed tables (`system.trace_log_0`, `system.text_log_0`, etc.). Cleanup code must discover known ClickHouse system log names from `system.tables` and include numeric suffix variants, not only hardcoded base names.
 
 After redeploy, verify:
 
