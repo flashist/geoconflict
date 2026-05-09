@@ -4,16 +4,18 @@
 
 A structured wiki lives in `karpathy-vault/` following the Karpathy LLM Wiki pattern. It contains synthesized knowledge about systems, features, decisions, and tasks — things not easily derived from the code alone.
 
-**REQUIRED: Before implementing any task, you MUST first run `/wiki-query` with the task topic. Do not write or edit any code until you have checked the wiki.**
+**REQUIRED: Before implementing any task, you MUST first invoke the `wiki-query` skill with the task topic. Do not write or edit any code until you have checked the wiki.**
 
 **Four skills are available:**
 
 | Skill | Purpose |
 |---|---|
-| `/wiki-ingest <path or keyword>` | Ingest source files into the wiki. Keywords: `architecture`, `knowledge-base`, `all tasks` |
-| `/wiki-query <question>` | Answer a question using wiki pages + source files |
-| `/wiki-lint` | Health-check the wiki: broken links, stale claims, missing back-links |
-| `/wiki-sync` | Detect changes in `ai-agents/` since last sync and ingest only the delta |
+| `wiki-ingest` | Ingest source files into the wiki. Input: `<path or keyword>`. Keywords: `architecture`, `knowledge-base`, `all tasks` |
+| `wiki-query` | Answer a question using wiki pages + source files. Input: `<question>` |
+| `wiki-lint` | Health-check the wiki: broken links, stale claims, missing back-links |
+| `wiki-sync` | Detect changes in `ai-agents/` since last sync and ingest only the delta |
+
+These are Codex skills, not shell commands or repo-local executables. In this workspace they may be installed globally under `~/.codex/skills/` rather than under the repo's `.codex/skills/`.
 
 **Wiki structure:**
 ```
@@ -39,10 +41,10 @@ karpathy-vault/
 **Sync watermark** lives at `karpathy-vault/.wiki-watermark` (a single commit SHA). The wiki-sync skill reads and writes this file to track the last sync point. Do not delete or modify it manually.
 
 **When to update the wiki:**
-- After completing a task: run `/wiki-ingest ai-agents/tasks/done/<task-file>`
-- After an investigation or bug fix: run `/wiki-ingest ai-agents/knowledge-base/<findings-file>`
-- When the wiki seems outdated: run `/wiki-lint`
-- To sync all recent changes at once: run `/wiki-sync`
+- After completing a task: invoke `wiki-ingest` with `ai-agents/tasks/done/<task-file>`
+- After an investigation or bug fix: invoke `wiki-ingest` with `ai-agents/knowledge-base/<findings-file>`
+- When the wiki seems outdated: invoke `wiki-lint`
+- To sync all recent changes at once: invoke `wiki-sync`
 
 ## Project Overview
 
