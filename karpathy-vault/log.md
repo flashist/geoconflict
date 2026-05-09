@@ -540,3 +540,6 @@
 - Changed source files detected: 1
 - Ingested: `ai-agents/tasks/done/s4c-fix-local-server-hash-guard.md` → created [[wiki/tasks/local-server-hash-guard]]; updated [[wiki/systems/telemetry]], [[wiki/decisions/sprint-4c]], index.md
 - Skipped (already covered): none
+
+## 2026-05-08 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-clickhouse-system-log-retention-2026-05-08.md` → updated [[wiki/systems/telemetry]]

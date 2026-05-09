@@ -8,6 +8,9 @@
 #   UPTRACE_ADMIN_PASSWORD — dashboard admin password (default: change_me_immediately)
 #   UPTRACE_RETENTION_DAYS — span/log/event retention in days (default: 7)
 #   UPTRACE_METRICS_RETENTION_DAYS — metrics retention in days (default: 90)
+#   CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS — ClickHouse internal log retention (default: 1)
+#   CLICKHOUSE_QUERY_LOG_RETENTION_DAYS — ClickHouse query/part log retention (default: 3)
+#   CLICKHOUSE_TRUNCATE_SYSTEM_LOGS — clear existing ClickHouse system logs on setup (default: 1)
 #
 # What this script does:
 #   1. Installs Docker + Docker Compose plugin
@@ -46,6 +49,9 @@ fi
 UPTRACE_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-change_me_immediately}"
 UPTRACE_RETENTION_DAYS="${UPTRACE_RETENTION_DAYS:-7}"
 UPTRACE_METRICS_RETENTION_DAYS="${UPTRACE_METRICS_RETENTION_DAYS:-90}"
+CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS="${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS:-1}"
+CLICKHOUSE_QUERY_LOG_RETENTION_DAYS="${CLICKHOUSE_QUERY_LOG_RETENTION_DAYS:-3}"
+CLICKHOUSE_TRUNCATE_SYSTEM_LOGS="${CLICKHOUSE_TRUNCATE_SYSTEM_LOGS:-1}"
 if ! [[ "$UPTRACE_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$UPTRACE_RETENTION_DAYS" -lt 1 ]; then
     echo "Error: UPTRACE_RETENTION_DAYS must be a positive integer."
     exit 1
@@ -54,8 +60,27 @@ if ! [[ "$UPTRACE_METRICS_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$UPTRACE_METRICS_
     echo "Error: UPTRACE_METRICS_RETENTION_DAYS must be a positive integer."
     exit 1
 fi
+if ! [[ "$CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS" -lt 1 ]; then
+    echo "Error: CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS must be a positive integer."
+    exit 1
+fi
+if ! [[ "$CLICKHOUSE_QUERY_LOG_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$CLICKHOUSE_QUERY_LOG_RETENTION_DAYS" -lt 1 ]; then
+    echo "Error: CLICKHOUSE_QUERY_LOG_RETENTION_DAYS must be a positive integer."
+    exit 1
+fi
 UPTRACE_RETENTION_NS=$((UPTRACE_RETENTION_DAYS * 86400 * 1000000000))
 UPTRACE_METRICS_RETENTION_NS=$((UPTRACE_METRICS_RETENTION_DAYS * 86400 * 1000000000))
+
+is_truthy() {
+    case "$1" in
+        1|true|TRUE|yes|YES|on|ON)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
 
 # ── System update ─────────────────────────────────────────────────────────────
 
@@ -130,6 +155,7 @@ ch_cluster:
           user: uptrace
           password: uptrace
           database: uptrace
+          max_execution_time: 15s
 
 redis_cache:
   addrs:
@@ -172,6 +198,66 @@ if grep -q '^ch:' "$UPTRACE_DIR/uptrace.yml"; then
     echo "Error: generated uptrace.yml contains unsupported top-level ch: config for Uptrace 2.0.2"
     exit 1
 fi
+
+# ── ClickHouse config ─────────────────────────────────────────────────────────
+
+cat > "$UPTRACE_DIR/clickhouse-system-logs.xml" << EOF
+<clickhouse>
+    <trace_log>
+        <ttl>event_date + INTERVAL ${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS} DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </trace_log>
+    <text_log>
+        <level>warning</level>
+        <ttl>event_date + INTERVAL ${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS} DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </text_log>
+    <metric_log>
+        <ttl>event_date + INTERVAL ${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS} DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </metric_log>
+    <asynchronous_metric_log>
+        <ttl>event_date + INTERVAL ${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS} DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </asynchronous_metric_log>
+    <processors_profile_log>
+        <ttl>event_date + INTERVAL ${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS} DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </processors_profile_log>
+    <query_log>
+        <ttl>event_date + INTERVAL ${CLICKHOUSE_QUERY_LOG_RETENTION_DAYS} DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </query_log>
+    <query_thread_log>
+        <ttl>event_date + INTERVAL ${CLICKHOUSE_QUERY_LOG_RETENTION_DAYS} DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </query_thread_log>
+    <query_views_log>
+        <ttl>event_date + INTERVAL ${CLICKHOUSE_QUERY_LOG_RETENTION_DAYS} DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </query_views_log>
+    <part_log>
+        <ttl>event_date + INTERVAL ${CLICKHOUSE_QUERY_LOG_RETENTION_DAYS} DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </part_log>
+</clickhouse>
+EOF
+
+cat > "$UPTRACE_DIR/clickhouse-profiler.xml" << EOF
+<clickhouse>
+    <profiles>
+        <default>
+            <query_profiler_real_time_period_ns>0</query_profiler_real_time_period_ns>
+            <query_profiler_cpu_time_period_ns>0</query_profiler_cpu_time_period_ns>
+            <memory_profiler_step>0</memory_profiler_step>
+            <memory_profiler_sample_probability>0</memory_profiler_sample_probability>
+        </default>
+    </profiles>
+</clickhouse>
+EOF
+
+echo "Written: clickhouse-system-logs.xml"
+echo "Written: clickhouse-profiler.xml"
 
 # ── otel-collector.yaml ───────────────────────────────────────────────────────
 
@@ -250,6 +336,8 @@ services:
       retries: 30
     volumes:
       - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse-system-logs.xml:/etc/clickhouse-server/config.d/geoconflict-system-logs.xml:ro
+      - ./clickhouse-profiler.xml:/etc/clickhouse-server/users.d/geoconflict-profiler.xml:ro
     ulimits:
       nofile:
         soft: 262144
@@ -342,6 +430,73 @@ else
     echo "✅ All containers running:"
     docker compose ps
 fi
+
+# ── ClickHouse internal log cleanup ──────────────────────────────────────────
+
+print_header "CONFIGURING CLICKHOUSE SYSTEM LOG RETENTION"
+
+clickhouse_query() {
+    docker compose exec -T clickhouse clickhouse-client -u uptrace --password uptrace -q "$1"
+}
+
+clickhouse_table_exists() {
+    local table="$1"
+    [ "$(clickhouse_query "exists table system.${table}")" = "1" ]
+}
+
+clickhouse_system_log_ttl_days() {
+    case "$1" in
+        query_log|query_thread_log|query_views_log|part_log)
+            echo "$CLICKHOUSE_QUERY_LOG_RETENTION_DAYS"
+            ;;
+        *)
+            echo "$CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS"
+            ;;
+    esac
+}
+
+CLICKHOUSE_SYSTEM_LOG_TABLES=(
+    trace_log
+    text_log
+    metric_log
+    asynchronous_metric_log
+    processors_profile_log
+    query_log
+    query_thread_log
+    query_views_log
+    part_log
+)
+
+clickhouse_query "SYSTEM FLUSH LOGS" || echo "⚠️  Could not flush ClickHouse system logs before cleanup"
+
+for table in "${CLICKHOUSE_SYSTEM_LOG_TABLES[@]}"; do
+    if ! clickhouse_table_exists "$table"; then
+        echo "Skipping missing ClickHouse system table: system.${table}"
+        continue
+    fi
+
+    ttl_days="$(clickhouse_system_log_ttl_days "$table")"
+    if clickhouse_query "ALTER TABLE system.${table} MODIFY TTL event_date + INTERVAL ${ttl_days} DAY DELETE"; then
+        echo "Set TTL on system.${table}: ${ttl_days} day(s)"
+    else
+        echo "⚠️  Could not set TTL on system.${table}; continuing"
+    fi
+
+    if is_truthy "$CLICKHOUSE_TRUNCATE_SYSTEM_LOGS"; then
+        if clickhouse_query "TRUNCATE TABLE system.${table}"; then
+            echo "Truncated system.${table}"
+        else
+            echo "⚠️  Could not truncate system.${table}; continuing"
+        fi
+    fi
+done
+
+docker compose exec -T clickhouse clickhouse-client -u uptrace --password uptrace -q "
+    select database, table, active, formatReadableSize(sum(bytes_on_disk)) as size
+    from system.parts
+    group by database, table, active
+    order by sum(bytes_on_disk) desc
+    limit 20;"
 
 # ── Retention control ────────────────────────────────────────────────────────
 
