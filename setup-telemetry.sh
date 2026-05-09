@@ -483,9 +483,39 @@ clickhouse_system_log_tables() {
         format TSV"
 }
 
+clickhouse_large_system_log_tables() {
+    clickhouse_query "
+        select table, formatReadableSize(sum(bytes_on_disk)) as size
+        from system.parts
+        where database = 'system'
+          and active
+          and (
+              table in (
+                  'trace_log',
+                  'text_log',
+                  'metric_log',
+                  'asynchronous_metric_log',
+                  'processors_profile_log',
+                  'query_log',
+                  'query_thread_log',
+                  'query_views_log',
+                  'part_log'
+              )
+              or match(table, '^(trace_log|text_log|metric_log|asynchronous_metric_log|processors_profile_log|query_log|query_thread_log|query_views_log|part_log)_[0-9]+$')
+          )
+        group by table
+        having sum(bytes_on_disk) > 1073741824
+        order by sum(bytes_on_disk) desc
+        format TSV"
+}
+
 clickhouse_query "SYSTEM FLUSH LOGS" || echo "⚠️  Could not flush ClickHouse system logs before cleanup"
 
-while IFS= read -r table; do
+mapfile -t CLICKHOUSE_SYSTEM_LOG_TABLES < <(clickhouse_system_log_tables)
+echo "Discovered ${#CLICKHOUSE_SYSTEM_LOG_TABLES[@]} ClickHouse system log table(s)"
+echo "CLICKHOUSE_TRUNCATE_SYSTEM_LOGS=${CLICKHOUSE_TRUNCATE_SYSTEM_LOGS}"
+
+for table in "${CLICKHOUSE_SYSTEM_LOG_TABLES[@]}"; do
     [ -n "$table" ] || continue
 
     if ! clickhouse_table_exists "$table"; then
@@ -507,7 +537,16 @@ while IFS= read -r table; do
             echo "⚠️  Could not truncate system.${table}; continuing"
         fi
     fi
-done < <(clickhouse_system_log_tables)
+done
+
+if is_truthy "$CLICKHOUSE_TRUNCATE_SYSTEM_LOGS"; then
+    LARGE_SYSTEM_LOG_TABLES="$(clickhouse_large_system_log_tables)"
+    if [ -n "$LARGE_SYSTEM_LOG_TABLES" ]; then
+        echo "Error: large ClickHouse system log tables remain after cleanup:"
+        echo "$LARGE_SYSTEM_LOG_TABLES"
+        exit 1
+    fi
+fi
 
 docker compose exec -T clickhouse clickhouse-client -u uptrace --password uptrace -q "
     select database, table, active, formatReadableSize(sum(bytes_on_disk)) as size
