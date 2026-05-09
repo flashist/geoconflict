@@ -1,5 +1,18 @@
 [
   {
+    "id": "2026-05-09-game-update",
+    "date": "2026-05-09",
+    "title": {
+      "en": "Game update",
+      "ru": "Обновление игры"
+    },
+    "body": {
+      "en": "- Duos, Trios, and Quads team modes are back in public matchmaking — play 2v2, 3v3.\n- Compact maps are now in the public rotation. Look for the Mini badge in the lobby on these smaller-scale matches.\n- Some public matches now include a random gameplay modifier — unlimited gold, unlimited army, no nukes, or no SAMs. A badge in the lobby shows which modifier is active.\n- Bugfixes.",
+      "ru": "- Командные режимы «Дуэты», «Тройки» и «Четвёрки» возвращаются в публичные матчи — играйте 2v2, 3v3 и 4v4.\n- Компактные карты теперь включены в публичную ротацию. Значок «Мини» в лобби отмечает матчи на картах меньшего масштаба.\n- Некоторые публичные матчи теперь включают случайный модификатор — неограниченное золото, неограниченная армия, нет ядерных ракет или нет ракет ПВО. Значок в лобби показывает, какой модификатор активен.\n- Багфиксы."
+    },
+    "tag": "update"
+  },
+  {
     "id": "2026-05-03-game-update",
     "date": "2026-05-03",
     "title": {
