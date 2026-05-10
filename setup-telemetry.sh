@@ -11,6 +11,11 @@
 #   CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS — ClickHouse internal log retention (default: 1)
 #   CLICKHOUSE_QUERY_LOG_RETENTION_DAYS — ClickHouse query/part log retention (default: 3)
 #   CLICKHOUSE_TRUNCATE_SYSTEM_LOGS — clear existing ClickHouse system logs on setup (default: 1)
+#   CLICKHOUSE_TRUNCATE_FILE_LOGS — clear ClickHouse filesystem logs on setup/redeploy (default: 1)
+#   CLICKHOUSE_FILE_LOG_LEVEL — ClickHouse filesystem log level (default: warning)
+#   CLICKHOUSE_FILE_LOG_SIZE — max size per ClickHouse filesystem log before rotation (default: 50M)
+#   CLICKHOUSE_FILE_LOG_COUNT — rotated ClickHouse filesystem log files to keep (default: 2)
+#   CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO — ClickHouse memory cap ratio (default: 0.75)
 #
 # What this script does:
 #   1. Installs Docker + Docker Compose plugin
@@ -52,6 +57,11 @@ UPTRACE_METRICS_RETENTION_DAYS="${UPTRACE_METRICS_RETENTION_DAYS:-90}"
 CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS="${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS:-1}"
 CLICKHOUSE_QUERY_LOG_RETENTION_DAYS="${CLICKHOUSE_QUERY_LOG_RETENTION_DAYS:-3}"
 CLICKHOUSE_TRUNCATE_SYSTEM_LOGS="${CLICKHOUSE_TRUNCATE_SYSTEM_LOGS:-1}"
+CLICKHOUSE_TRUNCATE_FILE_LOGS="${CLICKHOUSE_TRUNCATE_FILE_LOGS:-1}"
+CLICKHOUSE_FILE_LOG_LEVEL="${CLICKHOUSE_FILE_LOG_LEVEL:-warning}"
+CLICKHOUSE_FILE_LOG_SIZE="${CLICKHOUSE_FILE_LOG_SIZE:-50M}"
+CLICKHOUSE_FILE_LOG_COUNT="${CLICKHOUSE_FILE_LOG_COUNT:-2}"
+CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO="${CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO:-0.75}"
 if ! [[ "$UPTRACE_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$UPTRACE_RETENTION_DAYS" -lt 1 ]; then
     echo "Error: UPTRACE_RETENTION_DAYS must be a positive integer."
     exit 1
@@ -66,6 +76,22 @@ if ! [[ "$CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$CLICKHOUSE
 fi
 if ! [[ "$CLICKHOUSE_QUERY_LOG_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$CLICKHOUSE_QUERY_LOG_RETENTION_DAYS" -lt 1 ]; then
     echo "Error: CLICKHOUSE_QUERY_LOG_RETENTION_DAYS must be a positive integer."
+    exit 1
+fi
+if ! [[ "$CLICKHOUSE_FILE_LOG_LEVEL" =~ ^(none|fatal|critical|error|warning|notice|information|debug|trace|test)$ ]]; then
+    echo "Error: CLICKHOUSE_FILE_LOG_LEVEL must be a valid ClickHouse log level."
+    exit 1
+fi
+if ! [[ "$CLICKHOUSE_FILE_LOG_SIZE" =~ ^[0-9]+[KMG]?$ ]]; then
+    echo "Error: CLICKHOUSE_FILE_LOG_SIZE must be a size like 104857600, 100M, 512M, or 1G."
+    exit 1
+fi
+if ! [[ "$CLICKHOUSE_FILE_LOG_COUNT" =~ ^[0-9]+$ ]] || [ "$CLICKHOUSE_FILE_LOG_COUNT" -lt 1 ]; then
+    echo "Error: CLICKHOUSE_FILE_LOG_COUNT must be a positive integer."
+    exit 1
+fi
+if ! [[ "$CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO" =~ ^0\.[0-9]+$|^1(\.0+)?$ ]]; then
+    echo "Error: CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO must be between 0 and 1, for example 0.75."
     exit 1
 fi
 UPTRACE_RETENTION_NS=$((UPTRACE_RETENTION_DAYS * 86400 * 1000000000))
@@ -243,6 +269,24 @@ cat > "$UPTRACE_DIR/clickhouse-system-logs.xml" << EOF
 </clickhouse>
 EOF
 
+cat > "$UPTRACE_DIR/clickhouse-logger.xml" << EOF
+<clickhouse>
+    <logger>
+        <level>${CLICKHOUSE_FILE_LOG_LEVEL}</level>
+        <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+        <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+        <size>${CLICKHOUSE_FILE_LOG_SIZE}</size>
+        <count>${CLICKHOUSE_FILE_LOG_COUNT}</count>
+    </logger>
+</clickhouse>
+EOF
+
+cat > "$UPTRACE_DIR/clickhouse-memory.xml" << EOF
+<clickhouse>
+    <max_server_memory_usage_to_ram_ratio>${CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO}</max_server_memory_usage_to_ram_ratio>
+</clickhouse>
+EOF
+
 cat > "$UPTRACE_DIR/clickhouse-profiler.xml" << EOF
 <clickhouse>
     <profiles>
@@ -257,6 +301,8 @@ cat > "$UPTRACE_DIR/clickhouse-profiler.xml" << EOF
 EOF
 
 echo "Written: clickhouse-system-logs.xml"
+echo "Written: clickhouse-logger.xml"
+echo "Written: clickhouse-memory.xml"
 echo "Written: clickhouse-profiler.xml"
 
 # ── otel-collector.yaml ───────────────────────────────────────────────────────
@@ -328,7 +374,6 @@ services:
       CLICKHOUSE_USER: uptrace
       CLICKHOUSE_PASSWORD: uptrace
       CLICKHOUSE_DB: uptrace
-      CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO: "0.6"
     healthcheck:
       test: ['CMD', 'wget', '--spider', '-q', 'localhost:8123/ping']
       interval: 1s
@@ -337,6 +382,8 @@ services:
     volumes:
       - clickhouse_data:/var/lib/clickhouse
       - ./clickhouse-system-logs.xml:/etc/clickhouse-server/config.d/geoconflict-system-logs.xml:ro
+      - ./clickhouse-logger.xml:/etc/clickhouse-server/config.d/geoconflict-logger.xml:ro
+      - ./clickhouse-memory.xml:/etc/clickhouse-server/config.d/geoconflict-memory.xml:ro
       - ./clickhouse-profiler.xml:/etc/clickhouse-server/users.d/geoconflict-profiler.xml:ro
     ulimits:
       nofile:
@@ -409,7 +456,9 @@ echo "Written: docker-compose.yml"
 
 print_header "STARTING UPTRACE SERVICES"
 
-docker compose up -d
+# ClickHouse and Uptrace read mounted config files at process startup. Force
+# recreation so re-running this script applies regenerated XML/YAML settings.
+docker compose up -d --force-recreate clickhouse uptrace otelcol
 
 echo "Waiting for all services to become healthy..."
 TIMEOUT=120
@@ -430,6 +479,39 @@ else
     echo "✅ All containers running:"
     docker compose ps
 fi
+
+# ── ClickHouse filesystem log cleanup ────────────────────────────────────────
+
+print_header "CONFIGURING CLICKHOUSE FILE LOGS"
+
+if is_truthy "$CLICKHOUSE_TRUNCATE_FILE_LOGS"; then
+    docker compose exec -T clickhouse sh -lc '
+        mkdir -p /var/log/clickhouse-server
+        for file in \
+            /var/log/clickhouse-server/clickhouse-server.log \
+            /var/log/clickhouse-server/clickhouse-server.err.log
+        do
+            if [ -e "$file" ]; then
+                truncate -s 0 "$file"
+            fi
+        done
+        rm -f /var/log/clickhouse-server/clickhouse-server.log.* \
+              /var/log/clickhouse-server/clickhouse-server.err.log.*
+    ' || echo "⚠️  Could not truncate ClickHouse filesystem logs; continuing"
+else
+    echo "CLICKHOUSE_TRUNCATE_FILE_LOGS=${CLICKHOUSE_TRUNCATE_FILE_LOGS}; preserving existing ClickHouse filesystem logs"
+fi
+
+docker compose exec -T clickhouse sh -lc '
+    ls -lh /var/log/clickhouse-server 2>/dev/null || true
+    du -h -d1 /var/log/clickhouse-server 2>/dev/null || true
+' || echo "⚠️  Could not inspect ClickHouse filesystem logs; continuing"
+
+docker compose exec -T clickhouse clickhouse-client -u uptrace --password uptrace -q "
+    select name, value
+    from system.server_settings
+    where name = 'max_server_memory_usage_to_ram_ratio';" || \
+    echo "⚠️  Could not verify ClickHouse memory ratio; continuing"
 
 # ── ClickHouse internal log cleanup ──────────────────────────────────────────
 

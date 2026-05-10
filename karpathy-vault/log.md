@@ -563,3 +563,9 @@
 - Changed source files detected: 1
 - Ingested: `ai-agents/knowledge-base/GeoConflict-Licensing-Brief.md` → created [[wiki/decisions/licensing-compliance]]; updated [[wiki/systems/game-overview]], [[wiki/systems/project-operations]], [[wiki/decisions/product-strategy]], [[wiki/decisions/sprint-4]], [[wiki/tasks/legal-vat-investigation]], [[wiki/tasks/yandex-payments-investigation]], index.md
 - Skipped (already covered): none
+
+## 2026-05-10 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-clickhouse-file-log-hardening-2026-05-10.md` → updated [[wiki/systems/telemetry]]
+
+## 2026-05-10 — ingest
+- Ingested: `ai-agents/knowledge-base/telemetry-clickhouse-file-log-hardening-2026-05-10.md` → updated [[wiki/systems/telemetry]] with memory XML and forced config-application details
