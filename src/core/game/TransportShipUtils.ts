@@ -8,22 +8,31 @@ export function canBuildTransportShip(
   player: Player,
   tile: TileRef,
 ): TileRef | false {
+  const tileCell = game.cell(tile);
+  const dbg = `[BOAT tile=(${tileCell.x},${tileCell.y})]`;
+
   if (
     player.unitCount(UnitType.TransportShip) >= game.config().boatMaxNumber()
   ) {
+    console.debug(`${dbg} false — at boat cap (${player.unitCount(UnitType.TransportShip)}/${game.config().boatMaxNumber()})`);
     return false;
   }
 
   const dst = targetTransportTile(game, tile);
   if (dst === null) {
+    console.debug(`${dbg} false — targetTransportTile returned null (target has no reachable shore)`);
     return false;
   }
+  const dstCell = game.cell(dst);
+  console.debug(`${dbg} dst shore=(${dstCell.x},${dstCell.y}) isOceanShore=${game.isOceanShore(dst)}`);
 
   const other = game.owner(tile);
   if (other === player) {
+    console.debug(`${dbg} false — tile is owned by self`);
     return false;
   }
   if (other.isPlayer() && player.isFriendly(other)) {
+    console.debug(`${dbg} false — tile owner is friendly`);
     return false;
   }
 
@@ -48,9 +57,13 @@ export function canBuildTransportShip(
       }
     }
 
+    console.debug(`${dbg} ocean path — myBordersOcean=${myPlayerBordersOcean} otherBordersOcean=${otherPlayerBordersOcean}`);
     if (myPlayerBordersOcean && otherPlayerBordersOcean) {
-      return transportShipSpawn(game, player, dst);
+      const spawn = transportShipSpawn(game, player, dst);
+      console.debug(`${dbg} spawn=${spawn === false ? "false" : `(${game.cell(spawn).x},${game.cell(spawn).y})`}`);
+      return spawn;
     } else {
+      console.debug(`${dbg} false — ocean check failed`);
       return false;
     }
   }
@@ -70,11 +83,15 @@ export function canBuildTransportShip(
     (a, b) => game.manhattanDist(dst, a) - game.manhattanDist(dst, b),
   );
 
+  console.debug(`${dbg} lake path — searching ${sorted.length} tiles`);
   for (const t of sorted) {
     if (game.owner(t) === player) {
-      return transportShipSpawn(game, player, t);
+      const spawn = transportShipSpawn(game, player, t);
+      console.debug(`${dbg} lake spawn=${spawn === false ? "false" : `(${game.cell(spawn).x},${game.cell(spawn).y})`}`);
+      return spawn;
     }
   }
+  console.debug(`${dbg} false — no lake shore tile owned by player found`);
   return false;
 }
 
