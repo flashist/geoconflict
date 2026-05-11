@@ -29,6 +29,7 @@ Source: `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`
 | ⬜ Backlog | Investigate Client Null-ID/Null-Object Errors | ~1.8/min | `s4c-investigate-null-id-errors.md` |
 | ⬜ Backlog | Mobile Memory and WebGL Rendering Failures | ~0.4/min | `s4c-mobile-webgl-rendering.md` |
 | ⬜ Backlog | Leaderboard: Show Human Player Count in Label | — | `s4c-leaderboard-player-count.md` |
+| ⬜ Backlog | Fix Compact Map Boat-Attack Button (Runtime Fallback) | Sprint 4b regression | `s4c-fix-compact-map-boat-attack.md` |
 
 ---
 
