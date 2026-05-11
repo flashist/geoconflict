@@ -80,7 +80,11 @@ export class MainRadialMenu extends LitElement implements Layer {
         event.x,
         event.y,
       );
+      console.debug(
+        `[DEBUG] right-click: screen=(${event.x}, ${event.y}) → world=(${worldCoords.x}, ${worldCoords.y})`,
+      );
       if (!this.game.isValidCoord(worldCoords.x, worldCoords.y)) {
+        console.debug(`[DEBUG] world coords out of bounds — skipping`);
         return;
       }
       if (this.game.myPlayer() === null) {
@@ -91,6 +95,13 @@ export class MainRadialMenu extends LitElement implements Layer {
         .myPlayer()!
         .actions(this.clickedTile)
         .then((actions) => {
+          console.debug(
+            `[DEBUG] tile=(${worldCoords.x}, ${worldCoords.y}) buildableUnits:`,
+            actions.buildableUnits.map((u) => ({
+              type: u.type,
+              canBuild: u.canBuild,
+            })),
+          );
           this.updatePlayerActions(
             this.game.myPlayer()!,
             actions,

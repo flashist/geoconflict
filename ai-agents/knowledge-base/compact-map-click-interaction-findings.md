@@ -2,9 +2,67 @@
 
 ## Summary
 
-Reported symptom: in compact maps (`GameMapSize.Compact`), some territories cannot be clicked or interacted with (e.g., the boat attack icon is inactive for certain territories that visually appear to border water).
+Reported symptom: in compact maps (`GameMapSize.Compact`), some territories cannot be boat-attacked (the boat icon in the radial menu is inactive) even when the territory visually borders water on screen. The bug is not reproducible over the same territories across different games.
 
-The coordinate transformation formula is **not** the root cause. The actual bug is a **terrain data fidelity problem**: the compact map binary (`map4x.bin`) loses some ocean-shore tile designations that exist in the full-resolution map, causing boat-attack logic to fail for affected territories.
+**Root cause confirmed by debug logging (2026-05-11):** `targetTransportTile` returns `null` because the compact map binary (`map4x.bin`) lost the `isShore` designation for the target player's border tiles during downsampling. `closestShoreFromPlayer` filters border tiles by `isShore` and finds zero results, so the entire boat-attack check fails before it even reaches the ocean/lake path logic.
+
+---
+
+## Confirmed Failure Branch (Debug Session 2026-05-11)
+
+Debug logging added to `canBuildTransportShip` and `MainRadialMenu` confirmed:
+
+```
+[DEBUG] right-click: screen=(821, 504) → world=(505, 282)
+[BOAT tile=(505,282)] false — targetTransportTile returned null (target has no reachable shore)
+```
+
+The failure always occurs at the **first guard** in `canBuildTransportShip`:
+
+```typescript
+const dst = targetTransportTile(game, tile);
+if (dst === null) {
+  return false;  // ← hits here
+}
+```
+
+Inside `targetTransportTile`:
+
+```typescript
+export function targetTransportTile(gm: Game, tile: TileRef): TileRef | null {
+  const dst = gm.playerBySmallID(gm.ownerID(tile));
+  if (dst.isPlayer()) {
+    dstTile = closestShoreFromPlayer(gm, dst as Player, tile);  // ← returns null
+  } else {
+    dstTile = closestShoreTN(gm, tile, 50);
+  }
+  return dstTile;
+}
+```
+
+Inside `closestShoreFromPlayer`:
+
+```typescript
+export function closestShoreFromPlayer(gm, player, target) {
+  const shoreTiles = Array.from(player.borderTiles()).filter(t => gm.isShore(t));
+  if (shoreTiles.length === 0) return null;  // ← hits here because isShore is false for all border tiles
+  ...
+}
+```
+
+The compact map stripped the `isShore` bit from the target player's border tiles. Those tiles visually touch water but the binary says they don't.
+
+---
+
+## Why the Bug Appears Non-Reproducible Over the Same Territories
+
+The terrain data loss is **static** (same `map4x.bin` always has the same degraded tiles), but whether it surfaces depends on **who owns the affected tiles** in a given game:
+
+- If the affected coastal territory is owned by a player who also has *other* undegraded shore tiles elsewhere → `closestShoreFromPlayer` finds those other tiles → boat works
+- If the player's *only* shore tiles are the degraded ones → `closestShoreFromPlayer` returns null → boat disabled
+- If the territory is neutral → `closestShoreTN` is used instead (different code path, BFS through unowned tiles) → may succeed even with degraded tiles
+
+Different games place different players in different territories, producing different outcomes from the same underlying static defect. This is why the broken territories appear to vary between games.
 
 ---
 
@@ -27,38 +85,21 @@ const gameX   = centerX + game.width() / 2;
 return new Cell(Math.floor(gameX), Math.floor(gameY));
 ```
 
-For compact maps `game.width() = 1000` (vs 2000 for normal). Both rendering and click detection use the **same pivot**, so they agree on which tile every screen pixel corresponds to. The formulas are internally consistent.
-
-### Click-valid area vs. visible area
-
-At any camera offset, the set of screen pixels that produce valid tile coordinates matches the set of pixels where the map is actually rendered. Clicks outside the visible map (in the grey margin) correctly produce out-of-bounds coordinates and are silently dropped via `isValidCoord`. This is expected behavior.
-
-### Why normal maps "feel" fine but the mismatch exists for compact
-
-For normal maps: `game.width()/2 = 1000 ≈ canvas.width/2 = 960` — very close, so the camera centering error is small.  
-For compact maps: `game.width()/2 = 500` vs `canvas.width/2 = 960` — larger offset, which is fully compensated by `offsetX` after `zoomToPlayer()` centers the camera. No systematic click-area mismatch.
+For compact maps `game.width() = 1000` (vs 2000 for normal). Both rendering and click detection use the **same pivot**, so they agree on which tile every screen pixel corresponds to. The formulas are internally consistent. **Coordinate transformation is not the root cause.**
 
 ---
 
-## Root Cause 1: Compact Terrain Loses Ocean Shore Tiles (PRIMARY BUG)
+## Root Cause 1: Compact Terrain Loses Shore Tile Designations (PRIMARY BUG)
 
 ### Code path
 
-Right-click → `MainRadialMenu` → `game.myPlayer().actions(tile)` → worker → `playerActions()` → `player.buildableUnits(tile)` → `canBuild(UnitType.TransportShip, tile)` → `canBuildTransportShip(game, player, tile)`.
+Right-click → `MainRadialMenu` → `game.myPlayer().actions(tile)` → worker → `playerActions()` → `player.buildableUnits(tile)` → `canBuild(UnitType.TransportShip, tile)` → `canBuildTransportShip(game, player, tile)` → `targetTransportTile(game, tile)` → `closestShoreFromPlayer(game, targetPlayer, tile)` → **returns null** → boat disabled.
 
-Inside `canBuildTransportShip` (`src/core/game/TransportShipUtils.ts`):
+### Why it fails in compact mode
 
-```typescript
-const dst = targetTransportTile(game, tile);   // closest shore of target territory
-if (game.isOceanShore(dst)) {                  // ← fails in compact mode for some territories
-  // check player also borders ocean
-  if (myPlayerBordersOcean && otherPlayerBordersOcean) {
-    return transportShipSpawn(game, player, dst);
-  }
-}
-```
+The compact map uses `map4x.bin` (1000×500 for World) instead of the full-resolution binary (2000×1000). At half resolution, narrow coastal features — thin peninsulas, narrow bays, 1-tile-wide water channels — can be merged into land by the downsampling process. A territory that clearly borders water in the normal map may have no shore-neighbour tiles at all in the compact map. When that happens, `isShore` returns false for all of that player's border tiles, `closestShoreFromPlayer` returns null, and the boat icon is disabled.
 
-`isOceanShore` (`src/core/game/GameMap.ts:153`):
+`isOceanShore` (`src/core/game/GameMap.ts`):
 
 ```typescript
 isOceanShore(ref: TileRef): boolean {
@@ -66,69 +107,114 @@ isOceanShore(ref: TileRef): boolean {
 }
 ```
 
-`neighbors()` (`GameMap.ts:262`) returns only 4-directional neighbors (N/S/E/W).
+`neighbors()` returns only 4-directional neighbors (N/S/E/W), which makes the check more sensitive to downsampling artifacts.
 
-### Why it fails in compact mode
+### Affected maps
 
-The compact map uses `map4x.bin` (1000×500 for World) instead of the full-resolution binary (2000×1000). At half resolution, narrow coastal features — thin peninsulas, narrow bays, 1-tile-wide water channels — can be merged into land by the downsampling process. A territory that clearly borders ocean in the normal map may have no ocean-neighbor tiles at all in the compact map. When that happens:
+All 30 maps with compact binaries are potentially affected. The binaries are:
 
-- `isOceanShore(dst) → false`
-- `canBuildTransportShip → false`
-- `buildableUnits` does not include `TransportShip` for that target tile
-- The boat icon in the radial menu is inactive
+```
+resources/maps/achiran/map4x.bin
+resources/maps/deglaciatedantarctica/map4x.bin
+resources/maps/falklandislands/map4x.bin
+resources/maps/baikal/map4x.bin
+resources/maps/britannia/map4x.bin
+resources/maps/oceania/map4x.bin
+resources/maps/baikalnukewars/map4x.bin
+resources/maps/australia/map4x.bin
+resources/maps/montreal/map4x.bin
+resources/maps/northamerica/map4x.bin
+resources/maps/pluto/map4x.bin
+resources/maps/asia/map4x.bin
+resources/maps/world/map4x.bin          ← confirmed broken (debug session 2026-05-11)
+resources/maps/eastasia/map4x.bin
+resources/maps/faroeislands/map4x.bin
+resources/maps/japan/map4x.bin
+resources/maps/yenisei/map4x.bin
+resources/maps/europeclassic/map4x.bin
+resources/maps/europe/map4x.bin
+resources/maps/gatewaytotheatlantic/map4x.bin
+resources/maps/blacksea/map4x.bin
+resources/maps/mena/map4x.bin
+resources/maps/betweentwoseas/map4x.bin
+resources/maps/halkidiki/map4x.bin
+resources/maps/southamerica/map4x.bin
+resources/maps/mars/map4x.bin
+resources/maps/pangaea/map4x.bin
+resources/maps/africa/map4x.bin
+resources/maps/italia/map4x.bin
+resources/maps/giantworldmap/map4x.bin
+```
 
-This explains the "sometimes fails" pattern: only territories whose coastal tiles were lost in the downsampling are affected.
-
-### Maps most at risk
-
-From `sprint4b-mini-mode-findings.md`, six maps have compact nation coordinates that land on water, indicating coastline degradation at compact resolution: **Asia, Black Sea, Europe, Mena, North America, Pangaea**.
+From `sprint4b-mini-mode-findings.md`, six maps have compact nation coordinates that land on water (Asia, Black Sea, Europe, Mena, North America, Pangaea), indicating the worst coastline degradation. World is confirmed broken by live debugging despite not appearing in the earlier audit — the audit list is not exhaustive.
 
 ---
 
 ## Root Cause 2: `bestShoreDeploymentSource` Diagonal Miss (SECONDARY)
 
-`bestShoreDeploymentSource` (`TransportShipUtils.ts:142`) runs A* on the mini map (which is 2× downscaled relative to the compact map), then upscales the path by 2. It then looks for a player-owned shore tile in the **4-directional neighbors** of `path[0]`:
+`bestShoreDeploymentSource` (`TransportShipUtils.ts`) runs A* on the mini map (2× downscaled relative to compact), then upscales the path. It then looks for a player-owned shore tile in the **4-directional neighbors** of `path[0]`:
 
 ```typescript
-const potential = path[0];
 const neighbors = gm.neighbors(potential)
   .filter((n) => gm.isShore(n) && gm.owner(n) === player);
 if (neighbors.length === 0) return false;
 ```
 
-If the actual shore tile is at an odd offset in both x and y relative to `potential` (i.e., diagonally adjacent), `neighbors()` misses it and `bestShoreDeploymentSource` returns `false`.
+If the actual shore tile is diagonally adjacent, `neighbors()` misses it and `bestShoreDeploymentSource` returns `false`.
 
-**Impact**: this affects `bestTransportShipSpawn`, called from `sendBoatAttackIntent` to find the ship spawn point. However, the attack intent is still sent with `spawn = null` even if this fails. So this does **not** cause the boat icon to be inactive — it only affects the spawn point quality. Low-severity secondary issue.
+**Impact**: affects `bestTransportShipSpawn` (called from `sendBoatAttackIntent` to find the spawn point). The attack intent is still sent with `spawn = null` even if this fails, so this does **not** cause the boat icon to be inactive — it only degrades spawn-point quality. Low-severity secondary issue.
 
 ---
 
-## The "Non-Integer Coordinates" Connection
+## Fix Options
 
-The `upscalePath` function in `MiniAStar.ts:128` uses floating-point arithmetic for intermediate path interpolation:
+### Option 1 — Map generation fix (correct long-term fix, high effort)
+
+Fix the Go map generator (`map-generator/map_generator.go`) so that when generating `map4x.bin`, any compact tile whose corresponding 2×2 block in the full-resolution map contains at least one water-adjacent land tile preserves the shore/ocean-shore bit. Then regenerate all 30 `map4x.bin` files via `npm run gen-maps`.
+
+**Scope:** map generator code change + regenerating 30 binary files.  
+**Result:** terrain data is correct; no runtime workaround needed.
+
+### Option 2 — Runtime fallback in `targetTransportTile` (workaround, low effort)
+
+When `closestShoreFromPlayer` returns null for a player-owned tile, fall back to a BFS around the clicked tile that searches all tiles (owned and unowned) for the nearest shore tile, ignoring ownership. This approximates what the full-resolution map would have found.
+
+Change location: `src/core/game/TransportShipUtils.ts`, function `targetTransportTile` (~5 lines).
 
 ```typescript
-Math.round(current.x + (dx * step) / steps)  // (dx*step)/steps is a float
+export function targetTransportTile(gm: Game, tile: TileRef): TileRef | null {
+  const dst = gm.playerBySmallID(gm.ownerID(tile));
+  let dstTile: TileRef | null = null;
+  if (dst.isPlayer()) {
+    dstTile = closestShoreFromPlayer(gm, dst as Player, tile);
+    if (dstTile === null) {
+      // Fallback: compact map may have stripped isShore from this player's border tiles.
+      // Search any shore tile near the target regardless of ownership.
+      dstTile = closestShoreFallback(gm, tile, 50);
+    }
+  } else {
+    dstTile = closestShoreTN(gm, tile, 50);
+  }
+  return dstTile;
+}
+
+function closestShoreFallback(gm: GameMap, tile: TileRef, searchDist: number): TileRef | null {
+  const results = Array.from(gm.bfs(tile, manhattanDistFN(tile, searchDist)))
+    .filter(t => gm.isShore(t))
+    .sort((a, b) => gm.manhattanDist(tile, a) - gm.manhattanDist(tile, b));
+  return results.length > 0 ? results[0] : null;
+}
 ```
 
-When `dx` is not divisible by `steps`, intermediate points round to the nearest integer. This can produce duplicate consecutive tiles (e.g., dx=3, steps=4 gives x-series: 0, 1, 2, 2, 6). The output is always integers, but the rounding can introduce small path artifacts near map edges.
+**Scope:** ~15 lines of TypeScript, no map regeneration.  
+**Result:** fixes the boat icon activation for compact maps without touching map data. Does not fix the underlying data defect.
 
-This is **not** the cause of the click or boat-icon failures. It's a minor pathfinding aesthetic issue at most.
+### Option 3 — Fix `bestShoreDeploymentSource` diagonal miss (for Root Cause 2)
 
----
+Change `neighbors()` to an 8-directional neighbor check, or scan all candidate shore tiles within a small Manhattan distance of `path[0]`.
 
-## Fix Recommendations
-
-### Fix for Root Cause 1 (terrain data)
-
-**Option A — Map generation fix (preferred):** When generating `map4x.bin`, preserve the `OCEAN_BIT` for any compact tile whose corresponding 2×2 block in the full-resolution map contains at least one ocean tile. This ensures no ocean-adjacency information is lost in downsampling.
-
-**Option B — Runtime fallback:** In `canBuildTransportShip`, if `isOceanShore(dst)` is false in compact mode, do a small BFS (radius ~3 tiles) around `dst` to check if any tile within the expanded neighborhood has an ocean neighbor. If found, treat it as an ocean shore. This is a workaround that doesn't require regenerating map binaries.
-
-**Option C — Accept as known limitation:** Document that certain territories in compact maps lose boat-attack accessibility due to terrain resolution. Lower severity since compact maps are only 20% of public matches and the issue only affects specific coastlines.
-
-### Fix for Root Cause 2 (diagonal neighbor miss)
-
-Change `bestShoreDeploymentSource` to also check 8-directional neighbors (include diagonals) when looking for the player's shore tile near `path[0]`. Or include the original source candidates within a small Manhattan distance of `path[0]`.
+**Scope:** small change in `TransportShipUtils.ts`.  
+**Priority:** low — does not affect boat icon visibility, only spawn-point quality.
 
 ---
 
@@ -137,12 +223,12 @@ Change `bestShoreDeploymentSource` to also check 8-directional neighbors (includ
 | File | Relevance |
 |---|---|
 | `src/client/graphics/TransformHandler.ts` | Coordinate pivot, `screenToWorldCoordinates` |
-| `src/client/graphics/layers/TerritoryLayer.ts` | Canvas draw at `(-game.width()/2, ...)` |
-| `src/client/graphics/layers/MainRadialMenu.ts` | Right-click handler, `isValidCoord` guard |
-| `src/client/ClientGameRunner.ts` | Left-click handler, `isValidCoord` guard |
-| `src/core/game/TransportShipUtils.ts` | `canBuildTransportShip`, `bestShoreDeploymentSource` |
-| `src/core/game/GameMap.ts` | `isOceanShore`, `neighbors` (4-directional only) |
+| `src/client/graphics/layers/MainRadialMenu.ts` | Right-click handler, debug logging added |
+| `src/core/game/TransportShipUtils.ts` | `canBuildTransportShip`, `targetTransportTile`, `closestShoreFromPlayer`, debug logging added |
+| `src/core/game/GameMap.ts` | `isOceanShore`, `isShore`, `neighbors` (4-directional only) |
+| `src/core/game/PlayerImpl.ts` | `buildableUnits`, `canBuild`, `portSpawn`, `warshipSpawn` |
 | `src/core/pathfinding/MiniAStar.ts` | `upscalePath`, floating-point rounding |
 | `src/core/game/TerrainMapLoader.ts` | Compact map loading (`map4x` binary) |
 | `src/server/MapPlaylist.ts` | Compact map rotation (`mini_map` modifier) |
-| `ai-agents/knowledge-base/sprint4b-mini-mode-findings.md` | Compact terrain quality audit |
+| `map-generator/map_generator.go` | Go map generator — target for Option 1 fix |
+| `ai-agents/knowledge-base/sprint4b-mini-mode-findings.md` | Compact terrain quality audit (partial — World not listed but confirmed broken) |
