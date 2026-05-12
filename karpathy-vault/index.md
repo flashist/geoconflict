@@ -103,3 +103,4 @@
 - [[tasks/docker-secret-boundary-check]] — Automated guard against `.env*` or `COPY . .` regressions in Docker builds
 - [[tasks/registry-image-policy-followup]] — Task that authored the registry visibility and image-retention policy
 - [[tasks/investigate-clans-system]] — Investigation confirming clans parse/team-assign works; silent kick bug and no-UI gap documented
+- [[tasks/compact-map-click-interaction]] — Investigation confirming compact boat-button failures come from lost `isShore` bits in `map4x.bin`, not click coordinates

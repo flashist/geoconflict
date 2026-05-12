@@ -569,3 +569,12 @@
 
 ## 2026-05-10 — ingest
 - Ingested: `ai-agents/knowledge-base/telemetry-clickhouse-file-log-hardening-2026-05-10.md` → updated [[wiki/systems/telemetry]] with memory XML and forced config-application details
+
+## 2026-05-11 — ingest
+- Sync window: `4850f82bbd43267eb3c34c62639eb81d273649ad` → HEAD (`3e0f49f705845e6f62caec9e795d36fce30d028f`)
+- Changed source files detected: 8
+- Ingested: `ai-agents/knowledge-base/compact-map-click-interaction-findings.md` → created [[wiki/tasks/compact-map-click-interaction]]; updated [[wiki/systems/rendering]], [[wiki/tasks/sprint4b-compact-map-rotation]], [[wiki/tasks/sprint4b-mini-mode-investigation]], [[wiki/decisions/sprint-4c]], index.md
+- Ingested: `ai-agents/knowledge-base/telemetry-clickhouse-file-log-hardening-2026-05-10.md` → already reflected in [[wiki/systems/telemetry]]
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/sprints/plan-sprint-4c.md` → updated [[wiki/decisions/sprint-4c]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-licensing-asset-audit.md`, `ai-agents/tasks/backlog/s4c-fix-compact-map-boat-attack.md`, `ai-agents/tasks/backlog/s5-fix-compact-map-shore-generation.md`, `ai-agents/tasks/backlog/s6-new-maps-community-demand.md` — backlog tasks; summarized through sprint/decision pages where applicable

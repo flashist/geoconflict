@@ -55,6 +55,8 @@ Current production public AI fill should avoid that path by filling to about 10 
 
 The public-lobby localization keys for Duos/Trios/Quads already exist in `resources/lang/en.json` and `resources/lang/ru.json`; the implementation brief's localization step is already satisfied unless wording changes.
 
+Later compact-map click debugging found that this investigation's water-coordinate audit was not exhaustive for coastline fidelity. World was confirmed to have compact shore-bit loss affecting transport-boat interaction even though it was not in the original water-centered nation-coordinate list. See [[tasks/compact-map-click-interaction]].
+
 ## Related
 
 - [[decisions/sprint-4b]]
@@ -62,3 +64,4 @@ The public-lobby localization keys for Duos/Trios/Quads already exist in `resour
 - [[tasks/sprint4b-compact-map-rotation]]
 - [[tasks/sprint4b-duos-trios-quads]]
 - [[tasks/teams-mode-max-teams]]
+- [[tasks/compact-map-click-interaction]]

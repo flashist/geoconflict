@@ -34,9 +34,11 @@ Rendering is a layered canvas pipeline on the client main thread. `GameRenderer`
 - The renderer is decoupled from simulation timing: it reacts to `GameView` updates and can continue animating while no new turns arrive
 - Mobile rendering is throttled to 30 FPS through `isMobileRenderingEnabled()`, so visual cadence can differ from desktop even when the underlying game tick rate is unchanged
 - A missing DOM custom element does not necessarily crash startup; several renderer bindings log errors and keep going
+- The compact-map boat interaction investigation ruled out `TransformHandler` coordinate mismatch as the cause: rendering and click hit-testing use the same map-center pivot and `screenToWorldCoordinates()` floors to integer tiles. See [[tasks/compact-map-click-interaction]] for the actual compact terrain shore-bit failure.
 
 ## Related
 
 - [[systems/game-overview]] — project-level architecture context
 - [[systems/game-loop]] — source of `GameUpdateViewData` consumed by the renderer
 - [[tasks/nuke-trajectory-visibility]] — nuke targeting preview thickness tuning in `NukePlanningLayer`
+- [[tasks/compact-map-click-interaction]] — compact-map radial-menu investigation that ruled out coordinate transform mismatch

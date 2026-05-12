@@ -24,8 +24,11 @@ The registry now contains `mini_map` and `weird_setting`, so the configured 20% 
 
 No compact map exclusion list was added. The prior investigation accepted the known water-centered nation-coordinate cases as spawn-distribution risks rather than release blockers.
 
+Follow-up debugging on 2026-05-11 found a separate compact-map regression: some compact `map4x.bin` terrain loses `isShore` designations during downsampling, which can disable the transport-boat radial-menu action even when the clicked territory visually borders water. This is distinct from the earlier nation-coordinate audit and is tracked in [[tasks/compact-map-click-interaction]].
+
 ## Related
 
 - [[decisions/sprint-4b]]
 - [[tasks/sprint4b-mini-mode-investigation]]
 - [[tasks/sprint4b-weird-setting-modifier]]
+- [[tasks/compact-map-click-interaction]]
