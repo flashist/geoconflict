@@ -226,6 +226,12 @@ else
 fi
 
 CERTBOT_DOMAIN="$PUBLIC_HOST_VALUE"
+CERTBOT_EXTRA_FLAGS=""
+if [ "${CERTBOT_STAGING:-false}" = "true" ]; then
+    CERTBOT_EXTRA_FLAGS="--test-cert"
+    echo "⚠️  CERTBOT_STAGING=true: using Let's Encrypt staging (cert will not be browser-trusted)"
+fi
+
 echo "🔐 Obtaining/installing SSL certificate for ${CERTBOT_DOMAIN}..."
 certbot --nginx \
     -d "${CERTBOT_DOMAIN}" \
@@ -233,7 +239,8 @@ certbot --nginx \
     --non-interactive \
     --agree-tos \
     -m "${CERTBOT_EMAIL}" \
-    --redirect
+    --redirect \
+    $CERTBOT_EXTRA_FLAGS
 echo "✅ SSL certificate installed and nginx updated"
 
 echo "====================================================="
