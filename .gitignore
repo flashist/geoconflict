@@ -10,14 +10,11 @@ resources/.DS_Store
 .DS_Store
 .clinic/
 .idea/
-.DS_Store
 CLAUDE.local.md
 /.playwright-mcp
 *.obsidian/
 karpathy-vault/.obsidian/
 .claude/wiki-pending.txt
 .claude/wiki-watermark
-
-.DS_Store
 .playwright-cli/
 /output/playwright
