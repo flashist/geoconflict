@@ -8,9 +8,9 @@ echo "🚀 STARTING SERVER SETUP"
 echo "====================================================="
 
 # Verify required environment variables
-if [ -z "$OTEL_EXPORTER_OTLP_ENDPOINT" ] || [ -z "$OTEL_AUTH_HEADER" ]; then
+if [ -z "$OTEL_EXPORTER_OTLP_ENDPOINT" ] || [ -z "$OTEL_AUTH_HEADER" ] || [ -z "$CERTBOT_EMAIL" ]; then
     echo "❌ ERROR: Required environment variables are not set!"
-    echo "Please set OTEL_EXPORTER_OTLP_ENDPOINT and OTEL_AUTH_HEADER"
+    echo "Please set OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_AUTH_HEADER, and CERTBOT_EMAIL"
     exit 1
 fi
 
@@ -212,6 +212,36 @@ mkdir -p /var/www/certbot
 systemctl enable nginx >/dev/null
 systemctl restart nginx
 echo "✅ Host Nginx is proxying 0.0.0.0:80 -> 127.0.0.1:3000"
+
+# ----------------------------------------------------------
+# SSL certificate via Let's Encrypt (certbot snap)
+# ----------------------------------------------------------
+echo "🔐 Installing certbot via snap..."
+if ! command -v certbot &>/dev/null; then
+    snap install --classic certbot
+    ln -sf /snap/bin/certbot /usr/bin/certbot
+    echo "✅ certbot installed"
+else
+    echo "certbot already installed"
+fi
+
+CERTBOT_DOMAIN="$PUBLIC_HOST_VALUE"
+CERTBOT_EXTRA_FLAGS=""
+if [ "${CERTBOT_STAGING:-false}" = "true" ]; then
+    CERTBOT_EXTRA_FLAGS="--test-cert"
+    echo "⚠️  CERTBOT_STAGING=true: using Let's Encrypt staging (cert will not be browser-trusted)"
+fi
+
+echo "🔐 Obtaining/installing SSL certificate for ${CERTBOT_DOMAIN}..."
+certbot --nginx \
+    -d "${CERTBOT_DOMAIN}" \
+    -d "www.${CERTBOT_DOMAIN}" \
+    --non-interactive \
+    --agree-tos \
+    -m "${CERTBOT_EMAIL}" \
+    --redirect \
+    $CERTBOT_EXTRA_FLAGS
+echo "✅ SSL certificate installed and nginx updated"
 
 echo "====================================================="
 echo "🎉 SETUP COMPLETE!"
