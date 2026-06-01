@@ -99,10 +99,7 @@ export async function startWorker() {
 
   app.set("trust proxy", 3);
   app.use(compression());
-  // 10mb covers compressed singleplayer archive uploads. body-parser enforces
-  // the limit on the DECOMPRESSED size for gzip requests, and the default
-  // 100kb rejected real records with PayloadTooLargeError before the handler ran.
-  app.use(express.json({ limit: "10mb" }));
+  app.use(express.json());
   app.use(express.static(path.join(__dirname, "../../out")));
   app.use(
     rateLimit({
