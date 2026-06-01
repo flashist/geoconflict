@@ -11,6 +11,9 @@ export class TestServerConfig implements ServerConfig {
   enableMatchmaking(): boolean {
     throw new Error("Method not implemented.");
   }
+  archiveEnabled(): boolean {
+    return false;
+  }
   apiKey(): string {
     throw new Error("Method not implemented.");
   }

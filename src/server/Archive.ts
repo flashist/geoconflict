@@ -15,10 +15,18 @@ const config = getServerConfigFromServer();
 const log = logger.child({ component: "Archive" });
 
 export async function archive(gameRecord: GameRecord) {
+  // Archiving is disabled until S3-backed, citizen-gated archival ships
+  // (s4-archive-s3-backed-citizen-gated.md). No-op so completed games stop
+  // posting to a non-existent endpoint and flooding telemetry.
+  if (!config.archiveEnabled()) {
+    return;
+  }
   try {
     const parsed = GameRecordSchema.safeParse(gameRecord);
     if (!parsed.success) {
-      log.error(`invalid game record (gameID: ${gameRecord.info.gameID}): ${z.prettifyError(parsed.error)}`);
+      log.error(
+        `invalid game record (gameID: ${gameRecord.info.gameID}): ${z.prettifyError(parsed.error)}`,
+      );
       return;
     }
     const url = `${config.jwtIssuer()}/game/${gameRecord.info.gameID}`;
@@ -31,11 +39,15 @@ export async function archive(gameRecord: GameRecord) {
       },
     });
     if (!response.ok) {
-      log.error(`error archiving game record (gameID: ${gameRecord.info.gameID}): ${response.statusText}`);
+      log.error(
+        `error archiving game record (gameID: ${gameRecord.info.gameID}): ${response.statusText}`,
+      );
       return;
     }
   } catch (error) {
-    log.error(`error archiving game record (gameID: ${gameRecord.info.gameID}): ${formatError(error)}`);
+    log.error(
+      `error archiving game record (gameID: ${gameRecord.info.gameID}): ${formatError(error)}`,
+    );
     return;
   }
 }
@@ -57,12 +69,16 @@ export async function readGameRecord(
     });
     const record = await response.json();
     if (!response.ok) {
-      log.error(`error reading game record (gameID: ${gameId}): ${response.statusText}`);
+      log.error(
+        `error reading game record (gameID: ${gameId}): ${response.statusText}`,
+      );
       return null;
     }
     return GameRecordSchema.parse(record);
   } catch (error) {
-    log.error(`error reading game record (gameID: ${gameId}): ${formatError(error)}`);
+    log.error(
+      `error reading game record (gameID: ${gameId}): ${formatError(error)}`,
+    );
     return null;
   }
 }

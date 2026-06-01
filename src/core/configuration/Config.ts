@@ -64,6 +64,7 @@ export interface ServerConfig {
   stripePublishableKey(): string;
   allowedFlares(): string[] | undefined;
   enableMatchmaking(): boolean;
+  archiveEnabled(): boolean;
 }
 
 export type AiPlayersConfig = {
