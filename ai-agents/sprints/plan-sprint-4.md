@@ -33,6 +33,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⬜ Backlog | Citizenship Core — Earned Citizenship *(blocked: player profile store)* | `s4-citizenship-earned.md` |
 | ⬜ Backlog | Citizenship Core — Paid Citizenship *(blocked: payments + catalog approval)* | `s4-citizenship-paid.md` |
 | ⬜ Backlog | 8d-B. Personal Inbox *(blocked: player profile store)* | `s4-8d-b-task-personal-inbox.md` |
+| ⬜ Backlog | S3-Backed Match Archival (Citizen-Gated) *(blocked: player profile store + citizenship + S3 infra)* | `s4-archive-s3-backed-citizen-gated.md` |
 | ⬜ Backlog | Name Change (Citizens Only) | TBD |
 | ⬜ Backlog | Citizen Verified Icon | TBD |
 | ⛔ Cancelled | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` |
@@ -134,6 +135,21 @@ Purchase path via Yandex catalog. 99 rubles. On successful purchase: flip `isCit
 Direct messages from game to citizens. Personal tab in announcements popup. Messages stored server-side. Initial triggers: citizenship earned/purchased, name change approved/rejected.
 
 **Depends on:** 8d-A live, player profile store live
+
+---
+
+### S3-Backed Match Archival (Citizen-Gated)
+**Brief:** `s4-archive-s3-backed-citizen-gated.md`
+**Depends on:** player profile store live, citizenship live, S3 bucket + credentials provisioned
+
+The "build it properly" half of the 2026-06-01 archive task split. The inherited archive
+path POSTs every completed game to a non-existent endpoint; the Sprint 4c task
+`s4c-reduce-archive-telemetry-noise.md` disables it to clear ~26.6/min of telemetry noise.
+This task stands up the real S3-backed store the architecture already expects (empty
+`storageEndpoint/Bucket/AccessKey/SecretKey` config slots), gates archival to citizen
+games only, and re-enables the path. Schedule it at the tail of the citizenship track —
+it has no live consumer until match history (a citizen feature) exists. Primarily infra,
+but the citizen-gating and re-enable code are required too.
 
 ---
 

@@ -54,7 +54,6 @@ const JwksSchema = z.object({
     .min(1),
 });
 
-
 export abstract class DefaultServerConfig implements ServerConfig {
   allowedFlares(): string[] | undefined {
     return;
@@ -295,6 +294,13 @@ export abstract class DefaultServerConfig implements ServerConfig {
   enableMatchmaking(): boolean {
     return false;
   }
+  // Single switch for match archiving. Disabled until S3-backed, citizen-gated
+  // archival ships — flip this (and add the real gating) in the follow-up task
+  // s4-archive-s3-backed-citizen-gated.md. Until then, archiving is a no-op so it
+  // stops posting to a non-existent endpoint and flooding telemetry.
+  archiveEnabled(): boolean {
+    return false;
+  }
 }
 
 export class DefaultConfig implements Config {
@@ -305,7 +311,7 @@ export class DefaultConfig implements Config {
     private _gameConfig: GameConfig,
     private _userSettings: UserSettings | null,
     private _isReplay: boolean,
-  ) { }
+  ) {}
 
   stripePublishableKey(): string {
     return process.env.STRIPE_PUBLISHABLE_KEY ?? "";
@@ -469,7 +475,7 @@ export class DefaultConfig implements Config {
     // Geometric mean of base spawn rate and port multiplier
     const combined = Math.sqrt(
       this.tradeShipBaseSpawn(numTradeShips, numPlayerTradeShips) *
-      this.tradeShipPortMultiplier(numPlayerPorts),
+        this.tradeShipPortMultiplier(numPlayerPorts),
     );
 
     return Math.floor(25 / combined);
@@ -636,8 +642,7 @@ export class DefaultConfig implements Config {
   ): (p: Player) => bigint {
     return (p: Player) => {
       if (
-        (p.type() === PlayerType.Human ||
-          p.type() === PlayerType.AiPlayer) &&
+        (p.type() === PlayerType.Human || p.type() === PlayerType.AiPlayer) &&
         this.infiniteGold()
       ) {
         return 0n;
@@ -900,11 +905,11 @@ export class DefaultConfig implements Config {
       this.infiniteTroops()
         ? 1_000_000_000
         : 2 * (Math.pow(player.numTilesOwned(), 0.6) * 1000 + 50000) +
-        player
-          .units(UnitType.City)
-          .map((city) => city.level())
-          .reduce((a, b) => a + b, 0) *
-        this.cityTroopIncrease();
+          player
+            .units(UnitType.City)
+            .map((city) => city.level())
+            .reduce((a, b) => a + b, 0) *
+            this.cityTroopIncrease();
 
     if (player.type() === PlayerType.Bot) {
       return maxTroops / 3;

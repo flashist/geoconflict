@@ -61,7 +61,7 @@ export class LocalServer {
     private clientMessage: (message: ServerMessage) => void,
     private isReplay: boolean,
     private eventBus: EventBus,
-  ) { }
+  ) {}
 
   async start() {
     await this.buildMissionConfigIfNeeded();
@@ -119,7 +119,9 @@ export class LocalServer {
           .manifest();
         config.gameMap = TUTORIAL_MAP;
         config.disableNPCs = true;
-        config.nationDifficulties = Array(manifest.nations.length).fill(Difficulty.Easy);
+        config.nationDifficulties = Array(manifest.nations.length).fill(
+          Difficulty.Easy,
+        );
       } catch (error) {
         console.error("Failed to build tutorial config:", error);
       }
@@ -261,6 +263,12 @@ export class LocalServer {
     console.log("local server ending game");
     clearInterval(this.turnCheckInterval);
     if (this.isReplay) {
+      return;
+    }
+    // Archiving is disabled until S3-backed, citizen-gated archival ships
+    // (s4-archive-s3-backed-citizen-gated.md). Skip the upload entirely so it
+    // stops failing client-side (64KB keepalive cap / 413) and flooding telemetry.
+    if (!this.lobbyConfig.serverConfig.archiveEnabled()) {
       return;
     }
     const players: PlayerRecord[] = [

@@ -22,9 +22,9 @@ Source: `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`
 
 | Status | Task | Error Rate | Brief |
 |---|---|---|---|
-| ⬜ Backlog | Fix Cosmetics.json Serving and PrivilegeRefresher | ~138.6/min | `s4c-fix-cosmetics-serving.md` |
-| ⬜ Backlog | Fix LocalServer Hash Guard (Singleplayer Crash) | ~31.0/min | `s4c-fix-local-server-hash-guard.md` |
-| ⬜ Backlog | Fix Archive Endpoint Failures + Body Limit | ~26.6/min | `s4c-fix-archive-endpoint.md` |
+| ✅ Done | Fix Cosmetics.json Serving and PrivilegeRefresher | ~138.6/min | `s4c-fix-cosmetics-serving.md` |
+| ✅ Done | Fix LocalServer Hash Guard (Singleplayer Crash) | ~31.0/min | `s4c-fix-local-server-hash-guard.md` |
+| ⬜ Backlog | Reduce Archive Telemetry Noise (disable dead archive path) | ~26.6/min | `s4c-reduce-archive-telemetry-noise.md` |
 | ⬜ Backlog | Investigate Lobby and Map Fetch Failures | ~9.3/min | `s4c-investigate-lobby-map-fetch.md` |
 | ⬜ Backlog | Investigate Client Null-ID/Null-Object Errors | ~1.8/min | `s4c-investigate-null-id-errors.md` |
 | ⬜ Backlog | Mobile Memory and WebGL Rendering Failures | ~0.4/min | `s4c-mobile-webgl-rendering.md` |
@@ -59,3 +59,4 @@ Tasks 4–6 require investigation before implementation scope is clear. Task 6 (
 - The telemetry report's recommended fix order matches the task priority above: cosmetics first (largest noise), then hash guard (direct crash), then archive, then lobby/map, then null errors, then mobile rendering.
 - Removing the ~138.6/min cosmetics error family is the highest-leverage single action: it will meaningfully improve signal quality in Uptrace for all future investigations.
 - The null-id investigation (Task 5) should not be started until Tasks 1–3 are deployed, because the current telemetry is too noisy for reliable pattern analysis on lower-rate clusters.
+- The archive task was split on 2026-06-01 (see `report-archive-endpoint-task-split-2026-06-01.md`). The Sprint 4c half (`s4c-reduce-archive-telemetry-noise.md`) just disables the dead, consumer-less archive path to clear the ~26.6/min noise. The real S3-backed, citizen-gated archival is assigned to Sprint 4 (`s4-archive-s3-backed-citizen-gated.md`), sequenced after the player profile store + citizenship implementation.

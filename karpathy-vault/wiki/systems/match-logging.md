@@ -17,7 +17,7 @@ Source: `ai-agents/knowledge-base/server-match-logging-state.md`
 ### Where Logs Go
 - **stdout** — Winston JSON logger (`src/server/Logger.ts`), always active
 - **OTEL/Uptrace** — active only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set (prod only)
-- **Archive endpoint** — full game records POSTed to external server (`config.jwtIssuer()/game/{gameID}`) at match end — this is intended to be the **authoritative historical store**, but Sprint 4c found the inherited route is currently failing in production
+- **Archive endpoint** — inherited full-game-record POST to `config.jwtIssuer()/game/{gameID}` at match end. Sprint 4c found this route is broken in production and should be disabled or quieted until S3-backed, citizen-gated archival exists.
 - No local database or file writes
 
 ### What Is Logged (stdout/OTEL)
@@ -33,8 +33,8 @@ Source: `ai-agents/knowledge-base/server-match-logging-state.md`
 | Winner vote received | `GameServer.ts:1128` | winner vote and ratio in message; `clientID` as structured field |
 | Winner determined | `GameServer.ts:1141` | winner ratio in message; `winnerKey` as structured field |
 
-### What Is Archived (external endpoint)
-Full `GameEndInfo`: map config, game mode, player list with stats, start/end timestamps, duration, turn count, winner.
+### What Would Be Archived
+Full `GameEndInfo`: map config, game mode, player list with stats, start/end timestamps, duration, turn count, winner. The current inherited external endpoint is not a reliable retrieval source in production.
 
 ## What Is NOT Recorded
 
@@ -48,7 +48,7 @@ Full `GameEndInfo`: map config, game mode, player list with stats, start/end tim
 
 Given a game ID, you can look up:
 - **In Uptrace logs:** join events, game end, winner, turn count (recent matches only)
-- **In external archive** (`/game/{gameID}`): full record — map, mode, players, stats, duration, winner
+- **In archive storage:** no reliable production lookup exists until S3-backed archival is implemented
 
 You **cannot** look up: player intent sequence, ghost player counts, intermediate game state.
 
@@ -58,7 +58,7 @@ For active/in-memory games: `GET /api/game/:id` (`Worker.ts:226`) — only works
 
 - Structured fields passed as second argument to `log.info()` (e.g. `{ clientID, persistentID }`) may not appear as attributes in Uptrace — only the message string is guaranteed. See [[systems/telemetry]].
 - File-line references in the log events table were re-verified against `src/server/GameServer.ts` on 2026-04-30; the active-game lookup reference was re-verified against `src/server/Worker.ts` on 2026-04-30.
-- Sprint 4c archive investigation found production `Not Found` errors because the geoconflict server does not currently expose the inherited `/game/:gameID` route used by `Archive.ts`; singleplayer archive uploads also hit body-size and browser `keepalive` limits. See [[tasks/archive-endpoint-failures]].
+- Sprint 4c archive investigation found production `Not Found` errors because the geoconflict server does not currently expose the inherited `/game/:gameID` route used by `Archive.ts`; singleplayer archive uploads also hit body-size and browser `keepalive` limits. The accepted path is to reduce telemetry noise now and defer S3-backed citizen archival until match history has a consumer. See [[tasks/archive-endpoint-failures]] and [[decisions/archive-archival-strategy]].
 - 140 returning users reported `null` build version (as of 2026-04-09) — likely sessions before `configureBuild()` was wired, unrelated to logging
 
 ## Related
@@ -67,4 +67,5 @@ For active/in-memory games: `GET /api/game/:id` (`Worker.ts:226`) — only works
 - [[systems/telemetry]] — OTEL/Uptrace infrastructure this logging flows into
 - [[systems/server-performance]] — performance context for `endTurn()` / turn logging
 - [[tasks/solo-win-condition-fix]] — solo opponent winners can be archived as explicit opponent winners
-- [[tasks/archive-endpoint-failures]] — Sprint 4c plan to restore reliable archived match storage
+- [[tasks/archive-endpoint-failures]] — Sprint 4c archive telemetry cleanup
+- [[decisions/archive-archival-strategy]] — deferred S3-backed citizen archival decision
