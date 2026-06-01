@@ -8,12 +8,17 @@ import { fileURLToPath } from "url";
 import { fetch, ProxyAgent } from "undici";
 import { z } from "zod";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
-import { GameInfo, ID } from "../core/Schemas";
-import { generateID } from "../core/Util";
+import { GameInfo, GameRecordSchema, ID } from "../core/Schemas";
+import { generateID, replacer } from "../core/Util";
 import { loadCosmeticsConfig } from "./CosmeticsConfig";
+import { readGameRecordFromDisk, writeGameRecord } from "./GameRecordStorage";
 import { formatError, logger } from "./Logger";
 import { MapPlaylist } from "./MapPlaylist";
-import { COSMETICS_JSON_PATH, MASTER_HTTP_PORT } from "./ServerEndpoints";
+import {
+  COSMETICS_JSON_PATH,
+  GAME_RECORD_PATH,
+  MASTER_HTTP_PORT,
+} from "./ServerEndpoints";
 
 const config = getServerConfigFromServer();
 const playlist = new MapPlaylist(false);
@@ -28,10 +33,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const buildVersion: string =
-  JSON.parse(fs.readFileSync(path.join(__dirname, "../../package.json"), "utf8"))
-    .version ?? "0.0.0";
+  JSON.parse(
+    fs.readFileSync(path.join(__dirname, "../../package.json"), "utf8"),
+  ).version ?? "0.0.0";
 
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use((req, res, next) => {
   if (req.path.endsWith(".map")) {
     res.status(404).end();
@@ -65,13 +71,19 @@ app.use(
     },
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 app.set("trust proxy", 3);
 app.use(
   rateLimit({
     windowMs: 1000, // 1 second
     max: 20, // 20 requests per IP per second
+    // Workers archive game records to this master over localhost; all those
+    // POSTs share the 127.0.0.1 bucket and could 429 on burst game-ends.
+    // Exempt the api-key-authenticated game-record route from the limit.
+    skip: (req) =>
+      req.path.startsWith(`${GAME_RECORD_PATH}/`) &&
+      req.headers["x-api-key"] === config.apiKey(),
   }),
 );
 
@@ -192,7 +204,9 @@ const FEEDBACK_WEBHOOK_URL = process.env.FEEDBACK_WEBHOOK_URL ?? null;
 const FEEDBACK_TELEGRAM_TOKEN = process.env.FEEDBACK_TELEGRAM_TOKEN ?? null;
 const FEEDBACK_TELEGRAM_CHAT_ID = process.env.FEEDBACK_TELEGRAM_CHAT_ID ?? null;
 const TELEGRAM_PROXY_URL = process.env.TELEGRAM_PROXY_URL ?? null;
-const telegramProxyAgent = TELEGRAM_PROXY_URL ? new ProxyAgent(TELEGRAM_PROXY_URL) : undefined;
+const telegramProxyAgent = TELEGRAM_PROXY_URL
+  ? new ProxyAgent(TELEGRAM_PROXY_URL)
+  : undefined;
 
 const FeedbackSchema = z.object({
   category: z.enum(["Bug", "Suggestion", "Other"]),
@@ -204,7 +218,12 @@ const FeedbackSchema = z.object({
   matchId: z.string().max(100).optional(),
   screenSource: z.enum(["start", "battle", "staleBuild"]),
   username: z.string().max(100).optional(),
-  deviceInfo: z.record(z.string(), z.union([z.string(), z.number()])).refine(r => Object.keys(r).length > 0, { message: "deviceInfo must not be empty" }).optional(),
+  deviceInfo: z
+    .record(z.string(), z.union([z.string(), z.number()]))
+    .refine((r) => Object.keys(r).length > 0, {
+      message: "deviceInfo must not be empty",
+    })
+    .optional(),
   recentMatchIds: z.array(z.string().max(20)).max(3).optional(),
 });
 
@@ -244,14 +263,32 @@ app.post(
               { name: "Screen", value: d.screenSource, inline: true },
               { name: "Platform", value: d.platform, inline: true },
               { name: "Yandex", value: d.yandexStatus, inline: true },
-              { name: "Username", value: d.username ? esc(d.username) : "n/a", inline: true },
+              {
+                name: "Username",
+                value: d.username ? esc(d.username) : "n/a",
+                inline: true,
+              },
               { name: "Version", value: d.version, inline: true },
               { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
-              { name: "Recent Matches", value: d.recentMatchIds?.map(esc).join(", ") ?? "n/a", inline: false },
-              { name: "Contact", value: d.contact ? esc(d.contact) : "n/a", inline: true },
+              {
+                name: "Recent Matches",
+                value: d.recentMatchIds?.map(esc).join(", ") ?? "n/a",
+                inline: false,
+              },
+              {
+                name: "Contact",
+                value: d.contact ? esc(d.contact) : "n/a",
+                inline: true,
+              },
               { name: "Time", value: new Date().toISOString(), inline: false },
               ...(d.deviceInfo
-                ? [{ name: "Device Info", value: formatDeviceInfo(d.deviceInfo), inline: false }]
+                ? [
+                    {
+                      name: "Device Info",
+                      value: formatDeviceInfo(d.deviceInfo),
+                      inline: false,
+                    },
+                  ]
                 : []),
             ],
           },
@@ -279,9 +316,13 @@ app.post(
         `<b>Yandex:</b> ${d.yandexStatus}  <b>Username:</b> ${d.username ? esc(d.username) : "n/a"}`,
         `<b>Version:</b> ${esc(d.version)}`,
         `<b>Match:</b> ${d.matchId ? esc(d.matchId) : "n/a"}  <b>Contact:</b> ${d.contact ? esc(d.contact) : "n/a"}`,
-        ...(d.recentMatchIds?.length ? [`<b>Recent matches:</b> ${d.recentMatchIds.map(esc).join(", ")}`] : []),
+        ...(d.recentMatchIds?.length
+          ? [`<b>Recent matches:</b> ${d.recentMatchIds.map(esc).join(", ")}`]
+          : []),
         `<b>Time:</b> ${new Date().toISOString()}`,
-        ...(d.deviceInfo ? [`\n<b>Device:</b> ${esc(formatDeviceInfo(d.deviceInfo))}`] : []),
+        ...(d.deviceInfo
+          ? [`\n<b>Device:</b> ${esc(formatDeviceInfo(d.deviceInfo))}`]
+          : []),
       ];
       const telegramBody = JSON.stringify({
         chat_id: FEEDBACK_TELEGRAM_CHAT_ID,
@@ -299,9 +340,7 @@ app.post(
           },
         );
         if (!telegramResp.ok) {
-          log.warn(
-            `[feedback] telegram responded with ${telegramResp.status}`,
-          );
+          log.warn(`[feedback] telegram responded with ${telegramResp.status}`);
         }
       } catch (err) {
         log.error(`[feedback] telegram delivery failed: ${formatError(err)}`);
@@ -404,7 +443,9 @@ app.post("/api/kick_player/:gameID/:clientID", async (req, res) => {
 
     res.status(200).send("Player kicked successfully");
   } catch (error) {
-    log.error(`Error kicking player from game ${gameID}: ${formatError(error)}`);
+    log.error(
+      `Error kicking player from game ${gameID}: ${formatError(error)}`,
+    );
     res.status(500).send("Failed to kick player");
   }
 });
@@ -508,7 +549,9 @@ async function schedulePublicGame(playlist: MapPlaylist) {
       throw new Error(`Failed to schedule public game: ${response.statusText}`);
     }
   } catch (error) {
-    log.error(`Failed to schedule public game on worker ${workerPath}: ${formatError(error)}`);
+    log.error(
+      `Failed to schedule public game on worker ${workerPath}: ${formatError(error)}`,
+    );
     throw error;
   }
 }
@@ -542,6 +585,53 @@ app.get(COSMETICS_JSON_PATH, (_req, res) => {
   } catch (error) {
     log.error(`Failed to serve cosmetics config: ${formatError(error)}`);
     res.status(500).json({ error: "Invalid cosmetics config" });
+  }
+});
+
+// Archive store for completed game records. Workers POST records here over
+// localhost (see Archive.ts); records are persisted to disk on the master.
+app.post(`${GAME_RECORD_PATH}/:id`, async (req, res) => {
+  if (req.headers["x-api-key"] !== config.apiKey()) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  const gameId = req.params.id;
+  if (!ID.safeParse(gameId).success) {
+    return res.status(400).json({ error: "Invalid game ID" });
+  }
+  const parsed = GameRecordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: z.prettifyError(parsed.error) });
+  }
+  try {
+    await writeGameRecord(gameId, parsed.data);
+    res.json({ success: true });
+  } catch (error) {
+    log.error(
+      `failed to store game record (gameID: ${gameId}): ${formatError(error)}`,
+    );
+    res.status(500).json({ error: "Failed to store game record" });
+  }
+});
+
+app.get(`${GAME_RECORD_PATH}/:id`, async (req, res) => {
+  if (req.headers["x-api-key"] !== config.apiKey()) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  const gameId = req.params.id;
+  if (!ID.safeParse(gameId).success) {
+    return res.status(400).json({ error: "Invalid game ID" });
+  }
+  try {
+    const record = await readGameRecordFromDisk(gameId);
+    if (record === null) {
+      return res.status(404).json({ error: "Game record not found" });
+    }
+    res.type("application/json").send(JSON.stringify(record, replacer));
+  } catch (error) {
+    log.error(
+      `failed to read game record (gameID: ${gameId}): ${formatError(error)}`,
+    );
+    res.status(500).json({ error: "Failed to read game record" });
   }
 });
 

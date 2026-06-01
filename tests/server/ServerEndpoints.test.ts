@@ -1,6 +1,8 @@
 import {
   COSMETICS_JSON_PATH,
+  GAME_RECORD_PATH,
   localCosmeticsJsonUrl,
+  localGameRecordUrl,
   localMasterUrl,
   masterInternalOrigin,
   MASTER_HTTP_PORT,
@@ -34,6 +36,15 @@ describe("ServerEndpoints", () => {
     expect(masterInternalOrigin()).toBe("http://master.internal:3000");
     expect(localMasterUrl("/api/env")).toBe(
       "http://master.internal:3000/api/env",
+    );
+  });
+
+  test("archive writes/reads game records on the local master endpoint", () => {
+    delete process.env.MASTER_INTERNAL_ORIGIN;
+
+    expect(GAME_RECORD_PATH).toBe("/game");
+    expect(localGameRecordUrl("abcd1234")).toBe(
+      "http://127.0.0.1:3000/game/abcd1234",
     );
   });
 });

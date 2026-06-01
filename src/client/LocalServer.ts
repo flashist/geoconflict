@@ -61,7 +61,7 @@ export class LocalServer {
     private clientMessage: (message: ServerMessage) => void,
     private isReplay: boolean,
     private eventBus: EventBus,
-  ) { }
+  ) {}
 
   async start() {
     await this.buildMissionConfigIfNeeded();
@@ -119,7 +119,9 @@ export class LocalServer {
           .manifest();
         config.gameMap = TUTORIAL_MAP;
         config.disableNPCs = true;
-        config.nationDifficulties = Array(manifest.nations.length).fill(Difficulty.Easy);
+        config.nationDifficulties = Array(manifest.nations.length).fill(
+          Difficulty.Easy,
+        );
       } catch (error) {
         console.error("Failed to build tutorial config:", error);
       }
@@ -307,11 +309,13 @@ export class LocalServer {
             "Content-Encoding": "gzip",
           },
           body: compressedData,
-          keepalive: true, // Ensures request completes even if page unloads
+          // No keepalive: browsers cap keepalive request bodies at 64KB, which
+          // made larger compressed records fail immediately with "Failed to fetch".
         });
       })
       .catch((error) => {
-        console.error("Failed to archive singleplayer game:", error);
+        // Archiving is fire-and-forget and non-critical to match completion.
+        console.warn("Failed to archive singleplayer game:", error);
       });
   }
 }

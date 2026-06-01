@@ -1,5 +1,6 @@
 export const MASTER_HTTP_PORT = 3000;
 export const COSMETICS_JSON_PATH = "/cosmetics.json";
+export const GAME_RECORD_PATH = "/game";
 
 export function masterInternalOrigin(): string {
   return (
@@ -14,4 +15,8 @@ export function localMasterUrl(path: string): string {
 
 export function localCosmeticsJsonUrl(): string {
   return localMasterUrl(COSMETICS_JSON_PATH);
+}
+
+export function localGameRecordUrl(gameId: string): string {
+  return localMasterUrl(`${GAME_RECORD_PATH}/${gameId}`);
 }
