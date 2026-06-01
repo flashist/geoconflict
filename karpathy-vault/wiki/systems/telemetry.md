@@ -79,7 +79,7 @@ A 1-hour Uptrace review on 2026-05-07 (14:57-15:57 Moscow time) found the most a
 | 5 | Minified client null-id/null-object errors | 1.8/min | Medium | Medium-high | Needs source maps/context |
 | 6 | Mobile memory/WebGL rendering failures | 0.4/min | Medium-high for affected users | High | `src/client/graphics/**` |
 
-Recommended order: fix cosmetics serving and `PrivilegeRefresher` failure handling first to remove the largest telemetry noise source; guard `LocalServer` hash assignment next because it is a direct client crash; then reduce archive noise by disabling or quieting the dead archive path. Real S3-backed archival waits for citizenship because match history has no live consumer yet.
+Recommended order: fix cosmetics serving and `PrivilegeRefresher` failure handling first to remove the largest telemetry noise source; guard `LocalServer` hash assignment next because it is a direct client crash; then reduce archive noise by disabling or quieting the dead archive path. The archive cleanup is implemented through `archiveEnabled() === false`; after deploy, Uptrace should be checked to confirm the three archive error groups drop. Real S3-backed archival waits for citizenship because match history has no live consumer yet.
 
 ## Retention Control
 
@@ -128,7 +128,7 @@ Default ClickHouse log and memory settings:
 - Weekly PostgreSQL backups remain enabled and are pruned after 14 days, preserving two weekly metadata restore points while keeping local backup storage conservative on the 59 GB telemetry VPS. The disk warning cron only writes to `/var/log/disk-warnings.log`; it is not an active notification.
 - Current telemetry noise is dominated by cosmetics fetch failures, `LocalServer` hash assignment crashes, and archive failures; see "Current Error Priorities (2026-05-07)" before choosing telemetry cleanup work.
 - Sprint 4c turns the current error-priority list into a short stabilization sprint before the May 15, 2026 travel pause.
-- Archive failures should not be fixed by adding local disk storage. The accepted split is to clear telemetry noise now and defer S3-backed citizen archival until the player profile and citizenship track exists; see [[decisions/archive-archival-strategy]].
+- Archive failures should not be fixed by adding local disk storage. The accepted split is to clear telemetry noise now by no-oping archive writes through `archiveEnabled()`, then defer S3-backed citizen archival until the player profile and citizenship track exists; see [[decisions/archive-archival-strategy]].
 
 ## Related
 

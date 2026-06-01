@@ -17,7 +17,7 @@ Source: `ai-agents/knowledge-base/server-match-logging-state.md`
 ### Where Logs Go
 - **stdout** — Winston JSON logger (`src/server/Logger.ts`), always active
 - **OTEL/Uptrace** — active only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set (prod only)
-- **Archive endpoint** — inherited full-game-record POST to `config.jwtIssuer()/game/{gameID}` at match end. Sprint 4c found this route is broken in production and should be disabled or quieted until S3-backed, citizen-gated archival exists.
+- **Archive endpoint** — inherited full-game-record POST to `config.jwtIssuer()/game/{gameID}` at match end. Sprint 4c found this route is broken in production, so `archiveEnabled()` is currently `false` and archive writes no-op until S3-backed, citizen-gated archival exists.
 - No local database or file writes
 
 ### What Is Logged (stdout/OTEL)
@@ -58,7 +58,7 @@ For active/in-memory games: `GET /api/game/:id` (`Worker.ts:226`) — only works
 
 - Structured fields passed as second argument to `log.info()` (e.g. `{ clientID, persistentID }`) may not appear as attributes in Uptrace — only the message string is guaranteed. See [[systems/telemetry]].
 - File-line references in the log events table were re-verified against `src/server/GameServer.ts` on 2026-04-30; the active-game lookup reference was re-verified against `src/server/Worker.ts` on 2026-04-30.
-- Sprint 4c archive investigation found production `Not Found` errors because the geoconflict server does not currently expose the inherited `/game/:gameID` route used by `Archive.ts`; singleplayer archive uploads also hit body-size and browser `keepalive` limits. The accepted path is to reduce telemetry noise now and defer S3-backed citizen archival until match history has a consumer. See [[tasks/archive-endpoint-failures]] and [[decisions/archive-archival-strategy]].
+- Sprint 4c archive investigation found production `Not Found` errors because the geoconflict server does not currently expose the inherited `/game/:gameID` route used by `Archive.ts`; singleplayer archive uploads also hit body-size and browser `keepalive` limits. The accepted and implemented short-term path is to no-op archive writes through `archiveEnabled()`, then defer S3-backed citizen archival until match history has a consumer. See [[tasks/archive-endpoint-failures]] and [[decisions/archive-archival-strategy]].
 - 140 returning users reported `null` build version (as of 2026-04-09) — likely sessions before `configureBuild()` was wired, unrelated to logging
 
 ## Related

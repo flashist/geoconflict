@@ -587,3 +587,9 @@
 - Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
 - Ingested: `ai-agents/sprints/plan-sprint-4c.md` → updated [[wiki/decisions/sprint-4c]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-archive-s3-backed-citizen-gated.md`, `ai-agents/tasks/backlog/s4c-reduce-archive-telemetry-noise.md`, `ai-agents/tasks/backlog/content-hint-videos-production.md`, `ai-agents/tasks/backlog/s5-hint-videos-in-game.md` — backlog files are not ingested directly by wiki-sync; the archive split is summarized through the knowledge-base and sprint pages
+
+## 2026-06-01 — ingest
+- Sync window: `eeada17a5d26770ec729476c9148bd7c6f3d91fe` → HEAD (`8e9267e6d70eb348a5e46239f1f77edc71272c74`)
+- Changed source files detected: 1
+- Ingested: `ai-agents/tasks/done/s4c-reduce-archive-telemetry-noise.md` → updated [[wiki/tasks/archive-endpoint-failures]], [[wiki/systems/match-logging]], [[wiki/systems/telemetry]]
+- Skipped (already covered): none
