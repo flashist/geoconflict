@@ -49,6 +49,7 @@
 ### Bug Fixes & Investigations
 - [[decisions/autospawn-late-join-fix]] — Fix for auto-spawn failure when joining during catch-up (late join / reconnect)
 - [[decisions/double-reload-fix]] — Fix for double page reload on browser refresh caused by orphaned `#refresh` history push
+- [[decisions/archive-archival-strategy]] — Split archive work: disable noisy dead path now, defer S3-backed citizen archival until citizenship exists
 - [[decisions/hvn-balance-pr70-no-ship]] — No-ship review for the cancelled Sprint 4 Humans vs Nations balance attempt
 - [[decisions/registry-image-policy]] — Trusted vs untrusted image rules, registry visibility policy, and rollback/retention guidance
 - [[decisions/stale-build-zombie-tabs]] — Investigation and fix for users persisting on old builds (HF-11a/b/c/d)
@@ -91,7 +92,7 @@
 - [[tasks/analytics-p0-session-match-count]] — P0 analytics event measuring match starts per session via UUID-keyed localStorage, consumed before Session:Start
 - [[tasks/cosmetics-serving]] — Sprint 4c fix restoring `/cosmetics.json` serving and deduplicating cosmetics fetch telemetry noise
 - [[tasks/local-server-hash-guard]] — Sprint 4c guard preventing missing-turn hash messages from crashing local/singleplayer matches
-- [[tasks/archive-endpoint-failures]] — Sprint 4c plan to restore multiplayer and singleplayer match archive reliability
+- [[tasks/archive-endpoint-failures]] — Sprint 4c telemetry cleanup for the broken archive path; S3-backed citizen archival deferred
 - [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
 - [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response
 - [[tasks/registry-image-audit]] — Historical image-trust audit plan; outcome was conservative pre-hardening image quarantine
