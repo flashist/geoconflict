@@ -593,3 +593,9 @@
 - Changed source files detected: 1
 - Ingested: `ai-agents/tasks/done/s4c-reduce-archive-telemetry-noise.md` → updated [[wiki/tasks/archive-endpoint-failures]], [[wiki/systems/match-logging]], [[wiki/systems/telemetry]]
 - Skipped (already covered): none
+
+## 2026-06-02 — ingest
+- Sync window: `8e9267e6d70eb348a5e46239f1f77edc71272c74` → HEAD (`dacab6de4a4ddd499cb1da553adb1087acbaa133`)
+- Changed source files detected: 1
+- Ingested: `ai-agents/tasks/done/s4c-leaderboard-player-count.md` → created [[wiki/tasks/leaderboard-player-count]]; updated [[wiki/decisions/sprint-4c]], [[wiki/systems/rendering]], [[wiki/features/ai-players]], index.md
+- Skipped (already covered): none

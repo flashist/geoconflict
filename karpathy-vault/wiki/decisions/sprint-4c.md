@@ -52,4 +52,5 @@ The sprint plan also tracks two items outside the original production-error list
 - [[tasks/cosmetics-serving]] — first quick-win task from the Sprint 4c priority list
 - [[tasks/local-server-hash-guard]] — second quick-win task preventing the local/singleplayer hash crash
 - [[tasks/archive-endpoint-failures]] — third quick-win task now scoped to archive telemetry noise reduction
+- [[tasks/leaderboard-player-count]] — opportunistic leaderboard UX quick win from the Sprint 4c backlog
 - [[tasks/compact-map-click-interaction]] — investigation for the compact-map boat-attack button regression added to the Sprint 4c backlog
