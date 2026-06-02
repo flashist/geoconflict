@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
+Source: `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
 
 ---
 
@@ -93,6 +93,25 @@ Keep cancelled work in one durable page instead of deleting context from the wik
 - Define whether HvN is strictly two-faction across public, private, and singleplayer flows
 - Define the roster-counting rule before any code work starts
 
+---
+
+## Compact Map — Runtime Boat-Attack Fallback
+
+**Sprint:** Sprint 4c
+**Status:** Cancelled / no-ship
+
+**Why cancelled:** live testing showed the proposed runtime fallback sends boats to semantically wrong destinations on degraded compact maps. When `closestShoreFromPlayer()` cannot find a target-owned `isShore` border tile, searching outward for the nearest surviving shore tile can select an unrelated coastline, a different territory, the far side of the landmass, or offshore islands. It also risks enabling transport attacks against genuinely landlocked territories.
+
+**What was learned:**
+- The compact-map problem is a data-loss issue: downsampling strips the stored `isShore` bit from some real coastlines.
+- Runtime code cannot reliably recover the target territory's true coastline from a compact binary that has already lost that information.
+- The earlier [[tasks/compact-map-click-interaction]] Option 2 fallback should be treated as rejected; the root-cause fix is to preserve or regenerate shore data for compact map binaries.
+
+**If revisited:**
+- Start from the compact map generation/regeneration task, not from the rejected `targetTransportTile()` fallback.
+- Verify how `isShore` and live `isOceanShore` behave after downsampling before proposing any runtime mitigation.
+- Test destination semantics in real compact matches, not just whether the boat button becomes enabled.
+
 ## Consequences
 
 - Future retries should start from the narrower follow-up guidance recorded under each cancelled item, not from the original cancelled scope
@@ -107,3 +126,4 @@ Keep cancelled work in one durable page instead of deleting context from the wik
 - [[decisions/hotfix-post-sprint2]] — sprint where HF-5 was attempted
 - [[decisions/stale-build-zombie-tabs]] — HF-11e context
 - [[features/tutorial]] — tutorial follow-up work and the narrower fixes that shipped instead
+- [[tasks/compact-map-click-interaction]] — investigation whose proposed runtime fallback was rejected by live testing

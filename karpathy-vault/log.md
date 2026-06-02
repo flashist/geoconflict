@@ -599,3 +599,9 @@
 - Changed source files detected: 1
 - Ingested: `ai-agents/tasks/done/s4c-leaderboard-player-count.md` → created [[wiki/tasks/leaderboard-player-count]]; updated [[wiki/decisions/sprint-4c]], [[wiki/systems/rendering]], [[wiki/features/ai-players]], index.md
 - Skipped (already covered): none
+
+## 2026-06-02 — ingest
+- Sync window: `dacab6de4a4ddd499cb1da553adb1087acbaa133` → HEAD (`3c7e4ab87871dc1e4781eab87cd8c6b33bfd1c2f`)
+- Changed source files detected: 1
+- Ingested: `ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md` → updated [[wiki/decisions/cancelled-tasks]], [[wiki/tasks/compact-map-click-interaction]]
+- Skipped (already covered): none

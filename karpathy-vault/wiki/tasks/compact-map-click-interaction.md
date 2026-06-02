@@ -22,7 +22,9 @@ The primary root cause is compact terrain data quality: `map4x.bin` can lose sho
 
 The apparent non-determinism comes from ownership, not from random click coordinates. The same degraded compact coastline can work when its owner also has other valid shore tiles, fail when those degraded tiles are the owner's only shore, and behave differently for neutral land because `closestShoreTN()` uses a separate BFS path.
 
-The recommended Sprint 4c workaround is a runtime fallback in `targetTransportTile()`: when `closestShoreFromPlayer()` returns `null` for a player-owned compact target, search near the clicked tile for any shore tile and use that as the destination approximation. The long-term fix is to preserve shore/ocean-shore bits in `map-generator/map_generator.go` when generating `map4x.bin`, then regenerate compact map binaries. A secondary low-severity issue remains in `bestShoreDeploymentSource()`: it checks only 4-directional neighbors after mini-A* upscaling, so a diagonally adjacent valid shore tile can be missed, degrading spawn-point quality without disabling the boat icon.
+The originally recommended Sprint 4c workaround was a runtime fallback in `targetTransportTile()`: when `closestShoreFromPlayer()` returns `null` for a player-owned compact target, search near the clicked tile for any shore tile and use that as the destination approximation. That fallback was implemented on an unmerged branch and rejected after live testing because it can select unrelated surviving shore tiles, sending boats to the wrong coastline or enabling attacks against landlocked territory. The runtime workaround is now recorded as cancelled in [[decisions/cancelled-tasks]].
+
+The long-term fix is to preserve shore/ocean-shore bits in `map-generator/map_generator.go` when generating `map4x.bin`, then regenerate compact map binaries. A secondary low-severity issue remains in `bestShoreDeploymentSource()`: it checks only 4-directional neighbors after mini-A* upscaling, so a diagonally adjacent valid shore tile can be missed, degrading spawn-point quality without disabling the boat icon.
 
 ## Related
 
@@ -30,3 +32,4 @@ The recommended Sprint 4c workaround is a runtime fallback in `targetTransportTi
 - [[tasks/sprint4b-compact-map-rotation]] — public compact-map rollout that exposed the issue more often
 - [[tasks/sprint4b-mini-mode-investigation]] — earlier compact terrain audit; not exhaustive for shore-bit loss
 - [[decisions/sprint-4c]] — stabilization sprint now tracks the runtime fallback task
+- [[decisions/cancelled-tasks]] — records the rejected runtime fallback and root-cause retry guidance
