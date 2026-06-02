@@ -131,6 +131,20 @@ export function targetTransportTile(gm: Game, tile: TileRef): TileRef | null {
   let dstTile: TileRef | null = null;
   if (dst.isPlayer()) {
     dstTile = closestShoreFromPlayer(gm, dst as Player, tile);
+    // Compact maps (map4x.bin) can strip isShore from a player's border tiles
+    // during half-resolution downsampling, so closestShoreFromPlayer finds
+    // nothing and the boat attack is wrongly disabled. Fall back to the nearest
+    // shore tile near the target, regardless of ownership. The `??=` keeps this
+    // purely additive: it only runs when the player path yielded null, so it can
+    // never change the result of a target that already has a reachable shore.
+    // Tracked in s4c-fix-compact-map-boat-attack; the underlying data defect is
+    // fixed (and this fallback removed) in s5-fix-compact-map-shore-generation.
+    //
+    // NOTE: closestShoreTN cannot be reused here — its BFS only traverses
+    // unowned tiles (!hasOwner), but this branch runs exactly when the clicked
+    // tile is player-owned, so the BFS seed would be rejected and it would
+    // always return null.
+    dstTile ??= closestShoreFallback(gm, tile, 50);
   } else {
     dstTile = closestShoreTN(gm, tile, 50);
   }
@@ -276,4 +290,23 @@ function closestShoreTN(
     return null;
   }
   return tn[0];
+}
+
+// Ownership-agnostic shore search used as a fallback by targetTransportTile when
+// a player's own border tiles have lost their isShore designation (compact-map
+// downsampling defect). Unlike closestShoreTN, the BFS is bounded only by
+// Manhattan distance and traverses tiles regardless of owner, so it works even
+// when the search starts from a player-owned tile.
+function closestShoreFallback(
+  gm: GameMap,
+  tile: TileRef,
+  searchDist: number,
+): TileRef | null {
+  const shoreTiles = Array.from(gm.bfs(tile, manhattanDistFN(tile, searchDist)))
+    .filter((t) => gm.isShore(t))
+    .sort((a, b) => gm.manhattanDist(tile, a) - gm.manhattanDist(tile, b));
+  if (shoreTiles.length === 0) {
+    return null;
+  }
+  return shoreTiles[0];
 }

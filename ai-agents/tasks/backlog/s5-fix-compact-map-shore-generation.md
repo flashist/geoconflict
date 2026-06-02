@@ -50,7 +50,23 @@ Spot-check the regenerated binaries:
 
 ### 3. Remove or demote the runtime fallback
 
-Once the regenerated binaries are deployed and confirmed correct in production, the fallback in `targetTransportTile` added in `s4c-fix-compact-map-boat-attack.md` can be removed or left as a defence-in-depth guard with a lower search radius. Decide at implementation time based on the confidence level of the generator fix.
+Once the regenerated binaries are deployed and confirmed correct in production, the runtime fallback added by `s4c-fix-compact-map-boat-attack.md` can be removed (or demoted to a defence-in-depth guard with a lower search radius). Decide at implementation time based on the confidence level of the generator fix.
+
+**Exactly what s4c added (cleanup checklist).** All in `src/core/game/TransportShipUtils.ts`:
+
+1. **`closestShoreFallback(gm, tile, searchDist)`** — a module-private helper (sits just below `closestShoreTN`). It runs an ownership-agnostic BFS bounded only by Manhattan distance and returns the nearest `isShore` tile, or `null`. Delete this function when removing the fallback.
+2. **The fallback wiring in `targetTransportTile`** — inside the `if (dst.isPlayer())` branch, immediately after `dstTile = closestShoreFromPlayer(...)`, there is a comment block plus the line:
+   ```typescript
+   dstTile ??= closestShoreFallback(gm, tile, 50);
+   ```
+   To fully remove: delete that line and its comment block, leaving the branch as just `dstTile = closestShoreFromPlayer(gm, dst as Player, tile);` (the original pre-s4c behavior). The `else` (neutral-target) branch was never touched by s4c — leave it alone.
+3. **Tests** — `tests/TransportShipUtils.test.ts`:
+   - `"falls back to a nearby shore when the target player's border tiles have no isShore"` is the fallback-specific regression test. If the fallback is **removed**, delete this test (it asserts the fallback behavior). If the fallback is **kept** as defence-in-depth, keep it (and update the asserted radius if you lower it).
+   - `"returns null when no shore exists within range (genuinely landlocked)"` and `"is unchanged when the target player has shore tiles (fallback not taken)"` assert general `targetTransportTile` behavior that holds with or without the fallback — keep both regardless.
+
+**Verification after removal:** with the regenerated binaries in place, the new `tests/TransportShipUtils.test.ts` landlocked/unchanged cases and the existing `tests/Attack.test.ts` must still pass, and a compact World game must show the boat-attack icon active on coastal territories *without* the fallback (i.e. `closestShoreFromPlayer` now succeeds because the data is correct).
+
+> Note: do **not** remove the fallback until the regenerated binaries are confirmed in production. Removing it first re-opens the live boat-attack bug that s4c closed.
 
 ---
 
