@@ -1,5 +1,44 @@
 # Task — Fix Compact Map Boat-Attack Button (Runtime Fallback)
 
+> ## ❌ Cancelled — 2026-06-02
+>
+> **Decision:** Do not ship this runtime workaround. Defer to the root-cause fix
+> `s5-fix-compact-map-shore-generation.md` (regenerate the compact map binaries) as
+> the only reliable path.
+>
+> **Why (confirmed by live testing, 2026-06-02):** The prescribed fallback — when
+> `closestShoreFromPlayer` returns null, search outward from the clicked tile for the
+> nearest `isShore` tile regardless of ownership — sends boats to **semantically wrong
+> destinations**. The target territory's *own* coastline is exactly what lost its
+> `isShore` bit during downsampling, so the nearest *surviving* `isShore` tile is on an
+> unrelated coast: a different territory, the far side of the landmass, or an offshore
+> island. Observed in a compact Oceania game: clicking a west-coast territory sent the
+> boat to the far southern tip; clicking an interior territory sent it to islands far to
+> the north-west (near Indonesia). The workaround is worst exactly where it is most
+> needed — the more degraded the coastline, the farther the fallback reaches — and it
+> also wrongly enables boats against genuinely landlocked interior territories. This is
+> a worse player experience than the disabled button it was meant to fix.
+>
+> **Why it cannot be fixed at runtime:** the information needed to choose the correct
+> landing tile (the target's real, water-adjacent coastline) is precisely the data the
+> compact binary destroyed. It cannot be reliably reconstructed from the broken map at
+> runtime. The fix must restore the data — see s5.
+>
+> **Note for s5:** `isShore` is a *stored* bit that downsampling strips; `isOceanShore`
+> is computed *live* from 4-neighbour ocean adjacency. Any future runtime mitigation
+> would have to rely on the live check — and would still fail wherever downsampling
+> merged the bordering ocean into land. Worth verifying during s5 whether the live check
+> also fails, to know whether runtime mitigation is even theoretically possible.
+>
+> **Implementation status:** a fallback was implemented, unit-tested, and committed on
+> branch `claude-s4c-fix-compact-map-boat-attack` (commit `6637b09`) for live testing,
+> then rejected. That branch was left unmerged — nothing reached `main`. The
+> investigation that originally proposed this approach is
+> `ai-agents/knowledge-base/compact-map-click-interaction-findings.md` (Option 2);
+> treat that Option 2 as **rejected** going forward.
+>
+> _The original task spec below is retained for historical context._
+
 ## Sprint
 Sprint 4c — Stabilization
 
