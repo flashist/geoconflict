@@ -196,6 +196,15 @@ export class Leaderboard extends LitElement implements Layer {
     if (!this.visible) {
       return html``;
     }
+    const humanPlayerCount =
+      this.game
+        ?.playerViews()
+        .filter(
+          (player) =>
+            player.isAlive() &&
+            (player.type() === PlayerType.Human ||
+              player.type() === PlayerType.AiPlayer),
+        ).length ?? 0;
     return html`
       <div class="mb-1 flex items-center justify-between text-white text-xs md:text-xs lg:text-sm">
         <label class="inline-flex items-center gap-2 cursor-pointer select-none">
@@ -209,7 +218,7 @@ export class Leaderboard extends LitElement implements Layer {
               this.updateLeaderboard();
             }}
           />
-          <span>${translateText("leaderboard.real_players_only")}</span>
+          <span>${translateText("leaderboard.real_players_only")} (${humanPlayerCount})</span>
         </label>
         <button
           class="px-1.5 py-0.5 md:px-2 md:py-0.5 text-xs md:text-xs lg:text-sm border border-white/20 hover:bg-white/10 text-white"
