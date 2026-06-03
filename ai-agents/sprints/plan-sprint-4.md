@@ -34,6 +34,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⬜ Backlog | Citizenship Core — Paid Citizenship *(blocked: payments + catalog approval)* | `s4-citizenship-paid.md` |
 | ⬜ Backlog | 8d-B. Personal Inbox *(blocked: player profile store)* | `s4-8d-b-task-personal-inbox.md` |
 | ⬜ Backlog | S3-Backed Match Archival (Citizen-Gated) *(blocked: player profile store + citizenship + S3 infra)* | `s4-archive-s3-backed-citizen-gated.md` |
+| ⬜ Backlog | Investigate & Fix Client Null-ID Errors *(stabilization follow-up; needs source maps + deployed archive fix)* | `s4-investigate-null-id-errors.md` |
 | ⬜ Backlog | Name Change (Citizens Only) | TBD |
 | ⬜ Backlog | Citizen Verified Icon | TBD |
 | ⛔ Cancelled | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` |
@@ -135,6 +136,20 @@ Purchase path via Yandex catalog. 99 rubles. On successful purchase: flip `isCit
 Direct messages from game to citizens. Personal tab in announcements popup. Messages stored server-side. Initial triggers: citizenship earned/purchased, name change approved/rejected.
 
 **Depends on:** 8d-A live, player profile store live
+
+---
+
+### Investigate & Fix Client Null-ID Errors
+**Brief:** `s4-investigate-null-id-errors.md`
+**Depends on:** source maps live (`s4c-enable-client-source-maps.md`) + archive noise fix deployed (`s4c-reduce-archive-telemetry-noise.md`)
+
+Stabilization follow-up carried in from the Sprint 4c null-id split (2026-06-03). The
+triage + fix half of that investigation: a cross-browser cluster of null-access errors
+(~1.8/min) that is un-triageable until source maps resolve the minified traces and the
+louder archive noise is gone from production telemetry. Both prerequisites land at the
+Sprint 4c→4 boundary. With source maps in place this may collapse to a small targeted fix;
+otherwise it falls back to structured logging at the high-risk player-lookup flows. Low
+urgency relative to the citizenship/payments track.
 
 ---
 

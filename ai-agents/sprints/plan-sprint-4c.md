@@ -26,7 +26,7 @@ Source: `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`
 | ✅ Done | Fix LocalServer Hash Guard (Singleplayer Crash) | ~31.0/min | `s4c-fix-local-server-hash-guard.md` |
 | ✅ Done | Reduce Archive Telemetry Noise (disable dead archive path) | ~26.6/min | `s4c-reduce-archive-telemetry-noise.md` |
 | ⬜ Backlog | Investigate Lobby and Map Fetch Failures | ~9.3/min | `s4c-investigate-lobby-map-fetch.md` |
-| ⬜ Backlog | Investigate Client Null-ID/Null-Object Errors | ~1.8/min | `s4c-investigate-null-id-errors.md` |
+| ⬜ Backlog | Enable Production Client Source Maps in Uptrace | — | `s4c-enable-client-source-maps.md` |
 | ✅ Done | Leaderboard: Show Human Player Count in Label | — | `s4c-leaderboard-player-count.md` |
 | ⛔ Cancelled | Fix Compact Map Boat-Attack Button (Runtime Fallback) | Sprint 4b regression | `cancelled/s4c-fix-compact-map-boat-attack.md` |
 | ✅ Done | Disable Compact Maps in Public Rotation | Sprint 4b regression | `s4c-disable-compact-public-maps.md` |
@@ -41,7 +41,7 @@ Tasks 1–3 are independent and can proceed in parallel. Each has a localized fi
 
 **Phase 2 — Investigations (ship if time allows before May 15, otherwise defer)**
 
-The two remaining lobby/map and null-id tasks require investigation before implementation scope is clear. The mobile WebGL task was deferred out of this sprint to the backlog on 2026-06-03 (`backlog/mobile-webgl-rendering.md`) — too high-complexity for stabilization.
+The lobby/map fetch task requires investigation before implementation scope is clear. The source-maps task (`s4c-enable-client-source-maps.md`) is enablement, not investigation, and can proceed immediately. The mobile WebGL task was deferred out of this sprint to the backlog on 2026-06-03 (`backlog/mobile-webgl-rendering.md`) — too high-complexity for stabilization. The null-id triage + fix moved to Sprint 4 (`s4-investigate-null-id-errors.md`).
 
 ---
 
@@ -58,6 +58,6 @@ The two remaining lobby/map and null-id tasks require investigation before imple
 
 - The telemetry report's recommended fix order matches the task priority above: cosmetics first (largest noise), then hash guard (direct crash), then archive, then lobby/map, then null errors, then mobile rendering.
 - Removing the ~138.6/min cosmetics error family is the highest-leverage single action: it will meaningfully improve signal quality in Uptrace for all future investigations.
-- The null-id investigation (Task 5) should not be started until Tasks 1–3 are deployed, because the current telemetry is too noisy for reliable pattern analysis on lower-rate clusters.
+- The null-id investigation was split on 2026-06-03. The half that is doable now — enabling production client source maps in Uptrace (`s4c-enable-client-source-maps.md`) — stays in Sprint 4c; it is independent of telemetry noise and unblocks triage for every minified cluster. The triage + fix half (`s4-investigate-null-id-errors.md`) moves to Sprint 4 because it needs both source maps and a deployed archive fix (clean telemetry) — both of which land at the Sprint 4c→4 boundary.
 - Compact maps are being pulled from the **public** rotation (`s4c-disable-compact-public-maps.md`, 2026-06-03) because the `isShore` boat-attack defect is not runtime-fixable (the runtime fallback `cancelled/s4c-fix-compact-map-boat-attack.md` was cancelled 2026-06-02 — it sent boats to semantically wrong coasts; the data the compact binary destroyed cannot be reconstructed at runtime) and compact gameplay is not meaningfully different from normal matches. Private lobby + singleplayer compact stay opt-in. Re-enabling public compact is gated on the Sprint 5 map-gen fix `s5-fix-compact-map-shore-generation.md`. With `mini_map` removed, the existing `weird_setting` modifier absorbs the full 20% modified-match budget (intended).
 - The archive task was split on 2026-06-01 (see `report-archive-endpoint-task-split-2026-06-01.md`). The Sprint 4c half (`s4c-reduce-archive-telemetry-noise.md`) just disables the dead, consumer-less archive path to clear the ~26.6/min noise. The real S3-backed, citizen-gated archival is assigned to Sprint 4 (`s4-archive-s3-backed-citizen-gated.md`), sequenced after the player profile store + citizenship implementation.
