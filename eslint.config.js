@@ -29,6 +29,7 @@ export default [
             "jest.config.ts",
             "postcss.config.js",
             "scripts/generate-map-nation-counts.js",
+            "scripts/upload-sourcemaps.js",
             "tailwind.config.js",
             "webpack.config.js",
           ],

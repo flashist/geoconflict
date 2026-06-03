@@ -81,6 +81,31 @@ echo "Metadata file: $METADATA_FILE"
 GIT_COMMIT=$(git rev-parse HEAD 2> /dev/null || echo "unknown")
 echo "Git commit: $GIT_COMMIT"
 
+# Resolve the public origin the bundles are served from, used to build the
+# source map minified_url so it matches the browser's stack-trace URL. Prefer an
+# explicit PUBLIC_ORIGIN, else derive from PUBLIC_PROTOCOL/PUBLIC_HOST (env-suffixed
+# vars like PUBLIC_HOST_PROD are supported, mirroring deploy.sh).
+uppercase_env=$(echo "$DEPLOY_ENV" | tr '[:lower:]' '[:upper:]')
+if [ -z "$PUBLIC_ORIGIN" ]; then
+    eval "resolved_host=\"\${PUBLIC_HOST:-\${PUBLIC_HOST_${uppercase_env}:-}}\""
+    eval "resolved_proto=\"\${PUBLIC_PROTOCOL:-\${PUBLIC_PROTOCOL_${uppercase_env}:-}}\""
+    if [ -n "$resolved_host" ]; then
+        PUBLIC_ORIGIN="${resolved_proto:-https}://${resolved_host}"
+    fi
+fi
+if [ -n "$PUBLIC_ORIGIN" ]; then
+    echo "Public origin (source maps): $PUBLIC_ORIGIN"
+else
+    echo "Warning: PUBLIC_ORIGIN not resolved — source map upload will be skipped."
+fi
+
+# Only mount the Uptrace DSN secret when configured, so dev/local builds without
+# it don't fail. The upload step is a no-op when the secret is absent.
+SOURCEMAP_SECRET_ARG=()
+if [ -n "$UPTRACE_SOURCEMAP_DSN" ]; then
+    SOURCEMAP_SECRET_ARG=(--secret id=uptrace_sourcemap_dsn,env=UPTRACE_SOURCEMAP_DSN)
+fi
+
 print_header "DOCKER SECRET BOUNDARY CHECK"
 ./scripts/check-docker-secret-boundary.sh --runtime-image-check
 
@@ -94,6 +119,8 @@ docker buildx build \
     --build-arg DEPLOY_ENV="$DEPLOY_ENV" \
     --build-arg OTEL_EXPORTER_OTLP_ENDPOINT="$OTEL_EXPORTER_OTLP_ENDPOINT" \
     --build-arg SENTRY_AUTH_TOKEN="$SENTRY_AUTH_TOKEN" \
+    --build-arg PUBLIC_ORIGIN="$PUBLIC_ORIGIN" \
+    "${SOURCEMAP_SECRET_ARG[@]}" \
     --metadata-file $METADATA_FILE \
     -t $DOCKER_IMAGE \
     --progress="${BUILD_PROGRESS_MODE}" \

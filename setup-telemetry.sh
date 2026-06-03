@@ -720,6 +720,10 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
 
+    # Source map uploads (POST /api/v1/sourcemaps → Uptrace via location /) can be
+    # several MB; raise from nginx's 1 MB default to Uptrace's 64 MB per-upload limit.
+    client_max_body_size 64m;
+
     # OTLP HTTP — /v1/traces, /v1/logs, /v1/metrics
     location /v1/ {
         proxy_pass http://127.0.0.1:4318;

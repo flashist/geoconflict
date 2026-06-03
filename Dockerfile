@@ -25,6 +25,10 @@ ENV DEPLOY_ENV="$DEPLOY_ENV"
 ARG OTEL_EXPORTER_OTLP_ENDPOINT=""
 ENV OTEL_EXPORTER_OTLP_ENDPOINT="$OTEL_EXPORTER_OTLP_ENDPOINT"
 ARG SENTRY_AUTH_TOKEN
+# Origin the bundles are served from (e.g. https://geoconflict.ru). Used to build
+# the minified_url for source map uploads so it matches the browser stack-trace URL.
+ARG PUBLIC_ORIGIN
+ENV PUBLIC_ORIGIN="$PUBLIC_ORIGIN"
 # Disable Husky hooks
 ENV HUSKY=0
 # Copy package.json and package-lock.json
@@ -34,11 +38,22 @@ RUN npm ci
 # Explicit allowlist copy so local secret files can never ride along via repo-wide COPY.
 COPY tsconfig.json webpack.config.js postcss.config.js tailwind.config.js eslint.config.js ./
 COPY scripts/generate-map-nation-counts.js ./scripts/generate-map-nation-counts.js
+COPY scripts/upload-sourcemaps.js ./scripts/upload-sourcemaps.js
 COPY src ./src
 COPY resources ./resources
 COPY proprietary ./proprietary
 # Build the client-side application
 RUN npm run build-prod
+# Upload source maps to Uptrace for stack-trace symbolication (keyed by GIT_COMMIT),
+# then drop them from the image so .map files are never shipped/served. Best-effort:
+# `|| true` ensures a telemetry outage never blocks a deploy, and the script is a
+# no-op when the DSN secret is absent (dev/local builds). The secret is optional and
+# mounted only for the upload step, so it never lands in image layers.
+RUN --mount=type=secret,id=uptrace_sourcemap_dsn \
+    UPTRACE_SOURCEMAP_DSN="$(cat /run/secrets/uptrace_sourcemap_dsn 2>/dev/null || true)" \
+    PUBLIC_ORIGIN="$PUBLIC_ORIGIN" \
+    node scripts/upload-sourcemaps.js || true
+RUN rm -f static/js/*.map
 # So we can see which commit was used to build the container
 # https://openfront.io/commit.txt
 RUN echo "$GIT_COMMIT" > static/commit.txt
