@@ -113,7 +113,10 @@ export class MapDisplay extends LitElement {
       this.mapWebpPath = await data.webpPath();
       this.mapName = (await data.manifest()).name;
     } catch (error) {
-      console.error("Failed to load map data:", error);
+      // Non-blocking map menu preview (thumbnail + name). A transient fetch
+      // failure just leaves the placeholder, so warn rather than error — the
+      // gameplay map load in TerrainMapLoader keeps error severity.
+      console.warn("Failed to load map data:", error);
     } finally {
       this.isLoading = false;
     }
