@@ -33,6 +33,7 @@ Rendering is a layered canvas pipeline on the client main thread. `GameRenderer`
 - Layer order is a real dependency; `GameRenderer.ts` explicitly warns that regrouping transformed vs non-transformed layers affects correctness and `context.save()/restore()` churn
 - The renderer is decoupled from simulation timing: it reacts to `GameView` updates and can continue animating while no new turns arrive
 - Mobile rendering is throttled to 30 FPS through `isMobileRenderingEnabled()`, so visual cadence can differ from desktop even when the underlying game tick rate is unchanged
+- Mobile memory/WebGL failures remain a no-sprint backlog item: low-memory `getImageData` / `createImageData` errors and WebGL context failures likely need renderer fallback, allocation guards, and better device context before they can be fixed safely. See [[decisions/sprint-backlog]].
 - A missing DOM custom element does not necessarily crash startup; several renderer bindings log errors and keep going
 - The compact-map boat interaction investigation ruled out `TransformHandler` coordinate mismatch as the cause: rendering and click hit-testing use the same map-center pivot and `screenToWorldCoordinates()` floors to integer tiles. See [[tasks/compact-map-click-interaction]] for the actual compact terrain shore-bit failure.
 
@@ -43,3 +44,4 @@ Rendering is a layered canvas pipeline on the client main thread. `GameRenderer`
 - [[tasks/nuke-trajectory-visibility]] — nuke targeting preview thickness tuning in `NukePlanningLayer`
 - [[tasks/leaderboard-player-count]] — Lit-backed leaderboard label count derived from `GameView.playerViews()`
 - [[tasks/compact-map-click-interaction]] — compact-map radial-menu investigation that ruled out coordinate transform mismatch
+- [[decisions/sprint-backlog]] — deferred mobile memory/WebGL rendering failure task

@@ -38,7 +38,8 @@
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
 - [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation plus shipped tutorial, missions, solo-loss, email, Telegram, and AI-lobby follow-ups
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
-- [[decisions/sprint-4c]] — Sprint 4c (proposed): production stabilization against top Uptrace error families before May 15 travel pause
+- [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, compact public maps disabled, mobile WebGL deferred to backlog
+- [[decisions/sprint-backlog]] — No-sprint backlog for defined work that needs a sprint home, including deferred mobile WebGL stability
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
 - [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance no-ship, compact-map runtime fallback no-ship — with reasons and re-attempt guidance

@@ -10,25 +10,24 @@ Sprint 4's citizenship, payments, and player profile store track remains paused 
 The sprint is driven by the 2026-05-07 Uptrace error-priority review, which found cosmetics/config failures, singleplayer local hash crashes, archive endpoint/body-limit failures, lobby/map fetch failures, client null-id errors, and mobile WebGL failures as the most actionable production error families.
 
 Source: `ai-agents/sprints/plan-sprint-4c.md`
-Follow-up sources: `ai-agents/knowledge-base/plan-fix-archive-endpoint.md`, `ai-agents/knowledge-base/report-archive-endpoint-task-split-2026-06-01.md`
+Follow-up sources: `ai-agents/knowledge-base/plan-fix-archive-endpoint.md`, `ai-agents/knowledge-base/report-archive-endpoint-task-split-2026-06-01.md`, `ai-agents/sprints/sprint-backlog.md`
 
 ## Decision
 
-Sprint 4c is a stabilization sprint with a must-ship deadline before May 15, 2026. Tasks 1-3 are the quick-win priority set and may proceed in parallel:
+Sprint 4c is a stabilization sprint with a must-ship deadline before May 15, 2026. Tasks 1-3 were the quick-win priority set and could proceed in parallel:
 
 | Priority | Work | Approx. error rate | Scope |
 |---|---:|---:|---|
 | 1 | Fix cosmetics serving and `PrivilegeRefresher` failures | 138.6/min | Restore `/cosmetics.json`, remove repeated fetch noise, preserve optional cosmetics fail-open behaviour |
 | 2 | Fix local-server hash guard | 31.0/min | Prevent the singleplayer catch-up/hash assignment crash |
-| 3 | Reduce archive telemetry noise | 26.6/min | Disable or quiet the dead archive path; defer storage until citizenship exists |
+| 3 | Reduce archive telemetry noise | 26.6/min | Done: disabled the dead archive path; S3-backed citizen archival remains deferred |
 
-Tasks 4-6 are investigation or high-complexity work and should only start if time remains after the quick wins:
+The remaining telemetry items are investigation work and should not start until higher-rate noise stays clean:
 
 | Priority | Work | Approx. error rate | Sprint stance |
 |---|---:|---:|---|
 | 4 | Investigate lobby and map fetch failures | 9.3/min | Start only after Tasks 1-3 |
 | 5 | Investigate client null-id/null-object errors | 1.8/min | Wait until higher-rate telemetry noise is removed |
-| 6 | Mobile memory and WebGL rendering failures | 0.4/min | Treat as out of scope unless all earlier work ships early |
 
 The sprint plan also tracks items outside the original production-error list: add a human-player count to the leaderboard's "Players only" label, resolve the compact-map boat-attack regression, and disable compact maps in public rotation while the root-cause map-regeneration fix is deferred. These are intentionally separate from the telemetry-driven stabilization priorities and should not displace Tasks 1-3.
 
@@ -42,6 +41,7 @@ The sprint plan also tracks items outside the original production-error list: ad
 - Backlog additions that are not production-error fixes, such as the leaderboard human-count label and compact-map work, remain opportunistic unless they directly protect match quality; they should not change the sprint's stabilization goal.
 - The compact-map runtime fallback was cancelled after live testing selected semantically wrong coasts. Sprint 4c now disables compact maps only in public matchmaking; private lobby and singleplayer compact remain explicit opt-in paths.
 - With `mini_map` removed from `MATCH_MODIFIERS`, `weird_setting` becomes the only active public modifier and receives the full 20% modified-match budget.
+- Mobile memory/WebGL rendering failures were deferred out of Sprint 4c to the no-sprint backlog on 2026-06-03 because the likely fix requires profiling, device testing, renderer fallback work, and better device context in error logs.
 
 ## Related
 
@@ -57,3 +57,4 @@ The sprint plan also tracks items outside the original production-error list: ad
 - [[tasks/leaderboard-player-count]] — opportunistic leaderboard UX quick win from the Sprint 4c backlog
 - [[tasks/compact-map-click-interaction]] — investigation for the compact-map boat-attack button regression added to the Sprint 4c backlog
 - [[tasks/disable-compact-public-maps]] — public-rotation mitigation after the runtime compact-map workaround was rejected
+- [[decisions/sprint-backlog]] — no-sprint backlog that now holds mobile memory/WebGL rendering failures

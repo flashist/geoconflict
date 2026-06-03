@@ -25,10 +25,11 @@ Before/after measured via:
 - Funnel 4 (`Session:Heartbeat`) mobile session depth curve (should flatten)
 - Sentry crash rate on mobile (should decrease)
 
-**Task 5 gate:** if after two weeks `Performance:FPS:Below15` remains high OR mobile session depth is still poor, Task 5 (deep rendering overhaul, 3–6 week investment) should proceed. Task 5 is currently parked (Sprint 3 decision) as desktop is the core audience (3,500 DAU vs 700 mobile).
+**Task 5 gate:** if after two weeks `Performance:FPS:Below15` remains high OR mobile session depth is still poor, Task 5 (deep rendering overhaul, 3–6 week investment) should proceed. Task 5 is currently parked (Sprint 3 decision) as desktop is the core audience (3,500 DAU vs 700 mobile). A narrower mobile memory/WebGL crash-handling task is now tracked in [[decisions/sprint-backlog]] and can be scheduled separately when crash/performance data is clearer.
 
 ## Related
 
 - [[systems/analytics]] — `Performance:FPS:*` events and session heartbeat funnels
 - [[decisions/sprint-1]] — sprint where this shipped
 - [[decisions/product-strategy]] — mobile DAU threshold for Task 5 revisit (mobile DAU > 1,500)
+- [[decisions/sprint-backlog]] — no-sprint mobile memory/WebGL rendering failure task

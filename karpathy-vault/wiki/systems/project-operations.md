@@ -32,6 +32,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - The source document records Sprint 4 as the active citizenship and Yandex payments foundation sprint, with independent tutorial and lobby fixes able to ship in parallel; see [[decisions/sprint-4]]
 - Sprint 4b is a short interim variety sprint that keeps public matchmaking fresh while Sprint 4's citizenship/payment work is paused; see [[decisions/sprint-4b]]
 - Sprint 4c is a short production stabilization sprint that converts the 2026-05-07 Uptrace error-priority review into deployable fixes before the May 15 travel pause; see [[decisions/sprint-4c]]
+- No-sprint tasks are tracked separately in [[decisions/sprint-backlog]] and need a sprint home before implementation begins
 - Community operations, monetization planning, and internal dashboards are treated as operational context, not game-client features
 - Licensing compliance is an operational release constraint: GeoConflict's public source repository must track what is deployed, players need a visible source-code access path, and production bundles must not include OpenFront `/proprietary` or hosted-only assets. See [[decisions/licensing-compliance]].
 
@@ -55,4 +56,5 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - [[decisions/sprint-4]] — current citizenship and payments planning context captured by the source
 - [[decisions/sprint-4b]] — interim public-match variety sprint and deadline constraints
 - [[decisions/sprint-4c]] — production stabilization sprint and May 15 deadline constraints
+- [[decisions/sprint-backlog]] — no-sprint task queue and deferral rationale
 - [[decisions/licensing-compliance]] — AGPL/source access, asset-use, and trademark constraints for releases

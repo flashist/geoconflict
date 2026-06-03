@@ -41,7 +41,7 @@ Source: `ai-agents/sprints/plan-index.md`
 - Mobile iOS shows near-zero return rate
 - Ghost rate: ~20% on both platforms (players who never spawn)
 
-Mobile deep optimization parked — desktop is core audience. Revisit if mobile DAU > 1,500.
+Mobile deep optimization remains parked — desktop is the core audience. Revisit broad deep mobile rendering work if mobile DAU exceeds 1,500, while narrower mobile memory/WebGL crash handling can be scheduled from [[decisions/sprint-backlog]] once crash/performance data is clearer.
 
 ## Consequences
 
@@ -59,6 +59,7 @@ Mobile deep optimization parked — desktop is core audience. Revisit if mobile 
 - [[decisions/sprint-4]] — first monetization layer
 - [[decisions/sprint-4b]] — interim public-match variety while Sprint 4 core work is paused
 - [[decisions/sprint-4c]] — production stabilization before the travel pause
+- [[decisions/sprint-backlog]] — no-sprint backlog for defined work that needs a sprint home
 - [[decisions/sprint-5]] — full F2P loop
 - [[decisions/sprint-6]] — content expansion after payments/cosmetics infrastructure exists
 - [[decisions/cancelled-tasks]] — work cancelled with reasons
