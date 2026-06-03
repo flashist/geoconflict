@@ -27,7 +27,6 @@ Source: `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`
 | ✅ Done | Reduce Archive Telemetry Noise (disable dead archive path) | ~26.6/min | `s4c-reduce-archive-telemetry-noise.md` |
 | ⬜ Backlog | Investigate Lobby and Map Fetch Failures | ~9.3/min | `s4c-investigate-lobby-map-fetch.md` |
 | ⬜ Backlog | Investigate Client Null-ID/Null-Object Errors | ~1.8/min | `s4c-investigate-null-id-errors.md` |
-| ⬜ Backlog | Mobile Memory and WebGL Rendering Failures | ~0.4/min | `s4c-mobile-webgl-rendering.md` |
 | ✅ Done | Leaderboard: Show Human Player Count in Label | — | `s4c-leaderboard-player-count.md` |
 | ⛔ Cancelled | Fix Compact Map Boat-Attack Button (Runtime Fallback) | Sprint 4b regression | `cancelled/s4c-fix-compact-map-boat-attack.md` |
 | ✅ Done | Disable Compact Maps in Public Rotation | Sprint 4b regression | `s4c-disable-compact-public-maps.md` |
@@ -42,7 +41,7 @@ Tasks 1–3 are independent and can proceed in parallel. Each has a localized fi
 
 **Phase 2 — Investigations (ship if time allows before May 15, otherwise defer)**
 
-Tasks 4–6 require investigation before implementation scope is clear. Task 6 (mobile WebGL) is explicitly a future task — do not start during this sprint.
+The two remaining lobby/map and null-id tasks require investigation before implementation scope is clear. The mobile WebGL task was deferred out of this sprint to the backlog on 2026-06-03 (`backlog/mobile-webgl-rendering.md`) — too high-complexity for stabilization.
 
 ---
 
@@ -51,7 +50,7 @@ Tasks 4–6 require investigation before implementation scope is clear. Task 6 (
 - No new features, game mechanics, or backend infrastructure in this sprint.
 - No citizenship, payments, or player profile store work.
 - All changes must be deployable before May 15. If a fix requires extended investigation with unclear timeline, defer to post-travel.
-- Task 6 (mobile WebGL rendering) is lower-priority and high-complexity — treat as out-of-scope for this sprint unless everything else ships early.
+- Mobile WebGL rendering was deferred out of this sprint to the backlog on 2026-06-03 (`backlog/mobile-webgl-rendering.md`) — lower-priority, high-complexity, out of scope for stabilization.
 
 ---
 

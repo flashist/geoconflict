@@ -14,6 +14,7 @@
 | ⬜ No sprint | Task 8c — Spectating (Citizens Only) | None — see plan-index | Citizenship (Sprint 4) |
 | ⬜ No sprint | Task 9 — Re-enable Flags | None — see plan-index | Payment infrastructure (Sprint 4) |
 | ⬜ No sprint | Task 9a — Re-enable Territory Patterns | None — see plan-index | Payment infrastructure (Sprint 4) |
+| ⬜ No sprint | Mobile Memory and WebGL Rendering Failures | `backlog/mobile-webgl-rendering.md` | Clearer mobile crash/perf data |
 | ⬜ No sprint | sec10 — Remove Password Deploy Fallbacks | `backlog/sec10-remove-password-deploy-fallbacks.md` | — |
 | ⬜ No sprint | sec11 — Secret Management Beyond Env Files | `backlog/sec11-secret-management-beyond-env-files.md` | — |
 | ⏸ Parked | Task 5 — Deep Mobile Rendering Optimization | None — see plan-index | Mobile DAU > 1,500 |
@@ -78,6 +79,21 @@
 **Current state:** No brief written. High-visibility cosmetic, upsell surface. Requires payment infrastructure from Sprint 4 to be live.
 
 **Effort (from plan-index):** 1 week.
+
+---
+
+### Mobile Memory and WebGL Rendering Failures
+
+**Brief:** `backlog/mobile-webgl-rendering.md`
+
+Deferred out of Sprint 4c on 2026-06-03. Low-memory devices and unsupported/unstable
+graphics contexts produce uncaught rendering crashes (`getImageData`/`createImageData`
+out-of-memory, WebGL context creation failures). Visible Uptrace rate is low (~0.4/min)
+but likely under-counts real impact — crashing users generate no further events (silent
+mobile abandonment). High complexity: needs profiling, device-specific testing, graceful
+canvas/degraded-mode fallback, and device context in error logs. Schedule once mobile
+crash/perf data is clearer. Related to the parked Task 5 (Deep Mobile Rendering
+Optimization), which is gated on mobile DAU > 1,500.
 
 ---
 

@@ -1,7 +1,11 @@
 # Task — Mobile Memory and WebGL Rendering Failures
 
 ## Sprint
-Sprint 4c — Stabilization
+Backlog — no sprint. Deferred out of Sprint 4c on 2026-06-03: high implementation
+complexity (profiling + device testing + possible renderer changes) made it out of scope
+for the stabilization sprint, whose other error families are resolved. Schedule once
+mobile performance/crash data is clearer. Related to the parked Task 5 — Deep Mobile
+Rendering Optimization (gated on mobile DAU > 1,500).
 
 ## Priority
 Low / Future — ~0.4 errors/min visible rate, but likely correlated with mobile abandonment. High implementation complexity.
