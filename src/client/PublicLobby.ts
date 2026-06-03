@@ -48,6 +48,9 @@ export class PublicLobby extends LitElement {
   private lobbyIDToStart = new Map<GameID, number>();
   private lobbiesFetchInFlight: Promise<GameInfo[]> | null = null;
   private devModeUnsubscribe: (() => void) | null = null;
+  // Lobbies are polled every second; without dedup a transient outage would log
+  // on every tick. Track failure state so we warn once per outage, not per poll.
+  private lobbyFetchFailing: boolean = false;
 
   createRenderRoot() {
     return this;
@@ -85,6 +88,7 @@ export class PublicLobby extends LitElement {
   private async fetchAndUpdateLobbies(): Promise<void> {
     try {
       this.lobbies = await this.fetchLobbies();
+      this.lobbyFetchFailing = false;
       this.lobbies.forEach((l) => {
         // Store the start time on first fetch because endpoint is cached, causing
         // the time to appear irregular.
@@ -99,7 +103,13 @@ export class PublicLobby extends LitElement {
         }
       });
     } catch (error) {
-      console.error("Error fetching lobbies:", error);
+      // Lobby polling is best-effort and self-heals on the next tick, so a
+      // transient network abort is expected noise. Warn once per outage (warn
+      // is not shipped to error telemetry) instead of erroring every second.
+      if (!this.lobbyFetchFailing) {
+        this.lobbyFetchFailing = true;
+        console.warn("Error fetching lobbies:", error);
+      }
     }
   }
 
@@ -127,9 +137,6 @@ export class PublicLobby extends LitElement {
           throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         return data.lobbies as GameInfo[];
-      } catch (error) {
-        console.error("Error fetching lobbies:", error);
-        throw error;
       } finally {
         this.lobbiesFetchInFlight = null;
       }
