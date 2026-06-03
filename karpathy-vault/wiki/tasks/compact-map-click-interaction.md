@@ -26,10 +26,13 @@ The originally recommended Sprint 4c workaround was a runtime fallback in `targe
 
 The long-term fix is to preserve shore/ocean-shore bits in `map-generator/map_generator.go` when generating `map4x.bin`, then regenerate compact map binaries. A secondary low-severity issue remains in `bestShoreDeploymentSource()`: it checks only 4-directional neighbors after mini-A* upscaling, so a diagonally adjacent valid shore tile can be missed, degrading spawn-point quality without disabling the boat icon.
 
+Sprint 4c mitigates the player-facing impact by disabling compact maps in public matchmaking while leaving private lobby and singleplayer compact as explicit opt-in paths. That mitigation is tracked in [[tasks/disable-compact-public-maps]].
+
 ## Related
 
 - [[systems/rendering]] — coordinate conversion path ruled out by the investigation
 - [[tasks/sprint4b-compact-map-rotation]] — public compact-map rollout that exposed the issue more often
 - [[tasks/sprint4b-mini-mode-investigation]] — earlier compact terrain audit; not exhaustive for shore-bit loss
-- [[decisions/sprint-4c]] — stabilization sprint now tracks the runtime fallback task
+- [[decisions/sprint-4c]] — stabilization sprint that cancelled the runtime fallback and disabled compact public maps
 - [[decisions/cancelled-tasks]] — records the rejected runtime fallback and root-cause retry guidance
+- [[tasks/disable-compact-public-maps]] — public-rotation mitigation while compact binary regeneration is deferred

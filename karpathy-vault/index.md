@@ -94,6 +94,7 @@
 - [[tasks/local-server-hash-guard]] — Sprint 4c guard preventing missing-turn hash messages from crashing local/singleplayer matches
 - [[tasks/archive-endpoint-failures]] — Sprint 4c cleanup disabling broken archive writes through `archiveEnabled()`; S3-backed citizen archival deferred
 - [[tasks/leaderboard-player-count]] — Sprint 4c quick win showing the human-like player count in the leaderboard's Players only label
+- [[tasks/disable-compact-public-maps]] — Sprint 4c mitigation removing compact maps from public rotation while keeping opt-in compact paths
 - [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
 - [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response
 - [[tasks/registry-image-audit]] — Historical image-trust audit plan; outcome was conservative pre-hardening image quarantine

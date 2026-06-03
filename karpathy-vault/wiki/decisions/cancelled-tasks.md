@@ -127,3 +127,4 @@ Keep cancelled work in one durable page instead of deleting context from the wik
 - [[decisions/stale-build-zombie-tabs]] — HF-11e context
 - [[features/tutorial]] — tutorial follow-up work and the narrower fixes that shipped instead
 - [[tasks/compact-map-click-interaction]] — investigation whose proposed runtime fallback was rejected by live testing
+- [[tasks/disable-compact-public-maps]] — public-rotation mitigation chosen after the runtime compact-map fallback was rejected

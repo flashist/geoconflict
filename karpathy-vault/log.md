@@ -605,3 +605,10 @@
 - Changed source files detected: 1
 - Ingested: `ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md` → updated [[wiki/decisions/cancelled-tasks]], [[wiki/tasks/compact-map-click-interaction]]
 - Skipped (already covered): none
+
+## 2026-06-03 — ingest
+- Sync window: `3c7e4ab87871dc1e4781eab87cd8c6b33bfd1c2f` → HEAD (`dd81922dcfa00c53e576154e9d8b847763988482`)
+- Changed source files detected: 4
+- Ingested: `ai-agents/sprints/plan-sprint-4c.md` → updated [[wiki/decisions/sprint-4c]], [[wiki/decisions/sprint-4b]], [[wiki/tasks/sprint4b-compact-map-rotation]], [[wiki/tasks/sprint4b-weird-setting-modifier]], [[wiki/tasks/compact-map-click-interaction]]
+- Ingested: `ai-agents/tasks/done/s4c-disable-compact-public-maps.md` → created [[wiki/tasks/disable-compact-public-maps]]; updated [[wiki/decisions/sprint-4c]], [[wiki/decisions/sprint-4b]], [[wiki/tasks/sprint4b-compact-map-rotation]], [[wiki/tasks/sprint4b-weird-setting-modifier]], [[wiki/tasks/compact-map-click-interaction]], [[wiki/decisions/cancelled-tasks]], index.md
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4c-disable-compact-public-maps.md`, `ai-agents/tasks/backlog/s5-fix-compact-map-shore-generation.md` — backlog files are not ingested directly by wiki-sync; the completed Sprint 4c mitigation is represented by [[wiki/tasks/disable-compact-public-maps]]

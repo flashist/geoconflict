@@ -30,7 +30,7 @@ Tasks 4-6 are investigation or high-complexity work and should only start if tim
 | 5 | Investigate client null-id/null-object errors | 1.8/min | Wait until higher-rate telemetry noise is removed |
 | 6 | Mobile memory and WebGL rendering failures | 0.4/min | Treat as out of scope unless all earlier work ships early |
 
-The sprint plan also tracks two items outside the original production-error list: add a human-player count to the leaderboard's "Players only" label, and fix the compact-map boat-attack radial-menu regression with a runtime fallback. These are intentionally separate from the telemetry-driven stabilization priorities and should not displace Tasks 1-3.
+The sprint plan also tracks items outside the original production-error list: add a human-player count to the leaderboard's "Players only" label, resolve the compact-map boat-attack regression, and disable compact maps in public rotation while the root-cause map-regeneration fix is deferred. These are intentionally separate from the telemetry-driven stabilization priorities and should not displace Tasks 1-3.
 
 ## Consequences
 
@@ -39,7 +39,9 @@ The sprint plan also tracks two items outside the original production-error list
 - Error-rate reduction is the delivery metric: clean Uptrace data is expected to make the post-travel return to Sprint 4 development safer.
 - The cosmetics task is the highest-leverage first fix because it removes the largest telemetry noise family and improves signal quality for all lower-rate investigations.
 - Any fix whose implementation timeline becomes unclear should defer to the post-travel backlog rather than risking the May 15 deadline.
-- Backlog additions that are not production-error fixes, such as the leaderboard human-count label and compact-map boat fallback, remain opportunistic unless they directly protect match quality; they should not change the sprint's stabilization goal.
+- Backlog additions that are not production-error fixes, such as the leaderboard human-count label and compact-map work, remain opportunistic unless they directly protect match quality; they should not change the sprint's stabilization goal.
+- The compact-map runtime fallback was cancelled after live testing selected semantically wrong coasts. Sprint 4c now disables compact maps only in public matchmaking; private lobby and singleplayer compact remain explicit opt-in paths.
+- With `mini_map` removed from `MATCH_MODIFIERS`, `weird_setting` becomes the only active public modifier and receives the full 20% modified-match budget.
 
 ## Related
 
@@ -54,3 +56,4 @@ The sprint plan also tracks two items outside the original production-error list
 - [[tasks/archive-endpoint-failures]] — third quick-win task now scoped to archive telemetry noise reduction
 - [[tasks/leaderboard-player-count]] — opportunistic leaderboard UX quick win from the Sprint 4c backlog
 - [[tasks/compact-map-click-interaction]] — investigation for the compact-map boat-attack button regression added to the Sprint 4c backlog
+- [[tasks/disable-compact-public-maps]] — public-rotation mitigation after the runtime compact-map workaround was rejected

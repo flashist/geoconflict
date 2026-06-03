@@ -21,7 +21,7 @@ Sprint 4b is closed with all planned public-matchmaking variety changes shipped 
 
 The sprint started with a one-day compatibility investigation covering compact maps plus Duos/Trios/Quads, then shipped the three implementation tracks.
 
-Rotation is locked to a configurable `MODIFIED_MATCH_RATE` of `0.2`: 80% normal matches, 10% compact-map matches, and 10% weird-setting matches. Weird-setting matches then split evenly across four sub-options, about 2.5% of all matches each.
+Rotation originally used a configurable `MODIFIED_MATCH_RATE` of `0.2`: 80% normal matches, 10% compact-map matches, and 10% weird-setting matches. Sprint 4c later disabled compact maps in public rotation because compact `map4x.bin` shore data breaks transport-boat targeting; with `mini_map` removed, weird-setting matches now receive the full 20% modified-match budget.
 
 No analytics are planned for these new features in Sprint 4b.
 
@@ -30,7 +30,7 @@ No analytics are planned for these new features in Sprint 4b.
 - Sprint 4b deliberately avoids citizenship, payments, player profile store, and start-screen redesign work while Sprint 4's core monetization track is paused; [[decisions/sprint-4c]] continues that pause with production stabilization instead of player-facing variety.
 - The compact-map and Duos/Trios/Quads work waited for investigation findings so map scale, player count, and AI-fill risks could be scoped before implementation.
 - The modifier system is mutually exclusive by design: a public match can be normal, compact, or weird-setting, but never compact and weird-setting at the same time.
-- The modifier registry now contains both `mini_map` and `weird_setting`, giving about 10% of public matches to each modifier family under the 20% modified-match rate.
+- The modifier system is still reversible, but as of Sprint 4c the active public registry contains only `weird_setting`; `MINI_MAP_MODIFIER` is retained in code for re-enable after compact binaries are regenerated.
 - Weird-setting badge wording shipped with initial coder-selected labels; Mark can still adjust localization wording after staging/player review.
 - The win-check regression investigation, sec10, and sec11 stayed outside Sprint 4b.
 
@@ -46,3 +46,4 @@ No analytics are planned for these new features in Sprint 4b.
 - [[tasks/sprint4b-compact-map-rotation]] — compact-map public modifier and Mini/Мини lobby badge implementation
 - [[tasks/sprint4b-duos-trios-quads]] — public-only implementation of Duos/Trios/Quads after the compatibility investigation
 - [[tasks/sprint4b-weird-setting-modifier]] — weird-setting public modifier and lobby badge implementation
+- [[tasks/disable-compact-public-maps]] — Sprint 4c mitigation that removed compact maps from public rotation

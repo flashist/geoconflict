@@ -10,7 +10,7 @@ Add compact maps to regular public matchmaking and make compact lobbies visible 
 
 ## Key Changes
 
-`src/server/MapPlaylist.ts` now exports `MODIFIED_MATCH_RATE = 0.2`, a `MatchModifier` type, `MATCH_MODIFIERS`, and `applyMatchModifier()`. Public lobby configs still start as normal-size maps, then `applyMatchModifier()` may merge one selected modifier override into the returned `GameConfig`. The first registered modifier is `mini_map`, which sets `gameMapSize: GameMapSize.Compact`.
+`src/server/MapPlaylist.ts` originally exported `MODIFIED_MATCH_RATE = 0.2`, a `MatchModifier` type, `MATCH_MODIFIERS`, and `applyMatchModifier()`. Public lobby configs start as normal-size maps, then `applyMatchModifier()` may merge one selected modifier override into the returned `GameConfig`. The first registered modifier was `mini_map`, which sets `gameMapSize: GameMapSize.Compact`.
 
 `src/client/PublicLobby.ts` renders a second badge next to the existing team/mode badge when `lobby.gameConfig.gameMapSize === GameMapSize.Compact`. The badge text uses `public_lobby.mini_map`, added to both `resources/lang/en.json` (`Mini`) and `resources/lang/ru.json` (`Мини`).
 
@@ -18,9 +18,9 @@ Add compact maps to regular public matchmaking and make compact lobbies visible 
 
 ## Outcome
 
-Compact public matches can now be produced through the shared modifier path, with no schema changes because `gameMapSize` already flows through `GameConfig` to public lobby rendering and match start.
+Compact public matches were initially produced through the shared modifier path, with no schema changes because `gameMapSize` already flows through `GameConfig` to public lobby rendering and match start.
 
-The registry now contains `mini_map` and `weird_setting`, so the configured 20% modified-match rate splits uniformly across compact and weird-setting matches. Compact maps are selected for about 10% of public matches.
+Sprint 4c later disabled `mini_map` in the active public registry after live testing confirmed the compact shore-bit defect cannot be fixed safely at runtime. `MINI_MAP_MODIFIER` is still defined in `MapPlaylist.ts` for a future one-line re-enable, but `MATCH_MODIFIERS` now contains only `weird_setting`, so compact maps are selected for 0% of public matches until the compact binaries are regenerated.
 
 No compact map exclusion list was added. The prior investigation accepted the known water-centered nation-coordinate cases as spawn-distribution risks rather than release blockers.
 
@@ -32,3 +32,4 @@ Follow-up debugging on 2026-05-11 found a separate compact-map regression: some 
 - [[tasks/sprint4b-mini-mode-investigation]]
 - [[tasks/sprint4b-weird-setting-modifier]]
 - [[tasks/compact-map-click-interaction]]
+- [[tasks/disable-compact-public-maps]]

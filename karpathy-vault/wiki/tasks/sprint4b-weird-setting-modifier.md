@@ -19,7 +19,7 @@ Add public-match gameplay modifiers to the shared modifier system created by the
 | No nukes | `disabledUnits: [UnitType.MissileSilo]` |
 | No SAM | `disabledUnits: [UnitType.SAMLauncher]` |
 
-`MATCH_MODIFIERS` now contains two top-level entries: `mini_map` and `weird_setting`. `applyMatchModifier()` still gates all modifiers through `MODIFIED_MATCH_RATE = 0.2`; when the weird-setting flag is selected, its `apply()` chooses one sub-option from `WEIRD_SETTING_OPTIONS`.
+`MATCH_MODIFIERS` originally contained two top-level entries: `mini_map` and `weird_setting`. `applyMatchModifier()` still gates all modifiers through `MODIFIED_MATCH_RATE = 0.2`; when the weird-setting flag is selected, its `apply()` chooses one sub-option from `WEIRD_SETTING_OPTIONS`.
 
 `src/client/PublicLobby.ts` derives the visible modifier label from `GameConfig` fields using `getWeirdModifierLabel()`, because the modifier ID is not passed to the client. The badge appears next to the existing team/mode badge and before the mini-map badge.
 
@@ -27,7 +27,7 @@ Add public-match gameplay modifiers to the shared modifier system created by the
 
 ## Outcome
 
-Public matchmaking can now produce normal matches, compact matches, or one of four weird-setting matches through the same mutually exclusive modifier registry. With the two current top-level modifiers and `MODIFIED_MATCH_RATE = 0.2`, compact and weird-setting matches each receive about 10% of all public matches; each weird-setting sub-option receives about 2.5%.
+Public matchmaking can produce normal matches or one of four weird-setting matches through the mutually exclusive modifier registry. Sprint 4c disabled `mini_map` in public rotation after compact-map boat targeting was found unsafe, so `weird_setting` is now the only active top-level modifier. With `MODIFIED_MATCH_RATE = 0.2`, weird-setting matches receive about 20% of all public matches; each sub-option receives about 5%.
 
 No schema changes were required. The modified fields already exist in `GameConfig`, and disabled unit enforcement already flows through build validation.
 
@@ -35,3 +35,4 @@ No schema changes were required. The modified fields already exist in `GameConfi
 
 - [[decisions/sprint-4b]]
 - [[tasks/sprint4b-compact-map-rotation]]
+- [[tasks/disable-compact-public-maps]]
