@@ -4,7 +4,13 @@
 Sprint 5 — Backlog (high effort, requires full map regeneration)
 
 ## Priority
-Low — the Sprint 4c runtime fallback (`s4c-fix-compact-map-boat-attack.md`) restores boat-attack functionality. This task corrects the underlying data defect and should ship when map regeneration is practical.
+Low — but now the **only** path to restoring boat-attack on compact maps. The Sprint 4c
+runtime fallback (`s4c-fix-compact-map-boat-attack.md`) was **cancelled 2026-06-02** (it
+sent boats to semantically wrong coasts — see the cancelled brief). Compact maps were
+pulled from the **public** rotation on 2026-06-03 (`s4c-disable-compact-public-maps.md`);
+they remain opt-in only in private lobbies and singleplayer, where the boat bug still
+exists. This task corrects the underlying data defect and is the prerequisite for ever
+re-enabling compact in public matchmaking. Ship when map regeneration is practical.
 
 ---
 

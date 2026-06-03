@@ -29,7 +29,8 @@ Source: `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`
 | ⬜ Backlog | Investigate Client Null-ID/Null-Object Errors | ~1.8/min | `s4c-investigate-null-id-errors.md` |
 | ⬜ Backlog | Mobile Memory and WebGL Rendering Failures | ~0.4/min | `s4c-mobile-webgl-rendering.md` |
 | ⬜ Backlog | Leaderboard: Show Human Player Count in Label | — | `s4c-leaderboard-player-count.md` |
-| ⬜ Backlog | Fix Compact Map Boat-Attack Button (Runtime Fallback) | Sprint 4b regression | `s4c-fix-compact-map-boat-attack.md` |
+| ⛔ Cancelled | Fix Compact Map Boat-Attack Button (Runtime Fallback) | Sprint 4b regression | `cancelled/s4c-fix-compact-map-boat-attack.md` |
+| ⬜ Backlog | Disable Compact Maps in Public Rotation | Sprint 4b regression | `s4c-disable-compact-public-maps.md` |
 
 ---
 
@@ -59,4 +60,5 @@ Tasks 4–6 require investigation before implementation scope is clear. Task 6 (
 - The telemetry report's recommended fix order matches the task priority above: cosmetics first (largest noise), then hash guard (direct crash), then archive, then lobby/map, then null errors, then mobile rendering.
 - Removing the ~138.6/min cosmetics error family is the highest-leverage single action: it will meaningfully improve signal quality in Uptrace for all future investigations.
 - The null-id investigation (Task 5) should not be started until Tasks 1–3 are deployed, because the current telemetry is too noisy for reliable pattern analysis on lower-rate clusters.
+- Compact maps are being pulled from the **public** rotation (`s4c-disable-compact-public-maps.md`, 2026-06-03) because the `isShore` boat-attack defect is not runtime-fixable (the runtime fallback `cancelled/s4c-fix-compact-map-boat-attack.md` was cancelled 2026-06-02 — it sent boats to semantically wrong coasts; the data the compact binary destroyed cannot be reconstructed at runtime) and compact gameplay is not meaningfully different from normal matches. Private lobby + singleplayer compact stay opt-in. Re-enabling public compact is gated on the Sprint 5 map-gen fix `s5-fix-compact-map-shore-generation.md`. With `mini_map` removed, the existing `weird_setting` modifier absorbs the full 20% modified-match budget (intended).
 - The archive task was split on 2026-06-01 (see `report-archive-endpoint-task-split-2026-06-01.md`). The Sprint 4c half (`s4c-reduce-archive-telemetry-noise.md`) just disables the dead, consumer-less archive path to clear the ~26.6/min noise. The real S3-backed, citizen-gated archival is assigned to Sprint 4 (`s4-archive-s3-backed-citizen-gated.md`), sequenced after the player profile store + citizenship implementation.
