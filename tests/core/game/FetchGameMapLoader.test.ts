@@ -111,4 +111,16 @@ describe("FetchGameMapLoader.fetchWithRetry", () => {
     expect(result).toEqual(manifest);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it("recovers when a 5xx succeeds on retry", async () => {
+    const manifest = { name: "world" };
+    fetchMock
+      .mockResolvedValueOnce(errorResponse(503, "Service Unavailable"))
+      .mockResolvedValueOnce(jsonResponse(manifest));
+
+    const result = await makeLoader().getMapData(MAP).manifest();
+
+    expect(result).toEqual(manifest);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });
