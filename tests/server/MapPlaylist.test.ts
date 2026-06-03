@@ -14,6 +14,7 @@ import { GameConfig } from "../../src/core/Schemas";
 import {
   applyMatchModifier,
   MATCH_MODIFIERS,
+  MINI_MAP_MODIFIER,
   MapPlaylist,
   MODIFIED_MATCH_RATE,
   REGULAR_TEAM_COUNTS,
@@ -81,12 +82,22 @@ describe("MapPlaylist", () => {
     expect(MODIFIED_MATCH_RATE).toBe(0.2);
   });
 
-  test("public rotation modifiers are registered", () => {
+  test("public rotation registers only the weird-setting modifier", () => {
+    // mini_map is disabled in the public rotation (s4c) until the compact map4x.bin
+    // binaries are regenerated in s5-fix-compact-map-shore-generation.md.
     expect(MATCH_MODIFIERS).toEqual([
-      expect.objectContaining({ id: "mini_map" }),
       expect.objectContaining({ id: "weird_setting" }),
     ]);
-    expect(MATCH_MODIFIERS[0].apply()).toEqual({
+    expect(MATCH_MODIFIERS.some((modifier) => modifier.id === "mini_map")).toBe(
+      false,
+    );
+  });
+
+  test("disabled mini_map definition is retained for re-enabling after s5", () => {
+    // The definition stays in the file so re-enabling is a one-line change. It must
+    // still produce a compact map config so adding it back to MATCH_MODIFIERS works.
+    expect(MINI_MAP_MODIFIER.id).toBe("mini_map");
+    expect(MINI_MAP_MODIFIER.apply()).toEqual({
       gameMapSize: GameMapSize.Compact,
     });
   });
@@ -108,16 +119,28 @@ describe("MapPlaylist", () => {
     expect(gameConfig.gameMapSize).toBe(GameMapSize.Normal);
   });
 
-  test("modifier application can select compact maps", () => {
-    const gameConfig = testGameConfig();
-    const randomValues = [0, 0];
+  test("no public config is ever assigned a compact map", () => {
+    const playlist = new MapPlaylist(false);
 
-    applyMatchModifier(gameConfig, () => randomValues.shift() ?? 0);
-
-    expect(gameConfig.gameMapSize).toBe(GameMapSize.Compact);
+    for (let i = 0; i < 200; i++) {
+      expect(playlist.gameConfig().gameMapSize).toBe(GameMapSize.Normal);
+    }
   });
 
-  test("modifier application can select a weird setting without compact maps", () => {
+  test("weird_setting is the only modifier selected within the modified rate", () => {
+    // Drive the modifier selection across the full random range with a rate-passing
+    // gate; it must always apply a weird setting and never switch to a compact map.
+    for (const selector of [0, 0.25, 0.5, 0.75, 0.999]) {
+      const gameConfig = testGameConfig();
+      const randomValues = [0, selector]; // 0 -> passes the modified-match rate gate
+
+      applyMatchModifier(gameConfig, () => randomValues.shift() ?? 0);
+
+      expect(gameConfig.gameMapSize).toBe(GameMapSize.Normal);
+    }
+  });
+
+  test("modifier application applies the weird setting within the rate", () => {
     const gameConfig = testGameConfig();
     const randomValues = [0, 0.75];
     const mathRandomSpy = jest.spyOn(Math, "random").mockReturnValue(0.5);

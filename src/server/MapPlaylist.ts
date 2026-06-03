@@ -34,11 +34,20 @@ export const WEIRD_SETTING_OPTIONS: Array<() => Partial<GameConfig>> = [
   () => ({ disabledUnits: [UnitType.SAMLauncher] }),
 ];
 
+// DISABLED 2026-06-03 (s4c-disable-compact-public-maps): compact public matches carry the
+// unresolvable isShore boat-attack defect — half-resolution downsampling drops coastal isShore
+// data, which breaks the transport-boat radial action on tiles that visually border water. The
+// runtime workaround was cancelled (it sent boats to semantically wrong coasts), so the only real
+// fix is regenerating all 30 map4x.bin binaries in s5-fix-compact-map-shore-generation.md. This
+// definition is kept here so re-enabling after s5 lands is a one-line change: add
+// MINI_MAP_MODIFIER back into MATCH_MODIFIERS below.
+export const MINI_MAP_MODIFIER: MatchModifier = {
+  id: "mini_map",
+  apply: () => ({ gameMapSize: GameMapSize.Compact }),
+};
+
 export const MATCH_MODIFIERS: MatchModifier[] = [
-  {
-    id: "mini_map",
-    apply: () => ({ gameMapSize: GameMapSize.Compact }),
-  },
+  // MINI_MAP_MODIFIER, // re-enable after s5-fix-compact-map-shore-generation.md (see note above)
   {
     id: "weird_setting",
     apply: () => {
