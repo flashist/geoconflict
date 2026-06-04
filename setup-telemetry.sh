@@ -128,7 +128,10 @@ apt-get update -y && apt-get upgrade -y
 # repeatedly tripped the kernel OOM-killer and eventually froze the entire host
 # (unreachable over both network and the provider console). A swapfile gives the
 # kernel a cushion so a transient spike is paged out instead of wedging the box.
-# Idempotent: skips creation if a /swapfile is already active.
+# Idempotent: skips creation if a /swapfile is already active. NOTE: this matches
+# on presence only — it does NOT resize. Changing TELEMETRY_SWAP_SIZE_GB on a box
+# that already has a /swapfile is a no-op; to resize, manually `swapoff /swapfile`
+# and delete it first, then re-run.
 print_header "CONFIGURING SWAP"
 
 # Build /swapfile with one allocation method, then mkswap + swapon. Returns
