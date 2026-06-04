@@ -16,7 +16,6 @@
 //                          https for remote hosts and the ?grpc=... hint is dropped.
 //   PUBLIC_ORIGIN          required when uploading; origin of served bundles, e.g. https://geoconflict.ru
 //   GIT_COMMIT             build commit; used as service_version (default "unknown")
-//   SERVICE_NAME           OTEL service.name (default "geoconflict-client")
 //   STATIC_DIR             dir holding the bundles + maps (default <repo>/static/js)
 
 import fs from "fs";
@@ -31,7 +30,10 @@ const rootDir = path.resolve(
 const dsn = process.env.UPTRACE_SOURCEMAP_DSN;
 const publicOrigin = process.env.PUBLIC_ORIGIN;
 const serviceVersion = process.env.GIT_COMMIT ?? "unknown";
-const serviceName = process.env.SERVICE_NAME ?? "geoconflict-client";
+// Must match the client's hardcoded service.name in src/client/OtelBrowserInit.ts —
+// Uptrace keys source maps by service_name + minified_url, and the client value is
+// not env-configurable, so this isn't either (an override could only mis-key).
+const serviceName = "geoconflict-client";
 const staticDir = process.env.STATIC_DIR ?? path.join(rootDir, "static/js");
 
 function warn(message) {
