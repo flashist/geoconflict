@@ -809,11 +809,9 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
 
-    # Source map uploads (POST /api/v1/sourcemaps → Uptrace via location /) can be
-    # several MB; raise from nginx's 1 MB default to Uptrace's 64 MB per-upload limit.
-    client_max_body_size 64m;
-
-    # OTLP HTTP — /v1/traces, /v1/logs, /v1/metrics
+    # OTLP HTTP — /v1/traces, /v1/logs, /v1/metrics.
+    # No client_max_body_size here, so this anonymous ingestion path keeps nginx's
+    # 1 MB default. The larger limit is scoped to location / (uploads) below.
     location /v1/ {
         proxy_pass http://127.0.0.1:4318;
         proxy_set_header Host \$host;
@@ -833,6 +831,10 @@ server {
     # proxy_http_version 1.1 + Upgrade/Connection headers: required for WebSocket
     # proxying (Uptrace uses WebSockets for live query results).
     location / {
+        # Source map uploads (POST /api/v1/sourcemaps → Uptrace) can be several MB;
+        # raise from nginx's 1 MB default to Uptrace's 64 MB per-upload limit. Scoped
+        # here (not server-wide) so the anonymous /v1/ OTLP path keeps the tight default.
+        client_max_body_size 64m;
         proxy_pass http://127.0.0.1:14318;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
