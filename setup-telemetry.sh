@@ -131,6 +131,23 @@ apt-get update -y && apt-get upgrade -y
 # Idempotent: skips creation if a /swapfile is already active.
 print_header "CONFIGURING SWAP"
 
+# Build /swapfile with one allocation method, then mkswap + swapon. Returns
+# non-zero if any step fails — including the case where fallocate "succeeds" but
+# produces a holey file that swapon rejects (e.g. btrfs/CoW filesystems).
+try_enable_swapfile() {
+    local method="$1"   # "fallocate" or "dd"
+    rm -f /swapfile
+    if [ "$method" = "fallocate" ]; then
+        fallocate -l "${TELEMETRY_SWAP_SIZE_GB}G" /swapfile || return 1
+    else
+        dd if=/dev/zero of=/swapfile bs=1M count=$((TELEMETRY_SWAP_SIZE_GB * 1024)) status=none || return 1
+    fi
+    chmod 600 /swapfile || return 1
+    mkswap /swapfile >/dev/null 2>&1 || return 1
+    swapon /swapfile 2>/dev/null || return 1
+    return 0
+}
+
 if [ "$TELEMETRY_SWAP_SIZE_GB" -eq 0 ]; then
     echo "TELEMETRY_SWAP_SIZE_GB=0; skipping swap management"
 elif swapon --show 2>/dev/null | grep -q '/swapfile'; then
@@ -138,16 +155,21 @@ elif swapon --show 2>/dev/null | grep -q '/swapfile'; then
     swapon --show
 else
     echo "Creating ${TELEMETRY_SWAP_SIZE_GB}G swapfile at /swapfile..."
-    # fallocate is fast but unsupported on some filesystems for swap; fall back to dd.
-    if ! fallocate -l "${TELEMETRY_SWAP_SIZE_GB}G" /swapfile 2>/dev/null; then
+    # fallocate is fast and fine on ext4; on CoW filesystems it can yield a holey
+    # file that swapon rejects, so fall back to dd (writes real blocks). Each
+    # step is guarded so a failure does not trip set -e and abort the whole deploy.
+    if try_enable_swapfile fallocate; then
+        grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+        swapon --show
+    elif echo "fallocate path failed (holey/unsupported file?); retrying with dd..." && try_enable_swapfile dd; then
+        grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+        swapon --show
+    else
         rm -f /swapfile
-        dd if=/dev/zero of=/swapfile bs=1M count=$((TELEMETRY_SWAP_SIZE_GB * 1024)) status=none
+        echo "⚠️  ⚠️  ⚠️  SWAP SETUP FAILED — continuing WITHOUT swap."
+        echo "⚠️  This box is at OOM risk under memory pressure (the 2026-06 freeze cause)."
+        echo "⚠️  Investigate manually: check disk space and filesystem support for swapfiles."
     fi
-    chmod 600 /swapfile
-    mkswap /swapfile
-    swapon /swapfile
-    grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
-    swapon --show
 fi
 
 # Prefer RAM; only spill to swap under real pressure. Persist across reboots.
