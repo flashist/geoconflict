@@ -21,7 +21,7 @@
 - [[systems/rendering]] — Layered client rendering, mixed canvas/Lit UI, and camera transform orchestration
 - [[systems/flashist-init]] — FlashistFacade startup ordering, Yandex SDK bootstrap, and experiment flag init
 - [[systems/analytics]] — GameAnalytics player behaviour tracking: event conventions, experiment funnels, and monetization measurement baselines
-- [[systems/telemetry]] — OTEL/Uptrace server observability, ClickHouse VPS guardrails, and production error investigation workflows
+- [[systems/telemetry]] — OTEL/Uptrace server/client observability, source maps, ClickHouse VPS guardrails, and investigation workflows
 - [[systems/configuration]] — GAME_ENV, /api/env, runtime public settings, and gameplay/server config selection
 - [[systems/localization]] — LangSelector and translateText flow for bundled UI translations and English fallback
 - [[systems/server-performance]] — Server-side lag candidates ranked by likelihood; `endTurn()` performance analysis
@@ -38,7 +38,7 @@
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
 - [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation plus shipped tasks and carried null-ID/archival follow-ups
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
-- [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, lobby/map fetch fixed, compact public maps disabled, mobile WebGL deferred
+- [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
 - [[decisions/sprint-backlog]] — No-sprint backlog for defined work that needs a sprint home, including deferred mobile WebGL stability
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
@@ -96,6 +96,7 @@
 - [[tasks/archive-endpoint-failures]] — Sprint 4c cleanup disabling broken archive writes through `archiveEnabled()`; S3-backed citizen archival deferred
 - [[tasks/leaderboard-player-count]] — Sprint 4c quick win showing the human-like player count in the leaderboard's Players only label
 - [[tasks/disable-compact-public-maps]] — Sprint 4c mitigation removing compact maps from public rotation while keeping opt-in compact paths
+- [[tasks/s4c-enable-client-source-maps]] — Sprint 4c source-map upload pipeline for Uptrace client stack symbolication
 - [[tasks/s4c-investigate-lobby-map-fetch]] — Sprint 4c fix for lobby polling noise and map manifest fetch failures
 - [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
 - [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response

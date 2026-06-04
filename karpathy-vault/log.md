@@ -630,3 +630,15 @@
 - Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], index.md
 - Ingested: `ai-agents/sprints/plan-sprint-4c.md` → updated [[wiki/decisions/sprint-4c]], index.md
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-investigate-null-id-errors.md`, `ai-agents/tasks/backlog/s4c-enable-client-source-maps.md` — backlog files are not ingested directly by wiki-sync; the null-ID follow-up is summarized through [[wiki/decisions/sprint-4]] and source-map enablement through [[wiki/decisions/sprint-4c]]
+
+## 2026-06-04 — lint
+- Issues found: 0
+- Issues fixed: 0
+- Issues flagged for human review: 0
+- Full wiki health-check passed: index/file coverage, required metadata, wiki-link resolution, backlinks, orphan scan, and local source-path references are clean.
+
+## 2026-06-04 — ingest
+- Sync window: `510e9f156df286c7b1b30c550d978de895241a19` → HEAD (`0cf324850b8d1bc0d171b1a2ed05cef764918ddc`)
+- Changed source files detected: 1
+- Ingested: `ai-agents/tasks/done/s4c-enable-client-source-maps.md` → created [[wiki/tasks/s4c-enable-client-source-maps]]; updated [[wiki/systems/telemetry]], [[wiki/decisions/sprint-4c]], [[wiki/decisions/sprint-4]], index.md
+- Skipped (already covered): none

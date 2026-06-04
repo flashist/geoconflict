@@ -1,7 +1,7 @@
 # Telemetry System (OTEL / Uptrace)
 
 **Layer**: server
-**Key files**: `src/server/Logger.ts`, `src/server/WorkerMetrics.ts`, `src/server/OtelTracing.ts`, `src/server/GameServer.ts`, `src/server/PrivilegeRefresher.ts`, `src/server/Archive.ts`, `src/client/LocalServer.ts`
+**Key files**: `src/server/Logger.ts`, `src/server/WorkerMetrics.ts`, `src/server/OtelTracing.ts`, `src/server/GameServer.ts`, `src/server/PrivilegeRefresher.ts`, `src/server/Archive.ts`, `src/client/LocalServer.ts`, `src/client/OtelBrowserInit.ts`, `webpack.config.js`, `build.sh`, `Dockerfile`, `scripts/upload-sourcemaps.js`
 
 ## Summary
 
@@ -10,7 +10,7 @@ OpenTelemetry-based server observability. Production server emits logs, metrics,
 **Uptrace is for:** lag spikes, server errors, resource usage, per-worker correlation.
 **Uptrace is NOT for:** player behaviour, funnels, A/B tests, tutorial completion — use GameAnalytics for those (see [[systems/analytics]]).
 
-Sources: `ai-agents/knowledge-base/uptrace-knowledge-base.md`, `ai-agents/knowledge-base/telemetry-recovery-hardening-2026-05-07.md`, `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`, `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md`, `ai-agents/knowledge-base/telemetry-clickhouse-system-log-retention-2026-05-08.md`, `ai-agents/knowledge-base/telemetry-clickhouse-file-log-hardening-2026-05-10.md`, `ai-agents/knowledge-base/plan-fix-archive-endpoint.md`, `ai-agents/knowledge-base/report-archive-endpoint-task-split-2026-06-01.md`, `ai-agents/knowledge-base/telemetry-server-incident-history-2026-06-03.md`, `ai-agents/knowledge-base/monitoring-alert-bot-findings-2026-06-04.md`, `ai-agents/knowledge-base/lobby-map-fetch-investigation-2026-06-03.md`
+Sources: `ai-agents/knowledge-base/uptrace-knowledge-base.md`, `ai-agents/knowledge-base/telemetry-recovery-hardening-2026-05-07.md`, `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`, `ai-agents/knowledge-base/telemetry-retention-review-2026-05-07.md`, `ai-agents/knowledge-base/telemetry-clickhouse-system-log-retention-2026-05-08.md`, `ai-agents/knowledge-base/telemetry-clickhouse-file-log-hardening-2026-05-10.md`, `ai-agents/knowledge-base/plan-fix-archive-endpoint.md`, `ai-agents/knowledge-base/report-archive-endpoint-task-split-2026-06-01.md`, `ai-agents/knowledge-base/telemetry-server-incident-history-2026-06-03.md`, `ai-agents/knowledge-base/monitoring-alert-bot-findings-2026-06-04.md`, `ai-agents/knowledge-base/lobby-map-fetch-investigation-2026-06-03.md`, `ai-agents/tasks/done/s4c-enable-client-source-maps.md`
 
 ## Architecture
 
@@ -61,6 +61,19 @@ Child spans:
 ### Error investigation
 1. Uptrace → Logs → severity `error` → search by message text or `gameID`
 2. Full stack trace is in the message body
+
+### Client Source-Map Symbolication
+
+Production client builds use `hidden-source-map` in `webpack.config.js`, so `.js.map` files are emitted without browser-facing source-map comments. During the Docker build, `scripts/upload-sourcemaps.js` uploads those maps to Uptrace using an optional BuildKit secret from `UPTRACE_SOURCEMAP_DSN`; `build.sh` also passes `PUBLIC_ORIGIN` so the uploaded `minified_url` matches browser stack-trace URLs. The Dockerfile then removes `static/js/*.map` before the runtime image is assembled, and `src/server/Master.ts` 404s `.map` requests as defense in depth.
+
+Uptrace resolution depends on key alignment:
+
+- `service_name` in uploads is hardcoded to `geoconflict-client`.
+- `service_version` is `GIT_COMMIT`, matching `ATTR_SERVICE_VERSION` in `src/client/OtelBrowserInit.ts`.
+- Browser telemetry explicitly sets `telemetry.sdk.language = "webjs"` because Uptrace only symbolicates browser JavaScript resources tagged that way.
+- Upload is best-effort: missing DSN, missing `PUBLIC_ORIGIN`, or upload failures do not block deploys, but those builds' client traces will not resolve.
+
+See [[tasks/s4c-enable-client-source-maps]].
 
 ### Match lookup by game ID
 1. Uptrace → Logs → search `gameID` string → shows join/start/end/archive events
@@ -139,6 +152,7 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 - Winston OTEL transport silently drops extra arguments — embed all error details in the message string
 - Structured fields passed as second arg to `log.info()` may not arrive as attributes in Uptrace — verify in live instance
 - `OTEL_EXPORTER_OTLP_ENDPOINT` absent in dev → no telemetry data for dev environments
+- Client source maps resolve only when `UPTRACE_SOURCEMAP_DSN`, `PUBLIC_ORIGIN`, `GIT_COMMIT`, uploaded `service_name`, uploaded `service_version`, and client OTEL resource attributes line up. A successful build with missing upload configuration still deploys, but minified client stacks stay unresolved.
 - `setup-telemetry.sh` must not generate top-level `ch:` config for Uptrace `2.0.2`; that config shape crashes Uptrace on startup and can surface externally as nginx `502 Bad Gateway`
 - Do not rely on Uptrace 2.x default retention. On 2026-05-07 the live project default was 28 days; repo-managed setup should keep `UPTRACE_RETENTION_DAYS=7` for spans/logs/events unless the VPS disk size or ingest volume changes, and keep `UPTRACE_METRICS_RETENTION_DAYS=90` for longer performance trends.
 - Uptrace project TTL fields are nanoseconds. Dividing by `86400000000000.0` should show `7.000...` for a 7-day TTL; `0.007` means the script used microseconds and is wrong.
@@ -168,4 +182,5 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 - [[tasks/cosmetics-serving]] — Sprint 4c fix for the highest-rate cosmetics error family
 - [[tasks/local-server-hash-guard]] — Sprint 4c guard for the singleplayer/local hash crash family
 - [[tasks/archive-endpoint-failures]] — Sprint 4c archive telemetry noise cleanup
+- [[tasks/s4c-enable-client-source-maps]] — Sprint 4c source-map upload pipeline for client error symbolication
 - [[tasks/s4c-investigate-lobby-map-fetch]] — Sprint 4c investigation and fix for public lobby and map manifest fetch errors
