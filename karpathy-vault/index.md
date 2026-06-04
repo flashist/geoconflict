@@ -21,7 +21,7 @@
 - [[systems/rendering]] — Layered client rendering, mixed canvas/Lit UI, and camera transform orchestration
 - [[systems/flashist-init]] — FlashistFacade startup ordering, Yandex SDK bootstrap, and experiment flag init
 - [[systems/analytics]] — GameAnalytics player behaviour tracking: event conventions, experiment funnels, and monetization measurement baselines
-- [[systems/telemetry]] — OTEL/Uptrace server observability: logs, metrics, slow-turn spans, investigation workflows
+- [[systems/telemetry]] — OTEL/Uptrace server observability, ClickHouse VPS guardrails, and production error investigation workflows
 - [[systems/configuration]] — GAME_ENV, /api/env, runtime public settings, and gameplay/server config selection
 - [[systems/localization]] — LangSelector and translateText flow for bundled UI translations and English fallback
 - [[systems/server-performance]] — Server-side lag candidates ranked by likelihood; `endTurn()` performance analysis
@@ -36,9 +36,9 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
-- [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation plus shipped tutorial, missions, solo-loss, email, Telegram, and AI-lobby follow-ups
+- [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation plus shipped tasks and carried null-ID/archival follow-ups
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
-- [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, compact public maps disabled, mobile WebGL deferred to backlog
+- [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, lobby/map fetch fixed, compact public maps disabled, mobile WebGL deferred
 - [[decisions/sprint-backlog]] — No-sprint backlog for defined work that needs a sprint home, including deferred mobile WebGL stability
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
@@ -96,6 +96,7 @@
 - [[tasks/archive-endpoint-failures]] — Sprint 4c cleanup disabling broken archive writes through `archiveEnabled()`; S3-backed citizen archival deferred
 - [[tasks/leaderboard-player-count]] — Sprint 4c quick win showing the human-like player count in the leaderboard's Players only label
 - [[tasks/disable-compact-public-maps]] — Sprint 4c mitigation removing compact maps from public rotation while keeping opt-in compact paths
+- [[tasks/s4c-investigate-lobby-map-fetch]] — Sprint 4c fix for lobby polling noise and map manifest fetch failures
 - [[tasks/incident-response-index]] — Security incident coordination page for the VPS credential leak response
 - [[tasks/immediate-containment]] — Secret rotation, deploy freeze, and containment workflow for the leak response
 - [[tasks/registry-image-audit]] — Historical image-trust audit plan; outcome was conservative pre-hardening image quarantine

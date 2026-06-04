@@ -619,3 +619,14 @@
 - Ingested: `ai-agents/sprints/plan-sprint-4c.md` → updated [[wiki/decisions/sprint-4c]], index.md
 - Ingested: `ai-agents/sprints/sprint-backlog.md` → created [[wiki/decisions/sprint-backlog]]; updated [[wiki/decisions/product-strategy]], [[wiki/systems/project-operations]], [[wiki/systems/rendering]], [[wiki/tasks/mobile-quick-wins]], [[wiki/decisions/sprint-4c]], index.md
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/mobile-webgl-rendering.md` — backlog files are not ingested directly by wiki-sync; the deferral is summarized through [[wiki/decisions/sprint-backlog]] and [[wiki/decisions/sprint-4c]]
+
+## 2026-06-04 — ingest
+- Sync window: `d075db34fba931851f74a7982fa51f8909b1caf3` → HEAD (`510e9f156df286c7b1b30c550d978de895241a19`)
+- Changed source files detected: 8
+- Ingested: `ai-agents/knowledge-base/monitoring-alert-bot-findings-2026-06-04.md` → updated [[wiki/systems/telemetry]]
+- Ingested: `ai-agents/knowledge-base/telemetry-server-incident-history-2026-06-03.md` → updated [[wiki/systems/telemetry]]
+- Ingested: `ai-agents/knowledge-base/lobby-map-fetch-investigation-2026-06-03.md` → created [[wiki/tasks/s4c-investigate-lobby-map-fetch]]; updated [[wiki/systems/telemetry]], [[wiki/decisions/sprint-4c]], index.md
+- Ingested: `ai-agents/tasks/done/s4c-investigate-lobby-map-fetch.md` → created/updated [[wiki/tasks/s4c-investigate-lobby-map-fetch]]; updated [[wiki/decisions/sprint-4c]], [[wiki/systems/telemetry]], index.md
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], index.md
+- Ingested: `ai-agents/sprints/plan-sprint-4c.md` → updated [[wiki/decisions/sprint-4c]], index.md
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-investigate-null-id-errors.md`, `ai-agents/tasks/backlog/s4c-enable-client-source-maps.md` — backlog files are not ingested directly by wiki-sync; the null-ID follow-up is summarized through [[wiki/decisions/sprint-4]] and source-map enablement through [[wiki/decisions/sprint-4c]]
