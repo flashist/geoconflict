@@ -15,16 +15,19 @@
 #   CLICKHOUSE_FILE_LOG_LEVEL — ClickHouse filesystem log level (default: warning)
 #   CLICKHOUSE_FILE_LOG_SIZE — max size per ClickHouse filesystem log before rotation (default: 50M)
 #   CLICKHOUSE_FILE_LOG_COUNT — rotated ClickHouse filesystem log files to keep (default: 2)
-#   CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO — ClickHouse memory cap ratio (default: 0.75)
+#   CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO — ClickHouse memory cap ratio (default: 0.6)
+#   CLICKHOUSE_DISABLE_METRIC_LOG — disable ClickHouse system.metric_log diagnostics (default: 1)
+#   TELEMETRY_SWAP_SIZE_GB — swapfile size in GB; 0 disables swap management (default: 4)
 #
 # What this script does:
-#   1. Installs Docker + Docker Compose plugin
-#   2. Writes docker-compose.yml, uptrace.yml, otel-collector.yaml to /opt/uptrace
-#   3. Starts all five containers (uptrace, clickhouse, postgres, redis, otelcol)
-#   4. Creates a systemd service for auto-start on reboot
-#   5. Adds weekly backup cron jobs for PostgreSQL
-#   6. Adds daily disk usage monitoring
-#   7. Prints connection info and DSN for the game server
+#   1. Ensures a swapfile exists (low-RAM VPS OOM cushion)
+#   2. Installs Docker + Docker Compose plugin
+#   3. Writes docker-compose.yml, uptrace.yml, otel-collector.yaml to /opt/uptrace
+#   4. Starts all five containers (uptrace, clickhouse, postgres, redis, otelcol)
+#   5. Creates a systemd service for auto-start on reboot
+#   6. Adds weekly backup cron jobs for PostgreSQL
+#   7. Adds daily disk usage monitoring
+#   8. Prints connection info and DSN for the game server
 
 set -e
 
@@ -61,7 +64,9 @@ CLICKHOUSE_TRUNCATE_FILE_LOGS="${CLICKHOUSE_TRUNCATE_FILE_LOGS:-1}"
 CLICKHOUSE_FILE_LOG_LEVEL="${CLICKHOUSE_FILE_LOG_LEVEL:-warning}"
 CLICKHOUSE_FILE_LOG_SIZE="${CLICKHOUSE_FILE_LOG_SIZE:-50M}"
 CLICKHOUSE_FILE_LOG_COUNT="${CLICKHOUSE_FILE_LOG_COUNT:-2}"
-CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO="${CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO:-0.75}"
+CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO="${CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO:-0.6}"
+CLICKHOUSE_DISABLE_METRIC_LOG="${CLICKHOUSE_DISABLE_METRIC_LOG:-1}"
+TELEMETRY_SWAP_SIZE_GB="${TELEMETRY_SWAP_SIZE_GB:-4}"
 if ! [[ "$UPTRACE_RETENTION_DAYS" =~ ^[0-9]+$ ]] || [ "$UPTRACE_RETENTION_DAYS" -lt 1 ]; then
     echo "Error: UPTRACE_RETENTION_DAYS must be a positive integer."
     exit 1
@@ -91,7 +96,11 @@ if ! [[ "$CLICKHOUSE_FILE_LOG_COUNT" =~ ^[0-9]+$ ]] || [ "$CLICKHOUSE_FILE_LOG_C
     exit 1
 fi
 if ! [[ "$CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO" =~ ^0\.[0-9]+$|^1(\.0+)?$ ]]; then
-    echo "Error: CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO must be between 0 and 1, for example 0.75."
+    echo "Error: CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO must be between 0 and 1, for example 0.6."
+    exit 1
+fi
+if ! [[ "$TELEMETRY_SWAP_SIZE_GB" =~ ^[0-9]+$ ]]; then
+    echo "Error: TELEMETRY_SWAP_SIZE_GB must be a non-negative integer (GB). Use 0 to disable swap management."
     exit 1
 fi
 UPTRACE_RETENTION_NS=$((UPTRACE_RETENTION_DAYS * 86400 * 1000000000))
@@ -112,6 +121,40 @@ is_truthy() {
 
 print_header "UPDATING SYSTEM"
 apt-get update -y && apt-get upgrade -y
+
+# ── Swap ────────────────────────────────────────────────────────────────────────
+# The telemetry VPS has limited RAM (~3.8 GB) and originally shipped with NO swap.
+# ClickHouse memory spikes — notably background merges of internal diagnostics —
+# repeatedly tripped the kernel OOM-killer and eventually froze the entire host
+# (unreachable over both network and the provider console). A swapfile gives the
+# kernel a cushion so a transient spike is paged out instead of wedging the box.
+# Idempotent: skips creation if a /swapfile is already active.
+print_header "CONFIGURING SWAP"
+
+if [ "$TELEMETRY_SWAP_SIZE_GB" -eq 0 ]; then
+    echo "TELEMETRY_SWAP_SIZE_GB=0; skipping swap management"
+elif swapon --show 2>/dev/null | grep -q '/swapfile'; then
+    echo "Swap already active; leaving it in place:"
+    swapon --show
+else
+    echo "Creating ${TELEMETRY_SWAP_SIZE_GB}G swapfile at /swapfile..."
+    # fallocate is fast but unsupported on some filesystems for swap; fall back to dd.
+    if ! fallocate -l "${TELEMETRY_SWAP_SIZE_GB}G" /swapfile 2>/dev/null; then
+        rm -f /swapfile
+        dd if=/dev/zero of=/swapfile bs=1M count=$((TELEMETRY_SWAP_SIZE_GB * 1024)) status=none
+    fi
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    swapon --show
+fi
+
+# Prefer RAM; only spill to swap under real pressure. Persist across reboots.
+sysctl -w vm.swappiness=10 >/dev/null 2>&1 || true
+if [ -f /etc/sysctl.conf ] && ! grep -q '^vm.swappiness' /etc/sysctl.conf; then
+    echo 'vm.swappiness=10' >> /etc/sysctl.conf
+fi
 
 # ── Docker ────────────────────────────────────────────────────────────────────
 
@@ -227,6 +270,26 @@ fi
 
 # ── ClickHouse config ─────────────────────────────────────────────────────────
 
+# metric_log / asynchronous_metric_log are pure ClickHouse internal diagnostics.
+# On this small VPS metric_log grew to ~480 MB and its background merges drove
+# repeated MEMORY_LIMIT_EXCEEDED errors and OOM-kills (the root cause of the
+# 2026-06 freeze). remove="1" disables those tables entirely — no inserts, no
+# merges, no memory churn. Set CLICKHOUSE_DISABLE_METRIC_LOG=0 to keep them with
+# a short TTL instead.
+if is_truthy "$CLICKHOUSE_DISABLE_METRIC_LOG"; then
+    METRIC_LOG_XML='    <metric_log remove="1"/>
+    <asynchronous_metric_log remove="1"/>'
+else
+    METRIC_LOG_XML="    <metric_log>
+        <ttl>event_date + INTERVAL ${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS} DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </metric_log>
+    <asynchronous_metric_log>
+        <ttl>event_date + INTERVAL ${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS} DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </asynchronous_metric_log>"
+fi
+
 cat > "$UPTRACE_DIR/clickhouse-system-logs.xml" << EOF
 <clickhouse>
     <trace_log>
@@ -238,14 +301,7 @@ cat > "$UPTRACE_DIR/clickhouse-system-logs.xml" << EOF
         <ttl>event_date + INTERVAL ${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS} DAY DELETE</ttl>
         <flush_interval_milliseconds>7500</flush_interval_milliseconds>
     </text_log>
-    <metric_log>
-        <ttl>event_date + INTERVAL ${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS} DAY DELETE</ttl>
-        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
-    </metric_log>
-    <asynchronous_metric_log>
-        <ttl>event_date + INTERVAL ${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS} DAY DELETE</ttl>
-        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
-    </asynchronous_metric_log>
+${METRIC_LOG_XML}
     <processors_profile_log>
         <ttl>event_date + INTERVAL ${CLICKHOUSE_SYSTEM_LOG_RETENTION_DAYS} DAY DELETE</ttl>
         <flush_interval_milliseconds>7500</flush_interval_milliseconds>
