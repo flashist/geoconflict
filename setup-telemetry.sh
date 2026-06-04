@@ -153,7 +153,7 @@ try_enable_swapfile() {
 
 if [ "$TELEMETRY_SWAP_SIZE_GB" -eq 0 ]; then
     echo "TELEMETRY_SWAP_SIZE_GB=0; skipping swap management"
-elif swapon --show 2>/dev/null | grep -q '/swapfile'; then
+elif swapon --show=NAME --noheadings 2>/dev/null | grep -qx '/swapfile'; then
     echo "Swap already active; leaving it in place:"
     swapon --show
 else
