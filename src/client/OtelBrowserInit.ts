@@ -40,6 +40,11 @@ if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
       [ATTR_SERVICE_NAME]: "geoconflict-client",
       [ATTR_SERVICE_VERSION]: process.env.GIT_COMMIT ?? "unknown",
       [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: process.env.DEPLOY_ENV ?? "prod",
+      // Uptrace only symbolicates stack traces on spans whose resource is tagged
+      // as browser JS. We build the resource explicitly (no default SDK detector),
+      // so set it ourselves or source maps never resolve. The uploaded maps are
+      // keyed by service.version (GIT_COMMIT above) — keep them in sync.
+      "telemetry.sdk.language": "webjs",
     });
 
     const exporter = new OTLPTraceExporter({

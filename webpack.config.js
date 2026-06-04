@@ -177,7 +177,11 @@ export default async (env, argv) => {
 
   return {
     entry: "./src/client/Main.ts",
-    devtool: isProduction ? "source-map" : false,
+    // hidden-source-map: emit full .map files (uploaded to Uptrace at build time
+    // for stack-trace symbolication) but WITHOUT the sourceMappingURL comment, so
+    // browsers never request them and maps stay private (the .map→404 guard in
+    // Master.ts is kept as defense-in-depth; see scripts/upload-sourcemaps.js).
+    devtool: isProduction ? "hidden-source-map" : false,
     output: {
       publicPath: "/",
       filename: "js/[name].[contenthash].js", // Added content hash
