@@ -672,6 +672,14 @@ clickhouse_large_system_log_tables() {
         format TSV"
 }
 
+# NOTE (ClickHouse-upgrade fragility): this cleanup reclaims disabled-table data
+# (e.g. metric_log set to remove="1" above) only while ClickHouse still ATTACHES
+# the on-disk table so it appears in system.tables / `exists table`. Today (25.8.x)
+# a disabled system-log table stays attached and truncatable. If a future
+# ClickHouse instead detaches disabled tables, discovery below silently skips them
+# AND the >1 GB safety net further down also misses them (system.parts only lists
+# attached tables) — leaving orphaned on-disk data. Re-verify the reclaim after any
+# ClickHouse major upgrade.
 clickhouse_query "SYSTEM FLUSH LOGS" || echo "⚠️  Could not flush ClickHouse system logs before cleanup"
 
 mapfile -t CLICKHOUSE_SYSTEM_LOG_TABLES < <(clickhouse_system_log_tables)
