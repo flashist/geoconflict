@@ -14,6 +14,8 @@
 | ⬜ No sprint | Task 8c — Spectating (Citizens Only) | None — see plan-index | Citizenship (Sprint 4) |
 | ⬜ No sprint | Task 9 — Re-enable Flags | None — see plan-index | Payment infrastructure (Sprint 4) |
 | ⬜ No sprint | Task 9a — Re-enable Territory Patterns | None — see plan-index | Payment infrastructure (Sprint 4) |
+| ⬜ No sprint | Monitoring & Alert Bot — Phase 1 (Incident-Preventing Core) | `backlog/monitoring-alert-bot-phase1.md` | — (recommend near-term, weekend deploy) |
+| ⬜ No sprint | Monitoring & Alert Bot — Phase 2 (Depth & Hygiene) | `backlog/monitoring-alert-bot-phase2.md` | Phase 1 deployed |
 | ⬜ No sprint | Mobile Memory and WebGL Rendering Failures | `backlog/mobile-webgl-rendering.md` | Clearer mobile crash/perf data |
 | ⬜ No sprint | sec10 — Remove Password Deploy Fallbacks | `backlog/sec10-remove-password-deploy-fallbacks.md` | — |
 | ⬜ No sprint | sec11 — Secret Management Beyond Env Files | `backlog/sec11-secret-management-beyond-env-files.md` | — |
@@ -79,6 +81,36 @@
 **Current state:** No brief written. High-visibility cosmetic, upsell surface. Requires payment infrastructure from Sprint 4 to be live.
 
 **Effort (from plan-index):** 1 week.
+
+---
+
+### Monitoring & Alert Bot — Phase 1 (Incident-Preventing Core)
+
+**Brief:** `backlog/monitoring-alert-bot-phase1.md`
+
+Proactive monitoring + Telegram alerting from the 2026-06-04 findings doc. The telemetry VPS
+has frozen twice; the June outage went unnoticed for 2–3 weeks. Phase 1 delivers exactly the
+signals that would have caught both outages: a free external dead-man's-switch heartbeat
+(catches a fully frozen box — both VPS) and a telemetry-VPS on-box agent
+(disk/RAM/swap/OOM/containers), plus the shared Telegram helper, Russia-proxy routing, and
+the digest/dedup/recovery alert UX. Lightweight bash+cron+Telegram, wired through
+`setup-telemetry.sh` / `deploy.sh`. Scope and architecture locked with Mark 2026-06-04.
+**High-value ops item — recommend near-term scheduling on a weekend window**, ahead of most
+current backlog features, because it protects the observability the whole stabilization
+effort depends on.
+
+---
+
+### Monitoring & Alert Bot — Phase 2 (Depth & Hygiene)
+
+**Brief:** `backlog/monitoring-alert-bot-phase2.md`
+
+Builds on Phase 1's machinery (shared Telegram helper, on-box agent framework, alert state).
+Extends the on-box agent to the game-server VPS, and adds slower-degradation hygiene:
+ClickHouse `system.*_log` / file-log growth with *where-it-grew* attribution, TLS expiry +
+certbot-success check, sustained CPU load, weekly-backup-job health, predictive disk-growth
+trend, and a game-server availability heuristic. Schedule **after Phase 1 is deployed and
+proven**.
 
 ---
 
