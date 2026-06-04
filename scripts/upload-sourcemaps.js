@@ -11,7 +11,9 @@
 // When no DSN is configured (dev/local builds) it skips cleanly.
 //
 // Env:
-//   UPTRACE_SOURCEMAP_DSN  required to upload; format https://<token>@<host>/<project_id>
+//   UPTRACE_SOURCEMAP_DSN  required to upload; paste verbatim from the Uptrace
+//                          dashboard (project → DSN tab). Scheme is normalized to
+//                          https for remote hosts and the ?grpc=... hint is dropped.
 //   PUBLIC_ORIGIN          required when uploading; origin of served bundles, e.g. https://geoconflict.ru
 //   GIT_COMMIT             build commit; used as service_version (default "unknown")
 //   SERVICE_NAME           OTEL service.name (default "geoconflict-client")
@@ -36,7 +38,26 @@ function warn(message) {
   console.warn(`[upload-sourcemaps] WARNING: ${message}`);
 }
 
-async function uploadSourceMap(uploadUrl, mapFileName) {
+// Normalize the DSN (as copied from the Uptrace dashboard) into the request URL
+// and a clean uptrace-dsn header. The dashboard shows the DSN with an http://
+// scheme and a ?grpc=... hint, but the public endpoint is HTTPS-only (nginx
+// 301-redirects :80), so force https for remote hosts and drop the query.
+// Localhost keeps its scheme so local mock testing over http still works.
+function normalizeDsn(rawDsn) {
+  const parsed = new URL(rawDsn);
+  const isLocal =
+    parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+  const scheme = isLocal ? parsed.protocol.replace(/:$/, "") : "https";
+  // Preserve a /<project_id> path if the DSN carries one (this instance does not).
+  const projectPath =
+    parsed.pathname && parsed.pathname !== "/" ? parsed.pathname : "";
+  return {
+    uploadUrl: `${scheme}://${parsed.host}/api/v1/sourcemaps`,
+    headerDsn: `${scheme}://${parsed.username}@${parsed.host}${projectPath}`,
+  };
+}
+
+async function uploadSourceMap(uploadUrl, headerDsn, mapFileName) {
   const minifiedFileName = mapFileName.replace(/\.map$/, "");
   const minifiedUrl = `${publicOrigin.replace(/\/$/, "")}/js/${minifiedFileName}`;
   const mapContents = fs.readFileSync(path.join(staticDir, mapFileName));
@@ -49,7 +70,7 @@ async function uploadSourceMap(uploadUrl, mapFileName) {
 
   const response = await fetch(uploadUrl, {
     method: "POST",
-    headers: { "uptrace-dsn": dsn },
+    headers: { "uptrace-dsn": headerDsn },
     body: form,
   });
 
@@ -76,9 +97,9 @@ async function main() {
   }
 
   let uploadUrl;
+  let headerDsn;
   try {
-    const parsed = new URL(dsn);
-    uploadUrl = `${parsed.protocol}//${parsed.host}/api/v1/sourcemaps`;
+    ({ uploadUrl, headerDsn } = normalizeDsn(dsn));
   } catch {
     warn("UPTRACE_SOURCEMAP_DSN is not a valid URL. Skipping upload.");
     return;
@@ -108,7 +129,11 @@ async function main() {
   const failures = [];
   for (const mapFileName of mapFiles) {
     try {
-      const minifiedUrl = await uploadSourceMap(uploadUrl, mapFileName);
+      const minifiedUrl = await uploadSourceMap(
+        uploadUrl,
+        headerDsn,
+        mapFileName,
+      );
       succeeded++;
       console.log(`[upload-sourcemaps]   ✓ ${mapFileName} → ${minifiedUrl}`);
     } catch (error) {
