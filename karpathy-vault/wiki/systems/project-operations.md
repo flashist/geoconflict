@@ -25,7 +25,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - Work is organized through sprint plans in `ai-agents/sprints/` and implementation/investigation briefs in `ai-agents/tasks/`
 - Significant unknowns are expected to go through an investigation-first pass before implementation scope is locked
 - Shipping is verified with analytics, not just local correctness; build-number segmentation and funnel instrumentation are part of release readiness
-- Build numbers are bumped automatically by `scripts/bump-version.js` during deploy and must be pre-registered in GameAnalytics before release
+- Build numbers are bumped automatically by `scripts/bump-version.js` during deploy and sent to GameAnalytics via `configureBuild()`; GA auto-ingests new build versions from the client — no dashboard pre-registration is required
 
 ### Roadmap and current planning context
 - Product sequencing is retention first, monetization second, then content expansion; see [[decisions/product-strategy]]

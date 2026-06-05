@@ -133,7 +133,7 @@ Environment-specific configs in `src/core/configuration/`: `DevConfig.ts`, `Prep
 
 ### GameAnalytics (Player Behaviour)
 
-Tracks player behaviour events. Free tier. Custom Dimension 01 = build number (must be pre-registered in GA dashboard before deploy). Analytics event strings use `Category:Action` or `Category:Subcategory:Value` PascalCase colon-separated format. TypeScript enum in `FlashistFacade.ts` is the single source of truth — never write event strings inline.
+Tracks player behaviour events. Free tier. The build number is sent via `GameAnalytics.configureBuild(version)` (GA's native build field) and is auto-ingested — new build versions appear automatically from the client payload, with no dashboard pre-registration. (Custom Dimensions 01/02 carry device type and platform, not the build.) Analytics event strings use `Category:Action` or `Category:Subcategory:Value` PascalCase colon-separated format. TypeScript enum in `FlashistFacade.ts` is the single source of truth — never write event strings inline.
 
 **Key funnels:**
 - New player: `Session:Start → Game:Start → Match:SpawnChosen → Session:Heartbeat:05`
@@ -461,7 +461,7 @@ Historical note: migrated from `SCREAMING_SNAKE_CASE` event strings on 2026-03-0
 
 ### Build Number Tracking
 
-Custom Dimension 01 in GameAnalytics. Value = `BUILD_NUMBER` (auto-injected from `scripts/bump-version.js`). Must be pre-registered in GA dashboard before deploying. Used to segment metrics by build and detect build transition cliffs (HF-11 effectiveness confirmed by sharp 24h decay vs historical multi-week decay).
+Sent via `GameAnalytics.configureBuild(version)` (GA's native build field). Value = `BUILD_NUMBER` (auto-injected from `scripts/bump-version.js`). GA auto-ingests new build versions from the client payload — no dashboard pre-registration required. Used to segment metrics by build and detect build transition cliffs (HF-11 effectiveness confirmed by sharp 24h decay vs historical multi-week decay).
 
 ### Data Quality Notes
 
@@ -714,11 +714,10 @@ The following steps must be completed in order for every production deploy:
 
 1. **Schedule during a low-traffic window** — minimise player disruption
 2. **Update `package.json` version** — `scripts/bump-version.js` runs automatically in `build-deploy.sh`, but confirm the version reflects the intended build number
-3. **Register new build value in GameAnalytics dashboard** — Custom Dimension 01. Do this BEFORE deploying. GA rejects unregistered dimension values silently — events appear with no build label.
-4. **Run `build-deploy.sh`** — builds and deploys to production
-5. **Verify stale build modal** — confirm `/api/version` returns the new build number
-6. **Check GameAnalytics** — confirm new build value appearing on new sessions within minutes of deploy
-7. **Monitor Uptrace** — check for new unhandled exceptions in the 30 minutes post-deploy
+3. **Run `build-deploy.sh`** — builds and deploys to production
+4. **Verify stale build modal** — confirm `/api/version` returns the new build number
+5. **Check GameAnalytics** — confirm the new build value appears on new sessions within minutes of deploy (GA auto-ingests it via `configureBuild()`; no dashboard pre-registration needed)
+6. **Monitor Uptrace** — check for new unhandled exceptions in the 30 minutes post-deploy
 8. **Check for stuck lobbies** — if AI lobby slot bug is not yet fixed, monitor for reports of stuck 10/10 lobbies
 
 **For Uptrace server updates specifically:**

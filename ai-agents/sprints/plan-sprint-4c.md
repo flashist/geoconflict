@@ -25,8 +25,8 @@ Source: `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`
 | ✅ Done | Fix Cosmetics.json Serving and PrivilegeRefresher | ~138.6/min | `s4c-fix-cosmetics-serving.md` |
 | ✅ Done | Fix LocalServer Hash Guard (Singleplayer Crash) | ~31.0/min | `s4c-fix-local-server-hash-guard.md` |
 | ✅ Done | Reduce Archive Telemetry Noise (disable dead archive path) | ~26.6/min | `s4c-reduce-archive-telemetry-noise.md` |
-| ⬜ Backlog | Investigate Lobby and Map Fetch Failures | ~9.3/min | `s4c-investigate-lobby-map-fetch.md` |
-| ⬜ Backlog | Enable Production Client Source Maps in Uptrace | — | `s4c-enable-client-source-maps.md` |
+| ✅ Done | Investigate Lobby and Map Fetch Failures | ~9.3/min | `s4c-investigate-lobby-map-fetch.md` |
+| ✅ Done | Enable Production Client Source Maps in Uptrace | — | `s4c-enable-client-source-maps.md` |
 | ✅ Done | Leaderboard: Show Human Player Count in Label | — | `s4c-leaderboard-player-count.md` |
 | ⛔ Cancelled | Fix Compact Map Boat-Attack Button (Runtime Fallback) | Sprint 4b regression | `cancelled/s4c-fix-compact-map-boat-attack.md` |
 | ✅ Done | Disable Compact Maps in Public Rotation | Sprint 4b regression | `s4c-disable-compact-public-maps.md` |
