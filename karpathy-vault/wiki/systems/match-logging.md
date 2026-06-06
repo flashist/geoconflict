@@ -52,12 +52,12 @@ Given a game ID, you can look up:
 
 You **cannot** look up: player intent sequence, ghost player counts, intermediate game state.
 
-For active/in-memory games: `GET /api/game/:id` (`Worker.ts:226`) — only works while game is in RAM.
+For active/in-memory games: `GET /api/game/:id` (`Worker.ts:227`) — only works while game is in RAM.
 
 ## Gotchas / Known Issues
 
 - Structured fields passed as second argument to `log.info()` (e.g. `{ clientID, persistentID }`) may not appear as attributes in Uptrace — only the message string is guaranteed. See [[systems/telemetry]].
-- File-line references in the log events table were re-verified against `src/server/GameServer.ts` on 2026-04-30; the active-game lookup reference was re-verified against `src/server/Worker.ts` on 2026-04-30.
+- File-line references in the log events table were re-verified against `src/server/GameServer.ts` on 2026-06-06; the active-game lookup reference was re-verified against `src/server/Worker.ts` on 2026-06-06.
 - Sprint 4c archive investigation found production `Not Found` errors because the geoconflict server does not currently expose the inherited `/game/:gameID` route used by `Archive.ts`; singleplayer archive uploads also hit body-size and browser `keepalive` limits. The accepted and implemented short-term path is to no-op archive writes through `archiveEnabled()`, then defer S3-backed citizen archival until match history has a consumer. See [[tasks/archive-endpoint-failures]] and [[decisions/archive-archival-strategy]].
 - 140 returning users reported `null` build version (as of 2026-04-09) — likely sessions before `configureBuild()` was wired, unrelated to logging
 

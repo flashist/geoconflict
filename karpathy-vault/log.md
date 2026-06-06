@@ -652,3 +652,9 @@
 - Ingested: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md` → updated [[wiki/systems/analytics]], [[wiki/systems/project-operations]]
 - Ingested: `ai-agents/sprints/plan-sprint-4c.md` → updated [[wiki/decisions/sprint-4c]]
 - Skipped (already covered): `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md` → already covered in [[wiki/decisions/cancelled-tasks]]; `ai-agents/tasks/backlog/monitoring-alert-bot-phase1.md`, `ai-agents/tasks/backlog/monitoring-alert-bot-phase2.md` → backlog files are not ingested directly by wiki-sync, summarized through [[wiki/decisions/sprint-backlog]]
+
+## 2026-06-06 — lint
+- Issues found: 2
+- Issues fixed: 2
+- Issues flagged for human review: 0
+- Fixed two stale line references in [[wiki/systems/server-performance]] and [[wiki/systems/match-logging]]; structural, index, wikilink, backlink, orphan, source-path, and targeted stale-claim checks passed.

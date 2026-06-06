@@ -11,7 +11,7 @@ Source: `ai-agents/knowledge-base/server-performance-investigation.md` (dated 20
 
 ## Architecture
 
-Tick interval: ~67ms (`turnIntervalMs = 100 / 1.5`, `DefaultConfig.ts:233`)
+Tick interval: ~67ms (`turnIntervalMs = 100 / 1.5`, `DefaultConfig.ts:230`)
 
 `endTurn()` pipeline:
 1. Build `Turn` object (`{ turnNumber, intents }`) → push to `this.turns`
