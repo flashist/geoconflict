@@ -19,6 +19,7 @@
 | ⬜ No sprint | Mobile Memory and WebGL Rendering Failures | `backlog/mobile-webgl-rendering.md` | Clearer mobile crash/perf data |
 | ⬜ No sprint | sec10 — Remove Password Deploy Fallbacks | `backlog/sec10-remove-password-deploy-fallbacks.md` | — |
 | ⬜ No sprint | sec11 — Secret Management Beyond Env Files | `backlog/sec11-secret-management-beyond-env-files.md` | — |
+| ⬜ No sprint | Worker Init Timeout — Redundant Map Re-fetch on Join | `backlog/worker-init-timeout-map-refetch.md` | — |
 | ⏸ Parked | Task 5 — Deep Mobile Rendering Optimization | None — see plan-index | Mobile DAU > 1,500 |
 | ⏸ Parked | Task 2i — Microsoft Clarity Session Recordings | None — see plan-index | Mobile perf confirmed stable |
 
@@ -142,6 +143,22 @@ Security hardening follow-up from the VPS credential leak incident. Remove `sshp
 **Brief:** `backlog/sec11-secret-management-beyond-env-files.md`
 
 Security architecture follow-up from the VPS credential leak incident. Inventory secrets by type, choose a target secret-management approach for this team size, and migrate at least one class of secrets out of plaintext local env storage. Produces a documented model and rotation workflow.
+
+---
+
+### Worker Init Timeout — Redundant Map Re-fetch on Join
+
+**Brief:** `backlog/worker-init-timeout-map-refetch.md` (investigation complete, not yet implemented — full root-cause analysis, file map, and acceptance criteria are there).
+
+**Priority:** Medium (producer-confirmed). Not a prod-blocker on its own, but a real latent fragility on the client join path, and the proper fix removes a redundant ~5.6 MB map download on every match start, for every player.
+
+A "Worker initialization timeout" error that stops a match from starting. Root cause: the game-logic Web Worker re-downloads the full map binary (~5.6 MB) from scratch during init, even though the main thread already downloaded the identical files milliseconds earlier during preload — and the worker has a hard **5-second** init timeout. On any connection where that map fetch exceeds 5 s, init fails and the match never starts.
+
+It surfaced on the **dev box** (bare-IP host with an untrusted TLS cert): Chrome will not use its HTTP disk cache over a connection with certificate errors, so the worker's "re-fetch" is a full cold download (~20 s observed) instead of an instant cache hit. **Not expected to break prod** — `geoconflict.ru` has valid TLS and verified-working `.bin` caching, so the worker re-fetch is a cache hit and init completes well under 5 s. Local dev also works. The 5 s timeout predates the 0.0.135 release (it exists since the first fork commit) — this is a latent fragility, not a regression.
+
+**Fix (per the brief):** lead with the **proper fix** — stop the worker re-downloading the map at all (transfer the already-loaded terrain buffers from the main thread into the worker), which also removes the redundant ~5.6 MB download and speeds up match start for every player, including on prod. Add the **cheap belt-and-suspenders fix** (raise the init timeout 5 s → 15 s; the brief traces this as regression-free) and, while in this code, fix a pre-existing worker leak (the init-failure catch never calls `worker.cleanup()`, leaving a timed-out worker running). All `src/core/` changes must be tested (project rule).
+
+**Release-decision note:** does not justify pausing a prod release, but before shipping this, confirm the join flow on a **valid-TLS host** (prod domain or trusted-cert staging) rather than only the bare-IP dev box — that box is not representative for anything that depends on browser HTTP caching. Related to the completed lobby/map-fetch investigation (`tasks/done/s4c-investigate-lobby-map-fetch.md`), which independently verified prod TLS + cache health.
 
 ---
 
