@@ -7,8 +7,8 @@
       "ru": "Обновление игры"
     },
     "body": {
-      "en": "- Compact maps have been removed from public matchmaking for now while we fix a map issue affecting them.\n- The match leaderboard now shows how many human players are in the game.\n- Bugfixes and stability improvements.",
-      "ru": "- Компактные карты пока убраны из публичной ротации — мы исправляем связанную с ними проблему.\n- В таблице лидеров матча теперь отображается количество игроков-людей.\n- Багфиксы и улучшения стабильности."
+      "en": "- Mini-maps have been removed from public matchmaking for now while we fix an issue connected to the wrong behaviour of boats.\n- The frequence of random gameplay modifiers in public matches is increased.\n- The match players table now shows how many human players are in the game.\n- Bugfixes and stability improvements.",
+      "ru": "- Мини-карты пока убраны из публичной ротации — мы исправляем проблему связанную с неправильной работой лодок.\n- Количество матчей со случайными модификаторами увеличено для публичных матчей.\n- В таблице игроков матча теперь отображается количество игроков-людей.\n- Багфиксы и улучшения стабильности."
     },
     "tag": "update"
   },
