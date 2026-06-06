@@ -55,6 +55,8 @@ Keep cancelled work in one durable page instead of deleting context from the wik
 
 **Why cancelled:** HF-11a investigation confirmed BUILD_NUMBER is already fully automated via `scripts/bump-version.js` in `build-deploy.sh`. Hypothesis 4 (manual version error) ruled out. No action needed.
 
+The earlier HF-7 custom-dimension implementation has also been superseded by GameAnalytics' native build field; see [[tasks/build-number-tracking]].
+
 ---
 
 ## Tutorial — Pause During Action-Required Steps
@@ -125,6 +127,7 @@ Keep cancelled work in one durable page instead of deleting context from the wik
 - [[decisions/hvn-balance-pr70-no-ship]] — no-ship review for the cancelled HvN balance attempt
 - [[decisions/hotfix-post-sprint2]] — sprint where HF-5 was attempted
 - [[decisions/stale-build-zombie-tabs]] — HF-11e context
+- [[tasks/build-number-tracking]] — HF-7 build segmentation history and current native-build-field implementation
 - [[features/tutorial]] — tutorial follow-up work and the narrower fixes that shipped instead
 - [[tasks/compact-map-click-interaction]] — investigation whose proposed runtime fallback was rejected by live testing
 - [[tasks/disable-compact-public-maps]] — public-rotation mitigation chosen after the runtime compact-map fallback was rejected

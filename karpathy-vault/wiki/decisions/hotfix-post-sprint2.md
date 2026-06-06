@@ -7,7 +7,7 @@
 
 Small hotfix release between Sprint 2 and Sprint 3. Tutorial was live and generating data, so the release prioritized time-sensitive analytics and UX fixes. The cache-busting work tracked as HF-10 began here and was later completed as follow-up implementation work.
 
-Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`, `ai-agents/tasks/done/hotfix-hf10-cache-busting.md`
+Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`, `ai-agents/tasks/done/hotfix-hf7-build-number.md`, `ai-agents/tasks/done/hotfix-hf10-cache-busting.md`
 
 ## Decision
 
@@ -19,7 +19,7 @@ Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`, `ai-agents/tasks/done/h
 | HF-4 | Mobile control panel hit area bug — transparent container blocked right half of map | ✅ Done |
 | HF-5 | Win condition detection bug | ⛔ Cancelled & reverted |
 | HF-6 | Auto-spawn failure on late join (catch-up window bug) | ✅ Done |
-| HF-7 | Build number tracking via GameAnalytics Custom Dimension 01 | ✅ Done |
+| HF-7 | Build number tracking; originally GameAnalytics Custom Dimension 01, later migrated to native GA build field | ✅ Done |
 | HF-8 | Tutorial attempt count on `Tutorial:Started` event value | ✅ Done |
 | HF-9 | Remove `#refresh` history push for all game types (double-reload fix) | ✅ Done |
 | HF-10 | Cache busting & build freshness guarantee | ✅ Done later as follow-up work |
@@ -33,6 +33,8 @@ Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`, `ai-agents/tasks/done/h
 
 **HF-6 (auto-spawn late join):** fix ships `Match:SpawnRetryAfterCatchup` event as the key signal. `Match:SpawnMissed:CatchupTooLong` (Problem 2) still unfixed — tracked as separate follow-up.
 
+**HF-7 (build number tracking):** the hotfix originally used GameAnalytics Custom Dimension 01 and required dashboard pre-registration for new build values. That operational requirement is now superseded: build numbers are reported through `GameAnalytics.configureBuild()`, GameAnalytics auto-ingests new client build values, and CD01 is used for device type. See [[tasks/build-number-tracking]].
+
 **HF-9 (double-reload):** one-line change — delete `history.pushState` block in `handleJoinLobby()`. Completed the fix for all game types after PR #45 fixed tutorial only.
 
 **HF-10 (cache busting):** the hotfix plan left it as the next critical release item, but the follow-up task shipped the missing parts: content-hashed asset filenames plus `no-cache` HTML entry-point headers to force fresh builds on reload.
@@ -40,7 +42,7 @@ Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`, `ai-agents/tasks/done/h
 ## Consequences
 
 - `Experiment:Tutorial:*` events now exist — control group funnels unblocked
-- Build number segmentation enables per-deploy metric attribution
+- Build number segmentation enables per-deploy metric attribution; current deploys no longer need GameAnalytics custom-dimension value pre-registration
 - Cache busting reduced the risk of players staying on stale bundles between deploys, but existing already-open sessions still required the later Sprint 3 stale-build detection flow
 
 ## Related
@@ -51,6 +53,7 @@ Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`, `ai-agents/tasks/done/h
 - [[decisions/double-reload-fix]] — HF-9 + PR #45 detail
 - [[decisions/cancelled-tasks]] — HF-5 cancellation detail
 - [[decisions/stale-build-zombie-tabs]] — later stale-build detection work that complements HF-10
+- [[tasks/build-number-tracking]] — HF-7 detail and later native-build-field migration
 - [[systems/analytics]] — event conventions established here
 - [[features/tutorial]] — tutorial context for HF-1/2/3
 - [[features/feedback-button]] — HF-3 established UI:Tap convention used by feedback button's analytics

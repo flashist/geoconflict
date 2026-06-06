@@ -34,12 +34,12 @@
 - [[decisions/product-strategy]] — Strategic logic: retention-first sequence, experiments policy, key analytics data
 - [[decisions/sprint-1]] — Sprint 1 (done): analytics baseline, Sentry, mobile quick wins, ghost rate investigation
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
-- [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/9
+- [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/7/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
 - [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation plus shipped tasks and carried null-ID/archival follow-ups
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
-- [[decisions/sprint-backlog]] — No-sprint backlog for defined work that needs a sprint home, including deferred mobile WebGL stability
+- [[decisions/sprint-backlog]] — No-sprint backlog for defined work that needs a sprint home, including monitoring alert bot phases and deferred mobile WebGL stability
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
 - [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance no-ship, compact-map runtime fallback no-ship — with reasons and re-attempt guidance
@@ -59,6 +59,7 @@
 ## Tasks
 
 - [[tasks/session-start-sequence]] — Session start event sequence (Session:Start → Device:Type → Platform:OS → Player:New/Returning)
+- [[tasks/build-number-tracking]] — HF-7 build segmentation: original GA custom-dimension approach and current native build-field tracking
 - [[tasks/mobile-quick-wins]] — Task 3: retina off, 30fps cap, particles reduced on mobile
 - [[tasks/spawn-ux]] — Tasks 4b + 4e: zoom-to-territory function and expanding ring spawn indicator
 - [[tasks/stale-build-detection]] — HF-11b/c/d: `/api/version` endpoint, client polling, non-dismissible refresh modal

@@ -642,3 +642,13 @@
 - Changed source files detected: 1
 - Ingested: `ai-agents/tasks/done/s4c-enable-client-source-maps.md` → created [[wiki/tasks/s4c-enable-client-source-maps]]; updated [[wiki/systems/telemetry]], [[wiki/decisions/sprint-4c]], [[wiki/decisions/sprint-4]], index.md
 - Skipped (already covered): none
+
+## 2026-06-06 — ingest
+- Sync window: `0cf324850b8d1bc0d171b1a2ed05cef764918ddc` → HEAD (`ef4e4666b94b3e5b2dbde896d15fbce6fb793797`)
+- Changed source files detected: 8
+- Ingested: `ai-agents/tasks/done/hotfix-hf7-build-number.md` → created [[wiki/tasks/build-number-tracking]]; updated [[wiki/decisions/hotfix-post-sprint2]], [[wiki/systems/analytics]], [[wiki/systems/project-operations]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/done/hotfix-post-sprint2.md` → updated [[wiki/decisions/hotfix-post-sprint2]]
+- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md` → updated [[wiki/systems/analytics]], [[wiki/systems/project-operations]]
+- Ingested: `ai-agents/sprints/plan-sprint-4c.md` → updated [[wiki/decisions/sprint-4c]]
+- Skipped (already covered): `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md` → already covered in [[wiki/decisions/cancelled-tasks]]; `ai-agents/tasks/backlog/monitoring-alert-bot-phase1.md`, `ai-agents/tasks/backlog/monitoring-alert-bot-phase2.md` → backlog files are not ingested directly by wiki-sync, summarized through [[wiki/decisions/sprint-backlog]]

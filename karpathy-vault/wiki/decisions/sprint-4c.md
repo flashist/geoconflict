@@ -1,7 +1,7 @@
 # Sprint 4c — Production Stabilization
 
 **Date**: 2026-05-07
-**Status**: proposed
+**Status**: accepted
 
 ## Context
 
@@ -14,7 +14,7 @@ Follow-up sources: `ai-agents/knowledge-base/plan-fix-archive-endpoint.md`, `ai-
 
 ## Decision
 
-Sprint 4c is a stabilization sprint with a must-ship deadline before May 15, 2026. Tasks 1-3 were the quick-win priority set and could proceed in parallel:
+Sprint 4c is a completed stabilization sprint that shipped the quick-win priority set and later closed the feasible investigation/mitigation work while deferring larger follow-ups:
 
 | Priority | Work | Approx. error rate | Scope |
 |---|---:|---:|---|

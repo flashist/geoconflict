@@ -37,6 +37,12 @@ The reference docs are `ai-agents/knowledge-base/analytics-event-reference.md` a
 | `Tutorial` | Tutorial flow — started, tooltips, skipped, completed |
 | `Experiment` | Yandex A/B flag values — auto-fired for all flags |
 
+## Build Segmentation
+
+Build numbers are sent through GameAnalytics' native build field via `GameAnalytics.configureBuild(version)`. The deploy/version flow injects the current build automatically, and GameAnalytics auto-ingests new build values from client payloads, so deploys do not require dashboard pre-registration for build values.
+
+This supersedes the original HF-7 implementation, which used GameAnalytics Custom Dimension 01 and required allowed values to be configured manually. Custom Dimension 01 is no longer the build slot; it is used for device type. See [[tasks/build-number-tracking]].
+
 ## Session Start Sequence
 
 ```
@@ -130,6 +136,7 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - **Double-reload:** Before HF-9, a browser refresh after any game caused two full initialization sequences, doubling all `Session:Start`, `Device:*`, `Platform:*`, and `Experiment:*` events. Fixed in HF-9. See [[decisions/double-reload-fix]].
 - **`Player:New` inflation:** During the double-reload era, new users fired both `Player:New` (first load) and `Player:Returning` (second load). Historical cohort data for new users from before HF-9 is affected.
 - **Stale build sessions:** Users on zombie tabs (old builds) still fire analytics — `Build:StaleDetected` identifies them. See [[decisions/stale-build-zombie-tabs]].
+- **Build tracking history:** Older HF-7 docs mention GameAnalytics Custom Dimension 01 and dashboard pre-registration for build values. That was true for the first implementation only; current tracking uses `configureBuild()` and does not require GA pre-registration. See [[tasks/build-number-tracking]].
 - **Monetization event naming:** The monetization spec uses product-level event names as requirements, but implementation must still conform to the established `Category:Action` analytics naming convention and the TypeScript enum source-of-truth rule.
 
 ## Related
@@ -155,6 +162,7 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/session-start-sequence]] — Session start event sequence and conventions
 - [[tasks/mobile-quick-wins]] — `Performance:FPS:*` events measured here
 - [[tasks/stale-build-detection]] — `Build:StaleDetected` event implementation
+- [[tasks/build-number-tracking]] — HF-7 build segmentation and later native build-field migration
 - [[tasks/ui-click-multiplayer]] — confirms the multiplayer JOIN click is the funnel anchor
 - [[tasks/map-preload]] — HF-13 preload instrumentation at JOIN and match start
 - [[tasks/missions-difficulty-investigation]] — mission-level drop-off cannot be derived from current coarse mission events

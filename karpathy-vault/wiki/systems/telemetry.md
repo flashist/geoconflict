@@ -174,6 +174,7 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 - [[systems/configuration]] — OTEL endpoint/auth and environment config gates
 - [[decisions/sprint-3]] — sprint where OTEL metrics and slow-turn spans were implemented (5d-A/B)
 - [[decisions/sprint-4c]] — production stabilization sprint based on the current Uptrace error priorities
+- [[decisions/sprint-backlog]] — no-sprint queue that holds the monitoring alert bot phases
 - [[decisions/archive-archival-strategy]] — archive noise cleanup and deferred S3 archival decision
 - [[decisions/vps-credential-leak-response]] — incident response that also repaired telemetry setup drift
 - [[systems/analytics]] — player behaviour tracking (GameAnalytics), complementary
