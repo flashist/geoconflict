@@ -1,5 +1,18 @@
 [
   {
+    "id": "2026-06-06-game-update",
+    "date": "2026-06-06",
+    "title": {
+      "en": "Game update",
+      "ru": "Обновление игры"
+    },
+    "body": {
+      "en": "- Compact maps have been removed from public matchmaking for now while we fix a map issue affecting them.\n- The match leaderboard now shows how many human players are in the game.\n- Bugfixes and stability improvements.",
+      "ru": "- Компактные карты пока убраны из публичной ротации — мы исправляем связанную с ними проблему.\n- В таблице лидеров матча теперь отображается количество игроков-людей.\n- Багфиксы и улучшения стабильности."
+    },
+    "tag": "update"
+  },
+  {
     "id": "2026-05-09-game-update",
     "date": "2026-05-09",
     "title": {
