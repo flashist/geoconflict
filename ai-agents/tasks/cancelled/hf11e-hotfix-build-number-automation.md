@@ -40,6 +40,8 @@ Or derive it automatically from `package.json` version + a timestamp/commit SHA 
 
 **GameAnalytics custom dimension** (HF-7) must still be pre-registered in the GA dashboard before deploy — this cannot be automated without GA API access. Update the deploy checklist to note that `BUILD_NUMBER` no longer needs a manual code change, but the GA dashboard registration step remains.
 
+> **Superseded 2026-06-04:** the build number was later migrated off the HF-7 custom dimension onto GameAnalytics' native build field via `GameAnalytics.configureBuild()`, which auto-ingests new build versions from the client — **no dashboard pre-registration is required** for the current implementation. The registration step described above applied only to the original custom-dimension approach.
+
 ## Verification
 
 1. Run a build without setting `BUILD_NUMBER` env var — confirm the fallback (`package.json version + timestamp`) is used and appears correctly in GameAnalytics

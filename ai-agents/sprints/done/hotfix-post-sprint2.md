@@ -105,6 +105,8 @@ Implementation: configure Custom Dimension 01 in the GameAnalytics dashboard, de
 
 **Important:** new build values must be pre-registered in the GA dashboard before each deploy, otherwise the dimension value is rejected.
 
+> **Superseded 2026-06-04:** the build number was later migrated off this custom dimension onto GameAnalytics' native build field via `GameAnalytics.configureBuild()`, which auto-ingests new build versions from the client — **no dashboard pre-registration is required** for the current implementation. The pre-registration requirement above applied only to the original custom-dimension approach.
+
 ---
 
 ## HF-8. Tutorial Attempt Number on Tutorial:Started Event
