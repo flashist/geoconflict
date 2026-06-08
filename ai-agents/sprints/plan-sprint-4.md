@@ -28,6 +28,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | Start Screen Redesign — Tab Layout Investigation (design) | `s4-start-screen-redesign-investigation.md` |
 | ⬜ Backlog | Start Screen Redesign — Implementation | `s4-start-screen-redesign-impl.md` |
 | ⬜ Backlog | Player Profile Store — Implementation | `s4-player-profile-store-impl.md` |
+| ⬜ Backlog | PostgreSQL Backup Routine (Profile Store) — off-box, daily *(needs: profile store schema; must be live before Paid Citizenship)* | `s4-postgres-backup-routine.md` |
 | ⬜ Backlog | Yandex Payments — Catalog Fetch & Purchase Infrastructure | `s4-yandex-payments-impl.md` |
 | ⬜ Backlog | Citizenship Core — XP Counter & Progress UI *(blocked: start screen redesign impl)* | `s4-citizenship-xp-progress-ui.md` |
 | ⬜ Backlog | Citizenship Core — Earned Citizenship *(blocked: player profile store)* | `s4-citizenship-earned.md` |
@@ -165,6 +166,22 @@ This task stands up the real S3-backed store the architecture already expects (e
 games only, and re-enables the path. Schedule it at the tail of the citizenship track —
 it has no live consumer until match history (a citizen feature) exists. Primarily infra,
 but the citizen-gating and re-enable code are required too.
+
+---
+
+### PostgreSQL Backup Routine (Player Profile Store)
+**Brief:** `s4-postgres-backup-routine.md`
+**Depends on:** player profile store schema live
+**Must be live before:** Paid Citizenship
+
+Data-protection prerequisite for monetization. The profile-store impl creates Postgres on a
+Docker volume but nothing backs it up — and once players pay, paid entitlements exist only in
+that DB. Daily `pg_dump` + encrypted off-box copy to Reg.ru S3-compatible storage, with a
+documented and **tested** restore. Earned XP and display names are also irreplaceable, so
+backups must be live by the time Earned/Paid Citizenship ship. Locked with Mark 2026-06-08:
+scope = profile store only; RPO ≈ 24h (daily); off-box destination = Reg.ru S3 (confirm in
+Part A). Closes the gap behind the Monitoring Phase 2 backup-health check (which assumed a
+weekly cron that was never created — corrected to daily here).
 
 ---
 
