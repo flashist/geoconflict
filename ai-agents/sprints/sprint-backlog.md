@@ -20,6 +20,7 @@
 | ⬜ No sprint | sec10 — Remove Password Deploy Fallbacks | `backlog/sec10-remove-password-deploy-fallbacks.md` | — |
 | ⬜ No sprint | sec11 — Secret Management Beyond Env Files | `backlog/sec11-secret-management-beyond-env-files.md` | — |
 | ⬜ No sprint | Worker Init Timeout — Redundant Map Re-fetch on Join | `backlog/worker-init-timeout-map-refetch.md` | — |
+| ⬜ No sprint | Bots: Stop Building SAM Launchers When Nukes Are Disabled | `backlog/bots-skip-sam-when-nukes-disabled.md` | — |
 | ⏸ Parked | Task 5 — Deep Mobile Rendering Optimization | None — see plan-index | Mobile DAU > 1,500 |
 | ⏸ Parked | Task 2i — Microsoft Clarity Session Recordings | None — see plan-index | Mobile perf confirmed stable |
 
@@ -159,6 +160,19 @@ It surfaced on the **dev box** (bare-IP host with an untrusted TLS cert): Chrome
 **Fix (per the brief):** lead with the **proper fix** — stop the worker re-downloading the map at all (transfer the already-loaded terrain buffers from the main thread into the worker), which also removes the redundant ~5.6 MB download and speeds up match start for every player, including on prod. Add the **cheap belt-and-suspenders fix** (raise the init timeout 5 s → 15 s; the brief traces this as regression-free) and, while in this code, fix a pre-existing worker leak (the init-failure catch never calls `worker.cleanup()`, leaving a timed-out worker running). All `src/core/` changes must be tested (project rule).
 
 **Release-decision note:** does not justify pausing a prod release, but before shipping this, confirm the join flow on a **valid-TLS host** (prod domain or trusted-cert staging) rather than only the bare-IP dev box — that box is not representative for anything that depends on browser HTTP caching. Related to the completed lobby/map-fetch investigation (`tasks/done/s4c-investigate-lobby-map-fetch.md`), which independently verified prod TLS + cache health.
+
+---
+
+### Bots: Stop Building SAM Launchers When Nukes Are Disabled
+
+**Brief:** `backlog/bots-skip-sam-when-nukes-disabled.md`
+
+Player-reported (2026-06-11): in "no nukes" matches, bots still build SAM launchers — pure
+wasted gold, since the modifier disables only `MissileSilo` and no nuke can ever exist.
+Fix is a single condition in `FakeHumanExecution.handleUnits()`: skip the SAM spawn step when
+silos are disabled; freed gold flows naturally to cities/ports/factories/defense posts via the
+existing priority chain (locked: no multiplier rebalance). One change covers both nations and
+AI Players. ~Half a day including required `src/core/` tests plus a live no-nukes match check.
 
 ---
 
