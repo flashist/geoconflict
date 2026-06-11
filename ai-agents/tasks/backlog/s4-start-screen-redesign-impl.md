@@ -10,8 +10,7 @@ High — blocks Citizenship XP Progress UI task.
 
 Claude.Design has produced the implementation-ready design file. The coding agent should run this instruction first:
 
-> Fetch this design file, read its readme, and implement the relevant aspects of the design.
-> https://api.anthropic.com/v1/design/h/XgbUX_yknD2Nfk4NqJNz2g?open_file=Start+Screen.html
+> Fetch this design file, read its readme, and implement the relevant aspects of the design. https://api.anthropic.com/v1/design/h/7xS0NRTRykRxzX6YMlH_iw?open_file=Start+Screen.html
 > Implement: Start Screen.html
 
 Read the design file before reading the rest of this brief — the visual spec is authoritative. This brief defines scope boundaries, technical requirements, and what is explicitly out of scope.
