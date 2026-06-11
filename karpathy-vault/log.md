@@ -666,3 +666,9 @@
 - Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]]
 - Ingested: `ai-agents/tasks/done/s4-feedback-modal-space-key.md` → created [[wiki/tasks/feedback-modal-space-key]]; updated [[wiki/features/feedback-button]], [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-start-screen-redesign-impl.md`, `ai-agents/tasks/backlog/bots-skip-sam-when-nukes-disabled.md`, `ai-agents/tasks/backlog/s4-postgres-backup-routine.md`, `ai-agents/tasks/backlog/worker-init-timeout-map-refetch.md` — backlog files are not ingested directly by wiki-sync; relevant backlog status is summarized through [[wiki/decisions/sprint-backlog]] and [[wiki/decisions/sprint-4]]
+
+## 2026-06-11 — lint
+- Issues found: 0
+- Issues fixed: 0
+- Issues flagged for human review: 0
+- Full wiki health-check passed: index/file coverage, required metadata, wiki-link resolution, backlinks, orphan scan, and source-path references are clean.
