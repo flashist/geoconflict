@@ -1,4 +1,4 @@
-import { LitElement, html } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { classMap } from "lit/directives/class-map.js";
 import { translateText } from "../../Utils";
@@ -7,6 +7,7 @@ import { translateText } from "../../Utils";
 export class OButton extends LitElement {
   @property({ type: String }) title = "";
   @property({ type: String }) translationKey = "";
+  @property({ type: String }) subtitleTranslationKey = "";
   @property({ type: Boolean }) secondary = false;
   @property({ type: Boolean }) block = false;
   @property({ type: Boolean }) blockDesktop = false;
@@ -31,6 +32,11 @@ export class OButton extends LitElement {
         ${`${this.translationKey}` === ""
           ? `${this.title}`
           : `${translateText(this.translationKey)}`}
+        ${`${this.subtitleTranslationKey}` === ""
+          ? nothing
+          : html`<span class="c-button__subtitle"
+              >${translateText(this.subtitleTranslationKey)}</span
+            >`}
       </button>
     `;
   }

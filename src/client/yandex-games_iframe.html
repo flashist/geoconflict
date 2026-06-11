@@ -287,32 +287,41 @@
       <!-- Flashist Adaptation -->
       <!-- <div></div> -->
 
-      <div>
-        <public-lobby class="block"></public-lobby>
-      </div>
-      <div>
-        <matchmaking-button class="w-[20%] md:w-[15%]"></matchmaking-button>
+      <!-- Flashist Adaptation: start screen redesign — citizenship card + two-tab layout -->
+      <citizenship-card class="block"></citizenship-card>
+      <start-screen-tabs class="block"></start-screen-tabs>
+
+      <div id="multiplayer-tab-content" class="space-y-4">
+        <div>
+          <public-lobby class="block"></public-lobby>
+        </div>
+        <div>
+          <matchmaking-button class="w-[20%] md:w-[15%]"></matchmaking-button>
+        </div>
+
+        <!-- Flashist Adaptation -->
+        <!-- <div class="container__row container__row--equal"> -->
+        <div class="container__row container__row--equal" style="display: none;">
+          <o-button id="host-lobby-button" title="Create Lobby" translationKey="main.create_lobby" block
+            secondary></o-button>
+          <o-button id="join-private-lobby-button" title="Join Lobby" translationKey="main.join_lobby" block
+            secondary></o-button>
+          <!-- <o-button
+              id="chat-button"
+              title="Chat Test"
+              block
+              secondary
+            ></o-button> -->
+        </div>
       </div>
 
-      <!-- Flashist Adaptation -->
-      <!-- <div class="container__row container__row--equal"> -->
-      <div class="container__row container__row--equal" style="display: none;">
-        <o-button id="host-lobby-button" title="Create Lobby" translationKey="main.create_lobby" block
-          secondary></o-button>
-        <o-button id="join-private-lobby-button" title="Join Lobby" translationKey="main.join_lobby" block
-          secondary></o-button>
-        <!-- <o-button
-            id="chat-button"
-            title="Chat Test"
-            block
-            secondary
-          ></o-button> -->
+      <div id="singleplayer-tab-content" class="space-y-4 hidden">
+        <!-- Flashist Adaptation -->
+        <!-- <o-button id="single-player" title="Single Player" translationKey="main.single_player" block></o-button> -->
+        <o-button id="single-player" translationKey="main.single_player"
+          subtitleTranslationKey="main.single_player_subtitle" block></o-button>
+        <o-button id="single-play-mission" title="" block></o-button>
       </div>
-
-      <!-- Flashist Adaptation -->
-      <!-- <o-button id="single-player" title="Single Player" translationKey="main.single_player" block></o-button> -->
-      <o-button id="single-play-mission" title="" block></o-button>
-      <o-button id="single-player" translationKey="main.single_player" block></o-button>
 
       <!-- Flashist Adaptation -->
       <!-- <o-button id="help-button" title="Instructions" translationKey="main.instructions" block secondary></o-button> -->

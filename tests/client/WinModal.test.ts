@@ -71,10 +71,12 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
 import { GameMode, GameType } from "../../src/core/game/Game";
 import { GameUpdateType } from "../../src/core/game/GameUpdates";
 import {
+  FlashistFacade,
   flashistConstants,
   flashist_logEventAnalytics,
 } from "../../src/client/flashist/FlashistFacade";
 import { WinModal } from "../../src/client/graphics/layers/WinModal";
+import { ACTIVE_TAB_STORAGE_KEY } from "../../src/client/StartScreenTabStorage";
 
 describe("WinModal solo opponent wins", () => {
   beforeEach(() => {
@@ -184,6 +186,33 @@ describe("WinModal solo opponent wins", () => {
       flashistConstants.analyticEvents.MATCH_LOSS_OPPONENT_WON,
     );
     expect(eventBus.emit).not.toHaveBeenCalled();
+  });
+});
+
+describe("WinModal exit to menu", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+    localStorage.clear();
+    jest.clearAllMocks();
+  });
+
+  it("forces the multiplayer start screen tab before leaving", async () => {
+    localStorage.setItem(ACTIVE_TAB_STORAGE_KEY, "singleplayer");
+    const eventBus = { emit: jest.fn() };
+    const modal = await appendModal({
+      eventBus,
+      game: createGame({
+        gameType: GameType.Singleplayer,
+        isTutorial: false,
+        winUpdates: [],
+      }),
+    });
+
+    await (modal as unknown as { _handleExit: () => Promise<void> })
+      ._handleExit();
+
+    expect(localStorage.getItem(ACTIVE_TAB_STORAGE_KEY)).toBe("multiplayer");
+    expect(FlashistFacade.instance.changeHref).toHaveBeenCalled();
   });
 });
 

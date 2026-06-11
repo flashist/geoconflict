@@ -34,7 +34,10 @@
     "create_lobby": "Create Lobby",
     "join_lobby": "Join Lobby",
     "play_mission": "Play Mission: {level}",
-    "single_player": "Single Player",
+    "single_player": "Custom Game",
+    "single_player_subtitle": "Set up your game",
+    "tab_multiplayer": "Multiplayer",
+    "tab_singleplayer": "Singleplayer",
     "instructions": "Instructions",
     "how_to_play": "How to Play",
     "advertise": "Advertise",
@@ -43,6 +46,11 @@
     "terms_of_service": "Terms of Service",
     "reddit": "Reddit",
     "license_text": "Based on OpenFront"
+  },
+  "citizenship_card": {
+    "title": "Citizenship",
+    "guest_subtitle": "Log in to save your progress",
+    "login_cta": "Log in with Yandex"
   },
   "news": {
     "see_all_releases": "See all releases",

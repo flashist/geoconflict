@@ -46,6 +46,14 @@
   width: 100%;
 }
 
+.c-button__subtitle {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
 .c-button--blockDesktop {
   display: block;
   width: 100%;

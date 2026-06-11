@@ -29,6 +29,7 @@ import {
   markMissionCompleted,
   setNextMissionLevel,
 } from "../../SinglePlayMissionStorage";
+import { setActiveTab } from "../../StartScreenTabStorage";
 import {
   TUTORIAL_COMPLETED_KEY,
   TUTORIAL_START_TIME_KEY,
@@ -333,6 +334,10 @@ export class WinModal extends LitElement implements Layer {
   private async _handleExit() {
     // this.hide();
     await this.hide();
+
+    // Land on the Multiplayer tab after a match (open item in
+    // s4-start-screen-redesign-impl: safest default, flagged for review).
+    setActiveTab("multiplayer");
 
     // Flashist Adaptation
     // window.location.href = "/";

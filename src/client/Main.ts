@@ -16,6 +16,7 @@ import { UserSettings } from "../core/game/UserSettings";
 import version from "../version";
 import "./AccountModal";
 import { startBuildVersionChecker } from "./BuildVersionChecker";
+import "./CitizenshipCard";
 import "./StaleBuildModal";
 import { joinLobby } from "./ClientGameRunner";
 import { fetchCosmetics } from "./Cosmetics";
@@ -53,6 +54,7 @@ import {
   setNextMissionLevel,
 } from "./SinglePlayMissionStorage";
 import { setStartScreenControlsHidden } from "./StartScreenControls";
+import "./StartScreenTabs";
 import { SinglePlayerModal } from "./SinglePlayerModal";
 import { TerritoryPatternsModal } from "./TerritoryPatternsModal";
 import { TokenLoginModal } from "./TokenLoginModal";

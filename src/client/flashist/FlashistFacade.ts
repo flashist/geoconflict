@@ -110,6 +110,8 @@ export const flashistConstants = {
 
     UI_TAP_FIRST_PART: "UI:Tap:",
 
+    CITIZENSHIP_SURFACE_SEEN: "Citizenship:Seen",
+
     BUILD_STALE_DETECTED: "Build:StaleDetected",
   },
 
@@ -121,6 +123,9 @@ export const flashistConstants = {
     vkLinkGameEnd: "VkLinkGameEnd",
     tutorialSkipBtnCorner: "TutorialSkipBtnCorner",
     tutorialSkipBtnInline: "TutorialSkipBtnInline",
+    multiplayerTab: "MultiplayerTab",
+    singleplayerTab: "SingleplayerTab",
+    citizenshipLoginToEarn: "CitizenshipLoginToEarn",
   },
 
   progressionEventStatus: {
