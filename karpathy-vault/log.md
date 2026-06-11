@@ -658,3 +658,11 @@
 - Issues fixed: 2
 - Issues flagged for human review: 0
 - Fixed two stale line references in [[wiki/systems/server-performance]] and [[wiki/systems/match-logging]]; structural, index, wikilink, backlink, orphan, source-path, and targeted stale-claim checks passed.
+
+## 2026-06-11 — ingest
+- Sync window: `ef4e4666b94b3e5b2dbde896d15fbce6fb793797` → HEAD (`459af8bc7e04daf4713f8983602c90e081122ca4`)
+- Changed source files detected: 7
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]]
+- Ingested: `ai-agents/tasks/done/s4-feedback-modal-space-key.md` → created [[wiki/tasks/feedback-modal-space-key]]; updated [[wiki/features/feedback-button]], [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-start-screen-redesign-impl.md`, `ai-agents/tasks/backlog/bots-skip-sam-when-nukes-disabled.md`, `ai-agents/tasks/backlog/s4-postgres-backup-routine.md`, `ai-agents/tasks/backlog/worker-init-timeout-map-refetch.md` — backlog files are not ingested directly by wiki-sync; relevant backlog status is summarized through [[wiki/decisions/sprint-backlog]] and [[wiki/decisions/sprint-4]]

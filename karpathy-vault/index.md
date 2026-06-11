@@ -39,7 +39,7 @@
 - [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation plus shipped tasks and carried null-ID/archival follow-ups
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
-- [[decisions/sprint-backlog]] — No-sprint backlog for defined work that needs a sprint home, including monitoring alert bot phases and deferred mobile WebGL stability
+- [[decisions/sprint-backlog]] — No-sprint backlog for defined work needing a sprint home, including monitoring, mobile WebGL, worker init, and no-nukes SAM fixes
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
 - [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance no-ship, compact-map runtime fallback no-ship — with reasons and re-attempt guidance
@@ -69,6 +69,7 @@
 - [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement
 - [[tasks/legal-vat-investigation]] — External VAT/legal check that cleared the pre-launch payments gate
 - [[tasks/global-announcements]] — Re-enabled repo-authored announcements bell and popup with unread badge
+- [[tasks/feedback-modal-space-key]] — Sprint 4 fix allowing spaces in the in-match feedback modal and suppressing gameplay hotkeys while typing
 - [[tasks/email-subscribe-modal]] — Start-screen and win-screen email opt-in modal backed by Telegram delivery
 - [[tasks/map-preload]] — HF-13 background terrain preload on JOIN with preload-hit analytics
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 fix preserving one human slot in mixed AI/public lobbies

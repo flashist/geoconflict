@@ -70,6 +70,7 @@ Submissions land in a simple list view: category, free text, attached context, t
 - Must use `FeedbackIconWhite.svg` — not a new icon, not red
 - Device info collection is error-proof: each API call is individually wrapped; any failure is caught silently and that field is omitted. A submission with zero device fields is acceptable — text always goes through.
 - Sprint 3 added match ID attachment via existing `localStorage['game-records']` — no new localStorage writes needed
+- The in-match modal depends on `InputHandler` suppressing global hotkeys while text fields are focused, including shadow-DOM focus inside `FeedbackModal`; see [[tasks/feedback-modal-space-key]].
 
 ## Related
 
@@ -78,3 +79,4 @@ Submissions land in a simple list view: category, free text, attached context, t
 - [[decisions/hotfix-post-sprint2]] — HF-3 added `UI:Tap:*` events for tutorial skip buttons (same `UI:Tap` convention)
 - [[decisions/sprint-3]] — Sprint 3 added last 3 match IDs to feedback payload
 - [[tasks/email-subscribe-modal]] — separate opt-in modal that reuses the same Telegram delivery path
+- [[tasks/feedback-modal-space-key]] — Sprint 4 fix for Space and gameplay hotkeys while typing in the modal
