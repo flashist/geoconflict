@@ -97,11 +97,11 @@
 .c-button--menuRow {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
   text-align: left;
-  padding: 10px 14px;
-  border-radius: 16px;
+  padding: 16px;
+  border-radius: 12px;
 }
 
 .c-button--menuRow .c-button__text {
@@ -113,14 +113,16 @@
 .c-button--menuRow .c-button__title {
   display: block;
   font-weight: 700;
-  font-size: 16px;
-  line-height: 1.3;
+  font-size: 15px;
+  line-height: 1.2;
 }
 
 .c-button--menuRow .c-button__subtitle {
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.2;
   opacity: 0.85;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .c-button__icon {
@@ -130,18 +132,28 @@
 }
 
 .c-button__chevron {
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1;
   opacity: 0.7;
   flex: 0 0 auto;
 }
 
 /* Dark translucent secondary per the start screen design — identical in
-   light and dark mode. */
+   light and dark mode. The design gives these rows slightly tighter
+   metrics than the primary blue rows. */
 .c-button--menuRow.c-button--secondary,
 .dark .c-button--menuRow.c-button--secondary {
   background: rgba(28, 28, 30, 0.85);
   color: #fff;
+  padding: 13px 16px;
+}
+
+.c-button--menuRow.c-button--secondary .c-button__title {
+  font-size: 14px;
+}
+
+.c-button--menuRow.c-button--secondary .c-button__icon {
+  font-size: 20px;
 }
 
 .c-button--menuRow.c-button--secondary:hover,
