@@ -191,7 +191,7 @@
       <citizenship-card class="block"></citizenship-card>
       <start-screen-tabs class="block"></start-screen-tabs>
 
-      <div id="multiplayer-tab-content" class="space-y-4">
+      <div id="multiplayer-tab-content" class="space-y-3">
         <div>
           <public-lobby class="block"></public-lobby>
         </div>
@@ -212,13 +212,15 @@
         </div>
       </div>
 
-      <div id="singleplayer-tab-content" class="space-y-4 hidden">
+      <div id="singleplayer-tab-content" class="space-y-3 hidden">
         <o-button id="single-player" title="Custom Game" translationKey="main.single_player"
-          subtitleTranslationKey="main.single_player_subtitle" block></o-button>
-        <o-button id="single-play-mission" title="" block></o-button>
+          subtitleTranslationKey="main.single_player_subtitle" icon="🗺️" chevron menurow block></o-button>
+        <o-button id="single-play-mission" title="" subtitleTranslationKey="main.play_mission_subtitle" icon="🎯"
+          chevron menurow block></o-button>
       </div>
 
-      <o-button id="help-button" title="Instructions" translationKey="main.instructions" block secondary></o-button>
+      <o-button id="help-button" class="mt-auto" title="Instructions" translationKey="main.instructions"
+        subtitleTranslationKey="main.instructions_subtitle" icon="📖" chevron menurow block secondary></o-button>
       <div class="container__row">
         <lang-selector class="w-full"></lang-selector>
       </div>

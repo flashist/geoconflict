@@ -73,33 +73,38 @@ export class CitizenshipCard extends LitElement {
   render() {
     return html`
       <div
-        class="w-full flex items-center gap-3 p-3 rounded-xl border border-black/30 dark:border-gray-300/60 bg-white/70 dark:bg-[rgba(55,65,81,0.7)]"
+        class="w-full flex items-center gap-2 p-2.5 rounded-2xl bg-[#1c1c1e]/85"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          class="w-6 h-6 shrink-0 text-gray-500 dark:text-gray-300"
+        <span
+          class="flex items-center justify-center w-9 h-9 rounded-lg bg-[#2c2c2e] shrink-0"
           aria-hidden="true"
         >
-          <path
-            fill-rule="evenodd"
-            d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z"
-            clip-rule="evenodd"
-          />
-        </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            class="w-5 h-5 text-[#98989f]"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+            />
+          </svg>
+        </span>
         <div class="flex-1 min-w-0 text-left">
-          <div class="text-base font-semibold text-gray-900 dark:text-white">
+          <div class="text-[16px] font-bold text-white leading-tight">
             ${translateText("citizenship_card.title")}
           </div>
-          <div class="text-xs text-gray-600 dark:text-gray-300">
+          <div class="text-[12px] text-[#98989f] leading-snug">
             ${translateText("citizenship_card.guest_subtitle")}
           </div>
         </div>
         <button
           id="citizenship-login-button"
-          class="shrink-0 px-3 py-2 rounded-lg text-sm font-medium text-white transition-colors duration-200 hover:opacity-90"
-          style="background-color: #0075ff;"
+          class="shrink-0 px-2.5 py-2 rounded-xl text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
           @click=${this.onLoginCtaTap}
         >
           ${translateText("citizenship_card.login_cta")}

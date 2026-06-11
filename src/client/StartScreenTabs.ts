@@ -31,7 +31,7 @@ export class StartScreenTabs extends LitElement {
   render() {
     return html`
       <div
-        class="flex w-full rounded-xl overflow-hidden border border-black/30 dark:border-gray-300/60 bg-white/70 dark:bg-[rgba(55,65,81,0.7)]"
+        class="flex w-full rounded-2xl bg-[#1c1c1e]/85 p-1"
         role="tablist"
       >
         ${this.renderTabButton("multiplayer", "main.tab_multiplayer")}
@@ -47,9 +47,9 @@ export class StartScreenTabs extends LitElement {
         id="${tab}-tab-button"
         role="tab"
         aria-selected="${isActive}"
-        class="flex-1 py-2 px-2 text-base font-medium transition-colors duration-200 ${isActive
-          ? "bg-[#0075ff] text-white"
-          : "text-gray-700 dark:text-gray-200 hover:bg-black/10 dark:hover:bg-white/10"}"
+        class="flex-1 py-1.5 px-2 rounded-xl text-[15px] font-bold transition-colors duration-200 ${isActive
+          ? "bg-blue-600 text-white"
+          : "bg-transparent text-[#8e8e93] hover:text-white"}"
         @click=${() => this.onTabTap(tab)}
       >
         ${translateText(translationKey)}

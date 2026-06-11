@@ -90,3 +90,71 @@
 .dark .c-button--secondary:focus {
   background: var(--secondaryColorHoverDark);
 }
+
+/* Menu-row variant: icon + left-aligned title/subtitle + chevron
+   (start screen redesign). Placed last so it wins over the block and
+   dark-mode rules above at equal specificity. */
+.c-button--menuRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 16px;
+}
+
+.c-button--menuRow .c-button__text {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.c-button--menuRow .c-button__title {
+  display: block;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.c-button--menuRow .c-button__subtitle {
+  font-size: 12px;
+  opacity: 0.85;
+  margin-top: 1px;
+}
+
+.c-button__icon {
+  font-size: 22px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.c-button__chevron {
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex: 0 0 auto;
+}
+
+/* Dark translucent secondary per the start screen design — identical in
+   light and dark mode. */
+.c-button--menuRow.c-button--secondary,
+.dark .c-button--menuRow.c-button--secondary {
+  background: rgba(28, 28, 30, 0.85);
+  color: #fff;
+}
+
+.c-button--menuRow.c-button--secondary:hover,
+.c-button--menuRow.c-button--secondary:active,
+.c-button--menuRow.c-button--secondary:focus,
+.dark .c-button--menuRow.c-button--secondary:hover,
+.dark .c-button--menuRow.c-button--secondary:active,
+.dark .c-button--menuRow.c-button--secondary:focus {
+  background: rgba(44, 44, 46, 0.9);
+}
+
+.c-button--menuRow.c-button--secondary .c-button__subtitle,
+.c-button--menuRow.c-button--secondary .c-button__chevron {
+  color: #98989f;
+  opacity: 1;
+}
