@@ -12,7 +12,7 @@ The latest sprint brief now frames citizenship progression as an XP system: `10 
 **Rewarded ads explicitly deferred** — no reward mechanic exists yet. Rewarded ads ship in Sprint 5 once citizenship benefits give players something worth watching an ad for.
 
 Source: `ai-agents/sprints/plan-sprint-4.md`
-Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/tasks/done/sprint4-investigation-yandex-payments.md`, `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`, `ai-agents/tasks/done/analytics-p0-game-mode-segmentation.md`, `ai-agents/tasks/done/analytics-p0-match-duration.md`, `ai-agents/tasks/done/analytics-p0-player-days-played.md`, `ai-agents/tasks/done/analytics-p0-yandex-login-status.md`, `ai-agents/tasks/done/8d-a-task-global-announcements.md`, `ai-agents/tasks/done/s4-start-screen-redesign-investigation.md`, `ai-agents/tasks/done/s4-legal-vat-investigation.md`, `ai-agents/knowledge-base/GeoConflict-Licensing-Brief.md`, `ai-agents/tasks/done/s4-ai-lobby-slot-bug.md`, `ai-agents/tasks/done/s4-feedback-modal-space-key.md`, `ai-agents/tasks/done/s4-email-subscribe-task.md`, `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/done/s4-missions-difficulty-investigation.md`, `ai-agents/knowledge-base/s4-missions-difficulty-findings.md`, `ai-agents/tasks/done/s4-solo-win-condition-fix.md`, `ai-agents/tasks/done/s4-telegram-link.md`, `ai-agents/tasks/done/s4-vk-link.md`, `ai-agents/tasks/done/s4-nuke-trajectory-visibility.md`, `ai-agents/tasks/done/s4-teams-mode-max-teams.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/plan-fix-archive-endpoint.md`, `ai-agents/knowledge-base/report-archive-endpoint-task-split-2026-06-01.md`, `ai-agents/tasks/backlog/s4-investigate-null-id-errors.md`, `ai-agents/tasks/done/s4c-enable-client-source-maps.md`
+Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/tasks/done/sprint4-investigation-yandex-payments.md`, `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`, `ai-agents/tasks/done/analytics-p0-game-mode-segmentation.md`, `ai-agents/tasks/done/analytics-p0-match-duration.md`, `ai-agents/tasks/done/analytics-p0-player-days-played.md`, `ai-agents/tasks/done/analytics-p0-yandex-login-status.md`, `ai-agents/tasks/done/8d-a-task-global-announcements.md`, `ai-agents/tasks/done/s4-start-screen-redesign-investigation.md`, `ai-agents/tasks/done/s4-start-screen-redesign-impl.md`, `ai-agents/tasks/done/s4-app-bootstrap-single-entry-point.md`, `ai-agents/knowledge-base/app-bootstrap-single-entry-point-findings-and-plan.md`, `ai-agents/tasks/done/s4-legal-vat-investigation.md`, `ai-agents/knowledge-base/GeoConflict-Licensing-Brief.md`, `ai-agents/tasks/done/s4-ai-lobby-slot-bug.md`, `ai-agents/tasks/done/s4-feedback-modal-space-key.md`, `ai-agents/tasks/done/s4-email-subscribe-task.md`, `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/done/s4-missions-difficulty-investigation.md`, `ai-agents/knowledge-base/s4-missions-difficulty-findings.md`, `ai-agents/tasks/done/s4-solo-win-condition-fix.md`, `ai-agents/tasks/done/s4-telegram-link.md`, `ai-agents/tasks/done/s4-vk-link.md`, `ai-agents/tasks/done/s4-nuke-trajectory-visibility.md`, `ai-agents/tasks/done/s4-teams-mode-max-teams.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/plan-fix-archive-endpoint.md`, `ai-agents/knowledge-base/report-archive-endpoint-task-split-2026-06-01.md`, `ai-agents/tasks/backlog/s4-investigate-null-id-errors.md`, `ai-agents/tasks/done/s4c-enable-client-source-maps.md`
 
 ## Decision
 
@@ -23,6 +23,8 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - **Investigation B: Yandex Payments Catalog** is complete. It recommends signed Yandex purchases, a memoized session catalog cache in `FlashistFacade`, signed client-to-server verification plus startup reconciliation through `getPurchases()`, and post-grant consumption after durable entitlement storage. See [[tasks/yandex-payments-investigation]].
 - **Global announcements (`8d-A`)** are complete and available as the base communication surface for future inbox or citizenship messaging. See [[tasks/global-announcements]].
 - **Start screen redesign investigation** is complete and locks the layout direction for citizenship UI. See [[tasks/start-screen-redesign-investigation]].
+- **Start screen redesign implementation** is complete. The start screen now uses the two-tab Multiplayer/Singleplayer layout, has a citizenship card shell above the tabs, persists the active tab, renamed Single Player to `Custom Game` / `Своя игра`, and emits tab/citizenship-surface analytics. See [[tasks/start-screen-redesign-implementation]].
+- **App Bootstrap: Single Explicit Entry Point** is complete. Client boot now runs through `Bootstrap.ts`, with immediate analytics, a bounded Yandex/platform gate, language-before-render, degraded mode, and app-chunk recovery. See [[tasks/app-bootstrap-single-entry-point]].
 - **Legal/VAT investigation** is complete and clears the external legal/tax gate for in-app purchases. See [[tasks/legal-vat-investigation]].
 - **Licensing compliance brief** confirms commercial use is allowed but adds AGPL/source-access and asset-use obligations that must be handled separately from VAT/tax setup. See [[decisions/licensing-compliance]].
 - **Monetization analytics spec** is captured as the P0/P1 measurement baseline for identity, match lifecycle, citizenship funnel, and ad-tier revenue questions. See [[tasks/monetization-analytics-spec]].
@@ -41,6 +43,8 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Analytics P0: player days played — done
 - Analytics P0: Yandex login status — done
 - Analytics P0: session match count — done
+- Start Screen Redesign — Implementation — done
+- App Bootstrap — Single Explicit Entry Point — done
 - Telegram Channel Link — done
 - VK Channel Link — done
 - Nuke trajectory visibility — done
@@ -54,7 +58,6 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 
 | Task | Status | Notes |
 |---|---|---|
-| Start Screen Redesign — Implementation | backlog | Required before citizenship progress UI can fit on the start screen |
 | Player Profile Store — Implementation | backlog | Depends on Investigation A conclusions and verified Yandex identity work |
 | Yandex Payments — Catalog Fetch & Purchase Infrastructure | backlog | Depends on Investigation B conclusions and catalog readiness |
 | Citizenship Core — XP Counter & Progress UI | backlog | Blocked by start screen redesign implementation |
@@ -86,12 +89,12 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 
 **Start screen redesign decisions:**
 - Minimum supported usable area: `360x430`
-- Adopted layout: two tabs, with Multiplayer as the default first tab
-- Citizenship surface placement: full-width card above the tabs
+- Shipped layout: two tabs, with Multiplayer as the default first tab
+- Citizenship surface placement: full-width card above the tabs; live data remains for later citizenship tasks
 - Guest state must show a Yandex login CTA rather than silently hiding progress
 - The last active tab should persist across sessions
-- "Single Player" should be renamed to `Custom Game` / `Своя игра` when implemented
-- `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab` are the planned analytics events for the redesign implementation
+- "Single Player" is renamed to `Custom Game` / `Своя игра`
+- `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab` shipped with the redesign implementation
 - Win-screen return target remains the only explicitly open product question from the redesign investigation
 
 **Pricing:**
@@ -103,7 +106,9 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 ## Consequences
 
 - Sprint 4's core citizenship, payments, player profile store, and start-screen implementation track is temporarily paused during Mark's May 15 to June 1, 2026 travel window; [[decisions/sprint-4b]] covers the interim player-facing variety sprint and [[decisions/sprint-4c]] covers production stabilization, both explicitly excluding this monetization infrastructure.
-- Start screen redesign implementation is now a prerequisite for the citizenship XP/progress UI, not a nice-to-have polish task
+- Start screen redesign implementation is now done and unblocks the citizenship XP/progress UI from a layout standpoint
+- The app-bootstrap refactor removes the race-condition class around Yandex SDK, experiment flags, player data, and language startup. Future citizenship auth and Yandex payments work should plug into the explicit `Bootstrap.ts` / `FlashistFacade.initializePlatform()` gate instead of adding per-component startup waits.
+- Production release validation for bootstrap-sensitive work must include the Yandex iframe path because the real `YaGames.init()` path, SDK language, player name, experiment flags, and `LoadingAPI.ready()` timing are platform-dependent.
 - The VAT/tax gate is cleared; payments work no longer waits on extra legal registration, bank changes, or company-structure changes
 - The VAT/tax gate does not clear IP/licensing compliance: before monetization scales, GeoConflict still needs a public current source repository, visible in-game source-code link, production asset audit, and legal review of AGPL/Yandex.Games interactions. See [[decisions/licensing-compliance]].
 - Register Yandex catalog items immediately — approval takes days and remains the main non-engineering blocker
@@ -149,6 +154,8 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/global-announcements]] — completed `8d-A` dependency for future inbox and citizenship messaging
 - [[tasks/feedback-modal-space-key]] — Sprint 4 fix for in-match feedback typing and hotkey suppression
 - [[tasks/start-screen-redesign-investigation]] — locked tab layout, viewport target, and citizenship placement decisions
+- [[tasks/start-screen-redesign-implementation]] — shipped two-tab start screen, citizenship card shell, persistence, copy rename, and tab analytics
+- [[tasks/app-bootstrap-single-entry-point]] — explicit client bootstrap sequence and degraded-mode Yandex SDK gate
 - [[tasks/legal-vat-investigation]] — external gate-clear task confirming no additional legal/tax blocker before payments
 - [[decisions/licensing-compliance]] — separate OpenFront-derived licensing posture for AGPL/source access, assets, and trademark boundaries
 - [[decisions/archive-archival-strategy]] — S3-backed, citizen-gated match archival decision and deferred storage scope

@@ -19,8 +19,8 @@
 - [[systems/networking]] — Worker-routed WebSocket/HTTP flow with Zod-validated client/server messages
 - [[systems/execution-pipeline]] — Client input to Intent to Execution to GameUpdate path
 - [[systems/rendering]] — Layered client rendering, mixed canvas/Lit UI, and camera transform orchestration
-- [[systems/flashist-init]] — FlashistFacade startup ordering, Yandex SDK bootstrap, and experiment flag init
-- [[systems/analytics]] — GameAnalytics player behaviour tracking: event conventions, experiment funnels, and monetization measurement baselines
+- [[systems/flashist-init]] — Explicit Bootstrap.ts startup gate for analytics, Yandex SDK, player data, flags, language, degraded mode, and app loading
+- [[systems/analytics]] — GameAnalytics player behaviour tracking: event conventions, bootstrap/session events, experiment funnels, and monetization measurement baselines
 - [[systems/telemetry]] — OTEL/Uptrace server/client observability, source maps, ClickHouse VPS guardrails, and investigation workflows
 - [[systems/configuration]] — GAME_ENV, /api/env, runtime public settings, and gameplay/server config selection
 - [[systems/localization]] — LangSelector and translateText flow for bundled UI translations and English fallback
@@ -36,10 +36,10 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/7/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
-- [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation plus shipped tasks and carried null-ID/archival follow-ups
+- [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation, shipped start-screen/bootstrap work, plus carried null-ID/archival follow-ups
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
-- [[decisions/sprint-backlog]] — No-sprint backlog for defined work needing a sprint home, including monitoring, mobile WebGL, worker init, and no-nukes SAM fixes
+- [[decisions/sprint-backlog]] — No-sprint backlog for defined work needing a sprint home, including monitoring, mobile WebGL, worker init, weird-mode cleanup, no-nukes SAM, FuseTag, and GutterAds fixes
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
 - [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance no-ship, compact-map runtime fallback no-ship — with reasons and re-attempt guidance
@@ -67,6 +67,8 @@
 - [[tasks/player-profile-store-investigation]] — Sprint 4 investigation recommending Postgres on the game VPS and identifying the Yandex identity gap
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
 - [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement
+- [[tasks/start-screen-redesign-implementation]] — Sprint 4 implementation of the two-tab start screen, citizenship card shell, tab persistence, localization rename, and tab analytics
+- [[tasks/app-bootstrap-single-entry-point]] — Sprint 4 explicit client bootstrap refactor with bounded Yandex platform init, degraded mode, language-before-render, and app-chunk recovery
 - [[tasks/legal-vat-investigation]] — External VAT/legal check that cleared the pre-launch payments gate
 - [[tasks/global-announcements]] — Re-enabled repo-authored announcements bell and popup with unread badge
 - [[tasks/feedback-modal-space-key]] — Sprint 4 fix allowing spaces in the in-match feedback modal and suppressing gameplay hotkeys while typing

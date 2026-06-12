@@ -22,9 +22,12 @@ Add Yandex login-status analytics so Sprint 4 citizenship work can measure how m
 
 The session baseline now records Yandex identity reach without delaying session-start analytics. This lets citizenship planning separate authenticated Yandex players from guests and degraded SDK sessions before the citizenship UI launches.
 
+The later explicit bootstrap refactor refined failure semantics: Yandex-platform failures, init rejections, SDK script failures, and hung/rejected `getPlayer()` now resolve as `Player:YandexUnknown` rather than crashing, hanging, or being misclassified as guest. Non-Yandex/standalone sessions and real unauthenticated Yandex sessions remain `Player:YandexGuest`. See [[tasks/app-bootstrap-single-entry-point]].
+
 ## Related
 
 - [[systems/analytics]]
 - [[systems/flashist-init]]
 - [[decisions/sprint-4]]
 - [[tasks/analytics-p0-session-match-count]]
+- [[tasks/app-bootstrap-single-entry-point]]

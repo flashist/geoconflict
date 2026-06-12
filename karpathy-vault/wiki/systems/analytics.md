@@ -1,11 +1,11 @@
 # Analytics System
 
 **Layer**: client
-**Key files**: `src/client/flashist/FlashistFacade.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
+**Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
 ## Summary
 
-GameAnalytics-based player behaviour tracking. Used for A/B experiment evaluation, funnel analysis, session retention, tutorial completion rates, mode-segmented match funnels, and public-lobby join/start diagnostics. **Not** for server observability — that's Uptrace. See [[systems/telemetry]] for server-side instrumentation.
+GameAnalytics-based player behaviour tracking. Used for A/B experiment evaluation, funnel analysis, session retention, tutorial completion rates, mode-segmented match funnels, public-lobby join/start diagnostics, and bootstrap/degraded-mode measurement. **Not** for server observability — that's Uptrace. See [[systems/telemetry]] for server-side instrumentation.
 
 All event strings follow `Category:Action` or `Category:Subcategory:Value` format (PascalCase, colon-separated — no underscores). The TypeScript enum `flashistConstants.analyticEvents` in `FlashistFacade.ts` is the **single source of truth** — never write event strings inline in game code.
 
@@ -17,12 +17,13 @@ The reference docs are `ai-agents/knowledge-base/analytics-event-reference.md` a
 - Fire events via `FlashistFacade.instance.logEventAnalytics(flashistConstants.analyticEvents.KEY)`
 - UI:Tap events use `FlashistFacade.instance.logUiTapEvent(flashistConstants.uiElementIds.yourElement)` — opt-in per element
 - Experiment events are fired through the idempotent `logExperimentEvents()` path after `loadExperimentFlags()` populates Yandex flags
+- Bootstrap/session events are split by `Bootstrap.ts`: immediate no-wait analytics fire before platform init blocks, while degraded-mode and Yandex auth events resolve asynchronously through the bounded platform gate
 
 ## Event Categories
 
 | Category | Purpose |
 |---|---|
-| `Session` | Session lifecycle, heartbeats, first action |
+| `Session` | Session lifecycle, heartbeats, first action, platform-init timeout |
 | `Device` / `Platform` | Segmentation — fired once per session after `Session:Start` |
 | `Player` | New vs. returning, loyalty depth, and identity/session enrichment |
 | `Game` | Match start, mode classification, end, win, loss, abandon |
@@ -56,7 +57,9 @@ The baseline events fire once per session from `FlashistFacade`; Yandex login st
 
 `Player:DaysPlayed` is the cumulative count of unique local calendar days on which the player opened the game. Same-day repeat sessions fire with the same value; returning after a gap increments by exactly `1`, not by the gap length. The shipped storage keys are `geoconflict.player.daysPlayed` and `geoconflict.player.lastPlayedDate`, matching the existing `geoconflict.player.*` namespace. See [[tasks/analytics-p0-player-days-played]].
 
-`Player:YandexLoggedIn`, `Player:YandexGuest`, and `Player:YandexUnknown` segment the session by Yandex identity reach. The client gives the Yandex SDK one second to become ready, then either schedules the accurate auth status after player init resolves or logs an immediate guest/unknown fallback. The event is one-shot per session. See [[tasks/analytics-p0-yandex-login-status]].
+`Session:PlatformInitTimeout` fires when a blocking platform-init stage exceeds the shared 5-second deadline and the app continues in degraded mode. Degraded mode uses default flags, localStorage username fallback, browser language, and no ads.
+
+`Player:YandexLoggedIn`, `Player:YandexGuest`, and `Player:YandexUnknown` segment the session by Yandex identity reach. After the bootstrap refactor, exactly one `Player:Yandex*` event fires per booted session. `Player:YandexGuest` means either standalone/non-Yandex context or an actual Yandex guest. `Player:YandexUnknown` means the page is on the Yandex platform, but auth state could not be determined by the bounded platform-init deadline: SDK script failure, `YaGames.init()` rejection, slow SDK init, hung/rejected `getPlayer()`, or timeout. See [[tasks/analytics-p0-yandex-login-status]] and [[tasks/app-bootstrap-single-entry-point]].
 
 ## Game Mode Segmentation
 
@@ -110,6 +113,8 @@ See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrumen
 
 The analytics reference also defines placement-specific community CTA tap IDs. `UI:Tap:TelegramLinkStartScreen` and `UI:Tap:TelegramLinkGameEnd` are emitted by the shipped [[tasks/telegram-link]] flow; `UI:Tap:VkLinkStartScreen` and `UI:Tap:VkLinkGameEnd` are emitted by [[tasks/vk-link]]. This keeps start-screen and game-end CTA taps segmented separately.
 
+The start-screen redesign adds menu-tab and citizenship-surface instrumentation. `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab` fire on explicit tab taps, including re-taps of the active tab; restoring a persisted tab on load does not fire. `Citizenship:Seen` fires once per page load when the citizenship card is visible, and `UI:Tap:CitizenshipLoginToEarn` tracks the Yandex login CTA. See [[tasks/start-screen-redesign-implementation]].
+
 ## Monetization Measurement Baseline
 
 The Sprint 4 monetization analytics spec in [[tasks/monetization-analytics-spec]] defines the measurement gate before citizenship and payments decisions should be treated as validated:
@@ -136,6 +141,7 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - **Double-reload:** Before HF-9, a browser refresh after any game caused two full initialization sequences, doubling all `Session:Start`, `Device:*`, `Platform:*`, and `Experiment:*` events. Fixed in HF-9. See [[decisions/double-reload-fix]].
 - **`Player:New` inflation:** During the double-reload era, new users fired both `Player:New` (first load) and `Player:Returning` (second load). Historical cohort data for new users from before HF-9 is affected.
 - **Stale build sessions:** Users on zombie tabs (old builds) still fire analytics — `Build:StaleDetected` identifies them. See [[decisions/stale-build-zombie-tabs]].
+- **Bootstrap timing:** `Session:Start` now fires deterministically in the immediate `Bootstrap.ts` phase before the bounded platform gate. Funnel comparisons around the bootstrap refactor should expect slight ordering/timing shifts rather than treating them as regressions by default.
 - **Build tracking history:** Older HF-7 docs mention GameAnalytics Custom Dimension 01 and dashboard pre-registration for build values. That was true for the first implementation only; current tracking uses `configureBuild()` and does not require GA pre-registration. See [[tasks/build-number-tracking]].
 - **Monetization event naming:** The monetization spec uses product-level event names as requirements, but implementation must still conform to the established `Category:Action` analytics naming convention and the TypeScript enum source-of-truth rule.
 
@@ -156,6 +162,8 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[features/reconnection]] — Reconnect event category
 - [[features/feedback-button]] — Feedback event category and match ID attachment
 - [[tasks/email-subscribe-modal]] — `Subscribe:Opened` and `Subscribe:Submitted` for the email opt-in flow
+- [[tasks/start-screen-redesign-implementation]] — tab taps, citizenship surface impression, and login CTA analytics
+- [[tasks/app-bootstrap-single-entry-point]] — `Session:PlatformInitTimeout` and refined Yandex auth-status semantics
 - [[tasks/telegram-link]] — placement-specific Telegram CTA taps on start and game-end screens
 - [[tasks/vk-link]] — placement-specific VK CTA taps on start and game-end screens
 - [[tasks/solo-win-condition-fix]] — `Match:Loss:OpponentWon` reason event

@@ -672,3 +672,14 @@
 - Issues fixed: 0
 - Issues flagged for human review: 0
 - Full wiki health-check passed: index/file coverage, required metadata, wiki-link resolution, backlinks, orphan scan, and source-path references are clean.
+
+## 2026-06-13 — ingest
+- Sync window: `459af8bc7e04daf4713f8983602c90e081122ca4` → HEAD (`15a1c0480f4a122a9d2c4f9dfa3941ade4c459f9`)
+- Changed source files detected: 11
+- Ingested: `ai-agents/tasks/done/s4-app-bootstrap-single-entry-point.md` → created [[wiki/tasks/app-bootstrap-single-entry-point]]; updated [[wiki/systems/flashist-init]], [[wiki/systems/analytics]], [[wiki/systems/localization]], [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-backlog]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/knowledge-base/app-bootstrap-single-entry-point-findings-and-plan.md` → updated [[wiki/tasks/app-bootstrap-single-entry-point]], [[wiki/systems/flashist-init]], [[wiki/systems/analytics]], [[wiki/systems/localization]], [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-backlog]]
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]], [[wiki/tasks/analytics-p0-yandex-login-status]]
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-start-screen-redesign-impl.md` → created [[wiki/tasks/start-screen-redesign-implementation]]; updated [[wiki/decisions/sprint-4]], [[wiki/systems/analytics]], [[wiki/systems/localization]], [[wiki/tasks/start-screen-redesign-investigation]], `karpathy-vault/index.md`
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/fix-fusetag-dead-polling-loop.md`, `ai-agents/tasks/backlog/fix-gutterads-usermeresponse-unsubscribe.md`, `ai-agents/tasks/backlog/s4c-disable-infinite-gold-public-rotation.md` — backlog files are summarized through [[wiki/decisions/sprint-backlog]]; `ai-agents/tasks/backlog/s4-app-bootstrap-single-entry-point.md`, `ai-agents/tasks/backlog/s4-start-screen-redesign-impl.md` — moved to done and represented by [[wiki/tasks/app-bootstrap-single-entry-point]] and [[wiki/tasks/start-screen-redesign-implementation]]

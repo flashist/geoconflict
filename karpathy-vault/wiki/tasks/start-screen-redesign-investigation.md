@@ -24,3 +24,4 @@ Sprint 4's citizenship UI is now unblocked from a layout-direction standpoint. E
 ## Related
 
 - [[decisions/sprint-4]] — Sprint 4 roadmap and the redesign dependency for citizenship UI
+- [[tasks/start-screen-redesign-implementation]] — implementation task that shipped the tab layout, citizenship card shell, persistence, copy rename, and analytics

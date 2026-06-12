@@ -31,3 +31,4 @@ The licensing brief adds a separate non-SDK constraint for monetization scale: G
 - [[decisions/licensing-compliance]] — AGPL/source-access and asset-use obligations around monetization
 - [[tasks/player-profile-store-investigation]] — the parallel Sprint 4 investigation that identified the verified Yandex identity gap
 - [[systems/flashist-init]] — existing client startup hub where payments/catalog caching should be added
+- [[tasks/app-bootstrap-single-entry-point]] — explicit bootstrap gate that de-risks future Yandex SDK integrations such as payments
