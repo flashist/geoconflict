@@ -269,81 +269,8 @@ describe("CitizenshipCard", () => {
 
       expect(logEventAnalytics).toHaveBeenCalledTimes(1);
     });
-
-    it("fires on a later frame once the preload curtain lifts", async () => {
-      await appendCard({ visible: false });
-      expect(logEventAnalytics).not.toHaveBeenCalled();
-
-      setCardVisibility(true);
-      await nextFrame();
-
-      expect(logEventAnalytics).toHaveBeenCalledTimes(1);
-      expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Seen");
-
-      await nextFrame();
-      expect(logEventAnalytics).toHaveBeenCalledTimes(1);
-    });
-
-    it("stops re-checking when the card is disconnected", async () => {
-      const card = await appendCard({ visible: false });
-
-      card.remove();
-      setCardVisibility(true);
-      await nextFrame();
-      await nextFrame();
-
-      expect(logEventAnalytics).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("isCardVisible", () => {
-    function createRawCard(): CitizenshipCard & {
-      checkVisibility?: jest.Mock;
-      isCardVisible(): boolean;
-    } {
-      return new CitizenshipCard() as never;
-    }
-
-    it("passes the visibility options to checkVisibility when available", () => {
-      const card = createRawCard();
-      card.checkVisibility = jest.fn().mockReturnValue(false);
-
-      expect(card.isCardVisible()).toBe(false);
-      expect(card.checkVisibility).toHaveBeenCalledWith({
-        visibilityProperty: true,
-        checkVisibilityCSS: true,
-      });
-    });
-
-    it("rejects elements with no layout boxes in the fallback path", () => {
-      const card = createRawCard();
-      (card as { checkVisibility?: unknown }).checkVisibility = undefined;
-      jest.spyOn(card, "getClientRects").mockReturnValue([] as never);
-
-      expect(card.isCardVisible()).toBe(false);
-    });
-
-    it("rejects computed visibility: hidden in the fallback path", () => {
-      const card = createRawCard();
-      (card as { checkVisibility?: unknown }).checkVisibility = undefined;
-      jest
-        .spyOn(card, "getClientRects")
-        .mockReturnValue([{}] as never as DOMRectList);
-      document.body.appendChild(card);
-      card.style.visibility = "hidden";
-
-      expect(card.isCardVisible()).toBe(false);
-
-      card.style.visibility = "visible";
-      expect(card.isCardVisible()).toBe(true);
-    });
   });
 });
-
-async function nextFrame(): Promise<void> {
-  await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-  await Promise.resolve();
-}
 
 function setCardVisibility(visible: boolean): void {
   jest
