@@ -63,7 +63,7 @@ export class CitizenshipCard extends LitElement {
         this.isEnabled = true;
         this.requestUpdate();
         await this.updateComplete;
-        this.maybeReportSeen();
+        this.reportSeenWhenVisible();
         return this.refreshProfile();
       })
       .catch((error) => {
@@ -86,16 +86,48 @@ export class CitizenshipCard extends LitElement {
     );
   }
 
-  // Layout-based check so the event stays honest during the Yandex preload
-  // curtain; jsdom cannot do layout, so tests override this method.
+  // Game init usually completes before the preload curtain lifts (the
+  // curtain also waits for window.load), so a single visibility check would
+  // either fire while the page is hidden or never fire at all. Re-check once
+  // per frame until the card is actually visible, then report once.
+  private reportSeenWhenVisible(): void {
+    if (citizenshipSeenReported || !this.isConnected) {
+      return;
+    }
+    this.maybeReportSeen();
+    if (citizenshipSeenReported) {
+      return;
+    }
+    requestAnimationFrame(() => this.reportSeenWhenVisible());
+  }
+
+  // Both start screen templates hide the page with visibility: hidden during
+  // preload (body.flashist-preload / html.preload), which keeps layout boxes,
+  // so rect presence alone is not enough — and checkVisibility() ignores the
+  // visibility property unless explicitly asked to check it. jsdom cannot do
+  // layout, so tests override this method.
   protected isCardVisible(): boolean {
     const elementWithCheckVisibility = this as HTMLElement & {
-      checkVisibility?: () => boolean;
+      checkVisibility?: (options?: {
+        visibilityProperty?: boolean;
+        checkVisibilityCSS?: boolean;
+      }) => boolean;
     };
     if (typeof elementWithCheckVisibility.checkVisibility === "function") {
-      return elementWithCheckVisibility.checkVisibility();
+      // visibilityProperty is the spec option name, checkVisibilityCSS the
+      // legacy alias — pass both for cross-browser coverage.
+      return elementWithCheckVisibility.checkVisibility({
+        visibilityProperty: true,
+        checkVisibilityCSS: true,
+      });
     }
-    return this.getClientRects().length > 0;
+    if (this.getClientRects().length === 0) {
+      return false;
+    }
+    // visibility is inherited, so the card's own computed value reflects any
+    // visibility: hidden ancestor — no ancestor walk needed (display: none
+    // ancestors already produce zero client rects).
+    return getComputedStyle(this).visibility === "visible";
   }
 
   private isAuthDialogOpen = false;
