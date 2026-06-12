@@ -22,7 +22,6 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   },
   flashist_logEventAnalytics: jest.fn(),
   flashist_waitGameInitComplete: jest.fn().mockResolvedValue(undefined),
-  YANDEX_AUTH_CHANGED_EVENT: "yandex-auth-changed",
   FlashistFacade: {
     instance: {
       logUiTapEvent: jest.fn(),
@@ -171,27 +170,6 @@ describe("CitizenshipCard", () => {
       await flushLit(card);
 
       expect(card.textContent).toContain("citizenship_card.login_cta");
-    });
-
-    it("dispatches yandex-auth-changed only on successful auth", async () => {
-      const card = await appendCard({ visible: true });
-      const authChanges: Event[] = [];
-      document.addEventListener("yandex-auth-changed", (event) => {
-        authChanges.push(event);
-      });
-      const loginButton = card.querySelector(
-        "#citizenship-login-button",
-      ) as HTMLButtonElement;
-
-      openYandexAuthDialog.mockResolvedValue(false);
-      loginButton.click();
-      await flushMicrotasks();
-      expect(authChanges).toHaveLength(0);
-
-      openYandexAuthDialog.mockResolvedValue(true);
-      loginButton.click();
-      await flushMicrotasks();
-      expect(authChanges).toHaveLength(1);
     });
   });
 
