@@ -1,4 +1,4 @@
-import { LangSelector } from "../LangSelector";
+import type { LangSelector } from "../LangSelector";
 import { GameAnalytics } from "gameanalytics";
 import { setOtelUser } from "../OtelBrowserInit";
 import { isMobileDevice } from "../Utils";
@@ -47,6 +47,7 @@ export const flashistConstants = {
     SESSION_HEARTBEAT: "Session:Heartbeat",
     SESSION_FIRST_ACTION: "Session:FirstAction",
     SESSION_MATCHES_PLAYED: "Session:MatchesPlayed",
+    SESSION_PLATFORM_INIT_TIMEOUT: "Session:PlatformInitTimeout",
     MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
     MATCH_SPAWN_AUTO: "Match:SpawnAuto",
     MATCH_SPAWNED_CONFIRMED: "Match:Spawned",
@@ -274,6 +275,10 @@ window.addEventListener("unhandledrejection", (event) => {
 // declare let YaGames: any;
 
 const YANDEX_SDK_INIT_TIMEOUT_MS = 1000;
+// Hard deadline for the blocking part of platform init (SDK init, player data,
+// experiment flags). On expiry the app continues in degraded mode instead of
+// hanging on the loading screen.
+const PLATFORM_INIT_DEADLINE_MS = 5000;
 type YandexLoginStatus = "logged-in" | "guest" | "unknown";
 
 export class FlashistFacade {
@@ -298,12 +303,39 @@ export class FlashistFacade {
   public yandexGamesSDK: any;
 
   constructor() {
-    if (typeof (window as any).YaGames !== "undefined") {
+    // Platform detection. The production iframe template sets
+    // window.flashist_isYandexPlatform before the (async) SDK script tag, so
+    // this is reliable even before sdk.js has loaded. The YaGames check is a
+    // fallback for HTML that loads sdk.js synchronously.
+    if (
+      (window as any).flashist_isYandexPlatform === true ||
+      typeof (window as any).YaGames !== "undefined"
+    ) {
       this.yaGamesAvailable = true;
     }
 
-    this.yandexInitPromise = this.yandexSdkInit();
-    this.yandexSdkInitPlayerPromise = this.initPlayer();
+    // Deferred promises: created here so every internal
+    // `await this.yandexInitPromise` contract holds regardless of when
+    // initializePlatform() is called. Resolved during platform init — they
+    // always resolve (never reject), even on SDK failure or timeout.
+    this.yandexInitPromise = new Promise((resolve) => {
+      this.yandexInitPromiseResolve = resolve;
+    });
+    this.yandexSdkInitPlayerPromise = new Promise((resolve) => {
+      this.yandexSdkInitPlayerPromiseResolve = resolve;
+    });
+    this.initializationPromise = new Promise((resolve) => {
+      this.initializationPromiseResolve = resolve;
+    });
+  }
+
+  // Part 1 of initialization — everything that must NOT wait on external SDKs:
+  // analytics bootstrap, device/platform info, session tracking. Called by
+  // Bootstrap.ts at the very start, before the platform init gate blocks.
+  private hasInitializedImmediate = false;
+  public initializeImmediate(): void {
+    if (this.hasInitializedImmediate) return;
+    this.hasInitializedImmediate = true;
 
     consumePendingSessionEnd((matchesPlayed) => {
       flashist_logEventAnalytics(
@@ -392,15 +424,78 @@ export class FlashistFacade {
     }
 
     logDaysPlayedAnalytics();
-
-    this.initializationPromise = this._initialize();
   }
 
   public readonly initializationPromise: Promise<void>;
+  private initializationPromiseResolve!: () => void;
 
-  private async _initialize(): Promise<void> {
-    const sdkReady = await this.waitForYandexSdkForSession();
+  // Part 2 of initialization — everything that depends on waiting: Yandex SDK
+  // init, player data, experiment flags, language. Bounded by
+  // PLATFORM_INIT_DEADLINE_MS; on timeout or SDK failure the app continues in
+  // degraded mode (default flags, localStorage username, browser language, no ads).
+  private hasStartedPlatformInit = false;
+  public initializePlatform(): Promise<void> {
+    if (!this.hasStartedPlatformInit) {
+      this.hasStartedPlatformInit = true;
+      this.runPlatformInit()
+        .catch((error) => {
+          flashist_logErrorToAnalytics(
+            `ERROR! FlashistFacade | initializePlatform __ error: ${error}`,
+          );
+        })
+        .finally(() => {
+          // Whatever happened above, unblock everything: the gate must never hang.
+          this.yandexInitPromiseResolve();
+          this.yandexSdkInitPlayerPromiseResolve();
+          this.initializationPromiseResolve();
+        });
+    }
+    return this.initializationPromise;
+  }
 
+  private async runPlatformInit(): Promise<void> {
+    // ONE shared deadline for the whole blocking part of platform init: SDK
+    // script + YaGames.init() + player/flags together may consume at most
+    // PLATFORM_INIT_DEADLINE_MS before the app continues in degraded mode.
+    const deadlinePromise = new Promise<"deadline">((resolve) =>
+      setTimeout(() => resolve("deadline"), PLATFORM_INIT_DEADLINE_MS),
+    );
+    let deadlineEventLogged = false;
+    const logDeadlineEvent = () => {
+      if (deadlineEventLogged) return;
+      deadlineEventLogged = true;
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.SESSION_PLATFORM_INIT_TIMEOUT,
+      );
+    };
+
+    const sdkInitDone = this.yandexSdkInit();
+    // The 1s login-status window starts only once the SDK script itself is
+    // ready: before the async-script change the tag was synchronous (fully
+    // downloaded before any bundle code ran), so the window measured
+    // YaGames.init() latency only — preserved here. A never-loading script is
+    // covered by the deadline race further down.
+    const sdkReadyForSessionPromise = this.waitForSdkScript().then(() =>
+      this.waitForYandexSdkForSession(),
+    );
+
+    const sdkOutcome = await Promise.race([
+      sdkInitDone.then(() => "done" as const),
+      deadlinePromise,
+    ]);
+    if (sdkOutcome === "deadline") {
+      logDeadlineEvent();
+    }
+    // SDK is ready, or we are committed to degraded mode — either way the
+    // internal `await this.yandexInitPromise` consumers can proceed. If the
+    // SDK arrives after the deadline, yandexGamesSDK is still assigned, so
+    // runtime-only features (e.g. interstitials) recover late.
+    this.yandexInitPromiseResolve();
+
+    const sdkReady = await Promise.race([
+      sdkReadyForSessionPromise,
+      deadlinePromise.then(() => false as const),
+    ]);
     if (!sdkReady) {
       // SDK timed out — yaGamesAvailable distinguishes "slow Yandex" from "no Yandex"
       this.logYandexLoginStatusEvent(
@@ -414,18 +509,38 @@ export class FlashistFacade {
       this.scheduleYandexLoginStatusEvent();
     }
 
-    const [playerResult, flagsResult] = await Promise.allSettled([
-      this.yandexSdkInitPlayerPromise,
+    // Player data and experiment flags in parallel, sharing the same overall
+    // deadline — a hung getPlayer()/getFlags() call must not block app start.
+    const playerInitResultPromise = this.initPlayer();
+    this.playerInitResultPromise = playerInitResultPromise;
+    const settledPromise = Promise.allSettled([
+      playerInitResultPromise,
       this.loadExperimentFlags(),
     ]);
-    this.logExperimentEvents();
+    const settledResults = await Promise.race([
+      settledPromise,
+      deadlinePromise.then(() => null),
+    ]);
+    this.yandexSdkInitPlayerPromiseResolve();
+    // Experiment cohort events fire when the flags actually settle — possibly
+    // after the deadline; logExperimentEvents latches only once flags exist.
+    void settledPromise.then(() => this.logExperimentEvents());
 
-    if (playerResult.status === "rejected") {
-      console.warn("Init step failed: player init", playerResult.reason);
+    if (settledResults === null) {
+      logDeadlineEvent();
+    } else {
+      const [playerResult, flagsResult] = settledResults;
+      if (playerResult.status === "rejected") {
+        console.warn("Init step failed: player init", playerResult.reason);
+      }
+      if (flagsResult.status === "rejected") {
+        console.warn("Init step failed: experiment flags", flagsResult.reason);
+      }
     }
-    if (flagsResult.status === "rejected") {
-      console.warn("Init step failed: experiment flags", flagsResult.reason);
-    }
+
+    // Language code resolved here (after SDK settle) so LangSelector can read
+    // it synchronously at upgrade time, before its first render.
+    this.resolvedLanguageCode = await this.getLanguageCode().catch(() => "");
 
     // Apply experiment-driven config mutations — guaranteed to be after flags are loaded
     // const joinMoreAdsEnabled = await this.checkExperimentFlag(
@@ -451,8 +566,17 @@ export class FlashistFacade {
     ]);
   }
 
+  // The real initPlayer() promise (unlike yandexSdkInitPlayerPromise, which is
+  // a deferred force-resolved at the deadline) — used so the login-status
+  // analytics event reflects the actual getPlayer() outcome even when it
+  // settles after the deadline. Analytics-only; never blocks the gate.
+  private playerInitResultPromise: Promise<void> | undefined;
+
   private async resolveYandexLoginStatus(): Promise<YandexLoginStatus> {
     await this.yandexSdkInitPlayerPromise.catch(() => {});
+    if (this.playerInitResultPromise) {
+      await this.playerInitResultPromise.catch(() => {});
+    }
     return this.isYandexLoggedIn() ? "logged-in" : "guest";
   }
 
@@ -486,24 +610,57 @@ export class FlashistFacade {
     window.location.href = value;
   }
 
-  public yandexInitPromise: Promise<any>;
-  private async yandexSdkInit() {
-    if (this.yaGamesAvailable) {
-      await (window as any).YaGames.init().then((sdk) => {
-        console.log("FlashistFacade | Main | yandexInit > then __ sdk: ", sdk);
+  public readonly yandexInitPromise: Promise<void>;
+  private yandexInitPromiseResolve!: () => void;
 
-        this.yandexGamesSDK = sdk;
+  private async waitForSdkScript(): Promise<void> {
+    // Resolves when the async sdk.js script tag has loaded or failed (see
+    // yandex-games_iframe.html, which loads it with `async` so a slow CDN
+    // cannot stall HTML parsing); resolves instantly on templates without the
+    // SDK script, where the global is undefined.
+    await (window as any).flashist_sdkScriptReadyPromise;
+  }
+
+  private async yandexSdkInit(): Promise<void> {
+    await this.waitForSdkScript();
+
+    if (typeof (window as any).YaGames === "undefined") {
+      // Not on the Yandex platform, or the SDK script failed to load
+      return;
+    }
+    this.yaGamesAvailable = true;
+
+    try {
+      const sdk = await (window as any).YaGames.init();
+      console.log("FlashistFacade | Main | yandexInit > then __ sdk: ", sdk);
+      this.yandexGamesSDK = sdk;
+      // If the SDK arrived only after the gate (degraded boot that recovered
+      // late), the template's one-shot reveal handler has already run without
+      // an SDK and Yandex never got its LoadingAPI.ready() signal — deliver it
+      // now. The latch in yandexGamesReadyCallback keeps ready() single-shot
+      // on the normal path where the reveal handler also calls it.
+      flashist_waitGameInitComplete().then(() => {
+        this.yandexGamesReadyCallback();
       });
+    } catch (error) {
+      // A rejected YaGames.init() must not kill app start — degrade instead.
+      flashist_logErrorToAnalytics(
+        `ERROR! FlashistFacade | yandexSdkInit __ error: ${error}`,
+      );
     }
   }
 
+  // ready() must reach Yandex exactly once per session; callable both from the
+  // template's reveal handler and from the late-SDK recovery in yandexSdkInit.
+  private hasCalledYandexLoadingReady = false;
   public yandexGamesReadyCallback() {
     console.log(
       "FlashistFacade | yandexGamesReadyCallback | yandexGamesSDK: ",
       this.yandexGamesSDK,
     );
 
-    if (this.yandexGamesSDK) {
+    if (this.yandexGamesSDK && !this.hasCalledYandexLoadingReady) {
+      this.hasCalledYandexLoadingReady = true;
       console.log(
         "FlashistFacade | yandexGamesReadyCallback | ready callback __ BEFORE",
       );
@@ -551,11 +708,14 @@ export class FlashistFacade {
 
   protected logExperimentEvents(): void {
     if (this.hasLoggedExperimentEvents) return;
+    if (!this.yandexExperimentFlags) {
+      // Flags not loaded (yet, or no SDK) — don't latch, so flags that settle
+      // after the init deadline still produce cohort events on arrival.
+      return;
+    }
     this.hasLoggedExperimentEvents = true;
-    if (this.yandexExperimentFlags) {
-      for (const [name, value] of Object.entries(this.yandexExperimentFlags)) {
-        this.logExperimentEvent(name, String(value));
-      }
+    for (const [name, value] of Object.entries(this.yandexExperimentFlags)) {
+      this.logExperimentEvent(name, String(value));
     }
   }
 
@@ -630,7 +790,8 @@ export class FlashistFacade {
   }
 
   // PLAYER
-  protected yandexSdkInitPlayerPromise: Promise<void>;
+  protected readonly yandexSdkInitPlayerPromise: Promise<void>;
+  private yandexSdkInitPlayerPromiseResolve!: () => void;
   protected yandexSdkPlayerObject: any;
   protected async initPlayer(): Promise<void> {
     await this.yandexInitPromise;
@@ -750,6 +911,10 @@ export class FlashistFacade {
       }
     });
   }
+
+  // Set during platform init (see runPlatformInit) so components can read the
+  // resolved language synchronously at upgrade time, before their first render.
+  public resolvedLanguageCode: string = "";
 
   public async getLanguageCode(): Promise<string> {
     // Waiting for the init to complete first
@@ -934,11 +1099,19 @@ export const flashist_getLangSelector = (): LangSelector => {
   return result;
 };
 
-export const flashist_waitGameInitComplete = async (): Promise<void> => {
-  await FlashistFacade.instance.initializationPromise;
-  const langSelector = flashist_getLangSelector();
-  await langSelector.langReadyPromise;
+// The single "game is fully initialized" gate: resolved by Bootstrap.ts after
+// platform init has settled, the application chunk is loaded, and the Client
+// is wired. The window global is consumed by the inline load handler in
+// yandex-games_iframe.html (it reveals the UI and calls LoadingAPI.ready()).
+let flashist_gameInitCompleteResolve!: () => void;
+const flashist_gameInitCompletePromise = new Promise<void>((resolve) => {
+  flashist_gameInitCompleteResolve = resolve;
+});
+export const flashist_markGameInitComplete = (): void => {
+  flashist_gameInitCompleteResolve();
 };
+export const flashist_waitGameInitComplete = (): Promise<void> =>
+  flashist_gameInitCompletePromise;
 (window as any).flashist_waitGameInitComplete = flashist_waitGameInitComplete;
 
 (window as any).FlashistFacade = FlashistFacade;

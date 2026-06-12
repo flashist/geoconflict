@@ -24,9 +24,10 @@ All future events must follow this convention. The TypeScript enum serves as the
 | Enum Key                  | Event String                                        | When Fired                                                                                                                                                       |
 | ------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SESSION_MATCHES_PLAYED`  | `Session:MatchesPlayed`                             | Once per session, **before** `Session:Start`, when a previous session's pending entry is consumed from localStorage; **value** = integer match starts recorded in that prior session (0 if no matches played). Fires once per tab that closed; multi-tab sessions produce one event each. |
-| `SESSION_START`           | `Session:Start`                                     | Once per session, on game load after SDK init. Top step of all funnels.                                                                                          |
+| `SESSION_START`           | `Session:Start`                                     | Once per session, at the very start of bootstrap (Phase 1, before SDK/platform init blocks). Top step of all funnels.                                            |
 | `SESSION_HEARTBEAT`       | `Session:Heartbeat:05`, `Session:Heartbeat:10`, ... | Every 5 minutes while player is active. Stops on inactivity or tab close.                                                                                        |
 | `SESSION_FIRST_ACTION`    | `Session:FirstAction`                               | Once per session, on first meaningful interaction on the start screen.                                                                                           |
+| `SESSION_PLATFORM_INIT_TIMEOUT` | `Session:PlatformInitTimeout`                 | When a stage of the blocking platform init (Yandex SDK init, or player-data/experiment-flags loading) exceeds the 5s deadline and the app continues in degraded mode (default flags, localStorage username, browser language, no ads). Can fire at most once per stage. |
 
 ### Device & Platform Segmentation Events
 
