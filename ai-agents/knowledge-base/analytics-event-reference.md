@@ -152,7 +152,7 @@ Part of the citizenship funnel (`ai-agents/tasks/backlog/analytics-p1-citizenshi
 
 | Enum Key                   | Event String       | When Fired                                                                                                                                       |
 | -------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CITIZENSHIP_SURFACE_SEEN` | `Citizenship:Seen` | Once per page load, when the citizenship card on the start screen is rendered and actually visible (after game init completes — not during the Yandex preload curtain, and not while the card is hidden) |
+| `CITIZENSHIP_SURFACE_SEEN` | `Citizenship:Seen` | Once per page load, when the citizenship card on the start screen is rendered and actually visible (after game init completes — not during the Yandex preload curtain, and not while the card is hidden). The whole card is gated by the `citizenship_ui` experiment flag — players in the disabled cohort never see the card and never fire this event (their cohort anchor is `Experiment:citizenship_ui:{value}`) |
 
 ### Performance Events
 

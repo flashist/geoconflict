@@ -26,6 +26,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     instance: {
       logUiTapEvent: jest.fn(),
       openYandexAuthDialog: jest.fn().mockResolvedValue(false),
+      isCitizenshipUiEnabled: jest.fn().mockResolvedValue(true),
     },
   },
 }));
@@ -44,6 +45,8 @@ import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
 const logUiTapEvent = FlashistFacade.instance.logUiTapEvent as jest.Mock;
 const openYandexAuthDialog = FlashistFacade.instance
   .openYandexAuthDialog as jest.Mock;
+const isCitizenshipUiEnabled = FlashistFacade.instance
+  .isCitizenshipUiEnabled as jest.Mock;
 const logEventAnalytics = flashist_logEventAnalytics as jest.Mock;
 const loadProfile = loadPlayerProfileView as jest.Mock;
 
@@ -54,11 +57,33 @@ describe("CitizenshipCard", () => {
     jest.clearAllMocks();
     loadProfile.mockResolvedValue(null);
     openYandexAuthDialog.mockResolvedValue(false);
+    isCitizenshipUiEnabled.mockResolvedValue(true);
     resetCitizenshipSeenReportedForTests();
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe("citizenship_ui experiment flag", () => {
+    it("renders nothing and fires no analytics when the flag is disabled", async () => {
+      isCitizenshipUiEnabled.mockResolvedValue(false);
+
+      const card = await appendCard({ visible: true });
+
+      expect(card.textContent!.trim()).toBe("");
+      expect(card.classList.contains("hidden")).toBe(true);
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+      expect(loadProfile).not.toHaveBeenCalled();
+    });
+
+    it("renders the card and fires Citizenship:Seen when the flag is enabled", async () => {
+      const card = await appendCard({ visible: true });
+
+      expect(card.textContent).toContain("citizenship_card.title");
+      expect(card.classList.contains("hidden")).toBe(false);
+      expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Seen");
+    });
   });
 
   describe("guest state", () => {

@@ -145,6 +145,8 @@ export const flashistConstants = {
     TELEGRAM_LINK_ENABLED_VALUE: "enabled",
     VK_LINK_FLAG_NAME: "vk_link",
     VK_LINK_ENABLED_VALUE: "enabled",
+    CITIZENSHIP_UI_FLAG_NAME: "citizenship_ui",
+    CITIZENSHIP_UI_ENABLED_VALUE: "enabled",
   },
 
   ads: {
@@ -611,6 +613,13 @@ export class FlashistFacade {
     return this.checkExperimentFlag(
       flashistConstants.experiments.VK_LINK_FLAG_NAME,
       flashistConstants.experiments.VK_LINK_ENABLED_VALUE,
+    );
+  }
+
+  public async isCitizenshipUiEnabled(): Promise<boolean> {
+    return this.checkExperimentFlag(
+      flashistConstants.experiments.CITIZENSHIP_UI_FLAG_NAME,
+      flashistConstants.experiments.CITIZENSHIP_UI_ENABLED_VALUE,
     );
   }
 

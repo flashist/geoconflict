@@ -39,6 +39,11 @@ export function resetCitizenshipSeenReportedForTests(): void {
 export class CitizenshipCard extends LitElement {
   @state() private profile: PlayerProfileView | null = null;
 
+  // Gated by the "citizenship_ui" Yandex experiment flag: the card renders
+  // nothing (and fires no analytics) until the flag is confirmed enabled.
+  // checkExperimentFlag returns true unconditionally when GAME_ENV === "dev".
+  @state() private isEnabled = false;
+
   createRenderRoot() {
     return this;
   }
@@ -46,7 +51,18 @@ export class CitizenshipCard extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     flashist_waitGameInitComplete()
-      .then(() => {
+      .then(async () => {
+        const enabled = await FlashistFacade.instance.isCitizenshipUiEnabled();
+        if (!enabled) {
+          // Collapse the host so the start screen keeps the design's rhythm
+          // (an empty flex child would still create a container gap slot).
+          this.classList.add("hidden");
+          return;
+        }
+        this.classList.remove("hidden");
+        this.isEnabled = true;
+        this.requestUpdate();
+        await this.updateComplete;
         this.maybeReportSeen();
         return this.refreshProfile();
       })
@@ -109,6 +125,9 @@ export class CitizenshipCard extends LitElement {
   }
 
   render() {
+    if (!this.isEnabled) {
+      return nothing;
+    }
     return this.profile === null
       ? this.renderGuest()
       : this.renderLoggedIn(this.profile);
