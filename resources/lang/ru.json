@@ -56,7 +56,9 @@
   "citizenship_card": {
     "title": "Гражданство",
     "guest_subtitle": "Войдите, чтобы сохранить прогресс",
-    "login_cta": "Войти в Яндекс"
+    "login_cta": "Войти в Яндекс",
+    "xp_label": "XP",
+    "citizen_badge": "ГРАЖДАНИН"
   },
   "news": {
     "see_all_releases": "Посмотреть все выпуски",

@@ -1,11 +1,18 @@
-import { LitElement, html } from "lit";
-import { customElement } from "lit/decorators.js";
+import { LitElement, html, nothing } from "lit";
+import { customElement, state } from "lit/decorators.js";
+import shieldIcon from "../../resources/images/ShieldIconWhite.svg";
+import { FLAG_STORAGE_KEY } from "./FlagInput";
 import {
   FlashistFacade,
   flashist_logEventAnalytics,
   flashist_waitGameInitComplete,
   flashistConstants,
 } from "./flashist/FlashistFacade";
+import {
+  CITIZENSHIP_XP_THRESHOLD,
+  PlayerProfileView,
+  loadPlayerProfileView,
+} from "./PlayerProfileView";
 import { translateText } from "./Utils";
 
 export const CITIZENSHIP_LOGIN_REQUESTED_EVENT = "citizenship-login-requested";
@@ -19,21 +26,38 @@ export function resetCitizenshipSeenReportedForTests(): void {
 }
 
 /**
- * Static guest-state shell of the citizenship card (start screen redesign,
- * s4-start-screen-redesign-impl). Live profile states (guest/citizen, XP bar,
- * login flow) are added by s4-citizenship-xp-progress-ui on top of this
- * component — the element name, translation keys, and the
- * citizenship-login-requested event are the stable boundary.
+ * Citizenship card on the start screen (s4-start-screen-redesign-impl +
+ * s4-citizenship-xp-progress-ui). Renders one of three states from the
+ * player profile view:
+ *   guest (not Yandex-authorized) — lock + login CTA,
+ *   authorized non-citizen — name + XP progress toward the threshold,
+ *   citizen — adds the CITIZEN badge, bar full.
+ * XP/citizenship values come from PlayerProfileView, which stays a zero-XP
+ * stub until the Player Profile Store task lands.
  */
 @customElement("citizenship-card")
 export class CitizenshipCard extends LitElement {
+  @state() private profile: PlayerProfileView | null = null;
+
   createRenderRoot() {
     return this;
   }
 
   connectedCallback() {
     super.connectedCallback();
-    flashist_waitGameInitComplete().then(() => this.maybeReportSeen());
+    flashist_waitGameInitComplete()
+      .then(() => {
+        this.maybeReportSeen();
+        return this.refreshProfile();
+      })
+      .catch((error) => {
+        console.warn("Failed to load profile for citizenship card:", error);
+      });
+  }
+
+  private async refreshProfile(): Promise<void> {
+    this.profile = await loadPlayerProfileView();
+    this.requestUpdate();
   }
 
   public maybeReportSeen(): void {
@@ -58,22 +82,42 @@ export class CitizenshipCard extends LitElement {
     return this.getClientRects().length > 0;
   }
 
-  private onLoginCtaTap() {
-    FlashistFacade.instance.logUiTapEvent(
-      flashistConstants.uiElementIds.citizenshipLoginToEarn,
-    );
-    this.dispatchEvent(
-      new CustomEvent(CITIZENSHIP_LOGIN_REQUESTED_EVENT, {
-        bubbles: true,
-        composed: true,
-      }),
-    );
+  private isAuthDialogOpen = false;
+
+  private async onLoginCtaTap() {
+    if (this.isAuthDialogOpen) {
+      return;
+    }
+    this.isAuthDialogOpen = true;
+    try {
+      FlashistFacade.instance.logUiTapEvent(
+        flashistConstants.uiElementIds.citizenshipLoginToEarn,
+      );
+      this.dispatchEvent(
+        new CustomEvent(CITIZENSHIP_LOGIN_REQUESTED_EVENT, {
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      const authorized = await FlashistFacade.instance.openYandexAuthDialog();
+      if (authorized && this.isConnected) {
+        await this.refreshProfile();
+      }
+    } finally {
+      this.isAuthDialogOpen = false;
+    }
   }
 
   render() {
+    return this.profile === null
+      ? this.renderGuest()
+      : this.renderLoggedIn(this.profile);
+  }
+
+  private renderGuest() {
     return html`
       <div
-        class="w-full flex items-center gap-3 p-3 rounded-2xl bg-[#1c1c1e]/85"
+        class="w-full flex items-center gap-3 p-3 rounded-[12px] bg-[#1c1c1e]/85"
       >
         <span class="shrink-0 opacity-50" aria-hidden="true">
           <svg
@@ -122,5 +166,80 @@ export class CitizenshipCard extends LitElement {
         </button>
       </div>
     `;
+  }
+
+  private renderLoggedIn(profile: PlayerProfileView) {
+    const xpPercent = Math.min(
+      100,
+      Math.round((profile.xp / CITIZENSHIP_XP_THRESHOLD) * 100),
+    );
+    const barPercent = profile.isCitizen ? 100 : xpPercent;
+    const flag = this.getPlayerFlag();
+    return html`
+      <div class="w-full py-[10px] px-3 rounded-[12px] bg-[#1c1c1e]/85">
+        <div class="flex items-center gap-2.5">
+          <div
+            class="flex items-center justify-center w-[38px] h-[38px] rounded-lg shrink-0 text-[18px] overflow-hidden"
+            style="background: linear-gradient(135deg, #1e40af, #7c3aed)"
+            aria-hidden="true"
+          >
+            ${flag
+              ? html`<img
+                  src="/flags/${flag}.svg"
+                  alt=""
+                  class="w-full h-full object-contain"
+                />`
+              : "🏳️"}
+          </div>
+          <div class="flex-1 min-w-0 text-left">
+            ${profile.isCitizen
+              ? html`<div class="flex items-center gap-[5px] mb-0.5">
+                  <img
+                    src="${shieldIcon}"
+                    width="13"
+                    height="13"
+                    class="shrink-0 opacity-60"
+                    style="filter: brightness(10)"
+                    alt=""
+                    aria-hidden="true"
+                  />
+                  <span
+                    class="text-[11px] font-semibold text-white/60 uppercase tracking-wider"
+                  >
+                    ${translateText("citizenship_card.citizen_badge")}
+                  </span>
+                </div>`
+              : nothing}
+            <div class="text-[14px] font-bold text-white truncate">
+              ${profile.displayName}
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-[10px] text-white/50 mb-0.5">
+              ${translateText("citizenship_card.xp_label")}
+            </div>
+            <div class="text-[12px] font-bold text-white">
+              ${profile.xp.toLocaleString()} /
+              ${CITIZENSHIP_XP_THRESHOLD.toLocaleString()}
+            </div>
+          </div>
+        </div>
+        <div class="mt-2 h-[5px] rounded-[3px] bg-white/[0.12] overflow-hidden">
+          <div
+            id="citizenship-xp-bar-fill"
+            class="h-full rounded-[3px] transition-[width] duration-[400ms] bg-gradient-to-r from-blue-600 to-blue-400"
+            style="width: ${barPercent}%"
+          ></div>
+        </div>
+      </div>
+    `;
+  }
+
+  private getPlayerFlag(): string {
+    try {
+      return localStorage.getItem(FLAG_STORAGE_KEY) ?? "";
+    } catch {
+      return "";
+    }
   }
 }

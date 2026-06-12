@@ -660,8 +660,29 @@ export class FlashistFacade {
     }
   }
 
+  public async isYandexAuthorized(): Promise<boolean> {
+    await this.yandexSdkInitPlayerPromise.catch(() => {});
+    return this.isYandexLoggedIn();
+  }
+
+  public async openYandexAuthDialog(): Promise<boolean> {
+    if (!this.yandexGamesSDK) {
+      return false;
+    }
+    try {
+      await this.yandexGamesSDK.auth.openAuthDialog();
+      // Per Yandex SDK docs the player object must be re-fetched after the
+      // auth dialog resolves to reflect the new authorization state.
+      this.yandexSdkPlayerObject = await this.yandexGamesSDK.getPlayer();
+    } catch {
+      // Player closed the dialog or authorization failed — remains a guest.
+      return false;
+    }
+    return this.isYandexLoggedIn();
+  }
+
   public async getCurPlayerName(): Promise<string> {
-    await this.yandexSdkInitPlayerPromise;
+    await this.yandexSdkInitPlayerPromise.catch(() => {});
 
     let result: string = "";
 

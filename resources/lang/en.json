@@ -52,7 +52,9 @@
   "citizenship_card": {
     "title": "Citizenship",
     "guest_subtitle": "Log in to save your progress",
-    "login_cta": "Log in with Yandex"
+    "login_cta": "Log in with Yandex",
+    "xp_label": "XP",
+    "citizen_badge": "CITIZEN"
   },
   "news": {
     "see_all_releases": "See all releases",
