@@ -86,16 +86,8 @@ export class LangSelector extends LitElement {
     return this;
   }
 
-  // Flashist Adaptation
-  public langReadyPromise: Promise<void>;
-  public langReadyPromiseResolve: () => void;
-
   connectedCallback() {
     super.connectedCallback();
-
-    this.langReadyPromise = new Promise((resolve) => {
-      this.langReadyPromiseResolve = resolve;
-    });
 
     this.setupDebugKey();
 
@@ -127,45 +119,26 @@ export class LangSelector extends LitElement {
     return "en";
   }
 
-  private async initializeLanguage() {
+  private initializeLanguage() {
     // Flashist Adaptation: localization
-    // const browserLocale = navigator.language;
     let browserLocale = navigator.language;
-    //
-    const yandexSdkLangCode = await FlashistFacade.instance.getLanguageCode();
-    // // TEST
-    // await new Promise<void>(
-    //   (resolve) => {
-    //     setTimeout(
-    //       () => {
-    //         resolve();
-    //       },
-    //       1000
-    //     )
-    //   }
-    // );
-    //
+    // Resolved during platform init (Bootstrap.ts), synchronously readable
+    // here so translations are set before this component's first render.
+    const yandexSdkLangCode = FlashistFacade.instance.resolvedLanguageCode;
     if (yandexSdkLangCode) {
       browserLocale = yandexSdkLangCode;
     }
-    //
 
     const savedLang = localStorage.getItem("lang");
     const userLang = this.getClosestSupportedLang(savedLang ?? browserLocale);
-
-    // Flashist Adaptation
-    // TEST
-    // userLang = "en";
 
     this.defaultTranslations = this.loadLanguage("en");
     this.translations = this.loadLanguage(userLang);
     this.currentLang = userLang;
 
-    await this.loadLanguageList();
-    this.applyTranslation();
-
-    // Flashist Adaptation
-    this.langReadyPromiseResolve();
+    this.loadLanguageList().then(() => {
+      this.applyTranslation();
+    });
   }
 
   private loadLanguage(lang: string): Record<string, string> {

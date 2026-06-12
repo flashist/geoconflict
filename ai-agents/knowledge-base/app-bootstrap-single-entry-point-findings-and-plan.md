@@ -1,7 +1,7 @@
 # App Bootstrap — Single Entry Point: Findings & Refactoring Plan
 
 **Date:** 2026-06-12
-**Status:** Investigated and designed; agreed with Mark in discussion. Ready to be turned into a task.
+**Status:** IMPLEMENTED 2026-06-12 (uncommitted, on `dev` working tree) and verified locally — see §6. Pending: review by Mark + dev-VPS testing of the real Yandex iframe path.
 **Scope:** `src/client/` bootstrap path only. No game-logic (`src/core/`) changes.
 
 ---
@@ -148,6 +148,10 @@ Key property: ordering becomes **structural instead of conventional** — compon
 
 ---
 
+### Discovery made during implementation: the `load`-event coupling
+
+The yandex template's reveal handler (remove `flashist-preload`, call `LoadingAPI.ready()`) was bound to `window` `load`. The `load` event **waits for the async SDK script** — so with a stalled Yandex CDN, the bootstrap deadline would let the game start in degraded mode, but the loading overlay would stay up indefinitely anyway (verified live with a stalled-route test: `page.goto` never reached `load`). Fixed by binding the handler to `DOMContentLoaded` instead, which fires after the deferred bundle evaluates (so the `window.flashist_waitGameInitComplete` global is guaranteed to exist) but does NOT wait for pending async scripts. Minor side effect: the overlay now lifts at gate-resolve time without waiting for all images/styles — acceptable vs. an infinite overlay.
+
 ## 5. Verification plan
 
 1. `npm run dev` + Playwright: assert full boot sequence order — Phase 1 analytics → gate → component upgrades → `Client.initialize` → preload removal / `LoadingAPI.ready()`.
@@ -159,7 +163,53 @@ Key property: ordering becomes **structural instead of conventional** — compon
 
 ---
 
-## 6. Suggested task split (for the producer)
+## 6. Verification results (2026-06-12, local dev server + Playwright)
+
+All paths verified on the implemented refactor:
+
+1. **Yandex template, normal local boot** (sdk.js loads but defines no `YaGames` outside a real iframe): exact designed sequence observed in console — Phase 1 analytics (`Session:MatchesPlayed` → `Device` → `Platform` → `Player:Returning/New` → `Player:DaysPlayed`) → `Player:YandexGuest` → degraded language → app chunk loads → Client wires → gate resolves → overlay lifts. 779 translations loaded, UI in Russian, no raw keys.
+2. **First-time player**: tutorial auto-launched through the new bootstrap — `Player:New` → `Tutorial:Started` → lobby join → `Worker:InitSuccess` → `Game:Start` → first tooltip rendered.
+3. **Standalone `index.html`** (no SDK script, no globals): instant degraded boot, `yaGamesAvailable: false`, start screen interactive.
+4. **SDK CDN stalled forever** (Playwright route interception): overlay lifted at **5.3s** (the 5s deadline + app load); `Session:PlatformInitTimeout` fired at exactly +5001ms; `Player:YandexUnknown` (correct "slow Yandex" status); start screen fully interactive in degraded mode.
+5. **Parent wrapper template**: receives no scripts (no double init).
+6. `npm test`: 66 suites / 485 tests pass. `eslint` clean on all changed files. `build-prod` compiles; minified inline handshake scripts verified intact in prod HTML.
+
+NOT yet verified (requires real Yandex iframe / dev VPS): real `YaGames.init()` path — SDK language, player name, experiment flags, `LoadingAPI.ready()` timing under Yandex moderation.
+
+### Adversarial review findings (all fixed same day)
+
+A 4-lens multi-agent review with adversarial verification confirmed 6 real issues in the first implementation; all were fixed and re-verified live:
+
+1. **[major] App-chunk load failure stranded the overlay forever.** The dynamic `import("./Main")` is a new network fetch seconds after page load; a redeploy swapping content-hashed chunks (or a network blip) rejected it and nothing resolved the gate. Fixed in `Bootstrap.ts`: one import retry (webpack 5 allows re-attempting failed chunk loads), then a one-shot `location.reload()` guarded by a sessionStorage latch (cleared on successful boot); post-gate failures (e.g. tutorial launch) only log. Verified live: 404 → retry 404 → self-reload → boot.
+2. **[major] `LoadingAPI.ready()` never reached Yandex when the SDK settled after the gate** (degraded-then-recovered path; the template's reveal handler runs once, guarded on `yandexGamesSDK`). Fixed: `yandexSdkInit` chains `flashist_waitGameInitComplete().then(() => yandexGamesReadyCallback())` after the late SDK assignment, with a once-latch in `yandexGamesReadyCallback` so ready() fires exactly once.
+3. **[minor] Worst-case blocking was ~10s, not the documented 5s** (two sequential 5s races). Fixed: one shared `deadlinePromise` across both stages.
+4. **[minor] Experiment cohort events permanently suppressed when flags settled after the deadline** (`hasLoggedExperimentEvents` latched while the fetch was in flight, while late flags were still applied to the UI — silently excluding the slow-network cohort from experiment analytics). Fixed: latch only sets once flags exist + cohort logging chained on the actual settle.
+5. **[minor] `Player:YandexGuest` could be logged for an authorized player** when `getPlayer()` outlasted the deadline (status read off the force-resolved deferred). Fixed: login-status analytics awaits the real `initPlayer()` promise (non-blocking, analytics-only).
+6. **[minor] The 1s `Player:Yandex*` window included sdk.js download time** after the sync→async script change, skewing the metric toward `Unknown` on slow CDNs. Fixed: the 1s window now starts after script readiness, restoring the pre-refactor meaning (YaGames.init latency only); a never-loading script falls through to the deadline race → `Unknown`.
+
+Post-fix verification: lint clean, 485 tests pass, normal boot + stalled-SDK boot (5.3s) + chunk-404 recovery all verified live with Playwright.
+
+### External (Codex) review findings (both confirmed and fixed, 2026-06-13)
+
+7. **[medium] Fast SDK failures were classified as `Player:YandexGuest`.** sdk.js `onerror` or a fast `YaGames.init()` rejection landed in the `sdkReady && !yandexGamesSDK` branch, which logged Guest even on the Yandex platform — platform failures indistinguishable from real guests. Fixed: the branch now logs `yaGamesAvailable ? "unknown" : "guest"`, reserving Guest for standalone/non-Yandex contexts (the line-501 slow-failure pattern applied consistently). Note: the `onerror` sub-case was misclassified pre-refactor too (the old code had no platform flag and couldn't tell); the init-rejection sub-case previously crashed the boot entirely.
+8. **[medium] A no-SDK experiment-flags result was memoized as final.** On the deadline path, `loadExperimentFlags` memoized a fetch that ran before the SDK arrived; a late-recovered SDK then delivered `LoadingAPI.ready()` but flags stayed `undefined` all session (gated surfaces checked at `show()`-time stayed disabled; cohort events never fired). Fixed: `loadExperimentFlags` no longer memoizes when `yandexGamesSDK` is absent, and the late-recovery chain in `yandexSdkInit` also calls `initExperimentFlags()` (no-op on the normal path; the `logExperimentEvents` latch dedupes). Decision: player data is NOT refetched on late recovery — `openYandexAuthDialog` already re-fetches the player itself, and boot-time consumers resolved with the localStorage fallback and never re-ask.
+
+Verified live with Playwright: aborted sdk.js → `Player:YandexUnknown` (no Guest); stub SDK with `init()` resolving at 6.5s → degraded boot at 5.3s, then `LoadingAPI.ready()` delivered, `getFlags()` called, and `Experiment:test_flag:enabled` cohort event fired on recovery.
+
+### External (Codex) review, second round (both confirmed and fixed, 2026-06-13)
+
+9. **[medium] Hung `getPlayer()` suppressed the `Player:Yandex*` status event.** A regression introduced by the item-5 fix: `resolveYandexLoginStatus` awaited the real `initPlayer()` promise with no bound, so a never-settling `getPlayer()` meant a booted session emitted zero login-status events (pre-refactor, a booted session guaranteed a settled `getPlayer()`). Fixed — and simplified relative to the item-5 fix: await only the deadline-bounded deferred and map "no player object" → `Player:YandexUnknown`. Trade-offs accepted: a slow-but-settling `getPlayer()` tail now logs `Unknown` at the deadline instead of an accurate value later (guaranteed exactly-one honest event beats sometimes-missing accurate one), and a *rejected* `getPlayer()` now logs `Unknown` instead of the historical `Guest`.
+10. **[medium, partially correct] Late SDK recovery did not rehydrate the player object** — revising item 8's "no player refetch" decision. The reviewer's impact claim was overstated (the citizenship card is hidden by the boot-time *flag* check on this path regardless of player state, and the only post-boot caller self-heals via `openYandexAuthDialog`), and their "non-final player contract" suggestion would hang boot-time consumers (`UsernameInput` awaits `getCurPlayerName` at upgrade). But with the Player Profile Store (s4) about to multiply post-recovery callers, and flags already self-healing, the asymmetry was hard to justify. Fixed minimally: the late-recovery chain in `yandexSdkInit` rehydrates `yandexSdkPlayerObject` (chained on the boot `initPlayer()` settle so the normal path structurally never duplicates `getPlayer()`) + sets the OTEL user. No consumer notifications; boot-rendered UI (username input) intentionally keeps its degraded values; the status event is not re-logged (latched).
+
+Verified live with Playwright: hung `getPlayer()` → boot at 5.3s, exactly one `Player:YandexUnknown`; late SDK (6.5s) with authorized player → boot at 5.3s with the single `Unknown` event, then post-recovery `isYandexAuthorized() === true` and `getCurPlayerName() === "TestUser"`, with `ready()` + flags recovery intact.
+
+### External (Codex) review, third round (confirmed and fixed, 2026-06-13)
+
+11. **[medium] Hung `getFlags()` was memoized unboundedly.** With the SDK ready but `getFlags()` never settling, the gate proceeded at the deadline but `loadExperimentFlags` had memoized the pending fetch — every later `checkExperimentFlag()` awaited it forever (hung `show()`-paths; `CitizenshipCard` reached neither its enabled nor its hidden branch, leaving an empty flex child / layout gap). Fixed: the `getFlags()` call inside `fetchExperimentFlags` is raced against `PLATFORM_INIT_DEADLINE_MS`; on timeout it rejects into the existing catch (error logged to analytics), flags stay `undefined` (defaults), and the memoized promise settles. Deliberately NOT clearing the memo for a refetch — one bounded attempt, then the session lives with defaults.
+
+**Product stance confirmed by Mark (2026-06-13):** if the SDK fails (script load rejected, or `YaGames.init()` rejected), the session plays as if there is no SDK, permanently — no retries, no reload. The code already implements this: both failure paths exit `yandexSdkInit` with no recovery. The late-recovery chain (ready()/flags/player) triggers ONLY when `YaGames.init()` eventually *succeeds* (slow network), never on failure.
+
+## 7. Suggested task split (for the producer)
 
 - **Main task:** the bootstrap refactor as described in §4 (one PR — agreed).
 - **Separate small tasks (independent bugs, §2.6):**
