@@ -21,6 +21,7 @@
 | ⬜ No sprint | sec11 — Secret Management Beyond Env Files | `backlog/sec11-secret-management-beyond-env-files.md` | — |
 | ⬜ No sprint | Worker Init Timeout — Redundant Map Re-fetch on Join | `backlog/worker-init-timeout-map-refetch.md` | — |
 | ⬜ No sprint | Bots: Stop Building SAM Launchers When Nukes Are Disabled | `backlog/bots-skip-sam-when-nukes-disabled.md` | — |
+| ⬜ No sprint | Disable Infinite-Gold Weird Mode in Public Rotation | `backlog/s4c-disable-infinite-gold-public-rotation.md` | — |
 | ⏸ Parked | Task 5 — Deep Mobile Rendering Optimization | None — see plan-index | Mobile DAU > 1,500 |
 | ⏸ Parked | Task 2i — Microsoft Clarity Session Recordings | None — see plan-index | Mobile perf confirmed stable |
 
@@ -173,6 +174,24 @@ Fix is a single condition in `FakeHumanExecution.handleUnits()`: skip the SAM sp
 silos are disabled; freed gold flows naturally to cities/ports/factories/defense posts via the
 existing priority chain (locked: no multiplier rebalance). One change covers both nations and
 AI Players. ~Half a day including required `src/core/` tests plus a live no-nukes match check.
+
+---
+
+### Disable Infinite-Gold Weird Mode in Public Rotation
+
+**Brief:** `backlog/s4c-disable-infinite-gold-public-rotation.md`
+
+Public match-quality fix, same pattern as the Sprint 4c compact-map removal. The Sprint 4b
+weird-setting modifier system applies a random rule-set override to ~20% of public matches;
+one of its four sub-options is infinite gold (`infiniteGold: true`), which removes the core
+economic constraint and is not a desirable surprise in a normal public lobby. Fix is one line
+in `src/server/MapPlaylist.ts` — delete the `infiniteGold` entry from `WEIRD_SETTING_OPTIONS`
+(length-driven random selector needs no other change) — plus a `tests/server/MapPlaylist.test.ts`
+update (four options → three, assert infinite gold never appears). Total weird rate stays 20%,
+redistributed across the remaining three modes. `infiniteGold` stays available for custom/private
+lobbies; localization and client badge code left intact. ~Half a day. Originally drafted under
+Sprint 4c but moved here 2026-06-12 to keep 4c historically frozen — needs a sprint home before
+implementation. Safe weekend deploy.
 
 ---
 
