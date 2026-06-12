@@ -196,6 +196,13 @@ Post-fix verification: lint clean, 485 tests pass, normal boot + stalled-SDK boo
 
 Verified live with Playwright: aborted sdk.js → `Player:YandexUnknown` (no Guest); stub SDK with `init()` resolving at 6.5s → degraded boot at 5.3s, then `LoadingAPI.ready()` delivered, `getFlags()` called, and `Experiment:test_flag:enabled` cohort event fired on recovery.
 
+### External (Codex) review, second round (both confirmed and fixed, 2026-06-13)
+
+9. **[medium] Hung `getPlayer()` suppressed the `Player:Yandex*` status event.** A regression introduced by the item-5 fix: `resolveYandexLoginStatus` awaited the real `initPlayer()` promise with no bound, so a never-settling `getPlayer()` meant a booted session emitted zero login-status events (pre-refactor, a booted session guaranteed a settled `getPlayer()`). Fixed — and simplified relative to the item-5 fix: await only the deadline-bounded deferred and map "no player object" → `Player:YandexUnknown`. Trade-offs accepted: a slow-but-settling `getPlayer()` tail now logs `Unknown` at the deadline instead of an accurate value later (guaranteed exactly-one honest event beats sometimes-missing accurate one), and a *rejected* `getPlayer()` now logs `Unknown` instead of the historical `Guest`.
+10. **[medium, partially correct] Late SDK recovery did not rehydrate the player object** — revising item 8's "no player refetch" decision. The reviewer's impact claim was overstated (the citizenship card is hidden by the boot-time *flag* check on this path regardless of player state, and the only post-boot caller self-heals via `openYandexAuthDialog`), and their "non-final player contract" suggestion would hang boot-time consumers (`UsernameInput` awaits `getCurPlayerName` at upgrade). But with the Player Profile Store (s4) about to multiply post-recovery callers, and flags already self-healing, the asymmetry was hard to justify. Fixed minimally: the late-recovery chain in `yandexSdkInit` rehydrates `yandexSdkPlayerObject` (chained on the boot `initPlayer()` settle so the normal path structurally never duplicates `getPlayer()`) + sets the OTEL user. No consumer notifications; boot-rendered UI (username input) intentionally keeps its degraded values; the status event is not re-logged (latched).
+
+Verified live with Playwright: hung `getPlayer()` → boot at 5.3s, exactly one `Player:YandexUnknown`; late SDK (6.5s) with authorized player → boot at 5.3s with the single `Unknown` event, then post-recovery `isYandexAuthorized() === true` and `getCurPlayerName() === "TestUser"`, with `ready()` + flags recovery intact.
+
 ## 7. Suggested task split (for the producer)
 
 - **Main task:** the bootstrap refactor as described in §4 (one PR — agreed).

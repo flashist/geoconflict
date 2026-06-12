@@ -571,15 +571,21 @@ export class FlashistFacade {
   }
 
   // The real initPlayer() promise (unlike yandexSdkInitPlayerPromise, which is
-  // a deferred force-resolved at the deadline) — used so the login-status
-  // analytics event reflects the actual getPlayer() outcome even when it
-  // settles after the deadline. Analytics-only; never blocks the gate.
+  // a deferred force-resolved at the deadline). Used by the late-SDK recovery
+  // in yandexSdkInit: the field is only assigned once stage 2 of platform init
+  // has run, so the recovery chain can tell a degraded boot (field set, no
+  // player) from the normal path (field still unset at SDK-arrival time).
   private playerInitResultPromise: Promise<void> | undefined;
 
   private async resolveYandexLoginStatus(): Promise<YandexLoginStatus> {
+    // Resolves at the latest when the platform deadline force-resolves the
+    // deferred — the status event must fire exactly once per session even if
+    // getPlayer() never settles.
     await this.yandexSdkInitPlayerPromise.catch(() => {});
-    if (this.playerInitResultPromise) {
-      await this.playerInitResultPromise.catch(() => {});
+    if (!this.yandexSdkPlayerObject) {
+      // getPlayer() still pending past the deadline, or settled without a
+      // player object — auth state undetermined.
+      return "unknown";
     }
     return this.isYandexLoggedIn() ? "logged-in" : "guest";
   }
@@ -651,6 +657,27 @@ export class FlashistFacade {
       // checks later in the session work and cohort events fire (the latch in
       // logExperimentEvents dedupes). No-op on the normal path (memo present).
       void this.initExperimentFlags();
+      // Player recovery, same pattern: chained on the boot-time initPlayer()
+      // attempt, whose promise is only assigned once stage 2 has run — on the
+      // normal path (SDK arrives mid-stage-1) the field is still unset here,
+      // so this skips entirely and never duplicates getPlayer(). The
+      // Player:Yandex* status event is NOT re-logged (latched); late state is
+      // for callers that ask after recovery.
+      void this.playerInitResultPromise
+        ?.catch(() => {})
+        .then(async () => {
+          if (this.yandexSdkPlayerObject || !this.yandexGamesSDK) {
+            return;
+          }
+          try {
+            this.yandexSdkPlayerObject = await this.yandexGamesSDK.getPlayer();
+            // Best-effort OTEL user context, mirroring the boot path
+            const name = await this.getCurPlayerName().catch(() => undefined);
+            if (name) setOtelUser(name);
+          } catch {
+            // Recovery is best-effort — the session stays in guest state
+          }
+        });
     } catch (error) {
       // A rejected YaGames.init() must not kill app start — degrade instead.
       flashist_logErrorToAnalytics(
