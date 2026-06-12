@@ -49,8 +49,8 @@ Fired once per session immediately after `Session:Start`, in this order:
 | `PLAYER_RETURNING`   | `Player:Returning`   | Every session after the first                                                          |
 | `PLAYER_DAYS_PLAYED` | `Player:DaysPlayed`  | Once per session, immediately after `Player:New/Returning`; **value** = integer cumulative unique calendar days the game was opened (local time, not UTC; a gap of N days still increments by 1, not N) |
 | `PLAYER_YANDEX_LOGGED_IN` | `Player:YandexLoggedIn` | Player is authenticated with Yandex; fires asynchronously after player auth resolves (when SDK ready within 1-second window) |
-| `PLAYER_YANDEX_GUEST` | `Player:YandexGuest` | Player is in Yandex guest mode, or Yandex SDK is unavailable (non-Yandex platform) |
-| `PLAYER_YANDEX_UNKNOWN` | `Player:YandexUnknown` | Yandex SDK is available (`window.YaGames` present) but auth state could not be determined within the 1-second SDK init timeout |
+| `PLAYER_YANDEX_GUEST` | `Player:YandexGuest` | Player is in Yandex guest mode (SDK ready, player not authorized), or the session is on a non-Yandex/standalone platform (no SDK script) |
+| `PLAYER_YANDEX_UNKNOWN` | `Player:YandexUnknown` | On the Yandex platform, but auth state could not be determined: SDK init exceeded the 1-second window, the SDK script failed to load, or `YaGames.init()` rejected |
 
 Full session-start sequence:
 

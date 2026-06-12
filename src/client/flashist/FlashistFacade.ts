@@ -502,8 +502,12 @@ export class FlashistFacade {
         this.yaGamesAvailable ? "unknown" : "guest",
       );
     } else if (!this.yandexGamesSDK) {
-      // SDK resolved but not a Yandex platform (yandexSdkInit resolved instantly with no SDK)
-      this.logYandexLoginStatusEvent("guest");
+      // Init settled but produced no SDK object. On the Yandex platform this
+      // means a failed script load or a rejected YaGames.init() — ambiguous,
+      // not a real guest; only standalone/non-Yandex contexts are guests.
+      this.logYandexLoginStatusEvent(
+        this.yaGamesAvailable ? "unknown" : "guest",
+      );
     } else {
       // SDK ready in time — schedule deferred status after player auth resolves
       this.scheduleYandexLoginStatusEvent();
@@ -642,6 +646,11 @@ export class FlashistFacade {
       flashist_waitGameInitComplete().then(() => {
         this.yandexGamesReadyCallback();
       });
+      // Same recovery for experiment flags: the boot-time fetch ran without an
+      // SDK and was deliberately not memoized — fetch for real now so flag
+      // checks later in the session work and cohort events fire (the latch in
+      // logExperimentEvents dedupes). No-op on the normal path (memo present).
+      void this.initExperimentFlags();
     } catch (error) {
       // A rejected YaGames.init() must not kill app start — degrade instead.
       flashist_logErrorToAnalytics(
@@ -682,6 +691,12 @@ export class FlashistFacade {
 
   protected async loadExperimentFlags(): Promise<void> {
     await this.yandexInitPromise;
+
+    if (!this.yandexGamesSDK) {
+      // No SDK (yet — possibly a degraded boot whose SDK recovers late):
+      // don't memoize a no-SDK result, so a later call can still fetch.
+      return;
+    }
 
     this.yandexInitExperimentsPromise ??= this.fetchExperimentFlags();
 

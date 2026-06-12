@@ -189,6 +189,13 @@ A 4-lens multi-agent review with adversarial verification confirmed 6 real issue
 
 Post-fix verification: lint clean, 485 tests pass, normal boot + stalled-SDK boot (5.3s) + chunk-404 recovery all verified live with Playwright.
 
+### External (Codex) review findings (both confirmed and fixed, 2026-06-13)
+
+7. **[medium] Fast SDK failures were classified as `Player:YandexGuest`.** sdk.js `onerror` or a fast `YaGames.init()` rejection landed in the `sdkReady && !yandexGamesSDK` branch, which logged Guest even on the Yandex platform — platform failures indistinguishable from real guests. Fixed: the branch now logs `yaGamesAvailable ? "unknown" : "guest"`, reserving Guest for standalone/non-Yandex contexts (the line-501 slow-failure pattern applied consistently). Note: the `onerror` sub-case was misclassified pre-refactor too (the old code had no platform flag and couldn't tell); the init-rejection sub-case previously crashed the boot entirely.
+8. **[medium] A no-SDK experiment-flags result was memoized as final.** On the deadline path, `loadExperimentFlags` memoized a fetch that ran before the SDK arrived; a late-recovered SDK then delivered `LoadingAPI.ready()` but flags stayed `undefined` all session (gated surfaces checked at `show()`-time stayed disabled; cohort events never fired). Fixed: `loadExperimentFlags` no longer memoizes when `yandexGamesSDK` is absent, and the late-recovery chain in `yandexSdkInit` also calls `initExperimentFlags()` (no-op on the normal path; the `logExperimentEvents` latch dedupes). Decision: player data is NOT refetched on late recovery — `openYandexAuthDialog` already re-fetches the player itself, and boot-time consumers resolved with the localStorage fallback and never re-ask.
+
+Verified live with Playwright: aborted sdk.js → `Player:YandexUnknown` (no Guest); stub SDK with `init()` resolving at 6.5s → degraded boot at 5.3s, then `LoadingAPI.ready()` delivered, `getFlags()` called, and `Experiment:test_flag:enabled` cohort event fired on recovery.
+
 ## 7. Suggested task split (for the producer)
 
 - **Main task:** the bootstrap refactor as described in §4 (one PR — agreed).
