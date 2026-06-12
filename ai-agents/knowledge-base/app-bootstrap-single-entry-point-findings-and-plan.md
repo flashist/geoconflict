@@ -203,6 +203,12 @@ Verified live with Playwright: aborted sdk.js → `Player:YandexUnknown` (no Gue
 
 Verified live with Playwright: hung `getPlayer()` → boot at 5.3s, exactly one `Player:YandexUnknown`; late SDK (6.5s) with authorized player → boot at 5.3s with the single `Unknown` event, then post-recovery `isYandexAuthorized() === true` and `getCurPlayerName() === "TestUser"`, with `ready()` + flags recovery intact.
 
+### External (Codex) review, third round (confirmed and fixed, 2026-06-13)
+
+11. **[medium] Hung `getFlags()` was memoized unboundedly.** With the SDK ready but `getFlags()` never settling, the gate proceeded at the deadline but `loadExperimentFlags` had memoized the pending fetch — every later `checkExperimentFlag()` awaited it forever (hung `show()`-paths; `CitizenshipCard` reached neither its enabled nor its hidden branch, leaving an empty flex child / layout gap). Fixed: the `getFlags()` call inside `fetchExperimentFlags` is raced against `PLATFORM_INIT_DEADLINE_MS`; on timeout it rejects into the existing catch (error logged to analytics), flags stay `undefined` (defaults), and the memoized promise settles. Deliberately NOT clearing the memo for a refetch — one bounded attempt, then the session lives with defaults.
+
+**Product stance confirmed by Mark (2026-06-13):** if the SDK fails (script load rejected, or `YaGames.init()` rejected), the session plays as if there is no SDK, permanently — no retries, no reload. The code already implements this: both failure paths exit `yandexSdkInit` with no recovery. The late-recovery chain (ready()/flags/player) triggers ONLY when `YaGames.init()` eventually *succeeds* (slow network), never on failure.
+
 ## 7. Suggested task split (for the producer)
 
 - **Main task:** the bootstrap refactor as described in §4 (one PR — agreed).

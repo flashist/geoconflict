@@ -735,7 +735,19 @@ export class FlashistFacade {
 
     if (this.yandexGamesSDK) {
       try {
-        experiments = await this.yandexGamesSDK.getFlags();
+        // Bounded: a hung getFlags() must not leave the memoized promise
+        // pending forever — flag checks made later in the session await it.
+        // One attempt; on timeout the session keeps default (absent) flags,
+        // same as a failed fetch. No refetch.
+        experiments = await Promise.race([
+          this.yandexGamesSDK.getFlags(),
+          new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error("getFlags timed out")),
+              PLATFORM_INIT_DEADLINE_MS,
+            ),
+          ),
+        ]);
         experiments ??= {};
       } catch (error) {
         flashist_logErrorToAnalytics(
