@@ -12,6 +12,11 @@ import {
 export const TELEGRAM_CHANNEL_URL = "https://t.me/gameworldwar";
 export const VK_CHANNEL_URL = "https://vk.com/gameworldwar";
 
+// Document-level event fired after the player's Yandex authorization state
+// changes mid-session (e.g. the citizenship card login CTA succeeds), so
+// components that resolved platform data at startup can re-resolve.
+export const YANDEX_AUTH_CHANGED_EVENT = "yandex-auth-changed";
+
 export const flashistConstants = {
   analyticEvents: {
     UI_CLICK_MULTIPLAYER: "UI:ClickMultiplayer",

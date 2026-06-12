@@ -12,6 +12,7 @@ import {
   flashist_logErrorToAnalytics,
   flashist_logErrorTypes,
   FlashistFacade,
+  YANDEX_AUTH_CHANGED_EVENT,
 } from "./flashist/FlashistFacade";
 
 const usernameKey: string = "username";
@@ -39,11 +40,35 @@ export class UsernameInput extends LitElement {
   async connectedCallback() {
     super.connectedCallback();
 
+    document.addEventListener(
+      YANDEX_AUTH_CHANGED_EVENT,
+      this.onYandexAuthChanged,
+    );
+
     // Flashist Adaptation
     // this.username = this.getStoredUsername();
     this.username = await this.getStoredUsername();
     this.dispatchUsernameEvent();
   }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener(
+      YANDEX_AUTH_CHANGED_EVENT,
+      this.onYandexAuthChanged,
+    );
+  }
+
+  // Re-resolve after a mid-session Yandex login so match joins use the
+  // platform name (same precedence as the initial load: platform name wins
+  // over the stored/anonymous one).
+  private onYandexAuthChanged = (): void => {
+    void this.getStoredUsername().then((username) => {
+      this.username = username;
+      this.requestUpdate();
+      this.dispatchUsernameEvent();
+    });
+  };
 
   render() {
     return html`

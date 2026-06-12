@@ -7,6 +7,7 @@ import {
   flashist_logEventAnalytics,
   flashist_waitGameInitComplete,
   flashistConstants,
+  YANDEX_AUTH_CHANGED_EVENT,
 } from "./flashist/FlashistFacade";
 import {
   CITIZENSHIP_XP_THRESHOLD,
@@ -148,8 +149,14 @@ export class CitizenshipCard extends LitElement {
         }),
       );
       const authorized = await FlashistFacade.instance.openYandexAuthDialog();
-      if (authorized && this.isConnected) {
-        await this.refreshProfile();
+      if (authorized) {
+        // Let components that resolved platform data at startup re-resolve
+        // (UsernameInput re-reads the Yandex name so match joins don't keep
+        // the stale anonymous name for the rest of the session).
+        document.dispatchEvent(new CustomEvent(YANDEX_AUTH_CHANGED_EVENT));
+        if (this.isConnected) {
+          await this.refreshProfile();
+        }
       }
     } finally {
       this.isAuthDialogOpen = false;
