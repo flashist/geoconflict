@@ -24,6 +24,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | Fix: Space Key Blocked in Feedback Modal During Match | `s4-feedback-modal-space-key.md` |
 | ✅ Done | Investigation — Missions Mode Difficulty Curve | `s4-missions-difficulty-investigation.md` |
 | ✅ Done | Nuke Pre-Launch Trajectory: Increase Line Thickness | `s4-nuke-trajectory-visibility.md` |
+| ⬜ Backlog | Map Labels: Show Troops/Max + Attacking Troops | `s4-map-population-army-labels.md` |
 | ✅ Done | Teams Mode: Cap Maximum Teams at 4 | `s4-teams-mode-max-teams.md` |
 | ✅ Done | Start Screen Redesign — Tab Layout Investigation (design) | `s4-start-screen-redesign-investigation.md` |
 | ✅ Done | Start Screen Redesign — Implementation | `s4-start-screen-redesign-impl.md` |
@@ -315,6 +316,17 @@ See full brief: `s4-tutorial-build-menu-lock.md`
 Tutorial currently spawns 400 bots — same order of magnitude as a full multiplayer match. Reduces to 100 to make the map less chaotic and give new players more room to learn without being immediately overwhelmed.
 
 See full brief: `s4-tutorial-reduce-bots.md`
+
+---
+
+## Map Labels — Show Troops/Max + Attacking Troops
+
+**Effort:** ~half a day (client rendering change).
+**Experiments:** ❌ Excluded — informational UI enhancement, ships to all players.
+**Independent** — no dependency on citizenship or payments.
+**Brief:** `s4-map-population-army-labels.md`
+
+Enrich the on-map country labels (`NameLayer.ts`) to mirror the hover info panel: show the troops line as `current / max` (e.g. "10K / 100K") and, when a country is attacking, add a red line below with the total attacking troops. Pure `src/client/` change — all data is already available client-side (`PlayerInfoOverlay` renders the same values today via `player.troops()`, `config.maxTroops(player)`, and summed `outgoingAttacks()`), so no investigation and no `src/core/` work. Visual/live verification at multiple zoom levels and against an attacking country; watch label clutter at mid zoom.
 
 ---
 
