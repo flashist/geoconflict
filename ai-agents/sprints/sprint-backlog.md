@@ -22,6 +22,8 @@
 | ⬜ No sprint | Worker Init Timeout — Redundant Map Re-fetch on Join | `backlog/worker-init-timeout-map-refetch.md` | — |
 | ⬜ No sprint | Bots: Stop Building SAM Launchers When Nukes Are Disabled | `backlog/bots-skip-sam-when-nukes-disabled.md` | — |
 | ⬜ No sprint | Disable Infinite-Gold Weird Mode in Public Rotation | `backlog/s4c-disable-infinite-gold-public-rotation.md` | — |
+| ⬜ No sprint | Remove Dead `initializeFuseTag` Polling Loop | `backlog/fix-fusetag-dead-polling-loop.md` | — |
+| ⬜ No sprint | Fix GutterAds Unsubscribing from `userMeResponse` After First `hide()` | `backlog/fix-gutterads-usermeresponse-unsubscribe.md` | — |
 | ⏸ Parked | Task 5 — Deep Mobile Rendering Optimization | None — see plan-index | Mobile DAU > 1,500 |
 | ⏸ Parked | Task 2i — Microsoft Clarity Session Recordings | None — see plan-index | Mobile perf confirmed stable |
 
@@ -192,6 +194,36 @@ redistributed across the remaining three modes. `infiniteGold` stays available f
 lobbies; localization and client badge code left intact. ~Half a day. Originally drafted under
 Sprint 4c but moved here 2026-06-12 to keep 4c historically frozen — needs a sprint home before
 implementation. Safe weekend deploy.
+
+---
+
+### Remove Dead `initializeFuseTag` Polling Loop
+
+**Brief:** `backlog/fix-fusetag-dead-polling-loop.md`
+
+Side bug found during the app-bootstrap investigation (findings doc §2.6 item 1), independent of
+the bootstrap refactor. `Main.ts:950-970` starts a 100ms `setInterval` that waits for
+`window.fusetag` before clearing itself — but the Publift/Fuse ad script is commented out in
+**both** HTML templates, so `window.fusetag` never exists and the timer runs forever in every
+session. Fuse ads are intentionally disabled, so the fix is to remove the dead init call
+(`Main.ts:545`) and method. `src/client/` only, ~30 min. One decision flag: confirm ads stay
+disabled (vs. a separate deliberate task to re-enable Publift). Safe weekend deploy.
+
+---
+
+### Fix GutterAds Unsubscribing from `userMeResponse` After First `hide()`
+
+**Brief:** `backlog/fix-gutterads-usermeresponse-unsubscribe.md`
+
+Side bug found during the app-bootstrap investigation (findings doc §2.6 item 2), independent of
+the bootstrap refactor. `GutterAds` subscribes to `userMeResponse` in `connectedCallback`, but
+`hide()` (`GutterAds.ts:77-86`) calls `removeEventListener` — and `hide()` runs on every game
+start / lobby leave while the element stays connected. Since `connectedCallback` doesn't re-run,
+the element permanently stops reacting to login-state changes after the first `hide()`. Fix:
+move listener removal out of `hide()` and into `disconnectedCallback` so the subscription tracks
+connect/disconnect, not show/hide. `src/client/GutterAds.ts` only, ~1 hour. The broader
+`userMeResponse` fire-once/no-replay concern (§2.6 item 4) is out of scope — revisit after the
+bootstrap task lands.
 
 ---
 

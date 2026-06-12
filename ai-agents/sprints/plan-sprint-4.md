@@ -27,6 +27,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | Teams Mode: Cap Maximum Teams at 4 | `s4-teams-mode-max-teams.md` |
 | ✅ Done | Start Screen Redesign — Tab Layout Investigation (design) | `s4-start-screen-redesign-investigation.md` |
 | ✅ Done | Start Screen Redesign — Implementation | `s4-start-screen-redesign-impl.md` |
+| ⬜ Backlog | App Bootstrap — Single Explicit Entry Point *(client boot-path refactor; investigation done, design locked)* | `s4-app-bootstrap-single-entry-point.md` |
 | ⬜ Backlog | Player Profile Store — Implementation | `s4-player-profile-store-impl.md` |
 | ⬜ Backlog | PostgreSQL Backup Routine (Profile Store) — off-box, daily *(needs: profile store schema; must be live before Paid Citizenship)* | `s4-postgres-backup-routine.md` |
 | ⬜ Backlog | Yandex Payments — Catalog Fetch & Purchase Infrastructure | `s4-yandex-payments-impl.md` |
@@ -102,6 +103,18 @@ Re-enable the existing OpenFront announcements feature. JSON-driven content, no 
 
 > **Briefs to be written after investigation findings are reviewed.**
 > The tasks below are the confirmed scope — details and effort estimates will be added once findings are in.
+
+### App Bootstrap — Single Explicit Entry Point
+**Brief:** `s4-app-bootstrap-single-entry-point.md`
+**Design doc (authoritative):** `ai-agents/knowledge-base/app-bootstrap-single-entry-point-findings-and-plan.md`
+
+Client-side refactor giving the app one explicit bootstrap sequence: all external-SDK / experiment-flag / user-data / language init finishes *before* any component code runs, with a bounded wait (~5s) and a degraded-mode failure policy. Replaces today's emergent, race-prone init order (driven by webpack import order + custom-element upgrade timing + a lazy `FlashistFacade` singleton). `src/client/` only — no `src/core/` changes. Investigation complete and design agreed with Mark 2026-06-12 (degraded mode, two-part facade init, one PR).
+
+**Foundational for this sprint's SDK work** (citizenship auth, Yandex payments) — it removes the race-condition class those integrations would keep hitting. **Sequence before / with `s4-citizenship-xp-progress-ui`** — that task binds live data into `CitizenshipCard`, which currently carries its own copy of the init gate that this refactor removes.
+
+Production-risk: touches the prod Yandex-iframe boot path — weekend deploy, live Yandex-iframe verification required. New degraded-mode analytics event must be wired during implementation. Discovered side bugs (dead fuse-tag timer, GutterAds unsubscribe) are tracked as separate tasks, not bundled here.
+
+---
 
 ### Player Profile Store — Implementation
 Implement the database and schema recommended by Investigation A. Foundation for all citizenship and purchase tasks.
