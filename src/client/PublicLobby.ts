@@ -182,7 +182,7 @@ export class PublicLobby extends LitElement {
       <button
         @click=${() => this.lobbyClicked(lobby)}
         ?disabled=${this.isButtonDebounced}
-        class="isolate grid h-40 grid-cols-[100%] grid-rows-[100%] place-content-stretch w-full overflow-hidden ${this
+        class="isolate grid h-32 grid-cols-[100%] grid-rows-[100%] place-content-stretch w-full overflow-hidden ${this
           .isLobbyHighlighted
           ? "bg-gradient-to-r from-green-600 to-green-500"
           : "bg-gradient-to-r from-blue-600 to-blue-500"} text-white font-medium rounded-xl transition-opacity duration-200 hover:opacity-90 ${this
@@ -201,10 +201,10 @@ export class PublicLobby extends LitElement {
               class="place-self-start col-span-full row-span-full h-full -z-10 bg-gray-300"
             ></div>`}
         <div
-          class="flex flex-col justify-between h-full col-span-full row-span-full p-4 md:p-6 text-right z-0"
+          class="flex flex-col justify-between h-full col-span-full row-span-full p-3 md:p-4 text-right z-0"
         >
           <div>
-            <div class="text-lg md:text-2xl font-semibold">
+            <div class="text-lg md:text-xl font-semibold">
               ${translateText("public_lobby.join")}
             </div>
             <div
@@ -243,19 +243,20 @@ export class PublicLobby extends LitElement {
                     ${translateText("public_lobby.mini_map")}
                   </span>`
                 : nothing}
-              <span
-                >${translateText(
-                  `map.${lobby.gameConfig.gameMap.toLowerCase().replace(/\s+/g, "")}`,
-                )}</span
-              >
+            </div>
+            <div class="text-md font-medium text-blue-100">
+              ${translateText(
+                `map.${lobby.gameConfig.gameMap.toLowerCase().replace(/\s+/g, "")}`,
+              )}
             </div>
           </div>
 
-          <div>
-            <div class="text-md font-medium text-blue-100">
-              ${playerCountDisplay}
-            </div>
-            <div class="text-md font-medium text-blue-100">${timeDisplay}</div>
+          <div
+            class="flex items-end justify-between text-md font-medium text-blue-100"
+            style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5)"
+          >
+            <span>${playerCountDisplay}</span>
+            <span>${timeDisplay}</span>
           </div>
         </div>
       </button>

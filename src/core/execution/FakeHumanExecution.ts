@@ -79,8 +79,7 @@ export class FakeHumanExecution implements Execution {
   ) {
     if ("playerInfo" in playerInfoOrNation) {
       this.playerInfo = playerInfoOrNation.playerInfo;
-      this.difficulty =
-        playerInfoOrNation.difficulty ?? Difficulty.Medium;
+      this.difficulty = playerInfoOrNation.difficulty ?? Difficulty.Medium;
       this.spawnCell = playerInfoOrNation.spawnCell;
     } else {
       this.playerInfo = playerInfoOrNation;
@@ -99,9 +98,7 @@ export class FakeHumanExecution implements Execution {
 
   init(mg: Game) {
     this.mg = mg;
-    if (this.spawnCell === null) {
-      this.spawnCell = this.pickSpawnCell();
-    }
+    this.spawnCell ??= this.pickSpawnCell();
     if (this.random.chance(10)) {
       // this.isTraitor = true
     }
@@ -169,8 +166,7 @@ export class FakeHumanExecution implements Execution {
 
     if (this.player === null) {
       this.player =
-        this.mg.players().find((p) => p.id() === this.playerInfo.id) ??
-        null;
+        this.mg.players().find((p) => p.id() === this.playerInfo.id) ?? null;
       if (this.player === null) {
         return;
       }

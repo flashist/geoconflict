@@ -140,8 +140,19 @@ Fired for first real match starts only. Reconnect handshakes and archived replay
 | `uiElementIds.vkLinkGameEnd`           | `UI:Tap:VkLinkGameEnd`           | Player clicks the VK link on the game-end screen                 |
 | `uiElementIds.tutorialSkipBtnCorner`   | `UI:Tap:TutorialSkipBtnCorner`   | Player clicks the corner skip button during tutorial             |
 | `uiElementIds.tutorialSkipBtnInline`   | `UI:Tap:TutorialSkipBtnInline`   | Player clicks the inline skip link during tutorial               |
+| `uiElementIds.multiplayerTab`          | `UI:Tap:MultiplayerTab`          | Player taps the Multiplayer tab on the start screen. Fires on every tap, including re-taps on the already-active tab; restoring the persisted tab on page load does not fire |
+| `uiElementIds.singleplayerTab`         | `UI:Tap:SingleplayerTab`         | Player taps the Singleplayer tab on the start screen. Same semantics as `MultiplayerTab` |
+| `uiElementIds.citizenshipLoginToEarn`  | `UI:Tap:CitizenshipLoginToEarn`  | Guest player taps the "Войти в Яндекс" login CTA on the citizenship card (start screen). Note: supersedes the `UI:Tap:CitizenLoginCta` string mentioned in `s4-citizenship-xp-progress-ui.md` — the citizenship funnel spec (`analytics-p1-citizenship-funnel.md`) is authoritative |
 
 > **UI:Tap convention:** `UI:Tap:{ElementId}` is the standard pattern for tracking specific UI element interactions. The prefix is `flashistConstants.analyticEvents.UI_TAP_FIRST_PART`. Element IDs are registered in `flashistConstants.uiElementIds` (PascalCase, descriptive). Fire via `FlashistFacade.instance.logUiTapEvent(flashistConstants.uiElementIds.yourElement)`. This is opt-in — only elements listed in this document are instrumented.
+
+### Citizenship Events
+
+Part of the citizenship funnel (`ai-agents/tasks/backlog/analytics-p1-citizenship-funnel.md`). Purchase and XP-earned events are owned by later citizenship tasks and will be added when implemented.
+
+| Enum Key                   | Event String       | When Fired                                                                                                                                       |
+| -------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `CITIZENSHIP_SURFACE_SEEN` | `Citizenship:Seen` | Once per page load, when the citizenship card on the start screen is rendered and actually visible (after game init completes — not during the Yandex preload curtain, and not while the card is hidden). The whole card is gated by the `citizenship_ui` experiment flag — players in the disabled cohort never see the card and never fire this event (their cohort anchor is `Experiment:citizenship_ui:{value}`) |
 
 ### Performance Events
 

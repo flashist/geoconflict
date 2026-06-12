@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Geoconflict – Start Screen Redesign</title>
+<style>
+  @font-face { font-family: 'Overpass'; src: url('assets/fonts/overpass.woff') format('woff'); font-weight: 400; }
+  @font-face { font-family: 'Overpass'; src: url('assets/fonts/overpass-bold.woff') format('woff'); font-weight: 700; }
+
+  @page { size: landscape; margin: 0; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Overpass', system-ui, sans-serif;
+    background: #0a1020;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    width: 297mm;
+    height: 210mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+  }
+
+  /* ---- Layout ---- */
+  .canvas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 20px 28px;
+    width: 100%;
+    height: 100%;
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .label {
+    color: rgba(255,255,255,0.4);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ---- Phone frame ---- */
+  .phone {
+    width: 320px;
+    height: 510px;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    background: #0d1a2e;
+  }
+
+  .phone-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(3px) brightness(0.4) saturate(1.2);
+    transform: scale(1.05);
+  }
+
+  .phone-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10,20,40,0.55);
+  }
+
+  .phone-ui {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  /* ---- Yandex bar ---- */
+  .yandex-bar {
+    height: 38px;
+    background: #111;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+    flex-shrink: 0;
+    border-bottom: 1px solid #222;
+  }
+
+  .y-logo {
+    width: 22px; height: 22px; border-radius: 50%; background: #ff0000;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: white; font-family: serif;
+  }
+
+  .y-game-logo {
+    width: 22px; height: 22px; border-radius: 50%; background: #2d2d2d;
+    display: flex; align-items: center; justify-content: center; font-size: 10px;
+  }
+
+  .y-all-games {
+    margin-left: auto;
+    background: #1e1e1e; border-radius: 5px; padding: 3px 8px;
+    color: white; font-size: 10px; display: flex; align-items: center; gap: 4px;
+  }
+
+  .y-expand {
+    width: 22px; height: 22px; border-radius: 4px; background: #222;
+    display: flex; align-items: center; justify-content: center; color: white; font-size: 11px;
+  }
+
+  /* ---- Citizenship ---- */
+  .citizenship {
+    margin: 8px 10px 0;
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: rgba(0,0,0,0.45);
+    border: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+  }
+
+  .cit-row { display: flex; align-items: center; gap: 8px; }
+
+  .cit-avatar {
+    width: 32px; height: 32px; border-radius: 7px;
+    background: linear-gradient(135deg,#1e40af,#7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+
+  .cit-tier {
+    color: rgba(255,255,255,0.55); font-size: 9px; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 2px;
+  }
+
+  .cit-name {
+    color: white; font-weight: 700; font-size: 12px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .cit-xp-label { color: rgba(255,255,255,0.45); font-size: 9px; margin-bottom: 1px; }
+  .cit-xp-val { color: white; font-weight: 700; font-size: 10px; }
+
+  .xp-track {
+    margin-top: 6px; height: 4px; background: rgba(255,255,255,0.1);
+    border-radius: 2px; overflow: hidden;
+  }
+
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg,#2563eb,#60a5fa);
+    border-radius: 2px;
+  }
+
+  /* ---- Guest citizenship ---- */
+  .citizenship-guest {
+    margin: 8px 10px 0;
+    border-radius: 10px;
+    padding: 10px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .cit-guest-text .title { color: rgba(255,255,255,0.9); font-weight: 700; font-size: 11px; margin-bottom: 2px; }
+  .cit-guest-text .sub { color: rgba(255,255,255,0.4); font-size: 9px; line-height: 1.4; }
+
+  .cit-login-btn {
+    flex-shrink: 0; background: #2563eb; border-radius: 7px;
+    color: white; font-weight: 700; font-size: 11px; padding: 6px 9px; white-space: nowrap;
+  }
+
+  /* ---- Tab switcher ---- */
+  .tab-switcher {
+    display: flex; margin: 8px 10px 0;
+    background: rgba(0,0,0,0.35); border-radius: 9px; padding: 2px; gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .tab {
+    flex: 1; padding: 6px 0; border-radius: 7px;
+    font-family: 'Overpass',system-ui,sans-serif; font-weight: 700; font-size: 11px;
+    text-align: center;
+  }
+
+  .tab.active { background: #2563eb; color: white; }
+  .tab.inactive { color: rgba(255,255,255,0.45); }
+
+  /* ---- Join game card ---- */
+  .join-card {
+    margin: 8px 10px 0;
+    border-radius: 12px; overflow: hidden; position: relative;
+    height: 108px; flex-shrink: 0;
+    background: linear-gradient(135deg,#2563eb,#1d4ed8);
+  }
+
+  .join-card-img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0.35;
+    -webkit-mask-image: linear-gradient(to right, #000 30%, transparent 100%);
+    mask-image: linear-gradient(to right, #000 30%, transparent 100%);
+  }
+
+  .join-card-content {
+    position: relative; z-index: 1; display: flex; flex-direction: column;
+    justify-content: space-between; height: 100%; padding: 10px 12px;
+    color: white; text-align: right;
+  }
+
+  .join-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+
+  .join-badge {
+    display: inline-block; background: white; color: #2563eb;
+    border-radius: 3px; padding: 1px 5px; font-size: 10px; font-weight: 700; margin-right: 4px;
+  }
+
+  .join-map { font-size: 11px; opacity: 0.85; }
+  .join-stat { font-size: 12px; font-weight: 600; opacity: 0.9; }
+
+  /* ---- Buttons ---- */
+  .btn-primary {
+    margin: 0 10px;
+    padding: 13px 14px; border-radius: 10px;
+    background: linear-gradient(135deg,#2563eb,#1d4ed8);
+    color: white; font-family: 'Overpass',system-ui,sans-serif; font-weight: 700;
+    font-size: 13px; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.35); flex-shrink: 0;
+  }
+
+  .btn-ghost {
+    margin: 0 10px;
+    padding: 11px 14px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(0,0,0,0.4);
+    color: white; font-family: 'Overpass',system-ui,sans-serif; font-weight: 700;
+    font-size: 13px; display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+
+  .btn-sub { font-size: 9px; opacity: 0.65; font-weight: 400; margin-top: 1px; }
+  .btn-chevron { margin-left: auto; opacity: 0.6; }
+
+  .spacer { flex: 1; }
+
+  /* ---- Instructions ---- */
+  .instructions {
+    margin: 0 10px 8px;
+    padding: 11px 14px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(0,0,0,0.4);
+    color: white; font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+
+  /* ---- Bottom bar ---- */
+  .bottom-bar {
+    height: 50px; background: rgba(17,24,39,0.96);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; padding: 0 4px 0 6px; flex-shrink: 0;
+  }
+
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #2563eb;
+    display: flex; align-items: center; justify-content: center;
+    margin-left: 3px; flex-shrink: 0;
+  }
+
+  .bottom-text {
+    flex: 1; text-align: center; color: rgba(255,255,255,0.3);
+    font-size: 8px; line-height: 1.4;
+  }
+
+  /* ---- Section title ---- */
+  .section-title {
+    color: rgba(255,255,255,0.25);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .tabs-row { display: flex; gap: 48px; }
+</style>
+</head>
+<body>
+<div class="canvas">
+
+  <div>
+    <div class="section-title">Geoconflict · Start Screen Redesign · 550 px min height</div>
+    <div class="tabs-row">
+
+      <!-- ══════ MULTIPLAYER TAB ══════ -->
+      <div class="col">
+        <div class="label">Multiplayer Tab</div>
+        <div class="phone">
+          <img class="phone-bg" src="assets/images/RandomMap.webp" alt=""/>
+          <div class="phone-overlay"></div>
+          <div class="phone-ui">
+
+            <!-- Yandex bar -->
+            <div class="yandex-bar">
+              <svg width="16" height="11" viewBox="0 0 16 11" fill="none">
+                <rect width="3" height="1.2" rx=".6" fill="white" y="0"/>
+                <rect width="3" height="1.2" rx=".6" fill="white" y="2.4"/>
+                <rect width="3" height="1.2" rx=".6" fill="white" y="4.8"/>
+              </svg>
+              <div class="y-logo">Я</div>
+              <div class="y-game-logo">🎮</div>
+              <div class="y-all-games">🎮 Все игры</div>
+              <div style="width:6px"></div>
+              <div class="y-expand">⤢</div>
+            </div>
+
+            <!-- Citizenship: logged in -->
+            <div class="citizenship">
+              <div class="cit-row">
+                <div class="cit-avatar">🏳️</div>
+                <div style="flex:1;min-width:0">
+                  <div class="cit-tier">🛡 Гражданин</div>
+                  <div class="cit-name">Игрок_7734</div>
+                </div>
+                <div style="text-align:right">
+                  <div class="cit-xp-label">XP</div>
+                  <div class="cit-xp-val">1 240 / 2 000</div>
+                </div>
+              </div>
+              <div class="xp-track">
+                <div class="xp-fill" style="width:62%"></div>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tab-switcher">
+              <div class="tab active">Мультиплеер</div>
+              <div class="tab inactive">Одиночная</div>
+            </div>
+
+            <!-- Join card -->
+            <div class="join-card">
+              <img class="join-card-img" src="assets/images/RandomMap.webp" alt=""/>
+              <div class="join-card-content">
+                <div>
+                  <div class="join-title">Присоединиться к игре</div>
+                  <div>
+                    <span class="join-badge">КПК</span>
+                    <span class="join-map">Архиран</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="join-stat">12 / 30</div>
+                  <div class="join-stat">22с</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="spacer"></div>
+
+            <!-- Instructions -->
+            <div class="instructions">
+              <span>📖</span>
+              <div>
+                <div>Инструкции</div>
+                <div class="btn-sub">Как играть?</div>
+              </div>
+              <svg class="btn-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-opacity="0.5"/></svg>
+            </div>
+
+            <!-- Bottom bar -->
+            <div class="bottom-bar">
+              <div class="icon-btn" style="position:relative">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6.5 9.5a5.5 5.5 0 1 1 11 0c0 6 2 7.5 2 7.5h-15s2-1.5 2-7.5"/>
+                  <path d="M10 19a2 2 0 0 0 4 0"/>
+                </svg>
+                <span style="position:absolute;top:-1px;right:-1px;width:8px;height:8px;background:#f97316;border-radius:50%;border:1.5px solid #2563eb"></span>
+              </div>
+              <div class="bottom-text">Основано на OpenFront<br/>0.0.127</div>
+              <div class="icon-btn"><img src="assets/icons/ChatIconWhite.svg" width="18" height="18" style="filter:brightness(10)"/></div>
+              <div class="icon-btn"><img src="assets/icons/SettingIconWhite.svg" width="18" height="18" style="filter:brightness(10)"/></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ SINGLEPLAYER TAB ══════ -->
+      <div class="col">
+        <div class="label">Singleplayer Tab</div>
+        <div class="phone">
+          <img class="phone-bg" src="assets/images/RandomMap.webp" alt=""/>
+          <div class="phone-overlay"></div>
+          <div class="phone-ui">
+
+            <!-- Yandex bar -->
+            <div class="yandex-bar">
+              <svg width="16" height="11" viewBox="0 0 16 11" fill="none">
+                <rect width="3" height="1.2" rx=".6" fill="white" y="0"/>
+                <rect width="3" height="1.2" rx=".6" fill="white" y="2.4"/>
+                <rect width="3" height="1.2" rx=".6" fill="white" y="4.8"/>
+              </svg>
+              <div class="y-logo">Я</div>
+              <div class="y-game-logo">🎮</div>
+              <div class="y-all-games">🎮 Все игры</div>
+              <div style="width:6px"></div>
+              <div class="y-expand">⤢</div>
+            </div>
+
+            <!-- Citizenship: logged in -->
+            <div class="citizenship">
+              <div class="cit-row">
+                <div class="cit-avatar">🏳️</div>
+                <div style="flex:1;min-width:0">
+                  <div class="cit-tier">🛡 Гражданин</div>
+                  <div class="cit-name">Игрок_7734</div>
+                </div>
+                <div style="text-align:right">
+                  <div class="cit-xp-label">XP</div>
+                  <div class="cit-xp-val">1 240 / 2 000</div>
+                </div>
+              </div>
+              <div class="xp-track">
+                <div class="xp-fill" style="width:62%"></div>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tab-switcher">
+              <div class="tab inactive">Мультиплеер</div>
+              <div class="tab active">Одиночная</div>
+            </div>
+
+            <!-- Singleplayer buttons -->
+            <div style="flex:1;display:flex;flex-direction:column;padding:8px 0;gap:8px;overflow:hidden">
+              <div class="btn-primary">
+                <span style="font-size:18px">🗺️</span>
+                <div>
+                  <div>Custom Game</div>
+                  <div class="btn-sub">Настройте свою игру</div>
+                </div>
+                <svg class="btn-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
+              <div class="btn-primary">
+                <span style="font-size:18px">🎯</span>
+                <div>
+                  <div>Играть миссию: 1</div>
+                  <div class="btn-sub">Одиночная кампания</div>
+                </div>
+                <svg class="btn-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="instructions">
+              <span>📖</span>
+              <div>
+                <div>Инструкции</div>
+                <div class="btn-sub">Как играть?</div>
+              </div>
+              <svg class="btn-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-opacity="0.5"/></svg>
+            </div>
+
+            <!-- Bottom bar -->
+            <div class="bottom-bar">
+              <div class="icon-btn" style="position:relative">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6.5 9.5a5.5 5.5 0 1 1 11 0c0 6 2 7.5 2 7.5h-15s2-1.5 2-7.5"/>
+                  <path d="M10 19a2 2 0 0 0 4 0"/>
+                </svg>
+                <span style="position:absolute;top:-1px;right:-1px;width:8px;height:8px;background:#f97316;border-radius:50%;border:1.5px solid #2563eb"></span>
+              </div>
+              <div class="bottom-text">Основано на OpenFront<br/>0.0.127</div>
+              <div class="icon-btn"><img src="assets/icons/ChatIconWhite.svg" width="18" height="18" style="filter:brightness(10)"/></div>
+              <div class="icon-btn"><img src="assets/icons/SettingIconWhite.svg" width="18" height="18" style="filter:brightness(10)"/></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- tabs-row -->
+  </div>
+
+</div><!-- canvas -->
+
+<script>
+  // Wait for fonts + images, then print
+  document.fonts.ready.then(() => {
+    setTimeout(() => window.print(), 500);
+  });
+</script>
+</body>
+</html>

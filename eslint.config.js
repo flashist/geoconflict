@@ -13,7 +13,9 @@ const gitignorePath = path.resolve(__dirname, ".gitignore");
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   includeIgnoreFile(gitignorePath),
-  { ignores: ["src/server/gatekeeper/**"] },
+  {
+    ignores: ["src/server/gatekeeper/**", "src/client/yandexGamesSdk_test.js"],
+  },
   { files: ["**/*.{js,mjs,cjs,ts}"] },
   { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
   pluginJs.configs.recommended,
@@ -58,6 +60,17 @@ export default [
           caughtErrors: "none",
         },
       ],
+    },
+  },
+  {
+    files: ["scripts/bump-version.js"],
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
+      },
+    },
+    rules: {
+      "@typescript-eslint/prefer-nullish-coalescing": "off",
     },
   },
 ];

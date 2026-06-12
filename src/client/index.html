@@ -188,29 +188,39 @@
         <username-input class="relative w-full"></username-input>
       </div>
       <div></div>
-      <div>
-        <public-lobby class="block"></public-lobby>
-      </div>
-      <div>
-        <matchmaking-button class="w-[20%] md:w-[15%]"></matchmaking-button>
-      </div>
-      <div class="container__row container__row--equal">
-        <o-button id="host-lobby-button" title="Create Lobby" translationKey="main.create_lobby" block
-          secondary></o-button>
-        <o-button id="join-private-lobby-button" title="Join Lobby" translationKey="main.join_lobby" block
-          secondary></o-button>
-        <!-- <o-button
-            id="chat-button"
-            title="Chat Test"
-            block
-            secondary
-          ></o-button> -->
+      <citizenship-card class="block"></citizenship-card>
+      <start-screen-tabs class="block"></start-screen-tabs>
+
+      <div id="multiplayer-tab-content" class="flex flex-col gap-2.5">
+        <div>
+          <public-lobby class="block"></public-lobby>
+        </div>
+        <div>
+          <matchmaking-button class="w-[20%] md:w-[15%]"></matchmaking-button>
+        </div>
+        <div class="container__row container__row--equal">
+          <o-button id="host-lobby-button" title="Create Lobby" translationKey="main.create_lobby" block
+            secondary></o-button>
+          <o-button id="join-private-lobby-button" title="Join Lobby" translationKey="main.join_lobby" block
+            secondary></o-button>
+          <!-- <o-button
+              id="chat-button"
+              title="Chat Test"
+              block
+              secondary
+            ></o-button> -->
+        </div>
       </div>
 
-      <o-button id="single-play-mission" title="" block></o-button>
-      <o-button id="single-player" title="Single Player" translationKey="main.single_player" block></o-button>
+      <div id="singleplayer-tab-content" class="flex flex-col gap-2.5 hidden">
+        <o-button id="single-player" title="Custom Game" translationKey="main.single_player"
+          subtitleTranslationKey="main.single_player_subtitle" icon="🗺️" chevron menurow block></o-button>
+        <o-button id="single-play-mission" title="" subtitleTranslationKey="main.play_mission_subtitle" icon="🎯"
+          chevron menurow block></o-button>
+      </div>
 
-      <o-button id="help-button" title="Instructions" translationKey="main.instructions" block secondary></o-button>
+      <o-button id="help-button" class="mt-auto" title="Instructions" translationKey="main.instructions"
+        subtitleTranslationKey="main.instructions_subtitle" icon="📖" chevron menurow block secondary></o-button>
       <div class="container__row">
         <lang-selector class="w-full"></lang-selector>
       </div>
@@ -235,7 +245,7 @@
   </div>
 
   <!-- Game components -->
-  <div id="customMenu" class="mt-4 sm:mt-6 lg:mt-8">
+  <div id="customMenu">
     <ul></ul>
   </div>
   <div id="app"></div>

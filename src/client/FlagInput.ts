@@ -4,7 +4,7 @@ import { renderPlayerFlag } from "../core/CustomFlag";
 import { FlagSchema } from "../core/Schemas";
 import { translateText } from "./Utils";
 
-const flagKey: string = "flag";
+export const FLAG_STORAGE_KEY: string = "flag";
 
 @customElement("flag-input")
 export class FlagInput extends LitElement {
@@ -27,7 +27,7 @@ export class FlagInput extends LitElement {
   }
 
   private getStoredFlag(): string {
-    const storedFlag = localStorage.getItem(flagKey);
+    const storedFlag = localStorage.getItem(FLAG_STORAGE_KEY);
     if (storedFlag) {
       return storedFlag;
     }

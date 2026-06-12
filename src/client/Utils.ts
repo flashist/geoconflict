@@ -7,7 +7,7 @@ export function renderDuration(totalSeconds: number): string {
   // if (totalSeconds <= 0) return "0s";
   if (totalSeconds < 0) {
     totalSeconds = 0;
-  };
+  }
 
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -16,7 +16,8 @@ export function renderDuration(totalSeconds: number): string {
   // Flashist Adaptation
   // if (minutes > 0) time += `${minutes}min `;
   // time += `${seconds}s`;
-  if (minutes > 0) time += `${minutes}${translateText("common.minutes_short")} `;
+  if (minutes > 0)
+    time += `${minutes}${translateText("common.minutes_short")} `;
   time += `${seconds}${translateText("common.seconds_short")}`;
 
   return time.trim();
@@ -273,11 +274,9 @@ export function enableMobileRenderingOpts(): void {
 
 // MAIN THREAD ONLY — accesses `window`. Must not be called from Web Worker context.
 export function isMobileDevice(): boolean {
-  if (_isMobileDevice === undefined) {
-    _isMobileDevice =
-      window.matchMedia("(pointer: coarse)").matches ||
-      /Android|iPhone/i.test(navigator.userAgent);
-  }
+  _isMobileDevice ??=
+    window.matchMedia("(pointer: coarse)").matches ||
+    /Android|iPhone/i.test(navigator.userAgent);
   return _isMobileDevice;
 }
 

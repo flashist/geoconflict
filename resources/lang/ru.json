@@ -33,8 +33,13 @@
     "create_lobby": "Создать лобби",
     "join_lobby": "Присоединиться к лобби",
     "play_mission": "Играть миссию: {level}",
-    "single_player": "Одиночная игра",
+    "play_mission_subtitle": "Одиночная кампания",
+    "single_player": "Своя Игра",
+    "single_player_subtitle": "Настройте свою игру",
+    "tab_multiplayer": "Мультиплеер",
+    "tab_singleplayer": "Одиночная",
     "instructions": "Инструкции",
+    "instructions_subtitle": "Как играть?",
     "how_to_play": "Как играть",
     "advertise": "Рекламирование",
     "wiki": "Вики",
@@ -47,6 +52,13 @@
     "minutes": "минуты",
     "minutes_short": "м",
     "single_play_mission": "Одиночная миссия"
+  },
+  "citizenship_card": {
+    "title": "Гражданство",
+    "guest_subtitle": "Войдите, чтобы сохранить прогресс",
+    "login_cta": "Войти в Яндекс",
+    "xp_label": "XP",
+    "citizen_badge": "ГРАЖДАНИН"
   },
   "news": {
     "see_all_releases": "Посмотреть все выпуски",

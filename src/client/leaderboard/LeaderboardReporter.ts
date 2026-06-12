@@ -26,7 +26,7 @@ export async function reportParticipation(
     return;
   }
 
-  let result: boolean = await FlashistFacade.instance.increaseCurPlayerLeaderboardScore(FlashistGameSettings.leaderboardPoints.participation);
+  const result: boolean = await FlashistFacade.instance.increaseCurPlayerLeaderboardScore(FlashistGameSettings.leaderboardPoints.participation);
 
   // TODO: integrate platform leaderboard API (participation)
   console.debug(
@@ -46,7 +46,7 @@ export async function reportPlacement(
 ): Promise<void> {
   if (params.player.type() !== PlayerType.Human) return;
 
-  let result: boolean = await FlashistFacade.instance.increaseCurPlayerLeaderboardScore(params.points);
+  const result: boolean = await FlashistFacade.instance.increaseCurPlayerLeaderboardScore(params.points);
 
   // TODO: integrate platform leaderboard API (placement)
   console.debug(

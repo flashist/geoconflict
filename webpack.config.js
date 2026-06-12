@@ -346,6 +346,12 @@ export default async (env, argv) => {
             from: path.resolve(__dirname, "resources"),
             to: path.resolve(__dirname, "static"),
             noErrorOnMissing: true,
+            // Claude Design handoff bundles under resources/claude-design-files
+            // are project knowledge (incl. internal chat transcripts), not
+            // runtime assets — keep them out of the public web root.
+            // dot: true so the ignore also covers dotfiles (.DS_Store,
+            // .thumbnail, .design-canvas.state.json).
+            globOptions: { dot: true, ignore: ["**/claude-design-files/**"] },
           },
           {
             from: path.resolve(__dirname, "proprietary"),
