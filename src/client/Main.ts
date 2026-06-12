@@ -78,7 +78,6 @@ import "./components/baseComponents/Modal";
 import {
   flashist_getLangSelector,
   flashist_logEventAnalytics,
-  flashist_waitGameInitComplete,
   flashistConstants,
   FlashistFacade,
 } from "./flashist/FlashistFacade";
@@ -970,28 +969,22 @@ class Client {
   }
 }
 
-// Initialize the client when the DOM is loaded
-document.addEventListener("DOMContentLoaded", async () => {
-  // Flashist Adaptation
-  await flashist_waitGameInitComplete();
-
+// The application starting point, called by Bootstrap.ts after platform
+// initialization (Yandex SDK, experiment flags, player data, language) has
+// settled — the DOM is fully parsed and every init guarantee holds here.
+// The UI is wired synchronously before the first await; only the first-time
+// tutorial auto-launch runs past it.
+export async function startClient(): Promise<void> {
   startBuildVersionChecker();
 
   const client = new Client();
+  client.initialize();
 
   // Tutorial: auto-launch for first-time players
   if (!localStorage.getItem(TUTORIAL_COMPLETED_KEY)) {
-    client.initialize();
     await client.startTutorial();
-    return;
   }
-
-  client.initialize();
-
-  // // Flashist Adaptation
-  // await FlashistFacade.instance.yandexInitPromise;
-  // FlashistFacade.instance.yandexGamesReadyCallback();
-});
+}
 
 // WARNING: DO NOT EXPOSE THIS ID
 export function getPlayToken(): string {

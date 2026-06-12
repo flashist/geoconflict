@@ -24,9 +24,10 @@ All future events must follow this convention. The TypeScript enum serves as the
 | Enum Key                  | Event String                                        | When Fired                                                                                                                                                       |
 | ------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SESSION_MATCHES_PLAYED`  | `Session:MatchesPlayed`                             | Once per session, **before** `Session:Start`, when a previous session's pending entry is consumed from localStorage; **value** = integer match starts recorded in that prior session (0 if no matches played). Fires once per tab that closed; multi-tab sessions produce one event each. |
-| `SESSION_START`           | `Session:Start`                                     | Once per session, on game load after SDK init. Top step of all funnels.                                                                                          |
+| `SESSION_START`           | `Session:Start`                                     | Once per session, at the very start of bootstrap (Phase 1, before SDK/platform init blocks). Top step of all funnels.                                            |
 | `SESSION_HEARTBEAT`       | `Session:Heartbeat:05`, `Session:Heartbeat:10`, ... | Every 5 minutes while player is active. Stops on inactivity or tab close.                                                                                        |
 | `SESSION_FIRST_ACTION`    | `Session:FirstAction`                               | Once per session, on first meaningful interaction on the start screen.                                                                                           |
+| `SESSION_PLATFORM_INIT_TIMEOUT` | `Session:PlatformInitTimeout`                 | When a stage of the blocking platform init (Yandex SDK init, or player-data/experiment-flags loading) exceeds the 5s deadline and the app continues in degraded mode (default flags, localStorage username, browser language, no ads). Can fire at most once per stage. |
 
 ### Device & Platform Segmentation Events
 
@@ -48,8 +49,8 @@ Fired once per session immediately after `Session:Start`, in this order:
 | `PLAYER_RETURNING`   | `Player:Returning`   | Every session after the first                                                          |
 | `PLAYER_DAYS_PLAYED` | `Player:DaysPlayed`  | Once per session, immediately after `Player:New/Returning`; **value** = integer cumulative unique calendar days the game was opened (local time, not UTC; a gap of N days still increments by 1, not N) |
 | `PLAYER_YANDEX_LOGGED_IN` | `Player:YandexLoggedIn` | Player is authenticated with Yandex; fires asynchronously after player auth resolves (when SDK ready within 1-second window) |
-| `PLAYER_YANDEX_GUEST` | `Player:YandexGuest` | Player is in Yandex guest mode, or Yandex SDK is unavailable (non-Yandex platform) |
-| `PLAYER_YANDEX_UNKNOWN` | `Player:YandexUnknown` | Yandex SDK is available (`window.YaGames` present) but auth state could not be determined within the 1-second SDK init timeout |
+| `PLAYER_YANDEX_GUEST` | `Player:YandexGuest` | Player is in Yandex guest mode (SDK ready, player object fetched, not authorized), or the session is on a non-Yandex/standalone platform (no SDK script) |
+| `PLAYER_YANDEX_UNKNOWN` | `Player:YandexUnknown` | On the Yandex platform, but auth state could not be determined by the platform-init deadline: SDK init exceeded the 1-second window, the SDK script failed to load, `YaGames.init()` rejected, or `getPlayer()` did not settle (or rejected) in time. Exactly one `Player:Yandex*` event fires per booted session. |
 
 Full session-start sequence:
 

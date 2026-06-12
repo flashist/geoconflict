@@ -12,8 +12,18 @@
   <link rel="icon" type="image/x-icon" href="../../resources/images/Favicon.svg" />
 
   <!-- Flashist Adaptation: Yandex Games (iframe) -->
-  <!-- Yandex Games SDK -->
-  <script src="https://sdk.games.s3.yandex.net/sdk.js"></script>
+  <!-- Yandex Games SDK — loaded async so a slow/unreachable CDN cannot stall
+       HTML parsing. Bootstrap.ts awaits flashist_sdkScriptReadyPromise
+       (bounded by a deadline) before initializing the SDK. -->
+  <script>
+    window.flashist_isYandexPlatform = true;
+    window.flashist_sdkScriptReadyPromise = new Promise(function (resolve) {
+      window.flashist_sdkScriptReadyResolve = resolve;
+    });
+  </script>
+  <script async src="https://sdk.games.s3.yandex.net/sdk.js"
+    onload="window.flashist_sdkScriptReadyResolve()"
+    onerror="window.flashist_sdkScriptReadyResolve()"></script>
 
   <!-- Flashist Adaptation -->
   <style>
@@ -470,21 +480,16 @@
   </div>
   <!-- Scripts -->
   <script>
-    // Remove preload class after everything is loaded
-    window.addEventListener("load", function () {
-
-      // Flashist Adaptation
-      // requestAnimationFrame(() => {
+    // Reveal the UI once the game init gate resolves. Bound to DOMContentLoaded
+    // (not "load"): the load event waits for the async Yandex SDK script, so a
+    // stalled SDK CDN would keep the loading overlay up forever even though the
+    // bootstrap deadline has already let the game start in degraded mode.
+    // DOMContentLoaded fires after the deferred bundle evaluates, so the window
+    // globals used below are guaranteed to exist here.
+    document.addEventListener("DOMContentLoaded", function () {
       requestAnimationFrame(async () => {
-        // Flashist Adaptation
-        // Flashist Adaptation
         await window.flashist_waitGameInitComplete();
-        //
         window.FlashistFacade.instance.yandexGamesReadyCallback();
-
-        // Flashist Adaptation
-        // document.documentElement.classList.remove("preload");
-        // document.body.classList.remove("preload");
         document.body.classList.remove("flashist-preload");
       });
     });

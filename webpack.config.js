@@ -176,7 +176,7 @@ export default async (env, argv) => {
       : undefined);
 
   return {
-    entry: "./src/client/Main.ts",
+    entry: "./src/client/Bootstrap.ts",
     // hidden-source-map: emit full .map files (uploaded to Uptrace at build time
     // for stack-trace symbolication) but WITHOUT the sourceMappingURL comment, so
     // browsers never request them and maps stay private (the .map→404 guard in
@@ -310,6 +310,10 @@ export default async (env, argv) => {
       new HtmlWebpackPlugin({
         template: "./src/client/yandex-games_iframe-parent.html",
         filename: "yandex-games_iframe-parent.html",
+        // The parent page only hosts the real app in an iframe — injecting the
+        // bundle here would run the whole bootstrap (SDK init, Session:Start
+        // analytics) a second time in the wrapper context.
+        chunks: [],
         // Add optimization for HTML
         minify: isProduction
           ? {
