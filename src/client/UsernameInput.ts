@@ -91,7 +91,7 @@ export class UsernameInput extends LitElement {
     }
 
     if (!result) {
-      let localStorageUserName = localStorage.getItem(usernameKey);
+      const localStorageUserName = localStorage.getItem(usernameKey);
       if (localStorageUserName) {
         result = localStorageUserName;
       }

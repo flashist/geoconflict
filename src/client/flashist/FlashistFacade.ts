@@ -237,7 +237,7 @@ export const flashist_logErrorToAnalytics = (
 window.onerror = function (msg, url, line, col, error) {
   // Note that col & error are new to the HTML 5 spec and may not be
   // supported in every browser.  It worked for me in Chrome.
-  var extra = !col ? "" : "\ncolumn: " + col;
+  let extra = !col ? "" : "\ncolumn: " + col;
   extra += !error ? "" : "\nerror: " + error;
 
   // You can view the information in an alert to see things working like this:
@@ -818,7 +818,7 @@ export class FlashistFacade {
       if (this.sdkMethodsStatusCacheMap[sdkMethod]) {
         result = this.sdkMethodsStatusCacheMap[sdkMethod].isAvailable;
       } else {
-        let isAvailable: boolean =
+        const isAvailable: boolean =
           await this.yandexGamesSDK.isAvailableMethod(sdkMethod);
         this.sdkMethodsStatusCacheMap[sdkMethod] = {
           isAvailable: isAvailable,
@@ -846,7 +846,7 @@ export class FlashistFacade {
       let result: number = 0;
 
       if (this.yandexGamesSDK) {
-        let isAvailable: boolean = await this.checkIfSdkMethodAvailable(
+        const isAvailable: boolean = await this.checkIfSdkMethodAvailable(
           "leaderboards.getPlayerEntry",
         );
         if (isAvailable) {
@@ -899,7 +899,7 @@ export class FlashistFacade {
     await this.yandexInitPromise;
 
     if (this.yandexGamesSDK) {
-      let isAvailable: boolean = await this.checkIfSdkMethodAvailable(
+      const isAvailable: boolean = await this.checkIfSdkMethodAvailable(
         "leaderboards.setScore",
       );
       if (isAvailable) {
@@ -925,7 +925,7 @@ export class FlashistFacade {
 
     let playerPrevMaxScore: number = 0;
     try {
-      let isAvailable: boolean = await this.checkIfSdkMethodAvailable(
+      const isAvailable: boolean = await this.checkIfSdkMethodAvailable(
         "leaderboards.getPlayerEntry",
       );
       if (isAvailable) {
@@ -940,7 +940,7 @@ export class FlashistFacade {
       );
     }
 
-    let newScore: number = playerPrevMaxScore + increase;
+    const newScore: number = playerPrevMaxScore + increase;
     result = await this.setCurPlayerLeaderboardScore(newScore, leaderboardId);
 
     return result;
@@ -948,7 +948,7 @@ export class FlashistFacade {
 }
 
 export const flashist_getLangSelector = (): LangSelector => {
-  let result: LangSelector = document.querySelector(
+  const result: LangSelector = document.querySelector(
     "lang-selector",
   ) as LangSelector;
 
