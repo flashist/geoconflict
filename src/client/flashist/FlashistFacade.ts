@@ -1,6 +1,5 @@
 import { LangSelector } from "../LangSelector";
 import { GameAnalytics } from "gameanalytics";
-import { GameEnv } from "../../core/configuration/Config";
 import { setOtelUser } from "../OtelBrowserInit";
 import { isMobileDevice } from "../Utils";
 import version from "../../version";
@@ -218,9 +217,7 @@ export const flashist_logErrorToAnalytics = (
     return;
   }
 
-  if (!severity) {
-    severity = flashist_logErrorTypes.ERROR;
-  }
+  severity ??= flashist_logErrorTypes.ERROR;
 
   // Available strings for severity
   // "Undefined", "Debug", "Info", "Warning", "Error", "Critical"
@@ -406,7 +403,9 @@ export class FlashistFacade {
 
     if (!sdkReady) {
       // SDK timed out — yaGamesAvailable distinguishes "slow Yandex" from "no Yandex"
-      this.logYandexLoginStatusEvent(this.yaGamesAvailable ? "unknown" : "guest");
+      this.logYandexLoginStatusEvent(
+        this.yaGamesAvailable ? "unknown" : "guest",
+      );
     } else if (!this.yandexGamesSDK) {
       // SDK resolved but not a Yandex platform (yandexSdkInit resolved instantly with no SDK)
       this.logYandexLoginStatusEvent("guest");
@@ -527,30 +526,27 @@ export class FlashistFacade {
   protected async loadExperimentFlags(): Promise<void> {
     await this.yandexInitPromise;
 
-    if (!this.yandexInitExperimentsPromise) {
-      this.yandexInitExperimentsPromise = new Promise<void>(async (resolve) => {
-        let experiments: any;
-
-        if (this.yandexGamesSDK) {
-          try {
-            experiments = await this.yandexGamesSDK.getFlags();
-            if (!experiments) {
-              experiments = {};
-            }
-          } catch (error) {
-            flashist_logErrorToAnalytics(
-              `ERROR! FlashistFacade | loadExperimentFlags __ error: ${error}`,
-              flashist_logErrorTypes.DEBUG,
-            );
-          }
-        }
-
-        this.yandexExperimentFlags = experiments;
-        resolve();
-      });
-    }
+    this.yandexInitExperimentsPromise ??= this.fetchExperimentFlags();
 
     return this.yandexInitExperimentsPromise;
+  }
+
+  private async fetchExperimentFlags(): Promise<void> {
+    let experiments: any;
+
+    if (this.yandexGamesSDK) {
+      try {
+        experiments = await this.yandexGamesSDK.getFlags();
+        experiments ??= {};
+      } catch (error) {
+        flashist_logErrorToAnalytics(
+          `ERROR! FlashistFacade | loadExperimentFlags __ error: ${error}`,
+          flashist_logErrorTypes.DEBUG,
+        );
+      }
+    }
+
+    this.yandexExperimentFlags = experiments;
   }
 
   protected logExperimentEvents(): void {
@@ -587,7 +583,7 @@ export class FlashistFacade {
     let result: boolean = false;
 
     if (this.yandexExperimentFlags) {
-      if (this.yandexExperimentFlags[name] == value) {
+      if (this.yandexExperimentFlags[name] === value) {
         result = true;
       }
     }
@@ -636,29 +632,23 @@ export class FlashistFacade {
   // PLAYER
   protected yandexSdkInitPlayerPromise: Promise<void>;
   protected yandexSdkPlayerObject: any;
-  protected async initPlayer() {
-    return new Promise<void>(async (resolve, reject) => {
-      await this.yandexInitPromise;
+  protected async initPlayer(): Promise<void> {
+    await this.yandexInitPromise;
 
-      if (this.yandexGamesSDK) {
-        try {
-          await this.yandexGamesSDK.getPlayer().then((player) => {
-            this.yandexSdkPlayerObject = player;
+    if (!this.yandexGamesSDK) {
+      return; // No SDK available — nothing to initialize
+    }
 
-            resolve();
-          });
-        } catch (error) {
-          flashist_logErrorToAnalytics(
-            `ERROR! FlashistFacade | initPlayer __ error: ${error}`,
-            flashist_logErrorTypes.DEBUG,
-          );
+    try {
+      this.yandexSdkPlayerObject = await this.yandexGamesSDK.getPlayer();
+    } catch (error) {
+      flashist_logErrorToAnalytics(
+        `ERROR! FlashistFacade | initPlayer __ error: ${error}`,
+        flashist_logErrorTypes.DEBUG,
+      );
 
-          reject();
-        }
-      } else {
-        resolve(); // No SDK available — nothing to initialize
-      }
-    });
+      throw error;
+    }
   }
 
   private isYandexLoggedIn(): boolean {
@@ -724,7 +714,7 @@ export class FlashistFacade {
       return;
     }
 
-    return new Promise((resolve: Function, reject: Function) => {
+    return new Promise<boolean>((resolve) => {
       try {
         console.log(
           "FlashistFacade | Main | showInterstitial __ showFullscreenAdv __ BEFORE",
@@ -836,54 +826,47 @@ export class FlashistFacade {
   protected async getCurPlayerLeaderboardScore(
     leaderboardId?: string,
   ): Promise<number> {
-    if (!leaderboardId) {
-      leaderboardId = this.defaultLeaderboardId;
-    }
+    leaderboardId ??= this.defaultLeaderboardId;
 
     await this.yandexInitPromise;
 
-    return new Promise(async (resolve, reject) => {
-      let result: number = 0;
+    let result: number = 0;
 
-      if (this.yandexGamesSDK) {
-        const isAvailable: boolean = await this.checkIfSdkMethodAvailable(
-          "leaderboards.getPlayerEntry",
-        );
-        if (isAvailable) {
-          this.yandexGamesSDK.leaderboards
-            .getPlayerEntry(leaderboardId)
-            .then((data) => {
-              // console.log(res);
-              if (data) {
-                result = data.score;
-              } else {
-                flashist_logErrorToAnalytics(
-                  "ERROR! Flashist Facade | getCurPlayerLeaderboardScore __ then __ no data!",
-                  flashist_logErrorTypes.DEBUG,
-                );
-              }
+    if (this.yandexGamesSDK) {
+      const isAvailable: boolean = await this.checkIfSdkMethodAvailable(
+        "leaderboards.getPlayerEntry",
+      );
+      if (isAvailable) {
+        try {
+          const data =
+            await this.yandexGamesSDK.leaderboards.getPlayerEntry(
+              leaderboardId,
+            );
+          // console.log(res);
+          if (data) {
+            result = data.score;
+          } else {
+            flashist_logErrorToAnalytics(
+              "ERROR! Flashist Facade | getCurPlayerLeaderboardScore __ then __ no data!",
+              flashist_logErrorTypes.DEBUG,
+            );
+          }
+        } catch (error) {
+          flashist_logErrorToAnalytics(
+            "ERROR! Flashist Facade | getCurPlayerLeaderboardScore __ error.code: " +
+              error.code,
+            flashist_logErrorTypes.DEBUG,
+          );
 
-              resolve(result);
-            })
-            .catch((error) => {
-              flashist_logErrorToAnalytics(
-                "ERROR! Flashist Facade | getCurPlayerLeaderboardScore __ error.code: " +
-                error.code,
-                flashist_logErrorTypes.DEBUG,
-              );
-
-              reject(error);
-              // if (err.code === 'LEADERBOARD_PLAYER_NOT_PRESENT') {
-              //     // Срабатывает, если у игрока нет записи в лидерборде.
-              // }
-            });
-        } else {
-          resolve(result);
+          throw error;
+          // if (err.code === 'LEADERBOARD_PLAYER_NOT_PRESENT') {
+          //     // Срабатывает, если у игрока нет записи в лидерборде.
+          // }
         }
-      } else {
-        resolve(result);
       }
-    });
+    }
+
+    return result;
   }
 
   public async setCurPlayerLeaderboardScore(
@@ -892,9 +875,7 @@ export class FlashistFacade {
   ): Promise<boolean> {
     let result: boolean = false;
 
-    if (!leaderboardId) {
-      leaderboardId = this.defaultLeaderboardId;
-    }
+    leaderboardId ??= this.defaultLeaderboardId;
 
     await this.yandexInitPromise;
 
@@ -919,9 +900,7 @@ export class FlashistFacade {
   ): Promise<boolean> {
     let result: boolean = false;
 
-    if (!leaderboardId) {
-      leaderboardId = this.defaultLeaderboardId;
-    }
+    leaderboardId ??= this.defaultLeaderboardId;
 
     let playerPrevMaxScore: number = 0;
     try {

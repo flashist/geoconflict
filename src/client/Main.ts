@@ -10,7 +10,7 @@ import {
   GameMapSize,
   GameMapType,
   GameMode,
-  GameType
+  GameType,
 } from "../core/game/Game";
 import { UserSettings } from "../core/game/UserSettings";
 import version from "../version";
@@ -81,11 +81,9 @@ import {
   flashist_waitGameInitComplete,
   flashistConstants,
   FlashistFacade,
-  TELEGRAM_CHANNEL_URL,
 } from "./flashist/FlashistFacade";
 import { getUserMe, isLoggedIn } from "./jwt";
 import "./styles.css";
-
 
 declare global {
   interface Window {
@@ -131,12 +129,12 @@ export interface JoinLobbyEvent {
   gameRecord?: GameRecord;
   isReconnect?: boolean;
 
-  preloadMapData?: PreloadMapConfig
+  preloadMapData?: PreloadMapConfig;
 }
 
 export interface PreloadMapConfig {
-  mapType: GameMapType,
-  mapSize: GameMapSize
+  mapType: GameMapType;
+  mapSize: GameMapSize;
 }
 
 class Client {
@@ -150,7 +148,9 @@ class Client {
   private fireFirstAction() {
     if (this.firstActionFired) return;
     this.firstActionFired = true;
-    flashist_logEventAnalytics(flashistConstants.analyticEvents.SESSION_FIRST_ACTION);
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.SESSION_FIRST_ACTION,
+    );
   }
 
   private usernameInput: UsernameInput | null = null;
@@ -166,7 +166,7 @@ class Client {
 
   private gutterAds: GutterAds;
 
-  constructor() { }
+  constructor() {}
 
   initialize(): void {
     const gameVersion = document.getElementById(
@@ -187,11 +187,11 @@ class Client {
     ) as HTMLDivElement;
     if (!licenseCredits) {
       console.warn("License Credits element not found");
-
     } else {
       // Flashist Adaptation: showing the name of the game instead of version
       licenseCredits.title = version;
-      licenseCredits.innerText = translateText("main.license_text") + "\n" + version;
+      licenseCredits.innerText =
+        translateText("main.license_text") + "\n" + version;
     }
 
     const newsModal = document.querySelector("news-modal") as NewsModal;
@@ -288,9 +288,9 @@ class Client {
       console.warn("Singleplayer modal element not found");
     }
 
-    const missionButton = document.getElementById(
-      "single-play-mission",
-    ) as (HTMLElement & { title: string; disable: boolean }) | null;
+    const missionButton = document.getElementById("single-play-mission") as
+      | (HTMLElement & { title: string; disable: boolean })
+      | null;
     if (!missionButton) {
       console.warn("Single play mission button element not found");
     } else {
@@ -320,7 +320,7 @@ class Client {
     singlePlayer.addEventListener("click", () => {
       this.fireFirstAction();
       flashist_logEventAnalytics(
-        flashistConstants.analyticEvents.UI_CLICK_SINGLE_PLAYER
+        flashistConstants.analyticEvents.UI_CLICK_SINGLE_PLAYER,
       );
 
       if (this.usernameInput?.isValid()) {
@@ -415,7 +415,7 @@ class Client {
         // Authorized
         console.log(
           `Your player ID is ${userMeResponse.player.publicId}\n` +
-          "Sharing this ID will allow others to view your game history and stats.",
+            "Sharing this ID will allow others to view your game history and stats.",
         );
       }
     };
@@ -441,9 +441,11 @@ class Client {
         settingsModal.open();
       });
 
-    document.getElementById("feedback-button")?.addEventListener("click", () => {
-      showFeedbackModal(FeedbackModalScreenSource.start);
-    });
+    document
+      .getElementById("feedback-button")
+      ?.addEventListener("click", () => {
+        showFeedbackModal(FeedbackModalScreenSource.start);
+      });
     window.addEventListener("show-feedback-modal", (e: Event) => {
       const detail = (e as CustomEvent<{ matchId?: string }>).detail;
       showFeedbackModal(FeedbackModalScreenSource.battle, detail?.matchId);
@@ -524,12 +526,11 @@ class Client {
         slider.addEventListener("input", () => updateSliderProgress(slider));
       });
 
-    checkReconnectSession()
-      .then((session) => {
-        if (session) {
-          this.showReconnectBanner(session);
-        }
-      });
+    checkReconnectSession().then((session) => {
+      if (session) {
+        this.showReconnectBanner(session);
+      }
+    });
 
     // Disabling mobile-rendering experiments, due to bad AB test results
     // FlashistFacade.instance
@@ -545,18 +546,21 @@ class Client {
 
     // Session:Heartbeat — fires every 5 real-clock minutes, skipped when tab is hidden
     let hbMinutes = 0;
-    const hbInterval = window.setInterval(() => {
-      hbMinutes += 5;
-      if (hbMinutes > 60) {
-        clearInterval(hbInterval);
-        return;
-      }
-      if (document.visibilityState === "hidden") return;
-      const label = String(hbMinutes).padStart(2, "0");
-      flashist_logEventAnalytics(
-        `${flashistConstants.analyticEvents.SESSION_HEARTBEAT}:${label}`
-      );
-    }, 5 * 60 * 1000);
+    const hbInterval = window.setInterval(
+      () => {
+        hbMinutes += 5;
+        if (hbMinutes > 60) {
+          clearInterval(hbInterval);
+          return;
+        }
+        if (document.visibilityState === "hidden") return;
+        const label = String(hbMinutes).padStart(2, "0");
+        flashist_logEventAnalytics(
+          `${flashistConstants.analyticEvents.SESSION_HEARTBEAT}:${label}`,
+        );
+      },
+      5 * 60 * 1000,
+    );
   }
 
   private showReconnectBanner(session: ReconnectSession): void {
@@ -599,7 +603,9 @@ class Client {
       const patternName = params.get("pattern");
       if (!patternName) {
         // alert("Something went wrong. Please contact support.");
-        console.log("ERROR! Something went wrong. Please contact support. if (!patternName) {");
+        console.log(
+          "ERROR! Something went wrong. Please contact support. if (!patternName) {",
+        );
         console.error("purchase-completed but no pattern name");
         return;
       }
@@ -652,7 +658,6 @@ class Client {
       }
     }
     if (decodedHash.startsWith("#refresh")) {
-
       // Flashist Adaptation
       // window.location.href = "/";
       FlashistFacade.instance.changeHref(FlashistFacade.instance.rootPathname);
@@ -779,7 +784,9 @@ class Client {
     const clientID = generateID();
     const gameID = generateID();
 
-    const usernameInput = document.querySelector("username-input") as UsernameInput;
+    const usernameInput = document.querySelector(
+      "username-input",
+    ) as UsernameInput;
     const username = usernameInput?.getCurrentUsername() ?? "Player";
 
     const cosmetics = await fetchCosmetics().catch(() => null);
@@ -834,7 +841,7 @@ class Client {
   private async startSinglePlayMission() {
     //
     flashist_logEventAnalytics(
-      flashistConstants.analyticEvents.UI_CLICK_MISSION
+      flashistConstants.analyticEvents.UI_CLICK_MISSION,
     );
 
     await FlashistFacade.instance.showInterstitial();

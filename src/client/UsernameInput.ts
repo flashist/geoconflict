@@ -8,8 +8,11 @@ import {
   sanitizeUsername,
   validateUsername,
 } from "../core/validations/username";
-import { flashist_logErrorToAnalytics, flashist_logErrorTypes, FlashistFacade } from "./flashist/FlashistFacade";
-import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
+import {
+  flashist_logErrorToAnalytics,
+  flashist_logErrorTypes,
+  FlashistFacade,
+} from "./flashist/FlashistFacade";
 
 const usernameKey: string = "username";
 
@@ -85,9 +88,11 @@ export class UsernameInput extends LitElement {
     // Flashist Adaptation: experiment (username from platform)
     try {
       result = await FlashistFacade.instance.getCurPlayerName();
-
     } catch (error) {
-      flashist_logErrorToAnalytics(`ERROR! UsernameInput | getStoredUsername __ error: ${error}`, flashist_logErrorTypes.DEBUG);
+      flashist_logErrorToAnalytics(
+        `ERROR! UsernameInput | getStoredUsername __ error: ${error}`,
+        flashist_logErrorTypes.DEBUG,
+      );
     }
 
     if (!result) {
