@@ -57,7 +57,11 @@ const EPOCH_ISO = new Date(0).toISOString(); // "1970-01-01T00:00:00.000Z"
  * future version) are stripped here.
  */
 const RawProfileSchema = z.object({
-  schema_version: z.number().int().catch(0),
+  // `nonnegative` is load-bearing, not cosmetic: `upgradeToCurrent` walks the
+  // version up one step at a time, so an unbounded-negative version (e.g. a
+  // crafted `-9e15` in a localStorage blob or API body) would otherwise spin the
+  // loop ~quadrillions of times and freeze the process. Clamp it to 0 here.
+  schema_version: z.number().int().nonnegative().catch(0),
   yandex_player_id: z.string().nullable().catch(null),
   persistent_id: z.string().catch(""),
   xp: z.number().int().nonnegative().catch(0),
@@ -115,7 +119,10 @@ export function migrateProfile(raw: unknown): PlayerProfile {
 
 function upgradeToCurrent(profile: NormalizedProfile): PlayerProfile {
   let working = profile;
-  let version = profile.schema_version;
+  // Defense-in-depth: `RawProfileSchema` already clamps to >= 0, but floor here
+  // too so the loop is self-bounding regardless of how this is reached. The loop
+  // then runs at most `CURRENT_PROFILE_SCHEMA_VERSION` iterations.
+  let version = Math.max(profile.schema_version, 0);
 
   // Chain forward through known upgrade steps for older versions. If a step is
   // missing (gap), carry the object forward unchanged — `RawProfileSchema` has

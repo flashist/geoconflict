@@ -276,6 +276,10 @@ When a guest player authenticates with Yandex for the first time in a session:
 2. Call the profile API `GET /v1/profile` for that Yandex player ID.
 3. **If a server-side profile exists:** use it. Discard the localStorage profile — do not merge. Update the local state from the server profile.
 4. **If no server-side profile exists:** read the localStorage profile and `POST /v1/profile/migrate` to the profile API, which creates a new `player_profiles` row from the local data (preserving accumulated XP). Clear the localStorage profile after the successful write. Note: guest XP comes from untrusted localStorage, so migration can carry fabricated XP — accepted for Sprint 4 (citizenship is *earned*/free here; paid flags never come from migration).
+5. **The migrate body is fully untrusted — enforce server-side (2026-06-13, T1 schema-contract review).** The localStorage profile lives in the player's own browser = attacker-controllable; `POST /v1/profile/migrate` validates only *shape* (the T1 never-throw Zod contract), not *trust*. From the body, **only `xp` (fabricatable, accepted per the note above) and identity carry over** — everything else is server-derived:
+   - **Paid fields forced off, always:** the server MUST set `is_paid_citizen = false` and `citizenship_purchased_at = null` on migrate regardless of input. They are never read from a client/migration payload — the verified Yandex Payments flow is their sole authority.
+   - **Citizenship recomputed, never trusted:** the server MUST derive `is_citizen` / `citizenship_earned_at` from the migrated `xp` (the ≥1,000-XP earned rule), ignoring any values in the body. The local `is_citizen` flip in Part C is UI-only and carries no authority across this boundary.
+   Cross-field invariants alone are **insufficient**: a *self-consistent* forgery (`is_paid_citizen:true` + `is_citizen:true` + `citizenship_purchased_at` + high `xp`) passes every invariant, so the fields must be force-cleared/recomputed, not merely validated. T5 (`s4-profile-05`) and T7 (`s4-profile-07`) implement this; the invariants are deliberately **not** in the T1 contract (kept a pure never-throw schema).
 
 This migration should happen at the point in `FlashistFacade` where Yandex authentication completes, before the UI reflects any profile state.
 
@@ -300,6 +304,7 @@ In the citizenship UI component (built in the Citizenship Core task), on mount c
 5. **Citizenship threshold:** reach 1,000 XP. Confirm `is_citizen` flips to `true`.
 6. **Schema version:** write a profile with `schema_version: 1`, then run the migration function with a future hypothetical v2 schema — confirm it returns a valid v2 object without errors.
 7. **No regression:** normal match flow works with no errors in server logs related to database calls.
+8. **Forged-migration hardening (security):** craft a localStorage profile with `is_paid_citizen: true`, `citizenship_purchased_at` set, and `is_citizen: true` at sub-threshold `xp` (e.g. 50), then log in to trigger Part F migrate. Confirm the persisted row has `is_paid_citizen = false`, `citizenship_purchased_at = null`, and `is_citizen = false` (citizenship recomputed from the carried XP, not trusted) — no paid state, no earned citizenship, no ad-suppression. Only legitimately-earned XP/citizenship survives.
 
 ---
 

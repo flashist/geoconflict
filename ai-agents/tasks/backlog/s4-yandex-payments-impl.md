@@ -135,9 +135,11 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
 4. **Reconciliation:** interrupt a purchase mid-flow (close the payment frame after Yandex processes it but before the client posts the signature). Restart the session. Confirm `/reconcile` picks up the purchase and grants the entitlement.
 5. **Idempotency:** submit the same `purchaseToken` twice to `/complete`. Confirm entitlement is granted only once.
 6. **UI gating:** with an empty catalog (simulate failure), confirm the "Buy Citizenship" button is absent from the UI.
+7. **Paid flags only from payment (security, 2026-06-13):** confirm `is_paid_citizen = true` / `citizenship_purchased_at` can be produced ONLY by a verified purchase token via `/complete` or `/reconcile`. In particular, a profile migrated via `POST /v1/profile/migrate` with a forged `is_paid_citizen:true` / `citizenship_purchased_at` in its body must NOT yield paid state or ad-suppression. (Pairs with the forged-payload migrate test in the Player Profile Store slice.)
 
 ## Notes
 
 - Do not start this task until Player Profile Store Part A (verified Yandex identity in join path) is live.
 - The Yandex per-game secret key used for HMAC verification must be stored as an environment variable — never committed to git.
 - `consumePurchase()` must only be called after the server confirms the entitlement grant. Consuming before server confirmation can result in lost purchases.
+- **Sole authority for paid citizenship (2026-06-13):** the verified Yandex payment flow (`/complete` and `/reconcile`, both gated on HMAC verification) is the ONLY path that may set `is_paid_citizen = true` / `citizenship_purchased_at`. These must never be set from a client-supplied or migration payload — `POST /v1/profile/migrate` (epic Part F) forces them off regardless of input. This split is the deferred defense from the T1 PlayerProfile schema-contract review (2026-06-13): T1 stays a pure never-throw contract, so the paid-flags boundary is enforced here (writer side) and at the migrate endpoint (input side).

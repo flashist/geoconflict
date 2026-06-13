@@ -108,6 +108,18 @@ describe("PlayerProfile contract", () => {
       expect(result.created_at).toBe(EPOCH_ISO);
     });
 
+    test("a large-negative schema_version completes immediately (no DoS loop)", () => {
+      // Regression: upgradeToCurrent walks versions up one at a time, so an
+      // unbounded-negative version must be clamped or this spins for ~ever.
+      // Jest's default 5s timeout fails this test if the clamp ever regresses.
+      const result = migrateProfile({
+        schema_version: Number.MIN_SAFE_INTEGER,
+        persistent_id: "p",
+      });
+      expect(result.schema_version).toBe(1);
+      expect(PlayerProfileSchema.safeParse(result).success).toBe(true);
+    });
+
     test("never throws on malformed input", () => {
       expect(() => migrateProfile(null)).not.toThrow();
       expect(() => migrateProfile(Symbol("x") as unknown)).not.toThrow();
