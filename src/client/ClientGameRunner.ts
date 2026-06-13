@@ -452,7 +452,7 @@ export class ClientGameRunner {
     this.hasCreditedGuestXp = true;
     void (async () => {
       try {
-        if (await FlashistFacade.instance.isYandexAuthorized()) {
+        if (!(await FlashistFacade.instance.canUseGuestProfile())) {
           return;
         }
         creditQualifyingMatch(

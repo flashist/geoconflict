@@ -278,12 +278,13 @@ class Client {
     });
 
     // S4 Profile T2: ensure a guest's local profile exists / is migrated on app
-    // init. Authenticated (Yandex) players are skipped — their profile is
-    // server-backed (T5/T7). Fire-and-forget and best-effort: never block or
-    // break startup if storage or the platform check is unavailable.
+    // init. Only definitely-unauthenticated players get a local profile —
+    // authenticated Yandex users are server-backed (T5/T7), and an undetermined
+    // auth state is skipped (see canUseGuestProfile). Fire-and-forget and
+    // best-effort: never block or break startup if storage/platform is unavailable.
     void (async () => {
       try {
-        if (!(await FlashistFacade.instance.isYandexAuthorized())) {
+        if (await FlashistFacade.instance.canUseGuestProfile()) {
           loadOrCreateGuestProfile(getPersistentID());
         }
       } catch {
