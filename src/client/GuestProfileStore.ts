@@ -177,6 +177,41 @@ function recordCreditedGame(
 }
 
 /**
+ * Decide whether the local player has reached a qualifying credit moment THIS tick,
+ * returning the participation to credit or `null` if it is too early.
+ *
+ * A guest must be credited the moment they are eliminated, not only at the final
+ * `WinUpdate`: in a typical match most participants are eliminated before a winner
+ * emerges, and they commonly exit at the death screen rather than spectate to the
+ * end — waiting for the win would silently drop their (qualifying) XP. This mirrors
+ * the server's authoritative rule (eliminated-after-participating counts), so the
+ * client does not drift from T6.
+ *
+ * Credits when the player is eliminated (`hasSpawned && !isAlive && !inSpawnPhase`)
+ * or the match has ended. Returns `null` when the player never spawned, is still
+ * alive mid-match (so leaving while alive never credits), or has zero tiles only
+ * because the spawn phase has not finished (no false elimination). Idempotency
+ * across the elimination and end triggers is handled by the caller's per-runner
+ * guard and `creditQualifyingMatch`'s gameId ledger.
+ */
+export function pendingGuestCredit(state: {
+  hasSpawned: boolean;
+  isAlive: boolean;
+  inSpawnPhase: boolean;
+  gameEnded: boolean;
+}): MatchParticipation | null {
+  if (!state.hasSpawned) return null;
+  const eliminated = !state.isAlive && !state.inSpawnPhase;
+  if (!eliminated && !state.gameEnded) return null;
+  return {
+    hasSpawned: true,
+    isAliveAtEnd: state.isAlive,
+    wasEliminated: !state.isAlive,
+    leftVoluntarily: false,
+  };
+}
+
+/**
  * App-init entry point for guests: load the local profile, creating one if none
  * exists and migrating an older one before use. Writes back the (possibly created
  * or migrated) profile — but never overwrites a profile whose stored version is

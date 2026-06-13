@@ -7,6 +7,7 @@ import {
   guestProfileStorageKey,
   loadOrCreateGuestProfile,
   MAX_CREDITED_GAMES,
+  pendingGuestCredit,
 } from "../../src/client/GuestProfileStore";
 import {
   CURRENT_PROFILE_SCHEMA_VERSION,
@@ -30,6 +31,15 @@ function qualifying(): MatchParticipation {
     hasSpawned: true,
     isAliveAtEnd: true,
     wasEliminated: false,
+    leftVoluntarily: false,
+  };
+}
+
+function eliminated(): MatchParticipation {
+  return {
+    hasSpawned: true,
+    isAliveAtEnd: false,
+    wasEliminated: true,
     leftVoluntarily: false,
   };
 }
@@ -292,6 +302,102 @@ describe("GuestProfileStore", () => {
       // At-most-once: the retry is a no-op, never a second credit.
       expect(retry.xp).toBe(0);
       expect(JSON.parse(data[KEY]).xp).toBe(0);
+    });
+
+    it("credits a guest who was eliminated after participating", () => {
+      loadOrCreateGuestProfile(PID, localStorage, NOW);
+      const profile = creditQualifyingMatch(
+        PID,
+        GAME_ID,
+        eliminated(),
+        localStorage,
+        LATER,
+      );
+      expect(profile.xp).toBe(GUEST_XP_PER_MATCH);
+      expect(readStored().xp).toBe(GUEST_XP_PER_MATCH);
+    });
+  });
+
+  describe("pendingGuestCredit", () => {
+    it("returns null when the player never spawned, even at match end", () => {
+      expect(
+        pendingGuestCredit({
+          hasSpawned: false,
+          isAlive: false,
+          inSpawnPhase: false,
+          gameEnded: true,
+        }),
+      ).toBeNull();
+    });
+
+    it("returns null for a spawned, still-alive player mid-match (leaving while alive never credits)", () => {
+      expect(
+        pendingGuestCredit({
+          hasSpawned: true,
+          isAlive: true,
+          inSpawnPhase: false,
+          gameEnded: false,
+        }),
+      ).toBeNull();
+    });
+
+    it("returns null for zero tiles during the spawn phase (no false elimination)", () => {
+      expect(
+        pendingGuestCredit({
+          hasSpawned: true,
+          isAlive: false,
+          inSpawnPhase: true,
+          gameEnded: false,
+        }),
+      ).toBeNull();
+    });
+
+    it("credits the moment the player is eliminated mid-match", () => {
+      expect(
+        pendingGuestCredit({
+          hasSpawned: true,
+          isAlive: false,
+          inSpawnPhase: false,
+          gameEnded: false,
+        }),
+      ).toEqual({
+        hasSpawned: true,
+        isAliveAtEnd: false,
+        wasEliminated: true,
+        leftVoluntarily: false,
+      });
+    });
+
+    it("credits a survivor at match end", () => {
+      expect(
+        pendingGuestCredit({
+          hasSpawned: true,
+          isAlive: true,
+          inSpawnPhase: false,
+          gameEnded: true,
+        }),
+      ).toEqual({
+        hasSpawned: true,
+        isAliveAtEnd: true,
+        wasEliminated: false,
+        leftVoluntarily: false,
+      });
+    });
+
+    it("credits an eliminated player who spectated to match end", () => {
+      expect(
+        pendingGuestCredit({
+          hasSpawned: true,
+          isAlive: false,
+          inSpawnPhase: false,
+          gameEnded: true,
+        }),
+      ).toEqual({
+        hasSpawned: true,
+        isAliveAtEnd: false,
+        wasEliminated: true,
+        leftVoluntarily: false,
+      });
     });
   });
 });
