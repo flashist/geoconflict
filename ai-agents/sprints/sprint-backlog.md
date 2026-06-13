@@ -21,6 +21,7 @@
 | ⬜ No sprint | sec11 — Secret Management Beyond Env Files | `backlog/sec11-secret-management-beyond-env-files.md` | — |
 | ⬜ No sprint | Worker Init Timeout — Redundant Map Re-fetch on Join | `backlog/worker-init-timeout-map-refetch.md` | — |
 | ⬜ No sprint | Bots: Stop Building SAM Launchers When Nukes Are Disabled | `backlog/bots-skip-sam-when-nukes-disabled.md` | — |
+| ⬜ No sprint | Bots/Nations: Effective Hydrogen-Bomb Use vs SAM Defenses (offset targeting) — investigation | `backlog/bots-hydrogen-bomb-sam-penetration-investigation.md` | — |
 | ⬜ No sprint | Disable Infinite-Gold Weird Mode in Public Rotation | `backlog/s4c-disable-infinite-gold-public-rotation.md` | — |
 | ⬜ No sprint | Remove Dead `initializeFuseTag` Polling Loop | `backlog/fix-fusetag-dead-polling-loop.md` | — |
 | ⬜ No sprint | Fix GutterAds Unsubscribing from `userMeResponse` After First `hide()` | `backlog/fix-gutterads-usermeresponse-unsubscribe.md` | — |
@@ -176,6 +177,29 @@ Fix is a single condition in `FakeHumanExecution.handleUnits()`: skip the SAM sp
 silos are disabled; freed gold flows naturally to cities/ports/factories/defense posts via the
 existing priority chain (locked: no multiplier rebalance). One change covers both nations and
 AI Players. ~Half a day including required `src/core/` tests plus a live no-nukes match check.
+
+---
+
+### Bots/Nations: Effective Hydrogen-Bomb Use vs SAM Defenses (offset targeting)
+
+**Brief:** `backlog/bots-hydrogen-bomb-sam-penetration-investigation.md` — **investigation-first.**
+
+Bots/nations barely exploit hydrogen bombs and, when a target is ringed by SAM launchers, they
+**avoid it entirely** instead of penetrating it. The mechanic supports the fix: SAM interception
+range is **70** (`defaultSamRange`) while an H-bomb's total-destruction radius is **80** (inner)
+/ 100 (outer) (`nukeMagnitudes`) — so detonating ~71–80 tiles from a SAM is outside interception
+but still destroys the shielded buildings (the offset tactic). Two concrete defects in
+`FakeHumanExecution.nukeTileScore` cause today's behaviour: (1) it scores damage in a hardcoded
+25-tile radius regardless of nuke type, so H-bomb value is badly under-credited; (2) it subtracts
+50k for any SAM within 50 tiles, so bots steer away from defended targets. The investigation must
+confirm the exact interception condition (`SAMLauncherExecution`), design radius-aware scoring and
+an offset-targeting algorithm (outside every covering SAM's range ∩ within H-bomb inner radius),
+reconcile the mismatched search/scoring/blast radii, and recommend difficulty gating
+(*recommend: AI Players + Hard/Impossible nations only*) and scope (*recommend: defer "save up for
+an H-bomb" economy behaviour to a follow-up*). One change covers nations + AI Players (both run
+`FakeHumanExecution`); adjacent to the SAM-skip task above. Requires `src/core/` tests **and** live
+real-map validation (synthetic-map tests can pass while spatial targeting is wrong on real maps).
+Rough: ~1 day investigation, ~2–3 days implementation.
 
 ---
 
