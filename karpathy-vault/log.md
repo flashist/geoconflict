@@ -714,3 +714,24 @@
 - Ingested: `ai-agents/tasks/done/s4-profile-01-schema-contract.md` → created [[wiki/tasks/profile-schema-contract]], updated [[wiki/decisions/sprint-4]], [[wiki/tasks/player-profile-store-investigation]], `karpathy-vault/index.md`
 - Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md` — backlog files are not ingested directly by wiki-sync; the implementation status and T1/T2 sequence are summarized through [[wiki/decisions/sprint-4]]
+
+## 2026-06-13 — ingest
+- Sync window: `3c18ec5fe5276fe1843750cd87c53fe2e137cfb5` → HEAD (`488d41ddcd1e5caeaa82fe61b715d6517c1e4eb3`)
+- Changed source files detected: 6
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/cancelled/s4-profile-02-guest-localstorage.md` → updated [[wiki/decisions/cancelled-tasks]], [[wiki/decisions/sprint-4]], [[wiki/tasks/player-profile-store-investigation]], [[wiki/tasks/profile-schema-contract]]
+- Ingested: `ai-agents/tasks/cancelled/s4-profile-07-guest-migration.md` → updated [[wiki/decisions/cancelled-tasks]], [[wiki/decisions/sprint-4]], [[wiki/tasks/profile-schema-contract]]
+- Ingested: `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md` → updated [[wiki/decisions/cancelled-tasks]], [[wiki/decisions/sprint-4]], [[wiki/tasks/player-profile-store-investigation]], [[wiki/tasks/profile-schema-contract]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md` — backlog files are not ingested directly by wiki-sync; the T2/T7 cancellation and authenticated-only profile path are summarized through [[wiki/decisions/sprint-4]] and [[wiki/decisions/cancelled-tasks]]
+
+## 2026-06-13 — lint
+- Issues found: 0
+- Issues fixed: 0
+- Issues flagged for human review: 0
+- Full wiki health-check passed: index/file coverage, required metadata, wiki-link resolution, backlinks, orphan scan, source-path references, and sampled line-reference checks are clean.
+
+## 2026-06-13 — lint
+- Issues found: 0
+- Issues fixed: 0
+- Issues flagged for human review: 0
+- Full wiki health-check passed: index/file coverage, required metadata, wiki-link resolution, backlinks, orphan scan, source-path references, filename-style line references, and existing lint-warning scan are clean.

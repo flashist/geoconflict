@@ -1,6 +1,6 @@
 # Player Profile Store Investigation
 
-**Source**: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`
+**Source**: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 investigation
 
@@ -22,10 +22,11 @@ The investigation still recommends PostgreSQL, server-side match-end crediting, 
 
 The main architectural gap remains identity trust: Sprint 4 should add a verified Yandex identity claim to the existing join/auth path before paid citizenship or Yandex-keyed player profiles ship. The updated implementation plan also keeps game/profile failures isolated: profile outages must not stop matches, and game-server crashes must not threaten paid data.
 
-Guest players should not have the citizenship feature silently hidden. The recommended UX is a locked citizenship surface with a Yandex login prompt.
+Guest players should not have the citizenship feature silently hidden. The recommended UX is a locked citizenship surface with a Yandex login prompt. After the 2026-06-13 cancellation of T2/T7, guest users do not accumulate profile XP before login; profile XP is authenticated-only until the T5/T6 server-side crediting path ships. A future guest-XP retry should be a thin best-effort cache over the server source of truth.
 
 ## Related
 
 - [[decisions/sprint-4]] — Sprint 4 roadmap and dependencies for citizenship and payments
 - [[tasks/profile-schema-contract]] — first implementation slice produced the shared profile payload and migration contract
 - [[tasks/yandex-payments-investigation]] — parallel Sprint 4 investigation; both findings gate the safe paid-citizenship path
+- [[decisions/cancelled-tasks]] — cancellation record for T2 guest localStorage and T7 guest migration

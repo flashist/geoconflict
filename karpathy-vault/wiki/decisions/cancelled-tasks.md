@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`
+Source: `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md`, `ai-agents/tasks/cancelled/s4-profile-02-guest-localstorage.md`, `ai-agents/tasks/cancelled/s4-profile-07-guest-migration.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`
 
 ---
 
@@ -114,16 +114,56 @@ The earlier HF-7 custom-dimension implementation has also been superseded by Gam
 - Verify how `isShore` and live `isOceanShore` behave after downsampling before proposing any runtime mitigation.
 - Test destination semantics in real compact matches, not just whether the boat button becomes enabled.
 
+---
+
+## Player Profile Store T2 — Guest localStorage XP
+
+**Sprint:** Sprint 4
+**Status:** Cancelled and reverted manually
+
+**Why cancelled:** the client-only, localStorage-authoritative guest XP store kept expanding during review. The initial implementation was functional, but hardening real edge cases added idempotency tracking, at-most-once write ordering, eliminated-player credit timing, and Yandex auth-unknown handling. That pushed a small client slice into shared platform-facade and match-runner logic, with roughly 38% of the final additions arriving after the initial implementation.
+
+**What was learned:**
+- The review findings were mostly real: multi-tab/reconnect double-credit, partial-write double-credit, eliminated-player under-crediting, and auth-unknown guest treatment are reachable correctness problems.
+- A client-only authoritative XP store has inherent edge surface around localStorage durability, race handling, credit timing, and platform auth state.
+- The shared match-qualification predicate idea is worth carrying forward into T5/T6 so client and server semantics do not drift.
+- Reverting the slice affects only dormant guest profile XP. Logged-in users had no implemented profile-XP path yet, and the Yandex leaderboard score path is separate.
+
+**If revisited:**
+- Prefer a server-authoritative design after or alongside T5/T6, with the client acting as a thin best-effort cache.
+- If a client-only version is attempted again, lock the accepted best-effort edge cases before implementation.
+- Do not revert `src/core/profile/PlayerProfile.ts`; that belongs to completed T1, not the cancelled T2 branch. See [[tasks/profile-schema-contract]].
+
+---
+
+## Player Profile Store T7 — Guest-to-Authenticated Migration
+
+**Sprint:** Sprint 4
+**Status:** Cancelled
+
+**Why cancelled:** T7 existed to complete the same guest-first XP story as T2. Once T2 was cancelled, there was no local guest profile source to migrate. The server endpoint it needed, `POST /v1/profile/migrate`, was removed from the T5 backend task on 2026-06-13 rather than deferred.
+
+**What was learned:**
+- With T2 and T7 gone, profile XP is authenticated-only for now: only logged-in Yandex users should accrue XP toward citizenship once T5/T6 server-side crediting exists.
+- Any future migration body would be attacker-controlled localStorage. Only `xp` and identity could ever carry over; paid fields and earned-citizenship state must be force-cleared or recomputed server-side.
+- Guests still need the locked citizenship card and Yandex login prompt, but no pre-login XP carry-over is part of the current Sprint 4 path.
+
+**If revisited:**
+- Reintroduce both the client migration flow and a hardened T5 migration endpoint together; do not assume the endpoint still exists.
+- Clamp or reject oversized `xp`, force `is_paid_citizen=false`, clear `citizenship_purchased_at`, and recompute earned citizenship from trusted server rules.
+- Treat the restart as a new server-authoritative guest-XP design, not a continuation of the cancelled localStorage-authoritative path.
+
 ## Consequences
 
 - Future retries should start from the narrower follow-up guidance recorded under each cancelled item, not from the original cancelled scope
 - This page is the canonical place to resolve "was this tried already?" questions during planning
+- The current Sprint 4 profile-store path is authenticated-only until backend profile crediting ships; no profile XP is earned before T5/T6
 
 ## Related
 
 - [[decisions/product-strategy]] — overall strategic context
 - [[decisions/sprint-3]] — sprint where feedback-match-ids and HF-11e were active
-- [[decisions/sprint-4]] — sprint where the cancelled tutorial pause-window follow-up was planned
+- [[decisions/sprint-4]] — sprint covering the cancelled tutorial pause-window follow-up and current authenticated-only profile-store path
 - [[decisions/hvn-balance-pr70-no-ship]] — no-ship review for the cancelled HvN balance attempt
 - [[decisions/hotfix-post-sprint2]] — sprint where HF-5 was attempted
 - [[decisions/stale-build-zombie-tabs]] — HF-11e context
@@ -131,3 +171,5 @@ The earlier HF-7 custom-dimension implementation has also been superseded by Gam
 - [[features/tutorial]] — tutorial follow-up work and the narrower fixes that shipped instead
 - [[tasks/compact-map-click-interaction]] — investigation whose proposed runtime fallback was rejected by live testing
 - [[tasks/disable-compact-public-maps]] — public-rotation mitigation chosen after the runtime compact-map fallback was rejected
+- [[tasks/player-profile-store-investigation]] — profile-store architecture and identity-trust findings
+- [[tasks/profile-schema-contract]] — completed T1 schema contract preserved after T2 cancellation
