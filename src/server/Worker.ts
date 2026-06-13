@@ -408,6 +408,7 @@ export async function startWorker() {
           clientMsg.username,
           ws,
           cosmeticResult.cosmetics,
+          clientMsg.yandexPlayerId ?? null,
         );
 
         const wasFound = gm.addClient(

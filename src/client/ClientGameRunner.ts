@@ -91,6 +91,10 @@ export interface LobbyConfig {
   gameRecord?: GameRecord;
   isReconnect?: boolean;
 
+  // Stable Yandex player ID (null for guests). Resolved once at lobby join
+  // and forwarded in the join payload so the server can key profiles by it.
+  yandexPlayerId?: string | null;
+
   preloadMapData?: PreloadMapConfig;
 }
 

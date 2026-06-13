@@ -547,6 +547,8 @@ export const ClientJoinMessageSchema = z.object({
   username: UsernameSchema,
   // Server replaces the refs with the actual cosmetic data.
   cosmetics: PlayerCosmeticRefsSchema.optional(),
+  // Stable Yandex player ID (null for guests). Used as a profile store key.
+  yandexPlayerId: z.string().nullable().optional(),
 });
 
 export const ClientMessageSchema = z.discriminatedUnion("type", [

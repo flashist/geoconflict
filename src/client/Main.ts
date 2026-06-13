@@ -700,6 +700,7 @@ class Client {
         playerName: this.usernameInput?.getCurrentUsername() ?? "",
         token: getPlayToken(),
         clientID: lobby.clientID,
+        yandexPlayerId: await FlashistFacade.instance.getYandexUniqueId(),
         gameStartInfo: lobby.singlePlayGameStartInfo ?? lobby.gameRecord?.info,
         gameRecord: lobby.gameRecord,
         isReconnect: lobby.isReconnect,

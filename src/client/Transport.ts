@@ -387,6 +387,7 @@ export class Transport {
       token: this.lobbyConfig.token,
       username: this.lobbyConfig.playerName,
       cosmetics: this.lobbyConfig.cosmetics,
+      yandexPlayerId: this.lobbyConfig.yandexPlayerId ?? null,
     } satisfies ClientJoinMessage);
   }
 
