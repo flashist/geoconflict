@@ -123,6 +123,8 @@ Both options should store `player_match_xp_credits` as a separate table with `(g
 
 **The technical specialist should document their choice and reasoning before writing the first migration.**
 
+**Whatever column type is chosen, bound XP to it (2026-06-13, T1 schema-contract review).** The shared `PlayerProfile` contract validates `xp` only as a nonnegative integer (it accepts values up to `Number.MAX_SAFE_INTEGER`, past the Postgres `int4` max of `2,147,483,647`). The migrate body is untrusted localStorage, so a forged oversized `xp` would overflow an `integer` column at persist time (error 22003) instead of being handled deterministically. The migrate/credit write path MUST clamp or reject `xp` above the chosen column's max — T1 intentionally does **not** bake in a DB-specific cap, since the column type is decided here. (If `bigint` is chosen, the JS safe-integer cap still bounds it.) See T5.
+
 ### Proposed tables (regardless of storage strategy)
 
 ```sql
