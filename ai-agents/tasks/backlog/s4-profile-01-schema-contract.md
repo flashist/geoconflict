@@ -33,6 +33,7 @@ The player profile payload is a single **versioned JSON object** used identicall
 ## Out of scope
 - localStorage read/write (T2).
 - DB column shape / storage-strategy decision (T5 — that's the *DB* representation, separate from this *wire/JSON* contract).
+- **Paid/citizenship invariants and any trusted/untrusted schema split (deferred — a security boundary, NOT enforced here).** Per the schema-contract review (2026-06-13), this stays a pure never-throw validator: `is_paid_citizen`, `citizenship_purchased_at`, `is_citizen`, `citizenship_earned_at` are accepted as ordinary fields with no cross-field invariant. Passing this Zod schema is *not* an authorization check. Forcing paid fields off and recomputing citizenship from XP is the job of the consuming slices at the trust boundary — T5 (`POST /v1/profile/migrate`) and T7 — per epic **Part F** ("paid flags never come from migration").
 - Any network or rendering code.
 
 ## Acceptance / Verification

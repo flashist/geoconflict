@@ -97,8 +97,10 @@ If a `Citizenship:Earned` funnel event is wanted in the future, add it then.
 3. **Inbox message:** confirm the citizenship earned inbox message appears in the Personal inbox tab after the grant.
 4. **UI transition:** complete step 1 while the game is open in a browser tab. Return to the start screen after the match. Confirm the citizenship card shows State 3 (ГРАЖДАНИН) without a manual reload.
 5. **Non-qualifying match:** complete a match where the player never spawns. Confirm XP is not credited and the threshold is not triggered.
+6. **Forged citizenship payload (security, 2026-06-13):** as a guest below 1,000 XP, hand-edit the localStorage profile to set `is_citizen:true` + a `citizenship_earned_at`, then log in (uploads via `POST /v1/profile/migrate`). Confirm the migrated row has `is_citizen=false` / `citizenship_earned_at=null` — the forged flags are dropped; citizenship flips only via the server-side `xp >= 1000` check. See epic Part F.
 
 ## Notes
 
 - The earned path ships independently of Yandex Payments. Do not couple these tasks — earned citizenship can go live while the paid path is still awaiting catalog approval.
 - 0 XP is the starting state for all players. There is no retroactive grant for players who already have play history before this system launches — they start accumulating from 0 when the feature ships.
+- **`is_citizen` / `citizenship_earned_at` are server-derived only (2026-06-13).** This `creditMatchXp()` threshold check (`xp >= 1000`) is the sole authority for earned citizenship. These two fields must NEVER be read or persisted from a client/migration payload — the guest profile is uploaded from attacker-controllable localStorage via `POST /v1/profile/migrate` (epic Part F), so a forged `is_citizen:true` / `citizenship_earned_at` in that body must be ignored; only migrated `xp` is accepted (itself fabricatable, which is fine — citizenship here is *earned*/free). The migrate endpoint must not copy these fields through. Per the T1 schema-contract review (2026-06-13), this defense lives here and in the migrate slice, not in the T1 contract.
