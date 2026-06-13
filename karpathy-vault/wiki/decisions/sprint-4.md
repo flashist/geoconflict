@@ -16,7 +16,7 @@ Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`,
 
 ## Decision
 
-Sprint 4 is no longer just a future plan. The latest source brief records a mixed state: the two technical investigations are complete, several independent fixes are shipped, two side tasks were cancelled, and the core payments/citizenship implementation track remains blocked on redesign and infrastructure prerequisites.
+Sprint 4 is no longer just a future plan. The latest source brief records a mixed state: the two technical investigations are complete, several independent fixes are shipped, two side tasks were cancelled, and the core payments/citizenship implementation track remains blocked on identity, legal/compliance, backup, and infrastructure prerequisites.
 
 **Completed groundwork:**
 - **Investigation A: Player Profile Store** is complete. It recommends PostgreSQL on the game VPS, an initial `player_profiles` plus idempotent `player_match_credits` schema, server-side match crediting at match end, and a verified Yandex identity claim in the join/auth path because the current server only sees `persistentID`. See [[tasks/player-profile-store-investigation]].
@@ -59,6 +59,8 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 | Task | Status | Notes |
 |---|---|---|
 | Player Profile Store — Implementation | backlog | Depends on Investigation A conclusions and verified Yandex identity work |
+| Personal-Data Compliance (152-ФЗ) — Roskomnadzor notification + consent flow | backlog | Investigation-first legal track; interim gate before real Yandex IDs/display names are persisted in production |
+| PostgreSQL Backup Routine (Profile Store) | backlog | Daily off-box encrypted backup and tested restore; must be live before paid citizenship |
 | Yandex Payments — Catalog Fetch & Purchase Infrastructure | backlog | Depends on Investigation B conclusions and catalog readiness |
 | Citizenship Core — XP Counter & Progress UI | backlog | Blocked by start screen redesign implementation |
 | Citizenship Core — Earned Citizenship | backlog | Blocked by player profile store |
@@ -69,10 +71,13 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 | Name Change (Citizens Only) | backlog | First user-facing citizenship benefit |
 | Citizen Verified Icon | backlog | Visible identity/status marker in lobbies and match UI |
 | Licensing asset audit | backlog | Prerequisite before paid citizenship; confirm production bundle has no proprietary/CDN assets |
+| Map Labels — Show Troops/Max + Attacking Troops | backlog | Independent client rendering enhancement; no citizenship/payments dependency |
+| Public Modifier — Add "5M Starting Gold" | backlog | Independent public-rotation modifier replacing degenerate infinite-gold play with bounded real-player starting gold |
 
 **External/manual blocker:**
 - Yandex catalog registration and approval is the remaining urgent non-engineering prerequisite called out directly in the sprint brief
 - The production asset audit is now an explicit engineering prerequisite before paid citizenship goes live; see [[decisions/licensing-compliance]]
+- The personal-data compliance investigation is a separate legal gate from VAT/tax and IP/licensing: until findings say otherwise, production profile-store launch should not persist real user Yandex IDs or display names before Roskomnadzor notification and consent/privacy-policy coverage are in place
 
 ## Locked Decisions
 
@@ -111,8 +116,10 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Production release validation for bootstrap-sensitive work must include the Yandex iframe path because the real `YaGames.init()` path, SDK language, player name, experiment flags, and `LoadingAPI.ready()` timing are platform-dependent.
 - The VAT/tax gate is cleared; payments work no longer waits on extra legal registration, bank changes, or company-structure changes
 - The VAT/tax gate does not clear IP/licensing compliance: before monetization scales, GeoConflict still needs a public current source repository, visible in-game source-code link, production asset audit, and legal review of AGPL/Yandex.Games interactions. See [[decisions/licensing-compliance]].
+- The VAT/tax gate also does not clear Russian personal-data obligations. The Sprint 4 source now treats 152-ФЗ/Roskomnadzor notification plus consent/privacy-policy work as investigation-first, with an interim gate before profile-store production launch; consent metadata should feed the profile-store schema, and deletion requirements interact with deferred S3 archival.
 - Register Yandex catalog items immediately — approval takes days and remains the main non-engineering blocker
 - Player Profile Store investigation concluded that the current codebase needs a verified Yandex identity in the join/auth path before Yandex-keyed paid entitlements are safe
+- Profile-store backups are now explicitly part of the Sprint 4 prerequisite chain: daily `pg_dump`, encrypted off-box copy to Reg.ru S3-compatible storage, and a tested restore must be live before paid citizenship because paid entitlements, earned XP, and display names would otherwise exist only in one Docker volume.
 - Yandex Payments investigation concluded that paid citizenship should use signed purchase verification on the server, startup reconciliation via `getPurchases()`, and post-grant consumption once the entitlement is durably stored; purchase UI should be hidden when the dashboard catalog item is absent or unavailable
 - Qualifying-match crediting should happen on the game server at match end, but implementation needs one additional end-of-match per-player state summary because the server does not currently simulate spawn/elimination itself
 - The source brief now consistently uses the XP-based citizenship threshold, reducing ambiguity across the Sprint 4 progression tasks
@@ -130,6 +137,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - VK Channel Link mirrors the Telegram community CTA with its own `vk_link` experiment flag, live `https://vk.com/gameworldwar` URL, and placement-specific `UI:Tap:VkLinkStartScreen` / `UI:Tap:VkLinkGameEnd` analytics.
 - Nuke trajectory visibility increased the pre-launch targeting arc thickness while leaving color, alpha, and launch mechanics unchanged; see [[tasks/nuke-trajectory-visibility]].
 - Teams mode max teams caps regular auto-generated public team lobbies to 2, 3, or 4 teams while preserving Humans vs Nations in the public rotation; see [[tasks/teams-mode-max-teams]].
+- The source brief now carries two independent backlog enhancements outside the citizenship/payment track: richer map labels from existing client-side troop data (`ai-agents/tasks/backlog/s4-map-population-army-labels.md`) and a bounded 5M starting-gold public modifier for real players only (`ai-agents/tasks/backlog/s4-starting-gold-public-modifier.md`).
 - Monetization launch decisions should use the analytics spec's P0/P1 gates instead of treating the 1,000 XP threshold, purchase funnel, or ad-removal economics as validated without identity, match-depth, and ad-tier data.
 - Match archival is now split: Sprint 4c only reduces noise from the dead inherited archive path, while real S3-backed archival is deferred to the citizen-history track after player profiles, citizenship, and S3 infrastructure exist. See [[decisions/archive-archival-strategy]].
 - The client null-ID/null-object investigation is carried by Sprint 4 as a stabilization follow-up rather than active Sprint 4c work. Sprint 4c completed source-map enablement, so this task should start from newly resolved Uptrace client stacks on a deployed build instead of minified `e is null` / `a.id` messages. See [[tasks/s4c-enable-client-source-maps]].
