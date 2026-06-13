@@ -68,6 +68,7 @@ Both nations (`FakeHuman`) and AI Players (`AiPlayer`) run `FakeHumanExecution`,
 
 ## Notes
 - One change covers nations and AI Players (both run `FakeHumanExecution`).
+- **A second anti-SAM task depends on this one:** `bots-nuke-saturation-sam-overwhelm.md` (multi-nuke salvo to overwhelm a SAM's per-level interception capacity). Kept separate (Mark, 2026-06-13) but it reuses this task's SAM-mechanics findings and `FakeHumanExecution` nuke-targeting refactor. This task's investigation should produce those shared outputs in a form the saturation task can build on, and its **tactic-selection** design should leave room for "saturate" as a sibling choice to "offset" and "avoid."
 - Adjacent backlog task: `bots-skip-sam-when-nukes-disabled.md` (also `FakeHumanExecution` bot SAM behaviour) — consider sequencing/implementing in the same pass.
 - Spatial AI runs every bot tick on real maps; weigh algorithm cost in the design.
 - Effort (rough, pending findings): investigation ~1 day; implementation ~2–3 days incl. core tests and live validation.
