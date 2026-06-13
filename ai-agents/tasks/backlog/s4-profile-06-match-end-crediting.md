@@ -50,3 +50,8 @@ At match end the game server credits 10 XP to each qualifying authenticated play
 ## Notes
 - Reuse the qualification predicate definition shared with T2 to prevent client/server drift.
 - Crediting is server-authoritative; the client's `playerParticipation` is an input, but the *decision and the write* happen server-side.
+- **SECURITY — `yandexPlayerId` is UNTRUSTED (carried over from T3; raised in T3 review 2026-06-13).** The ID plumbed in T3 is a client-asserted string with **no server-side Yandex signature verification** (`ClientJoinMessage.yandexPlayerId` → `Client.yandexPlayerId`, stored as-is after only the play-token check). A modified client or guest can submit an arbitrary non-null ID, so crediting keyed directly off it would let an attacker attribute XP to a chosen profile key — corrupting Yandex-keyed profiles and undermining citizenship entitlement integrity. **Before this slice credits/upserts by `yandex_player_id`, decide and implement one:**
+  - (a) **Verify a Yandex *signed* player payload server-side** — client sends `getPlayer({ signed: true })` / `player.signature`; server validates it against Yandex's public key and credits only the verified ID. (This is the verification the T3 task deferred to the Yandex Payments task; T6 is where it first matters.)
+  - (b) **Keep crediting keyed to the already-verified `persistentID`** until a verified Yandex claim exists.
+
+  Do **not** credit or grant entitlements off the raw join-field ID. Note the idempotency key `(game_id, yandex_player_id)` (Scope #3) inherits this exposure — a forged ID forges the idempotency key too.

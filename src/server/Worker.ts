@@ -408,6 +408,7 @@ export async function startWorker() {
           clientMsg.username,
           ws,
           cosmeticResult.cosmetics,
+          // UNTRUSTED: stored as-is, never signature-verified. See Client.yandexPlayerId.
           clientMsg.yandexPlayerId ?? null,
         );
 

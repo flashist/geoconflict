@@ -547,7 +547,10 @@ export const ClientJoinMessageSchema = z.object({
   username: UsernameSchema,
   // Server replaces the refs with the actual cosmetic data.
   cosmetics: PlayerCosmeticRefsSchema.optional(),
-  // Stable Yandex player ID (null for guests). Used as a profile store key.
+  // UNTRUSTED: client-asserted Yandex player ID (null for guests). NOT identity-verified —
+  // the server performs no Yandex signature check on this value. Safe only as an opaque
+  // store key for non-sensitive earned-XP. Any crediting/entitlement write MUST first
+  // verify a Yandex signed payload (deferred to the Yandex Payments task / T6).
   yandexPlayerId: z.string().nullable().optional(),
 });
 

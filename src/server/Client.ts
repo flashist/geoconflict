@@ -20,6 +20,8 @@ export class Client {
     public readonly username: string,
     public readonly ws: WebSocket,
     public readonly cosmetics: PlayerCosmetics | undefined,
+    // UNTRUSTED: client-asserted, NOT identity-verified (no Yandex signature check).
+    // Do not use for profile lookup, crediting, or entitlements without verification.
     public readonly yandexPlayerId: string | null,
   ) {}
 }
