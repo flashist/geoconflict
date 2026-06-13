@@ -433,7 +433,12 @@ export class ClientGameRunner {
   /**
    * Credit guest XP for a finished match (S4 Profile T2). Authenticated (Yandex)
    * players are skipped — their XP is server-authoritative (T6). Replays carry a
-   * gameRecord and never credit. Runs at most once per match.
+   * gameRecord and never credit.
+   *
+   * Two layers of dedup: the per-runner `hasCreditedGuestXp` flag (set
+   * synchronously below) prevents re-crediting within this runner, and the store's
+   * `gameId`-keyed ledger prevents re-crediting the same match across runners (a
+   * duplicate tab, or an immediate reconnect into the same active game).
    *
    * The participation snapshot is taken SYNCHRONOUSLY (before the async auth
    * check) because `stop()` may tear down `myPlayer` / the game view while the
@@ -462,7 +467,11 @@ export class ClientGameRunner {
         if (await FlashistFacade.instance.isYandexAuthorized()) {
           return;
         }
-        creditQualifyingMatch(getPersistentID(), participation);
+        creditQualifyingMatch(
+          getPersistentID(),
+          this.lobby.gameID,
+          participation,
+        );
       } catch {
         // best-effort: never let guest XP crediting break match end
       }

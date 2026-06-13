@@ -3,8 +3,10 @@
  */
 import {
   creditQualifyingMatch,
+  guestCreditedGamesStorageKey,
   guestProfileStorageKey,
   loadOrCreateGuestProfile,
+  MAX_CREDITED_GAMES,
 } from "../../src/client/GuestProfileStore";
 import {
   CURRENT_PROFILE_SCHEMA_VERSION,
@@ -19,6 +21,7 @@ import {
 
 const PID = "guest-123";
 const KEY = guestProfileStorageKey(PID);
+const GAME_ID = "game-1";
 const NOW = "2026-06-13T12:00:00.000Z";
 const LATER = "2026-06-14T08:30:00.000Z";
 
@@ -113,6 +116,7 @@ describe("GuestProfileStore", () => {
       loadOrCreateGuestProfile(PID, localStorage, NOW);
       const profile = creditQualifyingMatch(
         PID,
+        GAME_ID,
         qualifying(),
         localStorage,
         LATER,
@@ -125,6 +129,7 @@ describe("GuestProfileStore", () => {
     it("creates then credits when no profile exists yet", () => {
       const profile = creditQualifyingMatch(
         PID,
+        GAME_ID,
         qualifying(),
         localStorage,
         NOW,
@@ -137,6 +142,7 @@ describe("GuestProfileStore", () => {
       loadOrCreateGuestProfile(PID, localStorage, NOW);
       const profile = creditQualifyingMatch(
         PID,
+        GAME_ID,
         {
           hasSpawned: false,
           isAliveAtEnd: true,
@@ -160,6 +166,7 @@ describe("GuestProfileStore", () => {
       );
       const profile = creditQualifyingMatch(
         PID,
+        GAME_ID,
         qualifying(),
         localStorage,
         LATER,
@@ -180,6 +187,7 @@ describe("GuestProfileStore", () => {
       localStorage.setItem(KEY, JSON.stringify(newer));
       const profile = creditQualifyingMatch(
         PID,
+        GAME_ID,
         qualifying(),
         localStorage,
         LATER,
@@ -194,8 +202,59 @@ describe("GuestProfileStore", () => {
         throw new Error("quota");
       });
       expect(() =>
-        creditQualifyingMatch(PID, qualifying(), localStorage, LATER),
+        creditQualifyingMatch(PID, GAME_ID, qualifying(), localStorage, LATER),
       ).not.toThrow();
+    });
+
+    it("credits a given game id only once (idempotent by game)", () => {
+      const first = creditQualifyingMatch(
+        PID,
+        GAME_ID,
+        qualifying(),
+        localStorage,
+        NOW,
+      );
+      expect(first.xp).toBe(GUEST_XP_PER_MATCH);
+
+      const second = creditQualifyingMatch(
+        PID,
+        GAME_ID,
+        qualifying(),
+        localStorage,
+        LATER,
+      );
+      // Same match: no additional XP, and the stored profile is unchanged.
+      expect(second.xp).toBe(GUEST_XP_PER_MATCH);
+      expect(readStored().xp).toBe(GUEST_XP_PER_MATCH);
+      expect(readStored().updated_at).toBe(NOW);
+    });
+
+    it("credits distinct game ids cumulatively", () => {
+      creditQualifyingMatch(PID, "game-a", qualifying(), localStorage, NOW);
+      creditQualifyingMatch(PID, "game-b", qualifying(), localStorage, LATER);
+      expect(readStored().xp).toBe(2 * GUEST_XP_PER_MATCH);
+    });
+
+    it("bounds the credited-games ledger and prunes oldest entries", () => {
+      const total = MAX_CREDITED_GAMES + 5;
+      for (let i = 0; i < total; i++) {
+        creditQualifyingMatch(
+          PID,
+          `game-${i}`,
+          qualifying(),
+          localStorage,
+          NOW,
+        );
+      }
+      const ledger: string[] = JSON.parse(
+        localStorage.getItem(guestCreditedGamesStorageKey(PID)) as string,
+      );
+      // Every distinct game was credited...
+      expect(readStored().xp).toBe(total * GUEST_XP_PER_MATCH);
+      // ...but the ledger is capped and the oldest IDs were pruned FIFO.
+      expect(ledger).toHaveLength(MAX_CREDITED_GAMES);
+      expect(ledger).not.toContain("game-0");
+      expect(ledger).toContain(`game-${total - 1}`);
     });
   });
 });

@@ -38,6 +38,25 @@ export function guestProfileStorageKey(persistentId: string): string {
   return `geoconflict_profile_${persistentId}`;
 }
 
+/**
+ * localStorage key for the per-profile ledger of already-credited game IDs, used
+ * to make match crediting idempotent by game (see `creditQualifyingMatch`).
+ */
+export function guestCreditedGamesStorageKey(persistentId: string): string {
+  return `geoconflict_profile_credits_${persistentId}`;
+}
+
+/**
+ * Maximum number of recently-credited game IDs to retain. The ledger only needs a
+ * recent window: duplicate crediting happens near in time (a duplicate tab, an
+ * immediate reconnect into the same active game), never against a match from
+ * hundreds of games ago — so the oldest entries are pruned FIFO and the list stays
+ * tiny. This dedup guards against accidental honest double-credit; it is not an
+ * anti-cheat measure (the ledger is itself client-editable, and guest XP is
+ * already treated as untrusted server-side per the epic).
+ */
+export const MAX_CREDITED_GAMES = 100;
+
 interface ReadResult {
   /**
    * Usable, current-shaped profile (always migrated). Safe to read even when it
@@ -121,6 +140,42 @@ function writeProfile(
   );
 }
 
+/** Read the ledger of credited game IDs (missing/corrupt/non-array -> empty). */
+function readCreditedGames(
+  persistentId: string,
+  storage: StorageLike,
+): string[] {
+  const raw = storage.getItem(guestCreditedGamesStorageKey(persistentId));
+  if (raw === null) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((id): id is string => typeof id === "string");
+    }
+  } catch {
+    // Corrupt value: treat as an empty ledger.
+  }
+  return [];
+}
+
+/** Append a credited game ID, pruning oldest entries past the retention cap. */
+function recordCreditedGame(
+  persistentId: string,
+  ledger: string[],
+  gameId: string,
+  storage: StorageLike,
+): void {
+  const next = [...ledger, gameId];
+  const pruned =
+    next.length > MAX_CREDITED_GAMES
+      ? next.slice(next.length - MAX_CREDITED_GAMES)
+      : next;
+  storage.setItem(
+    guestCreditedGamesStorageKey(persistentId),
+    JSON.stringify(pruned),
+  );
+}
+
 /**
  * App-init entry point for guests: load the local profile, creating one if none
  * exists and migrating an older one before use. Writes back the (possibly created
@@ -153,16 +208,22 @@ export function loadOrCreateGuestProfile(
 
 /**
  * Credit a finished match for a guest. Reads (or creates) the local profile and —
- * only if the match qualifies — adds XP and writes the result back. A disqualified
- * match leaves the profile unchanged. A stored profile that is newer than this
- * build is never overwritten (the +10 XP is dropped rather than risk corrupting
- * it). Returns the resulting profile (unchanged when disqualified or when the write
- * is blocked).
+ * only if the match qualifies and has not already been credited — adds XP and
+ * writes the result back. Crediting is idempotent by `gameId`: the same finished
+ * match can be processed more than once (a duplicate tab, an immediate reconnect
+ * into the same active game), so each credited game ID is recorded in a bounded
+ * ledger and a repeat call for the same ID is a no-op.
+ *
+ * A disqualified or already-credited match leaves the profile unchanged. A stored
+ * profile that is newer than this build is never overwritten (the +10 XP is dropped
+ * rather than risk corrupting it). Returns the resulting profile (unchanged when
+ * disqualified, already credited, or when the write is blocked).
  *
  * Best-effort: storage failures are swallowed.
  */
 export function creditQualifyingMatch(
   persistentId: string,
+  gameId: string,
   participation: MatchParticipation,
   storage: StorageLike = localStorage,
   nowIso: string = new Date().toISOString(),
@@ -176,12 +237,19 @@ export function creditQualifyingMatch(
     if (!qualifiesForMatchXp(participation)) {
       return profile;
     }
+    const ledger = readCreditedGames(persistentId, storage);
+    if (ledger.includes(gameId)) {
+      // Already credited this match — idempotent no-op.
+      return profile;
+    }
     if (!canWrite(storedVersion)) {
-      // Stored profile is newer than this build — leave it intact.
+      // Stored profile is newer than this build — leave it intact and do not
+      // record the game as credited (we did not credit it).
       return profile;
     }
     const updated = applyMatchXp(profile, nowIso);
     writeProfile(persistentId, updated, storage);
+    recordCreditedGame(persistentId, ledger, gameId, storage);
     return updated;
   } catch {
     return createGuestProfile(persistentId, nowIso);
