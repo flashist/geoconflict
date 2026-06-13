@@ -47,17 +47,23 @@ This document is the **epic/overview**. The shared context above (Infrastructure
 | # | Child task | Covers | Depends on | Status |
 |---|---|---|---|---|
 | T1 | `s4-profile-01-schema-contract.md` | Shared `PlayerProfile` type + `migrateProfile()` (Part B JSON) | — | ✅ Done |
-| T2 | `s4-profile-02-guest-localstorage.md` | Guest XP in localStorage (Part C) | T1 | ⬜ Backlog (next) |
-| T3 | `s4-profile-03-yandex-identity.md` | Verified Yandex identity plumbing (Part A) | — | ⬜ Backlog |
+| T2 | `s4-profile-02-guest-localstorage.md` | Guest XP in localStorage (Part C) | T1 | ⛔ Cancelled (2026-06-13) — see note below |
+| T3 | `s4-profile-03-yandex-identity.md` | Verified Yandex identity plumbing (Part A) | — | ⬜ Backlog (next) |
 | T4 | `s4-profile-04-backend-infra.md` | Dedicated reg.ru VPS + API skeleton (Part D ops) | — | ⬜ Backlog |
 | T5 | `s4-profile-05-backend-db-api.md` | Migration + repository + API endpoints (Part D DB + Part E profile half) | T1, T4 | ⬜ Backlog |
 | T6 | `s4-profile-06-match-end-crediting.md` | Protocol ext + server-side crediting (Part E game half) | T3, T5 | ⬜ Backlog |
-| T7 | `s4-profile-07-guest-migration.md` | Guest→authenticated migration (Part F) | T2, T3, T5 | ⬜ Backlog |
+| T7 | `s4-profile-07-guest-migration.md` | Guest→authenticated migration (Part F) | T2, T3, T5 | ⬜ Blocked — T2 dep cancelled (see note) |
 | T8 | `s4-profile-08-backups.md` | Profile DB backups (Part D step 7) | T4 | ⬜ Backlog |
 
-**Strict one-by-one order:** T1 → T2 → T3 → T4 → T5 → T6 → T7 → T8.
+**Strict one-by-one order (revised 2026-06-13 after T2 cancellation):** T1 → T3 → T4 → T5 → T6 → T8, with T7 deferred (see note). Original order was T1 → T2 → … → T8.
 
-**Parallel tracks (optional):** the client track (T1 → T2) and the backend track (T4 → T5) can run concurrently; T3 fits anywhere; **T6 converges them and is the production-verification gate** for the Citizenship Core UI task; T8 any time after T4, before paid citizenship ships.
+**Parallel tracks (optional):** the original client track (T1 → T2) is **cancelled**; the backend track (T3/T4 → T5 → T6) is now the live path. T3 and T4 have no T1 dependency and can start immediately/in parallel; **T6 is the production-verification gate** for the Citizenship Core UI task; T8 any time after T4, before paid citizenship ships.
+
+> **⛔ T2 (Guest localStorage, Part C) cancelled — 2026-06-13 (Mark).** Work was reverted manually; T1's `src/core/profile/PlayerProfile.ts` is kept (not part of the reverted commits). Report: `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`.
+> A client-only, localStorage-authoritative guest-XP store carries too much inherent edge surface (idempotency, multi-tab races, partial-write atomicity, platform-auth timing, "eliminated counts" semantics); four review rounds hardened those and the scope outgrew the intended small client slice.
+> **Revisit guest-XP as a thin best-effort client cache with/after T5/T6** (server-authoritative), which removes most of that edge surface. Carry the `MatchQualification.ts` shared-predicate idea (pure qualify/credit rules + constants) into T5/T6 to prevent client/server drift.
+> **Consequence — T7 (Part F):** its only input was T2's local guest profile, so it is **blocked**. Hold it as deferred (coupled to the guest-XP redo) or cancel it — **needs Mark's call**.
+> **Interim baseline:** no one earns profile XP until T5/T6 land (this store was the only crediting path). Authenticated users and the Yandex leaderboard-points system are unaffected.
 
 **Part G (guest locked-card UX)** is delivered in the **Citizenship Core UI** task, consuming T3's helpers — it is not a child slice here.
 

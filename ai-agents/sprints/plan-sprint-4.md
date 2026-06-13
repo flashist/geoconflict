@@ -30,7 +30,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | Start Screen Redesign — Tab Layout Investigation (design) | `s4-start-screen-redesign-investigation.md` |
 | ✅ Done | Start Screen Redesign — Implementation | `s4-start-screen-redesign-impl.md` |
 | ⬜ Backlog | App Bootstrap — Single Explicit Entry Point *(client boot-path refactor; investigation done, design locked)* | `s4-app-bootstrap-single-entry-point.md` |
-| 🔄 In Progress | Player Profile Store — Implementation *(8-slice epic; T1 schema contract ✅ done, T2 next)* | `s4-player-profile-store-impl.md` |
+| 🔄 In Progress | Player Profile Store — Implementation *(8-slice epic; T1 ✅ done, T2 ⛔ cancelled 2026-06-13 — guest-XP deferred to server-authoritative redo; T3/T4 next)* | `s4-player-profile-store-impl.md` |
 | ⬜ Backlog | PostgreSQL Backup Routine (Profile Store) — off-box, daily *(needs: profile store schema; must be live before Paid Citizenship)* | `s4-postgres-backup-routine.md` |
 | ⬜ Backlog | Personal-Data Compliance (152-ФЗ): Roskomnadzor notification + consent flow *(investigation-first; interim-gates profile-store prod launch)* | `s4-personal-data-compliance-investigation.md` |
 | ⬜ Backlog | Yandex Payments — Catalog Fetch & Purchase Infrastructure | `s4-yandex-payments-impl.md` |
@@ -122,9 +122,11 @@ Production-risk: touches the prod Yandex-iframe boot path — weekend deploy, li
 ### Player Profile Store — Implementation
 Implement the database and schema recommended by Investigation A. Foundation for all citizenship and purchase tasks.
 
-**Status: 🔄 In Progress.** Split into 8 child slices (T1–T8) — see the slice table in `s4-player-profile-store-impl.md`. Strict order T1 → … → T8 (client track T1→T2 and backend track T4→T5 may run in parallel; T6 is the production-verification gate).
-- ✅ **T1 — Schema Contract** (`s4-profile-01-schema-contract.md`) — shared `PlayerProfile` type + pure `migrateProfile()`, done & moved to `done/`. Two boundary notes captured during its review: (1) `xp` is validated only as a nonnegative int up to `MAX_SAFE_INTEGER` — the persist path (T5) must clamp/reject against the chosen DB column max; (2) the migrate body is untrusted shape-only validation — paid/citizenship fields must be force-cleared/recomputed at the trust boundary in T5/T7, not trusted from the contract.
-- ⬜ **T2 — Guest localStorage** next (depends on T1, now unblocked). T3 (Yandex identity) and T4 (backend infra) have no T1 dependency and can start in parallel.
+**Status: 🔄 In Progress.** Split into 8 child slices (T1–T8) — see the slice table in `s4-player-profile-store-impl.md`. With T2 cancelled, the live path is the backend track (T3/T4 → T5 → T6); T6 remains the production-verification gate.
+- ✅ **T1 — Schema Contract** (`s4-profile-01-schema-contract.md`) — shared `PlayerProfile` type + pure `migrateProfile()`, done & moved to `done/`. `src/core/profile/PlayerProfile.ts` is kept (it is *not* part of the reverted T2 work). Two boundary notes from its review: (1) `xp` is validated only as a nonnegative int up to `MAX_SAFE_INTEGER` — the persist path (T5) must clamp/reject against the chosen DB column max; (2) the migrate body is untrusted shape-only validation — paid/citizenship fields must be force-cleared/recomputed at the trust boundary in T5/T7, not trusted from the contract.
+- ⛔ **T2 — Guest localStorage** — **cancelled 2026-06-13** (Mark); work reverted manually. Report: `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`. A client-only, localStorage-authoritative guest-XP store has too much inherent edge surface (idempotency, multi-tab races, partial-write atomicity, platform-auth timing, "eliminated counts" semantics) — four review rounds hardened those and the scope outgrew the intended small client slice. **Steer:** redo guest-XP as a thin best-effort client cache **with/after T5/T6** so the server is the source of truth; carry forward the `MatchQualification.ts` shared-predicate idea into T5/T6 to prevent client/server drift. Net interim baseline: **no one earns profile XP until T5/T6 land** (the only crediting path was this store) — authenticated users and the Yandex leaderboard are unaffected.
+- ⬜ **Next: T3 (Yandex identity) and T4 (backend infra)** — neither depends on T1, so both can start now/in parallel; they lead into T5/T6.
+- ⚠️ **T7 (guest→authenticated migration) is now orphaned** — its only input was T2's local guest profile. It is blocked until the guest-XP redo above happens; needs Mark's call on whether to mark it cancelled or hold it as deferred (coupled to the T2 redo).
 
 ---
 
