@@ -74,9 +74,12 @@ import {
 import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
 import {
   flashist_logEventAnalytics,
+  FlashistFacade,
   flashistConstants,
 } from "./flashist/FlashistFacade";
 import { logOtelWarn } from "./OtelBrowserInit";
+import { creditQualifyingMatch } from "./GuestProfileStore";
+import { MatchParticipation } from "../core/profile/MatchQualification";
 
 export interface LobbyConfig {
   serverConfig: ServerConfig;
@@ -329,6 +332,7 @@ export class ClientGameRunner {
   private isActive = false;
   private hasReportedParticipation = false;
   private hasProcessedWin = false;
+  private hasCreditedGuestXp = false;
   private _autoSpawnSent = false;
   private _autoSpawnBlockedByCatchup = false;
   private _spawnMissedReported = false;
@@ -424,6 +428,45 @@ export class ClientGameRunner {
       placement,
       points,
     });
+  }
+
+  /**
+   * Credit guest XP for a finished match (S4 Profile T2). Authenticated (Yandex)
+   * players are skipped — their XP is server-authoritative (T6). Replays carry a
+   * gameRecord and never credit. Runs at most once per match.
+   *
+   * The participation snapshot is taken SYNCHRONOUSLY (before the async auth
+   * check) because `stop()` may tear down `myPlayer` / the game view while the
+   * promise is pending. A voluntary leave navigates the page away and tears down
+   * this runner, so this hook never fires for a leaver — hence `leftVoluntarily`
+   * is always false here (the predicate keeps the field for the server's use).
+   */
+  private creditGuestMatchXp(winUpdate: WinUpdate): void {
+    if (this.hasCreditedGuestXp || this.lobby.gameRecord !== undefined) {
+      return;
+    }
+    const me = this.myPlayer ?? this.gameView.myPlayer();
+    if (me === null) {
+      return;
+    }
+    this.hasCreditedGuestXp = true;
+    const participation: MatchParticipation = {
+      hasSpawned: me.hasSpawned(),
+      isAliveAtEnd: me.isAlive(),
+      wasEliminated:
+        winUpdate.allPlayersStats[this.lobby.clientID]?.killedAt !== undefined,
+      leftVoluntarily: false,
+    };
+    void (async () => {
+      try {
+        if (await FlashistFacade.instance.isYandexAuthorized()) {
+          return;
+        }
+        creditQualifyingMatch(getPersistentID(), participation);
+      } catch {
+        // best-effort: never let guest XP crediting break match end
+      }
+    })();
   }
 
   public start() {
@@ -526,6 +569,7 @@ export class ClientGameRunner {
           this.hasProcessedWin = true;
           this.reportPlacements(winUpdate);
         }
+        this.creditGuestMatchXp(winUpdate);
       }
     });
     const worker = this.worker;
