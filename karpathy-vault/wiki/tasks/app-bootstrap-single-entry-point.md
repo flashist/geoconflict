@@ -18,7 +18,7 @@ Replace the client's emergent startup ordering with one explicit bootstrap seque
 - Switched the Yandex SDK template flow to tolerate async script loading and stalled SDK delivery; the app proceeds in degraded mode after the shared deadline.
 - Added degraded-mode/session timeout analytics through `Session:PlatformInitTimeout` and refined `Player:YandexUnknown` semantics.
 - Added app-chunk retry plus one reload for stale content-hashed chunk failures.
-- Preserved standalone `index.html` viability as the no-SDK degraded path.
+- Preserved standalone `src/client/index.html` viability as the no-SDK degraded path.
 
 ## Outcome
 

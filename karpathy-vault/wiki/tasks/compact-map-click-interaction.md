@@ -18,13 +18,13 @@ The investigation rules out the earlier non-integer-coordinate theory. `Transfor
 
 ## Outcome
 
-The primary root cause is compact terrain data quality: `map4x.bin` can lose shore designations during downsampling. A territory may visually border water, but if the compact binary has no `isShore` border tiles for the target player, `closestShoreFromPlayer()` returns `null` and the boat icon is disabled before ocean/lake pathfinding starts. The World compact map was confirmed broken by debug logs, and all compact binaries are potentially affected by narrow coastline downsampling.
+The primary root cause is compact terrain data quality: compact binaries under `resources/maps/*/map4x.bin` can lose shore designations during downsampling. A territory may visually border water, but if the compact binary has no `isShore` border tiles for the target player, `closestShoreFromPlayer()` returns `null` and the boat icon is disabled before ocean/lake pathfinding starts. The World compact map was confirmed broken by debug logs, and all compact binaries are potentially affected by narrow coastline downsampling.
 
 The apparent non-determinism comes from ownership, not from random click coordinates. The same degraded compact coastline can work when its owner also has other valid shore tiles, fail when those degraded tiles are the owner's only shore, and behave differently for neutral land because `closestShoreTN()` uses a separate BFS path.
 
 The originally recommended Sprint 4c workaround was a runtime fallback in `targetTransportTile()`: when `closestShoreFromPlayer()` returns `null` for a player-owned compact target, search near the clicked tile for any shore tile and use that as the destination approximation. That fallback was implemented on an unmerged branch and rejected after live testing because it can select unrelated surviving shore tiles, sending boats to the wrong coastline or enabling attacks against landlocked territory. The runtime workaround is now recorded as cancelled in [[decisions/cancelled-tasks]].
 
-The long-term fix is to preserve shore/ocean-shore bits in `map-generator/map_generator.go` when generating `map4x.bin`, then regenerate compact map binaries. A secondary low-severity issue remains in `bestShoreDeploymentSource()`: it checks only 4-directional neighbors after mini-A* upscaling, so a diagonally adjacent valid shore tile can be missed, degrading spawn-point quality without disabling the boat icon.
+The long-term fix is to preserve shore/ocean-shore bits in `map-generator/map_generator.go` when generating `resources/maps/*/map4x.bin`, then regenerate compact map binaries. A secondary low-severity issue remains in `bestShoreDeploymentSource()`: it checks only 4-directional neighbors after mini-A* upscaling, so a diagonally adjacent valid shore tile can be missed, degrading spawn-point quality without disabling the boat icon.
 
 Sprint 4c mitigates the player-facing impact by disabling compact maps in public matchmaking while leaving private lobby and singleplayer compact as explicit opt-in paths. That mitigation is tracked in [[tasks/disable-compact-public-maps]].
 

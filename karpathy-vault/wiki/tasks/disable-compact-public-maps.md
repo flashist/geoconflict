@@ -18,7 +18,7 @@ The disabled `MINI_MAP_MODIFIER` definition remains in the file with a comment p
 
 ## Outcome
 
-Public matchmaking no longer exposes players to compact `map4x.bin` shore-bit defects. The `Mini` / `Мини` lobby badge and compact localization keys remain dormant but available for a future re-enable. Private lobbies and singleplayer compact maps were intentionally left unchanged.
+Public matchmaking no longer exposes players to compact `resources/maps/*/map4x.bin` shore-bit defects. The `Mini` / `Мини` lobby badge and compact localization keys remain dormant but available for a future re-enable. Private lobbies and singleplayer compact maps were intentionally left unchanged.
 
 Re-enabling compact public maps is gated on regenerating the compact binaries so the shore data needed by transport-boat targeting is preserved. Until that root-cause fix ships, the rejected runtime workaround recorded in [[decisions/cancelled-tasks]] should not be retried.
 

@@ -21,7 +21,7 @@ Sprint 4b is closed with all planned public-matchmaking variety changes shipped 
 
 The sprint started with a one-day compatibility investigation covering compact maps plus Duos/Trios/Quads, then shipped the three implementation tracks.
 
-Rotation originally used a configurable `MODIFIED_MATCH_RATE` of `0.2`: 80% normal matches, 10% compact-map matches, and 10% weird-setting matches. Sprint 4c later disabled compact maps in public rotation because compact `map4x.bin` shore data breaks transport-boat targeting; with `mini_map` removed, weird-setting matches now receive the full 20% modified-match budget.
+Rotation originally used a configurable `MODIFIED_MATCH_RATE` of `0.2`: 80% normal matches, 10% compact-map matches, and 10% weird-setting matches. Sprint 4c later disabled compact maps in public rotation because compact `resources/maps/*/map4x.bin` shore data breaks transport-boat targeting; with `mini_map` removed, weird-setting matches now receive the full 20% modified-match budget.
 
 No analytics are planned for these new features in Sprint 4b.
 

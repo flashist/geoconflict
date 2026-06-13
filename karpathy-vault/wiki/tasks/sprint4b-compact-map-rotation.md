@@ -24,7 +24,7 @@ Sprint 4c later disabled `mini_map` in the active public registry after live tes
 
 No compact map exclusion list was added. The prior investigation accepted the known water-centered nation-coordinate cases as spawn-distribution risks rather than release blockers.
 
-Follow-up debugging on 2026-05-11 found a separate compact-map regression: some compact `map4x.bin` terrain loses `isShore` designations during downsampling, which can disable the transport-boat radial-menu action even when the clicked territory visually borders water. This is distinct from the earlier nation-coordinate audit and is tracked in [[tasks/compact-map-click-interaction]].
+Follow-up debugging on 2026-05-11 found a separate compact-map regression: some compact `resources/maps/*/map4x.bin` terrain loses `isShore` designations during downsampling, which can disable the transport-boat radial-menu action even when the clicked territory visually borders water. This is distinct from the earlier nation-coordinate audit and is tracked in [[tasks/compact-map-click-interaction]].
 
 ## Related
 

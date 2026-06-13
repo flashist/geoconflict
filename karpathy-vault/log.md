@@ -686,6 +686,12 @@
 
 ## 2026-06-13 — ingest
 - Sync window: `15a1c0480f4a122a9d2c4f9dfa3941ade4c459f9` → HEAD (`7e8556fb839b2d947641b6cf16c1bdff8841910e`)
-- Changed source files detected: 11
+- Changed source files detected: 13
 - Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-personal-data-compliance-investigation.md`, `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-profile-01-schema-contract.md`, `ai-agents/tasks/backlog/s4-profile-02-guest-localstorage.md`, `ai-agents/tasks/backlog/s4-profile-03-yandex-identity.md`, `ai-agents/tasks/backlog/s4-profile-04-backend-infra.md`, `ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md`, `ai-agents/tasks/backlog/s4-profile-06-match-end-crediting.md`, `ai-agents/tasks/backlog/s4-profile-07-guest-migration.md`, `ai-agents/tasks/backlog/s4-profile-08-backups.md`, `ai-agents/tasks/backlog/s4-starting-gold-public-modifier.md`, `ai-agents/tasks/backlog/s4-map-population-army-labels.md` — backlog files are not ingested directly by wiki-sync; relevant Sprint 4 backlog status is summarized through [[wiki/decisions/sprint-4]]
+
+## 2026-06-13 — lint
+- Issues found: 7
+- Issues fixed: 7
+- Issues flagged for human review: 0
+- Replaced ambiguous basename-only source references with explicit `src/client/...` paths or `resources/maps/*/map4x.bin` compact-map paths; structural metadata, index coverage, wiki-link resolution, backlinks, and source-path existence checks passed.

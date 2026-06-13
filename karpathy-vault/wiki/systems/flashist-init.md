@@ -19,7 +19,7 @@ The client now has a single explicit bootstrap entry point. `src/client/Bootstra
 
 ### Game-ready gate
 
-`flashist_waitGameInitComplete()` is now backed by a promise resolved by `Bootstrap.ts` after platform init has settled, the app chunk has loaded, and `Client` has wired the UI. The global `window.flashist_waitGameInitComplete` remains because `yandex-games_iframe.html` uses it before revealing the loading overlay and calling `LoadingAPI.ready()`.
+`flashist_waitGameInitComplete()` is now backed by a promise resolved by `Bootstrap.ts` after platform init has settled, the app chunk has loaded, and `Client` has wired the UI. The global `window.flashist_waitGameInitComplete` remains because `src/client/yandex-games_iframe.html` uses it before revealing the loading overlay and calling `LoadingAPI.ready()`.
 
 ### Degraded mode
 
