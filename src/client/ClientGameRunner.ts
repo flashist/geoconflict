@@ -91,6 +91,11 @@ export interface LobbyConfig {
   gameRecord?: GameRecord;
   isReconnect?: boolean;
 
+  // UNTRUSTED: client-asserted Yandex player ID (null for guests). Resolved once at
+  // lobby join and forwarded in the join payload. The server does NOT verify it — treat
+  // it as an opaque, forgeable value. Crediting/entitlements must verify before trusting.
+  yandexPlayerId?: string | null;
+
   preloadMapData?: PreloadMapConfig;
 }
 

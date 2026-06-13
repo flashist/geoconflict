@@ -916,6 +916,27 @@ export class FlashistFacade {
     return result;
   }
 
+  public async getYandexUniqueId(): Promise<string | null> {
+    await this.yandexSdkInitPlayerPromise.catch(() => {});
+
+    if (!this.yandexSdkPlayerObject) {
+      return null;
+    }
+
+    try {
+      if (this.yandexSdkPlayerObject.isAuthorized()) {
+        return this.yandexSdkPlayerObject.getUniqueID();
+      }
+    } catch (error) {
+      flashist_logErrorToAnalytics(
+        `ERROR! FlashistFacade | getYandexUniqueId __ error: ${error}`,
+        flashist_logErrorTypes.DEBUG,
+      );
+    }
+
+    return null;
+  }
+
   // ADV
 
   public async showInterstitial() {
