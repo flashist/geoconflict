@@ -25,6 +25,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | Investigation — Missions Mode Difficulty Curve | `s4-missions-difficulty-investigation.md` |
 | ✅ Done | Nuke Pre-Launch Trajectory: Increase Line Thickness | `s4-nuke-trajectory-visibility.md` |
 | ⬜ Backlog | Map Labels: Show Troops/Max + Attacking Troops | `s4-map-population-army-labels.md` |
+| ⬜ Backlog | Public Modifier: Add "5M Starting Gold" *(companion to infinite-gold removal)* | `s4-starting-gold-public-modifier.md` |
 | ✅ Done | Teams Mode: Cap Maximum Teams at 4 | `s4-teams-mode-max-teams.md` |
 | ✅ Done | Start Screen Redesign — Tab Layout Investigation (design) | `s4-start-screen-redesign-investigation.md` |
 | ✅ Done | Start Screen Redesign — Implementation | `s4-start-screen-redesign-impl.md` |
@@ -327,6 +328,18 @@ See full brief: `s4-tutorial-reduce-bots.md`
 **Brief:** `s4-map-population-army-labels.md`
 
 Enrich the on-map country labels (`NameLayer.ts`) to mirror the hover info panel: show the troops line as `current / max` (e.g. "10K / 100K") and, when a country is attacking, add a red line below with the total attacking troops. Pure `src/client/` change — all data is already available client-side (`PlayerInfoOverlay` renders the same values today via `player.troops()`, `config.maxTroops(player)`, and summed `outgoingAttacks()`), so no investigation and no `src/core/` work. Visual/live verification at multiple zoom levels and against an attacking country; watch label clutter at mid zoom.
+
+---
+
+## Public Modifier — Add "5M Starting Gold"
+
+**Effort:** ~1 day
+**Experiments:** ❌ Excluded — match-quality change, ships to all players.
+**Independent** — no dependency on citizenship or payments.
+**Companion:** `s4c-disable-infinite-gold-public-rotation.md` (kept separate — removes infinite gold).
+**Brief:** `s4-starting-gold-public-modifier.md`
+
+Replace the degenerate infinite-gold public modifier with a bounded one: a one-time **5M starting gold** grant for real players (`Human` + `AiPlayer` only — nations and filler bots stay at 0). Infinite gold makes nuke-rush the only tactic and turns public matches into frustrating chaos for new players; a finite head-start gives an economic boost without the endless free nuking. Adds a new `startGold` `GameConfig` field (schema + every config literal, client and server), a `startGold(playerInfo)` config method mirroring `startManpower`, player-init wiring in `src/core/`, a "5M Starting Gold" lobby badge, and en/ru localization. Recipient predicate matches the existing `infiniteGold` `Human || AiPlayer` gate. Locked with Mark 2026-06-13: recipients = real players only, amount = 5M, public rotation only. `src/core/` desync-sensitive (all config literals must carry the field); live public-rotation spot-check is the verification gate. Sequence after / with the companion infinite-gold removal.
 
 ---
 
