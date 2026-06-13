@@ -64,7 +64,7 @@
 - [[tasks/spawn-ux]] — Tasks 4b + 4e: zoom-to-territory function and expanding ring spawn indicator
 - [[tasks/stale-build-detection]] — HF-11b/c/d: `/api/version` endpoint, client polling, non-dismissible refresh modal
 - [[tasks/ui-click-multiplayer]] — Investigation confirming `UI:ClickMultiplayer` fires on per-lobby JOIN attempts
-- [[tasks/player-profile-store-investigation]] — Sprint 4 investigation recommending Postgres on the game VPS and identifying the Yandex identity gap
+- [[tasks/player-profile-store-investigation]] — Sprint 4 investigation recommending Postgres, now on a dedicated reg.ru profile/API VPS, and identifying the Yandex identity gap
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
 - [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement
 - [[tasks/start-screen-redesign-implementation]] — Sprint 4 implementation of the two-tab start screen, citizenship card shell, tab persistence, localization rename, and tab analytics

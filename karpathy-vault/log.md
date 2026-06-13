@@ -701,3 +701,9 @@
 - Issues fixed: 3
 - Issues flagged for human review: 0
 - Normalized two schema metadata values and updated one stale `src/client/LocalServer.ts` line reference; structural metadata, index coverage, wiki-link resolution, backlinks, orphan scan, source-path existence, and targeted line-reference checks passed.
+
+## 2026-06-13 — ingest
+- Sync window: `7e8556fb839b2d947641b6cf16c1bdff8841910e` → HEAD (`41dc4624a7c0b4c6552447c4a3604549677d77aa`)
+- Changed source files detected: 8
+- Ingested: `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md` → updated [[wiki/tasks/player-profile-store-investigation]], [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-profile-01-schema-contract.md`, `ai-agents/tasks/backlog/s4-profile-02-guest-localstorage.md`, `ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md`, `ai-agents/tasks/backlog/s4-profile-07-guest-migration.md`, `ai-agents/tasks/backlog/s4-citizenship-earned.md`, `ai-agents/tasks/backlog/s4-yandex-payments-impl.md` — backlog files are not ingested directly by wiki-sync; the profile-store infrastructure supersession is summarized through [[wiki/tasks/player-profile-store-investigation]] and [[wiki/decisions/sprint-4]]

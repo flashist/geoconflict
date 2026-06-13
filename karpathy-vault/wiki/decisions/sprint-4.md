@@ -19,7 +19,7 @@ Follow-up sources: `ai-agents/tasks/done/sprint4-investigation-player-store.md`,
 Sprint 4 is no longer just a future plan. The latest source brief records a mixed state: the two technical investigations are complete, several independent fixes are shipped, two side tasks were cancelled, and the core payments/citizenship implementation track remains blocked on identity, legal/compliance, backup, and infrastructure prerequisites.
 
 **Completed groundwork:**
-- **Investigation A: Player Profile Store** is complete. It recommends PostgreSQL on the game VPS, an initial `player_profiles` plus idempotent `player_match_credits` schema, server-side match crediting at match end, and a verified Yandex identity claim in the join/auth path because the current server only sees `persistentID`. See [[tasks/player-profile-store-investigation]].
+- **Investigation A: Player Profile Store** is complete. It recommends PostgreSQL, an initial `player_profiles` plus idempotent match-credit ledger, server-side match crediting at match end, and a verified Yandex identity claim in the join/auth path because the current server only sees `persistentID`. Its original game-VPS co-location recommendation is superseded: the profile store and non-game backend logic now run on a dedicated reg.ru VPS behind `api.geoconflict.ru`, with Postgres localhost-only on that box. See [[tasks/player-profile-store-investigation]].
 - **Investigation B: Yandex Payments Catalog** is complete. It recommends signed Yandex purchases, a memoized session catalog cache in `FlashistFacade`, signed client-to-server verification plus startup reconciliation through `getPurchases()`, and post-grant consumption after durable entitlement storage. See [[tasks/yandex-payments-investigation]].
 - **Global announcements (`8d-A`)** are complete and available as the base communication surface for future inbox or citizenship messaging. See [[tasks/global-announcements]].
 - **Start screen redesign investigation** is complete and locks the layout direction for citizenship UI. See [[tasks/start-screen-redesign-investigation]].
@@ -58,9 +58,9 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 
 | Task | Status | Notes |
 |---|---|---|
-| Player Profile Store — Implementation | backlog | Depends on Investigation A conclusions and verified Yandex identity work |
+| Player Profile Store — Implementation | backlog | Depends on Investigation A conclusions and verified Yandex identity work; implementation is split into profile-schema, guest-localStorage, Yandex identity, dedicated reg.ru profile API, DB/API, match-end crediting, migration, and backup slices |
 | Personal-Data Compliance (152-ФЗ) — Roskomnadzor notification + consent flow | backlog | Investigation-first legal track; interim gate before real Yandex IDs/display names are persisted in production |
-| PostgreSQL Backup Routine (Profile Store) | backlog | Daily off-box encrypted backup and tested restore; must be live before paid citizenship |
+| PostgreSQL Backup Routine (Profile Store) | backlog | Daily off-box encrypted backup and tested restore for the dedicated profile VPS; must be live before paid citizenship |
 | Yandex Payments — Catalog Fetch & Purchase Infrastructure | backlog | Depends on Investigation B conclusions and catalog readiness |
 | Citizenship Core — XP Counter & Progress UI | backlog | Blocked by start screen redesign implementation |
 | Citizenship Core — Earned Citizenship | backlog | Blocked by player profile store |
@@ -118,8 +118,9 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - The VAT/tax gate does not clear IP/licensing compliance: before monetization scales, GeoConflict still needs a public current source repository, visible in-game source-code link, production asset audit, and legal review of AGPL/Yandex.Games interactions. See [[decisions/licensing-compliance]].
 - The VAT/tax gate also does not clear Russian personal-data obligations. The Sprint 4 source now treats 152-ФЗ/Roskomnadzor notification plus consent/privacy-policy work as investigation-first, with an interim gate before profile-store production launch; consent metadata should feed the profile-store schema, and deletion requirements interact with deferred S3 archival.
 - Register Yandex catalog items immediately — approval takes days and remains the main non-engineering blocker
-- Player Profile Store investigation concluded that the current codebase needs a verified Yandex identity in the join/auth path before Yandex-keyed paid entitlements are safe
-- Profile-store backups are now explicitly part of the Sprint 4 prerequisite chain: daily `pg_dump`, encrypted off-box copy to Reg.ru S3-compatible storage, and a tested restore must be live before paid citizenship because paid entitlements, earned XP, and display names would otherwise exist only in one Docker volume.
+- Player Profile Store investigation concluded that the current codebase needs a verified Yandex identity in the join/auth path before Yandex-keyed paid entitlements are safe.
+- The profile-store hosting decision changed on 2026-06-13: run the profile API and Postgres on a dedicated reg.ru VPS at `api.geoconflict.ru`, with Postgres localhost-only and game servers calling the profile API over authenticated HTTP. This isolates match availability from profile outages and protects paid data from game-server crashes.
+- Profile-store backups are now explicitly part of the Sprint 4 prerequisite chain: daily `pg_dump`, encrypted off-box copy to Reg.ru S3-compatible storage, and a tested restore must be live before paid citizenship because paid entitlements, earned XP, and display names would otherwise exist only in one profile-server Docker volume.
 - Yandex Payments investigation concluded that paid citizenship should use signed purchase verification on the server, startup reconciliation via `getPurchases()`, and post-grant consumption once the entitlement is durably stored; purchase UI should be hidden when the dashboard catalog item is absent or unavailable
 - Qualifying-match crediting should happen on the game server at match end, but implementation needs one additional end-of-match per-player state summary because the server does not currently simulate spawn/elimination itself
 - The source brief now consistently uses the XP-based citizenship threshold, reducing ambiguity across the Sprint 4 progression tasks
