@@ -3,6 +3,8 @@
 **Date:** 2026-04-18
 **Status:** Complete — gates Sprint 4 player-store and citizenship implementation
 
+> ⚠️ **Partially superseded (2026-06-13).** The *deployment-location* recommendation below (co-locate Postgres on the game-server VPS) is **superseded** by a product/infra decision to run the profile store and all non-game backend logic on a **dedicated reg.ru VPS**, served publicly via `api.geoconflict.ru` (TLS, mirroring the telemetry box), with Postgres localhost-only on that box. Rationale: failure-domain isolation once paid in-apps ship — a profile outage must not stop matches, and a game-server crash must not threaten paid data. Residency correction: all VPS are already **reg.ru / Moscow (Russia)** (the `Hetzner` comments in `setup.sh`/`update.sh` are stale), so 152-FZ residency holds on either topology. Everything else here (PostgreSQL, schema direction, the idempotent per-match credit table, server-side match-end crediting, guest UX) still stands. See **`ai-agents/tasks/backlog/s4-player-profile-store-impl.md` → Infrastructure Decision** and its 8-slice Decomposition.
+
 ## Executive Recommendation
 
 - **Database technology:** PostgreSQL
@@ -51,6 +53,8 @@ The repo's deployment docs show one Docker container per environment on a VPS be
 - **Redis:** useful later as a cache, not as the source of truth for paid entitlements or citizenship.
 
 ## 2. Where the Store Should Live
+
+> ⚠️ **Superseded (2026-06-13):** the store now runs on a **dedicated reg.ru VPS** (served via `api.geoconflict.ru`), not on the game-server VPS — see `ai-agents/tasks/backlog/s4-player-profile-store-impl.md` → Infrastructure Decision. The original analysis is preserved below for context.
 
 **Recommend: same game-server VPS, separate Postgres service/container, localhost-only access.**
 
