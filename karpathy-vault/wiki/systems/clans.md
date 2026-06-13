@@ -1,6 +1,6 @@
 # Clans System
 
-**Layer**: core / server / client
+**Layer**: core
 **Key files**: `src/core/Util.ts`, `src/core/game/Game.ts`, `src/core/game/TeamAssignment.ts`, `src/core/game/GameImpl.ts`, `src/core/Schemas.ts`
 
 ## Summary
@@ -52,7 +52,7 @@ In `GameImpl.addPlayers()` (`src/core/game/GameImpl.ts`, lines 170-177): kicked 
 
 This is a separate, analytics-only field populated at game end. Not the same as `PlayerInfo.clan`. Populated at:
 - Server: `src/server/GameServer.ts`, line 988 — `clanTag: getClanTag(player.username) ?? undefined`
-- Singleplayer: `src/client/LocalServer.ts`, line 265 — same call
+- Singleplayer: `src/client/LocalServer.ts`, line 281 — same call
 
 Both paths work correctly.
 

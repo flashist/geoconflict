@@ -13,7 +13,7 @@ Produce a complete picture of the existing (undocumented) clans system: what is 
 
 No source code was modified. This was a pure investigation.
 
-**Files read:** `src/core/Util.ts` line 329, `src/core/game/Game.ts` lines 410-421 and 605, `src/core/game/TeamAssignment.ts`, `src/core/game/GameImpl.ts` lines 102-177, `src/core/game/PlayerImpl.ts` line 208, `src/core/Schemas.ts` line 567, `src/server/GameServer.ts` line 988, `src/client/LocalServer.ts` line 265
+**Files read:** `src/core/Util.ts` line 329, `src/core/game/Game.ts` lines 410-421 and 605, `src/core/game/TeamAssignment.ts`, `src/core/game/GameImpl.ts` lines 102-177, `src/core/game/PlayerImpl.ts` line 208, `src/core/Schemas.ts` line 567, `src/server/GameServer.ts` line 988, `src/client/LocalServer.ts` line 281
 
 **All client files in `src/client/`** were searched for clan rendering — zero instances found.
 

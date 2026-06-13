@@ -695,3 +695,9 @@
 - Issues fixed: 7
 - Issues flagged for human review: 0
 - Replaced ambiguous basename-only source references with explicit `src/client/...` paths or `resources/maps/*/map4x.bin` compact-map paths; structural metadata, index coverage, wiki-link resolution, backlinks, and source-path existence checks passed.
+
+## 2026-06-13 — lint
+- Issues found: 3
+- Issues fixed: 3
+- Issues flagged for human review: 0
+- Normalized two schema metadata values and updated one stale `src/client/LocalServer.ts` line reference; structural metadata, index coverage, wiki-link resolution, backlinks, orphan scan, source-path existence, and targeted line-reference checks passed.

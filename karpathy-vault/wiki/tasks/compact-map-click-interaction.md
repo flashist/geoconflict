@@ -1,7 +1,7 @@
 # Compact Map Click Interaction Bug
 
 **Source**: `ai-agents/knowledge-base/compact-map-click-interaction-findings.md`
-**Status**: investigated
+**Status**: done
 **Sprint/Tag**: Sprint 4c / Sprint 4b regression
 
 ## Goal
