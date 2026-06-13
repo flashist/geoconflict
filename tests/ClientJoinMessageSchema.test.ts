@@ -53,4 +53,20 @@ describe("ClientJoinMessageSchema yandexPlayerId", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  test("accepts a yandexPlayerId at the max length boundary (256)", () => {
+    const result = ClientJoinMessageSchema.safeParse({
+      ...baseJoinMessage(),
+      yandexPlayerId: "x".repeat(256),
+    });
+    expect(result.success).toBe(true);
+  });
+
+  test("rejects an oversize yandexPlayerId (257)", () => {
+    const result = ClientJoinMessageSchema.safeParse({
+      ...baseJoinMessage(),
+      yandexPlayerId: "x".repeat(257),
+    });
+    expect(result.success).toBe(false);
+  });
 });

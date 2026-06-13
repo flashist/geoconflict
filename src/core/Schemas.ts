@@ -551,7 +551,10 @@ export const ClientJoinMessageSchema = z.object({
   // the server performs no Yandex signature check on this value. Safe only as an opaque
   // store key for non-sensitive earned-XP. Any crediting/entitlement write MUST first
   // verify a Yandex signed payload (deferred to the Yandex Payments task / T6).
-  yandexPlayerId: z.string().nullable().optional(),
+  // Bounded length (matches the discipline of other client strings, e.g. SafeString)
+  // so a retained value can't inflate server memory; generous cap to avoid rejecting
+  // a valid authorized ID (a too-tight cap would mis-credit an authorized user).
+  yandexPlayerId: z.string().max(256).nullable().optional(),
 });
 
 export const ClientMessageSchema = z.discriminatedUnion("type", [
