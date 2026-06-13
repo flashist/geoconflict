@@ -42,18 +42,18 @@ This isolation becomes critical once paid in-apps ship: profile data and backups
 
 ## Decomposition (child tasks)
 
-This document is the **epic/overview**. The shared context above (Infrastructure Decision, Part B schema) plus the Parts and the Verification matrix below are the reference for all child slices. Implementation is split into 8 independently developable, verifiable, and shippable slices in `ai-agents/tasks/backlog/`:
+This document is the **epic/overview**. The shared context above (Infrastructure Decision, Part B schema) plus the Parts and the Verification matrix below are the reference for all child slices. Implementation is split into 8 independently developable, verifiable, and shippable slices (in `ai-agents/tasks/backlog/`; completed slices move to `ai-agents/tasks/done/`):
 
-| # | Child task | Covers | Depends on |
-|---|---|---|---|
-| T1 | `s4-profile-01-schema-contract.md` | Shared `PlayerProfile` type + `migrateProfile()` (Part B JSON) | — |
-| T2 | `s4-profile-02-guest-localstorage.md` | Guest XP in localStorage (Part C) | T1 |
-| T3 | `s4-profile-03-yandex-identity.md` | Verified Yandex identity plumbing (Part A) | — |
-| T4 | `s4-profile-04-backend-infra.md` | Dedicated reg.ru VPS + API skeleton (Part D ops) | — |
-| T5 | `s4-profile-05-backend-db-api.md` | Migration + repository + API endpoints (Part D DB + Part E profile half) | T1, T4 |
-| T6 | `s4-profile-06-match-end-crediting.md` | Protocol ext + server-side crediting (Part E game half) | T3, T5 |
-| T7 | `s4-profile-07-guest-migration.md` | Guest→authenticated migration (Part F) | T2, T3, T5 |
-| T8 | `s4-profile-08-backups.md` | Profile DB backups (Part D step 7) | T4 |
+| # | Child task | Covers | Depends on | Status |
+|---|---|---|---|---|
+| T1 | `s4-profile-01-schema-contract.md` | Shared `PlayerProfile` type + `migrateProfile()` (Part B JSON) | — | ✅ Done |
+| T2 | `s4-profile-02-guest-localstorage.md` | Guest XP in localStorage (Part C) | T1 | ⬜ Backlog (next) |
+| T3 | `s4-profile-03-yandex-identity.md` | Verified Yandex identity plumbing (Part A) | — | ⬜ Backlog |
+| T4 | `s4-profile-04-backend-infra.md` | Dedicated reg.ru VPS + API skeleton (Part D ops) | — | ⬜ Backlog |
+| T5 | `s4-profile-05-backend-db-api.md` | Migration + repository + API endpoints (Part D DB + Part E profile half) | T1, T4 | ⬜ Backlog |
+| T6 | `s4-profile-06-match-end-crediting.md` | Protocol ext + server-side crediting (Part E game half) | T3, T5 | ⬜ Backlog |
+| T7 | `s4-profile-07-guest-migration.md` | Guest→authenticated migration (Part F) | T2, T3, T5 | ⬜ Backlog |
+| T8 | `s4-profile-08-backups.md` | Profile DB backups (Part D step 7) | T4 | ⬜ Backlog |
 
 **Strict one-by-one order:** T1 → T2 → T3 → T4 → T5 → T6 → T7 → T8.
 
