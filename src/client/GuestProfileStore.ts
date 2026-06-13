@@ -248,8 +248,14 @@ export function creditQualifyingMatch(
       return profile;
     }
     const updated = applyMatchXp(profile, nowIso);
-    writeProfile(persistentId, updated, storage);
+    // Mark the game credited BEFORE writing the XP gain. These are two separate
+    // localStorage writes and cannot be made atomic; ordering the marker first
+    // means a failure of the second write degrades to "not credited" (a lost
+    // credit, retryable as a no-op) rather than "credited but unmarked" (which a
+    // retry/reconnect/duplicate tab would double-credit). At-most-once is the safe
+    // failure direction for best-effort guest XP.
     recordCreditedGame(persistentId, ledger, gameId, storage);
+    writeProfile(persistentId, updated, storage);
     return updated;
   } catch {
     return createGuestProfile(persistentId, nowIso);

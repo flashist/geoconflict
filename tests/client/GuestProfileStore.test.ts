@@ -256,5 +256,42 @@ describe("GuestProfileStore", () => {
       expect(ledger).not.toContain("game-0");
       expect(ledger).toContain(`game-${total - 1}`);
     });
+
+    it("does not double-credit when the profile write fails after the ledger is marked", () => {
+      // Marker is written before the XP gain, so a failed profile write degrades
+      // to "not credited" (retryable as a no-op), never "credited but unmarked"
+      // (which would double-credit on retry).
+      const creditsKey = guestCreditedGamesStorageKey(PID);
+      const data: Record<string, string> = {
+        [KEY]: JSON.stringify(createGuestProfile(PID, NOW)), // baseline xp 0
+      };
+      let failProfileWrite = true;
+      const storage = {
+        getItem: (k: string) => data[k] ?? null,
+        setItem: (k: string, v: string) => {
+          if (k === KEY && failProfileWrite) throw new Error("quota");
+          data[k] = v;
+        },
+      };
+
+      // Partial failure: ledger marker commits, then the profile write throws.
+      creditQualifyingMatch(PID, GAME_ID, qualifying(), storage, LATER);
+      expect(JSON.parse(data[KEY]).xp).toBe(0); // profile not credited
+      expect(JSON.parse(data[creditsKey])).toContain(GAME_ID); // but marked
+
+      // Storage recovers; the same match is retried.
+      failProfileWrite = false;
+      const retry = creditQualifyingMatch(
+        PID,
+        GAME_ID,
+        qualifying(),
+        storage,
+        LATER,
+      );
+
+      // At-most-once: the retry is a no-op, never a second credit.
+      expect(retry.xp).toBe(0);
+      expect(JSON.parse(data[KEY]).xp).toBe(0);
+    });
   });
 });
