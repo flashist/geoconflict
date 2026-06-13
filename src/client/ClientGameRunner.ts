@@ -74,9 +74,12 @@ import {
 import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
 import {
   flashist_logEventAnalytics,
+  FlashistFacade,
   flashistConstants,
 } from "./flashist/FlashistFacade";
 import { logOtelWarn } from "./OtelBrowserInit";
+import { creditQualifyingMatch, pendingGuestCredit } from "./GuestProfileStore";
+import { MatchParticipation } from "../core/profile/MatchQualification";
 
 export interface LobbyConfig {
   serverConfig: ServerConfig;
@@ -329,6 +332,7 @@ export class ClientGameRunner {
   private isActive = false;
   private hasReportedParticipation = false;
   private hasProcessedWin = false;
+  private hasCreditedGuestXp = false;
   private _autoSpawnSent = false;
   private _autoSpawnBlockedByCatchup = false;
   private _spawnMissedReported = false;
@@ -424,6 +428,42 @@ export class ClientGameRunner {
       placement,
       points,
     });
+  }
+
+  /**
+   * Credit guest XP for a qualifying match (S4 Profile T2). Authenticated (Yandex)
+   * players are skipped — their XP is server-authoritative (T6). Replays carry a
+   * gameRecord and never credit.
+   *
+   * `participation` is built synchronously by the caller (from `pendingGuestCredit`)
+   * before this runs, so the snapshot is taken while `myPlayer` / the game view are
+   * still live — `stop()` may tear them down while the async auth check is pending.
+   *
+   * Two layers of dedup: the per-runner `hasCreditedGuestXp` flag (set
+   * synchronously here) prevents re-crediting within this runner, and the store's
+   * `gameId`-keyed ledger prevents re-crediting the same match across runners (a
+   * duplicate tab, or an immediate reconnect into the same active game) — and across
+   * this runner's own elimination and match-end triggers.
+   */
+  private creditGuestMatchXp(participation: MatchParticipation): void {
+    if (this.hasCreditedGuestXp || this.lobby.gameRecord !== undefined) {
+      return;
+    }
+    this.hasCreditedGuestXp = true;
+    void (async () => {
+      try {
+        if (!(await FlashistFacade.instance.canUseGuestProfile())) {
+          return;
+        }
+        creditQualifyingMatch(
+          getPersistentID(),
+          this.lobby.gameID,
+          participation,
+        );
+      } catch {
+        // best-effort: never let guest XP crediting break match end
+      }
+    })();
   }
 
   public start() {
@@ -525,6 +565,27 @@ export class ClientGameRunner {
         if (!this.hasProcessedWin && this.lobby.gameRecord === undefined) {
           this.hasProcessedWin = true;
           this.reportPlacements(winUpdate);
+        }
+      }
+
+      // S4 Profile T2: credit guest match XP. Fires the moment the local player is
+      // eliminated — so XP is not lost if they exit at the death screen instead of
+      // spectating to the winner — and otherwise at match end for survivors. The
+      // participation is snapshotted synchronously here; idempotency across the two
+      // triggers is handled by `hasCreditedGuestXp` and the store's gameId ledger.
+      if (
+        !this.hasCreditedGuestXp &&
+        this.lobby.gameRecord === undefined &&
+        this.myPlayer !== null
+      ) {
+        const participation = pendingGuestCredit({
+          hasSpawned: this.myPlayer.hasSpawned(),
+          isAlive: this.myPlayer.isAlive(),
+          inSpawnPhase: this.gameView.inSpawnPhase(),
+          gameEnded,
+        });
+        if (participation !== null) {
+          this.creditGuestMatchXp(participation);
         }
       }
     });

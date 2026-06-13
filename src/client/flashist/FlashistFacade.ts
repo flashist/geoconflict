@@ -4,6 +4,7 @@ import { setOtelUser } from "../OtelBrowserInit";
 import { isMobileDevice } from "../Utils";
 import version from "../../version";
 import { logDaysPlayedAnalytics } from "../DaysPlayedAnalytics";
+import { canUseGuestProfileForState } from "./guestProfileEligibility";
 import {
   consumePendingSessionEnd,
   startSessionMatchTracking,
@@ -877,6 +878,22 @@ export class FlashistFacade {
   public async isYandexAuthorized(): Promise<boolean> {
     await this.yandexSdkInitPlayerPromise.catch(() => {});
     return this.isYandexLoggedIn();
+  }
+
+  /**
+   * Whether this session may use the client-local guest profile (S4 Profile T2).
+   * Unlike `isYandexAuthorized()`, this does NOT treat an undetermined Yandex auth
+   * state as a guest — see `canUseGuestProfileForState`. Resolves once platform
+   * init has settled (bounded), so the auth state is final by the time callers
+   * (app-init, match-end crediting) consult it.
+   */
+  public async canUseGuestProfile(): Promise<boolean> {
+    await this.yandexSdkInitPlayerPromise.catch(() => {});
+    return canUseGuestProfileForState({
+      yaGamesAvailable: this.yaGamesAvailable,
+      hasYandexPlayer: !!this.yandexSdkPlayerObject,
+      isYandexAuthorized: this.isYandexLoggedIn(),
+    });
   }
 
   public async openYandexAuthDialog(): Promise<boolean> {

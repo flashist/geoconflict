@@ -82,6 +82,7 @@ import {
   FlashistFacade,
 } from "./flashist/FlashistFacade";
 import { getUserMe, isLoggedIn } from "./jwt";
+import { loadOrCreateGuestProfile } from "./GuestProfileStore";
 import "./styles.css";
 
 declare global {
@@ -275,6 +276,21 @@ class Client {
       this.perfMonitorStop?.();
       this.perfMonitorStop = null;
     });
+
+    // S4 Profile T2: ensure a guest's local profile exists / is migrated on app
+    // init. Only definitely-unauthenticated players get a local profile —
+    // authenticated Yandex users are server-backed (T5/T7), and an undetermined
+    // auth state is skipped (see canUseGuestProfile). Fire-and-forget and
+    // best-effort: never block or break startup if storage/platform is unavailable.
+    void (async () => {
+      try {
+        if (await FlashistFacade.instance.canUseGuestProfile()) {
+          loadOrCreateGuestProfile(getPersistentID());
+        }
+      } catch {
+        // best-effort
+      }
+    })();
 
     document.addEventListener("join-lobby", this.handleJoinLobby.bind(this));
     document.addEventListener("leave-lobby", this.handleLeaveLobby.bind(this));
