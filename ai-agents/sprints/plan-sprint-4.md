@@ -32,6 +32,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⬜ Backlog | App Bootstrap — Single Explicit Entry Point *(client boot-path refactor; investigation done, design locked)* | `s4-app-bootstrap-single-entry-point.md` |
 | ⬜ Backlog | Player Profile Store — Implementation | `s4-player-profile-store-impl.md` |
 | ⬜ Backlog | PostgreSQL Backup Routine (Profile Store) — off-box, daily *(needs: profile store schema; must be live before Paid Citizenship)* | `s4-postgres-backup-routine.md` |
+| ⬜ Backlog | Personal-Data Compliance (152-ФЗ): Roskomnadzor notification + consent flow *(investigation-first; interim-gates profile-store prod launch)* | `s4-personal-data-compliance-investigation.md` |
 | ⬜ Backlog | Yandex Payments — Catalog Fetch & Purchase Infrastructure | `s4-yandex-payments-impl.md` |
 | ⬜ Backlog | Citizenship Core — XP Counter & Progress UI *(blocked: start screen redesign impl)* | `s4-citizenship-xp-progress-ui.md` |
 | ⬜ Backlog | Citizenship Core — Earned Citizenship *(blocked: player profile store)* | `s4-citizenship-earned.md` |
@@ -197,6 +198,16 @@ backups must be live by the time Earned/Paid Citizenship ship. Locked with Mark 
 scope = profile store only; RPO ≈ 24h (daily); off-box destination = Reg.ru S3 (confirm in
 Part A). Closes the gap behind the Monitoring Phase 2 backup-health check (which assumed a
 weekly cron that was never created — corrected to daily here).
+
+---
+
+### Personal-Data Compliance (152-ФЗ) — Roskomnadzor Notification + Consent Flow
+**Type:** Investigation-first (legal consultation primary; engineering consent flow deferred to findings)
+**Experiments:** ❌ Excluded — legal/compliance obligation.
+**Brief:** `s4-personal-data-compliance-investigation.md`
+**Interim-gates:** Player Profile Store production launch → citizenship launch.
+
+Third, distinct legal track (separate from the cleared VAT gate and the in-progress IP/licensing track), flagged by the technical specialist 2026-06-13. Storing real users' Yandex IDs + display names in the profile store triggers 152-ФЗ obligations: **operator notification** to Roskomnadzor and a **user-consent flow** + privacy policy. Data residency (Art. 18.5) is already satisfied (Postgres on the RU game VPS). Locked with Mark 2026-06-13: scope it investigation-first — a Russian data-protection lawyer determines what notification/consent require, whether Yandex platform terms already cover identity-data consent, the minors angle, retention/deletion duties, and the true blocking relationship; the lawyer's findings set the final gate. **Interim stance until findings:** treat as gating the profile-store *production* go-live (don't persist real PII in prod before notification filed + consent live); dev/test with non-real data is fine. Profile store is still backlog, so **start the legal consultation now** to clear in parallel. Consent fields (given / version / timestamp) should feed the profile-store schema; deletion support interacts with the deferred S3 archival. Engineering consent-flow brief scoped from findings.
 
 ---
 

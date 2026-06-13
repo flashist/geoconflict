@@ -19,6 +19,50 @@ This task is complex and requires careful planning. The technical specialist sho
 
 ---
 
+## Infrastructure Decision (resolved 2026-06-13)
+
+The investigation (`ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`) recommended co-locating Postgres on the game-server VPS as a sibling container. **That recommendation is superseded.** The profile store and all non-game backend logic run on a **dedicated reg.ru VPS, separate from the game servers**, for failure-domain isolation:
+
+- A profile-server outage must never stop matches — game servers are stateless turn relays and don't need the DB to run a match.
+- A game-server crash/OOM must never threaten profile data or paid entitlements.
+
+This isolation becomes critical once paid in-apps ship: profile data and backups are unrecoverable-loss-sensitive, while matches must stay playable independently of the profile backend.
+
+**Resolved shape:**
+
+- **New dedicated VPS on reg.ru (Russia).** All player data stays on Russian soil, so 152-FZ residency is satisfied (all existing game + telemetry VPS are already reg.ru/Moscow; the `Hetzner` comments in `setup.sh`/`update.sh` are stale and inaccurate).
+- **Public HTTPS API behind a subdomain: `api.geoconflict.ru`** → the profile VPS, with nginx TLS termination, mirroring the telemetry box (`telemetry.geoconflict.ru`). Yandex Games disallows calls to raw IPs, so the client must reach the API via this subdomain, never an IP.
+- **Postgres runs localhost-only on the profile VPS.** It is never exposed on the network; all access goes through the API service.
+- **API consumers:** (1) the **client** for profile reads + guest→authenticated migration (player-authenticated), (2) the **game server** for server-authoritative match-end XP crediting (service-authenticated internal endpoint), and later (3) admin/messaging tooling.
+- **Deploy pattern:** stand up the box by mirroring the telemetry deployment (`setup-telemetry.sh` + `build-deploy-telemetry.sh` + its own `docker-compose.yml`, with swap + Postgres memory caps baked in from the prior OOM lessons). Do not co-locate anything on the game VPS.
+
+**Legal note (tracked separately):** storing Yandex IDs + display names makes the project a personal-data operator under 152-FZ — a Roskomnadzor operator notification and a user-consent flow are required. Handled as a separate product/legal task, not in this implementation task.
+
+---
+
+## Decomposition (child tasks)
+
+This document is the **epic/overview**. The shared context above (Infrastructure Decision, Part B schema) plus the Parts and the Verification matrix below are the reference for all child slices. Implementation is split into 8 independently developable, verifiable, and shippable slices in `ai-agents/tasks/backlog/`:
+
+| # | Child task | Covers | Depends on |
+|---|---|---|---|
+| T1 | `s4-profile-01-schema-contract.md` | Shared `PlayerProfile` type + `migrateProfile()` (Part B JSON) | — |
+| T2 | `s4-profile-02-guest-localstorage.md` | Guest XP in localStorage (Part C) | T1 |
+| T3 | `s4-profile-03-yandex-identity.md` | Verified Yandex identity plumbing (Part A) | — |
+| T4 | `s4-profile-04-backend-infra.md` | Dedicated reg.ru VPS + API skeleton (Part D ops) | — |
+| T5 | `s4-profile-05-backend-db-api.md` | Migration + repository + API endpoints (Part D DB + Part E profile half) | T1, T4 |
+| T6 | `s4-profile-06-match-end-crediting.md` | Protocol ext + server-side crediting (Part E game half) | T3, T5 |
+| T7 | `s4-profile-07-guest-migration.md` | Guest→authenticated migration (Part F) | T2, T3, T5 |
+| T8 | `s4-profile-08-backups.md` | Profile DB backups (Part D step 7) | T4 |
+
+**Strict one-by-one order:** T1 → T2 → T3 → T4 → T5 → T6 → T7 → T8.
+
+**Parallel tracks (optional):** the client track (T1 → T2) and the backend track (T4 → T5) can run concurrently; T3 fits anywhere; **T6 converges them and is the production-verification gate** for the Citizenship Core UI task; T8 any time after T4, before paid citizenship ships.
+
+**Part G (guest locked-card UX)** is delivered in the **Citizenship Core UI** task, consuming T3's helpers — it is not a child slice here.
+
+---
+
 ## Part A — Add Verified Yandex Identity to the Join/Auth Path
 
 The game server currently only sees an internal `persistentID` (`src/server/jwt.ts`). It never receives or verifies a Yandex player ID. That must change before Yandex-keyed profiles are safe for paid entitlements.
@@ -151,27 +195,53 @@ localStorage clears on browser data wipe. This is an accepted tradeoff for v1 �
 
 ---
 
-## Part D — PostgreSQL Service Setup
+## Part D — Dedicated Profile/Backend Server (reg.ru)
 
-1. Add a `postgres` service to the game-server Docker Compose configuration. It should:
-   - Use `postgres:16-alpine`
-   - Persist data to a named volume (`postgres_data`)
-   - Expose only on `localhost`
-   - Start before the game server container
+Stand up a new reg.ru VPS for the profile store and API. Mirror the telemetry box's deployment pattern — do not invent a parallel approach, and do not co-locate on the game VPS.
 
-2. Add `DATABASE_URL` to the environment config following the existing `GAME_ENV` pattern in `src/core/configuration/`. Do not commit real credentials.
+1. **Provision the VPS** (reg.ru, Russia) following the `setup-telemetry.sh` pattern: Docker, a swapfile (the prior telemetry OOM was a low-RAM reg.ru box — size RAM for Postgres + API + OS and add swap), a firewall, and nginx with Let's Encrypt TLS for `api.geoconflict.ru`. Point the `api.geoconflict.ru` DNS A-record at this VPS.
 
-3. Create an initial migration file (`migrations/001_player_profiles.sql`) with the tables from Part B.
+2. **`docker-compose.yml` on the profile box** with:
+   - `postgres:16-alpine`, data on a named volume (`postgres_data`), **bound to `127.0.0.1` only** — never published on a public interface.
+   - the **profile API service** (Node) — see Part E.
+   - nginx terminating TLS for `api.geoconflict.ru` and reverse-proxying to the API service.
+   Apply conservative Postgres memory settings (small `shared_buffers`, small `work_mem`, a small fixed connection pool) so the box cannot OOM.
+
+3. **Profile-server code lives in this monorepo** under a new directory (e.g. `src/profile-server/`), built into its own Docker image via a `build-deploy-profile.sh` that mirrors `build-deploy-telemetry.sh`. Keeping it in-repo lets the versioned `PlayerProfile` type, the `migrateProfile()` pure function, and the relevant Zod schemas be shared across client, game server, and profile server.
+
+4. **Config / secrets:**
+   - Add `PROFILE_API_URL` (e.g. `https://api.geoconflict.ru`) to the env config following the existing `GAME_ENV` + layered `.env.secret` pattern, exposed to the client via `/api/env` so it calls the right host per environment.
+   - Add `DATABASE_URL` **on the profile box only** — game servers never receive DB credentials. Do not commit real credentials.
+   - Add a service-to-service secret (e.g. `PROFILE_INTERNAL_TOKEN`) shared by the game server and the profile API to authenticate internal crediting calls.
+
+5. **Initial migration** `migrations/001_player_profiles.sql` (the `migrations/` dir already exists, empty) with the tables from Part B. Run migrations on the profile box at deploy time.
+
+6. **Network posture:** the API is public over TLS (the client needs it via the subdomain), but the **internal crediting endpoints must be additionally protected** by the service secret and IP-allowlisted to the game-server VPS. Optionally tighten game↔profile traffic with a WireGuard tunnel; latency is irrelevant (both boxes are intra-Moscow) — this is purely integrity.
+
+7. **Backups:** nightly `pg_dump` (plus WAL archiving if PITR is wanted before paid ships) to reg.ru S3-compatible storage. Backups are a prerequisite for paid citizenship — lost profiles/entitlements are unrecoverable.
 
 ---
 
-## Part E — Repository Layer and Match-End XP Crediting
+## Part E — Repository Layer, Profile API, and Match-End XP Crediting
 
-Create `src/server/PlayerProfileRepository.ts`. Minimum interface for Sprint 4:
+The DB-touching repository lives on the **profile server**; the game server reaches it over HTTP. Do not give the game server direct Postgres access.
+
+### On the profile server
+
+Create `PlayerProfileRepository` (direct Postgres, in `src/profile-server/`). Minimum interface for Sprint 4:
 
 - `upsertProfile(yandexPlayerId: string, persistentId: string): Promise<void>` — creates a profile on first authenticated join; updates `persistent_id` linkage if it changes.
-- `creditMatchXp(gameId: string, yandexPlayerId: string, xpAwarded: number): Promise<void>` — inserts into `player_match_xp_credits` and increments `xp` in `player_profiles` atomically. Idempotent: if `(game_id, yandex_player_id)` already exists, do nothing.
+- `creditMatchXp(gameId: string, yandexPlayerId: string, xpAwarded: number): Promise<void>` — inserts into `player_match_xp_credits` and increments `xp` in `player_profiles` **atomically, in one transaction**. Idempotent: if `(game_id, yandex_player_id)` already exists, do nothing.
 - `getProfile(yandexPlayerId: string): Promise<PlayerProfile | null>`
+
+Expose these through the profile API:
+
+- **Client-facing (player-authenticated):** `GET /v1/profile` (read), `POST /v1/profile/migrate` (guest→authenticated upload — see Part F).
+- **Internal (service-authenticated via `PROFILE_INTERNAL_TOKEN`, IP-allowlisted to the game server):** `POST /internal/v1/credit` accepting a batch of `{ gameId, yandexPlayerId, xpAwarded }` and performing idempotent crediting.
+
+### On the game server
+
+Create `src/server/ProfileApiClient.ts` — a thin HTTP client to `PROFILE_API_URL` that calls the internal crediting endpoint. **Crediting is fail-soft:** it must never block or delay `GameServer` match-end cleanup, and a profile-server outage must not error the match. Fire-and-forget with bounded at-least-once retry; idempotency on `(game_id, yandex_player_id)` makes retries safe.
 
 ### Protocol extension for match-end state
 
@@ -188,13 +258,13 @@ playerParticipation: z.array(z.object({
 
 On the client, populate this before sending the winner message.
 
-On the server in `GameServer.endTurn()`, for each client with a `yandexPlayerId`, credit 10 XP via `PlayerProfileRepository.creditMatchXp()` only if:
+On the server in `GameServer` match-end handling (`handleWinner()`), for each client with a `yandexPlayerId`, credit 10 XP via `ProfileApiClient` only if:
 - `hasSpawned === true`
 - Player did not voluntarily leave
 - Player was not disconnected at end without returning
 - `isAliveAtEnd === true` OR `killedAt` is set
 
-Use `Promise.all()` for concurrent credits — do not await serially.
+Crediting must be server-authoritative — never trust the client to credit itself. Batch the qualifying players into one internal API call (or `Promise.all()` the calls) — do not await serially, and never block the match loop.
 
 ---
 
@@ -203,9 +273,9 @@ Use `Promise.all()` for concurrent credits — do not await serially.
 When a guest player authenticates with Yandex for the first time in a session:
 
 1. Call `getYandexUniqueId()` to get their Yandex player ID.
-2. Call `PlayerProfileRepository.getProfile(yandexPlayerId)`.
+2. Call the profile API `GET /v1/profile` for that Yandex player ID.
 3. **If a server-side profile exists:** use it. Discard the localStorage profile — do not merge. Update the local state from the server profile.
-4. **If no server-side profile exists:** read the localStorage profile, POST it to the server, create a new `player_profiles` row from the local data (preserving accumulated XP). Clear the localStorage profile after successful server write.
+4. **If no server-side profile exists:** read the localStorage profile and `POST /v1/profile/migrate` to the profile API, which creates a new `player_profiles` row from the local data (preserving accumulated XP). Clear the localStorage profile after the successful write. Note: guest XP comes from untrusted localStorage, so migration can carry fabricated XP — accepted for Sprint 4 (citizenship is *earned*/free here; paid flags never come from migration).
 
 This migration should happen at the point in `FlashistFacade` where Yandex authentication completes, before the UI reflects any profile state.
 
@@ -238,5 +308,5 @@ In the citizenship UI component (built in the Citizenship Core task), on mount c
 - Paid-citizenship server-side verification is in scope for the Yandex Payments task, not here.
 - The Citizenship Core UI task depends on this task being live. Do not start it until Part E is verified in production.
 - The technical specialist must document the JSONB vs rigid columns decision (Part B) before writing any migration code.
-- Do not expose the Postgres port publicly. Localhost-only from the game server process.
+- Do not expose the Postgres port publicly. Postgres is localhost-only on the **profile** VPS; the game server never connects to it directly — all access is through the profile API at `https://api.geoconflict.ru` (Yandex Games disallows raw-IP calls).
 - Rewarded ad XP doubling (2× per match) is Sprint 5 scope. The `xp_awarded` column in `player_match_xp_credits` is designed to support variable XP values when that ships.
