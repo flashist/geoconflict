@@ -380,10 +380,14 @@ if [ -n "$(docker compose ps -q postgres 2>/dev/null || true)" ]; then
 fi
 
 docker compose pull
-docker compose up -d --force-recreate
-# The live stack has now been replaced, so from here a rollback must recreate the
-# previous stack (restoring the config files alone is no longer enough).
+# Mark the live stack as touched BEFORE the destructive recreate. `docker compose up
+# --force-recreate` stops/recreates each service, so if it fails partway `set -e`
+# exits with the stack partially mutated; the EXIT rollback must then restore the
+# previous config AND recreate the previous stack. Setting this only on success would
+# skip that recreate and leave production partial/down. Placed after `pull` because a
+# pull failure never touches running containers (config-only restore, no restart).
 STACK_RECREATED=1
+docker compose up -d --force-recreate
 
 # T5: apply DB migrations here once they exist, e.g.:
 #   docker compose exec -T profile-api npm run migrate
