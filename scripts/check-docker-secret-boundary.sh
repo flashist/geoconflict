@@ -57,6 +57,24 @@ require_literal_line() {
 # why the original grep missed multi-source broad copies.
 scan_broad_copies() {
     awk '
+    # Normalize a COPY/ADD path the way Docker (filepath.Clean) does — enough to tell
+    # whether it resolves to the build-context root. Returns "." for context-root
+    # sources however they are spelled: ".", "./", "./.", "././", ".//.", "foo/..".
+    # A literal "== . || == ./" check (the previous form) missed every normalized
+    # variant, all of which still copy the whole context.
+    function clean_path(p,   n, parts, i, c, k, out, res) {
+        n = split(p, parts, "/"); k = 0
+        for (i = 1; i <= n; i++) {
+            c = parts[i]
+            if (c == "" || c == ".") continue
+            if (c == "..") { if (k > 0 && out[k] != "..") k--; else out[++k] = ".." }
+            else out[++k] = c
+        }
+        if (k == 0) return "."
+        res = out[1]
+        for (i = 2; i <= k; i++) res = res "/" out[i]
+        return res
+    }
     {
         start = FNR
         cur = $0
@@ -71,9 +89,9 @@ scan_broad_copies() {
             }
         }
         # Dockerfile instructions are case-INSENSITIVE (copy/Copy/COPY are equivalent),
-        # so parse an UPPERCASED working copy. Operands are only ever compared to "."
-        # and "./", which are case-invariant, so this is safe; the original (joined)
-        # line is printed in the error.
+        # so parse an UPPERCASED working copy. Source operands are only ever normalized
+        # by clean_path and compared to the context root; ".", "..", "/" are all
+        # case-invariant, so uppercasing is safe; the original (joined) line is printed.
         work = toupper(cur)
         sub(/^[[:space:]]+/, "", work)
         if (work !~ /^(COPY|ADD)[[:space:]]/) next
@@ -92,14 +110,15 @@ scan_broad_copies() {
                 elems[n] = substr(rest, RSTART + 1, RLENGTH - 2)
                 rest = substr(rest, RSTART + RLENGTH)
             }
+            # Flag any SOURCE (all but the last) that normalizes to the context root.
             for (i = 1; i < n; i++) {
-                if (elems[i] == "." || elems[i] == "./") bad = 1
+                if (clean_path(elems[i]) == ".") bad = 1
             }
         } else {
             # Shell form: whitespace-separated operands; the last is the destination.
             m = split(work, ops, /[[:space:]]+/)
             for (i = 1; i < m; i++) {
-                if (ops[i] == "." || ops[i] == "./") bad = 1
+                if (clean_path(ops[i]) == ".") bad = 1
             }
         }
         if (bad) {

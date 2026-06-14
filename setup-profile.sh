@@ -254,6 +254,30 @@ restore_previous_config() {
     return 0
 }
 
+# Atomic rollback: install the EXIT trap BEFORE the first destructive write below, so
+# an interruption or write failure at ANY point from here on (a truncated config
+# heredoc, the DB probe, the health gate, certbot, nginx, systemd, cron) auto-restores
+# the previous compose/env (+ nginx site) instead of leaving corrupted on-disk config
+# behind. Cleared only after the ENTIRE setup succeeds (DEPLOY_VALIDATED=1 at the end).
+DEPLOY_VALIDATED=0
+STACK_RECREATED=0
+rollback_deploy() {
+    [ "$DEPLOY_VALIDATED" = "1" ] && return 0
+    echo "⚠️  Deploy failed — rolling back to the previous known-good state..."
+    if [ -n "${SITE_BAK:-}" ] && [ -f "${SITE_BAK:-}" ]; then
+        mv -f "$SITE_BAK" /etc/nginx/sites-available/profile
+        systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
+    fi
+    if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
+        restore_previous_config
+        # Only recreate if we already replaced the live stack; before that the previous
+        # stack is still running, so restoring the config files is enough (and avoids an
+        # unnecessary restart of a stack the failed deploy never actually touched).
+        [ "$STACK_RECREATED" = "1" ] && docker compose up -d --force-recreate 2>/dev/null || true
+    fi
+}
+trap rollback_deploy EXIT
+
 ( umask 077; cat > "$PROFILE_DIR/profile.env" << EOF
 POSTGRES_USER=${POSTGRES_USER}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -355,27 +379,11 @@ if [ -n "$(docker compose ps -q postgres 2>/dev/null || true)" ]; then
     echo "✅ New credentials authenticate against the existing Postgres."
 fi
 
-# Atomic rollback: from here on, ANY failure (health gate, DB probe, certbot, nginx,
-# systemd, cron) restores the previous compose/env (+ nginx site) and recreates the
-# previous stack, so a failed deploy never leaves a half-applied live stack behind.
-# Cleared only after the ENTIRE setup succeeds (DEPLOY_VALIDATED=1 at the end).
-DEPLOY_VALIDATED=0
-rollback_deploy() {
-    [ "$DEPLOY_VALIDATED" = "1" ] && return 0
-    echo "⚠️  Deploy failed — rolling back to the previous known-good state..."
-    if [ -n "${SITE_BAK:-}" ] && [ -f "${SITE_BAK:-}" ]; then
-        mv -f "$SITE_BAK" /etc/nginx/sites-available/profile
-        systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
-    fi
-    if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
-        restore_previous_config
-        docker compose up -d --force-recreate 2>/dev/null || true
-    fi
-}
-trap rollback_deploy EXIT
-
 docker compose pull
 docker compose up -d --force-recreate
+# The live stack has now been replaced, so from here a rollback must recreate the
+# previous stack (restoring the config files alone is no longer enough).
+STACK_RECREATED=1
 
 # T5: apply DB migrations here once they exist, e.g.:
 #   docker compose exec -T profile-api npm run migrate

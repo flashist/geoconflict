@@ -86,6 +86,19 @@ describe("check-docker-secret-boundary.sh static checks", () => {
       "COPY pkg \\<newline>. /app (continuation, . not first)",
       "FROM node:24-slim\nCOPY pkg \\\n. /app",
     ],
+    // Normalized paths that resolve to the context root — Docker cleans these to `.`,
+    // so they copy the whole build context to a non-/usr/src/app destination, evading
+    // both a literal `.`/`./` check and the /usr/src/app runtime scan.
+    ["COPY ./. /app", "FROM node:24-slim\nCOPY ./. /app"],
+    ["COPY ././ /app", "FROM node:24-slim\nCOPY ././ /app"],
+    ["COPY .//. /app", "FROM node:24-slim\nCOPY .//. /app"],
+    ["COPY foo/.. /app (resolves to context root)", "FROM node:24-slim\nCOPY foo/.. /app"],
+    ["copy ./. /app (lowercase + normalized)", "FROM node:24-slim\ncopy ./. /app"],
+    ['COPY ["./.", "/app"] (JSON normalized)', 'FROM node:24-slim\nCOPY ["./.", "/app"]'],
+    [
+      'COPY ["pkg", "././", "/app/"] (JSON normalized, not first)',
+      'FROM node:24-slim\nCOPY ["pkg", "././", "/app/"]',
+    ],
   ])("rejects broad build-context copy: %s", (_label, dockerfile) => {
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
   });
@@ -109,6 +122,11 @@ describe("check-docker-secret-boundary.sh static checks", () => {
       "copy package*.json ./",
       // A continuation with a SPECIFIC source (not `.`/`./`) into a `./` dest is fine.
       "COPY package*.json \\\n./",
+      // Path normalization must not over-match: a specific source that merely CONTAINS
+      // `.`/`..` segments but does NOT resolve to the context root is fine.
+      "COPY ./src ./dest",
+      "COPY ./scripts/./foo.js /app/foo.js",
+      "COPY foo/../bar /app",
     ].join("\n");
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
   });
