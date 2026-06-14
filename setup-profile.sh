@@ -193,6 +193,8 @@ ufw status verbose
 # ── Directories ───────────────────────────────────────────────────────────────
 
 mkdir -p "$BACKUP_DIR"
+# Root-only: this dir holds the compose env_file + the persisted internal token.
+chmod 700 "$PROFILE_DIR"
 cd "$PROFILE_DIR"
 
 # ── Registry auth (optional) ──────────────────────────────────────────────────
@@ -202,9 +204,24 @@ if [ -n "${DOCKER_TOKEN:-}" ] && [ -n "${DOCKER_USERNAME:-}" ]; then
     echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
 fi
 
-# ── docker-compose.yml ────────────────────────────────────────────────────────
+# ── Secret env file + docker-compose.yml ──────────────────────────────────────
 # Two services: postgres (private) + the profile API. nginx is NOT a compose
 # service — it runs on the host (telemetry pattern) and terminates TLS.
+#
+# Credentials live in a root-only (0600) env_file referenced by compose, NOT
+# inlined in docker-compose.yml, so a local unprivileged account on the box
+# cannot read the DB password or the service token from the compose file.
+( umask 077; cat > "$PROFILE_DIR/profile.env" << EOF
+POSTGRES_USER=${POSTGRES_USER}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+POSTGRES_DB=${POSTGRES_DB}
+DATABASE_URL=${DATABASE_URL}
+PROFILE_INTERNAL_TOKEN=${PROFILE_INTERNAL_TOKEN}
+PROFILE_PORT=${PROFILE_PORT}
+EOF
+)
+chmod 600 "$PROFILE_DIR/profile.env"
+echo "Written: profile.env (0600)"
 
 cat > "$PROFILE_DIR/docker-compose.yml" << EOF
 services:
@@ -214,11 +231,11 @@ services:
     # Conservative memory caps for a low-RAM box (no auto-sizing). The swapfile
     # above is the host-level cushion; these keep Postgres itself bounded.
     command: postgres -c shared_buffers=128MB -c work_mem=4MB -c max_connections=25 -c maintenance_work_mem=64MB
+    # Secrets come from the 0600 profile.env (POSTGRES_USER/PASSWORD/DB) — never inlined.
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
-      POSTGRES_USER: "${POSTGRES_USER}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-      POSTGRES_DB: "${POSTGRES_DB}"
+    env_file:
+      - ./profile.env
     # Bound to loopback only — reachable on the box (psql 127.0.0.1) but never public.
     ports:
       - "127.0.0.1:5432:5432"
@@ -233,10 +250,9 @@ services:
   profile-api:
     image: ${PROFILE_IMAGE}
     restart: on-failure
-    environment:
-      PROFILE_PORT: "${PROFILE_PORT}"
-      DATABASE_URL: "${DATABASE_URL}"
-      PROFILE_INTERNAL_TOKEN: "${PROFILE_INTERNAL_TOKEN}"
+    # DATABASE_URL + PROFILE_INTERNAL_TOKEN + PROFILE_PORT come from the 0600 profile.env.
+    env_file:
+      - ./profile.env
     # Bound to loopback only — host nginx proxies 443 -> 127.0.0.1:${PROFILE_PORT}.
     ports:
       - "127.0.0.1:${PROFILE_PORT}:${PROFILE_PORT}"
@@ -253,7 +269,8 @@ volumes:
   postgres_data:
 EOF
 
-echo "Written: docker-compose.yml"
+chmod 600 "$PROFILE_DIR/docker-compose.yml"
+echo "Written: docker-compose.yml (0600)"
 
 # ── Start services ────────────────────────────────────────────────────────────
 

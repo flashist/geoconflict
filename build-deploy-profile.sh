@@ -170,29 +170,44 @@ echo "Uploaded to ${REMOTE_SCRIPT}"
 
 print_header "RUNNING SETUP ON REMOTE SERVER"
 
-# Write secrets to a temp file and copy via SCP, rather than inlining them in the
-# SSH command, which would expose them in ps aux / /proc/<pid>/cmdline on the box.
-LOCAL_TMPENV=$(mktemp)
-chmod 600 "$LOCAL_TMPENV"
-cat > "$LOCAL_TMPENV" << EOF
-export PROFILE_IMAGE='${PROFILE_IMAGE}'
-export PROFILE_SERVER_HOST='${PROFILE_SERVER_HOST}'
-export PROFILE_DOMAIN='${PROFILE_DOMAIN:-}'
-export PROFILE_PORT='${PROFILE_PORT:-8080}'
-export PROFILE_SWAP_SIZE_GB='${PROFILE_SWAP_SIZE_GB:-4}'
-export POSTGRES_USER='${POSTGRES_USER:-profile}'
-export POSTGRES_DB='${POSTGRES_DB:-profile}'
-export POSTGRES_PASSWORD='${POSTGRES_PASSWORD}'
-export DATABASE_URL='${DATABASE_URL:-}'
-export PROFILE_INTERNAL_TOKEN='${PROFILE_INTERNAL_TOKEN:-}'
-export PROFILE_INTERNAL_ALLOW_IPS='${PROFILE_INTERNAL_ALLOW_IPS:-}'
-export CERTBOT_EMAIL='${CERTBOT_EMAIL:-ruflashist@gmail.com}'
-export DOCKER_USERNAME='${DOCKER_USERNAME:-}'
-export DOCKER_TOKEN='${DOCKER_TOKEN:-}'
-EOF
+# Stage secrets in a local temp file and SCP it, rather than inlining them in the
+# SSH command (which would expose them in ps aux / /proc/<pid>/cmdline on the box).
+# Clean up BOTH the local and the remote staging file on ANY exit — interrupted
+# scp, a failed source, or Ctrl-C — so credentials never linger anywhere.
 REMOTE_ENV="/root/.profile-deploy-env-$$"
+LOCAL_TMPENV=$(mktemp)
+REMOTE_ENV_STAGED=0
+cleanup_secrets() {
+    rm -f "$LOCAL_TMPENV"
+    if [ "$REMOTE_ENV_STAGED" = "1" ]; then
+        # Best-effort; ignore errors (the host may be unreachable on a failure path).
+        "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
+    fi
+}
+trap cleanup_secrets EXIT INT TERM
+chmod 600 "$LOCAL_TMPENV"
+
+# printf %q emits shell-safe, re-sourceable values — robust to passwords/tokens
+# containing quotes, spaces, or other special characters.
+{
+    printf "export PROFILE_IMAGE=%q\n" "$PROFILE_IMAGE"
+    printf "export PROFILE_SERVER_HOST=%q\n" "$PROFILE_SERVER_HOST"
+    printf "export PROFILE_DOMAIN=%q\n" "${PROFILE_DOMAIN:-}"
+    printf "export PROFILE_PORT=%q\n" "${PROFILE_PORT:-8080}"
+    printf "export PROFILE_SWAP_SIZE_GB=%q\n" "${PROFILE_SWAP_SIZE_GB:-4}"
+    printf "export POSTGRES_USER=%q\n" "${POSTGRES_USER:-profile}"
+    printf "export POSTGRES_DB=%q\n" "${POSTGRES_DB:-profile}"
+    printf "export POSTGRES_PASSWORD=%q\n" "$POSTGRES_PASSWORD"
+    printf "export DATABASE_URL=%q\n" "${DATABASE_URL:-}"
+    printf "export PROFILE_INTERNAL_TOKEN=%q\n" "${PROFILE_INTERNAL_TOKEN:-}"
+    printf "export PROFILE_INTERNAL_ALLOW_IPS=%q\n" "${PROFILE_INTERNAL_ALLOW_IPS:-}"
+    printf "export CERTBOT_EMAIL=%q\n" "${CERTBOT_EMAIL:-ruflashist@gmail.com}"
+    printf "export DOCKER_USERNAME=%q\n" "${DOCKER_USERNAME:-}"
+    printf "export DOCKER_TOKEN=%q\n" "${DOCKER_TOKEN:-}"
+} > "$LOCAL_TMPENV"
+
+REMOTE_ENV_STAGED=1
 "${SCP_CMD[@]}" "$LOCAL_TMPENV" "${REMOTE_USER}@${PROFILE_SERVER_HOST}:${REMOTE_ENV}"
-rm -f "$LOCAL_TMPENV"
 
 "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" \
     "chmod 600 ${REMOTE_ENV} && \
@@ -200,6 +215,8 @@ rm -f "$LOCAL_TMPENV"
     . ${REMOTE_ENV} && \
     rm -f ${REMOTE_ENV} && \
     ${REMOTE_SCRIPT}"
+# Happy path: the remote file is already gone, so skip the trap's remote cleanup.
+REMOTE_ENV_STAGED=0
 
 print_header "DONE"
 echo "Profile backend setup completed on ${PROFILE_SERVER_HOST}."
