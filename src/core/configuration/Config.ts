@@ -54,6 +54,7 @@ export interface ServerConfig {
   otelAuthHeader(): string;
   otelEnabled(): boolean;
   apiBaseUrl(): string;
+  profileApiUrl(): string;
   jwtAudience(): string;
   jwtIssuer(): string;
   jwkPublicKey(): Promise<JWK>;
