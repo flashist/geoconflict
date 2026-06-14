@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DOCKERFILE="$ROOT_DIR/Dockerfile"
+DOCKERFILE_PROFILE="$ROOT_DIR/Dockerfile.profile"
 DOCKERIGNORE="$ROOT_DIR/.dockerignore"
 RUNTIME_IMAGE_CHECK=false
 TEMP_IMAGE_TAG="geoconflict-secret-boundary-check:$(date +%s)-$$"
@@ -32,10 +33,13 @@ require_literal_line() {
 
 echo "Checking Docker secret boundary..."
 
-if grep -nE '^[[:space:]]*(COPY|ADD)([[:space:]]+--from=[^[:space:]]+)?[[:space:]]+(\./?|\.)[[:space:]]+(\./?|\.)[[:space:]]*$' "$DOCKERFILE"; then
-    echo "Error: Dockerfile contains a broad repo copy. Use explicit allowlist copies instead."
-    exit 1
-fi
+for df in "$DOCKERFILE" "$DOCKERFILE_PROFILE"; do
+    [ -f "$df" ] || continue
+    if grep -nE '^[[:space:]]*(COPY|ADD)([[:space:]]+--from=[^[:space:]]+)?[[:space:]]+(\./?|\.)[[:space:]]+(\./?|\.)[[:space:]]*$' "$df"; then
+        echo "Error: $df contains a broad repo copy. Use explicit allowlist copies instead."
+        exit 1
+    fi
+done
 
 require_literal_line ".env"
 require_literal_line ".env.*"
