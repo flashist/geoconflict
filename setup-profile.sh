@@ -291,25 +291,54 @@ docker compose up -d --force-recreate
 # T5: apply DB migrations here once they exist, e.g.:
 #   docker compose exec -T profile-api npm run migrate
 
-echo "Waiting for all services to become healthy..."
+# Positively assert every expected service is running and (where a healthcheck is
+# defined) healthy. A string-grep of `docker compose ps` is a NEGATIVE check that can
+# pass on Created/Dead/Paused states, a missing service, or a compose-command error;
+# inspect each service explicitly instead.
+EXPECTED_SERVICES="postgres profile-api"
+
+service_running_healthy() {
+    local svc cid status health
+    svc="$1"
+    cid=$(docker compose ps -q "$svc" 2>/dev/null) || return 1
+    [ -n "$cid" ] || return 1
+    status=$(docker inspect --format '{{.State.Status}}' "$cid" 2>/dev/null) || return 1
+    [ "$status" = "running" ] || return 1
+    # "none" => no healthcheck declared; otherwise the service must be "healthy".
+    health=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$cid" 2>/dev/null) || return 1
+    case "$health" in
+        healthy|none) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+all_services_running_healthy() {
+    local svc
+    for svc in $EXPECTED_SERVICES; do
+        service_running_healthy "$svc" || return 1
+    done
+    return 0
+}
+
+echo "Waiting for all services to be running and healthy..."
 TIMEOUT=120
 ELAPSED=0
 while [ $ELAPSED -lt $TIMEOUT ]; do
-    if ! docker compose ps | grep -qE "starting|unhealthy"; then
+    if all_services_running_healthy; then
         break
     fi
     sleep 3
     ELAPSED=$((ELAPSED + 3))
 done
 
-# Fail hard if anything is exited/unhealthy/still-starting (timed out). The game
-# server will depend on this box, so a broken stack must stop the deploy here —
+# Fail hard unless EVERY expected service is running and healthy. The game server
+# will depend on this box, so a broken/missing stack must stop the deploy here —
 # before nginx is pointed at a dead upstream and before we report success. If a
 # previous image was running, roll back to it so a bad deploy does not leave the
 # public profile API down.
-if docker compose ps | grep -E "(Exit|unhealthy|starting)" > /dev/null 2>&1; then
-    echo "❌ One or more containers did not become healthy:"
-    docker compose ps
+if ! all_services_running_healthy; then
+    echo "❌ Not all services are running and healthy:"
+    docker compose ps || true
     echo "----- recent logs (last 50 lines) -----"
     docker compose logs --tail=50 || true
     if [ -n "$PREV_PROFILE_IMAGE" ] && [ "$PREV_PROFILE_IMAGE" != "$PROFILE_IMAGE" ]; then
@@ -321,7 +350,7 @@ if docker compose ps | grep -E "(Exit|unhealthy|starting)" > /dev/null 2>&1; the
     echo "Aborting before nginx configuration. Fix the image and re-run."
     exit 1
 fi
-echo "✅ All containers running:"
+echo "✅ All services running and healthy:"
 docker compose ps
 
 # ── HTTPS via nginx + Let's Encrypt ──────────────────────────────────────────

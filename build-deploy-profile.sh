@@ -87,8 +87,18 @@ fi
 VERSION_TAG=$(git rev-parse --short HEAD 2>/dev/null || node -p "require('./package.json').version")
 PROFILE_IMAGE="${DOCKER_USERNAME}/${DOCKER_REPO}:profile-${VERSION_TAG}"
 
+# Enforce the Docker secret-boundary gate BEFORE building — same as the game path
+# (build.sh:110). A broad-copy regression in Dockerfile.profile must never package
+# local .env*/secret material into the image (the 2026-04-21 leak class).
+print_header "CHECKING DOCKER SECRET BOUNDARY"
+bash scripts/check-docker-secret-boundary.sh
+
 print_header "BUILDING PROFILE IMAGE: ${PROFILE_IMAGE}"
 docker build -f "$DOCKERFILE" -t "$PROFILE_IMAGE" .
+
+# Runtime inspection of the built image — fail if any .env*/secret file rode along.
+print_header "INSPECTING BUILT IMAGE FOR SECRETS"
+bash scripts/check-docker-secret-boundary.sh --inspect-image "$PROFILE_IMAGE"
 
 if [ -n "${DOCKER_TOKEN:-}" ]; then
     echo "Logging in to the container registry as ${DOCKER_USERNAME}..."
@@ -97,6 +107,39 @@ fi
 
 print_header "PUSHING PROFILE IMAGE"
 docker push "$PROFILE_IMAGE"
+
+# Resolve the immutable digest pushed to the registry. Per
+# docs/security/registry-image-policy.md the digest — not the mutable tag — is the
+# production trust anchor; the box deploys AND rolls back by digest. Fail closed if
+# we cannot resolve it: an unverifiable image must not reach a box that holds
+# profile data + service secrets.
+PROFILE_DIGEST=$(docker inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$PROFILE_IMAGE" \
+    | grep "^${DOCKER_USERNAME}/${DOCKER_REPO}@sha256:" | head -1 || true)
+if [ -z "$PROFILE_DIGEST" ]; then
+    echo "Error: could not resolve the pushed image digest for ${PROFILE_IMAGE}."
+    echo "Refusing to deploy by mutable tag (registry-image-policy.md requires a digest)."
+    exit 1
+fi
+echo "Resolved digest: ${PROFILE_DIGEST}"
+
+# Deploy by digest, not the tag. The box bakes this ref into compose, so its
+# rollback capture (.Config.Image) is a digest too.
+PROFILE_DEPLOY_REF="$PROFILE_DIGEST"
+
+# Minimum deploy record (registry-image-policy.md §Minimum Deploy Record): durable +
+# private, appended to a gitignored local file (never committed).
+DEPLOY_RECORD=".profile-deploy-record"
+{
+    echo "----"
+    echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "env=profile"
+    echo "host=${PROFILE_SERVER_HOST}"
+    echo "tag=${PROFILE_IMAGE}"
+    echo "digest=${PROFILE_DIGEST}"
+    echo "commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+    echo "operator=$(whoami 2>/dev/null || echo unknown)"
+} | tee -a "$DEPLOY_RECORD"
+echo "Deploy record appended to ${DEPLOY_RECORD} (gitignored)."
 
 # ── Resolve SSH user + auth ───────────────────────────────────────────────────
 
@@ -156,7 +199,8 @@ REMOTE_SCRIPT="/root/setup-profile.sh"
 print_header "DEPLOYING PROFILE BACKEND TO ${PROFILE_SERVER_HOST}"
 echo "Remote user:   ${REMOTE_USER}"
 echo "Remote host:   ${PROFILE_SERVER_HOST}"
-echo "Image:         ${PROFILE_IMAGE}"
+echo "Image (tag):   ${PROFILE_IMAGE}"
+echo "Deploy ref:    ${PROFILE_DEPLOY_REF}"
 echo ""
 
 # ── Upload setup script ───────────────────────────────────────────────────────
@@ -190,7 +234,7 @@ chmod 600 "$LOCAL_TMPENV"
 # printf %q emits shell-safe, re-sourceable values — robust to passwords/tokens
 # containing quotes, spaces, or other special characters.
 {
-    printf "export PROFILE_IMAGE=%q\n" "$PROFILE_IMAGE"
+    printf "export PROFILE_IMAGE=%q\n" "$PROFILE_DEPLOY_REF"
     printf "export PROFILE_SERVER_HOST=%q\n" "$PROFILE_SERVER_HOST"
     printf "export PROFILE_DOMAIN=%q\n" "${PROFILE_DOMAIN:-}"
     printf "export PROFILE_PORT=%q\n" "${PROFILE_PORT:-8080}"

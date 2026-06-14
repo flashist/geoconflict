@@ -16,10 +16,19 @@ cleanup() {
 }
 trap cleanup EXIT
 
+INSPECT_IMAGE=""
 if [ "${1:-}" = "--runtime-image-check" ]; then
     RUNTIME_IMAGE_CHECK=true
+elif [ "${1:-}" = "--inspect-image" ]; then
+    # Inspect an already-built image (e.g. the profile image) for env/secret files,
+    # without building anything here. Static checks below still run first.
+    INSPECT_IMAGE="${2:-}"
+    if [ -z "$INSPECT_IMAGE" ]; then
+        echo "Usage: $0 --inspect-image <image-tag>"
+        exit 1
+    fi
 elif [ "${1:-}" != "" ]; then
-    echo "Usage: $0 [--runtime-image-check]"
+    echo "Usage: $0 [--runtime-image-check | --inspect-image <image-tag>]"
     exit 1
 fi
 
@@ -67,6 +76,21 @@ if [ "$RUNTIME_IMAGE_CHECK" = true ]; then
     fi
 
     echo "Runtime image secret inspection passed."
+fi
+
+if [ -n "$INSPECT_IMAGE" ]; then
+    if ! command -v docker >/dev/null 2>&1; then
+        echo "Error: docker is required for --inspect-image."
+        exit 1
+    fi
+
+    echo "Inspecting image $INSPECT_IMAGE for env and secret files..."
+    if docker run --rm "$INSPECT_IMAGE" /bin/sh -lc 'find /usr/src/app -maxdepth 4 \( -name ".env*" -o -name "*.secret" \) -print | sort' | grep -q .; then
+        echo "Error: image $INSPECT_IMAGE contains env or secret files."
+        exit 1
+    fi
+
+    echo "Image secret inspection passed."
 fi
 
 echo "Docker secret boundary check passed."
