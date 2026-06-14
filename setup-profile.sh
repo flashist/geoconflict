@@ -319,14 +319,33 @@ echo "Written: docker-compose.yml (0600)"
 
 print_header "STARTING PROFILE SERVICES"
 
+# Probe whether the deploy's POSTGRES_PASSWORD authenticates against the running
+# Postgres, WITHOUT putting the secret in any process argv. Passing a
+# password-bearing DATABASE_URL (or `-e PGPASSWORD=...`) to `docker compose exec`
+# would place the secret in the HOST docker process argv AND the container psql argv
+# (visible to `ps`, /proc/<pid>/cmdline, execve auditing, and process collectors) —
+# undercutting the 0600 root-only env-file boundary. Instead the password is piped
+# via stdin and read into PGPASSWORD inside the container; only the non-secret
+# user/db are passed as args. `printf` is a bash builtin, so the password is never in
+# a forked process's argv here either. We inject the SCRIPT's $POSTGRES_PASSWORD (the
+# value being deployed) rather than the container's own env var, because pre-recreate
+# the running container still holds the OLD password — testing that would defeat the
+# drift detection. `-h postgres` forces TCP, so this is a real password auth, not the
+# local trust socket.
+probe_db_credentials() {
+    printf '%s\n' "$POSTGRES_PASSWORD" | docker compose exec -T postgres \
+        sh -c 'IFS= read -r PGPASSWORD; export PGPASSWORD; exec psql -h postgres -U "$1" -d "$2" -tAc "select 1"' \
+        _ "$POSTGRES_USER" "$POSTGRES_DB" >/dev/null 2>&1
+}
+
 # Pre-recreate credential check: on a redeploy (postgres already running), confirm the
-# NEW DATABASE_URL authenticates against the EXISTING volume BEFORE we recreate the live
+# NEW password authenticates against the EXISTING volume BEFORE we recreate the live
 # API. postgres only honors POSTGRES_PASSWORD on first init, so a changed password
 # against an existing postgres_data volume would otherwise replace a working API with a
 # DB-broken one. Abort + restore here, leaving the running stack untouched.
 if [ -n "$(docker compose ps -q postgres 2>/dev/null || true)" ]; then
     echo "Existing stack detected — verifying new credentials against the running Postgres..."
-    if ! docker compose exec -T postgres psql "$DATABASE_URL" -tAc 'select 1' >/dev/null 2>&1; then
+    if ! probe_db_credentials; then
         echo "❌ New DATABASE_URL does not authenticate against the existing Postgres volume."
         echo "   POSTGRES_PASSWORD likely changed but the volume keeps the original password."
         echo "   Restoring previous config and aborting WITHOUT touching the live stack."
@@ -421,10 +440,11 @@ docker compose ps
 # dependency-free. In particular, postgres:16-alpine applies POSTGRES_PASSWORD only
 # on FIRST init — against a pre-existing postgres_data volume a changed password is
 # silently ignored, so the API's DATABASE_URL would fail auth while the gate passes.
-# Probe with the exact DATABASE_URL (TCP to host 'postgres' => real password auth).
-echo "Verifying Postgres accepts the configured credentials (DATABASE_URL)..."
-if ! docker compose exec -T postgres psql "$DATABASE_URL" -tAc 'select 1' >/dev/null 2>&1; then
-    echo "❌ Postgres did not accept the configured credentials (DATABASE_URL)."
+# probe_db_credentials does a real TCP password auth without exposing the secret in
+# any process argv.
+echo "Verifying Postgres accepts the configured credentials..."
+if ! probe_db_credentials; then
+    echo "❌ Postgres did not accept the configured credentials."
     echo "   pg_isready can pass while POSTGRES_PASSWORD / DATABASE_URL drift from an"
     echo "   existing postgres_data volume. Reconcile the password (or reset the volume), then re-run."
     docker compose logs --tail=50 postgres || true
