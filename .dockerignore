@@ -2,6 +2,7 @@
 .gitignore
 .env
 .env.*
+*.secret
 example.env
 example.env.telemetry
 example.env.profile

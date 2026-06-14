@@ -211,6 +211,22 @@ fi
 # Credentials live in a root-only (0600) env_file referenced by compose, NOT
 # inlined in docker-compose.yml, so a local unprivileged account on the box
 # cannot read the DB password or the service token from the compose file.
+#
+# Back up the existing config (redeploy only) so a failed deploy can be restored to
+# the previous known-good state instead of leaving a broken API live. Removed on
+# success at the end of validation.
+PROFILE_ENV_BAK="$PROFILE_DIR/profile.env.predeploy.bak"
+COMPOSE_BAK="$PROFILE_DIR/docker-compose.yml.predeploy.bak"
+[ -f "$PROFILE_DIR/profile.env" ] && cp -f "$PROFILE_DIR/profile.env" "$PROFILE_ENV_BAK"
+[ -f "$PROFILE_DIR/docker-compose.yml" ] && cp -f "$PROFILE_DIR/docker-compose.yml" "$COMPOSE_BAK"
+
+restore_previous_config() {
+    # Restore the pre-deploy config files (when backups exist). Callers decide whether
+    # to also recreate containers.
+    [ -f "$PROFILE_ENV_BAK" ] && mv -f "$PROFILE_ENV_BAK" "$PROFILE_DIR/profile.env"
+    [ -f "$COMPOSE_BAK" ] && mv -f "$COMPOSE_BAK" "$PROFILE_DIR/docker-compose.yml"
+}
+
 ( umask 077; cat > "$PROFILE_DIR/profile.env" << EOF
 POSTGRES_USER=${POSTGRES_USER}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -276,13 +292,21 @@ echo "Written: docker-compose.yml (0600)"
 
 print_header "STARTING PROFILE SERVICES"
 
-# Capture the currently-running profile-api image (if any) so we can roll back to
-# the last known-good one if the new image fails its healthcheck. Empty on a fresh
-# box — nothing to roll back to.
-PREV_PROFILE_IMAGE=""
-PREV_PROFILE_CID=$(docker compose ps -q profile-api 2>/dev/null || true)
-if [ -n "$PREV_PROFILE_CID" ]; then
-    PREV_PROFILE_IMAGE=$(docker inspect --format '{{.Config.Image}}' "$PREV_PROFILE_CID" 2>/dev/null || true)
+# Pre-recreate credential check: on a redeploy (postgres already running), confirm the
+# NEW DATABASE_URL authenticates against the EXISTING volume BEFORE we recreate the live
+# API. postgres only honors POSTGRES_PASSWORD on first init, so a changed password
+# against an existing postgres_data volume would otherwise replace a working API with a
+# DB-broken one. Abort + restore here, leaving the running stack untouched.
+if [ -n "$(docker compose ps -q postgres 2>/dev/null || true)" ]; then
+    echo "Existing stack detected — verifying new credentials against the running Postgres..."
+    if ! docker compose exec -T postgres psql "$DATABASE_URL" -tAc 'select 1' >/dev/null 2>&1; then
+        echo "❌ New DATABASE_URL does not authenticate against the existing Postgres volume."
+        echo "   POSTGRES_PASSWORD likely changed but the volume keeps the original password."
+        echo "   Restoring previous config and aborting WITHOUT touching the live stack."
+        restore_previous_config
+        exit 1
+    fi
+    echo "✅ New credentials authenticate against the existing Postgres."
 fi
 
 docker compose pull
@@ -341,13 +365,13 @@ if ! all_services_running_healthy; then
     docker compose ps || true
     echo "----- recent logs (last 50 lines) -----"
     docker compose logs --tail=50 || true
-    if [ -n "$PREV_PROFILE_IMAGE" ] && [ "$PREV_PROFILE_IMAGE" != "$PROFILE_IMAGE" ]; then
-        echo "Rolling back profile-api to last known-good image: $PREV_PROFILE_IMAGE"
-        sed -i "s|image: ${PROFILE_IMAGE}|image: ${PREV_PROFILE_IMAGE}|" "$PROFILE_DIR/docker-compose.yml"
-        docker compose up -d --force-recreate profile-api || true
+    if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
+        echo "Rolling back to the previous known-good config + image..."
+        restore_previous_config
+        docker compose up -d --force-recreate || true
         docker compose ps || true
     fi
-    echo "Aborting before nginx configuration. Fix the image and re-run."
+    echo "Aborting before nginx configuration. Fix the deploy and re-run."
     exit 1
 fi
 echo "✅ All services running and healthy:"
@@ -363,12 +387,21 @@ echo "Verifying Postgres accepts the configured credentials (DATABASE_URL)..."
 if ! docker compose exec -T postgres psql "$DATABASE_URL" -tAc 'select 1' >/dev/null 2>&1; then
     echo "❌ Postgres did not accept the configured credentials (DATABASE_URL)."
     echo "   pg_isready can pass while POSTGRES_PASSWORD / DATABASE_URL drift from an"
-    echo "   existing postgres_data volume. Reconcile the password (or reset the volume),"
-    echo "   then re-run. Not rolling back the image — this is a credential/volume issue."
+    echo "   existing postgres_data volume."
     docker compose logs --tail=50 postgres || true
+    if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
+        echo "Restoring previous known-good config + recreating..."
+        restore_previous_config
+        docker compose up -d --force-recreate || true
+    fi
+    echo "Reconcile the password (or reset the volume), then re-run."
     exit 1
 fi
 echo "✅ Postgres credential check passed."
+
+# Deploy validated (services healthy + DB credentials usable) — drop the pre-deploy
+# rollback backups so a later unrelated failure can't restore stale config.
+rm -f "$PROFILE_ENV_BAK" "$COMPOSE_BAK"
 
 # ── HTTPS via nginx + Let's Encrypt ──────────────────────────────────────────
 

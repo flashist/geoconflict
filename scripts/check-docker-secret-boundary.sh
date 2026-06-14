@@ -44,14 +44,20 @@ echo "Checking Docker secret boundary..."
 
 for df in "$DOCKERFILE" "$DOCKERFILE_PROFILE"; do
     [ -f "$df" ] || continue
-    if grep -nE '^[[:space:]]*(COPY|ADD)([[:space:]]+--from=[^[:space:]]+)?[[:space:]]+(\./?|\.)[[:space:]]+(\./?|\.)[[:space:]]*$' "$df"; then
-        echo "Error: $df contains a broad repo copy. Use explicit allowlist copies instead."
+    # Reject any COPY/ADD whose SOURCE operand is `.` or `./` regardless of the
+    # destination (e.g. `COPY . /usr/src/app`, `ADD . /app`, `COPY --chown=x . .`) —
+    # all are the broad build-context copy class that caused the credential leak.
+    # Arbitrary `--flags` are allowed before the source; specific sources like
+    # `package*.json`, `src`, `./scripts/foo.js`, `.dockerignore` are not matched.
+    if grep -nE '^[[:space:]]*(COPY|ADD)([[:space:]]+--[^[:space:]]+)*[[:space:]]+(\.|\./)([[:space:]]|$)' "$df"; then
+        echo "Error: $df contains a broad repo copy (source '.'). Use explicit allowlist copies instead."
         exit 1
     fi
 done
 
 require_literal_line ".env"
 require_literal_line ".env.*"
+require_literal_line "*.secret"
 require_literal_line ".git"
 require_literal_line ".gitignore"
 
