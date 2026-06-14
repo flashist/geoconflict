@@ -59,11 +59,22 @@ CERTBOT_EMAIL="${CERTBOT_EMAIL:-ruflashist@gmail.com}"
 PROFILE_DOMAIN="${PROFILE_DOMAIN:-}"
 PROFILE_INTERNAL_ALLOW_IPS="${PROFILE_INTERNAL_ALLOW_IPS:-}"
 
-# Service-to-service token (shared with the game server in T6). Auto-generate so a
-# fresh box is never left with an empty token.
-if [ -z "${PROFILE_INTERNAL_TOKEN:-}" ]; then
+# Service-to-service token (shared with the game server in T6). It MUST stay stable
+# across redeploys — rotating it silently would break game-server crediting calls —
+# so an env value always wins, else we reuse a persisted token, else we generate one
+# and persist it (root-only). This keeps the script idempotent.
+PROFILE_TOKEN_FILE="$PROFILE_DIR/.internal_token"
+if [ -n "${PROFILE_INTERNAL_TOKEN:-}" ]; then
+    echo "Using PROFILE_INTERNAL_TOKEN from environment"
+elif [ -f "$PROFILE_TOKEN_FILE" ]; then
+    PROFILE_INTERNAL_TOKEN=$(cat "$PROFILE_TOKEN_FILE")
+    echo "Reusing persisted PROFILE_INTERNAL_TOKEN from $PROFILE_TOKEN_FILE"
+else
     PROFILE_INTERNAL_TOKEN=$(openssl rand -hex 32)
-    echo "Generated PROFILE_INTERNAL_TOKEN"
+    mkdir -p "$PROFILE_DIR"
+    ( umask 077; printf '%s' "$PROFILE_INTERNAL_TOKEN" > "$PROFILE_TOKEN_FILE" )
+    chmod 600 "$PROFILE_TOKEN_FILE"
+    echo "Generated and persisted PROFILE_INTERNAL_TOKEN to $PROFILE_TOKEN_FILE"
 fi
 
 # The API reaches Postgres over the compose network as host 'postgres'.
@@ -265,14 +276,19 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
     ELAPSED=$((ELAPSED + 3))
 done
 
-if docker compose ps | grep -E "(Exit|unhealthy)" > /dev/null 2>&1; then
-    echo "⚠️  One or more containers may have issues:"
+# Fail hard if anything is exited/unhealthy/still-starting (timed out). The game
+# server will depend on this box, so a broken stack must stop the deploy here —
+# before nginx is pointed at a dead upstream and before we report success.
+if docker compose ps | grep -E "(Exit|unhealthy|starting)" > /dev/null 2>&1; then
+    echo "❌ One or more containers did not become healthy:"
     docker compose ps
-    echo "Check logs: docker compose -f $PROFILE_DIR/docker-compose.yml logs"
-else
-    echo "✅ All containers running:"
-    docker compose ps
+    echo "----- recent logs (last 50 lines) -----"
+    docker compose logs --tail=50 || true
+    echo "Aborting before nginx configuration. Fix the stack and re-run."
+    exit 1
 fi
+echo "✅ All containers running:"
+docker compose ps
 
 # ── HTTPS via nginx + Let's Encrypt ──────────────────────────────────────────
 

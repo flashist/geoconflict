@@ -124,11 +124,13 @@ if [ -z "$SSH_KEY_PATH" ] && [ -z "$SSH_PASSWORD" ]; then
 fi
 
 # Build SSH/SCP command prefix.
-# StrictHostKeyChecking=no avoids interactive prompts in automated deploys.
-# Trade-off: won't detect a changed host key (e.g. after a VPS rebuild).
-# If the key changes, run: ssh-keygen -R <host> and verify the new fingerprint.
-SCP_CMD=(scp -o StrictHostKeyChecking=no)
-SSH_CMD=(ssh -o StrictHostKeyChecking=no)
+# StrictHostKeyChecking=accept-new: trust the host key on first connect (TOFU) but
+# REJECT a changed key — DNS/route interception or a rebuilt/stale VPS address — so
+# the profile box's prod DB password + service/registry tokens are never sent to an
+# impostor. (This box carries more sensitive secrets than the telemetry box.)
+# If the key legitimately changes, run: ssh-keygen -R <host>, re-verify, then redeploy.
+SCP_CMD=(scp -o StrictHostKeyChecking=accept-new)
+SSH_CMD=(ssh -o StrictHostKeyChecking=accept-new)
 
 if [ -n "$SSH_KEY_PATH" ]; then
     SCP_CMD+=(-i "$SSH_KEY_PATH")
@@ -145,8 +147,8 @@ elif [ -n "$SSH_PASSWORD" ]; then
         exit 1
     fi
     echo "Warning: Using deprecated password-based SSH fallback for profile deploy."
-    SCP_CMD=(sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no)
-    SSH_CMD=(sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no)
+    SCP_CMD=(sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=accept-new)
+    SSH_CMD=(sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=accept-new)
 fi
 
 REMOTE_SCRIPT="/root/setup-profile.sh"
