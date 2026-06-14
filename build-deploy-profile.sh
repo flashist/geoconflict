@@ -148,10 +148,15 @@ DEPLOY_OUTCOME="failed"
 LOCAL_TMPENV=""
 REMOTE_ENV=""
 REMOTE_ENV_STAGED=0
+DEPLOY_FINALIZED=0
 
 finalize_deploy() {
-    # Remove local + remote secret staging files (best-effort) and append EXACTLY ONE
-    # validation_result line so deploy provenance is never ambiguous or stuck pending.
+    # Idempotent: the guard flag guarantees EXACTLY ONE validation_result line even if
+    # this is reachable from more than one path, so deploy provenance is never
+    # ambiguous or stuck pending.
+    [ "$DEPLOY_FINALIZED" = "1" ] && return 0
+    DEPLOY_FINALIZED=1
+    # Remove local + remote secret staging files (best-effort).
     [ -n "$LOCAL_TMPENV" ] && rm -f "$LOCAL_TMPENV"
     if [ "$REMOTE_ENV_STAGED" = "1" ]; then
         # Best-effort; ignore errors (the host may be unreachable on a failure path).
@@ -161,7 +166,14 @@ finalize_deploy() {
         echo "validation_result=${DEPLOY_OUTCOME:-failed}" >> "$DEPLOY_RECORD"
     fi
 }
-trap finalize_deploy EXIT INT TERM
+# finalize_deploy is the SINGLE writer, registered on EXIT only, so it runs exactly
+# once per invocation. On Ctrl-C / SIGTERM the handler exits with the conventional
+# 128+signal code — which BOTH aborts the deploy (a bare `trap … INT` would have run
+# the handler and then RESUMED the deploy) and triggers the one EXIT finalize. The
+# guard flag above is belt-and-suspenders against any other double path.
+trap finalize_deploy EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 {
     echo "----"

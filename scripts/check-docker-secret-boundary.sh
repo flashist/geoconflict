@@ -47,27 +47,46 @@ require_literal_line() {
 #   - shell form, source NOT first:  COPY package.json . /app/
 #   - shell form with flags:         COPY --chown=x . /app
 #   - JSON/exec form (any position): COPY [".", "/app"]      COPY ["pkg", ".", "/app"]
+#   - lowercase / mixed case:        copy . /app             Copy . /app   (Docker is
+#                                    case-INSENSITIVE for instructions)
+#   - backslash line-continuation:   COPY \ <newline> . /app
 # A `.`/`./` in the LAST (destination) position is legitimate (copy specific sources
 # into WORKDIR) and must NOT be flagged: `COPY package*.json ./`, `COPY a b .`,
 # `COPY --from=stage /x .`. So we parse the operands and flag `.`/`./` anywhere
 # EXCEPT the final destination. A regex only ever sees the first operand, which is
-# why the previous grep missed multi-source broad copies.
+# why the original grep missed multi-source broad copies.
 scan_broad_copies() {
     awk '
     {
-        line = $0
-        sub(/^[[:space:]]+/, "", line)
-        if (line !~ /^(COPY|ADD)[[:space:]]/) next
-        sub(/^(COPY|ADD)[[:space:]]+/, "", line)
+        start = FNR
+        cur = $0
+        # Join Dockerfile backslash line-continuations into one logical instruction so
+        # `COPY \` <newline> `. /app` is analyzed as the broad copy `COPY . /app`.
+        while (cur ~ /\\[[:space:]]*$/) {
+            sub(/\\[[:space:]]*$/, " ", cur)
+            if ((getline nextline) > 0) {
+                cur = cur nextline
+            } else {
+                break
+            }
+        }
+        # Dockerfile instructions are case-INSENSITIVE (copy/Copy/COPY are equivalent),
+        # so parse an UPPERCASED working copy. Operands are only ever compared to "."
+        # and "./", which are case-invariant, so this is safe; the original (joined)
+        # line is printed in the error.
+        work = toupper(cur)
+        sub(/^[[:space:]]+/, "", work)
+        if (work !~ /^(COPY|ADD)[[:space:]]/) next
+        sub(/^(COPY|ADD)[[:space:]]+/, "", work)
         # Strip any leading --flags (--chown=, --from=, --chmod=, --link, ...).
-        while (line ~ /^--[^[:space:]]+([[:space:]]+|$)/) {
-            sub(/^--[^[:space:]]+[[:space:]]*/, "", line)
+        while (work ~ /^--[^[:space:]]+([[:space:]]+|$)/) {
+            sub(/^--[^[:space:]]+[[:space:]]*/, "", work)
         }
         bad = 0
-        if (line ~ /^\[/) {
+        if (work ~ /^\[/) {
             # JSON/exec form: pull quoted elements in order; the last is the destination.
             n = 0
-            rest = line
+            rest = work
             while (match(rest, /"[^"]*"/)) {
                 n++
                 elems[n] = substr(rest, RSTART + 1, RLENGTH - 2)
@@ -78,13 +97,13 @@ scan_broad_copies() {
             }
         } else {
             # Shell form: whitespace-separated operands; the last is the destination.
-            m = split(line, ops, /[[:space:]]+/)
+            m = split(work, ops, /[[:space:]]+/)
             for (i = 1; i < m; i++) {
                 if (ops[i] == "." || ops[i] == "./") bad = 1
             }
         }
         if (bad) {
-            printf "%s:%d: %s\n", FILENAME, FNR, $0
+            printf "%s:%d: %s\n", FILENAME, start, cur
             found = 1
         }
     }

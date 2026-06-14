@@ -73,6 +73,19 @@ describe("check-docker-secret-boundary.sh static checks", () => {
       'COPY --chown=x ["package.json", "./", "/app/"]',
       'FROM node:24-slim\nCOPY --chown=x ["package.json", "./", "/app/"]',
     ],
+    // Case-insensitive instructions — Docker accepts any case; the guard must too.
+    ["copy . /app (lowercase)", "FROM node:24-slim\ncopy . /app"],
+    ["Copy . /app (mixed case)", "FROM node:24-slim\nCopy . /app"],
+    ["add . /app (lowercase)", "FROM node:24-slim\nadd . /app"],
+    ['copy [".", "/app"] (lowercase JSON)', 'FROM node:24-slim\ncopy [".", "/app"]'],
+    // Backslash line-continuation — the broad `.` source lands on the next physical
+    // line but is the same logical instruction.
+    ["COPY \\<newline>. /app (continuation)", "FROM node:24-slim\nCOPY \\\n. /app"],
+    ["copy \\<newline>. /app (lowercase continuation)", "FROM node:24-slim\ncopy \\\n. /app"],
+    [
+      "COPY pkg \\<newline>. /app (continuation, . not first)",
+      "FROM node:24-slim\nCOPY pkg \\\n. /app",
+    ],
   ])("rejects broad build-context copy: %s", (_label, dockerfile) => {
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
   });
@@ -92,6 +105,10 @@ describe("check-docker-secret-boundary.sh static checks", () => {
       "COPY package.json tsconfig.json ./",
       "COPY --from=runtime-source /usr/src/app/package.json .",
       'COPY ["package.json", "tsconfig.json", "./"]',
+      // Case-insensitivity must not over-match: a lowercase specific source is fine.
+      "copy package*.json ./",
+      // A continuation with a SPECIFIC source (not `.`/`./`) into a `./` dest is fine.
+      "COPY package*.json \\\n./",
     ].join("\n");
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
   });
