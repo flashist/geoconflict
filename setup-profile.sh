@@ -276,6 +276,15 @@ echo "Written: docker-compose.yml (0600)"
 
 print_header "STARTING PROFILE SERVICES"
 
+# Capture the currently-running profile-api image (if any) so we can roll back to
+# the last known-good one if the new image fails its healthcheck. Empty on a fresh
+# box — nothing to roll back to.
+PREV_PROFILE_IMAGE=""
+PREV_PROFILE_CID=$(docker compose ps -q profile-api 2>/dev/null || true)
+if [ -n "$PREV_PROFILE_CID" ]; then
+    PREV_PROFILE_IMAGE=$(docker inspect --format '{{.Config.Image}}' "$PREV_PROFILE_CID" 2>/dev/null || true)
+fi
+
 docker compose pull
 docker compose up -d --force-recreate
 
@@ -295,13 +304,21 @@ done
 
 # Fail hard if anything is exited/unhealthy/still-starting (timed out). The game
 # server will depend on this box, so a broken stack must stop the deploy here —
-# before nginx is pointed at a dead upstream and before we report success.
+# before nginx is pointed at a dead upstream and before we report success. If a
+# previous image was running, roll back to it so a bad deploy does not leave the
+# public profile API down.
 if docker compose ps | grep -E "(Exit|unhealthy|starting)" > /dev/null 2>&1; then
     echo "❌ One or more containers did not become healthy:"
     docker compose ps
     echo "----- recent logs (last 50 lines) -----"
     docker compose logs --tail=50 || true
-    echo "Aborting before nginx configuration. Fix the stack and re-run."
+    if [ -n "$PREV_PROFILE_IMAGE" ] && [ "$PREV_PROFILE_IMAGE" != "$PROFILE_IMAGE" ]; then
+        echo "Rolling back profile-api to last known-good image: $PREV_PROFILE_IMAGE"
+        sed -i "s|image: ${PROFILE_IMAGE}|image: ${PREV_PROFILE_IMAGE}|" "$PROFILE_DIR/docker-compose.yml"
+        docker compose up -d --force-recreate profile-api || true
+        docker compose ps || true
+    fi
+    echo "Aborting before nginx configuration. Fix the image and re-run."
     exit 1
 fi
 echo "✅ All containers running:"
@@ -312,17 +329,43 @@ docker compose ps
 if [ -n "$PROFILE_DOMAIN" ]; then
     print_header "CONFIGURING HTTPS ($PROFILE_DOMAIN)"
 
-    # Fail fast with a helpful message if DNS is not pointed yet — certbot's
-    # HTTP-01 challenge needs the A record resolving to this box.
-    if ! getent hosts "$PROFILE_DOMAIN" >/dev/null 2>&1; then
-        echo "Error: $PROFILE_DOMAIN does not resolve."
-        echo "Point its DNS A record at this box before deploying (certbot HTTP-01 needs it)."
+    # Fail fast if DNS isn't pointed at THIS host — certbot's HTTP-01 challenge
+    # needs the A record resolving to this box. Checking the actual target (not just
+    # "resolves") catches the common first-setup / DNS-change failure BEFORE we stop
+    # nginx, so a misconfigured domain never takes the service offline.
+    RESOLVED_IPS=$(getent hosts "$PROFILE_DOMAIN" | awk '{print $1}')
+    if [ -z "$RESOLVED_IPS" ]; then
+        echo "Error: $PROFILE_DOMAIN does not resolve. Point its DNS A record at this box first."
+        exit 1
+    fi
+    HOST_IPS=$(hostname -I 2>/dev/null || true)
+    DNS_MATCH=0
+    for rip in $RESOLVED_IPS; do
+        for hip in $HOST_IPS; do
+            [ "$rip" = "$hip" ] && DNS_MATCH=1
+        done
+    done
+    if [ "$DNS_MATCH" -ne 1 ]; then
+        echo "Error: $PROFILE_DOMAIN resolves to [$RESOLVED_IPS], not an IP on this host ([$HOST_IPS])."
+        echo "Update the A record to point at this box before deploying (certbot HTTP-01 would fail)."
         exit 1
     fi
 
     apt-get install -y nginx certbot
 
-    # Stop nginx so certbot --standalone can own port 80 for the HTTP-01 challenge.
+    # certbot --standalone needs port 80, so we stop nginx first. If certbot or the
+    # later config test fails (set -e), an ERR trap restores the previous site config
+    # and restarts nginx — a failed TLS re-run must never leave the public API down.
+    SITE_FILE=/etc/nginx/sites-available/profile
+    SITE_BAK="${SITE_FILE}.bak.$$"
+    [ -f "$SITE_FILE" ] && cp -f "$SITE_FILE" "$SITE_BAK"
+    restore_nginx_on_failure() {
+        echo "⚠️  HTTPS setup failed — restoring nginx to its previous state."
+        [ -f "$SITE_BAK" ] && mv -f "$SITE_BAK" "$SITE_FILE"
+        systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
+    }
+    trap restore_nginx_on_failure ERR
+
     # --keep-until-expiring is a no-op if the cert is still fresh (safe to re-run).
     systemctl stop nginx || true
     certbot certonly --standalone \
@@ -386,6 +429,9 @@ NGINXEOF
     nginx -t
     systemctl enable --now nginx
     systemctl restart nginx
+    # Success — drop the rollback safety net.
+    trap - ERR
+    rm -f "$SITE_BAK"
     echo "✅ nginx running with TLS for $PROFILE_DOMAIN"
 fi
 
