@@ -222,9 +222,10 @@ COMPOSE_BAK="$PROFILE_DIR/docker-compose.yml.predeploy.bak"
 
 restore_previous_config() {
     # Restore the pre-deploy config files (when backups exist). Callers decide whether
-    # to also recreate containers.
+    # to also recreate containers. Always returns 0 so it is safe inside the EXIT trap.
     [ -f "$PROFILE_ENV_BAK" ] && mv -f "$PROFILE_ENV_BAK" "$PROFILE_DIR/profile.env"
     [ -f "$COMPOSE_BAK" ] && mv -f "$COMPOSE_BAK" "$PROFILE_DIR/docker-compose.yml"
+    return 0
 }
 
 ( umask 077; cat > "$PROFILE_DIR/profile.env" << EOF
@@ -309,6 +310,25 @@ if [ -n "$(docker compose ps -q postgres 2>/dev/null || true)" ]; then
     echo "✅ New credentials authenticate against the existing Postgres."
 fi
 
+# Atomic rollback: from here on, ANY failure (health gate, DB probe, certbot, nginx,
+# systemd, cron) restores the previous compose/env (+ nginx site) and recreates the
+# previous stack, so a failed deploy never leaves a half-applied live stack behind.
+# Cleared only after the ENTIRE setup succeeds (DEPLOY_VALIDATED=1 at the end).
+DEPLOY_VALIDATED=0
+rollback_deploy() {
+    [ "$DEPLOY_VALIDATED" = "1" ] && return 0
+    echo "⚠️  Deploy failed — rolling back to the previous known-good state..."
+    if [ -n "${SITE_BAK:-}" ] && [ -f "${SITE_BAK:-}" ]; then
+        mv -f "$SITE_BAK" /etc/nginx/sites-available/profile
+        systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
+    fi
+    if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
+        restore_previous_config
+        docker compose up -d --force-recreate 2>/dev/null || true
+    fi
+}
+trap rollback_deploy EXIT
+
 docker compose pull
 docker compose up -d --force-recreate
 
@@ -357,21 +377,14 @@ done
 
 # Fail hard unless EVERY expected service is running and healthy. The game server
 # will depend on this box, so a broken/missing stack must stop the deploy here —
-# before nginx is pointed at a dead upstream and before we report success. If a
-# previous image was running, roll back to it so a bad deploy does not leave the
-# public profile API down.
+# before nginx is pointed at a dead upstream and before we report success. The EXIT
+# rollback trap restores the previous stack.
 if ! all_services_running_healthy; then
     echo "❌ Not all services are running and healthy:"
     docker compose ps || true
     echo "----- recent logs (last 50 lines) -----"
     docker compose logs --tail=50 || true
-    if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
-        echo "Rolling back to the previous known-good config + image..."
-        restore_previous_config
-        docker compose up -d --force-recreate || true
-        docker compose ps || true
-    fi
-    echo "Aborting before nginx configuration. Fix the deploy and re-run."
+    echo "Aborting before nginx configuration; the EXIT rollback will restore the previous stack."
     exit 1
 fi
 echo "✅ All services running and healthy:"
@@ -387,21 +400,12 @@ echo "Verifying Postgres accepts the configured credentials (DATABASE_URL)..."
 if ! docker compose exec -T postgres psql "$DATABASE_URL" -tAc 'select 1' >/dev/null 2>&1; then
     echo "❌ Postgres did not accept the configured credentials (DATABASE_URL)."
     echo "   pg_isready can pass while POSTGRES_PASSWORD / DATABASE_URL drift from an"
-    echo "   existing postgres_data volume."
+    echo "   existing postgres_data volume. Reconcile the password (or reset the volume), then re-run."
     docker compose logs --tail=50 postgres || true
-    if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
-        echo "Restoring previous known-good config + recreating..."
-        restore_previous_config
-        docker compose up -d --force-recreate || true
-    fi
-    echo "Reconcile the password (or reset the volume), then re-run."
+    echo "The EXIT rollback will restore the previous stack."
     exit 1
 fi
 echo "✅ Postgres credential check passed."
-
-# Deploy validated (services healthy + DB credentials usable) — drop the pre-deploy
-# rollback backups so a later unrelated failure can't restore stale config.
-rm -f "$PROFILE_ENV_BAK" "$COMPOSE_BAK"
 
 # ── HTTPS via nginx + Let's Encrypt ──────────────────────────────────────────
 
@@ -432,18 +436,14 @@ if [ -n "$PROFILE_DOMAIN" ]; then
 
     apt-get install -y nginx certbot
 
-    # certbot --standalone needs port 80, so we stop nginx first. If certbot or the
-    # later config test fails (set -e), an ERR trap restores the previous site config
-    # and restarts nginx — a failed TLS re-run must never leave the public API down.
+    # Back up the current site config so the EXIT rollback (rollback_deploy) can restore
+    # it. certbot --standalone needs port 80, so nginx is stopped below; if certbot or
+    # the config test fails, rollback_deploy restores this file + restarts nginx AND
+    # recreates the previous container stack — a failed TLS re-run never leaves the box
+    # half-applied or the public API down.
     SITE_FILE=/etc/nginx/sites-available/profile
     SITE_BAK="${SITE_FILE}.bak.$$"
     [ -f "$SITE_FILE" ] && cp -f "$SITE_FILE" "$SITE_BAK"
-    restore_nginx_on_failure() {
-        echo "⚠️  HTTPS setup failed — restoring nginx to its previous state."
-        [ -f "$SITE_BAK" ] && mv -f "$SITE_BAK" "$SITE_FILE"
-        systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
-    }
-    trap restore_nginx_on_failure ERR
 
     # --keep-until-expiring is a no-op if the cert is still fresh (safe to re-run).
     systemctl stop nginx || true
@@ -508,9 +508,6 @@ NGINXEOF
     nginx -t
     systemctl enable --now nginx
     systemctl restart nginx
-    # Success — drop the rollback safety net.
-    trap - ERR
-    rm -f "$SITE_BAK"
     echo "✅ nginx running with TLS for $PROFILE_DOMAIN"
 fi
 
@@ -591,3 +588,8 @@ echo "  PROFILE_INTERNAL_TOKEN=<value managed in .env.profile.secret>"
 echo ""
 echo "Firewall: ufw active (SSH/80/443 allowed, everything else denied)."
 echo "======================================================"
+
+# Entire setup succeeded — mark validated so the EXIT rollback trap is a no-op, and
+# drop the rollback backups now that the new stack is fully applied.
+DEPLOY_VALIDATED=1
+rm -f "$PROFILE_ENV_BAK" "$COMPOSE_BAK" ${SITE_BAK:+"$SITE_BAK"}

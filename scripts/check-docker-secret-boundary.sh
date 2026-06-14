@@ -53,6 +53,12 @@ for df in "$DOCKERFILE" "$DOCKERFILE_PROFILE"; do
         echo "Error: $df contains a broad repo copy (source '.'). Use explicit allowlist copies instead."
         exit 1
     fi
+    # JSON/exec-form broad copy: COPY [".", "/app"] / ADD ["./", "/app"] copy the whole
+    # build context too, but use array syntax the shell-form regex above can't see.
+    if grep -nE '^[[:space:]]*(COPY|ADD)([[:space:]]+--[^[:space:]]+)*[[:space:]]*\[[[:space:]]*"(\.|\./)"' "$df"; then
+        echo "Error: $df contains a broad repo copy (JSON-form source '.'). Use explicit allowlist copies instead."
+        exit 1
+    fi
 done
 
 require_literal_line ".env"

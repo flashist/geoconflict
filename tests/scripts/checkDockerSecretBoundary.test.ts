@@ -53,16 +53,21 @@ describe("check-docker-secret-boundary.sh static checks", () => {
     ["ADD . /app", "FROM node:24-slim\nADD . /app"],
     ["COPY ./ /app", "FROM node:24-slim\nCOPY ./ /app"],
     ["COPY --chown=node:node . /app", "FROM node:24-slim\nCOPY --chown=node:node . /app"],
+    ['COPY [".", "/app"]', 'FROM node:24-slim\nCOPY [".", "/app"]'],
+    ['ADD ["./", "/app"]', 'FROM node:24-slim\nADD ["./", "/app"]'],
+    ['COPY [ ".", "/app" ]', 'FROM node:24-slim\nCOPY [ ".", "/app" ]'],
   ])("rejects broad build-context copy: %s", (_label, dockerfile) => {
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
   });
 
-  test("does not flag specific (non-dot) sources", () => {
+  test("does not flag specific (non-dot) sources, shell or JSON form", () => {
     const dockerfile = [
       "FROM node:24-slim",
       "COPY package*.json ./",
       "COPY ./scripts/foo.js ./scripts/foo.js",
       "COPY .dockerignore /app/.dockerignore",
+      'COPY ["package.json", "./"]',
+      'COPY ["./scripts/foo.js", "/app/foo.js"]',
     ].join("\n");
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
   });
