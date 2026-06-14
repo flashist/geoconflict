@@ -12,7 +12,7 @@
 import * as dotenv from "dotenv";
 import express from "express";
 import http from "http";
-import { logger } from "../server/Logger";
+import { logger } from "./Logger";
 import { profileHttpPort } from "./ProfileEndpoints";
 
 dotenv.config();
