@@ -127,8 +127,13 @@ echo "Resolved digest: ${PROFILE_DIGEST}"
 PROFILE_DEPLOY_REF="$PROFILE_DIGEST"
 
 # Minimum deploy record (registry-image-policy.md §Minimum Deploy Record): durable +
-# private, appended to a gitignored local file (never committed).
+# private, appended to a gitignored local file (never committed). Written now as
+# validation_result=pending; the cleanup trap finalizes it to passed/failed based on
+# the remote setup result (which runs the health + DB-credential gates), so a failed
+# deploy never leaves clean-looking provenance. Only validation_result=passed records
+# are rollback-eligible.
 DEPLOY_RECORD=".profile-deploy-record"
+DEPLOY_OUTCOME="failed"
 {
     echo "----"
     echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -138,8 +143,9 @@ DEPLOY_RECORD=".profile-deploy-record"
     echo "digest=${PROFILE_DIGEST}"
     echo "commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)"
     echo "operator=$(whoami 2>/dev/null || echo unknown)"
+    echo "validation_result=pending"
 } | tee -a "$DEPLOY_RECORD"
-echo "Deploy record appended to ${DEPLOY_RECORD} (gitignored)."
+echo "Deploy record appended to ${DEPLOY_RECORD} (gitignored, finalized at exit)."
 
 # ── Resolve SSH user + auth ───────────────────────────────────────────────────
 
@@ -227,6 +233,12 @@ cleanup_secrets() {
         # Best-effort; ignore errors (the host may be unreachable on a failure path).
         "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
     fi
+    # Finalize the deploy record with the validation outcome. DEPLOY_OUTCOME defaults to
+    # "failed" and is flipped to "passed" only after the remote setup returns success, so
+    # an aborted/failed deploy is recorded as failed, never as trusted provenance.
+    if [ -n "${DEPLOY_RECORD:-}" ]; then
+        echo "validation_result=${DEPLOY_OUTCOME:-failed}" >> "$DEPLOY_RECORD"
+    fi
 }
 trap cleanup_secrets EXIT INT TERM
 chmod 600 "$LOCAL_TMPENV"
@@ -261,6 +273,9 @@ REMOTE_ENV_STAGED=1
     ${REMOTE_SCRIPT}"
 # Happy path: the remote file is already gone, so skip the trap's remote cleanup.
 REMOTE_ENV_STAGED=0
+# Remote setup (health + DB-credential gates) returned success — mark the deploy
+# record validated so this digest is rollback-eligible.
+DEPLOY_OUTCOME="passed"
 
 print_header "DONE"
 echo "Profile backend setup completed on ${PROFILE_SERVER_HOST}."

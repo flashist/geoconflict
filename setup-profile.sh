@@ -353,6 +353,23 @@ fi
 echo "✅ All services running and healthy:"
 docker compose ps
 
+# Verify Postgres actually accepts the credentials the API will use. The Docker
+# healthchecks do NOT prove this: pg_isready sends no password, and /health is
+# dependency-free. In particular, postgres:16-alpine applies POSTGRES_PASSWORD only
+# on FIRST init — against a pre-existing postgres_data volume a changed password is
+# silently ignored, so the API's DATABASE_URL would fail auth while the gate passes.
+# Probe with the exact DATABASE_URL (TCP to host 'postgres' => real password auth).
+echo "Verifying Postgres accepts the configured credentials (DATABASE_URL)..."
+if ! docker compose exec -T postgres psql "$DATABASE_URL" -tAc 'select 1' >/dev/null 2>&1; then
+    echo "❌ Postgres did not accept the configured credentials (DATABASE_URL)."
+    echo "   pg_isready can pass while POSTGRES_PASSWORD / DATABASE_URL drift from an"
+    echo "   existing postgres_data volume. Reconcile the password (or reset the volume),"
+    echo "   then re-run. Not rolling back the image — this is a credential/volume issue."
+    docker compose logs --tail=50 postgres || true
+    exit 1
+fi
+echo "✅ Postgres credential check passed."
+
 # ── HTTPS via nginx + Let's Encrypt ──────────────────────────────────────────
 
 if [ -n "$PROFILE_DOMAIN" ]; then
