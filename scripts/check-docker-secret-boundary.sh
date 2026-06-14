@@ -40,23 +40,66 @@ require_literal_line() {
     fi
 }
 
+# Reject any COPY/ADD that copies the whole build context (a `.` or `./` SOURCE
+# operand) — the broad-copy class behind the 2026-04-21 credential leak. This must
+# catch EVERY form Docker accepts, not just the simple `COPY . /app`:
+#   - shell form, source first:      COPY . /app             ADD ./ /app
+#   - shell form, source NOT first:  COPY package.json . /app/
+#   - shell form with flags:         COPY --chown=x . /app
+#   - JSON/exec form (any position): COPY [".", "/app"]      COPY ["pkg", ".", "/app"]
+# A `.`/`./` in the LAST (destination) position is legitimate (copy specific sources
+# into WORKDIR) and must NOT be flagged: `COPY package*.json ./`, `COPY a b .`,
+# `COPY --from=stage /x .`. So we parse the operands and flag `.`/`./` anywhere
+# EXCEPT the final destination. A regex only ever sees the first operand, which is
+# why the previous grep missed multi-source broad copies.
+scan_broad_copies() {
+    awk '
+    {
+        line = $0
+        sub(/^[[:space:]]+/, "", line)
+        if (line !~ /^(COPY|ADD)[[:space:]]/) next
+        sub(/^(COPY|ADD)[[:space:]]+/, "", line)
+        # Strip any leading --flags (--chown=, --from=, --chmod=, --link, ...).
+        while (line ~ /^--[^[:space:]]+([[:space:]]+|$)/) {
+            sub(/^--[^[:space:]]+[[:space:]]*/, "", line)
+        }
+        bad = 0
+        if (line ~ /^\[/) {
+            # JSON/exec form: pull quoted elements in order; the last is the destination.
+            n = 0
+            rest = line
+            while (match(rest, /"[^"]*"/)) {
+                n++
+                elems[n] = substr(rest, RSTART + 1, RLENGTH - 2)
+                rest = substr(rest, RSTART + RLENGTH)
+            }
+            for (i = 1; i < n; i++) {
+                if (elems[i] == "." || elems[i] == "./") bad = 1
+            }
+        } else {
+            # Shell form: whitespace-separated operands; the last is the destination.
+            m = split(line, ops, /[[:space:]]+/)
+            for (i = 1; i < m; i++) {
+                if (ops[i] == "." || ops[i] == "./") bad = 1
+            }
+        }
+        if (bad) {
+            printf "%s:%d: %s\n", FILENAME, FNR, $0
+            found = 1
+        }
+    }
+    END { exit (found ? 1 : 0) }
+    ' "$1"
+}
+
 echo "Checking Docker secret boundary..."
 
 for df in "$DOCKERFILE" "$DOCKERFILE_PROFILE"; do
     [ -f "$df" ] || continue
-    # Reject any COPY/ADD whose SOURCE operand is `.` or `./` regardless of the
-    # destination (e.g. `COPY . /usr/src/app`, `ADD . /app`, `COPY --chown=x . .`) —
-    # all are the broad build-context copy class that caused the credential leak.
-    # Arbitrary `--flags` are allowed before the source; specific sources like
-    # `package*.json`, `src`, `./scripts/foo.js`, `.dockerignore` are not matched.
-    if grep -nE '^[[:space:]]*(COPY|ADD)([[:space:]]+--[^[:space:]]+)*[[:space:]]+(\.|\./)([[:space:]]|$)' "$df"; then
-        echo "Error: $df contains a broad repo copy (source '.'). Use explicit allowlist copies instead."
-        exit 1
-    fi
-    # JSON/exec-form broad copy: COPY [".", "/app"] / ADD ["./", "/app"] copy the whole
-    # build context too, but use array syntax the shell-form regex above can't see.
-    if grep -nE '^[[:space:]]*(COPY|ADD)([[:space:]]+--[^[:space:]]+)*[[:space:]]*\[[[:space:]]*"(\.|\./)"' "$df"; then
-        echo "Error: $df contains a broad repo copy (JSON-form source '.'). Use explicit allowlist copies instead."
+    if ! broad_matches=$(scan_broad_copies "$df"); then
+        echo "Error: $df contains a broad repo copy (a '.'/'./' source that copies the whole build context):"
+        echo "$broad_matches"
+        echo "Use explicit allowlist copies instead (e.g. COPY package*.json ./)."
         exit 1
     fi
 done

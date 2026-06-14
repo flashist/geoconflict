@@ -127,13 +127,42 @@ echo "Resolved digest: ${PROFILE_DIGEST}"
 PROFILE_DEPLOY_REF="$PROFILE_DIGEST"
 
 # Minimum deploy record (registry-image-policy.md §Minimum Deploy Record): durable +
-# private, appended to a gitignored local file (never committed). Written now as
-# validation_result=pending; the cleanup trap finalizes it to passed/failed based on
-# the remote setup result (which runs the health + DB-credential gates), so a failed
-# deploy never leaves clean-looking provenance. Only validation_result=passed records
-# are rollback-eligible.
+# private, appended to a gitignored local file (never committed). Only
+# validation_result=passed records are rollback-eligible.
+#
+# The record body is written WITHOUT a validation_result line; a single
+# validation_result is appended exactly once by finalize_deploy on exit. The trap is
+# installed BEFORE the fallible SSH preflight below (which has several early `exit`s
+# and a `set -e` scp), so every exit path — not just the happy one — finalizes the
+# record. DEPLOY_OUTCOME defaults to "failed" and flips to "passed" only after the
+# remote setup (health + DB-credential gates) returns success, so an aborted/failed
+# deploy is never recorded as trusted provenance, and a successful one carries exactly
+# one unambiguous result.
 DEPLOY_RECORD=".profile-deploy-record"
 DEPLOY_OUTCOME="failed"
+
+# Secret-staging + record-finalization state. Initialized up front so the trap is
+# safe to fire during the preflight, before the temp files are created (it guards on
+# them) and before SSH_CMD/REMOTE_USER exist (the remote-cleanup branch only runs
+# once REMOTE_ENV_STAGED=1, which happens well after those are set).
+LOCAL_TMPENV=""
+REMOTE_ENV=""
+REMOTE_ENV_STAGED=0
+
+finalize_deploy() {
+    # Remove local + remote secret staging files (best-effort) and append EXACTLY ONE
+    # validation_result line so deploy provenance is never ambiguous or stuck pending.
+    [ -n "$LOCAL_TMPENV" ] && rm -f "$LOCAL_TMPENV"
+    if [ "$REMOTE_ENV_STAGED" = "1" ]; then
+        # Best-effort; ignore errors (the host may be unreachable on a failure path).
+        "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
+    fi
+    if [ -n "${DEPLOY_RECORD:-}" ]; then
+        echo "validation_result=${DEPLOY_OUTCOME:-failed}" >> "$DEPLOY_RECORD"
+    fi
+}
+trap finalize_deploy EXIT INT TERM
+
 {
     echo "----"
     echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -143,9 +172,8 @@ DEPLOY_OUTCOME="failed"
     echo "digest=${PROFILE_DIGEST}"
     echo "commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)"
     echo "operator=$(whoami 2>/dev/null || echo unknown)"
-    echo "validation_result=pending"
 } | tee -a "$DEPLOY_RECORD"
-echo "Deploy record appended to ${DEPLOY_RECORD} (gitignored, finalized at exit)."
+echo "Deploy record appended to ${DEPLOY_RECORD} (gitignored; validation_result finalized at exit)."
 
 # ── Resolve SSH user + auth ───────────────────────────────────────────────────
 
@@ -222,25 +250,11 @@ print_header "RUNNING SETUP ON REMOTE SERVER"
 
 # Stage secrets in a local temp file and SCP it, rather than inlining them in the
 # SSH command (which would expose them in ps aux / /proc/<pid>/cmdline on the box).
-# Clean up BOTH the local and the remote staging file on ANY exit — interrupted
-# scp, a failed source, or Ctrl-C — so credentials never linger anywhere.
+# The finalize_deploy trap installed above already cleans up BOTH the local and the
+# remote staging file on ANY exit — interrupted scp, a failed source, or Ctrl-C — so
+# credentials never linger anywhere. Here we only create the files it guards on.
 REMOTE_ENV="/root/.profile-deploy-env-$$"
 LOCAL_TMPENV=$(mktemp)
-REMOTE_ENV_STAGED=0
-cleanup_secrets() {
-    rm -f "$LOCAL_TMPENV"
-    if [ "$REMOTE_ENV_STAGED" = "1" ]; then
-        # Best-effort; ignore errors (the host may be unreachable on a failure path).
-        "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
-    fi
-    # Finalize the deploy record with the validation outcome. DEPLOY_OUTCOME defaults to
-    # "failed" and is flipped to "passed" only after the remote setup returns success, so
-    # an aborted/failed deploy is recorded as failed, never as trusted provenance.
-    if [ -n "${DEPLOY_RECORD:-}" ]; then
-        echo "validation_result=${DEPLOY_OUTCOME:-failed}" >> "$DEPLOY_RECORD"
-    fi
-}
-trap cleanup_secrets EXIT INT TERM
 chmod 600 "$LOCAL_TMPENV"
 
 # printf %q emits shell-safe, re-sourceable values — robust to passwords/tokens

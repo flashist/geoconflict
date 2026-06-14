@@ -31,6 +31,30 @@
 
 set -e
 
+# ── Serialize deploys on this box ───────────────────────────────────────────────
+# The rollback backups below use FIXED filenames (profile.env.predeploy.bak /
+# docker-compose.yml.predeploy.bak) and the deploy runs `docker compose up
+# --force-recreate`. Two overlapping runs — two operators, or a retry while the
+# previous SSH-launched run is still going — would clobber each other's backups
+# (so a rollback restores the WRONG, in-flight config) and race on the same compose
+# project. Take an exclusive, non-blocking lock for the lifetime of this process and
+# fail fast if another deploy already holds it. The lock is released automatically
+# when this process exits (fd 9 closes), so it never needs manual cleanup.
+if ! command -v flock >/dev/null 2>&1; then
+    apt-get update -y >/dev/null 2>&1 && apt-get install -y util-linux >/dev/null 2>&1 || true
+fi
+if command -v flock >/dev/null 2>&1; then
+    exec 9>/var/lock/profile-deploy.lock
+    if ! flock -n 9; then
+        echo "Error: another profile deploy is already running on this box"
+        echo "       (lock: /var/lock/profile-deploy.lock). Aborting to avoid a corrupted"
+        echo "       rollback state and a 'docker compose --force-recreate' race."
+        exit 1
+    fi
+else
+    echo "⚠️  flock unavailable — proceeding WITHOUT deploy serialization (concurrent runs unsafe)."
+fi
+
 PROFILE_DIR="/opt/profile"
 BACKUP_DIR="$PROFILE_DIR/backups"
 
@@ -214,7 +238,9 @@ fi
 #
 # Back up the existing config (redeploy only) so a failed deploy can be restored to
 # the previous known-good state instead of leaving a broken API live. Removed on
-# success at the end of validation.
+# success at the end of validation. Fixed filenames are safe because the flock at the
+# top of this script guarantees only one deploy runs on the box at a time, so no
+# concurrent run can clobber these backups with an in-flight config.
 PROFILE_ENV_BAK="$PROFILE_DIR/profile.env.predeploy.bak"
 COMPOSE_BAK="$PROFILE_DIR/docker-compose.yml.predeploy.bak"
 [ -f "$PROFILE_DIR/profile.env" ] && cp -f "$PROFILE_DIR/profile.env" "$PROFILE_ENV_BAK"

@@ -48,14 +48,31 @@ describe("check-docker-secret-boundary.sh static checks", () => {
   });
 
   test.each([
+    // Single-source broad copies (source is the first/only operand).
     ["COPY . .", "FROM node:24-slim\nCOPY . ."],
     ["COPY . /usr/src/app", "FROM node:24-slim\nCOPY . /usr/src/app"],
     ["ADD . /app", "FROM node:24-slim\nADD . /app"],
     ["COPY ./ /app", "FROM node:24-slim\nCOPY ./ /app"],
     ["COPY --chown=node:node . /app", "FROM node:24-slim\nCOPY --chown=node:node . /app"],
+    // Multi-source broad copies — `.`/`./` is NOT the first source operand but is
+    // still a source (not the final destination), so it copies the whole context.
+    // The previous first-operand-only regex missed these.
+    ["COPY package.json . /app/", "FROM node:24-slim\nCOPY package.json . /app/"],
+    ["ADD pkg.json ./ /app/", "FROM node:24-slim\nADD pkg.json ./ /app/"],
+    ["COPY --chown=x a . /app", "FROM node:24-slim\nCOPY --chown=x a . /app"],
+    // JSON/exec form, source first.
     ['COPY [".", "/app"]', 'FROM node:24-slim\nCOPY [".", "/app"]'],
     ['ADD ["./", "/app"]', 'FROM node:24-slim\nADD ["./", "/app"]'],
     ['COPY [ ".", "/app" ]', 'FROM node:24-slim\nCOPY [ ".", "/app" ]'],
+    // JSON/exec form, source NOT first — also previously missed.
+    [
+      'COPY ["package.json", ".", "/app/"]',
+      'FROM node:24-slim\nCOPY ["package.json", ".", "/app/"]',
+    ],
+    [
+      'COPY --chown=x ["package.json", "./", "/app/"]',
+      'FROM node:24-slim\nCOPY --chown=x ["package.json", "./", "/app/"]',
+    ],
   ])("rejects broad build-context copy: %s", (_label, dockerfile) => {
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
   });
@@ -68,6 +85,13 @@ describe("check-docker-secret-boundary.sh static checks", () => {
       "COPY .dockerignore /app/.dockerignore",
       'COPY ["package.json", "./"]',
       'COPY ["./scripts/foo.js", "/app/foo.js"]',
+      // `.`/`./` as the LAST operand is the destination (copy specific sources into
+      // WORKDIR), not a broad context copy — must pass. Mirrors the real Dockerfile's
+      // `COPY --from=runtime-source /usr/src/app/package.json .`.
+      "COPY a b .",
+      "COPY package.json tsconfig.json ./",
+      "COPY --from=runtime-source /usr/src/app/package.json .",
+      'COPY ["package.json", "tsconfig.json", "./"]',
     ].join("\n");
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
   });
