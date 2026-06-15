@@ -38,21 +38,30 @@ set -e
 # previous SSH-launched run is still going — would clobber each other's backups
 # (so a rollback restores the WRONG, in-flight config) and race on the same compose
 # project. Take an exclusive, non-blocking lock for the lifetime of this process and
-# fail fast if another deploy already holds it. The lock is released automatically
-# when this process exits (fd 9 closes), so it never needs manual cleanup.
+# fail fast if another deploy already holds it — or if flock itself is unavailable and
+# cannot be installed. Serialization is mandatory, NOT a best-effort cushion: deploying
+# without the lock is unsafe, so the unavailable case ABORTS (it is not a "warn and
+# continue" path). The lock releases automatically when this process exits (fd 9
+# closes), so it never needs manual cleanup.
 if ! command -v flock >/dev/null 2>&1; then
     apt-get update -y >/dev/null 2>&1 && apt-get install -y util-linux >/dev/null 2>&1 || true
 fi
-if command -v flock >/dev/null 2>&1; then
-    exec 9>/var/lock/profile-deploy.lock
-    if ! flock -n 9; then
-        echo "Error: another profile deploy is already running on this box"
-        echo "       (lock: /var/lock/profile-deploy.lock). Aborting to avoid a corrupted"
-        echo "       rollback state and a 'docker compose --force-recreate' race."
-        exit 1
-    fi
-else
-    echo "⚠️  flock unavailable — proceeding WITHOUT deploy serialization (concurrent runs unsafe)."
+# Fail closed: without flock the fixed-name rollback backups (PROFILE_ENV_BAK /
+# COMPOSE_BAK below) and `docker compose up --force-recreate` are unsafe under concurrent
+# runs. Abort BEFORE any config is written rather than proceeding without serialization.
+if ! command -v flock >/dev/null 2>&1; then
+    echo "Error: flock (util-linux) is required to serialize deploys and could not be installed."
+    echo "       Without it, concurrent runs would clobber the fixed-name rollback backups and"
+    echo "       race 'docker compose up --force-recreate'. Aborting before any config is written."
+    echo "       Install it manually (apt-get install -y util-linux) and re-run."
+    exit 1
+fi
+exec 9>/var/lock/profile-deploy.lock
+if ! flock -n 9; then
+    echo "Error: another profile deploy is already running on this box"
+    echo "       (lock: /var/lock/profile-deploy.lock). Aborting to avoid a corrupted"
+    echo "       rollback state and a 'docker compose --force-recreate' race."
+    exit 1
 fi
 
 PROFILE_DIR="/opt/profile"

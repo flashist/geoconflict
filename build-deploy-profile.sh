@@ -85,6 +85,14 @@ if ! command -v docker &> /dev/null; then
 fi
 
 VERSION_TAG=$(git rev-parse --short HEAD 2>/dev/null || node -p "require('./package.json').version")
+# Fail closed on an empty tag: never build/push an image as `repo:profile-` (a malformed
+# ref). git rev-parse short-circuits to the package.json version; if BOTH yield nothing,
+# abort early with a clear message instead of a confusing downstream `docker build` error.
+if [ -z "$VERSION_TAG" ]; then
+    echo "Error: could not determine VERSION_TAG (git rev-parse and node both failed)."
+    echo "Ensure git or node is available, or set the image tag manually."
+    exit 1
+fi
 PROFILE_IMAGE="${DOCKER_USERNAME}/${DOCKER_REPO}:profile-${VERSION_TAG}"
 
 # Enforce the Docker secret-boundary gate BEFORE building — same as the game path
