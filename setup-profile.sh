@@ -272,8 +272,15 @@ rollback_deploy() {
     [ "$DEPLOY_VALIDATED" = "1" ] && return 0
     echo "⚠️  Deploy failed — rolling back to the previous known-good state..."
     if [ -n "${SITE_BAK:-}" ] && [ -f "${SITE_BAK:-}" ]; then
+        # A previous nginx site existed — restore it.
         mv -f "$SITE_BAK" /etc/nginx/sites-available/profile
         systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
+    elif [ -n "${SITE_BAK:-}" ]; then
+        # We entered the nginx section but there was NO previous site (SITE_BAK is set
+        # but the .bak file was never created). Remove the freshly-created site + symlink
+        # so a failed deploy never leaves a public proxy to an incomplete deploy.
+        rm -f /etc/nginx/sites-available/profile /etc/nginx/sites-enabled/profile
+        systemctl reload nginx 2>/dev/null || systemctl stop nginx 2>/dev/null || true
     fi
     if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
         restore_previous_config
@@ -283,14 +290,15 @@ rollback_deploy() {
         [ "$STACK_RECREATED" = "1" ] && docker compose up -d --force-recreate 2>/dev/null || true
     elif [ "$FRESH_DEPLOY" = "1" ] && [ "$STACK_RECREATED" = "1" ]; then
         # Fresh (first-time) deploy that failed AFTER the stack was created: there is no
-        # previous config to roll back to. The new postgres_data volume is now
-        # initialized with this run's POSTGRES_PASSWORD, so a rerun with a CHANGED
-        # password will be rejected by the credential probe (Postgres keeps the original
-        # password on an existing volume). We deliberately do NOT auto-delete the volume
-        # — it is a data-bearing resource — so tell the operator exactly how to retry.
+        # previous config to roll back to. STOP the unvalidated stack so a failed deploy
+        # never leaves a live (publicly proxied) service running. Use `down` WITHOUT -v:
+        # we deliberately PRESERVE the postgres_data volume (never auto-delete data); the
+        # operator chooses below whether to keep it (retry) or reset it (down -v).
+        docker compose down 2>/dev/null || true
         echo ""
         echo "ℹ️  This was a FIRST-TIME deploy that failed after the stack was created."
-        echo "   The new Postgres volume now holds this run's initial password."
+        echo "   The unvalidated stack has been STOPPED (containers removed); the new"
+        echo "   Postgres volume is PRESERVED and still holds this run's initial password."
         echo "     • Retry with the SAME password: just re-run the deploy."
         echo "     • Retry with a DIFFERENT password (or from a clean slate): first destroy"
         echo "       the freshly-created, not-yet-validated DB volume, then re-run:"

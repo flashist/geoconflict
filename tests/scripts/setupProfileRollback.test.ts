@@ -63,17 +63,52 @@ describe("setup-profile.sh fresh-deploy failure handling (never auto-deletes the
       expect(l).toMatch(/^\s*(#|echo )/);
     }
   });
+
+  test("the fresh-failure branch STOPS the stack with `docker compose down` (no -v, preserving the volume)", () => {
+    // An executed `docker compose down` that is NOT `down -v` and NOT an echo/comment.
+    const stopLines = lines.filter(
+      (l) => /^\s*docker compose down\b/.test(l) && !/down -v/.test(l) && !/^\s*(#|echo )/.test(l),
+    );
+    expect(stopLines.length).toBeGreaterThan(0);
+  });
+
+  test("the rollback nginx block restores a previous site OR removes a freshly-created one", () => {
+    // Restore branch (previous site existed).
+    expect(
+      lines.some((l) => /mv -f "\$SITE_BAK" \/etc\/nginx\/sites-available\/profile/.test(l)),
+    ).toBe(true);
+    // Remove branch (no previous site — tear down the freshly-created public proxy).
+    expect(
+      lines.some((l) =>
+        /rm -f \/etc\/nginx\/sites-available\/profile \/etc\/nginx\/sites-enabled\/profile/.test(l),
+      ),
+    ).toBe(true);
+  });
 });
 
 // Behavioral harness: replicate the control flow (set -e + EXIT trap + STACK_RECREATED
-// gate + FRESH_DEPLOY branch) with a stubbed `docker` whose FIRST `compose up` fails
-// (simulating a partial recreate) and whose later calls succeed. `down` is recorded so
-// we can assert the rollback NEVER auto-deletes the volume.
+// gate + FRESH_DEPLOY branch + nginx restore/remove) with stubbed docker/systemctl.
+// `down` and `down -v` are recorded separately so we can assert the rollback STOPS a
+// fresh stack but NEVER auto-deletes its volume.
+//   failAt "compose-up": the destructive `compose up` itself fails (partial recreate).
+//   failAt "late":       `compose up` succeeds, the nginx site is created, then a later
+//                        step (systemd/cron) fails — the case this finding is about.
+function lexists(p: string): boolean {
+  try {
+    fs.lstatSync(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function runHarness(opts: {
   order: "before" | "after";
   fresh?: boolean;
-}): { calls: string[]; env: string; stdout: string } {
+  failAt?: "compose-up" | "late";
+}): { calls: string[]; env: string; stdout: string; siteExists: boolean; symlinkExists: boolean } {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rollback-"));
+  const failAt = opts.failAt ?? "compose-up";
   const setFlagBefore = opts.order === "before" ? "STACK_RECREATED=1" : "";
   const setFlagAfter = opts.order === "after" ? "STACK_RECREATED=1" : "";
   // Fresh deploy => no predeploy backups exist; FRESH_DEPLOY=1.
@@ -81,11 +116,27 @@ function runHarness(opts: {
     ? ""
     : 'echo OLD-ENV > "$PROFILE_ENV_BAK"\necho OLD-COMPOSE > "$COMPOSE_BAK"';
   const freshFlag = opts.fresh ? "1" : "0";
+  const failFirstUp = failAt === "compose-up" ? "1" : "0";
+  // "late" failure: stand up a fresh nginx site (no previous => no .bak), then fail.
+  const lateSection =
+    failAt === "late"
+      ? `
+SITE_BAK="$SITE.bak.$$"
+[ -f "$SITE" ] && cp -f "$SITE" "$SITE_BAK"
+echo "server{}" > "$SITE"
+ln -sf "$SITE" "$SITE_ENABLED"
+systemctl restart nginx
+false   # simulate a systemd/cron failure AFTER nginx is live
+`
+      : "";
   const script = `
 set -e
 WORK="${dir}"
+PROFILE_DIR="$WORK"
 PROFILE_ENV_BAK="$WORK/env.bak"
 COMPOSE_BAK="$WORK/compose.bak"
+SITE="$WORK/site"
+SITE_ENABLED="$WORK/site-enabled"
 ${baksSetup}
 echo NEW-ENV > "$WORK/profile.env"
 echo NEW-COMPOSE > "$WORK/compose.yml"
@@ -93,25 +144,28 @@ echo NEW-COMPOSE > "$WORK/compose.yml"
 DEPLOY_VALIDATED=0
 STACK_RECREATED=0
 FRESH_DEPLOY=${freshFlag}
+FAIL_FIRST_UP=${failFirstUp}
 SITE_BAK=""
 
-# Stub docker: the first 'compose up' (the destructive recreate) fails after partial
-# mutation; later 'compose up' calls (the rollback recreate) succeed. 'down' is logged.
+# Stub docker/systemctl. 'compose up' optionally fails on the first call; 'down' and
+# 'down -v' are logged distinctly so we can assert the volume is never auto-deleted.
 docker() {
   if [ "$1" = compose ] && [ "$2" = up ]; then
     cnt=$(cat "$WORK/upcount" 2>/dev/null || echo 0)
     cnt=$((cnt + 1)); echo "$cnt" > "$WORK/upcount"
     echo "up-attempt-$cnt" >> "$WORK/calls.log"
-    [ "$cnt" = 1 ] && return 1
+    [ "$FAIL_FIRST_UP" = "1" ] && [ "$cnt" = 1 ] && return 1
     return 0
   fi
   if [ "$1" = compose ] && [ "$2" = down ]; then
-    echo "down-called" >> "$WORK/calls.log"
+    shift 2
+    if [ "\${1:-}" = "-v" ]; then echo "down-v" >> "$WORK/calls.log"; else echo "down-no-v" >> "$WORK/calls.log"; fi
     return 0
   fi
   echo "docker $*" >> "$WORK/calls.log"
   return 0
 }
+systemctl() { echo "systemctl $*" >> "$WORK/calls.log"; return 0; }
 
 restore_previous_config() {
   [ -f "$PROFILE_ENV_BAK" ] && mv -f "$PROFILE_ENV_BAK" "$WORK/profile.env"
@@ -120,10 +174,18 @@ restore_previous_config() {
 }
 rollback_deploy() {
   [ "$DEPLOY_VALIDATED" = "1" ] && return 0
+  if [ -n "\${SITE_BAK:-}" ] && [ -f "\${SITE_BAK:-}" ]; then
+    mv -f "$SITE_BAK" "$SITE"
+    systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
+  elif [ -n "\${SITE_BAK:-}" ]; then
+    rm -f "$SITE" "$SITE_ENABLED"
+    systemctl reload nginx 2>/dev/null || systemctl stop nginx 2>/dev/null || true
+  fi
   if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
     restore_previous_config
     [ "$STACK_RECREATED" = "1" ] && docker compose up -d --force-recreate || true
   elif [ "$FRESH_DEPLOY" = "1" ] && [ "$STACK_RECREATED" = "1" ]; then
+    docker compose down 2>/dev/null || true
     echo "FRESH-HINT: cd /opt/profile && docker compose down -v"
   fi
 }
@@ -133,12 +195,15 @@ docker compose pull
 ${setFlagBefore}
 docker compose up -d --force-recreate
 ${setFlagAfter}
+${lateSection}
 `;
   const res = spawnSync("bash", ["-c", script], { encoding: "utf8" });
   const calls = fs.readFileSync(path.join(dir, "calls.log"), "utf8").trim().split("\n");
   const env = fs.readFileSync(path.join(dir, "profile.env"), "utf8").trim();
+  const siteExists = lexists(path.join(dir, "site"));
+  const symlinkExists = lexists(path.join(dir, "site-enabled"));
   fs.rmSync(dir, { recursive: true, force: true });
-  return { calls, env, stdout: res.stdout ?? "" };
+  return { calls, env, stdout: res.stdout ?? "", siteExists, symlinkExists };
 }
 
 describe("setup-profile.sh rollback behavior on a partial compose-up failure", () => {
@@ -156,11 +221,27 @@ describe("setup-profile.sh rollback behavior on a partial compose-up failure", (
     expect(env).toBe("OLD-ENV"); // config still restored, but the stack is not back up
   });
 
-  test("fresh deploy failure: prints the clean-retry hint and NEVER auto-deletes the volume", () => {
-    const { calls, stdout } = runHarness({ order: "before", fresh: true });
+  test("fresh deploy, compose-up failure: stops the stack (down, no -v), preserves the volume, prints the hint", () => {
+    const { calls, stdout } = runHarness({ order: "before", fresh: true, failAt: "compose-up" });
     expect(calls).toContain("up-attempt-1"); // destructive recreate attempted (and failed)
     expect(calls).not.toContain("up-attempt-2"); // no previous stack to recreate
-    expect(calls).not.toContain("down-called"); // critical: no automatic `down -v`
+    expect(calls).toContain("down-no-v"); // stack stopped...
+    expect(calls).not.toContain("down-v"); // ...volume preserved (no auto-delete)
     expect(stdout).toMatch(/docker compose down -v/); // operator gets the recovery command
+  });
+
+  test("fresh deploy, LATE failure after nginx: removes the new site, stops the stack, preserves the volume", () => {
+    const { calls, stdout, siteExists, symlinkExists } = runHarness({
+      order: "before",
+      fresh: true,
+      failAt: "late",
+    });
+    expect(calls).toContain("up-attempt-1"); // compose up succeeded (only one attempt)
+    expect(calls).not.toContain("up-attempt-2");
+    expect(siteExists).toBe(false); // freshly-created nginx site removed
+    expect(symlinkExists).toBe(false); // sites-enabled symlink removed
+    expect(calls).toContain("down-no-v"); // unvalidated stack stopped...
+    expect(calls).not.toContain("down-v"); // ...volume preserved
+    expect(stdout).toMatch(/docker compose down -v/); // recovery hint still printed
   });
 });
