@@ -163,7 +163,12 @@ finalize_deploy() {
         "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
     fi
     if [ -n "${DEPLOY_RECORD:-}" ]; then
-        echo "validation_result=${DEPLOY_OUTCOME:-failed}" >> "$DEPLOY_RECORD"
+        # Self-identifying result line: carrying the digest means a result can never be
+        # misassociated with another deploy's block if two concurrent runs interleave
+        # the record (or logs are later merged). The digest is the rollback trust anchor
+        # (registry-image-policy.md), so the result is keyed to it directly rather than
+        # by file position.
+        echo "validation_result=${DEPLOY_OUTCOME:-failed} digest=${PROFILE_DIGEST:-unknown}" >> "$DEPLOY_RECORD"
     fi
 }
 # finalize_deploy is the SINGLE writer, registered on EXIT only, so it runs exactly
