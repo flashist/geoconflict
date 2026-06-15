@@ -63,7 +63,7 @@ describe("setup-profile.sh — flock serialization is fail-closed", () => {
     const idxTrap = firstIndex(setupLines, /^trap rollback_deploy EXIT$/);
     const idxFirstWrite = firstIndex(
       setupLines,
-      /cat > "\$PROFILE_DIR\/profile\.env"/,
+      /> "\$PROFILE_DIR\/profile\.env"/,
     );
 
     expect(idxFlock).toBeGreaterThanOrEqual(0);

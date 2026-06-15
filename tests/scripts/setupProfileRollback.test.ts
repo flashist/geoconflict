@@ -34,11 +34,13 @@ describe("setup-profile.sh rollback ordering invariant", () => {
   });
 
   test("the rollback gates the recreate on STACK_RECREATED and the trap is installed before the first config write", () => {
-    expect(lines.some((l) => /\[ "\$STACK_RECREATED" = "1" \] && docker compose up/.test(l))).toBe(
-      true,
-    );
+    expect(
+      lines.some((l) =>
+        /\[ "\$STACK_RECREATED" = "1" \] && docker compose up/.test(l),
+      ),
+    ).toBe(true);
     const idxTrap = firstIndex(/^trap rollback_deploy EXIT$/);
-    const idxFirstWrite = firstIndex(/cat > "\$PROFILE_DIR\/profile\.env"/);
+    const idxFirstWrite = firstIndex(/> "\$PROFILE_DIR\/profile\.env"/);
     expect(idxTrap).toBeGreaterThanOrEqual(0);
     expect(idxFirstWrite).toBeGreaterThanOrEqual(0);
     expect(idxTrap).toBeLessThan(idxFirstWrite);
@@ -49,7 +51,11 @@ describe("setup-profile.sh fresh-deploy failure handling (never auto-deletes the
   test("computes FRESH_DEPLOY and gives the fresh-failure recovery branch", () => {
     expect(lines.some((l) => /^FRESH_DEPLOY=/.test(l))).toBe(true);
     expect(
-      lines.some((l) => /elif \[ "\$FRESH_DEPLOY" = "1" \] && \[ "\$STACK_RECREATED" = "1" \]/.test(l)),
+      lines.some((l) =>
+        /elif \[ "\$FRESH_DEPLOY" = "1" \] && \[ "\$STACK_RECREATED" = "1" \]/.test(
+          l,
+        ),
+      ),
     ).toBe(true);
   });
 
@@ -67,7 +73,10 @@ describe("setup-profile.sh fresh-deploy failure handling (never auto-deletes the
   test("the fresh-failure branch STOPS the stack with `docker compose down` (no -v, preserving the volume)", () => {
     // An executed `docker compose down` that is NOT `down -v` and NOT an echo/comment.
     const stopLines = lines.filter(
-      (l) => /^\s*docker compose down\b/.test(l) && !/down -v/.test(l) && !/^\s*(#|echo )/.test(l),
+      (l) =>
+        /^\s*docker compose down\b/.test(l) &&
+        !/down -v/.test(l) &&
+        !/^\s*(#|echo )/.test(l),
     );
     expect(stopLines.length).toBeGreaterThan(0);
   });
@@ -75,12 +84,16 @@ describe("setup-profile.sh fresh-deploy failure handling (never auto-deletes the
   test("the rollback nginx block restores a previous site OR removes a freshly-created one", () => {
     // Restore branch (previous site existed).
     expect(
-      lines.some((l) => /mv -f "\$SITE_BAK" \/etc\/nginx\/sites-available\/profile/.test(l)),
+      lines.some((l) =>
+        /mv -f "\$SITE_BAK" \/etc\/nginx\/sites-available\/profile/.test(l),
+      ),
     ).toBe(true);
     // Remove branch (no previous site — tear down the freshly-created public proxy).
     expect(
       lines.some((l) =>
-        /rm -f \/etc\/nginx\/sites-available\/profile \/etc\/nginx\/sites-enabled\/profile/.test(l),
+        /rm -f \/etc\/nginx\/sites-available\/profile \/etc\/nginx\/sites-enabled\/profile/.test(
+          l,
+        ),
       ),
     ).toBe(true);
   });
@@ -106,7 +119,13 @@ function runHarness(opts: {
   order: "before" | "after";
   fresh?: boolean;
   failAt?: "compose-up" | "late";
-}): { calls: string[]; env: string; stdout: string; siteExists: boolean; symlinkExists: boolean } {
+}): {
+  calls: string[];
+  env: string;
+  stdout: string;
+  siteExists: boolean;
+  symlinkExists: boolean;
+} {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rollback-"));
   const failAt = opts.failAt ?? "compose-up";
   const setFlagBefore = opts.order === "before" ? "STACK_RECREATED=1" : "";
@@ -198,7 +217,10 @@ ${setFlagAfter}
 ${lateSection}
 `;
   const res = spawnSync("bash", ["-c", script], { encoding: "utf8" });
-  const calls = fs.readFileSync(path.join(dir, "calls.log"), "utf8").trim().split("\n");
+  const calls = fs
+    .readFileSync(path.join(dir, "calls.log"), "utf8")
+    .trim()
+    .split("\n");
   const env = fs.readFileSync(path.join(dir, "profile.env"), "utf8").trim();
   const siteExists = lexists(path.join(dir, "site"));
   const symlinkExists = lexists(path.join(dir, "site-enabled"));
@@ -222,7 +244,11 @@ describe("setup-profile.sh rollback behavior on a partial compose-up failure", (
   });
 
   test("fresh deploy, compose-up failure: stops the stack (down, no -v), preserves the volume, prints the hint", () => {
-    const { calls, stdout } = runHarness({ order: "before", fresh: true, failAt: "compose-up" });
+    const { calls, stdout } = runHarness({
+      order: "before",
+      fresh: true,
+      failAt: "compose-up",
+    });
     expect(calls).toContain("up-attempt-1"); // destructive recreate attempted (and failed)
     expect(calls).not.toContain("up-attempt-2"); // no previous stack to recreate
     expect(calls).toContain("down-no-v"); // stack stopped...

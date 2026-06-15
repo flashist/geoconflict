@@ -12,7 +12,9 @@
 #   PROFILE_PORT               — profile API port (default 8080)
 #   PROFILE_SWAP_SIZE_GB       — swapfile size in GB; 0 disables (default 4)
 #   POSTGRES_USER / POSTGRES_DB — profile DB user/name (default profile)
-#   DATABASE_URL               — API connection string (default built from POSTGRES_*)
+#   DATABASE_URL               — optional explicit API connection string, passed through
+#                                verbatim; NEVER synthesized from POSTGRES_PASSWORD. When
+#                                unset, the API uses the discrete POSTGRES_* vars instead.
 #   PROFILE_INTERNAL_TOKEN     — service token (auto-generated if blank)
 #   PROFILE_INTERNAL_ALLOW_IPS — game-server IPs for the nginx /internal/ allowlist
 #   CERTBOT_EMAIL              — Let's Encrypt email (default ruflashist@gmail.com)
@@ -110,8 +112,16 @@ else
     echo "Generated and persisted PROFILE_INTERNAL_TOKEN to $PROFILE_TOKEN_FILE"
 fi
 
-# The API reaches Postgres over the compose network as host 'postgres'.
-DATABASE_URL="${DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}}"
+# Postgres connection: the API reaches Postgres over the compose network as host
+# 'postgres'. We deliberately do NOT synthesize a DATABASE_URL from POSTGRES_PASSWORD —
+# raw string interpolation of a password containing URL-special characters (/, #, ?, @,
+# :, %) yields an invalid/misparsed postgresql:// URL, and the credential probe below
+# (which authenticates with PGPASSWORD + discrete args) would NOT catch it, so the gate
+# could pass on a stack whose URL is broken. The discrete POSTGRES_USER/PASSWORD/DB
+# written to profile.env are correct and encoding-free; the Postgres-backed repository
+# (T5) builds whatever connection it needs from those. An operator MAY still set an
+# explicit, correctly-encoded DATABASE_URL in the environment — it is passed through
+# unchanged (they own its encoding).
 
 # ── Validate ──────────────────────────────────────────────────────────────────
 
@@ -318,15 +328,21 @@ rollback_deploy() {
 }
 trap rollback_deploy EXIT
 
-( umask 077; cat > "$PROFILE_DIR/profile.env" << EOF
+( umask 077; {
+cat << EOF
 POSTGRES_USER=${POSTGRES_USER}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 POSTGRES_DB=${POSTGRES_DB}
-DATABASE_URL=${DATABASE_URL}
 PROFILE_INTERNAL_TOKEN=${PROFILE_INTERNAL_TOKEN}
 PROFILE_PORT=${PROFILE_PORT}
 EOF
-)
+# Emit DATABASE_URL only when the operator supplied one explicitly — passed through
+# verbatim. We never synthesize it from POSTGRES_PASSWORD (see the note above): an
+# unencoded password would produce a malformed URL the credential probe can't detect.
+# Use `if` (not `&&`) so an unset DATABASE_URL leaves this group's status 0 — under
+# `set -e` a trailing failed `&&` would make the subshell exit non-zero and abort.
+if [ -n "${DATABASE_URL:-}" ]; then printf 'DATABASE_URL=%s\n' "$DATABASE_URL"; fi
+} > "$PROFILE_DIR/profile.env" )
 chmod 600 "$PROFILE_DIR/profile.env"
 echo "Written: profile.env (0600)"
 
@@ -357,7 +373,8 @@ services:
   profile-api:
     image: ${PROFILE_IMAGE}
     restart: on-failure
-    # DATABASE_URL + PROFILE_INTERNAL_TOKEN + PROFILE_PORT come from the 0600 profile.env.
+    # POSTGRES_* (+ optional DATABASE_URL) + PROFILE_INTERNAL_TOKEN + PROFILE_PORT come
+    # from the 0600 profile.env.
     env_file:
       - ./profile.env
     # Bound to loopback only — host nginx proxies 443 -> 127.0.0.1:${PROFILE_PORT}.
@@ -410,7 +427,7 @@ probe_db_credentials() {
 if [ -n "$(docker compose ps -q postgres 2>/dev/null || true)" ]; then
     echo "Existing stack detected — verifying new credentials against the running Postgres..."
     if ! probe_db_credentials; then
-        echo "❌ New DATABASE_URL does not authenticate against the existing Postgres volume."
+        echo "❌ New credentials do not authenticate against the existing Postgres volume."
         echo "   POSTGRES_PASSWORD likely changed but the volume keeps the original password."
         echo "   Fix by EITHER reconciling POSTGRES_PASSWORD with the existing volume,"
         echo "   OR — only if this DB has no data you need — resetting the volume:"
@@ -494,13 +511,13 @@ docker compose ps
 # healthchecks do NOT prove this: pg_isready sends no password, and /health is
 # dependency-free. In particular, postgres:16-alpine applies POSTGRES_PASSWORD only
 # on FIRST init — against a pre-existing postgres_data volume a changed password is
-# silently ignored, so the API's DATABASE_URL would fail auth while the gate passes.
+# silently ignored, so the API's DB credentials would fail auth while the gate passes.
 # probe_db_credentials does a real TCP password auth without exposing the secret in
 # any process argv.
 echo "Verifying Postgres accepts the configured credentials..."
 if ! probe_db_credentials; then
     echo "❌ Postgres did not accept the configured credentials."
-    echo "   pg_isready can pass while POSTGRES_PASSWORD / DATABASE_URL drift from an"
+    echo "   pg_isready can pass while POSTGRES_PASSWORD drifts from the password in an"
     echo "   existing postgres_data volume. Reconcile the password (or reset the volume), then re-run."
     docker compose logs --tail=50 postgres || true
     echo "The EXIT rollback will restore the previous stack."
