@@ -12,9 +12,9 @@
 #   PROFILE_PORT               — profile API port (default 8080)
 #   PROFILE_SWAP_SIZE_GB       — swapfile size in GB; 0 disables (default 4)
 #   POSTGRES_USER / POSTGRES_DB — profile DB user/name (default profile)
-#   DATABASE_URL               — optional explicit API connection string, passed through
-#                                verbatim; NEVER synthesized from POSTGRES_PASSWORD. When
-#                                unset, the API uses the discrete POSTGRES_* vars instead.
+#   DATABASE_URL               — API connection string. Synthesized URL-encoded from the
+#                                POSTGRES_* values when unset; an explicit value is passed
+#                                through verbatim (operator owns its encoding).
 #   PROFILE_INTERNAL_TOKEN     — service token (auto-generated if blank)
 #   PROFILE_INTERNAL_ALLOW_IPS — game-server IPs for the nginx /internal/ allowlist
 #   CERTBOT_EMAIL              — Let's Encrypt email (default ruflashist@gmail.com)
@@ -82,6 +82,23 @@ is_truthy() {
     esac
 }
 
+# Percent-encode a string for safe inclusion in a URI component (RFC 3986: keep only the
+# unreserved set, encode everything else). Used to build DATABASE_URL from POSTGRES_*
+# without a raw password breaking the URL. LC_ALL=C makes ${#s}/${s:i:1} iterate BYTES,
+# and masking to 0xFF keeps high/UTF-8 bytes from sign-extending in printf "'$c", so the
+# output is correct for any byte and round-trips through a URL parser's decodeURIComponent.
+urlencode() {
+    local LC_ALL=C s=$1 out= i c ord
+    for (( i=0; i<${#s}; i++ )); do
+        c=${s:i:1}
+        case $c in
+            [a-zA-Z0-9.~_-]) out+=$c ;;
+            *) ord=$(printf '%d' "'$c"); out+=$(printf '%%%02X' "$(( ord & 0xFF ))") ;;
+        esac
+    done
+    printf '%s' "$out"
+}
+
 print_header "PLAYER-PROFILE BACKEND SERVER SETUP"
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
@@ -112,16 +129,15 @@ else
     echo "Generated and persisted PROFILE_INTERNAL_TOKEN to $PROFILE_TOKEN_FILE"
 fi
 
-# Postgres connection: the API reaches Postgres over the compose network as host
-# 'postgres'. We deliberately do NOT synthesize a DATABASE_URL from POSTGRES_PASSWORD —
-# raw string interpolation of a password containing URL-special characters (/, #, ?, @,
-# :, %) yields an invalid/misparsed postgresql:// URL, and the credential probe below
-# (which authenticates with PGPASSWORD + discrete args) would NOT catch it, so the gate
-# could pass on a stack whose URL is broken. The discrete POSTGRES_USER/PASSWORD/DB
-# written to profile.env are correct and encoding-free; the Postgres-backed repository
-# (T5) builds whatever connection it needs from those. An operator MAY still set an
-# explicit, correctly-encoded DATABASE_URL in the environment — it is passed through
-# unchanged (they own its encoding).
+# Postgres connection string for the API (T4/T5 contract: the box provides DATABASE_URL).
+# The API reaches Postgres over the compose network as host 'postgres'. Each component is
+# URL-ENCODED via urlencode() so a password containing URL-special characters (/, #, ?, @,
+# :, %) can't produce a malformed/misparsed postgresql:// URL — a pg/Node client decodes
+# the components back to their literal values. (The discrete POSTGRES_* below are ALSO
+# written to profile.env for callers that prefer discrete params; the credential probe
+# uses those via PGPASSWORD, never this URL, so the secret never lands in a process argv.)
+# An operator-supplied DATABASE_URL wins verbatim — they own its encoding.
+DATABASE_URL="${DATABASE_URL:-postgresql://$(urlencode "$POSTGRES_USER"):$(urlencode "$POSTGRES_PASSWORD")@postgres:5432/$(urlencode "$POSTGRES_DB")}"
 
 # ── Validate ──────────────────────────────────────────────────────────────────
 
@@ -273,10 +289,18 @@ COMPOSE_BAK="$PROFILE_DIR/docker-compose.yml.predeploy.bak"
 [ -f "$PROFILE_DIR/docker-compose.yml" ] && cp -f "$PROFILE_DIR/docker-compose.yml" "$COMPOSE_BAK"
 
 restore_previous_config() {
-    # Restore the pre-deploy config files (when backups exist). Callers decide whether
-    # to also recreate containers. Always returns 0 so it is safe inside the EXIT trap.
-    [ -f "$PROFILE_ENV_BAK" ] && mv -f "$PROFILE_ENV_BAK" "$PROFILE_DIR/profile.env"
-    [ -f "$COMPOSE_BAK" ] && mv -f "$COMPOSE_BAK" "$PROFILE_DIR/docker-compose.yml"
+    # Restore the pre-deploy config files (when backups exist). Callers decide whether to
+    # also recreate containers. Always returns 0 so it is safe inside the EXIT trap — but a
+    # restore FAILURE is reported, never swallowed: losing the config restore is itself a
+    # rollback failure the operator must see.
+    if [ -f "$PROFILE_ENV_BAK" ]; then
+        mv -f "$PROFILE_ENV_BAK" "$PROFILE_DIR/profile.env" \
+            || echo "❌ ROLLBACK: failed to restore profile.env from $PROFILE_ENV_BAK"
+    fi
+    if [ -f "$COMPOSE_BAK" ]; then
+        mv -f "$COMPOSE_BAK" "$PROFILE_DIR/docker-compose.yml" \
+            || echo "❌ ROLLBACK: failed to restore docker-compose.yml from $COMPOSE_BAK"
+    fi
     return 0
 }
 
@@ -288,32 +312,64 @@ restore_previous_config() {
 DEPLOY_VALIDATED=0
 STACK_RECREATED=0
 rollback_deploy() {
+    # Preserve the exit status that triggered this trap so the deploy still fails with its
+    # ORIGINAL code (the rollback reports its own outcome but never masks the failure).
+    local rc=$?
     [ "$DEPLOY_VALIDATED" = "1" ] && return 0
-    echo "⚠️  Deploy failed — rolling back to the previous known-good state..."
+    echo "⚠️  Deploy failed (exit $rc) — rolling back to the previous known-good state..."
     if [ -n "${SITE_BAK:-}" ] && [ -f "${SITE_BAK:-}" ]; then
-        # A previous nginx site existed — restore it.
-        mv -f "$SITE_BAK" /etc/nginx/sites-available/profile
-        systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
+        # A previous nginx site existed — restore it. Rollback visibility: surface a
+        # restore/(re)start failure (the if-conditions keep set -e from aborting the trap).
+        mv -f "$SITE_BAK" /etc/nginx/sites-available/profile \
+            || echo "❌ ROLLBACK: failed to restore the previous nginx site from $SITE_BAK"
+        if systemctl restart nginx || systemctl start nginx; then
+            echo "✅ ROLLBACK: nginx restored to the previous site."
+        else
+            echo "❌ ROLLBACK: nginx did not (re)start after restoring the previous site — TLS/proxy may be DOWN."
+        fi
     elif [ -n "${SITE_BAK:-}" ]; then
         # We entered the nginx section but there was NO previous site (SITE_BAK is set
         # but the .bak file was never created). Remove the freshly-created site + symlink
         # so a failed deploy never leaves a public proxy to an incomplete deploy.
         rm -f /etc/nginx/sites-available/profile /etc/nginx/sites-enabled/profile
-        systemctl reload nginx 2>/dev/null || systemctl stop nginx 2>/dev/null || true
+        if systemctl reload nginx || systemctl stop nginx; then
+            echo "✅ ROLLBACK: removed the unvalidated nginx site."
+        else
+            echo "❌ ROLLBACK: nginx did not reload/stop after removing the unvalidated site."
+        fi
     fi
     if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
         restore_previous_config
         # Only recreate if we already replaced the live stack; before that the previous
         # stack is still running, so restoring the config files is enough (and avoids an
-        # unnecessary restart of a stack the failed deploy never actually touched).
-        [ "$STACK_RECREATED" = "1" ] && docker compose up -d --force-recreate 2>/dev/null || true
+        # unnecessary restart of a stack the failed deploy never actually touched). The
+        # recreate is the core of rollback safety — NEVER silence it: report success, or
+        # on failure print an unmistakable banner plus the stack state and recent logs.
+        if [ "$STACK_RECREATED" = "1" ]; then
+            echo "Recreating the previous stack..."
+            if docker compose up -d --force-recreate; then
+                echo "✅ ROLLBACK: previous stack restored."
+            else
+                echo "❌ ROLLBACK FAILED: could not recreate the previous stack — the profile API may be DOWN."
+                echo "   Manual recovery required. Current state and recent logs:"
+                docker compose ps || true
+                echo "----- recent logs (last 50 lines) -----"
+                docker compose logs --tail=50 || true
+            fi
+        fi
     elif [ "$FRESH_DEPLOY" = "1" ] && [ "$STACK_RECREATED" = "1" ]; then
         # Fresh (first-time) deploy that failed AFTER the stack was created: there is no
         # previous config to roll back to. STOP the unvalidated stack so a failed deploy
         # never leaves a live (publicly proxied) service running. Use `down` WITHOUT -v:
         # we deliberately PRESERVE the postgres_data volume (never auto-delete data); the
         # operator chooses below whether to keep it (retry) or reset it (down -v).
-        docker compose down 2>/dev/null || true
+        echo "Stopping the unvalidated stack (preserving the postgres_data volume)..."
+        if docker compose down; then
+            echo "✅ ROLLBACK: unvalidated stack stopped (volume preserved)."
+        else
+            echo "❌ ROLLBACK: 'docker compose down' failed — the unvalidated stack may still be running."
+            docker compose ps || true
+        fi
         echo ""
         echo "ℹ️  This was a FIRST-TIME deploy that failed after the stack was created."
         echo "   The unvalidated stack has been STOPPED (containers removed); the new"
@@ -325,24 +381,22 @@ rollback_deploy() {
         echo "       (down -v DELETES the postgres_data volume — safe here: this deploy"
         echo "        never validated, so the volume holds no data you need.)"
     fi
+    return "$rc"
 }
 trap rollback_deploy EXIT
 
-( umask 077; {
-cat << EOF
+# DATABASE_URL is always present (synthesized URL-encoded above, or an operator override).
+# Discrete POSTGRES_* are written too so a caller can use either; the credential probe
+# uses the discrete password via PGPASSWORD (never this URL) to keep it out of any argv.
+( umask 077; cat > "$PROFILE_DIR/profile.env" << EOF
 POSTGRES_USER=${POSTGRES_USER}
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 POSTGRES_DB=${POSTGRES_DB}
+DATABASE_URL=${DATABASE_URL}
 PROFILE_INTERNAL_TOKEN=${PROFILE_INTERNAL_TOKEN}
 PROFILE_PORT=${PROFILE_PORT}
 EOF
-# Emit DATABASE_URL only when the operator supplied one explicitly — passed through
-# verbatim. We never synthesize it from POSTGRES_PASSWORD (see the note above): an
-# unencoded password would produce a malformed URL the credential probe can't detect.
-# Use `if` (not `&&`) so an unset DATABASE_URL leaves this group's status 0 — under
-# `set -e` a trailing failed `&&` would make the subshell exit non-zero and abort.
-if [ -n "${DATABASE_URL:-}" ]; then printf 'DATABASE_URL=%s\n' "$DATABASE_URL"; fi
-} > "$PROFILE_DIR/profile.env" )
+)
 chmod 600 "$PROFILE_DIR/profile.env"
 echo "Written: profile.env (0600)"
 
@@ -373,8 +427,8 @@ services:
   profile-api:
     image: ${PROFILE_IMAGE}
     restart: on-failure
-    # POSTGRES_* (+ optional DATABASE_URL) + PROFILE_INTERNAL_TOKEN + PROFILE_PORT come
-    # from the 0600 profile.env.
+    # DATABASE_URL + POSTGRES_* + PROFILE_INTERNAL_TOKEN + PROFILE_PORT come from the
+    # 0600 profile.env.
     env_file:
       - ./profile.env
     # Bound to loopback only — host nginx proxies 443 -> 127.0.0.1:${PROFILE_PORT}.

@@ -34,10 +34,10 @@ describe("setup-profile.sh rollback ordering invariant", () => {
   });
 
   test("the rollback gates the recreate on STACK_RECREATED and the trap is installed before the first config write", () => {
+    // The rollback recreate is gated on STACK_RECREATED (now an `if` block that reports
+    // success/failure rather than the old silenced `&& ... || true` one-liner).
     expect(
-      lines.some((l) =>
-        /\[ "\$STACK_RECREATED" = "1" \] && docker compose up/.test(l),
-      ),
+      lines.some((l) => /if \[ "\$STACK_RECREATED" = "1" \]; then/.test(l)),
     ).toBe(true);
     const idxTrap = firstIndex(/^trap rollback_deploy EXIT$/);
     const idxFirstWrite = firstIndex(/> "\$PROFILE_DIR\/profile\.env"/);
@@ -72,9 +72,10 @@ describe("setup-profile.sh fresh-deploy failure handling (never auto-deletes the
 
   test("the fresh-failure branch STOPS the stack with `docker compose down` (no -v, preserving the volume)", () => {
     // An executed `docker compose down` that is NOT `down -v` and NOT an echo/comment.
+    // Now wrapped in `if docker compose down; then` (observability), so allow a leading `if`.
     const stopLines = lines.filter(
       (l) =>
-        /^\s*docker compose down\b/.test(l) &&
+        /^\s*(if )?docker compose down\b/.test(l) &&
         !/down -v/.test(l) &&
         !/^\s*(#|echo )/.test(l),
     );
@@ -269,5 +270,87 @@ describe("setup-profile.sh rollback behavior on a partial compose-up failure", (
     expect(calls).toContain("down-no-v"); // unvalidated stack stopped...
     expect(calls).not.toContain("down-v"); // ...volume preserved
     expect(stdout).toMatch(/docker compose down -v/); // recovery hint still printed
+  });
+});
+
+// Process review #12 (finding #1): the rollback must never SILENCE its recovery actions.
+// The recreate of the previous stack used `... 2>/dev/null || true`, so a rollback that
+// itself failed left the API down with only a generic banner. Rollback is exactly when
+// visibility matters most. These tests lock observability for the whole class.
+describe("setup-profile.sh rollback observability (no silenced recovery)", () => {
+  test("the rollback recreate is not silenced with 2>/dev/null || true", () => {
+    expect(
+      lines.some((l) =>
+        /docker compose up -d --force-recreate 2>\/dev\/null/.test(l),
+      ),
+    ).toBe(false);
+  });
+
+  test("the rollback reports failure with an explicit banner plus ps + logs", () => {
+    expect(lines.some((l) => /ROLLBACK FAILED/.test(l))).toBe(true);
+    // On a failed recreate the operator must get the stack state and recent logs.
+    expect(lines.some((l) => /docker compose ps/.test(l))).toBe(true);
+    expect(lines.some((l) => /docker compose logs --tail/.test(l))).toBe(true);
+  });
+});
+
+// Behavioral: run the REAL restore_previous_config + rollback_deploy extracted from the
+// script (not a replica) under a stubbed docker, driven by the EXIT trap exactly as in
+// production. Proves a FAILED rollback-recreate is surfaced (banner + ps + logs) AND that
+// the original deploy-failure exit code is preserved (the rollback never masks it as 0).
+function runRealRollback(opts: { recreateFails: boolean }): {
+  code: number;
+  stdout: string;
+  calls: string;
+} {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "real-rollback-"));
+  const script = fs.readFileSync(SETUP_PROFILE, "utf8");
+  const restoreFn =
+    script.match(/restore_previous_config\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+  const rollbackFn =
+    script.match(/rollback_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+  const callsLog = path.join(dir, "calls");
+  const harness = [
+    "set -e",
+    restoreFn,
+    rollbackFn,
+    `FAILUP=${opts.recreateFails ? "1" : "0"}`,
+    `docker() { echo "docker $*" >> "${callsLog}"; if [ "$1 $2" = "compose up" ] && [ "$FAILUP" = "1" ]; then return 1; fi; return 0; }`,
+    `systemctl() { return 0; }`,
+    `PROFILE_DIR="${dir}"; PROFILE_ENV_BAK="${dir}/e.bak"; COMPOSE_BAK="${dir}/c.bak"`,
+    `echo old > "$PROFILE_ENV_BAK"; echo old > "$COMPOSE_BAK"`,
+    `DEPLOY_VALIDATED=0; STACK_RECREATED=1; FRESH_DEPLOY=0; SITE_BAK=""`,
+    "trap rollback_deploy EXIT",
+    "( exit 7 )", // set -e => script exits 7 => EXIT trap runs rollback_deploy with rc=7
+  ].join("\n");
+  const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
+  const calls = fs.existsSync(callsLog)
+    ? fs.readFileSync(callsLog, "utf8")
+    : "";
+  fs.rmSync(dir, { recursive: true, force: true });
+  return { code: res.status ?? -1, stdout: res.stdout ?? "", calls };
+}
+
+describe("setup-profile.sh real rollback_deploy behavior (extracted, EXIT-trap driven)", () => {
+  test("the extracted functions were found", () => {
+    // Guards against a silent regex miss that would make the cases below vacuous.
+    const script = fs.readFileSync(SETUP_PROFILE, "utf8");
+    expect(script).toMatch(/rollback_deploy\(\) \{/);
+    expect(script).toMatch(/restore_previous_config\(\) \{/);
+  });
+
+  test("recreate FAILS => prints ROLLBACK FAILED + ps + logs, and preserves the exit code", () => {
+    const { code, stdout, calls } = runRealRollback({ recreateFails: true });
+    expect(stdout).toMatch(/ROLLBACK FAILED/);
+    expect(calls).toMatch(/docker compose ps/);
+    expect(calls).toMatch(/docker compose logs --tail=50/);
+    expect(code).toBe(7); // original deploy-failure code preserved, NOT masked to 0
+  });
+
+  test("recreate SUCCEEDS => reports restored, still exits with the original failure code", () => {
+    const { code, stdout, calls } = runRealRollback({ recreateFails: false });
+    expect(stdout).toMatch(/ROLLBACK: previous stack restored/);
+    expect(calls).not.toMatch(/docker compose logs/); // no failure diagnostics on success
+    expect(code).toBe(7);
   });
 });

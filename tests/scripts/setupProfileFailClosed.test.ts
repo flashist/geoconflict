@@ -201,3 +201,66 @@ describe("setup-profile.sh — flock gate behavior (replicated harness)", () => 
     expect(configWritten).toBe(true);
   });
 });
+
+// Process review #12 (finding #2): the T4/T5 contract says the box provides DATABASE_URL.
+// Synthesizing it by raw interpolation of POSTGRES_PASSWORD is unsafe — a password with
+// URL-special characters (/ # ? @ : % & = space, or UTF-8) yields a malformed/misparsed
+// postgresql:// URL. The script must URL-ENCODE each component via urlencode(). These tests
+// run the REAL urlencode() extracted from the script and prove every component round-trips
+// back to its literal value through a URL parser's decodeURIComponent (how pg/Node decodes).
+const setupScript = fs.readFileSync(SETUP_PROFILE, "utf8");
+const urlencodeFn =
+  setupScript.match(/urlencode\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+
+function bashUrlencode(input: string): string {
+  const res = spawnSync(
+    "/bin/bash",
+    ["-c", `${urlencodeFn}\nurlencode "$1"`, "bash", input],
+    { encoding: "utf8" },
+  );
+  if (res.status !== 0) throw new Error(`urlencode failed: ${res.stderr}`);
+  return res.stdout;
+}
+
+describe("setup-profile.sh — DATABASE_URL is synthesized URL-encoded (contract + correctness)", () => {
+  test("the script defines a urlencode() helper", () => {
+    expect(urlencodeFn).toMatch(/^urlencode\(\) \{/);
+  });
+
+  test("DATABASE_URL synthesis URL-encodes the password (not raw interpolation)", () => {
+    // The synthesized default must pass POSTGRES_PASSWORD through urlencode, never inline it.
+    const synth = setupLines.find((l) =>
+      /^DATABASE_URL="\$\{DATABASE_URL:-postgresql:\/\//.test(l),
+    );
+    expect(synth).toBeDefined();
+    expect(synth).toMatch(/urlencode "\$POSTGRES_PASSWORD"/);
+    expect(synth).not.toMatch(/:\$\{?POSTGRES_PASSWORD\}?@/); // no raw password in the URL
+  });
+
+  test("profile.env always emits a DATABASE_URL line (contract: box provides it)", () => {
+    expect(
+      setupLines.some((l) => /^DATABASE_URL=\$\{DATABASE_URL\}$/.test(l)),
+    ).toBe(true);
+  });
+
+  test("urlencode round-trips adversarial passwords through a URL parser", () => {
+    const passwords = [
+      "p@ss/w#rd?%x",
+      "a:b@c/d?e#f&g=h+i j",
+      "üñîçødé✓",
+      "quote'and\"dq",
+      "$pec!al~tilde",
+      "Ω≈ç√∫˜µ",
+    ];
+    for (const pw of passwords) {
+      const encoded = bashUrlencode(pw);
+      // 1. The raw URL-breaking characters must not survive unescaped in the password slot.
+      expect(encoded).not.toMatch(/[/#?@]/);
+      // 2. It must decode back to the exact original (this is what pg's parser does).
+      expect(decodeURIComponent(encoded)).toBe(pw);
+      // 3. And the full synthesized URL must parse, recovering the password.
+      const url = new URL(`postgresql://user:${encoded}@postgres:5432/db`);
+      expect(decodeURIComponent(url.password)).toBe(pw);
+    }
+  });
+});

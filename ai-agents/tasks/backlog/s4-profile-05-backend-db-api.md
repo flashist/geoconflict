@@ -37,6 +37,10 @@ This slice puts the actual data layer and HTTP API on the profile box. The DB-to
    - **Client-facing (player-authenticated):** `GET /v1/profile` only. *(No `POST /v1/profile/migrate` — dropped 2026-06-13; see the decision note above.)*
    - **Internal (service-authenticated via `PROFILE_INTERNAL_TOKEN`, IP-allowlisted to the game server):** `POST /internal/v1/credit` accepting a batch of `{ gameId, yandexPlayerId, xpAwarded }`, performing idempotent crediting.
 
+5. **DB connection + readiness check:**
+   - Connect using what the box provides: a **URL-encoded** `DATABASE_URL` (synthesized by `setup-profile.sh` from `POSTGRES_*`, each component percent-encoded) **or** the discrete `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB` (host `postgres`, port `5432`). `pg` accepts either — read one directly; do **not** re-synthesize a URL from the raw password (an unencoded special char breaks parsing).
+   - Add a **DB-backed readiness probe** (e.g. `GET /ready`, or a compose healthcheck that runs `SELECT 1`) exercising the **exact** connection the API uses. The container `/health` is deliberately dependency-free (liveness only); `setup-profile.sh`'s deploy gate only probes discrete credentials via `PGPASSWORD`. Without a readiness check, a deploy can be recorded `validation_result=passed` while DB-backed endpoints fail at runtime on a misconfigured/misparsed connection. *(Raised in profile-deploy review round #12; the deploy intentionally does not probe the URL itself to avoid putting a password-bearing URL in a process argv — see review #7.)*
+
 ## Out of scope
 - Game-server client / protocol extension / match-end wiring (T6).
 - Client login flow (T7).
@@ -48,6 +52,7 @@ This slice puts the actual data layer and HTTP API on the profile box. The DB-to
 - Epic Verification #4 (API level): calling `/internal/v1/credit` twice with the same `game_id` credits XP once.
 - Crediting flips `is_citizen` / sets `citizenship_earned_at` when `xp` crosses 1,000; neither endpoint ever sets paid flags.
 - Idempotency + transaction integration tests run against a real Postgres (Docker) in CI.
+- The DB readiness probe returns ready ONLY when a real query over the API's actual connection succeeds — a broken `DATABASE_URL`/credentials must make readiness (and thus the deploy gate) FAIL, not pass.
 
 ## Notes
 - Postgres stays localhost-only; the only network surface is the API.
