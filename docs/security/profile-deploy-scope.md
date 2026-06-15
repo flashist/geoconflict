@@ -1,0 +1,334 @@
+# PR 114 — Stop the Bounce: Durable Hardening Doctrine for Profile Deploy
+
+> **Status:** active doctrine. **Scope:** the profile-backend deploy pipeline —
+> `setup-profile.sh`, `build-deploy-profile.sh`, `scripts/check-docker-secret-boundary.sh`,
+> `Dockerfile.profile`, and `tests/scripts/*`.
+> **Related:** [`registry-image-policy.md`](registry-image-policy.md) ·
+> [`secret-rotation-inventory.template.md`](secret-rotation-inventory.template.md) ·
+> T5 task `ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md`.
+
+Keep this open on every future change to the files above. Read section 4 before every push.
+
+**One rule governs the whole document: anchor edits and tests by unique grep string, never by
+absolute line number.** The line numbers have already drifted between reviews. Every line reference
+here is a *hint to grep*, not a coordinate to edit. Every new test must locate its target with
+`firstIndex(/regex/)` / a unique grep string — the pattern every existing test in `tests/scripts/`
+already uses — so the matrix cannot rot when the files move again.
+
+## 1. The diagnosis
+
+Nine adversarial-review rounds each ended in a *new* finding because every fix patched the named
+instance, not the class, and shipped without first re-running the adversary's own lens across the rest
+of the diff. F2/F10/F11 are three points on one curve (the hand-rolled awk Dockerfile parser is
+allowlist-by-recognized-form; its default for anything it doesn't model is *pass*). F6/F7/F9/F12 are
+four points on another (the deploy certifies a *proxy* — discrete-cred `psql` auth plus dependency-free
+`/health` — never the exact `DATABASE_URL` the API consumes). F1/F3/F8 are three points on a third
+(rollback is a hand-maintained mirror of the forward sequence built from ad-hoc flags, so any
+unregistered mutation has no undo). Two compounding mistakes pinned the verdict: **(a) fix-the-instance**
+— each round changed the failing *input* and pinned it with a test, never the *oracle*, so the adversary
+just enumerated the next untested point on the same surface; and **(b) ship-before-self-adversary** —
+with five classes live at once, fixing one class per round guarantees at least one needs-attention every
+round. The loop is not bad luck; it is the mechanical consequence of patching symptoms one at a time
+across a multi-class surface with no pre-submission sweep.
+
+**A third mistake this document removes: shipping an ambivalent doctrine.** Roughly half of these
+findings are *already closed in the current code*. The danger now is the opposite of round one — a
+specialist who rewrites working code, re-opens a settled question, or pins a fabricated citation into CI
+manufactures round ten by hand. Every section below commits to one answer, separates *already-landed
+(keep its test green)* from *new work this PR*, and cites only anchors that actually resolve in the
+source.
+
+## 2. The five recurring classes
+
+| Class | Findings | Root cause | The ONE structural fix |
+|---|---|---|---|
+| **A. DB / DATABASE_URL authenticity** | F6, F7, F9, F12 | Two DB credential paths exist; the gate validates the one the API does *not* use (discrete-cred `psql` + dependency-free `/health`), never the literal `DATABASE_URL` the API consumes. | **Decided: keep `DATABASE_URL`, validate the exact string (A-ii).** Make the gate a real `SELECT 1` over the *exact* `DATABASE_URL` from `profile.env`, run **stdin-only** (no password in any argv — preserves the F7 fix). Honors the T5 contract and the green pin "profile.env always emits a DATABASE_URL line" without test churn. The DB-backed `/ready` healthcheck repoint is T5's; PR 114's job is to stop recording `passed` on a proxy. |
+| **B. Docker secret-boundary parser arms race** | F2, F10, F11 | A hand-rolled awk re-implementation of Docker's lexer is allowlist-by-form; its default for any unmodeled construct is *pass*, and it's treated as authoritative. | Invert authority: the **post-build scan of the actual image filesystem** (`--inspect-image`) is the gate (whole added-fs, content-matched against the repo's real secrets). The awk scanner is demoted to a **fail-closed advisory** — reject by default on anything it can't fully normalize. |
+| **C. Rollback completeness & fail-loud** | F1, F3, F8 | Rollback is a hand-maintained mirror of the forward sequence, built from per-resource boolean flags; any mutation the author forgets to register has no undo, and silenced undos hide their own failure. | Replace flag-soup with one append-only LIFO undo stack: every forward mutation pushes its inverse on the line *after* it executes; the trap replays in reverse through one `run_undo` wrapper that never silences and always re-exits the original code. |
+| **D. Concurrency / locking / record integrity** | F4, F5 | No single locking discipline spans the deploy. The local record is two unsynchronized appends with no lock; the remote lock starts after SSH; an unavailable lock warns-and-continues. | One discipline: local `flock` (fail-closed) acquired *before* the first record write and held across the SSH boundary; the record written as **one atomic append of a complete block** via temp file; remote `flock` stays as the box-level backstop. |
+| **E. Scope / future-API contract** | F9, F12 (+ meta) | The deploy asserts a present-tense fact (process alive, `psql` accepts the password) as a stand-in for a future-tense guarantee (the real API endpoint works), and no reviewer-facing artifact declares the boundary. | Make the scope boundary a first-class, reviewer-visible artifact: a scope block + PR description naming what's guaranteed NOW vs. deferred to T5, citing the **quoted** scope item and acceptance bullet (never a numeric "#N"), with tracking tokens at each in-code deferral point. |
+
+## 3. Operating principles
+
+1. **Fail closed, never open.** No path may warn-and-continue or pass-by-omission on a
+   security/integrity decision. "Not recognized" must mean "blocked." Applies to lock acquisition,
+   escape/`# syntax=`/`# check=` directives, unmodeled COPY forms, and DB validation alike.
+2. **Certify the real artifact, not a proxy.** Validation must exercise the *exact* thing the running
+   system consumes: the literal `DATABASE_URL` via the `pg` client; the actual built-image filesystem.
+   Discrete `psql` creds and a text scan may *supplement* the real oracle but never *be* it.
+3. **Rollback is a fail-loud state machine, not a flag mirror.** Every host/stack mutation after the
+   trap installs has a registered inverse. No `|| true` with discarded output and no `2>/dev/null`
+   inside the rollback path. Every undo reports ✅ restored or ❌ failed-with-diagnostics. The trap
+   always re-exits the *original* failure code, never 0.
+4. **One lock per state domain, fail-closed, acquired before the first write.** An unavailable lock is
+   fatal, symmetrically local and remote. Shared records are written as one atomic append of a complete
+   block — a body line never lands without its matching result in the same write.
+5. **Close the class, then sweep all open classes in the same submission.** When a review names instance
+   N, change the *oracle*, enumerate the rest of that class yourself, add the missing variants, then run
+   the other four class oracles. One-class-per-round can never reach clean.
+6. **Never claim completeness for a hand-rolled parser unless it fails closed on the unknown.** The
+   Round-8 stance ("static catches every broad copy") was falsified twice precisely because the awk
+   enumerated forms it understood and passed the rest. A pushback resting on a hand-maintained parser is
+   unsafe; one resting on a real-tool oracle (actual `docker build` + full-image scan) is defensible.
+7. **The data-bearing volume is never auto-deleted.** `down -v` appears only as an echoed operator hint,
+   never as an executed command, in any rollback state.
+8. **Say what you validate; declare what you defer.** `validation_result=passed` may claim only what the
+   gate actually exercised. Anything it can't yet exercise must be named as deferred in a
+   reviewer-visible place — an undeclared validation gap is itself the bug.
+9. **Don't regress what's already green; don't rewrite settled answers.** ~Half these findings are
+   already closed. Touch already-landed code only to extend it, never to "re-fix" it; grep for the
+   unique string first; cite only anchors that resolve.
+
+## 4. Pre-submission adversarial self-review checklist
+
+Run this over the **whole diff**, not just the lines you touched, before every push. Any "wrong" answer
+blocks submission.
+
+**Lens 1 — Fail-open vs fail-closed**
+- [ ] Does any path `warn-and-continue`, `|| true`, or fall through to an implicit pass on a
+  security/integrity decision? (Must be NO.)
+- [ ] Does every parser/guard REJECT on input it cannot fully model, rather than pass by omission?
+  (Must be YES.)
+
+**Lens 2 — Fresh vs existing state**
+- [ ] Does it behave correctly on a **first-time** deploy (no backups, no existing volume) *and* on a
+  redeploy? (Must be YES.)
+- [ ] On a fresh-deploy failure, is every mutation (stack, volume-preservation, nginx site set, nginx
+  running-state) left clean or loudly reported? (Must be YES.)
+
+**Lens 3 — Concurrent invocation**
+- [ ] Is the critical section locked *before* the first shared-state write, and is an unavailable lock
+  fatal? (Must be YES.)
+- [ ] Is every shared-record write a single atomic append of a complete block? (Must be YES.)
+
+**Lens 4 — Output suppression**
+- [ ] Does any recovery/rollback action discard output or redirect to `/dev/null`, hiding a failure that
+  matters at recovery time? (Must be NO.)
+- [ ] Does the failing path preserve and re-exit the original exit code? (Must be YES.)
+
+**Lens 5 — Proxy vs real artifact**
+- [ ] Am I validating a stand-in (discrete creds, text scan, liveness `/health`) or the exact artifact
+  that ships (the literal `DATABASE_URL` via `pg`, the built-image filesystem)? (Must be: real artifact,
+  or the gap is explicitly scoped to T5 with a quoted citation.)
+
+**Lens 6 — Future consumers**
+- [ ] For every "the box provides X for a future consumer" promise (`DATABASE_URL`,
+  `PROFILE_INTERNAL_TOKEN`, `/internal/` allowlist), is it proven end-to-end now or named as
+  deferred/unvalidated in a reviewer-visible place? (Must be YES.)
+
+**Meta-sweep**
+- [ ] Have I run the other four class oracles against the current scripts, not just the class this round
+  named? (Must be YES.)
+- [ ] Does the scope doc / PR body still match the actual validation surface? (Must be YES — coupled by
+  test.)
+- [ ] Did I touch already-landed code (Class A `urlencode`, Class B `assert_default_escape` / var-source
+  reject, Class C fresh-deploy nginx removal, Class D remote-flock abort, the digest result line) only
+  to *extend* it, leaving its pinned test green? (Must be YES.)
+- [ ] Does every citation I added resolve to real, quoted text in the cited file — no numeric
+  "criterion #N"? (Must be YES.)
+
+## 5. Per-class structural fixes and proof-of-closure test matrices
+
+Each class opens with an **Already closed (keep green)** / **New in this PR** split so you never rewrite
+working code.
+
+### Class A — DB / DATABASE_URL authenticity
+
+**Decision: A-ii (validate the exact string). A-i (drop the URL) is rejected** — it would break the
+pinned test "profile.env always emits a DATABASE_URL line" and silently defer the whole authenticity
+question to T5.
+
+**Already closed (keep green):** `urlencode()` + its adversarial round-trip test (**F6 is genuinely
+closed — don't weaken either**); the argv-safety invariant in `probe_db_credentials` (password via
+stdin/`PGPASSWORD`, never argv — the F7 fix, pinned by `setupProfileDbProbe.test.ts`); the
+self-identifying digest on the result line in `build-deploy-profile.sh`.
+
+**New in this PR:** an authoritative gate that opens a real connection using the **exact** `DATABASE_URL`
+from `profile.env` and runs `SELECT 1`, **stdin/env-only** (never in argv); on failure records `failed`.
+Keep `probe_db_credentials` for first-init/password-drift detection but **fix its comment** to say it
+tests a *different* credential path and is supplementary. Route the operator-supplied `DATABASE_URL`
+**through the same gate** — no verbatim trust. The `/ready` healthcheck + compose repoint remain **T5**
+(dependency-free `/health` for liveness stays correct).
+
+**Test matrix:** operator override verbatim-but-wrong (wrong dbname/port/stale password) while discrete
+creds are correct → deploy FAILS (today: passes — the live F12 hole); scheme/parse divergence
+(`postgres://` vs `postgresql://`, IPv6, empty password, `?sslmode=`) → gate and `pg` agree;
+readiness-not-liveness pinned as deferred to T5; correct config → `SELECT 1` succeeds → `passed`; keep
+`urlencode` round-trip green; extend the argv-safety regression to the new URL gate.
+
+### Class B — Docker secret-boundary parser arms race
+
+**Profile-image caveat (read first):** `Dockerfile.profile` is **single-stage** (`FROM node:24-slim`,
+no `AS`), and `build-deploy-profile.sh` calls **`--inspect-image` only** (never `--runtime-image-check`).
+So the authoritative gate is `--inspect-image`, and the "whole added filesystem" it must scan is the
+diff of the final image **vs base `node:24-slim`**. The multi-stage `COPY --from=A` test below is a
+*parser-class* regression for the static scanner and any future multi-stage Dockerfile; it doesn't map
+onto the profile image as written.
+
+**Already closed (keep green):** backtick-continuation under `# escape=` (`assert_default_escape` —
+original F2/F11); variable-in-source rejection in `scan_broad_copies` (keep the REJECT on `$` in a
+COPY/ADD source).
+
+**New in this PR — load-bearing:** harden `--inspect-image` (the `find /usr/src/app -maxdepth 4` line,
+currently filename-only) to scan the **whole added filesystem** (final image vs base), detecting by
+**content** (hash/marker match against the repo's real `.env*`/`*.secret`) *and* filename patterns
+(`.env`, `.env.*`, `*.secret`, `.git/`, `*.pem`, `id_rsa*`). Invariant to every Dockerfile syntax trick
+because it observes resulting bytes. Exclude example suffixes (`.env.example/.sample/.template`) while
+still flagging bare `.env`/`*.secret`; rely on content-match. Rewrite `scan_broad_copies` to
+**default-REJECT** any COPY/ADD it can't normalize: reject heredoc COPY/ADD (`<<`), keep the
+`$`-in-source REJECT, reject any `# syntax=` not pinned to the official image, and **fix the
+continuation loop to not join across a `#` comment line** (skip heredoc *bodies* so a `RUN cat <<H … H`
+body isn't false-flagged).
+
+**Test matrix:** the **verified-still-live** comment-continuation bypass (`FROM node:24-slim` /
+`# foo \` / `COPY . /app` → scanner EXIT=0 today) → after fix exits non-zero; heredoc COPY → REJECT;
+heredoc body containing `COPY . /app` → PASS; custom/remote `# syntax=` → REJECT unless pinned;
+multi-stage broad copy (parser-class, not the profile image) → image scan catches it; whole-fs ground
+truth (`/opt/leaked.env` outside `/usr/src/app`) → `--inspect-image` FAILS (today: missed); node_modules
+example → PASS, node_modules real-secret content → FAILS; a malformed/unknown COPY-like token → static
+REJECT (encodes fail-closed so the next quirk can't reopen the class).
+
+### Class C — Rollback completeness & fail-loud
+
+**Already closed (keep green):** the fresh-deploy nginx branch (`reload || stop`) and the stack-recreate
+failure report (`docker compose ps` + logs) — landed F3/F8; `local rc=$?` + `return $rc`; `down`
+(no `-v`) as the only executed teardown with `down -v` echoed as a hint. **Extend into the LIFO; don't
+rewrite.**
+
+**New in this PR:** replace per-resource flags with one append-only LIFO stack.
+`register_undo() { ROLLBACK_ACTIONS+=("$1"); }`; every forward mutation pushes its inverse on the line
+*after* it executes; `rollback_deploy` iterates in reverse through one `run_undo "<label>" <cmd...>`
+that captures output, prints ✅/❌ + diagnostics, sets `ROLLBACK_HAD_FAILURE`, prints a final "fully
+restored / not fully restored" line, then `return $rc`. Push the stack-recovery undo on the line
+**directly before** `docker compose up --force-recreate` (physically eliminates the `STACK_RECREATED`
+flag). **Close the live default-site gap NOW:** before `rm -f /etc/nginx/sites-enabled/default`, capture
+existence and register an undo that recreates the symlink (today it's removed and never restored —
+net-new coverage). On `systemctl stop nginx` (fresh deploy) push `systemctl start nginx`. Prefer
+bringing systemd + cron writes inside the trap region as registered undos, moving `DEPLOY_VALIDATED=1`
+to the true end.
+
+**Test matrix:** state-coverage S1..S6 (drive `rollback_deploy` through each failure state; assert
+resulting config/site/running-state/stack/volume == pre-deploy snapshot — one case per state, so a new
+mutation with no undo fails); fresh-deploy certbot failure → nginx restarted, profile site absent, stack
+down, volume preserved; default-site restoration (S5, the live gap); a no-silencing static assertion
+over **all** undo commands; exit-code preservation in every state; a LIFO-completeness guard (every
+forward mutation token has a matching `register_undo`); rollback-failure reporting; `down -v` never
+executed in S3..S6.
+
+### Class D — Concurrency / locking / record integrity
+
+**Already closed (keep green):** the remote box fail-closed gate (`setup-profile.sh` aborts when `flock`
+unavailable / lock held, pinned by `setupProfileFailClosed.test.ts`). **Don't move the remote `flock`
+earlier — it can't run before SSH connects.**
+
+**New in this PR — the live local gap (`build-deploy-profile.sh` still does an unlocked two-step
+`tee -a`):** `exec 8>"$DEPLOY_LOCK"` (gitignored fixed path, e.g. `.profile-deploy.lock`) then
+`flock -n 8 || { echo 'another profile deploy is already running'; exit 1; }`, acquired **before** the
+first record write and held across the SSH call; add a fail-closed `command -v flock` check symmetric
+with the remote one; add `.profile-deploy.lock` to `.gitignore`. **Atomic record write:** stop the early
+`tee -a`; accumulate body lines into a `0600 mktemp`; in `finalize_deploy` append the final
+`validation_result=<outcome> digest=<digest>` to that *same* temp file, then one
+`cat "$tmp" >> "$DEPLOY_RECORD"` under fd 8. Keep fixed-name `predeploy.bak` but add a test asserting
+they're written only after the box `flock` succeeds.
+
+**Test matrix (new `tests/scripts/profileDeployRecordConcurrency.test.ts`, grep-anchored):** N parallel
+writers under the lock → N complete contiguous blocks, no interleave; same N *without* the lock →
+corrupt (control proving the lock is load-bearing; fails on today's code); flock absent → exits
+non-zero, writes nothing; lock contention → aborts cleanly; SIGKILL mid-run → complete block or nothing,
+never body-only orphan; `----` count == `validation_result=` count; remote lock-start ordering precedes
+the first `predeploy.bak` copy.
+
+### Class E — Scope / future-API contract
+
+Documentary, not runtime (the Class-A real-string gate closes the runtime half of F9/F12; this closes
+the reviewer-visibility half).
+
+**Citation rule (load-bearing):** `ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md` has **6
+unnumbered Acceptance bullets and a numbered Scope list**. There is **no "criterion #55"** — cite only
+stable quoted anchors: **Scope item 5 — "DB connection + readiness check,"** and the final Acceptance
+bullet, quoted: *"The DB readiness probe returns ready ONLY when a real query over the API's actual
+connection succeeds — a broken `DATABASE_URL`/credentials must make readiness (and thus the deploy gate)
+FAIL, not pass."* (The T5 file already cites review rounds #7 and #12 — that cross-reference is correct.)
+
+**Change:** rewrite the PR description with two sections — *"Validation guaranteed by this deploy"*
+(services healthy; discrete-cred TCP auth; the new real `SELECT 1` over the exact `DATABASE_URL`;
+digest-pinned deploy + rollback; secret-boundary static + image scan) and *"Deliberately out of scope —
+tracked"* (DB-backed `/ready` wiring is T5, with the quoted anchors). Consolidate scattered scope
+comments into ONE anchored block (this file or a `setup-profile.sh` header). Add tracking tokens at each
+deferral point reading like `<deferred>; owned by T5 (s4-profile-05-backend-db-api.md — Scope item 5
+"DB connection + readiness check")`, **never a numeric "#N".**
+
+**Test matrix:** doc/code-coupling lint (fails if the validation surface changes without the scope doc
+being touched); deferral-token presence (each names T5 by quoted text; assert no `#\d+` numeric
+criterion reference exists); operator-override-now-validated regression; scope-boundary pin (readiness
+*wiring* deferred to T5 while the *string-authenticity* gate is present now).
+
+## 6. Scope decisions — made and written down
+
+1. **What does `passed` promise?** Decided **A-ii**: box infra healthy **and** the exact `DATABASE_URL`
+   opens a real connection (`SELECT 1`, stdin-only). Keep URL synthesis + the `profile.env` line.
+   `/ready` readiness wiring is T5. → PR description + this scope block.
+2. **Is PR 114 responsible for not-yet-existing DB endpoints?** **No.** It's the T4 ops-foundation
+   slice; the real-connection readiness probe is **T5 Scope item 5**. PR 114's only remainder of F9/F12
+   is *stop recording `passed` on a proxy* — closed by the Class-A gate. → "Out of scope — tracked"
+   section with quoted T5 anchors.
+3. **Operator-supplied `DATABASE_URL`.** Routes through the same real-connection gate — no verbatim
+   trust. → this scope block + regression test.
+4. **Secret-boundary authority.** The post-build image-filesystem scan is **authoritative**; the awk
+   scanner is a **fail-closed advisory pre-filter**. Overturns Round-8 in writing. → also recorded in
+   [`registry-image-policy.md`](registry-image-policy.md) / `Dockerfile.profile` header.
+5. **Rollback boundary / nginx default-site.** Trap region extends to the true end (systemd/cron as
+   undos); restoring `sites-enabled/default` on failure **is in scope**; `postgres_data` is
+   **PRESERVED** with a `down -v` hint. → `setup-profile.sh` header + state matrix.
+6. **Concurrency contract.** Local `flock` serializes one workstation; remote `flock` is the cross-host
+   serializer; `.profile-deploy-record` is a **per-workstation provenance log** (digest-on-result-line
+   makes logs mergeable), not a global ledger. → `build-deploy-profile.sh` header + concurrency test.
+
+## 7. The new review cadence — making the next review the last
+
+1. **Change the oracle, not the input.** Connect with the real `DATABASE_URL`; scan the real image
+   filesystem; push the inverse on the line after the mutation; lock before the first write. Adding awk
+   case N+1 or pinning input N has failed five times — stop.
+2. **Enumerate the rest of the named class yourself** and add every missing variant in the same PR (the
+   §5 matrices are the enumeration).
+3. **Sweep the other four classes** before submitting (§4 lenses over the whole diff).
+4. **Don't regress what's green; cite only what resolves.** Extend already-landed code, grep don't
+   line-number, quote real text — a fabricated citation pinned into CI is itself round ten.
+5. **Couple docs to code** with the doc/code-coupling test so a true-but-out-of-scope finding can be
+   *triaged* ("correct, out of scope, owned by T5 Scope item 5, rationale in this scope block") instead
+   of *re-actioned*.
+6. **One CI class-sweep job** runs all five class oracles so a regression in any open class blocks merge
+   in one shot.
+
+**Pushback — legitimate vs unsafe.** Legitimate when it rests on a real-tool oracle or a written,
+tracked scope boundary ("the image-filesystem scan observes the real bytes regardless of Dockerfile
+syntax"; "correct but out of scope, owned by T5 Scope item 5, rationale in this file"). Per CLAUDE.md's
+Review Notes rule, an evidenced disposition isn't deference-dodging — verify the claim (it's usually
+true), then dispose of it with the citation. **Unsafe** when it rests on a hand-maintained parser's
+claimed completeness: the Round-8 stance was falsified twice. If you must claim a gate is complete, the
+claim must rest on a fail-closed-by-default oracle (actual `docker build` + whole-filesystem content
+scan), not the awk.
+
+The next review is the last one when, in a single submission, you (a) changed the oracle for the named
+class, (b) closed the rest of that class with its full test matrix, (c) swept the other four classes,
+(d) wrote the scope boundaries — with citations that resolve — where the reviewer reads them, and
+(e) left every already-green pin untouched.
+
+## Appendix — what is still open vs. already landed (as of 2026-06-15)
+
+Verified against the current branch files. The doctrine's job on already-landed items is to **keep them
+green**, not re-fix them.
+
+**Still open (new work):**
+- Class B — the `# foo \` comment-continuation scanner bypass (`scan_broad_copies` joins across comment
+  lines); `--inspect-image` is filename-only and `/usr/src/app`-scoped.
+- Class D / F4 — `build-deploy-profile.sh` still writes the deploy record as an unlocked two-step
+  `tee -a` (no local `flock`, non-atomic).
+- Class C — `/etc/nginx/sites-enabled/default` is removed on deploy and never restored on rollback.
+- Class A / F12 — the DB gate still certifies a proxy (discrete-cred `psql` + dependency-free
+  `/health`), not the exact `DATABASE_URL`.
+
+**Already landed (keep the pinned test green):** F1 (fresh-deploy stack/volume preservation), F3
+(fresh-deploy nginx handling), F5 (remote flock fail-closed abort), F8 (rollback failure reporting with
+`ps`/logs), F2/F10/F11 originals (`assert_default_escape` directive-block handling, `$`-in-source
+reject).
