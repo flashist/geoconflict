@@ -99,6 +99,14 @@ describe("check-docker-secret-boundary.sh static checks", () => {
       'COPY ["pkg", "././", "/app/"] (JSON normalized, not first)',
       'FROM node:24-slim\nCOPY ["pkg", "././", "/app/"]',
     ],
+    // Variable-expanded sources — Docker expands ARG/ENV in COPY/ADD, so a $variable
+    // source can resolve to the whole context. Rejected fail-closed (we can't prove
+    // it's safe statically), regardless of what it expands to.
+    ["ARG SRC=. + COPY $SRC /app", "FROM node:24-slim\nARG SRC=.\nCOPY $SRC /app"],
+    ["COPY $SRC /app (no default)", "FROM node:24-slim\nCOPY $SRC /app"],
+    ["COPY ${SRC:-.} /app", "FROM node:24-slim\nCOPY ${SRC:-.} /app"],
+    ["COPY pkg $SRC /app (var source, not first)", "FROM node:24-slim\nCOPY pkg $SRC /app"],
+    ['COPY ["$SRC", "/app"] (JSON var source)', 'FROM node:24-slim\nCOPY ["$SRC", "/app"]'],
   ])("rejects broad build-context copy: %s", (_label, dockerfile) => {
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
   });
@@ -127,6 +135,8 @@ describe("check-docker-secret-boundary.sh static checks", () => {
       "COPY ./src ./dest",
       "COPY ./scripts/./foo.js /app/foo.js",
       "COPY foo/../bar /app",
+      // A $variable in the DESTINATION (last operand) is fine — only sources are checked.
+      "COPY src $DEST",
     ].join("\n");
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
   });

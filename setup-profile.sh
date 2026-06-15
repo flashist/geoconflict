@@ -241,6 +241,13 @@ fi
 # success at the end of validation. Fixed filenames are safe because the flock at the
 # top of this script guarantees only one deploy runs on the box at a time, so no
 # concurrent run can clobber these backups with an in-flight config.
+# A fresh (first-time) deploy has no previous config on disk, so there is nothing to
+# roll back to. We never auto-delete the Postgres data volume — it is a data-bearing
+# resource and a detection slip would be catastrophic — so on a fresh-deploy failure
+# the rollback instead prints an explicit clean-retry hint (see rollback_deploy).
+FRESH_DEPLOY=0
+{ [ ! -f "$PROFILE_DIR/profile.env" ] && [ ! -f "$PROFILE_DIR/docker-compose.yml" ]; } && FRESH_DEPLOY=1
+
 PROFILE_ENV_BAK="$PROFILE_DIR/profile.env.predeploy.bak"
 COMPOSE_BAK="$PROFILE_DIR/docker-compose.yml.predeploy.bak"
 [ -f "$PROFILE_DIR/profile.env" ] && cp -f "$PROFILE_DIR/profile.env" "$PROFILE_ENV_BAK"
@@ -274,6 +281,22 @@ rollback_deploy() {
         # stack is still running, so restoring the config files is enough (and avoids an
         # unnecessary restart of a stack the failed deploy never actually touched).
         [ "$STACK_RECREATED" = "1" ] && docker compose up -d --force-recreate 2>/dev/null || true
+    elif [ "$FRESH_DEPLOY" = "1" ] && [ "$STACK_RECREATED" = "1" ]; then
+        # Fresh (first-time) deploy that failed AFTER the stack was created: there is no
+        # previous config to roll back to. The new postgres_data volume is now
+        # initialized with this run's POSTGRES_PASSWORD, so a rerun with a CHANGED
+        # password will be rejected by the credential probe (Postgres keeps the original
+        # password on an existing volume). We deliberately do NOT auto-delete the volume
+        # — it is a data-bearing resource — so tell the operator exactly how to retry.
+        echo ""
+        echo "ℹ️  This was a FIRST-TIME deploy that failed after the stack was created."
+        echo "   The new Postgres volume now holds this run's initial password."
+        echo "     • Retry with the SAME password: just re-run the deploy."
+        echo "     • Retry with a DIFFERENT password (or from a clean slate): first destroy"
+        echo "       the freshly-created, not-yet-validated DB volume, then re-run:"
+        echo "           cd $PROFILE_DIR && docker compose down -v"
+        echo "       (down -v DELETES the postgres_data volume — safe here: this deploy"
+        echo "        never validated, so the volume holds no data you need.)"
     fi
 }
 trap rollback_deploy EXIT
@@ -372,7 +395,10 @@ if [ -n "$(docker compose ps -q postgres 2>/dev/null || true)" ]; then
     if ! probe_db_credentials; then
         echo "❌ New DATABASE_URL does not authenticate against the existing Postgres volume."
         echo "   POSTGRES_PASSWORD likely changed but the volume keeps the original password."
-        echo "   Restoring previous config and aborting WITHOUT touching the live stack."
+        echo "   Fix by EITHER reconciling POSTGRES_PASSWORD with the existing volume,"
+        echo "   OR — only if this DB has no data you need — resetting the volume:"
+        echo "       cd $PROFILE_DIR && docker compose down -v    # DELETES postgres_data"
+        echo "   then re-run. Restoring previous config and aborting WITHOUT touching the live stack."
         restore_previous_config
         exit 1
     fi

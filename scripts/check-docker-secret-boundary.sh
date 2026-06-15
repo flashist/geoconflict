@@ -50,6 +50,8 @@ require_literal_line() {
 #   - lowercase / mixed case:        copy . /app             Copy . /app   (Docker is
 #                                    case-INSENSITIVE for instructions)
 #   - backslash line-continuation:   COPY \ <newline> . /app
+#   - ARG/ENV-expanded source:       ARG SRC=. ; COPY $SRC /app   (rejected fail-closed:
+#                                    a $variable source can expand to the whole context)
 # A `.`/`./` in the LAST (destination) position is legitimate (copy specific sources
 # into WORKDIR) and must NOT be flagged: `COPY package*.json ./`, `COPY a b .`,
 # `COPY --from=stage /x .`. So we parse the operands and flag `.`/`./` anywhere
@@ -110,15 +112,19 @@ scan_broad_copies() {
                 elems[n] = substr(rest, RSTART + 1, RLENGTH - 2)
                 rest = substr(rest, RSTART + RLENGTH)
             }
-            # Flag any SOURCE (all but the last) that normalizes to the context root.
+            # Flag any SOURCE (all but the last) that normalizes to the context root,
+            # OR contains an unresolved $variable (fail closed): Docker expands ARG/ENV
+            # in COPY/ADD, so e.g. `ARG SRC=.` + `COPY $SRC /app` copies the whole
+            # context; we cannot statically prove a $-source is safe, so reject it.
             for (i = 1; i < n; i++) {
-                if (clean_path(elems[i]) == ".") bad = 1
+                if (clean_path(elems[i]) == "." || elems[i] ~ /\$/) bad = 1
             }
         } else {
             # Shell form: whitespace-separated operands; the last is the destination.
+            # Same rule: flag a context-root source or any $variable source (fail closed).
             m = split(work, ops, /[[:space:]]+/)
             for (i = 1; i < m; i++) {
-                if (clean_path(ops[i]) == ".") bad = 1
+                if (clean_path(ops[i]) == "." || ops[i] ~ /\$/) bad = 1
             }
         }
         if (bad) {
@@ -135,9 +141,11 @@ echo "Checking Docker secret boundary..."
 for df in "$DOCKERFILE" "$DOCKERFILE_PROFILE"; do
     [ -f "$df" ] || continue
     if ! broad_matches=$(scan_broad_copies "$df"); then
-        echo "Error: $df contains a broad repo copy (a '.'/'./' source that copies the whole build context):"
+        echo "Error: $df contains a broad or unverifiable COPY/ADD source — a '.'/'./' path"
+        echo "that resolves to the build-context root, or a \$variable source (ARG/ENV can"
+        echo "expand to the whole context):"
         echo "$broad_matches"
-        echo "Use explicit allowlist copies instead (e.g. COPY package*.json ./)."
+        echo "Use explicit literal allowlist copies instead (e.g. COPY package*.json ./)."
         exit 1
     fi
 done
