@@ -237,4 +237,37 @@ describe("check-docker-secret-boundary.sh — non-default escape directive (fail
     const dockerfile = `${GOOD_DOCKERFILE}\n# escape=${BACKTICK}`;
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
   });
+
+  // The parser-directive block continues past EVERY directive-shaped line (BuildKit ends
+  // it only at the first non-directive-shaped line), so a directive BEFORE `# escape=`
+  // must not let the non-default escape slip through. Enumerating names (syntax/check)
+  // is what let `# check=` bypass an earlier version of this guard.
+  test("rejects a `# check=` directive followed by a backtick escape + broad COPY (the reported bypass)", () => {
+    const dockerfile = `# check=skip=JSONArgsRecommended\n# escape=${BACKTICK}\nFROM node:24-slim\nCOPY ${BACKTICK}\n. /app`;
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
+  });
+
+  test("rejects an UNKNOWN directive-shaped line before a backtick escape (proves we don't enumerate names)", () => {
+    // Docker keeps scanning the directive block past `# foo=bar` (unknown names just warn),
+    // so it honors the following non-default escape — the guard must reject it too.
+    const dockerfile = `# foo=bar\n# escape=${BACKTICK}\nFROM node:24-slim\nCOPY ${BACKTICK}\n. /app`;
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
+  });
+
+  test("accepts multiple real directives ending in an explicit default escape (no over-rejection)", () => {
+    const dockerfile = [
+      "# syntax=docker/dockerfile:1",
+      "# check=skip=JSONArgsRecommended",
+      "# escape=\\",
+      "FROM node:24-slim",
+      "COPY package*.json ./",
+      "COPY src ./src",
+    ].join("\n");
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
+  });
+
+  test("accepts a `# check=` directive with no escape directive at all", () => {
+    const dockerfile = `# check=skip=JSONArgsRecommended\nFROM node:24-slim\nCOPY package*.json ./\nCOPY src ./src`;
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
+  });
 });

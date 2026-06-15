@@ -41,29 +41,34 @@ require_literal_line() {
 }
 
 # Fail closed on a non-default Dockerfile `escape` parser directive. Docker's
-# `# escape=` directive (honored ONLY in the leading parser-directive block — a
-# contiguous run of `# name=value` directives at the very top, before any comment,
-# blank line, or instruction) changes the line-continuation character. The broad-copy
-# scanner below joins ONLY backslash continuations, so under `# escape=\`` (backtick) a
+# `# escape=` directive changes the line-continuation character; the broad-copy scanner
+# below joins ONLY backslash continuations, so under `# escape=\`` (backtick) a
 # backtick-continued `COPY \`<newline>`. /app` would be joined by Docker into a broad
 # `COPY . /app` yet slip past this parser. Linux images never need a non-default escape,
-# so reject it outright rather than model an alternate continuation char (which would add
-# a parsing surface of its own). Prints the offending value and exits 2 on rejection.
+# so reject it outright rather than model an alternate continuation char.
+#
+# `escape` is honored ONLY inside the leading PARSER-DIRECTIVE BLOCK: the contiguous run
+# of `# name=value`-shaped lines at the very top of the file. We model that STRUCTURE
+# instead of enumerating directive names — BuildKit (parser/directives.go) keeps scanning
+# the block past EVERY line matching `^#\s*[A-Za-z][A-Za-z0-9]*\s*=\s*.+` (syntax, check,
+# escape, future, and even unknown names — those just warn), and ends the block only at
+# the first line that is NOT directive-shaped. Enumerating names is what let `# check=`
+# (and any unknown `# foo=bar`) before `# escape=\`` bypass an earlier version of this
+# guard. So: stay in the block for any directive-shaped line, reject the moment we see a
+# non-default `escape`. Prints the offending value and exits 2 on rejection.
 assert_default_escape() {
     awk '
-    /^[ \t]*#[ \t]*[A-Za-z][A-Za-z0-9_]*[ \t]*=/ {
+    /^[ \t]*#[ \t]*[A-Za-z][A-Za-z0-9]*[ \t]*=/ {
         name = $0; sub(/^[ \t]*#[ \t]*/, "", name); sub(/[ \t]*=.*/, "", name)
         if (tolower(name) == "escape") {
             val = $0
-            sub(/^[ \t]*#[ \t]*[A-Za-z][A-Za-z0-9_]*[ \t]*=[ \t]*/, "", val)
+            sub(/^[ \t]*#[ \t]*[A-Za-z][A-Za-z0-9]*[ \t]*=[ \t]*/, "", val)
             sub(/[ \t]*$/, "", val)
             if (val != "\\") { print val; exit 2 }   # non-default escape -> reject
-            exit 0                                     # explicit backslash -> the default, ok
         }
-        if (tolower(name) == "syntax") next            # other recognized directive: keep scanning
-        exit 0                                         # unknown directive ends the block (Docker stops too)
+        next   # any directive-shaped line stays in the leading block; do not enumerate names
     }
-    { exit 0 }   # first non-directive line ends the parser-directive block
+    { exit 0 }   # first non-directive-shaped line ends the parser-directive block
     ' "$1"
 }
 
