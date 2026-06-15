@@ -45,7 +45,7 @@ source.
 | **A. DB / DATABASE_URL authenticity** | F6, F7, F9, F12 | Two DB credential paths exist; the gate validates the one the API does *not* use (discrete-cred `psql` + dependency-free `/health`), never the literal `DATABASE_URL` the API consumes. | **Decided: keep `DATABASE_URL`, validate the exact string (A-ii).** Make the gate a real `SELECT 1` over the *exact* `DATABASE_URL` from `profile.env`, run **stdin-only** (no password in any argv — preserves the F7 fix). Honors the T5 contract and the green pin "profile.env always emits a DATABASE_URL line" without test churn. The DB-backed `/ready` healthcheck repoint is T5's; PR 114's job is to stop recording `passed` on a proxy. |
 | **B. Docker secret-boundary parser arms race** | F2, F10, F11 | A hand-rolled awk re-implementation of Docker's lexer is allowlist-by-form; its default for any unmodeled construct is *pass*, and it's treated as authoritative. | Invert authority: the **post-build scan of the actual image filesystem** (`--inspect-image`) is the gate (whole added-fs, content-matched against the repo's real secrets). The awk scanner is demoted to a **fail-closed advisory** — reject by default on anything it can't fully normalize. |
 | **C. Rollback completeness & fail-loud** | F1, F3, F8 | Rollback is a hand-maintained mirror of the forward sequence, built from per-resource boolean flags; any mutation the author forgets to register has no undo, and silenced undos hide their own failure. | Replace flag-soup with one append-only LIFO undo stack: every forward mutation pushes its inverse on the line *after* it executes; the trap replays in reverse through one `run_undo` wrapper that never silences and always re-exits the original code. |
-| **D. Concurrency / locking / record integrity** | F4, F5 | No single locking discipline spans the deploy. The local record is two unsynchronized appends with no lock; the remote lock starts after SSH; an unavailable lock warns-and-continues. | One discipline: local `flock` (fail-closed) acquired *before* the first record write and held across the SSH boundary; the record written as **one atomic append of a complete block** via temp file; remote `flock` stays as the box-level backstop. |
+| **D. Concurrency / locking / record integrity** | F4, F5 | No single locking discipline spans the deploy. The local record is two unsynchronized appends with no lock; the remote lock starts after SSH; an unavailable lock warns-and-continues. | One discipline: a fail-closed local lock acquired *before* the first record write and held across the SSH boundary (`flock` on the Linux box, but a portable atomic `mkdir` mutex on the macOS dev host, which has **no** `flock`); the record written as **one atomic append of a complete block** via temp file; remote `flock` stays as the box-level backstop. |
 | **E. Scope / future-API contract** | F9, F12 (+ meta) | The deploy asserts a present-tense fact (process alive, `psql` accepts the password) as a stand-in for a future-tense guarantee (the real API endpoint works), and no reviewer-facing artifact declares the boundary. | Make the scope boundary a first-class, reviewer-visible artifact: a scope block + PR description naming what's guaranteed NOW vs. deferred to T5, citing the **quoted** scope item and acceptance bullet (never a numeric "#N"), with tracking tokens at each in-code deferral point. |
 
 ## 3. Operating principles
@@ -170,11 +170,18 @@ original F2/F11); variable-in-source rejection in `scan_broad_copies` (keep the 
 COPY/ADD source).
 
 **New in this PR — load-bearing:** harden `--inspect-image` (the `find /usr/src/app -maxdepth 4` line,
-currently filename-only) to scan the **whole added filesystem** (final image vs base), detecting by
-**content** (hash/marker match against the repo's real `.env*`/`*.secret`) *and* filename patterns
-(`.env`, `.env.*`, `*.secret`, `.git/`, `*.pem`, `id_rsa*`). Invariant to every Dockerfile syntax trick
-because it observes resulting bytes. Exclude example suffixes (`.env.example/.sample/.template`) while
-still flagging bare `.env`/`*.secret`; rely on content-match. Rewrite `scan_broad_copies` to
+currently filename-only) to scan the **whole image filesystem** (`find / -xdev`), detecting by
+**content** — a sha256 match against the repo's real `.env*`/`*.secret`/`*.pem`/`id_rsa*`/`*.key` files —
+*and* by a **conservative** filename scan (`.env`, `.env.*`, `*.secret`, `.git/`). Invariant to every
+Dockerfile syntax trick because it observes resulting bytes. Exclude example suffixes
+(`.env.example/.sample/.template`) while still flagging bare `.env`/`*.secret`. **Do NOT
+whole-filesystem NAME-match `*.pem`/`id_rsa*`** — base images and dependencies legitimately ship CA
+bundles and test certs, so name-matching those across the rootfs would FALSE-POSITIVE and fail every
+deploy. The name scan also **excludes `node_modules`** (dependency fixtures). Novel/renamed key material
+is still caught by the CONTENT hash match, which covers the whole rootfs (node_modules included) and
+prints the matching path so a rare identical-fixture match is adjudicable. **Fail closed if `docker run`
+itself fails** — an unavailable oracle must abort the deploy, never read as "no secrets found" (an early
+`docker run … || true` form silently did the latter). Rewrite `scan_broad_copies` to
 **default-REJECT** any COPY/ADD it can't normalize: reject heredoc COPY/ADD (`<<`), keep the
 `$`-in-source REJECT, reject any `# syntax=` not pinned to the official image, and **fix the
 continuation loop to not join across a `#` comment line** (skip heredoc *bodies* so a `RUN cat <<H … H`
@@ -222,21 +229,26 @@ unavailable / lock held, pinned by `setupProfileFailClosed.test.ts`). **Don't mo
 earlier — it can't run before SSH connects.**
 
 **New in this PR — the live local gap (`build-deploy-profile.sh` still does an unlocked two-step
-`tee -a`):** `exec 8>"$DEPLOY_LOCK"` (gitignored fixed path, e.g. `.profile-deploy.lock`) then
-`flock -n 8 || { echo 'another profile deploy is already running'; exit 1; }`, acquired **before** the
-first record write and held across the SSH call; add a fail-closed `command -v flock` check symmetric
-with the remote one; add `.profile-deploy.lock` to `.gitignore`. **Atomic record write:** stop the early
-`tee -a`; accumulate body lines into a `0600 mktemp`; in `finalize_deploy` append the final
-`validation_result=<outcome> digest=<digest>` to that *same* temp file, then one
-`cat "$tmp" >> "$DEPLOY_RECORD"` under fd 8. Keep fixed-name `predeploy.bak` but add a test asserting
-they're written only after the box `flock` succeeds.
+`tee -a`):** a fail-closed local mutex acquired **before** the first record write and held across the
+SSH call. **NOT `flock`** — `build-deploy-profile.sh` runs on the developer HOST, which is often macOS
+where `flock` does not exist; a `command -v flock` fail-closed check (symmetric with the remote) would
+abort *every* local deploy. Use a portable atomic `mkdir` mutex (gitignored fixed path, e.g.
+`.profile-deploy.lock`): `if ! mkdir "$DEPLOY_LOCK" 2>/dev/null; then echo 'another profile deploy is
+already running'; exit 1; fi`, released by the EXIT trap (`finalize_deploy`); add `.profile-deploy.lock`
+to `.gitignore`. **Atomic record write:** stop the early `tee -a`; accumulate body lines into a
+`0600 mktemp`; in `finalize_deploy` append the final `validation_result=<outcome> digest=<digest>` to
+that *same* temp file, then one `cat "$tmp" >> "$DEPLOY_RECORD"` while the mutex is still held — and
+**guard the write so a record-write failure never aborts the EXIT trap before the lock is released** (a
+skipped `rmdir` would leave a stale lock that blocks every future deploy). Keep fixed-name
+`predeploy.bak`. (The remote box keeps `flock` — it is Linux.)
 
 **Test matrix (new `tests/scripts/profileDeployRecordConcurrency.test.ts`, grep-anchored):** N parallel
-writers under the lock → N complete contiguous blocks, no interleave; same N *without* the lock →
-corrupt (control proving the lock is load-bearing; fails on today's code); flock absent → exits
-non-zero, writes nothing; lock contention → aborts cleanly; SIGKILL mid-run → complete block or nothing,
-never body-only orphan; `----` count == `validation_result=` count; remote lock-start ordering precedes
-the first `predeploy.bak` copy.
+writers under the lock → N complete contiguous blocks, no interleave; the **old two-step `tee -a`
+pattern** under concurrency → corrupt (control proving the atomic single-append is load-bearing — the new
+temp+single-append is interleave-resistant on its own, so the control replicates the *old* code, not the
+new code without the lock); lock already held → exits non-zero, writes nothing (fail-closed); a
+record-write failure still **releases the lock** (no stale lock left behind); `----` count ==
+`validation_result=` count.
 
 ### Class E — Scope / future-API contract
 
@@ -280,8 +292,9 @@ criterion reference exists); operator-override-now-validated regression; scope-b
 5. **Rollback boundary / nginx default-site.** Trap region extends to the true end (systemd/cron as
    undos); restoring `sites-enabled/default` on failure **is in scope**; `postgres_data` is
    **PRESERVED** with a `down -v` hint. → `setup-profile.sh` header + state matrix.
-6. **Concurrency contract.** Local `flock` serializes one workstation; remote `flock` is the cross-host
-   serializer; `.profile-deploy-record` is a **per-workstation provenance log** (digest-on-result-line
+6. **Concurrency contract.** A local atomic `mkdir` mutex serializes one workstation (NOT `flock` — the
+   macOS dev host has none); remote `flock` is the cross-host serializer; `.profile-deploy-record` is a
+   **per-workstation provenance log** (digest-on-result-line
    makes logs mergeable), not a global ledger. → `build-deploy-profile.sh` header + concurrency test.
 
 ## 7. The new review cadence — making the next review the last
@@ -319,16 +332,23 @@ class, (b) closed the rest of that class with its full test matrix, (c) swept th
 Verified against the current branch files. The doctrine's job on already-landed items is to **keep them
 green**, not re-fix them.
 
-**Still open (new work):**
-- Class B — the `# foo \` comment-continuation scanner bypass (`scan_broad_copies` joins across comment
-  lines); `--inspect-image` is filename-only and `/usr/src/app`-scoped.
-- Class D / F4 — `build-deploy-profile.sh` still writes the deploy record as an unlocked two-step
-  `tee -a` (no local `flock`, non-atomic).
-- Class C — `/etc/nginx/sites-enabled/default` is removed on deploy and never restored on rollback.
-- Class A / F12 — the DB gate still certifies a proxy (discrete-cred `psql` + dependency-free
-  `/health`), not the exact `DATABASE_URL`.
+**Closed in this PR (the class sweep) — keep the NEW pins green; do not re-open:**
+- Class A / F12 — the DB gate now opens a real connection with the **exact** `DATABASE_URL`
+  (`probe_database_url`: `SELECT 1`, password split out to stdin/`PGPASSWORD`, password-free URL to
+  `psql -d`, fail-closed on parse ambiguity; operator override routed through the same gate). Pinned by
+  `setupProfileFailClosed.test.ts` (behavioral) + `setupProfileDbProbe.test.ts` (argv-safety).
+- Class B — `scan_broad_copies` no longer joins across `#` comment lines (the `# foo \` bypass) and
+  rejects heredoc COPY/ADD; `--inspect-image` scans the whole rootfs by **content** (sha256) + a
+  conservative name scan, **fail-closed if `docker run` fails**. Pinned by
+  `checkDockerSecretBoundary.test.ts` (incl. docker-stubbed `--inspect-image` cases).
+- Class C — `/etc/nginx/sites-enabled/default` is captured before removal and restored (fail-loud) on
+  rollback. Pinned by `setupProfileRollback.test.ts`.
+- Class D / F4 — `build-deploy-profile.sh` serializes with a fail-closed local `mkdir` mutex (the macOS
+  dev host has no `flock`) acquired before the first record write, and writes the record atomically
+  (body→temp→one append under the lock; the lock is released even if the write fails). Pinned by
+  `profileDeployRecordConcurrency.test.ts`.
 
-**Already landed (keep the pinned test green):** F1 (fresh-deploy stack/volume preservation), F3
-(fresh-deploy nginx handling), F5 (remote flock fail-closed abort), F8 (rollback failure reporting with
+**Already landed before this PR (keep the pinned test green):** F1 (fresh-deploy stack/volume preservation),
+F3 (fresh-deploy nginx handling), F5 (remote flock fail-closed abort), F8 (rollback failure reporting with
 `ps`/logs), F2/F10/F11 originals (`assert_default_escape` directive-block handling, `$`-in-source
 reject).
