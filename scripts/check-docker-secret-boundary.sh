@@ -40,6 +40,33 @@ require_literal_line() {
     fi
 }
 
+# Fail closed on a non-default Dockerfile `escape` parser directive. Docker's
+# `# escape=` directive (honored ONLY in the leading parser-directive block — a
+# contiguous run of `# name=value` directives at the very top, before any comment,
+# blank line, or instruction) changes the line-continuation character. The broad-copy
+# scanner below joins ONLY backslash continuations, so under `# escape=\`` (backtick) a
+# backtick-continued `COPY \`<newline>`. /app` would be joined by Docker into a broad
+# `COPY . /app` yet slip past this parser. Linux images never need a non-default escape,
+# so reject it outright rather than model an alternate continuation char (which would add
+# a parsing surface of its own). Prints the offending value and exits 2 on rejection.
+assert_default_escape() {
+    awk '
+    /^[ \t]*#[ \t]*[A-Za-z][A-Za-z0-9_]*[ \t]*=/ {
+        name = $0; sub(/^[ \t]*#[ \t]*/, "", name); sub(/[ \t]*=.*/, "", name)
+        if (tolower(name) == "escape") {
+            val = $0
+            sub(/^[ \t]*#[ \t]*[A-Za-z][A-Za-z0-9_]*[ \t]*=[ \t]*/, "", val)
+            sub(/[ \t]*$/, "", val)
+            if (val != "\\") { print val; exit 2 }   # non-default escape -> reject
+            exit 0                                     # explicit backslash -> the default, ok
+        }
+        if (tolower(name) == "syntax") next            # other recognized directive: keep scanning
+        exit 0                                         # unknown directive ends the block (Docker stops too)
+    }
+    { exit 0 }   # first non-directive line ends the parser-directive block
+    ' "$1"
+}
+
 # Reject any COPY/ADD that copies the whole build context (a `.` or `./` SOURCE
 # operand) — the broad-copy class behind the 2026-04-21 credential leak. This must
 # catch EVERY form Docker accepts, not just the simple `COPY . /app`:
@@ -140,6 +167,13 @@ echo "Checking Docker secret boundary..."
 
 for df in "$DOCKERFILE" "$DOCKERFILE_PROFILE"; do
     [ -f "$df" ] || continue
+    if ! bad_escape=$(assert_default_escape "$df"); then
+        echo "Error: $df sets a non-default Dockerfile escape directive (# escape=$bad_escape)."
+        echo "A non-backslash escape changes line-continuation, which the broad-COPY scanner"
+        echo "does not model — a continuation-hidden 'COPY . /app' could package .env/secret"
+        echo "files. Remove the '# escape=' directive (Linux images use the default backslash)."
+        exit 1
+    fi
     if ! broad_matches=$(scan_broad_copies "$df"); then
         echo "Error: $df contains a broad or unverifiable COPY/ADD source — a '.'/'./' path"
         echo "that resolves to the build-context root, or a \$variable source (ARG/ENV can"

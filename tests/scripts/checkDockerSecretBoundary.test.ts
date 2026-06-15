@@ -8,15 +8,25 @@ import path from "path";
 // admitting operator-local .env*/secret material into deploy images.
 
 const REPO_ROOT = path.join(__dirname, "..", "..");
-const REAL_SCRIPT = path.join(REPO_ROOT, "scripts", "check-docker-secret-boundary.sh");
+const REAL_SCRIPT = path.join(
+  REPO_ROOT,
+  "scripts",
+  "check-docker-secret-boundary.sh",
+);
 
 // A .dockerignore that satisfies every required exclusion the checker enforces.
-const GOOD_DOCKERIGNORE = [".env", ".env.*", "*.secret", ".git", ".gitignore"].join(
-  "\n",
-);
-const GOOD_DOCKERFILE = ["FROM node:24-slim", "COPY package*.json ./", "COPY src ./src"].join(
-  "\n",
-);
+const GOOD_DOCKERIGNORE = [
+  ".env",
+  ".env.*",
+  "*.secret",
+  ".git",
+  ".gitignore",
+].join("\n");
+const GOOD_DOCKERFILE = [
+  "FROM node:24-slim",
+  "COPY package*.json ./",
+  "COPY src ./src",
+].join("\n");
 
 const tempDirs: string[] = [];
 
@@ -27,12 +37,19 @@ function runOnFixture(dockerfile: string, dockerignore: string): number {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "secboundary-"));
   tempDirs.push(dir);
   fs.mkdirSync(path.join(dir, "scripts"));
-  fs.copyFileSync(REAL_SCRIPT, path.join(dir, "scripts", "check-docker-secret-boundary.sh"));
+  fs.copyFileSync(
+    REAL_SCRIPT,
+    path.join(dir, "scripts", "check-docker-secret-boundary.sh"),
+  );
   fs.writeFileSync(path.join(dir, "Dockerfile"), dockerfile + "\n");
   fs.writeFileSync(path.join(dir, ".dockerignore"), dockerignore + "\n");
-  const result = spawnSync("bash", [path.join(dir, "scripts", "check-docker-secret-boundary.sh")], {
-    encoding: "utf8",
-  });
+  const result = spawnSync(
+    "bash",
+    [path.join(dir, "scripts", "check-docker-secret-boundary.sh")],
+    {
+      encoding: "utf8",
+    },
+  );
   return result.status ?? -1;
 }
 
@@ -53,11 +70,17 @@ describe("check-docker-secret-boundary.sh static checks", () => {
     ["COPY . /usr/src/app", "FROM node:24-slim\nCOPY . /usr/src/app"],
     ["ADD . /app", "FROM node:24-slim\nADD . /app"],
     ["COPY ./ /app", "FROM node:24-slim\nCOPY ./ /app"],
-    ["COPY --chown=node:node . /app", "FROM node:24-slim\nCOPY --chown=node:node . /app"],
+    [
+      "COPY --chown=node:node . /app",
+      "FROM node:24-slim\nCOPY --chown=node:node . /app",
+    ],
     // Multi-source broad copies — `.`/`./` is NOT the first source operand but is
     // still a source (not the final destination), so it copies the whole context.
     // The previous first-operand-only regex missed these.
-    ["COPY package.json . /app/", "FROM node:24-slim\nCOPY package.json . /app/"],
+    [
+      "COPY package.json . /app/",
+      "FROM node:24-slim\nCOPY package.json . /app/",
+    ],
     ["ADD pkg.json ./ /app/", "FROM node:24-slim\nADD pkg.json ./ /app/"],
     ["COPY --chown=x a . /app", "FROM node:24-slim\nCOPY --chown=x a . /app"],
     // JSON/exec form, source first.
@@ -77,11 +100,20 @@ describe("check-docker-secret-boundary.sh static checks", () => {
     ["copy . /app (lowercase)", "FROM node:24-slim\ncopy . /app"],
     ["Copy . /app (mixed case)", "FROM node:24-slim\nCopy . /app"],
     ["add . /app (lowercase)", "FROM node:24-slim\nadd . /app"],
-    ['copy [".", "/app"] (lowercase JSON)', 'FROM node:24-slim\ncopy [".", "/app"]'],
+    [
+      'copy [".", "/app"] (lowercase JSON)',
+      'FROM node:24-slim\ncopy [".", "/app"]',
+    ],
     // Backslash line-continuation — the broad `.` source lands on the next physical
     // line but is the same logical instruction.
-    ["COPY \\<newline>. /app (continuation)", "FROM node:24-slim\nCOPY \\\n. /app"],
-    ["copy \\<newline>. /app (lowercase continuation)", "FROM node:24-slim\ncopy \\\n. /app"],
+    [
+      "COPY \\<newline>. /app (continuation)",
+      "FROM node:24-slim\nCOPY \\\n. /app",
+    ],
+    [
+      "copy \\<newline>. /app (lowercase continuation)",
+      "FROM node:24-slim\ncopy \\\n. /app",
+    ],
     [
       "COPY pkg \\<newline>. /app (continuation, . not first)",
       "FROM node:24-slim\nCOPY pkg \\\n. /app",
@@ -92,9 +124,18 @@ describe("check-docker-secret-boundary.sh static checks", () => {
     ["COPY ./. /app", "FROM node:24-slim\nCOPY ./. /app"],
     ["COPY ././ /app", "FROM node:24-slim\nCOPY ././ /app"],
     ["COPY .//. /app", "FROM node:24-slim\nCOPY .//. /app"],
-    ["COPY foo/.. /app (resolves to context root)", "FROM node:24-slim\nCOPY foo/.. /app"],
-    ["copy ./. /app (lowercase + normalized)", "FROM node:24-slim\ncopy ./. /app"],
-    ['COPY ["./.", "/app"] (JSON normalized)', 'FROM node:24-slim\nCOPY ["./.", "/app"]'],
+    [
+      "COPY foo/.. /app (resolves to context root)",
+      "FROM node:24-slim\nCOPY foo/.. /app",
+    ],
+    [
+      "copy ./. /app (lowercase + normalized)",
+      "FROM node:24-slim\ncopy ./. /app",
+    ],
+    [
+      'COPY ["./.", "/app"] (JSON normalized)',
+      'FROM node:24-slim\nCOPY ["./.", "/app"]',
+    ],
     [
       'COPY ["pkg", "././", "/app/"] (JSON normalized, not first)',
       'FROM node:24-slim\nCOPY ["pkg", "././", "/app/"]',
@@ -102,11 +143,20 @@ describe("check-docker-secret-boundary.sh static checks", () => {
     // Variable-expanded sources — Docker expands ARG/ENV in COPY/ADD, so a $variable
     // source can resolve to the whole context. Rejected fail-closed (we can't prove
     // it's safe statically), regardless of what it expands to.
-    ["ARG SRC=. + COPY $SRC /app", "FROM node:24-slim\nARG SRC=.\nCOPY $SRC /app"],
+    [
+      "ARG SRC=. + COPY $SRC /app",
+      "FROM node:24-slim\nARG SRC=.\nCOPY $SRC /app",
+    ],
     ["COPY $SRC /app (no default)", "FROM node:24-slim\nCOPY $SRC /app"],
     ["COPY ${SRC:-.} /app", "FROM node:24-slim\nCOPY ${SRC:-.} /app"],
-    ["COPY pkg $SRC /app (var source, not first)", "FROM node:24-slim\nCOPY pkg $SRC /app"],
-    ['COPY ["$SRC", "/app"] (JSON var source)', 'FROM node:24-slim\nCOPY ["$SRC", "/app"]'],
+    [
+      "COPY pkg $SRC /app (var source, not first)",
+      "FROM node:24-slim\nCOPY pkg $SRC /app",
+    ],
+    [
+      'COPY ["$SRC", "/app"] (JSON var source)',
+      'FROM node:24-slim\nCOPY ["$SRC", "/app"]',
+    ],
   ])("rejects broad build-context copy: %s", (_label, dockerfile) => {
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
   });
@@ -149,5 +199,42 @@ describe("check-docker-secret-boundary.sh static checks", () => {
   test("the real repo Dockerfiles + .dockerignore pass the static check", () => {
     const result = spawnSync("bash", [REAL_SCRIPT], { encoding: "utf8" });
     expect(result.status).toBe(0);
+  });
+});
+
+describe("check-docker-secret-boundary.sh — non-default escape directive (fail closed)", () => {
+  // Docker's leading `# escape=` parser directive can switch line-continuation to a
+  // backtick. The broad-COPY scanner only joins BACKSLASH continuations, so a
+  // backtick-continued `COPY` + newline + `. /app` is a broad copy to Docker yet invisible
+  // to the scanner. We fail closed on any non-default escape directive (Linux images never
+  // need one) rather than model the alternate continuation char.
+  const BACKTICK = "`"; // keep the literal out of the test titles for readability
+
+  test("rejects a backtick escape directive with a backtick-continued broad COPY (the bypass)", () => {
+    // # escape=`            <- switches continuation to backtick
+    // FROM node:24-slim
+    // COPY `                <- backtick continuation; Docker joins into `COPY . /app`
+    // . /app
+    const dockerfile = `# escape=${BACKTICK}\nFROM node:24-slim\nCOPY ${BACKTICK}\n. /app`;
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
+  });
+
+  test("rejects a non-default escape directive even without a broad copy (fail closed)", () => {
+    const dockerfile = `# escape=${BACKTICK}\nFROM node:24-slim\nCOPY package*.json ./`;
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
+  });
+
+  test("accepts an explicit default escape directive (backslash) — only NON-default is rejected", () => {
+    // `# escape=\\` is the default; its mere presence must not trip the guard.
+    const dockerfile =
+      "# escape=\\\nFROM node:24-slim\nCOPY package*.json ./\nCOPY src ./src";
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
+  });
+
+  test("ignores a non-default escape that appears only as a mid-file comment (Docker does too)", () => {
+    // A `# escape=` after the first instruction is just a comment — Docker does not honor
+    // it, so continuation stays backslash and the guard must not reject it.
+    const dockerfile = `${GOOD_DOCKERFILE}\n# escape=${BACKTICK}`;
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
   });
 });
