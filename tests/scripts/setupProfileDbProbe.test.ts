@@ -22,7 +22,9 @@ describe("setup-profile.sh DB credential probes keep the password out of argv", 
   test("never passes a password-bearing DATABASE_URL as a psql argument", () => {
     // e.g. `psql "$DATABASE_URL"` / `psql $DATABASE_URL` — DATABASE_URL embeds
     // POSTGRES_PASSWORD, so as a psql arg it lands in argv.
-    const offenders = codeLines.filter((l) => /\bpsql\b[^\n|]*\$\{?DATABASE_URL\}?/.test(l));
+    const offenders = codeLines.filter((l) =>
+      /\bpsql\b[^\n|]*\$\{?DATABASE_URL\}?/.test(l),
+    );
     expect(offenders).toEqual([]);
   });
 
@@ -49,7 +51,9 @@ describe("setup-profile.sh DB credential probes keep the password out of argv", 
   test("defines a probe that feeds the password via stdin into PGPASSWORD", () => {
     expect(script).toMatch(/probe_db_credentials\s*\(\)\s*\{/);
     // password piped via stdin from the script's own env...
-    expect(script).toMatch(/printf '%s\\n' "\$POSTGRES_PASSWORD"\s*\|\s*docker compose exec -T postgres/);
+    expect(script).toMatch(
+      /printf '%s\\n' "\$POSTGRES_PASSWORD"\s*\|\s*docker compose exec -T postgres/,
+    );
     // ...read into PGPASSWORD inside the container (env, not argv).
     expect(script).toMatch(/read -r PGPASSWORD/);
     // real TCP password auth against the postgres service.
@@ -59,7 +63,49 @@ describe("setup-profile.sh DB credential probes keep the password out of argv", 
   test("still performs the credential probe (the check was not silently removed)", () => {
     expect(script).toMatch(/select 1/);
     // Both probe sites call the helper.
-    const callSites = lines.filter((l) => /\bif ! probe_db_credentials\b/.test(l));
+    const callSites = lines.filter((l) =>
+      /\bif ! probe_db_credentials\b/.test(l),
+    );
     expect(callSites.length).toBe(2);
+  });
+});
+
+// Process review #12 / F12: the deploy must validate the EXACT DATABASE_URL the API
+// consumes (operator override included), not just the discrete POSTGRES_* path. The new
+// authoritative gate (probe_database_url) opens a real connection with the URL — but it
+// must keep the password out of EVERY argv just like probe_db_credentials: the secret is
+// split out of the URL, fed via stdin into PGPASSWORD, and only the password-FREE URL is
+// handed to psql.
+describe("setup-profile.sh authoritative DATABASE_URL gate keeps the secret out of argv", () => {
+  test("defines probe_database_url that feeds the password via stdin into PGPASSWORD", () => {
+    expect(script).toMatch(/probe_database_url\s*\(\)\s*\{/);
+    // the decoded, stripped password is piped via stdin into the container...
+    expect(script).toMatch(
+      /printf '%s\\n' "\$pw"\s*\|\s*docker compose exec -T postgres/,
+    );
+    // ...read into PGPASSWORD inside the container (env, not argv).
+    expect(script).toMatch(/read -r PGPASSWORD/);
+    // psql is handed the password-FREE URL ($url_no_pw), never the full DATABASE_URL.
+    expect(script).toMatch(/exec psql -d "\$1" -tAc "select 1"/);
+    expect(script).toMatch(/_ "\$url_no_pw"/);
+  });
+
+  test("builds a password-free url_no_pw and never passes a password-bearing URL to psql", () => {
+    expect(script).toMatch(/url_no_pw=/);
+    // No psql line may carry $DATABASE_URL or a bare $url (both still hold the password) as
+    // an argument; only the stripped $url_no_pw is allowed on a psql command line.
+    const offenders = codeLines.filter(
+      (l) =>
+        /\bpsql\b/.test(l) &&
+        /\$\{?(DATABASE_URL|url)\}?\b/.test(l) &&
+        !/url_no_pw/.test(l),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  test("wires the authoritative URL gate into the deploy (operator override included)", () => {
+    expect(
+      lines.some((l) => /if ! probe_database_url "\$DATABASE_URL"/.test(l)),
+    ).toBe(true);
   });
 });

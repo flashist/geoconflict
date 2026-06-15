@@ -264,3 +264,169 @@ describe("setup-profile.sh — DATABASE_URL is synthesized URL-encoded (contract
     }
   });
 });
+
+// Process review #12 / F12 (Class A authoritative gate). The deploy now validates the EXACT
+// DATABASE_URL with a real connection (probe_database_url). To keep the password out of any
+// argv it splits the password out of the URL and decodes it with urldecode() — the exact
+// inverse of urlencode(). These tests run the REAL helpers extracted from the script.
+const urldecodeFn =
+  setupScript.match(/urldecode\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+const probeUrlFn =
+  setupScript.match(/probe_database_url\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+
+const shq = (s: string) => `'${s.replace(/'/g, `'\\''`)}'`;
+
+function bashUrldecode(input: string): string {
+  const res = spawnSync(
+    "/bin/bash",
+    ["-c", `${urldecodeFn}\nurldecode "$1"`, "bash", input],
+    { encoding: "utf8" },
+  );
+  if (res.status !== 0) throw new Error(`urldecode failed: ${res.stderr}`);
+  return res.stdout;
+}
+
+// Run the REAL probe_database_url (+ urlencode/urldecode) with a stubbed `docker compose
+// exec` standing in for psql: the stub reads the piped password and the trailing url_no_pw
+// arg, and "connects" (exit 0) ONLY when BOTH match the expected good connection. Proves the
+// gate FAILS on a malformed/misdirected/wrong-credential URL, while the secret is split out
+// and never lands in psql's argv (the stub asserts it arrives via stdin).
+function runProbe(opts: {
+  rawPassword: string;
+  scheme?: string;
+  host?: string;
+  db?: string;
+  query?: string;
+  goodHost?: string;
+  goodDb?: string;
+  goodPassword?: string;
+  rawUrl?: string;
+}): number {
+  const scheme = opts.scheme ?? "postgresql";
+  const host = opts.host ?? "postgres:5432";
+  const db = opts.db ?? "profile";
+  const query = opts.query ?? "";
+  const goodHost = opts.goodHost ?? host;
+  const goodDb = opts.goodDb ?? db;
+  const goodPw = opts.goodPassword ?? opts.rawPassword;
+  const goodUrl = `${scheme}://profile@${goodHost}/${goodDb}${query}`;
+  const buildUrl = opts.rawUrl
+    ? `URL=${shq(opts.rawUrl)}`
+    : `URL="${scheme}://profile:$(urlencode ${shq(opts.rawPassword)})@${host}/${db}${query}"`;
+  const harness = [
+    "set -e",
+    urlencodeFn,
+    urldecodeFn,
+    probeUrlFn,
+    `GOOD_URL=${shq(goodUrl)}`,
+    `GOOD_PW=${shq(goodPw)}`,
+    `docker() {
+       if [ "$1" = compose ] && [ "$2" = exec ]; then
+         IFS= read -r pw
+         u=\${!#}
+         [ "$u" = "$GOOD_URL" ] && [ "$pw" = "$GOOD_PW" ]
+         return $?
+       fi
+       return 0
+     }`,
+    buildUrl,
+    `probe_database_url "$URL"`,
+  ].join("\n");
+  const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
+  return res.status ?? -1;
+}
+
+describe("setup-profile.sh urldecode is the exact inverse of urlencode (fail-closed)", () => {
+  test("the script defines a urldecode() helper", () => {
+    expect(urldecodeFn).toMatch(/^urldecode\(\) \{/);
+  });
+
+  test("urldecode(urlencode(x)) === x for adversarial passwords", () => {
+    const passwords = [
+      "p@ss/w#rd?%x",
+      "a:b@c/d?e#f&g=h+i j",
+      "üñîçødé✓",
+      "quote'and\"dq",
+      "$pec!al~tilde",
+      "Ω≈ç√∫˜µ",
+    ];
+    for (const pw of passwords) {
+      expect(bashUrldecode(bashUrlencode(pw))).toBe(pw);
+    }
+  });
+
+  test("urldecode rejects a malformed percent-escape (fail closed)", () => {
+    expect(() => bashUrldecode("ab%zz")).toThrow();
+    expect(() => bashUrldecode("tail%")).toThrow();
+  });
+});
+
+describe("setup-profile.sh probe_database_url validates the EXACT DATABASE_URL", () => {
+  test("correct config (encoded special-char password) → connects (exit 0)", () => {
+    expect(runProbe({ rawPassword: "p@ss/w#rd?x" })).toBe(0);
+  });
+
+  test("operator override pointing at the WRONG database → FAILS the deploy", () => {
+    expect(
+      runProbe({ rawPassword: "pw", db: "wrongdb", goodDb: "profile" }),
+    ).not.toBe(0);
+  });
+
+  test("operator override pointing at the WRONG host → FAILS the deploy", () => {
+    expect(
+      runProbe({
+        rawPassword: "pw",
+        host: "evil:5432",
+        goodHost: "postgres:5432",
+      }),
+    ).not.toBe(0);
+  });
+
+  test("operator override carrying a DIFFERENT password → FAILS the deploy", () => {
+    expect(
+      runProbe({ rawPassword: "wrongpw", goodPassword: "rightpw" }),
+    ).not.toBe(0);
+  });
+
+  test("postgres:// and postgresql:// are BOTH accepted (scheme aliases agree with libpq)", () => {
+    expect(runProbe({ rawPassword: "pw", scheme: "postgresql" })).toBe(0);
+    expect(runProbe({ rawPassword: "pw", scheme: "postgres" })).toBe(0);
+  });
+
+  test("a non-postgres scheme is rejected fail-closed", () => {
+    expect(
+      runProbe({ rawPassword: "pw", rawUrl: "mysql://u:p@h:3306/db" }),
+    ).not.toBe(0);
+  });
+
+  test("?sslmode=require is preserved in the password-free URL handed to libpq", () => {
+    expect(runProbe({ rawPassword: "pw", query: "?sslmode=require" })).toBe(0);
+  });
+});
+
+// Class E: the deploy must declare, where the reviewer reads it, what validation_result=passed
+// certifies NOW versus what is deferred to T5 — citing T5 by stable quoted text, never a
+// fabricated numeric "#N" criterion.
+describe("setup-profile.sh declares its validation scope + the deferred readiness check", () => {
+  test("the header scope block names what passed certifies and what is deferred to T5", () => {
+    expect(setupScript).toMatch(/Validation scope/);
+    expect(setupScript).toMatch(/DELIBERATELY OUT OF SCOPE/);
+    expect(setupScript).toMatch(/s4-profile-05-backend-db-api\.md/);
+    // The quoted T5 anchor (the deferral cites it by resolvable text); the phrase may wrap
+    // across comment lines, so assert its parts rather than one contiguous string.
+    expect(setupScript).toMatch(/Scope item 5/);
+    expect(setupScript).toMatch(/"DB connection \+ readiness check"/);
+  });
+
+  test("the /health healthcheck carries a deferral token pointing /ready at T5", () => {
+    expect(setupScript).toMatch(
+      /\/health is deliberately liveness-only \(dependency-free\)/,
+    );
+    expect(setupScript).toMatch(/\(\/ready\) is deferred; owned by T5/);
+  });
+
+  test("no fabricated numeric criterion reference (e.g. #55) is cited", () => {
+    const numericCriterion = setupScript.match(/criterion #\d+|#55\b/gi) ?? [];
+    expect(numericCriterion).toEqual([]);
+  });
+});

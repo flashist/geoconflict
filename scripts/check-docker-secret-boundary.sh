@@ -109,6 +109,21 @@ scan_broad_copies() {
         for (i = 2; i <= k; i++) res = res "/" out[i]
         return res
     }
+    # Skip the BODY of a RUN-style heredoc: its lines are shell data, not Dockerfile
+    # instructions, so a body line like `COPY . /app` must never be parsed or flagged. State
+    # is set when a previous line opened a heredoc and cleared at its terminator (`<<-` allows
+    # a tab-indented terminator). Runs FIRST so body lines never reach the parser below.
+    heredoc_term != "" {
+        hline = $0
+        if (heredoc_dash) sub(/^[ \t]+/, "", hline)
+        if (hline == heredoc_term) { heredoc_term = ""; heredoc_dash = 0 }
+        next
+    }
+    # A comment is never an instruction and is NEVER continued by Docker (line-continuation
+    # is not honored inside comments). Skip it BEFORE the continuation-join below so a
+    # `# foo \` line cannot swallow the next real instruction — the reported bypass
+    # (`# foo \` <newline> `COPY . /app`, which Docker still builds as a broad copy).
+    /^[ \t]*#/ { next }
     {
         start = FNR
         cur = $0
@@ -128,7 +143,25 @@ scan_broad_copies() {
         # case-invariant, so uppercasing is safe; the original (joined) line is printed.
         work = toupper(cur)
         sub(/^[[:space:]]+/, "", work)
-        if (work !~ /^(COPY|ADD)[[:space:]]/) next
+        if (work !~ /^(COPY|ADD)[[:space:]]/) {
+            # Not a COPY/ADD. If this line OPENS a heredoc (e.g. `RUN <<EOF`), begin skipping
+            # its body so the contents are never mis-parsed as instructions. Capture the
+            # terminator word (forms: <<WORD, <<-WORD, <<"WORD", <<'"'"'WORD'"'"').
+            if (match(cur, /<<-?[ \t]*["'"'"']?[A-Za-z_][A-Za-z0-9_]*/)) {
+                term = substr(cur, RSTART, RLENGTH)
+                heredoc_dash = (substr(term, 1, 3) == "<<-") ? 1 : 0
+                sub(/^<<-?[ \t]*["'"'"']?/, "", term)
+                heredoc_term = term
+            }
+            next
+        }
+        # A heredoc-form COPY/ADD (`COPY <<FILE … `) is a construct we do NOT model — reject
+        # it fail-closed rather than risk parsing its operands wrong.
+        if (cur ~ /<</) {
+            printf "%s:%d: %s\n", FILENAME, start, cur
+            found = 1
+            next
+        }
         sub(/^(COPY|ADD)[[:space:]]+/, "", work)
         # Strip any leading --flags (--chown=, --from=, --chmod=, --link, ...).
         while (work ~ /^--[^[:space:]]+([[:space:]]+|$)/) {
@@ -224,13 +257,83 @@ if [ -n "$INSPECT_IMAGE" ]; then
         exit 1
     fi
 
-    echo "Inspecting image $INSPECT_IMAGE for env and secret files..."
-    if docker run --rm "$INSPECT_IMAGE" /bin/sh -lc 'find /usr/src/app -maxdepth 4 \( -name ".env*" -o -name "*.secret" \) -print | sort' | grep -q .; then
-        echo "Error: image $INSPECT_IMAGE contains env or secret files."
+    # AUTHORITATIVE secret-boundary gate (doctrine Class B): observe the resulting image
+    # BYTES, not the Dockerfile. The awk scanner above is a fail-closed advisory pre-filter;
+    # this scan inspects the built filesystem directly, so it is invariant to every Dockerfile
+    # parser trick. Two detectors:
+    #   (1) by CONTENT (authoritative, false-positive-free): the EXACT bytes of the repo's
+    #       real local secret/key files (.env*, *.secret, *.pem, id_rsa*, id_ed25519*, *.key)
+    #       matched by sha256 ANYWHERE on the WHOLE image rootfs — so a real secret that rode
+    #       in under a renamed/innocuous path is still caught;
+    #   (2) by NAME (supplementary): a file that LOOKS like our secret by name (.env/.env.*/
+    #       *.secret) or a committed .git dir — anywhere EXCEPT third-party node_modules. We
+    #       exclude node_modules and do NOT name-match *.pem/id_rsa* here on purpose: base
+    #       images and dependencies legitimately ship CA bundles, test certs and example env
+    #       files, so name-matching those across the whole filesystem would FAIL every deploy
+    #       (a false positive). Novel/renamed key material is still caught by content above.
+    echo "Inspecting image $INSPECT_IMAGE for env/secret material (whole filesystem)..."
+
+    # Pseudo-filesystems are pruned everywhere; the NAME scan additionally prunes node_modules
+    # to avoid dependency fixtures. The content scan still covers node_modules by exact bytes
+    # (a real secret leaked into node_modules must still be caught) and prints the matching
+    # PATH, so the rare byte-identical-dependency-fixture case is adjudicable by the operator.
+    PRUNE_PSEUDO='\( -path /proc -o -path /sys -o -path /dev -o -path /run \) -prune -o'
+    PRUNE_NAME="\( -path /proc -o -path /sys -o -path /dev -o -path /run -o -path '*/node_modules/*' \) -prune -o"
+
+    # Run a scan command inside the image, capturing stdout to $scan_tmp. FAIL CLOSED if docker
+    # ITSELF fails (daemon down, image missing, OOM): an unavailable oracle must abort the
+    # deploy, never read as "no secrets found". (An earlier `docker run … || true` form masked
+    # exactly this — a docker failure produced empty output and the gate reported "passed".)
+    scan_tmp=$(mktemp)
+    require_image_scan() {
+        if ! docker run --rm "$INSPECT_IMAGE" /bin/sh -lc "$1" > "$scan_tmp"; then
+            echo "Error: docker run failed scanning $INSPECT_IMAGE — the image secret oracle is"
+            echo "       unavailable, so this gate FAILS CLOSED rather than reporting 'passed'."
+            rm -f "$scan_tmp"
+            exit 1
+        fi
+    }
+
+    require_image_scan "find / -xdev $PRUNE_NAME -type f \\( -name '.env' -o -name '.env.*' -o -name '*.secret' \\) ! -name '*.example' ! -name '*.sample' ! -name '*.template' -print 2>/dev/null | sort"
+    name_hits=$(cat "$scan_tmp")
+    require_image_scan "find / -xdev $PRUNE_NAME -type d -name '.git' -print 2>/dev/null | sort"
+    git_hits=$(cat "$scan_tmp")
+
+    # Content match: hash the repo's REAL local secret/key files, then look for those digests
+    # among the image's files (size-capped). Portable host hasher (Linux CI / macOS dev). The
+    # hashes are passed to awk via a FILE (two-input form), NEVER `-v`: a `-v` value with
+    # embedded newlines (multiple local secret files — the normal case) is rejected by awk.
+    HASH_CMD="sha256sum"
+    command -v sha256sum >/dev/null 2>&1 || HASH_CMD="shasum -a 256"
+    local_secret_files=$(find "$ROOT_DIR" -maxdepth 1 -type f \
+        \( -name ".env" -o -name ".env.*" -o -name "*.secret" -o -name "*.pem" \
+        -o -name "id_rsa*" -o -name "id_ed25519*" -o -name "*.key" \) \
+        ! -name "*.example" ! -name "*.sample" ! -name "*.template" -size +0c 2>/dev/null)
+    content_hits=""
+    if [ -n "$local_secret_files" ]; then
+        local_hashes_file=$(mktemp)
+        printf '%s\n' "$local_secret_files" \
+            | while IFS= read -r f; do [ -n "$f" ] && $HASH_CMD "$f"; done \
+            | awk '{print $1}' | sort -u > "$local_hashes_file"
+        if [ -s "$local_hashes_file" ]; then
+            require_image_scan "find / -xdev $PRUNE_PSEUDO -type f -size +0c -size -1048576c -print0 2>/dev/null | xargs -0 sha256sum 2>/dev/null"
+            # First file = local secret hashes; second = the image's "<hash>  <path>" lines.
+            # Print the matching image line (hash AND path) so a match is adjudicable.
+            content_hits=$(awk 'FNR==NR { if ($1 != "") want[$1] = 1; next } ($1 in want) { print }' "$local_hashes_file" "$scan_tmp")
+        fi
+        rm -f "$local_hashes_file"
+    fi
+    rm -f "$scan_tmp"
+
+    if [ -n "$name_hits" ] || [ -n "$git_hits" ] || [ -n "$content_hits" ]; then
+        echo "Error: image $INSPECT_IMAGE contains env/secret material:"
+        [ -n "$name_hits" ] && { echo "  by filename:"; printf '%s\n' "$name_hits" | grep -v '^$'; }
+        [ -n "$git_hits" ] && { echo "  .git directory:"; printf '%s\n' "$git_hits" | grep -v '^$'; }
+        [ -n "$content_hits" ] && { echo "  by content (matches a local secret/key):"; printf '%s\n' "$content_hits"; }
         exit 1
     fi
 
-    echo "Image secret inspection passed."
+    echo "Image secret inspection passed (whole-filesystem name + content scan)."
 fi
 
 echo "Docker secret boundary check passed."

@@ -1,4 +1,5 @@
 import { spawnSync } from "child_process";
+import crypto from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -157,8 +158,35 @@ describe("check-docker-secret-boundary.sh static checks", () => {
       'COPY ["$SRC", "/app"] (JSON var source)',
       'FROM node:24-slim\nCOPY ["$SRC", "/app"]',
     ],
+    // Comment-continuation bypass (reported live): Docker does NOT honor line-continuation
+    // inside a comment, so `# foo \` is a complete comment and `COPY . /app` is a separate
+    // broad copy. The scanner must not let the comment's trailing backslash swallow the next
+    // instruction (the previous version joined them and skipped the COPY).
+    [
+      "# foo \\<newline>COPY . /app (comment must not swallow the next instruction)",
+      "FROM node:24-slim\n# foo \\\nCOPY . /app",
+    ],
+    // Heredoc-form COPY/ADD is a construct we do not model — rejected fail-closed.
+    [
+      "COPY <<FILE heredoc-form copy",
+      "FROM node:24-slim\nCOPY <<FILE /app\ncontent\nFILE",
+    ],
   ])("rejects broad build-context copy: %s", (_label, dockerfile) => {
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
+  });
+
+  test("does not flag a COPY . /app that appears only inside a RUN heredoc body", () => {
+    // A heredoc body is shell data, not Dockerfile instructions — a body line that happens
+    // to read `COPY . /app` must NOT be treated as a broad copy (false positive).
+    const dockerfile = [
+      "FROM node:24-slim",
+      "RUN <<EOF",
+      "echo building",
+      "COPY . /app",
+      "EOF",
+      "COPY package*.json ./",
+    ].join("\n");
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
   });
 
   test("does not flag specific (non-dot) sources, shell or JSON form", () => {
@@ -269,5 +297,103 @@ describe("check-docker-secret-boundary.sh — non-default escape directive (fail
   test("accepts a `# check=` directive with no escape directive at all", () => {
     const dockerfile = `# check=skip=JSONArgsRecommended\nFROM node:24-slim\nCOPY package*.json ./\nCOPY src ./src`;
     expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
+  });
+});
+
+// --inspect-image is the AUTHORITATIVE image-filesystem gate (doctrine Class B). It can't run
+// a real `docker build`, but its behavior is exercised here with `docker` STUBBED on PATH:
+//   - it must FAIL CLOSED if `docker run` itself fails (an unavailable oracle is not "clean");
+//   - it must flag a CONTENT match (sha256 of a real local secret found in the image) AND
+//     report the path — even when MULTIPLE local secret files exist (the content match passes
+//     hashes to awk via a file, never `-v`, which would error on embedded newlines);
+//   - it must flag a NAME hit and pass a clean image.
+// The fixture has THREE local secret/key files so the multi-hash (awk-newline) path is covered.
+function runInspectImage(mode: "fail" | "clean" | "content" | "name"): {
+  code: number;
+  out: string;
+} {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "inspect-"));
+  fs.mkdirSync(path.join(dir, "scripts"));
+  fs.copyFileSync(
+    REAL_SCRIPT,
+    path.join(dir, "scripts", "check-docker-secret-boundary.sh"),
+  );
+  fs.writeFileSync(
+    path.join(dir, "Dockerfile"),
+    "FROM node:24-slim\nCOPY package*.json ./\n",
+  );
+  fs.writeFileSync(path.join(dir, ".dockerignore"), GOOD_DOCKERIGNORE + "\n");
+  // Multiple local secrets => the host hash list has 2+ lines (the awk `-v` newline case).
+  const envContent = "SECRET_ONE=aaa\n";
+  fs.writeFileSync(path.join(dir, ".env"), envContent);
+  fs.writeFileSync(path.join(dir, ".env.profile.secret"), "SECRET_TWO=bbb\n");
+  fs.writeFileSync(path.join(dir, "server.key"), "KEYDATA\n");
+  const leakHash = crypto.createHash("sha256").update(envContent).digest("hex");
+
+  // Stub docker: behaviour keyed by $MODE. The inner scan is the sh -lc program (last arg).
+  const binDir = path.join(dir, "bin");
+  fs.mkdirSync(binDir);
+  const stub = `#!/bin/bash
+[ "$1" = run ] || exit 0
+[ "$MODE" = fail ] && exit 125            # docker itself fails (oracle unavailable)
+last=""; for a in "$@"; do last="$a"; done
+if printf '%s' "$last" | grep -q sha256sum; then
+  [ "$MODE" = content ] && echo "${leakHash}  /opt/leaked-copy-of-dotenv"
+elif printf '%s' "$last" | grep -q -- "-name '.git'"; then
+  :                                       # no .git hit in these cases
+else
+  [ "$MODE" = name ] && echo "/opt/strayconfig/.env"
+fi
+exit 0
+`;
+  fs.writeFileSync(path.join(binDir, "docker"), stub);
+  fs.chmodSync(path.join(binDir, "docker"), 0o755);
+
+  const res = spawnSync(
+    "bash",
+    [
+      path.join(dir, "scripts", "check-docker-secret-boundary.sh"),
+      "--inspect-image",
+      "testimg:latest",
+    ],
+    {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        PATH: `${binDir}:${process.env.PATH}`,
+        MODE: mode,
+      },
+    },
+  );
+  const out = (res.stdout ?? "") + (res.stderr ?? "");
+  fs.rmSync(dir, { recursive: true, force: true });
+  return { code: res.status ?? -1, out };
+}
+
+describe("check-docker-secret-boundary.sh --inspect-image gate (docker stubbed)", () => {
+  test("FAILS CLOSED when docker run itself fails (oracle unavailable, not 'clean')", () => {
+    const { code, out } = runInspectImage("fail");
+    expect(code).not.toBe(0);
+    expect(out).toMatch(/FAILS CLOSED/);
+  });
+
+  test("a clean image passes", () => {
+    const { code, out } = runInspectImage("clean");
+    expect(code).toBe(0);
+    expect(out).toMatch(/secret boundary check passed/);
+  });
+
+  test("a CONTENT match (real local secret bytes in the image) fails AND reports the path — with multiple local hashes", () => {
+    const { code, out } = runInspectImage("content");
+    expect(code).not.toBe(0);
+    expect(out).toMatch(/by content/);
+    expect(out).toMatch(/\/opt\/leaked-copy-of-dotenv/);
+  });
+
+  test("a NAME hit (a secret-named file in the image) fails and reports the filename", () => {
+    const { code, out } = runInspectImage("name");
+    expect(code).not.toBe(0);
+    expect(out).toMatch(/by filename/);
+    expect(out).toMatch(/\/opt\/strayconfig\/\.env/);
   });
 });

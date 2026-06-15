@@ -149,6 +149,16 @@ PROFILE_DEPLOY_REF="$PROFILE_DIGEST"
 DEPLOY_RECORD=".profile-deploy-record"
 DEPLOY_OUTCOME="failed"
 
+# Local deploy serializer. build-deploy runs on the developer HOST (often macOS, which has
+# NO flock — so the remote box's flock approach is not portable here); use an atomic mkdir
+# mutex instead (mkdir either creates the dir or fails, atomically, on every POSIX host).
+# Acquired BEFORE the first record write and held across the SSH call so two concurrent
+# local deploys can't interleave the record or race the remote. Fail-closed: a held lock
+# aborts. Released by finalize_deploy on exit; a crash leaves a stale dir with a clear rmdir
+# hint. Gitignored.
+DEPLOY_LOCK=".profile-deploy.lock"
+DEPLOY_LOCK_HELD=0
+
 # Secret-staging + record-finalization state. Initialized up front so the trap is
 # safe to fire during the preflight, before the temp files are created (it guards on
 # them) and before SSH_CMD/REMOTE_USER exist (the remote-cleanup branch only runs
@@ -157,6 +167,7 @@ LOCAL_TMPENV=""
 REMOTE_ENV=""
 REMOTE_ENV_STAGED=0
 DEPLOY_FINALIZED=0
+DEPLOY_RECORD_TMP=""
 
 finalize_deploy() {
     # Idempotent: the guard flag guarantees EXACTLY ONE validation_result line even if
@@ -170,24 +181,52 @@ finalize_deploy() {
         # Best-effort; ignore errors (the host may be unreachable on a failure path).
         "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
     fi
-    if [ -n "${DEPLOY_RECORD:-}" ]; then
-        # Self-identifying result line: carrying the digest means a result can never be
-        # misassociated with another deploy's block if two concurrent runs interleave
-        # the record (or logs are later merged). The digest is the rollback trust anchor
-        # (registry-image-policy.md), so the result is keyed to it directly rather than
-        # by file position.
-        echo "validation_result=${DEPLOY_OUTCOME:-failed} digest=${PROFILE_DIGEST:-unknown}" >> "$DEPLOY_RECORD"
+    # Atomic record write. The body lines were accumulated into DEPLOY_RECORD_TMP (never
+    # appended to the shared record yet). Append the single self-identifying result line to
+    # the SAME temp, then append the COMPLETE block to $DEPLOY_RECORD in ONE operation while
+    # the mkdir lock is still held — so a body can never land without its matching result
+    # (even on interrupt), and concurrent deploys (blocked by the lock) can't interleave
+    # blocks. The digest on the result line keys it to its deploy regardless of file
+    # position (registry-image-policy.md, the rollback trust anchor). If the temp was never
+    # created (we aborted before the record stage), write nothing.
+    if [ -n "$DEPLOY_RECORD_TMP" ] && [ -f "$DEPLOY_RECORD_TMP" ] && [ -n "${DEPLOY_RECORD:-}" ]; then
+        # A record-write failure (disk full, perms) must NOT abort this EXIT trap under set -e
+        # before the cleanup below — a skipped rmdir would leave a stale lock that blocks every
+        # future deploy. Surface the failure, but always fall through to cleanup.
+        echo "validation_result=${DEPLOY_OUTCOME:-failed} digest=${PROFILE_DIGEST:-unknown}" >> "$DEPLOY_RECORD_TMP" \
+            && cat "$DEPLOY_RECORD_TMP" >> "$DEPLOY_RECORD" \
+            || echo "Warning: could not write the deploy record to $DEPLOY_RECORD" >&2
     fi
+    [ -n "$DEPLOY_RECORD_TMP" ] && rm -f "$DEPLOY_RECORD_TMP" || true
+    # Release the local deploy lock (held for the process lifetime).
+    [ "$DEPLOY_LOCK_HELD" = "1" ] && rmdir "$DEPLOY_LOCK" 2>/dev/null || true
 }
 # finalize_deploy is the SINGLE writer, registered on EXIT only, so it runs exactly
 # once per invocation. On Ctrl-C / SIGTERM the handler exits with the conventional
 # 128+signal code — which BOTH aborts the deploy (a bare `trap … INT` would have run
 # the handler and then RESUMED the deploy) and triggers the one EXIT finalize. The
 # guard flag above is belt-and-suspenders against any other double path.
+
+# Acquire the local deploy lock (fail-closed) BEFORE installing the record-writing trap and
+# before the first record write, so a second concurrent deploy aborts here and never writes
+# a partial record. mkdir is atomic and portable (the host may be macOS, which has no flock).
+if ! mkdir "$DEPLOY_LOCK" 2>/dev/null; then
+    echo "Error: another profile deploy is already running (lock: $DEPLOY_LOCK)."
+    echo "       If you are sure none is, remove the stale lock and retry: rmdir $DEPLOY_LOCK"
+    exit 1
+fi
+DEPLOY_LOCK_HELD=1
+
 trap finalize_deploy EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
+# Accumulate the record BODY into a private temp file (NOT appended to the shared record
+# yet). finalize_deploy appends the single validation_result line and then writes the whole
+# block to $DEPLOY_RECORD in one atomic append under the lock — so the record is never a
+# body without its result, even on interrupt. Echoed to stdout here for live visibility.
+DEPLOY_RECORD_TMP=$(mktemp)
+chmod 600 "$DEPLOY_RECORD_TMP"
 {
     echo "----"
     echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -197,8 +236,8 @@ trap 'exit 143' TERM
     echo "digest=${PROFILE_DIGEST}"
     echo "commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)"
     echo "operator=$(whoami 2>/dev/null || echo unknown)"
-} | tee -a "$DEPLOY_RECORD"
-echo "Deploy record appended to ${DEPLOY_RECORD} (gitignored; validation_result finalized at exit)."
+} | tee "$DEPLOY_RECORD_TMP"
+echo "Deploy record staged (gitignored ${DEPLOY_RECORD}; full block + validation_result written atomically at exit)."
 
 # ── Resolve SSH user + auth ───────────────────────────────────────────────────
 

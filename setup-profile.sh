@@ -30,6 +30,19 @@
 #   7. Creates a systemd service for auto-start on reboot
 #   8. Adds weekly Postgres backup + certbot renewal cron jobs
 #   9. Prints connection info
+#
+# ── Validation scope (what a successful run / validation_result=passed certifies) ──────
+# GUARANTEED NOW by this deploy:
+#   • every expected service is running and (where defined) healthcheck-healthy;
+#   • the DISCRETE Postgres credentials authenticate over TCP (probe_db_credentials);
+#   • the EXACT DATABASE_URL the API consumes opens a real connection and SELECT 1 succeeds
+#     (probe_database_url) — operator overrides validated through the same gate, no verbatim
+#     trust; a malformed/misdirected URL FAILS the deploy instead of recording passed;
+#   • the stack is deployed (and rolled back) by immutable image digest.
+# DELIBERATELY OUT OF SCOPE — tracked: a DB-backed application readiness endpoint (/ready)
+#   that compose/deploy waits on. It needs the T5 Postgres-backed repository (the API here is
+#   a /health-only liveness skeleton). Owned by T5 (s4-profile-05-backend-db-api.md — Scope
+#   item 5 "DB connection + readiness check").
 
 set -e
 
@@ -94,6 +107,33 @@ urlencode() {
         case $c in
             [a-zA-Z0-9.~_-]) out+=$c ;;
             *) ord=$(printf '%d' "'$c"); out+=$(printf '%%%02X' "$(( ord & 0xFF ))") ;;
+        esac
+    done
+    printf '%s' "$out"
+}
+
+# Inverse of urlencode(): percent-decode a URI component back to its literal bytes. Used to
+# recover the literal DB password from a DATABASE_URL so it can be fed to psql via PGPASSWORD
+# (env), keeping the secret out of any argv. LC_ALL=C iterates BYTES; printf -v avoids the
+# trailing-newline stripping of command substitution. A malformed %-escape (not two hex
+# digits) FAILS CLOSED — a URL we cannot decode must never silently validate. Round-trips
+# with urlencode for any byte string (proven by test).
+urldecode() {
+    local LC_ALL=C s=$1 out= i c hex dec
+    for (( i=0; i<${#s}; i++ )); do
+        c=${s:i:1}
+        case $c in
+            %)
+                hex=${s:i+1:2}
+                case $hex in
+                    [0-9A-Fa-f][0-9A-Fa-f]) ;;
+                    *) return 1 ;;
+                esac
+                printf -v dec '%b' "\\x$hex"
+                out+=$dec
+                i=$((i + 2))
+                ;;
+            *) out+=$c ;;
         esac
     done
     printf '%s' "$out"
@@ -311,12 +351,29 @@ restore_previous_config() {
 # behind. Cleared only after the ENTIRE setup succeeds (DEPLOY_VALIDATED=1 at the end).
 DEPLOY_VALIDATED=0
 STACK_RECREATED=0
+# nginx ships a default site symlink (sites-enabled/default) that we remove when pointing
+# the box at the profile vhost. Capture + restore it on rollback so a failed deploy never
+# leaves the box without its original default vhost — a previously-unreverted mutation. The
+# backup lives in $PROFILE_DIR, NOT in sites-enabled/ (nginx would try to load it there).
+# (Closing this live gap; the full LIFO rollback refactor remains the doctrine's deferred ideal.)
+DEFAULT_SITE_BAK="$PROFILE_DIR/sites-enabled-default.predeploy.bak"
+DEFAULT_SITE_REMOVED=0
 rollback_deploy() {
     # Preserve the exit status that triggered this trap so the deploy still fails with its
     # ORIGINAL code (the rollback reports its own outcome but never masks the failure).
     local rc=$?
     [ "$DEPLOY_VALIDATED" = "1" ] && return 0
     echo "⚠️  Deploy failed (exit $rc) — rolling back to the previous known-good state..."
+    # Restore nginx's default site first (if this deploy removed it) so the nginx
+    # restart/reload in the profile-site branch below picks it up. cp -P preserves a symlink;
+    # the backup lives outside sites-enabled/ so nginx never tried to load it.
+    if [ "${DEFAULT_SITE_REMOVED:-0}" = "1" ] && { [ -L "$DEFAULT_SITE_BAK" ] || [ -e "$DEFAULT_SITE_BAK" ]; }; then
+        if cp -Pf "$DEFAULT_SITE_BAK" /etc/nginx/sites-enabled/default; then
+            echo "✅ ROLLBACK: restored the nginx default site."
+        else
+            echo "❌ ROLLBACK: failed to restore the nginx default site from $DEFAULT_SITE_BAK."
+        fi
+    fi
     if [ -n "${SITE_BAK:-}" ] && [ -f "${SITE_BAK:-}" ]; then
         # A previous nginx site existed — restore it. Rollback visibility: surface a
         # restore/(re)start failure (the if-conditions keep set -e from aborting the trap).
@@ -437,6 +494,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # /health is deliberately liveness-only (dependency-free). A DB-backed readiness probe
+    # (/ready) is deferred; owned by T5 (s4-profile-05-backend-db-api.md — Scope item 5
+    # "DB connection + readiness check"). The deploy's authoritative DB check is
+    # probe_database_url (real SELECT 1 over the exact DATABASE_URL), not this healthcheck.
     healthcheck:
       test: ['CMD-SHELL', 'curl -fsS http://localhost:${PROFILE_PORT}/health || exit 1']
       interval: 10s
@@ -454,8 +515,11 @@ echo "Written: docker-compose.yml (0600)"
 
 print_header "STARTING PROFILE SERVICES"
 
-# Probe whether the deploy's POSTGRES_PASSWORD authenticates against the running
-# Postgres, WITHOUT putting the secret in any process argv. Passing a
+# SUPPLEMENTARY discrete-credential probe — NOT the authoritative DB gate (that is
+# probe_database_url below, which validates the EXACT DATABASE_URL the API consumes).
+# This checks the DISCRETE POSTGRES_USER/PASSWORD/DB path via psql for first-init /
+# password-drift detection against the running Postgres volume; it deliberately does NOT
+# use DATABASE_URL. Like the URL gate it keeps the secret out of any process argv. Passing a
 # password-bearing DATABASE_URL (or `-e PGPASSWORD=...`) to `docker compose exec`
 # would place the secret in the HOST docker process argv AND the container psql argv
 # (visible to `ps`, /proc/<pid>/cmdline, execve auditing, and process collectors) —
@@ -471,6 +535,54 @@ probe_db_credentials() {
     printf '%s\n' "$POSTGRES_PASSWORD" | docker compose exec -T postgres \
         sh -c 'IFS= read -r PGPASSWORD; export PGPASSWORD; exec psql -h postgres -U "$1" -d "$2" -tAc "select 1"' \
         _ "$POSTGRES_USER" "$POSTGRES_DB" >/dev/null 2>&1
+}
+
+# AUTHORITATIVE DB gate (review #12 / F12): validate the EXACT DATABASE_URL the API will
+# consume — including an operator-supplied override (previously trusted verbatim) — by
+# opening a real connection with it and running SELECT 1. That literal connection string is
+# the artifact the running API uses; the discrete probe above and the dependency-free
+# /health check are only PROXIES for it, so a malformed / wrong-host / wrong-db /
+# wrong-credential URL must fail HERE rather than be recorded validation_result=passed.
+# Secret-safety: the password is split out of the URL and fed via stdin into PGPASSWORD
+# inside the container (never a host docker or container psql argv — preserving the round-#7
+# boundary), while the password-FREE URL is handed to `psql -d`, so libpq — the real client
+# URL parser — parses the exact scheme/host/port/db/params. Any structural ambiguity we
+# cannot split fails CLOSED: psql receives a bad URL and the connection fails, so a parse
+# divergence can only BLOCK a deploy, never let a broken one pass.
+probe_database_url() {
+    local url=$1 scheme after userinfo hostpart user pw_enc pw url_no_pw
+    case $url in
+        postgresql://*) scheme=postgresql ;;
+        postgres://*) scheme=postgres ;;
+        *)
+            echo "   (DATABASE_URL does not start with postgresql:// or postgres://)"
+            return 1
+            ;;
+    esac
+    after=${url#*://}                       # [user[:pass]@]host[:port]/db[?params]
+    if [[ $after == *@* ]]; then
+        userinfo=${after%%@*}               # user[:pass]   (everything before the first @)
+        hostpart=${after#*@}                # host[:port]/db[?params]
+        if [[ $userinfo == *:* ]]; then
+            user=${userinfo%%:*}
+            pw_enc=${userinfo#*:}
+            if ! pw=$(urldecode "$pw_enc"); then
+                echo "   (DATABASE_URL password is not valid percent-encoding)"
+                return 1
+            fi
+        else
+            user=$userinfo
+            pw=
+        fi
+        url_no_pw="${scheme}://${user}@${hostpart}"
+    else
+        # No userinfo to strip; pass the URL through and let libpq use its own defaults.
+        pw=
+        url_no_pw=$url
+    fi
+    printf '%s\n' "$pw" | docker compose exec -T postgres \
+        sh -c 'IFS= read -r PGPASSWORD; export PGPASSWORD; exec psql -d "$1" -tAc "select 1"' \
+        _ "$url_no_pw" >/dev/null 2>&1
 }
 
 # Pre-recreate credential check: on a redeploy (postgres already running), confirm the
@@ -561,7 +673,7 @@ fi
 echo "✅ All services running and healthy:"
 docker compose ps
 
-# Verify Postgres actually accepts the credentials the API will use. The Docker
+# Step 1 (supplementary): verify the DISCRETE credentials authenticate. The Docker
 # healthchecks do NOT prove this: pg_isready sends no password, and /health is
 # dependency-free. In particular, postgres:16-alpine applies POSTGRES_PASSWORD only
 # on FIRST init — against a pre-existing postgres_data volume a changed password is
@@ -578,6 +690,23 @@ if ! probe_db_credentials; then
     exit 1
 fi
 echo "✅ Postgres credential check passed."
+
+# Step 2 (AUTHORITATIVE): open a real connection with the EXACT DATABASE_URL the API will
+# consume (review #12 / F12). The discrete check above and /health are proxies; this gate
+# exercises the literal connection string — operator override included — so a malformed
+# URL, wrong host/db, or different credentials FAIL the deploy here instead of being
+# recorded validation_result=passed on a connection the API would then fail to use.
+echo "Verifying the configured DATABASE_URL opens a real connection..."
+if ! probe_database_url "$DATABASE_URL"; then
+    echo "❌ DATABASE_URL did not open a working connection (SELECT 1 failed)."
+    echo "   The API consumes this exact connection string; a malformed URL, wrong host/db,"
+    echo "   or different credentials would fail at runtime. Reconcile DATABASE_URL (or the"
+    echo "   POSTGRES_* values it is synthesized from), then re-run."
+    docker compose logs --tail=50 postgres || true
+    echo "The EXIT rollback will restore the previous stack."
+    exit 1
+fi
+echo "✅ DATABASE_URL connection check passed."
 
 # ── HTTPS via nginx + Let's Encrypt ──────────────────────────────────────────
 
@@ -676,6 +805,12 @@ ${ALLOW_DIRECTIVES}        deny all;
 NGINXEOF
 
     ln -sf /etc/nginx/sites-available/profile /etc/nginx/sites-enabled/profile
+    # Capture nginx's default site before removing it so the EXIT rollback can restore it
+    # (cp -P preserves the symlink; backup kept outside sites-enabled/ so nginx ignores it).
+    if [ -L /etc/nginx/sites-enabled/default ] || [ -e /etc/nginx/sites-enabled/default ]; then
+        cp -Pf /etc/nginx/sites-enabled/default "$DEFAULT_SITE_BAK"
+        DEFAULT_SITE_REMOVED=1
+    fi
     rm -f /etc/nginx/sites-enabled/default
     nginx -t
     systemctl enable --now nginx
@@ -764,4 +899,4 @@ echo "======================================================"
 # Entire setup succeeded — mark validated so the EXIT rollback trap is a no-op, and
 # drop the rollback backups now that the new stack is fully applied.
 DEPLOY_VALIDATED=1
-rm -f "$PROFILE_ENV_BAK" "$COMPOSE_BAK" ${SITE_BAK:+"$SITE_BAK"}
+rm -f "$PROFILE_ENV_BAK" "$COMPOSE_BAK" "$DEFAULT_SITE_BAK" ${SITE_BAK:+"$SITE_BAK"}

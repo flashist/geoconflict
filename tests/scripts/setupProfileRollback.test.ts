@@ -354,3 +354,114 @@ describe("setup-profile.sh real rollback_deploy behavior (extracted, EXIT-trap d
     expect(code).toBe(7);
   });
 });
+
+// Class C live gap (doctrine appendix): the deploy removes nginx's default site
+// (sites-enabled/default) when pointing the box at the profile vhost, but rollback never
+// restored it — a failed deploy left the box without its original default vhost. These
+// tests lock the capture-before-remove + restore-on-rollback behavior.
+describe("setup-profile.sh restores the nginx default site on rollback (static)", () => {
+  test("captures the default site before removing it and marks it removed", () => {
+    expect(
+      lines.some((l) =>
+        /cp -Pf \/etc\/nginx\/sites-enabled\/default "\$DEFAULT_SITE_BAK"/.test(
+          l,
+        ),
+      ),
+    ).toBe(true);
+    expect(lines.some((l) => /^\s*DEFAULT_SITE_REMOVED=1$/.test(l))).toBe(true);
+    // capture must precede the rm of the default site.
+    const idxCap = firstIndex(
+      /cp -Pf \/etc\/nginx\/sites-enabled\/default "\$DEFAULT_SITE_BAK"/,
+    );
+    const idxRm = firstIndex(/^\s*rm -f \/etc\/nginx\/sites-enabled\/default$/);
+    expect(idxCap).toBeGreaterThanOrEqual(0);
+    expect(idxRm).toBeGreaterThan(idxCap);
+  });
+
+  test("rollback_deploy restores the default site (guarded by DEFAULT_SITE_REMOVED)", () => {
+    expect(
+      lines.some((l) =>
+        /cp -Pf "\$DEFAULT_SITE_BAK" \/etc\/nginx\/sites-enabled\/default/.test(
+          l,
+        ),
+      ),
+    ).toBe(true);
+    expect(lines.some((l) => /DEFAULT_SITE_REMOVED:-0/.test(l))).toBe(true);
+  });
+
+  test("the success cleanup drops the default-site backup", () => {
+    expect(
+      lines.some((l) =>
+        /rm -f "\$PROFILE_ENV_BAK" "\$COMPOSE_BAK" "\$DEFAULT_SITE_BAK"/.test(
+          l,
+        ),
+      ),
+    ).toBe(true);
+  });
+});
+
+// Behavioral: run the REAL restore_previous_config + rollback_deploy with the default-site
+// state set, a stubbed cp/systemctl/docker, driven by the EXIT trap. Proves the restore is
+// invoked (and reported), is skipped when nothing was removed, and reports a FAILED restore
+// without silencing — all while preserving the original deploy-failure exit code.
+function runDefaultSiteRollback(opts: {
+  removed: boolean;
+  cpFails?: boolean;
+}): {
+  code: number;
+  stdout: string;
+  calls: string;
+} {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "default-site-"));
+  const script = fs.readFileSync(SETUP_PROFILE, "utf8");
+  const restoreFn =
+    script.match(/restore_previous_config\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+  const rollbackFn =
+    script.match(/rollback_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+  const callsLog = path.join(dir, "calls");
+  const bak = path.join(dir, "default.bak");
+  if (opts.removed) fs.writeFileSync(bak, "server{}\n");
+  const harness = [
+    "set -e",
+    restoreFn,
+    rollbackFn,
+    `cp() { echo "cp $*" >> "${callsLog}"; ${opts.cpFails ? "return 1" : "return 0"}; }`,
+    `systemctl() { return 0; }`,
+    `docker() { return 0; }`,
+    `PROFILE_DIR="${dir}"; PROFILE_ENV_BAK="${dir}/e.bak"; COMPOSE_BAK="${dir}/c.bak"`,
+    `DEFAULT_SITE_BAK="${bak}"; DEFAULT_SITE_REMOVED=${opts.removed ? "1" : "0"}`,
+    `DEPLOY_VALIDATED=0; STACK_RECREATED=0; FRESH_DEPLOY=0; SITE_BAK=""`,
+    "trap rollback_deploy EXIT",
+    "( exit 5 )",
+  ].join("\n");
+  const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
+  const calls = fs.existsSync(callsLog)
+    ? fs.readFileSync(callsLog, "utf8")
+    : "";
+  fs.rmSync(dir, { recursive: true, force: true });
+  return { code: res.status ?? -1, stdout: res.stdout ?? "", calls };
+}
+
+describe("setup-profile.sh real default-site rollback behavior (extracted, EXIT-trap driven)", () => {
+  test("default site WAS removed => rollback restores it; exit code preserved", () => {
+    const { code, stdout, calls } = runDefaultSiteRollback({ removed: true });
+    expect(stdout).toMatch(/restored the nginx default site/);
+    expect(calls).toMatch(/cp .*\/etc\/nginx\/sites-enabled\/default/);
+    expect(code).toBe(5);
+  });
+
+  test("default site NOT removed => rollback never touches it", () => {
+    const { stdout, calls } = runDefaultSiteRollback({ removed: false });
+    expect(stdout).not.toMatch(/nginx default site/);
+    expect(calls).not.toMatch(/sites-enabled\/default/);
+  });
+
+  test("restore FAILS => reports the failure (no silent loss); exit code preserved", () => {
+    const { code, stdout } = runDefaultSiteRollback({
+      removed: true,
+      cpFails: true,
+    });
+    expect(stdout).toMatch(/failed to restore the nginx default site/);
+    expect(code).toBe(5);
+  });
+});
