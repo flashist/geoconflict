@@ -17,32 +17,33 @@ import path from "path";
 //
 // MERGE-BAR ENCODING (how to read a failure here — mirrors §10.1's three states):
 //   • A must-fix residual is an ordinary `test(...)` that goes RED until the fix
-//     lands. It BLOCKS merge. (R1's channel matrix is here today: it is RED on
-//     current code, red-for-the-right-reason — the secret reaches psql argv.)
+//     lands. It BLOCKS merge. (This is how R1's channel matrix STARTED — RED, the
+//     secret reaching psql argv; the fix has since landed, so those rows are now
+//     GREEN regression guards locking the whole argv-safety class.)
 //   • An accepted residual (owner FROZE it, tracked in the §10.2 register) is a
 //     `test.skip(...)` whose title carries the residual ID + rationale. It shows as
-//     SKIPPED in the summary — visible, tracked, never red. (R2 fast-follow, R3
-//     comment-reconciliation.)
+//     SKIPPED in the summary — visible, tracked, never red. (Currently OPEN:
+//     A-sshpass, D-remote-script, R3 comment-reconciliation.)
 //   • An already-closed CLASS guard is a green `test(...)` that locks the CLASS (the
 //     whole sub-surface), not the single instance that was reported — so a NEW
 //     sub-instance of a closed class turns it red here, at the bar, not in review.
 //
-// The three fresh Codex findings this file operationalizes:
-//   R1 [must-fix]  argv-safety (Class A): probe_database_url strips the password
-//                  only from the userinfo `user:pass@` channel; a libpq
-//                  query-parameter password (?password= / &password= / sslpassword=)
-//                  and a no-userinfo keyword/value connstring survive into the URL
-//                  handed to `psql -d` argv. Encoded as a data-driven channel matrix
-//                  that is RED on current code (one ordinary test() per leaking
-//                  channel) — must-fix, blocks merge.
-//   R2 [accept: fast-follow]  shared-resource locking (Class D): REMOTE_ENV keyed on
-//                  the LOCAL PID ($$) collides across two workstations. Accepted
-//                  residual → test.skip with ID + rationale.
-//   R3 [accept: comment]  rollback provenance (Class C): the
-//                  "validation_result=passed records are rollback-eligible" comment
-//                  overstates the mechanism (the box rollback reads no record).
-//                  Accepted residual → test.skip; the TRUE guarantee (restore prior
-//                  config, fail-loud, never refuse rollback) is asserted green.
+// The findings this file operationalizes (status as of the current tree):
+//   R1 [CLOSED]  argv-safety (Class A): probe_database_url once stripped the password
+//                only from the userinfo `user:pass@` channel, so a libpq query-parameter
+//                password (?password= / &password= / sslpassword=, ANY case) and a
+//                no-userinfo keyword/value connstring reached `psql -d` argv. FIXED — the
+//                query string is now parsed and credentials routed to stdin / fail-closed.
+//                The channel matrix below is GREEN and locks the whole class (a NEW
+//                leaking channel turns it red).
+//   R2 [CLOSED]  shared-resource locking (Class D): REMOTE_ENV was keyed on the LOCAL PID
+//                ($$) and collided across workstations. FIXED — allocated host-side with
+//                remote mktemp + pattern validation. Locked green by CLOSED[D-R2].
+//   R3 [accept: comment, OPEN]  rollback provenance (Class C): the "rollback-eligible"
+//                wording in build-deploy-profile.sh overstates the mechanism (the box
+//                reads no record). Accepted comment residual → test.skip; the TRUE
+//                guarantee (restore prior config, fail-loud, never refuse rollback) is
+//                asserted green. Tracked in §10.2.
 //
 // GROUND RULES (from the doctrine itself): anchor every assertion by a UNIQUE GREP
 // STRING / symbol, NEVER a line number; cite only resolvable anchors; fail closed;
@@ -53,9 +54,13 @@ import path from "path";
 const REPO_ROOT = path.join(__dirname, "..", "..");
 const SETUP_PROFILE = path.join(REPO_ROOT, "setup-profile.sh");
 const BUILD_DEPLOY_PROFILE = path.join(REPO_ROOT, "build-deploy-profile.sh");
+// The doctrine is the AUTHORITATIVE register (§10.2). The coupling tests read it (not this
+// file) so "registered" means "a row in the doctrine", not "a string in this test".
+const SCOPE_DOC = path.join(REPO_ROOT, "docs/security/profile-deploy-scope.md");
 
 const setupScript = fs.readFileSync(SETUP_PROFILE, "utf8");
 const buildScript = fs.readFileSync(BUILD_DEPLOY_PROFILE, "utf8");
+const doctrine = fs.readFileSync(SCOPE_DOC, "utf8");
 const setupLines = setupScript.split("\n");
 const buildLines = buildScript.split("\n");
 
@@ -170,21 +175,22 @@ describe("profile-deploy class sweep — executable merge bar", () => {
     });
 
     // ─────────────────────────────────────────────────────────────────────────
-    // R1 MERGE BAR (must-fix) — the LITERAL gate, encoded as an ADVERSARIAL CHANNEL
-    // MATRIX (one ordinary test() per libpq credential channel). probe_database_url
-    // splits the password out of the URL ONLY for the userinfo `user:pass@` segment; a
-    // libpq `?password=` / `&password=` / `?sslpassword=`, and a no-userinfo keyword/value
-    // connstring, survive verbatim into url_no_pw and are handed to `psql -d` in argv —
-    // reopening the exact exposure the function exists to prevent (the F7/round-#7 fix).
+    // R1 REGRESSION GUARD (Class A, CLOSED) — the LITERAL gate, encoded as an ADVERSARIAL
+    // CHANNEL MATRIX (one ordinary test() per libpq credential channel). probe_database_url
+    // ONCE split the password out of the URL only for the userinfo `user:pass@` segment, so a
+    // libpq `?password=` / `&password=` / `?sslpassword=` (any case) and a no-userinfo
+    // keyword/value connstring survived into url_no_pw and reached `psql -d` argv — reopening
+    // the exact exposure the function exists to prevent (the F7/round-#7 fix). That is FIXED:
+    // the query string is parsed and credentials are routed to stdin / fail-closed.
     //
-    // WHY ordinary test() (NOT test.failing): the thesis is "must-fix residuals are RED",
-    // and §10.1 / §10.2 both describe R1 as a RED merge-blocker ("the branch does not
-    // merge while that case is red"). test.failing renders as a passing ✓ and would NOT
-    // block merge — a direct test-vs-doctrine contradiction. So these are plain tests:
-    // the suite is RED today and genuinely blocks merge until R1 is fixed. The matrix is
-    // data-driven so an R1 fix that strips only `password=` (leaving `sslpassword=` /
-    // `&password=` / keyword-value leaking) CANNOT go green — every leaking channel is a
-    // row. The userinfo row is a GREEN control proving the harness is not always-red.
+    // WHY ordinary test() (NOT test.failing): these started RED (the must-fix state, §10.1)
+    // and are GREEN now that the fix has landed — so they are plain `test()` regression guards
+    // that lock the WHOLE argv-safety class. (test.failing would render a fixed gap as a
+    // passing ✓ and silently stop guarding it.) The matrix is data-driven so a REGRESSION that
+    // strips only `password=` (re-leaking `sslpassword=` / `&password=` / a case variant /
+    // keyword-value) turns a row RED again — every channel is a row. The userinfo row is the
+    // baseline control. R1 is CLOSED (no §10.2 register row — register rows are accepted/
+    // closed residuals; a closed CLASS guard lives here as a green test).
     // ─────────────────────────────────────────────────────────────────────────
     const enc = grabFn(setupScript, "urlencode");
     const dec = grabFn(setupScript, "urldecode");
@@ -236,10 +242,11 @@ describe("profile-deploy class sweep — executable merge bar", () => {
     });
 
     // ADVERSARIAL CHANNEL MATRIX — every libpq password channel + the sanctioned control.
-    // `closed:false` rows are must-fix R1 (RED today): the secret must be stripped from
-    // argv (to stdin) OR the splitter must fail CLOSED (non-zero) — current code does
-    // NEITHER. The userinfo row (`closed:true`) is the GREEN control: it must ALREADY be
-    // stripped, proving the harness is not trivially red.
+    // R1 is CLOSED, so EVERY row must pass: the secret is stripped from argv (to stdin) OR the
+    // splitter fails CLOSED (non-zero). These are regression guards — a row turns RED only if a
+    // future edit re-leaks that channel. (`closed:true` marks the userinfo baseline control,
+    // always stripped; `closed:false` marks a channel that ONCE leaked and is now fixed. The
+    // field is documentary — the assertion below is identical for every row.)
     type ChannelCase = {
       label: string;
       url: string;
@@ -255,33 +262,33 @@ describe("profile-deploy class sweep — executable merge bar", () => {
         closed: true,
       },
       {
-        label: "A2 query-parameter ?password= (R1 — RED today)",
+        label: "A2 query-parameter ?password= (R1 channel — regression guard)",
         url: "postgresql://profile@postgres:5432/profile?password=QPSECRET",
         secret: /QPSECRET/,
         closed: false,
       },
       {
-        label: "A2 query-parameter &password= (R1 — RED today)",
+        label: "A2 query-parameter &password= (R1 channel — regression guard)",
         url: "postgresql://profile@postgres/profile?sslmode=require&password=AMPSECRET",
         secret: /AMPSECRET/,
         closed: false,
       },
       {
-        label: "A4 sslpassword= query param (R1 extended — RED today)",
+        label: "A4 sslpassword= query param (R1 channel — regression guard)",
         url: "postgresql://profile@postgres/profile?sslpassword=SSLSECRET",
         secret: /SSLSECRET/,
         closed: false,
       },
       {
         label:
-          "A2/A1 combo userinfo + ?password= — NEITHER may reach argv (R1 — RED today)",
+          "A2/A1 combo userinfo + ?password= — NEITHER may reach argv (R1 channel — regression guard)",
         url: "postgresql://profile:UIPW@postgres:5432/profile?password=COMBOSECRET",
         secret: /COMBOSECRET/,
         closed: false,
       },
       {
         label:
-          "A3 no-userinfo keyword/value password= — strip-or-fail-closed (R1 — RED today)",
+          "A3 no-userinfo keyword/value password= — strip-or-fail-closed (R1 channel — regression guard)",
         url: "postgresql://?host=postgres&dbname=profile&password=KVSECRET",
         secret: /KVSECRET/,
         closed: false,
@@ -293,7 +300,7 @@ describe("profile-deploy class sweep — executable merge bar", () => {
       // sslpassword) must therefore key on a lowercased PARAMETER NAME, never the literal case.
       {
         label:
-          "A2-uc UPPERCASE ?PASSWORD= (R1 case-variant — must strip to stdin, RED on case-sensitive code)",
+          "A2-uc UPPERCASE ?PASSWORD= (R1 case-variant — must stay stripped to stdin)",
         url: "postgresql://profile@postgres:5432/profile?PASSWORD=UPPERSECRET",
         secret: /UPPERSECRET/,
         closed: false,
@@ -321,10 +328,9 @@ describe("profile-deploy class sweep — executable merge bar", () => {
         const strippedFromArgv = !c.secret.test(argvUrl);
         const failedClosed = status !== 0;
         // Invariant for EVERY channel: the secret is either stripped out of argv (rode
-        // stdin instead) or the splitter fails closed. The `closed` control proves the
-        // matrix isn't trivially red; the R1 rows are RED on current code (status 0, the
-        // secret verbatim in argvUrl), blocking merge until probe_database_url strips
-        // credential-bearing connection params from the query string too.
+        // stdin instead) or the splitter fails closed. R1 is CLOSED, so every row passes today;
+        // a REGRESSION that re-leaks a channel (status 0 with the secret verbatim in argvUrl)
+        // turns that row RED. The userinfo control proves the harness is not trivially green.
         expect(strippedFromArgv || failedClosed).toBe(true);
       },
     );
@@ -376,7 +382,7 @@ describe("profile-deploy class sweep — executable merge bar", () => {
       expect(idxFlock).toBeGreaterThan(idxExec);
 
       // Every shared FIXED-NAME box resource must be written AFTER the flock is taken.
-      // (These are the §10.2 Class D register rows that DO have an owning lock.)
+      // (These are the §9 I-D box resources whose owning lock is the remote flock.)
       const guardedAfterFlock: RegExp[] = [
         /cat > "\$PROFILE_DIR\/profile\.env" << EOF/, // live env
         /cat > "\$PROFILE_DIR\/docker-compose\.yml" << EOF/, // live compose
@@ -409,23 +415,21 @@ describe("profile-deploy class sweep — executable merge bar", () => {
       expect(block).toMatch(/\bexit 1\b/);
     });
 
-    // CROSS-HOST REGISTER-COUPLING LINT (whole-class, parses the SCRIPT — NOT a literal
-    // grep of this test file). Enumerate EVERY remote path build-deploy-profile.sh creates
-    // (assignments under /root, /opt, /etc, /var) and assert each is either
+    // CROSS-HOST REGISTER-COUPLING LINT (whole-class, parses the SCRIPT). Enumerate EVERY remote
+    // path build-deploy-profile.sh creates (assignments under /root, /opt, /etc, /var) and assert
+    // each is either
     //   (a) uniquely-named per deploy (remote mktemp / openssl rand / uuidgen token), or
-    //   (b) an explicit accepted register row in THIS file (ID keyed on the variable).
-    // This is the mechanism that FORCES the next reviewer's sub-instance — a brand-new
-    // remote staging path — into the matrix instead of letting it slip in untested. After the
-    // R2 fix, REMOTE_ENV is host-side mktemp-allocated, so it satisfies branch (a)
-    // (uniquely-named per deploy). REMOTE_SCRIPT is still a fixed-name pre-flock path, so it
-    // must be covered by an explicit register row (RESIDUAL[D-remote-script]); a NEW remote
-    // path with neither a unique name nor a row fails this assertion.
-    test("every remote staging path is uniquely-named OR carries an explicit register row", () => {
-      const self = fs.readFileSync(__filename, "utf8");
-      // Remote-path assignments build-deploy stages to the box (skip empty initializers).
-      // Match remote-path assignments in BOTH forms: a literal `VAR="/root/…"` and a
-      // host-side allocation `VAR=$(ssh … mktemp /root/…)` (the R2 fix). Skip empty
-      // initializers like `REMOTE_ENV=""` (no path).
+    //   (b) an OPEN accepted-residual row in the AUTHORITATIVE doctrine register (§10.2) whose
+    //       rationale names the variable — NOT a string in this test's own text.
+    // This FORCES the next reviewer's sub-instance — a brand-new remote staging path — into the
+    // register instead of letting it slip in untested. After the R2 fix, REMOTE_ENV is host-side
+    // mktemp-allocated (branch a); REMOTE_SCRIPT is a fixed-name pre-flock path covered by the
+    // doctrine's RESIDUAL[D-remote-script] OPEN row (branch b). A NEW remote path with neither a
+    // unique name nor a doctrine row fails this assertion.
+    test("every remote staging path is uniquely-named OR carries a doctrine register row", () => {
+      // Remote-path assignments build-deploy stages to the box. Match BOTH forms: a literal
+      // `VAR="/root/…"` and a host-side allocation `VAR=$(ssh … mktemp /root/…)` (the R2 fix).
+      // Skip empty initializers like `REMOTE_ENV=""` (no path).
       const remotePathAssignments = buildLines
         .map((l) => l.trim())
         .filter((l) => /^[A-Z_]+=.*\/(root|opt|etc|var)\//.test(l));
@@ -445,12 +449,13 @@ describe("profile-deploy class sweep — executable merge bar", () => {
           /mktemp|openssl rand|uuidgen|\$\{[A-Z_]*TOKEN\}|\$\{[A-Z_]*UNIQUE\}/.test(
             trimmed,
           ) && !/-\$\$"?$/.test(trimmed);
-        // Branch (b): an explicit accepted register row keyed on this variable name.
+        // Branch (b): an OPEN accepted-residual row in the AUTHORITATIVE doctrine register whose
+        // rationale names this variable (e.g. RESIDUAL[D-remote-script] … OPEN … `REMOTE_SCRIPT`).
         const registered =
-          (name === "REMOTE_ENV" &&
-            /RESIDUAL\[D-R2\][^\n]*REMOTE_ENV/.test(self)) ||
-          (name === "REMOTE_SCRIPT" &&
-            /RESIDUAL\[D-remote-script\][^\n]*REMOTE_SCRIPT/.test(self));
+          name !== "" &&
+          new RegExp(
+            `RESIDUAL\\[[^\\]]+\\][^\\n]*\\bOPEN\\b[^\\n]*\\b${name}\\b`,
+          ).test(doctrine);
         if (!uniqueName && !registered) uncovered.push(trimmed);
       }
       // A new remote staging path with neither a unique name nor a register row fails here.
@@ -820,25 +825,105 @@ describe("profile-deploy class sweep — executable merge bar", () => {
   });
 
   // ───────────────────────────────────────────────────────────────────────────
-  // RESIDUAL-REGISTER COUPLING — every accepted residual must be REGISTERED in this
-  // file (an ID-tagged skip naming its disposition) so the next reviewer's sub-instance
-  // is triaged against a row instead of discovered in review. These pin §10.2's register
-  // IDs to the actual tracked skips above. (R1 is must-fix → it is a RED test, not a
-  // registered skip, so it is not asserted here.)
+  // RESIDUAL-REGISTER COUPLING — the doctrine §10.2 register is AUTHORITATIVE; this block
+  // enforces consistency between it and the merge bar in BOTH directions, so neither can
+  // drift silently. (The previous version grepped THIS file for the IDs — circular, and it
+  // went stale the moment D-R2 closed.) R1 is must-fix → a RED test, never a registered skip.
   // ───────────────────────────────────────────────────────────────────────────
-  describe("residual register coupling (every accepted residual is tracked)", () => {
+  describe("residual register coupling (doctrine §10.2 ↔ merge bar, both directions)", () => {
     const self = fs.readFileSync(__filename, "utf8");
-    test.each([
-      ["RESIDUAL[A-sshpass]", "accepted: tracked"],
-      ["RESIDUAL[D-R2]", "accepted: fast-follow"],
-      ["RESIDUAL[D-remote-script]", "accepted: benign"],
-      ["RESIDUAL[C-R3]", "accepted: comment"],
-    ])("%s is registered with disposition '%s'", (id, disposition) => {
-      // The ID and its disposition both appear (in the same skip title), so a residual
-      // can never be silently dropped without flipping this red.
-      const escId = id.replace(/[[\]]/g, "\\$&");
-      expect(self).toMatch(new RegExp(escId));
-      expect(self.includes(disposition)).toBe(true);
+    // Parse the authoritative register. Row: `RESIDUAL[id]` — disposition — OPEN|CLOSED — …
+    // The id is ASCII alnum+hyphen and the status is UPPERCASE; a malformed row (a Unicode/
+    // en-dash hyphen in the id, a lowercase status, an en-dash separator) does NOT parse here
+    // and is caught by the "well-formed" guard below rather than silently dropped.
+    const REGISTER_ROW =
+      /^-\s+`RESIDUAL\[([A-Za-z0-9-]+)\]`\s+—\s+(.+?)\s+—\s+(OPEN|CLOSED)\s+—/;
+    const registerRows = doctrine
+      .split("\n")
+      .map((l) => l.match(REGISTER_ROW))
+      .filter((m): m is RegExpMatchArray => m !== null)
+      .map((m) => ({
+        id: `RESIDUAL[${m[1]}]`,
+        inner: m[1],
+        disposition: m[2].trim(),
+        status: m[3],
+      }));
+    const openRows = registerRows.filter((r) => r.status === "OPEN");
+    const closedRows = registerRows.filter((r) => r.status === "CLOSED");
+
+    // What the merge bar actually DECLARES (each declaration is one line in this file). Reading
+    // __filename here only enumerates the test's own skips/guards to cross-check against the
+    // doctrine — it is NOT the register, so this is not circular.
+    // `\s*` after the paren so a formatter or hand-edit that inserts a space (`test.skip( "…"`)
+    // cannot silently drop a declaration from the cross-check.
+    const skipResidualTitles = self
+      .split("\n")
+      .map((l) => l.match(/test\.skip\(\s*"(RESIDUAL\[[^\]]+\][^"]*)"/)?.[1])
+      .filter((t): t is string => Boolean(t));
+    const closedGuardTitles = self
+      .split("\n")
+      .map((l) => l.match(/\btest\(\s*"(CLOSED\[[^\]]+\][^"]*)"/)?.[1])
+      .filter((t): t is string => Boolean(t));
+
+    // NON-VACUITY: a parse miss must fail loudly, not silently empty the matrices below.
+    test("the register and the merge bar's declarations both parse (non-vacuous)", () => {
+      expect(openRows.length).toBeGreaterThanOrEqual(3);
+      expect(closedRows.length).toBeGreaterThanOrEqual(1);
+      expect(skipResidualTitles.length).toBeGreaterThanOrEqual(3);
+      expect(closedGuardTitles.length).toBeGreaterThanOrEqual(1);
+    });
+
+    // FORMAT GUARD: any line that LOOKS like a register row (starts with "- `RESIDUAL[") MUST
+    // strictly parse — ASCII id, em-dash separators, UPPERCASE OPEN|CLOSED. This stops a
+    // malformed row (lowercase status, a Unicode/en-dash hyphen in the id, an en-dash
+    // separator, odd spacing) from being SILENTLY dropped by the parser and escaping coupling.
+    test("every §10.2 register-row line is well-formed (ASCII id, em-dash, UPPERCASE status)", () => {
+      const docLines = doctrine.split("\n");
+      const looksLikeRow = docLines.filter((l) => /^-\s+`RESIDUAL\[/.test(l));
+      const wellFormed = docLines.filter((l) => REGISTER_ROW.test(l));
+      expect(looksLikeRow.length).toBeGreaterThanOrEqual(4);
+      expect(wellFormed).toEqual(looksLikeRow); // no row-looking line fails the strict parse
+    });
+
+    // DOCTRINE → TEST: every OPEN row has a tracked skip naming its id AND disposition.
+    test.each(openRows.map((r) => [r.id, r.disposition] as const))(
+      "OPEN register row %s ('%s') has a matching tracked skip",
+      (id, disposition) => {
+        expect(
+          skipResidualTitles.some(
+            (t) => t.startsWith(id) && t.includes(disposition),
+          ),
+        ).toBe(true);
+      },
+    );
+
+    // DOCTRINE → TEST: every CLOSED row has a green CLOSED[id] guard and NO lingering skip.
+    test.each(closedRows.map((r) => [r.id, r.inner] as const))(
+      "CLOSED register row %s has a green CLOSED guard and no skip",
+      (id, inner) => {
+        expect(
+          closedGuardTitles.some((t) => t.startsWith(`CLOSED[${inner}]`)),
+        ).toBe(true);
+        expect(skipResidualTitles.some((t) => t.startsWith(id))).toBe(false);
+      },
+    );
+
+    // TEST → DOCTRINE: every tracked skip is an OPEN row in the register (no orphan skip).
+    test("every tracked skip maps to an OPEN doctrine register row", () => {
+      const orphans = skipResidualTitles.filter((t) => {
+        const id = t.match(/^(RESIDUAL\[[^\]]+\])/)?.[1];
+        return !openRows.some((r) => r.id === id);
+      });
+      expect(orphans).toEqual([]);
+    });
+
+    // TEST → DOCTRINE: every CLOSED[id] guard is a CLOSED row in the register (no orphan guard).
+    test("every CLOSED guard maps to a CLOSED doctrine register row", () => {
+      const orphans = closedGuardTitles.filter((t) => {
+        const inner = t.match(/^CLOSED\[([^\]]+)\]/)?.[1];
+        return !closedRows.some((r) => r.inner === inner);
+      });
+      expect(orphans).toEqual([]);
     });
   });
 

@@ -327,6 +327,84 @@ class, (b) closed the rest of that class with its full test matrix, (c) swept th
 (d) wrote the scope boundaries — with citations that resolve — where the reviewer reads them, and
 (e) left every already-green pin untouched.
 
+## 8. The executable merge bar
+
+The §5 matrices are enforced by ONE test — `tests/scripts/profileDeployClassSweep.test.ts` — wired
+into the single CI class-sweep job (§7.6). It is the gate that makes "class closed" mean GREEN, not
+"we wrote a paragraph about it." It locks the **invariants** of §9 (the whole sub-surface of each
+class, not the one instance a reviewer reported) and encodes the **merge-bar states** and the
+**residual-risk register** of §10. A regression in any open class — or a new sub-instance of a closed
+one — turns it red at the bar, not in the next review.
+
+## 9. Invariants
+
+Each class is re-framed from "the reported instance" to a property over its whole sub-surface. The
+merge bar (§8) asserts these directly:
+
+- **I-A — Argv-safety (Class A).** No secret the pipeline consumes — the Postgres password in ANY
+  libpq channel (`user:pass@` userinfo, `?password=` / `&password=` query, the case-insensitive
+  variants of either; plus `DOCKER_TOKEN`, `PROFILE_INTERNAL_TOKEN`, the SSH password) — may ever
+  appear as a token in ANY process's argv (developer host, host `docker`/`scp`/`ssh`, in-container
+  `psql`/`pg_dump`). The only sanctioned transport is stdin→env (`PGPASSWORD`, `--password-stdin`) or
+  a 0600 file. argv is observable via `ps`, `/proc/<pid>/cmdline`, execve auditing, process collectors.
+- **I-B — Secret boundary observed on real bytes (Class B).** The image secret boundary is certified
+  against the real image filesystem (whole-rootfs content sha256 + a conservative name scan),
+  fail-closed if the oracle (`docker run`) is unavailable. The awk Dockerfile scanner is a fail-closed
+  advisory pre-filter, never the authority.
+- **I-C — Rollback provenance (Class C).** (a) The box rollback restores the previously-running
+  on-disk config and must NEVER refuse for lack of a passed record (refusing at the recovery moment,
+  gated on a ledger that can be lost / written-failed / produced on another workstation, is the
+  failure mode). (b) The forward path pins by digest (`PROFILE_DEPLOY_REF=$PROFILE_DIGEST`, refuses
+  mutable tags), so every compose the pipeline writes bakes an `@sha256` ref. (c) The rollback
+  recreate is gated on a SELF-CONTAINED `@sha256` check of the restored profile-api image (never roll
+  back to a pre-hardening image — `registry-image-policy.md` L64); a non-digest image fails LOUD with
+  a break-glass banner. That check reads no ledger, so it does not violate (a). The
+  `.profile-deploy-record` is a developer-workstation log, never consulted by the box.
+- **I-D — Shared-resource locking (Class D).** Every shared on-disk/remote resource a deploy mutates
+  is covered by exactly one owning lock acquired BEFORE first use, on the SAME host where the resource
+  lives (the remote `flock /var/lock/profile-deploy.lock` for box resources; the local `mkdir` mutex
+  for the developer-host record/lock), OR is uniquely named per deploy so no lock is needed (the
+  remote env-staging path is allocated host-side with `mktemp`). A per-workstation lock cannot cover a
+  cross-workstation resource.
+- **I-E — Scope boundary (Class E).** Anything correct-but-out-of-scope is documented and tracked at
+  the point a reviewer reads it (a scope block + a tracking token citing the owning task), so it is
+  triaged, not re-actioned. The deploy certifies only what it actually exercises.
+
+## 10. Merge bar & residual-risk register
+
+### 10.1 The three states
+
+A result in the merge bar (§8) is one of three states:
+
+- **Must-fix residual → RED test.** An ordinary `test(...)` that stays red until the fix lands. It
+  BLOCKS merge. (`test.failing` is wrong here — it renders as a passing ✓ and would not block.)
+- **Accepted residual → skipped, tracked.** A `test.skip(...)` whose title carries the `RESIDUAL[id]`
+  and its disposition. It shows as SKIPPED — visible, tracked, never red — and has an OPEN row in
+  §10.2. The owner has frozen it.
+- **Closed class → green guard.** A green `test(...)` (named `CLOSED[id]` for a former residual) that
+  locks the whole CLASS, so a NEW sub-instance turns it red at the bar.
+
+### 10.2 Residual-risk register
+
+The authoritative register of accepted residuals and closed-former-residuals. The merge bar is
+coupled to this table in BOTH directions — every OPEN row ↔ a tracked `test.skip` naming the id and
+disposition; every CLOSED row ↔ a green `CLOSED[id]` guard and NO skip — so neither the table nor the
+tests can drift without turning the coupling test red. Row format:
+`` `RESIDUAL[id]` `` — disposition — OPEN|CLOSED — rationale.
+
+- `RESIDUAL[A-sshpass]` — accepted: tracked — OPEN — the SSH password reaches developer-host argv via
+  `sshpass`, but only behind the deprecated, default-off `ALLOW_PROFILE_SSH_PASSWORD_FALLBACK`; the
+  standard key-based path never does.
+- `RESIDUAL[D-remote-script]` — accepted: benign — OPEN — `REMOTE_SCRIPT` is a fixed-name path scp'd
+  pre-flock, but its content is deploy-invariant (every deploy uploads the same `setup-profile.sh`),
+  so a clobber between overlapping deploys cannot corrupt a secret — unlike the env-staging path.
+- `RESIDUAL[C-R3]` — accepted: comment — OPEN — the `build-deploy-profile.sh` "rollback-eligible"
+  wording overstates the mechanism (the box reads no record); the fix is wording reconciliation, not
+  behavior — gating rollback on a record would refuse it exactly when most needed.
+- `RESIDUAL[D-R2]` — was accepted: fast-follow — CLOSED — `REMOTE_ENV` was keyed on the local shell
+  PID and collided across workstations; it is now allocated host-side with `mktemp` and
+  pattern-validated. Locked green by `CLOSED[D-R2]`.
+
 ## Appendix — what is still open vs. already landed (as of 2026-06-15)
 
 Verified against the current branch files. The doctrine's job on already-landed items is to **keep them
