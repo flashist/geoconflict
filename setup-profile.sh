@@ -403,15 +403,41 @@ rollback_deploy() {
         # recreate is the core of rollback safety — NEVER silence it: report success, or
         # on failure print an unmistakable banner plus the stack state and recent logs.
         if [ "$STACK_RECREATED" = "1" ]; then
-            echo "Recreating the previous stack..."
-            if docker compose up -d --force-recreate; then
-                echo "✅ ROLLBACK: previous stack restored."
+            # Registry policy (docs/security/registry-image-policy.md): never roll back to a
+            # pre-hardening / mutable image. The forward path refuses mutable tags, so every
+            # compose THIS pipeline writes is @sha256-pinned — but a COMPOSE_BAK captured from a
+            # pre-existing (pre-pipeline) stack on the very first hardened deploy may not be. So
+            # before recreating, confirm the restored profile-api image is digest-pinned. This
+            # is a SELF-CONTAINED check on the on-disk compose — it reads NO deploy record, so it
+            # never refuses rollback "for lack of a passed record" (the Class C invariant); it
+            # only declines to RUN a policy-forbidden mutable image, failing LOUD instead.
+            # The awk targets the profile-api service's image (NOT postgres') from the line this
+            # pipeline always writes single-line as `image: <ref>`; any compose it cannot parse
+            # that way yields a non-@sha256 value and so conservatively HALTS (break-glass).
+            local prev_image=""
+            prev_image=$(awk '$1 == "profile-api:" { in_svc = 1; next } in_svc && $1 == "image:" { print $2; exit }' "$PROFILE_DIR/docker-compose.yml" 2>/dev/null || true)
+            if printf '%s' "$prev_image" | grep -q '@sha256:'; then
+                echo "Recreating the previous stack..."
+                if docker compose up -d --force-recreate; then
+                    echo "✅ ROLLBACK: previous stack restored."
+                else
+                    echo "❌ ROLLBACK FAILED: could not recreate the previous stack — the profile API may be DOWN."
+                    echo "   Manual recovery required. Current state and recent logs:"
+                    docker compose ps || true
+                    echo "----- recent logs (last 50 lines) -----"
+                    docker compose logs --tail=50 || true
+                fi
             else
-                echo "❌ ROLLBACK FAILED: could not recreate the previous stack — the profile API may be DOWN."
-                echo "   Manual recovery required. Current state and recent logs:"
+                echo "🛑 ROLLBACK HALTED: the previous stack's profile-api image is NOT digest-pinned"
+                echo "   (${prev_image:-<none found>}). Registry policy forbids rolling back to a"
+                echo "   pre-hardening / mutable image (docs/security/registry-image-policy.md), so"
+                echo "   the previous config was restored to disk but the stack was NOT recreated."
+                echo "   BREAK-GLASS — an operator must choose one:"
+                echo "     • redeploy a known-good @sha256 digest (re-run build-deploy-profile.sh"
+                echo "       with a pinned ref) — preferred; OR"
+                echo "     • accept the pre-hardening image and recreate it by hand from $PROFILE_DIR."
+                echo "   Current stack state:"
                 docker compose ps || true
-                echo "----- recent logs (last 50 lines) -----"
-                docker compose logs --tail=50 || true
             fi
         fi
     elif [ "$FRESH_DEPLOY" = "1" ] && [ "$STACK_RECREATED" = "1" ]; then
@@ -543,14 +569,29 @@ probe_db_credentials() {
 # the artifact the running API uses; the discrete probe above and the dependency-free
 # /health check are only PROXIES for it, so a malformed / wrong-host / wrong-db /
 # wrong-credential URL must fail HERE rather than be recorded validation_result=passed.
-# Secret-safety: the password is split out of the URL and fed via stdin into PGPASSWORD
-# inside the container (never a host docker or container psql argv — preserving the round-#7
-# boundary), while the password-FREE URL is handed to `psql -d`, so libpq — the real client
-# URL parser — parses the exact scheme/host/port/db/params. Any structural ambiguity we
-# cannot split fails CLOSED: psql receives a bad URL and the connection fails, so a parse
-# divergence can only BLOCK a deploy, never let a broken one pass.
+#
+# Secret-safety (round-#7 boundary + R1): libpq accepts the password on MORE than the
+# user:pass@ userinfo channel — it also reads `?password=` / `&password=` from the query
+# string. EVERY such channel must be stripped before the URL reaches `psql -d` argv (where
+# `ps`, /proc/<pid>/cmdline, execve auditing, and process collectors can read it). So we:
+#   • split the query string off and pull `password=` out of it (fed via stdin → PGPASSWORD,
+#     exactly like the userinfo password), while PRESERVING non-secret params (sslmode, etc.)
+#     so the validated URL still matches what the API consumes;
+#   • fail CLOSED on `sslpassword=` — the client-key passphrase has no PGPASSWORD-style stdin
+#     channel, and an SSL client-cert connection cannot be exercised from inside the postgres
+#     container anyway, so we refuse rather than leak it to argv or record a false pass;
+#   • fail CLOSED when a password appears in BOTH userinfo AND the query string (libpq
+#     precedence is not something this gate should guess).
+# The password-FREE URL is handed to `psql -d`, so libpq — the real client URL parser —
+# parses the exact scheme/host/port/db/params. Any structural ambiguity we cannot split
+# safely fails CLOSED, so a parse divergence can only BLOCK a deploy, never let a broken
+# one pass.
 probe_database_url() {
-    local url=$1 scheme after userinfo hostpart user pw_enc pw url_no_pw
+    local url=$1 scheme rest base query
+    local userinfo hostpart user ui_pw_enc ui_pw
+    local safe_query q_pw_enc pw url_no_pw authority kv kv_key kv_val kv_key_lc
+    local has_q_pw=0 has_sslpw=0
+    local -a params=()
     case $url in
         postgresql://*) scheme=postgresql ;;
         postgres://*) scheme=postgres ;;
@@ -559,26 +600,101 @@ probe_database_url() {
             return 1
             ;;
     esac
-    after=${url#*://}                       # [user[:pass]@]host[:port]/db[?params]
-    if [[ $after == *@* ]]; then
-        userinfo=${after%%@*}               # user[:pass]   (everything before the first @)
-        hostpart=${after#*@}                # host[:port]/db[?params]
+    rest=${url#*://}                        # [user[:pass]@]host[:port][/db][?params]
+    # Split the query string off FIRST: a credential can ride the query
+    # (?password= / &password= / ?sslpassword=), not only the user:pass@ userinfo.
+    if [[ $rest == *\?* ]]; then
+        base=${rest%%\?*}                   # [user[:pass]@]host[:port][/db]
+        query=${rest#*\?}                   # k=v&k=v...
+    else
+        base=$rest
+        query=
+    fi
+    # Userinfo (the user:pass@ channel) — split the password out to stdin as before.
+    if [[ $base == *@* ]]; then
+        userinfo=${base%%@*}                # user[:pass]   (everything before the first @)
+        hostpart=${base#*@}                 # host[:port][/db]   (query already removed)
         if [[ $userinfo == *:* ]]; then
             user=${userinfo%%:*}
-            pw_enc=${userinfo#*:}
-            if ! pw=$(urldecode "$pw_enc"); then
-                echo "   (DATABASE_URL password is not valid percent-encoding)"
+            ui_pw_enc=${userinfo#*:}
+            if ! ui_pw=$(urldecode "$ui_pw_enc"); then
+                echo "   (DATABASE_URL userinfo password is not valid percent-encoding)"
                 return 1
             fi
         else
             user=$userinfo
-            pw=
+            ui_pw=
         fi
-        url_no_pw="${scheme}://${user}@${hostpart}"
     else
-        # No userinfo to strip; pass the URL through and let libpq use its own defaults.
-        pw=
-        url_no_pw=$url
+        user=
+        hostpart=$base
+        ui_pw=
+    fi
+    # Walk the query params: pull out any credential-bearing key, KEEP the rest
+    # (e.g. sslmode=require) so the validated URL matches what the API consumes. Use
+    # `read -ra` (not unquoted $query) so a param value can never glob-expand.
+    if [[ -n $query ]]; then
+        IFS='&' read -ra params <<< "$query" || true
+        safe_query=
+        for kv in "${params[@]}"; do
+            [[ -z $kv ]] && continue        # empty field from a stray & — drop it
+            # libpq matches connection-parameter NAMES case-INSENSITIVELY, so classify on a
+            # lowercased KEY — never the value (a password's case is significant). Split the
+            # key from the value, but keep the ORIGINAL kv for any param we pass through so
+            # non-secret params survive verbatim.
+            if [[ $kv == *=* ]]; then
+                kv_key=${kv%%=*}
+                kv_val=${kv#*=}
+            else
+                kv_key=$kv
+                kv_val=
+            fi
+            kv_key_lc=$(printf '%s' "$kv_key" | LC_ALL=C tr 'A-Z' 'a-z')
+            case $kv_key_lc in
+                password)
+                    q_pw_enc=$kv_val
+                    has_q_pw=1
+                    ;;
+                sslpassword)
+                    has_sslpw=1
+                    ;;
+                *)
+                    if [[ -n $safe_query ]]; then
+                        safe_query="${safe_query}&${kv}"
+                    else
+                        safe_query=$kv
+                    fi
+                    ;;
+            esac
+        done
+    fi
+    if [[ $has_sslpw == 1 ]]; then
+        echo "   (DATABASE_URL carries sslpassword in the query string; the in-container probe"
+        echo "    cannot validate client-certificate auth — validate that path separately)"
+        return 1
+    fi
+    if [[ $has_q_pw == 1 && -n $ui_pw ]]; then
+        echo "   (DATABASE_URL specifies a password in BOTH userinfo and the query string;"
+        echo "    refusing to guess which libpq would use — supply exactly one)"
+        return 1
+    fi
+    if [[ $has_q_pw == 1 ]]; then
+        if ! pw=$(urldecode "$q_pw_enc"); then
+            echo "   (DATABASE_URL query-string password is not valid percent-encoding)"
+            return 1
+        fi
+    else
+        pw=$ui_pw
+    fi
+    # Rebuild a password-FREE connection string: scheme://[user@]hostpart[?safe_query].
+    if [[ -n $user ]]; then
+        authority="${user}@"
+    else
+        authority=
+    fi
+    url_no_pw="${scheme}://${authority}${hostpart}"
+    if [[ -n $safe_query ]]; then
+        url_no_pw="${url_no_pw}?${safe_query}"
     fi
     printf '%s\n' "$pw" | docker compose exec -T postgres \
         sh -c 'IFS= read -r PGPASSWORD; export PGPASSWORD; exec psql -d "$1" -tAc "select 1"' \

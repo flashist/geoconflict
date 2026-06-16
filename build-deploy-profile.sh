@@ -317,9 +317,30 @@ print_header "RUNNING SETUP ON REMOTE SERVER"
 # The finalize_deploy trap installed above already cleans up BOTH the local and the
 # remote staging file on ANY exit — interrupted scp, a failed source, or Ctrl-C — so
 # credentials never linger anywhere. Here we only create the files it guards on.
-REMOTE_ENV="/root/.profile-deploy-env-$$"
 LOCAL_TMPENV=$(mktemp)
 chmod 600 "$LOCAL_TMPENV"
+
+# Allocate the REMOTE staging path with mktemp ON THE BOX — NOT keyed on the local shell
+# PID. Two operators on different machines have independent PIDs that can collide, and this
+# file is uploaded, sourced, and removed BEFORE setup-profile.sh takes its remote flock — so
+# a PID-keyed name (/root/.profile-deploy-env-$$) would let one deploy clobber or rm the
+# other's staged secrets (wrong-secrets deploy / aborted source). mktemp is host-unique
+# regardless of any local PID; `umask 077` makes it 0600 at creation. Capture the path, THEN
+# mark it staged so finalize_deploy cleans it up on any later failure.
+REMOTE_ENV=$("${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" 'umask 077; mktemp /root/.profile-deploy-env.XXXXXXXX' 2>/dev/null) || true
+# Validate the captured path STRICTLY before trusting it. `ssh host cmd` should emit only the
+# command's stdout, but a server MOTD / login banner / a root .bashrc that echoes could prepend
+# or append noise; an unvalidated multi-line/garbage value would break the scp destination and
+# the cleanup rm (and could leave a stale file on the box). Fail CLOSED on anything that is not
+# exactly one well-formed staging path. (Variable-held regex is bash-3.2 safe — the dev host.)
+remote_env_re='^/root/\.profile-deploy-env\.[A-Za-z0-9]+$'
+if [ -z "$REMOTE_ENV" ] || ! [[ $REMOTE_ENV =~ $remote_env_re ]]; then
+    echo "Error: remote staging-path allocation on ${PROFILE_SERVER_HOST} returned an unexpected" >&2
+    echo "       value — remote mktemp failed, or its stdout was polluted by a banner/MOTD/.bashrc." >&2
+    echo "       Got: ${REMOTE_ENV}" >&2
+    exit 1
+fi
+REMOTE_ENV_STAGED=1
 
 # printf %q emits shell-safe, re-sourceable values — robust to passwords/tokens
 # containing quotes, spaces, or other special characters.
@@ -340,7 +361,6 @@ chmod 600 "$LOCAL_TMPENV"
     printf "export DOCKER_TOKEN=%q\n" "${DOCKER_TOKEN:-}"
 } > "$LOCAL_TMPENV"
 
-REMOTE_ENV_STAGED=1
 "${SCP_CMD[@]}" "$LOCAL_TMPENV" "${REMOTE_USER}@${PROFILE_SERVER_HOST}:${REMOTE_ENV}"
 
 "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" \

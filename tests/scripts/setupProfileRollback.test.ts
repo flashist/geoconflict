@@ -318,7 +318,11 @@ function runRealRollback(opts: { recreateFails: boolean }): {
     `docker() { echo "docker $*" >> "${callsLog}"; if [ "$1 $2" = "compose up" ] && [ "$FAILUP" = "1" ]; then return 1; fi; return 0; }`,
     `systemctl() { return 0; }`,
     `PROFILE_DIR="${dir}"; PROFILE_ENV_BAK="${dir}/e.bak"; COMPOSE_BAK="${dir}/c.bak"`,
-    `echo old > "$PROFILE_ENV_BAK"; echo old > "$COMPOSE_BAK"`,
+    // The previous compose must be @sha256-pinned so the F3 digest gate lets the recreate
+    // run (a non-digest COMPOSE_BAK would correctly HALT at break-glass — covered separately
+    // in profileDeployClassSweep.test.ts). These cases exercise the recreate fail/succeed arm.
+    `echo old > "$PROFILE_ENV_BAK"`,
+    `printf 'services:\\n  profile-api:\\n    image: repo/img@sha256:OLDOLD\\n' > "$COMPOSE_BAK"`,
     `DEPLOY_VALIDATED=0; STACK_RECREATED=1; FRESH_DEPLOY=0; SITE_BAK=""`,
     "trap rollback_deploy EXIT",
     "( exit 7 )", // set -e => script exits 7 => EXIT trap runs rollback_deploy with rc=7
