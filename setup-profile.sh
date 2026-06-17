@@ -871,6 +871,30 @@ probe_database_url() {
                 kv_key=$kv
                 kv_val=
             fi
+            # A percent-escape in a query KEY is an evasion vector. libpq percent-DECODES the
+            # query keyword and THEN matches it (fe-connect.c conninfo_uri_parse_params:
+            # `keyword = conninfo_uri_decode(keyword, ...)` — verified REL_12..master), so an
+            # encoded key like `pass%77ord` decodes to the LIVE `password` credential channel and
+            # `h%6fst` to a `host` authority override. Left in the pass-through query, that value
+            # would BOTH reach the API as a working password/host parameter AND land in psql's
+            # argv here — slipping past the password/sslpassword/host classification below. No
+            # real libpq keyword name (sslmode, connect_timeout, application_name, sslcert, host,
+            # hostaddr, …) ever contains '%', and this script's own URL synthesis never encodes
+            # key names, so reject any '%' in a key fail-closed: it can only ever refuse a
+            # hand-crafted evasion, never a valid deploy. (This also refuses an encoded spelling
+            # of a benign keyword — e.g. `sslmod%65`=sslmode, which the API WOULD accept — but
+            # that is intentional fail-closed conservatism: it blocks a deploy, never records a
+            # false pass, and the script never emits such a URL. Encoded VALUES are fine and
+            # preserved — only the key is checked here.)
+            case $kv_key in
+                *%*)
+                    echo "   (DATABASE_URL query parameter name '$kv_key' contains a percent-escape."
+                    echo "    Connection parameter names are never percent-encoded; refusing it so an"
+                    echo "    encoded key (e.g. pass%77ord, h%6fst) cannot bypass the password/host"
+                    echo "    checks. Use the literal parameter name.)"
+                    return 1
+                    ;;
+            esac
             kv_key_lc=$(printf '%s' "$kv_key" | LC_ALL=C tr 'A-Z' 'a-z')
             case $kv_key_lc in
                 password)

@@ -469,6 +469,16 @@ green**, not re-fix them.
   API). Both would let the in-DB-container probe validate a target the API can't use. `port`/`user`/`dbname`
   query params are NOT rejected — they are consumed identically by probe and API, so they cannot diverge.
   Pinned by `setupProfileFailClosed.test.ts`.
+- DATABASE_URL probe encoded-key evasion — `probe_database_url` now **rejects any `%` in a query KEY**
+  fail-closed, BEFORE the password/sslpassword/host classification. libpq percent-DECODES the query keyword
+  and then matches it (`fe-connect.c` `conninfo_uri_parse_params`: `keyword = conninfo_uri_decode(keyword, …)`,
+  verified REL_12..master), so an encoded key such as `pass%77ord` (→`password`, a live credential channel)
+  or `h%6fst` (→`host`, an authority override) would otherwise be a WORKING API parameter that also lands its
+  value in psql's argv and dodges the classification. No real libpq keyword name contains `%`, and the script
+  never encodes key names itself, so this refuses only a hand-crafted evasion — never a valid URL (encoded
+  VALUES are still preserved; the check is key-only). Refusing an encoded spelling of a benign keyword (e.g.
+  `sslmod%65`=sslmode) is intentional fail-closed conservatism — it can only block a deploy, never record a
+  false pass. Pinned by `setupProfileFailClosed.test.ts`.
 - Rollback health — after the rollback recreates the previous stack, it WAITS on the same
   `all_services_running_healthy` assertion the forward path uses (the health functions are defined before
   the trap so the rollback can reuse them) before reporting recovery; a started-but-unhealthy restored image

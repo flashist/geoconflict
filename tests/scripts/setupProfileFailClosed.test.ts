@@ -574,6 +574,69 @@ describe("setup-profile.sh probe_database_url rejects host redirection via query
   });
 });
 
+describe("setup-profile.sh probe_database_url rejects percent-encoded query KEYS (channel/argv evasion)", () => {
+  // Process review #13. libpq percent-DECODES the query keyword and THEN matches it
+  // (fe-connect.c conninfo_uri_parse_params: `keyword = conninfo_uri_decode(keyword, ...)`), so
+  // an encoded key decodes to a real connection parameter: pass%77ord -> "password" (a LIVE
+  // credential channel), h%6fst -> "host" (an authority override). Left in the pass-through
+  // query that value would BOTH reach the API as a working param AND land in psql's argv,
+  // dodging the password/sslpassword/host classification. We reject any '%' in a query KEY
+  // fail-closed: no real libpq keyword name contains '%', and the script never encodes key
+  // names itself, so this refuses only a hand-crafted evasion, never a valid URL.
+  test("guard: the probe rejects a '%' in a query key BEFORE it classifies the key", () => {
+    // %-reject must run before the lowercase classification (`case $kv_key_lc in`); otherwise an
+    // encoded key could be (mis)classified or fall through to the pass-through arm first.
+    const rejectIdx = probeUrlFn.search(/case \$kv_key in[\s\S]*?\*%\*\)/);
+    const classifyIdx = probeUrlFn.search(/case \$kv_key_lc in/);
+    expect(rejectIdx).toBeGreaterThanOrEqual(0);
+    expect(classifyIdx).toBeGreaterThanOrEqual(0);
+    expect(rejectIdx).toBeLessThan(classifyIdx);
+  });
+
+  // Each case is built so the stub WOULD connect without the guard (url_no_pw == GOOD_URL): the
+  // authority host/db/password are all correct and the ONLY anomaly is the encoded key — so the
+  // rejection can come ONLY from the new key guard, not a stub mismatch. Load-bearing.
+  const encodedKeyCases: Array<[string, { query: string }]> = [
+    // %77 -> 'w': pass%77ord decodes to the literal keyword `password`
+    ["?pass%77ord= (encoded password key)", { query: "?pass%77ord=SECRET" }],
+    // encoded sslpassword — the client-key passphrase channel
+    [
+      "?sslpass%77ord= (encoded sslpassword key)",
+      { query: "?sslpass%77ord=SECRET" },
+    ],
+    // mixed-case encoded key — the '%' check is case-independent
+    ["?PASS%77ORD= (mixed-case encoded key)", { query: "?PASS%77ORD=SECRET" }],
+    // %6f -> 'o': h%6fst decodes to `host` — would also dodge the host-redirect guard
+    ["?h%6fst=localhost (encoded host key)", { query: "?h%6fst=localhost" }],
+  ];
+  test.each(encodedKeyCases)(
+    "encoded query key FAILS fail-closed (stub would otherwise connect): %s",
+    (_desc, opts) => {
+      expect(
+        runProbe({
+          rawPassword: "pw",
+          host: "postgres:5432",
+          goodHost: "postgres:5432",
+          ...opts,
+        }),
+      ).not.toBe(0);
+    },
+  );
+
+  test("an encoded VALUE on a literal key is preserved and still PASSES (key-only check, not over-broad)", () => {
+    // application_name (no '%' in the KEY) with a percent-encoded VALUE must survive verbatim —
+    // proves the guard inspects the key only. A whole-`kv` '%' check would wrongly reject this.
+    expect(
+      runProbe({
+        rawPassword: "pw",
+        host: "postgres:5432",
+        goodHost: "postgres:5432",
+        query: "?application_name=my%20app",
+      }),
+    ).toBe(0);
+  });
+});
+
 // Class E: the deploy must declare, where the reviewer reads it, what validation_result=passed
 // certifies NOW versus what is deferred to T5 — citing T5 by stable quoted text, never a
 // fabricated numeric "#N" criterion.
