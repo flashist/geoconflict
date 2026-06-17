@@ -410,9 +410,10 @@ disposition; every CLOSED row ↔ a green `CLOSED[id]` guard and NO skip — so 
 tests can drift without turning the coupling test red. Row format:
 `` `RESIDUAL[id]` `` — disposition — OPEN|CLOSED — rationale.
 
-- `RESIDUAL[A-sshpass]` — accepted: tracked — OPEN — the SSH password reaches developer-host argv via
-  `sshpass`, but only behind the deprecated, default-off `ALLOW_PROFILE_SSH_PASSWORD_FALLBACK`; the
-  standard key-based path never does.
+- `RESIDUAL[A-sshpass]` — was accepted: tracked — CLOSED — the SSH password no longer reaches argv: the
+  deprecated, default-off `ALLOW_PROFILE_SSH_PASSWORD_FALLBACK` path now feeds `sshpass -f` from a 0600
+  temp file (only the file PATH is in argv, never the secret), cleaned by `finalize_deploy`. Locked
+  green by `CLOSED[A-sshpass]`.
 - `RESIDUAL[D-remote-script]` — accepted: benign — OPEN — `REMOTE_SCRIPT` is a fixed-name path scp'd
   pre-flock, but its content is deploy-invariant (every deploy uploads the same `setup-profile.sh`),
   so a clobber between overlapping deploys cannot corrupt a secret — unlike the env-staging path.

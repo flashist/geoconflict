@@ -168,6 +168,9 @@ REMOTE_ENV=""
 REMOTE_ENV_STAGED=0
 DEPLOY_FINALIZED=0
 DEPLOY_RECORD_TMP=""
+# 0600 file holding the SSH password for `sshpass -f` (emergency fallback only). Initialized
+# here so the EXIT trap can clean it even if it fires before the file is created.
+SSH_PASSWORD_FILE=""
 
 finalize_deploy() {
     # Idempotent: the guard flag guarantees EXACTLY ONE validation_result line even if
@@ -175,8 +178,12 @@ finalize_deploy() {
     # ambiguous or stuck pending.
     [ "$DEPLOY_FINALIZED" = "1" ] && return 0
     DEPLOY_FINALIZED=1
-    # Remove local + remote secret staging files (best-effort).
-    [ -n "$LOCAL_TMPENV" ] && rm -f "$LOCAL_TMPENV"
+    # Remove local + remote secret staging files (best-effort). The `|| true` is load-bearing:
+    # under `set -e` an unguarded `rm -f` that returns non-zero (read-only fs) would abort this
+    # EXIT trap before the lock-release `rmdir` below, leaving a stale lock that blocks every
+    # future deploy. Match the guarded DEPLOY_RECORD_TMP cleanup further down.
+    [ -n "$LOCAL_TMPENV" ] && rm -f "$LOCAL_TMPENV" || true
+    [ -n "$SSH_PASSWORD_FILE" ] && rm -f "$SSH_PASSWORD_FILE" || true
     if [ "$REMOTE_ENV_STAGED" = "1" ]; then
         # Best-effort; ignore errors (the host may be unreachable on a failure path).
         "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
@@ -288,8 +295,17 @@ elif [ -n "$SSH_PASSWORD" ]; then
         exit 1
     fi
     echo "Warning: Using deprecated password-based SSH fallback for profile deploy."
-    SCP_CMD=(sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=accept-new)
-    SSH_CMD=(sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=accept-new)
+    # Feed the password to sshpass via a 0600 FILE (the -f form), never the -p form: -p puts
+    # the SSH password in this host's process argv (visible to `ps`, /proc/<pid>/cmdline,
+    # execve auditing, process collectors), violating the argv-safety invariant
+    # (docs/security/profile-deploy-scope.md I-A — the SSH password is named there). With -f
+    # only the file PATH is in argv; the secret lives in a root-only temp file that
+    # finalize_deploy removes on exit. mktemp creates the file 0600 before any byte is written.
+    SSH_PASSWORD_FILE=$(mktemp)
+    chmod 600 "$SSH_PASSWORD_FILE"
+    printf '%s\n' "$SSH_PASSWORD" > "$SSH_PASSWORD_FILE"
+    SCP_CMD=(sshpass -f "$SSH_PASSWORD_FILE" scp -o StrictHostKeyChecking=accept-new)
+    SSH_CMD=(sshpass -f "$SSH_PASSWORD_FILE" ssh -o StrictHostKeyChecking=accept-new)
 fi
 
 REMOTE_SCRIPT="/root/setup-profile.sh"

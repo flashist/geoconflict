@@ -335,19 +335,22 @@ describe("profile-deploy class sweep — executable merge bar", () => {
       },
     );
 
-    // ACCEPTED RESIDUAL — sshpass argv exposure (skipped-with-tracking, NOT red).
-    // The SSH password lands in developer-host argv via `sshpass -p "$SSH_PASSWORD"`. This
-    // is a DIFFERENT secret class (not a DB credential), is off the default path, and is
-    // gated behind a deprecated fallback. The owner accepted it; the merge bar encodes that
-    // acceptance as a skip whose body still pins the GATE so the residual cannot silently
-    // become default-on.
-    test.skip("RESIDUAL[A-sshpass] (accepted: tracked): SSH password in argv is gated + deprecated", () => {
-      // Reachable ONLY behind ALLOW_PROFILE_SSH_PASSWORD_FALLBACK and with a deprecation
-      // warning — never on the standard key-based path.
-      expect(buildScript).toMatch(/sshpass -p "\$SSH_PASSWORD"/);
+    // CLOSED — sshpass argv exposure resolved (was RESIDUAL[A-sshpass], accepted). The
+    // emergency password fallback now feeds the SSH password to `sshpass -f` from a 0600 temp
+    // file (only the file PATH is in argv, never the secret), cleaned by finalize_deploy —
+    // satisfying the I-A argv-safety invariant. Flipped to a green guard; the doctrine §10.2
+    // row is now CLOSED (the register-coupling block below enforces that consistency).
+    test("CLOSED[A-sshpass]: SSH password fed via sshpass -f (0600 file), never argv", () => {
+      // The argv-exposing `-p` form is GONE entirely...
+      expect(buildScript).not.toMatch(/sshpass -p\b/);
+      // ...replaced by `sshpass -f` reading a 0600 temp file (filename in argv, not the secret).
+      expect(buildScript).toMatch(/sshpass -f "\$SSH_PASSWORD_FILE"/);
+      expect(buildScript).toMatch(/chmod 600 "\$SSH_PASSWORD_FILE"/);
+      // ...and the file is cleaned up by the EXIT trap (finalize_deploy).
+      expect(buildScript).toMatch(/rm -f "\$SSH_PASSWORD_FILE"/);
+      // Gating + deprecation are unchanged — the fix changed the transport, not the gate.
       expect(buildScript).toMatch(/ALLOW_PROFILE_SSH_PASSWORD_FALLBACK/);
       expect(buildScript).toMatch(/deprecated password-based SSH fallback/i);
-      // The default path errors out unless the operator explicitly opts in.
       expect(buildScript).toMatch(
         /Password-based profile deploy is disabled by default/,
       );
@@ -867,10 +870,11 @@ describe("profile-deploy class sweep — executable merge bar", () => {
 
     // NON-VACUITY: a parse miss must fail loudly, not silently empty the matrices below.
     test("the register and the merge bar's declarations both parse (non-vacuous)", () => {
-      expect(openRows.length).toBeGreaterThanOrEqual(3);
-      expect(closedRows.length).toBeGreaterThanOrEqual(1);
-      expect(skipResidualTitles.length).toBeGreaterThanOrEqual(3);
-      expect(closedGuardTitles.length).toBeGreaterThanOrEqual(1);
+      // After closing A-sshpass: OPEN = {D-remote-script, C-R3}, CLOSED = {D-R2, A-sshpass}.
+      expect(openRows.length).toBeGreaterThanOrEqual(2);
+      expect(closedRows.length).toBeGreaterThanOrEqual(2);
+      expect(skipResidualTitles.length).toBeGreaterThanOrEqual(2);
+      expect(closedGuardTitles.length).toBeGreaterThanOrEqual(2);
     });
 
     // FORMAT GUARD: any line that LOOKS like a register row (starts with "- `RESIDUAL[") MUST

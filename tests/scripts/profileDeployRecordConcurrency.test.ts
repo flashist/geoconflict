@@ -211,4 +211,41 @@ describe("build-deploy-profile.sh finalize_deploy releases the lock even if the 
     expect(lockStillThere).toBe(false); // lock released despite the failed record write
     expect(res.stderr ?? "").toMatch(/could not write the deploy record/);
   });
+
+  // Same class, different trigger: a failing SECRET-file cleanup `rm -f` (read-only fs) must not
+  // abort the trap under set -e before the rmdir. The cleanup lines for LOCAL_TMPENV /
+  // SSH_PASSWORD_FILE must carry `|| true` (matching the DEPLOY_RECORD_TMP cleanup), else a stale
+  // lock blocks every future deploy. Runs the REAL finalize_deploy with rm stubbed to fail.
+  test("a failing secret-file cleanup (rm) still reaches the rmdir lock release", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "finalize-rm-"));
+    const script = fs.readFileSync(BUILD_DEPLOY_PROFILE, "utf8");
+    const finalizeFn =
+      script.match(/finalize_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    expect(finalizeFn).toMatch(/finalize_deploy\(\) \{/); // guard against a regex miss
+
+    const tmp = path.join(dir, "body.tmp");
+    fs.writeFileSync(tmp, "----\nid=x\n");
+    const record = path.join(dir, "record"); // writable — the record append succeeds
+    const lock = path.join(dir, "lock");
+    fs.mkdirSync(lock); // the lock is held
+    const pwfile = path.join(dir, "pw");
+    fs.writeFileSync(pwfile, "secret\n");
+    const harness = [
+      "set -e",
+      finalizeFn,
+      "rm() { return 1; }", // every `rm -f` fails (read-only fs simulation)
+      `LOCAL_TMPENV="${dir}/whatever"; SSH_PASSWORD_FILE="${pwfile}"`,
+      "REMOTE_ENV_STAGED=0; DEPLOY_FINALIZED=0",
+      'DEPLOY_OUTCOME="passed"; PROFILE_DIGEST="sha256:abc"',
+      `DEPLOY_RECORD_TMP="${tmp}"`,
+      `DEPLOY_RECORD="${record}"`,
+      `DEPLOY_LOCK="${lock}"; DEPLOY_LOCK_HELD=1`,
+      "finalize_deploy",
+    ].join("\n");
+    const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
+    const lockStillThere = fs.existsSync(lock);
+    fs.rmSync(dir, { recursive: true, force: true });
+    expect(res.status).toBe(0); // trap completed despite the rm failures
+    expect(lockStillThere).toBe(false); // lock released (rmdir reached, not skipped)
+  });
 });

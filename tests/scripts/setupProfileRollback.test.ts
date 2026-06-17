@@ -72,9 +72,17 @@ describe("setup-profile.sh rollback ordering invariant", () => {
 describe("setup-profile.sh fresh-deploy failure handling (never auto-deletes the volume)", () => {
   test("computes FRESH_DEPLOY and gives the fresh-failure recovery branch", () => {
     expect(lines.some((l) => /^FRESH_DEPLOY=/.test(l))).toBe(true);
+    // Finding 2: the fresh-failure branch fires on FRESH_DEPLOY ALONE (not gated on
+    // STACK_RECREATED), so a failure before the stack recreate still cleans up. The stack-stop
+    // is nested under STACK_RECREATED inside the branch.
+    expect(
+      lines.some((l) => /elif \[ "\$FRESH_DEPLOY" = "1" \]; then/.test(l)),
+    ).toBe(true);
+    // It ALWAYS removes the never-validated config so the next run can't treat it as a
+    // rollback target (keeps the invariant: on-disk config ⇒ validated).
     expect(
       lines.some((l) =>
-        /elif \[ "\$FRESH_DEPLOY" = "1" \] && \[ "\$STACK_RECREATED" = "1" \]/.test(
+        /rm -f "\$PROFILE_DIR\/profile\.env" "\$PROFILE_DIR\/docker-compose\.yml"/.test(
           l,
         ),
       ),
@@ -228,8 +236,10 @@ rollback_deploy() {
   if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
     restore_previous_config
     [ "$STACK_RECREATED" = "1" ] && docker compose up -d --force-recreate || true
-  elif [ "$FRESH_DEPLOY" = "1" ] && [ "$STACK_RECREATED" = "1" ]; then
-    docker compose down 2>/dev/null || true
+  elif [ "$FRESH_DEPLOY" = "1" ]; then
+    # Mirrors the real script (Finding 2): fires on FRESH_DEPLOY alone; the stack-stop is nested
+    # under STACK_RECREATED. (Config-removal is exercised by the dedicated real-function test.)
+    [ "$STACK_RECREATED" = "1" ] && docker compose down 2>/dev/null || true
     echo "FRESH-HINT: cd /opt/profile && docker compose down -v"
   fi
 }
@@ -731,6 +741,86 @@ describe("setup-profile.sh reverts the systemd unit + cron file on rollback (no 
     expect(r.calls).not.toMatch(/systemctl disable profile/); // was enabled before — keep it
     expect(r.stdout).toMatch(/restored the previous profile\.service/);
     expect(r.stdout).toMatch(/restored the previous cron file/);
+    expect(r.code).toBe(7);
+  });
+});
+
+// ── Finding 2: a failed FIRST deploy must not leave unvalidated config as a future rollback target ──
+// FRESH_DEPLOY is computed from config-file presence. A fresh deploy that fails BEFORE the stack
+// recreate (e.g. `docker compose pull profile-api` fails) used to leave profile.env +
+// docker-compose.yml on disk; the NEXT run treated them as an existing deploy, backed them up, and a
+// later failure could recreate that never-validated config as "previous" (it is @sha256-pinned, so
+// the digest gate passes). Fix: the fresh-failure rollback ALWAYS removes the unvalidated config.
+describe("setup-profile.sh removes unvalidated config on a fresh-deploy failure (Finding 2)", () => {
+  // Run the REAL rollback_deploy with FRESH_DEPLOY=1, NO backups, and real temp profile.env +
+  // docker-compose.yml present. Assert both are removed and the original exit code is preserved.
+  function runFreshFail(opts: { stackRecreated: boolean }): {
+    code: number;
+    stdout: string;
+    envExists: boolean;
+    composeExists: boolean;
+    downCalled: boolean;
+  } {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fresh-fail-"));
+    const script = fs.readFileSync(SETUP_PROFILE, "utf8");
+    const restoreFn =
+      script.match(/restore_previous_config\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    const rbFn = script.match(/rollback_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    const callsLog = path.join(dir, "calls");
+    const env = path.join(dir, "profile.env");
+    const compose = path.join(dir, "docker-compose.yml");
+    fs.writeFileSync(env, "UNVALIDATED-ENV\n");
+    fs.writeFileSync(
+      compose,
+      "services:\n  profile-api:\n    image: repo/img@sha256:NEW\n",
+    );
+    const harness = [
+      "set -e",
+      restoreFn,
+      rbFn,
+      `docker() { echo "docker $*" >> "${callsLog}"; return 0; }`,
+      "systemctl() { return 0; }",
+      `PROFILE_DIR="${dir}"`,
+      // No backups => fresh. Keep nginx/systemd/cron/default-site branches inert.
+      `PROFILE_ENV_BAK="${dir}/noenv"; COMPOSE_BAK="${dir}/nocompose"`,
+      `DEFAULT_SITE_BAK="${dir}/nodefault"; DEFAULT_SITE_REMOVED=0; SITE_BAK=""`,
+      `DEPLOY_VALIDATED=0; FRESH_DEPLOY=1; STACK_RECREATED=${opts.stackRecreated ? "1" : "0"}`,
+      "trap rollback_deploy EXIT",
+      "( exit 7 )",
+    ].join("\n");
+    const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
+    const calls = fs.existsSync(callsLog)
+      ? fs.readFileSync(callsLog, "utf8")
+      : "";
+    const out = {
+      code: res.status ?? -1,
+      stdout: res.stdout ?? "",
+      envExists: fs.existsSync(env),
+      composeExists: fs.existsSync(compose),
+      downCalled: /docker compose down\b/.test(calls),
+    };
+    fs.rmSync(dir, { recursive: true, force: true });
+    return out;
+  }
+
+  test("fresh fail BEFORE the stack recreate (pull failed): removes config, no stack stop", () => {
+    const r = runFreshFail({ stackRecreated: false });
+    expect(r.envExists).toBe(false); // unvalidated profile.env removed
+    expect(r.composeExists).toBe(false); // unvalidated docker-compose.yml removed
+    expect(r.downCalled).toBe(false); // no stack was created → nothing to stop
+    expect(r.stdout).toMatch(
+      /removed the unvalidated profile\.env \+ docker-compose\.yml/,
+    );
+    expect(r.code).toBe(7); // original failure code preserved
+  });
+
+  test("fresh fail AFTER the stack recreate: stops the stack AND removes config; volume hint", () => {
+    const r = runFreshFail({ stackRecreated: true });
+    expect(r.downCalled).toBe(true); // unvalidated stack stopped...
+    expect(r.envExists).toBe(false); // ...and config removed
+    expect(r.composeExists).toBe(false);
+    // The reset hint is compose-file-free (the compose file was just removed).
+    expect(r.stdout).toMatch(/docker volume rm profile_postgres_data/);
     expect(r.code).toBe(7);
   });
 });

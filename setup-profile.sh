@@ -510,29 +510,44 @@ rollback_deploy() {
                 docker compose ps || true
             fi
         fi
-    elif [ "$FRESH_DEPLOY" = "1" ] && [ "$STACK_RECREATED" = "1" ]; then
-        # Fresh (first-time) deploy that failed AFTER the stack was created: there is no
-        # previous config to roll back to. STOP the unvalidated stack so a failed deploy
-        # never leaves a live (publicly proxied) service running. Use `down` WITHOUT -v:
-        # we deliberately PRESERVE the postgres_data volume (never auto-delete data); the
-        # operator chooses below whether to keep it (retry) or reset it (down -v).
-        echo "Stopping the unvalidated stack (preserving the postgres_data volume)..."
-        if docker compose down; then
-            echo "✅ ROLLBACK: unvalidated stack stopped (volume preserved)."
-        else
-            echo "❌ ROLLBACK: 'docker compose down' failed — the unvalidated stack may still be running."
-            docker compose ps || true
+    elif [ "$FRESH_DEPLOY" = "1" ]; then
+        # Fresh (first-time) deploy failed — there is NO previous good config to roll back to.
+        # BOTH steps below must run even when the failure PRECEDED the stack recreate (e.g.
+        # `docker compose pull profile-api` failed): the old `&& STACK_RECREATED=1` guard
+        # skipped this whole branch in that window, stranding the unvalidated config on disk.
+        #   1. If the stack was created, STOP it (never leave a live, publicly-proxied service).
+        #      `down` WITHOUT -v — we PRESERVE the postgres_data volume (never auto-delete data).
+        #   2. ALWAYS remove the unvalidated profile.env + docker-compose.yml. Otherwise the NEXT
+        #      run sees them, treats this never-validated config as an existing deploy, backs it
+        #      up, and a later failure could RECREATE it as the "previous" stack (it is
+        #      @sha256-pinned, so the digest gate passes) — bringing up config that never passed
+        #      health/DB validation. Removing it keeps the invariant: on-disk config ⇒ validated.
+        if [ "$STACK_RECREATED" = "1" ]; then
+            echo "Stopping the unvalidated stack (preserving the postgres_data volume)..."
+            if docker compose down; then
+                echo "✅ ROLLBACK: unvalidated stack stopped (volume preserved)."
+            else
+                echo "❌ ROLLBACK: 'docker compose down' failed — the unvalidated stack may still be running."
+                docker compose ps || true
+            fi
         fi
+        # Quarantine the unvalidated config (guard the rm so it can't abort the trap under set -e).
+        rm -f "$PROFILE_DIR/profile.env" "$PROFILE_DIR/docker-compose.yml" \
+            && echo "✅ ROLLBACK: removed the unvalidated profile.env + docker-compose.yml (never validated)." \
+            || echo "❌ ROLLBACK: failed to remove the unvalidated config under $PROFILE_DIR — remove it manually."
         echo ""
-        echo "ℹ️  This was a FIRST-TIME deploy that failed after the stack was created."
-        echo "   The unvalidated stack has been STOPPED (containers removed); the new"
-        echo "   Postgres volume is PRESERVED and still holds this run's initial password."
-        echo "     • Retry with the SAME password: just re-run the deploy."
-        echo "     • Retry with a DIFFERENT password (or from a clean slate): first destroy"
-        echo "       the freshly-created, not-yet-validated DB volume, then re-run:"
-        echo "           cd $PROFILE_DIR && docker compose down -v"
-        echo "       (down -v DELETES the postgres_data volume — safe here: this deploy"
-        echo "        never validated, so the volume holds no data you need.)"
+        echo "ℹ️  This was a FIRST-TIME deploy that did not validate; its config was removed so the"
+        echo "   next run starts clean (a never-validated config can never become a rollback target)."
+        echo "   Re-run the deploy to retry."
+        if [ "$STACK_RECREATED" = "1" ]; then
+            echo "   The postgres_data volume is PRESERVED and still holds this run's initial password:"
+            echo "     • Retry with the SAME password: just re-run the deploy."
+            echo "     • Retry with a DIFFERENT password (or from a clean slate): reset the DB volume"
+            echo "       first (the compose file was removed, so use the volume directly), then re-run:"
+            echo "           docker volume rm profile_postgres_data"
+            echo "       (DELETES the postgres_data volume — safe here: this deploy never validated,"
+            echo "        so the volume holds no data you need.)"
+        fi
     fi
     return "$rc"
 }
