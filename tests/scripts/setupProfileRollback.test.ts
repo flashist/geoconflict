@@ -69,6 +69,88 @@ describe("setup-profile.sh rollback ordering invariant", () => {
   });
 });
 
+// Extract the REAL pre-write classification/abort block from setup-profile.sh and run it with
+// PROFILE_DIR pointed at a temp dir holding a chosen file combination. A PARTIAL pre-state
+// (exactly one of profile.env / docker-compose.yml present) must abort non-zero and write
+// nothing; a complete pair or no files must proceed with the correct FRESH_DEPLOY classification.
+function runPartialGuard(opts: { env: boolean; compose: boolean }): {
+  code: number;
+  out: string;
+  envExists: boolean;
+  composeExists: boolean;
+} {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "partial-"));
+  if (opts.env) fs.writeFileSync(path.join(dir, "profile.env"), "OLD-ENV\n");
+  if (opts.compose)
+    fs.writeFileSync(path.join(dir, "docker-compose.yml"), "OLD-COMPOSE\n");
+  const src = fs.readFileSync(SETUP_PROFILE, "utf8");
+  const m = src.match(/PROFILE_ENV_PRESENT=0;[\s\S]*?&& FRESH_DEPLOY=1/);
+  if (!m) throw new Error("could not extract the partial-state guard block");
+  // set -e mirrors the real script (line 50). Echo the classification so the non-abort paths
+  // are observable; the abort path exits 1 before reaching the echo.
+  const script = `set -e\nPROFILE_DIR=${JSON.stringify(dir)}\n${m[0]}\necho "FRESH_DEPLOY=$FRESH_DEPLOY"\n`;
+  const res = spawnSync("bash", ["-c", script], { encoding: "utf8" });
+  const out = (res.stdout ?? "") + (res.stderr ?? "");
+  const envExists = fs.existsSync(path.join(dir, "profile.env"));
+  const composeExists = fs.existsSync(path.join(dir, "docker-compose.yml"));
+  fs.rmSync(dir, { recursive: true, force: true });
+  return { code: res.status ?? -1, out, envExists, composeExists };
+}
+
+describe("setup-profile.sh refuses a PARTIAL pre-deploy config state (abort before any write)", () => {
+  // STATIC: the guard sits BEFORE the rollback trap and the first config write, and aborts.
+  // Because the abort precedes the trap, nothing is rolled back — the partial state is left
+  // untouched for the operator. A regression that moved/removed the guard turns this red.
+  test("the partial-state guard precedes the rollback trap and the first config write, and exits non-zero", () => {
+    const idxGuard = firstIndex(
+      /if \[ "\$PROFILE_ENV_PRESENT" != "\$PROFILE_COMPOSE_PRESENT" \]; then/,
+    );
+    const idxTrap = firstIndex(/^trap rollback_deploy EXIT$/);
+    const idxFirstWrite = firstIndex(/> "\$PROFILE_DIR\/profile\.env"/);
+    expect(idxGuard).toBeGreaterThanOrEqual(0);
+    expect(idxTrap).toBeGreaterThanOrEqual(0);
+    expect(idxFirstWrite).toBeGreaterThanOrEqual(0);
+    expect(idxGuard).toBeLessThan(idxTrap);
+    expect(idxGuard).toBeLessThan(idxFirstWrite);
+    // The guard body fails closed.
+    expect(lines.slice(idxGuard, idxGuard + 16).join("\n")).toMatch(/exit 1/);
+  });
+
+  // BEHAVIORAL (real extracted block): exactly one file present => abort + no writes.
+  test.each([
+    [
+      "profile.env present, docker-compose.yml absent",
+      { env: true, compose: false },
+    ],
+    [
+      "docker-compose.yml present, profile.env absent",
+      { env: false, compose: true },
+    ],
+  ] as const)(
+    "aborts on a partial state (%s) and writes nothing",
+    (_label, cfg) => {
+      const r = runPartialGuard(cfg);
+      expect(r.code).not.toBe(0);
+      expect(r.out).toMatch(/PARTIAL/);
+      // The lone pre-existing file is left exactly as-is; the missing one is NOT created.
+      expect(r.envExists).toBe(cfg.env);
+      expect(r.composeExists).toBe(cfg.compose);
+    },
+  );
+
+  test("a complete pair is treated as a redeploy (FRESH_DEPLOY=0, no abort)", () => {
+    const r = runPartialGuard({ env: true, compose: true });
+    expect(r.code).toBe(0);
+    expect(r.out).toMatch(/FRESH_DEPLOY=0/);
+  });
+
+  test("no config at all is a fresh deploy (FRESH_DEPLOY=1, no abort)", () => {
+    const r = runPartialGuard({ env: false, compose: false });
+    expect(r.code).toBe(0);
+    expect(r.out).toMatch(/FRESH_DEPLOY=1/);
+  });
+});
+
 describe("setup-profile.sh fresh-deploy failure handling (never auto-deletes the volume)", () => {
   test("computes FRESH_DEPLOY and gives the fresh-failure recovery branch", () => {
     expect(lines.some((l) => /^FRESH_DEPLOY=/.test(l))).toBe(true);

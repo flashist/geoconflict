@@ -326,8 +326,35 @@ fi
 # roll back to. We never auto-delete the Postgres data volume — it is a data-bearing
 # resource and a detection slip would be catastrophic — so on a fresh-deploy failure
 # the rollback instead prints an explicit clean-retry hint (see rollback_deploy).
+# Classify the pre-deploy on-disk config into one of THREE states, failing closed on the third:
+#   • complete pair (both files present) -> REDEPLOY: a valid rollback target (backed up below).
+#   • neither file present                -> FRESH first-time deploy (nothing to roll back to).
+#   • exactly one file (PARTIAL)          -> REFUSE. A lone file is NEVER a validated rollback
+#     target: the success path only ever leaves BOTH files together and the fresh-fail rollback
+#     removes BOTH together, so "on-disk config ⇒ validated" holds only for a complete pair. A
+#     partial pair can only arise from a crash / OOM / power-loss mid-write (the EXIT trap cannot
+#     run on SIGKILL) or a manual edit. Treating it as a redeploy would back up the lone file and,
+#     after a failure BEFORE STACK_RECREATED=1, leave the freshly-written (never-validated) OTHER
+#     file on disk as a future rollback target that later recreates unvalidated config. Abort
+#     BEFORE any config write — and before the rollback trap is installed, so there is nothing to
+#     undo — and make the operator resolve the anomalous state explicitly.
+PROFILE_ENV_PRESENT=0; [ -f "$PROFILE_DIR/profile.env" ] && PROFILE_ENV_PRESENT=1
+PROFILE_COMPOSE_PRESENT=0; [ -f "$PROFILE_DIR/docker-compose.yml" ] && PROFILE_COMPOSE_PRESENT=1
+if [ "$PROFILE_ENV_PRESENT" != "$PROFILE_COMPOSE_PRESENT" ]; then
+    echo "❌ Refusing to deploy: $PROFILE_DIR is in a PARTIAL config state (profile.env present=$PROFILE_ENV_PRESENT,"
+    echo "   docker-compose.yml present=$PROFILE_COMPOSE_PRESENT) — exactly one of the two files exists."
+    echo "   A single file is never a validated rollback target (it can only come from a crash,"
+    echo "   OOM/power-loss mid-write, or a manual edit), so this deploy refuses to start from it."
+    echo "   Resolve it before redeploying:"
+    echo "     • retry as a REDEPLOY: restore the MISSING file from a known-good backup so BOTH"
+    echo "       exist as a validated pair; OR"
+    echo "     • start CLEAN (the postgres_data volume is preserved — never auto-deleted):"
+    echo "           rm -f \"$PROFILE_DIR/profile.env\" \"$PROFILE_DIR/docker-compose.yml\""
+    echo "       then re-run this deploy (it proceeds as a fresh first-time deploy)."
+    exit 1
+fi
 FRESH_DEPLOY=0
-{ [ ! -f "$PROFILE_DIR/profile.env" ] && [ ! -f "$PROFILE_DIR/docker-compose.yml" ]; } && FRESH_DEPLOY=1
+{ [ "$PROFILE_ENV_PRESENT" = "0" ] && [ "$PROFILE_COMPOSE_PRESENT" = "0" ]; } && FRESH_DEPLOY=1
 
 PROFILE_ENV_BAK="$PROFILE_DIR/profile.env.predeploy.bak"
 COMPOSE_BAK="$PROFILE_DIR/docker-compose.yml.predeploy.bak"

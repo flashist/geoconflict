@@ -451,6 +451,13 @@ green**, not re-fix them.
   health-failing into rollback). Pinned by `profileDeployClassSweep.test.ts`.
 - Class C — `/etc/nginx/sites-enabled/default` is captured before removal and restored (fail-loud) on
   rollback. Pinned by `setupProfileRollback.test.ts`.
+- Partial config state — the pre-deploy config is classified into exactly three states; a PARTIAL pair
+  (exactly one of `profile.env` / `docker-compose.yml` present — only reachable via a crash/OOM/power-loss
+  mid-write or a manual edit) is **refused before any write** (and before the rollback trap is installed),
+  rather than backed up per-file. The old binary `FRESH_DEPLOY` (true only when both absent) plus
+  independent backups would, from a partial start, restore only the present file and strand the freshly
+  written (never-validated) other file as a future rollback target — breaking "on-disk config ⇒ validated".
+  Pinned by `setupProfileRollback.test.ts`.
 - Class D / F4 — `build-deploy-profile.sh` serializes with a fail-closed local `mkdir` mutex (the macOS
   dev host has no `flock`) acquired before the first record write, and writes the record atomically
   (body→temp→one append under the lock; the lock is released even if the write fails). Pinned by
