@@ -19,22 +19,29 @@ const lines = fs.readFileSync(SETUP_PROFILE, "utf8").split("\n");
 const firstIndex = (re: RegExp) => lines.findIndex((l) => re.test(l));
 
 describe("setup-profile.sh rollback ordering invariant", () => {
-  test("STACK_RECREATED flips to 1 after the API pull and before the destructive API recreate", () => {
+  test("STACK_RECREATED flips to 1 after the API pull and before ANY container-mutating `up`", () => {
     // Finding 1: the routine deploy scopes pull/recreate to profile-api so the data-bearing
     // postgres is never silently re-pulled or force-recreated on a bare API ship.
+    // Finding 1 (round 2): the flag MUST precede `docker compose up -d postgres` too — that
+    // converge can CREATE the DB on a fresh deploy or RECREATE it on compose-definition drift;
+    // a failure there must land in rollback with STACK_RECREATED=1 so the stack is handled
+    // (not left half-mutated with only a config-file restore).
     const idxPull = firstIndex(/^docker compose pull profile-api$/);
     const idxStackSet = firstIndex(/^STACK_RECREATED=1$/);
+    const idxPgUp = firstIndex(/^docker compose up -d postgres$/);
     const idxRecreate = firstIndex(
       /^docker compose up -d --force-recreate --no-deps profile-api$/,
     );
 
     expect(idxPull).toBeGreaterThanOrEqual(0);
     expect(idxStackSet).toBeGreaterThanOrEqual(0);
+    expect(idxPgUp).toBeGreaterThanOrEqual(0);
     expect(idxRecreate).toBeGreaterThanOrEqual(0);
 
-    // pull < STACK_RECREATED=1 < the destructive recreate.
+    // pull < STACK_RECREATED=1 < postgres converge < the destructive API recreate.
     expect(idxPull).toBeLessThan(idxStackSet);
-    expect(idxStackSet).toBeLessThan(idxRecreate);
+    expect(idxStackSet).toBeLessThan(idxPgUp);
+    expect(idxPgUp).toBeLessThan(idxRecreate);
   });
 
   test("the routine deploy never pulls or force-recreates the whole project (postgres scoped out)", () => {

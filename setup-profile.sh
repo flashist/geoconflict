@@ -608,6 +608,7 @@ probe_database_url() {
     local url=$1 scheme rest base query
     local userinfo hostpart user ui_pw_enc ui_pw
     local safe_query q_pw_enc pw url_no_pw authority kv kv_key kv_val kv_key_lc
+    local host_only hostname host_lc is_ipv6 reject_loopback v6
     local has_q_pw=0 has_sslpw=0
     local -a params=()
     case $url in
@@ -647,6 +648,46 @@ probe_database_url() {
         user=
         hostpart=$base
         ui_pw=
+    fi
+    # Reject a container-local LOOPBACK host. This probe runs psql INSIDE the postgres
+    # container (`docker compose exec -T postgres`), but the URL is consumed by the
+    # profile-api container. `localhost` / `127.0.0.0/8` / `::1` / `0.0.0.0` resolve to
+    # *whatever container asks* — from postgres they reach the DB (probe passes), but from
+    # profile-api they reach the API's OWN loopback (no DB), so the API would fail at runtime
+    # on a connection the gate recorded as passed. In this single-host compose topology the
+    # API can reach Postgres ONLY via the compose service name `postgres` (or an external
+    # host), never its own loopback — so a loopback host is always wrong for the API and the
+    # in-postgres-container probe cannot faithfully test it. Fail CLOSED. (No container but
+    # the API shares the API's loopback, so probing from an ephemeral container would not fix
+    # this — rejection is the correct gate, not a fallback.)
+    host_only=${hostpart%%/*}                   # strip /db -> host[:port]
+    is_ipv6=0
+    case $host_only in
+        \[*\]*) hostname=${host_only%%\]*}; hostname=${hostname#\[}; is_ipv6=1 ;;  # [IPv6]:port
+        *) hostname=${host_only%%:*} ;;                                            # host[:port]
+    esac
+    host_lc=$(printf '%s' "$hostname" | LC_ALL=C tr 'A-Z' 'a-z')
+    host_lc=${host_lc%.}                         # strip a trailing FQDN dot (localhost. -> localhost)
+    reject_loopback=0
+    # IPv4 loopback (127.0.0.0/8) / unspecified / IPv4-mapped-IPv6 loopback, by literal form.
+    case $host_lc in
+        localhost | 0.0.0.0 | 127.* | ::ffff:127.*) reject_loopback=1 ;;
+    esac
+    # IPv6 loopback in ANY spelling — ::1, 0:0:0:0:0:0:0:1, the fully-zero-padded form, 0::1 — all
+    # consist solely of zero groups plus a single 1; the unspecified address :: is all zeros (and
+    # routes to local on Linux). Normalize rather than enumerate: strip ':' and '0'; what remains
+    # is "1" for loopback and "" for ::. Apply ONLY to a real bracketed IPv6 literal so a plain
+    # hostname like "1" is never caught.
+    if [ "$is_ipv6" = "1" ]; then
+        v6=${host_lc//:/}
+        v6=${v6//0/}
+        { [ "$v6" = "1" ] || [ -z "$v6" ]; } && reject_loopback=1
+    fi
+    if [ "$reject_loopback" = "1" ]; then
+        echo "   (DATABASE_URL host is '$hostname' — from the profile-api container that is"
+        echo "    the API's OWN loopback, not Postgres. Use the compose service name"
+        echo "    'postgres' (the API reaches the DB over the compose network), not localhost.)"
+        return 1
     fi
     # Walk the query params: pull out any credential-bearing key, KEEP the rest
     # (e.g. sslmode=require) so the validated URL matches what the API consumes. Use
@@ -750,14 +791,17 @@ fi
 # gate below (+ `restart: on-failure` and the dependency-free /health). A deliberate
 # Postgres image change is a separate, explicit maintenance action — not a routine deploy.
 docker compose pull profile-api
-docker compose up -d postgres
-# Mark the live stack as touched BEFORE the destructive recreate. `docker compose up
-# --force-recreate` stops/recreates the API, so if it fails partway `set -e` exits with
-# the stack partially mutated; the EXIT rollback must then restore the previous config AND
-# recreate the previous API. Setting this only on success would skip that recreate and
-# leave production partial/down. Placed after the pull/postgres-converge because neither
-# touches the running profile-api container (config-only restore, no restart).
+# Mark the live stack as touched BEFORE the FIRST container-mutating command. BOTH the
+# postgres converge below (which can CREATE the DB on a fresh deploy, or RECREATE it if its
+# compose definition drifted) AND the API force-recreate mutate containers; a failure in
+# EITHER must let the EXIT rollback reconverge/stop the stack (recreate the previous stack on
+# a redeploy, or `docker compose down` the unvalidated one on a fresh deploy). Setting this
+# only after the converge would land a converge failure in rollback with STACK_RECREATED=0,
+# which restores config but never touches the half-mutated postgres — leaving the DB down or
+# partial. Placed AFTER `pull` because pulling an image touches no containers, so a pull
+# failure is a pure config-only restore (no recreate needed).
 STACK_RECREATED=1
+docker compose up -d postgres
 docker compose up -d --force-recreate --no-deps profile-api
 
 # T5: apply DB migrations here once they exist, e.g.:

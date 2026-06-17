@@ -404,6 +404,103 @@ describe("setup-profile.sh probe_database_url validates the EXACT DATABASE_URL",
   });
 });
 
+// Process review (round 2 / Finding 2): probe_database_url runs psql INSIDE the postgres
+// container, but the URL is consumed by the profile-api container. A container-local loopback
+// host (localhost / 127.0.0.0-8 / ::1 / 0.0.0.0) connects fine from postgres (FALSE pass) yet
+// points the API at its OWN loopback (no DB) at runtime. In this single-host compose topology
+// the API reaches Postgres only via the compose service name `postgres`, so a loopback host is
+// always wrong for the API and the in-postgres-container probe cannot faithfully test it: the
+// gate must reject it fail-closed.
+describe("setup-profile.sh probe_database_url rejects container-local loopback hosts (Finding 2)", () => {
+  test("the rejection lives in the function (static guard against silent removal)", () => {
+    expect(probeUrlFn).toMatch(/^probe_database_url\(\) \{/); // guard against a regex miss
+    // literal-form IPv4 / unspecified / IPv4-mapped loopback set...
+    expect(probeUrlFn).toMatch(
+      /localhost \| 0\.0\.0\.0 \| 127\.\* \| ::ffff:127\.\*/,
+    );
+    // ...a trailing-FQDN-dot strip (localhost. -> localhost)...
+    expect(probeUrlFn).toMatch(/host_lc=\$\{host_lc%\.\}/);
+    // ...and IPv6 normalization that catches ::1 in ANY spelling (not an enumerated list).
+    expect(probeUrlFn).toMatch(/is_ipv6/);
+    expect(probeUrlFn).toMatch(/v6=\$\{v6\/\/0\/\}/);
+    expect(probeUrlFn).toMatch(/service name/);
+  });
+
+  // Use `host` (NOT a rawUrl) so the stub's good-URL EQUALS this host — i.e. WITHOUT the
+  // rejection the probe would reach the stub, match, and return 0 (the false pass). The
+  // rejection is therefore the sole cause of the failure here: load-bearing, not an artifact
+  // of a stub host-mismatch.
+  const loopbackCases: Array<[string, { scheme?: string; host: string }]> = [
+    ["localhost host+port", { host: "localhost:5432" }],
+    ["localhost no port", { host: "localhost" }],
+    ["127.0.0.1", { host: "127.0.0.1:5432" }],
+    ["127.0.0.0/8 range (127.0.0.5)", { host: "127.0.0.5" }],
+    ["IPv6 ::1", { scheme: "postgres", host: "[::1]:5432" }],
+    ["0.0.0.0", { host: "0.0.0.0:5432" }],
+    ["case-insensitive LOCALHOST", { host: "LOCALHOST:5432" }],
+  ];
+  test.each(loopbackCases)(
+    "loopback host FAILS fail-closed (stub would otherwise connect): %s",
+    (_desc, opts) => {
+      expect(runProbe({ rawPassword: "pw", ...opts })).not.toBe(0);
+    },
+  );
+
+  // Bypass variants found by adversarial review — each WOULD connect from inside the postgres
+  // container (so the stub matches and would pass), but points the API at its own loopback.
+  // All must fail closed. Locks the IPv6-any-spelling + trailing-dot normalization.
+  const loopbackBypassCases: Array<
+    [string, { scheme?: string; host: string }]
+  > = [
+    ["expanded ::1 (0:0:0:0:0:0:0:1)", { host: "[0:0:0:0:0:0:0:1]:5432" }],
+    [
+      "fully zero-padded ::1",
+      { host: "[0000:0000:0000:0000:0000:0000:0000:0001]:5432" },
+    ],
+    ["compressed 0::1", { host: "[0::1]:5432" }],
+    ["IPv4-mapped ::ffff:127.0.0.1", { host: "[::ffff:127.0.0.1]:5432" }],
+    ["unspecified ::", { host: "[::]:5432" }],
+    ["trailing-dot localhost.", { host: "localhost.:5432" }],
+    ["trailing-dot 127.0.0.1.", { host: "127.0.0.1.:5432" }],
+  ];
+  test.each(loopbackBypassCases)(
+    "loopback BYPASS variant FAILS fail-closed (stub would otherwise connect): %s",
+    (_desc, opts) => {
+      expect(runProbe({ rawPassword: "pw", ...opts })).not.toBe(0);
+    },
+  );
+
+  test("a real global IPv6 host ([2001:db8::1]) is NOT rejected (normalization is loopback-specific)", () => {
+    expect(
+      runProbe({
+        rawPassword: "pw",
+        host: "[2001:db8::1]:5432",
+        goodHost: "[2001:db8::1]:5432",
+      }),
+    ).toBe(0);
+  });
+
+  test("a host that merely CONTAINS 'localhost' is NOT rejected (exact match, no over-block)", () => {
+    expect(
+      runProbe({
+        rawPassword: "pw",
+        host: "localhostdb.internal:5432",
+        goodHost: "localhostdb.internal:5432",
+      }),
+    ).toBe(0);
+  });
+
+  test("the compose service name `postgres` (what the API actually uses) still PASSES", () => {
+    expect(
+      runProbe({
+        rawPassword: "pw",
+        host: "postgres:5432",
+        goodHost: "postgres:5432",
+      }),
+    ).toBe(0);
+  });
+});
+
 // Class E: the deploy must declare, where the reviewer reads it, what validation_result=passed
 // certifies NOW versus what is deferred to T5 — citing T5 by stable quoted text, never a
 // fabricated numeric "#N" criterion.
