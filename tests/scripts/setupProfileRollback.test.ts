@@ -1029,3 +1029,109 @@ describe("setup-profile.sh rollback waits for the restored stack to be healthy",
     expect(r.code).toBe(7);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Process review #14 — on a REDEPLOY (postgres already running), the EXACT DATABASE_URL must be
+// validated BEFORE the destructive force-recreate, so a wrong operator override aborts while the
+// previous API is still live, instead of replacing it with a DB-broken container that only the
+// post-recreate gate would catch (transient outage; persistent if rollback recreation then
+// fails). The FRESH-deploy path has no running postgres here, so it keeps its post-recreate gate.
+// ─────────────────────────────────────────────────────────────────────────────
+const setupScript = lines.join("\n");
+
+describe("setup-profile.sh redeploy preflight validates DATABASE_URL before the recreate", () => {
+  test("pre-recreate probe_database_url runs in the redeploy block, after discrete creds, before STACK_RECREATED/recreate", () => {
+    const idxPgDetect = firstIndex(
+      /if \[ -n "\$\(docker compose ps -q postgres/,
+    );
+    const idxDiscrete = firstIndex(/if ! probe_db_credentials; then/);
+    const idxPreUrl = firstIndex(
+      /if ! probe_database_url "\$DATABASE_URL"; then/,
+    );
+    const idxStackSet = firstIndex(/^STACK_RECREATED=1$/);
+    const idxRecreate = firstIndex(
+      /^docker compose up -d --force-recreate --no-deps profile-api$/,
+    );
+    for (const i of [
+      idxPgDetect,
+      idxDiscrete,
+      idxPreUrl,
+      idxStackSet,
+      idxRecreate,
+    ]) {
+      expect(i).toBeGreaterThanOrEqual(0);
+    }
+    expect(idxDiscrete).toBeGreaterThan(idxPgDetect); // inside the redeploy block
+    expect(idxPreUrl).toBeGreaterThan(idxDiscrete); // after the discrete-cred check
+    expect(idxPreUrl).toBeLessThan(idxStackSet); // BEFORE the stack is marked touched
+    expect(idxPreUrl).toBeLessThan(idxRecreate); // BEFORE the destructive recreate
+  });
+
+  test("BOTH DATABASE_URL gates exist (pre-recreate redeploy + post-recreate fresh path)", () => {
+    const count = lines.filter((l) =>
+      /if ! probe_database_url "\$DATABASE_URL"; then/.test(l),
+    ).length;
+    expect(count).toBe(2);
+  });
+
+  // Behavioral: run the REAL redeploy region with stubs. A failing pre-recreate URL probe must
+  // abort (restore config) BEFORE any container-mutating `up`. The two `up` commands are
+  // sentinels: if either runs, the live stack was touched.
+  const redeployRegion =
+    setupScript.match(
+      /if \[ -n "\$\(docker compose ps -q postgres[\s\S]*?docker compose up -d --force-recreate --no-deps profile-api/,
+    )?.[0] ?? "";
+
+  test("guard: the redeploy region was extracted", () => {
+    expect(redeployRegion).toMatch(
+      /^if \[ -n "\$\(docker compose ps -q postgres/,
+    );
+    expect(redeployRegion).toMatch(/force-recreate --no-deps profile-api$/);
+  });
+
+  function runRedeployPreflight(opts: { urlProbeOk: boolean }): {
+    code: number;
+    restored: boolean;
+    mutated: boolean;
+  } {
+    const harness = [
+      "set -e",
+      "PROFILE_DIR=/tmp/does-not-matter",
+      'DATABASE_URL="postgresql://profile:pw@postgres:5432/profile"',
+      // existing stack → redeploy path; the two `up` commands are FORBIDDEN sentinels.
+      `docker() {
+         case "$*" in
+           "compose ps -q postgres") printf 'pg-cid\\n' ;;
+           "compose pull profile-api") : ;;
+           "compose up -d postgres") echo "MUTATED: up postgres"; exit 87 ;;
+           "compose up -d --force-recreate --no-deps profile-api") echo "MUTATED: recreate"; exit 87 ;;
+           *) : ;;
+         esac
+       }`,
+      "probe_db_credentials() { return 0; }",
+      `probe_database_url() { ${opts.urlProbeOk ? "return 0" : "return 1"}; }`,
+      'restore_previous_config() { echo "RESTORE_CALLED"; }',
+      redeployRegion,
+      'echo "REACHED_RECREATE"',
+    ].join("\n");
+    const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
+    return {
+      code: res.status ?? -1,
+      restored: /RESTORE_CALLED/.test(res.stdout),
+      mutated: /MUTATED:/.test(res.stdout),
+    };
+  }
+
+  test("a bad DATABASE_URL on redeploy aborts + restores BEFORE any container is recreated", () => {
+    const r = runRedeployPreflight({ urlProbeOk: false });
+    expect(r.code).not.toBe(0); // aborted
+    expect(r.restored).toBe(true); // previous config restored
+    expect(r.mutated).toBe(false); // the live stack was NOT touched
+  });
+
+  test("a good DATABASE_URL on redeploy proceeds past the preflight (does not block a valid URL)", () => {
+    const r = runRedeployPreflight({ urlProbeOk: true });
+    expect(r.restored).toBe(false); // a valid URL is not treated as drift
+    expect(r.mutated).toBe(true); // proceeds into the (sentinel) container converge
+  });
+});

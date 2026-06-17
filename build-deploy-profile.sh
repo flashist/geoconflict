@@ -112,9 +112,30 @@ print_header "BUILDING PROFILE IMAGE: ${PROFILE_IMAGE}"
 # Desktop's qemu — a one-shot scan, acceptable).
 docker buildx build --platform linux/amd64 --load -f "$DOCKERFILE" -t "$PROFILE_IMAGE" .
 
-# Runtime inspection of the built image — fail if any .env*/secret file rode along.
+# Capture the IMMUTABLE image ID of the artifact we just built and bind BOTH the secret-boundary
+# scan and the deploy digest to it — never the mutable tag `$PROFILE_IMAGE`. The tag is shared on
+# the local Docker daemon: a concurrent deploy at the same commit (an operator retry, or a second
+# checkout) can repoint `repo:profile-<sha>` between our scan and our push, so a tag-keyed scan
+# could certify image A while image B is what gets pushed and deployed by digest — a TOCTOU on the
+# very secret boundary this gate exists to enforce (the 2026-04-21 leak class). The image ID is
+# content-addressed and cannot be repointed, so scanning it and resolving the digest FROM it makes
+# the trust path independent of the tag. Fail closed if the ID is unreadable or not a sha256 (an
+# unverifiable artifact must not reach a box that holds profile data + service secrets). Variable-
+# held regex for bash-3.2 (the dev host).
+BUILT_IMAGE_ID=$(docker inspect --format '{{.Id}}' "$PROFILE_IMAGE" 2>/dev/null || true)
+built_image_id_re='^sha256:[0-9a-f]{64}$'
+if ! [[ $BUILT_IMAGE_ID =~ $built_image_id_re ]]; then
+    echo "Error: could not resolve the built image ID for ${PROFILE_IMAGE} (got: '${BUILT_IMAGE_ID}')."
+    echo "Refusing to scan/deploy an unverifiable artifact."
+    exit 1
+fi
+echo "Built image ID: ${BUILT_IMAGE_ID}"
+
+# Runtime inspection of the built image — fail if any .env*/secret file rode along. Scan the
+# IMMUTABLE ID (not the tag): this is the exact artifact whose digest we deploy below, so a
+# concurrent retag of the tag cannot swap a different image past the scan.
 print_header "INSPECTING BUILT IMAGE FOR SECRETS"
-bash scripts/check-docker-secret-boundary.sh --inspect-image "$PROFILE_IMAGE"
+bash scripts/check-docker-secret-boundary.sh --inspect-image "$BUILT_IMAGE_ID"
 
 if [ -n "${DOCKER_TOKEN:-}" ]; then
     echo "Logging in to the container registry as ${DOCKER_USERNAME}..."
@@ -129,10 +150,24 @@ docker push "$PROFILE_IMAGE"
 # production trust anchor; the box deploys AND rolls back by digest. Fail closed if
 # we cannot resolve it: an unverifiable image must not reach a box that holds
 # profile data + service secrets.
-PROFILE_DIGEST=$(docker inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$PROFILE_IMAGE" \
-    | grep "^${DOCKER_USERNAME}/${DOCKER_REPO}@sha256:" | head -1 || true)
+#
+# Resolve from BUILT_IMAGE_ID, not the tag. A RepoDigest belongs to its OWN image object
+# (repo@sha256:<digest of THAT object's manifest>), so resolving from the scanned ID guarantees
+# the digest we deploy refers to the EXACT bytes we scanned — a concurrent retag can never make
+# us resolve a different (hijacker) image's digest. That holds on BOTH the legacy and the
+# containerd image store; only the empty-result mechanism differs: on the legacy store the
+# scanned image has no RepoDigest until it is pushed, while on the containerd store a build
+# populates one immediately but a concurrent retag of repo:profile-<sha> reassociates the repo
+# name away, dropping the scanned image's repo digest. Either way, if there is no CANONICAL
+# repo@sha256:<64-hex> digest for OUR repo on the scanned image, we fail closed rather than fall
+# back to the mutable tag. The end-anchored 64-hex match (grep -E) is symmetric with the strict
+# BUILT_IMAGE_ID guard above — a malformed/short digest can't slip the non-empty check.
+PROFILE_DIGEST=$(docker inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$BUILT_IMAGE_ID" \
+    | grep -E "^${DOCKER_USERNAME}/${DOCKER_REPO}@sha256:[0-9a-f]{64}$" | head -1 || true)
 if [ -z "$PROFILE_DIGEST" ]; then
-    echo "Error: could not resolve the pushed image digest for ${PROFILE_IMAGE}."
+    echo "Error: could not resolve a canonical registry digest for the built artifact ${BUILT_IMAGE_ID}."
+    echo "       (If a concurrent deploy retagged ${PROFILE_IMAGE} around the push, the scanned image"
+    echo "        has no digest for this repo — re-run without a concurrent deploy.)"
     echo "Refusing to deploy by mutable tag (registry-image-policy.md requires a digest)."
     exit 1
 fi

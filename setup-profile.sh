@@ -983,6 +983,26 @@ if [ -n "$(docker compose ps -q postgres 2>/dev/null || true)" ]; then
         exit 1
     fi
     echo "✅ New credentials authenticate against the existing Postgres."
+    # Also validate the EXACT DATABASE_URL the API will consume — BEFORE the destructive
+    # force-recreate below — so a wrong operator override (bad host/db/credential or a malformed
+    # URL) aborts while the previous API is still LIVE and untouched, instead of replacing it with
+    # a DB-broken container that only the post-recreate gate (Step 2) would catch — a transient
+    # outage, or persistent if rollback recreation then fails. postgres is running on this redeploy
+    # path and reachable as the compose service `postgres` (the same channel probe_db_credentials
+    # uses), so the probe is representative. The FRESH-deploy path has no running postgres here and
+    # is still covered by the post-recreate Step 2 gate. STACK_RECREATED is still 0, so aborting
+    # here leaves the live stack untouched (config-only restore), exactly like the check above.
+    echo "Verifying the configured DATABASE_URL opens a real connection (pre-recreate)..."
+    if ! probe_database_url "$DATABASE_URL"; then
+        echo "❌ DATABASE_URL did not open a working connection against the running Postgres."
+        echo "   The API consumes this exact connection string; a malformed URL, wrong host/db,"
+        echo "   or different credentials would fail at runtime. Reconcile DATABASE_URL (or the"
+        echo "   discrete POSTGRES_* it is built from), then re-run. Restoring previous config and"
+        echo "   aborting WITHOUT touching the live stack."
+        restore_previous_config
+        exit 1
+    fi
+    echo "✅ DATABASE_URL opens a real connection (pre-recreate)."
 fi
 
 # Pull and recreate ONLY the profile-api service. postgres is a data-bearing service on

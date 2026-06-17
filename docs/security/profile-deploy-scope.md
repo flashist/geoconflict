@@ -484,6 +484,26 @@ green**, not re-fix them.
   the trap so the rollback can reuse them) before reporting recovery; a started-but-unhealthy restored image
   reports a loud `ROLLBACK FAILED` with `docker compose ps` + logs, not a false success (`docker compose up
   -d` returns on start, not health). Pinned by `setupProfileRollback.test.ts`.
+- Secret scan bound to the immutable artifact — `build-deploy-profile.sh` captures `BUILT_IMAGE_ID`
+  (`docker inspect --format '{{.Id}}'`, validated as a sha256 fail-closed) right after the build and keys
+  BOTH the `--inspect-image` secret scan AND the deploy-digest resolution on that content-addressed ID, never
+  the mutable tag `$PROFILE_IMAGE`. The tag is daemon-shared: a concurrent build at the same commit could
+  repoint `repo:profile-<sha>` between scan and push (the local lock is acquired only after digest
+  resolution), so a tag-keyed scan could certify image A while image B is pushed/deployed by digest (TOCTOU
+  on the secret boundary). Resolving the digest from the ID guarantees it refers to the EXACT scanned bytes
+  (a `RepoDigest` belongs to its own image object), so a retag can never make us resolve a hijacker's digest;
+  if the scanned ID has no canonical `repo@sha256:<64-hex>` digest for our repo — never pushed (legacy store)
+  or repo-reassociated by a concurrent retag (containerd store) — we fail closed (no deploy of an unscanned
+  image). The digest match is end-anchored 64-hex, symmetric with the strict ID guard. Pinned by
+  `profileDeployClassSweep.test.ts` (static binding + behavioral capture / hijack / malformed-digest fail-closed).
+- Pre-recreate DATABASE_URL gate (redeploy) — on a redeploy (postgres already running), `setup-profile.sh`
+  validates the EXACT `DATABASE_URL` with `probe_database_url` in the preflight block (alongside
+  `probe_db_credentials`), BEFORE `STACK_RECREATED=1` and the destructive `docker compose up -d
+  --force-recreate --no-deps profile-api`. A wrong operator override now aborts (restore config) while the
+  previous API is still live, instead of replacing it with a DB-broken container that only the post-recreate
+  gate would catch (transient outage; persistent if rollback recreation then fails). The fresh-deploy path
+  has no running postgres in the preflight, so it keeps its post-recreate gate — both gates coexist. Pinned
+  by `setupProfileRollback.test.ts` (static ordering + behavioral abort-before-recreate).
 
 **Already landed before this PR (keep the pinned test green):** F1 (fresh-deploy stack/volume preservation),
 F3 (fresh-deploy nginx handling), F5 (remote flock fail-closed abort), F8 (rollback failure reporting with

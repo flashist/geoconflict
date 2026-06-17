@@ -1091,3 +1091,178 @@ describe("profile-deploy class sweep — executable merge bar", () => {
     });
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Class B (artifact integrity) — the secret-boundary scan AND the deploy digest must be
+// bound to the IMMUTABLE image ID of the built artifact, never the mutable tag. Process
+// review #14: build → scan → push → digest all referenced the mutable tag `$PROFILE_IMAGE`,
+// and the local serializing lock is acquired only AFTER digest resolution, so a concurrent
+// build at the same commit can repoint `repo:profile-<sha>` between the scan and the push —
+// the scan certifies image A while image B is pushed and deployed by digest (TOCTOU). The fix
+// keys the scan and the digest on the content-addressed image ID instead.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("Class B — secret scan + deploy digest bound to the immutable image ID (TOCTOU)", () => {
+  test("BUILT_IMAGE_ID is captured right after build and validated as a sha256 (fail closed)", () => {
+    const idxBuild = firstIndex(buildLines, /^docker buildx build\b/);
+    const idxCapture = firstIndex(
+      buildLines,
+      /^BUILT_IMAGE_ID=\$\(docker inspect /,
+    );
+    const idxGuard = firstIndex(
+      buildLines,
+      /if ! \[\[ \$BUILT_IMAGE_ID =~ \$built_image_id_re \]\]; then/,
+    );
+    expect(idxBuild).toBeGreaterThanOrEqual(0);
+    expect(idxCapture).toBeGreaterThan(idxBuild); // captured AFTER the build
+    expect(idxGuard).toBeGreaterThan(idxCapture); // then validated, fail-closed
+    // The validator regex pins a real sha256 image ID.
+    expect(buildScript).toMatch(
+      /built_image_id_re='\^sha256:\[0-9a-f\]\{64\}\$'/,
+    );
+  });
+
+  test("the secret scan and the digest are keyed on $BUILT_IMAGE_ID, NEVER the mutable tag", () => {
+    // The --inspect-image scan binds to the ID...
+    const scanLine = buildLines.find((l) =>
+      /check-docker-secret-boundary\.sh --inspect-image/.test(l),
+    );
+    expect(scanLine).toMatch(/--inspect-image "\$BUILT_IMAGE_ID"/);
+    expect(scanLine).not.toMatch(/--inspect-image "\$PROFILE_IMAGE"/);
+    // ...and the digest is resolved from the ID, not the tag.
+    const digestLine = buildLines.find((l) =>
+      /^PROFILE_DIGEST=\$\(docker inspect/.test(l),
+    );
+    expect(digestLine).toMatch(/RepoDigests[\s\S]*"\$BUILT_IMAGE_ID"/);
+    expect(digestLine).not.toMatch(/"\$PROFILE_IMAGE"\s*\\?\s*$/);
+  });
+
+  test("ordering: build < capture-ID < scan-by-ID < push < digest-from-ID", () => {
+    const idxBuild = firstIndex(buildLines, /^docker buildx build\b/);
+    const idxCapture = firstIndex(
+      buildLines,
+      /^BUILT_IMAGE_ID=\$\(docker inspect /,
+    );
+    const idxScan = firstIndex(
+      buildLines,
+      /check-docker-secret-boundary\.sh --inspect-image "\$BUILT_IMAGE_ID"/,
+    );
+    const idxPush = firstIndex(buildLines, /^docker push "\$PROFILE_IMAGE"$/);
+    const idxDigest = firstIndex(
+      buildLines,
+      /^PROFILE_DIGEST=\$\(docker inspect/,
+    );
+    for (const i of [idxBuild, idxCapture, idxScan, idxPush, idxDigest]) {
+      expect(i).toBeGreaterThanOrEqual(0);
+    }
+    expect(idxBuild).toBeLessThan(idxCapture);
+    expect(idxCapture).toBeLessThan(idxScan);
+    expect(idxScan).toBeLessThan(idxPush);
+    expect(idxPush).toBeLessThan(idxDigest);
+  });
+
+  // Behavioral: run the REAL extracted bash blocks with a docker stub. These prove the
+  // fail-closed behavior, not just the wiring.
+  const idCaptureBlock =
+    buildScript.match(
+      /BUILT_IMAGE_ID=\$\(docker inspect[\s\S]*?echo "Built image ID: \$\{BUILT_IMAGE_ID\}"/,
+    )?.[0] ?? "";
+  const digestBlock =
+    buildScript.match(
+      /PROFILE_DIGEST=\$\(docker inspect[\s\S]*?echo "Resolved digest: \$\{PROFILE_DIGEST\}"/,
+    )?.[0] ?? "";
+
+  test("guard: both bash blocks were extracted", () => {
+    expect(idCaptureBlock).toMatch(/^BUILT_IMAGE_ID=/);
+    expect(digestBlock).toMatch(/^PROFILE_DIGEST=/);
+  });
+
+  function runIdCapture(stubId: string): { code: number; past: boolean } {
+    const harness = [
+      "set -e",
+      'PROFILE_IMAGE="u/r:profile-abc"',
+      `docker() { printf '%s\\n' ${shq(stubId)}; }`,
+      idCaptureBlock,
+      'echo "REACHED_PAST_CAPTURE"',
+    ].join("\n");
+    const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
+    return {
+      code: res.status ?? -1,
+      past: /REACHED_PAST_CAPTURE/.test(res.stdout),
+    };
+  }
+
+  test("a valid sha256 image ID passes the capture guard", () => {
+    const r = runIdCapture("sha256:" + "a".repeat(64));
+    expect(r.code).toBe(0);
+    expect(r.past).toBe(true);
+  });
+
+  test.each([
+    ["empty (docker inspect produced nothing)", ""],
+    ["not a sha256", "definitely-not-an-image-id"],
+    ["truncated digest", "sha256:abc"],
+    ["polluted by a banner", "Welcome!\nsha256:" + "a".repeat(64)],
+  ])("a bad image ID FAILS the capture fail-closed: %s", (_d, stub) => {
+    const r = runIdCapture(stub);
+    expect(r.code).not.toBe(0);
+    expect(r.past).toBe(false);
+  });
+
+  // The digest is resolved FROM the built image ID. `idDigest` is whatever RepoDigests yields for
+  // the SCANNED ID (in OUR repo); the TAG would (wrongly) resolve a DIFFERENT image's canonical
+  // digest — the hijack image. So if resolution were keyed on the tag, every case would resolve
+  // the tag's digest and proceed; keyed on the ID, an absent/malformed ID digest fails closed.
+  // NOTE on the empty case: on the legacy image store the scanned image has no RepoDigest until
+  // pushed; on the containerd store a build populates one but a concurrent retag reassociates the
+  // repo name away — both surface here as "no canonical repo digest for the ID" → fail closed.
+  function runDigestResolve(opts: { idDigest: string }): {
+    code: number;
+    deployed: boolean;
+  } {
+    const ID = "sha256:" + "a".repeat(64);
+    const tagDigest = "u/r@sha256:" + "b".repeat(64); // a DIFFERENT (hijack) image's digest
+    const harness = [
+      "set -e",
+      "DOCKER_USERNAME=u; DOCKER_REPO=r",
+      'PROFILE_IMAGE="u/r:profile-abc"',
+      `BUILT_IMAGE_ID=${shq(ID)}`,
+      `docker() {
+         case "$*" in
+           *RepoDigests*${ID}*) printf '%s\\n' ${shq(opts.idDigest)} ;;
+           *RepoDigests*) printf '%s\\n' ${shq(tagDigest)} ;;
+           *) : ;;
+         esac
+       }`,
+      digestBlock,
+      'echo "REACHED_DEPLOY"',
+    ].join("\n");
+    const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
+    return {
+      code: res.status ?? -1,
+      deployed: /REACHED_DEPLOY/.test(res.stdout),
+    };
+  }
+
+  test("normal case: the scanned ID has a canonical repo digest → resolves and deploy proceeds", () => {
+    const r = runDigestResolve({ idDigest: "u/r@sha256:" + "a".repeat(64) });
+    expect(r.code).toBe(0);
+    expect(r.deployed).toBe(true);
+  });
+
+  test("hijack case: the scanned ID has NO repo digest (never-pushed / retag-reassociated) → fail closed", () => {
+    // Keyed on $BUILT_IMAGE_ID, the absent digest → empty → abort. (Keyed on the tag, the stub's
+    // distinct tag digest would resolve and deploy would proceed — so this is load-bearing.)
+    const r = runDigestResolve({ idDigest: "" });
+    expect(r.code).not.toBe(0);
+    expect(r.deployed).toBe(false);
+  });
+
+  test("malformed digest: a non-canonical @sha256:<short> on the ID is rejected (fail closed)", () => {
+    // The end-anchored 64-hex grep must reject a short/garbage digest so it can't slip the
+    // non-empty check (symmetric with the strict BUILT_IMAGE_ID guard). Load-bearing for the
+    // grep -E tightening: a loose `grep "@sha256:"` would accept this and deploy it.
+    const r = runDigestResolve({ idDigest: "u/r@sha256:deadbeef" });
+    expect(r.code).not.toBe(0);
+    expect(r.deployed).toBe(false);
+  });
+});
