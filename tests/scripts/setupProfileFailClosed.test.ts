@@ -98,11 +98,14 @@ describe("setup-profile.sh — fail-open allow-list (the class guard)", () => {
 
 describe("setup-profile.sh — the rollback-protected tail ends at the cron write", () => {
   test("no fallible command runs between the cron write and DEPLOY_VALIDATED=1", () => {
-    // systemd (610) and cron (640) are the last host-state writes, and the EXIT rollback
-    // intentionally does NOT revert them. That is only safe because nothing fallible runs
-    // after them: the realistic late failures (health gate / nginx -t / certbot) all occur
-    // earlier and ARE covered by the trap. Lock that fact: the cron section's final write
-    // (chmod) must be followed only by echoes/assignments until validation.
+    // The systemd unit + cron file are the last host-state writes. They are now CAPTURED and
+    // reverted by rollback_deploy (restore-or-remove — see the systemd/cron rollback tests in
+    // setupProfileRollback.test.ts), because the cron `cat`/`chmod` run AFTER `systemctl enable
+    // profile` and can fail, which would otherwise leave a FRESH deploy enabled and resurrect
+    // the unvalidated stack on reboot. This test is now a SECONDARY hygiene guard: nothing
+    // fallible may run AFTER the cron chmod, so the echo-only tail truly cannot fail
+    // post-validation. A new fallible step here must move before the trap region OR get its
+    // own rollback undo.
     const idxCronChmod = firstIndex(setupLines, /^chmod 644 "\$CRON_FILE"$/);
     const idxValidated = firstIndex(setupLines, /^DEPLOY_VALIDATED=1$/);
     expect(idxCronChmod).toBeGreaterThanOrEqual(0);

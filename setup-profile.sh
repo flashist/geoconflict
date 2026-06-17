@@ -361,12 +361,64 @@ STACK_RECREATED=0
 # (Closing this live gap; the full LIFO rollback refactor remains the doctrine's deferred ideal.)
 DEFAULT_SITE_BAK="$PROFILE_DIR/sites-enabled-default.predeploy.bak"
 DEFAULT_SITE_REMOVED=0
+# systemd unit + cron file are the LAST host-state writes. The EXIT trap is live through them,
+# but a fallible step there (e.g. the cron `cat`/`chmod` runs AFTER `systemctl enable profile`)
+# could fail and leave a FRESH deploy with the service ENABLED + compose/env preserved — so a
+# reboot would resurrect the unvalidated stack. Capture each before writing and undo on
+# rollback: restore the previous content (redeploy) or disable+remove (fresh).
+SYSTEMD_UNIT="/etc/systemd/system/profile.service"
+SYSTEMD_UNIT_BAK="$PROFILE_DIR/profile.service.predeploy.bak"
+PROFILE_SERVICE_EXISTED=0
+SYSTEMD_WRITTEN=0
+CRON_FILE="/etc/cron.d/profile-backups"
+CRON_FILE_BAK="$PROFILE_DIR/profile-backups.cron.predeploy.bak"
+CRON_EXISTED=0
+CRON_WRITTEN=0
 rollback_deploy() {
     # Preserve the exit status that triggered this trap so the deploy still fails with its
     # ORIGINAL code (the rollback reports its own outcome but never masks the failure).
     local rc=$?
     [ "$DEPLOY_VALIDATED" = "1" ] && return 0
     echo "⚠️  Deploy failed (exit $rc) — rolling back to the previous known-good state..."
+    # Undo the systemd unit + cron file FIRST (they were the LAST mutations — LIFO). Critically,
+    # on a FRESH deploy a newly-ENABLED profile.service + the preserved compose/env would
+    # otherwise resurrect the unvalidated stack on the next reboot. Restore the previous content
+    # when it existed (redeploy — keep it enabled); disable + remove it when this deploy created
+    # it (fresh). Gated on *_WRITTEN so a failure BEFORE these sections leaves them untouched.
+    if [ "${CRON_WRITTEN:-0}" = "1" ]; then
+        if [ "$CRON_EXISTED" = "1" ] && [ -f "$CRON_FILE_BAK" ]; then
+            mv -f "$CRON_FILE_BAK" "$CRON_FILE" \
+                && echo "✅ ROLLBACK: restored the previous cron file." \
+                || echo "❌ ROLLBACK: failed to restore the previous cron file from $CRON_FILE_BAK."
+        else
+            rm -f "$CRON_FILE" \
+                && echo "✅ ROLLBACK: removed the newly-created cron file." \
+                || echo "❌ ROLLBACK: failed to remove the newly-created cron file $CRON_FILE."
+        fi
+    fi
+    if [ "${SYSTEMD_WRITTEN:-0}" = "1" ]; then
+        if [ "$PROFILE_SERVICE_EXISTED" = "1" ] && [ -f "$SYSTEMD_UNIT_BAK" ]; then
+            # Redeploy: restore the previous unit (it was enabled before — leave it enabled).
+            if mv -f "$SYSTEMD_UNIT_BAK" "$SYSTEMD_UNIT"; then
+                systemctl daemon-reload || true
+                echo "✅ ROLLBACK: restored the previous profile.service."
+            else
+                echo "❌ ROLLBACK: failed to restore profile.service from $SYSTEMD_UNIT_BAK."
+            fi
+        else
+            # Fresh: this deploy created (and enabled) the service — disable + remove it so a
+            # reboot can't resurrect the unvalidated stack. Disable BEFORE rm so the
+            # multi-user.target.wants symlink is cleaned up while the unit still resolves. Guard
+            # the rm (|| echo) like every other rollback action: a bare `rm -f` that returns
+            # non-zero (read-only fs / permission) would abort this trap under set -e, masking
+            # the original exit code and skipping the remaining rollback steps.
+            systemctl disable profile 2>/dev/null || true
+            rm -f "$SYSTEMD_UNIT" \
+                && echo "✅ ROLLBACK: disabled and removed the newly-created profile.service." \
+                || echo "❌ ROLLBACK: disabled but could NOT remove $SYSTEMD_UNIT — remove it manually."
+            systemctl daemon-reload || true
+        fi
+    fi
     # Restore nginx's default site first (if this deploy removed it) so the nginx
     # restart/reload in the profile-site branch below picks it up. cp -P preserves a symlink;
     # the backup lives outside sites-enabled/ so nginx never tried to load it.
@@ -1022,7 +1074,18 @@ fi
 
 print_header "CONFIGURING SYSTEMD AUTO-START"
 
-cat > /etc/systemd/system/profile.service << 'EOF'
+# Capture the unit's pre-deploy state so the EXIT rollback can restore-or-remove it. Mark it
+# WRITTEN right after the heredoc so any later failure (daemon-reload, enable, or the cron
+# section) reverts it — a fresh deploy must never leave an enabled service behind.
+if [ -f "$SYSTEMD_UNIT" ]; then
+    cp -f "$SYSTEMD_UNIT" "$SYSTEMD_UNIT_BAK"
+    PROFILE_SERVICE_EXISTED=1
+fi
+# Mark WRITTEN BEFORE the heredoc: once we begin overwriting the unit, a mid-write failure
+# (e.g. disk full) must still trigger the rollback restore-or-remove — otherwise a redeploy
+# would leave the live unit truncated with its backup unrestored.
+SYSTEMD_WRITTEN=1
+cat > "$SYSTEMD_UNIT" << 'EOF'
 [Unit]
 Description=Player Profile Backend Stack
 Requires=docker.service
@@ -1051,7 +1114,14 @@ echo "✅ systemd service 'profile' enabled (starts on reboot)"
 
 print_header "SETTING UP BACKUP CRON JOBS"
 
-CRON_FILE="/etc/cron.d/profile-backups"
+# CRON_FILE is defined with the rollback-state vars above. Capture its pre-deploy state so the
+# EXIT rollback can restore-or-remove it, and mark it WRITTEN right after the heredoc.
+if [ -f "$CRON_FILE" ]; then
+    cp -f "$CRON_FILE" "$CRON_FILE_BAK"
+    CRON_EXISTED=1
+fi
+# Mark WRITTEN before the heredoc (same reasoning as the unit above — cover a mid-write failure).
+CRON_WRITTEN=1
 cat > "$CRON_FILE" << EOF
 # Profile backups — added by setup-profile.sh. T8 hardens (nightly + S3 + restore drill).
 SHELL=/bin/bash
@@ -1099,4 +1169,4 @@ echo "======================================================"
 # Entire setup succeeded — mark validated so the EXIT rollback trap is a no-op, and
 # drop the rollback backups now that the new stack is fully applied.
 DEPLOY_VALIDATED=1
-rm -f "$PROFILE_ENV_BAK" "$COMPOSE_BAK" "$DEFAULT_SITE_BAK" ${SITE_BAK:+"$SITE_BAK"}
+rm -f "$PROFILE_ENV_BAK" "$COMPOSE_BAK" "$DEFAULT_SITE_BAK" "$SYSTEMD_UNIT_BAK" "$CRON_FILE_BAK" ${SITE_BAK:+"$SITE_BAK"}

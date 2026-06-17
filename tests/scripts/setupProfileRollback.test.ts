@@ -600,3 +600,137 @@ describe("setup-profile.sh restores nginx to its prior run-state on a fresh cert
     expect(code).toBe(7);
   });
 });
+
+// ── Rollback reverts the systemd unit + cron file (resurrect-on-reboot fix) ──
+// The EXIT trap is live through the systemd + cron sections, and the cron `cat`/`chmod` run
+// AFTER `systemctl enable profile`. A failure there on a FRESH deploy used to leave
+// profile.service ENABLED with compose/env preserved → a reboot resurrected the unvalidated
+// stack. Fix: capture each file's pre-deploy state before writing, and on rollback restore the
+// previous content (redeploy) or disable+remove (fresh).
+describe("setup-profile.sh reverts the systemd unit + cron file on rollback (no resurrect-on-reboot)", () => {
+  const fullScript = fs.readFileSync(SETUP_PROFILE, "utf8");
+  const rollbackFn =
+    fullScript.match(/rollback_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+
+  test("captures state, then marks WRITTEN BEFORE the heredoc (covers a mid-write failure)", () => {
+    // Order: capture (cp + EXISTED) < WRITTEN=1 < the `cat` heredoc. The flag must precede the
+    // write so a mid-write `cat` failure (e.g. disk full) still triggers the rollback
+    // restore-or-remove — otherwise a redeploy would leave a truncated unit/cron unrestored.
+    const idxUnitCap = firstIndex(
+      /cp -f "\$SYSTEMD_UNIT" "\$SYSTEMD_UNIT_BAK"/,
+    );
+    const idxUnitFlag = firstIndex(/^SYSTEMD_WRITTEN=1$/);
+    const idxUnitWrite = firstIndex(/^cat > "\$SYSTEMD_UNIT" << 'EOF'$/);
+    expect(idxUnitCap).toBeGreaterThanOrEqual(0);
+    expect(idxUnitFlag).toBeGreaterThan(idxUnitCap);
+    expect(idxUnitWrite).toBeGreaterThan(idxUnitFlag);
+
+    const idxCronCap = firstIndex(/cp -f "\$CRON_FILE" "\$CRON_FILE_BAK"/);
+    const idxCronFlag = firstIndex(/^CRON_WRITTEN=1$/);
+    const idxCronWrite = firstIndex(/^cat > "\$CRON_FILE" << EOF$/);
+    expect(idxCronCap).toBeGreaterThanOrEqual(0);
+    expect(idxCronFlag).toBeGreaterThan(idxCronCap);
+    expect(idxCronWrite).toBeGreaterThan(idxCronFlag);
+  });
+
+  test("the success cleanup drops the new unit + cron backups", () => {
+    expect(
+      lines.some((l) =>
+        /rm -f .*"\$SYSTEMD_UNIT_BAK" "\$CRON_FILE_BAK"/.test(l),
+      ),
+    ).toBe(true);
+  });
+
+  test("rollback disables+removes a fresh unit but restores a prior one (static)", () => {
+    expect(rollbackFn).toMatch(/^rollback_deploy\(\) \{/); // guard against a regex miss
+    expect(rollbackFn).toMatch(/SYSTEMD_WRITTEN:-0/);
+    expect(rollbackFn).toMatch(/CRON_WRITTEN:-0/);
+    expect(rollbackFn).toMatch(/systemctl disable profile/); // fresh path
+    expect(rollbackFn).toMatch(/mv -f "\$SYSTEMD_UNIT_BAK" "\$SYSTEMD_UNIT"/); // redeploy restore
+    expect(rollbackFn).toMatch(/systemctl daemon-reload/);
+  });
+
+  // BEHAVIORAL: run the REAL rollback_deploy with the systemd/cron written-flags set, real temp
+  // files for the unit + cron, and a recording systemctl stub (mv/rm/cp run for real so file
+  // effects are observable). Fresh => disable+remove (+ daemon-reload); redeploy => restore prior
+  // content and do NOT disable. Exit code preserved in both.
+  function runServiceRollback(opts: { existed: boolean }): {
+    code: number;
+    stdout: string;
+    calls: string;
+    unitContent: string | null;
+    cronContent: string | null;
+  } {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "svc-rollback-"));
+    const script = fs.readFileSync(SETUP_PROFILE, "utf8");
+    const restoreFn =
+      script.match(/restore_previous_config\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    const rbFn = script.match(/rollback_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    const callsLog = path.join(dir, "calls");
+    const unit = path.join(dir, "profile.service");
+    const unitBak = path.join(dir, "profile.service.bak");
+    const cron = path.join(dir, "profile-backups");
+    const cronBak = path.join(dir, "profile-backups.bak");
+    // The deploy just wrote the NEW unit + cron (always present at rollback time).
+    fs.writeFileSync(unit, "NEW-UNIT\n");
+    fs.writeFileSync(cron, "NEW-CRON\n");
+    if (opts.existed) {
+      // Redeploy: a prior unit + cron were backed up before the overwrite.
+      fs.writeFileSync(unitBak, "OLD-UNIT\n");
+      fs.writeFileSync(cronBak, "OLD-CRON\n");
+    }
+    const harness = [
+      "set -e",
+      restoreFn,
+      rbFn,
+      `systemctl() { echo "systemctl $*" >> "${callsLog}"; return 0; }`,
+      `docker() { echo "docker $*" >> "${callsLog}"; return 0; }`,
+      `SYSTEMD_UNIT="${unit}"; SYSTEMD_UNIT_BAK="${unitBak}"`,
+      `CRON_FILE="${cron}"; CRON_FILE_BAK="${cronBak}"`,
+      `PROFILE_SERVICE_EXISTED=${opts.existed ? "1" : "0"}; SYSTEMD_WRITTEN=1`,
+      `CRON_EXISTED=${opts.existed ? "1" : "0"}; CRON_WRITTEN=1`,
+      // keep the other rollback branches inert (no nginx, no stack work).
+      `PROFILE_DIR="${dir}"; PROFILE_ENV_BAK="${dir}/noenv"; COMPOSE_BAK="${dir}/nocompose"`,
+      `DEFAULT_SITE_BAK="${dir}/nodefault"; DEFAULT_SITE_REMOVED=0`,
+      `DEPLOY_VALIDATED=0; STACK_RECREATED=0; FRESH_DEPLOY=0; SITE_BAK=""`,
+      "trap rollback_deploy EXIT",
+      "( exit 7 )",
+    ].join("\n");
+    const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
+    const read = (p: string) =>
+      fs.existsSync(p) ? fs.readFileSync(p, "utf8").trim() : null;
+    const out = {
+      code: res.status ?? -1,
+      stdout: res.stdout ?? "",
+      calls: fs.existsSync(callsLog) ? fs.readFileSync(callsLog, "utf8") : "",
+      unitContent: read(unit),
+      cronContent: read(cron),
+    };
+    fs.rmSync(dir, { recursive: true, force: true });
+    return out;
+  }
+
+  test("FRESH deploy: rollback disables + removes the service and removes the cron file", () => {
+    const r = runServiceRollback({ existed: false });
+    expect(r.calls).toMatch(/systemctl disable profile/);
+    expect(r.calls).toMatch(/systemctl daemon-reload/);
+    expect(r.unitContent).toBeNull(); // profile.service removed
+    expect(r.cronContent).toBeNull(); // cron file removed
+    expect(r.stdout).toMatch(
+      /disabled and removed the newly-created profile\.service/,
+    );
+    expect(r.stdout).toMatch(/removed the newly-created cron file/);
+    expect(r.code).toBe(7); // original failure code preserved
+  });
+
+  test("REDEPLOY: rollback restores the previous unit + cron content (does NOT disable)", () => {
+    const r = runServiceRollback({ existed: true });
+    expect(r.unitContent).toBe("OLD-UNIT"); // previous unit restored from backup
+    expect(r.cronContent).toBe("OLD-CRON"); // previous cron restored from backup
+    expect(r.calls).toMatch(/systemctl daemon-reload/);
+    expect(r.calls).not.toMatch(/systemctl disable profile/); // was enabled before — keep it
+    expect(r.stdout).toMatch(/restored the previous profile\.service/);
+    expect(r.stdout).toMatch(/restored the previous cron file/);
+    expect(r.code).toBe(7);
+  });
+});
