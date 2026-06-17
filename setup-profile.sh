@@ -153,6 +153,9 @@ POSTGRES_DB="${POSTGRES_DB:-profile}"
 CERTBOT_EMAIL="${CERTBOT_EMAIL:-ruflashist@gmail.com}"
 PROFILE_DOMAIN="${PROFILE_DOMAIN:-}"
 PROFILE_INTERNAL_ALLOW_IPS="${PROFILE_INTERNAL_ALLOW_IPS:-}"
+# Break-glass: permit a PUBLIC /internal/ allow-list token (`all` / `*/0`). Default off — such a
+# token is otherwise rejected fail-closed (see the allow-list validation in the HTTPS section).
+PROFILE_INTERNAL_ALLOW_PUBLIC="${PROFILE_INTERNAL_ALLOW_PUBLIC:-}"
 
 # Service-to-service token (shared with the game server in T6). It MUST stay stable
 # across redeploys — rotating it silently would break game-server crediting calls —
@@ -1022,11 +1025,61 @@ if [ -n "$PROFILE_DOMAIN" ]; then
         -m "$CERTBOT_EMAIL" \
         -d "$PROFILE_DOMAIN"
 
-    # Build the allow-list directives for the internal endpoints from the
-    # configured game-server IPs (comma- or space-separated).
+    # Build the allow-list directives for the internal endpoints from the configured game-server
+    # IPs (comma- or space-separated). VALIDATE each token first: the /internal/ block is
+    # `allow <token>; … deny all;` and nginx allow/deny is FIRST-MATCH, so an overbroad token
+    # silently makes this service-to-service endpoint PUBLIC — and nginx -t would ACCEPT it:
+    #   • `all` (any case) → `allow all;` matches everyone;
+    #   • any `*/0` CIDR (0.0.0.0/0, ::/0, 10.0.0.0/0, …) → matches everyone;
+    #   • a token with characters outside an IPv4/IPv6/CIDR set could inject an nginx directive
+    #     into the block (e.g. `1.2.3.4; return 200`).
+    # Reject these fail-closed (abort BEFORE writing the config, so the EXIT rollback restores the
+    # prior state). nginx -t remains the authority for full address-format validation of what
+    # passes here. A DELIBERATE public widening requires PROFILE_INTERNAL_ALLOW_PUBLIC=1 (loud).
     ALLOW_DIRECTIVES=""
     if [ -n "$PROFILE_INTERNAL_ALLOW_IPS" ]; then
         for ip in ${PROFILE_INTERNAL_ALLOW_IPS//,/ }; do
+            ip_lc=$(printf '%s' "$ip" | LC_ALL=C tr 'A-Z' 'a-z')
+            # Is this a match-EVERYONE token (would make /internal/ PUBLIC; nginx -t accepts it)?
+            #   • `all`;
+            #   • any CIDR with a /0 prefix in ANY spelling — /0, /00, /000 — because nginx reads the
+            #     prefix as a plain DECIMAL (leading zeros are NOT octal, they collapse to 0), so /00
+            #     == /0 == a zero-bit mask matching everyone. Normalize: strip zeros from the prefix;
+            #     empty ⇒ the prefix was all-zeros ⇒ /0. (A bare `*/0` glob would MISS /00.)
+            is_public=0
+            case $ip_lc in
+                all) is_public=1 ;;
+                */*)
+                    ip_prefix=${ip_lc##*/}
+                    if [ -z "${ip_prefix//0/}" ]; then is_public=1; fi
+                    ;;
+            esac
+            if [ "$is_public" = "1" ]; then
+                # nginx allow/deny is first-match, so a public token overrides the 'deny all' below.
+                if is_truthy "$PROFILE_INTERNAL_ALLOW_PUBLIC"; then
+                    echo "⚠️  PROFILE_INTERNAL_ALLOW_IPS token '${ip}' makes /internal/ PUBLIC, and"
+                    echo "    PROFILE_INTERNAL_ALLOW_PUBLIC=1 is set — the endpoint will be reachable"
+                    echo "    from ANY address. The only protection becomes the service token."
+                else
+                    echo "❌ PROFILE_INTERNAL_ALLOW_IPS token '${ip}' would expose /internal/ to the"
+                    echo "   public internet (a /0 — or 'all' — matches every client). /internal/ is a"
+                    echo "   service-to-service endpoint — use the specific game-server IP(s)/CIDR(s)."
+                    echo "   To widen deliberately, re-run with PROFILE_INTERNAL_ALLOW_PUBLIC=1."
+                    exit 1
+                fi
+            else
+                # Not public: reject a token with characters outside the IPv4/IPv6/CIDR set — blocks
+                # nginx-directive injection (e.g. `1.2.3.4; return 200`) and obvious garbage with a
+                # clear error. nginx -t validates the precise address shape of what passes here.
+                case $ip_lc in
+                    *[!0-9a-fA-F:./]*)
+                        echo "❌ PROFILE_INTERNAL_ALLOW_IPS token '${ip}' contains a character that is"
+                        echo "   not part of an IPv4/IPv6/CIDR address. Refusing (it could inject an"
+                        echo "   nginx directive into the /internal/ block). Provide plain IP/CIDR tokens."
+                        exit 1
+                        ;;
+                esac
+            fi
             ALLOW_DIRECTIVES+="        allow ${ip};"$'\n'
         done
     fi

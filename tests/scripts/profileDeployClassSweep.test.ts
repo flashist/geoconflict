@@ -425,10 +425,10 @@ describe("profile-deploy class sweep — executable merge bar", () => {
     //   (b) an OPEN accepted-residual row in the AUTHORITATIVE doctrine register (§10.2) whose
     //       rationale names the variable — NOT a string in this test's own text.
     // This FORCES the next reviewer's sub-instance — a brand-new remote staging path — into the
-    // register instead of letting it slip in untested. After the R2 fix, REMOTE_ENV is host-side
-    // mktemp-allocated (branch a); REMOTE_SCRIPT is a fixed-name pre-flock path covered by the
-    // doctrine's RESIDUAL[D-remote-script] OPEN row (branch b). A NEW remote path with neither a
-    // unique name nor a doctrine row fails this assertion.
+    // register instead of letting it slip in untested. Both REMOTE_ENV (R2 fix) and REMOTE_SCRIPT
+    // (D-remote-script fix) are now host-side mktemp-allocated per deploy (branch a) — the
+    // D-remote-script residual was CLOSED by making the script path unique. A NEW remote path with
+    // neither a unique name nor an OPEN doctrine row fails this assertion.
     test("every remote staging path is uniquely-named OR carries a doctrine register row", () => {
       // Remote-path assignments build-deploy stages to the box. Match BOTH forms: a literal
       // `VAR="/root/…"` and a host-side allocation `VAR=$(ssh … mktemp /root/…)` (the R2 fix).
@@ -527,21 +527,62 @@ describe("profile-deploy class sweep — executable merge bar", () => {
     });
 
     // ─────────────────────────────────────────────────────────────────────────
-    // REMOTE_SCRIPT accepted residual (same wrong-domain exposure, benign). It is scp'd to
-    // the FIXED path /root/setup-profile.sh before any remote flock exists, so two deploys
-    // overwrite the same file pre-flock. Accepted because the content is deploy-invariant
-    // (every deploy uploads the same setup-profile.sh), so a clobber is harmless — unlike
-    // REMOTE_ENV, whose content is operator-specific secrets. Registered here (key:
-    // REMOTE_SCRIPT) so the cross-host lint above counts it covered and a future reviewer
-    // who cites it is triaged against this row rather than discovering it un-enumerated.
+    // CLOSED[D-remote-script] — the fixed-name race is fixed (was an accepted "benign" residual).
+    // REMOTE_SCRIPT was scp'd to the FIXED /root/setup-profile.sh before any remote flock exists.
+    // The "benign because content is deploy-invariant" rationale was FALSE across commits/PRs/local
+    // edits: a concurrent operator (different workstation — the local mkdir lock is per-workstation)
+    // could overwrite the file between our upload and our execute, so we'd run THEIR script version
+    // with OUR env (provenance mismatch, or a stale/unsafe rollback path against live data). Fixed
+    // by allocating a per-deploy host-unique path with remote mktemp (validated, cleaned by
+    // finalize_deploy) — invariant I-D, mirroring the REMOTE_ENV / D-R2 fix. Now branch (a) of the
+    // cross-host lint covers it; the doctrine §10.2 row is CLOSED.
     // ─────────────────────────────────────────────────────────────────────────
-    test.skip("RESIDUAL[D-remote-script] (accepted: benign): REMOTE_SCRIPT is fixed-name pre-flock; deploy-invariant content", () => {
-      expect(buildScript).toMatch(/REMOTE_SCRIPT="\/root\/setup-profile\.sh"/);
-      // It is the same uploaded script every deploy (content-invariant), so a clobber
-      // between two overlapping deploys cannot corrupt a secret — unlike REMOTE_ENV.
-      expect(buildScript).toMatch(
-        /"\$\{SCP_CMD\[@\]\}" "\$SETUP_SCRIPT" "\$\{REMOTE_USER\}@\$\{PROFILE_SERVER_HOST\}:\$\{REMOTE_SCRIPT\}"/,
+    test("CLOSED[D-remote-script]: REMOTE_SCRIPT is a per-deploy host-unique mktemp path", () => {
+      const remoteScriptLine = buildLines.find((l) =>
+        /^REMOTE_SCRIPT=.*\.profile-deploy-setup/.test(l),
       );
+      expect(remoteScriptLine).toBeDefined();
+      // The fixed-name form is GONE...
+      expect(buildScript).not.toMatch(
+        /REMOTE_SCRIPT="\/root\/setup-profile\.sh"/,
+      );
+      // ...allocated with mktemp over SSH (host-side uniqueness), like REMOTE_ENV.
+      expect(remoteScriptLine ?? "").toMatch(/mktemp/);
+      expect(remoteScriptLine ?? "").toMatch(/\$\{SSH_CMD\[@\]\}/);
+      // pattern-validated before use (fail-closed), staged, and cleaned by finalize_deploy.
+      expect(buildScript).toMatch(/remote_script_re=/);
+      expect(buildScript).toMatch(
+        /\[\[ \$REMOTE_SCRIPT =~ \$remote_script_re \]\]/,
+      );
+      expect(buildScript).toMatch(/REMOTE_SCRIPT_STAGED=1/);
+      const finalizeFn =
+        buildScript.match(/finalize_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+      expect(finalizeFn).toMatch(/REMOTE_SCRIPT_STAGED/);
+      expect(finalizeFn).toMatch(/rm -f \$\{REMOTE_SCRIPT\}/);
+    });
+
+    // Behavioral: the captured remote SCRIPT path is pattern-validated fail-closed (same MOTD/
+    // banner-pollution defense as REMOTE_ENV). Drives the REAL extracted regex.
+    test("the captured remote SCRIPT path is pattern-validated (fail-closed) before use", () => {
+      const reLine = buildLines.find((l) => /^remote_script_re=/.test(l));
+      expect(reLine).toBeDefined();
+      const check = (value: string) => {
+        const harness = [
+          "set -e",
+          reLine,
+          'REMOTE_SCRIPT="$1"',
+          'if [ -z "$REMOTE_SCRIPT" ] || ! [[ $REMOTE_SCRIPT =~ $remote_script_re ]]; then exit 1; fi',
+          "exit 0",
+        ].join("\n");
+        return spawnSync("/bin/bash", ["-c", harness, "_", value], {
+          encoding: "utf8",
+        }).status;
+      };
+      expect(check("/root/.profile-deploy-setup.AbC12345")).toBe(0); // clean path accepted
+      expect(check("MOTD\n/root/.profile-deploy-setup.AbC12345")).toBe(1); // banner pollution
+      expect(check("/root/.profile-deploy-setup.AbC12345\nlogout")).toBe(1); // trailing noise
+      expect(check("")).toBe(1); // empty (mktemp failed)
+      expect(check("/root/setup-profile.sh")).toBe(1); // the OLD fixed name is rejected
     });
 
     // Behavioral CONTROL proving R2 is load-bearing (always runs, green): the OLD
@@ -870,11 +911,12 @@ describe("profile-deploy class sweep — executable merge bar", () => {
 
     // NON-VACUITY: a parse miss must fail loudly, not silently empty the matrices below.
     test("the register and the merge bar's declarations both parse (non-vacuous)", () => {
-      // After closing A-sshpass: OPEN = {D-remote-script, C-R3}, CLOSED = {D-R2, A-sshpass}.
-      expect(openRows.length).toBeGreaterThanOrEqual(2);
-      expect(closedRows.length).toBeGreaterThanOrEqual(2);
-      expect(skipResidualTitles.length).toBeGreaterThanOrEqual(2);
-      expect(closedGuardTitles.length).toBeGreaterThanOrEqual(2);
+      // After closing A-sshpass + D-remote-script: OPEN = {C-R3}, CLOSED = {D-R2, A-sshpass,
+      // D-remote-script}.
+      expect(openRows.length).toBeGreaterThanOrEqual(1);
+      expect(closedRows.length).toBeGreaterThanOrEqual(3);
+      expect(skipResidualTitles.length).toBeGreaterThanOrEqual(1);
+      expect(closedGuardTitles.length).toBeGreaterThanOrEqual(3);
     });
 
     // FORMAT GUARD: any line that LOOKS like a register row (starts with "- `RESIDUAL[") MUST

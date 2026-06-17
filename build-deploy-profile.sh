@@ -171,6 +171,11 @@ DEPLOY_RECORD_TMP=""
 # 0600 file holding the SSH password for `sshpass -f` (emergency fallback only). Initialized
 # here so the EXIT trap can clean it even if it fires before the file is created.
 SSH_PASSWORD_FILE=""
+# Per-deploy remote path for the setup script (allocated host-side with mktemp, like REMOTE_ENV
+# — a fixed name lets a concurrent operator clobber it between our upload and execute). The
+# remote-cleanup branch only runs once REMOTE_SCRIPT_STAGED=1, which is set after SSH_CMD exists.
+REMOTE_SCRIPT=""
+REMOTE_SCRIPT_STAGED=0
 
 finalize_deploy() {
     # Idempotent: the guard flag guarantees EXACTLY ONE validation_result line even if
@@ -187,6 +192,11 @@ finalize_deploy() {
     if [ "$REMOTE_ENV_STAGED" = "1" ]; then
         # Best-effort; ignore errors (the host may be unreachable on a failure path).
         "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
+    fi
+    if [ "$REMOTE_SCRIPT_STAGED" = "1" ]; then
+        # The per-deploy setup script (not a secret, so removed after execution rather than
+        # before). Best-effort — host may be unreachable on a failure path.
+        "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_SCRIPT}" >/dev/null 2>&1 || true
     fi
     # Atomic record write. The body lines were accumulated into DEPLOY_RECORD_TMP (never
     # appended to the shared record yet). Append the single self-identifying result line to
@@ -308,8 +318,6 @@ elif [ -n "$SSH_PASSWORD" ]; then
     SSH_CMD=(sshpass -f "$SSH_PASSWORD_FILE" ssh -o StrictHostKeyChecking=accept-new)
 fi
 
-REMOTE_SCRIPT="/root/setup-profile.sh"
-
 print_header "DEPLOYING PROFILE BACKEND TO ${PROFILE_SERVER_HOST}"
 echo "Remote user:   ${REMOTE_USER}"
 echo "Remote host:   ${PROFILE_SERVER_HOST}"
@@ -320,6 +328,26 @@ echo ""
 # ── Upload setup script ───────────────────────────────────────────────────────
 
 print_header "UPLOADING SETUP SCRIPT"
+# Allocate a PER-DEPLOY remote path for the setup script with mktemp ON THE BOX — NOT a fixed
+# /root/setup-profile.sh. The remote flock lives INSIDE the script, so the upload+execute of the
+# script FILE is not serialized; a fixed name lets a concurrent operator (a different workstation
+# — the local mkdir lock is per-workstation — possibly on a different commit or with local edits)
+# clobber it between our upload and our execute, so we would run THEIR script version with OUR env
+# (provenance mismatch, or running a stale/unsafe rollback path against live data). A host-unique
+# name per deploy means each deploy uploads and runs exactly its OWN content (invariant I-D:
+# uniquely-name shared remote resources). finalize_deploy removes it on exit; it is not a secret,
+# so there is no rush to delete it mid-run (which could unlink the script bash is executing).
+REMOTE_SCRIPT=$("${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" 'umask 077; mktemp /root/.profile-deploy-setup.XXXXXXXX' 2>/dev/null) || true
+# Validate STRICTLY before trusting the path (a MOTD/banner/.bashrc echo could pollute stdout) —
+# same fail-closed discipline as REMOTE_ENV below. (Variable-held regex is bash-3.2 safe.)
+remote_script_re='^/root/\.profile-deploy-setup\.[A-Za-z0-9]+$'
+if [ -z "$REMOTE_SCRIPT" ] || ! [[ $REMOTE_SCRIPT =~ $remote_script_re ]]; then
+    echo "Error: remote setup-script path allocation on ${PROFILE_SERVER_HOST} returned an" >&2
+    echo "       unexpected value — remote mktemp failed, or its stdout was polluted by a" >&2
+    echo "       banner/MOTD/.bashrc. Got: ${REMOTE_SCRIPT}" >&2
+    exit 1
+fi
+REMOTE_SCRIPT_STAGED=1
 chmod +x "$SETUP_SCRIPT"
 "${SCP_CMD[@]}" "$SETUP_SCRIPT" "${REMOTE_USER}@${PROFILE_SERVER_HOST}:${REMOTE_SCRIPT}"
 echo "Uploaded to ${REMOTE_SCRIPT}"
@@ -372,6 +400,7 @@ REMOTE_ENV_STAGED=1
     printf "export DATABASE_URL=%q\n" "${DATABASE_URL:-}"
     printf "export PROFILE_INTERNAL_TOKEN=%q\n" "${PROFILE_INTERNAL_TOKEN:-}"
     printf "export PROFILE_INTERNAL_ALLOW_IPS=%q\n" "${PROFILE_INTERNAL_ALLOW_IPS:-}"
+    printf "export PROFILE_INTERNAL_ALLOW_PUBLIC=%q\n" "${PROFILE_INTERNAL_ALLOW_PUBLIC:-}"
     printf "export CERTBOT_EMAIL=%q\n" "${CERTBOT_EMAIL:-ruflashist@gmail.com}"
     printf "export DOCKER_USERNAME=%q\n" "${DOCKER_USERNAME:-}"
     printf "export DOCKER_TOKEN=%q\n" "${DOCKER_TOKEN:-}"

@@ -530,3 +530,93 @@ describe("setup-profile.sh declares its validation scope + the deferred readines
     expect(numericCriterion).toEqual([]);
   });
 });
+
+// ── Finding 2: the /internal/ nginx allow-list must not be silently widened to the public net ──
+// PROFILE_INTERNAL_ALLOW_IPS tokens are interpolated into `allow <token>;` before `deny all;`.
+// nginx allow/deny is FIRST-MATCH, so `all` / `*/0` would make the service-to-service endpoint
+// public — and nginx -t ACCEPTS those. The deploy validates each token fail-closed; a token with
+// non-IP chars is rejected (nginx-directive-injection guard); a deliberate public widening needs
+// PROFILE_INTERNAL_ALLOW_PUBLIC=1 (loud).
+describe("setup-profile.sh validates the /internal/ allow-list (no silent public widening)", () => {
+  const isTruthyFn =
+    setupScript.match(/is_truthy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+  const allowBlock =
+    setupScript.match(
+      /if \[ -n "\$PROFILE_INTERNAL_ALLOW_IPS" \]; then[\s\S]*?\n {4}fi/,
+    )?.[0] ?? "";
+
+  test("the validation + break-glass exist (static)", () => {
+    expect(isTruthyFn).toMatch(/^is_truthy\(\) \{/); // guard against a regex miss
+    expect(allowBlock).toMatch(
+      /if \[ -n "\$PROFILE_INTERNAL_ALLOW_IPS" \]; then/,
+    );
+    expect(allowBlock).toMatch(/all\) is_public=1/); // reject `all`
+    // reject any /0 prefix in ANY spelling (/0, /00, /000) via zero-stripping normalization
+    expect(allowBlock).toMatch(/ip_prefix=\$\{ip_lc##\*\/\}/);
+    expect(allowBlock).toMatch(/\$\{ip_prefix\/\/0\/\}/);
+    expect(allowBlock).toMatch(/\*\[!0-9a-fA-F:\.\/\]\*\)/); // reject non-IP chars (injection)
+    expect(allowBlock).toMatch(/PROFILE_INTERNAL_ALLOW_PUBLIC/); // break-glass
+    // build-deploy passes the break-glass flag through to the box.
+    expect(
+      buildLines.some((l) => /export PROFILE_INTERNAL_ALLOW_PUBLIC=%q/.test(l)),
+    ).toBe(true);
+  });
+
+  // Behavioral: run the REAL extracted validation loop (+ is_truthy) over a token set.
+  function runAllowList(
+    ips: string,
+    allowPublic: string,
+  ): { code: number; stdout: string } {
+    const harness = [
+      "set -e",
+      isTruthyFn,
+      'ALLOW_DIRECTIVES=""',
+      `PROFILE_INTERNAL_ALLOW_IPS=${shq(ips)}`,
+      `PROFILE_INTERNAL_ALLOW_PUBLIC=${shq(allowPublic)}`,
+      allowBlock,
+      'printf "BEGIN\\n%sEND\\n" "$ALLOW_DIRECTIVES"',
+    ].join("\n");
+    const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
+    return { code: res.status ?? -1, stdout: res.stdout ?? "" };
+  }
+
+  test("valid IPv4/IPv6/CIDR tokens are accepted and become allow directives", () => {
+    const r = runAllowList("1.2.3.4, 10.0.0.0/8 2001:db8::1,::1", "");
+    expect(r.code).toBe(0);
+    expect(r.stdout).toMatch(/allow 1\.2\.3\.4;/);
+    expect(r.stdout).toMatch(/allow 10\.0\.0\.0\/8;/);
+    expect(r.stdout).toMatch(/allow 2001:db8::1;/);
+    expect(r.stdout).toMatch(/allow ::1;/);
+  });
+
+  test.each([
+    ["all", "all (lowercase)"],
+    ["ALL", "ALL (uppercase)"],
+    ["0.0.0.0/0", "IPv4 default route"],
+    ["::/0", "IPv6 default route"],
+    ["10.0.0.0/0", "any /0 prefix matches everyone"],
+    ["0.0.0.0/00", "leading-zero /00 == /0 (the adversarial bypass)"],
+    ["::/00", "IPv6 /00 == /0"],
+    ["0.0.0.0/000", "/000 == /0"],
+  ])("public token '%s' is REJECTED fail-closed (%s)", (token) => {
+    expect(runAllowList(token, "").code).not.toBe(0);
+  });
+
+  test("a real CIDR with a non-zero prefix written with a leading zero (/08 == /8) is ACCEPTED", () => {
+    // Normalization must reject ONLY all-zero prefixes; /08 (=/8) is a real bound, not /0.
+    const r = runAllowList("10.0.0.0/08", "");
+    expect(r.code).toBe(0);
+    expect(r.stdout).toMatch(/allow 10\.0\.0\.0\/08;/);
+  });
+
+  test("an nginx-directive injection token is rejected fail-closed", () => {
+    expect(runAllowList("1.2.3.4; return 200", "").code).not.toBe(0);
+  });
+
+  test("break-glass PROFILE_INTERNAL_ALLOW_PUBLIC=1 permits `all` with a loud warning", () => {
+    const r = runAllowList("all", "1");
+    expect(r.code).toBe(0);
+    expect(r.stdout).toMatch(/allow all;/); // the directive is emitted...
+    expect(r.stdout).toMatch(/PUBLIC/); // ...behind the loud ⚠️ warning
+  });
+});

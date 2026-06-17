@@ -414,9 +414,12 @@ tests can drift without turning the coupling test red. Row format:
   deprecated, default-off `ALLOW_PROFILE_SSH_PASSWORD_FALLBACK` path now feeds `sshpass -f` from a 0600
   temp file (only the file PATH is in argv, never the secret), cleaned by `finalize_deploy`. Locked
   green by `CLOSED[A-sshpass]`.
-- `RESIDUAL[D-remote-script]` — accepted: benign — OPEN — `REMOTE_SCRIPT` is a fixed-name path scp'd
-  pre-flock, but its content is deploy-invariant (every deploy uploads the same `setup-profile.sh`),
-  so a clobber between overlapping deploys cannot corrupt a secret — unlike the env-staging path.
+- `RESIDUAL[D-remote-script]` — was accepted: benign — CLOSED — `REMOTE_SCRIPT` was a fixed-name path
+  scp'd pre-flock. The "benign because content is deploy-invariant" rationale was false across
+  commits/PRs/local edits: a concurrent operator could overwrite it between our upload and execute, so
+  a deploy would run THEIR script version with OUR env (provenance mismatch / a stale rollback path).
+  It is now allocated per-deploy with host-side `mktemp` (validated, cleaned by `finalize_deploy`), so
+  each deploy runs exactly its own content. Locked green by `CLOSED[D-remote-script]`.
 - `RESIDUAL[C-R3]` — accepted: comment — OPEN — the `build-deploy-profile.sh` "rollback-eligible"
   wording overstates the mechanism (the box reads no record); the fix is wording reconciliation, not
   behavior — gating rollback on a record would refuse it exactly when most needed.
