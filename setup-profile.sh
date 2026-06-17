@@ -519,7 +519,29 @@ rollback_deploy() {
                 # bouncing the data-bearing DB.
                 docker compose up -d postgres || true
                 if docker compose up -d --force-recreate --no-deps profile-api; then
-                    echo "✅ ROLLBACK: previous stack restored."
+                    # `up -d` only means "started", not "healthy" (no --wait, and --no-deps drops
+                    # the depends_on health-wait). Wait on the SAME assertion the forward path uses
+                    # before declaring recovery — a started-but-unhealthy old image (or one whose DB
+                    # connection is broken) must be reported as a rollback FAILURE, not a success.
+                    echo "   Recreated the previous profile-api; waiting for it to become healthy..."
+                    local rb_elapsed=0
+                    while [ "$rb_elapsed" -lt 120 ]; do
+                        if all_services_running_healthy; then
+                            break
+                        fi
+                        sleep 3
+                        rb_elapsed=$((rb_elapsed + 3))
+                    done
+                    if all_services_running_healthy; then
+                        echo "✅ ROLLBACK: previous stack restored and healthy."
+                    else
+                        echo "❌ ROLLBACK FAILED: the previous profile-api was recreated but did NOT become"
+                        echo "   healthy within ${rb_elapsed}s — the profile API may be DOWN. Manual recovery"
+                        echo "   required. Current state and recent logs:"
+                        docker compose ps || true
+                        echo "----- recent logs (last 50 lines) -----"
+                        docker compose logs --tail=50 || true
+                    fi
                 else
                     echo "❌ ROLLBACK FAILED: could not recreate the previous profile-api — the profile API may be DOWN."
                     echo "   Manual recovery required. Current state and recent logs:"
@@ -581,6 +603,36 @@ rollback_deploy() {
     fi
     return "$rc"
 }
+
+# Service health assertions — defined BEFORE the trap so the EXIT rollback (which recreates the
+# previous stack) can reuse the EXACT check the forward path uses below. Each service is inspected
+# explicitly (running + healthy/none); a `docker compose ps` string-grep is a NEGATIVE check that
+# passes on Created/Dead/Paused, a missing service, or a compose-command error.
+EXPECTED_SERVICES="postgres profile-api"
+
+service_running_healthy() {
+    local svc cid status health
+    svc="$1"
+    cid=$(docker compose ps -q "$svc" 2>/dev/null) || return 1
+    [ -n "$cid" ] || return 1
+    status=$(docker inspect --format '{{.State.Status}}' "$cid" 2>/dev/null) || return 1
+    [ "$status" = "running" ] || return 1
+    # "none" => no healthcheck declared; otherwise the service must be "healthy".
+    health=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$cid" 2>/dev/null) || return 1
+    case "$health" in
+        healthy|none) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+all_services_running_healthy() {
+    local svc
+    for svc in $EXPECTED_SERVICES; do
+        service_running_healthy "$svc" || return 1
+    done
+    return 0
+}
+
 trap rollback_deploy EXIT
 
 # DATABASE_URL is always present (synthesized URL-encoded above, or an operator override).
@@ -706,7 +758,7 @@ probe_database_url() {
     local userinfo hostpart user ui_pw_enc ui_pw
     local safe_query q_pw_enc pw url_no_pw authority kv kv_key kv_val kv_key_lc
     local host_only hostname host_lc is_ipv6 reject_loopback v6
-    local has_q_pw=0 has_sslpw=0
+    local has_q_pw=0 has_sslpw=0 has_host_param=0 host_param_name=
     local -a params=()
     case $url in
         postgresql://*) scheme=postgresql ;;
@@ -758,6 +810,20 @@ probe_database_url() {
     # the API shares the API's loopback, so probing from an ephemeral container would not fix
     # this — rejection is the correct gate, not a fallback.)
     host_only=${hostpart%%/*}                   # strip /db -> host[:port]
+    # Reject a MULTI-HOST authority (comma-separated hosts, e.g. postgresql://h1,localhost/db).
+    # libpq tries each host in turn, so a localhost member passes from inside the postgres
+    # container (reaches the DB) yet fails from the API (its own loopback) — and the single-host
+    # loopback check below would never see it (the literal 'h1,localhost' matches no pattern). A
+    # comma is never valid inside one hostname/IP, so it always means a host list. This single-host
+    # compose topology never needs one; fail CLOSED so the check governs the one real target.
+    case $host_only in
+        *,*)
+            echo "   (DATABASE_URL authority lists MULTIPLE hosts ('$host_only'). libpq tries each"
+            echo "    in turn — a localhost member passes from the DB container but fails from the"
+            echo "    API. Supply a single host (the compose service name 'postgres').)"
+            return 1
+            ;;
+    esac
     is_ipv6=0
     case $host_only in
         \[*\]*) hostname=${host_only%%\]*}; hostname=${hostname#\[}; is_ipv6=1 ;;  # [IPv6]:port
@@ -814,6 +880,16 @@ probe_database_url() {
                 sslpassword)
                     has_sslpw=1
                     ;;
+                host | hostaddr)
+                    # A host/hostaddr query param OVERRIDES the URL's authority host for the
+                    # actual libpq connection — so it can point the connection at a target the
+                    # authority-host loopback check above never inspected (e.g. ?host=localhost,
+                    # which reaches Postgres from the DB container but is the API's own loopback
+                    # at runtime). Reject it so the host can only come from the authority, where
+                    # the loopback/multi-host checks govern it.
+                    has_host_param=1
+                    host_param_name=$kv_key_lc
+                    ;;
                 *)
                     if [[ -n $safe_query ]]; then
                         safe_query="${safe_query}&${kv}"
@@ -823,6 +899,14 @@ probe_database_url() {
                     ;;
             esac
         done
+    fi
+    if [[ $has_host_param == 1 ]]; then
+        echo "   (DATABASE_URL carries a '$host_param_name' connection parameter in the query string,"
+        echo "    which overrides the URL's host for the ACTUAL connection. The in-postgres-container"
+        echo "    probe would then test a different target than the authority-host check examined"
+        echo "    (e.g. ?host=localhost reaches Postgres from the DB container but is the API's own"
+        echo "    loopback at runtime). Put the host in the URL authority instead.)"
+        return 1
     fi
     if [[ $has_sslpw == 1 ]]; then
         echo "   (DATABASE_URL carries sslpassword in the query string; the in-container probe"
@@ -904,35 +988,11 @@ docker compose up -d --force-recreate --no-deps profile-api
 # T5: apply DB migrations here once they exist, e.g.:
 #   docker compose exec -T profile-api npm run migrate
 
-# Positively assert every expected service is running and (where a healthcheck is
-# defined) healthy. A string-grep of `docker compose ps` is a NEGATIVE check that can
-# pass on Created/Dead/Paused states, a missing service, or a compose-command error;
-# inspect each service explicitly instead.
-EXPECTED_SERVICES="postgres profile-api"
-
-service_running_healthy() {
-    local svc cid status health
-    svc="$1"
-    cid=$(docker compose ps -q "$svc" 2>/dev/null) || return 1
-    [ -n "$cid" ] || return 1
-    status=$(docker inspect --format '{{.State.Status}}' "$cid" 2>/dev/null) || return 1
-    [ "$status" = "running" ] || return 1
-    # "none" => no healthcheck declared; otherwise the service must be "healthy".
-    health=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$cid" 2>/dev/null) || return 1
-    case "$health" in
-        healthy|none) return 0 ;;
-        *) return 1 ;;
-    esac
-}
-
-all_services_running_healthy() {
-    local svc
-    for svc in $EXPECTED_SERVICES; do
-        service_running_healthy "$svc" || return 1
-    done
-    return 0
-}
-
+# service_running_healthy / all_services_running_healthy / EXPECTED_SERVICES are defined ABOVE,
+# before the rollback trap, so the EXIT rollback can reuse the SAME health assertion as this
+# forward gate. Each inspects every service explicitly (running + healthy/none); a string-grep of
+# `docker compose ps` is a NEGATIVE check that can pass on Created/Dead/Paused, a missing service,
+# or a compose-command error.
 echo "Waiting for all services to be running and healthy..."
 TIMEOUT=120
 ELAPSED=0

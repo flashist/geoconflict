@@ -425,13 +425,36 @@ function runRealRollback(opts: { recreateFails: boolean }): {
     script.match(/restore_previous_config\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
   const rollbackFn =
     script.match(/rollback_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+  // The recreate-success path now WAITS for health (all_services_running_healthy) before
+  // reporting restored, so the harness must provide those functions + a docker stub that
+  // answers `ps -q`/`inspect` as healthy, and a no-op sleep.
+  const svcFn =
+    script.match(/service_running_healthy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+  const allFn =
+    script.match(/all_services_running_healthy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
   const callsLog = path.join(dir, "calls");
+  const dockerStub = [
+    "docker() {",
+    `  echo "docker $*" >> "${callsLog}"`,
+    '  if [ "$1 $2" = "compose up" ]; then [ "$FAILUP" = "1" ] && return 1; return 0; fi',
+    '  if [ "$1 $2 $3" = "compose ps -q" ]; then echo "cid-$4"; return 0; fi',
+    '  if [ "$1" = inspect ]; then',
+    '    case "$3" in *State.Status*) echo running ;; *State.Health*) echo healthy ;; esac',
+    "    return 0",
+    "  fi",
+    "  return 0",
+    "}",
+  ].join("\n");
   const harness = [
     "set -e",
+    "sleep() { :; }",
     restoreFn,
     rollbackFn,
+    svcFn,
+    allFn,
+    'EXPECTED_SERVICES="postgres profile-api"',
     `FAILUP=${opts.recreateFails ? "1" : "0"}`,
-    `docker() { echo "docker $*" >> "${callsLog}"; if [ "$1 $2" = "compose up" ] && [ "$FAILUP" = "1" ]; then return 1; fi; return 0; }`,
+    dockerStub,
     `systemctl() { return 0; }`,
     `PROFILE_DIR="${dir}"; PROFILE_ENV_BAK="${dir}/e.bak"; COMPOSE_BAK="${dir}/c.bak"`,
     // The previous compose must be @sha256-pinned so the F3 digest gate lets the recreate
@@ -903,6 +926,106 @@ describe("setup-profile.sh removes unvalidated config on a fresh-deploy failure 
     expect(r.composeExists).toBe(false);
     // The reset hint is compose-file-free (the compose file was just removed).
     expect(r.stdout).toMatch(/docker volume rm profile_postgres_data/);
+    expect(r.code).toBe(7);
+  });
+});
+
+// ── Rollback must not report success before the restored stack is HEALTHY ──
+// On a redeploy rollback the script recreates the previous API with `docker compose up -d`, which
+// returns once the container is STARTED, not healthy (no --wait; --no-deps drops the depends_on
+// health-wait). The fix waits on the SAME all_services_running_healthy assertion the forward path
+// uses before declaring recovery — a started-but-unhealthy old image must read as ROLLBACK FAILED.
+describe("setup-profile.sh rollback waits for the restored stack to be healthy", () => {
+  // STATIC: the health assertions are defined BEFORE the trap so the rollback can call them (they
+  // used to live after the forward recreate, where an early failure would leave them undefined).
+  test("the health assertions are defined before the rollback trap", () => {
+    const idxAll = firstIndex(/^all_services_running_healthy\(\) \{$/);
+    const idxTrap = firstIndex(/^trap rollback_deploy EXIT$/);
+    expect(idxAll).toBeGreaterThanOrEqual(0);
+    expect(idxTrap).toBeGreaterThan(idxAll);
+  });
+
+  // BEHAVIORAL: run the REAL rollback_deploy + the REAL health functions through the
+  // redeploy-recreate path. `sleep` is a no-op so the unhealthy case's bounded wait runs instantly;
+  // the docker stub reports the restored services as running + $HEALTH.
+  function runRedeployRecreate(opts: { healthy: boolean }): {
+    code: number;
+    stdout: string;
+  } {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rb-health-"));
+    const script = fs.readFileSync(SETUP_PROFILE, "utf8");
+    const restoreFn =
+      script.match(/restore_previous_config\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    const rbFn = script.match(/rollback_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    const svcFn =
+      script.match(/service_running_healthy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    const allFn =
+      script.match(/all_services_running_healthy\(\) \{[\s\S]*?\n\}/)?.[0] ??
+      "";
+    expect(restoreFn).not.toBe("");
+    expect(rbFn).not.toBe("");
+    expect(svcFn).not.toBe("");
+    expect(allFn).not.toBe("");
+    const callsLog = path.join(dir, "calls");
+    // Backups exist => redeploy branch; the restored compose is @sha256-pinned => digest gate passes.
+    fs.writeFileSync(path.join(dir, "envbak"), "OLD-ENV\n");
+    fs.writeFileSync(
+      path.join(dir, "composebak"),
+      "services:\n  profile-api:\n    image: repo/img@sha256:OLDGOOD\n",
+    );
+    const dockerStub = [
+      "docker() {",
+      '  if [ "$1" = compose ] && [ "$2" = up ]; then return 0; fi',
+      '  if [ "$1" = compose ] && [ "$2" = ps ] && [ "$3" = "-q" ]; then echo "cid-$4"; return 0; fi',
+      '  if [ "$1" = inspect ]; then',
+      '    case "$3" in',
+      "      *State.Status*) echo running ;;",
+      '      *State.Health*) echo "$HEALTH" ;;',
+      "    esac",
+      "    return 0",
+      "  fi",
+      `  echo "docker $*" >> "${callsLog}"`,
+      "  return 0",
+      "}",
+    ].join("\n");
+    const harness = [
+      "set -e",
+      "sleep() { :; }", // no-op so the bounded health-wait loop runs instantly
+      dockerStub,
+      svcFn,
+      allFn,
+      'EXPECTED_SERVICES="postgres profile-api"',
+      restoreFn,
+      rbFn,
+      `PROFILE_DIR="${dir}"`,
+      `PROFILE_ENV_BAK="${dir}/envbak"; COMPOSE_BAK="${dir}/composebak"`,
+      `DEFAULT_SITE_BAK="${dir}/nodefault"; DEFAULT_SITE_REMOVED=0; SITE_BAK=""`,
+      "CRON_WRITTEN=0; SYSTEMD_WRITTEN=0",
+      "DEPLOY_VALIDATED=0; FRESH_DEPLOY=0; STACK_RECREATED=1",
+      "trap rollback_deploy EXIT",
+      "( exit 7 )",
+    ].join("\n");
+    const res = spawnSync("/bin/bash", ["-c", harness], {
+      encoding: "utf8",
+      env: { ...process.env, HEALTH: opts.healthy ? "healthy" : "unhealthy" },
+    });
+    const out = { code: res.status ?? -1, stdout: res.stdout ?? "" };
+    fs.rmSync(dir, { recursive: true, force: true });
+    return out;
+  }
+
+  test("a restored stack that becomes healthy reports success", () => {
+    const r = runRedeployRecreate({ healthy: true });
+    expect(r.stdout).toMatch(/previous stack restored and healthy/);
+    expect(r.stdout).not.toMatch(/ROLLBACK FAILED/);
+    expect(r.code).toBe(7); // original failure code preserved
+  });
+
+  test("a restored stack that never becomes healthy reports ROLLBACK FAILED (no false success)", () => {
+    const r = runRedeployRecreate({ healthy: false });
+    expect(r.stdout).toMatch(/ROLLBACK FAILED/);
+    expect(r.stdout).toMatch(/did NOT become/);
+    expect(r.stdout).not.toMatch(/restored and healthy/);
     expect(r.code).toBe(7);
   });
 });

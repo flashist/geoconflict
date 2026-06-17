@@ -462,6 +462,18 @@ green**, not re-fix them.
   dev host has no `flock`) acquired before the first record write, and writes the record atomically
   (body→temp→one append under the lock; the lock is released even if the write fails). Pinned by
   `profileDeployRecordConcurrency.test.ts`.
+- DATABASE_URL probe host fidelity — the loopback check inspects the authority host, so `probe_database_url`
+  also **rejects host redirection through other channels**: a `host`/`hostaddr` query parameter (libpq
+  honors these and they override the authority host) and a comma-separated **multi-host authority** (libpq
+  tries each in turn, so a localhost member passes from inside the postgres container but fails from the
+  API). Both would let the in-DB-container probe validate a target the API can't use. `port`/`user`/`dbname`
+  query params are NOT rejected — they are consumed identically by probe and API, so they cannot diverge.
+  Pinned by `setupProfileFailClosed.test.ts`.
+- Rollback health — after the rollback recreates the previous stack, it WAITS on the same
+  `all_services_running_healthy` assertion the forward path uses (the health functions are defined before
+  the trap so the rollback can reuse them) before reporting recovery; a started-but-unhealthy restored image
+  reports a loud `ROLLBACK FAILED` with `docker compose ps` + logs, not a false success (`docker compose up
+  -d` returns on start, not health). Pinned by `setupProfileRollback.test.ts`.
 
 **Already landed before this PR (keep the pinned test green):** F1 (fresh-deploy stack/volume preservation),
 F3 (fresh-deploy nginx handling), F5 (remote flock fail-closed abort), F8 (rollback failure reporting with

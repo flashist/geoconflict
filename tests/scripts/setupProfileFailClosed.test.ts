@@ -505,6 +505,75 @@ describe("setup-profile.sh probe_database_url rejects container-local loopback h
   });
 });
 
+// Process review: the authority-host loopback check is bypassable by carrying the host in a
+// channel it never inspects — a `?host=`/`?hostaddr=` query parameter (libpq honors these and
+// they OVERRIDE the authority host), or a comma-separated MULTI-HOST authority (libpq tries each
+// in turn, so a localhost member passes from inside the postgres container but fails from the
+// API). Both let the in-postgres-container probe validate a target the API can't use. Fail closed.
+describe("setup-profile.sh probe_database_url rejects host redirection via query params / multi-host", () => {
+  test("guard: the probe function extracted", () => {
+    expect(probeUrlFn).toMatch(/^probe_database_url\(\) \{/);
+  });
+
+  // Each case is built so the stub WOULD connect without the guard (url_no_pw == GOOD_URL): the
+  // authority host is fine and the redirection rides a query param or a comma host-list. So the
+  // rejection can ONLY come from the new guard, not a stub mismatch — i.e. these are load-bearing.
+  const redirectCases: Array<
+    [string, { host?: string; goodHost?: string; query?: string }]
+  > = [
+    ["?host=localhost", { query: "?host=localhost" }],
+    ["?hostaddr=127.0.0.1", { query: "?hostaddr=127.0.0.1" }],
+    // libpq matches keyword names case-insensitively
+    ["?HOST=localhost (case-insensitive)", { query: "?HOST=localhost" }],
+    // any host param is a redirection channel, even a non-loopback value
+    ["?host=otherbox", { query: "?host=otherbox" }],
+    // comma-separated multi-host authority with a localhost fallback member
+    [
+      "multi-host authority",
+      { host: "h1,localhost", goodHost: "h1,localhost" },
+    ],
+    [
+      "multi-host authority with ports",
+      { host: "h1:5432,localhost:5432", goodHost: "h1:5432,localhost:5432" },
+    ],
+  ];
+  test.each(redirectCases)(
+    "host-redirection variant FAILS fail-closed (stub would otherwise connect): %s",
+    (_desc, opts) => {
+      expect(
+        runProbe({
+          rawPassword: "pw",
+          host: "postgres",
+          goodHost: "postgres",
+          ...opts,
+        }),
+      ).not.toBe(0);
+    },
+  );
+
+  test("a benign query param (sslmode=require) on a correct host still PASSES", () => {
+    expect(
+      runProbe({
+        rawPassword: "pw",
+        host: "postgres:5432",
+        goodHost: "postgres:5432",
+        query: "?sslmode=require",
+      }),
+    ).toBe(0);
+  });
+
+  test("a non-host connection param (application_name) is NOT rejected (only host/hostaddr redirect)", () => {
+    expect(
+      runProbe({
+        rawPassword: "pw",
+        host: "postgres:5432",
+        goodHost: "postgres:5432",
+        query: "?application_name=profile",
+      }),
+    ).toBe(0);
+  });
+});
+
 // Class E: the deploy must declare, where the reviewer reads it, what validation_result=passed
 // certifies NOW versus what is deferred to T5 — citing T5 by stable quoted text, never a
 // fabricated numeric "#N" criterion.

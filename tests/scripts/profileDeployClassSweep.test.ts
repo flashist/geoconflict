@@ -714,6 +714,11 @@ describe("profile-deploy class sweep — executable merge bar", () => {
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), "classC-prov-"));
       const restoreFn = grabFn(setupScript, "restore_previous_config");
       const rollbackFn = grabFn(setupScript, "rollback_deploy");
+      // The recreate path now waits on all_services_running_healthy before reporting restored,
+      // so this harness provides those functions + a healthy docker stub + a no-op sleep (else
+      // the health-wait would loop its full timeout against an inspect-less stub).
+      const svcFn = grabFn(setupScript, "service_running_healthy");
+      const allFn = grabFn(setupScript, "all_services_running_healthy");
       const callsLog = path.join(dir, "calls");
       const composeBak = path.join(dir, "c.bak");
       const envBak = path.join(dir, "e.bak");
@@ -733,9 +738,23 @@ describe("profile-deploy class sweep — executable merge bar", () => {
       );
       const harness = [
         "set -e",
+        "sleep() { :; }",
         restoreFn,
         rollbackFn,
-        `docker() { echo "docker $*" >> ${shq(callsLog)}; return 0; }`,
+        svcFn,
+        allFn,
+        'EXPECTED_SERVICES="postgres profile-api"',
+        // Healthy docker stub: log every call (for the recreate assertion), answer `ps -q` with a
+        // cid and `inspect` as running+healthy so the post-recreate health-wait passes quickly.
+        `docker() {
+           echo "docker $*" >> ${shq(callsLog)}
+           if [ "$1 $2 $3" = "compose ps -q" ]; then echo "cid-$4"; return 0; fi
+           if [ "$1" = inspect ]; then
+             case "$3" in *State.Status*) echo running ;; *State.Health*) echo healthy ;; esac
+             return 0
+           fi
+           return 0
+         }`,
         `systemctl() { return 0; }`,
         `PROFILE_DIR=${shq(dir)}`,
         `PROFILE_ENV_BAK=${shq(envBak)}; COMPOSE_BAK=${shq(composeBak)}`,
