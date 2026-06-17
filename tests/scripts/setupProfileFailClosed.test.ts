@@ -129,7 +129,8 @@ describe("build-deploy-profile.sh — never build from an empty version tag", ()
     const idxVersionTag = firstIndex(buildLines, /^VERSION_TAG=/);
     const idxValidation = firstIndex(buildLines, /if \[ -z "\$VERSION_TAG" \]/);
     // Anchor on the actual top-level command (column 0), not a comment that mentions it.
-    const idxDockerBuild = firstIndex(buildLines, /^docker build\b/);
+    // The build is now platform-pinned (`docker buildx build --platform linux/amd64 --load`).
+    const idxDockerBuild = firstIndex(buildLines, /^docker buildx build\b/);
 
     expect(idxVersionTag).toBeGreaterThanOrEqual(0);
     expect(idxValidation).toBeGreaterThanOrEqual(0);

@@ -438,9 +438,17 @@ green**, not re-fix them.
   `psql -d`, fail-closed on parse ambiguity; operator override routed through the same gate). Pinned by
   `setupProfileFailClosed.test.ts` (behavioral) + `setupProfileDbProbe.test.ts` (argv-safety).
 - Class B — `scan_broad_copies` no longer joins across `#` comment lines (the `# foo \` bypass) and
-  rejects heredoc COPY/ADD; `--inspect-image` scans the whole rootfs by **content** (sha256) + a
-  conservative name scan, **fail-closed if `docker run` fails**. Pinned by
-  `checkDockerSecretBoundary.test.ts` (incl. docker-stubbed `--inspect-image` cases).
+  rejects heredoc COPY/ADD; `--inspect-image` now scans **every layer** of the image (via
+  `docker save`, not the flattened `docker run` view) by **content** (sha256) + a conservative name
+  scan, so a secret COPY'd then `rm`'d in a *later* layer — absent from the runtime filesystem but
+  still recoverable from the pushed image — is caught from its layer bytes. Fail-closed if
+  `docker save` fails, if a layer blob is unreadable as a tar (never silently skip a layer), or if
+  the archive yields zero layers. Pinned by `checkDockerSecretBoundary.test.ts` (docker-stubbed
+  `--inspect-image` cases: clean / content / name / **deleted-layer** / the three fail-closed paths).
+- Profile image platform — the profile image is built `docker buildx build --platform linux/amd64
+  --load` (matching the game build path, `build.sh`), so an Apple-Silicon dev host can't push an
+  arm64-only digest the amd64 reg.ru VPS cannot exec (first deploy failing outright / a redeploy
+  health-failing into rollback). Pinned by `profileDeployClassSweep.test.ts`.
 - Class C — `/etc/nginx/sites-enabled/default` is captured before removal and restored (fail-loud) on
   rollback. Pinned by `setupProfileRollback.test.ts`.
 - Class D / F4 — `build-deploy-profile.sh` serializes with a fail-closed local `mkdir` mutex (the macOS

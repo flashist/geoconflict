@@ -102,7 +102,15 @@ print_header "CHECKING DOCKER SECRET BOUNDARY"
 bash scripts/check-docker-secret-boundary.sh
 
 print_header "BUILDING PROFILE IMAGE: ${PROFILE_IMAGE}"
-docker build -f "$DOCKERFILE" -t "$PROFILE_IMAGE" .
+# Pin the target platform to linux/amd64 — same as the game build path (build.sh:117). The
+# dev HOST is often Apple Silicon (arm64); a plain `docker build` there produces an arm64-only
+# image, `docker push` records an arm64 digest, and that digest is baked into the box's compose
+# below — but the reg.ru VPS is amd64 and cannot exec it (first deploy fails outright; a redeploy
+# replaces the live API then health-fails into rollback). `--load` puts the single-platform amd64
+# image in the LOCAL store so the inspect → push → digest-resolve flow below works unchanged and
+# ships/inspects the exact amd64 artifact (on an arm64 host the inspect emulates amd64 via Docker
+# Desktop's qemu — a one-shot scan, acceptable).
+docker buildx build --platform linux/amd64 --load -f "$DOCKERFILE" -t "$PROFILE_IMAGE" .
 
 # Runtime inspection of the built image — fail if any .env*/secret file rode along.
 print_header "INSPECTING BUILT IMAGE FOR SECRETS"

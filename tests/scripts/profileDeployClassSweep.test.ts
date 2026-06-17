@@ -1047,11 +1047,28 @@ describe("profile-deploy class sweep — executable merge bar", () => {
       const guardBlock = setupLines.slice(0, idxExec).join("\n");
       expect(guardBlock).toMatch(/flock \(util-linux\) is required/);
       expect(guardBlock).toMatch(/Aborting before any config is written/);
-      // Build: an empty VERSION_TAG aborts before docker build.
+      // Build: an empty VERSION_TAG aborts before the image build.
       const idxTagGuard = firstIndex(buildLines, /if \[ -z "\$VERSION_TAG" \]/);
-      const idxBuild = firstIndex(buildLines, /^docker build\b/);
+      const idxBuild = firstIndex(buildLines, /^docker buildx build\b/);
       expect(idxTagGuard).toBeGreaterThanOrEqual(0);
       expect(idxBuild).toBeGreaterThan(idxTagGuard);
+    });
+
+    // Release-correctness: the profile image MUST be built for linux/amd64 (the reg.ru VPS
+    // arch), not the operator's host arch. An Apple-Silicon dev box doing a plain `docker build`
+    // would push an arm64-only digest that the box cannot exec — first deploy fails outright, a
+    // redeploy health-fails into rollback. The platform pin matches the game build path
+    // (build.sh) and `--load` keeps the single-platform image local for the inspect/push/digest
+    // flow. A regression to a platform-less `docker build` turns this red.
+    test("the profile image is platform-pinned to linux/amd64 (buildx --load), never a bare docker build", () => {
+      const idxBuild = firstIndex(buildLines, /^docker buildx build\b/);
+      expect(idxBuild).toBeGreaterThanOrEqual(0);
+      expect(buildLines[idxBuild]).toMatch(/--platform linux\/amd64/);
+      expect(buildLines[idxBuild]).toMatch(/--load/);
+      // No platform-less `docker build` invocation may remain (the arm64-digest hazard).
+      expect(buildLines.some((l) => /^docker build\b/.test(l.trim()))).toBe(
+        false,
+      );
     });
   });
 });

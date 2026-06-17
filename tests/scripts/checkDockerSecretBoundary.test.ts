@@ -1,5 +1,4 @@
 import { spawnSync } from "child_process";
-import crypto from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -300,18 +299,76 @@ describe("check-docker-secret-boundary.sh — non-default escape directive (fail
   });
 });
 
-// --inspect-image is the AUTHORITATIVE image-filesystem gate (doctrine Class B). It can't run
-// a real `docker build`, but its behavior is exercised here with `docker` STUBBED on PATH:
-//   - it must FAIL CLOSED if `docker run` itself fails (an unavailable oracle is not "clean");
-//   - it must flag a CONTENT match (sha256 of a real local secret found in the image) AND
-//     report the path — even when MULTIPLE local secret files exist (the content match passes
-//     hashes to awk via a file, never `-v`, which would error on embedded newlines);
-//   - it must flag a NAME hit and pass a clean image.
+// --inspect-image is the AUTHORITATIVE image-bytes gate (doctrine Class B). It `docker save`s
+// the image and scans EVERY layer tar — so a secret added in one layer and DELETED (whiteout) in
+// a later one, which the old flattened `docker run` view missed, is still caught from the layer
+// bytes. It can't run a real `docker save`, so its behavior is exercised with `docker` STUBBED:
+// `docker save IMG` cats a hand-built image archive (manifest + per-layer tars) to stdout. The
+// gate must:
+//   - FAIL CLOSED if `docker save` itself fails (an unavailable oracle is not "clean");
+//   - FAIL CLOSED if a layer blob is unreadable as a tar (never silently skip a layer);
+//   - FAIL CLOSED if the archive has zero layer blobs (unexpected docker save format);
+//   - flag a CONTENT match (sha256 of a real local secret) in ANY layer AND report the path —
+//     INCLUDING a secret a later layer deletes, and with MULTIPLE local secret files present (the
+//     content match passes hashes to awk via a file, never `-v`, which errors on newlines);
+//   - flag a NAME hit; and pass a clean image.
 // The fixture has THREE local secret/key files so the multi-hash (awk-newline) path is covered.
-function runInspectImage(mode: "fail" | "clean" | "content" | "name"): {
-  code: number;
-  out: string;
-} {
+type LayerFiles = { path: string; content: string }[];
+
+// Build a legacy docker-save archive at <dir>/save.tar: layerN/layer.tar (uncompressed tars)
+// + manifest.json + a config blob. `tar` is invoked via the host CLI (present on macOS/Linux CI).
+function buildSaveArchive(dir: string, layers: LayerFiles[]): void {
+  const archDir = fs.mkdtempSync(path.join(dir, "arch-"));
+  const layerRefs: string[] = [];
+  layers.forEach((files, i) => {
+    const work = fs.mkdtempSync(path.join(dir, `lw${i}-`));
+    for (const f of files) {
+      const full = path.join(work, f.path);
+      fs.mkdirSync(path.dirname(full), { recursive: true });
+      fs.writeFileSync(full, f.content);
+    }
+    const sub = path.join(archDir, `layer${i}`);
+    fs.mkdirSync(sub);
+    const t = spawnSync("tar", [
+      "-cf",
+      path.join(sub, "layer.tar"),
+      "-C",
+      work,
+      ".",
+    ]);
+    if (t.status !== 0) throw new Error(`tar layer build failed: ${t.stderr}`);
+    layerRefs.push(`layer${i}/layer.tar`);
+  });
+  fs.writeFileSync(
+    path.join(archDir, "manifest.json"),
+    JSON.stringify([
+      { Config: "c.json", RepoTags: ["testimg:latest"], Layers: layerRefs },
+    ]) + "\n",
+  );
+  fs.writeFileSync(
+    path.join(archDir, "c.json"),
+    JSON.stringify({ architecture: "amd64" }) + "\n",
+  );
+  const t = spawnSync("tar", [
+    "-cf",
+    path.join(dir, "save.tar"),
+    "-C",
+    archDir,
+    ".",
+  ]);
+  if (t.status !== 0) throw new Error(`tar archive build failed: ${t.stderr}`);
+}
+
+type InspectMode =
+  | "clean"
+  | "content"
+  | "name"
+  | "deleted"
+  | "save-fail"
+  | "unreadable"
+  | "no-layers";
+
+function runInspectImage(mode: InspectMode): { code: number; out: string } {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "inspect-"));
   fs.mkdirSync(path.join(dir, "scripts"));
   fs.copyFileSync(
@@ -323,29 +380,87 @@ function runInspectImage(mode: "fail" | "clean" | "content" | "name"): {
     "FROM node:24-slim\nCOPY package*.json ./\n",
   );
   fs.writeFileSync(path.join(dir, ".dockerignore"), GOOD_DOCKERIGNORE + "\n");
-  // Multiple local secrets => the host hash list has 2+ lines (the awk `-v` newline case).
-  const envContent = "SECRET_ONE=aaa\n";
-  fs.writeFileSync(path.join(dir, ".env"), envContent);
+  // Multiple local secrets => the host hash list has 2+ lines (the awk newline case). The
+  // server.key bytes are what we plant in a layer for the content-match scenarios.
+  fs.writeFileSync(path.join(dir, ".env"), "SECRET_ONE=aaa\n");
   fs.writeFileSync(path.join(dir, ".env.profile.secret"), "SECRET_TWO=bbb\n");
-  fs.writeFileSync(path.join(dir, "server.key"), "KEYDATA\n");
-  const leakHash = crypto.createHash("sha256").update(envContent).digest("hex");
+  const leakBytes = "KEYDATA\n";
+  fs.writeFileSync(path.join(dir, "server.key"), leakBytes);
 
-  // Stub docker: behaviour keyed by $MODE. The inner scan is the sh -lc program (last arg).
+  // Build the per-scenario image archive (save.tar).
+  if (mode === "clean") {
+    buildSaveArchive(dir, [
+      [
+        { path: "app/index.js", content: "console.log(1)\n" },
+        // an example env file must NOT trip the name scan
+        { path: "app/.env.example", content: "X=1\n" },
+      ],
+    ]);
+  } else if (mode === "content") {
+    // secret bytes under a renamed/innocuous path, present in the final image
+    buildSaveArchive(dir, [[{ path: "opt/renamed.dat", content: leakBytes }]]);
+  } else if (mode === "name") {
+    buildSaveArchive(dir, [
+      [{ path: "opt/strayconfig/.env", content: "X=1\n" }],
+    ]);
+  } else if (mode === "deleted") {
+    // layer0 ADDS the secret; layer1 WHITEOUTS it (gone from the flattened FS, present in bytes)
+    buildSaveArchive(dir, [
+      [{ path: "tmp/private.key", content: leakBytes }],
+      [{ path: "tmp/.wh.private.key", content: "" }],
+    ]);
+  } else if (mode === "save-fail") {
+    buildSaveArchive(dir, [[{ path: "app/index.js", content: "x\n" }]]);
+  } else if (mode === "unreadable") {
+    // a layer.tar that is neither a valid tar nor JSON => must FAIL CLOSED, never skip a layer
+    const archDir = fs.mkdtempSync(path.join(dir, "arch-"));
+    fs.mkdirSync(path.join(archDir, "layer0"));
+    fs.writeFileSync(
+      path.join(archDir, "layer0", "layer.tar"),
+      "this-is-not-a-tar-blob\n",
+    );
+    fs.writeFileSync(
+      path.join(archDir, "manifest.json"),
+      JSON.stringify([{ Layers: ["layer0/layer.tar"] }]) + "\n",
+    );
+    const t = spawnSync("tar", [
+      "-cf",
+      path.join(dir, "save.tar"),
+      "-C",
+      archDir,
+      ".",
+    ]);
+    if (t.status !== 0) throw new Error("tar build failed");
+  } else if (mode === "no-layers") {
+    // archive with only JSON metadata, no layer blobs => FAIL CLOSED
+    const archDir = fs.mkdtempSync(path.join(dir, "arch-"));
+    fs.writeFileSync(
+      path.join(archDir, "manifest.json"),
+      JSON.stringify([{ Layers: [] }]) + "\n",
+    );
+    fs.writeFileSync(
+      path.join(archDir, "c.json"),
+      JSON.stringify({ a: 1 }) + "\n",
+    );
+    const t = spawnSync("tar", [
+      "-cf",
+      path.join(dir, "save.tar"),
+      "-C",
+      archDir,
+      ".",
+    ]);
+    if (t.status !== 0) throw new Error("tar build failed");
+  }
+
+  // Stub docker: `docker save IMG` cats save.tar (or exits non-zero for save-fail); other
+  // subcommands are no-ops. The script runs `docker save "$INSPECT_IMAGE" | tar -xf - ...`.
   const binDir = path.join(dir, "bin");
   fs.mkdirSync(binDir);
-  const stub = `#!/bin/bash
-[ "$1" = run ] || exit 0
-[ "$MODE" = fail ] && exit 125            # docker itself fails (oracle unavailable)
-last=""; for a in "$@"; do last="$a"; done
-if printf '%s' "$last" | grep -q sha256sum; then
-  [ "$MODE" = content ] && echo "${leakHash}  /opt/leaked-copy-of-dotenv"
-elif printf '%s' "$last" | grep -q -- "-name '.git'"; then
-  :                                       # no .git hit in these cases
-else
-  [ "$MODE" = name ] && echo "/opt/strayconfig/.env"
-fi
-exit 0
-`;
+  const saveTar = JSON.stringify(path.join(dir, "save.tar"));
+  const stub =
+    mode === "save-fail"
+      ? `#!/bin/bash\n[ "$1" = save ] && exit 19\nexit 0\n`
+      : `#!/bin/bash\nif [ "$1" = save ]; then cat ${saveTar}; exit 0; fi\nexit 0\n`;
   fs.writeFileSync(path.join(binDir, "docker"), stub);
   fs.chmodSync(path.join(binDir, "docker"), 0o755);
 
@@ -358,11 +473,7 @@ exit 0
     ],
     {
       encoding: "utf8",
-      env: {
-        ...process.env,
-        PATH: `${binDir}:${process.env.PATH}`,
-        MODE: mode,
-      },
+      env: { ...process.env, PATH: `${binDir}:${process.env.PATH}` },
     },
   );
   const out = (res.stdout ?? "") + (res.stderr ?? "");
@@ -370,30 +481,72 @@ exit 0
   return { code: res.status ?? -1, out };
 }
 
-describe("check-docker-secret-boundary.sh --inspect-image gate (docker stubbed)", () => {
-  test("FAILS CLOSED when docker run itself fails (oracle unavailable, not 'clean')", () => {
-    const { code, out } = runInspectImage("fail");
+describe("check-docker-secret-boundary.sh --inspect-image gate (docker save stubbed, layer-aware)", () => {
+  test("FAILS CLOSED when docker save itself fails (oracle unavailable, not 'clean')", () => {
+    const { code, out } = runInspectImage("save-fail");
     expect(code).not.toBe(0);
     expect(out).toMatch(/FAILS CLOSED/);
   });
 
-  test("a clean image passes", () => {
+  test("FAILS CLOSED on a layer blob that is not a readable tar (never silently skipped)", () => {
+    const { code, out } = runInspectImage("unreadable");
+    expect(code).not.toBe(0);
+    expect(out).toMatch(/not readable as a tar/);
+  });
+
+  test("FAILS CLOSED when the archive contains zero layer blobs (unexpected format)", () => {
+    const { code, out } = runInspectImage("no-layers");
+    expect(code).not.toBe(0);
+    expect(out).toMatch(/no layer blobs/);
+  });
+
+  test("a clean image passes (and an .env.example layer file is not flagged)", () => {
     const { code, out } = runInspectImage("clean");
     expect(code).toBe(0);
     expect(out).toMatch(/secret boundary check passed/);
   });
 
-  test("a CONTENT match (real local secret bytes in the image) fails AND reports the path — with multiple local hashes", () => {
+  test("a CONTENT match (real local secret bytes under a renamed path) fails AND reports the path — with multiple local hashes", () => {
     const { code, out } = runInspectImage("content");
     expect(code).not.toBe(0);
     expect(out).toMatch(/by content/);
-    expect(out).toMatch(/\/opt\/leaked-copy-of-dotenv/);
+    expect(out).toMatch(/\/opt\/renamed\.dat/);
   });
 
-  test("a NAME hit (a secret-named file in the image) fails and reports the filename", () => {
+  test("a NAME hit (a secret-named file in a layer) fails and reports the filename", () => {
     const { code, out } = runInspectImage("name");
     expect(code).not.toBe(0);
     expect(out).toMatch(/by filename/);
     expect(out).toMatch(/\/opt\/strayconfig\/\.env/);
+  });
+
+  // LOAD-BEARING: the whole reason for the docker save rewrite. A secret added in one layer and
+  // deleted in a later one is GONE from the flattened runtime filesystem but still in the image
+  // bytes. The old `docker run` scan missed exactly this; the layer scan must catch it.
+  test("a secret DELETED in a later layer is still caught (the deleted-layer gap)", () => {
+    const { code, out } = runInspectImage("deleted");
+    expect(code).not.toBe(0);
+    expect(out).toMatch(/by content/);
+    expect(out).toMatch(/\/tmp\/private\.key/);
+  });
+
+  // FAIL-OPEN GUARD (static, deterministic): the layer-blob discriminator MUST run `tar -tf`
+  // FIRST and only treat a blob as skippable JSON metadata if tar CANNOT read it. If the
+  // first-byte ('{'/'[') skip ran before `tar -tf`, a real readable layer whose first tar
+  // entry filename starts with '['/'{' (e.g. a `COPY '[x].key' /` regression) would be skipped
+  // entirely — a fail-open hole. A behavioral fixture can't portably force a layer tar's first
+  // byte (tar implementations differ on leading entries), so this pins the ordering directly.
+  test("the layer discriminator runs `tar -tf` BEFORE the '{'/'[' JSON skip (no first-byte fail-open)", () => {
+    const src = fs.readFileSync(REAL_SCRIPT, "utf8");
+    const idxTar = src.indexOf('if ! tar -tf "$blob"');
+    const idxSkip = src.indexOf('"{" | "[") continue');
+    expect(idxTar).toBeGreaterThanOrEqual(0);
+    expect(idxSkip).toBeGreaterThanOrEqual(0);
+    // tar readability is the primary gate; the JSON skip comes after it...
+    expect(idxTar).toBeLessThan(idxSkip);
+    // ...and sits INSIDE the tar-failure branch (between `if ! tar -tf` and its `exit 1`), so a
+    // blob is only skipped as JSON when it is genuinely NOT a readable tar.
+    const branch = src.slice(idxTar, src.indexOf("exit 1", idxTar));
+    expect(branch).toContain('"{" | "[") continue');
   });
 });

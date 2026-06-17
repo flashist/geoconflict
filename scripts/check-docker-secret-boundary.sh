@@ -8,11 +8,18 @@ DOCKERFILE_PROFILE="$ROOT_DIR/Dockerfile.profile"
 DOCKERIGNORE="$ROOT_DIR/.dockerignore"
 RUNTIME_IMAGE_CHECK=false
 TEMP_IMAGE_TAG="geoconflict-secret-boundary-check:$(date +%s)-$$"
+# Temp dirs used by the --inspect-image layer scan. Initialized empty up front so the EXIT
+# trap can reference them under `set -u` even if it fires before they are created, and so any
+# fail-closed `exit` mid-scan still removes the extracted image bytes.
+INSPECT_SAVE_DIR=""
+INSPECT_LAYER_DIR=""
 
 cleanup() {
     if [ "$RUNTIME_IMAGE_CHECK" = true ] && command -v docker >/dev/null 2>&1; then
         docker image rm -f "$TEMP_IMAGE_TAG" >/dev/null 2>&1 || true
     fi
+    [ -n "$INSPECT_SAVE_DIR" ] && rm -rf "$INSPECT_SAVE_DIR" 2>/dev/null || true
+    [ -n "$INSPECT_LAYER_DIR" ] && rm -rf "$INSPECT_LAYER_DIR" 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -257,83 +264,139 @@ if [ -n "$INSPECT_IMAGE" ]; then
         exit 1
     fi
 
-    # AUTHORITATIVE secret-boundary gate (doctrine Class B): observe the resulting image
-    # BYTES, not the Dockerfile. The awk scanner above is a fail-closed advisory pre-filter;
-    # this scan inspects the built filesystem directly, so it is invariant to every Dockerfile
-    # parser trick. Two detectors:
-    #   (1) by CONTENT (authoritative, false-positive-free): the EXACT bytes of the repo's
-    #       real local secret/key files (.env*, *.secret, *.pem, id_rsa*, id_ed25519*, *.key)
-    #       matched by sha256 ANYWHERE on the WHOLE image rootfs — so a real secret that rode
-    #       in under a renamed/innocuous path is still caught;
+    # AUTHORITATIVE secret-boundary gate (doctrine Class B): observe the image BYTES, not the
+    # Dockerfile, and observe them PER LAYER. A secret COPY'd in one layer and `rm`'d in a later
+    # one is whiteout'd from the runtime filesystem (a `docker run`/flattened-rootfs view) yet
+    # still rides in the earlier layer's bytes and is fully recoverable from the pushed image. So
+    # we `docker save` the image and scan EVERY layer tar's contents, not the final filesystem.
+    # This also needs no `docker run`, so it never depends on the image being executable on the
+    # host (e.g. an amd64 image inspected on an arm64 dev box). Two detectors, applied per layer:
+    #   (1) by CONTENT (authoritative, false-positive-free): the EXACT bytes of the repo's real
+    #       local secret/key files (.env*, *.secret, *.pem, id_rsa*, id_ed25519*, *.key) matched
+    #       by sha256 in ANY layer — so a real secret that rode in under a renamed/innocuous path,
+    #       OR was deleted in a later layer, is still caught;
     #   (2) by NAME (supplementary): a file that LOOKS like our secret by name (.env/.env.*/
-    #       *.secret) or a committed .git dir — anywhere EXCEPT third-party node_modules. We
-    #       exclude node_modules and do NOT name-match *.pem/id_rsa* here on purpose: base
-    #       images and dependencies legitimately ship CA bundles, test certs and example env
-    #       files, so name-matching those across the whole filesystem would FAIL every deploy
-    #       (a false positive). Novel/renamed key material is still caught by content above.
-    echo "Inspecting image $INSPECT_IMAGE for env/secret material (whole filesystem)..."
+    #       *.secret) or a committed .git dir — in any layer, EXCEPT third-party node_modules. We
+    #       exclude node_modules and do NOT name-match *.pem/id_rsa* here on purpose: base images
+    #       and dependencies legitimately ship CA bundles, test certs and example env files, so
+    #       name-matching those would FAIL every deploy (a false positive). Novel/renamed key
+    #       material is still caught by content above.
+    echo "Inspecting image $INSPECT_IMAGE for env/secret material (all layers via docker save)..."
 
-    # Pseudo-filesystems are pruned everywhere; the NAME scan additionally prunes node_modules
-    # to avoid dependency fixtures. The content scan still covers node_modules by exact bytes
-    # (a real secret leaked into node_modules must still be caught) and prints the matching
-    # PATH, so the rare byte-identical-dependency-fixture case is adjudicable by the operator.
-    PRUNE_PSEUDO='\( -path /proc -o -path /sys -o -path /dev -o -path /run \) -prune -o'
-    PRUNE_NAME="\( -path /proc -o -path /sys -o -path /dev -o -path /run -o -path '*/node_modules/*' \) -prune -o"
-
-    # Run a scan command inside the image, capturing stdout to $scan_tmp. FAIL CLOSED if docker
-    # ITSELF fails (daemon down, image missing, OOM): an unavailable oracle must abort the
-    # deploy, never read as "no secrets found". (An earlier `docker run … || true` form masked
-    # exactly this — a docker failure produced empty output and the gate reported "passed".)
-    scan_tmp=$(mktemp)
-    require_image_scan() {
-        if ! docker run --rm "$INSPECT_IMAGE" /bin/sh -lc "$1" > "$scan_tmp"; then
-            echo "Error: docker run failed scanning $INSPECT_IMAGE — the image secret oracle is"
-            echo "       unavailable, so this gate FAILS CLOSED rather than reporting 'passed'."
-            rm -f "$scan_tmp"
-            exit 1
-        fi
-    }
-
-    require_image_scan "find / -xdev $PRUNE_NAME -type f \\( -name '.env' -o -name '.env.*' -o -name '*.secret' \\) ! -name '*.example' ! -name '*.sample' ! -name '*.template' -print 2>/dev/null | sort"
-    name_hits=$(cat "$scan_tmp")
-    require_image_scan "find / -xdev $PRUNE_NAME -type d -name '.git' -print 2>/dev/null | sort"
-    git_hits=$(cat "$scan_tmp")
-
-    # Content match: hash the repo's REAL local secret/key files, then look for those digests
-    # among the image's files (size-capped). Portable host hasher (Linux CI / macOS dev). The
-    # hashes are passed to awk via a FILE (two-input form), NEVER `-v`: a `-v` value with
-    # embedded newlines (multiple local secret files — the normal case) is rejected by awk.
+    # Content-detector input: hash the repo's REAL local secret/key files (size-capped, portable
+    # host hasher for Linux CI / macOS dev). The hashes are passed to awk via a FILE (two-input
+    # form), NEVER `-v`: a `-v` value with embedded newlines (multiple local secret files — the
+    # normal case) is rejected by awk.
     HASH_CMD="sha256sum"
     command -v sha256sum >/dev/null 2>&1 || HASH_CMD="shasum -a 256"
     local_secret_files=$(find "$ROOT_DIR" -maxdepth 1 -type f \
         \( -name ".env" -o -name ".env.*" -o -name "*.secret" -o -name "*.pem" \
         -o -name "id_rsa*" -o -name "id_ed25519*" -o -name "*.key" \) \
         ! -name "*.example" ! -name "*.sample" ! -name "*.template" -size +0c 2>/dev/null)
-    content_hits=""
+    local_hashes_file=""
     if [ -n "$local_secret_files" ]; then
         local_hashes_file=$(mktemp)
         printf '%s\n' "$local_secret_files" \
             | while IFS= read -r f; do [ -n "$f" ] && $HASH_CMD "$f"; done \
             | awk '{print $1}' | sort -u > "$local_hashes_file"
-        if [ -s "$local_hashes_file" ]; then
-            require_image_scan "find / -xdev $PRUNE_PSEUDO -type f -size +0c -size -1048576c -print0 2>/dev/null | xargs -0 sha256sum 2>/dev/null"
-            # First file = local secret hashes; second = the image's "<hash>  <path>" lines.
-            # Print the matching image line (hash AND path) so a match is adjudicable.
-            content_hits=$(awk 'FNR==NR { if ($1 != "") want[$1] = 1; next } ($1 in want) { print }' "$local_hashes_file" "$scan_tmp")
-        fi
-        rm -f "$local_hashes_file"
+        [ -s "$local_hashes_file" ] || { rm -f "$local_hashes_file"; local_hashes_file=""; }
     fi
-    rm -f "$scan_tmp"
 
-    if [ -n "$name_hits" ] || [ -n "$git_hits" ] || [ -n "$content_hits" ]; then
-        echo "Error: image $INSPECT_IMAGE contains env/secret material:"
-        [ -n "$name_hits" ] && { echo "  by filename:"; printf '%s\n' "$name_hits" | grep -v '^$'; }
-        [ -n "$git_hits" ] && { echo "  .git directory:"; printf '%s\n' "$git_hits" | grep -v '^$'; }
-        [ -n "$content_hits" ] && { echo "  by content (matches a local secret/key):"; printf '%s\n' "$content_hits"; }
+    # Export the image archive (manifest + per-layer tars) and extract it. FAIL CLOSED if docker
+    # ITSELF fails (daemon down, image missing, OOM): an unavailable oracle must abort the deploy,
+    # never read as "no secrets found". `pipefail` (set at the top) makes this pipeline fail if
+    # `docker save` fails even though `tar` succeeds.
+    INSPECT_SAVE_DIR=$(mktemp -d)
+    if ! docker save "$INSPECT_IMAGE" | tar -xf - -C "$INSPECT_SAVE_DIR" 2>/dev/null; then
+        echo "Error: docker save failed for $INSPECT_IMAGE — the image secret oracle is"
+        echo "       unavailable, so this gate FAILS CLOSED rather than reporting 'passed'."
+        [ -n "$local_hashes_file" ] && rm -f "$local_hashes_file"
         exit 1
     fi
 
-    echo "Image secret inspection passed (whole-filesystem name + content scan)."
+    name_hits=""
+    git_hits=""
+    content_hits=""
+    layers_scanned=0
+    # Enumerate layer PAYLOAD blobs across both archive formats: legacy `<id>/layer.tar` and OCI
+    # `blobs/sha256/<hash>`. The OCI blobs dir also holds config/manifest/index JSON; those start
+    # with '{' or '[' and are skipped. Anything else is a layer payload that tar MUST be able to
+    # read (it auto-detects gzip/zstd on GNU and BSD tar); if it cannot, we FAIL CLOSED rather
+    # than silently skip a layer — a skipped layer is a fail-OPEN hole.
+    while IFS= read -r blob; do
+        [ -f "$blob" ] || continue
+        # `tar -tf` is the PRIMARY discriminator: a layer is anything tar can read (it
+        # auto-detects gzip/zstd on GNU and BSD tar). Only a blob tar CANNOT read may be a JSON
+        # metadata blob (config/manifest/index) — those start with '{' or '[' and are skipped.
+        # Checking the first char BEFORE tar would fail-OPEN on a real layer whose first entry
+        # filename happens to start with '{'/'[' (e.g. a `COPY '[x].key' /` regression). Any
+        # other unreadable blob FAILS CLOSED rather than silently skip a layer.
+        if ! tar -tf "$blob" >/dev/null 2>&1; then
+            first_char=$(head -c1 "$blob" 2>/dev/null || true)
+            case "$first_char" in
+                "{" | "[") continue ;;   # JSON metadata blob (config/manifest/index), not a layer
+            esac
+            echo "Error: a layer blob in $INSPECT_IMAGE is not readable as a tar"
+            echo "       ($blob — unsupported compression?). FAILING CLOSED rather than skip a layer."
+            rm -rf "$INSPECT_SAVE_DIR"; INSPECT_SAVE_DIR=""
+            [ -n "$local_hashes_file" ] && rm -f "$local_hashes_file"
+            exit 1
+        fi
+        layers_scanned=$((layers_scanned + 1))
+        INSPECT_LAYER_DIR=$(mktemp -d)
+        # Extract the layer. Device/special entries may warn under a non-root user — regular
+        # files still extract and the scans below only read those, so ignore tar's exit. Then
+        # force readability on everything we extracted, so a hostile dir mode (e.g. 000) inside
+        # the layer can't make `find` skip its contents (a fail-OPEN hole).
+        tar -xf "$blob" -C "$INSPECT_LAYER_DIR" 2>/dev/null || true
+        chmod -R u+rwX "$INSPECT_LAYER_DIR" 2>/dev/null || true
+        # NAME scan (prune node_modules; whiteout markers `.wh.*` never match these patterns).
+        nh=$(find "$INSPECT_LAYER_DIR" \( -path '*/node_modules/*' \) -prune -o -type f \
+            \( -name '.env' -o -name '.env.*' -o -name '*.secret' \) \
+            ! -name '*.example' ! -name '*.sample' ! -name '*.template' -print 2>/dev/null \
+            | sed "s|^$INSPECT_LAYER_DIR||" || true)
+        [ -n "$nh" ] && name_hits="${name_hits}${nh}
+"
+        gh=$(find "$INSPECT_LAYER_DIR" \( -path '*/node_modules/*' \) -prune -o \
+            -type d -name '.git' -print 2>/dev/null \
+            | sed "s|^$INSPECT_LAYER_DIR||" || true)
+        [ -n "$gh" ] && git_hits="${git_hits}${gh}
+"
+        # CONTENT scan over ALL files (incl node_modules), size-capped, only if we have hashes.
+        # `find -exec … +` (not `xargs`) so a layer with no matching files runs nothing — portably
+        # avoiding GNU xargs' "run once on empty input" (which would hang $HASH_CMD on stdin).
+        if [ -n "$local_hashes_file" ]; then
+            ch=$(find "$INSPECT_LAYER_DIR" -type f -size +0c -size -1048576c \
+                -exec $HASH_CMD {} + 2>/dev/null \
+                | awk 'FNR==NR { if ($1 != "") want[$1] = 1; next } ($1 in want) { print }' \
+                    "$local_hashes_file" - \
+                | sed "s|$INSPECT_LAYER_DIR||" || true)
+            [ -n "$ch" ] && content_hits="${content_hits}${ch}
+"
+        fi
+        rm -rf "$INSPECT_LAYER_DIR"; INSPECT_LAYER_DIR=""
+    done < <(find "$INSPECT_SAVE_DIR" -type f \( -name 'layer.tar' -o -path '*/blobs/sha256/*' \))
+
+    rm -rf "$INSPECT_SAVE_DIR"; INSPECT_SAVE_DIR=""
+    [ -n "$local_hashes_file" ] && rm -f "$local_hashes_file"
+
+    # Defensive: if the archive format changed so that we matched ZERO layer blobs, do NOT report
+    # "clean" — that would be a silent fail-open. Abort.
+    if [ "$layers_scanned" -eq 0 ]; then
+        echo "Error: found no layer blobs in the $INSPECT_IMAGE archive, so the image cannot be"
+        echo "       certified secret-free — FAILING CLOSED (unexpected docker save format?)."
+        exit 1
+    fi
+
+    if [ -n "$name_hits" ] || [ -n "$git_hits" ] || [ -n "$content_hits" ]; then
+        echo "Error: image $INSPECT_IMAGE contains env/secret material (in one or more layers):"
+        [ -n "$name_hits" ] && { echo "  by filename:"; printf '%s' "$name_hits" | grep -v '^$' | sort -u; }
+        [ -n "$git_hits" ] && { echo "  .git directory:"; printf '%s' "$git_hits" | grep -v '^$' | sort -u; }
+        [ -n "$content_hits" ] && { echo "  by content (matches a local secret/key):"; printf '%s' "$content_hits" | grep -v '^$' | sort -u; }
+        exit 1
+    fi
+
+    echo "Image secret inspection passed (all-layer name + content scan via docker save)."
 fi
 
 echo "Docker secret boundary check passed."
