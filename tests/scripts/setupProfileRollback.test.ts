@@ -19,10 +19,14 @@ const lines = fs.readFileSync(SETUP_PROFILE, "utf8").split("\n");
 const firstIndex = (re: RegExp) => lines.findIndex((l) => re.test(l));
 
 describe("setup-profile.sh rollback ordering invariant", () => {
-  test("STACK_RECREATED flips to 1 after `docker compose pull` and before the destructive recreate", () => {
-    const idxPull = firstIndex(/^docker compose pull$/);
+  test("STACK_RECREATED flips to 1 after the API pull and before the destructive API recreate", () => {
+    // Finding 1: the routine deploy scopes pull/recreate to profile-api so the data-bearing
+    // postgres is never silently re-pulled or force-recreated on a bare API ship.
+    const idxPull = firstIndex(/^docker compose pull profile-api$/);
     const idxStackSet = firstIndex(/^STACK_RECREATED=1$/);
-    const idxRecreate = firstIndex(/^docker compose up -d --force-recreate$/);
+    const idxRecreate = firstIndex(
+      /^docker compose up -d --force-recreate --no-deps profile-api$/,
+    );
 
     expect(idxPull).toBeGreaterThanOrEqual(0);
     expect(idxStackSet).toBeGreaterThanOrEqual(0);
@@ -31,6 +35,17 @@ describe("setup-profile.sh rollback ordering invariant", () => {
     // pull < STACK_RECREATED=1 < the destructive recreate.
     expect(idxPull).toBeLessThan(idxStackSet);
     expect(idxStackSet).toBeLessThan(idxRecreate);
+  });
+
+  test("the routine deploy never pulls or force-recreates the whole project (postgres scoped out)", () => {
+    // A bare `docker compose pull` / `up -d --force-recreate` (no service arg) would silently
+    // re-pull and bounce the data-bearing DB. Those unscoped forms must NOT exist as top-level
+    // commands. postgres is converged in place via `docker compose up -d postgres`.
+    expect(firstIndex(/^docker compose pull$/)).toBe(-1);
+    expect(firstIndex(/^docker compose up -d --force-recreate$/)).toBe(-1);
+    expect(
+      firstIndex(/^docker compose up -d postgres$/),
+    ).toBeGreaterThanOrEqual(0);
   });
 
   test("the rollback gates the recreate on STACK_RECREATED and the trap is installed before the first config write", () => {
@@ -199,7 +214,9 @@ rollback_deploy() {
     systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
   elif [ -n "\${SITE_BAK:-}" ]; then
     rm -f "$SITE" "$SITE_ENABLED"
-    systemctl reload nginx 2>/dev/null || systemctl stop nginx 2>/dev/null || true
+    # Bring nginx back up (the real script gates this on NGINX_WAS_ACTIVE — see the
+    # dedicated Finding-2 behavioral test below; this model just mirrors the up direction).
+    systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
   fi
   if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
     restore_previous_config
@@ -467,5 +484,112 @@ describe("setup-profile.sh real default-site rollback behavior (extracted, EXIT-
     });
     expect(stdout).toMatch(/failed to restore the nginx default site/);
     expect(code).toBe(5);
+  });
+});
+
+// ── Finding 2: a fresh first-TLS deploy whose certbot step fails must not leave nginx down ──
+// certbot --standalone stops nginx; the OLD rollback case (b) ran `reload || stop`, but
+// `reload` cannot start a stopped unit, so a previously-RUNNING nginx was left DOWN (and a
+// misleading ✅ printed). Fix: capture NGINX_WAS_ACTIVE before the stop, and on rollback case
+// (b) restore exactly that state (restart/start when it was up; leave it down otherwise).
+describe("setup-profile.sh restores nginx to its prior run-state on a fresh certbot failure (Finding 2)", () => {
+  const fullScript = fs.readFileSync(SETUP_PROFILE, "utf8");
+  const rollbackFn =
+    fullScript.match(/rollback_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+
+  test("captures NGINX_WAS_ACTIVE BEFORE the SITE_BAK backup AND before stopping nginx", () => {
+    const idxCapture = firstIndex(
+      /systemctl is-active --quiet nginx && NGINX_WAS_ACTIVE=1/,
+    );
+    // Must precede SITE_BAK's assignment: rollback case (b) keys off SITE_BAK and reads
+    // NGINX_WAS_ACTIVE, so a failure between the two must not leave the flag unset.
+    const idxSiteBak = firstIndex(/^\s*SITE_BAK="\$\{SITE_FILE\}\.bak\.\$\$"$/);
+    const idxStop = firstIndex(/^\s*systemctl stop nginx \|\| true$/);
+    expect(idxCapture).toBeGreaterThanOrEqual(0);
+    expect(idxSiteBak).toBeGreaterThan(idxCapture);
+    expect(idxStop).toBeGreaterThan(idxCapture);
+  });
+
+  test("rollback case (b) restores prior run-state (no `reload || stop` that leaves nginx down)", () => {
+    expect(rollbackFn).toMatch(/^rollback_deploy\(\) \{/); // guard against a regex miss
+    // case (b) brings nginx back up gated on the captured prior state...
+    expect(rollbackFn).toMatch(/NGINX_WAS_ACTIVE:-0/);
+    expect(rollbackFn).toMatch(
+      /systemctl restart nginx \|\| systemctl start nginx/,
+    );
+    // ...and the buggy reload-or-stop fallback is gone from the whole rollback fn.
+    expect(rollbackFn).not.toMatch(
+      /systemctl reload nginx \|\| systemctl stop nginx/,
+    );
+  });
+
+  // BEHAVIORAL: run the REAL rollback_deploy under a STATEFUL systemctl where `reload` fails
+  // on a stopped unit (the actual systemd behavior the bug hinges on). Shape the
+  // fresh-certbot-failure state: nginx was running, we stopped it for certbot, and there is
+  // no prior profile site (SITE_BAK set, .bak absent => case b). Assert nginx ends RUNNING and
+  // the original failure code is preserved.
+  function runCertbotFailNginx(opts: { wasActive: boolean }): {
+    state: string;
+    stdout: string;
+    code: number;
+  } {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "certbot-nginx-"));
+    const script = fs.readFileSync(SETUP_PROFILE, "utf8");
+    const restoreFn =
+      script.match(/restore_previous_config\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    const rbFn = script.match(/rollback_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    const stateFile = path.join(dir, "nginx.state");
+    const systemctlStub = [
+      "systemctl() {",
+      '  case "$1" in',
+      '    stop) echo stopped > "$STATE"; return 0 ;;',
+      '    start|restart) echo running > "$STATE"; return 0 ;;',
+      '    reload) [ "$(cat "$STATE")" = running ] && return 0 || return 1 ;;',
+      '    is-active) [ "$(cat "$STATE")" = running ] && return 0 || return 1 ;;',
+      "    *) return 0 ;;",
+      "  esac",
+      "}",
+    ].join("\n");
+    const harness = [
+      "set -e",
+      restoreFn,
+      rbFn,
+      `STATE="${stateFile}"`,
+      `echo ${opts.wasActive ? "running" : "stopped"} > "$STATE"`,
+      systemctlStub,
+      "docker() { return 0; }",
+      "rm() { return 0; }",
+      "cp() { return 0; }",
+      `PROFILE_DIR="${dir}"; PROFILE_ENV_BAK="${dir}/noenv"; COMPOSE_BAK="${dir}/nocompose"`,
+      `DEFAULT_SITE_BAK="${dir}/nodefault"; DEFAULT_SITE_REMOVED=0`,
+      // fresh first-TLS shape: no prior profile site => rollback case (b)
+      `SITE_BAK="${dir}/profile.bak.absent"`,
+      `NGINX_WAS_ACTIVE=${opts.wasActive ? "1" : "0"}`,
+      "DEPLOY_VALIDATED=0; STACK_RECREATED=0; FRESH_DEPLOY=0",
+      // mimic certbot prep: nginx is stopped right before the (failing) certbot step
+      "systemctl stop nginx",
+      "trap rollback_deploy EXIT",
+      "( exit 7 )",
+    ].join("\n");
+    const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
+    const state = fs.existsSync(stateFile)
+      ? fs.readFileSync(stateFile, "utf8").trim()
+      : "";
+    fs.rmSync(dir, { recursive: true, force: true });
+    return { state, stdout: res.stdout ?? "", code: res.status ?? -1 };
+  }
+
+  test("nginx was running => rollback brings it back UP (the regression left it stopped); code preserved", () => {
+    const { state, stdout, code } = runCertbotFailNginx({ wasActive: true });
+    expect(state).toBe("running"); // the old `reload || stop` left this 'stopped'
+    expect(stdout).toMatch(/nginx restored to running/);
+    expect(code).toBe(7); // original deploy-failure code preserved, not masked
+  });
+
+  test("nginx was NOT running before => rollback leaves it stopped (no gratuitous start)", () => {
+    const { state, stdout, code } = runCertbotFailNginx({ wasActive: false });
+    expect(state).toBe("stopped");
+    expect(stdout).toMatch(/left stopped/);
+    expect(code).toBe(7);
   });
 });

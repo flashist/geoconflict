@@ -38,7 +38,10 @@
 #   • the EXACT DATABASE_URL the API consumes opens a real connection and SELECT 1 succeeds
 #     (probe_database_url) — operator overrides validated through the same gate, no verbatim
 #     trust; a malformed/misdirected URL FAILS the deploy instead of recording passed;
-#   • the stack is deployed (and rolled back) by immutable image digest.
+#   • the profile-api image is deployed (and rolled back) by immutable @sha256 digest;
+#     postgres runs the major-pinned official image (postgres:16-alpine) and a routine API
+#     deploy pulls/recreates ONLY profile-api, so the data-bearing DB is never silently
+#     re-pulled or bounced — a Postgres image change is a deliberate, separate action.
 # DELIBERATELY OUT OF SCOPE — tracked: a DB-backed application readiness endpoint (/ready)
 #   that compose/deploy waits on. It needs the T5 Postgres-backed repository (the API here is
 #   a /health-only liveness skeleton). Owned by T5 (s4-profile-05-backend-db-api.md — Scope
@@ -389,10 +392,20 @@ rollback_deploy() {
         # but the .bak file was never created). Remove the freshly-created site + symlink
         # so a failed deploy never leaves a public proxy to an incomplete deploy.
         rm -f /etc/nginx/sites-available/profile /etc/nginx/sites-enabled/profile
-        if systemctl reload nginx || systemctl stop nginx; then
-            echo "✅ ROLLBACK: removed the unvalidated nginx site."
+        # Restore nginx to its PRE-DEPLOY run-state. certbot --standalone stopped nginx
+        # above; a bare `reload` cannot start a stopped unit, so the old `reload || stop`
+        # left a previously-RUNNING nginx DOWN on a fresh first-TLS deploy (the default
+        # vhost — restored above when this deploy removed it — would otherwise be served
+        # fine). If nginx was active before we stopped it, bring it back UP and surface a
+        # failure loudly; if it was already down, leave it down (don't gratuitously start it).
+        if [ "${NGINX_WAS_ACTIVE:-0}" = "1" ]; then
+            if systemctl restart nginx || systemctl start nginx; then
+                echo "✅ ROLLBACK: removed the unvalidated nginx site; nginx restored to running."
+            else
+                echo "❌ ROLLBACK: removed the unvalidated nginx site but nginx did NOT come back up — TLS/proxy may be DOWN."
+            fi
         else
-            echo "❌ ROLLBACK: nginx did not reload/stop after removing the unvalidated site."
+            echo "✅ ROLLBACK: removed the unvalidated nginx site (nginx was not running before this deploy; left stopped)."
         fi
     fi
     if [ -f "$PROFILE_ENV_BAK" ] || [ -f "$COMPOSE_BAK" ]; then
@@ -417,11 +430,16 @@ rollback_deploy() {
             local prev_image=""
             prev_image=$(awk '$1 == "profile-api:" { in_svc = 1; next } in_svc && $1 == "image:" { print $2; exit }' "$PROFILE_DIR/docker-compose.yml" 2>/dev/null || true)
             if printf '%s' "$prev_image" | grep -q '@sha256:'; then
-                echo "Recreating the previous stack..."
-                if docker compose up -d --force-recreate; then
+                echo "Recreating the previous profile-api..."
+                # Mirror the forward path: postgres was converged in place and never stopped
+                # by this deploy, so converge it again (no-op if running) and recreate ONLY
+                # the API (--no-deps) — restoring the previous digest-pinned API without
+                # bouncing the data-bearing DB.
+                docker compose up -d postgres || true
+                if docker compose up -d --force-recreate --no-deps profile-api; then
                     echo "✅ ROLLBACK: previous stack restored."
                 else
-                    echo "❌ ROLLBACK FAILED: could not recreate the previous stack — the profile API may be DOWN."
+                    echo "❌ ROLLBACK FAILED: could not recreate the previous profile-api — the profile API may be DOWN."
                     echo "   Manual recovery required. Current state and recent logs:"
                     docker compose ps || true
                     echo "----- recent logs (last 50 lines) -----"
@@ -721,15 +739,26 @@ if [ -n "$(docker compose ps -q postgres 2>/dev/null || true)" ]; then
     echo "✅ New credentials authenticate against the existing Postgres."
 fi
 
-docker compose pull
+# Pull and recreate ONLY the profile-api service. postgres is a data-bearing service on
+# the major-pinned official image (postgres:16-alpine); a routine API deploy must NOT
+# silently re-pull it (non-reproducible binary drift) nor force-recreate it (gratuitous
+# DB downtime on every ship). So: pull just the API image; converge postgres in place
+# (create-if-missing; recreate only if its compose definition genuinely changed — never on
+# a bare API redeploy; and never a silent image bump, since we don't `pull` it here); then
+# force-recreate the API alone. `--no-deps` is required because `--force-recreate` otherwise
+# cascades to dependencies; the dropped `depends_on` health-wait is covered by the health
+# gate below (+ `restart: on-failure` and the dependency-free /health). A deliberate
+# Postgres image change is a separate, explicit maintenance action — not a routine deploy.
+docker compose pull profile-api
+docker compose up -d postgres
 # Mark the live stack as touched BEFORE the destructive recreate. `docker compose up
-# --force-recreate` stops/recreates each service, so if it fails partway `set -e`
-# exits with the stack partially mutated; the EXIT rollback must then restore the
-# previous config AND recreate the previous stack. Setting this only on success would
-# skip that recreate and leave production partial/down. Placed after `pull` because a
-# pull failure never touches running containers (config-only restore, no restart).
+# --force-recreate` stops/recreates the API, so if it fails partway `set -e` exits with
+# the stack partially mutated; the EXIT rollback must then restore the previous config AND
+# recreate the previous API. Setting this only on success would skip that recreate and
+# leave production partial/down. Placed after the pull/postgres-converge because neither
+# touches the running profile-api container (config-only restore, no restart).
 STACK_RECREATED=1
-docker compose up -d --force-recreate
+docker compose up -d --force-recreate --no-deps profile-api
 
 # T5: apply DB migrations here once they exist, e.g.:
 #   docker compose exec -T profile-api npm run migrate
@@ -852,6 +881,17 @@ if [ -n "$PROFILE_DOMAIN" ]; then
     fi
 
     apt-get install -y nginx certbot
+
+    # Capture nginx's pre-deploy run-state BEFORE we touch anything in this section (it is
+    # running now — freshly installed, or from a prior deploy), so a rollback can restore
+    # exactly that state. Captured here, AHEAD of the site backup below, so it is always set
+    # before SITE_BAK is — rollback_deploy's case (b) keys off SITE_BAK and reads
+    # NGINX_WAS_ACTIVE, so a failure between the two (e.g. the backup `cp`) must not leave the
+    # flag unset. A fresh first-TLS deploy whose certbot step fails must not leave a
+    # previously-RUNNING nginx stopped: `reload` cannot start a stopped unit, which is why the
+    # old `reload || stop` left it down.
+    NGINX_WAS_ACTIVE=0
+    systemctl is-active --quiet nginx && NGINX_WAS_ACTIVE=1
 
     # Back up the current site config so the EXIT rollback (rollback_deploy) can restore
     # it. certbot --standalone needs port 80, so nginx is stopped below; if certbot or

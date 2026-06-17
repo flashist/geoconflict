@@ -197,10 +197,26 @@ REJECT (encodes fail-closed so the next quirk can't reopen the class).
 
 ### Class C — Rollback completeness & fail-loud
 
-**Already closed (keep green):** the fresh-deploy nginx branch (`reload || stop`) and the stack-recreate
-failure report (`docker compose ps` + logs) — landed F3/F8; `local rc=$?` + `return $rc`; `down`
-(no `-v`) as the only executed teardown with `down -v` echoed as a hint. **Extend into the LIFO; don't
-rewrite.**
+**Already closed (keep green):** the stack-recreate failure report (`docker compose ps` + logs) —
+landed F3/F8; `local rc=$?` + `return $rc`; `down` (no `-v`) as the only executed teardown with
+`down -v` echoed as a hint. **Extend into the LIFO; don't rewrite.**
+
+**Fixed here (was a FALSE "closed" claim — F-6 in the wild):** a prior revision of this section listed
+the fresh-deploy nginx branch (`reload || stop`) as closed. It was NOT: `reload` cannot start a stopped
+unit, so after certbot `--standalone` stops nginx a failed first-TLS deploy left a previously-RUNNING
+nginx DOWN (and printed a misleading ✅). Fixed by capturing `NGINX_WAS_ACTIVE`
+(`systemctl is-active --quiet nginx`) before the stop and, on rollback case (b), restoring that exact
+state (`systemctl restart || start` when it was up; surface ❌ if it can't return; leave it down
+otherwise) — the non-LIFO realization of the `systemctl start nginx` undo prescribed below.
+
+**Fixed here (deploy/rollback scope, Finding 1):** the routine deploy ran `docker compose pull` + `up -d
+--force-recreate` for the WHOLE project, so every API ship silently re-pulled and force-recreated the
+data-bearing postgres (non-reproducible binary drift + needless DB downtime), even though only
+profile-api is digest-pinned. Now the forward path and the rollback recreate scope to the API:
+`docker compose pull profile-api`, `docker compose up -d postgres` (converge in place — never a silent
+image bump), then `docker compose up -d --force-recreate --no-deps profile-api`. postgres stays the
+major-pinned official `postgres:16-alpine` (same-major patches are on-disk compatible, so this is not a
+data-format risk); a DB image change is a deliberate, separate maintenance action.
 
 **New in this PR:** replace per-resource flags with one append-only LIFO stack.
 `register_undo() { ROLLBACK_ACTIONS+=("$1"); }`; every forward mutation pushes its inverse on the line
@@ -354,11 +370,13 @@ merge bar (§8) asserts these directly:
 - **I-C — Rollback provenance (Class C).** (a) The box rollback restores the previously-running
   on-disk config and must NEVER refuse for lack of a passed record (refusing at the recovery moment,
   gated on a ledger that can be lost / written-failed / produced on another workstation, is the
-  failure mode). (b) The forward path pins by digest (`PROFILE_DEPLOY_REF=$PROFILE_DIGEST`, refuses
-  mutable tags), so every compose the pipeline writes bakes an `@sha256` ref. (c) The rollback
-  recreate is gated on a SELF-CONTAINED `@sha256` check of the restored profile-api image (never roll
-  back to a pre-hardening image — `registry-image-policy.md` L64); a non-digest image fails LOUD with
-  a break-glass banner. That check reads no ledger, so it does not violate (a). The
+  failure mode). (b) The forward path pins the **profile-api** image by digest
+  (`PROFILE_DEPLOY_REF=$PROFILE_DIGEST`, refuses mutable tags), so every compose the pipeline writes
+  bakes an `@sha256` profile-api ref; postgres is intentionally the major-pinned official tag
+  (`postgres:16-alpine`), never silently re-pulled or bounced — a routine deploy pulls/recreates only
+  profile-api (Finding 1). (c) The rollback recreate is gated on a SELF-CONTAINED `@sha256` check of the
+  restored profile-api image (never roll back to a pre-hardening image — `registry-image-policy.md`
+  L64); a non-digest image fails LOUD with a break-glass banner. That check reads no ledger, so it does not violate (a). The
   `.profile-deploy-record` is a developer-workstation log, never consulted by the box.
 - **I-D — Shared-resource locking (Class D).** Every shared on-disk/remote resource a deploy mutates
   is covered by exactly one owning lock acquired BEFORE first use, on the SAME host where the resource
