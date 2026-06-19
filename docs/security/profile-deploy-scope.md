@@ -436,12 +436,17 @@ tests can drift without turning the coupling test red. Row format:
 - `RESIDUAL[D-R2]` — was accepted: fast-follow — CLOSED — `REMOTE_ENV` was keyed on the local shell
   PID and collided across workstations; it is now allocated host-side with `mktemp` and
   pattern-validated. Locked green by `CLOSED[D-R2]`.
-- `RESIDUAL[G-token-persist]` — accepted: cross-redeploy persistence (M1 / I-G) — OPEN — an env-supplied
-  `PROFILE_INTERNAL_TOKEN` is read (`Using PROFILE_INTERNAL_TOKEN from environment`) but never written;
-  the only persistence write `( umask 077; printf '%s' "$PROFILE_INTERNAL_TOKEN" > "$PROFILE_TOKEN_FILE" )`
-  sits in the generate-only `else` branch, so a blank-env redeploy silently reuses a different earlier
-  token or regenerates one. Fix is to persist an env-supplied value (0600, atomic) on the run that
-  introduces it. Tracked via `test.skip` until closed.
+- `RESIDUAL[G-token-persist]` — was accepted: cross-redeploy persistence (M1 / I-G) — CLOSED — an
+  env-supplied `PROFILE_INTERNAL_TOKEN` was read (`Using PROFILE_INTERNAL_TOKEN from environment`) but
+  never written; the only persistence write sat in the generate-only `else` branch, so a later blank-env
+  redeploy silently rotated the T6 service-to-service token (breaking game-server crediting until the
+  operator re-shared it). The token-resolution branches now RESOLVE only; persistence to
+  `$PROFILE_TOKEN_FILE` is DEFERRED until the deploy VALIDATES (atomic temp+mv, 0600), so it is a
+  validated-only artifact: a SUCCESSFUL env-set deploy persists the value (a blank-env redeploy then
+  reuses the SAME token), while a FAILED deploy never overwrites the prior token — the file is not
+  rollback-restored, so writing it pre-validation would have rotated the secret on a failed-then-blank
+  redeploy. Locked green by `CLOSED[G-token-persist]` (asserts both reuse-on-success and
+  no-rotation-on-failure). The deferral was the round-2 hardening of the original env-branch write.
 - `RESIDUAL[B-pattern-drift]` — accepted: single-source gap (M2 / I-B) — OPEN — the secret-name pattern
   set is hand-retyped across `.dockerignore` (`.env` + `.env.*`), `.gitignore` (`.env*`), and four sites
   in `check-docker-secret-boundary.sh` (`require_literal_line ".env"`/`"*.secret"`; runtime

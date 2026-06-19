@@ -13,6 +13,7 @@ const REAL_SCRIPT = path.join(
   "scripts",
   "check-docker-secret-boundary.sh",
 );
+const scannerSrc = fs.readFileSync(REAL_SCRIPT, "utf8");
 
 // A .dockerignore that satisfies every required exclusion the checker enforces.
 const GOOD_DOCKERIGNORE = [
@@ -229,6 +230,302 @@ describe("check-docker-secret-boundary.sh static checks", () => {
   });
 });
 
+// Adversarial review (Codex JSON-escape + workflow heredoc-token): the broad-copy scanner
+// claims JSON/exec-form coverage and skips RUN-heredoc bodies, but two parser-fidelity gaps let
+// a broad context copy slip past as exit 0:
+//   (1) Docker JSON-DECODES exec-form COPY/ADD operands, so a backslash escape hides a broad
+//       source — COPY [".","/app"] decodes to source "." (whole context) and
+//       ["$SRC",...] to "$SRC" (an ARG/ENV source) — while the awk extracted the raw,
+//       still-encoded bytes (neither a literal "." nor "$"). Closed by rejecting ANY backslash
+//       in a JSON-form source operand, fail closed.
+//   (2) a `<<WORD` token in ANY non-COPY/ADD line (a LABEL/ENV/ARG value, or RUN echo "<<X")
+//       armed the RUN-heredoc body-skip, so the skip block swallowed a following real
+//       `COPY . /app` until an attacker-chosen terminator. Docker treats those as plain text
+//       (heredocs are detected only on RUN/COPY, from shell-lexed words). Closed by arming the
+//       body-skip only for a RUN instruction whose UNQUOTED text carries a `<<WORD` operand.
+describe("check-docker-secret-boundary.sh — JSON-escape + heredoc-token parser fidelity (fail closed)", () => {
+  const BS = "\\"; // a single backslash, kept out of the fixtures' own escaping
+  const FROM = "FROM node:24-slim";
+
+  // (1) JSON/exec-form sources whose backslash escape Docker decodes to a broad/variable source.
+  const jsonEscapeRejects: Array<[string, string]> = [
+    [
+      "escaped dot, source first (decodes to '.')",
+      [FROM, `COPY ["${BS}u002e", "/app"]`].join("\n"),
+    ],
+    [
+      "escaped dot, NOT first source (decodes to '.')",
+      [FROM, `COPY ["pkg", "${BS}u002e", "/app"]`].join("\n"),
+    ],
+    [
+      "escaped dollar source (decodes to '$SRC', an ARG/ENV source)",
+      [FROM, `COPY ["${BS}u0024SRC", "/app"]`].join("\n"),
+    ],
+    ["ADD escaped dot", [FROM, `ADD ["${BS}u002e", "/app"]`].join("\n")],
+  ];
+  test.each(jsonEscapeRejects)(
+    "rejects a backslash-escaped JSON/exec-form source: %s",
+    (_d, dockerfile) => {
+      expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
+    },
+  );
+
+  test("a benign JSON/exec-form copy (no backslash) still PASSES (no false positive)", () => {
+    const dockerfile = [
+      FROM,
+      'COPY ["package.json", "/app/"]',
+      'COPY ["src/index.js", "/app/index.js"]',
+    ].join("\n");
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
+  });
+
+  // (2) a `<<WORD` token outside a real RUN heredoc operand must NOT disarm the scanner — a
+  // following broad `COPY . /app` must still be REJECTED.
+  const heredocDisarmRejects: Array<[string, string]> = [
+    [
+      "LABEL value containing <<DEFAULTS",
+      [
+        FROM,
+        'LABEL note="config uses <<DEFAULTS section"',
+        "COPY . /usr/src/app",
+      ].join("\n"),
+    ],
+    [
+      "ENV value containing <<HERE",
+      [FROM, 'ENV NOTE="see <<HERE for docs"', "COPY . /usr/src/app"].join(
+        "\n",
+      ),
+    ],
+    [
+      "ARG value containing <<TOKEN",
+      [FROM, 'ARG BUILD_NOTE="emit <<TOKEN here"', "COPY . /usr/src/app"].join(
+        "\n",
+      ),
+    ],
+    [
+      'RUN echo "<<NOPE" (quoted, not a heredoc operand)',
+      [FROM, 'RUN echo "<<NOPE"', "COPY . /usr/src/app"].join("\n"),
+    ],
+    [
+      // The SINGLE-quote blank is a distinct guard from the double-quote one. The leading space
+      // inside ' <<NOPE' is essential: the `(^|[ \t])<<` word-start anchor only treats it as a
+      // heredoc operand when `<<` begins a word, so `'<<NOPE'` (no leading space) passes on both
+      // guarded and unguarded code, while ' <<NOPE' goes RED iff the single-quote gsub is removed.
+      "RUN echo with single-quoted ' <<NOPE' (exercises the single-quote span blanking)",
+      [FROM, "RUN echo ' <<NOPE'", "COPY . /usr/src/app"].join("\n"),
+    ],
+    [
+      // Adversarial review (round 7): a backslash-escaped quote INSIDE a double-quoted argument
+      // must NOT prematurely close the span — otherwise <<NOPE leaks out as an unquoted operator,
+      // arms a bogus heredoc, and swallows the following broad COPY (a fail-OPEN). blank_quotes
+      // honors the escape, so <<NOPE stays quoted and the COPY . is still flagged.
+      'RUN echo "foo\\"<<NOPE" (escaped quote inside double quotes must not disarm)',
+      [FROM, `RUN echo "foo${BS}"<<NOPE"`, "COPY . /usr/src/app"].join("\n"),
+    ],
+    [
+      // Escaped quotes OUTSIDE quotes are literal chars, so the token is a quoted-looking argument,
+      // not a heredoc operator — the following broad COPY must still be flagged.
+      'RUN echo \\"<<NOPE\\" (escaped quotes outside)',
+      [FROM, `RUN echo ${BS}"<<NOPE${BS}"`, "COPY . /usr/src/app"].join("\n"),
+    ],
+    [
+      // Adversarial review (round 8): BuildKit requires the delimiter ATTACHED to `<<` (one shlex
+      // word). A whitespace/tab GAP (`<< EOF`), a bare `<<` at end-of-line, or `<<<` (here-string)
+      // all yield an EMPTY heredoc name → NOT a heredoc, so the following broad COPY is a real
+      // instruction that must be flagged. NOTE (round 9): the gap/bare cases are DOUBLY backstopped
+      // — both the arming `nxt` guard AND heredoc_delim returning empty on a gap/EOL — so each of
+      // these is an end-to-end non-disarm check, not an independent pin of the `nxt` clause; the
+      // `<<<word` here-string and the dedicated heredoc_delim unit test below pin those directly.
+      "RUN echo hello << EOF (space gap before delimiter)",
+      [FROM, "RUN echo hello << EOF", "COPY . /usr/src/app"].join("\n"),
+    ],
+    [
+      "RUN echo hi <<<TAB>>EOF (tab gap before delimiter)",
+      [FROM, "RUN echo hi <<\tEOF", "COPY . /usr/src/app"].join("\n"),
+    ],
+    [
+      "RUN echo hi << (bare operator, no delimiter)",
+      [FROM, "RUN echo hi <<", "COPY . /usr/src/app"].join("\n"),
+    ],
+    [
+      "RUN echo hi <<<word (here-string, not a heredoc)",
+      [FROM, "RUN echo hi <<<word", "COPY . /usr/src/app"].join("\n"),
+    ],
+    [
+      // Adversarial review (round 9): BuildKit reHeredoc is ^\d*<<-?\s*[^<]*$ — ANY `<` in the
+      // delimiter word (not just a leading one) breaks the match, so it is NOT a heredoc and the
+      // next line is a real instruction. A `<` LATER in the word (<<EOF<X) must not arm a skip.
+      "RUN echo hi <<EOF<X (< later in delimiter — not a heredoc)",
+      [FROM, "RUN echo hi <<EOF<X", "COPY . /usr/src/app"].join("\n"),
+    ],
+    [
+      'RUN echo hi <<"E<F" (< inside a quoted delimiter — not a heredoc)',
+      [FROM, 'RUN echo hi <<"E<F"', "COPY . /usr/src/app"].join("\n"),
+    ],
+    [
+      "RUN echo hi <<EOF\\<X (backslash-escaped < in delimiter — still not a heredoc)",
+      [FROM, `RUN echo hi <<EOF${BS}<X`, "COPY . /usr/src/app"].join("\n"),
+    ],
+  ];
+  test.each(heredocDisarmRejects)(
+    "a non-heredoc <<WORD token does NOT disarm the broad-copy scan: %s",
+    (_d, dockerfile) => {
+      expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
+    },
+  );
+
+  test("a REAL RUN heredoc body containing COPY . /app is still NOT flagged (no false positive)", () => {
+    const dockerfile = [
+      FROM,
+      "RUN <<EOF",
+      "echo building",
+      "COPY . /app",
+      "EOF",
+      "COPY package*.json ./",
+    ].join("\n");
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
+  });
+
+  // Adversarial review (round 6): a QUOTED-DELIMITER heredoc (RUN <<"EOF" / <<'EOF' / <<-"EOF")
+  // is valid BuildKit (the quotes disable body interpolation) — the body is shell DATA, so a body
+  // line `COPY . /app` must NOT be flagged. The round-1 quote-blanking blanked the quoted DELIMITER
+  // along with quoted arguments, disarming the body-skip → false-positive over-rejection. The
+  // fix detects `<<` on a length-preserved blanked copy (so a quoted ARGUMENT still can't arm it)
+  // and recovers the possibly-quoted delimiter from the raw line. These must PASS (exit 0).
+  const quotedHeredocPass: Array<[string, string]> = [
+    ['RUN <<"EOF" (double-quoted delimiter)', 'RUN <<"EOF"'],
+    ["RUN <<'EOF' (single-quoted delimiter)", "RUN <<'EOF'"],
+    ['RUN <<-"EOF" (dash + quoted delimiter)', 'RUN <<-"EOF"'],
+  ];
+  test.each(quotedHeredocPass)(
+    "a quoted-delimiter RUN heredoc body containing COPY . /app is NOT flagged (no false positive): %s",
+    (_d, openLine) => {
+      const dockerfile = [
+        FROM,
+        openLine,
+        "echo building",
+        "COPY . /app",
+        "EOF",
+        "COPY package*.json ./",
+      ].join("\n");
+      expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
+    },
+  );
+
+  // Adversarial review (round 7): the heredoc DELIMITER must be recovered EXACTLY as BuildKit does
+  // (full whitespace-delimited word, all quotes removed, chunks concatenated) — NOT a truncated
+  // prefix. A non-word delimiter (`<<EOF-X`, verified accepted by real Docker 28.5.1) or a
+  // multi-chunk quoted one (`<<"A"B` -> AB, `<<E"O"F` -> EOF) that the scanner recovered as a
+  // SHORTER string (EOF / A / EOF...) would arm a terminator the real closing line never matches,
+  // so the body-skip runs PAST the real terminator and SWALLOWS a following broad `COPY . /app` (a
+  // fail-OPEN). Each fixture opens the heredoc, closes it with the REAL terminator, then does a
+  // broad `COPY . /app` that MUST be flagged (exit != 0). LOAD-BEARING: the round-6/round-7 prefix
+  // recovery armed the truncated terminator and these exit 0.
+  const heredocDelimRecovery: Array<[string, string, string]> = [
+    ["non-word delimiter EOF-X", "RUN <<EOF-X", "EOF-X"],
+    ["non-word delimiter EOF.bak", "RUN <<EOF.bak", "EOF.bak"],
+    ["non-word delimiter EOF!", "RUN <<EOF!", "EOF!"],
+    ['multi-chunk quoted <<"A"B (-> AB)', 'RUN <<"A"B', "AB"],
+    ['multi-chunk quoted <<E"O"F (-> EOF)', 'RUN <<E"O"F', "EOF"],
+    ["dash + non-word <<-EOF-X", "RUN <<-EOF-X", "EOF-X"],
+  ];
+  test.each(heredocDelimRecovery)(
+    "the FULL heredoc delimiter is recovered so a broad COPY after the real terminator is still REJECTED: %s",
+    (_d, openLine, terminator) => {
+      const dockerfile = [
+        FROM,
+        openLine,
+        "echo building",
+        terminator,
+        "COPY . /app",
+      ].join("\n");
+      expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
+    },
+  );
+
+  test("a non-word-delimiter heredoc body containing COPY . /app is NOT flagged (delimiter recovered, body skipped)", () => {
+    const dockerfile = [
+      FROM,
+      "RUN <<EOF-X",
+      "COPY . /app",
+      "EOF-X",
+      "COPY package*.json ./",
+    ].join("\n");
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
+  });
+
+  // Adversarial review (round 9, C9-1): a single RUN can open MULTIPLE heredocs (`RUN <<A <<B`);
+  // BuildKit consumes their bodies IN ORDER. The scanner tracked only ONE terminator, so after the
+  // first closed, the SECOND body was mis-parsed as instructions — a body line `RUN <<NEVER` armed
+  // a bogus skip that swallowed the real broad COPY after both heredocs (a fail-OPEN). The fix
+  // queues ALL delimiters and pops them in order. LOAD-BEARING: the single-terminator scanner
+  // armed NEVER and exited 0 on this fixture.
+  test("a multi-heredoc RUN desync does NOT swallow a following broad COPY (all delimiters queued)", () => {
+    const dockerfile = [
+      FROM,
+      "RUN <<A <<B",
+      "echo aaa",
+      "A",
+      "RUN <<NEVER", // shell DATA inside B's body, not a real instruction
+      "B",
+      "COPY . /app", // the real broad copy, after BOTH heredocs close
+    ].join("\n");
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
+  });
+
+  test("BOTH bodies of a multi-heredoc RUN are skipped (a COPY . in either body is not flagged)", () => {
+    const dockerfile = [
+      FROM,
+      "RUN <<A <<B",
+      "COPY . /app", // body of A — shell data, must NOT be flagged
+      "A",
+      "COPY . /opt", // body of B — shell data, must NOT be flagged
+      "B",
+      "COPY package*.json ./",
+    ].join("\n");
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).toBe(0);
+  });
+
+  // Adversarial review (round 9, test-rigor): the whitespace-gap/bare heredoc fixtures above are
+  // DOUBLY backstopped — both the arming `nxt` guard AND heredoc_delim's empty-on-gap return block
+  // them — so a regression in EITHER alone is masked, and they do not independently pin
+  // heredoc_delim. Pin heredoc_delim DIRECTLY: extract the real awk function and run it, asserting
+  // it returns the BuildKit delimiter for real heredocs and EMPTY for non-heredocs (leading
+  // whitespace, a `<` in the word, or EOL). A refactor re-introducing leading-whitespace trimming
+  // — the exact failure the `nxt` clauses backstop — turns this red even with the nxt guard intact.
+  test("heredoc_delim (unit): recovers the BuildKit delimiter, returns empty for a non-heredoc", () => {
+    const fn =
+      scannerSrc.match(/function heredoc_delim\(s, p,[\s\S]*?\n {4}\}/)?.[0] ??
+      "";
+    expect(fn).toMatch(/function heredoc_delim/);
+    const delim = (input: string, p = 1): string => {
+      const prog = `${fn}\n{ printf "%s", heredoc_delim($0, ${p}) }`;
+      return spawnSync("awk", [prog], { input, encoding: "utf8" }).stdout ?? "";
+    };
+    // Real delimiters, recovered with BuildKit shell quote-removal:
+    expect(delim("EOF")).toBe("EOF");
+    expect(delim("EOF-X")).toBe("EOF-X"); // non-word chars kept
+    expect(delim('"A"B')).toBe("AB"); // multi-chunk, quotes removed + concatenated
+    expect(delim('"E O F"')).toBe("E O F"); // quoted spaces kept
+    // NOT a heredoc -> EMPTY (this is what backstops the whitespace/bare fixtures):
+    expect(delim(" EOF")).toBe(""); // leading whitespace (no trim) -> empty
+    expect(delim("EOF<X")).toBe(""); // a `<` in the word -> empty
+    expect(delim('"E<F"')).toBe(""); // a quoted `<` -> empty
+    expect(delim("EOF", 10)).toBe(""); // start past end-of-line -> empty
+  });
+
+  test("a real broad COPY after a closed RUN heredoc is still REJECTED", () => {
+    const dockerfile = [
+      FROM,
+      "RUN <<EOF",
+      "echo hi",
+      "EOF",
+      "COPY . /app",
+    ].join("\n");
+    expect(runOnFixture(dockerfile, GOOD_DOCKERIGNORE)).not.toBe(0);
+  });
+});
+
 describe("check-docker-secret-boundary.sh — non-default escape directive (fail closed)", () => {
   // Docker's leading `# escape=` parser directive can switch line-continuation to a
   // backtick. The broad-COPY scanner only joins BACKSLASH continuations, so a
@@ -362,6 +659,8 @@ function buildSaveArchive(dir: string, layers: LayerFiles[]): void {
 type InspectMode =
   | "clean"
   | "content"
+  | "content-large"
+  | "content-subdir"
   | "name"
   | "deleted"
   | "save-fail"
@@ -399,6 +698,27 @@ function runInspectImage(mode: InspectMode): { code: number; out: string } {
   } else if (mode === "content") {
     // secret bytes under a renamed/innocuous path, present in the final image
     buildSaveArchive(dir, [[{ path: "opt/renamed.dat", content: leakBytes }]]);
+  } else if (mode === "content-large") {
+    // A >= 1 MiB local secret (e.g. a PEM bundle / fullchain) whose EXACT bytes ride into a layer
+    // under a renamed path. The wanted-set find hashes it (uncapped); the OLD layer-scan cap
+    // (`-size -1048576c`) skipped the >= 1 MiB layer copy → no hit → fail-OPEN. The uncapped scan
+    // must catch it. (1.5 MiB > the old 1048576-byte cap.)
+    const bigLeak = "K".repeat(1_500_000) + "\n";
+    fs.writeFileSync(path.join(dir, "big.key"), bigLeak);
+    buildSaveArchive(dir, [
+      [{ path: "opt/big-renamed.dat", content: bigLeak }],
+    ]);
+  } else if (mode === "content-subdir") {
+    // A key in a build-context SUBDIRECTORY (e.g. shipped by `COPY src ./src`) whose exact bytes
+    // ride into a layer. The OLD `-maxdepth 1` wanted-set hashed only repo-ROOT secrets, so this
+    // subdir key was in NO wanted-set and the name scan omits *.key → caught by neither (fail-OPEN).
+    // The recursive wanted-set find must hash it and match it in-layer.
+    const subLeak = "SUBDIRKEYDATA-abcdef0123456789\n";
+    fs.mkdirSync(path.join(dir, "src", "config"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "src", "config", "embedded.key"), subLeak);
+    buildSaveArchive(dir, [
+      [{ path: "app/src/config/embedded.key", content: subLeak }],
+    ]);
   } else if (mode === "name") {
     buildSaveArchive(dir, [
       [{ path: "opt/strayconfig/.env", content: "X=1\n" }],
@@ -511,6 +831,27 @@ describe("check-docker-secret-boundary.sh --inspect-image gate (docker save stub
     expect(code).not.toBe(0);
     expect(out).toMatch(/by content/);
     expect(out).toMatch(/\/opt\/renamed\.dat/);
+  });
+
+  // LOAD-BEARING for the removed layer-scan size cap: a >= 1 MiB secret riding into a layer under
+  // a renamed path must be caught by content. With the old `-size -1048576c` cap the >= 1 MiB
+  // layer file was skipped (no content hit, no name hit) → fail-OPEN. Reverting to the cap turns
+  // this red.
+  test("a CONTENT match for a >= 1 MiB secret (renamed path) fails — the layer scan is not size-capped", () => {
+    const { code, out } = runInspectImage("content-large");
+    expect(code).not.toBe(0);
+    expect(out).toMatch(/by content/);
+    expect(out).toMatch(/\/opt\/big-renamed\.dat/);
+  });
+
+  // LOAD-BEARING for the recursive wanted-set find: a key in a build-context SUBDIRECTORY must be
+  // caught by content. With the old `-maxdepth 1` wanted-set it was hashed by nothing and the name
+  // scan omits *.key → fail-OPEN. Reverting to `-maxdepth 1` turns this red.
+  test("a CONTENT match for a key in a SUBDIRECTORY fails — the wanted-set find is not depth-capped", () => {
+    const { code, out } = runInspectImage("content-subdir");
+    expect(code).not.toBe(0);
+    expect(out).toMatch(/by content/);
+    expect(out).toMatch(/\/app\/src\/config\/embedded\.key/);
   });
 
   test("a NAME hit (a secret-named file in a layer) fails and reports the filename", () => {

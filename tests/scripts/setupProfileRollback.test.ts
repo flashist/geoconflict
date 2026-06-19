@@ -210,6 +210,39 @@ describe("setup-profile.sh fresh-deploy failure handling (never auto-deletes the
       ),
     ).toBe(true);
   });
+
+  // Adversarial review (bash set -e): the case-b removal of the freshly-created nginx site was
+  // the ONLY unguarded mutating command in rollback_deploy. Under set -e a non-zero `rm`
+  // (read-only / immutable / unwritable /etc/nginx) would ABORT the EXIT trap, skipping the
+  // remaining rollback (run-state restore + fresh-deploy teardown + config quarantine) and
+  // leaving an unvalidated, publicly-proxied stack live. Every rollback mutation must carry a
+  // `|| …` failure guard.
+  test("the freshly-created nginx site removal is GUARDED (|| …) so a failed rm cannot abort the trap", () => {
+    const rollbackFn =
+      lines.join("\n").match(/rollback_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    expect(rollbackFn).toMatch(/rollback_deploy\(\) \{/);
+    // Join backslash continuations so the rm and its `|| echo` guard read as one logical line.
+    const joined = rollbackFn.replace(/\\\n\s*/g, " ").split("\n");
+    const rmLine = joined.find((l) =>
+      /rm -f \/etc\/nginx\/sites-available\/profile \/etc\/nginx\/sites-enabled\/profile/.test(
+        l,
+      ),
+    );
+    expect(rmLine).toBeDefined();
+    expect(rmLine).toMatch(/\|\|\s*(echo|true)\b/);
+  });
+
+  test("no rm/mv mutation in rollback_deploy is unguarded (class: a failed mutation never aborts the trap)", () => {
+    const rollbackFn =
+      lines.join("\n").match(/rollback_deploy\(\) \{[\s\S]*?\n\}/)?.[0] ?? "";
+    expect(rollbackFn).toMatch(/rollback_deploy\(\) \{/);
+    // Join continuations, then any leading `rm`/`mv` mutation must carry a `||` failure guard.
+    const joined = rollbackFn.replace(/\\\n\s*/g, " ").split("\n");
+    const unguarded = joined
+      .map((l) => l.trim())
+      .filter((t) => /^(rm|mv)\s/.test(t) && !/\|\|/.test(t));
+    expect(unguarded).toEqual([]);
+  });
 });
 
 // Behavioral harness: replicate the control flow (set -e + EXIT trap + STACK_RECREATED

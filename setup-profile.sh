@@ -157,22 +157,24 @@ PROFILE_INTERNAL_ALLOW_IPS="${PROFILE_INTERNAL_ALLOW_IPS:-}"
 # token is otherwise rejected fail-closed (see the allow-list validation in the HTTPS section).
 PROFILE_INTERNAL_ALLOW_PUBLIC="${PROFILE_INTERNAL_ALLOW_PUBLIC:-}"
 
-# Service-to-service token (shared with the game server in T6). It MUST stay stable
-# across redeploys — rotating it silently would break game-server crediting calls —
-# so an env value always wins, else we reuse a persisted token, else we generate one
-# and persist it (root-only). This keeps the script idempotent.
+# Service-to-service token (shared with the game server in T6). It MUST stay stable across
+# redeploys — rotating it silently would break game-server crediting calls — so an env value
+# wins, else we reuse a persisted token, else we generate one. RESOLUTION ONLY happens here;
+# persistence to $PROFILE_TOKEN_FILE is DEFERRED until the deploy VALIDATES (see "persist the
+# resolved … token" at the success tail). Deferring keeps .internal_token a validated-only
+# artifact: a FAILED deploy that introduced a new env/generated token must NOT overwrite the
+# token a later blank-env redeploy reuses (rollback does not restore this file), or it would
+# silently rotate the T6 secret. The running deploy itself never needs the file — it uses the
+# in-memory $PROFILE_INTERNAL_TOKEN, written into the (rollback-restored) profile.env.
 PROFILE_TOKEN_FILE="$PROFILE_DIR/.internal_token"
 if [ -n "${PROFILE_INTERNAL_TOKEN:-}" ]; then
-    echo "Using PROFILE_INTERNAL_TOKEN from environment"
+    echo "Using PROFILE_INTERNAL_TOKEN from environment (persisted on successful validation)"
 elif [ -f "$PROFILE_TOKEN_FILE" ]; then
     PROFILE_INTERNAL_TOKEN=$(cat "$PROFILE_TOKEN_FILE")
     echo "Reusing persisted PROFILE_INTERNAL_TOKEN from $PROFILE_TOKEN_FILE"
 else
     PROFILE_INTERNAL_TOKEN=$(openssl rand -hex 32)
-    mkdir -p "$PROFILE_DIR"
-    ( umask 077; printf '%s' "$PROFILE_INTERNAL_TOKEN" > "$PROFILE_TOKEN_FILE" )
-    chmod 600 "$PROFILE_TOKEN_FILE"
-    echo "Generated and persisted PROFILE_INTERNAL_TOKEN to $PROFILE_TOKEN_FILE"
+    echo "Generated a new PROFILE_INTERNAL_TOKEN (persisted on successful validation)"
 fi
 
 # Postgres connection string for the API (T4/T5 contract: the box provides DATABASE_URL).
@@ -358,6 +360,16 @@ FRESH_DEPLOY=0
 
 PROFILE_ENV_BAK="$PROFILE_DIR/profile.env.predeploy.bak"
 COMPOSE_BAK="$PROFILE_DIR/docker-compose.yml.predeploy.bak"
+# A FRESH deploy has no validated prior config, so ANY pre-existing predeploy backup is STALE — e.g.
+# a previous rollback's restore `mv` failed non-fatally (leaving the .bak) and the operator then
+# manually cleared only the live profile.env/compose. Sweep it now, BEFORE the source-gated cp below
+# (which on a fresh deploy copies nothing, so it would NOT overwrite the stale .bak). Otherwise
+# rollback_deploy's `if [ -f "$PROFILE_ENV_BAK" ]` branch would shadow the FRESH-deploy quarantine
+# elif and RESTORE/recreate the stale config — violating "on-disk config ⇒ validated". Runs before
+# the EXIT trap is installed, so there is nothing to undo. Guarded (best-effort, pre-deploy).
+if [ "$FRESH_DEPLOY" = "1" ]; then
+    rm -f "$PROFILE_ENV_BAK" "$COMPOSE_BAK" || true
+fi
 [ -f "$PROFILE_DIR/profile.env" ] && cp -f "$PROFILE_DIR/profile.env" "$PROFILE_ENV_BAK"
 [ -f "$PROFILE_DIR/docker-compose.yml" ] && cp -f "$PROFILE_DIR/docker-compose.yml" "$COMPOSE_BAK"
 
@@ -472,8 +484,15 @@ rollback_deploy() {
     elif [ -n "${SITE_BAK:-}" ]; then
         # We entered the nginx section but there was NO previous site (SITE_BAK is set
         # but the .bak file was never created). Remove the freshly-created site + symlink
-        # so a failed deploy never leaves a public proxy to an incomplete deploy.
-        rm -f /etc/nginx/sites-available/profile /etc/nginx/sites-enabled/profile
+        # so a failed deploy never leaves a public proxy to an incomplete deploy. Guard the
+        # rm (|| echo) like every other rollback mutation (cf. the rm "$SYSTEMD_UNIT" and the
+        # profile.env/compose rm): a bare `rm -f` that returns non-zero (read-only fs /
+        # immutable or unwritable /etc/nginx) would abort this EXIT trap under set -e, masking
+        # the original exit code and SKIPPING the remaining rollback (run-state restore below,
+        # plus the fresh-deploy stack teardown + config quarantine) — leaving an unvalidated,
+        # publicly-proxied stack live. A non-zero rm here must never stop the rollback.
+        rm -f /etc/nginx/sites-available/profile /etc/nginx/sites-enabled/profile \
+            || echo "❌ ROLLBACK: failed to remove the unvalidated nginx site files under /etc/nginx — remove them manually."
         # Restore nginx to its PRE-DEPLOY run-state. certbot --standalone stopped nginx
         # above; a bare `reload` cannot start a stopped unit, so the old `reload || stop`
         # left a previously-RUNNING nginx DOWN on a fresh first-TLS deploy (the default
@@ -757,8 +776,8 @@ probe_database_url() {
     local url=$1 scheme rest base query
     local userinfo hostpart user ui_pw_enc ui_pw
     local safe_query q_pw_enc pw url_no_pw authority kv kv_key kv_val kv_key_lc
-    local host_only hostname host_lc is_ipv6 reject_loopback v6
-    local has_q_pw=0 has_sslpw=0 has_host_param=0 host_param_name=
+    local host_only hostname host_lc is_ipv6 reject_loopback v6 resolved
+    local has_q_pw=0 has_sslpw=0 has_host_param=0 host_param_name= has_dbname_param=0
     local -a params=()
     case $url in
         postgresql://*) scheme=postgresql ;;
@@ -810,6 +829,27 @@ probe_database_url() {
     # the API shares the API's loopback, so probing from an ephemeral container would not fix
     # this — rejection is the correct gate, not a fallback.)
     host_only=${hostpart%%/*}                   # strip /db -> host[:port]
+    # A percent-escape in the AUTHORITY host is an evasion vector. libpq percent-DECODES the host
+    # before resolving/splitting it (fe-connect.c conninfo_uri_parse_options stores `host` with
+    # uri_decode=true; the multi-host comma split in pqConnectOptions2 runs on the ALREADY-DECODED
+    # host), so an encoded host slips past EVERY check below — `h1%2Clocalhost` decodes to the host
+    # LIST `h1,localhost` (the multi-host `*,*` scan never sees the literal comma), `%6cocalhost`
+    # decodes to `localhost`, and `127%2e0%2e0%2e1` to `127.0.0.1` — each reaching the postgres
+    # container's OWN loopback in the probe (a recorded false pass) while the API hits its own
+    # loopback at runtime. The getent block does not save it either: an encoded host is neither
+    # resolvable nor IP-like, so it falls through. Reject any '%' fail-closed, exactly like the
+    # query-KEY `*%*` reject below — no real hostname/IP literal contains '%', and this script never
+    # percent-encodes the authority host, so it can only ever refuse a hand-crafted evasion. Checked
+    # on host_only (host[:port][,host2…]) so an encoded comma BETWEEN segments is caught too.
+    case $host_only in
+        *%*)
+            echo "   (DATABASE_URL authority host '$host_only' contains a percent-escape. libpq"
+            echo "    percent-decodes the host BEFORE resolving/splitting it, so an encoded host"
+            echo "    (e.g. h1%2Clocalhost, %6cocalhost, 127%2e0%2e0%2e1) would bypass the loopback"
+            echo "    and multi-host checks. Use the literal compose service name 'postgres'.)"
+            return 1
+            ;;
+    esac
     # Reject a MULTI-HOST authority (comma-separated hosts, e.g. postgresql://h1,localhost/db).
     # libpq tries each host in turn, so a localhost member passes from inside the postgres
     # container (reaches the DB) yet fails from the API (its own loopback) — and the single-host
@@ -831,6 +871,18 @@ probe_database_url() {
     esac
     host_lc=$(printf '%s' "$hostname" | LC_ALL=C tr 'A-Z' 'a-z')
     host_lc=${host_lc%.}                         # strip a trailing FQDN dot (localhost. -> localhost)
+    # An EMPTY authority host (postgres:///db, user@/db) is a false-pass vector: libpq treats it as
+    # the local Unix socket (/var/run/postgresql), which the in-postgres-container probe satisfies
+    # under the image's default `local all all trust` — even with a WRONG password — while the
+    # profile-api container shares no such socket and reaches Postgres only via the compose service
+    # name over TCP. Fail CLOSED on a hostless authority (this also pre-empts the resolver block,
+    # which is guarded on a non-empty hostname).
+    if [ -z "$hostname" ]; then
+        echo "   (DATABASE_URL has no host in its authority (e.g. postgres:///db or user@/db)."
+        echo "    libpq would use the local Unix socket — which the in-container probe satisfies"
+        echo "    but the profile-api container cannot. Put the host 'postgres' in the authority.)"
+        return 1
+    fi
     reject_loopback=0
     # IPv4 loopback (127.0.0.0/8) / unspecified / IPv4-mapped-IPv6 loopback, by literal form.
     case $host_lc in
@@ -845,6 +897,37 @@ probe_database_url() {
         v6=${host_lc//:/}
         v6=${v6//0/}
         { [ "$v6" = "1" ] || [ -z "$v6" ]; } && reject_loopback=1
+    fi
+    # The literal/normalized checks above are fast but inherently INCOMPLETE: octal
+    # (017700000001), hex (0x7f000001, 0x7f.0.0.1), single-integer (2130706433) IPv4, and the
+    # hex IPv4-mapped form (::ffff:7f00:1) all RESOLVE to 127.0.0.1 yet match no spelling above —
+    # so each would pass this gate from the postgres container while the profile-api container
+    # (a separate network namespace) cannot reach its own loopback at runtime: a recorded false
+    # pass. So ALSO resolve the host the way the runtime will and reject any loopback/unspecified
+    # ADDRESS, not just a known spelling. Resolve INSIDE the postgres container (where this probe
+    # already connects from, and which is up at gate time); getent ahosts there normalizes every
+    # obfuscated spelling identically to the glibc resolver the API uses. The hostname is not a
+    # secret, so passing it as a positional arg keeps the no-secret-in-argv invariant.
+    #
+    # Resolution is AUTHORITATIVE for the obfuscated-numeric class, so it must FAIL CLOSED, not
+    # best-effort: if a host LOOKS like a numeric IP literal (all-decimal/octal, 0x-hex, or IPv6
+    # with ':') but we could NOT resolve+classify it (getent absent/empty), reject it — falling
+    # through to the psql probe would re-open the exact false-pass (the probe connects from the
+    # postgres container). A normal DNS name is NOT IP-like, so a transient resolver miss for it
+    # still falls through to the real SELECT 1 (which fails on an unresolvable/unreachable host).
+    if [ "$reject_loopback" = "0" ] && [ -n "$hostname" ]; then
+        resolved=$(docker compose exec -T postgres sh -c \
+            'getent ahosts "$1" 2>/dev/null | while read -r a _; do printf "%s\n" "$a"; done' \
+            _ "$hostname" 2>/dev/null || true)
+        if printf '%s\n' "$resolved" | grep -Eq '^(127\.|0\.0\.0\.0$|::1$|::ffff:127\.|::$)'; then
+            reject_loopback=1
+        elif [ -z "$resolved" ] && printf '%s' "$host_lc" | grep -Eq '^[0-9.]+$|^0[xX]|:'; then
+            echo "   (DATABASE_URL host '$hostname' is a numeric IP literal that could not be"
+            echo "    resolved/verified non-loopback inside the postgres container, so it cannot be"
+            echo "    proven NOT to be an obfuscated loopback (those resolve to 127.0.0.1). Failing"
+            echo "    closed. Use the compose service name 'postgres' instead of a numeric host.)"
+            return 1
+        fi
     fi
     if [ "$reject_loopback" = "1" ]; then
         echo "   (DATABASE_URL host is '$hostname' — from the profile-api container that is"
@@ -896,6 +979,28 @@ probe_database_url() {
                     ;;
             esac
             kv_key_lc=$(printf '%s' "$kv_key" | LC_ALL=C tr 'A-Z' 'a-z')
+            # libpq matches connection-parameter keywords CASE-SENSITIVELY (conninfo_find uses
+            # strcmp against lowercase names), and Node pg / pg-connection-string key on the literal
+            # (case-preserved) query name too. So a case-VARIANT of a credential/host/db keyword
+            # (PASSWORD, Password, SSLPASSWORD, HOST, DBNAME, …) is NOT honored by the runtime — yet
+            # we cannot pass it through to psql -d argv (its value would leak: the R1 exposure) and
+            # treating it as the lowercased channel would either record a FALSE PASS (we strip+feed
+            # a password the API never uses) or mis-handle a host/db override. It can only be a
+            # hand-crafted evasion (the script never emits a non-lowercase keyword), so fail CLOSED
+            # unless the keyword is the EXACT lowercase form. (A non-credential case-variant like
+            # SSLMODE is left to pass through, where psql rejects the unknown keyword exactly as the
+            # API's client would — gate and runtime agree, no false pass.)
+            case $kv_key_lc in
+                password | sslpassword | host | hostaddr | dbname)
+                    if [ "$kv_key" != "$kv_key_lc" ]; then
+                        echo "   (DATABASE_URL query parameter name '$kv_key' is a case-variant of the"
+                        echo "    libpq keyword '$kv_key_lc'. Connection keywords are case-SENSITIVE, so"
+                        echo "    the runtime client would not honor '$kv_key' (and passing it through"
+                        echo "    would expose its value in psql argv). Use the exact lowercase name.)"
+                        return 1
+                    fi
+                    ;;
+            esac
             case $kv_key_lc in
                 password)
                     q_pw_enc=$kv_val
@@ -914,6 +1019,16 @@ probe_database_url() {
                     has_host_param=1
                     host_param_name=$kv_key_lc
                     ;;
+                dbname)
+                    # A dbname query param OVERRIDES the URI PATH's database for libpq (the path
+                    # is shorthand for dbname, and the explicit keyword — processed later — wins),
+                    # but the Node pg client IGNORES the query dbname and always uses the path. So
+                    # the gate's psql would validate a DIFFERENT database than the API consumes —
+                    # the same gate-vs-runtime divergence the host/hostaddr arm rejects. Fail
+                    # closed; the database must come from the URI path only. (`database=` needs no
+                    # arm: libpq rejects it as an unknown keyword — fail closed — and pg ignores it.)
+                    has_dbname_param=1
+                    ;;
                 *)
                     if [[ -n $safe_query ]]; then
                         safe_query="${safe_query}&${kv}"
@@ -930,6 +1045,13 @@ probe_database_url() {
         echo "    probe would then test a different target than the authority-host check examined"
         echo "    (e.g. ?host=localhost reaches Postgres from the DB container but is the API's own"
         echo "    loopback at runtime). Put the host in the URL authority instead.)"
+        return 1
+    fi
+    if [[ $has_dbname_param == 1 ]]; then
+        echo "   (DATABASE_URL carries a 'dbname' connection parameter in the query string, which"
+        echo "    libpq lets OVERRIDE the URI path for the actual connection — but the Node pg client"
+        echo "    ignores it and uses the path, so the gate would validate a DIFFERENT database than"
+        echo "    the API consumes. Put the database in the URI path only (postgresql://user@postgres/db).)"
         return 1
     fi
     if [[ $has_sslpw == 1 ]]; then
@@ -1365,7 +1487,31 @@ echo ""
 echo "Firewall: ufw active (SSH/80/443 allowed, everything else denied)."
 echo "======================================================"
 
+# Persist the resolved service-to-service token as the FINAL success step, BEFORE marking the
+# deploy validated. The stack is health-validated by now, so this is a success-path write — but
+# DEPLOY_VALIDATED is still 0, so a FAILURE here aborts under set -e and the EXIT trap rolls the
+# stack + config (incl. the previous token in profile.env) back, never leaving .internal_token
+# inconsistent with a "successful" deploy (a post-validation warn-on-failure could: profile.env
+# would hold the new token while .internal_token kept the old, silently rotating the T6 secret on
+# the next blank-env redeploy). Atomic temp+mv + 0600: all-or-nothing, so a failed mv leaves the
+# PREVIOUS token in place, consistent with the rolled-back stack. Idempotent (reuse rewrites the
+# same bytes). UNGUARDED on purpose — a persist failure MUST fail the deploy — and it is the LAST
+# fallible step: NOTHING fallible runs between it and DEPLOY_VALIDATED=1.
+if [ -n "${PROFILE_INTERNAL_TOKEN:-}" ]; then
+    mkdir -p "$PROFILE_DIR"
+    ( umask 077; printf '%s' "$PROFILE_INTERNAL_TOKEN" > "$PROFILE_TOKEN_FILE.tmp" )
+    chmod 600 "$PROFILE_TOKEN_FILE.tmp"
+    mv -f "$PROFILE_TOKEN_FILE.tmp" "$PROFILE_TOKEN_FILE"
+fi
+
 # Entire setup succeeded — mark validated so the EXIT rollback trap is a no-op, and
-# drop the rollback backups now that the new stack is fully applied.
+# drop the rollback backups now that the new stack is fully applied. DEPLOY_VALIDATED=1 is the LAST
+# fallible-state transition: the deploy has SHIPPED and rollback is now a no-op, so the cleanup must
+# be NON-FATAL. An unguarded `rm` failing here would exit the script non-zero while the new stack +
+# config + .internal_token stay live — and build-deploy-profile.sh records DEPLOY_OUTCOME=passed
+# only when this remote script exits 0, so a cleanup hiccup would falsely brand an actually-deployed
+# digest `failed` (poisoning the commit+digest+validation provenance record). Guard it; stale
+# backups are harmless (overwritten next deploy).
 DEPLOY_VALIDATED=1
-rm -f "$PROFILE_ENV_BAK" "$COMPOSE_BAK" "$DEFAULT_SITE_BAK" "$SYSTEMD_UNIT_BAK" "$CRON_FILE_BAK" ${SITE_BAK:+"$SITE_BAK"}
+rm -f "$PROFILE_ENV_BAK" "$COMPOSE_BAK" "$DEFAULT_SITE_BAK" "$SYSTEMD_UNIT_BAK" "$CRON_FILE_BAK" ${SITE_BAK:+"$SITE_BAK"} \
+    || echo "⚠️  Could not remove rollback backups under $PROFILE_DIR (deploy already SHIPPED + validated; remove manually — harmless, overwritten next deploy)."

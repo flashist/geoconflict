@@ -86,6 +86,11 @@ assert_default_escape() {
 #   - shell form, source NOT first:  COPY package.json . /app/
 #   - shell form with flags:         COPY --chown=x . /app
 #   - JSON/exec form (any position): COPY [".", "/app"]      COPY ["pkg", ".", "/app"]
+#   - JSON-escaped exec-form source: COPY ["<json-escaped .>", "/app"]  (Docker JSON-decodes
+#                                    exec-form operands BEFORE resolving the path: a JSON
+#                                    escape for '.' copies the whole context, and one for '$'
+#                                    yields an ARG/ENV source. Any backslash in a source
+#                                    operand is rejected fail-closed — see below.)
 #   - lowercase / mixed case:        copy . /app             Copy . /app   (Docker is
 #                                    case-INSENSITIVE for instructions)
 #   - backslash line-continuation:   COPY \ <newline> . /app
@@ -98,6 +103,7 @@ assert_default_escape() {
 # why the original grep missed multi-source broad copies.
 scan_broad_copies() {
     awk '
+    BEGIN { hh = 1 }   # heredoc queue: pending terminators are hq[hh..hn] (1-based; empty when hh>hn)
     # Normalize a COPY/ADD path the way Docker (filepath.Clean) does — enough to tell
     # whether it resolves to the build-context root. Returns "." for context-root
     # sources however they are spelled: ".", "./", "./.", "././", ".//.", "foo/..".
@@ -116,14 +122,97 @@ scan_broad_copies() {
         for (i = 2; i <= k; i++) res = res "/" out[i]
         return res
     }
-    # Skip the BODY of a RUN-style heredoc: its lines are shell data, not Dockerfile
-    # instructions, so a body line like `COPY . /app` must never be parsed or flagged. State
-    # is set when a previous line opened a heredoc and cleared at its terminator (`<<-` allows
-    # a tab-indented terminator). Runs FIRST so body lines never reach the parser below.
-    heredoc_term != "" {
+    # Blank out shell-quoted spans LENGTH-PRESERVINGLY (each char -> one space, including the
+    # quotes), tracking single/double quote state like the shell lexer Docker uses to find heredoc
+    # operators. Length preservation lets the caller map an offset in the blanked copy back to the
+    # SAME offset in the raw line. Result: a `<<` inside a quoted ARGUMENT (RUN echo "<<NOPE")
+    # vanishes, while a heredoc operator `<<` (outside any quote) survives — even when only its
+    # delimiter WORD is quoted (RUN <<"EOF" / <<'EOF': the `<<` is bare, just the word is quoted).
+    # \042 = double quote, \047 = single quote, \134 = backslash (octal, so no awk/bash quoting
+    # headaches). Honors shell backslash escaping so an escaped quote does not prematurely close a
+    # span (the fail-OPEN that let a backslash-escaped double-quote leak a <<WORD operator into the
+    # blanked probe):
+    #   - OUTSIDE quotes: a backslash escapes the next char into a literal (a backslash-doublequote
+    #     is a literal double-quote, NOT a quote opener), so the escaped char is kept (it cannot
+    #     start a quoted span or be a word-start).
+    #   - inside DOUBLE quotes: a backslash escapes the next char, so an escaped double-quote does
+    #     NOT close the span.
+    #   - inside SINGLE quotes: no escaping at all — only a single-quote closes (POSIX shell).
+    # Length is preserved in every branch (each consumed input char maps to one output char), so the
+    # caller can map an offset in the blanked copy back to the SAME offset in the raw line.
+    function blank_quotes(s,   out, i, c, nx, q, n) {
+        out = ""; q = ""
+        n = length(s)
+        for (i = 1; i <= n; i++) {
+            c = substr(s, i, 1)
+            if (q == "\047") {                              # single quotes: literal, only SQ closes
+                if (c == "\047") q = ""
+                out = out " "
+            } else if (q == "\042") {                        # double quotes: \ escapes next char
+                if (c == "\134" && i < n) { out = out "  "; i++ }
+                else { if (c == "\042") q = ""; out = out " " }
+            } else {                                          # outside quotes
+                if (c == "\134" && i < n) {                   # escape: drop \, keep next char literal
+                    nx = substr(s, i + 1, 1); out = out " " nx; i++
+                } else if (c == "\042" || c == "\047") { q = c; out = out " " }
+                else out = out c
+            }
+        }
+        return out
+    }
+    # Extract the heredoc DELIMITER (terminator word) from the raw line starting at offset p (just
+    # after the <<-?, which the caller guarantees is the ATTACHED delimiter — no leading whitespace),
+    # doing shell quote-removal exactly like BuildKit ProcessWords: accumulate the FIRST word — quote
+    # chars are REMOVED, content inside quotes (incl. spaces) is kept, a backslash escapes the next
+    # char — stopping at the first UNQUOTED whitespace. So <<EOF-X -> EOF-X, <<"A"B -> AB, <<"E O F" -> E O F.
+    # A NARROWER recovery (a [A-Za-z0-9_]* prefix, or stopping at the 2nd quote) would arm a SHORTER
+    # terminator the real closing line never matches, running the body-skip past the real terminator
+    # and swallowing a following broad COPY (a fail-OPEN). \042=doublequote \047=singlequote
+    # \134=backslash.
+    # Returns "" (NOT a heredoc) if the delimiter word contains ANY `<`: BuildKit reHeredoc is
+    # ^(\d*)<<(-?)\s*([^<]*)$ applied to the shlex word with quotes AND escapes preserved, so a `<`
+    # anywhere in the word (e.g. <<EOF<X, <<"E<F", <<EOF\<X) breaks the match — it is parsed as a
+    # plain command, NOT a heredoc, and the next line is a real instruction. Arming on such a
+    # pseudo-delimiter would skip to a terminator that never appears, swallowing a following broad
+    # COPY (a fail-OPEN). We check the raw byte (incl. an escaped `<`), mirroring RawEscapes.
+    function heredoc_delim(s, p,   out, c, n, q) {
+        out = ""; q = ""
+        n = length(s)
+        for (; p <= n; p++) {
+            c = substr(s, p, 1)
+            if (c == "<") return ""                  # any unescaped/unquoted-or-quoted `<` -> not a heredoc
+            if (q == "\047") {                       # single quotes: literal until the next SQ
+                if (c == "\047") q = ""; else out = out c
+            } else if (q == "\042") {                 # double quotes: backslash escapes next
+                if (c == "\134" && p < n) {
+                    if (substr(s, p + 1, 1) == "<") return ""   # an escaped `<` also disqualifies
+                    p++; out = out substr(s, p, 1)
+                } else if (c == "\042") q = ""
+                else out = out c
+            } else {                                  # outside quotes
+                if (c == " " || c == "\t") break       # first UNQUOTED whitespace ends the word
+                else if (c == "\042" || c == "\047") q = c
+                else if (c == "\134" && p < n) {
+                    if (substr(s, p + 1, 1) == "<") return ""   # an escaped `<` also disqualifies
+                    p++; out = out substr(s, p, 1)
+                }
+                else out = out c
+            }
+        }
+        return out
+    }
+    # Skip the BODY of RUN-style heredoc(s): their lines are shell data, not Dockerfile
+    # instructions, so a body line like `COPY . /app` must never be parsed or flagged. A single
+    # RUN may open SEVERAL heredocs (`RUN <<A <<B`); BuildKit consumes their bodies IN ORDER, so
+    # we hold a QUEUE hq[hh..hn] of pending terminators and pop the FRONT as each body closes
+    # (`<<-` allows a tab-indented terminator, tracked per-heredoc in hdash[]). Tracking only ONE
+    # terminator let a SECOND heredoc body be mis-parsed as instructions — arming a bogus skip
+    # that swallows a following real broad COPY (a fail-OPEN). Runs FIRST so body lines never
+    # reach the parser below.
+    hh <= hn {
         hline = $0
-        if (heredoc_dash) sub(/^[ \t]+/, "", hline)
-        if (hline == heredoc_term) { heredoc_term = ""; heredoc_dash = 0 }
+        if (hdash[hh]) sub(/^[ \t]+/, "", hline)
+        if (hline == hq[hh]) hh++
         next
     }
     # A comment is never an instruction and is NEVER continued by Docker (line-continuation
@@ -135,9 +224,15 @@ scan_broad_copies() {
         start = FNR
         cur = $0
         # Join Dockerfile backslash line-continuations into one logical instruction so
-        # `COPY \` <newline> `. /app` is analyzed as the broad copy `COPY . /app`.
+        # `COPY \` <newline> `. /app` is analyzed as the broad copy `COPY . /app`. Concatenate with
+        # NO separator (drop the trailing `\` + its following whitespace, keep none), matching
+        # BuildKit: it joins a continued line directly. Inserting a SPACE here was a fail-OPEN — a
+        # backslash that SPLITS A TOKEN (`COP\`<newline>`Y . /app`, which BuildKit builds as
+        # `COPY . /app`) became `COP Y . /app`, which no longer matches ^(COPY|ADD) and slipped past
+        # the broad-copy parser. (`COPY foo \`<nl>`bar` still joins to `COPY foo bar`: the space
+        # before the `\` is part of `foo ` and is preserved.)
         while (cur ~ /\\[[:space:]]*$/) {
-            sub(/\\[[:space:]]*$/, " ", cur)
+            sub(/\\[[:space:]]*$/, "", cur)
             if ((getline nextline) > 0) {
                 cur = cur nextline
             } else {
@@ -151,14 +246,51 @@ scan_broad_copies() {
         work = toupper(cur)
         sub(/^[[:space:]]+/, "", work)
         if (work !~ /^(COPY|ADD)[[:space:]]/) {
-            # Not a COPY/ADD. If this line OPENS a heredoc (e.g. `RUN <<EOF`), begin skipping
-            # its body so the contents are never mis-parsed as instructions. Capture the
-            # terminator word (forms: <<WORD, <<-WORD, <<"WORD", <<'"'"'WORD'"'"').
-            if (match(cur, /<<-?[ \t]*["'"'"']?[A-Za-z_][A-Za-z0-9_]*/)) {
-                term = substr(cur, RSTART, RLENGTH)
-                heredoc_dash = (substr(term, 1, 3) == "<<-") ? 1 : 0
-                sub(/^<<-?[ \t]*["'"'"']?/, "", term)
-                heredoc_term = term
+            # Not a COPY/ADD. If this line OPENS a RUN heredoc (`RUN <<EOF`, `RUN cmd <<EOF`),
+            # begin skipping its body so the body shell text is never mis-parsed as Dockerfile
+            # instructions. Docker honors heredocs ONLY on RUN and COPY/ADD; a COPY/ADD heredoc is
+            # rejected outright below, so only a RUN body needs skipping. TWO guards keep a
+            # `<<WORD` that is NOT a real heredoc operator from FAILING OPEN — i.e. from arming the
+            # body-skip and swallowing a following real `COPY . /app` until an attacker-chosen
+            # terminator that never appears:
+            #   (1) only a RUN instruction can open one. Docker runs heredoc detection only on
+            #       RUN/COPY, so a `<<DEFAULTS` inside a LABEL/ENV/ARG value is plain text, never a
+            #       heredoc — yet the old unconditional match arm armed on ANY non-COPY/ADD line; and
+            #   (2) match on a copy with quoted spans BLANKED. Docker detects a heredoc from the
+            #       shell-lexed words (its parser lexes with RawQuotes), so `<<WORD` inside a quote
+            #       (`RUN echo "<<NOPE"`) is a single quoted word, never a redirection operand.
+            # Like Docker, `<<` must BEGIN a word (preceded by start-of-line or whitespace), so a
+            # `foo<<BAR` (or a now-blanked quoted `<<BAR`) does not arm the skip.
+            if (work ~ /^RUN[[:space:]]/) {
+                # Detect EVERY heredoc operator on this RUN line (BuildKit consumes multiple bodies
+                # in order: `RUN <<A <<B`). Detect on the length-preserved blanked copy (so a quoted
+                # `<<` ARGUMENT never arms it), and for each operator recover the FULL delimiter from
+                # the RAW line via heredoc_delim() — BuildKit shell quote-removal, so a quoted
+                # (<<"EOF"), multi-chunk (<<"A"B -> AB), or non-word (<<EOF-X) delimiter is recovered
+                # EXACTLY. Queue each onto hq[]/hdash[]; the body-skip block pops them in order.
+                probe = blank_quotes(cur)
+                hpos = 1
+                while (match(substr(probe, hpos), /(^|[ \t])<<-?/)) {
+                    mstart = hpos + RSTART - 1        # absolute start of the (ws +) `<<-?` in cur/probe
+                    after = mstart + RLENGTH          # position right AFTER `<<-?`
+                    # BuildKit requires the delimiter ATTACHED to `<<` within ONE shlex word: a
+                    # whitespace gap (`<< EOF`), end-of-line, or a following `<` (`<<<`) yields an
+                    # EMPTY name -> NOT a heredoc. Arm only on a non-ws, non-`<` char right after
+                    # `<<-?` on the RAW line (check cur: a quoted delimiter shows as a space in probe).
+                    nxt = substr(cur, after, 1)
+                    if (nxt != "" && nxt != " " && nxt != "\t" && nxt != "<") {
+                        dlm = heredoc_delim(cur, after)
+                        # heredoc_delim returns "" when the word is empty OR contains a `<` (NOT a
+                        # heredoc per BuildKit reHeredoc [^<]*$). Only queue a real delimiter, else a
+                        # pseudo-heredoc would arm a never-terminating skip that swallows a broad COPY.
+                        if (dlm != "") {
+                            hn++
+                            hq[hn] = dlm
+                            hdash[hn] = (substr(probe, mstart, RLENGTH) ~ /<<-/) ? 1 : 0
+                        }
+                    }
+                    hpos = after                      # advance past this `<<-?` and keep scanning
+                }
             }
             next
         }
@@ -188,8 +320,19 @@ scan_broad_copies() {
             # OR contains an unresolved $variable (fail closed): Docker expands ARG/ENV
             # in COPY/ADD, so e.g. `ARG SRC=.` + `COPY $SRC /app` copies the whole
             # context; we cannot statically prove a $-source is safe, so reject it.
+            #
+            # ALSO reject any backslash in a JSON/exec-form SOURCE operand fail-closed.
+            # Docker parses exec-form operands through encoding/json, so it DECODES JSON
+            # escapes before resolving the path: `[".","/app"]` decodes to source `.`
+            # (a whole-context copy) and `["$SRC","/app"]` to `$SRC` (an ARG/ENV
+            # source) — yet the raw, still-encoded bytes this awk extracts contain neither
+            # a literal `.` nor a literal `$`, so both slip past the two checks above. A
+            # `\"` can likewise mis-split the operand. We do not re-implement a JSON decoder
+            # here; no legitimate Linux build-context path needs a backslash (JSON form is
+            # for paths with spaces, which the quotes already handle), so any backslash in a
+            # source operand is an escape we cannot statically resolve -> reject it.
             for (i = 1; i < n; i++) {
-                if (clean_path(elems[i]) == "." || elems[i] ~ /\$/) bad = 1
+                if (clean_path(elems[i]) == "." || elems[i] ~ /\$/ || elems[i] ~ /\\/) bad = 1
             }
         } else {
             # Shell form: whitespace-separated operands; the last is the destination.
@@ -221,8 +364,9 @@ for df in "$DOCKERFILE" "$DOCKERFILE_PROFILE"; do
     fi
     if ! broad_matches=$(scan_broad_copies "$df"); then
         echo "Error: $df contains a broad or unverifiable COPY/ADD source — a '.'/'./' path"
-        echo "that resolves to the build-context root, or a \$variable source (ARG/ENV can"
-        echo "expand to the whole context):"
+        echo "that resolves to the build-context root, a \$variable source (ARG/ENV can"
+        echo "expand to the whole context), or a backslash-escaped JSON/exec-form source"
+        echo "(Docker JSON-decodes those, so the escape can hide a '.' or '\$'):"
         echo "$broad_matches"
         echo "Use explicit literal allowlist copies instead (e.g. COPY package*.json ./)."
         exit 1
@@ -272,27 +416,39 @@ if [ -n "$INSPECT_IMAGE" ]; then
     # This also needs no `docker run`, so it never depends on the image being executable on the
     # host (e.g. an amd64 image inspected on an arm64 dev box). Two detectors, applied per layer:
     #   (1) by CONTENT (authoritative, false-positive-free): the EXACT bytes of the repo's real
-    #       local secret/key files (.env*, *.secret, *.pem, id_rsa*, id_ed25519*, *.key) matched
-    #       by sha256 in ANY layer — so a real secret that rode in under a renamed/innocuous path,
-    #       OR was deleted in a later layer, is still caught;
+    #       local secret/key files (.env*, *.secret, *.pem, id_rsa*, id_ed25519*, *.key found
+    #       ANYWHERE in the repo tree, node_modules/.git pruned) matched by sha256 in ANY layer —
+    #       so a real secret that rode in under a renamed/innocuous path OR from a SUBDIRECTORY
+    #       (e.g. a key under src/ shipped by `COPY src ./src`), or was deleted in a later layer,
+    #       is still caught. (A key whose bytes match NO file in the repo tree — freshly generated,
+    #       never on disk here — is caught by neither detector; we can only fingerprint the bytes
+    #       of OUR OWN on-disk secrets.)
     #   (2) by NAME (supplementary): a file that LOOKS like our secret by name (.env/.env.*/
     #       *.secret) or a committed .git dir — in any layer, EXCEPT third-party node_modules. We
     #       exclude node_modules and do NOT name-match *.pem/id_rsa* here on purpose: base images
     #       and dependencies legitimately ship CA bundles, test certs and example env files, so
-    #       name-matching those would FAIL every deploy (a false positive). Novel/renamed key
-    #       material is still caught by content above.
+    #       name-matching those would FAIL every deploy (a false positive). Renamed/subdirectory
+    #       key material whose bytes exist in the repo tree is caught by content (1) above.
     echo "Inspecting image $INSPECT_IMAGE for env/secret material (all layers via docker save)..."
 
-    # Content-detector input: hash the repo's REAL local secret/key files (size-capped, portable
+    # Content-detector input: hash the repo's REAL local secret/key files (uncapped — every local
+    # secret is hashed regardless of size, so the layer scan below must be uncapped too; portable
     # host hasher for Linux CI / macOS dev). The hashes are passed to awk via a FILE (two-input
     # form), NEVER `-v`: a `-v` value with embedded newlines (multiple local secret files — the
     # normal case) is rejected by awk.
     HASH_CMD="sha256sum"
     command -v sha256sum >/dev/null 2>&1 || HASH_CMD="shasum -a 256"
-    local_secret_files=$(find "$ROOT_DIR" -maxdepth 1 -type f \
-        \( -name ".env" -o -name ".env.*" -o -name "*.secret" -o -name "*.pem" \
+    # Search the WHOLE repo tree, not just the root: a key/secret can live in a subdirectory that
+    # a broad-ish COPY ships (e.g. `COPY src ./src` in Dockerfile.profile), and the old `-maxdepth 1`
+    # left those out of the wanted-set so the content scan could not match them in-layer (a
+    # fail-OPEN — the same asymmetry class as the round-2 size cap). Prune node_modules and .git:
+    # third-party deps legitimately ship test certs/keys whose bytes would self-match in the image
+    # (a false positive), and .git holds packed objects, not loose secret files.
+    local_secret_files=$(find "$ROOT_DIR" \
+        -type d \( -name node_modules -o -name .git \) -prune -o \
+        -type f \( -name ".env" -o -name ".env.*" -o -name "*.secret" -o -name "*.pem" \
         -o -name "id_rsa*" -o -name "id_ed25519*" -o -name "*.key" \) \
-        ! -name "*.example" ! -name "*.sample" ! -name "*.template" -size +0c 2>/dev/null)
+        ! -name "*.example" ! -name "*.sample" ! -name "*.template" -size +0c -print 2>/dev/null)
     local_hashes_file=""
     if [ -n "$local_secret_files" ]; then
         local_hashes_file=$(mktemp)
@@ -362,11 +518,17 @@ if [ -n "$INSPECT_IMAGE" ]; then
             | sed "s|^$INSPECT_LAYER_DIR||" || true)
         [ -n "$gh" ] && git_hits="${git_hits}${gh}
 "
-        # CONTENT scan over ALL files (incl node_modules), size-capped, only if we have hashes.
+        # CONTENT scan over ALL files (incl node_modules), only if we have hashes. NO upper size
+        # cap: the wanted-set find (above) hashes the repo's local secrets WITHOUT an upper bound,
+        # so a layer-side cap (the old `-size -1048576c`) was asymmetric — a >= 1 MiB secret (a PEM
+        # bundle, fullchain cert, concatenated credential blob) riding into a layer under a renamed
+        # path produced NO content hit, NO name hit, and the gate reported "passed" (a fail-OPEN in
+        # the very gate meant to catch renamed/whiteout'd secret BYTES). Hashing the full layer tree
+        # is bounded (`find -exec +` batching; runs only when local secrets exist).
         # `find -exec … +` (not `xargs`) so a layer with no matching files runs nothing — portably
         # avoiding GNU xargs' "run once on empty input" (which would hang $HASH_CMD on stdin).
         if [ -n "$local_hashes_file" ]; then
-            ch=$(find "$INSPECT_LAYER_DIR" -type f -size +0c -size -1048576c \
+            ch=$(find "$INSPECT_LAYER_DIR" -type f -size +0c \
                 -exec $HASH_CMD {} + 2>/dev/null \
                 | awk 'FNR==NR { if ($1 != "") want[$1] = 1; next } ($1 in want) { print }' \
                     "$local_hashes_file" - \

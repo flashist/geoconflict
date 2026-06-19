@@ -207,15 +207,21 @@ describe("profile-deploy class sweep — executable merge bar", () => {
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), "classA-argv-"));
       const out = path.join(dir, "argv_url");
       const pwOut = path.join(dir, "stdin_pw");
+      const statusOut = path.join(dir, "probe_status");
       const harness = [
         "set -e",
         enc,
         dec,
         probe,
         // The stub stands in for the container psql: read the piped password (stdin),
-        // capture the trailing argv operand (the URL `psql -d` would parse), then exit 0.
+        // capture the trailing argv operand (the URL `psql -d` would parse), then exit 0. The
+        // host-resolution `getent` exec (loopback check) is a no-op here (returns nothing) so it
+        // never pollutes the captured psql argv.
         `docker() {
            if [ "$1" = compose ] && [ "$2" = exec ]; then
+             case "$*" in
+               *getent*) return 0 ;;
+             esac
              IFS= read -r _pw || true
              printf '%s' "$_pw" > ${shq(pwOut)}
              printf '%s' "\${!#}" > ${shq(out)}
@@ -223,15 +229,22 @@ describe("profile-deploy class sweep — executable merge bar", () => {
            fi
            return 0
          }`,
-        `probe_database_url ${shq(url)} || true`,
+        // Capture the probe's REAL exit code. The old `|| true` made bash always exit 0, so the
+        // `failedClosed` disjunct in the matrix assertion was dead (fail-closed rows passed only
+        // via an empty captured argv). The `if` keeps set -e from aborting on a non-zero probe.
+        `if probe_database_url ${shq(url)}; then st=0; else st=$?; fi`,
+        `printf '%s' "$st" > ${shq(statusOut)}`,
       ].join("\n");
       const res = spawnSync("/bin/bash", ["-c", harness], { encoding: "utf8" });
       const argvUrl = fs.existsSync(out) ? fs.readFileSync(out, "utf8") : "";
       const stdinPw = fs.existsSync(pwOut)
         ? fs.readFileSync(pwOut, "utf8")
         : "";
+      const probeStatus = fs.existsSync(statusOut)
+        ? parseInt(fs.readFileSync(statusOut, "utf8"), 10)
+        : (res.status ?? -1);
       fs.rmSync(dir, { recursive: true, force: true });
-      return { status: res.status ?? -1, argvUrl, stdinPw };
+      return { status: probeStatus, argvUrl, stdinPw };
     }
 
     test("the extracted Class A helpers were found (guard against a vacuous case)", () => {
@@ -287,9 +300,14 @@ describe("profile-deploy class sweep — executable merge bar", () => {
         closed: false,
       },
       {
+        // Authority host + ?password= (no userinfo, no host= or dbname= query key). The earlier
+        // `?host=...` form tripped the host-param fail-closed BEFORE the password rebuild, so it
+        // never exercised the keyword/value password STRIP it is labeled to guard (mutation-
+        // verified). A `dbname=` key would likewise trip the new dbname fail-closed first, so this
+        // form carries ONLY ?password= and reaches+exercises the strip.
         label:
           "A3 no-userinfo keyword/value password= — strip-or-fail-closed (R1 channel — regression guard)",
-        url: "postgresql://?host=postgres&dbname=profile&password=KVSECRET",
+        url: "postgresql://postgres/profile?password=KVSECRET",
         secret: /KVSECRET/,
         closed: false,
       },
@@ -884,6 +902,149 @@ describe("profile-deploy class sweep — executable merge bar", () => {
       // record. Reconciliation makes claimPresent=false (reworded) while recordRead stays
       // false → the implication holds and this flips to a green pin.
       expect(!claimPresent || recordReadPresent).toBe(true);
+    });
+  });
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // CLASS G / CLASS B RESIDUALS — service-to-service token persistence (now CLOSED) and
+  // the secret-name pattern-drift residual (accepted OPEN, tracked).
+  // ───────────────────────────────────────────────────────────────────────────
+  describe("Class G/B residuals (token persistence + secret-name pattern single-sourcing)", () => {
+    // CLOSED[G-token-persist] — was an accepted OPEN residual; now FIXED and locked green.
+    // setup-profile.sh RESOLVES PROFILE_INTERNAL_TOKEN (env wins, else reuse a persisted token,
+    // else generate) but DEFERS persistence of $PROFILE_DIR/.internal_token until the deploy
+    // VALIDATES — so the file is a validated-only artifact. Two properties matter:
+    //   • W5 (env value never persisted): an env-set deploy that SUCCEEDS persists the token, so a
+    //     later blank-env redeploy REUSES it instead of regenerating one (no silent rotation);
+    //   • C2-2 (rollback-safety): an env-set deploy that FAILS must NOT overwrite a prior persisted
+    //     token (the file is not rollback-restored), so a later blank-env redeploy keeps the OLD
+    //     token, not the never-validated one.
+    // This runs the REAL extracted resolution block, plus (on "success") the REAL extracted
+    // deferred-persist snippet. LOAD-BEARING both ways: remove the success-persist → run #2
+    // regenerates (W5 red); move the persist back into the env branch (pre-validation) → the
+    // failed-deploy case rotates the token (C2-2 red).
+    test("CLOSED[G-token-persist]: token persists only on validated success and a failed env-set run never rotates it", () => {
+      // Extract the resolution block: `PROFILE_TOKEN_FILE=…` to its closing `fi` (column 0).
+      const resStart = firstIndex(
+        setupLines,
+        /^PROFILE_TOKEN_FILE="\$PROFILE_DIR\/\.internal_token"$/,
+      );
+      expect(resStart).toBeGreaterThanOrEqual(0);
+      let resEnd = -1;
+      for (let i = resStart + 1; i < setupLines.length; i++) {
+        if (setupLines[i] === "fi") {
+          resEnd = i;
+          break;
+        }
+      }
+      expect(resEnd).toBeGreaterThan(resStart);
+      const resBlock = setupLines.slice(resStart, resEnd + 1).join("\n");
+
+      // Extract the deferred success-persist snippet: the column-0 `if [ -n …PROFILE_INTERNAL…`
+      // AFTER the "Persist the resolved … token" anchor, to its column-0 closing `fi`
+      // (the inner if/fi are indented, so `=== "fi"` matches only the outer).
+      const persAnchor = firstIndex(
+        setupLines,
+        /Persist the resolved service-to-service token/,
+      );
+      expect(persAnchor).toBeGreaterThanOrEqual(0);
+      let persStart = -1;
+      for (let i = persAnchor + 1; i < setupLines.length; i++) {
+        if (
+          /^if \[ -n "\$\{PROFILE_INTERNAL_TOKEN:-\}" \]; then$/.test(
+            setupLines[i],
+          )
+        ) {
+          persStart = i;
+          break;
+        }
+      }
+      expect(persStart).toBeGreaterThan(persAnchor);
+      let persEnd = -1;
+      for (let i = persStart + 1; i < setupLines.length; i++) {
+        if (setupLines[i] === "fi") {
+          persEnd = i;
+          break;
+        }
+      }
+      expect(persEnd).toBeGreaterThan(persStart);
+      const persBlock = setupLines.slice(persStart, persEnd + 1).join("\n");
+
+      // POSITION IS LOAD-BEARING: the persist must be the FINAL success step — AFTER the last
+      // host-state write (cron) so it runs only on a health-validated deploy, but BEFORE
+      // DEPLOY_VALIDATED=1 so a FAILURE aborts under set -e and the rollback trap restores the
+      // previous token/stack (round-7 fix C7-2: a post-validation warn-on-failure could leave
+      // .internal_token stale while profile.env held the new token → silent rotation). Relocating
+      // it into the pre-validation resolution branches (rotates a failed deploy's token) OR past
+      // DEPLOY_VALIDATED=1 (can no longer roll back a failed persist) both turn this red.
+      const idxValidated = firstIndex(setupLines, /^DEPLOY_VALIDATED=1$/);
+      const idxCronChmod = firstIndex(setupLines, /^chmod 644 "\$CRON_FILE"$/);
+      expect(idxValidated).toBeGreaterThanOrEqual(0);
+      expect(idxCronChmod).toBeGreaterThanOrEqual(0);
+      expect(persStart).toBeGreaterThan(idxCronChmod); // success path (after host-state writes)
+      expect(persStart).toBeLessThan(idxValidated); // before the mark → a failed persist rolls back
+      // ...and the resolution branches must RESOLVE only — never write the token file
+      // pre-validation (the other half of the C2-2 vector: an early write in a resolve branch).
+      expect(resBlock).not.toMatch(/>\s*"\$PROFILE_TOKEN_FILE"/);
+
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), "tokpersist-"));
+      const profileDir = path.join(dir, "profile");
+      const tokenFile = path.join(profileDir, ".internal_token");
+      fs.mkdirSync(profileDir, { recursive: true });
+
+      // Run the resolution block, optionally followed by the deferred persist (= deploy SUCCESS).
+      // Both wrapped in `{ } >&2` GROUPS (not subshells) so PROFILE_INTERNAL_TOKEN survives; only
+      // the resolved token is emitted on stdout.
+      const run = (envToken: string | undefined, persistOnSuccess: boolean) => {
+        const harness = [
+          "set -e",
+          `PROFILE_DIR=${shq(profileDir)}`,
+          "{",
+          resBlock,
+          persistOnSuccess ? persBlock : "",
+          "} >&2",
+          'printf "%s" "$PROFILE_INTERNAL_TOKEN"',
+        ].join("\n");
+        const env: NodeJS.ProcessEnv = { ...process.env };
+        if (envToken === undefined) delete env.PROFILE_INTERNAL_TOKEN;
+        else env.PROFILE_INTERNAL_TOKEN = envToken;
+        return spawnSync("/bin/bash", ["-c", harness], {
+          encoding: "utf8",
+          env,
+        });
+      };
+
+      // W5: env-set deploy that SUCCEEDS persists the token (0600) and resolves to it...
+      const T1 = "env-token-deadbeefcafe-0123456789";
+      const r1 = run(T1, true);
+      expect(r1.status).toBe(0);
+      expect(r1.stdout).toBe(T1);
+      expect(fs.readFileSync(tokenFile, "utf8")).toBe(T1);
+      expect(fs.statSync(tokenFile).mode & 0o777).toBe(0o600);
+      // ...so a later blank-env redeploy REUSES it (no rotation).
+      const r2 = run(undefined, false);
+      expect(r2.status).toBe(0);
+      expect(r2.stdout).toBe(T1);
+
+      // C2-2: a NEW env token whose deploy FAILS (no success-persist) must NOT rotate the prior
+      // persisted token. The file still holds T1; a later blank-env redeploy reuses T1, not T2.
+      const T2 = "env-token-FAILEDdeploy-9999999999";
+      const rFail = run(T2, false);
+      expect(rFail.status).toBe(0);
+      expect(rFail.stdout).toBe(T2); // resolved in-memory for THIS run...
+      expect(fs.readFileSync(tokenFile, "utf8")).toBe(T1); // ...but the file was NOT overwritten
+      const r3 = run(undefined, false);
+      expect(r3.stdout).toBe(T1); // blank-env redeploy reuses the last VALIDATED token
+
+      fs.rmSync(dir, { recursive: true, force: true });
+    });
+
+    // RESIDUAL[B-pattern-drift] — accepted OPEN residual (doctrine §10.2). The secret-name
+    // pattern set is hand-retyped across .dockerignore / .gitignore and the scanner with no shared
+    // constant; single-sourcing it behind one canonical set + a drift guard (MR-1) is a larger
+    // refactor, intentionally deferred and tracked here so the coupling test stays green.
+    test.skip("RESIDUAL[B-pattern-drift] (accepted: single-source gap (M2 / I-B)): single-source the secret-name pattern set across .dockerignore/.gitignore/scanner (MR-1)", () => {
+      // FROZEN/OPEN in §10.2 — closing this is the MR-1 refactor, not a one-line fix.
     });
   });
 

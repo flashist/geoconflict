@@ -97,30 +97,86 @@ describe("setup-profile.sh — fail-open allow-list (the class guard)", () => {
 });
 
 describe("setup-profile.sh — the rollback-protected tail ends at the cron write", () => {
-  test("no fallible command runs between the cron write and DEPLOY_VALIDATED=1", () => {
-    // The systemd unit + cron file are the last host-state writes. They are now CAPTURED and
-    // reverted by rollback_deploy (restore-or-remove — see the systemd/cron rollback tests in
-    // setupProfileRollback.test.ts), because the cron `cat`/`chmod` run AFTER `systemctl enable
-    // profile` and can fail, which would otherwise leave a FRESH deploy enabled and resurrect
-    // the unvalidated stack on reboot. This test is now a SECONDARY hygiene guard: nothing
-    // fallible may run AFTER the cron chmod, so the echo-only tail truly cannot fail
-    // post-validation. A new fallible step here must move before the trap region OR get its
-    // own rollback undo.
+  test("the ONLY fallible step between the cron write and DEPLOY_VALIDATED=1 is the rollback-covered token persist", () => {
+    // The systemd unit + cron file are the last host-state writes, captured/reverted by
+    // rollback_deploy. After the cron chmod, the ONLY sanctioned fallible work before
+    // DEPLOY_VALIDATED=1 is the atomic token persist (round-7 C7-2): it must run on the success
+    // path yet BEFORE the validated mark, so a persist failure aborts under set -e and the rollback
+    // trap restores the previous token/stack (a post-validation warn-on-failure would instead leave
+    // .internal_token stale → silent T6-token rotation). It is rollback-covered: the atomic temp+mv
+    // leaves the previous token in place on failure, and rollback_deploy reverts everything else.
+    // Outside that one block, the cron→validated window must stay echo-only.
     const idxCronChmod = firstIndex(setupLines, /^chmod 644 "\$CRON_FILE"$/);
     const idxValidated = firstIndex(setupLines, /^DEPLOY_VALIDATED=1$/);
     expect(idxCronChmod).toBeGreaterThanOrEqual(0);
     expect(idxValidated).toBeGreaterThan(idxCronChmod);
 
+    // Locate the sanctioned token-persist block (anchor -> its `if` -> column-0 `fi`).
+    const persAnchor = firstIndex(
+      setupLines,
+      /Persist the resolved service-to-service token/,
+    );
+    expect(persAnchor).toBeGreaterThan(idxCronChmod);
+    expect(persAnchor).toBeLessThan(idxValidated);
+    let persIf = -1;
+    for (let i = persAnchor + 1; i < idxValidated; i++) {
+      if (
+        /^if \[ -n "\$\{PROFILE_INTERNAL_TOKEN:-\}" \]; then$/.test(
+          setupLines[i],
+        )
+      ) {
+        persIf = i;
+        break;
+      }
+    }
+    expect(persIf).toBeGreaterThan(persAnchor);
+    let persFi = -1;
+    for (let i = persIf + 1; i < setupLines.length; i++) {
+      if (setupLines[i] === "fi") {
+        persFi = i;
+        break;
+      }
+    }
+    expect(persFi).toBeGreaterThan(persIf);
+    expect(persFi).toBeLessThan(idxValidated); // the persist closes BEFORE the validated mark
+
     const FALLIBLE =
       /^(cat|cp|mv|rm|docker|systemctl|certbot|nginx|ufw|apt-get|ln|chmod|curl|mkswap|swapon|fallocate|dd|getent|openssl|sysctl)\b/;
     const offenders: string[] = [];
     for (let i = idxCronChmod + 1; i < idxValidated; i++) {
+      if (i >= persAnchor && i <= persFi) continue; // skip the sanctioned persist block
       const trimmed = setupLines[i].replace(/^\s+/, "");
       if (FALLIBLE.test(trimmed)) offenders.push(`${i + 1}: ${setupLines[i]}`);
     }
-    // If this fails, a fallible step was added after the rollback-protected section —
-    // extend rollback_deploy to revert it (or move it before the trap region).
+    // Any OTHER fallible step here must move before the trap region OR get its own rollback undo.
     expect(offenders).toEqual([]);
+  });
+
+  // Adversarial review (round 8, C8-1): DEPLOY_VALIDATED=1 is the LAST fallible-state transition.
+  // The deploy has SHIPPED and the rollback trap is now a no-op, so EVERY command after it must be
+  // NON-FATAL (echo-only or `|| …`-guarded). An unguarded fallible command (e.g. the backup-cleanup
+  // rm) failing here exits the script non-zero while the new stack stays live — and build-deploy
+  // records DEPLOY_OUTCOME=passed only when this remote script exits 0, so it would brand an
+  // actually-deployed digest `failed`, poisoning the provenance record.
+  test("no unguarded fallible command runs after DEPLOY_VALIDATED=1 (a post-commit failure must not brand a shipped deploy failed)", () => {
+    const idxValidated = firstIndex(setupLines, /^DEPLOY_VALIDATED=1$/);
+    expect(idxValidated).toBeGreaterThanOrEqual(0);
+    // Join backslash continuations so a `|| …` guard on a continuation line counts.
+    const tail = setupLines.slice(idxValidated + 1);
+    const joined: string[] = [];
+    for (let i = 0; i < tail.length; i++) {
+      let cur = tail[i];
+      while (/\\\s*$/.test(cur) && i + 1 < tail.length) {
+        cur = cur.replace(/\\\s*$/, " ") + tail[++i];
+      }
+      joined.push(cur);
+    }
+    const FALLIBLE =
+      /^(cat|cp|mv|rm|docker|systemctl|certbot|nginx|ufw|apt-get|ln|chmod|curl|mkswap|swapon|fallocate|dd|getent|openssl|sysctl)\b/;
+    const unguarded = joined
+      .map((l) => l.trim())
+      .filter((t) => FALLIBLE.test(t) && !/\|\|/.test(t));
+    expect(unguarded).toEqual([]);
   });
 });
 
@@ -305,6 +361,9 @@ function runProbe(opts: {
   goodDb?: string;
   goodPassword?: string;
   rawUrl?: string;
+  goodUrl?: string; // override the stub's expected url_no_pw (so a custom-shaped URL is load-bearing)
+  resolvesTo?: string; // what the in-container `getent ahosts <host>` stub returns (space-sep)
+  stubAlwaysConnects?: boolean; // psql stub returns 0 regardless of URL — pins pre-psql reject guards
 }): number {
   const scheme = opts.scheme ?? "postgresql";
   const host = opts.host ?? "postgres:5432";
@@ -313,7 +372,8 @@ function runProbe(opts: {
   const goodHost = opts.goodHost ?? host;
   const goodDb = opts.goodDb ?? db;
   const goodPw = opts.goodPassword ?? opts.rawPassword;
-  const goodUrl = `${scheme}://profile@${goodHost}/${goodDb}${query}`;
+  const goodUrl =
+    opts.goodUrl ?? `${scheme}://profile@${goodHost}/${goodDb}${query}`;
   const buildUrl = opts.rawUrl
     ? `URL=${shq(opts.rawUrl)}`
     : `URL="${scheme}://profile:$(urlencode ${shq(opts.rawPassword)})@${host}/${db}${query}"`;
@@ -324,9 +384,25 @@ function runProbe(opts: {
     probeUrlFn,
     `GOOD_URL=${shq(goodUrl)}`,
     `GOOD_PW=${shq(goodPw)}`,
+    `RESOLVED_ADDRS=${shq(opts.resolvesTo ?? "")}`,
+    `STUB_ALWAYS_CONNECTS=${opts.stubAlwaysConnects ? "1" : "0"}`,
     `docker() {
        if [ "$1" = compose ] && [ "$2" = exec ]; then
+         case "$*" in
+           *getent*)
+             # The resolution probe: echo the configured resolved address(es). Empty by
+             # default, so existing (non-resolvesTo) tests emit nothing and the gate falls
+             # back exactly as before — the getent call is a no-op for them.
+             [ -n "\${RESOLVED_ADDRS:-}" ] && printf '%s\\n' $RESOLVED_ADDRS
+             return 0
+             ;;
+         esac
          IFS= read -r pw
+         # STUB_ALWAYS_CONNECTS: the psql probe ALWAYS succeeds regardless of the URL. Used by the
+         # reject tests so the probe can only return non-zero via a pre-psql reject guard, making
+         # the guard itself load-bearing (not an incidental url_no_pw-vs-GOOD_URL mismatch, which a
+         # stripped param would trigger and pass the test for the wrong reason).
+         [ "\${STUB_ALWAYS_CONNECTS:-0}" = "1" ] && return 0
          u=\${!#}
          [ "$u" = "$GOOD_URL" ] && [ "$pw" = "$GOOD_PW" ]
          return $?
@@ -428,6 +504,11 @@ describe("setup-profile.sh probe_database_url rejects container-local loopback h
     expect(probeUrlFn).toMatch(/is_ipv6/);
     expect(probeUrlFn).toMatch(/v6=\$\{v6\/\/0\/\}/);
     expect(probeUrlFn).toMatch(/service name/);
+    // ...PLUS a resolution-based check that RESOLVES the host (getent in the postgres
+    // container) and rejects any loopback ADDRESS — closing obfuscated IPv4 spellings
+    // (octal/hex/decimal) and the hex IPv4-mapped IPv6 form that no literal pattern catches.
+    expect(probeUrlFn).toMatch(/getent ahosts/);
+    expect(probeUrlFn).toMatch(/grep -Eq/);
   });
 
   // Use `host` (NOT a rawUrl) so the stub's good-URL EQUALS this host — i.e. WITHOUT the
@@ -474,14 +555,163 @@ describe("setup-profile.sh probe_database_url rejects container-local loopback h
     },
   );
 
-  test("a real global IPv6 host ([2001:db8::1]) is NOT rejected (normalization is loopback-specific)", () => {
+  // Adversarial review: the literal/normalized enumeration above is inherently INCOMPLETE —
+  // obfuscated IPv4 spellings (single-integer 2130706433, hex 0x7f000001 / 0x7f.0.0.1, octal
+  // 017700000001) and the hex IPv4-mapped IPv6 form (::ffff:7f00:1) all RESOLVE to 127.0.0.1 yet
+  // match no pattern, so each passed from the postgres container while the API hits its own
+  // loopback at runtime (a recorded false pass). The resolution-based check resolves the host and
+  // rejects any loopback ADDRESS. Each case sets the resolver to a loopback addr AND host==goodHost
+  // (so the psql stub WOULD connect) — the failure can ONLY come from the resolution check:
+  // load-bearing.
+  const obfuscatedLoopback: Array<[string, string, string]> = [
+    ["single-integer 2130706433", "2130706433:5432", "127.0.0.1"],
+    ["hex 0x7f000001", "0x7f000001:5432", "127.0.0.1"],
+    ["dotted-hex 0x7f.0.0.1", "0x7f.0.0.1:5432", "127.0.0.1"],
+    ["octal 017700000001", "017700000001:5432", "127.0.0.1"],
+    [
+      "hex IPv4-mapped IPv6 [::ffff:7f00:1]",
+      "[::ffff:7f00:1]:5432",
+      "::ffff:127.0.0.1",
+    ],
+  ];
+  test.each(obfuscatedLoopback)(
+    "obfuscated loopback spelling resolving to loopback FAILS fail-closed: %s",
+    (_desc, host, resolvesTo) => {
+      expect(
+        runProbe({ rawPassword: "pw", host, goodHost: host, resolvesTo }),
+      ).not.toBe(0);
+    },
+  );
+
+  test("a real host that RESOLVES to a non-loopback address still PASSES (resolution is loopback-specific)", () => {
+    expect(
+      runProbe({
+        rawPassword: "pw",
+        host: "db.internal:5432",
+        goodHost: "db.internal:5432",
+        resolvesTo: "10.1.2.3",
+      }),
+    ).toBe(0);
+  });
+
+  test("a real global IPv6 host ([2001:db8::1]) is NOT rejected (resolves to itself, non-loopback)", () => {
+    // An IP literal is IP-like, so the resolution check now REQUIRES it to resolve (getent
+    // returns the literal itself for a valid IP). Non-loopback → accepted.
     expect(
       runProbe({
         rawPassword: "pw",
         host: "[2001:db8::1]:5432",
         goodHost: "[2001:db8::1]:5432",
+        resolvesTo: "2001:db8::1",
       }),
     ).toBe(0);
+  });
+
+  // Adversarial review (Codex round 2): the resolution check must FAIL CLOSED for the obfuscated-
+  // numeric class, not be best-effort. If getent is absent/empty, an obfuscated numeric loopback
+  // (which no literal pattern catches) would otherwise fall through to the psql probe and false-
+  // pass from the postgres container. An IP-literal-like host that does NOT resolve is rejected.
+  const ipLikeUnresolvable: Array<[string, string]> = [
+    ["single-integer 2130706433", "2130706433:5432"],
+    ["hex 0x7f000001", "0x7f000001:5432"],
+    ["octal 017700000001", "017700000001:5432"],
+    ["IPv6 literal [::ffff:7f00:1]", "[::ffff:7f00:1]:5432"],
+  ];
+  test.each(ipLikeUnresolvable)(
+    "an IP-literal host that the resolver CANNOT resolve FAILS closed (no best-effort fall-through): %s",
+    (_desc, host) => {
+      // resolvesTo unset => the getent stub emits nothing => unresolvable. host==goodHost so the
+      // psql stub WOULD connect — the rejection is solely the fail-closed numeric-literal guard.
+      expect(runProbe({ rawPassword: "pw", host, goodHost: host })).not.toBe(0);
+    },
+  );
+
+  test("a normal DNS host that does not resolve still falls through (not IP-like → real SELECT 1 decides)", () => {
+    // `db.internal` is NOT IP-like, so an empty resolver result does NOT fail it closed here; it
+    // proceeds to the psql probe. host==goodHost so the stub connects → exit 0 (the connection
+    // test, not the resolver, is authoritative for DNS names).
+    expect(
+      runProbe({
+        rawPassword: "pw",
+        host: "db.internal:5432",
+        goodHost: "db.internal:5432",
+      }),
+    ).toBe(0);
+  });
+
+  // Adversarial review (Workflow round 2): an EMPTY authority host (postgres:///db, user@/db) is a
+  // false-pass vector — libpq uses the local Unix socket, which the in-postgres-container probe
+  // satisfies (default `local all all trust`, even with a wrong password) while the API container
+  // cannot. Must fail closed.
+  // Each case sets goodUrl == the rebuilt url_no_pw (and a matching password), so WITHOUT the
+  // empty-host guard the psql stub WOULD connect (exit 0, the Unix-socket false pass). The
+  // rejection can therefore only come from the guard: load-bearing.
+  const emptyHostUrls: Array<[string, string, string, string]> = [
+    [
+      "userinfo + empty host (user:pass@/db)",
+      "postgresql://profile:secret@/profile",
+      "postgresql://profile@/profile",
+      "secret",
+    ],
+    [
+      "no userinfo, empty host (postgres:///db)",
+      "postgres:///profile",
+      "postgres:///profile",
+      "",
+    ],
+  ];
+  test.each(emptyHostUrls)(
+    "an empty authority host FAILS closed (Unix-socket false pass): %s",
+    (_desc, rawUrl, goodUrl, rawPassword) => {
+      expect(runProbe({ rawPassword, rawUrl, goodUrl })).not.toBe(0);
+    },
+  );
+
+  // Adversarial review (round 3): libpq percent-DECODES the authority host before resolving and
+  // splitting it, so a percent-escape evades the literal-loopback, multi-host, and IP-like checks
+  // (which run on the raw host) — `h1%2Clocalhost` decodes to a `h1,localhost` host LIST,
+  // `%6cocalhost` to `localhost`, `127%2e0%2e0%2e1` to `127.0.0.1`. The gate must reject `%` in the
+  // authority host. Each case sets goodUrl == the (raw, still-encoded) url_no_pw so WITHOUT the
+  // reject the psql stub WOULD connect (exit 0) — the rejection is solely the new guard.
+  const encodedHostUrls: Array<[string, string, string]> = [
+    [
+      "encoded comma -> multi-host h1,localhost",
+      "postgresql://profile:pw@h1%2Clocalhost:5432/profile",
+      "postgresql://profile@h1%2Clocalhost:5432/profile",
+    ],
+    [
+      "encoded 'l' -> localhost (%6cocalhost)",
+      "postgresql://profile:pw@%6cocalhost:5432/profile",
+      "postgresql://profile@%6cocalhost:5432/profile",
+    ],
+    [
+      "encoded dots -> 127.0.0.1 (127%2e0%2e0%2e1)",
+      "postgresql://profile:pw@127%2e0%2e0%2e1:5432/profile",
+      "postgresql://profile@127%2e0%2e0%2e1:5432/profile",
+    ],
+  ];
+  test.each(encodedHostUrls)(
+    "a percent-encoded authority host FAILS closed (libpq decodes it past the host checks): %s",
+    (_desc, rawUrl, goodUrl) => {
+      expect(runProbe({ rawPassword: "pw", rawUrl, goodUrl })).not.toBe(0);
+    },
+  );
+
+  // Adversarial review (round 4): a `dbname=` query param OVERRIDES the URI path's database for
+  // libpq (the gate's psql), but the Node pg client IGNORES it and uses the path — so the gate
+  // would validate a DIFFERENT database than the API consumes (the same gate-vs-runtime divergence
+  // the host/hostaddr param is rejected for). Use stubAlwaysConnects (round-5 hardening): the psql
+  // probe always succeeds, so the probe returns non-zero ONLY via the dbname reject. This pins the
+  // WHOLE guard — deleting the `dbname)` arm (param survives into url_no_pw → psql validates
+  // otherdb) OR the post-loop `return 1` both let the always-connecting stub return 0 → RED.
+  test("a dbname= query param FAILS closed (libpq path-override vs Node pg path-only divergence)", () => {
+    expect(
+      runProbe({
+        rawPassword: "pw",
+        rawUrl: "postgresql://profile:pw@postgres:5432/profile?dbname=otherdb",
+        stubAlwaysConnects: true,
+      }),
+    ).not.toBe(0);
   });
 
   test("a host that merely CONTAINS 'localhost' is NOT rejected (exact match, no over-block)", () => {
@@ -515,19 +745,40 @@ describe("setup-profile.sh probe_database_url rejects host redirection via query
     expect(probeUrlFn).toMatch(/^probe_database_url\(\) \{/);
   });
 
-  // Each case is built so the stub WOULD connect without the guard (url_no_pw == GOOD_URL): the
-  // authority host is fine and the redirection rides a query param or a comma host-list. So the
-  // rejection can ONLY come from the new guard, not a stub mismatch — i.e. these are load-bearing.
-  const redirectCases: Array<
-    [string, { host?: string; goodHost?: string; query?: string }]
-  > = [
-    ["?host=localhost", { query: "?host=localhost" }],
-    ["?hostaddr=127.0.0.1", { query: "?hostaddr=127.0.0.1" }],
-    // libpq matches keyword names case-insensitively
-    ["?HOST=localhost (case-insensitive)", { query: "?HOST=localhost" }],
-    // any host param is a redirection channel, even a non-loopback value
-    ["?host=otherbox", { query: "?host=otherbox" }],
-    // comma-separated multi-host authority with a localhost fallback member
+  // SINGLE-HOST ?host=/?hostaddr= redirection: the param-walk arm STRIPS the param from url_no_pw,
+  // so pinning a param-PRESENT GOOD_URL would pass on a stub MISMATCH even with the reject deleted
+  // (false-green — the round-5 finding). Instead use stubAlwaysConnects so the psql probe always
+  // succeeds: the probe can return non-zero ONLY via the `has_host_param` reject. Deleting that
+  // reject lets the always-connecting stub return 0 → these go RED. (The API consumes the ORIGINAL
+  // URL with ?host=, so a gate that strips-and-validates the authority is a true false-pass.)
+  const singleHostRedirects: Array<[string, string]> = [
+    ["?host=localhost", "?host=localhost"],
+    ["?hostaddr=127.0.0.1", "?hostaddr=127.0.0.1"],
+    ["?HOST=localhost (case-insensitive)", "?HOST=localhost"],
+    [
+      "?host=otherbox (any host param is a redirection channel)",
+      "?host=otherbox",
+    ],
+  ];
+  test.each(singleHostRedirects)(
+    "single-host redirection param FAILS fail-closed (psql stub always connects; only the reject fails it): %s",
+    (_desc, query) => {
+      expect(
+        runProbe({
+          rawPassword: "pw",
+          host: "postgres",
+          goodHost: "postgres",
+          query,
+          stubAlwaysConnects: true,
+        }),
+      ).not.toBe(0);
+    },
+  );
+
+  // MULTI-HOST authority (comma host-list): the comma rides the AUTHORITY (not a stripped query
+  // param), so url_no_pw == GOOD_URL and the stub WOULD connect without the `*,*` reject — these
+  // are load-bearing as-is (no stubAlwaysConnects needed).
+  const multiHostCases: Array<[string, { host: string; goodHost: string }]> = [
     [
       "multi-host authority",
       { host: "h1,localhost", goodHost: "h1,localhost" },
@@ -537,17 +788,10 @@ describe("setup-profile.sh probe_database_url rejects host redirection via query
       { host: "h1:5432,localhost:5432", goodHost: "h1:5432,localhost:5432" },
     ],
   ];
-  test.each(redirectCases)(
-    "host-redirection variant FAILS fail-closed (stub would otherwise connect): %s",
+  test.each(multiHostCases)(
+    "multi-host authority FAILS fail-closed (stub would otherwise connect): %s",
     (_desc, opts) => {
-      expect(
-        runProbe({
-          rawPassword: "pw",
-          host: "postgres",
-          goodHost: "postgres",
-          ...opts,
-        }),
-      ).not.toBe(0);
+      expect(runProbe({ rawPassword: "pw", ...opts })).not.toBe(0);
     },
   );
 
