@@ -139,8 +139,14 @@ The first sprint was good engineering and the resulting properties are worth pre
 5. **Authoritative per-layer byte scan** for image secrets (`--inspect-image`). This is the *real*
    oracle for the secret-boundary threat. **Keep.**
 6. **Atomic, lock-serialized deploy-record write.** **Keep.**
+7. **Build for the target architecture (`--platform linux/amd64`).** An Apple-Silicon (arm64) dev
+   host must not push a digest the amd64 reg.ru box can't execute. (`build-deploy-profile.sh` —
+   verbatim as §14 K7.) **Keep.**
 
-None of the above required the bounce. They were essentially done by commit `3568b08` (06-15 10:18).
+Items 1–6 required none of the bounce — they were essentially done by commit `3568b08` (06-15
+10:18). Item 7 (the platform pin) landed later, on 06-17 (commit `23dfd8a`), and was missing from
+the first draft of this list until the reviewer's pass caught it — a small but apt reminder that
+even the keeper inventory needed a second pair of eyes.
 
 ---
 
