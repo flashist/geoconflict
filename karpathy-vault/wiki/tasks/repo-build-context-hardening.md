@@ -21,4 +21,5 @@ The repo now has an explicit Docker secret boundary instead of relying on `.giti
 
 ## Related
 
+- [[tasks/profile-docker-image]] — applies the same allowlist-copy boundary to the standalone profile image
 - [[decisions/vps-credential-leak-response]] — decision page that records the Docker build-context leak path and recovery workflow

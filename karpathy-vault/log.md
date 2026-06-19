@@ -745,3 +745,11 @@
 - Ingested: `ai-agents/tasks/done/s4-profile-03-yandex-identity.md` → created [[wiki/tasks/yandex-identity-plumbing]]; updated [[wiki/decisions/sprint-4]], [[wiki/tasks/player-profile-store-investigation]], [[wiki/tasks/yandex-payments-investigation]], [[wiki/systems/flashist-init]], [[wiki/systems/networking]]
 - Skipped (not ingest-worthy): 13 changed files under `ai-agents/tasks/backlog/` — backlog tasks are not ingested directly; current Sprint 4 and no-sprint status was summarized through the changed sprint sources
 - Skipped (no longer a completed source): `ai-agents/tasks/done/s4-profile-04-backend-infra.md` — the monolithic T4 task was moved back to backlog and split into T4a–T4g; represented through [[wiki/decisions/sprint-4]] and [[wiki/decisions/profile-deploy-hardening-review-loop]]
+
+## 2026-06-19 — ingest
+- Sync window: `eef55e506f7437fd2727f151cf2c7f26bbe187c6` → HEAD (`aa7e165a0b008f4bacf6e796c3d18c68a08b6f55`)
+- Changed source files detected: 6
+- Ingested: `ai-agents/tasks/done/s4-profile-04a-server-skeleton.md` → created [[wiki/tasks/profile-server-skeleton]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]]
+- Ingested: `ai-agents/tasks/done/s4-profile-04b-client-api-url-config.md` → created [[wiki/tasks/profile-api-url-config]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/systems/configuration]]
+- Ingested: `ai-agents/tasks/done/s4-profile-04c-dockerfile.md` → created [[wiki/tasks/profile-docker-image]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/repo-build-context-hardening]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-profile-04h-game-server-deploy-env.md`, `ai-agents/tasks/backlog/s4-profile-06-match-end-crediting.md` — backlog files are not ingested directly by wiki-sync

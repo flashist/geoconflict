@@ -9,7 +9,7 @@ Shared runtime and gameplay configuration for Geoconflict. The system selects en
 
 ## Architecture
 
-`Config.ts` defines the contract. `ServerConfig` covers environment, worker routing, auth, public host/protocol/port, JWT issuer/audience, storage, OTEL, AI-player settings, and deploy identifiers. `Config` covers gameplay values such as spawn timing, bot/nation setup, troop and gold rates, combat math, unit stats, cooldowns, nuke behavior, and theme access.
+`Config.ts` defines the contract. `ServerConfig` covers environment, worker routing, auth, public host/protocol/port, the public profile API URL, JWT issuer/audience, storage, OTEL, AI-player settings, and deploy identifiers. `Config` covers gameplay values such as spawn timing, bot/nation setup, troop and gold rates, combat math, unit stats, cooldowns, nuke behavior, and theme access.
 
 `ConfigLoader.ts` is the selection point. Server code reads `process.env.GAME_ENV` and maps `dev` to `DevServerConfig`, `staging` to `preprodConfig`, and `prod` to `prodConfig`. Browser code calls `/api/env`, stores public runtime overrides with `setRuntimeConfig()`, then builds either `DevConfig` or `DefaultConfig` based on `GameEnv`.
 
@@ -30,3 +30,4 @@ Shared runtime and gameplay configuration for Geoconflict. The system selects en
 - [[systems/networking]] — worker routing and public endpoint configuration
 - [[systems/telemetry]] — OTEL endpoint and production-only observability configuration
 - [[tasks/cosmetics-serving]] — same-origin and internal-origin handling for the optional cosmetics config endpoint
+- [[tasks/profile-api-url-config]] — public profile-service URL resolution and `/api/env` exposure

@@ -11,7 +11,7 @@ Source: `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19
 
 ## Decision
 
-Stop and revert the monolithic T4 attempt. Resume profile infrastructure as independently shippable T4a–T4g slices, with T4a already merged and T4b/T4c next.
+Stop and revert the monolithic T4 attempt. Resume profile infrastructure as independently shippable T4a–T4g slices. T4a, T4b, and T4c are now complete; the remaining sequence starts with the external T4d VPS/DNS prerequisite.
 
 For each remaining deploy slice:
 
@@ -27,7 +27,7 @@ The restart should preserve the proven properties from the abandoned branch: sec
 ## Consequences
 
 - The abandoned branch and its large doctrine are historical evidence, not implementation law and not a source to merge wholesale.
-- Profile infrastructure now progresses through T4a server skeleton, T4b client API URL, T4c Docker image, T4d VPS/DNS, T4e deploy mechanics, T4f image-secret scanning, and T4g argv/concurrency hardening.
+- Profile infrastructure progresses through T4a server skeleton, T4b client API URL, T4c Docker image, T4d VPS/DNS, T4e deploy mechanics, T4f image-secret scanning, and T4g argv/concurrency hardening. T4a–T4c are complete.
 - T4d still requires the reg.ru VPS and `api.geoconflict.ru` DNS action before T4e can proceed.
 - The exact disposition of the advisory Dockerfile parser and old doctrine remains an owner choice; neither should block the bounded T4 slices.
 - Review termination is defined by fixed acceptance criteria, not by a reviewer's silence.
@@ -37,3 +37,6 @@ The restart should preserve the proven properties from the abandoned branch: sec
 - [[decisions/sprint-4]] — profile-store track and T4a–T4g sequence
 - [[systems/producer-workflow]] — task scoping, acceptance-criteria, and review-boundary guidance
 - [[decisions/vps-credential-leak-response]] — security incident that established the underlying Docker secret-boundary requirements
+- [[tasks/profile-server-skeleton]] — completed T4a liveness-only server foundation
+- [[tasks/profile-api-url-config]] — completed T4b public runtime URL plumbing
+- [[tasks/profile-docker-image]] — completed T4c allowlist-copy profile image

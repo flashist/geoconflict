@@ -68,6 +68,9 @@
 - [[tasks/player-profile-store-investigation]] — Sprint 4 investigation recommending Postgres, now on a dedicated reg.ru profile/API VPS, and identifying the Yandex identity gap
 - [[tasks/profile-schema-contract]] — Sprint 4 T1 shared PlayerProfile v1 contract, migration function, guest-profile factory, and tests
 - [[tasks/yandex-identity-plumbing]] — Sprint 4 T3 client-to-server Yandex unique-ID plumbing for later profile crediting
+- [[tasks/profile-server-skeleton]] — Sprint 4 T4a standalone profile-service `/health` skeleton, logger, and validated port
+- [[tasks/profile-api-url-config]] — Sprint 4 T4b public profile API URL plumbing through runtime config and `/api/env`
+- [[tasks/profile-docker-image]] — Sprint 4 T4c allowlist-copy, linux/amd64 Docker image for the profile service
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
 - [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement
 - [[tasks/start-screen-redesign-implementation]] — Sprint 4 implementation of the two-tab start screen, citizenship card shell, tab persistence, localization rename, and tab analytics
