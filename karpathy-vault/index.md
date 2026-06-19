@@ -39,7 +39,7 @@
 - [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation, legal/data-compliance gate, shipped start-screen/bootstrap work, plus carried backlog follow-ups
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
-- [[decisions/sprint-backlog]] — No-sprint backlog for defined work needing a sprint home, including monitoring, mobile WebGL, worker init, weird-mode cleanup, no-nukes SAM, FuseTag, and GutterAds fixes
+- [[decisions/sprint-backlog]] — No-sprint backlog for defined work needing a sprint home, including monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag, and GutterAds fixes
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
 - [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance, compact-map runtime fallback, and guest-first profile XP cancellations
@@ -55,6 +55,7 @@
 - [[decisions/registry-image-policy]] — Trusted vs untrusted image rules, registry visibility policy, and rollback/retention guidance
 - [[decisions/stale-build-zombie-tabs]] — Investigation and fix for users persisting on old builds (HF-11a/b/c/d)
 - [[decisions/vps-credential-leak-response]] — Incident postmortem: Docker build-context secret leak path, deploy hardening, and trusted recovery workflow
+- [[decisions/profile-deploy-hardening-review-loop]] — Reset of the unbounded profile-deploy review loop into bounded T4 slices and fixed acceptance criteria
 
 ## Tasks
 
@@ -66,6 +67,7 @@
 - [[tasks/ui-click-multiplayer]] — Investigation confirming `UI:ClickMultiplayer` fires on per-lobby JOIN attempts
 - [[tasks/player-profile-store-investigation]] — Sprint 4 investigation recommending Postgres, now on a dedicated reg.ru profile/API VPS, and identifying the Yandex identity gap
 - [[tasks/profile-schema-contract]] — Sprint 4 T1 shared PlayerProfile v1 contract, migration function, guest-profile factory, and tests
+- [[tasks/yandex-identity-plumbing]] — Sprint 4 T3 client-to-server Yandex unique-ID plumbing for later profile crediting
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
 - [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement
 - [[tasks/start-screen-redesign-implementation]] — Sprint 4 implementation of the two-tab start screen, citizenship card shell, tab persistence, localization rename, and tab analytics

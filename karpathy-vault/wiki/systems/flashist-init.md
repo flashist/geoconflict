@@ -40,6 +40,7 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - Real Yandex iframe behaviour still needs live/dev-VPS verification after the bootstrap refactor; local Playwright covered standalone, stalled SDK, stub SDK, parent wrapper, chunk-retry, and normal local boot paths.
 - The Yandex iframe parent template must not receive the app bundle; otherwise explicit bootstrap would double-fire session/platform init. The refactor excludes its chunks.
 - Login-status analytics is intentionally one-shot. Late player rehydration updates helper methods such as `isYandexAuthorized()` and `getCurPlayerName()`, but it does not re-log `Player:Yandex*`.
+- `isYandexAuthorized()` and `getYandexUniqueId()` follow the same degraded-mode contract: they resolve to `false`/`null` when player state is unavailable instead of blocking match join. The unique ID is forwarded by [[tasks/yandex-identity-plumbing]].
 - Boot-rendered UI keeps degraded values after late SDK recovery unless that UI explicitly re-queries the facade.
 - Two independent side bugs found during the bootstrap investigation remain backlog work: the dead `initializeFuseTag` polling loop and `GutterAds.hide()` permanently removing its `userMeResponse` listener. See [[decisions/sprint-backlog]].
 
@@ -51,3 +52,4 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - [[tasks/analytics-p0-yandex-login-status]] — original Yandex auth-status event task, later semantics refined by the bootstrap work
 - [[tasks/analytics-p0-session-match-count]] — `consumePendingSessionEnd` and `startSessionMatchTracking` run in immediate bootstrap
 - [[tasks/yandex-payments-investigation]] — future payments/catalog caching should build on the explicit facade gate
+- [[tasks/yandex-identity-plumbing]] — tolerant auth and unique-ID helpers used by the match join path

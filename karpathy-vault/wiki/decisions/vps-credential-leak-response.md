@@ -35,6 +35,7 @@ The final trusted recovery workflow is:
 - password-based deploys remain available only as an emergency bridge and should be removed once all environments are key-based
 - historical image trust is now captured in [[decisions/registry-image-policy]], but live registry visibility changes and old-tag cleanup still require operator action outside the repo
 - telemetry setup is now safer for clean rebuilds, and the repo documents the retention-config drift that caused the transient `502`
+- Later profile-deploy hardening retained the incident's secret-boundary requirements but exposed a separate process failure: unbounded review of a monolithic branch. Its bounded restart is recorded in [[decisions/profile-deploy-hardening-review-loop]].
 
 ## Related
 
@@ -51,3 +52,4 @@ The final trusted recovery workflow is:
 - [[tasks/incident-postmortem-followups]] — postmortem capture and explicit follow-up queue
 - [[tasks/docker-secret-boundary-check]] — automated regression guard for the Docker boundary
 - [[tasks/registry-image-policy-followup]] — follow-up task that wrote the durable registry policy
+- [[decisions/profile-deploy-hardening-review-loop]] — bounded restart for profile deploy hardening built on this incident's secret-boundary requirements

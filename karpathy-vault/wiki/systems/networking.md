@@ -35,6 +35,7 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - `Transport` buffers only stringified outbound messages when the socket is closed; this is a lightweight reconnect aid, not a full reliable-delivery queue
 - The worker-path contract is critical: wrong-worker requests are rejected instead of forwarded silently
 - Singleplayer and replay use `LocalServer`, so not every transport code path implies a real socket
+- `ClientJoinMessage.yandexPlayerId` is optional and nullable for backward compatibility. It is transported and retained for profile work but remains untrusted and unsigned; paid identity verification is a separate boundary. See [[tasks/yandex-identity-plumbing]].
 
 ## Related
 
@@ -42,3 +43,4 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[systems/game-loop]] — what happens after turns arrive
 - [[systems/execution-pipeline]] — how validated intents are turned into executions
 - [[systems/configuration]] — worker path, port, public host, and API base URL selection
+- [[tasks/yandex-identity-plumbing]] — Yandex unique ID carried through the join payload into the server-side client

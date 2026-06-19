@@ -50,6 +50,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - Some outcomes in the source are time-bound sprint context; this page should focus on behavioural rules and operating model, while sprint-specific decisions stay in [[decisions/sprint-4]], [[decisions/sprint-4b]], and other sprint pages
 - The server does not simulate gameplay itself, so producers should not assume authoritative per-player outcome data already exists when defining server-side progression or entitlement features
 - Community-facing communication must stay within approved disclosures even when internal documents contain more operational detail
+- Open-ended adversarial review is not a completion criterion. For high-risk infrastructure work, fix the threat model and acceptance criteria before review, keep slices independently shippable, cap review rounds, and record lower-reachability findings as explicit residuals. See [[decisions/profile-deploy-hardening-review-loop]].
 
 ## Related
 
@@ -58,3 +59,4 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - [[decisions/product-strategy]] — strategic sequencing that shapes producer prioritization
 - [[decisions/sprint-4]] — current planning example captured by the source brief
 - [[decisions/sprint-4b]] — investigation-first interim sprint planning example
+- [[decisions/profile-deploy-hardening-review-loop]] — profile-deploy postmortem and bounded-review rules

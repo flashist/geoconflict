@@ -735,3 +735,13 @@
 - Issues fixed: 0
 - Issues flagged for human review: 0
 - Full wiki health-check passed: index/file coverage, required metadata, wiki-link resolution, backlinks, orphan scan, source-path references, filename-style line references, and existing lint-warning scan are clean.
+
+## 2026-06-19 — ingest
+- Sync window: `488d41ddcd1e5caeaa82fe61b715d6517c1e4eb3` → HEAD (`eef55e506f7437fd2727f151cf2c7f26bbe187c6`)
+- Changed source files detected: 18
+- Ingested: `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md` → created [[wiki/decisions/profile-deploy-hardening-review-loop]]; updated [[wiki/decisions/sprint-4]], [[wiki/systems/producer-workflow]], [[wiki/decisions/vps-credential-leak-response]]
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]]
+- Ingested: `ai-agents/tasks/done/s4-profile-03-yandex-identity.md` → created [[wiki/tasks/yandex-identity-plumbing]]; updated [[wiki/decisions/sprint-4]], [[wiki/tasks/player-profile-store-investigation]], [[wiki/tasks/yandex-payments-investigation]], [[wiki/systems/flashist-init]], [[wiki/systems/networking]]
+- Skipped (not ingest-worthy): 13 changed files under `ai-agents/tasks/backlog/` — backlog tasks are not ingested directly; current Sprint 4 and no-sprint status was summarized through the changed sprint sources
+- Skipped (no longer a completed source): `ai-agents/tasks/done/s4-profile-04-backend-infra.md` — the monolithic T4 task was moved back to backlog and split into T4a–T4g; represented through [[wiki/decisions/sprint-4]] and [[wiki/decisions/profile-deploy-hardening-review-loop]]
