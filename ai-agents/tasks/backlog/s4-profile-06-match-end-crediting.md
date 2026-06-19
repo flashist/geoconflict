@@ -10,7 +10,7 @@ Sprint 4
 High — delivers server-authoritative earned XP. **This is the production-verification gate: the Citizenship Core UI task must not start until this is verified in production.**
 
 ## Depends on
-T3 (server-visible `yandexPlayerId`), T5 (the `/internal/v1/credit` endpoint).
+T3 (server-visible `yandexPlayerId`), T5 (the `/internal/v1/credit` endpoint), **T4h** (game-server `deploy.sh` must propagate `PROFILE_API_URL` into the container, or `ProfileApiClient`'s base URL resolves to `""` in prod — `s4-profile-04h-game-server-deploy-env.md`).
 
 ## Blocks
 Citizenship Core UI task (depends on this being live + verified in prod).
