@@ -4,7 +4,7 @@
 set -euo pipefail
 
 if [ "$#" -eq 0 ]; then
-    for candidate in .env .env.dev .env.prod .env.staging .env.telemetry .env.profile example.env example.env.telemetry example.env.profile; do
+    for candidate in .env .env.dev .env.prod .env.staging .env.telemetry example.env example.env.telemetry; do
         if [ -f "$candidate" ]; then
             set -- "$@" "$candidate"
         fi

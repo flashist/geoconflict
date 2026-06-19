@@ -4,7 +4,6 @@
 .env.*
 example.env
 example.env.telemetry
-example.env.profile
 node_modules
 static
 build

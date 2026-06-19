@@ -149,20 +149,6 @@ export abstract class DefaultServerConfig implements ServerConfig {
     }
     return this.jwtIssuer();
   }
-  // Public base URL of the dedicated player-profile backend (api.geoconflict.ru).
-  // Resolved value is exposed to the client via /api/env; the raw env var is never
-  // sent. Empty string when no profile backend is configured.
-  profileApiUrl(): string {
-    const runtime = this.runtimeConfig();
-    if (runtime.profileApiUrl && runtime.profileApiUrl.trim().length > 0) {
-      return runtime.profileApiUrl.trim();
-    }
-    const envValue = process.env.PROFILE_API_URL;
-    if (envValue && envValue.trim().length > 0) {
-      return envValue.trim();
-    }
-    return "";
-  }
 
   private publicKey: JWK;
   abstract jwtAudience(): string;

@@ -4,7 +4,6 @@ export interface RuntimeConfigData {
   publicPort?: string;
   deploymentId?: string;
   apiBaseUrl?: string;
-  profileApiUrl?: string;
   jwtIssuer?: string;
   jwtAudience?: string;
 }

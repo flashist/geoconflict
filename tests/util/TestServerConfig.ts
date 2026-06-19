@@ -56,9 +56,6 @@ export class TestServerConfig implements ServerConfig {
   apiBaseUrl(): string {
     throw new Error("Method not implemented.");
   }
-  profileApiUrl(): string {
-    throw new Error("Method not implemented.");
-  }
   turnIntervalMs(): number {
     throw new Error("Method not implemented.");
   }

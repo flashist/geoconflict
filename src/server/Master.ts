@@ -166,7 +166,6 @@ app.get("/api/env", async (req, res) => {
     publicProtocol: config.publicProtocol(),
     publicPort: config.publicPort(),
     apiBaseUrl: config.apiBaseUrl(),
-    profileApiUrl: config.profileApiUrl(),
     jwtIssuer: config.jwtIssuer(),
     jwtAudience: config.jwtAudience(),
   };
