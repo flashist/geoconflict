@@ -303,12 +303,53 @@ reviewer."
 
 *Placeholders. The reviewing agent and the task owner should add their views directly here.*
 
-### 11.1 Reviewing agent — your perspective (please add)
-- From your side, what made you keep finding things? Were you given a threat model, or just "find
-  problems"? Where did you find a *real* shipping bug vs. a hypothetical-but-creative one?
-- Which of your findings (by class A–E / F-number) would you, in hindsight, have triaged *out* as
-  out-of-scope-for-T4? Which were genuinely load-bearing?
-- What acceptance criteria would have let you return "clean" honestly and early?
+### 11.1 Reviewing agent — perspective (added 2026-06-19)
+
+**Two reviewer-side mechanisms the postmortem doesn't already name (the rest is RC1/RC7/RC8).**
+
+1. **The adversary is stateless and re-derives the whole surface every run.** Each
+   `/codex:adversarial-review` starts cold: it re-reads the full diff with no memory that a finding
+   was already raised and consciously triaged-out. An issue we decided not to action — e.g.
+   "malformed `DATABASE_URL` has no T4 consumer" — returns as a fresh "high" next run, because
+   nothing carried the disposition back into the reviewer's input. This is the mechanism the
+   stopping protocol's triaged-out list (below) exists to defeat.
+2. **The verbatim-return contract stripped triage on my side (the reviewer-side origin of RC7).**
+   `/codex:adversarial-review` is review-only: I returned Codex's output verbatim with no
+   severity-by-reachability gate, so a genuine rollback gap and a layer-3 advisory nit reached the
+   owner as equal-looking blockers.
+
+**Per-finding triage from the reviewer's seat (answers §11.1 Q2).** The table earns its space only
+on rows that *move a finding off the blocker list* vs §8 — everything in §5/K1–K6 is real,
+load-bearing, and already maps to P1/P2/P3/P4 with no triage change.
+
+| Finding (shorthand) | Verdict | Disposition for the restart |
+|---|---|---|
+| Everything in §5 / K1–K6 (argv secrets, digest deploy+rollback, rollback-health, mark-before-recreate, byte-scan oracle, locked atomic record) | **Real, load-bearing** | Maps 1:1 to **P1/P2/P3/P4**. No triage change — see §5/§8/§14. |
+| `--platform linux/amd64` pin | **Real, already shipped** | **Salvage, not fix.** Ships at `build-deploy-profile.sh:113` (commit `23dfd8a`, 06-17) but was **absent from §5 and §14**, so a post-reset restart would silently drop it. Recorded as keeper **K7** in §14. |
+| All `probe_database_url` / libpq findings: `?host=` redirect, percent-encoded keys, multi-host authority, pre-recreate URL gate, proxy-vs-real (F9/F12) | **Hypothetical-for-T4 (RC2)** | **Triage OUT → T5.** No T4 code reads `DATABASE_URL` (grep `src/` = 0 hits); `pg` is present-but-extraneous in `node_modules`, not a declared dependency. Correct only once a real `pg` consumer exists. Most of rounds 4–10. |
+| `PROFILE_INTERNAL_ALLOW_IPS`, `PROFILE_INTERNAL_TOKEN` persistence | **Hypothetical-for-T4 (RC2)** | **Triage OUT → T5 (endpoint) / T6 (game-server consumer).** The nginx `/internal/` allowlist and token are real deployed plumbing but the endpoint 404s until T5 and the crediting consumer is a T6 deferral. |
+| awk lexer mishandles construct N (F2/F10/F11 + heredoc/continuation edges) | **Heuristic arms race (RC3)** | **Freeze.** Tiny fail-closed advisory; byte scan gates. Never a round-N+1 parser fix. |
+| Remote-script pre-flock race; scan→push TOCTOU; partial mixed-config state; lost record on passed deploy | **Real-but-ultra-low-reachability (RC7)** | **Residual list, not blockers.** Each needs a specific concurrent/crash race; ship with a one-line written residual. (The record-write-failure case is closed-by-design — `build-deploy-profile.sh:253-258` deliberately warns-and-continues on a failed record append so the `rmdir` lock-release still runs; a hard abort there would strand the deploy lock.) |
+
+**What "clean" would have required (answers §11.1 Q3).** Per chunk, "clean" = the chunk's written
+acceptance criteria (§8) are green AND every finding outside that set is auto-classified
+residual/out-of-scope, not a blocker. The actual T4 bar is the threat model in §11.3 — stated once
+there. I never returned clean because I was never given *that* bar (RC1), so I kept answering the
+unbounded question.
+
+**First-hand confirmation of RC5.** I co-authored the §11 meta-rules and, the turn before this
+postmortem, ran a workflow that *added* I-F/I-G/I-H and two residual rows — careful, adversarially
+verified, and still more surface. Even rigorous verified meta-work kept enlarging the thing it was
+meant to close.
+
+**A reviewer-side stopping protocol for the restart (so I help instead of bounce).**
+1. **Feed the chunk's acceptance criteria + threat model into the review prompt;** instruct the
+   reviewer to label each finding `in-scope-blocker` / `out-of-scope-residual` / `nit` against them.
+2. **One adversary per chunk, not a relay.** Alternating two models converges on the *union* of all
+   findings, which only grows — convergence needs one adversary against fixed criteria.
+3. **Maintain a checked-in `triaged-out` list, fed to (or post-filtered against) the stateless
+   reviewer,** so a settled disposition can't return as a fresh blocker (this is the direct remedy
+   for mechanism 1 above). Otherwise as §9.
 
 ### 11.2 Task owner — your perspective (please add)
 - Is the §8 decomposition the right set of shippable units? Reorder / merge / split?
@@ -322,6 +363,27 @@ reviewer."
 - What is the actual, current threat model for the *T4* deploy? Write it in one paragraph here.
 - Should the doctrine (`profile-deploy-scope.md`) be archived/superseded by per-chunk acceptance
   criteria, or kept as historical context?
+
+**Reviewing agent's answers (2026-06-19):**
+- **The awk advisory:** delete the 247-line COPY/ADD path-normalizing advisory awk. Either delete
+  outright — `.dockerignore` + the per-layer byte scan (K5) is authoritative — or replace with a
+  **~30-line frozen fail-closed advisory** flagging only the obvious (`COPY . `, `COPY $var`,
+  `ADD <url>`); it never blocks (byte scan decides) and never earns a round-N+1 fix. Either way the
+  247-line lexer and its heredoc-fidelity tests go.
+- **The actual T4 threat model (one paragraph):** *The T4 deploy pipeline must (1) never bake a
+  secret into the pushed image — no file whose bytes equal a local secret in any layer; (2) never
+  expose a secret in argv on the dev host or the box — credentials travel by
+  stdin/`PGPASSWORD`/`--password-stdin`/`sshpass -f`/0600 file only; (3) never leave the service
+  unrecoverable — deploy and roll back by immutable `@sha256` digest, fail closed and roll back on
+  an unhealthy stack, never auto-delete the data volume; (4) never corrupt state under concurrency —
+  one fail-closed lock before the first write/mutation, atomic single-block record.* **Out of the T4
+  threat model:** the validity of an operator-supplied `DATABASE_URL` (no T4 code reads it — T5's
+  `pg` consumer owns it), the `/internal/` token/allowlist boundary (endpoint absent until T5,
+  game-server consumer until T6), and adversarial Dockerfile lexer constructs (no such Dockerfile
+  exists; the byte scan backstops any miss).
+- **Doctrine disposition:** supersede — per-chunk criteria are law; keep `profile-deploy-scope.md`
+  only as historical context (already the §12 disposition). The residual-register retirement is §8;
+  don't re-argue it.
 
 ---
 
@@ -619,6 +681,16 @@ finalize_deploy() {
     [ -n "$DEPLOY_RECORD_TMP" ] && rm -f "$DEPLOY_RECORD_TMP" || true
     [ "$DEPLOY_LOCK_HELD" = "1" ] && rmdir "$DEPLOY_LOCK" 2>/dev/null || true
 }
+```
+
+### K7 — Build for the target architecture (P1/build)
+*The invariant: the image is built for the architecture the reg.ru VPS runs (`linux/amd64`), so an
+Apple-Silicon (arm64) dev host can never push a digest the box can't execute — which fails a first
+deploy outright or health-fails a redeploy into rollback. This shipped (commit `23dfd8a`, 06-17) but
+was never folded into §5, so it is recorded here too — without it the post-reset restart silently
+drops back to host-arch builds.* (`build-deploy-profile.sh`):
+```bash
+docker buildx build --platform linux/amd64 --load -f "$DOCKERFILE" -t "$PROFILE_IMAGE" .
 ```
 
 ### What is intentionally NOT salvaged here
