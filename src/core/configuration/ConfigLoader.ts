@@ -47,6 +47,7 @@ export async function getServerConfigFromClient(): Promise<ServerConfig> {
     publicPort: config.publicPort ?? config.public_port,
     deploymentId: config.deploymentId ?? config.deployment_id,
     apiBaseUrl: config.apiBaseUrl ?? config.api_base_url,
+    profileApiUrl: config.profileApiUrl ?? config.profile_api_url,
     jwtIssuer: config.jwtIssuer ?? config.jwt_issuer,
     jwtAudience: config.jwtAudience ?? config.jwt_audience,
   });

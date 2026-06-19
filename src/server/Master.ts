@@ -166,6 +166,9 @@ app.get("/api/env", async (req, res) => {
     publicProtocol: config.publicProtocol(),
     publicPort: config.publicPort(),
     apiBaseUrl: config.apiBaseUrl(),
+    // Resolved profile-backend URL for a later-sprint client UI; no in-T4
+    // consumer by design. Only the resolved string is sent, never the raw env.
+    profileApiUrl: config.profileApiUrl(),
     jwtIssuer: config.jwtIssuer(),
     jwtAudience: config.jwtAudience(),
   };
