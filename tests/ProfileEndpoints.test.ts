@@ -36,6 +36,28 @@ describe("profileHttpPort", () => {
     },
   );
 
+  // parseInt is too lenient on its own — these must NOT slip through.
+  it.each(["1.5", "3000abc", "8080abc"])(
+    "falls back to 8080 for non-integer / numeric-suffix value %p",
+    (value) => {
+      process.env.PROFILE_PORT = value;
+      expect(profileHttpPort()).toBe(8080);
+    },
+  );
+
+  it.each(["65536", "99999999", "70000"])(
+    "falls back to 8080 for out-of-range port %p",
+    (value) => {
+      process.env.PROFILE_PORT = value;
+      expect(profileHttpPort()).toBe(8080);
+    },
+  );
+
+  it("accepts the maximum valid port 65535", () => {
+    process.env.PROFILE_PORT = "65535";
+    expect(profileHttpPort()).toBe(65535);
+  });
+
   it("parses a valid positive integer", () => {
     process.env.PROFILE_PORT = "3000";
     expect(profileHttpPort()).toBe(3000);

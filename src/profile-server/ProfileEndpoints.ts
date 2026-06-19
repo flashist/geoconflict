@@ -8,10 +8,14 @@ export const DEFAULT_PROFILE_HTTP_PORT = 8080;
 // Container/runtime port for the profile API. Overridable via PROFILE_PORT so the
 // compose service, nginx proxy target, and the process all agree on one value.
 export function profileHttpPort(): number {
-  const raw = process.env.PROFILE_PORT;
-  if (raw && raw.trim().length > 0) {
-    const parsed = Number.parseInt(raw.trim(), 10);
-    if (Number.isInteger(parsed) && parsed > 0) {
+  const raw = process.env.PROFILE_PORT?.trim();
+  // Accept only a full decimal integer in the valid TCP port range; anything
+  // else (decimals, numeric suffixes, out-of-range, non-numeric) falls back.
+  // parseInt alone is too lenient: "3000abc" -> 3000 (wrong port) and "65536"
+  // -> a value Node rejects at listen() with ERR_SOCKET_BAD_PORT (startup crash).
+  if (raw && /^\d+$/.test(raw)) {
+    const parsed = Number.parseInt(raw, 10);
+    if (parsed >= 1 && parsed <= 65535) {
       return parsed;
     }
   }
