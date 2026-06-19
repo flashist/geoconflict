@@ -13,7 +13,9 @@ Low — single-line plumbing, no behavior change until a consumer exists. **Hard
 T4b (the `profileApiUrl` config + `/api/env` field + `example.env` doc must exist first). T4b is merge-independent of this.
 
 ## Blocks
-The later-sprint client UI that reads `profileApiUrl` (that consumer is broken in prod until this lands).
+Every runtime consumer of `PROFILE_API_URL`, all of which resolve it to `""` in prod until this lands:
+- **T6** (`s4-profile-06-match-end-crediting.md`) — game-server `ProfileApiClient` calls `PROFILE_API_URL`.
+- The later-sprint **Citizenship client UI** (`s4-citizenship-earned.md`) — profile re-fetch reads `profileApiUrl` from `/api/env` (already gated behind T6).
 
 ## Context
 The game server is deployed by `deploy.sh` → `update.sh`, which is a **separate pipeline** from the profile box (`build-deploy-profile.sh` / `setup-profile.sh`, owned by T4e). `deploy.sh` sources the layered env files (`.env` → `.env.secret` → `.env.$ENV` → `.env.$ENV.secret`, `deploy.sh:72-75`) but then writes the container's runtime env as an **explicit allowlist heredoc** (`deploy.sh:279-308`) — every var the container gets is named there (`API_BASE_URL`, `JWT_ISSUER`, `STORAGE_*`, `OTEL_*`, …). `update.sh:73` starts the container with `--env-file "$ENV_FILE"` **exclusively** (no bulk passthrough). `PROFILE_API_URL` is absent from that heredoc, so `process.env.PROFILE_API_URL` is unset in the container and `DefaultConfig.profileApiUrl()` falls back to `""`.

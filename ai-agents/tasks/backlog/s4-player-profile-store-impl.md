@@ -57,7 +57,7 @@ This document is the **epic/overview**. The shared context above (Infrastructure
 
 ### T4 sub-slices (reverted & re-decomposed 2026-06-19)
 
-The monolithic T4 was implemented (PR #112), then **reverted** and re-split into 7 independently shippable ops slices. `s4-profile-04-backend-infra.md` is retained as the T4 overview; the slices below carry the executable scope.
+The monolithic T4 was implemented (PR #112), then **reverted** and re-split into 7 independently shippable ops slices (T4a–T4g); **T4h was added 2026-06-19 as a T4b-review follow-up — 8 total**. `s4-profile-04-backend-infra.md` is retained as the T4 overview; the slices below carry the executable scope.
 
 | # | Child task | Covers | Depends on | Status |
 |---|---|---|---|---|
@@ -68,10 +68,13 @@ The monolithic T4 was implemented (PR #112), then **reverted** and re-split into
 | T4e | `s4-profile-04e-deploy-mechanics.md` | `setup-profile.sh` + `build-deploy-profile.sh` + compose | T4c, T4d | ⬜ Backlog |
 | T4f | `s4-profile-04f-image-secret-scan.md` | Build-context secret-leak gate | T4e | ⬜ Backlog |
 | T4g | `s4-profile-04g-argv-concurrency-hardening.md` | argv parsing + concurrency hardening | T4e, T4f | ⬜ Backlog |
+| T4h | `s4-profile-04h-game-server-deploy-env.md` | Game-server `deploy.sh` propagates `PROFILE_API_URL` into the container env (T4b's value is otherwise `""` in prod) | T4b | ⬜ Backlog |
 
-**T4 internal order:** T4a ✅ → T4c, with T4b in parallel; T4d (operator action) any time → T4e → T4f → T4g.
+**T4 internal order:** T4a ✅ → T4c, with T4b in parallel; T4d (operator action) any time → T4e → T4f → T4g. **T4h** (T4b-review follow-up, added 2026-06-19) lands after T4b, any time before its consumers.
 
-**Strict one-by-one order (revised 2026-06-13 after T2 + T7 cancellation):** T1 → T3 → T4 → T5 → T6 → T8. Original order was T1 → T2 → … → T8; T2 (Part C) and T7 (Part F) — the guest-first story — are both cancelled. **T4 is itself a 7-slice sub-sequence (re-split 2026-06-19) — see the T4 sub-table above.**
+> **⚠️ Ordering constraint — T4h gates every runtime consumer of `PROFILE_API_URL`.** T4b exposes `profileApiUrl` via `/api/env` with **zero deploy surface**, so until T4h adds the `PROFILE_API_URL` line to the game-server `deploy.sh` heredoc, the deployed container resolves it to `""`. **T4h must land before T6** (`ProfileApiClient` calls `PROFILE_API_URL` from the game-server container) **and before the Citizenship client UI** (profile re-fetch reads `profileApiUrl` from `/api/env`). The Citizenship UI is already gated behind T6, so wiring `T6 → T4h` enforces the whole chain.
+
+**Strict one-by-one order (revised 2026-06-13 after T2 + T7 cancellation):** T1 → T3 → T4 → T5 → T6 → T8. Original order was T1 → T2 → … → T8; T2 (Part C) and T7 (Part F) — the guest-first story — are both cancelled. **T4 is itself an 8-slice sub-sequence (re-split 2026-06-19; T4h added as a T4b-review follow-up) — see the T4 sub-table above.**
 
 **Parallel tracks (optional):** the original client track (T1 → T2) is **cancelled**; the backend track (T3 ✅ → T4 → T5 → T6) is the live path. T3 is done; T4 is in progress via its sub-slices (T4a ✅ merged; T4b/T4c ready now; T4d needs operator VPS+DNS). **T6 is the production-verification gate** for the Citizenship Core UI task; T8 any time after T4 completes, before paid citizenship ships.
 
