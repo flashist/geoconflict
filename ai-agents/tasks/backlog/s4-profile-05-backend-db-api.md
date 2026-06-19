@@ -36,6 +36,7 @@ This slice puts the actual data layer and HTTP API on the profile box. The DB-to
 4. **API endpoints:**
    - **Client-facing (player-authenticated):** `GET /v1/profile` only. *(No `POST /v1/profile/migrate` — dropped 2026-06-13; see the decision note above.)*
    - **Internal (service-authenticated via `PROFILE_INTERNAL_TOKEN`, IP-allowlisted to the game server):** `POST /internal/v1/credit` accepting a batch of `{ gameId, yandexPlayerId, xpAwarded }`, performing idempotent crediting.
+   - **Operational (unauthenticated, DB-backed):** `GET /ready` — readiness probe that runs a trivial `SELECT 1` over `PlayerProfileRepository`'s real Postgres connection; returns 200 only when the DB is reachable, 503 otherwise. This is **distinct from T4's `GET /health`** (liveness-only, no DB — shipped by `s4-profile-04a-server-skeleton.md`) and is the **first place the box-synthesized `DATABASE_URL` is actually consumed**. The libpq/connection-correctness validation that T4 deliberately deferred ("hardening follows the consumer" — see the deploy-hardening postmortem) lands **here**, where a malformed/unreachable URL fails a real query instead of a synthetic string check. *(Optional follow-on: once `/ready` exists, the profile-api compose healthcheck T4e points at `/health` may be switched to `/ready`; not required by this slice.)*
 
 ## Out of scope
 - Game-server client / protocol extension / match-end wiring (T6).
@@ -44,6 +45,7 @@ This slice puts the actual data layer and HTTP API on the profile box. The DB-to
 
 ## Acceptance / Verification
 - `curl` exercises both endpoints (`GET /v1/profile`, `POST /internal/v1/credit`) against the live box.
+- `GET /ready` returns 200 when Postgres is reachable and 503 when it is not — stop the postgres container and assert `/ready` flips to 503 while T4's `/health` stays 200, proving readiness is DB-backed and distinct from liveness. A deliberately malformed/unreachable `DATABASE_URL` makes `/ready` report not-ready (the real `pg` consumer is the validator — no separate URL-syntax probe needed).
 - `upsertProfile` creates a fresh profile at `xp:0` on first authenticated join; `GET /v1/profile` returns it.
 - Epic Verification #4 (API level): calling `/internal/v1/credit` twice with the same `game_id` credits XP once.
 - Crediting flips `is_citizen` / sets `citizenship_earned_at` when `xp` crosses 1,000; neither endpoint ever sets paid flags.

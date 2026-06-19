@@ -26,7 +26,7 @@ The whole T4 merge (PR #112, merge commit `4e56fbf`) was reverted; `src/profile-
 - A comment in `Server.ts` naming `/ready`, `GET /v1/profile`, `POST /internal/v1/credit`, and the `pg` repository as **T5**.
 
 ## Out of scope
-- `/ready` readiness check and any DB-touching route → **T5** (and see the required T5 companion edit in the decomposition summary — T5 currently lists no `/ready`).
+- `/ready` readiness check and any DB-touching route → **T5** (now explicitly owned: `s4-profile-05-backend-db-api.md` Scope item 4 + Acceptance — DB-backed `SELECT 1`, distinct from this slice's liveness-only `/health`).
 - `GET /v1/profile`, `POST /internal/v1/credit`, `pg` / `PlayerProfileRepository` → T5.
 - Dockerfile / build / deploy → T4c/T4e/T4f/T4g.
 - The full-stack `https://api.geoconflict.ru/health` 200-over-TLS assertion → **integration milestone owned by T4e**, not asserted here.
