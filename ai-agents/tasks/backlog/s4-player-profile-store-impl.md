@@ -48,16 +48,32 @@ This document is the **epic/overview**. The shared context above (Infrastructure
 |---|---|---|---|---|
 | T1 | `s4-profile-01-schema-contract.md` | Shared `PlayerProfile` type + `migrateProfile()` (Part B JSON) | — | ✅ Done |
 | T2 | `s4-profile-02-guest-localstorage.md` | Guest XP in localStorage (Part C) | T1 | ⛔ Cancelled (2026-06-13) — see note below |
-| T3 | `s4-profile-03-yandex-identity.md` | Verified Yandex identity plumbing (Part A) | — | ⬜ Backlog (next) |
-| T4 | `s4-profile-04-backend-infra.md` | Dedicated reg.ru VPS + API skeleton (Part D ops) | — | ⬜ Backlog |
+| T3 | `s4-profile-03-yandex-identity.md` | Verified Yandex identity plumbing (Part A) | — | ✅ Done (PR #111) |
+| T4 | `s4-profile-04-backend-infra.md` (overview) | Dedicated reg.ru VPS + API skeleton (Part D ops) — **reverted & re-split into T4a–T4g, see sub-table** | — | 🔄 In Progress (2026-06-19) |
 | T5 | `s4-profile-05-backend-db-api.md` | Migration + repository + API endpoints (Part D DB + Part E profile half) | T1, T4 | ⬜ Backlog |
 | T6 | `s4-profile-06-match-end-crediting.md` | Protocol ext + server-side crediting (Part E game half) | T3, T5 | ⬜ Backlog |
 | T7 | `s4-profile-07-guest-migration.md` | Guest→authenticated migration (Part F) | T2, T3, T5 | ⛔ Cancelled (2026-06-13) — see note |
 | T8 | `s4-profile-08-backups.md` | Profile DB backups (Part D step 7) | T4 | ⬜ Backlog |
 
-**Strict one-by-one order (revised 2026-06-13 after T2 + T7 cancellation):** T1 → T3 → T4 → T5 → T6 → T8. Original order was T1 → T2 → … → T8; T2 (Part C) and T7 (Part F) — the guest-first story — are both cancelled.
+### T4 sub-slices (reverted & re-decomposed 2026-06-19)
 
-**Parallel tracks (optional):** the original client track (T1 → T2) is **cancelled**; the backend track (T3/T4 → T5 → T6) is now the live path. T3 and T4 have no T1 dependency and can start immediately/in parallel; **T6 is the production-verification gate** for the Citizenship Core UI task; T8 any time after T4, before paid citizenship ships.
+The monolithic T4 was implemented (PR #112), then **reverted** and re-split into 7 independently shippable ops slices. `s4-profile-04-backend-infra.md` is retained as the T4 overview; the slices below carry the executable scope.
+
+| # | Child task | Covers | Depends on | Status |
+|---|---|---|---|---|
+| T4a | `s4-profile-04a-server-skeleton.md` | Express `/health` skeleton in `src/profile-server/` | — | ✅ Done (PR #115) |
+| T4b | `s4-profile-04b-client-api-url-config.md` | `PROFILE_API_URL` exposed to client via `/api/env` | — | ⬜ Backlog (ready now) |
+| T4c | `s4-profile-04c-dockerfile.md` | Image that runs the T4a skeleton | T4a ✅ | ⬜ Backlog (ready now) |
+| T4d | `s4-profile-04d-vps-provisioning.md` | reg.ru VPS + nginx/TLS + `api.geoconflict.ru` DNS A-record | — *(operator: provision box + point A-record)* | ⬜ Backlog |
+| T4e | `s4-profile-04e-deploy-mechanics.md` | `setup-profile.sh` + `build-deploy-profile.sh` + compose | T4c, T4d | ⬜ Backlog |
+| T4f | `s4-profile-04f-image-secret-scan.md` | Build-context secret-leak gate | T4e | ⬜ Backlog |
+| T4g | `s4-profile-04g-argv-concurrency-hardening.md` | argv parsing + concurrency hardening | T4e, T4f | ⬜ Backlog |
+
+**T4 internal order:** T4a ✅ → T4c, with T4b in parallel; T4d (operator action) any time → T4e → T4f → T4g.
+
+**Strict one-by-one order (revised 2026-06-13 after T2 + T7 cancellation):** T1 → T3 → T4 → T5 → T6 → T8. Original order was T1 → T2 → … → T8; T2 (Part C) and T7 (Part F) — the guest-first story — are both cancelled. **T4 is itself a 7-slice sub-sequence (re-split 2026-06-19) — see the T4 sub-table above.**
+
+**Parallel tracks (optional):** the original client track (T1 → T2) is **cancelled**; the backend track (T3 ✅ → T4 → T5 → T6) is the live path. T3 is done; T4 is in progress via its sub-slices (T4a ✅ merged; T4b/T4c ready now; T4d needs operator VPS+DNS). **T6 is the production-verification gate** for the Citizenship Core UI task; T8 any time after T4 completes, before paid citizenship ships.
 
 > **⛔ T2 (Guest localStorage, Part C) cancelled — 2026-06-13 (Mark).** Work was reverted manually; T1's `src/core/profile/PlayerProfile.ts` is kept (not part of the reverted commits). Report: `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`.
 > A client-only, localStorage-authoritative guest-XP store carries too much inherent edge surface (idempotency, multi-tab races, partial-write atomicity, platform-auth timing, "eliminated counts" semantics); four review rounds hardened those and the scope outgrew the intended small client slice.
