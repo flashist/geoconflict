@@ -49,7 +49,7 @@ This document is the **epic/overview**. The shared context above (Infrastructure
 | T1 | `s4-profile-01-schema-contract.md` | Shared `PlayerProfile` type + `migrateProfile()` (Part B JSON) | — | ✅ Done |
 | T2 | `s4-profile-02-guest-localstorage.md` | Guest XP in localStorage (Part C) | T1 | ⛔ Cancelled (2026-06-13) — see note below |
 | T3 | `s4-profile-03-yandex-identity.md` | Verified Yandex identity plumbing (Part A) | — | ⬜ Backlog (next) |
-| T4 | `s4-profile-04-backend-infra.md` | Dedicated reg.ru VPS + API skeleton (Part D ops) | — | ✅ Done |
+| T4 | `s4-profile-04-backend-infra.md` | Dedicated reg.ru VPS + API skeleton (Part D ops) | — | ⬜ Backlog |
 | T5 | `s4-profile-05-backend-db-api.md` | Migration + repository + API endpoints (Part D DB + Part E profile half) | T1, T4 | ⬜ Backlog |
 | T6 | `s4-profile-06-match-end-crediting.md` | Protocol ext + server-side crediting (Part E game half) | T3, T5 | ⬜ Backlog |
 | T7 | `s4-profile-07-guest-migration.md` | Guest→authenticated migration (Part F) | T2, T3, T5 | ⛔ Cancelled (2026-06-13) — see note |
