@@ -109,6 +109,14 @@ try_enable_swapfile() {
     return 0
 }
 
+ensure_swapfile_fstab_entry() {
+    # Match the first field EXACTLY — `grep '^/swapfile'` also matches a stale
+    # /swapfile-old entry and would skip persisting the real one, leaving mandatory
+    # swap non-persistent (gone after reboot → the OOM risk this rule prevents).
+    awk '$1 == "/swapfile" && $3 == "swap" {f=1} END {exit !f}' /etc/fstab 2>/dev/null \
+        || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+}
+
 if [ "$PROFILE_SWAP_SIZE_GB" -eq 0 ]; then
     echo "PROFILE_SWAP_SIZE_GB=0; skipping swap management"
 elif swapon --show=NAME --noheadings 2>/dev/null | grep -qx '/swapfile'; then
@@ -118,7 +126,7 @@ elif swapon --show=NAME --noheadings 2>/dev/null | grep -qx '/swapfile'; then
     # `swapon` without an fstab entry) — otherwise swap silently vanishes on reboot.
     # Idempotent: the create branch already adds this, so a normal re-run never
     # duplicates the entry.
-    grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    ensure_swapfile_fstab_entry
 else
     echo "Creating ${PROFILE_SWAP_SIZE_GB}G swapfile at /swapfile..."
     # fallocate is fast on ext4; on CoW filesystems it can yield a holey file that
@@ -126,10 +134,10 @@ else
     # with `|| return 1` so a fallocate failure falls through to dd instead of
     # tripping set -e; if BOTH methods fail we abort (swap is mandatory on this box).
     if try_enable_swapfile fallocate; then
-        grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+        ensure_swapfile_fstab_entry
         swapon --show
     elif echo "fallocate path failed (holey/unsupported file?); retrying with dd..." && try_enable_swapfile dd; then
-        grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+        ensure_swapfile_fstab_entry
         swapon --show
     else
         # Reached only when PROFILE_SWAP_SIZE_GB != 0 (the =0 case is handled above)
@@ -169,8 +177,17 @@ if command -v docker &> /dev/null; then
     echo "Docker already installed: $(docker --version)"
 else
     curl -fsSL https://get.docker.com | sh
-    systemctl enable --now docker
     echo "Docker installed: $(docker --version)"
+fi
+
+# Always ensure the daemon is enabled + running — a preinstalled-but-disabled Docker
+# (common on reused/minimal images) would otherwise pass provisioning while T4e's
+# pull/up fails. `docker compose version` is client-only and does NOT prove the daemon.
+systemctl enable --now docker
+if ! docker info >/dev/null 2>&1; then
+    echo "Error: Docker daemon is not accessible after 'systemctl enable --now docker'."
+    echo "Investigate 'systemctl status docker' / 'journalctl -u docker' before deploying."
+    exit 1
 fi
 
 if ! docker compose version &> /dev/null; then
@@ -284,6 +301,15 @@ if [ -n "$PROFILE_DOMAIN" ]; then
     trap restore_nginx_on_failure ERR
 
     # --keep-until-expiring is a no-op if the cert is still fresh (safe to re-run).
+    #
+    # RENEWAL CONTRACT (for T4e's certbot-renew cron — owned there, not here):
+    # certbot persists `authenticator = standalone`, which binds port 80 for the
+    # HTTP-01 challenge. nginx permanently owns port 80 below, so `certbot renew`
+    # MUST free it first. T4e's renew cron therefore needs a PRE-hook that stops
+    # nginx and a POST-hook that restarts it, e.g.:
+    #   certbot renew --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx"
+    # A reload-only post-hook (the seed form) will NOT renew and the cert will
+    # expire. Validate with `certbot renew --dry-run` while nginx is running.
     systemctl stop nginx || true
     certbot certonly --standalone \
         --non-interactive \
