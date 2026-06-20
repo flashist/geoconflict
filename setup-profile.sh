@@ -145,10 +145,20 @@ else
     fi
 fi
 
-# Prefer RAM; only spill to swap under real pressure. Persist across reboots.
-sysctl -w vm.swappiness=10 >/dev/null 2>&1 || true
-if [ -f /etc/sysctl.conf ] && ! grep -q '^vm.swappiness' /etc/sysctl.conf; then
-    echo 'vm.swappiness=10' >> /etc/sysctl.conf
+# Prefer RAM; only spill to swap under real pressure. Persist AUTHORITATIVELY across
+# reboots: append-only-when-absent silently loses to a pre-existing value (e.g. a cloud
+# image pinning vm.swappiness=60), so write a high-precedence drop-in, neutralise any
+# competing /etc/sysctl.conf assignment, reload, and verify the effective value is 10.
+echo 'vm.swappiness=10' > /etc/sysctl.d/99-geoconflict-swappiness.conf
+if [ -f /etc/sysctl.conf ] && grep -qE '^[[:space:]]*vm\.swappiness[[:space:]]*=' /etc/sysctl.conf; then
+    sed -i -E 's|^[[:space:]]*vm\.swappiness[[:space:]]*=.*$|# (superseded by 99-geoconflict-swappiness.conf) &|' /etc/sysctl.conf
+fi
+sysctl --system >/dev/null 2>&1 || sysctl -w vm.swappiness=10 >/dev/null 2>&1 || true
+EFFECTIVE_SWAPPINESS=$(sysctl -n vm.swappiness 2>/dev/null || echo "?")
+if [ "$EFFECTIVE_SWAPPINESS" = "10" ]; then
+    echo "vm.swappiness persisted and active (=10)."
+else
+    echo "⚠️  vm.swappiness is '${EFFECTIVE_SWAPPINESS}', expected 10. Check /etc/sysctl.d/ and /etc/sysctl.conf."
 fi
 
 # ── Docker ────────────────────────────────────────────────────────────────────
@@ -178,6 +188,11 @@ print_header "CONFIGURING FIREWALL (ufw)"
 if ! command -v ufw >/dev/null 2>&1; then
     apt-get install -y ufw
 fi
+# Reset to a known-clean ruleset first so a reused/provider-preconfigured host can't
+# keep a stray public allow (e.g. 5432) that `default deny incoming` would NOT remove.
+# Reset disables ufw (no filtering during the gap) and we re-add 22 BEFORE re-enabling,
+# so this never drops the SSH session. (Cleared rules are backed up to /etc/ufw/*.rules.*)
+ufw --force reset
 # Allow SSH FIRST so enabling ufw can never lock us out of the box.
 ufw allow 22/tcp
 ufw allow 80/tcp
@@ -229,24 +244,41 @@ if [ -n "$PROFILE_DOMAIN" ]; then
     SITE_FILE=/etc/nginx/sites-available/profile
     SITE_LINK=/etc/nginx/sites-enabled/profile
     DEFAULT_LINK=/etc/nginx/sites-enabled/default
-    SITE_BAK="${SITE_FILE}.bak.$$"
-    # Capture the COMPLETE prior state so the ERR trap restores exactly what was here
-    # — including the first-run case where no profile site exists yet. A bare
-    # "restore only if backup exists" check would leave a fresh host with the broken
-    # profile site enabled, the default site removed, and nginx down.
-    SITE_EXISTED=0;    [ -f "$SITE_FILE" ] && { SITE_EXISTED=1; cp -f "$SITE_FILE" "$SITE_BAK"; }
-    LINK_EXISTED=0;    [ -L "$SITE_LINK" ] && LINK_EXISTED=1
-    DEFAULT_TARGET=""; [ -L "$DEFAULT_LINK" ] && DEFAULT_TARGET=$(readlink "$DEFAULT_LINK")
+    # Snapshot the COMPLETE prior state of every path we touch — recording its exact
+    # type (absent / symlink+target / regular-file+content) — so the ERR trap can
+    # reconstruct it verbatim. A shape-blind backup would, on a reused/preconfigured
+    # host, destroy a prior regular-file site or an alternate-target symlink; on a
+    # fresh box it would leave the broken site enabled, the default removed, nginx down.
+    NGINX_BAK_DIR=$(mktemp -d)
+    snapshot_path() {  # $1=path $2=tag
+        local p="$1" t="$2"
+        if [ -L "$p" ]; then
+            echo symlink > "$NGINX_BAK_DIR/$t.type"
+            readlink "$p" > "$NGINX_BAK_DIR/$t.target"
+        elif [ -f "$p" ]; then
+            echo file > "$NGINX_BAK_DIR/$t.type"
+            cp -f "$p" "$NGINX_BAK_DIR/$t.content"
+        else
+            echo absent > "$NGINX_BAK_DIR/$t.type"
+        fi
+    }
+    restore_path() {  # $1=path $2=tag — remove current, then recreate exactly what was there
+        local p="$1" t="$2" ty
+        ty=$(cat "$NGINX_BAK_DIR/$t.type" 2>/dev/null || echo absent)
+        rm -f "$p"
+        case "$ty" in
+            symlink) ln -sf "$(cat "$NGINX_BAK_DIR/$t.target")" "$p" ;;
+            file)    cp -f "$NGINX_BAK_DIR/$t.content" "$p" ;;
+        esac
+    }
+    snapshot_path "$SITE_FILE" sitefile
+    snapshot_path "$SITE_LINK" sitelink
+    snapshot_path "$DEFAULT_LINK" defaultlink
     restore_nginx_on_failure() {
         echo "⚠️  HTTPS setup failed — restoring nginx to its previous state."
-        if [ "$SITE_EXISTED" -eq 1 ]; then
-            [ -f "$SITE_BAK" ] && mv -f "$SITE_BAK" "$SITE_FILE"
-        else
-            rm -f "$SITE_FILE"                 # first run: remove the site we wrote
-        fi
-        [ "$LINK_EXISTED" -eq 0 ] && rm -f "$SITE_LINK"
-        # Restore the default site symlink if we had removed it.
-        [ -n "$DEFAULT_TARGET" ] && [ ! -e "$DEFAULT_LINK" ] && ln -sf "$DEFAULT_TARGET" "$DEFAULT_LINK"
+        restore_path "$SITE_FILE" sitefile
+        restore_path "$SITE_LINK" sitelink
+        restore_path "$DEFAULT_LINK" defaultlink
         systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
     }
     trap restore_nginx_on_failure ERR
@@ -317,7 +349,7 @@ NGINXEOF
     systemctl restart nginx
     # Success — drop the rollback safety net.
     trap - ERR
-    rm -f "$SITE_BAK"
+    rm -rf "$NGINX_BAK_DIR"
     echo "✅ nginx running with TLS for $PROFILE_DOMAIN"
 fi
 
