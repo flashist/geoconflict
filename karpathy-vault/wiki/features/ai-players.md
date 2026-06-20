@@ -41,7 +41,7 @@ During preparation countdown:
 
 ### In-Match Behavior
 
-AI Players are created in `GameRunner` from `gameStartInfo.aiPlayers`. A new `AiPlayerExecution` drives them using `BotBehavior` (preferred) or refactored `FakeHumanExecution` logic. AI execution randomness is seeded by `gameID + playerID` for determinism.
+AI Players are created in `GameRunner` from `gameStartInfo.aiPlayers`. `ExecutionManager.aiPlayerExecutions()` drives them through `FakeHumanExecution`, which initializes shared `BotBehavior` logic. AI execution randomness is seeded by `gameID + playerID` for determinism.
 
 ### Winner Flow
 
@@ -77,7 +77,7 @@ All AI names, IDs, and execution randomness must be seeded deterministically. An
 2. Extend `GameStartInfoSchema` with `aiPlayers`
 3. Server AI lobby injection → include in `GameStartInfo`
 4. Create AI Player entities in `GameRunner`
-5. Add `AiPlayerExecution` or refactor `FakeHumanExecution`
+5. Route AI Players through `ExecutionManager.aiPlayerExecutions()` and shared `FakeHumanExecution` / `BotBehavior` logic
 6. Update UI to treat `AiPlayer` as human
 7. Verify winner flow
 

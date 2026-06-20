@@ -12,7 +12,7 @@ Solve the "can't find myself on spawn" problem from two directions: zoom the cam
 
 ### Task 4b — Zoom to Territory
 
-Single reusable `zoomToTerritory()` function used in three places:
+Single reusable `TransformHandler.zoomToPlayer()` function used in three places:
 1. Any player name clicked in the player table (pan + zoom, not just pan)
 2. "Find me" button press (targets own territory)
 3. Auto-zoom once on first spawn (manual or auto-spawn)

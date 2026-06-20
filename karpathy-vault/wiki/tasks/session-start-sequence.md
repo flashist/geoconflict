@@ -18,13 +18,13 @@ Session:MatchesPlayed (0..N, from prior session) → Session:Start → Device:{T
 
 **`Session:MatchesPlayed`** — fires **before** `Session:Start`, once per pending localStorage entry left by a prior closed tab. Value = integer match starts in that prior session (0 if no matches played). Added in Sprint 4; see [[tasks/analytics-p0-session-match-count]].
 
-**`Session:Start`** — custom Design Event fired immediately after SDK init. Required as the top step of all funnels; the built-in SDK session event is not available in the funnel builder.
+**`Session:Start`** — custom Design Event fired during `FlashistFacade.initializeImmediate()` immediately after GameAnalytics initialization in production. It does not wait for Yandex/platform SDK initialization. Required as the top step of all funnels; the built-in SDK session event is not available in the funnel builder.
 
 **`Device:{Type}`** — one of `Device:mobile`, `Device:desktop`, `Device:tablet`, `Device:tv`. Detected from user agent. Uses the same detection path as mobile rendering optimizations (Task 3) — the same player classified as mobile in analytics gets mobile rendering.
 
 **`Platform:{OS}`** — one of `Platform:android`, `Platform:ios`, `Platform:windows`, `Platform:macos`, `Platform:linux`, `Platform:other`. Chrome OS → `Platform:other`.
 
-**`Player:New` / `Player:Returning`** — fires once per session. New if first-seen flag absent (then sets flag). Server-side flag preferred; `localStorage` fallback for anonymous players.
+**`Player:New` / `Player:Returning`** — fires once per production session. New if `localStorage["geoconflict.player.firstSeen"]` is absent (then sets it); returning otherwise. If storage is unavailable, the event is skipped.
 
 ### Session Heartbeat
 

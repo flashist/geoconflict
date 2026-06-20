@@ -16,7 +16,7 @@ Track how many matches a player starts per session so that the citizenship XP th
   - `persistPendingSessionEnd(storage?, nowMs?)` — writes `{ matchesPlayed, sessionStartTime, firedAt }` to localStorage under key `geoconflict.session.pendingEnd:{sessionId}`. Swallows storage errors silently (sandboxed iframe / quota).
   - `consumePendingSessionEnd(logMatchesPlayed, storage?)` — scans localStorage for all keys matching the `geoconflict.session.pendingEnd:` prefix, fires the callback once per entry with the stored `matchesPlayed` count, then removes the key. Silently drops malformed entries.
 - Added `SESSION_MATCHES_PLAYED` / `Session:MatchesPlayed` to `flashistConstants.analyticEvents` in `FlashistFacade.ts`.
-- Integrated in `FlashistFacade._initialize()`: `consumePendingSessionEnd` fires **before** `Session:Start`; `startSessionMatchTracking()` fires after `Session:Start`.
+- Integrated in `FlashistFacade.initializeImmediate()`: `consumePendingSessionEnd` fires **before** `Session:Start`; `startSessionMatchTracking()` fires after `Session:Start`, before the bounded external-platform gate.
 - `recordSessionMatchStart()` called from `logMatchStartAnalytics()` in `src/client/MatchStartAnalytics.ts` on each fresh, non-reconnect match start (at the point where `Game:Start` and game-mode events already fire).
 - Comprehensive unit tests in `tests/client/SessionMatchAnalytics.test.ts` (14 cases covering all branches including broken storage, malformed JSON, multi-tab round-trip).
 

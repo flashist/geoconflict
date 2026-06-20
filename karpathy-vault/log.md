@@ -762,3 +762,9 @@
 - Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
 - Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `karpathy-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/defense-post-range-always-visible.md`, `ai-agents/tasks/backlog/infinite-gold-force-no-nukes-public-rotation.md`, `ai-agents/tasks/backlog/s4-profile-04e-deploy-mechanics.md`, `ai-agents/tasks/backlog/s4-profile-04e1-build-push-digest.md`, `ai-agents/tasks/backlog/s4-profile-04e2-onbox-stack-gate.md`, `ai-agents/tasks/backlog/s4-profile-04e3-deploy-wiring-milestone.md`, `ai-agents/tasks/backlog/s4-starting-gold-public-modifier.md` — backlog files are not ingested directly; changed sprint sources summarize the applicable roadmap updates
+
+## 2026-06-20 — lint
+- Issues found: 7
+- Issues fixed: 7
+- Issues flagged for human review: 0
+- Corrected stale bootstrap/session, AI execution, spawn-camera, Sprint 4c backlog, and telemetry-priority claims; index coverage, structure, source paths, wiki-links, backlinks, and line references otherwise passed.
