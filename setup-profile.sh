@@ -54,8 +54,8 @@ PROFILE_INTERNAL_ALLOW_IPS="${PROFILE_INTERNAL_ALLOW_IPS:-}"
 # (T4e), which writes profile.env. Only the values this script actually consumes
 # are validated.
 
-if ! [[ "$PROFILE_PORT" =~ ^[0-9]+$ ]] || [ "$PROFILE_PORT" -lt 1 ]; then
-    echo "Error: PROFILE_PORT must be a positive integer."
+if ! [[ "$PROFILE_PORT" =~ ^[0-9]+$ ]] || [ "$PROFILE_PORT" -lt 1 ] || [ "$PROFILE_PORT" -gt 65535 ]; then
+    echo "Error: PROFILE_PORT must be an integer in 1-65535."
     exit 1
 fi
 if ! [[ "$PROFILE_SWAP_SIZE_GB" =~ ^[0-9]+$ ]]; then
@@ -313,8 +313,11 @@ if [ -n "$PROFILE_DOMAIN" ]; then
         restore_path "$SITE_LINK" sitelink
         restore_path "$DEFAULT_LINK" defaultlink
         systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
+        rm -rf "$NGINX_BAK_DIR"
     }
-    trap restore_nginx_on_failure ERR
+    # ERR for failed steps; INT/TERM so a Ctrl-C during certbot also restores nginx
+    # and doesn't orphan the snapshot temp dir.
+    trap restore_nginx_on_failure ERR INT TERM
 
     # --keep-until-expiring is a no-op if the cert is still fresh (safe to re-run).
     #
