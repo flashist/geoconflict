@@ -76,6 +76,22 @@ fi
 # retag between build and digest-resolve (K2). See postmortem §14.
 
 VERSION_TAG=$(git rev-parse --short HEAD 2>/dev/null || node -p "require('./package.json').version")
+GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+
+# Provenance: the build copies the LIVE worktree, but VERSION_TAG names HEAD. If the
+# tree is dirty (modified-tracked or untracked files under copied paths like src/),
+# the image content does NOT match ${GIT_COMMIT}. Deploy is by @sha256 digest, which
+# is always content-accurate, so nothing wrong ever ships — but mark the tag -dirty
+# and warn so the human-facing tag/commit association stays honest. Non-fatal by
+# design (commit for a reproducible build); the SHA is recorded in the output below.
+WORKTREE_DIRTY=""
+if [ "$GIT_COMMIT" != "unknown" ] && [ -n "$(git status --porcelain --untracked-files=normal 2>/dev/null)" ]; then
+    WORKTREE_DIRTY=1
+    VERSION_TAG="${VERSION_TAG}-dirty"
+    echo "Warning: building a DIRTY worktree — image content is NOT commit ${GIT_COMMIT}."
+    echo "         Tag suffixed -dirty; commit your changes for a reproducible build."
+fi
+
 PROFILE_IMAGE="${DOCKER_USERNAME}/${DOCKER_REPO}:profile-${VERSION_TAG}"
 
 IIDFILE=$(mktemp)
@@ -140,6 +156,7 @@ docker push "$PROFILE_IMAGE" \
 
 print_header "TRANSPORT/DEPLOY — STUBBED"
 echo "Built & pushed: ${PROFILE_IMAGE}"
+echo "Source commit:  ${GIT_COMMIT}${WORKTREE_DIRTY:+ (DIRTY — image content differs from this commit)}"
 echo "Digest:         ${PROFILE_DIGEST}"
 echo ""
 echo "Transport/deploy stage lands in T4e3 (SSH/SCP upload + remote setup-profile.sh)."
