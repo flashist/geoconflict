@@ -4,9 +4,8 @@
 Sprint 4 (independent match-quality task — no dependency on the citizenship/payments track).
 
 ## Priority
-Medium — match-quality change. Safe weekend deploy. Slightly higher blast radius than the
-plain infinite-gold removal because it adds a new `GameConfig` field (schema + every config
-literal, client and server), so it is **not** a one-line modifier edit.
+Medium — match-quality change. Safe weekend deploy. Higher blast radius than a one-line modifier
+edit because it adds a new `GameConfig` field (schema + every config literal, client and server).
 
 ## Experiments
 ❌ Excluded — match-quality change, ships to all players. No A/B.
@@ -21,18 +20,13 @@ and `weird_setting` is the only active top-level modifier, so it absorbs the ful
 `weird_setting` picks one sub-option uniformly from `WEIRD_SETTING_OPTIONS`
 (`src/server/MapPlaylist.ts`).
 
-**Why this change:** the **infinite-gold** sub-option makes the only viable tactic "rush a
-silo and nuke everything around you," because cost is removed entirely. In public rotation the
-human is usually surrounded by nations (few other humans), so these matches devolve into
-chaotic, frustrating nuke-spam — especially punishing for new players.
+**Why this change:** add a **bounded economic-boost** variety modifier to the public weird-setting
+rotation — a one-time **5M starting gold** grant for real players. It gives a head-start to expand
+and defend early, while normal economy applies afterward: a finite boost, not an open-ended one. It
+broadens the variety of public weird matches alongside the existing army / nuke / SAM modifiers.
 
-The fix is a **bounded** economic boost instead of an unbounded one: a one-time **5M starting
-gold** grant for real players. They get a head-start to expand and defend, but normal economy
-applies afterward — no sustained free nuking.
-
-**This task only ADDS the 5M starting-gold modifier.** Removing infinite gold from the rotation
-is the companion task `s4c-disable-infinite-gold-public-rotation.md` (kept separate per Mark,
-2026-06-13). See **Relationship & sequencing** below.
+This is a **standalone** weird sub-option, independent of any other modifier (see **Independence**
+below).
 
 ### Relevant costs (for balance context — not a code change)
 | Unit | Cost |
@@ -42,9 +36,9 @@ is the companion task `s4c-disable-infinite-gold-public-rotation.md` (kept separ
 | HydrogenBomb | 5,000,000 |
 | MIRV | 35,000,000 |
 
-5M buys an opening **silo + ~5 atom bombs** immediately — a real opening salvo, but *finite*
-(unlike infinite gold). The 5M figure is a single tunable constant; revisit it after the live
-check if openings still feel nuke-heavy.
+5M buys an opening **silo + ~5 atom bombs** immediately — a real opening salvo, but *finite*: the
+boost runs out and normal economy resumes. The 5M figure is a single tunable constant; revisit it
+after the live check if openings still feel nuke-heavy.
 
 ---
 
@@ -109,9 +103,10 @@ Add `startGold` (default `0`) so the schema validates everywhere `infiniteGold` 
   `if (gameConfig.infiniteGold !== undefined) { ... }` block.
 
 ### 5. The modifier itself
-- `src/server/MapPlaylist.ts` `WEIRD_SETTING_OPTIONS`: add `() => ({ startGold: 5_000_000 })`.
-  (Companion task removes `() => ({ infiniteGold: true })`; net end-state = 4 options with 5M
-  replacing infinite gold — see sequencing below.)
+- `src/server/MapPlaylist.ts` `WEIRD_SETTING_OPTIONS`: add `() => ({ startGold: 5_000_000 })` as a
+  new sub-option. This **adds** to the existing set (it does not replace any entry), so the rotation
+  grows from four sub-options to **five**. The 20% weird-match budget is unchanged — it is now split
+  five ways at ~4% each.
 
 ### 6. Lobby badge + localization
 - `src/client/PublicLobby.ts` `getWeirdModifierLabel()` (~line 24): add a case —
@@ -123,21 +118,18 @@ Add `startGold` (default `0`) so the schema validates everywhere `infiniteGold` 
 
 ---
 
-## Relationship & sequencing
+## Independence
 
-- Companion task: `s4c-disable-infinite-gold-public-rotation.md` (removes the infinite-gold
-  sub-option). Kept **separate** per Mark — this task does **not** touch the `infiniteGold` entry.
-- **Recommended order:** ship the removal first (or in the same deploy), then this. End-state is
-  the 4-option set `[startGold 5M, infiniteTroops, no nukes, no SAM]`.
-- If this ships before the removal, the rotation briefly holds 5 options (infinite gold still
-  ~4%) — harmless and self-correcting once the removal lands. Both orders converge.
-- **Do not** also delete the `infiniteGold` entry here, to avoid a double-edit conflict with the
-  companion task.
+- **Standalone task.** This modifier is self-contained, with **no dependency on — and no sequencing
+  against — any other modifier task** (including the separate
+  `infinite-gold-force-no-nukes-public-rotation.md`). Ship it whenever convenient.
+- It only **adds** the `startGold` sub-option; it does **not** touch the `infiniteGold` entry or any
+  other existing weird option.
 
 ---
 
 ## Out of scope (leave intact)
-- `infiniteGold` field and its removal from rotation — companion task owns that.
+- The `infiniteGold` field and every other existing weird sub-option — untouched by this task.
 - Any custom/private-lobby "starting gold" UI option — `startGold: 0` there is enough.
 - Rebalancing nuke/silo costs.
 
@@ -155,7 +147,7 @@ Add `startGold` (default `0`) so the schema validates everywhere `infiniteGold` 
 - `WEIRD_SETTING_OPTIONS` includes an entry that sets `startGold: 5_000_000`.
 - Selecting that option yields `startGold: 5_000_000` and does not set `infiniteGold`.
 - Top-level registry / `MODIFIED_MATCH_RATE` assertions still pass.
-  *(If the companion removal task has merged, also reconcile the expected option count to 4.)*
+  *(Expected `WEIRD_SETTING_OPTIONS` count is **five** once this lands — four existing entries + the new 5M entry.)*
 
 ---
 
@@ -178,8 +170,8 @@ Add `startGold` (default `0`) so the schema validates everywhere `infiniteGold` 
 
 ## Notes
 - Effort: ~1 day (new field plumbing across client + server, core player-init wiring, badge +
-  localization, core & server tests, live spot-check). More than the half-day infinite-gold
-  removal because of the schema field and player-init changes.
+  localization, core & server tests, live spot-check) — driven by the new schema field and
+  player-init changes.
 - Touches `src/core/` (player init + config) — desync-sensitive; the all-literals rule in step 4
   is what keeps client/server starting gold identical.
 - Weekend deploy (low-traffic window). Touches the prod public-rotation path.

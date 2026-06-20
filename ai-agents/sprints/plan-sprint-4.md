@@ -360,11 +360,10 @@ Enrich the on-map country labels (`NameLayer.ts`) to mirror the hover info panel
 
 **Effort:** ~1 day
 **Experiments:** ❌ Excluded — match-quality change, ships to all players.
-**Independent** — no dependency on citizenship or payments.
-**Companion:** `s4c-disable-infinite-gold-public-rotation.md` (kept separate — removes infinite gold).
+**Independent** — no dependency on citizenship or payments, and (as of 2026-06-20) decoupled from the infinite-gold modifier task: this is now a standalone weird sub-option that ships on its own.
 **Brief:** `s4-starting-gold-public-modifier.md`
 
-Replace the degenerate infinite-gold public modifier with a bounded one: a one-time **5M starting gold** grant for real players (`Human` + `AiPlayer` only — nations and filler bots stay at 0). Infinite gold makes nuke-rush the only tactic and turns public matches into frustrating chaos for new players; a finite head-start gives an economic boost without the endless free nuking. Adds a new `startGold` `GameConfig` field (schema + every config literal, client and server), a `startGold(playerInfo)` config method mirroring `startManpower`, player-init wiring in `src/core/`, a "5M Starting Gold" lobby badge, and en/ru localization. Recipient predicate matches the existing `infiniteGold` `Human || AiPlayer` gate. Locked with Mark 2026-06-13: recipients = real players only, amount = 5M, public rotation only. `src/core/` desync-sensitive (all config literals must carry the field); live public-rotation spot-check is the verification gate. Sequence after / with the companion infinite-gold removal.
+Add a bounded economic-boost weird modifier: a one-time **5M starting gold** grant for real players (`Human` + `AiPlayer` only — nations and filler bots stay at 0). It gives a finite head-start to expand and defend early, then normal economy resumes — broadening public weird-match variety alongside the existing army/nuke/SAM modifiers. Adds a new `startGold` `GameConfig` field (schema + every config literal, client and server), a `startGold(playerInfo)` config method mirroring `startManpower`, player-init wiring in `src/core/`, a "5M Starting Gold" lobby badge, and en/ru localization. Recipient predicate matches the existing `infiniteGold` `Human || AiPlayer` gate. Locked with Mark 2026-06-13: recipients = real players only, amount = 5M, public rotation only. **Adds** (does not replace) a sub-option, so `WEIRD_SETTING_OPTIONS` grows four → five (20% budget split five ways). `src/core/` desync-sensitive (all config literals must carry the field); live public-rotation spot-check is the verification gate.
 
 ---
 

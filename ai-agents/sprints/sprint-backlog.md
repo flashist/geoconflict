@@ -23,7 +23,7 @@
 | ⬜ No sprint | Bots: Stop Building SAM Launchers When Nukes Are Disabled | `backlog/bots-skip-sam-when-nukes-disabled.md` | — |
 | ⬜ No sprint | Bots/Nations: Effective Hydrogen-Bomb Use vs SAM Defenses (offset targeting) — investigation | `backlog/bots-hydrogen-bomb-sam-penetration-investigation.md` | — |
 | ⬜ No sprint | Bots/Nations: Saturate SAM Defenses with Multi-Nuke Salvos — investigation + impl | `backlog/bots-nuke-saturation-sam-overwhelm.md` | Offset-targeting task (above) |
-| ⬜ No sprint | Disable Infinite-Gold Weird Mode in Public Rotation | `backlog/s4c-disable-infinite-gold-public-rotation.md` | — |
+| ⬜ No sprint | Force "No Nukes" When the Infinite-Gold Weird Mode Is Applied (Public Rotation) | `backlog/infinite-gold-force-no-nukes-public-rotation.md` | — |
 | ⬜ No sprint | Remove Dead `initializeFuseTag` Polling Loop | `backlog/fix-fusetag-dead-polling-loop.md` | — |
 | ⬜ No sprint | Fix GutterAds Unsubscribing from `userMeResponse` After First `hide()` | `backlog/fix-gutterads-usermeresponse-unsubscribe.md` | — |
 | ⏸ Parked | Task 5 — Deep Mobile Rendering Optimization | None — see plan-index | Mobile DAU > 1,500 |
@@ -226,21 +226,23 @@ Needs `src/core/` tests **and** live real-map validation. Rough: ~1 day investig
 
 ---
 
-### Disable Infinite-Gold Weird Mode in Public Rotation
+### Force "No Nukes" When the Infinite-Gold Weird Mode Is Applied (Public Rotation)
 
-**Brief:** `backlog/s4c-disable-infinite-gold-public-rotation.md`
+**Brief:** `backlog/infinite-gold-force-no-nukes-public-rotation.md`
 
 Public match-quality fix, same pattern as the Sprint 4c compact-map removal. The Sprint 4b
-weird-setting modifier system applies a random rule-set override to ~20% of public matches;
-one of its four sub-options is infinite gold (`infiniteGold: true`), which removes the core
-economic constraint and is not a desirable surprise in a normal public lobby. Fix is one line
-in `src/server/MapPlaylist.ts` — delete the `infiniteGold` entry from `WEIRD_SETTING_OPTIONS`
-(length-driven random selector needs no other change) — plus a `tests/server/MapPlaylist.test.ts`
-update (four options → three, assert infinite gold never appears). Total weird rate stays 20%,
-redistributed across the remaining three modes. `infiniteGold` stays available for custom/private
-lobbies; localization and client badge code left intact. ~Half a day. Originally drafted under
-Sprint 4c but moved here 2026-06-12 to keep 4c historically frozen — needs a sprint home before
-implementation. Safe weekend deploy.
+weird-setting modifier system applies a random rule-set override to ~20% of public matches; one of
+its four sub-options is infinite gold (`infiniteGold: true`), which removes the core economic
+constraint and collapses the dominant tactic into nuke-spam. Rather than remove the mode, **keep it
+but also disable nukes when it is applied** (redirected 2026-06-20, Mark) — so the unlimited-economy
+novelty stays but the nuke-rush degeneracy is gone. Fix is one line in `src/server/MapPlaylist.ts` —
+the infinite-gold entry in `WEIRD_SETTING_OPTIONS` becomes
+`() => ({ infiniteGold: true, disabledUnits: [UnitType.MissileSilo] })`, reusing the exact mechanism
+the existing "No nukes" option already uses — plus a `tests/server/MapPlaylist.test.ts` update
+(still four options; assert infinite gold now also disables nukes). Total weird rate stays 20% across
+four options (no redistribution). Optional client label tweak so the badge signals nukes-off (en/ru
+in sync). ~Half a day. Originally drafted under Sprint 4c but moved here 2026-06-12 to keep 4c
+historically frozen — needs a sprint home before implementation. Safe weekend deploy.
 
 ---
 
