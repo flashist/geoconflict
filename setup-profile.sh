@@ -62,6 +62,23 @@ if ! [[ "$PROFILE_SWAP_SIZE_GB" =~ ^[0-9]+$ ]]; then
     echo "Error: PROFILE_SWAP_SIZE_GB must be a non-negative integer (GB). Use 0 to disable."
     exit 1
 fi
+# The /internal/ allowlist is the IP trust boundary T5's crediting endpoint inherits.
+# nginx's `allow` accepts the special value `all` (→ `allow all; deny all;`, first match
+# wins, everyone permitted), so a stray `all`/hostname/typo baked into the live config
+# would silently open the boundary. Require every entry to be a literal IPv4/IPv6 address
+# or CIDR; fail closed before touching nginx so the allowlist always stays a restriction.
+if [ -n "$PROFILE_INTERNAL_ALLOW_IPS" ]; then
+    ipv4_re='^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}(/(3[0-2]|[12]?[0-9]))?$'
+    ipv6_re='^[0-9A-Fa-f:]+:[0-9A-Fa-f:]*(/(12[0-8]|1[01][0-9]|[1-9]?[0-9]))?$'
+    for entry in ${PROFILE_INTERNAL_ALLOW_IPS//,/ }; do
+        if ! [[ "$entry" =~ $ipv4_re ]] && ! [[ "$entry" =~ $ipv6_re ]]; then
+            echo "Error: PROFILE_INTERNAL_ALLOW_IPS entry '$entry' is not a valid IPv4/IPv6 address or CIDR."
+            echo "nginx special values (e.g. 'all'), hostnames, and syntax are rejected so the /internal/"
+            echo "allowlist stays a real restriction. Fix it in .env.profile and re-run."
+            exit 1
+        fi
+    done
+fi
 
 # ── System update ─────────────────────────────────────────────────────────────
 
@@ -210,11 +227,26 @@ if [ -n "$PROFILE_DOMAIN" ]; then
     # later config test fails (set -e), an ERR trap restores the previous site config
     # and restarts nginx — a failed TLS re-run must never leave the public API down.
     SITE_FILE=/etc/nginx/sites-available/profile
+    SITE_LINK=/etc/nginx/sites-enabled/profile
+    DEFAULT_LINK=/etc/nginx/sites-enabled/default
     SITE_BAK="${SITE_FILE}.bak.$$"
-    [ -f "$SITE_FILE" ] && cp -f "$SITE_FILE" "$SITE_BAK"
+    # Capture the COMPLETE prior state so the ERR trap restores exactly what was here
+    # — including the first-run case where no profile site exists yet. A bare
+    # "restore only if backup exists" check would leave a fresh host with the broken
+    # profile site enabled, the default site removed, and nginx down.
+    SITE_EXISTED=0;    [ -f "$SITE_FILE" ] && { SITE_EXISTED=1; cp -f "$SITE_FILE" "$SITE_BAK"; }
+    LINK_EXISTED=0;    [ -L "$SITE_LINK" ] && LINK_EXISTED=1
+    DEFAULT_TARGET=""; [ -L "$DEFAULT_LINK" ] && DEFAULT_TARGET=$(readlink "$DEFAULT_LINK")
     restore_nginx_on_failure() {
         echo "⚠️  HTTPS setup failed — restoring nginx to its previous state."
-        [ -f "$SITE_BAK" ] && mv -f "$SITE_BAK" "$SITE_FILE"
+        if [ "$SITE_EXISTED" -eq 1 ]; then
+            [ -f "$SITE_BAK" ] && mv -f "$SITE_BAK" "$SITE_FILE"
+        else
+            rm -f "$SITE_FILE"                 # first run: remove the site we wrote
+        fi
+        [ "$LINK_EXISTED" -eq 0 ] && rm -f "$SITE_LINK"
+        # Restore the default site symlink if we had removed it.
+        [ -n "$DEFAULT_TARGET" ] && [ ! -e "$DEFAULT_LINK" ] && ln -sf "$DEFAULT_TARGET" "$DEFAULT_LINK"
         systemctl restart nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
     }
     trap restore_nginx_on_failure ERR
