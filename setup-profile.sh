@@ -308,6 +308,10 @@ if [ -n "$PROFILE_DOMAIN" ]; then
     snapshot_path "$SITE_LINK" sitelink
     snapshot_path "$DEFAULT_LINK" defaultlink
     restore_nginx_on_failure() {
+        # Snapshot gone → nothing to restore. Guards the post-success window (the
+        # dir is rm'd on success while INT/TERM may still be armed) so a stray signal
+        # can never drive a destructive "restore" against a missing snapshot.
+        [ -d "$NGINX_BAK_DIR" ] || return
         echo "⚠️  HTTPS setup failed — restoring nginx to its previous state."
         restore_path "$SITE_FILE" sitefile
         restore_path "$SITE_LINK" sitelink
@@ -392,8 +396,9 @@ NGINXEOF
     nginx -t
     systemctl enable --now nginx
     systemctl restart nginx
-    # Success — drop the rollback safety net.
-    trap - ERR
+    # Success — drop the rollback safety net (ALL three signals, so nothing fires
+    # against the snapshot dir removed on the next line).
+    trap - ERR INT TERM
     rm -rf "$NGINX_BAK_DIR"
     echo "✅ nginx running with TLS for $PROFILE_DOMAIN"
 fi
