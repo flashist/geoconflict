@@ -68,8 +68,10 @@ fi
 # would silently open the boundary. Require every entry to be a literal IPv4/IPv6 address
 # or CIDR; fail closed before touching nginx so the allowlist always stays a restriction.
 if [ -n "$PROFILE_INTERNAL_ALLOW_IPS" ]; then
-    ipv4_re='^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}(/(3[0-2]|[12]?[0-9]))?$'
-    ipv6_re='^[0-9A-Fa-f:]+:[0-9A-Fa-f:]*(/(12[0-8]|1[01][0-9]|[1-9]?[0-9]))?$'
+    # CIDR suffix is 1-32 (v4) / 1-128 (v6): a /0 prefix (0.0.0.0/0, ::/0) matches every
+    # client, which is `all` in CIDR form — reject it so the allowlist stays a restriction.
+    ipv4_re='^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}(/(3[0-2]|[12][0-9]|[1-9]))?$'
+    ipv6_re='^[0-9A-Fa-f:]+:[0-9A-Fa-f:]*(/(12[0-8]|1[01][0-9]|[1-9][0-9]?))?$'
     for entry in ${PROFILE_INTERNAL_ALLOW_IPS//,/ }; do
         if ! [[ "$entry" =~ $ipv4_re ]] && ! [[ "$entry" =~ $ipv6_re ]]; then
             echo "Error: PROFILE_INTERNAL_ALLOW_IPS entry '$entry' is not a valid IPv4/IPv6 address or CIDR."
@@ -205,13 +207,27 @@ print_header "CONFIGURING FIREWALL (ufw)"
 if ! command -v ufw >/dev/null 2>&1; then
     apt-get install -y ufw
 fi
+# Detect the SSH port(s) actually in use so the reset+enable can't lock us out on a
+# non-standard port. Sources: the live session's server port ($SSH_CONNECTION 4th
+# field — set when this runs over SSH, the deploy path) and sshd's effective config.
+# Fall back to 22 only if neither yields a port. The active session survives enable
+# (conntrack keeps ESTABLISHED), but reconnection on a custom port would be blocked
+# unless we allow it here.
+SSH_PORTS=""
+[ -n "${SSH_CONNECTION:-}" ] && SSH_PORTS="$SSH_PORTS $(echo "$SSH_CONNECTION" | awk '{print $4}')"
+command -v sshd >/dev/null 2>&1 && SSH_PORTS="$SSH_PORTS $(sshd -T 2>/dev/null | awk '/^port /{print $2}')"
+SSH_PORTS=$(echo "$SSH_PORTS" | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -u)
+[ -z "$SSH_PORTS" ] && SSH_PORTS="22"
+
 # Reset to a known-clean ruleset first so a reused/provider-preconfigured host can't
 # keep a stray public allow (e.g. 5432) that `default deny incoming` would NOT remove.
-# Reset disables ufw (no filtering during the gap) and we re-add 22 BEFORE re-enabling,
-# so this never drops the SSH session. (Cleared rules are backed up to /etc/ufw/*.rules.*)
+# Reset disables ufw (no filtering during the gap). (Cleared rules are backed up to
+# /etc/ufw/*.rules.*)
 ufw --force reset
-# Allow SSH FIRST so enabling ufw can never lock us out of the box.
-ufw allow 22/tcp
+# Allow SSH FIRST (every detected port) so enabling ufw can never lock us out.
+for p in $SSH_PORTS; do
+    ufw allow "${p}/tcp"
+done
 ufw allow 80/tcp
 ufw allow 443/tcp
 ufw default deny incoming
