@@ -96,16 +96,25 @@ if [ -n "${DOCKER_TOKEN:-}" ]; then
 fi
 
 print_header "PUSHING PROFILE IMAGE"
-# Re-bind the tag to the exact built image ID immediately before pushing, so the
-# push publishes BUILT_IMAGE_ID and not whatever the mutable tag may point at if an
-# external process retagged it after the build (K2 — push bound to the built ID).
-docker tag "$BUILT_IMAGE_ID" "$PROFILE_IMAGE"
-docker push "$PROFILE_IMAGE"
+# `docker push` can only target NAME[:TAG] — it cannot push an image ID or a digest
+# — so a tag→push step is unavoidable, and `docker tag` + `docker push` are two
+# separate daemon calls. Pushing the deterministic profile-<sha> tag directly would
+# let a second run of this script at the same commit (sharing that tag on the local
+# daemon) divert this push. So publish the build under a per-run-unique staging ref
+# that no concurrent run contends for. This defends accidental concurrency; what
+# actually guarantees we never deploy a different artifact than we built is the
+# content-addressed digest resolved from BUILT_IMAGE_ID below — not the tag.
+STAGING_REF="${DOCKER_USERNAME}/${DOCKER_REPO}:_staging-${VERSION_TAG}-$(openssl rand -hex 6)"
+docker tag "$BUILT_IMAGE_ID" "$STAGING_REF"
+docker push "$STAGING_REF"
 
 # ── Pin the immutable @sha256 digest (K2) ─────────────────────────────────────
-# Resolve from the built image ID (not the mutable tag) so a concurrent retag can
-# never swap the artifact past this point. RepoDigests populate only after push.
-# Fail closed if no canonical registry digest resolves.
+# Resolve from the built image ID, never a tag. RepoDigests is content-addressed:
+# each entry repo@sha256:D has D = the manifest digest of BUILT_IMAGE_ID's own bytes
+# (only the repo-NAME prefix is mutable, never D), so a non-empty match can only
+# identify what we built. A diverted push would record its digest on a different
+# image and leave BUILT_IMAGE_ID with no matching entry → we fail closed here rather
+# than pin someone else's image. Fail closed if no canonical digest resolves.
 
 PROFILE_DIGEST=$(docker inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$BUILT_IMAGE_ID" \
     | grep -E "^${DOCKER_USERNAME}/${DOCKER_REPO}@sha256:[0-9a-f]{64}$" | head -1 || true)
@@ -117,6 +126,13 @@ if [ -z "$PROFILE_DIGEST" ]; then
 fi
 
 echo "Resolved digest: ${PROFILE_DIGEST}"
+
+# Publish the human-friendly profile-<sha> tag for registry browsing. Cosmetic only
+# — the deploy consumes PROFILE_DIGEST (the @sha256), so a race on this tag cannot
+# change what gets deployed; a failure here must not sink an already-pinned artifact.
+docker tag "$BUILT_IMAGE_ID" "$PROFILE_IMAGE"
+docker push "$PROFILE_IMAGE" \
+    || echo "Warning: cosmetic ${PROFILE_IMAGE} tag push failed; digest ${PROFILE_DIGEST} is already pinned and published."
 
 # ── Transport/deploy — STUBBED (T4e3) ─────────────────────────────────────────
 # The SSH/SCP upload, secret-staging, and remote setup-profile.sh invocation land
