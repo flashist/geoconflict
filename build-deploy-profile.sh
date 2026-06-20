@@ -96,6 +96,10 @@ if [ -n "${DOCKER_TOKEN:-}" ]; then
 fi
 
 print_header "PUSHING PROFILE IMAGE"
+# Re-bind the tag to the exact built image ID immediately before pushing, so the
+# push publishes BUILT_IMAGE_ID and not whatever the mutable tag may point at if an
+# external process retagged it after the build (K2 — push bound to the built ID).
+docker tag "$BUILT_IMAGE_ID" "$PROFILE_IMAGE"
 docker push "$PROFILE_IMAGE"
 
 # ── Pin the immutable @sha256 digest (K2) ─────────────────────────────────────
