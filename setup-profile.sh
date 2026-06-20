@@ -72,6 +72,8 @@ apt-get update -y && apt-get upgrade -y
 # The reg.ru profile VPS is low-RAM; the prior telemetry box froze the entire host
 # under OOM because it shipped with zero swap. A swapfile gives the kernel a cushion
 # so a transient Postgres/Node spike is paged out instead of wedging the box.
+# Swap is MANDATORY here: if it cannot be enabled we fail closed (the only opt-out
+# is PROFILE_SWAP_SIZE_GB=0, a conscious operator choice).
 # Idempotent: matches on /swapfile presence only — it does NOT resize. To resize,
 # `swapoff /swapfile && rm /swapfile` first, then re-run.
 print_header "CONFIGURING SWAP"
@@ -95,11 +97,17 @@ if [ "$PROFILE_SWAP_SIZE_GB" -eq 0 ]; then
 elif swapon --show=NAME --noheadings 2>/dev/null | grep -qx '/swapfile'; then
     echo "Swap already active; leaving it in place:"
     swapon --show
+    # Ensure persistence even if /swapfile was activated out-of-band (e.g. a manual
+    # `swapon` without an fstab entry) — otherwise swap silently vanishes on reboot.
+    # Idempotent: the create branch already adds this, so a normal re-run never
+    # duplicates the entry.
+    grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
 else
     echo "Creating ${PROFILE_SWAP_SIZE_GB}G swapfile at /swapfile..."
     # fallocate is fast on ext4; on CoW filesystems it can yield a holey file that
-    # swapon rejects, so fall back to dd (writes real blocks). Each step is guarded
-    # so a failure does not trip set -e and abort the whole deploy.
+    # swapon rejects, so fall back to dd (writes real blocks). Each method is guarded
+    # with `|| return 1` so a fallocate failure falls through to dd instead of
+    # tripping set -e; if BOTH methods fail we abort (swap is mandatory on this box).
     if try_enable_swapfile fallocate; then
         grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
         swapon --show
@@ -107,8 +115,16 @@ else
         grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
         swapon --show
     else
+        # Reached only when PROFILE_SWAP_SIZE_GB != 0 (the =0 case is handled above)
+        # AND no /swapfile is active AND both allocation methods failed. Fail closed:
+        # standing up Postgres + profile data on a swapless low-RAM box reproduces the
+        # exact OOM-freeze this requirement exists to prevent.
         rm -f /swapfile
-        echo "⚠️  SWAP SETUP FAILED — continuing WITHOUT swap. This box is at OOM risk."
+        echo "⚠️  SWAP SETUP FAILED — both fallocate and dd could not enable /swapfile."
+        echo "Swap is mandatory on this low-RAM box (Postgres + profile data → OOM-freeze risk)."
+        echo "Aborting provisioning. Investigate disk space / filesystem swapfile support,"
+        echo "or set PROFILE_SWAP_SIZE_GB=0 to consciously provision WITHOUT swap."
+        exit 1
     fi
 fi
 
