@@ -16,5 +16,6 @@ CLAUDE.local.md
 karpathy-vault/.obsidian/
 .claude/wiki-pending.txt
 .claude/wiki-watermark
+.claude/scheduled_tasks.lock
 .playwright-cli/
 /output/playwright
