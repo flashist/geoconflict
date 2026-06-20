@@ -753,3 +753,12 @@
 - Ingested: `ai-agents/tasks/done/s4-profile-04b-client-api-url-config.md` → created [[wiki/tasks/profile-api-url-config]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/systems/configuration]]
 - Ingested: `ai-agents/tasks/done/s4-profile-04c-dockerfile.md` → created [[wiki/tasks/profile-docker-image]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/repo-build-context-hardening]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-profile-04h-game-server-deploy-env.md`, `ai-agents/tasks/backlog/s4-profile-06-match-end-crediting.md` — backlog files are not ingested directly by wiki-sync
+
+## 2026-06-20 — ingest
+- Sync window: `aa7e165a0b008f4bacf6e796c3d18c68a08b6f55` → HEAD (`6a03a8533c5d0d46e16345e79dabb4058f6c83e2`)
+- Changed source files detected: 11
+- Ingested: `ai-agents/knowledge-base/s4-profile-04d-ru-residency-review-finding-2026-06-20.md` → created [[wiki/tasks/profile-vps-provisioning]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/player-profile-store-investigation]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-04d-vps-provisioning.md` → created [[wiki/tasks/profile-vps-provisioning]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/player-profile-store-investigation]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `karpathy-vault/index.md`
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/defense-post-range-always-visible.md`, `ai-agents/tasks/backlog/infinite-gold-force-no-nukes-public-rotation.md`, `ai-agents/tasks/backlog/s4-profile-04e-deploy-mechanics.md`, `ai-agents/tasks/backlog/s4-profile-04e1-build-push-digest.md`, `ai-agents/tasks/backlog/s4-profile-04e2-onbox-stack-gate.md`, `ai-agents/tasks/backlog/s4-profile-04e3-deploy-wiring-milestone.md`, `ai-agents/tasks/backlog/s4-starting-gold-public-modifier.md` — backlog files are not ingested directly; changed sprint sources summarize the applicable roadmap updates

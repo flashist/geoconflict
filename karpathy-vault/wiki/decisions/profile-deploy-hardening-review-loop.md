@@ -11,7 +11,7 @@ Source: `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19
 
 ## Decision
 
-Stop and revert the monolithic T4 attempt. Resume profile infrastructure as independently shippable T4a–T4g slices. T4a, T4b, and T4c are now complete; the remaining sequence starts with the external T4d VPS/DNS prerequisite.
+Stop and revert the monolithic T4 attempt. Resume profile infrastructure as independently shippable T4a–T4g slices. T4a through T4d are now complete; the remaining sequence starts with T4e deploy mechanics.
 
 For each remaining deploy slice:
 
@@ -27,8 +27,8 @@ The restart should preserve the proven properties from the abandoned branch: sec
 ## Consequences
 
 - The abandoned branch and its large doctrine are historical evidence, not implementation law and not a source to merge wholesale.
-- Profile infrastructure progresses through T4a server skeleton, T4b client API URL, T4c Docker image, T4d VPS/DNS, T4e deploy mechanics, T4f image-secret scanning, and T4g argv/concurrency hardening. T4a–T4c are complete.
-- T4d still requires the reg.ru VPS and `api.geoconflict.ru` DNS action before T4e can proceed.
+- Profile infrastructure progresses through T4a server skeleton, T4b client API URL, T4c Docker image, T4d VPS/DNS, T4e deploy mechanics, T4f image-secret scanning, and T4g argv/concurrency hardening. T4a–T4d are complete.
+- T4d established the dedicated reg.ru host, DNS/TLS boundary, SSH-first firewall, swap, Docker, and dormant internal nginx allowlist. RU residency remains an operator precondition plus acceptance verification rather than a fragile script-side geo-IP API gate.
 - The exact disposition of the advisory Dockerfile parser and old doctrine remains an owner choice; neither should block the bounded T4 slices.
 - Review termination is defined by fixed acceptance criteria, not by a reviewer's silence.
 
@@ -40,3 +40,4 @@ The restart should preserve the proven properties from the abandoned branch: sec
 - [[tasks/profile-server-skeleton]] — completed T4a liveness-only server foundation
 - [[tasks/profile-api-url-config]] — completed T4b public runtime URL plumbing
 - [[tasks/profile-docker-image]] — completed T4c allowlist-copy profile image
+- [[tasks/profile-vps-provisioning]] — completed T4d box provisioning and network boundary

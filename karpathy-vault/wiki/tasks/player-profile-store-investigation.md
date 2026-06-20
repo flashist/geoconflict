@@ -29,5 +29,6 @@ Guest players should not have the citizenship feature silently hidden. The recom
 - [[decisions/sprint-4]] — Sprint 4 roadmap and dependencies for citizenship and payments
 - [[tasks/profile-schema-contract]] — first implementation slice produced the shared profile payload and migration contract
 - [[tasks/yandex-identity-plumbing]] — completed T3 server-visible Yandex unique-ID path
+- [[tasks/profile-vps-provisioning]] — completed T4d provisioning for the dedicated reg.ru profile/API host
 - [[tasks/yandex-payments-investigation]] — parallel Sprint 4 investigation; both findings gate the safe paid-citizenship path
 - [[decisions/cancelled-tasks]] — cancellation record for T2 guest localStorage and T7 guest migration
