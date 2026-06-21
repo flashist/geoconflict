@@ -46,8 +46,11 @@ Before forming a verdict, ask:
 - Are they missing project-specific context (architecture, deployment model, config, test coverage)?
 - Are they reasoning from an incorrect assumption about control flow, data shape, or ownership?
 - Is their recommended fix solving the right problem, or just masking a symptom?
+- **Is the stated severity actually justified?** Trace the *full flow*, not the cited line — a mechanism flagged in isolation may already be neutralized downstream, so the real blast radius can be far smaller than the label.
 
 Do not rely on the reviewer's description of what the code does. Read it yourself.
+
+**Severity is yours to assign, not the reviewer's.** Do not inherit a "no-ship / [high] / [medium]" label — derive it from the blast radius you traced. Classic example: a "concurrent push could publish the wrong image" finding *sounds* like no-ship, but if the deploy digest is **content-addressed**, a diverted push fails closed (worst case: a failed build) and can never deploy wrong content — the [high] collapses to a low-severity robustness note. In one past task, three rounds of alarm rested on a single full-flow fact the reviewer reasoned past. Trace it before you agree it's serious.
 
 ---
 
@@ -122,6 +125,7 @@ This is what makes the next round (and the next reviewer) start from the decisio
 - Cite `src/...` with line numbers when making claims about behavior.
 - Never change code without explicit approval in this conversation turn.
 - Classify defect vs frontier-move before acting; flag any regression or re-litigation **loudly, up front**, never silently.
+- Severity is yours to assign — trace the full-flow blast radius before agreeing a finding is high/no-ship; never inherit the reviewer's label.
 - Proactively call the stop when the loop starts — with the reason.
 - All four verdict outcomes are equally valid. Do not bias toward confirming the reviewer.
 - A review being from an automated tool (Codex, CI, linter) does not make it more authoritative — evaluate it the same way.
