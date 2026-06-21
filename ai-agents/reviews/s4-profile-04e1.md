@@ -47,6 +47,10 @@ Status: closed-out (recommended) — 5 rounds against a stated 2-round budget
 | 4a | Dirty worktree should fail-closed (re-raise of R3) | INCORRECT | No change — policy gates deploys, not this slice; user already decided in R3. |
 | 4b | Per-run staging tag accumulates remotely | PARTIALLY CORRECT | **Removed the staging tag** (reverts R2); push durable tag directly. Net simplification. |
 | 5 | Stale RepoDigest can report a GC'd/diverted digest as success | PARTIALLY CORRECT | Added registry-presence check (`docker buildx imagetools inspect`, fail-closed); tightened push comment. |
+| 6-C | (PR#119 stateful review, both reviewers) Digest match interpolates the repo name into a regex — `.` in a repo name (or `ghcr.io/org` prefix) is a wildcard that could select a sibling repo's entry | CORRECT — defect (robustness) | Replaced the grep regex with a while-loop **exact** repo-prefix equality + separate `sha256:` validation. Preserves fail-closed; verified on a `.`-in-repo sibling-first case. |
+| 6-A | (PR#119) `mktemp` IIDFILE leaks on build failure under `set -e` (exit before the manual `rm`) | CORRECT — defect (hygiene) | Added `trap 'rm -f "$IIDFILE"' EXIT`; **kept** the manual `rm` (forward-safe variant) so a future EXIT trap can't silently re-leak it. See forward note. |
+| 6-B | (PR#119) The build-time POSTGRES_PASSWORD preflight (a runtime secret) reads as accidental | CORRECT — clarity (comment-only) | Added a comment: it's a deliberate whole-pipeline fail-fast preflight. No behavior change. |
+| 6-D | (PR#119) Optional `set -o pipefail` | APPLIED (optional; user opted in) | Added **with** the required pipe audit (only `echo \| docker login` [already aborts] + `printf \| grep -q` inside an if) documented inline. |
 
 **Oscillation note:** R2 added the staging tag; R4 removed it; R5 flagged the
 reintroduced race. Root cause: stateless reviewers re-discovering the *opposite* cost
@@ -56,13 +60,20 @@ this ledger exists to prevent.
 
 ## Open / actionable
 
-- (none) — recommend closeout. Further passes will relocate frontier costs, not fix
-  defects.
+- (none for T4e1) — R6 applied four genuine new minor findings (C/A/B/D) from the
+  PR#119 stateful review; none re-litigated a settled residual. Recommend closeout.
+
+## Forward notes (for downstream tasks)
+
+- **T4e3 trap consolidation:** R6-A keeps a manual `rm -f "$IIDFILE"` alongside
+  `trap 'rm -f "$IIDFILE"' EXIT`. When T4e3 adds its secret-cleanup `trap … EXIT INT
+  TERM`, it **replaces** the IIDFILE EXIT trap (bash traps are not additive) — fold
+  IIDFILE cleanup into T4e3's cleanup function so the build-failure path still cleans up.
 
 ## Final state of the push/digest path
 
-`buildx --load --iidfile` → rebind + push durable `profile-<sha>` tag → resolve
-`PROFILE_DIGEST` from `BUILT_IMAGE_ID` RepoDigests (fail-closed) → verify digest
-present in registry (fail-closed) → stubbed transport (lands in T4e3). Plus: layered
-env load, local-only validation, `--password-stdin` login, K7 amd64, dirty-provenance
-marking. No VPS contacted.
+`buildx --load --iidfile` (iidfile trap-cleaned) → rebind + push durable `profile-<sha>`
+tag → resolve `PROFILE_DIGEST` from `BUILT_IMAGE_ID` RepoDigests by **exact** repo-prefix
+match (fail-closed) → verify digest present in registry (fail-closed) → stubbed transport
+(lands in T4e3). Plus: `set -e`/`pipefail`, layered env load, local-only validation,
+`--password-stdin` login, K7 amd64, dirty-provenance marking. No VPS contacted.

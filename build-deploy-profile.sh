@@ -11,6 +11,11 @@
 # stubbed below and lands in T4e3.
 
 set -e
+# pipefail: surface a failure from any stage of a pipeline, not just the last. Audited
+# (T4e1): the only pipelines are `echo $DOCKER_TOKEN | docker login` (already aborts on
+# login failure — desired) and `printf | grep -q` inside an if-condition (set -e never
+# aborts on a test). No `|| true` remains after the digest-resolve rewrite below.
+set -o pipefail
 
 DOCKERFILE="./Dockerfile.profile"
 
@@ -52,6 +57,10 @@ if [ -z "${DOCKER_USERNAME:-}" ] || [ -z "${DOCKER_REPO:-}" ]; then
     exit 1
 fi
 
+# Whole-pipeline preflight (intentional): POSTGRES_PASSWORD is a RUNTIME secret, not a
+# build input (Dockerfile.profile has no ARG for it; it's injected at container start) —
+# validated here to fail fast before build/push rather than after, so T4e3's deploy
+# can't be blocked late by a missing secret. Keep this when T4e3 un-stubs transport.
 if [ -z "${POSTGRES_PASSWORD:-}" ]; then
     echo "Error: POSTGRES_PASSWORD is not set."
     echo "Set it in .env.profile.secret before deploying."
@@ -95,13 +104,18 @@ fi
 PROFILE_IMAGE="${DOCKER_USERNAME}/${DOCKER_REPO}:profile-${VERSION_TAG}"
 
 IIDFILE=$(mktemp)
+# Clean up the iidfile on every exit path. EXIT fires on success, on `exit N`, and on a
+# `set -e` abort (e.g. a failed build), so the temp file never leaks. The explicit rm
+# after reading it (below) stays as the immediate success-path cleanup — so a future
+# EXIT trap (T4e3's secret cleanup) that overrides this one can't silently re-leak it.
+trap 'rm -f "$IIDFILE"' EXIT
 
 print_header "BUILDING PROFILE IMAGE (linux/amd64): ${PROFILE_IMAGE}"
 docker buildx build --platform linux/amd64 --load \
     -f "$DOCKERFILE" -t "$PROFILE_IMAGE" --iidfile "$IIDFILE" .
 
 BUILT_IMAGE_ID=$(cat "$IIDFILE")
-rm -f "$IIDFILE"
+rm -f "$IIDFILE"   # immediate success-path cleanup; the EXIT trap covers failure paths
 
 # ── Push to the registry ──────────────────────────────────────────────────────
 # Token on stdin via --password-stdin — never in argv (ps aux / /proc/<pid>/cmdline).
@@ -130,10 +144,24 @@ docker push "$PROFILE_IMAGE"
 # (only the repo-NAME prefix is mutable, never D), so a non-empty match can only
 # identify what we built. A diverted push would record its digest on a different
 # image and leave BUILT_IMAGE_ID with no matching entry → we fail closed here rather
-# than pin someone else's image. Fail closed if no canonical digest resolves.
-
-PROFILE_DIGEST=$(docker inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$BUILT_IMAGE_ID" \
-    | grep -E "^${DOCKER_USERNAME}/${DOCKER_REPO}@sha256:[0-9a-f]{64}$" | head -1 || true)
+# than pin someone else's image.
+#
+# Match the repo prefix by exact string equality (NOT a regex): DOCKER_REPO can legally
+# contain '.' (and a registry prefix like ghcr.io/org several), which in a regex matches
+# any char and could select a sibling repo's entry. Validate the sha256 suffix
+# separately. Fail closed (below) if no canonical digest resolves.
+EXPECTED_REPO="${DOCKER_USERNAME}/${DOCKER_REPO}"
+PROFILE_DIGEST=""
+while IFS= read -r repo_digest; do
+    [ -n "$repo_digest" ] || continue
+    repo_name="${repo_digest%@*}"   # everything before the single '@' → the repo
+    digest="${repo_digest#*@}"      # everything after  the single '@' → sha256:<hex>
+    if [ "$repo_name" = "$EXPECTED_REPO" ] \
+        && printf '%s' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
+        PROFILE_DIGEST="$repo_digest"
+        break
+    fi
+done < <(docker inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$BUILT_IMAGE_ID")
 
 if [ -z "$PROFILE_DIGEST" ]; then
     echo "Error: could not resolve a canonical registry digest for the built artifact ${BUILT_IMAGE_ID}."
