@@ -8,6 +8,8 @@ user-invocable: true
 
 A thorough, **ledger-aware** review: run both reviewers, merge + dedupe their findings against the accepted residuals already recorded for this task, then evaluate and record — without re-litigating decisions that were already made. This is the orchestration layer; the per-finding evaluation and the gate-on-approval discipline are reused from `process-review`, not reimplemented.
 
+**This skill does not auto-fix anything.** Both reviewers run **review-only** (read-only), and any code change happens *only* through `process-review`'s explicit-approval gate — the findings are inputs to evaluate, not a to-do list to apply. A fix is a separate, user-approved step after the report, never an automatic consequence of the review.
+
 Arguments: `$ARGUMENTS` — optional. May include a task-id, a PR number, and/or scope flags: `--base <ref>`, `--scope <auto|working-tree|branch>`. Default: working-tree / `auto`.
 
 ---
@@ -24,7 +26,7 @@ Arguments: `$ARGUMENTS` — optional. May include a task-id, a PR number, and/or
 
 Run both reviewers on the same scope, in parallel where practical (e.g. launch Codex as a background Bash task and the `code-reviewer` agent at the same time, then collect both):
 
-**A) Claude review** — launch the `code-reviewer` agent on the diff/scope and capture its findings. (Reliably invocable; this is the Claude-side reviewer. `/code-review` may be used instead if the user prefers, but it is not always model-invocable.)
+**A) Claude review** — launch the `code-reviewer` agent on the diff/scope and capture its findings. **Instruct it explicitly to run review-only: return findings, make no edits, run no fixes** (the agent has edit tools — pin it to review-only so generation can never quietly change code). Reliably invocable; this is the Claude-side reviewer. `/code-review` may be used instead if the user prefers, but it is not always model-invocable.
 
 **B) Codex adversarial review** — run the plugin companion directly with an explicit mode flag (so it does not prompt). Resolve the plugin root by glob (version-independent):
 
