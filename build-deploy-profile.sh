@@ -115,9 +115,10 @@ print_header "PUSHING PROFILE IMAGE"
 # `docker push` can only target NAME[:TAG] — not an image ID or digest — so a
 # tag→push step is unavoidable. Re-bind profile-<sha> to the exact built image right
 # before pushing so we publish BUILT_IMAGE_ID. A residual tag→push window remains (a
-# concurrent run at the same commit could divert the shared tag), but it is harmless:
-# the deployable digest is resolved from BUILT_IMAGE_ID below (content-addressed), so
-# a diverted push just fails closed there and is retried — never a wrong artifact. We
+# concurrent run at the same commit could divert the shared tag), but it is never a
+# wrong-content deploy: the deployable digest is resolved from BUILT_IMAGE_ID below
+# (content-addressed) and re-verified against the registry, so a diverted push is
+# caught and fails closed instead of handing downstream a wrong or absent digest. We
 # push the durable profile-<sha> tag directly: no throwaway staging tag is left
 # lingering in the registry (registry-image-policy.md §Retention: remove temp tags).
 docker tag "$BUILT_IMAGE_ID" "$PROFILE_IMAGE"
@@ -141,6 +142,16 @@ if [ -z "$PROFILE_DIGEST" ]; then
 fi
 
 echo "Resolved digest: ${PROFILE_DIGEST}"
+
+# Re-verify the digest is actually present in the registry. RepoDigests is local
+# metadata: if a concurrent retag diverted the push, BUILT_IMAGE_ID could still carry
+# a matching digest from an earlier push that the registry has since garbage-collected
+# — which would hand T4e3 an unavailable digest while this slice reports success.
+if ! docker buildx imagetools inspect "$PROFILE_DIGEST" >/dev/null 2>&1; then
+    echo "Error: resolved digest ${PROFILE_DIGEST} is not present in the registry."
+    echo "The push may have been diverted or the manifest garbage-collected; refusing to report success."
+    exit 1
+fi
 
 # ── Transport/deploy — STUBBED (T4e3) ─────────────────────────────────────────
 # The SSH/SCP upload, secret-staging, and remote setup-profile.sh invocation land
