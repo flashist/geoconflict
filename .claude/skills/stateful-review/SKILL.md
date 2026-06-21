@@ -8,12 +8,13 @@ user-invocable: true
 
 A thorough, **ledger-aware** review: run both reviewers, merge + dedupe their findings against the accepted residuals already recorded for this task, then evaluate and record — without re-litigating decisions that were already made. This is the orchestration layer; the per-finding evaluation and the gate-on-approval discipline are reused from `process-review`, not reimplemented.
 
-> **⛔ REVIEW ONLY — this skill never edits source code.** Its entire deliverable is the consolidated **report** (Step 4) plus the **ledger recording** (Step 5 — a docs-only update under `ai-agents/reviews/`). It does **not** patch, fix, or modify any code under review — **not even with your approval**, because applying a fix is **out of scope** for this skill.
+> **⛔ REVIEW ONLY — this skill never edits source code.** Its deliverables are all **documents**: the consolidated **report** (Step 4), the **ledger recording** (Step 5 — under `ai-agents/reviews/`), and an **optional coder-agent handoff file** (Step 6 — a fix *spec*, on request). It does **not** patch, fix, or modify any code under review — **not even with your approval**, because applying a fix is **out of scope** for this skill.
 >
 > - Both reviewers run **review-only** (read-only); the `code-reviewer` agent must be pinned to make no edits.
 > - Findings are **inputs to evaluate, not a to-do list to apply.**
-> - Applying a fix is a **separate step you initiate afterward** (e.g. via `process-review` or a direct request) — never an automatic or implied consequence of running this skill.
+> - Applying a fix is a **separate step you initiate afterward** (e.g. via `process-review`, a coder-agent, or a direct request) — never an automatic or implied consequence of running this skill.
 > - When presenting the report, do **not** tee up "apply this fix?" as the next action. The next action is recording the outcome to the ledger; any code change is a new, user-initiated task.
+> - The optional **coder handoff file (Step 6) is a spec, not an applied fix** — it *describes* recommended changes for a separate coder-agent to implement; writing it changes no code under review.
 
 Arguments: `$ARGUMENTS` — optional. May include a task-id, a PR number, and/or scope flags: `--base <ref>`, `--scope <auto|working-tree|branch>`. Default: working-tree / `auto`.
 
@@ -78,13 +79,38 @@ Present, in one place:
 
 ## Step 5 — Record to the ledger
 
-**The only write this skill makes is to the ledger — never to source code.** After the user decides **what to record** (which verdicts stand, which novel findings become accepted residuals), update `ai-agents/reviews/<task-id>.md` (Decision-log rows + any newly-accepted residuals with their structural *why* and *re-raise only if*), per `process-review` Step 5 and the reviews README. Create the ledger if it didn't exist. This is a docs-only update; it does not touch the code under review.
+**This skill writes only documents — the ledger here, never source code.**
+
+**First, pause and ask — don't auto-record.** Wherever a finding's disposition is genuinely the user's call — defect vs intentional tradeoff, which verdicts stand, which novel findings become accepted residuals, act vs close-out — put those choices to the user **interactively** (use `AskUserQuestion` with concrete options) rather than guessing or silently recording. Phrase every question around *what to record / how to dispose*, **never** as "apply this fix?". (Step 4 ends in a report and a recommendation; it does not authorize a write — this pause is the gate.)
+
+**Then, once the user has decided,** update `ai-agents/reviews/<task-id>.md` (Decision-log rows + any newly-accepted residuals with their structural *why* and *re-raise only if*), per `process-review` Step 5 and the reviews README. Create the ledger if it didn't exist. This is a docs-only update; it does not touch the code under review.
+
+---
+
+## Step 6 — Optional: coder-agent handoff file
+
+If the user wants to route the confirmed findings to a separate coder-agent for implementation, produce a **handoff spec** and save it to a file (default `ai-agents/reviews/<task-id>-coder-handoff.md`). This stays **REVIEW ONLY**: the file *describes* recommended fixes; it does not apply them, writes no change to the code under review, and does not invoke the coder-agent itself.
+
+**Settle the shaping choices interactively first** (`AskUserQuestion`, concrete options) — e.g.:
+- **Per-finding disposition** where it's the user's call (e.g. is an intentional tradeoff kept-with-comment, or actually changed?).
+- **Scope** — which findings go in (code under review only, or also tooling/doc findings?).
+- **Format / destination** — write to a file (and where) vs inline only.
+
+Make the file **self-contained for an agent that hasn't seen the review**:
+- **Context** — what the code is, and the in/out-of-scope boundary.
+- **Changes to make** — a table (`severity · required? · location · summary`), then per-finding detail with `file:line`, the problem, **honest impact** (don't over-state — carry forward the Step 3 verdict, including where a reviewer over-rated severity), and a concrete recommended fix.
+- **Do NOT change** — the accepted residuals, so the coder doesn't reintroduce settled churn.
+- **Validation + acceptance criteria** — how to sanity-check, plus any test-harness caveats.
+
+Findings remain **recommendations**: the coder-agent is a separate, user-initiated run that decides and implements; this skill neither edits the reviewed code nor launches the coder.
 
 ---
 
 ## Hard rules
 
-- **REVIEW ONLY: this skill never edits source code** — not even with approval. The only file it writes is the ledger (Step 5). Applying a fix is a separate, user-initiated step *after* this skill finishes.
+- **REVIEW ONLY: this skill never edits source code** — not even with approval. It writes only documents (the ledger in Step 5, the optional handoff in Step 6). Applying a fix is a separate, user-initiated step *after* this skill finishes.
+- **Decisions are the user's — ask interactively.** Where a finding's disposition (defect vs intentional tradeoff, what to record, handoff scope/format) is genuinely the user's call, use `AskUserQuestion` with concrete options; never silently decide, and never frame the question as "apply this fix?".
+- The **optional coder handoff (Step 6) is a spec, not an applied fix** — it documents recommendations for a separate coder-agent; producing it changes no code under review.
 - A reviewer being unavailable MUST be reported loudly; never present a partial review as complete.
 - Output-side dedup against the ledger is mandatory even if the reviewers ignored the priming.
 - Do not duplicate `process-review`'s evaluation logic — invoke it on the novel findings.
