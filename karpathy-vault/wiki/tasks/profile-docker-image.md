@@ -25,3 +25,4 @@ The standalone profile server has a buildable, runnable image with a structural 
 - [[decisions/profile-deploy-hardening-review-loop]] — keeper properties and bounded T4 slice plan
 - [[tasks/profile-server-skeleton]] — T4a service executed by this image
 - [[tasks/repo-build-context-hardening]] — earlier game-image allowlist-copy hardening
+- [[tasks/profile-build-push-digest]] — T4e1 workflow that builds and pushes this image for amd64

@@ -41,3 +41,4 @@ The restart should preserve the proven properties from the abandoned branch: sec
 - [[tasks/profile-api-url-config]] — completed T4b public runtime URL plumbing
 - [[tasks/profile-docker-image]] — completed T4c allowlist-copy profile image
 - [[tasks/profile-vps-provisioning]] — completed T4d box provisioning and network boundary
+- [[tasks/profile-build-push-digest]] — completed T4e1 local build, push, and immutable digest resolution

@@ -26,4 +26,4 @@ The RU-residency review finding was rejected as a no-ship blocker. Residency is 
 - [[decisions/sprint-4]] — profile-store roadmap and T4 slice sequence
 - [[decisions/profile-deploy-hardening-review-loop]] — bounded T4 restart and review policy
 - [[tasks/player-profile-store-investigation]] — dedicated profile/API VPS architecture
-
+- [[tasks/profile-build-push-digest]] — local T4e1 workflow that deliberately leaves this host untouched

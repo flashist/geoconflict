@@ -72,6 +72,7 @@
 - [[tasks/profile-api-url-config]] — Sprint 4 T4b public profile API URL plumbing through runtime config and `/api/env`
 - [[tasks/profile-docker-image]] — Sprint 4 T4c allowlist-copy, linux/amd64 Docker image for the profile service
 - [[tasks/profile-vps-provisioning]] — Sprint 4 T4d dedicated reg.ru VPS provisioning, TLS/network boundary, and operator-verified RU residency
+- [[tasks/profile-build-push-digest]] — Sprint 4 T4e1 local amd64 profile-image build, registry push, and fail-closed immutable digest resolution
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
 - [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement
 - [[tasks/start-screen-redesign-implementation]] — Sprint 4 implementation of the two-tab start screen, citizenship card shell, tab persistence, localization rename, and tab analytics

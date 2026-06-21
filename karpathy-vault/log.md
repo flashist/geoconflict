@@ -768,3 +768,15 @@
 - Issues fixed: 7
 - Issues flagged for human review: 0
 - Corrected stale bootstrap/session, AI execution, spawn-camera, Sprint 4c backlog, and telemetry-priority claims; index coverage, structure, source paths, wiki-links, backlinks, and line references otherwise passed.
+
+## 2026-06-21 — ingest
+- Sync window: `6a03a8533c5d0d46e16345e79dabb4058f6c83e2` → HEAD (`eec3f71c6366318bacbc1ef663b176d17abf02a4`)
+- Changed source files detected: 4
+- Ingested: `ai-agents/tasks/done/s4-profile-04e1-build-push-digest.md` → created [[wiki/tasks/profile-build-push-digest]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/profile-docker-image]], [[wiki/tasks/profile-vps-provisioning]], `karpathy-vault/index.md`
+- Skipped (not ingest-worthy): `ai-agents/reviews/README.md`, `ai-agents/reviews/s4-profile-04e1-coder-handoff.md`, `ai-agents/reviews/s4-profile-04e1.md` — review artifacts are outside the wiki-sync eligible source set
+
+## 2026-06-21 — lint
+- Issues found: 0
+- Issues fixed: 0
+- Issues flagged for human review: 0
+- Full wiki health-check passed across all 104 indexed pages: index/file coverage, required structure and metadata, source paths, wiki-link resolution, backlinks, and orphan detection are clean.
