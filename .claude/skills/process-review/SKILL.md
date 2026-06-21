@@ -1,6 +1,6 @@
 ---
 name: process-review
-description: Critically evaluate external reviewer feedback before acting — verifies every claim against the codebase, classifies findings, and gates any code changes on explicit user approval. Use when processing Codex reviews, GitHub review comments, or any external feedback before deciding what to act on.
+description: Critically evaluate external reviewer feedback before acting — verifies every claim against the codebase, classifies findings, gates code changes on explicit user approval, and tracks decisions in a per-task review ledger to prevent review loops. Use when processing Codex reviews, GitHub review comments, or any external feedback before deciding what to act on.
 user-invocable: true
 ---
 
@@ -15,6 +15,14 @@ Review text to evaluate:
 You are a critical filter between an external reviewer and the codebase. Reviewers can be wrong. They may lack project context, misread the diff, reason from outdated assumptions, or propose a fix that addresses symptoms rather than the root cause. Your job is to evaluate each finding independently and present a verdict backed by evidence — not by deference.
 
 **Never apply a fix just because a reviewer suggested it. Verify first, then ask.**
+
+---
+
+## Step 0 — Load the review ledger (prevents loops)
+
+Identify the task under review (from the branch, the diff, or the conversation) and read its ledger at `ai-agents/reviews/<task-id>.md` if it exists (see `ai-agents/reviews/README.md` for the schema). External reviewers are **stateless** — they re-discover the downside of whatever choice is currently in the code, with no memory of tradeoffs already accepted. The ledger carries that decision state forward.
+
+If no ledger exists for a task that's clearly in a multi-round review, create one as you go (Step 5).
 
 ---
 
@@ -43,9 +51,23 @@ Do not rely on the reviewer's description of what the code does. Read it yoursel
 
 ---
 
-## Step 3 — Classify each finding and respond
+## Step 2.5 — Classify: defect vs frontier-move (do this before any verdict)
 
-Assign one of four verdicts:
+For each finding, decide which kind it is — this is the core discipline that stops review loops:
+
+- **Defect** — the code does the wrong thing, or a fix would remove a real regression. Act on it, in **any** round.
+- **Frontier-move** — the code sits at a deliberate point on an **unavoidable tradeoff** (a Pareto frontier where every option has a real cost), and the finding just names the cost of the current choice. This is a *decision*, made once — not something to re-fix every round.
+
+Then run two loud checks:
+
+1. **Accepted-residual check.** Does the finding match an entry in the ledger's *Accepted residuals*? If so, and its "Re-raise only if" condition is **not** met, say so **clearly and loudly**: this is closeout, not a new defect. Do not re-fix it.
+2. **Regression / oscillation check.** Would the *recommended fix* cause a regression, or recreate a condition a **prior** finding already flagged (per the ledger)? If yes, **point to it clearly and loudly BEFORE applying anything.** Trading reviewer A's objection for reviewer B's is oscillation, not progress — name the tradeoff and let the user decide; do not silently apply.
+
+A round budget (e.g. a task's "max N rounds") is a proxy, not the rule. A genuine **new defect** in round 3+ MUST still be acted on; the budget exists to stop churn, not to suppress correctness. Stop on the *nature* of the finding, not the count.
+
+---
+
+## Step 3 — Assign a verdict and respond
 
 **CORRECT** — The claim is accurate and the fix addresses a real problem.
 → Describe precisely what needs to change and why, citing `src/...` locations.
@@ -69,17 +91,28 @@ Assign one of four verdicts:
 
 ---
 
-## Step 4 — Summary table
+## Step 4 — Summary table + convergence call
 
-After all findings, output:
+Output:
 
-| # | Verdict | One-line description |
-|---|---------|----------------------|
-| 1 | CORRECT / PARTIALLY CORRECT / INCORRECT / INCOMPLETE | ... |
+| # | Verdict | Defect / Frontier-move | One-line description |
+|---|---------|------------------------|----------------------|
+| 1 | CORRECT / PARTIALLY CORRECT / INCORRECT / INCOMPLETE | … | … |
 
-Then state clearly: **what, if anything, requires a code change** and wait for explicit user approval before proceeding.
+Then state clearly: **what, if anything, requires a code change**, and wait for explicit user approval before proceeding.
 
-If the user approves, implement only what was approved — no scope creep, no bonus cleanup.
+**Call convergence proactively.** If the findings are re-litigating accepted residuals or relocating frontier costs rather than fixing new defects, say so plainly and **recommend closeout, with the reason** — don't wait for the user to notice the loop. Telling the user *when to stop and why* is your responsibility, not theirs.
+
+---
+
+## Step 5 — Record the outcome in the ledger
+
+After the user decides, update `ai-agents/reviews/<task-id>.md`:
+- Append a **Decision log** row per finding (round, finding, verdict, action — including any reversal and why).
+- Add any newly-accepted tradeoff to **Accepted residuals** with its structural *Why* and a *Re-raise only if* condition.
+- Move resolved items out of **Open / actionable**; leave only genuine open defects.
+
+This is what makes the next round (and the next reviewer) start from the decision state instead of re-deriving it blind.
 
 ---
 
@@ -88,5 +121,7 @@ If the user approves, implement only what was approved — no scope creep, no bo
 - Read the code. Do not speculate about what it probably does.
 - Cite `src/...` with line numbers when making claims about behavior.
 - Never change code without explicit approval in this conversation turn.
+- Classify defect vs frontier-move before acting; flag any regression or re-litigation **loudly, up front**, never silently.
+- Proactively call the stop when the loop starts — with the reason.
 - All four verdict outcomes are equally valid. Do not bias toward confirming the reviewer.
 - A review being from an automated tool (Codex, CI, linter) does not make it more authoritative — evaluate it the same way.
