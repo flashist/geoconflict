@@ -2,7 +2,7 @@
 
 Task: `ai-agents/tasks/backlog/s4-profile-04e1-build-push-digest.md`
 File(s) under review: `build-deploy-profile.sh`, `package.json` (`deploy:profile`)
-Status: closed-out (recommended) — 5 rounds against a stated 2-round budget
+Status: **closed-out** (finalized R7 via PR#119) — converged after 7 rounds (original 2-round budget); both reviewers came back clean on the R6 fixes
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -51,6 +51,7 @@ Status: closed-out (recommended) — 5 rounds against a stated 2-round budget
 | 6-A | (PR#119) `mktemp` IIDFILE leaks on build failure under `set -e` (exit before the manual `rm`) | CORRECT — defect (hygiene) | Added `trap 'rm -f "$IIDFILE"' EXIT`; **kept** the manual `rm` (forward-safe variant) so a future EXIT trap can't silently re-leak it. See forward note. |
 | 6-B | (PR#119) The build-time POSTGRES_PASSWORD preflight (a runtime secret) reads as accidental | CORRECT — clarity (comment-only) | Added a comment: it's a deliberate whole-pipeline fail-fast preflight. No behavior change. |
 | 6-D | (PR#119) Optional `set -o pipefail` | APPLIED (optional; user opted in) | Added **with** the required pipe audit (only `echo \| docker login` [already aborts] + `printf \| grep -q` inside an if) documented inline. |
+| 7 | (PR#119 re-review of the R6 fixes — both reviewers) New code (exact-match digest loop, IIDFILE trap, `pipefail`) checked for regressions | CORRECT — no new defects (Codex: *approve, no material findings*; Claude: clean) | **Closeout.** Both independently confirmed C/A/B/D correct & fail-closed (while-loop is `set -e`-safe; `docker inspect` failure → empty → L166 exit 1; double-`rm -f` is a no-op; pipefail audit holds). Neither proposed reverting the exact-match loop → no oscillation. Only a trivial comment nit (see Open). |
 
 **Oscillation note:** R2 added the staging tag; R4 removed it; R5 flagged the
 reintroduced race. Root cause: stateless reviewers re-discovering the *opposite* cost
@@ -60,8 +61,12 @@ this ledger exists to prevent.
 
 ## Open / actionable
 
-- (none for T4e1) — R6 applied four genuine new minor findings (C/A/B/D) from the
-  PR#119 stateful review; none re-litigated a settled residual. Recommend closeout.
+- (none blocking) — R7 re-review converged: both reviewers clean on the R6 fixes, no
+  new defects, no re-litigation. Task **closed out**.
+- **Optional cleanup (trivial, non-blocking):** the `pipefail` audit comment at
+  `build-deploy-profile.sh:16` says `printf | grep -q`; the code at L160 uses `grep -Eq`
+  (the `-E` is required — `{64}` is an ERE quantifier). Comment-only; the code is correct.
+  Fold into any future touch of this file; not worth a standalone change.
 
 ## Forward notes (for downstream tasks)
 
