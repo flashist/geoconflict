@@ -6,6 +6,15 @@
 > be touched (see **Do NOT change** below). Verify the claim against the code before editing
 > (CLAUDE.md Review Notes) — it has already been verified once, but confirm.
 
+> **STATUS (process-review R2 — APPLIED):** applied at `build-deploy-profile.sh:308-310`
+> (`trap cleanup_secrets EXIT` + `trap 'exit 130' INT` + `trap 'exit 143' TERM`); `bash -n` clean.
+> **Correction:** the "Primary (correctness) symptom — false DONE on abort" described below was
+> **disproven on re-verification.** The script's existing `set -e` (`:13`,`:18`) already aborts on
+> the signal-killed `ssh` (exit 130) **before** the "DONE" banner — verified empirically on bash
+> 3.2.57 (with `set -e` off the false DONE reproduces; with `set -e` on it does not). So this was
+> applied as **explicit low-severity hardening** (removing the implicit `set -e` dependency; cleanup
+> runs once), **not** the medium correctness bugfix the section below frames it as. Severity: **low**.
+
 ## Context
 
 `build-deploy-profile.sh` is the local build+deploy driver for the player-profile backend

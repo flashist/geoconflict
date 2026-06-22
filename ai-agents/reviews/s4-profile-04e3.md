@@ -2,7 +2,7 @@
 
 Task: `ai-agents/tasks/backlog/s4-profile-04e3-deploy-wiring-milestone.md`
 File(s) under review: `build-deploy-profile.sh` (deploy/transport slice: SSH/SCP secret-staging + remote `setup-profile.sh` invocation, digest+domain passthrough). The PR's other file (`…/s4-profile-04i-server-bring-up-runbook.md`) is docs — not reviewed for code defects.
-Status: **in-review** — 1 open defect (**C1**, medium, non-blocking) routed to a coder-handoff; everything else verified correct or recorded as an accepted residual. Milestone (`https://api.geoconflict.ru/health` 200 over TLS) is still validation-gated on the on-box *Independent test*.
+Status: **resolved (R2)** — C1 re-verified empirically and **applied** as optional low-severity hardening (split trap, `build-deploy-profile.sh:308-310`). Its claimed *medium correctness defect* (false "DONE" on an aborted deploy) was **disproven**: the script's existing `set -e` (`:13`,`:18`) already aborts on the signal-killed `ssh` (exit 130), so the false success never prints — verified empirically on bash 3.2.57. No open defects. Milestone (`https://api.geoconflict.ru/health` 200 over TLS) remains validation-gated on the on-box *Independent test*.
 
 Reviewers (R1, stateful-review): **Claude `code-reviewer`** (review-only) + **Codex adversarial** — both ran, full coverage.
 
@@ -72,22 +72,25 @@ Related ledgers:
 | 1 | (**Claude**, *low/med*) `CERTBOT_EMAIL` personal-email default is PII-in-source | **INCORRECT as a defect → frontier-move** | Owner's own email in the owner's private deploy script; a working default is desirable for LE notices. → Accepted residual. |
 | 1 | (**Claude**, verified-correct) iidfile→secret-cleanup trap handoff (the 04e1 forward note) | **CONFIRMED CORRECT — no defect** | `$IIDFILE` is `rm`'d at `:140` (success path) before the new `trap cleanup_secrets EXIT INT TERM` at `:302` replaces the iidfile EXIT trap; on the build/push-failure window the old iidfile trap is still active. No re-leak. The 04e1 forward-note concern is properly addressed. |
 | 1 | (**Claude**, verified-correct) `REMOTE_ENV_STAGED` flag; secret-never-in-argv; fail-before-mutate ordering; exported vars reach `setup-profile.sh`; `set -e`/`pipefail` | **CONFIRMED CORRECT — no defect** | Flag set-before-SCP is conservative (cleans a partial transfer); no secret in any SSH/local argv (staged 0600 file, sourced + `rm`'d before setup runs); first box contact is the SCP at `:279` (after build/push, before any secret); `. ${REMOTE_ENV}` exports inherited by the `${REMOTE_SCRIPT}` child. |
+| 2 | (**process-review**) C1 re-verified before applying — does the false-"DONE" actually reproduce? | **PARTIALLY CORRECT — severity corrected medium→low; handoff premise disproven** | Empirical test (bash 3.2.57, SIGINT to the process group during the foreground command): with `set -e` **off** the false "DONE" reproduces (exit 0), but with `set -e` **on** (the actual script — `:13`,`:18`) it exits **130 with no false "DONE"**. So the handoff's "set -e doesn't help" claim is wrong and the *active* medium defect does not exist here. **Applied anyway (user-approved option A)** as explicit hardening: removes the implicit `set -e` dependency and makes cleanup run exactly once. Split trap now at `:308-310`. Non-regressing (fixed variant → exit 130, no DONE on every `set -e` setting); the verified-correct iidfile→EXIT-trap handoff is preserved (EXIT trap is still `cleanup_secrets`; `$IIDFILE` rm'd at `:140`). |
 
 **No oscillation / no loop:** first review of this slice. Both stateless reviewers led with two "high" findings each; verification collapsed them to **one medium real defect (C1)** — the rest were intentional designs (domain-optional, telemetry-mirrored root contract, owner email default) or a disproven premise (mktemp 0600). Classic stateless severity-inflation, caught at the dedup/verify gate.
 
 ## Open / actionable
 
-- **#C1 (medium, non-blocking) — INT/TERM trap never exits** — `build-deploy-profile.sh:295-302`.
-  Ctrl-C during the remote phase continues execution → false "DONE"; narrow umask re-stage
-  race. Fix: split traps so `INT`/`TERM` `exit` (130/143) and only `EXIT` cleans up.
-  **Routed to** `ai-agents/reviews/s4-profile-04e3-coder-handoff.md` (user-approved R1).
-  Validation-gate: the on-box *Independent test* (milestone curl + `ps`-during-deploy
-  secret check + bad-SSH-target fail-before-mutate + EXIT-trap cleanup) remains the
-  real merge gate regardless of C1.
+- _(none — no open defects.)_ **#C1 RESOLVED (R2):** the split-trap hardening is applied at
+  `build-deploy-profile.sh:308-310` (`trap cleanup_secrets EXIT` + `trap 'exit 130' INT` +
+  `trap 'exit 143' TERM`); `bash -n` clean. The claimed false-"DONE" correctness defect was
+  **disproven** (existing `set -e` already prevents it — see Decision log R2); this was applied
+  as explicit hardening, not a bugfix. Validation-gate: the on-box *Independent test* (milestone
+  curl + `ps`-during-deploy secret check + bad-SSH-target fail-before-mutate + EXIT-trap cleanup)
+  remains the real merge gate.
 
 ## Forward notes (for downstream tasks)
 
-- **T4g** (argv + concurrency hardening): if C1 is deferred rather than fixed here, fold the
-  signal-trap fix in alongside the `sshpass -p`→`-f` and deploy-lock work. The `/root/`-vs-user
-  path coupling (accepted residual) should be addressed repo-wide with `build-deploy-telemetry.sh`
-  if a non-root deploy user is ever required — not in one script alone.
+- **T4g** (argv + concurrency hardening): the signal-trap split was **applied here** (`:308-310`),
+  so T4g does **not** need to redo it (the original "fold the signal-trap fix in" plan is closed).
+  Note `build-deploy-telemetry.sh` does its secret cleanup **inline** (no `EXIT/INT/TERM` trap), so
+  there is nothing analogous to split there. The `/root/`-vs-user path coupling (accepted residual)
+  should still be addressed repo-wide with telemetry only if a non-root deploy user is ever
+  required — not in one script alone.

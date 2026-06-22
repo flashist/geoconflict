@@ -299,7 +299,15 @@ cleanup_secrets() {
         "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
     fi
 }
-trap cleanup_secrets EXIT INT TERM
+# Split traps (not `EXIT INT TERM` on one line): a non-exiting INT/TERM handler makes
+# bash RESUME after the interrupted command, so a Ctrl-C during the SSH phase could fall
+# through to the "DONE" banner below. set -e already aborts on the signal-killed ssh
+# (verified: the false "DONE" does NOT reproduce with set -e on), so this is explicit
+# hardening, not a live bugfix — INT/TERM exit with the conventional 128+signal status,
+# which fires the single EXIT trap so cleanup_secrets runs exactly once on any path.
+trap cleanup_secrets EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 chmod 600 "$LOCAL_TMPENV"
 
 # printf %q emits shell-safe, re-sourceable values — robust to passwords/tokens
