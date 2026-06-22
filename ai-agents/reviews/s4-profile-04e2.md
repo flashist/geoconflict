@@ -2,7 +2,7 @@
 
 Task: `ai-agents/tasks/backlog/s4-profile-04e2-onbox-stack-gate.md`
 File(s) under review: `setup-profile.sh` (deploy slice: profile.env + docker-compose.yml write, health-gate + digest rollback, systemd unit, backup/maintenance cron)
-Status: **in-review** (R1 — fresh stateful review of PR#119/PR#120 branch `s4-profile-04e2-onbox-stack-gate`; both reviewers ran + an independent verification pass). 3 confirmed defects open; the rest accepted as residuals.
+Status: **fixes-applied** (R2 — process-review re-verified all 4 R1 findings via an independent 5-agent adversarial pass against the actual code; **#1/#2/#3 fixed** in `setup-profile.sh`; **#4 deferred → T4g** — the handoff's pull-scoping fix was found NOT to address it). No open blockers; ready for on-box validation + a confirming stateful-review.
 
 Related ledger: `s4-profile-04e1.md` (sibling slice, `build-deploy-profile.sh`). Its keepers K2/K3/K4 are shared design context; nothing here was suppressed by it (different file). Its **"no bash test harness for deploy scripts"** residual still holds and was not challenged.
 
@@ -56,6 +56,18 @@ Related ledger: `s4-profile-04e1.md` (sibling slice, `build-deploy-profile.sh`).
   (no unprivileged traversal) and the compose file holds **no secrets** (creds live in
   `profile.env`); the window is not reachable by an unprivileged user. Re-raise only if:
   secrets are ever inlined into the compose file, or `/opt/profile` loosens from 0700.
+- **On-disk compose integrity after a failed pull (→ T4g)** *(was Open #4; deferred R2)* —
+  What: `profile.env` + `docker-compose.yml` are written (`:309-368`) **before** `docker
+  compose pull` (`:407`); on a **redeploy** whose new image is un-pullable, `set -e` exits
+  with the on-disk compose still pointing at the un-pullable image, and an already-enabled
+  systemd unit (`Restart=always`) loops on the next reboot. Why (structural): deploy
+  **atomicity** (stage/restore the compose around a *successful* pull) is **T4g's** declared
+  scope. Low blast radius: the running stack survives until reboot; needs a prior successful
+  deploy **and** an un-pullable redeploy to bite; on a fresh box the abort precedes `systemctl
+  enable`, so no loop. **The handoff's suggested `docker compose pull profile-api` does NOT
+  fix this** — profile-api is exactly the image that fails to pull; that scoping only addresses
+  the separate postgres-auto-pull residual. Re-raise only if: T4g lands and still omits on-disk
+  compose atomicity.
 
 ## Decision log
 
@@ -72,30 +84,29 @@ Related ledger: `s4-profile-04e1.md` (sibling slice, `build-deploy-profile.sh`).
 | 1 | (**Claude**) compose written `cat >` then `chmod 600` (umask window) | **INCORRECT as a defect** | Accepted residual — `/opt/profile` 0700 + no secrets in compose; reviewer itself: "functionally safe." Consistency nit. |
 | 1 | (**Claude**) unquoted heredoc "executes metacharacters" in `POSTGRES_PASSWORD` (`pass$word`/backtick) | **INCORRECT (disproven)** | **No action.** Empirically rendered: the var value is substituted **once, literally** — `whoami` did not run, `$word` did not re-expand. Bash expansions are non-recursive. (Only exotic edge: a literal newline in the password — out of scope.) |
 
-**No oscillation:** round 1 of a fresh review; no prior e2 decision was reversed. The 3
-open items are net-new defects, not relocations of an earlier fix.
+| 2 | (**process-review re-verify**) #1 health-gate — independent 5-agent adversarial pass | **CONFIRMED — defect (high), broader than R1** | **FIXED** at `setup-profile.sh:385-395`. Independent pass proved default `docker compose ps` hides **stopped/created** containers (`-a` needed), so **absent + Created + Exited** all false-passed — wider than R1's "absent only" (R1's "Exit caught by grep" was itself wrong). Replaced the negative grep with a positive per-service `ps -q` + `docker inspect {{.State.Health.Status}}=="healthy"` loop. Regression check: K3 rollback path **improved** (started-but-unhealthy old image still = FAILURE); `set -e`-safe (every cmd-subst `\|\| return 1`-guarded); forward wait still converges. |
+| 2 | (**process-review re-verify**) #2 disk-warn `%` | **CONFIRMED — defect (low-med)** | **FIXED** at `:696`. Escaped both `%`→`\\%` (renders `\%`, matching the pg_dump line). Rendered cron confirms zero bare `%`. |
+| 2 | (**process-review re-verify**) #3 certbot cron | **CONFIRMED — defect (low)** | **FIXED** at `:707-713`. Moved the certbot line to a `[ -n "$PROFILE_DOMAIN" ]`-gated `cat >>` append. Rendered: **absent** when domain unset, **present** (pre/post-hook intact) when set. R2 correction to R1: there is **no** "failed pre-hook noise" — `certbot: command not found` precedes the pre-hook, so no `systemctl stop nginx` fires. |
+| 2 | (**process-review re-verify**) #4 pull-integrity | **PARTIALLY CORRECT → DEFER T4g** | Finding real; **moved to Accepted residuals**. The handoff's "scope pull to `profile-api` also fixes #4" is **WRONG** (profile-api is the image that fails to pull) — verified; real fix = compose atomicity (T4g). |
+
+**No oscillation:** R1 was a fresh review; R2 (process-review) re-verified R1's findings against the live code and **applied** the 3 confirmed fixes + deferred #4. No prior e2 decision was reversed; the only R2 change to a verdict was *broadening* #1's blast radius and *correcting* the handoff's #4 fix (neither reopens a settled tradeoff).
 
 ## Open / actionable
 
-- **#1 (high) — health-gate presence check.** `setup-profile.sh:381-386`
-  (`all_services_running_healthy`). Make the assertion require **every expected
-  service present AND healthy**, not merely "no bad keyword." Must keep working for the
-  **K3 rollback path**, which calls the same function. Note: a naive `grep running` on
-  default `docker compose ps` output does **not** match (STATUS shows `Up … (healthy)`,
-  not `running`) — check per-service via `docker compose ps -q <svc>` + `docker inspect
-  …{{.State.Health.Status}}` (both services have healthchecks → require `healthy`).
-- **#2 (low-med) — disk-warn cron `%` escaping.** `setup-profile.sh:685`. Escape both
-  `%` as `\%` (heredoc source `\\%`): `tr -d '\\%'` and `… ${USAGE}\\%`. The pg_dump
-  line at L679 is the correct precedent.
-- **#3 (low) — gate the certbot-renew cron on `PROFILE_DOMAIN`.** `setup-profile.sh:687-692`.
-  Append the `certbot renew …` line only inside `if [ -n "$PROFILE_DOMAIN" ]`; the
-  pg_dump / prune / disk-warn jobs stay unconditional.
-- **#4 (low, optional) — on-disk config integrity after a failed pull.** `setup-profile.sh:407`
-  region. A redeploy whose new image fails `pull` leaves the on-disk compose pointing
-  at the un-pullable image; an already-enabled systemd unit then fails on next reboot.
-  Optional: pull into a staged compose / restore the prior compose on a pull failure,
-  OR scope the pull to `profile-api` (also addresses the postgres-pull residual).
-  Defer-to-T4g is acceptable.
+**None.** All R1 items are closed (R2):
+
+- **#1 (high) — health-gate presence check** — ✅ **FIXED** R2, `setup-profile.sh:385-395`
+  (positive per-service present-AND-`healthy` assertion; verified domain-set/unset render,
+  `bash -n`, K3-path regression check).
+- **#2 (low-med) — disk-warn cron `%` escaping** — ✅ **FIXED** R2, `setup-profile.sh:696`
+  (`tr -d '\\%'` + `${USAGE}\\%`; rendered cron shows zero bare `%`).
+- **#3 (low) — gate certbot-renew cron on `PROFILE_DOMAIN`** — ✅ **FIXED** R2,
+  `setup-profile.sh:707-713` (conditional `cat >>` append; absent when domain unset).
+- **#4 (low, optional) — on-disk config integrity after a failed pull** — ⏭️ **DEFERRED → T4g**
+  (moved to Accepted residuals; the handoff's pull-scoping fix does not address it).
+
+Next: on-box validation per the task's *Independent test*, then a confirming stateful-review
+to close the loop (no regression expected on the R2 code).
 
 ## Forward notes (for downstream tasks)
 

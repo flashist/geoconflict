@@ -374,14 +374,23 @@ cd "$PROFILE_DIR"
 
 print_header "STARTING PROFILE STACK"
 
-# Shared health assertion: true only when NO service container is still starting,
-# unhealthy, restarting, or exited. The forward wait AND the rollback wait both call
-# this one function, so a started-but-unhealthy image is reported FAILURE on either
-# path (K3). Mirrors setup-telemetry.sh's gate (+ Exit|Restarting so a crash-loop fails).
+# Shared health assertion: PROVE every expected service is present AND healthy — a
+# POSITIVE check, not "no bad keyword". A negative grep over `docker compose ps` is
+# unsound: the default `ps` shows only running containers (stopped/created need `-a`),
+# so an `up … || true` converge that left a service absent/created/exited would show
+# no keyword and the gate would wrongly report healthy (→ nginx onto a dead upstream).
+# The forward wait AND the K3 rollback wait both call this, so a started-but-unhealthy
+# image is FAILURE on either path. EXPECTED_SERVICES must track the compose services
+# (both declare healthchecks, so requiring State.Health == "healthy" is correct).
+EXPECTED_SERVICES="postgres profile-api"
 all_services_running_healthy() {
-    local ps
-    ps=$(docker compose ps 2>/dev/null) || return 1
-    printf '%s\n' "$ps" | grep -qE "starting|unhealthy|Exit|Restarting" && return 1
+    local svc cid health
+    for svc in $EXPECTED_SERVICES; do
+        cid=$(docker compose ps -q "$svc" 2>/dev/null) || return 1
+        [ -n "$cid" ] || return 1   # service not created → FAIL (closes the absent-container false positive)
+        health=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$cid" 2>/dev/null) || return 1
+        [ "$health" = "healthy" ] || return 1
+    done
     return 0
 }
 
@@ -682,15 +691,26 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +14 -delete
 
 # Disk usage warning — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.
-0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '%'); if [ "\$USAGE" -gt 60 ]; then echo "\$(date) -- disk usage \${USAGE}%" >> /var/log/disk-warnings.log; fi
+# Vixie cron (/etc/cron.d) turns an unescaped % into a newline, so BOTH % are escaped \\% (→ \% on
+# disk, matching the pg_dump line above) or the command would truncate at the first one and never run.
+0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '\\%'); if [ "\$USAGE" -gt 60 ]; then echo "\$(date) -- disk usage \${USAGE}\\%" >> /var/log/disk-warnings.log; fi
+EOF
 
-# Certbot renewal — twice daily (Let's Encrypt recommendation). FIX vs the seed's
-# reload-only post-hook: the cert was issued with the --standalone authenticator, which
-# binds port 80 for the HTTP-01 challenge — but nginx permanently owns port 80, so a
-# reload-only hook would NEVER renew and the cert would silently expire. Free port 80
-# around renewal: stop nginx (pre-hook), renew, start nginx (post-hook).
+# Certbot renewal — appended ONLY when a domain is configured. Without PROFILE_DOMAIN,
+# nginx + certbot are never installed (see the HTTPS guard above), so an unconditional
+# line would just log `certbot: command not found` twice daily on the standalone-test
+# path. Twice daily per the Let's Encrypt recommendation. FIX vs the seed's reload-only
+# post-hook: the cert is issued with the --standalone authenticator, which binds port 80
+# for the HTTP-01 challenge — but nginx permanently owns port 80, so a reload-only hook
+# would NEVER renew and the cert would silently expire. Free port 80 around renewal:
+# stop nginx (pre-hook), renew, start nginx (post-hook).
+if [ -n "$PROFILE_DOMAIN" ]; then
+    cat >> "$CRON_FILE" << EOF
+
+# Certbot renewal — twice daily (Let's Encrypt recommendation).
 0 0,12 * * * root certbot renew --quiet --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx" >> /var/log/certbot-renew.log 2>&1
 EOF
+fi
 
 chmod 644 "$CRON_FILE"
 echo "✅ Cron jobs written to $CRON_FILE"
