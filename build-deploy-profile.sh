@@ -1,14 +1,16 @@
 #!/bin/bash
 # build-deploy-profile.sh - Build the player-profile API image, push it to the
-# registry, and pin an immutable @sha256 digest. Usage: ./build-deploy-profile.sh
+# registry, pin an immutable @sha256 digest, and deploy it to the profile VPS.
+# Usage: ./build-deploy-profile.sh
 #
 # Reads config from .env / .env.secret / .env.profile / .env.profile.secret.
 # Builds Dockerfile.profile for linux/amd64, pushes it, and resolves the canonical
 # registry digest from the built image ID (fail-closed if none resolves).
 #
-# This is the LOCAL half of the profile deploy pipeline (T4e1) — it contacts no
-# VPS. The transport/deploy half (SSH/SCP upload + remote setup-profile.sh) is
-# stubbed below and lands in T4e3.
+# It then transports the deploy to the VPS (T4e3): uploads setup-profile.sh, stages
+# secrets in a 0600 env_file SCP'd to a 0600 remote file (never on box argv), then
+# SSH-sources + rm's it and runs setup-profile.sh — passing the @sha256 DIGEST (not a
+# mutable tag) and the domain through. Safe to re-run; setup-profile.sh is idempotent.
 
 set -e
 # pipefail: surface a failure from any stage of a pipeline, not just the last. Audited
@@ -18,6 +20,7 @@ set -e
 set -o pipefail
 
 DOCKERFILE="./Dockerfile.profile"
+SETUP_SCRIPT="./setup-profile.sh"
 
 print_header() {
     echo "======================================================"
@@ -34,6 +37,13 @@ load_env_file() {
     fi
 }
 
+is_truthy() {
+    case "$1" in
+        1|true|TRUE|yes|YES|on|ON) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 # ── Load config ───────────────────────────────────────────────────────────────
 
 load_env_file ".env"
@@ -47,10 +57,22 @@ fi
 
 load_env_file ".env.profile.secret"
 
-# ── Validate (local preconditions only) ───────────────────────────────────────
-# PROFILE_SERVER_HOST and the existence of setup-profile.sh are validated by the
-# deploy half in T4e3 — this slice contacts no box, so it must not depend on
-# either (setup-profile.sh is T4e2's deliverable and may not exist yet).
+# ── Validate ──────────────────────────────────────────────────────────────────
+# Both build (local) and deploy (transport) preconditions are checked up front so a
+# missing host/secret/script fails fast — before the expensive build+push — rather
+# than after. setup-profile.sh is T4e2's deliverable and now exists, so requiring it
+# here is safe (T4e1 deferred these two checks only because it contacted no box).
+
+if [ -z "${PROFILE_SERVER_HOST:-}" ]; then
+    echo "Error: PROFILE_SERVER_HOST is not set."
+    echo "Add it to .env.profile or export it before running."
+    exit 1
+fi
+
+if [ ! -f "$SETUP_SCRIPT" ]; then
+    echo "Error: $SETUP_SCRIPT not found"
+    exit 1
+fi
 
 if [ -z "${DOCKER_USERNAME:-}" ] || [ -z "${DOCKER_REPO:-}" ]; then
     echo "Error: DOCKER_USERNAME and DOCKER_REPO must be set (registry for the profile image)."
@@ -181,15 +203,156 @@ if ! docker buildx imagetools inspect "$PROFILE_DIGEST" >/dev/null 2>&1; then
     exit 1
 fi
 
-# ── Transport/deploy — STUBBED (T4e3) ─────────────────────────────────────────
-# The SSH/SCP upload, secret-staging, and remote setup-profile.sh invocation land
-# in T4e3, which un-stubs this section. Nothing below contacts a VPS today.
+# ── Resolve SSH user + auth ───────────────────────────────────────────────────
+# Key path is the standard and the default. Password fallback is gated behind
+# ALLOW_PROFILE_SSH_PASSWORD_FALLBACK and uses sshpass; its argv-exposing `-p` form
+# is DELIBERATELY retained here — replacing it with `sshpass -f <0600 file>` is T4g's
+# net-new hardening, not this slice's.
 
-print_header "TRANSPORT/DEPLOY — STUBBED"
-echo "Built & pushed: ${PROFILE_IMAGE}"
-echo "Source commit:  ${GIT_COMMIT}${WORKTREE_DIRTY:+ (DIRTY — image content differs from this commit)}"
-echo "Digest:         ${PROFILE_DIGEST}"
+REMOTE_USER="${PROFILE_SSH_USER:-}"
+if [ -z "$REMOTE_USER" ]; then
+    REMOTE_USER="root"
+fi
+
+SSH_PASSWORD="${PROFILE_SSH_PASSWORD:-}"
+SSH_KEY_PATH="${PROFILE_SSH_KEY:-}"
+ALLOW_PASSWORD_FALLBACK="${ALLOW_PROFILE_SSH_PASSWORD_FALLBACK:-${ALLOW_SSH_PASSWORD_FALLBACK:-}}"
+
+if [ -n "$SSH_KEY_PATH" ]; then
+    SSH_KEY_PATH="${SSH_KEY_PATH/#\~/$HOME}"
+    if [ ! -f "$SSH_KEY_PATH" ]; then
+        echo "Error: SSH key not found at $SSH_KEY_PATH"
+        exit 1
+    fi
+fi
+
+if [ -z "$SSH_KEY_PATH" ] && [ -z "$SSH_PASSWORD" ]; then
+    echo "Error: No profile SSH authentication configured."
+    echo "Provide PROFILE_SSH_KEY. Password-based deploy is deprecated."
+    exit 1
+fi
+
+# Build SSH/SCP command prefix.
+# StrictHostKeyChecking=accept-new: trust the host key on first connect (TOFU) but
+# REJECT a changed key — DNS/route interception or a rebuilt/stale VPS address — so
+# the profile box's prod DB password + service/registry tokens are never sent to an
+# impostor. (This box carries more sensitive secrets than the telemetry box.)
+# If the key legitimately changes, run: ssh-keygen -R <host>, re-verify, then redeploy.
+SCP_CMD=(scp -o StrictHostKeyChecking=accept-new)
+SSH_CMD=(ssh -o StrictHostKeyChecking=accept-new)
+
+if [ -n "$SSH_KEY_PATH" ]; then
+    SCP_CMD+=(-i "$SSH_KEY_PATH")
+    SSH_CMD+=(-i "$SSH_KEY_PATH")
+elif [ -n "$SSH_PASSWORD" ]; then
+    if ! is_truthy "$ALLOW_PASSWORD_FALLBACK"; then
+        echo "Error: Password-based profile deploy is disabled by default."
+        echo "Configure PROFILE_SSH_KEY for the standard path."
+        echo "For temporary emergency fallback, set ALLOW_PROFILE_SSH_PASSWORD_FALLBACK=1."
+        exit 1
+    fi
+    if ! command -v sshpass >/dev/null 2>&1; then
+        echo "Error: sshpass is required for password auth. Install it or provide PROFILE_SSH_KEY instead."
+        exit 1
+    fi
+    echo "Warning: Using deprecated password-based SSH fallback for profile deploy."
+    SCP_CMD=(sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=accept-new)
+    SSH_CMD=(sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=accept-new)
+fi
+
+REMOTE_SCRIPT="/root/setup-profile.sh"
+
+print_header "DEPLOYING PROFILE BACKEND TO ${PROFILE_SERVER_HOST}"
+echo "Remote user:   ${REMOTE_USER}"
+echo "Remote host:   ${PROFILE_SERVER_HOST}"
+echo "Image (tag):   ${PROFILE_IMAGE}"
+echo "Image digest:  ${PROFILE_DIGEST}"
+echo "Source commit: ${GIT_COMMIT}${WORKTREE_DIRTY:+ (DIRTY — image content differs from this commit)}"
 echo ""
-echo "Transport/deploy stage lands in T4e3 (SSH/SCP upload + remote setup-profile.sh)."
-echo "No VPS was contacted."
-exit 0
+
+# ── Upload setup script ───────────────────────────────────────────────────────
+# First contact with the box. A bad SSH target fails HERE (set -e aborts) before any
+# secret is staged and before the remote stack is mutated — setup-profile.sh runs last.
+
+print_header "UPLOADING SETUP SCRIPT"
+chmod +x "$SETUP_SCRIPT"
+"${SCP_CMD[@]}" "$SETUP_SCRIPT" "${REMOTE_USER}@${PROFILE_SERVER_HOST}:${REMOTE_SCRIPT}"
+echo "Uploaded to ${REMOTE_SCRIPT}"
+
+# ── Run setup remotely ────────────────────────────────────────────────────────
+
+print_header "RUNNING SETUP ON REMOTE SERVER"
+
+# Stage secrets in a local temp file and SCP it, rather than inlining them in the
+# SSH command (which would expose them in ps aux / /proc/<pid>/cmdline on the box).
+# Clean up BOTH the local and the remote staging file on ANY exit — interrupted
+# scp, a failed source, or Ctrl-C — so credentials never linger anywhere. This EXIT
+# trap intentionally replaces the build-phase iidfile trap, which has already done
+# its job ($IIDFILE was rm'd right after the build — see the note where it is set).
+REMOTE_ENV="/root/.profile-deploy-env-$$"
+LOCAL_TMPENV=$(mktemp)
+REMOTE_ENV_STAGED=0
+cleanup_secrets() {
+    rm -f "$LOCAL_TMPENV"
+    if [ "$REMOTE_ENV_STAGED" = "1" ]; then
+        # Best-effort; ignore errors (the host may be unreachable on a failure path).
+        "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
+    fi
+}
+# Split traps (not `EXIT INT TERM` on one line): a non-exiting INT/TERM handler makes
+# bash RESUME after the interrupted command, so a Ctrl-C during the SSH phase could fall
+# through to the "DONE" banner below. set -e already aborts on the signal-killed ssh
+# (verified: the false "DONE" does NOT reproduce with set -e on), so this is explicit
+# hardening, not a live bugfix — INT/TERM exit with the conventional 128+signal status,
+# which fires the single EXIT trap so cleanup_secrets runs exactly once on any path.
+trap cleanup_secrets EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+chmod 600 "$LOCAL_TMPENV"
+
+# printf %q emits shell-safe, re-sourceable values — robust to passwords/tokens
+# containing quotes, spaces, or other special characters.
+#
+# PROFILE_IMAGE carries the immutable @sha256 DIGEST (not the mutable profile-<sha>
+# tag): the box deploys by digest end-to-end, and setup-profile.sh declines anything
+# that is not @sha256-pinned. This closes the mutable-tag window.
+{
+    printf "export PROFILE_IMAGE=%q\n" "$PROFILE_DIGEST"
+    printf "export PROFILE_SERVER_HOST=%q\n" "$PROFILE_SERVER_HOST"
+    printf "export PROFILE_DOMAIN=%q\n" "${PROFILE_DOMAIN:-}"
+    printf "export PROFILE_PORT=%q\n" "${PROFILE_PORT:-8080}"
+    printf "export PROFILE_SWAP_SIZE_GB=%q\n" "${PROFILE_SWAP_SIZE_GB:-4}"
+    printf "export POSTGRES_USER=%q\n" "${POSTGRES_USER:-profile}"
+    printf "export POSTGRES_DB=%q\n" "${POSTGRES_DB:-profile}"
+    printf "export POSTGRES_PASSWORD=%q\n" "$POSTGRES_PASSWORD"
+    printf "export DATABASE_URL=%q\n" "${DATABASE_URL:-}"
+    printf "export PROFILE_INTERNAL_TOKEN=%q\n" "${PROFILE_INTERNAL_TOKEN:-}"
+    printf "export PROFILE_INTERNAL_ALLOW_IPS=%q\n" "${PROFILE_INTERNAL_ALLOW_IPS:-}"
+    printf "export CERTBOT_EMAIL=%q\n" "${CERTBOT_EMAIL:-ruflashist@gmail.com}"
+    printf "export DOCKER_USERNAME=%q\n" "${DOCKER_USERNAME:-}"
+    printf "export DOCKER_TOKEN=%q\n" "${DOCKER_TOKEN:-}"
+} > "$LOCAL_TMPENV"
+
+REMOTE_ENV_STAGED=1
+"${SCP_CMD[@]}" "$LOCAL_TMPENV" "${REMOTE_USER}@${PROFILE_SERVER_HOST}:${REMOTE_ENV}"
+
+# Source the staged env into the remote shell, rm it BEFORE setup-profile.sh runs
+# (so no secret reaches the box's process argv), then run setup-profile.sh — all in a
+# single SSH session so the secrets never persist on the box beyond this one command.
+"${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" \
+    "chmod 600 ${REMOTE_ENV} && \
+    chmod +x ${REMOTE_SCRIPT} && \
+    . ${REMOTE_ENV} && \
+    rm -f ${REMOTE_ENV} && \
+    ${REMOTE_SCRIPT}"
+# Happy path: the remote file is already gone, so skip the trap's remote cleanup.
+REMOTE_ENV_STAGED=0
+
+print_header "DONE"
+echo "Profile backend setup completed on ${PROFILE_SERVER_HOST}."
+echo ""
+echo "Next steps:"
+echo "  1. Verify: curl https://${PROFILE_DOMAIN:-<domain>}/health   # expect {\"status\":\"ok\"}"
+echo "  2. Set PROFILE_API_URL=https://${PROFILE_DOMAIN:-<domain>} in .env.<env> for the game server."
+echo "  3. (T6) Share PROFILE_INTERNAL_TOKEN with the game server's .env.prod."
+echo "======================================================"

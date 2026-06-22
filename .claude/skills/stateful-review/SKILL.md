@@ -88,7 +88,13 @@ The verdict is the reviewers' **recommendation, not an authorization** — this 
 
 Then present, in one place:
 - **Reviewers run** — and any that were unavailable/skipped (loudly).
-- **Findings table** — `source (Claude / Codex / both) | verdict | defect or frontier-move | one-liner`.
+- **Findings table** — a markdown table with **exactly these columns, in this order**:
+  - **#** — the finding's id (a stable short handle, e.g. `C1`, `A`, `Cl3` — used to refer to it in the convergence call, the ledger, and any handoff).
+  - **Reviewer** — which reviewer surfaced it: `Claude`, `Codex`, `both` (raised by both — higher signal), or a mixed form like `Claude + partially Codex` when one articulated it and the other touched part of it.
+  - **Reviewer severity** — the severity **as the reviewer rated it** (`low`, `med`, `low/med`, `high`, `critical`, etc.) — i.e. the raw, pre-verification claim.
+  - **Verified verdict** — the **correctness of the finding after you verified it against the code** (e.g. `CORRECT`, `PARTIALLY CORRECT`, `INCORRECT (disproven)`, `INCOMPLETE`), with any severity change you applied noted inline (e.g. `CORRECT → medium`).
+  - **Defect / frontier-move** — the classification: a genuine `Defect` vs an intentional `Frontier-move`/tradeoff (or `—` for a disproven/non-defect item).
+  - **One-liner** — a one-sentence description of the finding.
 - **Suppressed as settled** — each with its ledger pointer.
 - **Convergence call** — are these new defects, or re-litigation of settled tradeoffs? Recommend **act** vs **closeout**, with the reason. Don't wait for the user to spot a loop. (The one-line verdict above is the compressed form of this call — keep them consistent.)
 
