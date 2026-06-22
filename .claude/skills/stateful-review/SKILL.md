@@ -69,11 +69,28 @@ Hand the novel, deduped findings to the `process-review` flow: classify **defect
 
 ## Step 4 — Consolidated report
 
-Present, in one place:
+**Lead with a one-line decision verdict.** The report MUST open with its title, then the verdict on the **2nd–3rd line** (directly under the title) so it's the first thing read — an at-a-glance call based on the reviewers' findings:
+
+```
+# Stateful Review — <task-id> (<scope>)
+
+**Decision: 🛑 Blocked — 2 confirmed defects (1 high)**
+```
+
+Pick **exactly one** verdict, derived from the Step 2/3 outcome:
+- **✅ Ready to merge** — no open confirmed defects; every finding is clean, an accepted residual, or suppressed re-litigation. Append **"(validation-gated)"** when an on-box/manual test is the only remaining gate.
+- **🔁 Closeout — no action (loop)** — all findings re-litigate settled residuals; nothing genuinely new. (A ready-to-merge flavor that explicitly names the stopped loop.)
+- **⚠️ Changes requested — N defects (none blocking)** — confirmed medium/low defects exist; fixing is recommended but not strictly merge-blocking.
+- **🛑 Blocked — N confirmed defects (M high/critical)** — at least one confirmed high/critical defect is open; must fix before merge.
+- **🟡 Partial review — `<reviewer>` unavailable** — a reviewer failed/was skipped, so coverage is incomplete. This caveat **takes precedence** in the verdict line: never pair a clean "Ready to merge" with a missing reviewer (e.g. `🟡 Partial — Codex unavailable; Claude-only: ready to merge`).
+
+The verdict is the reviewers' **recommendation, not an authorization** — this skill changes no code and does not merge. The next action is still Step 5 (record to the ledger); any fix/merge is a separate, user-initiated step.
+
+Then present, in one place:
 - **Reviewers run** — and any that were unavailable/skipped (loudly).
 - **Findings table** — `source (Claude / Codex / both) | verdict | defect or frontier-move | one-liner`.
 - **Suppressed as settled** — each with its ledger pointer.
-- **Convergence call** — are these new defects, or re-litigation of settled tradeoffs? Recommend **act** vs **closeout**, with the reason. Don't wait for the user to spot a loop.
+- **Convergence call** — are these new defects, or re-litigation of settled tradeoffs? Recommend **act** vs **closeout**, with the reason. Don't wait for the user to spot a loop. (The one-line verdict above is the compressed form of this call — keep them consistent.)
 
 ---
 
@@ -111,7 +128,8 @@ Findings remain **recommendations**: the coder-agent is a separate, user-initiat
 - **REVIEW ONLY: this skill never edits source code** — not even with approval. It writes only documents (the ledger in Step 5, the optional handoff in Step 6). Applying a fix is a separate, user-initiated step *after* this skill finishes.
 - **Decisions are the user's — ask interactively.** Where a finding's disposition (defect vs intentional tradeoff, what to record, handoff scope/format) is genuinely the user's call, use `AskUserQuestion` with concrete options; never silently decide, and never frame the question as "apply this fix?".
 - The **optional coder handoff (Step 6) is a spec, not an applied fix** — it documents recommendations for a separate coder-agent; producing it changes no code under review.
-- A reviewer being unavailable MUST be reported loudly; never present a partial review as complete.
+- The Step 4 report MUST **lead with a one-line decision verdict** (Ready to merge / Closeout / Changes requested / Blocked / Partial) on the 2nd–3rd line, directly under the title — derived from the findings, and consistent with the convergence call. It's a recommendation, not a merge/apply authorization.
+- A reviewer being unavailable MUST be reported loudly; never present a partial review as complete (and the verdict line must carry the Partial caveat).
 - Output-side dedup against the ledger is mandatory even if the reviewers ignored the priming.
 - Do not duplicate `process-review`'s evaluation logic — invoke it on the novel findings.
 - Both reviewers are **inputs to evaluate, not authorities** — verify every claim against the code (per CLAUDE.md Review Notes).

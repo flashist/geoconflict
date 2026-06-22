@@ -2,7 +2,8 @@
 
 Task: `ai-agents/tasks/backlog/s4-profile-04e2-onbox-stack-gate.md`
 File(s) under review: `setup-profile.sh` (deploy slice: profile.env + docker-compose.yml write, health-gate + digest rollback, systemd unit, backup/maintenance cron)
-Status: **fixes-applied** (R2 — process-review re-verified all 4 R1 findings via an independent 5-agent adversarial pass against the actual code; **#1/#2/#3 fixed** in `setup-profile.sh`; **#4 deferred → T4g** — the handoff's pull-scoping fix was found NOT to address it). No open blockers; ready for on-box validation + a confirming stateful-review.
+Status: **closed-out (validation-gated)** (R3 — confirming stateful-review: the Claude reviewer + an independent `bash -n`/cron-render pass verified the R2 fixes **#1/#2/#3** are correct and regression-free; **#4 deferred → T4g**. Codex's 2 R3 findings were the postmortem's documented `DATABASE_URL`/T5 recurring false-high — **suppressed, not acted on**. No open blockers; the only remaining gate is the on-box *Independent test*.)
+Earlier: **fixes-applied** (R2 — process-review re-verified all 4 R1 findings via an independent 5-agent adversarial pass; #1/#2/#3 fixed; #4 deferred → T4g — the handoff's pull-scoping fix was found NOT to address it).
 
 Related ledger: `s4-profile-04e1.md` (sibling slice, `build-deploy-profile.sh`). Its keepers K2/K3/K4 are shared design context; nothing here was suppressed by it (different file). Its **"no bash test harness for deploy scripts"** residual still holds and was not challenged.
 
@@ -68,6 +69,22 @@ Related ledger: `s4-profile-04e1.md` (sibling slice, `build-deploy-profile.sh`).
   fix this** — profile-api is exactly the image that fails to pull; that scoping only addresses
   the separate postgres-auto-pull residual. Re-raise only if: T4g lands and still omits on-disk
   compose atomicity.
+- **DATABASE_URL address + DB-credential rotation → T5** *(added R3)* — What: the
+  synthesized `DATABASE_URL` uses `@127.0.0.1:5432`, and `POSTGRES_PASSWORD` is read fresh
+  from env each run. Why (structural): **no code consumes `DATABASE_URL` yet** — profile-api
+  is a `/health` skeleton with no `pg` dependency (`grep src/` = 0 hits), so the URL is an
+  **inert template string** and nothing connects to postgres at deploy time. Per the task
+  rule (`s4-profile-04e-deploy-mechanics.md:57` — "`DATABASE_URL`/awk findings may **not**
+  reopen this chunk, out of scope by rule") + the postmortem (`…-2026-06-19.md:319/335/386`,
+  the canonical recurring DATABASE_URL false-high), **all connect/address/readiness/rotation
+  concerns are T5's**. Two facts T5 inherits (recorded so they aren't lost): (a) `127.0.0.1`
+  will **not** reach postgres from an *in-container* consumer on the compose bridge network —
+  T5 must pick the address deliberately (service-name `postgres:5432`, or host-networking)
+  when it wires the real consumer; (b) the postgres image **ignores** a changed
+  `POSTGRES_PASSWORD` on an existing `postgres_data` volume, so credential rotation needs an
+  explicit rotation step + an authenticated readiness check (the `/ready` + DB-query the task
+  also defers to T5). Re-raise only if: a real `pg` consumer lands (then it's T5's live
+  defect to fix against the actual topology, not this slice's).
 
 ## Decision log
 
@@ -88,8 +105,11 @@ Related ledger: `s4-profile-04e1.md` (sibling slice, `build-deploy-profile.sh`).
 | 2 | (**process-review re-verify**) #2 disk-warn `%` | **CONFIRMED — defect (low-med)** | **FIXED** at `:696`. Escaped both `%`→`\\%` (renders `\%`, matching the pg_dump line). Rendered cron confirms zero bare `%`. |
 | 2 | (**process-review re-verify**) #3 certbot cron | **CONFIRMED — defect (low)** | **FIXED** at `:707-713`. Moved the certbot line to a `[ -n "$PROFILE_DOMAIN" ]`-gated `cat >>` append. Rendered: **absent** when domain unset, **present** (pre/post-hook intact) when set. R2 correction to R1: there is **no** "failed pre-hook noise" — `certbot: command not found` precedes the pre-hook, so no `systemctl stop nginx` fires. |
 | 2 | (**process-review re-verify**) #4 pull-integrity | **PARTIALLY CORRECT → DEFER T4g** | Finding real; **moved to Accepted residuals**. The handoff's "scope pull to `profile-api` also fixes #4" is **WRONG** (profile-api is the image that fails to pull) — verified; real fix = compose atomicity (T4g). |
+| 3 | (**confirming review** — Claude reviewer + independent `bash -n`/cron-render pass) R2 fixes #1/#2/#3 | **CONFIRMED FIXED — no regression** | Health-gate positive per-service check sound + K3 rollback path preserved + `set -e`-safe; cron renders **0 bare `%`**; certbot line **absent** when domain unset; both heredocs balanced (`bash -n` clean). Claude reviewer: clean (one N/A multi-replica note — single-replica, no `scale:`). |
+| 3 | (**Codex**) "API uses `127.0.0.1`, not `postgres:5432` → can't reach postgres" (`:298-302`) | **SUPPRESSED — re-litigates settled T5 boundary** | No consumer exists (skeleton API, no `pg` dep → `DATABASE_URL` inert); address is T5's per task rule (`…04e-deploy-mechanics.md:57`) + postmortem (`:319/335/386`). Codified in the new "DATABASE_URL … → T5" residual. |
+| 3 | (**Codex**) "password rotation → false-green; add authenticated readiness probe" (`:309-316`) | **SUPPRESSED — re-litigates settled T5 boundary** | The probe = the `/ready` + DB-query-at-deploy the task put **OUT → T5**; rotation only bites once the API authenticates (it doesn't yet). Folded into the new DATABASE_URL/T5 residual. |
 
-**No oscillation:** R1 was a fresh review; R2 (process-review) re-verified R1's findings against the live code and **applied** the 3 confirmed fixes + deferred #4. No prior e2 decision was reversed; the only R2 change to a verdict was *broadening* #1's blast radius and *correcting* the handoff's #4 fix (neither reopens a settled tradeoff).
+**No oscillation:** R1 fresh review; R2 (process-review) re-verified + **applied** the 3 fixes + deferred #4; R3 (this confirming review) verified the fixes clean and **suppressed** Codex's 2 findings as the exact `DATABASE_URL`/T5 re-litigation the postmortem predicted ("returns as a fresh 'high' next run"). No e2 decision was ever reversed; no fix recreated a cost a prior finding flagged.
 
 ## Open / actionable
 
@@ -105,8 +125,11 @@ Related ledger: `s4-profile-04e1.md` (sibling slice, `build-deploy-profile.sh`).
 - **#4 (low, optional) — on-disk config integrity after a failed pull** — ⏭️ **DEFERRED → T4g**
   (moved to Accepted residuals; the handoff's pull-scoping fix does not address it).
 
-Next: on-box validation per the task's *Independent test*, then a confirming stateful-review
-to close the loop (no regression expected on the R2 code).
+R3 confirming review **done** — fixes verified clean, Codex's 2 findings suppressed as
+settled. **Closed-out (validation-gated):** the only remaining gate is the on-box
+*Independent test* (force-fail the health-gate → rollback with volume intact; non-`@sha256`
+→ HALT; `certbot renew --dry-run` via the pre/post-hook). Reopen only if that surfaces a
+regression.
 
 ## Forward notes (for downstream tasks)
 
