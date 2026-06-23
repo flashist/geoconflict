@@ -17,7 +17,7 @@ Provision the dedicated reg.ru profile/API VPS so later deploy slices can run th
 
 ## Outcome
 
-T4d is complete and unblocks T4e deploy mechanics. The provisioned host establishes the downstream network shape: only SSH/HTTP/HTTPS are exposed, TLS terminates at nginx, Postgres is not exposed, and the future internal endpoint inherits an IP allowlist when T5 adds the route.
+T4d is complete and unblocks T4e deploy mechanics. The provisioned host establishes the downstream network shape: only SSH/HTTP/HTTPS are exposed, TLS terminates at nginx, Postgres is not exposed, and the future internal endpoint inherits an IP allowlist when T5 adds the route. The live host still needs the operator bring-up runbook to be executed before T5 can go live.
 
 The RU-residency review finding was rejected as a no-ship blocker. Residency is an operator precondition and tester-side acceptance check: the operator provisions the reg.ru/RU host and verifies its public IP geolocates to Russia. `setup-profile.sh` intentionally does not add a fail-closed third-party geo-IP dependency, which could reject a valid RU hosting address or block provisioning during provider/API failure.
 
@@ -27,3 +27,5 @@ The RU-residency review finding was rejected as a no-ship blocker. Residency is 
 - [[decisions/profile-deploy-hardening-review-loop]] — bounded T4 restart and review policy
 - [[tasks/player-profile-store-investigation]] — dedicated profile/API VPS architecture
 - [[tasks/profile-build-push-digest]] — local T4e1 workflow that deliberately leaves this host untouched
+- [[tasks/profile-onbox-stack-gate]] — T4e2 stack lifecycle intended to run on this host
+- [[tasks/profile-server-bring-up-runbook]] — T4i operator steps for provisioning DNS, deploying, and verifying the live host

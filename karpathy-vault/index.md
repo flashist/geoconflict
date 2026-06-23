@@ -73,6 +73,10 @@
 - [[tasks/profile-docker-image]] — Sprint 4 T4c allowlist-copy, linux/amd64 Docker image for the profile service
 - [[tasks/profile-vps-provisioning]] — Sprint 4 T4d dedicated reg.ru VPS provisioning, TLS/network boundary, and operator-verified RU residency
 - [[tasks/profile-build-push-digest]] — Sprint 4 T4e1 local amd64 profile-image build, registry push, and fail-closed immutable digest resolution
+- [[tasks/profile-onbox-stack-gate]] — Sprint 4 T4e2 on-box compose stack, health gate, systemd lifecycle, and digest rollback
+- [[tasks/profile-deploy-wiring]] — Sprint 4 T4e3 SSH/SCP deploy wiring, secret staging, and end-to-end digest passthrough
+- [[tasks/profile-image-secret-scan]] — Sprint 4 T4f built-image layer byte scan that blocks secret-bearing profile image pushes
+- [[tasks/profile-server-bring-up-runbook]] — Sprint 4 T4i operator runbook for bringing `api.geoconflict.ru/health` live on the reg.ru VPS
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
 - [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement
 - [[tasks/start-screen-redesign-implementation]] — Sprint 4 implementation of the two-tab start screen, citizenship card shell, tab persistence, localization rename, and tab analytics

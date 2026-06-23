@@ -11,7 +11,7 @@ Source: `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19
 
 ## Decision
 
-Stop and revert the monolithic T4 attempt. Resume profile infrastructure as independently shippable T4a–T4g slices. T4a through T4d are now complete; the remaining sequence starts with T4e deploy mechanics.
+Stop and revert the monolithic T4 attempt. Resume profile infrastructure as independently shippable T4a–T4i slices. T4a through T4f are now complete; the remaining sequence is T4g argv/concurrency hardening, T4h game-server deploy environment propagation, and T4i operator bring-up of the live host.
 
 For each remaining deploy slice:
 
@@ -27,14 +27,16 @@ The restart should preserve the proven properties from the abandoned branch: sec
 ## Consequences
 
 - The abandoned branch and its large doctrine are historical evidence, not implementation law and not a source to merge wholesale.
-- Profile infrastructure progresses through T4a server skeleton, T4b client API URL, T4c Docker image, T4d VPS/DNS, T4e deploy mechanics, T4f image-secret scanning, and T4g argv/concurrency hardening. T4a–T4d are complete.
+- Profile infrastructure progresses through T4a server skeleton, T4b client API URL, T4c Docker image, T4d VPS/DNS, T4e deploy mechanics, T4f image-secret scanning, T4g argv/concurrency hardening, T4h game-server deploy environment propagation, and T4i operator bring-up. T4a–T4f are complete.
 - T4d established the dedicated reg.ru host, DNS/TLS boundary, SSH-first firewall, swap, Docker, and dormant internal nginx allowlist. RU residency remains an operator precondition plus acceptance verification rather than a fragile script-side geo-IP API gate.
+- T4e was split into T4e1 local build/push/digest, T4e2 on-box compose plus rollback lifecycle, and T4e3 SSH/SCP deploy wiring. Together they preserve digest pinning, fail-closed rollback, secret staging, and the TLS health milestone without reintroducing a monolithic review surface.
+- T4f made the image layer byte scan the blocking oracle and left Dockerfile parsing as advisory-only, matching the postmortem decision to avoid an endless parser hardening loop.
 - The exact disposition of the advisory Dockerfile parser and old doctrine remains an owner choice; neither should block the bounded T4 slices.
 - Review termination is defined by fixed acceptance criteria, not by a reviewer's silence.
 
 ## Related
 
-- [[decisions/sprint-4]] — profile-store track and T4a–T4g sequence
+- [[decisions/sprint-4]] — profile-store track and T4a–T4i sequence
 - [[systems/producer-workflow]] — task scoping, acceptance-criteria, and review-boundary guidance
 - [[decisions/vps-credential-leak-response]] — security incident that established the underlying Docker secret-boundary requirements
 - [[tasks/profile-server-skeleton]] — completed T4a liveness-only server foundation
@@ -42,3 +44,7 @@ The restart should preserve the proven properties from the abandoned branch: sec
 - [[tasks/profile-docker-image]] — completed T4c allowlist-copy profile image
 - [[tasks/profile-vps-provisioning]] — completed T4d box provisioning and network boundary
 - [[tasks/profile-build-push-digest]] — completed T4e1 local build, push, and immutable digest resolution
+- [[tasks/profile-onbox-stack-gate]] — completed T4e2 on-box stack, lifecycle, health gate, and rollback
+- [[tasks/profile-deploy-wiring]] — completed T4e3 deploy transport and secret staging
+- [[tasks/profile-image-secret-scan]] — completed T4f image byte-scan gate
+- [[tasks/profile-server-bring-up-runbook]] — T4i operator runbook for live host bring-up

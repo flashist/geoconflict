@@ -22,3 +22,4 @@ The Docker hardening is no longer just a one-time fix. It now has an automated r
 
 - [[decisions/vps-credential-leak-response]] — incident that motivated the regression guard
 - [[tasks/incident-postmortem-followups]] — closure task that created this follow-up track
+- [[tasks/profile-image-secret-scan]] — later profile-image gate that uses layer-byte scanning as the blocking oracle

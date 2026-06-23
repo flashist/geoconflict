@@ -17,7 +17,7 @@ Package the profile server as a `linux/amd64` Docker image whose build context i
 
 ## Outcome
 
-The standalone profile server has a buildable, runnable image with a structural secret boundary and an explicit architecture contract. Build/push orchestration remains T4e, while the authoritative layer-byte secret scan remains T4f.
+The standalone profile server has a buildable, runnable image with a structural secret boundary and an explicit architecture contract. Build/push orchestration is covered by T4e1, and the authoritative layer-byte secret scan is now covered by T4f.
 
 ## Related
 
@@ -26,3 +26,4 @@ The standalone profile server has a buildable, runnable image with a structural 
 - [[tasks/profile-server-skeleton]] — T4a service executed by this image
 - [[tasks/repo-build-context-hardening]] — earlier game-image allowlist-copy hardening
 - [[tasks/profile-build-push-digest]] — T4e1 workflow that builds and pushes this image for amd64
+- [[tasks/profile-image-secret-scan]] — T4f byte-scan gate for the built image layers
