@@ -19,6 +19,8 @@
 | ⬜ No sprint | Mobile Memory and WebGL Rendering Failures | `backlog/mobile-webgl-rendering.md` | Clearer mobile crash/perf data |
 | ⬜ No sprint | sec10 — Remove Password Deploy Fallbacks | `backlog/sec10-remove-password-deploy-fallbacks.md` | — |
 | ⬜ No sprint | sec11 — Secret Management Beyond Env Files | `backlog/sec11-secret-management-beyond-env-files.md` | — |
+| ⬜ No sprint | sec12 — VPS Registry Credential Hygiene (scoped pull-only token, no persisted creds) | `backlog/sec12-vps-registry-credential-hygiene.md` | Release-adjacent (live profile box); pairs with sec13 |
+| ⬜ No sprint | sec13 — Deploy Transport Secret Hygiene (telemetry EXIT-trap parity + remote env 0600) | `backlog/sec13-deploy-transport-secret-hygiene.md` | After T4g (PR #125) merges |
 | ⬜ No sprint | Worker Init Timeout — Redundant Map Re-fetch on Join | `backlog/worker-init-timeout-map-refetch.md` | — |
 | ⬜ No sprint | Bots: Stop Building SAM Launchers When Nukes Are Disabled | `backlog/bots-skip-sam-when-nukes-disabled.md` | — |
 | ⬜ No sprint | Bots/Nations: Effective Hydrogen-Bomb Use vs SAM Defenses (offset targeting) — investigation | `backlog/bots-hydrogen-bomb-sam-penetration-investigation.md` | — |
@@ -149,6 +151,22 @@ Security hardening follow-up from the VPS credential leak incident. Remove `sshp
 **Brief:** `backlog/sec11-secret-management-beyond-env-files.md`
 
 Security architecture follow-up from the VPS credential leak incident. Inventory secrets by type, choose a target secret-management approach for this team size, and migrate at least one class of secrets out of plaintext local env storage. Produces a documented model and rotation workflow.
+
+---
+
+### sec12 — VPS Registry Credential Hygiene
+
+**Brief:** `backlog/sec12-vps-registry-credential-hygiene.md`
+
+Security hardening follow-up, homed from finding **X2** in the `s4-profile-04e3` stateful-review (PR #121). `setup-profile.sh` runs `docker login --password-stdin` so `docker compose pull` can fetch the private image; the token is delivered securely (stdin, 0600 staged env, sourced + `rm`'d), **but there is no `docker logout` and no isolated `DOCKER_CONFIG`**, so the credential persists base64 in `/root/.docker/config.json` on a public box — and the runbook reuses the *game's* broad registry credentials, so a profile-VPS compromise could expose creds able to read/push unrelated production images. Fix: issue a **repository-scoped, pull-only** token for the VPS (or drop the login if the image is anonymously pullable), and run the pull under an isolated `DOCKER_CONFIG` or `docker logout` immediately after — applied repo-wide to the telemetry deploy too. **Hardening, not a regression** (the persistence was an accepted `s4-profile-04e2` design choice); it narrows blast radius. The more release-adjacent of the sec12/sec13 pair (it concerns the live public box). Sibling of `sec13` (deploy transport secret hygiene); architecture-level secret management → `sec11`.
+
+---
+
+### sec13 — Deploy Transport Secret Hygiene
+
+**Brief:** `backlog/sec13-deploy-transport-secret-hygiene.md`
+
+Security hardening follow-up (deploy transport), raised by the technical specialist + code-reviewer while reviewing `s4-profile-04g` (PR #125). Closes two transport-layer secret-exposure windows across both deploy pipelines: **(F-NEW-1)** `build-deploy-telemetry.sh` removes its 0600 secret env_file with an inline `rm` after the SCP, so a failed SCP under `set -e` leaves the plaintext secret on the dev host — give telemetry a single unconditional EXIT-trap cleanup mirroring profile's `finalize_deploy`; **(A2)** the remote staging env_file briefly holds scp-default perms before the in-session `chmod 600` — make it 0600 from creation in both the profile and telemetry scripts. Optional C2 parity: telemetry `StrictHostKeyChecking=no → accept-new`. **Low priority, post-release — NOT a citizenship/profile go-live blocker** (marginal exposure: `/root` is 0700 single-root and the secrets already live plaintext in `.env.*.secret` on the dev host). Builds on T4g's transport code, so it lands after T4g (PR #125) merges — naturally alongside `sec12`. Sibling of `sec12` (registry-credential hygiene).
 
 ---
 
