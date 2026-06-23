@@ -25,7 +25,9 @@
 #   PROFILE_INTERNAL_ALLOW_IPS — game-server IPs for the dormant nginx /internal/ allowlist
 #   CERTBOT_EMAIL              — Let's Encrypt email (default ruflashist@gmail.com)
 #   DOCKER_USERNAME/DOCKER_TOKEN — optional registry auth for pulling a private PROFILE_IMAGE
-#   PROFILE_SERVER_HOST        — IP/host (used only for the connection-info banner)
+#   PROFILE_SERVER_HOST        — IP/host of this box; used for the connection-info banner
+#                                and the HTTPS DNS pre-check (NAT-bypass match — prefer an
+#                                IP; a hostname is getent-resolved for the gate)
 #
 # What this script does:
 #   1. Ensures a swapfile exists (low-RAM VPS OOM cushion)
@@ -496,14 +498,26 @@ if [ -n "$PROFILE_DOMAIN" ]; then
         exit 1
     fi
     HOST_IPS=$(hostname -I 2>/dev/null || true)
+    # On a NAT'd VPS (e.g. reg.ru 1:1 NAT), the public IP the A-record points at is
+    # never present on a local interface — `hostname -I` only shows the private address
+    # (e.g. 192.168.x.x). The explicit deploy target PROFILE_SERVER_HOST *is* that public
+    # IP, so accept it as well: "DNS resolves to the host we are deploying to" is exactly
+    # the intent of this gate, and certbot's HTTP-01 still reaches the box via the NAT.
+    ACCEPTABLE_IPS="$HOST_IPS ${PROFILE_SERVER_HOST:-}"
+    # PROFILE_SERVER_HOST may be a hostname (documented "IP/host" form); resolve it to
+    # IP(s) too so the hostname form also matches the getent-resolved domain IP. (getent
+    # on an IP returns that IP, so this is a harmless no-op for the common IP-valued case.)
+    if [ -n "${PROFILE_SERVER_HOST:-}" ]; then
+        ACCEPTABLE_IPS="$ACCEPTABLE_IPS $(getent hosts "$PROFILE_SERVER_HOST" | awk '{print $1}')"
+    fi
     DNS_MATCH=0
     for rip in $RESOLVED_IPS; do
-        for hip in $HOST_IPS; do
+        for hip in $ACCEPTABLE_IPS; do
             [ "$rip" = "$hip" ] && DNS_MATCH=1
         done
     done
     if [ "$DNS_MATCH" -ne 1 ]; then
-        echo "Error: $PROFILE_DOMAIN resolves to [$RESOLVED_IPS], not an IP on this host ([$HOST_IPS])."
+        echo "Error: $PROFILE_DOMAIN resolves to [$RESOLVED_IPS], not this host (local [$HOST_IPS] / target [${PROFILE_SERVER_HOST:-unset}])."
         echo "Update the A record to point at this box before deploying (certbot HTTP-01 would fail)."
         exit 1
     fi
