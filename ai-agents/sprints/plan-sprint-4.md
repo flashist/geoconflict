@@ -22,10 +22,11 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⚠️ Urgent | Yandex Catalog Registration (manual, non-engineering) | `s4-yandex-catalog-registration.md` |
 | ✅ Done | Solo Mode: Opponent Win Condition Not Triggering Loss | `s4-solo-win-condition-fix.md` |
 | ✅ Done | Fix: Space Key Blocked in Feedback Modal During Match | `s4-feedback-modal-space-key.md` |
+| ⬜ Backlog | Feedback Popup: Remove Email/Contact Field *(152-ФЗ data minimization; client + server + en/ru)* | `s4-feedback-remove-contact-field.md` |
 | ✅ Done | Investigation — Missions Mode Difficulty Curve | `s4-missions-difficulty-investigation.md` |
 | ✅ Done | Nuke Pre-Launch Trajectory: Increase Line Thickness | `s4-nuke-trajectory-visibility.md` |
 | ⬜ Backlog | Map Labels: Show Troops/Max + Attacking Troops | `s4-map-population-army-labels.md` |
-| ⬜ Backlog | Public Modifier: Add "5M Starting Gold" *(companion to infinite-gold removal)* | `s4-starting-gold-public-modifier.md` |
+| ⬜ Backlog | Public Modifier: Add "5M Starting Gold" *(standalone variety modifier; decoupled from infinite-gold task 2026-06-20)* | `s4-starting-gold-public-modifier.md` |
 | ✅ Done | Teams Mode: Cap Maximum Teams at 4 | `s4-teams-mode-max-teams.md` |
 | ✅ Done | Start Screen Redesign — Tab Layout Investigation (design) | `s4-start-screen-redesign-investigation.md` |
 | ✅ Done | Start Screen Redesign — Implementation | `s4-start-screen-redesign-impl.md` |
@@ -376,6 +377,19 @@ Add a bounded economic-boost weird modifier: a one-time **5M starting gold** gra
 Add a "Subscribe to updates" modal with a single email input field. Entry point buttons added to both the match start and match end modals. On submit, the email is sent to the Telegram bot via the existing feedback pipeline as a new message type. No frequency capping or duplicate checks in v1.
 
 See full brief: `s4-email-subscribe-task.md`
+
+---
+
+## Feedback Popup — Remove Email/Contact Field (152-ФЗ)
+
+**Effort:** ~half a day
+**Experiments:** ❌ Excluded — legal/compliance change, ships to all players.
+**Independent** — no dependency on the citizenship/payments track.
+**Brief:** `s4-feedback-remove-contact-field.md`
+
+The feedback popup collects an optional contact field (placeholder *"Email or Telegram (optional)"*). Collecting personal contact data triggers 152-ФЗ obligations for a field we don't need, so remove it entirely — data minimization. Full end-to-end removal across `src/client/FeedbackModal.ts` (state, input, payload), `src/server/Master.ts` (`contact` out of `FeedbackSchema` so Zod strips it even from stale clients, plus the webhook + Telegram message formatting), and the `feedback_modal.contact_placeholder` key in **both** en/ru. Verification is live: field gone from the popup, and the delivered Telegram report no longer carries a Contact line; `Feedback:Submitted` still fires (no new analytics).
+
+**⚠️ Related exposure:** the **Email Subscription Modal** (above) collects email by design — same 152-ФЗ concern, different fix (can't just remove; needs a consent decision). Recommend folding it into `s4-personal-data-compliance-investigation.md` rather than fixing piecemeal. This feedback-field removal is safe to ship now without waiting on those findings.
 
 ---
 
