@@ -138,6 +138,12 @@ docker buildx build --platform linux/amd64 --load \
 
 BUILT_IMAGE_ID=$(cat "$IIDFILE")
 rm -f "$IIDFILE"   # immediate success-path cleanup; the EXIT trap covers failure paths
+# Fail closed if the iidfile was empty: `cat` of an empty file returns 0 (set -e won't
+# catch it), and an empty ID makes the byte-scan gate silently skip → unscanned push.
+if [ -z "$BUILT_IMAGE_ID" ]; then
+    echo "Error: --iidfile was empty after build — cannot identify the image to scan. Aborting (fail closed)."
+    exit 1
+fi
 
 # ── Secret-boundary gate (T4f) ────────────────────────────────────────────────
 # Authoritative per-layer byte scan on the BUILT image ID (not the mutable tag),

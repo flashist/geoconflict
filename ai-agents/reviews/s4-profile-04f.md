@@ -8,19 +8,17 @@ File(s) under review (PR #123, branch `s4-profile-04f-image-secret-scan` vs `dev
 - `build-deploy-profile.sh` — inserts the byte-scan gate on `BUILT_IMAGE_ID` before `docker push` (`:142-148`).
 - `scripts/test-check-docker-secret-boundary.sh` — new 157-line bash test harness.
 
-Status: **in-review (R2 — stateful-review of the updated PR, 2026-06-23).** R1's five findings
-(C1/A1/A2/Cov1/Cov2) are all **verified fixed** in commits `9d9935f`+`cd1bde4`. But the R1 **C1
-fix** (owner option (c): wire the full byte scan into `build.sh` by splitting `build --push` into
-`build --load --iidfile` → scan → `docker push`) **introduced two new edges in that splice**, both
-found by **both reviewers converging** on the same region: **R2-1** (scan-ID vs push-tag TOCTOU —
-the profile sibling closes this window, `build.sh` doesn't) and **R2-2** (empty `BUILT_IMAGE_ID`
-silently skips the byte scan → unscanned push, fail-**open**). Both routed to fix (owner decision
-2026-06-23): mirror `build-deploy-profile.sh`'s push-path hardening. **Still no active secret
-exposure** — net protection *increased* (the game image is now scanned at all); R2-1/R2-2 are
-narrow, single-host-sequential, cheaply-closed gaps. **Prior R1 status (for history): RESOLVED —**
-C1 closed by the SUPERSET fix; A1/A2/Cov1/Cov2 applied (harness 10/10); the byte-scan-over-regex
-choice rests on a 15-scenario adversarial investigation (the *most-reachable* leak needs **no**
-Dockerfile regression and the narrow regex would not catch it).
+Status: **RESOLVED (R2 — process-review applied + adversarially verified, 2026-06-23).** R1's five
+findings (C1/A1/A2/Cov1/Cov2) verified fixed. The two new edges the option-(c) splice introduced —
+**R2-1** (scan-ID vs push-tag window) and **R2-2** (empty `BUILT_IMAGE_ID` → silent fail-open) —
+are **fixed and verified**: R2-2 closed at the gate (`--inspect-image ""` now fails closed) and at
+both callers (empty-ID guard); R2-1 closed with a re-tag + `{{.Id}}` assert before push (assert
+proven format-sound: `--iidfile` under `--load` == `docker inspect '{{.Id}}'`). A **4-lens
+adversarial pass** (`tasks/w533xd8aw.output`) found the fixes **sound — no new edge, no regression**
+(3/4 lenses sound; the one "edge" is pre-existing + out-of-scope — see Decision log / Forward notes).
+**No active secret exposure at any point.** R2-3 (metadata digest) and the provenance-attestation
+loss are note-only. **Prior R1 status (history): RESOLVED** — C1 via the SUPERSET fix; A1/A2/Cov1/Cov2
+applied (harness 10/10); byte-scan-over-regex rests on a 15-scenario adversarial investigation.
 
 Reviewers (R1, stateful-review): **Claude `code-reviewer`** (review-only) + **Codex adversarial**
 (`--base dev --scope branch`) — **both ran, full coverage.** Findings were **complementary, not
@@ -68,6 +66,19 @@ script; Claude found the in-file robustness/coverage items (A1/A2/Cov1/Cov2). No
   image gate. Confirmed it **pre-dates T4f** (the removed broad-COPY lexer never read file contents
   either), so it is not a T4f regression. Re-raise only if: the project adopts image-side content
   secret-scanning as an explicit goal (then it belongs in a separate scanner, not this advisory).
+- **The game deploy ships by mutable tag, not an `@sha256` digest** — What: `build.sh` re-binds +
+  asserts the tag against the scanned `BUILT_IMAGE_ID` before push (`:163-168`), but then publishes a
+  mutable `repo:VERSION_TAG`, and `deploy.sh`/`update.sh` re-pull that mutable tag remotely
+  (`deploy.sh:209`, `update.sh:41`) with no content-addressed backstop — unlike the profile path,
+  which resolves + re-verifies an `@sha256` digest from `BUILT_IMAGE_ID` and deploys by digest
+  (`build-deploy-profile.sh:190-219`). Why (structural): the game deploy has **always** been
+  tag-based (R2-1 did not introduce this — it *added* the pre-push assert, strictly improving things);
+  giving the game image a digest-pinned deploy means threading a digest through `deploy.sh`/`update.sh`
+  — a separate, larger hardening item, not part of T4f or the splice fix. Reachability is **false** in
+  the real single-host-sequential flow (`VERSION_TAG` is per-second-unique, so even the shared-tag
+  divert race is far less likely than the profile's shared `profile-<sha>` tag). Re-raise only if:
+  digest-pinned game deploy is taken up as its own task, OR the game build/deploy becomes concurrent
+  / multi-host (then the divert window becomes reachable).
 
 ## Decision log
 
@@ -90,6 +101,10 @@ script; Claude found the in-file robustness/coverage items (A1/A2/Cov1/Cov2). No
 | 2 | (**Codex**, *high "needs-attention"*) `build.sh` scans `$BUILT_IMAGE_ID` (`:151`) then `docker push "$DOCKER_IMAGE"` (`:154`) with **no re-bind/digest assert between** → a concurrent retag in the scan→push window publishes unscanned bytes. The profile sibling re-tags to `BUILT_IMAGE_ID` right before push (`build-deploy-profile.sh:169`) **and** deploys by an `@sha256` digest resolved from `BUILT_IMAGE_ID` (`:185-210`); `build.sh` does neither. | **CORRECT → defect, severity high→medium** | **Open #R2-1 (fix now).** Genuinely new (a consequence of the option-(c) splice, not a re-litigation). Realistic exposure is **low** on a single-host sequential `build-deploy.sh` run (no concurrent retagger; net protection still *up* vs the old unscanned `--push`), but the asymmetry with the sibling is real and the fix is ~3 lines. **Fix:** `docker tag "$BUILT_IMAGE_ID" "$DOCKER_IMAGE"` + assert `docker inspect --format '{{.Id}}' "$DOCKER_IMAGE"` == `$BUILT_IMAGE_ID` immediately before `docker push`. |
 | 2 | (**Claude**, *medium*) Empty `BUILT_IMAGE_ID` → `check-docker-secret-boundary.sh --inspect-image ""` → `INSPECT_IMAGE=""` → byte scan **silently skipped** (`:255` `if [ -n "$INSPECT_IMAGE" ]`) → push proceeds unscanned (fail-**open**). | **PARTIALLY CORRECT (mechanism imprecise) → low (defect)** | **Open #R2-2 (fix now).** Reviewer framed it as "`set -e` doesn't abort a failed `cat` cmd-sub"; the **real** reachability is that `cat` of an empty-but-existing iidfile returns **rc 0** (verified: `v=$(cat empty); echo $?` → 0, no abort), so `set -e` never fires and `BUILT_IMAGE_ID` is empty. Low reachability (buildx reliably writes the ID on a successful `--load`) but a fail-open in a security gate. **Fix:** `[ -z "$BUILT_IMAGE_ID" ] && { echo "Error: empty image ID — cannot scan"; exit 1; }` after the `cat` (same guard belongs in `build-deploy-profile.sh:139`). **Optional belt-and-suspenders:** make the gate itself fail-closed on `--inspect-image ""` rather than silently skip. |
 | 2 | (**Claude**, *low*) `--push`→`--load` means `--metadata-file` (`build.sh:134`) no longer carries `containerimage.digest` (only present after a push). | **CORRECT → low (non-defect, benign)** | **Note-only (no action — owner decision).** Verified no downstream consumer: `build-deploy.sh` calls `build.sh "$ENV" "$VERSION_TAG"` (2 args) → `METADATA_FILE` defaults to a throwaway `/tmp/build-metadata-$RANDOM.json`; `deploy.sh` reads no digest/metadata. Recorded for awareness; if a future caller extracts `containerimage.digest` from this file it must resolve the digest post-push instead. |
+| 2→resolved | **R2-1** | **applied** | `build.sh:163-168` — after the byte scan, re-bind `docker tag "$BUILT_IMAGE_ID" "$DOCKER_IMAGE"` + assert `docker inspect --format '{{.Id}}' "$DOCKER_IMAGE"` == `$BUILT_IMAGE_ID` before push (mirrors the profile sibling). Verified empirically that `--iidfile` under `--load` equals `{{.Id}}`, so the assert does NOT false-fail a legitimate build. Narrows the scan→tag window to sibling parity; a residual assert→push window remains (the same accepted residual the profile path documents). |
+| 2→resolved | **R2-2** | **applied** | Gate-side (structural): `check-docker-secret-boundary.sh:50` now fails closed on an explicitly-empty `--inspect-image` (verified live: old behavior exited 0 without scanning; now exits 1). Caller guards: empty-`BUILT_IMAGE_ID` check in `build.sh:145-148` and `build-deploy-profile.sh:143-146`. Static-lint (no-flag) path unaffected. |
+| 2→resolved | **R2-3 + provenance** | **note-only (no action)** | `--metadata-file` digest gone under `--load` (no consumer); `--load`+`docker push` also drops buildx SLSA/provenance attestations (no consumer — deploy is by tag). Recorded for awareness. |
+| 2 | (**adversarial verification of the R2 fixes** — 4 lenses, `tasks/w533xd8aw.output`) splice integrity / gate-guard correctness / residual-fail-open / regression | **3/4 SOUND; 1 pre-existing out-of-scope edge** | Lenses A/B/D: **sound — no new edge, no regression** (every new failure mode fails *closed* under `set -e`; A1/A2/exclusions/profile-digest-flow byte-identical; harness 10/10; `bash -n` clean). Lens C "edge-found" = the game deploy ships by **mutable tag, no `@sha256` digest pin** (unlike profile), so a diverted push has no post-push backstop. **NOT acted on:** severity **low**, **reachable=false** (single-host sequential, per-second-unique `VERSION_TAG`), **pre-existing** (R2-1 strictly improves; mutable-tag deploy long predates T4f), **explicitly out of scope** per the R2 handoff. Recorded as a Forward note + accepted residual. |
 
 **R2 oscillation check — no loop:** R2-1/R2-2 are **new defects**, not re-litigation — they are edges
 the option-(c) C1 fix *introduced* in the new `build.sh` splice, distinct from R1's findings and
@@ -109,25 +124,18 @@ defenses enumerated).
 
 ## Open / actionable
 
-**R1: all resolved.** C1 closed via owner option (c) (byte scan wired into `build.sh`); A1/A2
-applied; Cov1/Cov2 added (harness 10/10). Source-content secrets in benign-named files remain an
-**accepted residual / out-of-charter** (see Accepted residuals), not an open item.
+**None — R1 and R2 all resolved (2026-06-23).** R1: C1 via option (c); A1/A2/Cov1/Cov2 applied. R2:
+R2-1 (re-tag+assert) and R2-2 (gate-side + both caller empty-ID guards) applied and **adversarially
+verified sound** (4 lenses, no new edge/regression). Note-only items (R2-3 metadata digest;
+provenance-attestation loss) need no action.
 
-**R2 (new — routed to fix, owner decision 2026-06-23):**
+**Out-of-scope / accepted (not open defects):**
+- Source-content secrets in benign-named files — out-of-charter (see Accepted residuals).
+- The game deploy's **mutable-tag, no-`@sha256`-digest-pin** contract (Lens C) — low, single-host-
+  unreachable, pre-existing; a separate digest-pinned-deploy hardening item (see Forward notes), not
+  a defect in this slice.
 
-- **#R2-1 (medium — fix now).** Close the scan-ID vs push-tag window in `build.sh`: re-bind
-  `docker tag "$BUILT_IMAGE_ID" "$DOCKER_IMAGE"` and assert
-  `docker inspect --format '{{.Id}}' "$DOCKER_IMAGE"` equals `$BUILT_IMAGE_ID` **immediately before**
-  `docker push` (mirror `build-deploy-profile.sh:169` + add the assert the profile path's digest step
-  effectively provides).
-- **#R2-2 (low — fix now).** Guard empty `BUILT_IMAGE_ID` in `build.sh` after `cat "$IIDFILE"`
-  (`[ -z "$BUILT_IMAGE_ID" ] && exit 1`); apply the same guard in `build-deploy-profile.sh:139`.
-  Optional defense-in-depth: make `check-docker-secret-boundary.sh` fail-closed on an empty
-  `--inspect-image` value instead of silently skipping (`:255`).
-- **#R2-3 (note-only).** `--load` drops `containerimage.digest` from `--metadata-file`; benign today
-  (no consumer). No action — recorded for awareness.
-
-See `ai-agents/reviews/s4-profile-04f-coder-handoff.md` (refreshed for R2). Not committed (owner commits).
+Not committed (owner commits).
 
 ## Forward notes (for downstream tasks)
 
@@ -144,4 +152,10 @@ See `ai-agents/reviews/s4-profile-04f-coder-handoff.md` (refreshed for R2). Not 
   (`/private/tmp/.../tasks/wxn9ud631.output`, 15 scenarios) — most scary scenarios were *refuted*
   (neutralized by multi-stage assembly or `.dockerignore`); the survivors all reduce to "a secret
   *file* under `src/`/`resources/`/`proprietary/` or a broad-COPY regression, on a path with no
-  byte scan" — exactly what option (c) closes.
+  byte scan" — exactly what option (c) closes. The R2 fixes were likewise adversarially verified
+  (4 lenses, `tasks/w533xd8aw.output`): sound, no new edge/regression.
+- **NEXT (separate task, if pursued): digest-pin the game deploy.** Mirror the profile path —
+  resolve an `@sha256` digest from `BUILT_IMAGE_ID` in `build.sh` (`docker inspect` RepoDigests) and
+  thread it through `deploy.sh`/`update.sh` (which already accept `sha256:*`), so the game deploy is
+  content-addressed end-to-end like `build-deploy-profile.sh`. Closes the Lens-C residual; out of
+  scope for T4f. Prereq: the larger game-deploy refactor, not a one-file change.

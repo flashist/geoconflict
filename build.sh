@@ -140,6 +140,12 @@ docker buildx build \
 
 BUILT_IMAGE_ID=$(cat "$IIDFILE")
 rm -f "$IIDFILE"
+# Fail closed if the iidfile was empty: `cat` of an empty file returns 0, so `set -e`
+# would NOT catch it, and an empty ID makes the byte scan silently skip → unscanned push.
+if [ -z "$BUILT_IMAGE_ID" ]; then
+    echo "Error: --iidfile was empty after build — cannot identify the image to scan. Aborting (fail closed)."
+    exit 1
+fi
 echo "✅ Docker image built locally: ${DOCKER_IMAGE} (${BUILT_IMAGE_ID})"
 
 # Authoritative per-layer byte scan on the BUILT image ID, BEFORE push. It fails closed
@@ -149,6 +155,17 @@ echo "✅ Docker image built locally: ${DOCKER_IMAGE} (${BUILT_IMAGE_ID})"
 # maxdepth-3 runtime-source check above.
 print_header "DOCKER IMAGE SECRET BYTE SCAN"
 ./scripts/check-docker-secret-boundary.sh --inspect-image "$BUILT_IMAGE_ID"
+
+# Re-bind the tag to the EXACT image we scanned and verify nothing diverted it, so we
+# publish the scanned bytes — not a concurrently-retagged image. `docker push` can only
+# target NAME[:TAG], not an image ID, so this re-bind + assert is the closest we get to
+# pushing the scanned ID itself (mirrors build-deploy-profile.sh's re-tag-before-push).
+docker tag "$BUILT_IMAGE_ID" "$DOCKER_IMAGE"
+TAG_ID=$(docker inspect --format '{{.Id}}' "$DOCKER_IMAGE")
+if [ "$TAG_ID" != "$BUILT_IMAGE_ID" ]; then
+    echo "Error: '$DOCKER_IMAGE' resolves to $TAG_ID, not the scanned $BUILT_IMAGE_ID — refusing to push."
+    exit 1
+fi
 
 print_header "PUSHING DOCKER IMAGE: ${DOCKER_IMAGE}"
 docker push "$DOCKER_IMAGE"

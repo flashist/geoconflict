@@ -44,6 +44,10 @@ while [ "$#" -gt 0 ]; do
             shift
             [ "$#" -gt 0 ] || { echo "Error: --inspect-image requires an image ID."; exit 1; }
             INSPECT_IMAGE="$1"
+            # Fail closed on an explicitly-empty image ID: a blank --inspect-image must NOT
+            # silently skip the byte scan (that would be a fail-OPEN in a fail-closed gate).
+            # The no-flag static-lint path never enters this case, so it stays unaffected.
+            [ -n "$INSPECT_IMAGE" ] || { echo "Error: --inspect-image was given an empty image ID."; exit 1; }
             shift
             ;;
         --dockerfile)
