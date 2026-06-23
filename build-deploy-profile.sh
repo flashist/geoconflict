@@ -139,6 +139,15 @@ docker buildx build --platform linux/amd64 --load \
 BUILT_IMAGE_ID=$(cat "$IIDFILE")
 rm -f "$IIDFILE"   # immediate success-path cleanup; the EXIT trap covers failure paths
 
+# ── Secret-boundary gate (T4f) ────────────────────────────────────────────────
+# Authoritative per-layer byte scan on the BUILT image ID (not the mutable tag),
+# BEFORE any push. It fails closed if it cannot observe the layers. set -e is active,
+# so a non-zero exit aborts the run here and nothing is pushed. The Dockerfile COPY/ADD
+# advisory is warn-only; only this byte scan determines the exit code.
+print_header "SCANNING PROFILE IMAGE FOR BAKED-IN SECRETS"
+bash "$(dirname "$0")/scripts/check-docker-secret-boundary.sh" \
+    --inspect-image "$BUILT_IMAGE_ID" --dockerfile "$DOCKERFILE"
+
 # ── Push to the registry ──────────────────────────────────────────────────────
 # Token on stdin via --password-stdin — never in argv (ps aux / /proc/<pid>/cmdline).
 
