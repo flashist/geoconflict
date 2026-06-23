@@ -8,8 +8,18 @@ File(s) under review (PR #123, branch `s4-profile-04f-image-secret-scan` vs `dev
 - `build-deploy-profile.sh` — inserts the byte-scan gate on `BUILT_IMAGE_ID` before `docker push` (`:142-148`).
 - `scripts/test-check-docker-secret-boundary.sh` — new 157-line bash test harness.
 
-Status: **RESOLVED (R2 — process-review applied + adversarially verified, 2026-06-23).** R1's five
-findings (C1/A1/A2/Cov1/Cov2) verified fixed. The two new edges the option-(c) splice introduced —
+Status: **CLOSED-OUT / ready to merge (R3 — stateful-review, two fresh reviewers, 2026-06-23).**
+R3 independently re-reviewed the R2 fixes with a fresh `code-reviewer` + Codex (full coverage):
+**R2-1/R2-2 verified correct** — R2-1 re-validated **empirically on this host** (Docker 28.5.1 +
+containerd snapshotter: a `buildx --load --iidfile` probe gave `--iidfile` ==
+`docker inspect '{{.Id}}'`, both `sha256:1c9247…`, so the assert **cannot false-positive**). R3
+surfaced **no genuine new defect**: Codex re-litigated the settled C1 (npm static-lint path —
+premise disproven, **no** CI/husky/lint-staged consumer) → **suppressed + residual #1 hardened**;
+Claude flagged one trivial optional test (the new empty-`--inspect-image` guard) → non-blocking.
+**Loop stopped.**
+
+**Prior R2 status (history):** **RESOLVED (R2 — process-review applied + adversarially verified,
+2026-06-23).** R1's five findings (C1/A1/A2/Cov1/Cov2) verified fixed. The two new edges the option-(c) splice introduced —
 **R2-1** (scan-ID vs push-tag window) and **R2-2** (empty `BUILT_IMAGE_ID` → silent fail-open) —
 are **fixed and verified**: R2-2 closed at the gate (`--inspect-image ""` now fails closed) and at
 both callers (empty-ID guard); R2-1 closed with a re-tag + `{{.Id}}` assert before push (assert
@@ -39,8 +49,15 @@ script; Claude found the in-file robustness/coverage items (A1/A2/Cov1/Cov2). No
   out of scope by rule). Re-raise only if: the advisory is proposed to *block* on the byte-scan
   path, or a reviewer asks to extend the advisory parser to a new construct (both are closeout, not
   defects). **NOTE:** this residual is scoped to the `--inspect-image` (byte-scan) path. The
-  *absence* of a blocking guard on the **no-`--inspect-image`** path (`build.sh`) is a separate,
-  unintended regression — see **C1** (open, to fix), not covered by this residual.
+  *absence* of a blocking guard on the **no-`--inspect-image`** path was **C1 — resolved** (option (c):
+  the byte scan is wired into `build.sh`'s publish path). The only remaining no-`--inspect-image`
+  caller is the **manual `npm run check:docker-secret-boundary` static lint** (`package.json:27`),
+  which is **non-publishing and advisory by design** — it builds/pushes nothing, so it needs no
+  blocking broad-COPY guard (the byte scan on both push paths is the authoritative gate). **Re-raise
+  ONLY IF** the npm script is wired into a CI/pre-merge **gate** — verified **R3** that **no such
+  consumer exists** (no `.github/workflows`, husky hook, or lint-staged entry references it); even
+  then the fix is to make that gate **build+inspect an image**, *not* to make the lexer blocking
+  (RC3). (R3: Codex re-raised this → suppressed, premise disproven.)
 - **Fail-closed on unobservable layers** — What: `inspect_image_bytes` exits non-zero (refusing the
   push) if `docker save` fails (`:130-134`), a non-JSON layer blob is unreadable as a tar
   (`:143-149`), or zero layers are found (`:182-186`), rather than reporting "passed". Why
@@ -106,6 +123,17 @@ script; Claude found the in-file robustness/coverage items (A1/A2/Cov1/Cov2). No
 | 2→resolved | **R2-3 + provenance** | **note-only (no action)** | `--metadata-file` digest gone under `--load` (no consumer); `--load`+`docker push` also drops buildx SLSA/provenance attestations (no consumer — deploy is by tag). Recorded for awareness. |
 | 2 | (**adversarial verification of the R2 fixes** — 4 lenses, `tasks/w533xd8aw.output`) splice integrity / gate-guard correctness / residual-fail-open / regression | **3/4 SOUND; 1 pre-existing out-of-scope edge** | Lenses A/B/D: **sound — no new edge, no regression** (every new failure mode fails *closed* under `set -e`; A1/A2/exclusions/profile-digest-flow byte-identical; harness 10/10; `bash -n` clean). Lens C "edge-found" = the game deploy ships by **mutable tag, no `@sha256` digest pin** (unlike profile), so a diverted push has no post-push backstop. **NOT acted on:** severity **low**, **reachable=false** (single-host sequential, per-second-unique `VERSION_TAG`), **pre-existing** (R2-1 strictly improves; mutable-tag deploy long predates T4f), **explicitly out of scope** per the R2 handoff. Recorded as a Forward note + accepted residual. |
 
+| 3 | (**stateful-review R3 — two fresh reviewers re-confirm the R2 fixes**) R2-1 re-bind+assert (`build.sh:163-168`) and R2-2 empty-ID guards (`build.sh:145-148`, `build-deploy-profile.sh:143-146`, gate `check-docker-secret-boundary.sh:50`) | **CONFIRMED FIXED — independently re-verified** | Fresh `code-reviewer` + Codex both ran full coverage. R2-1 **empirically re-validated on the dev host** (Docker 28.5.1 + containerd snapshotter): a `buildx --load --iidfile` probe gave `--iidfile` == `docker inspect --format '{{.Id}}'` (both `sha256:1c9247…`) and `docker save <iidfile-id>` OK → the assert cannot false-positive. R2-2 guards correct in all 3 spots; `set -e` aborts a failed `docker tag`/`docker inspect` (fail-closed); no existing harness case breaks. |
+| 3 | (**Codex**, *high "needs-attention"*) npm standalone `check:docker-secret-boundary` (no `--inspect-image`) only **warns** on broad `COPY . .`, so a CI/pre-merge workflow relying on it could accept a broad-copy regression | **INCORRECT (premise disproven) → SUPPRESSED (re-litigates C1)** | **Suppressed — settled by C1 (option c) + Forward note #2.** The npm path **pushes nothing**; the byte scan on both publish paths is the authoritative gate. Codex's hook ("a CI/pre-merge workflow relies on it") is **disproven** — grep of `.github/`, `.husky/`, `.gitlab-ci.yml`, `.circleci/`, `package.json` (`test`/`lint-staged`/`prepare`) found **no consumer** (manual lint only). **Residual #1 hardened** with the explicit non-publishing-lint clause + re-raise condition. |
+| 3 | (**Claude**, *low*) no harness case for the new gate-side `--inspect-image ""` fail-closed guard (`check-docker-secret-boundary.sh:50`) | **CORRECT → low (coverage gap, optional)** | **Open (optional, non-blocking).** Add `assert_exit nonzero "fail-closed on empty --inspect-image" -- bash "$GATE" --inspect-image ""`. The build.sh/profile empty-ID guards already prevent an empty ID reaching the gate in the normal flow; this just documents the new invariant. |
+
+**R3 — LOOP STOP (closed out):** the R1→R2→R3 fix chain **converged**. R3 (two fresh reviewers) found
+**no genuine new defect**: the R2 fixes are verified correct (R2-1 empirically re-validated against
+this host's containerd store), Codex's lone finding **re-litigates the settled C1** (premise
+disproven → suppressed; residual #1 hardened), and Claude's lone item is a **trivial optional test**.
+This is exactly the loop the ledger exists to stop — continuing would only re-surface the settled
+npm-lint tradeoff. **Verdict: ready to merge.**
+
 **R2 oscillation check — no loop:** R2-1/R2-2 are **new defects**, not re-litigation — they are edges
 the option-(c) C1 fix *introduced* in the new `build.sh` splice, distinct from R1's findings and
 from all 4 accepted residuals (neither reviewer re-raised a residual this round → nothing
@@ -124,10 +152,17 @@ defenses enumerated).
 
 ## Open / actionable
 
-**None — R1 and R2 all resolved (2026-06-23).** R1: C1 via option (c); A1/A2/Cov1/Cov2 applied. R2:
-R2-1 (re-tag+assert) and R2-2 (gate-side + both caller empty-ID guards) applied and **adversarially
-verified sound** (4 lenses, no new edge/regression). Note-only items (R2-3 metadata digest;
-provenance-attestation loss) need no action.
+**No blocking items — R1 and R2 all resolved (2026-06-23).** R1: C1 via option (c); A1/A2/Cov1/Cov2
+applied. R2: R2-1 (re-tag+assert) and R2-2 (gate-side + both caller empty-ID guards) applied and
+**adversarially verified sound** (4 lenses, no new edge/regression) and **independently re-confirmed
+at R3** (two fresh reviewers; R2-1 assert empirically re-validated on this host). Note-only items
+(R2-3 metadata digest; provenance-attestation loss) need no action.
+
+**R3 (optional, non-blocking — does NOT gate merge):**
+- **#R3-2.** Add a harness case asserting the new gate-side empty-`--inspect-image` guard fails
+  closed: `assert_exit nonzero "fail-closed on empty --inspect-image" -- bash "$GATE" --inspect-image ""`.
+  Documents the R2-2 gate-side invariant; the caller empty-ID guards already prevent an empty ID
+  reaching the gate in the normal flow, so this is coverage-only.
 
 **Out-of-scope / accepted (not open defects):**
 - Source-content secrets in benign-named files — out-of-charter (see Accepted residuals).
