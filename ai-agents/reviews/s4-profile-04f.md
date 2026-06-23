@@ -8,14 +8,19 @@ File(s) under review (PR #123, branch `s4-profile-04f-image-secret-scan` vs `dev
 - `build-deploy-profile.sh` — inserts the byte-scan gate on `BUILT_IMAGE_ID` before `docker push` (`:142-148`).
 - `scripts/test-check-docker-secret-boundary.sh` — new 157-line bash test harness.
 
-Status: **RESOLVED (R1 — stateful-review + process-review, owner-approved 2026-06-23).** All
-findings actioned. **C1 closed by the SUPERSET fix (owner-chosen option (c)):** the authoritative
-per-layer byte scan is now wired into the game-image push path (`build.sh`), not just the profile
-path — both push paths share the same blocking oracle. A1/A2 (robustness) and Cov1/Cov2 (tests)
-applied; harness now 10/10. **No active secret exposure at any point** — the fix closes a
-*defense-in-depth* gap, not a live leak. A deep 15-scenario adversarial investigation (2026-06-23,
-see Decision log) is why C1 was closed via the byte scan rather than the narrow regex: the
-*most-reachable* leak needs **no** Dockerfile regression and the narrow regex would not catch it.
+Status: **in-review (R2 — stateful-review of the updated PR, 2026-06-23).** R1's five findings
+(C1/A1/A2/Cov1/Cov2) are all **verified fixed** in commits `9d9935f`+`cd1bde4`. But the R1 **C1
+fix** (owner option (c): wire the full byte scan into `build.sh` by splitting `build --push` into
+`build --load --iidfile` → scan → `docker push`) **introduced two new edges in that splice**, both
+found by **both reviewers converging** on the same region: **R2-1** (scan-ID vs push-tag TOCTOU —
+the profile sibling closes this window, `build.sh` doesn't) and **R2-2** (empty `BUILT_IMAGE_ID`
+silently skips the byte scan → unscanned push, fail-**open**). Both routed to fix (owner decision
+2026-06-23): mirror `build-deploy-profile.sh`'s push-path hardening. **Still no active secret
+exposure** — net protection *increased* (the game image is now scanned at all); R2-1/R2-2 are
+narrow, single-host-sequential, cheaply-closed gaps. **Prior R1 status (for history): RESOLVED —**
+C1 closed by the SUPERSET fix; A1/A2/Cov1/Cov2 applied (harness 10/10); the byte-scan-over-regex
+choice rests on a 15-scenario adversarial investigation (the *most-reachable* leak needs **no**
+Dockerfile regression and the narrow regex would not catch it).
 
 Reviewers (R1, stateful-review): **Claude `code-reviewer`** (review-only) + **Codex adversarial**
 (`--base dev --scope branch`) — **both ran, full coverage.** Findings were **complementary, not
@@ -81,6 +86,18 @@ script; Claude found the in-file robustness/coverage items (A1/A2/Cov1/Cov2). No
 | 1→resolved | **A2** | **applied** | `check-docker-secret-boundary.sh:167-178` — content-scan pipeline status captured; a scan error now WARNS instead of silently passing (`\|\| true` removed, `sed` split out so its success can't mask a find/awk failure). Aligns the content scan with the gate's fail-closed contract. Happy path unchanged (9/9 shim suite + 10/10 harness). |
 | 1→resolved | **Cov1** | **applied** | `test-check-docker-secret-boundary.sh` — synthesized known-hash fixture (`.env.__t4f_fixture__.secret` in ROOT_DIR, removed on every exit path + on-disk leak assert) exercises the content-scan join unconditionally, with no dependency on a real local secret. |
 | 1→resolved | **Cov2** | **applied** | `test-check-docker-secret-boundary.sh` — positive name-scan-only case (a file literally named `.env`). Harness now 10/10. |
+| 2 | (**R1 fixes re-verified**) C1 byte scan wired into `build.sh` (`:123-154`, `--load --iidfile` → scan → push); A1 unreadable-secret warn+continue (hash still emitted to stdout on success); A2 content-scan status captured + warn (`sed` split out, no masked hit); Cov1 synth fixture (removed on every exit + leak assert); Cov2 positive name scan | **CONFIRMED FIXED — no regression** | Re-verified against the fix diff (`e1a0ec9..HEAD`). build.sh has one trap (`:124`, nothing clobbered); `--load` valid for single `linux/amd64`; `METADATA_FILE` has no downstream digest consumer (`build-deploy.sh` passes 2 args → throwaway). No action. |
+| 2 | (**Codex**, *high "needs-attention"*) `build.sh` scans `$BUILT_IMAGE_ID` (`:151`) then `docker push "$DOCKER_IMAGE"` (`:154`) with **no re-bind/digest assert between** → a concurrent retag in the scan→push window publishes unscanned bytes. The profile sibling re-tags to `BUILT_IMAGE_ID` right before push (`build-deploy-profile.sh:169`) **and** deploys by an `@sha256` digest resolved from `BUILT_IMAGE_ID` (`:185-210`); `build.sh` does neither. | **CORRECT → defect, severity high→medium** | **Open #R2-1 (fix now).** Genuinely new (a consequence of the option-(c) splice, not a re-litigation). Realistic exposure is **low** on a single-host sequential `build-deploy.sh` run (no concurrent retagger; net protection still *up* vs the old unscanned `--push`), but the asymmetry with the sibling is real and the fix is ~3 lines. **Fix:** `docker tag "$BUILT_IMAGE_ID" "$DOCKER_IMAGE"` + assert `docker inspect --format '{{.Id}}' "$DOCKER_IMAGE"` == `$BUILT_IMAGE_ID` immediately before `docker push`. |
+| 2 | (**Claude**, *medium*) Empty `BUILT_IMAGE_ID` → `check-docker-secret-boundary.sh --inspect-image ""` → `INSPECT_IMAGE=""` → byte scan **silently skipped** (`:255` `if [ -n "$INSPECT_IMAGE" ]`) → push proceeds unscanned (fail-**open**). | **PARTIALLY CORRECT (mechanism imprecise) → low (defect)** | **Open #R2-2 (fix now).** Reviewer framed it as "`set -e` doesn't abort a failed `cat` cmd-sub"; the **real** reachability is that `cat` of an empty-but-existing iidfile returns **rc 0** (verified: `v=$(cat empty); echo $?` → 0, no abort), so `set -e` never fires and `BUILT_IMAGE_ID` is empty. Low reachability (buildx reliably writes the ID on a successful `--load`) but a fail-open in a security gate. **Fix:** `[ -z "$BUILT_IMAGE_ID" ] && { echo "Error: empty image ID — cannot scan"; exit 1; }` after the `cat` (same guard belongs in `build-deploy-profile.sh:139`). **Optional belt-and-suspenders:** make the gate itself fail-closed on `--inspect-image ""` rather than silently skip. |
+| 2 | (**Claude**, *low*) `--push`→`--load` means `--metadata-file` (`build.sh:134`) no longer carries `containerimage.digest` (only present after a push). | **CORRECT → low (non-defect, benign)** | **Note-only (no action — owner decision).** Verified no downstream consumer: `build-deploy.sh` calls `build.sh "$ENV" "$VERSION_TAG"` (2 args) → `METADATA_FILE` defaults to a throwaway `/tmp/build-metadata-$RANDOM.json`; `deploy.sh` reads no digest/metadata. Recorded for awareness; if a future caller extracts `containerimage.digest` from this file it must resolve the digest post-push instead. |
+
+**R2 oscillation check — no loop:** R2-1/R2-2 are **new defects**, not re-litigation — they are edges
+the option-(c) C1 fix *introduced* in the new `build.sh` splice, distinct from R1's findings and
+from all 4 accepted residuals (neither reviewer re-raised a residual this round → nothing
+suppressed). The pattern is "the fix added a new edge," not oscillation around a tradeoff; the cure
+(mirror the profile sibling's already-accepted push-path hardening) is convergent, not a reversal.
+Stateless severity-inflation again (Codex high→medium; Claude medium→low), collapsed at the verify
+gate. Recommend act → then close out.
 
 **No oscillation / no loop:** first review of this slice (fresh ledger). The intended RC3
 frontier-move (demote the lexer to warn-only on the byte-scan path) is correct and is recorded as a
@@ -92,10 +109,25 @@ defenses enumerated).
 
 ## Open / actionable
 
-**None — all R1 findings resolved (2026-06-23).** C1 closed via owner option (c) (byte scan wired
-into `build.sh`); A1/A2 applied; Cov1/Cov2 added (harness 10/10). The only remaining gap (source-
-content secrets in benign-named files) is an **accepted residual / out-of-charter**, not an open
-item — see Accepted residuals. Not committed (owner commits).
+**R1: all resolved.** C1 closed via owner option (c) (byte scan wired into `build.sh`); A1/A2
+applied; Cov1/Cov2 added (harness 10/10). Source-content secrets in benign-named files remain an
+**accepted residual / out-of-charter** (see Accepted residuals), not an open item.
+
+**R2 (new — routed to fix, owner decision 2026-06-23):**
+
+- **#R2-1 (medium — fix now).** Close the scan-ID vs push-tag window in `build.sh`: re-bind
+  `docker tag "$BUILT_IMAGE_ID" "$DOCKER_IMAGE"` and assert
+  `docker inspect --format '{{.Id}}' "$DOCKER_IMAGE"` equals `$BUILT_IMAGE_ID` **immediately before**
+  `docker push` (mirror `build-deploy-profile.sh:169` + add the assert the profile path's digest step
+  effectively provides).
+- **#R2-2 (low — fix now).** Guard empty `BUILT_IMAGE_ID` in `build.sh` after `cat "$IIDFILE"`
+  (`[ -z "$BUILT_IMAGE_ID" ] && exit 1`); apply the same guard in `build-deploy-profile.sh:139`.
+  Optional defense-in-depth: make `check-docker-secret-boundary.sh` fail-closed on an empty
+  `--inspect-image` value instead of silently skipping (`:255`).
+- **#R2-3 (note-only).** `--load` drops `containerimage.digest` from `--metadata-file`; benign today
+  (no consumer). No action — recorded for awareness.
+
+See `ai-agents/reviews/s4-profile-04f-coder-handoff.md` (refreshed for R2). Not committed (owner commits).
 
 ## Forward notes (for downstream tasks)
 
