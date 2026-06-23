@@ -113,6 +113,16 @@ if [ -n "$CHANGELOG_MD" ]; then
     echo "$CHANGELOG_MD" > resources/changelog.md
 fi
 
+# Build the image LOCALLY (--load, not --push) and capture its exact image ID via
+# --iidfile, so the secret-boundary byte scan can inspect the REAL layers BEFORE the
+# image is published. This splits the old fused `build --push` into build → scan →
+# push, mirroring build-deploy-profile.sh's ordering. --load supports the single
+# linux/amd64 platform built here; --iidfile is immune to a concurrent retag. The
+# deploy consumes the mutable tag (build-deploy.sh:66 passes no metadata file), so no
+# digest contract is broken by splitting the push out.
+IIDFILE=$(mktemp)
+trap 'rm -f "$IIDFILE"' EXIT
+
 docker buildx build \
     --platform linux/amd64 \
     --build-arg GIT_COMMIT=$GIT_COMMIT \
@@ -123,16 +133,27 @@ docker buildx build \
     "${SOURCEMAP_SECRET_ARG[@]}" \
     --metadata-file $METADATA_FILE \
     -t $DOCKER_IMAGE \
+    --iidfile "$IIDFILE" \
     --progress="${BUILD_PROGRESS_MODE}" \
-    --push \
+    --load \
     .
 
-if [ $? -ne 0 ]; then
-    echo "❌ Docker build failed."
-    exit 1
-fi
+BUILT_IMAGE_ID=$(cat "$IIDFILE")
+rm -f "$IIDFILE"
+echo "✅ Docker image built locally: ${DOCKER_IMAGE} (${BUILT_IMAGE_ID})"
 
-echo "✅ Docker image built and pushed successfully."
+# Authoritative per-layer byte scan on the BUILT image ID, BEFORE push. It fails closed
+# if it cannot observe the layers; `set -e` aborts here on any non-zero exit, so a baked
+# secret blocks the push. The game image now gets the SAME blocking byte oracle as the
+# profile image (build-deploy-profile.sh) — not just the name-only, stage-limited,
+# maxdepth-3 runtime-source check above.
+print_header "DOCKER IMAGE SECRET BYTE SCAN"
+./scripts/check-docker-secret-boundary.sh --inspect-image "$BUILT_IMAGE_ID"
+
+print_header "PUSHING DOCKER IMAGE: ${DOCKER_IMAGE}"
+docker push "$DOCKER_IMAGE"
+
+echo "✅ Docker image built, scanned, and pushed successfully."
 echo "Image: $DOCKER_IMAGE"
 
 print_header "BUILD COMPLETED SUCCESSFULLY ${DOCKER_IMAGE}"

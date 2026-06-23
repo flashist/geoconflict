@@ -8,14 +8,14 @@ File(s) under review (PR #123, branch `s4-profile-04f-image-secret-scan` vs `dev
 - `build-deploy-profile.sh` — inserts the byte-scan gate on `BUILT_IMAGE_ID` before `docker push` (`:142-148`).
 - `scripts/test-check-docker-secret-boundary.sh` — new 157-line bash test harness.
 
-Status: **in-review (R1 — stateful-review).** The T4f profile-path design is **correct**: the
-per-layer byte scan is wired as the sole blocking oracle before push, fails closed on all three
-unobservable cases, and the advisory is genuinely exit-neutral (the intended RC3 frontier-move —
-recorded as an accepted residual below). **One confirmed cross-path regression (C1, medium)** and
-**two low robustness nits (A1, A2)** + **two test-coverage gaps (Cov1, Cov2)** are routed to fix
-in this PR (per owner decision 2026-06-23). **No active secret exposure today** — the main
-`Dockerfile` uses explicit allowlist copies; C1 is loss of a *guardrail against a future*
-broad-copy regression, not a live leak.
+Status: **RESOLVED (R1 — stateful-review + process-review, owner-approved 2026-06-23).** All
+findings actioned. **C1 closed by the SUPERSET fix (owner-chosen option (c)):** the authoritative
+per-layer byte scan is now wired into the game-image push path (`build.sh`), not just the profile
+path — both push paths share the same blocking oracle. A1/A2 (robustness) and Cov1/Cov2 (tests)
+applied; harness now 10/10. **No active secret exposure at any point** — the fix closes a
+*defense-in-depth* gap, not a live leak. A deep 15-scenario adversarial investigation (2026-06-23,
+see Decision log) is why C1 was closed via the byte scan rather than the narrow regex: the
+*most-reachable* leak needs **no** Dockerfile regression and the narrow regex would not catch it.
 
 Reviewers (R1, stateful-review): **Claude `code-reviewer`** (review-only) + **Codex adversarial**
 (`--base dev --scope branch`) — **both ran, full coverage.** Findings were **complementary, not
@@ -53,6 +53,16 @@ script; Claude found the in-file robustness/coverage items (A1/A2/Cov1/Cov2). No
   is nothing to content-match (the name scan still runs). Re-raise only if: an example-named file is
   shown to carry real secret bytes that should be caught (would argue for content-scanning examples
   too).
+- **A secret hardcoded into a benign-named source file is OUT OF this gate's charter** — What: a
+  credential typed into `src/**/*.ts` or `resources/*.json` (no secret-shaped name, no local
+  secret-file twin to hash-match) ships via the existing allowlist copies and is caught by neither
+  the name scan nor the content scan (the content scan matches bytes of *local secret-named files*,
+  which such a value has no twin of). Why (structural): this gate's charter is "no secret *file*
+  rides in via a broad/allowlist COPY"; arbitrary source-content secret detection is an upstream
+  repo/PR secret-scanner + code-review concern (gitleaks/trufflehog territory), not a per-layer
+  image gate. Confirmed it **pre-dates T4f** (the removed broad-COPY lexer never read file contents
+  either), so it is not a T4f regression. Re-raise only if: the project adopts image-side content
+  secret-scanning as an explicit goal (then it belongs in a separate scanner, not this advisory).
 
 ## Decision log
 
@@ -66,6 +76,11 @@ script; Claude found the in-file robustness/coverage items (A1/A2/Cov1/Cov2). No
 | 1 | (**Claude**, *low*) `tar -xf "$blob" … \|\| true` (`:152`) silently tolerates partial extraction (scan runs on whatever extracted). | **CORRECT → low (frontier-move)** | **Accepted (no action).** Requires a transient I/O failure *after* a successful `tar -tf` listing (`:143`) — acceptably unlikely; the `\|\| true` intentionally avoids aborting on benign extraction noise. |
 | 1 | (**Claude**, *low/info*) `dirname "$0"` (`build-deploy-profile.sh:148`) is relative-path-fragile. | **CORRECT → non-defect** | **No action.** Safe — the script never `cd`s before the call; `${BASH_SOURCE[0]}` would be marginally more robust but is not required. |
 | 1 | (**both, verified non-findings**) fail-closed actually triggers on `docker save` failure under `pipefail` (`:130`); `exit 1` inside `while … done < <(find …)` truly aborts (process-substitution, not a pipe-subshell); all temp dirs/files cleaned by the EXIT trap on every path; `$HASH_CMD` word-splitting in `find -exec $HASH_CMD {} +` works for two-word `shasum -a 256`; the `set -e` gate hook in `build-deploy-profile.sh` blocks the push on non-zero. | **CONFIRMED — no defect** | Independently re-verified during this review. No action. |
+| 1→resolved | **C1** | **superseded by owner option (c)** | Owner chose **(c)** over the narrow-regex fix. `build.sh` now builds with `--load --iidfile`, runs `check-docker-secret-boundary.sh --inspect-image "$BUILT_IMAGE_ID"` (`build.sh:116-151`), then `docker push` — splitting the old fused `build --push`. **Both** push paths (game + profile) now share the blocking byte oracle. The narrow regex was unnecessary: the only no-`--inspect-image` caller is the manual static lint (`package.json:27`), which pushes nothing. **Why the byte scan, not the regex** — a deep 15-scenario adversarial investigation (2026-06-23) found the *most-reachable* leak needs NO Dockerfile regression: a `*.pem`/`*.key`/`id_rsa*`/non-`.env` `*.secret`, or a nested `.env*`, dropped under `src/`/`resources/`/`proprietary/` ships via the EXISTING allowlist copies into the public game image **and** into the public `static/` web root (webpack `CopyPlugin` `dot:true`, `webpack.config.js:347-362`). The narrow regex would miss all of that; the byte scan (name+content, uncapped depth, all layers) catches it. Verified: METADATA_FILE is unused downstream (`build-deploy.sh:66` passes only 2 args), so splitting the push breaks no digest contract. |
+| 1→resolved | **A1** | **applied** | `check-docker-secret-boundary.sh:120-131` — an unreadable local secret now warns with gate context to stderr and continues (name scan backstops); no opaque abort / non-deterministic silent drop. Verified live: unreadable file → warning emitted, clean image still exits 0. |
+| 1→resolved | **A2** | **applied** | `check-docker-secret-boundary.sh:167-178` — content-scan pipeline status captured; a scan error now WARNS instead of silently passing (`\|\| true` removed, `sed` split out so its success can't mask a find/awk failure). Aligns the content scan with the gate's fail-closed contract. Happy path unchanged (9/9 shim suite + 10/10 harness). |
+| 1→resolved | **Cov1** | **applied** | `test-check-docker-secret-boundary.sh` — synthesized known-hash fixture (`.env.__t4f_fixture__.secret` in ROOT_DIR, removed on every exit path + on-disk leak assert) exercises the content-scan join unconditionally, with no dependency on a real local secret. |
+| 1→resolved | **Cov2** | **applied** | `test-check-docker-secret-boundary.sh` — positive name-scan-only case (a file literally named `.env`). Harness now 10/10. |
 
 **No oscillation / no loop:** first review of this slice (fresh ledger). The intended RC3
 frontier-move (demote the lexer to warn-only on the byte-scan path) is correct and is recorded as a
@@ -77,25 +92,24 @@ defenses enumerated).
 
 ## Open / actionable
 
-- **#C1 (medium — fix in this PR).** Restore a blocking broad-copy guard for callers **without**
-  `--inspect-image` (i.e. `build.sh`'s `--runtime-image-check` path), so the main game-image push
-  keeps the hard guard `dev` had; keep `copy_add_advisory` warn-only where the byte scan is the
-  oracle (`--inspect-image`). Add a regression test for the no-`--inspect-image` + broad-`COPY`
-  path. **See `ai-agents/reviews/s4-profile-04f-coder-handoff.md`.**
-- **#A1 (low — polish).** Give the wanted-set hash step (`:120-126`) a clear gate-context error;
-  skip-with-warning or fail-closed-with-context on an unreadable local secret file.
-- **#A2 (low — polish).** Warn (don't silently pass) when the content-scan pipeline (`:167-174`)
-  exits non-zero; name scan stays active.
-- **#Cov1 (low — test).** Exercise the content-scan path unconditionally via a synthesized
-  known-hash fixture (don't depend on a real local secret existing).
-- **#Cov2 (low — test).** Add a positive name-scan-only case (a file literally named `.env`).
+**None — all R1 findings resolved (2026-06-23).** C1 closed via owner option (c) (byte scan wired
+into `build.sh`); A1/A2 applied; Cov1/Cov2 added (harness 10/10). The only remaining gap (source-
+content secrets in benign-named files) is an **accepted residual / out-of-charter**, not an open
+item — see Accepted residuals. Not committed (owner commits).
 
 ## Forward notes (for downstream tasks)
 
-- C1 is the *narrow* fix (restore the prior guard for the legacy path). The *broader* question —
-  whether `build.sh` (main game image) should get the full per-layer **byte scan** that the profile
-  path now has — is a larger, separate hardening item (T4g-adjacent), not required for T4f. If
-  pursued, wire `check-docker-secret-boundary.sh --inspect-image "$BUILT_ID"` into `build.sh` after
-  the buildx build, mirroring `build-deploy-profile.sh:142-148`.
-- The same shared scanner is referenced by `package.json:27` (`check:docker-secret-boundary`); any
-  signature change to legacy-mode blocking must stay compatible with that npm entry.
+- **DONE (was the "broader" T4g-adjacent item):** `build.sh` (main game image) now gets the full
+  per-layer **byte scan** the profile path has — wired as `--inspect-image "$BUILT_IMAGE_ID"` after
+  a `--load --iidfile` build, before `docker push` (`build.sh:116-151`), mirroring
+  `build-deploy-profile.sh`. The game/profile asymmetry the investigation flagged is closed. Cost:
+  the game build now `--load`s locally (extra disk + a load step) instead of streaming via `--push`
+  — an intentional tradeoff to scan the exact bytes before publish.
+- The same shared scanner is referenced by `package.json:27` (`check:docker-secret-boundary`),
+  which runs the **static-only** path (no `--inspect-image`, pushes nothing). The advisory there is
+  warn-only by design; that path needs no blocking broad-copy guard because it never publishes.
+- **Verification artifact:** the C1 decision rests on a 19-agent adversarial investigation
+  (`/private/tmp/.../tasks/wxn9ud631.output`, 15 scenarios) — most scary scenarios were *refuted*
+  (neutralized by multi-stage assembly or `.dockerignore`); the survivors all reduce to "a secret
+  *file* under `src/`/`resources/`/`proprietary/` or a broad-COPY regression, on a path with no
+  byte scan" — exactly what option (c) closes.

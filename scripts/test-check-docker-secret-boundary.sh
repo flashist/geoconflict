@@ -24,10 +24,12 @@ fi
 
 WORK=$(mktemp -d)
 IMAGES=()
+FIXTURE=""   # Cov1: a synthesized secret placed in ROOT_DIR; removed by cleanup() on any exit.
 cleanup() {
     for img in "${IMAGES[@]:-}"; do
         [ -n "$img" ] && docker image rm -f "$img" >/dev/null 2>&1 || true
     done
+    [ -n "$FIXTURE" ] && rm -f "$FIXTURE"
     rm -rf "$WORK"
 }
 trap cleanup EXIT
@@ -150,6 +152,40 @@ if printf '%s' "$ADVISORY_OUT" | grep -q "Advisory (WARN-ONLY"; then
     ok "advisory warning is actually emitted for a broad COPY"
 else
     bad "advisory warning was not emitted for a broad COPY"
+fi
+
+# ── Cov2: positive name-scan — a file literally named .env is caught by name alone ──
+mkdir -p "$WORK/named"
+printf 'KEY=value\n' > "$WORK/named/.env"
+cat > "$WORK/named/Dockerfile" <<'EOF'
+FROM scratch
+COPY .env /app/.env
+EOF
+NAMED_ID=$(build_img "$WORK/named") || { echo "FAIL: could not build named image"; exit 1; }
+assert_exit nonzero "secret-named file (.env) caught by name scan alone" -- \
+    bash "$GATE" --inspect-image "$NAMED_ID"
+
+# ── Cov1: content scan exercised UNCONDITIONALLY via a synthesized known-secret ─────
+# Place a fixture in ROOT_DIR so the gate's wanted-set (which scans ROOT_DIR, derived from
+# the gate's own BASH_SOURCE and not overridable by env) hashes it; then bake its bytes
+# into an image under a different name + subdir, so the content-scan join must catch it
+# even on a clean CI checkout with no real local secret. The fixture name matches `.env.*`,
+# so .dockerignore keeps it out of any REAL build; cleanup() removes it on every exit path.
+FIXTURE="$ROOT_DIR/.env.__t4f_fixture__.secret"
+printf 'T4F_FIXTURE_SECRET=deterministic-bytes-do-not-use\n' > "$FIXTURE"
+mkdir -p "$WORK/synth/sub"
+cp "$FIXTURE" "$WORK/synth/sub/renamed_blob"
+cat > "$WORK/synth/Dockerfile" <<'EOF'
+FROM scratch
+COPY sub/renamed_blob /opt/data/blob
+EOF
+SYNTH_ID=$(build_img "$WORK/synth") || { echo "FAIL: could not build synth image"; exit 1; }
+assert_exit nonzero "synthesized fixture bytes (renamed) caught by content scan" -- \
+    bash "$GATE" --inspect-image "$SYNTH_ID"
+rm -f "$FIXTURE"; FIXTURE=""
+# Safety: the fixture must not linger in the repo working tree.
+if [ -f "$ROOT_DIR/.env.__t4f_fixture__.secret" ]; then
+    bad "Cov1 fixture leaked (still present on disk)"
 fi
 
 echo "----------------------------------------"

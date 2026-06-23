@@ -119,8 +119,18 @@ inspect_image_bytes() {
         ! -name "*.example" ! -name "*.sample" ! -name "*.template" -size +0c -print 2>/dev/null || true)
     if [ -n "$local_secret_files" ]; then
         INSPECT_HASHES_FILE=$(mktemp)
+        # Hash each local secret. If one can't be read (e.g. a foreign-user / CI checkout),
+        # warn with gate context and continue — its bytes won't be content-matched, but the
+        # name scan still applies. The `if` consumes the failure so the pipe stage (and
+        # `set -e`) does not abort opaquely on a single unreadable file.
         printf '%s\n' "$local_secret_files" \
-            | while IFS= read -r f; do [ -n "$f" ] && $HASH_CMD "$f"; done \
+            | while IFS= read -r f; do
+                [ -n "$f" ] || continue
+                if ! $HASH_CMD "$f" 2>/dev/null; then
+                    echo "Warning: cannot read local secret '$f' to hash it — its bytes won't be" >&2
+                    echo "         content-matched in the image (the name scan still applies)." >&2
+                fi
+              done \
             | awk '{print $1}' | sort -u > "$INSPECT_HASHES_FILE"
         [ -s "$INSPECT_HASHES_FILE" ] || { rm -f "$INSPECT_HASHES_FILE"; INSPECT_HASHES_FILE=""; }
     fi
@@ -165,10 +175,16 @@ inspect_image_bytes() {
         # CONTENT scan over ALL files (incl node_modules), uncapped — only if we have
         # local secret hashes to match against.
         if [ -n "$INSPECT_HASHES_FILE" ]; then
-            ch=$(find "$INSPECT_LAYER_DIR" -type f -size +0c -exec $HASH_CMD {} + 2>/dev/null \
+            # Capture the find→awk pipeline status so a content-scan error WARNS rather than
+            # silently passing — the gate is fail-closed, so a swallowed error must not read
+            # as "clean". The name scan stays active as an independent backstop. The `sed`
+            # prefix-strip is split out so its trivial success can't mask a real scan failure.
+            if ! ch=$(find "$INSPECT_LAYER_DIR" -type f -size +0c -exec $HASH_CMD {} + 2>/dev/null \
                 | awk 'FNR==NR { if ($1 != "") want[$1]=1; next } ($1 in want) { print }' \
-                    "$INSPECT_HASHES_FILE" - \
-                | sed "s|$INSPECT_LAYER_DIR||" || true)
+                    "$INSPECT_HASHES_FILE" -); then
+                echo "Warning: content scan of layer '$blob' hit errors; name scan still active." >&2
+            fi
+            ch=$(printf '%s' "$ch" | sed "s|$INSPECT_LAYER_DIR||")
             [ -n "$ch" ] && content_hits="${content_hits}${ch}
 "
         fi
