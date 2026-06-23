@@ -117,6 +117,14 @@ is_truthy() {
     esac
 }
 
+# ── Role marker (X1) ──────────────────────────────────────────────────────────
+# Records that this box is managed as the TELEMETRY backend. build-deploy-telemetry.sh's
+# read-only preflight reads it before any mutation to refuse a mistyped/stale but reachable
+# host. Written before the first mutation so a retry after a partial provision is still
+# recognised as our box. Idempotent. (No deploy lock here — that is profile-only scope.)
+echo telemetry > /etc/geoconflict-deploy-role
+chmod 644 /etc/geoconflict-deploy-role
+
 # ── System update ─────────────────────────────────────────────────────────────
 
 print_header "UPDATING SYSTEM"

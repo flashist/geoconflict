@@ -119,6 +119,31 @@ if [ -n "$PROFILE_INTERNAL_ALLOW_IPS" ]; then
     done
 fi
 
+# ── Concurrency lock (K6, remote half) + role marker ──────────────────────────
+# One fail-closed lock spans the box deploy BEFORE the first mutation (apt/ufw/swap/
+# containers below), so two overlapping deploys can never interleave container or config
+# mutations. flock needs util-linux; install it if missing and fail closed if it still
+# cannot be obtained (never provision unserialized).
+if ! command -v flock >/dev/null 2>&1; then
+    apt-get update -y >/dev/null 2>&1 && apt-get install -y util-linux >/dev/null 2>&1 || true
+fi
+if ! command -v flock >/dev/null 2>&1; then
+    echo "Error: flock (util-linux) is required to serialize deploys and could not be installed."
+    exit 1
+fi
+exec 9>/var/lock/profile-deploy.lock
+if ! flock -n 9; then
+    echo "Error: another profile deploy is already running on this box (/var/lock/profile-deploy.lock)."
+    exit 1
+fi
+
+# Role marker (X1): records that this box is managed as the PROFILE backend. The deploy
+# script's read-only preflight reads it before any mutation to refuse a mistyped/stale but
+# reachable host. Written early (under the lock, before the first mutation) so a retry
+# after a partial provision is still recognised as our box. Idempotent.
+echo profile > /etc/geoconflict-deploy-role
+chmod 644 /etc/geoconflict-deploy-role
+
 # ── System update ─────────────────────────────────────────────────────────────
 
 print_header "UPDATING SYSTEM"

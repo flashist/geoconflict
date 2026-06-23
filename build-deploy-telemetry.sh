@@ -83,13 +83,15 @@ esac
 print_header "VALIDATING CONFIG (local dry-run)"
 
 if command -v docker &> /dev/null; then
-    # Write a temp config the same way setup-telemetry.sh would, then ask Uptrace to validate it
-    TMPDIR=$(mktemp -d)
+    # Write a temp config the same way setup-telemetry.sh would, then ask Uptrace to validate it.
+    # Use a dedicated var — NOT the special exported $TMPDIR — so deleting this dir below can't
+    # leave a later mktemp (SSH_PASSWORD_FILE / LOCAL_TMPENV) pointed at a removed base dir.
+    VALIDATE_TMPDIR=$(mktemp -d)
     DRY_RUN_PROJECT_TOKEN="${UPTRACE_PROJECT_TOKEN:-dryrun_token}"
     DRY_RUN_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-dryrun_password}"
     DRY_RUN_SITE_URL="${TELEMETRY_DOMAIN:+https://${TELEMETRY_DOMAIN}}"
     DRY_RUN_SITE_URL="${DRY_RUN_SITE_URL:-http://localhost:14318}"
-    cat > "$TMPDIR/config.yml" << EOFCFG
+    cat > "$VALIDATE_TMPDIR/config.yml" << EOFCFG
 service:
   secret: '${UPTRACE_SECRET_KEY:-dryrun_secret}'
 site:
@@ -153,9 +155,9 @@ EOFCFG
 
     UPTRACE_VERSION=$(grep 'image: uptrace/uptrace:' "$SETUP_SCRIPT" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
 
-    if grep -q '^ch:' "$TMPDIR/config.yml"; then
+    if grep -q '^ch:' "$VALIDATE_TMPDIR/config.yml"; then
         echo "❌ Dry-run config contains unsupported top-level ch: config for Uptrace ${UPTRACE_VERSION}"
-        rm -rf "$TMPDIR"
+        rm -rf "$VALIDATE_TMPDIR"
         exit 1
     fi
 
@@ -164,17 +166,17 @@ EOFCFG
     # making it safe to run locally without running services.
     # Exit code is the sole signal — no output grepping.
     if VALIDATE_OUT=$(docker run --rm \
-        -v "$TMPDIR/config.yml:/etc/uptrace/config.yml" \
+        -v "$VALIDATE_TMPDIR/config.yml:/etc/uptrace/config.yml" \
         "uptrace/uptrace:${UPTRACE_VERSION}" \
         --config=/etc/uptrace/config.yml help 2>&1); then
         echo "✅ Config valid"
     else
         echo "❌ Config validation failed:"
         echo "$VALIDATE_OUT"
-        rm -rf "$TMPDIR"
+        rm -rf "$VALIDATE_TMPDIR"
         exit 1
     fi
-    rm -rf "$TMPDIR"
+    rm -rf "$VALIDATE_TMPDIR"
 else
     echo "Docker not available locally — skipping config validation"
 fi
@@ -232,8 +234,16 @@ elif [ -n "$SSH_PASSWORD" ]; then
         exit 1
     fi
     echo "Warning: Using deprecated password-based SSH fallback for telemetry deploy."
-    SCP_CMD=(sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no)
-    SSH_CMD=(sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no)
+    # K1: write the password to a 0600 file (created before the secret is written) and
+    # pass only its PATH to sshpass via -f — the secret never appears in any argv. This
+    # script cleans secrets inline (no record/lock), so a focused EXIT trap removes the
+    # password file on any exit.
+    SSH_PASSWORD_FILE=$(mktemp)
+    chmod 600 "$SSH_PASSWORD_FILE"
+    printf '%s\n' "$SSH_PASSWORD" > "$SSH_PASSWORD_FILE"
+    trap 'rm -f "$SSH_PASSWORD_FILE"' EXIT
+    SCP_CMD=(sshpass -f "$SSH_PASSWORD_FILE" scp -o StrictHostKeyChecking=no)
+    SSH_CMD=(sshpass -f "$SSH_PASSWORD_FILE" ssh -o StrictHostKeyChecking=no)
 fi
 
 REMOTE_SCRIPT="/root/setup-telemetry.sh"
@@ -242,6 +252,71 @@ print_header "DEPLOYING UPTRACE TO ${TELEMETRY_SERVER_HOST}"
 echo "Remote user:   ${REMOTE_USER}"
 echo "Remote host:   ${TELEMETRY_SERVER_HOST}"
 echo ""
+
+# ── Deploy-target preflight (X1) ──────────────────────────────────────────────
+# Mirror of build-deploy-profile.sh: a read-only identity check BEFORE the first SCP, so a
+# mistyped/stale-but-reachable host that accepts the key is never destructively provisioned
+# (setup-telemetry.sh runs apt-upgrade/swap/containers before its own DNS check). The role
+# marker setup-telemetry.sh writes is authoritative; on an unprovisioned box fall back to
+# "TELEMETRY_DOMAIN resolves to this target"; else fail closed unless
+# TELEMETRY_DEPLOY_ALLOW_UNVERIFIED is set.
+print_header "DEPLOY-TARGET PREFLIGHT"
+EXPECTED_ROLE="telemetry"
+
+resolve_ips() {
+    local host="$1"
+    if command -v getent >/dev/null 2>&1; then
+        getent ahosts "$host" 2>/dev/null | awk '{print $1}'
+    elif command -v dig >/dev/null 2>&1; then
+        dig +short "$host" A 2>/dev/null; dig +short "$host" AAAA 2>/dev/null
+    elif command -v host >/dev/null 2>&1; then
+        host "$host" 2>/dev/null | awk '/has address|has IPv6/ {print $NF}'
+    elif command -v python3 >/dev/null 2>&1; then
+        python3 -c "import socket,sys; print('\n'.join(sorted({a[4][0] for a in socket.getaddrinfo(sys.argv[1],None)})))" "$host" 2>/dev/null
+    fi
+}
+DOMAIN_MATCH=0
+if [ -n "${TELEMETRY_DOMAIN:-}" ]; then
+    resolved_domain_ips=$(resolve_ips "$TELEMETRY_DOMAIN" | sort -u)
+    acceptable_ips=$(printf '%s\n%s\n' "$TELEMETRY_SERVER_HOST" "$(resolve_ips "$TELEMETRY_SERVER_HOST")" | sort -u)
+    for rip in $resolved_domain_ips; do
+        for aip in $acceptable_ips; do
+            [ -n "$rip" ] && [ "$rip" = "$aip" ] && DOMAIN_MATCH=1
+        done
+    done
+fi
+
+set +e
+DEPLOY_TARGET_ROLE=$("${SSH_CMD[@]}" -o ConnectTimeout=10 "${REMOTE_USER}@${TELEMETRY_SERVER_HOST}" \
+    'cat /etc/geoconflict-deploy-role 2>/dev/null || true')
+preflight_rc=$?
+set -e
+if [ "$preflight_rc" -ne 0 ]; then
+    echo "Error: preflight SSH to ${TELEMETRY_SERVER_HOST} failed (rc=${preflight_rc}) — host"
+    echo "       unreachable or key rejected. Aborting before any secret transfer or mutation."
+    exit 1
+fi
+DEPLOY_TARGET_ROLE=$(printf '%s' "$DEPLOY_TARGET_ROLE" | tr -d '[:space:]')
+
+if [ "$DEPLOY_TARGET_ROLE" = "$EXPECTED_ROLE" ]; then
+    echo "Preflight OK: role marker confirms the ${EXPECTED_ROLE} box."
+elif [ -n "$DEPLOY_TARGET_ROLE" ]; then
+    echo "Error: ${TELEMETRY_SERVER_HOST} is provisioned as role '${DEPLOY_TARGET_ROLE}', not"
+    echo "       '${EXPECTED_ROLE}'. Refusing to clobber a different box. Aborting before any"
+    echo "       secret transfer or mutation — check TELEMETRY_SERVER_HOST."
+    exit 1
+elif [ "$DOMAIN_MATCH" = "1" ]; then
+    echo "Preflight OK: no role marker yet (first provision); ${TELEMETRY_DOMAIN} resolves to this target."
+elif is_truthy "${TELEMETRY_DEPLOY_ALLOW_UNVERIFIED:-}"; then
+    echo "Warning: ${TELEMETRY_SERVER_HOST} has no role marker and ${TELEMETRY_DOMAIN:-<no domain>} does"
+    echo "         not resolve to it — proceeding because TELEMETRY_DEPLOY_ALLOW_UNVERIFIED is set."
+else
+    echo "Error: cannot confirm ${TELEMETRY_SERVER_HOST} is the intended ${EXPECTED_ROLE} box"
+    echo "       (no role marker, and ${TELEMETRY_DOMAIN:-<no domain>} does not resolve to it)."
+    echo "       Aborting before any secret transfer or mutation. If this is a first provision"
+    echo "       of a new box, set TELEMETRY_DEPLOY_ALLOW_UNVERIFIED=1 to proceed."
+    exit 1
+fi
 
 # ── Upload setup script ───────────────────────────────────────────────────────
 
