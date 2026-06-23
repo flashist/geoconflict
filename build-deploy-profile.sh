@@ -138,6 +138,21 @@ docker buildx build --platform linux/amd64 --load \
 
 BUILT_IMAGE_ID=$(cat "$IIDFILE")
 rm -f "$IIDFILE"   # immediate success-path cleanup; the EXIT trap covers failure paths
+# Fail closed if the iidfile was empty: `cat` of an empty file returns 0 (set -e won't
+# catch it), and an empty ID makes the byte-scan gate silently skip → unscanned push.
+if [ -z "$BUILT_IMAGE_ID" ]; then
+    echo "Error: --iidfile was empty after build — cannot identify the image to scan. Aborting (fail closed)."
+    exit 1
+fi
+
+# ── Secret-boundary gate (T4f) ────────────────────────────────────────────────
+# Authoritative per-layer byte scan on the BUILT image ID (not the mutable tag),
+# BEFORE any push. It fails closed if it cannot observe the layers. set -e is active,
+# so a non-zero exit aborts the run here and nothing is pushed. The Dockerfile COPY/ADD
+# advisory is warn-only; only this byte scan determines the exit code.
+print_header "SCANNING PROFILE IMAGE FOR BAKED-IN SECRETS"
+bash "$(dirname "$0")/scripts/check-docker-secret-boundary.sh" \
+    --inspect-image "$BUILT_IMAGE_ID" --dockerfile "$DOCKERFILE"
 
 # ── Push to the registry ──────────────────────────────────────────────────────
 # Token on stdin via --password-stdin — never in argv (ps aux / /proc/<pid>/cmdline).
