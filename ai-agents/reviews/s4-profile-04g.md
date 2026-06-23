@@ -3,7 +3,7 @@
 Task: `ai-agents/tasks/backlog/s4-profile-04g-argv-concurrency-hardening.md`
 File(s) under review: `build-deploy-profile.sh`, `build-deploy-telemetry.sh`,
 `setup-profile.sh`, `setup-telemetry.sh`, `tests/scripts/profile-deploy-hardening.test.sh`
-Status: in-review — R1 converged (C1/C2/F2 accepted residuals, F3/F4 non-issues, F1 cheap fix); **F1 RESOLVED R2 (`/process-review`, user-approved)**; **R3 `/stateful-review` on the updated PR — R2 fix verified clean by both reviewers, one new finding C3 accepted as residual.** No open defects.
+Status: **CLOSED OUT — converged, no open defects.** R1 (C1/C2/F2 residuals, F3/F4 non-issues, F1 cheap fix) → **F1 RESOLVED R2 (`/process-review`, user-approved)** → **R3 `/stateful-review`** re-verified the R2 fix clean (both reviewers) + raised **C3** (residual) & **F-NEW-1** (pre-existing) → **R3 `/process-review`** independently confirmed C3/F-NEW-1, did **not** re-litigate C1/C2/F2/F3/F4, and **called closeout (user-approved)**. F-NEW-1 deferred to a future telemetry-hardening task.
 Scope reviewed: branch diff vs `dev` (PR 125). Reviewers: Claude `code-reviewer` +
 Codex adversarial review (both ran — full coverage). Acceptance test suite: **ALL PASS**
 (30+ assertions, `tests/scripts/profile-deploy-hardening.test.sh`).
@@ -103,6 +103,7 @@ persisted `DOCKER_TOKEN` X2 residual) — none re-raised here.
 | 3 | **R2 `TMPDIR → VALIDATE_TMPDIR` fix** re-reviewed (`/stateful-review` on the updated PR; both reviewers) | **CLEAN — confirmed by both** Claude `code-reviewer` and Codex: rename complete (7 refs, all 3 exit paths clean up `VALIDATE_TMPDIR`, fully block-scoped), special `$TMPDIR` no longer clobbered, downstream `SSH_PASSWORD_FILE`/`LOCAL_TMPENV` mktemp now inherit a valid base; argv-safety intact; suite **ALL PASS** | No action. F1 fix verified correct & complete. |
 | 3 | **C3** (Codex, high) — preflight `DOMAIN_MATCH` set-overlap not bound to the SSH-selected IP; round-robin multi-IP host could pass no-marker fallback while SSH lands elsewhere | PARTIALLY CORRECT → **low** — authoritative role-marker gate unaffected; **non-triggering with the literal-IP deploys in use** (single resolved IP, SSH binds to it); not the X1 operator-mistype threat; ultra-low-reachability round-robin edge | **Accepted residual** (do-not-re-litigate). Pinned-IP / literal-IP hardening logged as future-task scope. Not blocking. |
 | 3 | **F-NEW-1** (Claude, informational) — telemetry `LOCAL_TMPENV` (secrets) rm'd inline after SCP with no EXIT trap → leaks on SCP failure | CORRECT but **pre-existing** — confirmed identical in the `dev` baseline (`git show dev:build-deploy-telemetry.sh`); 04g neither introduces nor worsens it (04g only *adds* the `SSH_PASSWORD_FILE` EXIT trap, a net improvement) | **Noted as pre-existing, out of 04g scope** — not tracked as a 04g open item. A future telemetry-hardening task could give it a finalize/EXIT-trap like profile's. |
+| 4 | **C3 + F-NEW-1** independently re-verified under `/process-review`; **CLOSEOUT** | CONFIRMED — C3 mechanically real but **low**: literal-IP `*_SERVER_HOST` config (`.env*`, memory `80.78.247.199`) → `resolve_ips` returns one IP and SSH binds to exactly it (no round-robin ambiguity); authoritative role-marker gate (`build-deploy-profile.sh:424-430`) decides before `DOMAIN_MATCH` (`:431`); round-robin-hostname first-provision edge = task's pre-declared ultra-low-reachability residual; **new mechanism, not a re-raise of C1/C2**. F-NEW-1 CORRECT but **pre-existing in `dev`**, out of scope (proper fix = consolidate telemetry's **non-additive** EXIT trap → telemetry-hardening task). **C1/C2/F2/F3/F4 not re-litigated** (re-raise conditions unmet). | **CLOSED OUT (user-approved)** — 04g converged, **no open defects**; no code change this round. F-NEW-1 deferred to a future telemetry-hardening task. |
 
 ## Open / actionable
 
@@ -122,3 +123,19 @@ persisted `DOCKER_TOKEN` X2 residual) — none re-raised here.
   unaffected; ultra-low-reachability round-robin edge). **F-NEW-1** (telemetry `LOCAL_TMPENV` leak on
   SCP failure) is **pre-existing in `dev`**, out of 04g scope. **No open defects; converged — no
   oscillation** (C3 is a genuinely new mechanism, not a re-raise of C1/C2).
+- **CLOSED OUT (R3 `/process-review`, user-approved):** C3 + F-NEW-1 independently re-verified;
+  C1/C2/F2/F3/F4 **not** re-litigated (re-raise conditions unmet). 04g is converged with **no open
+  defects** and ships with the on-box milestone validation as the merge gate (as 04e3).
+
+## Forward notes (for downstream tasks)
+
+- **F-NEW-1 → homed in `ai-agents/tasks/backlog/sec13-deploy-transport-secret-hygiene.md`:** give
+  `build-deploy-telemetry.sh` a single unconditional EXIT-trap finalize (covering **both**
+  `LOCAL_TMPENV` and `SSH_PASSWORD_FILE`) like profile's `finalize_deploy`, so a failed SCP can't
+  leave a 0600 secret env_file on the dev host. Traps are **non-additive** — fold the existing
+  password-branch `trap … EXIT` (`:244`) into the consolidated one. Pre-existing in `dev`; not a 04g
+  regression. **(Also re-homes A2** — the remote env-file 0600 window 04e3 expected T4g to close but
+  04g's argv/concurrency/preflight scope did not — **into the same `sec13` task.)**
+- **C3 → if round-robin/multi-IP `*_SERVER_HOST` ever becomes supported:** pin one resolved IP and
+  use it for preflight + SCP + SSH (`HostKeyAlias`), or abort the no-marker DNS-bootstrap path when
+  `*_SERVER_HOST` resolves to >1 address. Repo-wide with telemetry.
