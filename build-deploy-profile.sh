@@ -218,11 +218,90 @@ if ! docker buildx imagetools inspect "$PROFILE_DIGEST" >/dev/null 2>&1; then
     exit 1
 fi
 
+# ── Concurrency lock + atomic deploy record (K6) ──────────────────────────────
+# One fail-closed lock spans the whole deploy BEFORE any secret is staged or the box is
+# mutated, and the deploy record is written as a single atomic block under it. On the
+# macOS dev host `flock` is unavailable, so use an atomic `mkdir` mutex (mkdir fails if
+# the dir already exists — no TOCTOU). The remote half (flock on the box) lives in
+# setup-profile.sh. finalize_deploy is the single EXIT writer: it subsumes the old
+# cleanup_secrets, appends the result line, then appends the whole block — every step
+# `|| true`-guarded so a cleanup failure can never strand the lock.
+DEPLOY_LOCK="${PROFILE_DEPLOY_LOCK:-${TMPDIR:-/tmp}/profile-deploy.lock.d}"
+DEPLOY_RECORD="${PROFILE_DEPLOY_RECORD:-$HOME/.geoconflict/profile-deploy.log}"
+
+# Assigned later (auth + transport); declare them now so finalize_deploy — installed
+# below and able to fire on ANY exit from here on — never references an unset var.
+LOCAL_TMPENV=""
+REMOTE_ENV=""
+REMOTE_ENV_STAGED=0
+SSH_PASSWORD_FILE=""
+DEPLOY_RECORD_TMP=""
+DEPLOY_OUTCOME=""
+DEPLOY_FINALIZED=0
+DEPLOY_LOCK_HELD=0
+
+finalize_deploy() {
+    [ "$DEPLOY_FINALIZED" = "1" ] && return 0
+    DEPLOY_FINALIZED=1
+    # Secrets first — the local staged env_file and the sshpass 0600 password file.
+    [ -n "$LOCAL_TMPENV" ] && rm -f "$LOCAL_TMPENV" || true
+    [ -n "$SSH_PASSWORD_FILE" ] && rm -f "$SSH_PASSWORD_FILE" || true
+    # Best-effort remote staged-env cleanup (the host may be unreachable on a failure path).
+    if [ "$REMOTE_ENV_STAGED" = "1" ] && [ -n "$REMOTE_ENV" ]; then
+        "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
+    fi
+    # Append the result line to the body, then the WHOLE block to the shared record in one
+    # operation — under the lock we still hold, so blocks never interleave and a body can
+    # never land without its result. A failed append warns-and-continues so the lock
+    # release below still runs (never strand the deploy lock).
+    if [ -n "$DEPLOY_RECORD_TMP" ] && [ -f "$DEPLOY_RECORD_TMP" ] && [ -n "$DEPLOY_RECORD" ]; then
+        if echo "validation_result=${DEPLOY_OUTCOME:-failed} digest=${PROFILE_DIGEST:-unknown}" >> "$DEPLOY_RECORD_TMP" \
+            && cat "$DEPLOY_RECORD_TMP" >> "$DEPLOY_RECORD"; then
+            :
+        else
+            echo "Warning: could not write the deploy record to $DEPLOY_RECORD" >&2
+        fi
+    fi
+    [ -n "$DEPLOY_RECORD_TMP" ] && rm -f "$DEPLOY_RECORD_TMP" || true
+    [ "$DEPLOY_LOCK_HELD" = "1" ] && rmdir "$DEPLOY_LOCK" 2>/dev/null || true
+}
+
+# Acquire the mutex BEFORE the record trap + first write. mkdir is atomic: it fails
+# closed if another deploy already holds the lock — that second deploy writes no record
+# byte and mutates nothing.
+mkdir -p "$(dirname "$DEPLOY_RECORD")" 2>/dev/null || true
+if ! mkdir "$DEPLOY_LOCK" 2>/dev/null; then
+    echo "Error: another profile deploy is already running (lock: $DEPLOY_LOCK)."
+    echo "If you are sure none is, remove the stale lock dir and re-run."
+    exit 1
+fi
+DEPLOY_LOCK_HELD=1
+# finalize_deploy now owns EXIT, replacing the build-phase iidfile trap ($IIDFILE was
+# rm'd right after the build, so nothing leaks). Split INT/TERM so a caught signal exits
+# (firing the single EXIT trap) instead of resuming past it.
+trap finalize_deploy EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+DEPLOY_RECORD_TMP=$(mktemp)
+chmod 600 "$DEPLOY_RECORD_TMP"
+{
+    echo "----"
+    echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "env=profile"
+    echo "host=${PROFILE_SERVER_HOST}"
+    echo "tag=${PROFILE_IMAGE}"
+    echo "digest=${PROFILE_DIGEST}"
+    echo "commit=${GIT_COMMIT}${WORKTREE_DIRTY:+-dirty}"
+    echo "operator=$(whoami 2>/dev/null || echo unknown)"
+} > "$DEPLOY_RECORD_TMP"
+
 # ── Resolve SSH user + auth ───────────────────────────────────────────────────
 # Key path is the standard and the default. Password fallback is gated behind
-# ALLOW_PROFILE_SSH_PASSWORD_FALLBACK and uses sshpass; its argv-exposing `-p` form
-# is DELIBERATELY retained here — replacing it with `sshpass -f <0600 file>` is T4g's
-# net-new hardening, not this slice's.
+# ALLOW_PROFILE_SSH_PASSWORD_FALLBACK and uses `sshpass -f <0600 file>` (K1): the password
+# travels in a 0600 temp file whose PATH (never the secret) is the only thing in argv. The
+# file is created 0600 BEFORE the secret is written and removed by finalize_deploy on any
+# exit — so it is never world-readable and never leaked on abort.
 
 REMOTE_USER="${PROFILE_SSH_USER:-}"
 if [ -z "$REMOTE_USER" ]; then
@@ -271,8 +350,13 @@ elif [ -n "$SSH_PASSWORD" ]; then
         exit 1
     fi
     echo "Warning: Using deprecated password-based SSH fallback for profile deploy."
-    SCP_CMD=(sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=accept-new)
-    SSH_CMD=(sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=accept-new)
+    # K1: write the password to a 0600 file (created before the secret is written) and
+    # pass only its PATH to sshpass via -f — the secret never appears in any argv.
+    SSH_PASSWORD_FILE=$(mktemp)
+    chmod 600 "$SSH_PASSWORD_FILE"
+    printf '%s\n' "$SSH_PASSWORD" > "$SSH_PASSWORD_FILE"
+    SCP_CMD=(sshpass -f "$SSH_PASSWORD_FILE" scp -o StrictHostKeyChecking=accept-new)
+    SSH_CMD=(sshpass -f "$SSH_PASSWORD_FILE" ssh -o StrictHostKeyChecking=accept-new)
 fi
 
 REMOTE_SCRIPT="/root/setup-profile.sh"
@@ -285,9 +369,82 @@ echo "Image digest:  ${PROFILE_DIGEST}"
 echo "Source commit: ${GIT_COMMIT}${WORKTREE_DIRTY:+ (DIRTY — image content differs from this commit)}"
 echo ""
 
+# ── Deploy-target preflight (X1) ──────────────────────────────────────────────
+# A read-only identity check BEFORE the first SCP / secret-staging, so a mistyped or
+# stale-but-reachable host that accepts the key is never destructively provisioned
+# (setup-profile.sh runs apt-upgrade/ufw/swap/containers before its own DNS check).
+# Identity model: the role marker setup-profile.sh writes is authoritative; on a box not
+# yet provisioned (no marker) fall back to "PROFILE_DOMAIN resolves to this target"; if
+# neither confirms, fail closed unless PROFILE_DEPLOY_ALLOW_UNVERIFIED is set.
+print_header "DEPLOY-TARGET PREFLIGHT"
+EXPECTED_ROLE="profile"
+
+# Best-effort local resolution: does PROFILE_DOMAIN resolve to the host we deploy to?
+# Mirrors setup-profile.sh's NAT-aware match (the public IP an A-record points at is the
+# explicit PROFILE_SERVER_HOST, not a local interface). A missing resolver yields no match
+# — the override is the backstop, so this never hard-fails a legitimate deploy.
+resolve_ips() {
+    local host="$1"
+    if command -v getent >/dev/null 2>&1; then
+        getent ahosts "$host" 2>/dev/null | awk '{print $1}'
+    elif command -v dig >/dev/null 2>&1; then
+        dig +short "$host" A 2>/dev/null; dig +short "$host" AAAA 2>/dev/null
+    elif command -v host >/dev/null 2>&1; then
+        host "$host" 2>/dev/null | awk '/has address|has IPv6/ {print $NF}'
+    elif command -v python3 >/dev/null 2>&1; then
+        python3 -c "import socket,sys; print('\n'.join(sorted({a[4][0] for a in socket.getaddrinfo(sys.argv[1],None)})))" "$host" 2>/dev/null
+    fi
+}
+DOMAIN_MATCH=0
+if [ -n "${PROFILE_DOMAIN:-}" ]; then
+    resolved_domain_ips=$(resolve_ips "$PROFILE_DOMAIN" | sort -u)
+    acceptable_ips=$(printf '%s\n%s\n' "$PROFILE_SERVER_HOST" "$(resolve_ips "$PROFILE_SERVER_HOST")" | sort -u)
+    for rip in $resolved_domain_ips; do
+        for aip in $acceptable_ips; do
+            [ -n "$rip" ] && [ "$rip" = "$aip" ] && DOMAIN_MATCH=1
+        done
+    done
+fi
+
+# Read the role marker over a read-only SSH (no mutation, no secret). The remote command
+# always exits 0 (`|| true`) so the ssh exit code reflects ONLY reachability/auth — an
+# unreachable or auth-failing host fails closed here, before anything is staged.
+set +e
+DEPLOY_TARGET_ROLE=$("${SSH_CMD[@]}" -o ConnectTimeout=10 "${REMOTE_USER}@${PROFILE_SERVER_HOST}" \
+    'cat /etc/geoconflict-deploy-role 2>/dev/null || true')
+preflight_rc=$?
+set -e
+if [ "$preflight_rc" -ne 0 ]; then
+    echo "Error: preflight SSH to ${PROFILE_SERVER_HOST} failed (rc=${preflight_rc}) — host"
+    echo "       unreachable or key rejected. Aborting before any secret transfer or mutation."
+    exit 1
+fi
+DEPLOY_TARGET_ROLE=$(printf '%s' "$DEPLOY_TARGET_ROLE" | tr -d '[:space:]')
+
+if [ "$DEPLOY_TARGET_ROLE" = "$EXPECTED_ROLE" ]; then
+    echo "Preflight OK: role marker confirms the ${EXPECTED_ROLE} box."
+elif [ -n "$DEPLOY_TARGET_ROLE" ]; then
+    echo "Error: ${PROFILE_SERVER_HOST} is provisioned as role '${DEPLOY_TARGET_ROLE}', not"
+    echo "       '${EXPECTED_ROLE}'. Refusing to clobber a different box. Aborting before any"
+    echo "       secret transfer or mutation — check PROFILE_SERVER_HOST."
+    exit 1
+elif [ "$DOMAIN_MATCH" = "1" ]; then
+    echo "Preflight OK: no role marker yet (first provision); ${PROFILE_DOMAIN} resolves to this target."
+elif is_truthy "${PROFILE_DEPLOY_ALLOW_UNVERIFIED:-}"; then
+    echo "Warning: ${PROFILE_SERVER_HOST} has no role marker and ${PROFILE_DOMAIN:-<no domain>} does"
+    echo "         not resolve to it — proceeding because PROFILE_DEPLOY_ALLOW_UNVERIFIED is set."
+else
+    echo "Error: cannot confirm ${PROFILE_SERVER_HOST} is the intended ${EXPECTED_ROLE} box"
+    echo "       (no role marker, and ${PROFILE_DOMAIN:-<no domain>} does not resolve to it)."
+    echo "       Aborting before any secret transfer or mutation. If this is a first provision"
+    echo "       of a new box, set PROFILE_DEPLOY_ALLOW_UNVERIFIED=1 to proceed."
+    exit 1
+fi
+
 # ── Upload setup script ───────────────────────────────────────────────────────
-# First contact with the box. A bad SSH target fails HERE (set -e aborts) before any
-# secret is staged and before the remote stack is mutated — setup-profile.sh runs last.
+# Preflight (above) already made read-only contact; this SCP is the first WRITE. A bad
+# SSH target fails the preflight before any secret is staged or the stack is mutated —
+# setup-profile.sh runs last.
 
 print_header "UPLOADING SETUP SCRIPT"
 chmod +x "$SETUP_SCRIPT"
@@ -300,29 +457,11 @@ print_header "RUNNING SETUP ON REMOTE SERVER"
 
 # Stage secrets in a local temp file and SCP it, rather than inlining them in the
 # SSH command (which would expose them in ps aux / /proc/<pid>/cmdline on the box).
-# Clean up BOTH the local and the remote staging file on ANY exit — interrupted
-# scp, a failed source, or Ctrl-C — so credentials never linger anywhere. This EXIT
-# trap intentionally replaces the build-phase iidfile trap, which has already done
-# its job ($IIDFILE was rm'd right after the build — see the note where it is set).
+# finalize_deploy (installed with the lock above) removes the local staged env_file, the
+# sshpass password file, and the remote staged env on ANY exit — so credentials never
+# linger anywhere, and its EXIT trap already replaced the build-phase iidfile trap.
 REMOTE_ENV="/root/.profile-deploy-env-$$"
 LOCAL_TMPENV=$(mktemp)
-REMOTE_ENV_STAGED=0
-cleanup_secrets() {
-    rm -f "$LOCAL_TMPENV"
-    if [ "$REMOTE_ENV_STAGED" = "1" ]; then
-        # Best-effort; ignore errors (the host may be unreachable on a failure path).
-        "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" "rm -f ${REMOTE_ENV}" >/dev/null 2>&1 || true
-    fi
-}
-# Split traps (not `EXIT INT TERM` on one line): a non-exiting INT/TERM handler makes
-# bash RESUME after the interrupted command, so a Ctrl-C during the SSH phase could fall
-# through to the "DONE" banner below. set -e already aborts on the signal-killed ssh
-# (verified: the false "DONE" does NOT reproduce with set -e on), so this is explicit
-# hardening, not a live bugfix — INT/TERM exit with the conventional 128+signal status,
-# which fires the single EXIT trap so cleanup_secrets runs exactly once on any path.
-trap cleanup_secrets EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
 chmod 600 "$LOCAL_TMPENV"
 
 # printf %q emits shell-safe, re-sourceable values — robust to passwords/tokens
@@ -362,6 +501,8 @@ REMOTE_ENV_STAGED=1
     ${REMOTE_SCRIPT}"
 # Happy path: the remote file is already gone, so skip the trap's remote cleanup.
 REMOTE_ENV_STAGED=0
+# Mark the deploy successful so finalize_deploy records validation_result=ok.
+DEPLOY_OUTCOME=ok
 
 print_header "DONE"
 echo "Profile backend setup completed on ${PROFILE_SERVER_HOST}."
