@@ -3,7 +3,7 @@
 Task: `ai-agents/tasks/backlog/s4-profile-04g-argv-concurrency-hardening.md`
 File(s) under review: `build-deploy-profile.sh`, `build-deploy-telemetry.sh`,
 `setup-profile.sh`, `setup-telemetry.sh`, `tests/scripts/profile-deploy-hardening.test.sh`
-Status: in-review — R1 converged (C1/C2/F2 accepted residuals, F3/F4 non-issues, F1 cheap fix); **F1 RESOLVED R2 (`/process-review`, user-approved)**. No open defects.
+Status: in-review — R1 converged (C1/C2/F2 accepted residuals, F3/F4 non-issues, F1 cheap fix); **F1 RESOLVED R2 (`/process-review`, user-approved)**; **R3 `/stateful-review` on the updated PR — R2 fix verified clean by both reviewers, one new finding C3 accepted as residual.** No open defects.
 Scope reviewed: branch diff vs `dev` (PR 125). Reviewers: Claude `code-reviewer` +
 Codex adversarial review (both ran — full coverage). Acceptance test suite: **ALL PASS**
 (30+ assertions, `tests/scripts/profile-deploy-hardening.test.sh`).
@@ -65,6 +65,29 @@ persisted `DOCKER_TOKEN` X2 residual) — none re-raised here.
   a non-idempotent or non-dpkg-locked step is added before `flock`, OR the pre-flock
   bootstrap is shown to interleave destructively under concurrency (would be a defect).
 
+- **Preflight `DOMAIN_MATCH` is a set-overlap, not bound to the SSH-selected IP (C3, Codex high)**
+  — What: the no-marker fallback (`build-deploy-profile.sh:398-407`, mirrored
+  `build-deploy-telemetry.sh:279-285`) sets `DOMAIN_MATCH=1` when **any** address resolved for
+  `PROFILE_DOMAIN` overlaps **any** address in `{PROFILE_SERVER_HOST literal} ∪ resolve_ips(PROFILE_SERVER_HOST)`.
+  SSH resolves `PROFILE_SERVER_HOST` independently, so with a **multi-A-record round-robin**
+  hostname (domain→{A}, host→{A,B}) the check can pass on A while SSH lands on unmarked host B,
+  which would then be provisioned. Why (non-blocking, structural): (1) the **role marker is the
+  authoritative gate** (`:424-430`), read over the same SSH and deciding first — `DOMAIN_MATCH` is
+  only the *first-provision-no-marker* bootstrap fallback (`:431`), so any already-provisioned or
+  wrong-role box is rejected regardless; (2) **non-triggering with the actual deploy config** —
+  profile/telemetry use a **literal IP** for `*_SERVER_HOST` (`80.78.247.199` etc.; the test uses
+  `203.0.113.10`), where `resolve_ips` returns that single IP and SSH connects to exactly it (no
+  multi-address ambiguity); (3) **not the X1 threat** — X1's criterion is an *operator-mistyped*
+  host (a mistyped literal IP still aborts: no marker + domain doesn't resolve to it), whereas C3
+  needs a correctly-typed round-robin hostname + first-provision + SSH load-balancing onto a
+  non-domain IP — exactly the task's pre-declared **"ultra-low-reachability races → residual, not
+  blocker"** bucket. Codex's fix (resolve once → pin one IP → use it for preflight + SCP + SSH via
+  `HostKeyAlias`, repo-wide with telemetry) is real hardening but adds transport complexity for a
+  scenario the literal-IP config never hits. Re-raise only if: round-robin / multi-IP hostnames
+  become a supported `*_SERVER_HOST` form, OR first-provision must defend a multi-IP target as a
+  hard requirement — then either pin one resolved IP through preflight+SCP+SSH, or require a literal
+  IP (abort the no-marker DNS-bootstrap path when `*_SERVER_HOST` resolves to >1 address).
+
 ## Decision log
 
 | Round | Finding | Verdict | Action |
@@ -77,6 +100,9 @@ persisted `DOCKER_TOKEN` X2 residual) — none re-raised here.
 | 1 | **F4** (Claude, low) — `mkdir -p "$(dirname "$DEPLOY_RECORD")"` runs before the lock | INCORRECT (self-cleared) — idempotent and safe; intentionally outside the lock; reviewer noted no action needed | No action. Verified clean. |
 | 2 | **F1** re-verified under `/process-review` (independent re-read + empirical test) | CONFIRMED low — severity **even lower than R1**: macOS BSD `mktemp` (bare, no `-t`) **ignores `$TMPDIR`** entirely (Darwin per-user temp via `confstr`), proven `rc=0` against a *deleted* base dir; default-Linux doesn't export `TMPDIR` so the clobber never reaches a child `mktemp` either. Trigger is GNU mktemp **and** a pre-exported `TMPDIR`, and even then it's a fail-closed early abort. Pre-existing root cause; 04g adds one rarely-hit consumer (`SSH_PASSWORD_FILE`). | **APPLIED (user-approved)**: renamed the validate-block temp dir `TMPDIR → VALIDATE_TMPDIR` (the 7 refs in the `if command -v docker` block) so it never clobbers the special exported var; later `SSH_PASSWORD_FILE`/`LOCAL_TMPENV` mktemp now inherit a valid base. Zero behavioral change; `bash -n` clean; harness **34/34**. F1 closed. |
 | 2 | **C1/C2/F2/F3/F4** re-verified under `/process-review` | All five classifications **CONFIRMED** independently (read the cited code, traced full flow) — C1/C2 are frontier-moves vs a perfect cross-client/MITM design (not the pre-04g baseline), F2 is comment imprecision over safe idempotent behavior, F3/F4 are verified-clean non-issues | No change. No new defects, no loop. |
+| 3 | **R2 `TMPDIR → VALIDATE_TMPDIR` fix** re-reviewed (`/stateful-review` on the updated PR; both reviewers) | **CLEAN — confirmed by both** Claude `code-reviewer` and Codex: rename complete (7 refs, all 3 exit paths clean up `VALIDATE_TMPDIR`, fully block-scoped), special `$TMPDIR` no longer clobbered, downstream `SSH_PASSWORD_FILE`/`LOCAL_TMPENV` mktemp now inherit a valid base; argv-safety intact; suite **ALL PASS** | No action. F1 fix verified correct & complete. |
+| 3 | **C3** (Codex, high) — preflight `DOMAIN_MATCH` set-overlap not bound to the SSH-selected IP; round-robin multi-IP host could pass no-marker fallback while SSH lands elsewhere | PARTIALLY CORRECT → **low** — authoritative role-marker gate unaffected; **non-triggering with the literal-IP deploys in use** (single resolved IP, SSH binds to it); not the X1 operator-mistype threat; ultra-low-reachability round-robin edge | **Accepted residual** (do-not-re-litigate). Pinned-IP / literal-IP hardening logged as future-task scope. Not blocking. |
+| 3 | **F-NEW-1** (Claude, informational) — telemetry `LOCAL_TMPENV` (secrets) rm'd inline after SCP with no EXIT trap → leaks on SCP failure | CORRECT but **pre-existing** — confirmed identical in the `dev` baseline (`git show dev:build-deploy-telemetry.sh`); 04g neither introduces nor worsens it (04g only *adds* the `SSH_PASSWORD_FILE` EXIT trap, a net improvement) | **Noted as pre-existing, out of 04g scope** — not tracked as a 04g open item. A future telemetry-hardening task could give it a finalize/EXIT-trap like profile's. |
 
 ## Open / actionable
 
@@ -89,3 +115,10 @@ persisted `DOCKER_TOKEN` X2 residual) — none re-raised here.
   `tests/scripts/profile-deploy-hardening.test.sh` **34/34**. C1/C2/F2 remain accepted
   residuals; F3/F4 verified non-issues. **An independent `/process-review` re-read every cited
   code path and agreed with all six R1 classifications — no new defects, no oscillation.**
+- **R3 (`/stateful-review` on the updated PR — both reviewers):** the R2 `VALIDATE_TMPDIR` fix is
+  **verified clean & complete by both** Claude `code-reviewer` and Codex; suite still **ALL PASS**.
+  One new finding — **C3** (preflight `DOMAIN_MATCH` not bound to the SSH-selected IP) — accepted as
+  a **residual** (non-triggering with the literal-IP deploys; authoritative role-marker gate
+  unaffected; ultra-low-reachability round-robin edge). **F-NEW-1** (telemetry `LOCAL_TMPENV` leak on
+  SCP failure) is **pre-existing in `dev`**, out of 04g scope. **No open defects; converged — no
+  oscillation** (C3 is a genuinely new mechanism, not a re-raise of C1/C2).
