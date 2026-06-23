@@ -3,7 +3,7 @@
 Task: `ai-agents/tasks/backlog/s4-profile-04g-argv-concurrency-hardening.md`
 File(s) under review: `build-deploy-profile.sh`, `build-deploy-telemetry.sh`,
 `setup-profile.sh`, `setup-telemetry.sh`, `tests/scripts/profile-deploy-hardening.test.sh`
-Status: in-review
+Status: in-review — R1 converged (C1/C2/F2 accepted residuals, F3/F4 non-issues, F1 cheap fix); **F1 RESOLVED R2 (`/process-review`, user-approved)**. No open defects.
 Scope reviewed: branch diff vs `dev` (PR 125). Reviewers: Claude `code-reviewer` +
 Codex adversarial review (both ran — full coverage). Acceptance test suite: **ALL PASS**
 (30+ assertions, `tests/scripts/profile-deploy-hardening.test.sh`).
@@ -75,18 +75,17 @@ persisted `DOCKER_TOKEN` X2 residual) — none re-raised here.
 | 1 | **F2** (Claude, low) — `apt-get install util-linux` runs before `flock`; comment says "before the first mutation"; test doesn't catch | CORRECT → low — bootstrap is idempotent, `|| true`-guarded, dpkg-serialized, rarely runs; comment slightly overstates; test asserts flock < main apt-upgrade (narrower than "no apt before flock") | **Accepted residual** (do-not-re-litigate). Behavior safe; comment/test imprecision only. |
 | 1 | **F3** (Claude, low) — `trap 'rm -f "$SSH_PASSWORD_FILE"' EXIT` single-quote note | INCORRECT (self-cleared) — single-quote form is correct (evaluated at fire time); reviewer noted "no fix required." Independently confirmed telemetry has **only one** EXIT trap (`:242`), not clobbered by any later staging trap → password file is cleaned on any exit | No action. Verified clean. |
 | 1 | **F4** (Claude, low) — `mkdir -p "$(dirname "$DEPLOY_RECORD")"` runs before the lock | INCORRECT (self-cleared) — idempotent and safe; intentionally outside the lock; reviewer noted no action needed | No action. Verified clean. |
+| 2 | **F1** re-verified under `/process-review` (independent re-read + empirical test) | CONFIRMED low — severity **even lower than R1**: macOS BSD `mktemp` (bare, no `-t`) **ignores `$TMPDIR`** entirely (Darwin per-user temp via `confstr`), proven `rc=0` against a *deleted* base dir; default-Linux doesn't export `TMPDIR` so the clobber never reaches a child `mktemp` either. Trigger is GNU mktemp **and** a pre-exported `TMPDIR`, and even then it's a fail-closed early abort. Pre-existing root cause; 04g adds one rarely-hit consumer (`SSH_PASSWORD_FILE`). | **APPLIED (user-approved)**: renamed the validate-block temp dir `TMPDIR → VALIDATE_TMPDIR` (the 7 refs in the `if command -v docker` block) so it never clobbers the special exported var; later `SSH_PASSWORD_FILE`/`LOCAL_TMPENV` mktemp now inherit a valid base. Zero behavioral change; `bash -n` clean; harness **34/34**. F1 closed. |
+| 2 | **C1/C2/F2/F3/F4** re-verified under `/process-review` | All five classifications **CONFIRMED** independently (read the cited code, traced full flow) — C1/C2 are frontier-moves vs a perfect cross-client/MITM design (not the pre-04g baseline), F2 is comment imprecision over safe idempotent behavior, F3/F4 are verified-clean non-issues | No change. No new defects, no loop. |
 
 ## Open / actionable
 
-- **F1 — don't clobber `$TMPDIR` in the telemetry validate block** (low, cheap):
-  `build-deploy-telemetry.sh:87` assigns `TMPDIR=$(mktemp -d)` and `rm -rf`s it at
-  `:158/:174/:177` without restoring it, so the new `SSH_PASSWORD_FILE=$(mktemp)` (`:239`)
-  — and the pre-existing `LOCAL_TMPENV=$(mktemp)` (`:333`) — run against a stale `TMPDIR`.
-  Non-triggering in the documented macOS / default-Linux deploy env (empirically rc=0), so
-  not blocking, but a real latent fragility under GNU mktemp + exported `TMPDIR`. **Fix:**
-  rename the validate-block temp dir to a dedicated var (e.g. `VALIDATE_TMPDIR=$(mktemp -d)`,
-  updating the three `rm -rf` sites and the two `config.yml` references) **or** add
-  `unset TMPDIR` immediately after the validate block's final `rm -rf` (`:177`). One-line
-  change; no behavioral effect in the working env, removes the latent failure mode.
-  *(Recording per `/stateful-review` — this skill does not apply the fix; that is a
-  separate, user-initiated step.)*
+- _(none — no open defects.)_ **F1 RESOLVED (R2, `/process-review`, user-approved):** the
+  validate-block temp dir was renamed `TMPDIR → VALIDATE_TMPDIR` in `build-deploy-telemetry.sh`
+  (the 7 refs inside the `if command -v docker` block), so it no longer clobbers the special
+  exported `$TMPDIR`; the later `SSH_PASSWORD_FILE`/`LOCAL_TMPENV` mktemp calls now inherit a
+  valid base dir. **Zero behavioral change** in any environment (macOS bare `mktemp` ignores
+  `$TMPDIR` entirely; default-Linux never exported it). `bash -n` clean;
+  `tests/scripts/profile-deploy-hardening.test.sh` **34/34**. C1/C2/F2 remain accepted
+  residuals; F3/F4 verified non-issues. **An independent `/process-review` re-read every cited
+  code path and agreed with all six R1 classifications — no new defects, no oscillation.**

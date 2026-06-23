@@ -83,13 +83,15 @@ esac
 print_header "VALIDATING CONFIG (local dry-run)"
 
 if command -v docker &> /dev/null; then
-    # Write a temp config the same way setup-telemetry.sh would, then ask Uptrace to validate it
-    TMPDIR=$(mktemp -d)
+    # Write a temp config the same way setup-telemetry.sh would, then ask Uptrace to validate it.
+    # Use a dedicated var — NOT the special exported $TMPDIR — so deleting this dir below can't
+    # leave a later mktemp (SSH_PASSWORD_FILE / LOCAL_TMPENV) pointed at a removed base dir.
+    VALIDATE_TMPDIR=$(mktemp -d)
     DRY_RUN_PROJECT_TOKEN="${UPTRACE_PROJECT_TOKEN:-dryrun_token}"
     DRY_RUN_ADMIN_PASSWORD="${UPTRACE_ADMIN_PASSWORD:-dryrun_password}"
     DRY_RUN_SITE_URL="${TELEMETRY_DOMAIN:+https://${TELEMETRY_DOMAIN}}"
     DRY_RUN_SITE_URL="${DRY_RUN_SITE_URL:-http://localhost:14318}"
-    cat > "$TMPDIR/config.yml" << EOFCFG
+    cat > "$VALIDATE_TMPDIR/config.yml" << EOFCFG
 service:
   secret: '${UPTRACE_SECRET_KEY:-dryrun_secret}'
 site:
@@ -153,9 +155,9 @@ EOFCFG
 
     UPTRACE_VERSION=$(grep 'image: uptrace/uptrace:' "$SETUP_SCRIPT" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
 
-    if grep -q '^ch:' "$TMPDIR/config.yml"; then
+    if grep -q '^ch:' "$VALIDATE_TMPDIR/config.yml"; then
         echo "❌ Dry-run config contains unsupported top-level ch: config for Uptrace ${UPTRACE_VERSION}"
-        rm -rf "$TMPDIR"
+        rm -rf "$VALIDATE_TMPDIR"
         exit 1
     fi
 
@@ -164,17 +166,17 @@ EOFCFG
     # making it safe to run locally without running services.
     # Exit code is the sole signal — no output grepping.
     if VALIDATE_OUT=$(docker run --rm \
-        -v "$TMPDIR/config.yml:/etc/uptrace/config.yml" \
+        -v "$VALIDATE_TMPDIR/config.yml:/etc/uptrace/config.yml" \
         "uptrace/uptrace:${UPTRACE_VERSION}" \
         --config=/etc/uptrace/config.yml help 2>&1); then
         echo "✅ Config valid"
     else
         echo "❌ Config validation failed:"
         echo "$VALIDATE_OUT"
-        rm -rf "$TMPDIR"
+        rm -rf "$VALIDATE_TMPDIR"
         exit 1
     fi
-    rm -rf "$TMPDIR"
+    rm -rf "$VALIDATE_TMPDIR"
 else
     echo "Docker not available locally — skipping config validation"
 fi
