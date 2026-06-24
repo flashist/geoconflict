@@ -3,7 +3,7 @@
 Task: ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md
 File(s) under review: migrations/001_player_profiles.sql, src/profile-server/{Routes,PlayerProfileRepository,InternalAuth,Db,Server,migrate}.ts, src/core/profile/{Citizenship,CreditContract}.ts, tests/{profile-server,core/profile,integration}/*
 Scope: branch diff vs `dev` (PR 126)
-Status: round-1 findings resolved (round 2 applied + adversarially re-reviewed clean)
+Status: in-review (round 3 stateful re-review) — round-1/round-2 actionables verified clean; round 3 surfaced R1 (cross-account `persistent_id` collision, medium) + 3 test gaps, all Open/actionable
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -68,15 +68,33 @@ Status: round-1 findings resolved (round 2 applied + adversarially re-reviewed c
 | 2 | Cl1 — **implemented**: `ROLLBACK` wrapped in try/catch in `creditMatchXp` (+ same guard in `migrate.ts`) | DONE | original error preserved → an FK-violation still classifies `no_profile` even if ROLLBACK throws; `client.release()` stays in `finally` |
 | 2 | Cl4 — **actioned** (was "noted, not actioned"): dropped the dead `updated` count from `CREDIT_SQL`'s final SELECT | DONE | `upd` is a data-modifying CTE → still runs to completion; integration tests confirm xp increment + citizenship flip unchanged |
 | 2 | Adversarial re-review — 5 independent dimensions (C1 correctness/security, C2 leak-completeness, Cl1 ROLLBACK, Cl4 CTE-semantics, regression/contract/tests), each finding verified by a refute-by-default skeptic | CLEAN | **0 new findings**; 559 unit + 13 integration tests green; lint + typecheck clean; live boot test of the full flow passes |
+| 3 | Round-2 fixes re-reviewed on the updated PR (Claude `code-reviewer` + Codex adversarial) — C1 / C2-residue / Cl1 / Cl4 | **VERIFIED CLEAN** | All four confirmed correct & regression-free by both reviewers + manual trace (auth applied, projection type matches destructure, original error preserved through ROLLBACK, `upd` data-modifying CTE still runs) |
+| 3 | **R1** (raised by **both**; Codex **high/"no-ship"**, Claude **low**): `persistent_id` is `UNIQUE` but `upsertProfile`'s `ON CONFLICT` only covers `yandex_player_id` → a persistentID reused across Yandex accounts (account switch / shared browser) raises `23505` → unhandled → **permanent 500**; the relink `DO UPDATE` path collides identically | **CORRECT → medium.** Mechanics verified and **broader than Codex stated** (relink path also collides). **Pre-existing** — constraint + SQL existed in round 1; round-2 wiring made it reachable. Claude's "one persistentID per account" invariant is **not enforced** anywhere (persistentID is browser-scoped, predates Yandex auth), so its low rating is wrong; Codex's mechanics are right but "no-ship" overstates an edge path with no decided policy. | **Open/actionable — decide+fix policy in T5** (owner decision): implement a relink/conflict policy (transfer the persistentID / deliberate 409 / reconsider the UNIQUE) + cross-account integration test |
+| 3 | **R2** (Claude, low): upsert unit test doesn't assert `citizenship_purchased_at` absent | CORRECT → low (test gap only — `toPublicProfile` strips it correctly) | **Open/actionable — strengthen tests** |
+| 3 | **R3** (Claude, low): no HTTP-layer no-op upsert test (same `persistentId` twice) | CORRECT → low (repo-layer covered) | **Open/actionable — strengthen tests** |
+| 3 | **R4** (Claude, low): `ProfileUpsertRequestSchema` has no direct unit tests | CORRECT → low (bounds only exercised indirectly) | **Open/actionable — strengthen tests** |
 
-Reviewers: round 1 — Claude `code-reviewer` (review-only) + Codex adversarial. Round 2 — implementation + a 5-dimension adversarial Workflow re-review (0 findings).
-Both round-1 reviewers correctly did **not** re-raise the primed settled decisions (dropped migrate endpoint, removed XP clamp).
+Reviewers: round 1 — Claude `code-reviewer` (review-only) + Codex adversarial. Round 2 — implementation + a 5-dimension adversarial Workflow re-review (0 findings). Round 3 — stateful re-review (Claude `code-reviewer` + Codex adversarial) on the updated PR: round-2 fixes verified clean; surfaced R1 (raised by both) — a **pre-existing** cross-account collision the round-2 5-dimension workflow missed (it verified the 4 named fixes, not the broader upsert conflict space).
+Both round-1 reviewers correctly did **not** re-raise the primed settled decisions (dropped migrate endpoint, removed XP clamp). No loop/oscillation: round-3 findings are genuinely new, not a re-litigation of any accepted residual.
 
 ## Open / actionable
 
-- **(none)** — all round-1 actionable findings (C1, C2-residue, Cl1) were implemented and
-  adversarially re-reviewed clean in round 2; Cl4 was actioned alongside them. See the
-  Decision log round-2 rows.
+- **R1 (medium) — cross-account `persistent_id` collision.** `persistent_id` is `UNIQUE` but
+  `upsertProfile`'s `ON CONFLICT` only covers `yandex_player_id`; a persistentID presented under
+  a second Yandex account (account switch / shared browser) raises `23505` → unhandled → a
+  permanent 500, and the relink `DO UPDATE` path collides identically. Owner chose to decide +
+  fix the relink/conflict policy in T5 — pick one: transfer the persistentID to the new account,
+  return a deliberate `409 conflict`, or reconsider the `persistent_id UNIQUE` constraint — and
+  add a cross-account integration test (one persistentID presented with two Yandex IDs).
+- **R2 (low) — test:** assert `citizenship_purchased_at` is absent in the upsert response
+  (`tests/profile-server/Routes.test.ts`).
+- **R3 (low) — test:** add an HTTP-layer no-op upsert test (same `persistentId` twice) in
+  `tests/integration/Routes.it.test.ts`.
+- **R4 (low) — test:** add direct unit tests for `ProfileUpsertRequestSchema` bounds
+  (`.min(1)` / `.max(128)`, empty-string, oversize) in `tests/core/profile/CreditContract.test.ts`.
+
+(Round-1 actionables C1, C2-residue, Cl1 + Cl4 remain implemented and re-verified clean — see
+Decision log rounds 2–3.)
 
 ## Carry-forward for T6 (not a T5 defect)
 
