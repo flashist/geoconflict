@@ -1,163 +1,97 @@
-# Coder handoff — s4-profile-05-backend-db-api (round 3)
+# Coder handoff — s4-profile-05-backend-db-api (round 5)
 
-> **Spec, not an applied change.** This file *describes* recommended fixes from a review of
-> PR 126. It changes no code. A separate coder run decides and implements. Findings are
-> recommendations — verify each against the code before acting (per CLAUDE.md Review Notes).
+> **Spec, not an applied change.** This file *describes* a recommended fix from a review of
+> PR 126. It changes no code. A separate coder run decides and implements. The finding is a
+> recommendation — verify it against the code before acting (per CLAUDE.md Review Notes).
 
 ## Status (read first)
 
-- **Round-1 findings (C1 upsert endpoint, C2-residue `persistent_id` strip, Cl1 ROLLBACK guard,
-  Cl4 dead-column drop) are ALREADY IMPLEMENTED and re-verified clean** by both reviewers in
-  round 3. **Do not re-do them.** They are listed under "Already done" only for context.
-- **This round's actionable work is R1 (one real defect) + R2–R4 (test strengthening).**
+- **All findings from rounds 1–4 are ALREADY IMPLEMENTED and verified clean** (C1 upsert
+  endpoint, C2-residue `persistent_id` strip, Cl1 ROLLBACK guard, Cl4 dead-column drop, **R1**
+  cross-account collision → graceful **409**, and the R2/R3/R4 test additions). **Do not re-do
+  them.**
+- **This round has exactly ONE actionable item: R5-1** (a low/med data-hygiene fix). It is the
+  only thing between this slice and closeout.
 
 ## Context
 
-**What the code is.** Task **T5 — Player Profile: Backend DB + API**. A Postgres-backed
-profile backend that runs **only** on the dedicated profile server (`api.geoconflict.ru`);
-the game server reaches it over HTTP and never touches Postgres directly. Relevant files:
+Task **T5 — Player Profile Backend DB + API** (profile server, Postgres-backed). In round 4 the
+cross-account `persistent_id` collision (R1) was resolved by catching Postgres `23505` in
+`upsertProfile` → throwing a typed `PersistentIdConflictError(yandexPlayerId, persistentId)`,
+which the route maps to `409 {error:"persistent_id_conflict"}`. R5-1 is about how that conflict
+is **logged**.
 
-- `migrations/001_player_profiles.sql` — schema (Option B: typed columns + `extra jsonb`).
-  `persistent_id text unique`; `yandex_player_id text primary key`.
-- `src/profile-server/PlayerProfileRepository.ts` — the only Postgres-touching code
-  (`upsertProfile`, `creditMatchXp`, `getProfile`, `ping`).
-- `src/profile-server/Routes.ts` — `createApp(repo)` factory: `GET /health`, `GET /ready`,
-  `GET /v1/profile`, `POST /internal/v1/credit`, `POST /internal/v1/profile/upsert`.
-- `src/core/profile/CreditContract.ts` — shared wire schemas (`CreditBatchRequestSchema`,
-  `ProfileUpsertRequestSchema`).
+**Project stance to respect:** `persistent_id` is the internal cross-device identity-linkage
+token; the code deliberately **strips it from API responses** (`toPublicProfile`). R5-1 closes
+the gap that it still reaches the logs.
 
-**In scope:** R1 (in `PlayerProfileRepository.ts` / `migrations/` / `Routes.ts`) and the R2–R4
-test additions. **Out of scope:** the game-server `ProfileApiClient` and match-end wiring (T6),
-and full Yandex-signature auth (the Payments task). **Identity-model note:** `yandexPlayerId`
-is **account-scoped**; `persistentId` is **browser/device-scoped** (`src/server/jwt.ts`,
-predates Yandex auth) — the two are many-to-many over time. R1 falls out of exactly this.
+**In scope:** R5-1 only — `src/profile-server/PlayerProfileRepository.ts` (the error class) and
+`src/profile-server/Routes.ts` (the conflict log line). **Out of scope:** everything else in the
+slice (done + verified), and all accepted residuals below.
 
 ## Changes to make
 
 | # | Severity | Required? | Location | Summary |
 |---|----------|-----------|----------|---------|
-| R1 | medium | yes | `PlayerProfileRepository.ts:66-73` (+ migration / route) | Handle the `persistent_id` cross-account UNIQUE collision; pick & implement a relink/conflict policy + cross-account test. |
-| R2 | low | yes | `tests/profile-server/Routes.test.ts` | Assert `citizenship_purchased_at` absent in the upsert response. |
-| R3 | low | yes | `tests/integration/Routes.it.test.ts` | Add an HTTP-layer no-op upsert test (same `persistentId` twice). |
-| R4 | low | yes | `tests/core/profile/CreditContract.test.ts` | Add direct unit tests for `ProfileUpsertRequestSchema` bounds. |
+| R5-1 | low/med | yes | `Routes.ts:~138`, `PlayerProfileRepository.ts` (`PersistentIdConflictError`) | Stop logging `persistent_id` on the 409 conflict path; keep `yandexPlayerId` for traceability. |
 
 ---
 
-### R1 — Cross-account `persistent_id` collision → permanent 500 (raised by both reviewers)
+### R5-1 — `persistent_id` leaks into conflict logs
 
-**File:** `src/profile-server/PlayerProfileRepository.ts:66-73` (`UPSERT_SQL` / `upsertProfile`);
-the `persistent_id text unique` constraint in `migrations/001_player_profiles.sql:22`; the route
-handler in `Routes.ts`.
+**Files:** `src/profile-server/Routes.ts` (the `PersistentIdConflictError` branch, ~line 138) and
+`src/profile-server/PlayerProfileRepository.ts` (the `PersistentIdConflictError` class message).
 
-**Problem.** `persistent_id` is `UNIQUE`, but `UPSERT_SQL`'s `ON CONFLICT` clause names only
-`yandex_player_id`. Two collision paths are unhandled and raise Postgres `23505`:
-1. **Fresh insert:** `upsertProfile(Y2, P)` where `P` already belongs to row `Y1` — the
-   `ON CONFLICT (yandex_player_id)` doesn't fire (no `Y2` row yet), so it's a plain INSERT that
-   violates the `persistent_id` unique index.
-2. **Relink:** `upsertProfile(Y1, P2)` where `Y1` exists and `P2` already belongs to row `Y3` —
-   the `DO UPDATE SET persistent_id = P2` violates the unique index.
+**Problem.** On a cross-account collision the route runs
+`log.warn(\`upsert conflict: ${formatError(error)}\`)`. `formatError` returns
+`error.stack ?? error.message`, and `PersistentIdConflictError`'s message is
+`persistent_id "<pid>" is already linked to another account (upsert for "<yid>")` — so both
+`persistentId` and `yandexPlayerId` (plus a stack trace) land in centralized telemetry. The
+codebase otherwise treats `persistent_id` as sensitive and strips it from API responses, so it
+shouldn't accumulate raw in logs.
 
-`upsertProfile` has no `23505` handling, so it propagates → the route logs a generic error and
-returns **500**. Retries can't recover → the affected Yandex account never gets a profile or XP.
+**Honest impact (verdict: CORRECT → low/med; Codex rated it medium/"no-ship" — overstated).**
+This is a modest data-hygiene inconsistency, **not** a blocker: logs are access-controlled
+(unlike the public API), the cross-account 409 is an edge path (low volume), and `yandexPlayerId`
+is non-secret (it's already a public query param on `GET /v1/profile`). It is genuinely worth
+fixing because it contradicts the project's own deliberate decision to strip `persistent_id`.
 
-**Honest impact (verdict: CORRECT → medium; reviewers split, Codex high / Claude low).** The
-scenario is plausible — a user switching Yandex accounts in the same browser, or a shared
-computer — because `persistentId` is browser-scoped and `yandexPlayerId` is account-scoped, so
-one persistentID legitimately appears under multiple accounts over time. It is **pre-existing**
-(the constraint + SQL predate the round-2 upsert wiring; the wiring just made it reachable over
-HTTP), and it is **not** the main flow. Codex's "no-ship/high" overstates an edge path that has
-no *decided* policy; Claude's "low / the 500 is correct" relies on a "one persistentID per
-account" invariant that **is not enforced anywhere**, so it understates a genuinely unrecoverable
-failure. Net: a real defect worth resolving before this identity model goes live, gated on a
-product decision — not a one-line bug.
+**Note (avoid re-introducing a prior round's intent):** an earlier round suggested logging
+identifiers *for traceability*. The fix below is the Pareto move that satisfies both goals —
+**keep `yandexPlayerId` (traceability), drop/hash `persistentId` (minimization).** Do not swing
+to "log nothing" (loses traceability) or "log both" (the current leak).
 
-**Recommended fix — pick ONE policy, then implement it transactionally and test it:**
-- **(a) Transfer/detach** the persistentID from the prior owner to the new account (the browser
-  "now belongs to" the new Yandex account). Implement as a single transaction: detach
-  `persistent_id` from any other row (set it null / move it) then upsert. Matches a
-  "latest-login-wins device linkage" model.
-- **(b) Deliberate conflict response:** catch `23505` in `upsertProfile`, return a typed
-  `"conflict"` status, and map it to **`409`** in the route so the caller (T6) can react instead
-  of seeing an opaque 500. Lowest-risk; defers the linkage policy to the caller.
-- **(c) Reconsider the `persistent_id UNIQUE` constraint** if a persistentID may legitimately map
-  to many accounts — but then `persistent_id` loses its 1:1 linkage meaning; only choose this if
-  the data model actually wants many-to-one.
+**Recommended fix.**
+- Change `PersistentIdConflictError`'s message so it does **not** embed `persistentId` (e.g.
+  `\`persistent_id is already linked to another yandex account (upsert for "${yandexPlayerId}")\``).
+  Keep `persistentId` available as a (non-logged) field on the error if callers want it
+  programmatically; just don't put it in the human/log string.
+- At the route log site, log only `yandexPlayerId` (and, if you want the device dimension, a
+  one-way hash of `persistentId`, never the raw value) — e.g.
+  `log.warn(\`upsert conflict for yandex_player_id=${err.yandexPlayerId}\`)`.
+- Prefer a `warn` with explicit fields over dumping the full stack for an expected/handled 409.
 
-Whichever is chosen, **add an integration test**: one persistentID presented with two distinct
-Yandex IDs, asserting the chosen behavior (transfer succeeds / 409 returned / etc.) rather than a
-500. Also consider logging `yandexPlayerId` + `persistentId` at the upsert call site so a
-`23505` is traceable (Claude's valid sub-point).
-
----
-
-### R2 — Upsert response: assert `citizenship_purchased_at` is stripped (test gap)
-
-**File:** `tests/profile-server/Routes.test.ts` (upsert test, ~line 150-162).
-
-**Problem & honest impact.** Not a production bug — `toPublicProfile` correctly strips
-`citizenship_purchased_at`. But the upsert test asserts only `persistent_id` and
-`is_paid_citizen` absent; it stops short of `citizenship_purchased_at` (the GET test does assert
-it). A future regression that dropped the field from the destructure would slip through.
-
-**Recommended fix.** Add `expect(res.body).not.toHaveProperty("citizenship_purchased_at");` to
-the upsert success test (the `fullProfile()` fixture already sets the field).
-
----
-
-### R3 — HTTP-layer no-op upsert test (test gap)
-
-**File:** `tests/integration/Routes.it.test.ts`.
-
-**Problem & honest impact.** The no-op path (upsert twice with the **same** `persistentId`, so
-`DO UPDATE` is skipped and `upsertProfile` reads the row back via its `getProfile` fallback) is
-covered at the repo layer (`PlayerProfileRepository.it.test.ts`) but not at the HTTP layer. The
-HTTP integration test is meant to be the full-slice proof; if the fallback `getProfile` broke, it
-wouldn't catch it. Low risk given repo coverage.
-
-**Recommended fix.** Extend the HTTP integration test to POST the same `{yandexPlayerId,
-persistentId}` twice and assert the second call returns 200 with the same row.
-
----
-
-### R4 — Direct unit tests for `ProfileUpsertRequestSchema` (test gap)
-
-**File:** `tests/core/profile/CreditContract.test.ts`.
-
-**Problem & honest impact.** `CreditItemSchema` / `CreditBatchRequestSchema` have thorough unit
-tests here, but the newly-added `ProfileUpsertRequestSchema` has none — its `.min(1)`/`.max(128)`
-bounds are only exercised indirectly via the route's missing-field 400 case. Consistency gap.
-
-**Recommended fix.** Add 2-3 cases: valid payload parses; empty-string field rejected; oversize
-(>128) field rejected.
-
----
-
-## Already done (round 1 → round 2, re-verified clean in round 3 — DO NOT re-do)
-
-- **C1** — `POST /internal/v1/profile/upsert` added (service-authed via `internalAuth`, returns
-  public projection). ✅
-- **C2-residue** — `persistent_id` stripped from `toPublicProfile` (GET + upsert responses). ✅
-- **Cl1** — `ROLLBACK` wrapped in try/catch in `creditMatchXp` + `migrate.ts`; original error
-  preserved. ✅
-- **Cl4** — dead `updated` count dropped from `CREDIT_SQL`'s final SELECT; `upd` CTE still runs. ✅
+**Acceptance / test.** Add (or extend) a test asserting the conflict log line / error message
+does **not** contain the raw `persistentId` while still surfacing `yandexPlayerId`. The existing
+409 unit + integration tests (behavioral 409 + body) already pass and should stay green.
 
 ## Do NOT change (accepted residuals — re-introducing these is churn, not progress)
 
-- **No client write path / migrate endpoint** (dropped 2026-06-13). **No XP clamp** (`xp`
-  server-authoritative). **Read remains unauthenticated** beyond the `persistent_id`/paid strip
-  (full Yandex-sig auth is the Payments task). **No FK-cascade index** (no delete path).
-  **Explicit `BEGIN/COMMIT`** around the single-statement CTE (kept for the ROLLBACK path).
-  **Unguarded `created_at`/`updated_at` cast** in `rowToProfile` (NOT NULL columns).
-- The single-CTE `CREDIT_SQL` atomicity/idempotency, dual-layer paid invariants, and
-  forward-version `schema_version` guard are correct — do not refactor.
+- **R1 returns 409, not a device transfer** — the transfer-vs-reject **relink policy is a T6 /
+  identity-model decision**; T5 only surfaces the conflict cleanly. Do not implement a transfer here.
+- **Unauthenticated `GET /v1/profile`** (deferred to the Payments task; paid fields + `persistent_id`
+  stripped, rate-limited). **No client write path / migrate endpoint.** **No XP clamp.**
+  **No FK-cascade index.** **Explicit `BEGIN/COMMIT`** around the single-statement CTE.
+  **Unguarded `created_at`/`updated_at` cast** (NOT NULL columns).
+- The single-CTE `CREDIT_SQL`, dual-layer paid invariants, forward-version `schema_version` guard,
+  and the round-4 `23505`→409 handling are all correct — do not refactor.
 
 ## Validation + acceptance criteria
 
-- `npm test -- tests/profile-server/Routes.test.ts tests/profile-server/InternalAuth.test.ts tests/core/profile/CreditContract.test.ts`
-  — unit/route tests (mocked repo, no DB).
-- `npm run lint` and `npm run format` clean; typecheck clean.
-- Integration tests (`tests/integration/*.it.test.ts`) need a real Postgres and are gated by
-  `RUN_DB_TESTS` (skipped by a plain `npm test`) — run them with the DB harness; the **R1
-  cross-account test and the R3 no-op test live here**.
-- Manual (R1): with `PROFILE_INTERNAL_TOKEN`, `curl` `POST /internal/v1/profile/upsert` for
-  `(Y1, P)`, then for `(Y2, P)` — confirm the chosen policy (transfer / 409), **not** a 500.
+- `npm test -- tests/profile-server/Routes.test.ts` and the relevant `CreditContract.test.ts`
+  (mocked repo / pure schema, no DB).
+- `npm run lint` / `npm run format` / typecheck clean.
+- Integration tests (`tests/integration/*.it.test.ts`) need a real Postgres (gated by
+  `RUN_DB_TESTS`); the behavioral 409 paths live there and should remain green.
+- Manual: trigger a cross-account collision (`curl` upsert `(Y1,P)` then `(Y2,P)`) and confirm the
+  emitted log line contains `yandexPlayerId` but **not** the raw `persistentId`.

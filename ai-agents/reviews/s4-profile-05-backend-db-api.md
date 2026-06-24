@@ -3,7 +3,7 @@
 Task: ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md
 File(s) under review: migrations/001_player_profiles.sql, src/profile-server/{Routes,PlayerProfileRepository,InternalAuth,Db,Server,migrate}.ts, src/core/profile/{Citizenship,CreditContract}.ts, tests/{profile-server,core/profile,integration}/*
 Scope: branch diff vs `dev` (PR 126)
-Status: round 4 applied — R1 (graceful 409) + R2/R3/R4 (tests) implemented & verified; **all findings closed.** Recommend closeout.
+Status: in-review (round 5 stateful re-review) — round-4 fixes verified clean; surfaced **R5-1** (`persistent_id` logged on the 409 path), Open/actionable (Pareto fix). One low/med item before closeout.
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -75,14 +75,24 @@ Status: round 4 applied — R1 (graceful 409) + R2/R3/R4 (tests) implemented & v
 | 3 | **R4** (Claude, low): `ProfileUpsertRequestSchema` has no direct unit tests | CORRECT → low (bounds only exercised indirectly) | **Open/actionable — strengthen tests** |
 | 4 | R1 — re-verified CORRECT → **low-med** (Codex "no-ship/high" overstates: no live caller yet, edge population; Claude "low/500-correct" understates: opaque crash on an unenforced invariant). Both collision paths confirmed; nothing queries by `persistent_id`. | **DONE — owner chose "graceful 409" (minimal).** `upsertProfile` now catches `23505` → throws typed `PersistentIdConflictError`; route maps it to **409 `{error:"persistent_id_conflict"}`** (was opaque 500). Repo+HTTP+unit tests for both collision paths; live curl confirms 409 (Y1,P)→200, (Y2,P)→409, server stays alive. **Linkage POLICY (transfer vs reject UX) carried to T6.** |
 | 4 | R2 / R3 / R4 — test gaps | **DONE.** R2: upsert unit test now asserts `citizenship_purchased_at` absent. R3: HTTP-layer same-`persistentId` no-op test added (`Routes.it.test.ts`). R4: direct `ProfileUpsertRequestSchema` bounds tests added (`CreditContract.test.ts`). 564 unit + 16 integration green; lint + typecheck clean. |
+| 5 | Round-4 fixes re-reviewed on the updated PR (Claude `code-reviewer` **clean — 0 findings** + Codex adversarial) — R1 409 + R2/R3/R4 tests | **VERIFIED CLEAN** | Both collision paths covered by one `23505` check; the only other UNIQUE index (`display_name`) can't fire here; `isPgError` refactor no-regression to `23503`→`no_profile`; `instanceof` + 409-before-500 correct; 4 new tests meaningful & non-false-passing |
+| 5 | **R5-1** (Codex, medium "no-ship"): the 409 path `log.warn(\`upsert conflict: ${formatError(error)}\`)` (Routes.ts:138) logs `persistent_id` **and** `yandexPlayerId` — the `PersistentIdConflictError` message + stack embed both — into centralized telemetry, inconsistent with the deliberate strip of `persistent_id` from API responses | **CORRECT → low/med.** Verified (`formatError` = `stack ?? message`; the error message embeds both IDs). Not "no-ship": logs are access-controlled, the cross-account 409 is an edge, `yandexPlayerId` is already a public query param. **Loop-discipline note:** sits on a traceability↔minimization frontier a round-2 suggestion (Cl-R2-C) pushed the *other* way — but a **Pareto move exists** (log `yandexPlayerId`, drop/hash `persistentId`), so it's a genuine improvement, not oscillation. | **Open/actionable — Pareto fix** (owner decision): keep `yandexPlayerId` (traceability), drop/hash `persistentId`, generic message; optional test asserting `persistentId` not logged. |
 
-Reviewers: round 1 — Claude `code-reviewer` (review-only) + Codex adversarial. Round 2 — implementation + a 5-dimension adversarial Workflow re-review (0 findings). Round 3 — stateful re-review (Claude `code-reviewer` + Codex adversarial) on the updated PR: round-2 fixes verified clean; surfaced R1 (raised by both) — a **pre-existing** cross-account collision the round-2 5-dimension workflow missed (it verified the 4 named fixes, not the broader upsert conflict space).
-Both round-1 reviewers correctly did **not** re-raise the primed settled decisions (dropped migrate endpoint, removed XP clamp). No loop/oscillation: round-3 findings are genuinely new, not a re-litigation of any accepted residual.
+Reviewers: round 1 — Claude `code-reviewer` (review-only) + Codex adversarial. Round 2 — implementation + a 5-dimension adversarial Workflow re-review (0 findings). Round 3 — stateful re-review on the updated PR: round-2 fixes verified clean; surfaced R1 (raised by both) — a **pre-existing** cross-account collision. Round 5 — stateful re-review of the round-4 fixes: R1 409 + R2/R3/R4 verified clean (Claude clean, 0 findings); Codex surfaced R5-1 (`persistent_id` in 409 logs), the one new item before closeout.
+Both round-1 reviewers correctly did **not** re-raise the primed settled decisions (dropped migrate endpoint, removed XP clamp). No loop/oscillation: round-3 and round-5 findings are genuinely new, not a re-litigation of any accepted residual (R5-1 has a Pareto fix, so it's not a frontier bounce).
 
 ## Open / actionable
 
-- **(none)** — all findings across rounds 1–4 are implemented and verified. Round 4 closed R1
-  (graceful 409) and R2–R4 (tests). **Recommend closeout** — convergence reached; no open defects.
+- **R5-1 (low/med) — `persistent_id` logged on the 409 conflict path.** `upsertProfile`'s
+  `PersistentIdConflictError` message embeds `persistentId` + `yandexPlayerId`; the route's
+  `log.warn(\`upsert conflict: ${formatError(error)}\`)` (Routes.ts:138) writes both (plus stack)
+  to centralized telemetry — inconsistent with the deliberate strip of `persistent_id` from API
+  responses. Owner chose the **Pareto fix**: keep `yandexPlayerId` in the log (non-secret →
+  traceability), drop or hash `persistentId`, use a generic error message; add an optional test
+  asserting `persistentId` does not appear in the conflict log.
+
+(All rounds 1–4 findings — C1, C2-residue, Cl1, Cl4, R1 (409), R2/R3/R4 — remain implemented and
+verified clean. R5-1 is the only open item; once fixed, recommend closeout.)
 
 ## Accepted residual (added round 4)
 
