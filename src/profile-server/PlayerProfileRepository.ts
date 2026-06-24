@@ -45,8 +45,12 @@ export class PersistentIdConflictError extends Error {
     readonly yandexPlayerId: string,
     readonly persistentId: string,
   ) {
+    // The raw persistentId is deliberately kept OUT of the message (and thus the
+    // stack), so it never reaches the logs — it's the internal cross-device token
+    // the API also strips. yandexPlayerId stays in for traceability (it's already a
+    // public identifier). persistentId remains a field for programmatic use.
     super(
-      `persistent_id "${persistentId}" is already linked to another account ` +
+      `persistent_id is already linked to another yandex account ` +
         `(upsert for "${yandexPlayerId}")`,
     );
     this.name = "PersistentIdConflictError";

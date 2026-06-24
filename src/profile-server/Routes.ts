@@ -135,7 +135,11 @@ export function createApp(repo: ProfileRepo): Express {
       if (error instanceof PersistentIdConflictError) {
         // persistentId already linked to another Yandex account. 409 (not 500)
         // so the caller (T6) can react; the relink/transfer policy is T6's call.
-        log.warn(`upsert conflict: ${formatError(error)}`);
+        // Log only the account (an expected, handled condition — no stack dump,
+        // and never the raw persistentId, which the API also strips).
+        log.warn(
+          `upsert conflict for yandex_player_id=${error.yandexPlayerId}`,
+        );
         res.status(409).json({ error: "persistent_id_conflict" });
         return;
       }
