@@ -26,7 +26,7 @@
 | **Player registration / accounts** | Inherited (Discord/email/JWT) + Flashist (Yandex name) | **Mostly dead.** Only anon UUID cookie is live | No real registration. Identity = forgeable client-generated UUID cookie. Account UI hidden + unreachable. |
 | **Nicknames** | Inherited + Flashist (Yandex-name seeding, non-latin/no-emoji rules) | **Live** | Captured/validated client-side, stored in `localStorage["username"]`. Server does **not** enforce the strict rules. |
 | **Territory patterns** | Inherited (whole picker/decoder/gating) | **Rendering live; picker hidden; purchase dead** | Patterns render on the map, but the picker button is `display:none` in the iframe and nothing is purchasable. |
-| **Custom flags** | Inherited code, **Flashist-disabled** | **Dead** | Server drops every flag; render fn is a no-op; SVG assets 404; picker hidden; no builder UI exists. |
+| **Custom flags** | Inherited code, **Flashist-disabled** | **Dead (by design)** | Server drops every flag; render fn is a no-op; SVG assets 404 *intentionally* (flag suppression); picker hidden; no builder UI exists. |
 | **Clans** | Inherited | **Live (Team mode only), no UI** | A clan "tag" parsed from `[ABC]` in the username, used only for team grouping. Not a guild system. |
 | **In-app purchases** | Inherited (Stripe) + Inherited (Fuse ads) | **Dead** | No products in the catalog, no `/stripe` route, no login. Fuse ads commented out. Real ads = new Yandex SDK path. |
 | **Persistence/transport spine** | Inherited + Flashist | **Client-local live; server auth/entitlement dead** | No DB. Auth issuer points at the game host, which serves none of the auth routes. |
@@ -34,7 +34,7 @@
 ### Notable bugs / risks surfaced during the audit
 These are pre-existing issues independent of the s4-profile work, worth raising:
 
-1. **`/flags/*.svg` assets 404 build-wide.** Commit `895368d` renamed `resources/flags/` → `resources/flags_source/`, but the code still requests `/flags/...`. This breaks not just custom flags but **country flags, the language-selector flags (`LangSelector.ts`, `LanguageModal.ts`), `PlayerPanel.ts`, and `CitizenshipCard.ts`** — a likely-unnoticed asset-path regression.
+1. **`/flags/*.svg` assets 404 build-wide — INTENTIONAL, not a regression** *(corrected 2026-06-24 per repo owner)*. Commit `895368d` renamed `resources/flags/` → `resources/flags_source/`; the code still requests `/flags/...`, and that 404 is the **deliberate mechanism for suppressing flags**. Flags were disabled for the initial release because of (a) Yandex Games' strict policy on real country names/flags, (b) copyright/licensing uncertainty on the images, and (c) pending proper citizenship logic. The folder was renamed (not deleted) to retain the assets for later re-enable while guaranteeing nothing under `/flags/` is served. **`CitizenshipCard.ts` is policy-compliant in prod** — its no-flag fallback is the neutral `🏳️` emoji and the flag picker is hidden, so real players never see a country flag. The one residual is the **language-selector flag** (`LangSelector.ts`, `LanguageModal.ts`), which is visible in prod with no fallback → broken-image glyph; that piece is likely collateral, and its direction (suppress vs restore) is a pending owner decision. Re-enabling flags is a legal/policy decision, **not a path fix**.
 2. **Cyrillic clan tags silently don't work.** The clan regex is `/\[([a-zA-Z0-9]{2,5})\]/` — ASCII-only. For a predominantly Russian player base, `[ВОЙ]Иван` yields no clan and players are **not** grouped in Team mode (verified empirically).
 3. **Stale `CLAUDE.md` note.** `CLAUDE.md:66` says Duos/Trios/Quads modes are disabled. The lobby modals (`SinglePlayerModal.ts`, `HostLobbyModal.ts`) render them as **active, selectable options**. The note is inaccurate relative to current source.
 4. **Third-party-cookie risk (unverified).** The `player_persistent_id` identity cookie is `SameSite=Strict; Secure`. Inside the cross-origin Yandex iframe it may be browser-blocked, which would undermine guest persistence in the very build that ships. Not confirmable from source — flagged for live testing.
@@ -126,7 +126,7 @@ These are pre-existing issues independent of the s4-profile work, worth raising:
 **Functional status (Yandex iframe): DEAD — for three independent reasons, each sufficient.**
 1. **Server discards every flag.** `[Flashist]` `Privilege.ts:53-54` comments out `cosmetics.flag = result.data` (`// Flashist AdaptatioN: disabling flags`), and `GameView.ts:482-483` does the same for nation flags. So `player.cosmetics.flag` is essentially always `undefined`; the rendering branches in `NameLayer.ts:239` / `PlayerInfoOverlay.ts:295` never fire.
 2. **The render function is a no-op as called.** All three call sites pass only 2 args (`flag, target`), never the required 3rd `cosmetics` param, so `renderPlayerFlag()` hits its `cosmetics === undefined` early-return guard (`CustomFlag.ts:21-24`). A `TODO` there confirms it was never wired.
-3. **The SVG assets are at the wrong path.** `[Flashist]` Commit `895368d` moved `resources/flags/` → `resources/flags_source/`, but the code still requests `/flags/*.svg` and `/flags/custom/*.svg` → **404**.
+3. **The SVG assets are deliberately not served.** `[Flashist]` Commit `895368d` moved `resources/flags/` → `resources/flags_source/` so that requests for `/flags/*.svg` and `/flags/custom/*.svg` **404 by design** — an intentional flag-suppression step (Yandex country-flag policy + copyright + pending citizenship), not a path bug. Assets are retained under `flags_source` for later re-enable.
 
 Additional: there is **no custom-flag builder UI anywhere** (verified — `FlagInputModal.ts` is byte-identical to fork-root and is purely a country picker), so a `!`-flag can only originate from a hand-set localStorage value. And the `<flag-input>` trigger is itself **hidden** in production (`yandex-games_iframe.html:285-288` wraps it in `display:none` under a Flashist marker — correcting an initial mapper claim that it was clickable). The flag value is still *transmitted* on multiplayer join (`Main.ts:695-698`), but the server drops it.
 
@@ -201,7 +201,7 @@ The Fuse ad surface is **also dead**: the `fuse.js` `<script>` is commented out 
 | Pattern picker / decoder / gating / Stripe purchase | **Inherited** | Rendering live; purchase dead (no products) |
 | Server flag assignment | **Flashist → Dead** | Commented out (`Privilege.ts:53-54`) |
 | `CustomFlag` / `FlagInput` / `FlagInputModal` | **Inherited → Dead** | No-op render; assets 404; no builder UI |
-| `resources/flags` → `resources/flags_source` rename | **Flashist** | `895368d` — breaks all `/flags/*.svg` |
+| `resources/flags` → `resources/flags_source` rename | **Flashist** | `895368d` — **intentional** flag suppression (Yandex policy + copyright + pending citizenship); all `/flags/*.svg` 404 *by design* |
 | `getClanTag` + `TeamAssignment` | **Inherited** | Live for Team mode; ASCII-only tags |
 | Fuse gutter ads (`GutterAds`, `AdTimer`, `fuse.js`) | **Inherited → Dead** | `fuse.js` commented out in both templates |
 | Yandex `showFullscreenAdv` | **Flashist (newer)** | The real ad surface |
