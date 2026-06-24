@@ -13,7 +13,10 @@ import type { CreditResult } from "../core/profile/CreditContract";
 import type { PlayerProfile } from "../core/profile/PlayerProfile";
 import { internalAuth } from "./InternalAuth";
 import { formatError, logger } from "./Logger";
-import type { CreditStatus } from "./PlayerProfileRepository";
+import {
+  PersistentIdConflictError,
+  type CreditStatus,
+} from "./PlayerProfileRepository";
 
 const log = logger.child({ comp: "routes" });
 
@@ -129,6 +132,13 @@ export function createApp(repo: ProfileRepo): Express {
       );
       res.status(200).json(toPublicProfile(profile));
     } catch (error) {
+      if (error instanceof PersistentIdConflictError) {
+        // persistentId already linked to another Yandex account. 409 (not 500)
+        // so the caller (T6) can react; the relink/transfer policy is T6's call.
+        log.warn(`upsert conflict: ${formatError(error)}`);
+        res.status(409).json({ error: "persistent_id_conflict" });
+        return;
+      }
       log.error(
         `POST /internal/v1/profile/upsert failed: ${formatError(error)}`,
       );

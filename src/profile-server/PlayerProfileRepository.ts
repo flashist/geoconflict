@@ -20,12 +20,37 @@ export type CreditStatus = "credited" | "duplicate" | "no_profile";
 // before credit), so we report it rather than failing the whole batch.
 const PG_FOREIGN_KEY_VIOLATION = "23503";
 
-function isForeignKeyViolation(error: unknown): boolean {
+// Postgres `unique_violation` — here, a `persistent_id` already linked to a
+// DIFFERENT yandex_player_id (the column is UNIQUE). `persistentId` is
+// browser/device-scoped and `yandexPlayerId` is account-scoped, so one device
+// presenting under a second account (account switch / shared browser) collides.
+const PG_UNIQUE_VIOLATION = "23505";
+
+function isPgError(error: unknown, code: string): boolean {
   return (
     typeof error === "object" &&
     error !== null &&
-    (error as { code?: string }).code === PG_FOREIGN_KEY_VIOLATION
+    (error as { code?: string }).code === code
   );
+}
+
+/**
+ * Thrown by `upsertProfile` when the requested `persistentId` already belongs to a
+ * different Yandex account. The route maps this to HTTP 409 (a meaningful signal)
+ * instead of an opaque 500. The actual device↔account relink POLICY (transfer vs
+ * reject) is a T6 / identity-model decision; T5 only surfaces the conflict cleanly.
+ */
+export class PersistentIdConflictError extends Error {
+  constructor(
+    readonly yandexPlayerId: string,
+    readonly persistentId: string,
+  ) {
+    super(
+      `persistent_id "${persistentId}" is already linked to another account ` +
+        `(upsert for "${yandexPlayerId}")`,
+    );
+    this.name = "PersistentIdConflictError";
+  }
 }
 
 // Insert the ledger row idempotently and increment xp + flip citizenship in ONE
@@ -120,11 +145,23 @@ export class PlayerProfileRepository {
     yandexPlayerId: string,
     persistentId: string,
   ): Promise<PlayerProfile> {
-    const res = await this.pool.query(UPSERT_SQL, [
-      yandexPlayerId,
-      persistentId,
-      CURRENT_PROFILE_SCHEMA_VERSION,
-    ]);
+    let res;
+    try {
+      res = await this.pool.query(UPSERT_SQL, [
+        yandexPlayerId,
+        persistentId,
+        CURRENT_PROFILE_SCHEMA_VERSION,
+      ]);
+    } catch (error) {
+      // The persistent_id UNIQUE index rejected a cross-account collision (the
+      // INSERT path, or the relink DO UPDATE). Surface a typed conflict so the
+      // route returns 409 instead of an opaque 500. Both the fresh-insert and the
+      // relink collide on the same index, so one check covers both.
+      if (isPgError(error, PG_UNIQUE_VIOLATION)) {
+        throw new PersistentIdConflictError(yandexPlayerId, persistentId);
+      }
+      throw error;
+    }
     if (res.rows.length > 0) {
       return rowToProfile(res.rows[0]);
     }
@@ -167,7 +204,7 @@ export class PlayerProfileRepository {
         // ORIGINAL error below still drives classification; otherwise an
         // FK-violation would be masked as a generic error.
       }
-      if (isForeignKeyViolation(error)) {
+      if (isPgError(error, PG_FOREIGN_KEY_VIOLATION)) {
         return "no_profile";
       }
       throw error;

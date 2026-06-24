@@ -1,5 +1,6 @@
 import request from "supertest";
 import type { PlayerProfile } from "../../src/core/profile/PlayerProfile";
+import { PersistentIdConflictError } from "../../src/profile-server/PlayerProfileRepository";
 import { createApp, type ProfileRepo } from "../../src/profile-server/Routes";
 
 const TOKEN = "test-internal-token";
@@ -159,6 +160,21 @@ describe("profile API routes", () => {
     expect(res.body.yandex_player_id).toBe("yandex-1");
     expect(res.body).not.toHaveProperty("persistent_id");
     expect(res.body).not.toHaveProperty("is_paid_citizen");
+    expect(res.body).not.toHaveProperty("citizenship_purchased_at");
+  });
+
+  test("POST /internal/v1/profile/upsert is 409 on a persistent_id conflict", async () => {
+    const repo = mockRepo({
+      upsertProfile: jest
+        .fn()
+        .mockRejectedValue(new PersistentIdConflictError("yandex-2", "pid-1")),
+    });
+    const res = await request(createApp(repo))
+      .post("/internal/v1/profile/upsert")
+      .set("authorization", `Bearer ${TOKEN}`)
+      .send({ yandexPlayerId: "yandex-2", persistentId: "pid-1" });
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({ error: "persistent_id_conflict" });
   });
 
   test("POST /internal/v1/profile/upsert is 401 without a token", async () => {

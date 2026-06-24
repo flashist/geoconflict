@@ -5,7 +5,10 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 import { Pool } from "pg";
-import { PlayerProfileRepository } from "../../src/profile-server/PlayerProfileRepository";
+import {
+  PersistentIdConflictError,
+  PlayerProfileRepository,
+} from "../../src/profile-server/PlayerProfileRepository";
 
 const RUN = process.env.RUN_DB_TESTS ? describe : describe.skip;
 
@@ -58,6 +61,28 @@ RUN("PlayerProfileRepository (integration)", () => {
 
   test("getProfile returns null when no row exists", async () => {
     expect(await repo.getProfile("nobody")).toBeNull();
+  });
+
+  test("cross-account persistent_id collision throws PersistentIdConflictError", async () => {
+    await repo.upsertProfile(P, PID);
+
+    // Fresh-insert path: a different Yandex account presents the same persistentId.
+    await expect(
+      repo.upsertProfile("yandex-other", PID),
+    ).rejects.toBeInstanceOf(PersistentIdConflictError);
+
+    // Relink path: an existing account tries to adopt a persistentId already
+    // owned by a third account.
+    const PID3 = "55555555-5555-5555-5555-555555555555";
+    await repo.upsertProfile("yandex-3", PID3);
+    await expect(repo.upsertProfile(P, PID3)).rejects.toBeInstanceOf(
+      PersistentIdConflictError,
+    );
+
+    // No partial writes: the original row is intact, no stray rows created.
+    const profile = await repo.getProfile(P);
+    expect(profile?.persistent_id).toBe(PID);
+    expect(await repo.getProfile("yandex-other")).toBeNull();
   });
 
   test("upsertProfile relinks persistent_id when it changes, no-ops when same", async () => {

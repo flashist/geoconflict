@@ -120,4 +120,44 @@ RUN("profile API over real Postgres (integration)", () => {
       "44444444-4444-4444-4444-444444444444",
     );
   });
+
+  test("upsert with the same persistentId twice is a no-op (200, same row)", async () => {
+    const first = await request(app)
+      .post("/internal/v1/profile/upsert")
+      .set("authorization", `Bearer ${TOKEN}`)
+      .send({ yandexPlayerId: P, persistentId: PID });
+    expect(first.status).toBe(200);
+
+    const second = await request(app)
+      .post("/internal/v1/profile/upsert")
+      .set("authorization", `Bearer ${TOKEN}`)
+      .send({ yandexPlayerId: P, persistentId: PID });
+    expect(second.status).toBe(200);
+    expect(second.body.yandex_player_id).toBe(P);
+    expect(second.body.xp).toBe(0);
+  });
+
+  test("cross-account persistentId collision returns 409, not 500", async () => {
+    // First account claims the device's persistentId.
+    const first = await request(app)
+      .post("/internal/v1/profile/upsert")
+      .set("authorization", `Bearer ${TOKEN}`)
+      .send({ yandexPlayerId: P, persistentId: PID });
+    expect(first.status).toBe(200);
+
+    // A second Yandex account presents the SAME persistentId (account switch /
+    // shared browser) — the persistent_id UNIQUE index collides.
+    const collision = await request(app)
+      .post("/internal/v1/profile/upsert")
+      .set("authorization", `Bearer ${TOKEN}`)
+      .send({ yandexPlayerId: "yandex-http-2", persistentId: PID });
+    expect(collision.status).toBe(409);
+    expect(collision.body).toEqual({ error: "persistent_id_conflict" });
+
+    // The second account got no profile row (clean failure, no partial write).
+    const after = await request(app).get(
+      "/v1/profile?yandexPlayerId=yandex-http-2",
+    );
+    expect(after.status).toBe(404);
+  });
 });

@@ -3,7 +3,7 @@
 Task: ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md
 File(s) under review: migrations/001_player_profiles.sql, src/profile-server/{Routes,PlayerProfileRepository,InternalAuth,Db,Server,migrate}.ts, src/core/profile/{Citizenship,CreditContract}.ts, tests/{profile-server,core/profile,integration}/*
 Scope: branch diff vs `dev` (PR 126)
-Status: in-review (round 3 stateful re-review) — round-1/round-2 actionables verified clean; round 3 surfaced R1 (cross-account `persistent_id` collision, medium) + 3 test gaps, all Open/actionable
+Status: round 4 applied — R1 (graceful 409) + R2/R3/R4 (tests) implemented & verified; **all findings closed.** Recommend closeout.
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -73,28 +73,28 @@ Status: in-review (round 3 stateful re-review) — round-1/round-2 actionables v
 | 3 | **R2** (Claude, low): upsert unit test doesn't assert `citizenship_purchased_at` absent | CORRECT → low (test gap only — `toPublicProfile` strips it correctly) | **Open/actionable — strengthen tests** |
 | 3 | **R3** (Claude, low): no HTTP-layer no-op upsert test (same `persistentId` twice) | CORRECT → low (repo-layer covered) | **Open/actionable — strengthen tests** |
 | 3 | **R4** (Claude, low): `ProfileUpsertRequestSchema` has no direct unit tests | CORRECT → low (bounds only exercised indirectly) | **Open/actionable — strengthen tests** |
+| 4 | R1 — re-verified CORRECT → **low-med** (Codex "no-ship/high" overstates: no live caller yet, edge population; Claude "low/500-correct" understates: opaque crash on an unenforced invariant). Both collision paths confirmed; nothing queries by `persistent_id`. | **DONE — owner chose "graceful 409" (minimal).** `upsertProfile` now catches `23505` → throws typed `PersistentIdConflictError`; route maps it to **409 `{error:"persistent_id_conflict"}`** (was opaque 500). Repo+HTTP+unit tests for both collision paths; live curl confirms 409 (Y1,P)→200, (Y2,P)→409, server stays alive. **Linkage POLICY (transfer vs reject UX) carried to T6.** |
+| 4 | R2 / R3 / R4 — test gaps | **DONE.** R2: upsert unit test now asserts `citizenship_purchased_at` absent. R3: HTTP-layer same-`persistentId` no-op test added (`Routes.it.test.ts`). R4: direct `ProfileUpsertRequestSchema` bounds tests added (`CreditContract.test.ts`). 564 unit + 16 integration green; lint + typecheck clean. |
 
 Reviewers: round 1 — Claude `code-reviewer` (review-only) + Codex adversarial. Round 2 — implementation + a 5-dimension adversarial Workflow re-review (0 findings). Round 3 — stateful re-review (Claude `code-reviewer` + Codex adversarial) on the updated PR: round-2 fixes verified clean; surfaced R1 (raised by both) — a **pre-existing** cross-account collision the round-2 5-dimension workflow missed (it verified the 4 named fixes, not the broader upsert conflict space).
 Both round-1 reviewers correctly did **not** re-raise the primed settled decisions (dropped migrate endpoint, removed XP clamp). No loop/oscillation: round-3 findings are genuinely new, not a re-litigation of any accepted residual.
 
 ## Open / actionable
 
-- **R1 (medium) — cross-account `persistent_id` collision.** `persistent_id` is `UNIQUE` but
-  `upsertProfile`'s `ON CONFLICT` only covers `yandex_player_id`; a persistentID presented under
-  a second Yandex account (account switch / shared browser) raises `23505` → unhandled → a
-  permanent 500, and the relink `DO UPDATE` path collides identically. Owner chose to decide +
-  fix the relink/conflict policy in T5 — pick one: transfer the persistentID to the new account,
-  return a deliberate `409 conflict`, or reconsider the `persistent_id UNIQUE` constraint — and
-  add a cross-account integration test (one persistentID presented with two Yandex IDs).
-- **R2 (low) — test:** assert `citizenship_purchased_at` is absent in the upsert response
-  (`tests/profile-server/Routes.test.ts`).
-- **R3 (low) — test:** add an HTTP-layer no-op upsert test (same `persistentId` twice) in
-  `tests/integration/Routes.it.test.ts`.
-- **R4 (low) — test:** add direct unit tests for `ProfileUpsertRequestSchema` bounds
-  (`.min(1)` / `.max(128)`, empty-string, oversize) in `tests/core/profile/CreditContract.test.ts`.
+- **(none)** — all findings across rounds 1–4 are implemented and verified. Round 4 closed R1
+  (graceful 409) and R2–R4 (tests). **Recommend closeout** — convergence reached; no open defects.
 
-(Round-1 actionables C1, C2-residue, Cl1 + Cl4 remain implemented and re-verified clean — see
-Decision log rounds 2–3.)
+## Accepted residual (added round 4)
+
+- **R1 — cross-account `persistent_id` collision returns 409 (not transferred).** What: when a
+  device's `persistentId` is presented under a second Yandex account, the upsert returns
+  `409 persistent_id_conflict` and that account gets no profile until the conflict is resolved.
+  Why (structural): the actual relink POLICY (transfer the device to the latest account vs reject
+  vs drop the `UNIQUE`) is a T6 / identity-model decision; T5 deliberately only surfaces the
+  conflict cleanly. `persistent_id` has no live consumer in Sprint 4 (nothing reads/queries by it;
+  stripped from the API), so the edge has no further blast radius. Re-raise only if: T6 (or a
+  later identity task) needs the account-switch case to actually create/transfer a profile — then
+  implement the chosen relink policy here (or in T6).
 
 ## Carry-forward for T6 (not a T5 defect)
 
@@ -103,3 +103,7 @@ Decision log rounds 2–3.)
   `/internal/v1/credit`. Without the upsert call, `creditMatchXp` returns `no_profile` and XP
   never accrues. Also: T6 still owns the decision on **trusting the client-asserted
   `yandexPlayerId`** before crediting/upserting by it (raised in T6's own security note).
+- **T6 owns the `409 persistent_id_conflict` UX/policy (from R1).** T5 returns a clean 409 on a
+  cross-account device collision; T6 decides what to do with it — transfer the device to the new
+  account, surface a "switch detected" message, or accept that the second account simply doesn't
+  link the device. Whatever it picks, the T5 endpoint already fails cleanly (no 500, no crash).

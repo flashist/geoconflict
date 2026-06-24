@@ -1,6 +1,7 @@
 import {
   CreditBatchRequestSchema,
   CreditItemSchema,
+  ProfileUpsertRequestSchema,
 } from "../../../src/core/profile/CreditContract";
 
 function validItem() {
@@ -60,6 +61,54 @@ describe("CreditContract", () => {
       CreditItemSchema.parse({
         ...validItem(),
         yandexPlayerId: "x".repeat(129),
+      }),
+    ).toThrow();
+  });
+});
+
+describe("ProfileUpsertRequestSchema", () => {
+  function validUpsert() {
+    return { yandexPlayerId: "yandex-1", persistentId: "pid-1" };
+  }
+
+  test("accepts a well-formed upsert payload", () => {
+    const parsed = ProfileUpsertRequestSchema.parse(validUpsert());
+    expect(parsed.yandexPlayerId).toBe("yandex-1");
+    expect(parsed.persistentId).toBe("pid-1");
+  });
+
+  test("rejects missing fields", () => {
+    expect(() =>
+      ProfileUpsertRequestSchema.parse({ yandexPlayerId: "yandex-1" }),
+    ).toThrow();
+    expect(() =>
+      ProfileUpsertRequestSchema.parse({ persistentId: "pid-1" }),
+    ).toThrow();
+  });
+
+  test("rejects empty-string fields", () => {
+    expect(() =>
+      ProfileUpsertRequestSchema.parse({
+        ...validUpsert(),
+        yandexPlayerId: "",
+      }),
+    ).toThrow();
+    expect(() =>
+      ProfileUpsertRequestSchema.parse({ ...validUpsert(), persistentId: "" }),
+    ).toThrow();
+  });
+
+  test("rejects oversized (>128) fields", () => {
+    expect(() =>
+      ProfileUpsertRequestSchema.parse({
+        ...validUpsert(),
+        yandexPlayerId: "y".repeat(129),
+      }),
+    ).toThrow();
+    expect(() =>
+      ProfileUpsertRequestSchema.parse({
+        ...validUpsert(),
+        persistentId: "p".repeat(129),
       }),
     ).toThrow();
   });
