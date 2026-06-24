@@ -80,7 +80,7 @@ The inherited OpenFront Stripe/Fuse/Discord-JWT machinery is dead in the Yandex 
 
 ### 3.4 Flags — keep-asis (intentional suppression)
 
-> **Corrected 2026-06-24 (repo owner).** The first pass called the `/flags` 404 a regression to fix. It is **not a bug** — it is the deliberate mechanism for *suppressing* flags. This section is rewritten accordingly.
+> **Corrected 2026-06-24 (repo owner).** The first pass called the `/flags` 404 a regression to fix. It is **not a bug** — it is the deliberate mechanism for *suppressing* flags. This section is rewritten accordingly. **Note: the suppression is *interim* — flags are a planned non-country paid cosmetic (Yandex bans real-country flags/names), not permanently dead.**
 
 **Mechanism.** The flag feature is inert *by design*, two ways: (1) server-side assignment is disabled (`Privilege.ts:53-54` comments out `cosmetics.flag = result.data` — keep this); (2) commit `895368d` renamed `resources/flags/` → `resources/flags_source/` so that every `/flags/*.svg` request **404s by design** (CopyPlugin preserves dir names — `webpack.config.js:347-360` — with no `flags_source → /flags` remap). Flags were disabled for the initial release because of **(a) Yandex Games' strict policy on real country names/flags, (b) copyright/licensing uncertainty on the images, and (c) pending proper citizenship logic.** The folder was renamed (not deleted) to retain the assets for later re-enable while guaranteeing nothing under `/flags/` is served.
 

@@ -121,6 +121,8 @@ These are pre-existing issues independent of the s4-profile work, worth raising:
 
 ### 3.4 Custom Flags
 
+> **Forward note (2026-06-24):** flags are a *planned non-country paid cosmetic*, not permanently dead — the suppression described below is **interim**; the actual constraint is real-country flags/names (Yandex policy). See `s4-citizenship-xp-progress-ui.md` → "Flag policy".
+
 **What it is.** Two halves: `[Inherited]` a "custom flag" feature (a `!`-prefixed encoded string of `layer-color` pairs, rendered as masked SVG layers by `renderPlayerFlag()` in `CustomFlag.ts`), and `[Inherited]` a simple **country-code picker** (`FlagInputModal.ts` — just stores a 2-letter code).
 
 **Functional status (Yandex iframe): DEAD — for three independent reasons, each sufficient.**
