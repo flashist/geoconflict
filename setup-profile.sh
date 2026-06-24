@@ -322,11 +322,15 @@ else
     echo "Generated and persisted PROFILE_INTERNAL_TOKEN to $PROFILE_TOKEN_FILE"
 fi
 
-# The profile API reaches Postgres over the box's loopback (postgres publishes
-# 127.0.0.1:5432). FIX vs the 4e56fbf seed, which used the compose-network host
-# `postgres:5432` and fails the epic acceptance. Template only — NO connect/libpq
-# validation here (that is T5's `pg` consumer, where a bad URL actually fails a query).
-DATABASE_URL="${DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}}"
+# The profile API container reaches Postgres by the compose SERVICE NAME over the
+# shared compose network: `postgres:5432`. NOT 127.0.0.1 — inside the API container
+# that is the container's own loopback, where nothing listens (postgres publishes
+# 127.0.0.1:5432 on the HOST, for `psql` from the box, not for sibling containers).
+# Stopping the postgres container still makes this name fail to connect, so /ready
+# correctly returns 503 — the epic acceptance holds. Template only: NO connect/libpq
+# validation here — that is T5's `pg` consumer (/ready + migrate), where a bad URL
+# actually fails a real query.
+DATABASE_URL="${DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}}"
 
 # ── Secret env file + docker-compose.yml ──────────────────────────────────────
 # Two services: postgres (private) + the profile API. nginx is NOT a compose service —
@@ -450,8 +454,8 @@ STACK_RECREATED=1
 docker compose up -d postgres || true
 docker compose up -d --force-recreate --no-deps profile-api || true
 
-# T5: apply DB migrations here once they exist, e.g.:
-#   docker compose exec -T profile-api npm run migrate
+# DB migrations run AFTER the health-gate below (postgres must be accepting
+# connections and the profile-api container must be up before we exec into it).
 
 echo "Waiting up to 120s for all services to become healthy..."
 ELAPSED=0
@@ -507,6 +511,22 @@ if ! all_services_running_healthy; then
 fi
 echo "✅ All containers running and healthy:"
 docker compose ps
+
+# ── DB migrations ─────────────────────────────────────────────────────────────
+# Both services are confirmed healthy above, so postgres is accepting connections
+# and the profile-api container is up — exec the idempotent migration runner inside
+# it. The .sql files ship in the image (Dockerfile.profile `COPY migrations`) and the
+# runner reads DATABASE_URL from the container's env_file. Runs every deploy;
+# already-applied migrations are skipped via the schema_migrations table. Fail LOUD:
+# a migration error aborts the deploy BEFORE nginx/systemd, so a half-migrated schema
+# never goes live. Idempotent, so a re-run after a fix is safe.
+print_header "APPLYING DB MIGRATIONS"
+if ! docker compose exec -T profile-api npm run migrate; then
+    echo "❌ DB migration failed. The stack is healthy but the schema is NOT up to date."
+    echo "   Fix the migration and re-run (migrations are idempotent). Aborting before nginx/systemd."
+    exit 1
+fi
+echo "✅ DB migrations applied."
 
 # ── HTTPS ─────────────────────────────────────────────────────────────────────
 

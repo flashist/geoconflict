@@ -56,6 +56,7 @@
 - [[decisions/stale-build-zombie-tabs]] — Investigation and fix for users persisting on old builds (HF-11a/b/c/d)
 - [[decisions/vps-credential-leak-response]] — Incident postmortem: Docker build-context secret leak path, deploy hardening, and trusted recovery workflow
 - [[decisions/profile-deploy-hardening-review-loop]] — Reset of the unbounded profile-deploy review loop into bounded T4 slices and fixed acceptance criteria
+- [[decisions/profile-storage-strategy]] — Player profile DB storage: Option B (typed columns + jsonb overflow), `xp bigint`, `persistent_id text` — chosen in T5 before the first migration
 
 ## Tasks
 

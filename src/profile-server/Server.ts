@@ -1,37 +1,31 @@
-// Player-profile backend API — skeleton (Sprint 4, T4a).
+// Player-profile backend API — entrypoint (Sprint 4, T5).
 //
-// This is the ops-foundation slice: a minimal Express service exposing only a
-// liveness /health endpoint. The DB-backed readiness check (/ready), the real
-// profile endpoints (GET /v1/profile, internal POST /internal/v1/credit) and the
-// Postgres-backed (pg) repository all land in T5 — see
-// ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md. Runs as TypeScript via
-// ts-node ESM, the same way src/server/Server.ts does.
+// Thin wiring only: load env, build the pg pool + repository, build the Express app
+// (routes live in Routes.ts / createApp), and listen. The route logic and the DB
+// layer are in their own modules so they're unit/integration testable without
+// binding a port — this file is intentionally hard to test and kept minimal.
 //
-// Deployment: its own Docker image (Dockerfile.profile) on a dedicated reg.ru
-// VPS, behind host nginx that terminates TLS for api.geoconflict.ru and proxies
-// to PROFILE_PORT on 127.0.0.1. See setup-profile.sh / build-deploy-profile.sh.
+// Deployment: its own Docker image (Dockerfile.profile) on a dedicated reg.ru VPS,
+// behind host nginx that terminates TLS for api.geoconflict.ru and proxies to
+// PROFILE_PORT on 127.0.0.1. See setup-profile.sh / build-deploy-profile.sh.
+// DB migrations run at deploy time via `npm run migrate` (migrate.ts).
 
 import * as dotenv from "dotenv";
-import express from "express";
 import http from "http";
+import { createPool } from "./Db";
 import { logger } from "./Logger";
+import { PlayerProfileRepository } from "./PlayerProfileRepository";
 import { profileHttpPort } from "./ProfileEndpoints";
+import { createApp } from "./Routes";
 
 dotenv.config();
 
 const log = logger.child({ comp: "profile" });
 
-const app = express();
+const pool = createPool();
+const repo = new PlayerProfileRepository(pool);
+const app = createApp(repo);
 const server = http.createServer(app);
-
-app.use(express.json());
-
-// Liveness check used by the container healthcheck, nginx, and uptime probes.
-// Kept dependency-free on purpose — a DB-backed readiness check (/ready) is added
-// in T5.
-app.get("/health", (_req, res) => {
-  res.status(200).json({ status: "ok" });
-});
 
 const port = profileHttpPort();
 server.listen(port, () => {

@@ -1,6 +1,8 @@
 import { FlashistFacade } from "./flashist/FlashistFacade";
 
-export const CITIZENSHIP_XP_THRESHOLD = 1000;
+// Re-exported from the shared source of truth so the card keeps importing it from
+// here while the server and client agree on one threshold value.
+export { CITIZENSHIP_XP_THRESHOLD } from "../core/profile/Citizenship";
 
 export type PlayerProfileView = {
   displayName: string;
