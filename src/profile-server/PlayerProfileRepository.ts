@@ -32,6 +32,9 @@ function isForeignKeyViolation(error: unknown): boolean {
 // statement (so the post-increment total drives the flip with no read-modify-write
 // race). `inserted` is 1 on a fresh credit, 0 when the (game_id, yandex_player_id)
 // row already existed (idempotent no-op — the UPDATE is gated on EXISTS(ins) too).
+// The `upd` CTE is a data-modifying WITH, so Postgres runs it to completion even
+// though the final SELECT doesn't read its output — only `inserted` is needed to
+// decide credited vs duplicate.
 const CREDIT_SQL = `
 WITH ins AS (
   INSERT INTO player_match_xp_credits (game_id, yandex_player_id, xp_awarded)
@@ -52,8 +55,7 @@ upd AS (
     AND EXISTS (SELECT 1 FROM ins)
   RETURNING p.xp
 )
-SELECT (SELECT count(*) FROM ins)::int AS inserted,
-       (SELECT count(*) FROM upd)::int AS updated
+SELECT (SELECT count(*) FROM ins)::int AS inserted
 `;
 
 // Create on first authenticated join; on conflict, relink persistent_id only when
@@ -158,7 +160,13 @@ export class PlayerProfileRepository {
       const inserted = Number(res.rows[0].inserted);
       return inserted > 0 ? "credited" : "duplicate";
     } catch (error) {
-      await client.query("ROLLBACK");
+      try {
+        await client.query("ROLLBACK");
+      } catch {
+        // ROLLBACK failed (e.g. the connection dropped) — swallow it so the
+        // ORIGINAL error below still drives classification; otherwise an
+        // FK-violation would be masked as a generic error.
+      }
       if (isForeignKeyViolation(error)) {
         return "no_profile";
       }

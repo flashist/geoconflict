@@ -3,7 +3,7 @@
 Task: ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md
 File(s) under review: migrations/001_player_profiles.sql, src/profile-server/{Routes,PlayerProfileRepository,InternalAuth,Db,Server,migrate}.ts, src/core/profile/{Citizenship,CreditContract}.ts, tests/{profile-server,core/profile,integration}/*
 Scope: branch diff vs `dev` (PR 126)
-Status: in-review
+Status: round-1 findings resolved (round 2 applied + adversarially re-reviewed clean)
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -63,17 +63,25 @@ Status: in-review
 | 1 | Cl5 (Claude, low): redundant explicit transaction | PARTIALLY CORRECT → low | Accepted residual (intentional for ROLLBACK path). |
 | 1 | Cl6 (Claude, low): no prefix-of-expected-token test in InternalAuth | CORRECT → low | Noted, not actioned (length guard already covers it; optional test). |
 | 1 | Cl7 (Claude, low): `trust proxy 1` operational note | CORRECT → low | Noted, not actioned (doc suggestion). |
+| 2 | C1 — **implemented** (owner-approved via /process-review): internal `POST /internal/v1/profile/upsert` (reuses `internalAuth`; under nginx `/internal/` allowlist; returns the public projection) | DONE | `Routes.ts` route + `ProfileRepo.upsertProfile` + `CreditContract.ProfileUpsertRequestSchema`; Routes unit tests (200/401/400/500) + new HTTP integration test proving upsert→credit→read with **no psql seeding** |
+| 2 | C2-residue — **implemented**: `persistent_id` stripped from `toPublicProfile` | DONE | `Routes.ts`; applies to both `GET /v1/profile` and the upsert response; tests assert absence; `TODO(payments)` left to restore for the verified owner once sig-auth lands |
+| 2 | Cl1 — **implemented**: `ROLLBACK` wrapped in try/catch in `creditMatchXp` (+ same guard in `migrate.ts`) | DONE | original error preserved → an FK-violation still classifies `no_profile` even if ROLLBACK throws; `client.release()` stays in `finally` |
+| 2 | Cl4 — **actioned** (was "noted, not actioned"): dropped the dead `updated` count from `CREDIT_SQL`'s final SELECT | DONE | `upd` is a data-modifying CTE → still runs to completion; integration tests confirm xp increment + citizenship flip unchanged |
+| 2 | Adversarial re-review — 5 independent dimensions (C1 correctness/security, C2 leak-completeness, Cl1 ROLLBACK, Cl4 CTE-semantics, regression/contract/tests), each finding verified by a refute-by-default skeptic | CLEAN | **0 new findings**; 559 unit + 13 integration tests green; lint + typecheck clean; live boot test of the full flow passes |
 
-Reviewers: Claude `code-reviewer` (review-only) + Codex adversarial — both ran, full coverage.
-Both correctly did **not** re-raise the primed settled decisions (dropped migrate endpoint, removed XP clamp).
+Reviewers: round 1 — Claude `code-reviewer` (review-only) + Codex adversarial. Round 2 — implementation + a 5-dimension adversarial Workflow re-review (0 findings).
+Both round-1 reviewers correctly did **not** re-raise the primed settled decisions (dropped migrate endpoint, removed XP clamp).
 
 ## Open / actionable
 
-- **C1** — Add an internal (service-token + IP-allowlisted, like `/internal/v1/credit`)
-  upsert endpoint so the backend can create a profile over HTTP and T6 has an upsert caller
-  to invoke before crediting. Add an API-level fresh-player test. *(Owner chose fix-in-T5
-  over deferring to T6.)*
-- **C2-residue** — Strip `persistent_id` from `toPublicProfile` (Routes.ts:38-45), same
-  treatment as the paid fields, until full Yandex-sig auth lands in the Payments task.
-- **Cl1** — Wrap the `client.query("ROLLBACK")` in `creditMatchXp` (Repo.ts:161) in
-  try/catch so an FK-violation is still classified as `no_profile` when ROLLBACK fails.
+- **(none)** — all round-1 actionable findings (C1, C2-residue, Cl1) were implemented and
+  adversarially re-reviewed clean in round 2; Cl4 was actioned alongside them. See the
+  Decision log round-2 rows.
+
+## Carry-forward for T6 (not a T5 defect)
+
+- **T6 must call `POST /internal/v1/profile/upsert` on first authenticated join, before any
+  crediting.** T5 now provides the endpoint; T6's `ProfileApiClient` spec currently lists only
+  `/internal/v1/credit`. Without the upsert call, `creditMatchXp` returns `no_profile` and XP
+  never accrues. Also: T6 still owns the decision on **trusting the client-asserted
+  `yandexPlayerId`** before crediting/upserting by it (raised in T6's own security note).

@@ -1,18 +1,17 @@
 import { z } from "zod";
 
 /**
- * Shared service-to-service credit contract for match-end XP crediting.
- *
- * This is the WIRE contract for `POST /internal/v1/credit` — distinct from the
- * `PlayerProfile` row contract (src/core/profile/PlayerProfile.ts). It is
- * deliberately camelCase because it is an RPC payload, not the snake_case
+ * Shared service-to-service WIRE contracts for the profile server's internal
+ * write endpoints (`POST /internal/v1/credit` and `POST /internal/v1/profile/upsert`)
+ * — distinct from the `PlayerProfile` row contract (src/core/profile/PlayerProfile.ts).
+ * These are deliberately camelCase because they are RPC payloads, not the snake_case
  * Postgres row, and there is no field-mapping layer for the profile elsewhere.
  *
  * Defined here (not in the profile server) so T6's game-server `ProfileApiClient`
- * serializes the exact same schema the profile server validates — no drift.
- * Crediting is server-authoritative: `xpAwarded` originates on the game server,
- * never from a player. `xpAwarded` is bounded so a buggy caller can't overflow
- * the `integer` ledger column (`xp_awarded`).
+ * serializes the exact same schemas the profile server validates — no drift.
+ * Both writes are server-authoritative: `xpAwarded` / identity originate on the
+ * game server, never from a player. `xpAwarded` is bounded so a buggy caller can't
+ * overflow the `integer` ledger column (`xp_awarded`).
  *
  * See ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md (T5).
  */
@@ -50,3 +49,16 @@ export const CreditBatchResponseSchema = z.object({
   results: z.array(CreditResultSchema),
 });
 export type CreditBatchResponse = z.infer<typeof CreditBatchResponseSchema>;
+
+/**
+ * Create-or-relink a profile by Yandex identity. The game server calls this on a
+ * player's first authenticated join (before any crediting) so a `player_profiles`
+ * row exists for the credit FK. `persistentId` is the internal cross-device key
+ * linked to the Yandex id. Bounds mirror `CreditItemSchema` so the same caller
+ * serializes a consistent shape.
+ */
+export const ProfileUpsertRequestSchema = z.object({
+  yandexPlayerId: z.string().min(1).max(128),
+  persistentId: z.string().min(1).max(128),
+});
+export type ProfileUpsertRequest = z.infer<typeof ProfileUpsertRequestSchema>;

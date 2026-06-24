@@ -24,6 +24,7 @@ function mockRepo(overrides: Partial<ProfileRepo> = {}): ProfileRepo {
   return {
     ping: jest.fn().mockResolvedValue(undefined),
     getProfile: jest.fn().mockResolvedValue(null),
+    upsertProfile: jest.fn().mockResolvedValue(fullProfile()),
     creditMatchXp: jest.fn().mockResolvedValue("credited"),
     ...overrides,
   };
@@ -59,7 +60,7 @@ describe("profile API routes", () => {
     expect(res.body).toEqual({ status: "not_ready" });
   });
 
-  test("GET /v1/profile returns the profile with paid fields stripped", async () => {
+  test("GET /v1/profile returns the profile with paid + persistent_id fields stripped", async () => {
     const repo = mockRepo({
       getProfile: jest.fn().mockResolvedValue(fullProfile()),
     });
@@ -71,6 +72,7 @@ describe("profile API routes", () => {
     expect(res.body.is_citizen).toBe(true);
     expect(res.body).not.toHaveProperty("is_paid_citizen");
     expect(res.body).not.toHaveProperty("citizenship_purchased_at");
+    expect(res.body).not.toHaveProperty("persistent_id");
   });
 
   test("GET /v1/profile is 404 when absent", async () => {
@@ -143,5 +145,45 @@ describe("profile API routes", () => {
     expect(res.status).toBe(200);
     expect(res.body.results[0].status).toBe("credited");
     expect(res.body.results[1].status).toBe("error");
+  });
+
+  test("POST /internal/v1/profile/upsert creates a profile and strips persistent_id", async () => {
+    const upsertProfile = jest.fn().mockResolvedValue(fullProfile());
+    const repo = mockRepo({ upsertProfile });
+    const res = await request(createApp(repo))
+      .post("/internal/v1/profile/upsert")
+      .set("authorization", `Bearer ${TOKEN}`)
+      .send({ yandexPlayerId: "yandex-1", persistentId: "pid-1" });
+    expect(res.status).toBe(200);
+    expect(upsertProfile).toHaveBeenCalledWith("yandex-1", "pid-1");
+    expect(res.body.yandex_player_id).toBe("yandex-1");
+    expect(res.body).not.toHaveProperty("persistent_id");
+    expect(res.body).not.toHaveProperty("is_paid_citizen");
+  });
+
+  test("POST /internal/v1/profile/upsert is 401 without a token", async () => {
+    const res = await request(createApp(mockRepo()))
+      .post("/internal/v1/profile/upsert")
+      .send({ yandexPlayerId: "yandex-1", persistentId: "pid-1" });
+    expect(res.status).toBe(401);
+  });
+
+  test("POST /internal/v1/profile/upsert is 400 on a malformed body", async () => {
+    const res = await request(createApp(mockRepo()))
+      .post("/internal/v1/profile/upsert")
+      .set("authorization", `Bearer ${TOKEN}`)
+      .send({ yandexPlayerId: "yandex-1" });
+    expect(res.status).toBe(400);
+  });
+
+  test("POST /internal/v1/profile/upsert is 500 when the repo throws", async () => {
+    const repo = mockRepo({
+      upsertProfile: jest.fn().mockRejectedValue(new Error("db down")),
+    });
+    const res = await request(createApp(repo))
+      .post("/internal/v1/profile/upsert")
+      .set("authorization", `Bearer ${TOKEN}`)
+      .send({ yandexPlayerId: "yandex-1", persistentId: "pid-1" });
+    expect(res.status).toBe(500);
   });
 });

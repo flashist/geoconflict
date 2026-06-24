@@ -5,7 +5,10 @@
 import express, { type Express } from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
-import { CreditBatchRequestSchema } from "../core/profile/CreditContract";
+import {
+  CreditBatchRequestSchema,
+  ProfileUpsertRequestSchema,
+} from "../core/profile/CreditContract";
 import type { CreditResult } from "../core/profile/CreditContract";
 import type { PlayerProfile } from "../core/profile/PlayerProfile";
 import { internalAuth } from "./InternalAuth";
@@ -18,6 +21,10 @@ const log = logger.child({ comp: "routes" });
 export interface ProfileRepo {
   ping(): Promise<void>;
   getProfile(yandexPlayerId: string): Promise<PlayerProfile | null>;
+  upsertProfile(
+    yandexPlayerId: string,
+    persistentId: string,
+  ): Promise<PlayerProfile>;
   creditMatchXp(
     gameId: string,
     yandexPlayerId: string,
@@ -31,16 +38,25 @@ const ProfileQuerySchema = z.object({
 
 /**
  * Public projection of a profile. Sprint 4: this read is unauthenticated (no
- * Yandex signature verification yet — deferred to the Payments task), so omit the
- * paid-state fields. They have no client use today and leaking "who paid" is the
- * one genuinely sensitive bit.
+ * Yandex signature verification yet — deferred to the Payments task), so omit
+ * fields a caller shouldn't be able to resolve by guessing a (non-secret)
+ * yandexPlayerId:
+ *  - paid state (`is_paid_citizen`, `citizenship_purchased_at`) — leaking "who paid".
+ *  - `persistent_id` — the internal cross-device identity-linkage token.
+ * TODO(payments): once Yandex-signature auth lands, these can be returned to the
+ * verified owner of the profile.
  */
 function toPublicProfile(
   profile: PlayerProfile,
-): Omit<PlayerProfile, "is_paid_citizen" | "citizenship_purchased_at"> {
-  const { is_paid_citizen, citizenship_purchased_at, ...rest } = profile;
+): Omit<
+  PlayerProfile,
+  "is_paid_citizen" | "citizenship_purchased_at" | "persistent_id"
+> {
+  const { is_paid_citizen, citizenship_purchased_at, persistent_id, ...rest } =
+    profile;
   void is_paid_citizen;
   void citizenship_purchased_at;
+  void persistent_id;
   return rest;
 }
 
@@ -92,6 +108,30 @@ export function createApp(repo: ProfileRepo): Express {
       res.status(200).json(toPublicProfile(profile));
     } catch (error) {
       log.error(`GET /v1/profile failed: ${formatError(error)}`);
+      res.status(500).json({ error: "internal_error" });
+    }
+  });
+
+  // Internal, service-authenticated profile create/relink. The game server calls
+  // this on a player's first authenticated join so a profile row exists before any
+  // crediting (creditMatchXp returns "no_profile" otherwise). Never sets xp,
+  // citizenship, or paid flags. Returns the public projection of the live row.
+  app.post("/internal/v1/profile/upsert", internalAuth, async (req, res) => {
+    const parsed = ProfileUpsertRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "bad_request" });
+      return;
+    }
+    try {
+      const profile = await repo.upsertProfile(
+        parsed.data.yandexPlayerId,
+        parsed.data.persistentId,
+      );
+      res.status(200).json(toPublicProfile(profile));
+    } catch (error) {
+      log.error(
+        `POST /internal/v1/profile/upsert failed: ${formatError(error)}`,
+      );
       res.status(500).json({ error: "internal_error" });
     }
   });

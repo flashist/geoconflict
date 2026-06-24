@@ -71,7 +71,12 @@ async function run(): Promise<void> {
         await client.query("commit");
         log.info(`applied: ${filename}`);
       } catch (error) {
-        await client.query("rollback");
+        try {
+          await client.query("rollback");
+        } catch {
+          // ROLLBACK failed (connection gone) — surface the original migration
+          // error below rather than the ROLLBACK error.
+        }
         throw new Error(`migration failed: ${filename}: ${formatError(error)}`);
       } finally {
         client.release();
