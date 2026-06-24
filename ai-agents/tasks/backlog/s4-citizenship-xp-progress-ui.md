@@ -50,7 +50,7 @@ Shown when authorized AND `profile.is_citizen === false`.
 
 | Element | Content |
 |---|---|
-| Avatar/flag | Player's flag cosmetic (or default flag if none) |
+| Avatar/flag | Player's flag cosmetic (a **non-country** flag — see *Flag policy*); defaults to the neutral `🏳️` emoji when none is set. |
 | Badge | None (no citizen badge) |
 | Username | `profile.display_name` or Yandex platform name |
 | XP label | "XP" (top-right) |
@@ -67,13 +67,29 @@ Shown when `profile.is_citizen === true`.
 
 | Element | Content |
 |---|---|
-| Avatar/flag | Player's flag cosmetic |
+| Avatar/flag | Player's flag cosmetic (a **non-country** flag — see *Flag policy*); defaults to the neutral `🏳️` emoji when none is set. |
 | Badge | "ГРАЖДАНИН" / "CITIZEN" label |
 | Username | `profile.display_name` or Yandex platform name |
 | XP value | Continues showing accumulated XP (no cap — XP accumulates past citizenship) |
 | Progress bar | Full (or replaced with a "complete" visual if design prefers) |
 
 Paid citizens (`profile.is_paid_citizen === true`) show the same State 3 — no visual distinction between earned and paid citizenship in Sprint 4.
+
+---
+
+## Flag policy — no real-country flags
+
+Flags are a **planned paid cosmetic** (one of the few monetization surfaces), so the Avatar/flag slot is designed to render the **player's chosen flag**, defaulting to the neutral `🏳️` emoji when the player has none.
+
+**Hard constraint:** the sellable flag set must contain **only non-country designs — never a real country's flag or name.** Yandex Games enforces a strict policy on real-country flags/names, and shipping them risks moderation problems. This is enforced at the **catalog/asset level** (only original, non-country flags are ever offered), so the card simply renders whatever flag the player owns and therefore never surfaces a country flag.
+
+**Current interim state (until the paid-flag feature ships).** The flag system is not live yet, and the **legacy country-flag asset set is deliberately not served** — commit `895368d` renamed `resources/flags/` → `resources/flags_source/`, so `/flags/*.svg` 404s, and the legacy flag picker (`<flag-input>`) is `display:none` in the Yandex build. So today the card shows the `🏳️` fallback for everyone, which is expected. **Do not "fix" the `/flags` path to resurface that legacy (country-flag) asset set** — the paid-flag cosmetic will ship with its own non-country asset set and serving path.
+
+**Defensive rendering:** wherever a flag is shown via `<img>`, include an `onerror` fallback to `🏳️` (mirror `FlagInput.ts:108-112`) so a missing / not-yet-served / legacy asset never surfaces a broken-image glyph.
+
+Background: `ai-agents/knowledge-base/pre-s4-player-infra-audit-2026-06-24.md` §3.4 and `s4-preexisting-infra-impact-2026-06-24.md` §3.4.
+
+> Out of scope: the language-selector flag (`LangSelector.ts`) is a separate pre-existing surface also affected by the rename; its direction (suppress vs restore) is a pending owner decision, not part of this task.
 
 ---
 
@@ -118,6 +134,7 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
 3. **Citizen state:** use a test account with `is_citizen = true`. Confirm ГРАЖДАНИН badge renders and bar is full.
 4. **XP past citizenship:** verify that XP continues incrementing in State 3 (bar stays full or shows ongoing value — per design).
 5. **Login flow transition:** start as guest, tap login CTA, complete Yandex auth. Confirm card transitions from State 1 to correct state without page reload.
+6. **Flag slot:** with no flag set (the current default), confirm the slot shows the neutral `🏳️` placeholder in States 2 and 3. When a flag cosmetic is present, confirm it renders the player's flag and that a missing/unserved asset falls back to `🏳️` (no broken-image glyph). The sellable flag set must never include a real country's flag (see *Flag policy*).
 
 ## Notes
 

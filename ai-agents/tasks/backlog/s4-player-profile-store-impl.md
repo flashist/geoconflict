@@ -266,7 +266,7 @@ Create `PlayerProfileRepository` (direct Postgres, in `src/profile-server/`). Mi
 
 Expose these through the profile API:
 
-- **Client-facing (player-authenticated):** `GET /v1/profile` (read), `POST /v1/profile/migrate` (guest→authenticated upload — see Part F).
+- **Client-facing (player-authenticated):** `GET /v1/profile` (read) only. ~~`POST /v1/profile/migrate`~~ **was cancelled 2026-06-13** (guest-upload path dropped with T2/T7 — see the cancellation note near the top of this brief and Part F below; removed from T5, not deferred).
 - **Internal (service-authenticated via `PROFILE_INTERNAL_TOKEN`, IP-allowlisted to the game server):** `POST /internal/v1/credit` accepting a batch of `{ gameId, yandexPlayerId, xpAwarded }` and performing idempotent crediting.
 
 ### On the game server
@@ -298,7 +298,9 @@ Crediting must be server-authoritative — never trust the client to credit itse
 
 ---
 
-## Part F — Guest-to-Authenticated Migration (on login)
+## Part F — Guest-to-Authenticated Migration (on login) — ⛔ CANCELLED 2026-06-13
+
+> **⛔ Cancelled with T2/T7 (2026-06-13, Mark).** There is no guest localStorage store to migrate and **no `POST /v1/profile/migrate` endpoint** — Sprint 4 profile XP is authenticated-only (see the cancellation note near the top of this brief). The flow below is **preserved for revival only; do not implement it.** Any revival must re-add the T5 migrate endpoint *with* its full untrusted-body hardening. See `s4-profile-07-guest-migration.md` (cancelled) and `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`.
 
 When a guest player authenticates with Yandex for the first time in a session:
 
