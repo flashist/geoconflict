@@ -49,7 +49,7 @@ This document is the **epic/overview**. The shared context above (Infrastructure
 | T1 | `s4-profile-01-schema-contract.md` | Shared `PlayerProfile` type + `migrateProfile()` (Part B JSON) | — | ✅ Done |
 | T2 | `s4-profile-02-guest-localstorage.md` | Guest XP in localStorage (Part C) | T1 | ⛔ Cancelled (2026-06-13) — see note below |
 | T3 | `s4-profile-03-yandex-identity.md` | Verified Yandex identity plumbing (Part A) | — | ✅ Done (PR #111) |
-| T4 | `s4-profile-04-backend-infra.md` (overview) | Dedicated reg.ru VPS + API skeleton (Part D ops) — **reverted & re-split into T4a–T4g, see sub-table** | — | 🔄 In Progress (2026-06-19) |
+| T4 | `s4-profile-04-backend-infra.md` (overview) | Dedicated reg.ru VPS + API skeleton (Part D ops) — re-split into 9 sub-slices T4a–T4i, see sub-table | — | ✅ Done (2026-06-24) — box live at `api.geoconflict.ru` |
 | T5 | `s4-profile-05-backend-db-api.md` | Migration + repository + API endpoints (Part D DB + Part E profile half) | T1, T4 | ⬜ Backlog |
 | T6 | `s4-profile-06-match-end-crediting.md` | Protocol ext + server-side crediting (Part E game half) | T3, T5 | ⬜ Backlog |
 | T7 | `s4-profile-07-guest-migration.md` | Guest→authenticated migration (Part F) | T2, T3, T5 | ⛔ Cancelled (2026-06-13) — see note |
@@ -57,7 +57,7 @@ This document is the **epic/overview**. The shared context above (Infrastructure
 
 ### T4 sub-slices (reverted & re-decomposed 2026-06-19)
 
-The monolithic T4 was implemented (PR #112), then **reverted** and re-split into 7 independently shippable ops slices (T4a–T4g); **T4h** (T4b-review follow-up) and **T4i** (operator bring-up runbook) were added 2026-06-19 — **9 total**. T4e was further split into T4e1/T4e2/T4e3 during implementation. `s4-profile-04-backend-infra.md` is retained as the T4 overview; the slices below carry the executable scope. **Status (2026-06-24): T4a–T4h are done and merged — all T4 engineering slices complete; only T4i (operator box bring-up) remains.**
+The monolithic T4 was implemented (PR #112), then **reverted** and re-split into 7 independently shippable ops slices (T4a–T4g); **T4h** (T4b-review follow-up) and **T4i** (operator bring-up runbook) were added 2026-06-19 — **9 total**. T4e was further split into T4e1/T4e2/T4e3 during implementation. `s4-profile-04-backend-infra.md` is retained as the T4 overview; the slices below carry the executable scope. **Status (2026-06-24): T4a–T4i all done — T4 is complete. The profile box is live (`api.geoconflict.ru` serving 200 over TLS); T5 (DB + API) is now unblocked to deploy.**
 
 | # | Child task | Covers | Depends on | Status |
 |---|---|---|---|---|
@@ -69,15 +69,15 @@ The monolithic T4 was implemented (PR #112), then **reverted** and re-split into
 | T4f | `s4-profile-04f-image-secret-scan.md` | Build-context secret-leak gate | T4e | ✅ Done (PR #123, #124) |
 | T4g | `s4-profile-04g-argv-concurrency-hardening.md` | argv parsing + concurrency hardening | T4e, T4f | ✅ Done (PR #125) |
 | T4h | `s4-profile-04h-game-server-deploy-env.md` | Game-server `deploy.sh` propagates `PROFILE_API_URL` into the container env (T4b's value is otherwise `""` in prod) | T4b | ✅ Done |
-| T4i | `s4-profile-04i-server-bring-up-runbook.md` | **Operator runbook:** provision reg.ru VPS + point DNS, run the merged deploy, verify 200-over-TLS (executes the T4d/T4e code) | T4d, T4e | ⬜ Backlog (operator) |
+| T4i | `s4-profile-04i-server-bring-up-runbook.md` | **Operator runbook:** provision reg.ru VPS + point DNS, run the merged deploy, verify 200-over-TLS (executes the T4d/T4e code) | T4d, T4e | ✅ Done (2026-06-24) — box live |
 
-**T4 internal order:** T4a–T4h ✅ done — the full build/deploy + hardening pipeline (skeleton, client URL config, image, provisioning code, deploy mechanics, secret-scan gate, argv/concurrency hardening) **plus the game-server `PROFILE_API_URL` env wiring** is merged. **Remaining: T4i only** — the operator action: actually bring the box up (run the merged T4d/T4e deploy + verify).
+**T4 internal order:** T4a–T4i ✅ **done — T4 is complete.** The full build/deploy + hardening pipeline (skeleton, client URL config, image, provisioning code, deploy mechanics, secret-scan gate, argv/concurrency hardening, game-server `PROFILE_API_URL` env wiring) is merged, **and T4i stood up the box** (provision + DNS + deploy + 200/TLS verified). `api.geoconflict.ru` is live.
 
 > **⚠️ Ordering constraint — T4h gates every runtime consumer of `PROFILE_API_URL`.** T4b exposes `profileApiUrl` via `/api/env` with **zero deploy surface**, so until T4h adds the `PROFILE_API_URL` line to the game-server `deploy.sh` heredoc, the deployed container resolves it to `""`. **T4h must land before T6** (`ProfileApiClient` calls `PROFILE_API_URL` from the game-server container) **and before the Citizenship client UI** (profile re-fetch reads `profileApiUrl` from `/api/env`). The Citizenship UI is already gated behind T6, so wiring `T6 → T4h` enforces the whole chain.
 
-**Strict one-by-one order (revised 2026-06-13 after T2 + T7 cancellation):** T1 → T3 → T4 → T5 → T6 → T8. Original order was T1 → T2 → … → T8; T2 (Part C) and T7 (Part F) — the guest-first story — are both cancelled. **T4 is itself a 9-slice sub-sequence (re-split 2026-06-19; T4h + T4i added the same day) — T4a–T4h done, only T4i (operator bring-up) remains; see the T4 sub-table above.**
+**Strict one-by-one order (revised 2026-06-13 after T2 + T7 cancellation):** T1 → T3 → T4 → T5 → T6 → T8. Original order was T1 → T2 → … → T8; T2 (Part C) and T7 (Part F) — the guest-first story — are both cancelled. **T4 is itself a 9-slice sub-sequence (re-split 2026-06-19; T4h + T4i added the same day) — all 9 (T4a–T4i) done as of 2026-06-24; T4 complete. See the T4 sub-table above.**
 
-**Parallel tracks (optional):** the original client track (T1 → T2) is **cancelled**; the backend track (T3 ✅ → T4 → T5 → T6) is the live path. T3 is done; T4 is in progress via its sub-slices (T4a–T4h ✅ done & merged; **T4i is the operator VPS bring-up that blocks T5 going live** — the only T4 item left). **T6 is the production-verification gate** for the Citizenship Core UI task; T8 any time after T4 completes, before paid citizenship ships.
+**Parallel tracks (optional):** the original client track (T1 → T2) is **cancelled**; the backend track (T3 ✅ → T4 → T5 → T6) is the live path. T3 is done; **T4 is complete** (T4a–T4i all done; the box is live at `api.geoconflict.ru`), so **T5 (DB + API) is now unblocked to go live**. **T6 is the production-verification gate** for the Citizenship Core UI task; T8 any time after T4 completes, before paid citizenship ships.
 
 > **⛔ T2 (Guest localStorage, Part C) cancelled — 2026-06-13 (Mark).** Work was reverted manually; T1's `src/core/profile/PlayerProfile.ts` is kept (not part of the reverted commits). Report: `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`.
 > A client-only, localStorage-authoritative guest-XP store carries too much inherent edge surface (idempotency, multi-tab races, partial-write atomicity, platform-auth timing, "eliminated counts" semantics); four review rounds hardened those and the scope outgrew the intended small client slice.
