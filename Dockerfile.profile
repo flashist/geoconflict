@@ -29,6 +29,10 @@ COPY package*.json ./
 RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src
+# DB migrations run inside the container at deploy time via
+# `docker compose exec -T profile-api npm run migrate` (setup-profile.sh), so the
+# .sql files must ship in the image.
+COPY migrations ./migrations
 
 EXPOSE 8080
 CMD ["npm", "run", "start:profile-server"]

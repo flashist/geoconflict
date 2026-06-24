@@ -1,6 +1,14 @@
-export default {
+// One Jest config, two modes. The default run (`npm test`) executes the unit suite
+// and EXCLUDES the DB-backed integration tests. `npm run test:integration` sets
+// RUN_DB_TESTS=1, which flips this config to run ONLY tests/integration/**.*.it.test.ts
+// against a real Postgres (see TEST_DATABASE_URL in those tests). Kept as a single
+// file (not a second root config) so it stays inside typescript-eslint's
+// allowDefaultProject list rather than tripping the default-project file cap.
+
+const runDbTests = process.env.RUN_DB_TESTS === "1";
+
+const shared = {
   testEnvironment: "node",
-  testRegex: "/tests/.*\\.(test|spec)?\\.(ts|tsx)$",
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   extensionsToTreatAsEsm: [".ts"],
   moduleNameMapper: {
@@ -31,6 +39,15 @@ export default {
   transformIgnorePatterns: [
     "node_modules/(?!(nanoid|@jsep|fastpriorityqueue|@datastructures-js|lit|lit-html|lit-element|@lit|jose)/)",
   ],
+  coverageReporters: ["text", "lcov", "html"],
+};
+
+const unitConfig = {
+  ...shared,
+  testRegex: "/tests/.*\\.(test|spec)?\\.(ts|tsx)$",
+  // Integration tests (real Postgres) run only via `npm run test:integration`;
+  // keep them out of the default DB-less run.
+  testPathIgnorePatterns: ["/node_modules/", "/tests/integration/"],
   collectCoverageFrom: ["src/**/*.ts", "!src/**/*.d.ts"],
   coverageThreshold: {
     global: {
@@ -40,5 +57,12 @@ export default {
       functions: 20.5,
     },
   },
-  coverageReporters: ["text", "lcov", "html"],
 };
+
+const integrationConfig = {
+  ...shared,
+  testMatch: ["<rootDir>/tests/integration/**/*.it.test.ts"],
+  testPathIgnorePatterns: ["/node_modules/"],
+};
+
+export default runDbTests ? integrationConfig : unitConfig;
