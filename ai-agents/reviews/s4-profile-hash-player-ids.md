@@ -7,10 +7,11 @@ File(s) under review: src/profile-server/YandexIdHash.ts, src/profile-server/Rou
   src/client/PlayerProfileView.ts, migrations/002_hash_yandex_player_id.sql,
   migrate-profile.sh, setup-profile.sh, package.json, and the profile test suites.
 PR: #127 (branch s4-profile-hash-player-ids → dev)
-Status: round-3 stateful-review done (2026-06-26) — F1/F4/F6 fixes verified correct; 1 medium deploy-safety gap accepted-as-residual (deferred to deploy-hardening, go-live gated on empty-table check); 2 low doc/comment nits + 1 test-assert nit Open. Code under review sound.
+Status: CLOSED OUT (2026-06-26). All actionable findings applied (F1/F4/F6 + the round-3 nits D2/D3/D4); D1 accepted-as-residual (deferred to deploy-hardening, go-live gated on empty-table check). Code under review sound; 577/577 tests pass. Go-live still gated on the brief's on-box raw-ID grep.
 Reviewers (round 1): Claude code-reviewer + Codex adversarial (both completed — full coverage)
 Round 2: process-review of the coder-handoff — all three open items verified CORRECT and applied (2026-06-26)
 Round 3 (stateful-review): Claude code-reviewer + Codex adversarial, both ledger-primed, both completed — full coverage. Verified the round-2 fixes; nothing re-litigated (priming held).
+Round 4 (process-review closeout): D2/D3/D4 verified CORRECT (all low; 2 comment-only, 1 test-assert) and applied. Convergence called — review closed.
 
 ## Summary
 
@@ -104,21 +105,14 @@ brief's on-box validation (dump DB + grep logs for any raw ID = zero).
 | 3 | **D2** (Claude) — `002` comment: `ALTER DATABASE … SET app.allow_profile_purge` only affects new connections (same-session `\i` would hit a spuriously-firing guard) | CORRECT → low | **Defect (doc clarity) → Open.** Note `SET …` (session) vs `ALTER DATABASE …` (reconnect) in the opt-in instruction. Guard itself is sound. |
 | 3 | **D3** (Claude) — `setup-profile.sh` nginx comment "must precede `location /` to win as an exact match" is factually wrong (nginx `=` always wins regardless of order) | CORRECT → low | **Defect (wrong comment) → Open.** Drop the false ordering claim. No runtime impact. |
 | 3 | **D4** (Claude) — F6 500-test asserts only `not.toHaveProperty("yandex_player_id_hash")` | CORRECT (optional) → low | **Open (nice-to-have).** Strengthen to `toEqual({ error: "internal_error" })` to catch any other accidental leakage. |
+| 4 | **D2** — `002` opt-in comment (`ALTER DATABASE … SET` = new connections only) | CORRECT → low (marginal — instruction already works for `npm run migrate`/deploy, both fresh connections) | **APPLIED.** Added a note that same-session manual `psql \i` needs session-level `SET …` instead. Comment-only. |
+| 4 | **D3** — `setup-profile.sh` nginx comment "must precede `location /` to win as an exact match" | CORRECT → low | **APPLIED.** Replaced with the accurate statement (an `=` exact-match location wins regardless of declaration order). Comment-only; no runtime change. |
+| 4 | **D4** — strengthen GET `/v1/profile` 500 assertion | CORRECT → low | **APPLIED.** `expect(res.body).toEqual({ error: "internal_error" })`. Suite green (577/577). |
 
 ## Open / actionable
 
-- All three round-1 open items (F1/F4/F6) verified and applied in round 2 → re-confirmed correct in round 3. **577/577 tests pass**; lint + prettier clean.
-- **Round-3 open items (all low; doc/comment + test polish — none merge-blocking):**
-  - **D2 — doc clarity (low).** `migrations/002_hash_yandex_player_id.sql` (~line 30 comment): the opt-in
-    purge instruction uses `ALTER DATABASE … SET app.allow_profile_purge='on'`, which only affects new
-    connections. Note that same-session opt-in needs `SET app.allow_profile_purge='on';` (or reconnect
-    after `ALTER DATABASE`). The guard itself is correct — comment-only fix.
-  - **D3 — wrong comment (low).** `setup-profile.sh` (the `location = /v1/profile` nginx block comment):
-    remove "Must precede `location /` to win as an exact match" — nginx `=` exact matches always win
-    regardless of declaration order. No runtime impact; comment-only fix.
-  - **D4 — test assertion (low, nice-to-have).** `tests/profile-server/Routes.test.ts` (the new GET
-    `/v1/profile` 500 test): strengthen `expect(res.body).not.toHaveProperty("yandex_player_id_hash")`
-    to `expect(res.body).toEqual({ error: "internal_error" })` to also catch any other accidental leakage.
+- **None — review CLOSED OUT (round 4).** F1/F4/F6 applied (round 2) and re-confirmed (round 3);
+  the round-3 nits D2/D3/D4 applied (round 4). **577/577 tests pass**; lint + prettier clean.
 - **D1 — deploy-safety gap (medium): NOT a code-under-review defect.** Accepted as residual, deferred to
   the deploy-hardening workstream, with a LOUD go-live gate (confirm `player_profiles` is empty before
   deploying — see the residual entry above). Recorded, not Open here.

@@ -28,6 +28,9 @@
 -- (the intended case) passes with zero friction. To purge intentionally (e.g. a
 -- deliberate re-key), back up first, then opt in for one run:
 --   ALTER DATABASE <db> SET app.allow_profile_purge = 'on';  -- re-apply; then RESET.
+-- (ALTER DATABASE takes effect on NEW connections — which is exactly how `npm run
+-- migrate` / the deploy auto-migrate apply this. For a same-session manual `psql \i`,
+-- use a session-level `SET app.allow_profile_purge = 'on';` instead.)
 do $$
 declare
   existing_rows bigint;

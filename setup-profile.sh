@@ -705,7 +705,8 @@ ${ALLOW_DIRECTIVES}        deny all;
     # receipt. Disable access logging here as defense-in-depth so that even if a
     # caller falls back to a query string, the raw id never lands on disk. (The
     # `combined` format logs the request line, not request headers, so the header
-    # itself is already safe.) Must precede `location /` to win as an exact match.
+    # itself is already safe.) An exact-match `=` location always takes priority over
+    # the `location /` prefix, independent of declaration order.
     location = /v1/profile {
         access_log off;
         proxy_pass http://127.0.0.1:${PROFILE_PORT};

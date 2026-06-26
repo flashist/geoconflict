@@ -143,3 +143,70 @@ test("GET /v1/profile is 500 when the repo throws", async () => {
   the local repo — a guard added locally only takes effect on the box after `npm run deploy:profile`.
 - The brief's go-live gate is unchanged and still required: on-box, dump the profile DB + grep
   server/profile logs for any raw-ID pattern after a real login+match → expect **zero**.
+
+---
+
+# Round-2 addendum (stateful-review round 3, 2026-06-26)
+
+The round-1 fixes above (F1/F4/F6) were applied and **re-verified correct & regression-free** by a
+second stateful-review (Claude `code-reviewer` + Codex adversarial, both ledger-primed). That review
+surfaced three new **low** items (doc/comment + test polish) and one **medium deploy-safety gap** that
+is *not* a code-under-review defect. Nothing else was re-litigated.
+
+## Changes to make (round 2)
+
+| Severity | Required? | Location | Summary |
+|----------|-----------|----------|---------|
+| low | nice-to-have | `migrations/002_hash_yandex_player_id.sql` (~line 30 comment) | Clarify the opt-in purge instruction: `ALTER DATABASE` only affects new connections. |
+| low | nice-to-have | `setup-profile.sh` (nginx `location = /v1/profile` comment) | Remove the false "must precede `location /`" claim. |
+| low | nice-to-have | `tests/profile-server/Routes.test.ts` (new GET `/v1/profile` 500 test) | Strengthen the body assertion. |
+
+### D2 — `002` opt-in comment: `ALTER DATABASE` is new-connections-only (low)
+**Location:** `migrations/002_hash_yandex_player_id.sql`, the opt-in comment (~line 30).
+**Problem (verified).** The comment tells an operator who really intends to purge to run
+`ALTER DATABASE <db> SET app.allow_profile_purge = 'on';` then re-apply. `ALTER DATABASE … SET` only
+takes effect for **new** connections — a DBA doing it then `\i 002.sql` in the *same* psql session
+would find `current_setting()` still NULL, the guard fires, and the migration refuses despite intent.
+The primary deploy path (`npm run migrate` in a fresh process) works correctly, so this is **doc-only**.
+**Impact.** Confusion on the rare deliberate-purge path. The guard logic is correct.
+**Recommended fix.** Add a one-liner: for same-session opt-in use `SET app.allow_profile_purge = 'on';`
+(session GUC, immediate); `ALTER DATABASE` requires a reconnect first.
+
+### D3 — nginx comment is factually wrong about location priority (low)
+**Location:** `setup-profile.sh`, the comment on the `location = /v1/profile` block.
+**Problem (verified).** The comment says the block "Must precede `location /` to win as an exact match."
+In nginx an `=` (exact) match has unconditionally higher priority than a prefix match **regardless of
+declaration order**. The config works; only the comment is misleading.
+**Impact.** None at runtime; could mislead a future reader into thinking order is load-bearing here.
+**Recommended fix.** Delete the "Must precede `location /`…" sentence (or replace with a note that
+nginx tries exact matches first regardless of order).
+
+### D4 — strengthen the new F6 500-test assertion (low, nice-to-have)
+**Location:** `tests/profile-server/Routes.test.ts`, the `GET /v1/profile … is 500` test added for F6.
+**Problem (verified).** It asserts only `expect(res.body).not.toHaveProperty("yandex_player_id_hash")`,
+which covers the stated 152-ФЗ concern but not other accidental leakage (a raw `yandexPlayerId`, a debug
+object, etc.).
+**Impact.** None — the current assertion is sufficient for the stated goal; this only widens the net.
+**Recommended fix.** Replace with `expect(res.body).toEqual({ error: "internal_error" })`.
+
+## Operational gate — D1 (medium): NOT a code fix, do not "fix" in code here
+A verified deploy-safety gap was recorded as an **accepted residual** (deferred to the deploy-hardening
+workstream): `setup-profile.sh` serves the new API before `npm run migrate`, the health-gate uses
+`/health` (not the existing schema-aware `/ready`), and a migration failure `exit 1`s with no rollback.
+**Do not re-architect the deploy in this PR.** The required action is **operational, not code**:
+
+> **Before deploying this PR, confirm the live profile box's `player_profiles` table is EMPTY** (or
+> intentionally purge it via the opt-in GUC with a backup first). If rows exist, migration `002`'s F1
+> guard will correctly refuse AND the deploy will leave the new API broken-but-`/health`-green with no
+> auto-rollback.
+
+The proper hardening (migrate-before-swap / expand-contract, a `/ready`/schema-aware gate, and
+rollback-on-migration-failure) belongs to the deploy-hardening task, not here.
+
+## Do NOT change (round 2 — accepted residuals)
+Everything in the round-1 "Do NOT change" list above, **plus** the deploy ordering / health-gate /
+rollback behavior (D1) — that is a deferred deploy-hardening residual, gated operationally as above.
+
+## Validation (round 2)
+- `npx jest tests/profile-server/Routes.test.ts` stays green after the D4 assertion change.
+- D2/D3 are comment-only — no behavior change; lint/prettier clean.

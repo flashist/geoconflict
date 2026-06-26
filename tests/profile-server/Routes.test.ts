@@ -110,8 +110,9 @@ describe("profile API routes", () => {
       .get("/v1/profile")
       .set("X-Yandex-Player-Id", "yandex-1");
     expect(res.status).toBe(500);
-    // 152-ФЗ: even the error path must not surface the at-rest identity column.
-    expect(res.body).not.toHaveProperty("yandex_player_id_hash");
+    // 152-ФЗ: the error body is exactly the generic error — no identity column, and
+    // (via the exact match) no other accidental field leakage on the error path.
+    expect(res.body).toEqual({ error: "internal_error" });
   });
 
   test("POST /internal/v1/credit is 401 without a token", async () => {
