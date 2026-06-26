@@ -10,31 +10,44 @@ import { Pool } from "pg";
 import request from "supertest";
 import { PlayerProfileRepository } from "../../src/profile-server/PlayerProfileRepository";
 import { createApp } from "../../src/profile-server/Routes";
+import {
+  __resetPepperCacheForTests,
+  hashYandexId,
+} from "../../src/profile-server/YandexIdHash";
 
 const RUN = process.env.RUN_DB_TESTS ? describe : describe.skip;
 const TOKEN = "it-internal-token";
+// >= 32 chars so the fail-closed pepper check accepts it (see YandexIdHash.ts).
+const PEPPER = "it-pepper-0123456789abcdef0123456789abcdef";
 
 RUN("profile API over real Postgres (integration)", () => {
   let pool: Pool;
   let app: ReturnType<typeof createApp>;
   const ORIGINAL_TOKEN = process.env.PROFILE_INTERNAL_TOKEN;
+  const ORIGINAL_PEPPER = process.env.PROFILE_ID_PEPPER;
 
   const P = "yandex-http-1";
   const PID = "33333333-3333-3333-3333-333333333333";
 
   beforeAll(async () => {
     process.env.PROFILE_INTERNAL_TOKEN = TOKEN;
+    process.env.PROFILE_ID_PEPPER = PEPPER;
+    __resetPepperCacheForTests();
     pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL });
-    const sql = readFileSync(
-      join(process.cwd(), "migrations/001_player_profiles.sql"),
-      "utf8",
-    );
-    await pool.query(sql);
+    // Apply both migrations: 002 renames the identity column to yandex_player_id_hash.
+    for (const file of [
+      "migrations/001_player_profiles.sql",
+      "migrations/002_hash_yandex_player_id.sql",
+    ]) {
+      await pool.query(readFileSync(join(process.cwd(), file), "utf8"));
+    }
     app = createApp(new PlayerProfileRepository(pool));
   });
 
   afterAll(async () => {
     process.env.PROFILE_INTERNAL_TOKEN = ORIGINAL_TOKEN;
+    process.env.PROFILE_ID_PEPPER = ORIGINAL_PEPPER;
+    __resetPepperCacheForTests();
     await pool.end();
   });
 
@@ -46,8 +59,10 @@ RUN("profile API over real Postgres (integration)", () => {
   });
 
   test("upsert -> credit -> read produces xp 10, no leaked fields", async () => {
-    // Before upsert: no profile.
-    const missing = await request(app).get(`/v1/profile?yandexPlayerId=${P}`);
+    // Before upsert: no profile. 152-ФЗ: the raw id rides in the header, not the URL.
+    const missing = await request(app)
+      .get("/v1/profile")
+      .set("X-Yandex-Player-Id", P);
     expect(missing.status).toBe(404);
 
     // Create via the internal endpoint (no psql seeding).
@@ -74,13 +89,16 @@ RUN("profile API over real Postgres (integration)", () => {
       .send(body);
     expect(second.body.results[0].status).toBe("duplicate");
 
-    // Read back: xp 10 (not 20), and no paid / persistent_id leakage.
-    const read = await request(app).get(`/v1/profile?yandexPlayerId=${P}`);
+    // Read back: xp 10 (not 20), and no paid / persistent_id / identity leakage.
+    const read = await request(app)
+      .get("/v1/profile")
+      .set("X-Yandex-Player-Id", P);
     expect(read.status).toBe(200);
     expect(read.body.xp).toBe(10);
     expect(read.body).not.toHaveProperty("persistent_id");
     expect(read.body).not.toHaveProperty("is_paid_citizen");
     expect(read.body).not.toHaveProperty("citizenship_purchased_at");
+    expect(read.body).not.toHaveProperty("yandex_player_id_hash");
   });
 
   test("credit before any profile reports no_profile and writes nothing", async () => {
@@ -113,8 +131,8 @@ RUN("profile API over real Postgres (integration)", () => {
       });
 
     const row = await pool.query(
-      "SELECT persistent_id FROM player_profiles WHERE yandex_player_id = $1",
-      [P],
+      "SELECT persistent_id FROM player_profiles WHERE yandex_player_id_hash = $1",
+      [hashYandexId(P)],
     );
     expect(row.rows[0].persistent_id).toBe(
       "44444444-4444-4444-4444-444444444444",
@@ -133,7 +151,9 @@ RUN("profile API over real Postgres (integration)", () => {
       .set("authorization", `Bearer ${TOKEN}`)
       .send({ yandexPlayerId: P, persistentId: PID });
     expect(second.status).toBe(200);
-    expect(second.body.yandex_player_id).toBe(P);
+    // Identity is omitted from the public projection (152-ФЗ); xp 0 confirms the
+    // same fresh row was returned, not a new one.
+    expect(second.body).not.toHaveProperty("yandex_player_id_hash");
     expect(second.body.xp).toBe(0);
   });
 
@@ -155,9 +175,9 @@ RUN("profile API over real Postgres (integration)", () => {
     expect(collision.body).toEqual({ error: "persistent_id_conflict" });
 
     // The second account got no profile row (clean failure, no partial write).
-    const after = await request(app).get(
-      "/v1/profile?yandexPlayerId=yandex-http-2",
-    );
+    const after = await request(app)
+      .get("/v1/profile")
+      .set("X-Yandex-Player-Id", "yandex-http-2");
     expect(after.status).toBe(404);
   });
 });
