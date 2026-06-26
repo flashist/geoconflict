@@ -36,7 +36,7 @@ This isolation becomes critical once paid in-apps ship: profile data and backups
 - **API consumers:** (1) the **client** for profile reads + guest→authenticated migration (player-authenticated), (2) the **game server** for server-authoritative match-end XP crediting (service-authenticated internal endpoint), and later (3) admin/messaging tooling.
 - **Deploy pattern:** stand up the box by mirroring the telemetry deployment (`setup-telemetry.sh` + `build-deploy-telemetry.sh` + its own `docker-compose.yml`, with swap + Postgres memory caps baked in from the prior OOM lessons). Do not co-locate anything on the game VPS.
 
-**Legal note (tracked separately):** storing Yandex IDs + display names makes the project a personal-data operator under 152-FZ — a Roskomnadzor operator notification and a user-consent flow are required. Handled as a separate product/legal task, not in this implementation task.
+**Legal note (resolved 2026-06-26):** the 152-ФЗ investigation concluded we **pseudonymize identity** — store an irreversible, unique hash of the Yandex ID, never the raw ID (`ai-agents/knowledge-base/personal-data-152fz-findings.md`), which avoids the Roskomnadzor notification + consent obligation for the identity data. Implemented via `s4-profile-hash-player-ids.md` (gates profile-store prod go-live; do the identity-column change before real data accumulates). **Open item:** display-name (and any other directly-identifying field) handling is NOT covered by ID-hashing — confirm before prod.
 
 ---
 
