@@ -102,6 +102,18 @@ describe("profile API routes", () => {
     expect(res.status).toBe(400);
   });
 
+  test("GET /v1/profile is 500 when the repo throws (and leaks no identity)", async () => {
+    const repo = mockRepo({
+      getProfile: jest.fn().mockRejectedValue(new Error("db down")),
+    });
+    const res = await request(createApp(repo))
+      .get("/v1/profile")
+      .set("X-Yandex-Player-Id", "yandex-1");
+    expect(res.status).toBe(500);
+    // 152-ФЗ: even the error path must not surface the at-rest identity column.
+    expect(res.body).not.toHaveProperty("yandex_player_id_hash");
+  });
+
   test("POST /internal/v1/credit is 401 without a token", async () => {
     const res = await request(createApp(mockRepo()))
       .post("/internal/v1/credit")
@@ -201,7 +213,11 @@ describe("profile API routes", () => {
     const repo = mockRepo({
       upsertProfile: jest
         .fn()
-        .mockRejectedValue(new PersistentIdConflictError("yandex-2", "pid-1")),
+        // The route hashes the raw id before calling the repo, so this error's first
+        // arg is always a HASH in production (never a raw id) — use a hash-shaped value.
+        .mockRejectedValue(
+          new PersistentIdConflictError("yandex-2-hash", "pid-1"),
+        ),
     });
     const res = await request(createApp(repo))
       .post("/internal/v1/profile/upsert")

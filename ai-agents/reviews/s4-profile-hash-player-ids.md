@@ -7,8 +7,9 @@ File(s) under review: src/profile-server/YandexIdHash.ts, src/profile-server/Rou
   src/client/PlayerProfileView.ts, migrations/002_hash_yandex_player_id.sql,
   migrate-profile.sh, setup-profile.sh, package.json, and the profile test suites.
 PR: #127 (branch s4-profile-hash-player-ids → dev)
-Status: in-review
+Status: round-2 fixes applied (F1/F4/F6) — closeout; merge pending, go-live still gated on the brief's on-box validation
 Reviewers (round 1): Claude code-reviewer + Codex adversarial (both completed — full coverage)
+Round 2: process-review of the coder-handoff — all three open items verified CORRECT and applied (2026-06-26)
 
 ## Summary
 
@@ -73,17 +74,16 @@ brief's on-box validation (dump DB + grep logs for any raw ID = zero).
 | 1 | **F6** (Claude) — no 500-path test for `GET /v1/profile` when repo throws | CORRECT → **low** | **Defect (coverage gap) → Open.** Add a 500 test mirroring the upsert one. |
 | 1 | **F7** (Claude) — verify the known-answer digest by running the test | **RESOLVED** | Ran `YandexIdHash.test.ts` → green; the pinned HMAC vector is correct. Closed. |
 | 1 | **F8** (Claude) — `dotenv.config()` return unchecked | CORRECT → low | **Accepted residual.** Matches existing pattern; fail-closed boot check already covers the real risk. |
+| 2 | **F1** — re-verified against committed code | CORRECT → **medium** (confirmed; defect = missing rail on a frontier-move truncate) | **APPLIED.** Added a fail-closed SQL row-count guard in `002` (`raise exception` when `player_profiles` has rows unless `app.allow_profile_purge='on'`). Chosen over a script-only guard because the **primary apply path is the deploy auto-migrate** (`setup-profile.sh` → `npm run migrate`), which never touches `migrate-profile.sh`'s prompt — only an SQL guard covers all paths. Empty-DB path unchanged (no friction). `migrate-profile.sh` warning judged redundant, not added. |
+| 2 | **F4** — `Routes.test.ts:204` | CORRECT → low | **APPLIED.** Changed the `PersistentIdConflictError` mock to `"yandex-2-hash"` (+ clarifying comment); request body `.send({ yandexPlayerId: "yandex-2" })` left raw. (Handoff's "compare `PlayerProfileRepository.test.ts:282`" citation was bogus — that file is 26 lines — but the point held.) |
+| 2 | **F6** — GET `/v1/profile` 500 test | CORRECT → low | **APPLIED.** Added `"GET /v1/profile is 500 when the repo throws (and leaks no identity)"` mirroring the upsert 500 test; asserts the body has no `yandex_player_id_hash`. |
 
 ## Open / actionable
 
-- **F1 — migration safety rail (medium).** `migrations/002_hash_yandex_player_id.sql` /
-  `migrate-profile.sh`: make the destructive truncate fail closed when affected tables have
-  rows (require an explicit operator override flag), and/or emit a loud per-migration
-  "WARNING: 002 truncates ALL profile data" before the prompt — so `apply -y`/CI cannot
-  silently destroy real profiles. Truncate behavior itself stays (compliance-correct).
-- **F4 — test clarity (low).** `tests/profile-server/Routes.test.ts:204`: pass a hash-shaped
-  value to `PersistentIdConflictError`.
-- **F6 — coverage gap (low).** Add a `GET /v1/profile` 500-path test (repo throws), asserting
-  the body does not leak `yandex_player_id_hash`.
+- _None._ All three round-1 open items (F1/F4/F6) verified and applied in round 2. **577/577 tests pass** (was 576; +1 for the new 500-path test); lint + prettier clean.
+- **Caveats carried forward (not open defects):**
+  - The F1 SQL guard was **not executed against a live Postgres** in the applying session (Docker unavailable locally). It is exercised by the `RUN_DB_TESTS` integration tests (`tests/integration/*.it.test.ts` apply 001+002) and by the deploy itself. Validate on first apply.
+  - The migration runner reads migrations **baked into the deployed image** — the F1 guard only takes effect on the box after `npm run deploy:profile`.
+  - Real go-live gate unchanged: on-box, dump the profile DB + grep server/profile logs for any raw-ID pattern after a real login+match → expect **zero**.
 
-Routed to a coder-agent handoff spec: ai-agents/reviews/s4-profile-hash-player-ids-coder-handoff.md
+Routed to a coder-agent handoff spec: ai-agents/reviews/s4-profile-hash-player-ids-coder-handoff.md (now applied)

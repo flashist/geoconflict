@@ -18,12 +18,36 @@
 -- whole transition is ALSO guarded on the OLD column still existing, so a direct
 -- re-apply (e.g. integration tests that bypass the runner's bookkeeping) is a true
 -- no-op rather than an error — RENAME COLUMN is not natively idempotent.
+--
+-- SAFETY RAIL: the truncate is destructive and CANNOT be made data-preserving (the
+-- raw->hash rewrite needs the secret pepper, which must never live in SQL). So if the
+-- "table is effectively empty" precondition is ever violated — real profiles
+-- registered before this ran — we FAIL CLOSED instead of silently destroying them.
+-- This guards EVERY path (npm run migrate, migrate-profile.sh -y, CI, and the deploy
+-- auto-migrate in setup-profile.sh), not just the interactive prompt. An empty table
+-- (the intended case) passes with zero friction. To purge intentionally (e.g. a
+-- deliberate re-key), back up first, then opt in for one run:
+--   ALTER DATABASE <db> SET app.allow_profile_purge = 'on';  -- re-apply; then RESET.
 do $$
+declare
+  existing_rows bigint;
 begin
   if exists (
     select 1 from information_schema.columns
     where table_name = 'player_profiles' and column_name = 'yandex_player_id'
   ) then
+    select count(*) into existing_rows from player_profiles;
+    if existing_rows > 0
+       and coalesce(current_setting('app.allow_profile_purge', true), 'off') <> 'on' then
+      raise exception
+        'migration 002 would TRUNCATE % player_profiles row(s), cascading to '
+        'player_match_xp_credits / player_name_history / player_cosmetic_ownership. %',
+        existing_rows,
+        'Refusing: the raw->hash transition assumes an empty table (no raw ID can be '
+        'rehashed in SQL). If you REALLY intend to purge, back up first, then run '
+        '"ALTER DATABASE <db> SET app.allow_profile_purge = ''on'';", re-apply, and RESET it.';
+    end if;
+
     -- Purge raw-id rows. CASCADE follows the three ON DELETE CASCADE foreign keys
     -- (player_match_xp_credits, player_name_history, player_cosmetic_ownership), so
     -- one truncate clears all four tables.
