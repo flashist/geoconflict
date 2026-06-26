@@ -151,7 +151,7 @@ fi
 print_header "PREFLIGHT — ${PROFILE_SERVER_HOST}"
 set +e
 TARGET_ROLE=$("${SSH_CMD[@]}" -o ConnectTimeout=10 "${REMOTE_USER}@${PROFILE_SERVER_HOST}" \
-    'cat /etc/geoconflict-deploy-role 2>/dev/null || true')
+    'cat /etc/geoconflict-deploy-role 2>/dev/null || true' </dev/null)
 preflight_rc=$?
 set -e
 if [ "$preflight_rc" -ne 0 ]; then
@@ -177,22 +177,43 @@ else
 fi
 
 # ── Inspect: applied (schema_migrations) + baked into the deployed image ─────────
-# One SSH round-trip. Prints `APPLIED:<file>` and `IMAGE:<file>` lines. The remote
-# psql reads creds from the postgres container's own env (env_file: profile.env).
+# One SSH round-trip. FAIL CLOSED: prove the containers are up and the DB answers
+# BEFORE trusting any empty result, then emit `PROBE_OK` followed by `APPLIED:<file>` /
+# `IMAGE:<file>` lines. This stops an UNOBSERVABLE box (containers/daemon down, DB
+# unreachable) from being misread as a clean, fully-migrated DB. The remote psql reads
+# creds from the postgres container's own env (env_file: profile.env).
 remote_inspect() {
     "${SSH_CMD[@]}" "${REMOTE_USER}@${PROFILE_SERVER_HOST}" bash -s -- "$PROFILE_REMOTE_DIR" <<'REMOTE'
 set -euo pipefail
 dir="$1"
 cd "$dir" 2>/dev/null || { echo "FATAL: $dir not found on box"; exit 3; }
-# Applied migrations. schema_migrations may not exist yet on a never-migrated DB —
-# suppress that error and report nothing applied.
+
+# Liveness + connectivity probes. Each fails the whole inspect non-zero, so the caller
+# aborts rather than treating an unobservable box as "nothing applied".
+api_id=$(docker compose ps -q profile-api 2>/dev/null || true)
+[ -n "$api_id" ] || { echo "FATAL: profile-api container is not running (or docker is down)"; exit 4; }
+pg_id=$(docker compose ps -q postgres 2>/dev/null || true)
+[ -n "$pg_id" ] || { echo "FATAL: postgres container is not running (or docker is down)"; exit 4; }
+docker compose exec -T postgres sh -c \
+  'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "select 1"' \
+  >/dev/null 2>&1 || { echo "FATAL: cannot reach the profile database (postgres unreachable or auth failed)"; exit 5; }
+
+# Past the probes the stack is observable — mark it so the caller can require it.
+echo "PROBE_OK"
+
+# Applied migrations. Connectivity is proven above, so the ONLY remaining cause of a
+# query error is a never-created schema_migrations table (fresh DB) — tolerate THAT
+# (empty = nothing applied) via the inner 2>/dev/null + trailing || true, without
+# masking a real outage (already caught by the probes).
 docker compose exec -T postgres sh -c '
   PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc \
     "SELECT filename FROM schema_migrations ORDER BY filename" 2>/dev/null
-' 2>/dev/null | sed -e "s/[[:space:]]//g" -e "/^$/d" -e "s/^/APPLIED:/" || true
-# Migration files baked into the running profile-api image.
+' | sed -e "s/[[:space:]]//g" -e "/^$/d" -e "s/^/APPLIED:/" || true
+
+# Migration files baked into the running profile-api image (proven up above). An empty
+# result here is anomalous and the caller treats it as an error.
 docker compose exec -T profile-api sh -c \
-  'ls -1 /usr/src/app/migrations/*.sql 2>/dev/null' 2>/dev/null \
+  'ls -1 /usr/src/app/migrations/*.sql 2>/dev/null' \
   | xargs -r -n1 basename 2>/dev/null | sed -e "/^$/d" -e "s/^/IMAGE:/" || true
 REMOTE
 }
@@ -204,13 +225,28 @@ inspect_rc=$?
 set -e
 if [ "$inspect_rc" -ne 0 ]; then
     printf '%s\n' "$INSPECT_OUT" >&2
-    echo "Error: could not inspect the box (rc=${inspect_rc})." >&2
+    echo "Error: could not inspect the box (rc=${inspect_rc}). Aborting before any change." >&2
+    exit 1
+fi
+# Require the fail-closed probe marker: its absence means the stack was not observable
+# (and a 0 exit slipped through), so never trust an "empty" reading.
+if ! printf '%s\n' "$INSPECT_OUT" | grep -qx "PROBE_OK"; then
+    printf '%s\n' "$INSPECT_OUT" >&2
+    echo "Error: could not confirm the profile stack is observable on the box (no PROBE_OK)." >&2
+    echo "       Containers may be down/restarting — check the box before migrating." >&2
     exit 1
 fi
 
 APPLIED=$(printf '%s\n' "$INSPECT_OUT" | sed -n 's/^APPLIED://p' | sort -u)
 IMAGE=$(printf '%s\n' "$INSPECT_OUT" | sed -n 's/^IMAGE://p' | sort -u)
-REPO=$(cd "$REPO_DIR" && ls -1 migrations/*.sql 2>/dev/null | xargs -n1 basename | sort -u)
+REPO=$(cd "$REPO_DIR" && ls -1 migrations/*.sql 2>/dev/null | xargs -n1 basename | sort -u || true)
+
+# profile-api always ships baked-in migrations; an empty IMAGE after PROBE_OK means
+# something is wrong — refuse to guess the migration state.
+if [ -z "$IMAGE" ]; then
+    echo "Error: the profile-api image reports no baked-in migrations — unexpected. Aborting." >&2
+    exit 1
+fi
 
 # image files not yet applied = what `apply` will actually run.
 PENDING=$(comm -23 <(printf '%s\n' "$IMAGE") <(printf '%s\n' "$APPLIED"))
@@ -218,6 +254,22 @@ PENDING=$(comm -23 <(printf '%s\n' "$IMAGE") <(printf '%s\n' "$APPLIED"))
 NOT_IN_IMAGE=$(comm -23 <(printf '%s\n' "$REPO") <(printf '%s\n' "$IMAGE"))
 
 print_list() { if [ -n "$1" ]; then printf '%s\n' "$1" | sed 's/^/    - /'; else echo "    (none)"; fi; }
+
+# End LOUD when repo migrations are missing from the deployed image, with a distinct
+# non-zero code, so `migrate:profile` never *looks* like a clean success while
+# undeployed migrations remain (an operator may read only the final line).
+finish() {
+    local code="${1:-0}"
+    if [ -n "$NOT_IN_IMAGE" ]; then
+        local n
+        n=$(printf '%s\n' "$NOT_IN_IMAGE" | grep -c .)
+        echo
+        echo "NOTE: ${n} repo migration(s) are NOT in the deployed image — run 'npm run deploy:profile'"
+        echo "      to bake + apply them. This tool did not apply them."
+        if [ "$code" -lt 2 ]; then code=2; fi
+    fi
+    exit "$code"
+}
 
 echo "Applied on ${PROFILE_SERVER_HOST}:"
 print_list "$APPLIED"
@@ -236,23 +288,22 @@ if [ -n "$NOT_IN_IMAGE" ]; then
 fi
 
 if [ "$ACTION" = "status" ]; then
-    exit 0
+    finish 0
 fi
 
 # ── Apply ───────────────────────────────────────────────────────────────────────
 if [ -z "$PENDING" ]; then
     echo
     echo "Nothing to apply — the deployed image's migrations are all recorded as applied."
-    echo "(Running the idempotent runner anyway would be a safe no-op.)"
-    if ! is_truthy "$ASSUME_YES"; then
-        exit 0
-    fi
+    finish 0
 fi
 
 if ! is_truthy "$ASSUME_YES"; then
     echo
     printf 'Apply the above pending migrations to %s? [y/N] ' "$PROFILE_SERVER_HOST"
-    read -r reply
+    # `|| reply=""` so an EOF/non-tty stdin takes the safe default (abort), not a
+    # set -e crash.
+    read -r reply || reply=""
     case "$reply" in
         y | Y | yes | YES) ;;
         *)
@@ -274,3 +325,4 @@ REMOTE
 
 echo
 echo "✅ Migrations applied. Re-run './migrate-profile.sh status' to confirm."
+finish 0
