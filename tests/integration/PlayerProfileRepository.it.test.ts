@@ -21,13 +21,15 @@ RUN("PlayerProfileRepository (integration)", () => {
 
   beforeAll(async () => {
     pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL });
-    // Apply the migration directly (idempotent IF NOT EXISTS statements). cwd is the
-    // repo root under `npm run test:integration`.
-    const sql = readFileSync(
-      join(process.cwd(), "migrations/001_player_profiles.sql"),
-      "utf8",
-    );
-    await pool.query(sql);
+    // Apply the migrations directly (both are idempotent on re-apply). cwd is the
+    // repo root under `npm run test:integration`. 002 renames the identity column to
+    // yandex_player_id_hash, which the repo now keys on.
+    for (const file of [
+      "migrations/001_player_profiles.sql",
+      "migrations/002_hash_yandex_player_id.sql",
+    ]) {
+      await pool.query(readFileSync(join(process.cwd(), file), "utf8"));
+    }
     repo = new PlayerProfileRepository(pool);
   });
 
@@ -51,7 +53,9 @@ RUN("PlayerProfileRepository (integration)", () => {
     expect(profile.xp).toBe(0);
     expect(profile.is_citizen).toBe(false);
     expect(profile.is_paid_citizen).toBe(false);
-    expect(profile.yandex_player_id).toBe(P);
+    // The repo keys on the id-HASH; this test passes P straight through as that key
+    // (the route is what hashes a raw id — covered in Routes.it.test.ts).
+    expect(profile.yandex_player_id_hash).toBe(P);
     expect(profile.persistent_id).toBe(PID);
 
     const read = await repo.getProfile(P);
@@ -97,7 +101,7 @@ RUN("PlayerProfileRepository (integration)", () => {
     expect(same.persistent_id).toBe(newPid);
   });
 
-  test("creditMatchXp is idempotent on (game_id, yandex_player_id)", async () => {
+  test("creditMatchXp is idempotent on (game_id, yandex_player_id_hash)", async () => {
     await repo.upsertProfile(P, PID);
 
     expect(await repo.creditMatchXp("g1", P, 10)).toBe("credited");
@@ -108,7 +112,7 @@ RUN("PlayerProfileRepository (integration)", () => {
 
     // Exactly one ledger row.
     const ledger = await pool.query(
-      "SELECT count(*)::int AS n FROM player_match_xp_credits WHERE yandex_player_id = $1",
+      "SELECT count(*)::int AS n FROM player_match_xp_credits WHERE yandex_player_id_hash = $1",
       [P],
     );
     expect(ledger.rows[0].n).toBe(1);

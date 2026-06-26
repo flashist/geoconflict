@@ -11,7 +11,7 @@ const EPOCH_ISO = new Date(0).toISOString();
 function validV1Profile(): PlayerProfile {
   return {
     schema_version: 1,
-    yandex_player_id: "yandex-123",
+    yandex_player_id_hash: "yandex-123-hash",
     persistent_id: "11111111-1111-1111-1111-111111111111",
     xp: 250,
     is_citizen: false,
@@ -64,7 +64,7 @@ describe("PlayerProfile contract", () => {
 
       expect(result).toEqual({
         schema_version: 1,
-        yandex_player_id: null,
+        yandex_player_id_hash: null,
         persistent_id: "p",
         xp: 0,
         is_citizen: false,
@@ -83,13 +83,13 @@ describe("PlayerProfile contract", () => {
         xp: -5,
         created_at: "nope",
         is_citizen: "yes",
-        yandex_player_id: 123,
+        yandex_player_id_hash: 123,
       });
 
       expect(result.xp).toBe(0);
       expect(result.created_at).toBe(EPOCH_ISO);
       expect(result.is_citizen).toBe(false);
-      expect(result.yandex_player_id).toBeNull();
+      expect(result.yandex_player_id_hash).toBeNull();
       expect(PlayerProfileSchema.safeParse(result).success).toBe(true);
     });
 
@@ -99,14 +99,17 @@ describe("PlayerProfile contract", () => {
       ["a number", 42],
       ["an array", []],
       ["undefined", undefined],
-    ])("malformed input (%s) yields a valid default profile", (_label, input) => {
-      const result = migrateProfile(input);
-      expect(PlayerProfileSchema.safeParse(result).success).toBe(true);
-      expect(result.schema_version).toBe(1);
-      expect(result.xp).toBe(0);
-      expect(result.persistent_id).toBe("");
-      expect(result.created_at).toBe(EPOCH_ISO);
-    });
+    ])(
+      "malformed input (%s) yields a valid default profile",
+      (_label, input) => {
+        const result = migrateProfile(input);
+        expect(PlayerProfileSchema.safeParse(result).success).toBe(true);
+        expect(result.schema_version).toBe(1);
+        expect(result.xp).toBe(0);
+        expect(result.persistent_id).toBe("");
+        expect(result.created_at).toBe(EPOCH_ISO);
+      },
+    );
 
     test("a large-negative schema_version completes immediately (no DoS loop)", () => {
       // Regression: upgradeToCurrent walks versions up one at a time, so an
@@ -123,7 +126,9 @@ describe("PlayerProfile contract", () => {
     test("never throws on malformed input", () => {
       expect(() => migrateProfile(null)).not.toThrow();
       expect(() => migrateProfile(Symbol("x") as unknown)).not.toThrow();
-      expect(() => migrateProfile({ xp: "lots", nested: { a: 1 } })).not.toThrow();
+      expect(() =>
+        migrateProfile({ xp: "lots", nested: { a: 1 } }),
+      ).not.toThrow();
     });
   });
 
@@ -134,7 +139,7 @@ describe("PlayerProfile contract", () => {
 
       expect(profile).toEqual({
         schema_version: 1,
-        yandex_player_id: null,
+        yandex_player_id_hash: null,
         persistent_id: "guest-uuid",
         xp: 0,
         is_citizen: false,
@@ -149,7 +154,10 @@ describe("PlayerProfile contract", () => {
     });
 
     test("output round-trips through migrateProfile unchanged", () => {
-      const profile = createGuestProfile("guest-uuid", "2026-06-13T09:30:00.000Z");
+      const profile = createGuestProfile(
+        "guest-uuid",
+        "2026-06-13T09:30:00.000Z",
+      );
       expect(migrateProfile(profile)).toEqual(profile);
     });
 

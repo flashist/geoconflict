@@ -322,6 +322,28 @@ else
     echo "Generated and persisted PROFILE_INTERNAL_TOKEN to $PROFILE_TOKEN_FILE"
 fi
 
+# ── Yandex-ID hashing pepper (152-ФЗ) ─────────────────────────────────────────
+# The profile server hashes every raw Yandex player ID with this secret pepper
+# (HMAC-SHA256) and persists ONLY the hash — the raw, directly-identifying id is
+# never stored. The pepper is a LONG-LIVED secret: rotating it re-keys every stored
+# hash and orphans ALL existing profiles (reads + crediting idempotency break), so
+# it must stay stable across redeploys. Same precedence as the token: an env value
+# wins, else reuse the persisted file, else generate once and persist (root-only).
+# Idempotent. BACK THIS FILE UP alongside DB dumps — losing it makes every stored
+# hash unmatchable to a returning player. See s4-profile-hash-player-ids.md.
+PROFILE_PEPPER_FILE="$PROFILE_DIR/.id_pepper"
+if [ -n "${PROFILE_ID_PEPPER:-}" ]; then
+    echo "Using PROFILE_ID_PEPPER from environment"
+elif [ -f "$PROFILE_PEPPER_FILE" ]; then
+    PROFILE_ID_PEPPER=$(cat "$PROFILE_PEPPER_FILE")
+    echo "Reusing persisted PROFILE_ID_PEPPER from $PROFILE_PEPPER_FILE"
+else
+    PROFILE_ID_PEPPER=$(openssl rand -hex 32)
+    ( umask 077; printf '%s' "$PROFILE_ID_PEPPER" > "$PROFILE_PEPPER_FILE" )
+    chmod 600 "$PROFILE_PEPPER_FILE"
+    echo "Generated and persisted PROFILE_ID_PEPPER to $PROFILE_PEPPER_FILE"
+fi
+
 # The profile API container reaches Postgres by the compose SERVICE NAME over the
 # shared compose network: `postgres:5432`. NOT 127.0.0.1 — inside the API container
 # that is the container's own loopback, where nothing listens (postgres publishes
@@ -343,6 +365,7 @@ POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 POSTGRES_DB=${POSTGRES_DB}
 DATABASE_URL=${DATABASE_URL}
 PROFILE_INTERNAL_TOKEN=${PROFILE_INTERNAL_TOKEN}
+PROFILE_ID_PEPPER=${PROFILE_ID_PEPPER}
 PROFILE_PORT=${PROFILE_PORT}
 EOF
 )
@@ -670,6 +693,24 @@ server {
     location /internal/ {
 ${ALLOW_DIRECTIVES}        deny all;
         proxy_pass http://127.0.0.1:${PROFILE_PORT};
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 30s;
+    }
+
+    # Public profile read. 152-ФЗ: the client sends the raw Yandex id in the
+    # X-Yandex-Player-Id HEADER (never the URL), and the profile server hashes it on
+    # receipt. Disable access logging here as defense-in-depth so that even if a
+    # caller falls back to a query string, the raw id never lands on disk. (The
+    # `combined` format logs the request line, not request headers, so the header
+    # itself is already safe.) An exact-match `=` location always takes priority over
+    # the `location /` prefix, independent of declaration order.
+    location = /v1/profile {
+        access_log off;
+        proxy_pass http://127.0.0.1:${PROFILE_PORT};
+        proxy_http_version 1.1;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;

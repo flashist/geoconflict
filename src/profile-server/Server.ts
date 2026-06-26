@@ -17,10 +17,16 @@ import { logger } from "./Logger";
 import { PlayerProfileRepository } from "./PlayerProfileRepository";
 import { profileHttpPort } from "./ProfileEndpoints";
 import { createApp } from "./Routes";
+import { assertPepperConfigured } from "./YandexIdHash";
 
 dotenv.config();
 
 const log = logger.child({ comp: "profile" });
+
+// 152-ФЗ: validate the Yandex-ID hashing pepper at boot. A missing/short pepper
+// would otherwise surface only on the first profile read/write (as a 500); failing
+// here makes the container unhealthy so setup-profile.sh's health gate rolls back.
+assertPepperConfigured();
 
 const pool = createPool();
 const repo = new PlayerProfileRepository(pool);

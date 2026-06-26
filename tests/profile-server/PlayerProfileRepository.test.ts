@@ -5,15 +5,17 @@
 import { PersistentIdConflictError } from "../../src/profile-server/PlayerProfileRepository";
 
 describe("PersistentIdConflictError", () => {
-  const error = new PersistentIdConflictError("yandex-1", "pid-secret-1");
+  // The first arg is the irreversible id-HASH (the route hashes the raw id before
+  // it ever reaches the repo), so a hash-looking placeholder stands in here.
+  const error = new PersistentIdConflictError("yandex-1-hash", "pid-secret-1");
 
   test("keeps both identifiers as programmatic fields", () => {
-    expect(error.yandexPlayerId).toBe("yandex-1");
+    expect(error.yandexPlayerIdHash).toBe("yandex-1-hash");
     expect(error.persistentId).toBe("pid-secret-1");
   });
 
-  test("message surfaces yandexPlayerId for traceability", () => {
-    expect(error.message).toContain("yandex-1");
+  test("message surfaces the id-hash for traceability", () => {
+    expect(error.message).toContain("yandex-1-hash");
   });
 
   test("message and stack never embed the raw persistentId (R5-1)", () => {
