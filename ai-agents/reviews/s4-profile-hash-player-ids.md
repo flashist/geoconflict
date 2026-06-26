@@ -108,6 +108,7 @@ brief's on-box validation (dump DB + grep logs for any raw ID = zero).
 | 4 | **D2** — `002` opt-in comment (`ALTER DATABASE … SET` = new connections only) | CORRECT → low (marginal — instruction already works for `npm run migrate`/deploy, both fresh connections) | **APPLIED.** Added a note that same-session manual `psql \i` needs session-level `SET …` instead. Comment-only. |
 | 4 | **D3** — `setup-profile.sh` nginx comment "must precede `location /` to win as an exact match" | CORRECT → low | **APPLIED.** Replaced with the accurate statement (an `=` exact-match location wins regardless of declaration order). Comment-only; no runtime change. |
 | 4 | **D4** — strengthen GET `/v1/profile` 500 assertion | CORRECT → low | **APPLIED.** `expect(res.body).toEqual({ error: "internal_error" })`. Suite green (577/577). |
+| 5 | **stateful-review re-run** (both reviewers ledger-primed) — verify D2/D3/D4 application + catch anything new | No novel findings; **🔁 closeout (loop)** | **CLOSEOUT RE-CONFIRMED.** Claude: clean, D2/D3/D4 regression-free (Routes.test.ts 16/16 green). Codex re-raised 2 "high" findings — pepper-backup (= **F2**→T8) and migration-failure/deploy-ordering (= **D1**→deploy-hardening) — **both suppressed**: they match accepted residuals whose re-raise conditions are NOT met (box still empty/operator-driven not CI; no real profiles accrued). Nothing actionable. Stateless-reviewer oscillation caught by the ledger as designed. |
 
 ## Open / actionable
 
