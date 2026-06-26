@@ -43,7 +43,7 @@ The `extra jsonb not null default '{}'` column preserves unknown future fields, 
 
 ## Related
 
-- [[tasks/s4-profile-05-backend-db-api]]
-- [[tasks/s4-player-profile-store-impl]]
 - [[decisions/sprint-4]]
+- [[tasks/profile-backend-db-api]]
+- [[tasks/profile-schema-contract]]
 - [[systems/player-profile-store]]

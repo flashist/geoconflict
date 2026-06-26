@@ -42,3 +42,4 @@ There is no core-game intent/execution path for this feature. It is client UI on
 - [[decisions/sprint-2]] — Sprint where announcements were pulled forward and shipped
 - [[decisions/sprint-4]] — Sprint planning context showing 8d-A was no longer future scope
 - [[tasks/global-announcements]] — original re-enable task brief and shipped outcome
+- [[systems/player-infrastructure]] — broader player-facing communication and identity baseline

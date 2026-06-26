@@ -28,5 +28,6 @@ T4f closes the image-secret risk for the profile deploy path. Clean images can s
 - [[decisions/vps-credential-leak-response]] — incident context behind Docker secret-boundary hardening
 - [[tasks/profile-docker-image]] — profile image whose layers are scanned
 - [[tasks/profile-build-push-digest]] — deploy workflow where the scan runs before push
+- [[tasks/profile-argv-concurrency-hardening]] — final T4 deploy-hardening slice after the image scan
 - [[tasks/profile-server-bring-up-runbook]] — operator path that relies on the scanned deploy workflow
 - [[tasks/docker-secret-boundary-check]] — earlier Docker secret-boundary guardrail

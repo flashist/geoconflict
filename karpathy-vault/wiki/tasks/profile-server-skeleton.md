@@ -24,3 +24,4 @@ The profile service now boots independently and returns `200 {"status":"ok"}` fr
 - [[decisions/sprint-4]] — parent sprint and current profile-store sequence
 - [[decisions/profile-deploy-hardening-review-loop]] — reason T4 was split into independently shippable slices
 - [[tasks/profile-docker-image]] — T4c image that runs this server skeleton
+- [[systems/player-profile-store]] — full profile system that later grew from this skeleton

@@ -44,3 +44,4 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[systems/execution-pipeline]] — how validated intents are turned into executions
 - [[systems/configuration]] — worker path, port, public host, and API base URL selection
 - [[tasks/yandex-identity-plumbing]] — Yandex unique ID carried through the join payload into the server-side client
+- [[systems/player-infrastructure]] — pre-S4 player identity and transport baseline

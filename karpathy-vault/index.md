@@ -27,6 +27,8 @@
 - [[systems/server-performance]] — Server-side lag candidates ranked by likelihood; `endTurn()` performance analysis
 - [[systems/match-logging]] — What is recorded per match, where it goes, and what cannot be retrieved
 - [[systems/clans]] — Name-tag clan grouping system: parsing, team assignment logic, gaps, and no-UI status
+- [[systems/player-infrastructure]] — Pre-S4 player identity, cosmetics, monetization, and transport baseline; live vs dead inherited systems
+- [[systems/player-profile-store]] — Dedicated profile API/Postgres system for citizenship XP, hashed identity keys, and future entitlements
 
 ## Decisions
 
@@ -57,6 +59,7 @@
 - [[decisions/vps-credential-leak-response]] — Incident postmortem: Docker build-context secret leak path, deploy hardening, and trusted recovery workflow
 - [[decisions/profile-deploy-hardening-review-loop]] — Reset of the unbounded profile-deploy review loop into bounded T4 slices and fixed acceptance criteria
 - [[decisions/profile-storage-strategy]] — Player profile DB storage: Option B (typed columns + jsonb overflow), `xp bigint`, `persistent_id text` — chosen in T5 before the first migration
+- [[decisions/personal-data-152fz]] — 152-ФЗ decision to store irreversible keyed hashes of Yandex IDs instead of raw IDs in the profile store
 
 ## Tasks
 
@@ -77,7 +80,12 @@
 - [[tasks/profile-onbox-stack-gate]] — Sprint 4 T4e2 on-box compose stack, health gate, systemd lifecycle, and digest rollback
 - [[tasks/profile-deploy-wiring]] — Sprint 4 T4e3 SSH/SCP deploy wiring, secret staging, and end-to-end digest passthrough
 - [[tasks/profile-image-secret-scan]] — Sprint 4 T4f built-image layer byte scan that blocks secret-bearing profile image pushes
+- [[tasks/profile-argv-concurrency-hardening]] — Sprint 4 T4g deploy hardening: argv-safe secrets, fail-closed locks, atomic deploy records, and target preflight
+- [[tasks/profile-game-server-deploy-env]] — Sprint 4 T4h game-server deploy propagation for `PROFILE_API_URL`
 - [[tasks/profile-server-bring-up-runbook]] — Sprint 4 T4i operator runbook for bringing `api.geoconflict.ru/health` live on the reg.ru VPS
+- [[tasks/profile-backend-db-api]] — Sprint 4 T5 profile Postgres migration, repository, `/ready`, profile read, and internal idempotent credit API
+- [[tasks/personal-data-compliance-investigation]] — Sprint 4 152-ФЗ investigation that chose hashed Yandex IDs over raw-ID storage
+- [[tasks/profile-hash-player-ids]] — Sprint 4 profile-store pseudonymization: keyed hash identity, no raw Yandex ID at rest
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
 - [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement
 - [[tasks/start-screen-redesign-implementation]] — Sprint 4 implementation of the two-tab start screen, citizenship card shell, tab persistence, localization rename, and tab analytics

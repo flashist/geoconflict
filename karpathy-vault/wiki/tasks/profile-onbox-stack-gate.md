@@ -27,3 +27,4 @@ T4e2 completed the on-box half of profile deployment. The profile VPS can now ru
 - [[tasks/profile-vps-provisioning]] — T4d host and nginx/TLS boundary this stack runs behind
 - [[tasks/profile-deploy-wiring]] — T4e3 transport that invokes this on-box setup
 - [[tasks/profile-server-bring-up-runbook]] — operator runbook that exercises the merged deploy path
+- [[systems/player-profile-store]] — service that runs on this on-box stack
