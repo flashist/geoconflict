@@ -28,10 +28,7 @@ export const CURRENT_PROFILE_SCHEMA_VERSION = 1;
  */
 export const PlayerProfileSchema = z.object({
   schema_version: z.literal(CURRENT_PROFILE_SCHEMA_VERSION),
-  // 152-ФЗ: the at-rest identity is an irreversible keyed HMAC of the raw Yandex
-  // player ID (the raw ID is never persisted — see src/profile-server/YandexIdHash.ts).
-  // The profile server hashes the raw ID at its API boundary; nullable for guests.
-  yandex_player_id_hash: z.string().nullable(),
+  yandex_player_id: z.string().nullable(),
   persistent_id: z.string(),
   xp: z.number().int().nonnegative(),
   is_citizen: z.boolean(),
@@ -65,7 +62,7 @@ const RawProfileSchema = z.object({
   // crafted `-9e15` in a localStorage blob or API body) would otherwise spin the
   // loop ~quadrillions of times and freeze the process. Clamp it to 0 here.
   schema_version: z.number().int().nonnegative().catch(0),
-  yandex_player_id_hash: z.string().nullable().catch(null),
+  yandex_player_id: z.string().nullable().catch(null),
   persistent_id: z.string().catch(""),
   xp: z.number().int().nonnegative().catch(0),
   is_citizen: z.boolean().catch(false),
@@ -155,7 +152,7 @@ export function createGuestProfile(
 ): PlayerProfile {
   return {
     schema_version: CURRENT_PROFILE_SCHEMA_VERSION,
-    yandex_player_id_hash: null,
+    yandex_player_id: null,
     persistent_id: persistentId,
     xp: 0,
     is_citizen: false,

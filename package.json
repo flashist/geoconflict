@@ -31,8 +31,6 @@
     "gen-maps": "cd map-generator && go run . && npm run format",
     "deploy:telemetry": "./build-deploy-telemetry.sh",
     "deploy:profile": "./build-deploy-profile.sh",
-    "migrate:profile": "./migrate-profile.sh",
-    "migrate:profile:status": "./migrate-profile.sh status",
     "telemetry:tunnel": "./scripts/telemetry-tunnel.sh"
   },
   "lint-staged": {

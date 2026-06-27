@@ -70,12 +70,6 @@ Sources:
 ---
 
 ## Notes
-- **152-ФЗ — archived records must store NO raw Yandex player ID at rest (see
-  `s4-profile-hash-player-ids.md`, done; findings `personal-data-152fz-findings.md`).**
-  The S3 bucket is persistent storage = "at rest", so the pseudonymization decision
-  applies here too: if an archived `GameEndInfo` / player list carries any Yandex
-  identity, it must be the irreversible hash, never the raw ID. Audit the archived
-  payload before enabling this path and confirm it contains zero raw IDs.
 - Primarily infra, but the citizen-gating and re-enable code are required too — this is
   not infra-only.
 - Coordinate the schedule with the citizenship rollout so archival turns on at the same

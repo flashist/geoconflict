@@ -13,14 +13,7 @@ import { z } from "zod";
  * game server, never from a player. `xpAwarded` is bounded so a buggy caller can't
  * overflow the `integer` ledger column (`xp_awarded`).
  *
- * 152-ФЗ NOTE — this is deliberate, do NOT "fix" the asymmetry: the wire still
- * carries the RAW `yandexPlayerId` (TLS-protected transit is acceptable). The
- * profile server hashes it at its API boundary (src/profile-server/YandexIdHash.ts)
- * and persists only the irreversible hash — the raw ID is never stored at rest. Do
- * not pre-hash on the game server: the secret pepper lives only on the profile box.
- *
- * See ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md (T5) and
- * s4-profile-hash-player-ids.md.
+ * See ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md (T5).
  */
 
 /** One match-end credit: award `xpAwarded` to `yandexPlayerId` for `gameId`. */

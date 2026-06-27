@@ -3,7 +3,7 @@ import { rowToProfile } from "../../src/profile-server/PlayerProfileRepository";
 function baseRow(): Record<string, unknown> {
   return {
     schema_version: 1,
-    yandex_player_id_hash: "yandex-1-hash",
+    yandex_player_id: "yandex-1",
     persistent_id: "pid-1",
     xp: "1000", // pg returns bigint as a string
     is_citizen: true,
