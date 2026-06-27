@@ -86,4 +86,3 @@ Zero instances of clan tag rendering exist anywhere in `src/client/`. Players ca
 - [[tasks/sprint4b-duos-trios-quads]] — The team modes that currently drive `assignTeams()` usage
 - [[decisions/sprint-5]] — Clans is a planned Sprint 5 feature (Task 12): free tag + auto-team placement; paid: banner, stats, match history
 - [[systems/execution-pipeline]] — Intent → Execution flow for context on how player actions are processed
-- [[systems/player-infrastructure]] — pre-S4 player infrastructure audit that classifies clans as stateless/passive

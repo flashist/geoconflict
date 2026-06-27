@@ -26,6 +26,3 @@ Geoconflict now has a shipped email opt-in surface on both major post-load conve
 - [[systems/analytics]] — `Subscribe:Opened` and `Subscribe:Submitted`
 - [[features/feedback-button]] — shares the existing Telegram delivery infrastructure
 - [[tasks/telegram-link]] — adjacent Telegram CTA shown near subscribe entry points when enabled
-- [[tasks/personal-data-compliance-investigation]] — investigation that flags email/Telegram PII as a separate open concern
-- [[decisions/personal-data-152fz]] — compliance decision that flags email/Telegram PII as separate from profile ID hashing
-- [[systems/player-infrastructure]] — pre-S4/Sprint 4 infrastructure impact review that calls out this email PII sink

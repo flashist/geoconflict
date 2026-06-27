@@ -11,15 +11,13 @@
 
 Keep no-sprint work separate from active sprint plans so the active roadmap does not imply these tasks are approved for immediate implementation.
 
-Current no-sprint items include rewarded ads minimal version, leaderboard core, citizen-only private lobbies and spectating, flag and territory-pattern re-enablement, Monitoring & Alert Bot Phase 1/Phase 2, mobile memory/WebGL rendering failures, security follow-ups sec10/sec13, Worker Init Timeout map-transfer work, the no-nukes bot SAM launcher fix, two staged bot anti-SAM nuke tactics, forcing no-nukes rules when infinite gold appears in public rotation, removing the dead FuseTag polling loop, and fixing `GutterAds` listener lifetime. Parked items include deep mobile rendering optimization and Microsoft Clarity session recordings.
+Current no-sprint items include rewarded ads minimal version, leaderboard core, citizen-only private lobbies and spectating, flag and territory-pattern re-enablement, Monitoring & Alert Bot Phase 1/Phase 2, mobile memory/WebGL rendering failures, the remaining security follow-ups sec10/sec11, Worker Init Timeout map-transfer work, the no-nukes bot SAM launcher fix, two staged bot anti-SAM nuke tactics, forcing no-nukes rules when infinite gold appears in public rotation, removing the dead FuseTag polling loop, and fixing `GutterAds` listener lifetime. Parked items include deep mobile rendering optimization and Microsoft Clarity session recordings.
 
 The monitoring alert bot phases were added on 2026-06-04 after the telemetry VPS freeze/outage findings. Phase 1 is the near-term incident-prevention slice: external dead-man's-switch heartbeat, telemetry-VPS on-box disk/RAM/swap/OOM/container checks, shared Telegram helper, Russia-proxy routing, and digest/dedup/recovery alert UX. Phase 2 follows only after Phase 1 is deployed and proven, adding game-server VPS coverage plus slower-degradation hygiene such as ClickHouse/file-log growth attribution, TLS/certbot checks, sustained CPU load, backup health, predictive disk growth, and game-server availability heuristics.
 
 The mobile memory/WebGL rendering task was moved out of Sprint 4c on 2026-06-03. It has visible Uptrace signal around low-memory `getImageData` / `createImageData` failures and WebGL context failures, but its fix likely requires profiling, device-specific testing, graceful renderer fallback, and better device context in error logs. It should be scheduled only once mobile crash/performance data is clearer.
 
 Worker Init Timeout is a medium-priority join-path hardening task. The brief records that the Web Worker redundantly re-downloads the already-preloaded map binary during join, creating a latent 5-second timeout risk and wasting about 5.6 MB per match start; the preferred fix is to transfer loaded terrain buffers into the worker, raise the timeout as a fallback, and clean up timed-out workers.
-
-The two newer security hardening follow-ups are sec12 and sec13. sec12 narrows the profile/telemetry VPS registry-credential blast radius by using scoped pull-only credentials or isolated/cleaned Docker auth. sec13 is deploy-transport hygiene that gives telemetry profile-style EXIT-trap cleanup and 0600 remote env staging; it follows T4g and is not a citizenship/profile go-live blocker.
 
 The no-nukes bot SAM launcher fix is a small gameplay-efficiency backlog task. In matches where nukes are disabled, bots still build SAM launchers even though no nuke can exist; the intended fix is to skip the SAM spawn path in `FakeHumanExecution.handleUnits()` when silos are disabled.
 
@@ -36,7 +34,6 @@ Two side bugs from the app-bootstrap investigation are now no-sprint backlog ite
 - Monitoring & Alert Bot Phase 1 should be treated as unusually high-value no-sprint ops work because it protects the observability stack that stabilization depends on; Phase 2 should not leapfrog Phase 1.
 - Deep mobile rendering optimization remains parked until mobile DAU consistently exceeds 1,500, but the WebGL/memory task can be scheduled earlier if crash data justifies it as a targeted stability fix.
 - Worker Init Timeout should not block production releases by itself, but before shipping its fix, validate the join path on a valid-TLS host because the dev bare-IP host with a certificate error is not representative of production browser caching.
-- sec12 and sec13 are hardening follow-ups, not profile/citizenship launch blockers. sec12 is more release-adjacent because it concerns the live public profile box; sec13 naturally follows the completed T4g deploy-hardening work.
 - The no-nukes SAM fix is backlog, not active sprint work; it should still get `src/core/` tests because it changes bot build execution.
 - The H-bomb offset-targeting investigation must land before the multi-nuke saturation task; neither has a sprint home, and synthetic-map tests alone are insufficient for their spatial targeting claims.
 - The infinite-gold adjustment is a public-match quality task: keep the mode, force nukes off for that public modifier, and leave the four-option probability split unchanged.
@@ -51,5 +48,4 @@ Two side bugs from the app-bootstrap investigation are now no-sprint backlog ite
 - [[systems/telemetry]] — monitoring alert bot context and telemetry outage history
 - [[systems/flashist-init]] — source investigation that identified the FuseTag and GutterAds side bugs
 - [[tasks/app-bootstrap-single-entry-point]] — completed bootstrap task that produced the side-bug backlog items
-- [[tasks/profile-argv-concurrency-hardening]] — completed T4g prerequisite for sec13 deploy-transport follow-up
 - [[tasks/mobile-quick-wins]] — prior mobile rendering reductions that may not be enough for low-memory devices

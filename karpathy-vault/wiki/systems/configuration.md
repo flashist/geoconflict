@@ -20,7 +20,6 @@ Shared runtime and gameplay configuration for Geoconflict. The system selects en
 - `GAME_ENV` must be one of `dev`, `staging`, or `prod`; unsupported values throw during config load.
 - Browser config depends on `/api/env`. Missing `gameEnv` / `game_env` in that response is a hard startup error.
 - Public URL and JWT settings can come from runtime config first, then process environment, then environment-specific defaults. This fallback chain is useful for deploys but can hide stale environment values if not checked explicitly.
-- `PROFILE_API_URL` has two wiring steps: T4b added the config and `/api/env` field, while T4h forwards the variable through the game-server deploy env. Without the deploy step, production containers return an empty `profileApiUrl`.
 - `DevServerConfig` contains intentionally unsafe dummy credentials and must not be used as a production security model.
 - Production and staging use `DefaultConfig` for gameplay; environment-specific differences live in `ServerConfig` unless a `Config` subclass overrides behavior.
 
@@ -32,5 +31,3 @@ Shared runtime and gameplay configuration for Geoconflict. The system selects en
 - [[systems/telemetry]] — OTEL endpoint and production-only observability configuration
 - [[tasks/cosmetics-serving]] — same-origin and internal-origin handling for the optional cosmetics config endpoint
 - [[tasks/profile-api-url-config]] — public profile-service URL resolution and `/api/env` exposure
-- [[tasks/profile-game-server-deploy-env]] — game-server deployment propagation for `PROFILE_API_URL`
-- [[systems/player-profile-store]] — runtime consumer of the public profile API URL

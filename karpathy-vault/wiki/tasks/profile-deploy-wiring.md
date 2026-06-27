@@ -19,13 +19,10 @@ Connect the local profile image digest from T4e1 to the on-box stack from T4e2 t
 
 T4e3 completed the transport half of profile deployment. Bad SSH targets fail before box mutation and staged secret files are cleaned up on exit. The remaining live milestone is operator execution of the merged scripts on the real reg.ru host.
 
-T4g later hardened this deploy path with argv-safe password transport, fail-closed concurrency locks, atomic deploy records, and a read-only deploy-target preflight.
-
 ## Related
 
 - [[decisions/sprint-4]] — parent sprint and current profile-store sequence
 - [[decisions/profile-deploy-hardening-review-loop]] — bounded deploy-slice policy and secret-handling keepers
 - [[tasks/profile-build-push-digest]] — local digest producer wired into the deploy
 - [[tasks/profile-onbox-stack-gate]] — on-box compose, health gate, and rollback target
-- [[tasks/profile-argv-concurrency-hardening]] — follow-up hardening of this deploy path
 - [[tasks/profile-server-bring-up-runbook]] — operator runbook for the real TLS 200 milestone

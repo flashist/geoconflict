@@ -17,7 +17,7 @@ Define the shared, versioned `PlayerProfile` payload contract used by guest loca
 
 ## Outcome
 
-The first player-profile implementation slice is complete. T2 guest localStorage was later cancelled, and T5 backend DB/API has now consumed this shared payload on the authenticated server path. Any future server-authoritative guest cache can still reuse the contract instead of inventing separate client and server shapes.
+The first player-profile implementation slice is complete. T2 guest localStorage was later cancelled, but T5 backend DB/API and any future server-authoritative guest cache can still consume one shared profile payload instead of inventing separate client and server shapes.
 
 Two boundary decisions remain outside this contract by design. First, `xp` is only validated as a nonnegative safe JavaScript integer here; the persistence layer must clamp or reject values above the chosen database column max. Second, this schema is shape validation, not authorization: paid fields and earned-citizenship state from any revived guest-migration body must be force-cleared or recomputed at the server trust boundary. The current T5 path no longer includes `POST /v1/profile/migrate` because T7 was cancelled with the guest-first story.
 
@@ -25,7 +25,4 @@ Two boundary decisions remain outside this contract by design. First, `xp` is on
 
 - [[decisions/sprint-4]] — Sprint 4 roadmap and current profile-store implementation state
 - [[tasks/player-profile-store-investigation]] — investigation and infrastructure decisions that produced the profile-store implementation epic
-- [[tasks/profile-backend-db-api]] — T5 backend DB/API consumer of the shared profile contract
-- [[decisions/profile-storage-strategy]] — T5 database storage decision that maps the shared contract to typed columns
-- [[systems/player-profile-store]] — system that now owns server-side profile persistence
 - [[decisions/cancelled-tasks]] — cancellation record for the T2/T7 guest-first XP slices that originally consumed this contract

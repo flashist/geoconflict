@@ -20,7 +20,7 @@ Determine the foundation for Sprint 4 persistent player data: database technolog
 
 The investigation still recommends PostgreSQL, server-side match-end crediting, and an idempotent per-match credit table. Its deployment-location recommendation was superseded on 2026-06-13: profile storage and non-game backend logic should run on a dedicated reg.ru VPS behind `https://api.geoconflict.ru`, not on the game-server VPS. The game server should call the profile API for crediting; it should not receive direct Postgres credentials.
 
-The original server-visible identity gap is now partially closed by [[tasks/yandex-identity-plumbing]]: T3 carries the Yandex unique ID through match join and stores it on the server-side client. The transported value remains unsigned and untrusted, so paid-citizenship verification still requires the separate Yandex Payments trust boundary. The profile-store identity key is now a keyed hash of the Yandex ID rather than the raw ID; see [[decisions/personal-data-152fz]] and [[tasks/profile-hash-player-ids]]. The updated implementation plan also keeps game/profile failures isolated: profile outages must not stop matches, and game-server crashes must not threaten paid data.
+The original server-visible identity gap is now partially closed by [[tasks/yandex-identity-plumbing]]: T3 carries the Yandex unique ID through match join and stores it on the server-side client. The transported value remains unsigned and untrusted, so paid-citizenship verification still requires the separate Yandex Payments trust boundary. The updated implementation plan also keeps game/profile failures isolated: profile outages must not stop matches, and game-server crashes must not threaten paid data.
 
 Guest players should not have the citizenship feature silently hidden. The recommended UX is a locked citizenship surface with a Yandex login prompt. After the 2026-06-13 cancellation of T2/T7, guest users do not accumulate profile XP before login; profile XP is authenticated-only until the T5/T6 server-side crediting path ships. A future guest-XP retry should be a thin best-effort cache over the server source of truth.
 
@@ -30,8 +30,5 @@ Guest players should not have the citizenship feature silently hidden. The recom
 - [[tasks/profile-schema-contract]] — first implementation slice produced the shared profile payload and migration contract
 - [[tasks/yandex-identity-plumbing]] — completed T3 server-visible Yandex unique-ID path
 - [[tasks/profile-vps-provisioning]] — completed T4d provisioning for the dedicated reg.ru profile/API host
-- [[systems/player-profile-store]] — current dedicated profile API/Postgres architecture
-- [[tasks/profile-backend-db-api]] — T5 implementation of the repository and HTTP API
-- [[decisions/personal-data-152fz]] — decision to avoid raw Yandex ID persistence
 - [[tasks/yandex-payments-investigation]] — parallel Sprint 4 investigation; both findings gate the safe paid-citizenship path
 - [[decisions/cancelled-tasks]] — cancellation record for T2 guest localStorage and T7 guest migration

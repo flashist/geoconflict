@@ -26,8 +26,6 @@ The value is a stable profile key, not a cryptographically verified identity cla
 
 - [[decisions/sprint-4]] — parent sprint and current profile-store sequence
 - [[tasks/player-profile-store-investigation]] — investigation that identified the missing server-visible Yandex ID
-- [[systems/player-profile-store]] — profile system that consumes the Yandex ID as a hashed storage key
-- [[tasks/profile-hash-player-ids]] — compliance-driven hashing of this transported ID before persistence
 - [[systems/flashist-init]] — bounded SDK/player initialization and degraded-mode contract used by the helpers
 - [[systems/networking]] — join schema, transport, worker validation, and server-side client construction
 - [[tasks/yandex-payments-investigation]] — separate signed-verification path for paid entitlements
