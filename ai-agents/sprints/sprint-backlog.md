@@ -21,6 +21,7 @@
 | ⬜ No sprint | sec11 — Secret Management Beyond Env Files | `backlog/sec11-secret-management-beyond-env-files.md` | — |
 | ⬜ No sprint | sec12 — VPS Registry Credential Hygiene (scoped pull-only token, no persisted creds) | `backlog/sec12-vps-registry-credential-hygiene.md` | Release-adjacent (live profile box); pairs with sec13 |
 | ⬜ No sprint | sec13 — Deploy Transport Secret Hygiene (telemetry EXIT-trap parity + remote env 0600) | `backlog/sec13-deploy-transport-secret-hygiene.md` | After T4g (PR #125) merges |
+| ⬜ No sprint | 152-ФЗ Personal-Data Compliance — Roskomnadzor Notification + Consent Flow *(deferred from Sprint 4 2026-06-28, risk accepted)* | `backlog/compliance-152fz-notification-consent.md` | Legal/lawyer-led; resolve before scaling |
 | ⬜ No sprint | Worker Init Timeout — Redundant Map Re-fetch on Join | `backlog/worker-init-timeout-map-refetch.md` | — |
 | ⬜ No sprint | Bots: Stop Building SAM Launchers When Nukes Are Disabled | `backlog/bots-skip-sam-when-nukes-disabled.md` | — |
 | ⬜ No sprint | Bots/Nations: Effective Hydrogen-Bomb Use vs SAM Defenses (offset targeting) — investigation | `backlog/bots-hydrogen-bomb-sam-penetration-investigation.md` | — |
@@ -167,6 +168,14 @@ Security hardening follow-up, homed from finding **X2** in the `s4-profile-04e3`
 **Brief:** `backlog/sec13-deploy-transport-secret-hygiene.md`
 
 Security hardening follow-up (deploy transport), raised by the technical specialist + code-reviewer while reviewing `s4-profile-04g` (PR #125). Closes two transport-layer secret-exposure windows across both deploy pipelines: **(F-NEW-1)** `build-deploy-telemetry.sh` removes its 0600 secret env_file with an inline `rm` after the SCP, so a failed SCP under `set -e` leaves the plaintext secret on the dev host — give telemetry a single unconditional EXIT-trap cleanup mirroring profile's `finalize_deploy`; **(A2)** the remote staging env_file briefly holds scp-default perms before the in-session `chmod 600` — make it 0600 from creation in both the profile and telemetry scripts. Optional C2 parity: telemetry `StrictHostKeyChecking=no → accept-new`. **Low priority, post-release — NOT a citizenship/profile go-live blocker** (marginal exposure: `/root` is 0700 single-root and the secrets already live plaintext in `.env.*.secret` on the dev host). Builds on T4g's transport code, so it lands after T4g (PR #125) merges — naturally alongside `sec12`. Sibling of `sec12` (registry-credential hygiene).
+
+---
+
+### 152-ФЗ Personal-Data Compliance — Roskomnadzor Notification + Consent Flow
+
+**Brief:** `backlog/compliance-152fz-notification-consent.md`
+
+Investigation-first legal track (lawyer-led, like the cleared VAT task), **deferred out of Sprint 4 on 2026-06-28 with risk explicitly accepted by Mark.** Storing real Yandex IDs + display names in the profile store triggers 152-ФЗ: Roskomnadzor **operator notification** + a **consent flow** + privacy policy (residency already satisfied on the RU box). Sprint 4's first investigation concluded hashing the ID would avoid the obligation; that was **overturned** (hashing doesn't remove it) and the hashing task cancelled — so we're back to the original obligation, unresolved. **⚠️ Deferral means real PII is persisted in production before notification/consent exist — a conscious, accepted risk, not an oversight.** Carries forward the still-open **display-name** and **email-subscribe** (currently disabled) PII surfaces. Resolve before scaling / before significant real-PII volume. Findings → `personal-data-152fz-findings-v2.md` (v1 is invalidated).
 
 ---
 
