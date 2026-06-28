@@ -1,6 +1,6 @@
 ---
 name: task-cancelled
-description: Mark a task cancelled — move its brief into ai-agents/tasks/cancelled/ and update the sprint plan (and parent epic, if any) so the task's status reads Cancelled, with a recorded reason. Takes the path to the task file as its argument (optionally followed by a one-line reason). Use when a task has been dropped/abandoned and will not be done.
+description: Mark a task cancelled — move its brief into ai-agents/tasks/cancelled/ and update the sprint plan (and parent epic, if any) so the task's status reads Cancelled, with a recorded reason. Takes two arguments — the task file path, then the cancellation-reason text (everything after the path). Use when a task has been dropped/abandoned and will not be done.
 user-invocable: true
 ---
 
@@ -11,10 +11,13 @@ documentation so its status reads **⛔ Cancelled** — with a short **reason** 
 tracked. This is the sibling of `task-done`; the only differences are the destination folder, the
 status marker, and that cancellation records *why* and flags what it leaves behind.
 
-**Argument:** `$ARGUMENTS` — the path to the task brief file (e.g.
-`ai-agents/tasks/backlog/s4-starting-gold-public-modifier.md`), optionally followed by a one-line
-**reason** for the cancellation. A bare filename is also acceptable — resolve it under
-`ai-agents/tasks/backlog/`.
+**Arguments:** `$ARGUMENTS` carries **two** parameters:
+1. **Task file path** — the first whitespace-separated token (e.g.
+   `ai-agents/tasks/backlog/s4-starting-gold-public-modifier.md`). A bare filename is also
+   acceptable — resolve it under `ai-agents/tasks/backlog/`.
+2. **Cancellation reason** — **everything after the path**: the text explaining *why* the task was
+   cancelled. It is recorded verbatim (trimmed to a concise line) in the sprint docs, so it must be a
+   real rationale, not a placeholder.
 
 > **Why this skill exists.** The standing convention is that task files are moved between
 > `backlog/`, `done/`, and `cancelled/` **manually, after review** — never automatically during
@@ -27,9 +30,9 @@ status marker, and that cancellation records *why* and flags what it leaves behi
 ## Steps — do these in order
 
 ### 1. Resolve and validate the input
-- Resolve the path from `$ARGUMENTS` to a real file. If it's a bare filename, look in
-  `ai-agents/tasks/backlog/`. If `$ARGUMENTS` also carries trailing free text, treat that as the
-  cancellation **reason** (see step 2).
+- Take the **first token** of `$ARGUMENTS` as the task file path and resolve it to a real file (if
+  it's a bare filename, look in `ai-agents/tasks/backlog/`). Treat **everything after the path** as
+  the cancellation **reason** (the second parameter — see step 2).
 - **Stop with a clear message if:**
   - the file does not exist, or
   - it is not under `ai-agents/tasks/`, or
@@ -45,9 +48,9 @@ Capture, for use in later steps and the final report:
 - Whether it declares a **`## Parent / Epic`** (a path to an epic file) — if so, this is a child slice
   and the epic's own status table is one of the places to update.
 - The basename of the file (used to find references).
-- The **cancellation reason.** Use the reason passed in `$ARGUMENTS` if present. **If no reason was
-  given, ask Mark for a one-line reason before proceeding** — every cancelled entry in this project
-  carries a rationale, and a cancel without one is poor record-keeping. Do not invent a reason.
+- The **cancellation reason** — the second parameter (the text after the path). **If it is empty,
+  ask Mark for the reason before proceeding** — every cancelled entry in this project carries a
+  rationale, and a cancel without one is poor record-keeping. Do not invent a reason.
 
 ### 3. Move the file to `cancelled/`
 Use `git mv` so history is preserved:

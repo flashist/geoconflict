@@ -1,8 +1,10 @@
 # 152-ФЗ Personal-Data Compliance — Investigation Findings & Decision
 
-**Status:** Investigation complete. Decision locked with Mark 2026-06-26.
+> **⛔ INVALIDATED 2026-06-28 — DO NOT RELY ON THIS DOCUMENT.** Further investigation found the core conclusion below is **wrong**: hashing the Yandex ID does **NOT** remove the 152-ФЗ notification/consent obligation. It only added support/development complexity for no legal benefit. The implementation task is **cancelled** (`ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md`, PR #127 reverted). **152-ФЗ is unresolved and reopened — a new task will determine the real compliance path** (likely Roskomnadzor notification + consent). Everything below is kept only as a record of the overturned decision.
+
+**Status:** ~~Investigation complete. Decision locked with Mark 2026-06-26.~~ **Overturned 2026-06-28 — see banner above.**
 **Source task:** `ai-agents/tasks/done/s4-personal-data-compliance-investigation.md`
-**Implementation task:** `ai-agents/tasks/backlog/s4-profile-hash-player-ids.md`
+**Implementation task (cancelled):** `ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md`
 
 ---
 
