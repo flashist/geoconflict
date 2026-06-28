@@ -15,6 +15,9 @@ const CREDIT_PATH = "/internal/v1/credit";
 const UPSERT_PATH = "/internal/v1/profile/upsert";
 const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_BACKOFF_MS = 250;
+// Per-attempt ceiling so a stalled-but-not-down backend can't hold a socket/promise
+// open for undici's ~300s default. An abort is retried like any transport failure.
+const DEFAULT_TIMEOUT_MS = 10_000;
 
 /**
  * Game-server → profile-backend HTTP client (the first and only caller of the
@@ -32,13 +35,14 @@ const DEFAULT_BACKOFF_MS = 250;
  */
 export class ProfileApiClient {
   private readonly log: Logger;
-  private disabledLogged = false;
+  private readonly disabledLoggedOps = new Set<string>();
 
   constructor(
     private readonly config: ServerConfig,
     parentLog: Logger,
     private readonly maxAttempts: number = DEFAULT_MAX_ATTEMPTS,
     private readonly backoffMs: number = DEFAULT_BACKOFF_MS,
+    private readonly timeoutMs: number = DEFAULT_TIMEOUT_MS,
   ) {
     this.log = parentLog.child({ comp: "profile-api-client" });
   }
@@ -114,10 +118,12 @@ export class ProfileApiClient {
   }
 
   private logDisabledOnce(op: string): void {
-    if (this.disabledLogged) return;
-    this.disabledLogged = true;
+    // Per-op so a frequent op (upsert-at-join) can't suppress the log for a
+    // distinct op (creditMatch) that may never have logged its own miss.
+    if (this.disabledLoggedOps.has(op)) return;
+    this.disabledLoggedOps.add(op);
     this.log.debug(
-      `profile API not configured (missing PROFILE_API_URL and/or PROFILE_INTERNAL_TOKEN); skipping ${op} and further profile calls`,
+      `profile API not configured (missing PROFILE_API_URL and/or PROFILE_INTERNAL_TOKEN); skipping ${op}`,
     );
   }
 
@@ -174,9 +180,9 @@ export class ProfileApiClient {
 
   /**
    * POST `body` as JSON with the internal bearer token. Returns the parsed JSON
-   * body on a 2xx, or null after exhausting retries. Retries transport failures,
-   * 5xx and 429; gives up immediately on other 4xx (a caller/config error retrying
-   * cannot fix). Never throws.
+   * body on a 2xx, or null after exhausting retries. Retries transport failures
+   * (including a per-attempt timeout abort), 5xx and 429; gives up immediately on
+   * other 4xx (a caller/config error retrying cannot fix). Never throws.
    */
   private async postWithRetry(
     path: string,
@@ -192,6 +198,7 @@ export class ProfileApiClient {
             authorization: `Bearer ${this.token()}`,
           },
           body: JSON.stringify(body),
+          signal: AbortSignal.timeout(this.timeoutMs),
         });
         if (response.ok) {
           return await response.json();

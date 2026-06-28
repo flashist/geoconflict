@@ -1212,16 +1212,32 @@ export class GameServer {
    */
   private creditMatchXp(winnerMsg: ClientSendWinnerMessage): void {
     const participation = winnerMsg.playerParticipation;
-    if (participation === undefined || participation.length === 0) {
+    if (participation === undefined) {
+      // The deciding client sent no participation (e.g. a version-skewed first
+      // voter on a rolling deploy). The whole match's crediting is silently lost
+      // otherwise, so make it visible.
+      this.log.warn(
+        "winner message had no playerParticipation; match-end XP crediting skipped",
+      );
       return;
     }
+    if (participation.length === 0) {
+      return;
+    }
+    // Require a live connection at match end. A client that closed its tab is
+    // removed from activeClients immediately (the "close" handler), whereas
+    // isClientDisconnected only flips after the 60s ping timeout — so gate on both
+    // to exclude last-second leavers without changing the broadcast disconnect timing.
+    const activeClientIDs = new Set(this.activeClients.map((c) => c.clientID));
     const clientStateById = new Map<ClientID, ClientCreditState>();
     for (const [clientID, client] of this.allClients) {
       clientStateById.set(clientID, {
         yandexPlayerId: this.getCreditableYandexId(client),
         persistentId: client.persistentID,
         kicked: this.kickedClients.has(clientID),
-        disconnected: this.isClientDisconnected(clientID),
+        disconnected:
+          this.isClientDisconnected(clientID) ||
+          !activeClientIDs.has(clientID),
       });
     }
     const credits = selectMatchCredits(this.id, participation, clientStateById);

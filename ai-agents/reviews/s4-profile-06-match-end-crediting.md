@@ -6,7 +6,7 @@ File(s) under review: src/server/GameServer.ts, src/server/ProfileApiClient.ts,
 src/server/Client.ts, src/server/GameManager.ts, src/server/Worker.ts,
 src/core/profile/MatchQualification.ts, src/core/Schemas.ts,
 src/client/Transport.ts, src/client/graphics/layers/WinModal.ts, tests/*
-Status: in-review
+Status: review-complete — Round-1 findings resolved (Round 2, 2026-06-28); pending live verification
 Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full coverage.
 
 ## Accepted residuals (do-not-re-litigate)
@@ -60,21 +60,16 @@ Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full
 | 1 | **A4** `WinModal.buildPlayerParticipation` untested with real player data (WinModal.ts:464-494) — Claude low | CORRECT | **Open (low)** — client-side, testing not mandatory; a 3-scenario unit test (never-spawned / alive / killed) would close the gap. Not selected for this round's fix set. |
 | 1 | **A5** Second-round `no_profile` after backfill not differentiated in logs (ProfileApiClient.ts:151-173) — Claude low | PARTIALLY CORRECT → **very low** (counts ARE logged, just not labelled) | **Accepted residual** (recorded above). |
 | 1 | Schema uses `clientID` not brief's `persistentId` in `playerParticipation` (Schemas.ts:522-529) | CORRECT — justified divergence (clients don't know remote players' PII `persistentID`) | No action — not a defect. |
+| 2 | **C2** applied — live-connection gate | CORRECT, low | **Resolved** — `creditMatchXp` now treats `disconnected` as `isClientDisconnected(clientID) \|\| !activeClientIDs.has(clientID)`. Chose the surgical "require live connection at match end" variant over the ledger's mark-on-`close` option, which would change broadcast disconnect timing (gameplay UX) and hit a reconnect race (old socket's `close` keyed by clientID). |
+| 2 | **C3** applied — per-attempt timeout | CORRECT, low | **Resolved** — `postWithRetry` passes `signal: AbortSignal.timeout(10s)`; abort is retried like any transport failure. Test asserts a `signal` is wired. |
+| 2 | **A1** applied — observability | CORRECT, very low | **Resolved** — `creditMatchXp` warns when `playerParticipation === undefined`; `length === 0` stays silent (benign all-AI / no-human case). |
+| 2 | **A2** applied — observability | CORRECT, very low | **Resolved** — `disabledLogged` boolean → per-op `disabledLoggedOps` Set, so `creditMatch`'s not-configured log isn't suppressed by `upsertProfile`'s. |
+| 2 | **A4** applied — client test | CORRECT, low | **Resolved** — added `WinModal.buildPlayerParticipation` unit test (human-only filter, alive/killed/never-spawned, killedAt from stats). |
 
 ## Open / actionable
 
-- **C2** — Tab-close leaver crediting: WS `close` handler (GameServer.ts:391-399) only
-  filters `activeClients`; it does not `markClientDisconnected`, so `isClientDisconnected`
-  stays `false` until the 60s ping timeout. A player who closes the tab while still
-  "alive" in the sim can be credited if the match ends within that window. Mark
-  disconnected immediately on `close`, or require a live connection at match end.
-- **C3** — Bounded HTTP: wrap each `fetch` attempt in `AbortSignal.timeout()` (treat
-  abort as retryable) so a stalled-but-not-down backend can't leak sockets/promises;
-  add a never-resolving-fetch test proving `creditMatch()` returns within budget.
-- **A1** — Observability: warn-log in `creditMatchXp` when `playerParticipation` is
-  absent/empty, so a version-skewed first-voter silently dropping the whole match's
-  crediting is visible in logs.
-- **A2** — Observability: don't let `upsertProfile`'s one-shot "not configured" log
-  suppress the `creditMatch` one; log per-operation (or per-game).
-- **A4** (low, optional) — unit-test `WinModal.buildPlayerParticipation` with
-  never-spawned / spawned-alive / spawned-killed players.
+_None._ All Round-1 open items (C2, C3, A1, A2, A4) verified and resolved in Round 2
+(owner-approved 2026-06-28). Accepted residuals C1 / A3 / A5 remain closed — re-raise
+only under their recorded conditions. Full suite green (594 tests); tsc + lint + prettier
+clean. Remaining verification is live-only (match against the profile box: XP +10,
+idempotency on repeat `game_id`, non-qualifier exclusion, fail-soft with profile down).

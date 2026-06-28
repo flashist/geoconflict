@@ -86,6 +86,8 @@ describe("ProfileApiClient", () => {
     expect(init.method).toBe("POST");
     expect(init.headers.authorization).toBe("Bearer secret-token");
     expect(init.headers["Content-Type"]).toBe("application/json");
+    // Each attempt is bounded by a per-attempt timeout signal (C3).
+    expect(init.signal).toBeInstanceOf(AbortSignal);
     // persistentId must NOT leak onto the credit wire payload.
     expect(JSON.parse(init.body)).toEqual({
       credits: [{ gameId: "game-1", yandexPlayerId: "yx-1", xpAwarded: 10 }],
