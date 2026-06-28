@@ -30,3 +30,4 @@ T4f closes the image-secret risk for the profile deploy path. Clean images can s
 - [[tasks/profile-build-push-digest]] — deploy workflow where the scan runs before push
 - [[tasks/profile-server-bring-up-runbook]] — operator path that relies on the scanned deploy workflow
 - [[tasks/docker-secret-boundary-check]] — earlier Docker secret-boundary guardrail
+- [[tasks/profile-deploy-hardening]] — later T4g deploy hardening slice

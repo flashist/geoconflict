@@ -14,7 +14,7 @@ Two options were on the table:
 
 The shared contract (`src/core/profile/PlayerProfile.ts`) is snake_case and maps 1:1 to columns, so neither option needs a field-mapping layer.
 
-Sources: `ai-agents/tasks/backlog/s4-player-profile-store-impl.md` (Part B), `ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md`.
+Sources: `ai-agents/tasks/backlog/s4-player-profile-store-impl.md` (Part B), `ai-agents/tasks/done/s4-profile-05-backend-db-api.md`.
 
 ## Decision
 
@@ -43,7 +43,7 @@ The `extra jsonb not null default '{}'` column preserves unknown future fields, 
 
 ## Related
 
-- [[tasks/s4-profile-05-backend-db-api]]
-- [[tasks/s4-player-profile-store-impl]]
+- [[tasks/profile-backend-db-api]]
+- [[tasks/player-profile-store-investigation]]
 - [[decisions/sprint-4]]
 - [[systems/player-profile-store]]

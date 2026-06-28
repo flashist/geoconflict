@@ -24,8 +24,13 @@ import {
 } from "../core/Schemas";
 import { createPartialGameRecord, getClanTag, simpleHash } from "../core/Util";
 import { PseudoRandom } from "../core/PseudoRandom";
+import {
+  ClientCreditState,
+  selectMatchCredits,
+} from "../core/profile/MatchQualification";
 import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
+import { ProfileApiClient } from "./ProfileApiClient";
 
 export enum GamePhase {
   Lobby = "LOBBY",
@@ -99,6 +104,7 @@ export class GameServer {
     public readonly createdAt: number,
     private config: ServerConfig,
     public gameConfig: GameConfig,
+    private profileApiClient: ProfileApiClient,
     lobbyCreatorID?: string,
   ) {
     this.log = log_.child({ gameID: id });
@@ -260,6 +266,10 @@ export class GameServer {
 
     this.allClients.set(client.clientID, client);
 
+    // Ensure a profile row exists for an authenticated player as early as join, so
+    // it is ready before match-end crediting and before the Citizenship UI reads it.
+    this.upsertProfileForClient(client);
+
     client.ws.removeAllListeners("message");
     client.ws.on("message", async (message: string) => {
       // Buffer.byteLength is correct for both Buffer and string (handles multi-byte chars)
@@ -348,6 +358,18 @@ export class GameServer {
           }
           case "winner": {
             this.handleWinner(client, clientMsg);
+            break;
+          }
+          case "update_identity": {
+            // Late Yandex-id resolution for an authorized user who joined while the
+            // SDK was still initializing. Apply null→value only (cannot hijack a
+            // known id), and upsert now that we finally know it.
+            if (client.setYandexPlayerIdIfUnset(clientMsg.yandexPlayerId)) {
+              this.log.info("client Yandex identity resolved post-join", {
+                clientID: client.clientID,
+              });
+              this.upsertProfileForClient(client);
+            }
             break;
           }
           default: {
@@ -1145,5 +1167,68 @@ export class GameServer {
       },
     );
     this.archiveGame();
+    // Fire-and-forget; must never block or error match cleanup. Runs exactly once
+    // because this.winner is now set (re-entry returns at the guard above).
+    this.creditMatchXp(potentialWinner.winner);
+  }
+
+  /**
+   * IDENTITY-TRUST SEAM (s4-profile-06 / Yandex Payments task). The single place
+   * that decides which Yandex id is trusted enough to credit/upsert. TODAY it
+   * returns the client-asserted id as-is — an epic-accepted risk for *earned* XP
+   * only (the id is a stable store key; paid entitlements are verified separately
+   * by the Payments task). Server-side `getPlayer({ signed: true })` verification is
+   * blocked until the Yandex secret key is issued (after in-app purchases are
+   * enabled). When that lands, verify the signed payload HERE and return only the
+   * verified id (or null) — the upsert / credit / qualification logic downstream
+   * does not change.
+   */
+  private getCreditableYandexId(client: Client): string | null {
+    return client.yandexPlayerId;
+  }
+
+  /**
+   * Ensure a profile row exists for a player we have a creditable Yandex id for
+   * (fire-and-forget, fail-soft). Called when we first learn the id — at join and on
+   * a late identity refresh.
+   */
+  private upsertProfileForClient(client: Client): void {
+    const yandexPlayerId = this.getCreditableYandexId(client);
+    if (yandexPlayerId === null) {
+      return;
+    }
+    void this.profileApiClient.upsertProfile(
+      yandexPlayerId,
+      client.persistentID,
+    );
+  }
+
+  /**
+   * Credit match-end XP to qualifying authenticated players. Fire-and-forget and
+   * fail-soft. The winner message's `playerParticipation` is the authoritative
+   * end-of-match snapshot (built by the client, which alone knows spawn/alive state);
+   * the server makes the decision and the write, combining participation with its own
+   * per-client state (kicked / disconnected / the trusted Yandex id).
+   */
+  private creditMatchXp(winnerMsg: ClientSendWinnerMessage): void {
+    const participation = winnerMsg.playerParticipation;
+    if (participation === undefined || participation.length === 0) {
+      return;
+    }
+    const clientStateById = new Map<ClientID, ClientCreditState>();
+    for (const [clientID, client] of this.allClients) {
+      clientStateById.set(clientID, {
+        yandexPlayerId: this.getCreditableYandexId(client),
+        persistentId: client.persistentID,
+        kicked: this.kickedClients.has(clientID),
+        disconnected: this.isClientDisconnected(clientID),
+      });
+    }
+    const credits = selectMatchCredits(this.id, participation, clientStateById);
+    if (credits.length === 0) {
+      return;
+    }
+    this.log.info(`crediting ${credits.length} player(s) match XP`);
+    void this.profileApiClient.creditMatch(credits);
   }
 }

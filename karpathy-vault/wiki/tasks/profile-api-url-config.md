@@ -19,8 +19,12 @@ Expose the public profile-service base URL through the existing runtime configur
 
 The browser-visible runtime contract now carries a normalized public profile API URL, defaulting to an empty string and preferring a runtime override over the process environment. The value intentionally has no T4 client consumer; database credentials and internal tokens remain outside this public response.
 
+T4h later added the missing deploy surface so real game-server containers receive `PROFILE_API_URL` and `/api/env.profileApiUrl` can return the configured value outside local/dev environments.
+
 ## Related
 
 - [[decisions/sprint-4]] — parent sprint and current profile-store sequence
 - [[decisions/profile-deploy-hardening-review-loop]] — bounded T4 decomposition
 - [[systems/configuration]] — runtime config and `/api/env` resolution path
+- [[tasks/profile-game-server-deploy-env]] — deploy propagation follow-up for the public URL
+- [[systems/player-profile-store]] — profile service exposed by this public URL

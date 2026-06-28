@@ -258,6 +258,7 @@ function createGame({
     }),
     inSpawnPhase: () => false,
     ticks: () => 120,
+    players: () => [],
     updatesSinceLastTick: () => ({
       [GameUpdateType.Win]: winUpdates,
     }),

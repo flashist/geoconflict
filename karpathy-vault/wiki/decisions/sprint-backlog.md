@@ -11,7 +11,7 @@
 
 Keep no-sprint work separate from active sprint plans so the active roadmap does not imply these tasks are approved for immediate implementation.
 
-Current no-sprint items include rewarded ads minimal version, leaderboard core, citizen-only private lobbies and spectating, flag and territory-pattern re-enablement, Monitoring & Alert Bot Phase 1/Phase 2, mobile memory/WebGL rendering failures, the remaining security follow-ups sec10/sec11, Worker Init Timeout map-transfer work, the no-nukes bot SAM launcher fix, two staged bot anti-SAM nuke tactics, forcing no-nukes rules when infinite gold appears in public rotation, removing the dead FuseTag polling loop, and fixing `GutterAds` listener lifetime. Parked items include deep mobile rendering optimization and Microsoft Clarity session recordings.
+Current no-sprint items include rewarded ads minimal version, leaderboard core, citizen-only private lobbies and spectating, flag and territory-pattern re-enablement, Monitoring & Alert Bot Phase 1/Phase 2, mobile memory/WebGL rendering failures, security follow-ups sec10/sec11/sec12/sec13, 152-ФЗ notification/consent work, Worker Init Timeout map-transfer work, the no-nukes bot SAM launcher fix, two staged bot anti-SAM nuke tactics, forcing no-nukes rules when infinite gold appears in public rotation, removing the dead FuseTag polling loop, and fixing `GutterAds` listener lifetime. Parked items include deep mobile rendering optimization and Microsoft Clarity session recordings.
 
 The monitoring alert bot phases were added on 2026-06-04 after the telemetry VPS freeze/outage findings. Phase 1 is the near-term incident-prevention slice: external dead-man's-switch heartbeat, telemetry-VPS on-box disk/RAM/swap/OOM/container checks, shared Telegram helper, Russia-proxy routing, and digest/dedup/recovery alert UX. Phase 2 follows only after Phase 1 is deployed and proven, adding game-server VPS coverage plus slower-degradation hygiene such as ClickHouse/file-log growth attribution, TLS/certbot checks, sustained CPU load, backup health, predictive disk growth, and game-server availability heuristics.
 
@@ -27,6 +27,10 @@ The redirected infinite-gold public-rotation task keeps `infiniteGold` in the fo
 
 Two side bugs from the app-bootstrap investigation are now no-sprint backlog items. `initializeFuseTag` starts a perpetual 100ms polling loop even though the Fuse ad script is commented out in both HTML templates. `GutterAds.hide()` removes its `userMeResponse` listener while the element remains connected, so after the first game/lobby leave it stops reacting to login-state changes.
 
+The 152-ФЗ compliance item was deferred out of Sprint 4 on 2026-06-28 with risk explicitly accepted. The prior hash-based avoidance plan was invalidated: hashing the Yandex ID does not remove the notification/consent obligation. The backlog task should produce a v2 findings document and likely cover Roskomnadzor operator notification, consent/privacy-policy text, display-name handling, email-subscribe PII, and future archive PII surfaces. See [[decisions/personal-data-152fz-compliance]].
+
+The sec12/sec13 deploy-security items came from profile-deploy hardening reviews. sec12 narrows registry credential blast radius on public boxes through scoped pull-only credentials and isolated/logout Docker config. sec13 closes transport-layer secret hygiene gaps across profile and telemetry deploys: telemetry local EXIT-trap cleanup parity and 0600 remote env-file creation.
+
 ## Consequences
 
 - Backlog task files such as `ai-agents/tasks/backlog/mobile-webgl-rendering.md` remain source briefs, not wiki task pages, until the work is assigned or completed.
@@ -38,10 +42,13 @@ Two side bugs from the app-bootstrap investigation are now no-sprint backlog ite
 - The H-bomb offset-targeting investigation must land before the multi-nuke saturation task; neither has a sprint home, and synthetic-map tests alone are insufficient for their spatial targeting claims.
 - The infinite-gold adjustment is a public-match quality task: keep the mode, force nukes off for that public modifier, and leave the four-option probability split unchanged.
 - The FuseTag and GutterAds tasks are independent cleanup bugs from [[tasks/app-bootstrap-single-entry-point]]; they should not be bundled into the bootstrap refactor retroactively.
+- The 152-ФЗ backlog item is a conscious accepted-risk deferral, not a resolved legal gate. Do not revive the cancelled Yandex-ID hash implementation as a compliance fix unless new legal findings establish a real benefit.
+- sec12/sec13 are hardening follow-ups for live deployment paths; sec12 is more release-adjacent because it concerns registry credentials on the live profile box.
 
 ## Related
 
 - [[decisions/product-strategy]] — retention-first roadmap and mobile DAU gate for deep mobile work
+- [[decisions/sprint-4]] — sprint that deferred 152-ФЗ compliance with accepted risk
 - [[decisions/sprint-4c]] — sprint that deferred mobile WebGL rendering to the no-sprint backlog
 - [[systems/project-operations]] — sprint/task workflow and rule that work needs a sprint home before implementation
 - [[systems/rendering]] — likely technical area for WebGL fallback and ImageData allocation fixes
@@ -49,3 +56,6 @@ Two side bugs from the app-bootstrap investigation are now no-sprint backlog ite
 - [[systems/flashist-init]] — source investigation that identified the FuseTag and GutterAds side bugs
 - [[tasks/app-bootstrap-single-entry-point]] — completed bootstrap task that produced the side-bug backlog items
 - [[tasks/mobile-quick-wins]] — prior mobile rendering reductions that may not be enough for low-memory devices
+- [[systems/player-profile-store]] — live profile-box context for sec12/sec13 and compliance deferral
+- [[decisions/personal-data-152fz-compliance]] — deferred 152-ФЗ notification/consent track
+- [[tasks/personal-data-compliance-investigation]] — Sprint 4 investigation that led to the deferred compliance backlog item

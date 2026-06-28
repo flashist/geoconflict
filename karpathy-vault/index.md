@@ -27,6 +27,8 @@
 - [[systems/server-performance]] — Server-side lag candidates ranked by likelihood; `endTurn()` performance analysis
 - [[systems/match-logging]] — What is recorded per match, where it goes, and what cannot be retrieved
 - [[systems/clans]] — Name-tag clan grouping system: parsing, team assignment logic, gaps, and no-UI status
+- [[systems/player-infrastructure]] — Pre-S4 identity/customization substrate: local-only persistence, join transport, dead inherited auth/monetization, and trust gaps
+- [[systems/player-profile-store]] — Dedicated Sprint 4 profile API/Postgres backend for XP, citizenship, and future paid entitlements
 
 ## Decisions
 
@@ -36,13 +38,14 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/7/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
-- [[decisions/sprint-4]] — Sprint 4 (mixed): citizenship/payment foundation, legal/data-compliance gate, shipped start-screen/bootstrap work, plus carried backlog follow-ups
+- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5 done, citizenship/payment work pending, 152-ФЗ deferred with accepted risk, plus shipped UI/bootstrap/fix work
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
 - [[decisions/sprint-backlog]] — No-sprint backlog for defined work needing a sprint home, including monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag, and GutterAds fixes
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
 - [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance, compact-map runtime fallback, and guest-first profile XP cancellations
+- [[decisions/personal-data-152fz-compliance]] — Hash-based 152-ФЗ avoidance invalidated; notification/consent work deferred to backlog with accepted risk
 
 ### Legal & Operations
 - [[decisions/licensing-compliance]] — AGPL, CC BY-SA, source-access, and OpenFront asset/trademark constraints for GeoConflict; one open prerequisite: proprietary asset audit before in-app purchases
@@ -78,6 +81,10 @@
 - [[tasks/profile-deploy-wiring]] — Sprint 4 T4e3 SSH/SCP deploy wiring, secret staging, and end-to-end digest passthrough
 - [[tasks/profile-image-secret-scan]] — Sprint 4 T4f built-image layer byte scan that blocks secret-bearing profile image pushes
 - [[tasks/profile-server-bring-up-runbook]] — Sprint 4 T4i operator runbook for bringing `api.geoconflict.ru/health` live on the reg.ru VPS
+- [[tasks/profile-deploy-hardening]] — Sprint 4 T4g argv-safety, deploy locking, atomic record, and wrong-host preflight hardening
+- [[tasks/profile-game-server-deploy-env]] — Sprint 4 T4h propagation of `PROFILE_API_URL` through the game-server deploy environment
+- [[tasks/profile-backend-db-api]] — Sprint 4 T5 Postgres-backed profile API, repository, migrations, readiness, and idempotent XP crediting
+- [[tasks/personal-data-compliance-investigation]] — Sprint 4 152-ФЗ investigation whose hash-based conclusion was later overturned
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
 - [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement
 - [[tasks/start-screen-redesign-implementation]] — Sprint 4 implementation of the two-tab start screen, citizenship card shell, tab persistence, localization rename, and tab analytics

@@ -11,7 +11,7 @@ Source: `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19
 
 ## Decision
 
-Stop and revert the monolithic T4 attempt. Resume profile infrastructure as independently shippable T4a–T4i slices. T4a through T4f are now complete; the remaining sequence is T4g argv/concurrency hardening, T4h game-server deploy environment propagation, and T4i operator bring-up of the live host.
+Stop and revert the monolithic T4 attempt. Resume profile infrastructure as independently shippable T4a–T4i slices. T4a through T4i are now complete, including argv/concurrency hardening, game-server deploy environment propagation, and operator bring-up of the live host.
 
 For each remaining deploy slice:
 
@@ -27,10 +27,11 @@ The restart should preserve the proven properties from the abandoned branch: sec
 ## Consequences
 
 - The abandoned branch and its large doctrine are historical evidence, not implementation law and not a source to merge wholesale.
-- Profile infrastructure progresses through T4a server skeleton, T4b client API URL, T4c Docker image, T4d VPS/DNS, T4e deploy mechanics, T4f image-secret scanning, T4g argv/concurrency hardening, T4h game-server deploy environment propagation, and T4i operator bring-up. T4a–T4f are complete.
+- Profile infrastructure progressed through T4a server skeleton, T4b client API URL, T4c Docker image, T4d VPS/DNS, T4e deploy mechanics, T4f image-secret scanning, T4g argv/concurrency hardening, T4h game-server deploy environment propagation, and T4i operator bring-up. T4a–T4i are complete.
 - T4d established the dedicated reg.ru host, DNS/TLS boundary, SSH-first firewall, swap, Docker, and dormant internal nginx allowlist. RU residency remains an operator precondition plus acceptance verification rather than a fragile script-side geo-IP API gate.
 - T4e was split into T4e1 local build/push/digest, T4e2 on-box compose plus rollback lifecycle, and T4e3 SSH/SCP deploy wiring. Together they preserve digest pinning, fail-closed rollback, secret staging, and the TLS health milestone without reintroducing a monolithic review surface.
 - T4f made the image layer byte scan the blocking oracle and left Dockerfile parsing as advisory-only, matching the postmortem decision to avoid an endless parser hardening loop.
+- T4g completed the remaining argv-safety, deploy-locking, atomic-record, and wrong-host preflight requirements. T4h completed the game-server `PROFILE_API_URL` deploy gap. T4i completed the live-host health milestone.
 - The exact disposition of the advisory Dockerfile parser and old doctrine remains an owner choice; neither should block the bounded T4 slices.
 - Review termination is defined by fixed acceptance criteria, not by a reviewer's silence.
 
@@ -47,4 +48,7 @@ The restart should preserve the proven properties from the abandoned branch: sec
 - [[tasks/profile-onbox-stack-gate]] — completed T4e2 on-box stack, lifecycle, health gate, and rollback
 - [[tasks/profile-deploy-wiring]] — completed T4e3 deploy transport and secret staging
 - [[tasks/profile-image-secret-scan]] — completed T4f image byte-scan gate
-- [[tasks/profile-server-bring-up-runbook]] — T4i operator runbook for live host bring-up
+- [[tasks/profile-deploy-hardening]] — completed T4g argv/concurrency and wrong-host hardening
+- [[tasks/profile-game-server-deploy-env]] — completed T4h game-server deploy-env propagation
+- [[tasks/profile-server-bring-up-runbook]] — completed T4i operator runbook and live host bring-up
+- [[systems/player-profile-store]] — current profile API/Postgres architecture after T4/T5

@@ -6,6 +6,7 @@ import { EventBus } from "../../../core/EventBus";
 import { GameType } from "../../../core/game/Game";
 import { GameUpdateType, WinUpdate } from "../../../core/game/GameUpdates";
 import { GameView } from "../../../core/game/GameView";
+import { AllPlayersStats, PlayerParticipation } from "../../../core/Schemas";
 import "../../components/PatternButton";
 import {
   fetchCosmetics,
@@ -382,7 +383,13 @@ export class WinModal extends LitElement implements Layer {
 
         logMatchEndAnalytics(this.game.ticks());
 
-        this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
+        this.eventBus.emit(
+          new SendWinnerEvent(
+            wu.winner,
+            wu.allPlayersStats,
+            this.buildPlayerParticipation(wu.allPlayersStats),
+          ),
+        );
         if (wu.winner[1] === this.game.myPlayer()?.team()) {
           this._title = translateText("win_modal.your_team");
           this._body = "";
@@ -414,7 +421,11 @@ export class WinModal extends LitElement implements Layer {
         const winnerClient = winner.clientID();
         if (winnerClient !== null) {
           this.eventBus.emit(
-            new SendWinnerEvent(["player", winnerClient], wu.allPlayersStats),
+            new SendWinnerEvent(
+              ["player", winnerClient],
+              wu.allPlayersStats,
+              this.buildPlayerParticipation(wu.allPlayersStats),
+            ),
           );
         }
 
@@ -451,6 +462,30 @@ export class WinModal extends LitElement implements Layer {
       }
       this.handleMissionProgress();
     });
+  }
+
+  /**
+   * Build the per-player end-of-match participation summary the server needs to
+   * decide XP-credit qualification (it does not run the simulation). Keyed by
+   * clientID — only human players have one (AI players return null and are skipped).
+   * `killedAt` comes from the authoritative match stats already in the winner message.
+   */
+  private buildPlayerParticipation(
+    allPlayersStats: AllPlayersStats,
+  ): PlayerParticipation[] {
+    const participation: PlayerParticipation[] = [];
+    for (const player of this.game.players()) {
+      const clientID = player.clientID();
+      if (clientID === null) continue;
+      const killedAt = allPlayersStats[clientID]?.killedAt;
+      participation.push({
+        clientID,
+        hasSpawned: player.hasSpawned(),
+        isAliveAtEnd: player.isAlive(),
+        killedAt: killedAt !== undefined ? Number(killedAt) : undefined,
+      });
+    }
+    return participation;
   }
 
   private isSoloOpponentWin(winner: unknown): boolean {
@@ -498,7 +533,13 @@ export class WinModal extends LitElement implements Layer {
       flashistConstants.analyticEvents.MATCH_LOSS_OPPONENT_WON,
     );
 
-    this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
+    this.eventBus.emit(
+      new SendWinnerEvent(
+        wu.winner,
+        wu.allPlayersStats,
+        this.buildPlayerParticipation(wu.allPlayersStats),
+      ),
+    );
     clearReconnectSession();
     this._title = translateText("win_modal.opponent_won_title");
     this._body = translateText("win_modal.opponent_won_body");

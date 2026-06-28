@@ -26,6 +26,7 @@ import { formatError, logger } from "./Logger";
 
 import { MapPlaylist } from "./MapPlaylist";
 import { PrivilegeRefresher } from "./PrivilegeRefresher";
+import { ProfileApiClient } from "./ProfileApiClient";
 import { initWorkerMetrics } from "./WorkerMetrics";
 import { initOtelTracing } from "./OtelTracing";
 import { localCosmeticsJsonUrl } from "./ServerEndpoints";
@@ -59,7 +60,11 @@ export async function startWorker() {
   const server = http.createServer(app);
   const wss = new WebSocketServer({ server });
 
-  const gm = new GameManager(config, log);
+  // Single shared profile-backend client for the worker (fail-soft; no-op when
+  // PROFILE_API_URL / PROFILE_INTERNAL_TOKEN are unset).
+  const profileApiClient = new ProfileApiClient(config, log);
+
+  const gm = new GameManager(config, log, profileApiClient);
 
   if (config.otelEnabled()) {
     initWorkerMetrics(gm);
