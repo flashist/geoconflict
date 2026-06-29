@@ -203,6 +203,9 @@ export class ProfileApiClient {
         if (response.ok) {
           return await response.json();
         }
+        // Non-2xx: drain the unread body so the connection can be reused. At Node 24
+        // undici auto-drains on GC, but don't depend on the runtime for this.
+        await drainBody(response);
         if (response.status < 500 && response.status !== 429) {
           this.log.warn(
             `profile ${path} returned ${response.status}; not retrying`,
@@ -236,4 +239,14 @@ function toCreditItem(c: MatchCredit): CreditItem {
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Best-effort drain of an unread response body so the socket can be reused. */
+async function drainBody(response: Response): Promise<void> {
+  try {
+    await response.body?.cancel();
+  } catch (error) {
+    // A failed cancel doesn't affect crediting correctness.
+    void error;
+  }
 }

@@ -6,7 +6,7 @@ File(s) under review: src/server/GameServer.ts, src/server/ProfileApiClient.ts,
 src/server/Client.ts, src/server/GameManager.ts, src/server/Worker.ts,
 src/core/profile/MatchQualification.ts, src/core/Schemas.ts,
 src/client/Transport.ts, src/client/graphics/layers/WinModal.ts, tests/*
-Status: changes-requested — Round-3 re-review (2026-06-28) surfaced 4 new findings (2 medium, 1 low, 1 informational-now-actionable); see Open/actionable. Round-1 items remain resolved; C1/A3/A5 residuals unchanged.
+Status: review-complete — Round-3 findings (N1–N4) resolved in Round 4 (2026-06-29); pending live verification. C1/A3/A5 residuals unchanged.
 Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full coverage.
 
 ## Accepted residuals (do-not-re-litigate)
@@ -69,33 +69,23 @@ Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full
 | 3 | **N2** Reconnect race — stale old-socket `close` removes the new live client by clientID, so the C2 gate denies a legitimately reconnected player their XP (GameServer.ts:396-398 pre-existing; :1231/1238-1240 new) — Codex medium | CORRECT → **medium** (frequency caveat: only when the old close lands after the reconnect — half-open TCP / mobile NAT rebind) | **Open/actionable** (owner decision 2026-06-28). Newly *exposed* latent bug: the close handler is pre-existing (unchanged in this PR), but the new credit gate couples eligibility to it. Fix: instance-based removal (`c !== client`) — also hardens the pre-existing broadcast path. **Corrects the Round-2 C2 rationale above.** |
 | 3 | **N3** Participation sourced from the FIRST voter, not the deciding voter — `winnerVotes` stores the first `clientMsg` and never updates it (GameServer.ts:1142, :1172) — Claude low | CORRECT → **low** (rolling-deploy window only; single-bundle deploys make skew rare; A1 now logs it) | **Open/actionable** (owner decision 2026-06-28). Distinct from A1 (A1 = logging; N3 = the sourcing). Fix: upgrade the stored winner message when a later agreeing voter carries non-undefined `playerParticipation`. |
 | 3 | **N4** 5xx/4xx response bodies not drained before retry (ProfileApiClient.ts:~199-212) — Claude suggestion | PARTIALLY CORRECT → **informational** (no leak at the confirmed Node 24 runtime — undici auto-drains on GC; would matter only on older runtimes) | **Open/actionable** (owner decision 2026-06-28) — recorded actionable as runtime-independent defensive hardening (`await response.body?.cancel()` before continuing/returning). Not a defect at the deployed runtime. |
+| 4 | **N2** applied — instance-based close | CORRECT, medium | **Resolved** — close handler now `c !== client` (was clientID-keyed). Fixes the XP-denial my Round-2 C2 gate introduced for honest reconnecting players AND hardens the pre-existing broadcast path. Regression test added (`tests/server/GameServerReconnect.test.ts`: stale old-socket close after reconnect → live client survives). |
+| 4 | **N1** applied — roster gating | CORRECT, low-med | **Resolved** — `selectMatchCredits` takes `eligibleRoster: ReadonlySet<ClientID>`; `creditMatchXp` builds it from `gameStartInfo.players` (guards `undefined`). A connected non-roster joiner named in participation is no longer creditable. Unit test added (non-roster qualifying player → no credit). |
+| 4 | **N3** applied — voter sourcing | CORRECT, low | **Resolved** — `handleWinner` upgrades `potentialWinner.winner` to a later agreeing voter that carries `playerParticipation` when the stored (first) voter lacked it. No bespoke consensus-driven test (disproportionate for a 4-line guard); covered by inspection + the participation schema/A1 tests. |
+| 4 | **N4** applied — drain body | informational | **Resolved** — `postWithRetry` drains the unread body (`response.body?.cancel()`, best-effort) on non-2xx before retry/return. Defensive only; not a defect at Node 24. |
 
 ## Open / actionable
 
-Reopened by Round-3 re-review (2026-06-28). Round-1 items (C2, C3, A1, A2, A4) remain
-resolved; residuals C1 / A3 / A5 remain closed — re-raise only under their recorded
-conditions. New open items:
+_None._ Round-3 items (N1, N2, N3, N4) verified and resolved in Round 4 (owner-approved
+2026-06-29). Round-1 items (C2, C3, A1, A2, A4) remain resolved; residuals C1 / A3 / A5
+remain closed — re-raise only under their recorded conditions. Full suite green (597
+tests, 81 suites); tsc + lint + prettier clean on changed lines.
 
-- **N2** (medium) — Reconnect race denies *legitimate* reconnecting players their XP.
-  `ws.on("close")` filters `activeClients` by clientID off the old client closure
-  (GameServer.ts:396-398); on a delayed old-socket close after a reconnect, the new
-  live client is removed, and the C2 gate (`!activeClientIDs.has(clientID)`) then
-  excludes a connected player from crediting. Fix: remove only the exact instance
-  (`c !== client`); add a reconnect regression test (old close after replacement →
-  still credited). This is the priority item — it harms honest players, not attackers.
-- **N1** (medium) — No roster gating. `creditMatchXp` builds candidates from
-  `this.allClients` (GameServer.ts:1233); a malicious winner can name any connected,
-  identified, non-roster client in `playerParticipation` and mint it XP. Fix: intersect
-  the credit candidates with `gameStartInfo.players` clientIDs (or pass an
-  `eligibleStartRoster` set into `selectMatchCredits`); add a regression test where an
-  `allClients`-only late joiner appears in participation but receives no credit.
-  Orthogonal to C1 — do NOT treat the signing fix as resolving this.
-- **N3** (low) — First-voter participation sourcing. Update `potentialWinner.winner`
-  when a later agreeing voter carries non-undefined `playerParticipation` while the
-  stored message does not (GameServer.ts:1142/1172).
-- **N4** (informational/defensive) — Drain `response.body` before retrying/returning in
-  `postWithRetry` (ProfileApiClient.ts). No leak at Node 24; runtime-independent hygiene.
+**Convergence note:** N2 was a regression introduced by the Round-2 C2 fix (the live-conn
+gate coupled crediting to a pre-existing clientID-keyed `close` handler) — caught and
+corrected, not loop churn. After Round 4 the substantive correctness/security surface is
+covered; N4 was the only informational residual. Recommend no further review rounds absent
+a genuinely new defect.
 
-Live verification still pending once the above are addressed (match against the profile
-box: XP +10, idempotency on repeat `game_id`, non-qualifier exclusion, fail-soft with
-profile down).
+Live verification still pending (match against the profile box: XP +10, idempotency on
+repeat `game_id`, non-qualifier exclusion, fail-soft with profile down).

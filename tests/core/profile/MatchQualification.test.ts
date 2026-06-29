@@ -27,6 +27,10 @@ function state(over: Partial<ClientCreditState> = {}): ClientCreditState {
   };
 }
 
+function roster(...ids: string[]): ReadonlySet<ClientID> {
+  return new Set(ids as ClientID[]);
+}
+
 describe("qualifiesForMatchXp", () => {
   test("spawned and alive at end qualifies", () => {
     expect(
@@ -71,6 +75,7 @@ describe("selectMatchCredits", () => {
       "game-1",
       [participation("a")],
       new Map([["a" as ClientID, state({ yandexPlayerId: "yx-a" })]]),
+      roster("a"),
     );
     expect(credits).toEqual([
       {
@@ -87,6 +92,19 @@ describe("selectMatchCredits", () => {
       "game-1",
       [participation("ghost")],
       new Map(),
+      roster("ghost"),
+    );
+    expect(credits).toEqual([]);
+  });
+
+  test("excludes a connected, qualifying, identified player not in the start roster", () => {
+    const credits = selectMatchCredits(
+      "game-1",
+      [participation("latejoiner")],
+      new Map([
+        ["latejoiner" as ClientID, state({ yandexPlayerId: "yx-late" })],
+      ]),
+      roster("someoneelse"),
     );
     expect(credits).toEqual([]);
   });
@@ -103,6 +121,7 @@ describe("selectMatchCredits", () => {
         ],
         ["c" as ClientID, state({ yandexPlayerId: null })],
       ]),
+      roster("a", "b", "c"),
     );
     expect(credits).toEqual([]);
   });
@@ -112,6 +131,7 @@ describe("selectMatchCredits", () => {
       "game-1",
       [participation("a", { hasSpawned: false })],
       new Map([["a" as ClientID, state({ yandexPlayerId: "yx-a" })]]),
+      roster("a"),
     );
     expect(credits).toEqual([]);
   });
@@ -124,6 +144,7 @@ describe("selectMatchCredits", () => {
         ["a" as ClientID, state({ yandexPlayerId: "same" })],
         ["b" as ClientID, state({ yandexPlayerId: "same" })],
       ]),
+      roster("a", "b"),
     );
     expect(credits).toHaveLength(1);
     expect(credits[0].yandexPlayerId).toBe("same");

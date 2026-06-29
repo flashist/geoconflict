@@ -393,9 +393,12 @@ export class GameServer {
         clientID: client.clientID,
         persistentID: client.persistentID,
       });
-      this.activeClients = this.activeClients.filter(
-        (c) => c.clientID !== client.clientID,
-      );
+      // Remove only THIS socket's client instance, not every client sharing the
+      // clientID. A reconnect replaces the instance (addClient); a stale old-socket
+      // close arriving after that must not evict the new, live client — otherwise a
+      // legitimately reconnected player drops out of activeClients and the match-end
+      // credit gate denies them their XP.
+      this.activeClients = this.activeClients.filter((c) => c !== client);
     });
     client.ws.on("error", (error: Error) => {
       if ((error as any).code === "WS_ERR_UNEXPECTED_RSV_1") {
@@ -1144,6 +1147,17 @@ export class GameServer {
     const potentialWinner = this.winnerVotes.get(winnerKey)!;
     potentialWinner.ips.add(client.ip);
 
+    // Prefer a vote that actually carries participation data. The stored message is
+    // the first voter for this winner; if it was a version-skewed client without
+    // playerParticipation, a later agreeing voter that has it must be used for
+    // crediting instead — otherwise the whole match's XP is silently lost.
+    if (
+      potentialWinner.winner.playerParticipation === undefined &&
+      clientMsg.playerParticipation !== undefined
+    ) {
+      potentialWinner.winner = clientMsg;
+    }
+
     const activeUniqueIPs = new Set(this.activeClients.map((c) => c.ip));
 
     const ratio = `${potentialWinner.ips.size}/${activeUniqueIPs.size}`;
@@ -1224,6 +1238,18 @@ export class GameServer {
     if (participation.length === 0) {
       return;
     }
+    if (this.gameStartInfo === undefined) {
+      // Defensive: a winner can only be determined after the game started, so this
+      // should be unreachable. Without the frozen roster we cannot bound crediting.
+      this.log.warn("no gameStartInfo at match end; XP crediting skipped");
+      return;
+    }
+    // Only credit players from the frozen start roster — not every connected client.
+    // Client-supplied participation could otherwise name a post-start joiner /
+    // spectator (present in allClients but not in this match) to mint them XP.
+    const eligibleRoster = new Set(
+      this.gameStartInfo.players.map((p) => p.clientID),
+    );
     // Require a live connection at match end. A client that closed its tab is
     // removed from activeClients immediately (the "close" handler), whereas
     // isClientDisconnected only flips after the 60s ping timeout — so gate on both
@@ -1236,11 +1262,15 @@ export class GameServer {
         persistentId: client.persistentID,
         kicked: this.kickedClients.has(clientID),
         disconnected:
-          this.isClientDisconnected(clientID) ||
-          !activeClientIDs.has(clientID),
+          this.isClientDisconnected(clientID) || !activeClientIDs.has(clientID),
       });
     }
-    const credits = selectMatchCredits(this.id, participation, clientStateById);
+    const credits = selectMatchCredits(
+      this.id,
+      participation,
+      clientStateById,
+      eligibleRoster,
+    );
     if (credits.length === 0) {
       return;
     }

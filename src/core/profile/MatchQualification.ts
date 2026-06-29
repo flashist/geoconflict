@@ -58,21 +58,29 @@ export interface ClientCreditState {
 
 /**
  * Build the exact list of awards for a finished match. Pure: callers supply the
- * game id, the client-reported participation, and a map of server-only client state
- * keyed by clientID. A participation entry is credited only if it qualifies, has a
- * known connected (not kicked, not disconnected) server client, and that client has
- * a non-null Yandex id. Results are deduped by Yandex id so a single account on two
- * connections is credited at most once (the profile server's
+ * game id, the client-reported participation, the frozen start roster, and a map of
+ * server-only client state keyed by clientID. A participation entry is credited only
+ * if it is in `eligibleRoster` (a player actually in this match, NOT a post-start
+ * joiner / spectator the client-supplied participation could otherwise name), it
+ * qualifies, it has a known connected (not kicked, not disconnected) server client,
+ * and that client has a non-null Yandex id. Results are deduped by Yandex id so a
+ * single account on two connections is credited at most once (the profile server's
  * `(game_id, yandex_player_id)` idempotency key is the ultimate backstop).
+ *
+ * The roster gate is orthogonal to identity verification (the [C1] seam): it bounds
+ * *who* can be credited to the match participants regardless of whether the Yandex id
+ * is signed, so it still matters after signed-payload verification lands.
  */
 export function selectMatchCredits(
   gameId: string,
   participation: readonly PlayerParticipation[],
   clientStateById: ReadonlyMap<ClientID, ClientCreditState>,
+  eligibleRoster: ReadonlySet<ClientID>,
 ): MatchCredit[] {
   const seen = new Set<string>();
   const credits: MatchCredit[] = [];
   for (const p of participation) {
+    if (!eligibleRoster.has(p.clientID)) continue;
     if (!qualifiesForMatchXp(p)) continue;
     const state = clientStateById.get(p.clientID);
     if (state === undefined) continue;
