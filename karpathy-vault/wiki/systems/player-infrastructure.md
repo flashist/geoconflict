@@ -35,4 +35,5 @@ Source: `ai-agents/knowledge-base/pre-s4-player-infra-audit-2026-06-24.md`
 - [[tasks/player-profile-store-investigation]] — initial profile-store investigation
 - [[tasks/yandex-identity-plumbing]] — T3 Yandex ID transport through match join
 - [[tasks/profile-backend-db-api]] — T5 profile database and API
+- [[tasks/profile-match-end-crediting]] — T6 use of the server-visible Yandex ID for earned-XP crediting
 - [[decisions/personal-data-152fz-compliance]] — Russian personal-data compliance track

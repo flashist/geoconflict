@@ -19,7 +19,7 @@ Turn the live profile-service shell into a real Postgres-backed profile backend 
 
 ## Outcome
 
-T5 makes the profile backend independently exercisable with `curl` and unblocks the game-server T6 integration path. It also locks the storage strategy captured in [[decisions/profile-storage-strategy]]: typed columns plus `extra jsonb`, `xp bigint`, and `persistent_id text`.
+T5 makes the profile backend independently exercisable with `curl` and unblocks the game-server T6 integration path. T6 later connected match-end winner handling to this internal credit endpoint; see [[tasks/profile-match-end-crediting]]. T5 also locks the storage strategy captured in [[decisions/profile-storage-strategy]]: typed columns plus `extra jsonb`, `xp bigint`, and `persistent_id text`.
 
 The backend still does not by itself solve identity trust or 152-ФЗ compliance. The Yandex ID key is the current server-visible handle, but it is not a signed identity artifact on the match join path, and personal-data notification/consent work is deferred.
 
@@ -35,4 +35,5 @@ The backend still does not by itself solve identity trust or 152-ФЗ compliance
 - [[tasks/profile-deploy-hardening]]
 - [[tasks/profile-game-server-deploy-env]]
 - [[tasks/profile-server-bring-up-runbook]]
+- [[tasks/profile-match-end-crediting]]
 - [[tasks/personal-data-compliance-investigation]]

@@ -33,3 +33,4 @@ The pseudonymization implementation task is cancelled and PR #127 was reverted. 
 - [[systems/player-infrastructure]]
 - [[tasks/personal-data-compliance-investigation]]
 - [[tasks/profile-backend-db-api]]
+- [[tasks/profile-match-end-crediting]]
