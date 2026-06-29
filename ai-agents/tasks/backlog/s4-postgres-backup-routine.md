@@ -1,5 +1,8 @@
 # Task — PostgreSQL Backup Routine (Player Profile Store)
 
+## Parent / Epic
+`ai-agents/tasks/backlog/s4-player-profile-store-impl.md` — **T8**, child slice 8 of 8. Implements **Part D step 7** (profile DB backups). Depends on T4 (the dedicated profile box + Postgres) and T5 (schema — nothing to dump until the DB exists); **blocks Paid Citizenship**.
+
 ## Sprint
 Sprint 4 — data-protection prerequisite for monetization.
 
@@ -7,8 +10,11 @@ Sprint 4 — data-protection prerequisite for monetization.
 **High.** This is a hard gate on **Paid Citizenship**: the moment players pay real money, an
 entitlement record exists only in our Postgres profile store, and losing it is the worst
 failure mode the game can have at launch. The profile-store impl (`s4-player-profile-store-impl.md`,
-Part D) stands up `postgres:16-alpine` on a Docker named volume and **nothing backs it up
-today**. This task closes that gap before money is on the line.
+Part D) stands up `postgres:16-alpine` on a Docker named volume. `setup-profile.sh` already
+writes an **interim local weekly plain-SQL `pg_dump`** into `/opt/profile/backups`, but it lives
+on the **same disk** as the DB — it dies with the box and does **not** satisfy the off-box
+requirement. This task replaces that interim dump with an encrypted, off-box, restore-tested
+**daily** backup before money is on the line.
 
 There is also a dangling dependency already in our own docs: the Monitoring & Alert Bot
 **Phase 2** brief (`monitoring-alert-bot-phase2.md`, item 5) plans to *alert on* a
@@ -44,8 +50,11 @@ off-box backup is required regardless. See **Cross-task flag** below.
 |---|---|
 | **Scope** | Profile store only — the Postgres player-profile DB. Match archive (deferred S3 task) and ClickHouse telemetry are out of scope. |
 | **Recovery point (RPO)** | Up to ~24h. **Daily** automated `pg_dump` + off-box copy. |
-| **Off-box destination** | **Reg.ru S3-compatible Object Storage** (tentative — confirm in Part A; the upload path is endpoint-agnostic S3, so any S3 provider is a drop-in fallback if Reg.ru does not work out). |
-| **Off-box requirement** | Non-negotiable. The game VPS is a single 50 GB box; a backup stored on it dies with it. Backups must leave the box. |
+| **Off-box destination** | **Reg.ru S3-compatible Object Storage** (tentative — confirm in Part A; the upload path is endpoint-agnostic S3, so any **RU-resident** S3 provider — e.g. Yandex Object Storage — is a drop-in fallback if Reg.ru does not work out). |
+| **Data residency (152-FZ)** | Backups contain PII (Yandex IDs, display names, payment state), so the off-box destination **must be RU-resident**. A non-RU S3 provider is **not** an acceptable fallback. |
+| **Off-box requirement** | Non-negotiable. The profile store runs on a single dedicated reg.ru VPS (`api.geoconflict.ru`); a backup stored on that box dies with it. Backups must leave the box. |
+
+> **PITR/WAL archiving — considered, deferred.** Point-in-time recovery via WAL archiving was raised for a tighter RPO. With the locked ~24h RPO, **daily `pg_dump` suffices for launch**; revisit WAL archiving only if a sub-24h RPO becomes a requirement before paid citizenship scales.
 
 ---
 
@@ -61,15 +70,17 @@ Reg.ru S3 is tentative ("probably"), so verify before building the pipeline arou
 4. Confirm the bucket is **private** (no public read) and supports object lifecycle rules
    (for retention in Part D). If it does not, retention is handled by the prune step instead.
 
-If any of the above fails, fall back to another S3 provider (e.g. Yandex Object Storage) —
-the rest of this brief is unchanged because everything below targets a generic S3 endpoint.
+If any of the above fails, fall back to another **RU-resident** S3 provider (e.g. Yandex
+Object Storage — see the 152-FZ residency decision above) — the rest of this brief is
+unchanged because everything below targets a generic S3 endpoint.
 
 ---
 
-## Part B — Backup script (runs on the game VPS)
+## Part B — Backup script (runs on the profile VPS)
 
-A small bash script, deployed and scheduled via the existing `deploy.sh` path (no parallel
-deploy tooling — same convention as the monitoring task):
+A small bash script, deployed and scheduled via the **profile deploy path**
+(`build-deploy-profile.sh` / `setup-profile.sh`, mirroring the telemetry pattern — no parallel
+deploy tooling):
 
 1. `pg_dump` the profile database from the local Postgres container (custom/compressed format,
    e.g. `pg_dump -Fc`). Connect over localhost only — the DB is not publicly exposed.
@@ -130,8 +141,8 @@ A backup that has never been restored is not a backup. This part is mandatory.
 ---
 
 ## Implementation constraints & conventions
-- **No parallel scripts.** Backup script + cron are added *through* `deploy.sh` (game-server
-  deploy path), same convention as the monitoring task.
+- **No parallel scripts.** Backup script + cron are added *through* the profile deploy path
+  (`build-deploy-profile.sh` / `setup-profile.sh`), mirroring the telemetry/profile deploy pattern.
 - **Secrets** in `.env*.secret`, threaded via deploy. Nothing secret in git, the image, or logs.
 - **Localhost-only DB access** for the dump — do not expose the Postgres port.
 - **Off-box is the point** — the upload to S3 is the part that actually protects us; a local
@@ -185,5 +196,6 @@ Either way, this backup task remains required for XP and display-name data.
 - Profile store findings: `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`
 - Yandex payments findings (entitlement/consume nuance): `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`
 - Backup-health monitoring (consumer): `ai-agents/tasks/backlog/monitoring-alert-bot-phase2.md` (item 5)
-- Deploy path + secret handling: `deploy.sh`, `example.env`
+- Profile deploy path + secret handling: `build-deploy-profile.sh`, `setup-profile.sh`, `example.env`
+- VPS hosting region / RU residency (152-FZ): `project_vps_hosting_region.md`
 - Secret-leak guardrails: [[decisions/vps-credential-leak-response]]

@@ -53,7 +53,7 @@ This document is the **epic/overview**. The shared context above (Infrastructure
 | T5 | `s4-profile-05-backend-db-api.md` | Migration + repository + API endpoints (Part D DB + Part E profile half) | T1, T4 | ✅ Done (PR #126) |
 | T6 | `s4-profile-06-match-end-crediting.md` | Protocol ext + server-side crediting (Part E game half) | T3, T5 | ✅ Done |
 | T7 | `s4-profile-07-guest-migration.md` | Guest→authenticated migration (Part F) | T2, T3, T5 | ⛔ Cancelled (2026-06-13) — see note |
-| T8 | `s4-profile-08-backups.md` | Profile DB backups (Part D step 7) | T4 | ⬜ Backlog |
+| T8 | `s4-postgres-backup-routine.md` | Profile DB backups (Part D step 7) | T4 | ⬜ Backlog |
 
 ### T4 sub-slices (reverted & re-decomposed 2026-06-19)
 

@@ -209,7 +209,7 @@ These are by-design gaps in the current scripts; flag them, do not fix them here
 
 - **Backups are local + weekly + uncompressed.** The cron writes a weekly plain-SQL `pg_dump`
   into `/opt/profile/backups` on the same disk (`setup-profile.sh:688`); offsite reg.ru S3 +
-  nightly + a restore drill are **deferred to T8** (`s4-profile-08-backups.md`). Until T8 ships,
+  nightly + a restore drill are **deferred to T8** (`s4-postgres-backup-routine.md`). Until T8 ships,
   treat the box as **not durably backed up** — fine now (no real data yet), but it must be wired
   before paid citizenship / real profile data goes live.
 - **Docker images are not auto-pruned**, and the previous image is retained for rollback, so
