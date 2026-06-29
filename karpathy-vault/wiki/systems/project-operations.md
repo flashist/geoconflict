@@ -35,6 +35,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - No-sprint tasks are tracked separately in [[decisions/sprint-backlog]] and need a sprint home before implementation begins
 - Community operations, monetization planning, and internal dashboards are treated as operational context, not game-client features
 - Licensing compliance is an operational release constraint: GeoConflict's public source repository must track what is deployed, players need a visible source-code access path, and production bundles must not include OpenFront `/proprietary` or hosted-only assets. See [[decisions/licensing-compliance]].
+- Personal-data compliance is a separate operational risk from VAT and AGPL/IP licensing. The hash-based 152-ФЗ avoidance path was invalidated on 2026-06-28; notification/consent work is now a no-sprint backlog item with accepted Sprint 4 risk. See [[decisions/personal-data-152fz-compliance]].
 
 ## Gotchas / Known Issues
 
@@ -43,6 +44,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - Historical analytics before the double-reload and stale-build fixes have known data-quality problems; operational decisions should use the corrected post-fix windows where possible
 - Sensitive infrastructure details are intentionally omitted from git-tracked docs; operational pages should describe boundaries and workflow, not secrets
 - The VAT/tax gate and the OpenFront-derived licensing posture are separate. The former cleared in Sprint 4; the latter still needs a public-source/source-link process and eventual IP-lawyer review before monetization scales.
+- The 152-ФЗ compliance backlog is also separate from both VAT and AGPL/IP licensing; do not treat the cleared VAT task as permission to ignore Yandex IDs, display names, email subscription, or future archive PII surfaces.
 
 ## Related
 
@@ -59,3 +61,4 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - [[decisions/sprint-4c]] — production stabilization sprint and May 15 deadline constraints
 - [[decisions/sprint-backlog]] — no-sprint task queue and deferral rationale
 - [[decisions/licensing-compliance]] — AGPL/source access, asset-use, and trademark constraints for releases
+- [[decisions/personal-data-152fz-compliance]] — Russian personal-data notification/consent status and accepted Sprint 4 risk

@@ -208,11 +208,61 @@ describe("WinModal exit to menu", () => {
       }),
     });
 
-    await (modal as unknown as { _handleExit: () => Promise<void> })
-      ._handleExit();
+    await (
+      modal as unknown as { _handleExit: () => Promise<void> }
+    )._handleExit();
 
     expect(localStorage.getItem(ACTIVE_TAB_STORAGE_KEY)).toBe("multiplayer");
     expect(FlashistFacade.instance.changeHref).toHaveBeenCalled();
+  });
+});
+
+describe("WinModal.buildPlayerParticipation", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+    jest.clearAllMocks();
+  });
+
+  function fakePlayer(over: {
+    clientID: string | null;
+    hasSpawned: boolean;
+    isAlive: boolean;
+  }) {
+    return {
+      clientID: () => over.clientID,
+      hasSpawned: () => over.hasSpawned,
+      isAlive: () => over.isAlive,
+    };
+  }
+
+  it("summarizes only human players with spawn / alive / killedAt", () => {
+    const modal = new WinModal();
+    modal.game = {
+      players: () => [
+        fakePlayer({ clientID: "alive1", hasSpawned: true, isAlive: true }),
+        fakePlayer({ clientID: "dead1", hasSpawned: true, isAlive: false }),
+        fakePlayer({ clientID: "nospawn", hasSpawned: false, isAlive: false }),
+        // AI player: no clientID → skipped entirely.
+        fakePlayer({ clientID: null, hasSpawned: true, isAlive: true }),
+      ],
+    } as never;
+
+    const result = (
+      modal as unknown as {
+        buildPlayerParticipation: (stats: unknown) => unknown[];
+      }
+    ).buildPlayerParticipation({ dead1: { killedAt: 17n } });
+
+    expect(result).toEqual([
+      { clientID: "alive1", hasSpawned: true, isAliveAtEnd: true },
+      {
+        clientID: "dead1",
+        hasSpawned: true,
+        isAliveAtEnd: false,
+        killedAt: 17,
+      },
+      { clientID: "nospawn", hasSpawned: false, isAliveAtEnd: false },
+    ]);
   });
 });
 
@@ -258,6 +308,7 @@ function createGame({
     }),
     inSpawnPhase: () => false,
     ticks: () => 120,
+    players: () => [],
     updatesSinceLastTick: () => ({
       [GameUpdateType.Win]: winUpdates,
     }),

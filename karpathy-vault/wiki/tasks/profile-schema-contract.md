@@ -25,4 +25,6 @@ Two boundary decisions remain outside this contract by design. First, `xp` is on
 
 - [[decisions/sprint-4]] — Sprint 4 roadmap and current profile-store implementation state
 - [[tasks/player-profile-store-investigation]] — investigation and infrastructure decisions that produced the profile-store implementation epic
+- [[systems/player-profile-store]] — backend profile-store architecture that consumes the shared contract
+- [[tasks/profile-backend-db-api]] — T5 DB/API implementation that consumes the contract
 - [[decisions/cancelled-tasks]] — cancellation record for the T2/T7 guest-first XP slices that originally consumed this contract

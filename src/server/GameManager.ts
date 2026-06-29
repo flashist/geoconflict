@@ -11,6 +11,7 @@ import { GameConfig, GameID } from "../core/Schemas";
 import { Client } from "./Client";
 import { GamePhase, GameServer } from "./GameServer";
 import { formatError } from "./Logger";
+import { ProfileApiClient } from "./ProfileApiClient";
 
 export class GameManager {
   private games: Map<GameID, GameServer> = new Map();
@@ -20,6 +21,7 @@ export class GameManager {
   constructor(
     private config: ServerConfig,
     private log: Logger,
+    private profileApiClient: ProfileApiClient,
   ) {
     setInterval(() => this.tick(), 1000);
   }
@@ -64,6 +66,7 @@ export class GameManager {
         disabledUnits: [],
         ...gameConfig,
       },
+      this.profileApiClient,
       creatorClientID,
     );
     this.games.set(id, game);

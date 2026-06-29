@@ -26,3 +26,4 @@ T4e3 completed the transport half of profile deployment. Bad SSH targets fail be
 - [[tasks/profile-build-push-digest]] — local digest producer wired into the deploy
 - [[tasks/profile-onbox-stack-gate]] — on-box compose, health gate, and rollback target
 - [[tasks/profile-server-bring-up-runbook]] — operator runbook for the real TLS 200 milestone
+- [[tasks/profile-deploy-hardening]] — later T4g hardening of the deploy transport and records

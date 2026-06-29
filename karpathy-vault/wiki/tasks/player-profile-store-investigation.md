@@ -18,7 +18,7 @@ Determine the foundation for Sprint 4 persistent player data: database technolog
 
 ## Outcome
 
-The investigation still recommends PostgreSQL, server-side match-end crediting, and an idempotent per-match credit table. Its deployment-location recommendation was superseded on 2026-06-13: profile storage and non-game backend logic should run on a dedicated reg.ru VPS behind `https://api.geoconflict.ru`, not on the game-server VPS. The game server should call the profile API for crediting; it should not receive direct Postgres credentials.
+The investigation still recommends PostgreSQL, server-side match-end crediting, and an idempotent per-match credit table. Its deployment-location recommendation was superseded on 2026-06-13: profile storage and non-game backend logic run on a dedicated reg.ru VPS behind `https://api.geoconflict.ru`, not on the game-server VPS. The game server should call the profile API for crediting; it should not receive direct Postgres credentials.
 
 The original server-visible identity gap is now partially closed by [[tasks/yandex-identity-plumbing]]: T3 carries the Yandex unique ID through match join and stores it on the server-side client. The transported value remains unsigned and untrusted, so paid-citizenship verification still requires the separate Yandex Payments trust boundary. The updated implementation plan also keeps game/profile failures isolated: profile outages must not stop matches, and game-server crashes must not threaten paid data.
 
@@ -27,8 +27,12 @@ Guest players should not have the citizenship feature silently hidden. The recom
 ## Related
 
 - [[decisions/sprint-4]] — Sprint 4 roadmap and dependencies for citizenship and payments
+- [[systems/player-infrastructure]] — pre-S4 identity/customization audit that confirms the no-server-persistence baseline
 - [[tasks/profile-schema-contract]] — first implementation slice produced the shared profile payload and migration contract
 - [[tasks/yandex-identity-plumbing]] — completed T3 server-visible Yandex unique-ID path
 - [[tasks/profile-vps-provisioning]] — completed T4d provisioning for the dedicated reg.ru profile/API host
+- [[systems/player-profile-store]] — current profile API/Postgres architecture after T4/T5
+- [[decisions/profile-storage-strategy]] — T5 database storage strategy chosen after the investigation
+- [[tasks/profile-backend-db-api]] — completed T5 DB/API implementation
 - [[tasks/yandex-payments-investigation]] — parallel Sprint 4 investigation; both findings gate the safe paid-citizenship path
 - [[decisions/cancelled-tasks]] — cancellation record for T2 guest localStorage and T7 guest migration

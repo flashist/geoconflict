@@ -89,7 +89,8 @@ export type ClientMessage =
   | ClientIntentMessage
   | ClientJoinMessage
   | ClientLogMessage
-  | ClientHashMessage;
+  | ClientHashMessage
+  | ClientUpdateIdentityMessage;
 export type ServerMessage =
   | ServerTurnMessage
   | ServerStartGameMessage
@@ -112,6 +113,9 @@ export type ClientIntentMessage = z.infer<typeof ClientIntentMessageSchema>;
 export type ClientJoinMessage = z.infer<typeof ClientJoinMessageSchema>;
 export type ClientLogMessage = z.infer<typeof ClientLogMessageSchema>;
 export type ClientHashMessage = z.infer<typeof ClientHashSchema>;
+export type ClientUpdateIdentityMessage = z.infer<
+  typeof ClientUpdateIdentitySchema
+>;
 
 export type AllPlayersStats = z.infer<typeof AllPlayersStatsSchema>;
 export type Player = z.infer<typeof PlayerSchema>;
@@ -510,10 +514,29 @@ export const ServerMessageSchema = z.discriminatedUnion("type", [
 // Client
 //
 
+// Per-player end-of-match participation, sent by the client alongside the winner
+// message so the server (a turn relay that does NOT run the simulation) can decide
+// XP-credit qualification. Keyed by clientID, not persistentID: the client does not
+// know remote players' server-derived persistentID (it is the JWT `sub`, PII, never
+// shipped to other clients), and `allPlayersStats` is already clientID-keyed.
+export const PlayerParticipationSchema = z.object({
+  clientID: ID,
+  hasSpawned: z.boolean(),
+  isAliveAtEnd: z.boolean(),
+  // Tick at which the player was eliminated, if any. Distinguishes a legitimately
+  // killed player (qualifies) from one who spawned then vanished without dying.
+  killedAt: z.number().optional(),
+});
+export type PlayerParticipation = z.infer<typeof PlayerParticipationSchema>;
+
 export const ClientSendWinnerSchema = z.object({
   type: z.literal("winner"),
   winner: WinnerSchema,
   allPlayersStats: AllPlayersStatsSchema,
+  // Optional so older clients still validate; absent ⇒ no match-end XP crediting
+  // for that match (fail-soft). The server applies the qualification predicate
+  // (src/core/profile/MatchQualification.ts) to these entries server-side.
+  playerParticipation: z.array(PlayerParticipationSchema).optional(),
 });
 
 export const ClientHashSchema = z.object({
@@ -530,6 +553,18 @@ export const ClientLogMessageSchema = z.object({
 
 export const ClientPingMessageSchema = z.object({
   type: z.literal("ping"),
+});
+
+// Late identity refresh: an authorized Yandex user can join with a null
+// yandexPlayerId if the Yandex SDK was still initializing at the platform-init
+// deadline (degraded mode). Once it resolves, the client sends this so the server
+// can still credit the match. The server applies it null→value ONLY (never
+// overwrites a non-null id) so it cannot be used to hijack another account's id.
+// UNTRUSTED — same posture/risk as the join-time field; safe only as an opaque
+// earned-XP store key until signed-payload verification lands (Payments task).
+export const ClientUpdateIdentitySchema = z.object({
+  type: z.literal("update_identity"),
+  yandexPlayerId: z.string().min(1).max(256),
 });
 
 export const ClientIntentMessageSchema = z.object({
@@ -564,6 +599,7 @@ export const ClientMessageSchema = z.discriminatedUnion("type", [
   ClientJoinMessageSchema,
   ClientLogMessageSchema,
   ClientHashSchema,
+  ClientUpdateIdentitySchema,
 ]);
 
 //

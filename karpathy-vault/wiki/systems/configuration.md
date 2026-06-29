@@ -31,3 +31,5 @@ Shared runtime and gameplay configuration for Geoconflict. The system selects en
 - [[systems/telemetry]] — OTEL endpoint and production-only observability configuration
 - [[tasks/cosmetics-serving]] — same-origin and internal-origin handling for the optional cosmetics config endpoint
 - [[tasks/profile-api-url-config]] — public profile-service URL resolution and `/api/env` exposure
+- [[tasks/profile-game-server-deploy-env]] — deploy-time propagation that makes `PROFILE_API_URL` visible in real game-server containers
+- [[systems/player-profile-store]] — service that consumes the public profile API URL

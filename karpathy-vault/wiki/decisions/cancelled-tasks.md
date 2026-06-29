@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md`, `ai-agents/tasks/cancelled/s4-profile-02-guest-localstorage.md`, `ai-agents/tasks/cancelled/s4-profile-07-guest-migration.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`
+Source: `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md`, `ai-agents/tasks/cancelled/s4-profile-02-guest-localstorage.md`, `ai-agents/tasks/cancelled/s4-profile-07-guest-migration.md`, `ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
 
 ---
 
@@ -153,11 +153,31 @@ The earlier HF-7 custom-dimension implementation has also been superseded by Gam
 - Clamp or reject oversized `xp`, force `is_paid_citizen=false`, clear `citizenship_purchased_at`, and recompute earned citizenship from trusted server rules.
 - Treat the restart as a new server-authoritative guest-XP design, not a continuation of the cancelled localStorage-authoritative path.
 
+---
+
+## Player Profile Store — Pseudonymize Yandex Player IDs
+
+**Sprint:** Sprint 4
+**Status:** Cancelled and reverted
+
+**Why cancelled:** the task was created from the first 152-ФЗ investigation conclusion that storing an irreversible keyed hash of the Yandex player ID would avoid or materially reduce Roskomnadzor notification and consent obligations. Further investigation overturned that legal premise on 2026-06-28: hashing does not remove the obligation, and it adds support/development complexity without the expected compliance benefit. PR #127 was reverted.
+
+**What was learned:**
+- Hashing can still be a technical privacy measure, but it is not the current legal path for avoiding 152-ФЗ obligations.
+- 152-ФЗ work remains unresolved and moved to no-sprint backlog as Roskomnadzor notification plus consent/privacy-policy work, with risk explicitly accepted for Sprint 4.
+- Display names, email subscription, and future archive PII surfaces still need compliance coverage; hashing only the Yandex ID would not cover them.
+
+**If revisited:**
+- Start from new legal findings, not the invalidated v1 findings document.
+- Require a technical/product reason for pseudonymization independent of the overturned notification/consent rationale.
+- Decide where the pepper lives and how clients read their own profile before any implementation work.
+
 ## Consequences
 
 - Future retries should start from the narrower follow-up guidance recorded under each cancelled item, not from the original cancelled scope
 - This page is the canonical place to resolve "was this tried already?" questions during planning
-- The current Sprint 4 profile-store path is authenticated-only until backend profile crediting ships; no profile XP is earned before T5/T6
+- The current Sprint 4 profile-store path is authenticated-only until backend profile crediting ships; no profile XP is earned before T6
+- The hash-based 152-ФЗ avoidance task is cancelled; current compliance status is tracked in [[decisions/personal-data-152fz-compliance]]
 
 ## Related
 
@@ -173,3 +193,5 @@ The earlier HF-7 custom-dimension implementation has also been superseded by Gam
 - [[tasks/disable-compact-public-maps]] — public-rotation mitigation chosen after the runtime compact-map fallback was rejected
 - [[tasks/player-profile-store-investigation]] — profile-store architecture and identity-trust findings
 - [[tasks/profile-schema-contract]] — completed T1 schema contract preserved after T2 cancellation
+- [[decisions/personal-data-152fz-compliance]] — current status of the invalidated hash decision and deferred compliance track
+- [[systems/player-profile-store]] — profile backend affected by the cancelled hash task

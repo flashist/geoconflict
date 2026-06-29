@@ -19,7 +19,7 @@ Provide the operator runbook for turning the merged profile deploy machinery int
 
 ## Outcome
 
-T4i is an operations artifact, not a code change. It blocks T5 going live until an operator provisions the real host, points DNS, runs the already-merged deploy, and verifies the TLS health milestone. Offsite backups, real profile endpoints, match crediting, and deploy argv/concurrency hardening remain follow-up slices.
+T4i is an operations artifact, not a code change. The operator bring-up has been completed: the real reg.ru host is provisioned, DNS points at `api.geoconflict.ru`, and HTTPS `/health` returns 200 over valid TLS. Offsite backups and match-end crediting remain follow-up work; T4g deploy hardening and T5 real profile endpoints have since landed.
 
 ## Related
 
@@ -30,3 +30,5 @@ T4i is an operations artifact, not a code change. It blocks T5 going live until 
 - [[tasks/profile-onbox-stack-gate]] — T4e2 on-box stack lifecycle
 - [[tasks/profile-deploy-wiring]] — T4e3 transport and secret staging
 - [[tasks/profile-image-secret-scan]] — T4f pre-push image scan
+- [[tasks/profile-deploy-hardening]] — T4g deploy argv/concurrency and wrong-host hardening
+- [[tasks/profile-backend-db-api]] — T5 DB/API slice that follows the live host milestone

@@ -18,13 +18,16 @@ import {
   ClientMessage,
   ClientPingMessage,
   ClientSendWinnerMessage,
+  ClientUpdateIdentityMessage,
   Intent,
+  PlayerParticipation,
   ServerMessage,
   ServerMessageSchema,
   Winner,
 } from "../core/Schemas";
 import { replacer } from "../core/Util";
 import { LobbyConfig } from "./ClientGameRunner";
+import { FlashistFacade } from "./flashist/FlashistFacade";
 import { LocalServer } from "./LocalServer";
 
 export class PauseGameEvent implements GameEvent {
@@ -152,6 +155,8 @@ export class SendWinnerEvent implements GameEvent {
   constructor(
     public readonly winner: Winner,
     public readonly allPlayersStats: AllPlayersStats,
+    // Per-player end-of-match participation for server-authoritative XP crediting.
+    public readonly playerParticipation: PlayerParticipation[] = [],
   ) { }
 }
 export class SendHashEvent implements GameEvent {
@@ -331,6 +336,7 @@ export class Transport {
         this.socket.send(msg);
       }
       onconnect();
+      void this.maybeRefreshYandexIdentity();
     };
     this.socket.onmessage = (event: MessageEvent) => {
       try {
@@ -389,6 +395,30 @@ export class Transport {
       cosmetics: this.lobbyConfig.cosmetics,
       yandexPlayerId: this.lobbyConfig.yandexPlayerId ?? null,
     } satisfies ClientJoinMessage);
+  }
+
+  /**
+   * If this client joined without a resolved Yandex id (the SDK was still
+   * initializing at the platform-init deadline), resolve it now and tell the server
+   * via `update_identity`, so an authorized user still earns this match's XP. No-op
+   * for local games or when the id was already known at join. Best-effort; on every
+   * (re)connect, harmless to repeat (the server applies it null→value only).
+   */
+  private async maybeRefreshYandexIdentity(): Promise<void> {
+    if (this.isLocal) return;
+    if ((this.lobbyConfig.yandexPlayerId ?? null) !== null) return;
+    try {
+      if (!(await FlashistFacade.instance.isYandexAuthorized())) return;
+      const yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
+      if (yandexPlayerId === null) return;
+      if (this.socket?.readyState !== WebSocket.OPEN) return;
+      this.sendMsg({
+        type: "update_identity",
+        yandexPlayerId,
+      } satisfies ClientUpdateIdentityMessage);
+    } catch (error) {
+      console.warn(`failed to refresh Yandex identity: ${error}`);
+    }
   }
 
   leaveGame() {
@@ -573,6 +603,7 @@ export class Transport {
         type: "winner",
         winner: event.winner,
         allPlayersStats: event.allPlayersStats,
+        playerParticipation: event.playerParticipation,
       } satisfies ClientSendWinnerMessage);
     } else {
       console.log(
