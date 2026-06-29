@@ -6,7 +6,7 @@ File(s) under review: src/server/GameServer.ts, src/server/ProfileApiClient.ts,
 src/server/Client.ts, src/server/GameManager.ts, src/server/Worker.ts,
 src/core/profile/MatchQualification.ts, src/core/Schemas.ts,
 src/client/Transport.ts, src/client/graphics/layers/WinModal.ts, tests/*
-Status: review-complete — Round-3 findings (N1–N4) resolved in Round 4 (2026-06-29); pending live verification. C1/A3/A5 residuals unchanged.
+Status: changes-requested — Round-5 re-review (2026-06-29) surfaced P1 (medium; batch-poisoning via yandexPlayerId length drift). N1–N4 and Round-1 items remain resolved; C1/A3/A5 residuals unchanged.
 Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full coverage.
 
 ## Accepted residuals (do-not-re-litigate)
@@ -73,19 +73,31 @@ Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full
 | 4 | **N1** applied — roster gating | CORRECT, low-med | **Resolved** — `selectMatchCredits` takes `eligibleRoster: ReadonlySet<ClientID>`; `creditMatchXp` builds it from `gameStartInfo.players` (guards `undefined`). A connected non-roster joiner named in participation is no longer creditable. Unit test added (non-roster qualifying player → no credit). |
 | 4 | **N3** applied — voter sourcing | CORRECT, low | **Resolved** — `handleWinner` upgrades `potentialWinner.winner` to a later agreeing voter that carries `playerParticipation` when the stored (first) voter lacked it. No bespoke consensus-driven test (disproportionate for a 4-line guard); covered by inspection + the participation schema/A1 tests. |
 | 4 | **N4** applied — drain body | informational | **Resolved** — `postWithRetry` drains the unread body (`response.body?.cancel()`, best-effort) on non-2xx before retry/return. Defensive only; not a defect at Node 24. |
+| 5 | **P1** `yandexPlayerId` length drift — join/`update_identity` allow max **256** (Schemas.ts:567,592) but the credit/upsert contract caps at **128** (CreditContract.ts:22,61); one over-long id fails the whole `CreditBatchRequestSchema` array-parse → 400 (Routes.ts:157-160), and `postWithRetry` treats 400 as non-retryable → the entire batch is dropped — Codex medium | CORRECT → **medium** (griefing/availability: a modified rostered client denies ALL co-players their 10 XP/match; bounded — needs a modified client, no corruption/crash/security breach). Both Round-5 reviewers + manual end-to-end trace confirm. | **Open/actionable** (owner decision 2026-06-29). DISTINCT from C1 (self-credit of a forged id) — this is denial-of-XP-to-*others*; NOT suppressed by the C1 acceptance. Latent since Round 1 (Claude r1 wrongly asserted the bounds matched). Fix: align the entry-point bound to 128 AND/OR have `ProfileApiClient` isolate items failing `CreditItemSchema` before POST so one bad item can't fail the batch + a batch-poisoning regression test. |
 
 ## Open / actionable
 
-_None._ Round-3 items (N1, N2, N3, N4) verified and resolved in Round 4 (owner-approved
-2026-06-29). Round-1 items (C2, C3, A1, A2, A4) remain resolved; residuals C1 / A3 / A5
-remain closed — re-raise only under their recorded conditions. Full suite green (597
-tests, 81 suites); tsc + lint + prettier clean on changed lines.
+Reopened by Round-5 re-review (2026-06-29). N1–N4 (Round 3) and the Round-1 items
+(C2, C3, A1, A2, A4) remain resolved; residuals C1 / A3 / A5 remain closed — re-raise
+only under their recorded conditions. New open item:
 
-**Convergence note:** N2 was a regression introduced by the Round-2 C2 fix (the live-conn
-gate coupled crediting to a pre-existing clientID-keyed `close` handler) — caught and
-corrected, not loop churn. After Round 4 the substantive correctness/security surface is
-covered; N4 was the only informational residual. Recommend no further review rounds absent
-a genuinely new defect.
+- **P1** (medium) — Batch-poisoning via `yandexPlayerId` length drift. Entry points
+  (`ClientJoinMessage` / `ClientUpdateIdentitySchema`) accept up to 256 chars while
+  `CreditItemSchema` / `ProfileUpsertRequestSchema` cap at 128, and the profile server
+  rejects the *whole* `/internal/v1/credit` batch (400) on a single over-long item, which
+  `postWithRetry` does not retry — so one rostered client with a 129–256 char id drops XP
+  for every other player in the match. Fix options: (a) align the entry-point bound to the
+  contract's 128 so an over-long id is rejected at the boundary; and/or (b) have
+  `ProfileApiClient` validate/isolate items against `CreditItemSchema` before POSTing so a
+  single bad item cannot fail the batch (more robust; keeps the profile server / T5 out of
+  scope). Add a regression test: one 129-char id + one valid id → the valid player is still
+  credited.
+
+**Convergence note:** Round 5 is not loop churn — P1 is a genuinely new, never-recorded
+defect (distinct from C1/A3/A5 and from every resolved item), which is exactly the
+"genuinely new defect" the Round-4 note reserved a further round for. After P1 is
+addressed, the substantive correctness/security/availability surface looks covered;
+expect this to be the last finding-driven round.
 
 Live verification still pending (match against the profile box: XP +10, idempotency on
 repeat `game_id`, non-qualifier exclusion, fail-soft with profile down).
