@@ -6,7 +6,7 @@ File(s) under review: src/server/GameServer.ts, src/server/ProfileApiClient.ts,
 src/server/Client.ts, src/server/GameManager.ts, src/server/Worker.ts,
 src/core/profile/MatchQualification.ts, src/core/Schemas.ts,
 src/client/Transport.ts, src/client/graphics/layers/WinModal.ts, tests/*
-Status: review-complete — P1 (Round 5) resolved in Round 6 (2026-06-29); pending live verification. All findings resolved; C1/A3/A5/[P1-bound] residuals recorded.
+Status: closed-out — Round-7 exhaustive re-review (2026-06-29, ultracode: Codex adversarial + 8-agent Claude multi-lens workflow) found NO new defects; finding-driven review loop stopped. All findings resolved; C1/A3/A5/[P1-bound] residuals recorded. Only remaining gate: live verification.
 Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full coverage.
 
 ## Accepted residuals (do-not-re-litigate)
@@ -90,20 +90,35 @@ Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full
 | 4 | **N4** applied — drain body | informational | **Resolved** — `postWithRetry` drains the unread body (`response.body?.cancel()`, best-effort) on non-2xx before retry/return. Defensive only; not a defect at Node 24. |
 | 5 | **P1** `yandexPlayerId` length drift — join/`update_identity` allow max **256** (Schemas.ts:567,592) but the credit/upsert contract caps at **128** (CreditContract.ts:22,61); one over-long id fails the whole `CreditBatchRequestSchema` array-parse → 400 (Routes.ts:157-160), and `postWithRetry` treats 400 as non-retryable → the entire batch is dropped — Codex medium | CORRECT → **medium** (griefing/availability: a modified rostered client denies ALL co-players their 10 XP/match; bounded — needs a modified client, no corruption/crash/security breach). Both Round-5 reviewers + manual end-to-end trace confirm. | **Open/actionable** (owner decision 2026-06-29). DISTINCT from C1 (self-credit of a forged id) — this is denial-of-XP-to-*others*; NOT suppressed by the C1 acceptance. Latent since Round 1 (Claude r1 wrongly asserted the bounds matched). Fix: align the entry-point bound to 128 AND/OR have `ProfileApiClient` isolate items failing `CreditItemSchema` before POST so one bad item can't fail the batch + a batch-poisoning regression test. |
 | 6 | **P1** applied — item isolation (fix (b)) | CORRECT, medium | **Resolved** — `creditMatch` now filters each item through `CreditItemSchema` before POST, dropping (and logging by id-length, never the value) any that fail, so one over-long id can't 400 the whole batch; co-players are still credited. Regression tests added (one 200-char id + one valid → valid player credited; all-invalid → no POST). **Rejected fix variants (do not re-propose):** (a) tightening the entry bound to 128 — a regression that disconnects legit long-id users at join (see [P1-bound] residual); and raising the store bound to 256 — contradicts the consistent 128 design + pulls in T5. Owner chose (b), 2026-06-29. |
+| 7 | **Closeout re-review** (ultracode: Codex adversarial + 8-agent Claude multi-lens workflow — 6 finder lenses → adversarial verify → completeness critic — + manual P1-fix re-trace) | **NO new defects.** Codex: approve/ship. Workflow: 0 survivors / 1 suppressed / surface covered. P1 fix re-verified correct (filter→drop→early-return→`valid` used for sendCredits+backfill). | **Closeout** (owner decision 2026-06-29) — finding-driven review loop stopped; only remaining gate is live verification. |
+| 7 | **S1** Single-source client-built `playerParticipation` is trusted verbatim (no server validation / cross-voter reconciliation), so a rostered voter can self-credit XP without playing, or deny others — Claude workflow | `isReal: true` but **`isNovel: false`** — re-litigates **[C1]** | **Suppressed as settled** — the documented turn-relay design; exposure is earned-XP-only (C1's accepted class) and C1's re-raise gate (signing key issued / paid entitlements) is NOT tripped. Not recorded as an open item. |
+| 7 | **G1** No end-to-end integration test for `GameServer.creditMatchXp` glue (clientStateById / eligibleRoster / activeClientIDs gate / guards / winner-upgrade→credit) — completeness critic | Not a defect — glue manually traced correct; `src/core` decision logic IS unit-tested per CLAUDE.md (the glue is server-side, outside the mandate) | **Optional / nice-to-have** (owner decision 2026-06-29) — non-blocking coverage improvement; see Open/actionable. |
+| 7 | **G2** `addClient` reconnect copies `lastPing`/`reportedWinner` but not `existing.yandexPlayerId` (GameServer.ts:~240) — completeness critic | Verified **self-healing** — `Transport.maybeRefreshYandexIdentity` re-fires on reconnect + join re-supplies the id; any window is the accepted **A3** class | No action — not a defect. |
 
 ## Open / actionable
 
-_None._ P1 (Round 5) resolved in Round 6 via item-isolation (fix (b), owner-approved
-2026-06-29). N1–N4 (Round 3) and the Round-1 items (C2, C3, A1, A2, A4) remain resolved;
-residuals C1 / A3 / A5 / [P1-bound] are closed — re-raise only under their recorded
-conditions. Full suite green (599 tests, 81 suites); tsc + lint + prettier clean.
+**No open defects — review closed out (Round 7, 2026-06-29).** All findings across 7 rounds
+are resolved (C2, C3, A1, A2, A4, N1, N2, N3, N4, P1); residuals C1 / A3 / A5 / [P1-bound]
+are closed — re-raise only under their recorded conditions. Full suite green (599 tests,
+81 suites); tsc + lint + prettier clean.
 
-**Convergence note:** Round 5's P1 was a genuinely new, never-recorded defect (the Round-1
-Claude review wrongly assumed the bounds matched) — correctly actioned. The entry/store
-bound *drift* itself is now a recorded accepted-design residual ([P1-bound]) so future
-reviewers don't re-propose tightening the entry cap (a regression). The substantive
-correctness / security / availability surface is covered. Recommend no further
-finding-driven rounds absent a genuinely new defect.
+Optional / nice-to-have (non-blocking, NOT required for merge):
+- **G1** — add an end-to-end integration test for `GameServer.creditMatchXp` (the glue:
+  `clientStateById` from `allClients`, `eligibleRoster` from `gameStartInfo.players`, the
+  `activeClientIDs` live-connection gate, the undefined/empty/`gameStartInfo`-undefined
+  guards, and the `handleWinner` winner-upgrade→credit flow). The `src/core` decision logic
+  (`selectMatchCredits`) is already unit-tested per the CLAUDE.md mandate; this glue is
+  server-side and was manually traced correct, so a test would be defense-in-depth only.
 
-Live verification still pending (match against the profile box: XP +10, idempotency on
-repeat `game_id`, non-qualifier exclusion, fail-soft with profile down).
+**Closeout / convergence note (Round 7):** an exhaustive ultracode re-review — Codex
+adversarial (verdict: approve/ship) + an 8-agent Claude multi-lens workflow (6 finder lenses
+→ adversarial verify → completeness critic, ~590k review tokens) + a manual P1-fix re-trace —
+found **zero genuinely-new defects**. The single candidate (S1) re-litigates the accepted C1
+earned-XP client-trust posture and was suppressed; the two critic observations are an optional
+test gap (G1) and an A3-class self-healing case (G2). The finding-driven review loop is
+**stopped** per loop discipline — do not run further finding-driven rounds absent a genuinely
+new defect (a tell-tale of churn: re-proposing any rejected variant or re-raising a residual).
+
+Only remaining gate: **live verification** against the profile box — XP +10 for qualifiers,
+idempotency on repeat `game_id`, non-qualifier exclusion (never-spawned / left / disconnected),
+and fail-soft with the profile server down.
