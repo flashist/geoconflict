@@ -24,6 +24,7 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - The Yandex ID carried through match join is still an unsigned client-provided value. Earned-XP crediting must either accept that risk for non-monetary XP or add signed identity plumbing; paid state must rely on Yandex Payments verification.
 - `PROFILE_API_URL` has to be present in the game-server deploy environment or `/api/env.profileApiUrl` stays empty. T4h is the completed fix for that deploy gap.
 - Profile outages must not stop active matches. T6 keeps match-end crediting fail-soft: after bounded retries, credits may be dropped rather than blocking winner handling or cleanup.
+- The duplicate backup-task conflict is resolved as of 2026-06-29: canonical T8 is `ai-agents/tasks/backlog/s4-postgres-backup-routine.md`, retargeted to the dedicated profile box and profile deploy path. The current local weekly `pg_dump` is only an interim same-disk fallback; paid citizenship still needs encrypted off-box daily backups plus a tested restore.
 - 152-ФЗ compliance is unresolved after the hash-based avoidance plan was cancelled. See [[decisions/personal-data-152fz-compliance]].
 
 ## Related

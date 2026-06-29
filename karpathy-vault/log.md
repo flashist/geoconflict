@@ -816,3 +816,10 @@
 - Ingested: `ai-agents/tasks/done/s4-profile-06-match-end-crediting.md` -> created [[wiki/tasks/profile-match-end-crediting]]; updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], [[wiki/tasks/profile-backend-db-api]], [[wiki/tasks/profile-game-server-deploy-env]], [[wiki/tasks/yandex-identity-plumbing]], [[wiki/systems/player-infrastructure]], [[wiki/systems/networking]], [[wiki/decisions/personal-data-152fz-compliance]], [[wiki/tasks/yandex-payments-investigation]], `karpathy-vault/index.md`
 - Skipped (already covered): `ai-agents/tasks/done/s4-profile-04-backend-infra.md` — 100% rename from backlog to done; T4 outcome is represented by the split T4a-T4i pages and [[wiki/decisions/sprint-4]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/reviews/s4-profile-06-match-end-crediting.md` — backlog and review artifacts are outside the wiki-sync eligible source set; relevant status is summarized through [[wiki/decisions/sprint-4]]
+
+## 2026-06-29 — ingest
+- Sync window: `09ebcc4cf9a7146488aed5c4cc68f45c71df2658` → HEAD (`ac4d48296cc5bd24ca1186b5568629b2e88d55b0`)
+- Changed source files detected: 4
+- Ingested: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md` → updated [[wiki/systems/player-profile-store]]
+- Ingested: `ai-agents/tasks/done/s4-profile-04i-server-bring-up-runbook.md` → updated [[wiki/tasks/profile-server-bring-up-runbook]]
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-postgres-backup-routine.md` — backlog files are not ingested directly by wiki-sync; their resolved T8 backup-track status was captured through the changed knowledge-base and completed T4i sources
