@@ -6,7 +6,7 @@ File(s) under review: src/server/GameServer.ts, src/server/ProfileApiClient.ts,
 src/server/Client.ts, src/server/GameManager.ts, src/server/Worker.ts,
 src/core/profile/MatchQualification.ts, src/core/Schemas.ts,
 src/client/Transport.ts, src/client/graphics/layers/WinModal.ts, tests/*
-Status: changes-requested — Round-5 re-review (2026-06-29) surfaced P1 (medium; batch-poisoning via yandexPlayerId length drift). N1–N4 and Round-1 items remain resolved; C1/A3/A5 residuals unchanged.
+Status: review-complete — P1 (Round 5) resolved in Round 6 (2026-06-29); pending live verification. All findings resolved; C1/A3/A5/[P1-bound] residuals recorded.
 Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full coverage.
 
 ## Accepted residuals (do-not-re-litigate)
@@ -47,6 +47,21 @@ Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full
   slice; the profile server's idempotency key makes a later manual replay safe.
   Re-raise only if: credit-loss rate under partial outage proves material in prod.
 
+- **Entry id cap (256) intentionally exceeds the store cap (128) [P1-bound]** —
+  What: `ClientJoinMessage` / `ClientUpdateIdentitySchema` accept yandexPlayerId up to
+  256 chars, while the profile store bound is 128 (CreditItemSchema, ProfileUpsert,
+  ProfileQuerySchema all 128). The drift is deliberate, not a defect to "align".
+  Why (structural): the 256 entry cap is documented (Schemas.ts join-field comment) as a
+  *generous* cap so a long-but-valid authorized id is never rejected at the WS boundary
+  (rejection there disconnects the user from the game — worse than losing one match's XP).
+  Tightening entry to 128 is a REGRESSION (rejects legit users); raising the store to 256
+  contradicts the consistent 128 design (credit+upsert+read) and pulls in T5. The
+  batch-poisoning *harm* from the drift is fixed structurally by P1's item-isolation in
+  `ProfileApiClient` — an over-128 id is dropped (it could never be stored/read anyway)
+  without failing co-players' credits.
+  Re-raise only if: real Yandex ids are confirmed to exceed 128 (then raise the store
+  bound — credit+upsert+read together — not the entry cap); OR item-isolation is removed.
+
 ## Decision log
 
 | Round | Finding | Verdict | Action |
@@ -74,30 +89,21 @@ Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full
 | 4 | **N3** applied — voter sourcing | CORRECT, low | **Resolved** — `handleWinner` upgrades `potentialWinner.winner` to a later agreeing voter that carries `playerParticipation` when the stored (first) voter lacked it. No bespoke consensus-driven test (disproportionate for a 4-line guard); covered by inspection + the participation schema/A1 tests. |
 | 4 | **N4** applied — drain body | informational | **Resolved** — `postWithRetry` drains the unread body (`response.body?.cancel()`, best-effort) on non-2xx before retry/return. Defensive only; not a defect at Node 24. |
 | 5 | **P1** `yandexPlayerId` length drift — join/`update_identity` allow max **256** (Schemas.ts:567,592) but the credit/upsert contract caps at **128** (CreditContract.ts:22,61); one over-long id fails the whole `CreditBatchRequestSchema` array-parse → 400 (Routes.ts:157-160), and `postWithRetry` treats 400 as non-retryable → the entire batch is dropped — Codex medium | CORRECT → **medium** (griefing/availability: a modified rostered client denies ALL co-players their 10 XP/match; bounded — needs a modified client, no corruption/crash/security breach). Both Round-5 reviewers + manual end-to-end trace confirm. | **Open/actionable** (owner decision 2026-06-29). DISTINCT from C1 (self-credit of a forged id) — this is denial-of-XP-to-*others*; NOT suppressed by the C1 acceptance. Latent since Round 1 (Claude r1 wrongly asserted the bounds matched). Fix: align the entry-point bound to 128 AND/OR have `ProfileApiClient` isolate items failing `CreditItemSchema` before POST so one bad item can't fail the batch + a batch-poisoning regression test. |
+| 6 | **P1** applied — item isolation (fix (b)) | CORRECT, medium | **Resolved** — `creditMatch` now filters each item through `CreditItemSchema` before POST, dropping (and logging by id-length, never the value) any that fail, so one over-long id can't 400 the whole batch; co-players are still credited. Regression tests added (one 200-char id + one valid → valid player credited; all-invalid → no POST). **Rejected fix variants (do not re-propose):** (a) tightening the entry bound to 128 — a regression that disconnects legit long-id users at join (see [P1-bound] residual); and raising the store bound to 256 — contradicts the consistent 128 design + pulls in T5. Owner chose (b), 2026-06-29. |
 
 ## Open / actionable
 
-Reopened by Round-5 re-review (2026-06-29). N1–N4 (Round 3) and the Round-1 items
-(C2, C3, A1, A2, A4) remain resolved; residuals C1 / A3 / A5 remain closed — re-raise
-only under their recorded conditions. New open item:
+_None._ P1 (Round 5) resolved in Round 6 via item-isolation (fix (b), owner-approved
+2026-06-29). N1–N4 (Round 3) and the Round-1 items (C2, C3, A1, A2, A4) remain resolved;
+residuals C1 / A3 / A5 / [P1-bound] are closed — re-raise only under their recorded
+conditions. Full suite green (599 tests, 81 suites); tsc + lint + prettier clean.
 
-- **P1** (medium) — Batch-poisoning via `yandexPlayerId` length drift. Entry points
-  (`ClientJoinMessage` / `ClientUpdateIdentitySchema`) accept up to 256 chars while
-  `CreditItemSchema` / `ProfileUpsertRequestSchema` cap at 128, and the profile server
-  rejects the *whole* `/internal/v1/credit` batch (400) on a single over-long item, which
-  `postWithRetry` does not retry — so one rostered client with a 129–256 char id drops XP
-  for every other player in the match. Fix options: (a) align the entry-point bound to the
-  contract's 128 so an over-long id is rejected at the boundary; and/or (b) have
-  `ProfileApiClient` validate/isolate items against `CreditItemSchema` before POSTing so a
-  single bad item cannot fail the batch (more robust; keeps the profile server / T5 out of
-  scope). Add a regression test: one 129-char id + one valid id → the valid player is still
-  credited.
-
-**Convergence note:** Round 5 is not loop churn — P1 is a genuinely new, never-recorded
-defect (distinct from C1/A3/A5 and from every resolved item), which is exactly the
-"genuinely new defect" the Round-4 note reserved a further round for. After P1 is
-addressed, the substantive correctness/security/availability surface looks covered;
-expect this to be the last finding-driven round.
+**Convergence note:** Round 5's P1 was a genuinely new, never-recorded defect (the Round-1
+Claude review wrongly assumed the bounds matched) — correctly actioned. The entry/store
+bound *drift* itself is now a recorded accepted-design residual ([P1-bound]) so future
+reviewers don't re-propose tightening the entry cap (a regression). The substantive
+correctness / security / availability surface is covered. Recommend no further
+finding-driven rounds absent a genuinely new defect.
 
 Live verification still pending (match against the profile box: XP +10, idempotency on
 repeat `game_id`, non-qualifier exclusion, fail-soft with profile down).

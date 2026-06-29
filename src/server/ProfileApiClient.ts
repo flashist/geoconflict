@@ -6,6 +6,7 @@ import {
   CreditBatchResponse,
   CreditBatchResponseSchema,
   CreditItem,
+  CreditItemSchema,
   ProfileUpsertRequest,
 } from "../core/profile/CreditContract";
 import { MatchCredit } from "../core/profile/MatchQualification";
@@ -86,16 +87,30 @@ export class ProfileApiClient {
       this.logDisabledOnce("creditMatch");
       return;
     }
+    // Isolate any item that would fail the profile server's per-item contract BEFORE
+    // posting. The server rejects the whole `/internal/v1/credit` batch (400, which we
+    // don't retry) if a single item is invalid — e.g. a modified rostered client whose
+    // yandexPlayerId is accepted at the 256-char join boundary but exceeds the credit
+    // contract's 128-char cap. Dropping just that item keeps every other player's XP.
+    const valid = credits.filter((c) => {
+      if (CreditItemSchema.safeParse(toCreditItem(c)).success) return true;
+      // Never log the (untrusted) id value — length is enough to diagnose.
+      this.log.warn(
+        `dropping invalid credit item (id length ${c.yandexPlayerId.length}) for game ${c.gameId}`,
+      );
+      return false;
+    });
+    if (valid.length === 0) return;
     try {
-      const response = await this.sendCredits(credits.map(toCreditItem));
+      const response = await this.sendCredits(valid.map(toCreditItem));
       if (response === null) {
         this.log.warn(
-          `credit batch failed after retries; ${credits.length} award(s) dropped (idempotent — a later retry is safe)`,
+          `credit batch failed after retries; ${valid.length} award(s) dropped (idempotent — a later retry is safe)`,
         );
         return;
       }
       this.logOutcomes(response);
-      await this.backfillMissingProfiles(credits, response);
+      await this.backfillMissingProfiles(valid, response);
     } catch (error) {
       // Defensive: must never throw out of the match-end path.
       this.log.warn(`unexpected error crediting match: ${formatError(error)}`);

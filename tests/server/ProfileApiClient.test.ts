@@ -215,4 +215,44 @@ describe("ProfileApiClient", () => {
       persistentId: "p-1",
     });
   });
+
+  test("isolates an over-long yandexPlayerId so it can't poison the batch (P1)", async () => {
+    const fetchMock = jest.fn().mockResolvedValue(
+      jsonResponse(200, {
+        results: [
+          { gameId: "game-1", yandexPlayerId: "yx-good", status: "credited" },
+        ],
+      }),
+    );
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const { client, child } = newClient();
+    await client.creditMatch([
+      // 200 chars: accepted at the 256-char join boundary, over the 128 credit cap.
+      matchCredit({ yandexPlayerId: "x".repeat(200) }),
+      matchCredit({ yandexPlayerId: "yx-good" }),
+    ]);
+
+    // The bad item is dropped before POST; the valid player is still credited.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.credits).toEqual([
+      { gameId: "game-1", yandexPlayerId: "yx-good", xpAwarded: 10 },
+    ]);
+    expect(child.warn).toHaveBeenCalledWith(
+      expect.stringContaining("dropping invalid credit item"),
+    );
+  });
+
+  test("skips the POST entirely when every item is invalid", async () => {
+    const fetchMock = jest.fn();
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const { client } = newClient();
+    await client.creditMatch([
+      matchCredit({ yandexPlayerId: "x".repeat(200) }),
+    ]);
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });
