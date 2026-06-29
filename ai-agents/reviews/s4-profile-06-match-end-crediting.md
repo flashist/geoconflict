@@ -6,7 +6,7 @@ File(s) under review: src/server/GameServer.ts, src/server/ProfileApiClient.ts,
 src/server/Client.ts, src/server/GameManager.ts, src/server/Worker.ts,
 src/core/profile/MatchQualification.ts, src/core/Schemas.ts,
 src/client/Transport.ts, src/client/graphics/layers/WinModal.ts, tests/*
-Status: closed-out — Round-7 exhaustive re-review (2026-06-29, ultracode: Codex adversarial + 8-agent Claude multi-lens workflow) found NO new defects; finding-driven review loop stopped. All findings resolved; C1/A3/A5/[P1-bound] residuals recorded. Only remaining gate: live verification.
+Status: VERIFIED / closed-out — Round-7 exhaustive re-review (2026-06-29) found NO new defects; finding-driven review loop stopped. All findings resolved; C1/A3/A5/[P1-bound] residuals recorded. Live verification PASSED 2026-06-29 (see Live verification section). Ready to merge.
 Reviewers: Codex (adversarial) + Claude (code-reviewer agent) — both ran, full coverage.
 
 ## Accepted residuals (do-not-re-litigate)
@@ -119,6 +119,27 @@ test gap (G1) and an A3-class self-healing case (G2). The finding-driven review 
 **stopped** per loop discipline — do not run further finding-driven rounds absent a genuinely
 new defect (a tell-tale of churn: re-proposing any rejected variant or re-raising a residual).
 
-Only remaining gate: **live verification** against the profile box — XP +10 for qualifiers,
-idempotency on repeat `game_id`, non-qualifier exclusion (never-spawned / left / disconnected),
-and fail-soft with the profile server down.
+## Live verification (2026-06-29) — PASSED
+
+Against the live profile box `api.geoconflict.ru` (reg.ru):
+
+- **Dev-machine, read + boundary (no token needed):** `/health` 200, `/ready` 200 (DB up),
+  `GET /v1/profile` unknown id → 404 `not_found` (the `no_profile` path), and `POST
+  /internal/v1/credit` with no/bad bearer → **403** — the nginx `/internal/` IP allowlist
+  (`PROFILE_INTERNAL_ALLOW_IPS`) rejecting a non-game-server IP *before* the token check.
+  i.e. the internal write endpoints are correctly firewalled to game-server IPs; they are
+  NOT reachable from a dev machine by design (this is why a dev-side write test cannot run).
+- **On-box, authenticated write path (7/7 PASS):** ran on the box against the app's loopback
+  port `127.0.0.1:8080` (bypassing nginx legitimately) with the app's own token from
+  `profile.env`: fresh→404, upsert→200, xp==0, credit→`credited`, **xp==10 (XP +10)**, repeat
+  same `game_id`→`duplicate`, **xp still 10 (Epic Verification #4 idempotency)**.
+- **Fail-soft (profile down → match completes, no throw)** and **non-qualifier exclusion**
+  (never-spawned / left / disconnected) are covered by the `ProfileApiClient` and
+  `selectMatchCredits` unit tests respectively (not separately runnable against the live API).
+- Prod footprint: one inert test row `t6verify-1782726798` (xp=10) + its ledger row; cannot
+  collide with a real Yandex id; deletable via `psql` on the box.
+
+Remaining as a post-DEPLOY smoke check (only possible once T6 is merged + deployed to a
+game server with `PROFILE_API_URL` set): a real match end-to-end (client `playerParticipation`
+→ winner consensus → server credit from an allowlisted game-server IP) confirming Epic #7
+"normal match flow, no DB/credit errors in logs".
