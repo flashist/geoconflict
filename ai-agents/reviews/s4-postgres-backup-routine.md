@@ -11,10 +11,14 @@ PR: #129 (branch `s4-profile-06-match-end-crediting` → `dev`)
 
 File(s) under review: profile-backup.sh (new), setup-profile.sh, build-deploy-profile.sh,
 example.env.profile (new), tests/profile-backup-dryrun.sh (new), .gitignore, plus docs/wiki.
-Status: RESOLVED — Round-1 review (2026-07-01) + Round-2 implementation & adversarial
-re-verification (2026-07-01). All six findings (B1–B6) implemented; a 5-agent adversarial pass
-confirmed B1/B2/B4/B5/B6 correct-and-safe and CAUGHT that the Round-2 B3 fix was wrong (see
-Round 2 below) — corrected. No open defects. Not merge-blocking.
+Status: IN-REVIEW — Round-3 re-review (2026-07-01) of the implemented B1–B6 fixes. Both reviewers
++ an empirical guard trace confirm all six fixes correct/regression-free on realistic paths. One
+NOVEL gap found: **N1** — the B1 restore guard is bypassed by empty-host/Unix-socket targets
+(`postgresql:///db`) → `pg_restore --clean` reaches the LIVE DB via the container's local socket.
+Open/actionable; to be fixed STRUCTURALLY (fail-closed-by-default), which **retires [R5]**. N2
+accepted as residual [R6]; N3 optional portability nit; N4 informational. ⚠️ Changes requested —
+the DAILY-BACKUP path is unaffected (the gap is the manual-restore guard only), so not
+merge-blocking for the backup routine itself, but fix N1 before relying on the restore drill.
 Reviewers: Codex (adversarial, verdict needs-attention) + Claude (code-reviewer agent, 0 high) —
 both ran, full coverage.
 
@@ -66,6 +70,29 @@ both ran, full coverage.
   sole safety.
   Re-raise only if: restore is ever wired into an automated/unattended path (then the input is no
   longer operator-typed and exotic spellings matter), or POSTGRES_PASSWORD is allowed to contain `@`.
+  > **SUPERSEDED-PENDING (Round 3, 2026-07-01):** R5's premise ("guarding these adds real
+  > URL-parsing complexity for inputs no operator produces") does NOT hold for the empty-host /
+  > Unix-socket case — see **N1** (Round 3), which extracts `host=""` for `postgresql:///db` and
+  > reaches the LIVE DB via the container's local socket. N1 is a genuine gap OUTSIDE R5, not
+  > R5 re-litigation. The chosen N1 fix is STRUCTURAL (fail-closed unless the target is a provably
+  > distinct remote host), which closes empty-host AND subsumes R5's exotic cases — so **once the
+  > N1 fix lands, delete this R5 residual** (the exotic spellings will then be blocked too, not
+  > merely accepted). Until then: the R5 exotic cases stay suppressed; the empty-host case is
+  > OPEN (N1), not accepted.
+
+- **Deploy-time backup smoke check runs AFTER the API/nginx/migrations are live [R6]** —
+  What: `setup-profile.sh` brings the stack up + migrates (`:491`, `:561`) and configures nginx
+  (`:571`) BEFORE the off-box backup smoke check (`:826`). On smoke failure it `exit 1`s (fail
+  closed — no cron written, off-box not declared active), but the profile API is already serving.
+  Why (structural): the smoke check MUST run after stack-up + migrate — a real end-to-end backup
+  needs a running, migrated DB, so backups cannot be proven before the DB exists. On a redeploy
+  the API was already exposed, so rolling the whole stack back over a backup-config typo trades a
+  backup problem for an availability outage. The failure is loud (exit 1 + error + `last-backup.json`
+  marker). A pre-migration backup as a rollback boundary is a DIFFERENT concern (migration safety),
+  separate from T8's daily-backup routine. Owner decision 2026-07-01: accepted, not a T8 defect.
+  Re-raise only if: the profile box serves real user traffic during first provisioning (not just a
+  redeploy of an already-exposed service), OR a migration-safety rollback boundary is brought into
+  T8's scope.
 
 ## Decision log
 
@@ -94,9 +121,34 @@ break each fix (edge cases, regressions, residual violations):
 
 Validation: `bash -n` clean on all changed scripts; full dry-run harness green (10/10, incl. TEST 4).
 
+## Round 3 — re-review of the implemented fixes (2026-07-01)
+
+Full two-reviewer coverage (Codex adversarial + Claude code-reviewer agent) + an empirical
+orchestrator bash trace of the B1 guard. Both reviewers independently confirmed B1 (realistic
+hosts), B2 (ordering / `set -e` `if`-suppression / cron-never-written-on-fail), B3, B4, B6 are
+correct and regression-free. One novel gap surfaced.
+
+| # | Finding | Verdict | Action |
+|---|---------|---------|--------|
+| 3 | **N1** B1 guard bypassed by empty-host / Unix-socket targets — `postgresql:///db`, `postgresql://:5432/db`, `…@/db` extract `host=""`, miss the `postgres\|localhost\|127.0.0.1` block, and `pg_restore --clean` reaches the LIVE DB via the container's local socket (profile-backup.sh:204, guard :197-220, restore :237) — Codex high | PARTIALLY CORRECT → **medium** (empty-host case CORRECT & NOVEL, outside R5, empirically verified under bash; the IPv6/numeric-loopback framing = R5, suppressed. Downgraded from high: manual-drill reachability — cron never restores — same class as the base risk B1 mitigates, but it defeats B1's own stated goal for a one-token cost) | **Open/actionable** (owner decision 2026-07-01) — fix STRUCTURALLY: invert to fail-closed-by-default (require the dated `PROFILE_RESTORE_CONFIRM_LIVE` unless `$target` is a provably distinct REMOTE host — non-empty AND not local/socket). Closes empty-host AND subsumes R5's exotic cases → **retires [R5]**. Add restore-guard tests for `postgresql:///profile` and `[::1]`. |
+| 3 | **N2** deploy-time smoke check runs after API + nginx + migrations are already live (setup-profile.sh:571 nginx vs :826 smoke); a smoke failure leaves the API serving without proven off-box backups — Codex medium | CORRECT (factual) → **low/med**; classified **frontier-move** (smoke MUST run post stack-up+migrate — can't prove a DB backup with no DB; redeploy API already exposed; failure is loud; pre-migration backup = separate scope) | **Accepted residual [R6]** (owner decision 2026-07-01) — deploy ordering intentional; not a T8 defect. |
+| 3 | **N3** B6 test date-shim hardcodes `exec /bin/date` (tests/profile-backup-dryrun.sh:197) — Claude low | CORRECT → **low** (portability nit; works on Debian/macOS — the two target platforms) | **Open/actionable** (owner decision 2026-07-01) — optional one-liner: `exec "$(command -v date)" "$@"`. |
+| 3 | **N4** B2 smoke check writes a real dated encrypted object to PROD S3 (`profiles/daily/profile-YYYY-MM-DD.dump.age`) — Claude informational | CORRECT → **informational** (intended first backup; documented in the inline comment) | **No action** — expected behavior; operators should expect the object after the initial deploy. |
+| 3 | Exotic-spelling guard bypasses — IPv6 `[::1]`, numeric loopback `2130706433`/`0x7f000001`, `@`-in-password — Codex (the other half of R3-1) | `isReal` but **matches [R5]** | **Suppressed as settled** — R5; re-raise condition (automated restore path / `@`-password) not met. Moot once the N1 structural fix lands and retires R5. |
+
 ## Open / actionable
 
-None — all six resolved (Round 2). No open defects; not merge-blocking.
+Actionable this round (owner decision 2026-07-01) — the DAILY-BACKUP path is unaffected; these are
+the manual-restore guard + a test nit, so not merge-blocking for the backup routine itself:
+
+- **N1** — replace the blocklist restore guard with a **fail-closed-by-default** check: require
+  `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC>` unless `$target` is a provably distinct REMOTE host
+  (non-empty host AND not `postgres`/`localhost`/loopback/Unix-socket). This closes the empty-host
+  bypass AND the R5 exotic cases in one move → then **delete the [R5] residual**. Add restore-guard
+  tests for `postgresql:///profile` (must refuse) and a real remote host (must proceed).
+- **N3** — make the B6 date-shim portable: `exec "$(command -v date)" "$@"` (optional nit).
+
+(N2 → accepted residual [R6]; N4 → informational, no action.)
 
 ## Convergence note (Round 1)
 

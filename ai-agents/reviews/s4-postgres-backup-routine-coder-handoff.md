@@ -1,195 +1,126 @@
-# Coder handoff — s4-postgres-backup-routine (PR #129)
+# Coder handoff — s4-postgres-backup-routine (PR #129, Round 3)
 
 **This is a fix SPEC, not applied code.** It describes review-confirmed changes for a separate
-coder run to implement. Findings are recommendations verified against the code; honest impact is
-carried forward from the review (some reviewer severities were tempered — noted per finding).
+coder run. Findings are recommendations verified against the code; honest impact carried forward
+from the review.
 
-Ledger: `ai-agents/reviews/s4-postgres-backup-routine.md` (read the **Accepted residuals** before
+Ledger: `ai-agents/reviews/s4-postgres-backup-routine.md` (read **Accepted residuals R1–R6** before
 touching anything — do NOT reintroduce settled tradeoffs).
 
 ## Context
 
-PR #129 adds an **encrypted, off-box, daily Postgres backup routine** for the player-profile store
-(task T8, `ai-agents/tasks/backlog/s4-postgres-backup-routine.md`). The profile DB holds PII +
-paid-citizenship entitlements, so recoverability is a hard gate on monetization.
+PR #129 is the T8 **encrypted off-box daily Postgres backup routine** for the player-profile store
+(PII + paid-citizenship entitlements → recoverability is a monetization gate). Two prior review
+rounds are DONE: six findings (B1–B6) were implemented and adversarially verified. `profile-backup.sh`
+does `docker compose exec -T postgres pg_dump -Fc` → `age` encrypt → `rclone` S3 upload → size-verify
+→ delete local temp → Sunday weekly copy → `rclone delete --min-age` prune → `last-backup.json`
+marker; subcommands `backup` (daily cron) and `restore` (manual drill). `setup-profile.sh` installs
+it (0700) + `backup.env` (0600) + cron, pins the box clock to UTC, and runs a deploy-time smoke
+backup that fails the deploy closed if the pipeline can't prove itself. `tests/profile-backup-dryrun.sh`
+is a dockerized end-to-end harness (Postgres + restore-target + MinIO).
 
-Shape:
-- **`profile-backup.sh`** (new, host-run on the reg.ru profile VPS): `docker compose exec -T
-  postgres pg_dump -Fc` → `age -r <recipient>` encrypt → `rclone copyto` to RU-resident S3 →
-  verify (remote size == local) → delete local temp → Sunday weekly copy → `rclone delete
-  --min-age` retention prune → write `last-backup.json` marker. Subcommands: `backup` (default,
-  the daily cron) and `restore <s3-key> <age-identity> <target-db-url>` (manual drill only).
-- **`setup-profile.sh`**: installs `backup.sh` (0700) + `backup.env` (0600) + `/etc/cron.d/
-  profile-backups` when `PROFILE_BACKUP_*` is fully configured; else keeps an interim LOCAL
-  weekly pg_dump.
-- **`build-deploy-profile.sh`**: SCPs `profile-backup.sh` and threads `PROFILE_BACKUP_*` deploy
-  vars through the existing 0600-staged env channel.
-- **`tests/profile-backup-dryrun.sh`**: dockerized end-to-end (Postgres + restore-target +
-  MinIO) that drives the REAL `profile-backup.sh`. Run manually (needs Docker + age + rclone).
-
-**In scope:** the six findings below (`profile-backup.sh`, `setup-profile.sh`,
-`tests/profile-backup-dryrun.sh`). **Out of scope:** the T6 crediting code (already merged), the
-docs/wiki changes, and anything in the "Do NOT change" list.
+**Round-3 status:** all B1–B6 fixes verified correct/regression-free. This handoff covers the TWO
+remaining actionable items found in Round 3. **In scope:** N1 (`profile-backup.sh`) and N3
+(`tests/profile-backup-dryrun.sh`). **Out of scope:** everything else in the PR, and the
+"Do NOT change" list below.
 
 ## Changes to make
 
 | # | Severity | Required? | Location | Summary |
 |---|----------|-----------|----------|---------|
-| B1 | medium | **yes** | `profile-backup.sh` `do_restore` (:178-209, :206) | Guard the destructive `restore` against pointing at the live DB. |
-| B2 | medium | **yes** | `setup-profile.sh` off-box branch (:762-803, :891) | Deploy-time smoke check; fail the deploy closed if the backup pipeline can't prove it works. |
-| B3 | low | yes | `profile-backup.sh:157` | Weekly-copy weekday check uses UTC (`date -u +%u`) but the cron is local time → wrong-day drift if box TZ ≠ UTC. |
-| B6 | low | yes | `tests/profile-backup-dryrun.sh` | Add a test for the Sunday weekly-copy branch (currently unexercised). |
-| B4 | very low | optional | `profile-backup.sh` `remote_size` (:99-102) + call site (:152) | `set -e` aborts before the descriptive verify-failure `die`, degrading the marker's error message. |
-| B5 | very low | optional | `setup-profile.sh:768` | "Fail closed" comment over-broad; scope it to tool-install. Comment-only. |
+| N1 | medium | **yes** | `profile-backup.sh` `do_restore` guard (:197-220), host-parse (:204) | The live-DB restore guard is bypassed by empty-host / Unix-socket targets → `pg_restore --clean` drops the live DB. Replace the blocklist with a fail-closed-by-default check. |
+| N3 | low | optional | `tests/profile-backup-dryrun.sh:197` | The B6 date-shim hardcodes `exec /bin/date`; make it portable. |
 
 ---
 
-### B1 — Restore can destructively target the live DB (medium; Codex rated high)
+### N1 — Restore guard bypassed by empty-host / Unix-socket targets (medium; Codex rated high)
 
-**Location:** `profile-backup.sh` `do_restore()` :178-209, destructive call at :206:
+**Location:** `profile-backup.sh` `do_restore`. The current guard (:204) extracts the host with:
 ```bash
-docker compose exec -T postgres pg_restore --clean --if-exists --no-owner -d "$target" < "$RESTORE_TMP"
+tgt_host="${target#*://}"; tgt_host="${tgt_host#*@}"; tgt_host="${tgt_host%%[:/]*}"
 ```
-**Problem:** `--clean --if-exists` drops existing objects before recreating. `$target` is an
-operator-supplied URL; the ONLY thing stopping it from being the live DB
-(`postgresql://profile:...@postgres:5432/profile`, or a copied live `DATABASE_URL`) is the usage
-text + a comment. A fat-fingered drill wipes live XP/citizenship data.
+then (case-insensitively) refuses `postgres|localhost|127.0.0.1` unless `PROFILE_RESTORE_CONFIRM_LIVE`
+equals today's UTC date; otherwise it proceeds to `docker compose exec -T postgres pg_restore
+--clean --if-exists --no-owner -d "$target"` (:237).
 
-**Honest impact (tempered from high → medium):** NOT reachable by automation — the daily cron
-runs `backup` only; `restore` is manual, requires the off-box age identity to be present, and
-requires the operator to paste a live URL. Real footgun on a periodic manual drill; not a runtime
-or remotely-triggerable bug.
+**Problem (empirically verified under bash):** targets with no host extract `tgt_host=""`, which is
+NOT in the blocked set, so the guard is skipped:
+- `postgresql:///profile` → `host=""`
+- `postgresql://:5432/profile` → `host=""`
+- `postgresql://profile@/profile` → `host=""`
 
-**Recommended fix:** before running `pg_restore`, refuse targets that look like the live DB unless
-an explicit confirmation is set. Concretely:
-- Parse/inspect `$target`; if its host is the live compose service (`postgres`) OR its database
-  name equals the live `POSTGRES_DB` (from the sourced `backup.env`), abort with a clear message
-  UNLESS `PROFILE_RESTORE_CONFIRM_LIVE` is set to a required dated phrase (e.g. today's date), so
-  live recovery is possible but never accidental.
-- Keep the default path throwaway/staging-only. Preserve the existing usage text.
-- (Very-low sub-note, optional) the target URL may embed a password → visible in `ps` on the box
-  during the drill (inherent to `pg_restore -d <url>`). If cheap, prefer discrete connection
-  params or `PGPASSWORD` env over an inline-password URL; otherwise document it. Not required.
+Because `pg_restore` runs **inside** the `postgres` container, an empty host makes libpq connect
+over the container's **local Unix socket → the LIVE profile DB**, and `--clean --if-exists` drops
+live tables (paid entitlements). `postgresql:///db` is a natural libpq "local" shorthand an
+operator might type during a drill.
 
-**Test:** add a shell-level case (extend `tests/profile-backup-dryrun.sh` or a small sibling)
-asserting that `restore` into a live-looking target WITHOUT the confirm env is refused
-(non-zero, no `pg_restore` run), and that the confirm env allows it.
+**Honest impact (tempered from high → medium):** NOT reachable by automation (the daily cron runs
+`backup` only); requires a manual `restore` drill + the off-box age identity + typing an empty-host
+URL. Same reachability class as the base risk the guard was added to mitigate — but it defeats the
+guard's own stated goal ("refuse a target whose HOST reaches the running profile DB") for a trivial
+cost.
 
----
+**Recommended fix — STRUCTURAL, fail-closed-by-default (owner-selected; this RETIRES R5):**
+Do not keep extending the blocklist (that invites a new round per exotic spelling — `[::1]`,
+`2130706433`, …). Instead invert the check: **require the dated confirm for ANYTHING that isn't a
+provably distinct remote host.** Concretely, refuse (unless `PROFILE_RESTORE_CONFIRM_LIVE=<today
+UTC>`) when `tgt_host` is:
+- empty (`""`) — omitted host / Unix-socket, OR
+- a local name/loopback: `postgres` (the compose service), `localhost`, or any loopback literal —
+  `127.0.0.1` (and the whole `127.0.0.0/8` range if cheap), `::1`/`[::1]`, `0.0.0.0`, and the
+  numeric/hex loopback forms if you want to be thorough.
 
-### B2 — Deploy declares off-box backups "active" without proving they work (medium; Codex rated high)
+Keep the case-insensitive match (Docker DNS resolves `POSTGRES`==`postgres`) and keep the confirm
+comparison an exact `[ ]` string test (unaffected by `nocasematch`). Fail BEFORE `RESTORE_TMP` is
+created / any decrypt or restore. Update the usage text + comments to describe the remote-only
+default. **After this lands, delete the [R5] residual from the ledger** (its exotic cases are now
+blocked, not merely accepted).
 
-**Location:** `setup-profile.sh` off-box install branch (:762 header, install/env-write through
-`BACKUP_MODE="offbox"` at :803, "active" print at :891).
-**Problem:** when `PROFILE_BACKUP_*` is fully set, setup installs `age`/`rclone`, writes
-`backup.env`, schedules the cron, and prints "Backups: DAILY encrypted off-box to S3 ... active"
-— WITHOUT ever validating the age recipient, the S3 endpoint/credentials, or bucket
-write/list/delete permission. A bad secret/endpoint/bucket-policy ships and isn't proven broken
-until the first 02:30 cron.
-
-**Honest impact (tempered from high → medium):** `profile-backup.sh` IS fail-loud at RUN time —
-any failure exits non-zero, writes a `last-backup.json` failure marker, and logs to
-`/var/log/profile-backup.log`. Active alerting on that marker is a SEPARATE scoped task
-(`monitoring-alert-bot-phase2` item 5 — an accepted residual, do not fold it in here). So the real
-gap is the absence of DEPLOY-time proof of recoverability for paid/PII data + the window before
-phase-2 alerting exists. Worth closing because "never once proven to write to S3" is a poor state
-for a data-recovery system.
-
-**Recommended fix:** add a deploy-time smoke check inside the off-box branch, BEFORE printing
-active, that **fails the deploy closed** (`exit 1`) on any failure:
-- age: encrypt a tiny probe with the configured `PROFILE_BACKUP_AGE_RECIPIENT` (proves the
-  recipient parses).
-- rclone: write a small probe object into `<bucket>/<prefix>/.deploy-probe-<ts>`, list it, read
-  back / size-check, then delete it (proves endpoint + creds + bucket read/write/delete).
-- Optionally run one real `backup.sh backup` + assert the marker's `exit_status == 0` for an
-  end-to-end proof.
-- On any failure: print a precise error and `exit 1` (do NOT print "active", do NOT leave the cron
-  claiming a working backup). Keep it consistent with the existing "fail closed" tool-install
-  posture.
-- Make it exercisable in `tests/profile-backup-dryrun.sh` against MinIO (bad cred → fail; good
-  cred → probe written+deleted).
+**Tests (add to `tests/profile-backup-dryrun.sh` or a sibling):**
+- `restore` into `postgresql:///profile` WITHOUT the confirm → **refused** (non-zero, no
+  `pg_restore` run, no data touched).
+- `restore` into `[::1]`/loopback WITHOUT the confirm → **refused**.
+- `restore` into the legitimate throwaway remote host (`restore-target`) → **proceeds** (this is
+  the existing TEST 2 round-trip — keep it green).
+- `restore` into a live-looking target WITH `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC>` → proceeds.
 
 ---
 
-### B3 — UTC weekday check vs local-time cron (low, latent)
+### N3 — Portable `date` in the B6 test shim (low, optional)
 
-**Location:** `profile-backup.sh:157`: `if [ "$(date -u +%u)" = "7" ]; then` (Sunday weekly copy).
-**Problem:** the daily cron is local-time (`30 2 * * *`) and `setup-profile.sh` never sets the box
-TZ. On today's effectively-UTC box this is correct. If the box is ever set to Moscow (UTC+3),
-local Sunday 02:30 = UTC Saturday 23:30 → `date -u +%u` returns 6 → the weekly copy fires on the
-wrong local day (cadence preserved, day drifts).
-**Recommended fix:** use `date +%u` (local, matching the local-time cron) — lowest friction. OR
-anchor the cron line with `TZ=UTC` if you want the backup UTC-pinned regardless of box TZ. Pick
-one and keep the weekday check and the cron schedule consistent with each other.
+**Location:** `tests/profile-backup-dryrun.sh:197` — `exec /bin/date "$@"`.
+**Problem:** hardcodes `/bin/date`; correct on Debian/Ubuntu (the VPS) and macOS (dev), but breaks
+on a host where `date` is only `/usr/bin/date`.
+**Recommended fix (optional):** `exec "$(command -v date)" "$@"`. Non-blocking.
 
----
+## Do NOT change (accepted residuals — see ledger R1–R6)
 
-### B6 — Dry-run never exercises the Sunday weekly-copy branch (low, test gap)
-
-**Location:** `tests/profile-backup-dryrun.sh` (Tests 1-3 cover backup/restore/forced-failure).
-**Problem:** the `+%u == 7` weekly branch in `do_backup` is never hit, so a bug there (path
-construction, rclone args) passes the dry-run. Matters more given B3.
-**Recommended fix:** add a case that forces the Sunday path — e.g. run `backup` with a `date`
-wrapper/shim on `PATH` that returns `7` for `+%u` (leave other formats intact), then assert a
-`weekly/` object appears in the MinIO bucket alongside the `daily/` one. If B3 switches to
-`TZ=UTC` in cron, test accordingly.
-
----
-
-### B4 — `remote_size` pipefail degrades the verify-failure marker message (very low, OPTIONAL)
-
-**Location:** `profile-backup.sh` `remote_size()` :99-102; call site `rsize="$(remote_size …)"` :152.
-**Problem:** the pipeline can exit non-zero (missing object / grep no-match); the non-`local`
-assignment propagates that under `set -e`+`pipefail`, aborting before the informative
-`die "upload verify failed (local=X remote=missing)"` at :153. Failure is STILL caught (the
-`on_exit` trap writes a marker + non-zero exit) but the marker's `error` reads
-"unexpected failure (rc=1)". Provider-dependent: if rclone returns exit 0 with `{"bytes":0}` for
-absent objects, the descriptive `die` already fires.
-**Recommended fix (optional):** append `|| true` to the `remote_size` pipeline so a non-zero
-status is benign; `${rsize:-0}` then drives the explicit check and the informative `die` always
-reaches the marker.
-
----
-
-### B5 — "Fail closed" comment scope is over-broad (very low, comment-only, OPTIONAL)
-
-**Location:** `setup-profile.sh:768`.
-**Problem:** the comment reads as if the entire `BACKUP_OFFBOX_ENABLED=1` path is fail-closed, but
-the missing-`$PROFILE_BACKUP_SRC` case (outer `else`) deliberately WARNS and falls back to the
-local pg_dump. The CODE is correct — only the comment is ambiguous.
-**Recommended fix (optional):** scope the wording to tool-installation ("a box with creds but no
-age/rclone must not proceed"), and note the missing-script case is a separate, deliberate
-warn+fallback. No code change.
-
-## Do NOT change (accepted residuals — see ledger)
-
-- **[R1]** Box holds only the age PUBLIC recipient; backups are intentionally NOT decryptable
-  on-box. Do not add on-box decryption/private-identity storage.
-- **[R2]** Weekly-copy and retention-prune failures are intentionally non-fatal (WARNING, run
-  still SUCCESS) because the daily object is already verified off-box first. Do not make them
-  fail the backup.
-- **[R3]** Active alerting on `last-backup.json` is a separate task (`monitoring-alert-bot-phase2`
-  item 5). B2 is a DEPLOY-time gate, NOT runtime alerting — do not build a monitor here.
-- **[R4]** The interim LOCAL weekly pg_dump fallback (when `PROFILE_BACKUP_*` is unset) stays.
-- **Verified-correct, do not "fix":** verify-then-delete-local ordering; plaintext dump deleted
-  immediately post-encrypt; `on_exit` trap armed before `load_env`; `%q` + 0600 `backup.env`; keys
-  never on argv/logs; `--min-age` retention (can't wipe the fresh backup); `wc -c < file` byte
-  count; server-side `rclone copyto` for the weekly copy.
+- **[R1]** Box holds only the age PUBLIC recipient; backups intentionally NOT decryptable on-box.
+- **[R2]** Weekly-copy and retention-prune failures are intentionally non-fatal (run still SUCCESS).
+- **[R3]** Active alerting on `last-backup.json` is monitoring phase-2, not this PR.
+- **[R4]** The interim LOCAL weekly pg_dump fallback (when `PROFILE_BACKUP_*` unset) stays.
+- **[R5]** *(being retired by the N1 structural fix — delete it once N1 lands.)* Until then, do NOT
+  add ad-hoc per-spelling blocklist patches; do the structural N1 fix instead.
+- **[R6]** The deploy-time smoke check runs AFTER the API/nginx/migrations are live, and on failure
+  `exit 1`s (fail closed) leaving the already-migrated API serving. This ordering is INTENTIONAL
+  (a real backup needs the DB up; redeploy API was already exposed; failure is loud). Do NOT add a
+  stack/nginx rollback or a pre-migration backup gate here — that's separate scope.
+- **N4 (informational):** the smoke check writing a real `profiles/daily/profile-YYYY-MM-DD.dump.age`
+  object to prod S3 is the intended first backup — do not "suppress" it.
+- **Verified-correct B1–B6, do not churn:** the realistic-host guard + `nocasematch`/`[ ]` split;
+  the `if backup.sh backup; then … else exit 1` fail-closed smoke ordering; the UTC box-clock pin
+  (+ `TZ=UTC` crontab line for bare `date`); the `|| true` on `remote_size`; the TEST 4 `+%u`-only
+  shim + `rclone purge` de-tautology.
 
 ## Validation & acceptance criteria
 
-- `bash -n profile-backup.sh setup-profile.sh build-deploy-profile.sh tests/profile-backup-dryrun.sh`
-  clean.
-- `./tests/profile-backup-dryrun.sh` green — existing round-trip + forced-failure PLUS the new B6
-  Sunday-branch assertion (needs a running Docker daemon + `age`/`age-keygen`/`rclone`/`curl`/`jq`;
-  NOT part of the Jest suite).
-- B1: restore into a live-looking target without `PROFILE_RESTORE_CONFIRM_LIVE` → refused
-  (non-zero, no `pg_restore`); with the confirm phrase → proceeds.
-- B2: smoke check exercised against MinIO (or on-box) — bad cred → deploy fails closed (`exit 1`,
-  no "active" printed); good cred → probe object written+listed+deleted before "active".
-- B3/B6 kept consistent (weekday check ↔ cron schedule).
+- `bash -n profile-backup.sh tests/profile-backup-dryrun.sh` clean.
+- `./tests/profile-backup-dryrun.sh` green (dockerized; needs Docker + `age`/`age-keygen`/`rclone`/
+  `curl`/`jq`) — existing TESTs 1–4 still pass PLUS the new N1 restore-guard cases.
+- N1: empty-host (`postgresql:///profile`) and loopback targets are refused without the dated
+  confirm and NEVER reach `pg_restore`; a legit remote throwaway host still restores.
 - Do not commit unless the user explicitly asks (repo workflow rule).
 
-**Test-harness caveat:** the dockerized dry-run needs a Docker daemon; on this environment Docker
-Desktop can't be started headlessly (interactive admin prompt) — run the harness where Docker is
-already up, or on the box against MinIO/loopback.
+**Test-harness caveat:** the dockerized dry-run needs a running Docker daemon; on this environment
+Docker Desktop can't be started headlessly — run where Docker is already up, or on the box against
+MinIO/loopback.
