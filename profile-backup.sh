@@ -242,7 +242,11 @@ USAGE
   # dated confirm, so by here $target is either a throwaway or an explicitly-confirmed recovery.
   log "pg_restore into target"
   cd "$PROFILE_DIR"
-  docker compose exec -T postgres pg_restore --clean --if-exists --no-owner -d "$target" < "$RESTORE_TMP" \
+  # 7b: --single-transaction (implies --exit-on-error) wraps the WHOLE restore — including the --clean
+  # DROPs — in one transaction that rolls back on ANY error, leaving the target unchanged. Critical for a
+  # confirmed in-place live recovery: a mid-restore failure must not half-drop the live profile DB. Safe
+  # here — single pg_restore invocation, no --jobs parallel restore (which is the only incompatibility).
+  docker compose exec -T postgres pg_restore --single-transaction --clean --if-exists --no-owner -d "$target" < "$RESTORE_TMP" \
     || die "pg_restore failed"
   log "restore complete"
 }

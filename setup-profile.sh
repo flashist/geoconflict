@@ -793,6 +793,25 @@ promote_offbox_backup() {
     return 1
 }
 
+# 7a: refuse to SILENTLY downgrade an already-off-box box to same-disk local backups. Returns
+# non-zero (caller exits) when the box is CURRENTLY off-box-configured — a live backup.sh + backup.env,
+# or an existing "Mode: offbox" cron — AND we are about to (re)write the cron in LOCAL mode AND the
+# operator has NOT opted into an intentional downgrade via PROFILE_BACKUP_DISABLE_OFFBOX=1. A
+# missing/partial PROFILE_BACKUP_* redeploy must not silently strip the paid/PII off-box protection T8
+# exists for (the missing-vars mirror of the N5 bad-creds case). A true FIRST deploy (no prior off-box
+# config) returns 0 so the interim local skeleton still installs ([R4]).
+#   $1 backup mode   $2 cron file path   $3 profile dir
+guard_offbox_downgrade() {
+    local mode="$1" cron_file="$2" profile_dir="$3"
+    [ "$mode" = "offbox" ] && return 0                          # off-box being (re)activated — not a downgrade
+    [ "${PROFILE_BACKUP_DISABLE_OFFBOX:-}" = "1" ] && return 0  # explicit, intentional downgrade
+    if grep -qs "Mode: offbox" "$cron_file" 2>/dev/null \
+       || { [ -f "$profile_dir/backup.sh" ] && [ -f "$profile_dir/backup.env" ]; }; then
+        return 1                                                # off-box configured + would go local silently
+    fi
+    return 0                                                    # never-configured first deploy — local skeleton ok
+}
+
 # ── Backup + maintenance cron jobs ────────────────────────────────────────────
 # Off-box path (T8): when PROFILE_BACKUP_* is fully configured, install the standalone
 # backup script (SCP'd here by build-deploy-profile.sh) + its 0600 config and schedule a
@@ -877,8 +896,9 @@ if [ "$BACKUP_OFFBOX_ENABLED" = "1" ]; then
         fi
     else
         echo "WARNING: PROFILE_BACKUP_* is configured but $PROFILE_BACKUP_SRC was not found."
-        echo "         The deploy path did not ship profile-backup.sh — falling back to the"
-        echo "         interim weekly LOCAL pg_dump. Re-run via build-deploy-profile.sh to fix."
+        echo "         The deploy path did not ship profile-backup.sh. On a FIRST deploy this falls back"
+        echo "         to the interim weekly LOCAL pg_dump; on an already-off-box box the downgrade guard"
+        echo "         below will BLOCK (7a) rather than silently downgrade. Re-run via build-deploy-profile.sh."
     fi
 else
     echo "Off-box S3 backups not configured (set PROFILE_BACKUP_* in .env.profile/.secret)."
@@ -886,6 +906,20 @@ else
 fi
 
 CRON_FILE="/etc/cron.d/profile-backups"
+
+# 7a: fail CLOSED rather than silently downgrade an already-off-box box to same-disk local backups.
+# Runs BEFORE the cron rewrite below (which would otherwise clobber the off-box cron), so on refusal
+# the existing off-box backup.sh / backup.env / cron are left untouched.
+if ! guard_offbox_downgrade "$BACKUP_MODE" "$CRON_FILE" "$PROFILE_DIR"; then
+    echo "Error: this box is already configured for OFF-BOX backups, but PROFILE_BACKUP_* is now"
+    echo "       missing/partial — refusing to silently downgrade the daily encrypted off-box backup"
+    echo "       to same-disk local pg_dump (that would strip the paid/PII off-box protection T8 exists"
+    echo "       for). Fix PROFILE_BACKUP_* in .env.profile(.secret) and redeploy, or set"
+    echo "       PROFILE_BACKUP_DISABLE_OFFBOX=1 to intentionally downgrade. The existing off-box"
+    echo "       backup.sh / backup.env / cron are left untouched."
+    exit 1
+fi
+
 # Header + disk-usage warning are ALWAYS present. Vixie cron (/etc/cron.d) turns an unescaped
 # % into a newline, so every literal % in a command is escaped \\% (→ \% on disk) or the line
 # would truncate at the first one and never run.

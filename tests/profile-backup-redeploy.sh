@@ -37,6 +37,12 @@ if ! declare -F promote_offbox_backup >/dev/null; then
   echo "       (its definition anchor changed — update this test's awk range)."
   exit 1
 fi
+eval "$(awk '/^guard_offbox_downgrade\(\) \{/,/^\}/' "$SETUP")"
+if ! declare -F guard_offbox_downgrade >/dev/null; then
+  echo "ERROR: could not extract guard_offbox_downgrade() from setup-profile.sh"
+  echo "       (its definition anchor changed — update this test's awk range)."
+  exit 1
+fi
 
 # Write a stub candidate backup.sh that records which env-file the smoke was pointed at (proving
 # the candidate env — not the live env — is exercised), then exits with $1 (0=good, 1=bad creds).
@@ -150,6 +156,31 @@ promote_offbox_backup "$D/backup.sh.new" "$D/backup.env.new" "$D/backup.sh" "$D/
 # Back-compat: the existing 4-arg calls (TESTs 1-3,5) leave the override empty → script default.
 [ -z "$(cat "$WORK/t2/smoke-marker-seen" 2>/dev/null)" ] && ok "4-arg call leaves marker override empty (default)" \
   || no "4-arg call unexpectedly set a marker override"
+
+# ── TEST 7: guard_offbox_downgrade — never SILENTLY downgrade an off-box box to local (7a) ─
+# A missing/partial-PROFILE_BACKUP_* redeploy of an already-off-box box must not rewrite the cron to
+# same-disk local (stripping paid/PII off-box protection). The guard blocks that unless it is a true
+# first deploy ([R4]) or the operator opts in via PROFILE_BACKUP_DISABLE_OFFBOX=1.
+echo "=== TEST 7: off-box→local downgrade guard (7a) ==="
+D="$WORK/t7"; mkdir -p "$D"; CRON="$D/cron"; : > "$CRON"
+printf 'live\n' > "$D/backup.sh"; printf 'live\n' > "$D/backup.env"   # box is off-box-configured
+rc=0; guard_offbox_downgrade "local" "$CRON" "$D" || rc=$?
+[ "$rc" -ne 0 ] && ok "blocks downgrade when live backup.sh+backup.env exist" || no "should block (files present)"
+
+rc=0; ( export PROFILE_BACKUP_DISABLE_OFFBOX=1; guard_offbox_downgrade "local" "$CRON" "$D" ) || rc=$?
+[ "$rc" -eq 0 ] && ok "PROFILE_BACKUP_DISABLE_OFFBOX=1 allows an intentional downgrade" || no "opt-out should allow"
+
+D2="$WORK/t7c"; mkdir -p "$D2"; CRON2="$D2/cron"      # off-box detected via existing cron marker only
+printf '# Profile backups — Mode: offbox.\n30 2 * * * root /opt/profile/backup.sh\n' > "$CRON2"
+rc=0; guard_offbox_downgrade "local" "$CRON2" "$D2" || rc=$?
+[ "$rc" -ne 0 ] && ok "blocks downgrade when existing cron is Mode: offbox" || no "should block (offbox cron)"
+
+D3="$WORK/t7d"; mkdir -p "$D3"; CRON3="$D3/cron"; : > "$CRON3"   # true first deploy — no off-box config
+rc=0; guard_offbox_downgrade "local" "$CRON3" "$D3" || rc=$?
+[ "$rc" -eq 0 ] && ok "first deploy (no off-box config) proceeds to local skeleton [R4]" || no "first deploy should proceed"
+
+rc=0; guard_offbox_downgrade "offbox" "$CRON" "$D" || rc=$?   # off-box (re)activation, not a downgrade
+[ "$rc" -eq 0 ] && ok "off-box mode is not treated as a downgrade" || no "offbox mode should proceed"
 
 echo
 echo "==================== RESULT: $pass passed, $fail failed ===================="
