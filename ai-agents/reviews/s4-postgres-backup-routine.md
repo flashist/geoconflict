@@ -22,10 +22,19 @@ invariants preserved. The panel found one weakness in the NEW regression test (T
 matched the first `exit 1` after the `if`, not bound to the smoke-failure branch) — FIXED (anchored on the
 distinctive failure message + whole-line `exit 1`; mutant-proven to reject a removed smoke-failure exit).
 The two promotion `mv`s were made fail-loud (`&&`-guarded) so an (unreachable) torn promotion surfaces as a
-loud deploy failure instead of a silent torn-success (covered by TEST 5). **L1** exotic-loopback tail stays
-residual **[R7]**; **R5** stays retired. No open defects.
-Reviewers: Codex + Claude code-reviewer (Round-4 review) → owner-approved fix (Round-5) → 4-agent adversarial
-panel (Round-5 verify, all correct-no-regression).
+loud deploy failure instead of a silent torn-success (covered by TEST 5).
+**Round-6 re-review (2026-07-01):** both reviewers ran (Codex's FIRST job hung ~10min on its final turn —
+cancelled + re-run; the retry completed cleanly → full coverage). The N5 fix is verified CORRECT
+(redeploy test 19/19, both reviewers agree). Findings: **6a** the restore guard is a blocklist that STILL
+misses Docker-local aliases (compose container name / container IP reach the live DB) — the restore-guard
+Pareto frontier, 3rd poke → owner chose the loop-ending **default-deny structural fix**, which will
+**retire [R7]**; **6b** (migration failure leaves new API serving without rollback) is CORRECT but
+PRE-EXISTING (already in `dev`, not this diff) and out-of-scope per [R6] → tracked separately; **6c**
+(torn `mv` not atomic) re-litigates the settled Round-5 fail-loud two-mv → accepted **[R8]**; **N6**
+(bad-cred smoke pollutes `last-backup.json`) → actionable low. ⚠️ Changes requested (6a medium + N6 low);
+the N5 fix under review is itself correct.
+Reviewers: Codex + Claude code-reviewer (Round-4) → owner-approved fix (Round-5) → 4-agent adversarial
+panel (Round-5) → Codex (re-run after stall) + Claude code-reviewer (Round-6), both ran, full coverage.
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -106,6 +115,30 @@ panel (Round-5 verify, all correct-no-regression).
   "all exotic cases now blocked" wording: realistic + common are blocked; the exotic tail is accepted.
   Re-raise only if: `restore` is wired into an automated/unattended path (the target is no longer
   operator-typed), OR a real drill runbook is found to emit one of these encodings.
+  > **SUPERSEDED-PENDING (Round 6, 2026-07-01):** Round 6 (finding **6a**) showed the guard also misses
+  > NON-loopback Docker-local aliases — the compose **container name** (`profile-postgres-1`) and the
+  > **container IP** both reach the live DB from inside the `postgres` container. That's the SAME
+  > blocklist Pareto frontier, 3rd poke (empty-host R3 → loopback R4/R7 → container-alias R6). Owner
+  > decision 2026-07-01: adopt the loop-ending **default-deny** fix (require the dated confirm unless the
+  > target is an explicit allowlisted remote, or resolve-and-compare against the live container). Once
+  > that lands it closes empty-host + loopback + container-alias + any future live-reaching name in one
+  > move → **delete this [R7] residual**. Until then: the exotic tail stays accepted, and container
+  > name/IP is a KNOWN open gap (6a, Open/actionable) — do NOT add per-name blocklist patches.
+
+- **Two-`mv` backup-config promotion is fail-loud, not symlink-atomic [R8]** —
+  What: `promote_offbox_backup` promotes the candidate `backup.sh` then `backup.env` with two
+  sequential `mv -f` (`&&`-chained). It is not a single atomic switch; a (near-impossible) script-mv-success
+  + env-mv-fail leaves new-script + old-env and returns non-zero.
+  Why (structural): both are intra-directory `rename(2)`s on the same filesystem, which do not fail on a
+  working box; the `&&`-chain is fail-loud (any mv failure → return 1 → deploy `exit 1`), and TEST 5
+  proves it. The realistic torn state (new script + old **working** env) still functions — the old env is
+  the last-known-good config. A versioned-dir + single-symlink-switch would be truly atomic but adds real
+  complexity for a failure mode that cannot occur with intra-dir renames. Round-5 deliberately chose
+  fail-loud-two-mv; Codex-6c (Round 6) re-proposed the symlink approach — a re-litigation of that settled
+  choice, impact overstated ("can break nightly backups" only under cred-rotation-with-revoked-old-creds +
+  the impossible mv failure).
+  Re-raise only if: promotion is ever moved across filesystems (rename no longer atomic/reliable), OR a
+  real torn promotion is observed in prod.
 
 ## Decision log
 
@@ -208,12 +241,42 @@ re-poke the loopback frontier — it converged onto a substantive NEW regression
   now rejected. Added **TEST 5** for the fail-loud `&&`-guarded promotion (env `mv` failure → non-zero,
   no torn success).
 
+## Round 6 — re-review of the N5 fix (2026-07-01)
+
+Full two-reviewer coverage. Codex's FIRST Round-6 job HUNG ~10min on its final synthesis turn (log
+frozen; captured only a partial "data-loss hazard in the restore" hint) → cancelled + re-run; the retry
+completed in 1m49s → full coverage (reported loudly, not a partial review). The N5 atomic-install fix is
+verified CORRECT: redeploy regression test **19/19** (drives the real extracted `promote_offbox_backup()`),
+`bash -n` clean, both reviewers agree on correct promotion sequencing, sound `set -e`/`&&` handling, and
+`exit 1` before the cron write.
+
+| # | Finding | Verdict | Action |
+|---|---------|---------|--------|
+| 6 | **N5 fix verified** — candidate staged to `.new`, smoke runs against the candidate env, promote (`mv -f` both) only on pass, prior config preserved on failure; first-deploy stays fail-closed | CORRECT (both reviewers + local 19/19 test run) | **Closed** — N5 confirmed correct. |
+| 6 | **6a** the restore guard is STILL a blocklist (`postgres\|localhost\|127.*\|::1\|…`) and misses NON-loopback Docker-local aliases — the compose **container name** (`profile-postgres-1`) and **container IP** reach the live DB from inside the `postgres` container → `pg_restore --clean` can drop live tables (profile-backup.sh:206-220) — Codex critical | CORRECT → **medium** (downgraded: manual-drill-only — cron never restores; backstopped by the dated confirm + "distinct throwaway REMOTE host" usage text; but container-name is grab-from-`docker ps` plausible). Same restore-guard **Pareto frontier** as [R7] — 3rd poke | **Open/actionable** (owner decision 2026-07-01) — adopt the loop-ending **default-deny** fix (Codex's own recommendation): require the dated confirm unless the target is an explicit allowlisted remote, or resolve-and-compare against the live container. Closes empty-host + loopback + container-alias + any future name → **retires [R7]**. Add tests for container-name + container-IP targets (must refuse). |
+| 6 | **6b** migration failure leaves the new `profile-api` build serving old/partial schema behind the already-live nginx, no rollback (setup-profile.sh migrate `dev:524`, recreate `dev:455/483`) — Codex high | CORRECT but **PRE-EXISTING** (already in `dev`, NOT in this PR's diff) and **out-of-scope per [R6]** (migration-safety rollback boundary explicitly deferred from T8) | **Suppressed for T8 + tracked separately** (owner decision 2026-07-01) — valid deploy-pipeline concern; belongs to a SEPARATE profile-deploy/migration-safety task, not this backup PR. Not a T8 blocker. |
+| 6 | **6c** `promote_offbox_backup` two sequential `mv`s are not a single atomic switch (torn script-mv-success + env-mv-fail) — Codex medium | PARTIALLY CORRECT → **very low**; **re-litigates** the Round-5 fail-loud-two-mv decision (TEST 5 covers it); impact overstated (torn state = new-script + old-working-env still functions; intra-dir rename can't fail) | **Accepted residual [R8]** (owner decision 2026-07-01) — fail-loud two-mv is sufficient; do NOT re-propose the symlink approach. |
+| 6 | **N6** on a bad-cred redeploy the candidate smoke overwrites the shared `last-backup.json` with a FAILURE marker, contradicting the fix's "previously-working backup left untouched" message; self-heals at the next nightly run (profile-backup.sh `on_exit` :77-82, setup smoke) — Claude low/warning | CORRECT → **low** (novel, in-scope; observability inconsistency, not data-loss; no monitor live yet per [R3]) | **Open/actionable** (owner decision 2026-07-01) — write the deploy-time smoke's marker to a SEPARATE path (e.g. `last-smokecheck.json`) so `last-backup.json` stays owned by the nightly cron; or (min) a one-line note in the failure output that the marker reflects the smoke, not the last nightly. |
+| 6 | Test-polish nits — TEST 2 `grep` vs `cmp`; TEST 4 cron-grep portability; TEST 5 doesn't assert `backup.sh`'s torn state — Claude suggestions | CORRECT → **very low** (non-defects; Linux-target) | **Optional** — nice-to-have test tightening; not required. |
+
 ## Open / actionable
 
-**No open defects.** N1 + N3 (Round 4) and N5 (Round 5) are all implemented and verified. L1 → accepted
-residual [R7]; R5 stays retired. Validation carried forward: `bash -n` clean on all changed scripts;
-`tests/profile-backup-redeploy.sh` 19/19; N1 guard classification re-validated against the full URL
-battery (empty/loopback → refuse, remote → proceed); N1 TEST 5 in the dockerized harness green.
+Actionable this round (owner decision 2026-07-01):
+
+- **6a** — replace the restore-guard blocklist with **default-deny**: require `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC>`
+  unless the target is an explicit allowlisted distinct remote (or resolve the target from inside the container and
+  compare against the live postgres container's hostname/IPs). This closes the Docker-local-alias bypass AND the
+  loopback tail in one structural move → then **delete [R7]**. Add restore-guard tests for a container-name and a
+  container-IP target (must refuse) + a legit remote (must proceed).
+- **N6** — stop the deploy-time smoke from clobbering the nightly `last-backup.json`: write the smoke result to a
+  separate marker (e.g. `last-smokecheck.json`), or at minimum print a note that the shown marker is the smoke's, not
+  the last nightly run's.
+
+Tracked separately (NOT a T8 blocker):
+- **6b** — migration-failure rollback for `profile-api` (pre-existing deploy-pipeline concern, out-of-scope per [R6]).
+  Recommend a separate profile-deploy/migration-safety task.
+
+Settled / no action: 6c → [R8]; test-polish nits → optional. N5/N1/N3/B1–B6 → closed. R5 retired; R7 pending-retirement on the 6a fix.
 
 ## Convergence note (Round 1)
 
