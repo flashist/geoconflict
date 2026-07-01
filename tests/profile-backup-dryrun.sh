@@ -261,5 +261,30 @@ BEFORE="$(cksum < "$MARKER")"   # snapshot last-backup.json (a prior test left a
   || no "override run clobbered last-backup.json"
 
 echo
+echo "=== TEST 8: retention=0 is rejected BEFORE any prune (C-ret) ==="
+# A literal PROFILE_BACKUP_RETENTION_DAILY_DAYS=0 would make `rclone delete --min-age 0d` wipe the
+# just-uploaded object. The fix validates retention as a positive integer and dies BEFORE the
+# dump/upload/prune — so the run fails closed and any pre-existing daily object is untouched. (Marker
+# override keeps this probe off the shared last-backup.json.)
+DAILY_BEFORE="$( set -a; . "$WORK/backup.env"; set +a; rclone lsf "profiles:$BUCKET/profiles/daily/" )"
+cp "$WORK/backup.env" "$WORK/backup-ret0.env"
+printf 'PROFILE_BACKUP_RETENTION_DAILY_DAYS=0\n' >> "$WORK/backup-ret0.env"   # last assignment wins on source
+RET0_MARKER="$WORK/backups/last-ret0.json"
+set +e
+out="$( cd "$REPO_ROOT" && PROFILE_DIR="$WORK" BACKUP_DIR="$WORK/backups" \
+    PROFILE_BACKUP_ENV_FILE="$WORK/backup-ret0.env" PROFILE_BACKUP_MARKER_FILE="$RET0_MARKER" \
+    bash "$BACKUP_SCRIPT" backup 2>&1 )"
+rc=$?
+set -e
+[ "$rc" -ne 0 ] && printf '%s' "$out" | grep -qi 'RETENTION_DAILY_DAYS' \
+  && ok "retention=0 fails closed with a retention error (rc=$rc)" || no "retention=0 not rejected (rc=$rc)"
+[ -f "$RET0_MARKER" ] && jq -e '.exit_status != 0' "$RET0_MARKER" >/dev/null \
+  && ok "failure marker written for retention=0" || no "no failure marker for retention=0"
+DAILY_AFTER="$( set -a; . "$WORK/backup.env"; set +a; rclone lsf "profiles:$BUCKET/profiles/daily/" )"
+[ -n "$DAILY_AFTER" ] && [ "$DAILY_BEFORE" = "$DAILY_AFTER" ] \
+  && ok "pre-existing daily backup survived (died before the prune)" \
+  || no "daily backup changed (before='$DAILY_BEFORE' after='$DAILY_AFTER')"
+
+echo
 echo "==================== RESULT: $pass passed, $fail failed ===================="
 [ "$fail" -eq 0 ]

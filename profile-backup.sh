@@ -119,6 +119,16 @@ do_backup() {
   : "${PROFILE_BACKUP_AGE_RECIPIENT:?PROFILE_BACKUP_AGE_RECIPIENT not set in $ENV_FILE}"
   local retain_daily="${PROFILE_BACKUP_RETENTION_DAILY_DAYS:-14}"
   local retain_weekly="${PROFILE_BACKUP_RETENTION_WEEKLY_DAYS:-56}"
+  # C-ret: retention MUST be a positive integer. `${VAR:-N}` defaults only on unset/empty, so a literal
+  # `0` (a common but WRONG "keep forever" mental model — `--min-age 0d` means "older than 0 days" =
+  # EVERYTHING, incl. the object uploaded seconds later) or a non-numeric typo would flow straight into
+  # `rclone delete --min-age` (step 6) and delete the fresh backup while write_marker still records
+  # success. Fail closed BEFORE any dump/upload/prune — the B2 deploy smoke exercises this, so a poison
+  # value can't even ship; a directly-edited backup.env fails the nightly run loud without deleting anything.
+  case "$retain_daily"  in ''|*[!0-9]*) die "PROFILE_BACKUP_RETENTION_DAILY_DAYS must be a positive integer number of days (got '$retain_daily')" ;; esac
+  case "$retain_weekly" in ''|*[!0-9]*) die "PROFILE_BACKUP_RETENTION_WEEKLY_DAYS must be a positive integer number of days (got '$retain_weekly')" ;; esac
+  [ "$retain_daily"  -ge 1 ] || die "PROFILE_BACKUP_RETENTION_DAILY_DAYS must be >= 1 (got '$retain_daily' — 0 would delete the just-uploaded backup)"
+  [ "$retain_weekly" -ge 1 ] || die "PROFILE_BACKUP_RETENTION_WEEKLY_DAYS must be >= 1 (got '$retain_weekly' — 0 would delete the just-uploaded backup)"
 
   local today name daily_key
   today="$(date -u +%Y-%m-%d)"

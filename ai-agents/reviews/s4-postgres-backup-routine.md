@@ -11,8 +11,8 @@ PR: #129 (branch `s4-profile-06-match-end-crediting` → `dev`)
 
 File(s) under review: profile-backup.sh (new), setup-profile.sh, build-deploy-profile.sh,
 example.env.profile (new), tests/profile-backup-dryrun.sh (new), .gitignore, plus docs/wiki.
-Status: IN-REVIEW (Round 8, 2026-07-01) — one open NON-blocking defect (C-ret, retention validation)
-pending a separate fix; all Rounds 1–7 items RESOLVED. Round-5 (2026-07-01) implemented the **N5** atomic backup-config install fix and
+Status: RESOLVED — Round-8 fix (2026-07-01) validated backup retention values (C-ret); all Rounds 1–8
+items implemented and verified, NO open T8 defects. Round-5 (2026-07-01) implemented the **N5** atomic backup-config install fix and
 adversarially re-verified it. `setup-profile.sh` now stages the candidate `backup.sh.new`/`backup.env.new`
 and promotes them over the live files ONLY after a passing deploy-time smoke check (new
 `promote_offbox_backup()` helper, `PROFILE_BACKUP_ENV_FILE` candidate override); a failed redeploy leaves
@@ -53,10 +53,12 @@ dockerized harness **21/21** (TEST 2 confirms `--single-transaction` is regressi
 on the current diff after the Round-7 fix landed. Both confirm 7a/7b correct (Claude mutation-tested TEST 7 +
 checked `--single-transaction` against `migrations/001`; neither re-raised R1–R9). ONE genuinely-new low/med
 defect surfaced — **C-ret** (retention values are unvalidated; a literal `PROFILE_BACKUP_RETENTION_*=0` →
-`rclone delete --min-age 0d` wipes the just-uploaded backup while a success marker is still written) — accepted
-as an OPEN defect to fix (owner decision 2026-07-01: "fix now"; NON-blocking — safe defaults ship). Codex's
-restore-guard URL-parse re-raise was suppressed as settled **[R9]**; a very-low fail-safe wart (**O-dg**) noted.
-See Round 8 + Open/actionable below.
+`rclone delete --min-age 0d` wipes the just-uploaded backup while a success marker is still written). **Round-8
+fix (2026-07-01):** `do_backup` now validates both retention vars as positive integers and `die`s BEFORE any
+dump/upload/prune — so a poison value fails the B2 deploy smoke closed AND fails a directly-misconfigured nightly
+run loud, deleting nothing. Harness TEST 8 added; a 2-lens adversarial panel returned **correct-no-regression**
+(incl. the all-zero `00`/`000` + leading-zero cases). Codex's restore-guard URL-parse re-raise was suppressed
+as settled **[R9]**; **O-dg** (fail-safe, optional) + **Cl-txn** (settled) → no action.
 Reviewers: Codex + Claude code-reviewer (Round-4) → fix (Round-5) → panel (Round-5) → Codex + Claude
 code-reviewer (Round-6) → owner-approved fix (Round-6) → 4-agent adversarial panel (Round-6, all correct-no-regression).
 
@@ -76,7 +78,9 @@ code-reviewer (Round-6) → owner-approved fix (Round-6) → 4-agent adversarial
   prune, log a WARNING and continue; the run still reports SUCCESS (marker exit_status 0).
   Why (structural): both run AFTER the daily object is uploaded AND size-verified off-box, so the
   match's data is already safe; failing the whole backup over a best-effort prune/copy would be a
-  worse signal. `--min-age` can never delete the just-uploaded object.
+  worse signal. `--min-age` can never delete the just-uploaded object — an invariant now GUARANTEED by
+  the C-ret retention validation (Round 8: retention is forced ≥ 1 day, so the fresh <1d-old object is
+  always excluded from the prune). Before C-ret a literal `PROFILE_BACKUP_RETENTION_*=0` broke this.
   Re-raise only if: a prune/weekly failure can cause actual data loss or unbounded cost/growth
   that matters in prod.
 
@@ -371,39 +375,38 @@ coverage — NOT a partial review.
 | 8 | **O-dg** intentional downgrade (`PROFILE_BACKUP_DISABLE_OFFBOX=1`) leaves stale `backup.sh`/`backup.env`, so a later *plain* local redeploy that omits the flag is blocked by `guard_offbox_downgrade`'s file-existence branch (setup-profile.sh:808-809) — orchestrator | CORRECT → **very low**, **fail-safe** (refuses rather than silently downgrading; a non-issue when the flag is persisted in `.env.profile`) | **Optional / no action required** (owner decision 2026-07-01) — optional cleanup noted in Open/actionable; not a blocker. |
 | 8 | **Cl-txn** `--single-transaction` rollback property has no forced-rollback test — Claude informational | Not novel — matches the ledger's Round-7 note (forced-rollback test deemed too fragile; inspection-verified); Claude re-confirmed the conclusion holds | **No action** — settled optional gap. |
 
+## Round-8 fix — implemented + adversarially verified (2026-07-01)
+
+- **C-ret — RESOLVED.** `profile-backup.sh do_backup` now validates `PROFILE_BACKUP_RETENTION_DAILY_DAYS` and
+  `_WEEKLY_DAYS` (right after the `${VAR:-14}`/`${VAR:-56}` resolution, before any dump/upload/prune): two `case`
+  guards reject empty/non-numeric and two `[ -ge 1 ]` guards reject `0`, each `die`-ing with a clear message.
+  A poison value (`0`/non-numeric) fails closed BEFORE the destructive `rclone delete --min-age` — the B2 deploy
+  smoke fails the deploy closed (a poison value can't ship) and a directly-edited `backup.env` fails the nightly
+  run loud (failure marker + non-zero), deleting nothing. Corrects [R2]'s "`--min-age` can never delete the
+  just-uploaded object" claim (now GUARANTEED by validation, not merely asserted).
+- **Test:** dockerized harness **TEST 8** — `retention=0` → non-zero + a RETENTION error + a failure marker
+  (on a scratch `PROFILE_BACKUP_MARKER_FILE`) + the pre-existing daily object UNCHANGED (died before the prune).
+  Non-tautological (would fail on revert).
+- **Adversarial verification (2-lens panel — correctness+bypass, regression+test):** both **correct-no-regression**.
+  Confirmed every dangerous value is rejected (incl. the all-zero `00`/`000` forms — pass the digit-only `case`
+  but caught by `-ge 1`; no leading-zero octal footgun in `[ ]`), every legit value (1/14/56/365) passes, the
+  die fires before any object is created/deleted, weekly is validated symmetrically, and [R2]'s non-fatal
+  prune-failure path is untouched. Informational-only: a >18-digit value emits stderr noise but still fails
+  closed (non-issue, unrealistic config).
+- **Validation:** dockerized harness **24/24**, Docker-free redeploy suite **27/27**, `bash -n` clean.
+
 ## Open / actionable
 
-**Open (Round 8, low/med — NON-blocking): C-ret — validate retention values.**
-`profile-backup.sh` reads `PROFILE_BACKUP_RETENTION_DAILY_DAYS`/`_WEEKLY_DAYS` with `${VAR:-14}`/`${VAR:-56}`
-(defaults only on unset/empty, NOT on `0`) and passes them straight to `rclone delete --min-age "${n}d"`
-(`:120-121`, `:173-174`) with no validation anywhere (setup-profile.sh writes them verbatim via `%q` at
-`:858-859`). A literal `0` → `--min-age 0d` matches every object incl. the one uploaded seconds earlier → the
-daily (and, on a Sunday, weekly) backup is deleted, while `write_marker 0` (`:178`) still records success
-pointing at the now-deleted key. Blast radius is exactly the value `0` (empty→safe default; non-numeric→rclone
-rejects the duration→non-fatal prune failure, nothing deleted; `≥1`→fresh object safely under 1d). Realistic
-because `0`="keep forever/disable pruning" is an intuitive-but-wrong mental model. Fix (owner decision
-2026-07-01, "fix now"): validate both retention vars as positive integers (reject `0`/empty/non-numeric,
-enforce a sane minimum) and fail closed BEFORE any prune; optionally re-verify the just-uploaded object still
-exists after the prune before writing the success marker. Add a regression test (retention `0` → refuses,
-fresh object survives). NOT merge-blocking — shipped defaults (14/56) are safe; this hardens against operator
-misconfig. **NOTE: the fix is NOT applied by this review (review-only) — it is a separate, user-initiated step.**
-
-**Optional / very-low (fail-safe, orchestrator-found): O-dg.** An intentional downgrade
-(`PROFILE_BACKUP_DISABLE_OFFBOX=1`) does not remove the off-box `backup.sh`/`backup.env`, so
-`guard_offbox_downgrade`'s file-existence branch (setup-profile.sh:808-809) would BLOCK a later *plain* local
-redeploy that omits the flag (fail-safe: it refuses rather than silently downgrading, and is a non-issue when
-the flag is set persistently in `.env.profile`). Optional cleanup: `rm -f` the off-box artifacts on the
-intentional-downgrade path, or have the guard treat a `Mode: local` cron as already-downgraded. Not required.
-
-Resolved (Rounds 1–7): 7a + 7b (Round 7), 6a + N6 (Round 6), N5 (Round 5), N1 + N3 (Round 4), B1–B6
-(Rounds 1–2) — all implemented and verified. [R5]/[R7] retired; [R8]/[R9] accepted.
+**No open T8 defects.** C-ret (Round 8), 7a + 7b (Round 7), 6a + N6 (Round 6), N5 (Round 5), N1 + N3 (Round 4),
+B1–B6 (Rounds 1–2) are all implemented and verified. [R5]/[R7] retired; [R8]/[R9] accepted.
 
 Tracked separately (NOT a T8 blocker):
 - **6b** — migration-failure rollback for `profile-api` (pre-existing in `dev`, out-of-scope per [R6]).
   Recommend a separate profile-deploy / migration-safety task.
 
-Settled / no action: 6c → [R8]; partial single-file off-box state → [R8]; 7b forced-rollback test → optional
-(re-confirmed Round 8); test-polish nits → optional.
+Settled / no action: **C-guard** → [R9]; **O-dg** → fail-safe (optional cleanup — `rm -f` the off-box artifacts
+on the `PROFILE_BACKUP_DISABLE_OFFBOX=1` path — not required); **Cl-txn** / 7b forced-rollback test → optional;
+6c + partial single-file off-box state → [R8]; test-polish nits → optional.
 
 ## Convergence note (Round 1)
 
