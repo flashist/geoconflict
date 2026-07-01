@@ -186,38 +186,47 @@ Usage: profile-backup.sh restore <s3-key> <age-identity-file> <target-database-u
   <age-identity-file> the OFF-BOX age private identity (age-keygen output). NEVER stored on the box.
   <target-database-url> a THROWAWAY/staging DB to restore into — never the live profile DB.
 
-  Refuses a target that reaches the LIVE DB (host postgres / localhost / 127.0.0.1) unless
-  PROFILE_RESTORE_CONFIRM_LIVE=<today's UTC date, YYYY-MM-DD> is set (real in-place recovery).
+  <target-database-url> must point at a DISTINCT THROWAWAY REMOTE host. Any local/loopback target
+  (empty host / Unix socket, postgres, localhost, 127.x, ::1, ...) reaches the LIVE DB and is
+  refused unless PROFILE_RESTORE_CONFIRM_LIVE=<today's UTC date, YYYY-MM-DD> is set (in-place recovery).
 USAGE
     exit 2
   fi
   load_env
   [ -f "$identity" ] || die "age identity file not found: $identity"
 
-  # B1: `restore` is a manual drill and `pg_restore --clean --if-exists` DROPs objects in $target.
-  # Refuse a target whose HOST reaches the running profile DB (compose service `postgres`, or
-  # loopback) unless an explicit dated confirm is set. Keyed on HOST, not db name: a throwaway
-  # drill DB is legitimately also named "profile", so a name check would block every drill; a
-  # fresh replacement box has a different host, so real disaster recovery is unaffected. Only an
-  # in-place restore into the live container needs the override.
-  local tgt_host today_utc
-  tgt_host="${target#*://}"; tgt_host="${tgt_host#*@}"; tgt_host="${tgt_host%%[:/]*}"
+  # B1/N1: `restore` is a manual drill; `pg_restore --clean --if-exists` DROPs objects in $target,
+  # and pg_restore runs INSIDE the postgres container — so an empty/omitted host connects over the
+  # container's local Unix socket straight to the LIVE DB. FAIL CLOSED BY DEFAULT: require the dated
+  # confirm for ANY target that is not a provably-distinct REMOTE host. Keyed on HOST not db name (a
+  # throwaway drill DB is legitimately also named "profile"); a distinct remote host (drill target /
+  # replacement box) proceeds with no confirm. IPv6-aware extraction so [::1] isn't mangled to '['.
+  local tgt_host rest today_utc is_local=0
+  rest="${target#*://}"; rest="${rest#*@}"
+  if [ "${rest#\[}" != "$rest" ]; then
+    tgt_host="${rest#\[}"; tgt_host="${tgt_host%%\]*}"   # bracketed IPv6: [::1]:5432/db -> ::1
+  else
+    tgt_host="${rest%%[:/]*}"                            # host:port/db or host/db -> host
+  fi
   today_utc="$(date -u +%Y-%m-%d)"
-  # Case-insensitive match: Docker's embedded DNS resolves `POSTGRES` == `postgres`, so a
-  # case-variant host would otherwise reach the live DB and slip past the block. (Exotic
-  # loopback spellings — IPv6 [::1], 2130706433 — are out of scope; the runbook uses literal
-  # lowercase hosts. The `[ ]` confirm check below is unaffected by nocasematch, so the dated
-  # confirm stays an exact match.)
-  shopt -s nocasematch
-  case "$tgt_host" in
-    postgres|localhost|127.0.0.1)
-      if [ "${PROFILE_RESTORE_CONFIRM_LIVE:-}" != "$today_utc" ]; then
-        die "refusing to restore into LIVE DB host '$tgt_host' — --clean --if-exists would DROP live data. This target reaches the running profile DB, not a throwaway. For a real in-place recovery, re-run with PROFILE_RESTORE_CONFIRM_LIVE=$today_utc"
-      fi
-      log "PROFILE_RESTORE_CONFIRM_LIVE matches $today_utc — proceeding with LIVE in-place restore into '$tgt_host'"
-      ;;
-  esac
-  shopt -u nocasematch
+  if [ -z "$tgt_host" ]; then
+    is_local=1                                           # omitted host -> libpq local socket -> LIVE DB
+  else
+    # Case-insensitive: Docker DNS resolves POSTGRES == postgres. The `[ ]` confirm test below is
+    # NOT affected by nocasematch, so the dated confirm stays an exact string match.
+    shopt -s nocasematch
+    case "$tgt_host" in
+      postgres|localhost|0.0.0.0|::1|2130706433|0x7f*|0177.*) is_local=1 ;;
+      127.*) is_local=1 ;;                               # entire 127.0.0.0/8 loopback range
+    esac
+    shopt -u nocasematch
+  fi
+  if [ "$is_local" = "1" ] && [ "${PROFILE_RESTORE_CONFIRM_LIVE:-}" != "$today_utc" ]; then
+    die "refusing to restore into non-remote target (host='${tgt_host:-<empty/socket>}') — pg_restore runs inside the postgres container so this reaches the LIVE profile DB, and --clean --if-exists would DROP its data. Point at a distinct throwaway REMOTE host, or for a real in-place recovery re-run with PROFILE_RESTORE_CONFIRM_LIVE=$today_utc"
+  fi
+  if [ "$is_local" = "1" ]; then
+    log "PROFILE_RESTORE_CONFIRM_LIVE matches $today_utc — proceeding with confirmed in-place restore into '${tgt_host:-<socket>}'"
+  fi
 
   # EXIT trap (global RESTORE_TMP) so the decrypted plaintext is removed even if a later step
   # dies — die() exits, which a RETURN trap would miss. restore writes no backup marker.

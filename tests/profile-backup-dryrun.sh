@@ -190,11 +190,13 @@ jq -e '.exit_status != 0 and .error != null' "$MARKER" >/dev/null \
 echo
 echo "=== TEST 4: Sunday weekly-copy branch (force date +%u -> 7 via a PATH shim) ==="
 mkdir -p "$WORK/bin"
-cat > "$WORK/bin/date" <<'SHIM'
+REAL_DATE="$(command -v date)"   # resolve now, before $WORK/bin shadows date on PATH (N3)
+cat > "$WORK/bin/date" <<SHIM
 #!/usr/bin/env bash
-# Test shim: pretend it's Sunday for the weekday check; pass every other date call through.
-for a in "$@"; do [ "$a" = "+%u" ] && { echo 7; exit 0; }; done
-exec /bin/date "$@"
+# Test shim: pretend it's Sunday for the weekday check; pass every other date call through to the
+# REAL date (absolute path baked in — a "command -v date" here would just re-resolve to this shim).
+for a in "\$@"; do [ "\$a" = "+%u" ] && { echo 7; exit 0; }; done
+exec "$REAL_DATE" "\$@"
 SHIM
 chmod +x "$WORK/bin/date"
 # Clear weekly/ first so the assertion proves TEST 4's shim created the object — otherwise, if
@@ -205,6 +207,28 @@ chmod +x "$WORK/bin/date"
 WEEKLY="$( set -a; . "$WORK/backup.env"; set +a; rclone lsf "profiles:$BUCKET/profiles/weekly/" )"
 [ -n "$WEEKLY" ] && ok "Sunday branch wrote a weekly/ object: $WEEKLY" \
   || no "no weekly/ object created on the forced-Sunday run"
+
+echo
+echo "=== TEST 5: restore guard refuses live/empty-host targets (N1, fail-closed-by-default) ==="
+# The guard runs after load_env + the identity check but BEFORE any download/pg_restore, so a
+# refused target exits non-zero WITH the guard's message and never touches a DB. (Remote-host
+# proceed is already covered by TEST 2's successful restore into `restore-target`.)
+guard_refuses() { # <label> <target-url>
+  local out rc
+  set +e
+  out="$( cd "$REPO_ROOT" && PROFILE_DIR="$WORK" BACKUP_DIR="$WORK/backups" \
+      bash "$BACKUP_SCRIPT" restore "profiles/daily/$OBJ" "$WORK/identity.txt" "$2" 2>&1 )"
+  rc=$?
+  set -e
+  if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -q 'refusing to restore into non-remote'; then
+    ok "guard refuses $1"
+  else
+    no "guard FAILED to refuse $1 (rc=$rc)"
+  fi
+}
+guard_refuses "empty-host / Unix socket (postgresql:///profile)" "postgresql:///profile"
+guard_refuses "IPv6 loopback [::1]"                              "postgresql://profile:test@[::1]:5432/profile"
+guard_refuses "localhost"                                        "postgresql://profile:test@localhost:5432/profile"
 
 echo
 echo "==================== RESULT: $pass passed, $fail failed ===================="

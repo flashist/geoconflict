@@ -11,16 +11,13 @@ PR: #129 (branch `s4-profile-06-match-end-crediting` → `dev`)
 
 File(s) under review: profile-backup.sh (new), setup-profile.sh, build-deploy-profile.sh,
 example.env.profile (new), tests/profile-backup-dryrun.sh (new), .gitignore, plus docs/wiki.
-Status: IN-REVIEW — Round-3 re-review (2026-07-01) of the implemented B1–B6 fixes. Both reviewers
-+ an empirical guard trace confirm all six fixes correct/regression-free on realistic paths. One
-NOVEL gap found: **N1** — the B1 restore guard is bypassed by empty-host/Unix-socket targets
-(`postgresql:///db`) → `pg_restore --clean` reaches the LIVE DB via the container's local socket.
-Open/actionable; to be fixed STRUCTURALLY (fail-closed-by-default), which **retires [R5]**. N2
-accepted as residual [R6]; N3 optional portability nit; N4 informational. ⚠️ Changes requested —
-the DAILY-BACKUP path is unaffected (the gap is the manual-restore guard only), so not
-merge-blocking for the backup routine itself, but fix N1 before relying on the restore drill.
-Reviewers: Codex (adversarial, verdict needs-attention) + Claude (code-reviewer agent, 0 high) —
-both ran, full coverage.
+Status: RESOLVED — Round-3 re-review (2026-07-01) + Round-3 fix. All B1–B6 confirmed
+correct/regression-free; the one novel gap **N1** (empty-host/Unix-socket restore bypass) is
+FIXED with a fail-closed-by-default, IPv6-aware guard (empirically validated: every empty/loopback
+form REFUSED, drill/remote hosts proceed) — this also **retired [R5]** (its exotic cases are now
+blocked, not merely accepted). N3 fixed (but NOT as the handoff suggested — `command -v date`
+recurses; used a bake-in instead). N2→[R6], N4→informational. No open defects; not merge-blocking.
+Reviewers: Codex (adversarial) + Claude (code-reviewer agent), both ran, full coverage.
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -58,27 +55,13 @@ both ran, full coverage.
   on. The local skeleton is explicitly labelled "dies with the box — not a real backup".
   Re-raise only if: the local skeleton is ever presented/relied on as a real off-box backup.
 
-- **B1 restore guard covers realistic hosts only; exotic loopback spellings pass through [R5]** —
-  What: the B1 live-DB guard blocks `postgres|localhost|127.0.0.1` (case-insensitively, per the
-  Round-2 hardening). It does NOT block IPv6 loopback `[::1]`, numeric loopback (`2130706433`,
-  `0x7f000001`), or a target whose password literally contains `@` (naive `#*@` split).
-  Why (structural): `restore` is a manual drill; the runbook pastes literal lowercase service
-  names / `127.0.0.1`. The `@`-in-password case is already system-wide breakage — `setup-profile.sh`
-  builds the live `DATABASE_URL` with the same naive `:PASSWORD@host` scheme, so an `@`-password
-  breaks the deployment independently. Guarding these adds real bash-URL-parsing complexity for
-  inputs no operator produces. The guard is defense-in-depth over usage text + a comment, not the
-  sole safety.
-  Re-raise only if: restore is ever wired into an automated/unattended path (then the input is no
-  longer operator-typed and exotic spellings matter), or POSTGRES_PASSWORD is allowed to contain `@`.
-  > **SUPERSEDED-PENDING (Round 3, 2026-07-01):** R5's premise ("guarding these adds real
-  > URL-parsing complexity for inputs no operator produces") does NOT hold for the empty-host /
-  > Unix-socket case — see **N1** (Round 3), which extracts `host=""` for `postgresql:///db` and
-  > reaches the LIVE DB via the container's local socket. N1 is a genuine gap OUTSIDE R5, not
-  > R5 re-litigation. The chosen N1 fix is STRUCTURAL (fail-closed unless the target is a provably
-  > distinct remote host), which closes empty-host AND subsumes R5's exotic cases — so **once the
-  > N1 fix lands, delete this R5 residual** (the exotic spellings will then be blocked too, not
-  > merely accepted). Until then: the R5 exotic cases stay suppressed; the empty-host case is
-  > OPEN (N1), not accepted.
+- **[R5] — RETIRED (Round 3, 2026-07-01).** Was: "B1 guard blocks realistic hosts only; exotic
+  loopback spellings (`[::1]`, `2130706433`/`0x7f000001`, `@`-in-password) pass through — accepted
+  as defense-in-depth." The **N1** structural fix (fail-closed-by-default + IPv6-aware host
+  extraction) now REFUSES empty-host/Unix-socket, `[::1]`/`::1`, `0.0.0.0`, the `127.0.0.0/8` range,
+  and numeric/hex loopback — so these are blocked, not merely accepted. Do NOT re-add a
+  per-spelling residual here; the guard is now structural (require the dated confirm for anything
+  that isn't a provably-distinct remote host).
 
 - **Deploy-time backup smoke check runs AFTER the API/nginx/migrations are live [R6]** —
   What: `setup-profile.sh` brings the stack up + migrates (`:491`, `:561`) and configures nginx
@@ -136,19 +119,27 @@ correct and regression-free. One novel gap surfaced.
 | 3 | **N4** B2 smoke check writes a real dated encrypted object to PROD S3 (`profiles/daily/profile-YYYY-MM-DD.dump.age`) — Claude informational | CORRECT → **informational** (intended first backup; documented in the inline comment) | **No action** — expected behavior; operators should expect the object after the initial deploy. |
 | 3 | Exotic-spelling guard bypasses — IPv6 `[::1]`, numeric loopback `2130706433`/`0x7f000001`, `@`-in-password — Codex (the other half of R3-1) | `isReal` but **matches [R5]** | **Suppressed as settled** — R5; re-raise condition (automated restore path / `@`-password) not met. Moot once the N1 structural fix lands and retires R5. |
 
+## Round-3 fix — implemented (2026-07-01)
+
+- **N1 — RESOLVED.** Replaced the blocklist guard with a fail-closed-by-default, IPv6-aware guard in
+  `profile-backup.sh` `do_restore`: extract the host (IPv6-bracket aware so `[::1]`→`::1`), and
+  unless it is a provably-distinct REMOTE host, require `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC>`.
+  Empirically validated — every empty/loopback form (`postgresql:///profile`, `://:5432/`, `@/`,
+  `[::1]`, `2130706433`, `127.*`, `0.0.0.0`, `localhost`, `postgres`/`POSTGRES`) REFUSED, while
+  `restore-target` + real remote hosts proceed (no drill regression). Added TEST 5 to
+  `tests/profile-backup-dryrun.sh` (empty-host + `[::1]` + `localhost` refused, asserted by
+  exit-code + guard message). → **[R5] retired.**
+- **N3 — RESOLVED (NOT as the handoff recommended).** `exec "$(command -v date)"` was empirically
+  shown to **infinitely recurse** — the shim is first on PATH, so `command -v date` re-resolves to
+  the shim itself (reproduced: 4× re-entry before a depth guard stopped it). Fixed instead by baking
+  the harness-resolved real `date` path into the shim at generation time (`REAL_DATE="$(command -v
+  date)"` captured BEFORE `$WORK/bin` shadows `date`).
+
 ## Open / actionable
 
-Actionable this round (owner decision 2026-07-01) — the DAILY-BACKUP path is unaffected; these are
-the manual-restore guard + a test nit, so not merge-blocking for the backup routine itself:
-
-- **N1** — replace the blocklist restore guard with a **fail-closed-by-default** check: require
-  `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC>` unless `$target` is a provably distinct REMOTE host
-  (non-empty host AND not `postgres`/`localhost`/loopback/Unix-socket). This closes the empty-host
-  bypass AND the R5 exotic cases in one move → then **delete the [R5] residual**. Add restore-guard
-  tests for `postgresql:///profile` (must refuse) and a real remote host (must proceed).
-- **N3** — make the B6 date-shim portable: `exec "$(command -v date)" "$@"` (optional nit).
-
-(N2 → accepted residual [R6]; N4 → informational, no action.)
+None — N1 + N3 resolved (Round 3); N2 accepted as residual [R6]; N4 informational. No open defects.
+Validation: `bash -n` clean on all changed scripts; guard classification re-validated against the
+full URL battery (empty/loopback → refuse, remote → proceed).
 
 ## Convergence note (Round 1)
 
