@@ -11,9 +11,10 @@ PR: #129 (branch `s4-profile-06-match-end-crediting` → `dev`)
 
 File(s) under review: profile-backup.sh (new), setup-profile.sh, build-deploy-profile.sh,
 example.env.profile (new), tests/profile-backup-dryrun.sh (new), .gitignore, plus docs/wiki.
-Status: IN-REVIEW (Round 9, 2026-07-01) — the C-ret retention fix is INDEPENDENTLY VERIFIED correct by a fresh
-two-reviewer pass; one NEW open **documentation** defect (D1 — the restore runbook drill commands omit the
-default-deny override env vars) pending a separate doc fix. All Rounds 1–8 CODE items implemented and verified.
+Status: RESOLVED (Round-9 doc fix, 2026-07-01) — the C-ret retention fix is INDEPENDENTLY VERIFIED correct by a
+fresh two-reviewer pass; the one NEW **documentation** defect (D1 — the restore runbook drill commands omitted the
+default-deny override env vars) is now FIXED and adversarially verified. **No open T8 defects.** All Rounds 1–9
+items implemented and verified; T8 review-complete. (6b migration-rollback remains tracked-separately, out of scope.)
 Round-5 (2026-07-01) implemented the **N5** atomic backup-config install fix and
 adversarially re-verified it. `setup-profile.sh` now stages the candidate `backup.sh.new`/`backup.env.new`
 and promotes them over the live files ONLY after a passing deploy-time smoke check (new
@@ -419,24 +420,41 @@ restore-guard re-raise loop did NOT recur this round.
 | 9 | **Cl-19digit** a `>18`-digit retention value emits bash `[ ]` stderr noise but still fails closed — Claude informational | Not novel — matches the Round-8 fix note (unrealistic config; fail-closed correctness unaffected) | **No action** — settled informational. |
 | 9 | **[R9]** restore-guard textual host-parse vs libpq divergence | NOT re-raised by either reviewer this round | **No action** — accepted residual stands; the prior two-round re-raise loop did not recur. |
 
+## Round-9 fix — D1 restore-runbook doc drift RESOLVED + adversarially verified (2026-07-01)
+
+- **D1 — RESOLVED (documentation).** `ai-agents/knowledge-base/profile-backup-restore-runbook.md` updated so
+  every restore snippet carries the guard-required default-deny override: (1) throwaway example → prefixed
+  `PROFILE_RESTORE_REMOTE_HOST=restore-target`; (2) live-recovery note → `PROFILE_RESTORE_CONFIRM_LIVE=$(date -u
+  +%Y-%m-%d)` + a concrete command block; (3) Part E "mandatory gate" drill → `time PROFILE_RESTORE_REMOTE_HOST=
+  restore-test \ …`. Added one DEFAULT-DENY callout paragraph in the Restore-procedure section stating the two
+  guard-sanctioned proofs once, up front, and a one-line note on the recorded-RTO drill to re-run with the exact
+  documented (override-carrying) commands. NO code changed — the guard is correct; only the docs drifted (they
+  predated the Round-6 6a default-deny guard).
+- **Empirical guard-decision replay (guard logic reproduced verbatim from `profile-backup.sh:227-238`):** 8/8 —
+  all three documented commands PROCEED **with** their override, still REFUSE **without** it (override is
+  load-bearing → the doc did not weaken the guard), and wrong-host / stale-confirm-date still REFUSE.
+- **Adversarial verification (3-lens panel — accuracy / residual-safety / completeness):** all three
+  **correct-no-regression**. Confirmed each override value exactly equals the URL host the guard extracts;
+  live-recovery correctly uses `CONFIRM_LIVE` (not self-allowlisting the live host as a remote → does NOT
+  normalize the [R9] self-inflicted path); no documented target uses a `?host=`/multi-host/conninfo form (so
+  [R9]'s re-raise condition stays unmet); `R1` off-box-identity handling untouched; `time VAR=val cmd` is valid
+  bash; all markdown fences balanced; no restore invocation left that would hit the guard's `die`. The panel's
+  only actionable note (flag a drill re-run with the documented commands) was folded into the RTO note.
+- **Validation:** guard-replay 8/8; 3-lens panel correct-no-regression; documentation-only change (no script
+  edits → `bash -n` unaffected; the dockerized harness 24/24 and redeploy suite 27/27 from Round 8 stand).
+
 ## Open / actionable
 
-**Open (Round 9, low/med — NOT code-blocking): D1 — restore runbook commands drift from the default-deny guard.**
-`ai-agents/knowledge-base/profile-backup-restore-runbook.md` (new in this PR) documents three restore snippets
-that all predate the Round-6 6a default-deny guard and would now be REFUSED as written: the Part E "mandatory
-gate" drill (`:101-104`, target `restore-test`), the throwaway example (`:74-77`, target `restore-target`), and
-the live-recovery note (`:82-84`, target the live `postgres`). The runbook never mentions
-`PROFILE_RESTORE_REMOTE_HOST` or `PROFILE_RESTORE_CONFIRM_LIVE` anywhere (`grep` returns nothing). The CODE is
-correct (default-deny is intended); this is doc/code drift. Impact is mitigated by the guard's self-documenting
-`die` message, but it's the DR "mandatory gate" and a PR deliverable, so fix before treating T8 as shipped (owner
-decision 2026-07-01, "fix now"): add `PROFILE_RESTORE_REMOTE_HOST=<target host>` to the throwaway/Part-E
-examples, `PROFILE_RESTORE_CONFIRM_LIVE=$(date -u +%Y-%m-%d)` to the live-recovery note, a one-line default-deny
-note, and re-run + re-record the Part E drill using the exact documented commands. **NOTE: NOT applied by this
-review (review-only) — a separate, user-initiated step.**
+**No open T8 defects.** D1 (Round-9 doc drift) is RESOLVED — the restore runbook now documents the default-deny
+override on every restore snippet + a callout, empirically guard-replay-verified (8/8) and adversarially verified
+(3-lens panel, all correct-no-regression). Every code finding across Rounds 1–8 was implemented and verified in
+prior rounds. **T8 is review-complete.** One operational step remains for the owner (NOT a code/doc defect): re-run
++ re-record the Part E restore drill against real (non-empty) player/entitlement data before Paid Citizenship
+ships, using the now-documented override commands (the runbook RTO note flags this).
 
-Resolved (Rounds 1–8): C-ret (Round 8, independently re-verified Round 9), 7a + 7b (Round 7), 6a + N6 (Round 6),
-N5 (Round 5), N1 + N3 (Round 4), B1–B6 (Rounds 1–2) — all implemented and verified. [R5]/[R7] retired;
-[R8]/[R9] accepted (the [R9] re-raise loop did not recur in Round 9).
+Resolved (Rounds 1–9): D1 (Round 9 doc fix), C-ret (Round 8, independently re-verified Round 9), 7a + 7b (Round 7),
+6a + N6 (Round 6), N5 (Round 5), N1 + N3 (Round 4), B1–B6 (Rounds 1–2) — all implemented and verified. [R5]/[R7]
+retired; [R8]/[R9] accepted (the [R9] re-raise loop did not recur in Round 9).
 
 Tracked separately (NOT a T8 blocker):
 - **6b** — migration-failure rollback for `profile-api` (pre-existing in `dev`, out-of-scope per [R6]).

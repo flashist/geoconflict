@@ -64,13 +64,24 @@ weekly LOCAL dump instead and says so — no off-box protection until all five a
 into a **target you specify** (never the live DB by default). `pg_restore` runs from the postgres
 container, so no host pg client is needed.
 
+> **DEFAULT-DENY (important).** Because `pg_restore` runs *inside* the postgres container, the guard
+> refuses **every** restore target unless you prove it is safe, one of two ways:
+> - **Distinct throwaway/remote target** → set `PROFILE_RESTORE_REMOTE_HOST=<the host in the target URL>`
+>   (must match the URL host exactly).
+> - **Real in-place recovery into the LIVE DB** → set `PROFILE_RESTORE_CONFIRM_LIVE=$(date -u +%Y-%m-%d)`.
+>
+> Omitting both is refused with a self-documenting error naming the exact var to set. The examples below
+> already include the required override — don't drop it.
+
 ```bash
 # On the box. Copy your OFF-BOX identity over transiently (e.g. scp) — do NOT leave it there.
 # List available backups:
 cd /opt/profile && set -a && . ./backup.env && set +a
 rclone lsf "profiles:${PROFILE_BACKUP_S3_BUCKET}/${PROFILE_BACKUP_S3_PREFIX}/daily/"
 
-# Restore a chosen object into a TARGET database URL (throwaway/staging — never prod):
+# Restore a chosen object into a TARGET database URL (throwaway/staging — never prod).
+# DEFAULT-DENY: PROFILE_RESTORE_REMOTE_HOST must equal the target URL's host (here: restore-target).
+PROFILE_RESTORE_REMOTE_HOST=restore-target \
 /opt/profile/backup.sh restore \
   profiles/daily/profile-2026-06-29.dump.age \
   /root/profile-backup-identity.txt \
@@ -80,8 +91,17 @@ shred -u /root/profile-backup-identity.txt   # remove the transient identity whe
 ```
 
 To restore into the **live** DB after a real loss, point the target URL at the live Postgres
-(`postgresql://profile:…@postgres:5432/profile`) — `pg_restore --clean --if-exists` drops and
-recreates objects. Do this only during a genuine recovery.
+(`postgresql://profile:…@postgres:5432/profile`) and set `PROFILE_RESTORE_CONFIRM_LIVE=$(date -u +%Y-%m-%d)`
+to confirm the in-place recovery (default-deny refuses a live-DB target without it) — `pg_restore --clean
+--if-exists` drops and recreates objects. Do this only during a genuine recovery:
+
+```bash
+PROFILE_RESTORE_CONFIRM_LIVE=$(date -u +%Y-%m-%d) \
+/opt/profile/backup.sh restore \
+  profiles/daily/profile-2026-06-29.dump.age \
+  /root/profile-backup-identity.txt \
+  'postgresql://profile:PASSWORD@postgres:5432/profile'
+```
 
 ---
 
@@ -97,8 +117,10 @@ docker run -d --name restore-test --network opt_profile_default \
 #    (use the same docker network as the profile compose project so the postgres
 #     container can reach `restore-test:5432`; check `docker network ls`.)
 
-# 2) Restore the latest daily object into it:
-time /opt/profile/backup.sh restore \
+# 2) Restore the latest daily object into it.
+#    DEFAULT-DENY: PROFILE_RESTORE_REMOTE_HOST must equal the target host (here: restore-test).
+time PROFILE_RESTORE_REMOTE_HOST=restore-test \
+  /opt/profile/backup.sh restore \
   profiles/daily/profile-$(date -u +%Y-%m-%d).dump.age \
   /root/profile-backup-identity.txt \
   'postgresql://profile:test@restore-test:5432/profile'
@@ -126,7 +148,9 @@ profile's `xp` / `is_citizen` / `is_paid_citizen` / `display_name` round-trip ex
 into a throwaway `postgres:16-alpine` — **restore ≈ 0.1s, whole drill < 1 min hands-on**. NOTE: the
 prod DB was still **empty** (0 rows) at this point, so schema + decryption + the full pipeline were
 verified, but a *non-empty* data round-trip was not. Re-run once real player/entitlement data exists
-(before/after Paid Citizenship) and update this line with the real-data RTO.
+(before/after Paid Citizenship) and update this line with the real-data RTO. Re-run using the **exact
+commands documented above** (with the `PROFILE_RESTORE_REMOTE_HOST=restore-test` override) — the first
+drill predates the default-deny guard, so its command line differed from what is documented here now.
 
 ---
 
