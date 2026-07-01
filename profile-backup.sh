@@ -34,6 +34,12 @@ BACKUP_DIR="${BACKUP_DIR:-$PROFILE_DIR/backups}"
 ENV_FILE="${PROFILE_BACKUP_ENV_FILE:-$PROFILE_DIR/backup.env}"
 MARKER="$BACKUP_DIR/last-backup.json"
 
+# rclone is configured entirely via RCLONE_CONFIG_PROFILES_* env vars (from backup.env), so there
+# is deliberately no rclone.conf. Point RCLONE_CONFIG at /dev/null so rclone doesn't emit a
+# "config file not found" NOTICE on every call — keeps /var/log/profile-backup.log clean. The
+# remote's RCLONE_CONFIG_PROFILES_* vars are read independently of the config-file path.
+export RCLONE_CONFIG=/dev/null
+
 log() { echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) [profile-backup] $*"; }
 now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
@@ -121,8 +127,10 @@ do_backup() {
   ENC_TMP="${DUMP_TMP}.age"
 
   # 1) Dump in custom/compressed format from the container's local socket (trust auth).
+  #    stdin is /dev/null so `docker compose exec -T` can never drain the caller's stdin (harmless
+  #    under cron, but keeps the script safe when invoked from a piped/heredoc wrapper).
   log "pg_dump -Fc of database '$POSTGRES_DB'"
-  if ! docker compose exec -T postgres pg_dump -Fc -U "$POSTGRES_USER" "$POSTGRES_DB" > "$DUMP_TMP"; then
+  if ! docker compose exec -T postgres pg_dump -Fc -U "$POSTGRES_USER" "$POSTGRES_DB" < /dev/null > "$DUMP_TMP"; then
     die "pg_dump failed"
   fi
   [ -s "$DUMP_TMP" ] || die "pg_dump produced an empty file"
