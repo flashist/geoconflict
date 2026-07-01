@@ -188,5 +188,24 @@ jq -e '.exit_status != 0 and .error != null' "$MARKER" >/dev/null \
   && ok "failure marker written (exit_status!=0, error set)" || no "failure marker not updated"
 
 echo
+echo "=== TEST 4: Sunday weekly-copy branch (force date +%u -> 7 via a PATH shim) ==="
+mkdir -p "$WORK/bin"
+cat > "$WORK/bin/date" <<'SHIM'
+#!/usr/bin/env bash
+# Test shim: pretend it's Sunday for the weekday check; pass every other date call through.
+for a in "$@"; do [ "$a" = "+%u" ] && { echo 7; exit 0; }; done
+exec /bin/date "$@"
+SHIM
+chmod +x "$WORK/bin/date"
+# Clear weekly/ first so the assertion proves TEST 4's shim created the object — otherwise, if
+# the harness happens to run on a real Sunday, TEST 1 already made it and this would tautologize.
+( set -a; . "$WORK/backup.env"; set +a; rclone purge "profiles:$BUCKET/profiles/weekly/" 2>/dev/null || true )
+( cd "$REPO_ROOT" && PATH="$WORK/bin:$PATH" PROFILE_DIR="$WORK" BACKUP_DIR="$WORK/backups" \
+    PROFILE_BACKUP_ENV_FILE="$WORK/backup.env" bash "$BACKUP_SCRIPT" backup )
+WEEKLY="$( set -a; . "$WORK/backup.env"; set +a; rclone lsf "profiles:$BUCKET/profiles/weekly/" )"
+[ -n "$WEEKLY" ] && ok "Sunday branch wrote a weekly/ object: $WEEKLY" \
+  || no "no weekly/ object created on the forced-Sunday run"
+
+echo
 echo "==================== RESULT: $pass passed, $fail failed ===================="
 [ "$fail" -eq 0 ]

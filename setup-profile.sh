@@ -172,6 +172,20 @@ chmod 644 /etc/geoconflict-deploy-role
 print_header "UPDATING SYSTEM"
 apt-get update -y && apt-get upgrade -y
 
+# ── Timezone → UTC (B3) ───────────────────────────────────────────────────────
+# Pin the box clock to UTC so the backup cron schedule, `date`, and backup.sh's `date -u`
+# weekday check + UTC-dated object names ALL agree. This is the only reliable anchor: Debian/
+# Ubuntu ships Vixie cron, which ignores TZ=/CRON_TZ for *scheduling* (they affect only the
+# executed command's env), so a TZ line in the crontab can't align the schedule — the system
+# clock must. Idempotent; timedatectl on systemd, /etc/localtime symlink as a fallback.
+print_header "PINNING TIMEZONE TO UTC"
+if command -v timedatectl >/dev/null 2>&1 && timedatectl set-timezone UTC 2>/dev/null; then
+    echo "Timezone set to UTC (timedatectl)."
+else
+    ln -sf /usr/share/zoneinfo/UTC /etc/localtime && echo "UTC" > /etc/timezone
+    echo "Timezone set to UTC (/etc/localtime symlink)."
+fi
+
 # ── Swap ──────────────────────────────────────────────────────────────────────
 # The reg.ru profile VPS is low-RAM; the prior telemetry box froze the entire host
 # under OOM because it shipped with zero swap. A swapfile gives the kernel a cushion
@@ -765,8 +779,10 @@ BACKUP_MODE="local"
 if [ "$BACKUP_OFFBOX_ENABLED" = "1" ]; then
     if [ -f "$PROFILE_BACKUP_SRC" ]; then
         # Backup tooling: age (encrypt before upload) + rclone (S3). The apt index was already
-        # refreshed in the UPDATING SYSTEM phase above. Fail closed — a configured-but-toolless
-        # box must NOT silently degrade to plaintext-local backups.
+        # refreshed in the UPDATING SYSTEM phase above. Tool install is fail-closed — a box WITH
+        # creds but WITHOUT age/rclone aborts rather than silently degrading to plaintext-local.
+        # (The separate missing-$PROFILE_BACKUP_SRC case in the outer else is a deliberate
+        # warn+fallback, not a fail-close — see below.)
         echo "Installing backup tooling (age + rclone)..."
         apt-get install -y age rclone
         command -v age    >/dev/null 2>&1 || { echo "Error: age failed to install."; exit 1; }
@@ -800,7 +816,25 @@ if [ "$BACKUP_OFFBOX_ENABLED" = "1" ]; then
         )
         chmod 600 "$PROFILE_DIR/backup.env"
         echo "Written: backup.env (0600)"
-        BACKUP_MODE="offbox"
+
+        # B2: prove the off-box pipeline actually works BEFORE declaring it active. A bad age
+        # recipient / S3 endpoint / credential / bucket policy must fail the deploy CLOSED here,
+        # not silently wait for the first 02:30 cron. The postgres stack is already up + migrated
+        # above, so one real encrypted backup + off-box upload + size-verify is a full end-to-end
+        # proof (backup.sh is fail-loud: non-zero exit + failure marker on any step). It also
+        # leaves a first verified backup object + a fresh success marker on the box.
+        echo "Running deploy-time off-box backup smoke check..."
+        if "$PROFILE_DIR/backup.sh" backup; then
+            echo "✅ Smoke check passed — encrypted object written + verified off-box in S3."
+            BACKUP_MODE="offbox"
+        else
+            echo "Error: deploy-time off-box backup smoke check FAILED — refusing to declare"
+            echo "       off-box backups active (fail closed). The app stack is up, but the backup"
+            echo "       pipeline (age recipient / S3 endpoint / credentials / bucket policy) is not"
+            echo "       working. Fix PROFILE_BACKUP_* in .env.profile(.secret) and redeploy."
+            cat "$BACKUP_DIR/last-backup.json" 2>/dev/null || true
+            exit 1
+        fi
     else
         echo "WARNING: PROFILE_BACKUP_* is configured but $PROFILE_BACKUP_SRC was not found."
         echo "         The deploy path did not ship profile-backup.sh — falling back to the"
@@ -819,6 +853,10 @@ cat > "$CRON_FILE" << EOF
 # Profile backups — added by setup-profile.sh (T8). Mode: $BACKUP_MODE.
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+# The SCHEDULE is anchored to UTC by pinning the box clock to UTC in the system-setup phase
+# above (Debian/Vixie cron ignores TZ/CRON_TZ for scheduling — see there). TZ=UTC here only
+# sets the executed command's env so a bare \`date\` in these jobs also renders UTC (B3).
+TZ=UTC
 
 # Disk usage warning — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.
 0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '\\%'); if [ "\$USAGE" -gt 60 ]; then echo "\$(date) -- disk usage \${USAGE}\\%" >> /var/log/disk-warnings.log; fi
@@ -829,7 +867,7 @@ if [ "$BACKUP_MODE" = "offbox" ]; then
     # inside backup.sh; the cron line only invokes it, so nothing here needs escaping.
     cat >> "$CRON_FILE" << EOF
 
-# Daily encrypted off-box backup at 02:30 (box time) — overnight / low-traffic window.
+# Daily encrypted off-box backup at 02:30 UTC (05:30 MSK) — overnight / low-traffic window.
 30 2 * * * root $PROFILE_DIR/backup.sh >> /var/log/profile-backup.log 2>&1
 EOF
 else

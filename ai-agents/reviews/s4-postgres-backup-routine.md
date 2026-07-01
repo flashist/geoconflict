@@ -11,10 +11,10 @@ PR: #129 (branch `s4-profile-06-match-end-crediting` → `dev`)
 
 File(s) under review: profile-backup.sh (new), setup-profile.sh, build-deploy-profile.sh,
 example.env.profile (new), tests/profile-backup-dryrun.sh (new), .gitignore, plus docs/wiki.
-Status: IN-REVIEW — Round-1 (2026-07-01), full two-reviewer coverage (Codex adversarial +
-Claude code-reviewer agent + orchestrator trace). No confirmed high/critical. ⚠️ Changes
-requested: B1+B2 (medium hardening) + B3/B6 (low) actionable per owner decision 2026-07-01;
-B4/B5 recorded as very-low nits. Not merge-blocking.
+Status: RESOLVED — Round-1 review (2026-07-01) + Round-2 implementation & adversarial
+re-verification (2026-07-01). All six findings (B1–B6) implemented; a 5-agent adversarial pass
+confirmed B1/B2/B4/B5/B6 correct-and-safe and CAUGHT that the Round-2 B3 fix was wrong (see
+Round 2 below) — corrected. No open defects. Not merge-blocking.
 Reviewers: Codex (adversarial, verdict needs-attention) + Claude (code-reviewer agent, 0 high) —
 both ran, full coverage.
 
@@ -54,6 +54,19 @@ both ran, full coverage.
   on. The local skeleton is explicitly labelled "dies with the box — not a real backup".
   Re-raise only if: the local skeleton is ever presented/relied on as a real off-box backup.
 
+- **B1 restore guard covers realistic hosts only; exotic loopback spellings pass through [R5]** —
+  What: the B1 live-DB guard blocks `postgres|localhost|127.0.0.1` (case-insensitively, per the
+  Round-2 hardening). It does NOT block IPv6 loopback `[::1]`, numeric loopback (`2130706433`,
+  `0x7f000001`), or a target whose password literally contains `@` (naive `#*@` split).
+  Why (structural): `restore` is a manual drill; the runbook pastes literal lowercase service
+  names / `127.0.0.1`. The `@`-in-password case is already system-wide breakage — `setup-profile.sh`
+  builds the live `DATABASE_URL` with the same naive `:PASSWORD@host` scheme, so an `@`-password
+  breaks the deployment independently. Guarding these adds real bash-URL-parsing complexity for
+  inputs no operator produces. The guard is defense-in-depth over usage text + a comment, not the
+  sole safety.
+  Re-raise only if: restore is ever wired into an automated/unattended path (then the input is no
+  longer operator-typed and exotic spellings matter), or POSTGRES_PASSWORD is allowed to contain `@`.
+
 ## Decision log
 
 | Round | Finding | Verdict | Action |
@@ -65,19 +78,25 @@ both ran, full coverage.
 | 1 | **B4** `rsize="$(remote_size …)"` non-`local` assignment: under `set -e`+`pipefail` a missing-object verify-failure aborts before the descriptive `die`, so the marker reads "unexpected failure" not "upload verify failed" (profile-backup.sh:99-102, :152) — Claude low (corroborated by orchestrator trace) | CORRECT → **very low** (cosmetic/observability only; still fails non-zero + writes a marker; provider-dependent — rclone returning exit 0 with `bytes:0` makes the descriptive die fire) | **Recorded nit** (owner decision 2026-07-01) — optional. Trivial fix: append `|| true` to the `remote_size` pipeline so the explicit check always reaches its informative `die`. Not required. |
 | 1 | **B5** The "Fail closed" comment (setup-profile.sh:768) reads as if the whole off-box path is fail-closed, but the missing-`$PROFILE_BACKUP_SRC` case intentionally warns + falls back to local — Claude low | CORRECT → **very low** (comment-only; the CODE is correct — tool-install IS fail-closed, missing-script IS a deliberate warn+fallback) | **Recorded nit** (owner decision 2026-07-01) — optional. Tighten the comment to scope "fail closed" to tool-installation only. Not a code change. |
 
+## Round 2 — implemented + adversarially re-verified (2026-07-01)
+
+All six implemented (owner: "implement all six"). A 5-agent adversarial workflow then tried to
+break each fix (edge cases, regressions, residual violations):
+
+| # | Implemented as | Adversarial verdict |
+|---|----------------|---------------------|
+| B1 | `do_restore` refuses live-DB **host** (`postgres`/`localhost`/`127.0.0.1`, case-insensitive) unless `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC date>`. Keyed on HOST not db-name — a throwaway drill DB is also named `profile`, so a name check would block every drill. | **correct-and-safe.** Allows drill hosts, blocks live, confirm-escape works, no marker corruption, fails before decrypt. Exotic-input residual → [R5]. |
+| B2 | `setup-profile.sh` runs one real `backup.sh backup` and **fails the deploy closed** (`exit 1` before any cron is written) unless it verifies off-box; only then prints active. | **correct-and-safe.** Stack up+migrated first; if-cond suppresses `set -e`; both LOCAL fallbacks [R4] intact; no runtime alerting added [R3]. |
+| B3 | **CORRECTED.** Round-2's first attempt (`TZ=UTC` in the crontab) was WRONG — Debian/Ubuntu Vixie cron ignores `TZ`/`CRON_TZ` for *scheduling*. Adversarial agent caught it. Real fix: **pin the box clock to UTC** (`timedatectl set-timezone UTC`, `/etc/localtime` fallback) so cron schedule + `date -u` weekday check + UTC-dated names all agree. `TZ=UTC` kept only to render bare `date` in cron jobs as UTC. | first attempt **concern → fixed**; box-TZ pin is the reliable, cron-implementation-independent anchor. |
+| B4 | `\|\| true` on the `remote_size` pipeline. | **correct-and-safe** (reproduced: descriptive "upload verify failed" die now reached). |
+| B5 | Comment scoped: tool-install is fail-closed; missing-`$PROFILE_BACKUP_SRC` labelled a deliberate warn+fallback. | **correct-and-safe.** |
+| B6 | `tests/profile-backup-dryrun.sh` TEST 4 forces the Sunday branch via a `date` PATH-shim + asserts a `weekly/` object; `weekly/` purged first so it isn't a tautology on a real Sunday. | **correct-and-safe** — agent ran the FULL harness end-to-end (real Docker + MinIO): **10 passed, 0 failed**. |
+
+Validation: `bash -n` clean on all changed scripts; full dry-run harness green (10/10, incl. TEST 4).
+
 ## Open / actionable
 
-Actionable this round (owner decision 2026-07-01) — none merge-blocking:
-
-- **B1** — restore safety-rail (refuse live target without explicit confirm) + shell test.
-- **B2** — deploy-time backup smoke check that fails closed before printing off-box active.
-- **B3** — weekday check use local `date +%u` (or `TZ=UTC` cron anchor).
-- **B6** — dry-run test the Sunday weekly-copy branch.
-
-Optional nits (non-blocking, NOT required for merge):
-
-- **B4** — `|| true` on the `remote_size` pipeline so the descriptive verify-failure `die` always reaches the marker.
-- **B5** — tighten the "fail closed" comment scope to tool-install only.
+None — all six resolved (Round 2). No open defects; not merge-blocking.
 
 ## Convergence note (Round 1)
 
