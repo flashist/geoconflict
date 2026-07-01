@@ -67,6 +67,29 @@ POSTGRES_DB="${POSTGRES_DB:-profile}"
 # The internal service token + DATABASE_URL are derived in the stack-write section
 # below (after validation), so a missing POSTGRES_PASSWORD can't yield a half-built URL.
 
+# Off-box backup (T8). Optional: the daily encrypted S3 backup is installed ONLY when all of
+# endpoint+bucket+access+secret+age-recipient are present (set PROFILE_BACKUP_* in
+# .env.profile/.secret). Until then the interim weekly *local* pg_dump skeleton stays in place
+# so the box is never left with no backup at all. Adding the creds + redeploying flips it on.
+PROFILE_BACKUP_S3_ENDPOINT="${PROFILE_BACKUP_S3_ENDPOINT:-}"
+PROFILE_BACKUP_S3_REGION="${PROFILE_BACKUP_S3_REGION:-}"
+PROFILE_BACKUP_S3_BUCKET="${PROFILE_BACKUP_S3_BUCKET:-}"
+PROFILE_BACKUP_S3_PREFIX="${PROFILE_BACKUP_S3_PREFIX:-profiles}"
+PROFILE_BACKUP_S3_ACCESS_KEY="${PROFILE_BACKUP_S3_ACCESS_KEY:-}"
+PROFILE_BACKUP_S3_SECRET_KEY="${PROFILE_BACKUP_S3_SECRET_KEY:-}"
+PROFILE_BACKUP_AGE_RECIPIENT="${PROFILE_BACKUP_AGE_RECIPIENT:-}"
+PROFILE_BACKUP_RETENTION_DAILY_DAYS="${PROFILE_BACKUP_RETENTION_DAILY_DAYS:-14}"
+PROFILE_BACKUP_RETENTION_WEEKLY_DAYS="${PROFILE_BACKUP_RETENTION_WEEKLY_DAYS:-56}"
+# Source for the backup script SCP'd by build-deploy-profile.sh (installed to backup.sh below).
+PROFILE_BACKUP_SRC="${PROFILE_BACKUP_SRC:-/root/profile-backup.sh}"
+
+BACKUP_OFFBOX_ENABLED=0
+if [ -n "$PROFILE_BACKUP_S3_ENDPOINT" ] && [ -n "$PROFILE_BACKUP_S3_BUCKET" ] \
+   && [ -n "$PROFILE_BACKUP_S3_ACCESS_KEY" ] && [ -n "$PROFILE_BACKUP_S3_SECRET_KEY" ] \
+   && [ -n "$PROFILE_BACKUP_AGE_RECIPIENT" ]; then
+    BACKUP_OFFBOX_ENABLED=1
+fi
+
 # ── Validate ──────────────────────────────────────────────────────────────────
 # This script both provisions AND deploys, so the deploy inputs it consumes are
 # required and validated here. DATABASE_URL semantics/connectability are NOT checked
@@ -731,29 +754,95 @@ systemctl enable profile
 echo "✅ systemd service 'profile' enabled (starts on reboot)"
 
 # ── Backup + maintenance cron jobs ────────────────────────────────────────────
-# A weekly pg_dump skeleton. T8 hardens this to nightly + ships to reg.ru S3 and
-# adds a restore drill. POSTGRES_USER/DB are expanded into the cron line at write
-# time (unquoted heredoc) so the dump targets the real running database.
+# Off-box path (T8): when PROFILE_BACKUP_* is fully configured, install the standalone
+# backup script (SCP'd here by build-deploy-profile.sh) + its 0600 config and schedule a
+# DAILY encrypted off-box backup. Otherwise keep the interim weekly *local* pg_dump skeleton
+# so the box is never left with no backup at all. Adding the creds + redeploying flips it on.
 
 print_header "SETTING UP BACKUP CRON JOBS"
 
+BACKUP_MODE="local"
+if [ "$BACKUP_OFFBOX_ENABLED" = "1" ]; then
+    if [ -f "$PROFILE_BACKUP_SRC" ]; then
+        # Backup tooling: age (encrypt before upload) + rclone (S3). The apt index was already
+        # refreshed in the UPDATING SYSTEM phase above. Fail closed — a configured-but-toolless
+        # box must NOT silently degrade to plaintext-local backups.
+        echo "Installing backup tooling (age + rclone)..."
+        apt-get install -y age rclone
+        command -v age    >/dev/null 2>&1 || { echo "Error: age failed to install."; exit 1; }
+        command -v rclone >/dev/null 2>&1 || { echo "Error: rclone failed to install."; exit 1; }
+
+        install -m 700 "$PROFILE_BACKUP_SRC" "$PROFILE_DIR/backup.sh"
+        echo "Installed: backup.sh (0700)"
+
+        # backup.env (0600) — deliberately NOT referenced by docker-compose, so these S3/age
+        # secrets never enter the postgres/profile-api containers. %q keeps every value safe to
+        # re-source even if a key carries shell metacharacters. profile-backup.sh sources this
+        # with `set -a`, so the RCLONE_CONFIG_PROFILES_* names reach rclone via the environment.
+        ( umask 077
+          {
+            printf 'POSTGRES_USER=%q\n'                            "$POSTGRES_USER"
+            printf 'POSTGRES_DB=%q\n'                              "$POSTGRES_DB"
+            printf 'PROFILE_BACKUP_S3_BUCKET=%q\n'                 "$PROFILE_BACKUP_S3_BUCKET"
+            printf 'PROFILE_BACKUP_S3_PREFIX=%q\n'                 "$PROFILE_BACKUP_S3_PREFIX"
+            printf 'PROFILE_BACKUP_AGE_RECIPIENT=%q\n'             "$PROFILE_BACKUP_AGE_RECIPIENT"
+            printf 'PROFILE_BACKUP_RETENTION_DAILY_DAYS=%q\n'      "$PROFILE_BACKUP_RETENTION_DAILY_DAYS"
+            printf 'PROFILE_BACKUP_RETENTION_WEEKLY_DAYS=%q\n'     "$PROFILE_BACKUP_RETENTION_WEEKLY_DAYS"
+            printf 'RCLONE_CONFIG_PROFILES_TYPE=%q\n'              "s3"
+            printf 'RCLONE_CONFIG_PROFILES_PROVIDER=%q\n'          "Other"
+            printf 'RCLONE_CONFIG_PROFILES_ENV_AUTH=%q\n'          "false"
+            printf 'RCLONE_CONFIG_PROFILES_ENDPOINT=%q\n'          "$PROFILE_BACKUP_S3_ENDPOINT"
+            printf 'RCLONE_CONFIG_PROFILES_REGION=%q\n'            "$PROFILE_BACKUP_S3_REGION"
+            printf 'RCLONE_CONFIG_PROFILES_ACCESS_KEY_ID=%q\n'     "$PROFILE_BACKUP_S3_ACCESS_KEY"
+            printf 'RCLONE_CONFIG_PROFILES_SECRET_ACCESS_KEY=%q\n' "$PROFILE_BACKUP_S3_SECRET_KEY"
+            printf 'RCLONE_CONFIG_PROFILES_ACL=%q\n'               "private"
+          } > "$PROFILE_DIR/backup.env"
+        )
+        chmod 600 "$PROFILE_DIR/backup.env"
+        echo "Written: backup.env (0600)"
+        BACKUP_MODE="offbox"
+    else
+        echo "WARNING: PROFILE_BACKUP_* is configured but $PROFILE_BACKUP_SRC was not found."
+        echo "         The deploy path did not ship profile-backup.sh — falling back to the"
+        echo "         interim weekly LOCAL pg_dump. Re-run via build-deploy-profile.sh to fix."
+    fi
+else
+    echo "Off-box S3 backups not configured (set PROFILE_BACKUP_* in .env.profile/.secret)."
+    echo "Using interim weekly LOCAL pg_dump skeleton (dies with the box — not a real backup)."
+fi
+
 CRON_FILE="/etc/cron.d/profile-backups"
+# Header + disk-usage warning are ALWAYS present. Vixie cron (/etc/cron.d) turns an unescaped
+# % into a newline, so every literal % in a command is escaped \\% (→ \% on disk) or the line
+# would truncate at the first one and never run.
 cat > "$CRON_FILE" << EOF
-# Profile backups — added by setup-profile.sh. T8 hardens (nightly + S3 + restore drill).
+# Profile backups — added by setup-profile.sh (T8). Mode: $BACKUP_MODE.
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-# PostgreSQL backup every Sunday at 3:00am
-0 3 * * 0 root cd $PROFILE_DIR && docker compose exec -T postgres pg_dump -U ${POSTGRES_USER} ${POSTGRES_DB} > $BACKUP_DIR/pg-\$(date +\\%Y\\%m\\%d).sql 2>&1
-
-# Prune old PostgreSQL backups — keep last 14 days.
-0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +14 -delete
-
 # Disk usage warning — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.
-# Vixie cron (/etc/cron.d) turns an unescaped % into a newline, so BOTH % are escaped \\% (→ \% on
-# disk, matching the pg_dump line above) or the command would truncate at the first one and never run.
 0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '\\%'); if [ "\$USAGE" -gt 60 ]; then echo "\$(date) -- disk usage \${USAGE}\\%" >> /var/log/disk-warnings.log; fi
 EOF
+
+if [ "$BACKUP_MODE" = "offbox" ]; then
+    # Daily, overnight (02:30 box time). ALL backup logic (and the Vixie % footgun) lives
+    # inside backup.sh; the cron line only invokes it, so nothing here needs escaping.
+    cat >> "$CRON_FILE" << EOF
+
+# Daily encrypted off-box backup at 02:30 (box time) — overnight / low-traffic window.
+30 2 * * * root $PROFILE_DIR/backup.sh >> /var/log/profile-backup.log 2>&1
+EOF
+else
+    # Interim LOCAL skeleton — POSTGRES_USER/DB expand at write time; % is escaped \\% as above.
+    cat >> "$CRON_FILE" << EOF
+
+# Interim weekly LOCAL pg_dump (Sunday 3:00am) — on-box only; T8 off-box upload not configured.
+0 3 * * 0 root cd $PROFILE_DIR && docker compose exec -T postgres pg_dump -U ${POSTGRES_USER} ${POSTGRES_DB} > $BACKUP_DIR/pg-\$(date +\\%Y\\%m\\%d).sql 2>&1
+
+# Prune old local PostgreSQL backups — keep last 14 days.
+0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +14 -delete
+EOF
+fi
 
 # Certbot renewal — appended ONLY when a domain is configured. Without PROFILE_DOMAIN,
 # nginx + certbot are never installed (see the HTTPS guard above), so an unconditional
@@ -772,7 +861,7 @@ EOF
 fi
 
 chmod 644 "$CRON_FILE"
-echo "✅ Cron jobs written to $CRON_FILE"
+echo "✅ Cron jobs written to $CRON_FILE ($BACKUP_MODE backup mode)"
 
 # ── Print connection info ─────────────────────────────────────────────────────
 
@@ -796,8 +885,13 @@ fi
 echo ""
 echo "/internal/ nginx allowlist laid down (dormant): allow ${PROFILE_INTERNAL_ALLOW_IPS:-<none>} + deny all."
 echo "Postgres: reachable on 127.0.0.1:5432 on the box only (never public)."
-echo "Lifecycle: systemd unit 'profile' enabled (auto-start on reboot); pg_dump +"
-echo "maintenance cron active in /etc/cron.d/profile-backups."
+echo "Lifecycle: systemd unit 'profile' enabled (auto-start on reboot); backup +"
+echo "maintenance cron active in /etc/cron.d/profile-backups (mode: $BACKUP_MODE)."
+if [ "$BACKUP_MODE" = "offbox" ]; then
+    echo "Backups: DAILY encrypted off-box to S3 (age + rclone). Marker: $BACKUP_DIR/last-backup.json."
+else
+    echo "Backups: interim weekly LOCAL pg_dump only — set PROFILE_BACKUP_* + redeploy for off-box."
+fi
 echo ""
 echo "Game server env vars — add to .env.prod for T6:"
 echo "  PROFILE_API_URL=https://${PROFILE_DOMAIN:-<set-domain>}"
