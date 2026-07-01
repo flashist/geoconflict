@@ -122,7 +122,11 @@ shred -u /root/profile-backup-identity.txt
 **Pass criteria:** counts match for `player_profiles` and `player_match_xp_credits`, and the known
 profile's `xp` / `is_citizen` / `is_paid_citizen` / `display_name` round-trip exactly.
 
-**Recorded RTO:** _<fill in after the first drill, e.g. "~N min for a <2 GB DB">_
+**Recorded RTO:** First drill 2026-07-01 (off-box, on a Mac): download + `age -d` + `pg_restore`
+into a throwaway `postgres:16-alpine` — **restore ≈ 0.1s, whole drill < 1 min hands-on**. NOTE: the
+prod DB was still **empty** (0 rows) at this point, so schema + decryption + the full pipeline were
+verified, but a *non-empty* data round-trip was not. Re-run once real player/entitlement data exists
+(before/after Paid Citizenship) and update this line with the real-data RTO.
 
 ---
 
