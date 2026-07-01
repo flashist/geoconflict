@@ -1,128 +1,119 @@
-# Coder handoff — s4-postgres-backup-routine (PR #129, Round 6)
+# Coder handoff — s4-postgres-backup-routine (PR #129, Round 7)
 
 **This is a fix SPEC, not applied code.** It describes two review-confirmed changes for a separate coder
 run. Findings are recommendations verified against the code; honest impact carried forward.
 
-Ledger: `ai-agents/reviews/s4-postgres-backup-routine.md` (read **Accepted residuals R1–R8** before
+Ledger: `ai-agents/reviews/s4-postgres-backup-routine.md` (read **Accepted residuals R1–R9** before
 touching anything — do NOT reintroduce settled tradeoffs).
 
 ## Context
 
 PR #129 is the T8 **encrypted off-box daily Postgres backup routine** for the player-profile store (PII +
-paid-citizenship entitlements → recoverability is a monetization gate). `profile-backup.sh` does
-`pg_dump -Fc` (in the postgres container) → `age` encrypt → `rclone` S3 upload → size-verify → delete local
-temp → Sunday weekly copy → prune → `last-backup.json` marker; a `restore` subcommand (manual drill only)
-is guarded against dropping the live DB. `setup-profile.sh` installs it + cron, pins the box clock to UTC,
-and runs a deploy-time smoke backup that **atomically promotes** a staged candidate config only on success.
+paid-citizenship entitlements → off-box recoverability is a monetization gate). `profile-backup.sh` does
+`pg_dump -Fc` (in the postgres container) → `age` encrypt → `rclone` S3 upload → size-verify → prune →
+marker; a `restore` subcommand (manual drill) is **default-deny** guarded. `setup-profile.sh` installs it +
+cron, pins the box clock to UTC, and runs a deploy-time smoke backup that atomically promotes a staged
+candidate only on success.
 
-**Round-6 status:** the N5 atomic-install fix is implemented and VERIFIED CORRECT (redeploy test 19/19).
-Two actionable items remain. **In scope:** 6a (`profile-backup.sh` restore guard) and N6
-(`profile-backup.sh` / `setup-profile.sh` smoke marker). **Out of scope / do NOT do here:** the "Do NOT
-change" list, and finding **6b** (migration-failure rollback) — that is a PRE-EXISTING, out-of-scope
-deploy-pipeline concern for a SEPARATE task, not this PR.
+**Round-7 status:** the 6a default-deny restore guard and the N6 smoke-marker isolation are VERIFIED CORRECT
+by both reviewers (redeploy 22/22, dryrun 21/21 live). Two new actionable gaps remain, both in adjacent
+paths. **In scope:** 7a (`setup-profile.sh`) and 7b (`profile-backup.sh`). **Out of scope / do NOT do here:**
+the "Do NOT change" list, and finding **6b** (migration-failure rollback) — a PRE-EXISTING deploy-pipeline
+concern for a SEPARATE task.
 
 ## Changes to make
 
 | # | Severity | Required? | Location | Summary |
 |---|----------|-----------|----------|---------|
-| 6a | medium | **yes** | `profile-backup.sh` `do_restore` guard (:197-220) | The live-DB restore guard is a blocklist that misses Docker-local aliases (container name/IP). Replace it with default-deny. |
-| N6 | low | **yes** | `profile-backup.sh` marker (`MARKER`, `on_exit` :35/:77-82) + `setup-profile.sh` smoke call | The deploy-time smoke overwrites the nightly `last-backup.json` with a failure marker on a bad-cred redeploy. Give the smoke its own marker. |
+| 7a | medium | **yes** | `setup-profile.sh` off-box gate (:86-90) + cron write (:892) | A redeploy missing any `PROFILE_BACKUP_*` var silently downgrades a working off-box backup to local same-disk. Don't silently downgrade a configured box. |
+| 7b | medium | **yes** | `profile-backup.sh` `do_restore` (:245) | The in-place live restore isn't transactional; a mid-restore failure half-drops the live DB. Make it all-or-nothing. |
 
 ---
 
-### 6a — Restore guard is a blocklist that misses Docker-local aliases (medium; Codex rated critical)
+### 7a — Missing-vars redeploy silently downgrades off-box → local (medium; Codex rated high)
 
-**Location:** `profile-backup.sh` `do_restore` (host-extract ~:204; `case` blocklist ~:216-219; destructive
-`pg_restore --clean --if-exists -d "$target"` ~:237).
+**Location:** `setup-profile.sh` — `BACKUP_OFFBOX_ENABLED=1` only if all 5 of endpoint/bucket/access/secret/
+age-recipient are present (:86-90); otherwise the `else` (:884) + the unconditional `cat > "$CRON_FILE"`
+(:892) rewrite `/etc/cron.d/profile-backups` to the local-only weekly pg_dump (:917).
 
-**Problem:** the guard extracts `$tgt_host` and refuses only a blocklist —
-`postgres|localhost|0.0.0.0|::1|2130706433|0x7f*|0177.*` and `127.*` (plus empty-host). Because `pg_restore`
-runs **inside** the live `postgres` container, other identifiers for that same container also reach the live
-DB and are NOT blocked: the compose **container name** (e.g. `profile-postgres-1`, resolvable via Docker DNS),
-the **container IP** (e.g. `172.18.0.2`), the container hostname/ID, and any compose network alias. A drill
-operator who pastes one of these (e.g. copied from `docker ps`) gets `--clean` dropping live tables.
+**Problem:** on an **already off-box-configured** box, a redeploy that is missing any `PROFILE_BACKUP_*` value
+(e.g. run without `.env.profile.secret`, or a rotated var dropped) sets `BACKUP_OFFBOX_ENABLED=0`, falls to
+local mode, and **rewrites the cron to same-disk weekly pg_dump** — silently dropping the daily encrypted
+off-box schedule for paid/PII data. It **exits 0** (success), so the operator gets no signal. The N5
+preservation logic only guards the offbox branch (:805), so it does NOT cover this path. This is the
+*missing-vars* mirror of the N5 *bad-creds* case.
 
-**Honest impact (tempered from critical → medium):** manual-drill-only (the daily cron runs `backup`, never
-`restore`); requires the off-box age identity present + the operator pasting a live container identifier;
-backstopped by the dated `PROFILE_RESTORE_CONFIRM_LIVE` override and the usage text ("distinct throwaway
-REMOTE host"). But a container name is a plausible paste, and the consequence is catastrophic.
+**Honest impact (tempered from high → medium):** requires a missing-secret redeploy (operator error), not
+runtime/remote. But it is **silent** (worse signal than N5's loud `exit 1`) and strips the off-box/152-FZ
+protection that is T8's entire purpose. Distinct from residual [R4] (which accepts "local skeleton until
+first configured" — a first-deploy/monotonic case, NOT a downgrade of an already-configured box).
 
-**Why NOT another blocklist patch:** this is the 3rd poke of the same Pareto frontier (empty-host → loopback
-encodings → container aliases). Adding `container-name`/IP patterns guarantees a Round-7 finds the next
-live-reaching name (host LAN IP if published, container ID, another alias…). Owner decision: fix it
-**structurally, once.**
+**Recommended fix (preserve/block):** before rewriting the cron in local mode, detect whether the box is
+already off-box-configured (a live `$PROFILE_DIR/backup.sh` + `$PROFILE_DIR/backup.env`, or an existing
+offbox-mode `/etc/cron.d/profile-backups`). If so and `PROFILE_BACKUP_*` is now missing/partial:
+- **Fail the deploy closed** with a clear error ("refusing to downgrade an existing off-box backup to
+  same-disk local — PROFILE_BACKUP_* is missing/partial; fix the env or set PROFILE_BACKUP_DISABLE_OFFBOX=1
+  to intentionally downgrade"), OR preserve the existing off-box cron/config untouched.
+- Only perform the local-mode cron rewrite when there is NO existing off-box config (true first deploy /
+  never-configured — the [R4] case) OR the explicit `PROFILE_BACKUP_DISABLE_OFFBOX=1` opt-out is set.
+Keep first-deploy behavior unchanged (no prior off-box config → local skeleton is fine).
 
-**Recommended fix — default-deny (owner-selected; this RETIRES [R7]):**
-Invert the guard so ANY target requires the dated confirm UNLESS it is provably a distinct remote. Options,
-best-first:
-- **Resolve-and-compare (strongest):** from inside the postgres container, resolve `$tgt_host` and compare
-  against the live postgres container's own hostname/IP(s) and loopback/socket; if it resolves to the live
-  container (or is empty/loopback), require `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC>`. This catches every
-  alias for the container without enumerating names.
-- **Explicit remote allowlist (simpler):** proceed WITHOUT confirm only if `$tgt_host` matches an operator-set
-  allowlist (e.g. `PROFILE_RESTORE_REMOTE_HOST`/an allowlist var) of the intended drill target; everything else
-  requires the dated confirm. Default-deny by construction.
-Keep the dated-confirm exact-match `[ ]` test (unaffected by `nocasematch`), keep the guard BEFORE any
-decrypt/`RESTORE_TMP`, and update the usage text/comments to the default-deny model. **After it lands, delete
-the [R7] residual.**
-
-**Tests (extend `tests/profile-backup-dryrun.sh` TEST 5 or `tests/profile-backup-redeploy.sh`):** a container-name
-target (e.g. `postgresql://u@profile-postgres-1:5432/profile`) and a container-IP target → **refused** without
-confirm; a legit distinct remote (`restore-target`) → **proceeds** (keep the TEST 2 round-trip green); the
-dated confirm → allows a live target.
+**Test:** add a regression case (extend `tests/profile-backup-redeploy.sh` or a sibling) — simulate an
+off-box-configured box (existing `backup.sh`/`backup.env`/offbox cron) + a redeploy with a missing
+`PROFILE_BACKUP_*` var → assert the deploy is blocked (or the off-box cron is preserved), NOT silently
+rewritten to local; and that `PROFILE_BACKUP_DISABLE_OFFBOX=1` allows the intentional downgrade.
 
 ---
 
-### N6 — Deploy-time smoke pollutes the nightly `last-backup.json` (low)
+### 7b — In-place live restore is not transactional (medium; Codex rated high)
 
-**Location:** `profile-backup.sh` `MARKER="$BACKUP_DIR/last-backup.json"` (:35) written by the `on_exit` trap
-(:77-82) on any non-zero exit; the `setup-profile.sh` deploy-time smoke runs the candidate `backup.sh` which
-writes to that same shared marker path.
+**Location:** `profile-backup.sh` `do_restore` — `docker compose exec -T postgres pg_restore --clean
+--if-exists --no-owner -d "$target" < "$RESTORE_TMP"` (:245).
 
-**Problem:** on a bad-cred redeploy over a working box, the candidate smoke FAILS and its `on_exit` writes a
-**failure** entry to `last-backup.json` — the same file the nightly cron uses. So after a failed redeploy the
-marker reads "failure" even though the live (old) config is intact and will succeed at the next 02:30 run
-(self-heals within ~24h). This contradicts the N5 fix's operator message ("previously-working backup … left
-untouched") and would mislead a future phase-2 monitor (R3) for up to a day.
+**Problem:** `--clean` drops existing objects; without `--single-transaction`/`--exit-on-error`, a mid-restore
+failure (lock conflict, dropped connection, incompatible dump) leaves the target with **some objects dropped
+and others not restored** — a partially-destroyed DB. During a *confirmed in-place live recovery*
+(`PROFILE_RESTORE_CONFIRM_LIVE`), that's the live profile DB.
 
-**Honest impact:** low — observability only, self-healing, no monitor is live yet (R3). But it's a cheap,
-in-scope inconsistency worth closing.
+**Honest impact (tempered from high → medium):** only bites during an explicit in-place live restore (a rare
+DR op, and the DB is likely already compromised — that's why you're restoring). The normal throwaway-remote
+drill just leaves a messy throwaway on failure. But the fix is a cheap one-flag hardening.
 
-**Recommended fix:** give the deploy-time smoke its own marker so `last-backup.json` stays owned by the
-nightly cron. Either:
-- have `profile-backup.sh` honor a marker-path override (e.g. `PROFILE_BACKUP_MARKER_FILE`, defaulting to
-  `$BACKUP_DIR/last-backup.json`) and have the `setup-profile.sh` smoke set it to `last-smokecheck.json`; or
-- (minimum) print a one-line note in the smoke-failure output that the shown marker reflects THIS smoke, not
-  the last nightly run — so the operator isn't misled (does not fix the pollution, but removes the confusion).
+**Recommended fix:** add `--single-transaction` (which implies `--exit-on-error`) so the entire restore —
+including the `--clean` drops — runs in one transaction and **rolls back on any error, leaving the target
+unchanged**. Keep `--clean --if-exists --no-owner`. Optionally document (usage text / runbook) that the
+preferred DR path is restore-into-a-fresh-DB-then-cutover, with in-place as the fallback.
+Caveat to verify: `--single-transaction` requires the restore to be a single `pg_restore` invocation (it is)
+and is incompatible with `--jobs` parallel restore (not used here) — so it's a safe addition.
 
-## Do NOT change (accepted residuals — see ledger R1–R8)
+**Test:** if practical in the dockerized harness, assert a forced mid-restore failure leaves the target DB's
+pre-existing objects intact (rolled back). Otherwise cover by inspection + the existing restore round-trip.
 
-- **[R1]** age PUBLIC-recipient-only on the box; not decryptable on-box.
-- **[R2]** weekly-copy / prune failures are non-fatal (run still SUCCESS).
-- **[R3]** marker alerting is monitoring phase-2, not this PR.
-- **[R4]** interim LOCAL weekly pg_dump fallback stays.
-- **[R5]** RETIRED — no per-spelling restore blocklist residual.
-- **[R6]** the smoke runs AFTER API/nginx/migrations are live and fails closed — intentional ordering.
-  **6b (migration-failure rollback) is out-of-scope here** — do NOT add stack/nginx rollback or a
-  pre-migration backup to this PR; it's a separate deploy-pipeline task.
-- **[R7]** PENDING-RETIREMENT: being replaced by the 6a default-deny fix. Do NOT patch the loopback blocklist
-  per-spelling; do the default-deny fix and then delete R7.
-- **[R8]** the two-`mv` promotion is fail-loud, not symlink-atomic — accepted. Do NOT re-implement it as a
-  versioned-dir/symlink switch (intra-dir rename can't fail; TEST 5 proves fail-loud; torn state is benign).
-- **Verified-correct, do not churn:** the N5 atomic `promote_offbox_backup` staging/promotion; the UTC
-  box-clock pin; `|| true` on `remote_size`; the N3 baked-`REAL_DATE` shim; TEST 4/5 and the redeploy test.
+## Do NOT change (accepted residuals — see ledger R1–R9)
+
+- **[R1]** age PUBLIC-recipient-only; not decryptable on-box. **[R2]** weekly-copy/prune non-fatal.
+  **[R3]** marker alerting is monitoring phase-2. **[R4]** interim LOCAL pg_dump on a NEVER-configured box
+  stays (7a is about not DOWNGRADING an already-configured box — different).
+- **[R5]/[R7]** RETIRED — the blocklist era is over; do NOT reintroduce a restore-guard blocklist. The guard
+  is **default-deny** now — do not weaken it.
+- **[R6]** the smoke runs after API/nginx/migrations live and fails closed — intentional ordering; **6b
+  (migration-failure rollback) is out-of-scope here** (separate deploy-pipeline task).
+- **[R8]** two-`mv` promotion is fail-loud, not symlink-atomic — accepted; do NOT re-implement as symlink.
+- **[R9]** the conninfo/`?host=`/multi-host textual-parse divergence is accepted (self-inflicted-only —
+  refused under pure default-deny); do NOT add a blunt `?`/`=` reject (it false-rejects `?sslmode=require`).
+- **Verified-correct, do not churn:** the 6a default-deny guard; the N6 marker override; the N5 atomic
+  `promote_offbox_backup`; the UTC box-clock pin; TEST 4/5/6 and the redeploy suite.
 
 ## Validation & acceptance criteria
 
-- `bash -n profile-backup.sh setup-profile.sh` clean; all changed scripts `bash -n` clean.
-- `./tests/profile-backup-redeploy.sh` still 19/19; `./tests/profile-backup-dryrun.sh` green (dockerized —
-  Docker + `age`/`age-keygen`/`rclone`/`curl`/`jq`).
-- 6a: container-name + container-IP restore targets are REFUSED without the dated confirm and never reach
-  `pg_restore`; a legit distinct remote still restores; then remove [R7] from the ledger.
-- N6: a failed deploy-time smoke does NOT overwrite `last-backup.json` (or the operator is clearly told the
-  marker is the smoke's).
+- `bash -n profile-backup.sh setup-profile.sh` clean.
+- `./tests/profile-backup-redeploy.sh` still passes (plus the new 7a regression case); `./tests/profile-backup-dryrun.sh`
+  green (dockerized — Docker + `age`/`age-keygen`/`rclone`/`curl`/`jq`).
+- 7a: an off-box-configured box + missing-var redeploy → deploy blocked (or off-box cron preserved), never
+  silently local; `PROFILE_BACKUP_DISABLE_OFFBOX=1` allows the intentional downgrade; first deploy unchanged.
+- 7b: `pg_restore` runs with `--single-transaction`; a failed in-place restore leaves the target unchanged.
 - Do not commit unless the user explicitly asks (repo workflow rule).
 
 **Test-harness caveat:** the dockerized dry-run needs a running Docker daemon; on this environment Docker
 Desktop can't be started headlessly — run where Docker is already up, or on the box against MinIO/loopback.
-The redeploy test (`tests/profile-backup-redeploy.sh`) needs only bash + coreutils and runs anywhere.
+The redeploy test needs only bash + coreutils and runs anywhere.

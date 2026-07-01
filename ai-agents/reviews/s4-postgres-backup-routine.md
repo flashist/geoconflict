@@ -36,7 +36,16 @@ while libpq also honors `?host=`/multi-host/key=value-conninfo forms — but def
 on the naive path (now TEST-5-covered), so the only gap is an operator self-allowlisting their remote AND
 typing a live-host override (self-inflicted, ≡ the dated confirm) → accepted **[R9]**. **6b**
 (migration-failure rollback) stays out-of-scope / tracked-separately per [R6]; **6c** stays settled **[R8]**.
-Validation: dockerized harness 21/21, redeploy suite 22/22, `bash -n` clean. **No open T8 defects.**
+Validation: dockerized harness 21/21, redeploy suite 22/22, `bash -n` clean.
+**Round-7 re-review (2026-07-01):** both reviewers + a trace VERIFIED 6a (default-deny) + N6 (marker
+isolation) CORRECT — the restore-guard Pareto frontier is genuinely CLOSED (no bypass under pure
+default-deny; container/conninfo forms all refused; [R9] confirmed self-inflicted-only). BUT Codex
+(ranging the whole diff) surfaced TWO new gaps in adjacent paths: **7a** a redeploy MISSING any
+`PROFILE_BACKUP_*` var silently rewrites the cron to local-only (off-box→local downgrade, exit 0 — the
+missing-vars mirror of N5), and **7b** the confirmed in-place `pg_restore --clean` lacks
+`--single-transaction` (a mid-restore failure half-drops the live DB). Both actionable (owner decision
+2026-07-01). ⚠️ Changes requested — 6a/N6 correct; 7a/7b open. (Not oscillation: the guard frontier is
+closed; these are new areas.)
 Reviewers: Codex + Claude code-reviewer (Round-4) → fix (Round-5) → panel (Round-5) → Codex + Claude
 code-reviewer (Round-6) → owner-approved fix (Round-6) → 4-agent adversarial panel (Round-6, all correct-no-regression).
 
@@ -291,10 +300,37 @@ verified CORRECT: redeploy regression test **19/19** (drives the real extracted 
 - **Validation:** dockerized harness **21/21**, Docker-free redeploy suite **22/22**, `bash -n` clean on all
   four scripts, guard-decision trace re-run across the URL/env battery.
 
+## Round 7 — re-review of the 6a/N6 fixes (2026-07-01)
+
+Full two-reviewer coverage. Claude code-reviewer (scoped to the 6a/N6 diff) LIVE-RAN both suites
+(redeploy 22/22, dryrun 21/21 with real Docker+MinIO) and independently confirmed default-deny closes the
+frontier (no bypass under pure default-deny; multi-`@` authority confusion → fail-safe over-refusal) and
+N6 marker isolation is correct → **clean on 6a/N6**. Codex ranged the WHOLE diff and found two new gaps.
+Orchestrator: default-deny URL battery + redeploy 22/22 reproduced locally; both Codex claims verified
+against the code. Codex `--background` streamed inline (poller logged `NO_JOB_ID`) but the full report was
+captured — full coverage, not partial.
+
+| # | Finding | Verdict | Action |
+|---|---------|---------|--------|
+| 7 | **6a fix verified** — default-deny REFUSES every target (container name/IP, empty-host, `?host=`/multi-host/conninfo) unless host==`PROFILE_RESTORE_REMOTE_HOST` or dated confirm; blocklist plumbing (`shopt`/`is_local`) fully removed; guard before `RESTORE_TMP` | CORRECT (both reviewers + trace) | **Closed** — restore-guard frontier CLOSED; [R7] retirement justified. |
+| 7 | **N6 fix verified** — `MARKER` override applies to success + `on_exit` failure writes; smoke → `last-smokecheck.json`, nightly → `last-backup.json` (TEST-6 live-verified, cksum unchanged) | CORRECT (both reviewers + trace) | **Closed** — N6 confirmed correct. |
+| 7 | **7a** a redeploy MISSING any `PROFILE_BACKUP_*` var → `BACKUP_OFFBOX_ENABLED=0` (setup-profile.sh:86-90) → the unconditional `cat > "$CRON_FILE"` (:892) rewrites the cron to local-only weekly pg_dump → SILENTLY downgrades a working off-box backup for paid data, exit 0. N5's preservation only covers the offbox branch (:805) — Codex high | CORRECT → **medium** (downgraded: needs a missing-secret redeploy — operator error; but genuinely serious because SILENT + strips paid-data off-box protection; the missing-vars mirror of N5, distinct from [R4] which is the first-deploy/not-yet-configured case, not a downgrade of a configured box) | **Open/actionable** (owner decision 2026-07-01) — if a live off-box `backup.sh`/`backup.env`/offbox cron already exists, treat missing/partial `PROFILE_BACKUP_*` as a deploy-BLOCKING error (or preserve the existing off-box cron) instead of silently rewriting to local; require an explicit `PROFILE_BACKUP_DISABLE_OFFBOX=1` flag for an intentional downgrade. |
+| 7 | **7b** the confirmed in-place live restore runs `pg_restore --clean --if-exists --no-owner` (profile-backup.sh:245) with NO `--single-transaction`/`--exit-on-error`, so a mid-restore failure (lock/conn/incompatible dump) leaves the live DB with some objects dropped and others not restored — Codex high | CORRECT → **medium** (downgraded: only bites during an explicit `PROFILE_RESTORE_CONFIRM_LIVE` in-place recovery — a rare DR op where the DB is likely already compromised; the throwaway-remote drill is unaffected) | **Open/actionable** (owner decision 2026-07-01) — add `--single-transaction` (implies `--exit-on-error`) so a failed restore rolls back all-or-nothing, leaving the target unchanged; optionally document restore-into-fresh-then-cutover as the preferred DR path. |
+
 ## Open / actionable
 
-**No open T8 defects.** 6a + N6 (Round 6), N5 (Round 5), N1 + N3 (Round 4), B1–B6 (Rounds 1–2) are all
-implemented and verified. [R7] retired; [R9] accepted (bounded, self-inflicted, TEST-5-covered).
+Actionable this round (owner decision 2026-07-01) — both cheap; the guard frontier + core backup/restore
+path are otherwise solid:
+
+- **7a** — stop a missing/partial-`PROFILE_BACKUP_*` redeploy from silently downgrading an already-off-box
+  box to local same-disk backups: if a live off-box config/cron exists, fail the deploy closed (or preserve
+  the existing off-box cron) unless an explicit `PROFILE_BACKUP_DISABLE_OFFBOX=1` is set. Add a regression
+  test (off-box box + missing-var redeploy → off-box cron preserved / deploy blocked, NOT silently local).
+- **7b** — make the in-place live restore atomic: `pg_restore --single-transaction` (roll back on any error
+  so the target is left unchanged). Optionally document restore-into-fresh-then-cutover.
+
+Closed-verified: 6a + N6 (Round 7), N5 (Round 5), N1 + N3 (Round 4), B1–B6 (Rounds 1–2). [R7] retired;
+[R5] retired; [R8]/[R9] accepted.
 
 Tracked separately (NOT a T8 blocker):
 - **6b** — migration-failure rollback for `profile-api` (pre-existing in `dev`, out-of-scope per [R6]).
