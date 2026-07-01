@@ -44,6 +44,7 @@ make_stub() {  # $1=dir  $2=exit-code
   cat > "$1/backup.sh.new" <<STUB
 #!/usr/bin/env bash
 echo "\$PROFILE_BACKUP_ENV_FILE" > "\$(dirname "\$0")/smoke-env-seen"
+echo "\${PROFILE_BACKUP_MARKER_FILE:-}" > "\$(dirname "\$0")/smoke-marker-seen"
 exit $2
 STUB
   chmod +x "$1/backup.sh.new"
@@ -130,6 +131,25 @@ promote_offbox_backup "$D/backup.sh.new" "$D/backup.env.new" "$D/backup.sh" "$D/
 unset -f mv
 [ "$rc" -ne 0 ] && ok "promote returned non-zero when the env promotion mv failed" || no "torn promotion reported success ($rc)"
 [ "$(cat "$D/backup.env")" = "OLD-LIVE-ENV" ] && ok "live backup.env not left half-promoted" || no "live backup.env torn"
+
+# ── TEST 6: the deploy-smoke marker path (5th arg) is threaded to the candidate (N6) ─────
+# promote_offbox_backup's optional 5th arg must reach the candidate as PROFILE_BACKUP_MARKER_FILE,
+# so the deploy-time smoke writes last-smokecheck.json instead of the nightly last-backup.json.
+echo "=== TEST 6: smoke marker (5th arg) is passed to the candidate as PROFILE_BACKUP_MARKER_FILE ==="
+D="$WORK/t6"; mkdir -p "$D"
+printf 'OLD-LIVE-SCRIPT\n' > "$D/backup.sh"
+printf 'OLD-LIVE-ENV\n'    > "$D/backup.env"
+printf 'NEW-GOOD-ENV\n'    > "$D/backup.env.new"
+make_stub "$D" 0
+SMK="$D/backups/last-smokecheck.json"
+rc=0
+promote_offbox_backup "$D/backup.sh.new" "$D/backup.env.new" "$D/backup.sh" "$D/backup.env" "$SMK" || rc=$?
+[ "$rc" -eq 0 ] && ok "promote succeeded with a smoke-marker arg" || no "promote failed unexpectedly ($rc)"
+[ "$(cat "$D/smoke-marker-seen")" = "$SMK" ] && ok "candidate saw PROFILE_BACKUP_MARKER_FILE=$SMK" \
+  || no "smoke marker not threaded (got '$(cat "$D/smoke-marker-seen" 2>/dev/null)')"
+# Back-compat: the existing 4-arg calls (TESTs 1-3,5) leave the override empty → script default.
+[ -z "$(cat "$WORK/t2/smoke-marker-seen" 2>/dev/null)" ] && ok "4-arg call leaves marker override empty (default)" \
+  || no "4-arg call unexpectedly set a marker override"
 
 echo
 echo "==================== RESULT: $pass passed, $fail failed ===================="

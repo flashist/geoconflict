@@ -23,18 +23,22 @@ matched the first `exit 1` after the `if`, not bound to the smoke-failure branch
 distinctive failure message + whole-line `exit 1`; mutant-proven to reject a removed smoke-failure exit).
 The two promotion `mv`s were made fail-loud (`&&`-guarded) so an (unreachable) torn promotion surfaces as a
 loud deploy failure instead of a silent torn-success (covered by TEST 5).
-**Round-6 re-review (2026-07-01):** both reviewers ran (Codex's FIRST job hung ~10min on its final turn —
-cancelled + re-run; the retry completed cleanly → full coverage). The N5 fix is verified CORRECT
-(redeploy test 19/19, both reviewers agree). Findings: **6a** the restore guard is a blocklist that STILL
-misses Docker-local aliases (compose container name / container IP reach the live DB) — the restore-guard
-Pareto frontier, 3rd poke → owner chose the loop-ending **default-deny structural fix**, which will
-**retire [R7]**; **6b** (migration failure leaves new API serving without rollback) is CORRECT but
-PRE-EXISTING (already in `dev`, not this diff) and out-of-scope per [R6] → tracked separately; **6c**
-(torn `mv` not atomic) re-litigates the settled Round-5 fail-loud two-mv → accepted **[R8]**; **N6**
-(bad-cred smoke pollutes `last-backup.json`) → actionable low. ⚠️ Changes requested (6a medium + N6 low);
-the N5 fix under review is itself correct.
-Reviewers: Codex + Claude code-reviewer (Round-4) → owner-approved fix (Round-5) → 4-agent adversarial
-panel (Round-5) → Codex (re-run after stall) + Claude code-reviewer (Round-6), both ran, full coverage.
+**Round-6 fix (2026-07-01):** implemented **6a** (default-deny restore guard) + **N6** (deploy-smoke marker
+isolation) and adversarially re-verified both. 6a replaces the restore-guard BLOCKLIST with DEFAULT-DENY:
+`do_restore` refuses EVERY target unless the host equals an operator-declared `PROFILE_RESTORE_REMOTE_HOST`
+(distinct remote) OR `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC>` (in-place recovery) — closing the
+Docker-local-alias bypass (container name/IP) AND the whole loopback tail in one structural move →
+**[R7] RETIRED**. N6 makes the deploy smoke write its own `last-smokecheck.json` (via
+`PROFILE_BACKUP_MARKER_FILE`) so a failed redeploy no longer clobbers the nightly `last-backup.json`.
+A 4-lens adversarial panel (6a bypass-hunt / 6a regression / N6 correctness / test+edge) returned
+**correct-no-regression** on all four. One bounded residual surfaced: the guard extracts the host textually
+while libpq also honors `?host=`/multi-host/key=value-conninfo forms — but default-deny REFUSES all of them
+on the naive path (now TEST-5-covered), so the only gap is an operator self-allowlisting their remote AND
+typing a live-host override (self-inflicted, ≡ the dated confirm) → accepted **[R9]**. **6b**
+(migration-failure rollback) stays out-of-scope / tracked-separately per [R6]; **6c** stays settled **[R8]**.
+Validation: dockerized harness 21/21, redeploy suite 22/22, `bash -n` clean. **No open T8 defects.**
+Reviewers: Codex + Claude code-reviewer (Round-4) → fix (Round-5) → panel (Round-5) → Codex + Claude
+code-reviewer (Round-6) → owner-approved fix (Round-6) → 4-agent adversarial panel (Round-6, all correct-no-regression).
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -99,31 +103,32 @@ panel (Round-5) → Codex (re-run after stall) + Claude code-reviewer (Round-6),
   redeploy of an already-exposed service), OR a migration-safety rollback boundary is brought into
   T8's scope.
 
-- **B1 guard blocks realistic + common loopback forms; truly-exotic encodings remain accepted [R7]** —
-  What: the N1 fail-closed guard REFUSES (unless `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC>`)
-  empty-host/Unix-socket, `postgres`/`POSTGRES`, `localhost`, the `127.0.0.0/8` range, `::1`/`[::1]`,
-  `0.0.0.0`, and the common numeric/hex loopback spellings (`2130706433`, `0x7f*`, `0177.*`). It does
-  NOT block a few truly-exotic loopback encodings that still resolve to the live DB: IPv4-mapped IPv6
-  `::ffff:127.0.0.1`, bare octal `0177` (no dot), the rest of the decimal loopback range
-  (`2130706434`…=127.0.0.2+), and `localhost.localdomain`.
-  Why (structural): `restore` is a MANUAL drill; the realistic dangerous inputs (empty-host,
-  localhost, 127.0.0.1, postgres, ::1) are ALL blocked and TEST-5-covered. The remaining forms are
-  inputs no operator types by hand; fully closing them means either an ever-growing per-spelling
-  blocklist (whack-a-mole on a Pareto frontier — the exact loop this ledger has resisted since
-  Round 3) or resolve-the-host-and-check-loopback, disproportionate for a manual drill already
-  guarded by a dated confirm + usage text. This SUPERSEDES the Round-3 [R5]-retirement's over-broad
-  "all exotic cases now blocked" wording: realistic + common are blocked; the exotic tail is accepted.
-  Re-raise only if: `restore` is wired into an automated/unattended path (the target is no longer
-  operator-typed), OR a real drill runbook is found to emit one of these encodings.
-  > **SUPERSEDED-PENDING (Round 6, 2026-07-01):** Round 6 (finding **6a**) showed the guard also misses
-  > NON-loopback Docker-local aliases — the compose **container name** (`profile-postgres-1`) and the
-  > **container IP** both reach the live DB from inside the `postgres` container. That's the SAME
-  > blocklist Pareto frontier, 3rd poke (empty-host R3 → loopback R4/R7 → container-alias R6). Owner
-  > decision 2026-07-01: adopt the loop-ending **default-deny** fix (require the dated confirm unless the
-  > target is an explicit allowlisted remote, or resolve-and-compare against the live container). Once
-  > that lands it closes empty-host + loopback + container-alias + any future live-reaching name in one
-  > move → **delete this [R7] residual**. Until then: the exotic tail stays accepted, and container
-  > name/IP is a KNOWN open gap (6a, Open/actionable) — do NOT add per-name blocklist patches.
+- **[R7] — RETIRED (Round-6 fix, 2026-07-01).** Was: "the N1 guard blocks realistic + common loopback
+  forms but a few truly-exotic loopback encodings (`::ffff:127.0.0.1`, bare `0177`, `2130706434`,
+  `localhost.localdomain`) — and later (6a) the Docker-local aliases (compose container name / container
+  IP) — still PROCEED." The **6a** default-deny conversion INVERTED the guard: `do_restore` now REFUSES
+  EVERY target unless the host equals an operator-declared `PROFILE_RESTORE_REMOTE_HOST` OR
+  `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC>`. So the whole enumerated tail (exotic loopback + container
+  name/IP + any future live-reaching spelling) is blocked STRUCTURALLY — the host-enumeration Pareto
+  frontier is CLOSED, not merely accepted. Do NOT re-add a per-spelling loopback/alias residual. (The one
+  bounded gap that remains is a DIFFERENT axis — URL-parse divergence — tracked as [R9], not R7.)
+
+- **Guard/executor URL-parse divergence on restore — bounded, self-inflicted-only [R9]** —
+  What: the 6a guard extracts `$tgt_host` by TEXTUAL parse of the target URL, but libpq (the pg_restore
+  executor) parses more richly — it honors a `?host=`/`hostaddr=` query override, comma-separated multi-host
+  lists, and space-separated `key=value` conninfo strings — any of which can connect to a DIFFERENT host than
+  the guard extracted (e.g. `postgresql://remote-good/db?host=postgres` extracts `remote-good` but libpq
+  connects to the live `postgres` container).
+  Why (structural): under DEFAULT-DENY every one of these forms is REFUSED on the naive path (extracted host
+  isn't allowlisted, no dated confirm) — verified + TEST-5-covered (`?host=`, multi-host, conninfo cases). The
+  only way one reaches the live DB is if the operator BOTH sets `PROFILE_RESTORE_REMOTE_HOST` to the exact
+  extracted string AND types a live-host override into the same URL — a deliberate, self-inflicted act
+  equivalent to using the dated confirm. A precise code fix (block only `?host=`/multi-host/conninfo while
+  allowing legit params like `?sslmode=require`) is fiddly and risks false-rejecting valid URLs; a blunt
+  `?`/`=` reject false-rejects `?sslmode=`. The Round-6 adversarial panel (all 4 lenses) classified it
+  non-issue. `restore` is a MANUAL drill.
+  Re-raise only if: `restore` is wired into an automated/unattended path (target no longer operator-typed), OR
+  a real drill runbook is found to emit a `?host=`/multi-host/conninfo target.
 
 - **Two-`mv` backup-config promotion is fail-loud, not symlink-atomic [R8]** —
   What: `promote_offbox_backup` promotes the candidate `backup.sh` then `backup.env` with two
@@ -259,24 +264,43 @@ verified CORRECT: redeploy regression test **19/19** (drives the real extracted 
 | 6 | **N6** on a bad-cred redeploy the candidate smoke overwrites the shared `last-backup.json` with a FAILURE marker, contradicting the fix's "previously-working backup left untouched" message; self-heals at the next nightly run (profile-backup.sh `on_exit` :77-82, setup smoke) — Claude low/warning | CORRECT → **low** (novel, in-scope; observability inconsistency, not data-loss; no monitor live yet per [R3]) | **Open/actionable** (owner decision 2026-07-01) — write the deploy-time smoke's marker to a SEPARATE path (e.g. `last-smokecheck.json`) so `last-backup.json` stays owned by the nightly cron; or (min) a one-line note in the failure output that the marker reflects the smoke, not the last nightly. |
 | 6 | Test-polish nits — TEST 2 `grep` vs `cmp`; TEST 4 cron-grep portability; TEST 5 doesn't assert `backup.sh`'s torn state — Claude suggestions | CORRECT → **very low** (non-defects; Linux-target) | **Optional** — nice-to-have test tightening; not required. |
 
+## Round-6 fix — implemented + adversarially verified (2026-07-01)
+
+- **6a — RESOLVED (retires [R7]).** Replaced the restore-guard blocklist with **default-deny** in
+  `profile-backup.sh` `do_restore`: refuse EVERY target unless (a) `$tgt_host` is non-empty AND equals
+  `PROFILE_RESTORE_REMOTE_HOST` (operator-declared distinct remote), OR (b) `PROFILE_RESTORE_CONFIRM_LIVE`
+  = today UTC (in-place recovery); otherwise `die` with a `default-deny` message BEFORE any
+  decrypt/`pg_restore`. The whole blocklist + `shopt nocasematch` were removed; usage text updated. Closes
+  the Docker-local-alias bypass (container name/IP) AND the loopback tail structurally. Dockerized TEST 5 now
+  asserts refusal for empty-host, `[::1]`, `localhost`, `profile-postgres-1`, container-IP, `evil.example`,
+  `?host=` override, multi-host, and `key=value` conninfo; TEST 2 sets `PROFILE_RESTORE_REMOTE_HOST=
+  restore-target` and round-trips (allow path). → **[R7] retired**, **[R9]** added for the bounded URL-parse
+  divergence.
+- **N6 — RESOLVED.** `MARKER` is overridable via `PROFILE_BACKUP_MARKER_FILE` (`profile-backup.sh:37`);
+  `promote_offbox_backup` (setup-profile.sh) takes a 5th arg and runs the deploy smoke with
+  `PROFILE_BACKUP_MARKER_FILE=$BACKUP_DIR/last-smokecheck.json`, and the failure-branch `cat` points there —
+  so a failing deploy smoke never clobbers the nightly `last-backup.json`. The monitoring task
+  (`monitoring-alert-bot-phase2.md` item 5) was updated to note the new marker ownership (a fresh box has no
+  `last-backup.json` until its first nightly run; deploy health is proven by `last-smokecheck.json`).
+- **Adversarial verification:** a 4-lens panel (6a bypass-hunt / 6a regression / N6 correctness / test+edge)
+  returned **correct-no-regression** on all four — no new defect, no regression. Confirmed default-deny closes
+  empty-host + every loopback/alias spelling, the legit allow paths still work (TEST 2 round-trip + dated
+  confirm exact-match, stale date refused), the guard fires before decrypt, and the N6 override is
+  `set -u`-safe with correct empty-fallback. The `?host=`/multi-host/conninfo divergence → **[R9]** (non-issue,
+  TEST-5-covered).
+- **Validation:** dockerized harness **21/21**, Docker-free redeploy suite **22/22**, `bash -n` clean on all
+  four scripts, guard-decision trace re-run across the URL/env battery.
+
 ## Open / actionable
 
-Actionable this round (owner decision 2026-07-01):
-
-- **6a** — replace the restore-guard blocklist with **default-deny**: require `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC>`
-  unless the target is an explicit allowlisted distinct remote (or resolve the target from inside the container and
-  compare against the live postgres container's hostname/IPs). This closes the Docker-local-alias bypass AND the
-  loopback tail in one structural move → then **delete [R7]**. Add restore-guard tests for a container-name and a
-  container-IP target (must refuse) + a legit remote (must proceed).
-- **N6** — stop the deploy-time smoke from clobbering the nightly `last-backup.json`: write the smoke result to a
-  separate marker (e.g. `last-smokecheck.json`), or at minimum print a note that the shown marker is the smoke's, not
-  the last nightly run's.
+**No open T8 defects.** 6a + N6 (Round 6), N5 (Round 5), N1 + N3 (Round 4), B1–B6 (Rounds 1–2) are all
+implemented and verified. [R7] retired; [R9] accepted (bounded, self-inflicted, TEST-5-covered).
 
 Tracked separately (NOT a T8 blocker):
-- **6b** — migration-failure rollback for `profile-api` (pre-existing deploy-pipeline concern, out-of-scope per [R6]).
-  Recommend a separate profile-deploy/migration-safety task.
+- **6b** — migration-failure rollback for `profile-api` (pre-existing in `dev`, out-of-scope per [R6]).
+  Recommend a separate profile-deploy / migration-safety task.
 
-Settled / no action: 6c → [R8]; test-polish nits → optional. N5/N1/N3/B1–B6 → closed. R5 retired; R7 pending-retirement on the 6a fix.
+Settled / no action: 6c → [R8]; test-polish nits → optional.
 
 ## Convergence note (Round 1)
 

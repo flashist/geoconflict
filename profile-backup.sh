@@ -32,7 +32,9 @@ set -euo pipefail
 PROFILE_DIR="${PROFILE_DIR:-/opt/profile}"
 BACKUP_DIR="${BACKUP_DIR:-$PROFILE_DIR/backups}"
 ENV_FILE="${PROFILE_BACKUP_ENV_FILE:-$PROFILE_DIR/backup.env}"
-MARKER="$BACKUP_DIR/last-backup.json"
+# MARKER is overridable (PROFILE_BACKUP_MARKER_FILE) so the deploy-time smoke check can write its
+# own marker (last-smokecheck.json) instead of clobbering the nightly cron's last-backup.json (N6).
+MARKER="${PROFILE_BACKUP_MARKER_FILE:-$BACKUP_DIR/last-backup.json}"
 
 # rclone is configured entirely via RCLONE_CONFIG_PROFILES_* env vars (from backup.env), so there
 # is deliberately no rclone.conf. Point RCLONE_CONFIG at /dev/null so rclone doesn't emit a
@@ -186,22 +188,29 @@ Usage: profile-backup.sh restore <s3-key> <age-identity-file> <target-database-u
   <age-identity-file> the OFF-BOX age private identity (age-keygen output). NEVER stored on the box.
   <target-database-url> a THROWAWAY/staging DB to restore into — never the live profile DB.
 
-  <target-database-url> must point at a DISTINCT THROWAWAY REMOTE host. Any local/loopback target
-  (empty host / Unix socket, postgres, localhost, 127.x, ::1, ...) reaches the LIVE DB and is
-  refused unless PROFILE_RESTORE_CONFIRM_LIVE=<today's UTC date, YYYY-MM-DD> is set (in-place recovery).
+  DEFAULT-DENY: pg_restore runs INSIDE the postgres container, so ANY target that resolves back to it
+  reaches the LIVE DB — not just empty-host/loopback but the compose service/container name, the
+  container IP, and network aliases too (a blocklist can't enumerate them all). So EVERY target is
+  refused unless you prove it is safe, one of two ways:
+    • distinct throwaway REMOTE: set PROFILE_RESTORE_REMOTE_HOST=<the target's host> (must equal the
+      host in <target-database-url>); or
+    • real in-place recovery into the LIVE DB: set PROFILE_RESTORE_CONFIRM_LIVE=<today's UTC date, YYYY-MM-DD>.
 USAGE
     exit 2
   fi
   load_env
   [ -f "$identity" ] || die "age identity file not found: $identity"
 
-  # B1/N1: `restore` is a manual drill; `pg_restore --clean --if-exists` DROPs objects in $target,
-  # and pg_restore runs INSIDE the postgres container — so an empty/omitted host connects over the
-  # container's local Unix socket straight to the LIVE DB. FAIL CLOSED BY DEFAULT: require the dated
-  # confirm for ANY target that is not a provably-distinct REMOTE host. Keyed on HOST not db name (a
-  # throwaway drill DB is legitimately also named "profile"); a distinct remote host (drill target /
-  # replacement box) proceeds with no confirm. IPv6-aware extraction so [::1] isn't mangled to '['.
-  local tgt_host rest today_utc is_local=0
+  # B1/N1/6a: `restore` is a manual drill; `pg_restore --clean --if-exists` DROPs objects in $target,
+  # and pg_restore runs INSIDE the postgres container — so ANY target that resolves back to that
+  # container reaches the LIVE DB: empty/omitted host (local Unix socket), loopback, the compose
+  # service/container name, the container IP, a network alias. A blocklist can't enumerate every such
+  # name (it lost that race over successive reviews), so this is DEFAULT-DENY: refuse EVERY target
+  # unless it is proven safe — EITHER an operator-declared distinct remote (PROFILE_RESTORE_REMOTE_HOST
+  # equal to the target host) OR an explicitly confirmed in-place recovery (PROFILE_RESTORE_CONFIRM_LIVE
+  # = today UTC). Keyed on HOST not db name (a throwaway drill DB is legitimately also named "profile").
+  # IPv6-aware extraction so [::1] isn't mangled to '['. Both tests are exact `[ ]` string matches.
+  local tgt_host rest today_utc
   rest="${target#*://}"; rest="${rest#*@}"
   if [ "${rest#\[}" != "$rest" ]; then
     tgt_host="${rest#\[}"; tgt_host="${tgt_host%%\]*}"   # bracketed IPv6: [::1]:5432/db -> ::1
@@ -209,23 +218,13 @@ USAGE
     tgt_host="${rest%%[:/]*}"                            # host:port/db or host/db -> host
   fi
   today_utc="$(date -u +%Y-%m-%d)"
-  if [ -z "$tgt_host" ]; then
-    is_local=1                                           # omitted host -> libpq local socket -> LIVE DB
-  else
-    # Case-insensitive: Docker DNS resolves POSTGRES == postgres. The `[ ]` confirm test below is
-    # NOT affected by nocasematch, so the dated confirm stays an exact string match.
-    shopt -s nocasematch
-    case "$tgt_host" in
-      postgres|localhost|0.0.0.0|::1|2130706433|0x7f*|0177.*) is_local=1 ;;
-      127.*) is_local=1 ;;                               # entire 127.0.0.0/8 loopback range
-    esac
-    shopt -u nocasematch
-  fi
-  if [ "$is_local" = "1" ] && [ "${PROFILE_RESTORE_CONFIRM_LIVE:-}" != "$today_utc" ]; then
-    die "refusing to restore into non-remote target (host='${tgt_host:-<empty/socket>}') — pg_restore runs inside the postgres container so this reaches the LIVE profile DB, and --clean --if-exists would DROP its data. Point at a distinct throwaway REMOTE host, or for a real in-place recovery re-run with PROFILE_RESTORE_CONFIRM_LIVE=$today_utc"
-  fi
-  if [ "$is_local" = "1" ]; then
+  if [ -n "$tgt_host" ] && [ -n "${PROFILE_RESTORE_REMOTE_HOST:-}" ] \
+     && [ "$tgt_host" = "$PROFILE_RESTORE_REMOTE_HOST" ]; then
+    log "target host '$tgt_host' matches PROFILE_RESTORE_REMOTE_HOST — proceeding with distinct-remote restore"
+  elif [ "${PROFILE_RESTORE_CONFIRM_LIVE:-}" = "$today_utc" ]; then
     log "PROFILE_RESTORE_CONFIRM_LIVE matches $today_utc — proceeding with confirmed in-place restore into '${tgt_host:-<socket>}'"
+  else
+    die "refusing to restore into '${tgt_host:-<empty/socket>}' (default-deny) — pg_restore runs inside the postgres container, so any local/loopback/Docker-alias target (empty host, localhost, 127.x, ::1, the compose service/container name, the container IP, …) reaches the LIVE profile DB and --clean --if-exists would DROP its data. To restore into a DISTINCT THROWAWAY REMOTE set PROFILE_RESTORE_REMOTE_HOST=${tgt_host:-<host>} ; for a real in-place recovery re-run with PROFILE_RESTORE_CONFIRM_LIVE=$today_utc"
   fi
 
   # EXIT trap (global RESTORE_TMP) so the decrypted plaintext is removed even if a later step

@@ -60,6 +60,13 @@ conditions to the existing dedup/state/digest path — it does not introduce a s
    or `finished_at` is older than ~26–30h (i.e. a daily run was missed). The telemetry box keeps
    its own weekly local dump; this item now covers both, but the profile DB is the data-loss-
    critical one (XP + paid-citizenship entitlements).
+   > **Marker ownership (T8 N6):** `last-backup.json` is written ONLY by the nightly cron. The
+   > deploy-time smoke check writes a SEPARATE marker, `/opt/profile/backups/last-smokecheck.json`,
+   > so a failed redeploy never pollutes `last-backup.json`. Consequence for this monitor: a
+   > freshly-provisioned box has no `last-backup.json` until its first nightly run (~up to 24h) —
+   > do NOT alert "missing marker" on a box whose first cron hasn't fired yet. Recoverability at
+   > deploy time is instead proven by `last-smokecheck.json` (exit_status 0). Optionally also
+   > surface `last-smokecheck.json != 0` as a deploy-health signal.
 
 6. **Addition — predictive disk trend.** Alert on disk growth *rate* ("`/` fills in ~N days
    at current rate"), which catches slow Family-A growth earlier than a static % threshold.

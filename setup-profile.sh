@@ -776,10 +776,12 @@ echo "✅ systemd service 'profile' enabled (starts on reboot)"
 # remove the staged candidates, so an already-running nightly backup keeps working.
 #   $1 candidate script   $2 candidate env   $3 live script   $4 live env
 promote_offbox_backup() {
-    local cand_sh="$1" cand_env="$2" live_sh="$3" live_env="$4"
+    local cand_sh="$1" cand_env="$2" live_sh="$3" live_env="$4" smoke_marker="${5:-}"
     # Smoke the CANDIDATE against its OWN env (PROFILE_BACKUP_ENV_FILE override, honored by
     # profile-backup.sh) so the probe exercises the new creds without disturbing the live env.
-    if PROFILE_BACKUP_ENV_FILE="$cand_env" "$cand_sh" backup; then
+    # PROFILE_BACKUP_MARKER_FILE points the smoke's marker at its own file (last-smokecheck.json) so a
+    # failed smoke doesn't clobber the nightly cron's last-backup.json (N6); empty -> script default.
+    if PROFILE_BACKUP_ENV_FILE="$cand_env" PROFILE_BACKUP_MARKER_FILE="$smoke_marker" "$cand_sh" backup; then
         # Promote only after proof. Both candidates are just-created regular files in the same
         # dir as their live targets, so these are intra-directory rename(2)s that don't fail on a
         # working box; the && chain is fail-loud belt-and-suspenders — if a promotion mv ever did
@@ -853,13 +855,15 @@ if [ "$BACKUP_OFFBOX_ENABLED" = "1" ]; then
         # recipient / S3 endpoint / credential / bucket policy must fail the deploy CLOSED here,
         # not silently wait for the first 02:30 cron. The postgres stack is already up + migrated
         # above, so one real encrypted backup + off-box upload + size-verify is a full end-to-end
-        # proof (backup.sh is fail-loud: non-zero exit + failure marker on any step). On success
-        # promote_offbox_backup promotes the candidate (mv -f) and leaves a first verified backup
-        # object + a fresh success marker on the box.
+        # proof (backup.sh is fail-loud: non-zero exit + failure marker on any step). The smoke writes
+        # its marker to last-smokecheck.json (N6), so a failing smoke never clobbers the nightly cron's
+        # last-backup.json. On success promote_offbox_backup promotes the candidate (mv -f) and leaves a
+        # first verified backup object + a fresh smoke-success marker on the box.
         echo "Running deploy-time off-box backup smoke check (against the staged candidate)..."
         if promote_offbox_backup \
               "$PROFILE_DIR/backup.sh.new"  "$PROFILE_DIR/backup.env.new" \
-              "$PROFILE_DIR/backup.sh"      "$PROFILE_DIR/backup.env"; then
+              "$PROFILE_DIR/backup.sh"      "$PROFILE_DIR/backup.env" \
+              "$BACKUP_DIR/last-smokecheck.json"; then
             echo "✅ Smoke check passed — candidate promoted; encrypted object written + verified off-box in S3."
             BACKUP_MODE="offbox"
         else
@@ -867,7 +871,8 @@ if [ "$BACKUP_OFFBOX_ENABLED" = "1" ]; then
             echo "       backup config (fail closed). Any previously-working backup.sh / backup.env / cron"
             echo "       are left untouched, so an already-running nightly backup keeps working; on a first"
             echo "       deploy nothing is activated. Fix PROFILE_BACKUP_* in .env.profile(.secret) and redeploy."
-            cat "$BACKUP_DIR/last-backup.json" 2>/dev/null || true
+            echo "       (Marker below is THIS deploy smoke's — last-smokecheck.json — not the nightly run's.)"
+            cat "$BACKUP_DIR/last-smokecheck.json" 2>/dev/null || true
             exit 1
         fi
     else

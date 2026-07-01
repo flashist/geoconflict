@@ -158,7 +158,10 @@ if ls "$WORK/backups"/.dump.* >/dev/null 2>&1; then no "local temp dump left beh
 echo
 echo "=== TEST 2: restore + row-count round-trip ==="
 FULLKEY="profiles/daily/$OBJ"
+# Default-deny (6a): a legit distinct-remote drill target must be declared via PROFILE_RESTORE_REMOTE_HOST
+# (matching the URL host) to proceed without the dated live-DB confirm. This is the positive/allow path.
 ( cd "$REPO_ROOT" && PROFILE_DIR="$WORK" BACKUP_DIR="$WORK/backups" \
+    PROFILE_RESTORE_REMOTE_HOST="restore-target" \
     bash "$BACKUP_SCRIPT" restore "$FULLKEY" "$WORK/identity.txt" \
     "postgresql://profile:$PGPASS@restore-target:5432/profile" )
 
@@ -209,10 +212,12 @@ WEEKLY="$( set -a; . "$WORK/backup.env"; set +a; rclone lsf "profiles:$BUCKET/pr
   || no "no weekly/ object created on the forced-Sunday run"
 
 echo
-echo "=== TEST 5: restore guard refuses live/empty-host targets (N1, fail-closed-by-default) ==="
+echo "=== TEST 5: restore guard is DEFAULT-DENY — refuses live/loopback/Docker-alias targets (6a) ==="
 # The guard runs after load_env + the identity check but BEFORE any download/pg_restore, so a
-# refused target exits non-zero WITH the guard's message and never touches a DB. (Remote-host
-# proceed is already covered by TEST 2's successful restore into `restore-target`.)
+# refused target exits non-zero WITH the guard's message and never touches a DB. Under default-deny
+# EVERY non-allowlisted target is refused — including the compose container NAME and container IP
+# that the old blocklist missed (the 6a regression). The allowlisted-remote PROCEED path is covered
+# end-to-end by TEST 2 (which sets PROFILE_RESTORE_REMOTE_HOST=restore-target and round-trips).
 guard_refuses() { # <label> <target-url>
   local out rc
   set +e
@@ -220,7 +225,7 @@ guard_refuses() { # <label> <target-url>
       bash "$BACKUP_SCRIPT" restore "profiles/daily/$OBJ" "$WORK/identity.txt" "$2" 2>&1 )"
   rc=$?
   set -e
-  if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -q 'refusing to restore into non-remote'; then
+  if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -q 'default-deny'; then
     ok "guard refuses $1"
   else
     no "guard FAILED to refuse $1 (rc=$rc)"
@@ -229,6 +234,31 @@ guard_refuses() { # <label> <target-url>
 guard_refuses "empty-host / Unix socket (postgresql:///profile)" "postgresql:///profile"
 guard_refuses "IPv6 loopback [::1]"                              "postgresql://profile:test@[::1]:5432/profile"
 guard_refuses "localhost"                                        "postgresql://profile:test@localhost:5432/profile"
+guard_refuses "compose container name (profile-postgres-1)"      "postgresql://profile:test@profile-postgres-1:5432/profile"
+guard_refuses "container IP (172.18.0.2)"                        "postgresql://profile:test@172.18.0.2:5432/profile"
+guard_refuses "non-allowlisted host (evil.example)"              "postgresql://profile:test@evil.example:5432/profile"
+# Guard/executor parse-divergence forms — libpq's ?host= override / multi-host list / key=value
+# conninfo can connect to a different host than a textual parse sees. Under default-deny these are
+# all REFUSED on the naive path (a bypass needs the operator to self-allowlist the exact extracted
+# string — a deliberate act, equivalent to the dated confirm). Documented as residual [R9].
+guard_refuses "?host= query override"                            "postgresql://remote-good/profile?host=postgres"
+guard_refuses "multi-host list (a,postgres)"                     "postgresql://a,postgres/profile"
+guard_refuses "key=value conninfo (no scheme)"                   "host=postgres dbname=profile"
+
+echo
+echo "=== TEST 6: PROFILE_BACKUP_MARKER_FILE isolates the smoke marker from last-backup.json (N6) ==="
+# A backup run with the marker override must write its marker to the override path and leave the
+# nightly cron's last-backup.json untouched — this is how the deploy-time smoke stops polluting it.
+SMOKE_MARKER="$WORK/backups/last-smokecheck.json"
+rm -f "$SMOKE_MARKER"
+BEFORE="$(cksum < "$MARKER")"   # snapshot last-backup.json (a prior test left a marker here)
+( cd "$REPO_ROOT" && PROFILE_DIR="$WORK" BACKUP_DIR="$WORK/backups" \
+    PROFILE_BACKUP_ENV_FILE="$WORK/backup.env" PROFILE_BACKUP_MARKER_FILE="$SMOKE_MARKER" \
+    bash "$BACKUP_SCRIPT" backup )
+[ -f "$SMOKE_MARKER" ] && jq -e '.exit_status == 0' "$SMOKE_MARKER" >/dev/null \
+  && ok "override run wrote last-smokecheck.json (exit_status 0)" || no "override marker missing/non-zero"
+[ "$(cksum < "$MARKER")" = "$BEFORE" ] && ok "nightly last-backup.json left untouched by the override run" \
+  || no "override run clobbered last-backup.json"
 
 echo
 echo "==================== RESULT: $pass passed, $fail failed ===================="
