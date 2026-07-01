@@ -11,8 +11,10 @@ PR: #129 (branch `s4-profile-06-match-end-crediting` → `dev`)
 
 File(s) under review: profile-backup.sh (new), setup-profile.sh, build-deploy-profile.sh,
 example.env.profile (new), tests/profile-backup-dryrun.sh (new), .gitignore, plus docs/wiki.
-Status: RESOLVED — Round-8 fix (2026-07-01) validated backup retention values (C-ret); all Rounds 1–8
-items implemented and verified, NO open T8 defects. Round-5 (2026-07-01) implemented the **N5** atomic backup-config install fix and
+Status: IN-REVIEW (Round 9, 2026-07-01) — the C-ret retention fix is INDEPENDENTLY VERIFIED correct by a fresh
+two-reviewer pass; one NEW open **documentation** defect (D1 — the restore runbook drill commands omit the
+default-deny override env vars) pending a separate doc fix. All Rounds 1–8 CODE items implemented and verified.
+Round-5 (2026-07-01) implemented the **N5** atomic backup-config install fix and
 adversarially re-verified it. `setup-profile.sh` now stages the candidate `backup.sh.new`/`backup.env.new`
 and promotes them over the live files ONLY after a passing deploy-time smoke check (new
 `promote_offbox_backup()` helper, `PROFILE_BACKUP_ENV_FILE` candidate override); a failed redeploy leaves
@@ -59,6 +61,14 @@ dump/upload/prune — so a poison value fails the B2 deploy smoke closed AND fai
 run loud, deleting nothing. Harness TEST 8 added; a 2-lens adversarial panel returned **correct-no-regression**
 (incl. the all-zero `00`/`000` + leading-zero cases). Codex's restore-guard URL-parse re-raise was suppressed
 as settled **[R9]**; **O-dg** (fail-safe, optional) + **Cl-txn** (settled) → no action.
+**Round-9 stateful re-review (2026-07-01):** independent two-reviewer confirmation of the C-ret fix — Claude
+code-reviewer + orchestrator both trace it CORRECT & complete (rejects empty/non-numeric/negative/`0`/`00`/
+leading-zeros with no bash-`[ ]` octal footgun; fires before any dump/upload/prune with the marker-trap armed;
+TEST 8 genuinely binds), and Codex did NOT re-raise [R9] (the prior two-round loop broke). ONE genuinely-new
+**documentation** defect — **D1**: the restore runbook's Part E "mandatory gate" drill + throwaway/live examples
+omit `PROFILE_RESTORE_REMOTE_HOST` / `PROFILE_RESTORE_CONFIRM_LIVE`, so following them verbatim hits the 6a
+default-deny refusal. Owner decision 2026-07-01: fix the runbook (OPEN doc defect; low/med, NOT code-blocking —
+the guard's `die` message is self-documenting). See Round 9 + Open/actionable below.
 Reviewers: Codex + Claude code-reviewer (Round-4) → fix (Round-5) → panel (Round-5) → Codex + Claude
 code-reviewer (Round-6) → owner-approved fix (Round-6) → 4-agent adversarial panel (Round-6, all correct-no-regression).
 
@@ -395,10 +405,38 @@ coverage — NOT a partial review.
   closed (non-issue, unrealistic config).
 - **Validation:** dockerized harness **24/24**, Docker-free redeploy suite **27/27**, `bash -n` clean.
 
+## Round 9 — independent re-review of the C-ret fix (2026-07-01)
+
+Full two-reviewer coverage on the current diff (`dev...HEAD`) after the Round-8 C-ret fix landed. Codex
+adversarial (`--base dev`) + Claude code-reviewer agent (review-only, primed with R1–R9 + the C-ret
+resolution). Orchestrator independently traced the fix and verified D1 against the runbook. The [R9]
+restore-guard re-raise loop did NOT recur this round.
+
+| # | Finding | Verdict | Action |
+|---|---------|---------|--------|
+| 9 | **C-ret fix verified** — retention validation (`profile-backup.sh:120-131`) rejects empty/non-numeric/negative/`0`/`00`/leading-zeros (no bash-`[ ]` octal footgun, checked empirically) and accepts positive ints; fires before any dump/upload/prune with the `on_exit` marker-trap already armed (`:114`); TEST 8 reasoned through its counterfactual and is genuinely binding | CORRECT — fix complete (Claude code-reviewer + orchestrator; Codex did not re-raise) | **Closed** — C-ret confirmed resolved. |
+| 9 | **D1** the restore runbook's Part E "mandatory gate" drill (`profile-backup-restore-runbook.md:101-104`), the throwaway example (`:74-77`), and the live-recovery note (`:82-84`) omit `PROFILE_RESTORE_REMOTE_HOST` / `PROFILE_RESTORE_CONFIRM_LIVE`, so following them verbatim hits the 6a default-deny refusal (the runbook never mentions either override — `grep` returns nothing) — Codex medium | CORRECT → **low/med** (documentation defect, not a code bug: default-deny is the settled 6a behavior; the runbook drifted. Mitigated — the guard's `die` message names the exact env var to set, so it's a remediable error, not silent — but it's the DR "mandatory gate" drill and a PR deliverable; the "first drill 2026-07-01" pass likely reflects a manual/pre-6a run, not the documented commands). NOT covered by any residual — genuinely novel | **Open/actionable** (owner decision 2026-07-01: "fix now") — add the override env vars to the three snippets + a default-deny note, re-run + re-record the Part E drill. NOT code-blocking. **Review-only: the doc fix is NOT applied here — separate user-initiated step.** See Open/actionable. |
+| 9 | **Cl-19digit** a `>18`-digit retention value emits bash `[ ]` stderr noise but still fails closed — Claude informational | Not novel — matches the Round-8 fix note (unrealistic config; fail-closed correctness unaffected) | **No action** — settled informational. |
+| 9 | **[R9]** restore-guard textual host-parse vs libpq divergence | NOT re-raised by either reviewer this round | **No action** — accepted residual stands; the prior two-round re-raise loop did not recur. |
+
 ## Open / actionable
 
-**No open T8 defects.** C-ret (Round 8), 7a + 7b (Round 7), 6a + N6 (Round 6), N5 (Round 5), N1 + N3 (Round 4),
-B1–B6 (Rounds 1–2) are all implemented and verified. [R5]/[R7] retired; [R8]/[R9] accepted.
+**Open (Round 9, low/med — NOT code-blocking): D1 — restore runbook commands drift from the default-deny guard.**
+`ai-agents/knowledge-base/profile-backup-restore-runbook.md` (new in this PR) documents three restore snippets
+that all predate the Round-6 6a default-deny guard and would now be REFUSED as written: the Part E "mandatory
+gate" drill (`:101-104`, target `restore-test`), the throwaway example (`:74-77`, target `restore-target`), and
+the live-recovery note (`:82-84`, target the live `postgres`). The runbook never mentions
+`PROFILE_RESTORE_REMOTE_HOST` or `PROFILE_RESTORE_CONFIRM_LIVE` anywhere (`grep` returns nothing). The CODE is
+correct (default-deny is intended); this is doc/code drift. Impact is mitigated by the guard's self-documenting
+`die` message, but it's the DR "mandatory gate" and a PR deliverable, so fix before treating T8 as shipped (owner
+decision 2026-07-01, "fix now"): add `PROFILE_RESTORE_REMOTE_HOST=<target host>` to the throwaway/Part-E
+examples, `PROFILE_RESTORE_CONFIRM_LIVE=$(date -u +%Y-%m-%d)` to the live-recovery note, a one-line default-deny
+note, and re-run + re-record the Part E drill using the exact documented commands. **NOTE: NOT applied by this
+review (review-only) — a separate, user-initiated step.**
+
+Resolved (Rounds 1–8): C-ret (Round 8, independently re-verified Round 9), 7a + 7b (Round 7), 6a + N6 (Round 6),
+N5 (Round 5), N1 + N3 (Round 4), B1–B6 (Rounds 1–2) — all implemented and verified. [R5]/[R7] retired;
+[R8]/[R9] accepted (the [R9] re-raise loop did not recur in Round 9).
 
 Tracked separately (NOT a T8 blocker):
 - **6b** — migration-failure rollback for `profile-api` (pre-existing in `dev`, out-of-scope per [R6]).
@@ -406,7 +444,7 @@ Tracked separately (NOT a T8 blocker):
 
 Settled / no action: **C-guard** → [R9]; **O-dg** → fail-safe (optional cleanup — `rm -f` the off-box artifacts
 on the `PROFILE_BACKUP_DISABLE_OFFBOX=1` path — not required); **Cl-txn** / 7b forced-rollback test → optional;
-6c + partial single-file off-box state → [R8]; test-polish nits → optional.
+**Cl-19digit** → settled informational; 6c + partial single-file off-box state → [R8]; test-polish nits → optional.
 
 ## Convergence note (Round 1)
 
