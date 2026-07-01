@@ -11,13 +11,18 @@ PR: #129 (branch `s4-profile-06-match-end-crediting` → `dev`)
 
 File(s) under review: profile-backup.sh (new), setup-profile.sh, build-deploy-profile.sh,
 example.env.profile (new), tests/profile-backup-dryrun.sh (new), .gitignore, plus docs/wiki.
-Status: RESOLVED — Round-3 re-review (2026-07-01) + Round-3 fix. All B1–B6 confirmed
-correct/regression-free; the one novel gap **N1** (empty-host/Unix-socket restore bypass) is
-FIXED with a fail-closed-by-default, IPv6-aware guard (empirically validated: every empty/loopback
-form REFUSED, drill/remote hosts proceed) — this also **retired [R5]** (its exotic cases are now
-blocked, not merely accepted). N3 fixed (but NOT as the handoff suggested — `command -v date`
-recurses; used a bake-in instead). N2→[R6], N4→informational. No open defects; not merge-blocking.
-Reviewers: Codex (adversarial) + Claude (code-reviewer agent), both ran, full coverage.
+Status: IN-REVIEW — Round-4 re-review (2026-07-01) of the N1/N3 fixes. Both reviewers + an
+orchestrator URL-battery trace confirm the **N1** fail-closed guard and **N3** date-shim are
+CORRECT on every realistic input, no regression. One NEW substantive regression found: **N5** —
+a redeploy with bad creds overwrites `backup.env` before the smoke gate, so on smoke-failure the
+OLD cron keeps running the now-broken config → a previously-working nightly backup silently breaks.
+Open/actionable (atomic-install fix). **L1** (exotic loopback encodings still proceed) → narrowed
+residual **[R7]**, boundary documented, frontier loop STOPPED. R5 remains retired (its realistic +
+common cases are blocked; the exotic tail is [R7]). ⚠️ Changes requested — N5 is a real data-safety
+regression on redeploys worth fixing; not strictly merge-blocking (needs a misconfigured redeploy +
+fails loudly).
+Reviewers: Codex (adversarial, verdict needs-attention) + Claude (code-reviewer agent, N1/N3 CORRECT) —
+both ran, full coverage.
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -62,6 +67,11 @@ Reviewers: Codex (adversarial) + Claude (code-reviewer agent), both ran, full co
   and numeric/hex loopback — so these are blocked, not merely accepted. Do NOT re-add a
   per-spelling residual here; the guard is now structural (require the dated confirm for anything
   that isn't a provably-distinct remote host).
+  > **Round-4 refinement (2026-07-01):** the "structural" claim is imprecise for NON-empty hosts —
+  > those still go through a (broadened) blocklist, so a handful of truly-exotic loopback encodings
+  > (`::ffff:127.0.0.1`, bare `0177`, decimal range beyond `2130706433`, `localhost.localdomain`)
+  > still PROCEED. Realistic + common forms ARE blocked (and TEST-5-covered); the exotic tail is
+  > documented + accepted in **[R7]**. R5 stays retired for the realistic/common set.
 
 - **Deploy-time backup smoke check runs AFTER the API/nginx/migrations are live [R6]** —
   What: `setup-profile.sh` brings the stack up + migrates (`:491`, `:561`) and configures nginx
@@ -76,6 +86,23 @@ Reviewers: Codex (adversarial) + Claude (code-reviewer agent), both ran, full co
   Re-raise only if: the profile box serves real user traffic during first provisioning (not just a
   redeploy of an already-exposed service), OR a migration-safety rollback boundary is brought into
   T8's scope.
+
+- **B1 guard blocks realistic + common loopback forms; truly-exotic encodings remain accepted [R7]** —
+  What: the N1 fail-closed guard REFUSES (unless `PROFILE_RESTORE_CONFIRM_LIVE=<today UTC>`)
+  empty-host/Unix-socket, `postgres`/`POSTGRES`, `localhost`, the `127.0.0.0/8` range, `::1`/`[::1]`,
+  `0.0.0.0`, and the common numeric/hex loopback spellings (`2130706433`, `0x7f*`, `0177.*`). It does
+  NOT block a few truly-exotic loopback encodings that still resolve to the live DB: IPv4-mapped IPv6
+  `::ffff:127.0.0.1`, bare octal `0177` (no dot), the rest of the decimal loopback range
+  (`2130706434`…=127.0.0.2+), and `localhost.localdomain`.
+  Why (structural): `restore` is a MANUAL drill; the realistic dangerous inputs (empty-host,
+  localhost, 127.0.0.1, postgres, ::1) are ALL blocked and TEST-5-covered. The remaining forms are
+  inputs no operator types by hand; fully closing them means either an ever-growing per-spelling
+  blocklist (whack-a-mole on a Pareto frontier — the exact loop this ledger has resisted since
+  Round 3) or resolve-the-host-and-check-loopback, disproportionate for a manual drill already
+  guarded by a dated confirm + usage text. This SUPERSEDES the Round-3 [R5]-retirement's over-broad
+  "all exotic cases now blocked" wording: realistic + common are blocked; the exotic tail is accepted.
+  Re-raise only if: `restore` is wired into an automated/unattended path (the target is no longer
+  operator-typed), OR a real drill runbook is found to emit one of these encodings.
 
 ## Decision log
 
@@ -135,11 +162,35 @@ correct and regression-free. One novel gap surfaced.
   the harness-resolved real `date` path into the shim at generation time (`REAL_DATE="$(command -v
   date)"` captured BEFORE `$WORK/bin` shadows `date`).
 
+## Round 4 — re-review of the N1/N3 fixes (2026-07-01)
+
+Full two-reviewer coverage (Codex adversarial + Claude code-reviewer agent) + an orchestrator
+empirical URL-battery trace. Both reviewers independently verified the N1 guard + N3 shim are
+CORRECT on every realistic input, no regression (TEST 2 remote host still proceeds). Codex did NOT
+re-poke the loopback frontier — it converged onto a substantive NEW regression (N5).
+
+| # | Finding | Verdict | Action |
+|---|---------|---------|--------|
+| 4 | **N1 fix verified** — fail-closed guard REFUSES every realistic dangerous form (empty-host/socket, `postgres`/`POSTGRES`, `localhost`, `127.0.0.0/8`, `::1`, `0.0.0.0`) and PROCEEDS for every legit remote (incl. `postgres-staging.example.com` — no false-positive); guard fires before `RESTORE_TMP`; `nocasematch` scope clean; TEST 5 added | CORRECT (both reviewers + trace) | **Closed** — N1 confirmed correct. |
+| 4 | **N3 fix verified** — `REAL_DATE` baked in before `$WORK/bin` shadows PATH; no recursion; shim intercepts only `+%u` (object-name date + ISO timestamps pass through) | CORRECT (both reviewers + trace) | **Closed** — N3 confirmed correct. |
+| 4 | **N5** redeploy-with-bad-creds overwrites `backup.sh`+`backup.env` (setup-profile.sh:791, :815) BEFORE the smoke gate; smoke fails → `exit 1` (:836) before the cron rewrite (:852), so the OLD `/etc/cron.d/profile-backups` persists and now runs the overwritten BAD config → a previously-working nightly backup silently breaks — Codex high | CORRECT → **medium** (downgraded: needs a misconfigured REDEPLOY to an already-working box; deploy fails LOUDLY — exit 1 + marker + log; but genuinely DE-ACTIVATES a working backup — a real regression, distinct from [R6]) | **Open/actionable** (owner decision 2026-07-01) — make the backup-config install ATOMIC around the smoke gate (see Open/actionable). |
+| 4 | **L1** truly-exotic loopback encodings still PROCEED — `::ffff:127.0.0.1` (IPv4-mapped IPv6), bare `0177`, decimal `2130706434` (=127.0.0.2), `localhost.localdomain` — Claude informational | CORRECT → **very low**, **frontier-move** (R5-class: reach the live DB but no operator types them in a manual drill; the R5-retirement "exotic cases blocked" wording was slightly overstated) | **Accepted residual [R7]** (owner decision 2026-07-01) — boundary documented + STOP; do NOT chase more spellings. |
+
 ## Open / actionable
 
-None — N1 + N3 resolved (Round 3); N2 accepted as residual [R6]; N4 informational. No open defects.
-Validation: `bash -n` clean on all changed scripts; guard classification re-validated against the
-full URL battery (empty/loopback → refuse, remote → proceed).
+Actionable this round (owner decision 2026-07-01):
+
+- **N5** — make the deploy-time backup-config install **atomic** around the smoke gate so a failed
+  redeploy (bad creds) preserves the last-known-good `backup.sh`/`backup.env`/cron instead of
+  leaving the old cron pointed at the just-overwritten bad config. Stage the candidate `backup.sh`
+  + `backup.env` under temp paths, run the smoke check against the candidate
+  (`PROFILE_BACKUP_ENV_FILE=<candidate>`), and install `/opt/profile/backup.sh`, `backup.env`, and
+  (re)write the cron ONLY after the smoke check succeeds; on failure leave the prior working
+  script/env/cron untouched. Add a bad-redeploy regression test (previous working config preserved).
+
+N1 + N3 fixes are verified CORRECT and closed. L1 → accepted residual [R7]. No other open defects.
+Validation carried forward: `bash -n` clean on all changed scripts; guard classification
+re-validated against the full URL battery (empty/loopback → refuse, remote → proceed); TEST 5 green.
 
 ## Convergence note (Round 1)
 
