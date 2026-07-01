@@ -6,10 +6,79 @@ Sprint 4
 ## Priority
 High — the visible face of the entire citizenship system. Blocks nothing downstream but must ship alongside the player profile store.
 
+---
+
+## Current State (2026-07-01) — card shipped; only data-wiring remains
+
+The card component and its three states are **already built and live** (behind the `citizenship_ui`
+Yandex experiment flag):
+
+- `src/client/CitizenshipCard.ts` — mounted `<citizenship-card>` in both `src/client/index.html`
+  and `src/client/yandex-games_iframe.html`, imported in `Main.ts`; guest / logged-in render
+  states; the `CITIZENSHIP_SURFACE_SEEN` analytics event; a login CTA that already re-fetches on
+  successful auth (`refreshProfile()` after `openYandexAuthDialog()`).
+- `src/core/profile/Citizenship.ts` — shared `CITIZENSHIP_XP_THRESHOLD = 1000`, `XP_PER_MATCH = 10`.
+- Server-side earned-citizenship grant is **already done** in
+  `PlayerProfileRepository.creditMatchXp()` (flips `is_citizen` + stamps `citizenship_earned_at`
+  at threshold). **No server work in this task.**
+
+**The one remaining piece — the keystone** — is that the client never actually reads the profile:
+`src/client/PlayerProfileView.ts` → `loadPlayerProfileView()` is a stub that returns
+`{ displayName, xp: 0, isCitizen: false }` for authorized players. Replace that stub body with a
+real profile read and the already-built card lights up with real XP + earned-citizen state. The
+**"What to Build"** design spec below documents the card as originally scoped and is kept as
+reference; the actionable work now is the profile-read wiring in **Remaining Work** below.
+
+### Remaining Work — wire the client profile read
+
+Replace the body of `loadPlayerProfileView()` in `src/client/PlayerProfileView.ts`:
+
+1. **Unauthorized → return `null`** (unchanged — `null` is what makes the card render the guest state).
+2. **Authorized → fetch and return a populated `PlayerProfileView`.**
+
+**Endpoint (already implemented server-side, live on `api.geoconflict.ru`):**
+
+```
+GET {profileApiUrl}/v1/profile?yandexPlayerId={id}
+  200 → public profile JSON (projection below)
+  404 → no row yet (new authorized player) — treat as zero-state, NOT an error
+  400 → bad/missing id       429 → rate-limited (60/min per IP)
+```
+
+- **`profileApiUrl`** comes from `/api/env` (served by `src/server/Master.ts:171`, field already
+  present). No client accessor exists yet — add a minimal one. **Do NOT reuse `getApiBase()` /
+  `fetchPlayerById()` from `jwt.ts`** — those hit the *game* API (`/users/@me`, `/player/{id}`), a
+  different backend, not the profile server.
+- **`yandexPlayerId`** = `FlashistFacade.instance.getYandexUniqueId()` — the T3 accessor used in
+  `Main.ts:703` / `Transport.ts:412`; returns `null` for guests/degraded.
+
+**Parse the public projection, not the full schema.** `GET /v1/profile` omits `is_paid_citizen`,
+`citizenship_purchased_at`, and `persistent_id` (see `toPublicProfile()` in `Routes.ts`), so the
+full `PlayerProfileSchema` would fail to parse. Add a shared `PublicPlayerProfileSchema` / type in
+`src/core/profile/` (`.omit({ is_paid_citizen: true, citizenship_purchased_at: true, persistent_id: true })`)
+and use it on **both** the server return type and this client parse — one source of truth, no drift.
+
+**Map to the view model:** `displayName = profile.display_name ?? (await getCurPlayerName())`,
+`xp = profile.xp`, `isCitizen = profile.is_citizen`.
+
+**Failure / degraded handling (get the null contract right):** for an **authorized** player a
+failed read must still return a logged-in view, never `null` — returning `null` misrenders a
+logged-in player (or a citizen) as a guest with a login CTA:
+
+- `404` → `{ displayName, xp: 0, isCitizen: false }`
+- network error / timeout / non-200 → logged-in zero-state
+- `profileApiUrl` empty/unset → skip the fetch, return the zero-state view (do not throw)
+- bound the fetch with a short timeout so a slow/unreachable profile API never hangs the card
+  (matches the `Bootstrap.ts` degraded-mode philosophy).
+
+**Out of scope (deferred per Mark 2026-07-01 "keystone only"):** the earned-citizenship inbox
+notification + real-time in-session grant toast (Part B/C of `s4-citizenship-earned.md`) — those
+need a `newlyGranted` signal from `creditMatchXp()` and 8d-B Personal Inbox, tracked separately.
+
 ## Dependencies
 - **Start screen redesign** must be implemented — the citizenship card lives in the tab layout introduced by that task.
 - **Analytics:** this task owns `UI:Tap:CitizenshipBuy` and `UI:Tap:CitizenshipLearnMore`. Read `analytics-p1-citizenship-funnel.md` before starting — events must be wired during implementation, not added later.
-- **Player Profile Store** must be live — the card reads XP from the local guest profile or server profile.
+- **Player Profile Store** must be live — the card reads XP from the **server** profile via `GET /v1/profile`. (Guest-first localStorage XP was cancelled 2026-06-13; XP is authenticated-only. The profile store is now live, so this dependency is satisfied.)
 
 ## Context
 
@@ -38,9 +107,9 @@ Shown when `FlashistFacade.isYandexAuthorized()` returns `false`.
 | Subtitle | "Войдите, чтобы сохранить прогресс" / "Log in to save your progress" |
 | CTA button | "Войти в Яндекс" / "Log in with Yandex" |
 
-Tapping the CTA triggers the Yandex SDK login flow. On successful login, the guest profile migration (Part F of Player Profile Store brief) runs, then the card re-renders into State 2 or State 3.
+Tapping the CTA triggers the Yandex SDK login flow. On successful login, the card re-fetches the profile (`refreshProfile()`) and re-renders into State 2 or State 3. (There is **no** guest→authenticated migration — that path, T2/T7, was cancelled 2026-06-13; profile XP is authenticated-only.)
 
-Note: guest XP still accumulates locally. The card communicates that progress won't persist without login — not that the feature is unavailable.
+Note: XP is earned only while authenticated (no local guest accumulation). The card's guest state communicates "log in to save your progress" — not that the feature is unavailable.
 
 ---
 
