@@ -53,11 +53,11 @@ This document is the **epic/overview**. The shared context above (Infrastructure
 | T5 | `s4-profile-05-backend-db-api.md` | Migration + repository + API endpoints (Part D DB + Part E profile half) | T1, T4 | ✅ Done (PR #126) |
 | T6 | `s4-profile-06-match-end-crediting.md` | Protocol ext + server-side crediting (Part E game half) | T3, T5 | ✅ Done |
 | T7 | `s4-profile-07-guest-migration.md` | Guest→authenticated migration (Part F) | T2, T3, T5 | ⛔ Cancelled (2026-06-13) — see note |
-| T8 | `s4-postgres-backup-routine.md` | Profile DB backups (Part D step 7) | T4 | ⬜ Backlog |
+| T8 | `s4-postgres-backup-routine.md` | Profile DB backups (Part D step 7) | T4 | ✅ Done |
 
 ### T4 sub-slices (reverted & re-decomposed 2026-06-19)
 
-The monolithic T4 was implemented (PR #112), then **reverted** and re-split into 7 independently shippable ops slices (T4a–T4g); **T4h** (T4b-review follow-up) and **T4i** (operator bring-up runbook) were added 2026-06-19 — **9 total**. T4e was further split into T4e1/T4e2/T4e3 during implementation. `s4-profile-04-backend-infra.md` is retained as the T4 overview; the slices below carry the executable scope. **Status (2026-06-24): T4a–T4i all done — T4 is complete. The profile box is live (`api.geoconflict.ru` serving 200 over TLS), and T5 (DB + API) is done & merged (PR #126). Next on the spine: T8 (backups). T6 (match-end crediting) done.**
+The monolithic T4 was implemented (PR #112), then **reverted** and re-split into 7 independently shippable ops slices (T4a–T4g); **T4h** (T4b-review follow-up) and **T4i** (operator bring-up runbook) were added 2026-06-19 — **9 total**. T4e was further split into T4e1/T4e2/T4e3 during implementation. `s4-profile-04-backend-infra.md` is retained as the T4 overview; the slices below carry the executable scope. **Status (2026-06-24): T4a–T4i all done — T4 is complete. The profile box is live (`api.geoconflict.ru` serving 200 over TLS), and T5 (DB + API) is done & merged (PR #126). T6 (match-end crediting) done. T8 (backups) done — all spine slices complete.**
 
 | # | Child task | Covers | Depends on | Status |
 |---|---|---|---|---|
