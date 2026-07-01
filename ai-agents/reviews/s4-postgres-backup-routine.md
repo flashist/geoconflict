@@ -11,18 +11,21 @@ PR: #129 (branch `s4-profile-06-match-end-crediting` → `dev`)
 
 File(s) under review: profile-backup.sh (new), setup-profile.sh, build-deploy-profile.sh,
 example.env.profile (new), tests/profile-backup-dryrun.sh (new), .gitignore, plus docs/wiki.
-Status: IN-REVIEW — Round-4 re-review (2026-07-01) of the N1/N3 fixes. Both reviewers + an
-orchestrator URL-battery trace confirm the **N1** fail-closed guard and **N3** date-shim are
-CORRECT on every realistic input, no regression. One NEW substantive regression found: **N5** —
-a redeploy with bad creds overwrites `backup.env` before the smoke gate, so on smoke-failure the
-OLD cron keeps running the now-broken config → a previously-working nightly backup silently breaks.
-Open/actionable (atomic-install fix). **L1** (exotic loopback encodings still proceed) → narrowed
-residual **[R7]**, boundary documented, frontier loop STOPPED. R5 remains retired (its realistic +
-common cases are blocked; the exotic tail is [R7]). ⚠️ Changes requested — N5 is a real data-safety
-regression on redeploys worth fixing; not strictly merge-blocking (needs a misconfigured redeploy +
-fails loudly).
-Reviewers: Codex (adversarial, verdict needs-attention) + Claude (code-reviewer agent, N1/N3 CORRECT) —
-both ran, full coverage.
+Status: RESOLVED — Round-5 (2026-07-01) implemented the **N5** atomic backup-config install fix and
+adversarially re-verified it. `setup-profile.sh` now stages the candidate `backup.sh.new`/`backup.env.new`
+and promotes them over the live files ONLY after a passing deploy-time smoke check (new
+`promote_offbox_backup()` helper, `PROFILE_BACKUP_ENV_FILE` candidate override); a failed redeploy leaves
+the last-known-good script/env/cron intact, so a previously-working nightly backup can no longer be
+silently de-activated. A 4-lens adversarial panel (regression / correctness / test-soundness / edge)
+returned **correct-no-regression** — no new defect, no regression; B2/[R6]/[R4]/missing-src-fallback
+invariants preserved. The panel found one weakness in the NEW regression test (TEST 4 could false-green:
+matched the first `exit 1` after the `if`, not bound to the smoke-failure branch) — FIXED (anchored on the
+distinctive failure message + whole-line `exit 1`; mutant-proven to reject a removed smoke-failure exit).
+The two promotion `mv`s were made fail-loud (`&&`-guarded) so an (unreachable) torn promotion surfaces as a
+loud deploy failure instead of a silent torn-success (covered by TEST 5). **L1** exotic-loopback tail stays
+residual **[R7]**; **R5** stays retired. No open defects.
+Reviewers: Codex + Claude code-reviewer (Round-4 review) → owner-approved fix (Round-5) → 4-agent adversarial
+panel (Round-5 verify, all correct-no-regression).
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -176,21 +179,41 @@ re-poke the loopback frontier — it converged onto a substantive NEW regression
 | 4 | **N5** redeploy-with-bad-creds overwrites `backup.sh`+`backup.env` (setup-profile.sh:791, :815) BEFORE the smoke gate; smoke fails → `exit 1` (:836) before the cron rewrite (:852), so the OLD `/etc/cron.d/profile-backups` persists and now runs the overwritten BAD config → a previously-working nightly backup silently breaks — Codex high | CORRECT → **medium** (downgraded: needs a misconfigured REDEPLOY to an already-working box; deploy fails LOUDLY — exit 1 + marker + log; but genuinely DE-ACTIVATES a working backup — a real regression, distinct from [R6]) | **Open/actionable** (owner decision 2026-07-01) — make the backup-config install ATOMIC around the smoke gate (see Open/actionable). |
 | 4 | **L1** truly-exotic loopback encodings still PROCEED — `::ffff:127.0.0.1` (IPv4-mapped IPv6), bare `0177`, decimal `2130706434` (=127.0.0.2), `localhost.localdomain` — Claude informational | CORRECT → **very low**, **frontier-move** (R5-class: reach the live DB but no operator types them in a manual drill; the R5-retirement "exotic cases blocked" wording was slightly overstated) | **Accepted residual [R7]** (owner decision 2026-07-01) — boundary documented + STOP; do NOT chase more spellings. |
 
+## Round-5 fix — implemented + adversarially verified (2026-07-01)
+
+- **N5 — RESOLVED.** Made the deploy-time off-box backup-config install **atomic** around the smoke
+  gate (owner-approved, Option A). `setup-profile.sh`:
+  - New `promote_offbox_backup() { cand_sh cand_env live_sh live_env; }` helper (defined just before
+    the "Backup + maintenance cron jobs" section): runs the smoke against the CANDIDATE via
+    `PROFILE_BACKUP_ENV_FILE="$cand_env" "$cand_sh" backup`; on success `mv -f` both candidates over
+    the live files (`&&`-chained, fail-loud); on failure `rm -f` the candidates and `return 1`.
+  - The off-box branch now `install -m 700 … backup.sh.new` and writes the `printf` env block to
+    `backup.env.new` (0600), then `if promote_offbox_backup …; then BACKUP_MODE=offbox; else …; exit 1; fi`.
+    So a bad-cred REDEPLOY to an already-working box no longer clobbers the last-known-good
+    `backup.sh`/`backup.env`; the `exit 1` fires before the cron (re)write, so the old working cron is
+    preserved and the existing nightly backup keeps running. First-deploy stays fail-closed (nothing
+    to preserve → nothing activated). [R6] ordering, B2 fail-closed gate, [R4] local fallback, and the
+    missing-`$PROFILE_BACKUP_SRC` warn+fallback are all unchanged.
+  - New Docker-free regression test `tests/profile-backup-redeploy.sh` drives the REAL
+    `promote_offbox_backup()` (extracted from `setup-profile.sh` via `awk`, so it can't drift) with
+    stub candidates. **19/19 pass**; a mutation check confirms it FAILS under the old
+    clobber-before-proof behavior (not tautological).
+- **Adversarial verification (4-lens panel):** regression / correctness / test-soundness / edge all
+  returned **correct-no-regression**. Recurring "candidate smoke writes marker to the LIVE
+  `last-backup.json`" and "torn `mv`" notes were classified pre-existing / unreachable / non-issue.
+- **Panel-found test weakness — FIXED.** The test-soundness lens showed TEST 4 could false-green (it
+  matched the first `exit 1` after the `if`, unbound to the smoke-failure branch; a mutant that removed
+  the real smoke-failure `exit 1` still passed). Hardened: anchor on the distinctive failure message
+  (`refusing to promote the new`) + match a whole-line `exit 1` statement; re-proven that the mutant is
+  now rejected. Added **TEST 5** for the fail-loud `&&`-guarded promotion (env `mv` failure → non-zero,
+  no torn success).
+
 ## Open / actionable
 
-Actionable this round (owner decision 2026-07-01):
-
-- **N5** — make the deploy-time backup-config install **atomic** around the smoke gate so a failed
-  redeploy (bad creds) preserves the last-known-good `backup.sh`/`backup.env`/cron instead of
-  leaving the old cron pointed at the just-overwritten bad config. Stage the candidate `backup.sh`
-  + `backup.env` under temp paths, run the smoke check against the candidate
-  (`PROFILE_BACKUP_ENV_FILE=<candidate>`), and install `/opt/profile/backup.sh`, `backup.env`, and
-  (re)write the cron ONLY after the smoke check succeeds; on failure leave the prior working
-  script/env/cron untouched. Add a bad-redeploy regression test (previous working config preserved).
-
-N1 + N3 fixes are verified CORRECT and closed. L1 → accepted residual [R7]. No other open defects.
-Validation carried forward: `bash -n` clean on all changed scripts; guard classification
-re-validated against the full URL battery (empty/loopback → refuse, remote → proceed); TEST 5 green.
+**No open defects.** N1 + N3 (Round 4) and N5 (Round 5) are all implemented and verified. L1 → accepted
+residual [R7]; R5 stays retired. Validation carried forward: `bash -n` clean on all changed scripts;
+`tests/profile-backup-redeploy.sh` 19/19; N1 guard classification re-validated against the full URL
+battery (empty/loopback → refuse, remote → proceed); N1 TEST 5 in the dockerized harness green.
 
 ## Convergence note (Round 1)
 

@@ -767,6 +767,30 @@ systemctl daemon-reload
 systemctl enable profile
 echo "✅ systemd service 'profile' enabled (starts on reboot)"
 
+# N5: atomically promote a staged candidate backup config over the live files, but ONLY after
+# the candidate proves itself with a real deploy-time smoke backup. On an already-configured box,
+# a redeploy with bad creds (rotated/typo'd S3 key, wrong endpoint) must NOT overwrite the
+# last-known-good backup.sh/backup.env before the new config is proven — otherwise the (untouched)
+# old cron keeps invoking backup.sh against the just-clobbered bad env and every nightly backup
+# breaks silently. Promote only on success; on failure leave the prior working files in place and
+# remove the staged candidates, so an already-running nightly backup keeps working.
+#   $1 candidate script   $2 candidate env   $3 live script   $4 live env
+promote_offbox_backup() {
+    local cand_sh="$1" cand_env="$2" live_sh="$3" live_env="$4"
+    # Smoke the CANDIDATE against its OWN env (PROFILE_BACKUP_ENV_FILE override, honored by
+    # profile-backup.sh) so the probe exercises the new creds without disturbing the live env.
+    if PROFILE_BACKUP_ENV_FILE="$cand_env" "$cand_sh" backup; then
+        # Promote only after proof. Both candidates are just-created regular files in the same
+        # dir as their live targets, so these are intra-directory rename(2)s that don't fail on a
+        # working box; the && chain is fail-loud belt-and-suspenders — if a promotion mv ever did
+        # fail we surface it as a failed promotion (return 1 → deploy exit 1) rather than reporting
+        # success with a half-promoted (new script / stale env) pair.
+        mv -f "$cand_sh" "$live_sh" && mv -f "$cand_env" "$live_env" && return 0
+    fi
+    rm -f "$cand_sh" "$cand_env"
+    return 1
+}
+
 # ── Backup + maintenance cron jobs ────────────────────────────────────────────
 # Off-box path (T8): when PROFILE_BACKUP_* is fully configured, install the standalone
 # backup script (SCP'd here by build-deploy-profile.sh) + its 0600 config and schedule a
@@ -788,13 +812,21 @@ if [ "$BACKUP_OFFBOX_ENABLED" = "1" ]; then
         command -v age    >/dev/null 2>&1 || { echo "Error: age failed to install."; exit 1; }
         command -v rclone >/dev/null 2>&1 || { echo "Error: rclone failed to install."; exit 1; }
 
-        install -m 700 "$PROFILE_BACKUP_SRC" "$PROFILE_DIR/backup.sh"
-        echo "Installed: backup.sh (0700)"
+        # N5: stage the candidate script + env under .new paths and PROVE them with the smoke
+        # check BEFORE promoting over the live files (see promote_offbox_backup above). On an
+        # already-working box a bad-cred redeploy must NOT clobber the last-known-good
+        # backup.sh/backup.env — the untouched old cron would keep running the just-overwritten
+        # bad config and the nightly backup would break silently. Promotion is atomic + only on
+        # a passing smoke; on failure the prior working files (and cron, via the exit 1 below)
+        # are left intact.
+        install -m 700 "$PROFILE_BACKUP_SRC" "$PROFILE_DIR/backup.sh.new"
+        echo "Staged candidate: backup.sh.new (0700)"
 
         # backup.env (0600) — deliberately NOT referenced by docker-compose, so these S3/age
         # secrets never enter the postgres/profile-api containers. %q keeps every value safe to
         # re-source even if a key carries shell metacharacters. profile-backup.sh sources this
         # with `set -a`, so the RCLONE_CONFIG_PROFILES_* names reach rclone via the environment.
+        # Written to backup.env.new first; promoted to backup.env only if the smoke check passes.
         ( umask 077
           {
             printf 'POSTGRES_USER=%q\n'                            "$POSTGRES_USER"
@@ -812,26 +844,29 @@ if [ "$BACKUP_OFFBOX_ENABLED" = "1" ]; then
             printf 'RCLONE_CONFIG_PROFILES_ACCESS_KEY_ID=%q\n'     "$PROFILE_BACKUP_S3_ACCESS_KEY"
             printf 'RCLONE_CONFIG_PROFILES_SECRET_ACCESS_KEY=%q\n' "$PROFILE_BACKUP_S3_SECRET_KEY"
             printf 'RCLONE_CONFIG_PROFILES_ACL=%q\n'               "private"
-          } > "$PROFILE_DIR/backup.env"
+          } > "$PROFILE_DIR/backup.env.new"
         )
-        chmod 600 "$PROFILE_DIR/backup.env"
-        echo "Written: backup.env (0600)"
+        chmod 600 "$PROFILE_DIR/backup.env.new"
+        echo "Staged candidate: backup.env.new (0600)"
 
         # B2: prove the off-box pipeline actually works BEFORE declaring it active. A bad age
         # recipient / S3 endpoint / credential / bucket policy must fail the deploy CLOSED here,
         # not silently wait for the first 02:30 cron. The postgres stack is already up + migrated
         # above, so one real encrypted backup + off-box upload + size-verify is a full end-to-end
-        # proof (backup.sh is fail-loud: non-zero exit + failure marker on any step). It also
-        # leaves a first verified backup object + a fresh success marker on the box.
-        echo "Running deploy-time off-box backup smoke check..."
-        if "$PROFILE_DIR/backup.sh" backup; then
-            echo "✅ Smoke check passed — encrypted object written + verified off-box in S3."
+        # proof (backup.sh is fail-loud: non-zero exit + failure marker on any step). On success
+        # promote_offbox_backup promotes the candidate (mv -f) and leaves a first verified backup
+        # object + a fresh success marker on the box.
+        echo "Running deploy-time off-box backup smoke check (against the staged candidate)..."
+        if promote_offbox_backup \
+              "$PROFILE_DIR/backup.sh.new"  "$PROFILE_DIR/backup.env.new" \
+              "$PROFILE_DIR/backup.sh"      "$PROFILE_DIR/backup.env"; then
+            echo "✅ Smoke check passed — candidate promoted; encrypted object written + verified off-box in S3."
             BACKUP_MODE="offbox"
         else
-            echo "Error: deploy-time off-box backup smoke check FAILED — refusing to declare"
-            echo "       off-box backups active (fail closed). The app stack is up, but the backup"
-            echo "       pipeline (age recipient / S3 endpoint / credentials / bucket policy) is not"
-            echo "       working. Fix PROFILE_BACKUP_* in .env.profile(.secret) and redeploy."
+            echo "Error: deploy-time off-box backup smoke check FAILED — refusing to promote the new"
+            echo "       backup config (fail closed). Any previously-working backup.sh / backup.env / cron"
+            echo "       are left untouched, so an already-running nightly backup keeps working; on a first"
+            echo "       deploy nothing is activated. Fix PROFILE_BACKUP_* in .env.profile(.secret) and redeploy."
             cat "$BACKUP_DIR/last-backup.json" 2>/dev/null || true
             exit 1
         fi
