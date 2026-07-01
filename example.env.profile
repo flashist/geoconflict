@@ -48,6 +48,28 @@ PROFILE_SSH_KEY=~/.ssh/id_rsa
 # PROFILE_SSH_PASSWORD=
 
 # -----------------------------------------------------------
+# Off-box backup (T8) — encrypted DAILY pg_dump uploaded to RU-resident S3.
+# The daily backup is installed ONLY when endpoint+bucket+access+secret+age-recipient are all
+# set; otherwise setup-profile.sh keeps the interim weekly LOCAL pg_dump. Backups contain PII
+# (Yandex IDs, display names, payment state) so the destination MUST be RU-resident (152-FZ).
+# -----------------------------------------------------------
+# S3 endpoint URL for the backup bucket (Reg.ru Object Storage, or any RU-resident S3).
+PROFILE_BACKUP_S3_ENDPOINT=
+# S3 region for the bucket (leave blank if the provider does not require one).
+PROFILE_BACKUP_S3_REGION=
+# Private bucket dedicated to profile backups.
+PROFILE_BACKUP_S3_BUCKET=
+# Key prefix within the bucket (default: profiles → profiles/daily/... + profiles/weekly/...).
+PROFILE_BACKUP_S3_PREFIX=profiles
+# age RECIPIENT (public key, "age1...") the dump is encrypted to before upload. Generate ONCE
+# with `age-keygen -o profile-backup-identity.txt`: paste the "Public key:" value here; keep
+# the private identity OFF the box (e.g. a password manager) — it is needed only to restore.
+PROFILE_BACKUP_AGE_RECIPIENT=
+# Retention (days). Default: 14 daily + 56 (≈8 weekly) ≈ two months of coverage.
+PROFILE_BACKUP_RETENTION_DAILY_DAYS=14
+PROFILE_BACKUP_RETENTION_WEEKLY_DAYS=56
+
+# -----------------------------------------------------------
 # Secrets — put these in .env.profile.secret (gitignored), NOT here:
 # -----------------------------------------------------------
 # POSTGRES_PASSWORD=      # REQUIRED — Postgres password for the profile DB
@@ -56,3 +78,5 @@ PROFILE_SSH_KEY=~/.ssh/id_rsa
 # PROFILE_INTERNAL_TOKEN= # service token shared with the game server (T6);
 #                         #   auto-generated on the box if left blank
 # DOCKER_TOKEN=           # registry token for `docker login` (if the repo is private)
+# PROFILE_BACKUP_S3_ACCESS_KEY=  # S3 access key, scoped to the backup bucket only (T8)
+# PROFILE_BACKUP_S3_SECRET_KEY=  # S3 secret key for the above (T8)

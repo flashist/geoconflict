@@ -67,6 +67,29 @@ POSTGRES_DB="${POSTGRES_DB:-profile}"
 # The internal service token + DATABASE_URL are derived in the stack-write section
 # below (after validation), so a missing POSTGRES_PASSWORD can't yield a half-built URL.
 
+# Off-box backup (T8). Optional: the daily encrypted S3 backup is installed ONLY when all of
+# endpoint+bucket+access+secret+age-recipient are present (set PROFILE_BACKUP_* in
+# .env.profile/.secret). Until then the interim weekly *local* pg_dump skeleton stays in place
+# so the box is never left with no backup at all. Adding the creds + redeploying flips it on.
+PROFILE_BACKUP_S3_ENDPOINT="${PROFILE_BACKUP_S3_ENDPOINT:-}"
+PROFILE_BACKUP_S3_REGION="${PROFILE_BACKUP_S3_REGION:-}"
+PROFILE_BACKUP_S3_BUCKET="${PROFILE_BACKUP_S3_BUCKET:-}"
+PROFILE_BACKUP_S3_PREFIX="${PROFILE_BACKUP_S3_PREFIX:-profiles}"
+PROFILE_BACKUP_S3_ACCESS_KEY="${PROFILE_BACKUP_S3_ACCESS_KEY:-}"
+PROFILE_BACKUP_S3_SECRET_KEY="${PROFILE_BACKUP_S3_SECRET_KEY:-}"
+PROFILE_BACKUP_AGE_RECIPIENT="${PROFILE_BACKUP_AGE_RECIPIENT:-}"
+PROFILE_BACKUP_RETENTION_DAILY_DAYS="${PROFILE_BACKUP_RETENTION_DAILY_DAYS:-14}"
+PROFILE_BACKUP_RETENTION_WEEKLY_DAYS="${PROFILE_BACKUP_RETENTION_WEEKLY_DAYS:-56}"
+# Source for the backup script SCP'd by build-deploy-profile.sh (installed to backup.sh below).
+PROFILE_BACKUP_SRC="${PROFILE_BACKUP_SRC:-/root/profile-backup.sh}"
+
+BACKUP_OFFBOX_ENABLED=0
+if [ -n "$PROFILE_BACKUP_S3_ENDPOINT" ] && [ -n "$PROFILE_BACKUP_S3_BUCKET" ] \
+   && [ -n "$PROFILE_BACKUP_S3_ACCESS_KEY" ] && [ -n "$PROFILE_BACKUP_S3_SECRET_KEY" ] \
+   && [ -n "$PROFILE_BACKUP_AGE_RECIPIENT" ]; then
+    BACKUP_OFFBOX_ENABLED=1
+fi
+
 # ── Validate ──────────────────────────────────────────────────────────────────
 # This script both provisions AND deploys, so the deploy inputs it consumes are
 # required and validated here. DATABASE_URL semantics/connectability are NOT checked
@@ -148,6 +171,20 @@ chmod 644 /etc/geoconflict-deploy-role
 
 print_header "UPDATING SYSTEM"
 apt-get update -y && apt-get upgrade -y
+
+# ── Timezone → UTC (B3) ───────────────────────────────────────────────────────
+# Pin the box clock to UTC so the backup cron schedule, `date`, and backup.sh's `date -u`
+# weekday check + UTC-dated object names ALL agree. This is the only reliable anchor: Debian/
+# Ubuntu ships Vixie cron, which ignores TZ=/CRON_TZ for *scheduling* (they affect only the
+# executed command's env), so a TZ line in the crontab can't align the schedule — the system
+# clock must. Idempotent; timedatectl on systemd, /etc/localtime symlink as a fallback.
+print_header "PINNING TIMEZONE TO UTC"
+if command -v timedatectl >/dev/null 2>&1 && timedatectl set-timezone UTC 2>/dev/null; then
+    echo "Timezone set to UTC (timedatectl)."
+else
+    ln -sf /usr/share/zoneinfo/UTC /etc/localtime && echo "UTC" > /etc/timezone
+    echo "Timezone set to UTC (/etc/localtime symlink)."
+fi
 
 # ── Swap ──────────────────────────────────────────────────────────────────────
 # The reg.ru profile VPS is low-RAM; the prior telemetry box froze the entire host
@@ -730,30 +767,194 @@ systemctl daemon-reload
 systemctl enable profile
 echo "✅ systemd service 'profile' enabled (starts on reboot)"
 
+# N5: atomically promote a staged candidate backup config over the live files, but ONLY after
+# the candidate proves itself with a real deploy-time smoke backup. On an already-configured box,
+# a redeploy with bad creds (rotated/typo'd S3 key, wrong endpoint) must NOT overwrite the
+# last-known-good backup.sh/backup.env before the new config is proven — otherwise the (untouched)
+# old cron keeps invoking backup.sh against the just-clobbered bad env and every nightly backup
+# breaks silently. Promote only on success; on failure leave the prior working files in place and
+# remove the staged candidates, so an already-running nightly backup keeps working.
+#   $1 candidate script   $2 candidate env   $3 live script   $4 live env
+promote_offbox_backup() {
+    local cand_sh="$1" cand_env="$2" live_sh="$3" live_env="$4" smoke_marker="${5:-}"
+    # Smoke the CANDIDATE against its OWN env (PROFILE_BACKUP_ENV_FILE override, honored by
+    # profile-backup.sh) so the probe exercises the new creds without disturbing the live env.
+    # PROFILE_BACKUP_MARKER_FILE points the smoke's marker at its own file (last-smokecheck.json) so a
+    # failed smoke doesn't clobber the nightly cron's last-backup.json (N6); empty -> script default.
+    if PROFILE_BACKUP_ENV_FILE="$cand_env" PROFILE_BACKUP_MARKER_FILE="$smoke_marker" "$cand_sh" backup; then
+        # Promote only after proof. Both candidates are just-created regular files in the same
+        # dir as their live targets, so these are intra-directory rename(2)s that don't fail on a
+        # working box; the && chain is fail-loud belt-and-suspenders — if a promotion mv ever did
+        # fail we surface it as a failed promotion (return 1 → deploy exit 1) rather than reporting
+        # success with a half-promoted (new script / stale env) pair.
+        mv -f "$cand_sh" "$live_sh" && mv -f "$cand_env" "$live_env" && return 0
+    fi
+    rm -f "$cand_sh" "$cand_env"
+    return 1
+}
+
+# 7a: refuse to SILENTLY downgrade an already-off-box box to same-disk local backups. Returns
+# non-zero (caller exits) when the box is CURRENTLY off-box-configured — a live backup.sh + backup.env,
+# or an existing "Mode: offbox" cron — AND we are about to (re)write the cron in LOCAL mode AND the
+# operator has NOT opted into an intentional downgrade via PROFILE_BACKUP_DISABLE_OFFBOX=1. A
+# missing/partial PROFILE_BACKUP_* redeploy must not silently strip the paid/PII off-box protection T8
+# exists for (the missing-vars mirror of the N5 bad-creds case). A true FIRST deploy (no prior off-box
+# config) returns 0 so the interim local skeleton still installs ([R4]).
+#   $1 backup mode   $2 cron file path   $3 profile dir
+guard_offbox_downgrade() {
+    local mode="$1" cron_file="$2" profile_dir="$3"
+    [ "$mode" = "offbox" ] && return 0                          # off-box being (re)activated — not a downgrade
+    [ "${PROFILE_BACKUP_DISABLE_OFFBOX:-}" = "1" ] && return 0  # explicit, intentional downgrade
+    if grep -qs "Mode: offbox" "$cron_file" 2>/dev/null \
+       || { [ -f "$profile_dir/backup.sh" ] && [ -f "$profile_dir/backup.env" ]; }; then
+        return 1                                                # off-box configured + would go local silently
+    fi
+    return 0                                                    # never-configured first deploy — local skeleton ok
+}
+
 # ── Backup + maintenance cron jobs ────────────────────────────────────────────
-# A weekly pg_dump skeleton. T8 hardens this to nightly + ships to reg.ru S3 and
-# adds a restore drill. POSTGRES_USER/DB are expanded into the cron line at write
-# time (unquoted heredoc) so the dump targets the real running database.
+# Off-box path (T8): when PROFILE_BACKUP_* is fully configured, install the standalone
+# backup script (SCP'd here by build-deploy-profile.sh) + its 0600 config and schedule a
+# DAILY encrypted off-box backup. Otherwise keep the interim weekly *local* pg_dump skeleton
+# so the box is never left with no backup at all. Adding the creds + redeploying flips it on.
 
 print_header "SETTING UP BACKUP CRON JOBS"
 
+BACKUP_MODE="local"
+if [ "$BACKUP_OFFBOX_ENABLED" = "1" ]; then
+    if [ -f "$PROFILE_BACKUP_SRC" ]; then
+        # Backup tooling: age (encrypt before upload) + rclone (S3). The apt index was already
+        # refreshed in the UPDATING SYSTEM phase above. Tool install is fail-closed — a box WITH
+        # creds but WITHOUT age/rclone aborts rather than silently degrading to plaintext-local.
+        # (The separate missing-$PROFILE_BACKUP_SRC case in the outer else is a deliberate
+        # warn+fallback, not a fail-close — see below.)
+        echo "Installing backup tooling (age + rclone)..."
+        apt-get install -y age rclone
+        command -v age    >/dev/null 2>&1 || { echo "Error: age failed to install."; exit 1; }
+        command -v rclone >/dev/null 2>&1 || { echo "Error: rclone failed to install."; exit 1; }
+
+        # N5: stage the candidate script + env under .new paths and PROVE them with the smoke
+        # check BEFORE promoting over the live files (see promote_offbox_backup above). On an
+        # already-working box a bad-cred redeploy must NOT clobber the last-known-good
+        # backup.sh/backup.env — the untouched old cron would keep running the just-overwritten
+        # bad config and the nightly backup would break silently. Promotion is atomic + only on
+        # a passing smoke; on failure the prior working files (and cron, via the exit 1 below)
+        # are left intact.
+        install -m 700 "$PROFILE_BACKUP_SRC" "$PROFILE_DIR/backup.sh.new"
+        echo "Staged candidate: backup.sh.new (0700)"
+
+        # backup.env (0600) — deliberately NOT referenced by docker-compose, so these S3/age
+        # secrets never enter the postgres/profile-api containers. %q keeps every value safe to
+        # re-source even if a key carries shell metacharacters. profile-backup.sh sources this
+        # with `set -a`, so the RCLONE_CONFIG_PROFILES_* names reach rclone via the environment.
+        # Written to backup.env.new first; promoted to backup.env only if the smoke check passes.
+        ( umask 077
+          {
+            printf 'POSTGRES_USER=%q\n'                            "$POSTGRES_USER"
+            printf 'POSTGRES_DB=%q\n'                              "$POSTGRES_DB"
+            printf 'PROFILE_BACKUP_S3_BUCKET=%q\n'                 "$PROFILE_BACKUP_S3_BUCKET"
+            printf 'PROFILE_BACKUP_S3_PREFIX=%q\n'                 "$PROFILE_BACKUP_S3_PREFIX"
+            printf 'PROFILE_BACKUP_AGE_RECIPIENT=%q\n'             "$PROFILE_BACKUP_AGE_RECIPIENT"
+            printf 'PROFILE_BACKUP_RETENTION_DAILY_DAYS=%q\n'      "$PROFILE_BACKUP_RETENTION_DAILY_DAYS"
+            printf 'PROFILE_BACKUP_RETENTION_WEEKLY_DAYS=%q\n'     "$PROFILE_BACKUP_RETENTION_WEEKLY_DAYS"
+            printf 'RCLONE_CONFIG_PROFILES_TYPE=%q\n'              "s3"
+            printf 'RCLONE_CONFIG_PROFILES_PROVIDER=%q\n'          "Other"
+            printf 'RCLONE_CONFIG_PROFILES_ENV_AUTH=%q\n'          "false"
+            printf 'RCLONE_CONFIG_PROFILES_ENDPOINT=%q\n'          "$PROFILE_BACKUP_S3_ENDPOINT"
+            printf 'RCLONE_CONFIG_PROFILES_REGION=%q\n'            "$PROFILE_BACKUP_S3_REGION"
+            printf 'RCLONE_CONFIG_PROFILES_ACCESS_KEY_ID=%q\n'     "$PROFILE_BACKUP_S3_ACCESS_KEY"
+            printf 'RCLONE_CONFIG_PROFILES_SECRET_ACCESS_KEY=%q\n' "$PROFILE_BACKUP_S3_SECRET_KEY"
+            printf 'RCLONE_CONFIG_PROFILES_ACL=%q\n'               "private"
+          } > "$PROFILE_DIR/backup.env.new"
+        )
+        chmod 600 "$PROFILE_DIR/backup.env.new"
+        echo "Staged candidate: backup.env.new (0600)"
+
+        # B2: prove the off-box pipeline actually works BEFORE declaring it active. A bad age
+        # recipient / S3 endpoint / credential / bucket policy must fail the deploy CLOSED here,
+        # not silently wait for the first 02:30 cron. The postgres stack is already up + migrated
+        # above, so one real encrypted backup + off-box upload + size-verify is a full end-to-end
+        # proof (backup.sh is fail-loud: non-zero exit + failure marker on any step). The smoke writes
+        # its marker to last-smokecheck.json (N6), so a failing smoke never clobbers the nightly cron's
+        # last-backup.json. On success promote_offbox_backup promotes the candidate (mv -f) and leaves a
+        # first verified backup object + a fresh smoke-success marker on the box.
+        echo "Running deploy-time off-box backup smoke check (against the staged candidate)..."
+        if promote_offbox_backup \
+              "$PROFILE_DIR/backup.sh.new"  "$PROFILE_DIR/backup.env.new" \
+              "$PROFILE_DIR/backup.sh"      "$PROFILE_DIR/backup.env" \
+              "$BACKUP_DIR/last-smokecheck.json"; then
+            echo "✅ Smoke check passed — candidate promoted; encrypted object written + verified off-box in S3."
+            BACKUP_MODE="offbox"
+        else
+            echo "Error: deploy-time off-box backup smoke check FAILED — refusing to promote the new"
+            echo "       backup config (fail closed). Any previously-working backup.sh / backup.env / cron"
+            echo "       are left untouched, so an already-running nightly backup keeps working; on a first"
+            echo "       deploy nothing is activated. Fix PROFILE_BACKUP_* in .env.profile(.secret) and redeploy."
+            echo "       (Marker below is THIS deploy smoke's — last-smokecheck.json — not the nightly run's.)"
+            cat "$BACKUP_DIR/last-smokecheck.json" 2>/dev/null || true
+            exit 1
+        fi
+    else
+        echo "WARNING: PROFILE_BACKUP_* is configured but $PROFILE_BACKUP_SRC was not found."
+        echo "         The deploy path did not ship profile-backup.sh. On a FIRST deploy this falls back"
+        echo "         to the interim weekly LOCAL pg_dump; on an already-off-box box the downgrade guard"
+        echo "         below will BLOCK (7a) rather than silently downgrade. Re-run via build-deploy-profile.sh."
+    fi
+else
+    echo "Off-box S3 backups not configured (set PROFILE_BACKUP_* in .env.profile/.secret)."
+    echo "Using interim weekly LOCAL pg_dump skeleton (dies with the box — not a real backup)."
+fi
+
 CRON_FILE="/etc/cron.d/profile-backups"
+
+# 7a: fail CLOSED rather than silently downgrade an already-off-box box to same-disk local backups.
+# Runs BEFORE the cron rewrite below (which would otherwise clobber the off-box cron), so on refusal
+# the existing off-box backup.sh / backup.env / cron are left untouched.
+if ! guard_offbox_downgrade "$BACKUP_MODE" "$CRON_FILE" "$PROFILE_DIR"; then
+    echo "Error: this box is already configured for OFF-BOX backups, but PROFILE_BACKUP_* is now"
+    echo "       missing/partial — refusing to silently downgrade the daily encrypted off-box backup"
+    echo "       to same-disk local pg_dump (that would strip the paid/PII off-box protection T8 exists"
+    echo "       for). Fix PROFILE_BACKUP_* in .env.profile(.secret) and redeploy, or set"
+    echo "       PROFILE_BACKUP_DISABLE_OFFBOX=1 to intentionally downgrade. The existing off-box"
+    echo "       backup.sh / backup.env / cron are left untouched."
+    exit 1
+fi
+
+# Header + disk-usage warning are ALWAYS present. Vixie cron (/etc/cron.d) turns an unescaped
+# % into a newline, so every literal % in a command is escaped \\% (→ \% on disk) or the line
+# would truncate at the first one and never run.
 cat > "$CRON_FILE" << EOF
-# Profile backups — added by setup-profile.sh. T8 hardens (nightly + S3 + restore drill).
+# Profile backups — added by setup-profile.sh (T8). Mode: $BACKUP_MODE.
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-
-# PostgreSQL backup every Sunday at 3:00am
-0 3 * * 0 root cd $PROFILE_DIR && docker compose exec -T postgres pg_dump -U ${POSTGRES_USER} ${POSTGRES_DB} > $BACKUP_DIR/pg-\$(date +\\%Y\\%m\\%d).sql 2>&1
-
-# Prune old PostgreSQL backups — keep last 14 days.
-0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +14 -delete
+# The SCHEDULE is anchored to UTC by pinning the box clock to UTC in the system-setup phase
+# above (Debian/Vixie cron ignores TZ/CRON_TZ for scheduling — see there). TZ=UTC here only
+# sets the executed command's env so a bare \`date\` in these jobs also renders UTC (B3).
+TZ=UTC
 
 # Disk usage warning — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.
-# Vixie cron (/etc/cron.d) turns an unescaped % into a newline, so BOTH % are escaped \\% (→ \% on
-# disk, matching the pg_dump line above) or the command would truncate at the first one and never run.
 0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '\\%'); if [ "\$USAGE" -gt 60 ]; then echo "\$(date) -- disk usage \${USAGE}\\%" >> /var/log/disk-warnings.log; fi
 EOF
+
+if [ "$BACKUP_MODE" = "offbox" ]; then
+    # Daily, overnight (02:30 box time). ALL backup logic (and the Vixie % footgun) lives
+    # inside backup.sh; the cron line only invokes it, so nothing here needs escaping.
+    cat >> "$CRON_FILE" << EOF
+
+# Daily encrypted off-box backup at 02:30 UTC (05:30 MSK) — overnight / low-traffic window.
+30 2 * * * root $PROFILE_DIR/backup.sh >> /var/log/profile-backup.log 2>&1
+EOF
+else
+    # Interim LOCAL skeleton — POSTGRES_USER/DB expand at write time; % is escaped \\% as above.
+    cat >> "$CRON_FILE" << EOF
+
+# Interim weekly LOCAL pg_dump (Sunday 3:00am) — on-box only; T8 off-box upload not configured.
+0 3 * * 0 root cd $PROFILE_DIR && docker compose exec -T postgres pg_dump -U ${POSTGRES_USER} ${POSTGRES_DB} > $BACKUP_DIR/pg-\$(date +\\%Y\\%m\\%d).sql 2>&1
+
+# Prune old local PostgreSQL backups — keep last 14 days.
+0 5 * * 0 root find $BACKUP_DIR -name "pg-*.sql" -mtime +14 -delete
+EOF
+fi
 
 # Certbot renewal — appended ONLY when a domain is configured. Without PROFILE_DOMAIN,
 # nginx + certbot are never installed (see the HTTPS guard above), so an unconditional
@@ -772,7 +973,7 @@ EOF
 fi
 
 chmod 644 "$CRON_FILE"
-echo "✅ Cron jobs written to $CRON_FILE"
+echo "✅ Cron jobs written to $CRON_FILE ($BACKUP_MODE backup mode)"
 
 # ── Print connection info ─────────────────────────────────────────────────────
 
@@ -796,8 +997,13 @@ fi
 echo ""
 echo "/internal/ nginx allowlist laid down (dormant): allow ${PROFILE_INTERNAL_ALLOW_IPS:-<none>} + deny all."
 echo "Postgres: reachable on 127.0.0.1:5432 on the box only (never public)."
-echo "Lifecycle: systemd unit 'profile' enabled (auto-start on reboot); pg_dump +"
-echo "maintenance cron active in /etc/cron.d/profile-backups."
+echo "Lifecycle: systemd unit 'profile' enabled (auto-start on reboot); backup +"
+echo "maintenance cron active in /etc/cron.d/profile-backups (mode: $BACKUP_MODE)."
+if [ "$BACKUP_MODE" = "offbox" ]; then
+    echo "Backups: DAILY encrypted off-box to S3 (age + rclone). Marker: $BACKUP_DIR/last-backup.json."
+else
+    echo "Backups: interim weekly LOCAL pg_dump only — set PROFILE_BACKUP_* + redeploy for off-box."
+fi
 echo ""
 echo "Game server env vars — add to .env.prod for T6:"
 echo "  PROFILE_API_URL=https://${PROFILE_DOMAIN:-<set-domain>}"

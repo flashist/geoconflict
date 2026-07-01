@@ -32,7 +32,12 @@ Arguments: `$ARGUMENTS` — optional. May include a task-id, a PR number, and/or
 
 Run both reviewers on the same scope, in parallel where practical (e.g. launch Codex as a background Bash task and the `code-reviewer` agent at the same time, then collect both):
 
-**A) Claude review** — launch the `code-reviewer` agent on the diff/scope and capture its findings. **Instruct it explicitly to run review-only: return findings, make no edits, run no fixes** (the agent has edit tools — pin it to review-only so generation can never quietly change code). Reliably invocable; this is the Claude-side reviewer. `/code-review` may be used instead if the user prefers, but it is not always model-invocable.
+**A) Claude review** — launch the `code-reviewer` agent on the diff/scope and capture its findings. **Instruct it explicitly to run review-only: return findings, make no edits, run no fixes** (the agent has edit tools — pin it to review-only so generation can never quietly change code). Reliably invocable; this is the **default** Claude-side reviewer, and the one that fits this skill's orchestration model — it returns findings as an isolated tool result (clean input for the Step 2 dedup) and honors the `--base`/`--scope` threading below via its prompt.
+
+> **Sanctioned alternative — `/code-review high`.** For a deeper Claude-side pass you may substitute `/code-review high`: it fans out multiple parallel reviewers for broader recall, and Step 3's per-finding verification filters the extra false positives that `high` may surface. Constraints when substituting:
+> - Use **`high`, never `ultra`** — `ultra` is a billed cloud run that is **not** self-invocable (you cannot launch it; it is user-triggered).
+> - **Never pass `--fix` or `--comment`** — both break the REVIEW-ONLY rule (`--fix` mutates the working tree, `--comment` posts to the PR).
+> - Accept the tradeoffs: it runs **inline in the main conversation** (no isolated data-return) and reviews its **own default diff** (the `--base`/`--scope` threading does not apply), so prefer the agent when precise scope control or clean orchestration matters.
 
 **B) Codex adversarial review** — run the plugin companion directly with an explicit mode flag (so it does not prompt). Resolve the plugin root by glob (version-independent):
 

@@ -7,6 +7,10 @@ TODO.txt
 resources/images/.DS_Store
 resources/.DS_Store
 .env*
+# age private identity for profile backups (T8) — the only key that can decrypt backups.
+# Belongs in a password manager / off-box, never in git. Guard against accidental commit.
+*identity*.txt
+profile-backup-identity.txt
 .DS_Store
 .clinic/
 .idea/

@@ -21,6 +21,10 @@ set -o pipefail
 
 DOCKERFILE="./Dockerfile.profile"
 SETUP_SCRIPT="./setup-profile.sh"
+# The standalone daily-backup script (T8). Rides this same deploy path — SCP'd alongside the
+# setup script below; setup-profile.sh installs it to /opt/profile/backup.sh. Not a parallel
+# pipeline: the existing transport carries it.
+BACKUP_SCRIPT="./profile-backup.sh"
 
 print_header() {
     echo "======================================================"
@@ -66,6 +70,11 @@ load_env_file ".env.profile.secret"
 if [ -z "${PROFILE_SERVER_HOST:-}" ]; then
     echo "Error: PROFILE_SERVER_HOST is not set."
     echo "Add it to .env.profile or export it before running."
+    exit 1
+fi
+
+if [ ! -f "$BACKUP_SCRIPT" ]; then
+    echo "Error: $BACKUP_SCRIPT not found"
     exit 1
 fi
 
@@ -360,6 +369,8 @@ elif [ -n "$SSH_PASSWORD" ]; then
 fi
 
 REMOTE_SCRIPT="/root/setup-profile.sh"
+# setup-profile.sh installs this to /opt/profile/backup.sh (its PROFILE_BACKUP_SRC default).
+REMOTE_BACKUP_SCRIPT="/root/profile-backup.sh"
 
 print_header "DEPLOYING PROFILE BACKEND TO ${PROFILE_SERVER_HOST}"
 echo "Remote user:   ${REMOTE_USER}"
@@ -450,6 +461,10 @@ print_header "UPLOADING SETUP SCRIPT"
 chmod +x "$SETUP_SCRIPT"
 "${SCP_CMD[@]}" "$SETUP_SCRIPT" "${REMOTE_USER}@${PROFILE_SERVER_HOST}:${REMOTE_SCRIPT}"
 echo "Uploaded to ${REMOTE_SCRIPT}"
+# Carry the standalone daily-backup script on the same transport (no parallel pipeline).
+chmod +x "$BACKUP_SCRIPT"
+"${SCP_CMD[@]}" "$BACKUP_SCRIPT" "${REMOTE_USER}@${PROFILE_SERVER_HOST}:${REMOTE_BACKUP_SCRIPT}"
+echo "Uploaded to ${REMOTE_BACKUP_SCRIPT}"
 
 # ── Run setup remotely ────────────────────────────────────────────────────────
 
@@ -485,6 +500,18 @@ chmod 600 "$LOCAL_TMPENV"
     printf "export CERTBOT_EMAIL=%q\n" "${CERTBOT_EMAIL:-ruflashist@gmail.com}"
     printf "export DOCKER_USERNAME=%q\n" "${DOCKER_USERNAME:-}"
     printf "export DOCKER_TOKEN=%q\n" "${DOCKER_TOKEN:-}"
+    # Off-box backup config (T8). Endpoint/region/bucket/prefix are public; access+secret keys
+    # and the age recipient ride the same 0600-staged, source-then-rm channel as the DB password.
+    # setup-profile.sh installs the daily encrypted S3 backup only when these are all present.
+    printf "export PROFILE_BACKUP_S3_ENDPOINT=%q\n" "${PROFILE_BACKUP_S3_ENDPOINT:-}"
+    printf "export PROFILE_BACKUP_S3_REGION=%q\n" "${PROFILE_BACKUP_S3_REGION:-}"
+    printf "export PROFILE_BACKUP_S3_BUCKET=%q\n" "${PROFILE_BACKUP_S3_BUCKET:-}"
+    printf "export PROFILE_BACKUP_S3_PREFIX=%q\n" "${PROFILE_BACKUP_S3_PREFIX:-profiles}"
+    printf "export PROFILE_BACKUP_S3_ACCESS_KEY=%q\n" "${PROFILE_BACKUP_S3_ACCESS_KEY:-}"
+    printf "export PROFILE_BACKUP_S3_SECRET_KEY=%q\n" "${PROFILE_BACKUP_S3_SECRET_KEY:-}"
+    printf "export PROFILE_BACKUP_AGE_RECIPIENT=%q\n" "${PROFILE_BACKUP_AGE_RECIPIENT:-}"
+    printf "export PROFILE_BACKUP_RETENTION_DAILY_DAYS=%q\n" "${PROFILE_BACKUP_RETENTION_DAILY_DAYS:-14}"
+    printf "export PROFILE_BACKUP_RETENTION_WEEKLY_DAYS=%q\n" "${PROFILE_BACKUP_RETENTION_WEEKLY_DAYS:-56}"
 } > "$LOCAL_TMPENV"
 
 REMOTE_ENV_STAGED=1

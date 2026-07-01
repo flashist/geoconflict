@@ -28,7 +28,7 @@
 - [[systems/match-logging]] — What is recorded per match, where it goes, and what cannot be retrieved
 - [[systems/clans]] — Name-tag clan grouping system: parsing, team assignment logic, gaps, and no-UI status
 - [[systems/player-infrastructure]] — Pre-S4 identity/customization substrate: local-only persistence, join transport, dead inherited auth/monetization, and trust gaps
-- [[systems/player-profile-store]] — Dedicated Sprint 4 profile API/Postgres backend for XP, citizenship, and future paid entitlements
+- [[systems/player-profile-store]] — Dedicated Sprint 4 profile API/Postgres backend and match-end XP crediting path for citizenship and future paid entitlements
 
 ## Decisions
 
@@ -38,7 +38,7 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/7/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
-- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5 done, citizenship/payment work pending, 152-ФЗ deferred with accepted risk, plus shipped UI/bootstrap/fix work
+- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6 done, T8/backups and citizenship/payment work pending, 152-ФЗ deferred with accepted risk
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
 - [[decisions/sprint-backlog]] — No-sprint backlog for defined work needing a sprint home, including monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag, and GutterAds fixes
@@ -84,6 +84,7 @@
 - [[tasks/profile-deploy-hardening]] — Sprint 4 T4g argv-safety, deploy locking, atomic record, and wrong-host preflight hardening
 - [[tasks/profile-game-server-deploy-env]] — Sprint 4 T4h propagation of `PROFILE_API_URL` through the game-server deploy environment
 - [[tasks/profile-backend-db-api]] — Sprint 4 T5 Postgres-backed profile API, repository, migrations, readiness, and idempotent XP crediting
+- [[tasks/profile-match-end-crediting]] — Sprint 4 T6 game-server match-end XP crediting into the profile API
 - [[tasks/personal-data-compliance-investigation]] — Sprint 4 152-ФЗ investigation whose hash-based conclusion was later overturned
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
 - [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement

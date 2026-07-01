@@ -16,7 +16,7 @@ Propagate `PROFILE_API_URL` into the game-server container environment so `/api/
 
 ## Outcome
 
-The deploy gap from T4b is closed. Future T6 crediting and citizenship/profile client UI no longer silently resolve `profileApiUrl()` to `""` in real game-server deploys when the operator config sets `PROFILE_API_URL`.
+The deploy gap from T4b is closed. T6 match-end crediting and future citizenship/profile client UI no longer silently resolve `profileApiUrl()` to `""` in real game-server deploys when the operator config sets `PROFILE_API_URL`.
 
 ## Related
 
@@ -27,3 +27,4 @@ The deploy gap from T4b is closed. Future T6 crediting and citizenship/profile c
 - [[tasks/profile-api-url-config]]
 - [[tasks/profile-deploy-hardening]]
 - [[tasks/profile-backend-db-api]]
+- [[tasks/profile-match-end-crediting]]

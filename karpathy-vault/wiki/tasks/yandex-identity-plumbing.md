@@ -20,7 +20,7 @@ Carry the current Yandex player's stable unique ID from the bounded client platf
 
 T3 shipped in PR #111. Authorized Yandex sessions now carry a non-null ID on join; guests and degraded sessions carry `null`. The server retains the value for T6 match crediting, but does not use it yet.
 
-The value is a stable profile key, not a cryptographically verified identity claim. It is deliberately stored as untrusted input; paid-purchase verification remains owned by the Yandex Payments work.
+The value is a stable profile key, not a cryptographically verified identity claim. T6 now uses it as the opaque key for earned-XP crediting, with that trust limitation documented in [[tasks/profile-match-end-crediting]]; paid-purchase verification remains owned by the Yandex Payments work.
 
 ## Related
 
@@ -29,4 +29,5 @@ The value is a stable profile key, not a cryptographically verified identity cla
 - [[systems/flashist-init]] — bounded SDK/player initialization and degraded-mode contract used by the helpers
 - [[systems/networking]] — join schema, transport, worker validation, and server-side client construction
 - [[systems/player-infrastructure]] — pre-S4 identity audit and trust-boundary context
+- [[tasks/profile-match-end-crediting]] — T6 consumes the server-visible ID for earned-XP crediting
 - [[tasks/yandex-payments-investigation]] — separate signed-verification path for paid entitlements

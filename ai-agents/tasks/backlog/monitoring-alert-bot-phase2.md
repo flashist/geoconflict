@@ -52,9 +52,21 @@ conditions to the existing dedup/state/digest path — it does not introduce a s
 4. **Sustained CPU load average.** Warn if load >> cores for a sustained period
    (thrashing / ClickHouse merge storms). Use a sustained window, not an instantaneous spike.
 
-5. **Addition — backup-job health.** Alert if the weekly PostgreSQL backup cron didn't run,
-   failed, or the newest backup file is stale. A silently-stopped backup is invisible to
-   size-based disk checks and is a latent data-loss risk.
+5. **Addition — backup-job health.** Alert if the **daily** PostgreSQL backup cron didn't run,
+   failed, or the newest backup is stale. A silently-stopped backup is invisible to size-based
+   disk checks and is a latent data-loss risk. The profile backup (`s4-postgres-backup-routine.md`,
+   T8) is **daily off-box** and leaves no local SQL file to age-check; instead read its
+   machine-readable marker `/opt/profile/backups/last-backup.json` — alert if `exit_status != 0`
+   or `finished_at` is older than ~26–30h (i.e. a daily run was missed). The telemetry box keeps
+   its own weekly local dump; this item now covers both, but the profile DB is the data-loss-
+   critical one (XP + paid-citizenship entitlements).
+   > **Marker ownership (T8 N6):** `last-backup.json` is written ONLY by the nightly cron. The
+   > deploy-time smoke check writes a SEPARATE marker, `/opt/profile/backups/last-smokecheck.json`,
+   > so a failed redeploy never pollutes `last-backup.json`. Consequence for this monitor: a
+   > freshly-provisioned box has no `last-backup.json` until its first nightly run (~up to 24h) —
+   > do NOT alert "missing marker" on a box whose first cron hasn't fired yet. Recoverability at
+   > deploy time is instead proven by `last-smokecheck.json` (exit_status 0). Optionally also
+   > surface `last-smokecheck.json != 0` as a deploy-health signal.
 
 6. **Addition — predictive disk trend.** Alert on disk growth *rate* ("`/` fills in ~N days
    at current rate"), which catches slow Family-A growth earlier than a static % threshold.
@@ -81,8 +93,9 @@ secrets in `.env*.secret`; don't monitor Uptrace using Uptrace; no secrets in al
    alert specifies *which* store grew, not just "disk high".
 3. **TLS/certbot:** alert fires for a near-expiry cert; a deliberately failed/missed certbot
    renewal is detected (not just expiry days).
-4. **Backup-job health:** skipping/failing the weekly PG backup produces an alert; a fresh
-   successful backup clears it.
+4. **Backup-job health:** skipping/failing the **daily** profile PG backup produces an alert
+   (stale `finished_at` or `exit_status != 0` in `/opt/profile/backups/last-backup.json`); a
+   fresh successful backup clears it.
 5. **Predictive trend:** a sustained artificial disk-growth rate produces a "fills in ~N
    days" warning before the static threshold trips.
 6. **Game-server availability:** an external port/HTTP failure (or games/clients → 0)
