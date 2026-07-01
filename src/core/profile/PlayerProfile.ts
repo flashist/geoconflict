@@ -43,6 +43,23 @@ export const PlayerProfileSchema = z.object({
 export type PlayerProfile = z.infer<typeof PlayerProfileSchema>;
 
 /**
+ * Public projection of a profile — the shape returned by `GET /v1/profile` and
+ * parsed by the client card. Sprint 4's read is unauthenticated, so the fields a
+ * caller shouldn't be able to resolve by guessing a (non-secret) yandexPlayerId are
+ * omitted: paid state (`is_paid_citizen`, `citizenship_purchased_at`) and the
+ * internal `persistent_id`. Derived from `PlayerProfileSchema` so the server return
+ * type and the client parse share ONE source of truth and cannot drift.
+ * See `toPublicProfile()` in src/profile-server/Routes.ts.
+ */
+export const PublicPlayerProfileSchema = PlayerProfileSchema.omit({
+  is_paid_citizen: true,
+  citizenship_purchased_at: true,
+  persistent_id: true,
+});
+
+export type PublicPlayerProfile = z.infer<typeof PublicPlayerProfileSchema>;
+
+/**
  * Deterministic, clock-free default for timestamps that are missing or malformed
  * during migration. `new Date(0)` is a fixed constant (the Unix epoch), not a clock
  * read, so `migrateProfile` stays pure and trivially testable.

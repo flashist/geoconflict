@@ -10,7 +10,10 @@ import {
   ProfileUpsertRequestSchema,
 } from "../core/profile/CreditContract";
 import type { CreditResult } from "../core/profile/CreditContract";
-import type { PlayerProfile } from "../core/profile/PlayerProfile";
+import type {
+  PlayerProfile,
+  PublicPlayerProfile,
+} from "../core/profile/PlayerProfile";
 import { internalAuth } from "./InternalAuth";
 import { formatError, logger } from "./Logger";
 import {
@@ -49,12 +52,7 @@ const ProfileQuerySchema = z.object({
  * TODO(payments): once Yandex-signature auth lands, these can be returned to the
  * verified owner of the profile.
  */
-function toPublicProfile(
-  profile: PlayerProfile,
-): Omit<
-  PlayerProfile,
-  "is_paid_citizen" | "citizenship_purchased_at" | "persistent_id"
-> {
+function toPublicProfile(profile: PlayerProfile): PublicPlayerProfile {
   const { is_paid_citizen, citizenship_purchased_at, persistent_id, ...rest } =
     profile;
   void is_paid_citizen;

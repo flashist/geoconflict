@@ -2,6 +2,7 @@ import {
   CURRENT_PROFILE_SCHEMA_VERSION,
   PlayerProfile,
   PlayerProfileSchema,
+  PublicPlayerProfileSchema,
   createGuestProfile,
   migrateProfile,
 } from "../../../src/core/profile/PlayerProfile";
@@ -164,5 +165,46 @@ describe("PlayerProfile contract", () => {
       expect(profile.created_at).toBe(profile.updated_at);
       expect(PlayerProfileSchema.safeParse(profile).success).toBe(true);
     });
+  });
+});
+
+describe("PublicPlayerProfileSchema", () => {
+  test("strips the three private fields when parsing a full profile", () => {
+    const parsed = PublicPlayerProfileSchema.parse(validV1Profile());
+
+    // These are the fields toPublicProfile() intentionally withholds from the
+    // unauthenticated GET /v1/profile read.
+    expect(parsed).not.toHaveProperty("is_paid_citizen");
+    expect(parsed).not.toHaveProperty("citizenship_purchased_at");
+    expect(parsed).not.toHaveProperty("persistent_id");
+  });
+
+  test("preserves exactly the public fields the card renders from", () => {
+    const parsed = PublicPlayerProfileSchema.parse(validV1Profile());
+
+    expect(parsed).toEqual({
+      schema_version: 1,
+      yandex_player_id: "yandex-123",
+      xp: 250,
+      is_citizen: false,
+      citizenship_earned_at: null,
+      display_name: "Commander",
+      created_at: "2026-06-13T10:00:00.000Z",
+      updated_at: "2026-06-13T12:00:00.000Z",
+    });
+  });
+
+  test("accepts a projection that already lacks the omitted fields", () => {
+    const {
+      is_paid_citizen,
+      citizenship_purchased_at,
+      persistent_id,
+      ...publicProfile
+    } = validV1Profile();
+    void is_paid_citizen;
+    void citizenship_purchased_at;
+    void persistent_id;
+
+    expect(PublicPlayerProfileSchema.safeParse(publicProfile).success).toBe(true);
   });
 });
