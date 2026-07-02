@@ -37,7 +37,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⛔ Cancelled | Profile Store: Pseudonymize Player Identity — store an irreversible hash, not the raw Yandex ID *(⛔ Cancelled 2026-06-28 — further investigation found hashing does **not** remove the 152-ФЗ obligation; it only adds support/dev complexity for no benefit. PR #127 reverted. 152-ФЗ deferred to backlog → `compliance-152fz-notification-consent.md` (risk accepted).)* | `s4-profile-hash-player-ids.md` |
 | ⬜ Backlog | Yandex Payments — Catalog Fetch & Purchase Infrastructure | `s4-yandex-payments-impl.md` |
 | ✅ Done | Citizenship Core — XP Counter & Progress UI | `s4-citizenship-xp-progress-ui.md` |
-| ⬜ Backlog | Citizenship Card: Login CTA Is a Dead Button Outside a Yandex Context *(hide CTA when no Yandex context at all — local dev today, also degraded-mode sessions)* | `s4-citizenship-card-guest-cta-no-sdk.md` |
+| ✅ Done | Citizenship Card: Login CTA Is a Dead Button Outside a Yandex Context | `s4-citizenship-card-guest-cta-no-sdk.md` |
 | ⬜ Backlog | Citizenship Core — Earned Citizenship *(blocked: player profile store)* | `s4-citizenship-earned.md` |
 | ⬜ Backlog | Citizenship Core — Paid Citizenship *(blocked: payments + catalog approval)* | `s4-citizenship-paid.md` |
 | ⬜ Backlog | 8d-B. Personal Inbox *(blocked: player profile store)* | `s4-8d-b-task-personal-inbox.md` |
