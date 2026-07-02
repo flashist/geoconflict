@@ -39,14 +39,23 @@ Run both reviewers on the same scope, in parallel where practical (e.g. launch C
 > - **Never pass `--fix` or `--comment`** — both break the REVIEW-ONLY rule (`--fix` mutates the working tree, `--comment` posts to the PR).
 > - Accept the tradeoffs: it runs **inline in the main conversation** (no isolated data-return) and reviews its **own default diff** (the `--base`/`--scope` threading does not apply), so prefer the agent when precise scope control or clean orchestration matters.
 
-**B) Codex adversarial review** — run the plugin companion directly with an explicit mode flag (so it does not prompt). Resolve the plugin root by glob (version-independent):
+**B) Codex adversarial review** — run the plugin companion directly with an explicit mode flag (so the slash-command wrapper's interactive "wait or background?" prompt never fires — that `AskUserQuestion` only appears when **no** mode flag is passed). Resolve the plugin root by glob (version-independent):
 
 ```bash
 COMPANION=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/scripts/codex-companion.mjs 2>/dev/null | sort -V | tail -1)
-node "$COMPANION" adversarial-review --wait   # add --base <ref> / --scope <...> to match the scope
 ```
 
-Return is Codex's verbatim findings. Pass `--background` instead of `--wait` for large diffs, then collect with `node "$COMPANION" result <job-id>`.
+> **⚠️ How to run it without stalling it — read before launching.** For `adversarial-review` the companion's `--background` flag is a **no-op**: `handleReviewCommand` always runs in the **foreground** (only the unrelated `task` subcommand truly detaches). Its `verifying` phase routinely runs **3–6 min — longer for bigger diffs** — and there is **no PID/heartbeat tracking**, so if the launching process is killed before the run finishes, the job is orphaned and left displayed as `running / verifying` **forever** (a zombie that looks like a "stall"). The classic trip-wire: launching it as an ordinary Bash call whose **default 2-minute timeout SIGTERMs it mid-run**. Do **NOT** trust the companion `--background` flag + `result <job-id>` to detach — that runs foreground and gets killed. Pick ONE of these instead:
+>
+> - **Preferred — detach at the harness level** (this is what actually backgrounds it, and lets the `code-reviewer` agent run concurrently): launch via the **Bash tool with `run_in_background: true`**, so the harness owns the lifecycle and notifies you on exit. Pass `--wait` (foreground *inside* the detached task), then collect the findings from that task's output on completion (or poll `node "$COMPANION" status` / read the job log).
+>   ```bash
+>   node "$COMPANION" adversarial-review --wait --base <ref> --scope <auto|working-tree|branch>
+>   ```
+> - **Or — foreground with a long explicit timeout**: run the same command in a normal Bash call but set the tool `timeout` near its **600000 ms (10 min) max**, never the 2-min default, so the `verifying` phase can finish.
+>
+> Either way, if a job is ever left in a stale `running` state, **cancel it** (`node "$COMPANION" cancel <job-id>`) — there is no auto-reaper. And when collecting, note that `result` returns the **latest finished** job when the id isn't matched, so verify the job id / session before trusting a result (a stalled current run can otherwise surface a previous run's findings).
+
+Return is Codex's verbatim findings.
 
 > Caution: the subcommands have **no `--help`** — any unrecognized argument is treated as review *focus text* and **launches a real, billed Codex run**. Never "probe" `adversarial-review`. Only the top-level `node "$COMPANION" --help` is safe. If a run is started by accident, cancel it with `node "$COMPANION" cancel`.
 
