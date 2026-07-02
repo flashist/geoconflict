@@ -18,7 +18,7 @@ Award server-authoritative profile XP at match end for qualifying authenticated 
 
 ## Outcome
 
-T6 completes the live earned-XP write path from game end to the profile API. The profile store implementation now has T1, T3, T4, T5, and T6 done, with T2/T7 cancelled; the next profile prerequisite is T8 backups before paid citizenship scale-up.
+T6 completes the live earned-XP write path from game end to the profile API. The profile store implementation now has T1, T3, T4, T5, T6, and T8 done, with T2/T7 cancelled. The backup prerequisite that followed this slice has shipped as [[tasks/postgres-backup-routine]].
 
 The implementation deliberately keeps match cleanup independent of the profile backend. If the API is down or misconfigured, the match still completes and the credit is dropped after the retry budget rather than blocking gameplay.
 
@@ -34,4 +34,5 @@ Identity trust remains a known boundary: current earned-XP crediting still uses 
 - [[tasks/yandex-identity-plumbing]]
 - [[tasks/profile-game-server-deploy-env]]
 - [[tasks/profile-backend-db-api]]
+- [[tasks/postgres-backup-routine]]
 - [[tasks/yandex-payments-investigation]]

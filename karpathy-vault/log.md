@@ -832,3 +832,9 @@
 - Ingested: `ai-agents/tasks/done/s4-citizenship-xp-progress-ui.md` → created [[wiki/tasks/citizenship-xp-progress-ui]], updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], [[wiki/tasks/start-screen-redesign-implementation]], `karpathy-vault/index.md`
 - Ingested: `ai-agents/tasks/done/s4-postgres-backup-routine.md` → created [[wiki/tasks/postgres-backup-routine]], updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], [[wiki/tasks/profile-server-bring-up-runbook]], [[wiki/decisions/vps-credential-leak-response]], `karpathy-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/reviews/s4-citizenship-xp-progress-ui-coder-handoff.md`, `ai-agents/reviews/s4-citizenship-xp-progress-ui.md`, `ai-agents/reviews/s4-postgres-backup-routine-coder-handoff.md`, `ai-agents/reviews/s4-postgres-backup-routine.md`, `ai-agents/tasks/backlog/monitoring-alert-bot-phase2.md`, `ai-agents/tasks/backlog/s4-citizenship-xp-progress-ui.md`, `ai-agents/tasks/backlog/s4-player-profile-store-impl.md` — review artifacts and backlog files are outside the wiki-sync eligible source set; applicable status is summarized through completed task pages and [[wiki/decisions/sprint-4]]
+
+## 2026-07-02 — lint
+- Issues found: 1
+- Issues fixed: 1
+- Issues flagged for human review: 0
+- Fixed a stale T6 profile-crediting outcome that still described T8 backups as pending; full structural, wikilink/backlink, index coverage, orphan, and source-metadata checks pass across 119 indexed pages.

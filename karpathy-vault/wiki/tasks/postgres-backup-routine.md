@@ -27,5 +27,6 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 
 - [[decisions/sprint-4]]
 - [[systems/player-profile-store]]
+- [[tasks/profile-match-end-crediting]]
 - [[tasks/profile-server-bring-up-runbook]]
 - [[decisions/vps-credential-leak-response]]
