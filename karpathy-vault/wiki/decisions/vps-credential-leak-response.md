@@ -52,5 +52,6 @@ The final trusted recovery workflow is:
 - [[tasks/incident-postmortem-followups]] — postmortem capture and explicit follow-up queue
 - [[tasks/docker-secret-boundary-check]] — automated regression guard for the Docker boundary
 - [[tasks/profile-image-secret-scan]] — later profile-image byte-scan gate built from the same secret-boundary incident lessons
+- [[tasks/postgres-backup-routine]] — profile backup deploy path that preserves the same secret-boundary discipline for S3 credentials and age encryption
 - [[tasks/registry-image-policy-followup]] — follow-up task that wrote the durable registry policy
 - [[decisions/profile-deploy-hardening-review-loop]] — bounded restart for profile deploy hardening built on this incident's secret-boundary requirements

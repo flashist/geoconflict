@@ -20,7 +20,7 @@ Implement the Sprint 4 start-screen redesign so citizenship UI has a stable slot
 
 ## Outcome
 
-The start screen now has the layout foundation required by Sprint 4 citizenship UI. Live XP values, profile reads, purchase buttons, and earned/paid citizenship flows remain separate Sprint 4 tasks.
+The start screen now has the layout foundation required by Sprint 4 citizenship UI. Live XP/profile reads later shipped in [[tasks/citizenship-xp-progress-ui]]; purchase buttons and earned/paid citizenship flows remain separate Sprint 4 tasks.
 
 ## Related
 
@@ -28,3 +28,4 @@ The start screen now has the layout foundation required by Sprint 4 citizenship 
 - [[decisions/sprint-4]]
 - [[systems/analytics]]
 - [[systems/localization]]
+- [[tasks/citizenship-xp-progress-ui]]

@@ -15,11 +15,11 @@ Provide the operator runbook for turning the merged profile deploy machinery int
 - Documents `.env.profile` and `.env.profile.secret` inputs, including registry credentials, `PROFILE_INTERNAL_ALLOW_IPS`, SSH key path, and recording `POSTGRES_PASSWORD` in a team password manager.
 - Defines the operator deploy command, `npm run deploy:profile`, and explains the local build/push, remote setup, secret staging, health gate, and rollback flow it triggers.
 - Captures acceptance checks: HTTPS `/health` returns 200 with a valid cert, compose services are healthy, UFW exposes only SSH/HTTP/HTTPS, the deployed image is digest-referenced, no secrets appear in box argv, and the box geolocates to RU.
-- Records known non-blockers: local weekly backups only, no off-box monitoring yet, no image auto-prune, and no container cgroup memory cap. The off-box backup follow-up is now the canonical T8 brief `ai-agents/tasks/backlog/s4-postgres-backup-routine.md`.
+- Records the original known non-blockers: local weekly backups only, no off-box monitoring yet, no image auto-prune, and no container cgroup memory cap. The backup follow-up has since shipped as [[tasks/postgres-backup-routine]].
 
 ## Outcome
 
-T4i is an operations artifact, not a code change. The operator bring-up has been completed: the real reg.ru host is provisioned, DNS points at `api.geoconflict.ru`, and HTTPS `/health` returns 200 over valid TLS. T4g deploy hardening, T5 real profile endpoints, and T6 match-end crediting have since landed. Offsite backups remain a follow-up before paid citizenship scale-up.
+T4i is an operations artifact, not a code change. The operator bring-up has been completed: the real reg.ru host is provisioned, DNS points at `api.geoconflict.ru`, and HTTPS `/health` returns 200 over valid TLS. T4g deploy hardening, T5 real profile endpoints, T6 match-end crediting, and T8 off-box backups have since landed.
 
 ## Related
 
@@ -32,3 +32,4 @@ T4i is an operations artifact, not a code change. The operator bring-up has been
 - [[tasks/profile-image-secret-scan]] — T4f pre-push image scan
 - [[tasks/profile-deploy-hardening]] — T4g deploy argv/concurrency and wrong-host hardening
 - [[tasks/profile-backend-db-api]] — T5 DB/API slice that follows the live host milestone
+- [[tasks/postgres-backup-routine]] — T8 encrypted off-box profile DB backup and restore path

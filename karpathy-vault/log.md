@@ -823,3 +823,12 @@
 - Ingested: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md` → updated [[wiki/systems/player-profile-store]]
 - Ingested: `ai-agents/tasks/done/s4-profile-04i-server-bring-up-runbook.md` → updated [[wiki/tasks/profile-server-bring-up-runbook]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-postgres-backup-routine.md` — backlog files are not ingested directly by wiki-sync; their resolved T8 backup-track status was captured through the changed knowledge-base and completed T4i sources
+
+## 2026-07-02 — ingest
+- Sync window: `ac4d48296cc5bd24ca1186b5568629b2e88d55b0` → HEAD (`4219b02933be37493c1c3e405cf52bf34d444ba5`)
+- Changed source files detected: 11
+- Ingested: `ai-agents/knowledge-base/profile-backup-restore-runbook.md` → created/updated [[wiki/tasks/postgres-backup-routine]], updated [[wiki/systems/player-profile-store]]
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-citizenship-xp-progress-ui.md` → created [[wiki/tasks/citizenship-xp-progress-ui]], updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], [[wiki/tasks/start-screen-redesign-implementation]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-postgres-backup-routine.md` → created [[wiki/tasks/postgres-backup-routine]], updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], [[wiki/tasks/profile-server-bring-up-runbook]], [[wiki/decisions/vps-credential-leak-response]], `karpathy-vault/index.md`
+- Skipped (not ingest-worthy): `ai-agents/reviews/s4-citizenship-xp-progress-ui-coder-handoff.md`, `ai-agents/reviews/s4-citizenship-xp-progress-ui.md`, `ai-agents/reviews/s4-postgres-backup-routine-coder-handoff.md`, `ai-agents/reviews/s4-postgres-backup-routine.md`, `ai-agents/tasks/backlog/monitoring-alert-bot-phase2.md`, `ai-agents/tasks/backlog/s4-citizenship-xp-progress-ui.md`, `ai-agents/tasks/backlog/s4-player-profile-store-impl.md` — review artifacts and backlog files are outside the wiki-sync eligible source set; applicable status is summarized through completed task pages and [[wiki/decisions/sprint-4]]

@@ -38,7 +38,7 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/7/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
-- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6 done, T8/backups and citizenship/payment work pending, 152-ФЗ deferred with accepted risk
+- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8 and citizenship XP UI done; payments, earned/paid citizenship, and 152-ФЗ follow-up remain pending
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
 - [[decisions/sprint-backlog]] — No-sprint backlog for defined work needing a sprint home, including monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag, and GutterAds fixes
@@ -85,10 +85,12 @@
 - [[tasks/profile-game-server-deploy-env]] — Sprint 4 T4h propagation of `PROFILE_API_URL` through the game-server deploy environment
 - [[tasks/profile-backend-db-api]] — Sprint 4 T5 Postgres-backed profile API, repository, migrations, readiness, and idempotent XP crediting
 - [[tasks/profile-match-end-crediting]] — Sprint 4 T6 game-server match-end XP crediting into the profile API
+- [[tasks/postgres-backup-routine]] — Sprint 4 T8 encrypted daily off-box profile DB backups, restore runbook, and deploy-time smoke validation
 - [[tasks/personal-data-compliance-investigation]] — Sprint 4 152-ФЗ investigation whose hash-based conclusion was later overturned
 - [[tasks/yandex-payments-investigation]] — Sprint 4 investigation recommending signed Yandex purchase verification and a session-cached catalog in `FlashistFacade`
 - [[tasks/start-screen-redesign-investigation]] — Sprint 4 design investigation that locked the two-tab start screen and citizenship card placement
 - [[tasks/start-screen-redesign-implementation]] — Sprint 4 implementation of the two-tab start screen, citizenship card shell, tab persistence, localization rename, and tab analytics
+- [[tasks/citizenship-xp-progress-ui]] — Sprint 4 live citizenship card wiring: profile API read, XP progress, citizen state, and degraded zero-state handling
 - [[tasks/app-bootstrap-single-entry-point]] — Sprint 4 explicit client bootstrap refactor with bounded Yandex platform init, degraded mode, language-before-render, and app-chunk recovery
 - [[tasks/legal-vat-investigation]] — External VAT/legal check that cleared the pre-launch payments gate
 - [[tasks/global-announcements]] — Re-enabled repo-authored announcements bell and popup with unread badge
