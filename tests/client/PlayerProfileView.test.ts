@@ -168,6 +168,15 @@ describe("loadPlayerProfileView", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("returns the zero-state (never throws, never null) when the config read rejects", async () => {
+    isYandexAuthorized.mockResolvedValue(true);
+    getServerConfig.mockRejectedValue(new Error("/api/env down"));
+    const fetchMock = stubFetch(200, publicProfile());
+
+    await expect(loadPlayerProfileView()).resolves.toEqual(ZERO_STATE);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("falls back to an empty name when the name lookup fails", async () => {
     isYandexAuthorized.mockResolvedValue(true);
     getCurPlayerName.mockRejectedValue(new Error("sdk failure"));

@@ -88,6 +88,27 @@ describe("profile API routes", () => {
     expect(res.status).toBe(400);
   });
 
+  test("GET /v1/profile sends a permissive CORS header so the game origin can read it", async () => {
+    const repo = mockRepo({
+      getProfile: jest.fn().mockResolvedValue(fullProfile()),
+    });
+    const res = await request(createApp(repo))
+      .get("/v1/profile?yandexPlayerId=yandex-1")
+      .set("Origin", "https://geoconflict.ru");
+    expect(res.status).toBe(200);
+    expect(res.headers["access-control-allow-origin"]).toBe("*");
+  });
+
+  test("internal routes do NOT get a CORS header", async () => {
+    const res = await request(createApp(mockRepo()))
+      .post("/internal/v1/profile/upsert")
+      .set("authorization", `Bearer ${TOKEN}`)
+      .set("Origin", "https://geoconflict.ru")
+      .send({ yandexPlayerId: "yandex-1", persistentId: "pid-1" });
+    expect(res.status).toBe(200);
+    expect(res.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+
   test("POST /internal/v1/credit is 401 without a token", async () => {
     const res = await request(createApp(mockRepo()))
       .post("/internal/v1/credit")

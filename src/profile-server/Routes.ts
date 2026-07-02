@@ -2,7 +2,7 @@
 // with a real or mocked repository and WITHOUT binding a port (Server.ts owns
 // listen()). This is the testable seam — route tests import createApp, never Server.
 
-import express, { type Express } from "express";
+import express, { type Express, type RequestHandler } from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import {
@@ -94,7 +94,20 @@ export function createApp(repo: ProfileRepo): Express {
     standardHeaders: true,
     legacyHeaders: false,
   });
-  app.get("/v1/profile", profileReadLimiter, async (req, res) => {
+  // The game runs on a different origin (geoconflict.ru / the Yandex Games iframe)
+  // than this API (api.geoconflict.ru), so the browser needs an explicit CORS
+  // header to read the response — without it the cross-origin fetch rejects and the
+  // citizenship card silently degrades to a zero-XP state for every authorized
+  // player. This read is unauthenticated, credential-free, and already public +
+  // rate-limited, so `*` grants nothing a server-side request couldn't already get.
+  // Runs BEFORE the limiter so even a 429 carries the header (the browser must be
+  // allowed to read the status). Scoped to this public route ONLY — never the
+  // internalAuth-gated /internal/* routes. Simple GET, so no OPTIONS preflight.
+  const allowPublicCors: RequestHandler = (_req, res, next) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    next();
+  };
+  app.get("/v1/profile", allowPublicCors, profileReadLimiter, async (req, res) => {
     const parsed = ProfileQuerySchema.safeParse(req.query);
     if (!parsed.success) {
       res.status(400).json({ error: "bad_request" });

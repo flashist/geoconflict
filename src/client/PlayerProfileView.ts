@@ -49,10 +49,17 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
   }
 
   // The profile server is a distinct backend (profileApiUrl), NOT the game API in
-  // jwt.ts. Empty (e.g. PROFILE_API_URL unset in local dev) → skip the fetch.
-  const base = (await getServerConfigFromClient())
-    .profileApiUrl()
-    .replace(/\/+$/, "");
+  // jwt.ts. getServerConfigFromClient() fetches /api/env and THROWS on a non-OK
+  // response or missing gameEnv; a throw here would propagate out and misrender an
+  // authorized player as a guest, so degrade to the zero-state instead (matches the
+  // "every authorized failure path → zero-state" contract above).
+  // Empty base (e.g. PROFILE_API_URL unset in local dev) → skip the fetch.
+  let base: string;
+  try {
+    base = (await getServerConfigFromClient()).profileApiUrl().replace(/\/+$/, "");
+  } catch {
+    return zeroState;
+  }
   if (!base) {
     return zeroState;
   }
