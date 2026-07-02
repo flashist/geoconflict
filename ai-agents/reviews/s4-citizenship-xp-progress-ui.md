@@ -8,11 +8,18 @@ File(s) under review:
 - src/profile-server/Routes.ts
 - tests/client/PlayerProfileView.test.ts
 - tests/core/profile/PlayerProfile.test.ts
-Status: in-review — C1 + A1 code fixes **applied** on branch (lint/tsc/jest green); C1
-still requires a profile-server redeploy to take effect on `api.geoconflict.ru`.
+Status: closed-out — code complete. Round 2 verified the C1 + A1 fixes are correct &
+complete (lint/tsc/jest green, 48/48); no open code defects. The ONLY remaining gate is the
+profile-server **redeploy** so C1's CORS goes live on `api.geoconflict.ru`, plus the
+post-deploy CORS curl — both owner/ops actions, not code.
 
 Reviewers (Round 1): Claude `code-reviewer` (review-only) + Codex `adversarial-review`
 (`--base dev --scope branch`). Both ran; full coverage. CORS gap raised by **both**.
+Reviewers (Round 2, on `1f42f10`): Claude `code-reviewer` ✅ (both fixes verified correct &
+complete, no regressions/new issues). Codex `adversarial-review` ⚠️ **stalled** — ran ~2 min,
+interim verdict `approve`/no-findings, then hung in "verifying" with no final result;
+cancelled after 15 min. Its one unfinished lead (XP bigint type-skew) was independently
+disproven, so coverage was closed by the Claude reviewer + independent verification + tests.
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -37,6 +44,16 @@ Reviewers (Round 1): Claude `code-reviewer` (review-only) + Codex `adversarial-r
   contract changes. (Recorded so a future reviewer does not "simplify" an authorized error
   path back to `null`.)
 
+- **Public `/v1/profile` uses CORS `*`, not an origin allowlist** — What: the C1 fix sets
+  `Access-Control-Allow-Origin: *` on the public read (scoped to `GET /v1/profile` only;
+  `/internal/*` gets none). Why (structural): the read is unauthenticated, credential-free
+  (`fetch` without `credentials: "include"`), already public + per-IP rate-limited, so `*`
+  grants a browser nothing a server-side request couldn't already get — and the game runs on
+  the Yandex Games sandbox origin, which is not reliably pinnable, so an allowlist would
+  re-break the very degradation C1 fixed. `*` is invalid only with credentialed requests,
+  which this is not. Re-raise only if: the read gains credentials/cookies or Yandex-signature
+  owner-auth (at which point `*` must become a specific allowlist + `Allow-Credentials`).
+
 ## Decision log
 
 | Round | Finding | Verdict | Action |
@@ -46,6 +63,11 @@ Reviewers (Round 1): Claude `code-reviewer` (review-only) + Codex `adversarial-r
 | 1 | Schema `omit` consistency, null/zero-state contract, AbortController timeout + `clearTimeout` in `finally`, `encodeURIComponent`, `!response.ok` handling, empty-`profileApiUrl` skip, test coverage, `===`/`??`, no new localization, no new security exposure. | VERIFIED CLEAN | No action. Both reviewers + independent pass agree the client diff is well-built. |
 | 1 (apply) | **C1** fix (approved 2026-07-02). | CONFIRMED → applied | Added `allowPublicCors` middleware (`Access-Control-Allow-Origin: *`) scoped to `GET /v1/profile` **only**, placed **before** the rate limiter so even a 429 carries the header; `/internal/*` deliberately untouched. `Routes.test.ts` now asserts ACAO `*` present on the public read and **absent** on `/internal/*`. Chose `*` over an origin allowlist: the read is unauthenticated, credential-free, already public + rate-limited, so `*` leaks nothing a server-side `curl` couldn't get, and it avoids re-breaking on the unpinnable Yandex Games sandbox origin. **Still requires a profile-server rebuild/redeploy (`build-deploy-profile.sh`) to take effect on `api.geoconflict.ru`.** |
 | 1 (apply) | **A1** fix (approved 2026-07-02). | PARTIALLY CORRECT → applied | Wrapped the `getServerConfigFromClient()` read in `PlayerProfileView.ts` in try/catch → `return zeroState` on rejection (respects the `null==guest`-only residual — returns the logged-in zero-state, not `null`). `PlayerProfileView.test.ts` adds a case: a config-read rejection resolves to the zero-state, never throws, never returns `null`. |
+| 2 | **C1** re-verify on `1f42f10`. | **FIXED — CORRECT & COMPLETE** | `allowPublicCors` sets ACAO `*` on `GET /v1/profile` only, before the limiter (so a 429 keeps the header); client fetch is a simple GET (no custom headers) → no preflight, so no `Allow-Methods/Headers`; no `Allow-Credentials` needed (fetch is not credentialed); nginx `location /` passes the upstream header through untouched (no `add_header`/`proxy_hide_header` anywhere). `Routes.test.ts` asserts ACAO present on the public read, absent on `/internal/*`. Independently verified by Claude R2 + code trace + 48/48 tests. **Only the redeploy remains** (below). |
+| 2 | **A1** re-verify on `1f42f10`. | **FIXED — CORRECT** | try/catch → `zeroState` closes the last unguarded `await`; all four `await` sites in `loadPlayerProfileView()` (`isYandexAuthorized`, `getCurPlayerName`, `getYandexUniqueId`, `getServerConfigFromClient`) are now guarded, and the rejection path returns the logged-in zero-state (honors the `null==guest` residual), never `null`. New client test covers it. |
+| 2 | **X1** (Codex interim lead, unfinished): "`xp` is Postgres `bigint` → node-pg returns a string → client `z.number()` rejects → zero XP for everyone — a ship blocker." | **INCORRECT (disproven)** | `rowToProfile()` does `xp: Number(row.xp)` (PlayerProfileRepository.ts:121) and `getProfile()` — the exact `GET /v1/profile` path — returns `rowToProfile(res.rows[0])` (:229), so `xp` is coerced to a JS number before the schema/JSON response. No type skew. Recorded so a future reviewer doesn't re-chase it. |
+| 2 | **I1** (Claude, informational): the new CORS test asserts only the 200 path, not that a 429 carries the header. | CORRECT (non-defect) | Not a defect — the 429-carries-header property is structurally guaranteed by middleware order (CORS set before the limiter). Optional to add a 429 assertion; not required. |
+| 2 (note) | Codex Round-2 run stalled (hung in "verifying", cancelled after 15 min) with no final structured verdict. | Partial coverage — compensated | Interim state was verdict `approve`/no findings; its only open lead (X1) was independently disproven. Coverage closed by Claude R2 + independent verification + tests. Flagged so the "ready" verdict isn't read as a clean two-reviewer pass. |
 
 ## Open / actionable
 
@@ -56,7 +78,8 @@ Reviewers (Round 1): Claude `code-reviewer` (review-only) + Codex `adversarial-r
   shows `Access-Control-Allow-Origin: *`. (Deploy is an owner action — not run from this task.)
 - **A1 — done.** No further action.
 
-Both code fixes are applied on branch `s4-citizenship-xp-progress-ui` (uncommitted) and are
-green under lint / `tsc --noEmit` / jest. Nothing else open.
+Both code fixes are committed on branch `s4-citizenship-xp-progress-ui` (`1f42f10`) and are
+green under lint / `tsc --noEmit` / jest (48/48). Round 2 found **no open code defects** and
+disproved the one new hypothesis (X1). Nothing else open besides the C1 redeploy above.
 
 See `ai-agents/reviews/s4-citizenship-xp-progress-ui-coder-handoff.md` for the original fix spec.
