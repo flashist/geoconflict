@@ -176,13 +176,17 @@ export class CitizenshipCard extends LitElement {
             ${translateText("citizenship_card.guest_subtitle")}
           </div>
         </div>
-        <button
-          id="citizenship-login-button"
-          class="shrink-0 px-3 py-[7px] rounded-lg text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
-          @click=${this.onLoginCtaTap}
-        >
-          ${translateText("citizenship_card.login_cta")}
-        </button>
+        ${FlashistFacade.instance.yaGamesAvailable
+          ? html`<button
+              id="citizenship-login-button"
+              class="shrink-0 px-3 py-[7px] rounded-lg text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+              @click=${this.onLoginCtaTap}
+            >
+              ${translateText("citizenship_card.login_cta")}
+            </button>`
+          : // Outside a Yandex context openYandexAuthDialog() silently no-ops,
+            // so a login button would be dead — show only the lock + subtitle.
+            nothing}
       </div>
     `;
   }

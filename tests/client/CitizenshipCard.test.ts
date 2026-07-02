@@ -24,6 +24,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   flashist_waitGameInitComplete: jest.fn().mockResolvedValue(undefined),
   FlashistFacade: {
     instance: {
+      yaGamesAvailable: true,
       logUiTapEvent: jest.fn(),
       openYandexAuthDialog: jest.fn().mockResolvedValue(false),
       isCitizenshipUiEnabled: jest.fn().mockResolvedValue(true),
@@ -55,6 +56,9 @@ describe("CitizenshipCard", () => {
     document.body.innerHTML = "";
     localStorage.clear();
     jest.clearAllMocks();
+    // Plain field, not a jest.fn() — clearAllMocks() won't restore it after a
+    // test sets it to false.
+    FlashistFacade.instance.yaGamesAvailable = true;
     loadProfile.mockResolvedValue(null);
     openYandexAuthDialog.mockResolvedValue(false);
     isCitizenshipUiEnabled.mockResolvedValue(true);
@@ -94,6 +98,17 @@ describe("CitizenshipCard", () => {
       expect(card.textContent).toContain("citizenship_card.guest_subtitle");
       expect(card.textContent).toContain("citizenship_card.login_cta");
       expect(card.textContent).not.toContain("citizenship_card.xp_label");
+    });
+
+    it("hides the login CTA when there is no Yandex context", async () => {
+      FlashistFacade.instance.yaGamesAvailable = false;
+
+      const card = await appendCard({ visible: true });
+
+      expect(card.textContent).toContain("citizenship_card.title");
+      expect(card.textContent).toContain("citizenship_card.guest_subtitle");
+      expect(card.textContent).not.toContain("citizenship_card.login_cta");
+      expect(card.querySelector("#citizenship-login-button")).toBeNull();
     });
 
     it("fires the login analytics and event on CTA tap", async () => {
