@@ -52,7 +52,13 @@ export class CitizenshipCard extends LitElement {
     super.connectedCallback();
     flashist_waitGameInitComplete()
       .then(async () => {
-        const enabled = await FlashistFacade.instance.isCitizenshipUiEnabled();
+        // In degraded mode the experiment flag is unknowable (getFlags needs
+        // the SDK, which is exactly what's missing), so the flag gate would
+        // always hide the card in production — show the honest "couldn't
+        // connect" state instead of a silently missing surface.
+        const enabled =
+          FlashistFacade.instance.isYandexDegraded() ||
+          (await FlashistFacade.instance.isCitizenshipUiEnabled());
         if (!enabled) {
           // Collapse the host so the start screen keeps the design's rhythm
           // (an empty flex child would still create a container gap slot).

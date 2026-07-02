@@ -91,6 +91,21 @@ describe("CitizenshipCard", () => {
       expect(card.classList.contains("hidden")).toBe(false);
       expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Seen");
     });
+
+    it("shows the degraded card even when the flag cannot be read (degraded mode)", async () => {
+      // In production degraded mode the flag fetch needs the SDK, so it
+      // resolves false — the degraded state must bypass the gate.
+      isCitizenshipUiEnabled.mockResolvedValue(false);
+      isYandexDegraded.mockReturnValue(true);
+
+      const card = await appendCard({ visible: true });
+
+      expect(card.classList.contains("hidden")).toBe(false);
+      expect(card.textContent).toContain(
+        "citizenship_card.guest_subtitle_degraded",
+      );
+      expect(card.querySelector("#citizenship-login-button")).toBeNull();
+    });
   });
 
   describe("guest state", () => {
