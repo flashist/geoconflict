@@ -25,6 +25,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   FlashistFacade: {
     instance: {
       yaGamesAvailable: true,
+      isYandexDegraded: jest.fn().mockReturnValue(false),
       logUiTapEvent: jest.fn(),
       openYandexAuthDialog: jest.fn().mockResolvedValue(false),
       isCitizenshipUiEnabled: jest.fn().mockResolvedValue(true),
@@ -43,6 +44,7 @@ import {
 } from "../../src/client/flashist/FlashistFacade";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
 
+const isYandexDegraded = FlashistFacade.instance.isYandexDegraded as jest.Mock;
 const logUiTapEvent = FlashistFacade.instance.logUiTapEvent as jest.Mock;
 const openYandexAuthDialog = FlashistFacade.instance
   .openYandexAuthDialog as jest.Mock;
@@ -59,6 +61,7 @@ describe("CitizenshipCard", () => {
     // Plain field, not a jest.fn() — clearAllMocks() won't restore it after a
     // test sets it to false.
     FlashistFacade.instance.yaGamesAvailable = true;
+    isYandexDegraded.mockReturnValue(false);
     loadProfile.mockResolvedValue(null);
     openYandexAuthDialog.mockResolvedValue(false);
     isCitizenshipUiEnabled.mockResolvedValue(true);
@@ -96,6 +99,9 @@ describe("CitizenshipCard", () => {
 
       expect(card.textContent).toContain("citizenship_card.title");
       expect(card.textContent).toContain("citizenship_card.guest_subtitle");
+      expect(card.textContent).not.toContain(
+        "citizenship_card.guest_subtitle_degraded",
+      );
       expect(card.textContent).toContain("citizenship_card.login_cta");
       expect(card.textContent).not.toContain("citizenship_card.xp_label");
     });
@@ -107,6 +113,22 @@ describe("CitizenshipCard", () => {
 
       expect(card.textContent).toContain("citizenship_card.title");
       expect(card.textContent).toContain("citizenship_card.guest_subtitle");
+      expect(card.textContent).not.toContain(
+        "citizenship_card.guest_subtitle_degraded",
+      );
+      expect(card.textContent).not.toContain("citizenship_card.login_cta");
+      expect(card.querySelector("#citizenship-login-button")).toBeNull();
+    });
+
+    it("shows the degraded subtitle and no CTA when the Yandex SDK is degraded", async () => {
+      isYandexDegraded.mockReturnValue(true);
+
+      const card = await appendCard({ visible: true });
+
+      expect(card.textContent).toContain("citizenship_card.title");
+      expect(card.textContent).toContain(
+        "citizenship_card.guest_subtitle_degraded",
+      );
       expect(card.textContent).not.toContain("citizenship_card.login_cta");
       expect(card.querySelector("#citizenship-login-button")).toBeNull();
     });

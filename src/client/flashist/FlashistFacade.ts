@@ -833,6 +833,17 @@ export class FlashistFacade {
     );
   }
 
+  /**
+   * True when this is a Yandex-platform session whose `YaGames.init()` failed
+   * or missed the platform-init deadline (degraded mode) — the auth dialog and
+   * other SDK features cannot work. Only meaningful after
+   * `flashist_waitGameInitComplete()` resolves; before that, init may simply
+   * not have settled yet.
+   */
+  public isYandexDegraded(): boolean {
+    return this.yaGamesAvailable && !this.yandexGamesSDK;
+  }
+
   public logExperimentEvent(name: string, value: string): void {
     flashist_logEventAnalytics(`Experiment:${name}:${value}`);
   }

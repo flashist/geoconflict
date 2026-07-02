@@ -52,6 +52,7 @@
   "citizenship_card": {
     "title": "Citizenship",
     "guest_subtitle": "Log in to save your progress",
+    "guest_subtitle_degraded": "Couldn't connect — try again later",
     "login_cta": "Log in with Yandex",
     "xp_label": "XP",
     "citizen_badge": "CITIZEN"
