@@ -26,6 +26,8 @@ Local verification covered normal local boot, first-time tutorial launch, standa
 
 The remaining human-review item is live Yandex iframe / dev-VPS verification of the real `YaGames.init()` path, including SDK language, player name, experiment flags, and `LoadingAPI.ready()` timing under the actual Yandex container.
 
+The citizenship card later consumed the bootstrap/platform distinction: the no-SDK follow-up uses `FlashistFacade.instance.yaGamesAvailable` to hide a dead Yandex login CTA in standalone contexts, while the broader Yandex degraded-mode UX remains separate Sprint 4 backlog work.
+
 ## Related
 
 - [[systems/flashist-init]]
@@ -33,5 +35,6 @@ The remaining human-review item is live Yandex iframe / dev-VPS verification of 
 - [[systems/localization]]
 - [[decisions/sprint-4]]
 - [[decisions/sprint-backlog]]
+- [[tasks/citizenship-card-guest-cta-no-sdk]]
 - [[tasks/yandex-payments-investigation]]
 - [[tasks/analytics-p0-yandex-login-status]]

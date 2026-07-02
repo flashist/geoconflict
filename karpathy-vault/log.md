@@ -844,3 +844,11 @@
 - Issues fixed: 0
 - Issues flagged for human review: 0
 - Full wiki health-check passed across all 119 indexed pages: index/file coverage, required metadata and sections, wiki-link resolution, backlinks, orphan detection, and backticked source-path freshness are clean.
+
+## 2026-07-02 — ingest
+- Sync window: `4219b02933be37493c1c3e405cf52bf34d444ba5` → HEAD (`2715f4b411447f110c80b1bcc5ef92cb6392e2a1`)
+- Changed source files detected: 4
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], [[wiki/tasks/citizenship-xp-progress-ui]], [[wiki/tasks/start-screen-redesign-implementation]], [[wiki/tasks/app-bootstrap-single-entry-point]], [[wiki/systems/flashist-init]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]]
+- Ingested: `ai-agents/tasks/done/s4-citizenship-card-guest-cta-no-sdk.md` → created [[wiki/tasks/citizenship-card-guest-cta-no-sdk]], updated [[wiki/decisions/sprint-4]], [[wiki/tasks/citizenship-xp-progress-ui]], [[wiki/tasks/start-screen-redesign-implementation]], [[wiki/tasks/app-bootstrap-single-entry-point]], [[wiki/systems/flashist-init]], `karpathy-vault/index.md`
+- Skipped (not ingest-worthy): `ai-agents/tasks/backlog/degraded-mode-full-ux-treatment.md` — backlog files are not ingested directly; its Sprint 4 blocker status is summarized through [[wiki/decisions/sprint-4]] and [[wiki/decisions/sprint-backlog]]

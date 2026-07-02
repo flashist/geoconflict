@@ -42,6 +42,8 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - Login-status analytics is intentionally one-shot. Late player rehydration updates helper methods such as `isYandexAuthorized()` and `getCurPlayerName()`, but it does not re-log `Player:Yandex*`.
 - `isYandexAuthorized()` and `getYandexUniqueId()` follow the same degraded-mode contract: they resolve to `false`/`null` when player state is unavailable instead of blocking match join. The unique ID is forwarded by [[tasks/yandex-identity-plumbing]].
 - Boot-rendered UI keeps degraded values after late SDK recovery unless that UI explicitly re-queries the facade.
+- `yaGamesAvailable` is now also a UI contract for the citizenship card: when false, the card suppresses the Yandex login CTA because `openYandexAuthDialog()` cannot work outside a Yandex SDK context. See [[tasks/citizenship-card-guest-cta-no-sdk]].
+- Yandex degraded mode is still distinct from no-SDK standalone mode. If `yaGamesAvailable` is true but `YaGames.init()` failed or timed out, the current citizenship funnel needs the separate Sprint 4 degraded-mode UX task before earned/paid citizenship launch.
 - Two independent side bugs found during the bootstrap investigation remain backlog work: the dead `initializeFuseTag` polling loop and `GutterAds.hide()` permanently removing its `userMeResponse` listener. See [[decisions/sprint-backlog]].
 
 ## Related
@@ -53,3 +55,4 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - [[tasks/analytics-p0-session-match-count]] — `consumePendingSessionEnd` and `startSessionMatchTracking` run in immediate bootstrap
 - [[tasks/yandex-payments-investigation]] — future payments/catalog caching should build on the explicit facade gate
 - [[tasks/yandex-identity-plumbing]] — tolerant auth and unique-ID helpers used by the match join path
+- [[tasks/citizenship-card-guest-cta-no-sdk]] — citizenship-card use of the Yandex-context signal to avoid a dead login CTA
