@@ -29,7 +29,6 @@
 | ⬜ No sprint | Force "No Nukes" When the Infinite-Gold Weird Mode Is Applied (Public Rotation) | `backlog/infinite-gold-force-no-nukes-public-rotation.md` | — |
 | ⬜ No sprint | Remove Dead `initializeFuseTag` Polling Loop | `backlog/fix-fusetag-dead-polling-loop.md` | — |
 | ⬜ No sprint | Fix GutterAds Unsubscribing from `userMeResponse` After First `hide()` | `backlog/fix-gutterads-usermeresponse-unsubscribe.md` | — |
-| ⬜ No sprint | Degraded-Mode UX: Give Yandex SDK Timeout/Failure Its Own Player-Facing Treatment | `backlog/degraded-mode-full-ux-treatment.md` | `s4-citizenship-card-guest-cta-no-sdk.md` (Sprint 4) |
 | ⏸ Parked | Task 5 — Deep Mobile Rendering Optimization | None — see plan-index | Mobile DAU > 1,500 |
 | ⏸ Parked | Task 2i — Microsoft Clarity Session Recordings | None — see plan-index | Mobile perf confirmed stable |
 
@@ -301,23 +300,6 @@ move listener removal out of `hide()` and into `disconnectedCallback` so the sub
 connect/disconnect, not show/hide. `src/client/GutterAds.ts` only, ~1 hour. The broader
 `userMeResponse` fire-once/no-replay concern (§2.6 item 4) is out of scope — revisit after the
 bootstrap task lands.
-
----
-
-### Degraded-Mode UX: Give Yandex SDK Timeout/Failure Its Own Player-Facing Treatment
-
-**Brief:** `backlog/degraded-mode-full-ux-treatment.md`
-
-Surfaced 2026-07-02 while fixing the sibling Sprint 4 task `s4-citizenship-card-guest-cta-no-sdk.md`.
-`FlashistFacade` today only exposes "authorized" vs "not authorized," collapsing three distinct
-situations into one: no Yandex context at all, a real logged-out guest, and a session where
-`YaGames.init()` timed out inside Bootstrap's 5s platform-init deadline (degraded mode). The sibling
-Sprint 4 task fixes the first case (hides the dead login CTA in local/standalone dev via the existing
-`yaGamesAvailable` flag); this task covers the harder case — a **real production player** in degraded
-mode sees the identical dead "Войти в Яндекс" button, with no distinct messaging, retry, or recovery
-path. Needs a product decision on the exact UX treatment (hide vs. disable vs. retry vs. distinct
-copy) before an implementation brief can be finalized. Priority is low — pull `Session:PlatformInitTimeout`
-volume from analytics first to confirm this is worth prioritizing over other backlog work.
 
 ---
 
