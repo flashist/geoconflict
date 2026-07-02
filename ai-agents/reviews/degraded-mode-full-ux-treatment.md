@@ -2,7 +2,7 @@
 
 Task: ai-agents/tasks/backlog/degraded-mode-full-ux-treatment.md
 File(s) under review: src/client/CitizenshipCard.ts, src/client/flashist/FlashistFacade.ts, tests/client/CitizenshipCard.test.ts, tests/client/FlashistFacade.test.ts, resources/lang/en.json, resources/lang/ru.json
-Status: in-review (round 1 findings resolved; awaiting re-review or closeout)
+Status: in-review (round 2 findings recorded; C2 fix pending)
 
 ## Accepted residuals (do-not-re-litigate)
 
@@ -16,7 +16,9 @@ Status: in-review (round 1 findings resolved; awaiting re-review or closeout)
 | 1 | Claude (Cl1): no direct unit test of `FlashistFacade.isYandexDegraded()`'s formula against real field values — `FlashistFacade.ts` has no dedicated test file, so the method is only exercised via a jest mock in `CitizenshipCard.test.ts` | CORRECT, non-blocking | Accepted as non-blocking suggestion — opportunistic follow-up (e.g. bundle with the C1 fix), not required for this PR to merge |
 | 1 | C1 resolution (process-review pass, 2026-07-02) | CORRECT re-confirmed by second independent trace; **severity record corrected**: the same flag gate also means the pre-existing dead CTA never rendered in production degraded mode (card was fully hidden), so C1 is "shipped feature is a prod no-op", not a player-facing regression. Fixing it is what gives this task any production effect. | **Fixed** (user-approved option: bypass flag when degraded). `CitizenshipCard.connectedCallback()` now computes `enabled = isYandexDegraded() || await isCitizenshipUiEnabled()`. Regression test added: `CitizenshipCard.test.ts` "shows the degraded card even when the flag cannot be read (degraded mode)" (flag mocked false + degraded true → card renders degraded state). Tradeoff recorded under Accepted residuals. |
 | 1 | Cl1 resolution (process-review pass, 2026-07-02) | — | **Closed** (user opted to bundle). Added `tests/client/FlashistFacade.test.ts`: direct truth-table test of `isYandexDegraded()` on a bare `Object.create(FlashistFacade.prototype)` instance (constructor side effects avoided). |
+| 2 | Codex (C2): `isYandexDegraded()` only covers `!yandexGamesSDK` (init itself failed) — a session where `YaGames.init()` succeeds but the boot-time `getPlayer()` call (`initPlayer()`, `FlashistFacade.ts:861-878`) fails or times out is misclassified as a real guest, shows the normal CTA, and `openYandexAuthDialog()` (`FlashistFacade.ts:893-907`) has no timeout around its own `getPlayer()` re-fetch, so the tap can hang | CORRECT (independently traced: `runPlatformInit`/`initPlayer` at `FlashistFacade.ts:456-561,861-878`, `isYandexAuthorized`/`openYandexAuthDialog` at `:888-907`, `PlayerProfileView.ts:34-38`). Confirmed pre-existing — identical to `dev`'s current behavior, not a regression introduced by round 1 or round 2 — but the same class of player-facing failure (dead/hung citizenship-funnel CTA) the task's elevated priority exists to prevent. Claude's independent pass missed this — 2nd round in a row Codex caught something Claude didn't. | **Open** — user decided (2026-07-02): fix now, within this same task, rather than deferring to a new backlog item or accepting as a residual. Coder-handoff spec: `ai-agents/reviews/degraded-mode-full-ux-treatment-coder-handoff.md`. |
+| 2 | Claude (Cl2): stale doc comment on `@state() isEnabled` (`CitizenshipCard.ts:42-44`) still describes gating as purely the experiment flag, doesn't mention the round-2 degraded-bypass path | CORRECT, trivial | Accepted as non-blocking note — whoever next touches that comment updates it; not bundled with the C2 fix at the user's request. |
 
 ## Open / actionable
 
-- (none)
+- **C2 — Player-init failure with a live SDK is not treated as degraded.** See round 2 decision log above and the coder-handoff spec for the concrete fix.
