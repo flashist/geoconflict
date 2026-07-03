@@ -40,7 +40,7 @@ Keep it factual and short. Avoid speculative detail that was never verified.
 
 ### 2. Update the wiki through the existing workflow
 
-Produce a knowledge-base or task-summary source file and ingest it into `karpathy-vault/` using the repo’s wiki process.
+Produce a knowledge-base or task-summary source file and ingest it into `ai-agents/wiki-vault/` using the repo’s wiki process.
 
 The wiki entry should preserve:
 

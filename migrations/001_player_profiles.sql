@@ -3,7 +3,7 @@
 -- Storage strategy: Option B (epic Part B) — typed columns for the
 -- identity/constraint-heavy fields plus an `extra jsonb` overflow column for
 -- forward-compatible fields not yet promoted to their own column. See the ADR at
--- karpathy-vault/wiki/decisions/profile-storage-strategy.md.
+-- ai-agents/wiki-vault/wiki/decisions/profile-storage-strategy.md.
 --
 -- The migrate.ts runner wraps each file in a single transaction, so there is NO
 -- explicit BEGIN/COMMIT here. Every statement is idempotent (IF NOT EXISTS) so a

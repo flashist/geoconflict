@@ -37,7 +37,7 @@ Makes all product decisions. Sets sprint priorities. Reviews investigation findi
 
 ### Technical Specialist
 
-Claude Code terminal agent with direct access to the full codebase. Implements tasks, writes investigation findings, updates the knowledge base (karpathy-vault). Works from task briefs. Does not make product decisions unilaterally.
+Claude Code terminal agent with direct access to the full codebase. Implements tasks, writes investigation findings, updates the knowledge base (wiki-vault). Works from task briefs. Does not make product decisions unilaterally.
 
 ### Producer Agent (this role)
 
@@ -195,12 +195,12 @@ Every brief contains: priority/sprint, context, what to build (with implementati
 - **Build number pre-registration:** new build values must be registered in GA dashboard before deploying that build.
 - **Deployments on weekends** — lowest traffic, minimises player disruption.
 
-### Knowledge Base (karpathy-vault)
+### Knowledge Base (wiki-vault)
 
-Structured wiki at `karpathy-vault/` in the repo following the Karpathy LLM Wiki pattern.
+Structured wiki at `ai-agents/wiki-vault/` in the repo following the Karpathy LLM Wiki pattern.
 
 ```
-karpathy-vault/
+ai-agents/wiki-vault/
   schema.md          ← conventions and templates
   index.md           ← master catalog of all pages
   log.md             ← append-only activity log

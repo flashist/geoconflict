@@ -64,7 +64,7 @@ for accurate, player-readable wording.
 Most commits in this repo are **not** announcement-worthy. Be aggressive.
 
 **Exclude** (these are noise):
-- Wiki / docs: `Codex: wiki *`, `*wiki sync/lint*`, anything touching only `karpathy-vault/` or `ai-agents/`
+- Wiki / docs: `Codex: wiki *`, `*wiki sync/lint*`, anything touching only `ai-agents/wiki-vault/` or `ai-agents/`
 - Task/sprint bookkeeping: `Tasks update`, `sprints update`, brief moves
 - Process: `review changes`, `review fix`, formatting, lint, CI, dependency bumps
 - Internal-only: telemetry/observability plumbing, infra, refactors, server memory/perf fixes with
@@ -143,5 +143,5 @@ top entry may have changed), and insert right after the opening `[`.
 - `resources/announcements.json` — source of truth (read it before drafting, to match tone)
 - `resources/announcements.schema.md` — authoring rules and field contract
 - `ai-agents/knowledge-base/announcements-system-guide.md` — full system guide, good/bad-use checklist
-- `karpathy-vault/wiki/features/announcements.md` — feature overview and gotchas
+- `ai-agents/wiki-vault/wiki/features/announcements.md` — feature overview and gotchas
 - `ai-agents/tasks/done/` — completed briefs for player-readable wording of shipped changes

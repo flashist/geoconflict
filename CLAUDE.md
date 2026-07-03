@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Knowledge Base & Wiki
 
-A structured wiki lives in `karpathy-vault/` following the [Karpathy LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). It contains synthesized knowledge about systems, features, decisions, and tasks — things not easily derived from the code alone.
+A structured wiki lives in `ai-agents/wiki-vault/` following the [Karpathy LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). It contains synthesized knowledge about systems, features, decisions, and tasks — things not easily derived from the code alone.
 
 **Before starting any non-trivial task**, check if relevant wiki pages exist:
 ```bash
@@ -22,7 +22,7 @@ A structured wiki lives in `karpathy-vault/` following the [Karpathy LLM Wiki pa
 
 **Wiki structure:**
 ```
-karpathy-vault/
+ai-agents/wiki-vault/
   schema.md          ← conventions and templates (read this first)
   index.md           ← master catalog of all pages
   log.md             ← append-only activity log

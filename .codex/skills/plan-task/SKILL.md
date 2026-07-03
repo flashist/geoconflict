@@ -13,7 +13,7 @@ Use this skill to turn a task file into a concrete implementation plan without m
 
 1. State clearly that this run is planning-only and that no code will be written yet.
 2. Read the task file path passed by the user when invoking the skill.
-3. If `karpathy-vault/` exists, use the `$wiki-query` skill to gather relevant project context before proceeding.
+3. If `ai-agents/wiki-vault/` exists, use the `$wiki-query` skill to gather relevant project context before proceeding.
 4. Read any files referenced by the task, including specs, related tasks, and knowledge-base documents.
 5. Identify the implementation scope, constraints, dependencies, risks, and likely validation steps.
 6. Produce a concrete step-by-step plan.

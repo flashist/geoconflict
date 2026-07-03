@@ -21,9 +21,9 @@ Recommended implementation changes:
 - `ai-agents/tasks/backlog/sprint4b-compact-map-rotation.md`
 - `ai-agents/tasks/backlog/sprint4b-duos-trios-quads.md`
 - `ai-agents/sprints/plan-sprint-4b.md`
-- `karpathy-vault/wiki/decisions/sprint-4b.md`
-- `karpathy-vault/wiki/features/ai-players.md`
-- `karpathy-vault/wiki/systems/game-overview.md`
+- `ai-agents/wiki-vault/wiki/decisions/sprint-4b.md`
+- `ai-agents/wiki-vault/wiki/features/ai-players.md`
+- `ai-agents/wiki-vault/wiki/systems/game-overview.md`
 - `src/server/MapPlaylist.ts`
 - `src/server/GameServer.ts`
 - `src/core/GameRunner.ts`

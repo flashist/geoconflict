@@ -202,4 +202,4 @@ proxy configuration, rather than duplicating it.
 - Telemetry setup/deploy: `setup-telemetry.sh`, `build-deploy-telemetry.sh`
 - Existing Telegram send pattern: `src/server/Master.ts` (`/api/feedback`, `/api/subscribe`)
 - Telegram env vars: `example.env`, `deploy.sh`
-- Telemetry system page: `karpathy-vault/wiki/systems/telemetry.md`
+- Telemetry system page: `ai-agents/wiki-vault/wiki/systems/telemetry.md`

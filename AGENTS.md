@@ -2,7 +2,7 @@
 
 ## Knowledge Base & Wiki
 
-A structured wiki lives in `karpathy-vault/` following the Karpathy LLM Wiki pattern. It contains synthesized knowledge about systems, features, decisions, and tasks — things not easily derived from the code alone.
+A structured wiki lives in `ai-agents/wiki-vault/` following the Karpathy LLM Wiki pattern. It contains synthesized knowledge about systems, features, decisions, and tasks — things not easily derived from the code alone.
 
 **REQUIRED: Before implementing any task, you MUST first invoke the `wiki-query` skill with the task topic. Do not write or edit any code until you have checked the wiki.**
 
@@ -13,13 +13,13 @@ A structured wiki lives in `karpathy-vault/` following the Karpathy LLM Wiki pat
 | `wiki-ingest` | Ingest source files into the wiki. Input: `<path or keyword>`. Keywords: `architecture`, `knowledge-base`, `all tasks` |
 | `wiki-query` | Answer a question using wiki pages + source files. Input: `<question>` |
 | `wiki-lint` | Health-check the wiki: broken links, stale claims, missing back-links |
-| `wiki-sync` | Detect changes in `ai-agents/` since last sync and ingest only the delta |
+| `wiki-sync` | Detect changes in non-wiki `ai-agents/` sources since last sync and ingest only the delta |
 
 These are Codex skills, not shell commands or repo-local executables. In this workspace they may be installed globally under `~/.codex/skills/` rather than under the repo's `.codex/skills/`.
 
 **Wiki structure:**
 ```
-karpathy-vault/
+ai-agents/wiki-vault/
   schema.md          ← conventions and templates (read this first)
   index.md           ← master catalog of all pages
   log.md             ← append-only activity log
@@ -33,12 +33,12 @@ karpathy-vault/
 
 **Source files vs wiki files — critical distinction:**
 - **Sources** (what gets ingested): files under `ai-agents/` — sprints, tasks, knowledge-base docs
-- **Wiki output** (what gets written): files under `karpathy-vault/wiki/`, `karpathy-vault/index.md`, `karpathy-vault/log.md`
-- Never list `karpathy-vault/` files as ingested sources in `log.md`. The log records which `ai-agents/` files were processed, not which wiki files were updated.
+- **Wiki output** (what gets written): files under `ai-agents/wiki-vault/wiki/`, `ai-agents/wiki-vault/index.md`, `ai-agents/wiki-vault/log.md`
+- Never list `ai-agents/wiki-vault/` files as ingested sources in `log.md`. The log records which non-wiki `ai-agents/` files were processed, not which wiki files were updated.
 
 **log.md is append-only** — never edit or rewrite existing entries, only append new ones at the bottom.
 
-**Sync watermark** lives at `karpathy-vault/.wiki-watermark` (a single commit SHA). The wiki-sync skill reads and writes this file to track the last sync point. Do not delete or modify it manually.
+**Sync watermark** lives at `ai-agents/wiki-vault/.wiki-watermark` (a single commit SHA). The wiki-sync skill reads and writes this file to track the last sync point. Do not delete or modify it manually.
 
 **When to update the wiki:**
 - After completing a task: invoke `wiki-ingest` with `ai-agents/tasks/done/<task-file>`

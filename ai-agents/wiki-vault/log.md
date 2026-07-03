@@ -64,7 +64,7 @@
 - Ingested: `ai-agents/sprints/plan-sprint-5.md` → updated [[wiki/decisions/sprint-5]]
 - Ingested: `ai-agents/sprints/done/hotfix-post-sprint2.md` + `ai-agents/tasks/done/hotfix-hf10-cache-busting.md` → updated [[wiki/decisions/hotfix-post-sprint2]]
 - Ingested: `ai-agents/sprints/cancelled-tasks.md` + `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md` + `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md` → updated [[wiki/decisions/cancelled-tasks]]
-- Ingested: `karpathy-vault/index.md` → updated decision index entry for [[wiki/decisions/sprint-6]]
+- Ingested: `wiki-vault/index.md` → updated decision index entry for [[wiki/decisions/sprint-6]]
 - Skipped (already covered): 53 remaining eligible `ai-agents/knowledge-base/*.md`, `ai-agents/sprints/done/*.md`, and `ai-agents/tasks/done/*.md` files were already represented by existing wiki pages; this sync only refreshed the stale decision pages and added the missing Sprint 6 page
 
 ## 2026-04-17 — lint
@@ -81,7 +81,7 @@
 - Ingested: `CLAUDE.md` → created [[wiki/systems/flashist-init]]
 - Ingested: `CLAUDE.md` → updated [[wiki/systems/game-overview]]
 - Ingested: `CLAUDE.md` → updated [[wiki/systems/analytics]]
-- Ingested: `CLAUDE.md` → updated `karpathy-vault/index.md`
+- Ingested: `CLAUDE.md` → updated `wiki-vault/index.md`
 
 ## 2026-04-17 — ingest
 - Sync window: `2bca900ac4da0761b860c76d52186091383b6d75` → HEAD (`6b47389dab53093b59b5e946b2c1e7bd7a3f6474`)
@@ -646,9 +646,9 @@
 ## 2026-06-06 — ingest
 - Sync window: `0cf324850b8d1bc0d171b1a2ed05cef764918ddc` → HEAD (`ef4e4666b94b3e5b2dbde896d15fbce6fb793797`)
 - Changed source files detected: 8
-- Ingested: `ai-agents/tasks/done/hotfix-hf7-build-number.md` → created [[wiki/tasks/build-number-tracking]]; updated [[wiki/decisions/hotfix-post-sprint2]], [[wiki/systems/analytics]], [[wiki/systems/project-operations]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/hotfix-hf7-build-number.md` → created [[wiki/tasks/build-number-tracking]]; updated [[wiki/decisions/hotfix-post-sprint2]], [[wiki/systems/analytics]], [[wiki/systems/project-operations]], `wiki-vault/index.md`
 - Ingested: `ai-agents/sprints/done/hotfix-post-sprint2.md` → updated [[wiki/decisions/hotfix-post-sprint2]]
-- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `wiki-vault/index.md`
 - Ingested: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md` → updated [[wiki/systems/analytics]], [[wiki/systems/project-operations]]
 - Ingested: `ai-agents/sprints/plan-sprint-4c.md` → updated [[wiki/decisions/sprint-4c]]
 - Skipped (already covered): `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md` → already covered in [[wiki/decisions/cancelled-tasks]]; `ai-agents/tasks/backlog/monitoring-alert-bot-phase1.md`, `ai-agents/tasks/backlog/monitoring-alert-bot-phase2.md` → backlog files are not ingested directly by wiki-sync, summarized through [[wiki/decisions/sprint-backlog]]
@@ -664,7 +664,7 @@
 - Changed source files detected: 7
 - Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
 - Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]]
-- Ingested: `ai-agents/tasks/done/s4-feedback-modal-space-key.md` → created [[wiki/tasks/feedback-modal-space-key]]; updated [[wiki/features/feedback-button]], [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-feedback-modal-space-key.md` → created [[wiki/tasks/feedback-modal-space-key]]; updated [[wiki/features/feedback-button]], [[wiki/decisions/sprint-4]], `wiki-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-start-screen-redesign-impl.md`, `ai-agents/tasks/backlog/bots-skip-sam-when-nukes-disabled.md`, `ai-agents/tasks/backlog/s4-postgres-backup-routine.md`, `ai-agents/tasks/backlog/worker-init-timeout-map-refetch.md` — backlog files are not ingested directly by wiki-sync; relevant backlog status is summarized through [[wiki/decisions/sprint-backlog]] and [[wiki/decisions/sprint-4]]
 
 ## 2026-06-11 — lint
@@ -676,18 +676,18 @@
 ## 2026-06-13 — ingest
 - Sync window: `459af8bc7e04daf4713f8983602c90e081122ca4` → HEAD (`15a1c0480f4a122a9d2c4f9dfa3941ade4c459f9`)
 - Changed source files detected: 11
-- Ingested: `ai-agents/tasks/done/s4-app-bootstrap-single-entry-point.md` → created [[wiki/tasks/app-bootstrap-single-entry-point]]; updated [[wiki/systems/flashist-init]], [[wiki/systems/analytics]], [[wiki/systems/localization]], [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-backlog]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-app-bootstrap-single-entry-point.md` → created [[wiki/tasks/app-bootstrap-single-entry-point]]; updated [[wiki/systems/flashist-init]], [[wiki/systems/analytics]], [[wiki/systems/localization]], [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-backlog]], `wiki-vault/index.md`
 - Ingested: `ai-agents/knowledge-base/app-bootstrap-single-entry-point-findings-and-plan.md` → updated [[wiki/tasks/app-bootstrap-single-entry-point]], [[wiki/systems/flashist-init]], [[wiki/systems/analytics]], [[wiki/systems/localization]], [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-backlog]]
 - Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]], [[wiki/tasks/analytics-p0-yandex-login-status]]
-- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-start-screen-redesign-impl.md` → created [[wiki/tasks/start-screen-redesign-implementation]]; updated [[wiki/decisions/sprint-4]], [[wiki/systems/analytics]], [[wiki/systems/localization]], [[wiki/tasks/start-screen-redesign-investigation]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `wiki-vault/index.md`
+- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-start-screen-redesign-impl.md` → created [[wiki/tasks/start-screen-redesign-implementation]]; updated [[wiki/decisions/sprint-4]], [[wiki/systems/analytics]], [[wiki/systems/localization]], [[wiki/tasks/start-screen-redesign-investigation]], `wiki-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/fix-fusetag-dead-polling-loop.md`, `ai-agents/tasks/backlog/fix-gutterads-usermeresponse-unsubscribe.md`, `ai-agents/tasks/backlog/s4c-disable-infinite-gold-public-rotation.md` — backlog files are summarized through [[wiki/decisions/sprint-backlog]]; `ai-agents/tasks/backlog/s4-app-bootstrap-single-entry-point.md`, `ai-agents/tasks/backlog/s4-start-screen-redesign-impl.md` — moved to done and represented by [[wiki/tasks/app-bootstrap-single-entry-point]] and [[wiki/tasks/start-screen-redesign-implementation]]
 
 ## 2026-06-13 — ingest
 - Sync window: `15a1c0480f4a122a9d2c4f9dfa3941ade4c459f9` → HEAD (`7e8556fb839b2d947641b6cf16c1bdff8841910e`)
 - Changed source files detected: 13
-- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `wiki-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-personal-data-compliance-investigation.md`, `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-profile-01-schema-contract.md`, `ai-agents/tasks/backlog/s4-profile-02-guest-localstorage.md`, `ai-agents/tasks/backlog/s4-profile-03-yandex-identity.md`, `ai-agents/tasks/backlog/s4-profile-04-backend-infra.md`, `ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md`, `ai-agents/tasks/backlog/s4-profile-06-match-end-crediting.md`, `ai-agents/tasks/backlog/s4-profile-07-guest-migration.md`, `ai-agents/tasks/backlog/s4-profile-08-backups.md`, `ai-agents/tasks/backlog/s4-starting-gold-public-modifier.md`, `ai-agents/tasks/backlog/s4-map-population-army-labels.md` — backlog files are not ingested directly by wiki-sync; relevant Sprint 4 backlog status is summarized through [[wiki/decisions/sprint-4]]
 
 ## 2026-06-13 — lint
@@ -705,20 +705,20 @@
 ## 2026-06-13 — ingest
 - Sync window: `7e8556fb839b2d947641b6cf16c1bdff8841910e` → HEAD (`41dc4624a7c0b4c6552447c4a3604549677d77aa`)
 - Changed source files detected: 8
-- Ingested: `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md` → updated [[wiki/tasks/player-profile-store-investigation]], [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md` → updated [[wiki/tasks/player-profile-store-investigation]], [[wiki/decisions/sprint-4]], `wiki-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-profile-01-schema-contract.md`, `ai-agents/tasks/backlog/s4-profile-02-guest-localstorage.md`, `ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md`, `ai-agents/tasks/backlog/s4-profile-07-guest-migration.md`, `ai-agents/tasks/backlog/s4-citizenship-earned.md`, `ai-agents/tasks/backlog/s4-yandex-payments-impl.md` — backlog files are not ingested directly by wiki-sync; the profile-store infrastructure supersession is summarized through [[wiki/tasks/player-profile-store-investigation]] and [[wiki/decisions/sprint-4]]
 
 ## 2026-06-13 — ingest
 - Sync window: `41dc4624a7c0b4c6552447c4a3604549677d77aa` → HEAD (`3c18ec5fe5276fe1843750cd87c53fe2e137cfb5`)
 - Changed source files detected: 3
-- Ingested: `ai-agents/tasks/done/s4-profile-01-schema-contract.md` → created [[wiki/tasks/profile-schema-contract]], updated [[wiki/decisions/sprint-4]], [[wiki/tasks/player-profile-store-investigation]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-01-schema-contract.md` → created [[wiki/tasks/profile-schema-contract]], updated [[wiki/decisions/sprint-4]], [[wiki/tasks/player-profile-store-investigation]], `wiki-vault/index.md`
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `wiki-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md` — backlog files are not ingested directly by wiki-sync; the implementation status and T1/T2 sequence are summarized through [[wiki/decisions/sprint-4]]
 
 ## 2026-06-13 — ingest
 - Sync window: `3c18ec5fe5276fe1843750cd87c53fe2e137cfb5` → HEAD (`488d41ddcd1e5caeaa82fe61b715d6517c1e4eb3`)
 - Changed source files detected: 6
-- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `wiki-vault/index.md`
 - Ingested: `ai-agents/tasks/cancelled/s4-profile-02-guest-localstorage.md` → updated [[wiki/decisions/cancelled-tasks]], [[wiki/decisions/sprint-4]], [[wiki/tasks/player-profile-store-investigation]], [[wiki/tasks/profile-schema-contract]]
 - Ingested: `ai-agents/tasks/cancelled/s4-profile-07-guest-migration.md` → updated [[wiki/decisions/cancelled-tasks]], [[wiki/decisions/sprint-4]], [[wiki/tasks/profile-schema-contract]]
 - Ingested: `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md` → updated [[wiki/decisions/cancelled-tasks]], [[wiki/decisions/sprint-4]], [[wiki/tasks/player-profile-store-investigation]], [[wiki/tasks/profile-schema-contract]]
@@ -757,10 +757,10 @@
 ## 2026-06-20 — ingest
 - Sync window: `aa7e165a0b008f4bacf6e796c3d18c68a08b6f55` → HEAD (`6a03a8533c5d0d46e16345e79dabb4058f6c83e2`)
 - Changed source files detected: 11
-- Ingested: `ai-agents/knowledge-base/s4-profile-04d-ru-residency-review-finding-2026-06-20.md` → created [[wiki/tasks/profile-vps-provisioning]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/player-profile-store-investigation]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-profile-04d-vps-provisioning.md` → created [[wiki/tasks/profile-vps-provisioning]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/player-profile-store-investigation]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/knowledge-base/s4-profile-04d-ru-residency-review-finding-2026-06-20.md` → created [[wiki/tasks/profile-vps-provisioning]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/player-profile-store-investigation]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-04d-vps-provisioning.md` → created [[wiki/tasks/profile-vps-provisioning]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/player-profile-store-investigation]], `wiki-vault/index.md`
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `wiki-vault/index.md`
+- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `wiki-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/defense-post-range-always-visible.md`, `ai-agents/tasks/backlog/infinite-gold-force-no-nukes-public-rotation.md`, `ai-agents/tasks/backlog/s4-profile-04e-deploy-mechanics.md`, `ai-agents/tasks/backlog/s4-profile-04e1-build-push-digest.md`, `ai-agents/tasks/backlog/s4-profile-04e2-onbox-stack-gate.md`, `ai-agents/tasks/backlog/s4-profile-04e3-deploy-wiring-milestone.md`, `ai-agents/tasks/backlog/s4-starting-gold-public-modifier.md` — backlog files are not ingested directly; changed sprint sources summarize the applicable roadmap updates
 
 ## 2026-06-20 — lint
@@ -772,7 +772,7 @@
 ## 2026-06-21 — ingest
 - Sync window: `6a03a8533c5d0d46e16345e79dabb4058f6c83e2` → HEAD (`eec3f71c6366318bacbc1ef663b176d17abf02a4`)
 - Changed source files detected: 4
-- Ingested: `ai-agents/tasks/done/s4-profile-04e1-build-push-digest.md` → created [[wiki/tasks/profile-build-push-digest]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/profile-docker-image]], [[wiki/tasks/profile-vps-provisioning]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-04e1-build-push-digest.md` → created [[wiki/tasks/profile-build-push-digest]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/profile-docker-image]], [[wiki/tasks/profile-vps-provisioning]], `wiki-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/reviews/README.md`, `ai-agents/reviews/s4-profile-04e1-coder-handoff.md`, `ai-agents/reviews/s4-profile-04e1.md` — review artifacts are outside the wiki-sync eligible source set
 
 ## 2026-06-21 — lint
@@ -784,27 +784,27 @@
 ## 2026-06-23 — ingest
 - Sync window: `eec3f71c6366318bacbc1ef663b176d17abf02a4` → HEAD (`cd0c1b36bae7f7c88a5f7a7aa958144d45633741`)
 - Changed source files detected: 18
-- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-profile-04e2-onbox-stack-gate.md` → created [[wiki/tasks/profile-onbox-stack-gate]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/profile-build-push-digest]], [[wiki/tasks/profile-vps-provisioning]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-profile-04e3-deploy-wiring-milestone.md` → created [[wiki/tasks/profile-deploy-wiring]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/profile-build-push-digest]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-profile-04f-image-secret-scan.md` → created [[wiki/tasks/profile-image-secret-scan]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/decisions/vps-credential-leak-response]], [[wiki/tasks/profile-docker-image]], [[wiki/tasks/profile-build-push-digest]], [[wiki/tasks/docker-secret-boundary-check]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-profile-04i-server-bring-up-runbook.md` → created [[wiki/tasks/profile-server-bring-up-runbook]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/profile-build-push-digest]], [[wiki/tasks/profile-vps-provisioning]], [[wiki/tasks/profile-image-secret-scan]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-04e2-onbox-stack-gate.md` → created [[wiki/tasks/profile-onbox-stack-gate]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/profile-build-push-digest]], [[wiki/tasks/profile-vps-provisioning]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-04e3-deploy-wiring-milestone.md` → created [[wiki/tasks/profile-deploy-wiring]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/profile-build-push-digest]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-04f-image-secret-scan.md` → created [[wiki/tasks/profile-image-secret-scan]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/decisions/vps-credential-leak-response]], [[wiki/tasks/profile-docker-image]], [[wiki/tasks/profile-build-push-digest]], [[wiki/tasks/docker-secret-boundary-check]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-04i-server-bring-up-runbook.md` → created [[wiki/tasks/profile-server-bring-up-runbook]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/profile-build-push-digest]], [[wiki/tasks/profile-vps-provisioning]], [[wiki/tasks/profile-image-secret-scan]], `wiki-vault/index.md`
 - Skipped (already covered): `ai-agents/tasks/done/s4-profile-04e-deploy-mechanics.md` — broad T4e brief is represented by split pages [[wiki/tasks/profile-build-push-digest]], [[wiki/tasks/profile-onbox-stack-gate]], and [[wiki/tasks/profile-deploy-wiring]]
 - Skipped (not ingest-worthy): `ai-agents/reviews/s4-profile-04e2.md`, `ai-agents/reviews/s4-profile-04e2-coder-handoff.md`, `ai-agents/reviews/s4-profile-04e3.md`, `ai-agents/reviews/s4-profile-04e3-coder-handoff.md`, `ai-agents/reviews/s4-profile-04f.md`, `ai-agents/reviews/s4-profile-04f-coder-handoff.md`, `ai-agents/reviews/s4-profile-04i.md`, `ai-agents/tasks/backlog/s4-feedback-remove-contact-field.md`, `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-profile-04g-argv-concurrency-hardening.md`, `ai-agents/tasks/backlog/s4-profile-04i-server-bring-up-runbook.md`, `ai-agents/tasks/backlog/sec12-vps-registry-credential-hygiene.md` — review artifacts and backlog files are not ingested directly by wiki-sync; relevant status is summarized through [[wiki/decisions/sprint-4]]
 
 ## 2026-06-28 — ingest
 - Sync window: `cd0c1b36bae7f7c88a5f7a7aa958144d45633741` → HEAD (`6a0cc36ac09715d46d848fc393c5ad7fbb6ddc84`)
 - Changed source files detected: 24
-- Ingested: `ai-agents/knowledge-base/pre-s4-player-infra-audit-2026-06-24.md` → created [[wiki/systems/player-infrastructure]]; updated [[wiki/systems/clans]], [[wiki/tasks/player-profile-store-investigation]], [[wiki/tasks/yandex-identity-plumbing]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md` → created [[wiki/systems/player-profile-store]]; updated [[wiki/decisions/sprint-4]], [[wiki/tasks/player-profile-store-investigation]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/knowledge-base/personal-data-152fz-findings.md` → created [[wiki/decisions/personal-data-152fz-compliance]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-backlog]], [[wiki/decisions/cancelled-tasks]], [[wiki/systems/project-operations]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/knowledge-base/pre-s4-player-infra-audit-2026-06-24.md` → created [[wiki/systems/player-infrastructure]]; updated [[wiki/systems/clans]], [[wiki/tasks/player-profile-store-investigation]], [[wiki/tasks/yandex-identity-plumbing]], `wiki-vault/index.md`
+- Ingested: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md` → created [[wiki/systems/player-profile-store]]; updated [[wiki/decisions/sprint-4]], [[wiki/tasks/player-profile-store-investigation]], `wiki-vault/index.md`
+- Ingested: `ai-agents/knowledge-base/personal-data-152fz-findings.md` → created [[wiki/decisions/personal-data-152fz-compliance]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-backlog]], [[wiki/decisions/cancelled-tasks]], [[wiki/systems/project-operations]], `wiki-vault/index.md`
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `wiki-vault/index.md`
+- Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]], `wiki-vault/index.md`
 - Ingested: `ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md` → updated [[wiki/decisions/cancelled-tasks]], [[wiki/decisions/personal-data-152fz-compliance]], [[wiki/decisions/sprint-4]]
-- Ingested: `ai-agents/tasks/done/s4-personal-data-compliance-investigation.md` → created [[wiki/tasks/personal-data-compliance-investigation]]; updated [[wiki/decisions/personal-data-152fz-compliance]], [[wiki/decisions/sprint-backlog]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-profile-04g-argv-concurrency-hardening.md` → created [[wiki/tasks/profile-deploy-hardening]]; updated [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/profile-deploy-wiring]], [[wiki/tasks/profile-image-secret-scan]], [[wiki/tasks/profile-server-bring-up-runbook]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-profile-04h-game-server-deploy-env.md` → created [[wiki/tasks/profile-game-server-deploy-env]]; updated [[wiki/systems/configuration]], [[wiki/tasks/profile-api-url-config]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-profile-05-backend-db-api.md` → created [[wiki/tasks/profile-backend-db-api]]; updated [[wiki/decisions/profile-storage-strategy]], [[wiki/tasks/profile-schema-contract]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-personal-data-compliance-investigation.md` → created [[wiki/tasks/personal-data-compliance-investigation]]; updated [[wiki/decisions/personal-data-152fz-compliance]], [[wiki/decisions/sprint-backlog]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-04g-argv-concurrency-hardening.md` → created [[wiki/tasks/profile-deploy-hardening]]; updated [[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/tasks/profile-deploy-wiring]], [[wiki/tasks/profile-image-secret-scan]], [[wiki/tasks/profile-server-bring-up-runbook]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-04h-game-server-deploy-env.md` → created [[wiki/tasks/profile-game-server-deploy-env]]; updated [[wiki/systems/configuration]], [[wiki/tasks/profile-api-url-config]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-05-backend-db-api.md` → created [[wiki/tasks/profile-backend-db-api]]; updated [[wiki/decisions/profile-storage-strategy]], [[wiki/tasks/profile-schema-contract]], `wiki-vault/index.md`
 - Skipped (already covered): `ai-agents/tasks/done/s4-profile-01-schema-contract.md` — existing [[wiki/tasks/profile-schema-contract]] already captured the T1 outcome; only backlinks were updated while ingesting T5
 - Skipped (not ingest-worthy): `ai-agents/reviews/s4-profile-04g.md`, `ai-agents/reviews/s4-profile-05-backend-db-api-coder-handoff.md`, `ai-agents/reviews/s4-profile-05-backend-db-api.md`, `ai-agents/reviews/s4-profile-hash-player-ids-coder-handoff.md`, `ai-agents/reviews/s4-profile-hash-player-ids.md`, `ai-agents/tasks/backlog/compliance-152fz-notification-consent.md`, `ai-agents/tasks/backlog/s4-archive-s3-backed-citizen-gated.md`, `ai-agents/tasks/backlog/s4-citizenship-earned.md`, `ai-agents/tasks/backlog/s4-citizenship-xp-progress-ui.md`, `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/tasks/backlog/s4-profile-06-match-end-crediting.md`, `ai-agents/tasks/backlog/s4-profile-hash-player-ids.md`, `ai-agents/tasks/backlog/s4-yandex-payments-impl.md`, `ai-agents/tasks/backlog/sec13-deploy-transport-secret-hygiene.md` — review artifacts and backlog files are not ingested directly; changed sprint and decision pages summarize applicable state
 - Skipped (no longer exists at HEAD): `ai-agents/tasks/done/s4-profile-hash-player-ids.md` — represented by cancelled source `ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md` and [[wiki/decisions/cancelled-tasks]]
@@ -812,8 +812,8 @@
 ## 2026-06-29 — ingest
 - Sync window: `6a0cc36ac09715d46d848fc393c5ad7fbb6ddc84` -> HEAD (`09ebcc4cf9a7146488aed5c4cc68f45c71df2658`)
 - Changed source files detected: 5
-- Ingested: `ai-agents/sprints/plan-sprint-4.md` -> updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-profile-06-match-end-crediting.md` -> created [[wiki/tasks/profile-match-end-crediting]]; updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], [[wiki/tasks/profile-backend-db-api]], [[wiki/tasks/profile-game-server-deploy-env]], [[wiki/tasks/yandex-identity-plumbing]], [[wiki/systems/player-infrastructure]], [[wiki/systems/networking]], [[wiki/decisions/personal-data-152fz-compliance]], [[wiki/tasks/yandex-payments-investigation]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` -> updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-profile-06-match-end-crediting.md` -> created [[wiki/tasks/profile-match-end-crediting]]; updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], [[wiki/tasks/profile-backend-db-api]], [[wiki/tasks/profile-game-server-deploy-env]], [[wiki/tasks/yandex-identity-plumbing]], [[wiki/systems/player-infrastructure]], [[wiki/systems/networking]], [[wiki/decisions/personal-data-152fz-compliance]], [[wiki/tasks/yandex-payments-investigation]], `wiki-vault/index.md`
 - Skipped (already covered): `ai-agents/tasks/done/s4-profile-04-backend-infra.md` — 100% rename from backlog to done; T4 outcome is represented by the split T4a-T4i pages and [[wiki/decisions/sprint-4]]
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`, `ai-agents/reviews/s4-profile-06-match-end-crediting.md` — backlog and review artifacts are outside the wiki-sync eligible source set; relevant status is summarized through [[wiki/decisions/sprint-4]]
 
@@ -828,9 +828,9 @@
 - Sync window: `ac4d48296cc5bd24ca1186b5568629b2e88d55b0` → HEAD (`4219b02933be37493c1c3e405cf52bf34d444ba5`)
 - Changed source files detected: 11
 - Ingested: `ai-agents/knowledge-base/profile-backup-restore-runbook.md` → created/updated [[wiki/tasks/postgres-backup-routine]], updated [[wiki/systems/player-profile-store]]
-- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-citizenship-xp-progress-ui.md` → created [[wiki/tasks/citizenship-xp-progress-ui]], updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], [[wiki/tasks/start-screen-redesign-implementation]], `karpathy-vault/index.md`
-- Ingested: `ai-agents/tasks/done/s4-postgres-backup-routine.md` → created [[wiki/tasks/postgres-backup-routine]], updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], [[wiki/tasks/profile-server-bring-up-runbook]], [[wiki/decisions/vps-credential-leak-response]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-citizenship-xp-progress-ui.md` → created [[wiki/tasks/citizenship-xp-progress-ui]], updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], [[wiki/tasks/start-screen-redesign-implementation]], `wiki-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-postgres-backup-routine.md` → created [[wiki/tasks/postgres-backup-routine]], updated [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]], [[wiki/tasks/profile-server-bring-up-runbook]], [[wiki/decisions/vps-credential-leak-response]], `wiki-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/reviews/s4-citizenship-xp-progress-ui-coder-handoff.md`, `ai-agents/reviews/s4-citizenship-xp-progress-ui.md`, `ai-agents/reviews/s4-postgres-backup-routine-coder-handoff.md`, `ai-agents/reviews/s4-postgres-backup-routine.md`, `ai-agents/tasks/backlog/monitoring-alert-bot-phase2.md`, `ai-agents/tasks/backlog/s4-citizenship-xp-progress-ui.md`, `ai-agents/tasks/backlog/s4-player-profile-store-impl.md` — review artifacts and backlog files are outside the wiki-sync eligible source set; applicable status is summarized through completed task pages and [[wiki/decisions/sprint-4]]
 
 ## 2026-07-02 — lint
@@ -848,7 +848,7 @@
 ## 2026-07-02 — ingest
 - Sync window: `4219b02933be37493c1c3e405cf52bf34d444ba5` → HEAD (`2715f4b411447f110c80b1bcc5ef92cb6392e2a1`)
 - Changed source files detected: 4
-- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], [[wiki/tasks/citizenship-xp-progress-ui]], [[wiki/tasks/start-screen-redesign-implementation]], [[wiki/tasks/app-bootstrap-single-entry-point]], [[wiki/systems/flashist-init]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], [[wiki/tasks/citizenship-xp-progress-ui]], [[wiki/tasks/start-screen-redesign-implementation]], [[wiki/tasks/app-bootstrap-single-entry-point]], [[wiki/systems/flashist-init]], `wiki-vault/index.md`
 - Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]]
-- Ingested: `ai-agents/tasks/done/s4-citizenship-card-guest-cta-no-sdk.md` → created [[wiki/tasks/citizenship-card-guest-cta-no-sdk]], updated [[wiki/decisions/sprint-4]], [[wiki/tasks/citizenship-xp-progress-ui]], [[wiki/tasks/start-screen-redesign-implementation]], [[wiki/tasks/app-bootstrap-single-entry-point]], [[wiki/systems/flashist-init]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/s4-citizenship-card-guest-cta-no-sdk.md` → created [[wiki/tasks/citizenship-card-guest-cta-no-sdk]], updated [[wiki/decisions/sprint-4]], [[wiki/tasks/citizenship-xp-progress-ui]], [[wiki/tasks/start-screen-redesign-implementation]], [[wiki/tasks/app-bootstrap-single-entry-point]], [[wiki/systems/flashist-init]], `wiki-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/degraded-mode-full-ux-treatment.md` — backlog files are not ingested directly; its Sprint 4 blocker status is summarized through [[wiki/decisions/sprint-4]] and [[wiki/decisions/sprint-backlog]]

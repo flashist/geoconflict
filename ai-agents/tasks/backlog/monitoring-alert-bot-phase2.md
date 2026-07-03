@@ -109,4 +109,4 @@ secrets in `.env*.secret`; don't monitor Uptrace using Uptrace; no secrets in al
 - Hardening: `telemetry-clickhouse-system-log-retention-2026-05-08.md`,
   `telemetry-clickhouse-file-log-hardening-2026-05-10.md`
 - Telemetry setup/deploy: `setup-telemetry.sh`, `build-deploy-telemetry.sh`; game server: `deploy.sh`
-- Wiki: `karpathy-vault/wiki/systems/telemetry.md`
+- Wiki: `ai-agents/wiki-vault/wiki/systems/telemetry.md`

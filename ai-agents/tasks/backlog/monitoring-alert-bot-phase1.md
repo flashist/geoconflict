@@ -22,7 +22,7 @@ have caught both outages we actually hit.
 Source findings: `ai-agents/knowledge-base/monitoring-alert-bot-findings-2026-06-04.md`
 (findings doc, not a spec). Incident history:
 `ai-agents/knowledge-base/telemetry-server-incident-history-2026-06-03.md`. Wiki:
-`karpathy-vault/wiki/systems/telemetry.md` ("Monitoring and Alerting Gap").
+`ai-agents/wiki-vault/wiki/systems/telemetry.md` ("Monitoring and Alerting Gap").
 
 Two distinct outage families have hit the telemetry VPS; the monitor must cover both,
 because fixing one did not prevent the other:
@@ -159,5 +159,5 @@ Not "done" because it deployed — done when a **controlled failure test** prove
 - Incident history: `ai-agents/knowledge-base/telemetry-server-incident-history-2026-06-03.md`
 - Telegram send pattern: `src/server/Master.ts`; env vars: `example.env`, `deploy.sh`
 - Telemetry setup/deploy: `setup-telemetry.sh`, `build-deploy-telemetry.sh`
-- Wiki: `karpathy-vault/wiki/systems/telemetry.md`, [[decisions/vps-credential-leak-response]]
+- Wiki: `ai-agents/wiki-vault/wiki/systems/telemetry.md`, [[decisions/vps-credential-leak-response]]
 - Phase 2: `monitoring-alert-bot-phase2.md`

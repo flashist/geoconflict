@@ -210,4 +210,4 @@ limit 30;"
 - `ai-agents/knowledge-base/telemetry-recovery-hardening-2026-05-07.md`
 - `ai-agents/knowledge-base/telemetry-clickhouse-system-log-retention-2026-05-08.md`
 - `ai-agents/knowledge-base/telemetry-clickhouse-file-log-hardening-2026-05-10.md`
-- `karpathy-vault/wiki/systems/telemetry.md`
+- `ai-agents/wiki-vault/wiki/systems/telemetry.md`

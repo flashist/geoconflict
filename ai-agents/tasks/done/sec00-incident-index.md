@@ -45,7 +45,7 @@ The following repo facts are already confirmed and should be treated as the star
 - `deploy.sh`
 - `docs/vps-deployment-guide.md`
 - `docs/project-status.md`
-- `karpathy-vault/wiki/systems/telemetry.md`
+- `ai-agents/wiki-vault/wiki/systems/telemetry.md`
 
 ## Inputs Required
 

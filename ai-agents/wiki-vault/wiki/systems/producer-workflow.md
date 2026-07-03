@@ -1,7 +1,7 @@
 # Producer Workflow
 
 **Layer**: shared
-**Key files**: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`, `ai-agents/sprints/`, `ai-agents/tasks/`, `karpathy-vault/`
+**Key files**: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`, `ai-agents/sprints/`, `ai-agents/tasks/`, `ai-agents/wiki-vault/`
 
 ## Summary
 
@@ -22,7 +22,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - Prefer investigation-first when the technical or product shape is still unclear
 - Keep task briefs concrete: context, what to build, verification, and final decisions only
 - Use analytics as the shipping gate for live changes, not just code-complete status
-- Keep documentation current in `karpathy-vault/` and preserve operational knowledge that is not obvious from code alone
+- Keep documentation current in `ai-agents/wiki-vault/` and preserve operational knowledge that is not obvious from code alone
 
 ### Operating loop
 1. Review current strategic priorities and live issues with Mark
