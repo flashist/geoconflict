@@ -52,7 +52,13 @@ export class CitizenshipCard extends LitElement {
     super.connectedCallback();
     flashist_waitGameInitComplete()
       .then(async () => {
-        const enabled = await FlashistFacade.instance.isCitizenshipUiEnabled();
+        // In degraded mode the experiment flag is unknowable (getFlags needs
+        // the SDK, which is exactly what's missing), so the flag gate would
+        // always hide the card in production — show the honest "couldn't
+        // connect" state instead of a silently missing surface.
+        const enabled =
+          FlashistFacade.instance.isYandexDegraded() ||
+          (await FlashistFacade.instance.isCitizenshipUiEnabled());
         if (!enabled) {
           // Collapse the host so the start screen keeps the design's rhythm
           // (an empty flex child would still create a container gap slot).
@@ -134,6 +140,7 @@ export class CitizenshipCard extends LitElement {
   }
 
   private renderGuest() {
+    const isDegraded = FlashistFacade.instance.isYandexDegraded();
     return html`
       <div
         class="w-full flex items-center gap-3 p-3 rounded-[12px] bg-[#1c1c1e]/85"
@@ -173,10 +180,14 @@ export class CitizenshipCard extends LitElement {
             ${translateText("citizenship_card.title")}
           </div>
           <div class="text-[11px] text-[#98989f] leading-[1.4]">
-            ${translateText("citizenship_card.guest_subtitle")}
+            ${translateText(
+              isDegraded
+                ? "citizenship_card.guest_subtitle_degraded"
+                : "citizenship_card.guest_subtitle",
+            )}
           </div>
         </div>
-        ${FlashistFacade.instance.yaGamesAvailable
+        ${FlashistFacade.instance.yaGamesAvailable && !isDegraded
           ? html`<button
               id="citizenship-login-button"
               class="shrink-0 px-3 py-[7px] rounded-lg text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
@@ -184,8 +195,9 @@ export class CitizenshipCard extends LitElement {
             >
               ${translateText("citizenship_card.login_cta")}
             </button>`
-          : // Outside a Yandex context openYandexAuthDialog() silently no-ops,
-            // so a login button would be dead — show only the lock + subtitle.
+          : // With no Yandex context at all, or with the SDK failed/timed out
+            // (degraded), openYandexAuthDialog() silently no-ops — a login
+            // button would be dead, so show only the lock + subtitle.
             nothing}
       </div>
     `;
