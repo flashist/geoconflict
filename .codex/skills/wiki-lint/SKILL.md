@@ -1,9 +1,17 @@
-Health-check the geoconflict wiki at `karpathy-vault/` and fix issues found.
+---
+name: wiki-lint
+description: Health-check the geoconflict wiki at ai-agents/wiki-vault/ and fix issues found. Use when asked to lint, validate, or health-check the wiki.
+---
+<!-- ai-agents-kit:generated source=codex-only/wiki-lint version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
+
+# Wiki Lint
+
+Health-check the geoconflict wiki at `ai-agents/wiki-vault/` and fix issues found.
 
 ## Instructions
 
-1. Read `karpathy-vault/schema.md` for the rules to enforce.
-2. Read `karpathy-vault/index.md` to get a full list of all wiki pages.
+1. Read `ai-agents/wiki-vault/schema.md` for the rules to enforce.
+2. Read `ai-agents/wiki-vault/index.md` to get a full list of all wiki pages.
 3. Read every page listed in the index.
 4. Check for the following issues and fix them:
 
@@ -15,7 +23,7 @@ Health-check the geoconflict wiki at `karpathy-vault/` and fix issues found.
 
    **Content issues**
    - Contradictions between pages (e.g., two pages describe the same system differently)
-   - Stale claims: references to files or functions that no longer exist (verify with Glob/Grep)
+   - Stale claims: references to files or functions that no longer exist (verify with file search / grep)
    - Orphaned pages: pages with no cross-links in or out
 
    **Cross-reference issues**
@@ -24,7 +32,7 @@ Health-check the geoconflict wiki at `karpathy-vault/` and fix issues found.
 
 5. For each issue found: fix it directly (edit the wiki page), or flag it with a `> **LINT WARNING:**` blockquote if it requires human judgment.
 
-6. After linting, append to `karpathy-vault/log.md`:
+6. After linting, append to `ai-agents/wiki-vault/log.md`:
    ```
    ## YYYY-MM-DD — lint
    - Issues found: N

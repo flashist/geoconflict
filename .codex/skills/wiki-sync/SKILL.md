@@ -1,17 +1,26 @@
-Sync the geoconflict wiki at `karpathy-vault/` by detecting what changed in `ai-agents/` since the last ingest and ingesting only the delta.
+---
+name: wiki-sync
+description: Sync the geoconflict wiki at ai-agents/wiki-vault/ by detecting what changed in non-wiki ai-agents/ sources since the last ingest and ingesting only the delta. Use when asked to sync or update the wiki. Optional argument: a date (YYYY-MM-DD) to override the auto-detected since-date, or 'force' to re-ingest all non-wiki ai-agents sources.
+---
+<!-- ai-agents-kit:generated source=codex-only/wiki-sync version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
 
-Arguments: $ARGUMENTS
-(Optional: pass a specific date like "2026-04-15" to override the auto-detected since-date, or "force" to re-ingest all ai-agents files)
+# Wiki Sync
+
+Sync the geoconflict wiki at `ai-agents/wiki-vault/` by detecting what changed in non-wiki `ai-agents/` sources since the last ingest and ingesting only the delta.
+
+The optional argument can be:
+- A date in `YYYY-MM-DD` format to override the auto-detected since-date
+- `force` to re-ingest all `ai-agents/` files
 
 ## Instructions
 
 ### Step 1 — Determine the sync window
 
-If `$ARGUMENTS` contains a date (YYYY-MM-DD format), use `git log --since="<date>"` in Step 2.
+If the argument contains a date (YYYY-MM-DD format), use `git log --since="<date>"` in Step 2.
 
-If `$ARGUMENTS` is "force", skip to Step 2 and list all files under `ai-agents/`.
+If the argument is `force`, skip to Step 2 and list all files under `ai-agents/` except `ai-agents/wiki-vault/`.
 
-Otherwise, check `karpathy-vault/.wiki-watermark` for a commit SHA written by the previous successful sync:
+Otherwise, check `ai-agents/wiki-vault/.wiki-watermark` for a commit SHA written by the previous successful sync:
 - **If the file exists and contains a SHA:** use that SHA as the base in Step 2 (`git log <sha>..HEAD`). This is exact — it picks up every commit since the last sync regardless of when it ran.
 - **If the file is missing (first run or reset):** treat this as `force` — skip git and list all eligible `ai-agents/` files so no history is missed.
 
@@ -19,11 +28,11 @@ Otherwise, check `karpathy-vault/.wiki-watermark` for a commit SHA written by th
 
 Run one of:
 ```
-git log <sha>..HEAD --diff-filter=AMR --name-only --format="" -- ai-agents/   # watermark mode
-git log --since="<date>" --diff-filter=AMR --name-only --format="" -- ai-agents/  # date-override mode
+git log <sha>..HEAD --diff-filter=AMR --name-only --format="" -- ai-agents/ ':!ai-agents/wiki-vault/'   # watermark mode
+git log --since="<date>" --diff-filter=AMR --name-only --format="" -- ai-agents/ ':!ai-agents/wiki-vault/'  # date-override mode
 ```
 
-Or, for force / first-run: list all files under `ai-agents/`.
+Or, for force / first-run: list all files under `ai-agents/` except `ai-agents/wiki-vault/`.
 
 Deduplicate the results (a file may appear in multiple commits). This is the candidate list.
 
@@ -37,6 +46,7 @@ From the candidate list, keep only:
 - `ai-agents/knowledge-base/*.md` — investigation findings and reference documents
 
 Skip:
+- `ai-agents/wiki-vault/**` — wiki output, not an ingest source
 - `ai-agents/tasks/backlog/*.md` — not yet done, wiki page premature
 - Any file that is identical in content to what was already ingested (use git log to check if the file was only renamed, not modified)
 
@@ -44,8 +54,8 @@ If the filtered list is empty: report "Wiki is up to date — no ingest-worthy c
 
 ### Step 4 — Read the wiki schema and index
 
-Read `karpathy-vault/schema.md` for page templates and conventions.
-Read `karpathy-vault/index.md` to know what pages already exist.
+Read `ai-agents/wiki-vault/schema.md` for page templates and conventions.
+Read `ai-agents/wiki-vault/index.md` to know what pages already exist.
 
 ### Step 5 — Ingest each changed file
 
@@ -56,7 +66,7 @@ b. Determine which wiki page type it maps to (feature / system / decision / task
 c. Check if a wiki page already exists for this topic.
    - **If yes:** update it — incorporate any new status, decisions, or findings. Do not remove content that is still accurate; add or correct only what changed.
    - **If no:** create it following the template in schema.md.
-d. Update the one-line entry in `karpathy-vault/index.md` (add if new, update description if changed).
+d. Update the one-line entry in `ai-agents/wiki-vault/index.md` (add if new, update description if changed).
 e. Add or update cross-links in related pages (bidirectional).
 
 ### Step 6 — Targeted lint on changed pages only
@@ -68,9 +78,9 @@ For each page created or updated in Step 5:
 
 ### Step 7 — Update watermark and log.md
 
-Run `git rev-parse HEAD` and write the resulting SHA to `karpathy-vault/.wiki-watermark` (overwrite, single line). This is the precise resume point for the next sync.
+Run `git rev-parse HEAD` and write the resulting SHA to `ai-agents/wiki-vault/.wiki-watermark` (overwrite, single line). This is the precise resume point for the next sync.
 
-Append a single entry to `karpathy-vault/log.md`:
+Append a single entry to `ai-agents/wiki-vault/log.md`:
 
 ```
 ## YYYY-MM-DD — ingest

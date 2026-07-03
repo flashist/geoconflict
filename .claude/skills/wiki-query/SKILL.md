@@ -1,10 +1,19 @@
-Answer a question about the geoconflict project using the wiki at `karpathy-vault/`.
+---
+name: wiki-query
+description: Answer a question about the geoconflict project using the wiki at ai-agents/wiki-vault/. Use when asked to look something up in the wiki, find information about a feature or system, or answer a project question.
+user-invocable: true
+---
+<!-- ai-agents-kit:generated source=shared/wiki-query version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
 
-Question: $ARGUMENTS
+# Wiki Query
+
+Answer a question about the geoconflict project using the wiki at `ai-agents/wiki-vault/`.
+
+The question is whatever the user passed as the argument when invoking this skill.
 
 ## Instructions
 
-1. Read `karpathy-vault/index.md` to get a catalog of all available wiki pages.
+1. Read `ai-agents/wiki-vault/index.md` to get a catalog of all available wiki pages.
 2. Identify which wiki pages are most relevant to the question. Read them.
 3. If any relevant page links to other pages via [[wikilinks]], follow those links and read them too (max 2 hops).
 4. If the wiki pages don't fully answer the question, read the original source files they reference (listed in each page's **Source files** or **Key files** field).

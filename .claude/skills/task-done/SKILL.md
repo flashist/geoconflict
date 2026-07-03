@@ -3,6 +3,7 @@ name: task-done
 description: Mark a task complete — move its brief file into ai-agents/tasks/done/ and update the sprint plan (and parent epic, if any) so the task's status reads Done. Takes the path to the task file as its argument. Use when a task has been reviewed/verified and is finished.
 user-invocable: true
 ---
+<!-- ai-agents-kit:generated source=claude-only/task-done version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
 
 # Task Done
 

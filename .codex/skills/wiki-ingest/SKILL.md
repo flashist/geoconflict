@@ -1,17 +1,24 @@
+---
+name: wiki-ingest
+description: Ingest one or more sources into the geoconflict wiki at ai-agents/wiki-vault/. Use when asked to add, update, or sync wiki pages from source files, tasks, or knowledge-base documents. Accepts a file path, directory path, or keyword: 'all tasks', 'knowledge-base', 'architecture'.
+---
+<!-- ai-agents-kit:generated source=codex-only/wiki-ingest version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
+
+# Wiki Ingest
+
 Ingest one or more sources into the geoconflict wiki at `ai-agents/wiki-vault/`.
 
-Arguments: $ARGUMENTS
-(Pass a file path, glob, or keyword like "all tasks" / "knowledge-base" / "architecture")
+The argument is a file path, glob, or keyword like `all tasks` / `knowledge-base` / `architecture`.
 
 ## Instructions
 
 1. Read `ai-agents/wiki-vault/schema.md` to understand page types, templates, and conventions.
 2. Read `ai-agents/wiki-vault/index.md` to know what pages already exist.
-3. Resolve what to ingest from the arguments:
+3. Resolve what to ingest from the argument:
    - A specific file path → ingest that file
-   - "all tasks" → ingest all files in `ai-agents/tasks/backlog/` and `ai-agents/tasks/done/`
-   - "knowledge-base" → ingest all files in `ai-agents/knowledge-base/`
-   - "architecture" → ingest `CLAUDE.md` and `ai-agents/wiki-vault/schema.md` domain reference
+   - `all tasks` → ingest all files in `ai-agents/tasks/backlog/` and `ai-agents/tasks/done/`
+   - `knowledge-base` → ingest all files in `ai-agents/knowledge-base/`
+   - `architecture` → ingest `CLAUDE.md` and `ai-agents/wiki-vault/schema.md` domain reference
    - A directory path → ingest all markdown files in it
 4. For each source file:
    a. Read the source file fully.

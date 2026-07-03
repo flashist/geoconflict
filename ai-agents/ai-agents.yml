@@ -1,0 +1,50 @@
+# Worked example — geoconflict's project manifest.
+# In a real project this lives at `ai-agents/ai-agents.yml`. It captures the
+# current geoconflict setup (producer=Claude, wiki=Codex, review=both).
+# Edit this file + run `sync` to change identity, roles, or model routing.
+
+kit_version: 0.1.0
+
+project:
+  name: Geoconflict
+  slug: geoconflict
+  owner: Mark
+  primary_language: TypeScript
+  wiki_path: ai-agents/wiki-vault
+  overview: OpenFront-style real-time strategy browser game — territorial control and alliances.
+
+# Concrete model ids live here — one place to bump versions.
+models:
+  claude: { cli: claude, id: claude-opus-4-8 }
+  codex:  { cli: codex,  id: gpt-5.5 }
+
+# The "agents" = your terminal-tab personas.
+roles:
+  producer:
+    model: claude
+    entry_skill: producer
+    knowledge: ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md
+  coder:
+    model: claude
+  reviewer:
+    model: both
+    entry_skill: stateful-review
+
+# task-type → owning model. Edit this block to re-route work.
+routing:
+  wiki: codex
+  planning: claude
+  review: both
+  routine-fix: codex
+  complex-feature: claude
+  default: claude
+
+# Which skills compile to which side. Usually derived from the kit dirs
+# (shared/ claude-only/ codex-only/); listed here to make placement explicit
+# and overridable per project. Project-specific skills (the producer role
+# instance, update-announcements) are authored in-repo as origin:project —
+# they are NOT compiled from the kit, so they are not listed here.
+skills:
+  shared:      [process-review, plan-task, wiki-query]
+  claude_only: [task-done, task-cancelled, stateful-review]
+  codex_only:  [wiki-ingest, wiki-lint, wiki-sync]

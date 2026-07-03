@@ -1,4 +1,9 @@
-Enter plan mode to plan the implementation of a task described in the file passed as the argument (e.g. `/plan-task ai-agents/tasks/backlog/my-task.md`). The plan should account for realistic edge cases, including non-obvious but plausible failure modes, where they could materially affect implementation, correctness, or testing.
+---
+name: plan-task
+description: Enter plan mode to plan the implementation of a task described in the file passed as the argument (e.g. `/plan-task ai-agents/tasks/backlog/my-task.md`). The plan should account for realistic edge cases, including non-obvious but plausible failure modes, where they could materially affect implementation, correctness, or testing.
+user-invocable: true
+---
+<!-- ai-agents-kit:generated source=shared/plan-task version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
 
 # Plan Task
 
@@ -10,7 +15,7 @@ Use this skill to turn a task file into a concrete implementation plan without m
 
 1. Use the EnterPlanMode tool to switch into plan mode and state clearly that this run is planning-only and that no code will be written yet.
 2. Read the task file path passed by the user when invoking the skill.
-3. If `karpathy-vault/` exists, use the `/wiki-query` skill to gather relevant project context before proceeding.
+3. If `ai-agents/wiki-vault/` exists, use the `/wiki-query` skill to gather relevant project context before proceeding.
 4. Read any files referenced by the task, including specs, related tasks, and knowledge-base documents.
 5. Identify the implementation scope, constraints, dependencies, risks, and likely validation steps.
 6. Produce a concrete step-by-step plan.
