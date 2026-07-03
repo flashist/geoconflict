@@ -3,7 +3,7 @@ name: plan-task
 description: Enter plan mode to plan the implementation of a task described in the file passed as the argument (e.g. `/plan-task ai-agents/tasks/backlog/my-task.md`). The plan should account for realistic edge cases, including non-obvious but plausible failure modes, where they could materially affect implementation, correctness, or testing.
 user-invocable: true
 ---
-<!-- ai-agents-kit:generated source=shared/plan-task version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
+<!-- fkit:generated source=shared/plan-task version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
 
 # Plan Task
 

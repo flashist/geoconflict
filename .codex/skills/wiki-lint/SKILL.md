@@ -2,7 +2,7 @@
 name: wiki-lint
 description: Health-check the geoconflict wiki at ai-agents/wiki-vault/ and fix issues found. Use when asked to lint, validate, or health-check the wiki.
 ---
-<!-- ai-agents-kit:generated source=codex-only/wiki-lint version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
+<!-- fkit:generated source=codex-only/wiki-lint version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
 
 # Wiki Lint
 

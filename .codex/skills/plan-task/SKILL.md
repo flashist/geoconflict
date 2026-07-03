@@ -2,7 +2,7 @@
 name: plan-task
 description: Use when the user wants Codex to read a task file and produce an implementation plan before writing code. Trigger for requests like `$plan-task ai-agents/tasks/backlog/my-task.md`, planning a task from a markdown file, reviewing a backlog task, breaking a task into implementation steps, or gathering context and proposing an execution plan that must be approved before any edits are made. The plan should account for realistic edge cases, including non-obvious but plausible failure modes, where they could materially affect implementation, correctness, or testing.
 ---
-<!-- ai-agents-kit:generated source=shared/plan-task version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
+<!-- fkit:generated source=shared/plan-task version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
 
 # Plan Task
 

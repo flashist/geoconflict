@@ -61,10 +61,10 @@ The job is to **cleave the generic machinery from the project content**, single-
 
 ### 4.1 The kit repo (source of truth)
 
-Working name **`ai-agents-kit`** (rename freely). A standalone git repo:
+Working name **`fkit`** (rename freely). A standalone git repo:
 
 ```
-ai-agents-kit/
+fkit/
 ├── README.md                       # what this is; how to bootstrap/sync
 ├── VERSION                         # semver; bootstrap stamps it into each project
 ├── manifest/
@@ -168,7 +168,7 @@ Each generic skill has **one** source body. `compile-skills.mjs`:
 ```
 ---
 name: process-review
-origin: kit@0.1.0          # GENERATED — edit the source in ai-agents-kit, then run sync. Do not hand-edit.
+origin: kit@0.1.0          # GENERATED — edit the source in fkit, then run sync. Do not hand-edit.
 ---
 ```
 
@@ -265,7 +265,7 @@ Neither Claude Code nor Codex hot-swaps the **top-level** model per task mid-ses
 Geoconflict is the *origin* of the kit, so the sequence is: extract the kit **from** geoconflict → re-apply it **to** geoconflict (dogfood) → use it for the new project.
 
 - **Phase 0 — Decisions.** ✅ this blueprint.
-- **Phase 1 — Stand up `ai-agents-kit`.** New repo. Build `compile-skills.mjs` first. Move generic skill bodies in as single-source `skill.md`. Author templates + the manifest schema. Sub-steps:
+- **Phase 1 — Stand up `fkit`.** New repo. Build `compile-skills.mjs` first. Move generic skill bodies in as single-source `skill.md`. Author templates + the manifest schema. Sub-steps:
   - **Reconcile drift:** adopt the Claude 131-line `process-review` as canonical; discard the stale Codex copy (it'll be regenerated).
   - **De-hardcode:** `Mark`→`{{owner}}`, `Geoconflict`→`{{project_name}}`, domain refs → moved to the project layer, across generic bodies.
   - **Finish the rename:** wiki skill sources use `wiki-vault` only (no `karpathy-vault`).
@@ -291,7 +291,7 @@ Geoconflict is the *origin* of the kit, so the sequence is: extract the kit **fr
 
 ## 8. Open decisions (small — not blockers)
 
-1. **Kit name** — `ai-agents-kit` (working) vs `agent-os` / `crew` / other.
+1. **Kit name** — `fkit` (working) vs `agent-os` / `crew` / other.
 2. **Kit ↔ project linkage** — plain copy + `sync` (what "template + bootstrap" implies) vs `git subtree`/submodule for tighter tracking. Recommend plain copy for v1.
 3. **Wiki globals** — remove `~/.codex/skills/wiki-*` for true project-level routing, or keep as fallback (see §7).
 4. **v1 scope of enforcement** — cheat-sheet only (recommended v1) vs include the active delegation stub now.

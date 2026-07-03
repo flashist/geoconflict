@@ -2,7 +2,7 @@
 name: wiki-query
 description: Answer a question about the geoconflict project using the wiki at ai-agents/wiki-vault/. Use when asked to look something up in the wiki, find information about a feature or system, or answer a project question.
 ---
-<!-- ai-agents-kit:generated source=shared/wiki-query version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
+<!-- fkit:generated source=shared/wiki-query version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
 
 # Wiki Query
 

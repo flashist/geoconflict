@@ -3,7 +3,7 @@ name: task-cancelled
 description: Mark a task cancelled — move its brief into ai-agents/tasks/cancelled/ and update the sprint plan (and parent epic, if any) so the task's status reads Cancelled, with a recorded reason. Takes two arguments — the task file path, then the cancellation-reason text (everything after the path). Use when a task has been dropped/abandoned and will not be done.
 user-invocable: true
 ---
-<!-- ai-agents-kit:generated source=claude-only/task-cancelled version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
+<!-- fkit:generated source=claude-only/task-cancelled version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
 
 # Task Cancelled
 

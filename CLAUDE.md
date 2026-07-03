@@ -39,7 +39,7 @@ ai-agents/wiki-vault/
 - After an investigation or bug fix: run `/wiki-ingest ai-agents/knowledge-base/<findings-file>`
 - When the wiki seems outdated: run `/wiki-lint`
 
-<!-- ai-agents-kit:routing:start -->
+<!-- fkit:routing:start -->
 ### Model routing (generated from ai-agents/ai-agents.yml — edit there, then run sync)
 
 | Task type | Owner |
@@ -53,7 +53,7 @@ ai-agents/wiki-vault/
 
 Agents (terminal-tab roles): producer → Claude, coder → Claude, reviewer → both.
 When a task type is owned by a model you are not, hand it to that model's tab (or delegate via the companion).
-<!-- ai-agents-kit:routing:end -->
+<!-- fkit:routing:end -->
 
 ## Project Overview
 

@@ -3,7 +3,7 @@ name: stateful-review
 description: Run both Claude's code review and Codex's adversarial review on the current diff, dedupe their findings against the task's review ledger (so settled tradeoffs aren't re-litigated), then route only novel findings through process-review and record the outcome. Use for a thorough, loop-resistant review.
 user-invocable: true
 ---
-<!-- ai-agents-kit:generated source=claude-only/stateful-review version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
+<!-- fkit:generated source=claude-only/stateful-review version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
 
 # Stateful Review
 

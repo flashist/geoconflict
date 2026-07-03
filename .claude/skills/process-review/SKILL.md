@@ -3,7 +3,7 @@ name: process-review
 description: Critically evaluate external reviewer feedback before acting — verifies every claim against the codebase, classifies findings, gates code changes on explicit user approval, and tracks decisions in a per-task review ledger to prevent review loops. Use when processing Codex reviews, GitHub review comments, or any external feedback before deciding what to act on.
 user-invocable: true
 ---
-<!-- ai-agents-kit:generated source=shared/process-review version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
+<!-- fkit:generated source=shared/process-review version=0.1.0 — do NOT hand-edit; run `sync` to regenerate. Edit the kit source instead. -->
 
 # Process Review
 
