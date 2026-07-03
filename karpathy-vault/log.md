@@ -852,3 +852,10 @@
 - Ingested: `ai-agents/sprints/sprint-backlog.md` → updated [[wiki/decisions/sprint-backlog]]
 - Ingested: `ai-agents/tasks/done/s4-citizenship-card-guest-cta-no-sdk.md` → created [[wiki/tasks/citizenship-card-guest-cta-no-sdk]], updated [[wiki/decisions/sprint-4]], [[wiki/tasks/citizenship-xp-progress-ui]], [[wiki/tasks/start-screen-redesign-implementation]], [[wiki/tasks/app-bootstrap-single-entry-point]], [[wiki/systems/flashist-init]], `karpathy-vault/index.md`
 - Skipped (not ingest-worthy): `ai-agents/tasks/backlog/degraded-mode-full-ux-treatment.md` — backlog files are not ingested directly; its Sprint 4 blocker status is summarized through [[wiki/decisions/sprint-4]] and [[wiki/decisions/sprint-backlog]]
+
+## 2026-07-03 — ingest
+- Sync window: `2715f4b411447f110c80b1bcc5ef92cb6392e2a1` → HEAD (`eff2c4929aa993a39d53fa071cace121d1b9adc4`)
+- Changed source files detected: 5
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-backlog]], [[wiki/systems/flashist-init]], [[wiki/systems/analytics]], [[wiki/tasks/citizenship-card-guest-cta-no-sdk]], [[wiki/tasks/citizenship-xp-progress-ui]], [[wiki/tasks/app-bootstrap-single-entry-point]], `karpathy-vault/index.md`
+- Ingested: `ai-agents/tasks/done/degraded-mode-full-ux-treatment.md` → created [[wiki/tasks/degraded-mode-full-ux-treatment]], updated [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-backlog]], [[wiki/systems/flashist-init]], [[wiki/systems/analytics]], [[wiki/tasks/citizenship-card-guest-cta-no-sdk]], [[wiki/tasks/citizenship-xp-progress-ui]], [[wiki/tasks/app-bootstrap-single-entry-point]], `karpathy-vault/index.md`
+- Skipped (not ingest-worthy): `ai-agents/reviews/degraded-mode-full-ux-treatment.md`, `ai-agents/reviews/degraded-mode-full-ux-treatment-coder-handoff.md`, `ai-agents/reviews/s4-citizenship-card-guest-cta-no-sdk.md` — review artifacts are outside the wiki-sync eligible source set

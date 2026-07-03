@@ -92,6 +92,7 @@
 - [[tasks/start-screen-redesign-implementation]] — Sprint 4 implementation of the two-tab start screen, citizenship card shell, tab persistence, localization rename, and tab analytics
 - [[tasks/citizenship-xp-progress-ui]] — Sprint 4 live citizenship card wiring: profile API read, XP progress, citizen state, and degraded zero-state handling
 - [[tasks/citizenship-card-guest-cta-no-sdk]] — Sprint 4 citizenship-card fix hiding the Yandex login CTA outside a Yandex SDK context
+- [[tasks/degraded-mode-full-ux-treatment]] — Sprint 4 citizenship-card degraded Yandex SDK treatment: connection-problem copy instead of a dead login CTA
 - [[tasks/app-bootstrap-single-entry-point]] — Sprint 4 explicit client bootstrap refactor with bounded Yandex platform init, degraded mode, language-before-render, and app-chunk recovery
 - [[tasks/legal-vat-investigation]] — External VAT/legal check that cleared the pre-launch payments gate
 - [[tasks/global-announcements]] — Re-enabled repo-authored announcements bell and popup with unread badge

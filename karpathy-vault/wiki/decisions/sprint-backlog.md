@@ -13,7 +13,7 @@ Keep no-sprint work separate from active sprint plans so the active roadmap does
 
 Current no-sprint items include rewarded ads minimal version, leaderboard core, citizen-only private lobbies and spectating, flag and territory-pattern re-enablement, Monitoring & Alert Bot Phase 1/Phase 2, mobile memory/WebGL rendering failures, security follow-ups sec10/sec11/sec12/sec13, 152-ФЗ notification/consent work, Worker Init Timeout map-transfer work, the no-nukes bot SAM launcher fix, two staged bot anti-SAM nuke tactics, forcing no-nukes rules when infinite gold appears in public rotation, removing the dead FuseTag polling loop, and fixing `GutterAds` listener lifetime. Parked items include deep mobile rendering optimization and Microsoft Clarity session recordings.
 
-The degraded-mode citizenship-card UX task is no longer no-sprint backlog as of 2026-07-02. It moved into Sprint 4 because earned and paid citizenship should not launch while Yandex SDK timeout/failure sessions still see a dead auth CTA in the citizenship funnel. See [[decisions/sprint-4]] and [[tasks/citizenship-card-guest-cta-no-sdk]].
+The degraded-mode citizenship-card UX task is no longer no-sprint backlog as of 2026-07-02. It moved into Sprint 4 because earned and paid citizenship should not launch while Yandex SDK timeout/failure sessions still see a dead auth CTA in the citizenship funnel, and it later shipped as [[tasks/degraded-mode-full-ux-treatment]]. See [[decisions/sprint-4]] and [[tasks/citizenship-card-guest-cta-no-sdk]].
 
 The monitoring alert bot phases were added on 2026-06-04 after the telemetry VPS freeze/outage findings. Phase 1 is the near-term incident-prevention slice: external dead-man's-switch heartbeat, telemetry-VPS on-box disk/RAM/swap/OOM/container checks, shared Telegram helper, Russia-proxy routing, and digest/dedup/recovery alert UX. Phase 2 follows only after Phase 1 is deployed and proven, adding game-server VPS coverage plus slower-degradation hygiene such as ClickHouse/file-log growth attribution, TLS/certbot checks, sustained CPU load, backup health, predictive disk growth, and game-server availability heuristics.
 
@@ -46,7 +46,7 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - The FuseTag and GutterAds tasks are independent cleanup bugs from [[tasks/app-bootstrap-single-entry-point]]; they should not be bundled into the bootstrap refactor retroactively.
 - The 152-ФЗ backlog item is a conscious accepted-risk deferral, not a resolved legal gate. Do not revive the cancelled Yandex-ID hash implementation as a compliance fix unless new legal findings establish a real benefit.
 - sec12/sec13 are hardening follow-ups for live deployment paths; sec12 is more release-adjacent because it concerns registry credentials on the live profile box.
-- Degraded-mode citizenship-card UX has moved back into Sprint 4 and should not be treated as unassigned no-sprint work.
+- Degraded-mode citizenship-card UX moved back into Sprint 4 and shipped; it should not be treated as unassigned no-sprint work.
 
 ## Related
 
@@ -63,3 +63,4 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[decisions/personal-data-152fz-compliance]] — deferred 152-ФЗ notification/consent track
 - [[tasks/personal-data-compliance-investigation]] — Sprint 4 investigation that led to the deferred compliance backlog item
 - [[tasks/citizenship-card-guest-cta-no-sdk]] — completed Sprint 4 follow-up that exposed the remaining degraded-mode citizenship-card gap
+- [[tasks/degraded-mode-full-ux-treatment]] — completed Sprint 4 follow-up that resolved the degraded-mode citizenship-card gap

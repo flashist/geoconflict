@@ -164,6 +164,7 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/email-subscribe-modal]] — `Subscribe:Opened` and `Subscribe:Submitted` for the email opt-in flow
 - [[tasks/start-screen-redesign-implementation]] — tab taps, citizenship surface impression, and login CTA analytics
 - [[tasks/app-bootstrap-single-entry-point]] — `Session:PlatformInitTimeout` and refined Yandex auth-status semantics
+- [[tasks/degraded-mode-full-ux-treatment]] — uses existing `Session:PlatformInitTimeout` volume to size degraded Yandex SDK impact
 - [[tasks/telegram-link]] — placement-specific Telegram CTA taps on start and game-end screens
 - [[tasks/vk-link]] — placement-specific VK CTA taps on start and game-end screens
 - [[tasks/solo-win-condition-fix]] — `Match:Loss:OpponentWon` reason event

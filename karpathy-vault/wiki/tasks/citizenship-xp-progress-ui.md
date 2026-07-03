@@ -19,7 +19,7 @@ Turn the start-screen citizenship card from a shell into a live XP/progress surf
 
 ## Outcome
 
-The XP/progress card now reads server profile state for authorized players. Guests in a real Yandex context still see the login CTA, while the later no-SDK follow-up hides that CTA for standalone/local sessions where auth cannot work. Degraded profile reads show a logged-in zero-state rather than blocking or falling back to guest UI. Earned-citizenship notification and paid-purchase UI remain separate Sprint 4 tasks.
+The XP/progress card now reads server profile state for authorized players. Guests in a real Yandex context still see the login CTA, while the later no-SDK follow-up hides that CTA for standalone/local sessions where auth cannot work. The later degraded-mode UX task also hides the CTA for Yandex-platform sessions where SDK init failed or timed out. Degraded profile reads show a logged-in zero-state rather than blocking or falling back to guest UI. Earned-citizenship notification and paid-purchase UI remain separate Sprint 4 tasks.
 
 ## Related
 
@@ -27,3 +27,4 @@ The XP/progress card now reads server profile state for authorized players. Gues
 - [[systems/player-profile-store]]
 - [[tasks/start-screen-redesign-implementation]]
 - [[tasks/citizenship-card-guest-cta-no-sdk]]
+- [[tasks/degraded-mode-full-ux-treatment]]
