@@ -38,7 +38,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ⬜ Backlog | Yandex Payments — Catalog Fetch & Purchase Infrastructure | `s4-yandex-payments-impl.md` |
 | ✅ Done | Citizenship Core — XP Counter & Progress UI | `s4-citizenship-xp-progress-ui.md` |
 | ✅ Done | Citizenship Card: Login CTA Is a Dead Button Outside a Yandex Context | `s4-citizenship-card-guest-cta-no-sdk.md` |
-| ⬜ Backlog | Degraded-Mode UX: Give Yandex SDK Timeout/Failure Its Own Player-Facing Treatment *(moved in from Sprint backlog 2026-07-02 — Mark: must ship before Citizenship Earned/Paid go live)* | `degraded-mode-full-ux-treatment.md` |
+| ✅ Done | Degraded-Mode UX: Give Yandex SDK Timeout/Failure Its Own Player-Facing Treatment | `degraded-mode-full-ux-treatment.md` |
 | ⬜ Backlog | Citizenship Core — Earned Citizenship *(blocked: player profile store; also gated on degraded-mode UX task above)* | `s4-citizenship-earned.md` |
 | ⬜ Backlog | Citizenship Core — Paid Citizenship *(blocked: payments + catalog approval; also gated on degraded-mode UX task above)* | `s4-citizenship-paid.md` |
 | ⬜ Backlog | 8d-B. Personal Inbox *(blocked: player profile store)* | `s4-8d-b-task-personal-inbox.md` |
