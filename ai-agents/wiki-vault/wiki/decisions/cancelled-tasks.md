@@ -195,3 +195,4 @@ The earlier HF-7 custom-dimension implementation has also been superseded by Gam
 - [[tasks/profile-schema-contract]] — completed T1 schema contract preserved after T2 cancellation
 - [[decisions/personal-data-152fz-compliance]] — current status of the invalidated hash decision and deferred compliance track
 - [[systems/player-profile-store]] — profile backend affected by the cancelled hash task
+- [[decisions/adr-105-compact-maps-out-of-rotation]] — the decision that records why the compact-map runtime workaround was cancelled

@@ -49,3 +49,7 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - [[decisions/sprint-backlog]]
 - [[decisions/cancelled-tasks]]
 - [[tasks/personal-data-compliance-investigation]]
+- [[systems/project-brief]] — citizenship as the product's supporter tier
+- [[systems/architecture-overview]] — the profile backend tier in the wider survey
+- [[decisions/adr-101-fail-soft-xp-crediting]] — why crediting drops XP rather than blocking a match
+- [[decisions/adr-103-identity-trust-seam]] — the single unverified-identity funnel this store is keyed on

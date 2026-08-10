@@ -8,7 +8,11 @@
 
 Expand game content with historical and thematic maps. Convert engaged free-tier players into paid users through map packs. Build on the payment infrastructure established in Sprint 4.
 
-**Dependencies:** Sprint 4 (payment infrastructure, citizenship) and Sprint 5 (cosmetics store) must ship first. Paid map packs require the Yandex catalog and purchase flow to be in place.
+**Dependencies:** Sprint 4 (payment infrastructure, citizenship) must ship first. Paid map packs require the Yandex catalog and purchase flow to be in place.
+
+⚠️ **Corrected 2026-08-09 — this previously read "and Sprint 5 (cosmetics store)". There is no cosmetics store.** The purchasable-cosmetics foundation is **Task 9 (re-enable flags)** and **Task 9a (territory patterns)**, which `plan-index.md:87-88` assigns to Sprint 4 but which appear in **no** sprint plan document — both currently sit unsprinted on [`sprint-backlog.md`](sprint-backlog.md), blocked on payment infrastructure. Sprint 5's own cosmetics item (Task 15, Custom Uploaded Flags & Patterns) *also* depends on 9 and 9a (`plan-sprint-5.md:150`). So the real prerequisite for paid map packs is **Tasks 9/9a, which are not scheduled anywhere.**
+
+⚠️ **A further prerequisite surfaced 2026-08-09:** cosmetic entitlements (`flares`) currently come from the **upstream OpenFront API**, not Geoconflict's own infrastructure — see task `0009` and `adr-102`. Selling anything gated by `PrivilegeChecker` likely requires that to move first.
 
 ---
 
@@ -91,4 +95,4 @@ Thematic map packs available for purchase. Initial pack: WW2 (most requested). E
 - Brief writing deferred until Sprint 5 is underway — too early to scope in detail now
 - Map creation is a content production task, not just engineering — timeline will depend on map design effort, not just code
 - The "1–2 free maps per pack" split should be decided before any paid pack ships — sets player expectations early
-- Sprint 5 cosmetics store UI may be reusable for the map pack store — worth flagging to the technical specialist when Sprint 6 briefs are written
+- ~~Sprint 5 cosmetics store UI may be reusable for the map pack store~~ — **corrected 2026-08-09: there is no cosmetics store.** Whatever purchase UI ships with Tasks 9/9a (flags, territory patterns) is the reusable surface; flag it to the coder when Sprint 6 briefs are written

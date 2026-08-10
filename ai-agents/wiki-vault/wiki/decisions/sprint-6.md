@@ -5,7 +5,11 @@
 
 ## Context
 
-Goal: expand the game with historical and thematic map content. The commercial thesis is content-led conversion: use free historical multiplayer maps to validate demand, then sell paid campaign map packs once the Sprint 4 payment infrastructure and Sprint 5 cosmetics/store work are in place.
+Goal: expand the game with historical and thematic map content. The commercial thesis is content-led conversion: use free historical multiplayer maps to validate demand, then sell paid campaign map packs once the Sprint 4 payment infrastructure is in place.
+
+> ⚠️ **Corrected 2026-08-09 — there is no "Sprint 5 cosmetics store".** The plan and this page both previously named one as a Sprint 6 dependency. It does not exist. The purchasable-cosmetics foundation is **Task 9 / `0010` (re-enable flags)** and **Task 9a / `0011` (territory patterns)**, which `plan-index.md:87-88` assigns to Sprint 4 but which appear in **no** sprint plan document — both sit unsprinted and blocked. Sprint 5's own cosmetics item (Task 15, custom uploaded flags/patterns) *also* depends on 9 and 9a. So the real prerequisite for paid map packs is **Tasks 9/9a, which are not scheduled anywhere.** See [[decisions/sprint-backlog]].
+>
+> ⚠️ **A further prerequisite surfaced 2026-08-09:** cosmetic entitlements (`flares`) currently come from the **upstream OpenFront API**, not Geoconflict's own infrastructure. Selling anything gated by the privilege checker likely requires that to move first — task `0009`. See [[decisions/adr-102-privilege-refresher-fails-open]].
 
 Source: `ai-agents/sprints/plan-sprint-6.md`
 
@@ -20,7 +24,7 @@ Source: `ai-agents/sprints/plan-sprint-6.md`
 
 ## Key Decisions
 
-**Dependencies are explicit:** Sprint 4 and Sprint 5 must ship first. Paid map packs depend on Yandex catalog/payment flow and likely reuse the cosmetics-store surface.
+**Dependencies are explicit:** Sprint 4 (payment infrastructure, citizenship) must ship first. Paid map packs depend on the Yandex catalog and purchase flow being in place — **not** on a Sprint 5 cosmetics store, which does not exist (see the correction above). Whatever purchase UI ships with Tasks 9/9a is the reusable surface.
 
 **Server restart UX is now part of Sprint 6:** the task moved from Sprint 3 because the product is functional without it, releases now happen less aggressively, and deployment risk outweighed the current player benefit.
 
@@ -37,11 +41,13 @@ Source: `ai-agents/sprints/plan-sprint-6.md`
 - Sprint 6 is gated by monetization infrastructure, not just map-design capacity
 - Content production becomes a first-class delivery constraint alongside engineering work
 - The "1–2 free maps per pack" split needs to be locked before any paid map pack launches
-- A store/UI reuse path from Sprint 5 should be considered when Sprint 6 implementation briefs are written
+- ~~A store/UI reuse path from Sprint 5 should be considered when Sprint 6 implementation briefs are written~~ — **corrected 2026-08-09: there is no cosmetics store.** Whatever purchase UI ships with Tasks 9/9a (`0010` flags, `0011` territory patterns) is the reusable surface; flag it to the coder when Sprint 6 briefs are written
 
 ## Related
 
 - [[decisions/product-strategy]] — overall sequencing rationale
 - [[decisions/sprint-3]] — original home of the mobile warning task before it was moved
 - [[decisions/sprint-4]] — payments and citizenship infrastructure Sprint 6 depends on
-- [[decisions/sprint-5]] — likely source of reusable store UI and cosmetics infrastructure
+- [[decisions/sprint-5]] — Task 15 (custom uploaded flags/patterns), itself dependent on Tasks 9/9a; **not** a source of store UI
+- [[decisions/sprint-backlog]] — tasks `0009`, `0010`, `0011`: the real, unscheduled prerequisites for the paid map-pack purchase surface
+- [[decisions/adr-102-privilege-refresher-fails-open]] — the upstream entitlement-origin dependency behind any purchasable cosmetic

@@ -33,3 +33,4 @@ Follow-up debugging on 2026-05-11 found a separate compact-map regression: some 
 - [[tasks/sprint4b-weird-setting-modifier]]
 - [[tasks/compact-map-click-interaction]]
 - [[tasks/disable-compact-public-maps]]
+- [[decisions/adr-105-compact-maps-out-of-rotation]] — the later decision that removed this modifier from public rotation

@@ -30,3 +30,4 @@ Re-enabling compact public maps is gated on regenerating the compact binaries so
 - [[decisions/cancelled-tasks]] — records why the runtime boat-attack fallback was rejected
 - [[tasks/sprint4b-compact-map-rotation]] — original Sprint 4b compact public modifier, now disabled in public rotation
 - [[tasks/sprint4b-weird-setting-modifier]] — remaining public modifier that now receives the full modified-match budget
+- [[decisions/adr-105-compact-maps-out-of-rotation]] — the decision record behind this mitigation

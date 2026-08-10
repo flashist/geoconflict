@@ -11,12 +11,15 @@ Source: `ai-agents/knowledge-base/geoconflict-overview.md`, `CLAUDE.md`
 
 ## Architecture
 
-Three-tier structure:
-- `src/client/` — Browser frontend (Pixi.js rendering, input handling)
-- `src/core/` — Shared game logic (runs on both client and server; deterministic)
-- `src/server/` — Node.js backend (game lifecycle, networking)
+Four-tier structure (the 2026-08-08 architecture survey counts a fourth):
+- `src/client/` — Browser frontend (**Canvas 2D** rendering, input handling)
+- `src/core/` — Shared game logic (runs on both client and in the client's web worker; deterministic)
+- `src/server/` — Node.js backend (game lifecycle, networking) — a turn **relay**, never a simulator
+- `src/profile-server/` — standalone profile/XP backend with its own image, VPS, and Postgres
 
-**Technology stack:** TypeScript, Pixi.js (rendering), Lit (web components), Node.js + WebSocket + Express, Zod (message validation), webpack + SWC.
+**Technology stack:** TypeScript (ESM), **Canvas 2D** (rendering), Lit (web components), Node.js + WebSocket + Express, Zod (message validation), webpack + SWC.
+
+> **Correction (2026-08-08):** earlier revisions of this page and of `CLAUDE.md` named **Pixi.js** as the renderer. That is wrong. Rendering is `CanvasRenderingContext2D`; Pixi appears in exactly **two** of 43 layer files, where one layer keeps its own offscreen WebGL canvas for structure icons and composites the result into the main 2D canvas. The ordered layer array has **32** entries plus a conditional tutorial layer — not "~40 layers". See [[systems/architecture-overview]].
 
 ## Game Types & Modes
 
@@ -70,7 +73,9 @@ In `GameMode.Team` games, players are grouped by `ColoredTeams` identifiers (def
 - Max troops: `2 × (tiles^0.6 × 1000 + 50000) + Σ city.level() × 250,000`
 - Structure cost scaling (City, Port, Factory): 125k → 250k → 500k → 1M (capped)
 
-## Units & Structures (18 unit types)
+## Units & Structures (17 unit types)
+
+> **Correction (2026-08-08):** this page and `geoconflict-overview.md` both said "18 unit types". The `UnitType` enum has **17** members. See [[systems/architecture-overview]].
 
 **Offensive:** Transport Ship, Warship, Shell, Atom Bomb (750k), Hydrogen Bomb (5M), MIRV (35M), MIRV Warhead, SAM Missile
 
@@ -122,3 +127,5 @@ Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adapta
 - [[systems/networking]] — worker-routed WebSocket and HTTP flow
 - [[systems/execution-pipeline]] — Intent → Execution → GameUpdate flow
 - [[systems/rendering]] — client layer stack and camera/render orchestration
+- [[systems/project-brief]] — the product brief behind this game reference
+- [[decisions/adr-107-turn-interval-1-5x]] — why the turn interval is ~67 ms

@@ -18,7 +18,7 @@ Source: `ai-agents/sprints/plan-index.md`
 - **Sprint 1** — Stop the Bleeding (ghost rate, crashes, analytics baseline)
 - **Sprint 2** — Fix Onboarding (tutorial, auto-spawn, UX clarity)
 - **Sprint 3** — Deepen Retention (infra quality, UX fixes, observability)
-- **Sprint 4** — In-App Monetization & Citizenship (citizenship, Yandex payments, player profile store)
+- **Sprint 4** — In-App Monetization & Citizenship (citizenship, Yandex payments, player profile store) — **the current sprint as of 2026-08-08**
 - **Sprint 4b** — Interim Game Variety Update (compact maps, Duos/Trios/Quads, weird-setting modifiers while Sprint 4 core work is paused)
 - **Sprint 4c** — Production Stabilization (top Uptrace error families before Mark's May 15 travel pause)
 - **Sprint 5** — Full F2P Loop (coin economy, clans, cosmetics, social features)
@@ -34,7 +34,9 @@ Source: `ai-agents/sprints/plan-index.md`
 - Uniform changes by nature (rendering fixes, performance)
 - Economy/pricing (player fairness)
 
-## Key Analytics Data (as of Sprint 3, March 2026)
+## Key Analytics Data (measured Sprint 3, March 2026 — five months stale as of 2026-08-08)
+
+> ⚠️ **These figures are a March 2026 snapshot and have not been re-measured since.** They are kept because the *shape* they describe — desktop-dominant, mobile small and low-retention, iOS near-zero return — still drives the desktop-first scope rule in [[systems/project-brief]]. Do not quote the absolute numbers as current DAU or session length without a fresh measurement.
 
 - **Desktop:** ~3,500 DAU, returning players 37–40 min/session, new players 20–25 min/session
 - **Mobile:** ~700 DAU, returning players 20 min/session, new players 11 min/session
@@ -48,17 +50,17 @@ Mobile deep optimization remains parked — desktop is the core audience. Revisi
 - **Task ordering is intentional** — do not skip retention work to ship monetization early
 - **Feature flags/experiments preferred** for all additive features
 - **Mobile warning screen moved** from Sprint 3 to Sprint 6, where it supports a content-led acquisition push on mobile
-- **Sprint 4b and Sprint 4c are intermissions**, not monetization pivots: Sprint 4b preserves player-facing momentum, while Sprint 4c cleans production errors before citizenship and payments work waits for Mark's post-travel availability
+- **Sprint 4b and Sprint 4c were intermissions**, not monetization pivots: Sprint 4b preserved player-facing momentum, while Sprint 4c cleaned production errors, both while citizenship and payments work waited out the owner's May–June 2026 travel window. That window has passed and Sprint 4 has resumed.
 - **Licensing shapes monetization defensibility** — GeoConflict can monetize, but AGPL and CC BY-SA obligations mean the durable moat is live operations, Yandex integration, localization, community, and iteration speed rather than exclusive control of forked code or modified OpenFront resource assets.
 
 ## Related
 
 - [[decisions/sprint-1]] — stop the bleeding
 - [[decisions/sprint-2]] — fix onboarding
-- [[decisions/sprint-3]] — deepen retention (current)
-- [[decisions/sprint-4]] — first monetization layer
-- [[decisions/sprint-4b]] — interim public-match variety while Sprint 4 core work is paused
-- [[decisions/sprint-4c]] — production stabilization before the travel pause
+- [[decisions/sprint-3]] — deepen retention (done)
+- [[decisions/sprint-4]] — first monetization layer (**current**)
+- [[decisions/sprint-4b]] — interim public-match variety during the Sprint 4 pause
+- [[decisions/sprint-4c]] — production stabilization during the same pause
 - [[decisions/sprint-backlog]] — no-sprint backlog for defined work that needs a sprint home
 - [[decisions/sprint-5]] — full F2P loop
 - [[decisions/sprint-6]] — content expansion after payments/cosmetics infrastructure exists

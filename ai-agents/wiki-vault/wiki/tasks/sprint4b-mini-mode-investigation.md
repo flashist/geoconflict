@@ -65,3 +65,4 @@ Later compact-map click debugging found that this investigation's water-coordina
 - [[tasks/sprint4b-duos-trios-quads]]
 - [[tasks/teams-mode-max-teams]]
 - [[tasks/compact-map-click-interaction]]
+- [[decisions/adr-105-compact-maps-out-of-rotation]] — the decision that later pulled compact maps from public rotation

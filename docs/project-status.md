@@ -1,10 +1,16 @@
 # GeoConflict Project Status
 
-_Last updated: 2025-11-03_
+_Last updated: 2026-08-08 (partial correction; content below dates from 2025-11-03)_
+
+> ⚠️ **This document is largely stale.** It predates the profile/telemetry fleets, the current deploy
+> pipeline, and the citizenship work. Two outright-wrong claims were corrected on 2026-08-08 (client
+> framework, TLS status); the rest has **not** been re-verified. For current ground truth use
+> `ai-agents/knowledge-base/architecture.md` (technical) and `ai-agents/knowledge-base/PROJECT.md`
+> (product). Do not cite this file as evidence.
 
 ## Project Overview
 - **Game**: GeoConflict – fork of OpenFront (real-time strategy web game).
-- **Tech stack**: Node.js, TypeScript, Webpack, React client, Express/WS server, Nginx reverse proxy, Docker.
+- **Tech stack**: Node.js, TypeScript, Webpack, **Lit web components + Canvas 2D** client (there is no React in this codebase), Express/WS server, Nginx reverse proxy, Docker.
 - **Licensing**:
   - Source code: GNU AGPL v3 with additional attribution clause (display “Based on OpenFront”, etc. on the main/title screen).
   - Assets: Creative Commons BY-SA 4.0 (credit original authors, share derivatives under same license).
@@ -17,7 +23,9 @@ _Last updated: 2025-11-03_
 - Deploy scripts (`deploy.sh`, `update.sh`) upload env files to the VPS and restart containers.
 - Environment configuration stored in local gitignored env files. Sensitive overlays now live in `.env.secret` / `.env.<env>.secret`.
 - `setup.sh` installs Docker, telemetry sidecars, provisions a swap file, and configures host-level Nginx to proxy `:80` to the container on `127.0.0.1:3000`.
-- HTTP served directly from the container (port 80). HTTPS/TLS pending.
+- **TLS is provisioned and live on all three fleets** (game, profile, telemetry) as of 2026-08-08. The
+  earlier "HTTPS/TLS pending" note here was stale. Host nginx terminates TLS and proxies to the
+  container.
 
 ## Environments
 | Environment | VPS Host/IP      | Public Endpoint            | Notes |

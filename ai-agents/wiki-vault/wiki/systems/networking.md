@@ -45,3 +45,5 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[systems/configuration]] — worker path, port, public host, and API base URL selection
 - [[tasks/yandex-identity-plumbing]] — Yandex unique ID carried through the join payload into the server-side client
 - [[tasks/profile-match-end-crediting]] — winner-message participation payload and late identity refresh used for XP crediting
+- [[systems/architecture-overview]] — worker sharding, the HTTP surface, and the three auth layers
+- [[decisions/adr-102-privilege-refresher-fails-open]] — the fail-open entitlement checker each worker holds

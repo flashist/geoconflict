@@ -60,3 +60,5 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - [[decisions/sprint-4]] — current planning example captured by the source brief
 - [[decisions/sprint-4b]] — investigation-first interim sprint planning example
 - [[decisions/profile-deploy-hardening-review-loop]] — profile-deploy postmortem and bounded-review rules
+- [[systems/agent-conventions]] — the status, owner, and reporting vocabularies this role works to
+- [[decisions/fkit-transfer-blueprint]] — the toolkit that generalizes this role skill into a template

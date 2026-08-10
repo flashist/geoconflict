@@ -56,3 +56,5 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - [[tasks/yandex-payments-investigation]] — future payments/catalog caching should build on the explicit facade gate
 - [[tasks/yandex-identity-plumbing]] — tolerant auth and unique-ID helpers used by the match join path
 - [[tasks/citizenship-card-guest-cta-no-sdk]] — citizenship-card use of the Yandex-context signal to avoid a dead login CTA
+- [[systems/project-brief]] — degraded mode as a first-class platform state
+- [[systems/architecture-overview]] — the three-phase bootstrap in the wider survey

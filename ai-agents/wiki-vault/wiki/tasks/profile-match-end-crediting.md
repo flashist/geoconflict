@@ -36,3 +36,5 @@ Identity trust remains a known boundary: current earned-XP crediting still uses 
 - [[tasks/profile-backend-db-api]]
 - [[tasks/postgres-backup-routine]]
 - [[tasks/yandex-payments-investigation]]
+- [[decisions/adr-101-fail-soft-xp-crediting]] — the fail-soft delivery policy this task implemented
+- [[decisions/adr-103-identity-trust-seam]] — the identity seam this task introduced

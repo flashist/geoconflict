@@ -7,6 +7,8 @@
 
 Rendering is a layered canvas pipeline on the client main thread. `GameRenderer` composes world-space and screen-space layers, coordinates DOM-backed Lit components with canvas-drawn layers, and uses `TransformHandler` as the shared camera/zoom abstraction.
 
+**The drawing surface is `CanvasRenderingContext2D`, not Pixi.js.** The 2026-08-08 architecture survey pinned this down: Pixi appears in exactly **two** of the 43 files under `layers/`, where `StructureIconsLayer` keeps its own offscreen canvas and a Pixi WebGL renderer for structure icons and labels, then composites the result into the main 2D canvas with a single `drawImage` — which is why that layer declares `shouldTransform() === false`. `CLAUDE.md` and older wiki revisions calling the renderer "Pixi.js with ~40 layers" are wrong on both counts: the ordered layer array has **32** entries plus a conditional 33rd tutorial layer. See [[systems/architecture-overview]].
+
 ## Architecture
 
 ### Renderer orchestration

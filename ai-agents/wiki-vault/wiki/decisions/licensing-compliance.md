@@ -48,3 +48,4 @@ If the audit finds no violations, this gate is clear. If violations are found, a
 - [[decisions/sprint-4]] — citizenship and payments plan affected by compliance gates
 - [[tasks/legal-vat-investigation]] — separate VAT/tax gate that does not cover IP/licensing review
 - [[tasks/yandex-payments-investigation]] — paid citizenship flow that should not scale without licensing posture review
+- [[systems/project-brief]] — the asset-audit gate before paid IAP ships

@@ -24,3 +24,4 @@ This finding is scoped to VAT/tax and company setup. It does not cover OpenFront
 
 - [[decisions/sprint-4]] — Sprint 4 roadmap and remaining non-engineering dependencies
 - [[decisions/licensing-compliance]] — separate AGPL/source access and asset-license compliance posture
+- [[systems/project-brief]] — VAT as the one cleared legal track of three

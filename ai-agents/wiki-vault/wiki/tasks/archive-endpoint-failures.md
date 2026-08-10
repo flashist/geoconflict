@@ -39,3 +39,4 @@ Production verification is still the delivery gate: after deployment, Uptrace sh
 - [[decisions/sprint-4c]]
 - [[systems/telemetry]]
 - [[systems/match-logging]]
+- [[decisions/adr-104-archiving-disabled]] — the decision record behind this cleanup

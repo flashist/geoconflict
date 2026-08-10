@@ -7,6 +7,55 @@
 
 `ai-agents/sprints/sprint-backlog.md` collects defined work that is worth doing but has no assigned sprint home. These items should not be implemented until they receive a sprint assignment and, where needed, a full task brief.
 
+> ⚠️ **There are now TWO unsprinted boards, and both must be read to see all unsprinted work** (as of 2026-08-08).
+>
+> A second board, `ai-agents/sprints/backlog.md`, was added as the default home for any brief filed without a named sprint. Its filename is deliberately **not** `sprint-*` — the status tool finds the active sprint by globbing `sprint-*.md`, so a board of explicitly unscheduled work must stay outside that glob or it can be reported as the active sprint. The older `sprint-backlog.md` (~23 entries, described below) **is** inside that glob, which is the defect being retired.
+>
+> Its Priority column reads `—` on every row: the board is **unranked by design**, and needing a rank is the signal to pull the task into a sprint. See [[systems/agent-conventions]].
+>
+> **Eleven tasks are filed on the new board** as of 2026-08-09. `0001`–`0004` were written during project initiation (2026-08-08) and are toolkit/process migrations rather than game work; `0005`–`0011` came out of the open-questions interview and its follow-ups on **2026-08-09**, each authorised by an owner ruling recorded in that session.
+>
+> | ID | Task | Status on the board |
+> |---|---|---|
+> | `0001` | Consolidate unsprinted work onto `backlog.md` and **retire `sprint-backlog.md`** | 🔲 Backlog |
+> | `0002` | Migrate `tasks/backlog/` to the task-folder convention | 🔲 Backlog |
+> | `0003` | Migrate `tasks/done/` and `tasks/cancelled/` to the task-folder convention | 🔲 Backlog |
+> | `0004` | Reconcile legacy status markers in the sprint plans to the canonical vocabulary | 🔲 Backlog |
+> | `0005` | `ADMIN_TOKEN`: fail closed on a missing secret, and compare in constant time | 🔲 Backlog |
+> | `0006` | Investigation: `SLOW_TURN_THRESHOLD_MS` vs the 66.7 ms turn interval | 🔲 Backlog |
+> | `0007` | Investigation: blast radius of the `src/core` → `src/client` imports | 🔲 Backlog |
+> | `0008` | Migrate `PrivilegeRefresher` to fail-closed | 🚧 **Blocked by design** — needs `0009` findings **and** the first paid entitlement |
+> | `0009` | Self-host the upstream OpenFront API dependency (findings phase) | 🔲 Backlog — **pull ahead of any cosmetics monetization work** |
+> | `0010` | Re-enable flags as a paid non-country cosmetic (Task 9) | 🚧 Blocked — `0009` findings + payment infra + owner decision on the design set |
+> | `0011` | Re-enable territory patterns (Task 9a) | 🚧 Blocked — `0009` findings + payment infra + owner rulings (pattern set, ad coupling) |
+>
+> Execution order for the migration set is **0002 → 0003 → 0001 → 0004** — dependency order, *not* ID order. `0005`–`0009` are independent of it and of each other. IDs were allocated when each brief was written; ordering lives in each brief's `**Depends on:**` line. The board is **unranked by design**, so there is no rank to raise — the owner's ruling is that `0009` is **pulled into a sprint ahead of any cosmetics monetization work**, and that ordering takes effect at pull time.
+>
+> **None of these eleven briefs have wiki task pages**: the wiki does not page a task until it is done or cancelled. They are summarized here instead. Task `0001` is what eventually collapses these two boards back into one.
+>
+> **What the new briefs are about, in one line each:**
+>
+> - **`0005`** — `ADMIN_TOKEN` has two defects, one of which is the real one: a missing or empty value silently falls back to a literal placeholder committed to a **public** repo, so a secret whose absence degrades to a known public value reports itself as protected. The `!==` non-constant-time comparison at all five check sites is the minor second. The profile server's `InternalAuth` already does both correctly and is the pattern to copy.
+> - **`0006`** — the slow-turn threshold (100 ms) is *larger than the turn interval* (66.7 ms), leaving a 33 ms band where the server is falling behind and telemetry is silent. Investigation, not a fix: the naive answer of setting it to 66.7 may trade a blind band for alert noise, and the right value depends on the current distribution. See [[decisions/adr-107-turn-interval-1-5x]].
+> - **`0007`** — `src/core/GameRunner.ts:1` and `src/core/game/GameImpl.ts:1` import from `src/client/`, undermining the deterministic shared tier that makes hash-based desync detection meaningful. Both inherited from upstream. Owner's ruling was "investigate the blast radius first" — a type-only symbol is a two-line fix and a lint rule; real runtime code needs proper scoping.
+> - **`0008`** — the pre-committed fail-closed migration from the [[decisions/adr-102-privilege-refresher-fails-open]] ruling, filed now so the commitment is a scheduled task rather than a promise inside a document. **Deliberately blocked** on two conditions, not one.
+> - **`0009`** — identity, archive, and matchmaking still point at an external OpenFront-style service. Owner's ruling: **to be self-hosted eventually** — not a dead leftover, not a permanent dependency. It **grew teeth on 2026-08-09**: cosmetic entitlements (`flares`) come from that upstream API, so it blocks the cosmetics monetization path, not just the archive task. ⚠️ If the call is live it is also a 152-ФЗ question, since the compliance position rests on all infrastructure being RU-resident — **not an accusation that it is live; that is the first thing the task must determine.**
+> - **`0010`** — flags as a paid **non-country** cosmetic. The `/flags/*.svg` 404 is **by design** (see [[decisions/adr-106-flags-suppressed]]); do not "fix" it by restoring legacy country flags. Yandex Games bans real-country flags and names, so whatever ships must be non-country designs only.
+> - **`0011`** — territory patterns, the highest-visibility cosmetic in the game and the strongest upsell surface. The plumbing already exists (`CosmeticsSchema`, `isPatternAllowed()`, `isColorAllowed()`, `PatternDecoder`) — a re-enable and a content decision, not a build from scratch. ⚠️ **Patterns already control ad revenue:** `src/client/GutterAds.ts:35` suppresses ads for any player holding a `pattern:` flare, so granting a pattern removes that player's gutter ads **today**, before anyone deliberately decided to link the two. Whoever scopes this must rule on whether that coupling is intended.
+>
+> **The cosmetics monetization chain.** `0010` and `0011` are the **root** of a dependency chain two later sprints already assume is done:
+>
+> ```
+> 0009 (entitlement origin)  →  0010 flags + 0011 patterns
+>                                    ↓
+>                     Sprint 5 Task 8a (nickname styling)
+>                     Sprint 5 Task 15 (custom uploaded flags/patterns)
+>                                    ↓
+>                     Sprint 6 paid map packs (purchase surface)
+> ```
+>
+> Until 2026-08-09 neither root had a brief, a sprint, or an owner — the chain rested on nothing. `plan-index.md:87-88` assigns both to Sprint 4, but neither appears in the Sprint 4 plan document. Both are now briefed and blocked, which is honest; previously they were invisible. See [[decisions/sprint-5]] and [[decisions/sprint-6]].
+
 ## Decision
 
 Keep no-sprint work separate from active sprint plans so the active roadmap does not imply these tasks are approved for immediate implementation.
@@ -63,3 +112,11 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[decisions/personal-data-152fz-compliance]] — deferred 152-ФЗ notification/consent track
 - [[tasks/personal-data-compliance-investigation]] — Sprint 4 investigation that led to the deferred compliance backlog item
 - [[tasks/citizenship-card-guest-cta-no-sdk]] — completed Sprint 4 follow-up that exposed the remaining degraded-mode citizenship-card gap
+- [[systems/project-brief]] — the project brief that points at both unsprinted boards
+- [[decisions/fkit-transfer-blueprint]] — the toolkit migration tasks `0001`–`0004` belong to
+- [[decisions/adr-102-privilege-refresher-fails-open]] — the ruling that produced tasks `0008`, and named `0010` / `0011` as trigger-firing entitlements
+- [[decisions/adr-107-turn-interval-1-5x]] — the 66.7 ms interval behind task `0006`'s threshold blind band
+- [[decisions/adr-106-flags-suppressed]] — the suppression task `0010` reverses into a paid non-country cosmetic
+- [[decisions/sprint-6]] — paid map packs, the far end of the cosmetics monetization chain
+- [[systems/architecture-overview]] — risks R4 (`0005`), R5 (`0008`), R7 (`0007`), and the open questions these briefs answer
+- [[systems/player-infrastructure]] — the system-level record of the live upstream-sourced `flares` path that gave task `0009` its teeth

@@ -69,3 +69,4 @@ For active/in-memory games: `GET /api/game/:id` (`Worker.ts:227`) — only works
 - [[tasks/solo-win-condition-fix]] — solo opponent winners can be archived as explicit opponent winners
 - [[tasks/archive-endpoint-failures]] — Sprint 4c archive telemetry cleanup
 - [[decisions/archive-archival-strategy]] — deferred S3-backed citizen archival decision
+- [[decisions/adr-104-archiving-disabled]] — why no game records are retained today

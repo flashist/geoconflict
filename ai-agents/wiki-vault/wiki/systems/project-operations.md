@@ -29,9 +29,10 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 
 ### Roadmap and current planning context
 - Product sequencing is retention first, monetization second, then content expansion; see [[decisions/product-strategy]]
-- The source document records Sprint 4 as the active citizenship and Yandex payments foundation sprint, with independent tutorial and lobby fixes able to ship in parallel; see [[decisions/sprint-4]]
-- Sprint 4b is a short interim variety sprint that keeps public matchmaking fresh while Sprint 4's citizenship/payment work is paused; see [[decisions/sprint-4b]]
-- Sprint 4c is a short production stabilization sprint that converts the 2026-05-07 Uptrace error-priority review into deployable fixes before the May 15 travel pause; see [[decisions/sprint-4c]]
+- Sprint 4 is the active citizenship and Yandex payments foundation sprint, with independent tutorial and lobby fixes able to ship in parallel; as of 2026-08-08 the profile-store epic is complete and the live chain is degraded-mode UX → Citizenship Earned → Citizenship Paid; see [[decisions/sprint-4]] and [[systems/project-brief]]
+- Sprint 4b **was** a short interim variety sprint that kept public matchmaking fresh while Sprint 4's citizenship/payment work was paused; see [[decisions/sprint-4b]]
+- Sprint 4c **was** a short production stabilization sprint that converted the 2026-05-07 Uptrace error-priority review into deployable fixes before the same pause; see [[decisions/sprint-4c]]
+- ⚠️ **The May 15 – June 1, 2026 travel pause referenced by 4b and 4c is long past.** It shaped those two sprints' scope and deadlines and is retained as history; it is not a live constraint.
 - No-sprint tasks are tracked separately in [[decisions/sprint-backlog]] and need a sprint home before implementation begins
 - Community operations, monetization planning, and internal dashboards are treated as operational context, not game-client features
 - Licensing compliance is an operational release constraint: GeoConflict's public source repository must track what is deployed, players need a visible source-code access path, and production bundles must not include OpenFront `/proprietary` or hosted-only assets. See [[decisions/licensing-compliance]].
@@ -62,3 +63,5 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - [[decisions/sprint-backlog]] — no-sprint task queue and deferral rationale
 - [[decisions/licensing-compliance]] — AGPL/source access, asset-use, and trademark constraints for releases
 - [[decisions/personal-data-152fz-compliance]] — Russian personal-data notification/consent status and accepted Sprint 4 risk
+- [[systems/agent-conventions]] — the standing rules that govern task status, ownership, and reporting
+- [[decisions/fkit-transfer-blueprint]] — the agent toolkit these operations run on

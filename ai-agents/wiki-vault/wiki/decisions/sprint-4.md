@@ -1,7 +1,9 @@
 # Sprint 4 — In-App Monetization & Citizenship
 
 **Date**: 2026-04-16
-**Status**: proposed
+**Status**: accepted
+
+> **Status corrected 2026-08-08.** This page carried `proposed` while describing a sprint that is live and mostly shipped. Sprint 4 is the **current** sprint: the player profile store epic is complete, the profile backend is live, and the active chain is degraded-mode UX treatment → Citizenship Earned → Citizenship Paid. See [[systems/project-brief]].
 
 ## Context
 
@@ -130,7 +132,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 
 ## Consequences
 
-- Sprint 4's core citizenship, payments, player profile store, and start-screen implementation track is temporarily paused during Mark's May 15 to June 1, 2026 travel window; [[decisions/sprint-4b]] covers the interim player-facing variety sprint and [[decisions/sprint-4c]] covers production stabilization, both explicitly excluding this monetization infrastructure.
+- Sprint 4's core track **was** paused during the owner's May 15 – June 1, 2026 travel window; that pause ended and the track resumed. [[decisions/sprint-4b]] covers the interim player-facing variety sprint and [[decisions/sprint-4c]] covers production stabilization, both of which explicitly excluded this monetization infrastructure.
 - Start screen redesign implementation is done, and the follow-up citizenship XP/progress UI now reads live profile data through the profile API.
 - The app-bootstrap refactor removes the race-condition class around Yandex SDK, experiment flags, player data, and language startup. Future citizenship auth and Yandex payments work should plug into the explicit `Bootstrap.ts` / `FlashistFacade.initializePlatform()` gate instead of adding per-component startup waits.
 - The no-SDK card fix resolves only standalone/local dead controls. Real Yandex degraded mode remains a Sprint 4 backlog blocker: if `YaGames.init()` times out or fails during citizenship auth/payment flows, the card needs a distinct connection-problem state rather than an actionable login CTA.

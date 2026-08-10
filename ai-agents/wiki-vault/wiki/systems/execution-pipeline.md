@@ -47,3 +47,4 @@ The execution pipeline is the deterministic path from player action to state mut
 - [[systems/networking]] — how intents enter the system
 - [[systems/clans]] — clan-aware team assignment runs inside `GameImpl.addPlayers()` before gameplay executions tick
 - [[tasks/solo-win-condition-fix]] — win-condition execution now surfaces solo opponent victories to the client
+- [[systems/architecture-overview]] — the intent-to-execution path in the wider survey

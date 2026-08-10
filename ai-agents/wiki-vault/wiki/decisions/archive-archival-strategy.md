@@ -34,3 +34,4 @@ The disk-on-master alternative is rejected. It creates unbounded disk growth on 
 - [[decisions/sprint-4c]]
 - [[systems/match-logging]]
 - [[systems/telemetry]]
+- [[decisions/adr-104-archiving-disabled]] — the ADR that formalizes this split

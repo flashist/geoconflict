@@ -23,3 +23,12 @@ karpathy-vault/.obsidian/
 .claude/scheduled_tasks.lock
 .playwright-cli/
 /output/playwright
+
+# fkit-managed local state (intake, tmp; re-created by fkit init)
+.fkit/
+
+# fkit-managed agents (refreshed by fkit-claude-init.sh)
+.claude/agents/fkit-*.md
+
+# fkit-managed skills (refreshed by fkit-claude-init.sh)
+.claude/skills/fkit-*/

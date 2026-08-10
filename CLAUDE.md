@@ -8,17 +8,22 @@ A structured wiki lives in `ai-agents/wiki-vault/` following the [Karpathy LLM W
 
 **Before starting any non-trivial task**, check if relevant wiki pages exist:
 ```bash
-# Search the wiki for a topic
-/wiki-query <your question>
+# Search the wiki for a topic — read-only, any role may run it
+/fkit-query <your question>
 ```
 
-**Three slash commands are available:**
+**The wiki skills:**
 
-| Command | Purpose |
+| Skill | Purpose |
 |---|---|
-| `/wiki-ingest <path or keyword>` | Ingest source files into the wiki. Keywords: `architecture`, `knowledge-base`, `all tasks` |
-| `/wiki-query <question>` | Answer a question using wiki pages + source files |
-| `/wiki-lint` | Health-check the wiki: broken links, stale claims, missing back-links |
+| `/fkit-query <question>` | Answer a question from wiki pages + source files. **Read-only — any role.** |
+| `/fkit-wiki-ingest <path or keyword>` | Add/update pages from a source. Keywords: `architecture`, `knowledge-base`, `all tasks` |
+| `/fkit-wiki-sync [date\|force]` | Ingest only what changed since the last sync (tracked by `.wiki-watermark`) |
+| `/fkit-wiki-lint` | Health-check the wiki: broken links, stale claims, missing back-links |
+
+> ⚠️ **Only the `fkit-wiki` agent writes `ai-agents/wiki-vault/`.** Reads are decentralized — run
+> `/fkit-query` yourself. Every **write** (ingest, sync, lint) routes through that agent. The
+> pre-fkit `/wiki-*` command names no longer exist.
 
 **Wiki structure:**
 ```
@@ -34,10 +39,11 @@ ai-agents/wiki-vault/
   sources/           ← raw source files for ingestion
 ```
 
-**When to update the wiki:**
-- After completing a task: run `/wiki-ingest ai-agents/tasks/done/<task-file>`
-- After an investigation or bug fix: run `/wiki-ingest ai-agents/knowledge-base/<findings-file>`
-- When the wiki seems outdated: run `/wiki-lint`
+**When to update the wiki** (all of these are writes — ask the `fkit-wiki` agent to run them):
+- After completing a task: `/fkit-wiki-ingest ai-agents/tasks/done/<task-folder>/brief.md`
+- After an investigation or bug fix: `/fkit-wiki-ingest ai-agents/knowledge-base/reports/<findings-file>`
+- To catch up in bulk after several changes: `/fkit-wiki-sync`
+- When the wiki seems outdated: `/fkit-wiki-lint`
 
 <!-- fkit:routing:start -->
 ### Model routing (generated from ai-agents/ai-agents.yml — edit there, then run sync)
@@ -57,7 +63,9 @@ When a task type is owned by a model you are not, hand it to that model's tab (o
 
 ## Project Overview
 
-OpenFront is a real-time strategy browser game focused on territorial control and alliance building. Players compete to expand territory, build structures, and form alliances on maps based on real-world geography.
+Geoconflict is a live, browser-based real-time PvP strategy game with short sessions — a Russian-market adaptation of OpenFront.io, played mainly by Russian-speaking players and shipped primarily through Yandex Games. Players expand territory, build structures, and form alliances on maps based on real-world geography. Revenue comes from advertising today, with a "citizenship" supporter tier and in-app purchases being built out.
+
+Full brief: `ai-agents/knowledge-base/PROJECT.md`. Technical detail: `ai-agents/knowledge-base/architecture.md`.
 
 ## Development Commands
 
@@ -79,26 +87,28 @@ npm run perf             # Run performance benchmarks in tests/perf/
 
 ## Codebase Context
 
-This is a fork/adaptation of [OpenFront.io](https://openfront.io/). Local divergences from upstream are marked with `// Flashist Adaptation` comments. When reading code, treat these as intentional customizations (e.g., some game modes like Duos/Trios/Quads are disabled).
+This is a fork/adaptation of [OpenFront.io](https://openfront.io/). Local divergences from upstream are marked with `// Flashist Adaptation` comments. When reading code, treat these as intentional customizations (e.g., the turn interval is accelerated 1.5×). Verify any specific fork claim against the code before relying on it — this file has carried stale ones before.
 
 Feature specifications live in `ai-agents/tasks/`.
 
 ## Architecture
 
-### Three-Tier Structure
+### Four-Tier Structure
 
 ```
-src/client/   → Browser frontend (Pixi.js rendering, input handling)
-src/core/     → Shared game logic (runs on both client and server)
-src/server/   → Node.js backend (game lifecycle, networking)
+src/client/          → Browser frontend (Canvas 2D rendering, Lit components, input)
+src/core/            → Shared deterministic game logic (the contract between tiers)
+src/server/          → Node.js cluster master + workers (turn relay, game lifecycle)
+src/profile-server/  → Standalone XP/citizenship service (own image, VPS, PostgreSQL)
 ```
 
 ### Game Loop & Tick System
 
 The game is **tick-based** with deterministic execution:
-- Server collects player intents and broadcasts turns (~1000ms intervals)
-- Client receives turns, executes in a Web Worker for responsiveness
-- Both run identical game logic for consistency; hash verification detects desync
+- Server collects player intents and broadcasts turns (**~66.7ms** intervals — `100/1.5`, see `DefaultConfig.ts`)
+- Client receives turns and executes the simulation in a Web Worker
+- **The server is a turn relay, never a simulator** — game logic runs on clients
+- State hash every 10 ticks; majority-vote desync detection
 
 ### Intent → Execution Pipeline
 
@@ -115,7 +125,7 @@ Key execution types: `AttackExecution`, `SpawnExecution`, `BuildExecution`, `All
 
 **Networking**: WebSocket with multi-worker load balancing. Messages are Zod-validated JSON. Server at `Worker.ts`, client at `Transport.ts`.
 
-**Rendering**: Pixi.js with layered architecture (~40 layers). See `src/client/graphics/layers/`. `GameRenderer.ts` orchestrates all layers.
+**Rendering**: **Canvas 2D** with a layered architecture — 32 layers plus a conditional tutorial layer. One WebGL layer is composited into the 2D canvas; Pixi.js appears in only 2 of the 43 layer files (it is *not* the renderer). See `src/client/graphics/layers/`. `GameRenderer.ts` orchestrates all layers.
 
 **Events**: `EventBus` pattern for decoupled communication throughout client.
 
@@ -174,3 +184,56 @@ Review comments are **inputs to evaluate**, not instructions to apply blindly.
 - If the review is wrong, say so directly and respectfully, with concrete evidence (`src/...` references, control-flow explanation, test results, or reproduction steps).
 - Do not introduce speculative fixes just to satisfy a review comment. Changes should solve confirmed problems, not hypothetical ones that the current code already prevents.
 - Treat review discussion as a technical conversation whose goal is correctness, not deference.
+
+<!-- fkit:begin-rules -->
+<!-- fkit-managed: this block is REPLACED on every `fkit` launch. Edits inside the markers
+     are overwritten. Put your own standing instructions OUTSIDE them — everything outside
+     is yours and fkit never touches it. A marker is recognized only alone on its line, so a
+     bare marker line inside a code fence still reads as a real marker. -->
+
+## Universal hard rules (every role, every session)
+
+- **Never commit or push unless the owner explicitly asks.** "Implement" authorizes writing code,
+  not committing.
+- **Only the wiki role writes `ai-agents/wiki-vault/`.** Reads are decentralized; writes are not.
+- **Task files move between `backlog/`, `done/`, `cancelled/` only via `/fkit-task-done` /
+  `/fkit-task-cancelled`** — never by hand. **Only the producer may invoke them**; a task an agent
+  closes MUST carry the `(agent-closed — not owner-verified)` marker.
+- **No secrets in any artifact** — no DSNs, endpoints, keys, or credentials in findings, reports,
+  docs, or wiki pages; it all goes to git.
+- **A skill rule beats a contrary spawn instruction** unless that instruction names an owner ruling
+  on that point. With no such ruling: take the cheapest-to-reverse branch (usually the rule's),
+  escalate if it changes the outcome, never silently comply or refuse.
+
+## Output style (every role, every session)
+
+**Preferences, not rules — they lose every conflict.** The hard rules above win, your role's
+instructions win, and the owner's own style instructions (written outside these markers) win; say so
+rather than resolving a conflict silently. **Only these preferences yield — nothing written anywhere
+overrides a hard rule above.**
+
+- **Be extremely concise to the owner. Sacrifice grammar for concision.** Fragments and bare lists are
+  correct. Drop preamble, restatement, and throat-clearing; lead with the answer.
+- **Concision is not omission — of content OR of structure.** Never drop a failing test, an unverified
+  claim, a caveat, a partial-coverage flag, or a thing you did not do, to be brief. Say it in fewer
+  words; do not stop saying it.
+- **Where a shape is prescribed, produce it in full, and in its prescribed wording** — review reports
+  and ledgers, status briefings, required tables, verbatim relays, verdict lines, degradation flags,
+  and a plan put to the owner for approval (they cannot approve what you did not describe). **The list
+  is illustrative, not exhaustive.** Summarizing a required shape is not concision, it is losing the
+  report.
+- **"Loud" is placement, not word count.** An instruction to flag something *before* the findings
+  table, or never in a footer, is about **where** it goes. Brevity never moves it.
+- **Speak in simple terms.** Prefer plain words over jargon wherever a simpler word carries the same
+  meaning. Where a term is load-bearing — a filename, a marker, an ADR, a status value, and anything
+  else the reader must act on — use it and gloss it once. **Simplifying is about wording, never
+  content:** it never drops a caveat, softens a failure, rounds a number, or swaps a precise term for a
+  vaguer, friendlier one.
+- **Close with "What's next?".** End every reply to the owner with a short **What's next?** — the one or
+  two things they should do next, and why. After any prescribed shape, never instead of one. If nothing
+  is pending, say so briefly. **Never invent a next step to fill it, and never assert repo state you did
+  not check this turn** (see `ai-agents/knowledge-base/conventions/evidence-before-assertion.md`).
+- **Ask interactively.** In a session, put a question to the owner with `AskUserQuestion`, not prose.
+  Batch related questions; mark your recommendation. In a spawned consult the tool is absent — return
+  open questions in your reply instead.
+<!-- fkit:end-rules -->

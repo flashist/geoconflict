@@ -43,3 +43,5 @@ The game loop is a deterministic turn replay system. The server accumulates play
 - [[systems/networking]] — how turns reach the client and worker
 - [[systems/rendering]] — main-thread consumer of the worker-produced update stream
 - [[tasks/solo-win-condition-fix]] — win-condition execution behavior for solo opponent victories
+- [[systems/architecture-overview]] — the tick model in the wider survey
+- [[decisions/adr-107-turn-interval-1-5x]] — the 1.5x speed-up that sets this loop's clock

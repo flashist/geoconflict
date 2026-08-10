@@ -69,3 +69,5 @@ No queue depth limit. Match-start bursts increase JSON payload for that one turn
 - [[systems/match-logging]] — what match data is captured
 - [[systems/game-overview]] — overall architecture context
 - [[decisions/sprint-3]] — sprint where this investigation and instrumentation were done (5d-B)
+- [[systems/architecture-overview]] — server tier and the ranked technical risks
+- [[decisions/adr-107-turn-interval-1-5x]] — the interval this analysis is measured against, and its telemetry blind band

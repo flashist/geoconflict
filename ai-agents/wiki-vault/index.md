@@ -12,6 +12,9 @@
 
 ## Systems
 
+- [[systems/project-brief]] — Product ground truth: what the game is, who it is for, how it earns, and the platform/legal/scope constraints every task works inside
+- [[systems/architecture-overview]] — Evidence-first 2026-08-08 codebase survey: four tiers, tick model, deploy topology, ranked risks, and the documented-but-stale corrections
+- [[systems/agent-conventions]] — The project's standing law: task status and owner vocabularies, status-report shape, evidence-before-assertion, one-skill-one-output, priority-vs-identity, dependency form
 - [[systems/game-overview]] — Project overview: game types, maps, units, economy, combat, tick system
 - [[systems/producer-workflow]] — Producer role: scope, responsibilities, coordination boundaries, and release guardrails
 - [[systems/project-operations]] — Operational handbook: team roles, environment boundaries, sprint workflow, and roadmap constraints
@@ -27,10 +30,23 @@
 - [[systems/server-performance]] — Server-side lag candidates ranked by likelihood; `endTurn()` performance analysis
 - [[systems/match-logging]] — What is recorded per match, where it goes, and what cannot be retrieved
 - [[systems/clans]] — Name-tag clan grouping system: parsing, team assignment logic, gaps, and no-UI status
-- [[systems/player-infrastructure]] — Pre-S4 identity/customization substrate: local-only persistence, join transport, dead inherited auth/monetization, and trust gaps
+- [[systems/player-infrastructure]] — Pre-S4 identity/customization substrate: local-only persistence, join transport, dead inherited Stripe/Fuse monetization, and trust gaps; **corrected 2026-08-09** — the `flares` entitlement path is **live** and upstream-OpenFront-sourced, with ad suppression coupled to it (production liveness still unverified, task `0009`)
 - [[systems/player-profile-store]] — Dedicated Sprint 4 profile API/Postgres backend and match-end XP crediting path for citizenship and future paid entitlements
 
 ## Decisions
+
+### Project ADRs (this project's series — 101+)
+
+> `ADR-001`–`ADR-099` are **fkit toolkit** ADRs and do not live in this repo. See [[decisions/adr-numbering-two-series]].
+
+- [[decisions/adr-numbering-two-series]] — Owner ruling reserving 001–099 for the toolkit series; this project's ADRs start at 101. Also carries the immutability rule: `proposed` is a draft promoted in place, `accepted` is history, and the in-place amendment carve-out covers **clarifications only** — a reversal needs a superseding ADR
+- [[decisions/adr-101-fail-soft-xp-crediting]] — Match-end XP crediting is fail-soft with bounded retries and no durable queue; outage XP loss is silent and unrecoverable
+- [[decisions/adr-102-privilege-refresher-fails-open]] — Cosmetic entitlements fail open until `cosmetics.json` loads; **accepted 2026-08-09 while nothing is sold, expiring at the first paid entitlement of any kind** — trigger ruled three times in one day, all three kept visible
+- [[decisions/adr-103-identity-trust-seam]] — Client-asserted Yandex IDs accepted for earned XP behind one trust seam; signed verification deferred until the Yandex secret key exists
+- [[decisions/adr-104-archiving-disabled]] — Match archiving disabled behind one config switch until S3-backed, citizen-gated archival ships
+- [[decisions/adr-105-compact-maps-out-of-rotation]] — Compact maps removed from public rotation until the map binaries are regenerated with correct shore bits
+- [[decisions/adr-106-flags-suppressed]] — Real-country flags suppressed by parse-then-drop; flags reserved as a future paid non-country cosmetic
+- [[decisions/adr-107-turn-interval-1-5x]] — The game runs at 1.5× upstream tick rate (66.7 ms); owner-supplied rationale (2026-08-09): two goals — quicker matches and a higher interstitial rate — with 1.5 chosen by playtesting and 2× rejected as too fast; neither goal measured
 
 ### Product Strategy & Sprints
 - [[decisions/product-strategy]] — Strategic logic: retention-first sequence, experiments policy, key analytics data
@@ -41,13 +57,14 @@
 - [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8 and citizenship XP UI done; payments, earned/paid citizenship, and 152-ФЗ follow-up remain pending
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
-- [[decisions/sprint-backlog]] — No-sprint backlog for defined work needing a sprint home, including monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag, and GutterAds fixes
+- [[decisions/sprint-backlog]] — No-sprint backlog across both unsprinted boards: monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag/GutterAds fixes, plus the eleven `0001`–`0011` briefs and the cosmetics monetization dependency chain
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
-- [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning
+- [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning; its "Sprint 5 cosmetics store" prerequisite was corrected 2026-08-09 — no such store exists
 - [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance, compact-map runtime fallback, and guest-first profile XP cancellations
 - [[decisions/personal-data-152fz-compliance]] — Hash-based 152-ФЗ avoidance invalidated; notification/consent work deferred to backlog with accepted risk
 
 ### Legal & Operations
+- [[decisions/fkit-transfer-blueprint]] — Extracting the two-model agent OS into a reusable kit: the generic/project seam, the routing manifest, and single-sourced skills that kill copy drift
 - [[decisions/licensing-compliance]] — AGPL, CC BY-SA, source-access, and OpenFront asset/trademark constraints for GeoConflict; one open prerequisite: proprietary asset audit before in-app purchases
 
 ### Bug Fixes & Investigations

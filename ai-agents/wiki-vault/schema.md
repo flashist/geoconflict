@@ -171,7 +171,7 @@ Each entry:
 ### Canonical Systems to Maintain Pages For
 - game-loop (tick system, GameRunner, deterministic execution)
 - networking (WebSocket, Worker.ts, Transport.ts, Zod validation)
-- rendering (Pixi.js layers, GameRenderer)
+- rendering (Canvas 2D layers, GameRenderer; one Pixi/WebGL layer composited in)
 - execution-pipeline (Intent → Execution → GameUpdate flow)
 - configuration (DevConfig/PreprodConfig/ProdConfig, GAME_ENV)
 - localization (translateText, en.json/ru.json sync rule)

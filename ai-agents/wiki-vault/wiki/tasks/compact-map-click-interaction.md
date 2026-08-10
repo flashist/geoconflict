@@ -36,3 +36,4 @@ Sprint 4c mitigates the player-facing impact by disabling compact maps in public
 - [[decisions/sprint-4c]] — stabilization sprint that cancelled the runtime fallback and disabled compact public maps
 - [[decisions/cancelled-tasks]] — records the rejected runtime fallback and root-cause retry guidance
 - [[tasks/disable-compact-public-maps]] — public-rotation mitigation while compact binary regeneration is deferred
+- [[decisions/adr-105-compact-maps-out-of-rotation]] — the decision this investigation's root cause produced

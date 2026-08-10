@@ -31,3 +31,4 @@ The value is a stable profile key, not a cryptographically verified identity cla
 - [[systems/player-infrastructure]] — pre-S4 identity audit and trust-boundary context
 - [[tasks/profile-match-end-crediting]] — T6 consumes the server-visible ID for earned-XP crediting
 - [[tasks/yandex-payments-investigation]] — separate signed-verification path for paid entitlements
+- [[decisions/adr-103-identity-trust-seam]] — the trust decision covering the id this task plumbed through

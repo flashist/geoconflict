@@ -30,3 +30,4 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 - [[tasks/profile-match-end-crediting]]
 - [[tasks/profile-server-bring-up-runbook]]
 - [[decisions/vps-credential-leak-response]]
+- [[systems/architecture-overview]] — profile deploy hardening and the two easily-confused Postgres instances

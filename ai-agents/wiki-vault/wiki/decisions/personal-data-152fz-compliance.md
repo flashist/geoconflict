@@ -34,3 +34,5 @@ The pseudonymization implementation task is cancelled and PR #127 was reverted. 
 - [[tasks/personal-data-compliance-investigation]]
 - [[tasks/profile-backend-db-api]]
 - [[tasks/profile-match-end-crediting]]
+- [[systems/project-brief]] — the accepted-risk deferral stated as a project constraint
+- [[decisions/adr-103-identity-trust-seam]] — the identity decision that also rejects the hashing approach

@@ -98,3 +98,4 @@ Sprint 4 follow-up work tightened the tutorial without changing the overall 7-st
 - [[tasks/tutorial-reduce-bots]] — Sprint 4 config change lowering tutorial bot count from 400 to 100
 - [[tasks/missions-difficulty-investigation]] — contrasts tutorial's special 100-bot/no-nation path with generated missions
 - [[features/ai-players]] — bot-filled matches are also used here, but tutorial remains a separate guided flow
+- [[decisions/adr-107-turn-interval-1-5x]] — the turn interval the tutorial near-pause multiplies

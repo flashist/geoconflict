@@ -55,3 +55,4 @@ The final trusted recovery workflow is:
 - [[tasks/postgres-backup-routine]] — profile backup deploy path that preserves the same secret-boundary discipline for S3 credentials and age encryption
 - [[tasks/registry-image-policy-followup]] — follow-up task that wrote the durable registry policy
 - [[decisions/profile-deploy-hardening-review-loop]] — bounded restart for profile deploy hardening built on this incident's secret-boundary requirements
+- [[systems/architecture-overview]] — the build-time secret gates that came out of this incident

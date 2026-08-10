@@ -185,3 +185,6 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 - [[tasks/archive-endpoint-failures]] — Sprint 4c archive telemetry noise cleanup
 - [[tasks/s4c-enable-client-source-maps]] — Sprint 4c source-map upload pipeline for client error symbolication
 - [[tasks/s4c-investigate-lobby-map-fetch]] — Sprint 4c investigation and fix for public lobby and map manifest fetch errors
+- [[systems/architecture-overview]] — telemetry wiring and its master-process blind spot
+- [[decisions/adr-104-archiving-disabled]] — the archive switch that removed the loudest error family
+- [[decisions/adr-107-turn-interval-1-5x]] — why the slow-turn threshold no longer matches the turn interval

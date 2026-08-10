@@ -183,3 +183,4 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/analytics-p0-session-match-count]] — P0 per-session match starts recorded via localStorage and consumed on next session open
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
 - [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, and `Announcements:Closed`
+- [[systems/architecture-overview]] — the platform facade that owns the event enum

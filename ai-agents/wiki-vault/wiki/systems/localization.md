@@ -34,3 +34,4 @@ The start-screen redesign also renamed "Single Player" to `Custom Game` / `Св�
 - [[tasks/start-screen-redesign-implementation]] — start-screen localization rename and tab layout copy
 - [[features/announcements]] — localized repo-authored announcement content with English fallback
 - [[systems/project-operations]] — release workflow that requires localized copy changes to ship in builds
+- [[systems/architecture-overview]] — statically-bundled language files and selection precedence
