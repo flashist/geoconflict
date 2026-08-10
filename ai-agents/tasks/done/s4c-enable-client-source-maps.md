@@ -7,7 +7,7 @@ Sprint 4c — Stabilization
 Medium — independent of telemetry noise, doable immediately. This is the high-leverage
 half of the null-id investigation split (2026-06-03): it unblocks triage for **every**
 minified client error cluster in Uptrace, not just the null-id errors. The triage + fix
-half is `s4-investigate-null-id-errors.md` (Sprint 4) and depends on this.
+half is `0032-investigate-null-id-errors` (Sprint 4) and depends on this.
 
 ---
 
@@ -20,7 +20,7 @@ a file/function, so any minified cluster (the null-id family and others) is effe
 un-triageable.
 
 This task is the enablement step that was Step 1 of the original null-id investigation,
-split out on 2026-06-03 (the triage + fix half is now `s4-investigate-null-id-errors.md`).
+split out on 2026-06-03 (the triage + fix half is now `0032-investigate-null-id-errors`).
 It has no dependency on telemetry noise levels and can proceed in parallel with the rest of
 Sprint 4c.
 
@@ -61,7 +61,7 @@ Source: `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`
 ---
 
 ## Notes
-- This unblocks `s4-investigate-null-id-errors.md` — with traces resolved, the null-id
+- This unblocks `0032-investigate-null-id-errors` — with traces resolved, the null-id
   cluster may be fixable directly from the stack trace, without the noisier
   co-occurrence/pattern analysis that depends on clean telemetry.
 - Keep the upload keyed to build number so old builds' traces still resolve (relevant given

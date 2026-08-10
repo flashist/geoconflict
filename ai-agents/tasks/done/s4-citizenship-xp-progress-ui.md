@@ -72,12 +72,12 @@ logged-in player (or a citizen) as a guest with a login CTA:
   (matches the `Bootstrap.ts` degraded-mode philosophy).
 
 **Out of scope (deferred per Mark 2026-07-01 "keystone only"):** the earned-citizenship inbox
-notification + real-time in-session grant toast (Part B/C of `s4-citizenship-earned.md`) — those
+notification + real-time in-session grant toast (Part B/C of `0017-citizenship-earned`) — those
 need a `newlyGranted` signal from `creditMatchXp()` and 8d-B Personal Inbox, tracked separately.
 
 ## Dependencies
 - **Start screen redesign** must be implemented — the citizenship card lives in the tab layout introduced by that task.
-- **Analytics:** this task owns `UI:Tap:CitizenshipBuy` and `UI:Tap:CitizenshipLearnMore`. Read `analytics-p1-citizenship-funnel.md` before starting — events must be wired during implementation, not added later.
+- **Analytics:** this task owns `UI:Tap:CitizenshipBuy` and `UI:Tap:CitizenshipLearnMore`. Read `0021-analytics-p1-citizenship-funnel` before starting — events must be wired during implementation, not added later.
 - **Player Profile Store** must be live — the card reads XP from the **server** profile via `GET /v1/profile`. (Guest-first localStorage XP was cancelled 2026-06-13; XP is authenticated-only. The profile store is now live, so this dependency is satisfied.)
 
 ## Context

@@ -1,7 +1,7 @@
 # Task — Profile Backend Infra: Server skeleton (/health-only) + standalone logger/port (T4a)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/s4-player-profile-store-impl.md` (Part D ops). One of **7 sub-tasks** split from `s4-profile-04-backend-infra.md` after the first attempt bounced — see postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`. Each sub-task merges independently and shrinks the review surface.
+`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` (Part D ops). One of **7 sub-tasks** split from `s4-profile-04-backend-infra.md` after the first attempt bounced — see postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`. Each sub-task merges independently and shrinks the review surface.
 
 ## Sprint
 Sprint 4

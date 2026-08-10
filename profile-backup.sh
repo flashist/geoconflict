@@ -18,7 +18,7 @@
 #     never holds the private identity, so a stolen S3 object cannot be decrypted on the box.
 #   - Upload is verified (object exists + size matches) BEFORE the local temp is deleted.
 #   - A machine-readable marker (last-backup.json) is always written for the monitoring agent
-#     (monitoring-alert-bot-phase2.md item 5); any failure exits non-zero (no silent failure).
+#     (0034-monitoring-alert-bot-phase2 item 5); any failure exits non-zero (no silent failure).
 #
 # Usage:
 #   profile-backup.sh                 # default: run the daily backup

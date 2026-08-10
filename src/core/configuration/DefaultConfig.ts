@@ -310,7 +310,7 @@ export abstract class DefaultServerConfig implements ServerConfig {
   }
   // Single switch for match archiving. Disabled until S3-backed, citizen-gated
   // archival ships — flip this (and add the real gating) in the follow-up task
-  // s4-archive-s3-backed-citizen-gated.md. Until then, archiving is a no-op so it
+  // 0030-archive-s3-backed-citizen-gated. Until then, archiving is a no-op so it
   // stops posting to a non-existent endpoint and flooding telemetry.
   archiveEnabled(): boolean {
     return false;

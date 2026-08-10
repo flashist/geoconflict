@@ -2,7 +2,7 @@
 
 **This is a spec, not an applied fix.** Produced by `/stateful-review`, a review-only skill — no code has been changed. Whoever picks this up should implement it independently and verify against the acceptance criteria below.
 
-Source review: `ai-agents/reviews/degraded-mode-full-ux-treatment.md` (round 2, finding C2). Task: `ai-agents/tasks/backlog/degraded-mode-full-ux-treatment.md`.
+Source review: `ai-agents/reviews/degraded-mode-full-ux-treatment.md` (round 2, finding C2). Task: `ai-agents/tasks/backlog/0049-degraded-mode-full-ux-treatment/brief.md`.
 
 ## Context
 

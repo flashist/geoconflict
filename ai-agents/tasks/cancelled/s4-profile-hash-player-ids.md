@@ -81,8 +81,8 @@ keep the pepper in exactly one tier to avoid divergence.
 - **Gates profile-store production go-live** (real raw PII must not be persisted).
 - **Must land before T6 ships real crediting to prod.** Ideally do the T5 schema migration immediately
   (DB ~empty now), then build T6 hash-keyed.
-- Feeds the schema in `s4-player-profile-store-impl.md` (identity column) and interacts with the
-  deferred archival (`s4-archive-s3-backed-citizen-gated.md` must also store only hashes).
+- Feeds the schema in `0013-player-profile-store-impl` (identity column) and interacts with the
+  deferred archival (`0030-archive-s3-backed-citizen-gated` must also store only hashes).
 
 ## Notes
 - `src/core/Schemas.ts` still carries the raw `yandexPlayerId` on `ClientJoinMessage` (client→server

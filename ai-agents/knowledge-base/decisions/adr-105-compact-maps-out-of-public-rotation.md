@@ -37,13 +37,13 @@ src/server/MapPlaylist.ts:37-50
   export const MINI_MAP_MODIFIER: MatchModifier = { id: "mini_map", ... };
 
   export const MATCH_MODIFIERS: MatchModifier[] = [
-    // MINI_MAP_MODIFIER,   // re-enable after s5-fix-compact-map-shore-generation.md
+    // MINI_MAP_MODIFIER,   // re-enable after 0026-fix-compact-map-shore-generation
     { id: "weird_setting", ... },
   ];
 ```
 
 The real fix is **regenerating all 30 `map4x.bin` binaries** so downsampling preserves `isShore`,
-scoped in `ai-agents/tasks/backlog/s5-fix-compact-map-shore-generation.md`
+scoped in `ai-agents/tasks/backlog/0026-fix-compact-map-shore-generation/brief.md`
 (`map-generator/map_generator.go`).
 
 Compact maps remain selectable in **single-player and custom/host lobbies**
@@ -86,7 +86,7 @@ governs the **public rotation only** — where the player did not choose the map
   saying compact maps are in the public rotation, from before the disable. Player communications, not
   code — but do not treat it as evidence of current state.
 - **Residual risks / "re-raise only if":**
-  - **`s5-fix-compact-map-shore-generation.md` lands** and the regenerated binaries preserve `isShore`
+  - **`0026-fix-compact-map-shore-generation` lands** and the regenerated binaries preserve `isShore`
     — then re-add `MINI_MAP_MODIFIER` and supersede this ADR. This is the expected exit.
   - **A second `isShore` consumer is found to be broken on compact maps** in single-player or custom
     lobbies badly enough to justify disabling those paths too.
@@ -104,5 +104,5 @@ governs the **public rotation only** — where the player did not choose the map
 - `../compact-map-click-interaction-findings.md` — root cause and the three fix options
 - `../sprint4b-mini-mode-findings.md` — the mode's original investigation
 - `ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md` — the cancelled runtime workaround
-- `ai-agents/tasks/backlog/s5-fix-compact-map-shore-generation.md` — the real fix
+- `ai-agents/tasks/backlog/0026-fix-compact-map-shore-generation/brief.md` — the real fix
 - `../architecture.md` §9 ("Two features that are present but switched off")

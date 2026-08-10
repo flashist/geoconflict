@@ -380,13 +380,13 @@ WebSocket upgrade at `/` (303).
   returns immediately (`Archive.ts:17-23`). When enabled, the destination is an HTTP
   `POST {jwtIssuer}/game/{gameID}` — **not** S3. There *are* `storageEndpoint/AccessKey/SecretKey/Bucket`
   config accessors (`DefaultConfig.ts:213-225`) with **zero consumers in `src/`**. Pending task:
-  `ai-agents/tasks/backlog/s4-archive-s3-backed-citizen-gated.md`.
+  `ai-agents/tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md`.
 - **Matchmaking.** `enableMatchmaking()` returns `false` (`DefaultConfig.ts:308-310`). The worker-side
   check-in poll against `{jwtIssuer}/matchmaking/checkin` exists at `Worker.ts:484-541`.
 - **Compact maps in the public rotation.** `MINI_MAP_MODIFIER` is commented out of `MATCH_MODIFIERS`
   (`src/server/MapPlaylist.ts:37-50`) because half-resolution downsampling drops coastal `isShore`
   data and breaks boat attacks. The real fix is regenerating the `map4x.bin` binaries
-  (`ai-agents/tasks/backlog/s5-fix-compact-map-shore-generation.md`).
+  (`ai-agents/tasks/backlog/0026-fix-compact-map-shore-generation/brief.md`).
 
 ### Telemetry
 
@@ -729,7 +729,7 @@ down. The asymmetry is the debt, not the profile side.
 ### R3 — Mobile rendering fragility
 Rendering is Canvas 2D with one WebGL (Pixi) layer composited in. Production telemetry shows recurring
 `Failed to execute 'getImageData': Out of memory` and `This browser does not support WebGL` errors on
-low-memory devices (`ai-agents/tasks/backlog/mobile-webgl-rendering.md`). These crashes are likely
+low-memory devices (`ai-agents/tasks/backlog/0031-mobile-webgl-rendering/brief.md`). These crashes are likely
 correlated with silent mobile abandonment — a crashed user generates no further events, so the
 measured rate understates the impact.
 

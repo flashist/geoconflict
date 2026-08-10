@@ -1,7 +1,7 @@
 # Task — Player Profile: Schema Contract (T1)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/s4-player-profile-store-impl.md` — child slice 1 of 8. Read the epic's **Infrastructure Decision** and **Part B** before starting.
+`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` — child slice 1 of 8. Read the epic's **Infrastructure Decision** and **Part B** before starting.
 
 ## Sprint
 Sprint 4

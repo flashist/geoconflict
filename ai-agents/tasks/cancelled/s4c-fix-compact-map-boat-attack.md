@@ -3,7 +3,7 @@
 > ## ❌ Cancelled — 2026-06-02
 >
 > **Decision:** Do not ship this runtime workaround. Defer to the root-cause fix
-> `s5-fix-compact-map-shore-generation.md` (regenerate the compact map binaries) as
+> `0026-fix-compact-map-shore-generation` (regenerate the compact map binaries) as
 > the only reliable path.
 >
 > **Why (confirmed by live testing, 2026-06-02):** The prescribed fallback — when
@@ -102,6 +102,6 @@ export function targetTransportTile(gm: Game, tile: TileRef): TileRef | null {
 
 ## Notes
 
-- This is a runtime workaround. The underlying data defect — compact binaries missing `isShore` bits — is tracked separately in `s5-fix-compact-map-shore-generation.md` and requires a map generator fix plus full map regeneration.
+- This is a runtime workaround. The underlying data defect — compact binaries missing `isShore` bits — is tracked separately in `0026-fix-compact-map-shore-generation` and requires a map generator fix plus full map regeneration.
 - Do not attempt to fix the map generator or regenerate binaries in this task.
 - The secondary issue (`bestShoreDeploymentSource` diagonal miss) is low-severity, does not affect boat icon visibility, and is deferred. No work needed here for that.

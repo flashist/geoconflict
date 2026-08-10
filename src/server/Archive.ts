@@ -16,7 +16,7 @@ const log = logger.child({ component: "Archive" });
 
 export async function archive(gameRecord: GameRecord) {
   // Archiving is disabled until S3-backed, citizen-gated archival ships
-  // (s4-archive-s3-backed-citizen-gated.md). No-op so completed games stop
+  // (0030-archive-s3-backed-citizen-gated). No-op so completed games stop
   // posting to a non-existent endpoint and flooding telemetry.
   if (!config.archiveEnabled()) {
     return;

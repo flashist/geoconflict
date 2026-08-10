@@ -1,7 +1,7 @@
 # Task — Profile Backend Infra: `Dockerfile.profile` (allowlist-COPY, amd64) (T4c)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/s4-player-profile-store-impl.md` (Part D, step 3 — own Docker image). Sub-task of `s4-profile-04-backend-infra.md` — see postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`.
+`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` (Part D, step 3 — own Docker image). Sub-task of `s4-profile-04-backend-infra.md` — see postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`.
 
 ## Sprint
 Sprint 4

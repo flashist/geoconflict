@@ -84,7 +84,7 @@ describe("MapPlaylist", () => {
 
   test("public rotation registers only the weird-setting modifier", () => {
     // mini_map is disabled in the public rotation (s4c) until the compact map4x.bin
-    // binaries are regenerated in s5-fix-compact-map-shore-generation.md.
+    // binaries are regenerated in 0026-fix-compact-map-shore-generation.
     expect(MATCH_MODIFIERS).toEqual([
       expect.objectContaining({ id: "weird_setting" }),
     ]);

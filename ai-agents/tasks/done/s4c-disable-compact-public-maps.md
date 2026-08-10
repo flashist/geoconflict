@@ -23,7 +23,7 @@ territories that visually border water. The runtime workaround was **cancelled o
 2026-06-02** (`cancelled/s4c-fix-compact-map-boat-attack.md`) because live testing showed
 it sends boats to semantically wrong coasts — the defect cannot be fixed at runtime
 because the data needed is exactly what downsampling destroyed. The only reliable fix is
-regenerating all 30 binaries (`s5-fix-compact-map-shore-generation.md`), which is
+regenerating all 30 binaries (`0026-fix-compact-map-shore-generation`), which is
 high-effort Sprint 5 work.
 
 Rather than ship broken boats in public matches or wait on the map regen, this task pulls
@@ -45,7 +45,7 @@ In `src/server/MapPlaylist.ts`:
 - Remove the `mini_map` entry from the active `MATCH_MODIFIERS` list so public matches can
   never be assigned `GameMapSize.Compact`.
 - **Disable, do not delete.** Keep the `mini_map` modifier definition in the file (commented
-  out or behind a clearly-named flag) so re-enabling after `s5-fix-compact-map-shore-generation.md`
+  out or behind a clearly-named flag) so re-enabling after `0026-fix-compact-map-shore-generation`
   lands is a one-line change. Add a short comment pointing to this task and to s5.
 - Leave `MODIFIED_MATCH_RATE` at `0.2`. `weird_setting` becomes the sole modifier and now
   applies to ~20% of public matches — this is the intended behaviour, not a regression.
@@ -88,7 +88,7 @@ In `src/server/MapPlaylist.ts`:
 
 ## Notes
 - This is the interim/public-facing half of retiring broken compact play. The root-cause
-  path to ever re-enabling public compact is `s5-fix-compact-map-shore-generation.md`
+  path to ever re-enabling public compact is `0026-fix-compact-map-shore-generation`
   (regenerate the 30 binaries). Until that ships and is verified, the `mini_map` modifier
   stays disabled.
 - Keep the change reversible and well-commented so re-enabling is trivial once the binaries

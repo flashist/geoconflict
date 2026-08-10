@@ -1,6 +1,6 @@
 # 152-ФЗ Personal-Data Compliance — Investigation Findings & Decision
 
-> **⛔ INVALIDATED 2026-06-28 — DO NOT RELY ON THIS DOCUMENT.** Further investigation found the core conclusion below is **wrong**: hashing the Yandex ID does **NOT** remove the 152-ФЗ notification/consent obligation. It only added support/development complexity for no legal benefit. The implementation task is **cancelled** (`ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md`, PR #127 reverted). **152-ФЗ is unresolved; the compliance work is deferred to the backlog sprint** (`ai-agents/tasks/backlog/compliance-152fz-notification-consent.md`) with **risk explicitly accepted** (Mark, 2026-06-28) — likely Roskomnadzor notification + consent. Everything below is kept only as a record of the overturned decision.
+> **⛔ INVALIDATED 2026-06-28 — DO NOT RELY ON THIS DOCUMENT.** Further investigation found the core conclusion below is **wrong**: hashing the Yandex ID does **NOT** remove the 152-ФЗ notification/consent obligation. It only added support/development complexity for no legal benefit. The implementation task is **cancelled** (`ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md`, PR #127 reverted). **152-ФЗ is unresolved; the compliance work is deferred to the backlog sprint** (`ai-agents/tasks/backlog/0048-compliance-152fz-notification-consent/brief.md`) with **risk explicitly accepted** (Mark, 2026-06-28) — likely Roskomnadzor notification + consent. Everything below is kept only as a record of the overturned decision.
 
 **Status:** ~~Investigation complete. Decision locked with Mark 2026-06-26.~~ **Overturned 2026-06-28 — see banner above.**
 **Source task:** `ai-agents/tasks/done/s4-personal-data-compliance-investigation.md`
@@ -21,7 +21,7 @@ operator-notification and explicit-consent obligations that storing the raw ID w
 ## Background
 
 The Player Profile Store was designed to persist real users' **Yandex player IDs + display names**
-(see `s4-player-profile-store-impl.md`). Under 152-ФЗ that persistence triggered up to three
+(see `0013-player-profile-store-impl`). Under 152-ФЗ that persistence triggered up to three
 obligations:
 
 | Obligation | Pre-decision status |

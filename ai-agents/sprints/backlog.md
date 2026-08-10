@@ -17,7 +17,7 @@ the signal to pull the task into a sprint.
 
 | Status | Priority | Task | Brief |
 |---|---|---|---|
-| 🔲 Backlog | — | Migrate `tasks/backlog/` to the fkit task-folder convention | [`0002-migrate-backlog-tasks-to-folders`](../tasks/backlog/0002-migrate-backlog-tasks-to-folders/brief.md) |
+| ✅ Done (agent-closed — not owner-verified) | — | Migrate `tasks/backlog/` to the fkit task-folder convention | [`0002-migrate-backlog-tasks-to-folders`](../tasks/done/0002-migrate-backlog-tasks-to-folders/brief.md) |
 | 🔲 Backlog | — | Migrate `tasks/done/` and `tasks/cancelled/` to the fkit task-folder convention | [`0003-migrate-done-cancelled-tasks-to-folders`](../tasks/backlog/0003-migrate-done-cancelled-tasks-to-folders/brief.md) |
 | 🔲 Backlog | — | Consolidate unsprinted work onto `backlog.md` and retire `sprint-backlog.md` | [`0001-consolidate-unsprinted-work-onto-backlog-board`](../tasks/backlog/0001-consolidate-unsprinted-work-onto-backlog-board/brief.md) |
 | 🔲 Backlog | — | Reconcile legacy status markers in the sprint plans to the canonical vocabulary | [`0004-reconcile-legacy-status-markers-in-sprint-plans`](../tasks/backlog/0004-reconcile-legacy-status-markers-in-sprint-plans/brief.md) |
@@ -28,6 +28,9 @@ the signal to pull the task into a sprint.
 | 🔲 Backlog | — | Self-host the upstream OpenFront API dependency (findings phase) — **pull ahead of any cosmetics monetization work** | [`0009-self-host-upstream-openfront-api-dependency`](../tasks/backlog/0009-self-host-upstream-openfront-api-dependency/brief.md) |
 | 🚧 Blocked — 0009 findings + payment infra + owner decision on the design set | — | Re-enable flags as a paid non-country cosmetic (Task 9) | [`0010-re-enable-flags-paid-non-country-cosmetic`](../tasks/backlog/0010-re-enable-flags-paid-non-country-cosmetic/brief.md) |
 | 🚧 Blocked — 0009 findings + payment infra + owner rulings (pattern set, ad coupling) | — | Re-enable territory patterns (Task 9a) | [`0011-re-enable-territory-patterns`](../tasks/backlog/0011-re-enable-territory-patterns/brief.md) |
+| 🔲 Backlog | — | Reconcile `## Sprint` field values in task briefs to a parseable form | [`0050-reconcile-sprint-field-values`](../tasks/backlog/0050-reconcile-sprint-field-values/brief.md) |
+| 🔲 Backlog | — | Sweep the bare legacy task identities left behind by the `0002` migration | [`0051-sweep-bare-legacy-task-identities`](../tasks/backlog/0051-sweep-bare-legacy-task-identities/brief.md) |
+| 🔲 Backlog | — | Wiki vault follow-up: legacy task filenames left stale by the folder migrations | [`0052-wiki-vault-legacy-filename-follow-up`](../tasks/backlog/0052-wiki-vault-legacy-filename-follow-up/brief.md) |
 
 **Execution order** for the migration set is `0002 → 0003 → 0001 → 0004`, which is dependency order,
 not ID order. `0005`–`0009` are independent of it and of each other.
@@ -68,3 +71,12 @@ Both are now briefed and blocked, which is honest; previously they were invisibl
 `0001`–`0004` were written during project initiation (2026-08-08). `0005`–`0011` came out of the
 open-questions interview and its follow-ups on 2026-08-09, each authorised by an owner ruling
 recorded in that session.
+
+`0050`–`0052` surfaced during task `0002` (the `tasks/backlog/` folder migration) and were
+owner-approved for briefing on 2026-08-10. They are the migration's three recorded residuals:
+`0050` the unparseable `## Sprint` field, `0051` the bare legacy identities in the knowledge-base,
+`0052` the wiki-vault references the migration deliberately excluded (plan decision D3).
+
+`0051` and `0052` both **depend on `0003`** and are not pullable until it lands. `0052`'s ordering was
+an open question when it was drafted; the owner ruled on **2026-08-10** that it runs **after `0003`**,
+in one pass covering both migrations — so it now covers `0003`'s renames too, not just `0002`'s.

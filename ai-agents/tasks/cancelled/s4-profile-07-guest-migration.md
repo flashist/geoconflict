@@ -4,7 +4,7 @@
 > **⚠️ Revival note — the server endpoint no longer exists.** The server side this task drives, `POST /v1/profile/migrate`, was **removed from T5** (`s4-profile-05-backend-db-api.md`) on 2026-06-13 — deleted, not deferred. If guest→authenticated migration is ever revived, you must **re-implement both**: this client-side flow **and** the T5 migration endpoint *with its full untrusted-body hardening* — force `is_paid_citizen=false` / `citizenship_purchased_at=null`, recompute `is_citizen`/`citizenship_earned_at` server-side from the carried `xp`, clamp/reject oversized `xp` at the boundary, and the forward-version writeback guard. The migrate body is the player's own localStorage = attacker-controllable; only `xp` and identity may ever carry over. The original contract is preserved in the body below — pair it with a fresh T5 migration-endpoint slice. Prefer the server-authoritative redesign in the T2 cancellation report (`ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`).
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/s4-player-profile-store-impl.md` — child slice 7 of 8. Implements **Part F**.
+`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` — child slice 7 of 8. Implements **Part F**.
 
 ## Sprint
 Sprint 4

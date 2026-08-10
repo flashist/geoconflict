@@ -14,21 +14,21 @@
 | ⬜ No sprint | Task 8c — Spectating (Citizens Only) | None — see plan-index | Citizenship (Sprint 4) |
 | ⬜ No sprint | Task 9 — Re-enable Flags | None — see plan-index | Payment infrastructure (Sprint 4) |
 | ⬜ No sprint | Task 9a — Re-enable Territory Patterns | None — see plan-index | Payment infrastructure (Sprint 4) |
-| ⬜ No sprint | Monitoring & Alert Bot — Phase 1 (Incident-Preventing Core) | `backlog/monitoring-alert-bot-phase1.md` | — (recommend near-term, weekend deploy) |
-| ⬜ No sprint | Monitoring & Alert Bot — Phase 2 (Depth & Hygiene) | `backlog/monitoring-alert-bot-phase2.md` | Phase 1 deployed |
-| ⬜ No sprint | Mobile Memory and WebGL Rendering Failures | `backlog/mobile-webgl-rendering.md` | Clearer mobile crash/perf data |
-| ⬜ No sprint | sec10 — Remove Password Deploy Fallbacks | `backlog/sec10-remove-password-deploy-fallbacks.md` | — |
-| ⬜ No sprint | sec11 — Secret Management Beyond Env Files | `backlog/sec11-secret-management-beyond-env-files.md` | — |
-| ⬜ No sprint | sec12 — VPS Registry Credential Hygiene (scoped pull-only token, no persisted creds) | `backlog/sec12-vps-registry-credential-hygiene.md` | Release-adjacent (live profile box); pairs with sec13 |
-| ⬜ No sprint | sec13 — Deploy Transport Secret Hygiene (telemetry EXIT-trap parity + remote env 0600) | `backlog/sec13-deploy-transport-secret-hygiene.md` | After T4g (PR #125) merges |
-| ⬜ No sprint | 152-ФЗ Personal-Data Compliance — Roskomnadzor Notification + Consent Flow *(deferred from Sprint 4 2026-06-28, risk accepted)* | `backlog/compliance-152fz-notification-consent.md` | Legal/lawyer-led; resolve before scaling |
-| ⬜ No sprint | Worker Init Timeout — Redundant Map Re-fetch on Join | `backlog/worker-init-timeout-map-refetch.md` | — |
-| ⬜ No sprint | Bots: Stop Building SAM Launchers When Nukes Are Disabled | `backlog/bots-skip-sam-when-nukes-disabled.md` | — |
-| ⬜ No sprint | Bots/Nations: Effective Hydrogen-Bomb Use vs SAM Defenses (offset targeting) — investigation | `backlog/bots-hydrogen-bomb-sam-penetration-investigation.md` | — |
-| ⬜ No sprint | Bots/Nations: Saturate SAM Defenses with Multi-Nuke Salvos — investigation + impl | `backlog/bots-nuke-saturation-sam-overwhelm.md` | Offset-targeting task (above) |
-| ⬜ No sprint | Force "No Nukes" When the Infinite-Gold Weird Mode Is Applied (Public Rotation) | `backlog/infinite-gold-force-no-nukes-public-rotation.md` | — |
-| ⬜ No sprint | Remove Dead `initializeFuseTag` Polling Loop | `backlog/fix-fusetag-dead-polling-loop.md` | — |
-| ⬜ No sprint | Fix GutterAds Unsubscribing from `userMeResponse` After First `hide()` | `backlog/fix-gutterads-usermeresponse-unsubscribe.md` | — |
+| ⬜ No sprint | Monitoring & Alert Bot — Phase 1 (Incident-Preventing Core) | [`0033-monitoring-alert-bot-phase1`](../tasks/backlog/0033-monitoring-alert-bot-phase1/brief.md) | — (recommend near-term, weekend deploy) |
+| ⬜ No sprint | Monitoring & Alert Bot — Phase 2 (Depth & Hygiene) | [`0034-monitoring-alert-bot-phase2`](../tasks/backlog/0034-monitoring-alert-bot-phase2/brief.md) | Phase 1 deployed |
+| ⬜ No sprint | Mobile Memory and WebGL Rendering Failures | [`0031-mobile-webgl-rendering`](../tasks/backlog/0031-mobile-webgl-rendering/brief.md) | Clearer mobile crash/perf data |
+| ⬜ No sprint | sec10 — Remove Password Deploy Fallbacks | [`0015-remove-password-deploy-fallbacks`](../tasks/backlog/0015-remove-password-deploy-fallbacks/brief.md) | — |
+| ⬜ No sprint | sec11 — Secret Management Beyond Env Files | [`0016-secret-management-beyond-env-files`](../tasks/backlog/0016-secret-management-beyond-env-files/brief.md) | — |
+| ⬜ No sprint | sec12 — VPS Registry Credential Hygiene (scoped pull-only token, no persisted creds) | [`0045-vps-registry-credential-hygiene`](../tasks/backlog/0045-vps-registry-credential-hygiene/brief.md) | Release-adjacent (live profile box); pairs with sec13 |
+| ⬜ No sprint | sec13 — Deploy Transport Secret Hygiene (telemetry EXIT-trap parity + remote env 0600) | [`0047-deploy-transport-secret-hygiene`](../tasks/backlog/0047-deploy-transport-secret-hygiene/brief.md) | After T4g (PR #125) merges |
+| ⬜ No sprint | 152-ФЗ Personal-Data Compliance — Roskomnadzor Notification + Consent Flow *(deferred from Sprint 4 2026-06-28, risk accepted)* | [`0048-compliance-152fz-notification-consent`](../tasks/backlog/0048-compliance-152fz-notification-consent/brief.md) | Legal/lawyer-led; resolve before scaling |
+| ⬜ No sprint | Worker Init Timeout — Redundant Map Re-fetch on Join | [`0035-worker-init-timeout-map-refetch`](../tasks/backlog/0035-worker-init-timeout-map-refetch/brief.md) | — |
+| ⬜ No sprint | Bots: Stop Building SAM Launchers When Nukes Are Disabled | [`0036-bots-skip-sam-when-nukes-disabled`](../tasks/backlog/0036-bots-skip-sam-when-nukes-disabled/brief.md) | — |
+| ⬜ No sprint | Bots/Nations: Effective Hydrogen-Bomb Use vs SAM Defenses (offset targeting) — investigation | [`0039-bots-hydrogen-bomb-sam-penetration-investigation`](../tasks/backlog/0039-bots-hydrogen-bomb-sam-penetration-investigation/brief.md) | — |
+| ⬜ No sprint | Bots/Nations: Saturate SAM Defenses with Multi-Nuke Salvos — investigation + impl | [`0040-bots-nuke-saturation-sam-overwhelm`](../tasks/backlog/0040-bots-nuke-saturation-sam-overwhelm/brief.md) | Offset-targeting task (above) |
+| ⬜ No sprint | Force "No Nukes" When the Infinite-Gold Weird Mode Is Applied (Public Rotation) | [`0044-infinite-gold-force-no-nukes-public-rotation`](../tasks/backlog/0044-infinite-gold-force-no-nukes-public-rotation/brief.md) | — |
+| ⬜ No sprint | Remove Dead `initializeFuseTag` Polling Loop | [`0037-fix-fusetag-dead-polling-loop`](../tasks/backlog/0037-fix-fusetag-dead-polling-loop/brief.md) | — |
+| ⬜ No sprint | Fix GutterAds Unsubscribing from `userMeResponse` After First `hide()` | [`0038-fix-gutterads-usermeresponse-unsubscribe`](../tasks/backlog/0038-fix-gutterads-usermeresponse-unsubscribe/brief.md) | — |
 | ⏸ Parked | Task 5 — Deep Mobile Rendering Optimization | None — see plan-index | Mobile DAU > 1,500 |
 | ⏸ Parked | Task 2i — Microsoft Clarity Session Recordings | None — see plan-index | Mobile perf confirmed stable |
 
@@ -96,7 +96,7 @@
 
 ### Monitoring & Alert Bot — Phase 1 (Incident-Preventing Core)
 
-**Brief:** `backlog/monitoring-alert-bot-phase1.md`
+**Brief:** `backlog/0033-monitoring-alert-bot-phase1/brief.md`
 
 Proactive monitoring + Telegram alerting from the 2026-06-04 findings doc. The telemetry VPS
 has frozen twice; the June outage went unnoticed for 2–3 weeks. Phase 1 delivers exactly the
@@ -113,7 +113,7 @@ effort depends on.
 
 ### Monitoring & Alert Bot — Phase 2 (Depth & Hygiene)
 
-**Brief:** `backlog/monitoring-alert-bot-phase2.md`
+**Brief:** `backlog/0034-monitoring-alert-bot-phase2/brief.md`
 
 Builds on Phase 1's machinery (shared Telegram helper, on-box agent framework, alert state).
 Extends the on-box agent to the game-server VPS, and adds slower-degradation hygiene:
@@ -126,7 +126,7 @@ proven**.
 
 ### Mobile Memory and WebGL Rendering Failures
 
-**Brief:** `backlog/mobile-webgl-rendering.md`
+**Brief:** `backlog/0031-mobile-webgl-rendering/brief.md`
 
 Deferred out of Sprint 4c on 2026-06-03. Low-memory devices and unsupported/unstable
 graphics contexts produce uncaught rendering crashes (`getImageData`/`createImageData`
@@ -141,7 +141,7 @@ Optimization), which is gated on mobile DAU > 1,500.
 
 ### sec10 — Remove Password Deploy Fallbacks
 
-**Brief:** `backlog/sec10-remove-password-deploy-fallbacks.md`
+**Brief:** `backlog/0015-remove-password-deploy-fallbacks/brief.md`
 
 Security hardening follow-up from the VPS credential leak incident. Remove `sshpass`-based fallback logic and `ALLOW_SSH_PASSWORD_FALLBACK` flags from all deploy scripts. All supported flows must be SSH-key-only. Low risk, no player-facing impact.
 
@@ -149,7 +149,7 @@ Security hardening follow-up from the VPS credential leak incident. Remove `sshp
 
 ### sec11 — Secret Management Beyond Env Files
 
-**Brief:** `backlog/sec11-secret-management-beyond-env-files.md`
+**Brief:** `backlog/0016-secret-management-beyond-env-files/brief.md`
 
 Security architecture follow-up from the VPS credential leak incident. Inventory secrets by type, choose a target secret-management approach for this team size, and migrate at least one class of secrets out of plaintext local env storage. Produces a documented model and rotation workflow.
 
@@ -157,7 +157,7 @@ Security architecture follow-up from the VPS credential leak incident. Inventory
 
 ### sec12 — VPS Registry Credential Hygiene
 
-**Brief:** `backlog/sec12-vps-registry-credential-hygiene.md`
+**Brief:** `backlog/0045-vps-registry-credential-hygiene/brief.md`
 
 Security hardening follow-up, homed from finding **X2** in the `s4-profile-04e3` stateful-review (PR #121). `setup-profile.sh` runs `docker login --password-stdin` so `docker compose pull` can fetch the private image; the token is delivered securely (stdin, 0600 staged env, sourced + `rm`'d), **but there is no `docker logout` and no isolated `DOCKER_CONFIG`**, so the credential persists base64 in `/root/.docker/config.json` on a public box — and the runbook reuses the *game's* broad registry credentials, so a profile-VPS compromise could expose creds able to read/push unrelated production images. Fix: issue a **repository-scoped, pull-only** token for the VPS (or drop the login if the image is anonymously pullable), and run the pull under an isolated `DOCKER_CONFIG` or `docker logout` immediately after — applied repo-wide to the telemetry deploy too. **Hardening, not a regression** (the persistence was an accepted `s4-profile-04e2` design choice); it narrows blast radius. The more release-adjacent of the sec12/sec13 pair (it concerns the live public box). Sibling of `sec13` (deploy transport secret hygiene); architecture-level secret management → `sec11`.
 
@@ -165,7 +165,7 @@ Security hardening follow-up, homed from finding **X2** in the `s4-profile-04e3`
 
 ### sec13 — Deploy Transport Secret Hygiene
 
-**Brief:** `backlog/sec13-deploy-transport-secret-hygiene.md`
+**Brief:** `backlog/0047-deploy-transport-secret-hygiene/brief.md`
 
 Security hardening follow-up (deploy transport), raised by the technical specialist + code-reviewer while reviewing `s4-profile-04g` (PR #125). Closes two transport-layer secret-exposure windows across both deploy pipelines: **(F-NEW-1)** `build-deploy-telemetry.sh` removes its 0600 secret env_file with an inline `rm` after the SCP, so a failed SCP under `set -e` leaves the plaintext secret on the dev host — give telemetry a single unconditional EXIT-trap cleanup mirroring profile's `finalize_deploy`; **(A2)** the remote staging env_file briefly holds scp-default perms before the in-session `chmod 600` — make it 0600 from creation in both the profile and telemetry scripts. Optional C2 parity: telemetry `StrictHostKeyChecking=no → accept-new`. **Low priority, post-release — NOT a citizenship/profile go-live blocker** (marginal exposure: `/root` is 0700 single-root and the secrets already live plaintext in `.env.*.secret` on the dev host). Builds on T4g's transport code, so it lands after T4g (PR #125) merges — naturally alongside `sec12`. Sibling of `sec12` (registry-credential hygiene).
 
@@ -173,7 +173,7 @@ Security hardening follow-up (deploy transport), raised by the technical special
 
 ### 152-ФЗ Personal-Data Compliance — Roskomnadzor Notification + Consent Flow
 
-**Brief:** `backlog/compliance-152fz-notification-consent.md`
+**Brief:** `backlog/0048-compliance-152fz-notification-consent/brief.md`
 
 Investigation-first legal track (lawyer-led, like the cleared VAT task), **deferred out of Sprint 4 on 2026-06-28 with risk explicitly accepted by Mark.** Storing real Yandex IDs + display names in the profile store triggers 152-ФЗ: Roskomnadzor **operator notification** + a **consent flow** + privacy policy (residency already satisfied on the RU box). Sprint 4's first investigation concluded hashing the ID would avoid the obligation; that was **overturned** (hashing doesn't remove it) and the hashing task cancelled — so we're back to the original obligation, unresolved. **⚠️ Deferral means real PII is persisted in production before notification/consent exist — a conscious, accepted risk, not an oversight.** Carries forward the still-open **display-name** and **email-subscribe** (currently disabled) PII surfaces. Resolve before scaling / before significant real-PII volume. Findings → `personal-data-152fz-findings-v2.md` (v1 is invalidated).
 
@@ -181,7 +181,7 @@ Investigation-first legal track (lawyer-led, like the cleared VAT task), **defer
 
 ### Worker Init Timeout — Redundant Map Re-fetch on Join
 
-**Brief:** `backlog/worker-init-timeout-map-refetch.md` (investigation complete, not yet implemented — full root-cause analysis, file map, and acceptance criteria are there).
+**Brief:** `backlog/0035-worker-init-timeout-map-refetch/brief.md` (investigation complete, not yet implemented — full root-cause analysis, file map, and acceptance criteria are there).
 
 **Priority:** Medium (producer-confirmed). Not a prod-blocker on its own, but a real latent fragility on the client join path, and the proper fix removes a redundant ~5.6 MB map download on every match start, for every player.
 
@@ -197,7 +197,7 @@ It surfaced on the **dev box** (bare-IP host with an untrusted TLS cert): Chrome
 
 ### Bots: Stop Building SAM Launchers When Nukes Are Disabled
 
-**Brief:** `backlog/bots-skip-sam-when-nukes-disabled.md`
+**Brief:** `backlog/0036-bots-skip-sam-when-nukes-disabled/brief.md`
 
 Player-reported (2026-06-11): in "no nukes" matches, bots still build SAM launchers — pure
 wasted gold, since the modifier disables only `MissileSilo` and no nuke can ever exist.
@@ -210,7 +210,7 @@ AI Players. ~Half a day including required `src/core/` tests plus a live no-nuke
 
 ### Bots/Nations: Effective Hydrogen-Bomb Use vs SAM Defenses (offset targeting)
 
-**Brief:** `backlog/bots-hydrogen-bomb-sam-penetration-investigation.md` — **investigation-first.**
+**Brief:** `backlog/0039-bots-hydrogen-bomb-sam-penetration-investigation/brief.md` — **investigation-first.**
 
 Bots/nations barely exploit hydrogen bombs and, when a target is ringed by SAM launchers, they
 **avoid it entirely** instead of penetrating it. The mechanic supports the fix: SAM interception
@@ -233,7 +233,7 @@ Rough: ~1 day investigation, ~2–3 days implementation.
 
 ### Bots/Nations: Saturate SAM Defenses with Multi-Nuke Salvos
 
-**Brief:** `backlog/bots-nuke-saturation-sam-overwhelm.md` — **investigation + implementation.**
+**Brief:** `backlog/0040-bots-nuke-saturation-sam-overwhelm/brief.md` — **investigation + implementation.**
 **Depends on** the offset-targeting task above (shared SAM mechanics + `FakeHumanExecution` refactor).
 
 The second human anti-SAM tactic bots don't use: send multiple nukes one-by-one at a single
@@ -255,7 +255,7 @@ Needs `src/core/` tests **and** live real-map validation. Rough: ~1 day investig
 
 ### Force "No Nukes" When the Infinite-Gold Weird Mode Is Applied (Public Rotation)
 
-**Brief:** `backlog/infinite-gold-force-no-nukes-public-rotation.md`
+**Brief:** `backlog/0044-infinite-gold-force-no-nukes-public-rotation/brief.md`
 
 Public match-quality fix, same pattern as the Sprint 4c compact-map removal. The Sprint 4b
 weird-setting modifier system applies a random rule-set override to ~20% of public matches; one of
@@ -275,7 +275,7 @@ historically frozen — needs a sprint home before implementation. Safe weekend 
 
 ### Remove Dead `initializeFuseTag` Polling Loop
 
-**Brief:** `backlog/fix-fusetag-dead-polling-loop.md`
+**Brief:** `backlog/0037-fix-fusetag-dead-polling-loop/brief.md`
 
 Side bug found during the app-bootstrap investigation (findings doc §2.6 item 1), independent of
 the bootstrap refactor. `Main.ts:950-970` starts a 100ms `setInterval` that waits for
@@ -289,7 +289,7 @@ disabled (vs. a separate deliberate task to re-enable Publift). Safe weekend dep
 
 ### Fix GutterAds Unsubscribing from `userMeResponse` After First `hide()`
 
-**Brief:** `backlog/fix-gutterads-usermeresponse-unsubscribe.md`
+**Brief:** `backlog/0038-fix-gutterads-usermeresponse-unsubscribe/brief.md`
 
 Side bug found during the app-bootstrap investigation (findings doc §2.6 item 2), independent of
 the bootstrap refactor. `GutterAds` subscribes to `userMeResponse` in `connectedCallback`, but

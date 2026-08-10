@@ -37,14 +37,14 @@ up to three obligations:
 | **Lawful basis / user consent** (согласие на обработку ПДн) + privacy policy | ❌ No consent flow exists |
 
 **Trigger:** the **Player Profile Store** persists Yandex player IDs + display names (the
-`player_profiles` table from `s4-player-profile-store-impl.md` / the profile-store investigation).
+`player_profiles` table from `0013-player-profile-store-impl` / the profile-store investigation).
 That persistence of real users' PII is what makes the notification + consent obligation live. Until
 the profile store ships to production with real data, the obligation is not yet active — which is
 the runway that lets this be done properly first.
 
 **This is a third, distinct legal track.** It is *not* covered by the already-cleared VAT/tax gate
 (`s4-legal-vat-investigation.md`) or the in-progress IP/licensing track
-(`s4-licensing-asset-audit.md` + the licensing-compliance posture). Confirmed untracked before this
+(`0025-licensing-asset-audit` + the licensing-compliance posture). Confirmed untracked before this
 task — no prior personal-data/Roskomnadzor coverage existed in `ai-agents/` or the wiki.
 
 ---
@@ -82,7 +82,7 @@ Mark + a Russian data-protection lawyer / consultant to determine:
    notification/consent must precede the first production PII write — this produces the **final gate**
    that replaces the interim stance above.
 7. **Retention & deletion.** User right-to-deletion and retention obligations, and how they interact
-   with the profile store and the deferred S3-backed archival (`s4-archive-s3-backed-citizen-gated.md`).
+   with the profile store and the deferred S3-backed archival (`0030-archive-s3-backed-citizen-gated`).
 
 **Deliverable:** findings written to `ai-agents/knowledge-base/personal-data-152fz-findings.md`,
 then reviewed with Mark to lock the final gate.
@@ -98,7 +98,7 @@ Do **not** detail these until the legal findings are in:
   required by the licensing posture (both are footer/legal links near the existing OpenFront
   attribution).
 - **Consent state in the profile store** — store consent given / consent-text version / timestamp;
-  feed these fields into the `s4-player-profile-store-impl.md` schema so it's built in, not retrofit.
+  feed these fields into the `0013-player-profile-store-impl` schema so it's built in, not retrofit.
 - **Deletion / retention support** — right-to-be-forgotten across the profile store and archival.
 
 These become a follow-up implementation brief scoped from findings.
@@ -109,8 +109,8 @@ These become a follow-up implementation brief scoped from findings.
 
 - **Interim-gates:** Player Profile Store production launch → and therefore the citizenship /
   paid-citizenship launch.
-- **Feeds into:** `s4-player-profile-store-impl.md` (consent fields in schema),
-  `s4-archive-s3-backed-citizen-gated.md` (retention/deletion).
+- **Feeds into:** `0013-player-profile-store-impl` (consent fields in schema),
+  `0030-archive-s3-backed-citizen-gated` (retention/deletion).
 - **Distinct from:** VAT/tax (cleared) and IP/licensing (separate, in-progress track).
 
 ---

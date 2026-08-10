@@ -1,7 +1,7 @@
 # Review ledger — s4-postgres-backup-routine
 
 Task: ai-agents/tasks/backlog/s4-postgres-backup-routine.md (T8 — child slice 8/8 of
-`s4-player-profile-store-impl.md`; implements Part D step 7, off-box encrypted DB backups)
+`0013-player-profile-store-impl`; implements Part D step 7, off-box encrypted DB backups)
 PR: #129 (branch `s4-profile-06-match-end-crediting` → `dev`)
 
 > **Scope note:** PR #129 rides the T6 branch name, but the T6 crediting code is already
@@ -98,7 +98,7 @@ code-reviewer (Round-6) → owner-approved fix (Round-6) → 4-agent adversarial
 - **Active alerting on `last-backup.json` is deferred to monitoring phase-2 [R3]** —
   What: `profile-backup.sh` always writes a machine-readable marker (`last-backup.json`) and
   exits non-zero on any failure, but nothing on the box consumes/alerts on it yet.
-  Why (structural): consuming the marker is `monitoring-alert-bot-phase2.md` item 5 (a separate,
+  Why (structural): consuming the marker is `0034-monitoring-alert-bot-phase2` item 5 (a separate,
   scoped task). The backup is fail-loud (marker + non-zero + `/var/log/profile-backup.log`); the
   alerting is intentionally a follow-up. (Note: B2's deploy-time smoke check — being added — is a
   DIFFERENT, complementary gate; it does not replace phase-2 runtime alerting.)
@@ -315,7 +315,7 @@ verified CORRECT: redeploy regression test **19/19** (drives the real extracted 
   `promote_offbox_backup` (setup-profile.sh) takes a 5th arg and runs the deploy smoke with
   `PROFILE_BACKUP_MARKER_FILE=$BACKUP_DIR/last-smokecheck.json`, and the failure-branch `cat` points there —
   so a failing deploy smoke never clobbers the nightly `last-backup.json`. The monitoring task
-  (`monitoring-alert-bot-phase2.md` item 5) was updated to note the new marker ownership (a fresh box has no
+  (`0034-monitoring-alert-bot-phase2` item 5) was updated to note the new marker ownership (a fresh box has no
   `last-backup.json` until its first nightly run; deploy health is proven by `last-smokecheck.json`).
 - **Adversarial verification:** a 4-lens panel (6a bypass-hunt / 6a regression / N6 correctness / test+edge)
   returned **correct-no-regression** on all four — no new defect, no regression. Confirmed default-deny closes

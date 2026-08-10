@@ -36,6 +36,12 @@ stops knowing which one is law.
 | [`priority-is-rank-not-identity.md`](priority-is-rank-not-identity.md) | the board's Priority cell is rank (`P<n>`); a task's identity is its folder-name ID |
 | [`dependency-declaration-form.md`](dependency-declaration-form.md) | the one `- **Depends on:**` form a brief may use — the form `dashboard.sh` parses |
 
+Added by this project, beyond the scaffold's seven:
+
+| File | In force over |
+|---|---|
+| [`task-id-allocation.md`](task-id-allocation.md) | how a task's permanent four-digit ID is allocated, and that it is never reused or renumbered |
+
 ## Naming
 
 `<subject>.md` — a plain, current name. **Never dated.** A dated filename means "a record of a

@@ -85,7 +85,7 @@ stays on the board it is already on. The `/fkit-task-done` and `/fkit-task-cance
 ## Notes
 
 - **Depends on:** 0002 (defines the ID-allocation scheme and consumes the first block of IDs)
-- **Blocks:** 0004
+- **Blocks:** 0004, 0051, 0052
 
 - Largest file-count change in the migration but the lowest risk — these tasks are closed and nothing
   actively reads them.

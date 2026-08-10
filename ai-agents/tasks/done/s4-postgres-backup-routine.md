@@ -1,7 +1,7 @@
 # Task — PostgreSQL Backup Routine (Player Profile Store)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/s4-player-profile-store-impl.md` — **T8**, child slice 8 of 8. Implements **Part D step 7** (profile DB backups). Depends on T4 (the dedicated profile box + Postgres) and T5 (schema — nothing to dump until the DB exists); **blocks Paid Citizenship**.
+`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` — **T8**, child slice 8 of 8. Implements **Part D step 7** (profile DB backups). Depends on T4 (the dedicated profile box + Postgres) and T5 (schema — nothing to dump until the DB exists); **blocks Paid Citizenship**.
 
 ## Sprint
 Sprint 4 — data-protection prerequisite for monetization.
@@ -9,7 +9,7 @@ Sprint 4 — data-protection prerequisite for monetization.
 ## Priority
 **High.** This is a hard gate on **Paid Citizenship**: the moment players pay real money, an
 entitlement record exists only in our Postgres profile store, and losing it is the worst
-failure mode the game can have at launch. The profile-store impl (`s4-player-profile-store-impl.md`,
+failure mode the game can have at launch. The profile-store impl (`0013-player-profile-store-impl`,
 Part D) stands up `postgres:16-alpine` on a Docker named volume. `setup-profile.sh` already
 writes an **interim local weekly plain-SQL `pg_dump`** into `/opt/profile/backups`, but it lives
 on the **same disk** as the DB — it dies with the box and does **not** satisfy the off-box
@@ -17,7 +17,7 @@ requirement. This task replaces that interim dump with an encrypted, off-box, re
 **daily** backup before money is on the line.
 
 There is also a dangling dependency already in our own docs: the Monitoring & Alert Bot
-**Phase 2** brief (`monitoring-alert-bot-phase2.md`, item 5) plans to *alert on* a
+**Phase 2** brief (`0034-monitoring-alert-bot-phase2`, item 5) plans to *alert on* a
 "weekly PostgreSQL backup cron" — but no task ever **creates** that backup. This task is the
 creation half (and corrects the cadence from weekly to daily — see below).
 
@@ -130,7 +130,7 @@ A backup that has never been restored is not a backup. This part is mandatory.
 
 ## Part F — Monitoring tie-in
 
-- This task produces the backup; the Phase 2 monitoring task (`monitoring-alert-bot-phase2.md`,
+- This task produces the backup; the Phase 2 monitoring task (`0034-monitoring-alert-bot-phase2`,
   item 5) consumes its health signal. **Update that brief's wording from "weekly" to "daily"**
   and set the freshness threshold accordingly (e.g. alert if the newest backup object is
   older than ~26–30h, or if the last run exited non-zero).
@@ -168,9 +168,9 @@ Not "done" because it deployed — done when a **controlled test** proves recove
 ---
 
 ## Sequencing & dependencies
-- **Depends on:** the Player Profile Store schema existing (`s4-player-profile-store-impl.md`,
+- **Depends on:** the Player Profile Store schema existing (`0013-player-profile-store-impl`,
   Parts B/D) — there is nothing to dump until the DB exists.
-- **Must be live before:** Paid Citizenship (`s4-citizenship-paid.md`) — the first task that
+- **Must be live before:** Paid Citizenship (`0018-citizenship-paid`) — the first task that
   writes real-money entitlement records. Earned Citizenship can ship in parallel; backups
   should be live by then too since earned XP is also irreplaceable.
 - **Feeds:** Monitoring & Alert Bot Phase 2 (backup-job health check).
@@ -192,10 +192,10 @@ Either way, this backup task remains required for XP and display-name data.
 ---
 
 ## References
-- Profile store impl (creates the DB): `ai-agents/tasks/backlog/s4-player-profile-store-impl.md`
+- Profile store impl (creates the DB): `ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md`
 - Profile store findings: `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`
 - Yandex payments findings (entitlement/consume nuance): `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`
-- Backup-health monitoring (consumer): `ai-agents/tasks/backlog/monitoring-alert-bot-phase2.md` (item 5)
+- Backup-health monitoring (consumer): `ai-agents/tasks/backlog/0034-monitoring-alert-bot-phase2/brief.md` (item 5)
 - Profile deploy path + secret handling: `build-deploy-profile.sh`, `setup-profile.sh`, `example.env`
 - VPS hosting region / RU residency (152-FZ): `project_vps_hosting_region.md`
 - Secret-leak guardrails: [[decisions/vps-credential-leak-response]]

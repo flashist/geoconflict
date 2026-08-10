@@ -266,7 +266,7 @@ export class LocalServer {
       return;
     }
     // Archiving is disabled until S3-backed, citizen-gated archival ships
-    // (s4-archive-s3-backed-citizen-gated.md). Skip the upload entirely so it
+    // (0030-archive-s3-backed-citizen-gated). Skip the upload entirely so it
     // stops failing client-side (64KB keepalive cap / 413) and flooding telemetry.
     if (!this.lobbyConfig.serverConfig.archiveEnabled()) {
       return;

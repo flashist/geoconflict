@@ -44,7 +44,7 @@ src/client/LocalServer.ts:268-273               singleplayer client leg: skip th
 ```
 
 The follow-up — S3-backed archival gated to citizen games — is scoped in
-`ai-agents/tasks/backlog/s4-archive-s3-backed-citizen-gated.md`. The intended sink is the S3 config
+`ai-agents/tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md`. The intended sink is the S3 config
 the project **already exposes** (`storageEndpoint` / `storageBucket` / `storageAccessKey` /
 `storageSecretKey`, `DefaultConfig.ts:213-225`), which currently has **zero consumers in `src/`**.
 
@@ -81,7 +81,7 @@ the project **already exposes** (`storageEndpoint` / `storageBucket` / `storageA
   `storageAccessKey`/`storageSecretKey` accessors have no callers anywhere in `src/`.
 - **Residual risks / "re-raise only if":**
   - **The citizenship / game-history feature ships** and needs records — then implement
-    `s4-archive-s3-backed-citizen-gated.md` and supersede this ADR. This is the expected exit.
+    `0030-archive-s3-backed-citizen-gated` and supersede this ADR. This is the expected exit.
   - **A consumer of archived records appears for a different reason** (anti-cheat, dispute
     resolution, balance analysis on real matches).
   - **The absence of records blocks a live incident investigation** — that is the empirical trigger
@@ -102,6 +102,6 @@ the project **already exposes** (`storageEndpoint` / `storageBucket` / `storageA
   disk-on-master alternative
 - `../report-archive-endpoint-task-split-2026-06-01.md`
 - `../telemetry-error-priorities-2026-05-07.md` — the error rates quoted above
-- `ai-agents/tasks/backlog/s4-archive-s3-backed-citizen-gated.md` — the follow-up
+- `ai-agents/tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md` — the follow-up
 - `../architecture.md` §9 ("Two features that are present but switched off"), §13 open question 1
   (whether `jwtIssuer()` is a live third party — this bears on the re-enable path)

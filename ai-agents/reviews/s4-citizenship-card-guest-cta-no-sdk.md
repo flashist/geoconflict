@@ -12,7 +12,7 @@ Status: closed-out
 
 | Round | Finding | Verdict | Action |
 |-------|---------|---------|--------|
-| 1 | Codex (C1): login CTA still shown and silently no-ops in degraded mode (case c) | CORRECT (independently traced via `FlashistFacade.ts:641,882-884`) | Accepted as residual — explicitly out of scope per task spec, tracked by the follow-up task `degraded-mode-full-ux-treatment` (see PR 132 / `ai-agents/reviews/degraded-mode-full-ux-treatment.md`) |
+| 1 | Codex (C1): login CTA still shown and silently no-ops in degraded mode (case c) | CORRECT (independently traced via `FlashistFacade.ts:641,882-884`) | Accepted as residual — explicitly out of scope per task spec, tracked by the follow-up task `0049-degraded-mode-full-ux-treatment` (see PR 132 / `ai-agents/reviews/degraded-mode-full-ux-treatment.md`) |
 | 1 | Claude: comment split awkwardly between ternary `:` and `nothing` (`CitizenshipCard.ts:187-189`) | CORRECT but trivial | No action — cosmetic, not worth a revision |
 | 1 | Claude: unused synchronous-SDK-init fallback path in `yandexSdkInit()` (`FlashistFacade.ts:634-641`) could theoretically leave `yaGamesAvailable` stale under a hypothetical future third HTML template | CORRECT but not applicable | No action — pre-existing, not introduced by this diff, neither shipped template (`index.html`, `yandex-games_iframe.html`) exercises that path |
 

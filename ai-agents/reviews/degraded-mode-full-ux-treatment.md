@@ -1,6 +1,6 @@
 # Review ledger — degraded-mode-full-ux-treatment
 
-Task: ai-agents/tasks/backlog/degraded-mode-full-ux-treatment.md
+Task: ai-agents/tasks/backlog/0049-degraded-mode-full-ux-treatment/brief.md
 File(s) under review: src/client/CitizenshipCard.ts, src/client/flashist/FlashistFacade.ts, tests/client/CitizenshipCard.test.ts, tests/client/FlashistFacade.test.ts, resources/lang/en.json, resources/lang/ru.json
 Status: closed-out (rounds 1–3 resolved; round 3 independently re-reviewed by both Claude and Codex, no new findings — see round 3 re-review row below)
 

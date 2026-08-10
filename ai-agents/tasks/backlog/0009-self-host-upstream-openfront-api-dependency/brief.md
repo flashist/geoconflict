@@ -136,7 +136,7 @@ them from findings, or leave them and say why.
 
 - **Depends on:** nothing
 - **Blocks:** 0008; the S3-backed citizen-gated archive task
-  (`s4-archive-s3-backed-citizen-gated.md`, which has its own separate blockers — profile store,
+  (`0030-archive-s3-backed-citizen-gated`, which has its own separate blockers — profile store,
   citizenship, S3 infra); and any cosmetics monetization work gated by `PrivilegeChecker` (Task 9
   flags, Task 9a territory patterns)
 

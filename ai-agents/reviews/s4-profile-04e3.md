@@ -142,7 +142,7 @@ Related ledgers:
   profile box (a provisioned role-marker file, and/or `PROFILE_SERVER_HOST` matching
   `PROFILE_DOMAIN`'s resolved address) and aborts before any mutation. **Repo-wide with
   `build-deploy-telemetry.sh`** (same gap). Frontier-move, not this slice's defect.
-- **X2 (registry token persisted on VPS) → homed in new `sec12-vps-registry-credential-hygiene.md`:**
+- **X2 (registry token persisted on VPS) → homed in new `0045-vps-registry-credential-hygiene`:**
   issue a repo-scoped **pull-only** token for the VPS, and in `setup-profile.sh` either use an
   isolated `DOCKER_CONFIG` for `docker compose pull` or `docker logout` immediately after, so a
   broad credential does not persist in `/root/.docker/config.json` on a public box. The

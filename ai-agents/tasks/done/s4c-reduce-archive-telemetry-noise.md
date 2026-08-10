@@ -11,7 +11,7 @@ the feature can be safely turned off to clear the noise without losing anything 
 can reach.
 
 This is the "stop the noise NOW" half of the archive task split. The real S3-backed
-archival is assigned to Sprint 4 (`s4-archive-s3-backed-citizen-gated.md`), after the
+archival is assigned to Sprint 4 (`0030-archive-s3-backed-citizen-gated`), after the
 player profile store + citizenship land.
 
 ---
@@ -59,7 +59,7 @@ since archival is intentionally inactive until citizenship ships.
 3. **Mark the disable clearly.** Whatever guard turns the feature off (a single
    constant / config flag is ideal) must be obvious and centralized, so Task 2 can
    re-enable the path with a one-line change. Add a short comment pointing to
-   `s4-archive-s3-backed-citizen-gated.md`.
+   `0030-archive-s3-backed-citizen-gated`.
 
 ### Out of scope
 - No S3 / object storage.

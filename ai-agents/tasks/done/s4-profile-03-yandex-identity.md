@@ -1,7 +1,7 @@
 # Task — Player Profile: Verified Yandex Identity Plumbing (T3)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/s4-player-profile-store-impl.md` — child slice 3 of 8. Implements **Part A**.
+`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` — child slice 3 of 8. Implements **Part A**.
 
 ## Sprint
 Sprint 4

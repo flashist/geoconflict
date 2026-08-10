@@ -19,36 +19,36 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | Investigation A — Player Profile Store | `s4-investigation-player-store.md` |
 | ✅ Done | Investigation B — Yandex Payments Catalog | `s4-investigation-yandex-payments.md` |
 | ✅ Done | 8d-A. Global Announcements Re-enable | `s4-8d-a-task-global-announcements.md` |
-| ⚠️ Urgent | Yandex Catalog Registration (manual, non-engineering) | `s4-yandex-catalog-registration.md` |
+| ⚠️ Urgent | Yandex Catalog Registration (manual, non-engineering) | [`0014-yandex-catalog-registration`](../tasks/backlog/0014-yandex-catalog-registration/brief.md) |
 | ✅ Done | Solo Mode: Opponent Win Condition Not Triggering Loss | `s4-solo-win-condition-fix.md` |
 | ✅ Done | Fix: Space Key Blocked in Feedback Modal During Match | `s4-feedback-modal-space-key.md` |
-| ⬜ Backlog | Feedback Popup: Remove Email/Contact Field *(152-ФЗ data minimization; client + server + en/ru)* | `s4-feedback-remove-contact-field.md` |
+| ⬜ Backlog | Feedback Popup: Remove Email/Contact Field *(152-ФЗ data minimization; client + server + en/ru)* | [`0046-feedback-remove-contact-field`](../tasks/backlog/0046-feedback-remove-contact-field/brief.md) |
 | ✅ Done | Investigation — Missions Mode Difficulty Curve | `s4-missions-difficulty-investigation.md` |
 | ✅ Done | Nuke Pre-Launch Trajectory: Increase Line Thickness | `s4-nuke-trajectory-visibility.md` |
-| ⬜ Backlog | Map Labels: Show Troops/Max + Attacking Troops | `s4-map-population-army-labels.md` |
-| ⬜ Backlog | Public Modifier: Add "5M Starting Gold" *(standalone variety modifier; decoupled from infinite-gold task 2026-06-20)* | `s4-starting-gold-public-modifier.md` |
+| ⬜ Backlog | Map Labels: Show Troops/Max + Attacking Troops | [`0041-map-population-army-labels`](../tasks/backlog/0041-map-population-army-labels/brief.md) |
+| ⬜ Backlog | Public Modifier: Add "5M Starting Gold" *(standalone variety modifier; decoupled from infinite-gold task 2026-06-20)* | [`0042-starting-gold-public-modifier`](../tasks/backlog/0042-starting-gold-public-modifier/brief.md) |
 | ✅ Done | Teams Mode: Cap Maximum Teams at 4 | `s4-teams-mode-max-teams.md` |
 | ✅ Done | Start Screen Redesign — Tab Layout Investigation (design) | `s4-start-screen-redesign-investigation.md` |
 | ✅ Done | Start Screen Redesign — Implementation | `s4-start-screen-redesign-impl.md` |
 | ✅ Done | App Bootstrap — Single Explicit Entry Point *(client boot-path refactor; in `done/`)* | `s4-app-bootstrap-single-entry-point.md` |
-| 🔄 In Progress | Player Profile Store — Implementation *(epic; T1 ✅, T3 ✅; T2+T7 ⛔ cancelled 2026-06-13 — guest-first dropped, now authenticated-only; T4 ✅ complete + T5 ✅ done 2026-06-24 (box live at api.geoconflict.ru; profile DB+API PR #126); T6 ✅; T8 ✅ — all slices complete)* | `s4-player-profile-store-impl.md` |
+| 🔄 In Progress | Player Profile Store — Implementation *(epic; T1 ✅, T3 ✅; T2+T7 ⛔ cancelled 2026-06-13 — guest-first dropped, now authenticated-only; T4 ✅ complete + T5 ✅ done 2026-06-24 (box live at api.geoconflict.ru; profile DB+API PR #126); T6 ✅; T8 ✅ — all slices complete)* | [`0013-player-profile-store-impl`](../tasks/backlog/0013-player-profile-store-impl/brief.md) |
 | ✅ Done | PostgreSQL Backup Routine (Profile Store) — off-box, daily *(must be live before Paid Citizenship)* | `s4-postgres-backup-routine.md` |
-| ✅ Done | Personal-Data Compliance (152-ФЗ) — Investigation *(conclusion OVERTURNED 2026-06-28: hashing doesn't remove the obligation. 152-ФЗ work **deferred to backlog** → `compliance-152fz-notification-consent.md`, risk accepted; no longer gates Sprint 4.)* | `s4-personal-data-compliance-investigation.md` |
-| ⛔ Cancelled | Profile Store: Pseudonymize Player Identity — store an irreversible hash, not the raw Yandex ID *(⛔ Cancelled 2026-06-28 — further investigation found hashing does **not** remove the 152-ФЗ obligation; it only adds support/dev complexity for no benefit. PR #127 reverted. 152-ФЗ deferred to backlog → `compliance-152fz-notification-consent.md` (risk accepted).)* | `s4-profile-hash-player-ids.md` |
-| ⬜ Backlog | Yandex Payments — Catalog Fetch & Purchase Infrastructure | `s4-yandex-payments-impl.md` |
+| ✅ Done | Personal-Data Compliance (152-ФЗ) — Investigation *(conclusion OVERTURNED 2026-06-28: hashing doesn't remove the obligation. 152-ФЗ work **deferred to backlog** → `0048-compliance-152fz-notification-consent`, risk accepted; no longer gates Sprint 4.)* | `s4-personal-data-compliance-investigation.md` |
+| ⛔ Cancelled | Profile Store: Pseudonymize Player Identity — store an irreversible hash, not the raw Yandex ID *(⛔ Cancelled 2026-06-28 — further investigation found hashing does **not** remove the 152-ФЗ obligation; it only adds support/dev complexity for no benefit. PR #127 reverted. 152-ФЗ deferred to backlog → `0048-compliance-152fz-notification-consent` (risk accepted).)* | `s4-profile-hash-player-ids.md` |
+| ⬜ Backlog | Yandex Payments — Catalog Fetch & Purchase Infrastructure | [`0019-yandex-payments-impl`](../tasks/backlog/0019-yandex-payments-impl/brief.md) |
 | ✅ Done | Citizenship Core — XP Counter & Progress UI | `s4-citizenship-xp-progress-ui.md` |
 | ✅ Done | Citizenship Card: Login CTA Is a Dead Button Outside a Yandex Context | `s4-citizenship-card-guest-cta-no-sdk.md` |
-| ⬜ Backlog | Degraded-Mode UX: Give Yandex SDK Timeout/Failure Its Own Player-Facing Treatment *(moved in from Sprint backlog 2026-07-02 — Mark: must ship before Citizenship Earned/Paid go live)* | `degraded-mode-full-ux-treatment.md` |
-| ⬜ Backlog | Citizenship Core — Earned Citizenship *(blocked: player profile store; also gated on degraded-mode UX task above)* | `s4-citizenship-earned.md` |
-| ⬜ Backlog | Citizenship Core — Paid Citizenship *(blocked: payments + catalog approval; also gated on degraded-mode UX task above)* | `s4-citizenship-paid.md` |
-| ⬜ Backlog | 8d-B. Personal Inbox *(blocked: player profile store)* | `s4-8d-b-task-personal-inbox.md` |
-| ⬜ Backlog | S3-Backed Match Archival (Citizen-Gated) *(blocked: player profile store + citizenship + S3 infra)* | `s4-archive-s3-backed-citizen-gated.md` |
-| ⬜ Backlog | Investigate & Fix Client Null-ID Errors *(stabilization follow-up; needs source maps + deployed archive fix)* | `s4-investigate-null-id-errors.md` |
+| ⬜ Backlog | Degraded-Mode UX: Give Yandex SDK Timeout/Failure Its Own Player-Facing Treatment *(moved in from Sprint backlog 2026-07-02 — Mark: must ship before Citizenship Earned/Paid go live)* | [`0049-degraded-mode-full-ux-treatment`](../tasks/backlog/0049-degraded-mode-full-ux-treatment/brief.md) |
+| ⬜ Backlog | Citizenship Core — Earned Citizenship *(blocked: player profile store; also gated on degraded-mode UX task above)* | [`0017-citizenship-earned`](../tasks/backlog/0017-citizenship-earned/brief.md) |
+| ⬜ Backlog | Citizenship Core — Paid Citizenship *(blocked: payments + catalog approval; also gated on degraded-mode UX task above)* | [`0018-citizenship-paid`](../tasks/backlog/0018-citizenship-paid/brief.md) |
+| ⬜ Backlog | 8d-B. Personal Inbox *(blocked: player profile store)* | [`0012-personal-inbox`](../tasks/backlog/0012-personal-inbox/brief.md) |
+| ⬜ Backlog | S3-Backed Match Archival (Citizen-Gated) *(blocked: player profile store + citizenship + S3 infra)* | [`0030-archive-s3-backed-citizen-gated`](../tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md) |
+| ⬜ Backlog | Investigate & Fix Client Null-ID Errors *(stabilization follow-up; needs source maps + deployed archive fix)* | [`0032-investigate-null-id-errors`](../tasks/backlog/0032-investigate-null-id-errors/brief.md) |
 | ⬜ Backlog | Name Change (Citizens Only) | TBD |
 | ⬜ Backlog | Citizen Verified Icon | TBD |
 | ⛔ Cancelled | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` |
 | ✅ Done | AI Lobby Slot Bug — Always Keep One Slot Free | `s4-ai-lobby-slot-bug.md` |
-| ⬜ Backlog | Asset audit: confirm no proprietary/CDN assets in production bundle *(prerequisite: paid citizenship)* | `s4-licensing-asset-audit.md` |
+| ⬜ Backlog | Asset audit: confirm no proprietary/CDN assets in production bundle *(prerequisite: paid citizenship)* | [`0025-licensing-asset-audit`](../tasks/backlog/0025-licensing-asset-audit/brief.md) |
 | ⛔ Cancelled | Tutorial — Pause During Action-Required Steps | `s4-tutorial-action-pause.md` |
 | ✅ Done | Tutorial — Remove Nations, Keep Only Bots | `s4-tutorial-no-nations.md` |
 | ✅ Done | Tutorial — Lock Build Menu to City During Tooltip 5 | `s4-tutorial-build-menu-lock.md` |
@@ -126,7 +126,7 @@ Production-risk: touches the prod Yandex-iframe boot path — weekend deploy, li
 ### Player Profile Store — Implementation
 Implement the database and schema recommended by Investigation A. Foundation for all citizenship and purchase tasks.
 
-**Status: 🔄 In Progress.** Originally 8 child slices (T1–T8); on 2026-06-19 the monolithic **T4 was reverted (PR #112) and re-decomposed into 9 ops sub-slices (T4a–T4i)** — see the slice tables in `s4-player-profile-store-impl.md` and `s4-profile-04-backend-infra.md`. **T4 is complete (T4a–T4i all done as of 2026-06-24) — the profile box is live at `api.geoconflict.ru` (200/TLS) — and T5 (DB + API) is done & merged (PR #126).** With T2 and T7 cancelled, the live path is the backend track (T3 ✅ → T4 ✅ → T5 ✅ → T6 ✅ → T8); T6 (match-end crediting) is done — T8 (backups) is now next.
+**Status: 🔄 In Progress.** Originally 8 child slices (T1–T8); on 2026-06-19 the monolithic **T4 was reverted (PR #112) and re-decomposed into 9 ops sub-slices (T4a–T4i)** — see the slice tables in `0013-player-profile-store-impl` and `s4-profile-04-backend-infra.md`. **T4 is complete (T4a–T4i all done as of 2026-06-24) — the profile box is live at `api.geoconflict.ru` (200/TLS) — and T5 (DB + API) is done & merged (PR #126).** With T2 and T7 cancelled, the live path is the backend track (T3 ✅ → T4 ✅ → T5 ✅ → T6 ✅ → T8); T6 (match-end crediting) is done — T8 (backups) is now next.
 - ✅ **T1 — Schema Contract** (`s4-profile-01-schema-contract.md`) — shared `PlayerProfile` type + pure `migrateProfile()`, done & moved to `done/`. `src/core/profile/PlayerProfile.ts` is kept (it is *not* part of the reverted T2 work). Two boundary notes from its review: (1) `xp` is validated only as a nonnegative int up to `MAX_SAFE_INTEGER` — the persist path (T5) must clamp/reject against the chosen DB column max; (2) the migrate body is untrusted shape-only validation — paid/citizenship fields must be force-cleared/recomputed at the trust boundary in T5, not trusted from the contract.
 - ⛔ **T2 — Guest localStorage** — **cancelled 2026-06-13** (Mark); work reverted manually. Report: `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`. A client-only, localStorage-authoritative guest-XP store has too much inherent edge surface (idempotency, multi-tab races, partial-write atomicity, platform-auth timing, "eliminated counts" semantics) — four review rounds hardened those and the scope outgrew the intended small client slice. **Steer:** redo guest-XP as a thin best-effort client cache **with/after T5/T6** so the server is the source of truth; carry forward the `MatchQualification.ts` shared-predicate idea into T5/T6 to prevent client/server drift. Net interim baseline: **no one earns profile XP until T5/T6 land** (the only crediting path was this store) — authenticated users and the Yandex leaderboard are unaffected.
 - ✅ **T3 — Yandex Identity** (`s4-profile-03-yandex-identity.md`) — verified Yandex identity plumbing on the join/auth path (Part A), done & moved to `done/` (PR #111).
@@ -169,7 +169,7 @@ Purchase path via Yandex catalog. 99 rubles. On successful purchase: flip `isCit
 ---
 
 ### 8d-B. Personal Inbox
-**Brief:** `s4-8d-b-task-personal-inbox.md`
+**Brief:** `0012-personal-inbox`
 Direct messages from game to citizens. Personal tab in announcements popup. Messages stored server-side. Initial triggers: citizenship earned/purchased, name change approved/rejected.
 
 **Depends on:** 8d-A live, player profile store live
@@ -177,7 +177,7 @@ Direct messages from game to citizens. Personal tab in announcements popup. Mess
 ---
 
 ### Investigate & Fix Client Null-ID Errors
-**Brief:** `s4-investigate-null-id-errors.md`
+**Brief:** `0032-investigate-null-id-errors`
 **Depends on:** source maps live (`s4c-enable-client-source-maps.md`) + archive noise fix deployed (`s4c-reduce-archive-telemetry-noise.md`)
 
 Stabilization follow-up carried in from the Sprint 4c null-id split (2026-06-03). The
@@ -191,7 +191,7 @@ urgency relative to the citizenship/payments track.
 ---
 
 ### S3-Backed Match Archival (Citizen-Gated)
-**Brief:** `s4-archive-s3-backed-citizen-gated.md`
+**Brief:** `0030-archive-s3-backed-citizen-gated`
 **Depends on:** player profile store live, citizenship live, S3 bucket + credentials provisioned
 
 The "build it properly" half of the 2026-06-01 archive task split. The inherited archive
@@ -226,7 +226,7 @@ weekly cron that was never created — corrected to daily here).
 **Experiments:** ❌ Excluded — legal/compliance obligation.
 **Brief:** `s4-personal-data-compliance-investigation.md`
 **Status:** ✅ Done (2026-06-26) — see Outcome below. Findings: `ai-agents/knowledge-base/personal-data-152fz-findings.md`.
-**Outcome — SUPERSEDED 2026-06-28.** The 2026-06-26 decision (pseudonymize via an irreversible Yandex-ID hash) was **overturned on further investigation: hashing does NOT remove the 152-ФЗ notification/consent obligation** — it only added support/dev complexity for no legal benefit. The hashing task (`s4-profile-hash-player-ids.md`) is **cancelled** and PR #127 was reverted. **152-ФЗ is therefore unresolved** — and per Mark (2026-06-28) the compliance work is **deferred to the backlog sprint** (`compliance-152fz-notification-consent.md`) with **risk explicitly accepted**. It **no longer gates profile-store production go-live in Sprint 4**; the documented, accepted consequence is that real PII persists in prod before notification/consent exist. The findings doc (`personal-data-152fz-findings.md`) is retained but marked **INVALIDATED**. The historical investigation framing follows for context.
+**Outcome — SUPERSEDED 2026-06-28.** The 2026-06-26 decision (pseudonymize via an irreversible Yandex-ID hash) was **overturned on further investigation: hashing does NOT remove the 152-ФЗ notification/consent obligation** — it only added support/dev complexity for no legal benefit. The hashing task (`s4-profile-hash-player-ids.md`) is **cancelled** and PR #127 was reverted. **152-ФЗ is therefore unresolved** — and per Mark (2026-06-28) the compliance work is **deferred to the backlog sprint** (`0048-compliance-152fz-notification-consent`) with **risk explicitly accepted**. It **no longer gates profile-store production go-live in Sprint 4**; the documented, accepted consequence is that real PII persists in prod before notification/consent exist. The findings doc (`personal-data-152fz-findings.md`) is retained but marked **INVALIDATED**. The historical investigation framing follows for context.
 
 Third, distinct legal track (separate from the cleared VAT gate and the in-progress IP/licensing track), flagged by the technical specialist 2026-06-13. Storing real users' Yandex IDs + display names in the profile store triggers 152-ФЗ obligations: **operator notification** to Roskomnadzor and a **user-consent flow** + privacy policy. Data residency (Art. 18.5) is already satisfied (Postgres on the RU game VPS). Locked with Mark 2026-06-13: scope it investigation-first — a Russian data-protection lawyer determines what notification/consent require, whether Yandex platform terms already cover identity-data consent, the minors angle, retention/deletion duties, and the true blocking relationship; the lawyer's findings set the final gate. **Interim stance until findings:** treat as gating the profile-store *production* go-live (don't persist real PII in prod before notification filed + consent live); dev/test with non-real data is fine. Profile store is still backlog, so **start the legal consultation now** to clear in parallel. Consent fields (given / version / timestamp) should feed the profile-store schema; deletion support interacts with the deferred S3 archival. Engineering consent-flow brief scoped from findings.
 
@@ -357,7 +357,7 @@ See full brief: `s4-tutorial-reduce-bots.md`
 **Effort:** ~half a day (client rendering change).
 **Experiments:** ❌ Excluded — informational UI enhancement, ships to all players.
 **Independent** — no dependency on citizenship or payments.
-**Brief:** `s4-map-population-army-labels.md`
+**Brief:** `0041-map-population-army-labels`
 
 Enrich the on-map country labels (`NameLayer.ts`) to mirror the hover info panel: show the troops line as `current / max` (e.g. "10K / 100K") and, when a country is attacking, add a red line below with the total attacking troops. Pure `src/client/` change — all data is already available client-side (`PlayerInfoOverlay` renders the same values today via `player.troops()`, `config.maxTroops(player)`, and summed `outgoingAttacks()`), so no investigation and no `src/core/` work. Visual/live verification at multiple zoom levels and against an attacking country; watch label clutter at mid zoom.
 
@@ -368,7 +368,7 @@ Enrich the on-map country labels (`NameLayer.ts`) to mirror the hover info panel
 **Effort:** ~1 day
 **Experiments:** ❌ Excluded — match-quality change, ships to all players.
 **Independent** — no dependency on citizenship or payments, and (as of 2026-06-20) decoupled from the infinite-gold modifier task: this is now a standalone weird sub-option that ships on its own.
-**Brief:** `s4-starting-gold-public-modifier.md`
+**Brief:** `0042-starting-gold-public-modifier`
 
 Add a bounded economic-boost weird modifier: a one-time **5M starting gold** grant for real players (`Human` + `AiPlayer` only — nations and filler bots stay at 0). It gives a finite head-start to expand and defend early, then normal economy resumes — broadening public weird-match variety alongside the existing army/nuke/SAM modifiers. Adds a new `startGold` `GameConfig` field (schema + every config literal, client and server), a `startGold(playerInfo)` config method mirroring `startManpower`, player-init wiring in `src/core/`, a "5M Starting Gold" lobby badge, and en/ru localization. Recipient predicate matches the existing `infiniteGold` `Human || AiPlayer` gate. Locked with Mark 2026-06-13: recipients = real players only, amount = 5M, public rotation only. **Adds** (does not replace) a sub-option, so `WEIRD_SETTING_OPTIONS` grows four → five (20% budget split five ways). `src/core/` desync-sensitive (all config literals must carry the field); live public-rotation spot-check is the verification gate.
 
@@ -391,11 +391,11 @@ See full brief: `s4-email-subscribe-task.md`
 **Effort:** ~half a day
 **Experiments:** ❌ Excluded — legal/compliance change, ships to all players.
 **Independent** — no dependency on the citizenship/payments track.
-**Brief:** `s4-feedback-remove-contact-field.md`
+**Brief:** `0046-feedback-remove-contact-field`
 
 The feedback popup collects an optional contact field (placeholder *"Email or Telegram (optional)"*). Collecting personal contact data triggers 152-ФЗ obligations for a field we don't need, so remove it entirely — data minimization. Full end-to-end removal across `src/client/FeedbackModal.ts` (state, input, payload), `src/server/Master.ts` (`contact` out of `FeedbackSchema` so Zod strips it even from stale clients, plus the webhook + Telegram message formatting), and the `feedback_modal.contact_placeholder` key in **both** en/ru. Verification is live: field gone from the popup, and the delivered Telegram report no longer carries a Contact line; `Feedback:Submitted` still fires (no new analytics).
 
-**⚠️ Related exposure:** the **Email Subscription Modal** (above) collects email by design — same 152-ФЗ concern, different fix (can't just remove; needs a consent decision). Recommend folding it into the deferred 152-ФЗ backlog task (`compliance-152fz-notification-consent.md`), which now carries this surface. This feedback-field removal is safe to ship now regardless.
+**⚠️ Related exposure:** the **Email Subscription Modal** (above) collects email by design — same 152-ФЗ concern, different fix (can't just remove; needs a consent decision). Recommend folding it into the deferred 152-ФЗ backlog task (`0048-compliance-152fz-notification-consent`), which now carries this surface. This feedback-field removal is safe to ship now regardless.
 
 ---
 

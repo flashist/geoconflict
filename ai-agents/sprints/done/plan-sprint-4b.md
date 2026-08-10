@@ -78,5 +78,5 @@ The modifier system has two levels. First: is this match modified? (20% rate, co
 ## Notes
 
 - Do not touch the citizenship track, player profile store, Yandex payments, or start screen redesign in this sprint
-- The win-check regression investigation (`s4-win-check-multiplayer-regression-investigation.md`) remains in backlog and should be addressed after Mark returns
+- The win-check regression investigation (`0022-win-check-multiplayer-regression-investigation`) remains in backlog and should be addressed after Mark returns
 - Security tasks (sec10, sec11) remain in backlog

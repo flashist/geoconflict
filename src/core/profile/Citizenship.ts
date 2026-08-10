@@ -8,7 +8,7 @@
  * server's authoritative flip. No I/O, no clocks — safe to import anywhere.
  *
  * See ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md (T5) and the epic
- * s4-player-profile-store-impl.md (Part B/E).
+ * 0013-player-profile-store-impl (Part B/E).
  */
 
 /** XP at which a player earns (free) citizenship. */

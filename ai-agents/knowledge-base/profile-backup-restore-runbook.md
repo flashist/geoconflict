@@ -158,7 +158,7 @@ drill predates the default-deny guard, so its command line differed from what is
 
 - After each run the script writes `/opt/profile/backups/last-backup.json`:
   `{schema, started_at, finished_at, exit_status, object_key, size_bytes, error}`.
-- The Phase-2 monitor (`monitoring-alert-bot-phase2.md` item 5) alerts when `exit_status != 0`
+- The Phase-2 monitor (`0034-monitoring-alert-bot-phase2` item 5) alerts when `exit_status != 0`
   or `finished_at` is older than ~26–30h.
 - The script exits **non-zero** on any failure (dump/encrypt/upload/verify), so cron + monitoring
   both notice. Upload is verified (object exists + size matches) **before** the local temp is

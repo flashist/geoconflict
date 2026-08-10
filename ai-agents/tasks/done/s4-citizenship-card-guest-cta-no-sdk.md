@@ -4,7 +4,7 @@
 Sprint 4 — follow-up to `s4-citizenship-xp-progress-ui.md` (done)
 
 ## Priority
-Low–Medium — not a crash, but a misleading dead control on the citizenship card. Confirmed today in local/standalone dev (cosmetic only, since production never serves `index.html` — see the HTML asymmetry below). The same state-collapse also affects real players in Yandex SDK degraded mode (SDK present but `YaGames.init()` times out) — same dead CTA, but likely rare; check `Session:PlatformInitTimeout` volume before treating as urgent. Deciding what degraded mode *should* look like everywhere is a separate, bigger question — tracked as `degraded-mode-full-ux-treatment.md` (Sprint backlog).
+Low–Medium — not a crash, but a misleading dead control on the citizenship card. Confirmed today in local/standalone dev (cosmetic only, since production never serves `index.html` — see the HTML asymmetry below). The same state-collapse also affects real players in Yandex SDK degraded mode (SDK present but `YaGames.init()` times out) — same dead CTA, but likely rare; check `Session:PlatformInitTimeout` volume before treating as urgent. Deciding what degraded mode *should* look like everywhere is a separate, bigger question — tracked as `0049-degraded-mode-full-ux-treatment` (Sprint backlog).
 
 ## Experiments
 ❌ Excluded — bugfix/UX correctness, ships to all players.
@@ -61,5 +61,5 @@ In cases (a) and (c), tapping "Войти в Яндекс" calls `FlashistFacade
 ## Notes
 
 - Polish/correctness follow-up to the already-shipped `s4-citizenship-xp-progress-ui.md` — not new scope, no analytics changes.
-- Out of scope: any change to degraded-mode (case c) UX — that's `degraded-mode-full-ux-treatment.md` (Sprint backlog), which should also revisit whether case (c) deserves its own card treatment instead of being lumped in with real guests.
+- Out of scope: any change to degraded-mode (case c) UX — that's `0049-degraded-mode-full-ux-treatment` (Sprint backlog), which should also revisit whether case (c) deserves its own card treatment instead of being lumped in with real guests.
 - If implementing this reveals `Session:PlatformInitTimeout` fires more than expected in production, feed that back into the backlog task's priority — it currently has no dedicated sprint slot.

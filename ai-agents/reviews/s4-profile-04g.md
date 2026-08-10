@@ -129,7 +129,7 @@ persisted `DOCKER_TOKEN` X2 residual) — none re-raised here.
 
 ## Forward notes (for downstream tasks)
 
-- **F-NEW-1 → homed in `ai-agents/tasks/backlog/sec13-deploy-transport-secret-hygiene.md`:** give
+- **F-NEW-1 → homed in `ai-agents/tasks/backlog/0047-deploy-transport-secret-hygiene/brief.md`:** give
   `build-deploy-telemetry.sh` a single unconditional EXIT-trap finalize (covering **both**
   `LOCAL_TMPENV` and `SSH_PASSWORD_FILE`) like profile's `finalize_deploy`, so a failed SCP can't
   leave a 0600 secret env_file on the dev host. Traps are **non-additive** — fold the existing

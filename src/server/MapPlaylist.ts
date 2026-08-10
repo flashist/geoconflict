@@ -38,7 +38,7 @@ export const WEIRD_SETTING_OPTIONS: Array<() => Partial<GameConfig>> = [
 // unresolvable isShore boat-attack defect — half-resolution downsampling drops coastal isShore
 // data, which breaks the transport-boat radial action on tiles that visually border water. The
 // runtime workaround was cancelled (it sent boats to semantically wrong coasts), so the only real
-// fix is regenerating all 30 map4x.bin binaries in s5-fix-compact-map-shore-generation.md. This
+// fix is regenerating all 30 map4x.bin binaries in 0026-fix-compact-map-shore-generation. This
 // definition is kept here so re-enabling after s5 lands is a one-line change: add
 // MINI_MAP_MODIFIER back into MATCH_MODIFIERS below.
 export const MINI_MAP_MODIFIER: MatchModifier = {
@@ -47,7 +47,7 @@ export const MINI_MAP_MODIFIER: MatchModifier = {
 };
 
 export const MATCH_MODIFIERS: MatchModifier[] = [
-  // MINI_MAP_MODIFIER, // re-enable after s5-fix-compact-map-shore-generation.md (see note above)
+  // MINI_MAP_MODIFIER, // re-enable after 0026-fix-compact-map-shore-generation (see note above)
   {
     id: "weird_setting",
     apply: () => {

@@ -1,7 +1,7 @@
 # Task — Profile Backend Infra: Propagate `PROFILE_API_URL` into the game-server deploy env (T4h)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/s4-player-profile-store-impl.md` (Part D, config/secrets). Follow-up to `s4-profile-04b-client-api-url-config.md` (T4b) — closes a decomposition gap surfaced in review: T4b wired `profileApiUrl` through the config chain into `/api/env` with **zero deploy surface**, so nothing propagates the value to the game-server container in a real deploy.
+`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` (Part D, config/secrets). Follow-up to `s4-profile-04b-client-api-url-config.md` (T4b) — closes a decomposition gap surfaced in review: T4b wired `profileApiUrl` through the config chain into `/api/env` with **zero deploy surface**, so nothing propagates the value to the game-server container in a real deploy.
 
 ## Sprint
 Sprint 4 (mergeable any time; **must land before** the later-sprint client UI that consumes `profileApiUrl`).
@@ -15,7 +15,7 @@ T4b (the `profileApiUrl` config + `/api/env` field + `example.env` doc must exis
 ## Blocks
 Every runtime consumer of `PROFILE_API_URL`, all of which resolve it to `""` in prod until this lands:
 - **T6** (`s4-profile-06-match-end-crediting.md`) — game-server `ProfileApiClient` calls `PROFILE_API_URL`.
-- The later-sprint **Citizenship client UI** (`s4-citizenship-earned.md`) — profile re-fetch reads `profileApiUrl` from `/api/env` (already gated behind T6).
+- The later-sprint **Citizenship client UI** (`0017-citizenship-earned`) — profile re-fetch reads `profileApiUrl` from `/api/env` (already gated behind T6).
 
 ## Context
 The game server is deployed by `deploy.sh` → `update.sh`, which is a **separate pipeline** from the profile box (`build-deploy-profile.sh` / `setup-profile.sh`, owned by T4e). `deploy.sh` sources the layered env files (`.env` → `.env.secret` → `.env.$ENV` → `.env.$ENV.secret`, `deploy.sh:72-75`) but then writes the container's runtime env as an **explicit allowlist heredoc** (`deploy.sh:279-308`) — every var the container gets is named there (`API_BASE_URL`, `JWT_ISSUER`, `STORAGE_*`, `OTEL_*`, …). `update.sh:73` starts the container with `--env-file "$ENV_FILE"` **exclusively** (no bulk passthrough). `PROFILE_API_URL` is absent from that heredoc, so `process.env.PROFILE_API_URL` is unset in the container and `DefaultConfig.profileApiUrl()` falls back to `""`.

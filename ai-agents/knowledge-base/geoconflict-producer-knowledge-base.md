@@ -331,7 +331,7 @@ Launch citizenship system and in-app purchase foundation. Rewarded ads deferred 
 | Citizenship — Match Counter & Progress UI | TBD | After investigation |
 | Citizenship — Earned (50 matches) | TBD | After investigation |
 | Citizenship — Paid (99 RUB) | TBD | After investigation |
-| 8d-B Personal Inbox | `s4-8d-b-task-personal-inbox.md` | Needs 8d-A + profile store |
+| 8d-B Personal Inbox | `0012-personal-inbox` | Needs 8d-A + profile store |
 | Name Change (citizens only) | TBD | After investigation |
 | Citizen Verified Icon | TBD | After investigation |
 | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` | Independent |

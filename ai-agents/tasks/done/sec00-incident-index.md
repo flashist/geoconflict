@@ -177,5 +177,5 @@ This conversion is now complete. Remaining work is tracked in:
 
 - `sec08-ci-docker-secret-boundary-check.md`
 - `sec09-registry-visibility-and-image-retention-policy.md`
-- `sec10-remove-password-deploy-fallbacks.md`
-- `sec11-secret-management-beyond-env-files.md`
+- `0015-remove-password-deploy-fallbacks`
+- `0016-secret-management-beyond-env-files`

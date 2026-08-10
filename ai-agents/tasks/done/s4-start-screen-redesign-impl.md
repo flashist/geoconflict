@@ -16,7 +16,7 @@ The instructions to the coding agent is:
 
 Read the design file before reading the rest of this brief — the visual spec is authoritative. This brief defines scope boundaries, technical requirements, and what is explicitly out of scope.
 
-> **Analytics:** this task owns `Citizenship:Seen` and `UI:Tap:CitizenshipLoginToEarn`. Read `analytics-p1-citizenship-funnel.md` before starting — events must be wired during implementation, not added later.
+> **Analytics:** this task owns `Citizenship:Seen` and `UI:Tap:CitizenshipLoginToEarn`. Read `0021-analytics-p1-citizenship-funnel` before starting — events must be wired during implementation, not added later.
 
 ---
 
@@ -37,7 +37,7 @@ Read the design file before reading the rest of this brief — the visual spec i
 ### Out of scope (separate tasks)
 
 - Citizenship card live data: XP bar values, profile reads, guest/citizen state logic, login CTA flow → `s4-citizenship-xp-progress-ui.md`
-- "Buy Citizenship" purchase button → `s4-citizenship-paid.md`
+- "Buy Citizenship" purchase button → `0018-citizenship-paid`
 - Private lobby entry point (reserved space in Multiplayer tab — placeholder only if needed)
 
 ---

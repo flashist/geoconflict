@@ -1,7 +1,7 @@
 # Task — Profile Backend Infra: Local build + push + @sha256 digest pinning (T4e1)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/s4-player-profile-store-impl.md` (Part D). **Decomposed from `s4-profile-04e-deploy-mechanics.md` (T4e)** — the first of three slices that split T4e along the test-assertion boundary (local / on-box / wiring). See postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`.
+`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` (Part D). **Decomposed from `s4-profile-04e-deploy-mechanics.md` (T4e)** — the first of three slices that split T4e along the test-assertion boundary (local / on-box / wiring). See postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`.
 
 ## Sprint
 Sprint 4
