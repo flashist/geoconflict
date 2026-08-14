@@ -55,6 +55,52 @@ doc says so itself: it is a starting convention, and it is yours to amend, in ex
 sprint-plan files; doing status reconciliation first means editing every plan twice and risking
 merge pain for no benefit.
 
+## ⚠️ Scope widened 2026-08-10 — the status *section* itself, not only the markers inside it
+
+Two additions, **both ruled by the owner on 2026-08-10**. They are recorded here because verification
+step 5 ("`dashboard.sh` runs clean over the reconciled plans") is **unachievable without them** — the
+script cannot read five of our seven plans at all today, so "reconciled" could otherwise be declared
+true over documents no tool has ever parsed.
+
+Measured by running `dashboard.sh` on every board in `ai-agents/sprints/` on 2026-08-10:
+
+| File | `## Status` section | What the script does |
+|---|---|---|
+| `plan-sprint-4.md` | `## Sprint 4 Status` | dies at `dashboard.sh:206` |
+| `plan-sprint-4c.md` | `## Sprint 4c Status` | dies at `dashboard.sh:206` |
+| `plan-sprint-6.md` | `## Sprint 6 Status` | dies at `dashboard.sh:206` |
+| `plan-sprint-5.md` | **none at all** | dies at `dashboard.sh:206` |
+| `plan-index.md` | **none at all** | dies at `dashboard.sh:206` |
+| `sprint-backlog.md` | `## Status` ✅ | parses |
+| `backlog.md` | `## Status` ✅ | parses |
+
+Also affected in `ai-agents/sprints/done/`: `plan-sprint-3.md` and `plan-sprint-4b.md` carry
+`## Sprint <N> Status`; `plan-sprint-1.md`, `plan-sprint-2.md` and `hotfix-post-sprint2.md` have no
+status section at all.
+
+**Addition 1 — rename the heading** (owner-ruled 2026-08-10). `## Sprint <N> Status` → `## Status`,
+in every plan that has one. `dashboard.sh` matches the heading exactly (`STATUS_HEADING_RE`, checked
+at `:206`); a prefixed heading is not a near-miss, it is a hard refusal of the whole file.
+
+**Addition 2 — `plan-sprint-5.md` and `plan-index.md` have no status table to rename**
+(owner-ruled 2026-08-10). The owner chose to **widen this task rather than open a separate brief**,
+on the grounds that otherwise "fix the sprint docs" completes with two of five plans still
+unreadable — which is precisely the kind of board-shaped lie this task exists to end.
+
+> ⚠️ **This changes the size of the task, and the estimate should not be carried over.** Renaming a
+> heading is a mechanical edit. **Authoring a status table from scratch is not** — it means deciding
+> which of each plan's items are tasks, finding or confirming each one's brief link, and assigning
+> each a status from the canonical vocabulary. For `plan-index.md` there is a prior question:
+> **is it a task board at all, or a navigation document?** An index that merely links to the other
+> plans should probably **not** grow a `## Status` table, and "this file is deliberately not a board"
+> is a legitimate, complete outcome. **Establish that before authoring anything** — see What to build
+> step 3b.
+
+**Downstream:** `0053` tracks a separate, upstream defect in `dashboard.sh` itself (`PLAN_SPRINT`
+fails to resolve on our plan filenames). The two are independent — but `0053`'s verification cannot
+run until this task makes at least one `plan-sprint-*.md` readable. Nothing here should wait on
+`0053`.
+
 ## What to build
 
 1. **Inventory every status marker** currently in use across `ai-agents/sprints/` (including
@@ -66,6 +112,23 @@ merge pain for no benefit.
 
 3. **Convert every mappable marker** to its canonical form across all sprint plans and the backlog
    board.
+
+3a. **Rename `## Sprint <N> Status` → `## Status`** in every plan that has one, including the
+   archived plans in `sprints/done/` (owner ruling 2026-08-10 — see the widened-scope section). This
+   is what lets `dashboard.sh` read the file at all; do it **before** step 1's inventory is called
+   complete, since the inventory of a file the tooling cannot open is a hand-read.
+
+3b. **Handle the two plans with no status section** — `plan-sprint-5.md` and `plan-index.md`
+   (owner ruling 2026-08-10). **Decide first, author second:**
+   - For `plan-index.md`, answer *"is this a task board or a navigation document?"* and put the
+     answer to the owner with a recommendation. If it is navigation, **record that ruling in the file
+     itself** and author no table — that is a complete outcome, not a skipped step.
+   - For any plan that genuinely is a board, author the `## Status` table from the plan's own
+     content. **Derive every row from what the document already says.** Never invent a status, and
+     never invent a brief link — a task with no brief gets an empty Brief cell, which the dashboard
+     handles, rather than a guessed path.
+   - List in the hand-off every item you could not classify, rather than assigning it a status to
+     make the table complete.
 
 4. **Backfill dates and reasons on closed rows.** `⛔ Cancelled` rows need
    `(YYYY-MM-DD) — <reason>`; both are mandatory. Recover them from
@@ -92,7 +155,13 @@ merge pain for no benefit.
    `cancelled-tasks.md`.
 4. Every `✅ Done` row corresponds to a brief that actually lives in `ai-agents/tasks/done/`, and
    every `⛔ Cancelled` row to one in `cancelled/`. Mismatches are reported, not fixed.
-5. `dashboard.sh` runs clean over the reconciled plans with no unparseable rows.
+5. **`dashboard.sh` actually reads every plan** — run it on each file in `ai-agents/sprints/` and
+   `ai-agents/sprints/done/` and paste the results. **No file may `die` with
+   `no '## Status' section`**, except one the owner explicitly ruled is not a board (see step 3b),
+   which must be named in the hand-off with the ruling. No unparseable rows.
+   ⚠️ Before this task, **five of seven plans died at `dashboard.sh:206`** — so a "clean run" that
+   silently covers only the two readable boards is the failure mode this step exists to catch.
+   State how many files you ran it on.
 6. The before/after inventory from step 1 shows a one-to-one row count — **no row was dropped** in
    conversion.
 7. If the vocabulary was amended, `conventions/task-status-vocabulary.md` carries the new value and
@@ -112,4 +181,9 @@ this task, **not** a reason to move files. Report it; the owner decides.
 - Producer-owned: this is status-vocabulary and board curation work, not source code.
 - The real deliverable is that board-driven views stop lying. Amending the vocabulary doc is a
   legitimate outcome, not a failure to conform.
+- ⚠️ **Scope was widened on 2026-08-10** (two owner rulings — see the widened-scope section after
+  Context). Any estimate made before that date is stale: authoring a status table from scratch for
+  `plan-sprint-5.md` is materially different work from renaming a heading.
+- **Do not touch `.claude/skills/fkit-status/dashboard.sh`.** The reader has its own defect, tracked
+  upstream by `0053`. This task changes the plan documents only.
 - No secrets: these files go to git.

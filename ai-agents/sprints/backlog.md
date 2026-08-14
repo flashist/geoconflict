@@ -31,6 +31,7 @@ the signal to pull the task into a sprint.
 | 🔲 Backlog | — | Reconcile `## Sprint` field values in task briefs to a parseable form | [`0050-reconcile-sprint-field-values`](../tasks/backlog/0050-reconcile-sprint-field-values/brief.md) |
 | 🔲 Backlog | — | Sweep the bare legacy task identities left behind by the `0002` migration | [`0051-sweep-bare-legacy-task-identities`](../tasks/backlog/0051-sweep-bare-legacy-task-identities/brief.md) |
 | 🔲 Backlog | — | Wiki vault follow-up: legacy task filenames left stale by the folder migrations | [`0052-wiki-vault-legacy-filename-follow-up`](../tasks/backlog/0052-wiki-vault-legacy-filename-follow-up/brief.md) |
+| 🔲 Backlog | — | Track the upstream `PLAN_SPRINT` resolution defect in fkit's `dashboard.sh` until a release fixes it *(handed to the fkit maintainer 2026-08-10 — not our fix to make)* | [`0053-fix-plan-sprint-name-resolution-in-dashboard`](../tasks/backlog/0053-fix-plan-sprint-name-resolution-in-dashboard/brief.md) |
 
 **Execution order** for the migration set is `0002 → 0003 → 0001 → 0004`, which is dependency order,
 not ID order. `0005`–`0009` are independent of it and of each other.

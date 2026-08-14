@@ -46,7 +46,7 @@ field is not merely untidy; the thing tooling actually sees is a fragment nobody
 
 `dashboard.sh` compares `## Sprint` against the board's own sprint identity (`PLAN_SPRINT`). On the
 **Backlog board** the comparison is **exact string equality against `Backlog`**
-(`dashboard.sh:796`), and rule 1's usual "brief names another sprint, skip the check" excuse is
+(`dashboard.sh:802`), and rule 1's usual "brief names another sprint, skip the check" excuse is
 deliberately disabled there. **Every value that is not literally `Backlog` fires
 `drift disagreement` on that board.**
 
@@ -74,12 +74,27 @@ though it is not blocked by it — the inventory and the decision can be made no
 - `0002`'s plan §8 flagged this field as *"a gap with no task"* and recommended a brief. This is it.
   `0002` did not create the problem and did not fix it; it made it visible.
 
-### An adjacent finding — raise it, do not silently absorb it
+### An adjacent finding — ✅ ANSWERED 2026-08-10, now tracked by `0053`
 
 The `PLAN_SPRINT`-resolves-empty defect above is a **board-side** naming/parse mismatch, not a
 brief-side one. Reconciling every brief to `Sprint 4` achieves nothing on a board whose identity
-never resolves. **Put to the owner whether fixing that belongs in this task or in its own brief** —
-do not fix it silently as a side effect, and do not quietly drop it either.
+never resolves.
+
+**This was put to the owner and ruled on 2026-08-10: it gets its own brief, and it is
+[`0053`](../0053-fix-plan-sprint-name-resolution-in-dashboard/brief.md).** It is **out of scope
+here** — do not reopen it, do not investigate it, and do not fix it as a side effect of this task.
+
+Two things `0053` established that change how this task should read its own Context:
+
+- ⚠️ **The failure direction stated above is incomplete.** Rule 1 is a *skip*, so an empty
+  `PLAN_SPRINT` **disables** the skip and sprint boards **over**-report phantom drift. The
+  under-reporting is real but specific to backlog-shaped boards, via the `:772` arm. It does not
+  change this task's work, but do not repeat the simpler framing.
+- **The fix is upstream, not ours.** `dashboard.sh` is gitignored here and belongs to the fkit
+  toolkit; the owner ruled it be handed to the fkit maintainer
+  (`ai-agents/knowledge-base/reports/fkit-dashboard-plan-sprint-resolution-defect-2026-08-10.md`) and
+  taken in a future fkit release. **Nothing in this task waits on it** — this task's own verification
+  runs on `backlog.md`, which resolves correctly today.
 
 ## What to build
 
@@ -90,7 +105,7 @@ do not fix it silently as a side effect, and do not quietly drop it either.
 
 2. **Decide the canonical form, and put it to the owner.** The candidates are a bare sprint name
    (`Sprint 4`) or the bare word `Backlog`, matching what `0001`–`0011` already write and what
-   `dashboard.sh:796` tests for. Decide explicitly what an unscheduled-but-not-backlog task writes
+   `dashboard.sh:802` tests for. Decide explicitly what an unscheduled-but-not-backlog task writes
    (`0023` currently says `Unscheduled — parking lot…`), and whether `Unscheduled` is a fourth value
    or collapses to `Backlog`.
 
@@ -110,8 +125,11 @@ do not fix it silently as a side effect, and do not quietly drop it either.
    to the owner either way, with the reason. If yes, write it — it is the artifact that stops this
    drifting back.
 
-6. **Raise the adjacent `PLAN_SPRINT` finding** (see Context) as an in-scope-or-separate-brief
-   question. Owner decides.
+6. ~~**Raise the adjacent `PLAN_SPRINT` finding** as an in-scope-or-separate-brief question.~~
+   ✅ **Done — owner ruled "separate brief" on 2026-08-10. It is
+   [`0053`](../0053-fix-plan-sprint-name-resolution-in-dashboard/brief.md), and it is out of scope
+   here.** Nothing remains for this step; it is kept rather than deleted so the question is visibly
+   closed and not re-asked.
 
 7. **Change no task's actual sprint assignment.** This is a *notation* change. A brief that means
    "Sprint 4" still means Sprint 4 afterwards. If reconciliation reveals a brief whose recorded
