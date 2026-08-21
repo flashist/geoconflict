@@ -62,6 +62,13 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | — | Email Subscription Modal | [`s4-email-subscribe-task.md`](../tasks/done/s4-email-subscribe-task.md) |
 | ✅ Done | — | Telegram Channel Link (start screen, game-end screen) | [`s4-telegram-link.md`](../tasks/done/s4-telegram-link.md) |
 | ✅ Done | — | VK Channel Link (start screen, game-end screen) | [`s4-vk-link.md`](../tasks/done/s4-vk-link.md) |
+| ✅ Done (agent-closed — not owner-verified) | — | Hide Citizenship Card on Start Screen Behind a Client Config Flag (Default OFF) *(interim until 0017/0018 ship; flag flips ON at citizenship launch)* | [`0054-hide-citizenship-card-behind-client-flag`](../tasks/done/0054-hide-citizenship-card-behind-client-flag/brief.md) |
+
+> **Addendum — task 0054 added out of band (2026-08-21).** Owner-requested interim fix: the production
+> start screen shows the citizenship card in its 0049 degraded "couldn't connect" state while citizenship
+> (0017/0018) has not shipped. Owner ruled the mechanism (client config flag, default OFF; rejected
+> hard-hide and show-only-when-backend-up) and the timing (ship now). This sprint's Status board is
+> unranked, so the Priority cell reads `—` like every other row — no rank was assigned or displaced.
 
 ---
 

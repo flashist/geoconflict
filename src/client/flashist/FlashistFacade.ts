@@ -151,6 +151,15 @@ export const flashistConstants = {
     CITIZENSHIP_UI_ENABLED_VALUE: "enabled",
   },
 
+  features: {
+    // Local compile-time gate for the start-screen citizenship card (task 0054).
+    // Default OFF until citizenship ships (0017/0018) — flipping this to true IS
+    // the relaunch. Distinct from the remote "citizenship_ui" Yandex experiment
+    // flag above: this local flag is checked first and absolutely, including in
+    // dev (no GAME_ENV bypass — owner-ruled 2026-08-21).
+    CITIZENSHIP_CARD_ENABLED: false,
+  },
+
   ads: {
     interstitial: {
       join: {

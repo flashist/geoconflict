@@ -50,6 +50,13 @@ export class CitizenshipCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    // Local absolute gate (task 0054): while citizenship is unlaunched the card
+    // must not exist — this beats the degraded-mode carve-out and the dev
+    // experiment-flag override below, and skips analytics and profile loads.
+    if (!flashistConstants.features.CITIZENSHIP_CARD_ENABLED) {
+      this.classList.add("hidden");
+      return;
+    }
     flashist_waitGameInitComplete()
       .then(async () => {
         // In degraded mode the experiment flag is unknowable (getFlags needs

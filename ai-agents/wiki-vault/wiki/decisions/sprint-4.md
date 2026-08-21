@@ -76,23 +76,23 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 | Task | Status | Notes |
 |---|---|---|
 | Player Profile Store — Implementation | in progress | T1, T3, T4a–T4i, T5, T6, and T8 are done; T2/T7 are cancelled. Parent brief still carries the broader profile-store epic context |
-| Feedback Popup — Remove Email/Contact Field | backlog | Independent 152-ФЗ data-minimization task removing optional contact collection from feedback modal and server delivery formatting |
+| Feedback Popup — Remove Email/Contact Field | done (agent-closed — not owner-verified) | 0046 shipped 2026-08-14: contact field removed end-to-end; post-deploy live checks still owner-side. See [[tasks/feedback-remove-contact-field]] |
 | Personal-Data Compliance (152-ФЗ) — Roskomnadzor notification + consent flow | no-sprint backlog | Deferred from Sprint 4 on 2026-06-28 with risk accepted; real PII may persist before notification/consent work is complete |
 | PostgreSQL Backup Routine (Profile Store) | done | Daily encrypted off-box backup, deploy-time smoke check, failure marker, retention, restore runbook, and first empty-DB restore drill are complete |
-| Yandex Payments — Catalog Fetch & Purchase Infrastructure | backlog | Depends on Investigation B conclusions and catalog readiness |
+| Yandex Payments — Catalog Fetch & Purchase Infrastructure | done (agent-closed — not owner-verified) | 0019 shipped 2026-08-14: catalog cache, profile-server verification endpoints, reconciliation. Live verifications (real catalog/purchase/reconcile) deferred to a written checklist until 0014's catalog approval + secret key. See [[tasks/yandex-payments-implementation]] |
 | Citizenship Core — XP Counter & Progress UI | done | Live profile API read now drives the start-screen citizenship card for authorized players |
 | Citizenship Card — Login CTA outside Yandex context | done | Standalone/no-SDK guest state hides the login CTA instead of showing a dead button |
-| Degraded-Mode UX — Yandex SDK timeout/failure treatment | backlog | Moved into Sprint 4 on 2026-07-02; must ship before earned or paid citizenship goes live |
-| Citizenship Core — Earned Citizenship | backlog | Backend threshold flip exists; inbox/toast notification path remains separate work; gated on degraded-mode UX |
-| Citizenship Core — Paid Citizenship | backlog | Blocked by payments implementation plus catalog approval; gated on degraded-mode UX |
+| Degraded-Mode UX — Yandex SDK timeout/failure treatment | done (agent-closed — not owner-verified) | 0049 closed 2026-08-14: `isYandexDegraded()` + distinct card state; case (b) healthy-SDK guest unit-test-only. Clears the earned/paid citizenship gate. See [[tasks/degraded-mode-ux-treatment]] |
+| Citizenship Core — Earned Citizenship | backlog | Backend threshold flip exists; inbox/toast notification path remains separate work; degraded-mode UX gate now cleared (agent-closed) |
+| Citizenship Core — Paid Citizenship | backlog | Payments infrastructure (0019) now built; still blocked by catalog approval (0014) and the 0018 purchase UI; degraded-mode UX gate now cleared (agent-closed) |
 | 8d-B — Personal Inbox | backlog | Blocked by player profile store; builds on announcements |
 | S3-Backed Match Archival (Citizen-Gated) | backlog | Blocked by player profile store, citizenship, and S3 bucket/credentials |
 | Investigate & Fix Client Null-ID Errors | backlog | Stabilization follow-up; source-map enablement is done, but triage should use a deployed build with resolved Uptrace stacks |
 | Name Change (Citizens Only) | backlog | First user-facing citizenship benefit |
 | Citizen Verified Icon | backlog | Visible identity/status marker in lobbies and match UI |
 | Licensing asset audit | backlog | Prerequisite before paid citizenship; confirm production bundle has no proprietary/CDN assets |
-| Map Labels — Show Troops/Max + Attacking Troops | backlog | Independent client rendering enhancement; no citizenship/payments dependency |
-| Public Modifier — Add "5M Starting Gold" | backlog | Independent public-rotation weird sub-option adding bounded real-player starting gold without replacing infinite gold |
+| Map Labels — Show Troops/Max + Attacking Troops | done (agent-closed — not owner-verified) | 0041 shipped 2026-08-14: `current / max` troops line + red attacking-troops line; singleplayer-only live validation. See [[tasks/map-troops-labels]] |
+| Public Modifier — Add "5M Starting Gold" | done (agent-closed — not owner-verified) | 0042 shipped 2026-08-14: fifth weird sub-option + new `startGold` GameConfig field; post-deploy live check owner-side. See [[tasks/starting-gold-public-modifier]] |
 
 **External/manual blocker:**
 - Yandex catalog registration and approval is the remaining urgent non-engineering prerequisite called out directly in the sprint brief
@@ -135,7 +135,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Sprint 4's core track **was** paused during the owner's May 15 – June 1, 2026 travel window; that pause ended and the track resumed. [[decisions/sprint-4b]] covers the interim player-facing variety sprint and [[decisions/sprint-4c]] covers production stabilization, both of which explicitly excluded this monetization infrastructure.
 - Start screen redesign implementation is done, and the follow-up citizenship XP/progress UI now reads live profile data through the profile API.
 - The app-bootstrap refactor removes the race-condition class around Yandex SDK, experiment flags, player data, and language startup. Future citizenship auth and Yandex payments work should plug into the explicit `Bootstrap.ts` / `FlashistFacade.initializePlatform()` gate instead of adding per-component startup waits.
-- The no-SDK card fix resolves only standalone/local dead controls. Real Yandex degraded mode remains a Sprint 4 backlog blocker: if `YaGames.init()` times out or fails during citizenship auth/payment flows, the card needs a distinct connection-problem state rather than an actionable login CTA.
+- The no-SDK card fix resolved only standalone/local dead controls. The real Yandex degraded-mode treatment has since shipped (0049, agent-closed 2026-08-14): `isYandexDegraded()` drives a distinct connection-problem card state with no login CTA, clearing the gate before earned/paid citizenship. The healthy-SDK real-guest case remains unit-test-only pending a Yandex embed run. See [[tasks/degraded-mode-ux-treatment]].
 - Production release validation for bootstrap-sensitive work must include the Yandex iframe path because the real `YaGames.init()` path, SDK language, player name, experiment flags, and `LoadingAPI.ready()` timing are platform-dependent.
 - The VAT/tax gate is cleared; payments work no longer waits on extra legal registration, bank changes, or company-structure changes
 - The VAT/tax gate does not clear IP/licensing compliance: before monetization scales, GeoConflict still needs a public current source repository, visible in-game source-code link, production asset audit, and legal review of AGPL/Yandex.Games interactions. See [[decisions/licensing-compliance]].
@@ -152,7 +152,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - The guest-first XP path was dropped on 2026-06-13: T2 localStorage-authoritative XP and T7 guest-to-authenticated migration are cancelled, and the `POST /v1/profile/migrate` endpoint was removed from T5 rather than deferred. Guest users still get the locked citizenship card plus login prompt, but profile XP is authenticated-only through T6 server-side crediting. A future guest-XP retry should be a thin best-effort cache over the server source of truth, not a localStorage-authoritative store. See [[decisions/cancelled-tasks]].
 - The hash-based 152-ФЗ avoidance path was cancelled on 2026-06-28. Current profile storage should not assume hashed IDs remove legal obligations; compliance resolution is now backlog work under [[decisions/personal-data-152fz-compliance]].
 - Profile-store backups have moved from prerequisite to implemented T8: daily `pg_dump`, age encryption, off-box S3-compatible upload, upload verification, failure marker, retention, restore runbook, and deploy-time smoke validation are in place. A non-empty restore drill remains the main operational follow-up once real profile/entitlement data exists.
-- Yandex Payments investigation concluded that paid citizenship should use signed purchase verification on the server, startup reconciliation via `getPurchases()`, and post-grant consumption once the entitlement is durably stored; purchase UI should be hidden when the dashboard catalog item is absent or unavailable
+- Yandex Payments investigation concluded that paid citizenship should use signed purchase verification on the server, startup reconciliation via `getPurchases()`, and post-grant consumption once the entitlement is durably stored; purchase UI should be hidden when the dashboard catalog item is absent or unavailable. That infrastructure is now built (0019, agent-closed): endpoints live on the **profile server**, not the game server, fail-closed until the Yandex secret key exists; live purchase verification waits on catalog approval (0014) and the 0018 purchase UI. See [[tasks/yandex-payments-implementation]].
 - Qualifying-match crediting now happens from the game server at match end via the T6 participation-summary path.
 - The source brief now consistently uses the XP-based citizenship threshold, reducing ambiguity across the Sprint 4 progression tasks
 - 8d-A is already done and provides the communication channel Sprint 4 can build on
@@ -169,7 +169,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - VK Channel Link mirrors the Telegram community CTA with its own `vk_link` experiment flag, live `https://vk.com/gameworldwar` URL, and placement-specific `UI:Tap:VkLinkStartScreen` / `UI:Tap:VkLinkGameEnd` analytics.
 - Nuke trajectory visibility increased the pre-launch targeting arc thickness while leaving color, alpha, and launch mechanics unchanged; see [[tasks/nuke-trajectory-visibility]].
 - Teams mode max teams caps regular auto-generated public team lobbies to 2, 3, or 4 teams while preserving Humans vs Nations in the public rotation; see [[tasks/teams-mode-max-teams]].
-- The source brief now carries two independent backlog enhancements outside the citizenship/payment track: richer map labels from existing client-side troop data (`ai-agents/tasks/backlog/s4-map-population-army-labels.md`) and a bounded 5M starting-gold public modifier for real players only (`ai-agents/tasks/backlog/s4-starting-gold-public-modifier.md`).
+- The two independent enhancements outside the citizenship/payment track have both shipped (agent-closed 2026-08-14): richer map labels from existing client-side troop data ([[tasks/map-troops-labels]], task 0041) and the bounded 5M starting-gold public modifier for real players only ([[tasks/starting-gold-public-modifier]], task 0042).
 - Monetization launch decisions should use the analytics spec's P0/P1 gates instead of treating the 1,000 XP threshold, purchase funnel, or ad-removal economics as validated without identity, match-depth, and ad-tier data.
 - Match archival is now split: Sprint 4c only reduces noise from the dead inherited archive path, while real S3-backed archival is deferred to the citizen-history track after player profiles, citizenship, and S3 infrastructure exist. See [[decisions/archive-archival-strategy]].
 - The client null-ID/null-object investigation is carried by Sprint 4 as a stabilization follow-up rather than active Sprint 4c work. Sprint 4c completed source-map enablement, so this task should start from newly resolved Uptrace client stacks on a deployed build instead of minified `e is null` / `a.id` messages. See [[tasks/s4c-enable-client-source-maps]].
@@ -211,6 +211,11 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[systems/player-infrastructure]] — pre-S4 identity/customization substrate and trust boundaries
 - [[decisions/personal-data-152fz-compliance]] — current 152-ФЗ status and accepted Sprint 4 risk
 - [[tasks/yandex-payments-investigation]] — completed Sprint 4 investigation for Yandex payments SDK usage, catalog caching, dashboard setup, and purchase verification flow
+- [[tasks/yandex-payments-implementation]] — 0019 payments infrastructure: catalog cache, profile-server verification endpoints, reconciliation (agent-closed; live verification deferred)
+- [[tasks/degraded-mode-ux-treatment]] — 0049 degraded-mode citizenship-card treatment clearing the earned/paid citizenship gate (agent-closed)
+- [[tasks/feedback-remove-contact-field]] — 0046 152-ФЗ removal of the feedback contact field (agent-closed)
+- [[tasks/map-troops-labels]] — 0041 map label troops/max + attacking-troops enhancement (agent-closed)
+- [[tasks/starting-gold-public-modifier]] — 0042 5M starting-gold public weird sub-option (agent-closed)
 - [[tasks/global-announcements]] — completed `8d-A` dependency for future inbox and citizenship messaging
 - [[tasks/feedback-modal-space-key]] — Sprint 4 fix for in-match feedback typing and hotkey suppression
 - [[tasks/start-screen-redesign-investigation]] — locked tab layout, viewport target, and citizenship placement decisions

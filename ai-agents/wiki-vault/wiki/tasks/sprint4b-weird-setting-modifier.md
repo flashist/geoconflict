@@ -27,7 +27,9 @@ Add public-match gameplay modifiers to the shared modifier system created by the
 
 ## Outcome
 
-Public matchmaking can produce normal matches or one of four weird-setting matches through the mutually exclusive modifier registry. Sprint 4c disabled `mini_map` in public rotation after compact-map boat targeting was found unsafe, so `weird_setting` is now the only active top-level modifier. With `MODIFIED_MATCH_RATE = 0.2`, weird-setting matches receive about 20% of all public matches; each sub-option receives about 5%.
+Public matchmaking can produce normal matches or one of the weird-setting matches through the mutually exclusive modifier registry. Sprint 4c disabled `mini_map` in public rotation after compact-map boat targeting was found unsafe, so `weird_setting` is now the only active top-level modifier. With `MODIFIED_MATCH_RATE = 0.2`, weird-setting matches receive about 20% of all public matches.
+
+Sprint 4 task 0042 later added a fifth sub-option — a one-time `startGold: 5_000_000` grant for real players — so each sub-option now receives about 4% of public matches (originally ~5% across four). See [[tasks/starting-gold-public-modifier]].
 
 No schema changes were required. The modified fields already exist in `GameConfig`, and disabled unit enforcement already flows through build validation.
 
@@ -36,3 +38,4 @@ No schema changes were required. The modified fields already exist in `GameConfi
 - [[decisions/sprint-4b]]
 - [[tasks/sprint4b-compact-map-rotation]]
 - [[tasks/disable-compact-public-maps]]
+- [[tasks/starting-gold-public-modifier]] — the Sprint 4 fifth sub-option (5M starting gold)

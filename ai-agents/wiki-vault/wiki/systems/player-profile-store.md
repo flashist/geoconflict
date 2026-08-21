@@ -18,12 +18,13 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - **Backups**: [[tasks/postgres-backup-routine]] adds the T8 daily `pg_dump -Fc` path, age encryption, verified off-box S3 upload, restore command, retention, and machine-readable backup marker.
 - **Profile read UI**: [[tasks/citizenship-xp-progress-ui]] reads the public `GET /v1/profile` projection from the client citizenship card and maps it to the XP/citizenship view model.
 - **Storage strategy**: [[decisions/profile-storage-strategy]] chose typed Postgres columns plus `extra jsonb`, with `xp bigint`, `persistent_id text`, DB-level paid/citizenship invariants, and future-aware tables for names/cosmetics.
+- **Payments endpoints**: [[tasks/yandex-payments-implementation]] (0019) added `POST /v1/payments/yandex/{intent,complete,reconcile}` to the profile server, with migration 002 (`purchase_intents`, `processed_purchases`), HMAC signature verification, and the sole-authority rule that only a verified purchase token can set `is_paid_citizen` — `upsertProfile` and `/internal/v1/credit` never touch paid state. Fail-closed 503 until `YANDEX_PAYMENTS_SECRET` is provisioned (secret issuance blocked on Yandex catalog approval, task 0014).
 - **Runtime boundary**: game servers should credit via the profile API using service auth and IP allowlisting; they should not hold direct profile DB credentials.
 - **Guest path**: the T2/T7 guest-first flow is cancelled. Profile XP is authenticated-only through the T6 server-side crediting path.
 
 ## Gotchas / Known Issues
 
-- The Yandex ID carried through match join is still an unsigned client-provided value. Earned-XP crediting must either accept that risk for non-monetary XP or add signed identity plumbing; paid state must rely on Yandex Payments verification.
+- The Yandex ID carried through match join is still an unsigned client-provided value. Earned-XP crediting must either accept that risk for non-monetary XP or add signed identity plumbing; paid state relies on Yandex Payments HMAC verification, implemented in 0019 but not yet live-verified (no secret key until catalog approval).
 - `PROFILE_API_URL` has to be present in the game-server deploy environment or `/api/env.profileApiUrl` stays empty. T4h is the completed fix for that deploy gap.
 - Profile outages must not stop active matches. T6 keeps match-end crediting fail-soft: after bounded retries, credits may be dropped rather than blocking winner handling or cleanup.
 - The duplicate backup-task conflict is resolved as of 2026-06-29 and canonical T8 is now done. Off-box backup activation is fail-closed: missing or partial `PROFILE_BACKUP_*` config keeps first deploys on local weekly dumps, but an already off-box-configured box refuses a silent downgrade unless `PROFILE_BACKUP_DISABLE_OFFBOX=1` is explicit.
@@ -43,6 +44,7 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - [[tasks/profile-match-end-crediting]]
 - [[tasks/postgres-backup-routine]]
 - [[tasks/citizenship-xp-progress-ui]]
+- [[tasks/yandex-payments-implementation]] — the 0019 payments endpoints and paid-flag grant path hosted here
 - [[decisions/profile-storage-strategy]]
 - [[decisions/profile-deploy-hardening-review-loop]]
 - [[decisions/sprint-4]]

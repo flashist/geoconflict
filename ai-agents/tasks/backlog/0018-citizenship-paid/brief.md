@@ -124,6 +124,7 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
 
 ## Notes
 
+- **Flip-ON coupling (2026-08-21):** shipping this task must flip `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` to `true` in `src/client/flashist/FlashistFacade.ts` — the citizenship card is hidden behind this client flag (default OFF) until launch; see [`0054-hide-citizenship-card-behind-client-flag`](../../done/0054-hide-citizenship-card-behind-client-flag/brief.md).
 - This task cannot ship until the Yandex catalog item is approved. The earned path can go live independently.
 - Do not hardcode the price. If the price changes in the Yandex dashboard, the UI must reflect it automatically.
 - The Yandex per-game secret key used for HMAC verification must live in an environment variable — never in git.

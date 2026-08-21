@@ -27,4 +27,5 @@ The XP/progress card now reads server profile state for authorized players. Gues
 - [[systems/player-profile-store]]
 - [[tasks/start-screen-redesign-implementation]]
 - [[tasks/citizenship-card-guest-cta-no-sdk]]
+- [[tasks/degraded-mode-ux-treatment]] — the follow-up giving the card's Yandex-degraded state its own subtitle and CTA suppression
 - [[decisions/adr-106-flags-suppressed]] — why the card shows the placeholder flag fallback

@@ -54,7 +54,7 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/7/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
-- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8 and citizenship XP UI done; payments, earned/paid citizenship, and 152-ФЗ follow-up remain pending
+- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8, citizenship XP UI, payments infrastructure (0019), degraded-mode UX (0049), and the independent 0041/0042/0046 tasks done (the 2026-08-14 five agent-closed, not owner-verified); earned/paid citizenship, catalog approval (0014), purchase UI (0018), and 152-ФЗ follow-up remain pending
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
 - [[decisions/sprint-backlog]] — No-sprint backlog across both unsprinted boards: monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag/GutterAds fixes, plus the eleven `0001`–`0011` briefs and the cosmetics monetization dependency chain
@@ -155,3 +155,8 @@
 - [[tasks/registry-image-policy-followup]] — Task that authored the registry visibility and image-retention policy
 - [[tasks/investigate-clans-system]] — Investigation confirming clans parse/team-assign works; silent kick bug and no-UI gap documented
 - [[tasks/compact-map-click-interaction]] — Investigation confirming compact boat-button failures come from lost `isShore` bits in `map4x.bin`, not click coordinates
+- [[tasks/yandex-payments-implementation]] — Sprint 4 task 0019 payments infrastructure: catalog cache, profile-server HMAC verification endpoints, reconciliation; agent-closed, live verification deferred on catalog approval
+- [[tasks/map-troops-labels]] — Sprint 4 task 0041 map label enhancement: troops `current / max` line plus red attacking-troops line in `NameLayer`; agent-closed, singleplayer-only live validation
+- [[tasks/starting-gold-public-modifier]] — Sprint 4 task 0042 fifth weird sub-option granting real players 5M starting gold via the new `startGold` GameConfig field; agent-closed, live check owner-side
+- [[tasks/feedback-remove-contact-field]] — Sprint 4 task 0046 152-ФЗ data minimization removing the feedback contact field end-to-end; agent-closed, post-deploy checks owner-side
+- [[tasks/degraded-mode-ux-treatment]] — Sprint 4 task 0049 `isYandexDegraded()` citizenship-card connection-problem state clearing the earned/paid citizenship gate; agent-closed, healthy-SDK guest case unit-test-only

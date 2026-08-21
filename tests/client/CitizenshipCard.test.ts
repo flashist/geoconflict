@@ -19,6 +19,11 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     uiElementIds: {
       citizenshipLoginToEarn: "CitizenshipLoginToEarn",
     },
+    features: {
+      // ON in tests so the existing suites keep exercising current behavior;
+      // the flag-off suite below toggles it per test (restored in beforeEach).
+      CITIZENSHIP_CARD_ENABLED: true,
+    },
   },
   flashist_logEventAnalytics: jest.fn(),
   flashist_waitGameInitComplete: jest.fn().mockResolvedValue(undefined),
@@ -41,6 +46,7 @@ import {
 import {
   FlashistFacade,
   flashist_logEventAnalytics,
+  flashistConstants,
 } from "../../src/client/flashist/FlashistFacade";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
 
@@ -65,11 +71,60 @@ describe("CitizenshipCard", () => {
     loadProfile.mockResolvedValue(null);
     openYandexAuthDialog.mockResolvedValue(false);
     isCitizenshipUiEnabled.mockResolvedValue(true);
+    // Plain field on the mocked constants object — clearAllMocks() won't
+    // restore it after the flag-off suite sets it to false.
+    flashistConstants.features.CITIZENSHIP_CARD_ENABLED = true;
     resetCitizenshipSeenReportedForTests();
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe("local CITIZENSHIP_CARD_ENABLED flag (task 0054)", () => {
+    it("renders nothing and touches no analytics, profile, or experiment flag when off", async () => {
+      flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
+
+      const card = await appendCard({ visible: true });
+
+      expect(card.textContent!.trim()).toBe("");
+      expect(card.classList.contains("hidden")).toBe(true);
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+      expect(loadProfile).not.toHaveBeenCalled();
+      expect(isCitizenshipUiEnabled).not.toHaveBeenCalled();
+    });
+
+    it("stays hidden when off even in degraded mode (beats the 0049 carve-out)", async () => {
+      flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
+      isYandexDegraded.mockReturnValue(true);
+
+      const card = await appendCard({ visible: true });
+
+      expect(card.textContent!.trim()).toBe("");
+      expect(card.classList.contains("hidden")).toBe(true);
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+
+    it("stays hidden when off even when the experiment flag would enable the card", async () => {
+      flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
+      isCitizenshipUiEnabled.mockResolvedValue(true);
+
+      const card = await appendCard({ visible: true });
+
+      expect(card.textContent!.trim()).toBe("");
+      expect(card.classList.contains("hidden")).toBe(true);
+      expect(isCitizenshipUiEnabled).not.toHaveBeenCalled();
+    });
+
+    it("ships with the real flag defaulted OFF", () => {
+      // Guards against an accidental flipped-ON commit: reads the real module,
+      // bypassing this file's mock. Flipping this constant to true IS the
+      // citizenship relaunch (0017/0018) — at which point this test flips too.
+      const realConstants = jest.requireActual<
+        typeof import("../../src/client/flashist/FlashistFacade")
+      >("../../src/client/flashist/FlashistFacade").flashistConstants;
+      expect(realConstants.features.CITIZENSHIP_CARD_ENABLED).toBe(false);
+    });
   });
 
   describe("citizenship_ui experiment flag", () => {

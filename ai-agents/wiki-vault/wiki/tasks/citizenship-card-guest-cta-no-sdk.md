@@ -18,7 +18,7 @@ Prevent the citizenship card from showing a Yandex-login button that cannot work
 
 ## Outcome
 
-Standalone/dev sessions no longer present a misleading dead login control on the citizenship card. The fix intentionally does not solve Yandex degraded mode, where the SDK context exists but `YaGames.init()` failed or timed out; that broader player-facing treatment moved into Sprint 4 as `ai-agents/tasks/backlog/degraded-mode-full-ux-treatment.md` before earned or paid citizenship ships.
+Standalone/dev sessions no longer present a misleading dead login control on the citizenship card. The fix intentionally does not solve Yandex degraded mode, where the SDK context exists but `YaGames.init()` failed or timed out; that broader player-facing treatment moved into Sprint 4 as task 0049 and has since shipped (agent-closed) — see [[tasks/degraded-mode-ux-treatment]].
 
 ## Related
 
@@ -28,3 +28,4 @@ Standalone/dev sessions no longer present a misleading dead login control on the
 - [[tasks/app-bootstrap-single-entry-point]]
 - [[systems/flashist-init]]
 - [[decisions/sprint-backlog]]
+- [[tasks/degraded-mode-ux-treatment]] — the shipped follow-up covering case (c), Yandex degraded mode

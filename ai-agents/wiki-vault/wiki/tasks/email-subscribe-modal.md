@@ -26,3 +26,4 @@ Geoconflict now has a shipped email opt-in surface on both major post-load conve
 - [[systems/analytics]] — `Subscribe:Opened` and `Subscribe:Submitted`
 - [[features/feedback-button]] — shares the existing Telegram delivery infrastructure
 - [[tasks/telegram-link]] — adjacent Telegram CTA shown near subscribe entry points when enabled
+- [[tasks/feedback-remove-contact-field]] — flags this modal's email collection as the larger remaining 152-ФЗ surface, routed to the compliance track

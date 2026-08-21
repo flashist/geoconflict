@@ -11,7 +11,7 @@ Source: `ai-agents/tasks/done/task-02b-feedback-button.md`
 
 ## Implementation
 
-`Main.ts` wires the button entry points on the start screen and battle screen via `showFeedbackModal()`. `FeedbackModal.ts` owns the overlay UI, category/text/contact fields, automatic context collection, and analytics firing. The battle-screen button is rendered from `GameRightSidebar.ts`; the shared icon asset is `FeedbackIconWhite.svg`.
+`Main.ts` wires the button entry points on the start screen and battle screen via `showFeedbackModal()`. `FeedbackModal.ts` owns the overlay UI, category/text fields, automatic context collection, and analytics firing. The battle-screen button is rendered from `GameRightSidebar.ts`; the shared icon asset is `FeedbackIconWhite.svg`.
 
 ## Placement
 
@@ -24,9 +24,10 @@ Source: `ai-agents/tasks/done/task-02b-feedback-button.md`
 Lightweight overlay (not full-screen). Contains:
 - Category selector: Bug / Suggestion / Other
 - Free-text field (optional)
-- Optional contact field (for follow-up)
 - Send button
 - Confirmation: *"Thanks, we read every report"*
+
+The form originally had an optional email/Telegram contact field for follow-up. It was **removed end-to-end in Sprint 4** (task 0046) as 152-ФЗ data minimization — UI, payload, server schema, and both delivery formats; stale clients still sending `contact` have the value stripped at parse. See [[tasks/feedback-remove-contact-field]].
 
 ## Automatic Context Attached
 
@@ -80,3 +81,4 @@ Submissions land in a simple list view: category, free text, attached context, t
 - [[decisions/sprint-3]] — Sprint 3 added last 3 match IDs to feedback payload
 - [[tasks/email-subscribe-modal]] — separate opt-in modal that reuses the same Telegram delivery path
 - [[tasks/feedback-modal-space-key]] — Sprint 4 fix for Space and gameplay hotkeys while typing in the modal
+- [[tasks/feedback-remove-contact-field]] — Sprint 4 removal of the optional contact field (152-ФЗ data minimization)

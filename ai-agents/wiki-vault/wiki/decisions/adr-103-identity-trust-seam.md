@@ -43,6 +43,7 @@ The design rules that make this a seam rather than just a shortcut:
 - [[systems/player-profile-store]] — the profile/XP backend and its trust boundary
 - [[tasks/yandex-identity-plumbing]] — the T3 task that plumbed the id through join
 - [[tasks/profile-match-end-crediting]] — the T6 task that added the seam
+- [[tasks/yandex-payments-implementation]] — the 0019 payments track: paid entitlements are HMAC-verified separately per rule 5, and its `/intent` endpoint's client-asserted id residual leans on this seam
 - [[decisions/personal-data-152fz-compliance]] — where the rejected hashing approach was ruled out
 - [[systems/architecture-overview]] — risk R1, open question 5
 - [[decisions/adr-numbering-two-series]] — the ADR number bands

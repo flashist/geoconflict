@@ -14,7 +14,7 @@ The client now has a single explicit bootstrap entry point. `src/client/Bootstra
 ### Three-phase bootstrap
 
 - **Phase 1: immediate startup.** `Bootstrap.ts` constructs `FlashistFacade.instance` and calls `initializeImmediate()`. This consumes pending session-match counts, initializes GameAnalytics in production, fires `Session:Start`, emits device/platform/new-vs-returning/day-depth analytics, and starts session-match tracking. Nothing in this phase waits on external SDKs.
-- **Phase 2: bounded platform gate.** `initializePlatform()` runs Yandex script readiness, `YaGames.init()`, player data, experiment flags, and language resolution under a shared `PLATFORM_INIT_DEADLINE_MS` deadline (`5000` ms). Timeout or SDK failure resolves into degraded mode instead of blocking the app.
+- **Phase 2: bounded platform gate.** `initializePlatform()` runs Yandex script readiness, `YaGames.init()`, player data, experiment flags, and language resolution under a shared `PLATFORM_INIT_DEADLINE_MS` deadline (`5000` ms). Timeout or SDK failure resolves into degraded mode instead of blocking the app. Since task 0019, `initPayments()` (Yandex payments object + session catalog cache) joins the same `Promise.allSettled` batch under the shared deadline — `unavailable` outside Yandex, never throws, re-inits on late SDK recovery. See [[tasks/yandex-payments-implementation]].
 - **Phase 3: app load.** Only after the platform gate settles does `Bootstrap.ts` `import("./Main")`, registering all custom elements and calling `startClient()`. `flashist_markGameInitComplete()` then resolves the public game-ready gate used by the templates.
 
 ### Game-ready gate
@@ -43,7 +43,7 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - `isYandexAuthorized()` and `getYandexUniqueId()` follow the same degraded-mode contract: they resolve to `false`/`null` when player state is unavailable instead of blocking match join. The unique ID is forwarded by [[tasks/yandex-identity-plumbing]].
 - Boot-rendered UI keeps degraded values after late SDK recovery unless that UI explicitly re-queries the facade.
 - `yaGamesAvailable` is now also a UI contract for the citizenship card: when false, the card suppresses the Yandex login CTA because `openYandexAuthDialog()` cannot work outside a Yandex SDK context. See [[tasks/citizenship-card-guest-cta-no-sdk]].
-- Yandex degraded mode is still distinct from no-SDK standalone mode. If `yaGamesAvailable` is true but `YaGames.init()` failed or timed out, the current citizenship funnel needs the separate Sprint 4 degraded-mode UX task before earned/paid citizenship launch.
+- Yandex degraded mode is distinct from no-SDK standalone mode, and since task 0049 the client can tell them apart: `FlashistFacade.instance.isYandexDegraded()` (Yandex context present, no SDK/player object) drives a connection-problem citizenship-card state with no login CTA. See [[tasks/degraded-mode-ux-treatment]].
 - Two independent side bugs found during the bootstrap investigation remain backlog work: the dead `initializeFuseTag` polling loop and `GutterAds.hide()` permanently removing its `userMeResponse` listener. See [[decisions/sprint-backlog]].
 
 ## Related
@@ -53,7 +53,9 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - [[systems/localization]] — language code is resolved during platform init before components render
 - [[tasks/analytics-p0-yandex-login-status]] — original Yandex auth-status event task, later semantics refined by the bootstrap work
 - [[tasks/analytics-p0-session-match-count]] — `consumePendingSessionEnd` and `startSessionMatchTracking` run in immediate bootstrap
-- [[tasks/yandex-payments-investigation]] — future payments/catalog caching should build on the explicit facade gate
+- [[tasks/yandex-payments-investigation]] — the investigation that placed payments/catalog caching on the explicit facade gate
+- [[tasks/yandex-payments-implementation]] — the shipped `initPayments()` catalog cache and purchase helpers in the boot batch
+- [[tasks/degraded-mode-ux-treatment]] — the shipped `isYandexDegraded()` accessor and citizenship-card degraded state
 - [[tasks/yandex-identity-plumbing]] — tolerant auth and unique-ID helpers used by the match join path
 - [[tasks/citizenship-card-guest-cta-no-sdk]] — citizenship-card use of the Yandex-context signal to avoid a dead login CTA
 - [[systems/project-brief]] — degraded mode as a first-class platform state
