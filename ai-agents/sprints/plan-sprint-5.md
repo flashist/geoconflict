@@ -8,6 +8,30 @@
 
 **Goal:** Build long-term engagement and monetization systems. These are higher effort and should only be started once retention metrics from Sprints 1–3 are moving positively.
 
+---
+
+## Status
+
+> Authored 2026-08-14 — this plan had no status table (owner ruled 2026-08-10 that it gets one; task
+> `0004` scope). Every row is derived from this document's own task sections: no work has started on
+> any of them and no briefs exist yet (brief writing is deferred by design), so every row reads
+> `🔲 Backlog` with brief `TBD`. The Priority column carries the plan's own task numbers (the
+> `plan-index.md` priority numbering), in this document's order. Three backlog briefs name Sprint 5/6
+> in their `## Sprint` field but are not part of this plan's scope statement (`0026`, `0029`; `0027`
+> for Sprint 6) — flagged to the owner in the 2026-08-14 reconciliation hand-off, not added here.
+
+| Status | Priority | Task | Brief |
+|---|---|---|---|
+| 🔲 Backlog | 10 | Leaderboard — Rewards Layer | TBD |
+| 🔲 Backlog | 8a | Nickname Styling System *(depends on Task 8 — verified nickname purchase + centralized name rendering)* | TBD |
+| 🔲 Backlog | 11 | Coin Economy + Rewarded Ads Full Version | TBD |
+| 🔲 Backlog | 12 | Clans *(gated on lobby health)* | TBD |
+| 🔲 Backlog | 14 | Map Voting for Verified Players *(depends on Task 8)* | TBD |
+| 🔲 Backlog | 13 | Replay Access as Premium Feature *(depends on Task 11 tier/pricing)* | TBD |
+| 🔲 Backlog | 15 | Custom Uploaded Flags & Patterns — Paid Citizens Only *(depends on Tasks 9/9a and Task 8)* | TBD |
+
+---
+
 ### 10. Leaderboard — Rewards Layer
 **Effort:** 3–5 days
 **Experiments:** ✅ Test via Yandex experiments API — badges and rank icons are additive display elements. Players not in the experiment group see the leaderboard without badges. Success metric: return visit rate and match frequency for top-ranked players in the experiment group vs control.

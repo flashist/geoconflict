@@ -33,6 +33,7 @@ function testGameConfig(): GameConfig {
     gameMapSize: GameMapSize.Normal,
     difficulty: Difficulty.Medium,
     infiniteGold: false,
+    startGold: 0,
     infiniteTroops: false,
     maxTimerValue: undefined,
     instantBuild: false,
@@ -108,6 +109,7 @@ describe("MapPlaylist", () => {
       { infiniteTroops: true },
       { disabledUnits: [UnitType.MissileSilo] },
       { disabledUnits: [UnitType.SAMLauncher] },
+      { startGold: 5_000_000 },
     ]);
   });
 
@@ -155,5 +157,22 @@ describe("MapPlaylist", () => {
     expect(gameConfig.infiniteGold).toBe(false);
     expect(gameConfig.infiniteTroops).toBe(false);
     expect(gameConfig.disabledUnits).toEqual([UnitType.MissileSilo]);
+  });
+
+  test("modifier application applies the starting-gold weird setting", () => {
+    const gameConfig = testGameConfig();
+    const randomValues = [0, 0.75];
+    // 0.9 * 5 options -> index 4, the startGold option.
+    const mathRandomSpy = jest.spyOn(Math, "random").mockReturnValue(0.9);
+
+    try {
+      applyMatchModifier(gameConfig, () => randomValues.shift() ?? 0);
+    } finally {
+      mathRandomSpy.mockRestore();
+    }
+
+    expect(gameConfig.startGold).toBe(5_000_000);
+    expect(gameConfig.infiniteGold).toBe(false);
+    expect(gameConfig.gameMapSize).toBe(GameMapSize.Normal);
   });
 });

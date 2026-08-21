@@ -24,6 +24,9 @@ function getWeirdModifierLabel(gameConfig: GameConfig): string | null {
   if (gameConfig.infiniteGold) {
     return translateText("public_lobby.modifier_infinite_gold");
   }
+  if (gameConfig.startGold > 0) {
+    return translateText("public_lobby.modifier_starting_gold");
+  }
   if (gameConfig.infiniteTroops) {
     return translateText("public_lobby.modifier_infinite_army");
   }

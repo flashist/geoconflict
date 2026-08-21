@@ -267,6 +267,7 @@ function createGameStartInfo(
       disableNPCs: false,
       bots: 0,
       infiniteGold: false,
+      startGold: 0,
       infiniteTroops: false,
       instantBuild: false,
     },

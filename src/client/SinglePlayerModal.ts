@@ -564,6 +564,7 @@ export class SinglePlayerModal extends LitElement {
               maxTimerValue: this.maxTimer ? this.maxTimerValue : undefined,
               bots: this.bots,
               infiniteGold: this.infiniteGold,
+              startGold: 0,
               donateGold: true,
               donateTroops: true,
               infiniteTroops: this.infiniteTroops,

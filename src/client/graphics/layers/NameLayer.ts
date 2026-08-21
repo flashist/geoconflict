@@ -269,12 +269,25 @@ export class NameLayer implements Layer {
     const troopsDiv = document.createElement("div");
     troopsDiv.classList.add("player-troops");
     troopsDiv.setAttribute("translate", "no");
-    troopsDiv.textContent = renderTroops(player.troops());
+    troopsDiv.textContent = `${renderTroops(player.troops())} / ${renderTroops(this.game.config().maxTroops(player))}`;
     troopsDiv.style.color = this.theme.textColor(player);
     troopsDiv.style.fontFamily = this.theme.font();
+    troopsDiv.style.whiteSpace = "nowrap";
     troopsDiv.style.zIndex = "3";
     troopsDiv.style.marginTop = "-5%";
     element.appendChild(troopsDiv);
+
+    const attackTroopsDiv = document.createElement("div");
+    attackTroopsDiv.classList.add("player-attack-troops");
+    attackTroopsDiv.setAttribute("translate", "no");
+    attackTroopsDiv.style.color = "#f87171";
+    attackTroopsDiv.style.textShadow = "0 0 2px rgba(0,0,0,0.7)";
+    attackTroopsDiv.style.fontFamily = this.theme.font();
+    attackTroopsDiv.style.whiteSpace = "nowrap";
+    attackTroopsDiv.style.zIndex = "3";
+    attackTroopsDiv.style.marginTop = "-5%";
+    attackTroopsDiv.style.display = "none";
+    element.appendChild(attackTroopsDiv);
 
     // TODO: Remove the shield icon.
     /* eslint-disable no-constant-condition */
@@ -353,6 +366,9 @@ export class NameLayer implements Layer {
     const troopsDiv = render.element.querySelector(
       ".player-troops",
     ) as HTMLDivElement;
+    const attackTroopsDiv = render.element.querySelector(
+      ".player-attack-troops",
+    ) as HTMLDivElement;
     nameDiv.style.fontSize = `${render.fontSize}px`;
     nameDiv.style.lineHeight = `${render.fontSize}px`;
     nameDiv.style.color = render.fontColor;
@@ -365,7 +381,21 @@ export class NameLayer implements Layer {
     }
     troopsDiv.style.fontSize = `${render.fontSize}px`;
     troopsDiv.style.color = render.fontColor;
-    troopsDiv.textContent = renderTroops(render.player.troops());
+    troopsDiv.textContent = `${renderTroops(render.player.troops())} / ${renderTroops(this.game.config().maxTroops(render.player))}`;
+
+    // Deliberately keep the attack line red (not render.fontColor) regardless of theme.
+    const attackingTroops = render.player
+      .outgoingAttacks()
+      .map((a) => a.troops)
+      .reduce((a, b) => a + b, 0);
+    if (attackingTroops >= 1) {
+      attackTroopsDiv.textContent = renderTroops(attackingTroops);
+      attackTroopsDiv.style.fontSize = `${render.fontSize}px`;
+      attackTroopsDiv.style.display = "block";
+    } else {
+      attackTroopsDiv.textContent = "";
+      attackTroopsDiv.style.display = "none";
+    }
 
     const density = renderNumber(
       render.player.troops() / render.player.numTilesOwned(),

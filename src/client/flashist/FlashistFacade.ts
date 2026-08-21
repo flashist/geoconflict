@@ -126,6 +126,8 @@ export const flashistConstants = {
     multiplayerTab: "MultiplayerTab",
     singleplayerTab: "SingleplayerTab",
     citizenshipLoginToEarn: "CitizenshipLoginToEarn",
+    // Fired by 0018's "Buy Citizenship" CTA (via logUiTapEvent) — no UI in 0019.
+    purchaseCitizenship: "PurchaseCitizenship",
   },
 
   progressionEventStatus: {
@@ -280,6 +282,21 @@ const YANDEX_SDK_INIT_TIMEOUT_MS = 1000;
 // hanging on the loading screen.
 const PLATFORM_INIT_DEADLINE_MS = 5000;
 type YandexLoginStatus = "logged-in" | "guest" | "unknown";
+
+// Yandex catalog product shape (docs: sdk-purchases, re-checked 2026-08-14).
+// Note it's `priceCurrencyCode`, not `currencyCode`.
+export interface IProduct {
+  id: string;
+  title: string;
+  description: string;
+  imageURI: string;
+  price: string;
+  priceValue: string;
+  priceCurrencyCode: string;
+  getPriceCurrencyImage(size: "small" | "medium" | "svg"): string;
+}
+
+export type PaymentsCatalogStatus = "idle" | "ready" | "failed" | "unavailable";
 
 export class FlashistFacade {
   private static _instance: FlashistFacade;
@@ -513,13 +530,16 @@ export class FlashistFacade {
       this.scheduleYandexLoginStatusEvent();
     }
 
-    // Player data and experiment flags in parallel, sharing the same overall
-    // deadline — a hung getPlayer()/getFlags() call must not block app start.
+    // Player data, experiment flags, and the payments catalog in parallel,
+    // sharing the same overall deadline — a hung getPlayer()/getFlags()/
+    // getPayments() call must not block app start. A catalog that settles after
+    // the deadline still flips to 'ready' late (same pattern as the flags).
     const playerInitResultPromise = this.initPlayer();
     this.playerInitResultPromise = playerInitResultPromise;
     const settledPromise = Promise.allSettled([
       playerInitResultPromise,
       this.loadExperimentFlags(),
+      this.initPayments(),
     ]);
     const settledResults = await Promise.race([
       settledPromise,
@@ -533,12 +553,16 @@ export class FlashistFacade {
     if (settledResults === null) {
       logDeadlineEvent();
     } else {
-      const [playerResult, flagsResult] = settledResults;
+      const [playerResult, flagsResult, paymentsResult] = settledResults;
       if (playerResult.status === "rejected") {
         console.warn("Init step failed: player init", playerResult.reason);
       }
       if (flagsResult.status === "rejected") {
         console.warn("Init step failed: experiment flags", flagsResult.reason);
+      }
+      if (paymentsResult.status === "rejected") {
+        // initPayments never throws by design — belt and suspenders only.
+        console.warn("Init step failed: payments", paymentsResult.reason);
       }
     }
 
@@ -657,6 +681,10 @@ export class FlashistFacade {
       // checks later in the session work and cohort events fire (the latch in
       // logExperimentEvents dedupes). No-op on the normal path (memo present).
       void this.initExperimentFlags();
+      // Payments recovery, same pattern: a degraded boot left the catalog
+      // status 'idle' (not memoized), so fetch it for real now that the SDK
+      // exists. No-op on the normal path (paymentsInitPromise memo present).
+      void this.initPayments();
       // Player recovery, same pattern: chained on the boot-time initPlayer()
       // attempt, whose promise is only assigned once stage 2 has run — on the
       // normal path (SDK arrives mid-stage-1) the field is still unset here,
@@ -831,6 +859,131 @@ export class FlashistFacade {
       flashistConstants.experiments.CITIZENSHIP_UI_FLAG_NAME,
       flashistConstants.experiments.CITIZENSHIP_UI_ENABLED_VALUE,
     );
+  }
+
+  // PAYMENTS (task 0019). Same memoized-startup-capability pattern as the
+  // experiment flags: never throws, never blocks boot, degrades to an
+  // empty/unavailable catalog outside Yandex or on any failure.
+  private paymentsObject: any | null = null;
+  private paymentsCatalog: IProduct[] = [];
+  private paymentsCatalogById = new Map<string, IProduct>();
+  private paymentsCatalogStatus: PaymentsCatalogStatus = "idle";
+  private paymentsInitPromise?: Promise<void>;
+
+  public getPaymentsCatalogStatus(): PaymentsCatalogStatus {
+    return this.paymentsCatalogStatus;
+  }
+
+  private async initPayments(): Promise<void> {
+    await this.yandexInitPromise;
+
+    if (!this.yandexGamesSDK) {
+      if (!this.yaGamesAvailable) {
+        this.paymentsCatalogStatus = "unavailable";
+      }
+      // On the Yandex platform with no SDK (yet — possibly a degraded boot
+      // whose SDK recovers late): stay 'idle' and don't memoize, so the
+      // late-SDK recovery in yandexSdkInit can still init payments for real.
+      return;
+    }
+
+    this.paymentsInitPromise ??= this.fetchPaymentsCatalog();
+    return this.paymentsInitPromise;
+  }
+
+  private async fetchPaymentsCatalog(): Promise<void> {
+    try {
+      this.paymentsObject = await this.yandexGamesSDK.getPayments({
+        signed: true,
+      });
+      const catalog = await this.paymentsObject.getCatalog();
+      this.paymentsCatalog = Array.isArray(catalog) ? catalog : [];
+      this.paymentsCatalogById.clear();
+      this.paymentsCatalog.forEach((product: IProduct) => {
+        this.paymentsCatalogById.set(product.id, product);
+      });
+      this.paymentsCatalogStatus = "ready";
+      // Session-start reconciliation (Yandex moderation compliance): catch
+      // purchases whose /complete never landed. Fire-and-forget, gated inside
+      // on flashist_waitGameInitComplete(). Dynamic import breaks the static
+      // module cycle (the reconciliation module imports this facade).
+      void import("../PaymentsReconciliation")
+        .then((module) => module.schedulePaymentsReconciliation())
+        .catch(() => {
+          // Reconciliation is best-effort — never let it surface at boot.
+        });
+    } catch (error) {
+      this.paymentsCatalogStatus = "failed";
+      flashist_logErrorToAnalytics(
+        `ERROR! FlashistFacade | initPayments __ error: ${error}`,
+        flashist_logErrorTypes.DEBUG,
+      );
+    }
+  }
+
+  /** Sync catalog checks — false/null unless the catalog is 'ready'. */
+  public hasCatalogProduct(id: string): boolean {
+    return (
+      this.paymentsCatalogStatus === "ready" && this.paymentsCatalogById.has(id)
+    );
+  }
+
+  public getCatalogProduct(id: string): IProduct | null {
+    if (this.paymentsCatalogStatus !== "ready") {
+      return null;
+    }
+    return this.paymentsCatalogById.get(id) ?? null;
+  }
+
+  /**
+   * Open the Yandex payment frame for a catalog item. Rejects when payments
+   * aren't ready, and rejects when the player closes the frame or the purchase
+   * fails — the caller (0018's purchase flow) owns the UX for both. In signed
+   * mode the resolved value is `{ signature }` (no plain purchaseToken).
+   */
+  public async purchaseCatalogItem(
+    id: string,
+    developerPayload: string,
+  ): Promise<{ signature: string }> {
+    if (this.paymentsCatalogStatus !== "ready" || !this.paymentsObject) {
+      throw new Error("payments_not_ready");
+    }
+    return await this.paymentsObject.purchase({ id, developerPayload });
+  }
+
+  /**
+   * Signed output of getPurchases() for server reconciliation. Null when
+   * payments aren't ready, on any SDK failure, or when the purchase list is
+   * verifiably empty (nothing to reconcile — skip the network round-trip).
+   */
+  public async getSignedPurchases(): Promise<{ signature: string } | null> {
+    if (this.paymentsCatalogStatus !== "ready" || !this.paymentsObject) {
+      return null;
+    }
+    try {
+      const purchases = await this.paymentsObject.getPurchases();
+      if (Array.isArray(purchases) && purchases.length === 0) {
+        return null;
+      }
+      const signature = purchases?.signature;
+      return typeof signature === "string" && signature.length > 0
+        ? { signature }
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Consume a processed purchase. Only call AFTER the server confirmed the
+   * grant (consuming earlier can lose purchases). No-op without a payments
+   * object; rejections propagate to the caller (reconciliation catches each).
+   */
+  public async consumePurchase(purchaseToken: string): Promise<void> {
+    if (!this.paymentsObject) {
+      return;
+    }
+    await this.paymentsObject.consumePurchase(purchaseToken);
   }
 
   /**

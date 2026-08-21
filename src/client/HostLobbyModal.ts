@@ -749,6 +749,7 @@ export class HostLobbyModal extends LitElement {
           difficulty: this.selectedDifficulty,
           bots: this.bots,
           infiniteGold: this.infiniteGold,
+          startGold: 0,
           donateGold: this.donateGold,
           infiniteTroops: this.infiniteTroops,
           donateTroops: this.donateTroops,

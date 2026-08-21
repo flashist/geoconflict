@@ -115,6 +115,7 @@ export interface Config {
   playerTeams(): TeamCountConfig;
 
   startManpower(playerInfo: PlayerInfo): number;
+  startGold(playerInfo: PlayerInfo): number;
   troopIncreaseRate(player: Player | PlayerView): number;
   goldAdditionRate(player: Player | PlayerView): Gold;
   attackTilesPerTick(

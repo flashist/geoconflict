@@ -14,6 +14,7 @@ import * as dotenv from "dotenv";
 import http from "http";
 import { createPool } from "./Db";
 import { logger } from "./Logger";
+import { PaymentsRepository } from "./PaymentsRepository";
 import { PlayerProfileRepository } from "./PlayerProfileRepository";
 import { profileHttpPort } from "./ProfileEndpoints";
 import { createApp } from "./Routes";
@@ -24,7 +25,18 @@ const log = logger.child({ comp: "profile" });
 
 const pool = createPool();
 const repo = new PlayerProfileRepository(pool);
-const app = createApp(repo);
+// Yandex per-game payments secret (HMAC key). Unset/empty ⇒ the payments routes
+// fail closed with 503 (see Routes.ts). Never logged, never committed.
+const yandexPaymentsSecret = process.env.YANDEX_PAYMENTS_SECRET ?? "";
+if (yandexPaymentsSecret.length === 0) {
+  log.warn(
+    "YANDEX_PAYMENTS_SECRET is not set — payments endpoints disabled (503)",
+  );
+}
+const app = createApp(repo, {
+  paymentsRepo: new PaymentsRepository(pool),
+  yandexPaymentsSecret,
+});
 const server = http.createServer(app);
 
 const port = profileHttpPort();

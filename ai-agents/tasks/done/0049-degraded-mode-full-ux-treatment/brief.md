@@ -11,7 +11,7 @@ Sprint 4 — moved in from Sprint backlog 2026-07-02 (Mark). Conceptually follow
 **Must be live before:** Citizenship Core — Earned Citizenship, Citizenship Core — Paid Citizenship.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -71,3 +71,8 @@ Case (c) is architecturally indistinguishable from (b) anywhere in the client to
 
 - Analytics: no new event planned for this pass — the existing `Session:PlatformInitTimeout` already measures incidence. If degraded-state card views need their own funnel signal later, follow `analytics-event-reference.md` conventions.
 - If `Session:PlatformInitTimeout` volume turns out to be non-trivial once measured, revisit the deferred recovery-path decision above.
+- **Close caveats (2026-08-14, owner rulings via AskUserQuestion in the fkit-lead ship-loop session; recorded in this folder's `plan.md` header):**
+  - Implementation accepted as committed at `be0ea1b` + `2b43274` (2026-07-02), including the broader `!yandexSdkPlayerObject` degraded-detection deviating from the locked `!yandexGamesSDK` wording.
+  - Live simulation (verification #2): cases **(c)** degraded and **(a)** standalone demonstrated live — evidence in this folder's `worklog.md` and `evidence/degraded-mode-case-c.png`. **Case (b) — healthy-SDK real Yandex guest — was NOT live-verified** (unreachable outside a real Yandex embed); it is covered by unit tests only (verification #3 is therefore unit-test-level, not live).
+  - Verification #1 (`Session:PlatformInitTimeout` analytics pull) **deferred post-close** — owner will pull it at their convenience; informational only, never a gate.
+  - No fresh review round at close (owner ruling): the review of record is the pre-fkit round series ending in commit `2b43274` (ledger: `ai-agents/reviews/degraded-mode-full-ux-treatment.md`); no in-folder `review.md` exists, deliberately.

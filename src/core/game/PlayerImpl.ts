@@ -112,11 +112,12 @@ export class PlayerImpl implements Player {
     private _smallID: number,
     private readonly playerInfo: PlayerInfo,
     startTroops: number,
+    startGold: number,
     private readonly _team: Team | null,
   ) {
     this._name = sanitizeUsername(playerInfo.name);
     this._troops = toInt(startTroops);
-    this._gold = 0n;
+    this._gold = toInt(startGold);
     this._displayName = this._name;
     this._pseudo_random = new PseudoRandom(simpleHash(this.playerInfo.id));
   }

@@ -16,14 +16,23 @@ Expand game content with historical and thematic maps. Convert engaged free-tier
 
 ---
 
-## Sprint 6 Status
+## Status
 
-| Status | Task | Brief |
-|---|---|---|
-| ⬜ Backlog | 5b. Server Restart UX | `s3-5b-task-server-restart-ux.md` |
-| ⬜ Backlog | 5c. Mobile Warning Screen | `s3-5c-task-mobile-warning.md` |
-| ⬜ Backlog | Historical Multiplayer Maps (free, 1–2 maps) | TBD |
-| ⬜ Backlog | Paid Campaign Map Packs | TBD |
+> Reconciled 2026-08-14 to the canonical status vocabulary and table shape (task `0004` scope,
+> owner-ruled). ⚠️ The brief files `s3-5b-task-server-restart-ux.md` and
+> `s3-5c-task-mobile-warning.md` exist **nowhere in the repo** — dangling since the FKIT migration.
+> Their content survives in the archived [`done/plan-sprint-3.md`](done/plan-sprint-3.md) task
+> sections (5b at :100, 5c at :80) and in this plan's own sections below. Whether to author fresh
+> briefs or leave the rows brief-less until Sprint 6 scoping is an open owner decision (raised in the
+> 2026-08-14 reconciliation hand-off). The two map-task briefs are `TBD` **by design** — deferred
+> until Sprint 5 is underway (see Notes and `0027-new-maps-community-demand`).
+
+| Status | Priority | Task | Brief |
+|---|---|---|---|
+| 🔲 Backlog | — | 5b. Server Restart UX *(brief file lost — see note above; content in `done/plan-sprint-3.md` and the section below)* | none — `s3-5b-task-server-restart-ux.md` is dangling |
+| 🔲 Backlog | — | 5c. Mobile Warning Screen *(brief file lost — see note above; content in `done/plan-sprint-3.md` and the section below)* | none — `s3-5c-task-mobile-warning.md` is dangling |
+| 🔲 Backlog | 1 | Historical Multiplayer Maps (free, 1–2 maps) | TBD *(deferred by design)* |
+| 🔲 Backlog | 2 | Paid Campaign Map Packs | TBD *(deferred by design)* |
 
 ---
 
@@ -37,7 +46,7 @@ Multiple unprompted feedback messages requesting specific maps (Russia, WW2). Hi
 
 Moved from Sprint 3. Blocking modal with auto-reload when server recovers (Part B) and pre-restart broadcast notification (Part A). Deferred because the game functions correctly without it, deployment risk is non-trivial, and the weekly release cadence (deployed during low-traffic weekend hours) already minimises player impact.
 
-See full brief: `s3-5b-task-server-restart-ux.md`
+See: task section 5b in [`done/plan-sprint-3.md`](done/plan-sprint-3.md) — the standalone brief file `s3-5b-task-server-restart-ux.md` is lost (dangling since the FKIT migration)
 
 ---
 
@@ -45,7 +54,7 @@ See full brief: `s3-5b-task-server-restart-ux.md`
 
 Moved from Sprint 3. A simple non-blocking screen shown to mobile players on game load informing them that Geoconflict is optimised for desktop. Includes a "Continue anyway" button. Shown once per player (localStorage flag). Not a priority at current DAU levels but worth shipping when content work begins to set honest expectations for mobile players discovering the game through new map content.
 
-See full brief: `s3-5c-task-mobile-warning.md`
+See: task section 5c in [`done/plan-sprint-3.md`](done/plan-sprint-3.md) — the standalone brief file `s3-5c-task-mobile-warning.md` is lost (dangling since the FKIT migration)
 
 ---
 

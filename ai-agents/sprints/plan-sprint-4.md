@@ -12,50 +12,56 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 
 ---
 
-## Sprint 4 Status
+## Status
 
-| Status | Task | Brief |
-|---|---|---|
-| ✅ Done | Investigation A — Player Profile Store | `s4-investigation-player-store.md` |
-| ✅ Done | Investigation B — Yandex Payments Catalog | `s4-investigation-yandex-payments.md` |
-| ✅ Done | 8d-A. Global Announcements Re-enable | `s4-8d-a-task-global-announcements.md` |
-| ⚠️ Urgent | Yandex Catalog Registration (manual, non-engineering) | [`0014-yandex-catalog-registration`](../tasks/backlog/0014-yandex-catalog-registration/brief.md) |
-| ✅ Done | Solo Mode: Opponent Win Condition Not Triggering Loss | `s4-solo-win-condition-fix.md` |
-| ✅ Done | Fix: Space Key Blocked in Feedback Modal During Match | `s4-feedback-modal-space-key.md` |
-| ⬜ Backlog | Feedback Popup: Remove Email/Contact Field *(152-ФЗ data minimization; client + server + en/ru)* | [`0046-feedback-remove-contact-field`](../tasks/backlog/0046-feedback-remove-contact-field/brief.md) |
-| ✅ Done | Investigation — Missions Mode Difficulty Curve | `s4-missions-difficulty-investigation.md` |
-| ✅ Done | Nuke Pre-Launch Trajectory: Increase Line Thickness | `s4-nuke-trajectory-visibility.md` |
-| ⬜ Backlog | Map Labels: Show Troops/Max + Attacking Troops | [`0041-map-population-army-labels`](../tasks/backlog/0041-map-population-army-labels/brief.md) |
-| ⬜ Backlog | Public Modifier: Add "5M Starting Gold" *(standalone variety modifier; decoupled from infinite-gold task 2026-06-20)* | [`0042-starting-gold-public-modifier`](../tasks/backlog/0042-starting-gold-public-modifier/brief.md) |
-| ✅ Done | Teams Mode: Cap Maximum Teams at 4 | `s4-teams-mode-max-teams.md` |
-| ✅ Done | Start Screen Redesign — Tab Layout Investigation (design) | `s4-start-screen-redesign-investigation.md` |
-| ✅ Done | Start Screen Redesign — Implementation | `s4-start-screen-redesign-impl.md` |
-| ✅ Done | App Bootstrap — Single Explicit Entry Point *(client boot-path refactor; in `done/`)* | `s4-app-bootstrap-single-entry-point.md` |
-| 🔄 In Progress | Player Profile Store — Implementation *(epic; T1 ✅, T3 ✅; T2+T7 ⛔ cancelled 2026-06-13 — guest-first dropped, now authenticated-only; T4 ✅ complete + T5 ✅ done 2026-06-24 (box live at api.geoconflict.ru; profile DB+API PR #126); T6 ✅; T8 ✅ — all slices complete)* | [`0013-player-profile-store-impl`](../tasks/backlog/0013-player-profile-store-impl/brief.md) |
-| ✅ Done | PostgreSQL Backup Routine (Profile Store) — off-box, daily *(must be live before Paid Citizenship)* | `s4-postgres-backup-routine.md` |
-| ✅ Done | Personal-Data Compliance (152-ФЗ) — Investigation *(conclusion OVERTURNED 2026-06-28: hashing doesn't remove the obligation. 152-ФЗ work **deferred to backlog** → `0048-compliance-152fz-notification-consent`, risk accepted; no longer gates Sprint 4.)* | `s4-personal-data-compliance-investigation.md` |
-| ⛔ Cancelled | Profile Store: Pseudonymize Player Identity — store an irreversible hash, not the raw Yandex ID *(⛔ Cancelled 2026-06-28 — further investigation found hashing does **not** remove the 152-ФЗ obligation; it only adds support/dev complexity for no benefit. PR #127 reverted. 152-ФЗ deferred to backlog → `0048-compliance-152fz-notification-consent` (risk accepted).)* | `s4-profile-hash-player-ids.md` |
-| ⬜ Backlog | Yandex Payments — Catalog Fetch & Purchase Infrastructure | [`0019-yandex-payments-impl`](../tasks/backlog/0019-yandex-payments-impl/brief.md) |
-| ✅ Done | Citizenship Core — XP Counter & Progress UI | `s4-citizenship-xp-progress-ui.md` |
-| ✅ Done | Citizenship Card: Login CTA Is a Dead Button Outside a Yandex Context | `s4-citizenship-card-guest-cta-no-sdk.md` |
-| ⬜ Backlog | Degraded-Mode UX: Give Yandex SDK Timeout/Failure Its Own Player-Facing Treatment *(moved in from Sprint backlog 2026-07-02 — Mark: must ship before Citizenship Earned/Paid go live)* | [`0049-degraded-mode-full-ux-treatment`](../tasks/backlog/0049-degraded-mode-full-ux-treatment/brief.md) |
-| ⬜ Backlog | Citizenship Core — Earned Citizenship *(blocked: player profile store; also gated on degraded-mode UX task above)* | [`0017-citizenship-earned`](../tasks/backlog/0017-citizenship-earned/brief.md) |
-| ⬜ Backlog | Citizenship Core — Paid Citizenship *(blocked: payments + catalog approval; also gated on degraded-mode UX task above)* | [`0018-citizenship-paid`](../tasks/backlog/0018-citizenship-paid/brief.md) |
-| ⬜ Backlog | 8d-B. Personal Inbox *(blocked: player profile store)* | [`0012-personal-inbox`](../tasks/backlog/0012-personal-inbox/brief.md) |
-| ⬜ Backlog | S3-Backed Match Archival (Citizen-Gated) *(blocked: player profile store + citizenship + S3 infra)* | [`0030-archive-s3-backed-citizen-gated`](../tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md) |
-| ⬜ Backlog | Investigate & Fix Client Null-ID Errors *(stabilization follow-up; needs source maps + deployed archive fix)* | [`0032-investigate-null-id-errors`](../tasks/backlog/0032-investigate-null-id-errors/brief.md) |
-| ⬜ Backlog | Name Change (Citizens Only) | TBD |
-| ⬜ Backlog | Citizen Verified Icon | TBD |
-| ⛔ Cancelled | Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` |
-| ✅ Done | AI Lobby Slot Bug — Always Keep One Slot Free | `s4-ai-lobby-slot-bug.md` |
-| ⬜ Backlog | Asset audit: confirm no proprietary/CDN assets in production bundle *(prerequisite: paid citizenship)* | [`0025-licensing-asset-audit`](../tasks/backlog/0025-licensing-asset-audit/brief.md) |
-| ⛔ Cancelled | Tutorial — Pause During Action-Required Steps | `s4-tutorial-action-pause.md` |
-| ✅ Done | Tutorial — Remove Nations, Keep Only Bots | `s4-tutorial-no-nations.md` |
-| ✅ Done | Tutorial — Lock Build Menu to City During Tooltip 5 | `s4-tutorial-build-menu-lock.md` |
-| ✅ Done | Tutorial — Reduce Bot Count from 400 to 100 | `s4-tutorial-reduce-bots.md` |
-| ✅ Done | Email Subscription Modal | `s4-email-subscribe-task.md` |
-| ✅ Done | Telegram Channel Link (start screen, game-end screen) | `s4-telegram-link.md` |
-| ✅ Done | VK Channel Link (start screen, game-end screen) | `s4-vk-link.md` |
+> Reconciled 2026-08-14 to the canonical status vocabulary and table shape (task `0004` scope, owner-ruled).
+> The Priority column is `—` where the plan never ranked the row. Done/cancelled briefs are still the
+> pre-migration flat files (folder migration is task `0003`) — the dashboard reports their location as
+> drift until `0003` runs; that is expected. `⚠️ Urgent` on the Yandex Catalog row is a non-canonical
+> marker awaiting an owner ruling (see task `0004`), left unconverted on purpose.
+
+| Status | Priority | Task | Brief |
+|---|---|---|---|
+| ✅ Done | — | Investigation A — Player Profile Store | [`sprint4-investigation-player-store.md`](../tasks/done/sprint4-investigation-player-store.md) |
+| ✅ Done | — | Investigation B — Yandex Payments Catalog | [`sprint4-investigation-yandex-payments.md`](../tasks/done/sprint4-investigation-yandex-payments.md) |
+| ✅ Done | — | 8d-A. Global Announcements Re-enable | [`8d-a-task-global-announcements.md`](../tasks/done/8d-a-task-global-announcements.md) |
+| 🚧 Blocked — awaiting Yandex catalog approval | — | Yandex Catalog Registration (manual, non-engineering; owner-ruled 2026-08-14: was `⚠️ Urgent`, urgency is not a status) | [`0014-yandex-catalog-registration`](../tasks/backlog/0014-yandex-catalog-registration/brief.md) |
+| ✅ Done | — | Solo Mode: Opponent Win Condition Not Triggering Loss | [`s4-solo-win-condition-fix.md`](../tasks/done/s4-solo-win-condition-fix.md) |
+| ✅ Done | — | Fix: Space Key Blocked in Feedback Modal During Match | [`s4-feedback-modal-space-key.md`](../tasks/done/s4-feedback-modal-space-key.md) |
+| ✅ Done (agent-closed — not owner-verified) | — | Feedback Popup: Remove Email/Contact Field *(152-ФЗ data minimization; client + server + en/ru)* | [`0046-feedback-remove-contact-field`](../tasks/done/0046-feedback-remove-contact-field/brief.md) |
+| ✅ Done | — | Investigation — Missions Mode Difficulty Curve | [`s4-missions-difficulty-investigation.md`](../tasks/done/s4-missions-difficulty-investigation.md) |
+| ✅ Done | — | Nuke Pre-Launch Trajectory: Increase Line Thickness | [`s4-nuke-trajectory-visibility.md`](../tasks/done/s4-nuke-trajectory-visibility.md) |
+| ✅ Done (agent-closed — not owner-verified) | — | Map Labels: Show Troops/Max + Attacking Troops *(live-validated singleplayer only — multiplayer parity, exact-zero case, dark-territory legibility not demonstrated live)* | [`0041-map-population-army-labels`](../tasks/done/0041-map-population-army-labels/brief.md) |
+| ✅ Done (agent-closed — not owner-verified) | — | Public Modifier: Add "5M Starting Gold" *(standalone variety modifier; decoupled from infinite-gold task 2026-06-20)* | [`0042-starting-gold-public-modifier`](../tasks/done/0042-starting-gold-public-modifier/brief.md) |
+| ✅ Done | — | Teams Mode: Cap Maximum Teams at 4 | [`s4-teams-mode-max-teams.md`](../tasks/done/s4-teams-mode-max-teams.md) |
+| ✅ Done | — | Start Screen Redesign — Tab Layout Investigation (design) | [`s4-start-screen-redesign-investigation.md`](../tasks/done/s4-start-screen-redesign-investigation.md) |
+| ✅ Done | — | Start Screen Redesign — Implementation | [`s4-start-screen-redesign-impl.md`](../tasks/done/s4-start-screen-redesign-impl.md) |
+| ✅ Done | — | App Bootstrap — Single Explicit Entry Point *(client boot-path refactor)* | [`s4-app-bootstrap-single-entry-point.md`](../tasks/done/s4-app-bootstrap-single-entry-point.md) |
+| 🔄 In progress | — | Player Profile Store — Implementation *(epic; T1 ✅, T3 ✅; T2+T7 ⛔ cancelled 2026-06-13 — guest-first dropped, now authenticated-only; T4 ✅ complete + T5 ✅ done 2026-06-24 (box live at api.geoconflict.ru; profile DB+API PR #126); T6 ✅; T8 ✅ — all slices complete)* | [`0013-player-profile-store-impl`](../tasks/backlog/0013-player-profile-store-impl/brief.md) |
+| ✅ Done | — | PostgreSQL Backup Routine (Profile Store) — off-box, daily *(must be live before Paid Citizenship)* | [`s4-postgres-backup-routine.md`](../tasks/done/s4-postgres-backup-routine.md) |
+| ✅ Done | — | Personal-Data Compliance (152-ФЗ) — Investigation *(conclusion OVERTURNED 2026-06-28: hashing doesn't remove the obligation. 152-ФЗ work **deferred to backlog** → `0048-compliance-152fz-notification-consent`, risk accepted; no longer gates Sprint 4.)* | [`s4-personal-data-compliance-investigation.md`](../tasks/done/s4-personal-data-compliance-investigation.md) |
+| ⛔ Cancelled (2026-06-28) — hashing does not remove the 152-ФЗ obligation; PR #127 reverted | — | Profile Store: Pseudonymize Player Identity — store an irreversible hash, not the raw Yandex ID *(152-ФЗ deferred to backlog → `0048-compliance-152fz-notification-consent`, risk accepted)* | [`s4-profile-hash-player-ids.md`](../tasks/cancelled/s4-profile-hash-player-ids.md) |
+| ✅ Done (agent-closed — not owner-verified) | — | Yandex Payments — Catalog Fetch & Purchase Infrastructure | [`0019-yandex-payments-impl`](../tasks/done/0019-yandex-payments-impl/brief.md) |
+| ✅ Done | — | Citizenship Core — XP Counter & Progress UI | [`s4-citizenship-xp-progress-ui.md`](../tasks/done/s4-citizenship-xp-progress-ui.md) |
+| ✅ Done | — | Citizenship Card: Login CTA Is a Dead Button Outside a Yandex Context | [`s4-citizenship-card-guest-cta-no-sdk.md`](../tasks/done/s4-citizenship-card-guest-cta-no-sdk.md) |
+| ✅ Done (agent-closed — not owner-verified) | — | Degraded-Mode UX: Give Yandex SDK Timeout/Failure Its Own Player-Facing Treatment *(moved in from Sprint backlog 2026-07-02 — Mark: must ship before Citizenship Earned/Paid go live)* | [`0049-degraded-mode-full-ux-treatment`](../tasks/done/0049-degraded-mode-full-ux-treatment/brief.md) |
+| 🔲 Backlog | — | Citizenship Core — Earned Citizenship *(blocked: player profile store; also gated on degraded-mode UX task above)* | [`0017-citizenship-earned`](../tasks/backlog/0017-citizenship-earned/brief.md) |
+| 🔲 Backlog | — | Citizenship Core — Paid Citizenship *(blocked: payments + catalog approval; also gated on degraded-mode UX task above)* | [`0018-citizenship-paid`](../tasks/backlog/0018-citizenship-paid/brief.md) |
+| 🔲 Backlog | — | 8d-B. Personal Inbox *(blocked: player profile store)* | [`0012-personal-inbox`](../tasks/backlog/0012-personal-inbox/brief.md) |
+| 🔲 Backlog | — | S3-Backed Match Archival (Citizen-Gated) *(blocked: player profile store + citizenship + S3 infra)* | [`0030-archive-s3-backed-citizen-gated`](../tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md) |
+| 🔲 Backlog | — | Investigate & Fix Client Null-ID Errors *(stabilization follow-up; needs source maps + deployed archive fix)* | [`0032-investigate-null-id-errors`](../tasks/backlog/0032-investigate-null-id-errors/brief.md) |
+| 🔲 Backlog | — | Name Change (Citizens Only) | TBD |
+| 🔲 Backlog | — | Citizen Verified Icon | TBD |
+| ⛔ Cancelled (2026-04-21) — created too many bugs; cancelled forever, though a similar task might return someday (owner-supplied reason, 2026-08-14) | — | Humans vs Nations — Balance Nation Count *(date recovered from plan edit `e7e1b12`)* | [`s4-nations-balance-task.md`](../tasks/cancelled/s4-nations-balance-task.md) |
+| ✅ Done | — | AI Lobby Slot Bug — Always Keep One Slot Free | [`s4-ai-lobby-slot-bug.md`](../tasks/done/s4-ai-lobby-slot-bug.md) |
+| 🔲 Backlog | — | Asset audit: confirm no proprietary/CDN assets in production bundle *(prerequisite: paid citizenship)* | [`0025-licensing-asset-audit`](../tasks/backlog/0025-licensing-asset-audit/brief.md) |
+| ⛔ Cancelled (2026-04-18) — created too many implementation problems | — | Tutorial — Pause During Action-Required Steps | [`s4-tutorial-action-pause.md`](../tasks/cancelled/s4-tutorial-action-pause.md) |
+| ✅ Done | — | Tutorial — Remove Nations, Keep Only Bots | [`s4-tutorial-no-nations.md`](../tasks/done/s4-tutorial-no-nations.md) |
+| ✅ Done | — | Tutorial — Lock Build Menu to City During Tooltip 5 | [`s4-tutorial-build-menu-lock.md`](../tasks/done/s4-tutorial-build-menu-lock.md) |
+| ✅ Done | — | Tutorial — Reduce Bot Count from 400 to 100 | [`s4-tutorial-reduce-bots.md`](../tasks/done/s4-tutorial-reduce-bots.md) |
+| ✅ Done | — | Email Subscription Modal | [`s4-email-subscribe-task.md`](../tasks/done/s4-email-subscribe-task.md) |
+| ✅ Done | — | Telegram Channel Link (start screen, game-end screen) | [`s4-telegram-link.md`](../tasks/done/s4-telegram-link.md) |
+| ✅ Done | — | VK Channel Link (start screen, game-end screen) | [`s4-vk-link.md`](../tasks/done/s4-vk-link.md) |
 
 ---
 
@@ -75,7 +81,7 @@ Full implementation scope locked in based on findings. Briefs written at that po
 
 ### Investigation A — Player Profile Store
 **Effort:** 1–2 days
-**Brief:** `s4-investigation-player-store.md`
+**Brief:** `sprint4-investigation-player-store.md` (in `tasks/done/`)
 **Blocks:** all citizenship implementation tasks
 
 First persistent per-player database in the codebase. Findings needed on: database technology, hosting location, initial schema, match completion tracking approach, and guest player handling.
@@ -84,7 +90,7 @@ First persistent per-player database in the codebase. Findings needed on: databa
 
 ### Investigation B — Yandex Payments Catalog Integration
 **Effort:** 1 day
-**Brief:** `s4-investigation-yandex-payments.md`
+**Brief:** `sprint4-investigation-yandex-payments.md` (in `tasks/done/`)
 **Blocks:** all purchase UI tasks
 
 Findings needed on: Yandex payments SDK API, catalog fetch architecture, dashboard setup requirements and approval timeline, purchase-to-server notification approach.
@@ -99,7 +105,7 @@ Findings needed on: Yandex payments SDK API, catalog fetch architecture, dashboa
 
 ### 8d-A. Global Announcements Re-enable
 **Effort:** half a day
-**Brief:** `s4-8d-a-task-global-announcements.md`
+**Brief:** `8d-a-task-global-announcements.md` (in `tasks/done/`)
 **Status:** Pending
 
 Re-enable the existing OpenFront announcements feature. JSON-driven content, no backend. Provides the communication channel to announce citizenship before it launches. Ship early in Sprint 4 with seed content announcing citizenship is coming.
@@ -312,7 +318,7 @@ See full brief: `s4-ai-lobby-slot-bug.md`
 
 ## Tutorial — Pause During Action-Required Steps
 
-**Status:** ⛔ Cancelled — created too many implementation problems.
+**Status:** ⛔ Cancelled (2026-04-18) — created too many implementation problems.
 
 See full brief: `s4-tutorial-action-pause.md`
 

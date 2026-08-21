@@ -13,7 +13,7 @@ Non-technical — requires manual action in the Yandex Games dashboard. Not engi
 Urgent. Catalog approval takes several days. Every day this is delayed pushes back the paid citizenship launch date.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — awaiting Yandex catalog approval (owner-ruled 2026-08-14; was ⚠️ Urgent on the Sprint 4 board — urgency is not a status)
 
 ## Owner
 fkit-producer

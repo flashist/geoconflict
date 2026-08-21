@@ -137,6 +137,9 @@ export class GameServer {
     if (gameConfig.infiniteGold !== undefined) {
       this.gameConfig.infiniteGold = gameConfig.infiniteGold;
     }
+    if (gameConfig.startGold !== undefined) {
+      this.gameConfig.startGold = gameConfig.startGold;
+    }
     if (gameConfig.donateGold !== undefined) {
       this.gameConfig.donateGold = gameConfig.donateGold;
     }

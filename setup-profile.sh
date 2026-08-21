@@ -22,6 +22,8 @@
 #   DATABASE_URL               — API connection string (default built from POSTGRES_*,
 #                                @127.0.0.1:5432 — see the stack-write section)
 #   PROFILE_INTERNAL_TOKEN     — service token (reused/persisted/auto-generated)
+#   YANDEX_PAYMENTS_SECRET     — Yandex per-game payments HMAC secret; empty/unset =
+#                                payments endpoints disabled (fail-closed 503, task 0019)
 #   PROFILE_INTERNAL_ALLOW_IPS — game-server IPs for the dormant nginx /internal/ allowlist
 #   CERTBOT_EMAIL              — Let's Encrypt email (default ruflashist@gmail.com)
 #   DOCKER_USERNAME/DOCKER_TOKEN — optional registry auth for pulling a private PROFILE_IMAGE
@@ -381,6 +383,7 @@ POSTGRES_DB=${POSTGRES_DB}
 DATABASE_URL=${DATABASE_URL}
 PROFILE_INTERNAL_TOKEN=${PROFILE_INTERNAL_TOKEN}
 PROFILE_PORT=${PROFILE_PORT}
+YANDEX_PAYMENTS_SECRET=${YANDEX_PAYMENTS_SECRET:-}
 EOF
 )
 chmod 600 "$PROFILE_DIR/profile.env"

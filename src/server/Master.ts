@@ -200,7 +200,6 @@ const telegramProxyAgent = TELEGRAM_PROXY_URL ? new ProxyAgent(TELEGRAM_PROXY_UR
 const FeedbackSchema = z.object({
   category: z.enum(["Bug", "Suggestion", "Other"]),
   text: z.string().max(2000).optional(),
-  contact: z.string().max(200).optional(),
   platform: z.string().max(50),
   yandexStatus: z.string().max(50),
   version: z.string().max(100),
@@ -251,7 +250,6 @@ app.post(
               { name: "Version", value: d.version, inline: true },
               { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
               { name: "Recent Matches", value: d.recentMatchIds?.map(esc).join(", ") ?? "n/a", inline: false },
-              { name: "Contact", value: d.contact ? esc(d.contact) : "n/a", inline: true },
               { name: "Time", value: new Date().toISOString(), inline: false },
               ...(d.deviceInfo
                 ? [{ name: "Device Info", value: formatDeviceInfo(d.deviceInfo), inline: false }]
@@ -281,7 +279,7 @@ app.post(
         `\n<b>Screen:</b> ${d.screenSource}  <b>Platform:</b> ${d.platform}`,
         `<b>Yandex:</b> ${d.yandexStatus}  <b>Username:</b> ${d.username ? esc(d.username) : "n/a"}`,
         `<b>Version:</b> ${esc(d.version)}`,
-        `<b>Match:</b> ${d.matchId ? esc(d.matchId) : "n/a"}  <b>Contact:</b> ${d.contact ? esc(d.contact) : "n/a"}`,
+        `<b>Match:</b> ${d.matchId ? esc(d.matchId) : "n/a"}`,
         ...(d.recentMatchIds?.length ? [`<b>Recent matches:</b> ${d.recentMatchIds.map(esc).join(", ")}`] : []),
         `<b>Time:</b> ${new Date().toISOString()}`,
         ...(d.deviceInfo ? [`\n<b>Device:</b> ${esc(formatDeviceInfo(d.deviceInfo))}`] : []),

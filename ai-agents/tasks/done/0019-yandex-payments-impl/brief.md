@@ -10,7 +10,7 @@ Sprint 4
 High — blocks paid citizenship path. Independent of the earned citizenship path.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

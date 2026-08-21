@@ -18,18 +18,24 @@ Source: `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`
 
 ---
 
-## Sprint 4c Status
+## Status
 
-| Status | Task | Error Rate | Brief |
+> Reconciled 2026-08-14 to the canonical status vocabulary and table shape (task `0004` scope,
+> owner-ruled). The former Error Rate column moved into the Task cell — the reader contract is
+> `Status | Priority | Task | Brief`. This sprint was unranked, so Priority reads `—`. Briefs are
+> still the pre-migration flat files (folder migration is task `0003`); the dashboard reports their
+> location as drift until `0003` runs — expected.
+
+| Status | Priority | Task | Brief |
 |---|---|---|---|
-| ✅ Done | Fix Cosmetics.json Serving and PrivilegeRefresher | ~138.6/min | `s4c-fix-cosmetics-serving.md` |
-| ✅ Done | Fix LocalServer Hash Guard (Singleplayer Crash) | ~31.0/min | `s4c-fix-local-server-hash-guard.md` |
-| ✅ Done | Reduce Archive Telemetry Noise (disable dead archive path) | ~26.6/min | `s4c-reduce-archive-telemetry-noise.md` |
-| ✅ Done | Investigate Lobby and Map Fetch Failures | ~9.3/min | `s4c-investigate-lobby-map-fetch.md` |
-| ✅ Done | Enable Production Client Source Maps in Uptrace | — | `s4c-enable-client-source-maps.md` |
-| ✅ Done | Leaderboard: Show Human Player Count in Label | — | `s4c-leaderboard-player-count.md` |
-| ⛔ Cancelled | Fix Compact Map Boat-Attack Button (Runtime Fallback) | Sprint 4b regression | `cancelled/s4c-fix-compact-map-boat-attack.md` |
-| ✅ Done | Disable Compact Maps in Public Rotation | Sprint 4b regression | `s4c-disable-compact-public-maps.md` |
+| ✅ Done | — | Fix Cosmetics.json Serving and PrivilegeRefresher *(error rate ~138.6/min)* | [`s4c-fix-cosmetics-serving.md`](../tasks/done/s4c-fix-cosmetics-serving.md) |
+| ✅ Done | — | Fix LocalServer Hash Guard (Singleplayer Crash) *(error rate ~31.0/min)* | [`s4c-fix-local-server-hash-guard.md`](../tasks/done/s4c-fix-local-server-hash-guard.md) |
+| ✅ Done | — | Reduce Archive Telemetry Noise (disable dead archive path) *(error rate ~26.6/min)* | [`s4c-reduce-archive-telemetry-noise.md`](../tasks/done/s4c-reduce-archive-telemetry-noise.md) |
+| ✅ Done | — | Investigate Lobby and Map Fetch Failures *(error rate ~9.3/min)* | [`s4c-investigate-lobby-map-fetch.md`](../tasks/done/s4c-investigate-lobby-map-fetch.md) |
+| ✅ Done | — | Enable Production Client Source Maps in Uptrace | [`s4c-enable-client-source-maps.md`](../tasks/done/s4c-enable-client-source-maps.md) |
+| ✅ Done | — | Leaderboard: Show Human Player Count in Label | [`s4c-leaderboard-player-count.md`](../tasks/done/s4c-leaderboard-player-count.md) |
+| ⛔ Cancelled (2026-06-02) — runtime fallback sent boats to semantically wrong coasts; the missing `isShore` data is not runtime-recoverable | — | Fix Compact Map Boat-Attack Button (Runtime Fallback) *(Sprint 4b regression)* | [`s4c-fix-compact-map-boat-attack.md`](../tasks/cancelled/s4c-fix-compact-map-boat-attack.md) |
+| ✅ Done | — | Disable Compact Maps in Public Rotation *(Sprint 4b regression)* | [`s4c-disable-compact-public-maps.md`](../tasks/done/s4c-disable-compact-public-maps.md) |
 
 ---
 

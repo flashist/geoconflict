@@ -58,6 +58,7 @@ export class GameManager {
         difficulty: Difficulty.Medium,
         disableNPCs: false,
         infiniteGold: false,
+        startGold: 0,
         infiniteTroops: false,
         maxTimerValue: undefined,
         instantBuild: false,

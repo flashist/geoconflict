@@ -451,6 +451,7 @@ export class GameImpl implements Game {
       this.nextPlayerID,
       playerInfo,
       this.config().startManpower(playerInfo),
+      this.config().startGold(playerInfo),
       team ?? this.maybeAssignTeam(playerInfo),
     );
     this._playersBySmallID.push(player);

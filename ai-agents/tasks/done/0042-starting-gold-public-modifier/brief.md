@@ -11,7 +11,7 @@ Medium — match-quality change. Safe weekend deploy. Higher blast radius than a
 edit because it adds a new `GameConfig` field (schema + every config literal, client and server).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -184,3 +184,20 @@ Add `startGold` (default `0`) so the schema validates everywhere `infiniteGold` 
 - Touches `src/core/` (player init + config) — desync-sensitive; the all-literals rule in step 4
   is what keeps client/server starting gold identical.
 - Weekend deploy (low-traffic window). Touches the prod public-rotation path.
+
+---
+
+## Accepted residuals at close (2026-08-14 — owner-dispositioned, still open)
+
+Closed via review verdict "✅ Ready to merge (validation-gated)" (see `review.md`). These remain
+**pending owner-side actions / accepted risks**, not defects:
+
+1. **Post-deploy live check (owner-side, still to do):** badge shows on the modified lobby; 5M
+   granted to humans + AI-fill only (nations/bots at 0); unmodified matches unaffected; opening
+   pace bounded — if openings feel nuke-heavy, flag the 5M constant for tuning (Verification §3).
+2. **Deploy-window desync-kick (accepted risk):** stale clients in-flight during the deploy lack
+   the new `startGold` field and can be desync-kicked from modified matches. Mitigation: weekend
+   low-traffic deploy.
+3. **R1 (advisory, accepted residual):** PUT-seam finding — accepted with a re-raise condition
+   recorded in `review.md`.
+4. **R2 (advisory, informational):** pre-existing RNG seam — pre-dates this task, informational only.

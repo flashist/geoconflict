@@ -10,7 +10,7 @@ Sprint 4
 Medium — player-facing readability/feature enhancement. Independent, no dependencies on the citizenship/payments track. Ships to all players.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -103,6 +103,8 @@ The whole label element is already shown/hidden by `updateElementVisibility()` b
 4. **Legibility:** red attack number is readable over both light and dark territory colours; lines don't overflow or visually collide at small label sizes / mid zoom.
 5. **Small viewport:** sanity-check on the 360×430 Yandex iframe size — labels remain legible, not overly cluttered.
 6. `npm run lint`; `npm test` (existing suite stays green; no new `src/core/` tests since there is no core change).
+
+> **Close-time verification coverage (2026-08-14):** live validation was performed in a **singleplayer bot game only** (8 screenshots in `evidence/`, incl. the red attacking-line lifecycle and the post-fix nowrap proof). **Not demonstrated live:** multiplayer parity, the exact-zero attacking-troops case, and red-line legibility over dark territory colours. The 360×430 HUD density observed is pre-existing and flagged with evidence for the owner's clutter judgment. Lint / tsc / full test suite (87 suites, 691 tests) green post-fix. See `worklog.md` and `review.md` for detail.
 
 ---
 

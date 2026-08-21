@@ -31,7 +31,6 @@ export class FeedbackModal extends LitElement {
   @state() isVisible = false;
   @state() category: "Bug" | "Suggestion" | "Other" = "Bug";
   @state() text = "";
-  @state() contact = "";
   @state() submitted = false;
   @state() loading = false;
   @state() error = "";
@@ -131,22 +130,8 @@ export class FeedbackModal extends LitElement {
       font-family: inherit;
     }
 
-    textarea::placeholder,
-    input::placeholder {
+    textarea::placeholder {
       color: rgba(255, 255, 255, 0.4);
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 8px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      color: white;
-      font-size: 13px;
-      box-sizing: border-box;
-      margin-bottom: 12px;
-      font-family: inherit;
     }
 
     .send-btn {
@@ -190,7 +175,6 @@ export class FeedbackModal extends LitElement {
     this.isVisible = true;
     this.category = "Bug";
     this.text = "";
-    this.contact = "";
     this.submitted = false;
     this.loading = false;
     this.error = "";
@@ -209,7 +193,6 @@ export class FeedbackModal extends LitElement {
     this.isVisible = false;
     this.category = "Bug";
     this.text = "";
-    this.contact = "";
     this.submitted = false;
     this.loading = false;
     this.error = "";
@@ -294,7 +277,6 @@ export class FeedbackModal extends LitElement {
     const payload = {
       category: this.category,
       text: this.text || undefined,
-      contact: this.contact || undefined,
       platform,
       yandexStatus,
       version,
@@ -364,16 +346,6 @@ export class FeedbackModal extends LitElement {
             this.text = (e.target as HTMLTextAreaElement).value;
           }}
                 ></textarea>
-                <input
-                  type="text"
-                  placeholder=${translateText(
-            "feedback_modal.contact_placeholder",
-          )}
-                  .value=${this.contact}
-                  @input=${(e: Event) => {
-            this.contact = (e.target as HTMLInputElement).value;
-          }}
-                />
                 ${this.error
             ? html`<p class="error-text">${this.error}</p>`
             : ""}

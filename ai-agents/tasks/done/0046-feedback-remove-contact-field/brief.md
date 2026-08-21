@@ -11,7 +11,7 @@ Medium-High — legal/compliance-driven (152-ФЗ personal-data minimization). T
 small and low-risk; the value is reducing personal-data collection exposure. Safe weekend deploy.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -93,6 +93,10 @@ The `StaleBuildModal` reuses `FeedbackModal`, so it loses the contact field too 
 ---
 
 ## Verification (live)
+
+> ⚠️ **Residual at close (2026-08-14, agent-closed):** the live checks below (post-deploy UI check,
+> Telegram delivery without a Contact line, `Feedback:Submitted` unchanged) have **not** been run —
+> they are post-deploy and owner/driver-side. See `review.md` residuals in this folder.
 
 1. **UI:** the feedback popup (start screen, battle screen, and the stale-build reuse) no longer
    shows the email/contact input. Category + free text + Send only.

@@ -32,6 +32,7 @@ export const WEIRD_SETTING_OPTIONS: Array<() => Partial<GameConfig>> = [
   () => ({ infiniteTroops: true }),
   () => ({ disabledUnits: [UnitType.MissileSilo] }),
   () => ({ disabledUnits: [UnitType.SAMLauncher] }),
+  () => ({ startGold: 5_000_000 }),
 ];
 
 // DISABLED 2026-06-03 (s4c-disable-compact-public-maps): compact public matches carry the
@@ -156,6 +157,7 @@ export class MapPlaylist {
       gameMapSize: GameMapSize.Normal,
       difficulty: Difficulty.Medium,
       infiniteGold: false,
+      startGold: 0,
       infiniteTroops: false,
       maxTimerValue: undefined,
       instantBuild: false,
