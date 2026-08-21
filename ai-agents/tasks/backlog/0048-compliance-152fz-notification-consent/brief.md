@@ -67,6 +67,11 @@ Mark + a Russian data-protection lawyer/consultant to determine:
    real go-live gate (and the size of the accepted risk above).
 7. **Retention & deletion.** Right-to-deletion + retention duties, and interaction with the profile
    store and the deferred S3-backed archival (`0030-archive-s3-backed-citizen-gated`).
+8. **Email Subscription Modal (in scope — owner-ruled 2026-08-21).** Whether the email-subscribe
+   feature (collects email by design; currently disabled by experiment flag) can lawfully run: what
+   consent, privacy-policy, retention, and deletion obligations attach — or whether the feature
+   should be dropped. Includes any emails already collected (delivered to Telegram) if the flag ever
+   ran on in prod.
 
 **Deliverable:** findings → `ai-agents/knowledge-base/personal-data-152fz-findings-v2.md` (the v1
 findings are invalidated), reviewed with Mark to lock the real gate.
@@ -79,6 +84,11 @@ findings are invalidated), reviewed with Mark to lock the real gate.
 - **Email Subscription Modal** — collects email by design; currently **disabled (experiment flag
   off)**, so dormant. Must not be re-enabled without a consent path. If the flag ever ran *on* in
   prod, already-collected emails (in Telegram) are a retention/deletion question.
+  **Folded into this task's scope (owner-ruled 2026-08-21; see item 8 above):** during
+  `0046-feedback-remove-contact-field` (done) the modal was flagged as a **larger** 152-ФЗ exposure
+  than the removed feedback contact field — it cannot be fixed by removal (email *is* the feature),
+  so the drop-vs-consent-flow product call waits for this task's findings. Rejected alternatives:
+  a separate task; dropping the feature now.
 - *(The feedback popup contact field is being removed separately — `0046-feedback-remove-contact-field`
   — and is out of scope here.)*
 
