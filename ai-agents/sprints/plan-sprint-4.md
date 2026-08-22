@@ -63,6 +63,57 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | — | Telegram Channel Link (start screen, game-end screen) | [`s4-telegram-link.md`](../tasks/done/s4-telegram-link.md) |
 | ✅ Done | — | VK Channel Link (start screen, game-end screen) | [`s4-vk-link.md`](../tasks/done/s4-vk-link.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | Hide Citizenship Card on Start Screen Behind a Client Config Flag (Default OFF) *(interim until 0017/0018 ship; flag flips ON at citizenship launch)* | [`0054-hide-citizenship-card-behind-client-flag`](../tasks/done/0054-hide-citizenship-card-behind-client-flag/brief.md) |
+| ✅ Done (agent-closed — not owner-verified) | — | `Master.ts`: Serve a Parseable Lobbies Body, and Log Why a Worker Died *(2026-08-22 outage — the unblocked half. First-ever test coverage of `Master.ts`. ⚠️ **Not committed, not deployed** — verified locally and by review only. ⚠️ Codex review coverage was **partial**: findings on the test file only, no opinion on `Master.ts` itself)* | [`0055-master-parseable-lobbies-body-and-worker-exit-diagnostics`](../tasks/done/0055-master-parseable-lobbies-body-and-worker-exit-diagnostics/brief.md) |
+| 🔲 Backlog | — | Investigation — Public-Game Routing Can Send Games to a Dead or Unready Worker *(architect-led; **runs BEFORE `0056`** — owner-ruled 2026-08-22; promoted in from the Backlog board the same day)* | [`0057-investigate-worker-routing-to-dead-or-unready-workers`](../tasks/backlog/0057-investigate-worker-routing-to-dead-or-unready-workers/brief.md) |
+| 🔲 Backlog | — | Restore Worker Crash Recovery — With a Restart Cap — and Make the Scheduling Gate Survivable *(2026-08-22 outage root-cause fix. **Both owner decisions RULED 2026-08-22** — gate quorum **18 of 20 with a 90 s deadline**; restart cap **5 per worker index per 10-min window, backoff 1s→30s**, then give up and log at error level. ⚠️ Arms worker restarts for the first time in project history — the cap MUST ship in the same change or a repeatedly-crashing worker becomes a fork loop. **Starts after `0057`'s findings.**)* | [`0056-restore-worker-crash-recovery-and-survivable-scheduling-gate`](../tasks/backlog/0056-restore-worker-crash-recovery-and-survivable-scheduling-gate/brief.md) |
+
+> **Addendum — tasks 0055 and 0056 added out of band (2026-08-22), production incident.**
+> On 2026-08-22 production lost **all** public multiplayer lobbies for ~3.5 hours. Service was
+> recovered by a container restart, but **the root-cause defects are still unfixed in `main` and
+> production is running right now with crash recovery disarmed.** Root cause: `src/server/Master.ts`
+> reads `worker.process.env.WORKER_ID` in its `cluster.on("exit")` handler, but a Node `ChildProcess`
+> has no `.env` property, so the value is always `undefined` and **no worker has ever been restarted
+> after a crash** — a defect dating to the repository's first commit (`feea527`), **not** caused by the
+> 2026-08-22 deploy. One of 20 workers died at startup; the scheduling gate requires all 20 ready;
+> scheduling never started; `/api/public_lobbies` served an empty body until restart. Full record:
+> [`incidents/2026-08-22-prod-public-lobbies-empty-outage.md`](../knowledge-base/incidents/2026-08-22-prod-public-lobbies-empty-outage.md).
+> Split into two units on purpose: `0055` is unblocked and ships immediately; `0056` carried both owner
+> decisions and the fork-loop risk. Two further follow-ups — `0058` (`Worker.ts` missing
+> `server.on("error")`) and `0059` (precompile the server for prod instead of `ts-node/esm`) — sit on
+> the **Backlog** board: neither is needed to restore crash recovery. This sprint's Status board is
+> unranked, so all three Priority cells read `—` like every other row; no rank was assigned or
+> displaced.
+>
+> **Update, same day — owner rulings and one promotion.** The owner ruled both of `0056`'s blocking
+> decisions, so **`0056` moved from `🚧 Blocked` to `🔲 Backlog`**: the readiness gate starts scheduling
+> at a quorum of **18 of 20** workers or a **90-second** deadline, whichever comes first; a crashed
+> worker is restarted at most **5 times per index per rolling 10-minute window** with exponential
+> backoff **1s → 30s**, after which the master gives up on that index and logs at `error` level. The
+> fork-loop warning in `0056`'s brief is retained and reworded from an open risk into required
+> behaviour — a build that arms restarts without the cap is not a shippable increment.
+> The owner also ruled the **ordering: `0057` runs before `0056`**, because quorum size sets the
+> misroute rate and the findings are most useful while 18/20 is committed but not yet built.
+> `0057` was therefore **promoted from the Backlog board into this sprint** (producer call): a hard
+> dependency of a Sprint 4 task belongs on the sprint board, or the blocker is invisible where the
+> sprint is read. Outage-track execution order is **`0055` → `0057` → `0056`**; `0055` was independent
+> of the other two.
+>
+> **Update — `0055` closed 2026-08-22, agent-closed.** Implemented, reviewed and review-closed
+> (`review.md` `Status: closed-out`; round 1, 2 low defects fixed, 2 frontier-moves accepted as
+> residuals by owner ruling). `src/server/Master.ts` only, `+28/−8`; new `tests/server/Master.test.ts`
+> is the **first-ever test coverage of `Master.ts`**, 3/3 passing with prove-red confirmed; full suite
+> 89 suites / 701 tests green, eslint and `tsc --noEmit` clean. ⚠️ **Closed without owner verification
+> and without deployment** — verified locally and by review only, **not committed, not deployed**, so
+> the production fix for the empty-body symptom is written but *not yet live*. ⚠️ **Codex review
+> coverage was partial**: it returned findings on the test file only and gave no opinion on
+> `Master.ts` itself, so the adversarial pass over the changed source did not effectively happen.
+> Remaining outage-track order is **`0057` → `0056`**.
+>
+> ⚠️ **Still open, deliberately unanswered:** four findings from §9 of the incident record — prod
+> Telegram feedback delivery broken, short container log retention, `PROFILE_INTERNAL_TOKEN` not
+> forwarded by `deploy.sh`, and prod `/api/env` advertising `http` + a raw IP. **No briefs were written
+> for these and no decision has been inferred from the silence.** They are unrelated to the outage and
+> await an owner ruling on whether they get briefs at all.
 
 > **Addendum — task 0054 added out of band (2026-08-21).** Owner-requested interim fix: the production
 > start screen shows the citizenship card in its 0049 degraded "couldn't connect" state while citizenship

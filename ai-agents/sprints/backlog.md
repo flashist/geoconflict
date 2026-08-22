@@ -32,9 +32,31 @@ the signal to pull the task into a sprint.
 | 🔲 Backlog | — | Sweep the bare legacy task identities left behind by the `0002` migration | [`0051-sweep-bare-legacy-task-identities`](../tasks/backlog/0051-sweep-bare-legacy-task-identities/brief.md) |
 | 🔲 Backlog | — | Wiki vault follow-up: legacy task filenames left stale by the folder migrations | [`0052-wiki-vault-legacy-filename-follow-up`](../tasks/backlog/0052-wiki-vault-legacy-filename-follow-up/brief.md) |
 | 🔲 Backlog | — | Track the upstream `PLAN_SPRINT` resolution defect in fkit's `dashboard.sh` until a release fixes it *(handed to the fkit maintainer 2026-08-10 — not our fix to make)* | [`0053-fix-plan-sprint-name-resolution-in-dashboard`](../tasks/backlog/0053-fix-plan-sprint-name-resolution-in-dashboard/brief.md) |
+| ➡️ Moved | — | Investigation: public-game routing can send games to a dead or unready worker → **Sprint 4** *(promoted 2026-08-22, hours after filing, when the owner ruled it runs before `0056`; tracked on [`plan-sprint-4.md`](plan-sprint-4.md) from here on)* | [`0057-investigate-worker-routing-to-dead-or-unready-workers`](../tasks/backlog/0057-investigate-worker-routing-to-dead-or-unready-workers/brief.md) |
+| 🔲 Backlog | — | `Worker.ts`: a failed port bind leaves a silently hung worker — add `server.on("error")` *(latent defect; explicitly refuted as the 2026-08-22 cause)* | [`0058-worker-server-on-error-handler`](../tasks/backlog/0058-worker-server-on-error-handler/brief.md) |
+| 🔲 Backlog | — | Precompile the server at image-build time instead of running `ts-node/esm` in production *(leading — unproven — hypothesis for **why** the worker died on 2026-08-22)* | [`0059-precompile-server-for-prod-instead-of-ts-node`](../tasks/backlog/0059-precompile-server-for-prod-instead-of-ts-node/brief.md) |
 
 **Execution order** for the migration set is `0002 → 0003 → 0001 → 0004`, which is dependency order,
 not ID order. `0005`–`0009` are independent of it and of each other.
+
+⚠️ **`0057`–`0059` were filed 2026-08-22 from the production outage that took out all public
+multiplayer lobbies.** The outage fix itself is in **Sprint 4** (`0055`, `0056`); these were the
+follow-ups *not* needed to restore crash recovery, so they landed here unsprinted rather than
+inflating the sprint. Full record:
+[`incidents/2026-08-22-prod-public-lobbies-empty-outage.md`](../knowledge-base/incidents/2026-08-22-prod-public-lobbies-empty-outage.md).
+
+**`0057` did not stay here.** Later the same day the owner ruled the readiness-gate quorum
+(**18 of 20, 90-second deadline**) and ruled that **`0057` runs before `0056`** — the routing findings
+are most useful while that quorum is committed but not yet built. That made `0057` a hard dependency
+of a Sprint 4 task, so it was **promoted into Sprint 4**; an unranked, explicitly-unscheduled board is
+the wrong place for a blocker on a sprint's critical path. Its row above is kept as `➡️ Moved` rather
+than deleted, so the trail from "filed here" to "tracked there" survives.
+
+Note for anyone reading the earlier framing: the misroute estimate was *1 in 20*. Under the ruled
+18/20 quorum — which permits **two** missing indices — it is **up to 2 in 20 (~10%)**. `0057` sizes it.
+
+**`0059`** stays here, and remains the only item on the board that might *remove* the 2026-08-22 crash
+rather than survive it. Whether it gets pulled into a sprint is an open owner call.
 
 `0008` is **deliberately blocked** on two conditions, not one: `0009`'s findings, **and** the first
 paid entitlement going live (paid citizenship, Task 9 flags, or Task 9a patterns). It is the
