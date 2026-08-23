@@ -7,7 +7,12 @@
 Sprint 4
 
 ## Priority
-**Runs before `0056`** — owner-ruled 2026-08-22. First item to pick up on the outage track.
+**Runs before `0056`** — owner-ruled 2026-08-22. First item on the outage track *when the track
+resumes*.
+
+🚨 **Do not start yet — the owner ruled on 2026-08-23 to hold the outage track at rest.** The ordering
+is unchanged; the timing is. While this is held, **production continues to run without worker crash
+recovery** — see `0056`.
 
 ## Status
 🔲 Backlog

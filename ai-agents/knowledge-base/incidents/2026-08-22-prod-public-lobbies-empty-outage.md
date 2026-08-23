@@ -176,14 +176,26 @@ text after the last `supervisord started with pid` banner.
 - **Image digest never compared.** Running image is
   `flashist/geoconflict-prod@sha256:aeb9a70c0e0005283676ef09856207b7765fdf7e4f5f377b55fe1bd49ef3a012`.
   Comparing it against the push output would fully close the partial-push suspicion. Not done.
-- **Prod feedback delivery is broken.** `[feedback] telegram delivery failed: TypeError: fetch failed`
-  at `Master.ts:237`, twice in one boot. Likely needs `TELEGRAM_PROXY_URL`. Deserves its own task.
+- **Prod feedback delivery is broken.** `[feedback] telegram delivery failed: TypeError: fetch failed`,
+  twice in one boot. **Corrected 2026-08-23:** this section first cited `Master.ts:237` and guessed
+  "likely needs `TELEGRAM_PROXY_URL`". Both were wrong. The line is now `Master.ts:328` (task `0055`
+  added ~28 lines above it), and the proxy is **already** read (`Master.ts:217`), wired (`:218`), used
+  as `dispatcher` (`:319`) **and forwarded by the deploy** (`deploy.sh:308`). So this is an open
+  investigation, not a known fix — likeliest causes are the var being forwarded but empty, the proxy
+  being unreachable, or Telegram being network-blocked from the host. Tracked as task `0061`.
 - **Log retention is very short.** Docker json-file `max-file:3 × max-size:50m` = 150 MB total, and
   nginx access logs now share that stream (changed this batch, for good reasons — the prior unrotated
   file grew to 32 GB). This nearly cost us the investigation window.
 - **`PROFILE_INTERNAL_TOKEN` is not forwarded by `deploy.sh`.** `.env.prod` defines it; the remote env
-  heredoc passes only `PROFILE_API_URL` (`deploy.sh:291`). The profile client is fail-soft so it
-  silently no-ops in prod. Not related to this outage.
+  heredoc passes only `PROFILE_API_URL` (`deploy.sh:291`). Not related to this outage.
+  **Escalated 2026-08-23 — this is far worse than "fail-soft" implied.** `ProfileApiClient.isConfigured()`
+  (`src/server/ProfileApiClient.ts:131-133`) requires **both** the URL and the token to be non-empty, so
+  with the token absent **every** profile call — `upsertProfile()` and `creditMatch()` — is a no-op in
+  production. The miss is logged at `debug` (`:140`), so it is invisible in prod logs. Independently,
+  `src/profile-server/InternalAuth.ts:26` fails **closed** on an empty token, rejecting every request
+  anyway. Net effect: **no profile row is ever created and no XP is ever credited in production.**
+  That blocks task `0017` (earned citizenship fires "as a side effect of `creditMatchXp()`",
+  `0017/brief.md:26`) and task `0018` (paid citizenship needs a profile row). Tracked as task `0062`.
 - **Prod `/api/env` advertises `http` and a raw IP** for `publicProtocol`, `apiBaseUrl`, and
   `jwtIssuer`, while the site is served over `https` on its domain. Any absolute URL built from those
   from an https page is mixed content. `public_lobbies` is unaffected (fetched relative). Whether this

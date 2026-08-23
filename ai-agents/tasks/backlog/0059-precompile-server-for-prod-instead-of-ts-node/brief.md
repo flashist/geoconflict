@@ -7,11 +7,37 @@
 Backlog
 
 ## Priority
-Unscheduled — but this is the leading candidate for *eliminating* the crash that caused the
-2026-08-22 outage, not merely surviving it
+Unscheduled — **owner-ruled 2026-08-23 to stay on Backlog.** It remains the leading candidate for
+*eliminating* the crash that caused the 2026-08-22 outage rather than merely surviving it, and that
+is deliberately not enough to schedule it. See the ruling below.
 
 ## Status
 🔲 Backlog
+
+### 🚨 Owner ruling — 2026-08-23: stays on Backlog, and the outage-track pause covers this task
+
+The owner was asked directly whether the pause on the outage track (`0057`, `0056`) extends to this
+task, given that with the crash-recovery fix held, "survive the crash" is not happening — so the real
+choice became *prevent, or do neither*. **The ruling is: this stays unscheduled, and the pause covers
+it.**
+
+The reasoning the owner accepted, recorded so nobody re-opens it without it:
+
+- This rests on an **unproven hypothesis** (§7 of the incident record labels it "not proven"). It is
+  plausible that concurrent `ts-node`/ESM compilation across 21 processes killed worker 16; it is not
+  demonstrated.
+- **Shipping speculative prevention while the proven fix waits is the wrong order.** `0056` addresses
+  a defect proven three ways — source, local repro, and the production log. This addresses a
+  suspicion.
+
+⚠️ **The accepted cost, stated plainly:** production is running without worker crash recovery, and
+`0055`'s new diagnostics are on an unpushed branch, so **if the crash recurs during the pause it will
+be as undiagnosable as 2026-08-22 was.** That is a known, accepted consequence of the ruling — not an
+oversight, and not a reason to quietly start this task.
+
+**Re-raise only if:** the crash recurs during the pause; new evidence promotes the `ts-node`
+hypothesis from plausible to demonstrated; or the pause on `0056`/`0057` is lifted, at which point
+this should be re-ranked against them rather than assumed to stay last.
 
 ## Owner
 fkit-coder
@@ -88,8 +114,10 @@ application logic changes.
 - **Depends on:** nothing. Independent of `0055`–`0058`.
 - **Blocks:** nothing.
 - **Related:** `0056` (survive a worker crash), `0058` (a hung worker by another road), `0057`.
-- **Recommendation to the owner:** pull this into a sprint once `0056` ships. Restoring crash
-  recovery is the urgent half; reducing the chance of the crash is the durable half.
+- **Scheduling — settled 2026-08-23, see the ruling under Status.** This was previously "pull into a
+  sprint once `0056` ships"; the owner has since ruled it stays on Backlog and that the outage-track
+  pause covers it. Restoring crash recovery is still the urgent half and reducing the chance of the
+  crash is still the durable half — but both are held for now, deliberately.
 
 - **Do not modify the incident record.** Reference it.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.

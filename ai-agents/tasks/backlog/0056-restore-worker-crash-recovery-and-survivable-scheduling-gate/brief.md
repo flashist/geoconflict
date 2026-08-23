@@ -47,7 +47,8 @@ first commit — **no worker has ever been restarted after a crash in this proje
 ### The defects this task fixes
 
 From §5 of the incident record — **#1, #2, #3, #4**. (#5 and #6 were task `0055`, **closed 2026-08-22**
-— its changes are in the working tree but **not committed and not deployed**.)
+and committed on the **unpushed** branch `fix/0055-master-parseable-lobbies-and-exit-diagnostics`
+(`419a116`) — **not pushed, not deployed**.)
 
 | # | Defect | Location |
 |---|---|---|
@@ -289,8 +290,10 @@ Cover at minimum:
   finds that severity is worse than assumed, the owner may want to revisit the quorum *before* it is
   built rather than after. Both owner decisions (a) and (b) are **answered** and no longer block.
 - **Sequencing:** `0057` → `0056`. `0055` is **closed (2026-08-22, agent-closed — not owner-verified)**
-  and its changes sit in the working tree **uncommitted and undeployed** — so build on top of them,
-  but do not assume production has them.
+  and committed on the branch `fix/0055-master-parseable-lobbies-and-exit-diagnostics` (`419a116`,
+  off `dev`), which is **not pushed** and **not deployed**. So: **branch from it, or make sure your
+  branch contains it** — its changes are not on `dev` and not in production. Do not assume prod has
+  them.
 - **Carried in from `0055`:** the OTEL-attribute verification (Step 3a and verification step 4a). It
   was surfaced during `0055`'s review, could not be settled there, and the owner ruled it belongs in
   this task, which touches the same handler.
