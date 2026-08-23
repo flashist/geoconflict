@@ -117,7 +117,8 @@ This task closes when the fix has landed **and** been confirmed here — not whe
 2. **A newer fkit is installed** than the version recorded in What-to-build step 2.
 3. **`drift unresolved-plan-sprint` is gone** from the board named in step 3 above.
 4. **The letter-suffix case is correct, not merely quiet.** Run the dashboard on
-   `ai-agents/sprints/plan-sprint-4c.md` (readable only after `0004`). It must resolve to
+   `ai-agents/sprints/done/plan-sprint-4c.md` (moved to `done/` when Sprint 4c closed 2026-08-23;
+   readable only after `0004`). It must resolve to
    `Sprint 4c`, or report `unresolved-plan-sprint`. If it resolves to `Sprint 4`, **that is a
    regression — record it and reopen**, do not close.
 5. **Rule 1 is demonstrated firing, not just reachable.** On a plan whose identity now resolves, a
