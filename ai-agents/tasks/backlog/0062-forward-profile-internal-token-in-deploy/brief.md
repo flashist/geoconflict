@@ -94,11 +94,14 @@ variable. See step 4.
    **`warn`** that the profile integration is running unauthenticated and will no-op. Fail-soft is
    the right behavior; **silent** fail-soft is not.
 
-4. **Consider a general guard, and recommend rather than build.** Something that fails or warns at
-   deploy time when a variable the application reads is missing from the heredoc would have caught
-   both this and `0061`. **Evaluate it and put the recommendation to the owner** — do not implement a
-   deploy-time gate under this brief without approval. A deploy script that starts refusing deploys is
-   a change with real operational consequences.
+4. ~~**Consider a general guard, and recommend rather than build.**~~ **MOVED OUT 2026-08-23 by owner
+   ruling — it is now task [`0064-deploy-time-config-parity-guard`](../0064-deploy-time-config-parity-guard/brief.md).**
+   The reasoning moved there in full. **Do not redo the evaluation, and do not build a deploy-time
+   guard under this brief.** `0064` is deliberately sequenced to land *after* this task: a guard that
+   enforces before this fix ships would correctly fail the deploy and block the fix itself.
+   One thing that would genuinely help `0064`: while you are in `deploy.sh`, note any **other**
+   variable the app reads that is absent from the heredoc. **Report what you see; do not fix it here.**
+   Each is either `0064`'s input or its own brief.
 
 ## Verification steps
 

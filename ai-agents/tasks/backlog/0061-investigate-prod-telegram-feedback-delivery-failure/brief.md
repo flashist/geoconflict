@@ -7,10 +7,32 @@
 Backlog
 
 ## Priority
-Unscheduled — but the strongest promotion candidate of the three Backlog §9 items, see Notes
+Unscheduled — **owner-ruled 2026-08-23 to stay on Backlog.** Not an oversight; see the ruling below.
 
 ## Status
 🔲 Backlog
+
+### 🔒 Owner ruling — 2026-08-23: stays on the Backlog board, not promoted to Sprint 4
+
+The producer put this forward as the strongest promotion candidate of the §9 items. **The owner
+weighed it and ruled it stays unscheduled.** Recorded here so it is not re-litigated as something
+that was simply forgotten.
+
+**Reasoning accepted:**
+- It is an **investigation with no known fix** — the recorded diagnosis is already disproven (see
+  below), so promoting it would be scheduling an unbounded unknown into a sprint that is already
+  carrying three config tasks (`0063`, `0062`, `0060`), a new guard task (`0064`), and a **held**
+  outage track.
+
+**The counter-argument, weighed and rejected — recorded because it is a real cost, not a strawman:**
+- The feedback channel is *the* channel by which players would tell us about the next problem. It was
+  broken **during** the 2026-08-22 outage: every player staring at an empty lobby list had no working
+  way to report it. Leaving it unscheduled means the next incident is, again, one we hear about only
+  from our own monitoring. **The owner accepted that cost knowingly.**
+
+**Re-raise only if:** an incident occurs where missing player reports demonstrably delayed detection;
+or `0062`/`0063` reveal that the same root cause (a config value not reaching production) explains
+this one too, at which point it may collapse into a fix rather than an investigation.
 
 ## Owner
 fkit-coder
