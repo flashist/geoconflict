@@ -59,9 +59,9 @@ Three things look like dead code or half-finished config and are **deliberate**:
 
 **ADR numbering is a working rule, not just a convention:** `ADR-001`–`ADR-099` are fkit toolkit ADRs; this project's own ADRs start at `ADR-101`. Allocate new project ADRs from 101 up, never from 001. See [[decisions/adr-numbering-two-series]].
 
-### Current focus (2026-08-08)
+### Current focus (2026-08-08; updated 2026-08-23)
 
-Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic is complete and the profile backend is live. The active chain is **degraded-mode UX treatment → Citizenship Earned → Citizenship Paid**, with Yandex payments infrastructure and the externally blocked Yandex catalog registration alongside. The owner's near-term priority is to finish the Sprint 4 monetization lane first. See [[decisions/sprint-4]].
+Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic is complete in code and the profile host is live; the degraded-mode UX gate is cleared (0049) and the payments infrastructure is built (0019, agent-closed). But the citizenship chain (**Citizenship Earned → Citizenship Paid**) is now **blocked by `0062`** — production never forwards `PROFILE_INTERNAL_TOKEN`, so no XP is credited and no profile row is created in prod — plus the externally blocked Yandex catalog registration (`0014`) for the paid half; the citizenship card is interim-hidden behind the 0054 default-OFF client flag. A 2026-08-22 production outage added an outage track (`0055` done → `0057` → `0056`). See [[decisions/sprint-4]] and [[decisions/incident-2026-08-22-public-lobbies-outage]].
 
 ## Gotchas / Known Issues
 

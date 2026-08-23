@@ -36,6 +36,8 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - The worker-path contract is critical: wrong-worker requests are rejected instead of forwarded silently
 - Singleplayer and replay use `LocalServer`, so not every transport code path implies a real socket
 - `ClientJoinMessage.yandexPlayerId` is optional and nullable for backward compatibility. It is transported and retained for profile work but remains untrusted and unsigned; paid identity verification is a separate boundary. See [[tasks/yandex-identity-plumbing]].
+- **Worker crash recovery has never worked** (2026-08-22 outage finding): `Master.ts`'s exit handler read `worker.process.env.WORKER_ID`, which does not exist on a `ChildProcess`, so no crashed worker has ever been restarted — and the scheduling gate required all 20 workers ready, so one worker death at startup silently killed all public lobbies. Task `0055` (shipped, agent-closed) made the empty lobbies body parseable and the exit line log `code`/`signal`/id/pid; the actual repair (restart with a mandatory cap, 18/20-or-90s quorum gate) is task `0056`, pending `0057`'s routing findings. Until it lands, crash recovery is still disarmed in production. See [[decisions/incident-2026-08-22-public-lobbies-outage]].
+- `schedulePublicGame` picks a worker via `simpleHash(gameID) % numWorkers()` (`DefaultConfig.ts`), so a game can be routed to a dead or unready worker — up to ~2-in-20 scheduled games under the ruled 18/20 quorum. Task `0057` (architect-led) sizes and addresses this before `0056` builds the quorum.
 
 ## Related
 
@@ -47,3 +49,5 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[tasks/profile-match-end-crediting]] — winner-message participation payload and late identity refresh used for XP crediting
 - [[systems/architecture-overview]] — worker sharding, the HTTP surface, and the three auth layers
 - [[decisions/adr-102-privilege-refresher-fails-open]] — the fail-open entitlement checker each worker holds
+- [[decisions/incident-2026-08-22-public-lobbies-outage]] — the outage that exposed the dead crash-recovery path and the all-20 scheduling gate
+- [[tasks/master-lobbies-worker-exit-diagnostics]] — task 0055's parseable lobbies body and worker-exit logging in `Master.ts`

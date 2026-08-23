@@ -24,6 +24,8 @@ The implementation deliberately keeps match cleanup independent of the profile b
 
 Identity trust remains a known boundary: current earned-XP crediting still uses the server-visible Yandex ID as an opaque key, not a signed identity proof. Paid entitlements remain reserved for the later Yandex Payments verification path.
 
+> **Production status (verified 2026-08-23):** this path is complete in code but **no-ops in production** — `deploy.sh` never forwards `PROFILE_INTERNAL_TOKEN`, so `ProfileApiClient.isConfigured()` is false and no credit call is ever made (task `0062`, one-line fix). See [[systems/player-profile-store]].
+
 ## Related
 
 - [[systems/player-profile-store]]

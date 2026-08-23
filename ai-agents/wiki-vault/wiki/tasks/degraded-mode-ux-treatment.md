@@ -19,6 +19,8 @@ Give Yandex SDK timeout/failure (degraded mode) its own player-facing treatment 
 
 The citizenship funnel now distinguishes "you're not logged in" from "we couldn't reach Yandex". Implementation was accepted as committed at `be0ea1b` + `2b43274` (2026-07-02); the 2026-08-14 close added a live simulation pass (no code changes).
 
+**Superseded in production visibility by 0054 (2026-08-21):** once this treatment deployed, the degraded card became the dead-end top element of every player's start screen (citizenship is unlaunched and the profile integration is off in prod). The whole card is now hidden behind the default-OFF `CITIZENSHIP_CARD_ENABLED` client flag; this treatment's logic is untouched and becomes reachable again when the flag flips ON at citizenship launch. See [[tasks/hide-citizenship-card-flag]].
+
 **Live verification (2026-08-14):** case (c) demonstrated in two flavors — sdk.js request aborted, and sdk.js loading but refusing to init outside a real Yandex frame — both ending in the degraded subtitle with no CTA (`evidence/degraded-mode-case-c.png`); case (a) standalone confirmed unaffected (plain guest subtitle, no degraded copy).
 
 **Carried caveats (agent-closed, not owner-verified):**
@@ -34,3 +36,4 @@ The citizenship funnel now distinguishes "you're not logged in" from "we couldn'
 - [[tasks/citizenship-card-guest-cta-no-sdk]] — the sibling fix for case (a) that first exposed the collapsed-states problem
 - [[tasks/citizenship-xp-progress-ui]] — the citizenship card whose guest state this refines
 - [[decisions/sprint-4]] — the earned/paid citizenship gate this clears
+- [[tasks/hide-citizenship-card-flag]] — the 0054 follow-up hiding the whole card (this state included) until citizenship launches

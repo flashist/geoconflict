@@ -56,6 +56,15 @@
 >
 > Until 2026-08-09 neither root had a brief, a sprint, or an owner — the chain rested on nothing. `plan-index.md:87-88` assigns both to Sprint 4, but neither appears in the Sprint 4 plan document. Both are now briefed and blocked, which is honest; previously they were invisible. See [[decisions/sprint-5]] and [[decisions/sprint-6]].
 
+> **Board evolution since 2026-08-09** (the eleven-row snapshot above is history, kept as written):
+>
+> - **Every legacy flat-named brief now lives in an ID-prefixed task folder** (`0012`–`0040` cover the migrated items already described in prose below — personal inbox is `0012`, profile-store epic `0013`, catalog registration `0014`, sec10/sec11 are `0015`/`0016`, citizenship earned/paid `0017`/`0018`, mobile WebGL `0031`, 152-ФЗ compliance `0048`, and so on).
+> - **2026-08-14 scoping** added `0043`–`0048` (defense-post range visibility, infinite-gold/no-nukes rotation, VPS registry credential hygiene, feedback contact-field removal — since done, deploy transport secret hygiene, and the 152-ФЗ compliance task).
+> - **`0048` scope grew by owner ruling (2026-08-21):** the email-subscribe modal's 152-ФЗ exposure — flagged during `0046` as **larger** than the removed feedback contact field — is folded into `0048` as an in-scope item (consent/privacy-policy/retention/deletion, or drop the feature; the drop-vs-consent product call waits for the findings). Rejected alternatives: a separate task; dropping the feature now.
+> - **Project-heal (2026-08-10) added `0050`–`0053`** — sprint-field reconciliation, a bare-legacy-identity sweep of the knowledge-base (`0051`), the wiki-vault legacy-filename follow-up (`0052`, owner-ruled to run after `0003`), and tracking the upstream fkit `dashboard.sh` `PLAN_SPRINT` resolution defect (`0053`, handed to the fkit maintainer — not this repo's fix to make).
+> - **The 2026-08-22 outage** ([[decisions/incident-2026-08-22-public-lobbies-outage]]) filed `0057`–`0059` here; `0057` was promoted into Sprint 4 the same day (owner-ruled to run before `0056`), its row kept as `➡️ Moved`. `0058` (`Worker.ts` missing `server.on("error")` — refuted as the outage's cause) and `0059` (precompile the server for prod instead of `ts-node/esm` — the leading unproven hypothesis for the worker death; owner-ruled 2026-08-23 to stay here) remain. Under the ruled 18/20 quorum the misroute exposure `0057` sizes is up to ~2-in-20 (~10%), not the earlier 1-in-20 estimate.
+> - **The outage config-drift sweep (2026-08-23)** added `0061` (prod Telegram feedback delivery dead and silent — the "needs `TELEGRAM_PROXY_URL`" diagnosis is disproven, so it is an investigation; strongest promotion candidate on this board), `0062` (filed here, **verified same day as blocking `0017`/`0018`, promoted to Sprint 4** — row kept as `➡️ Moved`), and `0064` (a deploy-time config parity guard).
+
 ## Decision
 
 Keep no-sprint work separate from active sprint plans so the active roadmap does not imply these tasks are approved for immediate implementation.
@@ -120,3 +129,6 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[decisions/sprint-6]] — paid map packs, the far end of the cosmetics monetization chain
 - [[systems/architecture-overview]] — risks R4 (`0005`), R5 (`0008`), R7 (`0007`), and the open questions these briefs answer
 - [[systems/player-infrastructure]] — the system-level record of the live upstream-sourced `flares` path that gave task `0009` its teeth
+- [[decisions/incident-2026-08-22-public-lobbies-outage]] — the outage that filed `0057`–`0059` and the config-drift sweep behind `0061`/`0062`/`0064`
+- [[tasks/master-lobbies-worker-exit-diagnostics]] — the shipped Sprint 4 half of the outage track these follow-ups orbit
+- [[tasks/feedback-remove-contact-field]] — the done task whose owner flag folded the email-subscribe 152-ФЗ exposure into `0048`

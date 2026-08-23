@@ -29,3 +29,4 @@ Standalone/dev sessions no longer present a misleading dead login control on the
 - [[systems/flashist-init]]
 - [[decisions/sprint-backlog]]
 - [[tasks/degraded-mode-ux-treatment]] — the shipped follow-up covering case (c), Yandex degraded mode
+- [[tasks/hide-citizenship-card-flag]] — the 0054 default-OFF client flag hiding the whole card until citizenship launches

@@ -20,6 +20,8 @@ Add a low-friction "Subscribe to updates" flow so players can opt into future di
 
 Geoconflict now has a shipped email opt-in surface on both major post-load conversion points: while the match is preparing and after the player wins or loses. The implementation deliberately keeps scope narrow: no deduplication, no frequency capping, and no separate subscription datastore. Successful submissions are delivered through the same Telegram operational channel already used for feedback, which minimized backend work but means subscriptions remain an operator-handled inbox rather than a managed mailing list.
 
+**Compliance status (owner-ruled 2026-08-21):** the modal's lawfulness under 152-ФЗ — consent, privacy policy, retention, deletion, or dropping the feature — is folded into compliance task `0048`'s scope; the feature is currently disabled by experiment flag. See [[decisions/personal-data-152fz-compliance]].
+
 ## Related
 
 - [[decisions/sprint-4]] — Sprint 4 backlog item and shipped opt-in flow
@@ -27,3 +29,4 @@ Geoconflict now has a shipped email opt-in surface on both major post-load conve
 - [[features/feedback-button]] — shares the existing Telegram delivery infrastructure
 - [[tasks/telegram-link]] — adjacent Telegram CTA shown near subscribe entry points when enabled
 - [[tasks/feedback-remove-contact-field]] — flags this modal's email collection as the larger remaining 152-ФЗ surface, routed to the compliance track
+- [[decisions/personal-data-152fz-compliance]] — the compliance track whose task `0048` now carries this modal in scope

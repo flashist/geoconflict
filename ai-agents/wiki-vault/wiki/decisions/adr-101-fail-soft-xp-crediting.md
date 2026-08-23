@@ -49,3 +49,4 @@ Two narrower rules fall out of the same principle and are part of the decision:
 - [[tasks/profile-match-end-crediting]] — the T6 task that shipped this path
 - [[systems/architecture-overview]] — §profile backend, risk R6, open question 4
 - [[decisions/adr-numbering-two-series]] — why this is 101 and not 001
+- [[decisions/incident-2026-08-22-public-lobbies-outage]] — the sweep that showed the fail-soft path's `debug`-level miss logging hid a total prod crediting no-op (task `0062`)

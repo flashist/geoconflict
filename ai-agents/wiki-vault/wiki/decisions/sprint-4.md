@@ -3,7 +3,9 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
-> **Status corrected 2026-08-08.** This page carried `proposed` while describing a sprint that is live and mostly shipped. Sprint 4 is the **current** sprint: the player profile store epic is complete, the profile backend is live, and the active chain is degraded-mode UX treatment → Citizenship Earned → Citizenship Paid. See [[systems/project-brief]].
+> **Status corrected 2026-08-08.** This page carried `proposed` while describing a sprint that is live and mostly shipped. Sprint 4 is the **current** sprint. See [[systems/project-brief]].
+>
+> **Chain updated 2026-08-23.** The degraded-mode gate is cleared (0049 done) and the citizenship card is interim-hidden (0054), but the earned/paid citizenship chain is **blocked by `0062`**: the profile backend's code path is complete and its host live, yet production never forwards `PROFILE_INTERNAL_TOKEN`, so no profile row is created and no XP is credited in prod. A 2026-08-22 production outage also added an outage track (`0055` done → `0057` → `0056`). See [[decisions/incident-2026-08-22-public-lobbies-outage]].
 
 ## Context
 
@@ -21,7 +23,7 @@ Recent citizenship UI sources: `ai-agents/tasks/done/s4-citizenship-xp-progress-
 
 ## Decision
 
-Sprint 4 is no longer just a future plan. The latest source brief records a mixed state: the two technical investigations are complete, several independent fixes are shipped, multiple side tasks were cancelled, and the backend profile-store path is live through match-end XP crediting plus off-box backups. The citizenship XP/progress card is also wired to live profile reads. The broader payments/citizenship track still depends on payments/catalog work, earned/paid citizenship flows, and deferred legal/compliance follow-up.
+Sprint 4 is no longer just a future plan. The latest source brief records a mixed state: the two technical investigations are complete, several independent fixes are shipped, multiple side tasks were cancelled, and the backend profile-store path is complete in code through match-end XP crediting plus off-box backups — though **in production the crediting path silently no-ops until `0062` lands** (verified 2026-08-23; see Consequences). The citizenship XP/progress card is wired to live profile reads, but the card itself is hidden behind the 0054 flag until launch. The broader payments/citizenship track still depends on payments/catalog work, earned/paid citizenship flows, and deferred legal/compliance follow-up.
 
 **Completed groundwork:**
 - **Investigation A: Player Profile Store** is complete. It recommends PostgreSQL, an initial `player_profiles` plus idempotent match-credit ledger, server-side match crediting at match end, and a verified Yandex identity claim in the join/auth path because the current server only sees `persistentID`. Its original game-VPS co-location recommendation is superseded: the profile store and non-game backend logic now run on a dedicated reg.ru VPS behind `api.geoconflict.ru`, with Postgres localhost-only on that box. See [[tasks/player-profile-store-investigation]].
@@ -83,8 +85,15 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 | Citizenship Core — XP Counter & Progress UI | done | Live profile API read now drives the start-screen citizenship card for authorized players |
 | Citizenship Card — Login CTA outside Yandex context | done | Standalone/no-SDK guest state hides the login CTA instead of showing a dead button |
 | Degraded-Mode UX — Yandex SDK timeout/failure treatment | done (agent-closed — not owner-verified) | 0049 closed 2026-08-14: `isYandexDegraded()` + distinct card state; case (b) healthy-SDK guest unit-test-only. Clears the earned/paid citizenship gate. See [[tasks/degraded-mode-ux-treatment]] |
-| Citizenship Core — Earned Citizenship | backlog | Backend threshold flip exists; inbox/toast notification path remains separate work; degraded-mode UX gate now cleared (agent-closed) |
-| Citizenship Core — Paid Citizenship | backlog | Payments infrastructure (0019) now built; still blocked by catalog approval (0014) and the 0018 purchase UI; degraded-mode UX gate now cleared (agent-closed) |
+| Citizenship Core — Earned Citizenship | **blocked by 0062** | ⚠️ Blocker rewritten and **verified 2026-08-23**: the profile store's slices are complete, but `PROFILE_INTERNAL_TOKEN` is never forwarded to production, so no XP is ever credited and the 1,000 XP threshold can never fire. Degraded-mode UX gate cleared (0049 done). Launch must also flip the 0054 card flag ON |
+| Citizenship Core — Paid Citizenship | **blocked by 0062 + 0014** | ⚠️ Two conditions, **verified 2026-08-23**: `0062` (no profile row is ever created in production) **and** Yandex catalog approval (`0014`) — catalog approval alone does not unblock this. Degraded-mode UX gate cleared. Launch must also flip the 0054 card flag ON |
+| Hide Citizenship Card Behind Client Flag (default OFF) | done (agent-closed — not owner-verified) | 0054 shipped 2026-08-21: the dead-end degraded card no longer tops the production start screen; flipping the flag ON is the relaunch mechanism bundled into 0017/0018. See [[tasks/hide-citizenship-card-flag]] |
+| `Master.ts` — Parseable Lobbies Body + Worker-Exit Diagnostics | done (agent-closed — not owner-verified) | 0055 closed 2026-08-22 (outage track, unblocked half). ⚠️ On the **unpushed** branch `419a116` at close — not deployed. First-ever `Master.ts` tests. See [[tasks/master-lobbies-worker-exit-diagnostics]] |
+| Worker Crash Recovery + Survivable Scheduling Gate | backlog (after 0057) | 0056 — the 2026-08-22 outage root-cause fix. Both owner decisions ruled 2026-08-22 (quorum 18/20 with 90 s deadline; restart cap 5 per index per 10 min, backoff 1s→30s, cap mandatory — fork-loop risk). Starts after 0057's findings |
+| Investigation — Routing to Dead/Unready Workers | backlog | 0057, architect-led, promoted from the Backlog board 2026-08-22 (owner-ruled to run **before** 0056 — quorum size sets the misroute rate) |
+| Forward `PROFILE_INTERNAL_TOKEN` in Deploy | backlog | 0062 — 🚨 verified 2026-08-23: the profile client silently no-ops in prod (miss logged at `debug`), the profile server independently fails closed; **blocks 0017 AND 0018**. Fix is one line in `deploy.sh` |
+| Prod `/api/env` Advertises `http` + Raw IP | backlog | 0063 — ⚠️ already broken in production, architect-traced 2026-08-23: token login never completes and returning users silently lose their profile on every load. Carries an open question about a possible JWT issuer-claim mismatch |
+| Container Log Retention After nginx Stream Merge | backlog | 0060 — 150 MB shared budget nearly cost the 2026-08-22 investigation; pulled into the sprint to protect the next one. The log config is not in this repo |
 | 8d-B — Personal Inbox | backlog | Blocked by player profile store; builds on announcements |
 | S3-Backed Match Archival (Citizen-Gated) | backlog | Blocked by player profile store, citizenship, and S3 bucket/credentials |
 | Investigate & Fix Client Null-ID Errors | backlog | Stabilization follow-up; source-map enablement is done, but triage should use a deployed build with resolved Uptrace stacks |
@@ -175,6 +184,9 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - The client null-ID/null-object investigation is carried by Sprint 4 as a stabilization follow-up rather than active Sprint 4c work. Sprint 4c completed source-map enablement, so this task should start from newly resolved Uptrace client stacks on a deployed build instead of minified `e is null` / `a.id` messages. See [[tasks/s4c-enable-client-source-maps]].
 - Tutorial follow-up work later resolved into three shipped fixes (`[[tasks/tutorial-no-nations]]`, `[[tasks/tutorial-build-menu-lock]]`, `[[tasks/tutorial-reduce-bots]]`) plus one cancelled pause-window attempt recorded in [[decisions/cancelled-tasks]]
 - The Humans vs Nations balance task was later rejected as no-ship and cancelled after review; see [[decisions/hvn-balance-pr70-no-ship]]
+- **The citizenship card is hidden in production as of 0054 (2026-08-21)**: a default-OFF client flag gates the whole card, because the 0049 degraded state had become the dead-end top element of every player's start screen while citizenship remains unlaunched. Flipping the flag ON is part of the 0017/0018 launch, recorded in both briefs. See [[tasks/hide-citizenship-card-flag]].
+- **The 2026-08-22 production outage added an outage track to this sprint** (`0055` shipped → `0057` investigation → `0056` root-cause fix), plus three promoted config-drift findings (`0062`, `0063`, `0060`) from the same sweep; `0058`/`0059`/`0061` stayed unsprinted. Full chain and rulings: [[decisions/incident-2026-08-22-public-lobbies-outage]].
+- **The earned/paid citizenship blockers were rewritten 2026-08-23 on verified evidence**: the real gate is no longer "player profile store" (its slices are done) but `0062` — production never forwards `PROFILE_INTERNAL_TOKEN`, so no profile row is created and no XP is credited, invisibly (`debug`-level miss logging, fail-closed server side). See [[systems/player-profile-store]].
 
 ## Related
 
@@ -247,3 +259,6 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/teams-mode-max-teams]] — Sprint 4 cap for regular public teams-mode lobby team counts
 - [[decisions/hvn-balance-pr70-no-ship]] — no-ship review and cancellation outcome for the HvN balance attempt
 - [[decisions/cancelled-tasks]] — cancelled action-pause variant, HvN balance attempt, compact-map runtime fallback, and dropped guest-first profile XP slices
+- [[tasks/hide-citizenship-card-flag]] — 0054 default-OFF client flag hiding the citizenship card until launch (agent-closed)
+- [[tasks/master-lobbies-worker-exit-diagnostics]] — 0055 outage-track parseable lobbies body + worker-exit logging (agent-closed)
+- [[decisions/incident-2026-08-22-public-lobbies-outage]] — the 2026-08-22 public-lobbies outage record behind the sprint's outage track and the 0062/0063/0060 promotions
