@@ -14,7 +14,7 @@
 
 - [[systems/project-brief]] — Product ground truth: what the game is, who it is for, how it earns, and the platform/legal/scope constraints every task works inside
 - [[systems/architecture-overview]] — Evidence-first 2026-08-08 codebase survey: four tiers, tick model, deploy topology, ranked risks, and the documented-but-stale corrections
-- [[systems/agent-conventions]] — The project's standing law: task status and owner vocabularies, status-report shape, evidence-before-assertion, one-skill-one-output, priority-vs-identity, dependency form
+- [[systems/agent-conventions]] — The project's standing law: task status and owner vocabularies, status-report shape, evidence-before-assertion, one-skill-one-output, priority-vs-identity, dependency form, and the project-added task-ID allocation rule
 - [[systems/game-overview]] — Project overview: game types, maps, units, economy, combat, tick system
 - [[systems/producer-workflow]] — Producer role: scope, responsibilities, coordination boundaries, and release guardrails
 - [[systems/project-operations]] — Operational handbook: team roles, environment boundaries, sprint workflow, and roadmap constraints
@@ -54,10 +54,10 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/7/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
-- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8, citizenship XP UI, payments infrastructure (0019), degraded-mode UX (0049), and the independent 0041/0042/0046 tasks done (the 2026-08-14 five agent-closed, not owner-verified); earned/paid citizenship, catalog approval (0014), purchase UI (0018), and 152-ФЗ follow-up remain pending
+- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8, citizenship XP UI, payments infrastructure (0019), degraded-mode UX (0049), the independent 0041/0042/0046 tasks, the 0054 card-hide flag, and the 0055 outage half done (all agent-closed, not owner-verified); earned/paid citizenship now verified-blocked by 0062 (prod credits no-op) plus catalog approval (0014), and the 2026-08-22 outage track (0056/0057) plus promoted config-drift tasks (0060/0062/0063) are on the board
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
-- [[decisions/sprint-backlog]] — No-sprint backlog across both unsprinted boards: monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag/GutterAds fixes, plus the eleven `0001`–`0011` briefs and the cosmetics monetization dependency chain
+- [[decisions/sprint-backlog]] — No-sprint backlog across both unsprinted boards: monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag/GutterAds fixes, the `0001`–`0011` briefs and cosmetics monetization dependency chain, plus the 2026-08 additions — heal tasks `0050`–`0053`, outage follow-ups `0058`/`0059`/`0061`/`0064`, the `0057`/`0062` promotions, and the owner-ruled email-subscribe fold-in to `0048`
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning; its "Sprint 5 cosmetics store" prerequisite was corrected 2026-08-09 — no such store exists
 - [[decisions/cancelled-tasks]] — HF-5, feedback match history, HF-11e, tutorial action-pause, HvN balance, compact-map runtime fallback, and guest-first profile XP cancellations
@@ -77,6 +77,7 @@
 - [[decisions/vps-credential-leak-response]] — Incident postmortem: Docker build-context secret leak path, deploy hardening, and trusted recovery workflow
 - [[decisions/profile-deploy-hardening-review-loop]] — Reset of the unbounded profile-deploy review loop into bounded T4 slices and fixed acceptance criteria
 - [[decisions/profile-storage-strategy]] — Player profile DB storage: Option B (typed columns + jsonb overflow), `xp bigint`, `persistent_id text` — chosen in T5 before the first migration
+- [[decisions/incident-2026-08-22-public-lobbies-outage]] — 2026-08-22 prod outage: worker 16 died, crash recovery has never worked (`worker.process.env` bug), the all-20 gate stalled scheduling for ~3.5 h; task split 0055→0057→0056 plus the config-drift findings 0060–0064
 
 ## Tasks
 
@@ -160,3 +161,5 @@
 - [[tasks/starting-gold-public-modifier]] — Sprint 4 task 0042 fifth weird sub-option granting real players 5M starting gold via the new `startGold` GameConfig field; agent-closed, live check owner-side
 - [[tasks/feedback-remove-contact-field]] — Sprint 4 task 0046 152-ФЗ data minimization removing the feedback contact field end-to-end; agent-closed, post-deploy checks owner-side
 - [[tasks/degraded-mode-ux-treatment]] — Sprint 4 task 0049 `isYandexDegraded()` citizenship-card connection-problem state clearing the earned/paid citizenship gate; agent-closed, healthy-SDK guest case unit-test-only
+- [[tasks/hide-citizenship-card-flag]] — Sprint 4 task 0054 default-OFF `CITIZENSHIP_CARD_ENABLED` client flag hiding the citizenship card until 0017/0018 flip it ON at launch; agent-closed
+- [[tasks/master-lobbies-worker-exit-diagnostics]] — Sprint 4 task 0055 outage-track fix: parseable empty lobbies body plus worker-exit `code`/`signal` logging in `Master.ts`, first-ever tests for that file; agent-closed, unpushed branch at close

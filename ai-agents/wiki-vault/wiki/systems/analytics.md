@@ -113,7 +113,7 @@ See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrumen
 
 The analytics reference also defines placement-specific community CTA tap IDs. `UI:Tap:TelegramLinkStartScreen` and `UI:Tap:TelegramLinkGameEnd` are emitted by the shipped [[tasks/telegram-link]] flow; `UI:Tap:VkLinkStartScreen` and `UI:Tap:VkLinkGameEnd` are emitted by [[tasks/vk-link]]. This keeps start-screen and game-end CTA taps segmented separately.
 
-The start-screen redesign adds menu-tab and citizenship-surface instrumentation. `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab` fire on explicit tab taps, including re-taps of the active tab; restoring a persisted tab on load does not fire. `Citizenship:Seen` fires once per page load when the citizenship card is visible, and `UI:Tap:CitizenshipLoginToEarn` tracks the Yandex login CTA. See [[tasks/start-screen-redesign-implementation]].
+The start-screen redesign adds menu-tab and citizenship-surface instrumentation. `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab` fire on explicit tab taps, including re-taps of the active tab; restoring a persisted tab on load does not fire. `Citizenship:Seen` fires once per page load when the citizenship card is visible, and `UI:Tap:CitizenshipLoginToEarn` tracks the Yandex login CTA. See [[tasks/start-screen-redesign-implementation]]. Task 0019 additionally registered `UI:Tap:PurchaseCitizenship` (constant only — the button is wired in 0018, so the event does not fire until then), and since task 0054 the card is hidden behind a default-OFF client flag, so **no citizenship surface events fire in production** until the flag flips ON at citizenship launch; see [[tasks/hide-citizenship-card-flag]].
 
 ## Monetization Measurement Baseline
 

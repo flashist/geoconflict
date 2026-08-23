@@ -19,16 +19,21 @@ const config = getServerConfigFromServer();
 const playlist = new MapPlaylist(false);
 const readyWorkers = new Set();
 
-const app = express();
+// Exported so tests can exercise the routes with supertest without calling
+// startMaster() (which forks real workers). Not used elsewhere at runtime.
+export const app = express();
 const server = http.createServer(app);
 
 const log = logger.child({ comp: "m" });
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Named moduleFilename/moduleDir, not __filename/__dirname: those identifiers already
+// exist in the CommonJS scope that @swc/jest lowers this module into, and redeclaring
+// them makes the file unimportable from a test. Same convention as CosmeticsConfig.ts.
+const moduleFilename = fileURLToPath(import.meta.url);
+const moduleDir = path.dirname(moduleFilename);
 
 const buildVersion: string =
-  JSON.parse(fs.readFileSync(path.join(__dirname, "../../package.json"), "utf8"))
+  JSON.parse(fs.readFileSync(path.join(moduleDir, "../../package.json"), "utf8"))
     .version ?? "0.0.0";
 
 app.use(express.json());
@@ -40,7 +45,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use(
-  express.static(path.join(__dirname, "../../static"), {
+  express.static(path.join(moduleDir, "../../static"), {
     maxAge: "1y", // Set max-age to 1 year for all static assets
     setHeaders: (res, path) => {
       // You can conditionally set different cache times based on file types
@@ -75,7 +80,11 @@ app.use(
   }),
 );
 
-let publicLobbiesJsonStr = "";
+// Must stay a valid document with the same top-level shape as the real assignment
+// in fetchLobbies(), so a client that polls before the first fetch parses it on the
+// same code path. An empty string here returns 200 with a zero-length body, which
+// makes the client's response.json() throw (see the 2026-08-22 outage record).
+let publicLobbiesJsonStr = JSON.stringify({ lobbies: [] });
 
 const publicLobbyIDs: Set<string> = new Set();
 
@@ -133,7 +142,18 @@ export async function startMaster() {
   cluster.on("exit", (worker, code, signal) => {
     const workerId = (worker as any).process?.env?.WORKER_ID;
     if (!workerId) {
-      log.error(`worker crashed could not find id`);
+      // Log everything already in scope: without it a worker death is silent and
+      // undiagnosable, which is exactly what stalled the 2026-08-22 investigation.
+      // The message text is unchanged so existing log greps still match.
+      log.error(`worker crashed could not find id`, {
+        clusterId: worker.id,
+        // Optional-chained deliberately: this branch exists because an expected read on
+        // `worker` was missing, and an error handler that can itself throw is worse than
+        // a missing field. (The unguarded read at :158 is pre-existing; 0056 rewrites it.)
+        pid: worker.process?.pid,
+        code,
+        signal,
+      });
       return;
     }
 
@@ -548,7 +568,7 @@ app.get(COSMETICS_JSON_PATH, (_req, res) => {
 
 // SPA fallback route
 app.get("*", function (req, res) {
-  res.sendFile(path.join(__dirname, "../../static/index.html"));
+  res.sendFile(path.join(moduleDir, "../../static/index.html"));
 });
 
 // Process-level error handlers

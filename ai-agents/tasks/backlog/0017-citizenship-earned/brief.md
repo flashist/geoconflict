@@ -10,7 +10,8 @@ Sprint 4
 High — the primary citizenship path for most players. Independent of Yandex Payments.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — `0062` (`PROFILE_INTERNAL_TOKEN` not forwarded to prod: no XP is credited there, so the
+1,000 XP threshold can never fire). Verified 2026-08-23; see Notes.
 
 ## Owner
 fkit-coder
@@ -110,6 +111,16 @@ If a `Citizenship:Earned` funnel event is wanted in the future, add it then.
 
 ## Notes
 
+- 🚨 **BLOCKED BY `0062` — verified 2026-08-23. Do not start until `0062` ships.**
+  `PROFILE_INTERNAL_TOKEN` is never forwarded to production by `deploy.sh`, so
+  `ProfileApiClient.isConfigured()` (`src/server/ProfileApiClient.ts:131-133`) is **false in prod** and
+  `creditMatch()` (`:86-89`) returns early — it is invoked at `GameServer.ts:1281` via `creditMatchXp`
+  (`:1189`). **No XP is credited in production, so this task's `xp >= 1000` threshold can never fire
+  there**, however correctly it is implemented. The profile server independently fails **closed** on an
+  empty token (`src/profile-server/InternalAuth.ts:26`), so both ends are shut.
+  ⚠️ The specific trap: building and verifying this against a local environment where the token *is*
+  set produces a feature that passes review and does nothing in production.
+  See [`0062-forward-profile-internal-token-in-deploy`](../0062-forward-profile-internal-token-in-deploy/brief.md).
 - **Flip-ON coupling (2026-08-21):** shipping this task must flip `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` to `true` in `src/client/flashist/FlashistFacade.ts` — the citizenship card is hidden behind this client flag (default OFF) until launch; see [`0054-hide-citizenship-card-behind-client-flag`](../../done/0054-hide-citizenship-card-behind-client-flag/brief.md).
 - The earned path ships independently of Yandex Payments. Do not couple these tasks — earned citizenship can go live while the paid path is still awaiting catalog approval.
 - 0 XP is the starting state for all players. There is no retroactive grant for players who already have play history before this system launches — they start accumulating from 0 when the feature ships.

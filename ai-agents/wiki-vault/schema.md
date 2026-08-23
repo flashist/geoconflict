@@ -87,6 +87,8 @@ Trade-offs, downstream effects, things to watch.
 ## Related
 ```
 
+**ADR page naming (owner-ruled 2026-08-23):** vault ADR pages (`wiki/decisions/adr-NNN-<slug>.md`) may carry an **abbreviated slug** relative to their `ai-agents/knowledge-base/decisions/` counterpart — this is the vault's **accepted standing style**, not drift (e.g. `adr-104-archiving-disabled.md` for `adr-104-match-archiving-disabled-until-s3-citizen-gated.md`). The ADR **number** must match its knowledge-base counterpart and stay unique; lint checks numbers (numerically, case-insensitively) and headings, and **must not flag slug abbreviation** against a same-numbered, same-decision counterpart. A same-number page whose content is a *different* decision remains the collision lint exists to catch.
+
 ### Task Page (`wiki/tasks/<slug>.md`)
 
 ```markdown

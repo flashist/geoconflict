@@ -5,7 +5,7 @@
 
 ## Summary
 
-The project's **standing law** for how agents work — the rules in force *right now*, which an agent that contradicts is simply wrong. Seven conventions plus a README that defines the folder's purpose. Never ingested into the wiki before this page.
+The project's **standing law** for how agents work — the rules in force *right now*, which an agent that contradicts is simply wrong. Eight conventions plus a README that defines the folder's purpose: the scaffold's seven, and one added by this project (task-ID allocation).
 
 A convention is **prescriptive and current**, and is **maintained in place**: when it stops being true you *edit* it, you do not append. That is what separates it from the two neighbouring document kinds:
 
@@ -21,9 +21,9 @@ Source: `ai-agents/knowledge-base/conventions/` (README + 7 conventions)
 
 ## Architecture
 
-### The seven conventions
+### The eight conventions
 
-**1. Task status vocabulary** — the *only* valid values for a brief's `## Status`, a sprint plan's Status column, or a dashboard: `🔲 Backlog`, `🔄 In progress`, `🚧 Blocked — <reason>`, `✅ Done`, `⛔ Cancelled (YYYY-MM-DD) — <reason>`, `➡️ Moved to [Sprint N](…) — priority M`, plus **agent-closed** variants of the last two. No other value is valid — not "Not started", not "WIP", not "Todo".
+**1. Task status vocabulary** — the *only* valid values for a brief's `## Status`, a sprint plan's Status column, or a dashboard: `🔲 Backlog`, `🔄 In progress`, `🚧 Blocked — <reason>`, `✅ Done`, `⛔ Cancelled (YYYY-MM-DD) — <reason>`, `➡️ Moved to [Sprint N](…) — priority M`, plus **agent-closed** variants of the last two. No other value is valid — not "Not started", not "WIP", not "Todo". ⚠️ Clarified 2026-08-10: the `N` in the `Moved to [Sprint N]` marker is the target sprint's *identity*, not a number — `Sprint 4` and `Sprint 4c` are different sprints.
 
 The authority split is the point. `In progress` and `Blocked` are **free** — any session may set them, and should, the moment they become true. `Done` and `Cancelled` are **skill-gated and role-gated**: only the mover skills may set them, never a hand edit, and **only the producer may invoke those skills** — enforced by a hook that denies a mover call from any non-producer identity at any spawn depth.
 
@@ -40,6 +40,8 @@ The authority split is the point. `In progress` and `Blocked` are **free** — a
 **6. Priority is rank, not identity** — a sprint board's Priority cell is board **rank**, written `P<n>`; a task's identity is its task-folder name's `NNNN` prefix and nothing else. Rank is mutable (one sprint was re-ranked twice in a day); identity is permanent and never reused. The backlog board's Priority cell is always `—`. Frozen history is **not** mass-edited: existing `priority (folderID)` board-cell notations and closed sprint plans stay byte-identical.
 
 **7. Dependency declaration form** — a brief records dependencies in `## Notes` as `- **Depends on:** …`, with **nothing between the `**` and the label**. The board renderer parses that exact anchor; decoration in front of the label (a warning emoji is the common one) makes the parser miss it, and the board's contract maps "none recorded" to **`ready`** — a false "nothing blocks this" that stays wrong on every status run until a human notices. A non-canonical declaration now renders a LOUD unparseable flag rather than a fabricated `ready`. `nothing` is a valid value and should be written explicitly.
+
+**8. Task-ID allocation** (`task-id-allocation.md` — added by this project, beyond the scaffold's seven) — how a task's permanent four-digit ID is allocated, and that an ID is **never reused or renumbered**. The ID is the task's only identity (convention 6 makes rank explicitly not-identity); allocation happens when the brief is written.
 
 ### The bar for adding one
 

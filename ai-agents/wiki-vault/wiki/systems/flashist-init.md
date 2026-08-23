@@ -56,6 +56,7 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - [[tasks/yandex-payments-investigation]] — the investigation that placed payments/catalog caching on the explicit facade gate
 - [[tasks/yandex-payments-implementation]] — the shipped `initPayments()` catalog cache and purchase helpers in the boot batch
 - [[tasks/degraded-mode-ux-treatment]] — the shipped `isYandexDegraded()` accessor and citizenship-card degraded state
+- [[tasks/hide-citizenship-card-flag]] — the 0054 `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` local flag (default OFF) gating the citizenship card ahead of every facade signal
 - [[tasks/yandex-identity-plumbing]] — tolerant auth and unique-ID helpers used by the match join path
 - [[tasks/citizenship-card-guest-cta-no-sdk]] — citizenship-card use of the Yandex-context signal to avoid a dead login CTA
 - [[systems/project-brief]] — degraded mode as a first-class platform state

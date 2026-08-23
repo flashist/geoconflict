@@ -45,8 +45,8 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | — | Citizenship Core — XP Counter & Progress UI | [`s4-citizenship-xp-progress-ui.md`](../tasks/done/s4-citizenship-xp-progress-ui.md) |
 | ✅ Done | — | Citizenship Card: Login CTA Is a Dead Button Outside a Yandex Context | [`s4-citizenship-card-guest-cta-no-sdk.md`](../tasks/done/s4-citizenship-card-guest-cta-no-sdk.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | Degraded-Mode UX: Give Yandex SDK Timeout/Failure Its Own Player-Facing Treatment *(moved in from Sprint backlog 2026-07-02 — Mark: must ship before Citizenship Earned/Paid go live)* | [`0049-degraded-mode-full-ux-treatment`](../tasks/done/0049-degraded-mode-full-ux-treatment/brief.md) |
-| 🔲 Backlog | — | Citizenship Core — Earned Citizenship *(blocked: player profile store; also gated on degraded-mode UX task above)* | [`0017-citizenship-earned`](../tasks/backlog/0017-citizenship-earned/brief.md) |
-| 🔲 Backlog | — | Citizenship Core — Paid Citizenship *(blocked: payments + catalog approval; also gated on degraded-mode UX task above)* | [`0018-citizenship-paid`](../tasks/backlog/0018-citizenship-paid/brief.md) |
+| 🚧 Blocked — `0062`: no XP is credited in production, so the 1,000 XP threshold can never fire | — | Citizenship Core — Earned Citizenship *(⚠️ blocker **verified 2026-08-23**; previously read "blocked: player profile store". The store's slices are complete — the integration feeding it is switched off in prod. The degraded-mode UX gate is cleared: `0049` is Done)* | [`0017-citizenship-earned`](../tasks/backlog/0017-citizenship-earned/brief.md) |
+| 🚧 Blocked — two conditions: `0062` (no profile row is ever created in production) **and** Yandex catalog approval (`0014`) | — | Citizenship Core — Paid Citizenship *(⚠️ second blocker **verified 2026-08-23** — catalog approval alone does **not** unblock this. The degraded-mode UX gate is cleared: `0049` is Done)* | [`0018-citizenship-paid`](../tasks/backlog/0018-citizenship-paid/brief.md) |
 | 🔲 Backlog | — | 8d-B. Personal Inbox *(blocked: player profile store)* | [`0012-personal-inbox`](../tasks/backlog/0012-personal-inbox/brief.md) |
 | 🔲 Backlog | — | S3-Backed Match Archival (Citizen-Gated) *(blocked: player profile store + citizenship + S3 infra)* | [`0030-archive-s3-backed-citizen-gated`](../tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md) |
 | 🔲 Backlog | — | Investigate & Fix Client Null-ID Errors *(stabilization follow-up; needs source maps + deployed archive fix)* | [`0032-investigate-null-id-errors`](../tasks/backlog/0032-investigate-null-id-errors/brief.md) |
@@ -63,6 +63,102 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | — | Telegram Channel Link (start screen, game-end screen) | [`s4-telegram-link.md`](../tasks/done/s4-telegram-link.md) |
 | ✅ Done | — | VK Channel Link (start screen, game-end screen) | [`s4-vk-link.md`](../tasks/done/s4-vk-link.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | Hide Citizenship Card on Start Screen Behind a Client Config Flag (Default OFF) *(interim until 0017/0018 ship; flag flips ON at citizenship launch)* | [`0054-hide-citizenship-card-behind-client-flag`](../tasks/done/0054-hide-citizenship-card-behind-client-flag/brief.md) |
+| ✅ Done (agent-closed — not owner-verified) | — | `Master.ts`: Serve a Parseable Lobbies Body, and Log Why a Worker Died *(2026-08-22 outage — the unblocked half. First-ever test coverage of `Master.ts`. ⚠️ Committed 2026-08-22 on the **unpushed** branch `fix/0055-master-parseable-lobbies-and-exit-diagnostics` (`419a116`) — **not pushed, not deployed**; verified locally and by review only. ⚠️ Codex review coverage was **partial**: findings on the test file only, no opinion on `Master.ts` itself)* | [`0055-master-parseable-lobbies-body-and-worker-exit-diagnostics`](../tasks/done/0055-master-parseable-lobbies-body-and-worker-exit-diagnostics/brief.md) |
+| 🔲 Backlog | — | Investigation — Public-Game Routing Can Send Games to a Dead or Unready Worker *(architect-led; **runs BEFORE `0056`** — owner-ruled 2026-08-22; promoted in from the Backlog board the same day)* | [`0057-investigate-worker-routing-to-dead-or-unready-workers`](../tasks/backlog/0057-investigate-worker-routing-to-dead-or-unready-workers/brief.md) |
+| 🔲 Backlog | — | Prod `/api/env` Advertises `http` on a Raw IP — Login and Profile Fetch Broken for Users *(§9 follow-up. ⚠️ **Already broken in production**, not latent — architect-traced 2026-08-23: Discord/token login never completes and returning users lose their profile on every load, both **silently** (the user-facing error is commented out). Placed in the sprint, not Backlog, because login gates citizenship. 🚨 Carries an unresolved open question — a possible JWT issuer-claim mismatch that would fail **all** token validation)* | [`0063-prod-api-env-advertises-http-and-raw-ip`](../tasks/backlog/0063-prod-api-env-advertises-http-and-raw-ip/brief.md) |
+| 🔲 Backlog | — | `PROFILE_INTERNAL_TOKEN` Is Never Forwarded to Production — the Profile Client Silently No-Ops *(§9 follow-up. 🚨 **Verified 2026-08-23: blocks `0017` AND `0018`.** `isConfigured()` is false in prod, so `upsertProfile()` and `creditMatch()` both no-op — **no profile row is ever created and no XP is ever credited in production**; the profile server independently fails **closed** on the empty token. Promoted from Backlog once verified. The fix is one line in `deploy.sh`)* | [`0062-forward-profile-internal-token-in-deploy`](../tasks/backlog/0062-forward-profile-internal-token-in-deploy/brief.md) |
+| 🔲 Backlog | — | Container Log Retention Is Too Short Now That nginx Access Logs Share the Stream *(§9 follow-up. 150 MB total budget now shared with access logs; **nearly cost us the 2026-08-22 investigation**. Pulled into the sprint because it protects the *next* investigation while the outage track is paused. ⚠️ The log config is **not in this repo** — locating it is step 1, and this may be a server-side change with no commit)* | [`0060-container-log-retention-after-nginx-stream-merge`](../tasks/backlog/0060-container-log-retention-after-nginx-stream-merge/brief.md) |
+| 🔲 Backlog | — | Restore Worker Crash Recovery — With a Restart Cap — and Make the Scheduling Gate Survivable *(2026-08-22 outage root-cause fix. **Both owner decisions RULED 2026-08-22** — gate quorum **18 of 20 with a 90 s deadline**; restart cap **5 per worker index per 10-min window, backoff 1s→30s**, then give up and log at error level. ⚠️ Arms worker restarts for the first time in project history — the cap MUST ship in the same change or a repeatedly-crashing worker becomes a fork loop. **Starts after `0057`'s findings.**)* | [`0056-restore-worker-crash-recovery-and-survivable-scheduling-gate`](../tasks/backlog/0056-restore-worker-crash-recovery-and-survivable-scheduling-gate/brief.md) |
+
+> **Addendum — tasks 0055 and 0056 added out of band (2026-08-22), production incident.**
+> On 2026-08-22 production lost **all** public multiplayer lobbies for ~3.5 hours. Service was
+> recovered by a container restart, but **the root-cause defects are still unfixed in `main` and
+> production is running right now with crash recovery disarmed.** Root cause: `src/server/Master.ts`
+> reads `worker.process.env.WORKER_ID` in its `cluster.on("exit")` handler, but a Node `ChildProcess`
+> has no `.env` property, so the value is always `undefined` and **no worker has ever been restarted
+> after a crash** — a defect dating to the repository's first commit (`feea527`), **not** caused by the
+> 2026-08-22 deploy. One of 20 workers died at startup; the scheduling gate requires all 20 ready;
+> scheduling never started; `/api/public_lobbies` served an empty body until restart. Full record:
+> [`incidents/2026-08-22-prod-public-lobbies-empty-outage.md`](../knowledge-base/incidents/2026-08-22-prod-public-lobbies-empty-outage.md).
+> Split into two units on purpose: `0055` is unblocked and ships immediately; `0056` carried both owner
+> decisions and the fork-loop risk. Two further follow-ups — `0058` (`Worker.ts` missing
+> `server.on("error")`) and `0059` (precompile the server for prod instead of `ts-node/esm`) — sit on
+> the **Backlog** board: neither is needed to restore crash recovery. This sprint's Status board is
+> unranked, so all three Priority cells read `—` like every other row; no rank was assigned or
+> displaced.
+>
+> **Update, same day — owner rulings and one promotion.** The owner ruled both of `0056`'s blocking
+> decisions, so **`0056` moved from `🚧 Blocked` to `🔲 Backlog`**: the readiness gate starts scheduling
+> at a quorum of **18 of 20** workers or a **90-second** deadline, whichever comes first; a crashed
+> worker is restarted at most **5 times per index per rolling 10-minute window** with exponential
+> backoff **1s → 30s**, after which the master gives up on that index and logs at `error` level. The
+> fork-loop warning in `0056`'s brief is retained and reworded from an open risk into required
+> behaviour — a build that arms restarts without the cap is not a shippable increment.
+> The owner also ruled the **ordering: `0057` runs before `0056`**, because quorum size sets the
+> misroute rate and the findings are most useful while 18/20 is committed but not yet built.
+> `0057` was therefore **promoted from the Backlog board into this sprint** (producer call): a hard
+> dependency of a Sprint 4 task belongs on the sprint board, or the blocker is invisible where the
+> sprint is read. Outage-track execution order is **`0055` → `0057` → `0056`**; `0055` was independent
+> of the other two.
+>
+> **Update — `0055` closed 2026-08-22, agent-closed.** Implemented, reviewed and review-closed
+> (`review.md` `Status: closed-out`; round 1, 2 low defects fixed, 2 frontier-moves accepted as
+> residuals by owner ruling). `src/server/Master.ts` only, `+28/−8`; new `tests/server/Master.test.ts`
+> is the **first-ever test coverage of `Master.ts`**, 3/3 passing with prove-red confirmed; full suite
+> 89 suites / 701 tests green, eslint and `tsc --noEmit` clean.
+> **Committed 2026-08-22 after the close**, on branch `fix/0055-master-parseable-lobbies-and-exit-diagnostics`
+> (`419a116`, off `dev`; 13 files, +1632/−8 — the code, the tests, the incident record, the `0055`
+> folder, briefs `0056`–`0059`, and this plan). ⚠️ **The branch is not pushed and nothing is deployed**,
+> and the close carries no owner verification — verified locally and by review only. **The production
+> fix for the empty-body symptom therefore exists in git but is *not live*.** ⚠️ **Codex review
+> coverage was partial**: it returned findings on the test file only and gave no opinion on
+> `Master.ts` itself, so the adversarial pass over the changed source did not effectively happen.
+> Remaining outage-track order is **`0057` → `0056`**.
+>
+> 🚨 **The outage track is PAUSED AT REST by owner ruling (2026-08-23): `0057` is not to be started
+> yet.** Both remaining tasks read `🔲 Backlog`, which is accurate — but read the standing position
+> plainly: **production is still running without worker crash recovery.** `0055` fixed only the
+> unparseable-body symptom, and even that is sitting on an unpushed branch. The defect that caused the
+> 2026-08-22 total loss of public lobbies — no worker is ever restarted after a crash — is **unchanged
+> in production**, and every deploy and every container restart re-runs the 20-worker startup that
+> triggered it. This is a deliberate owner decision, recorded here so the pause is visible rather than
+> looking like drift.
+>
+> ✅ **RULED 2026-08-23 — the four §9 findings all get briefs.** Previously carried here as an open
+> question. The owner selected all four; they are now `0060`–`0063`. Placement was the producer's:
+>
+> | Task | Board | Why |
+> |---|---|---|
+> | `0063` prod `/api/env` `http` + raw IP | **Sprint 4** — ✅ **owner-confirmed 2026-08-23** | ⚠️ Filed as a loose end, but an **architect consult found it is already breaking authentication in production** — login never completes, returning users lose their profile, both silently (the user-facing error at `TokenLoginModal.ts:73` is commented out). Login gates citizenship, this sprint's headline. The producer proposed Sprint 4 against the expected Backlog default; the owner reviewed the evidence and confirmed |
+> | `0062` `PROFILE_INTERNAL_TOKEN` not forwarded | **Sprint 4** — promoted after verification | 🚨 Filed to Backlog with the blocking claim flagged **unverified**; **verified the same day and it holds.** `isConfigured()` is false in prod → `upsertProfile()` and `creditMatch()` both no-op → **no profile row is ever created and no XP is ever credited in production.** Blocks `0017` **and** `0018`. Fix is one line in `deploy.sh` |
+> | `0060` container log retention | **Sprint 4** | Cheap, and the only one that improves our ability to diagnose the *next* incident — which the pause makes more likely, not less |
+> | `0061` prod Telegram feedback broken | Backlog | Real, and the strongest remaining promotion candidate — but broken for an unknown period with nobody noticing |
+>
+> **Config-track execution order: `0063` → `0062` → `0060`.** `0063` is broken for **users right
+> now**; `0062` blocks *future* work but has no current player-visible symptom, because `0054`'s flag
+> (default OFF) hides the citizenship card; `0060` is insurance.
+>
+> 🔎 **Pattern worth naming — three of these four are the same defect class.** `0061`, `0062` and
+> `0063` are all *"production configuration does not match what the application needs, and nothing
+> tells anyone."* Each failed silently: a `debug`-level log, a commented-out error, a fail-soft no-op.
+> One of them switched off an entire subsystem for an unknown length of time. **Nothing in the deploy
+> checks that a variable the application reads is actually forwarded, or that the values are
+> well-formed.** `0062` step 4 asks for a recommendation on such a guard rather than building one
+> unbidden — **whether that becomes its own task is an open question for the owner** (see the producer's
+> hand-off).
+>
+> ⚠️ **Two recorded premises turned out to be wrong, and the briefs say so.** `0061`: the incident
+> record's *"likely needs `TELEGRAM_PROXY_URL`"* does not survive the code — the proxy is wired
+> (`Master.ts:217-218,319`) **and** forwarded by the deploy (`deploy.sh:308`), so `0061` is an
+> investigation, not a known fix. `0060`: the log retention setting is **not in this repository** at
+> all, so it may not be a code change. Also note the incident record's `Master.ts:237` reference has
+> drifted to `Master.ts:328` since `0055` added lines; the record is a finished output and was not
+> edited.
+>
+> ✅ **RULED 2026-08-23 — `0059` stays on Backlog and the outage-track pause covers it.** Reasoning
+> recorded in `0059`'s own brief with a "re-raise only if" condition, so it is not re-opened without
+> it. ⚠️ The accepted cost: if the crash recurs during the pause it will be **as undiagnosable as
+> 2026-08-22 was**, because `0055`'s new diagnostics are on an unpushed branch.
 
 > **Addendum — task 0054 added out of band (2026-08-21).** Owner-requested interim fix: the production
 > start screen shows the citizenship card in its 0049 degraded "couldn't connect" state while citizenship

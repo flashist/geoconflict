@@ -30,6 +30,7 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - The duplicate backup-task conflict is resolved as of 2026-06-29 and canonical T8 is now done. Off-box backup activation is fail-closed: missing or partial `PROFILE_BACKUP_*` config keeps first deploys on local weekly dumps, but an already off-box-configured box refuses a silent downgrade unless `PROFILE_BACKUP_DISABLE_OFFBOX=1` is explicit.
 - The first restore drill used an empty production DB. Restore mechanics were verified, but a non-empty data round-trip should be rerun once real profiles/entitlements exist.
 - 152-ФЗ compliance is unresolved after the hash-based avoidance plan was cancelled. See [[decisions/personal-data-152fz-compliance]].
+- 🚨 **The whole crediting path is a no-op in production (verified 2026-08-23, task `0062`)**: `deploy.sh` never forwards `PROFILE_INTERNAL_TOKEN`, so `ProfileApiClient.isConfigured()` is false and both `upsertProfile()` and `creditMatch()` silently no-op (the miss is logged at `debug`, invisible in prod logs); the profile server independently fails **closed** on the empty token. Net effect: **no profile row is ever created and no XP is ever credited in production** — this blocks earned (`0017`) and paid (`0018`) citizenship. The fix is one line in `deploy.sh`. Found by the 2026-08-22 outage config-drift sweep; see [[decisions/incident-2026-08-22-public-lobbies-outage]].
 
 ## Related
 
@@ -55,3 +56,4 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - [[systems/architecture-overview]] — the profile backend tier in the wider survey
 - [[decisions/adr-101-fail-soft-xp-crediting]] — why crediting drops XP rather than blocking a match
 - [[decisions/adr-103-identity-trust-seam]] — the single unverified-identity funnel this store is keyed on
+- [[decisions/incident-2026-08-22-public-lobbies-outage]] — the sweep that exposed the `0062` token-forwarding gap making crediting a prod no-op

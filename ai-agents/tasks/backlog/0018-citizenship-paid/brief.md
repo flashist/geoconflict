@@ -10,7 +10,8 @@ Sprint 4
 High — the monetization milestone of the sprint. Blocked on Yandex catalog approval.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — two conditions: `0062` (`PROFILE_INTERNAL_TOKEN` not forwarded to prod: no profile row is
+ever created there) **and** Yandex catalog approval (`0014`). Verified 2026-08-23; see Notes.
 
 ## Owner
 fkit-coder
@@ -124,6 +125,15 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
 
 ## Notes
 
+- 🚨 **BLOCKED BY `0062` — verified 2026-08-23. This is a SECOND blocker, on top of Yandex catalog
+  approval.** `PROFILE_INTERNAL_TOKEN` is never forwarded to production by `deploy.sh`, so
+  `ProfileApiClient.isConfigured()` (`src/server/ProfileApiClient.ts:131-133`) is **false in prod** and
+  `upsertProfile()` (`:60-63`) returns early — it is invoked at `GameServer.ts:1217` via
+  `upsertProfileForClient` (`:274`, `:374`). **No profile row is ever created in production**, and this
+  task needs one to attach a purchase to. The profile server independently fails **closed** on an empty
+  token (`src/profile-server/InternalAuth.ts:26`).
+  ⚠️ Catalog approval arriving does **not** unblock this on its own — both conditions must clear.
+  See [`0062-forward-profile-internal-token-in-deploy`](../0062-forward-profile-internal-token-in-deploy/brief.md).
 - **Flip-ON coupling (2026-08-21):** shipping this task must flip `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` to `true` in `src/client/flashist/FlashistFacade.ts` — the citizenship card is hidden behind this client flag (default OFF) until launch; see [`0054-hide-citizenship-card-behind-client-flag`](../../done/0054-hide-citizenship-card-behind-client-flag/brief.md).
 - This task cannot ship until the Yandex catalog item is approved. The earned path can go live independently.
 - Do not hardcode the price. If the price changes in the Yandex dashboard, the UI must reflect it automatically.
