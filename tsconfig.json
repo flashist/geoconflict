@@ -24,7 +24,6 @@
   "include": [
     "src/**/*",
     "resources/**/*",
-    "proprietary/**/*",
     "generated/**/*",
     "tests/**/*",
     "src/scripts"

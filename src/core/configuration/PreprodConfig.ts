@@ -18,7 +18,7 @@ export const preprodConfig = new (class extends DefaultServerConfig {
     if (envValue && envValue.trim().length > 0) {
       return envValue.trim();
     }
-    return "openfront.dev";
+    return "geoconflict.ru";
   }
   allowedFlares(): string[] | undefined {
     return undefined;

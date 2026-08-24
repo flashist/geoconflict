@@ -4,10 +4,18 @@
 0012
 
 ## Priority
-Sprint 4 — ships after player profile store is implemented. Depends on citizenship infrastructure being in place.
+Sprint 4 — buildable now against the local profile stack. Shipping it retires the no-op inbox seams
+carried by `0017`, `0018`, and `0019`.
 
 ## Status
 🔲 Backlog
+
+*(Re-scoped 2026-08-23 by owner ruling — same "don't block on Yandex externals / local-first"
+treatment as `0017`. The profile store dependency is satisfied **locally** (profile server +
+Postgres via Docker; `RUN_DB_TESTS=1` integration path) and that is sufficient to build and verify
+everything below. The prod side — `0062`: `PROFILE_INTERNAL_TOKEN` not forwarded, so no profile row
+exists in production — gates only the **Deferred Live Tail** at the end of this brief, not the
+build.)*
 
 ## Owner
 fkit-coder
@@ -86,10 +94,32 @@ These are the only triggers in Sprint 4. The `POST /admin/player-message` endpoi
 
 ## Dependencies
 
-- **8d-A** (global announcements) must be live — personal inbox is a tab inside that popup
-- **Player profile store** (Sprint 4 infrastructure) must be live — messages are stored there
-- **Citizenship core tasks** — earned/purchased triggers need citizenship logic in place to hook into
-- **Name change task** — approval/rejection triggers need name change flow in place
+*(Restated 2026-08-23, owner-ruled. Nothing here requires Yandex externals or production.)*
+
+- **8d-A** (global announcements) — ✅ Done; the popup this tab lives in exists.
+- **Player profile store** — available **locally** (profile server + Postgres via Docker;
+  `RUN_DB_TESTS=1`), and that is sufficient. Prod availability is `0062`'s concern → Deferred Live
+  Tail.
+- **Citizenship trigger seams** — the earned/purchased triggers already exist as **documented no-op
+  seams**: `0019`'s post-grant hook (paid path) and the same-pattern seam `0017` wires (earned path).
+  **This task's job is to fill those seams with real sends — shipping `0012` retires the no-ops in
+  `0017`, `0018`, and `0019`.** It does not wait for the citizenship tasks to be live; the seams are
+  the interface.
+- **Name change task** — not started (board: TBD). Triggers 3–4 in the V1 table are **deferred**:
+  build the send mechanism and `POST /admin/player-message` so the hooks are one call each, but the
+  name-change wiring lands with that task, not this one.
+
+## Deferred Live Tail — gated on `0062`; NOT part of the buildable scope
+
+Execute once `0062` has shipped and a deploy has run:
+
+1. Prod profile integration verified on (`0062`'s own verifications 2–3).
+2. A real citizenship grant in prod produces the inbox message, visible in the Personal tab in the
+   live Yandex iframe, and read-state persists across two devices/sessions against the prod DB.
+3. Citizen gating confirmed against prod data (non-citizen sees no Personal tab).
+
+⚠️ Same trap as `0017`: a local pass where the token *is* set proves the feature, not that prod
+works. The task is not fully done — and must not be closed — until this tail runs.
 
 ## Notes
 

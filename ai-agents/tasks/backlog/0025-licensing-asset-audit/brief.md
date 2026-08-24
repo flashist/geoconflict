@@ -10,7 +10,11 @@ Sprint 4 — prerequisite before paid citizenship goes live
 Medium. Must be clear before monetization scales. Does not block the Source Code link or public repo tasks.
 
 ## Status
-🔲 Backlog
+🔄 In progress
+
+*(2026-08-23, owner-ruled run-now: this audit gates the paid go-live — `0065`'s flip-ON — and has no
+dependencies of its own, so it runs immediately rather than sitting behind the citizenship track.
+Architect spawned 2026-08-23 to execute the investigation.)*
 
 ## Owner
 fkit-architect

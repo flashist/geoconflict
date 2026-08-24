@@ -41,7 +41,6 @@ COPY scripts/generate-map-nation-counts.js ./scripts/generate-map-nation-counts.
 COPY scripts/upload-sourcemaps.js ./scripts/upload-sourcemaps.js
 COPY src ./src
 COPY resources ./resources
-COPY proprietary ./proprietary
 # Build the client-side application
 RUN npm run build-prod
 # Upload source maps to Uptrace for stack-trace symbolication (keyed by GIT_COMMIT),

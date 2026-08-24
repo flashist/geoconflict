@@ -24,6 +24,6 @@ export const prodConfig = new (class extends DefaultServerConfig {
     if (envValue && envValue.trim().length > 0) {
       return envValue.trim();
     }
-    return "openfront.io";
+    return "geoconflict.ru";
   }
 })();

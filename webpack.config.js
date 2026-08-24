@@ -357,11 +357,6 @@ export default async (env, argv) => {
             // .thumbnail, .design-canvas.state.json).
             globOptions: { dot: true, ignore: ["**/claude-design-files/**"] },
           },
-          {
-            from: path.resolve(__dirname, "proprietary"),
-            to: path.resolve(__dirname, "static"),
-            noErrorOnMissing: true,
-          },
         ],
         options: { concurrency: 100 },
       }),

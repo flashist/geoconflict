@@ -54,6 +54,9 @@ This document provides comprehensive licensing information for the OpenFront.io 
   - Open assets in `/resources` remain CC BY-SA 4.0
   - Proprietary assets override open assets during build process
   - Contributors retain copyright while granting usage rights to OpenFront LLC
+- **Fork note (Geoconflict):** the `/proprietary` directory was removed from this fork and its
+  build outputs on 2026-08-23 (task 0066); the All-Rights-Reserved terms continue to apply to
+  upstream OpenFront's copies of those assets
 
 ### Phase 5: AGPL with Additional Attribution Terms
 
@@ -109,7 +112,7 @@ All assets included in this repository (graphics, sounds, music, models) are lic
 - Premium skins, models, and textures
 - Sound effects and music accessed via API
 - Any assets not explicitly included in this repository
-- Any asset in the proprietary/ folder
+- Any asset in upstream's proprietary/ folder (that folder was removed from this fork on 2026-08-23, task 0066)
 
 These external assets are:
 
