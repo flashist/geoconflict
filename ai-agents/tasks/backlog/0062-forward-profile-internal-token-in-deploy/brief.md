@@ -12,7 +12,7 @@ for users *now*, this blocks `0017`/`0018` from ever working. Cheapest high-valu
 the fix itself is one line.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — built + reviewed 2026-08-24 (Ready to merge, validation-gated); awaiting deploy proof (worklog pendings D1–D3) *(marker set by the lead 2026-08-24 per producer recommendation)*
 
 *(Filed to the Backlog board 2026-08-23 with the blocking claim marked **unverified**. Verified the
 same day — it holds — and promoted into Sprint 4. The promotion follows the dependency, exactly as

@@ -12,7 +12,7 @@ not a proposal.** Filed as a loose end; an architect consult found it is **alrea
 authentication in production**, and the owner reviewed that evidence and confirmed the placement.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — built 2026-08-24 (config-only; formal review skipped by owner ruling); awaiting deploy proof of the six live values *(marker set by the lead 2026-08-24 per producer recommendation. The brief's JWT issuer-claim open question was RESOLVED 2026-08-24 — no auth service exists in this deployment, mismatch vacuous; see worklog)*
 
 ## Owner
 fkit-coder
