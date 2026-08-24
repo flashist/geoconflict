@@ -896,12 +896,47 @@ export class FlashistFacade {
     return this.paymentsCatalogStatus;
   }
 
+  // Resolvers parked by whenPaymentsCatalogSettled() while the catalog is
+  // still 'idle'. Lazily created (`??=`) because tests build facade instances
+  // via Object.create, which skips class-field initializers.
+  private paymentsCatalogSettledResolvers?: Array<
+    (status: PaymentsCatalogStatus) => void
+  >;
+
+  /**
+   * Resolves once the catalog status leaves 'idle' — immediately when it
+   * already has. Platform init races the catalog fetch against the shared
+   * deadline, so the catalog can settle AFTER consumers first render; the
+   * citizenship card (task 0018) uses this to reveal the buy CTA when a late
+   * 'ready' lands. May never resolve (a degraded Yandex boot can stay 'idle'
+   * all session) — subscribe with .then(), never block on it.
+   */
+  public whenPaymentsCatalogSettled(): Promise<PaymentsCatalogStatus> {
+    if (this.paymentsCatalogStatus !== "idle") {
+      return Promise.resolve(this.paymentsCatalogStatus);
+    }
+    return new Promise((resolve) => {
+      (this.paymentsCatalogSettledResolvers ??= []).push(resolve);
+    });
+  }
+
+  /** Sole writer of paymentsCatalogStatus — wakes settle waiters on any non-idle value. */
+  private setPaymentsCatalogStatus(status: PaymentsCatalogStatus): void {
+    this.paymentsCatalogStatus = status;
+    if (status === "idle") {
+      return;
+    }
+    const resolvers = this.paymentsCatalogSettledResolvers ?? [];
+    this.paymentsCatalogSettledResolvers = [];
+    resolvers.forEach((resolve) => resolve(status));
+  }
+
   private async initPayments(): Promise<void> {
     await this.yandexInitPromise;
 
     if (!this.yandexGamesSDK) {
       if (!this.yaGamesAvailable) {
-        this.paymentsCatalogStatus = "unavailable";
+        this.setPaymentsCatalogStatus("unavailable");
       }
       // On the Yandex platform with no SDK (yet — possibly a degraded boot
       // whose SDK recovers late): stay 'idle' and don't memoize, so the
@@ -924,7 +959,7 @@ export class FlashistFacade {
       this.paymentsCatalog.forEach((product: IProduct) => {
         this.paymentsCatalogById.set(product.id, product);
       });
-      this.paymentsCatalogStatus = "ready";
+      this.setPaymentsCatalogStatus("ready");
       // Session-start reconciliation (Yandex moderation compliance): catch
       // purchases whose /complete never landed. Fire-and-forget, gated inside
       // on flashist_waitGameInitComplete(). Dynamic import breaks the static
@@ -935,7 +970,7 @@ export class FlashistFacade {
           // Reconciliation is best-effort — never let it surface at boot.
         });
     } catch (error) {
-      this.paymentsCatalogStatus = "failed";
+      this.setPaymentsCatalogStatus("failed");
       flashist_logErrorToAnalytics(
         `ERROR! FlashistFacade | initPayments __ error: ${error}`,
         flashist_logErrorTypes.DEBUG,

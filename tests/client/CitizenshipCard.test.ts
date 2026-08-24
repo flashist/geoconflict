@@ -18,6 +18,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     },
     uiElementIds: {
       citizenshipLoginToEarn: "CitizenshipLoginToEarn",
+      purchaseCitizenship: "PurchaseCitizenship",
     },
     features: {
       // ON in tests so the existing suites keep exercising current behavior;
@@ -34,8 +35,16 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       logUiTapEvent: jest.fn(),
       openYandexAuthDialog: jest.fn().mockResolvedValue(false),
       isCitizenshipUiEnabled: jest.fn().mockResolvedValue(true),
+      getCatalogProduct: jest.fn().mockReturnValue(null),
+      whenPaymentsCatalogSettled: jest.fn(),
     },
   },
+}));
+jest.mock("../../src/client/CitizenshipPurchase", () => ({
+  runCitizenshipPurchase: jest.fn(),
+}));
+jest.mock("../../src/client/PaymentsReconciliation", () => ({
+  PURCHASES_RECONCILED_EVENT: "geoconflict-purchases-reconciled",
 }));
 
 import {
@@ -43,11 +52,13 @@ import {
   CitizenshipCard,
   resetCitizenshipSeenReportedForTests,
 } from "../../src/client/CitizenshipCard";
+import { runCitizenshipPurchase } from "../../src/client/CitizenshipPurchase";
 import {
   FlashistFacade,
   flashist_logEventAnalytics,
   flashistConstants,
 } from "../../src/client/flashist/FlashistFacade";
+import { PURCHASES_RECONCILED_EVENT } from "../../src/client/PaymentsReconciliation";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
 
 const isYandexDegraded = FlashistFacade.instance.isYandexDegraded as jest.Mock;
@@ -56,8 +67,32 @@ const openYandexAuthDialog = FlashistFacade.instance
   .openYandexAuthDialog as jest.Mock;
 const isCitizenshipUiEnabled = FlashistFacade.instance
   .isCitizenshipUiEnabled as jest.Mock;
+const getCatalogProduct = FlashistFacade.instance
+  .getCatalogProduct as jest.Mock;
+const whenPaymentsCatalogSettled = FlashistFacade.instance
+  .whenPaymentsCatalogSettled as jest.Mock;
 const logEventAnalytics = flashist_logEventAnalytics as jest.Mock;
 const loadProfile = loadPlayerProfileView as jest.Mock;
+const runPurchase = runCitizenshipPurchase as jest.Mock;
+
+const CITIZENSHIP_PRODUCT = {
+  id: "citizenship",
+  title: "Гражданство",
+  description: "",
+  imageURI: "",
+  price: "99 ₽",
+  priceValue: "99",
+  priceCurrencyCode: "RUB",
+  getPriceCurrencyImage: () => "",
+};
+
+const NON_CITIZEN_PROFILE = {
+  displayName: "Игрок_7734",
+  xp: 250,
+  isCitizen: false,
+  // Confirmed by a successful server read — the CTA precondition (review R1).
+  isAuthoritative: true,
+};
 
 describe("CitizenshipCard", () => {
   beforeEach(() => {
@@ -74,6 +109,11 @@ describe("CitizenshipCard", () => {
     // Plain field on the mocked constants object — clearAllMocks() won't
     // restore it after the flag-off suite sets it to false.
     flashistConstants.features.CITIZENSHIP_CARD_ENABLED = true;
+    // Payments defaults: no catalog product (CTA hidden), catalog never
+    // settles (the card only subscribes — must not hang or throw).
+    getCatalogProduct.mockReturnValue(null);
+    whenPaymentsCatalogSettled.mockReturnValue(new Promise(() => {}));
+    runPurchase.mockResolvedValue("error");
     resetCitizenshipSeenReportedForTests();
   });
 
@@ -375,6 +415,220 @@ describe("CitizenshipCard", () => {
       card.maybeReportSeen();
 
       expect(logEventAnalytics).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("buy citizenship CTA (task 0018)", () => {
+    const buyButton = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-buy-button") as HTMLButtonElement | null;
+    const errorLine = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-purchase-error");
+
+    it("renders the CTA with the catalog price for an authorized non-citizen", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      const card = await appendCard({ visible: true });
+
+      const button = buyButton(card);
+      expect(button).not.toBeNull();
+      expect(button!.textContent).toContain("citizenship_paid.buy_cta");
+      expect(button!.textContent).toContain("99 ₽");
+      expect(getCatalogProduct).toHaveBeenCalledWith("citizenship");
+    });
+
+    it("follows the catalog price — never a hardcoded string", async () => {
+      getCatalogProduct.mockReturnValue({
+        ...CITIZENSHIP_PRODUCT,
+        price: "149 ₽",
+      });
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      const card = await appendCard({ visible: true });
+
+      expect(buyButton(card)!.textContent).toContain("149 ₽");
+      expect(buyButton(card)!.textContent).not.toContain("99 ₽");
+    });
+
+    it("is hidden ENTIRELY (no disabled button) when the catalog has no product", async () => {
+      getCatalogProduct.mockReturnValue(null);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      const card = await appendCard({ visible: true });
+
+      expect(buyButton(card)).toBeNull();
+      expect(card.textContent).not.toContain("citizenship_paid.buy_cta");
+    });
+
+    it("is hidden for a citizen even when the product exists (Part D)", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue({
+        displayName: "Игрок_7734",
+        xp: 1240,
+        isCitizen: true,
+      });
+
+      const card = await appendCard({ visible: true });
+
+      expect(card.textContent).toContain("citizenship_card.citizen_badge");
+      expect(buyButton(card)).toBeNull();
+    });
+
+    it("is hidden when the profile read is NOT authoritative (zero-state), even with the product present", async () => {
+      // Review R1: every authorized fetch failure degrades to a zero-state
+      // reporting isCitizen: false — a real citizen behind a failed read must
+      // never see a working buy button (session-long second-charge path).
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue({
+        displayName: "Игрок_7734",
+        xp: 0,
+        isCitizen: false,
+        isAuthoritative: false,
+      });
+
+      const card = await appendCard({ visible: true });
+
+      // Logged-in shell renders; the CTA does not.
+      expect(card.textContent).toContain("citizenship_card.xp_label");
+      expect(buyButton(card)).toBeNull();
+      expect(card.textContent).not.toContain("citizenship_paid.buy_cta");
+    });
+
+    it("is hidden in the guest state even when the product exists", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(null);
+
+      const card = await appendCard({ visible: true });
+
+      expect(card.textContent).toContain("citizenship_card.guest_subtitle");
+      expect(buyButton(card)).toBeNull();
+    });
+
+    it("tap fires UI:Tap:PurchaseCitizenship, runs the flow, and transitions to citizen on grant", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      runPurchase.mockResolvedValue("granted");
+      loadProfile.mockResolvedValue({
+        displayName: "Игрок_7734",
+        xp: 250,
+        isCitizen: true,
+      });
+
+      buyButton(card)!.click();
+      await flushMicrotasks();
+      await flushLit(card);
+
+      expect(logUiTapEvent).toHaveBeenCalledWith("PurchaseCitizenship");
+      expect(runPurchase).toHaveBeenCalledTimes(1);
+      expect(card.textContent).toContain("citizenship_card.citizen_badge");
+      expect(buyButton(card)).toBeNull();
+      expect(errorLine(card)).toBeNull();
+    });
+
+    it("shows the non-blocking error on failure and clears it on a successful retry", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      runPurchase.mockResolvedValue("error");
+
+      buyButton(card)!.click();
+      await flushMicrotasks();
+      await flushLit(card);
+
+      // Failure: error line visible, button still there — retry is possible.
+      expect(errorLine(card)).not.toBeNull();
+      expect(card.textContent).toContain("citizenship_paid.purchase_error");
+      expect(buyButton(card)).not.toBeNull();
+
+      runPurchase.mockResolvedValue("granted");
+      buyButton(card)!.click();
+      await flushMicrotasks();
+      await flushLit(card);
+
+      expect(runPurchase).toHaveBeenCalledTimes(2);
+      expect(errorLine(card)).toBeNull();
+    });
+
+    it("ignores re-taps while a purchase is in flight", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      let resolveFlow: (value: string) => void = () => {};
+      runPurchase.mockImplementation(
+        () => new Promise<string>((resolve) => (resolveFlow = resolve)),
+      );
+
+      const button = buyButton(card)!;
+      button.click();
+      button.click();
+      button.click();
+
+      expect(runPurchase).toHaveBeenCalledTimes(1);
+      expect(logUiTapEvent).toHaveBeenCalledTimes(1);
+
+      resolveFlow("error");
+      await flushMicrotasks();
+      await flushLit(card);
+      buyButton(card)!.click();
+      expect(runPurchase).toHaveBeenCalledTimes(2);
+    });
+
+    it("keeps the citizen presentation after a confirmed grant even when the profile re-fetch is stale", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      runPurchase.mockResolvedValue("granted");
+      // Re-fetch still reports non-citizen (lag / failure → zero-state): the
+      // server-confirmed grant must win — no buy button to charge twice.
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      buyButton(card)!.click();
+      await flushMicrotasks();
+      await flushLit(card);
+
+      expect(card.textContent).toContain("citizenship_card.citizen_badge");
+      expect(buyButton(card)).toBeNull();
+    });
+
+    it("reveals the CTA when the payments catalog settles after the first render", async () => {
+      let settleCatalog: () => void = () => {};
+      whenPaymentsCatalogSettled.mockReturnValue(
+        new Promise<string>((resolve) => {
+          settleCatalog = () => resolve("ready");
+        }),
+      );
+      getCatalogProduct.mockReturnValue(null);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+
+      expect(buyButton(card)).toBeNull();
+
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      settleCatalog();
+      await flushMicrotasks();
+      await flushLit(card);
+
+      expect(buyButton(card)).not.toBeNull();
+    });
+
+    it("re-fetches the profile on the purchases-reconciled signal and leaves State 2", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      expect(buyButton(card)).not.toBeNull();
+
+      loadProfile.mockResolvedValue({
+        displayName: "Игрок_7734",
+        xp: 250,
+        isCitizen: true,
+      });
+      window.dispatchEvent(new CustomEvent(PURCHASES_RECONCILED_EVENT));
+      await flushMicrotasks();
+      await flushLit(card);
+
+      expect(card.textContent).toContain("citizenship_card.citizen_badge");
+      expect(buyButton(card)).toBeNull();
     });
   });
 });

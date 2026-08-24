@@ -61,6 +61,12 @@
     "inbox_title": "You've earned Geoconflict Citizenship!",
     "inbox_body": "You've reached 1,000 XP and earned citizenship. You now have access to citizen benefits."
   },
+  "citizenship_paid": {
+    "buy_cta": "Buy Citizenship",
+    "inbox_title": "Welcome, Citizen!",
+    "inbox_body": "Your citizenship purchase was successful. You now have access to citizen benefits.",
+    "purchase_error": "Something went wrong. Please try again."
+  },
   "news": {
     "see_all_releases": "See all releases",
     "github_link": "on GitHub",

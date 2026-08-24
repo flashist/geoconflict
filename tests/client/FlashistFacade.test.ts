@@ -235,3 +235,53 @@ describe("FlashistFacade payments (task 0019)", () => {
     await expect(facade.getSignedPurchases()).resolves.toBeNull();
   });
 });
+
+describe("FlashistFacade.whenPaymentsCatalogSettled (task 0018)", () => {
+  it("resolves immediately when the catalog already settled", async () => {
+    const facade = makePaymentsFacade({ yaGamesAvailable: false });
+    await initPayments(facade);
+
+    await expect(facade.whenPaymentsCatalogSettled()).resolves.toBe(
+      "unavailable",
+    );
+  });
+
+  it("stays pending while 'idle' and wakes every waiter when the catalog settles late", async () => {
+    // Degraded Yandex boot: no SDK yet, status stays 'idle'.
+    const facade = makePaymentsFacade({ yaGamesAvailable: true });
+    await initPayments(facade);
+    expect(facade.getPaymentsCatalogStatus()).toBe("idle");
+
+    let settled: string | null = null;
+    const first = facade
+      .whenPaymentsCatalogSettled()
+      .then((status) => (settled = status));
+    const second = facade.whenPaymentsCatalogSettled();
+    // Still pending — the settle must come from the status transition.
+    await Promise.resolve();
+    expect(settled).toBeNull();
+
+    // Late-SDK recovery lands the catalog for real.
+    (facade as unknown as { yandexGamesSDK: unknown }).yandexGamesSDK = {
+      getPayments: jest.fn().mockResolvedValue({
+        getCatalog: jest.fn().mockResolvedValue([CITIZENSHIP_PRODUCT]),
+      }),
+    };
+    await initPayments(facade);
+
+    await expect(first).resolves.toBe("ready");
+    await expect(second).resolves.toBe("ready");
+  });
+
+  it("resolves 'failed' waiters too — consumers must not wait forever on a broken catalog", async () => {
+    const facade = makePaymentsFacade({ yaGamesAvailable: true });
+    const pending = facade.whenPaymentsCatalogSettled();
+
+    (facade as unknown as { yandexGamesSDK: unknown }).yandexGamesSDK = {
+      getPayments: jest.fn().mockRejectedValue(new Error("no payments")),
+    };
+    await initPayments(facade);
+
+    await expect(pending).resolves.toBe("failed");
+  });
+});

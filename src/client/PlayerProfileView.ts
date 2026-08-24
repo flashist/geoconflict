@@ -17,6 +17,15 @@ export type PlayerProfileView = {
   displayName: string;
   xp: number;
   isCitizen: boolean;
+  /**
+   * True only when this view reflects a SUCCESSFULLY fetched server profile.
+   * False for every zero-state fallback (no id, unconfigured API, 404,
+   * non-200, timeout, malformed body) — those report `isCitizen: false`
+   * without knowing it. Anything with real-money consequences (the paid
+   * citizenship CTA, task 0018 review R1) must require this flag: an existing
+   * citizen behind a failed profile read must never see a working buy button.
+   */
+  isAuthoritative: boolean;
 };
 
 // Bound the profile read so an unreachable/slow profile API can never hang the
@@ -50,7 +59,12 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
   const displayName = await FlashistFacade.instance
     .getCurPlayerName()
     .catch(() => "");
-  const zeroState: PlayerProfileView = { displayName, xp: 0, isCitizen: false };
+  const zeroState: PlayerProfileView = {
+    displayName,
+    xp: 0,
+    isCitizen: false,
+    isAuthoritative: false,
+  };
 
   const yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
   if (yandexPlayerId === null) {
@@ -87,6 +101,7 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
     displayName: profile.display_name ?? displayName,
     xp: profile.xp,
     isCitizen: profile.is_citizen,
+    isAuthoritative: true,
   };
 }
 

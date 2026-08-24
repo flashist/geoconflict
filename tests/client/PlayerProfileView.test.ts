@@ -65,7 +65,13 @@ function stubFetch(status: number, body: unknown): jest.Mock {
   return fetchMock;
 }
 
-const ZERO_STATE = { displayName: YANDEX_NAME, xp: 0, isCitizen: false };
+const ZERO_STATE = {
+  displayName: YANDEX_NAME,
+  xp: 0,
+  isCitizen: false,
+  // Zero-state fallbacks are never authoritative (0018 review R1).
+  isAuthoritative: false,
+};
 
 describe("loadPlayerProfileView", () => {
   beforeEach(() => {
@@ -102,6 +108,7 @@ describe("loadPlayerProfileView", () => {
       displayName: "Генерал",
       xp: 1200,
       isCitizen: true,
+      isAuthoritative: true,
     });
     expect(fetchMock).toHaveBeenCalledWith(
       `${PROFILE_API_BASE}/v1/profile?yandexPlayerId=yandex-123`,
@@ -117,6 +124,7 @@ describe("loadPlayerProfileView", () => {
       displayName: YANDEX_NAME,
       xp: 40,
       isCitizen: false,
+      isAuthoritative: true,
     });
   });
 
@@ -197,6 +205,7 @@ describe("loadPlayerProfileView", () => {
       displayName: "",
       xp: 0,
       isCitizen: false,
+      isAuthoritative: false,
     });
   });
 });
@@ -317,6 +326,7 @@ describe("Citizenship:Earned:XP transition detection", () => {
       displayName: "Commander",
       xp: 1000,
       isCitizen: true,
+      isAuthoritative: true,
     });
     expect(logEventAnalytics).not.toHaveBeenCalled();
   });

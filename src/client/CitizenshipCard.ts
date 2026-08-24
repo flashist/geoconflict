@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import shieldIcon from "../../resources/images/ShieldIconWhite.svg";
+import { runCitizenshipPurchase } from "./CitizenshipPurchase";
 import { FLAG_STORAGE_KEY } from "./FlagInput";
 import {
   FlashistFacade,
@@ -8,6 +9,7 @@ import {
   flashist_waitGameInitComplete,
   flashistConstants,
 } from "./flashist/FlashistFacade";
+import { PURCHASES_RECONCILED_EVENT } from "./PaymentsReconciliation";
 import {
   CITIZENSHIP_XP_THRESHOLD,
   PlayerProfileView,
@@ -44,6 +46,14 @@ export class CitizenshipCard extends LitElement {
   // checkExperimentFlag returns true unconditionally when GAME_ENV === "dev".
   @state() private isEnabled = false;
 
+  // Paid purchase flow (task 0018): non-blocking error line under the buy CTA.
+  @state() private purchaseError = false;
+
+  // Set the moment the SERVER confirms a paid grant. Forces the citizen
+  // presentation even when the follow-up profile re-fetch fails — a stale buy
+  // button after a committed grant invites a second real charge.
+  @state() private paidGrantConfirmed = false;
+
   createRenderRoot() {
     return this;
   }
@@ -74,6 +84,21 @@ export class CitizenshipCard extends LitElement {
         }
         this.classList.remove("hidden");
         this.isEnabled = true;
+        // Reconciliation can grant an interrupted purchase AFTER the profile
+        // was fetched — re-fetch on its signal so the card leaves State 2
+        // instead of offering a second purchase (task 0018).
+        window.addEventListener(
+          PURCHASES_RECONCILED_EVENT,
+          this.onPurchasesReconciled,
+        );
+        // The payments catalog can settle after this first render (it races
+        // the platform-init deadline) — re-render on settle so a late 'ready'
+        // reveals the buy CTA. Never resolves in a catalog-less session.
+        void FlashistFacade.instance.whenPaymentsCatalogSettled().then(() => {
+          if (this.isConnected) {
+            this.requestUpdate();
+          }
+        });
         this.requestUpdate();
         await this.updateComplete;
         this.maybeReportSeen();
@@ -83,6 +108,20 @@ export class CitizenshipCard extends LitElement {
         console.warn("Failed to load profile for citizenship card:", error);
       });
   }
+
+  disconnectedCallback() {
+    window.removeEventListener(
+      PURCHASES_RECONCILED_EVENT,
+      this.onPurchasesReconciled,
+    );
+    super.disconnectedCallback();
+  }
+
+  private readonly onPurchasesReconciled = (): void => {
+    if (this.isEnabled) {
+      void this.refreshProfile();
+    }
+  };
 
   private async refreshProfile(): Promise<void> {
     this.profile = await loadPlayerProfileView();
@@ -211,11 +250,14 @@ export class CitizenshipCard extends LitElement {
   }
 
   private renderLoggedIn(profile: PlayerProfileView) {
+    // paidGrantConfirmed: server-confirmed paid grant whose profile re-fetch
+    // hasn't landed (or failed) — present as citizen, never re-offer the CTA.
+    const isCitizen = profile.isCitizen || this.paidGrantConfirmed;
     const xpPercent = Math.min(
       100,
       Math.round((profile.xp / CITIZENSHIP_XP_THRESHOLD) * 100),
     );
-    const barPercent = profile.isCitizen ? 100 : xpPercent;
+    const barPercent = isCitizen ? 100 : xpPercent;
     const flag = this.getPlayerFlag();
     return html`
       <div class="w-full py-[10px] px-3 rounded-[12px] bg-[#1c1c1e]/85">
@@ -234,7 +276,7 @@ export class CitizenshipCard extends LitElement {
               : "🏳️"}
           </div>
           <div class="flex-1 min-w-0 text-left">
-            ${profile.isCitizen
+            ${isCitizen
               ? html`<div class="flex items-center gap-[5px] mb-0.5">
                   <img
                     src="${shieldIcon}"
@@ -273,8 +315,75 @@ export class CitizenshipCard extends LitElement {
             style="width: ${barPercent}%"
           ></div>
         </div>
+        ${isCitizen || !profile.isAuthoritative
+          ? // Review R1: the CTA requires an AUTHORITATIVE non-citizen read.
+            // A zero-state fallback also reports isCitizen: false — offering
+            // a working buy button off it could double-charge a real citizen
+            // whose profile read failed.
+            nothing
+          : this.renderBuyCta()}
       </div>
     `;
+  }
+
+  // Buy CTA (task 0018, State 2 only). Hidden ENTIRELY — never disabled —
+  // unless the catalog is ready and carries the citizenship product; the
+  // price string comes from the catalog, never hardcoded.
+  private renderBuyCta() {
+    const product = FlashistFacade.instance.getCatalogProduct("citizenship");
+    if (product === null) {
+      return nothing;
+    }
+    return html`
+      <button
+        id="citizenship-buy-button"
+        class="mt-2 w-full px-3 py-[7px] rounded-lg text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+        @click=${this.onBuyCtaTap}
+      >
+        ${translateText("citizenship_paid.buy_cta")} — ${product.price}
+      </button>
+      ${this.purchaseError
+        ? html`<div
+            id="citizenship-purchase-error"
+            class="mt-1.5 text-[11px] text-red-400 text-center"
+          >
+            ${translateText("citizenship_paid.purchase_error")}
+          </div>`
+        : nothing}
+    `;
+  }
+
+  private isPurchaseInFlight = false;
+
+  private async onBuyCtaTap() {
+    if (this.isPurchaseInFlight) {
+      return;
+    }
+    this.isPurchaseInFlight = true;
+    this.purchaseError = false;
+    // Explicit requestUpdate() after each state change — the codebase
+    // convention (see connectedCallback / refreshProfile): the decorator
+    // transform does not reliably schedule updates under the test build.
+    this.requestUpdate();
+    try {
+      FlashistFacade.instance.logUiTapEvent(
+        flashistConstants.uiElementIds.purchaseCitizenship,
+      );
+      const result = await runCitizenshipPurchase();
+      if (!this.isConnected) {
+        return;
+      }
+      if (result === "granted") {
+        this.paidGrantConfirmed = true;
+        this.requestUpdate();
+        await this.refreshProfile();
+      } else {
+        this.purchaseError = true;
+        this.requestUpdate();
+      }
+    } finally {
+      this.isPurchaseInFlight = false;
+    }
   }
 
   private getPlayerFlag(): string {

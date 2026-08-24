@@ -172,8 +172,11 @@ export class PaymentsRepository {
 
   /**
    * Post-grant hook seam. Deliberately a no-op today:
-   * TODO(0012/0018): personal-inbox "Welcome, Citizen!" message fires from here
-   * once the inbox feature (backlog task 0012) exists; 0018 wires the UX side.
+   * TODO(0012): the personal-inbox "Welcome, Citizen!" message fires from here
+   * once the inbox feature (backlog task 0012) exists — text lives at
+   * `citizenship_paid.inbox_title` / `citizenship_paid.inbox_body` in
+   * resources/lang/en.json + ru.json (added by 0018, which wired the client
+   * purchase flow; same no-op-seam shape as afterCitizenshipEarned).
    */
   private afterPaidPurchaseGranted(_grant: PaidPurchaseGrant): void {
     // no-op — see TODO above.
