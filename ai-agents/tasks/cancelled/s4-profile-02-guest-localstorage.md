@@ -4,7 +4,7 @@
 > **⚠️ Revival note.** Guest-XP is a three-part feature: this guest store (T2), the guest→authenticated migration client (T7, also cancelled), and the **server migration endpoint `POST /v1/profile/migrate`, which was removed from T5 on 2026-06-13** (deleted, not deferred). Reviving guest-XP means bringing back **all three** — do **not** assume the T5 migration API still exists. Strongly prefer the server-authoritative redesign recommended in the cancellation report (thin best-effort client cache over a server source of truth) rather than re-implementing this localStorage-authoritative version, whose edge surface is what drove the cancellation.
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` — child slice 2 of 8. Implements **Part C**.
+`ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` — child slice 2 of 8. Implements **Part C**.
 
 ## Sprint
 Sprint 4

@@ -37,6 +37,8 @@ the signal to pull the task into a sprint.
 | 🔲 Backlog | — | Precompile the server at image-build time instead of running `ts-node/esm` in production *(leading — unproven — hypothesis for **why** the worker died on 2026-08-22. **Owner-ruled 2026-08-23: stays here; the outage-track pause covers it.** Reasoning and a "re-raise only if" condition are recorded in the brief)* | [`0059-precompile-server-for-prod-instead-of-ts-node`](../tasks/backlog/0059-precompile-server-for-prod-instead-of-ts-node/brief.md) |
 | 🔲 Backlog | — | Investigation: prod Telegram feedback delivery fails with `TypeError: fetch failed` *(§9 follow-up — the player feedback channel is **dead in production and fails silently**. ⚠️ The recorded "likely needs `TELEGRAM_PROXY_URL`" diagnosis is **disproven**: the proxy is wired (`Master.ts:217-218,319`) and forwarded (`deploy.sh:308`), so this is an investigation, not a known fix. Strongest promotion candidate on this board)* | [`0061-investigate-prod-telegram-feedback-delivery-failure`](../tasks/backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) |
 | ➡️ Moved | — | `PROFILE_INTERNAL_TOKEN` is never forwarded to production — the profile client silently no-ops → **Sprint 4** *(filed here 2026-08-23 with the blocking claim flagged unverified; **verified the same day — it blocks `0017` and `0018`** — and promoted. Tracked on [`plan-sprint-4.md`](plan-sprint-4.md) from here on)* | [`0062-forward-profile-internal-token-in-deploy`](../tasks/backlog/0062-forward-profile-internal-token-in-deploy/brief.md) |
+| 🔲 Backlog | — | Product decision: auth strategy — JWT/Discord auth service vs Yandex-only identity *(from `0063`'s reframe: no auth service exists on this origin — no login routes, no JWT signing, JWKS URL serves the SPA HTML — so the Discord/token login UI is dead code. Decide: build an auth service someday, or commit to Yandex-only and remove the surface. Decision task → ADR)* | [`0069-auth-strategy-jwt-discord-vs-yandex-only`](../tasks/backlog/0069-auth-strategy-jwt-discord-vs-yandex-only/brief.md) |
+| 🔲 Backlog | — | `TokenLoginModal` silent failure — restore user-facing error or remove the dead login UI *(from `0063`'s reframe; `TokenLoginModal.ts:73` alert commented out, failures silent. Restore-vs-remove follows the `0069` ruling)* | [`0070-token-login-modal-silent-failure`](../tasks/backlog/0070-token-login-modal-silent-failure/brief.md) |
 
 **Execution order** for the migration set is `0002 → 0003 → 0001 → 0004`, which is dependency order,
 not ID order. `0005`–`0009` are independent of it and of each other.
@@ -105,3 +107,8 @@ owner-approved for briefing on 2026-08-10. They are the migration's three record
 `0051` and `0052` both **depend on `0003`** and are not pullable until it lands. `0052`'s ordering was
 an open question when it was drafted; the owner ruled on **2026-08-10** that it runs **after `0003`**,
 in one pass covering both migrations — so it now covers `0003`'s renames too, not just `0002`'s.
+
+`0069`–`0070` were filed 2026-08-24 from `0063`'s owner-accepted reframe (see that task's worklog):
+`0069` is the product decision the reframe surfaced (auth service vs Yandex-only identity), `0070` the
+split-out silent-failure fix whose direction depends on it. Neither gates anything in Sprint 4 —
+`0063`'s in-sprint scope proceeds regardless.

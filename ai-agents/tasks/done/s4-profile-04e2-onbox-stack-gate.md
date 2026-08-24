@@ -1,7 +1,7 @@
 # Task — Profile Backend Infra: On-box stack + health-gate + digest rollback + lifecycle (T4e2)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` (Part D). **Decomposed from `s4-profile-04e-deploy-mechanics.md` (T4e)** — the keystone on-box slice of the three-way T4e split. See postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`.
+`ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` (Part D). **Decomposed from `s4-profile-04e-deploy-mechanics.md` (T4e)** — the keystone on-box slice of the three-way T4e split. See postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`.
 
 ## Sprint
 Sprint 4

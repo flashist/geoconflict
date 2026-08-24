@@ -1,7 +1,7 @@
 # Task — Profile Backend Infra: Propagate `PROFILE_API_URL` into the game-server deploy env (T4h)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` (Part D, config/secrets). Follow-up to `s4-profile-04b-client-api-url-config.md` (T4b) — closes a decomposition gap surfaced in review: T4b wired `profileApiUrl` through the config chain into `/api/env` with **zero deploy surface**, so nothing propagates the value to the game-server container in a real deploy.
+`ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` (Part D, config/secrets). Follow-up to `s4-profile-04b-client-api-url-config.md` (T4b) — closes a decomposition gap surfaced in review: T4b wired `profileApiUrl` through the config chain into `/api/env` with **zero deploy surface**, so nothing propagates the value to the game-server container in a real deploy.
 
 ## Sprint
 Sprint 4 (mergeable any time; **must land before** the later-sprint client UI that consumes `profileApiUrl`).

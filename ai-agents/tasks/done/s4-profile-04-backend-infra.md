@@ -1,7 +1,7 @@
 # Task — Player Profile: Backend Infrastructure (T4)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` — child slice 4 of 8. Implements the **ops half of Part D** and the **Infrastructure Decision**.
+`ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` — child slice 4 of 8. Implements the **ops half of Part D** and the **Infrastructure Decision**.
 
 ## Sprint
 Sprint 4

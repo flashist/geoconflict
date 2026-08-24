@@ -1,7 +1,7 @@
 # Task — Player Profile: Backend DB + API (T5)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` — child slice 5 of 8. Implements the **DB half of Part D** and the **profile-server half of Part E**.
+`ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` — child slice 5 of 8. Implements the **DB half of Part D** and the **profile-server half of Part E**.
 
 ## Sprint
 Sprint 4

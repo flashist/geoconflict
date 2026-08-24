@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Task** | `ai-agents/tasks/backlog/s4-profile-02-guest-localstorage.md` (T2, Part C) |
-| **Epic** | `ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` (child 2 of 8) |
+| **Epic** | `ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` (child 2 of 8) |
 | **Sprint** | Sprint 4 |
 | **Branch** | `claude-s4-profile-02-guest-localstorage` (5 commits ahead of dev base `43cf561`) |
 | **Date** | 2026-06-13 |
@@ -137,6 +137,6 @@ The takeaway is not that the reviews were wrong, but that **a client-only, local
 ## 10. References
 
 - Task: `ai-agents/tasks/backlog/s4-profile-02-guest-localstorage.md`
-- Epic: `ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md`
+- Epic: `ai-agents/tasks/done/0013-player-profile-store-impl/brief.md`
 - Prior findings: `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`
 - T1 schema contract (kept): `src/core/profile/PlayerProfile.ts`

@@ -37,7 +37,7 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | ✅ Done | — | Start Screen Redesign — Tab Layout Investigation (design) | [`s4-start-screen-redesign-investigation.md`](../tasks/done/s4-start-screen-redesign-investigation.md) |
 | ✅ Done | — | Start Screen Redesign — Implementation | [`s4-start-screen-redesign-impl.md`](../tasks/done/s4-start-screen-redesign-impl.md) |
 | ✅ Done | — | App Bootstrap — Single Explicit Entry Point *(client boot-path refactor)* | [`s4-app-bootstrap-single-entry-point.md`](../tasks/done/s4-app-bootstrap-single-entry-point.md) |
-| 🔄 In progress | — | Player Profile Store — Implementation *(epic; T1 ✅, T3 ✅; T2+T7 ⛔ cancelled 2026-06-13 — guest-first dropped, now authenticated-only; T4 ✅ complete + T5 ✅ done 2026-06-24 (box live at api.geoconflict.ru; profile DB+API PR #126); T6 ✅; T8 ✅ — all slices complete)* | [`0013-player-profile-store-impl`](../tasks/backlog/0013-player-profile-store-impl/brief.md) |
+| ✅ Done (agent-closed — not owner-verified) | — | Player Profile Store — Implementation *(epic; T1 ✅, T3 ✅; T2+T7 ⛔ cancelled 2026-06-13 — guest-first dropped, now authenticated-only; T4 ✅ complete + T5 ✅ done 2026-06-24 (box live at api.geoconflict.ru; profile DB+API PR #126); T6 ✅; T8 ✅ — all slices complete. Closed 2026-08-24 by owner ruling relayed via the lead session; remaining prod substance lives in `0062` and the live tails, not this epic)* | [`0013-player-profile-store-impl`](../tasks/done/0013-player-profile-store-impl/brief.md) |
 | ✅ Done | — | PostgreSQL Backup Routine (Profile Store) — off-box, daily *(must be live before Paid Citizenship)* | [`s4-postgres-backup-routine.md`](../tasks/done/s4-postgres-backup-routine.md) |
 | ✅ Done | — | Personal-Data Compliance (152-ФЗ) — Investigation *(conclusion OVERTURNED 2026-06-28: hashing doesn't remove the obligation. 152-ФЗ work **deferred to backlog** → `0048-compliance-152fz-notification-consent`, risk accepted; no longer gates Sprint 4.)* | [`s4-personal-data-compliance-investigation.md`](../tasks/done/s4-personal-data-compliance-investigation.md) |
 | ⛔ Cancelled (2026-06-28) — hashing does not remove the 152-ФЗ obligation; PR #127 reverted | — | Profile Store: Pseudonymize Player Identity — store an irreversible hash, not the raw Yandex ID *(152-ФЗ deferred to backlog → `0048-compliance-152fz-notification-consent`, risk accepted)* | [`s4-profile-hash-player-ids.md`](../tasks/cancelled/s4-profile-hash-player-ids.md) |
@@ -51,8 +51,8 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | 🔲 Backlog | — | 8d-B. Personal Inbox *(**re-scoped 2026-08-23, owner-ruled: local-first, same treatment as `0017`** — buildable/verifiable against the local profile stack now; `0062` gates only the brief's Deferred Live Tail. Shipping it retires the no-op inbox seams in `0017`/`0018`/`0019`; name-change triggers stay deferred with that task)* | [`0012-personal-inbox`](../tasks/backlog/0012-personal-inbox/brief.md) |
 | 🔲 Backlog | — | S3-Backed Match Archival (Citizen-Gated) *(blocked: player profile store + citizenship + S3 infra)* | [`0030-archive-s3-backed-citizen-gated`](../tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md) |
 | 🔲 Backlog | — | Investigate & Fix Client Null-ID Errors *(stabilization follow-up; needs source maps + deployed archive fix)* | [`0032-investigate-null-id-errors`](../tasks/backlog/0032-investigate-null-id-errors/brief.md) |
-| 🔲 Backlog | — | Name Change (Citizens Only) | TBD |
-| 🔲 Backlog | — | Citizen Verified Icon | TBD |
+| 🔲 Backlog | — | Name Change (Citizens Only) *(scoped 2026-08-24, owner-ruled — request → moderation → apply loop; inbox hooks stay seams per `0012`'s deferral)* | [`0067-name-change-citizens-only`](../tasks/backlog/0067-name-change-citizens-only/brief.md) |
+| 🔲 Backlog | — | Citizen Verified Icon *(scoped 2026-08-24, owner-ruled — server-sourced `isCitizen` flag + icon in lobby and match player lists; design TBD, placeholder glyph)* | [`0068-citizen-verified-icon`](../tasks/backlog/0068-citizen-verified-icon/brief.md) |
 | ⛔ Cancelled (2026-04-21) — created too many bugs; cancelled forever, though a similar task might return someday (owner-supplied reason, 2026-08-14) | — | Humans vs Nations — Balance Nation Count *(date recovered from plan edit `e7e1b12`)* | [`s4-nations-balance-task.md`](../tasks/cancelled/s4-nations-balance-task.md) |
 | ✅ Done | — | AI Lobby Slot Bug — Always Keep One Slot Free | [`s4-ai-lobby-slot-bug.md`](../tasks/done/s4-ai-lobby-slot-bug.md) |
 | 🔄 In progress | — | Asset audit: confirm no proprietary/CDN assets in production bundle *(**audit complete 2026-08-23** — findings: [`s4-licensing-asset-audit-findings.md`](../knowledge-base/reports/s4-licensing-asset-audit-findings.md) — verdict: 1 confirmed violation (V1: All-Rights-Reserved music ships to the prod web root), 1 trademark item (A1: live favicon is OpenFront's brand mark), 3 hygiene items; remediation filed as `0066`, owner-approved same day — **`0066` shipped to done 2026-08-24 (agent-closed; NOT yet deployed)**. Row stays In progress: the close routes through the producer's mover skill and the owner may want the report first. Annotation history: corrected 2026-08-23 — this task GATES the paid go-live (`0065`'s flip-ON), it never waited on citizenship)* | [`0025-licensing-asset-audit`](../tasks/backlog/0025-licensing-asset-audit/brief.md) |
@@ -162,6 +162,17 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 > it. ⚠️ The accepted cost: if the crash recurs during the pause it will be **as undiagnosable as
 > 2026-08-22 was**, because `0055`'s new diagnostics are on an unpushed branch.
 
+> **Addendum — tasks 0067 and 0068 scoped out of band (2026-08-24), owner-ruled.** The two TBD rows
+> this plan carried since Phase 2 planning — Name Change (Citizens Only) and Citizen Verified Icon —
+> are now real briefs (`0067`, `0068`), scoped on the owner's 2026-08-24 ruling (relayed via the lead
+> session) together with the `0013` epic close. Both gate their player-facing ship on live citizenship
+> (`0017`'s Deferred Live Tail; `0065` adds paid citizens but is not a dependency) and are buildable
+> against the local profile stack in the meantime, the same treatment as `0017`/`0012`. `0067` keeps
+> its inbox notification hooks as no-op seams per the deferral recorded in `0012`'s brief. This board
+> is unranked, so both Priority cells read `—` — no rank was assigned or displaced. Each brief carries
+> open questions for the owner (moderation channel + name-surfacing scope on `0067`; icon design on
+> `0068`).
+>
 > **Addendum — task 0054 added out of band (2026-08-21).** Owner-requested interim fix: the production
 > start screen shows the citizenship card in its 0049 degraded "couldn't connect" state while citizenship
 > (0017/0018) has not shipped. Owner ruled the mechanism (client config flag, default OFF; rejected
@@ -237,7 +248,7 @@ Production-risk: touches the prod Yandex-iframe boot path — weekend deploy, li
 ### Player Profile Store — Implementation
 Implement the database and schema recommended by Investigation A. Foundation for all citizenship and purchase tasks.
 
-**Status: 🔄 In Progress.** Originally 8 child slices (T1–T8); on 2026-06-19 the monolithic **T4 was reverted (PR #112) and re-decomposed into 9 ops sub-slices (T4a–T4i)** — see the slice tables in `0013-player-profile-store-impl` and `s4-profile-04-backend-infra.md`. **T4 is complete (T4a–T4i all done as of 2026-06-24) — the profile box is live at `api.geoconflict.ru` (200/TLS) — and T5 (DB + API) is done & merged (PR #126).** With T2 and T7 cancelled, the live path is the backend track (T3 ✅ → T4 ✅ → T5 ✅ → T6 ✅ → T8); T6 (match-end crediting) is done — T8 (backups) is now next.
+**Status: ✅ Done (agent-closed — not owner-verified).** Originally 8 child slices (T1–T8); on 2026-06-19 the monolithic **T4 was reverted (PR #112) and re-decomposed into 9 ops sub-slices (T4a–T4i)** — see the slice tables in `0013-player-profile-store-impl` and `s4-profile-04-backend-infra.md`. **T4 is complete (T4a–T4i all done as of 2026-06-24) — the profile box is live at `api.geoconflict.ru` (200/TLS) — and T5 (DB + API) is done & merged (PR #126).** With T2 and T7 cancelled, the live path is the backend track (T3 ✅ → T4 ✅ → T5 ✅ → T6 ✅ → T8); T6 (match-end crediting) and T8 (backups) are done — all slices complete; epic closed 2026-08-24 by owner ruling.
 - ✅ **T1 — Schema Contract** (`s4-profile-01-schema-contract.md`) — shared `PlayerProfile` type + pure `migrateProfile()`, done & moved to `done/`. `src/core/profile/PlayerProfile.ts` is kept (it is *not* part of the reverted T2 work). Two boundary notes from its review: (1) `xp` is validated only as a nonnegative int up to `MAX_SAFE_INTEGER` — the persist path (T5) must clamp/reject against the chosen DB column max; (2) the migrate body is untrusted shape-only validation — paid/citizenship fields must be force-cleared/recomputed at the trust boundary in T5, not trusted from the contract.
 - ⛔ **T2 — Guest localStorage** — **cancelled 2026-06-13** (Mark); work reverted manually. Report: `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`. A client-only, localStorage-authoritative guest-XP store has too much inherent edge surface (idempotency, multi-tab races, partial-write atomicity, platform-auth timing, "eliminated counts" semantics) — four review rounds hardened those and the scope outgrew the intended small client slice. **Steer:** redo guest-XP as a thin best-effort client cache **with/after T5/T6** so the server is the source of truth; carry forward the `MatchQualification.ts` shared-predicate idea into T5/T6 to prevent client/server drift. Net interim baseline: **no one earns profile XP until T5/T6 land** (the only crediting path was this store) — authenticated users and the Yandex leaderboard are unaffected.
 - ✅ **T3 — Yandex Identity** (`s4-profile-03-yandex-identity.md`) — verified Yandex identity plumbing on the join/auth path (Part A), done & moved to `done/` (PR #111).
@@ -344,14 +355,16 @@ Third, distinct legal track (separate from the cleared VAT gate and the in-progr
 ---
 
 ### Name Change (Citizens Only)
-First citizenship benefit. Citizens can change their display name. Requires moderation step (name review). Non-citizens cannot access this feature.
+**Brief:** [`0067-name-change-citizens-only`](../tasks/backlog/0067-name-change-citizens-only/brief.md) *(scoped 2026-08-24, owner-ruled)*
 
-**Details to be scoped in Phase 2 brief** — name validation rules, moderation flow, Yandex player ID vs display name relationship, name uniqueness enforcement.
+First citizenship benefit. Citizens can change their display name. Requires moderation step (name review). Non-citizens cannot access this feature. Validation, moderation flow, and uniqueness are scoped in the brief; where the approved name surfaces beyond the profile card is an open question recorded there.
 
 ---
 
 ### Citizen Verified Icon
-Citizen icon visible in lobbies and match player list. Distinguishes citizens from non-citizens. Visual design to be decided.
+**Brief:** [`0068-citizen-verified-icon`](../tasks/backlog/0068-citizen-verified-icon/brief.md) *(scoped 2026-08-24, owner-ruled)*
+
+Citizen icon visible in lobbies and match player list. Distinguishes citizens from non-citizens. Visual design to be decided — ships with a placeholder glyph; design remains an open question in the brief.
 
 ---
 

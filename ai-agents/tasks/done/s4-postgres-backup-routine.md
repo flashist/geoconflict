@@ -1,7 +1,7 @@
 # Task — PostgreSQL Backup Routine (Player Profile Store)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` — **T8**, child slice 8 of 8. Implements **Part D step 7** (profile DB backups). Depends on T4 (the dedicated profile box + Postgres) and T5 (schema — nothing to dump until the DB exists); **blocks Paid Citizenship**.
+`ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` — **T8**, child slice 8 of 8. Implements **Part D step 7** (profile DB backups). Depends on T4 (the dedicated profile box + Postgres) and T5 (schema — nothing to dump until the DB exists); **blocks Paid Citizenship**.
 
 ## Sprint
 Sprint 4 — data-protection prerequisite for monetization.
@@ -192,7 +192,7 @@ Either way, this backup task remains required for XP and display-name data.
 ---
 
 ## References
-- Profile store impl (creates the DB): `ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md`
+- Profile store impl (creates the DB): `ai-agents/tasks/done/0013-player-profile-store-impl/brief.md`
 - Profile store findings: `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`
 - Yandex payments findings (entitlement/consume nuance): `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`
 - Backup-health monitoring (consumer): `ai-agents/tasks/backlog/0034-monitoring-alert-bot-phase2/brief.md` (item 5)

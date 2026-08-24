@@ -1,7 +1,7 @@
 # Task — Profile Backend Infra: Deploy mechanics + compose + integration milestone (T4e)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` (Part D, steps 2–4). Sub-task of `s4-profile-04-backend-infra.md` — see postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`.
+`ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` (Part D, steps 2–4). Sub-task of `s4-profile-04-backend-infra.md` — see postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`.
 
 ## Sprint
 Sprint 4

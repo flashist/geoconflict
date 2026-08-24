@@ -1,7 +1,7 @@
 # Task — Profile Backend Infra: Deploy wiring + secret-staging + integration milestone (T4e3)
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` (Part D). **Decomposed from `s4-profile-04e-deploy-mechanics.md` (T4e)** — the final slice of the three-way split; owns the single end-to-end milestone. See postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`.
+`ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` (Part D). **Decomposed from `s4-profile-04e-deploy-mechanics.md` (T4e)** — the final slice of the three-way split; owns the single end-to-end milestone. See postmortem `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19.md`.
 
 ## Sprint
 Sprint 4

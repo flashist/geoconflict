@@ -7,7 +7,7 @@
 > are expected; if something fails, report it back rather than editing scripts.
 
 ## Parent / Epic
-`ai-agents/tasks/backlog/0013-player-profile-store-impl/brief.md` (Part D). Executes the deploy
+`ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` (Part D). Executes the deploy
 machinery built by **T4d** (provisioning code, done), **T4e1/T4e2** (build + on-box stack,
 done), and **T4e3** (deploy wiring + the milestone, `s4-profile-04e3-deploy-wiring-milestone.md`).
 

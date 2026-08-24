@@ -10,7 +10,7 @@ Sprint 4
 High — foundation for all citizenship and payments tasks. Nothing else in Phase 2 can ship until this is live.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
