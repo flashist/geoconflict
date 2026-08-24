@@ -20,7 +20,7 @@ fkit-coder
 
 ## Dependencies
 - `s4-start-screen-redesign-impl.md` — owns `Citizenship:Seen` and `UI:Tap:CitizenshipLoginToEarn`
-- `s4-citizenship-xp-progress-ui.md` — owns `UI:Tap:CitizenshipBuy` and `UI:Tap:CitizenshipLearnMore`
+- `s4-citizenship-xp-progress-ui.md` — owns `UI:Tap:PurchaseCitizenship` *(shipped name, was planned as `UI:Tap:CitizenshipBuy`)* and `UI:Tap:CitizenshipLearnMore`
 - `0018-citizenship-paid` — owns `Purchase:Started:Citizenship`, `Purchase:Completed:Citizenship`, `Purchase:Abandoned:Citizenship`
 - `0017-citizenship-earned` — owns `Citizenship:Earned:XP`
 
@@ -54,7 +54,7 @@ Fire when the player taps any of the CTAs on the citizenship card. Use one event
 
 | Enum key | Event string | When |
 |---|---|---|
-| `CITIZENSHIP_CTA_BUY` | `UI:Tap:CitizenshipBuy` | Player taps the "Buy" / "99 рублей" button |
+| `uiElementIds.purchaseCitizenship` | `UI:Tap:PurchaseCitizenship` | Player taps the "Buy" / "99 рублей" button *(corrected 2026-08-24: supersedes the planned `UI:Tap:CitizenshipBuy` — `0018` shipped the event 2026-08-24 under this name; see `flashistConstants.analyticEvents` and `analytics-event-reference.md`)* |
 | `CITIZENSHIP_CTA_LEARN_MORE` | `UI:Tap:CitizenshipLearnMore` | Player taps a "Learn more" or details link |
 | `CITIZENSHIP_CTA_LOGIN_TO_EARN` | `UI:Tap:CitizenshipLoginToEarn` | Player taps the Yandex login CTA shown to guest players |
 
@@ -121,7 +121,7 @@ No event strings inline anywhere — always through the enum.
 ## Verification
 
 1. Load the start screen as a logged-in player — confirm `Citizenship:Seen` fires once when the citizenship card is visible. Switch to the Singleplayer tab (card hidden) — confirm it does not fire again.
-2. Tap the Buy CTA — confirm `UI:Tap:CitizenshipBuy` fires before the payment dialog appears.
+2. Tap the Buy CTA — confirm `UI:Tap:PurchaseCitizenship` fires before the payment dialog appears.
 3. Tap Buy → complete a test purchase in Yandex sandbox → confirm `Purchase:Started:Citizenship` fires before dialog, `Purchase:Completed:Citizenship` fires only after server confirmation.
 4. Tap Buy → cancel the Yandex dialog → confirm `Purchase:Abandoned:Citizenship` fires. Confirm `Purchase:Completed:Citizenship` does not fire.
 5. Load the start screen as a guest player — confirm `UI:Tap:CitizenshipLoginToEarn` fires when the login CTA is tapped.
