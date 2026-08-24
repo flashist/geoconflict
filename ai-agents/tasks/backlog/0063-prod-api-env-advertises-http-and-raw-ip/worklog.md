@@ -96,3 +96,10 @@ Live checks; cannot be done earlier — the failure and the fix are environment-
   verified `CORRECT` by key-grep + resolution simulation + green test baseline).
 - **Obvious-winner calls: none.**
 - **Out-of-plan actions: none.** No source touched; no scope widened.
+- **Review round SKIPPED — owner-ruled 2026-08-24** (via AskUserQuestion relay in the lead session):
+  config-only change with no tracked diff; the weekend live deploy is the verification. **Condition:
+  the task stays open until all six deploy pendings above are proven live.** Not a coder call — an
+  explicit owner ruling relayed by the sprint-ship-loop driver.
+- **Follow-ups filed** (routed by the lead per the 2026-08-24 rulings): **0069** — auth strategy
+  product decision (JWT/Discord auth service vs Yandex-only identity); **0070** — TokenLoginModal
+  silent failure (`TokenLoginModal.ts:73`), gated on 0069.

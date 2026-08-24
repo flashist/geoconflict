@@ -255,4 +255,42 @@ describe("ProfileApiClient", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  describe("partial-configuration warning at construction (0062)", () => {
+    test("warns once when PROFILE_API_URL is set but the token is empty", () => {
+      delete process.env.PROFILE_INTERNAL_TOKEN;
+
+      const { child } = newClient();
+
+      expect(child.warn).toHaveBeenCalledTimes(1);
+      expect(child.warn).toHaveBeenCalledWith(
+        expect.stringContaining("PROFILE_INTERNAL_TOKEN is empty"),
+      );
+    });
+
+    test("warns once when the token is set but PROFILE_API_URL is empty", () => {
+      const { child } = newClient("");
+
+      expect(child.warn).toHaveBeenCalledTimes(1);
+      expect(child.warn).toHaveBeenCalledWith(
+        expect.stringContaining("PROFILE_API_URL is empty"),
+      );
+      // The secret's VALUE must never appear in the log line, only its name.
+      expect(child.warn.mock.calls[0][0]).not.toContain("secret-token");
+    });
+
+    test("does not warn when both are set", () => {
+      const { child } = newClient();
+
+      expect(child.warn).not.toHaveBeenCalled();
+    });
+
+    test("does not warn when neither is set (local dev)", () => {
+      delete process.env.PROFILE_INTERNAL_TOKEN;
+
+      const { child } = newClient("");
+
+      expect(child.warn).not.toHaveBeenCalled();
+    });
+  });
 });

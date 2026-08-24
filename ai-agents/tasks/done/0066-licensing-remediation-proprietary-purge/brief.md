@@ -122,6 +122,10 @@ OpenFront infrastructure from our product.
   (`resources/icons/icon512_rounded.png`, `icon512_maskable.png`) are still upstream OpenFront's
   app-icon mark — same placeholder-now/brand-later follow-up; replace them together with the
   proper favicon/brand design. No code change in this task.
+- **Owner-ruled 2026-08-24 (open-questions interview, relayed via the lead session): the standalone
+  template footer's existing upstream mentions (©2025 OpenFront™, source/community links) are KEPT;
+  no new upstream-brand mentions may be added.** Recorded here because this brief owns the
+  brand-mention surface; the H3 inert-leftover cleanup (`0073`) must not touch the footer.
 - Out of scope, per the audit: git history rewrite (see Part A.5); H3 inert HTML leftovers
   ("delete at leisure"); the ShareAlike constraint on paid cosmetics (recorded in the audit's
   Part 2 — relevant to `0010`/`0011`, not to this task).

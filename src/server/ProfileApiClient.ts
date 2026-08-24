@@ -46,6 +46,27 @@ export class ProfileApiClient {
     private readonly timeoutMs: number = DEFAULT_TIMEOUT_MS,
   ) {
     this.log = parentLog.child({ comp: "profile-api-client" });
+    this.warnIfPartiallyConfigured();
+  }
+
+  /**
+   * A partially configured client silently no-ops every call (fail-soft by
+   * contract), which is how the prod token-forwarding gap went unnoticed —
+   * so make the half-configured state audible once, at `warn` (visible at the
+   * production `info` log level). Names variables only; never logs values.
+   */
+  private warnIfPartiallyConfigured(): void {
+    const hasUrl = this.baseUrl().length > 0;
+    const hasToken = this.token().length > 0;
+    if (hasUrl && !hasToken) {
+      this.log.warn(
+        `PROFILE_API_URL is set but PROFILE_INTERNAL_TOKEN is empty — profile integration is unauthenticated and every profile call will no-op`,
+      );
+    } else if (!hasUrl && hasToken) {
+      this.log.warn(
+        `PROFILE_INTERNAL_TOKEN is set but PROFILE_API_URL is empty — profile integration is off and every profile call will no-op`,
+      );
+    }
   }
 
   /**

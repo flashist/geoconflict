@@ -5,7 +5,7 @@
 
 ## Summary
 
-OpenTelemetry-based server observability. Production server emits logs, metrics, and traces to Uptrace at `https://telemetry.geoconflict.ru`. The dev server sends nothing to Uptrace — all Uptrace data is production only.
+OpenTelemetry-based server observability. Production server emits logs, metrics, and traces to the Uptrace instance hosted on the dedicated telemetry VPS. The dev server sends nothing to Uptrace — all Uptrace data is production only.
 
 **Uptrace is for:** lag spikes, server errors, resource usage, per-worker correlation.
 **Uptrace is NOT for:** player behaviour, funnels, A/B tests, tutorial completion — use GameAnalytics for those (see [[systems/analytics]]).
@@ -133,7 +133,7 @@ Current ClickHouse log, memory, and swap settings:
 
 The telemetry VPS outage was only discovered 2-3 weeks after it froze. The only existing monitor was an on-box disk-warning cron that appends to a local log file, which cannot alert when the monitored box is unreachable. A future monitoring task should use two independent layers:
 
-- External heartbeat or uptime check from outside the telemetry stack, alerting when `https://telemetry.geoconflict.ru/` times out or heartbeat pings stop.
+- External heartbeat or uptime check from outside the telemetry stack, alerting when the Uptrace dashboard (the public HTTPS entry point on the telemetry VPS) times out or heartbeat pings stop.
 - On-box metric checks for disk, RAM, swap presence/usage, OOM-kill events, Docker container health, ClickHouse diagnostic table size, systemd/nginx/docker status, TLS expiry, and sustained CPU load.
 
 Telegram delivery should reuse the existing game-server Telegram send path in `src/server/Master.ts` and its `TELEGRAM_PROXY_URL` support. Russian VPSes cannot assume direct `api.telegram.org` access, so a telemetry-hosted monitor must either use the same proxy or relay through infrastructure that can send Telegram messages.

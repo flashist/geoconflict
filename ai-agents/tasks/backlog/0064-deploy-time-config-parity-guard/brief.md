@@ -149,6 +149,26 @@ which drifts, and which is then the thing lying to us.
   `0060` is genuinely independent and can be picked up by anyone at any point.
 - **`0062` step 4 now points here.** It previously asked its implementer to evaluate and recommend a
   general guard. That thinking has moved into this brief; `0062`'s implementer should not redo it.
+- **Owner-ruled 2026-08-24 (relayed via the lead session): this task's scope inherits two
+  mechanism-level residuals accepted on `0062`'s review** (its ledger,
+  `ai-agents/tasks/backlog/0062-forward-profile-internal-token-in-deploy/review.md`, findings R1/R2
+  and the accepted-residuals section): **(R1)** all 8 secrets in `deploy.sh`'s remote-env heredoc are
+  forwarded by local expansion into the single ssh argv — transiently visible in local/remote process
+  tables (and traced by any `bash -x` invocation of the script); **(R2)** theoretical
+  heredoc-delimiter injection if any secret ever stops being hex-only (a value containing
+  newline+`EOL` could terminate the remote heredoc early) — unreachable today because the token is
+  `openssl rand -hex 32`, but the guard rail is convention, not mechanism. Both were accepted as
+  residuals on `0062` because they are properties of the deploy **mechanism**, shared by every
+  neighbor var — and this task is where mechanism hardening would land if the owner wants it.
+  `0062`'s ledger carries the re-raise conditions.
+- **Merged from `0072` (owner-ruled 2026-08-24).** A duplicate guard brief
+  (`0072-deploy-time-config-guard`, filed 2026-08-24 while this task was board-invisible) was
+  cancelled in favor of this one; two of its specifics are folded in as scope, attributed here:
+  **(a) the profile-deploy pipeline is covered too** — the guard applies to both pipelines that have
+  already bitten (game-server `deploy.sh` and the profile deploy, `build-deploy-profile.sh` /
+  `setup-profile.sh`), not the game-server script alone; **(b) well-formedness checks are typed, not
+  just presence checks** — public-facing URL values must be `https` and hostname-based (no raw IPs;
+  the `0063` class), tokens non-empty (the `0062` class). Everything else in `0072` was already here.
 - **This is a guard, not a fix.** It does not correct any configuration. If it finds gaps beyond the
   known three, each is a new brief — do not let this task grow into fixing whatever it discovers.
 - **Do not modify the incident record** — it is maintained by the investigating coder. Flag anything

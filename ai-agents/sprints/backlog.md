@@ -39,6 +39,9 @@ the signal to pull the task into a sprint.
 | ➡️ Moved | — | `PROFILE_INTERNAL_TOKEN` is never forwarded to production — the profile client silently no-ops → **Sprint 4** *(filed here 2026-08-23 with the blocking claim flagged unverified; **verified the same day — it blocks `0017` and `0018`** — and promoted. Tracked on [`plan-sprint-4.md`](plan-sprint-4.md) from here on)* | [`0062-forward-profile-internal-token-in-deploy`](../tasks/backlog/0062-forward-profile-internal-token-in-deploy/brief.md) |
 | 🔲 Backlog | — | Product decision: auth strategy — JWT/Discord auth service vs Yandex-only identity *(from `0063`'s reframe: no auth service exists on this origin — no login routes, no JWT signing, JWKS URL serves the SPA HTML — so the Discord/token login UI is dead code. Decide: build an auth service someday, or commit to Yandex-only and remove the surface. Decision task → ADR)* | [`0069-auth-strategy-jwt-discord-vs-yandex-only`](../tasks/backlog/0069-auth-strategy-jwt-discord-vs-yandex-only/brief.md) |
 | 🔲 Backlog | — | `TokenLoginModal` silent failure — restore user-facing error or remove the dead login UI *(from `0063`'s reframe; `TokenLoginModal.ts:73` alert commented out, failures silent. Restore-vs-remove follows the `0069` ruling)* | [`0070-token-login-modal-silent-failure`](../tasks/backlog/0070-token-login-modal-silent-failure/brief.md) |
+| 🔲 Backlog | — | Map label density tuning at mid-zoom *(owner judged `0041`'s shipped labels too cluttered at mid-zoom — the tuning pass `0041`'s clutter flag anticipated; `src/client/` only, owner eyeball is the gate)* | [`0071-map-label-density-tuning-mid-zoom`](../tasks/backlog/0071-map-label-density-tuning-mid-zoom/brief.md) |
+| ⛔ Cancelled (agent-closed — not owner-verified) (2026-08-24) — duplicate of 0064 (pre-existing, owner-ruled 2026-08-23, better-scoped); useful specifics merged into 0064 — owner-ruled 2026-08-24 | — | Deploy-time config guard — required env vars forwarded and well-formed | [`0072-deploy-time-config-guard`](../tasks/cancelled/0072-deploy-time-config-guard/brief.md) |
+| 🔲 Backlog | — | Remove inert upstream HTML leftovers *(audit §H3 — commented `og:`/googletag/Publift fragments + dead Steam link; deletion-only; footer mentions stay per the `0066` ruling)* | [`0073-remove-inert-upstream-html-leftovers`](../tasks/backlog/0073-remove-inert-upstream-html-leftovers/brief.md) |
 
 **Execution order** for the migration set is `0002 → 0003 → 0001 → 0004`, which is dependency order,
 not ID order. `0005`–`0009` are independent of it and of each other.
@@ -112,3 +115,12 @@ in one pass covering both migrations — so it now covers `0003`'s renames too, 
 `0069` is the product decision the reframe surfaced (auth service vs Yandex-only identity), `0070` the
 split-out silent-failure fix whose direction depends on it. Neither gates anything in Sprint 4 —
 `0063`'s in-sprint scope proceeds regardless.
+
+`0071`–`0073` were filed 2026-08-24 from the open-questions interview's owner rulings (relayed via
+the lead session): `0071` the mid-zoom label-density tuning the owner asked for after judging
+`0041`'s shipped labels too cluttered; `0072` the deploy-time config guard answering the
+`0062`/`0063` silent-misconfig pattern — **cancelled the same day, owner-ruled: it duplicated the
+pre-existing, board-invisible `0064-deploy-time-config-parity-guard`; its two useful specifics were
+merged into `0064`'s brief**; `0073` the `0025` audit's §H3 inert-leftover cleanup. The
+same interview also produced a no-task ruling recorded in `0066`'s brief Notes (standalone footer's
+upstream mentions KEPT; no new upstream-brand mentions). None of the three gates anything in Sprint 4.
