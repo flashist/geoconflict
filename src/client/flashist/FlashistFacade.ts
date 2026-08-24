@@ -116,6 +116,15 @@ export const flashistConstants = {
     // 0021 §6. Server write is authoritative; this reports its first observation.
     CITIZENSHIP_EARNED_XP: "Citizenship:Earned:XP",
 
+    // Paid-citizenship purchase funnel (task 0018; spec 0021 §3–5). Started
+    // fires as the Yandex payment frame is opened (last client-controlled
+    // moment); Completed only after the SERVER confirmed the grant (never on
+    // the client-side callback alone); Abandoned when a started flow ends
+    // without a Completed — dialog closed, SDK error, or a failed /complete.
+    PURCHASE_STARTED_CITIZENSHIP: "Purchase:Started:Citizenship",
+    PURCHASE_COMPLETED_CITIZENSHIP: "Purchase:Completed:Citizenship",
+    PURCHASE_ABANDONED_CITIZENSHIP: "Purchase:Abandoned:Citizenship",
+
     BUILD_STALE_DETECTED: "Build:StaleDetected",
   },
 

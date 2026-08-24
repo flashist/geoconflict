@@ -12,6 +12,37 @@ import {
 
 const RUN = process.env.RUN_DB_TESTS ? describe : describe.skip;
 
+/**
+ * Poll pg_stat_activity until `expected` sessions are lock-waiting inside
+ * CREDIT_SQL (identified by the ledger table name in the query text; the poller
+ * itself never matches — it is not in a Lock wait). Throws on timeout so the
+ * held-lock barrier test fails loudly instead of passing without contention.
+ */
+async function waitForBlockedCreditStatements(
+  pool: Pool,
+  expected: number,
+): Promise<void> {
+  const deadline = Date.now() + 4_000;
+  for (;;) {
+    const res = await pool.query(
+      `SELECT count(*)::int AS n
+       FROM pg_stat_activity
+       WHERE state = 'active'
+         AND wait_event_type = 'Lock'
+         AND query LIKE '%player_match_xp_credits%'`,
+    );
+    const blocked = Number(res.rows[0].n);
+    if (blocked >= expected) return;
+    if (Date.now() > deadline) {
+      throw new Error(
+        `held-lock barrier: only ${blocked}/${expected} credit statements ` +
+          `blocked on the profile row lock within 4s`,
+      );
+    }
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+}
+
 RUN("PlayerProfileRepository (integration)", () => {
   let pool: Pool;
   let repo: PlayerProfileRepository;
@@ -242,25 +273,65 @@ RUN("PlayerProfileRepository (integration)", () => {
     expect(profile?.xp).toBe(10);
   });
 
-  test("concurrent credits from two different games grant citizenship exactly once", async () => {
+  test("concurrent credits from two different games grant citizenship exactly once (deterministic held-lock barrier)", async () => {
     // The race the two-statement grant design exists for: both credits land, but
     // only the one whose locked row still shows is_citizen = false may report
     // newly granted — never both (a double inbox message otherwise).
+    //
+    // A bare Promise.all does NOT force the two transactions to overlap at the
+    // row-lock boundary — a serialized schedule passes without exercising the
+    // contested path (review R2). So build the reviewer's held-lock barrier: a
+    // third session takes the profile row lock, both credits are verified BLOCKED
+    // on it (their statements have started, so their READ COMMITTED snapshots
+    // predate every later commit), then the barrier releases. Whichever credit
+    // commits second is now guaranteed to hit the EvalPlanQual recheck against
+    // the winner's committed grant — the exact interleaving that made the
+    // rejected snapshot self-join shape double-report newly-granted.
     await repo.upsertProfile(P, PID);
     await pool.query(
       "UPDATE player_profiles SET xp = 995 WHERE yandex_player_id = $1",
       [P],
     );
 
-    const [a, b] = await Promise.all([
-      repo.creditMatchXp("race-1", P, 10),
-      repo.creditMatchXp("race-2", P, 10),
-    ]);
+    const holder = await pool.connect();
+    let credits: Promise<
+      Awaited<ReturnType<PlayerProfileRepository["creditMatchXp"]>>[]
+    > | null = null;
+    try {
+      await holder.query("BEGIN");
+      await holder.query(
+        "SELECT 1 FROM player_profiles WHERE yandex_player_id = $1 FOR UPDATE",
+        [P],
+      );
+
+      // Both credits block inside CREDIT_SQL (the ledger INSERT's FK check needs
+      // a KEY SHARE on the profile row, which the held FOR UPDATE conflicts with).
+      credits = Promise.all([
+        repo.creditMatchXp("race-1", P, 10),
+        repo.creditMatchXp("race-2", P, 10),
+      ]);
+
+      // Barrier assertion: the test FAILS here (never passes vacuously) unless
+      // both credit statements are genuinely lock-blocked at the same time.
+      await waitForBlockedCreditStatements(pool, 2);
+
+      await holder.query("COMMIT"); // release — both race through the contested path
+    } catch (error) {
+      await holder.query("ROLLBACK").catch(() => {});
+      // Let any in-flight credits settle so nothing dangles past the test.
+      await credits?.then(
+        () => undefined,
+        () => undefined,
+      );
+      throw error;
+    } finally {
+      holder.release();
+    }
+
+    const [a, b] = await credits;
     expect(a.status).toBe("credited");
     expect(b.status).toBe("credited");
-    expect(
-      [a, b].filter((o) => o.citizenshipNewlyGranted),
-    ).toHaveLength(1);
+    expect([a, b].filter((o) => o.citizenshipNewlyGranted)).toHaveLength(1);
 
     const profile = await repo.getProfile(P);
     expect(profile?.xp).toBe(1015);

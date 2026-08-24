@@ -127,3 +127,4 @@ works. The task is not fully done — and must not be closed — until this tail
 - V1 has no pagination — fetch all messages. Add pagination if message counts grow significantly (unlikely in Sprint 4)
 - The `POST /admin/player-message` endpoint should be internal only — not exposed publicly. Rate-limit or require a server-side secret to prevent abuse.
 - Future use cases (tournament invitations, moderation notices, targeted announcements) are out of scope for Sprint 4 but the schema and endpoint support them already
+- **Owner-ruled 2026-08-24 (from the `0017` review, residual R1):** filling the inbox no-op seams carries the obligation to harden BOTH post-commit hook call sites — `0017` `PlayerProfileRepository.afterCitizenshipEarned` and `0019` `PaymentsRepository.afterPaidPurchaseGranted` — wrap/guard so a throwing hook cannot misreport a durable grant as a wire error (reference: `0017` review.md residual R1)
