@@ -113,7 +113,21 @@ See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrumen
 
 The analytics reference also defines placement-specific community CTA tap IDs. `UI:Tap:TelegramLinkStartScreen` and `UI:Tap:TelegramLinkGameEnd` are emitted by the shipped [[tasks/telegram-link]] flow; `UI:Tap:VkLinkStartScreen` and `UI:Tap:VkLinkGameEnd` are emitted by [[tasks/vk-link]]. This keeps start-screen and game-end CTA taps segmented separately.
 
-The start-screen redesign adds menu-tab and citizenship-surface instrumentation. `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab` fire on explicit tab taps, including re-taps of the active tab; restoring a persisted tab on load does not fire. `Citizenship:Seen` fires once per page load when the citizenship card is visible, and `UI:Tap:CitizenshipLoginToEarn` tracks the Yandex login CTA. See [[tasks/start-screen-redesign-implementation]]. Task 0019 additionally registered `UI:Tap:PurchaseCitizenship` (constant only — the button is wired in 0018, so the event does not fire until then), and since task 0054 the card is hidden behind a default-OFF client flag, so **no citizenship surface events fire in production** until the flag flips ON at citizenship launch; see [[tasks/hide-citizenship-card-flag]].
+The start-screen redesign adds menu-tab and citizenship-surface instrumentation. `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab` fire on explicit tab taps, including re-taps of the active tab; restoring a persisted tab on load does not fire. `Citizenship:Seen` fires once per page load when the citizenship card is visible, and `UI:Tap:CitizenshipLoginToEarn` tracks the Yandex login CTA. See [[tasks/start-screen-redesign-implementation]]. Since task 0054 the card is hidden behind a default-OFF client flag, so **no citizenship surface events fire in production** until the flag flips ON at citizenship launch; see [[tasks/hide-citizenship-card-flag]].
+
+## Citizenship Funnel Events (built 2026-08-24 — not yet live)
+
+Tasks 0017 (earned) and 0018 (paid) shipped the citizenship funnel events on local/mock scope; all of them are gated behind the 0054 `CITIZENSHIP_CARD_ENABLED` flag (default OFF), so **none fire in production** until the flip-ON at launch:
+
+| Event | Owner | When |
+|---|---|---|
+| `UI:Tap:PurchaseCitizenship` | 0018 (constant registered in 0019) | Player taps "Buy Citizenship" on the card (State 2, non-citizen), before the purchase flow starts. **Naming supersession (corrected 2026-08-24):** replaces the `UI:Tap:CitizenshipBuy` string planned in the 0021 funnel spec — the analytics reference + the 0018 brief are authoritative |
+| `Purchase:Started:Citizenship` | 0018 | The flow opens the Yandex payment frame — the last client-controlled moment. NOT fired when the flow dies earlier (no Yandex id, or the server `/intent` call fails): no Started and no Abandoned |
+| `Purchase:Completed:Citizenship` | 0018 | The profile server confirmed the grant (`/v1/payments/yandex/complete` success) — never on the client `purchase()` callback alone. Fires before the best-effort `consumePurchase`; a failed consume does not un-fire it |
+| `Purchase:Abandoned:Citizenship` | 0018 | A started flow ended without a Completed (frame closed, SDK rejected, no signature, or `/complete` failed). Exactly one of Completed/Abandoned per started flow. Known residual: a real payment whose `/complete` failed logs Abandoned even though next-session reconciliation later lands the grant |
+| `Citizenship:Earned:XP` | 0017 | Once per account+device, on the first client observation of `citizenship_earned_at` set after a previous observation without it (fires from `loadPlayerProfileView()`, keyed on `citizenship_earned_at`, not `is_citizen`). Accepted residuals (owner ruling 2026-08-23): under-counts a grant first observed on a fresh device/cleared storage; over-counts a paid citizen later crossing the XP threshold |
+
+An earlier task doc (`s4-citizenship-xp-progress-ui.md`) mentioned a `UI:Tap:CitizenLoginCta` string — superseded by `UI:Tap:CitizenshipLoginToEarn`; the 0021 funnel spec is authoritative for that one.
 
 ## Monetization Measurement Baseline
 
@@ -121,7 +135,7 @@ The Sprint 4 monetization analytics spec in [[tasks/monetization-analytics-spec]
 
 - **P0 identity/session baseline:** record Yandex login status, platform, returning/new status, session depth, and all-time match-count inputs. Yandex login status is now covered by [[tasks/analytics-p0-yandex-login-status]], loyalty depth is covered by [[tasks/analytics-p0-player-days-played]], and per-session match count is covered by [[tasks/analytics-p0-session-match-count]].
 - **P0 match lifecycle:** measure match start, player spawned, match completed, outcome, duration, spawn status, and all-time match count so the earned citizenship threshold is grounded in actual retention depth.
-- **P1 citizenship funnel:** instrument citizenship surface impressions, CTA clicks, purchase flow start/completion/abandonment, earned citizenship, and high-intent unconverted cohorts.
+- **P1 citizenship funnel:** instrument citizenship surface impressions, CTA clicks, purchase flow start/completion/abandonment, earned citizenship, and high-intent unconverted cohorts. As of 2026-08-24 the funnel events are built (0017/0018 — see the Citizenship Funnel Events section) but fire nowhere in production until the 0054 flag flips ON.
 - **P1 ad impact:** segment ad impressions by player tier (`guest`, `free`, `earned_citizen`, `paid_citizen`) before making citizens ad-free, so the real revenue tradeoff can be modeled.
 
 Open implementation questions remain around analytics backend constraints, whether guest `persistentID` is stable enough for match-count attribution, which events need server-side authority, and whether old match history should be backfilled.

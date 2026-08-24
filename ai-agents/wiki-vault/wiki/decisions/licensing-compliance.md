@@ -8,6 +8,7 @@
 GeoConflict is a derivative fork/adaptation of OpenFront. The licensing brief reviewed the inherited OpenFront license stack: AGPL v3 with Section 7 attribution terms for code, CC BY-SA 4.0 for assets under `/resources`, and proprietary restrictions for `/proprietary`, CDN, database, and API assets.
 
 Source: `ai-agents/knowledge-base/GeoConflict-Licensing-Brief.md`
+Follow-up source: `ai-agents/knowledge-base/reports/s4-licensing-asset-audit-findings.md` (task 0025 audit, 2026-08-23)
 
 This is an internal working analysis, not legal advice. A Russian IP lawyer should review the compliance posture before monetization scales, especially AGPL Section 13 obligations in a Yandex.Games web-game context and any interaction with platform terms.
 
@@ -30,15 +31,32 @@ GeoConflict can continue development, publication, and monetization on Yandex.Ga
 - Sprint 4's VAT/tax clearance does not by itself clear IP/licensing compliance; the two legal tracks are separate.
 - Backend work that links against or combines with OpenFront code should be presumed AGPL-covered unless legal review confirms a separate-work boundary.
 
-## Open Items
+## Audit Outcome (2026-08-23) and Remediation Status
 
-One engineering prerequisite remains before paid in-app purchases go live:
+The production-bundle asset audit (task `0025`) completed 2026-08-23 — findings in
+`ai-agents/knowledge-base/reports/s4-licensing-asset-audit-findings.md`. Verdict: **1 confirmed
+violation, 1 trademark-posture item, 3 hygiene items**:
 
-| Task | Brief | Status |
-|---|---|---|
-| Audit production bundle for proprietary/CDN assets | `ai-agents/tasks/backlog/s4-licensing-asset-audit.md` | Backlog |
+- **V1 (violation):** OpenFront's All-Rights-Reserved music (6 files under `proprietary/`) shipped
+  to the production web root and was redistributed via the public GitHub repo — confirmed serving
+  live. Mitigating: the game never plays them (imports commented out).
+- **A1 (trademark posture):** the live favicon of both HTML entry points was upstream's brand mark.
+  Copyright likely fine (CC BY-SA at fork date, irrevocable), but as the product's tab/platform
+  identity it exceeds nominative attribution.
+- **H1–H3 (hygiene):** `openfront.io`/`.dev` jwt-audience fallback strings in the shipped bundle
+  (latent, overridden by `/api/env` in practice); a `static/LICENSE` collision (moot once V1 lands);
+  inert commented upstream leftovers in HTML.
+- Everything else verified clean: no OpenFront CDN/API references in the prod bundle, no runtime
+  fetches of OpenFront infrastructure, attribution coverage in place. **ShareAlike note:** assets
+  derived from upstream CC BY-SA art stay CC BY-SA and cannot be sold as exclusive content — planned
+  paid non-country flags must be original work.
 
-If the audit finds no violations, this gate is clear. If violations are found, a follow-up fix task will be scoped from the findings.
+Remediation shipped as task `0066` (V1 purge + A1 original-placeholder favicon and brand-file
+deletion + H1 retarget, all owner-approved 2026-08-23): built and agent-closed 2026-08-24, but
+**NOT yet deployed** — and the paid go-live gate reads "`0066` DEPLOYED", so **this gate is not
+clear until the redeploy lands and the live checks pass** (music URLs 404, placeholder favicon
+serving). The `0025` audit-task row itself stays In progress on the sprint board pending the
+producer-routed close. See [[tasks/licensing-remediation]].
 
 ## Related
 
@@ -49,3 +67,4 @@ If the audit finds no violations, this gate is clear. If violations are found, a
 - [[tasks/legal-vat-investigation]] — separate VAT/tax gate that does not cover IP/licensing review
 - [[tasks/yandex-payments-investigation]] — paid citizenship flow that should not scale without licensing posture review
 - [[systems/project-brief]] — the asset-audit gate before paid IAP ships
+- [[tasks/licensing-remediation]] — the 0066 remediation implementing the 0025 audit's V1/A1/H1 fixes (agent-closed, not deployed)

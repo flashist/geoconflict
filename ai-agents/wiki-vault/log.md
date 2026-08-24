@@ -965,3 +965,25 @@
 - Removed the six `LINT WARNING` slug-divergence blockquotes placed earlier today on [[wiki/decisions/adr-101-fail-soft-xp-crediting]], [[wiki/decisions/adr-103-identity-trust-seam]], [[wiki/decisions/adr-104-archiving-disabled]], [[wiki/decisions/adr-105-compact-maps-out-of-rotation]], [[wiki/decisions/adr-106-flags-suppressed]], [[wiki/decisions/adr-107-turn-interval-1-5x]].
 - Recorded the convention in `schema.md` (ADR page naming note under the Decision Page template): slug abbreviation vs the knowledge-base counterpart is accepted style and must not be re-flagged; number match/uniqueness and heading agreement remain lint checks.
 - Informational, no page edit: owner ruled task `0055` deploys with the next batch — the undeployed caveat on [[wiki/tasks/master-lobbies-worker-exit-diagnostics]] stays accurate until then.
+
+## 2026-08-24 — ingest
+- Sync window: `14613bb` → HEAD (`00d7a64`)
+- Changed source files detected: 22 (8 ingest-worthy after filtering)
+- Ingested: `ai-agents/tasks/done/0066-licensing-remediation-proprietary-purge/brief.md` → created [[wiki/tasks/licensing-remediation]]; updated [[wiki/decisions/sprint-4]], [[wiki/decisions/licensing-compliance]] — done agent-closed, **NOT deployed**; 0065's flip-ON gate is "0066 DEPLOYED"
+- Ingested: `ai-agents/knowledge-base/reports/s4-licensing-asset-audit-findings.md` (0025 audit, complete 2026-08-23) → updated [[wiki/decisions/licensing-compliance]] (Open Items table replaced by the audit outcome: V1 violation, A1 trademark, H1–H3 hygiene, ShareAlike note), [[wiki/decisions/sprint-4]] (0025 row In progress — audit complete, task not closed)
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` (`e15bac7`, `7b58655`, `12eb6ad`) → updated [[wiki/decisions/sprint-4]] — 0012/0017/0018 re-scoped local-first/mock-first (owner-ruled 2026-08-23, "don't block on Yandex externals"); 0017/0018 built + review-converged 2026-08-24 on local/mock scope only, both OPEN pending live tails; new 0065 row (blocked on 0014 AND 0062); 0062 blocker rewording; 0066 done row
+- Ingested: `ai-agents/knowledge-base/analytics-event-reference.md` (`12eb6ad`, `00d7a64`) → updated [[wiki/systems/analytics]] — new Citizenship Funnel Events section (Purchase:Started/Completed/Abandoned:Citizenship, Citizenship:Earned:XP, all 0054-flag-gated, none live); `UI:Tap:PurchaseCitizenship` supersedes the 0021-planned `UI:Tap:CitizenshipBuy` (0021 brief corrected `00d7a64`)
+- Ingested: `ai-agents/sprints/done/plan-sprint-4c.md` (rename-only archive, `821d610`) → updated [[wiki/decisions/sprint-4c]] source path + archived/closed note; index line updated
+- Skipped (backlog briefs, per procedure — statuses carried via the sprint-4 page instead): `0012`, `0017`, `0018`, `0021`, `0025`, `0053`, `0065` briefs
+- Skipped (in-folder working artifacts, per procedure): `0017`/`0018`/`0066` `plan.md`/`worklog.md`/`review.md`, `0017` screenshot
+- Skipped (no content change beyond already-ingested knowledge): `0014` brief touch in pre-watermark history — not in this window
+- Targeted lint on the changed pages: all introduced wiki-links resolve; [[wiki/tasks/licensing-remediation]] backlinks bidirectional at write time
+
+## 2026-08-24 — lint
+- Issues found: 3 (+5 known-deferred)
+- Issues fixed: 3
+- Issues flagged for human review: 0
+- Issues deferred to a tracked task: 5 (unchanged — task `0052` legacy task-file paths, owner-ruled to stay deferred)
+- Fixed (stale claims dated by the 2026-08-23/24 re-scope and audit): [[wiki/tasks/hide-citizenship-card-flag]] flip-ON coupling no longer rides the 0017/0018 builds — moved to 0017's Deferred Live Tail and 0065's go-live step (0066-DEPLOYED-gated); [[wiki/tasks/yandex-payments-implementation]] live-verification checklist now absorbed into 0065; [[wiki/systems/project-brief]] paid-IAP audit gate updated — audit ran, V1 found, 0066 built but not deployed, gate still open. Backlink [[wiki/tasks/licensing-remediation]] ↔ [[wiki/systems/project-brief]] added.
+- Mechanical sweep over all 141 pages: index↔file coverage exact (141/141), 0 broken wiki-links, 0 one-way links, 0 orphans, required metadata present per page type. ADR cross-check (case-insensitive, numeric, regular files only, all three enumerations): 7 vault ADRs (101–107) each match a same-numbered knowledge-base counterpart, headings agree, no vault or knowledge-base collisions. Abbreviated ADR slugs not flagged — accepted standing style per schema.md (owner-ruled 2026-08-23).
+- Purged-asset sweep (0066 delta): remaining `proprietary`/favicon/brand mentions in [[wiki/systems/game-overview]] and [[wiki/systems/project-operations]] are constraint statements, still accurate — left alone.

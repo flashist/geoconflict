@@ -34,7 +34,7 @@ All plumbing for paid citizenship is in place and tested (87 suites / 690 tests 
 **Not verified yet — carried caveats:**
 
 - **Agent-closed, not owner-verified** (closed 2026-08-14 in a sprint-ship-loop run).
-- **Live verifications deferred** — real catalog fetch, real test purchase, and live reconciliation are blocked on task 0014 (Yandex catalog approval + secret-key issuance). A written checklist sits in the task folder (`live-verification-checklist.md`); it must be executed before payments are enabled.
+- **Live verifications deferred** — real catalog fetch, real test purchase, and live reconciliation are blocked on task 0014 (Yandex catalog approval + secret-key issuance). A written checklist sits in the task folder (`live-verification-checklist.md`); it must be executed before payments are enabled. **Update 2026-08-23:** that checklist is now absorbed into task `0065` (Paid Citizenship — Live Verification & Go-Live Tail, split out of 0018 on this task's deferred-checklist precedent), which owns executing it; 0065 is blocked on `0014` AND `0062`. See [[decisions/sprint-4]].
 - **Integration tests written but not run** (`tests/integration/PaymentsRepository.it.test.ts`, gated by `RUN_DB_TESTS`) — Docker was down on the build machine. Run before ship/deploy.
 - **HMAC dual-construction** stays until the first live payload confirms which construction Yandex uses.
 

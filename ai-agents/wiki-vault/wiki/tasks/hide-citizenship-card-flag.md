@@ -18,7 +18,7 @@ Remove a live production UX defect: after the 0049 degraded-mode treatment shipp
 
 ## Outcome
 
-The start screen no longer leads with a dead-end card. **Flip-ON coupling:** shipping **0017 (Citizenship Earned)** and/or **0018 (Citizenship Paid)** MUST include flipping this flag ON — that is the entire relaunch mechanism. The reciprocal note was added to the 0017/0018 briefs by producer follow-up (commit `e4f01e6`). Agent-closed 2026-08-21, not owner-verified.
+The start screen no longer leads with a dead-end card. **Flip-ON coupling:** shipping **0017 (Citizenship Earned)** and/or **0018 (Citizenship Paid)** MUST include flipping this flag ON — that is the entire relaunch mechanism. The reciprocal note was added to the 0017/0018 briefs by producer follow-up (commit `e4f01e6`). Agent-closed 2026-08-21, not owner-verified. **Update 2026-08-23/24:** after the local/mock-first re-scope, the flip-ON no longer rides the 0017/0018 *builds* (both built 2026-08-24, card still OFF) — it lives in 0017's `0062`-gated Deferred Live Tail and in `0065`'s go-live step (which is additionally gated on the `0066` licensing remediation being DEPLOYED). See [[decisions/sprint-4]].
 
 ## Related
 

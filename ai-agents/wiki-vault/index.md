@@ -54,9 +54,9 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/7/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
-- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8, citizenship XP UI, payments infrastructure (0019), degraded-mode UX (0049), the independent 0041/0042/0046 tasks, the 0054 card-hide flag, and the 0055 outage half done (all agent-closed, not owner-verified); earned/paid citizenship now verified-blocked by 0062 (prod credits no-op) plus catalog approval (0014), and the 2026-08-22 outage track (0056/0057) plus promoted config-drift tasks (0060/0062/0063) are on the board
+- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8, citizenship XP UI, payments infrastructure (0019), degraded-mode UX (0049), the independent 0041/0042/0046 tasks, the 0054 card-hide flag, the 0055 outage half, and the 0066 licensing remediation done (all agent-closed, not owner-verified; 0066 NOT deployed); 0017/0018 re-scoped local/mock-first 2026-08-23 and built+reviewed 2026-08-24 but open pending live tails — the go-live now hangs on 0065 (blocked by 0014 AND 0062, flip-ON gated on "0066 DEPLOYED"); the 2026-08-22 outage track (0056/0057) plus promoted config-drift tasks (0060/0062/0063) are on the board
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
-- [[decisions/sprint-4c]] — Sprint 4c stabilization: quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
+- [[decisions/sprint-4c]] — Sprint 4c stabilization (closed; plan archived to `sprints/done/` 2026-08-24): quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
 - [[decisions/sprint-backlog]] — No-sprint backlog across both unsprinted boards: monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag/GutterAds fixes, the `0001`–`0011` briefs and cosmetics monetization dependency chain, plus the 2026-08 additions — heal tasks `0050`–`0053`, outage follow-ups `0058`/`0059`/`0061`/`0064`, the `0057`/`0062` promotions, and the owner-ruled email-subscribe fold-in to `0048`
 - [[decisions/sprint-5]] — Sprint 5 (planned): coin economy, clans, cosmetics, map voting, replay
 - [[decisions/sprint-6]] — Sprint 6 (planned): historical multiplayer maps, paid campaign packs, mobile warning; its "Sprint 5 cosmetics store" prerequisite was corrected 2026-08-09 — no such store exists
@@ -65,7 +65,7 @@
 
 ### Legal & Operations
 - [[decisions/fkit-transfer-blueprint]] — Extracting the two-model agent OS into a reusable kit: the generic/project seam, the routing manifest, and single-sourced skills that kill copy drift
-- [[decisions/licensing-compliance]] — AGPL, CC BY-SA, source-access, and OpenFront asset/trademark constraints for GeoConflict; one open prerequisite: proprietary asset audit before in-app purchases
+- [[decisions/licensing-compliance]] — AGPL, CC BY-SA, source-access, and OpenFront asset/trademark constraints for GeoConflict; the 0025 audit (2026-08-23) found one violation (proprietary music) — remediation 0066 built but not deployed, so the paid-IAP gate is not yet clear
 
 ### Bug Fixes & Investigations
 - [[decisions/autospawn-late-join-fix]] — Fix for auto-spawn failure when joining during catch-up (late join / reconnect)
@@ -163,3 +163,4 @@
 - [[tasks/degraded-mode-ux-treatment]] — Sprint 4 task 0049 `isYandexDegraded()` citizenship-card connection-problem state clearing the earned/paid citizenship gate; agent-closed, healthy-SDK guest case unit-test-only
 - [[tasks/hide-citizenship-card-flag]] — Sprint 4 task 0054 default-OFF `CITIZENSHIP_CARD_ENABLED` client flag hiding the citizenship card until 0017/0018 flip it ON at launch; agent-closed
 - [[tasks/master-lobbies-worker-exit-diagnostics]] — Sprint 4 task 0055 outage-track fix: parseable empty lobbies body plus worker-exit `code`/`signal` logging in `Master.ts`, first-ever tests for that file; agent-closed, unpushed branch at close
+- [[tasks/licensing-remediation]] — Sprint 4 task 0066 licensing remediation from the 0025 audit: proprietary-music purge, original placeholder favicon, JWT fallback retarget; agent-closed 2026-08-24, NOT deployed — gates 0065's flip-ON
