@@ -10,7 +10,7 @@ Sprint 4
 High — the primary citizenship path for most players. Independent of Yandex Payments.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — built + reviewed (local scope); open pending the `0062`-gated Deferred Live Tail (prod XP accrual, live grant, `0054` flip-ON)
 
 *(Re-scoped 2026-08-23 by owner ruling — "maximize work that can proceed without anything real from
 Yandex; don't block on external turnaround." The blocker record is corrected: this task never

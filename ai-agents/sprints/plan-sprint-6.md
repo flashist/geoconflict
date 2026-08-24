@@ -33,6 +33,7 @@ Expand game content with historical and thematic maps. Convert engaged free-tier
 | 🔲 Backlog | — | 5c. Mobile Warning Screen *(brief file lost — see note above; content in `done/plan-sprint-3.md` and the section below)* | none — `s3-5c-task-mobile-warning.md` is dangling |
 | 🔲 Backlog | 1 | Historical Multiplayer Maps (free, 1–2 maps) | TBD *(deferred by design)* |
 | 🔲 Backlog | 2 | Paid Campaign Map Packs | TBD *(deferred by design)* |
+| 🔲 Backlog | — | New Maps — Community Demand *(feeder brief for Tasks 1/2 — owner-ruled 2026-08-24: linked to the board; revisit when Sprint 5 is underway)* | [`0027-new-maps-community-demand`](../tasks/backlog/0027-new-maps-community-demand/brief.md) |
 
 ---
 

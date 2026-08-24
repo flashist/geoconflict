@@ -10,7 +10,7 @@ Sprint 4
 High — the monetization milestone of the sprint.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — built + reviewed (mock scope); open pending `0065` (live verification & go-live tail)
 
 *(Re-scoped 2026-08-23 by owner ruling — "maximize work that can proceed without anything real from
 Yandex; don't block on external turnaround." This task is now the **mock-buildable scope only**:
