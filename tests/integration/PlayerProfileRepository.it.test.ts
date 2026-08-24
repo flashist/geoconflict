@@ -100,8 +100,14 @@ RUN("PlayerProfileRepository (integration)", () => {
   test("creditMatchXp is idempotent on (game_id, yandex_player_id)", async () => {
     await repo.upsertProfile(P, PID);
 
-    expect(await repo.creditMatchXp("g1", P, 10)).toBe("credited");
-    expect(await repo.creditMatchXp("g1", P, 10)).toBe("duplicate");
+    expect(await repo.creditMatchXp("g1", P, 10)).toEqual({
+      status: "credited",
+      citizenshipNewlyGranted: false,
+    });
+    expect(await repo.creditMatchXp("g1", P, 10)).toEqual({
+      status: "duplicate",
+      citizenshipNewlyGranted: false,
+    });
 
     const profile = await repo.getProfile(P);
     expect(profile?.xp).toBe(10); // credited once, not 20
@@ -115,7 +121,10 @@ RUN("PlayerProfileRepository (integration)", () => {
   });
 
   test("creditMatchXp on a missing profile reports no_profile and writes nothing", async () => {
-    expect(await repo.creditMatchXp("g1", "ghost", 10)).toBe("no_profile");
+    expect(await repo.creditMatchXp("g1", "ghost", 10)).toEqual({
+      status: "no_profile",
+      citizenshipNewlyGranted: false,
+    });
 
     const ledger = await pool.query(
       "SELECT count(*)::int AS n FROM player_match_xp_credits",
@@ -124,16 +133,22 @@ RUN("PlayerProfileRepository (integration)", () => {
     expect(await repo.getProfile("ghost")).toBeNull();
   });
 
-  test("citizenship flips at the threshold and earned_at is stamped once", async () => {
+  test("citizenship flips at the threshold, earned_at is stamped once, and only the crossing credit reports newly granted", async () => {
     await repo.upsertProfile(P, PID);
 
-    await repo.creditMatchXp("g1", P, 999);
+    expect(await repo.creditMatchXp("g1", P, 999)).toEqual({
+      status: "credited",
+      citizenshipNewlyGranted: false, // below threshold
+    });
     let profile = await repo.getProfile(P);
     expect(profile?.xp).toBe(999);
     expect(profile?.is_citizen).toBe(false);
     expect(profile?.citizenship_earned_at).toBeNull();
 
-    await repo.creditMatchXp("g2", P, 10); // crosses 1000
+    expect(await repo.creditMatchXp("g2", P, 10)).toEqual({
+      status: "credited",
+      citizenshipNewlyGranted: true, // crosses 1000
+    });
     profile = await repo.getProfile(P);
     expect(profile?.xp).toBe(1009);
     expect(profile?.is_citizen).toBe(true);
@@ -143,17 +158,71 @@ RUN("PlayerProfileRepository (integration)", () => {
     expect(profile?.is_paid_citizen).toBe(false);
     expect(profile?.citizenship_purchased_at).toBeNull();
 
-    await repo.creditMatchXp("g3", P, 10); // already a citizen
+    expect(await repo.creditMatchXp("g3", P, 10)).toEqual({
+      status: "credited",
+      citizenshipNewlyGranted: false, // already a citizen
+    });
     profile = await repo.getProfile(P);
     expect(profile?.xp).toBe(1019);
     expect(profile?.is_citizen).toBe(true);
     expect(profile?.citizenship_earned_at).toBe(earnedAt); // not overwritten
+
+    // Re-crediting the crossing game is a duplicate, never a second grant.
+    expect(await repo.creditMatchXp("g2", P, 10)).toEqual({
+      status: "duplicate",
+      citizenshipNewlyGranted: false,
+    });
   });
 
   test("a single large award flips citizenship in one shot", async () => {
     await repo.upsertProfile(P, PID);
-    await repo.creditMatchXp("g1", P, 1500);
+    expect(await repo.creditMatchXp("g1", P, 1500)).toEqual({
+      status: "credited",
+      citizenshipNewlyGranted: true,
+    });
     const profile = await repo.getProfile(P);
+    expect(profile?.is_citizen).toBe(true);
+    expect(profile?.citizenship_earned_at).not.toBeNull();
+  });
+
+  test("a paid citizen crossing the threshold stamps earned_at but is NOT newly granted", async () => {
+    // Owner-ruled 2026-08-23: keep the pre-0017 stamp-on-crossing behavior for
+    // paid citizens; the newly-granted flag (and thus the future inbox message)
+    // stays suppressed because is_citizen was already true.
+    await repo.upsertProfile(P, PID);
+    await pool.query(
+      `UPDATE player_profiles
+       SET is_citizen = true, is_paid_citizen = true,
+           citizenship_purchased_at = now()
+       WHERE yandex_player_id = $1`,
+      [P],
+    );
+
+    expect(await repo.creditMatchXp("g1", P, 1500)).toEqual({
+      status: "credited",
+      citizenshipNewlyGranted: false,
+    });
+    const profile = await repo.getProfile(P);
+    expect(profile?.is_citizen).toBe(true);
+    expect(profile?.is_paid_citizen).toBe(true);
+    expect(profile?.citizenship_earned_at).not.toBeNull(); // still stamped
+  });
+
+  test("a manually seeded row already past the threshold is granted (and reported) on its next credit", async () => {
+    // E.g. an operator seeding xp directly (the brief's own verification seeds
+    // 990; seeding ≥1000 must not strand the row citizen-less forever).
+    await repo.upsertProfile(P, PID);
+    await pool.query(
+      "UPDATE player_profiles SET xp = 1500 WHERE yandex_player_id = $1",
+      [P],
+    );
+
+    expect(await repo.creditMatchXp("g1", P, 10)).toEqual({
+      status: "credited",
+      citizenshipNewlyGranted: true,
+    });
+    const profile = await repo.getProfile(P);
+    expect(profile?.xp).toBe(1510);
     expect(profile?.is_citizen).toBe(true);
     expect(profile?.citizenship_earned_at).not.toBeNull();
   });
@@ -165,10 +234,38 @@ RUN("PlayerProfileRepository (integration)", () => {
       repo.creditMatchXp("g1", P, 10),
       repo.creditMatchXp("g1", P, 10),
     ]);
-    expect([a, b].sort()).toEqual(["credited", "duplicate"]);
+    expect([a.status, b.status].sort()).toEqual(["credited", "duplicate"]);
+    expect(a.citizenshipNewlyGranted).toBe(false);
+    expect(b.citizenshipNewlyGranted).toBe(false);
 
     const profile = await repo.getProfile(P);
     expect(profile?.xp).toBe(10);
+  });
+
+  test("concurrent credits from two different games grant citizenship exactly once", async () => {
+    // The race the two-statement grant design exists for: both credits land, but
+    // only the one whose locked row still shows is_citizen = false may report
+    // newly granted — never both (a double inbox message otherwise).
+    await repo.upsertProfile(P, PID);
+    await pool.query(
+      "UPDATE player_profiles SET xp = 995 WHERE yandex_player_id = $1",
+      [P],
+    );
+
+    const [a, b] = await Promise.all([
+      repo.creditMatchXp("race-1", P, 10),
+      repo.creditMatchXp("race-2", P, 10),
+    ]);
+    expect(a.status).toBe("credited");
+    expect(b.status).toBe("credited");
+    expect(
+      [a, b].filter((o) => o.citizenshipNewlyGranted),
+    ).toHaveLength(1);
+
+    const profile = await repo.getProfile(P);
+    expect(profile?.xp).toBe(1015);
+    expect(profile?.is_citizen).toBe(true);
+    expect(profile?.citizenship_earned_at).not.toBeNull();
   });
 
   test("xp reads back as a number, not a bigint string", async () => {

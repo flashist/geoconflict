@@ -3,7 +3,11 @@ import {
   PublicPlayerProfileSchema,
   type PublicPlayerProfile,
 } from "../core/profile/PlayerProfile";
-import { FlashistFacade } from "./flashist/FlashistFacade";
+import {
+  FlashistFacade,
+  flashist_logEventAnalytics,
+  flashistConstants,
+} from "./flashist/FlashistFacade";
 
 // Re-exported from the shared source of truth so the card keeps importing it from
 // here while the server and client agree on one threshold value.
@@ -18,6 +22,11 @@ export type PlayerProfileView = {
 // Bound the profile read so an unreachable/slow profile API can never hang the
 // card — matches the Bootstrap.ts degraded-mode philosophy.
 const PROFILE_FETCH_TIMEOUT_MS = 5000;
+
+// Last server-observed `citizenship_earned_at` per Yandex account (null encoded
+// as ""), used to detect the earned-citizenship transition across page loads —
+// the post-match exit is a full navigation, so in-memory state cannot carry it.
+const EARNED_AT_STORAGE_KEY_PREFIX = "geoconflict_citizenship_earned_at:";
 
 /**
  * View model the citizenship card renders from.
@@ -69,11 +78,53 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
     return zeroState;
   }
 
+  reportEarnedCitizenshipTransition(
+    yandexPlayerId,
+    profile.citizenship_earned_at,
+  );
+
   return {
     displayName: profile.display_name ?? displayName,
     xp: profile.xp,
     isCitizen: profile.is_citizen,
   };
+}
+
+/**
+ * Fire `Citizenship:Earned:XP` when the server-authoritative profile first shows
+ * `citizenship_earned_at` after a previous observation without it (task 0017;
+ * spec 0021 §6 — the server write is authoritative, never the local XP display;
+ * client-side detection owner-approved 2026-08-23). Keys on
+ * `citizenship_earned_at`, NOT `is_citizen`: the paid grant sets `is_citizen`
+ * too, the public projection strips `is_paid_citizen`, and only the server's
+ * XP-threshold path ever stamps `citizenship_earned_at`.
+ *
+ * Accepted MVP residuals (owner ruling 2026-08-23): a first-ever observation on
+ * a device with no stored snapshot never fires (fresh device / cleared storage
+ * under-counts), and a paid citizen later crossing the XP threshold does fire
+ * (paid state is invisible client-side).
+ *
+ * Never throws: storage being unavailable (private mode / iframe policy) only
+ * skips detection — the card must render regardless.
+ */
+function reportEarnedCitizenshipTransition(
+  yandexPlayerId: string,
+  earnedAt: string | null,
+): void {
+  try {
+    const key = EARNED_AT_STORAGE_KEY_PREFIX + yandexPlayerId;
+    // null (never observed) is deliberately distinct from "" (observed as
+    // not-yet-earned): only the latter can arm the transition.
+    const previous = localStorage.getItem(key);
+    localStorage.setItem(key, earnedAt ?? "");
+    if (previous === "" && earnedAt !== null) {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.CITIZENSHIP_EARNED_XP,
+      );
+    }
+  } catch {
+    // Storage unavailable — silently skip detection.
+  }
 }
 
 /**

@@ -61,6 +61,10 @@
     "xp_label": "XP",
     "citizen_badge": "ГРАЖДАНИН"
   },
+  "citizenship_earned": {
+    "inbox_title": "Вы получили гражданство Geoconflict!",
+    "inbox_body": "Вы набрали 1,000 XP и получили гражданство. Вам теперь доступны привилегии граждан."
+  },
   "news": {
     "see_all_releases": "Посмотреть все выпуски",
     "github_link": "на GitHub",

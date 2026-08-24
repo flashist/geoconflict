@@ -26,7 +26,9 @@ function mockRepo(overrides: Partial<ProfileRepo> = {}): ProfileRepo {
     ping: jest.fn().mockResolvedValue(undefined),
     getProfile: jest.fn().mockResolvedValue(null),
     upsertProfile: jest.fn().mockResolvedValue(fullProfile()),
-    creditMatchXp: jest.fn().mockResolvedValue("credited"),
+    creditMatchXp: jest
+      .fn()
+      .mockResolvedValue({ status: "credited", citizenshipNewlyGranted: false }),
     ...overrides,
   };
 }
@@ -129,8 +131,14 @@ describe("profile API routes", () => {
   test("POST /internal/v1/credit returns per-item results", async () => {
     const creditMatchXp = jest
       .fn()
-      .mockResolvedValueOnce("credited")
-      .mockResolvedValueOnce("duplicate");
+      .mockResolvedValueOnce({
+        status: "credited",
+        citizenshipNewlyGranted: true,
+      })
+      .mockResolvedValueOnce({
+        status: "duplicate",
+        citizenshipNewlyGranted: false,
+      });
     const repo = mockRepo({ creditMatchXp });
     const res = await request(createApp(repo))
       .post("/internal/v1/credit")
@@ -142,6 +150,8 @@ describe("profile API routes", () => {
         ],
       });
     expect(res.status).toBe(200);
+    // Status-only wire contract: citizenshipNewlyGranted (true for y1 above)
+    // never leaks into the response — it has no consumer on the game server.
     expect(res.body.results).toEqual([
       { gameId: "g1", yandexPlayerId: "y1", status: "credited" },
       { gameId: "g1", yandexPlayerId: "y2", status: "duplicate" },
@@ -152,7 +162,10 @@ describe("profile API routes", () => {
   test("POST /internal/v1/credit reports per-item error without failing the batch", async () => {
     const creditMatchXp = jest
       .fn()
-      .mockResolvedValueOnce("credited")
+      .mockResolvedValueOnce({
+        status: "credited",
+        citizenshipNewlyGranted: false,
+      })
       .mockRejectedValueOnce(new Error("boom"));
     const repo = mockRepo({ creditMatchXp });
     const res = await request(createApp(repo))
@@ -167,6 +180,57 @@ describe("profile API routes", () => {
     expect(res.status).toBe(200);
     expect(res.body.results[0].status).toBe("credited");
     expect(res.body.results[1].status).toBe("error");
+  });
+
+  // Task 0017 verification 6 (forged citizenship): no inbound body may flip
+  // is_citizen / citizenship_earned_at. Both write routes validate with schemas
+  // that carry only the contract fields, so forged citizenship fields must never
+  // reach the repository.
+  test("POST /internal/v1/profile/upsert ignores forged citizenship fields in the body", async () => {
+    const upsertProfile = jest.fn().mockResolvedValue(fullProfile());
+    const repo = mockRepo({ upsertProfile });
+    const res = await request(createApp(repo))
+      .post("/internal/v1/profile/upsert")
+      .set("authorization", `Bearer ${TOKEN}`)
+      .send({
+        yandexPlayerId: "yandex-1",
+        persistentId: "pid-1",
+        is_citizen: true,
+        citizenship_earned_at: "2020-01-01T00:00:00.000Z",
+        xp: 999999,
+      });
+    expect(res.status).toBe(200);
+    // The repository receives ONLY the two contract identifiers — nothing forged.
+    expect(upsertProfile).toHaveBeenCalledWith("yandex-1", "pid-1");
+  });
+
+  test("POST /internal/v1/credit ignores forged citizenship fields in credit items", async () => {
+    const creditMatchXp = jest
+      .fn()
+      .mockResolvedValue({ status: "credited", citizenshipNewlyGranted: false });
+    const repo = mockRepo({ creditMatchXp });
+    const res = await request(createApp(repo))
+      .post("/internal/v1/credit")
+      .set("authorization", `Bearer ${TOKEN}`)
+      .send({
+        credits: [
+          {
+            gameId: "g1",
+            yandexPlayerId: "y1",
+            xpAwarded: 10,
+            is_citizen: true,
+            citizenship_earned_at: "2020-01-01T00:00:00.000Z",
+          },
+        ],
+      });
+    expect(res.status).toBe(200);
+    // Positional contract args only — forged fields never reach the repository.
+    expect(creditMatchXp).toHaveBeenCalledWith("g1", "y1", 10);
+    expect(res.body.results[0]).toEqual({
+      gameId: "g1",
+      yandexPlayerId: "y1",
+      status: "credited",
+    });
   });
 
   test("POST /internal/v1/profile/upsert creates a profile and strips persistent_id", async () => {

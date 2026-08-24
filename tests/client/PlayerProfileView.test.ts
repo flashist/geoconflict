@@ -9,6 +9,12 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       getYandexUniqueId: jest.fn(),
     },
   },
+  flashist_logEventAnalytics: jest.fn(),
+  flashistConstants: {
+    analyticEvents: {
+      CITIZENSHIP_EARNED_XP: "Citizenship:Earned:XP",
+    },
+  },
 }));
 
 jest.mock("../../src/core/configuration/ConfigLoader", () => ({
@@ -16,11 +22,15 @@ jest.mock("../../src/core/configuration/ConfigLoader", () => ({
 }));
 
 import { getServerConfigFromClient } from "../../src/core/configuration/ConfigLoader";
-import { FlashistFacade } from "../../src/client/flashist/FlashistFacade";
+import {
+  FlashistFacade,
+  flashist_logEventAnalytics,
+} from "../../src/client/flashist/FlashistFacade";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
 
 const isYandexAuthorized = FlashistFacade.instance
   .isYandexAuthorized as jest.Mock;
+const logEventAnalytics = flashist_logEventAnalytics as jest.Mock;
 const getCurPlayerName = FlashistFacade.instance.getCurPlayerName as jest.Mock;
 const getYandexUniqueId = FlashistFacade.instance
   .getYandexUniqueId as jest.Mock;
@@ -60,6 +70,7 @@ const ZERO_STATE = { displayName: YANDEX_NAME, xp: 0, isCitizen: false };
 describe("loadPlayerProfileView", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.clear();
     getServerConfig.mockResolvedValue({
       profileApiUrl: () => PROFILE_API_BASE,
     });
@@ -187,5 +198,126 @@ describe("loadPlayerProfileView", () => {
       xp: 0,
       isCitizen: false,
     });
+  });
+});
+
+// Task 0017 / 0021 §6 — Citizenship:Earned:XP fires when the server profile
+// first shows citizenship_earned_at after a previous observation without it.
+describe("Citizenship:Earned:XP transition detection", () => {
+  const EARNED_AT = "2026-08-23T10:00:00.000Z";
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+    getServerConfig.mockResolvedValue({
+      profileApiUrl: () => PROFILE_API_BASE,
+    });
+    getYandexUniqueId.mockResolvedValue("yandex-123");
+    getCurPlayerName.mockResolvedValue(YANDEX_NAME);
+    isYandexAuthorized.mockResolvedValue(true);
+  });
+
+  afterEach(() => {
+    delete (global as { fetch?: unknown }).fetch;
+    jest.restoreAllMocks();
+  });
+
+  it("fires exactly once when earned_at appears after a not-earned observation", async () => {
+    stubFetch(200, publicProfile({ xp: 990 }));
+    await loadPlayerProfileView(); // arms: observed as not-yet-earned
+    expect(logEventAnalytics).not.toHaveBeenCalled();
+
+    stubFetch(
+      200,
+      publicProfile({
+        xp: 1000,
+        is_citizen: true,
+        citizenship_earned_at: EARNED_AT,
+      }),
+    );
+    await loadPlayerProfileView(); // the transition
+    expect(logEventAnalytics).toHaveBeenCalledTimes(1);
+    expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Earned:XP");
+
+    await loadPlayerProfileView(); // steady state — never again
+    expect(logEventAnalytics).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not fire on a first-ever observation that is already a citizen", async () => {
+    // Fresh device / cleared storage: no stored snapshot means no transition
+    // (accepted MVP residual — owner ruling 2026-08-23).
+    stubFetch(
+      200,
+      publicProfile({
+        xp: 1200,
+        is_citizen: true,
+        citizenship_earned_at: EARNED_AT,
+      }),
+    );
+    await loadPlayerProfileView();
+    expect(logEventAnalytics).not.toHaveBeenCalled();
+  });
+
+  it("does not fire while earned_at stays null across loads", async () => {
+    stubFetch(200, publicProfile({ xp: 400 }));
+    await loadPlayerProfileView();
+    await loadPlayerProfileView();
+    expect(logEventAnalytics).not.toHaveBeenCalled();
+  });
+
+  it("does not fire (and keeps the armed snapshot) on a failed fetch between observations", async () => {
+    stubFetch(200, publicProfile({ xp: 990 }));
+    await loadPlayerProfileView(); // arms
+
+    stubFetch(500, { error: "internal_error" });
+    await loadPlayerProfileView(); // zero-state path — detection untouched
+    expect(logEventAnalytics).not.toHaveBeenCalled();
+
+    stubFetch(
+      200,
+      publicProfile({ is_citizen: true, citizenship_earned_at: EARNED_AT }),
+    );
+    await loadPlayerProfileView(); // still fires once the real profile arrives
+    expect(logEventAnalytics).toHaveBeenCalledTimes(1);
+  });
+
+  it("tracks the transition per Yandex account", async () => {
+    stubFetch(200, publicProfile({ xp: 990 }));
+    await loadPlayerProfileView(); // arms yandex-123
+
+    getYandexUniqueId.mockResolvedValue("yandex-456");
+    stubFetch(
+      200,
+      publicProfile({
+        yandex_player_id: "yandex-456",
+        is_citizen: true,
+        citizenship_earned_at: EARNED_AT,
+      }),
+    );
+    // First-ever observation for yandex-456 — armed state of yandex-123 must
+    // not leak across accounts.
+    await loadPlayerProfileView();
+    expect(logEventAnalytics).not.toHaveBeenCalled();
+  });
+
+  it("survives localStorage being unavailable (no fire, card unaffected)", async () => {
+    jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("storage disabled");
+    });
+    stubFetch(
+      200,
+      publicProfile({
+        xp: 1000,
+        is_citizen: true,
+        citizenship_earned_at: EARNED_AT,
+      }),
+    );
+
+    await expect(loadPlayerProfileView()).resolves.toEqual({
+      displayName: "Commander",
+      xp: 1000,
+      isCitizen: true,
+    });
+    expect(logEventAnalytics).not.toHaveBeenCalled();
   });
 });

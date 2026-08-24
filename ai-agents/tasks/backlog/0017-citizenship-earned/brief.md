@@ -10,17 +10,38 @@ Sprint 4
 High — the primary citizenship path for most players. Independent of Yandex Payments.
 
 ## Status
-🚧 Blocked — `0062` (`PROFILE_INTERNAL_TOKEN` not forwarded to prod: no XP is credited there, so the
-1,000 XP threshold can never fire). Verified 2026-08-23; see Notes.
+🔲 Backlog
+
+*(Re-scoped 2026-08-23 by owner ruling — "maximize work that can proceed without anything real from
+Yandex; don't block on external turnaround." The blocker record is corrected: this task never
+depended on `0014`/Yandex payments, and `0062` blocks only the **production effect**, not the build.
+Implementation + verification run against the LOCAL profile stack now (profile server + Postgres via
+Docker; `RUN_DB_TESTS=1` integration path). Everything that genuinely needs prod is split into the
+**Deferred Live Tail** section below, which stays gated on `0062`.)*
 
 ## Owner
 fkit-coder
 
 ## Dependencies
-- **Player Profile Store** must be live — XP crediting and profile writes happen there.
+
+*(Restated 2026-08-23, owner-ruled. **This task does NOT depend on `0014`, Yandex catalog approval,
+the secret key, or Yandex payments in any form.** Its real dependencies:)*
+
+- **Profile backend available — LOCALLY, and that is sufficient to build and verify.** The profile
+  server + Postgres run locally via Docker (`RUN_DB_TESTS=1` flips Jest to the
+  `tests/integration/**.it.test.ts` suite; `tests/integration/PlayerProfileRepository.it.test.ts` is
+  the existing pattern). All code (T5/T6 crediting path, `src/server/PlayerProfileRepository.ts`,
+  `ProfileApiClient`) is merged and works locally where the token is set.
+- **`0062` — for the Deferred Live Tail ONLY.** `PROFILE_INTERNAL_TOKEN` is not forwarded to prod, so
+  no XP is credited there and the threshold can never fire *in production* until `0062` ships (see
+  finding `0062`, verified 2026-08-23, rooted in the 2026-08-22 incident record §9). It does **not**
+  block writing, testing, or locally verifying this feature.
 - **Analytics:** this task owns `Citizenship:Earned:XP`. Read `0021-analytics-p1-citizenship-funnel` before starting — events must be wired during implementation, not added later.
-- **Personal Inbox (8d-B)** must be live — citizenship earned triggers an inbox message.
-- **Citizenship XP Progress UI** must be live — the notification and UI state change depend on the card component being in place.
+- **Personal Inbox (8d-B, `0012`)** — not live. Wire the inbox trigger through the post-grant hook
+  seam established in `0019` (documented no-op until `0012` ships), rather than blocking on `0012`.
+  Same shape the owner approved at the `0019` plan gate (2026-08-14). Verification 3 executes when
+  `0012` lands.
+- **Citizenship XP Progress UI** — ✅ Done (`s4-citizenship-xp-progress-ui.md`); no longer a blocker.
 
 ## Context
 
@@ -102,6 +123,12 @@ If a `Citizenship:Earned` funnel event is wanted in the future, add it then.
 
 ## Verification
 
+> **All steps below run against the LOCAL profile stack** (owner-ruled 2026-08-23): profile server +
+> Postgres via Docker with `PROFILE_INTERNAL_TOKEN` set locally, game server pointed at it, plus the
+> `RUN_DB_TESTS=1` integration suite for the repository-level checks. None of them require prod, and
+> none require anything from Yandex. Exception: step 3 (inbox) is deferred behind the `0012` no-op
+> seam — see Dependencies.
+
 1. **Grant at threshold:** manually set a test account to 990 XP in the database. Play one qualifying match (10 XP). Confirm `is_citizen` flips to `true` and `citizenship_earned_at` is set.
 2. **Idempotency:** run the threshold check twice for the same player. Confirm `is_citizen` is not set back to `false` and `citizenship_earned_at` is not overwritten.
 3. **Inbox message:** confirm the citizenship earned inbox message appears in the Personal inbox tab after the grant.
@@ -109,17 +136,37 @@ If a `Citizenship:Earned` funnel event is wanted in the future, add it then.
 5. **Non-qualifying match:** complete a match where the player never spawns. Confirm XP is not credited and the threshold is not triggered.
 6. **Forged citizenship (security, 2026-06-13; updated — no migrate path):** `is_citizen` / `citizenship_earned_at` must be settable ONLY by the server-side `xp >= 1000` check in `creditMatchXp()`. There is **no client→server profile upload** in Sprint 4 — the guest-migration endpoint `POST /v1/profile/migrate` was **cancelled 2026-06-13** (T2/T7 dropped; profile XP is authenticated-only), so the original "forged payload on migrate" test no longer applies. Instead, verify that **no inbound body** can flip these fields: profile creation (`upsertProfile`, first authenticated join) and crediting (`POST /internal/v1/credit`) must ignore any client-supplied `is_citizen`/`citizenship_earned_at`, and the only route to citizenship is accumulated server-credited XP ≥ 1,000.
 
+---
+
+## Deferred Live Tail — gated on `0062`; NOT part of the buildable scope
+
+The only pieces that genuinely need production. They do not block starting, building, or locally
+verifying anything above. Execute once `0062` has shipped and a deploy has run:
+
+1. **Prod profile integration is actually on.** `0062`'s own verification 2–3: `PROFILE_INTERNAL_TOKEN`
+   reaches the prod `.env` non-empty, and an authenticated profile call succeeds end to end.
+2. **Real XP accrual observed in prod.** A logged-in Yandex player completes a qualifying match and the
+   profile row's `xp` increments (psql on the box).
+3. **Live grant.** Seed a real test account near the threshold in the prod DB, play one qualifying
+   match, confirm `is_citizen` flips and the card shows State 3 in the live Yandex iframe.
+4. **Flip-ON execution** — the `0054` flag flip (Notes, first bullet below) is performed HERE, at live
+   launch, not at local completion: flipping `CITIZENSHIP_CARD_ENABLED` while prod credits no XP would
+   show players a permanently-stuck counter.
+
 ## Notes
 
-- 🚨 **BLOCKED BY `0062` — verified 2026-08-23. Do not start until `0062` ships.**
+- **Blocker record corrected 2026-08-23 (owner-ruled: "don't block on Yandex externals; maximize
+  what proceeds now").** The previous status — `🚧 Blocked — 0062, do not start until 0062 ships` —
+  overstated `0062`'s reach. The `0062` chain is real and stays verified:
   `PROFILE_INTERNAL_TOKEN` is never forwarded to production by `deploy.sh`, so
   `ProfileApiClient.isConfigured()` (`src/server/ProfileApiClient.ts:131-133`) is **false in prod** and
-  `creditMatch()` (`:86-89`) returns early — it is invoked at `GameServer.ts:1281` via `creditMatchXp`
-  (`:1189`). **No XP is credited in production, so this task's `xp >= 1000` threshold can never fire
-  there**, however correctly it is implemented. The profile server independently fails **closed** on an
-  empty token (`src/profile-server/InternalAuth.ts:26`), so both ends are shut.
-  ⚠️ The specific trap: building and verifying this against a local environment where the token *is*
-  set produces a feature that passes review and does nothing in production.
+  `creditMatch()` (`:86-89`) returns early — invoked at `GameServer.ts:1281` via `creditMatchXp`
+  (`:1189`); the profile server independently fails **closed** on an empty token
+  (`src/profile-server/InternalAuth.ts:26`). **But it gates the Deferred Live Tail above, not the
+  build** — locally the token is set and the whole path works.
+  ⚠️ The trap the old note flagged is preserved as the tail's reason for existing: a local pass where
+  the token *is* set proves the feature, **not** that prod works. **This task is not fully done — and
+  must not be closed — until the tail has run.**
   See [`0062-forward-profile-internal-token-in-deploy`](../0062-forward-profile-internal-token-in-deploy/brief.md).
 - **Flip-ON coupling (2026-08-21):** shipping this task must flip `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` to `true` in `src/client/flashist/FlashistFacade.ts` — the citizenship card is hidden behind this client flag (default OFF) until launch; see [`0054-hide-citizenship-card-behind-client-flag`](../../done/0054-hide-citizenship-card-behind-client-flag/brief.md).
 - The earned path ships independently of Yandex Payments. Do not couple these tasks — earned citizenship can go live while the paid path is still awaiting catalog approval.

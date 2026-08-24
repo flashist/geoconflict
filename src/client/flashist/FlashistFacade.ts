@@ -111,6 +111,10 @@ export const flashistConstants = {
     UI_TAP_FIRST_PART: "UI:Tap:",
 
     CITIZENSHIP_SURFACE_SEEN: "Citizenship:Seen",
+    // Fired client-side when a re-fetched profile first shows the server-side
+    // earned-citizenship grant (citizenship_earned_at set) — task 0017, spec
+    // 0021 §6. Server write is authoritative; this reports its first observation.
+    CITIZENSHIP_EARNED_XP: "Citizenship:Earned:XP",
 
     BUILD_STALE_DETECTED: "Build:StaleDetected",
   },

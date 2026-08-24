@@ -29,7 +29,7 @@ import type {
 } from "./PaymentsRepository";
 import {
   PersistentIdConflictError,
-  type CreditStatus,
+  type CreditOutcome,
 } from "./PlayerProfileRepository";
 import { verifySignedPayload, type VerifiedPurchase } from "./YandexSignature";
 
@@ -47,7 +47,7 @@ export interface ProfileRepo {
     gameId: string,
     yandexPlayerId: string,
     xpAwarded: number,
-  ): Promise<CreditStatus>;
+  ): Promise<CreditOutcome>;
 }
 
 const ProfileQuerySchema = z.object({
@@ -215,7 +215,11 @@ export function createApp(
     const results: CreditResult[] = [];
     for (const item of parsed.data.credits) {
       try {
-        const status = await repo.creditMatchXp(
+        // The wire contract stays status-only: `citizenshipNewlyGranted` has no
+        // consumer on the game server (the client detects the grant by re-fetching
+        // the profile — task 0017), and the earned-inbox trigger fires inside the
+        // repository's post-commit seam, not here.
+        const outcome = await repo.creditMatchXp(
           item.gameId,
           item.yandexPlayerId,
           item.xpAwarded,
@@ -223,7 +227,7 @@ export function createApp(
         results.push({
           gameId: item.gameId,
           yandexPlayerId: item.yandexPlayerId,
-          status,
+          status: outcome.status,
         });
       } catch (error) {
         log.error(

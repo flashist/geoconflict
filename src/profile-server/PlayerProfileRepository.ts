@@ -15,6 +15,16 @@ import {
 /** Outcome of crediting a single match for one player. */
 export type CreditStatus = "credited" | "duplicate" | "no_profile";
 
+/**
+ * Full result of `creditMatchXp`. `citizenshipNewlyGranted` is true only when THIS
+ * credit flipped `is_citizen` false→true via the XP threshold (task 0017) — never
+ * for duplicates, missing profiles, or players already citizens (e.g. paid).
+ */
+export interface CreditOutcome {
+  status: CreditStatus;
+  citizenshipNewlyGranted: boolean;
+}
+
 // Postgres `foreign_key_violation` — a credit referencing a yandex_player_id with
 // no player_profiles row. Means "create the profile first" (T6 orders upsert
 // before credit), so we report it rather than failing the whole batch.
@@ -57,13 +67,15 @@ export class PersistentIdConflictError extends Error {
   }
 }
 
-// Insert the ledger row idempotently and increment xp + flip citizenship in ONE
-// statement (so the post-increment total drives the flip with no read-modify-write
-// race). `inserted` is 1 on a fresh credit, 0 when the (game_id, yandex_player_id)
-// row already existed (idempotent no-op — the UPDATE is gated on EXISTS(ins) too).
-// The `upd` CTE is a data-modifying WITH, so Postgres runs it to completion even
-// though the final SELECT doesn't read its output — only `inserted` is needed to
-// decide credited vs duplicate.
+// Insert the ledger row idempotently and increment xp in ONE statement. The row
+// lock the UPDATE takes is held to COMMIT, so everything read back here (and the
+// grant decision built on it) is race-free. `inserted` is 1 on a fresh credit, 0
+// when the (game_id, yandex_player_id) row already existed (idempotent no-op —
+// the UPDATE is gated on EXISTS(ins) too). RETURNING carries the post-increment
+// xp plus the citizenship fields this statement does NOT touch — i.e. their
+// locked PRE-grant values — which is what makes "newly granted" detectable
+// without a snapshot self-join (whose pre-image goes stale under a concurrent
+// credit's EvalPlanQual recheck).
 const CREDIT_SQL = `
 WITH ins AS (
   INSERT INTO player_match_xp_credits (game_id, yandex_player_id, xp_awarded)
@@ -74,17 +86,34 @@ WITH ins AS (
 upd AS (
   UPDATE player_profiles p
   SET xp = p.xp + (SELECT xp_awarded FROM ins),
-      is_citizen = p.is_citizen OR (p.xp + (SELECT xp_awarded FROM ins)) >= $4,
-      citizenship_earned_at = CASE
-        WHEN p.citizenship_earned_at IS NULL
-             AND (p.xp + (SELECT xp_awarded FROM ins)) >= $4
-        THEN now() ELSE p.citizenship_earned_at END,
       updated_at = now()
   WHERE p.yandex_player_id = $2
     AND EXISTS (SELECT 1 FROM ins)
-  RETURNING p.xp
+  RETURNING p.xp, p.is_citizen, p.citizenship_earned_at
 )
-SELECT (SELECT count(*) FROM ins)::int AS inserted
+SELECT
+  (SELECT count(*) FROM ins)::int AS inserted,
+  (SELECT u.xp FROM upd u) AS new_xp,
+  (SELECT u.is_citizen FROM upd u) AS was_citizen,
+  (SELECT u.citizenship_earned_at FROM upd u) AS earned_at
+`;
+
+// Grant earned citizenship / stamp citizenship_earned_at once the accumulated XP
+// reaches the threshold (task 0017). Runs in the SAME transaction as CREDIT_SQL,
+// on the row it already locked, so the flip is atomic with the increment. The
+// `is_citizen = false OR citizenship_earned_at IS NULL` arm keeps the pre-0017
+// behavior for a PAID citizen crossing the threshold (owner-ruled 2026-08-23):
+// earned_at still stamps (coalesce keeps the first stamp), is_citizen stays true,
+// and the caller reports citizenshipNewlyGranted only when is_citizen was false.
+// The WHERE re-checks xp/state defensively even though the lock makes it stable.
+const GRANT_CITIZENSHIP_SQL = `
+UPDATE player_profiles
+SET is_citizen = true,
+    citizenship_earned_at = coalesce(citizenship_earned_at, now()),
+    updated_at = now()
+WHERE yandex_player_id = $1
+  AND xp >= $2
+  AND (is_citizen = false OR citizenship_earned_at IS NULL)
 `;
 
 // Create on first authenticated join; on conflict, relink persistent_id only when
@@ -179,27 +208,51 @@ export class PlayerProfileRepository {
   }
 
   /**
-   * Credit a match's XP atomically and idempotently. Re-crediting the same
-   * (gameId, yandexPlayerId) is a no-op ("duplicate"). A credit for a player with
-   * no profile row yet is reported ("no_profile"), not thrown.
+   * Credit a match's XP atomically and idempotently, granting earned citizenship
+   * in the same transaction when the new total crosses the threshold (task 0017).
+   * Re-crediting the same (gameId, yandexPlayerId) is a no-op ("duplicate"). A
+   * credit for a player with no profile row yet is reported ("no_profile"), not
+   * thrown. `citizenshipNewlyGranted` is true only when THIS credit flipped
+   * `is_citizen` false→true.
    */
   async creditMatchXp(
     gameId: string,
     yandexPlayerId: string,
     xpAwarded: number,
-  ): Promise<CreditStatus> {
+  ): Promise<CreditOutcome> {
     const client = await this.pool.connect();
+    let outcome: CreditOutcome;
     try {
       await client.query("BEGIN");
       const res = await client.query(CREDIT_SQL, [
         gameId,
         yandexPlayerId,
         xpAwarded,
-        CITIZENSHIP_XP_THRESHOLD,
       ]);
+      const inserted = Number(res.rows[0].inserted) > 0;
+      let citizenshipNewlyGranted = false;
+      if (inserted) {
+        const newXp = Number(res.rows[0].new_xp);
+        const wasCitizen = Boolean(res.rows[0].was_citizen);
+        const earnedAt = res.rows[0].earned_at as Date | null;
+        // Values are from the row CREDIT_SQL locked, so this decision cannot race
+        // a concurrent credit; the grant's WHERE re-checks it defensively anyway.
+        if (
+          newXp >= CITIZENSHIP_XP_THRESHOLD &&
+          (!wasCitizen || earnedAt === null)
+        ) {
+          await client.query(GRANT_CITIZENSHIP_SQL, [
+            yandexPlayerId,
+            CITIZENSHIP_XP_THRESHOLD,
+          ]);
+          citizenshipNewlyGranted = !wasCitizen;
+        }
+      }
       await client.query("COMMIT");
-      const inserted = Number(res.rows[0].inserted);
-      return inserted > 0 ? "credited" : "duplicate";
+      outcome = {
+        status: inserted ? "credited" : "duplicate",
+        citizenshipNewlyGranted,
+      };
     } catch (error) {
       try {
         await client.query("ROLLBACK");
@@ -209,12 +262,30 @@ export class PlayerProfileRepository {
         // FK-violation would be masked as a generic error.
       }
       if (isPgError(error, PG_FOREIGN_KEY_VIOLATION)) {
-        return "no_profile";
+        return { status: "no_profile", citizenshipNewlyGranted: false };
       }
       throw error;
     } finally {
       client.release();
     }
+    if (outcome.citizenshipNewlyGranted) {
+      // Fires AFTER commit — a hook failure must never roll back a real grant.
+      this.afterCitizenshipEarned(yandexPlayerId);
+    }
+    return outcome;
+  }
+
+  /**
+   * Post-grant hook seam for EARNED citizenship, mirroring
+   * PaymentsRepository.afterPaidPurchaseGranted (the no-op-seam shape approved at
+   * the 0019 plan gate). Deliberately a no-op today:
+   * TODO(0012): the personal-inbox citizenship message fires from here once the
+   * inbox feature (backlog task 0012) exists — text lives at
+   * `citizenship_earned.inbox_title` / `citizenship_earned.inbox_body` in
+   * resources/lang/en.json + ru.json.
+   */
+  private afterCitizenshipEarned(_yandexPlayerId: string): void {
+    // no-op — see TODO above.
   }
 
   /** Read a profile by Yandex player ID, or null if none exists. */
