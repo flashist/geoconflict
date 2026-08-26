@@ -1,6 +1,6 @@
 # Player Profile Schema Contract
 
-**Source**: `ai-agents/tasks/done/s4-profile-01-schema-contract.md`
+**Source**: `ai-agents/tasks/done/0168-profile-01-schema-contract/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 profile store T1
 

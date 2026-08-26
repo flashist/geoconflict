@@ -1,6 +1,6 @@
 # Player Profile Store Investigation
 
-**Source**: `ai-agents/tasks/done/sprint4-investigation-player-store.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`
+**Source**: `ai-agents/tasks/done/0124-investigation-player-store/brief.md`, `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 investigation
 

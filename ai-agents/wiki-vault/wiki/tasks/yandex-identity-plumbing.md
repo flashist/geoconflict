@@ -1,6 +1,6 @@
 # Yandex Identity Plumbing (T3)
 
-**Source**: `ai-agents/tasks/done/s4-profile-03-yandex-identity.md`
+**Source**: `ai-agents/tasks/done/0170-profile-03-yandex-identity/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T3
 

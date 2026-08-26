@@ -1,6 +1,6 @@
 # Profile Server Bring-Up Runbook
 
-**Source**: `ai-agents/tasks/done/s4-profile-04i-server-bring-up-runbook.md`
+**Source**: `ai-agents/tasks/done/0182-profile-04i-server-bring-up-runbook/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T4i
 

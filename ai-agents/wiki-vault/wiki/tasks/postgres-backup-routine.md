@@ -1,6 +1,6 @@
 # PostgreSQL Backup Routine
 
-**Source**: `ai-agents/tasks/done/s4-postgres-backup-routine.md`
+**Source**: `ai-agents/tasks/done/0189-postgres-backup-routine/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T8
 

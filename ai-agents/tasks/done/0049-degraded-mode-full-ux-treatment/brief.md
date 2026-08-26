@@ -4,7 +4,7 @@
 0049
 
 ## Sprint
-Sprint 4 — moved in from Sprint backlog 2026-07-02 (Mark). Conceptually follows `s4-citizenship-card-guest-cta-no-sdk.md` (done), which is what first exposed the collapsed-states problem this task resolves properly.
+Sprint 4 — moved in from Sprint backlog 2026-07-02 (Mark). Conceptually follows `0190-citizenship-card-guest-cta-no-sdk` (done), which is what first exposed the collapsed-states problem this task resolves properly.
 
 ## Priority
 **Reclassified 2026-07-02 (Mark): must ship before citizenship (Earned/Paid) is delivered to real players.** A real player who hits degraded mode during the citizenship funnel — logging in specifically to claim earned XP or pay for citizenship — would see a dead CTA at exactly the moment they're being asked to authenticate. That's a materially worse outcome than the same bug in today's plain guest state, so this no longer waits on `Session:PlatformInitTimeout` volume before scheduling. Still worth pulling that number during implementation to size the actual blast radius, but it does not gate whether this ships.
@@ -26,7 +26,7 @@ fkit-coder
 
 ## Context
 
-Surfaced while fixing `s4-citizenship-card-guest-cta-no-sdk.md`: `FlashistFacade` currently exposes only two effective states to the rest of the client — "authorized" and "not authorized" — collapsing three genuinely different situations:
+Surfaced while fixing `0190-citizenship-card-guest-cta-no-sdk`: `FlashistFacade` currently exposes only two effective states to the rest of the client — "authorized" and "not authorized" — collapsing three genuinely different situations:
 
 - **(a)** standalone/no Yandex context at all (handled by the sibling Sprint 4 task via `yaGamesAvailable`)
 - **(b)** real Yandex guest, logged out, SDK healthy

@@ -7,7 +7,7 @@
 
 When a player's browser tab crashes or closes unexpectedly mid-match, reopening the game detects the interrupted session and offers to rejoin if the match is still ongoing and the player's character is still alive. If the match ended or the player was eliminated while disconnected, no prompt is shown.
 
-Source: `ai-agents/tasks/done/task-02-crash-reconnection.md`
+Source: `ai-agents/tasks/done/0076-crash-reconnection/brief.md`
 
 ## Implementation
 
@@ -42,7 +42,7 @@ Five events covering the complete reconnection funnel:
 
 Events 4 and 5 distinguish "feature works but players don't use it" from "feature is broken."
 
-Source: `ai-agents/tasks/done/task-02a-reconnection-analytics.md`
+Source: `ai-agents/tasks/done/0077-reconnection-analytics/brief.md`
 
 ## Gotchas / Known Issues
 

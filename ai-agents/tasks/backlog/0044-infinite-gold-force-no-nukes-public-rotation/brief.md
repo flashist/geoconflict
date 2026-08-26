@@ -30,7 +30,7 @@ fkit-coder
 
 ## Context
 
-Sprint 4b added a public-match "weird setting" modifier system (`sprint4b-weird-setting-modifier.md`). `MATCH_MODIFIERS` applies a modifier to ~20% of public matches (`MODIFIED_MATCH_RATE = 0.2`). With `mini_map` disabled in Sprint 4c, `weird_setting` is the only active top-level modifier, so it absorbs the full 20% budget.
+Sprint 4b added a public-match "weird setting" modifier system (`0156-weird-setting-modifier`). `MATCH_MODIFIERS` applies a modifier to ~20% of public matches (`MODIFIED_MATCH_RATE = 0.2`). With `mini_map` disabled in Sprint 4c, `weird_setting` is the only active top-level modifier, so it absorbs the full 20% budget.
 
 `weird_setting` picks one of **four** sub-options uniformly at random (`src/server/MapPlaylist.ts`, `WEIRD_SETTING_OPTIONS`), each landing in ~5% of public matches:
 

@@ -101,6 +101,43 @@ fails to resolve on our plan filenames). The two are independent — but `0053`'
 run until this task makes at least one `plan-sprint-*.md` readable. Nothing here should wait on
 `0053`.
 
+## Named line-items added 2026-08-26 — owner-ruled hand-offs from `0003`
+
+`0003` (the `done/` + `cancelled/` folder migration) closed on 2026-08-25 and handed four items to
+this task. Each was **ruled by the owner on 2026-08-26**; apply them as written, alongside the
+general reconciliation. All four touch files this task already edits.
+
+1. **`0119-nations-balance` cancel date → `2026-04-18`.** The brief
+   (`ai-agents/tasks/cancelled/0119-nations-balance/brief.md`) reads
+   `⛔ Cancelled (2026-04-18) — created too many bugs; cancelled forever, though a similar task might return someday`
+   (date = the git rename into `cancelled/`, `1e857a0`; owner ruled option (C) on 2026-08-25). The
+   sprint-plan cell at `ai-agents/sprints/plan-sprint-4.md:56` still reads `2026-04-21` — that is the
+   date of the plan edit (`e7e1b12`), not the cancellation. **Align the cell's date to `2026-04-18`;
+   keep the owner-supplied reason text exactly as it is.** Do not touch the brief.
+
+2. **Rewrite the `See cancelled-tasks.md` pointers.** `ai-agents/sprints/cancelled-tasks.md` was
+   deleted in `6666989`; its content now lives at
+   `ai-agents/wiki-vault/wiki/decisions/cancelled-tasks.md`. Re-point the three pointers the owner
+   named — `ai-agents/sprints/plan-index.md:71`, `:74`, and
+   `ai-agents/sprints/done/hotfix-post-sprint2.md:148` — to that vault page. A fourth occurrence,
+   the index-table link at `plan-index.md:34`, is the same class; fix it in the same pass. Read the
+   vault page; do not write it (`fkit-wiki` only).
+
+3. **HF-5 record is self-contradictory — brief `0096` is the source of truth.**
+   `ai-agents/sprints/done/hotfix-post-sprint2.md:74` says `**Status:** ✅ Done`, while its own
+   checklist (`:148`) and `plan-index.md:71` say cancelled & reverted. The brief
+   (`ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, cancelled per rename commit
+   `49f96bc`) carries `⛔ Cancelled (2026-03-10) — cancelled & reverted: ghost-bot logic too entangled, contradicting test instructions`.
+   **Reconcile `hotfix-post-sprint2.md:74` to the brief's cancelled status** (canonical form, with the
+   brief's date and reason). This is a notation fix on a record that contradicts itself, not a state
+   change — the task has been cancelled since March.
+
+4. **Retire the stale "drift until `0003` runs" prose.** `ai-agents/sprints/plan-sprint-4.md:19-20`
+   and `ai-agents/sprints/done/plan-sprint-4c.md:26-27` explain that the dashboard reports the
+   done/cancelled briefs' location as drift "until `0003` runs — expected". `0003` has run. Rewrite or
+   remove that sentence so the note no longer predicts a state that has passed; leave the rest of
+   each note (the `⚠️ Urgent` remark, etc.) for the general reconciliation.
+
 ## What to build
 
 1. **Inventory every status marker** currently in use across `ai-agents/sprints/` (including
@@ -131,9 +168,11 @@ run until this task makes at least one `plan-sprint-*.md` readable. Nothing here
      make the table complete.
 
 4. **Backfill dates and reasons on closed rows.** `⛔ Cancelled` rows need
-   `(YYYY-MM-DD) — <reason>`; both are mandatory. Recover them from
-   `sprints/cancelled-tasks.md` and the plans' own addendum notes. **Never invent a date or a
-   reason** — list anything unrecoverable in the hand-off report instead.
+   `(YYYY-MM-DD) — <reason>`; both are mandatory. Recover them from the migrated briefs in
+   `ai-agents/tasks/cancelled/` (each now carries its own `⛔ Cancelled (date) — reason`, sourced by
+   `0003` from the records), `ai-agents/wiki-vault/wiki/decisions/cancelled-tasks.md` (read-only —
+   the former `sprints/cancelled-tasks.md`, deleted in `6666989`), and the plans' own addendum notes.
+   **Never invent a date or a reason** — list anything unrecoverable in the hand-off report instead.
 
 5. **Do not change any task's actual state.** This is a *notation* change. A row that means "not
    started" still means "not started" afterwards. If reconciliation reveals a row whose recorded
@@ -151,8 +190,8 @@ run until this task makes at least one `plan-sprint-*.md` readable. Nothing here
    the owner explicitly ruled to keep.
 2. Every Status cell in every sprint plan and the backlog board matches a value defined in
    `conventions/task-status-vocabulary.md`.
-3. Every `⛔ Cancelled` row carries both a date and a reason; spot-check 3 against
-   `cancelled-tasks.md`.
+3. Every `⛔ Cancelled` row carries both a date and a reason; spot-check 3 against the matching
+   brief in `ai-agents/tasks/cancelled/` (and `wiki-vault/wiki/decisions/cancelled-tasks.md`).
 4. Every `✅ Done` row corresponds to a brief that actually lives in `ai-agents/tasks/done/`, and
    every `⛔ Cancelled` row to one in `cancelled/`. Mismatches are reported, not fixed.
 5. **`dashboard.sh` actually reads every plan** — run it on each file in `ai-agents/sprints/` and
@@ -175,7 +214,8 @@ this task, **not** a reason to move files. Report it; the owner decides.
 
 ## Notes
 
-- **Depends on:** 0002, 0003
+- **Depends on:** 0002, 0003 — **both satisfied** (0002 closed 2026-08-10, 0003 closed 2026-08-25,
+  both agent-closed; this task is pullable)
 - **Blocks:** nothing
 
 - Producer-owned: this is status-vocabulary and board curation work, not source code.

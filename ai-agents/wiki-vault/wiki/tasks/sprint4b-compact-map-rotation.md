@@ -1,6 +1,6 @@
 # Compact Public Map Rotation
 
-**Source**: `ai-agents/tasks/done/sprint4b-compact-map-rotation.md`
+**Source**: `ai-agents/tasks/done/0155-compact-map-rotation/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4b
 

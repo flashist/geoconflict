@@ -1,6 +1,6 @@
 # Profile API URL Configuration
 
-**Source**: `ai-agents/tasks/done/s4-profile-04b-client-api-url-config.md`
+**Source**: `ai-agents/tasks/done/0174-profile-04b-client-api-url-config/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T4b
 

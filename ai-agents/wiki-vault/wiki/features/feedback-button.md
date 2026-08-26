@@ -7,7 +7,7 @@
 
 An in-game feedback button on both the start screen and battle screen lets players submit bug reports, suggestions, or general feedback at any time. Reports arrive with automatic context (device, build, match IDs) so they are actionable without requiring the player to provide technical details.
 
-Source: `ai-agents/tasks/done/task-02b-feedback-button.md`
+Source: `ai-agents/tasks/done/0078-feedback-button/brief.md`
 
 ## Implementation
 
@@ -42,7 +42,7 @@ The form originally had an optional email/Telegram contact field for follow-up. 
 | Source screen | start screen or battle screen |
 | Device info | UA, screen resolution, CPU cores, RAM, GPU string (best-effort) |
 
-The last 3 match IDs are included silently — not shown to the player. See `ai-agents/tasks/done/task-feedback-match-ids-simple.md` for the match ID attachment implementation.
+The last 3 match IDs are included silently — not shown to the player. See `ai-agents/tasks/done/0103-feedback-match-ids-simple/brief.md` for the match ID attachment implementation.
 
 ## Intent → Execution Flow
 

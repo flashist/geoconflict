@@ -1,6 +1,6 @@
 # Citizenship XP Progress UI
 
-**Source**: `ai-agents/tasks/done/s4-citizenship-xp-progress-ui.md`
+**Source**: `ai-agents/tasks/done/0191-citizenship-xp-progress-ui/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Citizenship Core
 

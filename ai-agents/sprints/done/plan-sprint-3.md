@@ -14,21 +14,21 @@
 
 | Status | Task | Brief |
 |---|---|---|
-| ✅ Done | Humans vs Nations — Re-enable (all team modes re-enabled) | `s3-humans-vs-nations-task.md` |
-| ✅ Done | Feedback — Attach Last Match IDs | `s3-feedback-match-ids-simple-task.md` |
+| ✅ Done | Humans vs Nations — Re-enable (all team modes re-enabled) | [`0106-humans-vs-nations`](../../tasks/done/0106-humans-vs-nations/brief.md) |
+| ✅ Done | Feedback — Attach Last Match IDs | [`0103-feedback-match-ids-simple`](../../tasks/done/0103-feedback-match-ids-simple/brief.md) |
 | ⛔ Parked | Deep Mobile Rendering Optimization | — |
 | ➡️ Moved | 5c. Mobile Warning Screen → Sprint 6 | `s3-5c-task-mobile-warning.md` |
 | ➡️ Moved | 5b. Server Restart UX → Sprint 6 | `s3-5b-task-server-restart-ux.md` |
-| ✅ Done | 5d-A. Server System Metrics (OTEL) | `s3-5d-a-task-server-metrics.md` |
-| ✅ Done | 5d-B. Server Performance & Uptrace Instrumentation | `s3-5d-b-task-server-performance.md` |
-| ✅ Done | HF-11a. Stale Builds — Investigation | `s3-hf11a-hotfix-stale-build-investigation.md` |
-| ✅ Done | HF-11b. Stale Builds — Version Endpoint | `s3-hf11b-hotfix-version-endpoint.md` |
-| ✅ Done | HF-11c. Stale Builds — Client Detection | `s3-hf11c-hotfix-stale-build-detection.md` |
-| ✅ Done | HF-11d. Stale Builds — Blocking Modal | `s3-hf11d-hotfix-stale-build-modal.md` |
-| ⛔ Cancelled | HF-11e. Stale Builds — BUILD_NUMBER Automation | `s3-hf11e-hotfix-build-number-automation.md` |
-| ✅ Done | HF-12. Spawn Camera/Animation Timing Fix | `s3-hf12-hotfix-spawn-camera-timing.md` |
-| ✅ Done | HF-13. Map File Preloading on JOIN | `s3-hf13-hotfix-map-preload.md` |
-| ✅ Done | Investigation — UI:ClickMultiplayer firing point | `s3-investigation-ui-click-multiplayer.md` |
+| ✅ Done | 5d-A. Server System Metrics (OTEL) | [`0109-server-metrics`](../../tasks/done/0109-server-metrics/brief.md) |
+| ✅ Done | 5d-B. Server Performance & Uptrace Instrumentation | [`0107-5d-b-server-performance`](../../tasks/done/0107-5d-b-server-performance/brief.md) |
+| ✅ Done | HF-11a. Stale Builds — Investigation | [`0110-stale-build-investigation`](../../tasks/done/0110-stale-build-investigation/brief.md) |
+| ✅ Done | HF-11b. Stale Builds — Version Endpoint | [`0111-version-endpoint`](../../tasks/done/0111-version-endpoint/brief.md) |
+| ✅ Done | HF-11c. Stale Builds — Client Detection | [`0112-stale-build-detection`](../../tasks/done/0112-stale-build-detection/brief.md) |
+| ✅ Done | HF-11d. Stale Builds — Blocking Modal | [`0113-stale-build-modal`](../../tasks/done/0113-stale-build-modal/brief.md) |
+| ⛔ Cancelled | HF-11e. Stale Builds — BUILD_NUMBER Automation | [`0114-build-number-automation`](../../tasks/cancelled/0114-build-number-automation/brief.md) |
+| ✅ Done | HF-12. Spawn Camera/Animation Timing Fix | [`0115-spawn-camera-timing`](../../tasks/done/0115-spawn-camera-timing/brief.md) |
+| ✅ Done | HF-13. Map File Preloading on JOIN | [`0116-map-preload`](../../tasks/done/0116-map-preload/brief.md) |
+| ✅ Done | Investigation — UI:ClickMultiplayer firing point | [`0118-investigation-ui-click-multiplayer`](../../tasks/done/0118-investigation-ui-click-multiplayer/brief.md) |
 
 ---
 
@@ -43,7 +43,7 @@ Key steps: identify exactly how it was disabled (flag, config, commented-out cod
 
 Teams mode stays disabled — the lobby composition error for that mode is unresolved.
 
-See full brief: `task-humans-vs-nations.md`
+See full brief: `0106-humans-vs-nations`
 
 ---
 
@@ -56,7 +56,7 @@ Replaces the cancelled `task-feedback-match-history.md`. Narrower scope: read th
 
 A match ID is all that is needed to look up the full match in the archive API and attempt replay or diagnosis. Client-side only change — no server changes required.
 
-See full brief: `task-feedback-match-ids-simple.md`
+See full brief: `0103-feedback-match-ids-simple`
 
 ---
 
@@ -126,7 +126,7 @@ Player lag reports may be caused by server resource exhaustion — CPU pressure,
 
 **Part C — basic dashboard:** all eight metrics visible over time, enabling direct correlation with 5d-B Sentry transaction data.
 
-See full brief: `task-5d-a-server-metrics.md`
+See full brief: `0109-server-metrics`
 
 ---
 
@@ -144,7 +144,7 @@ Investigation complete (see `server-performance-investigation.md`). Key finding:
 
 **Technical debt flagged:** `this.turns` growing indefinitely is a memory concern at scale — not urgent now but worth a dedicated cleanup task before player counts grow significantly.
 
-See full brief: `task-server-performance.md`
+See full brief: `0104-server-performance`
 
 ---
 ### HF-11a. Stale Build Sessions — Investigation
@@ -165,7 +165,7 @@ See findings: `hf11a-stale-build-findings.md`
 
 Add `GET /api/version` endpoint returning `{ "build": "CURRENT_BUILD" }` with `Cache-Control: no-cache, no-store` headers. Pure server-side change. Unblocks HF-11c.
 
-See full brief: `hf11b-hotfix-version-endpoint.md`
+See full brief: `0111-version-endpoint`
 
 ---
 
@@ -176,7 +176,7 @@ See full brief: `hf11b-hotfix-version-endpoint.md`
 
 Three detection triggers: on startup, polling every 5 minutes, on tab focus. Fires `Build:StaleDetected` analytics event.
 
-See full brief: `hf11c-hotfix-stale-build-detection.md`
+See full brief: `0112-stale-build-detection`
 
 ---
 
@@ -187,7 +187,7 @@ See full brief: `hf11c-hotfix-stale-build-detection.md`
 
 Wire detection to existing modal component. Non-dismissible overlay with REFRESH button and "Contact support" text link. Confirmed working — `0.0.122` → `0.0.125` transition showed sharp 24-hour cliff vs multi-week decay on older builds without the fix.
 
-See full brief: `hf11d-hotfix-stale-build-modal.md`
+See full brief: `0113-stale-build-modal`
 
 ---
 
@@ -206,7 +206,7 @@ On slow connections, the camera zoom and spawn indicator animation fire at inten
 
 Fix: move camera zoom (`zoomToTerritory()`) and spawn indicator animation to fire when the server's spawn confirmation is received by the client, not when the intent is dispatched. Manual spawn tap camera behaviour must not change — only auto-spawn is affected.
 
-See full brief: `hf12-hotfix-spawn-camera-timing.md`
+See full brief: `0115-spawn-camera-timing`
 
 ---
 
@@ -222,4 +222,4 @@ Key requirements: fire-and-forget at JOIN, no duplicate loading if match starts 
 
 Analytics: `Match:PreloadHit` with value = seconds saved is the key metric for evaluating impact on `CatchupTooLong` rate.
 
-See full brief: `hf13-hotfix-map-preload.md`
+See full brief: `0116-map-preload`

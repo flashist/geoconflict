@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/tasks/cancelled/hotfix-hf5-win-condition-bug.md`, `ai-agents/tasks/cancelled/hf11e-hotfix-build-number-automation.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`, `ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md`, `ai-agents/tasks/cancelled/s4-profile-02-guest-localstorage.md`, `ai-agents/tasks/cancelled/s4-profile-07-guest-migration.md`, `ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
+Source: `ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, `ai-agents/tasks/cancelled/0114-build-number-automation/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`, `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`, `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`, `ai-agents/tasks/cancelled/0171-profile-07-guest-migration/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
 
 ---
 
@@ -42,7 +42,7 @@ Keep cancelled work in one durable page instead of deleting context from the wik
 
 **Why cancelled:** too many moving parts — writing structured match records to localStorage on every match end, reading/trimming entries, modifying feedback payload. Not worth the complexity at this stage.
 
-**Replacement:** `ai-agents/tasks/done/task-feedback-match-ids-simple.md` — narrower scope: read last 3 game IDs from existing `localStorage['game-records']` (no new write logic needed; `LocalPersistantStats.ts` already writes this). Match IDs alone are sufficient for archive lookup.
+**Replacement:** `ai-agents/tasks/done/0103-feedback-match-ids-simple/brief.md` — narrower scope: read last 3 game IDs from existing `localStorage['game-records']` (no new write logic needed; `LocalPersistantStats.ts` already writes this). Match IDs alone are sufficient for archive lookup.
 
 **What was learned:** `localStorage['game-records']` already exists and is keyed by game ID. The simpler approach should have been the starting point.
 

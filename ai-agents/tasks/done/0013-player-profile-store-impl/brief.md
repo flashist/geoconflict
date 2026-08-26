@@ -45,7 +45,7 @@ This isolation becomes critical once paid in-apps ship: profile data and backups
 - **API consumers:** (1) the **client** for profile reads + guest→authenticated migration (player-authenticated), (2) the **game server** for server-authoritative match-end XP crediting (service-authenticated internal endpoint), and later (3) admin/messaging tooling.
 - **Deploy pattern:** stand up the box by mirroring the telemetry deployment (`setup-telemetry.sh` + `build-deploy-telemetry.sh` + its own `docker-compose.yml`, with swap + Postgres memory caps baked in from the prior OOM lessons). Do not co-locate anything on the game VPS.
 
-**Legal note (152-ФЗ deferred to backlog 2026-06-28 — risk accepted):** the 2026-06-26 "hashing avoids the obligation" conclusion was **overturned** (hashing doesn't remove it); the hashing task is **cancelled** (`s4-profile-hash-player-ids.md`, PR #127 reverted; findings doc INVALIDATED). 152-ФЗ is unresolved, but per Mark (2026-06-28) the compliance work is **deferred to the backlog sprint** (`0048-compliance-152fz-notification-consent`) with **risk explicitly accepted** — so it **no longer gates profile-store production go-live in Sprint 4**. Consequence (documented + accepted): real PII (Yandex IDs + display names) will be persisted in prod before notification/consent exist.
+**Legal note (152-ФЗ deferred to backlog 2026-06-28 — risk accepted):** the 2026-06-26 "hashing avoids the obligation" conclusion was **overturned** (hashing doesn't remove it); the hashing task is **cancelled** (`0187-profile-hash-player-ids`, PR #127 reverted; findings doc INVALIDATED). 152-ФЗ is unresolved, but per Mark (2026-06-28) the compliance work is **deferred to the backlog sprint** (`0048-compliance-152fz-notification-consent`) with **risk explicitly accepted** — so it **no longer gates profile-store production go-live in Sprint 4**. Consequence (documented + accepted): real PII (Yandex IDs + display names) will be persisted in prod before notification/consent exist.
 
 ---
 
@@ -55,30 +55,30 @@ This document is the **epic/overview**. The shared context above (Infrastructure
 
 | # | Child task | Covers | Depends on | Status |
 |---|---|---|---|---|
-| T1 | `s4-profile-01-schema-contract.md` | Shared `PlayerProfile` type + `migrateProfile()` (Part B JSON) | — | ✅ Done |
-| T2 | `s4-profile-02-guest-localstorage.md` | Guest XP in localStorage (Part C) | T1 | ⛔ Cancelled (2026-06-13) — see note below |
-| T3 | `s4-profile-03-yandex-identity.md` | Verified Yandex identity plumbing (Part A) | — | ✅ Done (PR #111) |
-| T4 | `s4-profile-04-backend-infra.md` (overview) | Dedicated reg.ru VPS + API skeleton (Part D ops) — re-split into 9 sub-slices T4a–T4i, see sub-table | — | ✅ Done (2026-06-24) — box live at `api.geoconflict.ru` |
-| T5 | `s4-profile-05-backend-db-api.md` | Migration + repository + API endpoints (Part D DB + Part E profile half) | T1, T4 | ✅ Done (PR #126) |
-| T6 | `s4-profile-06-match-end-crediting.md` | Protocol ext + server-side crediting (Part E game half) | T3, T5 | ✅ Done |
-| T7 | `s4-profile-07-guest-migration.md` | Guest→authenticated migration (Part F) | T2, T3, T5 | ⛔ Cancelled (2026-06-13) — see note |
-| T8 | `s4-postgres-backup-routine.md` | Profile DB backups (Part D step 7) | T4 | ✅ Done |
+| T1 | `0168-profile-01-schema-contract` | Shared `PlayerProfile` type + `migrateProfile()` (Part B JSON) | — | ✅ Done |
+| T2 | `0169-profile-02-guest-localstorage` | Guest XP in localStorage (Part C) | T1 | ⛔ Cancelled (2026-06-13) — see note below |
+| T3 | `0170-profile-03-yandex-identity` | Verified Yandex identity plumbing (Part A) | — | ✅ Done (PR #111) |
+| T4 | `0172-profile-04-backend-infra` (overview) | Dedicated reg.ru VPS + API skeleton (Part D ops) — re-split into 9 sub-slices T4a–T4i, see sub-table | — | ✅ Done (2026-06-24) — box live at `api.geoconflict.ru` |
+| T5 | `0185-profile-05-backend-db-api` | Migration + repository + API endpoints (Part D DB + Part E profile half) | T1, T4 | ✅ Done (PR #126) |
+| T6 | `0188-profile-06-match-end-crediting` | Protocol ext + server-side crediting (Part E game half) | T3, T5 | ✅ Done |
+| T7 | `0171-profile-07-guest-migration` | Guest→authenticated migration (Part F) | T2, T3, T5 | ⛔ Cancelled (2026-06-13) — see note |
+| T8 | `0189-postgres-backup-routine` | Profile DB backups (Part D step 7) | T4 | ✅ Done |
 
 ### T4 sub-slices (reverted & re-decomposed 2026-06-19)
 
-The monolithic T4 was implemented (PR #112), then **reverted** and re-split into 7 independently shippable ops slices (T4a–T4g); **T4h** (T4b-review follow-up) and **T4i** (operator bring-up runbook) were added 2026-06-19 — **9 total**. T4e was further split into T4e1/T4e2/T4e3 during implementation. `s4-profile-04-backend-infra.md` is retained as the T4 overview; the slices below carry the executable scope. **Status (2026-06-24): T4a–T4i all done — T4 is complete. The profile box is live (`api.geoconflict.ru` serving 200 over TLS), and T5 (DB + API) is done & merged (PR #126). T6 (match-end crediting) done. T8 (backups) done — all spine slices complete.**
+The monolithic T4 was implemented (PR #112), then **reverted** and re-split into 7 independently shippable ops slices (T4a–T4g); **T4h** (T4b-review follow-up) and **T4i** (operator bring-up runbook) were added 2026-06-19 — **9 total**. T4e was further split into T4e1/T4e2/T4e3 during implementation. `0172-profile-04-backend-infra` is retained as the T4 overview; the slices below carry the executable scope. **Status (2026-06-24): T4a–T4i all done — T4 is complete. The profile box is live (`api.geoconflict.ru` serving 200 over TLS), and T5 (DB + API) is done & merged (PR #126). T6 (match-end crediting) done. T8 (backups) done — all spine slices complete.**
 
 | # | Child task | Covers | Depends on | Status |
 |---|---|---|---|---|
-| T4a | `s4-profile-04a-server-skeleton.md` | Express `/health` skeleton in `src/profile-server/` | — | ✅ Done (PR #115) |
-| T4b | `s4-profile-04b-client-api-url-config.md` | `PROFILE_API_URL` exposed to client via `/api/env` | — | ✅ Done (PR #116) |
-| T4c | `s4-profile-04c-dockerfile.md` | Image that runs the T4a skeleton | T4a ✅ | ✅ Done (PR #117) |
-| T4d | `s4-profile-04d-vps-provisioning.md` | reg.ru VPS + nginx/TLS + `api.geoconflict.ru` DNS A-record | — | ✅ Done (PR #118) — *provisioning code; live bring-up is T4i* |
-| T4e | `s4-profile-04e-deploy-mechanics.md` | `setup-profile.sh` + `build-deploy-profile.sh` + compose (split into T4e1/T4e2/T4e3) | T4c, T4d | ✅ Done (PR #119/#120/#121) |
-| T4f | `s4-profile-04f-image-secret-scan.md` | Build-context secret-leak gate | T4e | ✅ Done (PR #123, #124) |
-| T4g | `s4-profile-04g-argv-concurrency-hardening.md` | argv parsing + concurrency hardening | T4e, T4f | ✅ Done (PR #125) |
-| T4h | `s4-profile-04h-game-server-deploy-env.md` | Game-server `deploy.sh` propagates `PROFILE_API_URL` into the container env (T4b's value is otherwise `""` in prod) | T4b | ✅ Done |
-| T4i | `s4-profile-04i-server-bring-up-runbook.md` | **Operator runbook:** provision reg.ru VPS + point DNS, run the merged deploy, verify 200-over-TLS (executes the T4d/T4e code) | T4d, T4e | ✅ Done (2026-06-24) — box live |
+| T4a | `0173-profile-04a-server-skeleton` | Express `/health` skeleton in `src/profile-server/` | — | ✅ Done (PR #115) |
+| T4b | `0174-profile-04b-client-api-url-config` | `PROFILE_API_URL` exposed to client via `/api/env` | — | ✅ Done (PR #116) |
+| T4c | `0175-profile-04c-dockerfile` | Image that runs the T4a skeleton | T4a ✅ | ✅ Done (PR #117) |
+| T4d | `0176-profile-04d-vps-provisioning` | reg.ru VPS + nginx/TLS + `api.geoconflict.ru` DNS A-record | — | ✅ Done (PR #118) — *provisioning code; live bring-up is T4i* |
+| T4e | `0178-profile-04e-deploy-mechanics` | `setup-profile.sh` + `build-deploy-profile.sh` + compose (split into T4e1/T4e2/T4e3) | T4c, T4d | ✅ Done (PR #119/#120/#121) |
+| T4f | `0181-profile-04f-image-secret-scan` | Build-context secret-leak gate | T4e | ✅ Done (PR #123, #124) |
+| T4g | `0183-profile-04g-argv-concurrency-hardening` | argv parsing + concurrency hardening | T4e, T4f | ✅ Done (PR #125) |
+| T4h | `0184-profile-04h-game-server-deploy-env` | Game-server `deploy.sh` propagates `PROFILE_API_URL` into the container env (T4b's value is otherwise `""` in prod) | T4b | ✅ Done |
+| T4i | `0182-profile-04i-server-bring-up-runbook` | **Operator runbook:** provision reg.ru VPS + point DNS, run the merged deploy, verify 200-over-TLS (executes the T4d/T4e code) | T4d, T4e | ✅ Done (2026-06-24) — box live |
 
 **T4 internal order:** T4a–T4i ✅ **done — T4 is complete.** The full build/deploy + hardening pipeline (skeleton, client URL config, image, provisioning code, deploy mechanics, secret-scan gate, argv/concurrency hardening, game-server `PROFILE_API_URL` env wiring) is merged, **and T4i stood up the box** (provision + DNS + deploy + 200/TLS verified). `api.geoconflict.ru` is live.
 
@@ -92,7 +92,7 @@ The monolithic T4 was implemented (PR #112), then **reverted** and re-split into
 > A client-only, localStorage-authoritative guest-XP store carries too much inherent edge surface (idempotency, multi-tab races, partial-write atomicity, platform-auth timing, "eliminated counts" semantics); four review rounds hardened those and the scope outgrew the intended small client slice.
 > **Revisit guest-XP as a thin best-effort client cache with/after T5/T6** (server-authoritative), which removes most of that edge surface. Carry the `MatchQualification.ts` shared-predicate idea (pure qualify/credit rules + constants) into T5/T6 to prevent client/server drift.
 > **T7 (Part F) also cancelled — 2026-06-13 (Mark).** No guest store ⇒ nothing to migrate. The guest-first story is dropped entirely: **Sprint 4 profile XP is authenticated-only** — logged-in Yandex users accrue XP via T5/T6; guests get the Part-G locked card + login prompt but no pre-login XP.
-> **T5 — migration API dropped (decision 2026-06-13, Mark):** `POST /v1/profile/migrate` and its untrusted-body forcing existed *for* T7's client→server upload. With the upload path gone, T5 is now **fresh-profile-create + server-side crediting only** — the migrate endpoint and its hardening were **removed** from `s4-profile-05-backend-db-api.md`, not deferred.
+> **T5 — migration API dropped (decision 2026-06-13, Mark):** `POST /v1/profile/migrate` and its untrusted-body forcing existed *for* T7's client→server upload. With the upload path gone, T5 is now **fresh-profile-create + server-side crediting only** — the migrate endpoint and its hardening were **removed** from `0185-profile-05-backend-db-api`, not deferred.
 > Both slices can return later as one server-authoritative guest-XP cache (T2 + T7 together) — and **any such revival must also re-add the migration API to T5**, since it was deleted here. The revival requirement is recorded on the cancelled T2/T7 task files themselves.
 > **Interim baseline:** no one earns profile XP until T5/T6 land (this store was the only crediting path). Authenticated users and the Yandex leaderboard-points system are unaffected.
 
@@ -309,7 +309,7 @@ Crediting must be server-authoritative — never trust the client to credit itse
 
 ## Part F — Guest-to-Authenticated Migration (on login) — ⛔ CANCELLED 2026-06-13
 
-> **⛔ Cancelled with T2/T7 (2026-06-13, Mark).** There is no guest localStorage store to migrate and **no `POST /v1/profile/migrate` endpoint** — Sprint 4 profile XP is authenticated-only (see the cancellation note near the top of this brief). The flow below is **preserved for revival only; do not implement it.** Any revival must re-add the T5 migrate endpoint *with* its full untrusted-body hardening. See `s4-profile-07-guest-migration.md` (cancelled) and `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`.
+> **⛔ Cancelled with T2/T7 (2026-06-13, Mark).** There is no guest localStorage store to migrate and **no `POST /v1/profile/migrate` endpoint** — Sprint 4 profile XP is authenticated-only (see the cancellation note near the top of this brief). The flow below is **preserved for revival only; do not implement it.** Any revival must re-add the T5 migrate endpoint *with* its full untrusted-body hardening. See `0171-profile-07-guest-migration` (cancelled) and `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`.
 
 When a guest player authenticates with Yandex for the first time in a session:
 

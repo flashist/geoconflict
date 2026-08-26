@@ -56,7 +56,7 @@ git log START..HEAD --merges --format='%h%x09%s'
 
 Branch names in merge subjects (e.g. `Merge pull request #103 from flashist/claude-s4c-disable-compact-public-maps`)
 are strong signals. For each candidate change, if a matching brief exists in
-`ai-agents/tasks/done/` (e.g. `s4c-disable-compact-public-maps.md`), read its summary and use it
+`ai-agents/tasks/done/` (e.g. `0162-disable-compact-public-maps`), read its summary and use it
 for accurate, player-readable wording.
 
 ### Step 3 — Filter to player-facing only

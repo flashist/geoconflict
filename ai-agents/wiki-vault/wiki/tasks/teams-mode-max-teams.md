@@ -1,6 +1,6 @@
 # Teams Mode Max Teams
 
-**Source**: `ai-agents/tasks/done/s4-teams-mode-max-teams.md`
+**Source**: `ai-agents/tasks/done/0144-teams-mode-max-teams/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4
 

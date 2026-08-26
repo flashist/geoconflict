@@ -1,6 +1,6 @@
 # Incident Postmortem And Follow-Up Hardening
 
-**Source**: `ai-agents/tasks/done/sec07-postmortem-wiki-and-follow-ups.md`
+**Source**: `ai-agents/tasks/done/0136-postmortem-wiki-and-follow-ups/brief.md`
 **Status**: done
 **Sprint/Tag**: Security incident
 

@@ -35,10 +35,10 @@ one more finding.
 
 ## 2. What the task actually was
 
-- **Owner of the pipeline's existence:** `ai-agents/tasks/done/s4-profile-04-backend-infra.md` (T4),
+- **Owner of the pipeline's existence:** `ai-agents/tasks/done/0172-profile-04-backend-infra/brief.md` (T4),
   Scope item 2 — create `setup-profile.sh` + `build-deploy-profile.sh` mirroring the telemetry
   scripts; box `docker-compose.yml`, nginx/TLS, swap, Postgres memory caps, layered `.env.secret`.
-- **Owner of the deferred consumer:** `ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md` (T5),
+- **Owner of the deferred consumer:** `ai-agents/tasks/done/0185-profile-05-backend-db-api/brief.md` (T5),
   Scope item 5 "DB connection + readiness check" — the `/ready` endpoint and the `pg` repository
   that would *actually consume* `DATABASE_URL`. **This does not exist yet.**
 - **This branch:** hardening of the T4 pipeline. There is **no task file** for it; it was governed
@@ -407,8 +407,8 @@ meant to close.
   - Tests: `tests/scripts/*.test.ts` (7 files)
   - Doctrine: `docs/security/profile-deploy-scope.md` (treat as historical/context, not law)
   - Prior retro: `ai-agents/knowledge-base/review-loop-retrospective-2026-06-15.md`
-  - Deferred consumer: `ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md` (T5, Scope item 5)
-  - Pipeline origin: `ai-agents/tasks/done/s4-profile-04-backend-infra.md` (T4, Scope item 2)
+  - Deferred consumer: `ai-agents/tasks/done/0185-profile-05-backend-db-api/brief.md` (T5, Scope item 5)
+  - Pipeline origin: `ai-agents/tasks/done/0172-profile-04-backend-infra/brief.md` (T4, Scope item 2)
 - **Residuals to carry as backlog (not blockers):** `C-R3` (comment wording), `B-pattern-drift`
   (→ chunk P5).
 - **Workflow constraints still in force:** never commit without explicit ask; never move task files

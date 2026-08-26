@@ -1,6 +1,6 @@
 # Registry Image Exposure Audit
 
-**Source**: `ai-agents/tasks/done/sec02-registry-image-exposure-audit.md`
+**Source**: `ai-agents/tasks/done/0131-registry-image-exposure-audit/brief.md`
 **Status**: done
 **Sprint/Tag**: Security incident
 

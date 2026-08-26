@@ -191,7 +191,7 @@ It surfaced on the **dev box** (bare-IP host with an untrusted TLS cert): Chrome
 
 **Fix (per the brief):** lead with the **proper fix** — stop the worker re-downloading the map at all (transfer the already-loaded terrain buffers from the main thread into the worker), which also removes the redundant ~5.6 MB download and speeds up match start for every player, including on prod. Add the **cheap belt-and-suspenders fix** (raise the init timeout 5 s → 15 s; the brief traces this as regression-free) and, while in this code, fix a pre-existing worker leak (the init-failure catch never calls `worker.cleanup()`, leaving a timed-out worker running). All `src/core/` changes must be tested (project rule).
 
-**Release-decision note:** does not justify pausing a prod release, but before shipping this, confirm the join flow on a **valid-TLS host** (prod domain or trusted-cert staging) rather than only the bare-IP dev box — that box is not representative for anything that depends on browser HTTP caching. Related to the completed lobby/map-fetch investigation (`tasks/done/s4c-investigate-lobby-map-fetch.md`), which independently verified prod TLS + cache health.
+**Release-decision note:** does not justify pausing a prod release, but before shipping this, confirm the join flow on a **valid-TLS host** (prod domain or trusted-cert staging) rather than only the bare-IP dev box — that box is not representative for anything that depends on browser HTTP caching. Related to the completed lobby/map-fetch investigation (`tasks/done/0163-investigate-lobby-map-fetch/brief.md`), which independently verified prod TLS + cache health.
 
 ---
 

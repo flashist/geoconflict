@@ -23,7 +23,7 @@ fkit-coder
 
 ## Context
 
-Sprint 4b added the public "weird setting" modifier system (`sprint4b-weird-setting-modifier.md`).
+Sprint 4b added the public "weird setting" modifier system (`0156-weird-setting-modifier`).
 `MATCH_MODIFIERS` applies a modifier to ~20% of public matches (`MODIFIED_MATCH_RATE = 0.2`),
 and `weird_setting` is the only active top-level modifier, so it absorbs the full 20%.
 `weird_setting` picks one sub-option uniformly from `WEIRD_SETTING_OPTIONS`

@@ -4,7 +4,7 @@
 - **Date:** 2026-08-08 (retro-recorded; decision made **2026-06-03**, commit `80f4cf4`
   "s4c-disable-compact-public-maps")
 - **Deciders:** Owner (Mark Dolbyrev). The preceding runtime-workaround task was **cancelled** by the
-  owner after live testing (`ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md`).
+  owner after live testing (`ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`).
 
 ## Context
 
@@ -58,7 +58,7 @@ governs the **public rotation only** — where the player did not choose the map
   is a real task that could not ship the same day.
 - **Runtime fallback in `targetTransportTile`** — relax the `isShore` filter and pick a nearby water
   tile when no shore tile is found (Option 2 in `../compact-map-click-interaction-findings.md`).
-  **Tried, then cancelled** (`ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md`). It
+  **Tried, then cancelled** (`ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`). It
   passed synthetic-map unit tests and was **semantically wrong on real maps** — it sent boats to
   coasts the player never targeted. A workaround that guesses at missing terrain data is least
   trustworthy exactly where the data is most degraded. This is the origin of the standing rule that
@@ -103,6 +103,6 @@ governs the **public rotation only** — where the player did not choose the map
 - `src/server/MapPlaylist.ts:37-50` — the disable and its comment, which this ADR formalizes
 - `../compact-map-click-interaction-findings.md` — root cause and the three fix options
 - `../sprint4b-mini-mode-findings.md` — the mode's original investigation
-- `ai-agents/tasks/cancelled/s4c-fix-compact-map-boat-attack.md` — the cancelled runtime workaround
+- `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md` — the cancelled runtime workaround
 - `ai-agents/tasks/backlog/0026-fix-compact-map-shore-generation/brief.md` — the real fix
 - `../architecture.md` §9 ("Two features that are present but switched off")

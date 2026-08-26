@@ -18,7 +18,7 @@ the signal to pull the task into a sprint.
 | Status | Priority | Task | Brief |
 |---|---|---|---|
 | ✅ Done (agent-closed — not owner-verified) | — | Migrate `tasks/backlog/` to the fkit task-folder convention | [`0002-migrate-backlog-tasks-to-folders`](../tasks/done/0002-migrate-backlog-tasks-to-folders/brief.md) |
-| 🔲 Backlog | — | Migrate `tasks/done/` and `tasks/cancelled/` to the fkit task-folder convention | [`0003-migrate-done-cancelled-tasks-to-folders`](../tasks/backlog/0003-migrate-done-cancelled-tasks-to-folders/brief.md) |
+| ✅ Done (agent-closed — not owner-verified) | — | Migrate `tasks/done/` and `tasks/cancelled/` to the fkit task-folder convention | [`0003-migrate-done-cancelled-tasks-to-folders`](../tasks/done/0003-migrate-done-cancelled-tasks-to-folders/brief.md) |
 | 🔲 Backlog | — | Consolidate unsprinted work onto `backlog.md` and retire `sprint-backlog.md` | [`0001-consolidate-unsprinted-work-onto-backlog-board`](../tasks/backlog/0001-consolidate-unsprinted-work-onto-backlog-board/brief.md) |
 | 🔲 Backlog | — | Reconcile legacy status markers in the sprint plans to the canonical vocabulary | [`0004-reconcile-legacy-status-markers-in-sprint-plans`](../tasks/backlog/0004-reconcile-legacy-status-markers-in-sprint-plans/brief.md) |
 | 🔲 Backlog | — | `ADMIN_TOKEN`: fail closed on a missing secret, and compare in constant time *(prod verified clean 2026-08-10 — normal-priority hardening, not an incident)* | [`0005-admin-token-fail-closed-and-constant-time-compare`](../tasks/backlog/0005-admin-token-fail-closed-and-constant-time-compare/brief.md) |

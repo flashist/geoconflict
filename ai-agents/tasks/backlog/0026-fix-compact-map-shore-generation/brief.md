@@ -8,9 +8,9 @@ Sprint 5 — Backlog (high effort, requires full map regeneration)
 
 ## Priority
 Low — but now the **only** path to restoring boat-attack on compact maps. The Sprint 4c
-runtime fallback (`s4c-fix-compact-map-boat-attack.md`) was **cancelled 2026-06-02** (it
+runtime fallback (`0160-fix-compact-map-boat-attack`) was **cancelled 2026-06-02** (it
 sent boats to semantically wrong coasts — see the cancelled brief). Compact maps were
-pulled from the **public** rotation on 2026-06-03 (`s4c-disable-compact-public-maps.md`);
+pulled from the **public** rotation on 2026-06-03 (`0162-disable-compact-public-maps`);
 they remain opt-in only in private lobbies and singleplayer, where the boat bug still
 exists. This task corrects the underlying data defect and is the prerequisite for ever
 re-enabling compact in public matchmaking. Ship when map regeneration is practical.
@@ -65,7 +65,7 @@ Spot-check the regenerated binaries:
 
 ### 3. Remove or demote the runtime fallback
 
-Once the regenerated binaries are deployed and confirmed correct in production, the fallback in `targetTransportTile` added in `s4c-fix-compact-map-boat-attack.md` can be removed or left as a defence-in-depth guard with a lower search radius. Decide at implementation time based on the confidence level of the generator fix.
+Once the regenerated binaries are deployed and confirmed correct in production, the fallback in `targetTransportTile` added in `0160-fix-compact-map-boat-attack` can be removed or left as a defence-in-depth guard with a lower search radius. Decide at implementation time based on the confidence level of the generator fix.
 
 ---
 
@@ -81,7 +81,7 @@ Once the regenerated binaries are deployed and confirmed correct in production, 
 
 ## Notes
 
-- The immediate boat-attack fix for players is covered by `s4c-fix-compact-map-boat-attack.md`. Do not block that task on this one.
+- The immediate boat-attack fix for players is covered by `0160-fix-compact-map-boat-attack`. Do not block that task on this one.
 - Regenerating all 30 binaries takes time (`npm run gen-maps` runs the Go generator for each map). Budget for this in sprint planning — it is not a quick code change.
 - The Sprint 4b audit flagged six worst-case maps (Asia, Black Sea, Europe, Mena, North America, Pangaea). World is confirmed broken but was not on that list — treat all 30 as potentially affected.
 - Secondary issue — `bestShoreDeploymentSource` diagonal miss in `TransportShipUtils.ts` — is a separate low-severity defect. If this task is in scope, it can be fixed alongside (change `neighbors()` to 8-directional for that one call). Not required to ship this task.

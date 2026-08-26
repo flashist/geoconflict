@@ -1,6 +1,6 @@
 # Profile Server Docker Image
 
-**Source**: `ai-agents/tasks/done/s4-profile-04c-dockerfile.md`
+**Source**: `ai-agents/tasks/done/0175-profile-04c-dockerfile/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T4c
 

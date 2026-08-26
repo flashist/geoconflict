@@ -1,6 +1,6 @@
 # Mobile Quick Wins (Task 3)
 
-**Source**: `ai-agents/tasks/done/task-03-mobile-quick-wins.md`
+**Source**: `ai-agents/tasks/done/0085-mobile-quick-wins/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 1
 

@@ -1,6 +1,6 @@
 # Yandex Payments Investigation
 
-**Source**: `ai-agents/tasks/done/sprint4-investigation-yandex-payments.md`, `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`
+**Source**: `ai-agents/tasks/done/0125-investigation-yandex-payments/brief.md`, `ai-agents/knowledge-base/sprint4-yandex-payments-findings.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 investigation
 

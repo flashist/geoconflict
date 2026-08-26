@@ -11,7 +11,7 @@ profile store and citizenship implementation land — those are hard prerequisit
 ## Priority
 Low within Sprint 4 — no live consumer until citizenship ships. This is the "build it
 properly" half of the archive task split; the noise it would otherwise generate is
-silenced now by the Sprint 4c task `s4c-reduce-archive-telemetry-noise.md`.
+silenced now by the Sprint 4c task `0159-reduce-archive-telemetry-noise`.
 
 ## Status
 🔲 Backlog
@@ -31,7 +31,7 @@ expects S3-compatible object storage — the config slots exist but are empty:
 
 Match history is a **citizen-only** feature. Until citizenship is implemented there is no
 way to know which games to archive and no user who can read the data back, which is why
-the inherited archive path was disabled in `s4c-reduce-archive-telemetry-noise.md` rather
+the inherited archive path was disabled in `0159-reduce-archive-telemetry-noise` rather
 than fixed.
 
 Sources:
@@ -61,7 +61,7 @@ Sources:
 **Code:**
 - Write/read game records to/from the bucket using those config slots.
 - **Gate archival to citizen games only** — do not archive every game.
-- Re-enable the archive path that `s4c-reduce-archive-telemetry-noise.md` disabled
+- Re-enable the archive path that `0159-reduce-archive-telemetry-noise` disabled
   (centralized flag → one-line change).
 - Add a bounded upload size limit (do not use an unbounded limit; size against real
   compressed record sizes) and a basic retention policy.

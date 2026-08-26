@@ -13,7 +13,7 @@ import { z } from "zod";
  * game server, never from a player. `xpAwarded` is bounded so a buggy caller can't
  * overflow the `integer` ledger column (`xp_awarded`).
  *
- * See ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md (T5).
+ * See ai-agents/tasks/done/0185-profile-05-backend-db-api/brief.md (T5).
  */
 
 /** One match-end credit: award `xpAwarded` to `yandexPlayerId` for `gameId`. */

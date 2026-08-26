@@ -1,6 +1,6 @@
 # Clean Rebuild, Redeploy, And Validation
 
-**Source**: `ai-agents/tasks/done/sec06-clean-rebuild-redeploy-and-validation.md`
+**Source**: `ai-agents/tasks/done/0135-clean-rebuild-redeploy-and-validation/brief.md`
 **Status**: done
 **Sprint/Tag**: Security incident
 

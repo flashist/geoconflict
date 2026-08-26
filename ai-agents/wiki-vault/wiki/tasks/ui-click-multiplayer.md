@@ -1,6 +1,6 @@
 # UI:ClickMultiplayer Investigation
 
-**Source**: `ai-agents/tasks/done/s3-investigation-ui-click-multiplayer.md`
+**Source**: `ai-agents/tasks/done/0118-investigation-ui-click-multiplayer/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 3 investigation
 

@@ -1,6 +1,6 @@
 # AI Player Lobby Slot Bug — AI Players Must Yield to Real Players
 
-**Source**: `ai-agents/tasks/done/s4-ai-lobby-slot-bug.md`
+**Source**: `ai-agents/tasks/done/0117-ai-lobby-slot-bug/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4
 

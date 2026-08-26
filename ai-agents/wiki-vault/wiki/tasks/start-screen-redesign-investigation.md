@@ -1,6 +1,6 @@
 # Start Screen Redesign Investigation
 
-**Source**: `ai-agents/tasks/done/s4-start-screen-redesign-investigation.md`
+**Source**: `ai-agents/tasks/done/0139-start-screen-redesign-investigation/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 design investigation
 

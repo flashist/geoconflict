@@ -1,6 +1,6 @@
 # Review ledger — s4-profile-04e1
 
-Task: `ai-agents/tasks/backlog/s4-profile-04e1-build-push-digest.md`
+Task: `ai-agents/tasks/done/0177-profile-04e1-build-push-digest/brief.md`
 File(s) under review: `build-deploy-profile.sh`, `package.json` (`deploy:profile`)
 Status: **closed-out** (finalized R7 via PR#119) — converged after 7 rounds (original 2-round budget); both reviewers came back clean on the R6 fixes
 

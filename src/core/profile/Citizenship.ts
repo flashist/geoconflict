@@ -7,7 +7,7 @@
  * constants and predicate, preventing the client display from drifting from the
  * server's authoritative flip. No I/O, no clocks — safe to import anywhere.
  *
- * See ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md (T5) and the epic
+ * See ai-agents/tasks/done/0185-profile-05-backend-db-api/brief.md (T5) and the epic
  * 0013-player-profile-store-impl (Part B/E).
  */
 

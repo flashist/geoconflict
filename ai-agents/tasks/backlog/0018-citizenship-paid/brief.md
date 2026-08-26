@@ -64,7 +64,7 @@ Players who do not want to grind 1,000 XP can purchase citizenship directly for 
 
 ### Part A — Client: paid CTA in the citizenship card
 
-In the citizenship card component (`s4-citizenship-xp-progress-ui.md`), add a "Buy Citizenship" button in **State 2 only** (authorized, not yet a citizen):
+In the citizenship card component (`0191-citizenship-xp-progress-ui`), add a "Buy Citizenship" button in **State 2 only** (authorized, not yet a citizen):
 
 - Render the button **only when** `FlashistFacade.hasCatalogProduct('citizenship')` returns `true`
 - Do not show a disabled/greyed-out button when the catalog item is absent — hide entirely

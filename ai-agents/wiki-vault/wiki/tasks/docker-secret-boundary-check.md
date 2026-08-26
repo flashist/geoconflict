@@ -1,6 +1,6 @@
 # CI Docker Secret Boundary Check
 
-**Source**: `ai-agents/tasks/done/sec08-ci-docker-secret-boundary-check.md`
+**Source**: `ai-agents/tasks/done/0137-ci-docker-secret-boundary-check/brief.md`
 **Status**: done
 **Sprint/Tag**: Security follow-up
 

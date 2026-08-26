@@ -1,6 +1,6 @@
 # Enable Production Client Source Maps in Uptrace
 
-**Source**: `ai-agents/tasks/done/s4c-enable-client-source-maps.md`
+**Source**: `ai-agents/tasks/done/0164-enable-client-source-maps/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4c — Production Stabilization
 

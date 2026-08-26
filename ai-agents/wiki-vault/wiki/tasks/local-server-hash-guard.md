@@ -1,6 +1,6 @@
 # LocalServer Hash Guard
 
-**Source**: `ai-agents/tasks/done/s4c-fix-local-server-hash-guard.md`
+**Source**: `ai-agents/tasks/done/0158-fix-local-server-hash-guard/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4c / stabilization
 

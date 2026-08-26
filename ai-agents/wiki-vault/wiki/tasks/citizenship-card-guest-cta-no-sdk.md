@@ -1,6 +1,6 @@
 # Citizenship Card Guest CTA No-SDK Fix
 
-**Source**: `ai-agents/tasks/done/s4-citizenship-card-guest-cta-no-sdk.md`
+**Source**: `ai-agents/tasks/done/0190-citizenship-card-guest-cta-no-sdk/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Citizenship UI follow-up
 

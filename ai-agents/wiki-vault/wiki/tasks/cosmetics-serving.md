@@ -1,6 +1,6 @@
 # Cosmetics Serving and Fetch Noise
 
-**Source**: `ai-agents/tasks/done/s4c-fix-cosmetics-serving.md`
+**Source**: `ai-agents/tasks/done/0157-fix-cosmetics-serving/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4c / stabilization
 

@@ -1,6 +1,6 @@
 # Profile Image Build, Push, and Digest Pinning
 
-**Source**: `ai-agents/tasks/done/s4-profile-04e1-build-push-digest.md`
+**Source**: `ai-agents/tasks/done/0177-profile-04e1-build-push-digest/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T4e1
 

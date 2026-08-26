@@ -1,6 +1,6 @@
 # Review ledger — s4-profile-04g
 
-Task: `ai-agents/tasks/backlog/s4-profile-04g-argv-concurrency-hardening.md`
+Task: `ai-agents/tasks/done/0183-profile-04g-argv-concurrency-hardening/brief.md`
 File(s) under review: `build-deploy-profile.sh`, `build-deploy-telemetry.sh`,
 `setup-profile.sh`, `setup-telemetry.sh`, `tests/scripts/profile-deploy-hardening.test.sh`
 Status: **CLOSED OUT — converged, no open defects.** R1 (C1/C2/F2 residuals, F3/F4 non-issues, F1 cheap fix) → **F1 RESOLVED R2 (`/process-review`, user-approved)** → **R3 `/stateful-review`** re-verified the R2 fix clean (both reviewers) + raised **C3** (residual) & **F-NEW-1** (pre-existing) → **R3 `/process-review`** independently confirmed C3/F-NEW-1, did **not** re-litigate C1/C2/F2/F3/F4, and **called closeout (user-approved)**. F-NEW-1 deferred to a future telemetry-hardening task.

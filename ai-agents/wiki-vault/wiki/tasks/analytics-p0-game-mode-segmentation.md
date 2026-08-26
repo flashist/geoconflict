@@ -1,6 +1,6 @@
 # Analytics P0: Game Mode Segmentation
 
-**Source**: `ai-agents/tasks/done/analytics-p0-game-mode-segmentation.md`
+**Source**: `ai-agents/tasks/done/0146-analytics-p0-game-mode-segmentation/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / analytics P0
 

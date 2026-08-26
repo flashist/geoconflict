@@ -1,6 +1,6 @@
 # Profile API URL Game-Server Deploy Env
 
-**Source**: `ai-agents/tasks/done/s4-profile-04h-game-server-deploy-env.md`
+**Source**: `ai-agents/tasks/done/0184-profile-04h-game-server-deploy-env/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T4h
 

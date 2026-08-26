@@ -1,6 +1,6 @@
 # Profile Image Secret Byte Scan
 
-**Source**: `ai-agents/tasks/done/s4-profile-04f-image-secret-scan.md`
+**Source**: `ai-agents/tasks/done/0181-profile-04f-image-secret-scan/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T4f
 

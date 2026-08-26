@@ -41,7 +41,7 @@ the secret key, or Yandex payments in any form.** Its real dependencies:)*
   seam established in `0019` (documented no-op until `0012` ships), rather than blocking on `0012`.
   Same shape the owner approved at the `0019` plan gate (2026-08-14). Verification 3 executes when
   `0012` lands.
-- **Citizenship XP Progress UI** — ✅ Done (`s4-citizenship-xp-progress-ui.md`); no longer a blocker.
+- **Citizenship XP Progress UI** — ✅ Done (`0191-citizenship-xp-progress-ui`); no longer a blocker.
 
 ## Context
 

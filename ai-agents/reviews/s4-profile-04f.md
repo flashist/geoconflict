@@ -1,6 +1,6 @@
 # Review ledger — s4-profile-04f
 
-Task: `ai-agents/tasks/backlog/s4-profile-04f-image-secret-scan.md`
+Task: `ai-agents/tasks/done/0181-profile-04f-image-secret-scan/brief.md`
 File(s) under review (PR #123, branch `s4-profile-04f-image-secret-scan` vs `dev`):
 - `scripts/check-docker-secret-boundary.sh` — extended ~68→244 lines: adds the authoritative
   per-layer byte scan (`inspect_image_bytes`) and demotes the Dockerfile COPY/ADD heuristic to a

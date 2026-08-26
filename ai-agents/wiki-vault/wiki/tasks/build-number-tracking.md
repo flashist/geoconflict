@@ -1,6 +1,6 @@
 # Build Number Tracking
 
-**Source**: `ai-agents/tasks/done/hotfix-hf7-build-number.md`
+**Source**: `ai-agents/tasks/done/0097-build-number/brief.md`
 **Status**: done
 **Sprint/Tag**: Post-Sprint 2 hotfix / HF-7
 

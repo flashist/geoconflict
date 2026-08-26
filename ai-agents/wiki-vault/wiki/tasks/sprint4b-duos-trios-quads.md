@@ -1,6 +1,6 @@
 # Re-enable Duos/Trios/Quads Modes
 
-**Source**: `ai-agents/tasks/done/sprint4b-duos-trios-quads.md`
+**Source**: `ai-agents/tasks/done/0153-duos-trios-quads/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4b
 

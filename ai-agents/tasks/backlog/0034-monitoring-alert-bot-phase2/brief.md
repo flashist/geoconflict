@@ -63,7 +63,7 @@ conditions to the existing dedup/state/digest path — it does not introduce a s
 
 5. **Addition — backup-job health.** Alert if the **daily** PostgreSQL backup cron didn't run,
    failed, or the newest backup is stale. A silently-stopped backup is invisible to size-based
-   disk checks and is a latent data-loss risk. The profile backup (`s4-postgres-backup-routine.md`,
+   disk checks and is a latent data-loss risk. The profile backup (`0189-postgres-backup-routine`,
    T8) is **daily off-box** and leaves no local SQL file to age-check; instead read its
    machine-readable marker `/opt/profile/backups/last-backup.json` — alert if `exit_status != 0`
    or `finished_at` is older than ~26–30h (i.e. a daily run was missed). The telemetry box keeps

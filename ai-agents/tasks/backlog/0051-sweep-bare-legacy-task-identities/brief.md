@@ -58,18 +58,29 @@ Lines 53, 79 and 108 of the impact document all use the elision grammar. Line 16
 write each member fully qualified, so they are structurally safer — but they are still hand-work, not
 substitution targets, because the surrounding sentences reason about the tasks by name.
 
-### ⚠️ Why this waits for `0003`
+### `0003` has landed — the done-board members now resolve (re-briefed 2026-08-26, owner-ruled)
 
-Those same lists mix **backlog** members with **done-board** members. On impact line 108,
-`-profile-05` resolves to `s4-profile-05-backend-db-api.md`, which still lives in
-`ai-agents/tasks/done/` — a name `0003` migrates. Impact line 53 mixes `s4-profile-03 (done)`,
-`-05`, `-06`, `-04/04h` with the backlog names. Impact line 167 cites
-`s4-postgres-backup-routine.md` (done board) and `s4-profile-08-backups.md` (a brief that was
-*removed*, not migrated).
+This brief originally waited for `0003` because those same lists mix **backlog** members with
+**done-board** members, and sweeping first would have meant editing the same lines twice. `0003`
+closed on 2026-08-25 (agent-closed), so the dependency is satisfied. The done-board names the lists
+cite now resolve as follows (full 119-row map: `ai-agents/tasks/done/0003-migrate-done-cancelled-tasks-to-folders/worklog.md`):
 
-Sweeping before `0003` means editing the same lines twice and getting the done-board members wrong on
-the first pass. This residual is already recorded as accepted in `0002`'s `review.md`; this brief is
-what makes it actionable, in the right order.
+| Legacy name as written | Where | Now |
+|---|---|---|
+| `s4-profile-03` | impact :53 | `0170-profile-03-yandex-identity` |
+| `-04` (of `-04/04h`) | impact :53 | `0172-profile-04-backend-infra` |
+| `04h` (of `-04/04h`) | impact :53 | `0184-profile-04h-game-server-deploy-env` |
+| `-05` / `-profile-05` | impact :53, :79, :108 | `0185-profile-05-backend-db-api` |
+| `-06` / `-profile-06` | impact :53, :79 | `0188-profile-06-match-end-crediting` |
+| `s4-postgres-backup-routine` | impact :167 | `0189-postgres-backup-routine` — the line already names the new ID alongside the old |
+| `s4-profile-08-backups` | impact :167 | **no target** — that brief was *removed* on 2026-06-29, never migrated; keep the historical name (step 5) |
+
+Note impact line 79 also uses the elision grammar and mixes done-board members (`-profile-05`,
+`-profile-06`) — it is not in the occurrence table above because it was counted under `0002`'s
+single backlog name; treat it as a whole-list rewrite like lines 53 and 108.
+
+This residual was recorded as accepted in `0002`'s `review.md`; this brief is what makes it
+actionable.
 
 ### Two bare identities that are CORRECT and must not be "fixed"
 
@@ -129,11 +140,11 @@ desynchronize a document's title from its own name to fix a reference that does 
 
 ## Notes
 
-- **Depends on:** 0003
+- **Depends on:** 0003 — **satisfied** (0003 closed 2026-08-25, agent-closed; this task is pullable)
 - **Blocks:** nothing
 
-- **The dependency is hard, not advisory.** Running before `0003` produces wrong edits on the
-  done-board members, then requires a second pass over the same lines.
+- **The dependency was hard, not advisory.** Running before `0003` would have produced wrong edits on
+  the done-board members, then required a second pass over the same lines. It is now met.
 - Coder-owned: it is a mechanical-looking edit that is specifically **not** mechanizable, which is
   exactly the judgement the coder seat carries. It touches no source code — only two knowledge-base
   documents.

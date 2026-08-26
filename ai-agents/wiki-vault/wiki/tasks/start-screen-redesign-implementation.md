@@ -1,6 +1,6 @@
 # Start Screen Redesign Implementation
 
-**Source**: `ai-agents/tasks/done/s4-start-screen-redesign-impl.md`
+**Source**: `ai-agents/tasks/done/0166-start-screen-redesign-impl/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 UI foundation
 

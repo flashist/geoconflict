@@ -1,6 +1,6 @@
 # VPS Access Audit And Host Hardening
 
-**Source**: `ai-agents/tasks/done/sec03-vps-access-audit-and-hardening.md`
+**Source**: `ai-agents/tasks/done/0132-vps-access-audit-and-hardening/brief.md`
 **Status**: done
 **Sprint/Tag**: Security incident
 

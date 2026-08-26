@@ -1,6 +1,6 @@
 # Profile Backend VPS Provisioning
 
-**Source**: `ai-agents/tasks/done/s4-profile-04d-vps-provisioning.md`, `ai-agents/knowledge-base/s4-profile-04d-ru-residency-review-finding-2026-06-20.md`
+**Source**: `ai-agents/tasks/done/0176-profile-04d-vps-provisioning/brief.md`, `ai-agents/knowledge-base/s4-profile-04d-ru-residency-review-finding-2026-06-20.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T4d
 

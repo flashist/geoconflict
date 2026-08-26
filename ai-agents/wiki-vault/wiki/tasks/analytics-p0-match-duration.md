@@ -1,6 +1,6 @@
 # Analytics P0: Match Duration
 
-**Source**: `ai-agents/tasks/done/analytics-p0-match-duration.md`
+**Source**: `ai-agents/tasks/done/0147-analytics-p0-match-duration/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / analytics P0
 

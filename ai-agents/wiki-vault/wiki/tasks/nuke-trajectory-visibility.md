@@ -1,6 +1,6 @@
 # Nuke Pre-Launch Trajectory Visibility
 
-**Source**: `ai-agents/tasks/done/s4-nuke-trajectory-visibility.md`
+**Source**: `ai-agents/tasks/done/0143-nuke-trajectory-visibility/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4
 

@@ -6,7 +6,7 @@ Hotfix release between Sprint 2 and Sprint 3. These tasks are small, low-risk, a
 
 ## HF-1. Experiment Flag Analytics
 **Effort:** 2–3 hours
-**Brief:** `task-experiment-analytics.md`
+**Brief:** `0092-experiment-analytics`
 **Status:** ✅ Done
 
 Fire `Experiment:Tutorial:Enabled` and `Experiment:Tutorial:Disabled` at the Yandex experiment flag evaluation point in `Main.ts`. Unblocks control group funnel analysis. Every day without this fix is unrecoverable lost data.
@@ -17,7 +17,7 @@ Also establishes the required `Experiment:{Name}:{Variant}` convention for all f
 
 ## HF-2. Tutorial Skip Button — Inline Link
 **Effort:** 1–2 hours
-**Brief:** `hotfix-tutorial-skip-visibility.md`
+**Brief:** `0095-tutorial-skip-visibility`
 **Status:** ✅ Done
 
 Add a secondary "Skip tutorial" text link directly below the "Got it" button inside each tooltip modal. Plain white underlined text, visually subordinate to the primary action. Wired to the existing `skipTutorial()` method. Corner button remains in place.
@@ -28,7 +28,7 @@ Add a secondary "Skip tutorial" text link directly below the "Got it" button ins
 
 ## HF-3. UI Tap Analytics — `UI:Tap:{ElementId}`
 **Effort:** 2–3 hours
-**Brief:** `hotfix-hf3-ui-tap-analytics.md`
+**Brief:** `0093-ui-tap-analytics`
 **Status:** ✅ Done
 
 Establish `UI:Tap:{ElementId}` as the standard convention for tracking UI element interactions, and instrument the first two elements immediately.
@@ -59,7 +59,7 @@ Establish `UI:Tap:{ElementId}` as the standard convention for tracking UI elemen
 
 ## HF-4. Mobile Control Panel Hit Area Bug
 **Effort:** 1–2 hours
-**Brief:** `hotfix-hf4-control-panel-hit-area.md`
+**Brief:** `0094-control-panel-hit-area`
 **Status:** ✅ Done
 
 Critical mobile bug. The `control-panel` container has a full-width hit area on mobile even though its visible content is only ~320px wide. The transparent right portion intercepts all touch events, blocking map interactions on the right half of the screen for all mobile players in all match types.
@@ -70,7 +70,7 @@ Fix: `pointer-events: none` on the container with `pointer-events: auto` restore
 
 ## HF-5. Win Condition Detection Bug
 **Effort:** 1–3 days (investigation + fix; scope depends on root cause)
-**Brief:** `hotfix-hf5-win-condition-bug.md`
+**Brief:** `0096-win-condition-bug`
 **Status:** ✅ Done
 
 Critical retention bug. Players completing singleplayer missions after 30–60 minutes report the win dialogue never appears. Root cause unknown — structured as Part A (investigation) then Part B (fix).
@@ -83,7 +83,7 @@ Part A must complete before any code is written.
 
 ## HF-6. Auto-Spawn Failure — Player Stuck Unable to Place
 **Effort:** 1–2 days (investigation + fix)
-**Brief:** `task-autospawn-bug-investigation.md`
+**Brief:** `0102-autospawn-bug-investigation`
 **Status:** ✅ Done
 
 Root cause confirmed: auto-spawn was firing during the client catch-up fast-forward window (for late joiners), before the client was in sync with the server. The spawn intent was sent but rejected server-side, while the client marked itself as already having attempted — leaving the player permanently stuck. Affected ~0.36% of spawn sessions (1 in 275).
@@ -96,7 +96,7 @@ Fix: auto-spawn now waits until fast-forward is fully complete before sending th
 
 ## HF-7. Build Number Tracking via GameAnalytics Custom Dimension
 **Effort:** 1–2 hours
-**Brief:** `hotfix-hf7-build-number.md`
+**Brief:** `0097-build-number`
 **Status:** ✅ Done
 
 Without build segmentation, any metric change after a deployment is unattributable. Especially critical right now with the tutorial experiment running across multiple deployments.
@@ -111,7 +111,7 @@ Implementation: configure Custom Dimension 01 in the GameAnalytics dashboard, de
 
 ## HF-8. Tutorial Attempt Number on Tutorial:Started Event
 **Effort:** 1–2 hours
-**Brief:** `hotfix-hf8-tutorial-attempt-count.md`
+**Brief:** `0098-tutorial-attempt-count`
 **Status:** ✅ Done
 **Depends on:** HF-7 — deploy after build number tracking so attempt data is immediately segmentable by build
 
@@ -121,7 +121,7 @@ Extends `Tutorial:Started` with a lifetime attempt count as the event value. A n
 
 ## HF-9. Remove `#refresh` History Push for All Non-Tutorial Game Types
 **Effort:** 30 minutes
-**Brief:** `hotfix-hf9-remove-refresh-push.md`
+**Brief:** `0099-remove-refresh-push`
 **Status:** ✅ Done
 **Context:** PR #45 (merged & deployed) fixed the double-reload for tutorial games. This task completes the fix for all remaining game types by removing the `#refresh` push entirely — it was part of a two-step history pattern whose second step (`#join=gameID`) is disabled for all game types in this codebase.
 
@@ -131,7 +131,7 @@ One-line change: delete the `history.pushState` block in `handleJoinLobby()` in 
 
 ## HF-10. Cache Busting & Build Freshness Guarantee
 **Effort:** 2–4 hours (investigation + config changes)
-**Brief:** `hotfix-hf10-cache-busting.md`
+**Brief:** `0100-cache-busting`
 **Status:** Pending — critical, include in next release
 
 Players are running stale cached builds, reporting analytics under old or missing build numbers and potentially still experiencing already-fixed bugs. Three-part fix: (A) investigate current cache configuration, (B) add content hash to bundle filenames so changed bundles get new URLs, (C) set `Cache-Control: no-cache` on the HTML entry point so it is always fetched fresh. Also confirm whether Yandex Games has its own CDN caching layer that requires a separate invalidation step on publish.

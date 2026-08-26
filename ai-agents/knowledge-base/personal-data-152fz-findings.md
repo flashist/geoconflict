@@ -1,10 +1,10 @@
 # 152-ФЗ Personal-Data Compliance — Investigation Findings & Decision
 
-> **⛔ INVALIDATED 2026-06-28 — DO NOT RELY ON THIS DOCUMENT.** Further investigation found the core conclusion below is **wrong**: hashing the Yandex ID does **NOT** remove the 152-ФЗ notification/consent obligation. It only added support/development complexity for no legal benefit. The implementation task is **cancelled** (`ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md`, PR #127 reverted). **152-ФЗ is unresolved; the compliance work is deferred to the backlog sprint** (`ai-agents/tasks/backlog/0048-compliance-152fz-notification-consent/brief.md`) with **risk explicitly accepted** (Mark, 2026-06-28) — likely Roskomnadzor notification + consent. Everything below is kept only as a record of the overturned decision.
+> **⛔ INVALIDATED 2026-06-28 — DO NOT RELY ON THIS DOCUMENT.** Further investigation found the core conclusion below is **wrong**: hashing the Yandex ID does **NOT** remove the 152-ФЗ notification/consent obligation. It only added support/development complexity for no legal benefit. The implementation task is **cancelled** (`ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, PR #127 reverted). **152-ФЗ is unresolved; the compliance work is deferred to the backlog sprint** (`ai-agents/tasks/backlog/0048-compliance-152fz-notification-consent/brief.md`) with **risk explicitly accepted** (Mark, 2026-06-28) — likely Roskomnadzor notification + consent. Everything below is kept only as a record of the overturned decision.
 
 **Status:** ~~Investigation complete. Decision locked with Mark 2026-06-26.~~ **Overturned 2026-06-28 — see banner above.**
-**Source task:** `ai-agents/tasks/done/s4-personal-data-compliance-investigation.md`
-**Implementation task (cancelled):** `ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md`
+**Source task:** `ai-agents/tasks/done/0186-personal-data-compliance-investigation/brief.md`
+**Implementation task (cancelled):** `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`
 
 ---
 
@@ -97,7 +97,7 @@ implementation task):
 - The 152-ФЗ **legal/investigation gate is resolved** by this decision (no Roskomnadzor notification
   + consent flow needed for the *hashed* identity, pending the open items).
 - The new gate on **profile-store production go-live** becomes **implementing the hashing**
-  (`s4-profile-hash-player-ids.md`). Real raw IDs must not be persisted, so hashing must be in place
+  (`0187-profile-hash-player-ids`). Real raw IDs must not be persisted, so hashing must be in place
   **before T6 credits real players in production**. Because the profile box (T4) and DB/API (T5) just
   went live but have little/no real data yet, **this is the cheap moment to make the change** —
   before real profiles accumulate.

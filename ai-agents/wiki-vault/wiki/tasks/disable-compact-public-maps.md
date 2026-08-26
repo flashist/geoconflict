@@ -1,6 +1,6 @@
 # Disable Compact Public Maps
 
-**Source**: `ai-agents/tasks/done/s4c-disable-compact-public-maps.md`
+**Source**: `ai-agents/tasks/done/0162-disable-compact-public-maps/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4c / Sprint 4b regression
 

@@ -1,6 +1,6 @@
 # Deployment Credential Model Hardening
 
-**Source**: `ai-agents/tasks/done/sec05-deployment-credential-model-hardening.md`
+**Source**: `ai-agents/tasks/done/0134-deployment-credential-model-hardening/brief.md`
 **Status**: done
 **Sprint/Tag**: Security incident
 

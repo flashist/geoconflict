@@ -1,6 +1,6 @@
 # Tutorial — Reduce Bot Count from 400 to 100
 
-**Source**: `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`
+**Source**: `ai-agents/tasks/done/0123-tutorial-reduce-bots/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4
 

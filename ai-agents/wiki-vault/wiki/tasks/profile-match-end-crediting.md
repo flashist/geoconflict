@@ -1,6 +1,6 @@
 # Profile Match-End Crediting
 
-**Source**: `ai-agents/tasks/done/s4-profile-06-match-end-crediting.md`
+**Source**: `ai-agents/tasks/done/0188-profile-06-match-end-crediting/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T6
 

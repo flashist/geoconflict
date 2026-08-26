@@ -10,7 +10,7 @@ Sprint 4's citizenship, payments, and player profile store track remains paused 
 The sprint is driven by the 2026-05-07 Uptrace error-priority review, which found cosmetics/config failures, singleplayer local hash crashes, archive endpoint/body-limit failures, lobby/map fetch failures, client null-id errors, and mobile WebGL failures as the most actionable production error families.
 
 Source: `ai-agents/sprints/done/plan-sprint-4c.md` *(the plan was archived to `sprints/done/` on 2026-08-24 — all rows terminal, sprint closed; content unchanged)*
-Follow-up sources: `ai-agents/knowledge-base/plan-fix-archive-endpoint.md`, `ai-agents/knowledge-base/report-archive-endpoint-task-split-2026-06-01.md`, `ai-agents/sprints/sprint-backlog.md`, `ai-agents/tasks/done/s4c-investigate-lobby-map-fetch.md`, `ai-agents/knowledge-base/lobby-map-fetch-investigation-2026-06-03.md`, `ai-agents/tasks/done/s4c-enable-client-source-maps.md`
+Follow-up sources: `ai-agents/knowledge-base/plan-fix-archive-endpoint.md`, `ai-agents/knowledge-base/report-archive-endpoint-task-split-2026-06-01.md`, `ai-agents/sprints/sprint-backlog.md`, `ai-agents/tasks/done/0163-investigate-lobby-map-fetch/brief.md`, `ai-agents/knowledge-base/lobby-map-fetch-investigation-2026-06-03.md`, `ai-agents/tasks/done/0164-enable-client-source-maps/brief.md`
 
 ## Decision
 

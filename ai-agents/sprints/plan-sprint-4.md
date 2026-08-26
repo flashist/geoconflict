@@ -22,28 +22,28 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 
 | Status | Priority | Task | Brief |
 |---|---|---|---|
-| ✅ Done | — | Investigation A — Player Profile Store | [`sprint4-investigation-player-store.md`](../tasks/done/sprint4-investigation-player-store.md) |
-| ✅ Done | — | Investigation B — Yandex Payments Catalog | [`sprint4-investigation-yandex-payments.md`](../tasks/done/sprint4-investigation-yandex-payments.md) |
-| ✅ Done | — | 8d-A. Global Announcements Re-enable | [`8d-a-task-global-announcements.md`](../tasks/done/8d-a-task-global-announcements.md) |
+| ✅ Done | — | Investigation A — Player Profile Store | [`0124-investigation-player-store`](../tasks/done/0124-investigation-player-store/brief.md) |
+| ✅ Done | — | Investigation B — Yandex Payments Catalog | [`0125-investigation-yandex-payments`](../tasks/done/0125-investigation-yandex-payments/brief.md) |
+| ✅ Done | — | 8d-A. Global Announcements Re-enable | [`0126-global-announcements`](../tasks/done/0126-global-announcements/brief.md) |
 | 🚧 Blocked — awaiting Yandex catalog approval | — | Yandex Catalog Registration (manual, non-engineering; owner-ruled 2026-08-14: was `⚠️ Urgent`, urgency is not a status) | [`0014-yandex-catalog-registration`](../tasks/backlog/0014-yandex-catalog-registration/brief.md) |
-| ✅ Done | — | Solo Mode: Opponent Win Condition Not Triggering Loss | [`s4-solo-win-condition-fix.md`](../tasks/done/s4-solo-win-condition-fix.md) |
-| ✅ Done | — | Fix: Space Key Blocked in Feedback Modal During Match | [`s4-feedback-modal-space-key.md`](../tasks/done/s4-feedback-modal-space-key.md) |
+| ✅ Done | — | Solo Mode: Opponent Win Condition Not Triggering Loss | [`0140-solo-win-condition-fix`](../tasks/done/0140-solo-win-condition-fix/brief.md) |
+| ✅ Done | — | Fix: Space Key Blocked in Feedback Modal During Match | [`0165-feedback-modal-space-key`](../tasks/done/0165-feedback-modal-space-key/brief.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | Feedback Popup: Remove Email/Contact Field *(152-ФЗ data minimization; client + server + en/ru)* | [`0046-feedback-remove-contact-field`](../tasks/done/0046-feedback-remove-contact-field/brief.md) |
-| ✅ Done | — | Investigation — Missions Mode Difficulty Curve | [`s4-missions-difficulty-investigation.md`](../tasks/done/s4-missions-difficulty-investigation.md) |
-| ✅ Done | — | Nuke Pre-Launch Trajectory: Increase Line Thickness | [`s4-nuke-trajectory-visibility.md`](../tasks/done/s4-nuke-trajectory-visibility.md) |
+| ✅ Done | — | Investigation — Missions Mode Difficulty Curve | [`0142-missions-difficulty-investigation`](../tasks/done/0142-missions-difficulty-investigation/brief.md) |
+| ✅ Done | — | Nuke Pre-Launch Trajectory: Increase Line Thickness | [`0143-nuke-trajectory-visibility`](../tasks/done/0143-nuke-trajectory-visibility/brief.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | Map Labels: Show Troops/Max + Attacking Troops *(live-validated singleplayer only — multiplayer parity, exact-zero case, dark-territory legibility not demonstrated live)* | [`0041-map-population-army-labels`](../tasks/done/0041-map-population-army-labels/brief.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | Public Modifier: Add "5M Starting Gold" *(standalone variety modifier; decoupled from infinite-gold task 2026-06-20)* | [`0042-starting-gold-public-modifier`](../tasks/done/0042-starting-gold-public-modifier/brief.md) |
-| ✅ Done | — | Teams Mode: Cap Maximum Teams at 4 | [`s4-teams-mode-max-teams.md`](../tasks/done/s4-teams-mode-max-teams.md) |
-| ✅ Done | — | Start Screen Redesign — Tab Layout Investigation (design) | [`s4-start-screen-redesign-investigation.md`](../tasks/done/s4-start-screen-redesign-investigation.md) |
-| ✅ Done | — | Start Screen Redesign — Implementation | [`s4-start-screen-redesign-impl.md`](../tasks/done/s4-start-screen-redesign-impl.md) |
-| ✅ Done | — | App Bootstrap — Single Explicit Entry Point *(client boot-path refactor)* | [`s4-app-bootstrap-single-entry-point.md`](../tasks/done/s4-app-bootstrap-single-entry-point.md) |
+| ✅ Done | — | Teams Mode: Cap Maximum Teams at 4 | [`0144-teams-mode-max-teams`](../tasks/done/0144-teams-mode-max-teams/brief.md) |
+| ✅ Done | — | Start Screen Redesign — Tab Layout Investigation (design) | [`0139-start-screen-redesign-investigation`](../tasks/done/0139-start-screen-redesign-investigation/brief.md) |
+| ✅ Done | — | Start Screen Redesign — Implementation | [`0166-start-screen-redesign-impl`](../tasks/done/0166-start-screen-redesign-impl/brief.md) |
+| ✅ Done | — | App Bootstrap — Single Explicit Entry Point *(client boot-path refactor)* | [`0167-app-bootstrap-single-entry-point`](../tasks/done/0167-app-bootstrap-single-entry-point/brief.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | Player Profile Store — Implementation *(epic; T1 ✅, T3 ✅; T2+T7 ⛔ cancelled 2026-06-13 — guest-first dropped, now authenticated-only; T4 ✅ complete + T5 ✅ done 2026-06-24 (box live at api.geoconflict.ru; profile DB+API PR #126); T6 ✅; T8 ✅ — all slices complete. Closed 2026-08-24 by owner ruling relayed via the lead session; remaining prod substance lives in `0062` and the live tails, not this epic)* | [`0013-player-profile-store-impl`](../tasks/done/0013-player-profile-store-impl/brief.md) |
-| ✅ Done | — | PostgreSQL Backup Routine (Profile Store) — off-box, daily *(must be live before Paid Citizenship)* | [`s4-postgres-backup-routine.md`](../tasks/done/s4-postgres-backup-routine.md) |
-| ✅ Done | — | Personal-Data Compliance (152-ФЗ) — Investigation *(conclusion OVERTURNED 2026-06-28: hashing doesn't remove the obligation. 152-ФЗ work **deferred to backlog** → `0048-compliance-152fz-notification-consent`, risk accepted; no longer gates Sprint 4.)* | [`s4-personal-data-compliance-investigation.md`](../tasks/done/s4-personal-data-compliance-investigation.md) |
-| ⛔ Cancelled (2026-06-28) — hashing does not remove the 152-ФЗ obligation; PR #127 reverted | — | Profile Store: Pseudonymize Player Identity — store an irreversible hash, not the raw Yandex ID *(152-ФЗ deferred to backlog → `0048-compliance-152fz-notification-consent`, risk accepted)* | [`s4-profile-hash-player-ids.md`](../tasks/cancelled/s4-profile-hash-player-ids.md) |
+| ✅ Done | — | PostgreSQL Backup Routine (Profile Store) — off-box, daily *(must be live before Paid Citizenship)* | [`0189-postgres-backup-routine`](../tasks/done/0189-postgres-backup-routine/brief.md) |
+| ✅ Done | — | Personal-Data Compliance (152-ФЗ) — Investigation *(conclusion OVERTURNED 2026-06-28: hashing doesn't remove the obligation. 152-ФЗ work **deferred to backlog** → `0048-compliance-152fz-notification-consent`, risk accepted; no longer gates Sprint 4.)* | [`0186-personal-data-compliance-investigation`](../tasks/done/0186-personal-data-compliance-investigation/brief.md) |
+| ⛔ Cancelled (2026-06-28) — hashing does not remove the 152-ФЗ obligation; PR #127 reverted | — | Profile Store: Pseudonymize Player Identity — store an irreversible hash, not the raw Yandex ID *(152-ФЗ deferred to backlog → `0048-compliance-152fz-notification-consent`, risk accepted)* | [`0187-profile-hash-player-ids`](../tasks/cancelled/0187-profile-hash-player-ids/brief.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | Yandex Payments — Catalog Fetch & Purchase Infrastructure | [`0019-yandex-payments-impl`](../tasks/done/0019-yandex-payments-impl/brief.md) |
-| ✅ Done | — | Citizenship Core — XP Counter & Progress UI | [`s4-citizenship-xp-progress-ui.md`](../tasks/done/s4-citizenship-xp-progress-ui.md) |
-| ✅ Done | — | Citizenship Card: Login CTA Is a Dead Button Outside a Yandex Context | [`s4-citizenship-card-guest-cta-no-sdk.md`](../tasks/done/s4-citizenship-card-guest-cta-no-sdk.md) |
+| ✅ Done | — | Citizenship Core — XP Counter & Progress UI | [`0191-citizenship-xp-progress-ui`](../tasks/done/0191-citizenship-xp-progress-ui/brief.md) |
+| ✅ Done | — | Citizenship Card: Login CTA Is a Dead Button Outside a Yandex Context | [`0190-citizenship-card-guest-cta-no-sdk`](../tasks/done/0190-citizenship-card-guest-cta-no-sdk/brief.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | Degraded-Mode UX: Give Yandex SDK Timeout/Failure Its Own Player-Facing Treatment *(moved in from Sprint backlog 2026-07-02 — Mark: must ship before Citizenship Earned/Paid go live)* | [`0049-degraded-mode-full-ux-treatment`](../tasks/done/0049-degraded-mode-full-ux-treatment/brief.md) |
 | 🚧 Blocked — built + reviewed (local scope); open pending the `0062`-gated Deferred Live Tail incl. `0054` flip-ON | — | Citizenship Core — Earned Citizenship *(**re-scoped 2026-08-23, owner-ruled: "don't block on Yandex externals" — build + verify against the LOCAL profile stack now** (profile server + Postgres via Docker, `RUN_DB_TESTS=1`). `0062` stays real but gates only the brief's **Deferred Live Tail** (prod XP accrual, live grant, `0054` flip-ON) — ⚠️ the task must not be closed until that tail runs. Never depended on `0014`/Yandex. Degraded-mode gate cleared: `0049` Done)* | [`0017-citizenship-earned`](../tasks/backlog/0017-citizenship-earned/brief.md) |
 | 🚧 Blocked — built + reviewed (mock scope); open pending `0065` | — | Citizenship Core — Paid Citizenship *(**re-scoped 2026-08-23, owner-ruled: "don't block on Yandex externals" — now the MOCK-BUILDABLE scope only**: purchase flow, grant, reconciliation UI against a mocked SDK catalog with fake product data on `0019`'s `PaymentsContract`/`PaymentsApiClient` seam, verified by tests + local runs. Both former blockers — `0062` and catalog approval (`0014`) — are real but now gate the split-out live tail `0065`, not this build. Does NOT go live from this task)* | [`0018-citizenship-paid`](../tasks/backlog/0018-citizenship-paid/brief.md) |
@@ -53,17 +53,17 @@ Launch the citizenship system and in-app purchase foundation. Give loyal players
 | 🔲 Backlog | — | Investigate & Fix Client Null-ID Errors *(stabilization follow-up; needs source maps + deployed archive fix)* | [`0032-investigate-null-id-errors`](../tasks/backlog/0032-investigate-null-id-errors/brief.md) |
 | 🔲 Backlog | — | Name Change (Citizens Only) *(scoped 2026-08-24, owner-ruled — request → moderation → apply loop; inbox hooks stay seams per `0012`'s deferral)* | [`0067-name-change-citizens-only`](../tasks/backlog/0067-name-change-citizens-only/brief.md) |
 | 🔲 Backlog | — | Citizen Verified Icon *(scoped 2026-08-24, owner-ruled — server-sourced `isCitizen` flag + icon in lobby and match player lists; design TBD, placeholder glyph)* | [`0068-citizen-verified-icon`](../tasks/backlog/0068-citizen-verified-icon/brief.md) |
-| ⛔ Cancelled (2026-04-21) — created too many bugs; cancelled forever, though a similar task might return someday (owner-supplied reason, 2026-08-14) | — | Humans vs Nations — Balance Nation Count *(date recovered from plan edit `e7e1b12`)* | [`s4-nations-balance-task.md`](../tasks/cancelled/s4-nations-balance-task.md) |
-| ✅ Done | — | AI Lobby Slot Bug — Always Keep One Slot Free | [`s4-ai-lobby-slot-bug.md`](../tasks/done/s4-ai-lobby-slot-bug.md) |
+| ⛔ Cancelled (2026-04-21) — created too many bugs; cancelled forever, though a similar task might return someday (owner-supplied reason, 2026-08-14) | — | Humans vs Nations — Balance Nation Count *(date recovered from plan edit `e7e1b12`)* | [`0119-nations-balance`](../tasks/cancelled/0119-nations-balance/brief.md) |
+| ✅ Done | — | AI Lobby Slot Bug — Always Keep One Slot Free | [`0117-ai-lobby-slot-bug`](../tasks/done/0117-ai-lobby-slot-bug/brief.md) |
 | 🔄 In progress | — | Asset audit: confirm no proprietary/CDN assets in production bundle *(**audit complete 2026-08-23** — findings: [`s4-licensing-asset-audit-findings.md`](../knowledge-base/reports/s4-licensing-asset-audit-findings.md) — verdict: 1 confirmed violation (V1: All-Rights-Reserved music ships to the prod web root), 1 trademark item (A1: live favicon is OpenFront's brand mark), 3 hygiene items; remediation filed as `0066`, owner-approved same day — **`0066` shipped to done 2026-08-24 (agent-closed; NOT yet deployed)**. Row stays In progress: the close routes through the producer's mover skill and the owner may want the report first. Annotation history: corrected 2026-08-23 — this task GATES the paid go-live (`0065`'s flip-ON), it never waited on citizenship)* | [`0025-licensing-asset-audit`](../tasks/backlog/0025-licensing-asset-audit/brief.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | Licensing Remediation: Purge Proprietary Music + Replace OpenFront Favicon + Retarget JWT Fallbacks *(**from the `0025` audit; all three scope items owner-approved 2026-08-23.** Built + review converged 2026-08-24; V1 music purge — zero gameplay impact, game never plays them. **`0065`'s flip-ON gate is "`0066` DEPLOYED to prod" — deployment has NOT happened; closing this row does not clear that gate.** ⚠️ Prod-redeploy checks still pending owner-side (music URLs 404, favicon live, Dockerfile proof) — recorded in the worklog. A1 favicon = ORIGINAL placeholder now, proper design later — follow-up noted in brief, no design task)* | [`0066-licensing-remediation-proprietary-purge`](../tasks/done/0066-licensing-remediation-proprietary-purge/brief.md) |
-| ⛔ Cancelled (2026-04-18) — created too many implementation problems | — | Tutorial — Pause During Action-Required Steps | [`s4-tutorial-action-pause.md`](../tasks/cancelled/s4-tutorial-action-pause.md) |
-| ✅ Done | — | Tutorial — Remove Nations, Keep Only Bots | [`s4-tutorial-no-nations.md`](../tasks/done/s4-tutorial-no-nations.md) |
-| ✅ Done | — | Tutorial — Lock Build Menu to City During Tooltip 5 | [`s4-tutorial-build-menu-lock.md`](../tasks/done/s4-tutorial-build-menu-lock.md) |
-| ✅ Done | — | Tutorial — Reduce Bot Count from 400 to 100 | [`s4-tutorial-reduce-bots.md`](../tasks/done/s4-tutorial-reduce-bots.md) |
-| ✅ Done | — | Email Subscription Modal | [`s4-email-subscribe-task.md`](../tasks/done/s4-email-subscribe-task.md) |
-| ✅ Done | — | Telegram Channel Link (start screen, game-end screen) | [`s4-telegram-link.md`](../tasks/done/s4-telegram-link.md) |
-| ✅ Done | — | VK Channel Link (start screen, game-end screen) | [`s4-vk-link.md`](../tasks/done/s4-vk-link.md) |
+| ⛔ Cancelled (2026-04-18) — created too many implementation problems | — | Tutorial — Pause During Action-Required Steps | [`0120-tutorial-action-pause`](../tasks/cancelled/0120-tutorial-action-pause/brief.md) |
+| ✅ Done | — | Tutorial — Remove Nations, Keep Only Bots | [`0122-tutorial-no-nations`](../tasks/done/0122-tutorial-no-nations/brief.md) |
+| ✅ Done | — | Tutorial — Lock Build Menu to City During Tooltip 5 | [`0121-tutorial-build-menu-lock`](../tasks/done/0121-tutorial-build-menu-lock/brief.md) |
+| ✅ Done | — | Tutorial — Reduce Bot Count from 400 to 100 | [`0123-tutorial-reduce-bots`](../tasks/done/0123-tutorial-reduce-bots/brief.md) |
+| ✅ Done | — | Email Subscription Modal | [`0127-email-subscribe`](../tasks/done/0127-email-subscribe/brief.md) |
+| ✅ Done | — | Telegram Channel Link (start screen, game-end screen) | [`0141-telegram-link`](../tasks/done/0141-telegram-link/brief.md) |
+| ✅ Done | — | VK Channel Link (start screen, game-end screen) | [`0145-vk-link`](../tasks/done/0145-vk-link/brief.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | Hide Citizenship Card on Start Screen Behind a Client Config Flag (Default OFF) *(interim until 0017/0018 ship; flag flips ON at citizenship launch)* | [`0054-hide-citizenship-card-behind-client-flag`](../tasks/done/0054-hide-citizenship-card-behind-client-flag/brief.md) |
 | ✅ Done (agent-closed — not owner-verified) | — | `Master.ts`: Serve a Parseable Lobbies Body, and Log Why a Worker Died *(2026-08-22 outage — the unblocked half. First-ever test coverage of `Master.ts`. ⚠️ Committed 2026-08-22 on the **unpushed** branch `fix/0055-master-parseable-lobbies-and-exit-diagnostics` (`419a116`) — **not pushed, not deployed**; verified locally and by review only. ⚠️ Codex review coverage was **partial**: findings on the test file only, no opinion on `Master.ts` itself)* | [`0055-master-parseable-lobbies-body-and-worker-exit-diagnostics`](../tasks/done/0055-master-parseable-lobbies-body-and-worker-exit-diagnostics/brief.md) |
 | 🔲 Backlog | — | Investigation — Public-Game Routing Can Send Games to a Dead or Unready Worker *(architect-led; **runs BEFORE `0056`** — owner-ruled 2026-08-22; promoted in from the Backlog board the same day)* | [`0057-investigate-worker-routing-to-dead-or-unready-workers`](../tasks/backlog/0057-investigate-worker-routing-to-dead-or-unready-workers/brief.md) |
@@ -201,7 +201,7 @@ Full implementation scope locked in based on findings. Briefs written at that po
 
 ### Investigation A — Player Profile Store
 **Effort:** 1–2 days
-**Brief:** `sprint4-investigation-player-store.md` (in `tasks/done/`)
+**Brief:** `0124-investigation-player-store` (in `tasks/done/`)
 **Blocks:** all citizenship implementation tasks
 
 First persistent per-player database in the codebase. Findings needed on: database technology, hosting location, initial schema, match completion tracking approach, and guest player handling.
@@ -210,7 +210,7 @@ First persistent per-player database in the codebase. Findings needed on: databa
 
 ### Investigation B — Yandex Payments Catalog Integration
 **Effort:** 1 day
-**Brief:** `sprint4-investigation-yandex-payments.md` (in `tasks/done/`)
+**Brief:** `0125-investigation-yandex-payments` (in `tasks/done/`)
 **Blocks:** all purchase UI tasks
 
 Findings needed on: Yandex payments SDK API, catalog fetch architecture, dashboard setup requirements and approval timeline, purchase-to-server notification approach.
@@ -225,7 +225,7 @@ Findings needed on: Yandex payments SDK API, catalog fetch architecture, dashboa
 
 ### 8d-A. Global Announcements Re-enable
 **Effort:** half a day
-**Brief:** `8d-a-task-global-announcements.md` (in `tasks/done/`)
+**Brief:** `0126-global-announcements` (in `tasks/done/`)
 **Status:** Pending
 
 Re-enable the existing OpenFront announcements feature. JSON-driven content, no backend. Provides the communication channel to announce citizenship before it launches. Ship early in Sprint 4 with seed content announcing citizenship is coming.
@@ -238,7 +238,7 @@ Re-enable the existing OpenFront announcements feature. JSON-driven content, no 
 > The tasks below are the confirmed scope — details and effort estimates will be added once findings are in.
 
 ### App Bootstrap — Single Explicit Entry Point
-**Brief:** `s4-app-bootstrap-single-entry-point.md`
+**Brief:** `0167-app-bootstrap-single-entry-point`
 **Design doc (authoritative):** `ai-agents/knowledge-base/app-bootstrap-single-entry-point-findings-and-plan.md`
 
 Client-side refactor giving the app one explicit bootstrap sequence: all external-SDK / experiment-flag / user-data / language init finishes *before* any component code runs, with a bounded wait (~5s) and a degraded-mode failure policy. Replaces today's emergent, race-prone init order (driven by webpack import order + custom-element upgrade timing + a lazy `FlashistFacade` singleton). `src/client/` only — no `src/core/` changes. Investigation complete and design agreed with Mark 2026-06-12 (degraded mode, two-part facade init, one PR).
@@ -252,11 +252,11 @@ Production-risk: touches the prod Yandex-iframe boot path — weekend deploy, li
 ### Player Profile Store — Implementation
 Implement the database and schema recommended by Investigation A. Foundation for all citizenship and purchase tasks.
 
-**Status: ✅ Done (agent-closed — not owner-verified).** Originally 8 child slices (T1–T8); on 2026-06-19 the monolithic **T4 was reverted (PR #112) and re-decomposed into 9 ops sub-slices (T4a–T4i)** — see the slice tables in `0013-player-profile-store-impl` and `s4-profile-04-backend-infra.md`. **T4 is complete (T4a–T4i all done as of 2026-06-24) — the profile box is live at `api.geoconflict.ru` (200/TLS) — and T5 (DB + API) is done & merged (PR #126).** With T2 and T7 cancelled, the live path is the backend track (T3 ✅ → T4 ✅ → T5 ✅ → T6 ✅ → T8); T6 (match-end crediting) and T8 (backups) are done — all slices complete; epic closed 2026-08-24 by owner ruling.
-- ✅ **T1 — Schema Contract** (`s4-profile-01-schema-contract.md`) — shared `PlayerProfile` type + pure `migrateProfile()`, done & moved to `done/`. `src/core/profile/PlayerProfile.ts` is kept (it is *not* part of the reverted T2 work). Two boundary notes from its review: (1) `xp` is validated only as a nonnegative int up to `MAX_SAFE_INTEGER` — the persist path (T5) must clamp/reject against the chosen DB column max; (2) the migrate body is untrusted shape-only validation — paid/citizenship fields must be force-cleared/recomputed at the trust boundary in T5, not trusted from the contract.
+**Status: ✅ Done (agent-closed — not owner-verified).** Originally 8 child slices (T1–T8); on 2026-06-19 the monolithic **T4 was reverted (PR #112) and re-decomposed into 9 ops sub-slices (T4a–T4i)** — see the slice tables in `0013-player-profile-store-impl` and `0172-profile-04-backend-infra`. **T4 is complete (T4a–T4i all done as of 2026-06-24) — the profile box is live at `api.geoconflict.ru` (200/TLS) — and T5 (DB + API) is done & merged (PR #126).** With T2 and T7 cancelled, the live path is the backend track (T3 ✅ → T4 ✅ → T5 ✅ → T6 ✅ → T8); T6 (match-end crediting) and T8 (backups) are done — all slices complete; epic closed 2026-08-24 by owner ruling.
+- ✅ **T1 — Schema Contract** (`0168-profile-01-schema-contract`) — shared `PlayerProfile` type + pure `migrateProfile()`, done & moved to `done/`. `src/core/profile/PlayerProfile.ts` is kept (it is *not* part of the reverted T2 work). Two boundary notes from its review: (1) `xp` is validated only as a nonnegative int up to `MAX_SAFE_INTEGER` — the persist path (T5) must clamp/reject against the chosen DB column max; (2) the migrate body is untrusted shape-only validation — paid/citizenship fields must be force-cleared/recomputed at the trust boundary in T5, not trusted from the contract.
 - ⛔ **T2 — Guest localStorage** — **cancelled 2026-06-13** (Mark); work reverted manually. Report: `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`. A client-only, localStorage-authoritative guest-XP store has too much inherent edge surface (idempotency, multi-tab races, partial-write atomicity, platform-auth timing, "eliminated counts" semantics) — four review rounds hardened those and the scope outgrew the intended small client slice. **Steer:** redo guest-XP as a thin best-effort client cache **with/after T5/T6** so the server is the source of truth; carry forward the `MatchQualification.ts` shared-predicate idea into T5/T6 to prevent client/server drift. Net interim baseline: **no one earns profile XP until T5/T6 land** (the only crediting path was this store) — authenticated users and the Yandex leaderboard are unaffected.
-- ✅ **T3 — Yandex Identity** (`s4-profile-03-yandex-identity.md`) — verified Yandex identity plumbing on the join/auth path (Part A), done & moved to `done/` (PR #111).
-- ✅ **T4 — Backend Infra** — the monolithic T4 (`s4-profile-04-backend-infra.md`, PR #112) was **reverted** and re-decomposed into 9 ops sub-slices on 2026-06-19. **T4a–T4i all done — T4 complete; the box is live at `api.geoconflict.ru`.** The parent `s4-profile-04-backend-infra.md` is retained as the T4 overview:
+- ✅ **T3 — Yandex Identity** (`0170-profile-03-yandex-identity`) — verified Yandex identity plumbing on the join/auth path (Part A), done & moved to `done/` (PR #111).
+- ✅ **T4 — Backend Infra** — the monolithic T4 (`0172-profile-04-backend-infra`, PR #112) was **reverted** and re-decomposed into 9 ops sub-slices on 2026-06-19. **T4a–T4i all done — T4 complete; the box is live at `api.geoconflict.ru`.** The parent `0172-profile-04-backend-infra` is retained as the T4 overview:
   - ✅ **T4a — Server skeleton** (PR #115) — Express `/health` skeleton in `src/profile-server/`.
   - ✅ **T4b — Client API-URL config** (PR #116) — `PROFILE_API_URL` via `/api/env`.
   - ✅ **T4c — Dockerfile** (PR #117) — image runs the T4a skeleton.
@@ -264,8 +264,8 @@ Implement the database and schema recommended by Investigation A. Foundation for
   - ✅ **T4e — Deploy mechanics** (PR #119/#120/#121) — `setup-profile.sh` + `build-deploy-profile.sh` + compose (split into T4e1/e2/e3).
   - ✅ **T4f — Image secret scan** (PR #123, #124) — build-context secret-leak gate.
   - ✅ **T4g — argv/concurrency hardening** (PR #125) — argv-safety + concurrency lock + atomic deploy record + deploy-target preflight.
-  - ✅ **T4h — Game-server deploy env** (`s4-profile-04h-game-server-deploy-env.md`) — game-server `deploy.sh` now propagates `PROFILE_API_URL` into the container (was `""` in prod without it). *Was the runtime gate for T6 + the Citizenship UI.*
-  - ✅ **T4i — Operator bring-up runbook** (`s4-profile-04i-server-bring-up-runbook.md`) — box provisioned, DNS pointed, merged deploy run, **200/TLS verified — `api.geoconflict.ru` is live.**
+  - ✅ **T4h — Game-server deploy env** (`0184-profile-04h-game-server-deploy-env`) — game-server `deploy.sh` now propagates `PROFILE_API_URL` into the container (was `""` in prod without it). *Was the runtime gate for T6 + the Citizenship UI.*
+  - ✅ **T4i — Operator bring-up runbook** (`0182-profile-04i-server-bring-up-runbook`) — box provisioned, DNS pointed, merged deploy run, **200/TLS verified — `api.geoconflict.ru` is live.**
 - ⛔ **T7 — Guest→authenticated migration — cancelled 2026-06-13** (Mark), moved to `cancelled/`. With both T2 and T7 gone, the guest-first story (pre-login XP accumulation + migrate-on-login) is dropped: **profile XP is now authenticated-only** — only logged-in Yandex users accrue XP toward citizenship, server-side via T5/T6. Guests still get the locked citizenship card + login prompt (Part G, via T3), just no pre-login XP to carry over. **T5 migration API dropped (decision 2026-06-13):** the `POST /v1/profile/migrate` endpoint and its untrusted-body hardening existed *for* T7 — with no client→server upload, they were **removed** from T5, which is now fresh-profile-create + server-side crediting only. Reviving guest-XP would require re-adding them (recorded on the cancelled T2/T7 files). The guest-XP feature (both slices) can return later as one thin server-authoritative cache; deferred verification: epic #1 (guest XP increments), #2/#3 (migration), local half of #5.
 
 ---
@@ -304,7 +304,7 @@ Direct messages from game to citizens. Personal tab in announcements popup. Mess
 
 ### Investigate & Fix Client Null-ID Errors
 **Brief:** `0032-investigate-null-id-errors`
-**Depends on:** source maps live (`s4c-enable-client-source-maps.md`) + archive noise fix deployed (`s4c-reduce-archive-telemetry-noise.md`)
+**Depends on:** source maps live (`0164-enable-client-source-maps`) + archive noise fix deployed (`0159-reduce-archive-telemetry-noise`)
 
 Stabilization follow-up carried in from the Sprint 4c null-id split (2026-06-03). The
 triage + fix half of that investigation: a cross-browser cluster of null-access errors
@@ -322,7 +322,7 @@ urgency relative to the citizenship/payments track.
 
 The "build it properly" half of the 2026-06-01 archive task split. The inherited archive
 path POSTs every completed game to a non-existent endpoint; the Sprint 4c task
-`s4c-reduce-archive-telemetry-noise.md` disables it to clear ~26.6/min of telemetry noise.
+`0159-reduce-archive-telemetry-noise` disables it to clear ~26.6/min of telemetry noise.
 This task stands up the real S3-backed store the architecture already expects (empty
 `storageEndpoint/Bucket/AccessKey/SecretKey` config slots), gates archival to citizen
 games only, and re-enables the path. Schedule it at the tail of the citizenship track —
@@ -332,7 +332,7 @@ but the citizen-gating and re-enable code are required too.
 ---
 
 ### PostgreSQL Backup Routine (Player Profile Store)
-**Brief:** `s4-postgres-backup-routine.md`
+**Brief:** `0189-postgres-backup-routine`
 **Depends on:** player profile store schema live
 **Must be live before:** Paid Citizenship
 
@@ -350,9 +350,9 @@ weekly cron that was never created — corrected to daily here).
 ### Personal-Data Compliance (152-ФЗ) — Roskomnadzor Notification + Consent Flow
 **Type:** Investigation-first (legal consultation primary; engineering consent flow deferred to findings)
 **Experiments:** ❌ Excluded — legal/compliance obligation.
-**Brief:** `s4-personal-data-compliance-investigation.md`
+**Brief:** `0186-personal-data-compliance-investigation`
 **Status:** ✅ Done (2026-06-26) — see Outcome below. Findings: `ai-agents/knowledge-base/personal-data-152fz-findings.md`.
-**Outcome — SUPERSEDED 2026-06-28.** The 2026-06-26 decision (pseudonymize via an irreversible Yandex-ID hash) was **overturned on further investigation: hashing does NOT remove the 152-ФЗ notification/consent obligation** — it only added support/dev complexity for no legal benefit. The hashing task (`s4-profile-hash-player-ids.md`) is **cancelled** and PR #127 was reverted. **152-ФЗ is therefore unresolved** — and per Mark (2026-06-28) the compliance work is **deferred to the backlog sprint** (`0048-compliance-152fz-notification-consent`) with **risk explicitly accepted**. It **no longer gates profile-store production go-live in Sprint 4**; the documented, accepted consequence is that real PII persists in prod before notification/consent exist. The findings doc (`personal-data-152fz-findings.md`) is retained but marked **INVALIDATED**. The historical investigation framing follows for context.
+**Outcome — SUPERSEDED 2026-06-28.** The 2026-06-26 decision (pseudonymize via an irreversible Yandex-ID hash) was **overturned on further investigation: hashing does NOT remove the 152-ФЗ notification/consent obligation** — it only added support/dev complexity for no legal benefit. The hashing task (`0187-profile-hash-player-ids`) is **cancelled** and PR #127 was reverted. **152-ФЗ is therefore unresolved** — and per Mark (2026-06-28) the compliance work is **deferred to the backlog sprint** (`0048-compliance-152fz-notification-consent`) with **risk explicitly accepted**. It **no longer gates profile-store production go-live in Sprint 4**; the documented, accepted consequence is that real PII persists in prod before notification/consent exist. The findings doc (`personal-data-152fz-findings.md`) is retained but marked **INVALIDATED**. The historical investigation framing follows for context.
 
 Third, distinct legal track (separate from the cleared VAT gate and the in-progress IP/licensing track), flagged by the technical specialist 2026-06-13. Storing real users' Yandex IDs + display names in the profile store triggers 152-ФЗ obligations: **operator notification** to Roskomnadzor and a **user-consent flow** + privacy policy. Data residency (Art. 18.5) is already satisfied (Postgres on the RU game VPS). Locked with Mark 2026-06-13: scope it investigation-first — a Russian data-protection lawyer determines what notification/consent require, whether Yandex platform terms already cover identity-data consent, the minors angle, retention/deletion duties, and the true blocking relationship; the lawyer's findings set the final gate. **Interim stance until findings:** treat as gating the profile-store *production* go-live (don't persist real PII in prod before notification filed + consent live); dev/test with non-real data is fine. Profile store is still backlog, so **start the legal consultation now** to clear in parallel. Consent fields (given / version / timestamp) should feed the profile-store schema; deletion support interacts with the deferred S3 archival. Engineering consent-flow brief scoped from findings.
 
@@ -420,7 +420,7 @@ Humans vs Nations mode currently adds too few nation bots relative to the number
 
 Formula: `nation_count = min(human_player_count, lobby_max_players - human_player_count)`
 
-See full brief: `s4-nations-balance-task.md`
+See full brief: `0119-nations-balance`
 
 ---
 
@@ -434,7 +434,7 @@ AI players can currently fill all lobby slots including the last one, causing th
 
 Fix: enforce `ai_count ≤ lobby_max - 1` at all times. When a real player joins a full-AI lobby, displace one AI to restore the free slot. Update the "lobby full → start" condition to only fire when no AI players remain.
 
-See full brief: `s4-ai-lobby-slot-bug.md`
+See full brief: `0117-ai-lobby-slot-bug`
 
 ---
 
@@ -442,7 +442,7 @@ See full brief: `s4-ai-lobby-slot-bug.md`
 
 **Status:** ⛔ Cancelled (2026-04-18) — created too many implementation problems.
 
-See full brief: `s4-tutorial-action-pause.md`
+See full brief: `0120-tutorial-action-pause`
 
 ---
 
@@ -453,7 +453,7 @@ See full brief: `s4-tutorial-action-pause.md`
 
 Tutorial currently includes nation bots which can be aggressive even on Easy difficulty. Remove nations from the tutorial match entirely — keep only regular small bots. Makes the tutorial trivially winnable so new players learn mechanics without frustration.
 
-See full brief: `s4-tutorial-no-nations.md`
+See full brief: `0122-tutorial-no-nations`
 
 ---
 
@@ -461,11 +461,11 @@ See full brief: `s4-tutorial-no-nations.md`
 
 **Effort:** half a day
 **Experiments:** ❌ Excluded — tutorial bug fix.
-**Interaction:** coordinate with action-pause task (`s4-tutorial-action-pause.md`) — both modify tooltip 5 behaviour.
+**Interaction:** coordinate with action-pause task (`0120-tutorial-action-pause`) — both modify tooltip 5 behaviour.
 
 During tooltip 5 (build a City), all non-City building icons are clickable even if the player can afford them. A player who accidentally builds the wrong structure breaks the tooltip sequence (tooltip 6 only fires on City built). Fix: force all non-City icons into the same disabled state used when a player lacks sufficient gold. City icon remains fully enabled. Normal state restored when tooltip 5 is dismissed, City is built, or tutorial is skipped.
 
-See full brief: `s4-tutorial-build-menu-lock.md`
+See full brief: `0121-tutorial-build-menu-lock`
 
 ---
 
@@ -476,7 +476,7 @@ See full brief: `s4-tutorial-build-menu-lock.md`
 
 Tutorial currently spawns 400 bots — same order of magnitude as a full multiplayer match. Reduces to 100 to make the map less chaotic and give new players more room to learn without being immediately overwhelmed.
 
-See full brief: `s4-tutorial-reduce-bots.md`
+See full brief: `0123-tutorial-reduce-bots`
 
 ---
 
@@ -510,7 +510,7 @@ Add a bounded economic-boost weird modifier: a one-time **5M starting gold** gra
 
 Add a "Subscribe to updates" modal with a single email input field. Entry point buttons added to both the match start and match end modals. On submit, the email is sent to the Telegram bot via the existing feedback pipeline as a new message type. No frequency capping or duplicate checks in v1.
 
-See full brief: `s4-email-subscribe-task.md`
+See full brief: `0127-email-subscribe`
 
 ---
 

@@ -1,7 +1,7 @@
 # T4d Provisioning — "RU residency never verified" Review Finding (Rejected)
 
 **Date:** 2026-06-20
-**Task:** `ai-agents/tasks/backlog/s4-profile-04d-vps-provisioning.md` (T4d)
+**Task:** `ai-agents/tasks/done/0176-profile-04d-vps-provisioning/brief.md` (T4d)
 **Artifact under review:** `setup-profile.sh`
 **Verdict:** **INCORRECT** as a no-ship blocker — no code change made.
 

@@ -1,7 +1,7 @@
 # Review ledger — s4-profile-04e3
 
-Task: `ai-agents/tasks/backlog/s4-profile-04e3-deploy-wiring-milestone.md`
-File(s) under review: `build-deploy-profile.sh` (deploy/transport slice: SSH/SCP secret-staging + remote `setup-profile.sh` invocation, digest+domain passthrough). The PR's other file (`…/s4-profile-04i-server-bring-up-runbook.md`) is docs — not reviewed for code defects.
+Task: `ai-agents/tasks/done/0180-profile-04e3-deploy-wiring-milestone/brief.md`
+File(s) under review: `build-deploy-profile.sh` (deploy/transport slice: SSH/SCP secret-staging + remote `setup-profile.sh` invocation, digest+domain passthrough). The PR's other file (`…/0182-profile-04i-server-bring-up-runbook/brief.md`) is docs — not reviewed for code defects.
 Status: **resolved (R3)** — C1 re-verified empirically and **applied** as optional low-severity hardening (split trap, `build-deploy-profile.sh:308-310`). Its claimed *medium correctness defect* (false "DONE" on an aborted deploy) was **disproven**: the script's existing `set -e` (`:13`,`:18`) already aborts on the signal-killed `ssh` (exit 130), so the false success never prints — verified empirically on bash 3.2.57. No open defects. Milestone (`https://api.geoconflict.ru/health` 200 over TLS) remains validation-gated on the on-box *Independent test*. **R3 (stateful-review, PR 121 re-review after the split-trap update):** the split-trap is re-verified correct; both reviewers ran full coverage again; two *new* Codex findings (wrong-host preflight **X1**, persisted registry token **X2**) and one Claude finding (remote perm window **A2**) are real but **non-blocking frontier-moves** → recorded as new residuals + forward-notes, not blockers. Verdict: **Ready to merge (validation-gated)**.
 
 Reviewers (R1, stateful-review): **Claude `code-reviewer`** (review-only) + **Codex adversarial** — both ran, full coverage.

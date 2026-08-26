@@ -1,6 +1,6 @@
 # Spawn UX: Zoom-to-Territory & Spawn Indicator (Tasks 4b + 4e)
 
-**Source**: `ai-agents/tasks/done/task-zoom-to-territory.md`, `ai-agents/tasks/done/task-04e-spawn-indicator.md`
+**Source**: `ai-agents/tasks/done/0091-zoom-to-territory/brief.md`, `ai-agents/tasks/done/0090-spawn-indicator/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 2
 

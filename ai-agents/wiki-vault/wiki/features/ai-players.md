@@ -7,7 +7,7 @@
 
 AI Players join public lobbies during the preparation countdown to simulate healthy player presence. They appear indistinguishable from real humans in UI and leaderboard (no bot/nation label), participate in the match using AI logic, and yield priority to human players who join. They are a new entity type (`PlayerType.AiPlayer`) distinct from existing `PlayerType.FakeHuman` nations.
 
-Source: `ai-agents/tasks/done/feature_spec_ai_players_standalone.md`
+Source: `ai-agents/tasks/done/0074-ai-players-standalone/brief.md`
 
 > **Note:** `PlayerType.AiPlayer` is confirmed active in production across 10+ files. `ExecutionManager.aiPlayerExecutions()` drives AI behaviour via `BotBehavior`. The spec was written as "standalone reset" — the prior iteration was discarded and this is the canonical implementation.
 

@@ -1,6 +1,6 @@
 # Review ledger — s4-citizenship-xp-progress-ui
 
-Task: ai-agents/tasks/backlog/s4-citizenship-xp-progress-ui.md
+Task: ai-agents/tasks/done/0191-citizenship-xp-progress-ui/brief.md
 PR: #130 (branch `s4-citizenship-xp-progress-ui` → `dev`)
 File(s) under review:
 - src/client/PlayerProfileView.ts

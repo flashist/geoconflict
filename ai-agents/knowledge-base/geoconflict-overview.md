@@ -555,7 +555,7 @@ Source: `src/core/game/Stats.ts`, `src/core/StatsSchemas.ts`.
 
 ## 5. AI Players Feature (In Development)
 
-**Spec**: `ai-agents/tasks/feature_spec_ai_players_standalone.md`
+**Spec**: `ai-agents/tasks/done/0074-ai-players-standalone/brief.md`
 
 ### Purpose
 
@@ -587,7 +587,7 @@ Target curve fills lobby gradually over countdown. Hard constraints:
 - AI cap: `aiPlayersMax = 10` (default).
 - Human reservation: `minHumanSlots = 1`.
 
-Source: `ai-agents/tasks/feature_spec_ai_players_standalone.md`.
+Source: `ai-agents/tasks/done/0074-ai-players-standalone/brief.md`.
 
 ---
 
@@ -621,7 +621,7 @@ Source: `ai-agents/tasks/feature_spec_ai_players_standalone.md`.
 | `src/client/ClientGameRunner.ts` | Client game orchestration |
 | `src/client/Transport.ts` | WebSocket communication + event definitions |
 | `src/client/graphics/GameRenderer.ts` | Rendering layer orchestration |
-| `ai-agents/tasks/feature_spec_ai_players_standalone.md` | AI Players feature specification |
+| `ai-agents/tasks/done/0074-ai-players-standalone/brief.md` | AI Players feature specification |
 | `src/core/CosmeticSchemas.ts` | Pattern, ColorPalette, Product Zod schemas |
 | `src/core/PatternDecoder.ts` | Binary pattern decoder (base64url → bitmap) |
 | `src/core/ApiSchemas.ts` | User profile and flare schemas |

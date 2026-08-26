@@ -1,6 +1,6 @@
 # Review ledger — s4-profile-06-match-end-crediting
 
-Task: ai-agents/tasks/backlog/s4-profile-06-match-end-crediting.md
+Task: ai-agents/tasks/done/0188-profile-06-match-end-crediting/brief.md
 PR: #128 (branch `s4-profile-06-match-end-crediting` → `dev`)
 File(s) under review: src/server/GameServer.ts, src/server/ProfileApiClient.ts,
 src/server/Client.ts, src/server/GameManager.ts, src/server/Worker.ts,

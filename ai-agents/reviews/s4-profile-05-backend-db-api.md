@@ -1,6 +1,6 @@
 # Review ledger — s4-profile-05-backend-db-api
 
-Task: ai-agents/tasks/backlog/s4-profile-05-backend-db-api.md
+Task: ai-agents/tasks/done/0185-profile-05-backend-db-api/brief.md
 File(s) under review: migrations/001_player_profiles.sql, src/profile-server/{Routes,PlayerProfileRepository,InternalAuth,Db,Server,migrate}.ts, src/core/profile/{Citizenship,CreditContract}.ts, tests/{profile-server,core/profile,integration}/*
 Scope: branch diff vs `dev` (PR 126)
 Status: **CLOSED (round 5).** R5-1 fixed (persistent_id no longer logged); all findings across rounds 1–5 implemented & verified. Zero open/actionable. Convergence reached.

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Task** | `ai-agents/tasks/backlog/s4-profile-02-guest-localstorage.md` (T2, Part C) |
+| **Task** | `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md` (T2, Part C) |
 | **Epic** | `ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` (child 2 of 8) |
 | **Sprint** | Sprint 4 |
 | **Branch** | `claude-s4-profile-02-guest-localstorage` (5 commits ahead of dev base `43cf561`) |
@@ -109,7 +109,7 @@ Files introduced/modified by these commits (the revert target):
 **Important caveats:**
 - **Do NOT revert `src/core/profile/PlayerProfile.ts`.** That is T1 (a separate, completed task) and is *not* part of these commits — a branch-level revert (delete branch / `git reset --hard 43cf561`) is clean and leaves T1 intact.
 - These commits are on the feature branch; **confirm they have not been merged into `dev`** before deleting the branch.
-- The task file `ai-agents/tasks/backlog/s4-profile-02-guest-localstorage.md` is unaffected by these commits. Per the project convention, the user moves task files manually — consider moving it to `ai-agents/tasks/cancelled/` to reflect this decision.
+- The task file `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md` is unaffected by these commits. Per the project convention, the user moves task files manually — consider moving it to `ai-agents/tasks/cancelled/` to reflect this decision.
 
 ---
 
@@ -136,7 +136,7 @@ The takeaway is not that the reviews were wrong, but that **a client-only, local
 
 ## 10. References
 
-- Task: `ai-agents/tasks/backlog/s4-profile-02-guest-localstorage.md`
+- Task: `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`
 - Epic: `ai-agents/tasks/done/0013-player-profile-store-impl/brief.md`
 - Prior findings: `ai-agents/knowledge-base/sprint4-player-profile-store-findings.md`
 - T1 schema contract (kept): `src/core/profile/PlayerProfile.ts`

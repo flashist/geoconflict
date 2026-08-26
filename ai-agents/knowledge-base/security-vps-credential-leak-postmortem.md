@@ -108,7 +108,7 @@ That path is the most plausible explanation for the exact leaked `VPS_*` values 
 
 ## Follow-Up Tasks
 
-- `ai-agents/tasks/backlog/sec08-ci-docker-secret-boundary-check.md`
-- `ai-agents/tasks/backlog/sec09-registry-visibility-and-image-retention-policy.md`
+- `ai-agents/tasks/done/0137-ci-docker-secret-boundary-check/brief.md`
+- `ai-agents/tasks/done/0138-registry-visibility-and-image-retention-policy/brief.md`
 - `ai-agents/tasks/backlog/0015-remove-password-deploy-fallbacks/brief.md`
 - `ai-agents/tasks/backlog/0016-secret-management-beyond-env-files/brief.md`

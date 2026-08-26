@@ -1,6 +1,6 @@
 # Review ledger — s4-profile-04i
 
-Task: `ai-agents/tasks/backlog/s4-profile-04i-server-bring-up-runbook.md`
+Task: `ai-agents/tasks/done/0182-profile-04i-server-bring-up-runbook/brief.md`
 File(s) under review: `setup-profile.sh` — **only** the 1:1-NAT DNS pre-check patch (`:498-515`): adds the explicit deploy target `PROFILE_SERVER_HOST` to the acceptable-IP set so the certbot HTTP-01 DNS gate stops false-failing on a NAT'd VPS. The PR's other two files (`ai-agents/sprints/plan-sprint-4.md`, `ai-agents/tasks/backlog/0046-feedback-remove-contact-field/brief.md`) are planning/task docs — not reviewed for code defects.
 Status: **closed-out (validation-gated)** (R2 — stateful-review re-review of committed fix `e0fd678`; R1 was changes-requested, PR 122). The patch's core logic is **correct** and the deploy is **empirically validated** (`api.geoconflict.ru` is live, 200/TLS — see memory `project_profile_backend_live`). Two **low, non-blocking** defects recorded and routed to a later fix: **C1** (hostname-valued `PROFILE_SERVER_HOST` silently false-negatives the gate — raised by both reviewers) and **A1** (stale `:28` comment). **C2** (DNS gate trusts unverified operator input as identity) is the already-tracked **X1**, verified **not materially worsened** here → suppressed.
 

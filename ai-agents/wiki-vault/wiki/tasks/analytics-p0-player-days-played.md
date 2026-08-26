@@ -1,6 +1,6 @@
 # Analytics P0: Player Days Played
 
-**Source**: `ai-agents/tasks/done/analytics-p0-player-days-played.md`
+**Source**: `ai-agents/tasks/done/0149-analytics-p0-player-days-played/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / analytics P0
 

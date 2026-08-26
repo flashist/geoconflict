@@ -127,7 +127,7 @@ Tasks 0017 (earned) and 0018 (paid) shipped the citizenship funnel events on loc
 | `Purchase:Abandoned:Citizenship` | 0018 | A started flow ended without a Completed (frame closed, SDK rejected, no signature, or `/complete` failed). Exactly one of Completed/Abandoned per started flow. Known residual: a real payment whose `/complete` failed logs Abandoned even though next-session reconciliation later lands the grant |
 | `Citizenship:Earned:XP` | 0017 | Once per account+device, on the first client observation of `citizenship_earned_at` set after a previous observation without it (fires from `loadPlayerProfileView()`, keyed on `citizenship_earned_at`, not `is_citizen`). Accepted residuals (owner ruling 2026-08-23): under-counts a grant first observed on a fresh device/cleared storage; over-counts a paid citizen later crossing the XP threshold |
 
-An earlier task doc (`s4-citizenship-xp-progress-ui.md`) mentioned a `UI:Tap:CitizenLoginCta` string — superseded by `UI:Tap:CitizenshipLoginToEarn`; the 0021 funnel spec is authoritative for that one.
+An earlier task doc (`ai-agents/tasks/done/0191-citizenship-xp-progress-ui/brief.md`) mentioned a `UI:Tap:CitizenLoginCta` string — superseded by `UI:Tap:CitizenshipLoginToEarn`; the 0021 funnel spec is authoritative for that one.
 
 ## Monetization Measurement Baseline
 

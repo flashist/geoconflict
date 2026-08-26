@@ -7,7 +7,7 @@
 
 The player profile store is the Sprint 4 backend foundation for persistent XP, citizenship state, display names, and future paid entitlements. It runs as a dedicated profile API and Postgres stack on a reg.ru VPS at `api.geoconflict.ru`; game servers call the API instead of connecting to Postgres directly.
 
-Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `ai-agents/tasks/done/s4-profile-05-backend-db-api.md`, `ai-agents/tasks/done/s4-profile-06-match-end-crediting.md`, `ai-agents/tasks/done/s4-postgres-backup-routine.md`, `ai-agents/knowledge-base/profile-backup-restore-runbook.md`, `ai-agents/tasks/done/s4-citizenship-xp-progress-ui.md`
+Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `ai-agents/tasks/done/0185-profile-05-backend-db-api/brief.md`, `ai-agents/tasks/done/0188-profile-06-match-end-crediting/brief.md`, `ai-agents/tasks/done/0189-postgres-backup-routine/brief.md`, `ai-agents/knowledge-base/profile-backup-restore-runbook.md`, `ai-agents/tasks/done/0191-citizenship-xp-progress-ui/brief.md`
 
 ## Architecture
 

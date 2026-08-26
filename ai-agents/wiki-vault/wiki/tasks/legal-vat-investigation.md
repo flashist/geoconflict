@@ -1,6 +1,6 @@
 # VAT & Tax Obligations Investigation
 
-**Source**: `ai-agents/tasks/done/s4-legal-vat-investigation.md`
+**Source**: `ai-agents/tasks/done/0128-legal-vat-investigation/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 non-engineering gate
 

@@ -1,6 +1,6 @@
 # Archive Endpoint Telemetry Noise
 
-**Source**: `ai-agents/knowledge-base/plan-fix-archive-endpoint.md`, `ai-agents/knowledge-base/report-archive-endpoint-task-split-2026-06-01.md`, `ai-agents/tasks/done/s4c-reduce-archive-telemetry-noise.md`
+**Source**: `ai-agents/knowledge-base/plan-fix-archive-endpoint.md`, `ai-agents/knowledge-base/report-archive-endpoint-task-split-2026-06-01.md`, `ai-agents/tasks/done/0159-reduce-archive-telemetry-noise/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4c / stabilization
 

@@ -1,6 +1,6 @@
 # Profile Deploy Wiring and Secret Staging
 
-**Source**: `ai-agents/tasks/done/s4-profile-04e3-deploy-wiring-milestone.md`
+**Source**: `ai-agents/tasks/done/0180-profile-04e3-deploy-wiring-milestone/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T4e3
 

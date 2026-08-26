@@ -256,7 +256,7 @@ Confirmed by tracing the code — **no functional regressions**, one narrow UX c
 
 - Related prior investigation (lobby/map fetch errors, confirms prod TLS + cache healthy):
   `ai-agents/knowledge-base/lobby-map-fetch-investigation-2026-06-03.md` (and task
-  `ai-agents/tasks/done/s4c-investigate-lobby-map-fetch.md`).
+  `ai-agents/tasks/done/0163-investigate-lobby-map-fetch/brief.md`).
 - Commit where the worker map-fetch path last changed: `4196cae` (s4c-investigate-lobby-map-fetch),
   `e90d6ee` (worker improvements). The 5s timeout itself predates these (`feea527`, first fork commit).
 - Two-nginx-layer deploy model (where `.bin` caching lives): see the "Deploy note" in the prior investigation

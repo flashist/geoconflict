@@ -1,6 +1,6 @@
 # Analytics P0: Yandex Login Status
 
-**Source**: `ai-agents/tasks/done/analytics-p0-yandex-login-status.md`
+**Source**: `ai-agents/tasks/done/0151-analytics-p0-yandex-login-status/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / analytics P0
 

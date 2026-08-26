@@ -1,6 +1,6 @@
 # Stale Build Detection & Blocking Modal (HF-11b/c/d)
 
-**Source**: `ai-agents/tasks/done/hf11b-hotfix-version-endpoint.md`, `ai-agents/tasks/done/hf11c-hotfix-stale-build-detection.md`, `ai-agents/tasks/done/hf11d-hotfix-stale-build-modal.md`
+**Source**: `ai-agents/tasks/done/0111-version-endpoint/brief.md`, `ai-agents/tasks/done/0112-stale-build-detection/brief.md`, `ai-agents/tasks/done/0113-stale-build-modal/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 3 / HF-11
 

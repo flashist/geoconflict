@@ -1,6 +1,6 @@
 # Profile On-Box Stack, Health Gate, and Rollback
 
-**Source**: `ai-agents/tasks/done/s4-profile-04e2-onbox-stack-gate.md`
+**Source**: `ai-agents/tasks/done/0179-profile-04e2-onbox-stack-gate/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T4e2
 

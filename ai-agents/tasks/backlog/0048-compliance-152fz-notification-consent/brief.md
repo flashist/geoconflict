@@ -10,7 +10,7 @@ Sprint 4** and the work re-homed here.
 
 ## Type
 Investigation-first — legal consultation primary, with a downstream engineering consent flow scoped
-**only after** findings. Same shape as the cleared `s4-legal-vat-investigation.md`.
+**only after** findings. Same shape as the cleared `0128-legal-vat-investigation`.
 
 ## Priority
 High-attention but deliberately deferred. The obligation is real and **unresolved**; Sprint 4
@@ -30,11 +30,11 @@ fkit-producer
 - The Player Profile Store persists real users' **Yandex player IDs + display names**, which triggers
   **152-ФЗ** obligations: Roskomnadzor **operator notification** + a **user-consent flow** + privacy
   policy. Data residency (Art. 18.5) is already satisfied (Postgres on the RU profile VPS).
-- Sprint 4's first investigation (`s4-personal-data-compliance-investigation.md`, done) concluded we
+- Sprint 4's first investigation (`0186-personal-data-compliance-investigation`, done) concluded we
   could **avoid** the obligation by pseudonymizing the Yandex ID via an irreversible hash.
 - **That conclusion was overturned (2026-06-28):** hashing does **not** remove the notification/
   consent obligation — it only added support/development complexity for no legal benefit. The hashing
-  task (`s4-profile-hash-player-ids.md`) is **cancelled** (PR #127 reverted) and the findings doc
+  task (`0187-profile-hash-player-ids`) is **cancelled** (PR #127 reverted) and the findings doc
   (`ai-agents/knowledge-base/personal-data-152fz-findings.md`) is **INVALIDATED**.
 - **Net:** we are back to the original obligation — operator notification + consent — unresolved.
 
@@ -103,10 +103,10 @@ findings are invalidated), reviewed with Mark to lock the real gate.
 ---
 
 ## References
-- Cancelled approach: `ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md`
+- Cancelled approach: `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`
 - Invalidated findings (v1): `ai-agents/knowledge-base/personal-data-152fz-findings.md`
-- Original Sprint 4 investigation (done, conclusion overturned): `ai-agents/tasks/done/s4-personal-data-compliance-investigation.md`
-- Model: `s4-legal-vat-investigation.md`
+- Original Sprint 4 investigation (done, conclusion overturned): `ai-agents/tasks/done/0186-personal-data-compliance-investigation/brief.md`
+- Model: `0128-legal-vat-investigation`
 
 ## Notes
 - No secrets, endpoints, or PII in this brief or its findings file.

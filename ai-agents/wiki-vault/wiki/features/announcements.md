@@ -1,7 +1,7 @@
 # Announcements
 
 **Status**: active
-**Source files**: `ai-agents/knowledge-base/announcements-system-guide.md`, `ai-agents/tasks/done/8d-a-task-global-announcements.md`, `src/client/Announcements.ts`, `src/client/components/NewsButton.ts`, `src/client/NewsModal.ts`, `resources/announcements.json`
+**Source files**: `ai-agents/knowledge-base/announcements-system-guide.md`, `ai-agents/tasks/done/0126-global-announcements/brief.md`, `src/client/Announcements.ts`, `src/client/components/NewsButton.ts`, `src/client/NewsModal.ts`, `resources/announcements.json`
 
 ## Summary
 

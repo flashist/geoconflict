@@ -1,6 +1,6 @@
 # Tutorial — Remove Nations, Keep Only Bots
 
-**Source**: `ai-agents/tasks/done/s4-tutorial-no-nations.md`
+**Source**: `ai-agents/tasks/done/0122-tutorial-no-nations/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4
 

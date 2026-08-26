@@ -19,7 +19,7 @@ fkit-coder
 
 ## Context
 
-The solo win condition fix (`s4-solo-win-condition-fix.md`, merged PR #77) changed two things in `WinCheckExecution.ts` and `GameImpl.ts`:
+The solo win condition fix (`0140-solo-win-condition-fix`, merged PR #77) changed two things in `WinCheckExecution.ts` and `GameImpl.ts`:
 
 **Change 1 — `WinCheckExecution.checkWinnerTeam()` (line 94–98):**
 ```

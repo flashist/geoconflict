@@ -25,8 +25,8 @@ This document is findings only. It does not implement or recommend a specific tu
 - `src/client/graphics/layers/WinModal.ts`
 - `src/client/flashist/FlashistFacade.ts`
 - `resources/maps/*/manifest.json`
-- `ai-agents/tasks/backlog/s4-missions-difficulty-investigation.md`
-- `ai-agents/tasks/done/s4-solo-win-condition-fix.md`
+- `ai-agents/tasks/done/0142-missions-difficulty-investigation/brief.md`
+- `ai-agents/tasks/done/0140-solo-win-condition-fix/brief.md`
 
 ## Mission Structure
 

@@ -7,7 +7,7 @@
 
 Sprint 4 profile storage persists real user data such as Yandex player IDs and display names. The first 152-ФЗ investigation briefly concluded that storing an irreversible keyed hash of the Yandex ID could avoid Roskomnadzor notification and consent obligations.
 
-Sources: `ai-agents/knowledge-base/personal-data-152fz-findings.md`, `ai-agents/tasks/done/s4-personal-data-compliance-investigation.md`, `ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md`
+Sources: `ai-agents/knowledge-base/personal-data-152fz-findings.md`, `ai-agents/tasks/done/0186-personal-data-compliance-investigation/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`
 
 ## Decision
 

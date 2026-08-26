@@ -75,7 +75,7 @@ The `StaleBuildModal` reuses `FeedbackModal`, so it loses the contact field too 
 
 ## Out of scope (do NOT touch here)
 
-- **The Email Subscription Modal** (`s4-email-subscribe-task.md`) — a *separate* feature whose entire
+- **The Email Subscription Modal** (`0127-email-subscribe`) — a *separate* feature whose entire
   purpose is collecting email. Same 152-ФЗ concern applies but the remediation is different (it can't
   just drop the field). Tracked as a separate decision — see **Related / flags** below. Not part of
   this task.
@@ -115,9 +115,9 @@ The `StaleBuildModal` reuses `FeedbackModal`, so it loses the contact field too 
 - **⚠️ The Email Subscription Modal collects email too.** Under the same 152-ФЗ logic it's a *larger*
   exposure than this incidental field, but it can't be fixed by removal (email is the feature). It
   needs a product call: drop the feature, or add a proper consent flow. **Recommend folding it into
-  the `s4-personal-data-compliance-investigation.md` scope** so the lawyer's findings cover all PII
+  the `0186-personal-data-compliance-investigation` scope** so the lawyer's findings cover all PII
   collection points (profile store + feedback contact + email-subscribe), rather than fixing them
   piecemeal. This feedback-field removal is safe to ship now without waiting on that investigation
   (removing data collection is always compliant); the email-subscribe decision should wait for findings.
-- Connects to `s4-personal-data-compliance-investigation.md` (the 152-ФЗ track already in Sprint 4).
+- Connects to `0186-personal-data-compliance-investigation` (the 152-ФЗ track already in Sprint 4).
 - Pure client + server + localization change; no `src/core/`, no schema/desync surface.

@@ -1,7 +1,7 @@
 # Profile DB Backup & Restore Runbook (T8)
 
 Operational runbook for the **encrypted off-box daily backup** of the player-profile Postgres
-DB on `api.geoconflict.ru`. Pairs with `ai-agents/tasks/backlog/s4-postgres-backup-routine.md`.
+DB on `api.geoconflict.ru`. Pairs with `ai-agents/tasks/done/0189-postgres-backup-routine/brief.md`.
 
 > A backup that has never been restored is not a backup. **Part E (restore test) is the real
 > shipping gate** and must be green *before Paid Citizenship ships.*

@@ -1,6 +1,6 @@
 # Tutorial — Lock Build Menu to City During Tooltip 5
 
-**Source**: `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`
+**Source**: `ai-agents/tasks/done/0121-tutorial-build-menu-lock/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4
 

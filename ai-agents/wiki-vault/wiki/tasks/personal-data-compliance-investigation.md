@@ -1,6 +1,6 @@
 # Personal-Data Compliance Investigation
 
-**Source**: `ai-agents/tasks/done/s4-personal-data-compliance-investigation.md`
+**Source**: `ai-agents/tasks/done/0186-personal-data-compliance-investigation/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / 152-ФЗ
 

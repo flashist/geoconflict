@@ -12,7 +12,7 @@ import { z } from "zod";
  * contract and the Postgres column names — there is no field-mapping layer.
  *
  * This module is pure: no storage, no I/O, no clocks inside `migrateProfile`.
- * See ai-agents/tasks/backlog/s4-profile-01-schema-contract.md (T1) and the epic
+ * See ai-agents/tasks/done/0168-profile-01-schema-contract/brief.md (T1) and the epic
  * 0013-player-profile-store-impl (Part B) for the contract.
  */
 

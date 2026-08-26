@@ -107,4 +107,4 @@ The design rules that make this a seam rather than just a shortcut:
   not-disconnected, non-null id, dedupe by id)
 - `../architecture.md` §7, §11 R1, §13 open question 5
 - ADR-101 — the fail-soft crediting path this seam feeds
-- `ai-agents/tasks/cancelled/s4-profile-hash-player-ids.md` — the rejected hashing approach
+- `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md` — the rejected hashing approach

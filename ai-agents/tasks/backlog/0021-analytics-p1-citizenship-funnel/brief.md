@@ -4,7 +4,7 @@
 0021
 
 > **⚠️ READ THIS BEFORE STARTING ANY CITIZENSHIP UI TASK**
-> This brief must be read before implementing `s4-start-screen-redesign-impl.md`, `s4-citizenship-xp-progress-ui.md`, `0018-citizenship-paid`, or `0017-citizenship-earned`. Analytics is not a post-ship addition — each event must be wired at the same time as the UI or server logic that triggers it. Shipping citizenship without this instrumentation means the first weeks of live data are lost and cannot be backfilled.
+> This brief must be read before implementing `0166-start-screen-redesign-impl`, `0191-citizenship-xp-progress-ui`, `0018-citizenship-paid`, or `0017-citizenship-earned`. Analytics is not a post-ship addition — each event must be wired at the same time as the UI or server logic that triggers it. Shipping citizenship without this instrumentation means the first weeks of live data are lost and cannot be backfilled.
 
 ## Sprint
 Sprint 4 — implement inside each citizenship UI task, not after
@@ -19,8 +19,8 @@ High. Without this funnel, we cannot measure conversion, identify where players 
 fkit-coder
 
 ## Dependencies
-- `s4-start-screen-redesign-impl.md` — owns `Citizenship:Seen` and `UI:Tap:CitizenshipLoginToEarn`
-- `s4-citizenship-xp-progress-ui.md` — owns `UI:Tap:PurchaseCitizenship` *(shipped name, was planned as `UI:Tap:CitizenshipBuy`)* and `UI:Tap:CitizenshipLearnMore`
+- `0166-start-screen-redesign-impl` — owns `Citizenship:Seen` and `UI:Tap:CitizenshipLoginToEarn`
+- `0191-citizenship-xp-progress-ui` — owns `UI:Tap:PurchaseCitizenship` *(shipped name, was planned as `UI:Tap:CitizenshipBuy`)* and `UI:Tap:CitizenshipLearnMore`
 - `0018-citizenship-paid` — owns `Purchase:Started:Citizenship`, `Purchase:Completed:Citizenship`, `Purchase:Abandoned:Citizenship`
 - `0017-citizenship-earned` — owns `Citizenship:Earned:XP`
 

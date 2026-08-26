@@ -1,12 +1,12 @@
 # Review ledger — s4-postgres-backup-routine
 
-Task: ai-agents/tasks/backlog/s4-postgres-backup-routine.md (T8 — child slice 8/8 of
+Task: ai-agents/tasks/done/0189-postgres-backup-routine/brief.md (T8 — child slice 8/8 of
 `0013-player-profile-store-impl`; implements Part D step 7, off-box encrypted DB backups)
 PR: #129 (branch `s4-profile-06-match-end-crediting` → `dev`)
 
 > **Scope note:** PR #129 rides the T6 branch name, but the T6 crediting code is already
 > merged into `dev`. The actual #129 diff is this T8 backup routine. The T6 ledger
-> (`s4-profile-06-match-end-crediting.md`) is a DIFFERENT scope — its residuals
+> (`0188-profile-06-match-end-crediting`) is a DIFFERENT scope — its residuals
 > (C1/A3/A5/P1-bound: identity/crediting) do NOT apply here. Nothing was suppressed as settled.
 
 File(s) under review: profile-backup.sh (new), setup-profile.sh, build-deploy-profile.sh,

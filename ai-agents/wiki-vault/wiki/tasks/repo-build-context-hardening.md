@@ -1,6 +1,6 @@
 # Repo Build-Context Hardening
 
-**Source**: `ai-agents/tasks/done/sec04-repo-build-context-hardening.md`
+**Source**: `ai-agents/tasks/done/0133-repo-build-context-hardening/brief.md`
 **Status**: done
 **Sprint/Tag**: Security incident
 

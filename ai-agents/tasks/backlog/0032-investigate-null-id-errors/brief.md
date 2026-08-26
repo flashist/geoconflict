@@ -7,7 +7,7 @@
 Sprint 4 — In-App Monetization & Citizenship (carried in as a stabilization follow-up).
 This is the triage + fix half of the null-id investigation split (2026-06-03). It is
 scheduled for Sprint 4 because both its prerequisites land at the Sprint 4c→4 boundary:
-source maps (`s4c-enable-client-source-maps.md`) and a deployed archive fix that quiets
+source maps (`0164-enable-client-source-maps`) and a deployed archive fix that quiets
 the telemetry stream.
 
 ## Priority
@@ -23,9 +23,9 @@ fkit-coder
 ---
 
 ## Dependencies (both must be live before triage)
-1. **Source maps available in Uptrace** — `s4c-enable-client-source-maps.md` (Sprint 4c).
+1. **Source maps available in Uptrace** — `0164-enable-client-source-maps` (Sprint 4c).
    With resolved stack traces this task may collapse to a direct, targeted fix.
-2. **Archive telemetry-noise fix deployed** — `s4c-reduce-archive-telemetry-noise.md`
+2. **Archive telemetry-noise fix deployed** — `0159-reduce-archive-telemetry-noise`
    (Sprint 4c). The null-id cluster (~1.8/min) is ~15× quieter than the archive family
    (~26.6/min); reliable co-occurrence/pattern analysis needs that noise gone **in
    production**, not just merged.
@@ -56,7 +56,7 @@ Investigation-first. **Do not write defensive null guards speculatively** — id
 actual source first.
 
 ### Step 1 — Resolve via source maps (preferred path)
-With `s4c-enable-client-source-maps.md` live, use the minified column/line numbers in the
+With `0164-enable-client-source-maps` live, use the minified column/line numbers in the
 Uptrace stack traces to identify the original file and function. Document them. If this
 pinpoints the location, skip to the fix — the steps below are the fallback.
 
@@ -98,5 +98,5 @@ Conditional on findings:
 ## Notes
 - The `a.id` minified pattern is a strong hint but not conclusive — `.id` is used on many
   object types. Do not over-scope the guard.
-- If source maps (Task `s4c-enable-client-source-maps.md`) fully resolve the traces, this
+- If source maps (Task `0164-enable-client-source-maps`) fully resolve the traces, this
   task likely collapses to a small targeted fix and the Step 2/3 fallback is unnecessary.

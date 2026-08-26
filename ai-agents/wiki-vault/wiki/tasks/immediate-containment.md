@@ -1,6 +1,6 @@
 # Immediate Containment And Secret Rotation
 
-**Source**: `ai-agents/tasks/done/sec01-immediate-containment.md`
+**Source**: `ai-agents/tasks/done/0130-immediate-containment/brief.md`
 **Status**: done
 **Sprint/Tag**: Security incident
 

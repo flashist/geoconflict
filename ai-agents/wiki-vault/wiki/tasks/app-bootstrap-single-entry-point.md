@@ -1,6 +1,6 @@
 # App Bootstrap: Single Explicit Entry Point
 
-**Source**: `ai-agents/tasks/done/s4-app-bootstrap-single-entry-point.md`, `ai-agents/knowledge-base/app-bootstrap-single-entry-point-findings-and-plan.md`
+**Source**: `ai-agents/tasks/done/0167-app-bootstrap-single-entry-point/brief.md`, `ai-agents/knowledge-base/app-bootstrap-single-entry-point-findings-and-plan.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 infrastructure
 

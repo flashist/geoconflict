@@ -1,6 +1,6 @@
 # Telegram Channel Link
 
-**Source**: `ai-agents/tasks/done/s4-telegram-link.md`
+**Source**: `ai-agents/tasks/done/0141-telegram-link/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4
 

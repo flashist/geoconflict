@@ -1,6 +1,6 @@
 # Registry Image Policy Follow-Up
 
-**Source**: `ai-agents/tasks/done/sec09-registry-visibility-and-image-retention-policy.md`
+**Source**: `ai-agents/tasks/done/0138-registry-visibility-and-image-retention-policy/brief.md`
 **Status**: done
 **Sprint/Tag**: Security follow-up
 

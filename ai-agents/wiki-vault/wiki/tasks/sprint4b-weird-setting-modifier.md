@@ -1,6 +1,6 @@
 # Weird-Setting Public Modifier
 
-**Source**: `ai-agents/tasks/done/sprint4b-weird-setting-modifier.md`
+**Source**: `ai-agents/tasks/done/0156-weird-setting-modifier/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4b
 

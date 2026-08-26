@@ -72,9 +72,13 @@ those heavily. The overlap that decided it is not hypothetical:
 - Most `wiki/tasks/*.md` pages carry a `**Source:**` line on line 3 pointing at a `done/` brief.
   Those are **correct today** and go stale the moment `0003` runs.
 
-**Scope consequence: this task covers BOTH rename maps** — `0002`'s 38 backlog briefs *and* `0003`'s
-`done/`+`cancelled/` briefs — in a single pass. The 12 occurrences tabled above are therefore the
-*lower bound* on the working set, not the whole of it. Re-derive it at start (step 2).
+**Scope trimmed 2026-08-26 (owner-ruled): `0003`'s 119 done/cancelled renames were already swept in
+the vault by `fkit-wiki` on 2026-08-25** (89 pages; `log.md` entry `2026-08-25 — lint (task-path
+sweep for 0003)`), so this task now covers **only the `0002`-era backlog names** — the wiki role's
+skipped list: `s4-player-profile-store-impl.md` at `wiki/decisions/profile-storage-strategy.md:8,17`,
+`s4-investigate-null-id-errors.md` at `wiki/decisions/sprint-4.md:21`, `mobile-webgl-rendering.md` at
+`wiki/decisions/sprint-backlog.md:96`, plus the earlier-deferred `licensing-compliance` /
+`announcements` paths. The table above is a 2026-08-10 snapshot; re-derive at start (step 2).
 
 ## What to build
 

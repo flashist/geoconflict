@@ -1,6 +1,6 @@
 # Analytics P0: Session Match Count Event
 
-**Source**: `ai-agents/tasks/done/analytics-p0-session-match-count.md`
+**Source**: `ai-agents/tasks/done/0150-analytics-p0-session-match-count/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / analytics P0
 

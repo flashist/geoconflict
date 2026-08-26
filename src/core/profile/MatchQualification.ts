@@ -13,7 +13,7 @@
  * with server-only signals (kicked / disconnected / the trusted Yandex id and the
  * internal persistentId).
  *
- * See ai-agents/tasks/backlog/s4-profile-06-match-end-crediting.md (T6).
+ * See ai-agents/tasks/done/0188-profile-06-match-end-crediting/brief.md (T6).
  */
 
 import { XP_PER_MATCH } from "./Citizenship";

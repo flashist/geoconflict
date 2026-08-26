@@ -166,9 +166,9 @@ Client-side error tracking. Was blocked (free tier exhausted). Replaced on serve
 ### File Naming Convention
 
 All task brief files are prefixed with sprint number + task ID:
-- `s3-hf11d-hotfix-stale-build-modal.md` (Sprint 3, HF-11d)
-- `s4-investigation-player-store.md` (Sprint 4, investigation A)
-- `s4-8d-a-task-global-announcements.md` (Sprint 4, task 8d-A)
+- `0113-stale-build-modal` (Sprint 3, HF-11d)
+- `0124-investigation-player-store` (Sprint 4, investigation A)
+- `0126-global-announcements` (Sprint 4, task 8d-A)
 
 ### Sprint Plan Structure
 
@@ -323,9 +323,9 @@ Launch citizenship system and in-app purchase foundation. Rewarded ads deferred 
 
 | Task | Brief | Notes |
 |---|---|---|
-| Investigation A — Player Profile Store | `s4-investigation-player-store.md` | Blocks citizenship |
-| Investigation B — Yandex Payments | `s4-investigation-yandex-payments.md` | Blocks purchase UI |
-| 8d-A Global Announcements | `s4-8d-a-task-global-announcements.md` | Independent |
+| Investigation A — Player Profile Store | `0124-investigation-player-store` | Blocks citizenship |
+| Investigation B — Yandex Payments | `0125-investigation-yandex-payments` | Blocks purchase UI |
+| 8d-A Global Announcements | `0126-global-announcements` | Independent |
 | Player Profile Store — Implementation | TBD | After investigation |
 | Yandex Payments — Catalog Fetch | TBD | After investigation |
 | Citizenship — Match Counter & Progress UI | TBD | After investigation |
@@ -334,13 +334,13 @@ Launch citizenship system and in-app purchase foundation. Rewarded ads deferred 
 | 8d-B Personal Inbox | `0012-personal-inbox` | Needs 8d-A + profile store |
 | Name Change (citizens only) | TBD | After investigation |
 | Citizen Verified Icon | TBD | After investigation |
-| Humans vs Nations — Balance Nation Count | `s4-nations-balance-task.md` | Independent |
-| AI Lobby Slot Bug | `s4-ai-lobby-slot-bug.md` | Coordinate with nations balance |
-| Tutorial — Remove Nations | `s4-tutorial-no-nations.md` | Config only |
-| Tutorial — Lock Build Menu (tooltip 5) | `s4-tutorial-build-menu-lock.md` | |
-| Tutorial — Reduce Bots 400→100 | `s4-tutorial-reduce-bots.md` | Config only |
-| Tutorial — Pause Action Steps | `s4-tutorial-action-pause.md` | ⛔ Cancelled |
-| VAT & Tax Investigation | `s4-legal-vat-investigation.md` | Non-technical, Mark only |
+| Humans vs Nations — Balance Nation Count | `0119-nations-balance` | Independent |
+| AI Lobby Slot Bug | `0117-ai-lobby-slot-bug` | Coordinate with nations balance |
+| Tutorial — Remove Nations | `0122-tutorial-no-nations` | Config only |
+| Tutorial — Lock Build Menu (tooltip 5) | `0121-tutorial-build-menu-lock` | |
+| Tutorial — Reduce Bots 400→100 | `0123-tutorial-reduce-bots` | Config only |
+| Tutorial — Pause Action Steps | `0120-tutorial-action-pause` | ⛔ Cancelled |
+| VAT & Tax Investigation | `0128-legal-vat-investigation` | Non-technical, Mark only |
 
 ---
 
@@ -664,14 +664,14 @@ Players not logged into Yandex have no stable ID and cannot use citizenship, nam
 ### Feedback Match History
 
 **What it was:** a client-side match history UI showing recent games for context when submitting feedback.
-**Why cancelled:** too many moving parts. Replaced by the simpler `task-feedback-match-ids-simple.md` — reads last 3 game IDs from existing `localStorage['game-records']` and attaches to feedback payload. No new UI.
+**Why cancelled:** too many moving parts. Replaced by the simpler `0103-feedback-match-ids-simple` — reads last 3 game IDs from existing `localStorage['game-records']` and attaches to feedback payload. No new UI.
 
 ### HF-11e — BUILD_NUMBER Automation
 
 **What it was:** automate BUILD_NUMBER injection from build pipeline via Vite config + env variable.
 **Why cancelled:** HF-11a investigation confirmed BUILD_NUMBER is already fully automated via `scripts/bump-version.js` in `build-deploy.sh`. Nothing to do.
 
-### Tutorial Action-Pause (s4-tutorial-action-pause.md)
+### Tutorial Action-Pause (0120-tutorial-action-pause)
 
 **What it was:** keep game near-paused (100× tick interval) not just during tooltip display, but until the required action is completed (spawn chosen, attack sent, radial menu opened, city built).
 **Why cancelled:** created too many implementation problems. The combination of no-nations + 100 bots (Sprint 4) achieves a similar safety effect with much less complexity.
@@ -736,7 +736,7 @@ A feedback button is accessible from the start screen and the in-game battle scr
 
 - Player's text message
 - Device and platform information (from the analytics segmentation events)
-- Last 3 match IDs from `localStorage['game-records']` (attached in Sprint 3, `task-feedback-match-ids-simple.md`)
+- Last 3 match IDs from `localStorage['game-records']` (attached in Sprint 3, `0103-feedback-match-ids-simple`)
 
 ### Where Feedback Goes
 

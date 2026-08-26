@@ -1,7 +1,7 @@
 # Investigation — Lobby & Map Fetch Failures (s4c)
 
 **Date:** 2026-06-03
-**Task:** `ai-agents/tasks/backlog/s4c-investigate-lobby-map-fetch.md`
+**Task:** `ai-agents/tasks/done/0163-investigate-lobby-map-fetch/brief.md`
 **Source telemetry:** `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md` (~9.3 errors/min combined)
 
 ## Error groups under investigation

@@ -7,7 +7,7 @@
 
 Small hotfix release between Sprint 2 and Sprint 3. Tutorial was live and generating data, so the release prioritized time-sensitive analytics and UX fixes. The cache-busting work tracked as HF-10 began here and was later completed as follow-up implementation work.
 
-Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`, `ai-agents/tasks/done/hotfix-hf7-build-number.md`, `ai-agents/tasks/done/hotfix-hf10-cache-busting.md`
+Source: `ai-agents/sprints/done/hotfix-post-sprint2.md`, `ai-agents/tasks/done/0097-build-number/brief.md`, `ai-agents/tasks/done/0100-cache-busting/brief.md`
 
 ## Decision
 

@@ -1,6 +1,6 @@
 # Security Incident Response Index
 
-**Source**: `ai-agents/tasks/done/sec00-incident-index.md`
+**Source**: `ai-agents/tasks/done/0129-incident-index/brief.md`
 **Status**: done
 **Sprint/Tag**: Security incident
 

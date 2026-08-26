@@ -1,6 +1,6 @@
 # Leaderboard Human Player Count
 
-**Source**: `ai-agents/tasks/done/s4c-leaderboard-player-count.md`
+**Source**: `ai-agents/tasks/done/0161-leaderboard-player-count/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4c / stabilization quick win
 

@@ -22,10 +22,10 @@ Add three types of game variety to public matchmaking — compact maps, Duos/Tri
 
 | Status | Task | Brief |
 |---|---|---|
-| ✅ Done | Investigation — Compact Map + Duos/Trios/Quads Compatibility | `sprint4b-mini-mode-investigation.md` |
-| ✅ Done | Re-enable Duos/Trios/Quads Modes | `sprint4b-duos-trios-quads.md` |
-| ✅ Done | Compact Map in Public Rotation + Mini Badge | `sprint4b-compact-map-rotation.md` |
-| ✅ Done | Weird-Setting Modifier in Public Rotation + Badge | `sprint4b-weird-setting-modifier.md` |
+| ✅ Done | Investigation — Compact Map + Duos/Trios/Quads Compatibility | [`0154-mini-mode-investigation`](../../tasks/done/0154-mini-mode-investigation/brief.md) |
+| ✅ Done | Re-enable Duos/Trios/Quads Modes | [`0153-duos-trios-quads`](../../tasks/done/0153-duos-trios-quads/brief.md) |
+| ✅ Done | Compact Map in Public Rotation + Mini Badge | [`0155-compact-map-rotation`](../../tasks/done/0155-compact-map-rotation/brief.md) |
+| ✅ Done | Weird-Setting Modifier in Public Rotation + Badge | [`0156-weird-setting-modifier`](../../tasks/done/0156-weird-setting-modifier/brief.md) |
 
 ---
 

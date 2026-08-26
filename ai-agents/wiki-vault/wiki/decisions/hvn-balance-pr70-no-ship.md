@@ -7,7 +7,7 @@
 
 Sprint 4 included a backlog task to balance Humans vs Nations by reducing nation-controlled opponents toward a 1:1 ratio with the human side. A later implementation review found that the attempted fix did not preserve the product contract of the mode.
 
-Sources: `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/tasks/cancelled/s4-nations-balance-task.md`
+Sources: `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`
 
 ## Decision
 

@@ -1,6 +1,6 @@
 # Global Announcements Re-enable
 
-**Source**: `ai-agents/tasks/done/8d-a-task-global-announcements.md`
+**Source**: `ai-agents/tasks/done/0126-global-announcements/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 brief, shipped earlier in Sprint 2
 

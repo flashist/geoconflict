@@ -1,6 +1,6 @@
 # Review ledger — s4-profile-04e2
 
-Task: `ai-agents/tasks/backlog/s4-profile-04e2-onbox-stack-gate.md`
+Task: `ai-agents/tasks/done/0179-profile-04e2-onbox-stack-gate/brief.md`
 File(s) under review: `setup-profile.sh` (deploy slice: profile.env + docker-compose.yml write, health-gate + digest rollback, systemd unit, backup/maintenance cron)
 Status: **closed-out (validation-gated)** (R3 — confirming stateful-review: the Claude reviewer + an independent `bash -n`/cron-render pass verified the R2 fixes **#1/#2/#3** are correct and regression-free; **#4 deferred → T4g**. Codex's 2 R3 findings were the postmortem's documented `DATABASE_URL`/T5 recurring false-high — **suppressed, not acted on**. No open blockers; the only remaining gate is the on-box *Independent test*.)
 Earlier: **fixes-applied** (R2 — process-review re-verified all 4 R1 findings via an independent 5-agent adversarial pass; #1/#2/#3 fixed; #4 deferred → T4g — the handoff's pull-scoping fix was found NOT to address it).
@@ -74,7 +74,7 @@ Related ledger: `s4-profile-04e1.md` (sibling slice, `build-deploy-profile.sh`).
   from env each run. Why (structural): **no code consumes `DATABASE_URL` yet** — profile-api
   is a `/health` skeleton with no `pg` dependency (`grep src/` = 0 hits), so the URL is an
   **inert template string** and nothing connects to postgres at deploy time. Per the task
-  rule (`s4-profile-04e-deploy-mechanics.md:57` — "`DATABASE_URL`/awk findings may **not**
+  rule (`0178-profile-04e-deploy-mechanics/brief.md:57` — "`DATABASE_URL`/awk findings may **not**
   reopen this chunk, out of scope by rule") + the postmortem (`…-2026-06-19.md:319/335/386`,
   the canonical recurring DATABASE_URL false-high), **all connect/address/readiness/rotation
   concerns are T5's**. Two facts T5 inherits (recorded so they aren't lost): (a) `127.0.0.1`

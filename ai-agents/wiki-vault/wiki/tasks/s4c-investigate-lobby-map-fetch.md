@@ -1,6 +1,6 @@
 # Investigate Lobby and Map Fetch Failures
 
-**Source**: `ai-agents/tasks/done/s4c-investigate-lobby-map-fetch.md`, `ai-agents/knowledge-base/lobby-map-fetch-investigation-2026-06-03.md`
+**Source**: `ai-agents/tasks/done/0163-investigate-lobby-map-fetch/brief.md`, `ai-agents/knowledge-base/lobby-map-fetch-investigation-2026-06-03.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4c — Production Stabilization
 

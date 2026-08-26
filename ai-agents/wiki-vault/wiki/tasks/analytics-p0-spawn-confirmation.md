@@ -1,6 +1,6 @@
 # Analytics P0: Spawn Confirmation
 
-**Source**: `ai-agents/tasks/done/analytics-p0-spawn-confirmation.md`
+**Source**: `ai-agents/tasks/done/0148-analytics-p0-spawn-confirmation/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4 / analytics P0
 

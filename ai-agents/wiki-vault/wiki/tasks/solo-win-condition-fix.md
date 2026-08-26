@@ -1,6 +1,6 @@
 # Solo Opponent Win Condition Fix
 
-**Source**: `ai-agents/tasks/done/s4-solo-win-condition-fix.md`
+**Source**: `ai-agents/tasks/done/0140-solo-win-condition-fix/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4
 

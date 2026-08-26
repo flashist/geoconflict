@@ -11,7 +11,7 @@
 # setup-profile.sh writes from the threaded PROFILE_BACKUP_* deploy vars. Nothing secret is
 # baked into this script, the image, or git.
 #
-# Why this design (see ai-agents/tasks/backlog/s4-postgres-backup-routine.md):
+# Why this design (see ai-agents/tasks/done/0189-postgres-backup-routine/brief.md):
 #   - pg_dump runs inside the postgres container over its local socket (trust auth) — the DB
 #     is never exposed off-loopback and no password rides the wire.
 #   - The dump is encrypted with an age RECIPIENT public key before it leaves the box. The box

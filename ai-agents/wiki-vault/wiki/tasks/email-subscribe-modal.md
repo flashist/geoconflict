@@ -1,6 +1,6 @@
 # Email Subscription Modal
 
-**Source**: `ai-agents/tasks/done/s4-email-subscribe-task.md`
+**Source**: `ai-agents/tasks/done/0127-email-subscribe/brief.md`
 **Status**: done
 **Sprint/Tag**: Sprint 4
 

@@ -8,7 +8,7 @@
 Guided singleplayer bot match auto-launched for first-time players. Gated behind a Yandex A/B experiment flag (`tutorial = enabled`) and `localStorage.tutorialCompleted`. Runs on Iceland map with nation opponents disabled and tutorial bot count reduced to 100, so the player only faces a smaller, easier-to-read field of tutorial bots. The 7-step tooltip sequence teaches territory control, attacking, and building.
 
 Source: `ai-agents/knowledge-base/tutorial-technical-description.md`
-Follow-up sources: `ai-agents/tasks/done/s4-tutorial-no-nations.md`, `ai-agents/tasks/done/s4-tutorial-build-menu-lock.md`, `ai-agents/tasks/done/s4-tutorial-reduce-bots.md`, `ai-agents/tasks/cancelled/s4-tutorial-action-pause.md`
+Follow-up sources: `ai-agents/tasks/done/0122-tutorial-no-nations/brief.md`, `ai-agents/tasks/done/0121-tutorial-build-menu-lock/brief.md`, `ai-agents/tasks/done/0123-tutorial-reduce-bots/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`
 
 ## Implementation
 

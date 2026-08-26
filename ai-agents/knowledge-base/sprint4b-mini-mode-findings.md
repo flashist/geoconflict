@@ -17,9 +17,9 @@ Recommended implementation changes:
 
 ## Source Files Checked
 
-- `ai-agents/tasks/backlog/sprint4b-mini-mode-investigation.md`
-- `ai-agents/tasks/backlog/sprint4b-compact-map-rotation.md`
-- `ai-agents/tasks/backlog/sprint4b-duos-trios-quads.md`
+- `ai-agents/tasks/done/0154-mini-mode-investigation/brief.md`
+- `ai-agents/tasks/done/0155-compact-map-rotation/brief.md`
+- `ai-agents/tasks/done/0153-duos-trios-quads/brief.md`
 - `ai-agents/sprints/plan-sprint-4b.md`
 - `ai-agents/wiki-vault/wiki/decisions/sprint-4b.md`
 - `ai-agents/wiki-vault/wiki/features/ai-players.md`

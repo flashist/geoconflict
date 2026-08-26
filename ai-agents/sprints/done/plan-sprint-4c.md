@@ -28,14 +28,14 @@ Source: `ai-agents/knowledge-base/telemetry-error-priorities-2026-05-07.md`
 
 | Status | Priority | Task | Brief |
 |---|---|---|---|
-| ✅ Done | — | Fix Cosmetics.json Serving and PrivilegeRefresher *(error rate ~138.6/min)* | [`s4c-fix-cosmetics-serving.md`](../tasks/done/s4c-fix-cosmetics-serving.md) |
-| ✅ Done | — | Fix LocalServer Hash Guard (Singleplayer Crash) *(error rate ~31.0/min)* | [`s4c-fix-local-server-hash-guard.md`](../tasks/done/s4c-fix-local-server-hash-guard.md) |
-| ✅ Done | — | Reduce Archive Telemetry Noise (disable dead archive path) *(error rate ~26.6/min)* | [`s4c-reduce-archive-telemetry-noise.md`](../tasks/done/s4c-reduce-archive-telemetry-noise.md) |
-| ✅ Done | — | Investigate Lobby and Map Fetch Failures *(error rate ~9.3/min)* | [`s4c-investigate-lobby-map-fetch.md`](../tasks/done/s4c-investigate-lobby-map-fetch.md) |
-| ✅ Done | — | Enable Production Client Source Maps in Uptrace | [`s4c-enable-client-source-maps.md`](../tasks/done/s4c-enable-client-source-maps.md) |
-| ✅ Done | — | Leaderboard: Show Human Player Count in Label | [`s4c-leaderboard-player-count.md`](../tasks/done/s4c-leaderboard-player-count.md) |
-| ⛔ Cancelled (2026-06-02) — runtime fallback sent boats to semantically wrong coasts; the missing `isShore` data is not runtime-recoverable | — | Fix Compact Map Boat-Attack Button (Runtime Fallback) *(Sprint 4b regression)* | [`s4c-fix-compact-map-boat-attack.md`](../tasks/cancelled/s4c-fix-compact-map-boat-attack.md) |
-| ✅ Done | — | Disable Compact Maps in Public Rotation *(Sprint 4b regression)* | [`s4c-disable-compact-public-maps.md`](../tasks/done/s4c-disable-compact-public-maps.md) |
+| ✅ Done | — | Fix Cosmetics.json Serving and PrivilegeRefresher *(error rate ~138.6/min)* | [`0157-fix-cosmetics-serving`](../../tasks/done/0157-fix-cosmetics-serving/brief.md) |
+| ✅ Done | — | Fix LocalServer Hash Guard (Singleplayer Crash) *(error rate ~31.0/min)* | [`0158-fix-local-server-hash-guard`](../../tasks/done/0158-fix-local-server-hash-guard/brief.md) |
+| ✅ Done | — | Reduce Archive Telemetry Noise (disable dead archive path) *(error rate ~26.6/min)* | [`0159-reduce-archive-telemetry-noise`](../../tasks/done/0159-reduce-archive-telemetry-noise/brief.md) |
+| ✅ Done | — | Investigate Lobby and Map Fetch Failures *(error rate ~9.3/min)* | [`0163-investigate-lobby-map-fetch`](../../tasks/done/0163-investigate-lobby-map-fetch/brief.md) |
+| ✅ Done | — | Enable Production Client Source Maps in Uptrace | [`0164-enable-client-source-maps`](../../tasks/done/0164-enable-client-source-maps/brief.md) |
+| ✅ Done | — | Leaderboard: Show Human Player Count in Label | [`0161-leaderboard-player-count`](../../tasks/done/0161-leaderboard-player-count/brief.md) |
+| ⛔ Cancelled (2026-06-02) — runtime fallback sent boats to semantically wrong coasts; the missing `isShore` data is not runtime-recoverable | — | Fix Compact Map Boat-Attack Button (Runtime Fallback) *(Sprint 4b regression)* | [`0160-fix-compact-map-boat-attack`](../../tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md) |
+| ✅ Done | — | Disable Compact Maps in Public Rotation *(Sprint 4b regression)* | [`0162-disable-compact-public-maps`](../../tasks/done/0162-disable-compact-public-maps/brief.md) |
 
 ---
 
@@ -47,7 +47,7 @@ Tasks 1–3 are independent and can proceed in parallel. Each has a localized fi
 
 **Phase 2 — Investigations (ship if time allows before May 15, otherwise defer)**
 
-The lobby/map fetch task requires investigation before implementation scope is clear. The source-maps task (`s4c-enable-client-source-maps.md`) is enablement, not investigation, and can proceed immediately. The mobile WebGL task was deferred out of this sprint to the backlog on 2026-06-03 (`backlog/0031-mobile-webgl-rendering/brief.md`) — too high-complexity for stabilization. The null-id triage + fix moved to Sprint 4 (`0032-investigate-null-id-errors`).
+The lobby/map fetch task requires investigation before implementation scope is clear. The source-maps task (`0164-enable-client-source-maps`) is enablement, not investigation, and can proceed immediately. The mobile WebGL task was deferred out of this sprint to the backlog on 2026-06-03 (`backlog/0031-mobile-webgl-rendering/brief.md`) — too high-complexity for stabilization. The null-id triage + fix moved to Sprint 4 (`0032-investigate-null-id-errors`).
 
 ---
 
@@ -64,6 +64,6 @@ The lobby/map fetch task requires investigation before implementation scope is c
 
 - The telemetry report's recommended fix order matches the task priority above: cosmetics first (largest noise), then hash guard (direct crash), then archive, then lobby/map, then null errors, then mobile rendering.
 - Removing the ~138.6/min cosmetics error family is the highest-leverage single action: it will meaningfully improve signal quality in Uptrace for all future investigations.
-- The null-id investigation was split on 2026-06-03. The half that is doable now — enabling production client source maps in Uptrace (`s4c-enable-client-source-maps.md`) — stays in Sprint 4c; it is independent of telemetry noise and unblocks triage for every minified cluster. The triage + fix half (`0032-investigate-null-id-errors`) moves to Sprint 4 because it needs both source maps and a deployed archive fix (clean telemetry) — both of which land at the Sprint 4c→4 boundary.
-- Compact maps are being pulled from the **public** rotation (`s4c-disable-compact-public-maps.md`, 2026-06-03) because the `isShore` boat-attack defect is not runtime-fixable (the runtime fallback `cancelled/s4c-fix-compact-map-boat-attack.md` was cancelled 2026-06-02 — it sent boats to semantically wrong coasts; the data the compact binary destroyed cannot be reconstructed at runtime) and compact gameplay is not meaningfully different from normal matches. Private lobby + singleplayer compact stay opt-in. Re-enabling public compact is gated on the Sprint 5 map-gen fix `0026-fix-compact-map-shore-generation`. With `mini_map` removed, the existing `weird_setting` modifier absorbs the full 20% modified-match budget (intended).
-- The archive task was split on 2026-06-01 (see `report-archive-endpoint-task-split-2026-06-01.md`). The Sprint 4c half (`s4c-reduce-archive-telemetry-noise.md`) just disables the dead, consumer-less archive path to clear the ~26.6/min noise. The real S3-backed, citizen-gated archival is assigned to Sprint 4 (`0030-archive-s3-backed-citizen-gated`), sequenced after the player profile store + citizenship implementation.
+- The null-id investigation was split on 2026-06-03. The half that is doable now — enabling production client source maps in Uptrace (`0164-enable-client-source-maps`) — stays in Sprint 4c; it is independent of telemetry noise and unblocks triage for every minified cluster. The triage + fix half (`0032-investigate-null-id-errors`) moves to Sprint 4 because it needs both source maps and a deployed archive fix (clean telemetry) — both of which land at the Sprint 4c→4 boundary.
+- Compact maps are being pulled from the **public** rotation (`0162-disable-compact-public-maps`, 2026-06-03) because the `isShore` boat-attack defect is not runtime-fixable (the runtime fallback `cancelled/0160-fix-compact-map-boat-attack/brief.md` was cancelled 2026-06-02 — it sent boats to semantically wrong coasts; the data the compact binary destroyed cannot be reconstructed at runtime) and compact gameplay is not meaningfully different from normal matches. Private lobby + singleplayer compact stay opt-in. Re-enabling public compact is gated on the Sprint 5 map-gen fix `0026-fix-compact-map-shore-generation`. With `mini_map` removed, the existing `weird_setting` modifier absorbs the full 20% modified-match budget (intended).
+- The archive task was split on 2026-06-01 (see `report-archive-endpoint-task-split-2026-06-01.md`). The Sprint 4c half (`0159-reduce-archive-telemetry-noise`) just disables the dead, consumer-less archive path to clear the ~26.6/min noise. The real S3-backed, citizen-gated archival is assigned to Sprint 4 (`0030-archive-s3-backed-citizen-gated`), sequenced after the player profile store + citizenship implementation.

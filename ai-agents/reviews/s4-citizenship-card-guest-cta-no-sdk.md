@@ -1,6 +1,6 @@
 # Review ledger — s4-citizenship-card-guest-cta-no-sdk
 
-Task: ai-agents/tasks/backlog/s4-citizenship-card-guest-cta-no-sdk.md
+Task: ai-agents/tasks/done/0190-citizenship-card-guest-cta-no-sdk/brief.md
 File(s) under review: src/client/CitizenshipCard.ts, tests/client/CitizenshipCard.test.ts
 Status: closed-out
 
