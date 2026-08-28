@@ -14,7 +14,21 @@ item of the outage track — nothing else in the sprint waits on it, and its cos
 (each orphan is ~150 s of an idle `GameServer` on the recovered worker, no player impact).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+> ⚠️ **The shipped fix is not the one this brief specifies — read `plan.md` for what was actually
+> built.** "What to build" Step 1 prescribes a **synchronous** `req.socket.destroyed` / `req.aborted`
+> check before `gm.createGame`. Step 2's own probe (worklog Step 0 — 90 aborted + 15 live trials,
+> agreeing with the plan's earlier 30-trial run) **measured that check to observe nothing**:
+> `req.aborted` stays `false` because the request completes out of the kernel buffer, and
+> `req.destroyed` is `true` even for healthy creates — so the brief's check would either never fire or
+> reject 100 % of creates. The owner therefore approved (2026-08-28, via `AskUserQuestion` in the
+> ship-loop session) the plan's option **D1 (A)**: a **bounded 10 ms settle wait**
+> (`awaitRequesterSettled`) re-reading `res.destroyed || res.socket === null ||
+> res.socket.destroyed || req.socket === null || req.socket.destroyed`, guarding **all** creates —
+> public and private (D3) — and responding **`503` JSON** (D4). Route-level test skipped (D6); the
+> `RequesterGone.ts` extraction contingency did not trigger (D5). **This brief was deliberately left
+> unedited** — the plan supersedes it on this point.
 
 ## Owner
 fkit-coder

@@ -37,6 +37,72 @@ const workerId = parseInt(process.env.WORKER_ID ?? "0");
 const log = logger.child({ comp: `w_${workerId}` });
 const playlist = new MapPlaylist(false);
 
+// 0194: a create whose requester has already gone away has no legitimate outcome — the
+// master aborted it (Master.ts CREATE_GAME_TIMEOUT_MS, :615) and dropped the ID from
+// publicLobbyIDs (:638), so it will never list the ID and nobody can join the game.
+// Aborting the master's side does not retract bytes already buffered in a stopped
+// worker's socket, so on SIGCONT the worker parses them and creates orphans (0192
+// worklog run 4: 5 orphans of 6 drained creates).
+//
+// Measured on Node v24.13.0 / express 4.21.2, 90 buffered-then-aborted requests and 15
+// live ones (0194 Step 0 probe, worklog): the departure is NOT visible synchronously at
+// handler entry (0/90), nor at process.nextTick (0/90), nor after one setImmediate
+// (0/90). It surfaces as res.destroyed / req.socket.destroyed flipping — true for 90/90
+// by the 5 ms checkpoint — accompanied by a "close" event on res whose delivery ranged
+// 0.15–10.81 ms (median 0.90 ms). The destroyed flags, not the event, are the decisive
+// signal: the settle helper re-reads them when its timer expires, so a late "close"
+// costs nothing. No live request was ever reported gone, at any checkpoint through
+// 200 ms (0/15). `req.aborted` stays false throughout (the request completed out of the
+// kernel buffer) and `req.destroyed` is true even for a healthy request (the readable
+// side auto-destroys after the body is read) — neither is usable here.
+export const REQUESTER_SETTLE_MS = 10;
+
+interface SocketState {
+  destroyed: boolean;
+}
+interface RequestLike {
+  socket: SocketState | null;
+}
+interface ResponseLike {
+  destroyed: boolean;
+  socket: SocketState | null;
+  once(event: "close", listener: () => void): unknown;
+  removeListener(event: "close", listener: () => void): unknown;
+}
+
+// Pure. True only once Node has marked the connection dead; a live peer — however slow —
+// is never reported gone.
+export function requesterGone(req: RequestLike, res: ResponseLike): boolean {
+  return (
+    res.destroyed ||
+    res.socket === null ||
+    res.socket.destroyed ||
+    req.socket === null ||
+    req.socket.destroyed
+  );
+}
+
+// Resolves as soon as the departure surfaces (~0.9 ms median for a buffered, aborted
+// request), or after settleMs for a live one. Never rejects; arms no timer when the
+// answer is already known; removes its own listener on both exits.
+export async function awaitRequesterSettled(
+  req: RequestLike,
+  res: ResponseLike,
+  settleMs: number = REQUESTER_SETTLE_MS,
+): Promise<boolean> {
+  if (requesterGone(req, res)) return true;
+  await new Promise<void>((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      res.removeListener("close", done);
+      resolve();
+    };
+    const timer = setTimeout(done, settleMs);
+    res.once("close", done);
+  });
+  return requesterGone(req, res);
+}
+
 // Worker setup
 export async function startWorker() {
   log.info(`Worker starting...`);
@@ -152,6 +218,26 @@ export async function startWorker() {
         `This game ${id} should be on worker ${expectedWorkerId}, but this is worker ${workerId}`,
       );
       return res.status(400).json({ error: "Worker, game id mismatch" });
+    }
+
+    // 0194: give a departed requester the ~1 ms it needs to surface (Step 0 probe), then
+    // skip a create nobody can ever join. Sits after the 400/401/worker-index checks, so
+    // those responses are unchanged. Cannot fire for a live peer.
+    if (await awaitRequesterSettled(req, res)) {
+      log.warn(
+        `cannot create game ${id}, requester went away before creation (worker ${workerId}, ip ${ipAnonymize(clientIP)}, settle ${REQUESTER_SETTLE_MS}ms)`,
+        {
+          gameID: id,
+          workerIndex: workerId,
+          // gc is GameConfig | undefined (CreateGameInputSchema maps an empty body to
+          // undefined — the bodyless private-lobby create), so this matches the `gc?.`
+          // idiom at the admin-token check above. Still a plain boolean, never null:
+          // Uptrace drops null-valued attributes (0056 Step 3a).
+          isPublic: gc?.gameType === GameType.Public,
+          settleMs: REQUESTER_SETTLE_MS,
+        },
+      );
+      return res.status(503).json({ error: "Requester gone" });
     }
 
     // Pass creatorClientID to createGame
