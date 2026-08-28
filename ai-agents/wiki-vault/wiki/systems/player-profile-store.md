@@ -19,6 +19,7 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - **Profile read UI**: [[tasks/citizenship-xp-progress-ui]] reads the public `GET /v1/profile` projection from the client citizenship card and maps it to the XP/citizenship view model.
 - **Storage strategy**: [[decisions/profile-storage-strategy]] chose typed Postgres columns plus `extra jsonb`, with `xp bigint`, `persistent_id text`, DB-level paid/citizenship invariants, and future-aware tables for names/cosmetics.
 - **Payments endpoints**: [[tasks/yandex-payments-implementation]] (0019) added `POST /v1/payments/yandex/{intent,complete,reconcile}` to the profile server, with migration 002 (`purchase_intents`, `processed_purchases`), HMAC signature verification, and the sole-authority rule that only a verified purchase token can set `is_paid_citizen` — `upsertProfile` and `/internal/v1/credit` never touch paid state. Fail-closed 503 until `YANDEX_PAYMENTS_SECRET` is provisioned (secret issuance blocked on Yandex catalog approval, task 0014).
+- **Personal inbox (task `0012`, built 2026-08-26 — not launched)**: migration `003_player_messages.sql` adds `player_messages` (`id bigserial` PK, FK `yandex_player_id` → `player_profiles` `ON DELETE CASCADE`; `template_key` + `template_params jsonb` for system sends rendered client-side from `inbox.templates.<key>`, or literal `title` / `body` for admin sends; `sent_at`, `read_at`; check constraints `chk_message_content` — template **or** title+body — and `chk_read_after_sent`). Routes: `GET /v1/messages?yandexPlayerId=` and `PATCH /v1/messages/read` (both unauthenticated, on the ADR-103 client-asserted-ID funnel, sharing the 60 req/min limiter; **`403 not_citizen`** for non-citizens **and** missing profiles, gated in SQL) plus internal `POST /internal/v1/messages/send`. **`InboxRepository.ts` is the only reader and writer of that table**, and both post-commit citizenship seams — `PlayerProfileRepository.afterCitizenshipEarned` and `PaymentsRepository.afterPaidPurchaseGranted` — send through its `InboxSender` interface, which **contractually never throws**, so an inbox failure cannot break a grant. See [[features/announcements]].
 - **Runtime boundary**: game servers should credit via the profile API using service auth and IP allowlisting; they should not hold direct profile DB credentials.
 - **Guest path**: the T2/T7 guest-first flow is cancelled. Profile XP is authenticated-only through the T6 server-side crediting path.
 
@@ -49,6 +50,8 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - [[decisions/profile-storage-strategy]]
 - [[decisions/profile-deploy-hardening-review-loop]]
 - [[decisions/sprint-4]]
+- [[features/announcements]] — the popup surface the task-0012 personal inbox attaches to
+- [[decisions/adr-103-identity-trust-seam]] — the client-asserted-ID funnel the inbox read routes share
 - [[decisions/sprint-backlog]]
 - [[decisions/cancelled-tasks]]
 - [[tasks/personal-data-compliance-investigation]]

@@ -129,6 +129,19 @@ Tasks 0017 (earned) and 0018 (paid) shipped the citizenship funnel events on loc
 
 An earlier task doc (`ai-agents/tasks/done/0191-citizenship-xp-progress-ui/brief.md`) mentioned a `UI:Tap:CitizenLoginCta` string — superseded by `UI:Tap:CitizenshipLoginToEarn`; the 0021 funnel spec is authoritative for that one.
 
+## Personal Inbox Events (built 2026-08-26 — not yet live)
+
+Task 0012 added four events for the citizens-only Personal tab inside the announcements popup. They sit behind the **same `CITIZENSHIP_CARD_ENABLED` gate** — while the card is unlaunched the inbox fetch never runs, so none of these can fire. The tab strip itself is rendered only when `GET /v1/messages` succeeded, i.e. the server confirmed the viewer is a citizen, so **guests and non-citizens never fire any of them**.
+
+| Event | When |
+|---|---|
+| `Inbox:Opened` | A citizen selects the Personal tab. Fires on **every** selection of that tab, not just the first |
+| `Inbox:LoadFailed` | The inbox fetch failed — network error, 5xx, 5 s timeout, or a body that fails schema validation. Once per failed load (initial load, bell-open refresh, post-reconcile refresh). **Not** fired on a `403`, which is the ordinary non-citizen / no-profile answer; not fired when the profile API is unconfigured; never for guests |
+| `UI:Tap:AnnouncementsTabGlobal` | A citizen taps the Global tab. Fires on every tap, including re-taps on the already-active tab |
+| `UI:Tap:AnnouncementsTabPersonal` | Same semantics as the Global tab tap; each tap **also** fires `Inbox:Opened` |
+
+See [[features/announcements]] for the surface these attach to.
+
 ## Monetization Measurement Baseline
 
 The Sprint 4 monetization analytics spec in [[tasks/monetization-analytics-spec]] defines the measurement gate before citizenship and payments decisions should be treated as validated:
@@ -196,5 +209,5 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/analytics-p0-yandex-login-status]] — P0 identity-reach event emitted as logged-in, guest, or unknown
 - [[tasks/analytics-p0-session-match-count]] — P0 per-session match starts recorded via localStorage and consumed on next session open
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
-- [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, and `Announcements:Closed`
+- [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, `Announcements:Closed`, and the task-0012 Personal-tab inbox events
 - [[systems/architecture-overview]] — the platform facade that owns the event enum

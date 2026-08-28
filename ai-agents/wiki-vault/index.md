@@ -7,7 +7,7 @@
 - [[features/tutorial]] — Guided singleplayer bot match for first-time players; 7-step tooltip sequence, Yandex A/B gated
 - [[features/reconnection]] — Crash reconnection: rejoin prompt when tab closes/crashes mid-match
 - [[features/feedback-button]] — In-game feedback form on start screen and battle screen with automatic context
-- [[features/announcements]] — Start-screen bell and popup for repo-authored player update messages with unread badge
+- [[features/announcements]] — Start-screen bell and popup for repo-authored player update messages with unread badge; task 0012 adds a citizens-only Personal inbox tab (built 2026-08-26, **not launched**)
 - [[features/ai-players]] — AI Players in public lobbies: active, indistinguishable from humans in UI
 
 ## Systems
@@ -19,12 +19,12 @@
 - [[systems/producer-workflow]] — Producer role: scope, responsibilities, coordination boundaries, and release guardrails
 - [[systems/project-operations]] — Operational handbook: team roles, environment boundaries, sprint workflow, and roadmap constraints
 - [[systems/game-loop]] — Deterministic turn replay from server turns into worker-executed core simulation
-- [[systems/networking]] — Worker-routed WebSocket/HTTP flow with Zod-validated client/server messages
+- [[systems/networking]] — Worker-routed WebSocket/HTTP flow with Zod-validated client/server messages; carries the post-outage master/worker coordination — `WorkerSupervisor`, the quorum gate, ready-worker ID sampling, the lobby-poll guard, and the departed-requester create guard
 - [[systems/execution-pipeline]] — Client input to Intent to Execution to GameUpdate path
 - [[systems/rendering]] — Layered client rendering, mixed canvas/Lit UI, and camera transform orchestration
 - [[systems/flashist-init]] — Explicit Bootstrap.ts startup gate for analytics, Yandex SDK, player data, flags, language, degraded mode, and app loading
 - [[systems/analytics]] — GameAnalytics player behaviour tracking: event conventions, bootstrap/session events, experiment funnels, and monetization measurement baselines
-- [[systems/telemetry]] — OTEL/Uptrace server/client observability, source maps, ClickHouse VPS guardrails, and investigation workflows
+- [[systems/telemetry]] — OTEL/Uptrace server/client observability, source maps, ClickHouse VPS guardrails, and investigation workflows; the winston-transport gotcha **corrected 2026-08-27** against measurement — single-object meta survives as attributes, only `null` values are dropped
 - [[systems/configuration]] — GAME_ENV, /api/env, runtime public settings, and gameplay/server config selection
 - [[systems/localization]] — LangSelector and translateText flow for bundled UI translations and English fallback
 - [[systems/server-performance]] — Server-side lag candidates ranked by likelihood; `endTurn()` performance analysis
@@ -47,6 +47,8 @@
 - [[decisions/adr-105-compact-maps-out-of-rotation]] — Compact maps removed from public rotation until the map binaries are regenerated with correct shore bits
 - [[decisions/adr-106-flags-suppressed]] — Real-country flags suppressed by parse-then-drop; flags reserved as a future paid non-country cosmetic
 - [[decisions/adr-107-turn-interval-1-5x]] — The game runs at 1.5× upstream tick rate (66.7 ms); owner-supplied rationale (2026-08-09): two goals — quicker matches and a higher interstitial rate — with 1.5 chosen by playtesting and 2× rejected as too fast; neither goal measured
+- [[decisions/adr-108-active-sprint-pointer]] — Direction for the next fkit update: the active sprint should be owner-set via an optional `.active-sprint` pointer, derived only as fallback, failing loud when stale. **Nothing in this repo changes** — the interim rule is to ask for status by name
+- [[decisions/adr-109-worker-index-placement-contract]] — The worker index is a fixed placement contract computed independently by client, worker, nginx and master; to move a game, move its **ID** (rejection-sample it), never the index. Private-lobby exposure and wedged-but-alive workers are recorded, owner-accepted tradeoffs
 
 ### Product Strategy & Sprints
 - [[decisions/product-strategy]] — Strategic logic: retention-first sequence, experiments policy, key analytics data
@@ -54,7 +56,7 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/7/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
-- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8, citizenship XP UI, payments infrastructure (0019), degraded-mode UX (0049), the independent 0041/0042/0046 tasks, the 0054 card-hide flag, the 0055 outage half, and the 0066 licensing remediation done (all agent-closed, not owner-verified; 0066 NOT deployed); 0017/0018 re-scoped local/mock-first 2026-08-23 and built+reviewed 2026-08-24 but open pending live tails — the go-live now hangs on 0065 (blocked by 0014 AND 0062, flip-ON gated on "0066 DEPLOYED"); the 2026-08-22 outage track (0056/0057) plus promoted config-drift tasks (0060/0062/0063) are on the board
+- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8, citizenship XP UI, payments infrastructure (0019), degraded-mode UX (0049), the independent 0041/0042/0046 tasks, the 0054 card-hide flag, the 0055 outage half, and the 0066 licensing remediation done (all agent-closed, not owner-verified; 0066 NOT deployed); 0017/0018 re-scoped local/mock-first 2026-08-23 and built+reviewed 2026-08-24 but open pending live tails — the go-live now hangs on 0065 (blocked by 0014 AND 0062, flip-ON gated on "0066 DEPLOYED"); the 2026-08-22 outage track **closed 2026-08-28** (0057→0056→0192→0194, with 0193 alongside — all agent-closed, none owner-verified, none confirmed deployed); promoted config-drift tasks (0060/0062/0063) are still open on the board
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization (closed; plan archived to `sprints/done/` 2026-08-24): quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
 - [[decisions/sprint-backlog]] — No-sprint backlog across both unsprinted boards: monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag/GutterAds fixes, the `0001`–`0011` briefs and cosmetics monetization dependency chain, plus the 2026-08 additions — heal tasks `0050`–`0053`, outage follow-ups `0058`/`0059`/`0061`/`0064`, the `0057`/`0062` promotions, and the owner-ruled email-subscribe fold-in to `0048`
@@ -164,3 +166,8 @@
 - [[tasks/hide-citizenship-card-flag]] — Sprint 4 task 0054 default-OFF `CITIZENSHIP_CARD_ENABLED` client flag hiding the citizenship card until 0017/0018 flip it ON at launch; agent-closed
 - [[tasks/master-lobbies-worker-exit-diagnostics]] — Sprint 4 task 0055 outage-track fix: parseable empty lobbies body plus worker-exit `code`/`signal` logging in `Master.ts`, first-ever tests for that file; agent-closed, unpushed branch at close
 - [[tasks/licensing-remediation]] — Sprint 4 task 0066 licensing remediation from the 0025 audit: proprietary-music purge, original placeholder favicon, JWT fallback retarget; agent-closed 2026-08-24, NOT deployed — gates 0065's flip-ON
+- [[tasks/worker-routing-dead-worker-investigation]] — Sprint 4 task 0057 architect-led routing investigation: dead-index vs wedged-index severity, the placement contract behind ADR-109, and the confirmation (not revision) of the 18/20 quorum; agent-closed 2026-08-26
+- [[tasks/worker-crash-recovery-and-quorum-gate]] — Sprint 4 task 0056 outage root-cause fix: `WorkerSupervisor`, restart cap 5/index/10 min with 1 s→30 s backoff, quorum `ceil(n × 9/10)`-or-90 s gate; agent-closed 2026-08-27, deployment unconfirmed
+- [[tasks/schedule-public-games-onto-ready-workers]] — Sprint 4 task 0192 ADR-109's first application: `pickGameID` rejection-samples the game ID onto a ready index and a 5 s abort bounds the create call; agent-closed 2026-08-27, orphan residual since discharged by 0194
+- [[tasks/fetchlobbies-in-flight-guard]] — Sprint 4 task 0193 single-poll-in-flight guard on the 100 ms lobby tick: error lines per stuck ID 50→1, lobby flapping 21%→0, self-inflicted 429s 3→0; agent-closed 2026-08-27
+- [[tasks/worker-reject-departed-requester-create]] — Sprint 4 task 0194 departed-requester guard on `create_game` (bounded 10 ms settle wait, `503`): 0 orphans against a baseline of 5, closing the outage track; agent-closed 2026-08-28. ⚠️ Its plan deliberately supersedes its brief

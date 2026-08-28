@@ -19,7 +19,7 @@ Sources: `ai-agents/knowledge-base/uptrace-knowledge-base.md`, `ai-agents/knowle
 - Active when `OTEL_EXPORTER_OTLP_ENDPOINT` env var is set (prod only)
 - All `console.warn()` from anywhere in the process is forwarded to Winston via global interception
 - Every log entry carries: `service: "openfront"`, `environment`, `severity`, `timestamp`
-- Stack traces embedded directly in message body via `formatError()` (Winston OTEL transport silently drops extra args — details must be in the message string)
+- Stack traces embedded directly in message body via `formatError()`. The original reason given was that the Winston OTEL transport drops extra args; **that was narrowed by measurement on 2026-08-27** — a single meta object does survive as log attributes, and only `null`-valued attributes are dropped. Embedding details in the message string remains the safe habit (it is what makes a dropped `null` still readable), but it is no longer true that structured fields are lost. See Gotchas below and [[tasks/worker-crash-recovery-and-quorum-gate]].
 
 ### System Metrics (`WorkerMetrics.ts`)
 Exported every **15 seconds** via `PeriodicExportingMetricReader`. All metrics carry `worker.id`.
@@ -149,8 +149,8 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 ## Gotchas / Known Issues
 
 - `BasicTracerProvider` v2 has no `.register()` — use `trace.setGlobalTracerProvider(provider)` instead
-- Winston OTEL transport silently drops extra arguments — embed all error details in the message string
-- Structured fields passed as second arg to `log.info()` may not arrive as attributes in Uptrace — verify in live instance
+- **Winston OTEL transport: a single meta object survives; a `null`-valued attribute does not.** Corrected 2026-08-27 from an earlier, broader claim that the transport "silently drops extra arguments". **Measured** during task `0056`'s verification 4a — worker deaths observed in Uptrace in the dev environment, 2026-08-27: fields passed as a **single object** (`workerIndex`, `clusterId`, `pid`, `signal`, `restartsInWindow`, `windowMs`, `missingWorkerIndices`, `readyCount`, `numWorkers`, `quorum`) **all arrived as log attributes**. The one exception observed: **an attribute whose value is `null` is dropped from the attribute set** — `code: null` on a signal death was absent, while the message text still carried it. This is why the belt-and-braces habit of also embedding key values in the message string is worth keeping. **Not covered by that observation:** the multi-argument form (extras landing under `Symbol(splat)`) was never exercised in the run — the claim that it drops them is a code reading, not an observation. See [[tasks/worker-crash-recovery-and-quorum-gate]].
+- Uptrace free-text search did not match the `0056` worker-death log lines; **attribute filters did**. If a line you know was emitted cannot be found, try filtering on an attribute before concluding it never arrived.
 - `OTEL_EXPORTER_OTLP_ENDPOINT` absent in dev → no telemetry data for dev environments
 - Client source maps resolve only when `UPTRACE_SOURCEMAP_DSN`, `PUBLIC_ORIGIN`, `GIT_COMMIT`, uploaded `service_name`, uploaded `service_version`, and client OTEL resource attributes line up. A successful build with missing upload configuration still deploys, but minified client stacks stay unresolved.
 - `setup-telemetry.sh` must not generate top-level `ch:` config for Uptrace `2.0.2`; that config shape crashes Uptrace on startup and can surface externally as nginx `502 Bad Gateway`
@@ -188,3 +188,6 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 - [[systems/architecture-overview]] — telemetry wiring and its master-process blind spot
 - [[decisions/adr-104-archiving-disabled]] — the archive switch that removed the loudest error family
 - [[decisions/adr-107-turn-interval-1-5x]] — why the slow-turn threshold no longer matches the turn interval
+- [[tasks/worker-crash-recovery-and-quorum-gate]] — task `0056`, which measured what the winston OTEL transport actually delivers as attributes
+- [[decisions/incident-2026-08-22-public-lobbies-outage]] — the outage whose 150 MB shared log budget nearly cost the investigation window, and the track that produced the corrected transport claim
+- [[decisions/sprint-4]] — the sprint carrying that outage track

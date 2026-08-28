@@ -64,3 +64,4 @@ Naming is `<subject>.md`, **never dated** — a dated filename means "a record o
 - [[systems/project-operations]] — the operational handbook these rules sit inside
 - [[decisions/fkit-transfer-blueprint]] — the toolkit these conventions ship with
 - [[decisions/sprint-backlog]] — where the legacy status-marker reconciliation task is filed
+- [[decisions/adr-108-active-sprint-pointer]] — why "the active sprint" must be owner-set rather than derived, and the interim rule to ask for status **by name**

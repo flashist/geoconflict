@@ -54,5 +54,7 @@ A number at or above 101 is always this project's; a number below 100 is always 
 - [[decisions/adr-105-compact-maps-out-of-rotation]]
 - [[decisions/adr-106-flags-suppressed]]
 - [[decisions/adr-107-turn-interval-1-5x]]
+- [[decisions/adr-108-active-sprint-pointer]]
+- [[decisions/adr-109-worker-index-placement-contract]]
 - [[systems/agent-conventions]] — the conventions set, and how it differs from ADRs
 - [[systems/project-brief]] — where the two-series rule is stated as a working rule for agents

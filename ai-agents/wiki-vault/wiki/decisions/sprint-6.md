@@ -51,3 +51,4 @@ Source: `ai-agents/sprints/plan-sprint-6.md`
 - [[decisions/sprint-5]] — Task 15 (custom uploaded flags/patterns), itself dependent on Tasks 9/9a; **not** a source of store UI
 - [[decisions/sprint-backlog]] — tasks `0009`, `0010`, `0011`: the real, unscheduled prerequisites for the paid map-pack purchase surface
 - [[decisions/adr-102-privilege-refresher-fails-open]] — the upstream entitlement-origin dependency behind any purchasable cosmetic
+- [[decisions/adr-108-active-sprint-pointer]] — this pre-scoped plan is the one `select-active` wrongly returned while all work was on Sprint 4

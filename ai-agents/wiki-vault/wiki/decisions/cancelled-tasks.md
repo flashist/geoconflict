@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, `ai-agents/tasks/cancelled/0114-build-number-automation/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`, `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`, `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`, `ai-agents/tasks/cancelled/0171-profile-07-guest-migration/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
+Source: `ai-agents/tasks/cancelled/0072-deploy-time-config-guard/brief.md`, `ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, `ai-agents/tasks/cancelled/0114-build-number-automation/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`, `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`, `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`, `ai-agents/tasks/cancelled/0171-profile-07-guest-migration/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
 
 ---
 
@@ -172,6 +172,21 @@ The earlier HF-7 custom-dimension implementation has also been superseded by Gam
 - Require a technical/product reason for pseudonymization independent of the overturned notification/consent rationale.
 - Decide where the pepper lives and how clients read their own profile before any implementation work.
 
+---
+
+## Deploy-Time Config Guard — Required Env Vars Forwarded and Well-Formed
+
+**Sprint:** Backlog
+**Status:** ⛔ Cancelled 2026-08-24 (agent-closed — not owner-verified) — duplicate
+
+**Why cancelled:** it was approved from the 2026-08-24 open-questions interview, then found to duplicate `0064`, which already existed, was owner-ruled on 2026-08-23, and is better scoped. The owner ruled on 2026-08-24 that the useful specifics merge into `0064` and this brief is dropped.
+
+**What was learned — the failure class is real and twice realized in production:** `0062` (`PROFILE_INTERNAL_TOKEN` never forwarded — the profile client silently no-oped, no profile row was ever created, no XP credited, and nothing said so) and `0063` (six public `/api/env` values carrying `http` on a raw IP — login and profile fetch broke for users, silently). The common shape is *production configuration does not match what the application reads, and nothing tells anyone*: fail-soft no-ops, `debug`-level logs, commented-out errors. Nothing at deploy time checks that a variable the application reads is actually forwarded, or that its value is well-formed.
+
+**Where the work lives now:** `0064`, which inherits this brief's specifics — a shell-level gate in the existing deploy scripts (never a parallel solution) that fails loudly on a missing/empty required var, on a malformed value (public URLs must be `https` and hostname-based, tokens non-empty), with the required-var list declared in one place per service; and never printing a secret value, only the variable name. **Hard sequencing on `0064`: it ships only after `0062` and `0063` land** — armed earlier it would correctly fail every deploy on their known gaps.
+
+**If revisited:** do not re-file this as a separate task. Runtime fail-loudness elsewhere (the same disease in runtime code, including the 2026-08-22 outage pattern) is explicitly **not** in this scope — deploy-time only.
+
 ## Consequences
 
 - Future retries should start from the narrower follow-up guidance recorded under each cancelled item, not from the original cancelled scope
@@ -196,3 +211,5 @@ The earlier HF-7 custom-dimension implementation has also been superseded by Gam
 - [[decisions/personal-data-152fz-compliance]] — current status of the invalidated hash decision and deferred compliance track
 - [[systems/player-profile-store]] — profile backend affected by the cancelled hash task
 - [[decisions/adr-105-compact-maps-out-of-rotation]] — the decision that records why the compact-map runtime workaround was cancelled
+- [[decisions/sprint-backlog]] — where `0064`, the surviving deploy-time config guard, sits, alongside the `0062`/`0063` findings that motivated it
+- [[decisions/incident-2026-08-22-public-lobbies-outage]] — the config-drift sweep that surfaced `0062` and `0063`

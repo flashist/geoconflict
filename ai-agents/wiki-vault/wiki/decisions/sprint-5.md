@@ -57,3 +57,4 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 - [[decisions/adr-105-compact-maps-out-of-rotation]] — the map-regeneration fix scheduled here is that ADR's expected exit
 - [[decisions/adr-102-privilege-refresher-fails-open]] — Task 11's **earn-only** coin design is what downgraded that ADR's "coin chain" residual; if coins ever become purchasable with money, its trigger must be re-ruled first
 - [[decisions/sprint-backlog]] — tasks `0010` / `0011` (flags, territory patterns), which Task 8a and Task 15 both depend on and which are not scheduled in any sprint plan
+- [[decisions/adr-108-active-sprint-pointer]] — this plan being legitimately open alongside 4 and 6 is the condition that makes an unnamed status request return the wrong board

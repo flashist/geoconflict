@@ -6,7 +6,7 @@
 
 ## Goal
 
-Ship the half of the 2026-08-22 public-lobbies outage fix that needs no owner decision. During that outage, `/api/public_lobbies` served `200` with an empty body for ~3.5 hours, and the one log line that could have said why worker 16 died discarded its evidence. This task fixes defects **#5** and **#6** from the incident record; the real repair — restoring worker crash recovery and a survivable scheduling gate — is task `0056` (deliberately separate, gated on owner-ruled quorum/restart-cap decisions and on `0057`'s routing findings). Outage-track order: `0055` → `0057` → `0056`.
+Ship the half of the 2026-08-22 public-lobbies outage fix that needs no owner decision. During that outage, `/api/public_lobbies` served `200` with an empty body for ~3.5 hours, and the one log line that could have said why worker 16 died discarded its evidence. This task fixes defects **#5** and **#6** from the incident record; the real repair — restoring worker crash recovery and a survivable scheduling gate — is task `0056` (deliberately separate, gated on owner-ruled quorum/restart-cap decisions and on `0057`'s routing findings). Outage-track order: `0055` → `0057` → `0056` → `0192` → `0194`, with `0193` alongside. The whole track closed 2026-08-28.
 
 ## Key Changes
 
@@ -18,9 +18,16 @@ Scope: `src/server/Master.ts` only, `+28/−8`. No control-flow changes; worker 
 
 ## Outcome
 
-Review closed (`review.md` `Status: closed-out`; round 1 — 2 low defects fixed, 2 frontier-moves accepted as residuals by owner ruling). ⚠️ **Committed 2026-08-22 on the unpushed branch `fix/0055-master-parseable-lobbies-and-exit-diagnostics` (`419a116`) — not pushed, not deployed** at close time; verified locally and by review only. ⚠️ Codex review coverage was **partial**: findings on the test file only, no opinion on `Master.ts` itself. Until `0056` lands, production still runs with crash recovery disarmed — a repeat worker death would again stall the scheduling gate, but it would now log its cause and serve a parseable empty lobby list.
+Review closed (`review.md` `Status: closed-out`; round 1 — 2 low defects fixed, 2 frontier-moves accepted as residuals by owner ruling). Committed 2026-08-22 on `fix/0055-master-parseable-lobbies-and-exit-diagnostics` (`419a116`); verified locally and by review only. ⚠️ Codex review coverage was **partial**: findings on the test file only, no opinion on `Master.ts` itself.
+
+> **Correction, 2026-08-26** (`0057` findings §1): this page previously said the commit was on an **unpushed** branch, "not pushed, not deployed". That was stale — `419a116` reached `dev` via **PR #133 (`7410bfb`)**, so `dev` carries the parseable body and the exit diagnostics. **Whether production has it is UNKNOWN — it was never checked. Do not assume either way.**
+
+`0056` has since landed on `dev` (agent-closed 2026-08-27) and restores crash recovery. **But no deployment of either task to production is confirmed**, so for operational purposes prod should still be assumed to run with crash recovery disarmed — a repeat worker death would again stall the scheduling gate there, though it would now log its cause and serve a parseable empty lobby list.
 
 ## Related
+
+- [[tasks/worker-routing-dead-worker-investigation]] — task 0057, the routing investigation that followed on the same track
+- [[tasks/worker-crash-recovery-and-quorum-gate]] — task 0056, which carries this task's exit diagnostics forward to both branches
 
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the outage investigation this task's two defects come from
 - [[systems/networking]] — `Master.ts` worker coordination and the `/api/public_lobbies` surface

@@ -45,6 +45,7 @@ The design rules that make this a seam rather than just a shortcut:
 - [[tasks/profile-match-end-crediting]] — the T6 task that added the seam
 - [[tasks/yandex-payments-implementation]] — the 0019 payments track: paid entitlements are HMAC-verified separately per rule 5, and its `/intent` endpoint's client-asserted id residual leans on this seam
 - [[decisions/personal-data-152fz-compliance]] — where the rejected hashing approach was ruled out
+- [[features/announcements]] — the task-0012 personal-inbox read routes ride this same client-asserted-ID funnel
 - [[systems/architecture-overview]] — risk R1, open question 5
 - [[decisions/adr-numbering-two-series]] — the ADR number bands
 - [[decisions/adr-102-privilege-refresher-fails-open]] — the adjacent entitlement-trust seam. **Related shape, different problem — do not merge them:** ADR-103 is *who the player is* (Yandex), ADR-102 is *what the player is entitled to* (upstream OpenFront). Both are unblocked by the same external event, the Yandex IAP secret key.

@@ -144,5 +144,5 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 - [[systems/player-infrastructure]] — the pre-S4 identity/customization substrate; carries R5's upstream `flares` dependency at the system level
 - [[systems/configuration]] — `GAME_ENV`, `/api/env`, runtime config
 - [[systems/server-performance]] — turn-cost analysis
-- [[decisions/adr-101-fail-soft-xp-crediting]], [[decisions/adr-102-privilege-refresher-fails-open]], [[decisions/adr-103-identity-trust-seam]], [[decisions/adr-104-archiving-disabled]], [[decisions/adr-105-compact-maps-out-of-rotation]], [[decisions/adr-106-flags-suppressed]], [[decisions/adr-107-turn-interval-1-5x]] — the settled choices this survey surfaced
+- [[decisions/adr-101-fail-soft-xp-crediting]], [[decisions/adr-102-privilege-refresher-fails-open]], [[decisions/adr-103-identity-trust-seam]], [[decisions/adr-104-archiving-disabled]], [[decisions/adr-105-compact-maps-out-of-rotation]], [[decisions/adr-106-flags-suppressed]], [[decisions/adr-107-turn-interval-1-5x]], [[decisions/adr-109-worker-index-placement-contract]] — the settled choices this survey surfaced
 - [[decisions/sprint-backlog]] — the eleven unsprinted briefs, including the ones this survey's risks and open questions produced (`0005` R4, `0006`, `0007` R7, `0008` R5, `0009`)
