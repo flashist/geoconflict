@@ -44,6 +44,7 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - Boot-rendered UI keeps degraded values after late SDK recovery unless that UI explicitly re-queries the facade.
 - `yaGamesAvailable` is now also a UI contract for the citizenship card: when false, the card suppresses the Yandex login CTA because `openYandexAuthDialog()` cannot work outside a Yandex SDK context. See [[tasks/citizenship-card-guest-cta-no-sdk]].
 - Yandex degraded mode is distinct from no-SDK standalone mode, and since task 0049 the client can tell them apart: `FlashistFacade.instance.isYandexDegraded()` (Yandex context present, no SDK/player object) drives a connection-problem citizenship-card state with no login CTA. See [[tasks/degraded-mode-ux-treatment]].
+- 🚨 **`windowOrigin` is `origin + pathname`, and it is a document base, not a URL-join base.** It is a `// Flashist Adaptation` — upstream used `origin` alone — and its sibling `rootPathname` is what lets several components navigate "back to the start screen" without leaving the current document. Because the production Yandex entry point is `/yandex-games_iframe.html`, **anything built by concatenating onto `windowOrigin` is suspect in production**; host-root APIs must take a bare root-absolute path instead. Two other consumers send the value as a payload field rather than concatenating — `Cosmetics.ts` (`hostname`) and `AccountModal.ts` (`redirectDomain`) — and in production both are now known to be sending the origin **plus** `/yandex-games_iframe.html`. See [[decisions/windoworigin-url-join-defect]].
 - Two independent side bugs found during the bootstrap investigation remain backlog work: the dead `initializeFuseTag` polling loop and `GutterAds.hide()` permanently removing its `userMeResponse` listener. See [[decisions/sprint-backlog]].
 
 ## Related
@@ -61,3 +62,5 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - [[tasks/citizenship-card-guest-cta-no-sdk]] — citizenship-card use of the Yandex-context signal to avoid a dead login CTA
 - [[systems/project-brief]] — degraded mode as a first-class platform state
 - [[systems/architecture-overview]] — the three-phase bootstrap in the wider survey
+- [[decisions/windoworigin-url-join-defect]] — the `windowOrigin` / `rootPathname` rule and the production defect that established it
+- [[tasks/citizenship-name-change]] — task 0067, whose UI sits behind the `CITIZENSHIP_CARD_ENABLED` flag and has never been seen in a browser

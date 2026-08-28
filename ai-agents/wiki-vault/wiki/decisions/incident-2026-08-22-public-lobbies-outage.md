@@ -60,4 +60,5 @@ The investigation established a complete causal chain and split the response int
 - [[decisions/sprint-4]] — sprint board carrying `0055`–`0057` and the promoted config-drift tasks
 - [[decisions/sprint-backlog]] — the unsprinted follow-ups `0058`, `0059`, `0061`
 - [[decisions/adr-101-fail-soft-xp-crediting]] — the fail-soft posture whose `debug`-level miss logging kept `0062` invisible
+- [[decisions/config-parity-failure-class]] — where this sweep's `0062`/`0063` findings were joined by a third instance (`0195`) in a **different** deploy pipeline, making it a class rather than a `deploy.sh` bug
 - [[systems/project-brief]] — the current-focus picture this outage and the `0062` blocker reshaped

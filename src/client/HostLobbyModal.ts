@@ -23,6 +23,7 @@ import {
   TeamCountConfig,
 } from "../core/Schemas";
 import { generateID } from "../core/Util";
+import { renderCitizenBadge } from "./CitizenBadge";
 import "./components/baseComponents/Modal";
 import "./components/Difficulties";
 import "./components/Maps";
@@ -542,6 +543,7 @@ export class HostLobbyModal extends LitElement {
             ${this.clients.map(
               (client) => html`
                 <span class="player-tag">
+                  ${client.isCitizen ? renderCitizenBadge() : ""}
                   ${client.username}
                   ${client.clientID === this.lobbyCreatorClientID
                     ? html`<span class="host-badge"
@@ -732,9 +734,11 @@ export class HostLobbyModal extends LitElement {
   private async putGameConfig() {
     const config = await getServerConfigFromClient();
     const response = await fetch(
-      // Flashist Adaptation
-      // `${window.location.origin}/${config.workerPath(this.lobbyId)}/api/game/${this.lobbyId}`,
-      `${FlashistFacade.instance.windowOrigin}/${config.workerPath(this.lobbyId)}/api/game/${this.lobbyId}`,
+      // Flashist Adaptation: root-absolute, NOT `FlashistFacade.instance.windowOrigin`.
+      // windowOrigin is origin + document pathname, but the worker API is mounted at
+      // the host root (nginx `^/w(\d+)`, webpack proxy context `/w<N>`), so joining
+      // onto it prefixes the document path and misses the worker route entirely.
+      `/${config.workerPath(this.lobbyId)}/api/game/${this.lobbyId}`,
 
       {
         method: "PUT",
@@ -771,6 +775,11 @@ export class HostLobbyModal extends LitElement {
         } satisfies Partial<GameConfig>),
       },
     );
+    if (!response.ok) {
+      console.error(
+        `Failed to push lobby config: ${response.status} ${response.statusText}`,
+      );
+    }
     return response;
   }
 
@@ -804,9 +813,11 @@ export class HostLobbyModal extends LitElement {
     this.close();
     const config = await getServerConfigFromClient();
     const response = await fetch(
-      // Flashist Adaptation
-      // `${window.location.origin}/${config.workerPath(this.lobbyId)}/api/start_game/${this.lobbyId}`,
-      `${FlashistFacade.instance.windowOrigin}/${config.workerPath(this.lobbyId)}/api/start_game/${this.lobbyId}`,
+      // Flashist Adaptation: root-absolute, NOT `FlashistFacade.instance.windowOrigin`.
+      // windowOrigin is origin + document pathname, but the worker API is mounted at
+      // the host root (nginx `^/w(\d+)`, webpack proxy context `/w<N>`), so joining
+      // onto it prefixes the document path and misses the worker route entirely.
+      `/${config.workerPath(this.lobbyId)}/api/start_game/${this.lobbyId}`,
 
       {
         method: "POST",
@@ -815,6 +826,11 @@ export class HostLobbyModal extends LitElement {
         },
       },
     );
+    if (!response.ok) {
+      console.error(
+        `Failed to start private game: ${response.status} ${response.statusText}`,
+      );
+    }
     return response;
   }
 
@@ -822,9 +838,11 @@ export class HostLobbyModal extends LitElement {
     try {
       //TODO: Convert id to url and copy
       await navigator.clipboard.writeText(
-        // Flashist Adaptation
+        // Flashist Adaptation: windowOrigin is correct here — the invite should keep the
+        // current document (…/yandex-games_iframe.html). No separator: a trailing "/"
+        // makes the path stop matching nginx's `\.html$` and serves index.html instead.
         // `${location.origin}/#join=${this.lobbyId}`,
-        `${FlashistFacade.instance.windowOrigin}/#join=${this.lobbyId}`,
+        `${FlashistFacade.instance.windowOrigin}#join=${this.lobbyId}`,
       );
       this.copySuccess = true;
       setTimeout(() => {

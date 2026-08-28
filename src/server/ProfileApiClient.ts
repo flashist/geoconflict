@@ -10,6 +10,7 @@ import {
   ProfileUpsertRequest,
 } from "../core/profile/CreditContract";
 import { MatchCredit } from "../core/profile/MatchQualification";
+import { PublicPlayerProfileSchema } from "../core/profile/PlayerProfile";
 import { formatError } from "./Logger";
 
 const CREDIT_PATH = "/internal/v1/credit";
@@ -73,27 +74,45 @@ export class ProfileApiClient {
    * Create-or-relink a profile by Yandex identity so a `player_profiles` row exists
    * before any crediting (and before the Citizenship UI reads it). Idempotent
    * server-side. Fire-and-forget; never throws.
+   *
+   * Returns the upserted profile's `is_citizen` (task 0068) — the endpoint already
+   * responds with the public profile, so reading it here costs no extra request and
+   * opens no new trust seam. FAIL-SOFT IS THE WHOLE CONTRACT: every failure path
+   * (unconfigured, transport error, 4xx incl. the 409 conflict, 5xx after retries,
+   * unparseable body) returns `false`, i.e. "not a citizen" — never an exception and
+   * never a delay. A `false` here means "we do not know", so callers must only ever
+   * turn the flag ON from a `true`, never clear an already-known `true`.
    */
   public async upsertProfile(
     yandexPlayerId: string,
     persistentId: string,
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!this.isConfigured()) {
       this.logDisabledOnce("upsertProfile");
-      return;
+      return false;
     }
     try {
       const body: ProfileUpsertRequest = { yandexPlayerId, persistentId };
-      const ok = await this.postWithRetry(UPSERT_PATH, body);
-      if (ok === null) {
+      const json = await this.postWithRetry(UPSERT_PATH, body);
+      if (json === null) {
         this.log.warn(
           `profile upsert failed after retries (will retry on next join / credit no_profile)`,
         );
+        return false;
       }
+      const parsed = PublicPlayerProfileSchema.safeParse(json);
+      if (!parsed.success) {
+        this.log.warn(
+          `profile upsert response failed validation: ${z.prettifyError(parsed.error)}`,
+        );
+        return false;
+      }
+      return parsed.data.is_citizen;
     } catch (error) {
       this.log.warn(
         `unexpected error upserting profile: ${formatError(error)}`,
       );
+      return false;
     }
   }
 

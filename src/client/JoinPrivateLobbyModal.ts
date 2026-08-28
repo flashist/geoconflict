@@ -1,9 +1,10 @@
 import { LitElement, html } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 import { translateText } from "../client/Utils";
-import { GameInfo, GameRecordSchema } from "../core/Schemas";
+import { ClientInfo, GameInfo, GameRecordSchema } from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
+import { renderCitizenBadge } from "./CitizenBadge";
 import { JoinLobbyEvent } from "./Main";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
@@ -17,7 +18,9 @@ export class JoinPrivateLobbyModal extends LitElement {
   @query("#lobbyIdInput") private lobbyIdInput!: HTMLInputElement;
   @state() private message: string = "";
   @state() private hasJoined = false;
-  @state() private players: string[] = [];
+  // Holds the whole ClientInfo (not just the username) so the lobby list can render
+  // the citizen badge alongside the name — task 0068.
+  @state() private players: ClientInfo[] = [];
 
   private playersInterval: NodeJS.Timeout | null = null;
 
@@ -83,7 +86,11 @@ export class JoinPrivateLobbyModal extends LitElement {
 
                 <div class="players-list">
                   ${this.players.map(
-                    (player) => html`<span class="player-tag">${player}</span>`,
+                    (player) =>
+                      html`<span class="player-tag"
+                        >${player.isCitizen ? renderCitizenBadge() : ""}
+                        ${player.username}</span
+                      >`,
                   )}
                 </div>
               </div>`
@@ -314,7 +321,7 @@ export class JoinPrivateLobbyModal extends LitElement {
     )
       .then((response) => response.json())
       .then((data: GameInfo) => {
-        this.players = data.clients?.map((p) => p.username) ?? [];
+        this.players = data.clients ?? [];
       })
       .catch((error) => {
         console.error("Error polling players:", error);

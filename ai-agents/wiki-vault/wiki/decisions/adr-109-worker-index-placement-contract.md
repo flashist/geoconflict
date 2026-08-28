@@ -53,5 +53,6 @@ The decision became necessary because of the 2026-08-22 outage track. `0056` rep
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the outage that opened the track
 - [[systems/networking]] — the worker-path contract this ADR formalizes
 - [[systems/architecture-overview]] — already describes the hash as "sharding, not load balancing"
+- [[decisions/windoworigin-url-join-defect]] — task `0198`: the `/w<N>/` host-root mount this contract defines is what the private-lobby URL join misses in production
 - [[decisions/sprint-4]] — the sprint board carrying the outage track
 - [[decisions/adr-numbering-two-series]] — the ADR number bands

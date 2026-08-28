@@ -48,6 +48,20 @@ PROFILE_SSH_KEY=~/.ssh/id_rsa
 # PROFILE_SSH_PASSWORD=
 
 # -----------------------------------------------------------
+# Operator Telegram notifications (task 0067 — citizen name changes).
+# The profile server pings the operator when a citizen submits a name-change
+# request awaiting moderation. This reuses the EXISTING feedback bot: same bot,
+# same chat, same proxy, same variable names as the game server's .env — copy the
+# values from there. Leave blank to disable notifications (requests still work).
+#
+# api.telegram.org is BLOCKED from Russian IPs and this VPS is reg.ru/Moscow, so
+# TELEGRAM_PROXY_URL is required in practice, not optional.
+# The bot TOKEN is a secret — put it in .env.profile.secret, not here.
+# -----------------------------------------------------------
+FEEDBACK_TELEGRAM_CHAT_ID=
+TELEGRAM_PROXY_URL=
+
+# -----------------------------------------------------------
 # Off-box backup (T8) — encrypted DAILY pg_dump uploaded to RU-resident S3.
 # The daily backup is installed ONLY when endpoint+bucket+access+secret+age-recipient are all
 # set; otherwise setup-profile.sh keeps the interim weekly LOCAL pg_dump. Backups contain PII
@@ -80,3 +94,5 @@ PROFILE_BACKUP_RETENTION_WEEKLY_DAYS=56
 # DOCKER_TOKEN=           # registry token for `docker login` (if the repo is private)
 # PROFILE_BACKUP_S3_ACCESS_KEY=  # S3 access key, scoped to the backup bucket only (T8)
 # PROFILE_BACKUP_S3_SECRET_KEY=  # S3 secret key for the above (T8)
+# FEEDBACK_TELEGRAM_TOKEN=       # operator bot token (task 0067) — same bot as the game
+#                                #   server's feedback sends; copy from the game .env.secret

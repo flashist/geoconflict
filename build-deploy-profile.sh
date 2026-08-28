@@ -500,6 +500,13 @@ chmod 600 "$LOCAL_TMPENV"
     printf "export CERTBOT_EMAIL=%q\n" "${CERTBOT_EMAIL:-ruflashist@gmail.com}"
     printf "export DOCKER_USERNAME=%q\n" "${DOCKER_USERNAME:-}"
     printf "export DOCKER_TOKEN=%q\n" "${DOCKER_TOKEN:-}"
+    # Operator Telegram notifications for pending name-change requests (task 0067).
+    # Same bot/chat/proxy as the game server's feedback sends. The token rides the
+    # same 0600-staged, source-then-rm channel as the DB password. All three empty
+    # is a supported state: name-change requests still work, unnotified.
+    printf "export FEEDBACK_TELEGRAM_TOKEN=%q\n" "${FEEDBACK_TELEGRAM_TOKEN:-}"
+    printf "export FEEDBACK_TELEGRAM_CHAT_ID=%q\n" "${FEEDBACK_TELEGRAM_CHAT_ID:-}"
+    printf "export TELEGRAM_PROXY_URL=%q\n" "${TELEGRAM_PROXY_URL:-}"
     # Off-box backup config (T8). Endpoint/region/bucket/prefix are public; access+secret keys
     # and the age recipient ride the same 0600-staged, source-then-rm channel as the DB password.
     # setup-profile.sh installs the daily encrypted S3 backup only when these are all present.

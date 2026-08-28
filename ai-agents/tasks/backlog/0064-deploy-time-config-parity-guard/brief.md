@@ -169,6 +169,21 @@ which drifts, and which is then the thing lying to us.
   `setup-profile.sh`), not the game-server script alone; **(b) well-formedness checks are typed, not
   just presence checks** — public-facing URL values must be `https` and hostname-based (no raw IPs;
   the `0063` class), tokens non-empty (the `0062` class). Everything else in `0072` was already here.
+- **🔁 A THIRD instance landed 2026-08-28 — and it is the first in the profile pipeline.**
+  [`0195-forward-yandex-payments-secret-in-profile-deploy`](../0195-forward-yandex-payments-secret-in-profile-deploy/brief.md):
+  `YANDEX_PAYMENTS_SECRET` is absent from `build-deploy-profile.sh`'s staged-export block, so
+  `setup-profile.sh` writes it **empty** into `profile.env` and every `/v1/payments/*` route fails
+  closed with 503 on the real box — since `0019` shipped. Three consequences for this task:
+  **(i)** the class table above should be read as four rows, not three, and this one confirms the
+  merged-`0072` point (a) was right that both pipelines need covering — it is no longer hypothetical;
+  **(ii)** the hazard section applies unchanged — **`0195` must land before this guard arms**, or the
+  guard correctly fails the very profile deploy that ships the fix, exactly as with `0062`/`0063`;
+  **(iii)** ⚠️ **`YANDEX_PAYMENTS_SECRET` needs an entry in the Phase 1 step 4 allowlist, and it must
+  be marked EXPLICITLY OPTIONAL with the reason recorded, until `0014` issues the per-game secret
+  key** — then flipped to required. Both errors are harmful: required-today fails every profile deploy
+  on a value nobody can yet supply; unlisted-forever means the guard never catches the defect that
+  motivated this note. `0195` does not build any part of this guard and does not edit this brief; the
+  cross-reference was recorded by the producer at filing.
 - **This is a guard, not a fix.** It does not correct any configuration. If it finds gaps beyond the
   known three, each is a new brief — do not let this task grow into fixing whatever it discovers.
 - **Do not modify the incident record** — it is maintained by the investigating coder. Flag anything

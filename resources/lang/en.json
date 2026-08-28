@@ -49,6 +49,10 @@
     "reddit": "Reddit",
     "license_text": "Based on OpenFront"
   },
+  "citizen_badge": {
+    "tooltip": "Citizen",
+    "aria_label": "Citizen player"
+  },
   "citizenship_card": {
     "title": "Citizenship",
     "guest_subtitle": "Log in to save your progress",
@@ -60,6 +64,23 @@
   "citizenship_paid": {
     "buy_cta": "Buy Citizenship",
     "purchase_error": "Something went wrong. Please try again."
+  },
+  "citizenship_name_change": {
+    "cta": "Change name",
+    "title": "Display name",
+    "input_placeholder": "New display name",
+    "submit": "Submit for review",
+    "cancel_edit": "Cancel",
+    "pending_label": "Awaiting review",
+    "pending_hint": "“{name}” is waiting for moderator approval.",
+    "cancel_request": "Withdraw request",
+    "rejected_label": "Request declined",
+    "rejected_hint": "“{name}” was not approved. Check your inbox for the reason, then try another name.",
+    "try_again": "Try another name",
+    "error_name_taken": "That name is already taken.",
+    "error_pending_exists": "You already have a request awaiting review.",
+    "error_not_citizen": "Name changes are available to citizens only.",
+    "error_generic": "Something went wrong. Please try again."
   },
   "inbox": {
     "empty": "No personal messages yet.",

@@ -1,4 +1,5 @@
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
+import type { NameChangeState } from "../core/profile/NameChangeContract";
 import {
   PublicPlayerProfileSchema,
   type PublicPlayerProfile,
@@ -26,6 +27,13 @@ export type PlayerProfileView = {
    * citizen behind a failed profile read must never see a working buy button.
    */
   isAuthoritative: boolean;
+  /**
+   * The player's latest name-change request (task 0067), or null when they have
+   * none — which is also what every zero-state fallback reports, since a
+   * non-authoritative read knows nothing about requests. The card gates the
+   * whole name-change UI on `isAuthoritative` anyway.
+   */
+  nameChange: NameChangeState | null;
 };
 
 // Bound the profile read so an unreachable/slow profile API can never hang the
@@ -64,6 +72,7 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
     xp: 0,
     isCitizen: false,
     isAuthoritative: false,
+    nameChange: null,
   };
 
   const yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
@@ -102,6 +111,9 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
     xp: profile.xp,
     isCitizen: profile.is_citizen,
     isAuthoritative: true,
+    // Absent on a server that predates task 0067, or for a player who has never
+    // requested a change — both mean "no request" to the card.
+    nameChange: profile.name_change ?? null,
   };
 }
 

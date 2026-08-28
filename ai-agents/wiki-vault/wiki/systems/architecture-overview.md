@@ -45,6 +45,7 @@ The server is a **relay, not a simulator** — clients execute the game logic. S
 - **`FlashistFacade.ts`** (~1,200 lines) is the singleton owning everything platform-specific: ~70 analytics event constants, four experiment flags, degraded mode, three late-SDK recovery paths, and language mapping (only `en`/`ru` are ever produced). See [[systems/analytics]].
 - **Localization** — 33 language files, **statically bundled**, not fetched. Selection precedence is `localStorage["lang"]` > Yandex-resolved > `navigator.language`. See [[systems/localization]].
 - **Two client-side backends are easy to confuse**: the profile/XP/citizenship API, and an upstream OpenFront-style account API used by `AccountModal` / `jwt.ts`. `<account-button>` exists only in `index.html`.
+- 🚨 **`windowOrigin` is a document base, not a URL-join base** (§5, added 2026-08-28). `FlashistFacade.windowOrigin` is `origin + pathname`, and on Yandex Games the game is served at `/yandex-games_iframe.html`, so it carries that **document path**. The worker API is mounted at the **host root** in every environment, so concatenating a worker route onto it produces `…/yandex-games_iframe.html/w1/api/…`, which never matches the worker route. **What comes back depends on the verb**: a **non-GET** (PUT/POST — the two calls this defect breaks) **404s**; a **GET** falls through nginx's catch-all to the master's SPA fallback `app.get("*")` and gets **200 with `static/index.html`**, so the caller fails on a JSON parse rather than a network error. **Rule: host-root APIs take a bare root-absolute path.** Keep `windowOrigin` only where the intent is "stay in this document". **Anything built by concatenating onto it is suspect in production, and must be checked at a non-root pathname** — a root-path test cannot tell a real fix from a slash-collapsing one. See [[decisions/windoworigin-url-join-defect]].
 
 ### Game server tier
 
@@ -81,6 +82,17 @@ The match-end XP flow funnels all trust through one function — see [[decisions
 `npm run dev` / `build-dev` / `build-prod` / `gen-maps`; `npm test` (unit, excludes integration), `npm run test:integration` (needs a real Postgres), `test:coverage`, `perf`; `lint` / `format` / `check:docker-secret-boundary`; `migrate`; and the three deploy scripts.
 
 **Observed on the survey (2026-08-08):** 82 suites, **621 tests passed in 2.57 s**. The two integration test files were **not** exercised — they need a live Postgres. Coverage thresholds are set deliberately low (statements 21%, branches 16%). TypeScript is ESM, target ES2020, `strictNullChecks` on but **not full `strict`**.
+
+### Two lobby traps that look alike (§9, added 2026-08-28)
+
+Both present as "lobbies are broken locally", and each has a symptom the other does not:
+
+| What you see | Cause |
+|---|---|
+| Public lobby list **empty**, private lobby works | Something squatting port **3001** killed worker 0; `Worker.ts` swallows the `EADDRINUSE`, so the master never schedules public lobbies. Not a code bug — find and kill the squatter (a Remotion render is a known one). |
+| Private lobby **Start Game does nothing** (and settings silently revert to defaults), public list fine | The `windowOrigin` URL-join defect above — task `0198`. |
+
+**In production the symptom is the path-prefix failure, not a doubled slash.** See [[decisions/windoworigin-url-join-defect]].
 
 ## Gotchas / Known Issues
 
@@ -146,3 +158,4 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 - [[systems/server-performance]] — turn-cost analysis
 - [[decisions/adr-101-fail-soft-xp-crediting]], [[decisions/adr-102-privilege-refresher-fails-open]], [[decisions/adr-103-identity-trust-seam]], [[decisions/adr-104-archiving-disabled]], [[decisions/adr-105-compact-maps-out-of-rotation]], [[decisions/adr-106-flags-suppressed]], [[decisions/adr-107-turn-interval-1-5x]], [[decisions/adr-109-worker-index-placement-contract]] — the settled choices this survey surfaced
 - [[decisions/sprint-backlog]] — the eleven unsprinted briefs, including the ones this survey's risks and open questions produced (`0005` R4, `0006`, `0007` R7, `0008` R5, `0009`)
+- [[decisions/windoworigin-url-join-defect]] — the §5 URL-join rule and the §9 trap table added to this survey on 2026-08-28

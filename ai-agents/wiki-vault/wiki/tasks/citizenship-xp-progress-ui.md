@@ -30,3 +30,4 @@ The XP/progress card now reads server profile state for authorized players. Gues
 - [[tasks/degraded-mode-ux-treatment]] — the follow-up giving the card's Yandex-degraded state its own subtitle and CTA suppression
 - [[tasks/hide-citizenship-card-flag]] — the 0054 default-OFF client flag hiding the whole card in production until citizenship launches
 - [[decisions/adr-106-flags-suppressed]] — why the card shows the placeholder flag fallback
+- [[tasks/citizenship-name-change]] — task 0067, which attaches the name-change entry point and pending/approved/rejected states to this card

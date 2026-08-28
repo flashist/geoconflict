@@ -35,3 +35,4 @@ The start-screen redesign also renamed "Single Player" to `Custom Game` / `Св�
 - [[features/announcements]] — localized repo-authored announcement content with English fallback
 - [[systems/project-operations]] — release workflow that requires localized copy changes to ship in builds
 - [[systems/architecture-overview]] — statically-bundled language files and selection precedence
+- [[tasks/citizenship-name-change]] — task 0067's `citizenship_name_change` section, 15 keys, en/ru parity asserted by a dedicated test

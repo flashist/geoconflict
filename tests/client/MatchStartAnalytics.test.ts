@@ -255,6 +255,7 @@ function createGameStartInfo(
     players: Array.from({ length: playerCount }, (_, index) => ({
       clientID: `00000000-0000-4000-8000-00000000000${index + 2}`,
       username: `Player ${index + 1}`,
+      isCitizen: false,
     })),
     config: {
       gameMap: GameMapType.World,

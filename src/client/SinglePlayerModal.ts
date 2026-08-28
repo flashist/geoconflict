@@ -550,6 +550,9 @@ export class SinglePlayerModal extends LitElement {
                   pattern: selectedPattern ?? undefined,
                   color: selectedColor ? { color: selectedColor } : undefined,
                 },
+                // Singleplayer builds its start info locally and never reaches the
+                // profile API, so there is no citizen icon here (0068 residual 3).
+                isCitizen: false,
               },
             ],
             config: {

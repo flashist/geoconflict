@@ -48,4 +48,6 @@ The design rules that make this a seam rather than just a shortcut:
 - [[features/announcements]] — the task-0012 personal-inbox read routes ride this same client-asserted-ID funnel
 - [[systems/architecture-overview]] — risk R1, open question 5
 - [[decisions/adr-numbering-two-series]] — the ADR number bands
+- [[tasks/citizenship-name-change]] — task 0067: a forged id can submit an offensive name in a citizen's name, mitigated only by the human moderation gate and closing on `0014`
+- [[tasks/citizen-verified-icon]] — task 0068: a forged id can mint a **cosmetic** citizen icon, which gates nothing of value
 - [[decisions/adr-102-privilege-refresher-fails-open]] — the adjacent entitlement-trust seam. **Related shape, different problem — do not merge them:** ADR-103 is *who the player is* (Yandex), ADR-102 is *what the player is entitled to* (upstream OpenFront). Both are unblocked by the same external event, the Yandex IAP secret key.

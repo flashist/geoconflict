@@ -10,7 +10,44 @@ Sprint 4
 Medium — first user-facing citizenship benefit; gives the citizenship threshold something concrete to buy. Cannot ship to players before live citizenship exists.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+## ⚠️ Close-out — read this before treating the task as shipped (2026-08-28)
+
+**Effective posture: built-awaiting-deploy — the same posture as `0062` and `0063`. Nothing in this
+task is verified in production.** The close was performed by a producer spawned by the sprint
+ship-loop, with no owner present; no human has checked this work.
+
+**What is proven.** Built, stateful-reviewed (Round 1), all five findings dispositioned, ledger
+`review.md` `Status: closed-out`; the reviewer independently re-ran every check and reproduced every
+number in a phase-2 pass. Green: `npx tsc --noEmit`, `npm run lint`, prettier, `npm test`
+(103 suites / 1039 tests), `RUN_DB_TESTS=1 npx jest tests/integration --runInBand --forceExit`
+against real Postgres (5 suites / 70 tests), en/ru parity for `citizenship_name_change` (15/15 keys).
+Plan approved by the owner with four amendments (`plan.md`); build record in `worklog.md`.
+
+**What is NOT proven.**
+- **Never run in production.** No deploy has happened; every claim here is local-stack and unit/integration
+  evidence only.
+- **The citizenship card has never been seen in a browser.** `flashistConstants.features.CITIZENSHIP_CARD_ENABLED`
+  is `false`, so the entire UI leg — the name-change entry point, the pending/approved/rejected states —
+  is proven by unit tests and nothing else.
+- **The operator Telegram notification is unit-proven only.** Proxy reachability from the profile VPS was
+  never exercised and is not locally testable; that verification belongs to task `0033`.
+
+**Open residuals carried from the review ledger (`review.md` §Accepted residuals).**
+- **(a) Forged-id offensive name submission — OPEN, mitigated.** The player routes accept a
+  client-asserted, unverified `yandexPlayerId` (ADR-103), so someone who knows a citizen's non-secret id
+  can submit an offensive name in that citizen's name. The human moderation gate mitigates it — and is
+  materially stronger now, because a decision cannot be applied to a name the operator never read. Closes
+  on `0014` (signed-payload verification, blocked on the Yandex IAP secret key).
+- **(b) The pending, unmoderated name is PUBLICLY READABLE via the unauthenticated profile endpoint —
+  UNMITIGATED.** `GET /v1/profile` is unauthenticated and enumerable by a non-secret player id, and
+  `toPublicProfile` returns `name_change.requested_name` — whatever was submitted, **before any operator
+  sees it**. **This passes no gate at all.** The moderation gate does **not** apply: an operator reviews a
+  name before it is APPLIED, never before it is PUBLISHED. Owner-ruled to keep it (the player must be able
+  to see their own request). **Do not describe this as solved, mitigated, or bounded.**
+- **(c) The operator-notification cooldown is in-process.** A restart, or a second instance, allows one
+  extra notification. Deliberate: the `expectedName` binding, not the cooldown, is what carries the safety.
 
 ## Owner
 fkit-coder
@@ -52,4 +89,7 @@ Out of scope: where the approved display name surfaces beyond the profile/citize
 - **Depends on:** 0017 — its Deferred Live Tail (live citizenship in production) gates the player-facing ship; build + local verification can proceed against the local profile stack, same treatment as 0017/0012. Soft: 0012 (inbox send mechanism — hooks stay no-op seams until it ships).
 - **Blocks:** nothing on the board.
 - Paid citizens come via 0065 — not a dependency; earned citizens are sufficient for the feature to exist.
-- **Open questions for the owner:** (a) confirm the moderation channel — recommended: Telegram notification + internal admin endpoint, no UI; (b) where the approved display name applies beyond the profile card (e.g. prefill/lock the start-screen username for logged-in citizens) — recommended as a separate follow-up task once ruled; (c) confirm validation rules (recommend mirroring the existing username validation + the schema's uniqueness).
+- **~~Open questions for the owner:~~ ALL THREE RESOLVED 2026-08-28** (owner rulings, lead session via `AskUserQuestion`):
+  - **(a) Moderation channel — RULED:** Telegram notification on a new pending request via the **existing** bot pipeline (the feedback-message precedent — find and reuse it, do not build a new one), **plus** a service-authenticated internal approve/reject endpoint. **No moderation UI.**
+  - **(b) Scope of the approved display name — RULED:** **profile/citizenship card only.** Start-screen username prefill/lock, lobby player lists and in-match labels are **out of scope for this task** and become a **separate follow-up task**. Do not widen the change surface to them.
+  - **(c) Validation — RULED:** mirror the **existing** in-game username validation (length/charset — reuse the actual validator, do not re-implement it) **plus** the profile schema's case-insensitive uniqueness index. No new bespoke rules.

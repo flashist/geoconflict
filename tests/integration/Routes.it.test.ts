@@ -59,6 +59,10 @@ RUN("profile API over real Postgres (integration)", () => {
       "migrations/001_player_profiles.sql",
       "migrations/002_yandex_payments.sql",
       "migrations/003_player_messages.sql",
+      // Applied here too (task 0067) so the schema is identical whichever
+      // integration suite reaches a cold DB first — the suites share one
+      // database and run --runInBand.
+      "migrations/004_name_change.sql",
     ]) {
       await pool.query(readFileSync(join(process.cwd(), file), "utf8"));
     }

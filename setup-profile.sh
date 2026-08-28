@@ -24,6 +24,12 @@
 #   PROFILE_INTERNAL_TOKEN     — service token (reused/persisted/auto-generated)
 #   YANDEX_PAYMENTS_SECRET     — Yandex per-game payments HMAC secret; empty/unset =
 #                                payments endpoints disabled (fail-closed 503, task 0019)
+#   FEEDBACK_TELEGRAM_TOKEN    — operator bot token, SAME bot as the game server's feedback
+#   FEEDBACK_TELEGRAM_CHAT_ID    sends; used to ping the operator about pending name-change
+#                                requests (task 0067). Unset = requests still work, the
+#                                operator just isn't notified.
+#   TELEGRAM_PROXY_URL         — egress proxy for api.telegram.org, which is BLOCKED from
+#                                Russian IPs; without it the notification always fails
 #   PROFILE_INTERNAL_ALLOW_IPS — game-server IPs for the dormant nginx /internal/ allowlist
 #   CERTBOT_EMAIL              — Let's Encrypt email (default ruflashist@gmail.com)
 #   DOCKER_USERNAME/DOCKER_TOKEN — optional registry auth for pulling a private PROFILE_IMAGE
@@ -384,6 +390,9 @@ DATABASE_URL=${DATABASE_URL}
 PROFILE_INTERNAL_TOKEN=${PROFILE_INTERNAL_TOKEN}
 PROFILE_PORT=${PROFILE_PORT}
 YANDEX_PAYMENTS_SECRET=${YANDEX_PAYMENTS_SECRET:-}
+FEEDBACK_TELEGRAM_TOKEN=${FEEDBACK_TELEGRAM_TOKEN:-}
+FEEDBACK_TELEGRAM_CHAT_ID=${FEEDBACK_TELEGRAM_CHAT_ID:-}
+TELEGRAM_PROXY_URL=${TELEGRAM_PROXY_URL:-}
 EOF
 )
 chmod 600 "$PROFILE_DIR/profile.env"

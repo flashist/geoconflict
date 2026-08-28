@@ -4,6 +4,10 @@ import shieldIcon from "../../resources/images/ShieldIconWhite.svg";
 import { runCitizenshipPurchase } from "./CitizenshipPurchase";
 import { FLAG_STORAGE_KEY } from "./FlagInput";
 import {
+  cancelNameChangeRequest,
+  submitNameChangeRequest,
+} from "./NameChangeRequest";
+import {
   FlashistFacade,
   flashist_logEventAnalytics,
   flashist_waitGameInitComplete,
@@ -53,6 +57,12 @@ export class CitizenshipCard extends LitElement {
   // presentation even when the follow-up profile re-fetch fails — a stale buy
   // button after a committed grant invites a second real charge.
   @state() private paidGrantConfirmed = false;
+
+  // Name change (task 0067). `nameEditing` is the only local UI state; the
+  // pending / rejected states are read from the server profile, never latched
+  // locally, so a decision made between page loads is always reflected.
+  @state() private nameEditing = false;
+  @state() private nameError: string | null = null;
 
   createRenderRoot() {
     return this;
@@ -322,8 +332,135 @@ export class CitizenshipCard extends LitElement {
             // whose profile read failed.
             nothing
           : this.renderBuyCta()}
+        ${isCitizen && profile.isAuthoritative
+          ? // The exact inverse of the buy-CTA gate: name change is the
+            // citizens-only benefit. `isAuthoritative` is required for the same
+            // reason it is there — a zero-state fallback knows neither the
+            // citizenship nor the pending request, so acting on it would show a
+            // citizens-only control to a non-citizen (whom the server would then
+            // reject with 403) or hide a real pending request.
+            this.renderNameChange(profile)
+          : nothing}
       </div>
     `;
+  }
+
+  // ── Name change (task 0067, citizens only) ───────────────────────────────
+  // Four states, all driven by the SERVER's name_change projection except the
+  // local "editing" toggle: idle → editing → pending → (approved | rejected).
+  private renderNameChange(profile: PlayerProfileView) {
+    // `?? null` is defensive, not decorative: a view object built by an older
+    // path (or a test stub) can omit the field entirely, and `undefined !== null`
+    // would then walk straight into a property read on undefined.
+    const request = profile.nameChange ?? null;
+    if (request !== null && request.status === "pending") {
+      return this.renderNamePending(request.requested_name);
+    }
+    if (this.nameEditing) {
+      return this.renderNameEditor();
+    }
+    if (request !== null && request.status === "rejected") {
+      return this.renderNameRejected(request.requested_name);
+    }
+    return html`
+      <button
+        id="citizenship-name-change-cta"
+        class="mt-2 w-full px-3 py-[7px] rounded-lg text-[13px] font-bold text-white bg-white/10 hover:bg-white/20 transition-colors duration-200"
+        @click=${this.onNameChangeCtaTap}
+      >
+        ${translateText("citizenship_name_change.cta")}
+      </button>
+    `;
+  }
+
+  private renderNameEditor() {
+    return html`
+      <div class="mt-2">
+        <input
+          id="citizenship-name-change-input"
+          type="text"
+          .value=${this.nameDraft}
+          @input=${this.onNameDraftInput}
+          placeholder="${translateText(
+            "citizenship_name_change.input_placeholder",
+          )}"
+          class="w-full px-3 py-[7px] rounded-lg text-[13px] text-white bg-black/40 border border-white/15 placeholder:text-white/35 focus:outline-none focus:border-blue-500"
+        />
+        <div class="mt-1.5 flex gap-1.5">
+          <button
+            id="citizenship-name-change-submit"
+            class="flex-1 px-3 py-[7px] rounded-lg text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+            @click=${this.onNameSubmitTap}
+          >
+            ${translateText("citizenship_name_change.submit")}
+          </button>
+          <button
+            id="citizenship-name-change-cancel-edit"
+            class="px-3 py-[7px] rounded-lg text-[13px] font-bold text-white/70 bg-white/10 hover:bg-white/20 transition-colors duration-200"
+            @click=${this.onNameEditCancelTap}
+          >
+            ${translateText("citizenship_name_change.cancel_edit")}
+          </button>
+        </div>
+        ${this.renderNameError()}
+      </div>
+    `;
+  }
+
+  private renderNamePending(requestedName: string) {
+    return html`
+      <div class="mt-2 p-2 rounded-lg bg-white/[0.06]">
+        <div class="text-[11px] font-semibold text-amber-300/90">
+          ${translateText("citizenship_name_change.pending_label")}
+        </div>
+        <div class="mt-0.5 text-[11px] text-[#98989f] leading-[1.4]">
+          ${translateText("citizenship_name_change.pending_hint", {
+            name: requestedName,
+          })}
+        </div>
+        <button
+          id="citizenship-name-change-withdraw"
+          class="mt-1.5 w-full px-3 py-[5px] rounded-lg text-[12px] font-bold text-white/70 bg-white/10 hover:bg-white/20 transition-colors duration-200"
+          @click=${this.onNameWithdrawTap}
+        >
+          ${translateText("citizenship_name_change.cancel_request")}
+        </button>
+        ${this.renderNameError()}
+      </div>
+    `;
+  }
+
+  private renderNameRejected(requestedName: string) {
+    return html`
+      <div class="mt-2 p-2 rounded-lg bg-white/[0.06]">
+        <div class="text-[11px] font-semibold text-red-400">
+          ${translateText("citizenship_name_change.rejected_label")}
+        </div>
+        <div class="mt-0.5 text-[11px] text-[#98989f] leading-[1.4]">
+          ${translateText("citizenship_name_change.rejected_hint", {
+            name: requestedName,
+          })}
+        </div>
+        <button
+          id="citizenship-name-change-retry"
+          class="mt-1.5 w-full px-3 py-[5px] rounded-lg text-[12px] font-bold text-white bg-white/10 hover:bg-white/20 transition-colors duration-200"
+          @click=${this.onNameChangeCtaTap}
+        >
+          ${translateText("citizenship_name_change.try_again")}
+        </button>
+      </div>
+    `;
+  }
+
+  private renderNameError() {
+    return this.nameError === null
+      ? nothing
+      : html`<div
+          id="citizenship-name-change-error"
+          class="mt-1.5 text-[11px] text-red-400 text-center"
+        >
+          ${this.nameError}
+        </div>`;
   }
 
   // Buy CTA (task 0018, State 2 only). Hidden ENTIRELY — never disabled —
@@ -385,6 +522,112 @@ export class CitizenshipCard extends LitElement {
       this.isPurchaseInFlight = false;
     }
   }
+
+  // Draft name. Deliberately a plain field, not @state(): it is bound into the
+  // input with `.value` and re-rendering on every keystroke would move the
+  // caret. Only the submit/cancel handlers read it.
+  private nameDraft = "";
+  private isNameRequestInFlight = false;
+
+  private readonly onNameDraftInput = (event: Event): void => {
+    this.nameDraft = (event.target as HTMLInputElement).value;
+  };
+
+  private readonly onNameChangeCtaTap = (): void => {
+    this.nameDraft = "";
+    this.nameError = null;
+    this.nameEditing = true;
+    // Explicit requestUpdate() after each state change — the codebase
+    // convention (see onBuyCtaTap): the decorator transform does not reliably
+    // schedule updates under the test build.
+    this.requestUpdate();
+  };
+
+  private readonly onNameEditCancelTap = (): void => {
+    this.nameEditing = false;
+    this.nameError = null;
+    this.requestUpdate();
+  };
+
+  private readonly onNameSubmitTap = async (): Promise<void> => {
+    if (this.isNameRequestInFlight) {
+      return;
+    }
+    this.isNameRequestInFlight = true;
+    this.nameError = null;
+    this.requestUpdate();
+    try {
+      const result = await submitNameChangeRequest(this.nameDraft.trim());
+      if (!this.isConnected) {
+        return;
+      }
+      if (result.status === "ok") {
+        this.nameEditing = false;
+        this.nameDraft = "";
+        this.requestUpdate();
+        // Re-read the profile so the pending state comes from the SERVER
+        // rather than being latched locally. refreshProfile() — NOT a second
+        // loadPlayerProfileView() caller, which would double-fire the
+        // Citizenship:Earned:XP transition (the documented reason Inbox.ts
+        // avoids it).
+        await this.refreshProfile();
+        return;
+      }
+      this.nameError = this.nameErrorMessage(result);
+      this.requestUpdate();
+    } finally {
+      this.isNameRequestInFlight = false;
+    }
+  };
+
+  private nameErrorMessage(
+    result: Awaited<ReturnType<typeof submitNameChangeRequest>>,
+  ): string {
+    switch (result.status) {
+      case "invalid":
+        // The SAME message the in-game username input shows for that rule —
+        // owner ruling (c): mirror the existing validator, no bespoke rules.
+        return translateText(`username.${result.violation}`);
+      case "name_taken":
+        return translateText("citizenship_name_change.error_name_taken");
+      case "pending_exists":
+        return translateText("citizenship_name_change.error_pending_exists");
+      case "not_citizen":
+        return translateText("citizenship_name_change.error_not_citizen");
+      default:
+        return translateText("citizenship_name_change.error_generic");
+    }
+  }
+
+  private readonly onNameWithdrawTap = async (): Promise<void> => {
+    if (this.isNameRequestInFlight) {
+      return;
+    }
+    this.isNameRequestInFlight = true;
+    this.nameError = null;
+    this.requestUpdate();
+    try {
+      const result = await cancelNameChangeRequest();
+      if (!this.isConnected) {
+        return;
+      }
+      if (result.status === "ok" || result.status === "no_pending") {
+        // `no_pending` is treated as success on purpose: it means the request
+        // is already gone (an operator decided it, or another tab withdrew
+        // it). Re-reading the profile shows whatever is actually true now.
+        await this.refreshProfile();
+        return;
+      }
+      this.nameError = translateText(
+        result.status === "not_citizen"
+          ? "citizenship_name_change.error_not_citizen"
+          : "citizenship_name_change.error_generic",
+      );
+      this.requestUpdate();
+    } finally {
+      this.isNameRequestInFlight = false;
+    }
+  };
 
   private getPlayerFlag(): string {
     try {

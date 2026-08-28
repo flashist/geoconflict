@@ -9,6 +9,7 @@ import {
   UnitView,
 } from "../../../core/game/GameView";
 import { PlayerType } from "../../../core/game/Game";
+import { renderCitizenBadge } from "../../CitizenBadge";
 import { renderNumber } from "../../Utils";
 import { Layer } from "./Layer";
 import humanPlayerIcon from "../../../../resources/images/HumanPlayerIcon.svg";
@@ -308,6 +309,7 @@ export class Leaderboard extends LitElement implements Layer {
                           class="h-4 w-4"
                         />`
                       : null}
+                    ${player.player.isCitizen() ? renderCitizenBadge() : null}
                     <span class="truncate">${player.name}</span>
                   </div>
                 </div>

@@ -13,7 +13,7 @@
 ## Systems
 
 - [[systems/project-brief]] — Product ground truth: what the game is, who it is for, how it earns, and the platform/legal/scope constraints every task works inside
-- [[systems/architecture-overview]] — Evidence-first 2026-08-08 codebase survey: four tiers, tick model, deploy topology, ranked risks, and the documented-but-stale corrections
+- [[systems/architecture-overview]] — Evidence-first 2026-08-08 codebase survey: four tiers, tick model, deploy topology, ranked risks, and the documented-but-stale corrections; **extended 2026-08-28** with the §5 `windowOrigin` URL-join rule and the §9 table that tells the two look-alike local lobby traps apart
 - [[systems/agent-conventions]] — The project's standing law: task status and owner vocabularies, status-report shape, evidence-before-assertion, one-skill-one-output, priority-vs-identity, dependency form, and the project-added task-ID allocation rule
 - [[systems/game-overview]] — Project overview: game types, maps, units, economy, combat, tick system
 - [[systems/producer-workflow]] — Producer role: scope, responsibilities, coordination boundaries, and release guardrails
@@ -31,7 +31,7 @@
 - [[systems/match-logging]] — What is recorded per match, where it goes, and what cannot be retrieved
 - [[systems/clans]] — Name-tag clan grouping system: parsing, team assignment logic, gaps, and no-UI status
 - [[systems/player-infrastructure]] — Pre-S4 identity/customization substrate: local-only persistence, join transport, dead inherited Stripe/Fuse monetization, and trust gaps; **corrected 2026-08-09** — the `flares` entitlement path is **live** and upstream-OpenFront-sourced, with ad suppression coupled to it (production liveness still unverified, task `0009`)
-- [[systems/player-profile-store]] — Dedicated Sprint 4 profile API/Postgres backend and match-end XP crediting path for citizenship and future paid entitlements
+- [[systems/player-profile-store]] — Dedicated Sprint 4 profile API/Postgres backend and match-end XP crediting path for citizenship and future paid entitlements; now also the name-change loop (migration 004) and the `is_citizen` flag the game path reads. **Three separate config/exposure gaps keep it inert or leaky in production** — `0062`, `0195`, and 0067's unauthenticated pending-name read
 
 ## Decisions
 
@@ -56,7 +56,7 @@
 - [[decisions/sprint-2]] — Sprint 2 (done): tutorial, auto-spawn, auto-expansion, zoom-to-territory, announcements
 - [[decisions/hotfix-post-sprint2]] — Post-Sprint 2 hotfix (done): experiment analytics, skip button, UI:Tap, HF-6/7/9
 - [[decisions/sprint-3]] — Sprint 3 (done): server observability, stale-build fixes, map preload, and deferrals to Sprint 6
-- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8, citizenship XP UI, payments infrastructure (0019), degraded-mode UX (0049), the independent 0041/0042/0046 tasks, the 0054 card-hide flag, the 0055 outage half, and the 0066 licensing remediation done (all agent-closed, not owner-verified; 0066 NOT deployed); 0017/0018 re-scoped local/mock-first 2026-08-23 and built+reviewed 2026-08-24 but open pending live tails — the go-live now hangs on 0065 (blocked by 0014 AND 0062, flip-ON gated on "0066 DEPLOYED"); the 2026-08-22 outage track **closed 2026-08-28** (0057→0056→0192→0194, with 0193 alongside — all agent-closed, none owner-verified, none confirmed deployed); promoted config-drift tasks (0060/0062/0063) are still open on the board
+- [[decisions/sprint-4]] — Sprint 4 (mixed): profile T4/T5/T6/T8, citizenship XP UI, payments infrastructure (0019), degraded-mode UX (0049), the independent 0041/0042/0046 tasks, the 0054 card-hide flag, the 0055 outage half, and the 0066 licensing remediation done (all agent-closed, not owner-verified; 0066 NOT deployed); 0017/0018 re-scoped local/mock-first 2026-08-23 and built+reviewed 2026-08-24 but open pending live tails — the go-live now hangs on 0065 (blocked by 0014 AND 0062, flip-ON gated on "0066 DEPLOYED"); the 2026-08-22 outage track **closed 2026-08-28** (0057→0056→0192→0194, with 0193 alongside — all agent-closed, none owner-verified, none confirmed deployed); promoted config-drift tasks (0060/0062/0063) are still open on the board; **Phase 2 citizenship benefits `0067`/`0068` built 2026-08-28, both agent-closed and both awaiting deploy**, alongside four new briefs (`0195`–`0198`) of which `0198` is a **live production defect whose fix is not deployed**
 - [[decisions/sprint-4b]] — Sprint 4b (done): interim public-match variety with compact maps, Duos/Trios/Quads, and weird-setting modifiers
 - [[decisions/sprint-4c]] — Sprint 4c stabilization (closed; plan archived to `sprints/done/` 2026-08-24): quick wins done, source maps enabled, lobby/map fetch fixed, mobile WebGL deferred
 - [[decisions/sprint-backlog]] — No-sprint backlog across both unsprinted boards: monitoring, mobile WebGL, worker init, bot anti-SAM nuke tactics, weird-mode cleanup, FuseTag/GutterAds fixes, the `0001`–`0011` briefs and cosmetics monetization dependency chain, plus the 2026-08 additions — heal tasks `0050`–`0053`, outage follow-ups `0058`/`0059`/`0061`/`0064`, the `0057`/`0062` promotions, and the owner-ruled email-subscribe fold-in to `0048`
@@ -70,6 +70,8 @@
 - [[decisions/licensing-compliance]] — AGPL, CC BY-SA, source-access, and OpenFront asset/trademark constraints for GeoConflict; the 0025 audit (2026-08-23) found one violation (proprietary music) — remediation 0066 built but not deployed, so the paid-IAP gate is not yet clear
 
 ### Bug Fixes & Investigations
+- [[decisions/windoworigin-url-join-defect]] — 🚨 **Live production defect, fix built but NOT deployed** (task `0198`): `windowOrigin` is `origin + pathname`, so concatenating a worker route onto it misses the route on the `/yandex-games_iframe.html` production entry point — a PUT/POST 404s, a GET gets the SPA fallback's 200 — and private-lobby start silently fails on Yandex Games. Carries the durable rule and the non-root testing requirement
+- [[decisions/config-parity-failure-class]] — the recurring class *a variable that never reaches production*: `0062`, `0063` and now `0195`, the first outside `deploy.sh`; `0064` is the guard and must land after all three
 - [[decisions/autospawn-late-join-fix]] — Fix for auto-spawn failure when joining during catch-up (late join / reconnect)
 - [[decisions/double-reload-fix]] — Fix for double page reload on browser refresh caused by orphaned `#refresh` history push
 - [[decisions/archive-archival-strategy]] — Split archive work: disable noisy dead path now, defer S3-backed citizen archival until citizenship exists
@@ -170,4 +172,6 @@
 - [[tasks/worker-crash-recovery-and-quorum-gate]] — Sprint 4 task 0056 outage root-cause fix: `WorkerSupervisor`, restart cap 5/index/10 min with 1 s→30 s backoff, quorum `ceil(n × 9/10)`-or-90 s gate; agent-closed 2026-08-27, deployment unconfirmed
 - [[tasks/schedule-public-games-onto-ready-workers]] — Sprint 4 task 0192 ADR-109's first application: `pickGameID` rejection-samples the game ID onto a ready index and a 5 s abort bounds the create call; agent-closed 2026-08-27, orphan residual since discharged by 0194
 - [[tasks/fetchlobbies-in-flight-guard]] — Sprint 4 task 0193 single-poll-in-flight guard on the 100 ms lobby tick: error lines per stuck ID 50→1, lobby flapping 21%→0, self-inflicted 429s 3→0; agent-closed 2026-08-27
+- [[tasks/citizenship-name-change]] — Sprint 4 task 0067, the first citizenship benefit: citizen-gated name-change request → operator moderation → apply, with self-service cancel; migration 004, three profile-server routes, shared Telegram notifier. Agent-closed 2026-08-28, **built-awaiting-deploy — not verified in production, and its UI has never been seen in a browser**; the pending unmoderated name is publicly readable and UNMITIGATED
+- [[tasks/citizen-verified-icon]] — Sprint 4 task 0068: server-authored `isCitizen` on the frozen roster and lobby poll, placeholder `★` badge in four surfaces; the live 3-client desync check really ran (280 hash windows, 0 mismatches). Agent-closed 2026-08-28, **built-awaiting-deploy — not verified in production**; R3's unauthenticated-payload acceptance is void the moment anything of value is gated on the flag
 - [[tasks/worker-reject-departed-requester-create]] — Sprint 4 task 0194 departed-requester guard on `create_game` (bounded 10 ms settle wait, `503`): 0 orphans against a baseline of 5, closing the outage track; agent-closed 2026-08-28. ⚠️ Its plan deliberately supersedes its brief

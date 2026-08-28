@@ -15,6 +15,7 @@ import http from "http";
 import { createPool } from "./Db";
 import { InboxRepository } from "./InboxRepository";
 import { logger } from "./Logger";
+import { NameChangeRepository } from "./NameChangeRepository";
 import { PaymentsRepository } from "./PaymentsRepository";
 import { PlayerProfileRepository } from "./PlayerProfileRepository";
 import { profileHttpPort } from "./ProfileEndpoints";
@@ -37,6 +38,31 @@ if (yandexPaymentsSecret.length === 0) {
     "YANDEX_PAYMENTS_SECRET is not set — payments endpoints disabled (503)",
   );
 }
+// Operator Telegram notifications for pending name-change requests (task 0067).
+// SAME bot, SAME chat, SAME proxy and SAME env var names as the game server's
+// feedback/subscribe sends (owner ruling (a): reuse the existing pipeline).
+// TELEGRAM_PROXY_URL is load-bearing, not optional: api.telegram.org is blocked
+// from Russian IPs and every VPS in this project is reg.ru / Moscow. Unset
+// token/chat ⇒ requests still work, the operator just isn't pinged. Never logged.
+const telegramToken = process.env.FEEDBACK_TELEGRAM_TOKEN ?? "";
+const telegramChatId = process.env.FEEDBACK_TELEGRAM_CHAT_ID ?? "";
+const telegramProxyUrl = process.env.TELEGRAM_PROXY_URL ?? "";
+if (telegramToken.length === 0 || telegramChatId.length === 0) {
+  log.warn(
+    "FEEDBACK_TELEGRAM_TOKEN / FEEDBACK_TELEGRAM_CHAT_ID not set — " +
+      "operator name-change notifications disabled (requests still work)",
+  );
+} else if (telegramProxyUrl.length === 0) {
+  log.warn(
+    "TELEGRAM_PROXY_URL is not set — Telegram is unreachable from a Russian IP, " +
+      "so operator name-change notifications will fail",
+  );
+}
+const nameChange = new NameChangeRepository(pool, inbox, {
+  token: telegramToken,
+  chatId: telegramChatId,
+  proxyUrl: telegramProxyUrl,
+});
 const app = createApp(
   repo,
   {
@@ -44,6 +70,7 @@ const app = createApp(
     yandexPaymentsSecret,
   },
   inbox,
+  nameChange,
 );
 const server = http.createServer(app);
 

@@ -278,6 +278,11 @@ export class LocalServer {
         clientID: this.lobbyConfig.clientID,
         stats: this.allPlayersStats[this.lobbyConfig.clientID],
         cosmetics: this.lobbyConfig.gameStartInfo?.players[0].cosmetics,
+        // Always false in singleplayer — see the start-info construction sites
+        // (0068 residual 3). Read from the roster rather than hardcoded so it stays
+        // correct if a local path ever does learn the flag.
+        isCitizen:
+          this.lobbyConfig.gameStartInfo?.players[0].isCitizen ?? false,
         clanTag: getClanTag(this.lobbyConfig.playerName) ?? undefined,
       },
     ];

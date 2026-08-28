@@ -191,6 +191,13 @@ export class PlayerView {
     public data: PlayerUpdate,
     public nameData: NameViewData,
     public cosmetics: PlayerCosmetics,
+    /**
+     * Display-only citizen flag (task 0068), taken from the frozen start roster on
+     * the main thread exactly like `cosmetics`. It is NOT part of the simulation:
+     * nothing in the worker reads it and `PlayerImpl.hash()` cannot see it. Nations
+     * and bots have no clientID, so they are always `false`.
+     */
+    private readonly _isCitizen: boolean = false,
   ) {
     if (data.clientID === game.myClientID()) {
       this.anonymousName = this.data.name;
@@ -331,6 +338,10 @@ export class PlayerView {
   clientID(): ClientID | null {
     return this.data.clientID;
   }
+  /** Display-only; see the constructor note. Never gate anything of value on this. */
+  isCitizen(): boolean {
+    return this._isCitizen;
+  }
   id(): PlayerID {
     return this.data.id;
   }
@@ -445,6 +456,17 @@ export class PlayerView {
   }
 }
 
+/**
+ * Which clientIDs in the frozen start roster are citizens (task 0068).
+ *
+ * Pure and exported purely so it is unit-testable without standing up a whole
+ * `GameView` (which needs a worker, a config and a terrain map). Absent/false ⇒ the
+ * id is simply not in the set, so lookups default to "not a citizen".
+ */
+export function citizenClientIDs(humans: readonly Player[]): Set<ClientID> {
+  return new Set(humans.filter((h) => h.isCitizen).map((h) => h.clientID));
+}
+
 export class GameView implements GameMap {
   private lastUpdate: GameUpdateViewData | null;
   private smallIDToID = new Map<number, PlayerID>();
@@ -459,6 +481,8 @@ export class GameView implements GameMap {
   private toDelete = new Set<number>();
 
   private _cosmetics: Map<string, PlayerCosmetics> = new Map();
+
+  private _citizenClientIDs: Set<ClientID> = new Set();
 
   private _map: GameMap;
 
@@ -476,6 +500,7 @@ export class GameView implements GameMap {
     this._cosmetics = new Map(
       this.humans.map((h) => [h.clientID, h.cosmetics ?? {}]),
     );
+    this._citizenClientIDs = citizenClientIDs(this.humans);
     for (const nation of this._mapData.nations) {
       // Nations don't have client ids, so we use their name as the key instead.
       this._cosmetics.set(nation.name, {
@@ -524,6 +549,8 @@ export class GameView implements GameMap {
             this._cosmetics.get(pu.clientID ?? "") ??
             this._cosmetics.get(pu.name) ??
             {},
+            // Humans only — nations and bots have no clientID, so they never match.
+            this._citizenClientIDs.has(pu.clientID ?? ""),
           ),
         );
       }

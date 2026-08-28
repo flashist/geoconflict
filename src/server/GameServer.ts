@@ -242,6 +242,9 @@ export class GameServer {
 
       client.lastPing = existing.lastPing;
       client.reportedWinner = existing.reportedWinner;
+      // Carry the already-resolved citizen flag across a reconnect so the icon does
+      // not blank out while the fresh upsert below is still in flight (0068).
+      client.isCitizen = existing.isCitizen;
 
       this.activeClients = this.activeClients.filter((c) => c !== existing);
     }
@@ -478,6 +481,9 @@ export class GameServer {
         username: c.username,
         clientID: c.clientID,
         cosmetics: c.cosmetics,
+        // The single point where the citizen flag is frozen for the whole match:
+        // one object, broadcast identically to every client (late joiners included).
+        isCitizen: c.isCitizen,
       })),
       aiPlayers: this.aiPlayers.map((ai) => ({
         username: ai.username,
@@ -912,6 +918,7 @@ export class GameServer {
       clients: this.activeClients.map((c) => ({
         username: c.username,
         clientID: c.clientID,
+        isCitizen: c.isCitizen,
       })),
       numClients: this.activeClients.length + this.aiPlayers.length,
       aiPlayersCount: this.aiPlayers.length,
@@ -1013,6 +1020,9 @@ export class GameServer {
             this.allClients.get(player.clientID)?.persistentID ?? "",
           stats,
           cosmetics: player.cosmetics,
+          // From the frozen start roster, not the live client, so the record matches
+          // exactly what every client in the match was shown (0068).
+          isCitizen: player.isCitizen,
           clanTag: getClanTag(player.username) ?? undefined,
         } satisfies PlayerRecord;
       },
@@ -1208,16 +1218,29 @@ export class GameServer {
    * Ensure a profile row exists for a player we have a creditable Yandex id for
    * (fire-and-forget, fail-soft). Called when we first learn the id — at join and on
    * a late identity refresh.
+   *
+   * The upsert response also carries `is_citizen`, so this is where the display-only
+   * citizen flag is learned (0068) — no second request and no second trust seam. The
+   * join path still awaits nothing: a dead or slow profile API cannot delay a join,
+   * it just means the flag is still `false` when `start()` freezes the roster.
    */
   private upsertProfileForClient(client: Client): void {
     const yandexPlayerId = this.getCreditableYandexId(client);
     if (yandexPlayerId === null) {
       return;
     }
-    void this.profileApiClient.upsertProfile(
-      yandexPlayerId,
-      client.persistentID,
-    );
+    void this.profileApiClient
+      .upsertProfile(yandexPlayerId, client.persistentID)
+      .then((isCitizen) => {
+        // Only ever set true. `false` means "not a citizen OR the lookup failed", so
+        // clearing on it would let a transient outage blink a citizen's icon off.
+        if (isCitizen) {
+          client.isCitizen = true;
+        }
+      })
+      // Belt-and-braces: upsertProfile is contractually non-throwing, but this is on
+      // the join path — a rejection must not become an unhandled rejection here.
+      .catch(() => {});
   }
 
   /**

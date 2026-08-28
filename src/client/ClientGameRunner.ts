@@ -380,6 +380,9 @@ export class ClientGameRunner {
         username: this.lobby.playerName,
         clientID: this.lobby.clientID,
         stats: update.allPlayersStats[this.lobby.clientID],
+        // Carried from the frozen start roster via the view (task 0068). Display
+        // data only; the record just keeps the field it already saw on the wire.
+        isCitizen: this.myPlayer.isCitizen(),
       },
     ];
 

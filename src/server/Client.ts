@@ -10,6 +10,19 @@ export class Client {
 
   public reportedWinner: Winner | null = null;
 
+  /**
+   * Server-authored citizen display flag (task 0068). Filled in from the profile
+   * upsert the server already makes at join, and defaulted here rather than passed
+   * in so the construction site needs no change.
+   *
+   * DISPLAY ONLY, and deliberately NOT an entitlement gate: it is derived from the
+   * UNTRUSTED `yandexPlayerId` below, so nothing of value may ever be gated on it.
+   * The profile server's own SQL stays the authority for every real benefit, as it
+   * already is for the inbox. Fail-soft: `false` means "citizen unknown OR not a
+   * citizen" — a lookup failure is indistinguishable from a non-citizen by design.
+   */
+  public isCitizen: boolean = false;
+
   constructor(
     public readonly clientID: ClientID,
     public readonly persistentID: string,

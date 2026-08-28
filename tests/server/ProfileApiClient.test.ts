@@ -38,6 +38,21 @@ function matchCredit(over: Partial<MatchCredit> = {}): MatchCredit {
   };
 }
 
+/** The shape `POST /internal/v1/profile/upsert` actually returns (toPublicProfile). */
+function publicProfile(over: Record<string, unknown> = {}) {
+  return {
+    schema_version: 1,
+    yandex_player_id: "yx-1",
+    xp: 0,
+    is_citizen: false,
+    citizenship_earned_at: null,
+    display_name: null,
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+    ...over,
+  };
+}
+
 const BASE = "https://api.test";
 
 describe("ProfileApiClient", () => {
@@ -213,6 +228,100 @@ describe("ProfileApiClient", () => {
     expect(JSON.parse(init.body)).toEqual({
       yandexPlayerId: "yx-1",
       persistentId: "p-1",
+    });
+  });
+
+  // Task 0068: upsertProfile now also reports the profile's is_citizen off the
+  // response the endpoint ALREADY returns. The whole point is that every failure
+  // path collapses to `false` ("not a citizen") without ever throwing, because the
+  // caller is on the join path and awaits nothing.
+  describe("upsertProfile citizen flag (0068)", () => {
+    test("returns is_citizen from a well-formed response", async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(200, publicProfile({ is_citizen: true })),
+        ) as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(true);
+    });
+
+    test("returns false for a non-citizen", async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(200, publicProfile({ is_citizen: false })),
+        ) as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
+    });
+
+    test("returns false when the profile API is unconfigured (local dev)", async () => {
+      const fetchMock = jest.fn();
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const { client } = newClient("");
+      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    test("returns false (never throws) when the network is down", async () => {
+      const fetchMock = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    test("returns false after retries are exhausted on 5xx", async () => {
+      const fetchMock = jest.fn().mockResolvedValue(jsonResponse(500, {}));
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    test("returns false immediately on a 409 persistent_id_conflict", async () => {
+      const fetchMock = jest
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(409, { error: "persistent_id_conflict" }),
+        );
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
+      // 4xx is not retried.
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    test("returns false and warns on an unparseable body", async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(200, { not: "a profile" }),
+        ) as unknown as typeof fetch;
+
+      const { client, child } = newClient();
+      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
+      expect(child.warn).toHaveBeenCalledWith(
+        expect.stringContaining("upsert response failed validation"),
+      );
+    });
+
+    test("a truthy-but-not-boolean is_citizen is rejected, not coerced", async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(200, publicProfile({ is_citizen: "true" })),
+        ) as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
     });
   });
 

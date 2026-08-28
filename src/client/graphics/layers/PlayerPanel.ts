@@ -21,6 +21,7 @@ import {
 import { TileRef } from "../../../core/game/GameMap";
 import { GameView, PlayerView } from "../../../core/game/GameView";
 import { Emoji, flattenedEmojiTable } from "../../../core/Util";
+import { renderCitizenBadge } from "../../CitizenBadge";
 import { actionButton } from "../../components/ui/ActionButton";
 import "../../components/ui/Divider";
 import Countries from "../../data/countries.json";
@@ -438,7 +439,7 @@ export class PlayerPanel extends LitElement implements Layer {
             class="text-xl font-bold tracking-[-0.01em] text-zinc-50 truncate"
             title=${other.name()}
           >
-            ${other.name()}
+            ${other.isCitizen() ? renderCitizenBadge() : ""} ${other.name()}
           </h2>
         </div>
         ${chip

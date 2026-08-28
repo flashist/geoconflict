@@ -9,6 +9,13 @@ import {
 } from "obscenity";
 import { translateText } from "../../client/Utils";
 import { simpleHash } from "../Util";
+import {
+  MAX_USERNAME_LENGTH,
+  MIN_USERNAME_LENGTH,
+  checkUsernameRules,
+  validUsernamePattern,
+  type UsernameRuleViolation,
+} from "./usernameRules";
 
 const matcher = new RegExpMatcher({
   ...englishDataset.build(),
@@ -19,12 +26,12 @@ const matcher = new RegExpMatcher({
   ...resolveLeetSpeakTransformer(),
 });
 
-export const MIN_USERNAME_LENGTH = 3;
-export const MAX_USERNAME_LENGTH = 27;
+// Re-exported so every existing importer of this module keeps working unchanged;
+// the rules themselves now live in ./usernameRules (dependency-free, so the
+// profile server can share them — task 0067).
+export { MAX_USERNAME_LENGTH, MIN_USERNAME_LENGTH };
 
-// Allow any letter/number in any script plus limited legacy symbols (underscore, brackets, whitespace).
-// Emojis are disallowed entirely.
-const validPattern = /^[\p{L}\p{N}_[\]\s]+$/u;
+const validPattern = validUsernamePattern;
 
 const shadowNames = [
   "NicePeopleOnly",
@@ -47,43 +54,43 @@ export function isProfaneUsername(username: string): boolean {
   return matcher.hasMatch(username);
 }
 
+/**
+ * The `translateText` params each violation's message substitutes. Kept exactly
+ * as the pre-extraction implementation passed them — including the `{max}` on
+ * `invalid_chars`, whose current en/ru text does not use it. Dropping an unused
+ * param would be a silent behavior change if the text ever starts using it.
+ */
+const VIOLATION_PARAMS: Record<
+  UsernameRuleViolation,
+  Record<string, number> | undefined
+> = {
+  not_string: undefined,
+  too_short: { min: MIN_USERNAME_LENGTH },
+  too_long: { max: MAX_USERNAME_LENGTH },
+  invalid_chars: { max: MAX_USERNAME_LENGTH },
+};
+
+/**
+ * Thin translating wrapper over `checkUsernameRules` (task 0067). Same signature,
+ * same message keys, same params, same ordering as before the extraction — the
+ * rules moved, the client-visible behavior did not.
+ */
 export function validateUsername(username: string): {
   isValid: boolean;
   error?: string;
 } {
-  if (typeof username !== "string") {
-    return { isValid: false, error: translateText("username.not_string") };
+  const violation = checkUsernameRules(username);
+  if (violation === null) {
+    return { isValid: true };
   }
-
-  if (username.length < MIN_USERNAME_LENGTH) {
-    return {
-      isValid: false,
-      error: translateText("username.too_short", {
-        min: MIN_USERNAME_LENGTH,
-      }),
-    };
-  }
-
-  if (username.length > MAX_USERNAME_LENGTH) {
-    return {
-      isValid: false,
-      error: translateText("username.too_long", {
-        max: MAX_USERNAME_LENGTH,
-      }),
-    };
-  }
-
-  if (!validPattern.test(username)) {
-    return {
-      isValid: false,
-      error: translateText("username.invalid_chars", {
-        max: MAX_USERNAME_LENGTH,
-      }),
-    };
-  }
-
-  // All checks passed
-  return { isValid: true };
+  const params = VIOLATION_PARAMS[violation];
+  return {
+    isValid: false,
+    error:
+      params === undefined
+        ? translateText(`username.${violation}`)
+        : translateText(`username.${violation}`, params),
+  };
 }
 
 export function sanitizeUsername(str: string): string {

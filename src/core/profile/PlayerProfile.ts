@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { NameChangeStateSchema } from "./NameChangeContract";
 
 /**
  * Shared, versioned player-profile contract (citizenship / XP).
@@ -55,6 +56,19 @@ export const PublicPlayerProfileSchema = PlayerProfileSchema.omit({
   is_paid_citizen: true,
   citizenship_purchased_at: true,
   persistent_id: true,
+}).extend({
+  /**
+   * The player's latest name-change request (task 0067), when they have one.
+   *
+   * `.optional()` is MANDATORY, not cosmetic — InboxContract's review-R3 lesson:
+   * the profile server and the client bundle deploy separately. A client build
+   * that predates this field must still parse a profile that carries it, and a
+   * client build that carries it must still parse a profile from a server that
+   * does not yet return it. Only PublicPlayerProfileSchema gains this; the
+   * DB/localStorage contract (PlayerProfileSchema) is deliberately untouched —
+   * name-change state lives in `player_name_history`, never on the profile row.
+   */
+  name_change: NameChangeStateSchema.optional(),
 });
 
 export type PublicPlayerProfile = z.infer<typeof PublicPlayerProfileSchema>;

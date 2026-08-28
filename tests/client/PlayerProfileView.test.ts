@@ -71,6 +71,8 @@ const ZERO_STATE = {
   isCitizen: false,
   // Zero-state fallbacks are never authoritative (0018 review R1).
   isAuthoritative: false,
+  // A non-authoritative read knows nothing about name-change requests (0067).
+  nameChange: null,
 };
 
 describe("loadPlayerProfileView", () => {
@@ -109,6 +111,7 @@ describe("loadPlayerProfileView", () => {
       xp: 1200,
       isCitizen: true,
       isAuthoritative: true,
+      nameChange: null,
     });
     expect(fetchMock).toHaveBeenCalledWith(
       `${PROFILE_API_BASE}/v1/profile?yandexPlayerId=yandex-123`,
@@ -125,7 +128,52 @@ describe("loadPlayerProfileView", () => {
       xp: 40,
       isCitizen: false,
       isAuthoritative: true,
+      nameChange: null,
     });
+  });
+
+  // Task 0067 — the name-change state rides the public profile projection.
+  it("carries the name_change state through when the server sends one", async () => {
+    isYandexAuthorized.mockResolvedValue(true);
+    stubFetch(
+      200,
+      publicProfile({
+        is_citizen: true,
+        name_change: {
+          status: "pending",
+          requested_name: "NewName",
+          decided_at: null,
+        },
+      }),
+    );
+
+    const view = await loadPlayerProfileView();
+    expect(view!.nameChange).toEqual({
+      status: "pending",
+      requested_name: "NewName",
+      decided_at: null,
+    });
+  });
+
+  // The field is .optional() precisely so a client build can outlive a server
+  // that does not send it yet (InboxContract review R3 — separate deploys).
+  it("parses a profile from a server that does not send name_change at all", async () => {
+    isYandexAuthorized.mockResolvedValue(true);
+    stubFetch(200, publicProfile({ xp: 5 }));
+
+    const view = await loadPlayerProfileView();
+    expect(view!.nameChange).toBeNull();
+    expect(view!.isAuthoritative).toBe(true);
+  });
+
+  it("degrades to the zero-state when name_change is malformed", async () => {
+    isYandexAuthorized.mockResolvedValue(true);
+    stubFetch(
+      200,
+      publicProfile({ name_change: { status: "not-a-status" } }),
+    );
+
+    await expect(loadPlayerProfileView()).resolves.toEqual(ZERO_STATE);
   });
 
   it("returns the logged-in zero-state on 404 (never null)", async () => {
@@ -206,6 +254,7 @@ describe("loadPlayerProfileView", () => {
       xp: 0,
       isCitizen: false,
       isAuthoritative: false,
+      nameChange: null,
     });
   });
 });
@@ -327,6 +376,7 @@ describe("Citizenship:Earned:XP transition detection", () => {
       xp: 1000,
       isCitizen: true,
       isAuthoritative: true,
+      nameChange: null,
     });
     expect(logEventAnalytics).not.toHaveBeenCalled();
   });

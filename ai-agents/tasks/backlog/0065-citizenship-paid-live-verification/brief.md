@@ -11,9 +11,10 @@ High — the go-live gate for the monetization milestone. Everything buildable w
 (mock scope); this task is what remains once Yandex delivers.
 
 ## Status
-🚧 Blocked — two external/prod conditions: Yandex catalog approval + per-game secret-key issuance
-(`0014`) **and** `0062` (`PROFILE_INTERNAL_TOKEN` not forwarded to prod — no profile row is ever
-created there). Both must clear; neither alone unblocks.
+🚧 Blocked — three conditions: Yandex catalog approval + per-game secret-key issuance (`0014`),
+`0062` (`PROFILE_INTERNAL_TOKEN` not forwarded to prod — no profile row is ever created there), **and
+`0195`** (`YANDEX_PAYMENTS_SECRET` not forwarded to the profile box — every `/v1/payments/*` route
+returns 503 there). All three must clear; none alone unblocks.
 
 ## Owner
 fkit-coder
@@ -36,6 +37,15 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
   `setup-profile.sh`). Never committed, never logged.
 - **`0062`** — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end (its own
   verifications 2–3). Without it no profile row exists to attach a purchase to.
+- 🚨 **`0195`** — [`0195-forward-yandex-payments-secret-in-profile-deploy`](../0195-forward-yandex-payments-secret-in-profile-deploy/brief.md).
+  **Known blocker, recorded 2026-08-28 so it is not rediscovered mid-checklist.** The per-game secret
+  key above is delivered to the box by `build-deploy-profile.sh` → `setup-profile.sh` → `profile.env`,
+  and **`build-deploy-profile.sh` does not forward it** — its staged-export block omits the variable,
+  so `setup-profile.sh`'s `${YANDEX_PAYMENTS_SECRET:-}` default writes it empty. `Routes.ts`'s
+  `paymentsEnabled` middleware then returns `503 {"error":"payments_unavailable"}` on every
+  `/v1/payments/*` request. **Steps 1–4 below all drive those routes and would every one of them fail
+  with 503 today**, the only clue being a single `warn` line at container startup. `0014` issuing the
+  key is necessary but **not sufficient** — the key would still never reach the box.
 - **`0018`** — mock scope done: the UI and flow this checklist drives must exist.
 - `migrations/002_yandex_payments.sql` applied in prod (`npm run migrate` runs at deploy).
 - A test-purchase Yandex login added in the dashboard (In-App Purchases → Settings).
@@ -91,6 +101,17 @@ owner-waived, and the follow-up task from step 1 is filed.
 
 ## Notes
 
+- **Depends on:** `0014` (Yandex catalog approval + per-game secret-key issuance), `0062`
+  (`PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end — without it no profile row
+  exists to attach a purchase to), `0195` (`YANDEX_PAYMENTS_SECRET` forwarded to the profile box —
+  without it every `/v1/payments/*` route returns 503 there, so steps 1–4 all fail), and `0018` (mock
+  scope done — the UI and flow this checklist drives must exist). ⚠️ **`0014` alone is NOT sufficient:**
+  the per-game key it issues reaches the box only through `build-deploy-profile.sh`, whose
+  staged-export block omits the variable, so until `0195` ships the key would still never arrive.
+  Also required before running: `migrations/002_yandex_payments.sql` applied in prod, and a
+  test-purchase Yandex login registered in the dashboard. The full prose for every gate is in the
+  `## Dependencies` section above, which stays the human-facing explanation — this bullet is the
+  canonical machine-readable form, and it is the only shape `dashboard.sh` can read.
 - **No secrets in any artifact** — the per-game secret key and `PROFILE_INTERNAL_TOKEN` must never
   appear in briefs, worklogs, logs, or deploy output.
 - `0025` (licensing asset audit) completed 2026-08-23 and found a confirmed violation: the go-live

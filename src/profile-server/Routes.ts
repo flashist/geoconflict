@@ -19,6 +19,12 @@ import {
   SendMessageRequestSchema,
 } from "../core/profile/InboxContract";
 import {
+  NameChangeCancelRequestSchema,
+  NameChangeDecisionRequestSchema,
+  NameChangeRequestSchema,
+  type NameChangeState,
+} from "../core/profile/NameChangeContract";
+import {
   PurchaseCompleteRequestSchema,
   PurchaseIntentRequestSchema,
   PurchaseReconcileRequestSchema,
@@ -35,6 +41,11 @@ import type {
 } from "./InboxRepository";
 import { internalAuth } from "./InternalAuth";
 import { formatError, logger } from "./Logger";
+import type {
+  CancelOutcome,
+  DecideOutcome,
+  RequestOutcome,
+} from "./NameChangeRepository";
 import type {
   GrantStatus,
   PaidPurchaseGrant,
@@ -98,6 +109,22 @@ const InboxQuerySchema = z.object({
   yandexPlayerId: z.string().min(1).max(128),
 });
 
+/** The name-change-repository surface the routes depend on (structural — eases mocking). */
+export interface NameChangeRepo {
+  requestNameChange(
+    yandexPlayerId: string,
+    requestedName: string,
+  ): Promise<RequestOutcome>;
+  cancelNameChange(yandexPlayerId: string): Promise<CancelOutcome>;
+  decideNameChange(
+    yandexPlayerId: string,
+    decision: "approve" | "reject",
+    reason?: string,
+    expectedName?: string,
+  ): Promise<DecideOutcome>;
+  getLatestState(yandexPlayerId: string): Promise<NameChangeState | null>;
+}
+
 /**
  * The ONE place the player-facing inbox routes learn who is asking (task 0012,
  * owner-ruled D1 2026-08-26). Today it returns the CLIENT-asserted
@@ -129,20 +156,31 @@ const UUID_RE =
  *  - `persistent_id` — the internal cross-device identity-linkage token.
  * TODO(payments): once Yandex-signature auth lands, these can be returned to the
  * verified owner of the profile.
+ *
+ * `nameChange` (task 0067) is merged in when the caller has one. It carries only
+ * {status, requested_name, decided_at} — never the operator's rejection reason,
+ * which would otherwise be readable by anyone who can guess a player id; that
+ * text reaches the player through the citizen-gated inbox message instead.
  */
-function toPublicProfile(profile: PlayerProfile): PublicPlayerProfile {
+function toPublicProfile(
+  profile: PlayerProfile,
+  nameChange?: NameChangeState | null,
+): PublicPlayerProfile {
   const { is_paid_citizen, citizenship_purchased_at, persistent_id, ...rest } =
     profile;
   void is_paid_citizen;
   void citizenship_purchased_at;
   void persistent_id;
-  return rest;
+  // Omit the key entirely (rather than sending null) when there is no request —
+  // the field is `.optional()` on the shared schema, not nullable.
+  return nameChange ? { ...rest, name_change: nameChange } : rest;
 }
 
 export function createApp(
   repo: ProfileRepo,
   payments?: PaymentsConfig,
   inbox?: InboxRepo,
+  nameChange?: NameChangeRepo,
 ): Express {
   const app = express();
   // Exactly one proxy hop (host nginx) — so req.ip is the real client for the
@@ -189,6 +227,31 @@ export function createApp(
     res.set("Access-Control-Allow-Origin", "*");
     next();
   };
+  /**
+   * Name-change state for the profile projection (task 0067), or undefined when
+   * the feature is unwired or its lookup fails.
+   *
+   * The failure is DELIBERATELY swallowed rather than propagated. `GET
+   * /v1/profile` drives the whole citizenship card (XP, citizen badge, buy CTA);
+   * letting a newly-added secondary subsystem 500 that read would take the card
+   * down over a feature the player may not even be using. The cost of degrading
+   * instead is small and bounded: the card shows no pending state, and a second
+   * request is refused cleanly by the DB's one-pending index (409
+   * `pending_exists`) rather than silently double-writing.
+   */
+  const readNameChangeState = async (
+    yandexPlayerId: string,
+  ): Promise<NameChangeState | undefined> => {
+    if (nameChange === undefined) {
+      return undefined;
+    }
+    try {
+      return (await nameChange.getLatestState(yandexPlayerId)) ?? undefined;
+    } catch (error) {
+      log.error(`name-change state lookup failed: ${formatError(error)}`);
+      return undefined;
+    }
+  };
   app.get(
     "/v1/profile",
     allowPublicCors,
@@ -205,7 +268,14 @@ export function createApp(
           res.status(404).json({ error: "not_found" });
           return;
         }
-        res.status(200).json(toPublicProfile(profile));
+        res
+          .status(200)
+          .json(
+            toPublicProfile(
+              profile,
+              await readNameChangeState(parsed.data.yandexPlayerId),
+            ),
+          );
       } catch (error) {
         log.error(`GET /v1/profile failed: ${formatError(error)}`);
         res.status(500).json({ error: "internal_error" });
@@ -610,6 +680,207 @@ export function createApp(
       res.status(500).json({ error: "internal_error" });
     }
   });
+
+  // ── Citizen name change (task 0067) ────────────────────────────────────────
+  // Player-facing JSON POSTs from the game origin ⇒ preflighted, same shape as
+  // inboxCors. Scoped to the two /v1/profile/name-change-* paths ONLY — never
+  // /internal/*, and deliberately NOT mounted on /v1/profile itself (that would
+  // put a preflight handler in front of the plain GET).
+  const nameChangeCors: RequestHandler = (req, res, next) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+      res.status(204).end();
+      return;
+    }
+    next();
+  };
+  // Stricter than the shared 60/min profile-read limiter — a name change is a
+  // rare, human-paced action — but deliberately NOT as tight as it first looks
+  // like it should be. Two facts set the number:
+  //   * This is per-IP, and Russian mobile carriers CGNAT thousands of players
+  //     behind one address. Rejected probes (403/400) burn the same budget, so
+  //     too low a cap locks real citizens out for a minute over someone else's
+  //     traffic.
+  //   * Operator Telegram spam is NOT bounded by this limiter anyway — it is
+  //     bounded by the one-pending partial unique index: a second request from
+  //     the same player 409s WITHOUT inserting or notifying. So the notification
+  //     volume is capped by distinct citizen accounts, not by request rate.
+  // 30/min therefore stays 2x stricter than the profile read while leaving a
+  // shared-IP citizen room to submit, mistype, retry and cancel.
+  const nameChangeLimiter = rateLimit({
+    windowMs: 60_000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  // Without a repository (tests / tools) the player routes fail closed — the
+  // `inboxEnabled` pattern.
+  const nameChangeEnabled: RequestHandler = (_req, res, next) => {
+    if (nameChange === undefined) {
+      res.status(503).json({ error: "name_change_unavailable" });
+      return;
+    }
+    next();
+  };
+  for (const path of [
+    "/v1/profile/name-change-request",
+    "/v1/profile/name-change-cancel",
+  ]) {
+    app.use(path, nameChangeCors, nameChangeLimiter, nameChangeEnabled);
+  }
+
+  if (nameChange !== undefined) {
+    // Submit a request. 403 `not_citizen` covers BOTH a non-citizen and a
+    // missing profile — the gate runs in SQL on every call, never on
+    // client-side citizenship state (brief step 1: a direct POST from a
+    // non-citizen must be rejected server-side).
+    app.post("/v1/profile/name-change-request", async (req, res) => {
+      const parsed = NameChangeRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: "bad_request" });
+        return;
+      }
+      try {
+        const outcome = await nameChange.requestNameChange(
+          parsed.data.yandexPlayerId,
+          parsed.data.requestedName,
+        );
+        switch (outcome.status) {
+          case "not_citizen":
+            res.status(403).json({ error: "not_citizen" });
+            return;
+          case "invalid":
+            // 400 + the broken rule, so the card can show the SAME message the
+            // in-game username input shows for that rule.
+            res
+              .status(400)
+              .json({ error: "invalid", violation: outcome.violation });
+            return;
+          case "name_taken":
+            res.status(409).json({ error: "name_taken" });
+            return;
+          case "pending_exists":
+            res.status(409).json({ error: "pending_exists" });
+            return;
+          default:
+            res.status(200).json({ status: "ok" });
+            return;
+        }
+      } catch (error) {
+        log.error(
+          `POST /v1/profile/name-change-request failed: ${formatError(error)}`,
+        );
+        res.status(500).json({ error: "internal_error" });
+      }
+    });
+
+    // Withdraw your OWN pending request (owner amendment 2). This is what makes
+    // the ADR-103 client-asserted-id posture survivable here: without it, anyone
+    // who knows a citizen's non-secret id could park a pending request and
+    // permanently block that citizen from ever requesting a name change, with no
+    // way for the victim to clear it.
+    app.post("/v1/profile/name-change-cancel", async (req, res) => {
+      const parsed = NameChangeCancelRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: "bad_request" });
+        return;
+      }
+      try {
+        const outcome = await nameChange.cancelNameChange(
+          parsed.data.yandexPlayerId,
+        );
+        if (outcome.status === "not_citizen") {
+          res.status(403).json({ error: "not_citizen" });
+          return;
+        }
+        if (outcome.status === "no_pending") {
+          res.status(404).json({ error: "no_pending" });
+          return;
+        }
+        res.status(200).json({ status: "ok" });
+      } catch (error) {
+        log.error(
+          `POST /v1/profile/name-change-cancel failed: ${formatError(error)}`,
+        );
+        res.status(500).json({ error: "internal_error" });
+      }
+    });
+  }
+
+  // Internal, service-authenticated moderation decision — the brief's "minimal
+  // admin endpoint", same PROFILE_INTERNAL_TOKEN posture as /internal/v1/credit.
+  // No moderation UI exists by owner ruling (a); the operator is notified of new
+  // pending requests over Telegram and decides with a curl. Never CORS-enabled.
+  //
+  //   Request (JSON):
+  //     { "yandexPlayerId": "…", "decision": "approve", "expectedName": "…" }
+  //     { "yandexPlayerId": "…", "decision": "reject", "reason": "…" }  // reason REQUIRED
+  //   `expectedName` is OPTIONAL but is what the Telegram notification's
+  //   ready-to-paste command sends, and it is what makes deciding from that
+  //   message safe — see NameChangeContract. Omitting it decides on whatever is
+  //   pending right now, which is the pre-existing behavior.
+  //   Responses: 200 { "status": "ok" } · 400 bad_request (schema, or a reject
+  //   with no/blank reason) · 401 unauthorized · 404 no_pending · 409 name_taken
+  //   (the name was claimed between request and approval — the request stays
+  //   PENDING and can be retried or rejected) · 409 name_mismatch (the pending
+  //   name is not the one you passed; nothing was applied, and the response
+  //   carries `pending_name` so the command can be re-issued) · 503
+  //   name_change_unavailable · 500 internal_error.
+  //   Example:
+  //     curl -sS -X POST "$PROFILE_API_URL/internal/v1/name-change/decide" \
+  //       -H "Authorization: Bearer $PROFILE_INTERNAL_TOKEN" \
+  //       -H "Content-Type: application/json" \
+  //       -d '{"yandexPlayerId":"<id>","decision":"approve","expectedName":"<name>"}'
+  app.post(
+    "/internal/v1/name-change/decide",
+    internalAuth,
+    async (req, res) => {
+      if (nameChange === undefined) {
+        res.status(503).json({ error: "name_change_unavailable" });
+        return;
+      }
+      const parsed = NameChangeDecisionRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: "bad_request" });
+        return;
+      }
+      try {
+        const outcome = await nameChange.decideNameChange(
+          parsed.data.yandexPlayerId,
+          parsed.data.decision,
+          parsed.data.reason,
+          parsed.data.expectedName,
+        );
+        if (outcome.status === "no_pending") {
+          res.status(404).json({ error: "no_pending" });
+          return;
+        }
+        if (outcome.status === "name_taken") {
+          res.status(409).json({ error: "name_taken" });
+          return;
+        }
+        if (outcome.status === "name_mismatch") {
+          // The pending name rides along: this route is internal-auth'd, and the
+          // string is already public on GET /v1/profile, so it leaks nothing and
+          // saves the operator a second lookup.
+          res.status(409).json({
+            error: "name_mismatch",
+            pending_name: outcome.pendingName,
+          });
+          return;
+        }
+        res.status(200).json({ status: "ok" });
+      } catch (error) {
+        // Never log the operator's reason text — only the failure.
+        log.error(
+          `POST /internal/v1/name-change/decide failed: ${formatError(error)}`,
+        );
+        res.status(500).json({ error: "internal_error" });
+      }
+    },
+  );
 
   return app;
 }

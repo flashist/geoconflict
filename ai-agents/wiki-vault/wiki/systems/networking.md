@@ -44,6 +44,8 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - **A wedged-but-alive worker is still eligible for placement.** `readyWorkers` tracks liveness, never responsiveness — Node's cluster primary owns the listening socket and keeps accepting connections for a stopped worker. The 5 s create timeout bounds the cost; it does not remove it. A responsiveness signal is an open future item.
 - **The worker's rate limiter counts the master as one IP** — 20 req/s per IP applies to every route including `create_game` and `/api/game/:id` from loopback. Normal cadence is ~10 req/s per lobby, so a burst can 429 the master. Known, not fixed; whether the limiter should exempt loopback or the admin header is an open question for the owner.
 - **Private lobbies bypass all of the above.** The host picks the game ID client-side and POSTs `create_game` straight to `/w<N>/`, so a dead or wedged index costs the host one failed click and a retry. Accepted as-is by the owner 2026-08-26 — no master-only fix reaches it without publishing worker health to the client.
+- 🚨 **Two of the private-lobby HTTP calls never reach the worker on Yandex Games** (task `0198`, measured 2026-08-28; **fix built, NOT deployed**). `HostLobbyModal`'s `putGameConfig()` (PUT `/api/game/:id`) and `startGame()` (POST `/api/start_game/:id`) built their URLs by concatenating onto `FlashistFacade.windowOrigin`, which carries the document pathname. On the production Yandex entry point the path becomes `/yandex-games_iframe.html/w1/api/…`, never matches nginx's `^/w(\d+)`, and falls through to `app.get("*")` → **404**. Neither call checks `response.ok`, so nothing surfaces: the lobby is created, the player list keeps refreshing, the modal closes, and the game never starts — with the host's map/difficulty/bots/mode silently lost too. `pollPlayers()` and `createLobby()` use bare root-absolute paths and are unaffected, which is exactly why the lobby *looks* healthy. See [[decisions/windoworigin-url-join-defect]].
+- ⚠️ **The lobby-poll payload `GET /api/game/:id` is unauthenticated and now carries `isCitizen`** (task `0068`). Accepted **only while that flag stays purely cosmetic, and void the moment anything of value is gated on it.** See [[tasks/citizen-verified-icon]].
 
 ## Related
 
@@ -63,3 +65,5 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[tasks/fetchlobbies-in-flight-guard]] — task 0193's single-poll-in-flight guard on the 100 ms lobby tick
 - [[tasks/worker-reject-departed-requester-create]] — task 0194's departed-requester guard on the `create_game` route
 - [[tasks/worker-routing-dead-worker-investigation]] — task 0057, the investigation behind all four
+- [[decisions/windoworigin-url-join-defect]] — task 0198's URL-join defect that makes two private-lobby routes 404 in production
+- [[tasks/citizen-verified-icon]] — task 0068's `isCitizen` flag on the frozen roster and the lobby-poll payload

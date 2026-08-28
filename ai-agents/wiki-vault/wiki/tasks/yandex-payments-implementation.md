@@ -48,3 +48,4 @@ All plumbing for paid citizenship is in place and tested (87 suites / 690 tests 
 - [[systems/flashist-init]] — the bounded boot gate `initPayments()` joined
 - [[decisions/sprint-4]] — sprint context; paid citizenship (0018) and catalog registration (0014) remain
 - [[decisions/personal-data-152fz-compliance]] — the erasure-cascade concern behind the receipt-FK fix
+- [[decisions/config-parity-failure-class]] — task `0195`: `YANDEX_PAYMENTS_SECRET` has never reached the profile box, so **every** endpoint this task shipped has answered 503 there since it shipped

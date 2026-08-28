@@ -34,3 +34,4 @@ Shared runtime and gameplay configuration for Geoconflict. The system selects en
 - [[tasks/profile-game-server-deploy-env]] — deploy-time propagation that makes `PROFILE_API_URL` visible in real game-server containers
 - [[systems/player-profile-store]] — service that consumes the public profile API URL
 - [[systems/architecture-overview]] — where the config accessors sit in the wider survey
+- [[decisions/config-parity-failure-class]] — the recurring class where a deploy pipeline never forwards a variable the application needs (`0062`, `0063`, `0195`)

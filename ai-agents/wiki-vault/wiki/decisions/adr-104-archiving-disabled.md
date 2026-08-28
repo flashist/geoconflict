@@ -41,4 +41,5 @@ The follow-up is S3-backed archival gated to citizen games, scoped as a backlog 
 - [[systems/match-logging]] — what is recorded per match and what cannot be retrieved
 - [[systems/telemetry]] — where the error rates were measured
 - [[systems/architecture-overview]] — §features switched off, open question 1
+- [[tasks/citizen-verified-icon]] — task 0068, whose client-POSTed singleplayer-archive path is inert precisely because `archive()` no-ops behind this switch
 - [[decisions/adr-numbering-two-series]] — the ADR number bands

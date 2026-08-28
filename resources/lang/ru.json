@@ -53,6 +53,10 @@
     "minutes_short": "м",
     "single_play_mission": "Одиночная миссия"
   },
+  "citizen_badge": {
+    "tooltip": "Гражданин",
+    "aria_label": "Игрок-гражданин"
+  },
   "citizenship_card": {
     "title": "Гражданство",
     "guest_subtitle": "Войдите, чтобы сохранить прогресс",
@@ -64,6 +68,23 @@
   "citizenship_paid": {
     "buy_cta": "Купить гражданство",
     "purchase_error": "Что-то пошло не так. Попробуйте ещё раз."
+  },
+  "citizenship_name_change": {
+    "cta": "Сменить имя",
+    "title": "Отображаемое имя",
+    "input_placeholder": "Новое имя",
+    "submit": "Отправить на проверку",
+    "cancel_edit": "Отмена",
+    "pending_label": "На проверке",
+    "pending_hint": "«{name}» ожидает одобрения модератора.",
+    "cancel_request": "Отозвать заявку",
+    "rejected_label": "Заявка отклонена",
+    "rejected_hint": "«{name}» не одобрено. Причина — в личных сообщениях. Попробуйте другое имя.",
+    "try_again": "Выбрать другое имя",
+    "error_name_taken": "Это имя уже занято.",
+    "error_pending_exists": "У вас уже есть заявка на проверке.",
+    "error_not_citizen": "Смена имени доступна только гражданам.",
+    "error_generic": "Что-то пошло не так. Попробуйте ещё раз."
   },
   "inbox": {
     "empty": "Личных сообщений пока нет.",

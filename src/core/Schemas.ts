@@ -138,6 +138,12 @@ export interface GameInfo {
 export interface ClientInfo {
   clientID: ClientID;
   username: string;
+  /**
+   * Server-authored citizen display flag on the 1 Hz lobby poll payload (task 0068).
+   * Optional so a client build that predates it, or a poll from a server that does
+   * not yet send it, still parses — the lobby lists treat absent as "not a citizen".
+   */
+  isCitizen?: boolean;
 }
 export enum LogSeverity {
   Debug = "DEBUG",
@@ -438,6 +444,30 @@ export const PlayerSchema = z.object({
   clientID: ID,
   username: UsernameSchema,
   cosmetics: PlayerCosmeticsSchema.optional(),
+  /**
+   * Server-authored "this player is a citizen" display flag (task 0068). Read off
+   * the profile upsert the game server already makes at join, frozen once into the
+   * start roster, and identical for every client in the match — so it is display
+   * data, never simulation input.
+   *
+   * Server-authored **on the live game path**: there, clients only parse this
+   * schema — `GameServer.start()` (frozen start roster) and `gameInfo()` (lobby
+   * poll) are its only producers. One path is NOT server-authored:
+   * `PlayerRecordSchema` extends this schema (see "Records" below), and
+   * `POST /api/archive_singleplayer_game` (`src/server/Worker.ts`) parses a
+   * client-POSTed body, so a client can author any value into an archived record.
+   * That is harmless today — nothing anywhere reads `isCitizen` off a record, and
+   * `archive()` is a no-op behind `config.archiveEnabled()` (ADR-104) — but never
+   * trust a record's value, and never gate anything of value on this flag on any
+   * path: the profile server's SQL is the only authority on citizenship.
+   *
+   * `.default(false)` keeps it optional on the wire (old server → new client) while
+   * the parsed type stays a plain `boolean`. `.catch(false)` is load-bearing, not
+   * decoration: `GameServer.start()` aborts the whole game start if
+   * `GameStartInfoSchema.safeParse` fails, so one malformed value must degrade to
+   * "no icon", never to "nobody's game starts".
+   */
+  isCitizen: z.boolean().default(false).catch(false),
 });
 
 export const AiPlayerSchema = z.object({

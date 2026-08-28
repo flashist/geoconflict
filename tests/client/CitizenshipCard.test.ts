@@ -46,6 +46,10 @@ jest.mock("../../src/client/CitizenshipPurchase", () => ({
 jest.mock("../../src/client/PaymentsReconciliation", () => ({
   PURCHASES_RECONCILED_EVENT: "geoconflict-purchases-reconciled",
 }));
+jest.mock("../../src/client/NameChangeRequest", () => ({
+  submitNameChangeRequest: jest.fn(),
+  cancelNameChangeRequest: jest.fn(),
+}));
 
 import {
   CITIZENSHIP_LOGIN_REQUESTED_EVENT,
@@ -58,6 +62,10 @@ import {
   flashist_logEventAnalytics,
   flashistConstants,
 } from "../../src/client/flashist/FlashistFacade";
+import {
+  cancelNameChangeRequest,
+  submitNameChangeRequest,
+} from "../../src/client/NameChangeRequest";
 import { PURCHASES_RECONCILED_EVENT } from "../../src/client/PaymentsReconciliation";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
 
@@ -74,6 +82,8 @@ const whenPaymentsCatalogSettled = FlashistFacade.instance
 const logEventAnalytics = flashist_logEventAnalytics as jest.Mock;
 const loadProfile = loadPlayerProfileView as jest.Mock;
 const runPurchase = runCitizenshipPurchase as jest.Mock;
+const submitNameChange = submitNameChangeRequest as jest.Mock;
+const cancelNameChange = cancelNameChangeRequest as jest.Mock;
 
 const CITIZENSHIP_PRODUCT = {
   id: "citizenship",
@@ -114,6 +124,8 @@ describe("CitizenshipCard", () => {
     getCatalogProduct.mockReturnValue(null);
     whenPaymentsCatalogSettled.mockReturnValue(new Promise(() => {}));
     runPurchase.mockResolvedValue("error");
+    submitNameChange.mockResolvedValue({ status: "ok" });
+    cancelNameChange.mockResolvedValue({ status: "ok" });
     resetCitizenshipSeenReportedForTests();
   });
 
@@ -629,6 +641,310 @@ describe("CitizenshipCard", () => {
 
       expect(card.textContent).toContain("citizenship_card.citizen_badge");
       expect(buyButton(card)).toBeNull();
+    });
+  });
+
+  // ── Name change (task 0067, citizens only) ───────────────────────────────
+  describe("name change", () => {
+    const CITIZEN_PROFILE = {
+      displayName: "Игрок_7734",
+      xp: 1000,
+      isCitizen: true,
+      isAuthoritative: true,
+      nameChange: null,
+    };
+
+    const nameCta = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-name-change-cta");
+    const nameInput = (card: CitizenshipCard) =>
+      card.querySelector<HTMLInputElement>("#citizenship-name-change-input");
+    const nameSubmit = (card: CitizenshipCard) =>
+      card.querySelector<HTMLButtonElement>("#citizenship-name-change-submit");
+    const nameWithdraw = (card: CitizenshipCard) =>
+      card.querySelector<HTMLButtonElement>("#citizenship-name-change-withdraw");
+    const nameRetry = (card: CitizenshipCard) =>
+      card.querySelector<HTMLButtonElement>("#citizenship-name-change-retry");
+    const nameError = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-name-change-error");
+
+    async function openEditor(card: CitizenshipCard) {
+      (nameCta(card) as HTMLButtonElement).click();
+      await flushLit(card);
+      return card;
+    }
+
+    async function typeName(card: CitizenshipCard, value: string) {
+      const input = nameInput(card)!;
+      input.value = value;
+      input.dispatchEvent(new Event("input"));
+      await flushLit(card);
+    }
+
+    // Brief step 1 — the entry point must be absent, not merely disabled.
+    describe("visibility", () => {
+      it("is hidden for a guest", async () => {
+        loadProfile.mockResolvedValue(null);
+        const card = await appendCard({ visible: true });
+        expect(nameCta(card)).toBeNull();
+      });
+
+      it("is hidden for an authorized NON-citizen", async () => {
+        loadProfile.mockResolvedValue({
+          ...CITIZEN_PROFILE,
+          isCitizen: false,
+        });
+        const card = await appendCard({ visible: true });
+        expect(nameCta(card)).toBeNull();
+      });
+
+      it("is hidden when the profile read was NOT authoritative", async () => {
+        // A zero-state fallback reports isCitizen:false and knows nothing about
+        // requests — showing a citizens-only control off it would be a lie the
+        // server then rejects with 403.
+        loadProfile.mockResolvedValue({
+          ...CITIZEN_PROFILE,
+          isAuthoritative: false,
+        });
+        const card = await appendCard({ visible: true });
+        expect(nameCta(card)).toBeNull();
+      });
+
+      it("is shown for an authoritative citizen", async () => {
+        loadProfile.mockResolvedValue(CITIZEN_PROFILE);
+        const card = await appendCard({ visible: true });
+        expect(nameCta(card)).not.toBeNull();
+        expect(card.textContent).toContain("citizenship_name_change.cta");
+      });
+
+      it("tolerates a profile view with no nameChange field at all", async () => {
+        const { nameChange, ...withoutField } = CITIZEN_PROFILE;
+        void nameChange;
+        loadProfile.mockResolvedValue(withoutField);
+        const card = await appendCard({ visible: true });
+        expect(nameCta(card)).not.toBeNull();
+      });
+    });
+
+    describe("submitting (brief step 2)", () => {
+      it("opens an editor and submits the typed name", async () => {
+        loadProfile.mockResolvedValue(CITIZEN_PROFILE);
+        const card = await openEditor(await appendCard({ visible: true }));
+        expect(nameInput(card)).not.toBeNull();
+        await typeName(card, "NewName");
+        nameSubmit(card)!.click();
+        await flushLit(card);
+        expect(submitNameChange).toHaveBeenCalledWith("NewName");
+      });
+
+      it("trims the submitted name", async () => {
+        loadProfile.mockResolvedValue(CITIZEN_PROFILE);
+        const card = await openEditor(await appendCard({ visible: true }));
+        await typeName(card, "  NewName  ");
+        nameSubmit(card)!.click();
+        await flushLit(card);
+        expect(submitNameChange).toHaveBeenCalledWith("NewName");
+      });
+
+      it("re-reads the profile on success rather than latching pending locally", async () => {
+        loadProfile.mockResolvedValue(CITIZEN_PROFILE);
+        const card = await openEditor(await appendCard({ visible: true }));
+        loadProfile.mockClear();
+        await typeName(card, "NewName");
+        nameSubmit(card)!.click();
+        await flushLit(card);
+        await flushMicrotasks();
+        expect(loadProfile).toHaveBeenCalledTimes(1);
+      });
+
+      it("shows the SAME username message the in-game input uses for a broken rule", async () => {
+        loadProfile.mockResolvedValue(CITIZEN_PROFILE);
+        submitNameChange.mockResolvedValue({
+          status: "invalid",
+          violation: "too_short",
+        });
+        const card = await openEditor(await appendCard({ visible: true }));
+        await typeName(card, "ab");
+        nameSubmit(card)!.click();
+        await flushLit(card);
+        await flushMicrotasks();
+        await flushLit(card);
+        expect(nameError(card)!.textContent).toContain("username.too_short");
+      });
+
+      it.each([
+        ["name_taken", "citizenship_name_change.error_name_taken"],
+        ["pending_exists", "citizenship_name_change.error_pending_exists"],
+        ["not_citizen", "citizenship_name_change.error_not_citizen"],
+        ["error", "citizenship_name_change.error_generic"],
+      ])("shows a distinct message for %s", async (status, key) => {
+        loadProfile.mockResolvedValue(CITIZEN_PROFILE);
+        submitNameChange.mockResolvedValue({ status });
+        const card = await openEditor(await appendCard({ visible: true }));
+        await typeName(card, "Ivan");
+        nameSubmit(card)!.click();
+        await flushLit(card);
+        await flushMicrotasks();
+        await flushLit(card);
+        expect(nameError(card)!.textContent).toContain(key);
+      });
+
+      it("ignores a second submit while one is in flight", async () => {
+        loadProfile.mockResolvedValue(CITIZEN_PROFILE);
+        let resolve!: (value: unknown) => void;
+        submitNameChange.mockReturnValue(
+          new Promise((r) => {
+            resolve = r;
+          }),
+        );
+        const card = await openEditor(await appendCard({ visible: true }));
+        await typeName(card, "NewName");
+        nameSubmit(card)!.click();
+        await flushLit(card);
+        nameSubmit(card)!.click();
+        await flushLit(card);
+        expect(submitNameChange).toHaveBeenCalledTimes(1);
+        resolve({ status: "ok" });
+      });
+
+      it("closes the editor without submitting on cancel", async () => {
+        loadProfile.mockResolvedValue(CITIZEN_PROFILE);
+        const card = await openEditor(await appendCard({ visible: true }));
+        card
+          .querySelector<HTMLButtonElement>(
+            "#citizenship-name-change-cancel-edit",
+          )!
+          .click();
+        await flushLit(card);
+        expect(nameInput(card)).toBeNull();
+        expect(nameCta(card)).not.toBeNull();
+        expect(submitNameChange).not.toHaveBeenCalled();
+      });
+    });
+
+    describe("pending state", () => {
+      const PENDING = {
+        ...CITIZEN_PROFILE,
+        nameChange: {
+          status: "pending" as const,
+          requested_name: "NewName",
+          decided_at: null,
+        },
+      };
+
+      it("shows the pending state and the requested name, not the CTA", async () => {
+        loadProfile.mockResolvedValue(PENDING);
+        const card = await appendCard({ visible: true });
+        expect(card.textContent).toContain(
+          "citizenship_name_change.pending_label",
+        );
+        expect(nameCta(card)).toBeNull();
+      });
+
+      // Owner amendment 2 — this button is what a griefed citizen uses to free
+      // the one-pending slot they never asked for.
+      it("offers a withdraw button that calls the cancel endpoint", async () => {
+        loadProfile.mockResolvedValue(PENDING);
+        const card = await appendCard({ visible: true });
+        expect(nameWithdraw(card)).not.toBeNull();
+        nameWithdraw(card)!.click();
+        await flushLit(card);
+        expect(cancelNameChange).toHaveBeenCalledTimes(1);
+      });
+
+      it("re-reads the profile after a successful withdraw", async () => {
+        loadProfile.mockResolvedValue(PENDING);
+        const card = await appendCard({ visible: true });
+        loadProfile.mockClear();
+        nameWithdraw(card)!.click();
+        await flushLit(card);
+        await flushMicrotasks();
+        expect(loadProfile).toHaveBeenCalledTimes(1);
+      });
+
+      it("treats no_pending as success — the request is already gone", async () => {
+        loadProfile.mockResolvedValue(PENDING);
+        cancelNameChange.mockResolvedValue({ status: "no_pending" });
+        const card = await appendCard({ visible: true });
+        loadProfile.mockClear();
+        nameWithdraw(card)!.click();
+        await flushLit(card);
+        await flushMicrotasks();
+        await flushLit(card);
+        expect(loadProfile).toHaveBeenCalledTimes(1);
+        expect(nameError(card)).toBeNull();
+      });
+
+      it("shows an error when the withdraw itself fails", async () => {
+        loadProfile.mockResolvedValue(PENDING);
+        cancelNameChange.mockResolvedValue({ status: "error" });
+        const card = await appendCard({ visible: true });
+        nameWithdraw(card)!.click();
+        await flushLit(card);
+        await flushMicrotasks();
+        await flushLit(card);
+        expect(nameError(card)!.textContent).toContain(
+          "citizenship_name_change.error_generic",
+        );
+      });
+    });
+
+    // Brief step 4 — a rejected request must show a rejected state AND let the
+    // player try again.
+    describe("rejected state", () => {
+      const REJECTED = {
+        ...CITIZEN_PROFILE,
+        nameChange: {
+          status: "rejected" as const,
+          requested_name: "BadName",
+          decided_at: "2026-08-28T10:00:00.000Z",
+        },
+      };
+
+      it("shows the rejected state and the requested name", async () => {
+        loadProfile.mockResolvedValue(REJECTED);
+        const card = await appendCard({ visible: true });
+        expect(card.textContent).toContain(
+          "citizenship_name_change.rejected_label",
+        );
+        expect(nameRetry(card)).not.toBeNull();
+      });
+
+      it("NEVER renders an operator rejection reason — it is not on the wire", async () => {
+        loadProfile.mockResolvedValue(REJECTED);
+        const card = await appendCard({ visible: true });
+        expect(card.textContent).not.toContain("rejection_reason");
+      });
+
+      it("lets the player open the editor again and submit a new name", async () => {
+        loadProfile.mockResolvedValue(REJECTED);
+        const card = await appendCard({ visible: true });
+        nameRetry(card)!.click();
+        await flushLit(card);
+        expect(nameInput(card)).not.toBeNull();
+        await typeName(card, "BetterName");
+        nameSubmit(card)!.click();
+        await flushLit(card);
+        expect(submitNameChange).toHaveBeenCalledWith("BetterName");
+      });
+    });
+
+    describe("approved state", () => {
+      it("returns to the plain CTA once a change was approved", async () => {
+        loadProfile.mockResolvedValue({
+          ...CITIZEN_PROFILE,
+          displayName: "NewName",
+          nameChange: {
+            status: "approved" as const,
+            requested_name: "NewName",
+            decided_at: "2026-08-28T10:00:00.000Z",
+          },
+        });
+        const card = await appendCard({ visible: true });
+        expect(nameCta(card)).not.toBeNull();
+        expect(card.textContent).not.toContain(
+          "citizenship_name_change.pending_label",
+        );
+      });
     });
   });
 });

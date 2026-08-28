@@ -253,6 +253,28 @@ and the init gate.
 - **Language** — Yandex `i18n.lang` is mapped to a supported locale, and only `en` / `ru` are ever
   produced (`be/kk/uk/uz → ru`, everything else → `en`) (`FlashistFacade.ts:1010-1049`).
 
+> **`windowOrigin` is a document base, not a URL-join base.**
+> `FlashistFacade.windowOrigin` is `window.location.origin + window.location.pathname`
+> (`FlashistFacade.ts:343-344`). On Yandex Games the game is served at
+> `/yandex-games_iframe.html`, so `windowOrigin` carries that **document path**, not just the origin.
+> The worker API is mounted at the **host root** in every environment — nginx
+> `location ~* ^/w(\d+)(/.*)?$`, webpack's local proxy `context: ["/w<N>"]`, and `dev:remote`'s
+> `/^\/w\d+(\/|$)/`. Concatenating a worker route onto `windowOrigin` therefore produces
+> `…/yandex-games_iframe.html/w1/api/…`, which never matches the worker route. A **non-GET** call
+> (this task's are PUT/POST) 404s; a **GET** is worse — nginx's catch-all `location /` proxies it to
+> the master, whose SPA fallback `app.get("*")` (`Master.ts:689-691`) returns **200 with
+> `static/index.html`**, so the caller fails on a JSON parse rather than a network error.
+>
+> **Rule:** host-root APIs take a bare root-absolute path (`` `/${config.workerPath(id)}/api/…` ``),
+> which is what `pollPlayers()`, `createLobby()`, `JoinPrivateLobbyModal` and `Matchmaking` already do.
+> Keep `windowOrigin` only where the intent really is "stay in this document" — notably the private-lobby
+> invite link, which must append the hash with **no** separator (`` `${windowOrigin}#join=${id}` ``): a
+> trailing `/` makes the path stop matching nginx's `\.html$` rule and silently serves the standalone
+> `index.html` instead of the Yandex template, so the invited player never gets Yandex platform mode.
+> Anything built by concatenating onto `windowOrigin` is suspect in production and must be checked at a
+> **non-root** pathname — a root-path test cannot tell a real fix from a slash-collapsing one.
+> (Task `0198`; the `/w<N>/` placement contract itself is ADR-109.)
+
 ### Localization
 
 33 language files under `resources/lang/`, **statically bundled** (imported one by one at
@@ -681,6 +703,22 @@ lines 21%, functions 20.5% (`jest.config.ts:53-58`).
 TypeScript is ESM (`"type": "module"`), target ES2020, `strictNullChecks` on but **not full `strict`**
 (`tsconfig.json`). ESLint 9 flat config + Prettier, enforced pre-commit by husky + lint-staged.
 `eqeqeq` is enforced; prefer `??` over `||` for defaults.
+
+### Two lobby traps that look alike — how to tell them apart
+
+Both present as "lobbies are broken locally". They have nothing to do with each other, and each has a
+symptom the other does not:
+
+| What you see | Cause | Fix |
+|---|---|---|
+| Public lobby list is **empty**, but creating a **private** lobby works | Something is squatting port **3001**, so worker 0 died. `Worker.ts` swallows the `EADDRINUSE`, so the master never schedules public lobbies. Not a code bug. | `lsof -i :3001 -i :3002`, kill the squatter (a Remotion render is a known one), restart `npm run dev`. |
+| Private lobby **Start Game does nothing** (and settings silently revert to defaults), but the public list is **fine** | The private-lobby API URLs were built by concatenating onto `windowOrigin`, so the PUT/POST missed the worker route and 404'd. Fixed in task `0198`. | See the `windowOrigin` note in §5. |
+
+> **Testing a URL-shape fix:** run it at a **non-root** pathname — `http://localhost:9000/index.html`
+> is the clean harness (standalone template, no Yandex SDK, non-root path). At `/` the defect shows as a
+> double slash (`//w1/api/…`) that a slash-collapsing change would appear to fix, while production's
+> real failure (`/yandex-games_iframe.html/w1/api/…`) has no double slash at all. Only the non-root
+> harness discriminates the two.
 
 ---
 
