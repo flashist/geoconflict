@@ -8,7 +8,7 @@ Sprint 4 — buildable now against the local profile stack. Shipping it retires 
 carried by `0017`, `0018`, and `0019`.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — built + reviewed (local scope) 2026-08-26; open pending the `0062`-gated Deferred Live Tail
 
 *(Re-scoped 2026-08-23 by owner ruling — same "don't block on Yandex externals / local-first"
 treatment as `0017`. The profile store dependency is satisfied **locally** (profile server +

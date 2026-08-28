@@ -430,6 +430,9 @@ deliberately not `src/server/Logger.ts`, because that pulls in the whole game co
 | GET | `/v1/profile?yandexPlayerId=` | **none** | 60 req/min/IP; CORS applied before the limiter so even a 429 is readable (`:106-109`) |
 | POST | `/internal/v1/profile/upsert` | internal | 200 / 400 / **409 persistent_id_conflict** / 500 |
 | POST | `/internal/v1/credit` | internal | **always 200**, one `results[]` entry per input item |
+| OPTIONS/GET | `/v1/messages?yandexPlayerId=` | **none** (client-asserted id, ADR-103 trust; `resolvePlayerId` funnel) | personal inbox (task 0012); shares the 60 req/min limiter; CORS `GET, PATCH`; **403 `not_citizen`** for non-citizens AND missing profiles (gate in SQL); 200 `{ messages }` newest first |
+| PATCH | `/v1/messages/read` | **none** (same funnel) | body `{ yandexPlayerId, ids? }` — absent `ids` = mark all of the caller's own; 403 / 200 `{ updated }`; idempotent |
+| POST | `/internal/v1/messages/send` | internal | template (`templateKey` + `templateParams`) OR literal (`title` + `body`); 200 `{ id }` / 400 / 401 / **404 `no_profile`** / 503 / 500 — documented in the `Routes.ts` header comment |
 
 `toPublicProfile()` (`Routes.ts:55-62`) strips `is_paid_citizen`, `citizenship_purchased_at`, and
 `persistent_id` from every response — because the read is unauthenticated, a guessed `yandexPlayerId`
@@ -466,7 +469,17 @@ player_match_xp_credits          -- the idempotency ledger
 
 player_name_history              -- defined, no application logic yet
 player_cosmetic_ownership        -- defined, no application logic yet
+
+player_messages                  -- migrations/003_player_messages.sql (task 0012, personal inbox)
+  id bigserial PK, FK yandex_player_id → player_profiles ON DELETE CASCADE
+  template_key text + template_params jsonb   -- system sends, rendered client-side (inbox.templates.<key>)
+  title / body text                            -- literal (admin) sends
+  sent_at, read_at  CHECK chk_message_content (template OR title+body) / chk_read_after_sent
 ```
+
+`InboxRepository.ts` is the only writer/reader of `player_messages`; both post-commit citizenship
+seams (`PlayerProfileRepository.afterCitizenshipEarned`, `PaymentsRepository.afterPaidPurchaseGranted`)
+send through its `InboxSender` interface, contractually never throwing (0017 review residual R1).
 
 A partial unique index on `lower(display_name)` gives case-insensitive name uniqueness for set names
 only (`001_player_profiles.sql:45-47`).

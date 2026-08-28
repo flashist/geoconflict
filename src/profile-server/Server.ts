@@ -13,6 +13,7 @@
 import * as dotenv from "dotenv";
 import http from "http";
 import { createPool } from "./Db";
+import { InboxRepository } from "./InboxRepository";
 import { logger } from "./Logger";
 import { PaymentsRepository } from "./PaymentsRepository";
 import { PlayerProfileRepository } from "./PlayerProfileRepository";
@@ -24,7 +25,10 @@ dotenv.config();
 const log = logger.child({ comp: "profile" });
 
 const pool = createPool();
-const repo = new PlayerProfileRepository(pool);
+// Personal inbox (task 0012): one repository serves the player routes AND the
+// post-commit citizenship seams in both repositories below.
+const inbox = new InboxRepository(pool);
+const repo = new PlayerProfileRepository(pool, inbox);
 // Yandex per-game payments secret (HMAC key). Unset/empty ⇒ the payments routes
 // fail closed with 503 (see Routes.ts). Never logged, never committed.
 const yandexPaymentsSecret = process.env.YANDEX_PAYMENTS_SECRET ?? "";
@@ -33,10 +37,14 @@ if (yandexPaymentsSecret.length === 0) {
     "YANDEX_PAYMENTS_SECRET is not set — payments endpoints disabled (503)",
   );
 }
-const app = createApp(repo, {
-  paymentsRepo: new PaymentsRepository(pool),
-  yandexPaymentsSecret,
-});
+const app = createApp(
+  repo,
+  {
+    paymentsRepo: new PaymentsRepository(pool, inbox),
+    yandexPaymentsSecret,
+  },
+  inbox,
+);
 const server = http.createServer(app);
 
 const port = profileHttpPort();

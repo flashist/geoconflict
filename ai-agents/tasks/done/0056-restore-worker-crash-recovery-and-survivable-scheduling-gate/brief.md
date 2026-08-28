@@ -10,11 +10,12 @@ Sprint 4
 Highest open item in Sprint 4. This is the fix for the 2026-08-22 total loss of public lobbies.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 *(Was `🚧 Blocked` until 2026-08-22, when the owner ruled on both blocking decisions — recorded under
-"Owner decisions (RULED)" below. Sequencing: `0057`'s findings are due **before** this task starts;
-see Notes.)*
+"Owner decisions (RULED)" below. The outage-track hold of 2026-08-23 was **lifted by the owner on
+2026-08-26**: `0057`'s findings were reviewed with the owner that day and confirmed the ruled quorum.
+**This task is startable.** See Notes.)*
 
 ## Owner
 fkit-coder
@@ -29,6 +30,16 @@ running right now with crash recovery disarmed**, and every deploy and every res
 Full investigation record — **read it first, it has everything**: the evidence chain, ten refuted
 hypotheses, a local repro, and the draft fix plan this brief is scoped from:
 [`ai-agents/knowledge-base/incidents/2026-08-22-prod-public-lobbies-empty-outage.md`](../../../knowledge-base/incidents/2026-08-22-prod-public-lobbies-empty-outage.md)
+
+The `0057` routing investigation that the owner ruled must precede this task is done — findings
+reviewed with the owner 2026-08-26. It sizes the residual this task leaves, corrects the line
+citations below, and is the reference for the follow-up brief `0192`:
+[`ai-agents/knowledge-base/reports/2026-08-26-0057-worker-routing-dead-worker-findings.md`](../../../knowledge-base/reports/2026-08-26-0057-worker-routing-dead-worker-findings.md)
+
+⚠️ **Line numbers.** The `Master.ts` citations in this brief were taken before `0055` landed. Per the
+`0057` findings §1 (`dev` at `282655c`): the exit handler is now `Master.ts:142-173` (the `env` read
+at `:143`), the gate at `:119`, and `workerIndex()` is `DefaultConfig.ts:296-298`. Re-verify against
+the tree before editing.
 
 ### What happened, in one chain
 
@@ -46,9 +57,12 @@ first commit — **no worker has ever been restarted after a crash in this proje
 
 ### The defects this task fixes
 
-From §5 of the incident record — **#1, #2, #3, #4**. (#5 and #6 were task `0055`, **closed 2026-08-22**
-and committed on the **unpushed** branch `fix/0055-master-parseable-lobbies-and-exit-diagnostics`
-(`419a116`) — **not pushed, not deployed**.)
+From §5 of the incident record — **#1, #2, #3, #4**. (#5 and #6 were task `0055`, **closed 2026-08-22**,
+committed as `419a116` on `fix/0055-master-parseable-lobbies-and-exit-diagnostics` and **merged to
+`dev` via PR #133 (`7410bfb`)** — `dev`'s `Master.ts` carries the body fix and the exit-handler
+diagnostics. **Whether it is deployed to prod is UNKNOWN** — not checked; do not assume prod has it
+either way. *Corrected 2026-08-26; this line previously said "not pushed, not deployed", which was
+stale — see `0057` findings §1.*)
 
 | # | Defect | Location |
 |---|---|---|
@@ -105,6 +119,10 @@ spuriously on a healthy start. Today's outage would have been a non-event.
   20 permits **up to two** missing indices, so the routing residual is up to **2 in 20 (~10%)** of
   scheduled games landing on an absent worker — not the 1-in-20 figure used before the ruling.
   `0057` runs first and should size the impact against this number.
+- ✅ **Sized, and the quorum CONFIRMED by the owner on 2026-08-26** against the `0057` findings (§5):
+  a dead index costs ≈ 0.11 extra draws ≈ 11 ms ≈ 0.33 error lines per scheduled game, no hang, no
+  orphan, player-invisible. The one bad shape (a wedged-but-alive worker) is independent of the quorum
+  value. **18 of 20, 90 s stands.** The residual itself is removed by `0192`, which follows this task.
 
 **(b) Restart cap and backoff — RULED: `5` restarts per worker index per rolling `10`-minute window,
 exponential backoff from `1s` to a `30s` ceiling**, then stop re-forking that index and log at
@@ -125,6 +143,12 @@ place**. Changing that alters game-to-worker distribution and is an architecture
 **`0057`**, an architect-led investigation, and the owner ruled on 2026-08-22 that **`0057` runs
 before this task**. **Do not fold it into this fix.** Record the residual: after this task, a
 degraded-quorum start still misroutes a fraction of games.
+
+*Update 2026-08-26:* `0057` is done and the owner approved its recommendation as brief **`0192`**
+(rejection-sample the game ID onto a ready index + a bounded create timeout, master-only), which
+**depends on this task**. `0192` consumes the ready set that Step 1's `markDead` maintains and Step 4
+extracts — keep that unit reachable from `schedulePublicGame` so `0192` does not have to re-plumb it.
+Routing itself is still out of scope here.
 
 ---
 
@@ -280,27 +304,37 @@ Cover at minimum:
 8. **Deploy verification, on the real box, after ship.** Scope log counts to the current boot —
    `docker logs` is **cumulative across restarts** and counting over the whole log mixes boots. Use
    `docker logs --since "$(docker inspect --format '{{.State.StartedAt}}' "$CID")"`. Confirm 20/20
-   ready, `All workers ready` present exactly once, and the endpoint serving a real lobby.
+   ready, `starting game scheduling` present exactly once (the once-per-boot marker the build emits —
+   `Quorum reached (N/M, quorum Q), starting game scheduling`; `All workers ready` repeats on every
+   return to full strength, so it is not the marker to count — review R4, owner-ruled 2026-08-27), and
+   the endpoint serving a real lobby. **Pending by design at close (2026-08-27): not deployed yet.**
 
 ## Notes
 
-- **Depends on:** `0057` — **owner-ruled 2026-08-22: `0057` runs BEFORE this task.** Its routing
-  findings must be reviewed before implementation starts here. Rationale: quorum size sets the
-  misroute rate, and at the ruled 18/20 the residual is up to 2 in 20 scheduled games; if `0057`
-  finds that severity is worse than assumed, the owner may want to revisit the quorum *before* it is
-  built rather than after. Both owner decisions (a) and (b) are **answered** and no longer block.
-- **Sequencing:** `0057` → `0056`. `0055` is **closed (2026-08-22, agent-closed — not owner-verified)**
-  and committed on the branch `fix/0055-master-parseable-lobbies-and-exit-diagnostics` (`419a116`,
-  off `dev`), which is **not pushed** and **not deployed**. So: **branch from it, or make sure your
-  branch contains it** — its changes are not on `dev` and not in production. Do not assume prod has
-  them.
+- **Depends on:** `0057` — **owner-ruled 2026-08-22: `0057` runs BEFORE this task.** ✅ **SATISFIED —
+  `0057` closed 2026-08-26 (agent-closed — not owner-verified; findings reviewed with the owner the
+  same day, report linked in Context; it now sits in `tasks/done/`).** Rationale
+  was: quorum size sets the misroute rate, and at the ruled 18/20 the residual is up to 2 in 20
+  scheduled games; if `0057` found severity worse than assumed, the owner might revisit the quorum
+  *before* it was built. It did not — 18/20 confirmed. Both owner decisions (a) and (b) are
+  **answered** and no longer block. **The 2026-08-23 outage-track hold was lifted 2026-08-26.**
+- **Sequencing:** `0057` → `0056` → `0192`. `0055` is **closed (2026-08-22, agent-closed — not
+  owner-verified)** and its commit `419a116` is **on `dev`** via PR #133 (`7410bfb`), so branching
+  from `dev` picks it up — verify `Master.ts` carries the `clusterId`/`pid`/`code`/`signal` exit
+  fields before you start. **Deployment to prod is UNKNOWN** (not checked); do not assume prod has
+  them. *(Corrected 2026-08-26 — previously said "not pushed, not deployed".)*
 - **Carried in from `0055`:** the OTEL-attribute verification (Step 3a and verification step 4a). It
   was surfaced during `0055`'s review, could not be settled there, and the owner ruled it belongs in
   this task, which touches the same handler.
-- **Blocks:** nothing scheduled.
-- **Related:** `0058` (`Worker.ts` missing `server.on("error")` — same failure family: a silently
-  hung worker), `0059` (precompile the server for prod — the leading hypothesis for *why* the worker
-  died in the first place).
+- **Blocks:** `0192` (routing option (v) — needs this task's maintained ready set).
+- **Related:** `0193` (`fetchLobbies` in-flight guard — edits the same interval block at
+  `Master.ts:128-136` that Step 3 touches; no dependency, coordinate the rebase), `0058` (`Worker.ts`
+  missing `server.on("error")` — same failure family: a silently hung worker), `0059` (precompile the
+  server for prod — the leading hypothesis for *why* the worker died in the first place).
+- **Reference:** `0057` findings —
+  `ai-agents/knowledge-base/reports/2026-08-26-0057-worker-routing-dead-worker-findings.md` (§2.4
+  also traces what a *joined* player sees when a hosting worker dies: reconnect loops on the same
+  path; that is this task's crash-recovery domain, not routing).
 
 - **This task does not explain the crash.** It makes the system survive one and makes the next one
   diagnosable. Why worker 16 died stays open; `0059` addresses the most plausible contributing

@@ -129,12 +129,16 @@ Fired for first real match starts only. Reconnect handshakes and archived replay
 | `UI_CLICK_STALE_BUILD_CONTACT` | `UI:ClickStaleBuildContact` | Player clicks the "Contact support" link on the stale build modal                                            |
 | `ANNOUNCEMENTS_OPENED`         | `Announcements:Opened`      | Player opens the announcements popup                                                                         |
 | `ANNOUNCEMENTS_CLOSED`         | `Announcements:Closed`      | Player closes the announcements popup                                                                        |
+| `INBOX_OPENED`                 | `Inbox:Opened`              | A citizen selects the Personal tab inside the announcements popup (task 0012). Fires on every selection of that tab; the tab exists only when `GET /v1/messages` succeeded (citizen confirmed server-side), so guests and non-citizens never fire it. Gated behind `CITIZENSHIP_CARD_ENABLED` (the inbox fetch never runs while the card is unlaunched) |
+| `INBOX_LOAD_FAILED`            | `Inbox:LoadFailed`          | The inbox fetch (`GET /v1/messages`) FAILED — network error, 5xx, 5 s timeout, or a body that fails schema validation (task 0012). Once per failed load (initial load, bell-open refresh, post-reconcile refresh). NOT fired on 403 (the ordinary non-citizen / no-profile answer), nor when the profile API is unconfigured, nor for guests. Same gate as `Inbox:Opened` |
 
 #### UI:Tap events
 
 | Element ID constant                    | Full event string                | When fired                                                       |
 | -------------------------------------- | -------------------------------- | ---------------------------------------------------------------- |
 | `uiElementIds.announcementsBell`       | `UI:Tap:AnnouncementsBell`       | Player clicks or taps the announcements bell on the start screen |
+| `uiElementIds.announcementsTabGlobal`  | `UI:Tap:AnnouncementsTabGlobal`  | Citizen taps the Global tab inside the announcements popup (task 0012). Fires on every tap, including re-taps on the already-active tab. The tab strip is rendered only when the personal inbox is available (citizen confirmed server-side), so guests/non-citizens never fire it |
+| `uiElementIds.announcementsTabPersonal`| `UI:Tap:AnnouncementsTabPersonal`| Citizen taps the Personal tab inside the announcements popup (task 0012). Same semantics as `AnnouncementsTabGlobal`; each tap also fires `Inbox:Opened` |
 | `uiElementIds.telegramLinkStartScreen` | `UI:Tap:TelegramLinkStartScreen` | Player clicks the Telegram link on the start screen              |
 | `uiElementIds.telegramLinkGameEnd`     | `UI:Tap:TelegramLinkGameEnd`     | Player clicks the Telegram link on the game-end screen           |
 | `uiElementIds.vkLinkStartScreen`       | `UI:Tap:VkLinkStartScreen`       | Player clicks the VK link on the start screen                    |

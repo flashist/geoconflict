@@ -2,7 +2,11 @@
 // with a real or mocked repository and WITHOUT binding a port (Server.ts owns
 // listen()). This is the testable seam — route tests import createApp, never Server.
 
-import express, { type Express, type RequestHandler } from "express";
+import express, {
+  type Express,
+  type Request,
+  type RequestHandler,
+} from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import {
@@ -10,6 +14,10 @@ import {
   ProfileUpsertRequestSchema,
 } from "../core/profile/CreditContract";
 import type { CreditResult } from "../core/profile/CreditContract";
+import {
+  MarkReadRequestSchema,
+  SendMessageRequestSchema,
+} from "../core/profile/InboxContract";
 import {
   PurchaseCompleteRequestSchema,
   PurchaseIntentRequestSchema,
@@ -19,6 +27,12 @@ import type {
   PlayerProfile,
   PublicPlayerProfile,
 } from "../core/profile/PlayerProfile";
+import type {
+  ListOutcome,
+  MarkReadOutcome,
+  SendMessageInput,
+  SendOutcome,
+} from "./InboxRepository";
 import { internalAuth } from "./InternalAuth";
 import { formatError, logger } from "./Logger";
 import type {
@@ -70,6 +84,36 @@ export interface PaymentsConfig {
   yandexPaymentsSecret: string;
 }
 
+/** The inbox-repository surface the routes depend on (structural — eases mocking). */
+export interface InboxRepo {
+  listMessages(yandexPlayerId: string): Promise<ListOutcome>;
+  markRead(
+    yandexPlayerId: string,
+    ids?: readonly number[],
+  ): Promise<MarkReadOutcome>;
+  sendMessage(input: SendMessageInput): Promise<SendOutcome>;
+}
+
+const InboxQuerySchema = z.object({
+  yandexPlayerId: z.string().min(1).max(128),
+});
+
+/**
+ * The ONE place the player-facing inbox routes learn who is asking (task 0012,
+ * owner-ruled D1 2026-08-26). Today it returns the CLIENT-asserted
+ * `yandexPlayerId` (query on GET, body otherwise) — the same trust level ADR-103
+ * accepted for `/v1/profile` and crediting. Re-raise: when ADR-103 exits (the
+ * Yandex secret lands with 0014 and signed-player verification exists), the
+ * signature check drops in HERE and nowhere else. The citizen gate stays in
+ * SQL regardless (InboxRepository), so a forged id only ever reaches a
+ * citizen's low-sensitivity system notices.
+ */
+function resolvePlayerId(req: Request): string | null {
+  const source = req.method === "GET" ? req.query : req.body;
+  const parsed = InboxQuerySchema.safeParse(source);
+  return parsed.success ? parsed.data.yandexPlayerId : null;
+}
+
 // purchase_intents.id is a Postgres uuid; validate the client-supplied
 // developerPayload BEFORE it reaches a query, so a garbage value is a clean 409
 // instead of a pg 22P02 error (which would surface as a 500).
@@ -98,6 +142,7 @@ function toPublicProfile(profile: PlayerProfile): PublicPlayerProfile {
 export function createApp(
   repo: ProfileRepo,
   payments?: PaymentsConfig,
+  inbox?: InboxRepo,
 ): Express {
   const app = express();
   // Exactly one proxy hop (host nginx) — so req.ip is the real client for the
@@ -446,6 +491,125 @@ export function createApp(
       }
     });
   }
+
+  // ── Personal inbox (task 0012) ─────────────────────────────────────────────
+  // Player-facing reads/writes are cross-origin (game origin → api.*), so GET
+  // is simple but PATCH+JSON is preflighted: answer OPTIONS with 204 before the
+  // limiter burns budget, set the CORS headers before the limiter so even a
+  // 429/503 is readable. Scoped to /v1/messages ONLY — never /internal/*.
+  const inboxCors: RequestHandler = (req, res, next) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, PATCH");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+      res.status(204).end();
+      return;
+    }
+    next();
+  };
+  // Without an inbox repository (tests / tools) the player routes fail closed.
+  const inboxEnabled: RequestHandler = (_req, res, next) => {
+    if (inbox === undefined) {
+      res.status(503).json({ error: "inbox_unavailable" });
+      return;
+    }
+    next();
+  };
+  // The profile-read limiter is SHARED (owner-ruled D1): the card's profile
+  // fetch + the inbox fetch + bell-open refetches sit far under 60/min.
+  app.use("/v1/messages", inboxCors, profileReadLimiter, inboxEnabled);
+
+  if (inbox !== undefined) {
+    // A citizen's messages, newest first. 403 `not_citizen` covers BOTH a
+    // non-citizen and a missing profile (the gate runs in SQL on every call,
+    // never on client-side citizenship state).
+    app.get("/v1/messages", async (req, res) => {
+      const yandexPlayerId = resolvePlayerId(req);
+      if (yandexPlayerId === null) {
+        res.status(400).json({ error: "bad_request" });
+        return;
+      }
+      try {
+        const outcome = await inbox.listMessages(yandexPlayerId);
+        if (outcome.status === "not_citizen") {
+          res.status(403).json({ error: "not_citizen" });
+          return;
+        }
+        res.status(200).json({ messages: outcome.messages });
+      } catch (error) {
+        log.error(`GET /v1/messages failed: ${formatError(error)}`);
+        res.status(500).json({ error: "internal_error" });
+      }
+    });
+
+    // Mark all (no `ids`) or specific messages read. Scoped in SQL to the
+    // caller's own id; idempotent, so a re-open is a harmless no-op.
+    app.patch("/v1/messages/read", async (req, res) => {
+      const parsed = MarkReadRequestSchema.safeParse(req.body);
+      const yandexPlayerId = parsed.success ? resolvePlayerId(req) : null;
+      if (!parsed.success || yandexPlayerId === null) {
+        res.status(400).json({ error: "bad_request" });
+        return;
+      }
+      try {
+        const outcome = await inbox.markRead(yandexPlayerId, parsed.data.ids);
+        if (outcome.status === "not_citizen") {
+          res.status(403).json({ error: "not_citizen" });
+          return;
+        }
+        res.status(200).json({ updated: outcome.updated });
+      } catch (error) {
+        log.error(`PATCH /v1/messages/read failed: ${formatError(error)}`);
+        res.status(500).json({ error: "internal_error" });
+      }
+    });
+  }
+
+  // Internal, service-authenticated send — the brief's "POST /admin/player-message"
+  // (path per owner-ruled D2). Called by server-side flows (today: the
+  // citizenship seams send DIRECTLY through InboxRepository, not over HTTP; the
+  // name-change task will call this endpoint or the repo) and for manual /
+  // admin sends. Two auth layers: nginx `location /internal/` IP allowlist +
+  // this bearer token (InternalAuth.ts). Never CORS-enabled.
+  //
+  //   Request (JSON) — EITHER a template OR literal content:
+  //     { "yandexPlayerId": "…", "templateKey": "citizenship_earned",
+  //       "templateParams": { "name": "…" } }          // rendered client-side, localised
+  //     { "yandexPlayerId": "…", "title": "…", "body": "…" }   // literal, ≤200 / ≤4000 chars
+  //   Responses: 200 { "id": <message id> } · 400 bad_request (schema / neither
+  //   template nor title+body) · 401 unauthorized · 404 no_profile (no
+  //   player_profiles row — the recipient has never joined authenticated) ·
+  //   503 inbox_unavailable · 500 internal_error.
+  //   Example:
+  //     curl -sS -X POST "$PROFILE_API_URL/internal/v1/messages/send" \
+  //       -H "Authorization: Bearer $PROFILE_INTERNAL_TOKEN" \
+  //       -H "Content-Type: application/json" \
+  //       -d '{"yandexPlayerId":"<id>","title":"Hello","body":"Welcome aboard."}'
+  app.post("/internal/v1/messages/send", internalAuth, async (req, res) => {
+    if (inbox === undefined) {
+      res.status(503).json({ error: "inbox_unavailable" });
+      return;
+    }
+    const parsed = SendMessageRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "bad_request" });
+      return;
+    }
+    try {
+      const outcome = await inbox.sendMessage(parsed.data);
+      if (outcome.status === "no_profile") {
+        res.status(404).json({ error: "no_profile" });
+        return;
+      }
+      res.status(200).json({ id: outcome.id });
+    } catch (error) {
+      // Never log the message body — only the failure.
+      log.error(
+        `POST /internal/v1/messages/send failed: ${formatError(error)}`,
+      );
+      res.status(500).json({ error: "internal_error" });
+    }
+  });
 
   return app;
 }

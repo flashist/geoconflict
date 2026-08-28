@@ -10,12 +10,13 @@ Sprint 4
 **Runs before `0056`** — owner-ruled 2026-08-22. First item on the outage track *when the track
 resumes*.
 
-🚨 **Do not start yet — the owner ruled on 2026-08-23 to hold the outage track at rest.** The ordering
-is unchanged; the timing is. While this is held, **production continues to run without worker crash
-recovery** — see `0056`.
+*Retired 2026-08-26:* the 2026-08-23 hold on the outage track ("do not start yet — track at rest")
+was **lifted by the owner on 2026-08-26**. The findings were reviewed with the owner that day —
+[`ai-agents/knowledge-base/reports/2026-08-26-0057-worker-routing-dead-worker-findings.md`](../../../knowledge-base/reports/2026-08-26-0057-worker-routing-dead-worker-findings.md)
+— and the task closed on them. `0056` is startable; the routing fix is `0192`.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 *(Filed to the Backlog board on 2026-08-22, promoted into Sprint 4 the same day when the owner ruled
 that it runs before `0056`. A hard dependency of a Sprint 4 task belongs in that sprint — leaving it

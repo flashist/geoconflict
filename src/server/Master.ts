@@ -8,16 +8,16 @@ import { fileURLToPath } from "url";
 import { fetch, ProxyAgent } from "undici";
 import { z } from "zod";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
-import { GameInfo, ID } from "../core/Schemas";
+import { GameID, GameInfo, ID } from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { loadCosmeticsConfig } from "./CosmeticsConfig";
 import { formatError, logger } from "./Logger";
 import { MapPlaylist } from "./MapPlaylist";
 import { COSMETICS_JSON_PATH, MASTER_HTTP_PORT } from "./ServerEndpoints";
+import { WorkerSupervisor } from "./WorkerSupervisor";
 
 const config = getServerConfigFromServer();
 const playlist = new MapPlaylist(false);
-const readyWorkers = new Set();
 
 // Exported so tests can exercise the routes with supertest without calling
 // startMaster() (which forks real workers). Not used elsewhere at runtime.
@@ -25,6 +25,41 @@ export const app = express();
 const server = http.createServer(app);
 
 const log = logger.child({ comp: "m" });
+
+// Readiness gate + crash recovery policy (0056). Exported for tests, and as the seam
+// 0192 reads (`readyIndices()`) to place games on live workers. Built here, driven
+// from startMaster(); importing this module forks nothing.
+export const workerSupervisor = new WorkerSupervisor({
+  numWorkers: config.numWorkers(),
+  fork: (index) => {
+    const worker = cluster.fork({ WORKER_ID: index });
+    // A spawn that fails with EAGAIN / EMFILE / ENFILE / EACCES / ENOENT does not throw
+    // and never emits 'exit': Node reports it asynchronously as an 'error' event
+    // (verified on v24.13.0). cluster's Worker forwards process 'error' to itself, and
+    // with no listener that emit throws — the old handler at :565 would swallow it as an
+    // opaque `uncaught exception` and the index would be lost. Listen on the Worker (not
+    // worker.process: the forwarder runs first and its throw aborts later listeners) and
+    // count it as a death of this index. The master sends nothing to workers, so a spawn
+    // failure is the only source of this event.
+    worker.once("error", (error: Error) => {
+      workerSupervisor.handleExit({
+        clusterId: worker.id,
+        pid: worker.process.pid,
+        code: null,
+        signal: null,
+        exitedAfterDisconnect: false,
+        spawnError: error.message,
+      });
+    });
+    return { clusterId: worker.id, pid: worker.process.pid };
+  },
+  setTimer: (fn, ms) => {
+    setTimeout(fn, ms);
+  },
+  now: () => Date.now(),
+  log,
+  onSchedulingStart: startScheduling,
+});
 
 // Named moduleFilename/moduleDir, not __filename/__dirname: those identifiers already
 // exist in the CommonJS scope that @swc/jest lowers this module into, and redeclaring
@@ -86,7 +121,9 @@ app.use(
 // makes the client's response.json() throw (see the 2026-08-22 outage record).
 let publicLobbiesJsonStr = JSON.stringify({ lobbies: [] });
 
-const publicLobbyIDs: Set<string> = new Set();
+// Exported for tests (seeding IDs). No runtime consumer outside this module.
+export const publicLobbyIDs: Set<string> = new Set();
+let lobbyPollInFlight = false;
 
 // Start the master process
 export async function startMaster() {
@@ -99,83 +136,41 @@ export async function startMaster() {
   log.info(`Primary ${process.pid} is running`);
   log.info(`Setting up ${config.numWorkers()} workers...`);
 
-  // Fork workers
-  for (let i = 0; i < config.numWorkers(); i++) {
-    const worker = cluster.fork({
-      WORKER_ID: i,
-    });
-
-    log.info(`Started worker ${i} (PID: ${worker.process.pid})`);
-  }
-
   cluster.on("message", (worker, message) => {
     if (message.type === "WORKER_READY") {
-      const workerId = message.workerId;
-      readyWorkers.add(workerId);
-      log.info(
-        `Worker ${workerId} is ready. (${readyWorkers.size}/${config.numWorkers()} ready)`,
-      );
-      // Start scheduling when all workers are ready
-      if (readyWorkers.size === config.numWorkers()) {
-        log.info("All workers ready, starting game scheduling");
-
-        const scheduleLobbies = () => {
-          schedulePublicGame(playlist).catch((error) => {
-            log.error(`Error scheduling public game: ${formatError(error)}`);
-          });
-        };
-
-        setInterval(
-          () =>
-            fetchLobbies().then((lobbies) => {
-              if (lobbies === 0) {
-                scheduleLobbies();
-              }
-            }),
-          100,
-        );
-      }
+      workerSupervisor.markReady(message.workerId, worker.id);
     }
   });
 
-  // Handle worker crashes
+  // Worker crashes: identity lookup, restart with cap + backoff, and the ready-set
+  // bookkeeping all live in WorkerSupervisor. `worker.process.env` was never a thing.
   cluster.on("exit", (worker, code, signal) => {
-    const workerId = (worker as any).process?.env?.WORKER_ID;
-    if (!workerId) {
-      // Log everything already in scope: without it a worker death is silent and
-      // undiagnosable, which is exactly what stalled the 2026-08-22 investigation.
-      // The message text is unchanged so existing log greps still match.
-      log.error(`worker crashed could not find id`, {
-        clusterId: worker.id,
-        // Optional-chained deliberately: this branch exists because an expected read on
-        // `worker` was missing, and an error handler that can itself throw is worse than
-        // a missing field. (The unguarded read at :158 is pre-existing; 0056 rewrites it.)
-        pid: worker.process?.pid,
-        code,
-        signal,
-      });
-      return;
-    }
-
-    log.warn(
-      `Worker ${workerId} (PID: ${worker.process.pid}) died with code: ${code} and signal: ${signal}`,
-    );
-    log.info(`Restarting worker ${workerId}...`);
-
-    // Restart the worker with the same ID
-    const newWorker = cluster.fork({
-      WORKER_ID: workerId,
+    workerSupervisor.handleExit({
+      clusterId: worker.id,
+      pid: worker.process?.pid,
+      code,
+      signal,
+      exitedAfterDisconnect: worker.exitedAfterDisconnect,
     });
-
-    log.info(
-      `Restarted worker ${workerId} (New PID: ${newWorker.process.pid})`,
-    );
   });
+
+  workerSupervisor.start();
 
   const PORT = MASTER_HTTP_PORT;
   server.listen(PORT, () => {
     log.info(`Master HTTP server listening on port ${PORT}`);
   });
+}
+
+// Installed exactly once by the supervisor, at quorum or at the readiness deadline.
+function startScheduling() {
+  const scheduleLobbies = () => {
+    schedulePublicGame(playlist).catch((error) => {
+      log.error(`Error scheduling public game: ${formatError(error)}`);
+    });
+  };
+
+  setInterval(() => void lobbyPollTick(scheduleLobbies), 100);
 }
 
 app.get("/api/env", async (req, res) => {
@@ -430,6 +425,19 @@ app.post("/api/kick_player/:gameID/:clientID", async (req, res) => {
   }
 });
 
+// Exported for tests. One poll outstanding at a time: a tick that finds the
+// previous poll still pending is a no-op. See 0057 findings §2.2.
+export async function lobbyPollTick(onEmpty: () => void): Promise<void> {
+  if (lobbyPollInFlight) return;
+  lobbyPollInFlight = true;
+  try {
+    const lobbies = await fetchLobbies();
+    if (lobbies === 0) onEmpty();
+  } finally {
+    lobbyPollInFlight = false;
+  }
+}
+
 async function fetchLobbies(): Promise<number> {
   const fetchPromises: Promise<GameInfo | null>[] = [];
 
@@ -504,12 +512,107 @@ async function fetchLobbies(): Promise<number> {
   return publicLobbyIDs.size;
 }
 
-// Function to schedule a new public game
-async function schedulePublicGame(playlist: MapPlaylist) {
-  const gameID = generateID();
+// 0192 / ADR-109: the worker index is a fixed placement contract (client, worker and
+// nginx all derive it from the game ID), so to avoid a dead index we move the ID, not
+// the index — the Worker.ts generateGameIdForWorker pattern, same cap.
+export const PICK_GAME_ID_MAX_ATTEMPTS = 1000;
+// Matches the lobby poll's 5 s abort in fetchLobbies(): that poll drops the new ID at
+// ~5.1 s, so a create that succeeds later than that is an orphan by construction.
+export const CREATE_GAME_TIMEOUT_MS = 5_000;
+
+export interface GameIDPick {
+  gameID: GameID;
+  attempts: number;
+  // false only when the cap was exhausted: gameID is then the last, unfiltered draw.
+  onReadyIndex: boolean;
+}
+
+// Pure. Returns null without drawing when nothing is ready (nothing can be scheduled).
+// With every index ready the first draw always hits, so the filter is a no-op there.
+export function pickGameID(
+  readyIndices: ReadonlySet<number>,
+  workerIndexOf: (gameID: GameID) => number,
+  draw: () => GameID = generateID,
+  maxAttempts: number = PICK_GAME_ID_MAX_ATTEMPTS,
+): GameIDPick | null {
+  if (readyIndices.size === 0) return null;
+  let gameID = draw();
+  let attempts = 1;
+  while (!readyIndices.has(workerIndexOf(gameID))) {
+    if (attempts >= maxAttempts) {
+      return { gameID, attempts, onReadyIndex: false };
+    }
+    gameID = draw();
+    attempts++;
+  }
+  return { gameID, attempts, onReadyIndex: true };
+}
+
+// Injected so the scheduler is testable without forking workers; the live values
+// read the supervisor's ready set (0056's seam) and the real ID generator.
+export interface ScheduleDeps {
+  readyIndices(): number[];
+  draw(): GameID;
+  maxAttempts?: number;
+}
+const liveScheduleDeps: ScheduleDeps = {
+  readyIndices: () => workerSupervisor.readyIndices(),
+  draw: generateID,
+};
+// Set while the ready set is empty: one error per empty episode, one info on resume.
+let noReadyWorkersLogged = false;
+
+// Function to schedule a new public game. Exported for tests.
+export async function schedulePublicGame(
+  playlist: MapPlaylist,
+  deps: ScheduleDeps = liveScheduleDeps,
+) {
+  const readyList = deps.readyIndices();
+  const numWorkers = config.numWorkers();
+  const pick = pickGameID(
+    new Set(readyList),
+    (id) => config.workerIndex(id),
+    deps.draw,
+    deps.maxAttempts ?? PICK_GAME_ID_MAX_ATTEMPTS,
+  );
+  if (pick === null) {
+    if (!noReadyWorkersLogged) {
+      noReadyWorkersLogged = true;
+      log.error(
+        `No ready workers (0/${numWorkers}); skipping public game scheduling until a worker reports ready`,
+        { readyCount: 0, numWorkers },
+      );
+    }
+    return; // skip the tick; nothing added to publicLobbyIDs
+  }
+  if (noReadyWorkersLogged) {
+    noReadyWorkersLogged = false;
+    log.info(
+      `Ready workers available again ([${readyList.join(", ")}]); public game scheduling resumed`,
+      { readyWorkerIndices: readyList, readyCount: readyList.length, numWorkers },
+    );
+  }
+
+  const gameID = pick.gameID;
+  const workerPath = config.workerPath(gameID);
+  if (!pick.onReadyIndex) {
+    log.warn(
+      `Public game ID draw hit no ready worker in ${pick.attempts} attempts (ready: [${readyList.join(", ")}]); scheduling ${gameID} unfiltered on worker ${workerPath}`,
+      {
+        attempts: pick.attempts,
+        readyWorkerIndices: readyList,
+        workerIndex: config.workerIndex(gameID),
+        gameID,
+      },
+    );
+  }
   publicLobbyIDs.add(gameID);
 
-  const workerPath = config.workerPath(gameID);
+  // Bounded like the lobby poll (fetchLobbies): a wedged worker accepts the connection
+  // and never answers, and undici's own default is ~300 s. Cleared on every exit so a
+  // healthy create leaves no timer behind.
+  const controller = new AbortController();
+  const abortTimer = setTimeout(() => controller.abort(), CREATE_GAME_TIMEOUT_MS);
 
   // Send request to the worker to start the game
   try {
@@ -522,6 +625,7 @@ async function schedulePublicGame(playlist: MapPlaylist) {
           [config.adminHeader()]: config.adminToken(),
         },
         body: JSON.stringify(playlist.gameConfig()),
+        signal: controller.signal,
       },
     );
 
@@ -529,8 +633,23 @@ async function schedulePublicGame(playlist: MapPlaylist) {
       throw new Error(`Failed to schedule public game: ${response.statusText}`);
     }
   } catch (error) {
-    log.error(`Failed to schedule public game on worker ${workerPath}: ${formatError(error)}`);
+    // A create that failed is not a lobby: drop it here so the next tick reschedules
+    // without a poll round-trip. fetchLobbies deleting the same ID later is a no-op.
+    publicLobbyIDs.delete(gameID);
+    // Message text is a grep target (0057 §6.3) — keep it byte-identical; the meta is
+    // what Uptrace filters on.
+    log.error(
+      `Failed to schedule public game on worker ${workerPath}: ${formatError(error)}`,
+      {
+        gameID,
+        workerIndex: config.workerIndex(gameID),
+        workerPath,
+        timeoutMs: CREATE_GAME_TIMEOUT_MS,
+      },
+    );
     throw error;
+  } finally {
+    clearTimeout(abortTimer);
   }
 }
 

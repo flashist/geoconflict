@@ -11,6 +11,7 @@ import {
   PlayerProfile,
   migrateProfile,
 } from "../core/profile/PlayerProfile";
+import { logInboxSendFailure, type InboxSender } from "./InboxRepository";
 
 /** Outcome of crediting a single match for one player. */
 export type CreditStatus = "credited" | "duplicate" | "no_profile";
@@ -163,7 +164,14 @@ export function rowToProfile(row: Record<string, unknown>): PlayerProfile {
 }
 
 export class PlayerProfileRepository {
-  constructor(private readonly pool: Pool) {}
+  /**
+   * `inbox` is optional so tests and tools can build the repository without the
+   * inbox; when absent the post-grant seam simply sends nothing.
+   */
+  constructor(
+    private readonly pool: Pool,
+    private readonly inbox?: InboxSender,
+  ) {}
 
   /** Readiness probe for /ready — a trivial query over the real connection. */
   async ping(): Promise<void> {
@@ -269,23 +277,42 @@ export class PlayerProfileRepository {
       client.release();
     }
     if (outcome.citizenshipNewlyGranted) {
-      // Fires AFTER commit — a hook failure must never roll back a real grant.
-      this.afterCitizenshipEarned(yandexPlayerId);
+      // Fires AFTER commit — a hook failure must never roll back a real grant,
+      // nor misreport a durable grant as a wire error (0017 review residual R1,
+      // owner-ruled 2026-08-24): the hook never throws by contract, and this
+      // call site is guarded too (belt and suspenders).
+      try {
+        this.afterCitizenshipEarned(yandexPlayerId);
+      } catch (error) {
+        logInboxSendFailure("citizenship_earned", error);
+      }
     }
     return outcome;
   }
 
   /**
-   * Post-grant hook seam for EARNED citizenship, mirroring
-   * PaymentsRepository.afterPaidPurchaseGranted (the no-op-seam shape approved at
-   * the 0019 plan gate). Deliberately a no-op today:
-   * TODO(0012): the personal-inbox citizenship message fires from here once the
-   * inbox feature (backlog task 0012) exists — text lives at
-   * `citizenship_earned.inbox_title` / `citizenship_earned.inbox_body` in
-   * resources/lang/en.json + ru.json.
+   * Post-grant hook for EARNED citizenship (task 0012 filled the 0017 seam;
+   * mirrors PaymentsRepository.afterPaidPurchaseGranted). Sends the
+   * `citizenship_earned` inbox template — rendered client-side from
+   * `inbox.templates.citizenship_earned.{title,body}` in resources/lang/*.json.
+   * Best-effort and contractually never-throwing: a sync throw is caught here,
+   * an async rejection is logged, and the credit outcome is returned unchanged
+   * either way. Only ever reached for a false→true flip (never for a paid
+   * citizen crossing the threshold, never for duplicates).
    */
-  private afterCitizenshipEarned(_yandexPlayerId: string): void {
-    // no-op — see TODO above.
+  private afterCitizenshipEarned(yandexPlayerId: string): void {
+    if (this.inbox === undefined) {
+      return;
+    }
+    try {
+      void this.inbox
+        .sendTemplate(yandexPlayerId, "citizenship_earned")
+        .catch((error: unknown) =>
+          logInboxSendFailure("citizenship_earned", error),
+        );
+    } catch (error) {
+      logInboxSendFailure("citizenship_earned", error);
+    }
   }
 
   /** Read a profile by Yandex player ID, or null if none exists. */

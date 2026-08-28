@@ -1,0 +1,26 @@
+# Review — 0057-investigate-worker-routing-to-dead-or-unready-workers
+
+Task: ai-agents/tasks/done/0057-investigate-worker-routing-to-dead-or-unready-workers/brief.md
+File(s) under review: ai-agents/knowledge-base/reports/2026-08-26-0057-worker-routing-dead-worker-findings.md · ai-agents/tasks/done/0057-investigate-worker-routing-to-dead-or-unready-workers/worklog.md (investigation task — no source changes; verified against `dev` at `282655c` = HEAD)
+Status: closed-out
+
+## Reviewer findings
+| #  | Round | Sev  | file:line | Claim |
+|----|-------|------|-----------|-------|
+| R1 | 1 | low | report `:26-27`, `:151-152`, `:250-251` | "nothing player-visible" / "empty for one tick at most" / "Players see nothing" is overstated. `Master.ts:200` serves `publicLobbiesJsonStr` as-is; a miss tick rewrites it to `lobbies: []` (`Master.ts:500-502`); `nginx.conf:108` caches **any 200** for 1 s, so one client poll landing in the ~100 ms window pins the empty body for up to 1 s for **all** clients; misses chain (reviewer dev rerun: 6 consecutive misses, ~600 ms empty); the report's own run 1 shows 2/90 samples empty (`:183`). Correct claim: **rarely visible** (≈ P(poll lands in window) ≈ 0.1 per miss → ~1 lobby-card blink/hour at 100 games/hour), **brief** (≤ 1 s). Does not move the 18/20 ruling. Raised by both reviewers. |
+| R2 | 1 | nit | report `:32`, `:255` | Wedged-shape cadence ("a new lobby only every ~5 s instead of ~100 ms") is a 2-worker dev number; at 20 workers one wedged index delays a replacement by 5 s with p = 1/20 per draw, so most replacements stay ~100 ms. The per-stuck-ID costs (50 lines, flapping, orphans, 429s — all re-observed) are independent of worker count and stand. Scale the sentence or mark it dev-only. |
+| R3 | 1 | nit | report `:35`/`:122`/`:344` (`Worker.ts:110-115` → actual `:109-114`); `:48` ("five more call sites" → 8 lines in 4 files; the list at `:209-211` is correct); `:89` (bound-but-wrong listener → `!response.ok` is trace-only per worklog decision 3 but lacks the "(reasoned, not observed)" marker used elsewhere); worklog `:14` ("no hosts/IPs" — report contains `localhost`/`127.0.0.1` loopback literals; not secrets, wording only) | Citation / marker drift. None changes a conclusion. |
+
+**Round 2 (2026-08-26, reviewer verification — no review passes, per skill phase 2).** All R1–R3 edits verified present in the report (§0 `:26-31`, `:37-41`, `:53`; §2.1 `:96-98`; §2.2 `:130`; §2.4 `:159-163`; §5 `:262-265`, `:269-272`; §7 `:360`; §8 `:370-371`; Appendix `:406`) and worklog (`:14`, `:77-80`, new `:87-112`). No stale phrase remains (grep: `player-invisible|Players see nothing|not visible|110-115|five more|one tick at most|no hosts` → none). Routing sources, `incidents/`, `wiki-vault/`, `plan.md` (blob `a8824c6` unchanged), `brief.md` (status line only) untouched by this task. Secrets re-grep: loopback literals only. Owner ruling (a) recorded: R1–R3 fixed, nothing carried as a residual. Verdict: ✅ Ready to merge (documents only; no code). Note for the lead, outside this ledger's scope: untracked `decisions/adr-109-…` appeared during round 1 (another author); see round-2 report for its wording check.
+
+## Coder response
+| #  | Verdict | Defect / Frontier | Action | Status |
+|----|---------|-------------------|--------|--------|
+| R1 | Accepted — verified: `Master.ts:200-202` serves the string as-is, `:500-502` rewrites to `[]` on a miss tick, `nginx.conf:108` `proxy_cache_valid 200 1s`; own run 1 = 2/90 empty samples | Defect (document accuracy) | Report §0 dead-index bullet, §2.4, §5 and §8 item 1 reworded to "rarely visible (p ≈ 0.1 per miss → ≈ 1 blink/hour at 100 games/h), brief (≤ 1 s), all clients pinned by the 1 s cache; misses chain". 18/20 recommendation unchanged. Worklog decision 4 annotated. | Fixed (round 1, owner ruling (a)) |
+| R2 | Accepted — verified: the 5 s delay applies only to a draw landing on the wedged index; p = 1/2 in dev, 1/20 in prod | Nit | §0 and §5 rescaled: "~5 s replacement delay per draw that lands on the wedged index (p = 1/20 at 20 workers); §2.5 cadence is the 2-worker dev number; per-stuck-ID costs are worker-count-independent". | Fixed (round 1) |
+| R3 | Accepted — verified: limiter block is `app.use(` `:109` … `);` `:114`; client `workerPath(` sites besides `Transport.ts` = 8 lines / 4 files; squatter path not reproduced (worklog decision 3) | Nit | `Worker.ts:110-115` → `:109-114` at report §0, §2.2, §7; §0 "five more call sites" → "eight more lines in four files, listed in §3"; §2.1 bound-but-wrong listener marked "(reasoned, not observed)"; Appendix heading + worklog `:14` → "loopback literals only". | Fixed (round 1) |
+
+Round-1 pass performed by the report's author (fkit-architect) under the owner ruling relayed by the lead on 2026-08-26 — option (a), all three in one wording pass. No code, incident record, or wiki touched; nothing committed. ADR-109 read-only check: consistent; two inherited wording drifts ("player-invisible", "five more call sites" / "all six client call sites") reported to the lead for the ADR's author, not edited here.
+
+## Accepted residuals (shared, do-not-re-litigate)
+- none — owner ruling 2026-08-26 option (a): R1–R3 all fixed in the artefacts; nothing accepted as a residual.

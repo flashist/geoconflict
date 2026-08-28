@@ -6,8 +6,19 @@ import {
   hasUnreadAnnouncements,
   readLastSeenAnnouncementId,
 } from "../Announcements";
-import { flashistConstants, FlashistFacade } from "../flashist/FlashistFacade";
+import {
+  flashistConstants,
+  FlashistFacade,
+  flashist_waitGameInitComplete,
+} from "../flashist/FlashistFacade";
+import {
+  INBOX_STATE_CHANGED_EVENT,
+  getInboxState,
+  loadInboxState,
+  refreshInbox,
+} from "../Inbox";
 import { NewsModal } from "../NewsModal";
+import { PURCHASES_RECONCILED_EVENT } from "../PaymentsReconciliation";
 import { translateText } from "../Utils";
 
 @customElement("news-button")
@@ -22,6 +33,23 @@ export class NewsButton extends LitElement {
       "announcements-state-changed",
       this.handleAnnouncementsStateChanged,
     );
+    // Personal inbox (task 0012): the dot also reflects unread personal
+    // messages. Kick the (shared, single-flight) load once init completes; a
+    // purchase reconciled mid-session may have produced a welcome message, so
+    // re-fetch on that signal too. Both are best-effort and never throw.
+    window.addEventListener(
+      INBOX_STATE_CHANGED_EVENT,
+      this.handleAnnouncementsStateChanged,
+    );
+    window.addEventListener(
+      PURCHASES_RECONCILED_EVENT,
+      this.handlePurchasesReconciled,
+    );
+    flashist_waitGameInitComplete()
+      .then(() => loadInboxState())
+      .catch(() => {
+        // Degraded init or a failed load — the bell simply shows no inbox dot.
+      });
   }
 
   disconnectedCallback() {
@@ -29,16 +57,27 @@ export class NewsButton extends LitElement {
       "announcements-state-changed",
       this.handleAnnouncementsStateChanged,
     );
+    window.removeEventListener(
+      INBOX_STATE_CHANGED_EVENT,
+      this.handleAnnouncementsStateChanged,
+    );
+    window.removeEventListener(
+      PURCHASES_RECONCILED_EVENT,
+      this.handlePurchasesReconciled,
+    );
     super.disconnectedCallback();
   }
 
   private handleAnnouncementsStateChanged = () => this.refreshUnreadState();
 
+  private handlePurchasesReconciled = () => {
+    void refreshInbox();
+  };
+
   private refreshUnreadState() {
-    this.isActive = hasUnreadAnnouncements(
-      announcements,
-      readLastSeenAnnouncementId(),
-    );
+    this.isActive =
+      hasUnreadAnnouncements(announcements, readLastSeenAnnouncementId()) ||
+      getInboxState().unreadCount > 0;
   }
 
   private handleClick() {

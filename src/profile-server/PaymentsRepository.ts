@@ -7,6 +7,7 @@
 // code path reachable exclusively through HMAC-verified /complete or /reconcile.
 
 import { Pool, PoolClient } from "pg";
+import { logInboxSendFailure, type InboxSender } from "./InboxRepository";
 
 /** A purchase_intents row, camelCased for the route layer. */
 export interface PurchaseIntent {
@@ -55,7 +56,11 @@ WHERE yandex_player_id = $1
 `;
 
 export class PaymentsRepository {
-  constructor(private readonly pool: Pool) {}
+  /** `inbox` optional: without it the post-grant seam sends nothing (tests/tools). */
+  constructor(
+    private readonly pool: Pool,
+    private readonly inbox?: InboxSender,
+  ) {}
 
   /**
    * Create a purchase intent for a (client-asserted) player, ensuring the
@@ -164,22 +169,43 @@ export class PaymentsRepository {
       return "granted";
     });
     if (status === "granted") {
-      // Fires AFTER commit — a hook failure must never roll back a real grant.
-      this.afterPaidPurchaseGranted(grant);
+      // Fires AFTER commit — a hook failure must never roll back a real grant,
+      // nor misreport a durable grant as a wire error (0017 review residual R1,
+      // owner-ruled 2026-08-24): the hook never throws by contract, and this
+      // call site is guarded too (belt and suspenders). "already_processed"
+      // never reaches here, so a /reconcile re-grant never duplicates the
+      // welcome message.
+      try {
+        this.afterPaidPurchaseGranted(grant);
+      } catch (error) {
+        logInboxSendFailure("citizenship_paid", error);
+      }
     }
     return status;
   }
 
   /**
-   * Post-grant hook seam. Deliberately a no-op today:
-   * TODO(0012): the personal-inbox "Welcome, Citizen!" message fires from here
-   * once the inbox feature (backlog task 0012) exists — text lives at
-   * `citizenship_paid.inbox_title` / `citizenship_paid.inbox_body` in
-   * resources/lang/en.json + ru.json (added by 0018, which wired the client
-   * purchase flow; same no-op-seam shape as afterCitizenshipEarned).
+   * Post-grant hook (task 0012 filled the 0019 seam; same shape as
+   * PlayerProfileRepository.afterCitizenshipEarned). Sends the
+   * `citizenship_paid` "Welcome, Citizen!" inbox template — rendered
+   * client-side from `inbox.templates.citizenship_paid.{title,body}` in
+   * resources/lang/*.json. Best-effort and contractually never-throwing: a
+   * sync throw is caught here, an async rejection is logged, and the grant
+   * status is returned unchanged either way.
    */
-  private afterPaidPurchaseGranted(_grant: PaidPurchaseGrant): void {
-    // no-op — see TODO above.
+  private afterPaidPurchaseGranted(grant: PaidPurchaseGrant): void {
+    if (this.inbox === undefined) {
+      return;
+    }
+    try {
+      void this.inbox
+        .sendTemplate(grant.yandexPlayerId, "citizenship_paid")
+        .catch((error: unknown) =>
+          logInboxSendFailure("citizenship_paid", error),
+        );
+    } catch (error) {
+      logInboxSendFailure("citizenship_paid", error);
+    }
   }
 
   private async inTransaction<T>(

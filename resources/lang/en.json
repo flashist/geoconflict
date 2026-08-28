@@ -57,15 +57,30 @@
     "xp_label": "XP",
     "citizen_badge": "CITIZEN"
   },
-  "citizenship_earned": {
-    "inbox_title": "You've earned Geoconflict Citizenship!",
-    "inbox_body": "You've reached 1,000 XP and earned citizenship. You now have access to citizen benefits."
-  },
   "citizenship_paid": {
     "buy_cta": "Buy Citizenship",
-    "inbox_title": "Welcome, Citizen!",
-    "inbox_body": "Your citizenship purchase was successful. You now have access to citizen benefits.",
     "purchase_error": "Something went wrong. Please try again."
+  },
+  "inbox": {
+    "empty": "No personal messages yet.",
+    "templates": {
+      "citizenship_earned": {
+        "title": "You've earned Geoconflict Citizenship!",
+        "body": "You've reached 1,000 XP and earned citizenship. You now have access to citizen benefits."
+      },
+      "citizenship_paid": {
+        "title": "Welcome, Citizen!",
+        "body": "Your citizenship purchase was successful. You now have access to citizen benefits."
+      },
+      "name_change_approved": {
+        "title": "Your name change was approved",
+        "body": "Your new display name ''{name}'' is now active."
+      },
+      "name_change_rejected": {
+        "title": "Your name change request was rejected",
+        "body": "Your requested name ''{name}'' was not approved — {reason}. You can submit a new request at any time."
+      }
+    }
   },
   "news": {
     "see_all_releases": "See all releases",
@@ -75,6 +90,8 @@
   "announcements": {
     "title": "Announcements",
     "empty": "No announcements yet. Check back after the next update.",
+    "tab_global": "Global",
+    "tab_personal": "Personal",
     "tag": {
       "new": "New",
       "upcoming": "Upcoming",

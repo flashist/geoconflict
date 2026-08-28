@@ -21,6 +21,11 @@ export const flashistConstants = {
     UI_CLICK_STALE_BUILD_CONTACT: "UI:ClickStaleBuildContact",
     ANNOUNCEMENTS_OPENED: "Announcements:Opened",
     ANNOUNCEMENTS_CLOSED: "Announcements:Closed",
+    // Personal inbox (task 0012): Opened = the citizen selected the Personal
+    // tab; LoadFailed = the inbox fetch failed (network/5xx/timeout/bad body),
+    // never a 403 (that is the ordinary non-citizen answer).
+    INBOX_OPENED: "Inbox:Opened",
+    INBOX_LOAD_FAILED: "Inbox:LoadFailed",
 
     GAME_START: "Game:Start",
     GAME_MODE_MULTIPLAYER: "Game:Mode:Multiplayer",
@@ -130,6 +135,10 @@ export const flashistConstants = {
 
   uiElementIds: {
     announcementsBell: "AnnouncementsBell",
+    // Tab strip inside the announcements popup — rendered only for citizens
+    // (task 0012), so non-citizens/guests never fire these.
+    announcementsTabGlobal: "AnnouncementsTabGlobal",
+    announcementsTabPersonal: "AnnouncementsTabPersonal",
     telegramLinkStartScreen: "TelegramLinkStartScreen",
     telegramLinkGameEnd: "TelegramLinkGameEnd",
     vkLinkStartScreen: "VkLinkStartScreen",
