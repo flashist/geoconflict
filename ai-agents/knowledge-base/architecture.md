@@ -269,8 +269,11 @@ and the init gate.
 > which is what `pollPlayers()`, `createLobby()`, `JoinPrivateLobbyModal` and `Matchmaking` already do.
 > Keep `windowOrigin` only where the intent really is "stay in this document" — notably the private-lobby
 > invite link, which must append the hash with **no** separator (`` `${windowOrigin}#join=${id}` ``): a
-> trailing `/` makes the path stop matching nginx's `\.html$` rule and silently serves the standalone
-> `index.html` instead of the Yandex template, so the invited player never gets Yandex platform mode.
+> trailing `/` makes the path miss the real file in `express.static`, so the master's SPA fallback
+> (`app.get("*")`, `Master.ts:689-691`) silently serves the standalone `index.html` instead of the Yandex
+> template, and the invited player never gets Yandex platform mode. **nginx never picks the file** — the
+> trailing `/` does stop the path matching `~* \.html$`, but that location and the catch-all `location /`
+> both `proxy_pass` to the same master on port 3000, so the substitution is Express's.
 > Anything built by concatenating onto `windowOrigin` is suspect in production and must be checked at a
 > **non-root** pathname — a root-path test cannot tell a real fix from a slash-collapsing one.
 > (Task `0198`; the `/w<N>/` placement contract itself is ADR-109.)

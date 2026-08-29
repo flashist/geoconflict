@@ -112,6 +112,44 @@ Result, follow-up items, what was learned.
 
 ---
 
+## Standing Owner Rulings (binding on lint)
+
+Settled questions live here. A lint run **must read this section before reporting an open owner
+question**, and **must not re-raise anything ruled below**. Each ruling records its date, how it
+reached the wiki, and what it does *not* cover.
+
+Also binding, recorded in place rather than repeated here: the **ADR page naming** ruling of
+2026-08-23 (see the Decision Page section above).
+
+### Public hostnames may remain in vault pages — CLOSED (owner-ruled 2026-08-29)
+
+**Ruling.** Public hostnames may stay in vault pages. Do not strip them. The question is **closed**.
+
+**Provenance.** The owner, 2026-08-29, answering an `AskUserQuestion` put by the fkit-lead session;
+recorded here by the wiki role on the lead's instruction.
+
+**Reasoning, on the record.** `api.geoconflict.ru` (8 pages), the bare host `geoconflict.ru`
+(3 pages) and the player-facing `t.me` / `vk.com` channel URLs (3 pages) are **public endpoints
+already present in the repo and in the shipped client**. None of them is a credential. On at least
+one page — [[decisions/yandex-invite-portal-boundary]] — **the hostname *is* the finding**, so
+removing it would make the page worse, not safer.
+
+**This ruling supersedes the open-question entries from the three prior lint runs** that raised it
+and were relayed to the owner without an answer: the three `log.md` lint entries filed under
+2026-08-28 (the first of which the two later entries back-reference as "the 2026-08-27 lint" — the
+run's own log header reads 2026-08-28; the discrepancy is noted, not resolved here). Those entries
+stay in the append-only log as written; they are **settled, not open**, and a future lint must not
+count them as a pending owner question.
+
+**Boundary — this covers PUBLIC HOSTNAMES ONLY.** It is **not** a licence for endpoints in general.
+It does **not** permit credentials, tokens, API keys, DSNs, connection strings, private keys, or
+private / non-localhost IP addresses in any vault page, and **the secret scan must keep failing on
+those**. Read this ruling narrowly: "a public hostname is allowed" never generalizes to "an endpoint
+is allowed". When in doubt about a value that is not a plain public hostname, flag it — that question
+is not settled by this ruling.
+
+---
+
 ## Cross-Reference Rules
 
 - Use Obsidian wiki-links: `[[systems/game-loop]]`, `[[features/attack]]`

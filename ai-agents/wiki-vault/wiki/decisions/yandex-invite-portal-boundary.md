@@ -125,3 +125,6 @@ implementation brief(s).
 - [[decisions/sprint-backlog]] — the unsprinted board `0199` is filed on
 - [[decisions/sprint-4]] — the board `0199` is explicitly **not** on
 - [[tasks/citizen-verified-icon]] — task `0068`, whose live check surfaced `0198` and, through it, this
+- `schema.md`, **Standing Owner Rulings** — the 2026-08-29 owner ruling that public hostnames may stay
+  in vault pages cites **this page** as the case where the hostname *is* the finding. Do not strip the
+  host from this page; that question is closed.
