@@ -49,3 +49,4 @@ No code. Output is the findings document `ai-agents/knowledge-base/reports/2026-
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the incident that surfaced this
 - [[systems/networking]] — worker routing and the master's endpoint surface
 - [[decisions/sprint-4]] — the sprint board carrying the outage track
+- [[decisions/sprint-backlog]] — the unsprinted board `0057` was filed on before its same-day promotion

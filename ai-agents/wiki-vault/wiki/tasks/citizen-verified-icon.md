@@ -64,5 +64,6 @@ The other seven: no pre-match icon in public quick-play (there is no public-lobb
 - [[decisions/adr-103-identity-trust-seam]] — the client-asserted-id trust level behind the forged-icon residual
 - [[decisions/adr-104-archiving-disabled]] — why the client-POSTed singleplayer archive path is inert
 - [[decisions/windoworigin-url-join-defect]] — task `0198`, found while running this task's live check
+- [[decisions/yandex-invite-portal-boundary]] — task `0199`, the product question `0198` surfaced and left open
 - [[tasks/hide-citizenship-card-flag]] — task `0054`, the flag hiding the wider citizenship surface
 - [[decisions/sprint-4]] — the sprint board carrying this task

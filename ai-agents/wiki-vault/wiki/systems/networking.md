@@ -66,4 +66,5 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[tasks/worker-reject-departed-requester-create]] — task 0194's departed-requester guard on the `create_game` route
 - [[tasks/worker-routing-dead-worker-investigation]] — task 0057, the investigation behind all four
 - [[decisions/windoworigin-url-join-defect]] — task 0198's URL-join defect that makes two private-lobby routes 404 in production
+- [[decisions/yandex-invite-portal-boundary]] — task 0199's open question about which host the private-lobby invite should point at
 - [[tasks/citizen-verified-icon]] — task 0068's `isCitizen` flag on the frozen roster and the lobby-poll payload

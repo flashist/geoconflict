@@ -77,3 +77,4 @@ Green at close, after both fix rounds: `npx tsc --noEmit`, `npm run lint`, prett
 - [[decisions/config-parity-failure-class]] — `0195`, found during this build
 - [[systems/localization]] — the `citizenship_name_change` en/ru section
 - [[decisions/sprint-4]] — the sprint board carrying this task
+- [[systems/flashist-init]] — the `CITIZENSHIP_CARD_ENABLED` gate and platform signals this UI sits behind

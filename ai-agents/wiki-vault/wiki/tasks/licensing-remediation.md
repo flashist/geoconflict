@@ -20,7 +20,7 @@ is out of the production build.**
   `src/client/sound/SoundManager.ts`. Zero gameplay impact — the game never played them; the only
   sound in use is `resources/sounds/effects/ka-ching.mp3` (CC BY-SA). Git history rewrite explicitly
   out of scope (upstream distributes the files publicly; forward-clean is proportionate).
-- **Part B (A1)** — the live favicon (upstream's brand mark `resources/images/Favicon.svg`) replaced
+- **Part B (A1)** — the live favicon (upstream's brand mark `resources/images/Favicon.svg`, since **deleted** — the icon both templates reference today is `resources/images/GeoConflictFavicon.svg`) replaced
   with a simple **original placeholder** icon in both HTML templates (`src/client/index.html` and
   `src/client/yandex-games_iframe.html`); the replaced favicon files and the three unused
   `OpenFrontLogo.*` brand images deleted. Owner-ruled: placeholder now, proper design later.

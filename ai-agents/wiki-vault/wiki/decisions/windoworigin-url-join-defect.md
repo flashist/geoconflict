@@ -4,7 +4,9 @@
 **Status**: accepted
 
 > 🚨 **This is a LIVE production defect on the primary distribution channel. The fix is BUILT but NOT DEPLOYED.**
-> Task `0198` is `🔲 Backlog` / in progress at the time of writing; its production proof (step 8) rides the same deploy that carries `0062` and `0063`, and that deploy has not happened. **Nothing below is verified as fixed in production.**
+> Task `0198`'s production proof (step 9) rides the same deploy that carries `0062` and `0063`, and that deploy has not happened. **Nothing below is verified as fixed in production.**
+>
+> **Review closed 2026-08-28; the task is NOT Done.** Its terminal state is `🚧 Blocked — awaiting deploy proof`. Two rounds, one low-severity documentation finding (R1, the GET/404 verb nuance — fixed and reviewer-re-verified), **zero code defects** across both reviewers (fkit-reviewer's own pass plus a Codex adversarial pass, no degradation), and **six accepted residuals, all owner-confirmed with wording unamended and their re-raise conditions binding**. Round-2 gates were deliberately **not** re-run — the 107 suites / 1075 tests / exit-0 figures stand on the **round-1** run, not a fresh green. **The production symptom — private-lobby Start Game doing nothing — remains unverified-as-fixed.**
 
 ## Context
 
@@ -38,7 +40,9 @@ Recorded in `ai-agents/knowledge-base/architecture.md` §5 as verified end-to-en
 
 **Rule (recorded in `ai-agents/knowledge-base/architecture.md` §5): host-root APIs take a bare root-absolute path** — `` `/${config.workerPath(id)}/api/…` `` — which is what `pollPlayers()`, `createLobby()`, `JoinPrivateLobbyModal` and `Matchmaking` already do, and why the lobby *looks* healthy while the two requests that matter fail.
 
-Keep `windowOrigin` only where the intent really is "stay in this document" — notably the private-lobby invite link, which must append the hash with **no** separator (`` `${windowOrigin}#join=${id}` ``): a trailing `/` makes the path stop matching nginx's `\.html$` rule and silently serves the standalone `index.html` instead of the Yandex template, so the invited player never gets Yandex platform mode.
+Keep `windowOrigin` only where the intent really is "stay in this document" — notably the private-lobby invite link, which must append the hash with **no** separator (`` `${windowOrigin}#join=${id}` ``): a trailing `/` makes the request silently serve the standalone `index.html` instead of the Yandex template, so the invited player never gets Yandex platform mode.
+
+> 📐 **The mechanism, stated correctly — nginx does not pick the file.** A trailing `/` does stop the path matching nginx's `~* \.html$` location, but **both** that location and the catch-all `location /` `proxy_pass` to the same master on port 3000, so nginx never chooses between files. **The substitution is Express's**: `/yandex-games_iframe.html` hits a real file through `express.static`, while `/yandex-games_iframe.html/` misses it and falls through to the SPA fallback `app.get("*")` → `static/index.html`. The **consequence** above is correct; only the layer matters, and this is the corrected layer. `ai-agents/knowledge-base/architecture.md` §5 still carries the older wording — pre-existing, found by `0198`'s reviewer at close-out and **deliberately not reopened** there to avoid review churn; it is flagged for the next architecture-doc pass.
 
 **Anything built by concatenating onto `windowOrigin` is suspect in production.** Do not "fix" it by reverting to `window.location.origin` — that drops the fork's non-root-path support.
 
@@ -54,12 +58,14 @@ Keep `windowOrigin` only where the intent really is "stay in this document" — 
 
 - **Players on Yandex Games cannot start a private lobby today, and it fails silently.** The lobby is created, the joined-player list keeps refreshing, the modal closes on Start, and then nothing happens. Public games are unaffected.
 - **The host's settings are silently lost too**, which is the half that was first missed. `putGameConfig()` pushes map, difficulty, bot count, game mode, disabled units and timer, runs on **every** settings change, and is `await`ed at the top of `startGame()`. Anyone chasing "why did my test run with the wrong settings" is chasing this defect.
-- **⚠️ Derived, NOT measured — a likely second production symptom.** The copy-invite link on the Yandex path is `…/yandex-games_iframe.html/#join=<id>`, whose trailing slash stops matching `location ~* \.html$` and should therefore serve the standalone template. **If true, an invite shared from the Yandex build lands the recipient on the wrong entry point.** Reasoned from `nginx.conf` and `Master.ts`, never observed live. Do not repeat it as fact.
+- **⚠️ Derived, NOT measured — a likely second symptom of the *deployed* (pre-fix) build.** In production today the copy-invite link on the Yandex path is `…/yandex-games_iframe.html/#join=<id>`; that trailing slash misses the real file in `express.static` and should therefore be answered by the SPA fallback with the standalone template (see the mechanism note above). **If true, an invite shared from the Yandex build lands the recipient on the wrong entry point.** Reasoned from `nginx.conf` and `Master.ts`, never observed live. Do not repeat it as fact. **The built-but-undeployed fix removes the separator**, so the invite becomes `…/yandex-games_iframe.html#join=<id>` — the right entry point. **Which host that entry point should live on at all is a separate, unruled product question:** see [[decisions/yandex-invite-portal-boundary]].
+- **A binding residual on this same line: `copyToClipboard()` drops `location.search`.** The invite carries origin + pathname + hash, never the query string — deliberately unchanged, because the join flow reads only `#join=`. **Re-raise only if a query parameter becomes load-bearing for a joining client**, which is exactly what task `0199` is scoped to determine. `src/client/AccountModal.ts` → `viewGame()` uses the opposite convention (`` `${path}${search}${hash}` ``), so the codebase holds both and they disagree.
 - **Two other `windowOrigin` consumers send it as a payload value, not a concatenation** — `Cosmetics.ts` (`hostname`) and `AccountModal.ts` (`redirectDomain`). In production they are now known to be sending `https://geoconflict.ru/yandex-games_iframe.html`. Whether that is what those endpoints expect is `0069`/`0070` territory.
 - **Two local-dev lobby traps now look alike, and §9 of the architecture doc discriminates them:** *public lobby list empty, private lobby works* → something squatting port 3001 killed worker 0 (`EADDRINUSE` swallowed in `Worker.ts`); *private Start Game does nothing, public list fine* → this defect. In production the symptom is the path-prefix failure, not a doubled slash.
 
 ## Related
 
+- [[decisions/yandex-invite-portal-boundary]] — task `0199`, the **host** question this defect's **path** fix deliberately left open
 - [[tasks/citizen-verified-icon]] — task `0068`, whose live multi-client check hit this and routed it out rather than absorbing it
 - [[systems/architecture-overview]] — the §5 client-tier rule and the §9 trap table this page records
 - [[systems/networking]] — the worker route the join misses, and the `app.get("*")` fallback that answers instead
