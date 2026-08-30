@@ -1,6 +1,9 @@
 {
   "name": "geoconflict",
   "version": "0.0.140",
+  "engines": {
+    "node": ">=24.13.0 <25"
+  },
   "scripts": {
     "generate-map-nation-counts": "node scripts/generate-map-nation-counts.js",
     "prebuild-dev": "npm run generate-map-nation-counts",
@@ -20,7 +23,7 @@
     "tunnel": "npm run build-prod && npm run start:server",
     "pretest": "npm run generate-map-nation-counts",
     "test": "jest",
-    "test:integration": "cross-env RUN_DB_TESTS=1 jest",
+    "test:integration": "cross-env RUN_DB_TESTS=1 jest --runInBand",
     "perf": "npx tsx tests/perf/*.ts",
     "test:coverage": "jest --coverage",
     "format": "prettier --ignore-unknown --write .",

@@ -7,6 +7,8 @@
 > ✅ Done (agent-closed 2026-08-28 — **not owner-verified**). Closed by a producer spawned by the sprint ship-loop; no owner channel existed at close, so **no human verified this work**.
 >
 > 🚨 **Nothing here is verified in production**, exactly as with `0067`. Everything below is local or local-stack evidence.
+>
+> 🔧 **UPDATED 2026-08-30 — the code IS now deployed; its behaviour is still unchecked.** A production release landed as commit `362a2f9`, and this task's `isCitizen` work is in it (it landed in `d442ac2`, an ancestor of that release). **That is a statement about bytes on the box, not about the feature working**: `CITIZENSHIP_CARD_ENABLED` is still `false`, and `PROFILE_INTERNAL_TOKEN` was deliberately left blank for this release, so the game server's profile calls no-op (task `0062`, still open) and no player is a citizen in production to badge. ⚠️ **R3's exposure ships with it, though:** `isCitizen` is now being served on the unauthenticated lobby poll in production. That remains acceptable only while the flag is purely cosmetic — the condition below is unchanged and unsoftened. See [[tasks/prod-api-env-https-apex]] for the deploy evidence.
 
 ## Goal
 
@@ -55,6 +57,8 @@ The other seven: no pre-match icon in public quick-play (there is no public-lobb
 - **`0198`** — the private-lobby Start Game URL. Found here, filed separately, and later measured to be a **live production defect** on Yandex Games. See [[decisions/windoworigin-url-join-defect]].
 - **`0197`** — test-suite reliability. Strengthened with this task's evidence: a jest-worker `SIGSEGV` on `tests/UnitGrid.test.ts`, a file this task never touches, plus a one-off failure in `0067`'s `NameChangeRoutes.test.ts` that then passed four consecutive full runs. Neither was hidden or silently retried.
 
+  > 🔧 **Follow-through, 2026-08-30 — `0197` closed, and it corrected one thing this page fed it.** The segfault is an **upstream V8 garbage-collector bug, not repository-fixable** (five byte-identical `ClearStaleLeftTrimmedPointerVisitor` stacks, ~1 in 170 runs); no mitigation was bought, so **a red run stays ambiguous** by owner ruling. ⚠️ **This task's own `review.md` (line 153) rolled the `NameChangeRoutes` assertion failure into its segfault list, making the count five when it is four.** That file is finished output and was **not** edited; the correction of record lives in `0197`'s brief and findings report. The `NameChangeRoutes` failure is a real, separate, ten-times-more-frequent flake, now task `0200`. See [[tasks/test-suite-reliability-investigation]].
+
 ## Related
 
 - [[tasks/citizenship-name-change]] — task `0067`, the other Phase 2 citizenship benefit, built the same day and independent of this one
@@ -64,6 +68,8 @@ The other seven: no pre-match icon in public quick-play (there is no public-lobb
 - [[decisions/adr-103-identity-trust-seam]] — the client-asserted-id trust level behind the forged-icon residual
 - [[decisions/adr-104-archiving-disabled]] — why the client-POSTed singleplayer archive path is inert
 - [[decisions/windoworigin-url-join-defect]] — task `0198`, found while running this task's live check
+- [[tasks/test-suite-reliability-investigation]] — task `0197`, the other defect routed out of this one; it found the upstream V8 cause and corrected this task's five-vs-four segfault count
+- [[tasks/prod-api-env-https-apex]] — task `0063`, whose close-out carries the `362a2f9` production-deploy evidence this page now cites
 - [[decisions/yandex-invite-portal-boundary]] — task `0199`, the product question `0198` surfaced and left open
 - [[tasks/hide-citizenship-card-flag]] — task `0054`, the flag hiding the wider citizenship surface
 - [[decisions/sprint-4]] — the sprint board carrying this task

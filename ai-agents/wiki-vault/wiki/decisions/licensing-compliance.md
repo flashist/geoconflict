@@ -52,10 +52,17 @@ violation, 1 trademark-posture item, 3 hygiene items**:
   paid non-country flags must be original work.
 
 Remediation shipped as task `0066` (V1 purge + A1 original-placeholder favicon and brand-file
-deletion + H1 retarget, all owner-approved 2026-08-23): built and agent-closed 2026-08-24, but
-**NOT yet deployed** — and the paid go-live gate reads "`0066` DEPLOYED", so **this gate is not
-clear until the redeploy lands and the live checks pass** (music URLs 404, placeholder favicon
-serving). The `0025` audit-task row itself stays In progress on the sprint board pending the
+deletion + H1 retarget, all owner-approved 2026-08-23): built and agent-closed 2026-08-24, and
+**deployed to production 2026-08-29 in release `362a2f9`** (its commit `6f66aff` is an ancestor of
+that release; the release is live per the `commit.txt` check in [[tasks/prod-api-env-https-apex]]).
+
+> 🔧 **CORRECTED 2026-08-30.** This paragraph previously read *"**NOT yet deployed** — and the paid
+> go-live gate reads `0066` DEPLOYED, so this gate is not clear until the redeploy lands and the live
+> checks pass"*. **The deploy half is now satisfied.** ⚠️ **The live-check half is not**: the music
+> URLs returning 404 and the placeholder favicon serving were **not verified in this pass**. Read the
+> gate as *shipped, not demonstrated* — the distinction is the whole point of the check list.
+
+The `0025` audit-task row itself stays In progress on the sprint board pending the
 producer-routed close. See [[tasks/licensing-remediation]].
 
 ## Related
@@ -67,4 +74,4 @@ producer-routed close. See [[tasks/licensing-remediation]].
 - [[tasks/legal-vat-investigation]] — separate VAT/tax gate that does not cover IP/licensing review
 - [[tasks/yandex-payments-investigation]] — paid citizenship flow that should not scale without licensing posture review
 - [[systems/project-brief]] — the asset-audit gate before paid IAP ships
-- [[tasks/licensing-remediation]] — the 0066 remediation implementing the 0025 audit's V1/A1/H1 fixes (agent-closed, not deployed)
+- [[tasks/licensing-remediation]] — the 0066 remediation implementing the 0025 audit's V1/A1/H1 fixes (agent-closed; deployed in `362a2f9`, live checks unrun)

@@ -1105,3 +1105,32 @@
 - **No hostname was stripped, altered, or added anywhere in the vault.** No page content was rewritten. Pages touched: 3 — `schema.md` (new section), [[wiki/decisions/yandex-invite-portal-boundary]] (back-link to the ruling, per the bidirectional-link rule), and this log.
 - `index.md` **not** touched — no page created or removed. `.wiki-watermark` **not advanced**: this is a policy record, not new source coverage.
 - No sync and no lint run this turn; both ran 2026-08-28 and were clean (0 broken links, 0 orphans, 0 template drift, secret scan clean). Nothing written outside `ai-agents/wiki-vault/`; no commit, no push.
+
+## 2026-08-30 — ingest (sync)
+
+- **Sync window:** `d442ac29f27b9ba42ae361b15c208b8717e9d92b` → HEAD (`362a2f985aefb25651e4804b8e27d68cb8b382a2`), plus the uncommitted working tree — see the coverage note below.
+- ⚠️ **Coverage note, stated because the watermark alone would have understated the delta.** `git log <watermark>..HEAD` over `ai-agents/` returned exactly **one** file (`knowledge-base/architecture.md`). Everything else this sync ingested is **uncommitted in the working tree**: the `0063` and `0197` task-folder moves into `done/`, the `0197` rename, the new findings report, the `0200` brief, and the sprint-plan/backlog edits. Ingesting the committed delta alone would have missed the entire session's work, so the working tree was swept as well. The watermark is advanced to `362a2f9` regardless; **a future sync will re-see those files once they are committed, and should treat them as already covered by this entry.**
+- Changed ingest-worthy sources detected: **6** (1 committed, 5 uncommitted).
+
+**Ingested:**
+
+- `ai-agents/tasks/done/0063-prod-api-env-advertises-http-and-raw-ip/brief.md` → **created** [[wiki/tasks/prod-api-env-https-apex]]
+- `ai-agents/tasks/done/0197-test-suite-reliability-investigation/brief.md` + `ai-agents/knowledge-base/reports/2026-08-29-0197-test-suite-reliability-findings.md` → **created** [[wiki/tasks/test-suite-reliability-investigation]]
+- `ai-agents/knowledge-base/architecture.md` (§5 mechanism correction: the invite-link substitution is **Express's**, not nginx's) → **updated** [[wiki/systems/architecture-overview]], and **discharged the open flag** in [[wiki/decisions/windoworigin-url-join-defect]] that said §5 still carried the older wording
+- `ai-agents/sprints/plan-sprint-4.md` → **updated** [[wiki/decisions/sprint-4]] (rows for `0062`, `0063`, `0066`, `0197`, `0198`; new `0200` row; deploy banner)
+- `ai-agents/sprints/backlog.md` → **updated** [[wiki/decisions/sprint-backlog]] (`0200` moved to Sprint 4; `0064` sequencing note)
+
+**Production deploy `362a2f9` — ingested as a first-class fact, because it falsified a posture carried across nine pages.** Verified by commit ancestry in this repo plus the live evidence recorded in `0063`'s close-out. Everything on `dev` at that commit is in production: the whole 2026-08-22 outage track, `0066`, `0067`, `0068`, `0198`'s URL fix and `0063`'s config. **Updated:** [[wiki/decisions/sprint-4]], [[wiki/decisions/incident-2026-08-22-public-lobbies-outage]], [[wiki/decisions/windoworigin-url-join-defect]], [[wiki/decisions/config-parity-failure-class]], [[wiki/decisions/licensing-compliance]], [[wiki/decisions/yandex-invite-portal-boundary]], [[wiki/systems/networking]], [[wiki/systems/player-profile-store]], [[wiki/systems/project-brief]], [[wiki/tasks/licensing-remediation]], [[wiki/tasks/citizenship-name-change]], [[wiki/tasks/citizen-verified-icon]].
+
+- ⚠️ **Every one of those updates says the same narrow thing and none of them says more:** the bytes are on the box; the behaviour was not checked. `PROFILE_INTERNAL_TOKEN` was **deliberately left blank** by the owner for this release, so `0062`'s shipped fix has never been exercised and citizenship is dark **by design**; `CITIZENSHIP_CARD_ENABLED` is still `false`; `0198`'s production proof is **unreachable**, not merely unrun (the private-lobby buttons are `display: none` on the Yandex template); `0066`'s three live checks were not run.
+
+**Stale claims corrected at the same time** (all four flagged by the caller, all four confirmed against source before editing):
+
+- **"The integration suite hangs without `--forceExit`"** — FALSE. Corrected in [[wiki/tasks/citizenship-name-change]] (the only vault page asserting it), with the disproof and the "a future hang is a real regression" rule.
+- **"Five segfaulting suites"** — the count is **four**. Corrected in [[wiki/decisions/sprint-4]] and noted in [[wiki/tasks/citizen-verified-icon]], whose own `review.md` is the origin of the error and is finished output that was **not** edited.
+- **"Environmental / jsdom / memory-pressure cause"** — refuted by experiment. Corrected in [[wiki/decisions/sprint-4]]; the full hypothesis table is on the new `0197` page.
+- **The Node pin as a fix** — recorded explicitly as **NOT a mitigation** on [[wiki/tasks/test-suite-reliability-investigation]] and [[wiki/systems/architecture-overview]], with the reason (it pins to the very major the crash was reproduced on) attached so no retelling can quietly upgrade it.
+
+- **Skipped, per procedure:** `ai-agents/tasks/backlog/0200-…/brief.md`, `0069`, `0070`, `0198`, `0195`, `0196` — backlog briefs, no task page created; their durable content is carried on the sprint and decision pages instead. In-folder `plan.md` / `worklog.md` / `review.md` skipped as working artifacts. `CLAUDE.md` is outside `ai-agents/` and so outside the sync filter; its new integration-test section is nonetheless recorded as the single source of truth on [[wiki/systems/architecture-overview]] and the `0197` page.
+- Pages created: **2**. Pages updated: **15**. `index.md` updated (2 new entries, 6 corrected descriptions). `.wiki-watermark` advanced to `362a2f9`.
+- Targeted lint on the changed pages: 0 broken links, 6 one-way links found and **all 6 fixed** with reciprocal back-links.

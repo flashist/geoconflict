@@ -1,7 +1,7 @@
 # Licensing Remediation — Proprietary Purge, Favicon Replacement, JWT Fallback Retarget
 
 **Source**: `ai-agents/tasks/done/0066-licensing-remediation-proprietary-purge/brief.md`
-**Status**: done (agent-closed — not owner-verified; **NOT deployed**)
+**Status**: done (agent-closed — not owner-verified; **deployed in `362a2f9` 2026-08-29 — deploy proven, effect unverified**)
 **Sprint/Tag**: Sprint 4, task 0066
 
 ## Goal
@@ -34,10 +34,20 @@ is out of the production build.**
 ## Outcome
 
 Built and review-converged 2026-08-24; closed to `done/` the same day (agent-closed — not
-owner-verified). **Deployment has NOT happened** — the prod redeploy checks (music URLs 404,
-placeholder favicon live, `OpenFrontLogo.png` no longer serving) are still pending owner-side, and
-**`0065`'s flip-ON gate reads "`0066` DEPLOYED to prod"; closing the task row does not clear that
-gate.**
+owner-verified).
+
+> 🔧 **CORRECTED 2026-08-30 — this paragraph previously said "Deployment has NOT happened", and that
+> is no longer true.** A production release landed as commit `362a2f9`; this task's commit
+> (`6f66aff` — proprietary-music purge, original favicon, JWT fallback retarget) is an **ancestor of
+> that release**, and the release is live in production per the `commit.txt` check recorded in
+> [[tasks/prod-api-env-https-apex]]. **`0065`'s flip-ON gate — "`0066` DEPLOYED to prod" — is
+> therefore satisfied on the deploy fact.**
+>
+> ⚠️ **What is NOT established: that the intended effect is visible.** The three prod redeploy checks
+> this task listed — the removed music URLs returning 404, the placeholder favicon serving, and
+> `OpenFrontLogo.png` no longer serving — **were not run in this pass and remain unevidenced.** The
+> deploy is proven; the outcome of the deploy is not. Anyone treating the licensing gate as
+> *demonstrated* rather than *shipped* should run those three checks first.
 
 Accepted residuals (owner-ruled):
 - Two `OpenFrontLogo.svg` copies inside `resources/claude-design-files/**` stay as repo-only residue
@@ -57,3 +67,5 @@ Accepted residuals (owner-ruled):
   chain
 - [[systems/project-brief]] — carries the paid-IAP licensing gate this remediation must deploy to
   clear
+- [[tasks/prod-api-env-https-apex]] — task `0063`, whose close-out carries the `362a2f9`
+  production-deploy evidence this page now cites

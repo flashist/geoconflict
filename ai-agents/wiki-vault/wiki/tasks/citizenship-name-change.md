@@ -6,7 +6,9 @@
 
 > ✅ Done (agent-closed 2026-08-28 — **not owner-verified**). Closed by a producer spawned by the sprint ship-loop; **no human has checked this work**.
 >
-> 🚨 **Effective posture: built-awaiting-deploy — the same as `0062` and `0063`. NOTHING in this task is verified in production.** No deploy has happened. Every figure below is local-stack, unit or integration evidence.
+> 🚨 **NOTHING in this task is verified in production.** Every figure below is local-stack, unit or integration evidence.
+>
+> 🔧 **UPDATED 2026-08-30 — the "no deploy has happened" half of this banner is now stale, and the change is smaller than it sounds.** This page previously read *"Effective posture: built-awaiting-deploy — the same as `0062` and `0063`. No deploy has happened."* **A production release landed as commit `362a2f9`**, and this task's code is in it — verified by ancestry (`0067`'s profile-server work landed in `d442ac2`, an ancestor of `362a2f9`) plus the live `commit.txt` check recorded in [[tasks/prod-api-env-https-apex]]. **So the code shipped. Nothing about its behaviour was checked, and two gates keep the feature dark anyway:** `CITIZENSHIP_CARD_ENABLED` is still `false` in `FlashistFacade.ts`, and `PROFILE_INTERNAL_TOKEN` was **deliberately left blank for this release**, so `ProfileApiClient.isConfigured()` is false and every profile call from the game server no-ops (task `0062`, still open). **"Deployed" here means the bytes are on the box — not that one line of this feature has run.**
 >
 > 🚨 **The citizenship card has never been seen in a browser.** `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` is `false`, so the entire UI leg — entry point, pending/approved/rejected states, the cancel control — is proven by unit tests and by nothing else.
 >
@@ -65,7 +67,9 @@ Green at close, after both fix rounds: `npx tsc --noEmit`, `npm run lint`, prett
 **Two defects found here and routed out rather than absorbed.**
 
 - **`0195`** — `YANDEX_PAYMENTS_SECRET` is missing from `build-deploy-profile.sh`'s export block, so payments have been silently 503 on the real box since `0019`. See [[decisions/config-parity-failure-class]].
-- **The jest-worker `SIGSEGV` flake** — `npm test` aborted a suite on two runs, on a **different untouched file each time**; both passed standalone and both full re-runs were green. Tracked under `0197`. The `tests/integration` directory also hangs past ten minutes without `--forceExit` (open `pg` pool handles) — pre-existing, and it means a reviewer's identical command can hang.
+- **The jest-worker `SIGSEGV` flake** — `npm test` aborted a suite on two runs, on a **different untouched file each time**; both passed standalone and both full re-runs were green. Tracked under `0197`, which **closed 2026-08-30 with a root cause: an upstream V8 garbage-collector bug, not repository-fixable.** See [[tasks/test-suite-reliability-investigation]].
+
+  > 🔧 **CORRECTED 2026-08-30 — this bullet previously ended with a claim that is FALSE.** It read: *"The `tests/integration` directory also hangs past ten minutes without `--forceExit` (open `pg` pool handles) — pre-existing, and it means a reviewer's identical command can hang."* **Both halves were wrong.** `0197` measured it: without `--forceExit` the suite exits by itself in ~3–4 s, 10 runs out of 10 warm and 3 out of 3 on a cold first-migration database, with `--detectOpenHandles` reporting **zero** open handles — every pool was already closed in an `afterAll`. The folklore came from jest printing its force-exit banner unconditionally whenever the flag is set. **`--forceExit` has been removed from `test:integration`, and a future hang is now a real regression.** The invocation recorded in this page's § Outcome (`… --runInBand --forceExit`) is what was actually run at the time; it is left as the historical record, not as the current command.
 
 ## Related
 
@@ -75,6 +79,8 @@ Green at close, after both fix rounds: `npx tsc --noEmit`, `npm run lint`, prett
 - [[systems/player-profile-store]] — the profile API, the `player_name_history` table, and migration 004
 - [[decisions/adr-103-identity-trust-seam]] — the client-asserted-id trust level residual (a) rests on
 - [[decisions/config-parity-failure-class]] — `0195`, found during this build
+- [[tasks/test-suite-reliability-investigation]] — task `0197`, which investigated the flakes seen here and disproved the integration-hang claim this page carried
+- [[tasks/prod-api-env-https-apex]] — task `0063`, whose close-out carries the `362a2f9` production-deploy evidence this page now cites
 - [[systems/localization]] — the `citizenship_name_change` en/ru section
 - [[decisions/sprint-4]] — the sprint board carrying this task
 - [[systems/flashist-init]] — the `CITIZENSHIP_CARD_ENABLED` gate and platform signals this UI sits behind

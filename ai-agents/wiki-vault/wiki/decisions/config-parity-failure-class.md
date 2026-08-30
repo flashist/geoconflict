@@ -3,19 +3,23 @@
 **Date**: 2026-08-28
 **Status**: accepted
 
-> This page records a **recurring failure class**, not a single defect. Three instances are confirmed. None of the three is fixed in production at the time of writing.
+> This page records a **recurring failure class**, not a single defect. Three instances are confirmed.
+>
+> 🔧 **UPDATED 2026-08-30.** This line previously ended *"None of the three is fixed in production at the time of writing."* **That is no longer true of `0063`**, which shipped in release `362a2f9` and was measured live. `0062` and `0195` remain unfixed — and `0062`'s variable was **deliberately left blank for that release by the owner**, so the class's signature symptom (a value that never arrives, and nothing says so) is still present in production **by choice** rather than by accident.
 
 ## Context
 
 The class statement comes from `0064`'s brief and holds unchanged: **production configuration does not match what the application needs, and nothing says so.** A deploy script omits a variable, the on-box template writes it empty through a `${VAR:-}` default, and the application then fails closed or no-ops exactly as designed — correctly, quietly, and invisibly.
 
-Three instances, all Sprint 4, all still open:
+Three instances, all Sprint 4:
 
-| Task | The variable | What it breaks | Pipeline |
-|---|---|---|---|
-| `0062` | `PROFILE_INTERNAL_TOKEN` never forwarded by `deploy.sh` | Profile writes silently no-op in prod — no profile row created, no XP credited. The miss is logged at `debug`, invisible in prod logs; the profile server independently fails closed | game server |
-| `0063` | `PUBLIC_PROTOCOL` / `API_BASE_URL` / `JWT_ISSUER` forwarded but carrying `http` on a raw IP | Prod `/api/env` advertises an unusable origin on an `https` site; token login never completes | game server |
-| `0195` | `YANDEX_PAYMENTS_SECRET` never forwarded by `build-deploy-profile.sh` | **Every `/v1/payments/*` route returns `503 {"error":"payments_unavailable"}` on the real box** — true since `0019` shipped | **profile server** |
+| Task | The variable | What it breaks | Pipeline | State (2026-08-30) |
+|---|---|---|---|---|
+| `0062` | `PROFILE_INTERNAL_TOKEN` never forwarded by `deploy.sh` | Profile writes silently no-op in prod — no profile row created, no XP credited. The miss is logged at `debug`, invisible in prod logs; the profile server independently fails closed | game server | **OPEN.** The one-line `deploy.sh` fix shipped in `362a2f9` but has **never been exercised** — the owner deliberately left the token **blank** for this release, so `ProfileApiClient.isConfigured()` is false and every profile call still no-ops. Citizenship stayed dark **by design**, not by defect |
+| `0063` | `PUBLIC_PROTOCOL` / `API_BASE_URL` / `JWT_ISSUER` forwarded but carrying `http` on a raw IP | Prod `/api/env` advertised an unusable origin on an `https` site | game server | ✅ **FIXED AND DEPLOYED** in `362a2f9`; live `/api/env` measured on the apex domain over `https`. See [[tasks/prod-api-env-https-apex]] — and note its reframe: no auth service exists in this deployment, so the "token login never completes" symptom was **vacuous**, though the config was wrong and is now right |
+| `0195` | `YANDEX_PAYMENTS_SECRET` never forwarded by `build-deploy-profile.sh` | **Every `/v1/payments/*` route returns `503 {"error":"payments_unavailable"}` on the real box** — true since `0019` shipped | **profile server** | **OPEN.** Unchanged |
+
+> ⚠️ **`0062` is the sharpest lesson this page has to offer, and it is a new one.** A shipped fix and a working configuration are different things. The deploy script now forwards the variable; the variable is empty; the observable production behaviour is **byte-for-byte what the unfixed pipeline produced**. Reading the deploy diff would show a fix. Reading production would show the bug. That is exactly the gap `0064` exists to close — and it is why `0064`'s check must assert **non-empty**, never merely **present**.
 
 **`0195`'s shape difference is the reason this page exists.** `0062` was a game-server pipeline gap; `0195` is a profile-server pipeline gap. The class has now bitten in **both deploy pipelines independently**, so it is not a `deploy.sh` bug — it is a property of how this project ships configuration.
 
@@ -39,7 +43,8 @@ Three instances, all Sprint 4, all still open:
 - **No player sees a broken purchase today**, because `0054`'s client flag hides the citizenship card by default and `0018` has not gone live. The damage is entirely to the go-live path.
 - **`0014` is the upstream fact for `0195`.** Until Yandex issues the per-game secret key, the correct configured state for that variable is absent/empty and 503 is the correct behavior. Fixing the plumbing first means the key is not blocked on a deploy-script change when it arrives.
 - **The operator-facing template is the second half of `0195`'s gap.** `example.env.profile` does not mention the variable anywhere, so an operator doing everything right has no way to learn it is a deploy input.
-- **Execution order, owner-ruled 2026-08-28** — `0198` → `0063` → `0062` → `0195` → `0064` → `0060`, with `0198` above the whole config track because it is failing for players right now. See [[decisions/windoworigin-url-join-defect]].
+- **Execution order, owner-ruled 2026-08-28** — `0198` → `0063` → `0062` → `0195` → `0064` → `0060`, with `0198` above the whole config track because it was failing for players at the time of the ruling. **Its first two items are now discharged in production** (release `362a2f9` carries both `0198`'s fix and `0063`'s config), leaving `0062` → `0195` → `0064` → `0060`. See [[decisions/windoworigin-url-join-defect]].
+- **The `0064` sequencing hazard is now half-relieved, and half sharper.** `0064` still cannot arm before `0062` and `0195` land or it correctly fails the deploy carrying their fixes. But `0062`'s plumbing already shipped with an intentionally empty value, so **a naive presence check would pass today on a variable that is doing nothing** — the "non-empty, not merely present" requirement moved from a nicety to the thing that decides whether the guard works at all.
 
 ## Related
 
@@ -48,5 +53,6 @@ Three instances, all Sprint 4, all still open:
 - [[systems/configuration]] — `/api/env`, runtime public settings, and the deploy-environment plumbing this class breaks
 - [[tasks/citizenship-name-change]] — task `0067`, during whose build `0195` was found
 - [[tasks/yandex-payments-implementation]] — task `0019`, which introduced `YANDEX_PAYMENTS_SECRET` and its fail-closed 503
-- [[decisions/windoworigin-url-join-defect]] — task `0198`, which rides the same pending production deploy as `0062`/`0063`
+- [[decisions/windoworigin-url-join-defect]] — task `0198`, which rode the same production deploy as `0062`/`0063`
+- [[tasks/prod-api-env-https-apex]] — task `0063`, the one instance of this class fixed and deployed
 - [[decisions/sprint-4]] — the sprint board carrying the config track

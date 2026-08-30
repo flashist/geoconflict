@@ -69,6 +69,24 @@ Full brief: `ai-agents/knowledge-base/PROJECT.md`. Technical detail: `ai-agents/
 
 ## Development Commands
 
+**Node is pinned to the 24.x line for local development.** `.nvmrc` names the exact known-good
+version `24.13.0` — run `nvm use` in the repo root — while `engines.node` is the range
+`>=24.13.0 <25`, deliberately looser so a patch bump or an `engine-strict` install cannot hard-fail
+over it. This pin exists **only for reproducibility**, so contributors run a known runtime instead of
+silently taking whatever happens to be installed.
+
+**Scope, precisely: this covers local development only. The Docker images are NOT pinned by it.**
+Both `Dockerfile` and `Dockerfile.profile` build from the floating tag `node:24-slim`, which neither
+`.nvmrc` (inert in Docker) nor `engines` (a warning at most — there is no `.npmrc`, so
+`engine-strict` is off) controls. A built image therefore tracks whatever `node:24-slim` resolves to
+at build time.
+
+> ⚠️ **The pin is NOT a fix for anything.** Task `0197` traced a rare jest-worker `SIGSEGV` to a bug
+> inside V8's garbage collector, and `24.13.0` is _the version it crashed on_ — the range keeps us on
+> the very major that crashed. Older majors were not shown to be safe either (the sample was far too
+> small to clear them). Do not read this pin as mitigating that crash, and do not "fix" the crash by
+> bumping it without evidence.
+
 ```bash
 npm run dev              # Run client + server with hot reload
 npm run dev:staging      # Client + server, API points to api.openfront.dev
@@ -157,6 +175,47 @@ npm run test:coverage             # Coverage report
 ```
 
 **Important**: All code changes in `src/core/` MUST be tested.
+
+### Integration tests (real Postgres)
+
+The DB-backed suites in `tests/integration/**/*.it.test.ts` are excluded from `npm test`. Run them
+with the named script — **do not hand-assemble the jest invocation**, the flags are part of the name:
+
+```bash
+npm run test:integration
+```
+
+Two environment variables are required:
+
+| Variable            | What it is for                                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------- |
+| `RUN_DB_TESTS`      | Flips `jest.config.ts` to the integration config (only `*.it.test.ts`). The npm script sets it for you. |
+| `TEST_DATABASE_URL` | Postgres connection string for the throwaway test database. **You must supply this.**                   |
+
+Put the `TEST_DATABASE_URL` value in **`.env.test`** at the repo root and export it into your shell
+before running. `.env*` is gitignored (`.gitignore:9`), which is the only place a connection string
+belongs — never in a task file, a report, or this document. Jest does **not** auto-load it.
+
+The suites expect a local Postgres in the **`gc-0012-it-pg`** container on **port 5433**.
+
+If `TEST_DATABASE_URL` is unset, the run fails immediately with an explicit
+`TEST_DATABASE_URL is not set …` message (a jest `globalSetup` guard —
+`tests/integration/globalSetup.ts`). That replaces the previous failure mode, where every suite died
+on connection in under a second and the run read like a code regression.
+
+`--runInBand` is baked into the script and is load-bearing: the suites share one database and race
+each other over schema migrations on a cold one.
+
+**There is deliberately no `--forceExit`.** An earlier belief that this suite hangs for ~10 minutes on
+open `pg` handles was investigated in task `0197` and did **not** hold up: every pool is already
+closed, `--detectOpenHandles` reports nothing, and the suite exits on its own in ~3 s against both a
+warm and a genuinely cold database. `--forceExit` was removed so that if a real handle leak is ever
+introduced, it shows up as a hang you can see instead of being silently masked. **If this suite starts
+hanging, that is a real regression — investigate it, don't add the flag back.**
+
+> **This subsection is the single source of truth for running these tests.** The worklogs of tasks
+> `0012` and `0018` disagree with each other on the test database name; prefer this document over
+> either.
 
 ## Code Style
 

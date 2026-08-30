@@ -17,7 +17,7 @@ fkit-coder
 
 ## Context
 
-Small fix, filed from `0063`'s owner-accepted reframe (2026-08-24). `src/client/TokenLoginModal.ts:73` has the user-facing error alert **commented out**: the modal retries the token login up to 3× (`TokenLoginModal.ts:70-76`), then closes silently — the failure only reaches `console.error` (`:91`). The player is never told login failed. Records: `ai-agents/tasks/backlog/0063-prod-api-env-advertises-http-and-raw-ip/brief.md` (§ symptom table row "…and the user is never told") and `.../worklog.md`.
+Small fix, filed from `0063`'s owner-accepted reframe (2026-08-24). `src/client/TokenLoginModal.ts:73` has the user-facing error alert **commented out**: the modal retries the token login up to 3× (`TokenLoginModal.ts:70-76`), then closes silently — the failure only reaches `console.error` (`:91`). The player is never told login failed. Records: `ai-agents/tasks/done/0063-prod-api-env-advertises-http-and-raw-ip/brief.md` (§ symptom table row "…and the user is never told") and `.../worklog.md`.
 
 Which fix is correct **follows from the `0069` product ruling**: on this origin the whole Discord/token login surface is dead code (no auth service exists — see `0069`), so either the error surface is restored (auth-service-someday branch) or the dead UI is removed outright (Yandex-only branch). Do not pick a branch here.
 

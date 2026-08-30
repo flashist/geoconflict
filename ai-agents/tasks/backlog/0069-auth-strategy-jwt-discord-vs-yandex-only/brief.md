@@ -17,7 +17,7 @@ fkit-producer
 
 ## Context
 
-Product-decision task, filed from `0063`'s owner-accepted reframe (2026-08-24). `0063`'s investigation established that this deployment has **no token-minting/auth service at all**: no login routes exist, nothing signs JWTs, and the JWKS URL (`/.well-known/jwks.json`) serves the SPA HTML page — so no token could ever validate server-side, regardless of issuer configuration. The client's inherited Discord/token login UI is therefore **dead code on this origin**: the OAuth redirect path opens `TokenLoginModal`, the fetch fails, and login can never complete. Records: `ai-agents/tasks/backlog/0063-prod-api-env-advertises-http-and-raw-ip/brief.md` (§ symptom table) and `.../worklog.md` (reframe entry).
+Product-decision task, filed from `0063`'s owner-accepted reframe (2026-08-24). `0063`'s investigation established that this deployment has **no token-minting/auth service at all**: no login routes exist, nothing signs JWTs, and the JWKS URL (`/.well-known/jwks.json`) serves the SPA HTML page — so no token could ever validate server-side, regardless of issuer configuration. The client's inherited Discord/token login UI is therefore **dead code on this origin**: the OAuth redirect path opens `TokenLoginModal`, the fetch fails, and login can never complete. Records: `ai-agents/tasks/done/0063-prod-api-env-advertises-http-and-raw-ip/brief.md` (§ symptom table) and `.../worklog.md` (reframe entry).
 
 Meanwhile the product's real identity path is **Yandex** (T3 identity plumbing, profile store, citizenship) — none of which uses the JWT/Discord surface.
 

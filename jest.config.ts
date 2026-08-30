@@ -63,6 +63,10 @@ const integrationConfig = {
   ...shared,
   testMatch: ["<rootDir>/tests/integration/**/*.it.test.ts"],
   testPathIgnorePatterns: ["/node_modules/"],
+  // Single choke point: fails the run with an explicit message when
+  // TEST_DATABASE_URL is unset, instead of letting every suite fail on
+  // connection and look like a code regression.
+  globalSetup: "<rootDir>/tests/integration/globalSetup.ts",
 };
 
 export default runDbTests ? integrationConfig : unitConfig;

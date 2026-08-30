@@ -23,7 +23,7 @@ different questions at different layers, and conflating them produces a wrong fi
 | **What is at issue** | The **path** — a stray `/` between base and hash | The **host** — the link points at `geoconflict.ru` at all |
 | **Symptom** | The invite served the wrong entry point (the standalone template, not the Yandex one) | The recipient loads the **right** entry point, but at the standalone site, **outside the Yandex portal iframe** |
 | **Kind** | Production bug, mechanical, owner-ruled High | Product / business-model decision, **unruled** |
-| **State** | Fix built, 🚧 **NOT deployed** | 🔲 Not started |
+| **State** | Fix built and **DEPLOYED** 2026-08-29 in `362a2f9`; its production proof is unreachable (private-lobby buttons are `display: none` on the Yandex template), so the task is still not Done | 🔲 Not started |
 
 **`0198` fixed the path. It did not, and was not meant to, change the host.** Anyone reading only
 `0198`'s diff will see the invite line touched and may assume the invite question is settled. It is not.
@@ -39,8 +39,11 @@ https://geoconflict.ru/yandex-games_iframe.html#join=<lobby-id>
 ```
 
 That is **correct for what `0198` set out to do** — the path still ends in `.html`, so the recipient
-gets the same (Yandex) build the host is on. ⚠️ **Built, not deployed** — production still carries the
-pre-fix shape.
+gets the same (Yandex) build the host is on. 🔧 **UPDATED 2026-08-30 — this paragraph previously ended
+"⚠️ Built, not deployed — production still carries the pre-fix shape." It is deployed**: release
+`362a2f9` carries the separator-free invite line. ⚠️ **That changes nothing about the question this page
+asks.** The host is still `geoconflict.ru`, the recipient still lands outside the portal iframe, and the
+decision is still unruled.
 
 ### The code fact: the Yandex template claims the platform unconditionally
 
