@@ -129,6 +129,8 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[decisions/adr-102-privilege-refresher-fails-open]] — the ruling that produced tasks `0008`, and named `0010` / `0011` as trigger-firing entitlements
 - [[decisions/adr-107-turn-interval-1-5x]] — the 66.7 ms interval behind task `0006`'s threshold blind band
 - [[decisions/adr-106-flags-suppressed]] — the suppression task `0010` reverses into a paid non-country cosmetic
+- [[tasks/licensing-asset-audit]] — task `0025`, the audit that filed `0073` onto this board; `0073` owns the audit's one still-open finding (H3)
+- [[decisions/licensing-compliance]] — the compliance posture behind `0073`'s H3 residual and the ShareAlike constraint on `0010` / `0011` paid cosmetics
 - [[decisions/sprint-6]] — paid map packs, the far end of the cosmetics monetization chain
 - [[systems/architecture-overview]] — risks R4 (`0005`), R5 (`0008`), R7 (`0007`), and the open questions these briefs answer
 - [[systems/player-infrastructure]] — the system-level record of the live upstream-sourced `flares` path that gave task `0009` its teeth

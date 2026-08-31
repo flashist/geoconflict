@@ -76,3 +76,4 @@ So the host attribute **flips from the raw IP to the apex domain exactly at the 
 - [[tasks/licensing-remediation]] — task `0066`, deployed in the same release, satisfying `0065`'s flip-ON gate on the deploy fact
 - [[decisions/licensing-compliance]] — the licensing posture whose paid-IAP gate that deploy satisfies
 - [[systems/architecture-overview]] — the survey whose post-2026-08-28 deploy notes refer to this release
+- [[tasks/licensing-asset-audit]] — task `0025`, whose V1/A1 production checks were run against this release

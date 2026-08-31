@@ -106,6 +106,8 @@ Accepted residuals (owner-ruled):
 
 ## Related
 
+- [[tasks/licensing-asset-audit]] — task `0025`, the audit this task remediates; closed 2026-08-31
+  with V1/A1/H1 verified in production and **H3 left open under `0073`** (out of this task's scope)
 - [[decisions/licensing-compliance]] — the compliance posture this task's audit findings and fixes
   feed into
 - [[decisions/sprint-4]] — the sprint carrying the 0025 audit → 0066 remediation → 0065 go-live gate

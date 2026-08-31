@@ -43,9 +43,11 @@ violation, 1 trademark-posture item, 3 hygiene items**:
 - **A1 (trademark posture):** the live favicon of both HTML entry points was upstream's brand mark.
   Copyright likely fine (CC BY-SA at fork date, irrevocable), but as the product's tab/platform
   identity it exceeds nominative attribution.
-- **H1–H3 (hygiene):** `openfront.io`/`.dev` jwt-audience fallback strings in the shipped bundle
-  (latent, overridden by `/api/env` in practice); a `static/LICENSE` collision (moot once V1 lands);
-  inert commented upstream leftovers in HTML.
+- **H1–H3 (hygiene):** **H1** — `openfront.io`/`.dev` jwt-audience fallback strings in the shipped
+  bundle (latent, overridden by `/api/env` in practice); **H2** — a `static/LICENSE` collision (moot
+  once V1 lands); **H3** — inert commented upstream leftovers in HTML.
+  *State as of 2026-08-31: **H1 ✅ fixed and verified in production**, **H2 ✅ moot as predicted**,
+  **H3 ❌ still open and owned by task `0073`** (low risk, no gate — commented markup ships no asset).*
 - Everything else verified clean: no OpenFront CDN/API references in the prod bundle, no runtime
   fetches of OpenFront infrastructure, attribution coverage in place. **ShareAlike note:** assets
   derived from upstream CC BY-SA art stay CC BY-SA and cannot be sold as exclusive content — planned
@@ -76,8 +78,34 @@ that release; the release is live per the `commit.txt` check in [[tasks/prod-api
 > `0014`, `0062` and `0195`. Do not read "the licensing gate is demonstrated" as "the paid launch is
 > unblocked".
 
-The `0025` audit-task row itself stays In progress on the sprint board pending the
-producer-routed close. See [[tasks/licensing-remediation]].
+### ✅ The `0025` audit task is CLOSED (2026-08-31)
+
+🔧 **This paragraph previously read: "The `0025` audit-task row itself stays In progress on the sprint
+board pending the producer-routed close." That is FALSE as of 2026-08-31.** The task closed that day
+and moved to `ai-agents/tasks/done/0025-licensing-asset-audit/`, status
+**`✅ Done (agent-closed — not owner-verified)`**.
+
+**Closed by a spawned producer, with no owner present.** The owner *ruled the close* via
+`AskUserQuestion` relayed from the lead session; the owner did **not** sign off on the audit findings
+themselves. `0025` was the **last `🔄 In progress` row on the Sprint 4 board** — that board now has
+none.
+
+**Finding states at close:** V1 ✅ remediated by `0066`, verified in production 2026-08-30; A1 ✅
+remediated by `0066`, verified in production 2026-08-30 on **both** entry points; **H1 ✅ remediated by
+`0066` Part C, verified in production 2026-08-31** — all three live bundles (`runtime`, `vendors`,
+`main`) fetched and grepped, **0 occurrences of `openfront.io` / `openfront.dev` in each**; H2 ✅ moot
+once V1 landed; **H3 ❌ still open.**
+
+📌 **H3 is OWNED — by task `0073`** (`0073-remove-inert-upstream-html-leftovers`, `🔲 Backlog`,
+Unscheduled, filed 2026-08-24 from this audit's §H3). ⚠️ **The relay that drove the close asserted H3
+was unowned; that was WRONG.** No new task was filed and none was needed. **If any record says H3 is
+unowned, it is wrong — `0073` owns it.**
+
+⚠️ **Gate consequence, not overstated:** `0065`'s licensing prerequisite is **satisfied and
+demonstrated**, and that is all. **`0065` remains blocked on `0014`, `0062` and `0195`. The paid
+go-live is NOT unblocked.** No other task's status changed at this close.
+
+See [[tasks/licensing-asset-audit]] and [[tasks/licensing-remediation]].
 
 ## Related
 
@@ -87,5 +115,7 @@ producer-routed close. See [[tasks/licensing-remediation]].
 - [[decisions/sprint-4]] — citizenship and payments plan affected by compliance gates
 - [[tasks/legal-vat-investigation]] — separate VAT/tax gate that does not cover IP/licensing review
 - [[tasks/yandex-payments-investigation]] — paid citizenship flow that should not scale without licensing posture review
-- [[systems/project-brief]] — the asset-audit gate before paid IAP ships
+- [[tasks/licensing-asset-audit]] — task `0025`, the audit that produced these findings (closed 2026-08-31; carries the production-verification method for V1/A1/H1 and the open H3 residual)
+- [[systems/project-brief]] — the asset-audit gate before paid IAP ships (**satisfied and demonstrated as of 2026-08-31**)
+- [[decisions/sprint-backlog]] — the board holding `0073`, the task that owns the open H3 residual
 - [[tasks/licensing-remediation]] — the 0066 remediation implementing the 0025 audit's V1/A1/H1 fixes (agent-closed; deployed in `362a2f9`; live checks RAN AND PASSED 2026-08-30 by byte-identity against a nonexistent control, not by 404)

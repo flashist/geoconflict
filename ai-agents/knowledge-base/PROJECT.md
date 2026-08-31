@@ -93,8 +93,22 @@ Three separate tracks, two still open:
 
 - **VAT** — cleared.
 - **AGPL-3.0 + asset licensing** — source is AGPL v3 with attribution requirements; assets are
-  CC BY-SA 4.0. `/proprietary` and upstream OpenFront CDN/API/DB assets are off-limits. A
-  **production asset audit is an open gate before paid IAP ships**. See `GeoConflict-Licensing-Brief.md`.
+  CC BY-SA 4.0. `/proprietary` and upstream OpenFront CDN/API/DB assets are off-limits. ✅ **The
+  licensing / asset-audit gate is SATISFIED AND DEMONSTRATED.** The production asset audit is
+  `0025`, closed 2026-08-31; its findings were remediated by `0066`, with **V1** (All-Rights-Reserved
+  music in the prod web root — the one confirmed violation) and **A1** (upstream brand mark as the
+  live favicon) **verified in production 2026-08-30**, and **H1** (upstream jwt-audience fallback
+  strings in the shipped bundle) **verified in production 2026-08-31**.
+  ⚠️ **This clears the LICENSING gate only — it does NOT mean paid IAP is clear to ship.** `0065`
+  (paid citizenship go-live) **remains blocked** on `0014`, `0062` and `0195`. Read this bullet as
+  "one of several gates is now open", never as "IAP can ship".
+  📌 **Open residual:** **H3** — inert commented-out upstream HTML leftovers — is still open, owned by
+  task `0073`, audit-rated **low risk / no gate** (commented markup ships no asset, so there is no
+  licensing consequence).
+  🔧 *Corrected 2026-08-31 on owner ruling (R13). This bullet previously read: "A **production asset
+  audit is an open gate before paid IAP ships**." That became false when `0025` closed and its
+  production checks passed — the audit is no longer open or pending.*
+  See `GeoConflict-Licensing-Brief.md`.
 - **152-ФЗ (Russian personal data)** — Roskomnadzor notification + a consent flow are **deferred to
   the backlog with the risk explicitly accepted by the owner (2026-06-28)**. Real personal data
   (Yandex IDs, display names, email opt-ins) persists in production today. Resolve before scaling.

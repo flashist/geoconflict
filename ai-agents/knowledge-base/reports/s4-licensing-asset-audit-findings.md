@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-23
 **Auditor:** fkit-architect
-**Task:** `ai-agents/tasks/backlog/0025-licensing-asset-audit/brief.md`
+**Task:** `ai-agents/tasks/done/0025-licensing-asset-audit/brief.md`
 **Verdict:** **ISSUES FOUND — 1 confirmed violation (V1), 1 trademark-posture decision (A1), 3 hygiene items.**
 **Gate impact:** V1 must be fixed (trivial removal, no gameplay impact) before paid citizenship (task 0065) goes live.
 
