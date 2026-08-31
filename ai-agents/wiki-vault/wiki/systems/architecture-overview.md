@@ -168,5 +168,6 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 - [[decisions/adr-101-fail-soft-xp-crediting]], [[decisions/adr-102-privilege-refresher-fails-open]], [[decisions/adr-103-identity-trust-seam]], [[decisions/adr-104-archiving-disabled]], [[decisions/adr-105-compact-maps-out-of-rotation]], [[decisions/adr-106-flags-suppressed]], [[decisions/adr-107-turn-interval-1-5x]], [[decisions/adr-109-worker-index-placement-contract]] — the settled choices this survey surfaced
 - [[decisions/sprint-backlog]] — the eleven unsprinted briefs, including the ones this survey's risks and open questions produced (`0005` R4, `0006`, `0007` R7, `0008` R5, `0009`)
 - [[decisions/windoworigin-url-join-defect]] — the §5 URL-join rule and the §9 trap table added to this survey on 2026-08-28
+- [[tasks/private-lobby-start-url]] — task `0198`, the task that produced that §5 rule and §9 table; closed 2026-08-30 on local proof only
 - [[tasks/test-suite-reliability-investigation]] — task `0197`, source of the test-toolchain facts in the build/run/test section and of R2's concrete cost
 - [[tasks/prod-api-env-https-apex]] — task `0063`, whose deploy (`362a2f9`) is the release this survey's post-2026-08-28 deploy notes refer to

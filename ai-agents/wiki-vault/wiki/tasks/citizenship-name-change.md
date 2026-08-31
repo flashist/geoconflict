@@ -55,7 +55,7 @@ Scoped 2026-08-24 by owner ruling. All three of the brief's open questions were 
 
 ## Outcome
 
-Green at close, after both fix rounds: `npx tsc --noEmit`, `npm run lint`, prettier, `npm test` **103 suites / 1039 tests**, `RUN_DB_TESTS=1 … jest tests/integration --runInBand --forceExit` **5 suites / 70 tests** against real Postgres, en/ru parity 15/15 keys. `npm run migrate` on a cold scratch DB applied 001→004 in order and re-ran idempotently. Stateful review Round 1: all five findings dispositioned, ledger `Status: closed-out`, reviewer independently re-ran every check and reproduced every number in a phase-2 pass.
+Green at close, after both fix rounds: `npx tsc --noEmit`, `npm run lint`, prettier, `npm test` **103 suites / 1039 tests**, `RUN_DB_TESTS=1 … jest tests/integration --runInBand --forceExit` **5 suites / 70 tests** against real Postgres (⚠️ **historical invocation — `--forceExit` was removed from `test:integration` by `0197`; the current command is `npm run test:integration`**), en/ru parity 15/15 keys. `npm run migrate` on a cold scratch DB applied 001→004 in order and re-ran idempotently. Stateful review Round 1: all five findings dispositioned, ledger `Status: closed-out`, reviewer independently re-ran every check and reproduced every number in a phase-2 pass.
 
 **Open residuals — do not soften these.**
 

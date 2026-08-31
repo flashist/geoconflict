@@ -1,7 +1,7 @@
 # Review — 0198
 
-Task: `ai-agents/tasks/backlog/0198-private-lobby-start-url-double-slash/brief.md`
-Plan: `ai-agents/tasks/backlog/0198-private-lobby-start-url-double-slash/plan.md` (incl. Owner amendments 1–3, 2026-08-28)
+Task: `ai-agents/tasks/done/0198-private-lobby-start-url-double-slash/brief.md`
+Plan: `ai-agents/tasks/done/0198-private-lobby-start-url-double-slash/plan.md` (incl. Owner amendments 1–3, 2026-08-28)
 File(s) under review:
 - `src/client/HostLobbyModal.ts` — lines 734–847 only (`putGameConfig`, `startGame`, `copyToClipboard`)
 - `tests/client/HostLobbyModalUrl.test.ts` (new)

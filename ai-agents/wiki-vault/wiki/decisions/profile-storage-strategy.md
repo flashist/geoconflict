@@ -5,7 +5,7 @@
 
 ## Context
 
-The player profile store (epic `s4-player-profile-store-impl.md`, Part B) left the database storage strategy as an open question for the technical specialist to resolve **before** writing the first migration. T5 (`ai-agents/tasks/done/0185-profile-05-backend-db-api/brief.md`) is where the schema, repository, and API land, so the decision is made here.
+The player profile store (epic `0013` (`ai-agents/tasks/done/0013-player-profile-store-impl/brief.md`), Part B) left the database storage strategy as an open question for the technical specialist to resolve **before** writing the first migration. T5 (`ai-agents/tasks/done/0185-profile-05-backend-db-api/brief.md`) is where the schema, repository, and API land, so the decision is made here.
 
 Two options were on the table:
 
@@ -14,7 +14,7 @@ Two options were on the table:
 
 The shared contract (`src/core/profile/PlayerProfile.ts`) is snake_case and maps 1:1 to columns, so neither option needs a field-mapping layer.
 
-Sources: `ai-agents/tasks/backlog/s4-player-profile-store-impl.md` (Part B), `ai-agents/tasks/done/0185-profile-05-backend-db-api/brief.md`.
+Sources: `ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` (Part B), `ai-agents/tasks/done/0185-profile-05-backend-db-api/brief.md`.
 
 ## Decision
 

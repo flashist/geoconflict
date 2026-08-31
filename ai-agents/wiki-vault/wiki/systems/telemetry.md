@@ -191,3 +191,4 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 - [[tasks/worker-crash-recovery-and-quorum-gate]] — task `0056`, which measured what the winston OTEL transport actually delivers as attributes
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the outage whose 150 MB shared log budget nearly cost the investigation window, and the track that produced the corrected transport claim
 - [[decisions/sprint-4]] — the sprint carrying that outage track
+- [[tasks/prod-api-env-https-apex]] — task `0063`, whose last deploy pending was discharged here: **OTEL normalizes the dot in `openfront.host` to an underscore, so the Uptrace attribute to group on is `openfront_host`**

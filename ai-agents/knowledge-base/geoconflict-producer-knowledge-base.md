@@ -494,6 +494,19 @@ Separate Claude instance with Russian-language system prompt. Communicates with 
 - **Never write analytics event strings inline** — always use the TypeScript enum
 - **Never send data from dev server to production Uptrace** — env var must be absent on dev
 - **Never auto-start a lobby** when it's full of a mix of real + AI players — only start when zero AI remain at capacity, or when timeout expires
+- **Never write endpoints, IPs, DSNs, keys or credentials into any new artifact** — briefs, worklogs, findings, reports, board rows, commit messages. It all reaches git.
+
+### ⚖️ Owner ruling 2026-08-30 — the committed host IPs: NO retro-scrub, and do NOT file a brief
+
+A producer sweep on 2026-08-30 found the **production game-server IP, the dev-server IP, the profile-VPS IP and the telemetry-VPS IP** already written into committed artifacts — `knowledge-base/pre-s4-player-infra-audit-2026-06-24.md`, `knowledge-base/plan-fix-archive-endpoint.md`, `knowledge-base/telemetry-error-priorities-2026-05-07.md`, `knowledge-base/monitoring-alert-bot-findings-2026-06-04.md`, `tasks/done/0157-fix-cosmetics-serving/brief.md`, `tasks/done/0182-profile-04i-server-bring-up-runbook/brief.md`, and `reviews/s4-profile-04i.md` / `s4-profile-04g.md`.
+
+**The owner reviewed it and ruled NO ACTION.** The grounds, recorded so nobody re-raises it:
+
+- **All three hosts resolve publicly.** `geoconflict.ru`, `api.geoconflict.ru` and `telemetry.geoconflict.ru` are public DNS **A records** — anyone can resolve them in a second. The repository discloses nothing the domain does not already publish.
+- **The rule was breached; a secret was not** — these were never secret.
+- They are **already in git history**, so scrubbing the working tree would be cosmetic.
+
+⚠️ **This is NOT a licence to start writing them.** The rule above stands, in full, for everything anyone writes from now on. The ruling is narrowly about not spending effort retro-scrubbing published A records — nothing more. **Do not file a cleanup brief for this.**
 
 ---
 

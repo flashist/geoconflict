@@ -12,7 +12,7 @@ out of the production build.** The rest of the scope removes the fork's stronges
 surface before Yandex moderation of a paid product.
 
 ## Status
-✅ Done (agent-closed — not owner-verified)
+✅ Done (agent-closed — not owner-verified) *(status value UNCHANGED — only the evidence record improved. ✅ **The two deferred prod checks, verification steps 7 and 8, were RUN AND PASSED in the browser against live production on 2026-08-30 by the lead.** The licensing gate therefore moves from **"shipped, not demonstrated" to DEMONSTRATED** — it gates `0065`'s paid go-live and is a legal-exposure item. Step 7's original "404/absent" wording was **wrong for this server** and is superseded: unknown paths hit the `app.get("*")` SPA catch-all, so the correct test is byte-identity against a known-nonexistent control. All seven purged paths matched the control; the new original favicon serves on both entry points. Method and numbers in the Verification section. The agent-closed marker stays — no human reviewed the code itself.)*
 
 ## Owner
 fkit-coder
@@ -99,10 +99,48 @@ OpenFront infrastructure from our product.
 6. H2 side-effect check (audit): with `proprietary/LICENSE` gone, `static/LICENSE` now maps only
    from `resources/LICENSE` (the CC BY-SA notice) — collision moot.
 
-**Prod redeploy check (this task is not fully done until it runs; deploys are owner-triggered):**
-7. `https://geoconflict.ru/sounds/music/openfront.mp3` (and `war.mp3`, `win.mp3`) → **404/absent**.
-8. The new placeholder favicon serves and appears in the tab; `geoconflict.ru/images/OpenFrontLogo.png`
-   no longer serves real content.
+**Prod redeploy check — ✅ RUN AND PASSED 2026-08-30** *(previously deferred; deploys are
+owner-triggered. The lead ran both checks in the browser against live production on 2026-08-30. **This
+moves the licensing gate from "shipped, not demonstrated" to DEMONSTRATED** — which matters because it
+gates `0065`'s paid go-live and is a legal-exposure item.)*
+
+7. ~~`https://geoconflict.ru/sounds/music/openfront.mp3` (and `war.mp3`, `win.mp3`) → **404/absent**.~~
+
+   ⚠️ **SUPERSEDED — "404/absent" is the WRONG TEST for this server and would make a future re-run read
+   a pass as a failure.** Original wording kept above, struck through, deliberately.
+
+   **The correct test: a purged path must return the SPA fallback, BYTE-IDENTICAL to a known-nonexistent
+   control path — never a 404.** This server has no 404 for unknown paths: `app.get("*")` in
+   `src/server/Master.ts` serves the SPA shell for anything unmatched (the same catch-all mechanism
+   `0198` turned on). So a `200` here proves nothing on its own, and an expectation of `404` can never
+   be met.
+
+   **The control method, recorded so this is reproducible:**
+   - **Nonexistent control** — request a path that certainly does not exist, e.g.
+     `/this-path-cannot-exist-12345.png`. On 2026-08-30 it returned **`200`, `10801` bytes,
+     `text/html`**. That is the SPA shell, and it is the signature of "not served".
+   - **Positive control** — request a path that certainly *does* exist, e.g. `/commit.txt`. It returned
+     **`41` bytes of `text/plain`**, proving real assets still serve normally and the fallback is not
+     swallowing everything.
+   - **A purged path passes iff it is byte-identical to the nonexistent control** — same status, same
+     byte count, same content-type.
+
+   **Result 2026-08-30 — PASS.** All **seven** purged paths returned `200` / `10801` bytes /
+   `text/html`, byte-identical to the nonexistent control, so **none serves real content**:
+   `/sounds/music/openfront.mp3`, `/sounds/music/war.mp3`, `/sounds/music/win.mp3`,
+   `/images/OpenFrontLogo.png`, `/images/OpenFrontLogo.svg`, `/images/OpenFrontLogoDark.svg`,
+   `/images/Favicon.svg`.
+
+   📌 **Read the `200`s correctly: they are a PASS, not a failure.** Anyone re-running this and seeing
+   seven `200`s has reproduced the pass, not found a regression. Compare against the control before
+   concluding anything.
+
+8. ✅ **PASS 2026-08-30 — the new favicon serves, on BOTH entry points.** The live page links
+   `/images/GeoConflictFavicon.7aaf278f4fba2c4b180d.svg`, which returned **`200`, 445 bytes,
+   `image/svg+xml`** — a real, original SVG, not the SPA fallback. **`yandex-games_iframe.html` links
+   the identical hashed file**, so both entry points carry the same original icon — including the
+   template that actually runs in production. Legacy `OpenFrontLogo.*` and `Favicon.svg` no longer
+   serve real content, per step 7's seven-path result above.
 
 ## Notes
 

@@ -56,11 +56,25 @@ deletion + H1 retarget, all owner-approved 2026-08-23): built and agent-closed 2
 **deployed to production 2026-08-29 in release `362a2f9`** (its commit `6f66aff` is an ancestor of
 that release; the release is live per the `commit.txt` check in [[tasks/prod-api-env-https-apex]]).
 
-> 🔧 **CORRECTED 2026-08-30.** This paragraph previously read *"**NOT yet deployed** — and the paid
-> go-live gate reads `0066` DEPLOYED, so this gate is not clear until the redeploy lands and the live
-> checks pass"*. **The deploy half is now satisfied.** ⚠️ **The live-check half is not**: the music
-> URLs returning 404 and the placeholder favicon serving were **not verified in this pass**. Read the
-> gate as *shipped, not demonstrated* — the distinction is the whole point of the check list.
+> ✅ **THE LICENSING GATE IS DEMONSTRATED as of 2026-08-30 — both halves are now satisfied.**
+> This paragraph has been corrected twice. It first read *"**NOT yet deployed**"*; it was then
+> corrected on 2026-08-30 to *"the deploy half is satisfied, the live-check half is not — read the
+> gate as shipped, not demonstrated"*. **The live checks then ran, in the browser against live
+> production, and passed.**
+>
+> 🚨 **The check list's own "expect a 404" wording was WRONG FOR THIS SERVER and is superseded.**
+> `app.get("*")` in `src/server/Master.ts` serves the SPA shell for any unmatched path, so nothing
+> 404s and a `200` proves nothing by itself. The correct test is **byte-identity against a
+> known-nonexistent control** — and all **seven** purged paths (three `sounds/music/*.mp3`, three
+> `OpenFrontLogo.*`, upstream `Favicon.svg`) returned `200` / 10801 bytes / `text/html`, identical to
+> that control, while a real asset (`/commit.txt`) returned 41 bytes of `text/plain`. **Seven `200`s
+> here are the PASS.** The new original favicon serves on both entry points (445 bytes,
+> `image/svg+xml`, the same hashed file linked from `yandex-games_iframe.html`). Method and numbers on
+> [[tasks/licensing-remediation]].
+>
+> ⚠️ **This clears the licensing gate and nothing else.** `0065`'s paid go-live still waits on
+> `0014`, `0062` and `0195`. Do not read "the licensing gate is demonstrated" as "the paid launch is
+> unblocked".
 
 The `0025` audit-task row itself stays In progress on the sprint board pending the
 producer-routed close. See [[tasks/licensing-remediation]].
@@ -74,4 +88,4 @@ producer-routed close. See [[tasks/licensing-remediation]].
 - [[tasks/legal-vat-investigation]] — separate VAT/tax gate that does not cover IP/licensing review
 - [[tasks/yandex-payments-investigation]] — paid citizenship flow that should not scale without licensing posture review
 - [[systems/project-brief]] — the asset-audit gate before paid IAP ships
-- [[tasks/licensing-remediation]] — the 0066 remediation implementing the 0025 audit's V1/A1/H1 fixes (agent-closed; deployed in `362a2f9`, live checks unrun)
+- [[tasks/licensing-remediation]] — the 0066 remediation implementing the 0025 audit's V1/A1/H1 fixes (agent-closed; deployed in `362a2f9`; live checks RAN AND PASSED 2026-08-30 by byte-identity against a nonexistent control, not by 404)

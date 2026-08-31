@@ -12,7 +12,7 @@ not a proposal.** Filed as a loose end; an architect consult found it is **alrea
 authentication in production**, and the owner reviewed that evidence and confirmed the placement.
 
 ## Status
-✅ Done (agent-closed — not owner-verified) *(closed 2026-08-29 by a spawned producer on the production deploy proof recorded in "Close-out — production evidence" below. Built 2026-08-24, config-only; formal review skipped by owner ruling. The brief's JWT issuer-claim open question was RESOLVED 2026-08-24 — no auth service exists in this deployment, mismatch vacuous; see worklog. ⚠️ The proof is partial against the worklog's six deploy pendings — read the close-out section before treating this as fully verified)*
+✅ Done (agent-closed — not owner-verified) *(closed 2026-08-29 by a spawned producer on the production deploy proof recorded in "Close-out — production evidence" below. Built 2026-08-24, config-only; formal review skipped by owner ruling. The brief's JWT issuer-claim open question was RESOLVED 2026-08-24 — no auth service exists in this deployment, mismatch vacuous; see worklog. ⚠️ **The close was made on PARTIAL proof — four of the six deploy pendings were unevidenced at the moment of closing (2026-08-29).** All four were subsequently discharged, 2026-08-29 and 2026-08-30; the owner's 2026-08-24 "all six proven live" condition is **now satisfied, but was not when this task closed.** The evidence, and which part is owner-verified vs agent-verified, is in the close-out section below — read it before treating this as fully verified)*
 
 ## Owner
 fkit-coder
@@ -165,7 +165,7 @@ see step 4.
   keys, and `.env*` contents must never appear in a worklog, finding, log line, or commit. `.env*` is
   gitignored; keep it that way.
 
-## Close-out — production evidence (2026-08-29)
+## Close-out — production evidence (2026-08-29; evidence completed 2026-08-30)
 
 **What discharged the gate.** The only thing holding this task open was deploy proof of the six live
 values. The production deploy landed as commit **`362a2f9`** — verified by
@@ -186,25 +186,61 @@ and the domain" — is met in production.**
 live and filling; worker quorum reached 18/20 at 15:44:20.644 and 20/20 within 80 ms; zero
 readiness-deadline or give-up markers across 3 hours.
 
-### ⚠️ What this proof does NOT cover — read before treating this as fully verified
+### ⚠️ The close was made on PARTIAL proof — and the gap was closed afterwards
+
+**Read this ordering carefully; it is the honest record and it must not be flattened into "it was
+always fine."**
 
 The owner's 2026-08-24 review-skip ruling (worklog, Decision log) attached the condition **"the task
-stays open until all six deploy pendings are proven live."** This close is made on partial proof, by
-an agent, with no owner present. Against the worklog's six pendings:
+stays open until all six deploy pendings are proven live."**
 
-| Pending | State |
-|---|---|
-| 1. `/api/env` shows all six new values | **Partial.** `publicProtocol`, `publicHost`, `apiBaseUrl` confirmed in the measured body. `publicPort`, `jwtIssuer`, `jwtAudience` were elided by the `...` in the captured response and are **not** evidenced here. |
-| 2. No mixed-content errors in the browser console (load / login attempt / logout) | **Not evidenced.** No browser-console sweep was reported in this pass. |
-| 3. `/api/public_lobbies` still returns lobbies | **Discharged** — public lobbies live and filling. |
-| 4. Game connect + play a public lobby (WS regression) | **Substantially discharged** — lobbies filling implies clients connecting and playing; not a targeted check. |
-| 5. Discord login button = clean same-origin dead end | **Not evidenced.** |
-| 6. Telemetry: OTEL `openfront.host` reports the domain | **Not evidenced.** |
+- **At the moment of closing (2026-08-29)** only two of the six were discharged and a third
+  substantially so. **Four were unevidenced.** The close was made anyway, by an agent, with no owner
+  present — that is why the status carries `(agent-closed — not owner-verified)`. The condition was
+  **not** satisfied when this task moved to `done/`.
+- **Between 2026-08-29 and 2026-08-30 all four were subsequently proven.** The owner's condition is
+  **now satisfied**. It was satisfied *after* the close, not before it.
 
-Verification steps 3, 4, 5 and 7 of this brief were rescoped as unsatisfiable by the owner-accepted
-reframe of 2026-08-24 (no auth service exists in this deployment — no user can hold a token). Step 9
-(`Matchmaking.ts:55`) was discharged by the "explicitly recorded" arm: still latent-broken and
-unreachable, recorded in the worklog's Known-state records.
+#### The six pendings — final state (updated 2026-08-30)
 
-**If the owner wants the four unevidenced pendings actually checked, this row should be reopened or a
-small follow-up filed.** Nothing in this close-out asserts they passed.
+| # | Pending | State at close (2026-08-29) | Final state |
+|---|---|---|---|
+| 1 | `/api/env` shows all six new values | **Partial** — only `publicProtocol`, `publicHost`, `apiBaseUrl` were visible; `publicPort`, `jwtIssuer`, `jwtAudience` were elided by the `...` in the captured response | ✅ **Discharged 2026-08-29.** The full response body was fetched: `gameEnv`, `deploymentId`, `publicHost`, `publicProtocol`, `publicPort`, `apiBaseUrl`, `profileApiUrl`, `jwtIssuer`, `jwtAudience` — **every one on `https` and the apex domain**, none on a raw-IP host value |
+| 2 | No mixed-content errors in the browser console | **Not evidenced** | ✅ **Discharged 2026-08-29 — OWNER-VERIFIED.** The owner opened the live game and reported no console errors. This is the one pending in this table a human actually checked |
+| 3 | `/api/public_lobbies` still returns lobbies | ✅ Discharged — public lobbies live and filling | ✅ Unchanged |
+| 4 | Game connect + play a public lobby (WS regression) | ✅ Substantially discharged — lobbies filling implies clients connecting and playing; not a targeted check | ✅ Unchanged |
+| 5 | Discord login button = clean same-origin dead end | **Not evidenced** | ✅ **Vacuous, confirmed by the owner 2026-08-29** — no Discord buttons are shown in the product at all, so there is no button whose behaviour could be checked. Nothing to fix and nothing to re-open |
+| 6 | Telemetry: OTEL `openfront.host` reports the domain, not a raw IP | **Not evidenced** | ✅ **Discharged 2026-08-30** by the lead, measured in Uptrace — see below |
+
+#### Pending 6 — the telemetry evidence, recorded (2026-08-30)
+
+Measured by the lead in Uptrace by grouping log entries on the **`openfront_host`** attribute (OTEL
+normalizes the dot in `openfront.host` to an underscore):
+
+- Over **2026-08-30** alone, the only groups returned are **`geoconflict.ru`** and `<null>`. No raw-IP
+  host value appears.
+- Over the wider **2026-08-24 → 2026-08-31** window a **raw-IP host group** is also present, ~433k
+  entries, forming a continuous band from Aug 24 through Aug 29 and then stopping.
+- Sorted newest-first, that group's **last entry is `Aug 29 2026 15:43:27.876`** — **19 seconds before
+  the new master booted at 15:43:46**.
+
+So the host attribute **flips from the raw IP to the apex domain exactly at the deploy cutover**, and
+the raw IP never appears again. That is the deploy taking effect in telemetry, not a sampling
+artifact.
+
+🔒 The raw IP address itself is deliberately **not written here**. It is a production endpoint, and
+project rule keeps endpoints out of every artifact that reaches git. The attribute name and the
+timestamps are enough to re-run the query.
+
+#### Verification steps that were rescoped, not proven
+
+Unchanged by the above, and still true: verification steps 3, 4, 5 and 7 of this brief were rescoped
+as **unsatisfiable** by the owner-accepted reframe of 2026-08-24 (no auth service exists in this
+deployment — no user can hold a token). Step 9 (`Matchmaking.ts:55`) was discharged by the
+"explicitly recorded" arm: still latent-broken and unreachable, recorded in the worklog's Known-state
+records.
+
+**Nothing needs reopening.** The earlier instruction in this section — "if the owner wants the four
+unevidenced pendings actually checked, this row should be reopened or a small follow-up filed" — is
+**superseded**: they were checked, and they passed. The `(agent-closed — not owner-verified)` marker
+stays, because the *close itself* was still made without the owner reviewing the work.

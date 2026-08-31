@@ -62,8 +62,10 @@ without it would knowingly leave a live player-facing defect out of a release th
 **What this means in practice, for whoever runs the deploy:**
 
 - The next production deploy is **expected to carry `0198`'s fix**. Do not ship `0062`/`0063` without it.
-- **`0198`'s own step 8 production check rides that same deploy** — so that one deploy is also what lets
-  `0198` move off `🚧 Blocked — awaiting deploy proof`.
+- ~~**`0198`'s own step 8 production check rides that same deploy** — so that one deploy is also what
+  lets `0198` move off `🚧 Blocked — awaiting deploy proof`.~~ ✅ **The deploy happened (`362a2f9`), and
+  step 8 is now WAIVED by owner ruling 2026-08-30** — it was never satisfiable, because the Yandex
+  build's private-lobby buttons are hidden by the owner's own choice. See verification step 8.
 - This is a **deploy coupling, not a dependency**. `0198` is still independently buildable and its
   `**Depends on:**` line still reads *nothing*. Nothing about `0062` or `0063`'s status changes.
 
@@ -81,7 +83,11 @@ renumbered, and insertion is not the owner-ruled exception's to grant. Same trea
 > not resolve.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified) *(closed 2026-08-30 by a spawned producer on the owner's R8 ruling — `AskUserQuestion`, live lead session. Review Round 1/2 closed out ✅ Ready to merge, zero code defects; the sole remaining gate was verification step 8's production proof, which the owner **WAIVED** the same day as unsatisfiable — see step 8.*
+
+⚠️ **This task closes on LOCAL PROOF ONLY, and that is a real weakness — do not read past it.** There is **no production evidence for this fix, and there never can be** for the Yandex path: the `host-lobby-button` and `join-private-lobby-button` sit inside a `display: none` row in `src/client/yandex-games_iframe.html`, by the owner's deliberate choice to disable private lobbies on Yandex Games, so the failing path has no route to being exercised in production. The fix **did ship** — production commit `362a2f9`, with the three `src/client/HostLobbyModal.ts` sites now building root-absolute worker paths instead of concatenating onto `windowOrigin` — **but its correctness in production is INFERRED FROM THE CODE, NOT OBSERVED.** No human has checked this work either.
+
+📌 **Status drift at the moment of closing, recorded rather than hidden:** the Sprint 4 board row read `🔲 Backlog` while `worklog.md` recorded the terminal state as `🚧 Blocked — awaiting deploy proof`. The two disagreed. The owner ruled the drift **moot** — this close overwrites both.*
 
 ## Owner
 fkit-coder
@@ -313,15 +319,22 @@ rather than creating a new file** (project rule: search before creating):
 **Do not write to `ai-agents/wiki-vault/`** — that is `fkit-wiki`'s exclusive surface. If a vault page
 should carry this, route it to the wiki role as a `/fkit-wiki-sync`.
 
-### 6. Prove it in production — this does not close on a local pass
+### 6. ~~Prove it in production — this does not close on a local pass~~ 🛑 WAIVED 2026-08-30
 
-The defect's whole significance is that it fails **in production**, on a path local testing never
+~~The defect's whole significance is that it fails **in production**, on a path local testing never
 exercises. Plan for a post-deploy check on the Yandex Games build and record it. **The task is not
 finished when it works locally.** If the deploy has not happened when the work is otherwise complete, the
-task is `🚧 Blocked — awaiting deploy proof`, the same honest marker `0062` and `0063` carry — not `Done`.
+task is `🚧 Blocked — awaiting deploy proof`, the same honest marker `0062` and `0063` carry — not `Done`.~~
 
-🚢 **Owner-ruled 2026-08-28: that deploy is the SAME one carrying `0062` and `0063`.** You are not
-waiting on a deploy of your own — build the fix so it is ready to go out with theirs. See `## Priority` →
+🛑 **WAIVED by owner ruling 2026-08-30 — the task may close on the local proof.** The private-lobby
+buttons are inside a `display: none` row in `src/client/yandex-games_iframe.html` (the owner's own
+deliberate choice to disable private lobbies on Yandex Games), so the production path this step asks
+for **cannot be reached at all** — the check is unsatisfiable, not merely unrun. **Full reasoning is
+recorded on verification step 8; read it there rather than re-deriving it.** The fix itself did ship,
+in production commit `362a2f9`.
+
+🚢 *Historical, superseded by the waiver:* owner-ruled 2026-08-28, that deploy was the SAME one
+carrying `0062` and `0063`; the fix was built to go out with theirs, and it did. See `## Priority` →
 *Deploy coupling*.
 
 ## Verification steps
@@ -342,7 +355,9 @@ waiting on a deploy of your own — build the fix so it is ready to go out with 
    path) and repeat steps 2–4. **A pass at the root URL proves nothing about production** — the root case
    already worked before the fix. This is the step that distinguishes a real fix from a slash-collapsing
    one that leaves production broken. If the local setup cannot reproduce a non-root path, say so
-   explicitly and treat step 8 as the only proof.
+   explicitly and treat step 8 as the only proof. ⚠️ **Step 8 is now WAIVED (owner ruling 2026-08-30),
+   so this local non-root simulation is the ONLY proof there is.** That raises this step's weight — it
+   is no longer a rehearsal for a production check that will follow.
 6. **Invite link**: the copied link resolves to the correct entry point — checked at the root path **and**
    at the Yandex-style path. Record what it produced before and after; this is the *derived, not
    measured* symptom in Context, so your observation is the first real evidence either way.
@@ -350,10 +365,38 @@ waiting on a deploy of your own — build the fix so it is ready to go out with 
    **did**, state exactly what `Cosmetics.ts` and `AccountModal.ts` now send in production and why that
    is correct — their production value is now known to be
    `https://geoconflict.ru/yandex-games_iframe.html`.
-8. **🚨 Post-deploy production check — the actual acceptance test.** On the deployed Yandex Games build:
-   create a private lobby, change map/difficulty/bots, start it, and confirm the game starts **with those
-   settings**. Confirm the `start_game` request returns 200. **Until this is done the task is
-   `🚧 Blocked — awaiting deploy proof`, not `Done`** (the marker `0062` and `0063` already carry).
+8. ~~**🚨 Post-deploy production check — the actual acceptance test.** On the deployed Yandex Games
+   build: create a private lobby, change map/difficulty/bots, start it, and confirm the game starts
+   **with those settings**. Confirm the `start_game` request returns 200. **Until this is done the task
+   is `🚧 Blocked — awaiting deploy proof`, not `Done`** (the marker `0062` and `0063` already carry).~~
+
+   🛑 **WAIVED — OWNER RULING 2026-08-30**, via `AskUserQuestion` in the live lead session. **The task
+   may close on the local proof.** The step is kept, struck through rather than deleted, because the
+   *reason* it was waived is worth more than a missing step.
+
+   **Why it was waived — it is UNSATISFIABLE AS WRITTEN, not merely unrun.** The `host-lobby-button`
+   and `join-private-lobby-button` sit inside a `style="display: none;"` row in
+   `src/client/yandex-games_iframe.html`. So the failing path this step asks you to exercise — *a
+   private lobby started from the Yandex embed* — **has no route to being reached in production at
+   all.** There is no button to click. This is not a deploy that has not happened yet and not a check
+   nobody got around to; it is a check that cannot be performed, ever, in the current product.
+
+   That hidden row is **the owner's own deliberate choice to disable private lobbies on Yandex
+   Games.** It is not a defect, it is not an oversight, and it is not something to wait out or file a
+   follow-up against.
+
+   **The fix nevertheless shipped.** It went to production in commit `362a2f9`, and the three
+   `src/client/HostLobbyModal.ts` sites now build **root-absolute** worker paths
+   (`/${config.workerPath(id)}/api/...`) instead of concatenating onto `windowOrigin` — which is the
+   correct fix for the real root cause, and which also covers the root-URL and local-dev surfaces that
+   *are* reachable.
+
+   ⚠️ **Do not reinstate this step.** If private lobbies are ever re-enabled on the Yandex build, that
+   re-enablement is the task that owes a production check here — not this one.
+
+   📌 **Numbering note, so nobody hunts for the wrong step:** the owner's ruling and `worklog.md` both
+   refer to this as **"step 9"**, which is `plan.md`'s numbering. In *this brief* it is **step 8**.
+   Brief step 9 below (`npm test` / lint / `tsc`) is **not** waived and still applies.
 9. `npm test`, `npm run lint`, and a clean `tsc` — all green, with the counts recorded.
 
 > ⚠️ Expect the known random Jest-worker `SIGSEGV` flake while running step 9 — that is `0197`'s
@@ -362,8 +405,12 @@ waiting on a deploy of your own — build the fix so it is ready to go out with 
 
 ## Notes
 
-- **Depends on:** nothing. Independently shippable today. Its **production proof** (step 8) waits on the
-  next production deploy — which is a verification gate, not a dependency on other work.
+- **Depends on:** nothing. Independently shippable today. ~~Its **production proof** (step 8) waits on
+  the next production deploy — which is a verification gate, not a dependency on other work.~~
+  🛑 **That gate is WAIVED (owner ruling 2026-08-30) — nothing is waiting on a deploy any more.** The
+  fix shipped in `362a2f9`, and the production check is unsatisfiable because the Yandex build's
+  private-lobby buttons are in a `display: none` row by the owner's own choice. See verification
+  step 8.
 - **Blocks:** nothing formally. Two practical notes: it is **failing for players on Yandex Games right
   now**, and it taxes **every** task whose verification includes a live multi-client private-lobby run —
   `0068` paid that tax on 2026-08-28, which is how it was found.
@@ -387,9 +434,13 @@ waiting on a deploy of your own — build the fix so it is ready to go out with 
     *deploy now, fix later*. Full record in `## Priority` → *Deploy coupling*.
 - **🚢 Deploy coupling (owner-ruled 2026-08-28) — read this before running a production deploy.** The
   next production deploy is expected to carry **`0062`, `0063` and `0198`** together; do not ship it
-  without this fix. `0198`'s step 8 production check rides that same deploy. **This is a coupling, not a
-  dependency** — `**Depends on:**` above still reads *nothing*, and **no status on `0062` or `0063`
-  changes**.
+  without this fix. ~~`0198`'s step 8 production check rides that same deploy.~~ **This is a coupling,
+  not a dependency** — `**Depends on:**` above still reads *nothing*, and **no status on `0062` or
+  `0063` changes**.
+  - ✅ **Resolved:** that deploy happened — production commit `362a2f9` carries this fix, and the three
+    `HostLobbyModal.ts` sites now build root-absolute worker paths. **Step 8 itself is WAIVED (owner
+    ruling 2026-08-30)**, so it no longer rides anything; see verification step 8 for why it is
+    unsatisfiable rather than pending.
 - **⚠️ One open question remains, and it is minor:** **step 3 (make the failure audible) is
   producer-added scope**, trimmable if the owner wants the minimal join fix only — though the escalation
   strengthened the case for keeping it. Not ruled; the coder should raise it at plan approval rather than

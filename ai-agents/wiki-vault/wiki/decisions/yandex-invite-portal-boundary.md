@@ -122,6 +122,8 @@ implementation brief(s).
 
 - [[decisions/windoworigin-url-join-defect]] — task `0198`, the source: it fixed the **path** on this
   same line and deliberately left the **host** question open
+- [[tasks/private-lobby-start-url]] — task `0198`'s close (2026-08-30): its production check was
+  **waived as unsatisfiable**, so the path fix ships with no production observation behind it
 - [[systems/flashist-init]] — `FlashistFacade`, `yaGamesAvailable`, and the platform-detection flag this
   question turns on
 - [[systems/networking]] — the worker-route and entry-point behaviour behind the invite URL

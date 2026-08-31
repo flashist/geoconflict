@@ -100,6 +100,11 @@ Live checks; cannot be done earlier — the failure and the fix are environment-
   config-only change with no tracked diff; the weekend live deploy is the verification. **Condition:
   the task stays open until all six deploy pendings above are proven live.** Not a coder call — an
   explicit owner ruling relayed by the sprint-ship-loop driver.
+  - 📌 **Outcome, recorded 2026-08-30:** the task was closed on 2026-08-29 with **four of the six
+    still unevidenced** — so the condition was **not** met at the close. All four were proven
+    afterwards (2026-08-29 → 2026-08-30), and the condition is **now satisfied**. Full evidence,
+    including the Uptrace measurement that discharged pending 6, is in the brief's
+    *Close-out — production evidence* section. Nothing here is being reopened.
 - **Follow-ups filed** (routed by the lead per the 2026-08-24 rulings): **0069** — auth strategy
   product decision (JWT/Discord auth service vs Yandex-only identity); **0070** — TokenLoginModal
   silent failure (`TokenLoginModal.ts:73`), gated on 0069.

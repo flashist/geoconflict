@@ -68,6 +68,7 @@ The other seven: no pre-match icon in public quick-play (there is no public-lobb
 - [[decisions/adr-103-identity-trust-seam]] — the client-asserted-id trust level behind the forged-icon residual
 - [[decisions/adr-104-archiving-disabled]] — why the client-POSTed singleplayer archive path is inert
 - [[decisions/windoworigin-url-join-defect]] — task `0198`, found while running this task's live check
+- [[tasks/private-lobby-start-url]] — task `0198`'s close: local proof only, production check waived as unsatisfiable
 - [[tasks/test-suite-reliability-investigation]] — task `0197`, the other defect routed out of this one; it found the upstream V8 cause and corrected this task's five-vs-four segfault count
 - [[tasks/prod-api-env-https-apex]] — task `0063`, whose close-out carries the `362a2f9` production-deploy evidence this page now cites
 - [[decisions/yandex-invite-portal-boundary]] — task `0199`, the product question `0198` surfaced and left open

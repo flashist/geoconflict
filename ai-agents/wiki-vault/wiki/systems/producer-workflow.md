@@ -41,6 +41,7 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - Never scope implementation details as final until investigation findings exist when meaningful unknowns remain
 - Never treat dev telemetry as representative of production; production-only observability matters for release judgment
 - Never hardcode secrets, DSNs, or private endpoints into git-tracked docs or briefs
+- **Added 2026-08-30: never write endpoints, IPs, DSNs, keys or credentials into ANY new artifact** — briefs, worklogs, findings, reports, board rows, commit messages. It all reaches git. This is the rule in force going forward, in full
 - Never treat a feature as shipped until analytics confirm the intended live behaviour
 - Never write analytics event strings inline in implementation guidance; refer to the canonical enum and established conventions
 
@@ -50,6 +51,8 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - Some outcomes in the source are time-bound sprint context; this page should focus on behavioural rules and operating model, while sprint-specific decisions stay in [[decisions/sprint-4]], [[decisions/sprint-4b]], and other sprint pages
 - The server does not simulate gameplay itself, so producers should not assume authoritative per-player outcome data already exists when defining server-side progression or entitlement features
 - Community-facing communication must stay within approved disclosures even when internal documents contain more operational detail
+- **⚖️ Owner ruling 2026-08-30 — the host IPs already committed: NO retro-scrub, and do NOT file a cleanup brief.** A producer sweep that day found four host IPs (production game server, dev server, profile VPS, telemetry VPS) already written into committed knowledge-base docs, task briefs and review files. **The owner reviewed it and ruled NO ACTION**, on three grounds recorded so nobody re-raises it: all three hosts resolve publicly as DNS **A records**, so the repository discloses nothing the domain does not already publish; **the rule was breached but a secret was not** — these were never secret; and they are already in git history, so scrubbing the working tree would be cosmetic. ⚠️ **This is NOT a licence to start writing them** — the never-write rule above stands in full for everything written from now on. The ruling is narrowly about not spending effort retro-scrubbing published A records, nothing more.
+  - 🔒 **This vault is not covered by that ruling and its bar is unchanged**: no IP value, public or private, appears in any vault page, and none may be added. `schema.md`'s standing ruling permits **public hostnames** in vault pages and nothing beyond them.
 - Open-ended adversarial review is not a completion criterion. For high-risk infrastructure work, fix the threat model and acceptance criteria before review, keep slices independently shippable, cap review rounds, and record lower-reachability findings as explicit residuals. See [[decisions/profile-deploy-hardening-review-loop]].
 
 ## Related

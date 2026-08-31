@@ -118,6 +118,17 @@ owner-waived, and the follow-up task from step 1 is filed.
   prerequisite is now **`0066` (remediation — proprietary-music purge, V1) deployed to prod**.
   Confirm `0066`'s prod redeploy checks passed (or owner-waived) before executing step 6. See
   [`0066-licensing-remediation-proprietary-purge`](../../done/0066-licensing-remediation-proprietary-purge/brief.md).
+  - ✅ **CONFIRMED 2026-08-30 — this prerequisite is now DEMONSTRATED, not merely shipped.** The lead
+    ran `0066`'s two deferred prod checks (its verification steps 7 and 8) in the browser against live
+    production. All seven purged proprietary paths return the SPA fallback **byte-identical to a
+    known-nonexistent control**, so none serves real content; and the new **original** favicon serves
+    on both entry points — including `yandex-games_iframe.html`, which links the identical hashed file.
+    ⚠️ Note the purged paths return **`200`, not `404`** — that is a PASS on this server, whose
+    `app.get("*")` catch-all never 404s. Method and numbers in `0066`'s Verification section.
+    **The licensing prerequisite for step 6 is satisfied.**
+  - ⚠️ **Nothing else about this task changes.** `0065`'s status is unchanged, and **its other
+    blockers — `0014`, `0062`, `0195` — are untouched and still open.** Only the `0066` licensing gate
+    moved.
 - Do not modify `0019`'s folder; its deferred checklist is superseded by this brief (noted here, not
   edited there — done-task artifacts are finished outputs).
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.

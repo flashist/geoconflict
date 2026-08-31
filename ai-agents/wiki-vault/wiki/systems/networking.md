@@ -69,6 +69,7 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[tasks/fetchlobbies-in-flight-guard]] — task 0193's single-poll-in-flight guard on the 100 ms lobby tick
 - [[tasks/worker-reject-departed-requester-create]] — task 0194's departed-requester guard on the `create_game` route
 - [[tasks/worker-routing-dead-worker-investigation]] — task 0057, the investigation behind all four
-- [[decisions/windoworigin-url-join-defect]] — task 0198's URL-join defect that makes two private-lobby routes 404 in production
+- [[decisions/windoworigin-url-join-defect]] — task 0198's URL-join defect that made two private-lobby routes 404 in production
+- [[tasks/private-lobby-start-url]] — task 0198's close: root-absolute worker paths shipped in `362a2f9`, never observed in production
 - [[decisions/yandex-invite-portal-boundary]] — task 0199's open question about which host the private-lobby invite should point at
 - [[tasks/citizen-verified-icon]] — task 0068's `isCitizen` flag on the frozen roster and the lobby-poll payload

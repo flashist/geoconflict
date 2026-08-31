@@ -96,7 +96,7 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 
 ## Consequences
 
-- Backlog task files such as `ai-agents/tasks/backlog/mobile-webgl-rendering.md` remain source briefs, not wiki task pages, until the work is assigned or completed.
+- Backlog task files such as `ai-agents/tasks/backlog/0031-mobile-webgl-rendering/brief.md` remain source briefs, not wiki task pages, until the work is assigned or completed.
 - Sprint 4c no longer carries mobile WebGL rendering as an active stabilization item. The lobby/map-fetch investigation shipped; client null-ID triage remains a separate Sprint 4 follow-up that should use deployed symbolicated traces.
 - Monitoring & Alert Bot Phase 1 should be treated as unusually high-value no-sprint ops work because it protects the observability stack that stabilization depends on; Phase 2 should not leapfrog Phase 1.
 - Deep mobile rendering optimization remains parked until mobile DAU consistently exceeds 1,500, but the WebGL/memory task can be scheduled earlier if crash data justifies it as a targeted stability fix.

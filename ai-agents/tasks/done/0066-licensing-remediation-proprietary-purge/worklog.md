@@ -83,12 +83,38 @@ Owner rulings via AskUserQuestion relay in the lead session:
 | 18 | Bundle jwt grep after rebuild | `grep static/js/*.js` | ✅ still zero |
 | 19 | Tests + lint after increment 2 | `npm test` / `npm run lint` | ✅ 89 suites / 709 tests pass; lint clean |
 
-**Prod-redeploy pendings (owner-side; task not fully done until run):**
-- `geoconflict.ru/sounds/music/{openfront,war,win}.mp3` → 404/absent.
-- New favicon serves live in the tab; `geoconflict.ru/images/OpenFrontLogo.png` no longer serves
-  real content.
+**Prod-redeploy pendings (owner-side; task not fully done until run):** — ✅ **RUN 2026-08-30 by the
+lead, in the browser against live production. All discharged; see the brief's Verification steps 7
+and 8 for the method and numbers.**
+- ~~`geoconflict.ru/sounds/music/{openfront,war,win}.mp3` → 404/absent.~~ ✅ **PASSED — but the
+  "404/absent" expectation was WRONG for this server and is superseded.** Unknown paths hit the
+  `app.get("*")` SPA catch-all, so nothing 404s. Correct test = byte-identity against a
+  known-nonexistent control. **Seven** purged paths (the three `.mp3`s plus `OpenFrontLogo.png`,
+  `OpenFrontLogo.svg`, `OpenFrontLogoDark.svg`, `Favicon.svg`) all returned `200` / `10801` bytes /
+  `text/html`, identical to the control → none serves real content.
+- ~~New favicon serves live in the tab; `geoconflict.ru/images/OpenFrontLogo.png` no longer serves
+  real content.~~ ✅ **PASSED.** `/images/GeoConflictFavicon.7aaf278f4fba2c4b180d.svg` → `200`, 445
+  bytes, `image/svg+xml`; **`yandex-games_iframe.html` links the identical hashed file**, so both
+  entry points carry the same original icon.
 - The `Dockerfile` COPY removal itself — no local docker build possible (Docker Desktop needs an
   interactive prompt); verified by inspection, proven at deploy.
+
+  ✅ **VERIFIED AT SOURCE 2026-08-30 by the lead — this is a verified fact, not an inference.**
+
+  📌 *Correction trail, kept deliberately:* the producer first recorded this as "discharged by
+  **inference** from the step-7 result — nobody inspected the built image." That honest downgrade is
+  what prompted the source check, which then settled it properly. The inference framing is
+  **superseded**; the evidence below stands on its own.
+
+  **The evidence:**
+  - `Dockerfile` has **no `COPY proprietary` line at all** — there is nothing left to remove.
+  - Lines **38–43** are an explicit **allowlist** copy, and the block's own comment states it exists
+    so local files cannot ride along into the image.
+  - `proprietary/` is **untracked** — local only, never committed.
+  - **No `sounds/music` files are tracked.**
+  - The only `OpenFrontLogo.svg` hits are the two `resources/claude-design-files/**` design-handoff
+    copies — **precisely the residue the owner's 2026-08-23 ruling declared EXPECTED NON-EMPTY**
+    (see this brief's Notes). Not a finding, and not to be re-flagged as one.
 
 ## Decision log (ADR-019/ADR-032 audit obligation)
 

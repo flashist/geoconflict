@@ -4,7 +4,9 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4 — config-parity track (`0062` / `0063` / `0195`)
 
-> ✅ **Closed 2026-08-29 by a spawned producer — agent-closed, not owner-verified.** The code and config are **deployed to production** (release commit `362a2f9`), and the headline value was measured live. ⚠️ **The deploy proof is PARTIAL against the six checks the coder listed** — read § Outcome before treating this as fully verified.
+> ✅ **Closed 2026-08-29 by a spawned producer — agent-closed, not owner-verified.** The code and config are **deployed to production** (release commit `362a2f9`), and the headline value was measured live.
+>
+> ✅ **EVIDENCE NOW COMPLETE (2026-08-30) — but read the ordering, it is the honest record.** At the moment of closing, **four of the owner's six deploy pendings were unevidenced**. All four were proven afterwards, 2026-08-29 and 2026-08-30. The owner's condition is **now satisfied; it was not satisfied when this task closed**. The `(agent-closed — not owner-verified)` marker stays, because the *close itself* was still made with no owner reviewing the work. § Outcome carries the state-at-close vs final-state table.
 
 ## Goal
 
@@ -27,18 +29,30 @@ Two things left in a deliberately known state:
 
 **Deployed.** The release landed in production as commit `362a2f9`, evidenced in the brief's close-out by `curl https://geoconflict.ru/commit.txt` returning `362a2f9`, equal to repo `HEAD` on `dev`. Live `GET https://geoconflict.ru/api/env` returned `publicProtocol: https`, `publicHost: geoconflict.ru`, `apiBaseUrl` on the apex domain. **Brief verification step 2 is met in production.**
 
-⚠️ **What that proof does NOT cover.** The owner's review-skip ruling attached the condition *"the task stays open until all six deploy pendings are proven live"*. The close was made by an agent on partial proof, with no owner present:
+⚠️ **The close was made on PARTIAL proof, and the gap was closed AFTERWARDS.** The owner's review-skip ruling attached the condition *"the task stays open until all six deploy pendings are proven live"*. **Two columns, deliberately — the ordering must not be flattened into "it was always fine."** At the close (2026-08-29) two pendings were discharged and a third substantially so; **four were unevidenced**, and the task moved to `done/` anyway, by an agent, with no owner present.
 
-| Pending | State at close |
-|---|---|
-| 1. `/api/env` shows all six new values | **Partial** — `publicProtocol`, `publicHost`, `apiBaseUrl` confirmed; `publicPort`, `jwtIssuer`, `jwtAudience` were elided by `…` in the captured response and are **not** evidenced there |
-| 2. No mixed-content errors in the browser console | **Not evidenced** — no console sweep was run |
-| 3. `/api/public_lobbies` still returns lobbies | **Discharged** — public lobbies live and filling |
-| 4. Game connect + play a public lobby | **Substantially discharged** — lobbies filling implies clients connecting; not a targeted check |
-| 5. Discord login button = clean same-origin dead end | **Not evidenced** |
-| 6. Telemetry: OTEL `openfront.host` reports the domain | **Not evidenced** |
+| # | Pending | State at close (2026-08-29) | Final state |
+|---|---|---|---|
+| 1 | `/api/env` shows all six new values | **Partial** — only `publicProtocol`, `publicHost`, `apiBaseUrl` visible; `publicPort`, `jwtIssuer`, `jwtAudience` elided by `…` in the captured response | ✅ **Discharged 2026-08-29** — the full body was fetched: `gameEnv`, `deploymentId`, `publicHost`, `publicProtocol`, `publicPort`, `apiBaseUrl`, `profileApiUrl`, `jwtIssuer`, `jwtAudience`, every one on `https` and the apex domain, none on a raw-IP host value |
+| 2 | No mixed-content errors in the browser console | **Not evidenced** | ✅ **Discharged 2026-08-29 — OWNER-VERIFIED.** The owner opened the live game and reported no console errors. **The only pending in this table a human actually checked** |
+| 3 | `/api/public_lobbies` still returns lobbies | ✅ Discharged — public lobbies live and filling | ✅ Unchanged |
+| 4 | Game connect + play a public lobby | ✅ Substantially discharged — lobbies filling implies clients connecting; not a targeted check | ✅ Unchanged |
+| 5 | Discord login button = clean same-origin dead end | **Not evidenced** | ✅ **Vacuous, owner-confirmed 2026-08-29** — no Discord buttons are shown in the product at all, so there is no button whose behaviour could be checked |
+| 6 | Telemetry: OTEL `openfront.host` reports the domain | **Not evidenced** | ✅ **Discharged 2026-08-30** in Uptrace — see below |
 
-> 📌 The lead's live pass in the closing session did separately report `publicPort: 443` and `jwtIssuer` on the apex domain. That observation is **not** in the brief's captured response body, so pending 1 stays recorded as partial here rather than upgraded from a second-hand relay.
+**Pending 6 — the telemetry evidence.** Measured by the lead in Uptrace by grouping log entries on the **`openfront_host`** attribute (OTEL normalizes the dot in `openfront.host` to an underscore):
+
+- Over **2026-08-30** alone the only groups returned are **`geoconflict.ru`** and `<null>`. No raw-IP host value appears.
+- Over the wider **2026-08-24 → 2026-08-31** window **a raw-IP host group is also present**, ~433k entries, forming a continuous band from Aug 24 through Aug 29 and then stopping.
+- Newest-first, that group's **last entry is `Aug 29 2026 15:43:27.876` — 19 seconds before the new master booted at 15:43:46.**
+
+So the host attribute **flips from the raw IP to the apex domain exactly at the deploy cutover**, and the raw IP never appears again. That is the deploy taking effect in telemetry, not a sampling artifact.
+
+> 🔒 The raw IP value itself is deliberately **not written here or anywhere in this vault**. The attribute name and the timestamps are enough to re-run the query.
+
+**Nothing needs reopening.** The earlier instruction on this page — *"if the owner wants the four unevidenced pendings actually checked, this row should be reopened or a small follow-up filed"* — is **superseded**: they were checked and they passed. What does **not** change is the marker: no human reviewed the code, so `(agent-closed — not owner-verified)` stands.
+
+**Still rescoped, not proven:** brief verification steps 3, 4, 5 and 7 were ruled **unsatisfiable** by the owner-accepted 2026-08-24 reframe (no auth service exists in this deployment — no user can hold a token). Step 9 (`Matchmaking.ts`) was discharged by the "explicitly recorded" arm: still latent-broken and unreachable.
 
 **Two follow-up briefs came out of the reframe, both filed to the Backlog board**: `0069` (auth strategy — build an auth service someday, or commit to Yandex-only and remove the dead surface) and `0070` (`TokenLoginModal`'s user-facing error is **commented out**, which is why a total login failure looked like nothing happening; its restore-vs-remove answer follows `0069`'s ruling).
 
@@ -49,7 +63,9 @@ Two things left in a deliberately known state:
 - [[decisions/config-parity-failure-class]] — the recurring class `0063` belongs to, and the `0064` guard that must land after all three
 - [[systems/configuration]] — `/api/env`, the runtime-config fallback chain, and the `getApiBase()` consumer path
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — §9 of the incident record, where this was filed as a loose end
-- [[decisions/windoworigin-url-join-defect]] — task `0198`, owner-ruled to ship in the same production deploy
+- [[systems/telemetry]] — where pending 6 was measured; carries the `openfront.host` → `openfront_host` attribute-name gotcha
+- [[decisions/windoworigin-url-join-defect]] — the durable URL-join rule behind task `0198`, owner-ruled to ship in the same production deploy
+- [[tasks/private-lobby-start-url]] — task `0198` itself, closed 2026-08-30 out of that same release
 - [[decisions/sprint-backlog]] — the board holding the `0069` / `0070` follow-ups
 - [[decisions/sprint-4]] — the sprint board carrying this task
 

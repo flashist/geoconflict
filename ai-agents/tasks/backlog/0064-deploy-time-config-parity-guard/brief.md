@@ -119,9 +119,20 @@ which drifts, and which is then the thing lying to us.
 1. **`0062`'s exact defect is caught.** Re-create it — remove `PROFILE_INTERNAL_TOKEN` from the
    heredoc — and confirm the guard reports it by name. **This is the acceptance test**: if it does not
    catch the defect that motivated it, nothing else matters.
+
+   ⚠️ **A presence check alone does NOT discharge this — assert NON-EMPTY.** (Raised 2026-08-30 by the
+   wiki lint; it is a real defect in a not-yet-built guard, caught before anything was written.) A
+   naive *is it there?* test on `PROFILE_INTERNAL_TOKEN` **passes on a blank variable that is doing
+   nothing at all** — the heredoc substitutes whatever the deploying shell has, so an unset local
+   variable arrives as a forwarded, present, empty string. That is a live silent misconfiguration
+   wearing a green check. **Prove both halves: the variable removed → caught, AND the variable
+   forwarded but empty → caught.** See also step 3 and Phase 2 item 5, which state the general rule;
+   this note pins it to the acceptance test itself, which is Phase 1's.
 2. **`0063`'s exact defect is caught** (Phase 2). With `JWT_ISSUER` set to `http://<some-ip>` in a
    prod-shaped run, the guard reports it.
-3. **A forwarded-but-empty variable is caught** (Phase 2) — the `0061` suspect.
+3. **A forwarded-but-empty variable is caught** (Phase 2) — the `0061` suspect. **Run this against
+   `PROFILE_INTERNAL_TOKEN` specifically as well**, not only a generic stand-in: it is the variable the
+   acceptance test in step 1 uses, and a blank one is exactly the case a presence check waves through.
 4. **A clean configuration passes silently.** No false positives on a correct prod config; a guard that
    cries wolf gets disabled, and then we are worse off than having none.
 5. **Optional variables do not fire**, and an unlisted variable **does** — prove both halves. A guard

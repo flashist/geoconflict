@@ -1,7 +1,7 @@
 # Licensing Remediation — Proprietary Purge, Favicon Replacement, JWT Fallback Retarget
 
 **Source**: `ai-agents/tasks/done/0066-licensing-remediation-proprietary-purge/brief.md`
-**Status**: done (agent-closed — not owner-verified; **deployed in `362a2f9` 2026-08-29 — deploy proven, effect unverified**)
+**Status**: done (agent-closed — not owner-verified; **deployed in `362a2f9` 2026-08-29, and the licensing gate is DEMONSTRATED as of 2026-08-30 — both deferred prod checks ran and passed**)
 **Sprint/Tag**: Sprint 4, task 0066
 
 ## Goal
@@ -43,11 +43,56 @@ owner-verified).
 > [[tasks/prod-api-env-https-apex]]. **`0065`'s flip-ON gate — "`0066` DEPLOYED to prod" — is
 > therefore satisfied on the deploy fact.**
 >
-> ⚠️ **What is NOT established: that the intended effect is visible.** The three prod redeploy checks
-> this task listed — the removed music URLs returning 404, the placeholder favicon serving, and
-> `OpenFrontLogo.png` no longer serving — **were not run in this pass and remain unevidenced.** The
-> deploy is proven; the outcome of the deploy is not. Anyone treating the licensing gate as
-> *demonstrated* rather than *shipped* should run those three checks first.
+> ✅ **UPDATED 2026-08-30 — the checks were run, and the gate is now DEMONSTRATED.** The paragraph
+> that stood here said the three prod redeploy checks were unevidenced and that anyone treating the
+> gate as *demonstrated* rather than *shipped* should run them first. **They were run, in the browser
+> against live production, by the lead on 2026-08-30, and they passed.** The licensing gate moves from
+> **"shipped, not demonstrated" to DEMONSTRATED** — which matters because it is a legal-exposure item
+> and it gates `0065`'s paid go-live. The status value did **not** change and the agent-closed marker
+> stays: no human reviewed the code itself.
+
+### 🚨 Read the `200`s correctly — they are a PASS, not a failure
+
+**The brief's original "the purged URLs must return 404" expectation is WRONG FOR THIS SERVER and is
+superseded.** This server has no 404 for unknown paths: `app.get("*")` in `src/server/Master.ts`
+serves the SPA shell for anything unmatched (the same catch-all mechanism task `0198` turned on). A
+`200` on a purged path therefore proves nothing on its own, and an expectation of `404` **can never be
+met**. Anyone re-running this and seeing seven `200`s has **reproduced the pass**, not found a
+regression.
+
+**The correct test — byte-identity against a known-nonexistent control.** Recorded here so the method
+survives, not just the verdict:
+
+| Control | Request | Result 2026-08-30 |
+|---|---|---|
+| **Negative** — a path that certainly does not exist | `/this-path-cannot-exist-12345.png` | `200`, **10801 bytes**, `text/html` — the SPA shell; this is the signature of "not served" |
+| **Positive** — a path that certainly does exist | `/commit.txt` | **41 bytes**, `text/plain` — real assets still serve normally, so the fallback is not swallowing everything |
+
+**A purged path passes iff it is byte-identical to the negative control** — same status, same byte
+count, same content-type.
+
+**Result — PASS.** All **seven** purged paths returned `200` / `10801` bytes / `text/html`,
+byte-identical to the negative control, so **none serves real content**:
+`/sounds/music/openfront.mp3`, `/sounds/music/war.mp3`, `/sounds/music/win.mp3`,
+`/images/OpenFrontLogo.png`, `/images/OpenFrontLogo.svg`, `/images/OpenFrontLogoDark.svg`,
+`/images/Favicon.svg`.
+
+**The new favicon serves on BOTH entry points.** The live page links a hashed
+`GeoConflictFavicon.svg`, which returned `200`, **445 bytes**, `image/svg+xml` — a real original SVG,
+not the SPA fallback. **`src/client/yandex-games_iframe.html` links the identical hashed file**, so
+both entry points carry the same original icon, including the template that actually runs in
+production.
+
+**The Dockerfile pending is verified AT SOURCE, not inferred** (re-checked against the repository
+during this ingest, not taken on report): `Dockerfile` has **no `COPY proprietary` line at all** —
+lines 38–43 are an explicit allowlist copy whose own comment says it exists so local files cannot ride
+along. `proprietary/` is untracked, no `sounds/music` files are tracked, and the only
+`OpenFrontLogo.svg` hits are the two `resources/claude-design-files/**` design-handoff copies — exactly
+the residue the owner's 2026-08-23 ruling declared **expected non-empty**.
+
+> ⚠️ **This clears ONE of `0065`'s blockers and no others.** `0065`'s licensing gate is now
+> demonstrated; its other three blockers — `0014`, `0062`, `0195` — **remain open and unchanged**. The
+> paid go-live is **not** unblocked.
 
 Accepted residuals (owner-ruled):
 - Two `OpenFrontLogo.svg` copies inside `resources/claude-design-files/**` stay as repo-only residue
@@ -69,3 +114,5 @@ Accepted residuals (owner-ruled):
   clear
 - [[tasks/prod-api-env-https-apex]] — task `0063`, whose close-out carries the `362a2f9`
   production-deploy evidence this page now cites
+- [[tasks/private-lobby-start-url]] — task `0198`, whose fix relies on the same `app.get("*")` SPA
+  catch-all that makes "expect a 404" the wrong test here

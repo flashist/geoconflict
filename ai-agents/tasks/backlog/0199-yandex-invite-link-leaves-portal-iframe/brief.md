@@ -112,7 +112,7 @@ Games portal iframe. Two things follow, and both were confirmed against the code
 ### 📌 Where this came from, and why it was left open
 
 Found during `0198`'s work and **deliberately left undecided there.** `0198`'s review ledger
-(`ai-agents/tasks/backlog/0198-private-lobby-start-url-double-slash/review.md`) records it verbatim,
+(`ai-agents/tasks/done/0198-private-lobby-start-url-double-slash/review.md`) records it verbatim,
 filed apart from the accepted residuals precisely so nobody mistakes it for a settled tradeoff:
 
 > **Open, deliberately undecided (NOT a residual — the owner has not ruled):**
