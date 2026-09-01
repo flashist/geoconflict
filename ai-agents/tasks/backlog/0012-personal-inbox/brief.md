@@ -123,6 +123,16 @@ works. The task is not fully done — and must not be closed — until this tail
 
 ## Notes
 
+- **Depends on:** `0062-forward-profile-internal-token-in-deploy` gates the `## Deferred Live Tail`
+  section, and per the Status line this task stays open until that tail runs. Beyond that tail,
+  nothing blocks the buildable scope — restated 2026-08-23 by owner ruling in the
+  `## Dependencies` section above (left unedited): 8d-A (global announcements) is Done, so the popup
+  this tab lives in exists; the player profile store is available locally (profile server plus Postgres
+  via Docker, `RUN_DB_TESTS=1`) and that is sufficient; the citizenship trigger seams already exist as
+  documented no-ops in `0019` and `0017`, so this task does NOT wait on the citizenship tasks — the
+  seams are the interface; and the name-change task has not started, so V1 triggers 3 and 4 are
+  deferred to it rather than gating this build. Full prose above; this bullet is the machine-readable
+  form beside it.
 - Citizen gate must be verified server-side on every `/player/messages` call — do not rely on client-side citizenship state
 - V1 has no pagination — fetch all messages. Add pagination if message counts grow significantly (unlikely in Sprint 4)
 - The `POST /admin/player-message` endpoint should be internal only — not exposed publicly. Rate-limit or require a server-side secret to prevent abuse.

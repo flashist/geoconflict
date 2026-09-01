@@ -101,6 +101,10 @@ Update `tests/server/MapPlaylist.test.ts`:
 
 ## Notes
 
+- **Depends on:** nothing. The last Notes bullet below records the one coupling that used to exist as
+  explicitly removed: `0042-starting-gold-public-modifier` was decoupled by the owner on 2026-06-20, and the two
+  tasks no longer depend on or sequence against each other. Full prose above; this bullet is the
+  machine-readable form beside it.
 - `src/server/` change (plus the existing `MapPlaylist.test.ts`, kept green). If the label copy changes, that adds a small `src/client/` + en/ru localization edit.
 - Effort: ~half a day including the test update, optional label/localization, and a live public-rotation spot-check.
 - **`0042-starting-gold-public-modifier` (5M Starting Gold) is now fully independent of this task** (decoupled by Mark, 2026-06-20). It was previously framed as a *replacement* for infinite gold; that coupling is removed. The 5M starting-gold modifier ships on its own merits as an additional weird sub-option, and infinite gold stays (fixed via no-nukes here). The two tasks no longer depend on or sequence against each other.

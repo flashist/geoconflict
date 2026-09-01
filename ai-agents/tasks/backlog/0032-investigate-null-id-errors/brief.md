@@ -96,6 +96,11 @@ Conditional on findings:
 ---
 
 ## Notes
+- **Depends on:** both must be live before triage, flattened from the
+  `## Dependencies (both must be live before triage)` numbered list above (left unedited): (1) source
+  maps available in Uptrace — `0164-enable-client-source-maps` (Sprint 4c); and (2) the archive
+  telemetry-noise fix deployed in production, not merely merged — `0159-reduce-archive-telemetry-noise`
+  (Sprint 4c). Full prose above; this bullet is the machine-readable form beside it.
 - The `a.id` minified pattern is a strong hint but not conclusive — `.id` is used on many
   object types. Do not over-scope the guard.
 - If source maps (Task `0164-enable-client-source-maps`) fully resolve the traces, this

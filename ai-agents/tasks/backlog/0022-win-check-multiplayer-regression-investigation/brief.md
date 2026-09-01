@@ -105,6 +105,12 @@ Conditional on findings:
 
 ## Notes
 
+- **Depends on:** nothing recorded — this brief asserts no gate on another task anywhere in its text,
+  and `0196` transcribed rather than re-scoped it. Not an independent verification that none exist.
+  (The `0140-solo-win-condition-fix` reference throughout is the change being investigated, already
+  merged as PR #77 — context, not a prerequisite. The one in-text gate is an owner decision, not a
+  task: `:88` "Decide the resolution policy with Mark before implementing.", which applies only to the
+  risk-2 branch.)
 - `checkWinnerFFA()` and `checkWinnerTeam()` currently have different bot-win policies. After this investigation, they should either both have a consistent policy or have the difference explicitly justified in comments.
 - The `makeWinner()` change that introduced the `undefined` return path should be treated as the most likely live regression. It is narrow and mechanical to fix.
 - Do not change the win percentage threshold (`percentageTilesOwnedToWin()`) or fallout rates as part of this task — those are separate balance concerns.

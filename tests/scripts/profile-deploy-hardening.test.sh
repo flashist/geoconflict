@@ -7,6 +7,14 @@
 # sshpass/ssh/scp/getent), so the integrated control flow is exercised — not extracted
 # snippets. One proportionate harness (postmortem RC6: no test-apparatus sprawl).
 #
+# The trailing "Structural" sections have since widened this file's scope beyond
+# build-deploy-profile.sh: it is the home for grep-level structural assertions over
+# the deploy-related files that HAVE them — currently setup-profile.sh,
+# setup-telemetry.sh, build-deploy-telemetry.sh, and update.sh + nginx.conf for
+# container log retention (task 0060). It is NOT complete coverage: deploy.sh,
+# build.sh and build-deploy.sh have no assertions here at all. New structural checks
+# belong here rather than in a second harness nothing runs.
+#
 # Run:  bash tests/scripts/profile-deploy-hardening.test.sh
 # Exits non-zero on the first failed assertion.
 
@@ -80,6 +88,12 @@ EOF
 #!/bin/bash
 echo "scp \$*" >> "$WORK/scp.argv"
 touch "$WORK/scp.called"
+# Capture the staged secrets file (the only upload whose destination is the
+# .profile-deploy-env-<pid> path) so T10 can assert what actually reaches the box.
+src=\${@: -2:1}; dst=\${!#}
+case "\$dst" in
+  *.profile-deploy-env-*) cp "\$src" "$WORK/staged.env" 2>/dev/null || true ;;
+esac
 exit 0
 EOF
 
@@ -102,20 +116,38 @@ run_deploy() {  # extra env passed as VAR=VAL ... ; sets RC + populates $WORK lo
     RUN="$WORK/run"; rm -rf "$RUN"; mkdir -p "$RUN/scripts"
     cp "$REPO_ROOT/build-deploy-profile.sh" "$RUN/build-deploy-profile.sh"
     : > "$RUN/setup-profile.sh"; chmod +x "$RUN/setup-profile.sh"
+    # build-deploy-profile.sh has required ./profile-backup.sh since the T8 backup work; without
+    # this fixture every run_deploy aborts at that precondition, before the preflight it tests.
+    : > "$RUN/profile-backup.sh"; chmod +x "$RUN/profile-backup.sh"
     : > "$RUN/Dockerfile.profile"
     printf '#!/bin/bash\nexit 0\n' > "$RUN/scripts/check-docker-secret-boundary.sh"
     chmod +x "$RUN/scripts/check-docker-secret-boundary.sh"
     rm -f "$WORK/docker.argv" "$WORK/ssh.argv" "$WORK/scp.argv" "$WORK/sshpass.argv" \
-          "$WORK/sshpass.filemode" "$WORK/scp.called"
+          "$WORK/sshpass.filemode" "$WORK/scp.called" "$WORK/staged.env"
+    # `env -i` + an explicit allow-list — deliberately NOT a list of secrets to clear.
+    # The real deploy script forwards 28 variables from its environment into the staged
+    # secrets file, and the scp stub captures that file to $WORK/staged.env for T10. If
+    # this subshell inherited the operator's shell, THEIR real PROFILE_INTERNAL_TOKEN /
+    # DATABASE_URL / FEEDBACK_TELEGRAM_TOKEN / PROFILE_BACKUP_S3_* would be written to
+    # disk in a temp dir the harness never cleans — by T1, T2, T4, T5, T8 and T10 alike,
+    # not just T10. Naming what may enter is the only form that cannot go stale when a
+    # new variable joins the staged-export block; a deny-list would have to be updated
+    # in lockstep with that block, which is the exact coupling this whole task exists
+    # because nobody maintained. It also makes the harness deterministic: an ambient
+    # PROFILE_DEPLOY_ALLOW_UNVERIFIED or PROFILE_SSH_KEY would otherwise silently change
+    # what T7 and T1 test. HOME and TMPDIR are the only two the script needs passed
+    # through, and neither is a secret. Caller extras ("$@") come last so a test can
+    # override a fixture.
     ( cd "$RUN"
-      [ "$#" -gt 0 ] && export "$@"     # extra VAR=VAL (expansion words can't be inline assignments)
-      export PATH="$BIN:$PATH" HOME="$WORK/home" \
+      env -i \
+        PATH="$BIN:$PATH" HOME="$WORK/home" TMPDIR="${TMPDIR:-/tmp}" \
         DOCKER_USERNAME=acme DOCKER_REPO=profile DOCKER_TOKEN=tok \
         POSTGRES_PASSWORD="db-pass-123" \
         PROFILE_SERVER_HOST="203.0.113.10" \
         PROFILE_SSH_PASSWORD="$SECRET_PW" ALLOW_PROFILE_SSH_PASSWORD_FALLBACK=1 \
-        PROFILE_DEPLOY_LOCK="$WORK/lock.d" PROFILE_DEPLOY_RECORD="$RECORD"
-      bash build-deploy-profile.sh > "$WORK/out.log" 2>&1 )
+        PROFILE_DEPLOY_LOCK="$WORK/lock.d" PROFILE_DEPLOY_RECORD="$RECORD" \
+        "$@" \
+        bash build-deploy-profile.sh > "$WORK/out.log" 2>&1 )
     RC=$?
 }
 
@@ -201,6 +233,24 @@ run_deploy
 grep -q 'unreachable or key rejected' "$WORK/out.log" && pass "reported unreachable/auth-fail" || fail "no unreachable message"
 [ ! -f "$WORK/scp.called" ] && pass "no SCP when unreachable" || fail "SCP ran on unreachable host"
 
+echo "== T10: YANDEX_PAYMENTS_SECRET reaches the staged env, %q-quoted, exactly once =="
+# Task 0195. Reading the deploy diff is NOT verification of this defect class — a variable
+# that "looks forwarded" is exactly how it hid three times. This drives the REAL script and
+# asserts what the staged file actually carries.
+SECRET_YP='yp-F@ke Payments"Key$notreal'   # visibly synthetic; spaces + quotes + $
+NEW; echo profile > "$WORK/marker"
+run_deploy YANDEX_PAYMENTS_SECRET="$SECRET_YP"
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC (expected 0); see $WORK/out.log"
+if [ -f "$WORK/staged.env" ]; then pass "staged env file was uploaded"; else fail "no staged env captured"; fi
+n=$(grep -c '^export YANDEX_PAYMENTS_SECRET=' "$WORK/staged.env" 2>/dev/null || true); n=${n:-0}
+[ "$n" = "1" ] && pass "exactly one export YANDEX_PAYMENTS_SECRET line" \
+  || fail "expected 1 export YANDEX_PAYMENTS_SECRET line, got $n"
+got=$( . "$WORK/staged.env" >/dev/null 2>&1; printf '%s' "${YANDEX_PAYMENTS_SECRET-}" )
+if [ "$got" = "$SECRET_YP" ]; then pass "value round-trips through sourcing (spaces/quotes/\$ intact)"; \
+  else fail "staged value did not round-trip (got ${#got} chars, expected ${#SECRET_YP})"; fi
+if grep -rqF "$SECRET_YP" "$WORK"/*.argv 2>/dev/null; then fail "payments secret LEAKED into an argv"; \
+  else pass "payments secret never appears in docker/ssh/scp/sshpass argv"; fi
+
 # ── Structural parity checks (setup-* on-box halves + telemetry mirror) ────────
 echo "== Structural: on-box flock/marker + telemetry mirror =="
 P="$REPO_ROOT/setup-profile.sh"
@@ -213,6 +263,81 @@ T="$REPO_ROOT/build-deploy-telemetry.sh"
 awk '/DEPLOY-TARGET PREFLIGHT/{p=NR} /UPLOADING SETUP SCRIPT/{u=NR} END{exit !(p>0 && p<u)}' "$T" \
   && pass "build-deploy-telemetry.sh: preflight before the SCP" || fail "telemetry preflight not before SCP"
 grep -q 'sshpass -f "\$SSH_PASSWORD_FILE"' "$T" && pass "build-deploy-telemetry.sh uses sshpass -f" || fail "telemetry still on sshpass -p"
+
+# ── Structural: game-container log retention (task 0060) ──────────────────────
+# ⚠️ These are LINTS, not behavioural tests. The real behaviour — that a useful log
+# window actually survives a container recreate — is observable only on the box, and
+# is deferred to the owner's live verification. What these catch is the cheap, likely
+# regression: a future edit dropping the flags or quietly shrinking the budget,
+# putting us back on an invisible host-side default. Scoped with awk so they cannot
+# pass on a stray match elsewhere in the file, and asserted on VALUES not just flag
+# presence (the false-green class task 0202 is about).
+#
+# Known residual, accepted deliberately: the `docker run` extraction is coupled to the
+# current line formatting, so a semantically identical reformat (collapsing it to one
+# line, or indenting it inside an `if`) reds this section. That is a FALSE RED — it
+# fails loud, which is the safe direction for a lint to be wrong in.
+echo "== Structural: container log retention (0060) =="
+U="$REPO_ROOT/update.sh"
+N="$REPO_ROOT/nginx.conf"
+# Extract ONLY the `docker run` invocation (up to its first non-continued line).
+RUN_BLOCK=$(awk '/^docker run -d/{b=1} b{print} b && !/\\$/{exit}' "$U")
+[ -n "$RUN_BLOCK" ] && pass "update.sh: located the docker run invocation" \
+  || fail "update.sh: no docker run invocation found (the checks below would be vacuous)"
+# Assert on VALUES, not just flag presence. Presence-only greps let
+# `--log-opt max-size=1m --log-opt max-file=1` pass green — valid Docker that deploys
+# cleanly and reinstates a 1 MB ring, i.e. a silent regression far worse than the state
+# this task exists to fix. Expected values live here, once:
+EXPECTED_MAX_SIZE="100m"     # ── if the owner re-tunes after measuring (D-L1/D-L2 in
+EXPECTED_MAX_FILE="10"       #    0060's worklog), update these two DELIBERATELY.
+got_size=$(printf '%s\n' "$RUN_BLOCK" | sed -n 's/^[[:space:]]*--log-opt max-size=\([^ \\]*\).*/\1/p')
+got_file=$(printf '%s\n' "$RUN_BLOCK" | sed -n 's/^[[:space:]]*--log-opt max-file=\([^ \\]*\).*/\1/p')
+# Shape checks first: these stay valid across any deliberate re-tune, and catch a
+# corrupted value (max-size=banana, max-file=) that would fail loudly at docker run.
+printf '%s' "$got_size" | grep -qE '^[0-9]+[kmg]$' \
+  && pass "update.sh: --log-opt max-size has a valid <number><unit> value ($got_size)" \
+  || fail "update.sh: --log-opt max-size value is missing or malformed (got '${got_size:-<none>}')"
+printf '%s' "$got_file" | grep -qE '^[0-9]+$' && [ "${got_file:-0}" -ge 2 ] \
+  && pass "update.sh: --log-opt max-file is an integer >= 2 ($got_file)" \
+  || fail "update.sh: --log-opt max-file must be an integer >= 2 (got '${got_file:-<none>}'); 1 means no rotation"
+# Then the exact expected values, so ANY change to the retention budget is conscious.
+[ "$got_size" = "$EXPECTED_MAX_SIZE" ] \
+  && pass "update.sh: --log-opt max-size is the expected $EXPECTED_MAX_SIZE" \
+  || fail "update.sh: --log-opt max-size is '$got_size', expected '$EXPECTED_MAX_SIZE' — if this was a deliberate re-tune, update EXPECTED_MAX_SIZE here"
+[ "$got_file" = "$EXPECTED_MAX_FILE" ] \
+  && pass "update.sh: --log-opt max-file is the expected $EXPECTED_MAX_FILE" \
+  || fail "update.sh: --log-opt max-file is '$got_file', expected '$EXPECTED_MAX_FILE' — if this was a deliberate re-tune, update EXPECTED_MAX_FILE here"
+# max-file without max-size is unbounded per file — the exact failure mode this task exists to prevent.
+printf '%s\n' "$RUN_BLOCK" | grep -qE '^[[:space:]]*--log-driver json-file' \
+  && pass "update.sh: docker run pins --log-driver json-file" || fail "update.sh: docker run lost --log-driver json-file"
+# Extract ONLY the /api/public_lobbies location block.
+LOBBY_BLOCK=$(awk '/location = \/api\/public_lobbies \{/{b=1} b{print} b && /^    \}/{exit}' "$N")
+[ -n "$LOBBY_BLOCK" ] && pass "nginx.conf: located the /api/public_lobbies block" \
+  || fail "nginx.conf: no /api/public_lobbies block found (the check below would be vacuous)"
+printf '%s\n' "$LOBBY_BLOCK" | grep -qE '^[[:space:]]*access_log off;' \
+  && pass "nginx.conf: /api/public_lobbies has access_log off" || fail "nginx.conf: /api/public_lobbies lost access_log off"
+# The silencing must stay scoped to that endpoint — never applied server-wide. A file-wide
+# grep CANNOT check this: site-wide `access_log off;` plus any stray `access_log /dev/stdout;`
+# left in a location block passes it green, which is the catastrophic direction. Extract the
+# directives at server level ONLY (brace depth 1 inside `server {`, so nested location blocks
+# are excluded) and assert against those.
+SERVER_LEVEL=$(awk '
+  /^server[[:space:]]*\{/ { ins=1; depth=1; next }
+  ins {
+    o = gsub(/\{/, "{"); c = gsub(/\}/, "}");
+    if (depth == 1 && o == 0 && c == 0) print;
+    depth += o - c;
+    if (depth <= 0) exit;
+  }' "$N")
+[ -n "$SERVER_LEVEL" ] && pass "nginx.conf: extracted the server-level directives" \
+  || fail "nginx.conf: could not extract server-level directives (the checks below would be vacuous)"
+printf '%s\n' "$SERVER_LEVEL" | grep -qE '^[[:space:]]*access_log /dev/stdout;' \
+  && pass "nginx.conf: server-level access_log still goes to stdout" || fail "nginx.conf: server-level access_log was disabled or moved off stdout"
+printf '%s\n' "$SERVER_LEVEL" | grep -qE '^[[:space:]]*access_log[[:space:]]+off;' \
+  && fail "nginx.conf: access_log is off at SERVER level — that silences the whole site, not one endpoint" \
+  || pass "nginx.conf: access_log is not disabled site-wide"
+printf '%s\n' "$SERVER_LEVEL" | grep -qE '^[[:space:]]*error_log /dev/stderr;' \
+  && pass "nginx.conf: server-level error_log still goes to stderr" || fail "nginx.conf: server-level error_log was disabled or moved off stderr"
 
 echo
 [ "$FAILED" -eq 0 ] && { echo "ALL PASS"; exit 0; } || { echo "SOME FAILED"; exit 1; }

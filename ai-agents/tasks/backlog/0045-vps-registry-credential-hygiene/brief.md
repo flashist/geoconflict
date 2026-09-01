@@ -75,3 +75,11 @@ regression fix** — it narrows the blast radius rather than fixing broken behav
 ## Outputs
 
 - registry credentials on the VPS are pull-only and non-persistent
+
+## Notes
+
+- **Depends on:** nothing recorded — this brief asserts no gate anywhere in its text, and `0196`
+  transcribed rather than re-scoped it. Not an independent verification that none exist. (Its
+  `## Origin` section names `0016-secret-management-beyond-env-files` as "Related", which is not a
+  prerequisite; and `## Actions` step 1, confirm whether `PROFILE_IMAGE` actually requires
+  authenticated pulls, is a first step of the work itself.)

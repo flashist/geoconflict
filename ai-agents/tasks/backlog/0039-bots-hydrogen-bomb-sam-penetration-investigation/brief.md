@@ -76,6 +76,16 @@ Both nations (`FakeHuman`) and AI Players (`AiPlayer`) run `FakeHumanExecution`,
 3. No new analytics event — bot-internal behaviour with no player-facing funnel.
 
 ## Notes
+- **Depends on:** no task — the Priority field states there is no dependency on the
+  citizenship/payments track and it can be picked up alongside any deploy. The
+  `0040-bots-nuke-saturation-sam-overwhelm` relationship runs the other way: the Notes bullet below
+  records that a second anti-SAM task depends on THIS one, reusing its SAM-mechanics findings and
+  `FakeHumanExecution` nuke-targeting refactor — a Blocks fact, not a Depends on fact. And
+  `0036-bots-skip-sam-when-nukes-disabled` is named only as an adjacent task to consider sequencing in
+  the same pass, not as a gate. The one gate the brief states for itself is procedural: the Sprint
+  field says it needs a sprint home before implementation, and the `## Deferred — implementation`
+  section scopes implementation only after the owner reviews the findings. Full prose above; this
+  bullet is the machine-readable form beside it.
 - One change covers nations and AI Players (both run `FakeHumanExecution`).
 - **A second anti-SAM task depends on this one:** `0040-bots-nuke-saturation-sam-overwhelm` (multi-nuke salvo to overwhelm a SAM's per-level interception capacity). Kept separate (Mark, 2026-06-13) but it reuses this task's SAM-mechanics findings and `FakeHumanExecution` nuke-targeting refactor. This task's investigation should produce those shared outputs in a form the saturation task can build on, and its **tactic-selection** design should leave room for "saturate" as a sibling choice to "offset" and "avoid."
 - Adjacent backlog task: `0036-bots-skip-sam-when-nukes-disabled` (also `FakeHumanExecution` bot SAM behaviour) — consider sequencing/implementing in the same pass.

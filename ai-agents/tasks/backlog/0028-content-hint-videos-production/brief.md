@@ -70,6 +70,11 @@ Add more topics as they come up. The list is not exhaustive.
 
 ## Notes
 
+- **Depends on:** nothing. The Sprint field asserts it directly — a content production task for the
+  owner, no engineering dependency, can start any time. Its relationship to
+  `0029-hint-videos-in-game` runs the other way: this task feeds `0029`, which cannot begin until 3 to
+  4 clean assets exist here. That is a Blocks fact, not a Depends on fact. Full prose above; this
+  bullet is the machine-readable form beside it.
 - Clean versions (Version B) do not need to be perfect — they loop silently next to a short text caption in-game. Smooth gameplay capture with clear visual action is enough.
 - Post social media versions one at a time as they are produced. No need to batch.
 - When the first 3–4 clean versions are ready, the engineering task (`0029-hint-videos-in-game`) can begin independently.

@@ -11,7 +11,7 @@ Pull in now. This is the one item that protects the **next** investigation while
 paused.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

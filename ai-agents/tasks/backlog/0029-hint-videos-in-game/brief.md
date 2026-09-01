@@ -113,6 +113,11 @@ Update `ai-agents/knowledge-base/analytics-event-reference.md` with the new even
 
 ## Notes
 
+- **Depends on:** `0028-content-hint-videos-production` having produced at least 3 to 4 clean hint
+  assets before engineering begins — stated in the Priority field and repeated in the first Notes
+  bullet below as: do not start this task until at least 3 to 4 clean hint assets are ready, because a
+  pool of one or two hints is not meaningful random selection. No other gate is asserted anywhere in
+  the brief. Full prose above; this bullet is the machine-readable form beside it.
 - Do not start this task until at least 3–4 clean hint assets from `0028-content-hint-videos-production` are ready — a pool of one or two hints is not meaningful random selection.
 - GIF is the simpler implementation path (rendered as `<img>`, no autoplay concerns). If Mark decides to use MP4, add `autoplay muted loop playsinline` attributes to the `<video>` element.
 - File size per hint should be under 2 MB. If assets arrive larger, flag before serving — do not add a CDN or streaming infra.

@@ -69,6 +69,16 @@ Not yet defined. Return to this once the open questions above are answered with 
 
 ## Notes
 
+- **Depends on:** flattened from the brief's `## Dependencies` section above (left unedited): the
+  Player Profile Store (`0013-player-profile-store-impl`) must be live before any database flag can be
+  set; the centralized name rendering component must exist, because the golden nickname has to render
+  through it rather than ad-hoc — the brief calls this component `Task 8` (Sprint 4/5), a label that
+  does not resolve to a current task id, and `0196` transcribed the label rather than guessing an id;
+  and the citizenship system, where whether streamers auto-receive citizenship is an open question the
+  brief says must be answered before implementation to avoid a separate entitlement code path. The
+  Sprint field adds that this is a parking lot, to be returned to when citizenship plus name rendering
+  (Task 8) are live, and the brief's `## Open Questions` section must be answered with the owner before
+  this can be scoped at all. Full prose above; this bullet is the machine-readable form beside it.
 - Do not over-engineer for volume. This is a manual, relationship-driven program at this stage. An in-game application flow is not needed for V1.
 - The streamer who reached out could be a useful test case for the first iteration — confirm the process works end-to-end with one real user before generalizing.
 - If the Twitch streamer is going to be told "we'll add this" — set expectations that it is on the roadmap, not imminent. Citizenship ships first.

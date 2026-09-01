@@ -70,5 +70,12 @@ Likely code areas:
 
 ## Notes
 
+- **Depends on:** no task — the only gate the brief states for itself is a scheduling condition:
+  schedule once mobile performance and crash data is clearer (Sprint field), and scope it separately
+  once Sprint 4c's other error families are resolved (What to Build, and the first Notes bullet below).
+  ⚠️ The brief does mention a mobile DAU above 1,500 threshold, but attributes it to the parked Task 5
+  (Deep Mobile Rendering Optimization) which this task is merely stated to be related to — it is NOT
+  asserted as a gate on this task, and `0196` transcribed rather than re-scoped it. Full prose above;
+  this bullet is the machine-readable form beside it.
 - Do not conflate this with the Priority 1–4 quick-fix tasks in Sprint 4c. This task requires profiling, device-specific testing, and potentially rendering architecture changes. It should be scoped and scheduled separately.
 - The mobile abandonment signal (users crashing without further events) means the true impact may be significantly higher than the 0.4/min Uptrace rate suggests.

@@ -37,7 +37,7 @@ See the addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) for 
 > relative link this brief previously carried did not resolve.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified) — **built + Deferred Live Tail (owner ruling R3, 2026-09-01). This does NOT mean production is fixed:** D1–D3 are unchecked and gated on **`0014`** (the key does not exist yet) **and** the pending profile deploy. **A profile deploy carried out today lands the variable empty and `/v1/payments/*` correctly keeps returning 503.**
 
 ## Owner
 fkit-coder

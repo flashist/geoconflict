@@ -67,6 +67,13 @@ Keep the player-targeted flow as-is, but add a separate panic-broadcast button t
 
 ## Notes
 
+- **Depends on:** no task, but the brief gates its own scoping in its last Notes bullet below: do not
+  scope implementation until a short investigation confirms which messages are most frequently sent
+  (if analytics allow) and which of the four options fits the existing radial menu architecture
+  cleanly. It also records that no analytics are instrumented for quick message sends today, and that
+  adding a `Chat:QuickMessage:Sent` event with the category would be valuable context before designing
+  a solution. No dependency on another task is asserted anywhere in its text. Full prose above; this
+  bullet is the machine-readable form beside it.
 - The player asked specifically about the `help.troops` and `help.gold` messages — these are player-targeted in `QuickChat.json` (`requiresPlayer: false` for troops/gold, meaning they work as general broadcasts, not targeting a specific player). This suggests Option D or B may be the most directly responsive.
 - Option A is the lowest-effort starting point and can ship independently.
 - Any solution must work on mobile (small tap targets, no hover states).

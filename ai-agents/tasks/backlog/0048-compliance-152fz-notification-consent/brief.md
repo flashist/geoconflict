@@ -109,6 +109,16 @@ findings are invalidated), reviewed with Mark to lock the real gate.
 - Model: `0128-legal-vat-investigation`
 
 ## Notes
+- **Depends on:** no task — the gate this brief records runs outward and has been lifted: the Sprint
+  field states this was the Sprint 4 legal gate on profile-store production go-live, and that gate is
+  deliberately lifted for Sprint 4 with the work re-homed to the backlog by accepted risk (owner,
+  2026-06-28; see the `## Risk note` section). That is a Blocks fact, now lifted, not a Depends on
+  fact. The one gate the brief states for itself is internal and sequencing: the Type field and the
+  `## Deferred — engineering` section scope the downstream consent flow ONLY after the legal
+  investigation's findings, and the Notes bullet below records an external timeline (lawyer plus any
+  Roskomnadzor filing) running days to weeks. `0030-archive-s3-backed-citizen-gated` is named only as
+  a PII surface to resolve, not as a prerequisite. Full prose above; this bullet is the
+  machine-readable form beside it.
 - No secrets, endpoints, or PII in this brief or its findings file.
 - External timeline (lawyer + any Roskomnadzor filing) runs days–weeks; that, plus the accepted risk,
   is why it's deferred rather than blocking Sprint 4.

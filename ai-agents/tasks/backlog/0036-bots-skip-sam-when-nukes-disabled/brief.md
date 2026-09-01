@@ -60,6 +60,10 @@ Implementation notes:
 
 ## Notes
 
+- **Depends on:** nothing. The brief asserts this twice in its own text: the Priority field reads
+  "small scope, no dependencies", and the last Notes bullet below states there is no dependency on the
+  citizenship/payments track and it can be picked up opportunistically alongside any deploy. Full prose
+  above; this bullet is the machine-readable form beside it.
 - Effort estimate: ~half a day including tests.
 - Experiments: ❌ Excluded — bot behavior quality fix, ships to all players.
 - No dependency on the citizenship/payments track; can be picked up opportunistically alongside any deploy.

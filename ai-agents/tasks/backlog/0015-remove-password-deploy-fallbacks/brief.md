@@ -36,3 +36,10 @@ The repo now treats password auth as deprecated, but fallback code and flags sti
 ## Outputs
 
 - final hardened deployment model
+
+## Notes
+
+- **Depends on:** nothing recorded — this brief asserts no gate anywhere in its text, and `0196`
+  transcribed rather than re-scoped it. Not an independent verification that none exist. (Its
+  `## Actions` step 1, confirm every environment has a working SSH-key deploy path, is a first step of
+  the work itself, not a prerequisite on another task.)

@@ -181,7 +181,7 @@ which drifts, and which is then the thing lying to us.
   just presence checks** — public-facing URL values must be `https` and hostname-based (no raw IPs;
   the `0063` class), tokens non-empty (the `0062` class). Everything else in `0072` was already here.
 - **🔁 A THIRD instance landed 2026-08-28 — and it is the first in the profile pipeline.**
-  [`0195-forward-yandex-payments-secret-in-profile-deploy`](../0195-forward-yandex-payments-secret-in-profile-deploy/brief.md):
+  [`0195-forward-yandex-payments-secret-in-profile-deploy`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md):
   `YANDEX_PAYMENTS_SECRET` is absent from `build-deploy-profile.sh`'s staged-export block, so
   `setup-profile.sh` writes it **empty** into `profile.env` and every `/v1/payments/*` route fails
   closed with 503 on the real box — since `0019` shipped. Three consequences for this task:

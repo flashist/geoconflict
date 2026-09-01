@@ -261,3 +261,11 @@ Confirmed by tracing the code — **no functional regressions**, one narrow UX c
   `e90d6ee` (worker improvements). The 5s timeout itself predates these (`feea527`, first fork commit).
 - Two-nginx-layer deploy model (where `.bin` caching lives): see the "Deploy note" in the prior investigation
   doc above; container nginx config is `nginx.conf`, shipped via image build (`build-deploy.sh`).
+
+## Notes
+
+- **Depends on:** nothing recorded — this brief asserts no gate on another task anywhere in its text,
+  and `0196` transcribed rather than re-scoped it. Not an independent verification that none exist.
+  (The `## Notes for the release decision` section's advice — before shipping, test the join flow
+  against a valid-TLS host rather than the bare-IP dev box — is a verification recommendation about a
+  past prod-release decision, not a prerequisite task.)

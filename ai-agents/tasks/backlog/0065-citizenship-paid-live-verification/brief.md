@@ -37,15 +37,22 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
   `setup-profile.sh`). Never committed, never logged.
 - **`0062`** — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end (its own
   verifications 2–3). Without it no profile row exists to attach a purchase to.
-- 🚨 **`0195`** — [`0195-forward-yandex-payments-secret-in-profile-deploy`](../0195-forward-yandex-payments-secret-in-profile-deploy/brief.md).
-  **Known blocker, recorded 2026-08-28 so it is not rediscovered mid-checklist.** The per-game secret
-  key above is delivered to the box by `build-deploy-profile.sh` → `setup-profile.sh` → `profile.env`,
-  and **`build-deploy-profile.sh` does not forward it** — its staged-export block omits the variable,
-  so `setup-profile.sh`'s `${YANDEX_PAYMENTS_SECRET:-}` default writes it empty. `Routes.ts`'s
-  `paymentsEnabled` middleware then returns `503 {"error":"payments_unavailable"}` on every
-  `/v1/payments/*` request. **Steps 1–4 below all drive those routes and would every one of them fail
-  with 503 today**, the only clue being a single `warn` line at container startup. `0014` issuing the
-  key is necessary but **not sufficient** — the key would still never reach the box.
+- 🚨 **`0195`** — [`0195-forward-yandex-payments-secret-in-profile-deploy`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md).
+  ✅ **Shipped 2026-09-01** — closed `Done (agent-closed — not owner-verified)`, built with its own live
+  verification deferred. ⚠️ **Owner ruling 2026-09-01 — do NOT read that ship as a blocker clearing.**
+  Recorded 2026-08-28 so it was not rediscovered mid-checklist: the per-game secret key above reaches the
+  box via `build-deploy-profile.sh` → `setup-profile.sh` → `profile.env`, and `build-deploy-profile.sh`
+  omitted the variable from its staged-export block — **that omission is what `0195` fixed.** But
+  **`0014` has not issued the key**, so the value is still empty going in, `setup-profile.sh`'s
+  `${YANDEX_PAYMENTS_SECRET:-}` default still writes it empty on the box, and `Routes.ts`'s
+  `paymentsEnabled` middleware **still returns `503 {"error":"payments_unavailable"}` on every
+  `/v1/payments/*` request** — correctly, failing closed. **Steps 1–4 below all drive those routes and
+  would every one of them fail with 503 today**, the only clue being a single `warn` line at container
+  startup. Forwarding (`0195`) and issuance (`0014`) are each necessary and neither alone is sufficient.
+  **Nothing about this task moved:** status, priority, sprint and dependency set are unchanged. The
+  Status line keeps its original wording. The machine-read bullet in `## Notes` below (the board-parsed
+  text) was corrected on 2026-09-01 under the same owner ruling — **only** its stale "until `0195`
+  ships" clause; all four task ids it names are untouched.
 - **`0018`** — mock scope done: the UI and flow this checklist drives must exist.
 - `migrations/002_yandex_payments.sql` applied in prod (`npm run migrate` runs at deploy).
 - A test-purchase Yandex login added in the dashboard (In-App Purchases → Settings).
@@ -105,9 +112,11 @@ owner-waived, and the follow-up task from step 1 is filed.
   (`PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end — without it no profile row
   exists to attach a purchase to), `0195` (`YANDEX_PAYMENTS_SECRET` forwarded to the profile box —
   without it every `/v1/payments/*` route returns 503 there, so steps 1–4 all fail), and `0018` (mock
-  scope done — the UI and flow this checklist drives must exist). ⚠️ **`0014` alone is NOT sufficient:**
-  the per-game key it issues reaches the box only through `build-deploy-profile.sh`, whose
-  staged-export block omits the variable, so until `0195` ships the key would still never arrive.
+  scope done — the UI and flow this checklist drives must exist). ⚠️ **Owner ruling 2026-09-01 —
+  forwarding and issuance are each necessary and neither alone is sufficient:** `0195` **shipped
+  2026-09-01** and fixed the forwarding gap (`build-deploy-profile.sh` had omitted the variable from
+  its staged-export block), but `0014` has **not** issued the per-game key, so the value still lands
+  empty on the box and every `/v1/payments/*` route still returns 503 — correctly, failing closed.
   Also required before running: `migrations/002_yandex_payments.sql` applied in prod, and a
   test-purchase Yandex login registered in the dashboard. The full prose for every gate is in the
   `## Dependencies` section above, which stays the human-facing explanation — this bullet is the

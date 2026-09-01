@@ -81,6 +81,14 @@ Once the regenerated binaries are deployed and confirmed correct in production, 
 
 ## Notes
 
+- **Depends on:** no task — the brief names nothing it waits on. Its `0160-fix-compact-map-boat-attack`
+  relationship runs the other way: `0160` was cancelled 2026-06-02, and the Notes below tell you not to
+  block `0160` on this one, while the Priority field calls this task the prerequisite for ever
+  re-enabling compact maps in public matchmaking. That is a Blocks fact, not a Depends on fact. The
+  only gate the brief states for itself is practical rather than a task: ship when map regeneration is
+  practical, since all 30 compact binaries must be regenerated with `npm run gen-maps` after the Go
+  generator fix is confirmed correct. Full prose above; this bullet is the machine-readable form beside
+  it.
 - The immediate boat-attack fix for players is covered by `0160-fix-compact-map-boat-attack`. Do not block that task on this one.
 - Regenerating all 30 binaries takes time (`npm run gen-maps` runs the Go generator for each map). Budget for this in sprint planning — it is not a quick code change.
 - The Sprint 4b audit flagged six worst-case maps (Asia, Black Sea, Europe, Mena, North America, Pangaea). World is confirmed broken but was not on that list — treat all 30 as potentially affected.

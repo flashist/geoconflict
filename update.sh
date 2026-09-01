@@ -68,10 +68,28 @@ fi
 
 echo "Starting new container for ${ENVIRONMENT_NAME} environment..."
 
+# Container log retention (task 0060). This container's stdout/stderr carries BOTH the
+# node server output and nginx's access/error logs (nginx.conf routes them to
+# /dev/stdout, /dev/stderr). Setting the log options here, per container, OVERRIDES the
+# host daemon.json default — which is where this setting used to live invisibly, off in
+# an untracked file nobody could find. Keep it here so it is version-controlled and
+# applies on the next ordinary deploy: this script does docker rm + docker run every
+# time, so a redeploy is all that is needed to change it.
+#
+# PROVISIONAL VALUES — 100m x 10 = 1 GB ceiling. This number is NOT sized from a
+# measurement. It was chosen against a previously-believed budget that is itself
+# unverified, and it must be re-tuned once the real daily log volume and the disk's
+# actual free space have been measured on the box. Do not cite 1 GB as a sized figure.
+#
+# This bounds the log; it does NOT make it a durable evidence store. Shipping logs
+# off-box is the real fix and is not done here.
 docker run -d \
     --restart="${RESTART}" \
     --env-file "$ENV_FILE" \
     --name "${CONTAINER_NAME}" \
+    --log-driver json-file \
+    --log-opt max-size=100m \
+    --log-opt max-file=10 \
     -p 127.0.0.1:3000:80 \
     "${DOCKER_IMAGE}"
 

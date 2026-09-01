@@ -500,6 +500,11 @@ chmod 600 "$LOCAL_TMPENV"
     printf "export CERTBOT_EMAIL=%q\n" "${CERTBOT_EMAIL:-ruflashist@gmail.com}"
     printf "export DOCKER_USERNAME=%q\n" "${DOCKER_USERNAME:-}"
     printf "export DOCKER_TOKEN=%q\n" "${DOCKER_TOKEN:-}"
+    # Yandex per-game payments HMAC secret (task 0019). Rides the same 0600-staged,
+    # source-then-rm channel as the DB password. Empty is a SUPPORTED state: the
+    # payments routes fail closed with 503 and the rest of the profile server is
+    # unaffected. The key itself is issued by task 0014 (Yandex catalog registration).
+    printf "export YANDEX_PAYMENTS_SECRET=%q\n" "${YANDEX_PAYMENTS_SECRET:-}"
     # Operator Telegram notifications for pending name-change requests (task 0067).
     # Same bot/chat/proxy as the game server's feedback sends. The token rides the
     # same 0600-staged, source-then-rm channel as the DB password. All three empty

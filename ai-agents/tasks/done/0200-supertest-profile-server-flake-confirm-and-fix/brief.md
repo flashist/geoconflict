@@ -43,7 +43,36 @@ localhost condition, not repository-fixable", which would be a legitimate outcom
 work with nothing to show but a finding. Weigh that against ten times the flake rate.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+🚨 **Closed 2026-09-01 with NO CODE FIX — recognition note only (owner ruling 2026-09-01, §3.4
+branch). This is not "flake fixed".** What shipped:
+
+- **Mechanism CONFIRMED for the timeout shape only.** The client's TCP handshake completes, the server
+  never accepts, and no response or error ever arrives. **Not a repository defect:** it reproduces in
+  ~40 lines of plain Node with no jest, no express, and no project code.
+- **Every candidate fix was measured and REFUTED — including the plan's own leading one.** A shared
+  server per suite left the rate identical (`165/75000 = 0.22 %` against a `0.224 %` baseline), as did
+  awaiting `listening`, guaranteeing `close`, binding IPv4, and `--runInBand` (**7 failures / 100
+  serial full-suite runs**). Raising the timeout is dead too — all five hang runs ran to the full 90 s
+  watchdog.
+- **Deliverable:** a recognition note in `CLAUDE.md` (32 lines, 9.7 % of the file) plus
+  `ai-agents/knowledge-base/reports/2026-09-01-0200-supertest-flake-findings.md`, with the ~40-line
+  reproducer inlined (owner ruling D1).
+- **Review:** ⚠️ **Changes requested — 10 defects (3 high, none blocking). Codex coverage FULL**
+  (`codex-cli 0.152.0`) — **not** degraded. All 10 processed in Round 2: 9 accepted in full, 1 in part
+  with recorded evidence, 0 disputed.
+- **Verification:** `npm test` **107 suites / 1075 tests**, unchanged. `CLAUDE.md` **+33/−0**, purely
+  additive. **No source, test, or config file was touched.**
+
+🚨 **TWO SHAPES REMAIN UNEXPLAINED and must never be recorded as resolved:**
+- the **`401`** on a route with no auth middleware (never recurred, never traced), and
+- the **`socket hang up`** sub-shape (**6 occurrences**, all in uninstrumented arms, never traced).
+
+Recording an untraced shape as understood is the `0068` error this whole task exists to stop.
+
+⚠️ **The one-host ceiling.** *"Not a repository defect"* is what **stands after every alternative was
+refuted** — it is **not** something positively proven. No CI, one machine.
 
 ## Owner
 fkit-coder
@@ -75,8 +104,28 @@ by-product, **a second and entirely different failure that reproduces roughly te
 **Two things that table settles.**
 
 1. **Every single failure landed in one of the four `supertest`-based `tests/profile-server/*`
-   suites** — and those four are the only suites in the repository that use `supertest`. The one sweep
-   with **zero** failures is the one sweep containing **no** supertest suite.
+   suites.** The one sweep with **zero** failures is the one sweep containing **no** supertest suite.
+
+   🚨 **CORRECTED 2026-09-01 at close — this bullet previously claimed those four were "the only
+   suites in the repository that use `supertest`". That was FALSE, and this task disproved it.**
+   **Seven** test files import `supertest` (`grep -rln 'from "supertest"' tests/`):
+
+   | File | Runs under |
+   |---|---|
+   | `tests/profile-server/InboxRoutes.test.ts` | `npm test` |
+   | `tests/profile-server/NameChangeRoutes.test.ts` | `npm test` |
+   | `tests/profile-server/PaymentsRoutes.test.ts` | `npm test` |
+   | `tests/profile-server/Routes.test.ts` | `npm test` |
+   | **`tests/server/Master.test.ts`** | **`npm test` — the DEFAULT path (`jest.config.ts`)** |
+   | `tests/integration/Routes.it.test.ts` | `npm run test:integration` |
+   | `tests/integration/NameChange.it.test.ts` | `npm run test:integration` |
+
+   ⚠️ **Only the "only four in the repo" clause was wrong. The observation above it is unchanged and
+   still holds** — all 9 measured failures did land in the four `tests/profile-server/*` suites, and
+   the supertest-free sweep had zero. But the four were never the whole `supertest` surface, so
+   "confined to profile-server" is an **observed distribution, not a structural boundary**, and the
+   flake family can reach `tests/server/Master.test.ts` on the default `npm test` path and both
+   `tests/integration/*` suites.
 2. **It reproduces on Node 20, 22 and 24 alike.** It is therefore **unrelated to `0197`'s V8 GC
    segfault**, which is a different signal, a different family, and shares no worker state with it.
 
@@ -92,7 +141,12 @@ by-product, **a second and entirely different failure that reproduces roughly te
 That is roughly **95 ephemeral HTTP servers bound and torn down per full run, inside 13 parallel jest
 workers.**
 
-### The observed failure shapes — four symptoms, one suspected event
+### The observed failure shapes — FIVE symptoms, one suspected event
+
+> ⚠️ **Count corrected 2026-09-01 at close: five, not four.** The H1 title above still reads "four
+> symptoms" and is left unchanged **deliberately** — it is the identity string every board row and the
+> task folder name carry, so editing it would fan drift across documents. **This section's count is the
+> authoritative one.**
 
 | Run | Node | Suite | Symptom |
 |---|---|---|---|
@@ -105,6 +159,27 @@ workers.**
 | E-3 | 20 | `PaymentsRoutes.test.ts` | `Received: 404` |
 | baseline | 24 | `NameChangeRoutes.test.ts` | `expected 400 "Bad Request", got 404 "Not Found"` |
 | baseline | 24 | `InboxRoutes.test.ts` | `access-control-allow-origin` → `undefined` |
+| **0200 planning probe 2, run 33** | **24** | **`NameChangeRoutes.test.ts:405`** | **🆕 `expected 200 "OK", got 401 "Unauthorized"` on `GET /v1/profile`** |
+
+#### 🆕 The fifth symptom — a `401` the app cannot produce (added 2026-09-01, mechanism UNKNOWN)
+
+Observed during `0200`'s own planning (probe 2 run 33, `tests/profile-server/NameChangeRoutes.test.ts:405`):
+
+```
+expected 200 "OK", got 401 "Unauthorized"
+```
+
+**Why it is the most diagnostic of the five.** `GET /v1/profile` is registered at
+`src/profile-server/Routes.ts:255-257` with only `allowPublicCors` and `profileReadLimiter`. Its only
+exits are `200`, `400`, `404` and `500`. `internalAuth` is the file's **only** `401` source and is
+attached **exclusively** to `/internal/*` (`Routes.ts:290, 324, 658, 838`). **No code path in this app
+can answer `GET /v1/profile` with `401`.** The other four symptoms are all consistent with "the request
+never arrived"; this one is a response that **belongs to something else**.
+
+🚨 **Its mechanism is UNKNOWN and must not be recorded as explained.** It **never recurred** in any
+`0200` measurement arm and was therefore **never traced**. The mechanism this task did confirm
+(§ findings) produces **no response at all**, which cannot produce a `401` — so this shape is either a
+second, rarer failure mode (response cross-talk) or a one-off mis-attribution. **Both are untested.**
 
 **Two concrete anchors to start from:**
 - `tests/profile-server/NameChangeRoutes.test.ts:330` — expected `400`, got `404`.
@@ -237,9 +312,13 @@ is **untestable**, not merely untested. State that limit rather than letting a r
 2. **The mechanism is stated as confirmed or as unconfirmed, explicitly.** No fix was applied to an
    unconfirmed mechanism.
 3. **Post-fix, a sweep of at least 100 runs containing the supertest suites shows 0 failures of any of
-   the four observed shapes** (`socket hang up`, 5-second timeout, unexpected `404`, missing
-   `access-control-allow-origin`). At the pre-fix rate of ~5.3 %, 100 clean runs is a meaningful result;
-   30 is not. **State the observed rate before and after** — "it seems better" is not a verification.
+   the observed shapes** (`socket hang up`, 5-second timeout, unexpected `404`, missing
+   `access-control-allow-origin`, **and the `401` added 2026-09-01 — five, not four**). At the pre-fix
+   rate of ~5.3 %, 100 clean runs is a meaningful result; 30 is not. **State the observed rate before
+   and after** — "it seems better" is not a verification.
+
+   ⚠️ **This gate was NOT met and was not meant to be** — the task closed on the recognition-note
+   branch with **no code fix**, so there is no "post-fix" sweep. See the Status field.
 4. `npm test` still passes and the full-suite counts are unchanged, unless a change was deliberately
    made and explained.
 5. **The four `tests/profile-server/*` suites still assert what they asserted before.** A flake fixed

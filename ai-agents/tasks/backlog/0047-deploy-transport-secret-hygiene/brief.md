@@ -106,3 +106,15 @@ host; `/root` is 0700 on the box) — so this is **hardening, not a regression f
 
 - Deploy secret env_files are 0600 end-to-end (creation → transfer → box) and never leak on
   a failed transfer, across both the profile and telemetry pipelines.
+
+## Notes
+
+- **Depends on:** one sequencing gate, stated in the `## Priority / release timing` section above
+  (left unedited): this task builds on T4g's transport code, so it should land after T4g merges. ⚠️
+  `T4g` is transcribed verbatim as the brief writes it, and it does resolve to a board task —
+  `0183-profile-04g-argv-concurrency-hardening`, whose title ends `(T4g)` and which is already in
+  `ai-agents/tasks/done/` (PR #125), so this gate is **already satisfied** and nothing open blocks
+  this task on it. Everything else in that section is scoping
+  rather than a gate: it is explicitly post-release and NOT a citizenship/profile-server go-live
+  blocker, and the note about landing alongside `sec12` is a coordination suggestion, not a
+  prerequisite. Full prose above; this bullet is the machine-readable form beside it.

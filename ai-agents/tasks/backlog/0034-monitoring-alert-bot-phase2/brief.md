@@ -119,3 +119,11 @@ secrets in `.env*.secret`; don't monitor Uptrace using Uptrace; no secrets in al
   `telemetry-clickhouse-file-log-hardening-2026-05-10.md`
 - Telemetry setup/deploy: `setup-telemetry.sh`, `build-deploy-telemetry.sh`; game server: `deploy.sh`
 - Wiki: `ai-agents/wiki-vault/wiki/systems/telemetry.md`
+
+## Notes
+
+- **Depends on:** `0033-monitoring-alert-bot-phase1` — the Sprint field states it twice: schedule after
+  Phase 1 is deployed and proven, and do not start until Phase 1's machinery exists. Phase 2 reuses the
+  shared Telegram helper, the on-box agent framework, the reboot-surviving alert state, and the
+  digest/dedup/recovery UX delivered by Phase 1. No other gate is asserted anywhere in the brief. Full
+  prose above; this bullet is the machine-readable form beside it.

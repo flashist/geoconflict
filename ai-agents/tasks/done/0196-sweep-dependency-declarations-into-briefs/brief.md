@@ -37,7 +37,7 @@ documents for itself.
 > task's scope, and **not to be fixed from here**; recorded so it is not copied forward.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer

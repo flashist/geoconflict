@@ -161,6 +161,16 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
 
 ## Notes
 
+- **Depends on:** `0065-citizenship-paid-live-verification` — per this brief's Status line the task
+  stays open pending it (live verification and the go-live tail); `0062` and `0014` gate `0065`, not
+  this brief. Beyond that live tail,
+  nothing blocks the mock build — restated 2026-08-23 by owner ruling in the
+  `## Dependencies` section above (left unedited): `0019-yandex-payments-impl` is Done and is the seam
+  to build against; the player profile store is available locally and that is sufficient; `0012`
+  (Personal Inbox) is explicitly NOT a blocker, its post-grant trigger stays a seam; and the Yandex
+  catalog item was struck through and moved to `0065`. `0021-analytics-p1-citizenship-funnel` is a
+  read-before-starting reference, not a gate. Full prose above; this bullet is the machine-readable
+  form beside it.
 - **Blocker record superseded 2026-08-23 (owner-ruled: "don't block on Yandex externals").** The two
   former blockers — `0062` (no profile row is ever created in prod: `ProfileApiClient.isConfigured()`
   false → `upsertProfile()` no-ops at `GameServer.ts:1217`; profile server fails closed on the empty

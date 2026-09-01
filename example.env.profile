@@ -96,3 +96,7 @@ PROFILE_BACKUP_RETENTION_WEEKLY_DAYS=56
 # PROFILE_BACKUP_S3_SECRET_KEY=  # S3 secret key for the above (T8)
 # FEEDBACK_TELEGRAM_TOKEN=       # operator bot token (task 0067) — same bot as the game
 #                                #   server's feedback sends; copy from the game .env.secret
+# YANDEX_PAYMENTS_SECRET=        # Yandex per-game payments secret key (HMAC), from the
+#                                #   Yandex Games dashboard once task 0014 registers the
+#                                #   catalog. BLANK IS SUPPORTED: /v1/payments/* fails
+#                                #   closed with 503; everything else keeps working.

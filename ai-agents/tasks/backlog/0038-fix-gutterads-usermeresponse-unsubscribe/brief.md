@@ -75,6 +75,12 @@ After this, the subscription is added exactly once per connection and removed ex
 
 ## Notes
 
+- **Depends on:** nothing. The brief asserts independence twice: the Context records this was not
+  fixed by the app-bootstrap refactor and is an independent bug, and the Notes bullet below calls the
+  sibling `0037-fix-fusetag-dead-polling-loop` independent and shippable together or separately. The
+  `## Out of scope` section defers the broader `userMeResponse` fire-once / no-replay concern until
+  after the app-bootstrap refactor lands — that is an exclusion from this task's scope, not a gate on
+  it. Full prose above; this bullet is the machine-readable form beside it.
 - `src/client/` only — no mandatory `src/core/` unit test; verify behaviourally per above.
 - Related: dead `initializeFuseTag` timer (`0037-fix-fusetag-dead-polling-loop`) is the sibling §2.6 cleanup — independent, can ship together or separately.
 - Effort: ~1 hour plus verification.

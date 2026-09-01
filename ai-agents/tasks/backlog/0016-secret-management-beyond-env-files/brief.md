@@ -37,3 +37,8 @@ Move operator and runtime secret handling beyond plaintext local env overlays.
 ## Outputs
 
 - roadmap for replacing local plaintext secret overlays
+
+## Notes
+
+- **Depends on:** nothing recorded — this brief asserts no gate anywhere in its text, and `0196`
+  transcribed rather than re-scoped it. Not an independent verification that none exist.

@@ -40,5 +40,12 @@ The Yandex Payments implementation (`0019-yandex-payments-impl`) requires the ca
 
 ## Notes
 
+- **Depends on:** Yandex catalog approval — an external gate, already in flight, which the Status line
+  records this task as awaiting (owner-ruled 2026-08-14). It is this task's only gate. On tasks:
+  no task — this is non-technical work performed by hand in the Yandex Games dashboard.
+  Nothing in this brief asserts a dependency on
+  another task; the `0019-yandex-payments-impl` relationship stated under `## Why This Cannot Wait`
+  runs the other way — this task gates that one's go-live, it is not gated by it. Full prose above;
+  this bullet is the machine-readable form beside it.
 - Do not put catalog item IDs or any dashboard credentials into git-tracked files.
 - The earned citizenship path (50 qualifying matches) is fully independent of this task and can ship before approval.

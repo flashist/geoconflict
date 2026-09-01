@@ -80,6 +80,10 @@ This is a passive visual; **verification is live visual QA, not analytics** — 
 ---
 
 ## Notes
+- **Depends on:** nothing. The brief asserts this twice in its own text: the Sprint field calls it an
+  independent client-side feature with no dependency on the citizenship/payments track, and the
+  Priority field reads self-contained, no blockers. Full prose above; this bullet is the
+  machine-readable form beside it.
 - Pure `src/client/` rendering change; no schema, no server, no core simulation — low risk, no desync surface.
 - `SAMRadiusLayer.ts` is the reference implementation for the layer pattern and the union-outline math; reuse it rather than rewriting.
 - Scope is intentionally Defense-Post-only — do not touch SAM behavior in this task.

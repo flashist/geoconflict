@@ -170,3 +170,14 @@ Not "done" because it deployed — done when a **controlled failure test** prove
 - Telemetry setup/deploy: `setup-telemetry.sh`, `build-deploy-telemetry.sh`
 - Wiki: `ai-agents/wiki-vault/wiki/systems/telemetry.md`, [[decisions/vps-credential-leak-response]]
 - Phase 2: `0034-monitoring-alert-bot-phase2`
+
+## Notes
+
+- **Depends on:** no task — this is Phase 1 of 2 and the direction runs outward:
+  `0034-monitoring-alert-bot-phase2` builds on the shared Telegram helper, on-box agent framework and
+  alert-state machinery delivered here. That is a Blocks fact, not a Depends on fact. The Sprint field
+  states only a scheduling note (recommend the next weekend deploy window; does not fit Sprint 4c
+  because that sprint takes no new backend infrastructure). The brief's one must-not-depend statement
+  is a design constraint rather than a prerequisite: the external dead-man's-switch must be independent
+  of our telemetry stack and Telegram proxy path. Full prose above; this bullet is the
+  machine-readable form beside it.

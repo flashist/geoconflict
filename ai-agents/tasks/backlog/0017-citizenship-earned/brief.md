@@ -155,6 +155,18 @@ verifying anything above. Execute once `0062` has shipped and a deploy has run:
 
 ## Notes
 
+- **Depends on:** `0062-forward-profile-internal-token-in-deploy` gates the `## Deferred Live Tail`
+  ONLY (prod XP accrual, live grant, the `0054` flip-ON), and per the Status line this task stays open
+  until that tail runs. Beyond that tail,
+  nothing blocks the build — restated 2026-08-23 by owner ruling in the
+  `## Dependencies` section above (left unedited), which states explicitly that this task does NOT
+  depend on `0014`, Yandex catalog approval, the secret key, or Yandex payments in any form. The
+  profile backend is available locally and that is sufficient to build and verify;
+  `0191-citizenship-xp-progress-ui` is Done and no longer a blocker; `0012` (Personal Inbox) is not
+  live but is wired through the `0019` post-grant no-op seam rather than blocked on, with verification
+  step 3 executing when `0012` lands; `0021-analytics-p1-citizenship-funnel` is a read-before-starting
+  reference, not a gate. Full prose above; this bullet is the machine-readable
+  form beside it.
 - **Blocker record corrected 2026-08-23 (owner-ruled: "don't block on Yandex externals; maximize
   what proceeds now").** The previous status — `🚧 Blocked — 0062, do not start until 0062 ships` —
   overstated `0062`'s reach. The `0062` chain is real and stays verified:

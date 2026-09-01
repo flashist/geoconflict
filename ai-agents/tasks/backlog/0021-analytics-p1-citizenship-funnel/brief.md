@@ -127,3 +127,14 @@ No event strings inline anywhere — always through the enum.
 5. Load the start screen as a guest player — confirm `UI:Tap:CitizenshipLoginToEarn` fires when the login CTA is tapped.
 6. Trigger the earned citizenship path in a test environment (manually credit 1,000 XP) — confirm `Citizenship:Earned:XP` fires once at the server-side grant, not on each XP increment.
 7. Confirm all enum keys and event strings appear in `ai-agents/knowledge-base/analytics-event-reference.md`.
+
+## Notes
+
+- **Depends on:** the four tasks named in the brief's `## Dependencies` section above (left unedited)
+  — `0166-start-screen-redesign-impl`, `0191-citizenship-xp-progress-ui`, `0018-citizenship-paid` and
+  `0017-citizenship-earned` — though that section states the relationship as ownership rather than
+  blocking: each of those tasks is responsible for implementing the events listed against it, and this
+  brief is the shared analytics spec they must read before writing any citizenship UI or server code.
+  The Sprint field reinforces this, saying to implement inside each citizenship UI task, not after.
+  Transcribed as the brief records it; `0196` did not re-scope the direction of the relationship. Full
+  prose above; this bullet is the machine-readable form beside it.

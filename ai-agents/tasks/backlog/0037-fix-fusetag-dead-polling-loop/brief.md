@@ -69,6 +69,10 @@ Fuse/Publift ads are currently **intentionally disabled** (script commented out 
 
 ## Notes
 
+- **Depends on:** nothing. The brief asserts independence twice: the Context records this was not
+  fixed by the app-bootstrap refactor and is an independent bug, and the Notes bullet below calls the
+  sibling `0038-fix-gutterads-usermeresponse-unsubscribe` an independent fix that can ship together or
+  separately. Full prose above; this bullet is the machine-readable form beside it.
 - `src/client/` only — no mandatory `src/core/` unit test, but confirm no regression in the ad/GutterAds path.
 - Related: the `GutterAds` `userMeResponse` unsubscribe bug (`0038-fix-gutterads-usermeresponse-unsubscribe`) is the sibling §2.6 cleanup — independent fix, can ship together or separately.
 - Effort: ~30 minutes plus verification.

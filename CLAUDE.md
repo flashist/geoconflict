@@ -176,6 +176,39 @@ npm run test:coverage             # Coverage report
 
 **Important**: All code changes in `src/core/` MUST be tested.
 
+### ⚠️ Known flake — `supertest` suites (one shape confirmed; not a bug)
+
+**Where:** every suite that uses `supertest` — the four `tests/profile-server/*Routes.test.ts`,
+`tests/server/Master.test.ts`, and `tests/integration/{Routes,NameChange}.it.test.ts`. Measured at
+**~4–7 % of full runs** across the four profile-server suites (task `0200`).
+
+| Shape | Status |
+|---|---|
+| `Exceeded timeout of 5000 ms` — jest's default clock, not a real 5 s wait | **confirmed**, traced |
+| `Jest did not exit one second after…` | **confirmed** — the *same* defect, not a second one |
+| `socket hang up` | seen, **never traced** — may be a different sub-mechanism |
+| unexpected `404` · `access-control-allow-origin` → `undefined` · `401` on a route with no auth middleware | seen historically, **mechanism unknown** — each carries a response, which the confirmed mechanism cannot produce |
+
+**Confirmed mechanism — timeout shape only — and not a repository defect:** the client's TCP handshake
+completes, the server never accepts, no response or error arrives. Reproduces in ~40 lines of plain
+Node, no jest/express/project code. supertest closes its server only in the response callback, so a
+lost request leaks the listener — hence `did not exit`. ⚠️ **It reaches the integration suites too**:
+`0197` logged a `socket hang up` in `NameChange.it.test.ts` as this family, so read a hang there as
+*possibly this* — the no-`--forceExit` rule below is about leaked `pg` handles, a different thing.
+
+**Rule out `0197`'s segfault first** (~0.5 %/run): `signal=SIGSEGV`, or a
+`~/Library/Logs/DiagnosticReports/node-*.ips` **whose stack starts at
+`ClearStaleLeftTrimmedPointerVisitor`**. Either ⇒ `0197`. Neither ⇒ this is *likely, not certain* (per
+`0197`, a red run stays ambiguous). **Never give the two one root cause** — `0068` misrecorded this as
+a `SIGSEGV` and it cost `0197` a wrong turn. Otherwise **re-run, and say that you re-ran**.
+
+**Refuted as flake fixes — do not re-attempt** (`0200`): shared server per suite · awaiting
+`listening` · guaranteeing `close` · IPv4-bound listen · `--runInBand` · raising the timeout. ⚠️
+Exception: guaranteeing `close` *does* fix the `did not exit` leak — declined on cost (~95 call
+sites), not because it fails. **No retry, ever.** ⚠️ One host, no CI: "not a repository defect" is
+what stands after every alternative was refuted, not a proof. Rates, traces and the reproducer:
+`ai-agents/knowledge-base/reports/2026-09-01-0200-supertest-flake-findings.md`.
+
 ### Integration tests (real Postgres)
 
 The DB-backed suites in `tests/integration/**/*.it.test.ts` are excluded from `npm test`. Run them

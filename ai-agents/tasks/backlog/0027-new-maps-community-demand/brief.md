@@ -34,3 +34,11 @@ Both briefs are intentionally deferred until Sprint 5 is underway.
 ## Next Step
 
 When Sprint 5 begins, write proper implementation briefs for Sprint 6 Task 1 and Task 2 using the selection criteria and pricing notes already in `plan-sprint-6.md`.
+
+## Notes
+
+- **Depends on:** a timing gate, not a task — the brief defers its own next step until Sprint 5 is
+  underway ("Sprint 6 — Backlog (revisit when Sprint 5 is underway)"; "Both briefs are intentionally
+  deferred until Sprint 5 is underway"). It is a tracker with no implementation scope yet, and no
+  engineering prerequisite is asserted anywhere in its text. Full prose above; this bullet is the
+  machine-readable form beside it.

@@ -79,6 +79,14 @@ Sources:
 ---
 
 ## Notes
+- **Depends on:** two hard blockers, flattened from the `## Dependencies (hard blockers)` numbered list
+  above (left unedited): (1) the citizenship feature must exist, to gate archival to citizen games only
+  — see `0017-citizenship-earned` and `0018-citizenship-paid`; and (2) an S3-compatible bucket plus
+  credentials must be provisioned into the existing `storageEndpoint` / `storageBucket` /
+  `storageAccessKey` / `storageSecretKey` config slots via the deploy config, following the
+  post-incident secret-handling rules (variable names only, never values, in git-tracked files). The
+  Sprint field additionally sequences this after the player profile store lands. Full prose above; this
+  bullet is the machine-readable form beside it.
 - Primarily infra, but the citizen-gating and re-enable code are required too — this is
   not infra-only.
 - Coordinate the schedule with the citizenship rollout so archival turns on at the same
