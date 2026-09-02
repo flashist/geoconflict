@@ -74,3 +74,4 @@ The other seven: no pre-match icon in public quick-play (there is no public-lobb
 - [[decisions/yandex-invite-portal-boundary]] — task `0199`, the product question `0198` surfaced and left open
 - [[tasks/hide-citizenship-card-flag]] — task `0054`, the flag hiding the wider citizenship surface
 - [[decisions/sprint-4]] — the sprint board carrying this task
+- [[tasks/supertest-profile-server-flake]] — task `0200`, the flake this task's `review.md` misrecorded as a `SIGSEGV`; that misrecording is the cost `0200` exists to stop repeating

@@ -107,4 +107,5 @@ to `0010` / `0011`; not this task's scope.
 - [[systems/project-brief]] — carries the paid-IAP licensing gate this audit was the prerequisite for
 - [[decisions/sprint-backlog]] — the board holding `0073`, the task that owns the open H3 residual
 - [[tasks/prod-api-env-https-apex]] — task `0063`, whose close-out carries the `362a2f9`
+- [[tasks/dependency-declaration-sweep]] — task `0196`; this task's close is why its board-visible count re-derived as 7 rather than the filed 8
   production-deploy evidence the V1/A1 checks were run against

@@ -33,3 +33,4 @@ Review closed (`review.md` `Status: closed-out`; round 1 — 2 low defects fixed
 - [[systems/networking]] — `Master.ts` worker coordination and the `/api/public_lobbies` surface
 - [[decisions/sprint-4]] — the sprint board carrying the outage track (`0055`/`0056`/`0057`)
 - [[decisions/sprint-backlog]] — the outage follow-ups that stayed unsprinted (`0058`, `0059`)
+- [[tasks/container-log-retention]] — task `0060`, which extends the log window these diagnostics are written into; they are only useful if the logs holding them survive

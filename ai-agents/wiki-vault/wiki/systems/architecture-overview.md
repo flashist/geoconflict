@@ -171,3 +171,4 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 - [[tasks/private-lobby-start-url]] — task `0198`, the task that produced that §5 rule and §9 table; closed 2026-08-30 on local proof only
 - [[tasks/test-suite-reliability-investigation]] — task `0197`, source of the test-toolchain facts in the build/run/test section and of R2's concrete cost
 - [[tasks/prod-api-env-https-apex]] — task `0063`, whose deploy (`362a2f9`) is the release this survey's post-2026-08-28 deploy notes refer to
+- [[tasks/supertest-profile-server-flake]] — task `0200`, which ran into the same "no CI, one host" ceiling this survey records; its "not a repository defect" verdict rests on refutation, not on a second machine

@@ -65,3 +65,4 @@ Naming is `<subject>.md`, **never dated** — a dated filename means "a record o
 - [[decisions/fkit-transfer-blueprint]] — the toolkit these conventions ship with
 - [[decisions/sprint-backlog]] — where the legacy status-marker reconciliation task is filed
 - [[decisions/adr-108-active-sprint-pointer]] — why "the active sprint" must be owner-set rather than derived, and the interim rule to ask for status **by name**
+- [[tasks/dependency-declaration-sweep]] — task `0196`, which swept the canonical `**Depends on:**` declaration into the briefs that lacked one, so the board stops rendering a fabricated `ready`

@@ -77,3 +77,4 @@ So the host attribute **flips from the raw IP to the apex domain exactly at the 
 - [[decisions/licensing-compliance]] — the licensing posture whose paid-IAP gate that deploy satisfies
 - [[systems/architecture-overview]] — the survey whose post-2026-08-28 deploy notes refer to this release
 - [[tasks/licensing-asset-audit]] — task `0025`, whose V1/A1 production checks were run against this release
+- [[tasks/yandex-payments-secret-forwarding]] — task `0195`, the next item on the same owner-ruled config-track order; unlike this one it has no production evidence at all

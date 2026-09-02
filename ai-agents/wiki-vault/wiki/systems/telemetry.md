@@ -192,3 +192,4 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the outage whose 150 MB shared log budget nearly cost the investigation window, and the track that produced the corrected transport claim
 - [[decisions/sprint-4]] — the sprint carrying that outage track
 - [[tasks/prod-api-env-https-apex]] — task `0063`, whose last deploy pending was discharged here: **OTEL normalizes the dot in `openfront.host` to an underscore, so the Uptrace attribute to group on is `openfront_host`**
+- [[tasks/container-log-retention]] — task `0060`: container-log retention now lives in `update.sh`, and shipping logs off-box through the existing otel-collector was **explicitly left out of scope** — the pieces exist, the work does not

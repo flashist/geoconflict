@@ -81,9 +81,16 @@ Per owner ruling A2, **no segfault mitigation was purchased** — no `--maxWorke
 
 `npm test` **107 suites / 1075 tests, exit 0**; `npm run test:integration` **5 suites / 70 tests, exit 0** with **no `Force exiting Jest` line**; the `TEST_DATABASE_URL` guard rejects unset / empty / whitespace-only / tab+newline; `tsc --noEmit` and `npm run lint` both **0**; credential scan clean. Six review findings, **all verdict CORRECT, none disputed** — four fixed, R3 and R4 accepted as residuals by owner ruling (both err *conservatively*, making this task's own evidence look weaker rather than stronger). Round 2 verified every fix independently, none on assertion.
 
-**Split out and still open — `0200`** (owner amendment A4): the `supertest` profile-server flake. **9 failures in 170 runs, ~5.3 %** of every run containing a supertest suite, all nine landing in the four `supertest`-based `tests/profile-server/*` suites — the only four in the repository that use it. Four symptoms (`socket hang up`, 5 s timeouts, unexpected `404`s, a missing `access-control-allow-origin`) suspected to be one transient localhost HTTP failure between supertest's ephemeral server and its client; the `404`s are **not** route-registration bugs. It reproduces on Node 20, 22 and 24 alike, so it is unrelated to the segfault's Node question. **Unlike the segfault it is in our own code, at roughly ten times the rate** — the actionable one of the two.
+**Split out — `0200`** (owner amendment A4): the `supertest` profile-server flake. **9 failures in 170 runs, ~5.3 %** of every run containing a supertest suite, all nine landing in the four `supertest`-based `tests/profile-server/*` suites. Symptoms: `socket hang up`, 5 s timeouts, unexpected `404`s, a missing `access-control-allow-origin`, and a `401` added later — suspected at the time to be one transient localhost HTTP failure between supertest's ephemeral server and its client; the `404`s are **not** route-registration bugs. It reproduces on Node 20, 22 and 24 alike, so it is unrelated to the segfault's Node question. **`0200` closed 2026-09-01** — see [[tasks/supertest-profile-server-flake]].
 
-**Still open beyond `0200`:** `.env.test` has not been created (the coder documented the variable name only, per the no-values rule), and the V8 defect itself is upstream — if it becomes frequent, the five crash reports are the artifact to attach to a Node/V8 bug report.
+> 🔧 **CORRECTED 2026-09-02 from `0200`'s own findings — two claims this paragraph carried were FALSE, and both are preserved here struck rather than deleted so the correction is auditable.**
+>
+> 1. ~~"the only four in the repository that use it"~~ — **FALSE. Seven** test files import `supertest`, including **`tests/server/Master.test.ts` on the default `npm test` path** and both `tests/integration/*` suites. The observation above it is unchanged and still holds — all nine measured failures did land in those four suites — but "confined to profile-server" is an **observed distribution, not a structural boundary**.
+> 2. ~~"unlike the segfault it is in our own code"~~ — **FALSE.** `0200` confirmed the mechanism at the socket-API level and it is **not a repository defect**: it reproduces in ~40 lines of plain Node with no jest, no express and no project code. **Both** test-reliability problems turned out to be outside this repository. `0200`'s row also carries an `🏁 OUTCOME` note recording that its promotion premise — the more actionable of the two, because it is ours — was wrong.
+>
+> Also corrected: the symptom count is **five, not four** (a `401` on a route with no auth middleware was added 2026-09-01). **`0200` shipped no code fix**; every candidate was measured and refuted. Two shapes — that `401` and the `socket hang up` — remain **untraced and must never be recorded as explained**.
+
+**Still open beyond `0200`'s close:** `.env.test` has not been created (the coder documented the variable name only, per the no-values rule), and the V8 defect itself is upstream — if it becomes frequent, the five crash reports are the artifact to attach to a Node/V8 bug report.
 
 🔒 **This whole task is *about* a connection-string variable.** Variables and filenames only appear anywhere in its record; no value does.
 
@@ -93,4 +100,5 @@ Per owner ruling A2, **no segfault mitigation was purchased** — no `--maxWorke
 - [[tasks/citizenship-name-change]] — task `0067`, where the symptoms were first observed
 - [[systems/architecture-overview]] — the survey's build/run/test section and the "no CI, one host" ceiling this investigation ran into
 - [[decisions/windoworigin-url-join-defect]] — task `0198`, which carried the `0197` segfault as an accepted residual
+- [[tasks/supertest-profile-server-flake]] — task `0200`, the split-out flake; its findings corrected the two claims struck above
 - [[decisions/sprint-4]] — the sprint board carrying this task and its `0200` follow-up
