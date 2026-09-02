@@ -11,7 +11,8 @@ File(s) under review:
 - `ai-agents/knowledge-base/container-log-retention.md` (new)
 - `worklog.md` (new)
 
-Status: in-review
+Status: closed-out (round 1 — F1–F8 all dispositioned: 7 fixed, F5 an accepted residual by owner ruling, 2026-09-01)
+⚠️ **F6 carried no owner disposition** — the relay skipped it; the coder verified it independently and applied it as an obvious winner, **flagged for owner confirmation** (worklog decision `D6`). This closeout records that state; it does **not** supply the missing owner ruling.
 
 > **Finding ids use an `F` prefix, deliberately.** `plan.md` already owns `R1`–`R5` as **owner ruling**
 > ids. Numbering findings `R1…` would collide with them in every later discussion. `F1`–`F8` below are

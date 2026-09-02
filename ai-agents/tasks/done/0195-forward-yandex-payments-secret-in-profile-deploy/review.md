@@ -2,7 +2,7 @@
 
 Task: `ai-agents/tasks/backlog/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md`
 File(s) under review: `build-deploy-profile.sh`, `example.env.profile`, `tests/scripts/profile-deploy-hardening.test.sh` (working tree, uncommitted)
-Status: in-review
+Status: closed-out (round 1 — R1 and R2 both dispositioned and fixed inside `0195` by owner ruling, 2026-09-01)
 
 **Round 1 verdict: ⚠️ Changes requested — 2 defects (none blocking).**
 **Codex coverage: FULL.** Both reviewers ran. Codex (`codex-cli 0.145.0`, model `gpt-5.5`, `--sandbox read-only`) completed and returned one finding plus a checked-and-holds list. No degradation flag applies.

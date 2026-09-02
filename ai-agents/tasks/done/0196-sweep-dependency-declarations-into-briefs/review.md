@@ -4,7 +4,7 @@ Task: `ai-agents/tasks/done/0196-sweep-dependency-declarations-into-briefs/brief
 File(s) under review: the 30 modified `ai-agents/tasks/backlog/*/brief.md` in the uncommitted working
 tree (`ai-agents/sprints/plan-sprint-4.md` and `0196/brief.md` are the driver's own status flip and are
 out of scope — verified as exactly one `🔲 Backlog` → `🔄 In progress` line each, nothing else).
-Status: in-review
+Status: closed-out (round 1 — R1–R5 all dispositioned by owner ruling 2026-09-01: R2/R3/R5 corrected (D1), R1 reordered gate-first (D2), R4 an accepted residual (D3, recorded below — do not re-raise))
 
 **Verdict (round 1): ⚠️ Changes requested — 3 defects (none blocking).** Plus 2 findings classified as
 frontier-moves that are the owner's call, not the coder's. Reviewer coverage is **FULL** — both this

@@ -11,7 +11,9 @@ Sprint 4
 
 The three sibling board-hygiene sweeps (`0050`, `0051`, `0053`) are all `Unscheduled`, and this task
 looks like one of them. It is not quite: those repair **legacy/historical** records, while this one
-repairs **live rows on the active Sprint 4 board** — `0018` and `0025` — that the sprint ship-loop's
+repairs **live rows on the active Sprint 4 board** — `0018` and `0025` ⚠️ *(corrected 2026-09-01:
+`0025` had closed by the time this task ran, leaving `0018` the only live Sprint 4 row — see the
+correction in Context)* — that the sprint ship-loop's
 eligibility check is reading *this week*. The failure mode is also the worse-signed one: not a missing
 answer but a **fabricated** one (see Context). Nothing player-facing and nothing in production is at
 risk, so it is not High.
@@ -94,6 +96,16 @@ actively misleading a reader right now:
 
 Two of the 8 — **`0018`** (Citizenship Core — Paid Citizenship) and **`0025`** (Asset audit) — are
 **live Sprint 4 rows**.
+
+⚠️ **Correction 2026-09-01 — the two facts immediately above are one task out of date.** `0025` closed
+to `ai-agents/tasks/done/0025-licensing-asset-audit/` before this task ran, so its row stopped emitting
+the fact. Re-derived on the day the sweep ran, the board-visible-today set was **7, not 8**
+(`plan-sprint-4.md`: `0012`, `0014`, `0017`, `0018`, `0030`, `0032`; `plan-sprint-6.md`: `0027`), and
+**`0018` was the only live Sprint 4 row in it**. The 2026-08-28 measurement above is left exactly as
+filed — it was correct on that date. Every count of 8 elsewhere in this brief reads against that same
+dated measurement. **Scope is untouched by this correction**: the owner's 2026-08-28 ruling was all
+no-declaration briefs, the sweep covered 30, and the unreconcilable 31 → 30 gap stands as recorded
+below. Source: this task's own `worklog.md` §1 and §7.
 
 **(2) 31 briefs under `tasks/backlog/` carry no declaration of any form** — the superset, and **the
 agreed scope** (see the ruling below). Most are not currently linked from any board, so no sentinel is
@@ -199,7 +211,9 @@ why step 5 exists and is not optional.
 
 - **Depends on:** nothing. Documentation-only, independently shippable today.
 - **Blocks:** nothing directly, but it is what makes `/fkit-status` and the sprint ship-loop's
-  eligibility check trustworthy on `0018` and `0025` — both live Sprint 4 rows — so it is worth doing
+  eligibility check trustworthy on `0018` and `0025` — both live Sprint 4 rows when this was filed;
+  ⚠️ *corrected 2026-09-01: `0025` had closed by the time this task ran, leaving `0018` the only live
+  Sprint 4 row — see the correction in Context* — so it is worth doing
   before the next ship-loop pass over Sprint 4.
 - **Related:** `0064` (was board-invisible until a row was added 2026-08-24 — the same class),
   `0065` (its prose `## Dependencies` section converted to the canonical bullet — the worked precedent

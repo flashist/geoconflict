@@ -6,7 +6,8 @@ File(s) under review:
 - `ai-agents/knowledge-base/reports/2026-09-01-0200-supertest-flake-findings.md` (new)
 - `ai-agents/tasks/backlog/0200-supertest-profile-server-flake-confirm-and-fix/worklog.md` (new)
 
-Status: in-review
+Status: closed-out (round 1 — R1–R10 all dispositioned: 9 accepted in full, R10 in part with recorded evidence, 0 disputed; owner ruled the reproducer inlined into the report and `CLAUDE.md` trimmed, 2026-09-01)
+⚠️ Two items under "Surfaced, not taken" are **carried, not closed** — they are not findings: the integration-section cross-reference (owner/driver) and `0200`'s brief still asserting "the only four" (producer). The "Accepted residuals" placeholder at the foot of this file was never filled in and is stale.
 
 **Round 1.** Reviewers run: **fkit-reviewer (Claude)** + **Codex adversarial pass** (`codex-cli 0.152.0`,
 `--sandbox read-only`) — **both completed, coverage is full**.
@@ -324,4 +325,20 @@ the producer's at close. **Carried, not fixed.**
 
 ## Accepted residuals (shared, do-not-re-litigate)
 
-_(none yet — added once the owner disposes of the proportionality question and R8)_
+- **R10 — the half not accepted: the 2 000 ms vs 5 000 ms threshold confound does NOT weaken H-D's
+  refutation.** The valid half was applied (§3.3 now names the threshold difference as a live
+  explanation for the 4× harness-vs-jest rate gap). The reviewer's further suggestion — that the
+  watchdog runs only *partially* cover the confound — was argued down on evidence and the owner let
+  the coder's position stand: all five `--runInBand` hang runs ran to the **complete 90 s watchdog**
+  (90/90/90/90/91 s), so the request never completed at *either* threshold; had it completed,
+  supertest's response callback would have closed the server and let jest exit. The threshold affects
+  only how many hangs the standalone harness *counts*, and it cancels entirely in the A–G variant
+  comparison where the threshold is identical across all six arms. **H-D's refutation stands
+  unweakened and was not softened. Do not re-raise.**
+- **Proportionality of the `CLAUDE.md` note — settled, not a defect.** Ruled by the owner 2026-09-01:
+  **trim the note and move detail to the report.** Applied — 42 → 32 content lines (12.4 % → 9.7 % of
+  the file) while carrying *more* caveats than before. The reviewer's own framing ("justified in kind,
+  oversized in execution") is now spent. **Do not re-open the note's length.**
+- **R8 — where the reproducer lives: settled.** Ruled by the owner 2026-09-01: **inline the reproducer
+  into the findings report** (landed as report §9), and the dangling `scratchpad/` path removed from
+  `worklog.md`. Preservation-location was the open question and it is answered. **Do not re-raise.**

@@ -244,7 +244,9 @@ open `pg` handles was investigated in task `0197` and did **not** hold up: every
 closed, `--detectOpenHandles` reports nothing, and the suite exits on its own in ~3 s against both a
 warm and a genuinely cold database. `--forceExit` was removed so that if a real handle leak is ever
 introduced, it shows up as a hang you can see instead of being silently masked. **If this suite starts
-hanging, that is a real regression — investigate it, don't add the flag back.**
+hanging, that is a real regression — investigate it, don't add the flag back.** ⚠️ One caveat, not a
+loophole: `Routes.it.test.ts` and `NameChange.it.test.ts` use `supertest`, so check the known-flake
+signature above first — if it doesn't match, this is a real regression and the rule applies in full.
 
 > **This subsection is the single source of truth for running these tests.** The worklogs of tasks
 > `0012` and `0018` disagree with each other on the test database name; prefer this document over
