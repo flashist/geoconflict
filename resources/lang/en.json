@@ -624,6 +624,7 @@
     "died": "You died",
     "your_team": "Your team won!",
     "other_team": "{team} team has won!",
+    "bot_team": "The bots have won!",
     "you_won": "You Won!",
     "other_won": "{player} has won!",
     "opponent_won_title": "You lost",

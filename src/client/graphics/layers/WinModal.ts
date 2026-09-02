@@ -3,7 +3,7 @@ import { customElement, state } from "lit/decorators.js";
 import { translateText } from "../../../client/Utils";
 import { ColorPalette, Pattern } from "../../../core/CosmeticSchemas";
 import { EventBus } from "../../../core/EventBus";
-import { GameType } from "../../../core/game/Game";
+import { ColoredTeams, GameType } from "../../../core/game/Game";
 import { GameUpdateType, WinUpdate } from "../../../core/game/GameUpdates";
 import { GameView } from "../../../core/game/GameView";
 import { AllPlayersStats, PlayerParticipation } from "../../../core/Schemas";
@@ -398,6 +398,26 @@ export class WinModal extends LitElement implements Layer {
           //
           flashist_logEventAnalytics(
             flashistConstants.analyticEvents.GAME_WIN
+          );
+
+        } else if (wu.winner[1] === ColoredTeams.Bot) {
+          // Reached only in a non-tutorial singleplayer Team-mode match, and
+          // only when the solo-loss screen was skipped because the player is
+          // already dead (isSoloOpponentWin's hasShownDeathModal / !isAlive
+          // disjuncts) or there is no local player. checkWinnerTeam() is the
+          // only producer of a "team" winner and it declares a Bot-team win
+          // only when gameType is Singleplayer; a tutorial cannot reach here at
+          // all, because the tutorial runs gameMode FFA (Main.ts) and so never
+          // calls checkWinnerTeam().
+          // "Bot" is a raw enum value, not a translatable team name, so show a
+          // dedicated loss title instead of "{team} team has won!". Task 0022.
+          this._title = translateText("win_modal.bot_team");
+          this._body = "";
+          this.isWin = false;
+
+          //
+          flashist_logEventAnalytics(
+            flashistConstants.analyticEvents.GAME_LOSS
           );
 
         } else {

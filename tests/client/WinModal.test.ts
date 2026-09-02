@@ -189,6 +189,76 @@ describe("WinModal solo opponent wins", () => {
   });
 });
 
+// Task 0022 — risk 3. A singleplayer Team match can legitimately end with the
+// Bot team winning. A live player gets the solo-loss screen; a player who
+// already died falls through to the team branch, which used to render the raw
+// untranslated enum value ("Bot team has won!").
+describe("WinModal Bot team wins", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("shows a dedicated bot loss title when the player already died", async () => {
+    const eventBus = { emit: jest.fn() };
+    const modal = await appendModal({
+      eventBus,
+      game: createGame({
+        gameType: GameType.Singleplayer,
+        isAlive: false,
+        isTutorial: false,
+        winUpdates: [
+          {
+            type: GameUpdateType.Win,
+            winner: ["team", "Bot"],
+            allPlayersStats: {},
+          },
+        ],
+      }),
+    });
+
+    modal.tick();
+    await flushLit(modal);
+
+    expect(modal.textContent).toContain("win_modal.bot_team");
+    expect(modal.textContent).not.toContain("win_modal.other_team");
+    expect(flashist_logEventAnalytics).toHaveBeenCalledWith(
+      flashistConstants.analyticEvents.GAME_LOSS,
+    );
+  });
+
+  // Control: any other team still renders the normal "{team} team has won!"
+  // copy, so the case above is not just asserting a missing string.
+  it("still shows the generic other-team title for a non-bot team", async () => {
+    const eventBus = { emit: jest.fn() };
+    const modal = await appendModal({
+      eventBus,
+      game: createGame({
+        gameType: GameType.Singleplayer,
+        isAlive: false,
+        isTutorial: false,
+        winUpdates: [
+          {
+            type: GameUpdateType.Win,
+            winner: ["team", "Red"],
+            allPlayersStats: {},
+          },
+        ],
+      }),
+    });
+
+    modal.tick();
+    await flushLit(modal);
+
+    expect(modal.textContent).toContain("win_modal.other_team");
+    expect(modal.textContent).not.toContain("win_modal.bot_team");
+  });
+});
+
 describe("WinModal exit to menu", () => {
   beforeEach(() => {
     document.body.innerHTML = "";

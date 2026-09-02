@@ -57,6 +57,7 @@ describe("WinCheckExecution", () => {
     const player = {
       numTilesOwned: jest.fn(() => 81),
       name: jest.fn(() => "P1"),
+      clientID: jest.fn(() => "client1"),
     };
     mg.players = jest.fn(() => [player]);
     mg.numLandTiles = jest.fn(() => 100);
@@ -69,6 +70,7 @@ describe("WinCheckExecution", () => {
     const player = {
       numTilesOwned: jest.fn(() => 10),
       name: jest.fn(() => "P1"),
+      clientID: jest.fn(() => "client1"),
     };
     mg.players = jest.fn(() => [player]);
     mg.numLandTiles = jest.fn(() => 100);
@@ -85,6 +87,30 @@ describe("WinCheckExecution", () => {
     }
     winCheck.checkWinnerFFA();
     expect(mg.setWinner).toHaveBeenCalledWith(player, expect.any(Object));
+  });
+
+  // Task 0022 — risk 1. A clientless leader (Bot *or* FakeHuman nation) used to
+  // be declared the winner, which made GameImpl.makeWinner() return undefined
+  // and permanently deactivated the win check. The timer branch is the likelier
+  // live trigger (private lobbies set maxTimerValue), so it gets its own case.
+  it("does not declare a clientless FFA leader on the timer branch and keeps the check alive", () => {
+    mockTimerExpiredFfa(mg, null);
+
+    winCheck.checkWinnerFFA();
+
+    expect(mg.setWinner).not.toHaveBeenCalled();
+    expect(winCheck.isActive()).toBe(true);
+  });
+
+  // Control for the case above: identical situation, human leader. Proves the
+  // timer branch really does fire here, so the absence assertion is not vacuous.
+  it("still declares a human FFA leader on the timer branch", () => {
+    const leader = mockTimerExpiredFfa(mg, "client1");
+
+    winCheck.checkWinnerFFA();
+
+    expect(mg.setWinner).toHaveBeenCalledWith(leader, expect.anything());
+    expect(winCheck.isActive()).toBe(false);
   });
 
   it("should not set winner if no players", () => {
@@ -163,21 +189,54 @@ describe("WinCheckExecution", () => {
     expect(result.data?.info.winner).toEqual(["opponent", "winner_fakehuman"]);
   });
 
-  it("keeps public FFA clientless winners on the pre-existing undefined winner path", async () => {
-    const { winUpdates } = await clientlessFfaWinUpdates(GameType.Public);
+  // Task 0022 — risk 1, territory branch. This case previously asserted the
+  // opposite ("keeps public FFA clientless winners on the pre-existing
+  // undefined winner path"): a Win update carrying winner === undefined, which
+  // the client silently discards and which costs the whole match its XP credit.
+  // Now no Win update is emitted at all and the check stays active.
+  it("emits no win update for a public FFA clientless winner and keeps the check alive", async () => {
+    const { winUpdates, execution } = await clientlessFfaWinUpdates(
+      GameType.Public,
+    );
 
-    expect(winUpdates).toHaveLength(1);
-    expect(winUpdates[0].winner).toBeUndefined();
+    expect(winUpdates).toHaveLength(0);
+    expect(execution.isActive()).toBe(true);
   });
 
+  it("emits no win update for a private FFA clientless winner and keeps the check alive", async () => {
+    const { winUpdates, execution } = await clientlessFfaWinUpdates(
+      GameType.Private,
+    );
+
+    expect(winUpdates).toHaveLength(0);
+    expect(execution.isActive()).toBe(true);
+  });
+
+  // Control for the two cases above: same real-game setup, but the leader is
+  // the human. Proves the threshold really is crossed, so the absence
+  // assertions above are not vacuous.
+  it("still declares a human public FFA winner over the threshold", async () => {
+    const { winUpdates, execution, humanClientId } = await humanFfaWinUpdates(
+      GameType.Public,
+    );
+
+    expect(winUpdates).toHaveLength(1);
+    expect(winUpdates[0].winner).toEqual(["player", humanClientId]);
+    expect(execution.isActive()).toBe(false);
+  });
+
+  // Behaviour change called out for review: the guard mirrors
+  // GameImpl.makeWinner()'s condition, which excludes tutorials. Previously a
+  // tutorial emitted a Win update with winner === undefined and killed its own
+  // win check; now it emits nothing and the check stays alive.
   it("does not emit an explicit opponent winner for tutorial clientless winners", async () => {
-    const { winUpdates } = await clientlessFfaWinUpdates(
+    const { winUpdates, execution } = await clientlessFfaWinUpdates(
       GameType.Singleplayer,
       true,
     );
 
-    expect(winUpdates).toHaveLength(1);
-    expect(winUpdates[0].winner).toBeUndefined();
+    expect(winUpdates).toHaveLength(0);
+    expect(execution.isActive()).toBe(true);
   });
 
   it("should return false for activeDuringSpawnPhase", () => {
@@ -185,9 +244,38 @@ describe("WinCheckExecution", () => {
   });
 });
 
-async function clientlessFfaWinUpdates(
+/**
+ * Task 0022 helper: mock an FFA game whose timer has expired but whose leader
+ * is far below the territory threshold, so only the timer branch can fire.
+ * Pass a clientID of null for a Bot / FakeHuman leader.
+ */
+function mockTimerExpiredFfa(mg: any, clientID: string | null) {
+  const leader = {
+    numTilesOwned: jest.fn(() => 10),
+    name: jest.fn(() => "leader"),
+    clientID: jest.fn(() => clientID),
+  };
+  mg.players = jest.fn(() => [leader]);
+  mg.numLandTiles = jest.fn(() => 100);
+  mg.numTilesWithFallout = jest.fn(() => 0);
+  mg.stats = jest.fn(() => ({ stats: () => ({ mocked: true }) }));
+  mg.ticks = jest.fn(() => 100000);
+  mg.config = jest.fn(() => ({
+    gameConfig: jest.fn(() => ({
+      gameMode: GameMode.FFA,
+      gameType: GameType.Private,
+      maxTimerValue: 1,
+    })),
+    percentageTilesOwnedToWin: jest.fn(() => 80),
+    numSpawnPhaseTurns: jest.fn(() => 0),
+  }));
+  return leader;
+}
+
+async function ffaWinUpdates(
   gameType: GameType,
-  isTutorial = false,
+  isTutorial: boolean,
+  winnerIsClientless: boolean,
 ) {
   const humanInfo = new PlayerInfo(
     "human",
@@ -217,7 +305,9 @@ async function clientlessFfaWinUpdates(
     game.executeNextTick();
   }
 
-  const fakeHuman = game.player(fakeHumanInfo.id);
+  const winner = winnerIsClientless
+    ? game.player(fakeHumanInfo.id)
+    : game.player(humanInfo.id);
   const targetTiles = Math.floor(game.numLandTiles() * 0.82);
   let conqueredTiles = 0;
   game.forEachTile((tile) => {
@@ -226,7 +316,7 @@ async function clientlessFfaWinUpdates(
       game.map().isLand(tile) &&
       !game.map().hasOwner(tile)
     ) {
-      fakeHuman.conquer(tile);
+      winner.conquer(tile);
       conqueredTiles++;
     }
   });
@@ -237,6 +327,16 @@ async function clientlessFfaWinUpdates(
 
   return {
     game,
+    execution,
+    humanClientId: humanInfo.clientID,
     winUpdates: (game as any).updates[GameUpdateType.Win],
   };
+}
+
+async function clientlessFfaWinUpdates(gameType: GameType, isTutorial = false) {
+  return ffaWinUpdates(gameType, isTutorial, true);
+}
+
+async function humanFfaWinUpdates(gameType: GameType, isTutorial = false) {
+  return ffaWinUpdates(gameType, isTutorial, false);
 }

@@ -56,6 +56,21 @@ export class WinCheckExecution implements Execution {
       (this.mg.config().gameConfig().maxTimerValue !== undefined &&
         timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0)
     ) {
+      // FFA and Team share one policy: a clientless leader (a Bot *or* a
+      // FakeHuman nation) is never declared the winner outside a non-tutorial
+      // singleplayer game. Mirrors GameImpl.makeWinner()'s condition, which
+      // would otherwise return an undefined winner and silently end nothing.
+      // Returning *before* `this.active = false` keeps the check alive so a
+      // human can still win the match later. See task 0022.
+      if (max.clientID() === null) {
+        const gameConfig = this.mg.config().gameConfig();
+        if (
+          gameConfig.gameType !== GameType.Singleplayer ||
+          gameConfig.isTutorial === true
+        ) {
+          return;
+        }
+      }
       this.mg.setWinner(max, this.mg.stats().stats());
       console.log(`${max.name()} has won the game`);
       this.active = false;
