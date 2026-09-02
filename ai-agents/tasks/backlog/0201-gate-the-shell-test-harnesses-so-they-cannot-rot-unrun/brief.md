@@ -42,7 +42,31 @@ now, this is a Sprint 4 candidate and the producer would not argue.** The deploy
 guards is the one that ships secrets to a live box.
 
 ## Status
-🔲 Backlog
+🔄 In progress
+
+🔄 **Started 2026-09-02**, driven from the lead session.
+
+✅ **THE PHASE 1 PLAN-GATE DECISION IS ALREADY RULED — owner ruling 2026-09-02, given live in session.
+Do NOT re-open it at the plan gate.**
+
+> **Fold the shell harnesses into `npm test`** — candidate **2** in *What to build*.
+
+The other three candidates are **rejected**: candidate 1 (its own npm script), candidate 3 (a pre-push
+git hook), and candidate 4 (**CI — rejected explicitly: the owner is not introducing a CI platform for
+this**). Phase 1 is closed; **go straight to Phase 2 and implement exactly and only the ruled option.**
+
+⚠️ **The ruling does not waive candidate 2's stated cost.** Two things in this brief still bind:
+
+- **Measure the harness runtime first** (Verification step 1) — actual seconds on this host, as a
+  number. Folding into `npm test` makes every developer run and every review run pay it.
+- **Step 6 is still open** — whether `scripts/test-check-docker-secret-boundary.sh` is in or out. Its
+  header requires Docker, and Docker Desktop cannot be started headlessly on this owner's machine, so
+  a `npm test` gate that hard-requires Docker fails for a reason unrelated to the code under test. The
+  two harnesses may need different answers. **This was not ruled — surface it.**
+
+📌 **Sequencing RAISED AND DECIDED 2026-09-02, same session: `0201` goes FIRST, `0202` second.** This
+brief's Notes record a *preference* for `0202` first; the owner ruled against it, and `0202` stays
+`Low`. **Recorded so it is not re-raised** — do not re-litigate the order.
 
 ## Owner
 fkit-coder

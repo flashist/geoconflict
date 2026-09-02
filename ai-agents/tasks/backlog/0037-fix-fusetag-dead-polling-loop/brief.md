@@ -54,7 +54,17 @@ Fuse/Publift ads are currently **intentionally disabled** (script commented out 
 - Remove the now-unused `initializeFuseTag()` method (`Main.ts:950-970`). Git history preserves it if ads are restored later.
 - Leave the `window.fusetag` type declaration (`Main.ts:96`) — it is also referenced by `GutterAds.ts` (`loadAds`/`destroyAds`), so removing it is out of scope here.
 
-> **Decision flag (confirm before implementing):** this assumes Fuse ads stay disabled. If the intent is actually to **re-enable** Publift ads, that is a different, deliberate task — restore the `fuse.js` `<script>` in **both** templates and keep the init — and should not be done as part of a dead-code cleanup. Default here = remove the dead timer.
+> ~~**Decision flag (confirm before implementing):**~~ ✅ **ANSWERED — do not ask again.** **Owner
+> ruling 2026-09-02, given live in session: Fuse ads are PERMANENTLY DISABLED. The deletion is
+> authorized.** Build the *What to build* section as written — remove the `initializeFuseTag()` call at
+> `Main.ts:545` and the method at `Main.ts:950-970`, and leave the `window.fusetag` type declaration
+> (`Main.ts:96`) alone, since `GutterAds.ts` still references it.
+>
+> The original flag is kept below, struck, as the pre-ruling record: ~~this assumes Fuse ads stay
+> disabled. If the intent is actually to **re-enable** Publift ads, that is a different, deliberate
+> task — restore the `fuse.js` `<script>` in **both** templates and keep the init — and should not be
+> done as part of a dead-code cleanup. Default here = remove the dead timer.~~ The re-enable branch is
+> **not** taken; the coder does **not** need to re-confirm this before implementing.
 
 ---
 

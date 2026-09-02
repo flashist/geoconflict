@@ -213,6 +213,13 @@ was correct, and only sub-lines lied. Record the parallel; do not inflate it.
     counter-argument stays on the record as *why the rank is `Low` rather than higher*, not as a reason
     to drop the task: this is test infrastructure with no user-visible benefit, and the defect is latent
     rather than realized. Priority is unchanged — see the ruling recorded under `## Priority`.
+- 📌 **SEQUENCING RULED 2026-09-02, owner ruling given live in session: `0201` GOES FIRST, this task
+  second — and this task stays `Low`.** Both briefs record a **preference** for `0202` first (the
+  *Blocks* bullet above states it: a gate `0201` installs is worth more over assertions that mean what
+  they say). **The owner ruled against that preference**, and the `Low` rank of 2026-09-01 stands and
+  was **not re-litigated**. The preference bullet is left above unedited as the pre-ruling record;
+  **this ruling supersedes it.** ✋ **Recorded specifically so the point is not raised a third time** —
+  the ordering question is closed, not open.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
 - **No secrets in any artifact.** Variable names, container names and ports only — never a value.

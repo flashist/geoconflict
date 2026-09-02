@@ -48,6 +48,28 @@ is_truthy() {
     esac
 }
 
+# ── Config parity guard (task 0064) ───────────────────────────────────────────
+# Names, by NAME only, any variable the profile server reads but this two-hop pipeline
+# never forwards — including a key written into profile.env that the export block below
+# never exports, which is guaranteed to land empty (task 0195's exact defect).
+#
+# Placed BEFORE the first load_env_file below, so no secret has been sourced into this
+# shell when it runs.
+#
+# REPORT-ONLY. In this mode the checker exits 0 for every ANALYSIS outcome — findings, a
+# parse failure, a blind spot, a missing input, an internal crash — but NOT
+# unconditionally: an unparseable argument exits 2, and a throw while it renders its
+# report is uncaught and exits 1. "This cannot fail a deploy" is guaranteed by the
+# `|| true` below, which absorbs all of those alike, plus the -f / command -v guard for a
+# missing checker or a missing node. The mode alone does not carry that claim.
+#
+# The -f guard also keeps this silent inside tests/scripts/profile-deploy-hardening.test.sh,
+# whose fixture directory has no scripts/check-config-parity.mjs — that harness sees zero
+# new output.
+if [ -f "$(dirname "$0")/scripts/check-config-parity.mjs" ] && command -v node >/dev/null 2>&1; then
+    node "$(dirname "$0")/scripts/check-config-parity.mjs" --pipeline=all --report-only || true
+fi
+
 # ── Load config ───────────────────────────────────────────────────────────────
 
 load_env_file ".env"

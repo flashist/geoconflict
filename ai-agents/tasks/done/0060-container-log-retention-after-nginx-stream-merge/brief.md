@@ -111,6 +111,17 @@ commit or a documented server-side change.
 - **This may be a server-side change with no commit.** If so, that is a legitimate outcome — record
   what was changed and where, so the next person can find it. A change nobody can locate later is how
   this setting became invisible in the first place.
+- ✅ **F6 — CONFIRMED. Owner ruling 2026-09-02, given live in session: KEEP THE TABLE.** Review finding
+  **F6** shipped **without an owner disposition** — the driver's relay ruled F1–F5, F7 and F8 and
+  skipped F6; the coder verified it independently, found it held, applied it as an obvious winner
+  (doc accuracy, same file and class as F1) and **flagged rather than absorbed it**. The item is the
+  **deploy-path table** in `ai-agents/knowledge-base/container-log-retention.md`, which records that
+  `deploy.sh` ships this task's **retention flags** but **not** the `nginx.conf` log-volume fix — that
+  half is baked into the image at `Dockerfile:87` and needs `build-deploy.sh`. **The owner confirmed
+  it; the table stays.** The reverse option (delete the one table) was live and was **not** taken.
+  This closes the only finding on this task that carried no disposition at close. It changes **no**
+  status and clears **no** Deferred Live Tail item — the seven live-tail items stay unchecked and
+  nothing here is verified in production.
 - **Do not modify the incident record.** Reference it.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.

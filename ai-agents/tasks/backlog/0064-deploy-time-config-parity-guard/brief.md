@@ -12,7 +12,40 @@ behind the two live defects — and it **must** follow them (see the hazard belo
 independent of all three and can run in parallel with any of them.
 
 ## Status
-🔲 Backlog
+🔄 In progress
+
+🔄 **Started 2026-09-02**, driven from the lead session.
+
+✅ **OWNER RULING 2026-09-02, given live in session — the "must land first" constraint binds the
+ENFORCING SWITCH, not the build.** `0062`/`0063` landing gates when this guard **arms**; it does not
+gate building Phase 1. **Phase 1 report-only is startable now.** Two grounds the owner accepted:
+
+1. This brief's own most precise formulation already says so — *"`0195` must land before this guard
+   **arms**"* — in the Notes, in the bullet headed *"🔁 A THIRD instance landed 2026-08-28"*, sub-point
+   **(ii)**. (Cited by quote, not by line number: this Status block shifted the line numbers below it.)
+2. **Report-only exits zero, so it cannot fail a deploy** — requirement 2 in *What to build*, and
+   verification step 6.
+
+Grounding checked at the ruling: `0063` is deployed and live; `0062`'s line is in the tree at
+`deploy.sh:292`.
+
+🚫 **This task CANNOT be closed this week.** Verification step 8 and the Phase 2 prod-shaped checks
+stay deploy-gated. Starting it is not the same as being able to finish it — do not read `In progress`
+as a path to `Done` on the current deploy state.
+
+📌 **ARMING IS GATED ELSEWHERE — owner ruling 2026-09-02, given live in session.** The pre-arming
+gate is now its own task: **[`0203-config-parity-guard-pre-arming-gate`](../0203-config-parity-guard-pre-arming-gate/brief.md)**.
+The two-round stateful review CONVERGED in round 2 with the verdict *ship report-only*, and its
+reportable outcome was **scheduling, not correctness**: arming `--enforce` is now **10 gate items,
+not 2** (R1, R4, and the eight new round-2 findings R12–R21 — see
+[`review.md`](review.md), *Carried into the pre-arming pass*). Filed as its own brief because the gate
+is bigger than this task's remaining scope implies and keeping it here would turn a shippable unit
+into a long-running container.
+
+**What that leaves in this task:** the weekend **report-only** production run (verification step 8),
+this task's own **Phase 2** scope (verification steps 2 and 3), and — **only after `0203` lands** —
+**wiring `--enforce`** at the call sites (ruling R3's second half). ⚠️ **All ten of `0203`'s items land
+before `--enforce` is wired. Hard sequencing.** `0203` does **not** arm the guard; this task does.
 
 ## Owner
 fkit-coder
@@ -150,6 +183,9 @@ which drifts, and which is then the thing lying to us.
   hazard section: this guard will correctly fail the deploy on their gaps, blocking the very fixes it
   is waiting for.
 - **Blocks:** nothing.
+- **Arming depends on [`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md)** *(added
+  2026-09-02, owner-ruled)*. All ten pre-arming items live there and must land before `--enforce` is
+  wired here. The report-only run and Phase 2 are unaffected and proceed regardless.
 - **Related:** `0061`, `0062`, `0063` (the three instances that motivated it), `0060` (independent —
   parallelizable with any of these).
 

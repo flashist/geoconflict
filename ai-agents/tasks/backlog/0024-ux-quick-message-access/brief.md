@@ -3,6 +3,16 @@
 ## ID
 0024
 
+## Sprint
+Backlog — unscheduled
+
+> Heading **created 2026-09-02** on an owner ruling given live in session (Ruling B). This brief
+> previously had **no `## Sprint` section at all** — it went `## ID` → `## Priority`, and the "no
+> sprint assigned" text sat inside the Priority line, where nothing parses it. The task was also
+> board-invisible until the same day; a row was appended to
+> [`backlog.md`](../../../sprints/backlog.md) in the same pass. Priority, Status and Owner are
+> unchanged.
+
 ## Priority
 Low / Future — player-reported friction, no sprint assigned
 

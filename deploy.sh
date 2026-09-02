@@ -41,6 +41,26 @@ if [[ "$ENV" != "dev" && "$ENV" != "staging" && "$ENV" != "prod" ]]; then
     exit 1
 fi
 
+# ── Config parity guard (task 0064) ───────────────────────────────────────────
+# Names, by NAME only, any variable this pipeline reads but never forwards. It is
+# deliberately placed HERE: after the argument validation above and BEFORE the first
+# load_env_file below, so at the moment it runs no secret has been sourced into this
+# shell. That is what makes the no-leak property structural rather than a promise.
+#
+# REPORT-ONLY. In this mode the checker exits 0 for every ANALYSIS outcome — findings,
+# a parse failure, a blind spot, a missing input, an internal crash. That is not the
+# whole story and it is not unconditional: an unparseable argument exits 2, and a throw
+# while it renders its report is uncaught and exits 1.
+#
+# "This cannot fail a deploy" is guaranteed HERE, by the `|| true` below, and not by the
+# mode. The `|| true` absorbs every outcome alike: exit 2, exit 1, an uncaught stack
+# trace, a signal, and an import-time syntax error. The -f / command -v guard covers the
+# remaining two — a missing checker and a missing node. Do not remove either and leave
+# the claim standing.
+if [ -f "$(dirname "$0")/scripts/check-config-parity.mjs" ] && command -v node >/dev/null 2>&1; then
+    node "$(dirname "$0")/scripts/check-config-parity.mjs" --pipeline=all --report-only || true
+fi
+
 uppercase_env=$(echo "$ENV" | tr '[:lower:]' '[:upper:]')
 
 lookup_env_value() {

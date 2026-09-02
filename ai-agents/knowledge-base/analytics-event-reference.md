@@ -154,15 +154,54 @@ Fired for first real match starts only. Reconnect handshakes and archived replay
 
 ### Citizenship Events
 
-Part of the citizenship funnel (`ai-agents/tasks/backlog/0021-analytics-p1-citizenship-funnel/brief.md`).
+Part of the citizenship funnel (`ai-agents/tasks/done/0021-analytics-p1-citizenship-funnel/brief.md`).
 
 | Enum Key                   | Event String       | When Fired                                                                                                                                       |
 | -------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `PURCHASE_STARTED_CITIZENSHIP` | `Purchase:Started:Citizenship` | The paid-citizenship flow opens the Yandex payment frame (`purchaseCatalogItem` about to be called) — the last client-controlled moment (task 0018; spec `0021` §3). NOT fired when the flow dies earlier (no Yandex id, or the server `/intent` call fails): the frame never opened, so no Started and no Abandoned |
 | `PURCHASE_COMPLETED_CITIZENSHIP` | `Purchase:Completed:Citizenship` | The profile server confirmed the grant (`POST /v1/payments/yandex/complete` returned success) — never on the client-side `purchase()` callback alone (task 0018; spec `0021` §4). Fires before the (best-effort) `consumePurchase` call; a failed consume does not un-fire it |
 | `PURCHASE_ABANDONED_CITIZENSHIP` | `Purchase:Abandoned:Citizenship` | A started flow ended without a Completed: the player closed the payment frame, the SDK rejected, `purchase()` resolved without a signature, or the server `/complete` call failed (task 0018; spec `0021` §5 — cancel and failure both count as abandoned). Exactly one of Completed/Abandoned per started flow. Known residual (0021-as-written): a real payment whose `/complete` failed logs Abandoned even though next-session reconciliation later lands the grant |
-| `CITIZENSHIP_SURFACE_SEEN` | `Citizenship:Seen` | Once per page load, when the citizenship card on the start screen is rendered and actually visible (after game init completes — not during the Yandex preload curtain, and not while the card is hidden). The whole card is gated by the `citizenship_ui` experiment flag — players in the disabled cohort never see the card and never fire this event (their cohort anchor is `Experiment:citizenship_ui:{value}`) |
+| `CITIZENSHIP_SURFACE_SEEN` | `Citizenship:Seen` | Once per page load, when the citizenship card on the start screen is rendered and actually visible (after game init completes — not during the Yandex preload curtain, and not while the card is hidden). The whole card is gated by the `citizenship_ui` experiment flag — players in the disabled cohort never see the card and never fire this event (their cohort anchor is `Experiment:citizenship_ui:{value}`). ⚠️ **Known risk — may under-count; see the note under this table** |
 | `CITIZENSHIP_EARNED_XP` | `Citizenship:Earned:XP` | Once per account+device, when a re-fetched server profile first shows `citizenship_earned_at` set after a previous observation without it — i.e. the first client observation of the server-side 1,000-XP earned-citizenship grant (task 0017; spec `0021` §6). Fires from `loadPlayerProfileView()` (profile re-fetch on page load / post-match return), never from the local XP display. Keyed on `citizenship_earned_at` (not `is_citizen` — the paid grant sets that too). Known accepted residuals (owner ruling 2026-08-23): under-counts a grant first observed on a fresh device/cleared storage; over-counts a paid citizen later crossing the XP threshold. Gated behind `CITIZENSHIP_CARD_ENABLED` (the only caller is the citizenship card's profile load), so it goes live at the 0017 flip-ON |
+
+> **⚠️ Not live yet.** Every event in this table is gated behind
+> `flashistConstants.features.CITIZENSHIP_CARD_ENABLED: false`
+> (`src/client/flashist/FlashistFacade.ts:182`), checked first thing in
+> `CitizenshipCard.connectedCallback()` before any analytics call. **As of 2026-09-02 no citizenship
+> event has ever fired for a real player.** Flipping that flag *is* the citizenship relaunch.
+
+> **⚠️ Known risk (logged 2026-09-02, owner ruling R3 — deliberately NOT fixed): `Citizenship:Seen`
+> may under-count on a slow first paint.**
+> `maybeReportSeen()` runs exactly once, from `connectedCallback()` after `await this.updateComplete`
+> (`src/client/CitizenshipCard.ts:114`, `:141-149`). If `isCardVisible()` is false at that one moment
+> — the Yandex preload curtain still up, or a slow first paint on a low-end device — it returns
+> without firing and is **never retried**: there is no observer and no re-check on a later render, so
+> the impression is silently dropped for that page load.
+>
+> **Direction of error — read the funnel accordingly: this UNDER-counts impressions, which INFLATES
+> every downstream conversion rate.** Tap rate, purchase rate and earn rate all carry impressions in
+> the denominator, so each reads **better than reality** by however much is dropped. It cannot err the
+> other way. Treat citizenship conversion percentages as an **upper bound** until this is measured.
+>
+> **Unproven.** This is a code-reading conclusion, not an observation. Confirming or ruling it out
+> needs a real Yandex Games context — the preload curtain is precisely what local dev lacks — so it
+> cannot be settled before citizenship goes live. **Recommended follow-up:** a separate brief, filed
+> by the producer once the first live day of `Citizenship:Seen` volume exists to judge whether it
+> matters at all. Spec: `0021-analytics-p1-citizenship-funnel`.
+
+> **Recorded as obsolete — `UI:Tap:CitizenshipLearnMore` (dropped 2026-09-02, owner ruling R2). Do not
+> re-add it.**
+> Originally specified in `0021` §2 as the sixth citizenship funnel event, against a "Learn more" /
+> details link on the citizenship card. **That surface was never designed and does not exist.** The
+> shipped card has exactly three states — guest (lock + login CTA), authorized non-citizen (XP
+> progress + buy CTA), citizen (CITIZEN badge, bar full) — with no room for a fourth affordance. The
+> event was spec'd for a UI that was not built; it was **not** stranded by a task that closed. A grep
+> for `CitizenshipLearnMore` / `LEARN_MORE` / `learnMore` across `src/` and `tests/` returns nothing.
+>
+> **Accepted cost, stated plainly: the funnel has no "researched it but didn't buy" signal.** The
+> chain runs impression → CTA tap → purchase started → completed/abandoned, so a player who
+> considered citizenship and declined is indistinguishable from one who never engaged past the
+> impression. If a Learn-more surface is ever designed, the event returns **with** it — and only then.
 
 ### Performance Events
 

@@ -101,6 +101,7 @@ npm run lint:fix         # Fix lint errors
 npm run format           # Format code with Prettier
 npm run gen-maps         # Regenerate maps via Go tool in map-generator/
 npm run perf             # Run performance benchmarks in tests/perf/
+npm run check:config-parity  # Report env vars the app reads but a deploy never forwards (report-only)
 ```
 
 ## Codebase Context

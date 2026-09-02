@@ -1,0 +1,47 @@
+{
+  "_comment": [
+    "Allowlist for scripts/check-config-parity.mjs (task 0064). An UNLISTED variable is",
+    "REQUIRED — that is the point of the guard, and a test asserts it. Every entry needs a",
+    "non-empty reason: an entry without one is the same rot this guard exists to prevent.",
+    "class: runtime-supplied | build-time | optional | dead-config.",
+    "phase: 1 entries suppress a finding today; phase 2 entries are recorded but INERT and",
+    "never suppress anything, so they cannot mask a Phase 1 gap."
+  ],
+  "allow": [
+    {
+      "name": "WORKER_ID",
+      "pipeline": "game",
+      "class": "runtime-supplied",
+      "phase": 1,
+      "reason": "Set per worker by the cluster master at fork time (src/server/Master.ts, cluster.fork({WORKER_ID: index})). Never a deploy input."
+    },
+    {
+      "name": "HOSTNAME",
+      "pipeline": "game",
+      "class": "runtime-supplied",
+      "phase": 1,
+      "reason": "Supplied by the container runtime; Docker sets it to the container id. Read only for OTel resource attributes (src/server/OtelResource.ts)."
+    },
+    {
+      "name": "MASTER_INTERNAL_ORIGIN",
+      "pipeline": "game",
+      "class": "optional",
+      "phase": 1,
+      "reason": "Optional override with a safe in-process default at the read site (src/server/ServerEndpoints.ts). Absent from the deploy heredoc on purpose."
+    },
+    {
+      "name": "STRIPE_PUBLISHABLE_KEY",
+      "pipeline": "game",
+      "class": "optional",
+      "phase": 1,
+      "reason": "Genuine forwarding gap, deliberately not fixed here (0064 is a guard, not a fix). DefinePlugin substitutes it for the client and the server read defaults to empty, so nothing breaks today: the RU market ships no Stripe flow. Tracked as a candidate new brief."
+    },
+    {
+      "name": "YANDEX_PAYMENTS_SECRET",
+      "pipeline": "profile",
+      "class": "optional",
+      "phase": 2,
+      "reason": "Recorded now to land task 0195's hand-off where it asked. INERT in Phase 1 and honestly so: the key is forwarded at both profile hops today, so no Phase 1 rule can fire on it. It becomes live when the Phase 2 non-empty check exists."
+    }
+  ]
+}

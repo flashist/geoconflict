@@ -73,4 +73,20 @@ export default [
       "@typescript-eslint/prefer-nullish-coalescing": "off",
     },
   },
+  {
+    // Standalone deploy-time guard (task 0064). Deliberately NOT added to
+    // allowDefaultProject above: that list is already at typed-linting's cap of 8, and
+    // a 9th entry fails the whole lint run. Same escape hatch as bump-version.js — this
+    // file is plain Node stdlib with no type-aware rules worth running on it.
+    files: ["scripts/check-config-parity.mjs"],
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
+      },
+    },
+    rules: {
+      // Needs type information, which projectService: false does not provide.
+      "@typescript-eslint/prefer-nullish-coalescing": "off",
+    },
+  },
 ];
