@@ -90,3 +90,4 @@ The four `tests/profile-server/*` suites were **never** "the only suites in the 
 - [[systems/architecture-overview]] — the build/run/test picture and the "no CI, one host" ceiling
 - [[systems/player-profile-store]] — the profile service whose route suites carry the flake
 - [[decisions/sprint-4]] — the sprint board carrying the test-reliability track
+- [[decisions/sprint-backlog]] — the Backlog board carrying `0201` and `0202`, the shell-harness pair this task's close-out filed

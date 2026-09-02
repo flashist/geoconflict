@@ -50,3 +50,4 @@ All plumbing for paid citizenship is in place and tested (87 suites / 690 tests 
 - [[decisions/personal-data-152fz-compliance]] — the erasure-cascade concern behind the receipt-FK fix
 - [[decisions/config-parity-failure-class]] — task `0195`: `YANDEX_PAYMENTS_SECRET` has never reached the profile box, so **every** endpoint this task shipped has answered 503 there since it shipped
 - [[tasks/yandex-payments-secret-forwarding]] — task `0195` itself: the deploy-script fix shipped 2026-09-01, but the key does not exist yet, so these endpoints still answer 503 on the real box
+- [[tasks/analytics-p1-citizenship-funnel]] — task `0021`, the funnel spec whose purchase-event constants this task registered; none has ever fired

@@ -71,6 +71,14 @@ The trade still holds on its own merits — the response is a precomputed static
 
 **No unbounded log destination exists in the repo today, and none may be added.** The 2026-07-15 disk-full came from exactly that: an unrotated nginx access-log file in an image with no `logrotate`.
 
+### ✅ Review finding F6 — confirmed after the close (owner ruling 2026-09-02): KEEP THE TABLE
+
+**F6 shipped without an owner disposition** — the relay driving this task's close ruled F1–F5, F7 and F8 and **skipped F6**. The coder verified it independently, found it held, applied it as an obvious winner (documentation accuracy, same file and class as F1) and **flagged it rather than absorbing it silently**. The item is the **deploy-path table** in `ai-agents/knowledge-base/container-log-retention.md`, which records that `deploy.sh` ships this task's **retention flags** but **not** the `nginx.conf` log-volume fix — that half is baked into the image at `Dockerfile:87` and needs `build-deploy.sh`. That is the same two-halves-deploy-differently hazard recorded above.
+
+**The owner confirmed it; the table stays.** The reverse option — delete the one table — was live and was **not** taken. This closes the only finding on this task that carried no disposition at close.
+
+⚠️ **It changes NO status and clears NO Deferred Live Tail item. The seven live-tail items stay unchecked and nothing here is verified in production.**
+
 ## Related
 
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the outage record whose §9 filed this task, and the investigation window this budget nearly cost

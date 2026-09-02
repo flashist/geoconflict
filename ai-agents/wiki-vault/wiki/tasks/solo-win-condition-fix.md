@@ -21,9 +21,16 @@ Fix solo missions and singleplayer/custom games so the match ends when an oppone
 
 Solo modes now have a clear game-end path when a nation, bot team, or other opponent wins before the human player. The fix is intentionally scoped away from tutorial behavior and multiplayer behavior. The loss state is tracked once with `Match:Loss:OpponentWon`, and the winner is still sent through the existing `SendWinnerEvent`/archive path so match-end recording remains consistent.
 
+> ⚠️ **Suspected of a silent regression — unproven, under investigation (filed 2026-09-02).** Task
+> `0022` records that fill bots can win a **Teams** or **HumansVsNations** match when land is scarce,
+> producing a result the player never asked for, and names this change (`0140`, PR #77) in
+> `WinCheckExecution.ts` / `GameImpl.ts` as the potential cause. That task is **investigation-first
+> and still `🔲 Backlog`** — the link is a suspicion, not a finding, and nothing here is retracted on
+> the strength of it. See [[decisions/sprint-4]].
+
 ## Related
 
-- [[decisions/sprint-4]] — Sprint 4 bug-fix context
+- [[decisions/sprint-4]] — Sprint 4 bug-fix context, and task `0022`'s suspected regression from this change
 - [[systems/execution-pipeline]] — win checks emit `Win` updates through the core execution path
 - [[systems/game-loop]] — schedules `WinCheckExecution` in deterministic replay
 - [[systems/analytics]] — `Match:Loss:OpponentWon` event reference

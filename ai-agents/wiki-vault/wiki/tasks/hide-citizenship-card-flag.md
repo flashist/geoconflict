@@ -28,5 +28,6 @@ The start screen no longer leads with a dead-end card. **Flip-ON coupling:** shi
 - [[systems/flashist-init]] — home of `flashistConstants` and the platform-init gate the card sits behind
 - [[decisions/sprint-4]] — the sprint that owns the citizenship track and the flip-ON launch coupling
 - [[systems/analytics]] — flag-off suppresses all citizenship surface events until launch
+- [[tasks/analytics-p1-citizenship-funnel]] — task 0021, whose 2026-09-02 measurement makes this flag's reach precise: **zero citizenship events have ever fired, anywhere**, so no funnel data was ever lost
 - [[tasks/citizenship-name-change]] — task 0067, whose entire UI is behind this flag and has therefore **never been seen in a browser**
 - [[tasks/citizen-verified-icon]] — task 0068, the other Phase 2 citizenship benefit awaiting the same launch

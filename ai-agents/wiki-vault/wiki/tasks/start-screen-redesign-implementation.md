@@ -30,3 +30,4 @@ The start screen now has the layout foundation required by Sprint 4 citizenship 
 - [[systems/localization]]
 - [[tasks/citizenship-xp-progress-ui]]
 - [[tasks/citizenship-card-guest-cta-no-sdk]]
+- [[tasks/analytics-p1-citizenship-funnel]] — task `0021`, the shared funnel spec this task shipped `Citizenship:Seen` and `UI:Tap:CitizenshipLoginToEarn` against; it also logs the `Citizenship:Seen` under-count risk in this task's `maybeReportSeen()` path

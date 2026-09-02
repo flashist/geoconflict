@@ -117,7 +117,11 @@ The start-screen redesign adds menu-tab and citizenship-surface instrumentation.
 
 ## Citizenship Funnel Events (built 2026-08-24 — not yet live)
 
-Tasks 0017 (earned) and 0018 (paid) shipped the citizenship funnel events on local/mock scope; all of them are gated behind the 0054 `CITIZENSHIP_CARD_ENABLED` flag (default OFF), so **none fire in production** until the flip-ON at launch:
+Tasks 0017 (earned) and 0018 (paid) shipped the citizenship funnel events on local/mock scope; all of them are gated behind the 0054 `CITIZENSHIP_CARD_ENABLED` flag (default OFF), so **none fire in production** until the flip-ON at launch.
+
+> 🚨 **Stronger than "not yet live" — measured 2026-09-02 by task 0021: ZERO citizenship events have ever fired, anywhere.** `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` is `false` at `src/client/flashist/FlashistFacade.ts:182`, and `CitizenshipCard.connectedCallback()` checks it **first, before any analytics call or profile load** (`src/client/CitizenshipCard.ts:76-79` — it adds `hidden` and returns). **No collection window has opened, so none has closed and there is nothing to backfill.** Flipping that flag *is* the citizenship relaunch. See [[tasks/analytics-p1-citizenship-funnel]].
+
+The five events below are the **complete** funnel. 🚫 **A sixth, `UI:Tap:CitizenshipLearnMore`, was DROPPED as obsolete on 2026-09-02 (owner ruling R2) — do not re-add it.** It was specified against a "Learn more" link that **was never designed and does not exist**: the shipped card has exactly three states (guest, authorized non-citizen, citizen) with no room for a fourth affordance, and a grep for `CitizenshipLearnMore` / `LEARN_MORE` / `learnMore` across `src/` and `tests/` returns nothing. **Accepted cost: the funnel has no "researched it but didn't buy" signal** — a player who considered citizenship and declined is indistinguishable from one who never engaged past the impression. If a Learn-more surface is ever designed, the event returns *with* it.
 
 | Event | Owner | When |
 |---|---|---|
@@ -128,6 +132,16 @@ Tasks 0017 (earned) and 0018 (paid) shipped the citizenship funnel events on loc
 | `Citizenship:Earned:XP` | 0017 | Once per account+device, on the first client observation of `citizenship_earned_at` set after a previous observation without it (fires from `loadPlayerProfileView()`, keyed on `citizenship_earned_at`, not `is_citizen`). Accepted residuals (owner ruling 2026-08-23): under-counts a grant first observed on a fresh device/cleared storage; over-counts a paid citizen later crossing the XP threshold |
 
 An earlier task doc (`ai-agents/tasks/done/0191-citizenship-xp-progress-ui/brief.md`) mentioned a `UI:Tap:CitizenLoginCta` string — superseded by `UI:Tap:CitizenshipLoginToEarn`; the 0021 funnel spec is authoritative for that one.
+
+The five surviving events live in **two** constant maps in `src/client/flashist/FlashistFacade.ts`, not one: `flashistConstants.analyticEvents` carries `CITIZENSHIP_SURFACE_SEEN` (`:118`), `CITIZENSHIP_EARNED_XP` (`:122`) and `PURCHASE_STARTED_CITIZENSHIP` / `PURCHASE_COMPLETED_CITIZENSHIP` / `PURCHASE_ABANDONED_CITIZENSHIP` (`:129-131`), while `flashistConstants.uiElementIds` carries `citizenshipLoginToEarn` (`:150`) and `purchaseCitizenship` (`:152`). Verified 2026-09-02.
+
+> 🚨 **Known risk — `Citizenship:Seen` may UNDER-count, and the error direction matters. Logged 2026-09-02, owner ruling R3: NOT fixed, deliberately.**
+>
+> `maybeReportSeen()` runs exactly once, from `connectedCallback()` after `await this.updateComplete` (`src/client/CitizenshipCard.ts:114`, defined `:141-149`). If `isCardVisible()` is false at that one moment — the Yandex preload curtain still up, or a slow first paint on a low-end device — it returns without firing and is **never retried**: no observer, no re-check on a later render, so the impression is silently dropped for that page load. The module-scoped `citizenshipSeenReported` one-shot is correct for its purpose and is not the risk.
+>
+> **This UNDER-counts impressions, which INFLATES every downstream conversion rate.** Tap rate, purchase rate and earn rate all carry impressions in the denominator, so each reads **better than reality**. It cannot err the other way. **Treat citizenship conversion percentages as an upper bound until this is measured.**
+>
+> **Unproven** — a code-reading conclusion, not an observation. Settling it needs a real Yandex Games context (the preload curtain is exactly what local dev lacks), so it cannot be confirmed or ruled out before citizenship goes live. 📌 **The follow-up brief is deliberately UNFILED, owner-ruled at close**, waiting on the first live day of real `Citizenship:Seen` volume — a recorded non-filing, not a dropped thread. See [[tasks/analytics-p1-citizenship-funnel]].
 
 ## Personal Inbox Events (built 2026-08-26 — not yet live)
 
@@ -148,7 +162,7 @@ The Sprint 4 monetization analytics spec in [[tasks/monetization-analytics-spec]
 
 - **P0 identity/session baseline:** record Yandex login status, platform, returning/new status, session depth, and all-time match-count inputs. Yandex login status is now covered by [[tasks/analytics-p0-yandex-login-status]], loyalty depth is covered by [[tasks/analytics-p0-player-days-played]], and per-session match count is covered by [[tasks/analytics-p0-session-match-count]].
 - **P0 match lifecycle:** measure match start, player spawned, match completed, outcome, duration, spawn status, and all-time match count so the earned citizenship threshold is grounded in actual retention depth.
-- **P1 citizenship funnel:** instrument citizenship surface impressions, CTA clicks, purchase flow start/completion/abandonment, earned citizenship, and high-intent unconverted cohorts. As of 2026-08-24 the funnel events are built (0017/0018 — see the Citizenship Funnel Events section) but fire nowhere in production until the 0054 flag flips ON.
+- **P1 citizenship funnel:** instrument citizenship surface impressions, CTA clicks, purchase flow start/completion/abandonment, earned citizenship, and high-intent unconverted cohorts. As of 2026-08-24 the funnel events are built (0017/0018 — see the Citizenship Funnel Events section) but fire nowhere in production until the 0054 flag flips ON. 🔧 **Task 0021 closed 2026-09-02 having measured the tree: five of the six spec'd events are shipped, unit-tested and documented, the sixth is dropped as obsolete, and none has ever fired.** The "high-intent unconverted cohort" part of this baseline is the piece the dropped `UI:Tap:CitizenshipLearnMore` would have carried — it is **not measurable** as the funnel now stands. See [[tasks/analytics-p1-citizenship-funnel]].
 - **P1 ad impact:** segment ad impressions by player tier (`guest`, `free`, `earned_citizen`, `paid_citizen`) before making citizens ad-free, so the real revenue tradeoff can be modeled.
 
 Open implementation questions remain around analytics backend constraints, whether guest `persistentID` is stable enough for match-count attribution, which events need server-side authority, and whether old match history should be backfilled.
@@ -202,6 +216,8 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/map-preload]] — HF-13 preload instrumentation at JOIN and match start
 - [[tasks/missions-difficulty-investigation]] — mission-level drop-off cannot be derived from current coarse mission events
 - [[tasks/monetization-analytics-spec]] — P0/P1 measurement plan for Sprint 4 citizenship, payments, and ad-tier decisions
+- [[tasks/analytics-p1-citizenship-funnel]] — task 0021, the shared citizenship funnel spec: the disproved data-loss premise, the dropped sixth event, and the `Citizenship:Seen` under-count risk
+- [[tasks/hide-citizenship-card-flag]] — task 0054, the `CITIZENSHIP_CARD_ENABLED` gate that keeps every citizenship event at zero
 - [[tasks/analytics-p0-game-mode-segmentation]] — P0 mode classifier emitted immediately after `Game:Start`
 - [[tasks/analytics-p0-spawn-confirmation]] — P0 confirmed-spawn event for time-to-spawn and ghost-rate measurement
 - [[tasks/analytics-p0-match-duration]] — P0 duration event emitted alongside `Game:End`
