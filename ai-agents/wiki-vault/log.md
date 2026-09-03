@@ -1312,3 +1312,482 @@
 - **Targeted lint on the changed pages:** **0 broken wiki-links** (every target resolves to an existing page), **0 pages missing from `index.md`**, and **5 one-way links found and closed** in the same pass — four to the new funnel page (from `monetization-analytics-spec`, `start-screen-redesign-implementation`, `citizenship-xp-progress-ui`, `yandex-payments-implementation`) and one from `supertest-profile-server-flake` to [[wiki/decisions/sprint-backlog]].
 - **Secret scan: CLEAN.** Variable **names** only (`CITIZENSHIP_CARD_ENABLED`, `PROFILE_INTERNAL_TOKEN`, `YANDEX_PAYMENTS_SECRET`, `STRIPE_PUBLISHABLE_KEY`, …) — no values, no connection strings, no tokens, no private or VPS IP addresses on any touched page.
 - No full lint this run; only the delta's own link damage was checked. No commit, no push.
+
+## 2026-09-02 — lint
+
+- Issues found: 8
+- Issues fixed: 8
+- Issues flagged for human review: 0
+- **Most significant: the Sprint 4 counts were stale in two places and the `0022` board row still read `backlog` after the task closed and its founding premise was refuted.**
+
+**`0022` moved-path verdict: CLEAN — no broken link.** `0022`'s folder moved `backlog/` → `done/`
+today and **no vault page carried a path to the old location**. Verified exhaustively, not
+spot-checked: all **129** unique `ai-agents/tasks/…` paths referenced across `wiki/` and `index.md`
+resolve on disk, as do all **353** repo file paths of any kind (the only three non-resolving strings
+are correct as written — `schema.md`'s own `ai-agents/tasks/.../filename.md` template placeholder;
+`ai-agents/sprints/.active-sprint`, which [[wiki/decisions/adr-108-active-sprint-pointer]] *proposes*
+and states does not exist; and `resources/images/Favicon.svg`, which
+[[wiki/tasks/licensing-remediation]] explicitly describes as **since deleted**). This matches the
+`0021` move earlier today, which also broke nothing.
+
+**Stale claims fixed (5):**
+- [[wiki/decisions/sprint-4]] head re-count — `47 done · 6 blocked · 4 backlog` → **48 done · 6
+  blocked · 3 backlog · 3 cancelled · 1 in progress, of 61**, and `25 of the 47` agent-closed → **26
+  of the 48**. Counted directly from `ai-agents/sprints/plan-sprint-4.md` this run rather than taken
+  on report: 26 `✅ Done (agent-closed — not owner-verified)` + 22 `✅ Done` = 48; 6 `🚧 Blocked`;
+  3 `🔲 Backlog`; 3 `⛔ Cancelled`; 1 `🔄 In progress`.
+- [[wiki/decisions/sprint-4]] `0022` row — status `backlog` → `✅ done (agent-closed — not
+  owner-verified)`, with the refutation and the `0205` split recorded.
+- [[wiki/decisions/sprint-4]] — the older "**Sprint 4 has ZERO `🔄 In progress` rows** … 46 done …
+  of 58" bullet **struck in place** (not deleted): both halves are now false, and the page's own head
+  note already contradicted it. Its surviving point — "no rows in progress" ≠ "sprint finished" — is
+  kept.
+- [[wiki/index]] — the same two count corrections, plus the `0022` close and refutation.
+- [[wiki/tasks/solo-win-condition-fix]] — the page asserted `0022` was "**investigation-first and
+  still `🔲 Backlog`**" and left `0140`/PR #77 under open suspicion. `0022` closed the same day and
+  **refuted its own premise**: `src/core/game/GameImpl.ts` is not in PR #77's first commit's diff, and
+  the clientless-`makeWinner()` `undefined` return is original to the fork (`feea527`) — net effect
+  zero. Page now records the change as **cleared**, with risk 2 split out to `0205`.
+
+**Legacy-filename stale claims fixed (2) — the `0052` residue class, verified against source:**
+- [[wiki/tasks/disable-compact-public-maps]] said the `MINI_MAP_MODIFIER` comment points at
+  `s5-fix-compact-map-shore-generation.md`. It points at `0026-fix-compact-map-shore-generation`
+  (`src/server/MapPlaylist.ts:42,51`).
+- [[wiki/tasks/archive-endpoint-failures]] said the `archiveEnabled()` comment points at
+  `s4-archive-s3-backed-citizen-gated.md`. It points at `0030-archive-s3-backed-citizen-gated`
+  (`src/core/configuration/DefaultConfig.ts:311-314`).
+- These were previously deferred to `0052` under the owner ruling "`0052` depends on `0003`". **That
+  prerequisite is satisfied** (`0003`'s renames were swept in the vault 2026-08-25), and both are
+  bare *stems* describing what a code comment says — factually wrong against the source, which is
+  lint's own scope. Fixed here rather than deferred a fifth time.
+
+**Verified as already correct — no repair needed:**
+- **`0064`'s R1 caveat SURVIVES** wherever the config-parity guard is described: the client parity
+  check **prints green while incomplete** is stated on [[wiki/decisions/config-parity-failure-class]],
+  on the `0064` row in [[wiki/decisions/sprint-4]], and in [[wiki/index]]. **No page claims the guard
+  checks all three pipelines soundly.**
+- **`0204` / `0205`: the vault mentioned NEITHER number** before this run. Nothing pointed at the
+  wrong thing. `0205` (`ai-agents/tasks/backlog/0205-teams-bot-team-win-stall-resolution-policy`) is
+  now named correctly in the two `0022` repairs above; `0204` has no task folder at all and is
+  correctly absent.
+- **`0052`'s audit table is NOT in the vault.** It lives in
+  `ai-agents/tasks/backlog/0052-wiki-vault-legacy-filename-follow-up/brief.md`, **outside this role's
+  write surface** — so its staleness could not be repaired here, only reported. Its "9 wiki pages
+  carry 12 occurrences" is a 2026-08-10 snapshot the brief itself marks for re-derivation; measured
+  today, **0 occurrences remain** under `wiki/` after the two fixes above.
+
+**Clean on every other check:** 0 broken wiki-links (162 pages, 0 unresolved targets, re-verified
+after the edits); 0 one-way links; 0 orphan pages; `index.md` accurate in both directions (every page
+catalogued, every entry resolving); full schema conformance — every feature/system/decision/task page
+carries its required **bold inline** metadata fields, and no page uses YAML frontmatter.
+
+**ADR number/slug cross-check: CLEAN.** All 9 vault ADR pages (101–109) have exactly one
+`ai-agents/knowledge-base/decisions/` counterpart at the same number (compared numerically,
+case-insensitively, regular files only); no knowledge-base number is duplicated; every `# ADR-NNN`
+heading agrees with its own filename. All 9 slugs are abbreviated relative to their counterparts —
+**not flagged**, per the 2026-08-23 owner ruling in `schema.md`. `adr-numbering-two-series.md` does
+not parse as `adr-NNN-` and is skipped by the deliberate non-rule.
+
+**Secret scan: CLEAN.** No keys, tokens, DSNs, connection strings, private keys or passwords on any
+page. The only IPv4 literal anywhere in the vault is `127.0.0.1` (localhost, outside the
+`schema.md` ruling's prohibition). Public hostnames left in place per the 2026-08-29 owner ruling.
+
+**Left for the upcoming sync (deliberately not done here):** `0022`'s and `0205`'s substance. This
+run corrected `0022`'s **status** and struck the refuted suspicion, but wrote **no task page** for
+`0022` and no record of `0205` beyond the pointer — that is ingest, not lint, and the caller scoped
+this run lint-only. `.wiki-watermark` **left at `6f0bb364fbbf43f4a4f36e7e0b11c494d5c7fd8d`, not
+advanced.** No commit, no push.
+
+## 2026-09-03 — ingest
+
+- Sync window: `6f0bb364fbbf43f4a4f36e7e0b11c494d5c7fd8d` → HEAD (`82365bcc126e3671811370a845d8e58a359f7fbe`)
+- Commits in window: **2** — `b08f607` "Wiki sync" (**vault-only output, no ingestable source**) and `82365bc` "Sprint push". Changed files in window: **31**, of which **8** are under `ai-agents/` outside the vault.
+- Changed source files detected: **8** → **3 ingest-worthy** after filtering.
+- Ingested: `ai-agents/tasks/done/0022-win-check-multiplayer-regression-investigation/brief.md` → created [[wiki/tasks/win-check-clientless-leader-guard]] and [[wiki/decisions/clientless-leader-win-policy]]
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]]
+- Ingested: `ai-agents/sprints/backlog.md` → updated [[wiki/decisions/sprint-backlog]] (`0205`, `0206`)
+- Skipped (per procedure): `ai-agents/tasks/backlog/0205-…/brief.md` and `ai-agents/tasks/backlog/0206-…/brief.md` — **backlog briefs, not done**; their substance is recorded from the Backlog board instead. `0022`'s sibling `plan.md` / `worklog.md` / `review.md` — working artifacts, not sources. All of `ai-agents/wiki-vault/**` — wiki output.
+
+**🚨 The delta carries a LIVE, UNFIXED production defect, and it is recorded as such on every page that
+touches it.** When a clientless leader — a Bot **or** a `FakeHuman` Nation — wins FFA, `WinModal.ts`
+hits an empty block, so no `SendWinnerEvent` is emitted, so no `winner` message reaches the server, so
+`GameServer.handleWinner` never runs, so **`creditMatchXp` (`GameServer.ts:1253`, sole call site
+`:1199`) never runs — the entire match's match-end XP is silently lost for every player in it.** Task
+`0022` shipped the **guard only**: the match no longer wedges and a human can still win later, but
+**nothing awards the win, so the XP is still never credited.** The fix is `0206`, **unscheduled and
+unstarted**. Failure mode is silent — not a crash, not a hang, not a desync.
+
+**🔧 `0022`'s founding premise was REFUTED, and the vault now says so coherently in four places.** It
+was scheduled as a live regression from `0140-solo-win-condition-fix` (PR #77). It is not one:
+`src/core/game/GameImpl.ts` is **not in `de2fd00`'s diff at all**, and the clientless `undefined` return
+is **original to the fork** (`feea527`). Net effect of PR #77 on that path: **zero**. The earlier lint
+had already cleared the accusation on [[wiki/tasks/solo-win-condition-fix]]; this run added the missing
+substance and removed the last stale pointer (a duplicate `Related` entry on [[wiki/decisions/sprint-4]]
+still describing the suspicion as open).
+
+**⛔ The brief's own prescribed risk-3 fix is recorded as REJECTED, because the prescription is still
+written in the brief and a future reader could follow it.** Reverting the `gameType !== Singleplayer`
+clause from `checkWinnerTeam()` would **reintroduce the singleplayer Team stall PR #77 was written to
+remove** — the guard returns above `setWinner` and above `this.active = false`, so the match could never
+end. Filed as a decision, not a note: [[wiki/decisions/clientless-leader-win-policy]].
+
+**⚠️ The verification residual was carried, not softened: risk 1 has NO live reproduction.** It needed a
+non-Singleplayer private lobby and would have collided with the owner's dev server on port 3001; the
+owner declined the interruption (ruling R5). Coverage is **synthetic jest tests only**. The live check
+that ran covered **risk 3 only**, in Singleplayer, with the player's death **forced** rather than
+natural. Test/lint figures on the page are **quoted from the task's worklog and review ledger, not
+re-measured here**: `npm test` 108 suites / 1128 tests green on the first run; `npm run lint` clean.
+
+**⛔ One consequence is a FIX and is recorded so nobody "restores" the old behaviour.** For the
+**tutorial**, losing `reportPlacements()` removes a real bug: a bot winning a tutorial previously
+awarded the single human player **first place for LOSING**, on the **real platform leaderboard**, through
+a function with no game-type guard. Recorded on [[wiki/features/tutorial]] and both new pages, together
+with the hard requirement that `0206` be **re-checked against it before shipping**.
+
+**⚠️ A boundary was added to [[wiki/decisions/adr-101-fail-soft-xp-crediting]] to stop its closeout
+clause being misapplied.** That ADR closes out findings of the form *"crediting can silently lose XP"*
+**inside `ProfileApiClient`** — a bounded-retry drop after the credit was attempted. `0022`'s defect is
+**upstream of that client entirely**: the credit is never attempted. Two different mechanisms; the ADR
+does not cover the new one.
+
+**📌 Board counts re-derived independently this run, not taken from the caller.** Counted directly from
+`ai-agents/sprints/plan-sprint-4.md`: 26 `✅ Done (agent-closed — not owner-verified)` + 22 `✅ Done` =
+**48 done**; **6** `🚧 Blocked`; **3** `🔲 Backlog`; **3** `⛔ Cancelled`; **1** `🔄 In progress` (`0064`)
+— **61 rows.** This **matches** the figures already on [[wiki/decisions/sprint-4]] and `index.md` from
+the 2026-09-02 lint, so no count was changed.
+
+**⚠️ Five items the caller listed as likely delta material were NOT in the delta and were NOT
+re-ingested.** `0021`, `0028`, `0064` and `0203` all last changed **in commit `6f0bb36` — the watermark
+commit itself**, so they fall outside `<sha>..HEAD` by construction and were the *previous* sync's input
+(`b08f607`). Spot-checked as already present and accurate: `0021` → [[wiki/tasks/analytics-p1-citizenship-funnel]];
+`0064`/`0203` → [[wiki/decisions/config-parity-failure-class]]. Nothing was duplicated. A sixth item, a
+separate *"tutorial fix"*, **does not exist as its own change** — see the correction below.
+
+**🔧 One caller claim was CORRECTED against the diff rather than written as given.** There is no separate
+tutorial fix in this delta: the only source changes are `WinCheckExecution.ts` and `WinModal.ts`. The
+tutorial first-place-for-losing behaviour changed as an **emergent consequence** of `0022`'s risk-1
+guard (tutorial ⇒ guard returns ⇒ no `Win` update ⇒ `reportPlacements()` never runs), and it is recorded
+that way, as residual R1's useful half — not as a change anyone made on purpose.
+
+- Pages created: **2** — [[wiki/tasks/win-check-clientless-leader-guard]], [[wiki/decisions/clientless-leader-win-policy]].
+- Pages updated: **10** — [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-backlog]], [[wiki/tasks/solo-win-condition-fix]], [[wiki/decisions/adr-101-fail-soft-xp-crediting]], [[wiki/systems/execution-pipeline]], [[wiki/systems/game-loop]], [[wiki/systems/localization]], [[wiki/systems/player-profile-store]], [[wiki/features/ai-players]], [[wiki/features/tutorial]], plus `index.md`.
+- **Targeted lint on the changed pages:** **0 broken wiki-links** (re-verified across the whole vault after the edits — every target resolves), **0 pages missing from `index.md`**, and **7 one-way links found and closed** in the same pass — six inbound back-links added (`execution-pipeline`, `game-loop`, `localization`, `player-profile-store`, `ai-players`, `tutorial`) and one outbound return link (task page → [[wiki/features/tutorial]]). One **stale duplicate** `Related` entry removed from [[wiki/decisions/sprint-4]], which linked [[wiki/tasks/solo-win-condition-fix]] a second time while still describing `0022`'s suspicion as open.
+- **Secret scan: CLEAN.** No keys, tokens, DSNs, connection strings or credentials on any touched page; **no IPv4 literal of any kind** on either new page.
+- **Reported, not fixed — outside this role's write surface:** `0022`'s brief still carries its wrong prescribed risk-3 fix and its false *"Before"* framing in the body text. Both are **struck in place** by that board's own convention and the close-out section supersedes them, so nothing is misleading *if read in order* — but the vault, not the brief, is where the correction is authoritative.
+- Watermark advanced `6f0bb364fbbf43f4a4f36e7e0b11c494d5c7fd8d` → `82365bcc126e3671811370a845d8e58a359f7fbe`. No commit, no push.
+
+## 2026-09-03 — ingest
+
+- **Ingested:** `ai-agents/knowledge-base/glossary.md` (written the same day by the architect) →
+  **created [[wiki/systems/glossary]]**, merged with the former Player Types / Team Types /
+  bots-vs-Bot-team sections of [[wiki/systems/game-overview]].
+
+**📌 Owner ruling of 2026-09-03 executed.** The owner ruled the glossary's home: the wiki ingests it,
+merges it with `game-overview.md`, the vault **schema is amended** to accommodate a glossary page type,
+and the knowledge base keeps only a short pointer. Stated reason, honoured here: *a KB glossary and a
+wiki page covering the same ground is exactly how the two drift back apart* — so the deliverable is
+**one source of truth**, not merely a new page.
+
+**Vault shape chosen: a dedicated `wiki/systems/glossary.md`, cross-linked from `game-overview.md`**
+— not an extension of `game-overview.md`. Reasons: (a) the material reaches well past the game
+reference (player identity IDs, win-condition vocabulary, the two team-assignment paths), and
+`game-overview.md` was already 132 lines of maps/economy/combat; (b) the vault's wiki-link convention
+(`schema.md`, Cross-Reference Rules) has **no anchor form**, so a section inside another page cannot be
+linked to — a single canonical link target requires a page of its own; (c) the vocabulary is
+cross-cutting (win-condition work, profile/XP work, lobby work), which is a system page, not a
+subsection.
+
+**Schema amendment — made properly, not smuggled.** `schema.md` gains a **Glossary Page** type under
+*Page Types & Templates*, with its template, its provenance, and four binding rules: exactly one
+glossary and other pages link rather than restate; every term cites `file:line` or goes under
+*Unverified*; a word/identifier divergence is never smoothed into prose; the owner's stated model is
+kept beside the code, labelled, never overwritten. `glossary` was also added to *Canonical Systems to
+Maintain Pages For*.
+
+**🔧 Two claims on [[wiki/systems/game-overview]] were WRONG and were corrected against code, not
+merged as written.**
+1. *"the `HumansVsNations` game mode"* — ❌ **wrong.** `GameMode` has exactly two members, `FFA` and
+   `Team` (`src/core/game/Game.ts:158-161`). `HumansVsNations` is a **`playerTeams` config value**
+   (`Game.ts:57`), consumed at `src/core/game/GameImpl.ts:110-114` and `:156-162`. The glossary was
+   right; the wiki was wrong.
+2. *"Nations … present in singleplayer, missions, and the tutorial (when not disabled)"* — ❌
+   **incomplete and partly wrong.** Nations are present in **public FFA** and in **private Team lobbies
+   by default** (`src/server/MapPlaylist.ts:165`, `src/client/HostLobbyModal.ts:42`), and are **never**
+   present in the tutorial: `src/client/LocalServer.ts:115-121` forces `disableNPCs = true`
+   unconditionally for `isTutorial`. The glossary's lobby table was right; the wiki was wrong.
+
+**Every load-bearing claim re-verified against the working tree before writing** — the glossary was not
+taken on trust. Confirmed: the four-value `PlayerType` enum (`Game.ts:347-352`); `type Team = string`
+(`:51`); `ColoredTeams` including `Bot` (`:59-70`); `teams()` returning `[botTeam, ...playerTeams]`
+(`GameImpl.ts:696-701`); `maybeAssignTeam()` (`:463-472`); `assignTeams()`'s FakeHuman partition being a
+shuffle-ordering detail only (`TeamAssignment.ts:61-73`); `isOnSameTeam()` excluding the Bot team
+(`PlayerImpl.ts:800-802`); **`aiPlayerExecutions()` constructing `FakeHumanExecution`**
+(`ExecutionManager.ts:154-162`); `BotExecution` 102 lines vs `FakeHumanExecution` 950; the 95 %/80 %
+thresholds (`DefaultConfig.ts:713-718`); both win guards (`WinCheckExecution.ts:65-73`, `:109-114`); and
+that **`grep -rn "AiPlayerExecution" src tests` returns nothing**.
+
+**One precision the source glossary omitted, added here:** `teams()` returns `[]` outside
+`GameMode.Team` (`GameImpl.ts:696-698`), so the Bot team is listed **in Team mode**. Also added
+explicitly: the Bot team is **counted in win-check tile accounting** (`WinCheckExecution.ts:81-99`) and
+is excluded from *winning* only by the later explicit guard — the point the "`isOnSameTeam()` returns
+false" line is most often misread as denying.
+
+**Partials reconciled — four copies reduced to one canonical page plus pointers:**
+- [[wiki/systems/game-overview]] — its three vocabulary sections **replaced** by a short orientation
+  pointer carrying the three load-bearing facts and both corrections, marked *do not re-grow*.
+- [[wiki/systems/project-brief]] — its five-term product table (*Tick, Intent, Ghost player, Nations,
+  Citizen*) **kept as-is and NOT absorbed**; it is product framing, a different register. Linked both
+  ways, and the glossary states the split in its Summary.
+- `ai-agents/knowledge-base/PROJECT.md:39-42` — the same five-term run-in, **outside the vault**; the
+  KB-side pointer was returned to the caller for routing, not written here.
+- `ai-agents/knowledge-base/geoconflict-overview.md:73-82` — **outside the vault, and being edited
+  concurrently by the architect**; deliberately not cited by line. Its two stale claims are recorded on
+  the glossary page against **code** instead.
+
+- Pages created: **1** — [[wiki/systems/glossary]].
+- Pages updated: **13** — `schema.md`, [[wiki/systems/game-overview]], [[wiki/systems/project-brief]],
+  [[wiki/systems/agent-conventions]], [[wiki/systems/architecture-overview]],
+  [[wiki/systems/execution-pipeline]], [[wiki/systems/player-profile-store]],
+  [[wiki/features/ai-players]], [[wiki/features/tutorial]],
+  [[wiki/decisions/clientless-leader-win-policy]], [[wiki/tasks/win-check-clientless-leader-guard]],
+  [[wiki/tasks/tutorial-no-nations]], plus `index.md`.
+- **Back-links: bidirectional.** All 11 pages the glossary links to now link back to it.
+- **Secret scan: CLEAN.** No keys, tokens, DSNs, connection strings, credentials, or IP literals on any
+  touched page. `persistentID` is named as PII with **no value anywhere**.
+- **Watermark deliberately NOT advanced** — this is an ingest, not a sync.
+- **`ai-agents/knowledge-base/` was NOT written to.** The KB pointer is the caller's to route.
+- No commit, no push.
+
+## 2026-09-03 — ingest (closing pass: ADR-110, `0205` findings, `0207`, board reconciliation)
+
+Sources read directly from the working tree (all uncommitted; a watermark-driven delta would not see
+them):
+
+- `ai-agents/knowledge-base/decisions/adr-110-ai-player-may-be-declared-winner.md`
+- `ai-agents/tasks/backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md`
+- `ai-agents/tasks/backlog/0207-winmodal-participation-comment-ai-player-correction/brief.md`
+- `ai-agents/sprints/backlog.md`, `ai-agents/sprints/plan-sprint-4.md` (counted, not just read)
+
+**Created (3):**
+
+- [[wiki/decisions/adr-110-ai-winner-allowed]] — ADR-110, accepted 2026-09-03. Slug abbreviated per the
+  schema's standing ADR-naming style. 🔴 **Its known expiry is the FIRST thing on the page**, above the
+  Context, in a blockquote: the owner accepted `allow` knowing a durable, player-visible winner surface
+  is **planned** ("None today, but planned"), so the counter-argument was **overridden with eyes open,
+  not refuted** — *"never answered on its merits, only deferred"* — and the ADR must be re-examined
+  before any leaderboard, match history, announcements feed, share card or similar ships.
+- [[wiki/tasks/teams-bot-team-win-stall]] — task `0205`, carrying the 2026-09-03 empirical findings in
+  full, with the two caveats that must never be dropped: **production frequency is unmeasured** (a
+  simulator result, not a field observation) and **the real activity crossover is probably higher than
+  40 %**, because the "active" players were `FakeHumanExecution` at Medium.
+- [[wiki/tasks/winmodal-participation-comment-correction]] — task `0207`.
+
+**Updated (13):** [[wiki/decisions/clientless-leader-win-policy]] (ADR-110 as a fourth decision with the
+expiry in a loud block; the `0206` promotion; the measured Team-mode correction; sub-question (b) now
+partly ruled), [[wiki/tasks/win-check-clientless-leader-guard]], [[wiki/systems/glossary]] (§1 AI-player
+entry, §2 brief-corrected-at-source note, §3 measured Team guard + `0206` status, Unverified list
+amended in place), [[wiki/features/ai-players]] (Winner Flow), [[wiki/features/tutorial]],
+[[wiki/decisions/sprint-4]] (re-count + the `0206` promotion), [[wiki/decisions/sprint-backlog]] (`0206`
+moved out, `0207` appended, `0205` confirmed and rank held), [[wiki/decisions/adr-numbering-two-series]],
+[[wiki/systems/player-profile-store]], [[wiki/systems/execution-pipeline]],
+[[wiki/tasks/solo-win-condition-fix]], plus `index.md`.
+
+**Every claim struck was struck in place, never deleted** — the vault's prior wording stays visible
+next to the correction.
+
+**Corrections the vault carried and that were resolved this run:**
+
+- Six places said `0206` was *unscheduled / unstarted / nobody building it*. It is now **scheduled into
+  Sprint 4** and **still unstarted**; every one now says both, because "scheduled" alone would
+  overstate it.
+- The win-policy page called the Team-mode 95 % route **rare** *because humans are already wiped out*.
+  Measurement says rare **because humans play**. Struck and corrected; the realistic-shape conclusion
+  survives, the reason for it did not.
+- The glossary's Unverified "frequency: both unmeasured" bullet was amended, not deleted: the Team half
+  is now measured **in a simulator only**; the FFA half was not measured at all.
+- The glossary's §2 note said `0205`'s `maybeAssignTeam` mechanism claim was uncorrected at source. It
+  **was** corrected on the brief 2026-09-03; the note now records that, and the vault and brief agree.
+- Incidental: the glossary's AI-player entry pointed at "§4" for the win guard. The guards are in **§3**.
+  Fixed.
+
+**Board counts — counted independently by the wiki this run, and they AGREE with the producer's:**
+`backlog.md` **37 task rows** (39 pipe-lines minus header and separator); `plan-sprint-4.md`
+**62 task rows — 48 done (26 of them agent-closed) · 6 blocked · 4 backlog · 3 cancelled · 1 in
+progress**. No disagreement to report.
+
+- **Back-links: bidirectional.** Every page the three new pages link to links back.
+- **Secret scan: CLEAN.** No keys, tokens, DSNs, connection strings, credentials, or IP literals on any
+  touched page.
+- **Watermark deliberately NOT advanced** — this is an ingest, not a sync.
+- **Nothing outside `ai-agents/wiki-vault/` was written.** `PROJECT.md`'s wiki-link-syntax defect is
+  reported to the caller as replacement text, not edited.
+- No commit, no push.
+
+## 2026-09-03 — lint (closing health-check, `0206` moved-path sweep)
+
+- **Issues found: 9 · fixed: 6 · flagged for human review: 3**
+- **Most significant: `0206`'s `backlog/` → `done/` move DID rot one vault link, and eleven vault
+  pages asserted `0206` was unstarted when it had already shipped and closed.**
+
+### 🔴 The `0206` moved-path verdict — NOT CLEAN (unlike the `0022` move checked the same morning)
+
+`ai-agents/tasks/backlog/0206-ffa-timer-expiry-award-to-top-client-player/` →
+`ai-agents/tasks/done/…`. Swept exhaustively: every `0206` occurrence in every file under
+`ai-agents/wiki-vault/`, then separately every markdown relative link (`](../`) in the whole vault.
+
+- **One rotted link, and it is the only relative markdown link in the entire vault:**
+  `wiki/decisions/adr-110-ai-winner-allowed.md` line 36 —
+  `[`0206`](../../tasks/backlog/0206-…/brief.md)`. **It was doubly broken:** the board is now `done/`,
+  **and the depth was already wrong before the move** (`../../` from `wiki/decisions/` lands in
+  `wiki-vault/`, not `ai-agents/`; it needed `../../../`). **FIXED** — rewritten as a backticked
+  `ai-agents/tasks/done/…` path, the vault's dominant convention. **The vault now contains zero
+  relative markdown links.**
+- **`log.md:1409` also names the old `backlog/` path. LEFT UNEDITED, deliberately** — append-only
+  record; that path was correct on the date written.
+- Every other `0206` mention is a bare task ID, not a path, and could not rot.
+
+### Fixed (6)
+
+1. **The rotted `adr-110` path link** (above).
+2. **Stale `0206` status across eleven pages** — all said `🔲 Backlog` / unstarted / unscheduled;
+   `0206` was **planned, built, reviewed and closed the same day** as
+   `✅ Done (agent-closed — not owner-verified)`. Struck in place, never deleted, on `index.md`,
+   `decisions/adr-110-ai-winner-allowed`, `decisions/clientless-leader-win-policy`,
+   `decisions/adr-101-fail-soft-xp-crediting`, `decisions/sprint-4`, `decisions/sprint-backlog`,
+   `tasks/win-check-clientless-leader-guard`, `tasks/teams-bot-team-win-stall`,
+   `tasks/winmodal-participation-comment-correction`, `systems/glossary`, `features/tutorial`.
+   🔴 **Every one now also carries the three load-bearing residuals** — nothing run live (no deploy,
+   no production observation, no owner play-test, so **production still has the old behaviour**); the
+   XP loss **still open** where every clientful player is eliminated before the threshold; and public
+   FFA **now ends at 80 %**, possibly crowning a player holding very little territory.
+3. **Sprint 4 counts** — `48 done · 4 backlog · 26 agent-closed` → **`62 rows — 49 done (27
+   agent-closed) · 6 blocked · 3 backlog · 3 cancelled · 1 in progress (`0064`)`**, on `index.md` and
+   `decisions/sprint-4`. **Counted independently from `plan-sprint-4.md` this run; agrees with the
+   producer's.**
+4. **`0206` had no row on the vault's Sprint 4 task table.** Row added, carrying the shipped scope,
+   the review outcome (Codex "No findings."; three low Claude findings dispositioned; `npm test`
+   109 suites / 1133 tests green first-run) and the nine residuals.
+5. **The `placement` / `points` conflation was not *stated* wrongly anywhere, but nothing in the vault
+   made it hard to re-conflate.** A canonical keep-them-apart table now lives on
+   `decisions/clientless-leader-win-policy`, with pointers from `tasks/win-check-clientless-leader-guard`
+   and `features/tutorial`. Verified against `src/client/leaderboard/LeaderboardReporter.ts:44-59`:
+   `reportPlacement` passes **only `params.points`** to `increaseCurPlayerLeaderboardScore`;
+   `placement` (a literal `1` for everyone) is read **only** by a `console.debug` under a TODO and
+   **never leaves the browser**. The **points DO reach the Yandex platform** — 10 for losing to a bot
+   in non-tutorial Singleplayer, and farmable. `0209` owns the first, `0210` the second.
+6. **Four one-way links** — back-links added on `decisions/adr-101-fail-soft-xp-crediting`,
+   `tasks/winmodal-participation-comment-correction` (×2) and `decisions/adr-110-ai-winner-allowed`.
+   Re-verified: **zero one-way links vault-wide.**
+
+### Flagged, not fixed (3)
+
+1. **`0206` has NO wiki task page**, though it is now a closed Sprint 4 row cited by ten pages. Its
+   brief carries nine residuals. **Creating the page is an ingest, not a lint** — flagged in place on
+   `decisions/sprint-4` and `decisions/clientless-leader-win-policy`. Same for `0208`, `0209`, `0210`;
+   only `0207` of the four spawned briefs has a page.
+2. **`0210` has a brief but no board row** on `ai-agents/sprints/backlog.md` as of this run — a
+   producer was editing that file concurrently. **Outside the vault: reported, not touched.** Every
+   vault mention says "briefed, no board row yet as of this lint" rather than asserting placement.
+3. **Task `0052`'s legacy-filename census has drifted from its brief.** The brief's 2026-08-10 table
+   names 9 pages / 12 occurrences; the page set in the tree today differs (some listed pages are now
+   clean, others not listed carry hits). **Not repaired** — `0052` is the owned task for it, with an
+   owner-ratified sequencing gate and a hard `log.md`-untouched constraint. It needs a re-census at
+   task time.
+
+### Verified clean this run
+
+- **Broken wiki-links: 0. Index entries with no file: 0. Pages missing from `index.md`: 0.
+  One-way links: 0.**
+- **`src/…` references: 117 distinct, all resolve.** (One apparent miss,
+  `src/core/game/MapNationCounts.js`, was a scan artefact — the real file is `.json` and exists.)
+- **ADR cross-check: 10 vault ADR pages, 10 knowledge-base ADRs, numbers compared numerically and
+  case-insensitively over regular files only.** No missing counterpart, no heading/filename mismatch,
+  **no duplicate number in the knowledge base.** Nine slug abbreviations are the vault's standing
+  style per `schema.md` and are **not** flagged.
+- **Metadata: 0 gaps.** Every page carries its template's bold inline fields; no YAML frontmatter.
+- **Secret scan: CLEAN.** No keys, tokens, DSNs, connection strings, credentials or private IPs.
+- **`0208`'s scope is asserted settled NOWHERE** — it is in flight; every mention says so.
+- **`.wiki-watermark` deliberately NOT advanced** — this is a lint, not a sync.
+- **Nothing outside `ai-agents/wiki-vault/` was written.** No commit, no push.
+
+## 2026-09-03 — ingest (`0206` close + the four briefs it spawned)
+
+- **Ingested:** `ai-agents/tasks/done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md`
+  (plus its `plan.md`, `review.md`, `worklog.md`) and the `0208` / `0209` / `0210` briefs under
+  `ai-agents/tasks/backlog/` → **created 4 pages**, **updated 14**.
+- **Run on an owner ruling** given live in session, closing the gap the same day's lint had flagged
+  rather than fixed: *ship the vault complete, not accurate-with-a-marked-gap.*
+
+### Created
+
+- [[tasks/ffa-clientless-leader-fallback-award]] — `0206`. The shipped award, the ranking and
+  tie-break, the multiplayer-only carve-out that discharges the tutorial re-check, the review outcome,
+  and **all nine residuals in full**.
+- [[tasks/measure-clientless-leader-and-solo-awards]] — `0208`, **both halves**.
+- [[tasks/placement-semantics-literal-one]] — `0209`.
+- [[tasks/singleplayer-leaderboard-reporting-policy]] — `0210`.
+
+### 🔧 Two corrections to THIS LINT'S OWN OUTPUT, both verified before being written
+
+1. **`0210` DOES have a board row.** The earlier lint reported *"briefed but no board row yet"* and
+   wrote that into three vault pages. **Verified directly this run:** `ai-agents/sprints/backlog.md`
+   line **59** carries `0210`, with `0208` at `:57` and `0209` at `:58`. **All three vault statements
+   corrected.** ⚠️ **Honest account of the cause: partly a live edit, partly my own bad method.** The
+   file demonstrably changed between the two reads — `0208`'s row gained escaped pipes that shifted its
+   columns. But the earlier check split table rows on `|`, which is **unreliable on any row containing
+   an escaped pipe**, so it cannot be blamed wholly on the race. **The earlier read was wrong; that is
+   the finding.**
+2. **`0208`'s scope is SETTLED, not in flight.** The earlier lint wrote *"scope being widened, NOT
+   settled — do not cite its shape"* into three pages. The producer finished; the widening is an owner
+   ruling (*"Add it — measure both"*). **All three corrected**, and the shape is now recorded: **Part A**
+   multiplayer clientless-leader incidence (`src/core/`), **Part B** Singleplayer platform-leaderboard
+   award incidence (`src/client/`), via **both** `reportPlacements()` **and** `reportParticipation()`.
+   ⛔ **Not to be merged.** ⛔ **Part A excludes AI players** — an AI-player win is a normal win under
+   ADR-110, not a stall.
+
+### Facts carried because they contradict Part A and must not be copied across
+
+- 🟢 **Part B has NO over-count problem.** `ClientGameRunner`'s `hasReportedParticipation` and
+  `hasProcessedWin` are **pre-existing production latches**, and Singleplayer runs a **single in-browser
+  client** (`Transport.ts`, `isLocal`). 🔴 **So Part B's denominator is MATCHES, not client-matches** —
+  ⛔ Part A's denominator caveat must never be written onto Part B's events.
+- ⚠️ **One residual deliberately left unverified there:** whether a **mid-match page reload** resets
+  those latches. Recorded as unverified, **not resolved either way.**
+- ⚠️ **`0208`'s folder name deliberately under-describes it now** — renaming would break inbound links,
+  including ones `0206`'s close had just re-pointed. **Said so on the page** so nobody "fixes" it.
+
+### ⏳ Recorded as PENDING, never as passed
+
+**`0206`'s play-test is IN FLIGHT** — an `fkit-coder` driving the real browser client headlessly, on an
+owner ruling. **The result is not in.** It is recorded as pending on
+[[tasks/ffa-clientless-leader-fallback-award]] and on [[decisions/sprint-4]]'s `0206` row; **`0206`'s
+gate and residual 3 ("nothing has been run live") stand exactly as the lint left them.** ⛔ No page
+reads it as a pass or a discharge.
+
+### Also cleared / updated
+
+- **Both in-place `LINT NOTE` gap blocks removed** — on [[decisions/sprint-4]] and
+  [[decisions/clientless-leader-win-policy]] — replaced by real links to the new pages. The third, on
+  [[decisions/sprint-backlog]], likewise.
+- **Updated:** `index.md` (4 new catalog entries + 2 corrections), [[decisions/sprint-4]],
+  [[decisions/sprint-backlog]], [[decisions/clientless-leader-win-policy]],
+  [[decisions/adr-110-ai-winner-allowed]], [[decisions/adr-101-fail-soft-xp-crediting]],
+  [[tasks/win-check-clientless-leader-guard]], [[tasks/teams-bot-team-win-stall]],
+  [[tasks/winmodal-participation-comment-correction]], [[systems/glossary]], [[systems/analytics]],
+  [[systems/execution-pipeline]], [[systems/player-profile-store]], [[features/tutorial]],
+  [[features/ai-players]].
+- **`0052`'s census drift: LEFT ALONE on an owner ruling** — it waits for when `0052` is scheduled. The
+  re-census is that task's own work, it has a sequencing gate and a hard `log.md`-untouched constraint,
+  and a partial answer now would look authoritative. The existing flag stands unchanged.
+
+### Verified after the ingest
+
+- **172 pages. Broken wiki-links 0 · index entries with no file 0 · pages missing from `index.md` 0 ·
+  one-way links 0.** Every new page's outbound link has a back-link.
+- **`src/…` references: 111 distinct, all resolve.**
+- **Metadata:** all four new pages carry the task template's bold inline `**Source**` / `**Status**` /
+  `**Sprint/Tag**` fields. No YAML frontmatter.
+- **Secret scan: CLEAN.** No keys, tokens, DSNs, connection strings, credentials or private IPs.
+- **`.wiki-watermark` NOT advanced** — this is an ingest, not a sync. Still
+  `82365bcc126e3671811370a845d8e58a359f7fbe`.
+- **Nothing outside `ai-agents/wiki-vault/` was written.** No commit, no push.

@@ -76,7 +76,7 @@ Total: **32 maps** (enum `GameMapType`).
 |------|-------------|
 | `PlayerType.Human` | Real human player |
 | `PlayerType.Bot` | Simple bot spawned by server config |
-| `PlayerType.AiPlayer` | In-development AI player (indistinguishable from human in UI) |
+| `PlayerType.AiPlayer` | AI player — **shipped and wired end to end**, deliberately indistinguishable from a human in the UI. Carries a real `clientID`. |
 | `PlayerType.FakeHuman` | NPC nation (seeded from map data, `clientID === null`) |
 
 Source: `src/core/game/Game.ts` (`PlayerType` enum).
@@ -553,7 +553,18 @@ Source: `src/core/game/Stats.ts`, `src/core/StatsSchemas.ts`.
 
 ---
 
-## 5. AI Players Feature (In Development)
+## 5. AI Players Feature (shipped — wired end to end)
+
+> ✅ **Corrected 2026-09-03.** This section previously read *"(In Development)"*. The code path is
+> fully wired: the server injects AI players into public lobbies and freezes them into
+> `gameStartInfo.aiPlayers` (`src/server/GameServer.ts:488-491`, injection loop `:512-570`); the
+> client builds them as real `PlayerInfo` objects with real `clientID`s
+> (`src/core/GameRunner.ts:61-69`) and runs one `FakeHumanExecution` each
+> (`src/core/GameRunner.ts:140-146` → `src/core/execution/ExecutionManager.ts:154-162`); they count
+> toward the visible lobby size (`src/server/GameServer.ts:421-423`) and render as ordinary players
+> in the UI (`src/client/graphics/layers/PlayerInfoOverlay.ts:278-280`,
+> `src/client/graphics/layers/PlayerPanel.ts:295-302`).
+> Its source brief is already in `ai-agents/tasks/done/`, which is the other half of the evidence.
 
 **Spec**: `ai-agents/tasks/done/0074-ai-players-standalone/brief.md`
 
@@ -576,7 +587,14 @@ Inject AI Players into public lobbies during the preparation countdown to simula
 ### In-match behavior
 
 - AI Player entities created in `GameRunner` from `gameStartInfo.aiPlayers`.
-- `AiPlayerExecution` drives them using `BotBehavior` logic.
+- **`FakeHumanExecution` drives them** — there is **no `AiPlayerExecution` class**; the name never
+  existed in the code. `ExecutionManager.aiPlayerExecutions()` builds one `FakeHumanExecution` per AI
+  player (`src/core/execution/ExecutionManager.ts:154-162`), which is the same class Nations
+  (`PlayerType.FakeHuman`) run. That class holds the shared `BotBehavior` logic
+  (`src/core/execution/FakeHumanExecution.ts:31`, `:36`, `:182`). The only structural difference
+  between an AI player and a Nation is the `clientID`: AI players carry a real one, Nations carry
+  `null` (`src/core/GameRunner.ts:61-69` vs `:86-97`).
+  *(Corrected 2026-09-03 — the previous line named a class that does not exist.)*
 - Must have real `clientID` values so winner flow resolves correctly.
 - Leaderboard "Players only" filter includes `AiPlayer` type.
 

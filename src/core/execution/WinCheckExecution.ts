@@ -41,7 +41,14 @@ export class WinCheckExecution implements Execution {
     if (this.mg === null) throw new Error("Not initialized");
     const sorted = this.mg
       .players()
-      .sort((a, b) => b.numTilesOwned() - a.numTilesOwned());
+      // Ties break on ascending smallID so every client picks the same winner.
+      // This writes down the behaviour we already had — players() preserves
+      // ascending smallID insertion order and Array.prototype.sort is stable —
+      // rather than changing it. See task 0206.
+      .sort(
+        (a, b) =>
+          b.numTilesOwned() - a.numTilesOwned() || a.smallID() - b.smallID(),
+      );
     if (sorted.length === 0) {
       return;
     }
@@ -60,14 +67,42 @@ export class WinCheckExecution implements Execution {
       // FakeHuman nation) is never declared the winner outside a non-tutorial
       // singleplayer game. Mirrors GameImpl.makeWinner()'s condition, which
       // would otherwise return an undefined winner and silently end nothing.
-      // Returning *before* `this.active = false` keeps the check alive so a
-      // human can still win the match later. See task 0022.
+      // See task 0022. Note the policy is about being *clientless*, not about
+      // being AI: a PlayerType.AiPlayer has a real clientID, so it is outside
+      // this guard entirely and may be declared the winner (ADR-110).
       if (max.clientID() === null) {
         const gameConfig = this.mg.config().gameConfig();
         if (
           gameConfig.gameType !== GameType.Singleplayer ||
           gameConfig.isTutorial === true
         ) {
+          // Task 0206: instead of stalling with no winner (which loses the
+          // whole match's XP for every player), award the win to the
+          // top-ranked player that HAS a clientID — same tile-count ranking as
+          // the leader above. The predicate is clientID() !== null with NO
+          // PlayerType.AiPlayer exclusion (ADR-110, accepted 2026-09-03).
+          //
+          // Multiplayer only. A tutorial (and singleplayer generally) has no
+          // server-side XP to rescue, and awarding its single Human the win for
+          // LOSING to a bot would hand them first-place platform-leaderboard
+          // points via ClientGameRunner.reportPlacements() — the exact bug 0022
+          // fixed.
+          if (gameConfig.gameType === GameType.Singleplayer) {
+            return;
+          }
+          const fallback = sorted.find((p) => p.clientID() !== null);
+          if (fallback === undefined) {
+            // No clientful player is alive. Award nothing and stay active,
+            // exactly as before this task — never manufacture a winner out of
+            // nothing. Returning before `this.active = false` keeps the check
+            // alive so a human can still win the match later.
+            return;
+          }
+          this.mg.setWinner(fallback, this.mg.stats().stats());
+          console.log(
+            `${fallback.name()} has won the game (0206 fallback award)`,
+          );
+          this.active = false;
           return;
         }
       }

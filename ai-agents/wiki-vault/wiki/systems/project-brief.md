@@ -75,6 +75,7 @@ Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic 
 - [[systems/architecture-overview]] — the technical counterpart; module map, deploy topology, ranked risks
 - [[systems/agent-conventions]] — the standing working agreements this brief summarizes
 - [[systems/game-overview]] — game-design reference: modes, maps, units, economy, combat
+- [[systems/glossary]] — the code-identifier side of this page's domain vocabulary: "Nations" are `PlayerType.FakeHuman`, and the other terms whose everyday meaning and code name diverge
 - [[decisions/product-strategy]] — the retention-first sequence behind the sprint order
 - [[decisions/sprint-4]] — the current sprint
 - [[systems/player-profile-store]] — the citizenship/XP backend

@@ -36,29 +36,20 @@ Four-tier structure (the 2026-08-08 architecture survey counts a fourth):
 - **Regional** (17): Black Sea, Britannia, Iceland, East Asia, Japan, Italia, Australia, and others
 - **Fantasy** (6): Pangaea, Pluto, Mars, Deglaciated Antarctica, Achiran, Baikal (Nuke Wars)
 
-## Player Types
+## Player and Team Vocabulary
 
-| Type | Description |
-|---|---|
-| `Human` | Real player |
-| `Bot` | Simple server-spawned bot |
-| `AiPlayer` | AI player in public lobbies (indistinguishable from human in UI); see [[features/ai-players]] |
-| `FakeHuman` | NPC nation from map data (`clientID === null`); colloquially called "nations" |
+📌 **Canonical definitions live in [[systems/glossary]] — this section is an orientation pointer, not a second copy.** It was three tables until 2026-09-03; they were merged into the glossary on the owner's ruling so the vocabulary has one home. **Do not re-grow them here.**
 
-## Team Types
+The four `PlayerType` values (`src/core/game/Game.ts:347-352`) are `Human`, `Bot`, `AiPlayer`, `FakeHuman`. Three things about them are load-bearing and routinely get lost:
 
-In `GameMode.Team` games, players are grouped by `ColoredTeams` identifiers (defined in `src/core/game/Game.ts`). Two team values are meaningful beyond color labels:
+- **"Nation" is `PlayerType.FakeHuman`** — the word appears nowhere in the enum, and the `Nation` *class* is a spawn descriptor, not the player type.
+- **An AI player runs the same `FakeHumanExecution` class as a Nation** (`src/core/execution/ExecutionManager.ts:154-162` vs `:139-151`); the difference that matters is that an AI player has a **real `clientID`** and a Nation's is `null`.
+- **`ColoredTeams.Bot` is a real team** — it appears in `teams()` (`src/core/game/GameImpl.ts:696-701`) and in win-check tile accounting (`WinCheckExecution.ts:81-99`), even though `isOnSameTeam()` returns `false` for it (`PlayerImpl.ts:800-802`).
 
-| Team (`ColoredTeams`) | Meaning |
-|---|---|
-| `Bot` | Team assigned to all `PlayerType.Bot` players in team mode games. Win checks suppress `ColoredTeams.Bot` wins in multiplayer; singleplayer allows them so the human player sees a loss screen when bots dominate. |
-| `Nations` | Team assigned to `PlayerType.FakeHuman` (NPC nation) players in the `HumansVsNations` game mode. |
+Two corrections this page previously carried the wrong way, fixed 2026-09-03 against code:
 
-**"Bots" vs "Bot team":** The word *bots* in general usage (e.g. tutorial bot count, mission bot count) refers to `PlayerType.Bot` player entities. *Bot team* refers to the `ColoredTeams.Bot` team identifier used in win-condition logic. They are related — Bot players form the Bot team — but the distinction matters in `WinCheckExecution.checkWinnerTeam()`, which guards on the team value, not the player type.
-
-**"Nations" disambiguation:** The word *nations* is used in two senses:
-- **As players:** `PlayerType.FakeHuman` NPCs loaded from map data; present in singleplayer, missions, and the tutorial (when not disabled). Always have `clientID === null`.
-- **As a team:** `ColoredTeams.Nations` in the `HumansVsNations` multiplayer mode, where FakeHuman players are grouped on one side against human players.
+- ❌ **`HumansVsNations` is NOT a game mode.** `GameMode` has exactly two members, `FFA` and `Team` (`src/core/game/Game.ts:158-161`). `HumansVsNations` is a **`playerTeams` config value** (`Game.ts:57`) consumed at `GameImpl.ts:110-114`, `:156-162`.
+- ❌ **Nations are not confined to singleplayer/missions/tutorial.** They are present in **public FFA** and in **private Team lobbies by default** (`src/server/MapPlaylist.ts:165`, `src/client/HostLobbyModal.ts:42`), and they are **never** present in the tutorial — `src/client/LocalServer.ts:115-121` forces `disableNPCs = true`. The full lobby-by-lobby table is in [[systems/glossary]].
 
 ## Spawn Phase
 
@@ -112,6 +103,7 @@ Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adapta
 
 ## Related
 
+- [[systems/glossary]] — **canonical project vocabulary**: `PlayerType`, `Team`, the two team-assignment paths, win-condition and identity terms; this page's former Player Types / Team Types / disambiguation tables were merged there 2026-09-03
 - [[systems/analytics]] — player behaviour tracking
 - [[systems/telemetry]] — server observability
 - [[systems/project-operations]] — team roles, sprint workflow, and operational constraints

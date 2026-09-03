@@ -63,6 +63,7 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - [[decisions/cancelled-tasks]]
 - [[tasks/personal-data-compliance-investigation]]
 - [[systems/project-brief]] — citizenship as the product's supporter tier
+- [[systems/glossary]] — the three player IDs this store depends on: XP participation is keyed by **`clientID`**, not the PII `persistentID`
 - [[systems/architecture-overview]] — the profile backend tier in the wider survey
 - [[decisions/adr-101-fail-soft-xp-crediting]] — why crediting drops XP rather than blocking a match
 - [[decisions/adr-103-identity-trust-seam]] — the single unverified-identity funnel this store is keyed on
@@ -70,3 +71,9 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - [[tasks/citizenship-name-change]] — 0067's name-change endpoints, migration 004, and the unmitigated pending-name exposure
 - [[tasks/citizen-verified-icon]] — 0068's `is_citizen` propagation from `upsertProfile` onto the frozen roster and lobby poll
 - [[decisions/config-parity-failure-class]] — the class behind both `0062` and `0195`, the two gaps that keep this store inert in production
+- [[decisions/clientless-leader-win-policy]] — a **third**, independent way this store gets no data: an FFA match led by a bot or a Nation sends no `winner` message, so `creditMatchXp` is never called at all. Live, unfixed, and **not** the `0062` config gap
+- [[tasks/win-check-clientless-leader-guard]] — task 0022, which found and traced that path
+- [[decisions/adr-110-ai-winner-allowed]] — an AI winner is **credited nothing** here (it fails three independent gates in `selectMatchCredits`); what the award does is **unblock crediting for every real player**. ⚠️ Its reasoning is contingent on crediting never becoming winner-dependent, and it **carries a known expiry**
+- [[tasks/teams-bot-team-win-stall]] — task `0205`, the Team-mode form of the same missed-crediting path
+- [[tasks/winmodal-participation-comment-correction]] — task `0207`; the participation list is harmless for AI players **only** because of this store's frozen-start-roster gate
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the award that lets `creditMatchXp` run at all in a clientless-leader FFA match; **repo only, nothing deployed**

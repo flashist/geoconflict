@@ -56,5 +56,6 @@ A number at or above 101 is always this project's; a number below 100 is always 
 - [[decisions/adr-107-turn-interval-1-5x]]
 - [[decisions/adr-108-active-sprint-pointer]]
 - [[decisions/adr-109-worker-index-placement-contract]]
+- [[decisions/adr-110-ai-winner-allowed]] — drafted and **promoted `proposed` → `accepted` in place on 2026-09-03**, the rule above applied as intended; its number was verified free by a **repo-wide** sweep including `.claude/`, after the invisible-reservation trap that forced `0204` → `0205`
 - [[systems/agent-conventions]] — the conventions set, and how it differs from ADRs
 - [[systems/project-brief]] — where the two-series rule is stated as a working rule for agents

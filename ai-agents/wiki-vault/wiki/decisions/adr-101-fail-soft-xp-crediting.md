@@ -40,6 +40,7 @@ Two narrower rules fall out of the same principle and are part of the decision:
 - **Positive** — a profile-backend outage is completely invisible to gameplay. Retries are safe by construction. The client is instantiated once per worker and shared.
 - **Negative** — XP loss during an outage is **silent and unrecoverable**. There is no dead-letter path, so nobody can replay it later, and no player-facing signal that the award was missed. Affected players simply need one more match.
 - **Blast radius is one match, not a backlog** — nothing accumulates, so an outage cannot cause a thundering-herd write when the backend returns.
+- ⚠️ **BOUNDARY, added 2026-09-03 — this ADR closes out drops INSIDE `ProfileApiClient`, and nothing else.** Task `0022` found a **second, unrelated silent-XP-loss path that this ADR does NOT cover and must not be used to dismiss**: when a clientless leader (a Bot or a Nation) wins FFA, no `winner` message ever reaches the server, so `GameServer.handleWinner` never runs, so **`creditMatchXp` is never called at all**. The credit is not dropped after a bounded retry — **it is never attempted**, upstream of this client entirely. It is a live production defect, and its fix is task `0206` — ~~unscheduled~~ **built and closed 2026-09-03 (agent-closed — not owner-verified)**. 🔴 **Still live in production: nothing deployed, and even in the repo the loss survives where every clientful player is eliminated before the threshold.** See [[decisions/clientless-leader-win-policy]] and [[tasks/win-check-clientless-leader-guard]].
 - **Re-raise only if:** paid entitlements ever flow through this path (losing a purchase is categorically different from losing 10 XP); the observed drop volume stops being negligible; or a dead-letter/replay path is explicitly funded with the owner's product call. Absent one of those, a review finding of the form *"crediting can silently lose XP"*, *"there is no retry queue"*, *"only 3 retries"*, or *"4xx is not retried"* is **closeout of this ADR, not a new defect**.
 
 ## Related
@@ -50,3 +51,7 @@ Two narrower rules fall out of the same principle and are part of the decision:
 - [[systems/architecture-overview]] — §profile backend, risk R6, open question 4
 - [[decisions/adr-numbering-two-series]] — why this is 101 and not 001
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the sweep that showed the fail-soft path's `debug`-level miss logging hid a total prod crediting no-op (task `0062`)
+- [[decisions/clientless-leader-win-policy]] — the separate XP-loss path upstream of this client, which this ADR's closeout clause does **not** cover
+- [[tasks/win-check-clientless-leader-guard]] — task `0022`, which found that path
+- [[decisions/sprint-4]] — the sprint that carried `0022` and `0206`, and that cites this ADR's boundary
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the award closing the separate upstream loss this ADR's closeout clause does **not** cover

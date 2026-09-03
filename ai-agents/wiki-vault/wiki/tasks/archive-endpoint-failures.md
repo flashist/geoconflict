@@ -12,7 +12,7 @@ Reduce the production archive error groups without building storage yet. Match h
 
 The archive work was split on 2026-06-01, then the Sprint 4c noise-reduction half was implemented:
 
-- `src/core/configuration/DefaultConfig.ts` now exposes a centralized `archiveEnabled()` switch, currently `false`, with a comment pointing the future re-enable to `s4-archive-s3-backed-citizen-gated.md`.
+- `src/core/configuration/DefaultConfig.ts` now exposes a centralized `archiveEnabled()` switch, currently `false`, with a comment pointing the future re-enable to `0030-archive-s3-backed-citizen-gated` (`src/core/configuration/DefaultConfig.ts:311-314` — the comment names the task folder, **not** the pre-`0002` flat filename `s4-archive-s3-backed-citizen-gated.md` this page carried until 2026-09-02).
 - `src/server/Archive.ts` returns before validating or POSTing game records when archival is disabled, so multiplayer and worker-routed singleplayer archive calls no longer hit the non-existent inherited endpoint.
 - `src/client/LocalServer.ts` returns before compressing or uploading singleplayer records when archival is disabled, avoiding the browser `keepalive` body cap and downstream 413 noise.
 - No S3 storage, disk storage, new archive routes, or body-limit changes were introduced.

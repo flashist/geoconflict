@@ -248,13 +248,13 @@ Conditional on findings:
 > ⛔ **The timer-expiry award was DECLINED for now** (the coder's option (b) in `plan.md`) — it is a
 > behaviour change, not a defect fix. Recorded as a candidate follow-up brief; ~~**not filed**, and
 > deliberately so.~~ ✅ **NOW FILED, 2026-09-02, as
-> [`0206`](../../backlog/0206-ffa-timer-expiry-award-to-top-client-player/brief.md)** — on the backlog board,
+> [`0206`](../0206-ffa-timer-expiry-award-to-top-client-player/brief.md)** — on the backlog board,
 > unscheduled, nobody building it. **Struck, not deleted.** The decline still stands for `0022`: `0022`
 > ships guard-only, and `0206` is where the award is decided and built.
 >
 > ✅ **Owner ruling 2026-09-02 — review finding R1 is an ACCEPTED RESIDUAL of this guard-only shape,
 > NOT a defect to fix inside `0022`.** R1 is carried in full into
-> [`0206`](../../backlog/0206-ffa-timer-expiry-award-to-top-client-player/brief.md): with guard-only, an FFA match
+> [`0206`](../0206-ffa-timer-expiry-award-to-top-client-player/brief.md): with guard-only, an FFA match
 > where a bot or Nation leads at 80 % or at timer expiry emits **no `Win` update at all**, so
 > `ClientGameRunner`'s `gameEnded` path never runs — **`saveGame()`** stops (a `localStorage`-only
 > record, cosmetic), **`reportPlacements()`** stops (⚠️ **top-3 humans get no leaderboard placement
@@ -320,7 +320,7 @@ Conditional on findings:
   is unblocked.**
 - **Split from / see also:** [`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md) —
   risk 2, the Teams multiplayer Bot-team win stall. Split out 2026-09-02 on owner ruling R4.
-- **Follow-up filed:** [`0206`](../../backlog/0206-ffa-timer-expiry-award-to-top-client-player/brief.md) — the
+- **Follow-up filed:** [`0206`](../0206-ffa-timer-expiry-award-to-top-client-player/brief.md) — the
   timer-expiry award declined here under ruling **R2** (the coder's option (b)), plus review finding
   **R1**, which the owner **accepted as a residual** of the guard-only shape on 2026-09-02 rather than
   a defect to fix inside `0022`. Backlog board, unscheduled. It **depends on `0022` shipping** — it
@@ -384,7 +384,7 @@ close:** `npm test` **108 suites / 1128 tests green on the FIRST run** (no flake
 - **R1 — `reportPlacements()` no longer fires for a clientless-leader FFA match.** ⚠️ **This is NOT
   tutorial-only** — it applies to **Public and Private** FFA too. In a match nobody wins, the top-3
   humans lose leaderboard placement points they previously got. **Carried in full to
-  [`0206`](../../backlog/0206-ffa-timer-expiry-award-to-top-client-player/brief.md)**, whose award is
+  [`0206`](../0206-ffa-timer-expiry-award-to-top-client-player/brief.md)**, whose award is
   what closes it.
   ⛔ **Record the useful half too, so nobody "restores" the old behaviour:** for the **tutorial**,
   removing `reportPlacements()` is a **FIX, not a regression.** Previously a bot winning a tutorial

@@ -36,3 +36,4 @@ The start-screen redesign also renamed "Single Player" to `Custom Game` / `Св�
 - [[systems/project-operations]] — release workflow that requires localized copy changes to ship in builds
 - [[systems/architecture-overview]] — statically-bundled language files and selection precedence
 - [[tasks/citizenship-name-change]] — task 0067's `citizenship_name_change` section, 15 keys, en/ru parity asserted by a dedicated test
+- [[tasks/win-check-clientless-leader-guard]] — task 0022's `win_modal.bot_team` key, added to `en.json` and `ru.json` only; its review recorded the other 31 shipped locales falling back to English as **accepted** under this convention, with no follow-up task filed

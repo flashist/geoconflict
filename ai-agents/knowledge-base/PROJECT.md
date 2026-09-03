@@ -38,8 +38,8 @@ Benefits include no interstitial ads for paid citizens, the full emoji set, and 
 
 **Key domain terms.** *Tick* — one deterministic game step (~67 ms). *Intent* — a Zod-validated,
 serialized player action; every action goes through the intent pipeline. *Ghost player* — a player
-who joins but never acts. *Nations* — AI opponents seeded from real geography. *Citizen* — a player
-on the supporter tier.
+who joins but never acts. *Nations* — AI opponents seeded from real geography (`PlayerType.FakeHuman`
+in code — see the wiki glossary, `ai-agents/wiki-vault/wiki/systems/glossary.md`). *Citizen* — a player on the supporter tier.
 
 ## Architecture
 

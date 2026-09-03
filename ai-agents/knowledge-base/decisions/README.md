@@ -82,3 +82,14 @@ load-bearing for correctness.
   coins as designed are **earn-only** (`../../sprints/plan-sprint-5.md:67-69`), so the paid-entitlement
   trigger is not implicated. The concern is kept visible in the ADR as a corrected record with a
   narrow conditional re-raise, not deleted.
+- **2026-09-03 — ADR-110** (may an AI player be declared the winner of a match?) was drafted and
+  promoted `proposed` → `accepted` **in place** the same day, on an owner ruling given live in session
+  (*"Allow — accept the ADR."*). The owner ruled two further points with it: the policy covers
+  **Team mode (`0205`) as well as FFA (`0206`)** — one policy across both modes, because the branch
+  scope had been deliberately unified on 2026-09-02 and a type-based exclusion in one mode would
+  re-split it — and, answering the ADR's own flagged could-flip-this question, that a durable
+  player-visible winner record is **"None today, but planned."**
+  ⚠️ **That last answer makes ADR-110 a time-limited decision, not a settled-forever one.** It carries
+  a pre-committed revisit trigger requiring re-examination **before** any leaderboard, match history,
+  announcements feed, or share card ships. The trigger is **expected to fire**. Do not cite ADR-110 in
+  support of a winners surface without re-opening it — its reasoning never covered that case.

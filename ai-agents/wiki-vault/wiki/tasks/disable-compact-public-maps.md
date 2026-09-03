@@ -12,7 +12,7 @@ Remove compact maps from automatic public matchmaking while keeping compact maps
 
 `src/server/MapPlaylist.ts` keeps `MODIFIED_MATCH_RATE = 0.2` and the shared modifier system, but removes `MINI_MAP_MODIFIER` from the active `MATCH_MODIFIERS` registry. Public configs still start at `GameMapSize.Normal`, and with `mini_map` disabled no public config should be assigned `GameMapSize.Compact`.
 
-The disabled `MINI_MAP_MODIFIER` definition remains in the file with a comment pointing back to this task and to `s5-fix-compact-map-shore-generation.md`, so re-enabling compact public maps after map regeneration is a one-line registry change. `weird_setting` is now the only active modifier, so it absorbs the full 20% modified-match budget.
+The disabled `MINI_MAP_MODIFIER` definition remains in the file with a comment pointing back to this task and to `0026-fix-compact-map-shore-generation` (`src/server/MapPlaylist.ts:42,51` — the comment names the task folder, **not** the pre-`0002` flat filename `s5-fix-compact-map-shore-generation.md` this page carried until 2026-09-02), so re-enabling compact public maps after map regeneration is a one-line registry change. `weird_setting` is now the only active modifier, so it absorbs the full 20% modified-match budget.
 
 `tests/server/MapPlaylist.test.ts` now verifies that the public registry contains only `weird_setting`, the disabled mini-map definition still applies `GameMapSize.Compact` when manually called, generated public configs stay normal-sized, and weird-setting selection does not make matches compact.
 

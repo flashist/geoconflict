@@ -9,7 +9,9 @@ AI Players join public lobbies during the preparation countdown to simulate heal
 
 Source: `ai-agents/tasks/done/0074-ai-players-standalone/brief.md`
 
-> **Note:** `PlayerType.AiPlayer` is confirmed active in production across 10+ files. `ExecutionManager.aiPlayerExecutions()` drives AI behaviour via `BotBehavior`. The spec was written as "standalone reset" — the prior iteration was discarded and this is the canonical implementation.
+> **Note:** `PlayerType.AiPlayer` is wired across 10+ files. `ExecutionManager.aiPlayerExecutions()` drives AI behaviour — 📌 **by constructing `FakeHumanExecution`, the very same class Nations use** (`src/core/execution/ExecutionManager.ts:154-162` vs `:139-151`), which in turn uses shared `BotBehavior` logic. **There is no `AiPlayerExecution` class**; the `0074` spec proposed one and it was never built. The spec was written as "standalone reset" — the prior iteration was discarded and this is the canonical implementation.
+>
+> ⚠️ **"Confirmed active in production" is an assertion this page has carried since ingest and that the 2026-09-03 glossary pass did NOT verify** — the code path was re-checked and is fully wired, but no server was contacted. See [[systems/glossary]].
 
 ## Scope
 
@@ -46,6 +48,12 @@ AI Players are created in `GameRunner` from `gameStartInfo.aiPlayers`. `Executio
 ### Winner Flow
 
 AI Players need a valid `clientID` so `GameImpl.makeWinner()` returns a real winner. Win modal resolves winner via `playerByClientID` normally.
+
+📌 **Ruled 2026-09-03 — ADR-110: an AI player MAY be declared the winner**, as **one policy across FFA and Team mode**. The win-condition predicate stays `clientID() !== null` with **no `PlayerType.AiPlayer` exclusion — do not add one.** Players see an `Anon0xxx` name in the win modal with **no indication it was synthetic**; that is now a deliberate recorded choice, not an accident of the predicate. An AI winner is **credited nothing** — what the award does is **unblock match-end XP crediting for every real player in the match**.
+
+> 🔴 **ADR-110 CARRIES A KNOWN EXPIRY.** The owner accepted it knowing a durable, player-visible winner record is **planned** ("None today, but planned"), so the counter-argument was **overridden with eyes open, not refuted**. It **must be re-examined before any leaderboard, match history, announcements feed, share card, or other surface naming a winner outside the end-of-match modal ships.** ⛔ Do not treat `accepted` as licence to build such a surface assuming AI winners are fine in it. See [[decisions/adr-110-ai-winner-allowed]].
+
+🚩 **A doc comment nearby gets this backwards** — `WinModal.buildPlayerParticipation` claims AI players are skipped from participation; the skip is on `clientID === null`, which **includes** them. Filed as task `0207`, comment-only: [[tasks/winmodal-participation-comment-correction]].
 
 ### Config (`ServerConfig` extension)
 
@@ -92,10 +100,17 @@ There is no direct player-facing intent for AI creation. The server and shared c
 
 ## Related
 
-- [[systems/game-overview]] — overall game architecture; `PlayerType.AiPlayer` documented in player types table
+- [[systems/glossary]] — **the canonical `PlayerType` taxonomy**: an AI player runs the same `FakeHumanExecution` as a Nation and differs only in having a real `clientID`
+- [[systems/game-overview]] — overall game architecture (its player-types table was merged into the glossary 2026-09-03)
 - [[features/tutorial]] — tutorial also uses bot-filled lobbies for context
 - [[tasks/ai-lobby-slot-bug]] — Sprint 4 bug fix documenting human-priority slot preservation
 - [[tasks/leaderboard-player-count]] — leaderboard count uses the same human-like treatment for `PlayerType.AiPlayer`
 - [[tasks/sprint4b-mini-mode-investigation]] — confirmed AI Players can fill Duos/Trios/Quads public lobbies
 - [[tasks/sprint4b-duos-trios-quads]] — re-enabled public Duos/Trios/Quads lobbies using AI-filled participant counts
 - [[decisions/sprint-4]] — planning pages now explicitly treat AI Players as already-live context
+- [[tasks/win-check-clientless-leader-guard]] — task 0022; the win-condition predicate is `clientID() === null`, so it catches **Nations (`PlayerType.FakeHuman`) as well as bots** — public FFA carries both
+- [[decisions/clientless-leader-win-policy]] — what happens when one of these clientless players leads at the win threshold, and why the match's XP is currently lost
+- [[decisions/adr-110-ai-winner-allowed]] — the 2026-09-03 ruling that an AI player may be declared winner, **and the expiry that rides with it**
+- [[tasks/teams-bot-team-win-stall]] — task `0205`, the Team-mode half of the same predicate
+- [[tasks/winmodal-participation-comment-correction]] — task `0207`, the participation comment that misdescribes this player type
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the FFA award an AI player may now receive; it is **credited nothing**, and what the award unblocks is crediting for every real player

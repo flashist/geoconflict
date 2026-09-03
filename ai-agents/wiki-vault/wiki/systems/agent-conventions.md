@@ -59,6 +59,7 @@ Naming is `<subject>.md`, **never dated** — a dated filename means "a record o
 ## Related
 
 - [[systems/project-brief]] — the working rules for agents these conventions expand
+- [[systems/glossary]] — the **game-domain** vocabulary, deliberately separate from the task-process vocabulary (board statuses, role owners) defined here
 - [[decisions/adr-numbering-two-series]] — how conventions differ from ADRs, and the ADR number bands
 - [[systems/producer-workflow]] — the producer role that owns the task lifecycle and the status briefing
 - [[systems/project-operations]] — the operational handbook these rules sit inside

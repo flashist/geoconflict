@@ -155,6 +155,7 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 
 - [[systems/project-brief]] — the product counterpart; what the game is and who it is for
 - [[systems/game-overview]] — game-design reference
+- [[systems/glossary]] — the vocabulary this survey's terms resolve to in code (`PlayerType`, `Team`, the two team-assignment paths, the three player IDs)
 - [[systems/game-loop]] — the tick and turn-replay path in detail
 - [[systems/execution-pipeline]] — intent → execution → GameUpdate
 - [[systems/networking]] — worker routing and the WebSocket/HTTP surface

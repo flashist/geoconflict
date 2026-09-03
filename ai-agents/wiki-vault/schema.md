@@ -110,6 +110,55 @@ Result, follow-up items, what was learned.
 ## Related
 ```
 
+### Glossary Page (`wiki/systems/glossary.md`) — added 2026-09-03 by owner ruling
+
+**There is exactly ONE glossary page, and it lives at `wiki/systems/glossary.md`.** It is the vault's
+single source of truth for project vocabulary: the terms whose everyday meaning and code identifier
+diverge. It is a variant of the System Page — same inline metadata fields — with a fixed section
+order, because the gap between word and identifier *is* the content and must not be smoothed into
+prose.
+
+```markdown
+# Glossary — project terms and the code identifiers they mean
+
+**Layer**: shared
+**Key files**: `src/...`
+
+## Summary
+What the page is for, its scope, and what vocabulary it deliberately leaves to other pages.
+
+## The three words that do not mean what they look like
+A short "you say / code says / why it trips people" table, first, before anything else.
+
+## Architecture
+Numbered term clusters (taxonomy, teams, win conditions, identity …). Every claim cites `file:line`.
+
+## Gotchas / Known Issues
+- Stated model vs implemented code, both kept and labelled — never collapsed into one column.
+- Corrections this page makes to earlier documentation, with the verdict against code.
+- Unverified — claims that were NOT measured, listed so no one upgrades them silently.
+
+## Related
+```
+
+**Rules binding on this page type:**
+
+1. **One glossary, no second copy.** Any other vault page that needs a term **links to
+   `[[systems/glossary]]`** instead of restating the definition. Lint must flag a re-grown
+   vocabulary table elsewhere in the vault as duplication, not treat it as an independent page.
+2. **Evidence or nothing.** Every term entry cites `file:line`. A term whose definition cannot be
+   grounded in code goes under *Unverified*, never into the main tables.
+3. **Never smooth away a divergence.** Where the everyday word and the code identifier disagree,
+   both appear, marked. Tidying that into one friendly sentence destroys the page's purpose.
+4. **The owner's stated model is kept alongside the code, labelled — never overwritten.** A refuted
+   item stays visible with its refutation.
+
+**Provenance.** Owner ruling of 2026-09-03: the architect's `ai-agents/knowledge-base/glossary.md`
+is ingested into the vault and merged with `wiki/systems/game-overview.md`'s Player Types / Team
+Types / disambiguation sections, the knowledge base keeps only a short pointer, and this schema is
+amended to accommodate the page type. Reason given: a knowledge-base glossary *and* a wiki page
+covering the same ground is exactly how the two drift back apart.
+
 ---
 
 ## Standing Owner Rulings (binding on lint)
@@ -209,6 +258,9 @@ Each entry:
 - `resources/lang/en.json` — localization keys
 
 ### Canonical Systems to Maintain Pages For
+- **glossary** (project vocabulary vs code identifiers — `PlayerType`, `Team`, the win-condition and
+  identity terms; see the Glossary Page type above. **The single source of truth for term
+  definitions** — other pages link, they do not restate)
 - game-loop (tick system, GameRunner, deterministic execution)
 - networking (WebSocket, Worker.ts, Transport.ts, Zod validation)
 - rendering (Canvas 2D layers, GameRenderer; one Pixi/WebGL layer composited in)

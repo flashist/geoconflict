@@ -227,3 +227,4 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
 - [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, `Announcements:Closed`, and the task-0012 Personal-tab inbox events
 - [[systems/architecture-overview]] — the platform facade that owns the event enum
+- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, two new event families (multiplayer clientless-leader incidence, Singleplayer award incidence) and the denominator decisions that must reach the reference doc

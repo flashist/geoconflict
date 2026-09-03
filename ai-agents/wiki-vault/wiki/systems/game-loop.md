@@ -46,3 +46,4 @@ The game loop is a deterministic turn replay system. The server accumulates play
 - [[systems/architecture-overview]] — the tick model in the wider survey
 - [[decisions/adr-107-turn-interval-1-5x]] — the 1.5x speed-up that sets this loop's clock
 - [[tasks/citizen-verified-icon]] — task 0068, whose desync check compared 280 state-hash windows across three live clients with 0 mismatches
+- [[tasks/win-check-clientless-leader-guard]] — task 0022; before its guard, a clientless leader permanently deactivated the win check, leaving the match running with no way left to end it

@@ -43,8 +43,14 @@ The execution pipeline is the deterministic path from player action to state mut
 ## Related
 
 - [[systems/game-overview]] — broader architecture context
+- [[systems/glossary]] — which entity runs which execution class: `BotExecution` for bots, and **`FakeHumanExecution` for both Nations and AI players**
 - [[systems/game-loop]] — where the pipeline is scheduled per tick
 - [[systems/networking]] — how intents enter the system
 - [[systems/clans]] — clan-aware team assignment runs inside `GameImpl.addPlayers()` before gameplay executions tick
 - [[tasks/solo-win-condition-fix]] — win-condition execution now surfaces solo opponent victories to the client
 - [[systems/architecture-overview]] — the intent-to-execution path in the wider survey
+- [[tasks/win-check-clientless-leader-guard]] — task 0022's guard in `WinCheckExecution`, which suppresses the `Win` update entirely when the leader has no `clientID`
+- [[decisions/clientless-leader-win-policy]] — why a suppressed `Win` update silently costs the whole match's XP, and what is planned to award it instead
+- [[tasks/teams-bot-team-win-stall]] — task `0205`, the Team-branch form: the guard returns above `active = false`, so `checkWinnerTeam()` retries forever and no `Win` update is ever emitted (measured 2026-09-03, in a simulator)
+- [[decisions/adr-110-ai-winner-allowed]] — which players the restored `Win` update may name
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, which restored the `Win` update on the FFA clientless-leader path by awarding a fallback winner

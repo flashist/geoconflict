@@ -21,5 +21,6 @@ The tutorial no longer includes aggressive nation territories, so first-time pla
 ## Related
 
 - [[features/tutorial]] — tutorial feature behavior and follow-up context
+- [[systems/glossary]] — "Nation" is `PlayerType.FakeHuman`; the lobby table records the tutorial as the one place `disableNPCs` is forced `true`
 - [[decisions/sprint-4]] — sprint that scheduled the tutorial simplification work
 - [[tasks/tutorial-build-menu-lock]] — companion tutorial guardrail shipped in the same sprint
