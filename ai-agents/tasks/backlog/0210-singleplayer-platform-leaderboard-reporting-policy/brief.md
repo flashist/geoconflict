@@ -287,6 +287,22 @@ saw** — nobody has observed it live, and the ruling did not change that.
   ⚠️ **Consumer of this task, not a blocker on it.**
 - ⚠️ **This is not a `0206` regression and must not be described as one.** It is pre-existing, and `0206`
   correctly guards its own new branch against it.
+- 📌 **Cross-reference — the XP half of the same policy. Owner ruling, 2026-09-04, given live in
+  session:** *"Solo matches shouldn't contribute to the leaderboard. Neither should they contribute to
+  the XP."* ⇒ **Leaderboard and profile XP now read as ONE coherent policy: solo contributes to
+  neither.** The XP half was recorded in
+  [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md), where it closes a
+  question that brief had explicitly carried as open.
+  ⛔ **NOTHING IN `0210` CHANGES.** Its scope, status and priority are **untouched**, and its own
+  2026-09-03 ruling was **not conditioned on this** — it stood on its own reasoning (unranked,
+  trivially farmable practice) and still does. This note exists so a reader of either brief sees the
+  whole policy, **not** because the two tasks merged.
+  ⚠️ **The asymmetry matters and is not an inconsistency:** `0210` must **ADD a guard** — Singleplayer
+  reports to the platform leaderboard **today**. The XP half needs **no code**: solo already credits
+  zero, because `creditMatchXp` lives only on the game server (`src/server/GameServer.ts:1253`) and
+  solo runs on `src/client/LocalServer.ts`, which has no crediting code (✅ producer-verified
+  2026-09-04). ⛔ **Do not read "solo contributes to neither" as meaning both halves are already
+  handled** — one is live behaviour to fix, the other is an unenforced property to preserve.
 
 ### ~~🚩 Open, not ruled~~ → 📌 **RULED 2026-09-03 — `0208`'s measurement scope**
 

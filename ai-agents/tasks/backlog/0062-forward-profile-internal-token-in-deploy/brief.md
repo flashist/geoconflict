@@ -12,7 +12,23 @@ for users *now*, this blocks `0017`/`0018` from ever working. Cheapest high-valu
 the fix itself is one line.
 
 ## Status
-🚧 Blocked — built + reviewed 2026-08-24 (Ready to merge, validation-gated); awaiting deploy proof (worklog pendings D1–D3) *(marker set by the lead 2026-08-24 per producer recommendation)*
+🚧 Blocked — built + reviewed 2026-08-24 (Ready to merge, validation-gated); **deployed 2026-08-29 in `362a2f9` — INFERRED from commit ancestry, NOT verified**; verification D1–D5 not yet run
+
+⚠️ **Why the word "inferred" is load-bearing here.** The fix commit `680fb2d` (2026-08-24) **is** an
+ancestor of the production deploy commit `362a2f9` ("DEPLOY prod: bump version to 0.0.140",
+2026-08-29) — `git merge-base --is-ancestor 680fb2d 362a2f9` returns true — and
+`git show 362a2f9:deploy.sh` carries the forwarding line at `:292`. **None of that is proof the fix
+is live.** `deploy.sh` runs from the owner's **local working tree** at deploy time, not from a
+committed tree, and what that tree contained on 2026-08-29 is **not recoverable from git**.
+**`D2` is the step that turns this inference into fact** — reading the running container's
+environment for a non-empty `PROFILE_INTERNAL_TOKEN` (worklog, Deploy-pending section). Until D2
+runs, "live in production" is an inference and must be written as one.
+
+*(Marker set by the lead 2026-08-24 per producer recommendation. **Reworded 2026-09-04 on an owner
+ruling given live in session**: the previous wording — `awaiting deploy proof (D1–D3)` — was stale in
+one direction, sending a reader to wait for a weekend deploy that has probably already happened.
+Asserting "deployed" flatly would be the opposite overclaim, so both halves are kept. Status token
+unchanged: still `🚧 Blocked`.)*
 
 *(Filed to the Backlog board 2026-08-23 with the blocking claim marked **unverified**. Verified the
 same day — it holds — and promoted into Sprint 4. The promotion follows the dependency, exactly as

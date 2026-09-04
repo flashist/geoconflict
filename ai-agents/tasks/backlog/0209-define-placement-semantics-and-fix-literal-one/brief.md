@@ -186,7 +186,11 @@ processing that review; `0206`'s folder was not touched. See *Open questions* in
 > not wrong.** Status `🔲 Backlog`, **not started**; rank **Medium–High, the producer's.** ⛔ **`0211`
 > must not SHIP until [`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
 > is DEPLOYED AND COLLECTING DATA** — ✅ planning and building in parallel is explicitly allowed;
-> ⚠️ neither task is `🚧 Blocked`. ⚠️ **THIS TASK (`0209`) IS UNAFFECTED — still `🔲 Backlog`,
+> ~~⚠️ neither task is `🚧 Blocked`.~~ 📌 **SWEPT 2026-09-04 by the producer — struck, not deleted;
+> SPENT, NOT WRONG: accurate when written, false once `0208` was built.** ✅ **`0211`'s half stands —
+> still `🔲 Backlog`, still NOT blocked, only its SHIP is ordered.** ⛔ **`0208` IS now `🚧 Blocked` —
+> built and reviewed 2026-09-04, UNCOMMITTED, UNDEPLOYED, NO DATA COLLECTED.** ⚠️ **Unrelated to the
+> sequencing ruling; nothing gates `0208`.** ⚠️ **THIS TASK (`0209`) IS UNAFFECTED — still `🔲 Backlog`,
 > unscheduled, unranked by the owner; nothing here schedules or gates it.**
 > ⚠️ **`0206`'s `plan.md` / `worklog.md` / `review.md` remain untouched by owner ruling** — the `R2`
 > citations elsewhere in this brief still resolve exactly as written.

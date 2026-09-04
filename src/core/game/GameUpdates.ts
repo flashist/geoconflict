@@ -46,6 +46,7 @@ export enum GameUpdateType {
   RailroadEvent,
   ConquestEvent,
   EmbargoEvent,
+  WinConditionCheck,
 }
 
 export type GameUpdate =
@@ -67,7 +68,8 @@ export type GameUpdate =
   | BonusEventUpdate
   | RailroadUpdate
   | ConquestUpdate
-  | EmbargoUpdate;
+  | EmbargoUpdate
+  | WinConditionCheckUpdate;
 
 export interface BonusEventUpdate {
   type: GameUpdateType.BonusEvent;
@@ -259,6 +261,43 @@ export interface UnitIncomingUpdate {
   message: string;
   messageType: MessageType;
   playerID: number;
+}
+
+// Task 0208 — win-condition instrumentation.
+//
+// Emitted once per game by WinCheckExecution when the win condition is met,
+// above the clientless-leader guard, so the measurement survives the guard's
+// eventual removal (tasks 0205 / 0211).
+//
+// Every field is a structured-cloneable primitive because this update crosses
+// postMessage out of the simulation Web Worker. It deliberately carries NO
+// identifiers of any kind — no player, client, lobby or Yandex ids. The
+// question is a rate, and a rate needs no identity.
+export type WinConditionMode = "Ffa" | "Team";
+export type WinConditionLobbyType = "Public" | "Private" | "Singleplayer";
+export type WinConditionBranch = "Threshold" | "Timer";
+export type WinConditionLeaderKind =
+  | "Bot"
+  | "Nation"
+  | "AiPlayer"
+  | "Human"
+  | "BotTeam"
+  // The all-clientless team of the HumansVsNations mode. Kept apart from
+  // HumanTeam: it is exactly the population 0208 measures, so folding it into
+  // the human leaf would hide the clientless case in the mode that has the
+  // most of it. See teamLeaderKind() in WinCheckExecution.
+  | "NationsTeam"
+  | "HumanTeam";
+
+export interface WinConditionCheckUpdate {
+  type: GameUpdateType.WinConditionCheck;
+  mode: WinConditionMode;
+  lobbyType: WinConditionLobbyType;
+  branch: WinConditionBranch;
+  leaderKind: WinConditionLeaderKind;
+  // Integer percent of the non-fallout land held by the leader at the crossing.
+  leaderSharePercent: number;
+  isTutorial: boolean;
 }
 
 export interface EmbargoUpdate {

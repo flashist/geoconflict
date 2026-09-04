@@ -13,8 +13,12 @@ import {
   GameType,
   PlayerInfo,
   PlayerType,
+  Team,
 } from "../../../src/core/game/Game";
-import { GameUpdateType } from "../../../src/core/game/GameUpdates";
+import {
+  GameUpdateType,
+  WinConditionCheckUpdate,
+} from "../../../src/core/game/GameUpdates";
 import { setup } from "../../util/Setup";
 
 describe("WinCheckExecution", () => {
@@ -58,6 +62,7 @@ describe("WinCheckExecution", () => {
       numTilesOwned: jest.fn(() => 81),
       name: jest.fn(() => "P1"),
       clientID: jest.fn(() => "client1"),
+      type: jest.fn(() => PlayerType.Human),
     };
     mg.players = jest.fn(() => [player]);
     mg.numLandTiles = jest.fn(() => 100);
@@ -71,6 +76,7 @@ describe("WinCheckExecution", () => {
       numTilesOwned: jest.fn(() => 10),
       name: jest.fn(() => "P1"),
       clientID: jest.fn(() => "client1"),
+      type: jest.fn(() => PlayerType.Human),
     };
     mg.players = jest.fn(() => [player]);
     mg.numLandTiles = jest.fn(() => 100);
@@ -244,6 +250,308 @@ describe("WinCheckExecution", () => {
   });
 });
 
+// Task 0208 — the win-condition check is instrumented at the decision point,
+// inside the `if (thresholdMet || timerMet)` block and ABOVE the clientless
+// guard, so the measurement keeps working once the guard is removed (0205/0211)
+// and so a clientless leader that never gets declared is still counted.
+describe("WinCheckExecution win-condition instrumentation (task 0208)", () => {
+  it("reports a clientless Bot leader over the FFA threshold, and still declares nobody", async () => {
+    const { winConditionUpdates, winUpdates, execution } =
+      await ffaWinConditionCheck(GameType.Public, {
+        type: PlayerType.Bot,
+        clientID: null,
+      });
+
+    expect(winConditionUpdates).toHaveLength(1);
+    expect(winConditionUpdates[0]).toEqual({
+      type: GameUpdateType.WinConditionCheck,
+      mode: "Ffa",
+      lobbyType: "Public",
+      branch: "Threshold",
+      leaderKind: "Bot",
+      leaderSharePercent: expect.any(Number),
+      isTutorial: false,
+    });
+    // Behaviour is unchanged: the guard still turns the leader away.
+    expect(winUpdates).toHaveLength(0);
+    expect(execution.isActive()).toBe(true);
+  });
+
+  // The brief flags the Nation case as INFERRED from the shared
+  // `clientID === null` guard and never observed. This is where it stops being
+  // an inference.
+  it("reports a clientless FakeHuman nation leader over the FFA threshold", async () => {
+    const { winConditionUpdates, winUpdates, execution } =
+      await ffaWinConditionCheck(GameType.Public, {
+        type: PlayerType.FakeHuman,
+        clientID: null,
+      });
+
+    expect(winConditionUpdates).toHaveLength(1);
+    expect(winConditionUpdates[0].leaderKind).toBe("Nation");
+    expect(winConditionUpdates[0].branch).toBe("Threshold");
+    expect(winUpdates).toHaveLength(0);
+    expect(execution.isActive()).toBe(true);
+  });
+
+  // Control: the leader kind carries its own denominator, so the human case
+  // must be reported too — and its behaviour must be untouched.
+  it("reports a human FFA leader and still declares the win", async () => {
+    const { winConditionUpdates, winUpdates, execution } =
+      await ffaWinConditionCheck(GameType.Public, {
+        type: PlayerType.Human,
+        clientID: "human001",
+      });
+
+    expect(winConditionUpdates).toHaveLength(1);
+    expect(winConditionUpdates[0].leaderKind).toBe("Human");
+    expect(winUpdates).toHaveLength(1);
+    expect(execution.isActive()).toBe(false);
+  });
+
+  // ADR-110: a PlayerType.AiPlayer carries a real clientID, never enters the
+  // clientless guard, and may legitimately be declared the winner. This leaf is
+  // ADR-110's re-raise-trigger measurement.
+  it("reports an AiPlayer leader and still declares the win", async () => {
+    const { winConditionUpdates, winUpdates } = await ffaWinConditionCheck(
+      GameType.Public,
+      { type: PlayerType.AiPlayer, clientID: "ai001" },
+    );
+
+    expect(winConditionUpdates).toHaveLength(1);
+    expect(winConditionUpdates[0].leaderKind).toBe("AiPlayer");
+    expect(winUpdates).toHaveLength(1);
+  });
+
+  it("distinguishes a private lobby from a public one", async () => {
+    const { winConditionUpdates } = await ffaWinConditionCheck(
+      GameType.Private,
+      { type: PlayerType.Bot, clientID: null },
+    );
+
+    expect(winConditionUpdates[0].lobbyType).toBe("Private");
+  });
+
+  // Singleplayer and tutorial paths are unchanged: the FFA guard's carve-out
+  // still behaves as today, and the update carries the dimensions the client
+  // uses to drop them from the multiplayer measurement.
+  it("marks singleplayer and tutorial matches so the client can drop them", async () => {
+    const solo = await ffaWinConditionCheck(GameType.Singleplayer, {
+      type: PlayerType.FakeHuman,
+      clientID: null,
+    });
+    const tutorial = await ffaWinConditionCheck(
+      GameType.Singleplayer,
+      { type: PlayerType.FakeHuman, clientID: null },
+      true,
+    );
+
+    expect(solo.winConditionUpdates[0].lobbyType).toBe("Singleplayer");
+    expect(solo.winConditionUpdates[0].isTutorial).toBe(false);
+    // Unchanged behaviour: non-tutorial singleplayer still declares the winner.
+    expect(solo.winUpdates).toHaveLength(1);
+
+    expect(tutorial.winConditionUpdates[0].isTutorial).toBe(true);
+    // Unchanged behaviour: a tutorial still declares nobody.
+    expect(tutorial.winUpdates).toHaveLength(0);
+    expect(tutorial.execution.isActive()).toBe(true);
+  });
+
+  it("reports the leader share as an integer percent", async () => {
+    const { winConditionUpdates } = await ffaWinConditionCheck(
+      GameType.Public,
+      {
+        type: PlayerType.Bot,
+        clientID: null,
+      },
+    );
+
+    const share = winConditionUpdates[0].leaderSharePercent;
+    expect(Number.isInteger(share)).toBe(true);
+    expect(share).toBeGreaterThanOrEqual(80);
+    expect(share).toBeLessThanOrEqual(100);
+  });
+
+  // Hazard A. A clientless leader makes the guard return WITHOUT deactivating
+  // the execution, so the check re-fires every 10 ticks for the rest of the
+  // match — potentially ~10^4 times. Running a handful of ticks would pass
+  // vacuously, so this runs far past the first crossing.
+  it("emits exactly one update however many times the check re-fires", async () => {
+    const { game, execution, winConditionUpdates } = await ffaWinConditionCheck(
+      GameType.Public,
+      {
+        type: PlayerType.Bot,
+        clientID: null,
+      },
+    );
+
+    // The first crossing, from the helper's direct call.
+    expect(winConditionUpdates).toHaveLength(1);
+
+    const reCheck = jest.spyOn(execution, "checkWinnerFFA");
+    game.addExecution(execution);
+    let laterUpdateCount = 0;
+    for (let i = 0; i < 500; i++) {
+      const updates = game.executeNextTick();
+      laterUpdateCount += updates[GameUpdateType.WinConditionCheck].length;
+    }
+
+    // The guard really did re-fire many times, so the assertion below is not
+    // vacuous: the execution is still active and still being ticked.
+    expect(execution.isActive()).toBe(true);
+    expect(reCheck.mock.calls.length).toBeGreaterThan(20);
+    expect(laterUpdateCount).toBe(0);
+  });
+
+  it("reports a Bot team leader over the team threshold", async () => {
+    const { mg, winCheck } = await mockTeamThreshold(
+      ColoredTeams.Bot,
+      GameType.Public,
+    );
+
+    winCheck.checkWinnerTeam();
+
+    const updates = (mg as any).updates[GameUpdateType.WinConditionCheck];
+    expect(updates).toHaveLength(1);
+    expect(updates[0].mode).toBe("Team");
+    expect(updates[0].leaderKind).toBe("BotTeam");
+    expect(updates[0].branch).toBe("Threshold");
+    // Unchanged behaviour: a Bot team is still not declared outside singleplayer.
+    expect(mg.setWinner).not.toHaveBeenCalled();
+  });
+
+  // HumansVsNations puts every clientless nation on ColoredTeams.Nations and
+  // nothing else, so a leading Nations team is 100 % clientless — the very
+  // population this task measures. It must not be labelled HumanTeam.
+  it("reports a clientless Nations team leader as its own leaf", async () => {
+    const { mg, winCheck } = await mockTeamThreshold(
+      ColoredTeams.Nations,
+      GameType.Public,
+    );
+
+    winCheck.checkWinnerTeam();
+
+    const updates = (mg as any).updates[GameUpdateType.WinConditionCheck];
+    expect(updates).toHaveLength(1);
+    expect(updates[0].mode).toBe("Team");
+    expect(updates[0].leaderKind).toBe("NationsTeam");
+    expect(updates[0].branch).toBe("Threshold");
+    // Unchanged behaviour: the team guard turns away ColoredTeams.Bot only, so
+    // a Nations team is still declared the winner exactly as it was at HEAD.
+    expect(mg.setWinner).toHaveBeenCalled();
+  });
+
+  it("reports a human team leader over the team threshold", async () => {
+    const { mg, winCheck } = await mockTeamThreshold(
+      ColoredTeams.Red,
+      GameType.Public,
+    );
+
+    winCheck.checkWinnerTeam();
+
+    const updates = (mg as any).updates[GameUpdateType.WinConditionCheck];
+    expect(updates[0].leaderKind).toBe("HumanTeam");
+    expect(mg.setWinner).toHaveBeenCalled();
+  });
+
+  // The timer branch is private-lobby-only by construction (public lobbies
+  // carry no maxTimerValue), so unit tests are the only coverage it will ever
+  // get. It is never pooled with the threshold branch.
+  it("reports the timer branch separately in FFA", async () => {
+    const mg = await setupTimerGame();
+    const winCheck = new WinCheckExecution();
+    winCheck.init(mg, 0);
+    mockTimerExpiredFfa(mg, null);
+
+    winCheck.checkWinnerFFA();
+
+    const updates = (mg as any).updates[GameUpdateType.WinConditionCheck];
+    expect(updates).toHaveLength(1);
+    expect(updates[0]).toEqual(
+      expect.objectContaining({
+        mode: "Ffa",
+        lobbyType: "Private",
+        branch: "Timer",
+        leaderKind: "Nation",
+        leaderSharePercent: 10,
+      }),
+    );
+  });
+
+  it("reports the timer branch separately in team mode", async () => {
+    const mg = await setupTimerGame();
+    const winCheck = new WinCheckExecution();
+    winCheck.init(mg, 0);
+    mockTimerExpiredTeam(mg);
+
+    winCheck.checkWinnerTeam();
+
+    const updates = (mg as any).updates[GameUpdateType.WinConditionCheck];
+    expect(updates).toHaveLength(1);
+    expect(updates[0]).toEqual(
+      expect.objectContaining({
+        mode: "Team",
+        lobbyType: "Private",
+        branch: "Timer",
+        leaderKind: "BotTeam",
+      }),
+    );
+  });
+
+  // A map whose every land tile carries fallout makes the share a division by
+  // zero. The ordinary shape is Infinity — the leader still holds tiles — and
+  // the honest report is 100: the leader holds all the land there is left.
+  it("reports 100 when the leader holds every non-fallout tile of an all-fallout map", async () => {
+    const { mg, winCheck } = await mockTeamThreshold(
+      ColoredTeams.Red,
+      GameType.Public,
+    );
+    mg.numTilesWithFallout = jest.fn(() => 100);
+
+    winCheck.checkWinnerTeam();
+
+    const updates = (mg as any).updates[GameUpdateType.WinConditionCheck];
+    expect(updates).toHaveLength(1);
+    expect(updates[0].leaderSharePercent).toBe(100);
+  });
+
+  // NaN — the leader holds no tiles either — has no honest value, so it stays
+  // 0. Only the timer branch can reach it: NaN > threshold is false.
+  it("reports 0 when the share is NaN", async () => {
+    const mg = await setupTimerGame();
+    const winCheck = new WinCheckExecution();
+    winCheck.init(mg, 0);
+    mockTimerExpiredTeam(mg);
+    mg.numTilesWithFallout = jest.fn(() => 100);
+    mg.players = jest.fn(() => [
+      {
+        numTilesOwned: jest.fn(() => 0),
+        team: jest.fn(() => ColoredTeams.Bot),
+      },
+    ]);
+
+    winCheck.checkWinnerTeam();
+
+    const updates = (mg as any).updates[GameUpdateType.WinConditionCheck];
+    expect(updates).toHaveLength(1);
+    expect(updates[0].branch).toBe("Timer");
+    expect(updates[0].leaderSharePercent).toBe(0);
+  });
+
+  it("prefers the threshold branch when both are met in the same check", async () => {
+    const mg = await setupTimerGame();
+    const winCheck = new WinCheckExecution();
+    winCheck.init(mg, 0);
+    const leader = mockTimerExpiredFfa(mg, null);
+    leader.numTilesOwned.mockReturnValue(90);
+
+    winCheck.checkWinnerFFA();
+
+    const updates = (mg as any).updates[GameUpdateType.WinConditionCheck];
+    expect(updates[0].branch).toBe("Threshold");
+  });
+});
+
 /**
  * Task 0022 helper: mock an FFA game whose timer has expired but whose leader
  * is far below the territory threshold, so only the timer branch can fire.
@@ -254,6 +562,11 @@ function mockTimerExpiredFfa(mg: any, clientID: string | null) {
     numTilesOwned: jest.fn(() => 10),
     name: jest.fn(() => "leader"),
     clientID: jest.fn(() => clientID),
+    // Task 0208 reads the leader's PlayerType for its leader-kind dimension.
+    // A clientless leader here stands for a FakeHuman nation.
+    type: jest.fn(() =>
+      clientID === null ? PlayerType.FakeHuman : PlayerType.Human,
+    ),
   };
   mg.players = jest.fn(() => [leader]);
   mg.numLandTiles = jest.fn(() => 100);
@@ -331,6 +644,143 @@ async function ffaWinUpdates(
     humanClientId: humanInfo.clientID,
     winUpdates: (game as any).updates[GameUpdateType.Win],
   };
+}
+
+/**
+ * Task 0208 helper: a real game whose leader is over the territory threshold,
+ * with the leader's PlayerType chosen by the caller so every leader-kind leaf
+ * of the event can be exercised. Returns the win-condition updates alongside
+ * the win updates, so each case can assert the instrumentation AND that the
+ * pre-existing behaviour around it is unchanged.
+ */
+async function ffaWinConditionCheck(
+  gameType: GameType,
+  leader: { type: PlayerType; clientID: string | null },
+  isTutorial = false,
+) {
+  const humanInfo = new PlayerInfo(
+    "human",
+    PlayerType.Human,
+    "human001",
+    "human_id",
+  );
+  const game = await setup(
+    "big_plains",
+    {
+      gameMode: GameMode.FFA,
+      gameType,
+      isTutorial,
+      maxTimerValue: undefined,
+    },
+    [humanInfo],
+  );
+
+  let leaderId = humanInfo.id;
+  if (leader.type !== PlayerType.Human) {
+    const leaderInfo = new PlayerInfo(
+      "leader",
+      leader.type,
+      leader.clientID,
+      "leader_id",
+    );
+    game.addPlayer(leaderInfo);
+    leaderId = leaderInfo.id;
+  }
+
+  while (game.inSpawnPhase()) {
+    game.executeNextTick();
+  }
+
+  const leaderPlayer = game.player(leaderId);
+  const targetTiles = Math.floor(game.numLandTiles() * 0.82);
+  let conqueredTiles = 0;
+  game.forEachTile((tile) => {
+    if (
+      conqueredTiles < targetTiles &&
+      game.map().isLand(tile) &&
+      !game.map().hasOwner(tile)
+    ) {
+      leaderPlayer.conquer(tile);
+      conqueredTiles++;
+    }
+  });
+
+  const execution = new WinCheckExecution();
+  execution.init(game, game.ticks());
+  execution.checkWinnerFFA();
+
+  return {
+    game,
+    execution,
+    winUpdates: (game as any).updates[GameUpdateType.Win],
+    winConditionUpdates: (game as any).updates[
+      GameUpdateType.WinConditionCheck
+    ] as WinConditionCheckUpdate[],
+  };
+}
+
+/** Task 0208 helper: a real game to hold the updates map, for the mocked cases. */
+async function setupTimerGame() {
+  const mg: any = await setup("big_plains", {
+    gameMode: GameMode.FFA,
+    maxTimerValue: 5,
+  });
+  mg.setWinner = jest.fn();
+  return mg;
+}
+
+/**
+ * Task 0208 helper: mock a team game whose leading team is over the territory
+ * threshold with the timer unset, so only the threshold branch can fire.
+ */
+async function mockTeamThreshold(team: Team, gameType: GameType) {
+  const mg = await setupTimerGame();
+  const teamPlayer = {
+    numTilesOwned: jest.fn(() => 81),
+    team: jest.fn(() => team),
+  };
+  mg.players = jest.fn(() => [teamPlayer]);
+  mg.numLandTiles = jest.fn(() => 100);
+  mg.numTilesWithFallout = jest.fn(() => 0);
+  mg.stats = jest.fn(() => ({ stats: () => ({ mocked: true }) }));
+  mg.config = jest.fn(() => ({
+    gameConfig: jest.fn(() => ({
+      gameMode: GameMode.Team,
+      gameType,
+    })),
+    percentageTilesOwnedToWin: jest.fn(() => 80),
+    numSpawnPhaseTurns: jest.fn(() => 0),
+  }));
+
+  const winCheck = new WinCheckExecution();
+  winCheck.init(mg, 0);
+  return { mg, winCheck };
+}
+
+/**
+ * Task 0208 helper: mock a team game whose timer has expired but whose leading
+ * team is far below the territory threshold, so only the timer branch can fire.
+ */
+function mockTimerExpiredTeam(mg: any) {
+  const botTeamPlayer = {
+    numTilesOwned: jest.fn(() => 10),
+    team: jest.fn(() => ColoredTeams.Bot),
+  };
+  mg.players = jest.fn(() => [botTeamPlayer]);
+  mg.numLandTiles = jest.fn(() => 100);
+  mg.numTilesWithFallout = jest.fn(() => 0);
+  mg.stats = jest.fn(() => ({ stats: () => ({ mocked: true }) }));
+  mg.ticks = jest.fn(() => 100000);
+  mg.config = jest.fn(() => ({
+    gameConfig: jest.fn(() => ({
+      gameMode: GameMode.Team,
+      gameType: GameType.Private,
+      maxTimerValue: 1,
+    })),
+    percentageTilesOwnedToWin: jest.fn(() => 80),
+    numSpawnPhaseTurns: jest.fn(() => 0),
+  }));
+  return botTeamPlayer;
 }
 
 async function clientlessFfaWinUpdates(gameType: GameType, isTutorial = false) {

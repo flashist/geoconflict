@@ -81,10 +81,68 @@
 > **That warning is kept because it is the reason this ruling was needed.**
 >
 > 🔴 **RECORD THIS AS A DECISION, NOT A GAP — and read the next line before restating it anywhere.**
-> ⛔ **This is NOT a ruling that "Singleplayer awards no XP."** The owner was offered that stronger
+>
+> ~~⛔ **This is NOT a ruling that "Singleplayer awards no XP."** The owner was offered that stronger
 > option **and declined it.** ⇒ **What is settled: `0211` does not cover Singleplayer.** **What
 > remains open: whether Singleplayer should credit participation XP at all** — a live question for
-> someone to ask later, **not** something this ruling answered.
+> someone to ask later, **not** something this ruling answered.~~
+>
+> ### ✅ SUPERSEDED — Singleplayer awards no XP. Owner ruling, 2026-09-04, given live in session.
+>
+> ⚠️ **The struck paragraph above is SPENT, NOT WRONG.** It was accurate when written: earlier the same
+> day the owner *was* offered the stronger option and *did* decline it, and this brief recorded that
+> honestly. **Later that day they ruled it.** ⛔ **Do not rewrite the history into "they ruled it the
+> first time" — the strike is the record that the question stayed open for a while and then closed.**
+>
+> > **Owner, 2026-09-04:** *"Solo matches shouldn't contribute to the leaderboard. Neither should they
+> > contribute to the XP."*
+>
+> ⇒ **The open question this brief carried is now CLOSED. Singleplayer credits no participation XP,
+> ever.** ⛔ **It is still OUT of `0211`'s scope** — the earlier scope ruling is unchanged, and this
+> ruling does **not** widen the task. What changed is the *policy*, not the *scope*.
+>
+> #### 🔴 What this ruling actually changes — read this before planning, it is the load-bearing part
+>
+> **It changes NOTHING about today's behaviour. It converts an ACCIDENTAL property into a DELIBERATE
+> one.** Singleplayer already credits zero XP, but **only as a side-effect of architecture** —
+> ✅ producer-verified this turn against the working tree:
+>
+> - `creditMatchXp` exists **only** on the game server, `src/server/GameServer.ts:1253` (plus the
+>   profile-server implementation it calls). Singleplayer never reaches it.
+> - Singleplayer runs against `src/client/LocalServer.ts`. Grepping that whole 362-line file for
+>   `credit|ProfileApi|xp` returns **nothing** — the only hit is the class name `LocalServer`.
+> - `src/client/Transport.ts` sets `isLocal` at `:198` for **Singleplayer *and* archived-game replay**,
+>   and `sendMsg` (`:691-694`) hands every client message to `this.localServer.onMessage(msg)` and
+>   `return`s — the WebSocket is never touched.
+> - ⚠️ **CORRECTION to a plausible-sounding but wrong reading:** the winner message is **not**
+>   suppressed in solo. `onSendWinnerEvent` (`:589`) is `if (this.isLocal || socket open)` — `isLocal`
+>   **enables** the send. `LocalServer` receives it and stores it (`:226-228`) for the game record.
+>   **The single reason no XP is credited is that `LocalServer` has no crediting code**, not that the
+>   message is dropped. Anyone reasoning about this must reason about **that one seam**, not a guard.
+> - ⛔ **There is NO guard, NO test, and NO comment anywhere stating this as intent.** ✅ Re-verified
+>   2026-09-04, and stated precisely — ⚠️ **an earlier revision of this brief said `GameServer.ts`
+>   contains "zero occurrences of `GameType`/`gameType`/`Singleplayer`". THAT WAS WRONG; the producer
+>   caught and corrected it.** The accurate facts:
+>   - `src/server/GameServer.ts` has **six** `GameType` occurrences (`:7` import, then `:113`, `:194`,
+>     `:877`, `:895`, `:933`) — **all of them `GameType.Public` checks**, and **all of them above the
+>     crediting path.**
+>   - ⇒ **The precise claim is narrower and is the one that matters: the CREDITING PATH has no
+>     game-type check.** `creditMatchXp` (called `:1199`, defined `:1253`) branches on game type
+>     nowhere, and `src/core/profile/MatchQualification.ts` has **zero** `GameType`/`gameType`/
+>     `Singleplayer` occurrences — `selectMatchCredits` takes no game-type parameter.
+>   - ⚠️ **Why the correction matters rather than being pedantry:** `this.gameConfig.gameType` is
+>     **already in scope** in `GameServer`, so a game-type guard there would be **one line, not new
+>     plumbing.** ⛔ **Do not use that to argue for a guard — see the Notes, where the opposite
+>     conclusion is reached and it is reached *because* of this fact.**
+>
+> 🔴 **THE FORWARD RISK, AND IT IS THIS TASK'S:** `0211` is **precisely the task that relocates the
+> crediting seam** — from "server sees a winner message" to "elimination or match end, whichever comes
+> first." A trigger placed client-side, or one that moves crediting anywhere `LocalServer` can reach,
+> would **start** crediting Singleplayer silently and nothing in the codebase would object.
+> ⛔ **A `0211` plan MUST NOT introduce Singleplayer crediting.** ⚠️ **The property it must preserve is
+> unenforced today, so "the tests are green" does not prove it was preserved.** See the *unenforced*
+> note in **Notes** for the producer's recommendation on that — ⛔ **which is a recommendation to the
+> owner, NOT part of this task's scope.**
 >
 > ## ✅ Ruling 3 — the XP amount stays 10 flat. Decision DEFERRED, not made.
 >
@@ -550,9 +608,21 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
   covered by either ruling. Do not assume it in or out.~~ **Struck, not deleted.** **FFA and Team
   only.** Reasoning: Singleplayer XP is a separate product question, and bundling it risks reading
   [`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)'s **leaderboard-points**
-  ruling across onto **profile XP**. ⛔ **This is NOT a ruling that Singleplayer awards no XP** — the
+  ruling across onto **profile XP**. ~~⛔ **This is NOT a ruling that Singleplayer awards no XP** — the
   owner declined that stronger option. **Settled: `0211` does not cover it. Still open: whether it
-  should credit at all.**
+  should credit at all.**~~
+  ✅ **SUPERSEDED 2026-09-04 — SINGLEPLAYER AWARDS NO XP. Owner ruling, live in session:** *"Solo
+  matches shouldn't contribute to the leaderboard. Neither should they contribute to the XP."*
+  ⚠️ **The struck sentence is SPENT, NOT WRONG** — the owner really did decline that stronger option
+  earlier the same day, then ruled it later. **Struck, not deleted, so the sequence reads honestly.**
+  ⛔ **This does NOT widen `0211`. Singleplayer stays out of scope; only the policy changed.**
+  🔴 **It changes nothing about today's behaviour — solo already credits zero — but it makes that an
+  INTENDED property instead of an accident of architecture** (crediting lives only in
+  `src/server/GameServer.ts:1253`; solo runs on `src/client/LocalServer.ts`, which has no crediting
+  code — ✅ producer-verified). ⛔ **`0211` moves the crediting trigger, so `0211` is exactly the task
+  that could break it. Do not introduce Singleplayer crediting.** ⚠️ **The property is UNENFORCED —
+  no guard, no test, no comment** — so a green suite does not prove it survived. See the scope box at
+  the top and the *unenforced* note in **Notes**.
 - 🔴 **XP AMOUNT: HOLD AT 10 FLAT — owner ruling, 2026-09-04. A deliberate hold, not an oversight.**
   *"Do not change two things at once"* — ship the crediting fix at the existing amount, see the data,
   then tune. ⚠️ **The architect's point stands and is recorded, not dismissed:** the trigger moving
@@ -581,7 +651,48 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
    this case does not verify this task.** ⛔ **Do not report it satisfied by a code trace.**
 4. 🔴 **ADDED 2026-09-04 BY OWNER RULING — TEAM MODE credits in both of the cases above**, not FFA
    only. A bot-team-led stalled match must credit its players.
-   ⚠️ **Singleplayer is OUT of scope** — assert it is unaffected, do not add coverage for it.
+   ~~⚠️ **Singleplayer is OUT of scope** — assert it is unaffected, do not add coverage for it.~~
+   ✅ **AMENDED 2026-09-04 BY OWNER RULING — struck, not deleted; it was accurate when written.**
+   ⚠️ **Singleplayer is STILL OUT OF SCOPE.** ⛔ **What follows is a VERIFICATION obligation, NOT an
+   implementation one. It does not widen this task by one line of behaviour.**
+
+4c. 🔴 **ADDED 2026-09-04 BY OWNER RULING — A SINGLEPLAYER / LOCAL MATCH CREDITS ZERO XP. Assert it in
+   a regression test.** *(Numbered `4c` so the step numbers below stay stable.)*
+
+   **The property under test:** a Singleplayer (or archived-replay) match credits **no** participation
+   XP to **anyone**. It is true today — see the scope box at the top for the verified mechanism — and
+   the owner ruled on 2026-09-04 that it must **stay** true: *"Solo matches shouldn't contribute to the
+   leaderboard. Neither should they contribute to the XP."*
+
+   ⛔ **READ THE SCOPE LINE TWICE — a future planner must not misread this as licence.** This task
+   still covers **FFA and Team only**. It adds **no Singleplayer behaviour, no Singleplayer code path,
+   and no Singleplayer feature.** ⇒ **The policy closed; the scope did not move.** The obligation is
+   to **prove `0211` did not break** a property that already holds — nothing more.
+
+   🔴 **Why this test must exist, and why "run the suite" is not a substitute:** `0211` is **the task
+   that relocates the crediting trigger**, and the property is **unenforced** — no guard, no test, no
+   comment. ⚠️ **"The tests are green" does NOT prove the property was preserved**, because today
+   nothing anywhere asserts it. A trigger that moved crediting to somewhere `LocalServer` can reach
+   would start paying solo players and **every existing test would still pass.**
+
+   ⛔ **A TEST, NOT A RUNTIME GUARD — the owner adopted this reasoning, not just the conclusion, so a
+   future coder who finds the test inconvenient can see why a guard was rejected:**
+   - **A guard is dead code that reads as protection.** Solo **never reaches** `creditMatchXp`
+     (`src/server/GameServer.ts:1253`) — it runs on `src/client/LocalServer.ts`, which has no crediting
+     code at all. A game-type guard added in `GameServer` would sit on a path solo **cannot currently
+     take**, so it would never fire, could never be observed failing, and would give a false sense that
+     the property is enforced.
+   - ⚠️ **And it is worse than merely useless: it is protection pointed the wrong way.**
+     `this.gameConfig.gameType` is already in scope in `GameServer`, so adding a guard there is one
+     easy line — which is exactly what makes it a trap. **The failure mode this ruling guards against
+     is a trigger moving CLIENT-SIDE, where `GameServer` is not involved**, so the cheap, natural-
+     looking guard protects against precisely the case that cannot happen and not at all against the
+     one that can.
+   - ✅ **A test fails loudly the moment a trigger moves** — which is the actual risk, and the only
+     mechanism that catches it.
+
+   ⚠️ **State plainly in the worklog what the test drives** — a real local/Singleplayer path, or a
+   narrower unit-level stand-in — and **do not claim end-to-end coverage you did not write.**
 4b. 🔴 **ADDED 2026-09-04 BY OWNER RULING — A PLAYER ELIMINATED WHO THEN LEAVES IS STILL CREDITED.**
    Today `qualifiesForMatchXp` excludes a player who vanishes with no `killedAt`; **an eliminated
    player who closes the tab must now be paid at the moment of death.** ⛔ **Assert this explicitly in
@@ -628,8 +739,49 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
     touched; the owner has not ruled on them.** ✅ A reciprocal cross-reference was added to `0205`'s
     Notes and **nothing else in that brief was edited.**
   - [`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) — Singleplayer
-    leaderboard policy. ⚠️ **Whether Singleplayer should credit participation XP at all is adjacent to
-    `0210`'s ruling and is not settled here.**
+    leaderboard policy. ~~⚠️ **Whether Singleplayer should credit participation XP at all is adjacent to
+    `0210`'s ruling and is not settled here.**~~ ✅ **SETTLED 2026-09-04 — struck, not deleted; it was
+    accurate when written.** The owner ruled *"Solo matches shouldn't contribute to the leaderboard.
+    Neither should they contribute to the XP."* ⇒ **leaderboard and XP now read as ONE policy: solo
+    contributes to neither.** ⛔ **The two tasks are still separate and `0210`'s scope, status and
+    priority are UNCHANGED** — `0210` implements the leaderboard half (a guard it must **add**);
+    the XP half needs no code today. ⛔ **This does not widen `0211` either.**
+- 🔴 **THE XP HALF OF THE 2026-09-04 RULING WAS UNENFORCED — producer recommendation, ✅ NOW ADOPTED BY
+  OWNER RULING 2026-09-04. It is a VERIFICATION obligation, still NOT a scope change and NOT a task.**
+  Solo credits no XP purely because `creditMatchXp` (`src/server/GameServer.ts:1253`) is unreachable
+  from `src/client/LocalServer.ts`, which has no crediting code.
+  ⚠️ **CORRECTION, made by the producer against its own earlier text:** an earlier revision of this
+  bullet claimed `GameServer.ts` contains *"zero occurrences of `GameType`/`gameType`/`Singleplayer`"*.
+  **That was WRONG.** ✅ Re-verified 2026-09-04: `GameServer.ts` has **six** `GameType` occurrences
+  (`:7`, `:113`, `:194`, `:877`, `:895`, `:933`), **all `GameType.Public` checks and all above the
+  crediting path.** The accurate, narrower claim: **the crediting path itself has no game-type check**,
+  and `src/core/profile/MatchQualification.ts` genuinely has zero — `selectMatchCredits` takes no
+  game-type argument. **No guard, no test, no comment says the solo property is intended.**
+  ⚠️ **`0211` relocates the crediting trigger, which is the one change most likely to make it stop
+  being true — and nothing would fail.**
+
+  **The producer's recommendation: a regression test rather than a runtime guard.**
+  ~~⛔ **NOT ADOPTED — this is a recommendation only. Nobody has ruled on it, no task exists for it,
+  and none was filed.**~~ ~~⚠️ **Note for whoever puts it to the owner: adopting it would touch
+  Verification step 4, which today says *"assert it is unaffected, do not add coverage for it"* — so it
+  IS a scope question for `0211`, not a free addition.**~~
+  ✅ **ADOPTED 2026-09-04 — owner ruling, given live in session. Struck, not deleted: the history reads
+  honestly as recommended, then ruled.** ⚠️ **The struck text is SPENT, NOT WRONG** — at the time
+  nobody had ruled, and the flag that it was a scope question for step 4 is exactly what got it put to
+  the owner. **The owner chose to fold it into `0211` and explicitly REJECTED the separate-task
+  option** — ⛔ **so do not file one.** Verification **step 4 is amended and step `4c` added**
+  accordingly.
+
+  🔴 **The owner adopted the REASONING, not merely the conclusion — it is recorded here so a future
+  coder who finds the test inconvenient can see why a guard was rejected rather than re-proposing one:**
+  a guard on a path solo cannot currently reach is **dead code that reads as protection**, whereas a
+  test **fails loudly the moment a trigger moves.** ⚠️ **Sharpened by the correction above:** because
+  `this.gameConfig.gameType` is *already in scope* in `GameServer`, a guard there is one easy line —
+  which is what makes it a **trap**, not an argument for it. **The risk is a trigger moving CLIENT-
+  SIDE, where `GameServer` is not involved at all**, so that guard would defend the one case that
+  cannot happen and none of the case that can. ⚠️ **And "the tests are green" does NOT prove the
+  property was preserved** — nothing asserts it today, which is the whole reason this specific test has
+  to exist rather than relying on the suite as a whole.
 - **ADR-110** (`ai-agents/knowledge-base/decisions/adr-110-ai-player-may-be-declared-winner.md`) is
   **cited, not authored or edited here.** ⚠️ **It is unaffected by the revert as a policy** — it rules
   on the *winner predicate*; only `0206`'s FFA implementation of it was reverted. It carries a
@@ -659,10 +811,19 @@ that they were open and are now answered.**
    confusion flagged here — ⚠️ **the warning is KEPT because it is the reason the ruling was needed:
    [`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)'s ruling (*report
    nothing to the platform leaderboard*) is about LEADERBOARD POINTS, not profile XP, and the two must
-   not be read across.** ⛔ **This is a DECISION, not a gap — but it is NOT a ruling that "Singleplayer
-   awards no XP"; the owner was offered that stronger option and DECLINED it.** ⇒ **Settled: `0211`
-   does not cover Singleplayer. 🚩 Still open for someone to ask later: whether Singleplayer should
-   credit participation XP at all.**
+   not be read across.** ⛔ **This is a DECISION, not a gap** — ~~**but it is NOT a ruling that
+   "Singleplayer awards no XP"; the owner was offered that stronger option and DECLINED it.**
+   ⇒ **Settled: `0211` does not cover Singleplayer. 🚩 Still open for someone to ask later: whether
+   Singleplayer should credit participation XP at all.**~~
+   ✅ **AND NOW FULLY CLOSED 2026-09-04 — SINGLEPLAYER AWARDS NO XP.** Owner ruling, live in session:
+   *"Solo matches shouldn't contribute to the leaderboard. Neither should they contribute to the XP."*
+   ⚠️ **The struck text is SPENT, NOT WRONG** — the owner genuinely declined the stronger option first
+   and ruled it later the same day. **Struck, not deleted, so nobody reads this as the owner having
+   ruled it at the first asking.** ⛔ **The ruling does NOT widen `0211`** — Singleplayer remains out
+   of scope; the *policy* closed, the *scope* did not move. 🔴 **Today's behaviour is unchanged (solo
+   already credits zero); what changed is that it is now DELIBERATE rather than an accident of
+   architecture, and `0211` — the task that moves the crediting trigger — must not break it.**
+   ⚠️ **It is unenforced (no guard, no test, no comment); see the recommendation in Notes.**
 3. ~~🔴 **Is the still-open stall in scope — and are SURVIVORS in scope?** A match nobody can win still
    runs to the cap; crediting XP does **not** fix it. ⚠️ **The architect's §7 sharpens this into a
    concrete gap: crediting at elimination covers eliminated players but leaves SURVIVORS of a stalled

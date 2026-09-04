@@ -53,6 +53,10 @@ import {
   shouldLogMatchSpawnedConfirmedAnalytics,
 } from "./MatchStartAnalytics";
 import { saveReconnectSession } from "./ReconnectSession";
+import {
+  logWinConditionCheckAnalytics,
+  shouldLogWinConditionCheck,
+} from "./WinConditionAnalytics";
 import { getPersistentID, PreloadMapConfig } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import {
@@ -68,6 +72,7 @@ import { createCanvas } from "./Utils";
 import { createRenderer, GameRenderer } from "./graphics/GameRenderer";
 import SoundManager from "./sound/SoundManager";
 import {
+  humanWonPlacement,
   reportParticipation,
   reportPlacement,
 } from "./leaderboard/LeaderboardReporter";
@@ -334,6 +339,7 @@ export class ClientGameRunner {
   private isActive = false;
   private hasReportedParticipation = false;
   private hasProcessedWin = false;
+  private hasReportedWinConditionCheck = false;
   private _autoSpawnSent = false;
   private _autoSpawnBlockedByCatchup = false;
   private _spawnMissedReported = false;
@@ -426,11 +432,28 @@ export class ClientGameRunner {
     const points = awardTable[myIndex];
     const placement = +1;
 
+    // Task 0208 Part B. The parameter keeps its `_winUpdate` name on purpose:
+    // task 0209 owns this signature, and renaming it here would put a needless
+    // conflict in its way.
+    //
+    // The winner-shape handling lives in the reporter module so it can be unit
+    // tested — every shape `makeWinner()` emits, including the team tuple a
+    // solo Team match produces. See humanWonPlacement().
+    const humanWon = humanWonPlacement(
+      _winUpdate.winner,
+      this.lobby.clientID,
+      me.team(),
+    );
+    const gameConfig = this.gameView.config().gameConfig();
+
     reportPlacement({
       gameId: this.lobby.gameID,
       player: me,
       placement,
       points,
+      gameType: gameConfig.gameType,
+      isTutorial: gameConfig.isTutorial === true,
+      humanWon,
     });
   }
 
@@ -507,10 +530,35 @@ export class ClientGameRunner {
         this.lobby.gameRecord === undefined
       ) {
         this.hasReportedParticipation = true;
+        const participationGameConfig = this.gameView.config().gameConfig();
         reportParticipation({
           gameId: this.lobby.gameID,
           player: this.myPlayer,
+          // Task 0208 Part B. Read straight off the config rather than
+          // re-derived: a fourth game-type predicate would be a fourth thing
+          // to keep in sync.
+          gameType: participationGameConfig.gameType,
+          isTutorial: participationGameConfig.isTutorial === true,
         });
+      }
+
+      // Task 0208. The execution already latches this to one update per game;
+      // this second, independent latch is belt and braces, and also carries the
+      // replay / reconnect suppression the simulation cannot know about.
+      const winConditionChecks = gu.updates[GameUpdateType.WinConditionCheck];
+      if (winConditionChecks.length > 0) {
+        const winConditionState = {
+          isReplay: this.lobby.gameRecord !== undefined,
+          isReconnect: this.lobby.isReconnect === true,
+          hasReported: this.hasReportedWinConditionCheck,
+        };
+        if (shouldLogWinConditionCheck(winConditionState)) {
+          this.hasReportedWinConditionCheck = true;
+          logWinConditionCheckAnalytics(
+            winConditionChecks[0],
+            winConditionState,
+          );
+        }
       }
 
       const gameEnded = gu.updates[GameUpdateType.Win].length > 0;

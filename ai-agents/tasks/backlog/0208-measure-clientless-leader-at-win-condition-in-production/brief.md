@@ -21,7 +21,12 @@
 >    a clock of its own when it ships. 🔴 **AND THAT CLOCK IS THE REASON THIS TASK IS ORDERED FIRST:**
 >    ⛔ **`0211` must not SHIP until THIS task is DEPLOYED AND COLLECTING DATA** (owner ruling,
 >    2026-09-04) — ⚠️ **"deployed and collecting", NOT merely merged or built.** ✅ **`0211` may be
->    planned and built in parallel.** ⚠️ **Neither task is `🚧 Blocked`.**
+>    planned and built in parallel.** ~~⚠️ **Neither task is `🚧 Blocked`.**~~ 📌 **AMENDED
+>    2026-09-04 — struck, not deleted; TRUE WHEN WRITTEN, and true in the sense it was written in.**
+>    ✅ **`0211` is still NOT `🚧 Blocked`, and the SEQUENCING RULING still blocks nothing** — that is
+>    the claim this line was making and it is unchanged. ⛔ **But `0208` IS now `🚧 Blocked`, for an
+>    UNRELATED reason: it is built and reviewed but NOT DEPLOYED and NOT COMMITTED**, so it cannot
+>    proceed without the owner. **See the `## Status` section.**
 > 2. 🔴 **THE MEASUREMENT IS NOW MORE VALUABLE, NOT LESS.** `0206` was reverted because a live
 >    investigation measured its premise and found it wrong. **This task is that same class of work,
 >    done systematically.** The 2026-09-04 finding — a Nation reaching **100.0 %** with the match not
@@ -252,12 +257,100 @@ below is mine.
 - ⚠️ **Its value DECAYS** — see *Sequencing — the one real tension* below, which now covers `0210` too.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — BUILT AND REVIEWED 2026-09-04 (Part A + Part B). **NOT DEPLOYED. NO DATA COLLECTED. UNCOMMITTED IN THE WORKING TREE.** Cannot proceed without an owner commit and a production deploy — the deliverable is **the number**, and there is none.
 
-⚠️ **SCHEDULED INTO SPRINT 4 on 2026-09-04 (owner ruling, live in session) — and the status is
+> # ⛔ BUILT AND REVIEWED IS NOT DONE. DO NOT CLOSE THIS TASK.
+>
+> **Set by the producer 2026-09-04, on a lead ruling given live in session, overruling the reviewer's
+> closing suggestion that the task be handed to the producer to close.** ⛔ **`/fkit-task-done` was NOT
+> run and must not be run until the conditions below are met.**
+>
+> ### What actually exists today
+>
+> | | |
+> |---|---|
+> | ✅ **Built** | Part A **and** Part B, both complete in the working tree. |
+> | ✅ **Reviewed** | **7 review rounds** (Part A rounds 1–4, Part B rounds 1–3), **10 findings** — **9 fixed and verified** (`R1`–`R6`, `B1`, `B2`, `B4`), **1 owner-accepted residual** (`B3`). Ledger: [`review.md`](review.md). |
+> | ⛔ **Deployed** | **NO. Never.** |
+> | ⛔ **Data collected** | **NO. Zero.** |
+> | ⛔ **Committed** | **NO.** Both parts sit **uncommitted** in the working tree. |
+>
+> ### 🔴 The four things a later reader will get wrong
+>
+> **1. A green review is not a deployment.** 🔴 **NOTHING HAS BEEN OBSERVED ON A DASHBOARD AT ANY POINT
+> IN THIS TASK.** Analytics are **production-only**, so **every figure in `plan.md` and `review.md` is a
+> design claim about what *will* be emitted — never a measurement.** The reviewer wrote this into both
+> closed-out status lines deliberately, so that quoting either alone could not be read as "done"
+> (`review.md:13-25`, `review.md:664-677`). ⚠️ **This task is a MEASUREMENT task: its deliverable is the
+> number, not the instrumentation.** Marking it `✅ Done` today would put `Done` on a task whose entire
+> purpose is unfulfilled.
+>
+> **2. ⛔ [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) REMAINS GATED —
+> the gate is NOT satisfied.** The owner's 2026-09-04 ruling requires this task **DEPLOYED AND
+> COLLECTING DATA**. ⚠️ **Neither "built" nor "reviewed" nor "merged" satisfies it.** Recording this task
+> as `✅ Done` would make that gate *read* as cleared while `0211`'s pre-fix denominator is still
+> unmeasured — and shipping `0211` first **destroys that denominator permanently**. See the sequencing
+> box below, which is unchanged and still governs.
+>
+> **3. NOTHING IS COMMITTED — and the commit shape is prescribed.** 🔴 **The owner commits; no agent
+> does.** `plan.md:52` and `plan.md:515-518` require **Part A and Part B as TWO SEPARATE,
+> INDEPENDENTLY REVERTABLE COMMITS.** ⛔ **Do not squash them.** That split is the only mitigation for
+> the attribution cost recorded in Decision 1 (see below).
+>
+> **4. THREE VERIFICATION STEPS ARE UNCOVERED — by honest declaration, not oversight.** They were
+> declared as uncovered in **every** review round (`review.md:676-677`, `review.md:1071-1077`).
+> ⛔ **Do not let any status imply full verification.**
+>
+> | Step | What it is | Why it is uncovered |
+> |---|---|---|
+> | **V16** | Neither Part B event fires while watching a **replay** | Argued from source — both call sites are `gameRecord === undefined`-gated — **not proved by test**; the repo has no harness for it. |
+> | **V17** | **Exactly one event per path per match** | Rests on the **pre-existing** `hasReportedParticipation` / `hasProcessedWin` latches; confirmed by reading, not by test. ⛔ The brief's own step 17 says *do not report it satisfied by reading the code*. |
+> | **V18** | **Reload the page mid-Singleplayer match** | A **manual play-test that was NEVER RUN.** The no-resume conclusion is an **inference** (`saveReconnectSession` is skipped when `transport.isLocal`), not an observation. |
+>
+> ### 📌 The `0022` bundling trade — an ACCEPTED COST, not a defect
+>
+> **Decision 1, owner ruling given live in session 2026-09-04** (`plan.md:36-54`): **`0022` + Part A +
+> Part B ship together.** 🔴 **The owner chose this AGAINST both the coder's and the architect's
+> recommendation.** ⛔ **It stands. Do not re-litigate it.** The costs the owner accepted, recorded
+> because they asked for them to be recorded:
+>
+> - A post-deploy **desync or stall regression CANNOT BE ATTRIBUTED** between `0022`'s guard and Part A's
+>   instrumentation — they are the only two changes on that path and they land together.
+> - **A rollback removes all three together.** ⚠️ **Bisecting therefore needs a SECOND DEPLOY, not a
+>   rollback.** *(The prior release was named as `v0.0.140` in the ruling — ⚠️ **relayed, not verified
+>   against the repo.**)*
+>
+> ### ⏭️ REMAINING WORK — the task is NOT finished at deploy either
+>
+> 1. **Owner commits** Part A and Part B as **two separate, independently revertable commits**.
+> 2. **Owner deploys to production.** ⚠️ Bundled with `0022` per Decision 1.
+> 3. **Confirm the events actually ARRIVE** on the GameAnalytics dashboard — `Match:WinCondition:*`
+>    (Part A) and `Match:Leaderboard:Award:*` (Part B). ⚠️ **This is the first moment anything in this
+>    task is observed rather than argued.** Until it passes, the instrumentation is unproven in the
+>    only environment that can run it.
+> 4. 🔴 **READ THE NUMBERS. THIS IS THE DELIVERABLE AND THE STEP THAT COMPLETES THE TASK.** They feed
+>    **ADR-110's re-raise trigger**, **whether stalled-match survivors are a real population** (`0211`'s
+>    scope), and **`0205`'s rank**.
+> 5. **Only then** does the `0211` gate clear, and only then may this task be closed.
+> 6. ⚠️ **Still open regardless of deploy: V18**, the manual mid-match reload play-test.
+>
+> ⚠️ **Verification steps 11 and 19 of this brief are the production reads** — they were always scoped
+> as post-deploy and were never claimable locally. They remain unrun.
+
+~~⚠️ **SCHEDULED INTO SPRINT 4 on 2026-09-04 (owner ruling, live in session) — and the status is
 DELIBERATELY still `🔲 Backlog`.** **Scheduled is not started: nobody is building this.** The owner
 ruled *when this is worked*, not that it has begun. The status changes when a plan is approved and
-work actually starts.
+work actually starts.~~
+
+📌 **SPENT 2026-09-04 — struck, not deleted. It was TRUE WHEN WRITTEN and was overtaken by events the
+same day: work started, and both halves were built and reviewed.** ⛔ **`🔲 Backlog` is now the WRONG
+token** — the canonical vocabulary defines it as *"scoped and filed, **not picked up**"*
+([`task-status-vocabulary.md`](../../../knowledge-base/conventions/task-status-vocabulary.md)), and
+this task has plainly been picked up. **`🚧 Blocked` is the token the convention gives for *started,
+cannot proceed*, with a mandatory inline reason** — the same posture and the same token as
+[`0062`](../0062-forward-profile-internal-token-in-deploy/brief.md), which is likewise built,
+reviewed and awaiting deploy proof. ⚠️ **`🚧 Blocked` here does NOT mean anything is wrong with the
+work** — it means the next step is the **owner's**, not an agent's.
 
 **Nothing gates it. Nobody is building it.** It does not depend on `0205`, `0206`, `0207`, `0209` or
 `0210`, and 🔴 **it blocks none of them — `0210` explicitly included.** ⚠️ **But it is not
@@ -301,8 +394,15 @@ decisions — **ADR-110's re-raise trigger**, **whether stalled-match survivors 
 and **`0205`'s rank** — and they become **unrecoverable** the moment `0211` ships. `0208` is
 instrumentation, so it should be the quicker of the two.
 
-⚠️ **This does NOT make either task `🚧 Blocked`.** Both stay `🔲 Backlog`. `0208` is not gated by
-anything, and `0211` can be **planned and built** freely — it is only its **ship** that waits.
+~~⚠️ **This does NOT make either task `🚧 Blocked`.** Both stay `🔲 Backlog`. `0208` is not gated by
+anything, and `0211` can be **planned and built** freely — it is only its **ship** that waits.~~
+
+📌 **AMENDED 2026-09-04 — struck, not deleted. The CLAIM was correct and REMAINS correct; only one
+fact around it changed.** ✅ **The sequencing ruling itself still blocks NOTHING** — `0211` is still
+`🔲 Backlog`, still not blocked, and may still be planned and built freely. ⛔ **What changed: `0208`
+is now `🚧 Blocked`, and NOT because of this ruling.** It was **built and reviewed on 2026-09-04** and
+is **uncommitted and undeployed**, so its next step belongs to the **owner**. ⚠️ **Do not read `0208`'s
+`🚧 Blocked` marker as `0211` gating it — nothing gates `0208`.** See the `## Status` section.
 
 ## Owner
 fkit-coder — ⚠️ **with an `fkit-architect` consult expected at plan time.** See *The emission seam* for
@@ -647,8 +747,12 @@ of value.** A new clock will start if
 (Sprint 4, owner ruling); struck, not deleted — spent, not wrong. So the first half of that condition
 is ALREADY MET — only the SHIP is still outstanding.** 🔴 **Which is exactly why the owner ordered the
 ship: ⛔ `0211` must not SHIP until THIS task is DEPLOYED AND COLLECTING DATA** — ⚠️ **not merely
-merged or built** — ✅ **though `0211` may be planned and built in parallel, and neither task is
-`🚧 Blocked`.** ⚠️ **Still check the production state at plan time
+merged or built** — ✅ **though `0211` may be planned and built in parallel, and ~~neither task is
+`🚧 Blocked`~~.** 📌 **SWEPT 2026-09-04 — struck, not deleted; SPENT, NOT WRONG: accurate when
+written, false once this task was built.** ✅ **`0211` is still `🔲 Backlog` and still NOT blocked —
+only its SHIP is ordered.** ⛔ **THIS task is now `🚧 Blocked` — built and reviewed, UNCOMMITTED,
+UNDEPLOYED, NO DATA. See `## Status`.** ⚠️ **Unrelated to the sequencing ruling; nothing gates this
+task.** ⚠️ **Still check the production state at plan time
 anyway:** this brief asserts what was ruled, not what a server is running.
 
 ### 1. Instrument the DECISION POINT, not the guard's early return

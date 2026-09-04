@@ -47,18 +47,57 @@ Not changed: profile-server code, `update.sh`, `setup-profile.sh`. No 0064 guard
   `setup-profile.sh`; token file is `$PROFILE_DIR/.internal_token`):
 
   ```bash
-  # Prints ONLY MATCH / MISMATCH / ABSENT — never a value, never a hash.
-  local_h=$(grep '^PROFILE_INTERNAL_TOKEN=' .env.prod | head -1 | cut -d= -f2- \
-    | tr -d '\n' | shasum -a 256 | cut -d' ' -f1)
+  # Prints ONLY MATCH / MISMATCH / LOCAL-ABSENT / REMOTE-ABSENT — never a value, never a hash.
+  # The local side SOURCES the env files exactly as deploy.sh does (see the correction note below).
+  local_h=$(bash -c '
+    set -o allexport
+    for f in .env .env.secret .env.prod .env.prod.secret; do [ -f "$f" ] && . "$f"; done
+    set +o allexport
+    if [ -z "${PROFILE_INTERNAL_TOKEN:-}" ]; then printf "EMPTY"; else
+      printf "%s" "$PROFILE_INTERNAL_TOKEN" | shasum -a 256 | cut -d" " -f1
+    fi
+  ')
   remote_h=$(ssh <profile-vps> "cat <PROFILE_DIR>/.internal_token | tr -d '\n' \
     | sha256sum | cut -d' ' -f1")
-  if [ -z "$remote_h" ]; then echo ABSENT; \
+  if [ "$local_h" = "EMPTY" ]; then echo LOCAL-ABSENT; \
+  elif [ -z "$remote_h" ]; then echo REMOTE-ABSENT; \
   elif [ "$local_h" = "$remote_h" ]; then echo MATCH; else echo MISMATCH; fi
   unset local_h remote_h
   ```
 
   On MISMATCH: fix `.env.prod` from the VPS-persisted token — **never regenerate the
   VPS token** (stability contract, `setup-profile.sh:347-350`).
+
+  #### 📌 Correction 2026-09-04 — the earlier D1 snippet was **wrong when written**, not merely stale
+
+  > ⚠️ **Do not "simplify" the sourcing form back into a `grep`/`cut`. It was tried and it is
+  > defective.** This is a **wrong-when-written** correction, a different class from a claim that
+  > merely aged out — the original was already producing the wrong answer on the day it was recorded.
+
+  The superseded snippet, kept visible so the correction can be audited (**do not run it**):
+
+  ```bash
+  # ❌ SUPERSEDED 2026-09-04 — DEFECTIVE WHEN WRITTEN. DO NOT RUN. Kept for the record only.
+  # local_h=$(grep '^PROFILE_INTERNAL_TOKEN=' .env.prod | head -1 | cut -d= -f2- \
+  #   | tr -d '\n' | shasum -a 256 | cut -d' ' -f1)
+  ```
+
+  **Why it is wrong.** `deploy.sh` loads its env files under `set -o allexport` and `source`
+  (`load_env_file()` at `deploy.sh:82-89`, called for `.env`, `.env.secret`, `.env.$ENV`,
+  `.env.$ENV.secret` at `deploy.sh:92-95`). Sourcing **strips surrounding quotes**. A quoted value in
+  `.env.prod` therefore hashes **differently** under raw `grep`/`cut` — which keeps the quotes — than
+  under the sourcing `deploy.sh` actually performs. The old snippet also read `.env.prod` alone,
+  ignoring the layering order in which a later file can override an earlier one.
+
+  **Why that mattered more than an ordinary doc bug.** The failure mode is a **false `MISMATCH`**, and
+  this procedure's documented response to a `MISMATCH` is to *touch the token* — where the only safe
+  direction is strictly *fix local `.env.prod` from the VPS, **never** regenerate the VPS token*. A
+  false `MISMATCH` therefore aimed a future reader straight at the riskiest available action, on a
+  credential whose stability is a contract (`setup-profile.sh:347-350`).
+
+  🔒 The replacement still emits a **verdict only** — never a value, never a hash — and distinguishes
+  a locally-absent/empty token (`LOCAL-ABSENT`) from a genuine mismatch, which the old form silently
+  hashed as an empty string. *(Owner ruling, given live in session 2026-09-04.)*
 - [ ] **D2 — token reaches the container non-empty.** `update.sh` deletes the env file
   after start (`update.sh:90`), so check container env:
   `docker exec <container> sh -c 'test -n "$PROFILE_INTERNAL_TOKEN" && echo NONEMPTY || echo EMPTY'`
