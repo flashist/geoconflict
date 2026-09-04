@@ -155,9 +155,36 @@ the platform, no player sees it, no stored value is wrong.
 ⛔ **This correction is recorded here and NOT written into `0206`'s ledger.** An `fkit-coder` is
 processing that review; `0206`'s folder was not touched. See *Open questions* in the filing report.
 
-### The frequency change `0206` introduces — accurately stated
+### ~~The frequency change `0206` introduces — accurately stated~~ → 🔴 **THAT CHANGE IS NOT IN THE GAME — `0206` WAS REVERTED 2026-09-04**
 
-`0206` makes `reportPlacements()` fire in a class of matches where it **previously never fired**: public
+> 🔴 **Owner ruling given live in session, 2026-09-04. Struck below, NOT deleted — the struck analysis
+> was CORRECT about the code as `0206` built it; that code was then reverted.**
+>
+> ⛔ **`0206`'s behaviour was reverted before it ever reached a player and was NEVER DEPLOYED.** Its row
+> still reads `✅ Done` — **correctly**, the work was done — but the **effect** is gone. The plan's
+> **premise** was disproved by measurement; `0206` was **not** defective and did **not** cause the
+> stall.
+>
+> ### What this changes for THIS task — the defect is unaffected, its blast radius shrinks back
+>
+> ✅ **`0209`'s defect is UNCHANGED and still real.** It was **pre-existing** and **never a `0206`
+> regression** — this brief already says so twice (see *"pre-existing and unrelated to `0206`"*), and
+> the revert makes that more true, not less. The literal `1` is still logged for everyone on the
+> ordinary human-win path.
+>
+> ⚠️ **What DOES change: the frequency claim below.** The extra class of matches `0206` would have
+> made `reportPlacements()` fire in **does not exist**, because `0206` is not in the game. ⇒ **Blast
+> radius reverts to what it was before `0206`** — the ordinary win path only, and still just the debug
+> console. **This does not change the owner's 2026-09-03 ruling (option A, rank among humans), does
+> not change the rank, and does not gate or unblock anything.**
+>
+> 📎 Full record: the STOP box at the top of
+> [`0206`'s brief](../../done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md). Replacement
+> task: [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md), unscheduled.
+> ⚠️ **`0206`'s `plan.md` / `worklog.md` / `review.md` remain untouched by owner ruling** — the `R2`
+> citations elsewhere in this brief still resolve exactly as written.
+
+~~`0206` makes `reportPlacements()` fire in a class of matches where it **previously never fired**: public
 and private FFA matches whose leader at the win condition is clientless used to stall with **no winner
 at all**, so no `Win` update was emitted, so `gameEnded` was never true
 (`ClientGameRunner.ts:516`, `:530-536`). After `0206` those matches end with a declared winner, emit a
@@ -167,7 +194,12 @@ at all**, so no `Win` update was emitted, so `gameEnded` was never true
 1. **Points now get awarded in those matches** — 10/5/2 to the top three humans. This is **`0206`'s
    intent**, it is **correct**, and it is not a defect.
 2. **The wrong placement label now gets logged in those matches too.** This is this task's defect, and
-   its blast radius today is the debug console.
+   its blast radius today is the debug console.~~
+
+🔴 **The block above is struck as of 2026-09-04 — it describes a code state that was REVERTED and never
+reached a player.** ⚠️ **Consequence 2's DEFECT is untouched by the strike and is still live** — the
+wrong placement label is logged on the ordinary win path, as it always was. Only the **extra class of
+matches** described above is gone. See the box at the head of this section.
 
 ## ~~What to Decide~~ → 📌 DECIDED
 

@@ -76,15 +76,14 @@ function makeClient(ws: MockWebSocket): Client {
 }
 
 /**
- * Task 0206, verification step 2. The 0206 fallback award exists so a match
- * whose leader is clientless still credits its match-end XP. This proves the
- * SERVER end of that chain: a winner message wins the vote and reaches
- * creditMatchXp. It is fed the `["player", <clientID>]` shape the fallback
- * award produces, so the covered path is the one 0206 exercises.
+ * Covers the SERVER end of match-end XP crediting: a winner message that wins
+ * the vote reaches creditMatchXp (and archiveGame). Independent of any
+ * particular win condition — it is fed the `["player", <clientID>]` shape an
+ * ordinary human win produces.
  *
- * What this does NOT prove (round-1 review R3): handleWinner is
- * winner-shape-agnostic — it votes on JSON.stringify(clientMsg.winner) and
- * calls creditMatchXp(potentialWinner.winner) for whichever key wins, never
+ * What this does NOT prove: handleWinner is winner-shape-agnostic — it votes on
+ * JSON.stringify(clientMsg.winner) and calls
+ * creditMatchXp(potentialWinner.winner) for whichever key wins, never
  * inspecting winner[0]. So this test would pass identically with
  * ["opponent", …] or any other shape, and asserts no discrimination between
  * them. That is fine: crediting is driven by playerParticipation, not by the
@@ -92,13 +91,13 @@ function makeClient(ws: MockWebSocket): Client {
  *
  * Scope, stated honestly: this covers the server end only. The middle leg
  * (Win update → WinModal → SendWinnerEvent → Transport → server) has no test
- * harness in this repo, is unchanged by 0206, and runs on every ordinary human
- * win in production today.
+ * harness in this repo and runs on every ordinary human win in production
+ * today.
  *
  * handleWinner and creditMatchXp are private; the `as any` reach-in below is
  * deliberate and owner-approved (ruling Q4, 2026-09-03).
  */
-describe("GameServer winner handling (0206 verification step 2)", () => {
+describe("GameServer winner handling", () => {
   test("a player winner message credits match XP", () => {
     const server = makeGameServer();
     const ws = new MockWebSocket();

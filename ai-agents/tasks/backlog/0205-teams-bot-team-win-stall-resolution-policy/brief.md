@@ -577,6 +577,74 @@ question and not a gate.**
 
 ## Notes
 
+- 📌 **ADDED 2026-09-04 — cross-reference only. ⛔ NOTHING ELSE IN THIS BRIEF WAS EDITED: status,
+  scope, rank and every ruling recorded here are UNCHANGED, and the owner has not ruled on them.**
+
+  **Two things happened on 2026-09-04 that this task's reader must know about, and neither changes
+  this task:**
+
+  1. 🔴 **[`0206`](../../done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md) — this task's
+     FFA twin — WAS REVERTED. Its behaviour is NOT in the game and was NEVER DEPLOYED.** It is still
+     `✅ Done` and still in `tasks/done/` — **correctly, the work was done** — but the **effect** was
+     reverted. **Its plan's PREMISE was disproved by measurement**; ⛔ it was **not** defective and it
+     did **not** cause the stall. ⚠️ **Everywhere this brief cites `0206` as the FFA form of the shared
+     ruling, that remains accurate as a RECORD OF WHAT WAS DECIDED — but `0206` shipped nothing, so
+     the shared predicate now exists in NO live code.** Read `0206`'s **STOP box** before relying on
+     anything in it.
+  2. 🔴 **`checkWinnerTeam()` has the SAME guard shape as `checkWinnerFFA()`, so a bot-team-led match
+     STALLS AND LOSES ITS XP identically.** Found independently by the coder performing the `0206`
+     revert; ⚠️ **nobody had connected it before** — across `0022`, `0206` and this brief.
+     *(⛔ Reported-not-re-verified by the producer: `WinCheckExecution.ts` was being edited at the time.
+     **Confirm by symbol at plan time.**)*
+
+  **Owner ruled 2026-09-04 that the CREDITING fix covers Team mode as well as FFA**, filed as
+  [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) — *credit
+  participation XP at elimination or match end, for eliminated players **and** survivors, in FFA
+  **and** Team*. Reasoning as put and accepted: the fix lives in the **crediting path, not the win
+  check**, so covering both is likely near-free, and it stops this task **being solved twice or
+  forgotten.**
+
+  ⛔ **`0211` DOES NOT MERGE WITH, REPLACE, OR GATE THIS TASK. The two answer different questions:**
+
+  | | Question it answers |
+  |---|---|
+  | **`0205`** *(this task)* | **Resolution policy** — *who should win a stalled Team match?* |
+  | **`0211`** | **Crediting** — *do the players in that match get their XP?* |
+
+  ⚠️ **`0211` may make PART of this task's justification moot** — if XP is credited regardless of who
+  wins, then *"the whole match's XP is lost"* weakens as a reason to resolve the stall. ⛔ **It does
+  NOT settle this task's own question:** a Team match nobody can win still runs to the
+  `maxGameDuration` cap, and **deciding who should win it is still unanswered and still belongs
+  here.** 📌 **Re-read this task's own rank and rationale when `0211` is planned** — ⚠️ **that is a
+  producer/owner call, not a planner's, and nothing about it is being pre-judged here.**
+
+- 🔴 **ADDED 2026-09-04 ON AN OWNER RULING (live in session) — ADR-110'S RISK POSTURE HAS CHANGED FOR
+  THIS TASK. RECORDED NOW, TO BE DECIDED WHEN THIS TASK IS PLANNED.**
+
+  ⛔ **Nothing is decided here, and nothing about this task changes: status, scope, rank and board are
+  ALL UNCHANGED, and it stays unscheduled.** The owner was offered three options and **explicitly
+  declined both extremes** — re-examining ADR-110 now, and leaving it unrecorded. **This is the middle
+  option and nothing more.** Their reasoning: **there is nothing to decide today** — this task is
+  unscheduled and may never be built as specified — **but whoever plans it must know what they are
+  walking into.**
+
+  **The concrete point, and it is the whole content of this note:**
+
+  > 🔴 **ADR-110 now rules on a predicate that exists in NO shipped code.**
+  > [`0206`](../../done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md) was **reverted
+  > before shipping**, so the predicate has **NEVER RUN IN PRODUCTION**; this task is
+  > **unbuilt and unscheduled.**
+  >
+  > ⇒ **If `0205` is ever built, it becomes ADR-110's FIRST IMPLEMENTATION — not a mirror of proven,
+  > shipped FFA behaviour.**
+
+  ⚠️ **That is a different risk posture from the one this brief was written under, and it is easy to
+  miss** — everywhere this brief treats `0206` as the FFA precedent, that remains an accurate record
+  of **what was decided**, but ⛔ **it is NOT a record of anything that ran.** **Anyone planning this
+  task is implementing an accepted policy for the first time, not copying a live one.** Plan the
+  verification accordingly, and **do not inherit confidence from `0206`'s green test suite or its
+  passed play-test** — those covered code that was **reverted before it reached a player.**
+
 - **Split from:** [`0022-win-check-multiplayer-regression-investigation`](../../done/0022-win-check-multiplayer-regression-investigation/brief.md)
   (risk 2), on owner ruling **R4**, 2026-09-02. `0022` carries a pointer forward to this task.
   Read `0022`'s *⚠️ Premise refuted* section before starting here — it corrects several claims that

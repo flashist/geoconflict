@@ -1,5 +1,76 @@
 # FFA: award the win to the top player *with* a `clientID` instead of suppressing it — close the stall the `0022` guard leaves behind
 
+---
+
+> # 🔴 STOP — READ THIS BEFORE ANYTHING ELSE IN THIS FILE
+>
+> ## THIS TASK'S BEHAVIOUR IS **NOT IN THE GAME**. IT WAS BUILT, REVIEWED, CLOSED, GATE-PASSED — AND THEN **REVERTED BEFORE IT EVER REACHED A PLAYER.** IT WAS **NEVER DEPLOYED.**
+>
+> **Recorded 2026-09-04 on an owner ruling given live in session.**
+>
+> ⚠️ **The status below still reads `✅ Done (agent-closed — not owner-verified)`, and that is
+> CORRECT and DELIBERATE — do not "fix" it.** The **work** was done. The **effect** was reverted.
+> Those are two different facts, and only the first one is a status. 🔴 **A reader who sees
+> `✅ Done` and concludes the behaviour is live is making exactly the mistake this box exists to
+> prevent.** The task stays closed and stays in `ai-agents/tasks/done/`; **no mover skill was run
+> and none should be.**
+>
+> ### Why it was reverted — state this precisely, all three claims are different
+>
+> ✅ **TRUE: `0206` did exactly what its approved plan specified, and the plan's PREMISE was wrong.**
+> ⛔ **NOT TRUE: "`0206` was buggy."** It was not. It was correctly built against its plan, passed a
+> two-reviewer stateful review (Codex: *"No findings."*), and passed its owner-ruled play-test gate.
+> ⛔ **NOT TRUE: "`0206` caused the stall."** It did not. The stall predates it (`0022`) and
+> **survives the revert unchanged.**
+>
+> ### What a live investigation measured on 2026-09-04 — observed, not reasoned
+>
+> 1. 🔴 **`0206` is a NO-OP in the case that actually loses the XP.** With every human eliminated, a
+>    Nation reached **100.0 % of the map and the match still did not end.** Verified against the diff
+>    `82365bc` → `8f6e478`: `players()` filters to `isAlive()`
+>    (`src/core/game/GameImpl.ts:421-423`), so dead players are absent from `sorted`, `find` returns
+>    `undefined`, and the code takes **the same early `return` it took before `0206`.**
+> 2. **`0206`'s only live effect is the behaviour the owner rejects.** It fires **only while a human
+>    is still alive**, crowning a player holding as little as **0.5 %** while a bot holds 80 %. The
+>    owner reproduced this on their own build and ruled it wrong:
+>    > *"if a bot has 80 % and a player has 20 %, it's the problem of the player. They need to
+>    > conquer more territory or they will be defeated by the bot."*
+>
+> ### 🔴 The defect this task was scheduled to close is STILL OPEN AND STILL LIVE
+>
+> **A match nobody can win still runs to the cap, and everyone in it still loses their match-end XP.**
+> That was true **before** `0206`, **during** `0206`, and **after** the revert. Nothing here closed it.
+>
+> ### A replacement is coming — the fix is NOT abandoned
+>
+> **Credit participation XP at ELIMINATION *or* at MATCH END, whichever comes first, idempotent so
+> nobody is paid twice.** 📌 **WIDENED LATER THE SAME DAY by two further owner rulings: it must also
+> cover SURVIVORS of a match that never ends, and it covers TEAM MODE as well as FFA** — because
+> `checkWinnerTeam()` carries the same guard shape and loses its XP identically, which nobody had
+> connected until the revert coder found it. ⚠️ **Singleplayer is explicitly NOT ruled.** Filed as
+> [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) —
+> unscheduled on the [Backlog board](../../../sprints/backlog.md). ✅ **The architect's feasibility
+> assessment has LANDED** —
+> `ai-agents/knowledge-base/reports/2026-09-04-elimination-time-xp-crediting-design-assessment.md`.
+> Its headline: **feasible, and cheaper than it looks.** ⛔ **Read it there** — `0211` deliberately
+> carries no design of its own.
+>
+> ### ⛔ Files deliberately NOT edited by this correction
+>
+> `plan.md`, `worklog.md` and `review.md` are **untouched, by owner ruling.** They are the coder's and
+> the reviewer's record of what was done at the time, **and they were accurate then.** They describe a
+> premise that has since been disproved; they are not themselves wrong about the work. **This brief is
+> the pointer** — read the correction here, then read those three as the historical record they are.
+>
+> ### ✅ The play-test gate PASS still stands — and it is not undermined
+>
+> The gate recorded 2026-09-03 **passed, and that remains true.** It tested that **the award fires**,
+> and the award does fire. ⚠️ **What changed is not the test result — it is that the award turned out
+> not to be worth having.** The gate never asked whether the award was the right behaviour; it asked
+> whether the code did what the plan said. It did.
+
+---
+
 ## ID
 0206
 
@@ -67,10 +138,18 @@ it is the **only** fix for a live defect in the **main game mode**.
 
 Why Medium, honestly:
 
-- **It closes a real, silent, whole-match data loss.** With the `0022` guard in place, an FFA match
+- ~~**It closes a real, silent, whole-match data loss.** With the `0022` guard in place, an FFA match
   whose only qualifying leader is clientless emits **no `Win` update at all** ⇒ no `winner` message
   reaches the server ⇒ `handleWinner` never runs ⇒ **`creditMatchXp` never runs, and the entire
-  match's match-end XP is lost for every player.** That is `0022`'s risk 1 in its residual form.
+  match's match-end XP is lost for every player.** That is `0022`'s risk 1 in its residual form.~~
+  🔴 **DISPROVED BY MEASUREMENT 2026-09-04 — struck, NOT deleted.** ⚠️ **Read the strike carefully:
+  the DEFECT half of this sentence is still true; the CLOSES half is what was disproved.** The XP loss
+  is real, silent and whole-match, exactly as written — **but `0206` does not close it.** In the case
+  that actually loses the XP (every clientful player eliminated), `players()` filters to `isAlive()`
+  (`src/core/game/GameImpl.ts:421-423`), so `find` returns `undefined` and this task's award code takes
+  the **same early `return` it took before `0206`.** A Nation was observed reaching **100.0 %** of the
+  map with the match still not ending. **This bullet was the load-bearing reason the task was ranked
+  and scheduled, and it was wrong on the decisive clause.** See the STOP box at the top of this file.
 - **It is the main game mode.** Public FFA lobbies carry `bots: 400` and, unlike Team lobbies, do
   **not** disable Nations — so clientless leaders are always present. This is a wider surface than
   [`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md), whose realistic trigger is
@@ -86,6 +165,46 @@ Why Medium, honestly:
 
 ## Status
 ✅ Done (agent-closed — not owner-verified)
+
+### 🔴 REVERTED 2026-09-04 — the status above is unchanged **on purpose**, and here is why
+
+⛔ **Owner ruling given live in session, 2026-09-04.** The full statement is in the STOP box at the
+top of this file; this entry exists so the fact sits **beside the status value**, where a reader
+checking status will hit it.
+
+| Question a reader actually asks | Answer |
+|---|---|
+| Is this task's status still `✅ Done`? | **Yes — unchanged, deliberately.** The *work* was done. |
+| Is the folder still in `tasks/done/`? | **Yes — unchanged.** No mover skill was run; none should be. |
+| **Is the behaviour in the game?** | 🔴 **NO. It was reverted before it ever reached a player, and it was NEVER DEPLOYED.** |
+| Was `0206` buggy? | **No.** It did what its approved plan specified. |
+| Did `0206` cause the stall? | **No.** The stall predates it (`0022`) and survives the revert unchanged. |
+| Then what was wrong? | 🔴 **The plan's PREMISE.** A live investigation measured it on 2026-09-04 and it did not hold. |
+| Is the XP loss fixed? | 🔴 **No. Still open, still live.** A match nobody can win still runs to the cap and still loses every player's match-end XP. |
+| Is anything replacing it? | **Yes** — [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md), unscheduled on the Backlog board. |
+
+**The two measured findings, in one line each** — both **observed**, not reasoned:
+
+1. 🔴 **`0206` is a no-op in the case that actually loses the XP.** Every human eliminated ⇒ a Nation
+   reached **100.0 % of the map and the match still did not end.** `players()` filters to `isAlive()`
+   (`src/core/game/GameImpl.ts:421-423` — ✅ **producer-verified this turn against committed
+   `8f6e478`**), so dead players are absent from `sorted`, `find` returns `undefined`, and the code
+   takes **the same early `return` it took before `0206`.**
+2. **`0206`'s only live effect is the behaviour the owner rejects** — it fires only while a human is
+   still alive, crowning a player on as little as **0.5 %** against a bot on 80 %. Owner reproduced it
+   and ruled it wrong.
+
+⛔ **A coder was reverting the code in `src/` in parallel when this was recorded**, on the owner's
+ruling, so it does not ship in the weekend deploy from `dev`. **This producer wrote no source.**
+
+📎 **`plan.md`, `worklog.md`, `review.md` — untouched by owner ruling.** They record what was done at
+the time and **were accurate then.** This brief is the pointer to the correction; those three are the
+historical record.
+
+✅ **The 2026-09-03 play-test gate PASS still stands.** It tested that the award fires — it does.
+⚠️ **What changed is that the award was not worth having**, which the gate never asked about.
+
+---
 
 🔴 **CLOSED 2026-09-03. THE OWNER HAS NOT VERIFIED THIS.** The close was performed by a producer
 **spawned** by the sprint ship-loop driver, with **no owner channel** (ADR-033 §4/§5). No human
@@ -151,6 +270,18 @@ The task is complete **against its approved plan**. It is **not** free of known 
 4. **The XP loss is still not fully closed.** If every clientful player is eliminated before the
    threshold, no award is made and that match's XP is **still lost** — knowingly, per the approved
    plan §7.
+   🔴 **PROMOTED 2026-09-04 — THIS RESIDUAL WAS NOT A CORNER CASE. IT IS *THE* CASE, and measuring it
+   is what disproved this task's premise.** Recorded on an owner ruling given live in session. The
+   text above is **accurate and unchanged** — what changed is its *weight*. It was written as a known
+   remaining gap beside a fix that closed the main path; the 2026-09-04 investigation measured that
+   **this gap IS the main path**, and that `0206` closes nothing in it. A Nation was observed reaching
+   **100.0 %** of the map with every human eliminated and **the match still did not end.** Mechanism,
+   ✅ producer-verified this turn against committed `8f6e478`: `players()` filters to `isAlive()`
+   (`src/core/game/GameImpl.ts:421-423`) ⇒ dead players are absent from `sorted` ⇒ `find` returns
+   `undefined` ⇒ **the same early `return` as before `0206`.** ⚠️ **Residuals 1–3 and 5–9 are NOT
+   restated or re-weighted by this entry** — only this one moved. Closing this case is
+   [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md)'s whole
+   job. See the STOP box at the top of this file.
 5. **The `console.log` on the fallback award reaches no dashboard** — it runs in the client's Web
    Worker. It discharges the owner's Q3 ruling exactly as planned and no more;
    [`0208`](../../backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) is
@@ -219,6 +350,28 @@ history stays as shipped. Likewise, a PASS discharges residual 3 **only** — re
 accepted, standing behaviour change, and the other seven residuals are untouched by this gate.
 
 #### ✅ RESULT RECORDED 2026-09-03 — **PASS.** Both gate conditions met
+
+> ### 📌 2026-09-04 — THE PASS STANDS. IT IS NOT RETRACTED, NOT DOWNGRADED, NOT RE-RUN.
+>
+> **Recorded on an owner ruling given live in session.** The gate asked two things and **both were
+> genuinely met**: the award **fires**, and the owner **accepted** the end screen. ✅ **Nothing below
+> is withdrawn.**
+>
+> ⚠️ **What changed is not the result — it is the value of what was tested.** The gate tested that
+> **the award fires**, and it does. It never asked whether the award was the **right behaviour**, nor
+> whether it fires in the case that **actually loses the XP**. The 2026-09-04 investigation measured
+> both, and the answers were **no** and **no**:
+>
+> - The award's only live effect is the behaviour the **owner has since ruled wrong** — crowning a
+>   player on 0.5 % against a bot on 80 %. *(Note that this run recorded a winner's share of exactly
+>   **0.516 %**, in the table below. The gate saw this behaviour, and accepted it on the reasoning
+>   that a visibly odd winner beats a silent XP loss. **That reasoning has since been overtaken: the
+>   silent XP loss is not actually prevented.**)*
+> - In the case that loses the XP — every human eliminated — the award is a **no-op**.
+>
+> ⇒ **Read this PASS as: "the code did what the plan said." It is NOT evidence that the shipped
+> behaviour was correct, and it must not be cited as such.** 🔴 **The behaviour it passed was reverted
+> and never reached a player.** See the STOP box at the top of this file.
 
 ⛔ **This entry does NOT change this task's status.** `0206` stays closed, stays in `tasks/done/`, and
 keeps `✅ Done (agent-closed — not owner-verified)` **unchanged** in both this brief and its Sprint 4
@@ -405,7 +558,7 @@ The reviewer traced each consequence:
 | **`ClientGameRunner`'s `gameEnded` path no longer runs** | — | `gameEnded` is `gu.updates[GameUpdateType.Win].length > 0` (`src/client/ClientGameRunner.ts:516`). With no `Win` update it is permanently `false`, so the whole block at `:530-536` is dead. |
 | **`saveGame()` no longer fires** | **cosmetic** | `src/client/ClientGameRunner.ts:532` → `:373`. A **`localStorage`-only** record (`LocalPersistantStats.ts:46`). Nothing depends on it. *(Reviewer-verified; **not re-verified by the producer this turn** — treat the `LocalPersistantStats.ts:46` line reference as `unverified` by me.)* |
 | **`reportPlacements()` no longer fires** | ⚠️ **this is the one that matters** | `src/client/ClientGameRunner.ts:535` → `:405`. **Top-3 humans now get no leaderboard placement points where they previously did.** |
-| **Server-side: `creditMatchXp` never runs** | 🔴 **largest consequence** | No `Win` update ⇒ no `SendWinnerEvent` ⇒ no `winner` message ⇒ `handleWinner` (`src/server/GameServer.ts:1144`, invoked at `:366`) never runs ⇒ `creditMatchXp` (`:1253`, **sole** call site `:1199`) never runs. **The whole match's match-end XP is silently lost, for every player.** ✅ Producer-verified this turn. This is risk 1's original defect, and **the award in this task is what closes it.** |
+| **Server-side: `creditMatchXp` never runs** | 🔴 **largest consequence** | No `Win` update ⇒ no `SendWinnerEvent` ⇒ no `winner` message ⇒ `handleWinner` (`src/server/GameServer.ts:1144`, invoked at `:366`) never runs ⇒ `creditMatchXp` (`:1253`, **sole** call site `:1199`) never runs. **The whole match's match-end XP is silently lost, for every player.** ✅ Producer-verified this turn. This is risk 1's original defect, ~~and **the award in this task is what closes it.**~~ 🔴 **THE STRUCK CLAUSE IS DISPROVED BY MEASUREMENT 2026-09-04 — struck, not deleted.** The **loss described in this cell is REAL and STILL LIVE**; what is disproved is that **this task's award closes it.** In the case that actually loses the XP — every clientful player eliminated — `players()` filters to `isAlive()` (`src/core/game/GameImpl.ts:421-423`), so `find` returns `undefined` and the award takes the same early `return` as before `0206`. `creditMatchXp`'s sole call site is still inside `handleWinner` (`src/server/GameServer.ts:1199`, ✅ re-verified this turn against committed `8f6e478`), and `handleWinner` still never runs. **Closing it is [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md).** |
 
 ### The `reportPlacements` trade is genuinely two-sided — record both halves
 
@@ -625,6 +778,17 @@ tutorial does not regress** (condition 2).
 
 ## Notes
 
+- 🔴 **REVERTED 2026-09-04 — THE BEHAVIOUR IS NOT IN THE GAME AND WAS NEVER DEPLOYED.** Owner ruling
+  given live in session. Everything below in these Notes was written **before** that ruling and
+  describes the task **as built**; it is left standing as the record of what was built and why.
+  ⚠️ **Nothing in these Notes may be read as describing live game behaviour.** The correction, the two
+  measured findings, and the precise wording of what is and is not true are in the **STOP box at the
+  top of this file** — read that first. Replacement:
+  [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md).
+  ⚠️ **One Notes entry that survives the revert intact and is still worth reading:** the **BOT
+  TERRITORY CEILING** finding below is an observation about `BotExecution.ts`, **not** about this
+  task's code. `0206`'s revert does not touch it, and its evidence-grade warning (latch verified,
+  flood-fill figures merely quoted) still applies to `0208`.
 - **Depends on:** [`0022`](../../done/0022-win-check-multiplayer-regression-investigation/brief.md) — this task
   modifies the guard `0022` introduces, so `0022` must ship first. Sequencing, not a decision gate.
 - **Origin:** `0022` owner ruling **R2** (option (b) declined, follow-up recorded) + `0022` review

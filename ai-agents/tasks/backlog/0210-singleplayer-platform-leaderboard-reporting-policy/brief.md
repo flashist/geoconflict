@@ -67,6 +67,40 @@ code.~~
 points.** Same shape as the tutorial bug [`0022`](../../done/0022-win-check-multiplayer-regression-investigation/brief.md)
 fixed — **still live, touched by neither `0022` nor `0206`.**
 
+> ### 🔴 2026-09-04 — `0206` WAS REVERTED. THE CODE TRACE BELOW CITES CODE THAT NO LONGER EXISTS.
+>
+> **Owner ruling given live in session, 2026-09-04.** `0206`'s row still reads `✅ Done` —
+> **correctly, the work was done** — **but its behaviour was reverted before it ever reached a player
+> and was NEVER DEPLOYED.** The plan's **premise** was disproved by measurement; `0206` was **not**
+> defective and did **not** cause the stall.
+>
+> ✅ **THIS TASK'S DEFECT IS COMPLETELY UNAFFECTED, and the revert strengthens the brief's central
+> claim.** The sentence directly above — *"still live, touched by neither `0022` nor `0206`"* — was
+> already true and is now true in a stronger sense: `0206` never even reached production. The
+> Singleplayer first-place-for-losing path is **pre-existing, untouched, and still live.** The owner's
+> 2026-09-03 ruling (option A — Singleplayer reports nothing) is **not reopened**, the rank is
+> unchanged, and nothing is gated or unblocked.
+>
+> ⚠️ **WHAT DOES GO STALE — read this before trusting a line number or a quoted comment below:**
+>
+> - **Steps 1 and the *"irony"* passage cite `0206`'s code**, which is being reverted:
+>   `WinCheckExecution.ts:74-92`, the quoted justification comment at `:85-89`, *"including `0206`'s
+>   new fallback award **and** its `if (gameConfig.gameType === GameType.Singleplayer) return;`"*, and
+>   the fall-through at `:108`. **After the revert, `0206`'s fallback-award branch and its
+>   Singleplayer `return` are GONE, and every line number in that file shifts.**
+> - ⚠️ **The `0022` guard is a DIFFERENT thing and it STAYS** — `0022` is not reverted. Do not read
+>   this note as saying the whole guard disappeared.
+> - 🔴 **Do NOT re-verify by line number. Locate by symbol** (`checkWinnerFFA`, `makeWinner`,
+>   `reportPlacements`) and re-read the file at plan time. The *conclusion* of the trace — the client
+>   leaderboard path has **no game-type awareness whatsoever**, `ClientGameRunner.ts` and
+>   `src/client/leaderboard/` return **zero hits** for `Singleplayer|gameType|isTutorial` — is in
+>   `src/client/`, which `0206` never touched, so **it is unaffected by the revert.**
+>
+> 📎 Full record: the STOP box at the top of
+> [`0206`'s brief](../../done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md).
+> Replacement task: [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md),
+> unscheduled on the Backlog board.
+
 ✅ **Producer-verified 2026-09-03 by reading the full path.** Each step, with evidence:
 
 1. **The win check does not stop it.** `src/core/execution/WinCheckExecution.ts:74-92`. When the leader

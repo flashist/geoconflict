@@ -48,8 +48,25 @@ assert a commitment nobody made. Same reasoning as `0203` and `0205`.
 ## Status
 🔲 Backlog
 
-**Nothing gates it. Nobody is building it.** It does **not** depend on `0206` and does not block it —
-but it is **worth doing before** `0206` is planned, because that is the reader it protects.
+~~**Nothing gates it. Nobody is building it.** It does **not** depend on `0206` and does not block it —
+but it is **worth doing before** `0206` is planned, because that is the reader it protects.~~
+
+📌 **UPDATED 2026-09-04 — struck, not deleted; spent, not wrong.** **Nothing gates it. Nobody is
+building it.** ⚠️ **The *"before `0206` is planned"* framing is now stale in BOTH halves:** `0206` was
+planned, built and closed on 2026-09-03, **and then REVERTED on 2026-09-04** (owner ruling given live
+in session) — **its behaviour is not in the game and was never deployed.** ⛔ **This brief never
+claimed `0206` had shipped, and nothing in it needs correcting on that count** — this note is here for
+accuracy, not because a wrong claim was found.
+
+✅ **The reason this task exists is UNCHANGED and, if anything, stronger.** The comment at
+`WinModal.ts:487-492` is still wrong, the code is still right, and the **reader it protects still
+exists** — the trap now sits in front of whoever plans
+[`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) (the replacement for
+`0206`: credit participation XP at elimination or match end) and
+[`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md). ⚠️ **ADR-110 is untouched by
+the revert** — it is a product policy about the winner predicate, and it still stands; only `0206`'s
+FFA *implementation* of it was reverted. 📎 Full record: the STOP box at the top of
+[`0206`'s brief](../../done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md).
 
 ## Owner
 fkit-coder
