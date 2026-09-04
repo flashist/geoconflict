@@ -1791,3 +1791,258 @@ reads it as a pass or a discharge.
 - **`.wiki-watermark` NOT advanced** — this is an ingest, not a sync. Still
   `82365bcc126e3671811370a845d8e58a359f7fbe`.
 - **Nothing outside `ai-agents/wiki-vault/` was written.** No commit, no push.
+
+## 2026-09-04 — sync
+
+- **Sync window:** `82365bcc126e3671811370a845d8e58a359f7fbe` → HEAD (`71246ebfe3873b952acf1ae8c52c2ec81c28f5d6`)
+- **Commits in window: 2** — `8f6e478` (2026-09-03) and `71246eb` (2026-09-04), both *"Sprint push"*.
+- **Changed files in window: 58.** Ingest-worthy after filtering: **12**.
+
+### 🔧 The window was derived, and it needed a correction the watermark alone does not give
+
+`.wiki-watermark` read `82365bc`, which is **`8f6e478`'s own parent** — the watermark was advanced by
+a sync *during* the work that later landed as `8f6e478`, and that commit then also carried the
+`0206`-close ingest and the closing lint (both of which deliberately did **not** advance it). So
+`82365bc..HEAD` **over-reports**: every source in `8f6e478` was already ingested, as this log's own
+2026-09-03 entries record and as the vault pages created in that same commit confirm.
+
+⇒ **The genuinely un-ingested delta is `71246eb` alone.** `8f6e478` was re-checked file by file
+against existing pages and needed **no new ingest**; its sources' pages were updated only where
+`71246eb` falsified them.
+
+### Ingested (`71246eb`)
+
+- `ai-agents/tasks/backlog/0211-…/brief.md` → **created** [[tasks/credit-participation-xp-elimination-or-match-end]]
+- `ai-agents/knowledge-base/reports/2026-09-04-elimination-time-xp-crediting-design-assessment.md` → carried onto [[tasks/credit-participation-xp-elimination-or-match-end]] and [[systems/player-profile-store]] (⛔ **cited, not duplicated** — the report stays the design authority)
+- `ai-agents/knowledge-base/decisions/adr-110-…md` → updated [[decisions/adr-110-ai-winner-allowed]]
+- `ai-agents/tasks/done/0206-…/brief.md` → updated [[tasks/ffa-clientless-leader-fallback-award]]
+- `ai-agents/tasks/backlog/{0205,0207,0208,0209,0210}/brief.md` → updated their five pages
+- `ai-agents/sprints/plan-sprint-4.md` → updated [[decisions/sprint-4]]
+- `ai-agents/sprints/backlog.md` → updated [[decisions/sprint-backlog]]
+
+**1 page created, 15 updated** (+ `index.md`). **171 → 173 pages** *(172 at the last lint; `0211` is the 173rd — the 172→173 step is this run's single creation).*
+
+### 🔴 The headline: `0206` was REVERTED, and ~35 pages described it as shipped
+
+**Reverted 2026-09-04 on an owner ruling; never deployed.** The correction is carried **loudly and in
+the reader's path**, not in a footnote — a **STOP box above the `Goal`** on
+[[tasks/ffa-clientless-leader-fallback-award]], and a marker **beside the `Status` field itself**, so
+`Status: done` cannot be read as live behaviour. `done` was **kept deliberately**: the *work* was done,
+the *effect* was reverted, and only the first is a status.
+
+**Stated with the three claims kept apart, on every page that carries it:** ✅ `0206` did what its
+approved plan specified and **the plan's PREMISE was wrong**; ⛔ **NOT** "it was buggy"; ⛔ **NOT** "it
+caused the stall".
+
+**Two findings recorded as MEASURED, never as reasoned:** (1) `0206` was a **no-op in the case that
+loses the XP** — a Nation reached **100.0 %** of the map with the match still not ending, because
+`players()` filters to `isAlive()` (`src/core/game/GameImpl.ts:421-423`); (2) its **only** live effect
+was the behaviour the owner **reproduced and rejected** — crowning a survivor on ~0.5 % against a bot
+on 80.2 %. ⇒ **Participation XP is genuinely LOST, not delayed** (`creditMatchXp`'s sole call site is
+inside `handleWinner`, `GameServer.ts:1199`).
+
+✅ **The play-test PASS and the review result are recorded as STANDING, not retracted** — what changed
+is the *value* of what was tested, not the result.
+
+⚠️ **Recorded on four pages: `WinCheckExecution.ts` is deliberately NOT byte-identical to its
+pre-`0206` state.** ✅ **Verified this run against `82365bc`..`HEAD`: the only residual diff is the
+four-line ADR-110 comment the revert kept on purpose** — the **only in-code trace of ADR-110 in the
+repository**. Also recorded: the revert removed `0206`'s `smallID` tie-break.
+
+### Claims in the vault that CONTRADICTED the delta, and how each was resolved
+
+All struck-not-deleted, per this vault's convention:
+
+1. **`index.md`: "✅ `0206` SHIPPED 2026-09-03 with the predicate intact"** → struck; replaced with
+   *"ADR-110 now rules on a predicate that exists in NO shipped code"*.
+2. **ADR-110's Consequences: "Public FFA matches where every human dies now complete and credit XP"**
+   → **STRUCK as false — and false when written, including at acceptance.** Cause recorded: it was a
+   degraded restatement of **T3** that dropped T3's own *"while AI players are still alive"*
+   qualifier. **T3 itself is sound.** Status stays `accepted`; the decision is **not** superseded.
+3. **ADR-110's re-raise pointer cited `0206`'s phase-1 measurement** → **corrected to `0208`**; the
+   trigger is recorded as **still unfired and still live**.
+4. **"The pre-fix baseline is permanently unmeasurable"** (3 pages) → **REVERSED**: `0206` never
+   deployed, so `0208`'s Part A clock **stopped**. It is **`0211` shipping** that would destroy it.
+5. **"Public FFA now ends at 80 %"** (4 pages) → struck; that never reached a player.
+6. **`0206`'s residual 4 ("XP loss still open in a corner case")** → **PROMOTED**: measurement showed
+   it is *the* case. Its text was accurate; only its **weight** changed. ⚠️ Residuals 1–3 and 5–9
+   explicitly **not** re-weighted.
+7. **"`checkWinnerTeam()` byte-identical ⇒ Team unaffected"** → corrected on 5 pages: the **same guard
+   shape** means Team loses its XP **identically**. ⚠️ **Reported by the revert coder, NOT re-verified
+   by symbol** — recorded that way everywhere.
+8. **`0209` / `0210`'s `0206` frequency and line-number claims** → struck; both tasks' **defects are
+   unaffected**, and `0210`'s claim is now true in a *stronger* sense.
+
+### Recorded as HYPOTHESIS, never as established
+
+⚠️ **The Nation case has been assumed twice and observed ZERO times in a public lobby.** Only a **Bot**
+was ever seen crossing the threshold; public FFA runs with Nations **enabled** while the play-test ran
+with them **off** — so **the untested case is the one production has.** Written onto
+[[decisions/clientless-leader-win-policy]] as a hypothesis.
+
+### Also carried
+
+- **`0208` and `0211` scheduled into Sprint 4.** 🔴 **ORDERED: `0208` deployed and collecting data
+  before `0211` SHIPS** — ✅ **planning and building `0211` in parallel is explicitly allowed**;
+  ⚠️ **only the ship is ordered, and NEITHER task is `🚧 Blocked`.** Recorded that way on all five
+  pages that mention it, because the over-strict reading is the likely failure.
+- **`0208` raised to `High` with SPLIT provenance** — the **raise** is an owner ruling, the **value**
+  is the producer's. ⛔ Never restated as *"the owner ranked it High"*.
+- **`0211`'s traps:** `0210`'s ruling is **leaderboard POINTS, not profile XP** (⛔ not to be read
+  across); the **leaver-rule reversal is deliberate** and **narrows, not deletes**, the exclusion;
+  XP **holds at 10 flat** as a deliberate hold; *"fix the stall"* was **considered and not chosen as
+  the SCOPE decision, but is NOT forbidden as the MECHANISM.**
+- **From the architect's report:** ✅ **idempotency already exists and is verified at the database
+  layer** — `(game_id, yandex_player_id)` primary key with the XP increment gated on the insert,
+  tested against real Postgres **including the concurrent case**; 🔴 **the server does not learn a
+  player was eliminated — the central design problem**; ⛔ **`GameServer.end()` is the WRONG seam.**
+  All three onto [[systems/player-profile-store]] and the `0211` page.
+- **Timer branch unreachable in public matches** (`MapPlaylist.ts`) — ⚠️ and the report's note that
+  `GameImpl.players()` filters to alive while `GameView.players()` does not was added to
+  [[systems/glossary]], since that is where the misconception forms.
+
+### Verified after the sync
+
+- **173 pages. Broken wiki-links 0 · index entries with no file 0 · pages missing from `index.md` 0 ·
+  one-way links 0** (4 found and fixed: on `adr-103-identity-trust-seam`,
+  `measure-clientless-leader-and-solo-awards`, and two onto the new `0211` page).
+- **`src/` / `tests/` / `migrations/` references: 160 distinct, all resolve.**
+- **Metadata:** the new page carries the task template's bold inline `**Source**` / `**Status**` /
+  `**Sprint/Tag**`. No YAML frontmatter.
+- **Secret scan: CLEAN.**
+- **Own Sprint 4 re-count, direct from `plan-sprint-4.md`: 64 rows — 49 done (27 agent-closed) ·
+  6 blocked · 5 backlog · 3 cancelled · 1 in progress (`0064`).** Was 62 rows / 3 backlog.
+- **`.wiki-watermark` ADVANCED** `82365bcc126e3671811370a845d8e58a359f7fbe` →
+  `71246ebfe3873b952acf1ae8c52c2ec81c28f5d6`.
+- **Nothing outside `ai-agents/wiki-vault/` was written. No commit, no push.**
+
+### ⚠️ Outside the vault — reported, NOT fixed
+
+- **`ai-agents/sprints/plan-sprint-4.md`, `0206`'s row** says the replacement `0211` is *"unscheduled
+  on `backlog.md`"*. **Stale within the same commit** — `0211`'s own row three lines below records it
+  as promoted into Sprint 4.
+- **`ai-agents/tasks/done/0206-…/brief.md`** says the same in two places (STOP box and status table).
+- ⚠️ **Both are producer-owned files. The vault records the correct state; the boards do not.**
+
+## 2026-09-04 — lint
+
+- Issues found: 24
+- Issues fixed: 20
+- Issues flagged for human review: 4
+- **The `0206` revert framing did NOT hold everywhere — the sync missed two pages entirely and left
+  stale shipped-language on four it had touched.** Worst: [[decisions/sprint-4]]'s `0206` board row
+  still read `**Shipped:** …` and *"public FFA now ends at 80 %"*, and still carried the superseded
+  *"play-test IN FLIGHT, result NOT IN"* note. All corrected.
+
+### 🔴 Pages the sync MISSED — neither was in its modified set
+
+- **[[features/tutorial]]** — *"✅ RE-CHECK DISCHARGED 2026-09-03: `0206` **shipped** and did NOT
+  reintroduce it"*, plus a Related line describing the award in the present tense. Corrected: the
+  re-check is **still discharged, and now in a stronger sense** — there is no award branch left at
+  all. ⚠️ The `0022` guard is a different thing and it stays; that is stated in place.
+- **[[systems/execution-pipeline]]** — *"which **restored** the `Win` update on the FFA
+  clientless-leader path"* and *"which players the **restored** `Win` update may name"*. The `Win`
+  update is **not** restored. Corrected, with the ADR-110-comment nuance carried.
+
+### 🔴 Stale shipped-language on pages the sync DID touch
+
+- **[[decisions/sprint-4]]** — the `0206` table row (the sync edited only the page header, not the
+  row); *"`0206` was planned and **shipped**"*; *"the **shipped** award"*.
+- **[[tasks/teams-bot-team-win-stall]]** — a **duplicate** Related entry for `0206`: the sync fixed
+  the first and left the second reading *"**shipped 2026-09-03**"*. Duplicate removed, survivor
+  corrected. Also *"`0206` **shipping** does NOT advance this task"*.
+- **[[tasks/win-check-clientless-leader-guard]]** — *"the award that **closes** the XP residual"*.
+- **[[tasks/ffa-clientless-leader-fallback-award]]** — three present-tense Related lines (*"closes"*,
+  *"unblocks"*, *"may **now** be named winner"*).
+- **`index.md`** — the `clientless-leader-win-policy` entry **contradicted itself in one line**:
+  it opened *"LIVE IN PRODUCTION and **fixed only in the repo**"* and later said *"the defect is fixed
+  NOWHERE"*. Lead phrase struck and corrected.
+
+### 🆕 A second survivor of the revert, which the sync did not find
+
+**`tests/server/GameServerWinner.test.ts` (135 lines) also survives** — the vault asserted the ADR-110
+comment was *"the ONE exception"*. ✅ Verified: `git diff 82365bc HEAD -- src/ tests/` is **exactly two
+files** — `WinCheckExecution.ts` (`+4`) and `GameServerWinner.test.ts` (`+135`). ✅ The test still
+passes (run at this lint) because it never tested the fallback award; it tests the **ordinary**
+`handleWinner` → `creditMatchXp` path. 🔴 Recorded with what it does **not** cover: it proves crediting
+fires *given a winner message*, and says nothing about the stall, where no winner message is ever sent.
+✅ The four tests added to `WinCheckExecution.test.ts` **were** reverted — that file is byte-identical
+to `82365bc`. The **four-line** ADR-110 comment claim is exact (one blank + three comment lines).
+
+### Measured-vs-inferred distinctions that had been lost
+
+- 🔴 **The Nation hypothesis lived on ONE page.** Five other pages asserted *"a Nation reached 100.0 %
+  of the map"* as measured; three of them ([[decisions/sprint-4]], [[systems/glossary]], `index.md`)
+  gave **no private/public marker at all**. The caveat — **assumed twice, observed ZERO times in a
+  public lobby; only a Bot was ever seen crossing the threshold; public FFA runs with Nations enabled
+  while the play-test had them off** — was added to those three and to
+  [[tasks/ffa-clientless-leader-fallback-award]], each pointing at the canonical statement on
+  [[decisions/clientless-leader-win-policy]].
+- 🔴 **ADR-110's struck bullet was regrowing in other pages' own words.** Five sites restated T1 as
+  *"what the award does is unblock crediting for every real player"* **without T1's qualifier** — the
+  exact degradation that produced the false bullet. The qualifier (*only where a **living clientful**
+  player exists to award to*) was added at the source ([[decisions/adr-110-ai-winner-allowed]]) and at
+  all four restatements, each naming the failure mode explicitly.
+
+### Stale `file:line` claims — all caused by the revert shifting `WinCheckExecution.ts`
+
+13 refs across [[systems/glossary]] (9), [[tasks/win-check-clientless-leader-guard]],
+[[systems/game-overview]], [[decisions/sprint-4]] and `index.md`, each re-verified by symbol:
+`checkWinnerFFA()` `:40-82`, `checkWinnerTeam()` `:84-123`, the clientless branch `:69`, the FFA guard
+`:69-77` (`setWinner` `:78`, deactivation `:80`), the Team guard `:113-118`, the timer branch
+`:110-111`, tick gate `:27-30`. **All other cited symbols re-verified and correct** —
+`GameImpl.players()` `:421-423`, `makeWinner()` `:668-675`, `teams()` `:696-701`,
+`GameView.players()` `:632-634`, `creditMatchXp` `:1253` / sole call `:1199`,
+`MatchQualification` `:43-45` and `:74-100`, `LeaderboardReporter` `:44-59`, `MapPlaylist`
+`:162`/`:165`/`:169`, `DefaultConfig` `:713-718`, `GameRunner` `:89-93`/`:147`.
+
+### A code-level difference nobody had written down
+
+Recorded on [[systems/glossary]]: **the two guards' PREDICATES are not the same.** FFA guards on
+**clientlessness** (`max.clientID() === null`) — Bots *and* Nations. Team guards on **team identity**
+(`max[0] === ColoredTeams.Bot`) — **only** the `ColoredTeams.Bot` team, so a *named* team led by
+Nations is **not** guarded there. ⇒ *"same guard shape"* is accurate **only for the bot-team-led
+case**, which is how every source states it. ⛔ Do not widen it. This is the code-level reason the
+all-Nations-team case the owner deferred to `0205` is a real gap.
+⚠️ **The *"reported, not re-verified by symbol"* flag on the Team XP-loss claim was deliberately NOT
+upgraded** — it survives on all its carriers. A lint reads structure; the flagged claim is behavioural.
+What the lint checked, and what it does not discharge, is recorded in place.
+
+### Verified clean
+
+- **173 pages. Broken wiki-links 0 · index entries with no file 0 · pages missing from `index.md` 0 ·
+  orphans 0 · one-way links 0.**
+- **Metadata:** 0 pages missing a required inline field; **no YAML frontmatter anywhere.**
+- **ADR cross-check:** 10 vault ADR pages, 10 knowledge-base counterparts, **no missing counterpart,
+  no number collision, no heading/filename mismatch.** All 9 slug differences are the **accepted
+  abbreviation style** (`schema.md`) and are **not** flagged.
+- **Source refs:** 608 in pages, all resolve. One deliberate exception:
+  `resources/images/Favicon.svg` on [[tasks/licensing-remediation]], which the page itself records as
+  **deleted** — correct as written.
+- **Secret scan: CLEAN.**
+- **`0208` / `0211` ship-ordering:** checked on all 7 carriers — **neither is `🚧 Blocked`**, both are
+  `🔲 Backlog`, and every carrier states that **planning and building `0211` in parallel is allowed**
+  and only the **ship** is ordered. **No page has hardened it into a blanket block.**
+- **Own Sprint 4 re-count, direct from `plan-sprint-4.md`: 64 rows — 49 done (27 agent-closed) ·
+  6 blocked · 5 backlog · 3 cancelled · 1 in progress (`0064`).** Agrees with the sync and the caller.
+- **`.wiki-watermark` UNTOUCHED** at `71246ebfe3873b952acf1ae8c52c2ec81c28f5d6` — this was a lint.
+- **`0052`'s legacy-filename census: not touched**, by the sync or by this lint.
+- **Nothing outside `ai-agents/wiki-vault/` was written. No commit, no push.**
+
+### ⚠️ Flagged — outside the vault, reported not fixed
+
+- **`ai-agents/tasks/done/0206-…/brief.md`, the follow-up table (`0208`'s row)** says `0208` is
+  *"Backlog — unscheduled"*. **Stale** — `0208` was promoted into Sprint 4 on 2026-09-04 and raised
+  to `High`. Producer-owned.
+- 🔧 **CORRECTION to the sync's own two outside-vault flags: BOTH are already fixed in the tree, and
+  neither is stale as described.** `plan-sprint-4.md`'s `0206` row reads
+  `~~unscheduled on backlog.md~~ — ✅ **CORRECTED 2026-09-04: `0211` is SCHEDULED INTO SPRINT 4**`, and
+  both mentions in `0206`'s brief (lines 52 and 107) are **struck, not standing.** The sync read the
+  struck text as live. **Do not route these to the producer.**
+
+### ⚠️ Flagged — needs an owner call
+
+- **[[decisions/sprint-4]]'s table carries 42 of the board's 64 rows** (a curated subset by long
+  standing). Two rows were added this lint (`0208`, `0211`) because the page's own header says they
+  were scheduled and they are the sprint's live work. **Whether this table should mirror the board or
+  stay curated is not a lint decision.**

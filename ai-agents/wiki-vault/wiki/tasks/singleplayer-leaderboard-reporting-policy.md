@@ -9,7 +9,28 @@
 > **still live, touched by neither `0022` nor `0206`.**
 >
 > ⚠️ **This is NOT a `0206` regression and must not be described as one.** It is pre-existing, and
-> `0206` correctly guards its **own new branch** against it.
+> `0206` correctly guarded its **own new branch** against it.
+>
+> ### 🔴 2026-09-04 — `0206` WAS REVERTED. THE CODE TRACE BELOW CITES CODE THAT NO LONGER EXISTS.
+>
+> **Owner ruling given live in session.** `0206`'s behaviour was reverted before it ever reached a
+> player and **was NEVER DEPLOYED.** Its plan's **premise** was disproved by measurement; ⛔ it was
+> **not** defective and did **not** cause the stall.
+>
+> ✅ **THIS TASK'S DEFECT IS COMPLETELY UNAFFECTED, and the revert STRENGTHENS this page's central
+> claim.** *"Still live, touched by neither `0022` nor `0206`"* was already true and is now true in a
+> stronger sense: **`0206` never even reached production.** The Singleplayer first-place-for-losing
+> path is **pre-existing, untouched, and still live.** The owner's 2026-09-03 ruling (option A) is
+> **not reopened**, the rank is unchanged, and nothing is gated or unblocked.
+>
+> ⚠️ **WHAT GOES STALE — read before trusting any line number or quoted comment below:**
+> **Step 1 and the *"irony"* passage cite `0206`'s code.** After the revert, **`0206`'s fallback-award
+> branch and its Singleplayer `return` are GONE, and every line number in that file shifts.**
+> ⚠️ **The `0022` guard is a DIFFERENT thing and it STAYS** — `0022` is not reverted. ⛔ Do not read
+> this as saying the whole guard disappeared.
+> 🔴 **Do NOT re-verify by line number. Locate by symbol** (`checkWinnerFFA`, `makeWinner`,
+> `reportPlacements`). ✅ **The trace's CONCLUSION is unaffected** — the client leaderboard path has
+> **no game-type awareness whatsoever**, and that path is in `src/client/`, which `0206` never touched.
 
 ## Goal
 
@@ -24,9 +45,11 @@ no participation, no placement.**
 
 1. **The win check does not stop it.** When the leader at the win condition is clientless, the outer
    guard is `gameType !== GameType.Singleplayer || gameConfig.isTutorial === true`. For **non-tutorial
-   Singleplayer both disjuncts are false**, so the whole protective block — including `0206`'s new
-   fallback award **and** its own `if (gameType === Singleplayer) return;` — is **skipped entirely.**
+   Singleplayer both disjuncts are false**, so the whole protective block is **skipped entirely.**
    Control falls through to `setWinner(max, …)` with `max` being the bot.
+   ⚠️ **As written 2026-09-03 this also named `0206`'s fallback award and its own
+   `if (gameType === Singleplayer) return;`. 🔴 Both were REVERTED 2026-09-04 and are gone** — but
+   **the fall-through described here is the `0022`-era code, is untouched, and still holds.**
 2. **A `Win` update is emitted** via `GameImpl.makeWinner()`, which has a Singleplayer-specific branch
    for a clientless winner.
 3. **The client treats any `Win` update as game-over** — `gameEnded` is set from the update's presence
@@ -43,12 +66,15 @@ no participation, no placement.**
 `src/client/leaderboard/` and `src/client/flashist-game/`. **There is no Singleplayer guard to repair —
 there has never been one.**
 
-**The irony is written into the code.** `0206`'s own comment justifies its Singleplayer `return` by
+**The irony was written into the code.** `0206`'s own comment justified its Singleplayer `return` by
 saying that awarding the single Human the win for losing to a bot *"would hand them first-place
 platform-leaderboard points via `ClientGameRunner.reportPlacements()` — the exact bug `0022` fixed."*
-**That reasoning is correct and the guard is right to exist** — but it only protects the **new
+**That reasoning was correct and the guard was right to exist** — but it only protected the **new
 fallback-award branch.** The **pre-existing fall-through** hands over exactly the same points, and
 always has.
+🔴 **Both that comment and that guard were REVERTED 2026-09-04 and are no longer in the file.**
+⚠️ **The point survives the revert intact, and is now cleaner:** there is no new branch to protect,
+and **the pre-existing fall-through — the actual defect this task owns — is entirely unchanged.**
 
 ### 🔴 Participation is in scope too, and it is the farmable path
 
@@ -79,8 +105,10 @@ but **it currently has no access to game type**, so the choice has a real cost e
   `gameType === Singleplayer` guard already covers it — very likely correct, but it should be a
   **stated decision, not an accident of the predicate.**
 - ⛔ **Do not change `awardTable` or the point values** — they are correct, and they are the part that
-  **does** reach the platform. ⛔ **Do not touch `WinCheckExecution`** — `0206`'s guard there is right;
-  the defect is downstream of it, in the client. ⛔ **Do not fold in `0209`.**
+  **does** reach the platform. ⛔ **Do not touch `WinCheckExecution`** — **the defect is downstream of
+  it, in the client**, and that is why. *(As written 2026-09-03 this reason read "`0206`'s guard there
+  is right"; 🔴 that guard was reverted 2026-09-04. **The instruction stands on its own reasoning.**)*
+  ⛔ **Do not fold in `0209`.**
 
 ## Outcome
 
@@ -105,7 +133,9 @@ ranking surface while citizenship/monetisation work is building around player st
 behaviour first and record what you saw*, because nobody has observed it live and the ruling did not
 change that. ⚠️ **Do not test against production** — a local/dev Yandex context only. The regression
 step that matters is step 3: **confirm multiplayer is unaffected**, since a loosely written guard could
-silence the real FFA/Team leaderboard, which is `0206`'s entire point.
+silence the real FFA/Team leaderboard. *(This reason was written as "which is `0206`'s entire point";
+🔴 `0206` was reverted 2026-09-04. **The multiplayer leaderboard matters on its own account** — the
+regression step is unchanged.)*
 
 ### 🔴 `0208` does NOT gate this task
 
@@ -121,7 +151,8 @@ wins and `0208` loses its window** — the owner accepted that trade in advance.
 
 ## Related
 
-- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, whose plan §8 filed this, and whose Singleplayer early-return guards only its own new branch
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, whose plan §8 filed this. 🔴 **REVERTED 2026-09-04 — its Singleplayer early-return is gone; this task's defect is untouched by that**
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`. ⚠️ **This task's ruling is about platform LEADERBOARD POINTS; `0211` is about profile XP. ⛔ The two must NOT be read across** — that risk is why `0211`'s Singleplayer scope needed its own ruling
 - [[tasks/win-check-clientless-leader-guard]] — task `0022`, which fixed this same shape for the **tutorial** only
 - [[tasks/placement-semantics-literal-one]] — task `0209`, the sibling on the orthogonal axis (*what the number means* vs *which modes report at all*); the split was owner-confirmed and their pairing is coherent
 - [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, whose Part B measures this rate and whose window this task's guard closes

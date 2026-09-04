@@ -44,7 +44,7 @@ The four `PlayerType` values (`src/core/game/Game.ts:347-352`) are `Human`, `Bot
 
 - **"Nation" is `PlayerType.FakeHuman`** — the word appears nowhere in the enum, and the `Nation` *class* is a spawn descriptor, not the player type.
 - **An AI player runs the same `FakeHumanExecution` class as a Nation** (`src/core/execution/ExecutionManager.ts:154-162` vs `:139-151`); the difference that matters is that an AI player has a **real `clientID`** and a Nation's is `null`.
-- **`ColoredTeams.Bot` is a real team** — it appears in `teams()` (`src/core/game/GameImpl.ts:696-701`) and in win-check tile accounting (`WinCheckExecution.ts:81-99`), even though `isOnSameTeam()` returns `false` for it (`PlayerImpl.ts:800-802`).
+- **`ColoredTeams.Bot` is a real team** — it appears in `teams()` (`src/core/game/GameImpl.ts:696-701`) and in win-check tile accounting (`WinCheckExecution.ts:86-98`), even though `isOnSameTeam()` returns `false` for it (`PlayerImpl.ts:800-802`).
 
 Two corrections this page previously carried the wrong way, fixed 2026-09-03 against code:
 

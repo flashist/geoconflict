@@ -65,7 +65,9 @@ Prose does not stop an agent that has already decided its work is done.
 - **`Blocked` and `Cancelled` require a reason, inline, in the status itself.** A blocker with no
   stated cause cannot be acted on by anyone but the person who wrote it.
 - **The brief and the sprint plan must agree.** Both carry the status; both get updated together. The
-  mover skills already do this — do the same by hand.
+  mover skills already do this — do the same by hand. ⚠️ Those two are the task's *own* records;
+  **other** files also describe its status in prose, and those copies are swept per
+  [`task-attribute-cross-reference-sweep.md`](task-attribute-cross-reference-sweep.md).
 - **Report reality, not the template.** If a dashboard shows a distinction this vocabulary can't
   express, the dashboard is lying — fix the vocabulary, don't fake the row.
 

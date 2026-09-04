@@ -51,6 +51,10 @@ AI Players need a valid `clientID` so `GameImpl.makeWinner()` returns a real win
 
 📌 **Ruled 2026-09-03 — ADR-110: an AI player MAY be declared the winner**, as **one policy across FFA and Team mode**. The win-condition predicate stays `clientID() !== null` with **no `PlayerType.AiPlayer` exclusion — do not add one.** Players see an `Anon0xxx` name in the win modal with **no indication it was synthetic**; that is now a deliberate recorded choice, not an accident of the predicate. An AI winner is **credited nothing** — what the award does is **unblock match-end XP crediting for every real player in the match**.
 
+> 🔴 **UPDATED 2026-09-04 — ADR-110 NOW RULES ON A PREDICATE THAT EXISTS IN NO SHIPPED CODE.** `0206` (FFA) was **reverted and never deployed**; `0205` (Team) is **unbuilt**. ⛔ **The decision is UNAFFECTED and is NOT superseded** — it is a live policy awaiting its first implementation. ✅ Its **only in-code trace** is one comment in `WinCheckExecution.ts`, deliberately kept through the revert.
+>
+> ⏳ **And its T1 argument has a SCHEDULED EXPIRY.** T1 says an AI winner is valuable because it **unblocks crediting for everyone** — true today (`creditMatchXp`'s sole call site is inside `handleWinner`), but [[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`) is **designed to remove exactly that**. ⛔ **This does NOT fire the ADR's re-raise trigger** (which reads *winner-**dependent***; `0211` makes it **less** so) — **but weigh T1 as EXPIRING, not settled.**
+
 > 🔴 **ADR-110 CARRIES A KNOWN EXPIRY.** The owner accepted it knowing a durable, player-visible winner record is **planned** ("None today, but planned"), so the counter-argument was **overridden with eyes open, not refuted**. It **must be re-examined before any leaderboard, match history, announcements feed, share card, or other surface naming a winner outside the end-of-match modal ships.** ⛔ Do not treat `accepted` as licence to build such a surface assuming AI winners are fine in it. See [[decisions/adr-110-ai-winner-allowed]].
 
 🚩 **A doc comment nearby gets this backwards** — `WinModal.buildPlayerParticipation` claims AI players are skipped from participation; the skip is on `clientID === null`, which **includes** them. Filed as task `0207`, comment-only: [[tasks/winmodal-participation-comment-correction]].
@@ -113,4 +117,5 @@ There is no direct player-facing intent for AI creation. The server and shared c
 - [[decisions/adr-110-ai-winner-allowed]] — the 2026-09-03 ruling that an AI player may be declared winner, **and the expiry that rides with it**
 - [[tasks/teams-bot-team-win-stall]] — task `0205`, the Team-mode half of the same predicate
 - [[tasks/winmodal-participation-comment-correction]] — task `0207`, the participation comment that misdescribes this player type
-- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the FFA award an AI player may now receive; it is **credited nothing**, and what the award unblocks is crediting for every real player
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the FFA award an AI player would have been eligible for. 🔴 **REVERTED 2026-09-04 — never deployed**
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which **expires ADR-110's T1 argument** by making crediting independent of any winner

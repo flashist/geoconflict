@@ -88,7 +88,7 @@ An AI dressed as a real player, used to make a public lobby look fuller. See [[f
 
 🚩 **The one difference that matters for win conditions: an AI player has a non-null `clientID`.** Bots and Nations do not. Any guard written as `clientID() === null` treats AI players as humans. That guard exists — see §3.
 
-📌 **Ruled, not merely observed — ADR-110, accepted 2026-09-03.** An AI player **MAY be declared the winner of a match**, and the predicate stays `clientID() !== null` with **no `PlayerType.AiPlayer` exclusion** — **one policy across FFA and Team mode**. An AI winner is **credited nothing** (`selectMatchCredits`, `src/core/profile/MatchQualification.ts:74-100`, never looks at who won, and an AI fails three participant gates independently); what the award does is **unblock crediting for every real player**.
+📌 **Ruled, not merely observed — ADR-110, accepted 2026-09-03.** An AI player **MAY be declared the winner of a match**, and the predicate stays `clientID() !== null` with **no `PlayerType.AiPlayer` exclusion** — **one policy across FFA and Team mode**. An AI winner is **credited nothing** (`selectMatchCredits`, `src/core/profile/MatchQualification.ts:74-100`, never looks at who won, and an AI fails three participant gates independently); what the award does is **unblock crediting for every real player** ⚠️ **CARRY THE QUALIFIER: only where a LIVING CLIENTFUL player exists to award to.** Where every clientful player is already eliminated, `players()` filters to `isAlive()`, no winner can be named and nothing is unblocked. 🔴 **Dropping this qualifier is exactly how ADR-110's false Consequences bullet came to be written — see [[decisions/adr-110-ai-winner-allowed]].**
 🔴 **That decision carries a KNOWN EXPIRY and must never be cited as settled-forever** — the owner accepted it knowing a durable, player-visible winner surface is **planned** ("None today, but planned"), so it **must be re-examined before any leaderboard, match history, announcements feed, share card, or other surface naming a winner outside the end-of-match modal ships.** See [[decisions/adr-110-ai-winner-allowed]].
 
 #### Human — `PlayerType.Human`
@@ -97,7 +97,7 @@ A real connected client; `clientID` is the client's ID (`src/core/GameRunner.ts:
 
 #### Clientless vs clientful — the partition the win code actually uses
 
-The win check does **not** branch on `PlayerType`. It branches on whether `clientID()` is `null` (`src/core/execution/WinCheckExecution.ts:65`). So the operative split is:
+The win check does **not** branch on `PlayerType`. It branches on whether `clientID()` is `null` (`src/core/execution/WinCheckExecution.ts:69`). So the operative split is:
 
 | | `clientID` |
 |---|---|
@@ -121,7 +121,7 @@ The string `"Bot"`. It is easy to read the friendliness check below and conclude
 
 - Held in `GameImpl.botTeam` — `src/core/game/GameImpl.ts:83`
 - **Included in the team list**: `teams()` returns `[this.botTeam, ...this.playerTeams]` — `src/core/game/GameImpl.ts:696-701` (that method returns `[]` outside `GameMode.Team`, so the Bot team is listed **in Team mode**)
-- **Counted in win-check tile accounting**: `checkWinnerTeam()` sums `numTilesOwned()` per team string across *all* players and ranks the result — `src/core/execution/WinCheckExecution.ts:81-99`. Nothing excludes the Bot team from that sum; it is excluded from *winning* only by a later explicit guard (§4)
+- **Counted in win-check tile accounting**: `checkWinnerTeam()` sums `numTilesOwned()` per team string across *all* players and ranks the result — `src/core/execution/WinCheckExecution.ts:86-98`. Nothing excludes the Bot team from that sum; it is excluded from *winning* only by a later explicit guard (§4)
 - Has its own colour — `src/core/configuration/ColorAllocator.ts:48-49`
 - **Excluded from the "same team" friendliness check**: `isOnSameTeam()` returns `false` if either side is on `ColoredTeams.Bot` — `src/core/game/PlayerImpl.ts:800-802`. **This is the only sense in which the Bot team is "not a real team"** — bots do not treat each other as allies. It does **not** remove the team from `teams()`, from tile accounting, or from the win check.
 
@@ -176,11 +176,11 @@ Reached **only** from `addPlayer()` when no team argument is passed (`GameImpl.t
 
 | Term | Code identifier | Meaning | Evidence |
 |---|---|---|---|
-| **Win check** | `WinCheckExecution` | An execution that runs every 10 ticks | `src/core/execution/WinCheckExecution.ts:16`, tick gate `:26-28`; registered `src/core/GameRunner.ts:147` |
-| **FFA branch** | `checkWinnerFFA()` | Ranks **players** by `numTilesOwned()` | `WinCheckExecution.ts:40-78` |
-| **Team branch** | `checkWinnerTeam()` | Sums tiles **per team string**, ranks teams | `WinCheckExecution.ts:80-119` |
+| **Win check** | `WinCheckExecution` | An execution that runs every 10 ticks | `src/core/execution/WinCheckExecution.ts:16`, tick gate `:27-30`; registered `src/core/GameRunner.ts:147` |
+| **FFA branch** | `checkWinnerFFA()` | Ranks **players** by `numTilesOwned()` | `WinCheckExecution.ts:40-82` |
+| **Team branch** | `checkWinnerTeam()` | Sums tiles **per team string**, ranks teams | `WinCheckExecution.ts:84-123` |
 | **Territory threshold** | `percentageTilesOwnedToWin()` | **95 %** in Team mode, **80 %** otherwise — measured against `numLandTiles() - numTilesWithFallout()`. **Not a simple majority.** | `src/core/configuration/DefaultConfig.ts:713-718`; denominator `WinCheckExecution.ts:102-103` |
-| **Timer branch** | `maxTimerValue` | Minutes. When set and elapsed, the win fires regardless of territory. **`undefined` in every public lobby** — a private/custom-lobby route only | `WinCheckExecution.ts:106-107`; `src/server/MapPlaylist.ts:162`; host-set `src/client/HostLobbyModal.ts:773-774` |
+| **Timer branch** | `maxTimerValue` | Minutes. When set and elapsed, the win fires regardless of territory. **`undefined` in every public lobby** — a private/custom-lobby route only | `WinCheckExecution.ts:110-111`; `src/server/MapPlaylist.ts:162`; host-set `src/client/HostLobbyModal.ts:773-774` |
 | **`setWinner`** | `GameImpl.setWinner(winner: Player \| Team, stats)` | Emits a `GameUpdateType.Win`. **Takes either a Player (FFA) or a Team string (Team mode)** | `src/core/game/GameImpl.ts:659-665` |
 | **`makeWinner`** | `GameImpl.makeWinner()` | Converts that into the wire `Winner`. **Can return `undefined`** — for a clientless player outside non-tutorial singleplayer | `src/core/game/GameImpl.ts:667-693`, `undefined` return at `:686` |
 | **`Winner`** (wire type) | `WinnerSchema` | `["player", clientID, …]` \| `["team", teamName, …clientIDs]` \| `["opponent", name]`, and **`.optional()`** | `src/core/Schemas.ts:485-492` |
@@ -188,12 +188,40 @@ Reached **only** from `addPlayer()` when no team argument is passed (`GameImpl.t
 
 **The two guards — locate them by symbol; the line numbers drift.**
 
-- **FFA guard** (shipped by task `0022`, **amended by `0206` on 2026-09-03**) — `checkWinnerFFA()`, `WinCheckExecution.ts`: `if (max.clientID() === null)` and not non-tutorial-singleplayer → **singleplayer returns immediately** (so no tutorial reaches the award), otherwise **award the win to `sorted.find((p) => p.clientID() !== null)`** and set `this.active = false`. Only when **no clientful player is alive** does it still `return` **before** `this.active = false`.
-- **Team guard** (pre-existing) — `checkWinnerTeam()`, `WinCheckExecution.ts:109-114`: `if (max[0] === ColoredTeams.Bot && gameType !== GameType.Singleplayer)` → `return` **before** `this.active = false`.
+- **FFA guard** (shipped by task `0022`) — `checkWinnerFFA()`, `WinCheckExecution.ts`: `if (max.clientID() === null)` and not non-tutorial-singleplayer → `return` **before** `this.active = false`.
+  ~~**Amended by `0206` on 2026-09-03** to award the win to `sorted.find((p) => p.clientID() !== null)` and set `this.active = false`.~~ 🔴 **STRUCK — `0206` WAS REVERTED 2026-09-04 and never deployed. The guard is back to its `0022` shape.** ✅ **One deliberate exception:** the revert **kept `0206`'s clarifying comment** citing ADR-110 — that the guard is about being **clientless**, not about being **AI** — so the file is **not** byte-identical to its pre-`0206` state. **That comment is the only in-code trace of ADR-110 in the repository; do not delete it.**
+- **Team guard** (pre-existing) — `checkWinnerTeam()`, `WinCheckExecution.ts:113-118`: `if (max[0] === ColoredTeams.Bot && gameType !== GameType.Singleplayer)` → `return` **before** `this.active = false`.
 
-~~**Both return above the deactivation.**~~ **CORRECTED 2026-09-03 — that is now true of the Team guard only.** It was deliberate — it keeps the check alive so a human can still win later — and it is also why a permanently-leading clientless entity leaves the match with no winner. 🚨 That was a **live production defect** for the XP path; the fix is task `0206`, ~~unscheduled~~ ~~promoted into Sprint 4 but still `🔲 Backlog` and unstarted~~ **built and closed 2026-09-03 (agent-closed — not owner-verified)**.
+✅ **BOTH return above the deactivation** — ~~corrected 2026-09-03 to "the Team guard only"~~ 🔴 **that correction is itself reverted as of 2026-09-04, along with `0206`.** It is deliberate — it keeps the check alive so a human can still win later — and it is also why a permanently-leading clientless entity leaves the match with no winner.
 
-🔴 **`0206` shipping does NOT make the defect gone.** Nothing was deployed, so **production still has the old behaviour**; and even in the repo the FFA guard still returns above the deactivation — losing the match's XP — when **no clientful player is alive** to receive the award. The Team-mode twin `0205` is **untouched**: `checkWinnerTeam()` is byte-identical and still unscheduled. See [[decisions/clientless-leader-win-policy]], [[tasks/win-check-clientless-leader-guard]] and [[tasks/teams-bot-team-win-stall]].
+🚨 **That is a LIVE PRODUCTION DEFECT for the XP path, and it is FIXED NOWHERE.** ~~The fix is `0206`~~ 🔴 **`0206` was REVERTED and, in any case, was a NO-OP in the case that loses the XP** — `players()` filters to `isAlive()` (`src/core/game/GameImpl.ts:421-423`), so with every clientful player dead the award found nobody and returned exactly as before. **MEASURED 2026-09-04 in a PRIVATE instrumented FFA: a Nation reached 100.0 % of the map and the match still did not end**; no `handleWinner`, no `creditMatchXp`. ⚠️ **Scope that observation carefully: the NATION case has been assumed twice and OBSERVED ZERO TIMES in a PUBLIC lobby.** Only a **Bot** was ever seen crossing the threshold, and public FFA runs with Nations **enabled** while the play-test ran with them **off** — so **the untested case is the one production has.** ⇒ **A hypothesis for public FFA, never established**; see [[decisions/clientless-leader-win-policy]]. **The replacement is [[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`)**, which decouples crediting from the winner instead of crowning anyone.
+
+🔴 **And the two guards share the defect, which nobody had connected.** `checkWinnerTeam()` has the **same shape**, so a bot-team-led Team match loses its XP identically — found at the `0206` revert, unnoticed across `0022`, `0206` and `0205`. ⚠️ Reported, **not re-verified by symbol.** ⚠️ `0206`'s close recorded `checkWinnerTeam()` as **byte-identical and therefore untouched** — true, and the right call for that scope, which is exactly how "untouched" got read as "not affected". See [[decisions/clientless-leader-win-policy]], [[tasks/win-check-clientless-leader-guard]] and [[tasks/teams-bot-team-win-stall]].
+
+> ### 📌 What the 2026-09-04 lint checked on that claim — and what it did NOT
+>
+> ⚠️ **This does NOT discharge the "confirm by symbol at plan time" step, and every page carrying that
+> flag keeps it.** What a lint can read off the file is *structure*; the flagged claim is about
+> *behaviour*, which a structural read supports but does not prove end to end.
+>
+> ✅ **Structure, read off the tree at this lint:** both guards return **above** their own
+> `this.mg.setWinner(...)` and **above** `this.active = false` — FFA at `WinCheckExecution.ts:69-77`
+> (`setWinner` `:78`, deactivation `:80`), Team at `:113-118` (`setWinner` `:119`, deactivation
+> `:121`). ⇒ A guarded match emits **no `Win` update** on either branch, which is the whole mechanism
+> of the XP loss.
+>
+> 🚩 **And a difference nobody had written down, which matters for `0205` and `0211`: THE TWO
+> PREDICATES ARE NOT THE SAME.** FFA guards on **clientlessness** (`max.clientID() === null`), so it
+> catches Bots **and** Nations. Team guards on **team identity** (`max[0] === ColoredTeams.Bot`), so it
+> catches **only the `ColoredTeams.Bot` team** — a *named* team led by Nations is **not** guarded in
+> Team mode and would be handed `setWinner`. ⛔ **So "same guard shape" is accurate only for the
+> **bot-team-led** case, which is exactly how the sources state it.** Do not widen it to "Team mode
+> guards clientless leaders" — it does not.
+> ⚠️ **The all-Nations-team case is the one the owner deliberately DEFERRED to `0205`'s plan** (see
+> [[decisions/adr-110-ai-winner-allowed]]); this is the code-level reason it is a real gap and not a
+> hypothetical.
+
+⚠️ **`GameImpl.players()` filters to alive; `GameView.players()` does NOT** (`GameImpl.ts:421-423` vs `GameView.ts:632-634`). **Correct as-is** — it is why participation includes dead players — but **the same method name means two different things across the sim/view boundary**, and that trap is what made `0206` a no-op. Recorded here because this is the page where that misconception forms.
 
 📌 **The Team guard's effect was MEASURED on 2026-09-03** (`0205`, headless deterministic simulation, real World map, 400 bots, `DefaultConfig`): with idle human slots the bot team tops the ranking **12/12**, `setWinner` is called **0/12**, and the guard is proven **causal** — the identical board with `gameType: Singleplayer` sets the winner **3/3**. ⚠️ **Simulator, not production**; see [[tasks/teams-bot-team-win-stall]] for the limits that ride with those numbers.
 
@@ -225,8 +253,8 @@ Recorded 2026-09-03. **Both kept, labelled. The code column is what ships.**
 | 3 | AI players are "technically pretty much the same as Nations" | **Literally the same class** — `ExecutionManager.ts:154-162` and `:139-151` both construct `FakeHumanExecution` | ✅ **Confirmed** |
 | 4 | AI players inflate the visible player count | `numClients() = activeClients.length + aiPlayers.length` (`src/server/GameServer.ts:421-423`) | ✅ **Confirmed** |
 | 5 | "Only real players and AI players can be in a team" | ❌ **Disagrees, twice.** (a) **Bots ARE in a team** — `ColoredTeams.Bot`, assigned `GameImpl.ts:467-468`, returned by `teams()` `:700`. (b) **Nations are placed on ordinary named teams** whenever present — `assignTeams()` at `GameImpl.ts:170` takes `[...humans, ...nations]`. | ❌ **Refuted by the code** |
-| 6 | "Bots and Nations can never win in Team mode" | Partly true, **not for the stated reason**. Bots cannot win only because of the explicit guard at `WinCheckExecution.ts:109-114` — not because they lack a team. **Nations have no such protection**: a named team whose members happen to be Nations can win outright, and `makeWinner()` emits a `["team", …]` winner with an empty client list (`GameImpl.ts:667-676`). | ❌ **Refuted as stated** |
-| 7 | "The match ends only when one team holds the majority of the land" | Two conditions, OR'd (`WinCheckExecution.ts:104-108`): territory **> 95 %** in Team mode / 80 % otherwise, **or** timer expiry when `maxTimerValue` is set. | ⚠️ **Partly true** |
+| 6 | "Bots and Nations can never win in Team mode" | Partly true, **not for the stated reason**. Bots cannot win only because of the explicit guard at `WinCheckExecution.ts:113-118` — not because they lack a team. **Nations have no such protection**: a named team whose members happen to be Nations can win outright, and `makeWinner()` emits a `["team", …]` winner with an empty client list (`GameImpl.ts:667-676`). | ❌ **Refuted as stated** |
+| 7 | "The match ends only when one team holds the majority of the land" | Two conditions, OR'd (`WinCheckExecution.ts:108-112`): territory **> 95 %** in Team mode / 80 % otherwise, **or** timer expiry when `maxTimerValue` is set. | ⚠️ **Partly true** |
 
 **The owner's "Nations are not in teams" is true of the *ordinary public Team lobby only*, and true because Nations are absent there, not because the assignment code excludes them.** In a private Team lobby with default settings, Nations are on named teams.
 
@@ -261,4 +289,5 @@ Recorded 2026-09-03. **Both kept, labelled. The code column is what ships.**
 - [[tasks/teams-bot-team-win-stall]] — task `0205`, the Team guard measured, and the team-assignment correction recorded in §2
 - [[tasks/winmodal-participation-comment-correction]] — task `0207`, a code comment that gets the clientful/clientless split backwards
 - [[tasks/tutorial-no-nations]] — why the tutorial has no Nations
-- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, which amended the FFA guard described in §3: singleplayer returns, otherwise the top clientful player is awarded the win
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, which amended the FFA guard described in §3 and was then 🔴 **REVERTED 2026-09-04 — never deployed**; the guard is back to its `0022` shape, minus one deliberately-kept comment
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which closes the XP loss behind both guards **without** touching the win check

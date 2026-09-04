@@ -16,7 +16,12 @@
 >    pre-fix multiplayer question — *"how often does the stall happen today?"* — is STILL ANSWERABLE,
 >    and the denominator is still the pre-fix one.** ⚠️ **The urgency has eased; it has not vanished** —
 >    the replacement, [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md),
->    is unscheduled but real, and it will restart a clock of its own when it ships.
+>    ~~is unscheduled but real~~ — ✅ **CORRECTED 2026-09-04: `0211` is SCHEDULED INTO SPRINT 4**
+>    (owner ruling, live in session); **struck, not deleted — spent, not wrong** — and it will restart
+>    a clock of its own when it ships. 🔴 **AND THAT CLOCK IS THE REASON THIS TASK IS ORDERED FIRST:**
+>    ⛔ **`0211` must not SHIP until THIS task is DEPLOYED AND COLLECTING DATA** (owner ruling,
+>    2026-09-04) — ⚠️ **"deployed and collecting", NOT merely merged or built.** ✅ **`0211` may be
+>    planned and built in parallel.** ⚠️ **Neither task is `🚧 Blocked`.**
 > 2. 🔴 **THE MEASUREMENT IS NOW MORE VALUABLE, NOT LESS.** `0206` was reverted because a live
 >    investigation measured its premise and found it wrong. **This task is that same class of work,
 >    done systematically.** The 2026-09-04 finding — a Nation reaching **100.0 %** with the match not
@@ -138,8 +143,15 @@ same crediting path.**
 
 ⚠️ **Scheduled is NOT started.** The status stays `🔲 Backlog` — **nobody is building this.**
 
-⚠️ **The owner ruled SCHEDULING ONLY, not rank.** See *Priority* — `Medium` is still the producer's,
-last set 2026-09-03 on the scope widening and **untouched by this promotion.**
+~~⚠️ **The owner ruled SCHEDULING ONLY, not rank.** See *Priority* — `Medium` is still the producer's,
+last set 2026-09-03 on the scope widening and **untouched by this promotion.**~~
+
+✅ **RANK UPDATED 2026-09-04 — struck, not deleted. The struck text was TRUE WHEN WRITTEN and was
+SPENT by a SECOND owner ruling later the same day.** It described the **scheduling** ruling correctly:
+that ruling did not touch the rank, and **this promotion still did not.** A **separate** ruling that
+day did. **The rank is now `High` — see *Priority*, which is authoritative.** ⚠️ **SPLIT
+PROVENANCE:** **THAT it be raised = an OWNER RULING**; **THAT the value is `High` = the PRODUCER'S
+judgement** — ⛔ **the owner named no value.**
 
 Its row on [`backlog.md`](../../../sprints/backlog.md) is kept as `➡️ Moved`, **not deleted** — the
 same treatment `0211`, `0206` and `0200` got.
@@ -203,7 +215,12 @@ the rest. ⚠️ **The ONE ordering that now exists is Ruling 7's, and it runs t
 not ship before this task has data.** See *Status*.
 
 ⚠️ **Stated plainly so it is not mistaken for an owner ranking:** the owner ruled *that this be filed*,
-*that it not be scheduled*, and *that it measure both halves*. They have **never ranked it**. Everything
+*that it not be scheduled*, and *that it measure both halves*. ~~They have **never ranked it**.~~
+✅ **CORRECTED 2026-09-04 — struck, not deleted. TRUE WHEN WRITTEN, SPENT the same day, and it had
+been left CONTRADICTING THE HEADER OF THIS VERY SECTION.** ⛔ **The owner HAS since ruled on the rank:
+they ruled THAT it be RAISED and left the VALUE to the producer** — see the split-provenance table at
+the top of *Priority*, which is authoritative and unchanged. ℹ️ **The three rulings listed above are a
+snapshot as of 2026-09-03; two further rulings landed 2026-09-04.** Everything
 below is mine.
 
 **What the rank was, and why it moved — one notch, Medium–low → Medium:**
@@ -324,10 +341,27 @@ HIGHER than 40 %.** Do not quote 40 % as the human threshold.
 the question **on a board** instead of leaving it only in a conversation, and it **stops "we never
 measured it" being rediscovered in three months.**
 
-⚠️ **Read the rank and the board placement together with that reasoning.** Unscheduled here means
+~~⚠️ **Read the rank and the board placement together with that reasoning.** Unscheduled here means
 *deliberately not committed to a sprint* — it does **not** mean low-value or forgotten. A future
 reader finding this sitting unscheduled must not treat it as a scheduling miss, exactly as with
-`0205`.
+`0205`.~~
+
+✅ **CORRECTED 2026-09-04 — THIS TASK IS NO LONGER UNSCHEDULED.** `0208` was **SCHEDULED INTO SPRINT 4**
+by owner ruling given live in session, 2026-09-04; tracked on
+[`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md), with its
+[`backlog.md`](../../../sprints/backlog.md) row kept as `➡️ Moved`. **Struck, not deleted — the struck
+paragraph was accurate for exactly as long as nothing scheduled this task, and is spent, not wrong.**
+⚠️ **Status is still `🔲 Backlog` — scheduled is NOT started, nobody is building it.** ~~**Rank is
+unchanged at `Medium` and is still the PRODUCER'S, not an owner ruling** — ⛔ **the ruling scheduled
+this task; it did not rank it.**~~
+
+🔴 **RANK CLAIM CORRECTED 2026-09-04 — the struck sentence was WRONG WHEN WRITTEN** (added earlier the
+same session by the producer while correcting the scheduling staleness). ⛔ **It is NOT "spent, not
+wrong" like the other strikes in this brief — it was false on the day it was typed**, on the value and
+on the provenance. **The rank is `High`** — see *Priority* above, which is authoritative. ⚠️ **A
+SEPARATE owner ruling of 2026-09-04 DID rule on the rank: it ruled THAT the rank be RAISED, and left
+the VALUE to the producer, who set `High`.** ⛔ **So "the ruling scheduled this task; it did not rank
+it" is false — there were TWO rulings that day, and the second one did.**
 
 ### ~~The three consumers~~ → ~~**four**~~ → 📌 **SIX** — who is waiting on this number
 
@@ -609,7 +643,12 @@ still measures the PRE-FIX question — *"how often does the stall happen today?
 pre-fix denominator.** ⚠️ **Neither half is now racing a clock, and that is a change of urgency, not
 of value.** A new clock will start if
 [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) — the replacement for
-`0206`, unscheduled — is scheduled and ships. ⚠️ **Still check the production state at plan time
+`0206`, ~~unscheduled~~ — is scheduled and ships. ✅ **CORRECTED 2026-09-04: `0211` IS NOW SCHEDULED
+(Sprint 4, owner ruling); struck, not deleted — spent, not wrong. So the first half of that condition
+is ALREADY MET — only the SHIP is still outstanding.** 🔴 **Which is exactly why the owner ordered the
+ship: ⛔ `0211` must not SHIP until THIS task is DEPLOYED AND COLLECTING DATA** — ⚠️ **not merely
+merged or built** — ✅ **though `0211` may be planned and built in parallel, and neither task is
+`🚧 Blocked`.** ⚠️ **Still check the production state at plan time
 anyway:** this brief asserts what was ruled, not what a server is running.
 
 ### 1. Instrument the DECISION POINT, not the guard's early return
@@ -822,12 +861,36 @@ single most likely way this task gets ruined.** The guard is `0210`. **Measure, 
   adding **Part B** (Singleplayer platform-leaderboard award incidence). Reasoning recorded in the
   banner at the top of this brief and **not repeated here as a summary** — it is the ruling's own
   wording that matters.
-- **Rank is the producer's**, not the owner's. The owner has ruled *file*, *do not schedule*, and
+- ~~**Rank is the producer's**, not the owner's. The owner has ruled *file*, *do not schedule*, and
   *measure both*; they have **never ranked it**. The 2026-09-03 re-rank to **Medium** is mine — see
-  *Priority*.
-- 📌 **Still unscheduled, and that is current as of 2026-09-03.** The owner separately ruled the same
+  *Priority*.~~
+  ✅ **UPDATED 2026-09-04 — struck, not deleted. TRUE WHEN WRITTEN, SPENT by a later owner ruling
+  the same day.** The owner **has now ruled on the rank** — ⛔ **so "they have never ranked it" no
+  longer holds.** **The rank is `High`.** ⚠️ **The ruling was PARTIAL, and the split is the point:**
+  **THAT the rank be RAISED is the OWNER'S**; **THAT the value is `High` is the PRODUCER'S** — the
+  owner named no value. ⇒ **"Rank is the producer's" is now only HALF true, which is why the whole
+  sentence is struck rather than trimmed.** See *Priority*.
+- ~~📌 **Still unscheduled, and that is current as of 2026-09-03.** The owner separately ruled the same
   day that **`0209` and `0210` stay unscheduled** — neither is urgent, and Sprint 4 has a deploy to get
-  through. `0208` remains unscheduled alongside them. ⛔ **The widening is NOT a scheduling signal.**
+  through. `0208` remains unscheduled alongside them.~~ ⛔ **The widening is NOT a scheduling signal.**
+
+  ✅ **CORRECTED 2026-09-04 — `0208` IS SCHEDULED INTO SPRINT 4.** Owner ruling given live in session,
+  2026-09-04, tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md); this task's row on
+  [`backlog.md`](../../../sprints/backlog.md) is kept as `➡️ Moved`. **Struck, not deleted** — the
+  struck text was true on 2026-09-03, the date it names, and is **spent, not wrong.**
+  - ⚠️ **Status is still `🔲 Backlog` — NOT STARTED. Scheduled is not started; nobody is building it.**
+  - ~~**Rank is unchanged at `Medium`, and it is still the PRODUCER'S rank, not an owner ruling.**
+    ⛔ **The 2026-09-04 ruling scheduled this task; it did NOT rank it.**~~
+    🔴 **CORRECTED 2026-09-04 — WRONG WHEN WRITTEN** (added the same session by the producer). ⛔ **Not
+    "spent, not wrong" — false on the day it was typed.** **The rank is `High`** (see *Priority*).
+    ⚠️ **A SECOND owner ruling that day DID rule on rank — it ruled THAT it be raised and left the
+    VALUE to the producer, who set `High`.** ⛔ **Do not read "the owner ranked it `High`" — they did
+    not name a value; and do not read "the owner never ranked it" — they ruled the raise.**
+  - ⚠️ **`0209` and `0210` are NOT affected — both remain `🔲 Backlog`, unscheduled** (verified
+    2026-09-04 against their briefs and [`backlog.md`](../../../sprints/backlog.md)). **Their
+    "stay unscheduled" ruling stands.** Only the `0208` clause above went stale.
+  - ⛔ **The struck sentence's point survives its own correction:** the scope widening was still
+    **NOT** the scheduling signal — a separate owner ruling was.
 
 ### 🚩 Sequencing — the one real tension, flagged rather than resolved
 
@@ -861,9 +924,33 @@ single most likely way this task gets ruined.** The guard is `0210`. **Measure, 
   reasoning that unmeasured incidence does not rescue it. ⛔ **Nobody may hold `0210` waiting for this
   number. If the two collide, `0210` wins and Part B loses its window** — the owner's ruling accepted
   that trade in advance.
-- ⚠️ **Both tasks are unscheduled, so no sequencing is actually committed today.** This note describes
+- ~~⚠️ **Both tasks are unscheduled, so no sequencing is actually committed today.** This note describes
   a trade-off, **not a plan**, and it does **not** override the owner's "don't schedule" rulings on
-  either task.
+  either task.~~
+
+  🔴 **CORRECTED 2026-09-04 — THE STRUCK SENTENCE ABOVE IS NOW FALSE AND IS THE MOST DANGEROUS LINE
+  THIS BRIEF HAS EVER CARRIED. READ THE CORRECTION BEFORE ACTING ON ANYTHING IN THIS SECTION.**
+  **Struck, not deleted** — it was accurate for exactly as long as nothing was scheduled, and is
+  **spent, not wrong.**
+
+  - ⛔ **A SEQUENCING CONSTRAINT *IS* COMMITTED TODAY.** Owner ruling, 2026-09-04, given live in
+    session: **`0211` must NOT SHIP until THIS task (`0208`) has been DEPLOYED AND IS COLLECTING
+    DATA.** ⚠️ **"Deployed and collecting" — NOT merely merged, NOT merely built; a merged metric
+    measures nothing.**
+  - 🔴 **Why this correction is urgent, not cosmetic:** a reader who acted on the struck sentence
+    could ship `0211` first. `0211` closes the XP loss, which **destroys this task's pre-fix
+    denominator permanently** — the "how often does the stall happen today?" question becomes
+    **unanswerable forever.** That is precisely the irreversible outcome the owner's ruling exists
+    to prevent.
+  - ✅ **Planning and building `0211` in parallel remains EXPLICITLY ALLOWED — only its SHIP is
+    ordered.** ⚠️ **Neither `0208` nor `0211` is `🚧 Blocked`.**
+  - 📌 **"Both tasks" in the struck sentence meant `0208` and `0210` — and only the `0208` half went
+    stale.** ✅ **`0208` is SCHEDULED INTO SPRINT 4** (owner ruling, 2026-09-04); the owner's earlier
+    *"don't schedule"* ruling on **this** task is **superseded**. ⚠️ **`0210` is still `🔲 Backlog`,
+    unscheduled — verified 2026-09-04 — and its "don't schedule" ruling still stands, untouched.**
+  - ⚠️ **The `0208`/`0210` decay trade-off the bullets above describe is UNCHANGED and still
+    unresolved.** This correction fixes a scheduling fact; it settles none of that reasoning, and
+    ⛔ **`0210` is still not gated on this number** (see the bullet two above).
 
 ### Related, and none of it blocking
 
@@ -895,9 +982,16 @@ single most likely way this task gets ruined.** The guard is `0210`. **Measure, 
   the four in the consumers table above, and it was NOT among them** — the table was written before
   the pointer moved. ⛔ **Whoever plans this task must know a product decision hangs on the result, and
   must not report a number without saying what it implies for ADR-110.**
-  ⚠️ **This is recorded as a RANK INPUT, and the rank was NOT changed on it** — the owner ruled
+  ~~⚠️ **This is recorded as a RANK INPUT, and the rank was NOT changed on it** — the owner ruled
   scheduling only, and re-ranking on this is a producer call nobody has made. **Say so rather than
-  quietly treating `Medium` as reflecting it.**
+  quietly treating `Medium` as reflecting it.**~~
+  ✅ **UPDATED 2026-09-04 — struck, not deleted. TRUE WHEN WRITTEN, SPENT the same day.** It was
+  accurate for exactly as long as the scheduling ruling was the only one. **The rank has since MOVED
+  to `High`** on a **second** owner ruling — ⛔ **so "the rank was NOT changed on it" and "a producer
+  call nobody has made" are both spent.** ⚠️ **The underlying WARNING still stands and is why this is
+  struck rather than deleted: the rank input is a RANK INPUT, and ADR-110's re-raise question is
+  still OPEN.** ⛔ **Do not read `High` as having settled ADR-110** — whoever plans this task must
+  still report the number **and** say what it implies for ADR-110.
 - **`0007-investigate-core-to-client-import-coupling`** — relevant to the emission-seam decision in
   *What to Build* §3. Not a blocker, and this task must not wait on it.
 - ⛔ **No secrets in this brief, by construction.** Telemetry work attracts them. Variable names

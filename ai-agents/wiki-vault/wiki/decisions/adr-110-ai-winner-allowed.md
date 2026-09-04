@@ -1,11 +1,43 @@
 # ADR-110 — An AI player may be declared the winner
 
-**Date**: 2026-09-03
-**Status**: accepted
+**Date**: 2026-09-03 (corrected 2026-09-04)
+**Status**: accepted — ⚠️ **unchanged by the `0206` revert; the decision is NOT superseded**
 
 > Source: `ai-agents/knowledge-base/decisions/adr-110-ai-player-may-be-declared-winner.md`
 > (drafted and accepted the same day; promoted in place per [[decisions/adr-numbering-two-series]]).
 > Slug abbreviated from the knowledge-base counterpart — the vault's standing style, not drift.
+
+---
+
+## 🔴 2026-09-04 — THIS ADR RULES ON A PREDICATE THAT EXISTS IN NO SHIPPED CODE
+
+> **[`0206`](../tasks/ffa-clientless-leader-fallback-award.md) was REVERTED and never deployed;
+> `0205` (Team) is unbuilt.** ⇒ **This is a live policy awaiting its first implementation.**
+>
+> ⛔ **THE DECISION ITSELF IS UNAFFECTED AND IS *NOT* SUPERSEDED.** It rules on **policy** — may an AI
+> player be declared winner; the predicate stays `clientID() !== null` with **no**
+> `PlayerType.AiPlayer` exclusion; **one policy across FFA and Team.** That policy stands, and the
+> status remains `accepted`. What was reverted is `0206`'s FFA **implementation** of it.
+>
+> ✅ **Its ONE in-code trace survives**, deliberately: the comment in `WinCheckExecution.ts` saying the
+> guard is about being **clientless**, not about being **AI**. **The revert kept it on purpose.** ⛔ Do
+> not delete it while "restoring" that file — see [[tasks/ffa-clientless-leader-fallback-award]].
+>
+> ⚠️ **The revisit trigger is unchanged** — a durable, player-visible winner surface still forces
+> re-examination before it ships (see the expiry box below).
+>
+> ### ⏳ T1 is TRUE TODAY and has a SCHEDULED EXPIRY — not struck, but do not cite it forward
+>
+> Re-verified 2026-09-04: `creditMatchXp`'s sole call site is still inside `handleWinner`
+> (`src/server/GameServer.ts:1199`), so T1's premise holds **today**.
+> **[[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`) is specifically designed to
+> remove it.** Once `0211` ships, *"the only thing standing between a match and `creditMatchXp` is
+> that some winner exists"* becomes **false**, and T1's argument — that an AI winner is valuable
+> because it unblocks everyone's crediting — **loses most of its force.**
+>
+> ⛔ **This does NOT fire the re-raise trigger below.** That trigger reads *"crediting ever becomes
+> winner-**dependent**"*; `0211` makes it **less** so, which is the safe direction. **But the reasoning
+> underneath shifts — weigh T1 as EXPIRING, not as settled.**
 
 ---
 
@@ -34,7 +66,8 @@
 ## Context
 
 Tasks `0206` (FFA — `ai-agents/tasks/done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md`,
-**shipped and closed 2026-09-03**) and `0205` (Team — still unscheduled) award the win to *"the
+**closed 2026-09-03 and then REVERTED 2026-09-04 — never deployed**) and `0205` (Team — still
+unbuilt) award the win to *"the
 top-ranked player that has a `clientID`"* when the leader at
 the win condition is clientless — the fix for the silent whole-match XP loss recorded in
 [[decisions/clientless-leader-win-policy]]. **That predicate, as written, includes AI players**, because
@@ -79,6 +112,14 @@ thing standing between a match and `creditMatchXp` is that *some* winner exists 
 can be *named* winner but can never *vote* for one: the majority vote runs over `activeClients`' unique
 IPs (`GameServer.ts:1174-1186`), a purely human electorate.
 
+> 🔴 **CARRY THE QUALIFIER WHEN YOU RESTATE THIS — dropping it is how the false Consequences bullet
+> below got written.** The award unblocks crediting **only where a LIVING CLIENTFUL player exists to
+> award to.** Where every clientful player is already eliminated, `GameImpl.players()` filters to
+> `isAlive()` (`src/core/game/GameImpl.ts:421-423`), the candidate list is empty, no winner is named,
+> and **nothing is unblocked.** ⚠️ **Measurement on 2026-09-04 showed that case is *the* case, not a
+> corner case.** ⛔ **Any restatement of this paragraph that omits the qualifier is the struck bullet
+> reappearing in new words.**
+
 ### Why excluding AI players was rejected
 
 - **It buys no XP protection** (the three gates above already do that) and **can reopen the whole-match
@@ -99,18 +140,43 @@ IPs (`GameServer.ts:1174-1186`), a purely human electorate.
 
 ## Consequences
 
-- ✅ **`0206` SHIPPED 2026-09-03 with the predicate unchanged** — `WinCheckExecution.ts`'s
-  `checkWinnerFFA()` selects `sorted.find((p) => p.clientID() !== null)`, with **no
-  `PlayerType.AiPlayer` check anywhere in the file** (verified against the tree at this lint).
+- ~~✅ **`0206` SHIPPED 2026-09-03 with the predicate unchanged**~~ **SUPERSEDED 2026-09-04 — `0206`
+  was REVERTED and never deployed.** ✅ **The half that stands, and is now the durable statement:
+  no `PlayerType.AiPlayer` type check enters `WinCheckExecution` — true before `0206`, true in
+  `0206`, and true after the revert.** **This is the consequence that actually survived.**
   `0205` carries the same policy — verification step 7 there asserts no `PlayerType.AiPlayer`
-  exclusion, and `0206` gained step `5b` for the same assertion.
-- Public FFA matches where every human dies before the threshold now **complete and credit XP**, where
-  before `0206` they stalled silently.
-  ⚠️ **Only where a clientful player is still ALIVE.** `0206` shipped the deliberate hole: if
-  `sorted.find(...)` finds nobody, it awards nothing and stays active, so **that match's XP is still
-  lost**. See [[decisions/clientless-leader-win-policy]].
-  🔴 **And nothing has been run live** — `0206` closed agent-closed, not owner-verified, with no
-  deploy and no production observation.
+  exclusion.
+- ~~Public FFA matches where every human dies before the threshold now **complete and credit XP**,
+  where before `0206` they stalled silently.~~
+  > 🔴 **STRUCK — DISPROVED BY MEASUREMENT, 2026-09-04. DO NOT CITE THIS BULLET.**
+  >
+  > **It was false when written, and false at the moment the owner accepted it.** Kept struck rather
+  > than deleted so the record shows what was believed.
+  >
+  > **What is actually true:** those matches did **not** complete and did **not** credit XP.
+  >
+  > **Why.** `checkWinnerFFA()` sorts `this.mg.players()`, and `GameImpl.players()` filters
+  > `.filter((p) => p.isAlive())` (`src/core/game/GameImpl.ts:421-423`) — **this ADR's own fact 7,
+  > which flagged it as "load-bearing."** So when every human is dead they are absent from `sorted`,
+  > `0206`'s `sorted.find((p) => p.clientID() !== null)` returns `undefined`, and `0206` took **the
+  > same early `return` as the pre-`0206` code.** **The bullet is contradicted by the very code it
+  > describes.**
+  >
+  > **Observed, not inferred:** in a live instrumented private FFA (2026-09-04) a **Nation reached
+  > 100.0 % of the map with the match still not ending.** `creditMatchXp` never ran; nobody was
+  > credited.
+  >
+  > **The defect this bullet claimed to close is still open and still live.** Closing it is
+  > [[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`), by decoupling crediting from
+  > the winner entirely.
+  >
+  > ⛔ **This does NOT invalidate the decision.** The ruling is about the **winner predicate**. This
+  > bullet was a downstream *expectation about `0206`'s effect*, not a premise of that choice.
+  >
+  > **How the error happened, for future readers:** **T3 states the scenario correctly and WITH its
+  > qualifier** — *"every human is eliminated … **while AI players are still alive**"*. This bullet
+  > was a degraded restatement of T3 that **dropped T3's own load-bearing condition** and asserted the
+  > outcome unconditionally. **T3 itself is sound; only this generalisation of it is false.**
 - Players will occasionally see an `Anon0xxx` name in the win modal with **no indication it was
   synthetic**. That is now a deliberate recorded choice, not an accident of the predicate.
 - **Nations and Bots remain excluded** — they are clientless, and this ADR does not change that. In FFA
@@ -121,9 +187,11 @@ IPs (`GameServer.ts:1174-1186`), a purely human electorate.
   shape, not an oversight, and must not be re-raised as one.
 - ~~The `0022` guard's comment becomes incomplete — it describes a clientless-leader policy without
   noting that AI players sit deliberately *outside* it. Worth a comment update when `0206` lands.~~
-  ✅ **DONE — `0206` landed 2026-09-03 and updated that comment**; `WinCheckExecution.ts` now states
-  *"the policy is about being clientless, not about being AI: a `PlayerType.AiPlayer` has a real
-  `clientID`, so it is outside this guard entirely and may be declared the winner (ADR-110)."*
+  ✅ **DISCHARGED — and it SURVIVED THE REVERT, deliberately.** `0206` added the clarifying comment;
+  when `0206` was reverted on 2026-09-04 **that one comment was intentionally kept**, so
+  `WinCheckExecution.ts` still states the guard is about being **clientless**, not about being AI.
+  🔴 **It is the ONLY in-code trace of this ADR anywhere in the repository**, and it is why that file
+  is deliberately **not** byte-identical to its pre-`0206` state. ⛔ Do not delete it.
   ⚠️ This is **only the `WinCheckExecution` comment.** The separate `WinModal` comment is still wrong
   and is still task `0207` — see the next bullet.
 - 🚩 **A misleading comment on this exact predicate was filed as task `0207`** — see
@@ -136,18 +204,22 @@ IPs (`GameServer.ts:1174-1186`), a purely human electorate.
   scheduled review, not a remote contingency.**
 - Yandex Games policy, or Russian advertising/consumer law, is found to bear on presenting a synthetic
   account as a match winner. ⚠️ **Not assessed — the architect stated they were not qualified to.**
-- ~~`0206`'s phase-1 measurement shows the no-eligible-winner case is effectively unreachable in
-  production, removing the strongest argument for allowing it.~~ ⚠️ **This condition can no longer
-  fire as written, and that is a LOSS, not a resolution.** `0206` shipped **without** the phase-1
-  measurement (its residual 9), and the pre-fix baseline is now **permanently unmeasurable** — an
-  accepted consequence of the owner's sequencing ruling. The measurement that could still bear on
-  this is task `0208` — ~~whose scope is being widened as of 2026-09-03 and is NOT settled~~
-  📌 **whose widening is now SETTLED (owner ruling *"Add it — measure both"*): Part A multiplayer
-  clientless-leader incidence, Part B Singleplayer award incidence, and the two must not be merged.**
-  ⛔ **Part A deliberately EXCLUDES AI players** — an AI-player win is a normal win under this ADR, not
-  a stall. See [[tasks/measure-clientless-leader-and-solo-awards]].
+- **Measurement shows the no-eligible-winner case is effectively unreachable in production**, removing
+  the strongest argument for allowing it.
+  ⚠️ **POINTER CORRECTED 2026-09-04: this trigger originally cited `0206`'s phase-1 measurement —
+  which NEVER RAN, because `0206` was reverted. The work now lives in task `0208`.**
+  🔴 **The trigger is therefore still UNFIRED and still LIVE — nobody has measured it.**
+  ✅ **And the earlier "permanently unmeasurable" claim is REVERSED:** because `0206` never deployed,
+  the pre-fix baseline is measurable again. 🔴 **It is `0211` shipping that would destroy it — which
+  is exactly why the owner ordered `0208` deployed and collecting data BEFORE `0211` ships.**
+  📌 `0208`'s widening is SETTLED (owner ruling *"Add it — measure both"*): **Part A** multiplayer
+  clientless-leader incidence, **Part B** Singleplayer award incidence, and **the two must not be
+  merged.** ⛔ **Part A deliberately EXCLUDES AI players** — an AI-player win is a normal win under
+  this ADR, not a stall. See [[tasks/measure-clientless-leader-and-solo-awards]].
 - Match-end XP crediting ever becomes **winner-dependent** — the whole XP argument is contingent on
   `selectMatchCredits` not looking at who won.
+  ⚠️ **`0211` is the opposite direction and does NOT fire this** — it makes crediting *less*
+  winner-dependent. See the T1-expiry note in the box at the top of this page.
 
 ⛔ **Do not re-raise merely because "an AI won a match" was observed.** That is the accepted, intended
 consequence.
@@ -163,9 +235,10 @@ consequence.
 - [[features/ai-players]] — the feature whose human-indistinguishability is the honesty argument here
 - [[systems/player-profile-store]] — the match-end XP crediting path an AI winner unblocks and is not credited by
 - [[systems/execution-pipeline]] — the Intent → Execution → `GameUpdate` path the `Win` update this ADR governs travels on
-- [[decisions/sprint-4]] — where `0206` was scheduled, built and closed (2026-09-03, agent-closed — not owner-verified)
-- [[decisions/sprint-backlog]] — where `0205`, `0207`, `0208`, `0209` and `0210` all sit, unscheduled
-- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, which shipped this ADR's predicate unchanged
+- [[decisions/sprint-4]] — where `0206` was scheduled, built and closed (2026-09-03, agent-closed — not owner-verified) and where `0208` and `0211` were scheduled on 2026-09-04
+- [[decisions/sprint-backlog]] — where `0205`, `0207`, `0209` and `0210` sit, unscheduled (`0208` and `0211` have since moved to Sprint 4)
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, which built this ADR's predicate unchanged and was then **REVERTED** — read its STOP box
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which **expires this ADR's T1 argument** by decoupling crediting from the winner; ⛔ **not** an implementation of this ADR
 - [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, whose Part A excludes AI players on this ADR's reasoning
 - [[tasks/placement-semantics-literal-one]] — task `0209`, whose accepted `1`-for-a-loser case follows from this ADR
 - [[tasks/singleplayer-leaderboard-reporting-policy]] — task `0210`, which this ADR does **not** pre-answer (it governs who WINS, not who receives points)

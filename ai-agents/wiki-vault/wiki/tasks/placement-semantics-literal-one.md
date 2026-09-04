@@ -51,13 +51,29 @@ the platform, no player sees it, no stored value is wrong.
 🚩 See the keep-them-apart table on [[decisions/clientless-leader-win-policy]]. **`placement` never
 leaves the browser; `points` do reach the platform.** This pair was conflated repeatedly on 2026-09-03.
 
-### The frequency change `0206` introduced, stated accurately
+### ~~The frequency change `0206` introduced~~ → 🔴 **THAT CHANGE IS NOT IN THE GAME — `0206` WAS REVERTED 2026-09-04**
 
-`0206` makes `reportPlacements()` fire in a class of matches where it **previously never fired** —
+> 🔴 **Owner ruling given live in session, 2026-09-04. Struck below, NOT deleted — the struck analysis
+> was CORRECT about the code as `0206` built it; that code was then reverted before reaching a
+> player.**
+>
+> ✅ **THIS TASK'S DEFECT IS UNCHANGED AND STILL REAL.** It was **pre-existing** and **never a `0206`
+> regression** — this page already says so — and the revert makes that **more** true, not less. The
+> literal `1` is still logged for every top-3 human on the ordinary human-win path.
+>
+> ⚠️ **What DOES change: the frequency claim.** The extra class of matches `0206` would have made
+> `reportPlacements()` fire in **does not exist.** ⇒ **Blast radius reverts to what it was before
+> `0206`** — the ordinary win path only, and still just the debug console.
+> ⛔ **This does not change the owner's 2026-09-03 ruling (option A), does not change the rank, and
+> does not gate or unblock anything.**
+
+~~`0206` makes `reportPlacements()` fire in a class of matches where it **previously never fired** —
 FFA matches whose leader at the win condition is clientless used to stall with no `Win` update at all.
 Two consequences, separated honestly: **(1)** points now get awarded there, which is **`0206`'s intent
 and is correct**; **(2)** the wrong placement label now gets logged there too, whose blast radius today
-is the debug console.
+is the debug console.~~
+🔴 **Struck 2026-09-04 — it describes code that was reverted and never reached a player.**
+⚠️ **The DEFECT is untouched by the strike and is still live**; only the extra class of matches is gone.
 
 ### 📌 Owner ruling 2026-09-03 — definition **A: rank among humans**
 
@@ -142,7 +158,7 @@ stops a later reader filing it as a bug.
 
 ## Related
 
-- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, whose review finding R2 filed this, and whose award increases how often the wrong label is logged
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, whose review finding R2 filed this. ~~Its award increases how often the wrong label is logged~~ 🔴 **REVERTED 2026-09-04 — it does not, and never did in production**
 - [[tasks/singleplayer-leaderboard-reporting-policy]] — task `0210`, the sibling filed the same day on the orthogonal axis; the split was owner-confirmed
 - [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, which counts **`points`** and must not be confused with this task's **`placement`**
 - [[decisions/clientless-leader-win-policy]] — the keep-them-apart table for `placement` vs `points`

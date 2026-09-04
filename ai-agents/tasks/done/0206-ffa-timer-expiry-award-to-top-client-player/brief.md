@@ -49,7 +49,23 @@
 > `checkWinnerTeam()` carries the same guard shape and loses its XP identically, which nobody had
 > connected until the revert coder found it. ⚠️ **Singleplayer is explicitly NOT ruled.** Filed as
 > [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) —
-> unscheduled on the [Backlog board](../../../sprints/backlog.md). ✅ **The architect's feasibility
+> ~~unscheduled on the [Backlog board](../../../sprints/backlog.md).~~
+>
+> ✅ **CORRECTED 2026-09-04 — `0211` IS SCHEDULED INTO SPRINT 4.** Owner ruling given live in session
+> the same day; tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md), with its
+> [Backlog board](../../../sprints/backlog.md) row kept as `➡️ Moved`. **Struck, not deleted** — the
+> struck clause was written before the scheduling ruling landed and is **spent, not wrong.**
+>
+> - **Status: `🔲 Backlog` — NOT STARTED.** ⚠️ **Scheduled is not started; nobody is building it.**
+> - **Rank: `Medium–High` — the PRODUCER'S rank, not an owner ruling.**
+> - ⛔ **Ship-ordering constraint (owner ruling, 2026-09-04): `0211` must NOT SHIP until
+>   [`0208`](../../backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
+>   has been DEPLOYED AND IS COLLECTING DATA.** ⚠️ **"Deployed and collecting" — NOT merely merged,
+>   NOT merely built.**
+> - ✅ **Planning and building `0211` IN PARALLEL IS EXPLICITLY ALLOWED — only its SHIP is ordered.**
+> - ⚠️ **Neither `0211` nor `0208` is `🚧 Blocked`.**
+>
+> ✅ **The architect's feasibility
 > assessment has LANDED** —
 > `ai-agents/knowledge-base/reports/2026-09-04-elimination-time-xp-crediting-design-assessment.md`.
 > Its headline: **feasible, and cheaper than it looks.** ⛔ **Read it there** — `0211` deliberately
@@ -181,7 +197,7 @@ checking status will hit it.
 | Did `0206` cause the stall? | **No.** The stall predates it (`0022`) and survives the revert unchanged. |
 | Then what was wrong? | 🔴 **The plan's PREMISE.** A live investigation measured it on 2026-09-04 and it did not hold. |
 | Is the XP loss fixed? | 🔴 **No. Still open, still live.** A match nobody can win still runs to the cap and still loses every player's match-end XP. |
-| Is anything replacing it? | **Yes** — [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md), unscheduled on the Backlog board. |
+| Is anything replacing it? | **Yes** — [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md). ~~Unscheduled on the Backlog board.~~ ✅ **CORRECTED 2026-09-04 — SCHEDULED INTO SPRINT 4** (owner ruling, live in session), tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md); its Backlog-board row is kept as `➡️ Moved`. **Struck, not deleted — spent, not wrong.** Status **`🔲 Backlog`, NOT STARTED** (⚠️ scheduled is not started). Rank **`Medium–High`, the producer's, not an owner ruling.** ⛔ **Must NOT SHIP until [`0208`](../../backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) is DEPLOYED AND COLLECTING DATA** — ⚠️ **not merely merged or built** — though ✅ **planning and building it in parallel is explicitly allowed.** ⚠️ **Neither task is `🚧 Blocked`.** |
 
 **The two measured findings, in one line each** — both **observed**, not reasoned:
 
@@ -473,7 +489,7 @@ nothing of value lost. Recorded rather than silently fixed so the path in this b
 | Task | What it covers | Board |
 |---|---|---|
 | [`0207`](../../backlog/0207-winmodal-participation-comment-ai-player-correction/brief.md) | `WinModal` doc comment: says AI players are skipped; they are not | Backlog — unscheduled |
-| [`0208`](../../backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) | Measure clientless-leader frequency at the win condition, in production | Backlog — unscheduled |
+| [`0208`](../../backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) | Measure clientless-leader frequency at the win condition, in production | ~~Backlog — unscheduled~~ ✅ **CORRECTED 2026-09-04 — SCHEDULED INTO [Sprint 4](../../../sprints/plan-sprint-4.md)** (owner ruling, live in session); Backlog row kept as `➡️ Moved`. **Struck, not deleted — spent, not wrong.** Status `🔲 Backlog`, **not started**; ~~rank `Medium`, the producer's.~~ 🔴 **RANK CORRECTED 2026-09-04 — the struck rank was WRONG WHEN WRITTEN (same session, by the producer), not spent-and-superseded. It was wrong on the VALUE and on WHOSE CALL IT WAS.** **Rank is `High`.** ⚠️ **The provenance is a SPLIT:** **THAT it was raised = an OWNER RULING** (2026-09-04, live in session); **THAT the value is `High` = the PRODUCER'S judgement** — the owner named no value. ⛔ **Do not collapse this into "the owner ranked it `High`" — they did not.** Authoritative: `0208`'s own *Priority*. ⛔ **Must be DEPLOYED AND COLLECTING DATA before [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) SHIPS.** |
 | [`0209`](../../backlog/0209-define-placement-semantics-and-fix-literal-one/brief.md) | Define `placement` semantics in `reportPlacements()` and fix the literal `1` (from review R2) | Backlog — unscheduled |
 | [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) | Singleplayer platform-leaderboard reporting policy | Backlog — unscheduled |
 

@@ -24,10 +24,20 @@ forbids.
 
 📌 **UPDATED 2026-09-03 — the reader this was meant to protect has already been and gone.** `0206` was
 planned, built and closed the same day, **before** this comment was corrected. It did **not** fall into
-the trap: the shipped `WinCheckExecution` predicate is `clientID() !== null` with **no
-`PlayerType.AiPlayer` exclusion**, exactly as ADR-110 requires (verified against the tree at this
-lint). 🚩 **The trap is therefore not spent — it is now aimed at `0205`**, the Team half, which is
-still unscheduled and unstarted.
+the trap: its `WinCheckExecution` predicate was `clientID() !== null` with **no
+`PlayerType.AiPlayer` exclusion**, exactly as ADR-110 requires.
+
+📌 **UPDATED AGAIN 2026-09-04 — `0206` was REVERTED; its behaviour is not in the game and was never
+deployed.** ⛔ **This task never claimed `0206` had shipped, and nothing here needs correcting on that
+count** — the note is for accuracy, not because a wrong claim was found.
+✅ **THE REASON THIS TASK EXISTS IS UNCHANGED and, if anything, STRONGER.** The comment at
+`WinModal.ts` is still wrong, the code is still right, and **the reader it protects still exists** —
+🚩 **the trap now sits in front of whoever plans
+[[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`) and
+[[tasks/teams-bot-team-win-stall]] (`0205`).** ⚠️ **ADR-110 is untouched by the revert** — it is a
+policy about the winner predicate and still stands; only `0206`'s FFA *implementation* was reverted.
+📎 The architect **re-confirmed this defect independently on 2026-09-04** in the elimination-XP design
+assessment (its incidental finding 3), and it remains ADR-110's open question 4 — **still open.**
 
 ## Key Changes
 
@@ -50,7 +60,9 @@ Not started. Priority **Low — the producer's rank, not an owner ruling** (the 
 It does **not** depend on `0206` and does not block it, ~~**but it is worth doing before `0206` is
 planned**, because that is the reader it protects.~~
 📌 **That window CLOSED 2026-09-03 — `0206` was planned, built and closed before this was done, and it
-did not trip on the comment.** Struck, not deleted. The remaining reader to protect is **`0205`**.
+did not trip on the comment.** Struck, not deleted.
+📌 **And a NEW window opened 2026-09-04**: `0206` was reverted, and the readers still to protect are
+**`0211`** (scheduled into Sprint 4) and **`0205`**. **Nothing gates this task; nobody is building it.**
 
 ⚠️ **"Harmless today" is verified against today's code and is NOT permanent.** It rests entirely on the
 server's frozen-start-roster gate. **If that gate ever changes, the AI-player entries this function
@@ -74,5 +86,6 @@ it is reserved by a hook task that exists only as prose in an fkit skill file.
 - [[features/ai-players]] — the player type the comment misdescribes
 - [[systems/player-profile-store]] — the frozen-start-roster gate that makes the error harmless today
 - [[tasks/win-check-clientless-leader-guard]] — task `0022`, whose guard introduced the predicate this comment misdescribes
-- [[decisions/sprint-4]] — the board carrying `0206`, the task this correction was filed to protect
-- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, planned and shipped **before** this correction, and which did **not** trip on the comment
+- [[decisions/sprint-4]] — the board that carried `0206`, and now carries `0208` and `0211`
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, planned and built **before** this correction, which did **not** trip on the comment, and was then **REVERTED 2026-09-04**
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, 🚩 **the reader this trap now aims at**

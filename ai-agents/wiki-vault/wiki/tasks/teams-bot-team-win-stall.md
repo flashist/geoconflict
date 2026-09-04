@@ -9,6 +9,43 @@
 > ⚠️ **Production frequency is still UNMEASURED.** This is a **simulator result, not a field
 > observation**: no telemetry, no player report on file. Nothing here licenses calling it a confirmed
 > live incident.
+>
+> ### 📌 TWO THINGS CHANGED 2026-09-04 — and NEITHER changes this task
+>
+> ⛔ **This task's status, scope and rank are UNCHANGED. The owner has not ruled on them.**
+>
+> 1. 🔴 **[[tasks/ffa-clientless-leader-fallback-award]] (`0206`) — this task's FFA twin — WAS
+>    REVERTED. Its behaviour is NOT in the game and was NEVER DEPLOYED.** It is still `done` and still
+>    in `tasks/done/` — **correctly, the work was done** — but the **effect** was reverted. Its plan's
+>    **PREMISE** was disproved by measurement; ⛔ it was **not** defective and did **not** cause the
+>    stall. ⚠️ **Everywhere this page cites `0206` as the FFA form of a shared ruling, that stays
+>    accurate as a RECORD OF WHAT WAS DECIDED — but `0206` shipped nothing, so the shared predicate
+>    now exists in NO live code.**
+> 2. 🔴 **`checkWinnerTeam()` does not merely STALL — it LOSES THE MATCH'S XP, exactly as FFA does.**
+>    It carries the **same guard shape** as `checkWinnerFFA()`, so a bot-team-led match stalls and
+>    loses its XP identically. **Found independently by the coder performing the `0206` revert**, and
+>    ⚠️ **nobody had connected it before — across `0022`, `0206` and this brief.**
+>    *(⛔ Reported, **not re-verified by symbol**; `WinCheckExecution.ts` was being edited at the time.
+>    **Confirm by symbol at plan time.**)*
+>
+> **The owner ruled 2026-09-04 that the CREDITING fix covers Team mode as well as FFA**, filed as
+> [[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`). Reasoning as put and accepted:
+> the fix lives in the **crediting path, not the win check**, so covering both is likely near-free —
+> and it stops this task **being solved twice or forgotten.**
+>
+> ⛔ **`0211` DOES NOT MERGE WITH, REPLACE, OR GATE THIS TASK. They answer different questions:**
+>
+> | | Question it answers |
+> |---|---|
+> | **`0205`** *(this task)* | **Resolution policy** — *who should win a stalled Team match?* |
+> | **`0211`** | **Crediting** — *do the players in that match get their XP?* |
+>
+> ⚠️ **`0211` may make PART of this task's justification moot** — if XP is credited regardless of who
+> wins, *"the whole match's XP is lost"* weakens as a reason to resolve the stall. ⛔ **It does NOT
+> settle this task's own question:** a Team match nobody can win still runs to the `maxGameDuration`
+> cap, and **deciding who should win it is still unanswered and still belongs here.**
+> 📌 **Re-read this task's rank and rationale when `0211` is planned** — ⚠️ **a producer/owner call,
+> not a planner's, and nothing about it is pre-judged here.**
 
 ## Goal
 
@@ -105,10 +142,12 @@ starting:**
 **Two conditions ride with the both-branches ruling and are part of it, not caveats to drop:** plan it
 as the **materially larger** behaviour change it is, and honour the **tutorial re-check** — a hard
 verification step recorded on `0206`, where it bites.
-✅ **`0206` shipped 2026-09-03 and DISCHARGED that re-check on the FFA side**: its fallback award
-returns early on `gameType === GameType.Singleplayer`, so it is multiplayer-only and no tutorial can
-reach it. ⚠️ **That discharge is `0206`'s, not this task's** — `0205` still owns its own plan-as-larger
-obligation.
+✅ **`0206` built that carve-out 2026-09-03 and DISCHARGED the re-check on the FFA side**: its fallback
+award returned early on `gameType === GameType.Singleplayer`, so it was multiplayer-only and no
+tutorial could reach it. 📌 **Moot since 2026-09-04 — `0206` was reverted, so there is no FFA award
+left to carve out of.** ⚠️ **The obligation on THIS task is untouched by that:** `0205` still owns its
+own plan-as-larger obligation **and** its own tutorial re-check, and can no longer point at `0206` as
+a worked example in live code.
 
 ℹ️ **Why the tutorial re-check does not bite here — evidence, not assumption, and now verified:** a
 tutorial is created `gameMode: GameMode.FFA` (`src/client/Main.ts:823`, `isTutorial: true` at `:835`)
@@ -137,12 +176,13 @@ those skill-file references.
 - [[tasks/win-check-clientless-leader-guard]] — task `0022`, which this was split out of (risk 2)
 - [[tasks/winmodal-participation-comment-correction]] — task `0207`, the misleading comment on the same predicate, filed alongside
 - [[tasks/solo-win-condition-fix]] — `0140` / PR #77, whose Singleplayer fix must not be regressed here
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, this task's FFA twin, 🔴 **REVERTED 2026-09-04 and never deployed.** ⚠️ **It did NOT advance this task even while it existed** — `checkWinnerTeam()` was byte-identical and Team mode untouched — and the revert leaves `0205` exactly where it was: `🔲 Backlog`, unscheduled, scope and rank unchanged
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which covers **Team mode's XP loss** by owner ruling; ⛔ **separate task, separate question — it does not merge with, replace or gate this one**
 - [[decisions/sprint-backlog]] — the board this task sits on, unscheduled and owner-confirmed there
-- [[decisions/sprint-4]] — where its FFA twin `0206` was scheduled, built and closed on 2026-09-03 (agent-closed — not owner-verified; nothing run live). ⚠️ **`0206` shipping does NOT advance this task** — `checkWinnerTeam()` is byte-identical, Team mode is untouched, and `0205` stays `🔲 Backlog` and unscheduled
+- [[decisions/sprint-4]] — where its FFA twin `0206` was scheduled, built and closed on 2026-09-03 (agent-closed — not owner-verified), 🔴 **then REVERTED 2026-09-04 and never deployed**; and where `0208` and `0211` were scheduled the same day. ⚠️ **`0206` did NOT advance this task at any point** — `checkWinnerTeam()` was byte-identical, Team mode untouched, and `0205` stays `🔲 Backlog` and unscheduled
 - [[systems/glossary]] — the team-assignment paths, the Bot team's reality, and the win-condition vocabulary this task turns on
 - [[systems/execution-pipeline]] — the `Win` update path a stalled match never reaches
 - [[systems/player-profile-store]] — the match-end XP crediting that the stall silently skips
 - [[features/ai-players]] — Bots, Nations and AI players, the three entities this policy has to tell apart
 - [[features/tutorial]] — the first-place-for-losing bug the both-branches ruling must be re-checked against; **it does not bite here**, because a tutorial is FFA and cannot reach `checkWinnerTeam()`
-- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the FFA twin, **shipped 2026-09-03 — and it does NOT advance this task**: `checkWinnerTeam()` is byte-identical
 - [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, whose Part A would measure the production frequency this task's held rank currently assumes

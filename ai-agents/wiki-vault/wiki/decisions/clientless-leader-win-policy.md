@@ -3,27 +3,48 @@
 **Date**: 2026-09-02
 **Status**: accepted
 
-> 🚨 **A production defect is recorded here. `0206` has now shipped the fix IN THE REPO — it is NOT
-> yet fixed in production, and one shape of it is deliberately still open.** When a bot or a Nation
-> leads an FFA match at the win threshold, **the whole match's match-end XP was silently lost for
-> every player in it**. Task `0022` shipped a guard that stops the match wedging but awards nothing;
-> the award is `0206`.
+> # 🔴 THE DEFECT IS STILL OPEN AND STILL LIVE — AND `0206` DID NOT FIX IT
 >
-> 📌 **UPDATED 2026-09-03, twice in one day. Struck, not deleted — each line was true when written.**
+> **When a bot or a Nation leads an FFA match at the win threshold, the whole match's match-end XP is
+> silently lost for every player in it.** Task `0022` shipped a guard that stops the match wedging but
+> awards nothing. `0206` was built as the award — **and was REVERTED on 2026-09-04, on an owner
+> ruling. It was never deployed.**
+>
+> 🔴 **MEASURED 2026-09-04, not reasoned:** `private game complete` → `ending game with 11203 turns` →
+> `archiving game`, with **no `handleWinner`, no winner vote, no `creditMatchXp`, no `winner`
+> attribute and no player stats.** ⇒ **Participation XP is genuinely LOST, not delayed.**
+>
+> 📌 **UPDATED FOUR TIMES. Struck, not deleted — each line was true when written.**
 > ~~`0206` is **unscheduled, unstarted, and nobody is building it.**~~ → ~~**PROMOTED INTO SPRINT 4**
-> on an owner ruling; scheduled is NOT started, its status is `🔲 Backlog` deliberately, planning comes
-> first.~~ → ✅ **PLANNED, BUILT, REVIEWED AND CLOSED the same day** as
-> `✅ Done (agent-closed — not owner-verified)`.
+> on an owner ruling; scheduled is NOT started.~~ → ~~✅ **PLANNED, BUILT, REVIEWED AND CLOSED**
+> 2026-09-03.~~ → 🔴 **REVERTED 2026-09-04. NEVER DEPLOYED.**
 >
-> 🔴 **Read all three of these before treating the defect as closed:**
-> 1. **Nothing has been run live.** No deploy, no production observation, no owner play-test. The
->    evidence is unit tests plus a headless simulation. **Production still has the old behaviour.**
-> 2. **The XP loss is NOT fully closed even in the repo.** If **every clientful player is eliminated
->    before the threshold**, `sorted.find((p) => p.clientID() !== null)` finds nobody, the code awards
->    nothing and stays active — **that match's XP is still lost.** Knowingly, per the approved plan §7.
-> 3. **A player-visible behaviour change shipped with it**: public FFA matches that previously ran to
->    the 3-hour cap or emptied out now **end at 80 %**, possibly crowning a player holding very little
->    territory. Accepted, not silent.
+> ## Why `0206` did not fix it — three claims, only the first is true
+>
+> | Claim | |
+> |---|---|
+> | `0206` did what its approved plan specified, and **the plan's PREMISE was wrong** | ✅ **TRUE** |
+> | "`0206` was buggy" | ⛔ **NOT TRUE** |
+> | "`0206` caused the stall" | ⛔ **NOT TRUE** — the stall **predates** it (`0022`) and **survives the revert unchanged** |
+>
+> 🔴 **`0206` was a NO-OP in the case that actually loses the XP.** With every human eliminated, a
+> **Nation reached 100.0 % of the map and the match still did not end** — `players()` filters to
+> `isAlive()` (`src/core/game/GameImpl.ts:421-423`), so `sorted.find(...)` returns `undefined` and the
+> code took **the same early `return` as before `0206`.**
+> **Its only live effect was the behaviour the owner rejected** — crowning a survivor on ~0.5 % while
+> a bot held 80.2 %, which **the owner reproduced themselves.**
+>
+> ⇒ ~~**A player-visible behaviour change shipped with it: public FFA now ends at 80 %.**~~
+> 🔴 **STRUCK — that never reached a player.** The revert removed it.
+>
+> **Replacement: [[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`), scheduled into
+> Sprint 4** — it credits participation **independently of any winner**, rather than crowning anyone.
+> ⚠️ **`0211` must not SHIP before [[tasks/measure-clientless-leader-and-solo-awards]] (`0208`) is
+> deployed and collecting data** — planning and building in parallel is explicitly allowed.
+>
+> 🔴 **And the loss is not FFA-only.** `checkWinnerTeam()` carries the **same guard shape**, so a
+> bot-team-led Team match loses its XP identically — found during the revert, unnoticed across `0022`,
+> `0206` and `0205`. ⚠️ Reported, **not re-verified by symbol**.
 >
 > Its row on the unranked Backlog board is kept as `➡️ Moved`, not deleted.
 
@@ -117,6 +138,10 @@ The predicate stays `clientID() !== null` with **no `PlayerType.AiPlayer` exclus
 on 2026-09-02 is not re-split. **An AI winner is credited nothing** (`selectMatchCredits` never looks at
 who won, and an AI fails three participant gates independently); what the award does is **unblock
 crediting for every real player**. **That is the reasoning — keep it.**
+⚠️ **AND KEEP ITS QUALIFIER: only where a LIVING CLIENTFUL player exists to award to.** Where every
+clientful player is already eliminated, `players()` filters to `isAlive()`, no winner is named and
+nothing is unblocked — **which measurement showed is *the* case.** 🔴 **Dropping that qualifier is
+exactly how ADR-110's false Consequences bullet came to be written.**
 
 > 🔴 **ADR-110 CARRIES A KNOWN EXPIRY and must never be cited as settled-forever.** The owner was asked
 > directly whether a durable, player-visible winner record exists or is planned and answered **"None
@@ -134,7 +159,9 @@ in Team mode it bites harder, and 📌 **the owner deliberately DEFERRED the all
 
 - **`0022` is closed and the wedged-match half is fixed**; the match can still be won by a human later.
   See [[tasks/win-check-clientless-leader-guard]].
-- 🚨 **The XP loss is live in production and, as of 2026-09-03, fixed only IN THE REPO.** Guard-only
+- 🚨 **The XP loss is live in production and is NOT fixed anywhere — not in production, not in the
+  repo.** ~~As of 2026-09-03 it is fixed only IN THE REPO.~~ 🔴 **STRUCK 2026-09-04 — `0206` was
+  reverted, and in any case it was a no-op in the case that loses the XP.** Guard-only
   means an FFA match where a bot or Nation leads at 80% or at timer expiry emits **no `Win` update at
   all**, so `ClientGameRunner`'s `gameEnded` path never runs. Three downstream effects, traced by the
   reviewer:
@@ -142,17 +169,21 @@ in Team mode it bites harder, and 📌 **the owner deliberately DEFERRED the all
   **(b)** `reportPlacements()` stops — ⚠️ **top-3 humans get no leaderboard points where they
   previously did**, in Public and Private FFA, not just the tutorial;
   **(c)** 🔴 **`creditMatchXp` never runs — the whole match's match-end XP is silently lost.**
-  ✅ **`0206` shipped the award that closes (b) and (c) — in the repo only, nothing deployed.**
-  🔴 **And it does not close them in every shape:** the award needs a **living clientful player** to
-  give the win to. Where every clientful player is eliminated before the threshold, `0206` awards
-  nothing and returns above `this.active = false`, exactly as before — **the whole-match XP is still
-  lost in that case, knowingly** (approved plan §7).
+  ~~✅ **`0206` shipped the award that closes (b) and (c)** — in the repo only, nothing deployed.~~
+  🔴 **STRUCK 2026-09-04 — `0206` WAS REVERTED AND NEVER DEPLOYED. (b) and (c) are BOTH still open.**
+  ⚠️ **And even in the repo it never closed (c) where it matters:** the award needed a **living
+  clientful player** to give the win to. Where every clientful player is eliminated before the
+  threshold — **which measurement showed is *the* case, not a corner case** — `0206` awarded nothing
+  and returned above `this.active = false`, **exactly as before it.** Closing (c) is
+  [[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`).
 - ⛔ **One consequence is a FIX and must not be "restored":** for the **tutorial**, losing
   `reportPlacements()` removes a real bug — a bot winning a tutorial previously awarded the single human
   player **first-place POINTS for LOSING**, on the **real platform leaderboard**.
-  ✅ **`0206` did NOT reintroduce it** — verified against the tree at this lint: `checkWinnerFFA()`
-  returns early on `gameConfig.gameType === GameType.Singleplayer`, **before** the fallback award, so
-  the award is **multiplayer-only** and a tutorial can never reach it.
+  ✅ **`0206` did NOT reintroduce it** — its `checkWinnerFFA()` returned early on
+  `gameConfig.gameType === GameType.Singleplayer`, **before** the fallback award, so the award was
+  **multiplayer-only** and a tutorial could never reach it. 📌 **Moot since 2026-09-04 anyway: the
+  award was reverted, so there is no new branch to reintroduce anything.** ⚠️ **The `0022` guard is a
+  DIFFERENT thing and it STAYS** — the revert did not touch it.
 
 ### 🚩 Two things that were conflated repeatedly on 2026-09-03 — keep them apart
 
@@ -182,14 +213,22 @@ not a naming quibble.
   lobby is **not established** — the reasoning is structural, with **no production observation and no
   player report on file**. ~~`0206` is investigation-first for exactly this reason.~~ Do not present it as a
   confirmed field incident.
-  🔴 **CORRECTED 2026-09-03: `0206` SHIPPED WITHOUT ITS PHASE-1 MEASUREMENT**, and the pre-fix baseline
-  is now **permanently unmeasurable** — an accepted consequence of the owner's sequencing ruling. So
-  FFA reachability is not merely unmeasured, it can **never** be measured for the old behaviour. The
-  remaining measurement is task `0208` — ~~whose scope was being widened on 2026-09-03 and is not
-  settled~~ 📌 **whose widening is now SETTLED: Part A multiplayer clientless-leader incidence,
-  Part B Singleplayer award incidence, not to be merged.** 🔴 **Part A's own value decays on DEPLOY,
-  not on `0206`'s close** — the multiplayer rate stays observable until the award is actually live.
-  See [[tasks/measure-clientless-leader-and-solo-awards]].
+  ~~🔴 **CORRECTED 2026-09-03: `0206` SHIPPED WITHOUT ITS PHASE-1 MEASUREMENT**, and the pre-fix
+  baseline is now **permanently unmeasurable**.~~
+  ✅ **REVERSED 2026-09-04 — the baseline is MEASURABLE AGAIN.** Because `0206` was reverted and never
+  deployed, **`0208`'s Part A decay clock STOPPED.** The old behaviour is still what production runs,
+  so it can still be measured. 🔴 **What would destroy it now is `0211` shipping** — which is exactly
+  why the owner ordered **`0208` deployed and collecting data before `0211` ships.**
+  📌 `0208`'s widening is SETTLED: **Part A** multiplayer clientless-leader incidence, **Part B**
+  Singleplayer award incidence, **not to be merged.** 🔴 **Part A's value decays on DEPLOY, not on a
+  task's close.** See [[tasks/measure-clientless-leader-and-solo-awards]].
+  🔴 **AND THE INCIDENT IS NO LONGER PURELY STRUCTURAL — one occurrence was OBSERVED 2026-09-04**: a
+  Nation at 100.0 % of the map, the match never ending, no crediting. ⚠️ **One observed match is NOT a
+  rate** — frequency is still unmeasured, and that is `0208`'s whole job.
+  ⚠️ **A caveat that must not be dropped: the NATION case has been assumed twice and OBSERVED ZERO
+  TIMES in a public lobby.** Only a **Bot** was ever seen crossing the threshold. Public FFA runs with
+  Nations **enabled**, while the play-test ran with them **off** — so **the untested case is the one
+  production actually has.** Record it as a **hypothesis**, never as established.
   📌 **The TEAM half is now measured — in a simulator, and only there (2026-09-03).** `0205`'s premise is
   **confirmed**: bot team on top **12/12** with `setWinner` **0/12**, the guard proven **causal** (same
   board, `gameType: Singleplayer` → `setWinner("Bot")`, 3/3), the 95 % route crossed at ≈ 7–10 minutes on
@@ -211,15 +250,17 @@ not a naming quibble.
   whether the match should **end** on the threshold branch. Ending there removes the "a human could still
   win later" property the `0022` guard was placed to preserve. Also unanswered: the ranking measure for
   "top player with a `clientID`", and tie-breaking.~~
-  ✅ **ALL THREE ANSWERED IN `0206`'s APPROVED PLAN AND SHIPPED 2026-09-03. Struck, not deleted** —
-  read the shipped answers off `src/core/execution/WinCheckExecution.ts`, `checkWinnerFFA()`:
-  - **Does the match end?** **Yes.** On a fallback award the code calls `setWinner(fallback, …)` then
-    `this.active = false`. 🚩 **The "a human could still win later" property is therefore GONE on the
-    award path — deliberately.** It survives only where **no** clientful player is alive, which returns
-    early and stays active.
-  - **Ranking measure:** tile count — the same `numTilesOwned()` sort that picks the leader.
-  - **Tie-break:** ascending `smallID`, so every client picks the same winner. ⚠️ Its cross-client
-    determinism was **verified by reading the construction path, not by two live clients**.
+  ✅ **ALL THREE WERE ANSWERED IN `0206`'s APPROVED PLAN AND BUILT 2026-09-03. Struck, not deleted.**
+  🔴 **BUT THE ANSWERS ARE NO LONGER IN THE CODE — `0206` was reverted 2026-09-04.** ⛔ **Do NOT read
+  the three answers below off `WinCheckExecution.ts` today; they are not there.** They are the record
+  of what `0206` decided, and they would have to be re-decided by any future award task:
+  - **Does the match end?** `0206` said **yes** — `setWinner(fallback, …)` then `this.active = false`.
+    🔴 **Reverted: the match does NOT end there today**, and the *"a human could still win later"*
+    property that `0022` preserved is **back in force on both branches.**
+  - **Ranking measure:** tile count — the same `numTilesOwned()` sort that picks the leader. ✅ Still
+    the sort in the file today.
+  - **Tie-break:** ascending `smallID`. 🔴 **Reverted** — the sort is plain `numTilesOwned()`
+    descending again, with no explicit tie-break.
 
 ## Related
 
@@ -229,10 +270,11 @@ not a naming quibble.
 - [[decisions/adr-110-ai-winner-allowed]] — the winner predicate, ruled once for `0205` and `0206`; **carries a known expiry that must travel with every citation**
 - [[tasks/teams-bot-team-win-stall]] — task `0205`, the Team half, and the 2026-09-03 simulation that confirmed its premise
 - [[tasks/winmodal-participation-comment-correction]] — task `0207`, the comment that contradicts the predicate ADR-110 just ruled on
-- [[decisions/sprint-backlog]] — where `0205`, `0207`, `0208`, `0209` and `0210` all sit, unscheduled (`0206`'s row there reads `➡️ Moved`)
-- [[decisions/sprint-4]] — the sprint that carried `0022`, and that `0206` was promoted onto and closed on 2026-09-03
-- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the FFA award that closes most of this defect; **shipped into the repo only**
-- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, the production measurement of both this defect's incidence and the Singleplayer award rate
+- [[decisions/sprint-backlog]] — where `0205`, `0207`, `0209` and `0210` sit, unscheduled (`0206`'s, `0208`'s and `0211`'s rows there read `➡️ Moved`)
+- [[decisions/sprint-4]] — the sprint that carried `0022` and `0206`, and that `0208` and `0211` were scheduled onto 2026-09-04
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the FFA award built for this defect and then **REVERTED 2026-09-04 — never deployed**; read its STOP box
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, **the replacement that actually closes this defect**, by decoupling crediting from the winner
+- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, the production measurement of both this defect's incidence and the Singleplayer award rate; **ordered BEFORE `0211`'s ship**
 - [[tasks/placement-semantics-literal-one]] — task `0209`, which owns the `placement` half of the table above
 - [[tasks/singleplayer-leaderboard-reporting-policy]] — task `0210`, which owns the `points` half
 - [[systems/execution-pipeline]] — the Intent → Execution → `GameUpdate` path `Win` updates travel

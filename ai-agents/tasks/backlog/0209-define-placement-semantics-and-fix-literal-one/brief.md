@@ -180,7 +180,14 @@ processing that review; `0206`'s folder was not touched. See *Open questions* in
 >
 > 📎 Full record: the STOP box at the top of
 > [`0206`'s brief](../../done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md). Replacement
-> task: [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md), unscheduled.
+> task: [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md), ~~unscheduled.~~
+> ✅ **CORRECTED 2026-09-04 — `0211` is SCHEDULED INTO SPRINT 4** (owner ruling, live in session),
+> tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md). **Struck, not deleted — spent,
+> not wrong.** Status `🔲 Backlog`, **not started**; rank **Medium–High, the producer's.** ⛔ **`0211`
+> must not SHIP until [`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
+> is DEPLOYED AND COLLECTING DATA** — ✅ planning and building in parallel is explicitly allowed;
+> ⚠️ neither task is `🚧 Blocked`. ⚠️ **THIS TASK (`0209`) IS UNAFFECTED — still `🔲 Backlog`,
+> unscheduled, unranked by the owner; nothing here schedules or gates it.**
 > ⚠️ **`0206`'s `plan.md` / `worklog.md` / `review.md` remain untouched by owner ruling** — the `R2`
 > citations elsewhere in this brief still resolve exactly as written.
 

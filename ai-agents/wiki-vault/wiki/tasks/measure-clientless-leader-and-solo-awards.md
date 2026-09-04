@@ -1,8 +1,53 @@
 # Measure Clientless-Leader and Singleplayer Award Incidence (task 0208)
 
 **Source**: `ai-agents/tasks/backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md`
-**Status**: backlog
-**Sprint/Tag**: Backlog board — unscheduled, on an explicit owner ruling (*"File a brief, don't schedule."*)
+**Status**: backlog — ⚠️ **scheduled into Sprint 4, but NOT started. Nobody is building it.**
+**Sprint/Tag**: Sprint 4 — scheduled 2026-09-04 by owner ruling; **re-ranked `Medium` → `High`** the same day
+
+> ### 📌 SCHEDULED INTO SPRINT 4 — 2026-09-04, owner ruling given live in session
+>
+> 🔴 **THIS REVERSES THE 2026-09-03 RULING THAT FILED IT** (*"File a brief, don't schedule."*).
+> ⛔ **That earlier ruling was NOT wrong — it is SPENT.** It was correct for the day it was given.
+> **What changed is what depends on this number.**
+> ⚠️ **Scheduled is NOT started** — status stays `backlog`; **nobody is building it.**
+> Its Backlog-board row is kept as `➡️ Moved`, not deleted.
+>
+> ### 🔴 THIS SHIPS BEFORE `0211`
+>
+> ⛔ **[[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`) must not SHIP until this
+> task is DEPLOYED AND GATHERING DATA** — ⚠️ **"deployed and collecting", NOT merely merged or built;
+> a merged metric measures nothing.** ✅ **`0211` may be planned and built in parallel — only its SHIP
+> is ordered.** ⚠️ **This makes NEITHER task `🚧 Blocked`** — this one is gated by nothing, and `0211`
+> waits only at the ship.
+>
+> **Why:** `0211` shipping first **PERMANENTLY DESTROYS this task's Part A pre-fix denominator** —
+> you cannot measure how often matches stalled uncredited once they stop stalling uncredited. **No
+> later opportunity, no proxy.** Owner's reasoning: **measure before you fix.**
+>
+> ### 📌 RE-RANKED `Medium` → `High` — AND THE PROVENANCE IS SPLIT
+>
+> 🔴 **The instruction to RAISE it is an OWNER RULING; the VALUE `High` is the PRODUCER'S judgement.**
+> The owner named no value. ⛔ **Do not restate this as "the owner ranked it High".**
+> The producer's reasoning: **asymmetric decay is decisive** — `0211` late costs XP that is *already*
+> being lost, **this task late costs the number PERMANENTLY**; it now **gates a `Medium–High` task in
+> the same sprint**, and a gate ranked below what it gates invites picking up the gated task first;
+> and it **can reopen an ACCEPTED ADR**. **Not higher, honestly: this still only MEASURES, and no
+> player is harmed by it landing a week late** — the *"measuring never outranks fixing"* principle is
+> **narrowed, not abandoned**; what overrides it is **irreversibility, not importance.**
+>
+> ### 🔴 IT IS NOW LOAD-BEARING FOR THREE SEPARATE DECISIONS, not one
+>
+> 1. **ADR-110's RE-RAISE TRIGGER.** ⚠️ **Pointer corrected 2026-09-04:** it originally cited `0206`'s
+>    phase-1 investigation, **which never ran because `0206` was reverted**. The work now lives here.
+>    🔴 **The trigger is still UNFIRED and still LIVE — nobody has measured it** — and firing it could
+>    remove *"the strongest argument for allowing it"*, i.e. **this measurement can reopen an accepted
+>    ADR.**
+> 2. **It SCOPES `0211`** — whether **stalled-match survivors are a real population**, which matters
+>    now that survivors are in `0211`'s scope.
+> 3. **It CAPS `0205`'s RANK**, which has always been held down by unmeasured frequency.
+>
+> ✅ **Part A's decay clock STOPPED** — because `0206` was reverted and **never deployed**, the pre-fix
+> baseline is measurable again. It is **`0211` shipping** that would restart the clock and destroy it.
 
 > ⚠️ **THE FOLDER NAME UNDER-DESCRIBES THIS TASK, DELIBERATELY.** It still reads
 > `0208-measure-clientless-leader-at-win-condition-in-production`, which now names only half the scope.
@@ -147,11 +192,14 @@ outranks fixing.
 
 ### 🚩 The value decays — and Part B decays harder
 
-- **Part A survives `0206` as a *different* question** (*"how often does the fallback award fire?"*),
-  because the decision point still exists after the fix. 🔴 **The decay is caused by DEPLOY, not by the
-  close** — the multiplayer rate stays observable until the award is actually live. ⚠️ `0206`'s
-  production deploy state was **not verified** when this brief was written and is **not asserted**;
-  check it at plan time, or a number gets reported against the wrong denominator.
+- ✅ **PART A'S CLOCK HAS STOPPED, as of 2026-09-04 — `0206` was REVERTED and NEVER DEPLOYED**, so the
+  pre-fix denominator is **intact and still measurable.** 🔴 **The decay is caused by DEPLOY, not by a
+  close** — and the deploy that would now cause it is **`0211`'s**, which is exactly why `0211`'s ship
+  is ordered behind this task.
+  ~~Part A survives `0206` as a *different* question (*"how often does the fallback award fire?"*).~~
+  🔴 **Struck — there is no fallback award to count.** Part A is back to its original question.
+  ⚠️ **The check at plan time is unchanged in kind, only in target:** verify **`0211`'s** deploy state
+  before reporting a number, or it lands against the wrong denominator.
 - 🔴 **Part B has NO successor question.** `0210`'s ruling is *report nothing*, so once its guard ships
   the counter reads **zero forever, by design**. **Part B is a snapshot with an expiry date**, and the
   brief says so rather than pretending otherwise.
@@ -164,19 +212,23 @@ rescue it. ⛔ **Do not turn `0210` into a dependent task, do not add a "blocked
 do not hold its plan waiting for a number.** If the two collide, **`0210` wins and Part B loses its
 window** — the owner accepted that trade in advance.
 
-**Four consumers are currently reasoning without this number:** `0205` (whose held Low–Medium rank
-rests on a claim about the real lobby-activity distribution, which has never been measured), `0206`
-(whose brief carries an explicit unmeasured-frequency flag), `0205`'s investigation step 2, and `0210`.
-⚠️ **All four are consumers, none is a dependent.**
+**Consumers currently reasoning without this number:** `0205` (whose held Low–Medium rank rests on a
+claim about the real lobby-activity distribution, which has never been measured), `0205`'s
+investigation step 2, `0210`, and — added 2026-09-04 — **`0211`** (whether stalled-match survivors are
+a real population) and **ADR-110's re-raise trigger**.
+⚠️ **They are consumers, not dependents** — 🔴 **with one exception added 2026-09-04: `0211`'s SHIP is
+genuinely ordered behind this task.** ⛔ That is still **not** a `🚧 Blocked` marker on either.
 
 ## Related
 
-- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, which shipped **without** this measurement and made its pre-fix baseline permanently unmeasurable
+- [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, built **without** this measurement and then **REVERTED 2026-09-04**, which is what handed the pre-fix baseline back
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, **whose ship is ordered behind this task** because it would permanently destroy Part A's denominator
 - [[tasks/teams-bot-team-win-stall]] — task `0205`, whose held rank rests on the unmeasured lobby-activity distribution this would measure
 - [[tasks/placement-semantics-literal-one]] — task `0209`, which owns `placement`; this task counts **`points`**. Adjacent, and a live conflation risk rather than a dependency
 - [[tasks/singleplayer-leaderboard-reporting-policy]] — task `0210`, the reason Part B exists and the guard that ends Part B's window
 - [[decisions/clientless-leader-win-policy]] — the defect this measures, and the `placement`/`points` keep-them-apart table
 - [[decisions/adr-110-ai-winner-allowed]] — why AI players are **excluded** from Part A's clientless-leader definition
 - [[systems/analytics]] — the event conventions, the enum, the reference doc, and the `DEPLOY_ENV === "prod"` gate this task works inside
-- [[decisions/sprint-backlog]] — the board this sits on, unscheduled by owner ruling
-- [[decisions/sprint-4]] — the sprint whose task `0206` spawned this brief; ⚠️ **this task is NOT on that board**, it sits unscheduled on the Backlog board
+- [[decisions/sprint-backlog]] — the board this was filed on and **moved OFF 2026-09-04** (its row there reads `➡️ Moved`)
+- [[decisions/sprint-4]] — 🔄 **the board this task is now ON**, scheduled 2026-09-04 and raised to `High`
+- [[systems/player-profile-store]] — the crediting path whose silence this task measures, and where `creditMatchXp`'s single call site lives
