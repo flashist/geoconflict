@@ -11,7 +11,7 @@ Source: `ai-agents/knowledge-base/profile-deploy-hardening-postmortem-2026-06-19
 
 ## Decision
 
-Stop and revert the monolithic T4 attempt. Resume profile infrastructure as independently shippable T4a–T4i slices. T4a through T4i are now complete, including argv/concurrency hardening, game-server deploy environment propagation, and operator bring-up of the live host.
+Stop and revert the monolithic T4 attempt. Resume profile infrastructure as independently shippable T4a–T4i slices. T4a through T4i are now complete, including argv/concurrency hardening, game-server deploy environment propagation, and operator bring-up ~~of the live host~~ 🔴 **CORRECTED 2026-09-04: whether the host that bring-up produced is still serving the stack is UNVERIFIED.** ⚠️ *(This supersedes an earlier same-day annotation here reading "NO LONGER STANDS"; that overstated the owner's position and is withdrawn.)* Owner rulings, both live in session 2026-09-04 and both standing: *"We don't have ANY profile-related VPS yet…"*, then *"the VPS and S3 I created will be reused."* **Reconciled: the box physically exists and is reused in place; its provisioning state is unknown and unverified.** ⛔ **The slices really shipped and the machinery is sound.** Wipe-and-rebuild **onto that existing box** tracked as `0213`–`0222` plus `0201`, Sprint 4.
 
 For each remaining deploy slice:
 

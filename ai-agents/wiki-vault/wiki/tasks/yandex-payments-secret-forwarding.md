@@ -9,12 +9,30 @@
 > 🚨 **This does NOT mean production is fixed.** The task shipped as **built + Deferred Live Tail** (owner ruling R3, 2026-09-01). Its live-tail items **D1–D3 are unchecked**, gated on **`0014`** (Yandex has not issued the per-game key) **and** the pending profile deploy. **A profile deploy carried out today lands the variable EMPTY, and every `/v1/payments/*` route correctly keeps returning `503 {"error":"payments_unavailable"}`.**
 >
 > This is `0062`'s trap arriving on schedule: **a shipped diff is not a fixed production.**
+>
+> 🔴 **CORRECTED 2026-09-04 — THIS TASK'S PRODUCTION NARRATIVE IS UNVERIFIED.** ⚠️ **This supersedes an
+> earlier same-day annotation here reading "DESCRIBED A BOX THAT NO LONGER STANDS"; that overstated the
+> owner's position and is withdrawn.** Owner rulings, both given live in session 2026-09-04 and **both
+> standing**: *"We don't have ANY profile-related VPS yet, we would need to have a full-scale setup for
+> it (whatever is needed)"*, then *"We don't need to cancel any billings, the VPS and S3 I created will
+> be reused."* 🔴 **Reconciled: the box exists and is reused in place; what runs on it is UNKNOWN AND
+> UNVERIFIED.** Wherever this page says *"the real box"*, read it as **unverified — not disproven, and
+> not claimable**: nobody has confirmed what that box serves.
+> ⛔ **THE CODE FIX STANDS AND IS NOT UNDER QUESTION — do not read this correction as a finding against
+> `0195`.** The fix was right; only its production narrative is corrected. The 503 behaviour it
+> describes is what the code does with an empty variable, and it holds wherever a box carries an empty
+> value. Wipe-and-rebuild onto the existing resources: `0213`–`0222` plus `0201`, all on Sprint 4. Grounding:
+> `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md`.
+> ⚠️ **One finding of `0195`'s is BROADER than `0195` recorded:** the architect verified 2026-09-04 that
+> `FEEDBACK_TELEGRAM_TOKEN`, `FEEDBACK_TELEGRAM_CHAT_ID` and `TELEGRAM_PROXY_URL` have **the same
+> missing on-box persistence** — they do not follow `setup-profile.sh`'s persist-or-reuse pattern.
+> `POSTGRES_PASSWORD` is **exempt**: it is required and fails closed.
 
 ## Goal
 
 `build-deploy-profile.sh` stages the profile deploy environment by writing `printf "export <VAR>=%q\n"` lines into a 0600 temp file, SCPing it to the box and sourcing it. **`YANDEX_PAYMENTS_SECRET` was not one of those lines.** Downstream, `setup-profile.sh` writes `YANDEX_PAYMENTS_SECRET=${YANDEX_PAYMENTS_SECRET:-}` into the container's `profile.env` — so the `:-` default fired and the line was written **empty**.
 
-The application then failed closed, exactly as designed: `src/profile-server/Server.ts` reads the variable and logs a startup `warn` when empty, and `src/profile-server/Routes.ts` installs a `paymentsEnabled` middleware that answers **503** on `/yandex/intent`, `/yandex/complete` and `/yandex/reconcile` alike. **True on the real box since `0019` shipped.**
+The application then failed closed, exactly as designed: `src/profile-server/Server.ts` reads the variable and logs a startup `warn` when empty, and `src/profile-server/Routes.ts` installs a `paymentsEnabled` middleware that answers **503** on `/yandex/intent`, `/yandex/complete` and `/yandex/reconcile` alike. ~~**True on the real box since `0019` shipped.**~~ 🔴 **CORRECTED 2026-09-04: there is no real box — see the banner above.** True of the deployed configuration since `0019` shipped, on the box that then stood.
 
 A second gap sat in the operator-facing template: `example.env.profile` did not mention the variable anywhere, so an operator doing everything right had no way to learn it is a deploy input. The fix was therefore **two edits, not one**.
 

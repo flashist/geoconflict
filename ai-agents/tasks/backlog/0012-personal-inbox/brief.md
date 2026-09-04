@@ -10,6 +10,15 @@ carried by `0017`, `0018`, and `0019`.
 ## Status
 🚧 Blocked — built + reviewed (local scope) 2026-08-26; open pending the `0062`-gated Deferred Live Tail
 
+📌 **Inherited blocker reason corrected 2026-09-04.** `0062`'s `D2` check was run that day against the
+live prod container: `PROFILE_INTERNAL_TOKEN` reads **empty**, but **the owner deliberately blanked it
+before the 2026-08-29 deploy**, so that result is **inconclusive** — the fix is in `deploy.sh:312` and
+has never been exercised with a real value. **This task therefore waits on citizenship readiness + the
+outstanding profile VPS setup work, NOT on someone running `0062`'s verification.** Owner, 2026-09-04,
+verbatim: *"I probably will keep it blank again, because the citizenship is not fully ready to be
+deployed yet and we need to do some additional work in terms of the profile VPS setup."* Scope and
+status token otherwise unchanged.
+
 *(Re-scoped 2026-08-23 by owner ruling — same "don't block on Yandex externals / local-first"
 treatment as `0017`. The profile store dependency is satisfied **locally** (profile server +
 Postgres via Docker; `RUN_DB_TESTS=1` integration path) and that is sufficient to build and verify
@@ -111,7 +120,9 @@ These are the only triggers in Sprint 4. The `POST /admin/player-message` endpoi
 
 ## Deferred Live Tail — gated on `0062`; NOT part of the buildable scope
 
-Execute once `0062` has shipped and a deploy has run:
+~~Execute once `0062` has shipped and a deploy has run:~~ **Corrected 2026-09-04: `0062`'s fix has
+shipped and a deploy HAS run — but with the token deliberately blanked, so prod profile integration is
+still OFF and this tail still cannot run.** Execute once the token is deployed **non-empty**:
 
 1. Prod profile integration verified on (`0062`'s own verifications 2–3).
 2. A real citizenship grant in prod produces the inbox message, visible in the Personal tab in the

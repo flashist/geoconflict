@@ -10,6 +10,27 @@
 >
 > 🔧 **UPDATED 2026-08-30 — the "no deploy has happened" half of this banner is now stale, and the change is smaller than it sounds.** This page previously read *"Effective posture: built-awaiting-deploy — the same as `0062` and `0063`. No deploy has happened."* **A production release landed as commit `362a2f9`**, and this task's code is in it — verified by ancestry (`0067`'s profile-server work landed in `d442ac2`, an ancestor of `362a2f9`) plus the live `commit.txt` check recorded in [[tasks/prod-api-env-https-apex]]. **So the code shipped. Nothing about its behaviour was checked, and two gates keep the feature dark anyway:** `CITIZENSHIP_CARD_ENABLED` is still `false` in `FlashistFacade.ts`, and `PROFILE_INTERNAL_TOKEN` was **deliberately left blank for this release**, so `ProfileApiClient.isConfigured()` is false and every profile call from the game server no-ops (task `0062`, still open). **"Deployed" here means the bytes are on the box — not that one line of this feature has run.**
 >
+> 🔴 **NARROWED 2026-09-04 — WHETHER THE PROFILE-SERVER HALF OF THIS FEATURE EVER DEPLOYED IS NOT
+> DETERMINABLE FROM THE REPOSITORY.** ⚠️ **This supersedes an earlier same-day annotation here reading
+> "CANNOT BE RUNNING ANYWHERE … that box does not exist"; that overstated the owner's position and is
+> withdrawn.** Owner rulings, both given live in session 2026-09-04 and **both standing**: *"We don't
+> have ANY profile-related VPS yet, we would need to have a full-scale setup for it (whatever is
+> needed)"*, then *"We don't need to cancel any billings, the VPS and S3 I created will be reused."*
+> 🔴 **Reconciled: the profile box exists and is reused in place; what is on it is UNKNOWN AND
+> UNVERIFIED.** The ancestry check above proves the code is in the **game** release `362a2f9`; the
+> three profile-server routes and migration `004_name_change.sql` ship in a **separate image to the
+> profile box**. ⛔ **A profile deploy leaves NO artifact in git** — it runs through
+> `build-deploy-profile.sh` against the box and writes nothing back to the repository — so
+> **whether that half ever deployed cannot be answered from this repo. Do not assert it either way.**
+> Two checks on the box settle it, and both belong to `0215`'s inspection: does `schema_migrations`
+> contain `004_name_change.sql`, and does the running image serve the three routes?
+> ✅ **The mitigation is cheap and already built: `migrate.ts` is idempotent** — it applies each file
+> once, in lexical order, inside a transaction, recording the filename in `schema_migrations`, so
+> **re-runs are no-ops and `0217` runs migrations regardless.** The right move is to run it, not to
+> investigate first. ⚠️ **Stated precisely: this page's "deployed" claim holds for the GAME half and
+> is undetermined for the PROFILE-SERVER half.** Grounding:
+> `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md` (§8).
+>
 > 🚨 **The citizenship card has never been seen in a browser.** `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` is `false`, so the entire UI leg — entry point, pending/approved/rejected states, the cancel control — is proven by unit tests and by nothing else.
 >
 > 🚨 **The operator Telegram notification is unit-proven only** (`jest.mock("undici")`). Proxy reachability from the profile VPS was never exercised and is not locally testable; that verification belongs to task `0033`.
@@ -66,7 +87,7 @@ Green at close, after both fix rounds: `npx tsc --noEmit`, `npm run lint`, prett
 
 **Two defects found here and routed out rather than absorbed.**
 
-- **`0195`** — `YANDEX_PAYMENTS_SECRET` is missing from `build-deploy-profile.sh`'s export block, so payments have been silently 503 on the real box since `0019`. See [[decisions/config-parity-failure-class]].
+- **`0195`** — `YANDEX_PAYMENTS_SECRET` is missing from `build-deploy-profile.sh`'s export block, so payments have been silently 503 ~~on the real box~~ (🔴 **2026-09-04: no real box exists** — owner-ruled; read it as the deployed configuration on the box that then stood) since `0019`. See [[decisions/config-parity-failure-class]].
 - **The jest-worker `SIGSEGV` flake** — `npm test` aborted a suite on two runs, on a **different untouched file each time**; both passed standalone and both full re-runs were green. Tracked under `0197`, which **closed 2026-08-30 with a root cause: an upstream V8 garbage-collector bug, not repository-fixable.** See [[tasks/test-suite-reliability-investigation]].
 
   > 🔧 **CORRECTED 2026-08-30 — this bullet previously ended with a claim that is FALSE.** It read: *"The `tests/integration` directory also hangs past ten minutes without `--forceExit` (open `pg` pool handles) — pre-existing, and it means a reviewer's identical command can hang."* **Both halves were wrong.** `0197` measured it: without `--forceExit` the suite exits by itself in ~3–4 s, 10 runs out of 10 warm and 3 out of 3 on a cold first-migration database, with `--detectOpenHandles` reporting **zero** open handles — every pool was already closed in an `afterAll`. The folklore came from jest printing its force-exit banner unconditionally whenever the flag is set. **`--forceExit` has been removed from `test:integration`, and a future hang is now a real regression.** The invocation recorded in this page's § Outcome (`… --runInBand --forceExit`) is what was actually run at the time; it is left as the historical record, not as the current command.

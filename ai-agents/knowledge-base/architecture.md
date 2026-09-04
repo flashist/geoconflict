@@ -57,14 +57,40 @@ Licensing: AGPL-3.0 with an attribution clause (`LICENSE`, `LICENSING.md`), asse
                     ┌──────────────┼───────────────────────┐
                     │              │                       │
                     ▼              ▼                       ▼
-        api.geoconflict.ru   telemetry.geoconflict.ru   api.openfront.io *
-        (profile backend:    (Uptrace + ClickHouse +    (upstream OpenFront
-         Postgres, XP,        Postgres + Redis +         identity / archive /
-         citizenship)         otelcol)                   matchmaking service)
+      [profile backend] **       telemetry.geoconflict.ru   api.openfront.io *
+        (Postgres, XP,           (Uptrace + ClickHouse +    (upstream OpenFront
+         citizenship)             Postgres + Redis +         identity / archive /
+                                  otelcol)                   matchmaking service)
 
    * see §13 open question 1 — the game server still points its JWT issuer, archive,
      and matchmaking calls at an external OpenFront-style API.
+
+   ** STATE UNVERIFIED — corrected 2026-09-04. The host EXISTS; whether the stack is
+      provisioned and running on it is UNKNOWN. The node is drawn because the code,
+      deploy scripts, migrations and runbook all exist and are merged. The host name
+      previously drawn here has been removed so nobody reads this diagram as a
+      verified live topology. See the note below the diagram.
 ```
+
+> 🔴 **CORRECTION 2026-09-04 — the profile backend node above is UNVERIFIED, not confirmed running.**
+> ~~The diagram previously drew a live profile host as a standing runtime node.~~
+>
+> **The reconciliation, from two owner statements the same day — both recorded, neither discarded:**
+> first *"We don't have ANY profile-related VPS yet…"*, then, superseding it, *"We don't need to
+> cancel any billings, the VPS and S3 I created will be reused"* — confirmed: *"Both exist — reuse
+> them in place."*
+>
+> ⇒ **The VPS and the S3 bucket PHYSICALLY EXIST and are reused in place. What is on them is UNKNOWN
+> AND UNVERIFIED.** ⚠️ **Hardware existence and provisioning state are two different facts, and only
+> the first is known.** The plan is to **wipe and rebuild onto the existing resources**, not to
+> procure new ones.
+>
+> ✅ **What still stands, unchanged:** everything §12 says at `:602-628` about what the profile deploy
+> scripts *do*. That text describes the scripts, not a running box, and it is **accurate**.
+>
+> 📌 Rebuild epic: [`0213`](../tasks/backlog/0213-profile-backend-clean-slate-rebuild/brief.md)
+> (phases P0–P7, all in Sprint 4 by owner ruling). Survey:
+> [`2026-09-04-profile-backend-clean-slate-survey.md`](reports/2026-09-04-profile-backend-clean-slate-survey.md).
 
 External dependencies that matter:
 

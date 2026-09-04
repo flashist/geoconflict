@@ -10,6 +10,28 @@
 > 🚀 **UPDATED 2026-09-02 — `0064`, the guard, is STARTED.** It is `🔄 In progress` on the Sprint 4 board, built, and through a **two-round stateful review whose round 2 CONVERGED with the verdict *ship report-only***. It **cannot fail a deploy**: report-only exits zero. ⚠️ **The reportable outcome of that review was scheduling, not correctness — arming `--enforce` is now TEN gate items, not two**, filed as their own task `0203` on the Backlog board. See the *Where `0064` actually stands* section below. **Nothing is broken today and report-only is safe.**
 >
 > 🔧 **UPDATED 2026-09-02.** `0195`'s **repository fix shipped 2026-09-01** and the task closed. ⚠️ **That is not a production fix, and it is not a blocker clearing.** It shipped as **built + Deferred Live Tail**: the value `0014` has not yet issued still does not exist, so a profile deploy carried out today lands the variable **empty** and every `/v1/payments/*` route correctly keeps returning 503. `0065`'s gate count is **unchanged at three** — `0195` is a gate now **satisfied, not removed**. **All three instances of this class have now shipped a fix, and NONE of the three is demonstrated working in production**: `0063` is deployed and evidenced, `0062` is deployed with the variable deliberately blank, `0195` is not deployed at all. **`0060`, the last item on the execution order, shipped 2026-09-01 too — also repo-only.**
+>
+> 🔴 **UPDATED 2026-09-04 — `0195`'s HALF OF THIS PAGE RESTS ON UNVERIFIED OBSERVATIONS OF THE PROFILE
+> BOX.** ⚠️ **This supersedes an earlier same-day annotation here reading "DESCRIBED A BOX THAT NO
+> LONGER STANDS"; that overstated the owner's position and is withdrawn.** Owner rulings, both given
+> live in session 2026-09-04 and **both standing**: *"We don't have ANY profile-related VPS yet, we
+> would need to have a full-scale setup for it (whatever is needed)"*, then *"We don't need to cancel
+> any billings, the VPS and S3 I created will be reused."* 🔴 **Reconciled: the profile VPS and the S3
+> bucket physically EXIST and are REUSED IN PLACE; provisioning state and what is running are UNKNOWN
+> AND UNVERIFIED.** Wherever this page says *"the real box"* for the profile pipeline, read it as
+> **unverified — not disproven, and not claimable.** ⛔ **The failure CLASS is untouched and all three
+> instances remain real** — a variable that never reaches production, silently. ⛔ **`0195`'s code fix
+> stands; only its production narrative is corrected.** ⚠️ **`0062` gains a second reason to stay
+> open:** a non-blank `PROFILE_INTERNAL_TOKEN` only helps if the box is actually serving the stack,
+> which nobody has confirmed — so it can only be closed after `0215` inspects and re-provisions the
+> box and `0217` wires the game server to it. 🚨 **And the profile pipeline carries
+> TWO MORE silent barriers of exactly this class, on the same credit path:** a token the box generates
+> for itself that the game server does not hold (**401 on every credit call** — `internalAuth` is a
+> `timingSafeEqual` over a *shared* secret), and `PROFILE_INTERNAL_ALLOW_IPS` pinned to a **June egress
+> IP** behind nginx's `allow …; deny all;` (**403**). Both are swallowed by the fail-soft, no-durable-queue
+> client (ADR-101), so the XP is **lost, not queued**, and nothing logs above `debug`. Wipe-and-rebuild
+> tasks `0213`–`0222` plus `0201`, all Sprint 4 — **onto the existing resources, not new ones**. Grounding:
+> `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md`.
 
 ## Context
 
@@ -21,7 +43,7 @@ Three instances, all Sprint 4:
 |---|---|---|---|---|
 | `0062` | `PROFILE_INTERNAL_TOKEN` never forwarded by `deploy.sh` | Profile writes silently no-op in prod — no profile row created, no XP credited. The miss is logged at `debug`, invisible in prod logs; the profile server independently fails closed | game server | **OPEN.** The one-line `deploy.sh` fix shipped in `362a2f9` but has **never been exercised** — the owner deliberately left the token **blank** for this release, so `ProfileApiClient.isConfigured()` is false and every profile call still no-ops. Citizenship stayed dark **by design**, not by defect |
 | `0063` | `PUBLIC_PROTOCOL` / `API_BASE_URL` / `JWT_ISSUER` forwarded but carrying `http` on a raw IP | Prod `/api/env` advertised an unusable origin on an `https` site | game server | ✅ **FIXED, DEPLOYED AND — as of 2026-08-30 — FULLY EVIDENCED** in `362a2f9`; live `/api/env` measured on the apex domain over `https`, and the last outstanding pending was discharged in Uptrace: grouping on the `openfront_host` attribute shows the raw-IP host value stopping 19 seconds before the new master booted, and only the apex domain afterwards. ⚠️ **The close still preceded that evidence** — four of six pendings were unevidenced when the task moved to `done/`. See [[tasks/prod-api-env-https-apex]] — and note its reframe: no auth service exists in this deployment, so the "token login never completes" symptom was **vacuous**, though the config was wrong and is now right |
-| `0195` | `YANDEX_PAYMENTS_SECRET` never forwarded by `build-deploy-profile.sh` | **Every `/v1/payments/*` route returns `503 {"error":"payments_unavailable"}` on the real box** — true since `0019` shipped | **profile server** | **SHIPPED IN THE REPO 2026-09-01, NOT FIXED IN PRODUCTION.** Two edits: the variable joins the staged-export block, and `example.env.profile` documents it. Closed as **built + Deferred Live Tail** (owner ruling R3) with **D1–D3 unchecked**, gated on `0014` **and** the pending profile deploy. **A profile deploy today lands it empty and the routes correctly keep 503ing.** See [[tasks/yandex-payments-secret-forwarding]] |
+| `0195` | `YANDEX_PAYMENTS_SECRET` never forwarded by `build-deploy-profile.sh` | ~~**Every `/v1/payments/*` route returns `503 {"error":"payments_unavailable"}` on the real box**~~ 🔴 **2026-09-04: no real box exists** — what the code does with an empty variable, true of the box that then stood, and true again on the rebuilt one | **profile server** | **SHIPPED IN THE REPO 2026-09-01, NOT FIXED IN PRODUCTION.** Two edits: the variable joins the staged-export block, and `example.env.profile` documents it. Closed as **built + Deferred Live Tail** (owner ruling R3) with **D1–D3 unchecked**, gated on `0014` **and** the pending profile deploy. **A profile deploy today lands it empty and the routes correctly keep 503ing.** See [[tasks/yandex-payments-secret-forwarding]] |
 
 > ⚠️ **`0062` is the sharpest lesson this page has to offer, and it is a new one.** A shipped fix and a working configuration are different things. The deploy script now forwards the variable; the variable is empty; the observable production behaviour is **byte-for-byte what the unfixed pipeline produced**. Reading the deploy diff would show a fix. Reading production would show the bug. That is exactly the gap `0064` exists to close — and it is why `0064`'s check must assert **non-empty**, never merely **present**.
 

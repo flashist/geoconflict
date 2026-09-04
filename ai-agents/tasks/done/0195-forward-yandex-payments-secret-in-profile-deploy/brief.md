@@ -69,9 +69,43 @@ The application then fails closed, exactly as designed:
   returns **`503 {"error":"payments_unavailable"}`** on every request when the secret is empty —
   `/yandex/intent`, `/yandex/complete` and `/yandex/reconcile` alike.
 
-**Net effect on the real box today: every paid-citizenship payment route returns 503.** This has been
+~~**Net effect on the real box today: every paid-citizenship payment route returns 503.**~~ This has been
 true since `0019` (Yandex Payments — Catalog Fetch & Purchase Infrastructure) shipped, which is what
 introduced the variable and the fail-closed behavior.
+
+> 🔴 **CORRECTION 2026-09-04 — THIS BRIEF'S PRODUCTION NARRATIVE WAS NEVER AN OBSERVATION.**
+>
+> **The reconciliation, from two owner statements the same day — both recorded, neither discarded:**
+> first *"We don't have ANY profile-related VPS yet…"*, then, superseding it, *"We don't need to
+> cancel any billings, the VPS and S3 I created will be reused"* — confirmed: *"Both exist — reuse
+> them in place."*
+>
+> ⇒ **A profile VPS does exist. Its running state is UNKNOWN AND UNVERIFIED, and nobody has ever
+> watched a `/v1/payments/*` request return 503 on it.** The narrative here is a **correct deduction
+> from the code**, written in the grammar of a sighting.
+>
+> ✅ **THIS TASK'S CODE FIX STANDS. Read this correction carefully and do not over-read it.** The
+> staged-export omission in `build-deploy-profile.sh` was **real**, the fix is **right**, and the
+> harness work (T10, the `env -i` allow-list, the fixture repair, the determinism fixes) is
+> **unaffected**. What is corrected is only the **claim about production**.
+>
+> ⚠️ **Read every "on the real box" in this brief as "on a box whose state nobody has checked."**
+> Four such phrases are annotated (`:72`, `:89`, `:169`, `:187`).
+>
+> ⛔ **This task's `✅ Done (agent-closed — not owner-verified)` status is CORRECT and deliberate — do
+> not "fix" it.** It shipped as **BUILT + DEFERRED LIVE TAIL**, which this correction does not change.
+>
+> 📌 Rebuild: epic [`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md), phases
+> P0–P7, all in Sprint 4 by owner ruling. Survey:
+> [`2026-09-04-profile-backend-clean-slate-survey.md`](../../../knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md).
+>
+> 📌 **One finding here was NARROWER than the defect, and that is now filed.** This brief records that
+> `YANDEX_PAYMENTS_SECRET` has no on-box persistence (owner ruling R4). The architect verified on
+> 2026-09-04 that **the same is true of `FEEDBACK_TELEGRAM_TOKEN`, `FEEDBACK_TELEGRAM_CHAT_ID` and
+> `TELEGRAM_PROXY_URL`** (`setup-profile.sh:392-395` do not follow the persist-or-reuse pattern at
+> `setup-profile.sh:357-368`). `POSTGRES_PASSWORD` is **exempt** — required, fails closed. The widened
+> scope is [`0220`](../../backlog/0220-profile-p5-secret-persistence-and-value-parity/brief.md) (P5).
+> **This is a widening of the FINDING, never a defect in the FIX.**
 
 ### There is a second gap, in the operator-facing template
 
@@ -86,7 +120,7 @@ therefore **two** edits, not the one line first assumed.
 |---|---|---|
 | `0062` | `PROFILE_INTERNAL_TOKEN` never forwarded by `deploy.sh` | Profile writes silently no-op in prod — no profile row created, no XP credited |
 | `0063` | `PUBLIC_PROTOCOL` / `API_BASE_URL` / `JWT_ISSUER` forwarded but carrying `http` on a raw IP | Prod `/api/env` advertised an unusable origin on an `https` site |
-| **`0195`** | **`YANDEX_PAYMENTS_SECRET` never forwarded by `build-deploy-profile.sh`** | **Paid-citizenship payment routes 503 on the real box** |
+| **`0195`** | **`YANDEX_PAYMENTS_SECRET` never forwarded by `build-deploy-profile.sh`** | **Paid-citizenship payment routes ~~503 on the real box~~ would 503 on the box** — 🔴 corrected 2026-09-04: a deduction from the code, **never observed**; the box exists but its state is unverified. The omission and the fix are unaffected |
 
 The class statement from `0064`'s brief holds unchanged: *production configuration does not match what
 the application needs, and nothing says so.* Note the shape difference worth recording — `0062` was a
@@ -166,7 +200,10 @@ cannot close until that deploy happens.
    and it needs no request driven against a money route.
 5. **A payments route stops returning `payments_unavailable`.** `POST /v1/payments/yandex/intent` no
    longer answers `503 {"error":"payments_unavailable"}`.
-   ⚠️ **Owner-gated — get agreement before running this on the real box.** It requires a non-empty
+   ⚠️ **Owner-gated — get agreement before running this on the real box.** 🔴 **2026-09-04: the box
+   exists, but its state is UNVERIFIED, so this step is not runnable until
+   [`0215`](../../backlog/0215-profile-p1-stand-up-the-box/brief.md) (P1) has inspected and
+   re-provisioned it. The owner gate below remains in force for when it is.** It requires a non-empty
    secret, and `/yandex/intent` creates DB rows without checking a signature, so driving it with a
    throwaway value writes junk intents into the production profile DB. Prefer proving this against the
    **local profile stack** (Docker profile server + Postgres) and treating step 4 as the production
@@ -184,7 +221,12 @@ cannot close until that deploy happens.
 - **Depends on:** nothing. The edit is independently shippable today; only its production verification
   (steps 3–5) waits on a profile deploy.
 - **Blocks:** **`0065`** (Paid Citizenship — Live Verification & Go-Live Tail) — its steps 1–4 all drive
-  `/v1/payments/*`, which return 503 on the real box until this ships. **`0064`** must land *after*
+  `/v1/payments/*`, which ~~return 503 on the real box~~ **would 503 on the box** until this ships —
+  🔴 corrected 2026-09-04: never observed, and the box's state is unverified; ⚠️ **`0065` now
+  additionally waits on the profile box being inspected and re-provisioned**
+  ([`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)),
+  which is a **structural** gate rather than a fourth listed condition — its three conditions
+  (`0014`, `0062`, `0195`) are unchanged and this correction clears none of them. **`0064`** must land *after*
   this, on the same hard-sequencing grounds its own hazard section states for `0062`/`0063`.
 - **Related:** `0062` and `0063` (the first two instances of this class), `0064` (the guard built to
   catch the class — this is its third data point and its first outside `deploy.sh`), `0019` (introduced

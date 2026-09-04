@@ -16,6 +16,16 @@ High — the go-live gate for the monetization milestone. Everything buildable w
 `0195`** (`YANDEX_PAYMENTS_SECRET` not forwarded to the profile box — every `/v1/payments/*` route
 returns 503 there). All three must clear; none alone unblocks.
 
+📌 **The `0062` condition's reason was corrected 2026-09-04 — the condition itself is UNCHANGED and
+still open.** `0062`'s `D2` check was run that day against the live prod container:
+`PROFILE_INTERNAL_TOKEN` reads **empty**, but **the owner deliberately blanked it before the
+2026-08-29 deploy**, so the result is **inconclusive** — neither a confirmation nor a refutation. The
+forwarding fix *is* present (`deploy.sh:312`); it has simply never been exercised with a real value.
+**So the `0062` gate is not "run the verification" — it is citizenship readiness + the outstanding
+profile VPS setup work.** Owner, 2026-09-04, verbatim: *"I probably will keep it blank again, because
+the citizenship is not fully ready to be deployed yet and we need to do some additional work in terms
+of the profile VPS setup."* Blocker count still **three**; status token unchanged.
+
 ## Owner
 fkit-coder
 

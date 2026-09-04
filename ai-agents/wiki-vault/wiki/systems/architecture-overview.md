@@ -61,6 +61,27 @@ One binary: `cluster.isPrimary` → master, else worker. Master serves HTTP/API/
 
 ### Profile backend tier
 
+> 🔴 **CORRECTED 2026-09-04 — THIS TIER'S HOST EXISTS, BUT WHAT IS RUNNING ON IT IS UNKNOWN.**
+> ⚠️ **This supersedes an earlier same-day annotation here reading "THIS TIER HAS NO RUNNING HOST";
+> that overstated the owner's position and is withdrawn.** Owner rulings, both given live in session
+> 2026-09-04, **both true and neither discarded**: *"We don't have ANY profile-related VPS yet, we
+> would need to have a full-scale setup for it (whatever is needed)"*, then, on a direct follow-up,
+> *"We don't need to cancel any billings, the VPS and S3 I created will be reused."* 🔴 **Reconciled:
+> a profile VPS and an S3 bucket PHYSICALLY EXIST and are REUSED IN PLACE; provisioning state, what
+> runs, and what the bucket holds are UNKNOWN AND UNVERIFIED. Hardware existence and provisioning
+> state are two different facts, and only the first is known.** ⛔ **The tier itself was BUILT and is
+> sound** — service code, image, provisioning and deploy scripts, backup path, operator runbook. Read
+> every statement in this section as *the architecture this tier deploys into*, and as **unverified**
+> rather than as an observation of something currently serving traffic; the same correction was
+> applied to the topology diagram in `ai-agents/knowledge-base/architecture.md` the same day.
+> Owner-ruled remedy: **wipe and rebuild ONTO THE EXISTING RESOURCES, not procure new ones** —
+> tracked as `0213`–`0222` plus `0201` on Sprint 4, with `0215` inspecting the box first.
+> ⚠️ **A DNS record resolving proves nothing about a server running.** 🔴 **The `api.` subdomain is
+> architecturally required, not incidental:** Yandex Games permits only ONE main domain for an iframe
+> game, so everything routes through subdomains of it — the owner has ruled to **reuse the existing
+> hostname**. Grounding:
+> `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md`.
+
 A standalone service with its own image, VPS, and Postgres; the game server never touches the database. It uses its **own minimal logger** rather than the game server's, deliberately — so **this tier exports no telemetry**.
 
 Five routes: `/health`, `/ready`, an **unauthenticated** `GET /v1/profile` (rate-limited, with CORS applied before the limiter so even a 429 is readable), and two internal endpoints. `toPublicProfile()` strips the paid-citizen fields and the cross-device linkage token from every response precisely *because* the read is unauthenticated.
@@ -71,10 +92,10 @@ The match-end XP flow funnels all trust through one function — see [[decisions
 
 ### Deployment
 
-**There is no CI/CD** — no `.github/` directory. Every deploy is a local shell script: build an image locally, push, SSH to the target, run a remote script. Three independent fleets (game, profile, telemetry), all on reg.ru VPS in Moscow, so 152-FZ data residency is satisfied.
+**There is no CI/CD** — no `.github/` directory. Every deploy is a local shell script: build an image locally, push, SSH to the target, run a remote script. Three independent fleets (game, profile, telemetry), all on reg.ru VPS in Moscow, so 152-FZ data residency is satisfied. 🔴 **CLARIFIED 2026-09-04: the profile box EXISTS and is reused in place, but whether the profile stack is stood up on it is UNVERIFIED** (owner ruling; see the banner in *Profile backend tier*). ⚠️ *This withdraws an earlier same-day annotation here reading "TWO fleets stand, not three — the profile fleet does not exist"; that overstated the owner's position.* The game and telemetry fleets are known to be running. The profile deploy pipeline below is **sound machinery whose current state on the box is unknown** until `0215` inspects it. RU residency is unchanged and binds the rebuild too.
 
 - **Game** — secret hygiene is a hard gate: a name check, then an authoritative per-layer **byte scan of the built image**, then re-tag and identity assert, and only then push. The container runs nginx and node together under supervisord. Three proxy tiers exist on a game box (host nginx → container nginx → node); the container nginx is **baked into the image**, so its edits ship via the build, not the provisioning script. See [[decisions/registry-image-policy]] and [[decisions/vps-credential-leak-response]].
-- **Profile** — digest-pinned deploys, secrets staged so none reaches remote argv, a 120 s health gate requiring both services healthy, and digest-pinned automatic rollback that must itself pass the same gate. Migrations run only after the gate passes. Backups are encrypted **before leaving the box**. See [[tasks/postgres-backup-routine]].
+- **Profile** — digest-pinned deploys, secrets staged so none reaches remote argv, a 120 s health gate requiring both services healthy, and digest-pinned automatic rollback that must itself pass the same gate. Migrations run only after the gate passes. Backups are encrypted **before leaving the box**. See [[tasks/postgres-backup-routine]]. 🔴 **2026-09-04: this pipeline has no target — no profile box exists, and no backups are running.** ⚠️ The pipeline is also **less complete than "well hardened" suggests**: **no container log rotation** (`setup-profile.sh` never writes `daemon.json`, the compose file declares no `logging:` block — the exact class that filled the game prod disk), **no image prune**, **no monitoring or alerting of any kind**, **no OS baseline hardening**, and a `restart: on-failure` policy that — unlike the game box's `--restart=always` — does **not** bring containers back after a bare Docker daemon restart.
 - **Telemetry** — a config dry-run validated locally before the box is touched; the Uptrace UI is loopback-only, reachable by SSH tunnel. **Two Postgres instances exist and are easy to confuse** — the profile application DB and Uptrace's metadata DB. **Only the former is backed up.**
 
 ### Build, run, test

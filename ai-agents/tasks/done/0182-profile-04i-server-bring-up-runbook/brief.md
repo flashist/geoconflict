@@ -1,5 +1,42 @@
 # Task — Profile Backend: Live server bring-up runbook (T4i, operator/ops)
 
+> 🔴 **CORRECTION 2026-09-04 — THE BOX THIS RUNBOOK STOOD UP STILL EXISTS, BUT ITS STATE IS
+> UNVERIFIED.**
+>
+> **The reconciliation, from two owner statements the same day — both recorded, neither discarded:**
+> first *"We don't have ANY profile-related VPS yet, we would need to have a full-scale setup for it
+> (whatever is needed)"*, then, superseding it, *"We don't need to cancel any billings, the VPS and
+> S3 I created will be reused"* — confirmed: *"Both exist — reuse them in place."*
+>
+> ⇒ **The VPS and the S3 bucket PHYSICALLY EXIST and are REUSED IN PLACE. Whether the stack is
+> provisioned, what is running, and what the bucket holds are UNKNOWN AND UNVERIFIED.** ⚠️ **Hardware
+> existence and provisioning state are two different facts, and only the first is known.**
+>
+> ✅ **This runbook is still the right procedure and it is NOT deprecated.** It is the primary
+> reference for [`0215`](../../backlog/0215-profile-p1-stand-up-the-box/brief.md) (P1) — which is now
+> **inspect → wipe → re-provision IN PLACE**, not a fresh procurement. ✅ **`setup-profile.sh` is
+> idempotent, so re-running it is exactly the right move.** What is stale is every past-tense claim
+> here that a box **is** live — read those as *what this procedure did once*, never as a description
+> of production today.
+>
+> ⚠️ **Two lines in it are WRONG, not merely stale, and both are annotated in place below:** the
+> `PROFILE_INTERNAL_TOKEN` guidance in §4 (🔴 following it silently destroys player XP) and the backup
+> limitation in §8.
+>
+> ⚠️ **The BUCKET is reused; the CREDENTIALS and the `age` KEYPAIR are RE-ISSUED.** Those are
+> different decisions and conflating them is how a half-migrated setup happens. The new keypair's
+> custodian must be recorded **at creation time**
+> ([`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md), P3).
+> 🔴 **The OLD encrypted objects still in that reused bucket are a LIVE owner decision** — unreadable
+> without an `age` identity nobody can name; disposition is
+> [`0222`](../../backlog/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
+>
+> 📌 Epic: [`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md). Full survey:
+> [`2026-09-04-profile-backend-clean-slate-survey.md`](../../../knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md)
+> — **read its §0 if you are unsure what was done and what was not.**
+> **This task's `✅ Done` status is CORRECT and deliberate — the work was done; what happened to the
+> box afterwards is a separate, unverified fact. Do not "fix" the status.**
+
 ## ID
 0182
 
@@ -127,14 +164,46 @@ PROFILE_SSH_KEY=~/.ssh/<your-private-key>
 # PROFILE_SSH_USER=root   # default is root
 ```
 
+> 🔴 **STOP — CORRECTION 2026-09-04. THE NEXT CODE BLOCK'S `PROFILE_INTERNAL_TOKEN` LINE IS WRONG
+> AND FOLLOWING IT SILENTLY DESTROYS PLAYER XP.**
+>
+> ~~*"Optional — leave blank; the box auto-generates and persists it."*~~ **That was true at T4i. It
+> is FALSE now.**
+>
+> `internalAuth` is a `timingSafeEqual` over a **SHARED** secret
+> (`src/profile-server/InternalAuth.ts:14-19`, `:26`). A token the **box** generates for itself, which
+> the **game server** does not hold, produces a **401 on every credit call**.
+>
+> 🚨 **And you will not see it happen.** The profile client is fail-soft with **NO durable queue**
+> (ADR-101), so **the XP is LOST, not queued**, and **nothing logs above `debug`**.
+>
+> ✅ **What to do instead: generate `PROFILE_INTERNAL_TOKEN` ONCE, explicitly, and set the SAME value
+> on BOTH sides** — here on the box, and in the game server's production environment. See
+> [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2), which owns the
+> game-server half, and [`0215`](../../backlog/0215-profile-p1-stand-up-the-box/brief.md) (P1), which
+> owns this half.
+>
+> ⚠️ **There is a SECOND silent barrier on the same path**, and one does not reveal the other:
+> `PROFILE_INTERNAL_ALLOW_IPS` (`example.env.profile:33`) is pinned to a **June** game-prod egress IP,
+> and nginx enforces `allow …; deny all;` at `/internal/` (`setup-profile.sh:719-720`). A stale value
+> ⇒ **403 on every credit call**, swallowed just as quietly. **`0062`'s D3 — a real authenticated call
+> succeeding end to end — is the only check that catches either.**
+>
+> 📌 Recorded 2026-09-04 by the producer, from an fkit-architect scope. Full survey:
+> [`2026-09-04-profile-backend-clean-slate-survey.md`](../../../knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md).
+
 **`.env.profile.secret`** (secrets — keep out of chat/tickets/screen-shares):
 ```ini
 # REQUIRED — generate a strong password, e.g.  openssl rand -base64 32
 POSTGRES_PASSWORD=<strong-generated-password>
 # Registry token for `docker login` (if the repo is private).
 DOCKER_TOKEN=<registry-token>
-# Optional — leave blank; the box auto-generates and persists it.
-# PROFILE_INTERNAL_TOKEN=
+# ⚠️ SUPERSEDED 2026-09-04 — the original line read:
+#     "Optional — leave blank; the box auto-generates and persists it."
+# That is FALSE now. This is a SHARED secret. Leaving it blank makes the box mint its own,
+# the game server 401s on every credit call, and the XP is LOST (fail-soft, no queue, no log
+# above debug). Generate it ONCE and set the SAME value here and in the game server's prod env.
+PROFILE_INTERNAL_TOKEN=<generate-once-set-identically-on-both-sides>
 ```
 
 **Record `POSTGRES_PASSWORD` in the team password manager** before you proceed — it is the
@@ -216,11 +285,23 @@ No DB password or staging-env path should appear in any process argv.
 
 These are by-design gaps in the current scripts; flag them, do not fix them here:
 
-- **Backups are local + weekly + uncompressed.** The cron writes a weekly plain-SQL `pg_dump`
+- ~~**Backups are local + weekly + uncompressed.** The cron writes a weekly plain-SQL `pg_dump`
   into `/opt/profile/backups` on the same disk (`setup-profile.sh:688`); offsite reg.ru S3 +
   nightly + a restore drill are **deferred to T8** (`0189-postgres-backup-routine`). Until T8 ships,
   treat the box as **not durably backed up** — fine now (no real data yet), but it must be wired
-  before paid citizenship / real profile data goes live.
+  before paid citizenship / real profile data goes live.~~
+  📌 **SUPERSEDED 2026-09-04 — two things in the struck text are now wrong.**
+  **(1)** The cited line `setup-profile.sh:688` has **MOVED**; do not navigate by it. **(2)** The
+  off-box path it calls *"deferred to T8"* has **SHIPPED** — nightly **encrypted off-box** backups
+  exist and **fail CLOSED at deploy** (`setup-profile.sh:889-908`), and a **scripted restore** exists
+  at `profile-backup.sh:192-262`.
+  ⚠️ **What is still TRUE, and it is the part that matters:** the restore has **never been proven
+  against non-empty data.** The 2026-07-01 drill ran against an **empty** DB (0 rows — see `:147-153`
+  below) **and** predates the default-deny guard, so **its command line no longer works.**
+  🚨 **The gate stands in full: "A backup that has never been restored is not a backup."** Discharging
+  it is [`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)
+  (P3), which also fixes the defect that made this urgent — **the previous `age` private key had no
+  recorded home, and when asked on 2026-09-04 the owner did not know what it was.**
 - **Docker images are not auto-pruned**, and the previous image is retained for rollback, so
   image storage grows across redeploys. Run `docker image prune -f` periodically (keep current +
   rollback). The script logs a disk warning to `/var/log/disk-warnings.log` once `df /` exceeds

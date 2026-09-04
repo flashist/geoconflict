@@ -177,8 +177,28 @@ Three things look like dead code or half-finished config and are **deliberate**.
 
 ## Current focus
 
-Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic is complete and the
-profile backend is live. The active chain is: **degraded-mode UX treatment → Citizenship Earned →
+Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic is complete and
+~~the profile backend is live~~ 🔴 **CORRECTED 2026-09-04 — that is NOT claimable.** The profile
+**code, deploy scripts, migrations and runbook all exist and are merged.** What is unknown is the
+**running state**.
+
+> **The reconciliation, from two owner statements the same day — both recorded, neither discarded:**
+> first *"We don't have ANY profile-related VPS yet…"*, then, superseding it, *"We don't need to
+> cancel any billings, the VPS and S3 I created will be reused"* — confirmed: *"Both exist — reuse
+> them in place."*
+>
+> ⇒ **A profile VPS and an S3 bucket PHYSICALLY EXIST and are being reused in place. Whether the
+> stack is provisioned, what is running, and what the bucket holds are UNKNOWN AND UNVERIFIED.**
+> ⚠️ **Hardware existence and provisioning state are two different facts, and only the first is
+> known.** That gap is the owner's standing complaint — *"I am completely lost about what was done
+> and what wasn't"* — not a contradiction.
+
+The work to close it is epic
+[`0213`](../tasks/backlog/0213-profile-backend-clean-slate-rebuild/brief.md) — **wipe and rebuild onto
+the existing box and bucket** (phases P0–P7, all in Sprint 4 by owner ruling). The survey behind it,
+whose §0 answers *"what was done and what wasn't"* directly, is
+[`2026-09-04-profile-backend-clean-slate-survey.md`](reports/2026-09-04-profile-backend-clean-slate-survey.md).
+The active chain is: **degraded-mode UX treatment → Citizenship Earned →
 Citizenship Paid**, with Yandex payments infrastructure and the (externally blocked) Yandex catalog
 registration alongside. Owner's near-term priority (2026-08-08): finish the Sprint 4 monetization
 lane first.

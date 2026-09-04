@@ -131,6 +131,27 @@ which drifts, and which is then the thing lying to us.
 5. **Non-empty check for required variables.** The heredoc substitutes whatever the deploying shell
    has, so a variable that *is* forwarded but unset locally arrives as an empty string. That is the
    leading suspect in `0061` and would not be caught by Phase 1 at all.
+
+   ⚠️ **A DELIBERATELY-BLANK value exists today, and a naive non-empty check would fight it — recorded
+   2026-09-04, a design input for this item, not a defect report.** `PROFILE_INTERNAL_TOKEN` is
+   forwarded correctly (`deploy.sh:312`, `0062`'s fix), but **the owner intentionally blanks its value
+   before a prod release** to keep the citizenship logic switched off until citizenship is ready and
+   the outstanding profile VPS setup work is done. So "forwarded but empty" is, for that one variable,
+   an *intended* state right now. **Whatever list this item ends up enforcing must distinguish
+   "required non-empty" from "deliberately blank for now", or it will fail exactly the deploys the
+   owner means to make.** See `0062`'s brief for the full record.
+
+   🚩 **The mirror risk, and it is the more dangerous one — for whoever runs the next production
+   deploy.** The local `.env.prod` currently holds a **non-empty** value for `PROFILE_INTERNAL_TOKEN`
+   (restored since the 2026-08-29 deploy). The heredoc forwards whatever the deploying shell has, so a
+   deploy run as things stand would push a real token and **silently re-enable profile upsert and
+   match-XP crediting in production**, ahead of citizenship go-live. **Blanking it is a manual step
+   with no automated guard.** ⚠️ **`npm run check:config-parity` does NOT catch this** — Phase 1
+   compares variable **names only** (`scripts/check-config-parity.mjs`: it "never opens a `.env` file,
+   never reads the process environment"), and this variable *is* forwarded correctly, so there is
+   nothing for it to report. Catching a value that is present when it should be blank is a **Phase 2**
+   concern and does not exist yet. `0054`'s client flag hides the citizenship *card*, not the
+   server-side crediting.
 6. **A small, explicit list of format assertions** — not general well-formedness. Proposed starting
    set, to be confirmed with the owner, deliberately narrow:
    - URL-shaped variables (`PUBLIC_PROTOCOL`, `API_BASE_URL`, `JWT_ISSUER`, `PROFILE_API_URL`) in the
@@ -219,8 +240,18 @@ which drifts, and which is then the thing lying to us.
 - **🔁 A THIRD instance landed 2026-08-28 — and it is the first in the profile pipeline.**
   [`0195-forward-yandex-payments-secret-in-profile-deploy`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md):
   `YANDEX_PAYMENTS_SECRET` is absent from `build-deploy-profile.sh`'s staged-export block, so
-  `setup-profile.sh` writes it **empty** into `profile.env` and every `/v1/payments/*` route fails
-  closed with 503 on the real box — since `0019` shipped. Three consequences for this task:
+  `setup-profile.sh` writes it **empty** into `profile.env` and every `/v1/payments/*` route ~~fails
+  closed with 503 on the real box~~ **would fail closed with 503 on a real box** — since `0019`
+  shipped.
+  🔴 **CORRECTED 2026-09-04 — "on the real box" was never an OBSERVATION.** A profile VPS does exist
+  (owner ruling, superseding an earlier "no VPS" statement the same day — both recorded), **but its
+  running state is UNKNOWN AND UNVERIFIED**, and nobody has ever watched a `/v1/payments/*` request
+  503 there. ✅ **The DEFECT and the FIX are unaffected** — the staged-export omission was real and
+  `0195` fixed it; what was wrong was the phrase presenting a deduction as a sighting.
+  ⚠️ **Read every "on the real box" in this brief as "on a box whose state nobody has checked."**
+  Inspection + rebuild: epic [`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md),
+  phases P0–P7.
+  Three consequences for this task:
   **(i)** the class table above should be read as four rows, not three, and this one confirms the
   merged-`0072` point (a) was right that both pipelines need covering — it is no longer hypothetical;
   **(ii)** the hazard section applies unchanged — **`0195` must land before this guard arms**, or the

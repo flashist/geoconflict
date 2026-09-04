@@ -4,10 +4,35 @@
 0201
 
 ## Sprint
-Backlog
+Sprint 4
+
+➡️ **PROMOTED FROM THE BACKLOG BOARD INTO SPRINT 4 ON 2026-09-04**, on an owner ruling given live in
+session: **all phases P0–P7 of the profile backend clean-slate rebuild go into Sprint 4.** This task
+**is P7** of that epic ([`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md)) — specifically
+its **Phase 2**. The [Backlog board](../../../sprints/backlog.md) row is **kept as a pointer** and
+flipped to `➡️ Moved`, not deleted.
+
+⚠️ **The promotion changes the BOARD PLACEMENT AND NOTHING ELSE.** Scope, status, the already-ruled
+Phase 1 decision, the open step-6 question and the rank below are all unchanged. ⛔ **The three
+merit reasons recorded below for filing this on the Backlog board are now SUPERSEDED as a placement
+argument** — the owner ruled otherwise — **but their substance still stands and is not withdrawn**:
+nothing is broken for players, and the honest note about ADR-035 is why this row was **appended** at
+the bottom of the Sprint 4 board rather than inserted.
+
+📌 **Why the owner's ruling makes sense on merit, recorded so nobody re-opens it:** this is the
+**only one of the eight phases that is startable today**. It needs no box, no CI, no Docker daemon
+and no DB, while P0–P6 all wait on infrastructure that does not exist yet. **Highest leverage per
+hour on the list.**
+
+📌 **`0202` was NOT promoted** and stays on the Backlog board. The `0201` → `0202` sequencing ruled
+2026-09-02 is unaffected.
 
 ## Priority
 Unscheduled
+
+⚠️ **Still `Unscheduled` as a RANK, deliberately.** The owner's 2026-09-04 ruling was **scheduling**
+(which board this sits on), not **ranking**. The producer's merit rank remains **Medium**, stated
+below. **Do not read the Sprint 4 placement as an owner-set priority.**
 
 ⚠️ **The rank below is the producer's, NOT an owner ruling — the owner has still not ruled on this
 task's priority.** The owner authorized *filing this brief* on 2026-09-01 (via `AskUserQuestion` in the
@@ -123,6 +148,29 @@ stayed broken for about two months.
 |---|---|---|
 | `tests/scripts/profile-deploy-hardening.test.sh` | **nothing** | The one that rotted |
 | `scripts/test-check-docker-secret-boundary.sh` | **nothing** | Its header (`:8`) reads `# Requires Docker.` — see the warning below |
+
+> 🔴 **CORRECTED 2026-09-04 — THE COUNT ABOVE IS WRONG. THERE ARE FOUR, NOT TWO.**
+>
+> The architect's profile-backend survey found two more ungated shell harnesses that the `find` behind
+> the table above did not surface. **Re-verified by the producer on 2026-09-04** — all four files
+> exist, and `grep` over `package.json` and `jest.config.ts` returns **no reference** to either of the
+> two new ones:
+>
+> | Harness | Wired to |
+> |---|---|
+> | `tests/scripts/profile-deploy-hardening.test.sh` | **nothing** — the one that rotted |
+> | `scripts/test-check-docker-secret-boundary.sh` | **nothing** — ⚠️ requires Docker, see step 6 |
+> | **`tests/profile-backup-dryrun.sh`** | **nothing** — 🆕 not previously listed |
+> | **`tests/profile-backup-redeploy.sh`** | **nothing** — 🆕 not previously listed |
+>
+> ⚠️ **This widens the task's scope: step 6's in-or-out decision now covers FOUR files, not two**, and
+> the two new ones exercise the **backup** path — which is exactly the path
+> [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) (P3) must prove
+> works, and whose `age`-key custody defect is the epic's most consequential finding. **Decide each
+> file explicitly and record the reason**, as step 6 already requires.
+>
+> ✅ **The shape of the original finding is unchanged and strengthened** — it was already a class, and
+> the class is twice as large as recorded.
 
 By contrast, the *subject* of that second harness — `scripts/check-docker-secret-boundary.sh` — **is**
 wired: `package.json:32` exposes it as `check:docker-secret-boundary`, and `build.sh:110,157` and

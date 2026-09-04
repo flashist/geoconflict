@@ -12,6 +12,52 @@ Medium — first user-facing citizenship benefit; gives the citizenship threshol
 ## Status
 ✅ Done (agent-closed — not owner-verified)
 
+## 🆕 ⚠️ Was the PROFILE-SERVER half ever deployed? — investigated 2026-09-04, UNRESOLVED
+
+**Owner-approved investigation.** This task shipped **two halves in two different images**, and only
+one of them has a known fate.
+
+| Half | Ships in | State |
+|---|---|---|
+| **Client** | The game image | ✅ **In the live release `362a2f9`** |
+| **Profile server** — 3 routes + migration `004` | **A separate image, deployed to the profile box** | ❓ **UNKNOWN** |
+
+### Determined from the repository ✅
+
+| Finding | Evidence |
+|---|---|
+| Migration `004_name_change.sql` **exists** and is merged | `migrations/004_name_change.sql`, added in `d442ac2` |
+| The three routes **exist** and are merged | `src/profile-server/Routes.ts:739` (`POST /v1/profile/name-change-request`), `:784` (`POST /v1/profile/name-change-cancel`), `:~850` (`POST /internal/v1/name-change/decide`) |
+| Migrations run **at deploy time**, not at boot | `src/profile-server/Server.ts:11` |
+| ✅ **Re-running migrations is SAFE** | `migrate.ts:5-6` — `schema_migrations`-tracked, **re-runs are no-ops** |
+| `362a2f9` is a GAME deploy, **not** a profile deploy | `git show --stat 362a2f9` touches only `package.json` / `package-lock.json` |
+| A profile deploy leaves **no record in git** | It runs through `build-deploy-profile.sh` against the box |
+
+### ⛔ NOT determinable from this repository
+
+> **Whether this task's profile-server half was ever deployed CANNOT be answered from the repo.**
+> **There is no artifact in git that records a profile-image deploy.** Stating this plainly is the
+> finding — it is not a gap to close by inference.
+
+**Two checks on the box settle it**, both carried by
+[`0215`](../../backlog/0215-profile-p1-stand-up-the-box/brief.md) field **B8**:
+
+1. Does `schema_migrations` contain `004_name_change.sql`?
+2. Does the running image serve the three routes?
+
+### 🚨 Consequence
+
+**If `004` was never applied, the name-change routes fail against a schema that lacks their tables.**
+⚠️ **This task is already closed, so nothing else is watching for it.**
+
+✅ **Mitigation is cheap and already built** — `migrate.ts` is idempotent, so
+[`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2) **runs it as
+step 0 regardless**, which closes the question without needing to answer it first.
+
+⛔ **This changes NO status.** This task stays `✅ Done (agent-closed — not owner-verified)` — the work
+was built and reviewed; whether its server half reached a box is a **deployment** fact, which is
+exactly what that marker already warns about.
+
 ## ⚠️ Close-out — read this before treating the task as shipped (2026-08-28)
 
 **Effective posture: built-awaiting-deploy — the same posture as `0062` and `0063`. Nothing in this

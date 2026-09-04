@@ -25,6 +25,27 @@ The implementation deliberately keeps match cleanup independent of the profile b
 Identity trust remains a known boundary: current earned-XP crediting still uses the server-visible Yandex ID as an opaque key, not a signed identity proof. Paid entitlements remain reserved for the later Yandex Payments verification path.
 
 > **Production status (verified 2026-08-23):** this path is complete in code but **no-ops in production** — `deploy.sh` never forwards `PROFILE_INTERNAL_TOKEN`, so `ProfileApiClient.isConfigured()` is false and no credit call is ever made (task `0062`, one-line fix). See [[systems/player-profile-store]].
+>
+> 🔴 **UPDATED 2026-09-04 — THE REASON MAY BE BIGGER THAN `0062`: THE PROFILE HOST EXISTS, BUT WHAT
+> IT IS SERVING IS UNVERIFIED.** ⚠️ **This supersedes an earlier same-day annotation here reading
+> "THERE IS NO PROFILE HOST TO CREDIT"; that overstated the owner's position and is withdrawn.**
+> Owner rulings, both given live in session 2026-09-04 and **both standing**: *"We don't have ANY
+> profile-related VPS yet, we would need to have a full-scale setup for it (whatever is needed)"*,
+> then *"We don't need to cancel any billings, the VPS and S3 I created will be reused."*
+> 🔴 **Reconciled: a profile VPS and an S3 bucket physically EXIST and are REUSED IN PLACE;
+> provisioning state and what runs are UNKNOWN AND UNVERIFIED.** So a non-blank token only reaches a
+> working endpoint if the box is actually serving the stack, which nobody has confirmed.
+> ⚠️ **Stated as strong inference, NOT as verified fact: this crediting path has almost certainly
+> NEVER worked in production** — `0062` exists precisely because `PROFILE_INTERNAL_TOKEN` never
+> reached the production game server. **Nobody has measured that; do not upgrade it to a measurement.**
+> ⛔ **The T6 code is not in question** — it is complete and its idempotency is verified against real
+> Postgres. It is waiting on infrastructure whose state nobody can vouch for. The wipe-and-rebuild
+> **onto the existing box** (`0213`–`0222`, Sprint 4) is what gives it a verified target: inspect and
+> re-provision first (`0215`), then the game-server wiring (`0217`), then
+> `0062`'s D3 — one authenticated call working end to end — which is **the only check that catches the
+> two silent barriers** on this path (a self-generated token ⇒ **401**; a stale
+> `PROFILE_INTERNAL_ALLOW_IPS` ⇒ **403**, both invisible under ADR-101's fail-soft, no-queue client).
+> Grounding: `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md`.
 
 ## Related
 

@@ -9,9 +9,25 @@ Sprint 4 — compliance-driven change to the Player Profile Store identity handl
 ## Priority
 **High — gates profile-store production go-live.** This replaces the old 152-ФЗ legal gate: per the
 investigation decision, real raw Yandex IDs must not be persisted in production, so this must be in
-place **before T6 credits real players** in prod. The profile box (T4) and DB/API (T5) just went live
+place **before T6 credits real players** in prod. ~~The profile box (T4) and DB/API (T5) just went live
 with little/no real data, so the schema change is cheapest to make **now**, before real profiles
-accumulate.
+accumulate.~~
+
+🔴 **CORRECTED 2026-09-04 — "just went live" is stale, and its running state is UNVERIFIED.** The June
+bring-up really happened; nobody has verified the box since. **The VPS and S3 bucket DO exist and are
+being reused in place** — owner ruling given live in session, superseding an earlier *"we don't have
+ANY profile-related VPS yet"* statement the same day; **both are recorded, neither is discarded.**
+⚠️ **What is on them is UNKNOWN AND UNVERIFIED** — hardware existence and provisioning state are
+different facts, and only the first is known.
+
+⛔ **This correction changes NOTHING about this task's cancellation.** `0187` is `⛔ Cancelled
+(2026-06-28)` because hashing does not remove the 152-ФЗ obligation and PR #127 was reverted — that
+reasoning is unaffected by whether a box exists. **Do not read this note as grounds to revisit the
+cancellation.**
+
+📌 **One live consequence, filed elsewhere:** `PROFILE_ID_PEPPER` — the obsolete secret this reverted
+approach introduced — **is still set in the local secret env file.** Cleanup is
+[`0222`](../../backlog/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
 
 ## Status
 ⛔ Cancelled (2026-06-28) — superseded: hashing does not remove the 152-ФЗ notification/consent obligation; PR #127 reverted

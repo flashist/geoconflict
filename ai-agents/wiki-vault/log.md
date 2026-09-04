@@ -2046,3 +2046,177 @@ What the lint checked, and what it does not discharge, is recorded in place.
   standing). Two rows were added this lint (`0208`, `0211`) because the page's own header says they
   were scheduled and they are the sprint's live work. **Whether this table should mirror the board or
   stay curated is not a lint decision.**
+
+---
+
+## 2026-09-04 — targeted correction ("the profile host is live" — the vault's last copy)
+
+**Scope: ONE stale claim and its sweep. Not an ingest, not a sync, not a lint** — the caller scoped it
+that way explicitly and no broader pass was run. **`.wiki-watermark` UNTOUCHED.**
+
+**The claim, and the ruling that kills it.** [[systems/project-brief]] `:64` read *"the profile host is
+live"*. **Owner ruling, given live in session 2026-09-04:** *"We don't have ANY profile-related VPS
+yet, we would need to have a full-scale setup for it (whatever is needed)."* The host is gone, or
+never properly stood. The owner has since ruled a **clean-slate rebuild** — new VPS, new S3 bucket,
+new `age` keypair — tracked as **`0213` (epic) → `0222`, plus `0201`**, all scheduled into Sprint 4.
+
+⛔ **The opposite error is equally wrong and is guarded against in every edit below: the profile
+backend WAS built.** Service code, Docker image, `setup-profile.sh` (~1,025 lines — genuinely
+provisions a bare box *and* deploys the stack), `build-deploy-profile.sh`, the backup script with a
+scripted restore path, and a complete operator runbook all exist and are sound. **Only the running
+machine is missing.**
+
+**Provenance.** A producer applied the same correction at **13 sites outside the vault** the same day
+(`PROJECT.md:181`, `architecture.md`'s topology diagram, four `plan-sprint-4.md` sites, and briefs for
+`0013`, `0191`, `0187`, `0064`, `0195`), and deliberately left the vault alone under ADR-005. Full
+grounding, including a three-column *exists in the repo / never run in production / believed true but
+now known false* table at its §0:
+`ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md`.
+
+### Fixed — 15 pages, 22 sites (strike-not-delete, dated, per the vault's standing style)
+
+- [[systems/project-brief]] — `:64` **the named site**; plus the four-tier paragraph (*"three
+  self-hosted VPS fleets"* → **two stand, not three**) and a new Gotchas bullet, because this is the
+  claim most likely to mislead a reader of this vault.
+- [[systems/player-profile-store]] — read-first banner; *Summary* (**"It runs as…"** → designed and
+  scripted to run); the *Dedicated host* bullet; the backup gotcha; the payments-503 gotcha reframed.
+- [[systems/architecture-overview]] — *Profile backend tier* banner; *Deployment* (**three fleets →
+  two**); the profile deploy bullet, which also now carries the gaps behind *"well hardened"* (no log
+  rotation, no image prune, no monitoring, no OS hardening, `restart: on-failure`).
+- [[decisions/sprint-4]] — the T4-complete claim (*"The profile box is live"*), the T4e2–T4i
+  consequence (*"a live 200/TLS profile host"*), the `0195` board row, the `0062` board row, and the
+  page's opening state paragraph.
+- [[decisions/config-parity-failure-class]] — banner + the `0195` table cell. **The failure class is
+  untouched and all three instances stay real.**
+- [[decisions/profile-deploy-hardening-review-loop]] — *"operator bring-up of the live host"*.
+- [[tasks/profile-server-bring-up-runbook]] — the strongest stale claim in the vault (*"the real reg.ru
+  host is provisioned, DNS points at …, HTTPS `/health` returns 200 over valid TLS"*), plus the
+  **`PROFILE_INTERNAL_TOKEN` trap** and the rebuild's open decisions.
+- [[tasks/profile-vps-provisioning]] — *"The provisioned host establishes…"* / *"The live host still
+  needs…"*, plus the gaps this slice never covered.
+- [[tasks/postgres-backup-routine]] — **no backups are running**; the three durability gaps, including
+  the `age` key with no recorded home.
+- [[tasks/profile-match-end-crediting]] — the reason it no-ops is bigger than `0062`.
+- [[tasks/profile-backend-db-api]], [[tasks/profile-onbox-stack-gate]],
+  [[tasks/profile-game-server-deploy-env]], [[tasks/player-profile-store-investigation]],
+  [[tasks/citizenship-xp-progress-ui]] — shorter notes in the same shape.
+- [[tasks/yandex-payments-secret-forwarding]], [[tasks/yandex-payments-implementation]],
+  [[tasks/citizenship-name-change]] — the *"503s on the real box"* narrative. ⛔ **`0195`'s CODE FIX
+  STANDS** — that guard is written into every one of those edits, per the survey's §7.
+- `index.md` — 7 entries updated ([[systems/project-brief]], [[systems/player-profile-store]],
+  [[tasks/profile-vps-provisioning]], [[tasks/profile-server-bring-up-runbook]],
+  [[tasks/postgres-backup-routine]], [[tasks/profile-match-end-crediting]], [[decisions/sprint-4]]).
+
+### Recorded as inference, never as fact
+
+**Match-end XP crediting has almost certainly never worked in production** — `0062` exists precisely
+because `PROFILE_INTERNAL_TOKEN` never reached the production game server, and there is now no host it
+could have credited. **Nobody measured it.** Every page that carries it carries that qualifier.
+
+### ⚠️ Flagged — not fixed, deliberately
+
+- **[[tasks/citizenship-name-change]]'s "the code shipped" claim was NARROWED, not resolved.** The
+  ancestry check proves `0067`'s code is in the **game** release `362a2f9`; its three profile-server
+  routes and migration 004 ship in a **separate image to a separate box that does not exist**. Whether
+  those routes ever ran on the box that used to stand **is not established anywhere I could see**, and
+  I did not assume it either way.
+- **[[decisions/sprint-4]] and `index.md` do NOT yet carry the `0213`–`0222` rows or a re-count.** The
+  rebuild tasks are named in the corrections but the board table and the counts are unchanged — that
+  is ingest work, and no ingest was authorized in this pass.
+- **A broader ingest of 2026-09-04's profile-backend work is RECOMMENDED and was NOT run.** See the
+  reply to the caller.
+
+## 2026-09-04 — correction to the correction ("there is NO profile VPS" was an overstatement)
+
+**This entry SUPERSEDES the framing of the 2026-09-04 entry above, *"targeted correction ('the profile
+host is live' — the vault's last copy)"* (`log.md:2052`).** That pass was instructed, on what was
+presented as an owner ruling, that **there is NO profile VPS**, and it faithfully wrote that into the
+vault. ⛔ **The instruction overstated the owner's position; the owner has since corrected it. This is a
+correction to the caller's error, not to that pass's work** — the pass did what it was told, and every
+guard it wrote that is still true has been kept.
+
+Per this vault's own convention the earlier entry **stays in the append-only log exactly as written**
+(the same treatment `schema.md` gives the superseded public-hostname lint entries). It is **superseded,
+not open**, and a future lint must not re-raise its claims.
+
+### The framing that now stands
+
+Two owner rulings of 2026-09-04, **both given live in session, both true, neither discarded**:
+
+1. *"We don't have ANY profile-related VPS yet, we would need to have a full-scale setup for it
+   (whatever is needed)."*
+2. On a direct follow-up: *"We don't need to cancel any billings, the VPS and S3 I created will be
+   reused."*
+
+> 🔴 **Reconciled: a profile VPS and an S3 bucket PHYSICALLY EXIST and are REUSED IN PLACE. What is on
+> them — provisioning state, what runs, what the bucket holds — is UNKNOWN AND UNVERIFIED. Hardware
+> existence and provisioning state are two different facts, and only the first one is known.**
+
+🔴 **"Clean slate" now means WIPE AND REBUILD ONTO EXISTING RESOURCES, not procure new ones.** The
+owner's *"I think I am completely lost here about what was done and what wasn't"* is the honest state
+of the provisioning, and **that uncertainty is itself the fact recorded** — not a claim in either
+direction. Source of the wording: `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md`
+(§0 the reconciliation, §5 the UNKNOWN-state table, §13 the correction to the corrections).
+
+### Pages re-corrected — 19 files, 37 edit sites (18 pages + `index.md`)
+
+- [[systems/player-profile-store]] — READ-FIRST banner rewritten; the "runs at `api.geoconflict.ru`"
+  strike, the *Dedicated host* bullet, the backups bullet and the `0195` bullet all re-framed to
+  **unverified**. New: the `api.` subdomain rationale, and the re-opened `age`-key decision.
+- [[systems/project-brief]] — the three-fleet line, the *Current focus* correction, and the
+  Gotchas entry; a new Gotchas entry for the `api.` subdomain ruling.
+- [[systems/architecture-overview]] — *Profile backend tier* banner and the deploy-topology line.
+- [[decisions/sprint-4]] — 5 sites: the page-head warning, the T4 correction, the `0062` row, the
+  `0195` row, and the T4e–T4i line.
+- [[decisions/config-parity-failure-class]] — the 2026-09-04 banner and its rebuild pointer.
+- [[decisions/profile-deploy-hardening-review-loop]] — the "live host" strike.
+- [[tasks/profile-server-bring-up-runbook]] — the bring-up correction and the rebuild-context note
+  (hostname reuse now settled; `0216` runnable today; `0222` carries the old-object decision).
+- [[tasks/postgres-backup-routine]] — the "no backups are running" correction, and 🔴 **the `age`-key
+  question RE-OPENED**, replacing the entry that had recorded it closed.
+- [[tasks/profile-match-end-crediting]], [[tasks/profile-vps-provisioning]],
+  [[tasks/profile-backend-db-api]], [[tasks/profile-onbox-stack-gate]],
+  [[tasks/profile-game-server-deploy-env]], [[tasks/player-profile-store-investigation]],
+  [[tasks/citizenship-xp-progress-ui]], [[tasks/yandex-payments-secret-forwarding]],
+  [[tasks/yandex-payments-implementation]] — same re-framing, in each page's own register.
+- [[tasks/citizenship-name-change]] — rewritten to the repo-evidence position: **whether `0067`'s
+  profile-server half ever deployed is NOT determinable from the repository** (a profile deploy leaves
+  no artifact in git), and `migrate.ts` is idempotent so `0217` runs migrations regardless.
+- `index.md` — 5 entries re-corrected ([[systems/project-brief]], [[systems/player-profile-store]],
+  [[decisions/sprint-4]], [[tasks/profile-match-end-crediting]], [[tasks/postgres-backup-routine]]).
+
+Every withdrawn phrase is **quoted in place and marked withdrawn** — strike-not-delete, so a reader who
+remembers the earlier wording can see what happened to it.
+
+### Also recorded this pass
+
+- 🔴 **The `api.` subdomain is architecturally required, not incidental** (owner, 2026-09-04): Yandex
+  Games permits only ONE main domain for an iframe game, so everything routes through subdomains of it.
+  **Reuse the existing hostname** — ruled, not a convenience choice. ⚠️ Standing caution recorded
+  alongside it: **a DNS record resolving proves nothing about a server running.**
+- 🔴 **The `age`-key question is RE-OPENED.** With the bucket reused, pre-existing encrypted objects are
+  still in it and are unreadable without the old private identity. **Purge, or keep pending a search?**
+  — a live owner decision tracked in `0222`.
+- 📌 **`0222` renamed** to `0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects` and
+  **rescoped from decommissioning to cleanup** — nothing is being decommissioned.
+- ⚠️ **`0217` may carry an unapplied migration `004`** — `migrate.ts` is idempotent, so running it is
+  the cheap mitigation; do not investigate first.
+- ⚠️ **Trap 3 gets MORE likely under the reframe**, recorded on [[tasks/profile-onbox-stack-gate]]:
+  rotating `POSTGRES_PASSWORD` against a **surviving data volume** breaks auth, and rebuilding onto an
+  existing box is exactly where a volume may outlive the password.
+
+### Guards deliberately KEPT from the earlier pass
+
+- ⛔ **The backend WAS built** — code, image, scripts and runbook all exist and are sound.
+- ⛔ **`0195`'s code fix stands**; only its production narrative was ever wrong.
+- ⚠️ **Match-end XP crediting has almost certainly never worked in production — INFERENCE, not
+  measurement.** Still carried with that qualifier on every page.
+
+### ⚠️ Flagged — not fixed, deliberately
+
+- **[[decisions/sprint-4]] and `index.md` still do NOT carry the `0213`–`0222` rows or a re-count.**
+  Unchanged from the earlier pass: that is ingest work, and no ingest was authorized here either.
+- **No ingest and no sync was run**, by instruction. `.wiki-watermark` untouched.
+- **The 2026-09-04 "targeted correction" log entry above was NOT edited** — append-only, per this
+  vault's convention for superseded entries. A reader landing on it directly sees the old framing
+  until they reach this entry.

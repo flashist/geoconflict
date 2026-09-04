@@ -12,7 +12,7 @@ for users *now*, this blocks `0017`/`0018` from ever working. Cheapest high-valu
 the fix itself is one line.
 
 ## Status
-🚧 Blocked — built + reviewed 2026-08-24 (Ready to merge, validation-gated); **deployed 2026-08-29 in `362a2f9` — INFERRED from commit ancestry, NOT verified**; verification D1–D5 not yet run
+🚧 Blocked — built + reviewed 2026-08-24 (Ready to merge, validation-gated); **deployed 2026-08-29 in `362a2f9` — INFERRED from commit ancestry, NOT verified**; ~~verification D1–D5 not yet run~~ **D2 WAS RUN 2026-09-04 and returned an EMPTY token — the result is INCONCLUSIVE, neither confirming nor refuting the fix, because the owner deliberately blanked the value before the 2026-08-29 deploy** (correction 2026-09-04); D1 and D3–D5 not yet run. **The blocker is citizenship readiness + outstanding profile VPS setup work — NOT an unrun command.**
 
 ⚠️ **Why the word "inferred" is load-bearing here.** The fix commit `680fb2d` (2026-08-24) **is** an
 ancestor of the production deploy commit `362a2f9` ("DEPLOY prod: bump version to 0.0.140",
@@ -20,9 +20,91 @@ ancestor of the production deploy commit `362a2f9` ("DEPLOY prod: bump version t
 `git show 362a2f9:deploy.sh` carries the forwarding line at `:292`. **None of that is proof the fix
 is live.** `deploy.sh` runs from the owner's **local working tree** at deploy time, not from a
 committed tree, and what that tree contained on 2026-08-29 is **not recoverable from git**.
-**`D2` is the step that turns this inference into fact** — reading the running container's
+~~**`D2` is the step that turns this inference into fact** — reading the running container's
 environment for a non-empty `PROFILE_INTERNAL_TOKEN` (worklog, Deploy-pending section). Until D2
-runs, "live in production" is an inference and must be written as one.
+runs, "live in production" is an inference and must be written as one.~~
+
+📌 **CORRECTED 2026-09-04 — the sentence above was true only under a condition it never stated.**
+`D2` turns the inference into fact **ONLY on a deploy whose source value was non-empty.** Reading an
+empty variable out of the container proves nothing: **forwarding an empty value and never forwarding
+at all are indistinguishable at the container** — both produce an empty variable. So the correct
+reading of `D2` is:
+
+| What `D2` reads in the container | What it proves |
+|---|---|
+| **non-empty** `PROFILE_INTERNAL_TOKEN` | The fix is live. Inference → fact. |
+| **empty**, and the source `.env.prod` value was non-empty at deploy time | The fix did **not** work. A real refutation. |
+| **empty**, and the source value was **blank** at deploy time | **Nothing. Inconclusive.** ← this is what happened on 2026-09-04 |
+
+"Live in production" stays an inference and must still be written as one.
+
+### 🚩 D2 was run 2026-09-04 — the result is INCONCLUSIVE, not a refutation and not a confirmation
+
+**Do not re-run `D2` and read an empty result as a failure of the fix.** What was established on
+2026-09-04, against the live production container:
+
+1. The prod `geoconflict-prod` container reports `PROFILE_INTERNAL_TOKEN` as **empty**.
+2. The container has been up ~6 days — consistent with the 2026-08-29 deploy of `362a2f9`.
+3. **The owner deliberately blanked the value before that release**, to keep the citizenship logic
+   switched off. The empty variable is an intended state, not a deploy defect.
+4. `deploy.sh:312` carries `PROFILE_INTERNAL_TOKEN=${PROFILE_INTERNAL_TOKEN}` — **this task's fix is
+   present in the script** (it sat at `:292` in `362a2f9`; the shift is `0064`'s guard, nothing
+   token-related).
+5. The local `.env.prod` now holds a **non-empty** value for that key again, restored since that
+   deploy.
+
+**Therefore:** the 2026-08-29 deploy exercised this fix with an empty input, so it could not test the
+fix in either direction. **The code path has never been exercised with a real value.** The earlier
+"deployed 2026-08-29, INFERRED from commit ancestry" claim is **not refuted** — the fix was genuinely
+in the deployed tree — it remains **unverified**, and we now know *why* it cannot be verified yet.
+
+### 🚧 The real blocker is structural, not a missing command
+
+This task cannot be verified while the owner deliberately keeps the token blank. **Owner, 2026-09-04,
+verbatim:** *"I probably will keep it blank again, because the citizenship is not fully ready to be
+deployed yet and we need to do some additional work in terms of the profile VPS setup."*
+
+So the blocker on `0062` is **citizenship readiness + the outstanding profile VPS setup work** — not
+"nobody has run `D2` yet". Any task blocked on `0062` inherits that reason: `0017` and `0012` (their
+Deferred Live Tails) and `0065` (one of its three conditions).
+
+### ⚠️ Deploy-time forget-risk — READ BEFORE THE NEXT PRODUCTION DEPLOY
+
+The local `.env.prod` holds a **non-empty** value for `PROFILE_INTERNAL_TOKEN` today.
+`deploy.sh:312` forwards whatever the local shell has — **correctly**. So a production deploy run
+right now would forward a real token and **silently re-enable profile upsert and match-XP crediting
+in production**, before citizenship is ready to go live.
+
+- **Blanking the value is a MANUAL step with no automated guard.** Nothing in the repo checks it.
+- **`npm run check:config-parity` does NOT catch this.** It compares environment variable
+  **names only** — `scripts/check-config-parity.mjs` states it "never opens a `.env` file, never
+  reads the process environment". It reports variables the app reads that a deploy never forwards;
+  here the deploy forwards this one correctly, so there is nothing for it to report. A *value* being
+  intentionally blank is outside what that tool can see, by design.
+- `0054`'s client flag (default OFF) still hides the citizenship **card**, but it does not stop
+  server-side upsert or XP crediting.
+
+**Before the next prod deploy: decide deliberately whether this value should be blank, and do it by
+hand.** Recorded 2026-09-04.
+
+> 🔴 **RULED 2026-09-04 — NO GUARD WILL BE BUILT. Owner, verbatim: *"Neither — I'll just
+> remember."***
+>
+> Two options were put to the owner — an **automated guard** at deploy time, or a **deploy checklist
+> item** — and **both were declined.** They will blank `PROFILE_INTERNAL_TOKEN` by hand at each
+> deploy.
+>
+> ⛔ **This is a DECISION, not an oversight. Do NOT file a task for it, and do NOT re-recommend one.**
+>
+> ⚠️ **The risk above is ACCEPTED, not removed.** It stays written here, at the top of the task a
+> deployer opens, because that is the only place it can do any good. **The manual step is the
+> control.**
+
+> 🔴 **THIS TASK STAYS IN SPRINT 4 — owner ruling 2026-09-04, given live in session, OVER the
+> producer's recommendation to move it to the Backlog board.** The producer's argument was that the
+> task is structurally blocked on profile-VPS work and would sit unworkable in the sprint; **the owner
+> chose to keep it here.** ⛔ **Recorded, not re-argued.** The work that discharges it is
+> [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2).
 
 *(Marker set by the lead 2026-08-24 per producer recommendation. **Reworded 2026-09-04 on an owner
 ruling given live in session**: the previous wording — `awaiting deploy proof (D1–D3)` — was stale in

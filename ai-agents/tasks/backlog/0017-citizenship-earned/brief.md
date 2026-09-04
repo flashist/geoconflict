@@ -12,6 +12,16 @@ High — the primary citizenship path for most players. Independent of Yandex Pa
 ## Status
 🚧 Blocked — built + reviewed (local scope); open pending the `0062`-gated Deferred Live Tail (prod XP accrual, live grant, `0054` flip-ON)
 
+📌 **Inherited blocker reason corrected 2026-09-04.** `0062`'s `D2` check was run that day against the
+live prod container: `PROFILE_INTERNAL_TOKEN` reads **empty**, but **the owner deliberately blanked it
+before the 2026-08-29 deploy**, so the result is **inconclusive** — the fix is in `deploy.sh:312` and
+has simply never been exercised with a real value. **What this task waits on is therefore NOT "someone
+running `0062`'s verification" — it is citizenship readiness + the outstanding profile VPS setup
+work**, which is why the owner intends to keep the token blank. Owner, 2026-09-04, verbatim: *"I
+probably will keep it blank again, because the citizenship is not fully ready to be deployed yet and
+we need to do some additional work in terms of the profile VPS setup."* Nothing else about this task's
+scope or status changes.
+
 *(Re-scoped 2026-08-23 by owner ruling — "maximize work that can proceed without anything real from
 Yandex; don't block on external turnaround." The blocker record is corrected: this task never
 depended on `0014`/Yandex payments, and `0062` blocks only the **production effect**, not the build.
@@ -141,7 +151,10 @@ If a `Citizenship:Earned` funnel event is wanted in the future, add it then.
 ## Deferred Live Tail — gated on `0062`; NOT part of the buildable scope
 
 The only pieces that genuinely need production. They do not block starting, building, or locally
-verifying anything above. Execute once `0062` has shipped and a deploy has run:
+verifying anything above. ~~Execute once `0062` has shipped and a deploy has run:~~ **Corrected
+2026-09-04: `0062`'s fix has shipped and a deploy HAS run — but with the token deliberately blanked,
+so prod profile integration is still OFF and this tail still cannot run.** Execute once the token is
+deployed **non-empty**, which waits on citizenship readiness + profile VPS setup work:
 
 1. **Prod profile integration is actually on.** `0062`'s own verification 2–3: `PROFILE_INTERNAL_TOKEN`
    reaches the prod `.env` non-empty, and an authenticated profile call succeeds end to end.

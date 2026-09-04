@@ -19,6 +19,19 @@ Turn the start-screen citizenship card from a shell into a live XP/progress surf
 
 ## Outcome
 
+> 🔴 **2026-09-04 — WHETHER THIS CARD HAS A LIVE PROFILE HOST TO READ IS UNVERIFIED.** ⚠️ **This
+> supersedes an earlier same-day annotation here reading "THERE IS NO PROFILE HOST FOR THIS CARD TO
+> READ"; that overstated the owner's position and is withdrawn.** Owner rulings, both given live in
+> session 2026-09-04 and **both standing**: *"We don't have ANY profile-related VPS yet, we would need
+> to have a full-scale setup for it (whatever is needed)"*, then *"We don't need to cancel any
+> billings, the VPS and S3 I created will be reused."* 🔴 **Reconciled: the profile VPS exists and is
+> reused in place; whether it is serving anything is UNKNOWN AND UNVERIFIED.** ⛔ **The client code is
+> not in question** — it is built, tested and correct, and its degraded/zero-state path is exactly
+> what an unreachable backend produces. Two gates keep this moot in production anyway:
+> `CITIZENSHIP_CARD_ENABLED` is `false`, so **the card has never been seen in a browser**, and no
+> profile writes reach any database. The same correction was applied to `0191`'s brief the same day.
+> Wipe-and-rebuild onto the existing resources: `0213`–`0222` plus `0201`, Sprint 4.
+
 The XP/progress card now reads server profile state for authorized players. Guests in a real Yandex context still see the login CTA, while the later no-SDK follow-up hides that CTA for standalone/local sessions where auth cannot work. Degraded profile reads show a logged-in zero-state rather than blocking or falling back to guest UI. Earned-citizenship notification and paid-purchase UI remain separate Sprint 4 tasks.
 
 ## Related
