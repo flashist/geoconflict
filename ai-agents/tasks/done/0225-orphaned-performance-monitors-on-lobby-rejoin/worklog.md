@@ -162,7 +162,7 @@ lost, **not acted on here**:
 
 `0227`'s brief rules the **worker-init-failure** site out of its own scope on the stated ground that
 it is a *"worker-init failure that returns before the game ever starts"*
-(`ai-agents/tasks/backlog/0227-crashed-game-leaves-performancemonitor-running/brief.md:155-159`).
+(`ai-agents/tasks/done/0227-crashed-game-leaves-performancemonitor-running/brief.md:155-159`).
 **That reasoning does not hold.** I verified it against source this session: `onJoin()` is called at
 `ClientGameRunner.ts:204`, **before** `createClientGame(...)` at `:207`; `worker.initialize()` throws
 inside `createClientGame`, `showErrorModal` runs, and the catch bare-`return`s at `:305`. So a

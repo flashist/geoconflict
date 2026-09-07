@@ -29,7 +29,7 @@ and is NOT ruled.**
 Nothing.
 
 ⚠️ **Closely related, and NOT a duplicate:**
-[`0224`](../0224-gameanalytics-per-user-event-limit-exceeded/brief.md) — the GameAnalytics per-user
+[`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md) — the GameAnalytics per-user
 event-limit breach. `0224` **records this defect as a deferred standing risk and deliberately does not
 fix it** (its Q3, ruled deferred 2026-09-06). **This brief is that deferral, split out and given its
 own row**, on the owner's 2026-09-07 ruling. Read `0224`'s *STANDING, UNMITIGATED RISK* box alongside
@@ -83,7 +83,7 @@ worklog, a report, or the wiki.** `file:line` references only.
 ## Why this matters right now — and the exact limit of what is known
 
 This is the **concrete mechanism** behind the leading hypothesis for the 3–4 Sep GameAnalytics
-breach tracked in [`0224`](../0224-gameanalytics-per-user-event-limit-exceeded/brief.md):
+breach tracked in [`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md):
 
 | Date | Events per active user |
 |---|---|
@@ -192,7 +192,7 @@ reflects that.
   Every `file:line` above was re-verified against `HEAD` = `35afc64` before it was written down.
 - ⚠️ **The only ruling this brief asserts is the board placement.** The mechanism of the fix and the
   dev-key-pair question are both open.
-- 📎 **Split out of [`0224`](../0224-gameanalytics-per-user-event-limit-exceeded/brief.md)'s Q3**,
+- 📎 **Split out of [`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md)'s Q3**,
   which was ruled *deferred, not fixed* on 2026-09-06. ⛔ **`0224` was not modified by this filing
   beyond a cross-reference** — its own record of the deferral stands.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.

@@ -8,7 +8,7 @@
 
 🚨 **THE BOARD IS THE PRODUCER'S CALL, NOT AN OWNER RULING.** The owner ruled, live on 2026-09-07,
 exactly one thing: **this defect ("F4") gets its own task**, because it existed nowhere but inside
-[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md)'s Notes section. **The owner
+[`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md)'s Notes section. **The owner
 did NOT rule which board.** Placement on the Backlog board, and the `Low–Medium` rank below, are both
 **my** judgement as producer and are reversible by the owner at any time. Reasoning is in
 *Board placement — the producer's reasoning* near the end.
@@ -23,7 +23,7 @@ the `adr-1XX` series, so a relative link would not resolve.*
 
 ## Priority
 **Low–Medium *(producer's rank — NOT an owner ruling)*.** Ranked **below**
-[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) *(Medium)* and below
+[`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) *(Medium)* and below
 [`0226`](../0226-deploy-env-fails-open-to-prod-analytics/brief.md) *(Medium–High)*.
 
 🔴 **The rank is low for ONE reason and it is not "small change": NOBODY HAS SHOWN THIS ACTUALLY
@@ -44,7 +44,7 @@ fkit-coder
 
 - **[`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md)** — where this was found,
   and where **half of it is already fixed**. See the next section; read it before planning anything.
-- **[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md)** — where it was
+- **[`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md)** — where it was
   recorded as "F4" in the Notes, which is why the owner ruled it out into its own task.
 
 ---
@@ -69,7 +69,7 @@ described is fixed.
 
 - It was **found during `0225`'s audit, not caused by it.** The code has been this shape for as long
   as `handleJoinLobby` has awaited anything.
-- 🚨 **It has NO BEARING on [`0224`](../0224-gameanalytics-per-user-event-limit-exceeded/brief.md)'s
+- 🚨 **It has NO BEARING on [`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md)'s
   event volume.** It emits nothing, it changes no event, and it is not a contributor to the 3–4 Sep
   breach — **which remains UNEXPLAINED.** Stated flatly so this never gets bundled into the analytics
   story: **this is a lobby re-entrancy defect that happens to have been found while reading analytics
@@ -165,6 +165,42 @@ brief says so rather than leaving it sounding scarier than it is.**
 ---
 
 ## What to build
+
+### 📌 Carried-in residual **R6** from [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) — **docs only, no code change**
+
+🚦 **Severity LOW. This is a COMMENT fix.** It changes no behaviour, adds no logic, and is independent
+of phase 1 and phase 2 — it can be done whether or not the race turns out to be reachable.
+
+⚠️ **ROUTING: recorded here by the fkit LEAD at `0227`'s close (2026-09-07). This is NOT an owner
+ruling.** It was routed to this task because this task owns the `handleJoinLobby()` interleave work and
+will have that exact region of `Main.ts` open. ✅ **If the coder judges it a poor fit, hand it back
+rather than forcing it** — it then belongs on `0227`'s ledger as an unassigned residual.
+
+**What is wrong.** `src/client/Main.ts:144-145` — the comment above the `joinGeneration` field still
+describes the semantics that **R4 broke and round 2 of `0227`'s review replaced**. It says the counter
+is incremented on every `joinLobby` call *"so a superseded game's teardown callback can tell it is no
+longer the current game."* 🔴 **That is exactly what the guard NO LONGER DOES.** Ownership moved to
+`monitorGeneration` (`Main.ts:151`, set at `:769` where the monitor is actually started, checked at
+`:793`); `joinGeneration` is now only the mint counter.
+
+**Why a stale comment is worth recording.** It presents `joinGeneration` as the ownership pointer,
+which **invites a future "simplification" back to `!== this.joinGeneration` — REINTRODUCING R4
+VERBATIM.** R4 was the defect where the guard keyed on *"who joined last"* rather than *"who owns the
+live monitor"*, and **inverted under the await at `Main.ts:707`**.
+
+🟢 **Blast radius is limited:** the `monitorGeneration` comment immediately below it (`Main.ts:146-150`)
+is **accurate**, so a careful reader gets the correct account two lines down.
+
+**Fix: one clause.** Make the `joinGeneration` comment say it is the join-mint counter, and that
+ownership of the live monitor is tracked by `monitorGeneration`. ⛔ **Do not change the fields, the
+guard, or any behaviour.** `0227`'s teardown seam stays byte-identical — **this residual is the single
+sanctioned exception to the "do not touch `0227`'s teardown seam" rule below, and it is a
+comment-only exception.**
+
+⚠️ **The line numbers above are working-tree state on 2026-09-07, with `0225`'s and `0227`'s changes
+UNCOMMITTED. Re-verify them; do not trust them.**
+
+---
 
 ### Phase 1 — establish reachability. **Do not skip to phase 2.**
 
@@ -311,11 +347,11 @@ straight after `0225` is a perfectly good call and costs nothing to switch.**
   found** (during its audit, as "F4") and **where its monitor half was fixed** (incidentally, by its
   diff at `Main.ts:678` — confirmed in `0225`'s review). ⚠️ `0225`'s change is **uncommitted in the
   working tree** as of writing.
-- **[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md)** — **where it was
+- **[`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md)** — **where it was
   recorded**, in that brief's Notes under "F4", which is exactly why the owner ruled it out into this
   task: *"a defect that lives only inside another task's Notes section is one refactor away from being
   lost."* `0227`'s Notes now point here.
-- **[`0224`](../0224-gameanalytics-per-user-event-limit-exceeded/brief.md)** — listed **only** to
+- **[`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md)** — listed **only** to
   record that this task has **nothing to do with it**. See §2 above.
 
 ### Standing cautions

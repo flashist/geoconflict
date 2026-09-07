@@ -1,5 +1,16 @@
 # Geoconflict — Sprint 5 — Full F2P Loop & Social Features
 
+> # ⛔ THIS IS NOT THE ACTIVE SPRINT — it is PRE-SCOPED, not in work
+>
+> **Owner ruling 2026-09-07, verbatim:** *"The active sprint is the Sprint 4!"* →
+> [`plan-sprint-4.md`](plan-sprint-4.md).
+>
+> ⚠️ **This board is legitimately open and nothing here is being archived.** Pre-scoping future
+> sprints is the intended workflow. See
+> [ADR-108](../knowledge-base/decisions/adr-108-owner-set-active-sprint-pointer.md) for why the
+> tooling cannot currently be told which sprint is active; ask for status by name:
+> `/fkit-status Sprint 4`.
+
 > See [plan-index.md](plan-index.md) for strategic logic, experiments policy, and full priority table.
 
 ---

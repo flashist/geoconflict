@@ -24,7 +24,7 @@ the `adr-1XX` series, so a relative link would not resolve.*
 Unscheduled
 
 **Producer's rank, stated as the producer's: `Medium`** — the same rank class as its two siblings
-[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) and
+[`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) and
 [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md), and **below** them in one specific
 sense: those two have **confirmed mechanisms**, and this one has an **unproven reachability** whose
 first phase may well end in *close it*. **This board is unranked by design**, so the Priority cell
@@ -252,7 +252,7 @@ completeness, not a green signal:
   containment.** ✅ Closed 2026-09-07 as `Done (agent-closed — not owner-verified)`. It fixed F3's
   *monitor* consequence at `Main.ts:757` and **deliberately did not touch the cause**. ⛔ **Do not
   describe `0225` as having fixed this race**, and do not re-open it.
-- **[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md)** — sibling. A crashed
+- **[`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md)** — sibling. A crashed
   game stops the runner but never tells `Main`. Now **three** sites, after `0225`'s review corrected a
   wrong exclusion in its brief. **Overlaps this task's file** (`ClientGameRunner.ts`) but not its
   defect.
@@ -268,7 +268,7 @@ completeness, not a green signal:
 mine.**
 
 **Reasoning.** The same-day precedent cuts both ways and I followed the half that fits:
-[`0224`](../0224-gameanalytics-per-user-event-limit-exceeded/brief.md) and `0225` went to **Sprint 4**
+[`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md) and `0225` went to **Sprint 4**
 because they were **time-sensitive** — an accumulating leak distorts a watch-period number the owner
 was about to read. `0226`, ~~`0227`~~ and `0228` went to **Backlog** because they were real defects with
 no clock on them. **This one has no clock at all** — and it is weaker than those three in one further

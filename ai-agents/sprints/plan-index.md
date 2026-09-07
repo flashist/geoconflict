@@ -29,6 +29,15 @@ Features are **excluded** from experiments if:
 
 ## Sprint Files
 
+> 🔴 **THE ACTIVE SPRINT IS SPRINT 4** — owner ruling given live in session **2026-09-07**, verbatim:
+> *"The active sprint is the Sprint 4!"*
+>
+> 🚨 **The tooling reports Sprint 6 and cannot currently be told otherwise.** `dashboard.sh
+> select-active` takes the **highest** open sprint identity, and plans 4, 5 and 6 are all
+> legitimately open. **Ask for status by name — `/fkit-status Sprint 4`.** Background and the
+> designed-but-unshipped fix:
+> [ADR-108](../knowledge-base/decisions/adr-108-owner-set-active-sprint-pointer.md).
+
 | File | Sprint | Goal |
 |------|--------|------|
 | [cancelled-tasks.md](cancelled-tasks.md) | — | Documents cancelled/reverted tasks with reasons |
@@ -36,8 +45,9 @@ Features are **excluded** from experiments if:
 | [plan-sprint-1.md](plan-sprint-1.md) | Sprint 1 — Stop the Bleeding | Reduce ghost rate and crash-driven abandonment |
 | [plan-sprint-2.md](plan-sprint-2.md) | Sprint 2 — Fix Onboarding | Convert new players into players who complete at least one full match |
 | [plan-sprint-3.md](plan-sprint-3.md) | Sprint 3 — Deepen Retention | Infrastructure quality and UX; mobile performance parked |
-| [plan-sprint-4.md](plan-sprint-4.md) | Sprint 4 — First Monetization Layer | Revenue streams, leaderboard, citizen tier |
-| [plan-sprint-5.md](plan-sprint-5.md) | Sprint 5 — Full F2P Loop & Social Features | Long-term engagement and monetization systems |
+| [plan-sprint-4.md](plan-sprint-4.md) | **Sprint 4 — First Monetization Layer** 🔴 **ACTIVE** | Revenue streams, leaderboard, citizen tier |
+| [plan-sprint-5.md](plan-sprint-5.md) | Sprint 5 — Full F2P Loop & Social Features *(pre-scoped, not in work)* | Long-term engagement and monetization systems |
+| [plan-sprint-6.md](plan-sprint-6.md) | Sprint 6 — More Content *(pre-scoped, not in work)* | Additional content; **the board the tooling wrongly reports as active — see the note above** |
 
 ---
 

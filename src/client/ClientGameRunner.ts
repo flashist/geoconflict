@@ -109,6 +109,11 @@ export function joinLobby(
   lobbyConfig: LobbyConfig,
   onPrestart: () => void,
   onJoin: () => void,
+  // Called once when the game ends or never comes into existence: a worker
+  // crash, a failed worker init, or a rejected createClientGame. The receiver
+  // must be safe to call more than once and must not re-enter Main's lobby
+  // teardown.
+  onGameEnd: () => void,
 ): () => void {
   console.log(
     `joining lobby: gameID: ${lobbyConfig.gameID}, clientID: ${lobbyConfig.clientID}`,
@@ -212,7 +217,25 @@ export function joinLobby(
         terrainLoad,
         preloadStartTime,
         terrainMapFileLoader,
-      ).then((r) => r?.start());
+        onGameEnd,
+      )
+        .then((r) => {
+          if (r === undefined) {
+            // Worker init failed: createClientGame already showed the modal and
+            // returned without constructing a runner, so stop() never runs.
+            onGameEnd();
+            return;
+          }
+          r.start();
+        })
+        .catch((err) => {
+          // createClientGame rejected before a runner existed.
+          onGameEnd();
+          // Re-thrown on purpose: the rejection must stay unhandled so the
+          // global unhandledrejection reporters still see it, exactly as they
+          // do today.
+          throw err;
+        });
     }
     if (message.type === "error") {
       showErrorModal(
@@ -241,6 +264,7 @@ async function createClientGame(
   terrainLoad: Promise<TerrainMapData> | null,
   preloadStartTime: number | null,
   mapLoader: GameMapLoader,
+  onGameEnd: () => void,
 ): Promise<ClientGameRunner | undefined> {
   if (lobbyConfig.gameStartInfo === undefined) {
     throw new Error("missing gameStartInfo");
@@ -331,6 +355,7 @@ async function createClientGame(
     transport,
     worker,
     gameView,
+    onGameEnd,
   );
 }
 
@@ -372,6 +397,7 @@ export class ClientGameRunner {
     private transport: Transport,
     private worker: WorkerClient,
     private gameView: GameView,
+    private onGameEnd: () => void,
   ) {
     this.lastMessageTime = Date.now();
   }
@@ -762,6 +788,9 @@ export class ClientGameRunner {
       clearInterval(this.connectionCheckInterval);
       this.connectionCheckInterval = null;
     }
+    // Last, and behind the isActive guard above, so it fires exactly once and
+    // only after the runner has torn down its own things.
+    this.onGameEnd();
   }
 
   private tryAutoZoom(): void {

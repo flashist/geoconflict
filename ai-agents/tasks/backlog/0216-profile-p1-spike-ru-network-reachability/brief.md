@@ -34,6 +34,42 @@ fkit-coder (or the operator running the bring-up)
 > ⚠️ It still does **not** depend on the deploy having run — that is the point of running it first.
 > And it still does not depend on knowing what state the box is in: an egress check works regardless.
 
+---
+
+> ## 🔴 OWNER RULING 2026-09-07 — the line above is now only HALF right
+>
+> **Owner, verbatim, given live in session:** *"I have the VPS, but I need to re-du the setup of it
+> from the scratch, probably all the keys"* [sic — *"re-du"* = **redo**].
+>
+> **This is a THIRD recorded position, and it does not simply repeat the second one.** It keeps the
+> 2026-09-04 correction (**the box exists**) and adds a new fact on top: **its setup and its keys are
+> to be redone from scratch, so nothing currently on that box may be assumed working or trusted.**
+>
+> ### What survives, and what is now doubtful
+>
+> ✅ **"THE BOX EXISTS" — still true.** The 2026-09-04 reframe is not reversed.
+>
+> ⚠️ **"can run now" — now carries a caveat this brief did not previously state.** A reachability
+> spike run **before** a from-scratch redo may be measuring a machine state that does not survive
+> the redo. **The producer is FLAGGING this, not deciding it** — the call belongs to whoever
+> schedules P1:
+>
+> | If the redo is… | Does this spike's result survive it? |
+> |---|---|
+> | A **re-run of `setup-profile.sh` in place** (same machine, same OS install, same IP) | ✅ **Yes.** Egress to the registry, `get.docker.com`, apt and Let's Encrypt is a property of the **network path**, not of what is installed. Re-provisioning does not move the box. |
+> | A **provider-side OS reinstall / rebuild-from-image** | ⚠️ **Mostly.** Same datacentre and (usually) same IP, so the network family is unchanged — but ufw state, any pinned apt mirror, and any registry credential on the box are wiped, and **the IP is only usually preserved, not guaranteed.** Re-confirm the IP before trusting the result. |
+> | A **different machine entirely** | ⛔ **No.** Re-run the spike. |
+>
+> 🚨 **One result that is NOT network-shaped and can be spent by the redo: Let's Encrypt.** Its
+> HTTP-01 rate limits are counted **per registered domain**, not per box. A spike that issues a real
+> certificate, plus a from-scratch redo that issues another, both draw on the **same** budget for
+> `geoconflict.ru`. ⚠️ **Prefer the LE *staging* endpoint for the spike**, or accept knowingly that
+> the redo may hit a limit the spike helped consume. This is a **flag, not an instruction** — the
+> spike's own procedure below is unchanged and no step has been rewritten.
+>
+> ⛔ **Nothing else in this brief was edited.** Priority, status, owner, dependency and every
+> procedure step stand exactly as they were.
+
 ## Context
 
 ### Why this is its own task and not a line in P1

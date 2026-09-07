@@ -37,6 +37,46 @@ are recorded and dated. **A VPS and a bucket exist; what is on them is UNKNOWN.*
 
 ⇒ **Every decision below changes from "what should we buy?" to "does what we have meet the bar?"**
 
+### 🔴 OWNER RULING 2026-09-07 — a THIRD position, which sharpens the reframe above
+
+**Owner, verbatim, given live in session:** *"I have the VPS, but I need to re-du the setup of it
+from the scratch, probably all the keys"* [sic — *"re-du"* = **redo**].
+
+**Three dated positions now exist and all three are kept:**
+
+| Date | Position | Standing |
+|---|---|---|
+| 2026-09-04 (first) | *"We don't have ANY profile-related VPS yet"* | ⛔ **Superseded.** Do not act on it — and do not read it as a lie; it is recorded and dated. |
+| 2026-09-04 (second) | *"the VPS and S3 I created will be reused"* — *"Both exist — reuse them in place"* | ✅ **Stands.** |
+| **2026-09-07 (this one)** | **The VPS exists — AND its setup and keys are to be redone from scratch** | ✅ **Current. It adds to the second, it does not replace it.** |
+
+**What this changes here:**
+
+- ✅ **The box's EXISTENCE is now confirmed a second time.** That fact is settled.
+- 🚨 **Nothing currently ON the box may be assumed working, correct, or trusted.** The earlier
+  wording *"what is on them is UNKNOWN"* was a statement of ignorance; this ruling makes it a
+  **directive** — the installed state is being wiped regardless of what inspection finds.
+- ⇒ **The verification half of this task splits in two, and only one half is still load-bearing:**
+
+| What is verified | Still load-bearing? |
+|---|---|
+| **Hardware / plan facts** — vCPU, RAM, disk, region, IP, provider | ✅ **YES.** A redo does not change the machine's spec, and §1 below still gates a resize on it. |
+| **Installed / provisioned state** — what services run, what config is present, what secrets sit on it | ⚠️ **Downgraded to INVENTORY, not a gate.** Record it (the owner's *"I am completely lost about what was done"* still deserves an answer), but do **not** build a decision on it — it is about to be erased. |
+
+⚠️ **"probably all the keys" is the owner's own hedge and is reproduced as such.** It is **not** yet
+a settled instruction to rotate every key. Key re-issue and old-credential revocation are already
+scoped — [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) (the
+new `age` keypair and its custody) and
+[`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md) (revoke the old
+access key **at the provider**, not merely overwrite it locally). **No new brief is being created
+for this ruling** — see the epic
+[`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md), whose P1–P7 chain already covers
+"wipe, re-provision in place, re-issue".
+
+📌 **The `0222` old-bucket-objects decision is UNAFFECTED and still OPEN.** Redoing the box's keys
+says nothing about the fate of the pre-existing encrypted objects in the reused bucket, whose `age`
+private identity has no recorded home. Do not read this ruling as closing that question.
+
 ---
 
 ## The decisions — RULED 2026-09-04

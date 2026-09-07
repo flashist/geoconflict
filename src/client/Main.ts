@@ -141,6 +141,14 @@ class Client {
   private gameHasStarted = false;
   private gameHasEnded = false;
   private perfMonitorStop: (() => void) | null = null;
+  // Incremented on every joinLobby call, so a superseded game's teardown
+  // callback can tell it is no longer the current game.
+  private joinGeneration = 0;
+  // The generation that actually owns the live monitor — set where the monitor
+  // is started, not where the join was minted. handleJoinLobby awaits between
+  // the two (Main.ts:707), so two joins can interleave and the last to mint is
+  // not necessarily the one whose monitor is running.
+  private monitorGeneration = 0;
   private eventBus: EventBus = new EventBus();
   private firstActionFired = false;
 
@@ -683,6 +691,7 @@ class Client {
       await fetchCosmetics(),
     );
 
+    const joinGeneration = ++this.joinGeneration;
     this.gameStop = joinLobby(
       this.eventBus,
       {
@@ -755,6 +764,9 @@ class Client {
       () => {
         this.gameHasStarted = true;
         this.restartPerformanceMonitor();
+        // This join now owns the live monitor. Claimed here, beside the start,
+        // so ownership follows the monitor rather than the mint order.
+        this.monitorGeneration = joinGeneration;
         this.joinModal.close();
         this.publicLobby.stop();
         incrementGamesPlayed();
@@ -770,6 +782,20 @@ class Client {
 
         // Flashist Adaptation: disabling the #join URL, cuz it's not clear how to handle it for now at Yandex Games
         // history.pushState(null, "", `#join=${lobby.gameID}`);
+      },
+      () => {
+        // A superseded game's teardown can settle late — onJoin() starts the
+        // monitor before createClientGame() is even called, so game N's chain
+        // may still be in flight when game N+1 is already running.
+        // Only the join that OWNS the live monitor may stop it: keying on the
+        // most recent join instead would let an interleaved pair invert, so the
+        // dead game skips its stop and the live game's monitor stays killed.
+        if (joinGeneration !== this.monitorGeneration) {
+          return;
+        }
+        // The game died, or never came into existence. Stop the monitor only:
+        // gameStop is deliberately left alone here.
+        this.stopPerformanceMonitor();
       },
     );
   }

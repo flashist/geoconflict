@@ -21,7 +21,7 @@ holds only the `adr-1XX` series, so a relative link would not resolve.*
 🔴 **Next in work order (owner-ruled 2026-09-06).**
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder (the one code change) / Owner (watching the analytics over the coming days)
@@ -29,6 +29,133 @@ fkit-coder (the one code change) / Owner (watching the analytics over the coming
 ## Depends on
 Nothing. **Startable immediately** — the in-scope change is a one-line interval constant, no server
 contact and no deploy needed to make it.
+
+---
+
+# ✅ CLOSING NOTE — 2026-09-07 (agent-closed — not owner-verified)
+
+**Closed on an owner ruling given live 2026-09-07: *"Close now with an honest note."*** The owner
+approved the **decision to close**. The owner has **verified nothing in production** — hence the
+`(agent-closed — not owner-verified)` marker on this task's status everywhere it appears. Closed by a
+spawned `fkit-producer` via `/fkit-task-done`; **no commit was made by the close.**
+
+## 1. The change landed in a sweep commit, not a task commit
+
+`src/client/PerformanceMonitor.ts:6` reads `const SAMPLE_INTERVAL_MS = 300 * 1000;` at `HEAD`. It
+landed in **`35afc64` ("Sprint push", 2026-09-07 11:40 +0300)** — a general sweep commit, **not** a
+commit dedicated to this task. A spawned `fkit-coder` did the work on 2026-09-06 and, per the rules,
+left it **uncommitted**; the owner then swept the working tree into their own commit **without knowing
+what it was**. The doc half landed in the same commit
+(`ai-agents/knowledge-base/analytics-event-reference.md:347-349` — 300 s, citing `0224`).
+
+⚠️ **Consequence for anyone doing archaeology later:** `git log` will not show a commit whose message
+names this task. `35afc64` is the commit. There is no other.
+
+### 🚨 WORKING-TREE WARNING, observed 2026-09-07 15:00 during this close — READ BEFORE ANY DEPLOY
+
+**The committed value is correct at `HEAD`. The WORKING TREE is not.** A concurrent session — the
+one working `0227` — has this uncommitted edit in the tree right now:
+
+```
+-const SAMPLE_INTERVAL_MS = 300 * 1000; // 5 minutes
++const SAMPLE_INTERVAL_MS = 3 * 1000; // TEMP-0227-REVERT-ME was 300 * 1000
+```
+
+⛔ **`3 * 1000` is a 3-second interval — 100× faster than the value this task shipped, and 20× faster
+than the 60 s original.** It is self-labelled `TEMP-0227-REVERT-ME`, so it is plainly a deliberate
+short-lived test aid, **not a regression** — but **if it is ever committed or deployed it would undo
+this task completely and blow the 500-event-per-user limit by a wide margin.**
+
+⚠️ **This close deliberately did NOT revert it** — `src/` was out of scope for this producer run and
+another session is actively working those files. **Recorded as an observation, and it needs someone to
+confirm the revert before the next build.** `src/client/Main.ts` and `src/client/ClientGameRunner.ts`
+were also being modified in the tree at the same time by that session.
+
+## 2. 🚨 THE 3–4 SEP BREACH IS UNEXPLAINED AND UNADDRESSED BY THIS CHANGE
+
+**This change does not fix the breach and cannot.** The 4 Sep breach was **once-per-session**
+categories — `Player`, `Experiment`, `Session`, `Platform`, `Device`. `Performance` **barely moved
+across the spike** (115.65 → 185.54, ~1.6×). **None of the categories that actually breached were
+touched by this task.**
+
+The arithmetic, stated plainly:
+
+| | Before | After the 5× `Performance` cut |
+|---|---|---|
+| A normal day (30 Aug – 2 Sep, 5 Sep) | ~150–250/user | **~62–81/user — 12–16% of the 500 limit** |
+| **4 Sep (the breach)** | **1,324.33/user — 265% of the limit** | **~1,176/user — still 235% of the limit** |
+
+⛔ **A 4 Sep repeated today would still breach, by more than double.** This change **lowers the
+baseline**; it **does not touch the spike mechanism**. The mechanism is **unknown**. The owner's read
+— that it came from their own local/dev testing — remains a **plausible hypothesis, never verified**;
+do not write it down as the cause.
+
+➡️ **The spike now has its own investigation task: [`0230`](../../backlog/0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md)**, filed on
+Sprint 4 on an owner ruling 2026-09-07. **That is the standing risk, and it is still open.**
+
+## 3. 🚨 Acceptance criteria 3 and 4 are NOT met, and CANNOT be met as written
+
+Criteria 3 and 4 require the post-deploy `Performance`-column drop to be read from the dashboard and
+**attributed to this task**. **That attribution is impossible.**
+
+[`0225`](../0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md) — orphaned
+`PerformanceMonitor`s on lobby rejoin — landed in **`702a8ea`**, is **undeployed**, and will ship in
+**the same build** as this change. **It cuts the same `Performance` column.** The dashboard reports one
+number per category per day; it **cannot separate two changes that move the same column in the same
+build.**
+
+⇒ **Any post-deploy drop in `Performance` is the JOINT effect of `0224` + `0225`.** ⛔ **Nobody may
+attribute it to `0224` alone.** Criteria 1, 2, 5, 6, 7 and 8 are met (see §5); **3 and 4 are recorded
+as unmet, not waived and not quietly satisfied.**
+
+## 4. 🚨 "THE BANNER IS GONE" IS NOT EVIDENCE — the metric already self-resolved with zero code written
+
+The breached metric **fell back under the limit on 5 Sep, at 162.79, before a single line was
+written.** ⛔ **A green banner, or a metric under 500, proves nothing about this change.** It would
+have "passed" on 5 Sep with no work done at all. Do not accept it as verification, now or later.
+
+## 5. Verification actually performed — and its limits
+
+| Check | Result |
+|---|---|
+| `src/client/PerformanceMonitor.ts:6` reads `300 * 1000` at `HEAD` | ✅ re-read 2026-09-07 at close |
+| `npm run lint` | ✅ **clean**, exit 0, re-run at close 2026-09-07 |
+| `npm test` | ✅ **113 suites / 1185 tests passed**, exit 0, first run, no flake — re-run at close 2026-09-07 |
+| `analytics-event-reference.md` updated (criterion 6) | ✅ `:347-349`, 300 s, cites `0224` |
+| No secret in any artifact (criterion 7) | ✅ `file:line` references only |
+| Cadence change observed at runtime | ❌ **NOT DONE** — verified by reading the diff only |
+| Hidden-tab fix observed at runtime | ❌ **NOT DONE** — reasoned from code only (a headless browser does not faithfully suspend rAF, so a green automated run would have bought false confidence) |
+| Production effect on the dashboard | ❌ **NOT DONE, and not attributable — see §3** |
+
+⚠️ **What the lint and test runs above actually prove, stated precisely:** they were run against the
+**working tree** as it stood during this close, **not against a clean checkout of `HEAD`**. A
+concurrent session was editing `src/client/PerformanceMonitor.ts`, `Main.ts` and `ClientGameRunner.ts`
+at the same time (see the working-tree warning in §1). The runs are evidence that the tree was green
+when they ran; they are **not** evidence about `HEAD` in isolation, and **not** evidence about the tree
+right now.
+
+## 6. Two data caveats raised at close, unresolved — recorded, NOT called wrong
+
+1. **The dashboard's per-category figures do not sum to its own reported daily totals.** The
+   *Breakdown by top-level category* table and the *Events per active user per day* table are both
+   dashboard observations, and they do not reconcile. Nobody has established which is right, or
+   whether a category is missing from the split.
+2. **The brief's "7-day mean: 581.97" cannot be reproduced from its own daily rows** — those rows
+   (~150, ~250, ~180, ~170, 414.88, 1324.33, 162.79) average **378.86**, not 581.97.
+
+⛔ **Neither is being called an error.** Both were read off the GameAnalytics UI by a human and are
+**unexplained**, not refuted. ⚠️ Caveat 2 matters beyond bookkeeping: the "7-day mean is above 500"
+framing appears twice in this brief as a reason the standing baseline has no headroom. **If 378.86 is
+the right figure, that framing is overstated.** Do not quote either number as settled. Re-read the
+dashboard before relying on either.
+
+## 7. What this close does NOT mean
+
+⛔ **This task closing is NOT the problem being resolved.** Everything listed under *DEFERRED* below
+is still deferred: the Q1 reduction target (never set), the `DEPLOY_ENV` fail-open risk (live, now
+tracked as [`0226`](../../backlog/0226-deploy-env-fails-open-to-prod-analytics/brief.md), still unfixed and unscheduled), the rising
+cardinality (~103–105 → 118 distinct names, still trending up), and the full event enumeration. The
+owner's watch period is the real next step, and its result is **not** a pass/fail for this task.
 
 ---
 
@@ -45,10 +172,33 @@ The owner was asked the three open questions (Q1 reduction target, Q2 what to cu
 > seconds instead of every 60.** We should NOT try to fix all possible cases now. The owner will
 > **watch the analytics over the next few days** and report back whether the problem is still there.
 
-## ✅ IN SCOPE — exactly one change
+## ✅ IN SCOPE — the emit interval, plus two items added by a later owner ruling
 
-**`src/client/PerformanceMonitor.ts` emit interval: 60 000 ms → 300 000 ms** (the `setInterval` at
-`:56`). Nothing else.
+📌 **CORRECTED 2026-09-07 AT CLOSE.** This section was written on 2026-09-06 and went stale twice.
+Both corrections are recorded here rather than by overwriting the original wording silently.
+
+**Correction 1 — the `file:line` was wrong.** This section used to say *"the `setInterval` at `:56`"*.
+Read at `HEAD` on 2026-09-07, the interval is a **module-level constant**, not an inline literal:
+
+- `src/client/PerformanceMonitor.ts:6` — `const SAMPLE_INTERVAL_MS = 300 * 1000; // 5 minutes`
+- `src/client/PerformanceMonitor.ts:29` — `const sampleInterval = window.setInterval(() => {`
+- `src/client/PerformanceMonitor.ts:67` — `}, SAMPLE_INTERVAL_MS);` (was `}, 60 * 1000;`)
+
+**Correction 2 — "exactly one change" / "Nothing else" was already false when written.** The heading
+promised one change, but the plan the owner approved the same day
+([`plan.md`](plan.md), *"APPROVED BY THE OWNER 2026-09-06 via `AskUserQuestion`"*) carried **three**
+owner rulings, and the commit reflects all three:
+
+| # | What landed | Authority |
+|---|---|---|
+| 1 | `SAMPLE_INTERVAL_MS = 300 * 1000`, `setInterval` period now uses it | The 2026-09-06 scope-narrowing ruling |
+| 2 | Hidden-tab sampling-window fix — a `visibilitychange` listener resetting `frameCount` / `lastSampleTime`, removed in the returned stopper | `plan.md` **owner ruling 1**: *"FIX IT NOW"*, against the coder's own recommendation to defer |
+| 3 | `analytics-event-reference.md` — cadence 60 s → 300 s, the match-scoped `<5 min` consequence, and the `Performance:Memory:*` High/Low gloss de-inverted to match the code | `plan.md` **owner ruling 3** — verify first, then code wins |
+
+⚠️ **Ruling 2 does not change event VOLUME** — the `document.visibilityState === "hidden"` early
+return already existed and was not touched; the new listener only resets the counters, so no event is
+added or suppressed by it. It changes FPS **accuracy**, not count. Recorded so a later reader does not
+attribute part of the observed drop to it.
 
 **Expected effect — ⚠️ AN ESTIMATE, DERIVED BY ARITHMETIC FROM THE OBSERVED TABLE BELOW. IT IS NOT A
 MEASUREMENT AND NOTHING HAS BEEN MEASURED YET.**
@@ -59,6 +209,13 @@ MEASUREMENT AND NOTHING HAS BEEN MEASURED YET.**
 
 ⚠️ The estimate assumes the only thing changing is the tick rate and that visible-page-time behaviour
 stays the same. **Confirm it against the dashboard; do not quote it as a result.**
+
+🚨 **PREDICT "≥5×", NOT "5×".** The monitor is **match-scoped, not page-scoped** — it starts at game
+start and stops on win/leave/unload, so the first sample lands 300 s *after the match begins* and
+**every match shorter than 5 minutes now emits ZERO `Performance:*` events** instead of the 2–8 it
+used to. Geoconflict is a short-session game. **The match-length distribution was never measured**, so
+the realised cut is **more than 5× by an unknown margin** — a direction, not a magnitude. A drop
+below the estimated ~22–43/user/day is **expected, not an anomaly.**
 
 ## 🚨 THE HONEST LIMIT OF THIS FIX — THE MOST IMPORTANT LINE IN THIS BRIEF
 
@@ -84,7 +241,7 @@ now."*
 |---|---|
 | **Q1 — the reduction target** | ⏸️ **NOT SET.** No ceiling is being ruled. The expected effect above stands in its place as an estimate only. The producer's earlier ~150/user/day recommendation is **not** adopted and **not** rejected. |
 | **Q2 — what gets cut from `Performance:*`** | ✅ **ANSWERED: the interval change only.** The other candidates — dropping the three FPS bucket events, a per-session cap, cohort/1-in-N sampling — are ⏸️ **DEFERRED, NOT REJECTED ON MERIT.** Nobody judged them worse; they were simply not taken now. |
-| **Q3 — the `DEPLOY_ENV` fail-open default** | ⏸️ **DEFERRED, NOT FIXED.** See the standing-risk box below. 📌 **2026-09-07: split out into its own Backlog task, [`0226`](../0226-deploy-env-fails-open-to-prod-analytics/brief.md), on an owner ruling. Still not fixed, still not scheduled.** |
+| **Q3 — the `DEPLOY_ENV` fail-open default** | ⏸️ **DEFERRED, NOT FIXED.** See the standing-risk box below. 📌 **2026-09-07: split out into its own Backlog task, [`0226`](../../backlog/0226-deploy-env-fails-open-to-prod-analytics/brief.md), on an owner ruling. Still not fixed, still not scheduled.** |
 | **The 3–4 Sep spike itself** | ⏸️ **NOT BEING FIXED and NOT BEING INVESTIGATED NOW.** See the hypothesis box below. |
 | **Work-plan steps 1, 2, 4, 5** (shared-key verification, full event enumeration, cardinality, `Platform`/`Device` closeout) | ⏸️ **ALL DEFERRED.** Kept in full below as the record of what was found and what is still unanswered. |
 | **Cardinality (~103–105 → 118 distinct names)** | ⏸️ **STILL OPEN AND STILL TRENDING UP.** Not resolved, not measured, not being worked. |
@@ -103,7 +260,7 @@ the two fail-open defaults; `build.sh:129` is the safe path.
 and chose to wait.** It is recorded here so it is not mistaken for handled.
 
 📌 **UPDATE 2026-09-07 — this risk now has its own task:
-[`0226`](../0226-deploy-env-fails-open-to-prod-analytics/brief.md), on the Backlog board, on an owner
+[`0226`](../../backlog/0226-deploy-env-fails-open-to-prod-analytics/brief.md), on the Backlog board, on an owner
 ruling given live in session.** ⛔ **It is still NOT fixed and still NOT scheduled** — a brief on an
 unranked board is a record, not a mitigation, and this box stands unchanged. ⚠️ **`0226` does not
 close `0224`:** it removes a *mechanism*, it does not identify the cause of the 3–4 Sep spike, and
@@ -220,7 +377,7 @@ entirely, the baseline sits at roughly a third of the limit with no headroom for
 The **`Match`** category **did not move across the spike**: `25.87` (2 Sep) → `31.79` (4 Sep) →
 `26.16` (5 Sep). Normal week-day variance, nothing more.
 
-[`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md)'s
+[`0208`](../../backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md)'s
 `Match:WinCondition` and `Match:Leaderboard:Award` instrumentation went live in build **`0.0.141`**
 and is **not the cause of this banner**.
 
@@ -506,12 +663,23 @@ work plan above.**
 of the form *"the warning went away"* or *"the metric is under 500"* **would pass today with zero code
 written.** ⛔ **Never accept this task on that basis.**
 
+📌 **OUTCOME AT CLOSE (2026-09-07): 1, 2, 5, 6, 7, 8 met — 🚨 3 and 4 NOT met and NOT meetable as
+written.** See **§3 of the closing note** at the top of this brief: `0225` cuts the same
+`Performance` column and ships in the same build, so the dashboard cannot attribute the drop to this
+task. **They are recorded as unmet, not waived.**
+
 Acceptance is **the interval change landing, and its effect being observable and attributable**:
 
-1. **`src/client/PerformanceMonitor.ts` emits on a 300 000 ms interval**, changed from 60 000 ms at
-   `:56`. The event names and payload shapes are unchanged.
+1. **`src/client/PerformanceMonitor.ts` emits on a 300 000 ms interval**, changed from 60 000 ms. ✅
+   Met — via the `SAMPLE_INTERVAL_MS` constant at **`:6`**, applied at `:67`. ⚠️ The `:56` this
+   criterion originally cited is **stale**; see *Correction 1* in the IN SCOPE section.
+   The event names and payload shapes are unchanged.
 2. **Nothing else was changed.** ⛔ No FPS bucket events dropped, no per-session cap, no sampling, no
    `DEPLOY_ENV` change. Those are **deferred, not rejected** — shipping one anyway exceeds the ruling.
+   ✅ Met **as amended** — none of the four forbidden items shipped. ⚠️ But *"nothing else"* read
+   literally is **false**: the owner's own approved plan added the hidden-tab `visibilitychange` fix
+   and the `Performance:Memory:*` doc de-inversion the same day. See *Correction 2* in the IN SCOPE
+   section. **Neither changes event volume.**
 3. **The `Performance` per-user figure is read from the dashboard before and after, as two numbers**,
    once the change has been live long enough for a clean day. **The observable effect is a drop in the
    `Performance` column specifically** — roughly 5×, per the estimate at the top. ⚠️ **That estimate
@@ -536,7 +704,9 @@ target, a full event enumeration, the `DEPLOY_ENV` guard, the cardinality questi
 
 ## Verification steps
 
-1. **Read `src/client/PerformanceMonitor.ts:56` and confirm the interval constant is 300 000 ms.**
+1. **Read `src/client/PerformanceMonitor.ts:6` and confirm the interval constant is 300 000 ms.**
+   ⚠️ **`:56` was the original wording and is stale** — the value is a module constant
+   (`SAMPLE_INTERVAL_MS`) at `:6`, applied to the `setInterval` at `:67`. ✅ Confirmed at close.
 2. `npm test` green; `npm run lint` clean.
 3. **After the change is live, re-read the dashboard's per-category breakdown** in the same shape as
    the table above, and **record the `Performance` per-user figure before and after as two numbers**.

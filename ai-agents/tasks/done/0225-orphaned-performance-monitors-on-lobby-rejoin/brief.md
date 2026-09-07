@@ -23,7 +23,7 @@ holds only the `adr-1XX` series, so a relative link would not resolve.*
 
 ## Priority
 **High *(producer's rank — NOT an owner ruling)*.** Ranked directly **after
-[`0224`](../../backlog/0224-gameanalytics-per-user-event-limit-exceeded/brief.md)** (which the owner ruled is
+[`0224`](../0224-gameanalytics-per-user-event-limit-exceeded/brief.md)** (which the owner ruled is
 next in work order) and **before the owner's analytics watch period begins**. The rank is driven by
 **timing, not size**: the change is tiny, but its value decays sharply once the watch period starts
 — see *Ordering relative to `0224`* below.
@@ -355,7 +355,7 @@ The diff **also fixes the *monitor* half of F4** (the `:675-686` await interleav
 
 ### Follow-ups spawned from this task
 
-- **[`0227`](../../backlog/0227-crashed-game-leaves-performancemonitor-running/brief.md)** — crashed-game
+- **[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md)** — crashed-game
   monitor. Now **three** sites, not one: correcting the brief under R1 surfaced a third, **site C at
   `ClientGameRunner.ts:215`** (`.then((r) => r?.start())` with **no `.catch`**).
 - **[`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md)** — the `gameStop` race

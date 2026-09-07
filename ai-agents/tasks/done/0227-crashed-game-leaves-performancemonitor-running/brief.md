@@ -27,7 +27,7 @@ and non-accumulating — still not a leak** — and that more sites means **more
 
 📌 **The original owner ruling of 2026-09-07 stands unchanged and is recorded here in full:** **this
 defect ("F2") gets its own brief, filed now while the audit is fresh**, and it is **out of scope for
-[`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md)**, which ships without
+[`0225`](../0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md)**, which ships without
 it. That ruling covered the brief, not the board; the board came later, above. The superseded
 Backlog reasoning is kept, marked, in *Board placement — the producer's reasoning* near the end.
 
@@ -42,8 +42,8 @@ the `adr-1XX` series, so a relative link would not resolve.*
 
 ## Priority
 **Medium *(producer's rank — NOT an owner ruling)*.** Ranked **below**
-[`0226`](../0226-deploy-env-fails-open-to-prod-analytics/brief.md) *(Medium–High)* and well below
-[`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md) *(High)*. The rank is driven
+[`0226`](../../backlog/0226-deploy-env-fails-open-to-prod-analytics/brief.md) *(Medium–High)* and well below
+[`0225`](../0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md) *(High)*. The rank is driven
 by **how the defect behaves, not by how easy it is**: it is **bounded, non-accumulating, and needs a
 worker crash to fire at all**, so unlike `0225` it does not decay in value against the owner's
 analytics watch period, and unlike `0226` it is not a risk that every build carries.
@@ -56,7 +56,7 @@ scope growing from one site to three raised the COST, not the urgency** — do n
 a rank increase.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -191,7 +191,7 @@ that it *"returns before the game ever starts."* THAT REASONING IS FALSE. It is 
 than quietly deleted, so the same mistake is not made again.**
 
 **Who caught it:** Codex, during the adversarial review of
-[`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md), independently confirmed by
+[`0225`](../0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md), independently confirmed by
 the reviewer, and **re-verified line by line against `HEAD` = `35afc64` before this correction was
 written**.
 
@@ -370,6 +370,59 @@ verified.** Report it as unverified and hand the question back rather than infla
 - ⚠️ If a `supertest` suite flakes, apply `CLAUDE.md`'s known-flake procedure (rule out the `0197`
   segfault signature first, then re-run **and say that you re-ran**). Unrelated to this change.
 
+### 🔴 CORRECTION (2026-09-07, round-1 review) — CRITERION 1 CANNOT BE MET FOR SITE A
+
+**Written by the coder on an owner ruling after the round-1 review. Nothing below is deleted — the
+acceptance criteria are left exactly as the producer wrote them, and this block says which of them
+turned out to be unsatisfiable and why.**
+
+🚨 **SITE A IS UNREACHABLE DEAD CODE. IT IS NOT FIXED BY THIS TASK AND CANNOT BE FROM THESE TWO FILES.**
+
+Found by Codex in the round-1 adversarial review, missed by the reviewer's first pass, and re-verified
+line by line by the coder:
+
+- `src/core/worker/Worker.worker.ts:20-23` — the worker's `gameUpdate` opens with
+  `if (!("updates" in gu)) { return; }`. An `ErrorUpdate` is `{errMsg, stack}` and has **no `updates`
+  key**, so it is **dropped and never `postMessage`d**.
+- The producer at `src/core/GameRunner.ts:170-183` is the **only** `ErrorUpdate` source in the repo
+  (`grep -rn "errMsg" src/` → 4 hits total: producer, type, and the single consumer).
+- ⇒ `src/client/ClientGameRunner.ts:517`'s `if ("errMsg" in gu)` **can never be true**; `this.stop()`
+  never runs; `onGameEnd()` never fires for site A.
+
+📌 **Numbering, so this block does not read as contradicting the brief above it:** this correction
+quotes `ClientGameRunner.ts` in **working-tree numbering** (with 0227's diff applied), matching
+`worklog.md` and `review.md`. **The rest of this brief uses `HEAD` (`702a8ea`) numbering** — the crash
+branch is `:491-501` at HEAD and `:517-525` in the working tree. **Both are correct.**
+
+**Consequences for this brief, stated plainly:**
+
+- ⛔ **Acceptance criterion 1 cannot be met for site A**, and this task **must not be closed claiming
+  it was.** Criteria 1 for **B** and **C** are met and observed.
+- ⛔ **Acceptance criterion 2's site-A observation is void.** The coder's simulated run proved the
+  callback fires **when the branch's statements are invoked directly** — it did **not** prove a real
+  worker crash is handled, because a real worker crash never reaches the branch. The brief's step-4
+  caveat about "provoking a genuine worker crash may not be straightforward" was correct in spirit but
+  wrong in cause: **it is impossible, not merely hard.**
+- ✅ **The `stop()` seam stays.** Owner ruling. It is **dormant-but-correct** and goes live the moment
+  the worker drop is fixed. It is not dead weight and must not be removed.
+- 🚨 **The root cause is worse than this brief describes.** A worker game-tick crash today gives **no
+  modal, no teardown, and no error surface at all** — a **silently frozen game** with the monitor still
+  sampling. That is a bigger defect than 0227. It lives in `src/core/` and **is being filed as its own
+  task**; it is explicitly **not** fixed here.
+- ⚠️ **R3 is a static proof only.** Nobody has forced a throw inside `game.executeNextTick()` and
+  watched no modal appear. Do that when the follow-up task is picked up.
+
+**Also corrected:** the *Paths already handled correctly* table above marks site A as "❌ **THIS TASK
+(site A)**". Read that row as **"not fixable by this task — see this correction"**.
+
+**One defect was introduced by the fix and has been repaired in the same round** — the `onGameEnd`
+closure carried no game identity, so a superseded game's late teardown could stop the *current* game's
+monitor. Fixed with a generation token in `Main.ts`. See `worklog.md` and `review.md` (R1).
+
+**A fourth site of the same defect class was found and is NOT fixed here** by owner ruling: a mid-game
+server `error` message (multi-tab kick) shows a closable modal and tears down nothing
+(`ClientGameRunner.ts:689-698`). Being filed separately. See `review.md` (R2).
+
 ### Acceptance criteria
 
 1. A teardown seam exists from `ClientGameRunner` to `Main`, and **all three sites** use it:
@@ -436,7 +489,7 @@ owner's to make, not mine.
 ### F4 — a separate observation from the same audit. NOT in this task's scope. **Now filed as `0228`.**
 
 ✅ **RESOLVED 2026-09-07 — the owner ruled, live, that F4 gets its own task.** It is now
-**[`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)** and no longer lives only in this
+**[`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md)** and no longer lives only in this
 paragraph. The description below is kept for continuity; **`0228` is the authority.**
 
 During the same audit a second, **unrelated** issue was recorded:
@@ -466,14 +519,14 @@ as outstanding.
 
 ### Cross-references
 
-- **[`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md)** — where this defect
+- **[`0225`](../0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md)** — where this defect
   (F2) was found and is recorded as a residual. `0225` fixes the join-over hole in `Main.ts`; **this
   task fixes the crash hole and is the other half of the same missing wiring.** ⚠️ `0225`'s change is
   **uncommitted in the working tree** as of writing.
 - **[`0224`](../0224-gameanalytics-per-user-event-limit-exceeded/brief.md)** — the analytics-volume
   context. `0224` deferred *"confirming the monitor's stop function runs on every teardown path"*;
   `0225` took up the join path and **this task takes up the crash path**. ⛔ Neither closes `0224`.
-- **[`0226`](../0226-deploy-env-fails-open-to-prod-analytics/brief.md)** — the `DEPLOY_ENV` fail-open
+- **[`0226`](../../backlog/0226-deploy-env-fails-open-to-prod-analytics/brief.md)** — the `DEPLOY_ENV` fail-open
   default, split out of the same audit onto the Backlog board by owner ruling. Unrelated mechanism,
   same investigation.
 
@@ -491,7 +544,7 @@ as outstanding.
 ## Open questions for the owner
 
 1. ✅ **RESOLVED 2026-09-07 — ~~Should F4 be filed as its own task?~~** Owner ruled **yes**, live.
-   Filed as **[`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)** on the Backlog board.
+   Filed as **[`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md)** on the Backlog board.
 2. ✅ **RESOLVED 2026-09-07 — ~~Board: confirm or overrule.~~ The owner ruled TWICE on the same day,
    and both rulings are recorded.** First they **confirmed `Backlog`** (the producer's recommendation),
    when the brief covered **one** site. After the correction above widened it to **three** sites, the
