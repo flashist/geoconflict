@@ -23,22 +23,27 @@ if ! command -v docker >/dev/null 2>&1 || ! docker info >/dev/null 2>&1; then
 fi
 
 WORK=$(mktemp -d)
-IMAGES=()
+# build_img() is only ever called inside a command substitution, i.e. in a subshell, so a
+# shell variable it assigns dies with that subshell. Built image IDs are therefore recorded
+# in a file, which does survive it, and cleanup() reads them back. (With an array here,
+# cleanup() iterated an always-empty list and every image built leaked as a dangling image.)
+IMAGE_IDS="$WORK/built-image-ids"
+: > "$IMAGE_IDS"
 FIXTURE=""   # Cov1: a synthesized secret placed in ROOT_DIR; removed by cleanup() on any exit.
 cleanup() {
-    for img in "${IMAGES[@]:-}"; do
+    while IFS= read -r img; do
         [ -n "$img" ] && docker image rm -f "$img" >/dev/null 2>&1 || true
-    done
+    done < "$IMAGE_IDS"
     [ -n "$FIXTURE" ] && rm -f "$FIXTURE"
     rm -rf "$WORK"
 }
 trap cleanup EXIT
 
-# build_img <context_dir> → echoes the built image ID (and tracks it for cleanup).
+# build_img <context_dir> → echoes the built image ID (and records it for cleanup).
 build_img() {
     local iid
     iid=$(docker build -q "$1") || return 1
-    IMAGES+=("$iid")
+    printf '%s\n' "$iid" >> "$IMAGE_IDS"
     printf '%s' "$iid"
 }
 

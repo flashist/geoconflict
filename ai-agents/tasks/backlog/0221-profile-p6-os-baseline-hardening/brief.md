@@ -109,7 +109,7 @@ not corrupted data. **Fix it because it is cheap and correct, not because it is 
 7. **`npm test` still passes** with suite/test counts unchanged unless deliberately changed.
 8. **The deploy harness still passes** (`tests/scripts/profile-deploy-hardening.test.sh`) — this task
    touches the deploy path, which is exactly what that harness guards. ⚠️ **Run it by hand until
-   [`0201`](../0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) lands**, because
+   [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) lands**, because
    until then nothing runs it for you.
 9. 🔒 **No values anywhere** — no IPs in a `fail2ban` example, no usernames that are also secrets, no
    key material.

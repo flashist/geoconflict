@@ -344,17 +344,38 @@ Part of the citizenship funnel (`ai-agents/tasks/done/0021-analytics-p1-citizens
 
 ### Performance Events
 
-Sampled every 60 seconds during active gameplay via a `setInterval` independent of the render loop.
+Sampled every 300 seconds during active gameplay via a `setInterval` independent of the render loop
+(`SAMPLE_INTERVAL_MS`, `src/client/PerformanceMonitor.ts`). Raised from 60 s on 2026-09-06 (task
+`0224`) to stay under GameAnalytics' 500-events-per-user-per-day limit.
 
-| Enum Key                    | Event String                | When Fired                                                                                |
-| --------------------------- | --------------------------- | ----------------------------------------------------------------------------------------- |
-| `PERFORMANCE_FPS_AVERAGE`   | `Performance:FPSAverage`    | Current average FPS value (will be passed into the analytic event as the value parameter) |
-| `PERFORMANCE_FPS_ABOVE30`   | `Performance:FPS:Above30`   | Current FPS ≥ 30                                                                          |
-| `PERFORMANCE_FPS_15TO30`    | `Performance:FPS:15to30`    | Current FPS between 15 and 30                                                             |
-| `PERFORMANCE_FPS_BELOW15`   | `Performance:FPS:Below15`   | Current FPS < 15 — crash risk zone                                                        |
-| `PERFORMANCE_MEMORY_HIGH`   | `Performance:Memory:High`   | Heap is healthy (Chrome only, best-effort)                                                |
-| `PERFORMANCE_MEMORY_MEDIUM` | `Performance:Memory:Medium` | Heap is under moderate pressure                                                           |
-| `PERFORMANCE_MEMORY_LOW`    | `Performance:Memory:Low`    | Heap is heavily constrained — crash risk                                                  |
+⚠️ **The monitor is match-scoped, not page-scoped** — it starts at game start and stops on
+win/leave/unload. The first sample therefore lands 300 s _after the match begins_, so **any match
+shorter than 5 minutes now emits no `Performance:*` events at all.** Expect the realised drop to be
+**more than 5×**, not exactly 5×; that is the design, not an anomaly.
+
+⚠️ **Samples are only computed over a continuously-visible window.** Hiding the tab suspends
+`requestAnimationFrame`, so the sampling window is restarted on every `visibilitychange`. A sample
+that would have spanned a hidden period is not emitted with a stale window.
+
+| Enum Key                    | Event String                | When Fired                                                                                         |
+| --------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------- |
+| `PERFORMANCE_FPS_AVERAGE`   | `Performance:FPSAverage`    | Current average FPS value (will be passed into the analytic event as the value parameter)          |
+| `PERFORMANCE_FPS_ABOVE30`   | `Performance:FPS:Above30`   | Current FPS ≥ 30                                                                                   |
+| `PERFORMANCE_FPS_15TO30`    | `Performance:FPS:15to30`    | Current FPS between 15 and 30                                                                      |
+| `PERFORMANCE_FPS_BELOW15`   | `Performance:FPS:Below15`   | Current FPS < 15 — crash risk zone                                                                 |
+| `PERFORMANCE_MEMORY_HIGH`   | `Performance:Memory:High`   | Heap **usage** above 80% of the limit — heavily constrained, crash risk (Chrome only, best-effort) |
+| `PERFORMANCE_MEMORY_MEDIUM` | `Performance:Memory:Medium` | Heap **usage** between 50% and 80% of the limit — moderate pressure                                |
+| `PERFORMANCE_MEMORY_LOW`    | `Performance:Memory:Low`    | Heap **usage** at or below 50% of the limit — healthy                                              |
+
+🚨 **`High` and `Low` describe heap USAGE, not headroom — `High` is the bad one.** The three rows
+above were **inverted in this document until 2026-09-06** (task `0224`): `High` was described as
+"healthy" and `Low` as "heavily constrained — crash risk", which is the exact opposite of what the
+code emits. The code is the source of truth (`src/client/PerformanceMonitor.ts`: `ratio =
+usedJSHeapSize / jsHeapSizeLimit`; `> 0.8` → `High`, `> 0.5` → `Medium`, else → `Low`).
+
+**Historical data is unaffected** — the emitted event names always meant what the code says; only
+this document's gloss was wrong. If you previously read a rise in `Performance:Memory:High` as good
+news, re-read it: it is memory pressure.
 
 ### Build Version Events
 

@@ -3,6 +3,8 @@ import {
   flashistConstants,
 } from "./flashist/FlashistFacade";
 
+const SAMPLE_INTERVAL_MS = 300 * 1000; // 5 minutes
+
 export function startPerformanceMonitor(): () => void {
   // Lightweight rAF frame counter — independent of the game render chain
   let frameCount = 0;
@@ -14,6 +16,15 @@ export function startPerformanceMonitor(): () => void {
   rafId = requestAnimationFrame(countFrame);
 
   let lastSampleTime = performance.now();
+
+  // Hiding the tab suspends rAF, so frames stop being counted while wall-clock
+  // time keeps running. Restart the sampling window on every visibility change
+  // so an FPS sample is only ever computed over a continuously-visible window.
+  const resetSampleWindow = () => {
+    frameCount = 0;
+    lastSampleTime = performance.now();
+  };
+  document.addEventListener("visibilitychange", resetSampleWindow);
 
   const sampleInterval = window.setInterval(() => {
     if (document.visibilityState === "hidden") return;
@@ -53,10 +64,11 @@ export function startPerformanceMonitor(): () => void {
       }
       flashist_logEventAnalytics(memKey);
     }
-  }, 60 * 1000);
+  }, SAMPLE_INTERVAL_MS);
 
   return () => {
     cancelAnimationFrame(rafId);
     clearInterval(sampleInterval);
+    document.removeEventListener("visibilitychange", resetSampleWindow);
   };
 }

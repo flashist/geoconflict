@@ -85,7 +85,7 @@ ten pre-arming items live in [`0203`](../0203-config-parity-guard-pre-arming-gat
 4. **Extend the deploy harness** (`tests/scripts/profile-deploy-hardening.test.sh`) to cover the new
    persistence behaviour. 🚨 **This harness is the only local proof that is not diff-reading — and
    diff-reading is how this class hid three times.** ⚠️ It only helps if something runs it; that is
-   [`0201`](../0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) (P7), which is
+   [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) (P7), which is
    startable today and independent of this task.
 
 ### 🚫 Not in this phase
@@ -126,7 +126,7 @@ ten pre-arming items live in [`0203`](../0203-config-parity-guard-pre-arming-gat
   here, arming is not), [`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md) (the ten
   pre-arming items), [`0195`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md)
   (whose R4 finding this widens — **its fix stands; only its recorded scope was narrow**), and
-  [`0201`](../0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) (nothing runs the
+  [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) (nothing runs the
   harness this task extends).
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.

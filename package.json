@@ -24,6 +24,7 @@
     "pretest": "npm run generate-map-nation-counts",
     "test": "jest",
     "test:integration": "cross-env RUN_DB_TESTS=1 jest --runInBand",
+    "test:scripts:docker": "bash tests/profile-backup-dryrun.sh",
     "perf": "npx tsx tests/perf/*.ts",
     "test:coverage": "jest --coverage",
     "format": "prettier --ignore-unknown --write .",

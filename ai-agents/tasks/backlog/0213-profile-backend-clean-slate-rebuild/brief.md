@@ -126,7 +126,7 @@ five gaps.** Neither greenfield nor procurement.
 | **P4 — Operability** | [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) | 1 day | Low tech / **HIGH consequence** | P1 |
 | **P5 — Secret persistence + value parity** | [`0220`](../0220-profile-p5-secret-persistence-and-value-parity/brief.md) | 0.5–1 day | Medium | P1 |
 | **P6 — OS hardening** | [`0221`](../0221-profile-p6-os-baseline-hardening/brief.md) | 0.5–1 day | Low-Medium | P1 |
-| **P7 — Gate the shell harnesses** | [`0201`](../0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) **(existing, Phase 2)** | 2–4 h | Low | ✅ **none — startable today** |
+| **P7 — Gate the shell harnesses** — ✅ **Done (agent-closed — not owner-verified) 2026-09-06** | [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) **(existing, Phase 2)** | 2–4 h | Low | ✅ **none — startable today** |
 | **Cleanup — obsolete secrets + old-object disposition** | [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md) | ~0.5 day, mostly owner | Low, but carries the 🔴 `age` decision | — |
 
 **Dependency shape:**
@@ -139,7 +139,8 @@ P0 (0214) → P1 (0215) → P2 (0217) → 0062 verified → 0017 / 0012 live tai
 
 P1-spike (0216) — ✅ RUNNABLE TODAY, no longer gated behind procurement. Its result can still
                   change P1's SHAPE (a registry mirror, a DNS-01 rework), not just its pace.
-P7 (0201)      — independent, startable NOW.
+P7 (0201)      — ✅ DONE 2026-09-06 (agent-closed — not owner-verified). Three of the four
+                  harnesses now run in `npm test`; the fourth is an npm script by owner ruling.
 Cleanup (0222) — owner action. 🔴 Carries the re-opened age-key decision.
 ```
 
@@ -159,6 +160,11 @@ This epic is verified by its children and closes when all ten rows above close. 
 7. 🔴 **The OLD encrypted objects in the reused bucket have an owner-ruled disposition** (`0222`).
 8. Log rotation, image prune, an external uptime check and a `last-backup.json` consumer exist (P4).
 9. Something automatically runs all four shell harnesses (P7 / `0201`).
+   ⚠️ **Partially satisfied 2026-09-06, and the wording overstates what `0201` delivered.** `npm test`
+   now runs **three** of the four; `tests/profile-backup-dryrun.sh` is **OUT by owner ruling Q2**
+   (it hard-fails without Docker plus `age`, `age-keygen`, `rclone`, `curl`, `jq`) and is exposed as
+   `npm run test:scripts:docker` instead — **its real gate is P3 / `0218`.** Also note residual **R5**:
+   the harness list is hardcoded, so a *future* unlisted `.sh` harness can still rot unrun.
 
 ## Notes
 

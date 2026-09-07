@@ -257,7 +257,50 @@ below is mine.
 - ⚠️ **Its value DECAYS** — see *Sequencing — the one real tension* below, which now covers `0210` too.
 
 ## Status
-🚧 Blocked — BUILT AND REVIEWED 2026-09-04 (Part A + Part B). **NOT DEPLOYED. NO DATA COLLECTED. UNCOMMITTED IN THE WORKING TREE.** Cannot proceed without an owner commit and a production deploy — the deliverable is **the number**, and there is none.
+🚧 Blocked — **DEPLOYED AND EMITTING IN PRODUCTION** (confirmed 2026-09-05, build `0.0.141`). ⛔ **The deliverable — the clientless-leader share — is STILL NOT READ.** Blocked on a full-day dashboard read, not on any code, commit or deploy.
+
+> ## ✅ CORRECTED 2026-09-05 — the "UNCOMMITTED" claim below was FALSE
+>
+> The previous status line, and the `⛔ Committed | NO` row in the table below, said both parts sat
+> **uncommitted in the working tree**. **That was wrong.** Verified in the repository 2026-09-05:
+>
+> - Part A (`src/core/execution/WinCheckExecution.ts`) and Part B
+>   (`src/client/leaderboard/LeaderboardReporter.ts`) are **committed together in `6b30e22`**.
+> - `6b30e22` is an **ancestor of `HEAD`**, and `HEAD` is the production version bump to **`0.0.141`**.
+> - Both files are **clean in the working tree** — nothing of this task is uncommitted.
+>
+> ⚠️ **One consequence to note, not to re-litigate:** `plan.md:52` / `plan.md:515-518` asked for Part A
+> and Part B as **two separate, independently revertable commits**. They landed in **one** commit.
+> That mitigation is spent; a revert of `6b30e22` removes both halves together. Recording it as fact —
+> the work is deployed and working, so this is not a defect to fix.
+>
+> ### 🟢 CONFIRMED LIVE IN PRODUCTION — observed on GameAnalytics 2026-09-05, build `0.0.141`
+>
+> ⚠️ **Source: dashboard observation relayed from the lead session. Not reproducible from the
+> repository** — analytics are production-only and no agent has dashboard access.
+>
+> | Part | What was observed |
+> |---|---|
+> | **Part A** | `Match:WinCondition` — **177 events on 2026-09-05**, all post-deploy, over roughly **two hours**. |
+> | **Part B** | `Match:Leaderboard:Award:Participation:SoloTutorial` observed. 🔴 **The FIRST observed instance is a TUTORIAL match awarding platform-leaderboard points** — direct evidence bearing on the [`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) ruling. Carry this to `0210`; it is a finding, not a footnote. |
+>
+> **Reading artifact:** a saved GameAnalytics custom query named **`0208 Match WinCondition count`**
+> (Explore → Design/Count, Past 7 days rolling). Use it for every future read of this metric.
+>
+> ### 🔴 THE TASK IS NOT ANSWERED. ONLY THE INSTRUMENTATION IS PROVEN.
+>
+> ⚠️ **177 events over ~2 hours is a THIN SAMPLE, skewed to whoever happens to play at midday.** It
+> proves the events arrive. It does **not** produce this task's deliverable.
+>
+> **The number `0208` exists to produce is the CLIENTLESS-LEADER SHARE** — the split by leader kind:
+>
+> | Clientless (the numerator) | Client-backed |
+> |---|---|
+> | `Bot` · `Nation` · `BotTeam` · `NationsTeam` | `AiPlayer` · `Human` · `HumanTeam` |
+>
+> That needs the deeper **Group by (Event id 03/04/05)** read, taken over a **FULL DAY**, not a
+> two-hour window. ⛔ **[`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md)
+> is blocked on that number** — and merely seeing events arrive does **not** clear its gate.
 
 > # ⛔ BUILT AND REVIEWED IS NOT DONE. DO NOT CLOSE THIS TASK.
 >
@@ -271,14 +314,16 @@ below is mine.
 > |---|---|
 > | ✅ **Built** | Part A **and** Part B, both complete in the working tree. |
 > | ✅ **Reviewed** | **7 review rounds** (Part A rounds 1–4, Part B rounds 1–3), **10 findings** — **9 fixed and verified** (`R1`–`R6`, `B1`, `B2`, `B4`), **1 owner-accepted residual** (`B3`). Ledger: [`review.md`](review.md). |
-> | ⛔ **Deployed** | **NO. Never.** |
-> | ⛔ **Data collected** | **NO. Zero.** |
-> | ⛔ **Committed** | **NO.** Both parts sit **uncommitted** in the working tree. |
+> | ~~⛔ **Deployed**~~ ✅ **Deployed** | ~~**NO. Never.**~~ 📌 **CORRECTED 2026-09-05: YES** — in build `0.0.141`. |
+> | ~~⛔ **Data collected**~~ ⚠️ **Data collected** | ~~**NO. Zero.**~~ 📌 **CORRECTED 2026-09-05: events ARRIVE** (177 Part A events on 2026-09-05 over ~2h; one Part B `…:SoloTutorial`). ⛔ **But the DELIVERABLE NUMBER — the clientless-leader share — is still NOT read.** A thin midday sample is not the answer. |
+> | ~~⛔ **Committed**~~ ✅ **Committed** | ~~**NO.** Both parts sit **uncommitted** in the working tree.~~ 📌 **CORRECTED 2026-09-05: the struck text was FALSE.** Both parts are in **`6b30e22`**, an ancestor of `HEAD`. ⚠️ **One commit, not the two prescribed** — see the correction box above. |
 >
 > ### 🔴 The four things a later reader will get wrong
 >
-> **1. A green review is not a deployment.** 🔴 **NOTHING HAS BEEN OBSERVED ON A DASHBOARD AT ANY POINT
-> IN THIS TASK.** Analytics are **production-only**, so **every figure in `plan.md` and `review.md` is a
+> **1. A green review is not a deployment.** ~~🔴 **NOTHING HAS BEEN OBSERVED ON A DASHBOARD AT ANY POINT
+> IN THIS TASK.**~~ 📌 **SPENT 2026-09-05 — struck, not deleted; TRUE WHEN WRITTEN, overtaken by the
+> deploy.** ✅ **Events have now been observed on the dashboard** (see the correction box above). ⚠️ **The
+> rest of this item STILL STANDS:** Analytics are **production-only**, so **every figure in `plan.md` and `review.md` is a
 > design claim about what *will* be emitted — never a measurement.** The reviewer wrote this into both
 > closed-out status lines deliberately, so that quoting either alone could not be read as "done"
 > (`review.md:13-25`, `review.md:664-677`). ⚠️ **This task is a MEASUREMENT task: its deliverable is the
@@ -292,10 +337,13 @@ below is mine.
 > unmeasured — and shipping `0211` first **destroys that denominator permanently**. See the sequencing
 > box below, which is unchanged and still governs.
 >
-> **3. NOTHING IS COMMITTED — and the commit shape is prescribed.** 🔴 **The owner commits; no agent
-> does.** `plan.md:52` and `plan.md:515-518` require **Part A and Part B as TWO SEPARATE,
-> INDEPENDENTLY REVERTABLE COMMITS.** ⛔ **Do not squash them.** That split is the only mitigation for
-> the attribution cost recorded in Decision 1 (see below).
+> ~~**3. NOTHING IS COMMITTED — and the commit shape is prescribed.**~~ 📌 **CORRECTED 2026-09-05 —
+> struck, not deleted, and this one was FALSE, not merely spent.** ✅ **Everything IS committed**
+> (`6b30e22`, an ancestor of `HEAD`). 🔴 **The owner commits; no agent does** — that part stands and
+> always will. ⚠️ **`plan.md:52` / `plan.md:515-518` asked for TWO SEPARATE, INDEPENDENTLY REVERTABLE
+> COMMITS and the work landed in ONE.** The split was the only mitigation for the attribution cost in
+> Decision 1 (below); it is **spent**. Recorded as fact, not raised as a defect — the code is live and
+> working, and nothing here is worth a re-commit.
 >
 > **4. THREE VERIFICATION STEPS ARE UNCOVERED — by honest declaration, not oversight.** They were
 > declared as uncovered in **every** review round (`review.md:676-677`, `review.md:1071-1077`).
@@ -322,13 +370,18 @@ below is mine.
 >
 > ### ⏭️ REMAINING WORK — the task is NOT finished at deploy either
 >
-> 1. **Owner commits** Part A and Part B as **two separate, independently revertable commits**.
-> 2. **Owner deploys to production.** ⚠️ Bundled with `0022` per Decision 1.
-> 3. **Confirm the events actually ARRIVE** on the GameAnalytics dashboard — `Match:WinCondition:*`
->    (Part A) and `Match:Leaderboard:Award:*` (Part B). ⚠️ **This is the first moment anything in this
->    task is observed rather than argued.** Until it passes, the instrumentation is unproven in the
->    only environment that can run it.
-> 4. 🔴 **READ THE NUMBERS. THIS IS THE DELIVERABLE AND THE STEP THAT COMPLETES THE TASK.** They feed
+> 📌 **UPDATED 2026-09-05 — steps 1–3 are DONE. Steps 4–6 are the whole of what remains.**
+>
+> 1. ~~**Owner commits** Part A and Part B as **two separate, independently revertable commits**.~~
+>    ✅ **DONE** — in **one** commit (`6b30e22`), not two. See the correction box.
+> 2. ~~**Owner deploys to production.**~~ ✅ **DONE** — build `0.0.141`. ⚠️ Bundled with `0022` per Decision 1.
+> 3. ~~**Confirm the events actually ARRIVE** on the GameAnalytics dashboard — `Match:WinCondition:*`
+>    (Part A) and `Match:Leaderboard:Award:*` (Part B).~~ ✅ **DONE 2026-09-05** — both observed. ⚠️ **This
+>    proves the instrumentation, and nothing more.**
+> 4. 🔴 **READ THE NUMBERS. THIS IS THE DELIVERABLE AND THE STEP THAT COMPLETES THE TASK. STILL NOT DONE.**
+>    ⚠️ **Specifically: the clientless-leader SPLIT, via Group by (Event id 03/04/05), over a FULL DAY** —
+>    the saved query `0208 Match WinCondition count` is the artifact. ⛔ **The ~2-hour, 177-event sample
+>    already taken is NOT this number.** They feed
 >    **ADR-110's re-raise trigger**, **whether stalled-match survivors are a real population** (`0211`'s
 >    scope), and **`0205`'s rank**.
 > 5. **Only then** does the `0211` gate clear, and only then may this task be closed.
@@ -401,7 +454,9 @@ anything, and `0211` can be **planned and built** freely — it is only its **sh
 fact around it changed.** ✅ **The sequencing ruling itself still blocks NOTHING** — `0211` is still
 `🔲 Backlog`, still not blocked, and may still be planned and built freely. ⛔ **What changed: `0208`
 is now `🚧 Blocked`, and NOT because of this ruling.** It was **built and reviewed on 2026-09-04** and
-is **uncommitted and undeployed**, so its next step belongs to the **owner**. ⚠️ **Do not read `0208`'s
+is ~~**uncommitted and undeployed**~~ 📌 **CORRECTED 2026-09-05: committed (`6b30e22`) and DEPLOYED
+(`0.0.141`) — the struck words were FALSE. It is blocked on the DASHBOARD READ, not on the owner's
+commit or deploy**, so its next step belongs to the **owner**. ⚠️ **Do not read `0208`'s
 `🚧 Blocked` marker as `0211` gating it — nothing gates `0208`.** See the `## Status` section.
 
 ## Owner
@@ -750,9 +805,11 @@ ship: ⛔ `0211` must not SHIP until THIS task is DEPLOYED AND COLLECTING DATA**
 merged or built** — ✅ **though `0211` may be planned and built in parallel, and ~~neither task is
 `🚧 Blocked`~~.** 📌 **SWEPT 2026-09-04 — struck, not deleted; SPENT, NOT WRONG: accurate when
 written, false once this task was built.** ✅ **`0211` is still `🔲 Backlog` and still NOT blocked —
-only its SHIP is ordered.** ⛔ **THIS task is now `🚧 Blocked` — built and reviewed, UNCOMMITTED,
-UNDEPLOYED, NO DATA. See `## Status`.** ⚠️ **Unrelated to the sequencing ruling; nothing gates this
-task.** ⚠️ **Still check the production state at plan time
+only its SHIP is ordered.** ⛔ **THIS task is now `🚧 Blocked` — built and reviewed,**
+~~UNCOMMITTED, UNDEPLOYED, NO DATA~~ 📌 **CORRECTED 2026-09-05: COMMITTED (`6b30e22`), DEPLOYED
+(`0.0.141`), EVENTS ARRIVING — but the DELIVERABLE NUMBER IS STILL UNREAD.** See `## Status`.
+⚠️ **Unrelated to the sequencing ruling; nothing gates this task.** 🔴 **`0211`'s gate is therefore STILL NOT CLEAR** — the
+owner's ruling requires `0208` *collecting data*, and a two-hour sample is not the split it needs. ⚠️ **Still check the production state at plan time
 anyway:** this brief asserts what was ruled, not what a server is running.
 
 ### 1. Instrument the DECISION POINT, not the guard's early return

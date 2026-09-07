@@ -99,7 +99,7 @@ Nothing ships. This produces a **measurement**, written down.
 
 - **Effort: 1–2 hours. Risk: UNKNOWN.** The unknown risk is the reason it exists; do not restate the
   effort as though it were the whole picture.
-- ✅ **This and [`0201`](../0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) (P7)
+- ✅ **This and [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) (P7)
   are the two pieces of the profile epic that can start TODAY.** Everything else waits on `0215`'s
   inspection. If the sprint needs momentum, these are where it comes from.
 - ⚠️ **Running this early is worth more than it looks.** Its result can rewrite `0215`'s scope, and

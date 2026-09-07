@@ -8,7 +8,7 @@ Sprint 4
 
 ➡️ **PROMOTED FROM THE BACKLOG BOARD INTO SPRINT 4 ON 2026-09-04**, on an owner ruling given live in
 session: **all phases P0–P7 of the profile backend clean-slate rebuild go into Sprint 4.** This task
-**is P7** of that epic ([`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md)) — specifically
+**is P7** of that epic ([`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)) — specifically
 its **Phase 2**. The [Backlog board](../../../sprints/backlog.md) row is **kept as a pointer** and
 flipped to `➡️ Moved`, not deleted.
 
@@ -67,7 +67,69 @@ now, this is a Sprint 4 candidate and the producer would not argue.** The deploy
 guards is the one that ships secrets to a live box.
 
 ## Status
-🔄 In progress
+✅ Done (agent-closed — not owner-verified) — **closed 2026-09-06 by a spawned `fkit-producer` with no owner channel.** 🚨 **The owner has NOT run `npm test` themselves on a quiet machine.** Every verification recorded here was performed by agents, on a host under heavy load (load average 26–36 during the review rounds). The owner ruled on **decisions** — the plan, Q1/Q2/Q3, and the review dispositions — **not** on a hands-on check of the working code. Do not read this row as an owner sign-off on the code.
+
+### Close-out record — 2026-09-06
+
+**Delivered.** `npm test` now runs three shell harnesses that nothing previously ran:
+`tests/scripts/profile-deploy-hardening.test.sh`, `tests/profile-backup-redeploy.sh` and
+`scripts/test-check-docker-secret-boundary.sh`, via a new thin jest wrapper
+`tests/scripts/ShellHarnesses.test.ts` that shells out with `spawnSync` (Option A — the
+`tests/scripts/ConfigParity.test.ts` precedent). `npm run test:scripts:docker` was added for the
+fourth harness (`tests/profile-backup-dryrun.sh`), which stays out of the gate. A new Testing
+subsection in `CLAUDE.md` documents the gate. **`jest.config.ts` and the `"test"` script are
+untouched.** Suite counts after: **113 suites / 1185 tests, green.**
+
+**Owner rulings (2026-09-05 / 2026-09-06, all live via `AskUserQuestion` in the `fkit lead` session).**
+Plan approved as Option A. **Q1** — `scripts/test-check-docker-secret-boundary.sh` **IN**, gated on a
+Docker probe. **Q2** — `tests/profile-backup-dryrun.sh` **OUT**, exposed as an npm script instead; its
+real gate is [`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md).
+**Q3** — the runtime cost accepted **unconditionally**, and a `SKIP_SHELL_HARNESSES` escape hatch
+**explicitly rejected** (a valve would become the default and the gate would rot unrun again — this
+task's own failure mode). Review dispositions: **R1+R2 fixed** (success-marker assertion, closing a
+reproduced fake green); **R3, R6, the R7 comment and the duration nit fixed**; **R8 fixed — ⚠️ a
+deliberate scope widening the owner chose AGAINST both the reviewer's and the lead's recommendation.**
+**R4(a), R5, R9 accepted as residuals.** One accepted deviation from the literal Q1 wording: a
+mid-run Docker loss makes the Docker case report **FAILED, not SKIPPED**, because jest-circus has no
+runtime `pending()`; the operative requirement (**never a fake green**) is satisfied and was proven.
+
+**🚨 Residuals — recorded, not softened:**
+
+1. **R5 — the harness list is hardcoded to three paths.** `0201` fixes today's four harnesses; **a
+   future unlisted `.sh` harness could still rot unrun.** The exact failure mode this task existed to
+   fix is **not structurally closed for the next file**. Mitigation is documentation only.
+2. **R4(a)** — a spawn failure reports `exit status null` with an empty output block and **no reason**
+   (`result.error` is never surfaced).
+3. **R7** — the success marker proves a harness **reached its end**, not that every case ran. On a
+   fresh clone one Docker case self-skips and the gate is green at **9** assertions instead of 10.
+   **Coverage varies by host.**
+4. **R9** — `npm test -- --randomize` reopens the Docker probe→run window. Never a fake green (the
+   self-skip check still fires), but the ordering mitigation is **defence-in-depth only**.
+5. **5 dangling Docker images** remain on the owner's host from the pre-fix leak reproduction. Owner
+   ruled to leave them; a prune would sweep unrelated work.
+
+**🚨 The measurement failure — the most misleading thing in this task's files.** The approved
+[`plan.md`](plan.md) §1 told the owner `npm test` was **24.5 s** and would become **~38–40 s**
+("roughly doubles"). **Those figures never reproduced.** Three independent later measurements agree on
+**~3 s baseline → ~22 s with the gate — a real ~7×, not ~2×.** The absolute end state came in *below*
+the ~38–40 s the owner accepted, so nothing was built beyond what was authorized, **but the owner
+confirmed a ratio that was not real**; they were re-informed 2026-09-05. ⛔ **No cause has been
+established.** The CPU-contention hypothesis was **actively weakened** — a reviewer measured the low
+numbers at load average ~26 — and every subsequent attempt to time this ran at load 26–36, with all
+three reviewers correctly refusing to report a wall-clock as a measurement. **Do not quote any figure
+from this task as a settled runtime, and do not assert a cause.** The lead's 🔴 correction box at the
+top of `plan.md` stands; nothing here contradicts it.
+
+**Review integrity.** All three rounds ran **both** Claude and Codex — **no round was degraded.**
+Round 1 **disproved Codex's own top "high" finding** (that `spawnSync`'s timeout cannot bound a hang —
+its probe scripts had died on a quoting error). Round 3 **downgraded and refuted** Codex's MEDIUM
+stdin-stealing claim against the real `docker` binary. **R8 was a Codex-only find** that the Claude
+reviewer then reproduced. The second opinion earned its cost in both directions. Round 3 verdict:
+**APPROVE, zero defects, ready to close.**
+
+**Process deviation, recorded and NOT resolved.** All three coder workers flagged that their caller was
+`fkit-lead`, not the `fkit-sprint-ship-loop` their carve-out names literally. Each proceeded and said
+so; **none complied silently.** The discrepancy is recorded, not settled.
 
 🔄 **Started 2026-09-02**, driven from the lead session.
 
@@ -114,6 +176,16 @@ Every claim below was re-checked against the repository before it was written do
 | **This repository has no CI** | `ls .github` | ✅ Confirmed — `No such file or directory`. No workflows exist at all |
 | **No git hook runs it** | `git config core.hooksPath` → `.husky/_`; `ls .husky` | ✅ Confirmed — `.husky/` holds only husky's internal `_/` shim directory; there are **no top-level hook files** |
 | Its only documented invocation is by hand | `tests/scripts/profile-deploy-hardening.test.sh:9` | ✅ Confirmed — the file's own header reads `# Run:  bash tests/scripts/profile-deploy-hardening.test.sh` |
+
+📌 **CROSS-REFERENCE ADDED 2026-09-05 — ⛔ THIS DOES NOT CHANGE `0201`'s SCOPE. Do not absorb it.**
+The *"No git hook runs it"* row above is now also the evidence for a **separate** defect, filed as
+[`0223`](../../backlog/0223-no-pre-commit-hook-runs-format-enforcement-is-dead/brief.md): the same missing hook
+means **`lint-staged` never runs and `prettier` is enforced nowhere**, and 673 files have drifted
+behind it. ⚠️ **`0201` remains scoped to the SHELL HARNESSES ONLY** — its Phase 1 ruling (*fold into
+`npm test`*) is untouched, and formatting enforcement is **not** in this task. 🔴 **One interaction a
+`0201` implementer should know:** `0223`'s most obvious repair is committing a `.husky/pre-commit`,
+which is **a git hook** — the mechanism this task's owner ruling rejected for *these* harnesses. That
+is `0223`'s question to put to the owner, **not** a reason to widen `0201` or to re-open its ruling.
 
 ### The rot this permitted — the concrete evidence for the task
 
@@ -165,7 +237,7 @@ stayed broken for about two months.
 >
 > ⚠️ **This widens the task's scope: step 6's in-or-out decision now covers FOUR files, not two**, and
 > the two new ones exercise the **backup** path — which is exactly the path
-> [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) (P3) must prove
+> [`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) (P3) must prove
 > works, and whose `age`-key custody defect is the epic's most consequential finding. **Decide each
 > file explicitly and record the reason**, as step 6 already requires.
 >

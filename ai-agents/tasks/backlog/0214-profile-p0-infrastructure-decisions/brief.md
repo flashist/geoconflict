@@ -134,6 +134,18 @@ this task's worklog and reflected into `0215`'s configuration.
 - **Open questions this task owned — ALL NOW ANSWERED:** ✅ **Q1** spec (ruled, conditional);
   ✅ **Q2** hostname (reuse, with the Yandex reason); ✅ **Q5** write volume (measured, with caveats).
   ✅ **Q7** (what to cancel) is closed — **nothing**.
+- 🔴 **"ALL NOW ANSWERED" covers the QUESTIONS, not the four numbered items above it — read the
+  distinction.** ⛔ **Item 4 — who runs the deploy, and from where — is STILL NOT CONFIRMED**, and it
+  is the **only** outstanding decision on this task. ⚠️ **Do not let the ✅ marks above, or the section
+  heading *"The decisions — RULED 2026-09-04"*, be read as covering it: item 4 carries no ✅ on
+  purpose.** The full-tunnel VPN caution attached to it stands — **an SSH or curl timeout to the RU
+  box is the VPN, not the box** — and settling it *before* a deploy is half-done is the whole point.
+- ✅ **Reviewed 2026-09-05 against the rulings as re-stated by the lead session.** The spec floor with
+  **both** its caveats, its **conditional** framing (*verify, resize only if below — do not resize by
+  default*), the hostname reuse with the **Yandex one-main-domain** reason, and the **a-resolving-DNS-
+  record-proves-nothing** caution were all **already recorded** in this brief and were **not**
+  rewritten. Only the item-4 clarification above was added. ⚠️ **Recorded so a later reader does not
+  read the absence of an edit as an absence of a check.**
 - ⚠️ **Nothing provisions the box** — no Terraform, no cloud-init. **Less relevant now that the box
   exists**, but still true for any future one. **By design**; stated so nobody files it as a defect.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.

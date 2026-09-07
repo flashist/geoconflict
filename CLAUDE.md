@@ -177,6 +177,59 @@ npm run test:coverage             # Coverage report
 
 **Important**: All code changes in `src/core/` MUST be tested.
 
+### Shell harnesses are part of `npm test` (task `0201`)
+
+Several deploy/backup behaviours are covered only by hand-written `.sh` harnesses. Nothing ran them
+— `jest.config.ts`'s `testRegex` is TS/TSX-only, and the husky pre-commit hook is inert (tracked
+separately as `0223`). `tests/scripts/ShellHarnesses.test.ts` is a thin jest wrapper that shells out
+to them, so `npm test` is now their gate. It follows the existing
+`tests/scripts/ConfigParity.test.ts` pattern; `jest.config.ts` needed no change.
+
+| Harness | In `npm test`? | Notes |
+|---|---|---|
+| `tests/scripts/profile-deploy-hardening.test.sh` | **yes**, unconditional | ~16 s. Self-stubs `docker git ssh scp sshpass getent` — needs nothing from the host. Invoked as `bash <path>`: the file is mode 644, **not executable**. |
+| `tests/profile-backup-redeploy.sh` | **yes**, unconditional | ~1 s, bash + coreutils only. |
+| `scripts/test-check-docker-secret-boundary.sh` | **yes**, Docker-probed | ~3 s when the daemon is up. With Docker down the wrapper reports the test **`○ skipped`** and prints a warning — never a green pass. If the daemon dies *between* the probe and the run, the harness self-skips and the wrapper turns that into a **loud failure** naming the cause (jest has no runtime skip) — again never a green pass. |
+| `tests/profile-backup-dryrun.sh` | **no** — run `npm run test:scripts:docker` | It **hard-fails (exit 1)** without Docker *plus* `age`, `age-keygen`, `rclone`, `curl` and `jq`, so it cannot be a reliable `npm test` gate on a developer machine. Faking one would be worse than admitting there isn't one. Its real gate is task **`0218`** (durability/restore drill). |
+
+**Cost, measured on this host (macOS, Docker up):** `npm test` goes from **~3.1 s** to **~22–25 s**
+wall (112 suites / 1182 tests → **113 suites / 1185 tests**). A cold jest cache measured the same,
+~23.5 s. **This is unconditional by owner ruling — there is deliberately no `SKIP_SHELL_HARNESSES`
+escape hatch**, because the valve would become the default and the harnesses would rot unrun again,
+which is the exact failure this gate exists to stop.
+
+**`npm run test:coverage` pays the same cost.** It is `jest --coverage` over the same config, so it
+runs all three harnesses too — the same ~20 s, and it also writes the synthetic fixture named in
+consequence 2 below into the repo root.
+
+**Single-file runs stay free.** `npm test -- tests/Attack.test.ts` pays **zero** shell cost — the
+wrapper is a jest suite, not a `posttest` hook.
+
+⚠️ **Two consequences worth knowing before you are surprised by them:**
+
+1. **The hardening harness carries grep-level structural assertions over `nginx.conf`,
+   `setup-profile.sh`, `setup-telemetry.sh`, `build-deploy-telemetry.sh` and `update.sh`.** Editing
+   any of those files can now turn `npm test` red — including for people not touching test code.
+   That is the gate working, not a broken test.
+2. **`scripts/test-check-docker-secret-boundary.sh` writes a synthesized (fake) secret fixture into
+   the repo root** and removes it in its `cleanup()` trap. An interrupted run (Ctrl-C) can leave that
+   file behind. It is synthetic, never a real credential — but delete it if you see it.
+
+**Each harness is checked for its own success marker, not just exit 0** — `ALL PASS`,
+`RESULT: N passed, 0 failed`, `Passed: N   Failed: 0`. A harness that exits 0 without printing its
+marker (an early `exit 0`, an internal self-skip, a deleted trailing section) fails the gate. If you
+change a harness's final summary line, update `tests/scripts/ShellHarnesses.test.ts` with it.
+
+⚠️ **Known residual: the harness list is hardcoded.** A new `.sh` harness that is not added to
+`tests/scripts/ShellHarnesses.test.ts` is still gated by nothing — the very failure `0201` was filed
+to stop, recurring for the next harness. Accepted knowingly by the owner (2026-09-05); today's four
+harnesses are all accounted for. **Add your new harness to that file.**
+
+The wrapper sets an explicit **180 s** jest timeout per harness and a **150 s** `spawnSync` deadline.
+Both are load-bearing: jest's 5000 ms default would make a normal slow harness fail with
+`Exceeded timeout of 5000 ms`, the exact string the known supertest flake below produces. Do not
+remove them.
+
 ### ⚠️ Known flake — `supertest` suites (one shape confirmed; not a bug)
 
 **Where:** every suite that uses `supertest` — the four `tests/profile-server/*Routes.test.ts`,
