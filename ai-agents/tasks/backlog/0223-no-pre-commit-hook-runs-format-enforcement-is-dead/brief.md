@@ -19,7 +19,104 @@ control the repository believes it has, and it has already let unformatted code 
 🔲 Backlog
 
 ## Owner
-Owner (the mechanism decision) / fkit-coder (the implementation, once ruled)
+~~Owner (the mechanism decision)~~ **✅ Q1 ruled 2026-09-07 — see below.** / **fkit-coder** (the
+implementation of Q1) — ⚠️ **the owner still owns Q2, Q3 and Q4, which are NOT ruled.**
+
+---
+
+## ✅ OWNER RULING — 2026-09-07, given live in session (answers Q1 ONLY)
+
+> ✅ **Commit a `.husky/pre-commit` hook.**
+
+That is this brief's **option A**. The other options were put to the owner and **not chosen**:
+
+| Option | Outcome |
+|---|---|
+| **A. Commit `.husky/pre-commit` running `lint-staged`** | ✅ **RULED — this is the mechanism.** |
+| **B. Fold `prettier --check` into `npm test`** | ❌ Not chosen. |
+| **C. CI** | ❌ Not chosen (and separately rejected on `0201`). |
+| **D. Accept it — delete the dead `husky`/`lint-staged` declarations** | ❌ Not chosen. |
+
+⛔ **Q2 (check scope / `.prettierignore`), Q3 (the drifted-file backlog) and Q4 (a prettier config
+file) are STILL OPEN.** This ruling settles the mechanism and nothing else. Do **not** read it as
+approving a repo-wide `--check` gate or a repo-wide `--write`.
+
+📌 **Board placement is unchanged** — still the Backlog board, still unranked, producer's merit rank
+still **Medium**. The ruling was about the mechanism, **not** about scheduling or rank.
+
+### ⚠️ A consequence the owner should have in writing: the backlog gets reformatted GRADUALLY
+
+`lint-staged` formats **staged files only**. So the drifted-file backlog is **not** fixed in one sweep
+— each drifted file is reformatted **the first time someone happens to touch and stage it**.
+
+- ✅ **This is a feature, not a defect of the ruling.** It is exactly why option A never triggers the
+  `git blame` event that a repo-wide `--write` would (see Q3).
+- ⚠️ **But it has a real cost that will show up in review:** for a long time, diffs on old files will
+  carry **unrelated formatting churn** alongside the actual change. A one-line fix to a drifted file
+  can arrive as a fifty-line diff. Reviewers must expect this and not read it as scope creep.
+- 🔴 **The backlog is therefore NOT resolved by this ruling.** Q3 stays open on purpose.
+
+### 🔁 Re-measured 2026-09-07 (the brief requires this; do not carry old numbers unverified)
+
+Command run, verbatim, from the repository root:
+
+```
+npx prettier --ignore-unknown --check .
+```
+
+| Scope | Files failing `prettier --check` — **2026-09-07** | (2026-09-05 filing) |
+|---|---|---|
+| **Whole repository** | **681** | 673 |
+| `src/` | **61** | 61 |
+| `tests/` | **12** | 12 |
+| `ai-agents/` | **529** | 521 |
+
+⚠️ **The working tree was NOT clean at this measurement** (`plan-sprint-4.md` modified; the `0225`
+task folder untracked), and briefs filed since 2026-09-05 are also new. **The entire +8 is under
+`ai-agents/`; `src/` and `tests/` reproduced exactly.** That is the expected shape — the drift grows
+with new markdown, not with code — and it is recorded as an explanation, **not** as proof.
+
+🚨 **The `142` figure from the raising session still does not reproduce** and is still not dismissed.
+⛔ **Do not quote `142`.** Re-measure again at plan time and record the command, per verification
+step 1.
+
+### 🔁 Re-verified 2026-09-07 — the mechanism is still half-declared, and the hook still does not exist
+
+At `HEAD` = `35afc64`:
+
+| Claim | Result |
+|---|---|
+| `package.json` declares `lint-staged` and `"prepare": "husky"` | ✅ still true |
+| `git config core.hooksPath` | ✅ `.husky/_` |
+| `.husky/` contents | ✅ **only `_/`** — no top-level hook file |
+| `git ls-files .husky` | ✅ **empty** |
+| `git log --all -- .husky` | ✅ **empty** |
+
+⇒ **No hook has ever run for anyone, on any machine.** The ruling is therefore *"commit the missing
+half of a mechanism that is already installed and declared"*, not *"introduce a new mechanism"*.
+
+### 🚨 READ THIS BEFORE YOU CONCLUDE THAT `0201` IS STALE
+
+A future reader will find **"git hooks rejected"** in [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md)
+and **"commit a git hook"** here, and will assume one of the two must be out of date.
+
+🔴 **Neither is stale. They are two rulings, by the same owner, about two different subjects.**
+
+| | [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) — ruled 2026-09-02 | **This task (`0223`)** — ruled 2026-09-07 |
+|---|---|---|
+| **What is being gated** | the **shell test harnesses** (`tests/scripts/*.sh`) | **`prettier` formatting** |
+| **The ruling** | fold the harnesses into `npm test`; a **pre-push git hook** and **CI** were both rejected **for that purpose** | commit a **`.husky/pre-commit`** hook running `lint-staged` |
+| **Task status** | ✅ **Done — closed 2026-09-06** | 🔲 Backlog |
+
+⛔ **This is NOT an overturn, and `0201` was NOT wrong.** `0201`'s rejection of a git hook was reasoned
+**about shell test harnesses** — whether a hook was the right gate for *those*, on *their* cost and
+*their* failure mode. The owner has now ruled that a pre-commit hook **is** the right mechanism for
+**formatting**. Different subject, different ruling, **both stand**.
+
+⛔ **`0201` is CLOSED. Do not reopen it, do not edit its status, do not re-rank it, and do not
+"correct" its recorded rejection.** The distinction is recorded **here, and only here**, on purpose,
+so that a closed task's record is left untouched. A reader arriving from the `0201` side reaches this
+section through the `Depends on` block at the top of this brief, which names `0201` and points here.
 
 ## Depends on
 Nothing.
@@ -28,6 +125,10 @@ Nothing.
 [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) — see
 *Relationship to `0201`* below. **This is not a duplicate of it and must not be folded into it
 without an owner ruling.**
+
+🚨 **If you came here from `0201` because it says "git hooks rejected" and this task commits one —
+read *READ THIS BEFORE YOU CONCLUDE THAT `0201` IS STALE*, immediately below. Neither ruling is
+stale.** ⛔ `0201` is **closed**; leave its files alone.
 
 ---
 
@@ -87,14 +188,18 @@ future `git blame` over the project's own records. ⛔ **Do not do either withou
 
 ### Relationship to [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) — read this before filing anything else
 
-`0201` is **in progress** and a coder is planning it now. The two tasks **touch the same facts and are
+📌 **Updated 2026-09-07: `0201` is now ✅ Done — closed 2026-09-06.** The text below was written on
+2026-09-05, when it was still in progress; the struck line is kept rather than rewritten so the
+sequence of events stays visible.
+
+~~`0201` is **in progress** and a coder is planning it now.~~ The two tasks **touch the same facts and are
 not the same task**:
 
 | | `0201` | **This task (`0223`)** |
 |---|---|---|
 | **What rots** | `tests/scripts/*.sh` deploy harnesses — nothing ever runs them | **`prettier` formatting** — nothing ever enforces it |
-| **Owner ruling** | ✅ **Already ruled 2026-09-02: fold the shell harnesses into `npm test`.** A **pre-push git hook** and **CI** were both **explicitly rejected**. | ⛔ **Nothing ruled.** |
-| **Status** | 🔄 In progress | 🔲 Backlog |
+| **Owner ruling** | ✅ **Ruled 2026-09-02: fold the shell harnesses into `npm test`.** A **pre-push git hook** and **CI** were both **explicitly rejected — for THAT subject.** | ✅ **Q1 ruled 2026-09-07: commit `.husky/pre-commit`.** Q2–Q4 still open. |
+| **Status** | ✅ **Done — closed 2026-09-06** *(was `🔄 In progress` when this table was written)* | 🔲 Backlog |
 
 ✅ **`0201` already RECORDS the husky fact** — its evidence table, row *"No git hook runs it"*, states
 `.husky/` holds only the `_/` shims. **What `0201` does NOT record is the CONSEQUENCE**: that the same
@@ -109,11 +214,18 @@ made about the shell harnesses, on the shell harnesses' reasoning; it is NOT aut
 about this.** ⛔ **But an agent must not assume it transfers, and must not assume it doesn't.** The
 owner settles it.
 
+✅ **SETTLED 2026-09-07.** The owner ruled the pre-commit hook. **The rejection did not transfer** —
+and the reason it did not is that it was never a ruling about formatting. See the ruling section at
+the top of this brief for the full side-by-side. ⛔ **`0201` stands as written and stays closed.**
+
 ## What to build
 
 **Nothing yet. The first deliverable is a ruling.** Put these to the owner, together:
 
 **Q1 — the mechanism.** How is formatting enforced?
+
+✅ **ANSWERED 2026-09-07 — option A. The table below is kept as the record of what was weighed.**
+⛔ **The remaining questions Q2, Q3 and Q4 are still open and still block implementation scope.**
 
 | Option | Cost | Note |
 |---|---|---|
@@ -142,6 +254,11 @@ cost, not argued as a blocker.
 decision, but it should be a decision.
 
 **Only after Q1–Q4:** implement exactly and only what was ruled.
+
+📌 **State of the four as of 2026-09-07:** **Q1 ✅ ruled** (commit `.husky/pre-commit`). **Q2, Q3, Q4
+⛔ still open.** ⚠️ Q1's mechanism can be built **without** Q2–Q4 — `lint-staged` scopes itself to
+staged files, so it needs neither a `.prettierignore` nor a backlog decision to be safe. **But do not
+close this task while implying Q2–Q4 were handled.**
 
 ## Verification steps
 
@@ -189,7 +306,12 @@ has, in `0.0.141` — this is a Sprint 4 candidate and the producer would not ar
 - **Filed 2026-09-05 by a spawned `fkit-producer`, from a defect raised by the lead session.** Every
   claim above was re-verified against the repository before it was written down; the one number that
   did **not** reproduce is flagged in place rather than quietly corrected.
-- ⚠️ **This brief asserts no owner ruling.** Q1–Q4 are all open.
+- ~~⚠️ **This brief asserts no owner ruling.** Q1–Q4 are all open.~~ 📌 **Superseded 2026-09-07:**
+  **Q1 IS now ruled** — owner ruling given live in session, recorded by a spawned `fkit-producer`;
+  the ruling section is at the top of this brief. **Q2, Q3 and Q4 remain open.**
+- ⚠️ **Also updated 2026-09-07:** `0201` has since been closed (2026-09-06), and the drift figures
+  were re-measured (**681** repo-wide, `src/` and `tests/` unchanged at **61** / **12**). Both are
+  recorded in place; **no number was quietly corrected.**
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
 - 🔒 **No secrets in any artifact** — names and file names only.

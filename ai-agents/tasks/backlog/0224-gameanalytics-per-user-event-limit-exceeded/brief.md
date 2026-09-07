@@ -84,7 +84,7 @@ now."*
 |---|---|
 | **Q1 — the reduction target** | ⏸️ **NOT SET.** No ceiling is being ruled. The expected effect above stands in its place as an estimate only. The producer's earlier ~150/user/day recommendation is **not** adopted and **not** rejected. |
 | **Q2 — what gets cut from `Performance:*`** | ✅ **ANSWERED: the interval change only.** The other candidates — dropping the three FPS bucket events, a per-session cap, cohort/1-in-N sampling — are ⏸️ **DEFERRED, NOT REJECTED ON MERIT.** Nobody judged them worse; they were simply not taken now. |
-| **Q3 — the `DEPLOY_ENV` fail-open default** | ⏸️ **DEFERRED, NOT FIXED.** See the standing-risk box below. |
+| **Q3 — the `DEPLOY_ENV` fail-open default** | ⏸️ **DEFERRED, NOT FIXED.** See the standing-risk box below. 📌 **2026-09-07: split out into its own Backlog task, [`0226`](../0226-deploy-env-fails-open-to-prod-analytics/brief.md), on an owner ruling. Still not fixed, still not scheduled.** |
 | **The 3–4 Sep spike itself** | ⏸️ **NOT BEING FIXED and NOT BEING INVESTIGATED NOW.** See the hypothesis box below. |
 | **Work-plan steps 1, 2, 4, 5** (shared-key verification, full event enumeration, cardinality, `Platform`/`Device` closeout) | ⏸️ **ALL DEFERRED.** Kept in full below as the record of what was found and what is still unanswered. |
 | **Cardinality (~103–105 → 118 distinct names)** | ⏸️ **STILL OPEN AND STILL TRENDING UP.** Not resolved, not measured, not being worked. |
@@ -101,6 +101,13 @@ the two fail-open defaults; `build.sh:129` is the safe path.
 
 ⚠️ **The wrong outcome is the one you get by omission, and nothing warns you.** **The owner knows this
 and chose to wait.** It is recorded here so it is not mistaken for handled.
+
+📌 **UPDATE 2026-09-07 — this risk now has its own task:
+[`0226`](../0226-deploy-env-fails-open-to-prod-analytics/brief.md), on the Backlog board, on an owner
+ruling given live in session.** ⛔ **It is still NOT fixed and still NOT scheduled** — a brief on an
+unranked board is a record, not a mitigation, and this box stands unchanged. ⚠️ **`0226` does not
+close `0224`:** it removes a *mechanism*, it does not identify the cause of the 3–4 Sep spike, and
+`0226` carries the same arithmetic caution recorded further below.
 
 ### ⚠️ The 3–4 Sep spike — the owner's read, recorded as a HYPOTHESIS
 

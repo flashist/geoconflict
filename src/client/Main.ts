@@ -246,7 +246,7 @@ class Client {
 
     window.addEventListener("beforeunload", () => {
       console.log("Browser is closing");
-      this.perfMonitorStop?.();
+      this.stopPerformanceMonitor();
       if (this.gameStop !== null) {
         this.logActiveMatchAbandon();
         this.gameStop();
@@ -272,8 +272,7 @@ class Client {
 
     this.eventBus.on(SendWinnerEvent, () => {
       this.gameHasEnded = true;
-      this.perfMonitorStop?.();
-      this.perfMonitorStop = null;
+      this.stopPerformanceMonitor();
     });
 
     document.addEventListener("join-lobby", this.handleJoinLobby.bind(this));
@@ -676,6 +675,7 @@ class Client {
     if (this.gameStop !== null) {
       console.log("joining lobby, stopping existing game");
       this.gameStop();
+      this.stopPerformanceMonitor();
     }
     const config = await getServerConfigFromClient();
 
@@ -754,7 +754,7 @@ class Client {
       },
       () => {
         this.gameHasStarted = true;
-        this.perfMonitorStop = startPerformanceMonitor();
+        this.restartPerformanceMonitor();
         this.joinModal.close();
         this.publicLobby.stop();
         incrementGamesPlayed();
@@ -928,12 +928,24 @@ class Client {
     this.logActiveMatchAbandon();
     this.gameStop();
     this.gameStop = null;
-    this.perfMonitorStop?.();
-    this.perfMonitorStop = null;
+    this.stopPerformanceMonitor();
     clearReconnectSession();
     this.gutterAds.hide();
     this.publicLobby.leaveLobby();
     setStartScreenControlsHidden(false);
+  }
+
+  private stopPerformanceMonitor(): void {
+    this.perfMonitorStop?.();
+    this.perfMonitorStop = null;
+  }
+
+  // Always stops any predecessor first: this is the only start site, so a
+  // teardown path that forgets to stop costs one stale monitor, never a
+  // growing pile of them.
+  private restartPerformanceMonitor(): void {
+    this.stopPerformanceMonitor();
+    this.perfMonitorStop = startPerformanceMonitor();
   }
 
   private logActiveMatchAbandon(): void {
