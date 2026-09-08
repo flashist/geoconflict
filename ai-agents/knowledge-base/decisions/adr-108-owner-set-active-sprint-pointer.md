@@ -1,8 +1,8 @@
 # ADR-108: Active sprint is owner-set via a pointer, derived only as fallback (direction for the next fkit update)
 
-- **Status:** accepted — **re-confirmed in practice 2026-09-07, still unshipped upstream**
-- **Date:** 2026-08-24 *(update: 2026-09-07)*
-- **Deciders:** Owner (ruling 2026-08-24, relayed via lead); fkit-architect (evaluation)
+- **Status:** accepted — **re-confirmed in practice 2026-09-07, still unshipped upstream**; **scope widened by amendment 2026-09-08** to cover local patching of `fkit-status` generally (decision unchanged)
+- **Date:** 2026-08-24 *(updates: 2026-09-07, 2026-09-08)*
+- **Deciders:** Owner (rulings 2026-08-24, 2026-09-07, 2026-09-08 — each relayed via a spawning session); fkit-architect (evaluation, and the 2026-09-08 assessment)
 
 > ## 🔴 UPDATE 2026-09-07 — the predicted failure recurred, and the pointer is still not implemented
 >
@@ -39,6 +39,67 @@
 > silently answer for the wrong board on an empty argument — `/fkit-status` and
 > `/fkit-sprint-ship-loop` (`fkit-sprint-ship-loop/SKILL.md:47,94`). **A decision on whether to
 > implement the pointer locally or keep waiting on upstream is OPEN and belongs to the owner.**
+
+> ## 🔴 UPDATE 2026-09-08 — the open question below is ANSWERED: hold on local patching, ship `0001`
+>
+> **Amendment basis (stated so it can be checked, per `decisions/README.md`).** This is an
+> **owner's follow-up ruling on a question this ADR itself left open** — the residual note above says
+> verbatim: *"A decision on whether to implement the pointer locally or keep waiting on upstream is
+> **OPEN and belongs to the owner**."* It also clarifies wording already in the Scope note directly
+> below (*"Nothing in this repo or in the fkit install is modified by this decision"*), widening it
+> from the pointer specifically to local patching of `fkit-status` generally. **It reverses nothing**
+> — the Decision, Options and Consequences are untouched, and the earlier wording is kept in full.
+> ⚠️ **One reading of `decisions/README.md` would call the widening a new decision needing its own
+> ADR.** It is recorded here on the owner's explicit 2026-09-08 instruction to update ADR-108 *rather
+> than* write a new ADR, and on the architect's reasoning that **two ADRs asking one question invite
+> two different answers**. Flagged rather than resolved silently.
+>
+> **Owner ruling, given live in session and relayed through the spawning session:**
+> **HOLD on locally patching `/fkit-status`. Ship task `0001` instead.**
+>
+> ### Why — the cost of a local patch is quieter and worse than "it gets flagged"
+>
+> 🚨 **A prior claim that a local patch would make `/fkit-heal` report the file as owner-edited is
+> FALSE.** The architect ran heal: **zero verdict lines for any `.claude/` path** — those files are
+> not in the hash manifest at all. The real cost is that **`.claude/skills/fkit-*/` is GITIGNORED**, so
+> a local patch is:
+> - **not in git** — unreviewable, and absent on a fresh clone;
+> - **invisible to `/fkit-heal`** — no tool reports it, in either direction;
+> - **silently overwritten by the next fkit update**, with no warning from anything.
+>
+> A fix that vanishes without a trace at the next update, and that a second machine never had, is not
+> a fix. **That fact is what drove the ruling.**
+>
+> ### Two different mechanisms — one decision, and this ADR's fix does NOT cover the other
+>
+> | | **ADR-108's blind spot** | **The 2026-09-08 blind spot** |
+> |---|---|---|
+> | Failure | The **wrong board** is chosen from among eligible candidates | A board that is **not a candidate at all** |
+> | Mechanism | `select-active` derives the highest open identity (upstream ADR-041 §1) | **File selection**: `fkit-status/SKILL.md:57` names only `ai-agents/sprints/backlog.md`, singular; `sprint-backlog.md` appears nowhere, so **no documented argument reaches it** |
+> | Fixed by the pointer? | Yes | **No** |
+> | Fixed by task `0001`? | No | Yes — it removes the second board |
+>
+> 🚨 **Implementing this ADR's pointer would NOT surface `sprint-backlog.md`.** The pointer chooses
+> among *candidates*; that board is not one. Verified live 2026-09-08:
+> `dashboard.sh select-active` reports `candidate file="sprint-backlog.md" identity="Backlog"`, and
+> `dashboard.sh:274` states the selector will *"Never fall back to a `Backlog`-identity board."*
+> ⇒ The two blind spots are **independent**, and neither fix closes the other.
+>
+> ⇒ **`0001` removes the 2026-09-08 blind spot. It does nothing for ADR-108's**, where the mechanism
+> remains what the 2026-09-07 update recorded: **ask for sprint status BY NAME** (`/fkit-status
+> Sprint 4`). This ADR's residual risk is **unchanged and still open**.
+>
+> ⚠️ **Two premises corrected by the same assessment, recorded so they are not re-derived:**
+> 1. The non-canonical status values `⬜ No sprint` / `⏸ Parked` do **not** hide rows — `dashboard.sh`
+>    renders all 25 with their status cells verbatim, and `marker_key`'s default arm is a **bucket, not
+>    a drop**. The cost is a useless summary line plus drift-noise lines: **degraded, not invisible.**
+> 2. The default run omitting unscheduled work is **the contract, not a bug** (upstream ADR-041 §3) —
+>    `backlog.md`'s own 34 open rows are not in the default run either. **Not a defect.**
+>
+> **Tracking:** [`0001-consolidate-unsprinted-work-onto-backlog-board`](../../tasks/backlog/0001-consolidate-unsprinted-work-onto-backlog-board/brief.md).
+> ⚠️ **`0001` is not yet shippable as written** — a scope conflict with the same day's
+> status-vocabulary ratification is open and returned to the owner; see that brief's own 2026-09-08
+> update. **Its status and priority are unchanged: the owner ruled the route, not the schedule.**
 
 > **Scope note.** fkit is upstream tooling; this ADR records the *direction this project wants the
 > next fkit update to take*, not a change we implement here. Nothing in this repo or in the fkit

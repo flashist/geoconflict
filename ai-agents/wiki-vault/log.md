@@ -2324,3 +2324,317 @@ tree after this run's grounding read** (along with further producer edits to `00
 ⚠️ **This is direct evidence for the coverage caveat above:** the working tree moved *while the sync
 ran*. Anything a producer wrote after this entry is **not** covered, and the watermark does not
 distinguish the two cases.
+
+## 2026-09-08 — sync
+
+**Watermark `c910452` → `5913ac2`.** ✅ **The previous run's coverage caveat is DISCHARGED, not inherited.**
+
+### 📌 Committed vs working tree — stated plainly, because the last two runs could not
+
+⚠️ **The spawning session briefed this run for 33 UNCOMMITTED files and a HEAD of `c910452`. Both had
+moved by the time it ran.** `HEAD` is **`5913ac2`** ("Sprint push") and `git status ai-agents/` is
+**clean**. The 33 files were committed in that one commit — **every source this run read came from
+COMMITTED history; nothing was taken from the working tree.** ✅ **The previous run's warning that
+"the next sync will see them as new" was correct, and this is that sync.**
+
+`c910452..5913ac2` touches 33 files under `ai-agents/`, of which **20 are the previous sync's own
+vault output** (committed alongside its sources). **The real source delta is 13 files.**
+
+### Ingested — updated
+
+- `ai-agents/knowledge-base/conventions/file-line-citations.md` (**re-read FRESH, not assumed
+  covered**) + `conventions/README.md` → [[wiki/systems/agent-conventions]] — 🔴 **convention 10 had
+  grown since the previous ingest: FOUR failure modes, not three, and SIX rules, not three.** The new
+  failure mode is **wrong-from-birth-then-preserved-perfectly** (`0228`'s `Main.ts:702`, never an
+  `await`, faithfully re-derived to `:711`, still wrong, corrected to `:712`); the new rules are
+  **re-anchor on the code not the old number**, **check a citation by CONTENT match**, and
+  **re-verify on read even against a declared frame**. The *"uncommitted in the working tree"* caveat
+  is **spent and removed** — it is committed in `5913ac2`. Also added the "no automated check"
+  enforcement note and the *needs-a-sentence-with-content* limit.
+- `0231`'s brief → [[wiki/systems/client-game-teardown]] — the **title reframe** (*never runs on a
+  normal leave* → *never runs on ANY path*), the `0231`/`0232` entanglement left deliberately open,
+  and the one clause of the brief that went false (*"the one path where `stop()` does run"*).
+- `0232`'s brief → [[wiki/systems/client-game-teardown]] — 🆕 **the `onGameEnd` seam is
+  GENERATION-GUARDED** (`if (joinGeneration !== this.monitorGeneration) return;`) and that is a
+  **trap for `0232`'s acceptance test**; plus what the seam is *not* (monitor only, `gameStop`
+  deliberately untouched).
+- `0228`'s brief → [[wiki/systems/client-game-teardown]] — the semantic-pass lesson replacing the old
+  "+26 offset" note: the offset is **not a single constant** (`Main.ts` +8/+9/+12/+26,
+  `ClientGameRunner.ts` +5/+23/+24/+25/+26/+29), and `0227`'s `joinGeneration` mint now sits inside
+  `0228`'s window and must not be reordered by its fix.
+- `ai-agents/sprints/plan-sprint-4.md` → [[wiki/decisions/sprint-4]] — 📌 **the board re-count the
+  previous run flagged as MISSING is now done**: **82 rows — 53 Done (31 agent-closed) · 17 Backlog ·
+  7 Blocked · 1 In progress · 3 Cancelled · 1 Moved pointer; 25 OPEN.** The stale 2026-09-04 figure
+  (64 rows) is **struck, not deleted**, and its *"those rows are not yet reflected in this page's
+  counts"* caveat is discharged.
+- `ai-agents/sprints/backlog.md` → [[wiki/decisions/sprint-backlog]] — **48 rows, 37 open**; the
+  `0008`/`0010`/`0011` reconciliation confirmed against the three briefs and its *copied-from-board,
+  NOT-verified-against-the-world* provenance reinforced; `0230`'s **superseded position ruling**
+  (kept, not a mistake) and the **spent, non-precedential ADR-035 lift**.
+- `0227`'s brief → [[wiki/tasks/crashed-game-teardown-seam]] — ✅ **the self-contradiction the
+  previous run flagged and could not fix is now CORRECTED BY THE PRODUCER in two places**, superseded
+  rather than deleted. The wiki's flag is closed out.
+- `index.md` — 4 entries extended (agent-conventions, client-game-teardown, sprint-4, and the
+  teardown-family framing).
+
+### ✅ Counts VERIFIED INDEPENDENTLY, not relayed
+
+Both board counts were **counted from the source files by this run**, not accepted from the spawning
+session. **Both match the producer's dated 2026-09-07 figures exactly — zero drift on either board.**
+
+### Skipped, with reason
+
+- All `ai-agents/tasks/backlog/*/brief.md` — **not done, a task page would be premature** (Step 3).
+  `0228`, `0230`–`0233` are recorded on the board pages and
+  [[wiki/systems/client-game-teardown]] instead.
+- `0008`/`0010`/`0011` briefs — status-only change, already carried by
+  [[wiki/decisions/sprint-backlog]]; **no task pages exist or should**.
+- In-folder `plan.md` / `worklog.md` / `review.md` — working artifacts, not sources.
+
+### 🔴 Framing preserved deliberately — the point of this run
+
+- **`0231`'s reframe acquired NO new evidence.** Recorded on the page and in `index.md` in those
+  words: still **reasoned from code, never observed**; nothing measured, no browser watched, no
+  interval or worker counted; **step 1 is still to measure it and a refutation is still a valid
+  complete outcome.** ⛔ A bigger-sounding defect must not read as better-evidenced.
+- **`0008`/`0010`/`0011` are `🚧 Blocked` by RECONCILIATION FROM THE BOARD, not by verification.**
+- **`0230` is DEFERRED, CAUSE UNKNOWN** — never resolved, never explained.
+- **`0224` and `0227` both closed with acceptance criteria UNMET**, and both pages already say so
+  **above** what shipped. Verified this run; unchanged.
+- ⛔ **NOTHING from this work is deployed.** The owner deploys at the next weekend slot.
+
+### Flagged for human review — NOT fixed
+
+- **[[wiki/tasks/crashed-game-teardown-seam]] cites sites B and C against `35afc64`** (`:289-306`,
+  `:215`) while its own banner frames the page at `c910452`. The frames are declared, so it does not
+  violate convention 10 — but **two frames on one page is exactly what that convention exists to
+  prevent.** Not re-derived here: it is a lint concern, and the numbers were **not guessed**.
+
+## 2026-09-08 — lint
+
+**Scope: the whole vault — 177 pages under `wiki/`, plus `index.md`, `schema.md`, `log.md`.** Run
+immediately after the same day's sync.
+
+### Checked and CLEAN — no action needed
+
+| Check | Result |
+|---|---|
+| **Wiki-link resolution** | ✅ **0 broken links** across all 177 pages. *(15 apparent hits are template placeholders in `schema.md` / `log.md` — `[[systems/...]]`, `[[features/attack]]` — which are the conventions' own examples, not references. Correctly left alone.)* |
+| **Orphan pages** | ✅ **0** — every page has at least one inbound link from another page |
+| **Index coverage** | ✅ **0 pages missing from `index.md`** |
+| **Template drift** | ✅ **0 pages** — every page in `features/`, `systems/`, `decisions/`, `tasks/` carries its type's required **bold inline** metadata and all required `##` sections |
+| **ADR numbering** | ✅ `adr-101`–`adr-110`, **no duplicates**, and a **1:1 match** with `ai-agents/knowledge-base/decisions/`. Abbreviated vault slugs left alone per the 2026-08-23 owner ruling |
+| **Secret scan** | ✅ **clean** — no DSNs, connection strings, keys, tokens, JWTs or private/RFC-1918 IPs. Public hostnames left in place per the CLOSED ruling of 2026-08-29 |
+
+### Checked against today's rulings — all three CONSISTENT
+
+- ✅ **Sprint 4 is the active sprint.** Recorded verbatim (*"The active sprint is the Sprint 4!"*) in
+  both [[wiki/decisions/sprint-4]] and [[wiki/decisions/adr-108-active-sprint-pointer]]. **No page
+  claims any other board is active.**
+- ✅ **The profile box EXISTS; its setup and keys are being redone from scratch.** Every *"the profile
+  host is live"* claim is struck-and-corrected, and every *"THERE IS NO PROFILE HOST"* overcorrection
+  is marked **withdrawn** — across [[wiki/systems/project-brief]],
+  [[wiki/systems/player-profile-store]], [[wiki/tasks/profile-vps-provisioning]],
+  [[wiki/tasks/profile-match-end-crediting]] and [[wiki/tasks/citizenship-xp-progress-ui]]. The
+  `age`-key question reads as **RE-OPENED**. **Correct posture, no edit made.**
+- ✅ **`0230` is DEFERRED, CAUSE UNKNOWN.** No page anywhere describes it as resolved, explained,
+  fixed, done or cancelled. The *"the banner is gone is not evidence"* guard is carried on all three
+  pages that mention it.
+- ✅ **`0224` and `0227` both state their UNMET acceptance criteria ABOVE what shipped** — verified by
+  reading both pages' opening blocks. **Unchanged; already correct.**
+
+### Fixed — safe and unambiguous
+
+1. **Two commit frames on one page** — [[wiki/tasks/crashed-game-teardown-seam]]'s site table cited
+   sites B and C against `35afc64` while the page's own banner frames it at `c910452`. **Both frames
+   are now named explicitly, with the `c910452` numbers re-derived BY READING BOTH COMMITS and
+   matching content — never by shifting.** ⚠️ **The old site-B range was also off by one** (`:289-306`;
+   `:306` is the *next* statement, the `catch` closes at `:305`) — corrected, and the post-fix range
+   verified as `:313-329`. Site C `:215` → `:222-232`. 📌 Added the non-obvious consequence found while
+   verifying: **`0227` did NOT change the worker-init `catch`** — it is byte-identical and still
+   bare-`return`s; the monitor is stopped **upstream at the call site**, so *"`0227` covers it"* must
+   not be read as *"the catch was fixed."*
+2. **Two spent "uncommitted in the working tree" warnings** — [[wiki/systems/agent-conventions]]
+   (twice) and [[wiki/decisions/sprint-backlog]]. Convention 10 and the `0008`/`0010`/`0011`
+   reconciliation are **both committed in `5913ac2`**. Replaced with the committed fact rather than
+   deleted, so a reader who remembers the warning sees why it went.
+3. **Two one-way links closed** — [[wiki/systems/agent-conventions]] now links back to
+   [[wiki/systems/client-game-teardown]] and [[wiki/tasks/crashed-game-teardown-seam]]. ✅ **The link
+   graph is now fully bidirectional: 0 broken, 0 one-way, 0 orphans.**
+
+### Found and NOT fixed — needs judgement, deliberately left
+
+- **The vault's dated-annotation layering is getting hard to read.** Several high-traffic entries —
+  `index.md`'s [[wiki/decisions/sprint-4]], [[wiki/systems/player-profile-store]] and
+  [[wiki/tasks/measure-clientless-leader-and-solo-awards]] lines especially — are now long chains of
+  struck-then-corrected-then-re-corrected claims, several hundred words each. **Every layer is
+  individually accurate and the struck text is deliberately preserved**, so ⛔ **nothing here is a
+  defect and nothing was rewritten.** ⚠️ **But the risk is real and rising: a reader who stops at the
+  first bold claim can come away with a superseded position**, which is the exact failure the
+  struck-don't-delete practice was adopted to prevent. **Consolidation would mean deciding what
+  history may be dropped — an owner call, not a lint call.** Raised as **NEEDS-DECISION** below.
+- **`0224`'s two unexplained dashboard discrepancies remain open** (per-category figures not summing
+  to the daily totals; the 581.97-vs-378.86 mean). Recorded as **unexplained, not refuted** — carried
+  forward unchanged from the previous lint. **Not a wiki defect.**
+
+### Open owner questions — NONE NEW
+
+The `schema.md` *Standing Owner Rulings* section was read first, as it requires. **The public-hostname
+question is CLOSED (2026-08-29) and was not re-raised.** The one item below is new and is returned to
+the spawning session, **not** put to the owner by this run.
+
+**NEEDS-DECISION — annotation-layer consolidation**
+- **Question:** Should the wiki consolidate its longest struck-and-superseded annotation chains, or
+  keep appending?
+- **Options:** **(a)** Keep appending — maximum auditability, worsening readability. **(b)** Consolidate
+  the worst offenders into a current-state statement plus a short dated "superseded positions"
+  footer, preserving every claim but reordering them. **(c)** Consolidate and drop superseded layers
+  older than a set age.
+- **Recommendation: (b).** It preserves every claim — the property the struck-don't-delete practice
+  exists for — while putting the **current** state first, where a hurried reader actually looks.
+  ⛔ **(c) is not recommended:** several of these corrections are load-bearing precisely *because* they
+  record that the project once believed something false.
+- **Context:** No claim is currently wrong; this is legibility, not accuracy. It is an owner call
+  because it decides how much history the vault owes a future reader.
+
+## 2026-09-08 — consolidation (owner-ruled option (b))
+
+**Owner ruled the previous lint's NEEDS-DECISION, given live 2026-09-08: option (b)** — consolidate the
+worst annotation chains into a **current-state statement plus a dated "superseded positions" footer**.
+⛔ **Option (c) — dropping superseded layers by age — was EXPLICITLY REJECTED**, on the reasoning that
+several corrections are load-bearing precisely because they record that the project once believed
+something false. **NOTHING WAS DROPPED in this pass.**
+
+**Scope, as ruled: the three `index.md` entries named in the lint, plus page bodies judged worst — not
+a vault-wide sweep.** Page bodies were chosen by **measuring** annotation density (strike-throughs and
+supersession markers per KB), not by impression.
+
+### Consolidated
+
+| Target | Before | After |
+|---|---|---|
+| `index.md` → [[wiki/decisions/sprint-4]] | **6,679 chars, one line** | current state (board counts, what shipped, what is still open) + a **7-item dated superseded footer** |
+| `index.md` → [[wiki/systems/player-profile-store]] | 2,391 chars | current state + footer keeping **both** profile errors visible |
+| `index.md` → [[wiki/tasks/measure-clientless-leader-and-solo-awards]] | 1,877 chars | current state + a **5-item dated superseded footer** |
+| [[wiki/decisions/clientless-leader-win-policy]] *(body — densest page, 41 markers in 22 KB)* | a 4-step belief chain buried **inside** the top banner | banner states the current position; the chain and **7 in-body struck claims** now sit in a new `## Superseded positions` section before `## Related` |
+
+**No superseded claim was deleted anywhere.** Detail compressed out of `index.md` lines was verified
+present on the target page **before** compression — including every task ID the old `sprint-4` line
+named.
+
+### ⚠️ TWO ACCURACY CORRECTIONS MADE DURING LEGIBILITY WORK — flagged, not hidden
+
+The brief for this pass said to flag rather than act if a page's **assertions** needed changing. Two
+`index.md` entries were **stale against their own pages**, and consolidating them without correcting
+would have carried a known-false summary forward:
+
+1. **[[wiki/systems/player-profile-store]]'s index entry stopped at 2026-09-04** and did not carry the
+   **third owner position of 2026-09-07** (*"I have the VPS, but I need to re-du the setup of it from
+   the scratch, probably all the keys"*). The **page** already carried it correctly. The index line now
+   matches the page.
+2. **[[wiki/tasks/measure-clientless-leader-and-solo-awards]]'s index entry did not say `0208` is
+   DEPLOYED.** The page was corrected 2026-09-07 (built, committed `6b30e22`, deployed in `0.0.141`,
+   emitting); the index line still read as if unscheduled. 🚨 **`0208` is one of the few Sprint 4 items
+   that IS deployed** — the index now says so explicitly, so it is not swept into the sprint-wide
+   *"nothing is deployed"*.
+
+**In both cases the page was already right and the catalog line was behind it.** No page's assertions
+were changed.
+
+### ✅ Guarded items re-verified after the reorder
+
+All seven checked by grep and by reading: **profile box exists (twice-confirmed) with setup/keys being
+redone, and BOTH errors — *"the host is live"* and the *"THERE IS NO PROFILE HOST"* overcorrection —
+still visible**; **`0231`'s reframe acquired NO new evidence** (*reasoned from code*, *not observed*,
+*not a measurement*); **`0008`/`0010`/`0011` blocked by RECONCILIATION, not verification**; **`0230`
+deferred, cause unknown**, with the *"the banner is gone is not evidence"* guard intact; **`0224` and
+`0227` state their UNMET criteria above what shipped** (banner line 7 vs `## Key Changes` at 21 / 35);
+**nothing deployed, next weekend slot**; **`0224`'s two dashboard discrepancies unexplained, NOT
+refuted**.
+
+### ✅ Structural checks re-run — unchanged
+
+**177 pages · 0 broken links · 0 one-way links · 0 orphans · 0 pages missing from `index.md` ·
+0 template drift · secret scan clean.**
+
+### 🔎 Found while verifying — NOT fixed, needs an ingest
+
+**Task `0212` (`0212-investigate-tutorial-abandonment-by-platform-segment`) has NO vault coverage at
+all.** It is a real brief, `🔲 Backlog`, unscheduled, filed on the Backlog board — and it appears
+**nowhere** in the vault, including on [[wiki/decisions/sprint-backlog]], which covers that board.
+⛔ **Not fixed here: adding it is a new assertion, which this legibility pass was explicitly told not
+to make.** It is an **ingest** item. ⚠️ Surfaced by accident, so **there may be other uncovered backlog
+briefs — this pass did not audit for them.**
+
+## 2026-09-08 — coverage audit + gap ingest (owner-ruled option (b))
+
+**Owner ruled option (b) live 2026-09-08:** audit both boards for vault coverage, then ingest the gaps
+in one pass.
+
+### Method, and what it would NOT catch — stated plainly
+
+**Method.** Enumerated **all 232 task folders** under `ai-agents/tasks/{backlog,done,cancelled}/`
+(a **superset** of the two boards' 130 rows — chosen because board rows cite *other* tasks' IDs in
+their notes, so row-to-ID attribution is unreliable). For each ID: (1) does a `wiki/tasks/` page name
+that folder in its `**Source**:` field; (2) does the ID appear anywhere in the vault in a line of
+>150 chars (a proxy for substantive treatment rather than a bare list mention).
+
+⚠️ **THE METHOD MATCHES ID STRINGS, AND THAT IS ITS MAIN LIMIT.** It **cannot** see a task whose
+*subject* is covered but whose *ID* is never cited — and **that turned out to be the dominant case.**
+Of 43 raw "uncovered" hits, **39 were false positives of exactly this kind.** ⚠️ It also cannot judge
+whether existing coverage is *correct* or *current* — only that it exists. ⚠️ And `0212`, the task
+that prompted this audit, was itself found through a false positive in an earlier check, not by
+design.
+
+### Audit result — raw 43, true gap 4
+
+| Class | Count | Verdict |
+|---|---|---|
+| Own `wiki/tasks/` page | 107 | ✅ covered |
+| Substantive treatment on a board/system page | 82 | ✅ covered |
+| **Legacy Sprint 1–3 done tasks (`0075`–`0115`)** | 31 | ✅ **FALSE POSITIVE — covered by SUBJECT** ([[wiki/systems/analytics]], [[wiki/features/tutorial]], [[wiki/features/reconnection]], [[wiki/features/feedback-button]], [[wiki/systems/server-performance]], [[wiki/systems/telemetry]]) without citing the legacy ID |
+| **Backlog-board briefs described without ID** (`0034`–`0045`) | 8 | ✅ **FALSE POSITIVE** — all present by subject on [[wiki/decisions/sprint-backlog]] (monitoring, worker init, anti-SAM, FuseTag, GutterAds, infinite-gold, registry hygiene) |
+| **Superseded profile umbrella briefs** `0172`, `0178` | 2 | ✅ **covered by DECOMPOSITION** — their work is the 14 `profile-*` T4a–T4i pages |
+| `0027` (new maps / community demand) | 1 | ⚠️ **uncovered — but Sprint 5, OUT OF SCOPE** |
+| 🔴 **GENUINELY UNCOVERED, IN SCOPE** | **4** | `0212`, `0219`, `0220`, `0221` |
+
+**4 is below the "more than a dozen" stop threshold, so the ingest proceeded.**
+
+### Ingested
+
+- **`0212`** → 🆕 **[[wiki/tasks/tutorial-abandonment-platform-segmentation]]** (new page). Written to
+  read **`🔲 Backlog`, unscheduled, NOT STARTED**: the owner authorised *filing*, which is not
+  scheduling, and the `Medium–High` rank is **the producer's, not an owner ruling**. Carries all six
+  code-read corrections and every caveat, unresolved: the **structural inflation** of the denominator,
+  the **unverified** `TooltipShown` roll-up, the **stale-looking** experiment-gating claim that decides
+  the denominator, the **fused** `Tutorial:Completed`, the coarse `mobile` proxy, the **lower-bound**
+  reading of 9.8 %, the **"Demo mode" banner that never cleared** (figures **owner-confirmed, not
+  unconditionally verified**), and that a **mobile fix may be out of scope** under the DAU>1,500 park.
+- **`0219` / `0220` / `0221`** → [[wiki/systems/player-profile-store]], a new *scoped-not-started*
+  subsection — **consistent with how their epic siblings `0213`, `0215`, `0218`, `0222` are already
+  treated there** (that epic has no per-task pages, by existing practice). Records G1's log-rotation
+  gap as **the same mechanism that already filled the game production disk**, the
+  **backup-invisible-while-prune-deletes** compound failure, that 🔴 **`0195`'s recorded scope was one
+  variable and the real scope is four**, that ✅ **`POSTGRES_PASSWORD` is deliberately exempt and must
+  stay so**, that ⛔ **`0220` does not arm `0064`'s guard**, and `0221`'s G7 restart divergence as a
+  **recommendation, not a ruling**, with G8 explicitly **LOW and not to be inflated**.
+- Back-links added: [[wiki/features/tutorial]], [[wiki/systems/analytics]],
+  [[wiki/decisions/sprint-backlog]], [[wiki/tasks/tutorial-reduce-bots]]. `index.md` +1 entry.
+
+### ✅ Structural checks re-run
+
+**178 pages (+1) · 0 broken links · 0 one-way · 0 orphans · 0 missing from `index.md` ·
+0 template drift · secret scan clean.**
+
+### Flagged for human review — NOT fixed
+
+- 🔴 **`0035`, `0036` and `0045` have NO `## Sprint` heading at all, and appear on NEITHER board.**
+  They are board-invisible briefs. Their *subjects* are covered on [[wiki/decisions/sprint-backlog]],
+  so the vault is not wrong — but **the boards cannot render them and a status run cannot see them.**
+  ⛔ **Not fixed: editing a brief is the producer's job, not the wiki's.** (Precedent: `0024` had the
+  same defect and was corrected by the producer.)
+- ⚠️ **116 briefs declare `Sprint 4` while the board carries 82 rows.** The gap is board-invisible
+  briefs plus decomposed/superseded umbrella tasks. **Not investigated here** — flagged as a possible
+  producer reconciliation, not asserted as drift.
+- ⚠️ **`0027` (Sprint 5) has no vault coverage.** Out of the audited scope; recorded so it is not
+  re-discovered as new.

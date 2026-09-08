@@ -3,6 +3,17 @@
 ## ID
 0012
 
+## Sprint
+Sprint 4 — In-App Monetization & Citizenship.
+
+> ℹ️ **Field added 2026-09-08 (visibility-only), on an owner ruling given live in session and relayed
+> through the spawning session.** The brief carried no `## Sprint` field at all since filing. The value
+> is **derived, not assigned**, from two sources that already agreed: this brief's own `## Priority`
+> line below opens *"**Sprint 4** — buildable now against the local profile stack"*, and the task has a
+> live row on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md). ⚠️ **The `Sprint 4` text stays in
+> `## Priority` as well** — it was not moved or deleted, because that line also carries the *reason*,
+> which is not a Sprint-field fact. **No status, priority or dependency was changed.**
+
 ## Priority
 Sprint 4 — buildable now against the local profile stack. Shipping it retires the no-op inbox seams
 carried by `0017`, `0018`, and `0019`.

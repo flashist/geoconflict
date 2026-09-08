@@ -3,6 +3,16 @@
 ## ID
 0035
 
+## Sprint
+Sprint backlog — no sprint home yet. Client join-path fragility fix.
+
+> ℹ️ **Field added 2026-09-08 (visibility-only).** The brief carried no `## Sprint` field at all since
+> filing. The value is **derived, not assigned**: this task already has a live row on
+> [`sprint-backlog.md`](../../../sprints/sprint-backlog.md) (status `⬜ No sprint`) plus its own prose
+> section there, so its board home was never in doubt — only the brief's own field was missing. Wording
+> matches the same board's siblings `0037`, `0038`, `0039`, `0040`. **No status, priority or dependency
+> was changed.**
+
 > **Status:** Investigation complete, not yet implemented. This document is a hand-off brief.
 > **Audience:** (1) Producer — to write the task description. (2) Tech-specialist — to implement.
 > The implementer will **not** have the original chat context, so everything needed is below.

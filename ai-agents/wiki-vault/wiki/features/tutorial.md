@@ -84,6 +84,7 @@ Sprint 4 follow-up work tightened the tutorial without changing the overall 7-st
 
 ## Related
 
+- [[tasks/tutorial-abandonment-platform-segmentation]] — task `0212`, the filed-but-unscheduled investigation into why the tutorial's completion rate reads 9.8 %, and the six code-read corrections that say the headline is probably overstated
 - [[systems/analytics]] — analytics infrastructure and event conventions
 - [[decisions/sprint-1]] — analytics baseline and Sentry shipped to support tutorial measurement
 - [[decisions/sprint-2]] — sprint where tutorial was built and shipped

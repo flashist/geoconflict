@@ -3,6 +3,16 @@
 ## ID
 0036
 
+## Sprint
+Sprint backlog — no sprint home yet. Bot-behaviour quality improvement.
+
+> ℹ️ **Field added 2026-09-08 (visibility-only).** The brief carried no `## Sprint` field at all since
+> filing. The value is **derived, not assigned**, from two sources that already agreed: this brief's own
+> `## Priority` line below reads *"Low / **No sprint**"*, and the task already has a live row on
+> [`sprint-backlog.md`](../../../sprints/sprint-backlog.md) (status `⬜ No sprint`) plus its own prose
+> section there. Wording matches the same board's sibling `0040`. **No status, priority or dependency
+> was changed.**
+
 ## Priority
 Low / No sprint — player-reported gameplay quality fix, small scope, no dependencies
 

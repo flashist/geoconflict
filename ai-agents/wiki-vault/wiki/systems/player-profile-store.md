@@ -106,6 +106,59 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
   ⛔ **`GameServer.end()` is the WRONG seam for that** — `phase()` requires `noActive`, and `selectMatchCredits` excludes anyone absent from `activeClients`, so crediting hooked there **would award ZERO in every match that ends the normal way.** *"It would look implemented and do nothing."* **Structural, not a preference.**
 - 🚨 **The whole crediting path is a no-op in production (verified 2026-08-23, task `0062`)**: `deploy.sh` never forwards `PROFILE_INTERNAL_TOKEN`, so `ProfileApiClient.isConfigured()` is false and both `upsertProfile()` and `creditMatch()` silently no-op (the miss is logged at `debug`, invisible in prod logs); the profile server independently fails **closed** on the empty token. Net effect: **no profile row is ever created and no XP is ever credited in production** — this blocks earned (`0017`) and paid (`0018`) citizenship. The fix is one line in `deploy.sh`. Found by the 2026-08-22 outage config-drift sweep; see [[decisions/incident-2026-08-22-public-lobbies-outage]].
 
+### 🔲 The clean-slate epic's operability tail — `0219`, `0220`, `0221` — SCOPED, NOT STARTED
+
+**Added 2026-09-08. All three are `🔲 Backlog` on the Sprint 4 board, part of the `0213` clean-slate
+epic. ⛔ Nothing has been built, measured or verified — these are BRIEFS.** They are recorded here
+because the epic's other members (`0213`, `0215`, `0218`, `0222`) already are, and these three were
+the only ones the vault had never mentioned at all.
+
+**`0219` — P4, operability (`High`, the producer's rank).** Four verified gaps on the profile box:
+
+- 🔴 **G1 — no container log rotation.** `setup-profile.sh` never writes `daemon.json` and the compose
+  file declares no `logging:` block ⇒ Docker's **unbounded `json-file`** default. 🚨 **This is the
+  exact mechanism that filled the game production disk** and truncated assets mid-transfer — **not
+  hypothetical; it has already happened once on this project, on a different box.**
+- **G2 — no image prune.** The previous image is retained for rollback (correctly); **nothing removes
+  older ones.** A disk warning past 60 % is logged to a file and **nothing pages on it.**
+- 🔴 **G3 — no monitoring or alerting of ANY kind.** ✅ **No OTEL is DELIBERATE** (the profile server
+  uses its own minimal logger) — ⛔ **do not "fix" that by adding OTEL.** But there is **no external
+  uptime check**, and 🚨 **nothing reads `last-backup.json`** — the backup path writes a freshness
+  record and **no consumer exists**; cron mails root only if an MTA is installed, and **nothing
+  installs one.**
+- ⚠️ **The compound failure is the point: a backup that stops is INVISIBLE while the 14-day prune keeps
+  deleting.** Three weeks later there is no backup and no signal there ever stopped being one.
+- ✅ **Mirror the game box, do not design something new** — `update.sh` already solves rotation and
+  prune.
+
+**`0220` — P5, secret persistence and value parity (`Medium-High`, the producer's rank).**
+🔴 **`0195`'s finding was BROADER than `0195` recorded.** `0195` established that
+`YANDEX_PAYMENTS_SECRET` has no on-box persistence, so a deploy from a machine lacking the value
+**silently overwrites a working value with an empty one**. ⚠️ **The architect verified 2026-09-04 that
+three more variables behave the same way** — the two Telegram feedback variables and the Telegram
+proxy URL. 🚨 **`0195`'s recorded scope was one variable; the real scope is four.** ⛔ **`0195`'s fix
+stands and is not reopened — its FINDING was narrower than the defect.** ✅ **`POSTGRES_PASSWORD` is
+EXEMPT and must stay so** — it is required and **fails closed**, which is the stronger behaviour and
+is deliberate; ⛔ **do not "fix" it into the persist-or-reuse pattern.** **The dangerous shape is that
+the deploy SUCCEEDS** and the feature stops working silently — the same family as `0062`, `0063` and
+`0195`, **now seen four times.** ⛔ **This task does NOT arm `0064`'s guard** — arming is `0064`'s,
+after all ten of `0203`'s pre-arming items land. **Hard sequencing; do not shortcut it.**
+
+**`0221` — P6, OS baseline hardening (`Medium`, the producer's rank).** `setup-profile.sh` provisions
+swap, Docker, ufw, nginx and TLS but **no OS security baseline**: no `unattended-upgrades`, no
+`fail2ban`, no sshd hardening, and 🚨 **no non-root deploy user — the deploy runs as root.**
+⚠️ **The non-root user is where this task can balloon** — it touches the whole deploy path; **scope it
+deliberately or split it out.** ⚠️ **G7, the restart-policy divergence:** the profile box uses
+`restart: on-failure`, the game box `--restart=always`. **`on-failure` does NOT bring containers back
+after a Docker DAEMON restart** (systemd covers a reboot, not the daemon restarting under it), so the
+profile box has a recovery hole the game box does not. **Aligning to `unless-stopped` is a
+RECOMMENDATION, not a ruling** — put it to the owner if the plan disagrees. **G8, no graceful
+shutdown:** no SIGTERM handler, the pool is never closed. ✅ **Severity LOW and stated as such — do not
+inflate it:** the credit ledger's idempotency primary key means a dropped-and-retried credit cannot
+double-credit, so **the consequence is a dropped request, not corrupted data.** ⚠️ An
+**unattended reboot on a single-box service is an unattended outage** — surface that choice rather
+than picking silently.
+
 ## Related
 
 - [[systems/player-infrastructure]] — pre-S4 identity/customization substrate

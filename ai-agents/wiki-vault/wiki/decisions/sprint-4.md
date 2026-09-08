@@ -58,9 +58,29 @@
 >
 > **Why:** shipping `0211` first **PERMANENTLY DESTROYS `0208`'s Part A pre-fix denominator** — you cannot measure how often matches stalled uncredited once they stop stalling uncredited. **No later opportunity, no proxy.** ✅ **The clock is currently STOPPED**, because `0206` never deployed. Owner's reasoning: **measure before you fix** — the numbers feed **ADR-110's re-raise trigger**, **whether stalled-match survivors are a real population**, and **`0205`'s rank**.
 >
-> 📌 **RE-COUNTED 2026-09-04 by the wiki, directly from `plan-sprint-4.md`: 64 rows — 49 done (27 agent-closed) · 6 blocked · 5 backlog · 3 cancelled · 1 in progress (`0064`).** The two new rows are `0208` and `0211`, both arriving as `🔲 Backlog`; **nothing closed and nothing started this run.** ⚠️ **Row count 62 → 64; the backlog bucket 3 → 5.**
+> 📌 ~~**RE-COUNTED 2026-09-04 by the wiki, directly from `plan-sprint-4.md`: 64 rows — 49 done (27 agent-closed) · 6 blocked · 5 backlog · 3 cancelled · 1 in progress (`0064`).**~~ **SUPERSEDED — see the 2026-09-08 re-count below.** *(A 2026-09-07 sync attempted no count and left this one visibly dated rather than guessing; that gap is now closed.)*
 >
-> 🚨 **27 of the 49 done rows carry `(agent-closed — not owner-verified)` — more than half. No human has verified that work.** `/fkit-status` collapses every `✅` variant to plain `done`, so **the board reads greener than the evidence supports**. This is known and accepted (ADR-033), not a defect — but do not read the done count as owner-verified completion.
+> ### 📌 BOARD RE-COUNTED 2026-09-08 by the wiki, directly from `plan-sprint-4.md` at `HEAD` = `5913ac2`
+>
+> | Bucket | Rows |
+> |---|---|
+> | ✅ Done | **53** — of which **31** carry `(agent-closed — not owner-verified)` |
+> | 🔲 Backlog | **17** |
+> | 🚧 Blocked | **7** |
+> | 🔄 In progress | **1** |
+> | ⛔ Cancelled | **3** |
+> | ➡️ Moved (pointer row — `0230`) | **1** |
+> | **Total** | **82** |
+>
+> **25 rows are OPEN** (17 Backlog + 7 Blocked + 1 In progress). ✅ **Independently counted by this run and matching the producer's dated figure of 2026-09-07 exactly — zero drift on either board.** The **Backlog board** stands at **48 rows, 37 open**.
+>
+> ⚠️ **Row count 64 → 82 across four days**, almost entirely the profile clean-slate epic (`0213`–`0222`, `0201`) and the 2026-09-07 teardown/analytics family (`0224`–`0233`) — **rows the 2026-09-04 count predated and that its "not yet reflected in this page's counts" caveat named.** That caveat is now **discharged.**
+>
+> ⛔ **NOTHING IN THE 2026-09-07 WORK IS DEPLOYED.** The owner deploys at the next weekend slot. A `✅ Done` row on this board means *built and closed*, **not** *in production*.
+>
+> 🚨 **31 of the 53 done rows are agent-closed and not owner-verified** — the ratio got slightly worse, not better, as the sprint grew.
+>
+> 🚨 **~~27 of the 49~~ → 31 of the 53 done rows** *(figure as of 2026-09-08; the struck one was the 2026-09-04 count)* **carry `(agent-closed — not owner-verified)` — more than half. No human has verified that work.** `/fkit-status` collapses every `✅` variant to plain `done`, so **the board reads greener than the evidence supports**. This is known and accepted (ADR-033), not a defect — but do not read the done count as owner-verified completion.
 >
 > **Outage track closed 2026-08-26 → 08-28.** All six tasks (`0055`, `0057`, `0056`, `0192`, `0193`, `0194`) are built, reviewed and committed on `dev`, all agent-closed and **none owner-verified**. **No deployment to production is confirmed for any of them** — every task's post-deploy check is pending by design. The track produced [[decisions/adr-109-worker-index-placement-contract]] and one corrected wiki claim in [[systems/telemetry]].
 >

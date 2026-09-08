@@ -2,6 +2,29 @@
 
 > Tasks that are defined and worth doing but not assigned to any currently planned sprint (Sprint 4, 5, or 6). Items here need a sprint home before implementation begins. Brief a task before picking it up — most have no implementation brief yet.
 
+> ℹ️ **This board's `⬜ No sprint` status is a ratified board-level exception to the canonical status
+> vocabulary — owner ruling 2026-09-08, given live in session.** It means *defined, worth doing, no
+> sprint home*, which none of the canonical six can express. It is valid **here and nowhere else**:
+> not in a task brief's `## Status` field (briefs on this board keep `🔲 Backlog` and record the
+> no-sprint fact in their `## Sprint` field), and not on `plan-sprint-N.md` or `backlog.md`. Defined in
+> [`task-status-vocabulary.md`](../knowledge-base/conventions/task-status-vocabulary.md), which is the
+> single source of truth for status values.
+>
+> ⚠️ **`/fkit-status` does not render `⬜ No sprint`** — the dashboard knows the canonical set only, so
+> **rows on this board are invisible to it.** Read this file directly.
+>
+> ℹ️ **`⏸ Parked` is the second ratified board-level exception — owner ruling 2026-09-08, given live in
+> session** (same sweep, separate ruling). It means *deliberately not scheduled until a named external
+> condition is met* — blocked on a **signal**, not on work, which is why `🚧 Blocked` (*started, cannot
+> proceed*) is wrong for it. Same scope limit: valid **here and nowhere else**. 🚨 **A `⏸ Parked` row
+> MUST state its unpark condition** — a park with no named condition cannot be told apart from an
+> abandoned task. Also defined in
+> [`task-status-vocabulary.md`](../knowledge-base/conventions/task-status-vocabulary.md).
+>
+> ⚠️ **Neither exception is rendered by `/fkit-status`**, so **every row on this board — all 25,
+> including 23 open tasks — is invisible to the dashboard.** Read this file directly. (Referred to the
+> architect 2026-09-08 as a tooling question; no change made here.)
+
 ---
 
 ## Status
@@ -9,7 +32,7 @@
 | Status | Task | Brief | Depends On |
 |---|---|---|---|
 | ⬜ No sprint | Task 6 — Rewarded Ads: Minimal Version | None — see plan-index | Citizenship benefits (Sprint 4) |
-| ⬜ No sprint | Task 7 — Leaderboard: Core System | None — see plan-index | — |
+| ⬜ No sprint | Task 7 — Leaderboard: Core System *(**briefed 2026-09-08 on an owner ruling** given live in session and relayed through the spawning session — the one unbriefed row on this board with a known downstream dependency. ⚠️ **Briefed as an INVESTIGATION, not implementation**: the source material is two lines in `plan-index.md` plus this board's own Items section, and six decisions that change what gets built are unmade. Not a duplicate of `0161` (done — player count in a label) or `0210` (Singleplayer platform-reporting policy) — both read and verified. **Status and priority unchanged; this schedules nothing.**)* | [`0234-leaderboard-core-system-definition`](../tasks/backlog/0234-leaderboard-core-system-definition/brief.md) | — |
 | ⬜ No sprint | Task 8b — Private Lobbies (Citizens Only) | None — see plan-index | Citizenship (Sprint 4) |
 | ⬜ No sprint | Task 8c — Spectating (Citizens Only) | None — see plan-index | Citizenship (Sprint 4) |
 | ⬜ No sprint | Task 9 — Re-enable Flags | None — see plan-index | Payment infrastructure (Sprint 4) |
@@ -31,6 +54,8 @@
 | ⬜ No sprint | Fix GutterAds Unsubscribing from `userMeResponse` After First `hide()` | [`0038-fix-gutterads-usermeresponse-unsubscribe`](../tasks/backlog/0038-fix-gutterads-usermeresponse-unsubscribe/brief.md) | — |
 | ⏸ Parked | Task 5 — Deep Mobile Rendering Optimization | None — see plan-index | Mobile DAU > 1,500 |
 | ⏸ Parked | Task 2i — Microsoft Clarity Session Recordings | None — see plan-index | Mobile perf confirmed stable |
+| ⬜ No sprint | Fix Compact Map Shore Generation (Map Generator) *(**row added 2026-09-08 on an owner ruling given live in session and relayed through the spawning session.** 🚨 **This ruling SUPERSEDES a recorded 2026-08-14 reconciliation decision that deliberately did NOT add this row** — see [`plan-sprint-5.md`](plan-sprint-5.md) line 31, whose note is **deliberately kept** as the record of why the task was parked, now superseded rather than deleted. The brief was **board-invisible**: it appeared in no sprint file's table at all, so nothing rendered it and no status run could see it — the same class as `0022`, `0020` and `0028`. Its own `## Sprint` field reads `Sprint 5 — Backlog (high effort, requires full map regeneration)`, but `plan-sprint-5.md` carries no brief-linked rows and its scope statement excludes this task, so **this** board — "defined and worth doing but not assigned to any currently planned sprint" — is the accurate home. Handled the same way `0027` was for Sprint 6. ⚠️ **The brief's `Low` priority does NOT appear on this board**, which carries no Priority column; the rank lives in the brief. **Status, priority and dependencies are untouched — this is visibility only.** **Row appended, not inserted** (ADR-035); appending places it below the two `⏸ Parked` rows, which is position-by-append, not a grouping judgement)* | [`0026-fix-compact-map-shore-generation`](../tasks/backlog/0026-fix-compact-map-shore-generation/brief.md) | — *(the brief names nothing it waits on; its relationship to `0162-disable-compact-public-maps` is a **Blocks** fact, not a Depends on fact)* |
+| ⬜ No sprint | In-Game Hint Display on Match-Start and Win Screens *(**row added 2026-09-08 on the same owner ruling, given live in session and relayed through the spawning session.** 🚨 **Same supersession:** the 2026-08-14 reconciliation deliberately did not add this row; that decision is overturned and [`plan-sprint-5.md`](plan-sprint-5.md) line 31 is **kept** as the superseded record. The brief was **board-invisible** — in no sprint file's table. Its `## Sprint` field reads `Sprint 5 — Backlog`, but `plan-sprint-5.md` has no brief-linked rows and excludes it from scope, so it is homed here. ⚠️ **The brief's `Medium` priority does NOT appear on this board** (no Priority column); the rank lives in the brief. **Status, priority and dependencies are untouched — visibility only.** **Row appended, not inserted** (ADR-035))* | [`0029-hint-videos-in-game`](../tasks/backlog/0029-hint-videos-in-game/brief.md) | `0028-content-hint-videos-production` having produced at least 3–4 clean hint assets before engineering begins |
 
 ---
 
@@ -48,9 +73,25 @@
 
 **From plan-index:** Sprint 4 column, but never added to the Sprint 4 plan document. Sprint 5 Task 10 (Leaderboard Rewards Layer) depends on Task 7 being live first.
 
-**Current state:** No brief written. Task 7 is a prerequisite for Sprint 5 Task 10. Assign and brief before Sprint 5 kicks off.
+**Current state:** ✅ **Briefed 2026-09-08** as
+[`0234-leaderboard-core-system-definition`](../tasks/backlog/0234-leaderboard-core-system-definition/brief.md),
+on an owner ruling. ⚠️ **Scoped as an investigation, not implementation** — the available source
+material is `plan-index.md:90` plus this section, and six decisions that change what gets built (ranking
+metric, scope, reset cadence, render surface, backing store, anti-cheat posture) are unmade. Task 7 is
+still a prerequisite for Sprint 5 Task 10. ~~No brief written. Assign and brief before Sprint 5 kicks
+off.~~
 
-**Effort (from plan-index):** 1–2 weeks.
+**Effort (from plan-index):** 1–2 weeks — ⚠️ that is the estimate for the **whole implementation**, not
+for the investigation, and it predates every open question. Unvalidated.
+
+**Not a duplicate** of `0161-leaderboard-player-count` (done — shows a human player count in a "Players
+Only" label) or `0210-singleplayer-platform-leaderboard-reporting-policy` (a policy decision about the
+existing **Yandex platform** leaderboard). Both were read and verified 2026-09-08; recorded so it is not
+re-derived.
+
+> ℹ️ **The other five live-but-unbriefed rows on this board — Task 6, Task 8b, Task 8c, Task 5, Task 2i
+> — remain visible-but-unbriefed by the owner's explicit choice, 2026-09-08.** Only Task 7 was briefed,
+> because only it has a known downstream dependency. This is a decision, not a gap.
 
 ---
 
@@ -316,3 +357,45 @@ bootstrap task lands.
 **From plan-index:** Deferred after Sprint 3 — only useful once mobile performance is confirmed stable.
 
 **Condition to unpark:** mobile performance baseline confirmed stable in Sentry/analytics. Qualitative diagnostic tool, not a sprint priority on its own.
+
+---
+
+### Fix Compact Map Shore Generation (Map Generator)
+
+**Brief:** `backlog/0026-fix-compact-map-shore-generation/brief.md`
+
+Compact maps (`map4x.bin`) lose `isShore` / `isOceanShore` designations for coastal tiles during the
+half-resolution downsampling step in the Go map generator, so tiles that clearly touch water in the
+full-resolution map have no water-adjacent neighbour in the compact binary.
+
+**Why it is here and not on Sprint 5:** the brief's `## Sprint` field reads *"Sprint 5 — Backlog (high
+effort, requires full map regeneration)"*, but `plan-sprint-5.md` carries no brief-linked rows and its
+scope statement explicitly excludes this task. This board is the accurate home.
+
+**Depends on:** nothing — the brief names no task it waits on. It is the **prerequisite for** ever
+re-enabling compact maps in public matchmaking (`0162-disable-compact-public-maps` pulled them on
+2026-06-03; the runtime fallback `0160-fix-compact-map-boat-attack` was cancelled 2026-06-02 because
+the data the compact binary destroyed cannot be reconstructed at runtime). That is a **Blocks** fact,
+not a Depends on fact.
+
+**Section added 2026-09-08** alongside the table row, on the owner ruling recorded in that row. Content
+is derived from the brief; no status, priority or dependency was changed.
+
+---
+
+### In-Game Hint Display on Match-Start and Win Screens
+
+**Brief:** `backlog/0029-hint-videos-in-game/brief.md`
+
+Show the short educational hint clips produced by `0028-content-hint-videos-production` inside the game
+— on the game-starting modal and the win screen — as a silent, randomly selected hint with a short text
+caption. Both target screens already follow the same LitElement `@customElement` pattern.
+
+**Why it is here and not on Sprint 5:** same reason as the task above — the brief declares Sprint 5, but
+`plan-sprint-5.md` has no brief-linked rows and excludes it from scope.
+
+**Depends on:** `0028-content-hint-videos-production` having produced at least 3–4 clean hint assets
+before engineering begins.
+
+**Section added 2026-09-08** alongside the table row, on the owner ruling recorded in that row. Content
+is derived from the brief; no status, priority or dependency was changed.

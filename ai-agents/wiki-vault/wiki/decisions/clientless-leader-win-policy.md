@@ -14,10 +14,9 @@
 > `archiving game`, with **no `handleWinner`, no winner vote, no `creditMatchXp`, no `winner`
 > attribute and no player stats.** ⇒ **Participation XP is genuinely LOST, not delayed.**
 >
-> 📌 **UPDATED FOUR TIMES. Struck, not deleted — each line was true when written.**
-> ~~`0206` is **unscheduled, unstarted, and nobody is building it.**~~ → ~~**PROMOTED INTO SPRINT 4**
-> on an owner ruling; scheduled is NOT started.~~ → ~~✅ **PLANNED, BUILT, REVIEWED AND CLOSED**
-> 2026-09-03.~~ → 🔴 **REVERTED 2026-09-04. NEVER DEPLOYED.**
+> 📌 **`0206`'s status was rewritten four times between 2026-09-02 and 2026-09-04. The full chain, in
+> the order it was believed, is preserved in [Superseded positions](#superseded-positions--kept-in-the-order-they-were-believed)
+> at the foot of this page — nothing was deleted.** The line above is the current one.
 >
 > ## Why `0206` did not fix it — three claims, only the first is true
 >
@@ -261,6 +260,45 @@ not a naming quibble.
     the sort in the file today.
   - **Tie-break:** ascending `smallID`. 🔴 **Reverted** — the sort is plain `numTilesOwned()`
     descending again, with no explicit tie-break.
+
+## Superseded positions — kept, in the order they were believed
+
+**Consolidated here 2026-09-08 (owner-ruled) so the top of this page can state the current position
+plainly. ⛔ NOTHING IS DELETED, and nothing here may be restored as current.** Several claims on this
+page are worded defensively **precisely because** the project once believed the opposite — a reader
+who cannot see that history cannot tell a cautious sentence from a pedantic one.
+
+### `0206`'s status — rewritten four times
+
+| # | Dated position | Standing |
+|---|---|---|
+| 1 | 2026-09-02 — *"`0206` is unscheduled, unstarted, and nobody is building it."* | ⛔ Superseded |
+| 2 | 2026-09-03 — *"PROMOTED INTO SPRINT 4 on an owner ruling; scheduled is NOT started."* | ⛔ Superseded |
+| 3 | 2026-09-03 — *"✅ PLANNED, BUILT, REVIEWED AND CLOSED."* | ⛔ Superseded |
+| 4 | **2026-09-04 — 🔴 REVERTED. NEVER DEPLOYED.** | ✅ **Current** |
+
+**Each line was true when written.** ⛔ **`0206`'s row on the Sprint 4 board still reads `✅ Done`,
+correctly and deliberately: the WORK was done, the EFFECT was reverted — two different facts.**
+
+### Claims struck in the body above, and why
+
+| Superseded claim | Verdict |
+|---|---|
+| *"A player-visible behaviour change shipped with it: public FFA now ends at 80 %."* | 🔴 **STRUCK — it never reached a player.** The revert removed it |
+| *"As of 2026-09-03 the defect is fixed only IN THE REPO."* | 🔴 **STRUCK 2026-09-04 — `0206` was reverted, so it is fixed NOWHERE:** not in production, not in the repo |
+| *"✅ `0206` shipped the award that closes (b) and (c) — in the repo only."* | 🔴 **STRUCK** — the award was reverted and was **a no-op in the case that actually loses the XP** |
+| *"CORRECTED 2026-09-03: `0206` SHIPPED WITHOUT ITS PHASE-1 MEASUREMENT, so the pre-fix baseline is permanently unmeasurable."* | 🔴 **STRUCK** — `0206` never deployed, so ✅ **the pre-fix denominator is measurable again**; `0211` shipping is what would destroy it |
+| *"One sub-question remains OPEN on `0206`"* (survivor definition, tie-breaking) | 🔴 **STRUCK** — it moved with the work to `0211`; it is not open *on `0206`* |
+| *"the territory-threshold route in Team mode is **rare**"* | 🔴 **STRUCK** — rare **because humans play**, not because 95 % is hard; `0205`'s simulation crossed it in ~7–10 min |
+| *"`0206` is investigation-first for exactly this reason."* | 🔴 **STRUCK** — `0206` was built, not investigated; the measurement task is `0208` |
+
+### The two errors this page is worded around
+
+⚠️ **Both were once stated here as fact, and both are why the current wording is so careful:**
+**(1)** that `0022` was a **PR #77 regression** — 🔧 **premise REFUTED**, the clientless winner is
+original to the fork (`feea527`); **(2)** that **`0206` fixed the XP loss** — 🔴 **it did not**, and
+it was **NOT buggy and did NOT cause the stall.** ⛔ **Never give the revert and the defect one root
+cause.**
 
 ## Related
 

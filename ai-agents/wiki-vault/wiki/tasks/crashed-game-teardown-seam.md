@@ -23,8 +23,12 @@
 | # | Site | Where |
 |---|---|---|
 | **A** | worker `ErrorUpdate` → `ClientGameRunner.stop()` | the crash branch |
-| **B** | worker-init failure → bare `return`, after the modal | `ClientGameRunner.ts:289-306` (at `HEAD` `35afc64`) |
-| **C** | `createClientGame(...)` rejects — `.then((r) => r?.start())` with **no `.catch`** | `ClientGameRunner.ts:215` (at `HEAD` `35afc64`) |
+| **B** | worker-init failure → bare `return`, after the modal | **pre-fix** `ClientGameRunner.ts:289-305` (at `35afc64`) → **post-fix `:313-329` at `c910452`** |
+| **C** | `createClientGame(...)` rejects — `.then((r) => r?.start())` with **no `.catch`** | **pre-fix** `ClientGameRunner.ts:215` (at `35afc64`) → **post-fix `:222-232` at `c910452`** |
+
+> 🔧 **CITATIONS RE-DERIVED 2026-09-08 (lint), by reading both commits and matching content — never by shifting.** This table previously gave **only** the `35afc64` numbers while the page's own banner frames it at `c910452`; **two frames on one page is exactly what convention 10 exists to prevent** (see [[systems/agent-conventions]]). ⚠️ **Site B's old end was also off by one** — it read `:289-306`, but `:306` is the *next* statement (`flashist_logEventAnalytics(`); the `catch` closes at **`:305`**. Both frames are now named explicitly so neither number can be read as the other's.
+>
+> ✅ **What site C looks like AFTER the fix, read at `c910452`:** the bare `.then((r) => r?.start())` is now a `.then` carrying a **compensating branch** — `if (r === undefined) { onGameEnd(); return; } r.start();` — followed by the `.catch` that was missing. ⚠️ **Note what that means for site B: `0227` did NOT change the worker-init `catch` itself.** It is byte-identical and still bare-`return`s. **The monitor is stopped UPSTREAM, at the call site, not inside the catch.** ⛔ **Do not read *"`0227` covers it"* as *"the catch was fixed"*** — if teardown is ever needed *inside* that catch, nothing is there.
 
 🔴 **The site-B exclusion had rested on FALSE reasoning, and that is recorded rather than deleted.** An earlier revision ruled it out because it *"returns before the game ever starts."* The call ordering refutes that: `onJoin()` fires **first** (`ClientGameRunner.ts:204`), `Main.ts:757` starts the monitor, and **only then** is `createClientGame(...)` called. ⇒ **live monitor, no game, no teardown.** The premise confused *the game* with *the monitor*. Caught by **Codex** during `0225`'s adversarial review. Site C — worse, because it shows **no modal at all** — was found while re-checking B.
 
@@ -76,7 +80,9 @@ The owner ruled **twice on 2026-09-07**. First they **confirmed `Backlog`**, whe
 
 ⚠️ **Record that as an OWNER JUDGEMENT, not a producer re-rank, and not a correction of the earlier ruling — the input changed, not the argument.** ⛔ **Rank was never ruled either time**; the `Medium` label is the producer's.
 
-⚠️ **One internal inconsistency in the source brief, left as found:** its *Open questions* tail still reads *"the status stays `🔲 Backlog` and this folder stays in `ai-agents/tasks/backlog/`"*. That text predates the close; the authoritative `## Status` field reads `✅ Done (agent-closed — not owner-verified)` and the folder is in `done/`.
+✅ **RESOLVED 2026-09-08 — the source brief's self-contradiction has been CORRECTED BY THE PRODUCER.** A previous sync flagged it and left it as found (the wiki writes only inside the vault): the brief's *Open questions* tail, and a matching passage near its top, both still read *"the status stays `🔲 Backlog` and this folder stays in `ai-agents/tasks/backlog/`"* while the authoritative `## Status` read `✅ Done (agent-closed — not owner-verified)` and the folder sat in `done/`.
+
+**Both passages now carry a superseded marker — struck, NOT deleted** (the project's standing practice): each says the sentence *was true when written, on the day this task was **promoted***, is **now false as a statement of current state**, and that the reader must **read the `## Status` field, not that line.** The promotion genuinely changed board placement only; the **close came later and changed both.** ⚠️ **Anyone reading `0227`'s brief must still read `## Status` first** — the stale-looking prose is deliberately preserved history, not a live claim.
 
 ## Related
 

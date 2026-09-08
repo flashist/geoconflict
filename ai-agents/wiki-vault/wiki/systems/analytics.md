@@ -224,6 +224,7 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 
 ## Related
 
+- [[tasks/tutorial-abandonment-platform-segmentation]] — task `0212`, the filed-but-unscheduled investigation into why the tutorial's completion rate reads 9.8 %, and the six code-read corrections that say the headline is probably overstated
 - [[systems/game-overview]] — overall project context
 - [[systems/producer-workflow]] — producer release validation depends on these analytics conventions
 - [[systems/project-operations]] — operational workflow and release guardrails that depend on analytics

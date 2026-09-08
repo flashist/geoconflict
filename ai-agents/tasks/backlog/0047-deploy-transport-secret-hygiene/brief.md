@@ -3,6 +3,18 @@
 ## ID
 0047
 
+## Sprint
+Sprint backlog — no sprint home yet. Security hardening follow-up, deploy transport (`sec13`).
+
+> ℹ️ **Field added 2026-09-08 (visibility-only), on an owner ruling given live in session and relayed
+> through the spawning session.** The brief carried no `## Sprint` field at all since filing. The value
+> is **derived, not assigned**: this task has a live row on
+> [`sprint-backlog.md`](../../../sprints/sprint-backlog.md) (status `⬜ No sprint`, listed there as
+> `sec13`) plus its own prose section. It is corroborated by this brief's own
+> `## Priority / release timing` line — *"Low — post-release; **NOT** a citizenship/profile-server
+> go-live blocker"* — which is consistent with having no sprint home. **No status, priority or
+> dependency was changed.**
+
 ## Status
 🔲 Backlog
 

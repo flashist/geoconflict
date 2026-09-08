@@ -3,6 +3,17 @@
 ## ID
 0016
 
+## Sprint
+Sprint backlog — no sprint home yet. Security architecture follow-up (`sec11`).
+
+> ℹ️ **Field added 2026-09-08 (visibility-only), on an owner ruling given live in session and relayed
+> through the spawning session.** The brief carried no `## Sprint` field at all since filing. The value
+> is **derived, not assigned**: this task has a live row on
+> [`sprint-backlog.md`](../../../sprints/sprint-backlog.md) (status `⬜ No sprint`, listed there as
+> `sec11`) plus its own prose section, so its board home was never in doubt — only the brief's own field
+> was missing. The "architecture" wording is this brief's own `## Type`. **No status, priority or
+> dependency was changed.**
+
 ## Status
 🔲 Backlog
 

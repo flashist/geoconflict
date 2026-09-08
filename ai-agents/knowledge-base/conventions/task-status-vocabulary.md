@@ -26,6 +26,105 @@ or `4c`. `Sprint 4` and `Sprint 4c` are different sprints.
 **No other value is valid.** Not "Not started", not "WIP", not "Todo", not "Complete". If a status you
 need isn't here, the fix is to amend this doc — not to invent a value inline.
 
+> # 🔴 SCOPE WIDENED 2026-09-08 — both exceptions below are now valid on **two** boards
+>
+> **Owner ruling, given live in session 2026-09-08 and relayed through a spawning session:**
+> `⬜ No sprint` and `⏸ Parked` are valid on **`sprints/sprint-backlog.md` AND `sprints/backlog.md`**.
+>
+> 🚨 **This WIDENS a scope limit ruled the same day. It is a deliberate re-scoping, and it is not what
+> was originally meant.** Both exceptions were ratified earlier on 2026-09-08 as valid on
+> `sprint-backlog.md` **only** — that narrower wording is kept below, struck where it is now wrong,
+> **superseded rather than deleted.** Read the sequence, not a single clean story.
+>
+> **Why it was widened.** Task
+> [`0001`](../../tasks/backlog/0001-consolidate-unsprinted-work-onto-backlog-board/brief.md)
+> consolidates `sprint-backlog.md` into `backlog.md` and retires the first board. Under the narrow
+> wording those rows could only arrive on `backlog.md` by being flattened to `🔲 Backlog` — destroying
+> the distinction the same day's ruling had just found worth keeping. Both values describe
+> **unscheduled work**, and after `0001` `backlog.md` becomes the only board that holds it. The owner
+> took the re-scoping over the flattening.
+>
+> ## What did NOT change
+>
+> - ❌ **Still invalid in a task brief's `## Status` field.** Briefs keep `🔲 Backlog` and record the
+>   no-sprint / parked fact in `## Sprint` (or, for a park, its condition in the board row's prose).
+> - ❌ **Still invalid on `plan-sprint-N.md`.** A row on a sprint plan has a home by definition.
+> - ❌ **Still not rendered by `/fkit-status`.** The dashboard knows the canonical set only. Widening
+>   the boards did **not** make these values visible to it — after `0001`, that blind spot follows the
+>   rows onto `backlog.md`. See
+>   [ADR-108](../decisions/adr-108-owner-set-active-sprint-pointer.md).
+> - ❌ **Still not a general-purpose status.** Two named boards, not "wherever unscheduled work lives".
+
+## Board-level exception — `⬜ No sprint`, on ~~`sprint-backlog.md` only~~ `sprint-backlog.md` and `backlog.md`
+
+| Status | Marker | Meaning | Set by | Valid where |
+|---|---|---|---|---|
+| **No sprint** | `⬜ No sprint` | Defined, worth doing, **no sprint home**. Not scheduled, not blocked, not dropped. | Producer | [`sprints/sprint-backlog.md`](../../sprints/sprint-backlog.md) and [`sprints/backlog.md`](../../sprints/backlog.md) — **those two only** *(widened 2026-09-08 from `sprint-backlog.md` alone)* |
+
+**Ratified 2026-09-08 by owner ruling, given live in session and relayed through a spawning session.**
+It was found in use on **21 rows** of `sprint-backlog.md` during a board-visibility sweep. The choice put
+to the owner was *reconcile those 21 rows to `🔲 Backlog`* versus *ratify and document*; **ratify won,
+and the existing rows were deliberately left as they are.** ⚠️ **The board now carries 23 such rows, not
+21** — the same 2026-09-08 session appended `0026` and `0029` under a separate ruling in the same batch.
+The "21" is the count at the moment of the ruling, kept because it is what the owner ruled on.
+
+**Why it is not just `🔲 Backlog`.** `🔲 Backlog` means *scoped and filed, not picked up* — it says
+nothing about scheduling. `⬜ No sprint` carries the extra fact that the task **has no sprint home and
+needs one before implementation begins**, which is the entire purpose of that board and is stated in its
+own header. None of the canonical statuses above can express it, and per the **Report reality, not the
+template** rule below, the answer to a distinction the vocabulary cannot express is to fix the
+vocabulary — not to flatten the row into a value that quietly drops the fact.
+
+⚠️ **This is a board-level exception, not a general-purpose status.** It is valid **only** in the Status
+columns of `sprint-backlog.md` **and `backlog.md`**. It is **not** valid in a task brief's `## Status`
+field — briefs on those boards keep `🔲 Backlog` and record the no-sprint fact in their `## Sprint`
+field instead — and it is not valid on `plan-sprint-N.md`, where a row by definition already has a home.
+
+> ~~It is valid **only** in `sprint-backlog.md`'s Status column. … and it is not valid on
+> `plan-sprint-N.md` or `backlog.md`, where a row by definition already has a home.~~
+> — **original wording, ratified earlier on 2026-09-08, superseded the same day by the scope widening
+> at the top of this section. Kept, not deleted.**
+
+⚠️ **`/fkit-status` does not render this value.** The dashboard knows the canonical set only, so
+`sprint-backlog.md` rows are not counted by it. Read that board directly.
+
+## Board-level exception — `⏸ Parked`, on ~~`sprint-backlog.md` only~~ `sprint-backlog.md` and `backlog.md`
+
+| Status | Marker | Meaning | Set by | Valid where |
+|---|---|---|---|---|
+| **Parked** | `⏸ Parked` | Deliberately not scheduled **until a named external condition is met**. Blocked on a *signal*, not on work. | Producer | [`sprints/sprint-backlog.md`](../../sprints/sprint-backlog.md) and [`sprints/backlog.md`](../../sprints/backlog.md) — **those two only** *(widened 2026-09-08 from `sprint-backlog.md` alone)* |
+
+**Ratified 2026-09-08 by owner ruling, given live in session and relayed through a spawning session** —
+the same sweep and the same batch as `⬜ No sprint` above, but a **separate ruling**. Found in use on
+**2 rows**; those rows were deliberately left as they are.
+
+🚨 **A `⏸ Parked` row MUST state its unpark condition.** This is mandatory, not stylistic: a park with
+no named condition is **indistinguishable from an abandoned task**, and an unconditioned park will sit
+on the board forever with nobody able to say what would ever move it. Write the condition as a
+falsifiable signal someone could check — the two existing rows do (*"mobile DAU crosses 1,500 in
+analytics"*, *"mobile performance baseline confirmed stable in Sentry/analytics"*). If you cannot name
+the condition, the task is not parked; it is either `⬜ No sprint` or a cancellation.
+
+**Why none of the canonical six can carry this.** `🚧 Blocked` is the near miss and it is wrong:
+Blocked means *started, cannot proceed*, and a parked task has not started and is not being attempted.
+`🔲 Backlog` and `⬜ No sprint` both lose the fact that an **external signal**, not a scheduling
+decision, governs when the work becomes eligible. `⛔ Cancelled` is false — the work is still wanted.
+
+⚠️ **Board-level exception, not a general-purpose status.** Valid **only** in the Status columns of
+`sprint-backlog.md` **and `backlog.md`** — not in a task brief's `## Status` field, and not on
+`plan-sprint-N.md`.
+
+> ~~Valid **only** in `sprint-backlog.md`'s Status column — not in a task brief's `## Status` field,
+> and not on `plan-sprint-N.md` or `backlog.md`.~~ — **original wording, ratified earlier on
+> 2026-09-08, superseded the same day by the scope widening at the top of the `⬜ No sprint` section.
+> Kept, not deleted.**
+
+🚨 **The unpark-condition rule above survives the widening unchanged.** A `⏸ Parked` row on
+`backlog.md` must state its condition exactly as one on `sprint-backlog.md` must.
+
+⚠️ **`/fkit-status` does not render this value** either. The dashboard knows the canonical set only, so
+parked rows are not counted by it. Read that board directly.
+
 ## The authority split — this is the point
 
 **`In progress` and `Blocked` are free.** They are simply facts about the world; any session may set

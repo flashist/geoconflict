@@ -3,6 +3,16 @@
 ## ID
 0045
 
+## Sprint
+Sprint backlog — no sprint home yet. Security hardening follow-up (`sec12`).
+
+> ℹ️ **Field added 2026-09-08 (visibility-only).** The brief carried no `## Sprint` field at all since
+> filing. The value is **derived, not assigned**: this task already has a live row on
+> [`sprint-backlog.md`](../../../sprints/sprint-backlog.md) (status `⬜ No sprint`, listed there as
+> `sec12`) plus its own prose section, so its board home was never in doubt — only the brief's own field
+> was missing. Wording matches the same board's siblings; the `sec12` label is that board's own. **No
+> status, priority or dependency was changed.**
+
 ## Status
 🔲 Backlog
 

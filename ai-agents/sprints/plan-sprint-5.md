@@ -30,6 +30,17 @@
 > `plan-index.md` priority numbering), in this document's order. Three backlog briefs name Sprint 5/6
 > in their `## Sprint` field but are not part of this plan's scope statement (`0026`, `0029`; `0027`
 > for Sprint 6) — flagged to the owner in the 2026-08-14 reconciliation hand-off, not added here.
+>
+> 🚨 **SUPERSEDED 2026-09-08 as to `0026` and `0029` — owner ruling given live in session and relayed
+> through the spawning session.** The paragraph above is **kept deliberately** as the record of *why*
+> those two were parked; it is no longer the current state. A board-visibility sweep found both were
+> **board-invisible** — in no sprint file's table at all, so nothing rendered them and no status run
+> could see them. The owner ruled they get rows on
+> [`sprint-backlog.md`](sprint-backlog.md) (status `⬜ No sprint`), matching how `0027` was handled for
+> Sprint 6. **This overturns the 2026-08-14 decision not to add them.** Their status, priority and
+> dependencies were not changed, and **neither task was added to this plan** — Sprint 5's scope
+> statement still excludes both, which is exactly why `sprint-backlog.md` is their home and this board
+> is not. `0027` is unaffected: its Sprint 6 row already existed.
 
 | Status | Priority | Task | Brief |
 |---|---|---|---|

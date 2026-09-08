@@ -49,7 +49,7 @@ This is the fact most likely to mislead a reader of `Main.ts`. `gameStop` is the
 | `0227` (done) | the monitor on the three crash / init-failure paths | **Bounded** — at most one dead game's monitor, cleared by the next leave or join |
 | `0228` (open) | `handleJoinLobby()`'s stale `gameStop` across three awaits | **Bounded** — ⚠️ and **reachability UNPROVEN**; "unreachable, closed" is a legitimate outcome |
 | `0233` (open) | the tab-kick, desync and lobby-error modals | **Bounded** — cleared by a later leave or join |
-| `0231` (open) | the **whole runner + worker + 1 s interval + 5 listeners**, on the NORMAL leave path | **Accumulating — ⚠️ REASONED, NOT OBSERVED** |
+| `0231` (open) | the **whole runner + worker + 1 s interval + 5 listeners**, on ~~the NORMAL leave path~~ **EVERY path** *(reframed 2026-09-08)* | **Accumulating — ⚠️ REASONED, NOT OBSERVED. The reframe widened the SCOPE, not the EVIDENCE** |
 
 ## Gotchas / Known Issues
 
@@ -70,11 +70,42 @@ The chain, read from code at `c910452`:
 
 ✅ **`0227`'s `stop()` seam stays regardless — owner ruling.** It is **dormant-but-correct** and goes live the moment the worker drop is fixed. It is not dead weight and must not be removed.
 
-### 🚨 The runner survives every abandoned multiplayer game (`0231`, open)
+#### 🚨 The seam is GENERATION-GUARDED — and that is a trap for `0232`'s acceptance test
 
-`ClientGameRunner.stop()` has **exactly one caller** — the worker error branch, i.e. the crash path, which per `0232` is itself unreachable. On a normal leave, the runner, its Web Worker, a **1-second `connectionCheckInterval`** and **five `EventBus` listeners** all survive for the lifetime of the page. That interval calls `reconnect()` on the game the player already left, if no server message has arrived for >5000 ms. `EventBus` **does** expose `off()` — removal is available and simply not used.
+**Recorded 2026-09-08. `0232`'s brief did not know this when it was filed, and it changes how the task must be verified.**
 
-⚠️ **THE ACCUMULATION IS REASONED FROM CODE, NOT OBSERVED.** No browser session was watched, no interval count taken, no worker count taken, no memory figure exists. 🚨 **Do not assert a user-visible impact** — battery drain, reconnect storms, added server load and memory growth are **things to check, not findings.** ⛔ No figure, rate or severity may be written for any of them until measured.
+The callback `Main` passes as `onGameEnd` is **not** an unconditional "stop the monitor". Its body (`Main.ts:786-799`) is:
+
+```
+if (joinGeneration !== this.monitorGeneration) {
+  return;
+}
+this.stopPerformanceMonitor();
+```
+
+⇒ **`onGameEnd()` stops the monitor ONLY IF the game that is ending still OWNS the live monitor.** That guard is **correct and deliberate** — it is the fix for review finding `R4`, where keying on the most recent join instead let an interleaved pair invert.
+
+⛔ **But it is a trap for the acceptance test: crash a game that has ALREADY BEEN SUPERSEDED by a newer join and the seam CORRECTLY DOES NOTHING** — which a naive test reads as *"the seam failed."* ✅ **Verify on a game that is still the current one, and record which case you tested.**
+
+⚠️ **Also note what the seam is NOT:** the callback stops the **monitor only**. `Main.ts:796-797` says `gameStop` is deliberately left alone. **It is not a general teardown** — do not expect it to undo anything else.
+
+⚠️ **A related mint sits inside `0228`'s window:** `0227` added `const joinGeneration = ++this.joinGeneration;` at `Main.ts:694`, between `handleJoinLobby`'s guard block and its assignment. It touches `this.joinGeneration`, never `this.gameStop`, so **`0228`'s mechanism is unchanged** — but **any fix to `0228` must leave that mint and its ordering intact.** Inverting it is literally the `R4` defect `0227`'s review round 2 caught. ✅ **Still exactly three awaits in that window; `0227` added none.**
+
+### 🚨 The runner survives every game — not just abandoned ones (`0231`, open, REFRAMED 2026-09-08)
+
+`ClientGameRunner.stop()` has **exactly one caller** — the worker error branch at `ClientGameRunner.ts:525`, i.e. the crash path, which per `0232` is **unreachable dead code**. ⇒ 🚨 **`stop()` DOES NOT RUN ON ANY PATH AT `c910452`** — not on a normal leave, not on a crash, not on `beforeunload`. **"Orphaned runner on a normal leave" is a SPECIAL CASE of "the runner is never torn down, ever."**
+
+📌 **`0231`'s title was reframed 2026-09-08 on an owner ruling** from *"never runs on a normal leave-lobby … every abandoned multiplayer game"* to *"never runs on ANY path … every game, not just abandoned ones"*. ⛔ **The original was NOT wrong — it was NARROWER than the defect**, written when the crash path was believed to be a working teardown route. **The original is kept in the brief, marked superseded, not deleted.** ⛔ **The ruling was a REFRAME ONLY: priority, dependencies and board position were NOT ruled and are UNCHANGED.**
+
+🚨 **THE TRAP THIS REFRAME MUST NOT SPRING — and it is the single most important line on this page.** ⛔ **A bigger-sounding defect has acquired NO EXTRA CERTAINTY.** *"`stop()` runs on no path"* is **REASONED FROM CODE, exactly like everything else here — it is NOT a measurement**, and it does **not** mean any consequence has been observed. **Nobody has watched a browser. No interval was counted, no worker was counted, no memory figure exists.** **Step 1 is still to MEASURE it, and a refutation is still a valid, complete outcome.** ⛔ **Do not let the bigger scope make it read as better-evidenced. The widening is of the REASONING ONLY.**
+
+On any game end the runner, its Web Worker, a **1-second `connectionCheckInterval`** and **five `EventBus` listeners** survive for the lifetime of the page. That interval calls `reconnect()` on the game the player already left, if no server message has arrived for >5000 ms. `EventBus` **does** expose `off()` — removal is available and simply not used.
+
+🚨 **Do not assert a user-visible impact** — battery drain, reconnect storms, added server load and memory growth are **things to check, not findings.** ⛔ No figure, rate or severity may be written for any of them until measured.
+
+⚠️ **`0231` and `0232` are visibly ENTANGLED, and the merge question is DELIBERATELY LEFT OPEN.** `0232` fixes the drop, which makes the crash branch reachable, which makes `stop()` run on that one path — **changing `0231`'s own premise while it is open.** The owner was offered an architect review of that question on 2026-09-07 and **chose the reframe instead.** ⛔ **Whether the two merge, or run in a fixed order, is NOT decided — it remains the owner's.**
+
+⚠️ **One clause of `0231`'s brief went false and is corrected in place:** it described the crash path as *"the one path where `stop()` does run."* At `c910452` **there is no such path.** The underlying code fact it hangs on — that the 20 s `setTimeout` handle is never stored, so `stop()` cannot cancel it — is **unchanged and still needs confirming or refuting**; only the "the crash path would exercise it" framing is dead, **and it comes back the moment `0232` lands.**
 
 ### The analytics tie — and its honest limit
 
@@ -82,7 +113,11 @@ Every leaked `PerformanceMonitor` keeps emitting `Performance:*` events, which i
 
 ### Line numbers in this area go stale within hours
 
-`0225`, `0227`, `0231`, `0232` and `0233` were all written on 2026-09-07 against **different commits** (`35afc64`, `702a8ea`, `c910452`) while a concurrent session edited the same two files. `0227` alone shifted every `ClientGameRunner.ts` citation below its insertion point by **+26**. **Re-verify every `file:line` against the commit you are reading.**
+`0225`, `0227`, `0231`, `0232` and `0233` were all written on 2026-09-07 against **different commits** (`35afc64`, `702a8ea`, `c910452`) while a concurrent session edited the same two files. **All four open briefs now carry a FRAME DECLARATION naming `c910452`, plus a citation-mapping table preserving every superseded number** — the practice that became project convention 10, see [[systems/agent-conventions]].
+
+🔴 **The offset is NOT a single constant, and this is where a careful reader goes wrong.** Across `0227`, `Main.ts` moves by **+8 / +9 / +12 / +26** depending on which insertion point a line sits below, and `ClientGameRunner.ts` by **+5 / +23 / +24 / +25 / +26 / +29**. ⛔ **Do not apply one offset to a file.** ✅ **`src/core/` citations are unchanged — `0227` touched only `src/client/`.**
+
+🚨 **And renumbering is not enough — the 2026-09-08 semantic pass is the lesson.** `0228`'s `await` citation was **wrong the day the brief was filed** (`Main.ts:702` was `clientID: lobby.clientID,`; the `await` was `:703`). A careful mechanical sweep re-derived it **faithfully** to `:711` — still the wrong line — and it took a **semantic** pass, checking what the code *does*, to correct it to `:712`. ⇒ **Re-verify every `file:line` by CONTENT against the commit you are reading, not by position.**
 
 ## Related
 
