@@ -32,7 +32,7 @@ The reference docs are `ai-agents/knowledge-base/analytics-event-reference.md` a
 | `Feedback` | Feedback form interactions |
 | `Subscribe` | Email subscription modal open and submit events |
 | `UI` | Button clicks; `UI:Tap:{ElementId}` for specific elements and placement-specific CTA tracking |
-| `Performance` | FPS and memory sampled every 60s during gameplay |
+| `Performance` | FPS and memory sampled every **300 s** during gameplay (raised from 60 s by task `0224`, 2026-09-06 — ⛔ **committed in `35afc64`, NOT deployed** as of 2026-09-07) |
 | `Build` | Stale build detection |
 | `Worker` | Web Worker init success/failure |
 | `Tutorial` | Tutorial flow — started, tooltips, skipped, completed |
@@ -176,8 +176,44 @@ Experiment:Tutorial:Enabled → Tutorial:Started → Tutorial:Completed → Game
 Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 ```
 
+## The 500-Events-Per-Active-User-Per-Day Limit
+
+**GameAnalytics enforces a limit of 500 events per active user per day, and it was breached on 4 Sep 2026.** 🔴 **Read the limit precisely: it is PER USER PER DAY, not a total-volume limit.** It is a statement about a **chatty client**, not about the game being popular. A response framed as "too much traffic" or "we outgrew the plan" has misread the banner and will chase a bigger plan instead of fewer events per player.
+
+⚠️ **Every figure below is a human reading off the GameAnalytics UI on 2026-09-06.** Reliable enough to direct investigation; **not** reliable enough to quote as exact without re-reading the dashboard.
+
+| Day | Events/user |
+|---|---|
+| 30 Aug – 2 Sep | ~150–250 |
+| 3 Sep | 414.88 |
+| **4 Sep** | **1,324.33 — 265 % of the limit** |
+| 5 Sep | 162.79 — back under, **with zero code written** |
+
+**Two independent problems, and they must not be conflated:**
+
+1. 🔴 **The SPIKE (3–4 Sep) — `Player` (~34×), `Experiment` (~45×), `Session` (~10×), `Platform` and `Device` (~31× each).** All **once-per-session** categories. It ramped 3 Sep, peaked 4 Sep, and was **entirely gone on 5 Sep**. 🚨 **THE MECHANISM IS UNKNOWN AND UNEXPLAINED.** The owner's read — that it came from their own local/dev testing — is a **plausible hypothesis, never verified**; ⛔ **do not write it down as the cause.** Tracked as task `0230`, **deferred to the Backlog board 2026-09-07, cause unknown**, reopen condition *"if the problem repeats"*.
+2. 🔴 **The STANDING baseline — `Performance` is the largest consumer on a normal day**, 109–216 events/user/day, roughly **two-thirds** of a normal ~163 total. On 31 Aug it alone reached 215.87, i.e. **43 % of the whole 500 limit from one category on a day with no spike.** This is what task `0224` cut (60 s → 300 s), and it is the only part addressed.
+
+⛔ **`0224` does not fix the breach and cannot** — none of the categories that breached were touched. **A 4 Sep repeated today would still breach at ~235 % of the limit.** ⛔ **"The banner is gone" is not evidence of anything** — the metric self-resolved on 5 Sep before any code was written.
+
+🟢 **`Match` did not move across the spike** (25.87 → 31.79 → 26.16). **Task `0208`'s `Match:WinCondition` instrumentation is EXONERATED** — that was the first hypothesis on seeing the banner, and the table refutes it. ⛔ Do not re-open it without evidence contradicting the table.
+
+**Other findings from the same audit, none of them resolved:**
+
+- ⚠️ **Only Design events are tracked.** Resource, Progression, Health, Business, Ad and Impression events all read "Not tracking" ⇒ **100 % of the per-user budget is spent on design events**, with no other type to move volume into without building it first.
+- ⚠️ **Design-event cardinality is a SECOND, SEPARATE metric and it is TRENDING UP** — ~103–105 distinct names all week, **118 on 5 Sep**, the same day the breached metric went green. 🚨 **Whether a cardinality limit is being breached, and whether anything is being dropped, could NOT be established** — the chart carried no "Limit reached" badge and the "Dropped events" toggle was greyed out. ⛔ Nobody may write "events are being dropped" **or** "cardinality is fine".
+- ⚠️ **`Platform` and `Device` are byte-identical on every single day.** Explained (not verified) as both being emitted unconditionally, once per session, from the same consecutive block of session-start code in `FlashistFacade.ts`.
+- ⚠️ **Two dashboard figures do not reconcile and neither is being called wrong:** the per-category breakdown does not sum to the reported daily totals, and the brief's "7-day mean 581.97" cannot be reproduced from its own daily rows (which average **378.86**). The second matters: the "mean is above 500" framing is the stated reason the baseline has no headroom, and **if 378.86 is right, that framing is overstated.**
+
+### 🚨 `DEPLOY_ENV` fails open to `prod` — live, unmitigated, unscheduled
+
+The dev/prod separation for GameAnalytics rests on **one environment variable**, and every default in the chain resolves it to `prod`. Any build that does **not** go through `build-deploy.sh` → `build.sh:129` — a direct `docker build`, a hand-rolled local build, a one-off image — **silently writes into the production GameAnalytics game.** There is exactly one key pair, so nothing in the dashboard would distinguish that traffic. `Dockerfile:23` and `webpack.config.js:335-336` are the fail-open defaults.
+
+⚠️ **The wrong outcome is the one you get by omission, and nothing warns you.** The owner knows and chose to defer. Tracked as task `0226` on the Backlog board — ⛔ **a brief on an unranked board is a record, not a mitigation.** The "should dev get its own key pair?" question is **the owner's and is not ruled**.
+
 ## Gotchas / Known Issues
 
+- 🔴 **Leaked `PerformanceMonitor`s inflate the `Performance` category, and one of the leaks accumulated.** Ending a game does not reliably stop the monitor. Task `0225` fixed the accumulating one (mid-game lobby join, one permanently unstoppable monitor per join); task `0227` fixed two of three crash paths. **Four sites remain open** — `0231`, `0232`, `0233`, `0228`. ⛔ **None of them explains the 3–4 Sep spike**, which was session-start events. See [[systems/client-game-teardown]].
 - **Migration (2026-03-01):** Events migrated from `SCREAMING_SNAKE_CASE` strings to `Category:Action`. Historical data before this date appears under old names in dashboards.
 - **Double-reload:** Before HF-9, a browser refresh after any game caused two full initialization sequences, doubling all `Session:Start`, `Device:*`, `Platform:*`, and `Experiment:*` events. Fixed in HF-9. See [[decisions/double-reload-fix]].
 - **`Player:New` inflation:** During the double-reload era, new users fired both `Player:New` (first load) and `Player:Returning` (second load). Historical cohort data for new users from before HF-9 is affected.
@@ -218,6 +254,11 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 - [[tasks/monetization-analytics-spec]] — P0/P1 measurement plan for Sprint 4 citizenship, payments, and ad-tier decisions
 - [[tasks/analytics-p1-citizenship-funnel]] — task 0021, the shared citizenship funnel spec: the disproved data-loss premise, the dropped sixth event, and the `Citizenship:Seen` under-count risk
 - [[tasks/hide-citizenship-card-flag]] — task 0054, the `CITIZENSHIP_CARD_ENABLED` gate that keeps every citizenship event at zero
+- [[tasks/gameanalytics-per-user-event-limit]] — task `0224`, the 500-per-user breach, the 60 s → 300 s `Performance` cut, and the two acceptance criteria it closed **unmet**
+- [[systems/client-game-teardown]] — the leaked `PerformanceMonitor`s that inflate this category, and which of them are fixed
+- [[tasks/orphaned-performance-monitors-lobby-rejoin]] — task `0225`, the accumulating monitor leak, fixed and evidenced
+- [[tasks/crashed-game-teardown-seam]] — task `0227`, the crash-path monitor holes; two fixed, one unreachable
+- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, exonerated by the category breakdown: `Match` did not move across the spike
 - [[tasks/analytics-p0-game-mode-segmentation]] — P0 mode classifier emitted immediately after `Game:Start`
 - [[tasks/analytics-p0-spawn-confirmation]] — P0 confirmed-spawn event for time-to-spawn and ghost-rate measurement
 - [[tasks/analytics-p0-match-duration]] — P0 duration event emitted alongside `Game:End`

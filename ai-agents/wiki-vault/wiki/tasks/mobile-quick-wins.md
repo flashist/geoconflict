@@ -33,3 +33,5 @@ Before/after measured via:
 - [[decisions/sprint-1]] — sprint where this shipped
 - [[decisions/product-strategy]] — mobile DAU threshold for Task 5 revisit (mobile DAU > 1,500)
 - [[decisions/sprint-backlog]] — no-sprint mobile memory/WebGL rendering failure task
+- [[tasks/gameanalytics-per-user-event-limit]] — task `0224`: `Performance:*` sampling raised 60 s → 300 s, so **matches under 5 minutes now emit none of these events at all**
+- [[systems/client-game-teardown]] — leaked `PerformanceMonitor`s that kept emitting `Performance:FPS:*` for dead games

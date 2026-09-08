@@ -2220,3 +2220,107 @@ remembers the earlier wording can see what happened to it.
 - **The 2026-09-04 "targeted correction" log entry above was NOT edited** — append-only, per this
   vault's convention for superseded entries. A reader landing on it directly sees the old framing
   until they reach this entry.
+
+---
+
+## 2026-09-07 — ingest (sync)
+
+- **Sync window:** `71246eb` → HEAD (`c910452`) — 12 commits, of which three are today's `Sprint push`
+  commits (`35afc64`, `702a8ea`, `c910452`).
+- **Changed source files detected under `ai-agents/` (excluding the vault):** 66 committed
+  (`--diff-filter=AMR`), of which **33** were ingest-worthy after the Step-3 filter. **6 further files
+  are UNCOMMITTED in the working tree** and were read from disk — see the caveat below.
+- **Commit → task mapping, verified this run:** `35afc64` = `0224` (`PerformanceMonitor.ts`),
+  `702a8ea` = `0225` (`Main.ts`), `c910452` = `0227` (`ClientGameRunner.ts` + `Main.ts`).
+  ⚠️ None of the three commit messages names its task; `0224`'s brief records this explicitly.
+
+### Ingested — created
+
+- `ai-agents/tasks/done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md` → created
+  [[wiki/tasks/gameanalytics-per-user-event-limit]]
+- `ai-agents/tasks/done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md` → created
+  [[wiki/tasks/orphaned-performance-monitors-lobby-rejoin]]
+- `ai-agents/tasks/done/0227-crashed-game-leaves-performancemonitor-running/brief.md` → created
+  [[wiki/tasks/crashed-game-teardown-seam]]
+- Synthesized across `0225`/`0227`/`0228`/`0229`/`0231`/`0232`/`0233` and the two source files →
+  created [[wiki/systems/client-game-teardown]], the shared teardown map. It exists so the five open
+  members of the family have a home without premature task pages (Step 3 skips backlog briefs), and
+  so the **bounded vs accumulating** distinction is recorded once rather than re-derived per page.
+
+### Ingested — updated
+
+- `ai-agents/sprints/plan-sprint-4.md` (incl. uncommitted edits) → [[wiki/decisions/sprint-4]] — the
+  active-sprint ruling, the three closes, the four row changes, the `0230` move-off, and the
+  2026-09-07 profile ruling
+- `ai-agents/sprints/backlog.md` (incl. uncommitted edits) → [[wiki/decisions/sprint-backlog]] —
+  `0230` arriving as deferred/cause-unknown, `0226`/`0228`/`0229`, `0223`'s Q1 ruling, `0227`
+  leaving, and the `0008`/`0010`/`0011` status reconciliation
+- `ai-agents/knowledge-base/decisions/adr-108-owner-set-active-sprint-pointer.md` →
+  [[wiki/decisions/adr-108-active-sprint-pointer]] — the 2026-09-07 recurrence and the
+  verified-not-implemented pointer
+- `ai-agents/knowledge-base/analytics-event-reference.md` + `0224`'s brief →
+  [[wiki/systems/analytics]] — new *500-events-per-active-user-per-day* section, the 300 s cadence,
+  and the `DEPLOY_ENV` fail-open risk
+- `ai-agents/tasks/backlog/0208-.../brief.md` + the event reference →
+  [[wiki/tasks/measure-clientless-leader-and-solo-awards]] — 🔧 **a stale claim fixed**: the page read
+  *"Nothing built yet"* and `Status: backlog`; it is built, committed (`6b30e22`), deployed
+  (`0.0.141`) and `🚧 Blocked` on reading the number. Added the reachable-id arithmetic (21 of 28; 5
+  of 6) and the two different denominators
+- `ai-agents/knowledge-base/conventions/task-attribute-cross-reference-sweep.md` + `README.md` +
+  `task-status-vocabulary.md` → [[wiki/systems/agent-conventions]] — convention 9; counts 8 → 9
+- `ai-agents/tasks/backlog/0214`, `0216`, `0064`, `0065`, `0187`, `0013`, `0182`, plus
+  `ai-agents/knowledge-base/PROJECT.md` and `architecture.md` →
+  [[wiki/systems/player-profile-store]], [[wiki/systems/project-brief]],
+  [[wiki/systems/architecture-overview]] — the **third** owner position on the profile box
+  (2026-09-07), and the deliberately-blank `PROFILE_INTERNAL_TOKEN` plus its mirror risk
+- Back-links added: [[wiki/systems/networking]], [[wiki/features/reconnection]],
+  [[wiki/systems/game-loop]], [[wiki/tasks/mobile-quick-wins]]
+- `index.md` — 4 new entries, 4 existing entries extended
+
+### Skipped (per Step 3), with reason
+
+- All `ai-agents/tasks/backlog/*/brief.md` — **not done yet, a page would be premature.** `0226`,
+  `0228`–`0233` and `0219`–`0223` are recorded on the two board pages and on
+  [[wiki/systems/client-game-teardown]] instead.
+- All in-folder `plan.md` / `worklog.md` / `review.md` — working artifacts, not sources.
+- `ai-agents/sprints/plan-index.md`, `plan-sprint-5.md`, `plan-sprint-6.md` — their only change is
+  the "not the active sprint" banner, which is [[wiki/decisions/adr-108-active-sprint-pointer]]'s
+  content and is recorded there rather than duplicated onto three board pages.
+- `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md` — already
+  ingested by the 2026-09-04 pass; re-read this run as grounding, no new claim in it.
+
+### ⚠️ Coverage caveat — stated plainly, not implied away
+
+**This sync is watermark/commit-driven, and six files were UNCOMMITTED at the time it ran:**
+`ai-agents/sprints/backlog.md`, `ai-agents/sprints/plan-sprint-4.md`, and the briefs of `0008`,
+`0010`, `0230` and `0232`. **They were read from the working tree, so their content IS covered** —
+but the watermark written below points at `c910452`, which does **not** contain them. ⇒ **the next
+sync will see them as new.** That is the safe direction (re-ingest, not miss), and it is recorded so
+nobody reads the watermark as proof of what was ingested.
+
+### Flagged for human review — NOT fixed
+
+- **[[wiki/decisions/sprint-4]] carries no re-count of the board.** Previous entries counted rows
+  directly from `plan-sprint-4.md`; that file is now 305 KB of very long table rows and a reliable
+  count was not attempted this run. **The last recorded count (64 rows, 2026-09-04) is stale** and is
+  left visibly dated rather than replaced by a guess.
+- **`0227`'s source brief contradicts itself.** Its *Open questions* tail still reads *"the status
+  stays `🔲 Backlog` and this folder stays in `ai-agents/tasks/backlog/`"* while its `## Status` reads
+  `✅ Done` and the folder is in `done/`. Noted on the wiki page; **the source was not edited** — the
+  wiki writes only inside the vault.
+- **`0224`'s two unexplained dashboard discrepancies stay open** — the per-category figures not
+  summing to the daily totals, and the 581.97-vs-378.86 mean. Recorded on the page as unexplained,
+  **not refuted**.
+
+### 📌 Addendum, same run — a TENTH convention landed mid-ingest
+
+`ai-agents/knowledge-base/conventions/file-line-citations.md` appeared **untracked in the working
+tree after this run's grounding read** (along with further producer edits to `0011`, `0228`, `0231`,
+`0232`, `0233` and `conventions/README.md`). It was ingested into
+[[wiki/systems/agent-conventions]] as convention **10**, and the count corrected 9 → 10 there and in
+`index.md`. ⚠️ **Both places say plainly that the tenth is uncommitted**, so a reader checking
+`git log` at `c910452` and finding nine is not looking at a contradiction.
+
+⚠️ **This is direct evidence for the coverage caveat above:** the working tree moved *while the sync
+ran*. Anything a producer wrote after this entry is **not** covered, and the watermark does not
+distinguish the two cases.

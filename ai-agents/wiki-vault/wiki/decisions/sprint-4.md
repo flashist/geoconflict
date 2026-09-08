@@ -63,6 +63,40 @@
 > 🚨 **27 of the 49 done rows carry `(agent-closed — not owner-verified)` — more than half. No human has verified that work.** `/fkit-status` collapses every `✅` variant to plain `done`, so **the board reads greener than the evidence supports**. This is known and accepted (ADR-033), not a defect — but do not read the done count as owner-verified completion.
 >
 > **Outage track closed 2026-08-26 → 08-28.** All six tasks (`0055`, `0057`, `0056`, `0192`, `0193`, `0194`) are built, reviewed and committed on `dev`, all agent-closed and **none owner-verified**. **No deployment to production is confirmed for any of them** — every task's post-deploy check is pending by design. The track produced [[decisions/adr-109-worker-index-placement-contract]] and one corrected wiki claim in [[systems/telemetry]].
+>
+> ---
+>
+> # 🔴 SPRINT 4 IS THE ACTIVE SPRINT — owner ruling 2026-09-07, given live in session
+>
+> **Owner, verbatim:** *"The active sprint is the Sprint 4!"*
+>
+> 🚨 **THE TOOLING DISAGREES AND CANNOT CURRENTLY BE MADE TO AGREE.** `dashboard.sh select-active` returns `active file="plan-sprint-6.md" identity="Sprint 6"` and **will keep returning it** — plans 4, 5 and 6 are all legitimately open, and the selector takes the **highest eligible resolved identity**. **It reads no field that means "active", so no edit to any plan file changes its answer.**
+>
+> ⇒ **Ask for status BY NAME: `/fkit-status Sprint 4`.** An empty-argument `/fkit-status`, and `/fkit-sprint-ship-loop` with no argument, both silently report **Sprint 6** — the wrong board. This is a **known, documented tooling limitation**, not a new defect: see [[decisions/adr-108-active-sprint-pointer]], whose designed `.active-sprint` pointer is **verified NOT implemented** in either copy of the resolver, so creating that file today would be **inert**.
+>
+> ⚠️ **The ruling named which sprint is active. It did NOT rule that any row should move**, and no sprint plan was archived. Sprint 4's open rows stay where they are.
+>
+> ---
+>
+> # 📌 2026-09-07 — THREE TASKS CLOSED, FOUR ROWS ADDED, ONE ROW MOVED OFF. ⛔ NOTHING FROM THIS DAY IS DEPLOYED.
+>
+> **The owner deploys at the next weekend slot.** Every 2026-09-07 change below sits in `dev` at `c910452` and **nothing about it has been observed in production.** ⛔ Do not read any of these rows as changed player-facing behaviour.
+>
+> **Closed (all three `✅ Done (agent-closed — not owner-verified)`), and two of them closed with named acceptance criteria UNMET:**
+>
+> | Task | Closed with | The unmet part |
+> |---|---|---|
+> | `0224` — GameAnalytics per-user event limit | interval 60 s → 300 s, in commit `35afc64` | 🚨 **Criteria 3 and 4 CANNOT be met** — the post-deploy drop is unattributable, because `0225` cuts the same `Performance` column in the same build. 🚨 **The change does not address the 3–4 Sep breach and cannot** — that breach was session-start events. |
+> | `0225` — orphaned `PerformanceMonitor`s on lobby rejoin | `Main.ts` `+18/−6`, commit `702a8ea` | The one genuinely **accumulating** leak of the family, and the only one with a **negative control**. Runtime evidence covers **one of six** touched sites. |
+> | `0227` — crashed game leaves the monitor running | the `onGameEnd` seam, commit `c910452` | 🚨 **Its headline site A was NOT fixed and CANNOT be** — the worker drops `ErrorUpdate`s, so the crash branch is **unreachable dead code**. The seam is **dormant-but-correct** and stays by owner ruling. |
+>
+> **Added to this board 2026-09-07** (all `🔲 Backlog`, nobody has started any of them): `0231` (orphaned `ClientGameRunner` on normal leave-lobby), `0232` (worker tick error never reaches the main thread), `0233` (server-error / desync / lobby-error sites leave the monitor running). ⚠️ **`0231`'s accumulation and `0232`'s freeze are BOTH REASONED FROM CODE AND UNOBSERVED** — the owner was told this **in front of** the ordering recommendation and ruled anyway. ⛔ **Being ruled on did not upgrade either risk into a measurement.** Board order, owner-ruled and then **re-ruled by the owner the same day**: **`0227` → `0232` → `0231`**; the earlier ruling (`0231` directly below `0227`) is a deliberate supersession, kept not deleted.
+>
+> **⬅️ `0230` was MOVED OFF this board onto the Backlog board** the same day, owner ruling, verbatim: *"We don't have the same problem today, move the task into the backlog sprint, we will get back to it if the problem repeats."* 🚨 **RECORDED AS DEFERRED, CAUSE UNKNOWN — NOT resolved, NOT explained, NOT cancelled.** Reopen condition, in the owner's terms: **if the problem repeats.** ⛔ **Do not read the move as the problem being fixed or understood** — the metric is **quiet**, not solved, and it **already self-resolved once (5 Sep, 162.79) with zero code written.** The Sprint 4 row is kept as a pointer flipped to `➡️ Moved to Backlog board`.
+>
+> ⚠️ **Row positions on this board do not express rank.** fkit's ADR-035 bars inserting a row above a closed row, so new rows are **appended**. The owner lifted that constraint for exactly the two `0232`/`0231` row moves and nothing else; no closed row was altered and nothing was renumbered.
+>
+> 🔴 **PROFILE VPS — A THIRD OWNER POSITION, 2026-09-07, and it SHARPENS the reframe rather than replacing it.** Verbatim: *"I have the VPS, but I need to re-du the setup of it from the scratch, probably all the keys"* [sic — "re-du" = redo]. ✅ **The box's existence is now confirmed a second time — that fact is settled.** 🚨 **But nothing currently ON the box may be assumed working, correct, or trusted.** The earlier *"what is on them is UNKNOWN"* was a statement of ignorance; **this makes it a directive** — the installed state is being wiped regardless of what inspection finds. ⇒ **`0215`'s inspection splits in two:** hardware/plan facts (vCPU, RAM, disk, region, IP, provider) **stay load-bearing** and still gate a resize; **installed/provisioned state is DOWNGRADED to inventory, not a gate** — record it, but build no decision on it. ⚠️ *"probably all the keys"* is **the owner's own hedge, reproduced as such** — it is **not** yet a settled instruction to rotate every key. No new brief was created; `0213`'s P1–P7 chain already covers wipe / re-provision in place / re-issue, with key custody in `0218` and provider-side revocation in `0222`. 📌 **The `0222` old-bucket-objects question is UNAFFECTED and still OPEN.**
 
 ## Context
 
@@ -385,3 +419,8 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, the production measurement `0206` was built without. 🔄 **Scheduled onto THIS board 2026-09-04 and raised to `High`**; **it ships before `0211`**
 - [[tasks/placement-semantics-literal-one]] — task `0209`, filed out of `0206`'s review finding R2
 - [[tasks/singleplayer-leaderboard-reporting-policy]] — task `0210`, filed out of `0206`'s plan §8
+- [[tasks/gameanalytics-per-user-event-limit]] — task `0224`, closed 2026-09-07 with **criteria 3 and 4 unmet and unmeetable**; the 3–4 Sep breach stays unexplained
+- [[tasks/orphaned-performance-monitors-lobby-rejoin]] — task `0225`, closed 2026-09-07; the family's one confirmed accumulating leak, evidenced with a negative control
+- [[tasks/crashed-game-teardown-seam]] — task `0227`, closed 2026-09-07 with **site A unfixed and unfixable**; the `stop()` seam is dormant-but-correct
+- [[systems/client-game-teardown]] — the teardown map behind `0225`/`0227` and the four sites still open (`0228`, `0229`, `0231`, `0232`, `0233`)
+- [[decisions/adr-108-active-sprint-pointer]] — why the tooling reports Sprint 6 while the owner has ruled Sprint 4 active, and why the designed pointer is still inert

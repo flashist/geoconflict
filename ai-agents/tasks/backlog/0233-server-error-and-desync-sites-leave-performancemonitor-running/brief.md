@@ -29,6 +29,19 @@ holds only the `adr-1XX` series, so a relative link would not resolve.*
 
 ## Context
 
+📌 **FRAME DECLARATION — every `file:line` in this brief is against commit `c910452`, the commit in
+which [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) landed.**
+⚠️ **REFRAMED 2026-09-07 from the earlier pre-`0227` numbering.** `0227` added **+30 / −1** lines to
+`src/client/ClientGameRunner.ts` and **+26 / −0** to `src/client/Main.ts`, so citations in **both**
+files moved. 🔴 **The shift is NOT a single constant** — `Main.ts` moves by **+8 / +9 / +12 / +26**
+depending on which of its four insertion points a line sits below, and `ClientGameRunner.ts` by
+**+5 / +23 / +24 / +25 / +26 / +29**. **Every number below was re-derived by reading the file at
+`c910452` and matching content, never by adding an offset.** ✅ **`src/core/` citations are unchanged
+— `0227` touched only `src/client/`** (confirmed: `git diff --stat 702a8ea c910452 -- src/core/` is
+empty). **Every superseded number is preserved in the mapping table at the end of this brief.**
+⚠️ **Re-verify anyway before relying on any of them** — this brief has gone stale once, which is the
+reason to distrust it, not to trust the new numbers more.
+
 **Filed 2026-09-07 on an owner ruling given live in session:** this gets its **own task**, and is
 **not** folded into [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md).
 
@@ -36,26 +49,36 @@ holds only the `adr-1XX` series, so a relative link would not resolve.*
 signal on it. The `0227` planning pass had already identified these sites and **deliberately ruled
 them out of scope**; this task is where they come back.
 
-### The sites — CODE FACTS, each re-read at commit `702a8ea`
+### The sites — CODE FACTS, each re-verified at commit `c910452` on 2026-09-07
 
-⚠️ **Every line number below was read from `git show 702a8ea:src/client/ClientGameRunner.ts`, not the
-working tree**, which another session was editing at filing time. **`0227` lands in this same file
-first, so the implementer MUST re-verify all of them.**
+📌 **REFRAMED AND RE-VERIFIED 2026-09-07.** The numbers were originally read at `702a8ea`; `0227` has
+since landed in this same file. ✅ **All three sites were re-read at `c910452` in a semantic pass —
+not just renumbered — and the CONTENT of each is unchanged: still `showErrorModal` and nothing else.**
+⚠️ **Re-verify them yourself anyway.**
 
-| # | Line (at `702a8ea`) | Path | Why it matters |
+| # | Line (at `c910452`) | Path | Why it matters |
 |---|---|---|---|
-| 1 | `:663-672` | **mid-game server `error` — the tab kick** | 🔴 **The headline.** `if (message.type === "error")` inside `ClientGameRunner`'s live `onmessage`; shows `showErrorModal(..., "error_modal.connection_error")` and **nothing else**. The game is over for the player; the monitor keeps sampling. |
-| 2 | `:649-661` | **desync** | `if (message.type === "desync")` → `showErrorModal(..., "error_modal.desync_notice")`, and nothing else. |
-| 3 | `:217-227` | **lobby error, pre-`ClientGameRunner`** | The `error` branch in `joinLobby()`'s own `onmessage` → `showErrorModal(..., "error_modal.connection_error")`. ⚠️ **Whether a monitor is even running here is NOT settled** — see below. |
+| 1 | `:689-698` | **mid-game server `error` — the tab kick** | 🔴 **The headline.** `if (message.type === "error")` inside `ClientGameRunner`'s live `onmessage`; shows `showErrorModal(..., "error_modal.connection_error")` and **nothing else**. The game is over for the player; the monitor keeps sampling. |
+| 2 | `:675-687` | **desync** | `if (message.type === "desync")` → `showErrorModal(..., "error_modal.desync_notice")`, and nothing else. |
+| 3 | `:240-250` | **lobby error, pre-`ClientGameRunner`** | The `error` branch in `joinLobby()`'s own `onmessage` → `showErrorModal(..., "error_modal.connection_error")`. ⚠️ **Whether a monitor is even running here is NOT settled** — see below. |
 
 **In all three, `showErrorModal` is the entire handling.** No `stop()`, no teardown, no monitor stop.
 
 ⛔ **NOT in scope — it belongs to `0227`:** the worker-init failure `catch` at
-`ClientGameRunner.ts:289-305`. `0227` already covers it. Do not touch it here.
+`ClientGameRunner.ts:313-329`. `0227` already covers it. Do not touch it here.
+
+> ✅ **STILL TRUE AT `c910452`, BUT FOR A DIFFERENT REASON THAN YOU WOULD ASSUME — checked 2026-09-07.**
+> ⛔ **`0227` did NOT change this `catch`.** It is byte-identical: it still shows the modal and still
+> bare-`return`s at `:329`, handing back `undefined`. **What `0227` added is a COMPENSATING BRANCH at
+> the call site** — `joinLobby`'s `.then` now reads `if (r === undefined) { onGameEnd(); return; }`
+> (`ClientGameRunner.ts:222-230`), so the monitor is stopped **upstream of this catch, not inside it**.
+> 🚨 **Consequence for this task: do not read "0227 covers it" as "the catch was fixed."** If you ever
+> need teardown *inside* the catch itself, nothing is there. **The exclusion stands; the reason for it
+> has moved.**
 
 ### ⚠️ Site 3's premise is a question, not a fact
 
-The `PerformanceMonitor` is started from `Main.ts:757` (`this.restartPerformanceMonitor()`) inside the
+The `PerformanceMonitor` is started from `Main.ts:766` (`this.restartPerformanceMonitor()`) inside the
 **`onJoin`** callback passed to `joinLobby`, which `ClientGameRunner.ts` fires on
 `message.type === "start"`. Site 3's `error` branch lives in **the same `onmessage` handler** and can
 therefore fire **before or after** that. ⇒ **whether a monitor is running at site 3 depends on
@@ -66,8 +89,8 @@ writing a fix for that site** — a site with no monitor needs no monitor fix.
 
 **What the code says:** at site 1 the player has been kicked, the game is dead, and the monitor's
 `setInterval` plus its `requestAnimationFrame` loop keep going. **How long it survives is bounded by
-what happens next** — `Main.handleLeaveLobby()` (`Main.ts:923-937`) and the join path
-(`Main.ts:675-678`) both call `stopPerformanceMonitor()`, so a later leave or join clears it.
+what happens next** — `Main.handleLeaveLobby()` (`Main.ts:949-963`) and the join path
+(`Main.ts:683-686`) both call `stopPerformanceMonitor()`, so a later leave or join clears it.
 
 ⛔ **Nobody has observed any of this in a browser, and no event volume has been measured.** ⚠️ **No
 figure, rate or severity may be written for it anywhere** until step 1 measures it. Whether the
@@ -79,7 +102,7 @@ player typically leaves promptly after the kick modal — which would make the l
 | Task | What it covers | Bounded or accumulating? |
 |---|---|---|
 | [`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md) | monitor orphaned on lobby rejoin | Bounded |
-| [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) | monitor survives a crashed/failed game | Bounded |
+| [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) | monitor survives a crashed/failed game — ⚠️ **CLOSED 2026-09-07 with its HEADLINE site (the crash path) NOT fixed**: that branch is unreachable dead code, tracked as [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md). The worker-init and `createClientGame`-rejection sites *are* fixed and runtime-verified. | Bounded |
 | [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md) | stale `gameStop` across three awaits | Bounded |
 | [`0231`](../0231-orphaned-clientgamerunner-on-normal-leave-lobby/brief.md) | whole runner + worker + 1 s interval on normal leave | Accumulating — ⚠️ reasoned, not observed |
 | [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md) | worker tick faults never reach the main thread at all | — |
@@ -92,9 +115,20 @@ player typically leaves promptly after the kick modal — which would make the l
 ### ❓ OPEN QUESTION for whoever plans this — deliberately NOT decided here
 
 **Can `0227`'s `onGameEnd` seam be reused for these three sites, or do they need a different one?**
-It is *likely* — that is the seam's whole purpose — but the seam does not exist in committed code
-yet, sites 1 and 2 sit inside the runner's own `onmessage` while site 3 sits **outside**
-`ClientGameRunner` entirely, and site 3's premise is unsettled. **This brief does not decide it.**
+It is *likely* — that is the seam's whole purpose — but sites 1 and 2 sit inside the runner's own
+`onmessage` while site 3 sits **outside** `ClientGameRunner` entirely, and site 3's premise is
+unsettled. **This brief does not decide it.**
+
+> 🔴 **ONE CLAUSE OF THIS QUESTION IS NOW FALSE — corrected 2026-09-07, original kept here:** it used
+> to read *"the seam does not exist in committed code yet."* ✅ **It does now.** `0227` is committed at
+> **`c910452`**: `onGameEnd` is `joinLobby`'s 5th parameter (`ClientGameRunner.ts:116`, `:267`,
+> `:358`, `:400`) and is called from `stop()` at `:793`. ⚠️ **But do NOT upgrade that into "the seam
+> works":** `stop()`'s only caller is the crash branch at `:525`, which
+> [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md) established is **unreachable
+> dead code**. **The seam exists, is committed, and has never fired on a real crash.** ✅ **The rest of
+> the question stands, re-verified at `c910452`:** sites 1 and 2 are inside `export class
+> ClientGameRunner` (which begins at `:362`); site 3 is inside `joinLobby` (`:107`), outside the class
+> entirely.
 ⚠️ Answer it against **`0227` as it actually landed**, not as its brief described it.
 
 ⚠️ Also unsettled and part of the design: **should these sites call `stop()`** (full teardown —
@@ -130,7 +164,7 @@ after answering the seam and teardown-depth questions above.
 
 - ⛔ **Do not fold this into `0227`, and do not edit `0227`'s task folder** (`brief.md`,
   `worklog.md`, `review.md`).
-- ⛔ **Do not touch the worker-init failure `catch`** (`ClientGameRunner.ts:289-305`) — that is
+- ⛔ **Do not touch the worker-init failure `catch`** (`ClientGameRunner.ts:313-329`) — that is
   `0227`'s.
 - ⛔ **Do not write a severity, rate or player-impact figure that has not been measured.**
 - **All code changes in `src/core/` MUST be tested** (`CLAUDE.md`). This task is expected to be
@@ -185,3 +219,23 @@ after answering the seam and teardown-depth questions above.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
 - 🔒 **No secrets in any artifact** — `file:line` references only.
+
+---
+
+## 📌 Citation mapping — `702a8ea` → `c910452` (reframed 2026-09-07)
+
+**Nothing was deleted; every superseded number is preserved here.** All values re-derived by reading the file at `c910452` and matching content — **never** by adding an offset.
+
+| File | Was (`702a8ea`) | Now (`c910452`) |
+|---|---|---|
+| `ClientGameRunner.ts` | `:217-227` | `:240-250` |
+| `ClientGameRunner.ts` | `:289-305` | `:313-329` |
+| `ClientGameRunner.ts` | `:649-661` | `:675-687` |
+| `ClientGameRunner.ts` | `:663-672` | `:689-698` |
+| `Main.ts` | `:675-678` | `:683-686` |
+| `Main.ts` | `:757` | `:766` |
+| `Main.ts` | `:923-937` | `:949-963` |
+
+⚠️ **`ClientGameRunner.ts:217-227` moved by `+23`, not by the `+26` that applies further down the
+file** — it sits between `0227`'s second and third insertion points. **Do not apply one offset to this
+file.**

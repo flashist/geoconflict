@@ -10,7 +10,26 @@ Backlog
 Unscheduled
 
 ## Status
-🔲 Backlog
+🚧 Blocked — `0009` findings + payment infra + owner rulings (pattern set, ad coupling)
+
+📌 **RECONCILED UP FROM THE [Backlog board](../../../sprints/backlog.md) ON 2026-09-07, on an owner
+ruling given live in session and relayed through the spawning session.** This brief read
+`🔲 Backlog` while the board row read the `🚧 Blocked` value above; the two disagreed, and the owner
+ruled that the **board is the live record** — it carries specific, dated reasons, while the brief
+looked stale.
+
+🚨 **HOW THIS STATUS WAS ESTABLISHED, STATED PLAINLY SO A LATER READER CAN WEIGH IT: it was COPIED
+FROM THE BOARD, NOT VERIFIED AGAINST THE WORLD.** ⛔ **Nobody checked this turn whether
+[`0009`](../0009-self-host-upstream-openfront-api-dependency/brief.md)'s findings are still
+outstanding, whether payment infrastructure now exists, or whether the owner has since ruled on the
+pattern set or the ad-suppression coupling.** The owner's reasoning is **evidence, not proof**, and it
+was recorded as such at the time it was given.
+
+✅ **What does corroborate it, and is the reason no concrete blocker had to be invented:** this brief's
+own *Notes* already list exactly these four dependencies — *"0009 (entitlement origin), Sprint 4
+payment infrastructure, an owner decision on the pattern set, and an owner ruling on the
+ad-suppression coupling."* The board's reason and the brief's own text name the same four things; only
+the status marker had drifted.
 
 ## Owner
 fkit-coder

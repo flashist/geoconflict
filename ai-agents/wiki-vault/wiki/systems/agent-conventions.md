@@ -5,7 +5,7 @@
 
 ## Summary
 
-The project's **standing law** for how agents work — the rules in force *right now*, which an agent that contradicts is simply wrong. Eight conventions plus a README that defines the folder's purpose: the scaffold's seven, and one added by this project (task-ID allocation).
+The project's **standing law** for how agents work — the rules in force *right now*, which an agent that contradicts is simply wrong. **Ten** conventions plus a README that defines the folder's purpose: the scaffold's seven, and **three** added by this project — task-ID allocation, and, both on 2026-09-07, the task-attribute cross-reference sweep and file:line citations.
 
 A convention is **prescriptive and current**, and is **maintained in place**: when it stops being true you *edit* it, you do not append. That is what separates it from the two neighbouring document kinds:
 
@@ -17,11 +17,11 @@ A convention is **prescriptive and current**, and is **maintained in place**: wh
 
 An ADR may *create* a convention; it never *is* one. A report is **never promoted** into a convention — if its conclusion hardens into a rule, the rule is written as its own convention document and the report stays where it is as the evidence.
 
-Source: `ai-agents/knowledge-base/conventions/` (README + 7 conventions)
+Source: `ai-agents/knowledge-base/conventions/` (README + **10** conventions as of 2026-09-07). ⚠️ **The tenth arrived UNCOMMITTED in the working tree during this ingest** — the count is right for the tree, and `git log` at `c910452` still shows nine.
 
 ## Architecture
 
-### The eight conventions
+### The ten conventions
 
 **1. Task status vocabulary** — the *only* valid values for a brief's `## Status`, a sprint plan's Status column, or a dashboard: `🔲 Backlog`, `🔄 In progress`, `🚧 Blocked — <reason>`, `✅ Done`, `⛔ Cancelled (YYYY-MM-DD) — <reason>`, `➡️ Moved to [Sprint N](…) — priority M`, plus **agent-closed** variants of the last two. No other value is valid — not "Not started", not "WIP", not "Todo". ⚠️ Clarified 2026-08-10: the `N` in the `Moved to [Sprint N]` marker is the target sprint's *identity*, not a number — `Sprint 4` and `Sprint 4c` are different sprints.
 
@@ -42,6 +42,16 @@ The authority split is the point. `In progress` and `Blocked` are **free** — a
 **7. Dependency declaration form** — a brief records dependencies in `## Notes` as `- **Depends on:** …`, with **nothing between the `**` and the label**. The board renderer parses that exact anchor; decoration in front of the label (a warning emoji is the common one) makes the parser miss it, and the board's contract maps "none recorded" to **`ready`** — a false "nothing blocks this" that stays wrong on every status run until a human notices. A non-canonical declaration now renders a LOUD unparseable flag rather than a fabricated `ready`. `nothing` is a valid value and should be written explicitly.
 
 **8. Task-ID allocation** (`task-id-allocation.md` — added by this project, beyond the scaffold's seven) — how a task's permanent four-digit ID is allocated, and that an ID is **never reused or renumbered**. The ID is the task's only identity (convention 6 makes rank explicitly not-identity); allocation happens when the brief is written.
+
+**9. Task-attribute cross-reference sweep** (`task-attribute-cross-reference-sweep.md` — added 2026-09-07, the project's second addition beyond the scaffold's seven) — **after a ruling changes a task attribute that has an authoritative brief section** — sprint, status, rank, owner, dependencies — **the prose copies of that attribute in *other* files get swept too.** The brief and the sprint plan are the task's *own* records and were already covered by convention 4 (task-status vocabulary), which now points here for everything beyond those two. This convention exists because a ruling relayed into one file leaves stale restatements scattered across sibling briefs, board addenda and reports, and each of those reads as the live record to whoever finds it first.
+
+**10. File:line citations** (`file-line-citations.md` — added 2026-09-07; ⚠️ **uncommitted in the working tree at ingest time**) — **every document citing `file:line` declares which commit its citations were read against**, near the top, once. **Citations are re-derived by opening the file — never shifted arithmetically.** **Bare `:NNN` with no filename is not allowed**, even on the second reference to a file named a sentence earlier, because `grep -rn '<file>'` must find *all* of them. Approved by the owner **explicitly as a convention, not an ADR**.
+
+Its justification is one afternoon of real damage: `0227` changed `ClientGameRunner.ts` (+30/−1) and `Main.ts` (+26), and every `file:line` in four sibling briefs went stale at once, in three distinct ways — a stale range, two invisible bare refs that every grep missed, and 🔴 **an arithmetic "fix" that silently dropped the load-bearing line.** That last one is the whole argument: a file-level offset is **not uniform**. `stop()` started +26 but ended +29, because `0227` added three lines *inside* the function — one of them `this.onGameEnd();`, **the exact line task `0232` exists to prove fires.** The arithmetic range cut it off, and it looked right.
+
+🚨 **Why a stale line number is worse than a typo:** a typo produces an error the reader sees. A stale line number produces **real, plausible-looking code** — the line still exists, it is simply a different statement now — and the reader draws a wrong conclusion with nothing anywhere to warn them.
+
+⚠️ **What it does NOT do, stated in the convention itself:** it does not stop citations going stale (it makes staleness *detectable* rather than silent); it does not find the documents needing updating after a commit, and creates no obligation to look; it does nothing about a frame that goes unread; and **a declared frame can itself be wrong** — it is a claim like any other, subject to convention 4.
 
 ### The bar for adding one
 

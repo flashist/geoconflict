@@ -55,7 +55,7 @@ fkit-coder
 
 🔴 **`0225`'s review found that `0225`'s diff INCIDENTALLY FIXES the monitor half of F4.** Its change
 adds `this.stopPerformanceMonitor()` inside the `if (this.gameStop !== null)` block at
-`src/client/Main.ts:678`, so a join-over now stops the outgoing monitor.
+`src/client/Main.ts:686`, so a join-over now stops the outgoing monitor.
 
 ⛔ **DO NOT let any artifact for this task describe `0225`'s work as outstanding.** What remains here
 is **only the `gameStop` half**: `this.gameStop` is called but never set to `null`, and it stays
@@ -104,15 +104,36 @@ as undetermined rather than guessing in either direction.
 
 ## Context
 
-### The defect — verified at `HEAD` = `35afc64` on 2026-09-07
+📌 **FRAME DECLARATION — every `file:line` in this brief is against commit `c910452`, the commit in
+which [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) landed.**
+⚠️ **REFRAMED 2026-09-07 from the earlier pre-`0227` numbering.** `0227` added **+30 / −1** lines to
+`src/client/ClientGameRunner.ts` and **+26 / −0** to `src/client/Main.ts`, so citations in **both**
+files moved. 🔴 **The shift is NOT a single constant** — `Main.ts` moves by **+8 / +9 / +12 / +26**
+depending on which of its four insertion points a line sits below, and `ClientGameRunner.ts` by
+**+5 / +23 / +24 / +25 / +26 / +29**. **Every number below was re-derived by reading the file at
+`c910452` and matching content, never by adding an offset.** ✅ **`src/core/` citations are unchanged
+— `0227` touched only `src/client/`** (confirmed: `git diff --stat 702a8ea c910452 -- src/core/` is
+empty). **Every superseded number is preserved in the mapping table at the end of this brief.**
+⚠️ **Re-verify anyway before relying on any of them** — this brief has gone stale once, which is the
+reason to distrust it, not to trust the new numbers more.
 
-⚠️ **`0225`'s `Main.ts` change is UNCOMMITTED in the working tree as of writing** (`git status` shows
-`M src/client/Main.ts`). Line numbers below were read from the **working tree, with that change
-applied**. **Re-verify every one of them yourself** — they will move again if anything else lands.
+### The defect — first verified at `HEAD` = `35afc64` on 2026-09-07, **reframed to `c910452`**
+
+📌 **REFRAMED 2026-09-07 — see the frame declaration above.** The original numbering was read from a
+working tree in which `0225`'s `Main.ts` change was **uncommitted**. ✅ **That caveat is now spent:**
+`0225` **and** `0227` are both committed at **`c910452`**, and every number below has been re-derived
+against it. ⚠️ **Re-verify every one of them yourself anyway** — they will move again if anything else
+lands, and this brief has already gone stale once.
+
+✅ **SEMANTIC PASS 2026-09-08 — the claims below were re-read against what the code DOES at
+`c910452`, not merely renumbered.** **Claims 1, 3 and the traced/untraced consequence split are
+unchanged.** ⚠️ **Claim 2 carried a citation that was WRONG BEFORE the reframe and was faithfully
+renumbered forward — corrected below.** ⚠️ **`0227` inserted a statement INSIDE the window this
+brief describes; it is now recorded in claim 2a.**
 
 **Mechanism:**
 
-1. `src/client/Main.ts:675-679` — `handleJoinLobby()` stops any existing game:
+1. `src/client/Main.ts:683-687` — `handleJoinLobby()` stops any existing game:
    ```
    if (this.gameStop !== null) {
      console.log("joining lobby, stopping existing game");
@@ -121,26 +142,46 @@ applied**. **Re-verify every one of them yourself** — they will move again if 
    }
    ```
    🔴 **`this.gameStop` is called but NOT set to `null`.** Compare `handleLeaveLobby()` at
-   `Main.ts:923-937`, which **does** null it (`Main.ts:930`) immediately after calling it. **The two
+   `Main.ts:949-963`, which **does** null it (`Main.ts:956`) immediately after calling it. **The two
    teardown paths disagree with each other, and that disagreement is the defect.**
 2. **Three awaits then run before `this.gameStop` is reassigned:**
    | Await | Where |
    |---|---|
-   | `await getServerConfigFromClient()` | `Main.ts:680` |
-   | `await fetchCosmetics()` | `Main.ts:683` (inside the `getSelectedPatternName(...)` argument) |
-   | `await FlashistFacade.instance.getYandexUniqueId()` | `Main.ts:702` (an argument to `joinLobby`) |
+   | `await getServerConfigFromClient()` | `Main.ts:688` |
+   | `await fetchCosmetics()` | `Main.ts:691` (inside the `getSelectedPatternName(...)` argument) |
+   | `await FlashistFacade.instance.getYandexUniqueId()` | `Main.ts:712` (an argument to `joinLobby`) |
 
-   ⚠️ **The third one is easy to misread.** The assignment statement *starts* at `Main.ts:686`
+   ⚠️ **The third one is easy to misread.** The assignment statement *starts* at `Main.ts:695`
    (`this.gameStop = joinLobby(`), but JavaScript evaluates the arguments first — so the `await` at
-   `:702` runs **before** `this.gameStop` is actually written. The window is wider than
-   `:686` suggests.
+   `:712` runs **before** `this.gameStop` is actually written. The window is wider than
+   `:695` suggests.
+
+   > 🔴 **CITATION CORRECTED 2026-09-08 — and it was WRONG BEFORE THE REFRAME, not broken by it.**
+   > This row read `Main.ts:702` when the brief was filed. ⛔ **At `702a8ea`, `:702` was
+   > `clientID: lobby.clientID,` — the await was one line lower, at `:703`.** The 2026-09-07 citation
+   > sweep re-derived `:702` faithfully to `:711`, **carrying the original off-by-one forward**: a
+   > renumbering sweep preserves a wrong citation perfectly. 🚨 **It also left this brief
+   > contradicting ITSELF** — the `R6` block below correctly cited the same await as `:712`.
+   > ✅ **Correct value at `c910452`: `:712`**, `yandexPlayerId: await
+   > FlashistFacade.instance.getYandexUniqueId(),` — read from the file, and it is the same line
+   > `R6`/`R6b` name.
+
+2a. 🆕 **`0227` ADDED A STATEMENT INSIDE THIS WINDOW — recorded 2026-09-08, not present when this
+   brief was written.** Between the guard block and the assignment there is now
+   **`const joinGeneration = ++this.joinGeneration;` at `Main.ts:694`**. ⚠️ **It does not change the
+   `gameStop` mechanism** — it touches `this.joinGeneration`, never `this.gameStop`, so claims 1 and 3
+   stand exactly as written. **But the window this task is about now also mints generation state**,
+   and a second re-entrant join mints a second generation whose value is later compared at
+   `Main.ts:793`. ⛔ **Any fix here must leave that mint and its ordering intact** — inverting it is
+   literally the `R4` defect `0227`'s review round 2 caught. ✅ **Still exactly THREE awaits in the
+   window; `0227` added none.**
 3. ⇒ A second `join-lobby` event arriving inside that window re-enters `handleJoinLobby()`, sees the
    **stale, already-called** `this.gameStop`, and **calls it a second time**.
 
 ### What the consequence actually is — and what it is not
 
 ✅ **One thing here IS traced, and it argues the severity DOWN.** The stale closure is `joinLobby`'s
-returned stopper, and its whole body is `ClientGameRunner.ts:230-233`:
+returned stopper, and its whole body is `ClientGameRunner.ts:253-256`:
 
 ```
 return () => {
@@ -148,6 +189,12 @@ return () => {
   transport.leaveGame();
 };
 ```
+
+> ✅ **RE-VERIFIED BYTE-FOR-BYTE AT `c910452` (2026-09-08).** `0227` threaded an `onGameEnd` parameter
+> through `joinLobby`, but **did not change what `joinLobby` RETURNS** — the closure is still exactly
+> these three lines. ⇒ **calling the stale `gameStop` twice still does not call `onGameEnd` twice**,
+> and the double-call consequence is unchanged. **Whether a double `leaveGame()` is harmless is still
+> NOT established.**
 
 ⇒ **Calling it twice calls `transport.leaveGame()` twice on the same `Transport`.** That is the entire
 double-call consequence — there is no other statement in the closure. 🚨 **Whether a double
@@ -158,7 +205,7 @@ brief says so rather than leaving it sounding scarier than it is.**
 ⚠️ **The rest is NOT traced.** Do not copy any of the following into a worklog as established:
 
 - The **first** join's `joinLobby(...)` is still in flight during the window, so a second join can also
-  race the first's own transport setup and `transport.connect(...)` (`ClientGameRunner.ts:229`).
+  race the first's own transport setup and `transport.connect(...)` (`ClientGameRunner.ts:252`).
   **Untraced. This, not the double-call, is the part that could actually matter.**
 - ✅ **The monitor is NOT part of this any more** — `0225` closed that half. See point 1 above.
 
@@ -186,9 +233,9 @@ longer the current game."* 🔴 **That is exactly what the guard NO LONGER DOES.
 **Why a stale comment is worth recording.** It presents `joinGeneration` as the ownership pointer,
 which **invites a future "simplification" back to `!== this.joinGeneration` — REINTRODUCING R4
 VERBATIM.** R4 was the defect where the guard keyed on *"who joined last"* rather than *"who owns the
-live monitor"*, and **inverted under the await at `Main.ts:707`**.
+live monitor"*, and **inverted under the await at `Main.ts:712`**.
 
-🟢 **Blast radius is limited:** the `monitorGeneration` comment immediately below it (`Main.ts:146-150`)
+🟢 **Blast radius is limited:** the `monitorGeneration` comment immediately below it (`Main.ts:147-150`)
 is **accurate**, so a careful reader gets the correct account two lines down.
 
 **Fix: one clause.** Make the `joinGeneration` comment say it is the join-mint counter, and that
@@ -209,8 +256,8 @@ UNCOMMITTED. Re-verify them; do not trust them.**
 Places to look — not an exhaustive list, and not a prescribed method:
 
 - Who dispatches `join-lobby`? Find every dispatcher and ask whether any two can fire close together
-  (`Main.ts:278` registers the listener; the `handleHash()` path at `Main.ts:493` and the
-  `onHashUpdate` path at `Main.ts:495-505` are both worth reading, as is the join-modal flow).
+  (`Main.ts:286` registers the listener; the `handleHash()` path at `Main.ts:501` and the
+  `onHashUpdate` path at `Main.ts:503-513` are both worth reading, as is the join-modal flow).
 - Is there a UI affordance that permits a second join while the first is still resolving — a
   double-click, a hash change during a join, a reconnect arriving mid-join?
 - Can it be produced deliberately in `npm run dev` — e.g. by dispatching two `join-lobby` events in
@@ -227,8 +274,8 @@ Places to look — not an exhaustive list, and not a prescribed method:
 
 ### Phase 2 — only if phase 1 justifies it
 
-**The obvious repair is to null `this.gameStop` immediately after calling it at `Main.ts:677`**, making
-`handleJoinLobby()` agree with `handleLeaveLobby()` (`Main.ts:930`).
+**The obvious repair is to null `this.gameStop` immediately after calling it at `Main.ts:685`**, making
+`handleJoinLobby()` agree with `handleLeaveLobby()` (`Main.ts:956`).
 
 ⚠️ **Weigh it rather than applying it reflexively, and state your choice with its reason:**
 
@@ -239,7 +286,7 @@ Places to look — not an exhaustive list, and not a prescribed method:
 - **A re-entrancy guard** (an in-flight flag, or serialising joins) closes more of it but is a larger
   change with its own failure mode — a stuck flag would make joining impossible. ⛔ **Do not ship a
   guard whose failure mode is worse than the defect** without saying so explicitly.
-- **`beforeunload` (`Main.ts:247-254`) and `onHashUpdate` (`Main.ts:495-505`) both read `gameStop`.**
+- **`beforeunload` (`Main.ts:255-262`) and `onHashUpdate` (`Main.ts:503-513`) both read `gameStop`.**
   Check that nulling earlier does not change their behaviour.
 
 ### Rules that bind regardless
@@ -345,7 +392,7 @@ straight after `0225` is a perfectly good call and costs nothing to switch.**
 
 - **[`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md)** — **where this was
   found** (during its audit, as "F4") and **where its monitor half was fixed** (incidentally, by its
-  diff at `Main.ts:678` — confirmed in `0225`'s review). ⚠️ `0225`'s change is **uncommitted in the
+  diff at `Main.ts:686` — confirmed in `0225`'s review). ⚠️ `0225`'s change is **uncommitted in the
   working tree** as of writing.
 - **[`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md)** — **where it was
   recorded**, in that brief's Notes under "F4", which is exactly why the owner ruled it out into this
@@ -371,8 +418,60 @@ straight after `0225` is a perfectly good call and costs nothing to switch.**
    Running **phase 1 only** straight after `0225`, while a coder still has `Main.ts` loaded, is a
    reasonable alternative the owner may prefer.
 2. 🚩 **If phase 1 finds the race UNDETERMINED — fix it anyway, or close it?** Adding the null at
-   `Main.ts:677` is cheap and makes `handleJoinLobby()` consistent with `handleLeaveLobby()`, but it
+   `Main.ts:685` is cheap and makes `handleJoinLobby()` consistent with `handleLeaveLobby()`, but it
    would be a change made without evidence of a real problem, which cuts against
    `ai-agents/knowledge-base/conventions/evidence-before-assertion.md` and against `CLAUDE.md`'s
    *"do not introduce speculative fixes"*. **No recommendation offered — this is a judgement about
    how much unproven risk the owner wants carried, not a technical call.**
+
+---
+
+## 📌 Citation mapping — `702a8ea` → `c910452` (reframed 2026-09-07)
+
+**Nothing was deleted; every superseded number is preserved here.** All values re-derived by reading the file at `c910452` and matching content — **never** by adding an offset.
+
+| File | Was (`702a8ea`) | Now (`c910452`) |
+|---|---|---|
+| `Main.ts` | `:675-679` | `:683-687` |
+| `Main.ts` | `:677` | `:685` |
+| `Main.ts` | `:678` | `:686` |
+| `Main.ts` | `:680` | `:688` |
+| `Main.ts` | `:683` | `:691` |
+| `Main.ts` | `:686` | `:695` |
+| `Main.ts` | `:702` | `:711` |
+| `Main.ts` | `:923-937` | `:949-963` |
+| `Main.ts` | `:930` | `:956` |
+| `Main.ts` | `:247-254` | `:255-262` |
+| `Main.ts` | `:278` | `:286` |
+| `Main.ts` | `:493` | `:501` |
+| `Main.ts` | `:495-505` | `:503-513` |
+| `ClientGameRunner.ts` | `:229` | `:252` |
+| `ClientGameRunner.ts` | `:230-233` | `:253-256` |
+
+### ⚠️ Two corrections that are NOT simple reframes — read both
+
+**1. The `R6` residual block carried two wrong numbers, written by the producer at `0227`'s close and
+corrected here.**
+- `Main.ts:146-150` → **`:147-150`** for the `monitorGeneration` comment. `:146` is the
+  `joinGeneration` **field**, not part of that comment. Off by one.
+- `Main.ts:707` → **`:712`**. ⛔ **`:707` was never right at `c910452`** — it is
+  `: this.flagInput.getCurrentFlag(),`, a flag ternary. The await that actually sits between the
+  generation mint (`:694`) and the monitor claim (`:769`) is
+  `yandexPlayerId: await FlashistFacade.instance.getYandexUniqueId(),` at **`:712`**. This was
+  **inherited from the close hand-off and propagated without being derived** — the exact failure this
+  reframe exists to stop, committed by the producer while fixing it in others.
+
+**2. 🚩 NEW RESIDUAL — `R6b`, same comment block, same class as `R6`, docs only.** The **source comment
+itself** at `src/client/Main.ts:149` reads *"handleJoinLobby awaits between the two
+(`Main.ts:707`)"* — **that in-code citation is wrong for the same reason**, and it is two lines below
+the `R6` comment this task already has to fix. ✅ **Fix both in the same edit**: `:707` → `:712`.
+⛔ **Still docs-only — a comment, no behaviour, no field, no guard.** Found 2026-09-07 by the producer
+during the citation sweep; **routing is the lead's, not an owner ruling**, on the same reasoning as
+`R6` (this task will have the region open).
+
+**3. 🔴 `ClientGameRunner.ts:215` — CITED IN *Board placement* AND NO LONGER EXISTING.** That citation
+named `0227`'s **site C**, `).then((r) => r?.start());` with **no `.catch`**. ⛔ **`0227` did not move
+that line — it REPLACED it.** At `c910452` the call closes at `:221` and is followed by a `.then`
+(`:222-230`) **and a `.catch` (`:231-238`)**. **It was deliberately left un-renumbered**: renumbering
+would assert the old code still exists somewhere, which is false. The sentence around it is a
+*historical* statement about why `0227` was promoted, and it remains true as history.

@@ -32,6 +32,35 @@
 > ⚠️ **Stated as inference, not fact:** match-end XP crediting has **almost certainly never worked in
 > production** — `0062` exists precisely because `PROFILE_INTERNAL_TOKEN` never reached the production
 > game server. Nobody measured it; do not upgrade it to a measurement.
+>
+> ---
+>
+> ### 🔴 THIRD OWNER POSITION, 2026-09-07 — it SHARPENS the reframe above, it does not replace it
+>
+> **Owner, verbatim, given live in session:** *"I have the VPS, but I need to re-du the setup of it from the scratch, probably all the keys"* [sic — *"re-du"* = **redo**].
+>
+> **Three dated positions now exist and ALL THREE are kept:**
+>
+> | Date | Position | Standing |
+> |---|---|---|
+> | 2026-09-04 (first) | *"We don't have ANY profile-related VPS yet"* | ⛔ **Superseded.** Do not act on it — and do not read it as a lie; it is recorded and dated. |
+> | 2026-09-04 (second) | *"the VPS and S3 I created will be reused"* — *"Both exist — reuse them in place"* | ✅ **Stands.** |
+> | **2026-09-07** | **The VPS exists — AND its setup and keys are to be redone from scratch** | ✅ **Current. It ADDS to the second; it does not replace it.** |
+>
+> - ✅ **The box's EXISTENCE is confirmed a second time. That fact is settled.**
+> - 🚨 **Nothing currently ON the box may be assumed working, correct, or trusted.** *"What is on them is UNKNOWN"* was a statement of ignorance; **this makes it a directive** — the installed state is being wiped regardless of what inspection finds.
+> - ⇒ **`0215`'s verification splits, and only half stays load-bearing.** **Hardware / plan facts** — vCPU, RAM, disk, region, IP, provider — ✅ **still gate a resize**; a redo does not change the machine's spec. **Installed / provisioned state** — what runs, what config is present, what secrets sit there — ⚠️ **downgraded to INVENTORY, not a gate.** Record it (the owner's *"I am completely lost about what was done"* still deserves an answer), but **build no decision on it — it is about to be erased.**
+> - ⚠️ **"probably all the keys" is the OWNER'S OWN HEDGE and is reproduced as such.** It is **not** a settled instruction to rotate every key. Key re-issue and old-credential revocation are already scoped: `0218` (the new `age` keypair and its custody) and `0222` (revoke the old access key **at the provider**, not merely overwrite it locally).
+> - **No new brief was created for this ruling** — `0213`'s P1–P7 chain already covers *wipe, re-provision in place, re-issue*.
+> - 📌 **The `0222` old-bucket-objects decision is UNAFFECTED and still OPEN.** Redoing the box's keys says nothing about the fate of the pre-existing encrypted objects in the reused bucket, whose `age` private identity has no recorded home.
+>
+> ### 🚩 `PROFILE_INTERNAL_TOKEN` IS DELIBERATELY BLANK IN PRODUCTION — and the local `.env.prod` is not
+>
+> ⚠️ **Recorded 2026-09-04 as a design input, not a defect report.** `0062`'s fix forwards the variable correctly (`deploy.sh:312`), but **the owner intentionally blanks its value before a prod release** to keep citizenship logic switched off until citizenship is ready and the profile VPS work is done. Owner, verbatim: *"I probably will keep it blank again, because the citizenship is not fully ready to be deployed yet and we need to do some additional work in terms of the profile VPS setup."* ⇒ **"forwarded but empty" is, for this one variable, an *intended* state right now**, and a naive non-empty check would fight it. `0064`'s guard must distinguish *required non-empty* from *deliberately blank for now*.
+>
+> 🚩 **The mirror risk is the more dangerous one, and it aims at whoever runs the next production deploy.** The local `.env.prod` currently holds a **non-empty** value, so **a deploy run as things stand would push a real token and silently re-enable profile upsert and match-XP crediting in production, ahead of citizenship go-live.** ⚠️ **Blanking it is a manual step with no automated guard.** ⛔ **`npm run check:config-parity` does NOT catch this** — Phase 1 compares variable **names only**, and this variable *is* forwarded correctly. Catching a value that is present when it should be blank is a **Phase 2** concern and does not exist yet. `0054`'s client flag hides the citizenship *card*, not the server-side crediting.
+>
+> ⇒ **`0062`'s D2 check ran 2026-09-04 against the live prod container and read the token EMPTY — that result is INCONCLUSIVE**, because the owner blanked it deliberately. **The fix has never been exercised with a real value.** `0017` and `0065` therefore wait on **citizenship readiness + the profile VPS work**, ⛔ **not** on someone running `0062`'s verification.
 
 The player profile store is the Sprint 4 backend foundation for persistent XP, citizenship state, display names, and future paid entitlements. ~~It runs as a dedicated profile API and Postgres stack on a reg.ru VPS at `api.geoconflict.ru`~~ 🔴 **CORRECTED 2026-09-04 — whether that stack is running is UNVERIFIED; see the banner above.** The VPS and the DNS record exist and are being reused; what is provisioned on the box is unknown until `0215` inspects it. ⚠️ **A DNS record resolving proves NOTHING about a server running** — DNS resolution is not a health check. The system is **designed and scripted** to run as a dedicated profile API and Postgres stack on a reg.ru VPS, and the wipe-and-rebuild stands exactly that shape up again **on the existing box**; game servers call the API instead of connecting to Postgres directly.
 

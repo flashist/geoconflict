@@ -1,4 +1,16 @@
-# `ClientGameRunner.stop()` never runs on a normal leave-lobby — the runner, its Web Worker and a 1-second reconnect interval survive every abandoned multiplayer game
+# `ClientGameRunner.stop()` never runs on ANY path — the runner, its Web Worker and a 1-second reconnect interval survive every game, not just abandoned ones
+
+> 📌 **TITLE REFRAMED 2026-09-08 on an owner ruling given live in session (2026-09-07), relayed
+> through the spawning session. The original title is kept, not deleted:**
+>
+> > *"`ClientGameRunner.stop()` never runs on a normal leave-lobby — the runner, its Web Worker and a
+> > 1-second reconnect interval survive every abandoned multiplayer game"*
+>
+> ⛔ **The original was NOT wrong — it was NARROWER than the defect.** It was written when the crash
+> path was believed to be a working teardown route, which made "normal leave" the interesting
+> exception. **`0232` then established that the crash branch is unreachable dead code**, so the leave
+> path is not an exception at all: **it is the general case.** ⚠️ **The reframe changes the DESCRIPTION,
+> not the evidence** — see the honesty limits below, which are unchanged and still binding.
 
 ## ID
 0231
@@ -64,42 +76,106 @@ holds only the `adr-1XX` series, so a relative link would not resolve.*
 
 ## Context
 
+📌 **FRAME DECLARATION — every `file:line` in this brief is against commit `c910452`, the commit in
+which [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) landed.**
+⚠️ **REFRAMED 2026-09-07 from the earlier pre-`0227` numbering.** `0227` added **+30 / −1** lines to
+`src/client/ClientGameRunner.ts` and **+26 / −0** to `src/client/Main.ts`, so citations in **both**
+files moved. 🔴 **The shift is NOT a single constant** — `Main.ts` moves by **+8 / +9 / +12 / +26**
+depending on which of its four insertion points a line sits below, and `ClientGameRunner.ts` by
+**+5 / +23 / +24 / +25 / +26 / +29**. **Every number below was re-derived by reading the file at
+`c910452` and matching content, never by adding an offset.** ✅ **`src/core/` citations are unchanged
+— `0227` touched only `src/client/`** (confirmed: `git diff --stat 702a8ea c910452 -- src/core/` is
+empty). **Every superseded number is preserved in the mapping table at the end of this brief.**
+⚠️ **Re-verify anyway before relying on any of them** — this brief has gone stale once, which is the
+reason to distrust it, not to trust the new numbers more.
+
 **Filed 2026-09-07 on an owner ruling given live in session.** The finding came out of the coder who
 planned [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) while reading the
 code, and the owner ruled it gets its own brief rather than being folded in.
 
-### The mechanism — CODE FACTS, each re-verified at commit `702a8ea`
+### 🔴 REFRAMED 2026-09-08 — what this task is actually about
 
-Every line reference below was read from `git show 702a8ea:<file>` for this brief on 2026-09-07 —
-**not** from the working tree, which was being edited by another session at the time.
+**Owner ruling, given live 2026-09-07 and relayed through the spawning session: the producer reframes
+this brief to match what was actually found.** ⛔ **The ruling was a REFRAME ONLY — priority,
+dependencies and board position were NOT ruled and are UNCHANGED.**
 
-1. **`ClientGameRunner.stop()` has exactly ONE caller.** `src/client/ClientGameRunner.ts:499` — inside
+**What was found.** A semantic re-read at `c910452` (2026-09-08) confirmed that `stop()` still has
+exactly one caller — the crash branch at `ClientGameRunner.ts:525` — and that
+[`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md) has established **that caller
+is unreachable dead code**: `src/core/worker/Worker.worker.ts:20-23` drops the `ErrorUpdate` before it
+is ever posted, so `ClientGameRunner.ts:517`'s `if ("errMsg" in gu)` is never true.
+
+⇒ 🚨 **`ClientGameRunner.stop()` DOES NOT RUN ON ANY PATH AT `c910452`.** Not on a normal leave, not on
+a crash, not on `beforeunload`. **"Orphaned runner on a normal leave-lobby" is a SPECIAL CASE of "the
+runner is never torn down, ever."**
+
+🚨 **AND HERE IS THE TRAP THIS REFRAME MUST NOT SPRING.** A bigger-sounding defect has **acquired no
+extra certainty**. ⛔ **"`stop()` runs on no path" is REASONED FROM CODE, exactly like everything
+else here — it is NOT a measurement, and it does NOT mean the consequences have been observed.**
+**Nobody has watched a browser. No interval was counted, no worker was counted, no memory figure
+exists.** **Step 1 is still to MEASURE it, and a refutation is still a valid, complete outcome.**
+
+⚠️ **THIS TASK IS NOW VISIBLY ENTANGLED WITH `0232`, AND THE MERGE QUESTION IS DELIBERATELY LEFT
+OPEN.** `0232` fixes the drop, which makes the crash branch reachable, which makes `stop()` run on
+that one path — **changing this task's own premise while it is open.** ⛔ **Whether the two should
+merge, or run in a fixed order, is NOT decided here.** The owner was offered an architect review of
+that question on 2026-09-07 and **chose the reframe instead**; the entanglement is recorded so
+whoever plans either task sees it, and **the decision remains the owner's.**
+
+📌 **Everything below this heading is the original brief, corrected in place where a claim went stale
+and marked where it did. Nothing was deleted.**
+
+### The mechanism — CODE FACTS, each re-verified at commit `c910452`
+
+📌 **REFRAMED AND RE-VERIFIED 2026-09-07.** Originally read at `702a8ea`; `0227` has since landed in
+both cited files. ✅ **Every fact below was re-read at `c910452` in a semantic pass — checking what the
+code DOES, not merely that a number still points somewhere.** **Facts 2, 4, 5, 6 and 7 are unchanged.
+Facts 1 and 3 changed and carry correction blocks.** ⚠️ **Re-verify them yourself anyway.**
+
+1. **`ClientGameRunner.stop()` has exactly ONE caller.** `src/client/ClientGameRunner.ts:525` — inside
    the worker's error branch, i.e. **the crash path**. A grep of the whole file for `this.stop()`
-   returns that one call site and the method definition at `:753`. Nothing else in the file, and
+   returns that one call site and the method definition at `:779`. Nothing else in the file, and
    nothing in `Main.ts`, ever calls it.
+
+   > 🔴 **STILL LITERALLY TRUE AT `c910452`, BUT NOW MATERIALLY INCOMPLETE — corrected 2026-09-07.**
+   > There is still exactly one caller, and it is still `:525`. ⛔ **But
+   > [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md) established that this
+   > caller is UNREACHABLE DEAD CODE** — `src/core/worker/Worker.worker.ts:20-23` drops the
+   > `ErrorUpdate` before it is posted, so `ClientGameRunner.ts:517`'s `if ("errMsg" in gu)` is never
+   > true. 🚨 **The operative fact is therefore STRONGER than this brief originally claimed: `stop()`
+   > does not merely fail to run on a NORMAL leave — at `c910452` it runs on NO path at all.**
+   > ⚠️ **Reasoned from code, never observed.** It strengthens the case for this task; it does not
+   > change its scope.
 2. **`Main.gameStop` is not the runner's stopper.** It is the closure `joinLobby()` returns at
-   `ClientGameRunner.ts:230-233`, and its entire body is `console.log("leaving game");
+   `ClientGameRunner.ts:253-256`, and its entire body is `console.log("leaving game");
    transport.leaveGame();`. **It never calls `runner.stop()`.**
-3. **`stop()` is what does the teardown** (`ClientGameRunner.ts:753-766`): sets `isActive = false`,
+3. **`stop()` is what does the teardown** (`ClientGameRunner.ts:779-794`): sets `isActive = false`,
    calls `this.worker.cleanup()`, calls `this.transport.leaveGame()`, and clears
    `this.connectionCheckInterval`. **On a normal leave, none of that runs.**
-4. **A 1-second interval survives.** `ClientGameRunner.ts:465-471` — inside a `setTimeout(…, 20000)`,
+
+   > ⚠️ **INCOMPLETE SINCE `0227` LANDED — corrected 2026-09-07, the original list left above.**
+   > `stop()` now does **one more thing** that list omits: it calls **`this.onGameEnd()` at `:793`**,
+   > `0227`'s teardown seam, placed last and behind the `isActive` guard so it fires exactly once.
+   > **The conclusion is unchanged** — on a normal leave none of it runs, `onGameEnd()` included — but
+   > anyone planning this task must know the function has a fifth responsibility, because **anything
+   > that makes `stop()` reachable also switches that seam on.**
+4. **A 1-second interval survives.** `ClientGameRunner.ts:491-497` — inside a `setTimeout(…, 20000)`,
    `this.connectionCheckInterval = setInterval(() => this.onConnectionCheck(), 1000)`. `stop()` is the
-   only thing that clears it (`:761-764`).
+   only thing that clears it (`:787-790`).
 5. **That interval calls `reconnect()` on the game the player already left.**
-   `ClientGameRunner.ts:1074-1086` — `onConnectionCheck()` returns early if `this.transport.isLocal`
-   (`:1075`), otherwise, if no server message has arrived for >5000 ms, it calls
+   `ClientGameRunner.ts:1103-1115` — `onConnectionCheck()` returns early if `this.transport.isLocal`
+   (`:1104`), otherwise, if no server message has arrived for >5000 ms, it calls
    `this.transport.reconnect()`, which is `this.connect(this.onconnect, this.onmessage)`
    (`src/client/Transport.ts:377-379`).
-6. **`Main`'s `EventBus` is long-lived** — `src/client/Main.ts:144`, `private eventBus: EventBus = new
+6. **`Main`'s `EventBus` is long-lived** — `src/client/Main.ts:152`, `private eventBus: EventBus = new
    EventBus()`, one per `Main` instance, not per game. `start()` registers **five** listeners on it
-   (`ClientGameRunner.ts:473-483`: `MouseUpEvent`, `MouseMoveEvent`, `AutoUpgradeEvent`,
+   (`ClientGameRunner.ts:499-509`: `MouseUpEvent`, `MouseMoveEvent`, `AutoUpgradeEvent`,
    `DoBoatAttackEvent`, `DoGroundAttackEvent`) and **the file never calls `off` or
    `removeEventListener` even once.** ⚠️ Note `EventBus` **does** expose `off()`
    (`src/core/EventBus.ts:32`) — removal is available and simply not used.
-7. **Leave-lobby is the ordinary path.** `Main.handleLeaveLobby()` (`Main.ts:923-937`) calls
+7. **Leave-lobby is the ordinary path.** `Main.handleLeaveLobby()` (`Main.ts:949-963`) calls
    `this.gameStop()` and nulls it. Per fact 2, that reaches `transport.leaveGame()` and nothing else.
-   The `beforeunload` handler (`Main.ts:247-253`) does the same.
+   The `beforeunload` handler (`Main.ts:255-261`) does the same.
 
 ### 🚨 What follows — and the sharp limit on how far it may be stated
 
@@ -107,12 +183,25 @@ Every line reference below was read from `git show 702a8ea:<file>` for this brie
 
 The reasoning: nothing clears the interval or the worker on a normal leave, and each new game builds a
 new runner, so **each abandoned multiplayer game should leave behind one live 1-second interval and
-one Web Worker**, for the lifetime of the page. ⛔ **Nobody has measured this.** No browser session was
+one Web Worker**, for the lifetime of the page.
+
+> 🔴 **WIDENED 2026-09-08 — the sentence above is kept and is still true; it is just not the whole
+> scope.** Since `stop()` runs on **no** path (see the reframe in *Context*), the leftover is **not
+> limited to games the player ABANDONS**. ⇒ **every multiplayer game the page runs should leave one
+> live interval and one Web Worker behind, however it ends** — leave, crash, or server error.
+> ⛔ **This widens the REASONING ONLY.** ⚠️ **It is still reasoned from code and STILL NOT OBSERVED**,
+> and the widened claim is **no better evidenced than the narrow one was.** **Do not let the bigger
+> number make it sound measured.** ⛔ **Nobody has measured this.** No browser session was
 observed, no interval count was taken, no worker count was taken, no memory figure exists.
 
 **If it holds, it makes this materially larger than `0227`'s issue**, which is *bounded* — at most one
 stale monitor, cleared by the next join or leave. This one has no such ceiling. **That comparison is
 the reason the task exists, and it rests on the reasoning above, not on a measurement.**
+
+> ⚠️ **Footnote added 2026-09-08:** `0227` closed on 2026-09-07 with **its own headline site not
+> fixed** — the same dead crash branch. **That does not change this comparison**, which was about
+> bounded-vs-unbounded and still holds; it is noted so nobody reads "`0227` is done" as
+> "the crash path is handled."**
 
 🚨 **DO NOT ASSERT A USER-VISIBLE IMPACT.** Battery drain, reconnect storms, added server load and
 memory growth are **things to check**, listed in step 1 below. **None of them is a finding.** ⛔ **No
@@ -120,7 +209,7 @@ figure, rate or severity may be written for any of them anywhere until it is mea
 
 ### ✅ Singleplayer is exempt
 
-`onConnectionCheck()` early-returns on `this.transport.isLocal` at `ClientGameRunner.ts:1075`, so the
+`onConnectionCheck()` early-returns on `this.transport.isLocal` at `ClientGameRunner.ts:1104`, so the
 reconnect half does not apply to local games. ⚠️ **That guard covers the reconnect call only** — the
 interval itself, the worker and the five listeners are **not** conditioned on `isLocal`. Whether the
 non-reconnect half of the leak still applies to singleplayer is **an open question, not a settled
@@ -128,22 +217,31 @@ exemption.**
 
 ### ⚠️ A related code fact, recorded as SOMETHING TO VERIFY rather than as a second defect
 
-The interval is created inside a **`setTimeout(…, 20000)`** (`:465-471`), and **that timeout handle is
+The interval is created inside a **`setTimeout(…, 20000)`** (`:491-497`), and **that timeout handle is
 never stored, so `stop()` cannot cancel it**. Read literally, a runner stopped *within* the first 20
 seconds would still have the pending timeout fire afterwards and install a fresh, uncleared interval —
 and `onConnectionCheck()` has no `isActive` guard. ⚠️ **This is read off the code and has NOT been
 reproduced.** It would affect the crash path too, i.e. the one path where `stop()` does run. **Confirm
 or refute it as part of this task; do not assume it.**
 
+> 🔴 **ONE CLAUSE ABOVE IS NOW FALSE — corrected 2026-09-07, original kept, not deleted.** It reads
+> *"the one path where `stop()` does run."* ⛔ **At `c910452` the crash path does NOT run** — its
+> branch is unreachable dead code (fact 1's correction block, and
+> [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md)). **There is currently NO
+> path on which `stop()` runs**, so the uncancellable 20 s `setTimeout` cannot be exercised through it
+> today. ⚠️ **The underlying code fact — that the timeout handle is never stored — is UNCHANGED and
+> still needs confirming or refuting.** Only the "the crash path would exercise it" framing is dead,
+> and it comes back the moment `0232` lands.
+
 ### 🔴 Scope boundary — this must NOT be folded into `0227`
 
 [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) **explicitly bars** the fix
-this task needs. Its brief, at `:301-302`: *"⛔ **Do NOT also null or re-drive `Main.gameStop` from the
+this task needs. Its brief, at `:325-326`: *"⛔ **Do NOT also null or re-drive `Main.gameStop` from the
 runner** unless you can show it is safe."* ⇒ **this needs its own design and its own verification**,
 which is exactly why it is a separate task.
 
 ⚠️ **`0227` introduces a new `onGameEnd` / `onTeardown` callback parameter on `joinLobby()`**
-(`0227`'s brief, `:290`). **Whether this task can reuse that seam or needs a different one is an OPEN
+(`0227`'s brief, `:314`). **Whether this task can reuse that seam or needs a different one is an OPEN
 QUESTION for whoever plans this task.** ⛔ **This brief deliberately does not decide it** — the seam
 does not exist yet, and its final shape is `0227`'s to settle.
 
@@ -194,7 +292,7 @@ interval, worker or event listener outlives the game that created it.
 
 3. **Make the normal-leave path reach the teardown**, so `worker.cleanup()`, the interval clear and
    the transport leave all run. ⚠️ **`stop()` already early-returns when `!isActive`**
-   (`ClientGameRunner.ts:755`), so it is idempotent — a path that ends up calling it twice is safe.
+   (`ClientGameRunner.ts:781`), so it is idempotent — a path that ends up calling it twice is safe.
    **Verify that guard still holds after `0227` lands** rather than assuming it.
 
 4. **Remove the five event listeners on teardown.** `EventBus.off()` exists
@@ -264,3 +362,40 @@ interval, worker or event listener outlives the game that created it.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
 - 🔒 **No secrets in any artifact** — `file:line` references only.
+
+---
+
+## 📌 Citation mapping — `702a8ea` → `c910452` (reframed 2026-09-07)
+
+**Nothing was deleted; every superseded number is preserved here.** All values re-derived by reading the file at `c910452` and matching content — **never** by adding an offset.
+
+| File | Was (`702a8ea`) | Now (`c910452`) |
+|---|---|---|
+| `ClientGameRunner.ts` | `:230-233` | `:253-256` |
+| `ClientGameRunner.ts` | `:290` | `:314` |
+| `ClientGameRunner.ts` | `:301-302` | `:325-326` |
+| `ClientGameRunner.ts` | `:465-471` | `:491-497` |
+| `ClientGameRunner.ts` | `:473-483` | `:499-509` |
+| `ClientGameRunner.ts` | `:499` | `:525` |
+| `ClientGameRunner.ts` | `:753` | `:779` |
+| `ClientGameRunner.ts` | `:753-766` | `:779-794` |
+| `ClientGameRunner.ts` | `:755` | `:781` |
+| `ClientGameRunner.ts` | `:761-764` | `:787-790` |
+| `ClientGameRunner.ts` | `:1074-1086` | `:1103-1115` |
+| `ClientGameRunner.ts` | `:1075` | `:1104` |
+| `Main.ts` | `:144` | `:152` |
+| `Main.ts` | `:247-253` | `:255-261` |
+| `Main.ts` | `:923-937` | `:949-963` |
+
+### ⚠️ Two things this table does not let you read past
+
+**1. `stop()` did NOT move by a constant.** Its **start** moved `753 → 779` (**+26**); its **end**
+moved `765 → 794` (**+29**), because `0227` added **three lines inside the function** — two comment
+lines and the `this.onGameEnd()` call now at **`:793`**. 🚨 **Also: the old `:753-766` over-ran by one
+line** — pre-`0227`, `stop()` ended at `:765` and `:766` was blank. Shifting the old range
+arithmetically gives `:779-792`, which **cuts off `this.onGameEnd()`** — the single line the sibling
+task `0232` exists to prove fires. **This is the case for re-deriving instead of shifting.**
+
+**2. ✅ Unchanged, confirmed not assumed:** `src/client/Transport.ts:377-379` and
+`src/core/EventBus.ts:32` are byte-identical between `702a8ea` and `c910452` — `0227` touched only
+`ClientGameRunner.ts` and `Main.ts`.

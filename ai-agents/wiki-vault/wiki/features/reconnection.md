@@ -54,3 +54,4 @@ Source: `ai-agents/tasks/done/0077-reconnection-analytics/brief.md`
 - [[systems/analytics]] — analytics infrastructure these events flow through
 - [[decisions/sprint-1]] — sprint where reconnection was built
 - [[decisions/autospawn-late-join-fix]] — related: late-join spawn timing issues
+- [[systems/client-game-teardown]] — the runner and its reconnect interval survive a normal leave-lobby, so an abandoned game may keep attempting reconnects (task `0231` — ⚠️ **reasoned from code, never observed**)

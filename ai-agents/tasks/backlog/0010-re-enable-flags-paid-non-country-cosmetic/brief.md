@@ -10,7 +10,26 @@ Backlog
 Unscheduled
 
 ## Status
-🔲 Backlog
+🚧 Blocked — `0009` findings + payment infra + owner decision on the design set
+
+📌 **RECONCILED UP FROM THE [Backlog board](../../../sprints/backlog.md) ON 2026-09-07, on an owner
+ruling given live in session and relayed through the spawning session.** This brief read
+`🔲 Backlog` while the board row read the `🚧 Blocked` value above; the two disagreed, and the owner
+ruled that the **board is the live record** — it carries specific, dated reasons, while the brief
+looked stale.
+
+🚨 **HOW THIS STATUS WAS ESTABLISHED, STATED PLAINLY SO A LATER READER CAN WEIGH IT: it was COPIED
+FROM THE BOARD, NOT VERIFIED AGAINST THE WORLD.** ⛔ **Nobody checked this turn whether
+[`0009`](../0009-self-host-upstream-openfront-api-dependency/brief.md)'s findings are still
+outstanding, whether payment infrastructure now exists, or whether the owner has since ruled on the
+design set.** The owner's reasoning is **evidence, not proof**, and it was recorded as such at the
+time it was given.
+
+✅ **What does corroborate it, and is the reason no concrete blocker had to be invented:** all three
+named blockers are concrete and already appear in this brief's own text — this is the root of the
+cosmetics monetization chain, and the **non-country design set is an owner decision that has not been
+made** (Yandex bars real-country flags and names). The board's reason and the brief's own content
+agree; only the status marker had drifted.
 
 ## Owner
 fkit-coder

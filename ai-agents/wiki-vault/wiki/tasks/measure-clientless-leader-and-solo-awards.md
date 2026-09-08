@@ -1,8 +1,20 @@
 # Measure Clientless-Leader and Singleplayer Award Incidence (task 0208)
 
 **Source**: `ai-agents/tasks/backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md`
-**Status**: backlog — ⚠️ **scheduled into Sprint 4, but NOT started. Nobody is building it.**
+**Status**: 🚧 **Blocked — BUILT, COMMITTED AND DEPLOYED; the DELIVERABLE NUMBER is still not read**
 **Sprint/Tag**: Sprint 4 — scheduled 2026-09-04 by owner ruling; **re-ranked `Medium` → `High`** the same day
+
+> # 🔧 CORRECTED 2026-09-07 — THIS PAGE'S "NOTHING BUILT YET" WAS STALE
+>
+> **Both halves are built, reviewed and committed in `6b30e22`, an ancestor of `HEAD`, and are DEPLOYED in build `0.0.141`.** Confirmed 2026-09-05: **177 `Match:WinCondition` events** observed over ~2 hours, plus one `Match:Leaderboard:Award:Participation:SoloTutorial`. The review closed out over **7 rounds (Part A 1–4, Part B 1–3) with 10 findings — 9 fixed and verified, 1 owner-accepted residual (B3)**.
+>
+> ⛔ **BUILT AND REVIEWED IS NOT DONE — DO NOT CLOSE THIS TASK.** This is a **measurement** task: the deliverable is **THE NUMBER — the clientless-leader share** — and there is none. ⚠️ **The 177-event midday sample proves the instrumentation works and NOTHING ELSE.** The gate is a **full-day Group-by (Event id 03/04/05)** read. It is blocked on **that read**, not on any code, commit or deploy.
+>
+> 🔴 **`0211`'s ship gate is therefore STILL NOT CLEAR.** ⚠️ **Do not read "deployed" as satisfying it.**
+>
+> 📌 **A prior marker on this task reading *"NOT DEPLOYED, NO DATA, UNCOMMITTED"* was FALSE and was corrected 2026-09-05.** Recorded so the same wrong read is not made again.
+>
+> 🟢 **Related, and worth knowing:** when GameAnalytics raised its per-user event-limit banner on 2026-09-06, **the first hypothesis was that this task's `WinCheckExecution` latch had failed and was emitting every 10 ticks.** The per-category breakdown **refutes it** — `Match` is flat across the spike (25.87 → 31.79 → 26.16). ⛔ **Do not re-open that line without evidence contradicting the table.** See [[tasks/gameanalytics-per-user-event-limit]].
 
 > ### 📌 SCHEDULED INTO SPRINT 4 — 2026-09-04, owner ruling given live in session
 >
@@ -78,7 +90,32 @@ field observation**. Nobody knows the production rate. That is the entire gap.
 
 ## Key Changes
 
-*Nothing built yet — this records the brief's shape.*
+⚠️ **Corrected 2026-09-07 — this section previously read *"Nothing built yet."* It is built, committed (`6b30e22`) and deployed (`0.0.141`).** The design shape below is what shipped; the spec now lives in `ai-agents/knowledge-base/analytics-event-reference.md`.
+
+### 🔴 Build dashboards from the REACHABLE set, not from the event grammar
+
+**`Match:WinCondition` — 21 reachable ids, not 56.** The two leaf sets are **disjoint**: FFA emits only `Bot|Nation|AiPlayer|Human` (one per `PlayerType`), team mode only `BotTeam|NationsTeam|HumanTeam`. **7 leader leaves, not 7 per mode** ⇒ `(4 FFA + 3 team) × 2 lobby types × 2 branches` = **28 grammatically reachable**. Of those, the **seven `…Public:…:Timer` ids are also unreachable**, because public lobbies carry no `maxTimerValue`. **28 − 7 = 21 that can actually appear.**
+
+⚠️ **A panel per cross-product leaf would show 35 permanently-empty series, which reads as telemetry loss.**
+
+**`Match:Leaderboard:Award` — 5 reachable ids, not 6.** `…:PlacementLost:SoloTutorial` **cannot currently fire**: tutorials are hard-coded FFA and `LocalServer` forces `disableNPCs` on, so a clientless leader hits `0022`'s guard and returns before `setWinner` — only a human win reaches the placement path. ⚠️ **The leaf is deliberately kept, not deleted** — it becomes reachable the moment `0205` / `0211` removes that guard, and the composer sweeps all six on purpose so removing the guard needs no analytics change.
+
+### Denominators — the two halves use DIFFERENT ones, and copying one onto the other is wrong
+
+- **Part A's denominator is client-matches, not matches.** The server never simulates, so every connected client emits its own copy; the multiplier varies with lobby size and with how many clients stay to the end. ⛔ **Absolute counts are uninterpretable and skew toward large, well-attended lobbies. Read only the ratio** against `Game:Mode:Multiplayer`, which is already per-client-match. A single elected emitter was deliberately **not** used: a clientless leader leads *because* humans died or left, so any election picks the client most likely to be gone.
+- **Part B's denominator is matches.** Singleplayer runs one client against the in-browser `LocalServer`, and both call sites are latched once per `ClientGameRunner` and already skip replays.
+
+### Known under-counts — read Part A as a LOWER BOUND
+
+1. **Clients that are gone emit nothing.** Direction of the bias is known; **magnitude is not establishable without a server-side observer**, which was out of scope.
+2. **Reconnects are suppressed**, keeping numerator and denominator on the same population at the cost of losing a client that genuinely was present.
+3. **Matches ending with no winner** — everyone quits, or the 3-hour cap expires on fragmented territory — **are counted by nothing here.**
+
+⚠️ **Part B counts ATTEMPTS, platform failures included.** The event is emitted after the platform call settles, whatever it returned, and also when it rejects. **A rise is not evidence any player's leaderboard score moved.**
+
+⚠️ **One unverified residual:** a mid-match reload builds a fresh `ClientGameRunner` and resets both latches. Singleplayer *appears* unable to resume — but that is **static analysis, not a play-test.**
+
+### The original design instructions, which the build honoured
 
 **Dimensions Part A is useless without:** game mode (FFA vs Team) · lobby type (public vs private) ·
 **branch (threshold vs timer)** · leader kind (Bot / Nation / bot-team).
@@ -232,3 +269,4 @@ genuinely ordered behind this task.** ⛔ That is still **not** a `🚧 Blocked`
 - [[decisions/sprint-backlog]] — the board this was filed on and **moved OFF 2026-09-04** (its row there reads `➡️ Moved`)
 - [[decisions/sprint-4]] — 🔄 **the board this task is now ON**, scheduled 2026-09-04 and raised to `High`
 - [[systems/player-profile-store]] — the crediting path whose silence this task measures, and where `creditMatchXp`'s single call site lives
+- [[tasks/gameanalytics-per-user-event-limit]] — task `0224`, whose per-category breakdown **exonerated this task's instrumentation** as the cause of the 4 Sep per-user event breach

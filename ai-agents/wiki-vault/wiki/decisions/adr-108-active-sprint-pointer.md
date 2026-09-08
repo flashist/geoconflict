@@ -1,7 +1,23 @@
 # ADR-108 — Active sprint is owner-set via a pointer, derived only as fallback
 
-**Date**: 2026-08-24
-**Status**: accepted
+**Date**: 2026-08-24 *(update: 2026-09-07)*
+**Status**: accepted — **re-confirmed in practice 2026-09-07, still unshipped upstream**
+
+> # 🔴 UPDATE 2026-09-07 — THE PREDICTED FAILURE RECURRED, AND THE POINTER IS STILL NOT IMPLEMENTED
+>
+> **Owner ruling, given live in session, verbatim:** *"The active sprint is the Sprint 4!"*
+>
+> `select-active` was re-run on **2026-09-07** and returned `active file="plan-sprint-6.md" identity="Sprint 6"` — **exactly the failure this ADR was written about**, now with plans 4, 5 and 6 open.
+>
+> ✅ **Verified this date by reading the code, not assumed:** the `.active-sprint` pointer designed below is **NOT implemented** in either copy of the resolver. `grep` for `active-sprint` in `.claude/skills/fkit-status/dashboard.sh` and in `~/.local/share/fkit/claude/skills/fkit-status/dashboard.sh` matches **only** the pre-existing `drift ambiguous-active-sprint` printf. ⇒ 🚨 **Creating `ai-agents/sprints/.active-sprint` today would be INERT — it would change no tool's answer.**
+>
+> ⇒ **The interim workaround remains the whole of the mechanism: ask by name — `/fkit-status Sprint 4`.**
+>
+> **What was done instead:** the ruling was recorded where humans and agents read, since no field the resolver reads can carry it — `plan-sprint-4.md` marked active, `plan-sprint-5.md` and `plan-sprint-6.md` each marked *not* active (with Sprint 6 naming itself as the board the tooling wrongly returns), and `plan-index.md`.
+>
+> ⚠️ **No sprint plan was archived and no task row was moved.** The owner ruled which sprint is active — **not** that Sprint 4's open rows should relocate, and not that plans 5 and 6 should close. Archiving 5 and 6 is the *"archive promptly"* option **this ADR already rejected by name**, and it would also be false: neither is done.
+>
+> 🚨 **This does NOT resolve the residual risk — it documents around it.** Two live consumers still silently answer for the wrong board on an empty argument: `/fkit-status` and `/fkit-sprint-ship-loop`. **A decision on whether to implement the pointer locally or keep waiting on upstream is OPEN and belongs to the owner.**
 
 > Project ADR-108 — see [[decisions/adr-numbering-two-series]].
 > Deciders: owner (ruling 2026-08-24, relayed via the lead); fkit-architect (evaluation).

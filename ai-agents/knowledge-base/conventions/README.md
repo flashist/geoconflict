@@ -42,6 +42,7 @@ Added by this project, beyond the scaffold's seven:
 |---|---|
 | [`task-id-allocation.md`](task-id-allocation.md) | how a task's permanent four-digit ID is allocated, and that it is never reused or renumbered |
 | [`task-attribute-cross-reference-sweep.md`](task-attribute-cross-reference-sweep.md) | after a ruling changes a task attribute with an authoritative brief section — sprint, status, rank, owner, dependencies — the prose copies of it in *other* files get swept |
+| [`file-line-citations.md`](file-line-citations.md) | a document citing `file:line` declares its commit frame; citations are re-derived by reading, never shifted arithmetically; no bare `:NNN` |
 
 ## Naming
 

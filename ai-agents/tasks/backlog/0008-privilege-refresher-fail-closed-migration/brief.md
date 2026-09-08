@@ -10,7 +10,23 @@ Backlog
 Unscheduled
 
 ## Status
-🔲 Backlog
+🚧 Blocked — needs `0009` findings **and** the first paid entitlement (by design)
+
+📌 **RECONCILED UP FROM THE [Backlog board](../../../sprints/backlog.md) ON 2026-09-07, on an owner
+ruling given live in session and relayed through the spawning session.** This brief read
+`🔲 Backlog` while the board row read the `🚧 Blocked` value above; the two disagreed, and the owner
+ruled that the **board is the live record** — it carries specific, dated reasons, while the brief
+looked stale.
+
+🚨 **HOW THIS STATUS WAS ESTABLISHED, STATED PLAINLY SO A LATER READER CAN WEIGH IT: it was COPIED
+FROM THE BOARD, NOT VERIFIED AGAINST THE WORLD.** ⛔ **Nobody checked this turn whether `0009`'s
+findings are still outstanding or whether a paid entitlement now exists.** The owner's reasoning is
+**evidence, not proof**, and it was recorded as such at the time it was given.
+
+✅ **What does corroborate it, and is the reason no concrete blocker had to be invented:** this
+brief's own *Context* already says the migration is **pre-committed to the first paid cosmetic**
+(`adr-102`, owner ruling 2026-08-09) and must **not ship early**. The board's reason and the brief's
+own text agree; only the status marker had drifted.
 
 ## Owner
 fkit-coder

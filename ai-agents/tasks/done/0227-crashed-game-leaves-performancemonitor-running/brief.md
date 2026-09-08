@@ -15,6 +15,9 @@ session.** The [Backlog board](../../../sprints/backlog.md) row is **kept as a p
 `/fkit-task-cancelled` move folders), nobody has started it, and **rank was NOT ruled** — the
 `Medium` below is still the **producer's**.
 
+> 🔴 **SUPERSEDED BY THE CLOSE (2026-09-07) — the sentence above was true when written, on the day this task was PROMOTED, and is kept rather than deleted.** ⛔ **It is now FALSE as a statement of current state:** this task's `## Status` reads **`✅ Done (agent-closed — not owner-verified)`** and this folder sits in **`ai-agents/tasks/done/`**, moved by `/fkit-task-done`. **Read the `## Status` field, not this line.** The line describes the *promotion*, which genuinely changed board placement only; the *close* came later and changed both. Flagged by the wiki sync and corrected by the producer, 2026-09-07.
+
+
 🔴 **THIS REVERSES THE OWNER'S OWN EARLIER RULING OF THE SAME DAY, AND THAT IS DELIBERATE.** Earlier on
 2026-09-07 the owner **confirmed `Backlog`** for this task — when the brief covered **one** site. It now
 covers **three** (A, B and C; see *CORRECTION (2026-09-07)* below). ⛔ **The earlier confirmation was
@@ -554,3 +557,6 @@ as outstanding.
    first on the board question only; the first was correct for the input it had, and neither is
    deleted.** ⛔ **Rank was NOT ruled either time — `Medium` is still the producer's.** Nothing here is
    started: the status stays `🔲 Backlog` and this folder stays in `ai-agents/tasks/backlog/`.
+
+> 🔴 **SUPERSEDED BY THE CLOSE (2026-09-07) — the sentence above was true when written, on the day this task was PROMOTED, and is kept rather than deleted.** ⛔ **It is now FALSE as a statement of current state:** this task's `## Status` reads **`✅ Done (agent-closed — not owner-verified)`** and this folder sits in **`ai-agents/tasks/done/`**, moved by `/fkit-task-done`. **Read the `## Status` field, not this line.** The line describes the *promotion*, which genuinely changed board placement only; the *close* came later and changed both. Flagged by the wiki sync and corrected by the producer, 2026-09-07.
+

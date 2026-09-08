@@ -66,7 +66,22 @@ reference below was independently re-verified by the producer who filed this bri
 `git show 702a8ea:<file>` — **not** the working tree, which another session was editing at filing
 time.
 
-### The mechanism — CODE FACTS, each re-read at commit `702a8ea`
+📌 **FRAME DECLARATION — every `file:line` in this brief is against commit `c910452`, the commit in
+which [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) landed.**
+⚠️ **REFRAMED 2026-09-07 from the original `702a8ea` (pre-`0227`).** `0227` added **+30 / −1** lines to
+`src/client/ClientGameRunner.ts`, shifting every citation in that file **by +26** below the insertion
+point; the **two** affected ranges were **re-derived directly against `c910452`, not arithmetically
+shifted**, and are marked ✅ below. ✅ **Every `src/core/` citation is byte-identical in `702a8ea` and
+`c910452` — `0227` touched only `src/client/`** (`git diff --stat -- src/core/` over that commit is
+empty), so those figures stand exactly as first verified. **Re-verify anyway before you rely on any of
+them**: this brief has now been reframed once, which is evidence that it can go stale again.
+
+### The mechanism — CODE FACTS, each re-read at commit `c910452`
+
+✅ **SEMANTIC PASS 2026-09-08 — every fact below was re-read against what the code DOES, not merely
+renumbered.** **Facts 1–7 and the second-drop path are ALL UNCHANGED and confirmed byte-for-byte.**
+⚠️ **What DID change is the `0227` section further down: `0227` has now LANDED, and its seam carries a
+guard this brief did not know about.** Read that section's correction block before planning.
 
 1. **The worker's game loop reports a tick fault through a callback.**
    `src/core/GameRunner.ts:171-183` — `this.game.executeNextTick()` is wrapped in `try/catch`; on an
@@ -95,11 +110,13 @@ time.
 4. **The main-thread dispatcher only ever forwards a `game_update`.**
    `src/core/worker/WorkerClient.ts:44-51` — `case "game_update": if (this.gameUpdateCallback &&
    message.gameUpdate) this.gameUpdateCallback(message.gameUpdate)`.
-5. **⇒ The client's crash branch is DEAD CODE.** `src/client/ClientGameRunner.ts:487-501` registers
+5. **⇒ The client's crash branch is DEAD CODE.** ✅ `src/client/ClientGameRunner.ts:513-527` *(re-derived
+   at `c910452`; was `:487-501` at `702a8ea`)* registers
    `this.worker.start((gu: GameUpdateViewData | ErrorUpdate) => { ... if ("errMsg" in gu) {
-   showErrorModal(...); console.error(gu.stack); this.stop(); return; } ... })`. Per facts 2–4
-   **`"errMsg" in gu` can never be true**, so the `showErrorModal` at `:492` and the `this.stop()` at
-   `:499` **never run**.
+   showErrorModal(...); console.error(gu.stack); this.stop(); return; } ... })`. The `if ("errMsg" in
+   gu)` guard itself is at **`:517`**. Per facts 2–4
+   **`"errMsg" in gu` can never be true**, so the `showErrorModal` at `:518` *(was `:492`)* and the
+   `this.stop()` at `:525` *(was `:499`)* **never run**.
 6. **Why it typechecks.** `WorkerClient.start()`'s parameter is typed
    `(gu: GameUpdateViewData | ErrorUpdate) => void` (`WorkerClient.ts:98`) and
    `gameUpdateCallback` the same (`:17-19`). **The type is wider than anything the code can
@@ -139,6 +156,33 @@ leaving the `PerformanceMonitor` running. Its headline site is the very branch t
 never execute. **`0227` built a correct seam that is DORMANT:** `ClientGameRunner.stop()` calls
 `onGameEnd()`, which stops the monitor. **That seam goes live the moment this task fixes the drop.**
 
+> ✅ **UPDATED 2026-09-08 — `0227` HAS LANDED AND IS COMMITTED at `c910452`.** The seam is real and
+> readable now, not prospective: `onGameEnd` is `joinLobby`'s 5th parameter
+> (`ClientGameRunner.ts:116`, `:267`, `:358`, `:400`) and `stop()` calls `this.onGameEnd()` at
+> **`ClientGameRunner.ts:793`**, last and behind the `isActive` guard so it fires exactly once.
+>
+> 🚨 **BUT THE SEAM IS GENERATION-GUARDED, AND THIS BRIEF DID NOT KNOW THAT — read this before you
+> write the verification.** The callback `Main.ts` passes in is **not** an unconditional
+> "stop the monitor". Its body (`Main.ts:786-799`) is:
+>
+> ```
+> if (joinGeneration !== this.monitorGeneration) {
+>   return;
+> }
+> this.stopPerformanceMonitor();
+> ```
+>
+> ⇒ **`onGameEnd()` stops the monitor ONLY IF the game that is ending still OWNS the live monitor.**
+> That guard is correct and deliberate — it is the fix for review finding `R4`, where keying on the
+> most recent join instead let an interleaved pair invert. ⛔ **It is also a trap for this task's
+> acceptance test:** crash a game that has already been superseded by a newer join and the seam
+> **correctly does nothing**, which a naive test reads as *"the seam failed."*
+> ✅ **Verify on a game that is still the current one**, and record which case you tested.
+>
+> ⚠️ **Also note what the seam is NOT:** the callback stops the monitor **only** — `Main.ts:796-797`
+> says `gameStop` is deliberately left alone. **It is not a general teardown**, so do not expect it to
+> undo anything else.
+
 🚨 **Whoever does this task MUST verify that seam actually fires once errors start arriving.** `0227`
 could not verify it — nothing could reach it — and **that is why `0227`'s site A was never really
 verified.** This task is where that verification finally becomes possible, and it is a required
@@ -146,6 +190,15 @@ deliverable here, not a nice-to-have.
 
 ⚠️ **Check `0227` AS IT LANDED, not as its brief described it.** Its brief, its worklog and its
 review were still being edited when this brief was filed.
+
+> ✅ **That caveat is now ACTIONABLE rather than a warning about flux (2026-09-08).** `0227` is closed
+> and committed; its artifacts have settled. **`0227` shipped `+30 / −1` in
+> `src/client/ClientGameRunner.ts` and `+26 / −0` in `src/client/Main.ts`, and NOTHING in
+> `src/core/`** — which is why facts 1–4, 6 and 7 above, all `src/core/`, are untouched by it.
+> ⚠️ **`0227` closed with its headline site — the one this task fixes — NOT fixed and marked
+> `(agent-closed — not owner-verified)`.** Read its `## Status` and its board note, not its
+> pre-close prose: two passages in its brief still describe it as an open Backlog task and are
+> marked superseded.
 
 ### ⚠️ "~3 lines" is the size of the DROP, not the size of the TASK
 
@@ -209,8 +262,13 @@ existing crash handling — modal, `stop()`, and `0227`'s `onGameEnd` seam — r
    task's.
 
 5. **Work out what else the newly-live path now does**, and check it. `stop()` calls
-   `worker.cleanup()` and `transport.leaveGame()` (`ClientGameRunner.ts:753-766`); the modal is shown
-   with `showErrorModal(...)` at `:492`. ⚠️ **A crash path that has never executed in production is
+   `worker.cleanup()` (`:785`) and `transport.leaveGame()` (`:786`) — ✅ the whole function is
+   `ClientGameRunner.ts:779-794` *(re-derived at `c910452`; was cited `:753-766` at `702a8ea`, which
+   itself over-ran by one line — the pre-`0227` function ended at `:765`)*. ⚠️ **The function GREW by
+   three lines under `0227`** — two comment lines and the `this.onGameEnd()` call at **`:793`**, which
+   is the seam this task switches on — so its end shifted by more than the `+26` that applies
+   elsewhere in the file. The modal is shown with `showErrorModal(...)` at `:518` *(was `:492`)*.
+   ⚠️ **A crash path that has never executed in production is
    being switched on** — a bad interaction here is worse than the silent freeze it replaces. Check at
    minimum: does the modal render with real text, is the game left in a state the player can exit,
    and does a subsequent join still work.
@@ -275,10 +333,15 @@ existing crash handling — modal, `stop()`, and `0227`'s `onGameEnd` seam — r
 - **Blocks:** nothing formally. ⚠️ But **`0227`'s site A stays unverified until this lands**, which is
   a fact worth carrying into any status report on `0227`.
 - **Evidence provenance:** found by **Codex** during the `0227` code review, verified by the
-  **reviewer**, and every `file:line` above re-verified by the producer at commit `702a8ea` via
+  **reviewer**, and every `file:line` above first verified by the producer at commit `702a8ea` via
   `git show`, because `src/client/ClientGameRunner.ts` and `src/client/Main.ts` were being edited by
-  another session at filing time. ⚠️ **The implementer must re-verify every line number again** —
-  `0227` lands in `ClientGameRunner.ts` first.
+  another session at filing time.
+  📌 **REFRAMED TO `c910452` ON 2026-09-07 — see the frame declaration in *Context*.** `0227` has now
+  **landed and is committed**, so the "another session is editing it" caveat is spent. The **two**
+  `src/client/ClientGameRunner.ts` ranges were **re-derived against `c910452` by reading the file, not
+  by shifting the old numbers**; every `src/core/` citation is unchanged because `0227` touched only
+  `src/client/`. ⚠️ **The implementer must STILL re-verify every line number** — this brief has gone
+  stale once already, which is the reason to distrust it, not to trust the new figures more.
 - 🚨 **The freeze is REASONED FROM CODE, NOT OBSERVED.** Repeated here because it is the one thing a
   later reader is most likely to promote into a fact.
 - ⚠️ **"~3 lines" is the reviewer's estimate for the DROP ONLY**, not for this task.

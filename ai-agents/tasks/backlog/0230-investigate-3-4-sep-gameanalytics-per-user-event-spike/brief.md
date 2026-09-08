@@ -4,7 +4,36 @@
 0230
 
 ## Sprint
-Sprint 4
+**Backlog board** — [`backlog.md`](../../../sprints/backlog.md).
+
+⬅️ **MOVED OFF SPRINT 4 ONTO THE BACKLOG BOARD ON 2026-09-07, on an owner ruling given live in session
+and relayed through the spawning session.** The owner's words, verbatim: *"We don't have the same
+problem today, move the task into the backlog sprint, we will get back to it if the problem repeats."*
+
+⚠️ **THIS IS A BOARD REASSIGNMENT AND NOTHING ELSE.** The status below stays `🔲 Backlog`, this folder
+stays exactly where it is in `ai-agents/tasks/backlog/` (nothing moved on disk — only
+`/fkit-task-done` / `/fkit-task-cancelled` move folders, and **neither was run**), and nobody has
+started it. The [Sprint 4](../../../sprints/plan-sprint-4.md) row is **kept as a pointer**, flipped to
+`➡️ Moved to Backlog board` — **not deleted, and NOT flipped to Done or Cancelled** (the `0201` /
+`0227` precedent).
+
+🚨 **RECORDED AS DEFERRED, CAUSE UNKNOWN — EXPLICITLY NOT RESOLVED, NOT EXPLAINED, AND NOT RULED OUT.**
+⛔ **This task is NOT done and NOT cancelled.** **Reopen condition, in the owner's own terms: _if the
+problem repeats_.**
+
+🚨 **DO NOT READ THIS MOVE AS THE PROBLEM BEING FIXED OR UNDERSTOOD.** The reason for the deferral is
+that the metric is **quiet**, not that it is **solved**.
+[`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md)'s closing note binds
+here and is the reason this warning exists: **the metric ALREADY SELF-RESOLVED ONCE — 5 Sep at
+162.79, with ZERO code written.** ⛔ **"The banner is gone" must NOT be accepted as evidence of
+anything.** The same quiet is what prompted this deferral.
+
+⚠️ **EVERYTHING BELOW STAYS LIVE AND UNCHANGED — none of it was answered by the deferral:** 4 Sep hit
+**1,324.33 events/user, 265% of the 500 limit**, and **would STILL breach at ~1,176/user (235%) even
+after `0224`'s ≥5× `Performance` cut**; 3 Sep ran hot at **414.88**; the spike is `Player` (~34×) and
+`Experiment` (~45×) and was **entirely gone on 5 Sep**; the unresolved **581.97-vs-378.86** mean
+discrepancy stays scoped inside this task; and **four hypotheses are on the table with NONE verified —
+none may be written down as the cause.**
 
 ## Status
 🔲 Backlog
@@ -13,7 +42,18 @@ Sprint 4
 fkit-coder
 
 ## Priority
-Medium–High *(**position OWNER-RULED 2026-09-07**; the `Medium–High` label itself is the producer's)*
+Medium–High *(**producer's label**. The Backlog board is unranked by design, so its Priority column
+reads `—`; this label survives here and on the Sprint 4 pointer row.)*
+
+🔴 **SUPERSEDED — READ THIS BEFORE THE BLOCK BELOW.** The position ruling recorded below was
+**superseded on 2026-09-07 by a LATER owner ruling of the SAME DAY**, which moved this task off Sprint
+4 onto the [Backlog board](../../../sprints/backlog.md) entirely (see `## Sprint` above). ⛔ **The
+earlier ruling is KEPT, NOT DELETED, AND WAS NOT A MISTAKE** — struck-don't-delete, the `0227`
+precedent. **What changed is the owner's assessment of urgency, not the record.** With the task off
+Sprint 4, its position on that board no longer applies; the ADR-035 lift the owner granted for that one
+move is **spent and is not precedent for anything.**
+
+📌 **The superseded ruling, recorded in full:**
 
 🔴 **THE OWNER RULED THIS ROW'S POSITION, 2026-09-07, given live in session and relayed through the
 spawning session. Authority first: this is an OWNER RULING, not a producer re-rank, and it is NOT

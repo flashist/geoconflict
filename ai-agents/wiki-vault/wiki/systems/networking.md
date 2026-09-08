@@ -73,3 +73,4 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[tasks/private-lobby-start-url]] — task 0198's close: root-absolute worker paths shipped in `362a2f9`, never observed in production
 - [[decisions/yandex-invite-portal-boundary]] — task 0199's open question about which host the private-lobby invite should point at
 - [[tasks/citizen-verified-icon]] — task 0068's `isCitizen` flag on the frozen roster and the lobby-poll payload
+- [[systems/client-game-teardown]] — `ClientGameRunner.stop()` is not reached on a normal leave, so a surviving 1-second `connectionCheckInterval` keeps calling `transport.reconnect()` for an abandoned game (task `0231` — ⚠️ **reasoned from code, not observed**)
