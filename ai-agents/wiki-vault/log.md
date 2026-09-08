@@ -2638,3 +2638,116 @@ design.
   producer reconciliation, not asserted as drift.
 - ⚠️ **`0027` (Sprint 5) has no vault coverage.** Out of the audited scope; recorded so it is not
   re-discovered as new.
+
+## 2026-09-08 — sync
+
+**Watermark `5913ac2` → HEAD `f7d28eb`.** ✅ **THE FIRST CLEAN WINDOW OF THE DAY.** The two earlier
+syncs each ran against an uncommitted tree and each warned that the next run would re-see their
+sources. **This is that run, and the warning did NOT materialise into rework:** the window is a
+**single commit** (`f7d28eb` "Sprint push"), `git status` is **clean**, and `5913ac2..f7d28eb` under
+`ai-agents/` contains **13 files, none of which is prior vault output** — the previous run's own 20
+output files were committed in `5913ac2`, i.e. *before* this window opens. **Nothing was
+double-recorded because there was nothing overlapping to double-record.**
+
+### Filtered: 13 changed → 4 ingest-worthy
+
+**Ingested (4):** `knowledge-base/conventions/task-status-vocabulary.md`,
+`knowledge-base/decisions/adr-108-owner-set-active-sprint-pointer.md`, `sprints/plan-sprint-5.md`,
+`sprints/sprint-backlog.md`.
+
+**Skipped (9), all the same reason:** every `tasks/backlog/*/brief.md` — `0001`, `0012`, `0015`,
+`0016`, `0035`, `0036`, `0045`, `0047`, `0234`. **Not done, so a task page would be premature**
+(Step 3). Their substance is recorded on the board and decision pages instead. ⚠️ **`0234` is NEW and
+gets no page of its own** — it is a backlog brief; it is summarised on [[wiki/decisions/sprint-backlog]].
+
+### Ingested — updated (6 pages, 0 created)
+
+- `conventions/task-status-vocabulary.md` → [[wiki/systems/agent-conventions]] — 🔴 **TWO board-level
+  status exceptions ratified, then WIDENED the same day.** `⬜ No sprint` and `⏸ Parked` were ratified
+  for `sprint-backlog.md` **alone**, then widened to `backlog.md` as well. 🚨 **Recorded exactly as the
+  source frames it — a DELIBERATE RE-SCOPING of a same-day ruling, not as what was always meant**, with
+  the narrow wording struck-not-deleted. Carries the mandatory **unpark-condition** rule (a park with no
+  named condition is indistinguishable from an abandoned task), the four *did-not-change* limits, and
+  the "21 rows at the moment of the ruling, 23 now" provenance.
+- Same source → [[wiki/systems/agent-conventions]] **Gotchas** — the standing note calling `⬜` /
+  `⏸ Parked` / `No sprint` *"historical drift, not a licence to invent new ones"* is **PARTLY
+  SUPERSEDED and struck**. ⚠️ **Narrowly:** `⚠️ Urgent` and a bare `⬜` are still drift, ratification
+  covers two named boards only, and it is still no licence to invent values inline.
+- `decisions/adr-108-...md` → [[wiki/decisions/adr-108-active-sprint-pointer]] — the **2026-09-08
+  in-place amendment**: HOLD on local patching, ship `0001`. Recorded as **updated in place, NOT
+  superseded and NOT replaced**, widened from the pointer to local patching of `fkit-status` generally,
+  with the source's own ⚠️ that one reading of the decision-record rules would call the widening a new
+  ADR. 🚨 **The FALSE `/fkit-heal` claim is corrected on the page and in `index.md`** — heal returns
+  zero verdict lines for any `.claude/` path; the real cost is gitignored-and-silently-overwritten.
+  Adds the two-independent-blind-spots table and both premise corrections.
+- `sprints/sprint-backlog.md` → [[wiki/decisions/sprint-backlog]] — the older board moved four ways:
+  statuses ratified, `0026`/`0029` appended (**superseding** the 2026-08-14 reconciliation, which is
+  **kept**), Task 7 briefed as `0234`, and the remaining rows left unbriefed **by explicit choice**.
+- `sprints/plan-sprint-5.md` → [[wiki/decisions/sprint-5]] — its 2026-08-14 note is **superseded as to
+  `0026`/`0029` and kept as the record of why they were parked**. ⛔ **Neither task was added to this
+  plan**; Sprint 5's scope statement still excludes both.
+- **Consequential correction, not in the diff:** [[wiki/decisions/adr-105-compact-maps-out-of-rotation]]
+  claimed its exit fix was *"scoped as a Sprint 5 backlog task"* and its `Related` read *"where the
+  map-regeneration fix is scheduled"*. 🔧 **Both corrected** — `0026` is **not on the Sprint 5 plan**,
+  and until 2026-09-08 it was in **no sprint file's table at all**. ⛔ **Still unscheduled; a row is not
+  a schedule.**
+- `index.md` — **5 entries extended** (agent-conventions, adr-105, adr-108, sprint-backlog, sprint-5).
+
+### ✅ Counts VERIFIED INDEPENDENTLY — not relayed, and one correction to the brief
+
+All three boards were **counted from the source files by this run.**
+
+| Board | Rows | Open | Verdict |
+|---|---|---|---|
+| `sprint-backlog.md` | **25** | **25** (23 `⬜ No sprint` + 2 `⏸ Parked`) | ✅ zero drift |
+| `backlog.md` | **48** | **37** (34 `🔲 Backlog` + 3 `🚧 Blocked`) | ✅ zero drift |
+| `plan-sprint-4.md` | **82** | **25** (17 Backlog + 7 Blocked + 1 In progress) | ✅ zero drift |
+
+⚠️ **Correction to the spawning session's orientation: only `sprint-backlog.md` and `plan-sprint-5.md`
+changed in this window.** `backlog.md` and `plan-sprint-4.md` are **not in the diff at all** (last
+touched 2026-09-07). Their figures were **re-counted anyway and are unchanged** — but they are carried
+forward, not observed to move.
+
+### 🔴 Framing preserved deliberately
+
+- ⛔ **NOTHING from today's code work is deployed.** The owner deploys at the next weekend slot.
+- **`0224` and `0227` closed with acceptance criteria UNMET** — both pages state it above what shipped;
+  re-verified, unchanged.
+- **`0231`'s accumulation and `0232`'s freeze-vs-recover-vs-diverge remain "reasoned from code, never
+  observed."** Not touched by this window, not upgraded.
+- **`0230` is DEFERRED, CAUSE UNKNOWN** — never resolved.
+- **`0008`/`0010`/`0011` are `🚧 Blocked` by RECONCILIATION FROM THE BOARD, not by verification.**
+- 🚨 **The `/fkit-status` blind spot FOLLOWS THE ROWS.** Recorded in those terms on three pages and in
+  `index.md`: **`0001` fixes reachability, not rendering.** After it ships, `backlog.md` carries values
+  the dashboard does not render. ⛔ It must not read as a complete fix.
+- **`0234` is an INVESTIGATION** — two lines of source material, six unmade build-shaping decisions, an
+  effort estimate that is for the **whole implementation** and predates every open question. Its own
+  *"do not write implementation briefs off this document"* is carried verbatim in substance.
+
+### Targeted lint on the 6 touched pages
+
+✅ **All wiki-links resolve.** ✅ **One one-way link found and CLOSED** —
+[[wiki/decisions/sprint-backlog]] now cites [[wiki/tasks/leaderboard-player-count]] (the `0234`
+not-a-duplicate verdict) and that page links back. ✅ **Secret scan clean.**
+
+### ✅ A prior vault flag is CLOSED by this window
+
+A previous run flagged `0035`, `0036` and `0045` as having **no `## Sprint` heading at all** and left
+them unfixed, correctly, on the ground that **editing a brief is the producer's job, not the wiki's.**
+The producer has now added the field to those three **plus `0012`, `0015`, `0016`, `0047`** — seven
+briefs. ⚠️ **Values are DERIVED, not assigned**, each marked visibility-only in its own text; six read
+*"Sprint backlog — no sprint home yet"* and only `0012` derives a real sprint. ⛔ **Nothing was
+scheduled, re-ranked or moved.**
+
+### Flagged for human review — NOT fixed
+
+- 🚨 **Two rows on `sprint-backlog.md` are RESIDUE.** `Task 9 — Re-enable Flags` duplicates brief
+  `0010` (whose title literally reads *"(Task 9)"*) and `Task 9a — Re-enable Territory Patterns`
+  duplicates `0011` (*"(Task 9a)"*) — both live, briefed and `🚧 Blocked` on `backlog.md`. ⇒ **The true
+  unique blind spot is 23 rows, not 25.** ⛔ **Carrying them across during `0001` would CREATE
+  duplicates.** Already recorded in `0001`'s own brief and now on the vault board page; **flagged, not
+  acted on — the wiki does not edit boards.**
+- ⚠️ **`sprint-backlog.md`'s prose names FIVE remaining unbriefed rows; there are SEVEN.** Task 9 and
+  Task 9a are omitted from that sentence. **Consistent with them being residue rather than live work**
+  — so this is plausibly deliberate, not an error — but the prose does not say so, and a reader
+  counting rows will not reconcile it. **A producer wording call, not a wiki fix.**

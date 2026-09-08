@@ -40,6 +40,14 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 
 **8a (Nickname styling) dependency:** requires centralized name rendering component from Task 8 (Sprint 4). All badge/icon display goes through that component — no ad-hoc solutions.
 
+> ## 📌 UPDATED 2026-09-08 — this plan's 2026-08-14 reconciliation note is SUPERSEDED as to `0026` and `0029`
+>
+> The plan carried a note recording that three backlog briefs name Sprint 5/6 in their `## Sprint` field but sit **outside this plan's scope statement**, and were therefore **deliberately not added** — flagged to the owner in the 2026-08-14 reconciliation hand-off instead. ⛔ **That paragraph is KEPT, not deleted:** it is the record of *why* those tasks were parked, and it is no longer the current state.
+>
+> **Owner ruling 2026-09-08, given live in session:** `0026` (fix compact-map shore generation) and `0029` (in-game hint display) get rows on **`sprint-backlog.md`**, status `⬜ No sprint` — the same handling `0027` already had for Sprint 6. **This overturns the 2026-08-14 decision not to add them.** The trigger: a board-visibility sweep found both were **board-invisible** — in **no sprint file's table at all**, so nothing rendered them and no status run could see them.
+>
+> ⛔ **NEITHER TASK WAS ADDED TO THIS PLAN, and Sprint 5's scope statement still excludes both** — which is precisely why `sprint-backlog.md` is their home and this board is not. **Status, priority and dependencies were not changed; this is visibility only.** `0027` is unaffected — its Sprint 6 row already existed. See [[decisions/sprint-backlog]].
+
 ## Consequences
 
 - Tasks 13 and 15 depend on Task 11 tier/pricing system

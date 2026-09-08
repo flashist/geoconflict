@@ -26,3 +26,4 @@ One detail differs from the original brief wording: the brief referenced `Player
 - [[decisions/sprint-4c]]
 - [[systems/rendering]]
 - [[features/ai-players]]
+- [[decisions/sprint-backlog]] — ⚠️ **this task (`0161`) was checked on 2026-09-08 and is NOT the same work as "Task 7 — Leaderboard: Core System"** (briefed that day as `0234`). This one is done and narrow: a human player count shown in a *"Players Only"* label. Task 7 is an unscheduled, still-undefined system. The verdict is recorded so it is not re-derived.

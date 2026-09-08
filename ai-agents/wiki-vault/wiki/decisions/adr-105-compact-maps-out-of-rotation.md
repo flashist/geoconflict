@@ -20,7 +20,9 @@ This is not a rendering glitch. The binary asserts something false about the ter
 
 **Remove the mini-map modifier from the public match-modifier list** — commented out, not deleted — so no public match is scheduled at compact size. The modifier definition is **kept in place** so re-enabling after the map fix is a one-line change.
 
-The real fix is **regenerating all 30 map binaries** so downsampling preserves `isShore`, scoped as a Sprint 5 backlog task against the Go map generator.
+The real fix is **regenerating all 30 map binaries** so downsampling preserves `isShore`, ~~scoped as a Sprint 5 backlog task~~ against the Go map generator.
+
+> 🔧 **Corrected 2026-09-08 — "a Sprint 5 backlog task" was imprecise, and the imprecision hid the task entirely.** The exit task is **`0026-fix-compact-map-shore-generation`**, and it is **NOT on the Sprint 5 plan.** Its own brief's `## Sprint` field does read *"Sprint 5 — Backlog (high effort, requires full map regeneration)"*, but `plan-sprint-5.md` carries **no brief-linked rows** and its scope statement **explicitly excludes** this task. ⛔ **Until 2026-09-08 the brief therefore appeared in NO sprint file's table at all — it was board-invisible, so nothing rendered it and no status run could see it.** An owner ruling that day gave it a row on **`sprint-backlog.md`** (status `⬜ No sprint`), **superseding** a 2026-08-14 reconciliation decision that had deliberately left it off. ⚠️ **This is a visibility fix and nothing more: status, priority and dependencies are untouched, and the task is still unscheduled.** ⛔ **Do not read "it now has a row" as "it is now scheduled" — this ADR's expected exit remains unscheduled.** See [[decisions/sprint-backlog]] and [[decisions/sprint-5]].
 
 Compact maps remain selectable in **single-player and custom/host lobbies**. This decision governs the **public rotation only** — where the player did not choose the map and cannot avoid it.
 
@@ -41,6 +43,7 @@ Compact maps remain selectable in **single-player and custom/host lobbies**. Thi
 - [[tasks/sprint4b-compact-map-rotation]] — the Sprint 4b task that added compact maps to the rotation
 - [[tasks/sprint4b-mini-mode-investigation]] — the mode's original investigation
 - [[decisions/cancelled-tasks]] — the cancelled runtime workaround
-- [[decisions/sprint-5]] — where the map-regeneration fix is scheduled
+- [[decisions/sprint-5]] — ~~where the map-regeneration fix is scheduled~~ 🔧 **corrected 2026-09-08: the fix (`0026`) is NOT on this plan** — Sprint 5's scope statement excludes it, and its 2026-08-14 note on that exclusion is kept as superseded
+- [[decisions/sprint-backlog]] — the board that actually carries `0026` from 2026-09-08, `⬜ No sprint` and **still unscheduled**
 - [[systems/architecture-overview]] — §features switched off
 - [[decisions/adr-numbering-two-series]] — the ADR number bands
