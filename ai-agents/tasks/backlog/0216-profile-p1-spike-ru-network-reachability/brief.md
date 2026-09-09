@@ -28,6 +28,10 @@ fkit-coder (or the operator running the bring-up)
 > statement the same day:** *"We don't need to cancel any billings, the VPS and S3 I created will be
 > reused."* — confirmed: *"Both exist — reuse them in place."*
 >
+> 🚨 **CORRECTED 2026-09-08 — THE S3 BUCKET IS NOT REUSED: a BRAND-NEW, CLEAN bucket is created (owner ruling, given live in session, superseding the 2026-09-04 reuse ruling AS TO THE BUCKET ONLY). ✅ The VPS half is UNCHANGED — the box is still reused in place.**
+> ✅ **Immaterial to this spike, which is about reaching the BOX.** Recorded so the quote above is not
+> read as still current in full.
+>
 > ⇒ 🚨 **THE BOX EXISTS. This spike is no longer gated behind procurement and can run now.** It needed
 > a box to run *from*, and there is one. ⛔ **Do not schedule it behind `0214`.**
 >

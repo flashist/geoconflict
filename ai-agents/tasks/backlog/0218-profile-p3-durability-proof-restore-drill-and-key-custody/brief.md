@@ -3,6 +3,21 @@
 ## ID
 0218
 
+> 🚨 **PREMISE CORRECTED 2026-09-08 — THE BUCKET IS NOT REUSED.**
+>
+> **Owner ruling 2026-09-08, given live in session and relayed through the spawning session:**
+> **a BRAND-NEW, CLEAN S3 bucket. NOT the existing one.**
+>
+> This **supersedes the 2026-09-04 reuse ruling AS TO THE BUCKET ONLY.**
+> ✅ **The VPS half is UNCHANGED — the box is still reused in place.**
+>
+> **What this changes for THIS task:** the "backward risk" below is **no longer on the new backup
+> path.** The old objects live in a **separate, abandonable bucket**. ⚠️ **The forward risk — the NEW
+> key's custody — is UNCHANGED and is still the whole point of this phase.**
+>
+> ⚠️ Prior text is **struck, not deleted.** Where a struck line and a correction disagree, **the
+> correction wins.**
+
 ## Parent / Epic
 [`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
 
@@ -23,7 +38,8 @@ fkit-coder / operator — **plus a required owner action** (key custody).
 
 ## Depends on
 [`0215`](../0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box with the backup path configured
-against a **newly issued** bucket and a **newly generated** `age` keypair.
+against a **brand-new, clean** bucket (🚨 **owner ruling 2026-09-08 — NOT the old one**) and a
+**newly generated** `age` keypair.
 
 ## Context
 
@@ -43,16 +59,26 @@ storage costs.
 by owner decision"*, on the grounds that a fresh start abandons the old bucket. THAT WAS PREMATURE.
 It is corrected here, in the open, rather than quietly dropped.**
 
-**Owner ruling 2026-09-04, superseding the earlier one:** *"We don't need to cancel any billings, the
-VPS and S3 I created will be reused."* — confirmed: *"Both exist — reuse them in place."*
+~~**Owner ruling 2026-09-04, superseding the earlier one:** *"We don't need to cancel any billings,
+the VPS and S3 I created will be reused."* — confirmed: *"Both exist — reuse them in place."*~~
 
-⇒ 🚨 **The bucket is REUSED, so any pre-existing encrypted backup objects are STILL IN IT** — and
+~~⇒ 🚨 **The bucket is REUSED, so any pre-existing encrypted backup objects are STILL IN IT** — and
 without the old `age` private identity they are **permanently unreadable**, dead weight in a bucket
-that is being paid for.
+that is being paid for.~~
+
+🚨 **CORRECTED AGAIN — owner ruling 2026-09-08, given live in session, superseding the 2026-09-04
+ruling AS TO THE BUCKET ONLY: a BRAND-NEW, CLEAN bucket. The VPS is still reused in place.**
+
+⇒ **The old encrypted objects sit in a SEPARATE, OLD bucket that the new backup path does not touch.**
+They are still **permanently unreadable** without the old `age` private identity, and they are still
+being paid for — but they are now **fully separable**, which is a materially easier disposition than
+"objects tangled inside the bucket we are actively using."
+
+⚠️ **The old-key question is STILL NOT CLOSED.** It changed shape; it was not answered. See `0222`.
 
 | | Standing now |
 |---|---|
-| **The OLD key, and the old objects it encrypted** | 🔴 **A LIVE OWNER DECISION — purge them, or keep them pending a search for the old key?** ⛔ Not closed. Owned by [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md), **not by this task** |
+| **The OLD key, and the old objects it encrypted** | 🔴 **A LIVE OWNER DECISION — ⛔ still NOT closed, and RESHAPED on 2026-09-08.** ~~purge them, or keep them pending a search for the old key?~~ With a **new** bucket the old one is fully separable, so a **third option** now exists: **delete / abandon the whole old bucket** once the new path is proven. **UNANSWERED. The owner's.** Owned by [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md), **not by this task** |
 | **The NEW keypair** | ✅ **THIS TASK. Generate it, and record its custodian, storage location and second copy AT THE MOMENT IT IS CREATED.** |
 
 ⚠️ **Keep the two apart.** This task owns the **new** key's custody; `0222` owns the **old** objects'
@@ -94,9 +120,11 @@ means the data being restored is data this task created.
 1. **The forward risk** — a new keypair is generated and its home is **again** not written down, and
    this whole conversation happens once more in six months. **That is what this task exists to
    prevent.**
-2. 🔴 **The backward risk, which is LIVE again** — the old objects sit in the reused bucket,
-   unreadable, being paid for, with **no decision recorded**. ⚠️ **Owned by `0222`, flagged here so
-   this task is not read as covering it.**
+2. 🔴 **The backward risk — still LIVE, but DOWNGRADED on 2026-09-08.** ~~the old objects sit in the
+   reused bucket~~ 🚨 **CORRECTED: they sit in a SEPARATE OLD bucket the new path never touches** —
+   still unreadable, still being paid for, still with **no decision recorded**. ⚠️ **Owned by `0222`,
+   flagged here so this task is not read as covering it.** ✅ **It no longer blocks or contaminates
+   the new backup path.**
 
 ## What to build
 
@@ -124,13 +152,17 @@ means the data being restored is data this task created.
 ### 🚫 Not in this phase
 
 - ~~**Any work against the old bucket or the old keypair.** Closed by owner decision.~~
-  🔴 **CORRECTED 2026-09-04 — that was premature and the question is LIVE again.** The bucket is
-  **reused**, so the old encrypted objects are still in it. **The disposition decision belongs to
+  ~~🔴 **CORRECTED 2026-09-04 — that was premature and the question is LIVE again.** The bucket is
+  **reused**, so the old encrypted objects are still in it.~~
+  🚨 **CORRECTED AGAIN 2026-09-08 — the bucket is NOT reused; a brand-new one is created.** The old
+  objects sit in a **separate, abandonable** bucket. **The disposition decision belongs to
   [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md), not to this
-  task** — so it stays out of *this* phase, but it is **not closed** and must not be reported as
-  closed.
-- ⛔ **Deleting anything from the bucket.** `0222`, and only after this task proves the **new** backup
-  path works. ⚠️ **Reusing a bucket is not a reason to be hasty about emptying it.**
+  task** — so it stays out of *this* phase, and it is **STILL NOT CLOSED** and must not be reported
+  as closed.
+- ⛔ **Deleting or abandoning anything in the OLD bucket.** `0222`, and only after this task proves
+  the **new** backup path works. ~~⚠️ **Reusing a bucket is not a reason to be hasty about emptying
+  it.**~~ 🚨 **2026-09-08: the sequencing judgement SURVIVES the correction for a different reason —
+  prove the new path before discarding the only other copy of anything, separable or not.**
 - Alerting on backup freshness — that is P4 (`0219`), which builds the consumer for
   `last-backup.json`. This task only confirms the cron fired.
 
@@ -148,8 +180,9 @@ means the data being restored is data this task created.
 5. **The nightly cron is confirmed to have FIRED** and produced an object — observed, not inferred
    from crontab content.
 6. **`0182`'s backup limitations section reflects reality** after this task.
-7. 🔒 **No values anywhere** — not the recipient, not the identity, not the bucket, not the endpoint,
-   not the credentials. **Names, custodian names, vault names and file names only.**
+7. 🔒 **No values anywhere** — not the recipient, not the identity, **not the bucket (old or new)**,
+   not the endpoint, not the credentials. **Names, custodian names, vault names and file names
+   only.**
 
 ## Notes
 
@@ -159,18 +192,22 @@ means the data being restored is data this task created.
   where does it live, and where is the second copy?* 🚨 **This is the question that must not slide.**
   It is due **before the first backup runs**, not at the end of the phase.
 - 🔴 **A SECOND open question exists and it is NOT this task's: Q3b — what happens to the OLD
-  encrypted objects in the reused bucket?** Purge, or keep pending a search for the old key?
+  encrypted objects, now in a SEPARATE OLD bucket?** ~~in the reused bucket~~
+  🚨 **RESHAPED 2026-09-08 — three options now, not two:** purge the objects · keep pending a search
+  for the old key · **delete / abandon the whole old bucket** (newly possible, because it is no
+  longer the bucket in use). **UNANSWERED. The owner's.**
   **Owned by [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).**
-  ⚠️ **It was closed prematurely on 2026-09-04 and re-opened the same day** when the reuse ruling
-  landed. **Q3 (new key custody) and Q3b (old objects) are different questions — do not let either
-  absorb the other.**
+  ⚠️ **It was closed prematurely on 2026-09-04, re-opened the same day, and reshaped 2026-09-08 — it
+  has never been answered.** **Q3 (new key custody) and Q3b (old objects) are different questions —
+  do not let either absorb the other.**
 - **What was established on 2026-09-04 and does not need re-establishing:** the six off-box backup
   variables (`PROFILE_BACKUP_S3_ENDPOINT`, `_BUCKET`, `_PREFIX`, `_ACCESS_KEY`, `_SECRET_KEY` and
   `PROFILE_BACKUP_AGE_RECIPIENT`) were **all non-empty in the local env files** — so a keypair *was*
-  generated once and credentials *are* still held. ⚠️ **Under the reuse ruling the split is: the
-  BUCKET is reused; the CREDENTIALS and the `age` KEYPAIR are re-issued.** Those are different
-  decisions and 🚨 **conflating them is how a half-migrated setup happens.** The fact is recorded
-  only to explain why the old setup looked configured while nobody could name its key.
+  generated once and credentials *are* still held. ~~⚠️ **Under the reuse ruling the split is: the
+  BUCKET is reused; the CREDENTIALS and the `age` KEYPAIR are re-issued.**~~
+  🚨 **CORRECTED 2026-09-08 — ALL SIX are new, the BUCKET included. The VPS alone is reused.** The
+  fact is recorded only to explain why the old setup looked configured while nobody could name its
+  key.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
 - 🔒 **No secrets in any artifact** — no values, no lengths, no endpoints, no bucket names.

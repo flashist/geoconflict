@@ -74,8 +74,13 @@ for this ruling** — see the epic
 "wipe, re-provision in place, re-issue".
 
 📌 **The `0222` old-bucket-objects decision is UNAFFECTED and still OPEN.** Redoing the box's keys
-says nothing about the fate of the pre-existing encrypted objects in the reused bucket, whose `age`
-private identity has no recorded home. Do not read this ruling as closing that question.
+says nothing about the fate of the pre-existing encrypted objects — ~~in the reused bucket~~ — whose
+`age` private identity has no recorded home. Do not read this ruling as closing that question.
+
+🚨 **CORRECTED 2026-09-08 — THE S3 BUCKET IS NOT REUSED: a BRAND-NEW, CLEAN bucket is created (owner ruling, given live in session, superseding the 2026-09-04 reuse ruling AS TO THE BUCKET ONLY). ✅ The VPS half is UNCHANGED — the box is still reused in place.**
+⇒ **Those objects sit in a SEPARATE, OLD, now-abandonable bucket**, which **RESHAPED** the `0222`
+question on 2026-09-08 into **three** options (purge the objects · keep pending a search · 🆕 abandon
+the whole old bucket). ⛔ **It changed shape; it was NOT answered. It remains the owner's.**
 
 ---
 

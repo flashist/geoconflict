@@ -8,8 +8,9 @@
 > (whatever is needed)"*, then, superseding it, *"We don't need to cancel any billings, the VPS and
 > S3 I created will be reused"* — confirmed: *"Both exist — reuse them in place."*
 >
-> ⇒ **The VPS and the S3 bucket PHYSICALLY EXIST and are REUSED IN PLACE. Whether the stack is
-> provisioned, what is running, and what the bucket holds are UNKNOWN AND UNVERIFIED.** ⚠️ **Hardware
+> ⇒ ~~**The VPS and the S3 bucket PHYSICALLY EXIST and are REUSED IN PLACE.**~~ 🚨 **CORRECTED 2026-09-08 — THE S3 BUCKET IS NOT REUSED: a BRAND-NEW, CLEAN bucket is created (owner ruling, given live in session, superseding the 2026-09-04 reuse ruling AS TO THE BUCKET ONLY). ✅ The VPS half is UNCHANGED — the box is still reused in place.**
+> **The VPS PHYSICALLY EXISTS and is REUSED IN PLACE. Whether the stack is
+> provisioned, what is running, and what the OLD bucket holds are UNKNOWN AND UNVERIFIED.** ⚠️ **Hardware
 > existence and provisioning state are two different facts, and only the first is known.**
 >
 > ✅ **This runbook is still the right procedure and it is NOT deprecated.** It is the primary
@@ -23,11 +24,15 @@
 > `PROFILE_INTERNAL_TOKEN` guidance in §4 (🔴 following it silently destroys player XP) and the backup
 > limitation in §8.
 >
-> ⚠️ **The BUCKET is reused; the CREDENTIALS and the `age` KEYPAIR are RE-ISSUED.** Those are
-> different decisions and conflating them is how a half-migrated setup happens. The new keypair's
+> ⚠️ ~~**The BUCKET is reused; the CREDENTIALS and the `age` KEYPAIR are RE-ISSUED.** Those are
+> different decisions and conflating them is how a half-migrated setup happens.~~
+> 🚨 **CORRECTED 2026-09-08 — THE S3 BUCKET IS NOT REUSED: a BRAND-NEW, CLEAN bucket is created (owner ruling, given live in session, superseding the 2026-09-04 reuse ruling AS TO THE BUCKET ONLY). ✅ The VPS half is UNCHANGED — the box is still reused in place.**
+> ⇒ **ALL SIX backup values are new, the BUCKET included. The VPS alone is reused.** The new keypair's
 > custodian must be recorded **at creation time**
 > ([`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md), P3).
-> 🔴 **The OLD encrypted objects still in that reused bucket are a LIVE owner decision** — unreadable
+> 🔴 **The OLD encrypted objects — in a SEPARATE, OLD, now-abandonable bucket** ~~still in that reused
+> bucket~~ — **are a LIVE, UNANSWERED owner decision, RESHAPED 2026-09-08 into THREE options** (purge
+> the objects · keep pending a search · 🆕 abandon the whole old bucket) — unreadable
 > without an `age` identity nobody can name; disposition is
 > [`0222`](../../backlog/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
 >

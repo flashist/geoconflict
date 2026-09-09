@@ -187,8 +187,10 @@ Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic 
 > cancel any billings, the VPS and S3 I created will be reused"* — confirmed: *"Both exist — reuse
 > them in place."*
 >
-> ⇒ **A profile VPS and an S3 bucket PHYSICALLY EXIST and are being reused in place. Whether the
-> stack is provisioned, what is running, and what the bucket holds are UNKNOWN AND UNVERIFIED.**
+> ⇒ ~~**A profile VPS and an S3 bucket PHYSICALLY EXIST and are being reused in place.**~~
+> 🚨 **CORRECTED 2026-09-08 — THE S3 BUCKET IS NOT REUSED: a BRAND-NEW, CLEAN bucket is created (owner ruling, given live in session, superseding the 2026-09-04 reuse ruling AS TO THE BUCKET ONLY). ✅ The VPS half is UNCHANGED — the box is still reused in place.**
+> ⇒ **A profile VPS PHYSICALLY EXISTS and is being reused in place. Whether the
+> stack is provisioned, what is running, and what the OLD bucket holds are UNKNOWN AND UNVERIFIED.**
 > ⚠️ **Hardware existence and provisioning state are two different facts, and only the first is
 > known.** That gap is the owner's standing complaint — *"I am completely lost about what was done
 > and what wasn't"* — not a contradiction.

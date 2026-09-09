@@ -80,8 +80,10 @@ Licensing: AGPL-3.0 with an attribution clause (`LICENSE`, `LICENSING.md`), asse
 > cancel any billings, the VPS and S3 I created will be reused"* — confirmed: *"Both exist — reuse
 > them in place."*
 >
-> ⇒ **The VPS and the S3 bucket PHYSICALLY EXIST and are reused in place. What is on them is UNKNOWN
-> AND UNVERIFIED.** ⚠️ **Hardware existence and provisioning state are two different facts, and only
+> ⇒ ~~**The VPS and the S3 bucket PHYSICALLY EXIST and are reused in place.**~~
+> 🚨 **CORRECTED 2026-09-08 — THE S3 BUCKET IS NOT REUSED: a BRAND-NEW, CLEAN bucket is created (owner ruling, given live in session, superseding the 2026-09-04 reuse ruling AS TO THE BUCKET ONLY). ✅ The VPS half is UNCHANGED — the box is still reused in place.**
+> ⇒ **The VPS PHYSICALLY EXISTS and is reused in place. What is on it is UNKNOWN
+> AND UNVERIFIED.** The **OLD** bucket still exists and is now fully separable (`0222`). ⚠️ **Hardware existence and provisioning state are two different facts, and only
 > the first is known.** The plan is to **wipe and rebuild onto the existing resources**, not to
 > procure new ones.
 >

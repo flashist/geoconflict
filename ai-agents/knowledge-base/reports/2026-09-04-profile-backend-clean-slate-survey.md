@@ -21,14 +21,22 @@ That framing is **superseded**.
 | Statement | When | Standing |
 |---|---|---|
 | *"We don't have ANY profile-related VPS yet, we would need to have a full-scale setup for it (whatever is needed)."* | 2026-09-04, earlier | **Recorded, not discarded** |
-| *"We don't need to cancel any billings, the VPS and S3 I created will be reused."* — confirmed on follow-up: *"Both exist — reuse them in place."* | 2026-09-04, later | **Current** |
+| *"We don't need to cancel any billings, the VPS and S3 I created will be reused."* — confirmed on follow-up: *"Both exist — reuse them in place."* | 2026-09-04, later | ~~**Current**~~ 🚨 **SUPERSEDED AS TO THE BUCKET ONLY** — see the row below. **The VPS half still stands.** |
+| 🚨 **A BRAND-NEW, CLEAN S3 bucket. NOT the existing one.** Given live in session, relayed through the spawning session. **Supersedes the row above AS TO THE BUCKET ONLY; the VPS is still reused in place.** | **2026-09-08** | 🔴 **CURRENT** |
 
 ⛔ **Do NOT read the first statement as a lie or an error.** Both are recorded, both are dated, and
 the reconciliation that stands is:
 
-> 🔴 **A profile VPS and an S3 bucket PHYSICALLY EXIST and will be REUSED IN PLACE. What is on them —
+> 🔴 ~~**A profile VPS and an S3 bucket PHYSICALLY EXIST and will be REUSED IN PLACE. What is on them —
 > whether the stack is provisioned, whether anything is running, what data or backup objects they
-> hold — is UNKNOWN AND UNVERIFIED.**
+> hold — is UNKNOWN AND UNVERIFIED.**~~
+>
+> 🚨 **CORRECTED — owner ruling 2026-09-08, superseding the above AS TO THE BUCKET ONLY:**
+>
+> 🔴 **The profile VPS PHYSICALLY EXISTS and WILL BE REUSED IN PLACE — unchanged; its state is still
+> UNKNOWN AND UNVERIFIED. The S3 bucket is NOT reused — a BRAND-NEW, CLEAN bucket is created.** The
+> **old** bucket still exists, its contents are still unverified, and it is now **fully separable**
+> from the working setup.
 
 **That gap between "hardware exists" and "nobody can say what state it is in" is not a contradiction.
 It is the same uncertainty the owner has voiced all session:** *"I think I am completely lost here
@@ -43,7 +51,7 @@ existence and provisioning state are two different facts, and only the first one
 |---|---|---|
 | **P1 (`0215`)** | Order a box | **Verify what is on the existing box, wipe / re-provision in place, repoint as needed.** ✅ `setup-profile.sh` is idempotent and safe to re-run — exactly the shape this needs |
 | **P1-spike (`0216`)** | Blocked behind procurement | ✅ **RUNNABLE TODAY** — it needed a box to run from, and there is one |
-| **`0222`** | Decommission old infra | **Cleanup only** — purge obsolete secrets, and decide the disposition of **old encrypted objects still sitting in the reused bucket** |
+| **`0222`** | Decommission old infra | **Cleanup only** — purge obsolete secrets, and decide the disposition of the old encrypted objects. 🚨 **RESHAPED 2026-09-08:** ~~still sitting in the reused bucket~~ — they sit in a **SEPARATE, OLD, now-abandonable bucket**, so the decision gained a **third option** (abandon the whole old bucket). **UNANSWERED — the owner's** |
 | **P0 (`0214`) spec** | A procurement choice | **Conditional: verify the existing box's actual spec, resize only if below the floor** |
 | **The `age` key** | Closed by the fresh-start ruling | 🔴 **RE-OPENED — see §2** |
 
@@ -55,7 +63,14 @@ existence and provisioning state are two different facts, and only the first one
 grounds that a fresh start abandons the old bucket. THAT WAS PREMATURE, AND IT IS BEING CORRECTED
 HERE RATHER THAN QUIETLY DROPPED.**
 
-**With the bucket reused in place, any pre-existing encrypted backup objects are still in it.**
+~~**With the bucket reused in place, any pre-existing encrypted backup objects are still in it.**~~
+
+🚨 **CORRECTED AGAIN — owner ruling 2026-09-08, given live in session and relayed through the spawning
+session: a BRAND-NEW, CLEAN bucket. NOT the existing one. Supersedes the 2026-09-04 reuse ruling AS TO
+THE BUCKET ONLY — the VPS is still reused in place.**
+
+**The pre-existing encrypted objects sit in a SEPARATE, OLD bucket that the new backup path never
+touches.**
 
 - Those objects were encrypted to an `age` recipient whose **private identity has no recorded home** —
   every reference in this repository is policy: **no vault, no entry, no custodian, no second copy,
@@ -64,20 +79,34 @@ HERE RATHER THAN QUIETLY DROPPED.**
 - ⇒ **Without that private identity those objects are PERMANENTLY UNREADABLE.** They are dead weight
   in a bucket that is being paid for.
 
-🚨 **This is an owner decision and it is now live again:**
+🚨 **This is an owner decision, it is STILL LIVE, and on 2026-09-08 it CHANGED SHAPE:**
 
-> **Purge the old encrypted objects, or keep them pending a search for the old key?**
+> ~~**Purge the old encrypted objects, or keep them pending a search for the old key?**~~
+>
+> 🔴 **RESHAPED 2026-09-08 — three options now, because a new bucket makes the old one separable:**
+> **(a) purge the objects · (b) keep pending a search for the old key ·
+> (c) 🆕 delete / abandon the OLD BUCKET ENTIRELY, once the new path is proven.**
+>
+> 🔴 **UNANSWERED. The owner's. An agent must not answer it.**
 
 Owned by [`0222`](#) (cleanup) for the disposition, and by `0218` (P3) for everything about the
-**new** key. **Do not let this slide a second time.**
+**new** key. **Do not let this slide a THIRD time** — closed prematurely 2026-09-04, re-opened the
+same day, reshaped 2026-09-08, **never answered.**
+
+🔴 **Separately and unchanged: the OLD S3 ACCESS KEY MUST BE REVOKED AT THE PROVIDER, and has not
+been.** An overwritten local value is a live credential until revoked there. **Independent of what
+happens to the old bucket** — required under all three options above. Owned by `0222`.
 
 ---
 
 ## 2. Owner rulings, 2026-09-04 (all given live via `AskUserQuestion`)
 
-1. 🔴 **A profile VPS and an S3 bucket exist and are REUSED IN PLACE.** *"We don't need to cancel any
-   billings, the VPS and S3 I created will be reused."* Supersedes the earlier "no VPS" statement;
-   both are recorded (§0).
+1. 🔴 ~~**A profile VPS and an S3 bucket exist and are REUSED IN PLACE.**~~ *"We don't need to cancel
+   any billings, the VPS and S3 I created will be reused."* Supersedes the earlier "no VPS"
+   statement; both are recorded (§0).
+   🚨 **AMENDED BY OWNER RULING 2026-09-08 (§0): the VPS is reused in place — unchanged — but the S3
+   bucket is NOT. A BRAND-NEW, CLEAN bucket is created.** The old bucket still exists and its fate is
+   `0222`'s open question.
 2. **ALL phases P0–P7 go into Sprint 4.** The producer recommended P1+P2+P7 only; the owner chose all
    of it explicitly. The capacity risk is noted once (§7) and is not re-argued.
 3. **`PROFILE_INTERNAL_TOKEN` stays deliberately blank for the upcoming game deploy** — citizenship
@@ -141,7 +170,7 @@ running.** DNS resolution is not a health check.
 | | State |
 |---|---|
 | **Exists in the repo, written and merged** | `setup-profile.sh` (1,025 lines) — provisions a bare Ubuntu box *and* deploys the stack; **idempotent, safe to re-run.** `build-deploy-profile.sh` (575 lines) — hardened two-hop deploy driver. `Dockerfile.profile`. `profile-backup.sh` — including a scripted restore at `:192-262`. `src/profile-server/` — the API, including `/ready` at `Routes.ts:198-207`. `migrations/001`–`004` + `migrate.ts` (idempotent, `schema_migrations`-tracked). `example.env.profile`. A complete operator bring-up runbook at `0182`. Off-box encrypted backups, which **fail closed at deploy** (`setup-profile.sh:889-908`). |
-| **Exists physically, state UNKNOWN** | 🔴 **The profile VPS and the S3 bucket.** They exist and are being reused. Whether the stack is provisioned, what is running, what schema version the DB is at, and what objects the bucket holds are **all unverified** — see §5. |
+| **Exists physically, state UNKNOWN** | 🔴 **The profile VPS and the OLD S3 bucket.** They exist. ✅ **The VPS is being reused.** 🚨 **CORRECTED 2026-09-08 — the OLD bucket is NOT being reused; a brand-new, clean bucket is created, and the old one is separable and its fate is `0222`'s open question.** Whether the stack is provisioned, what is running, what schema version the DB is at, and what objects the bucket holds are **all unverified** — see §5. |
 | **Never run in production, or never proven** | The restore path has never been exercised against non-empty data. `PROFILE_INTERNAL_TOKEN` has never been forwarded to production with a real value. `YANDEX_PAYMENTS_SECRET` has never been confirmed non-empty on the box. Four shell test harnesses exist and **nothing runs any of them**. No monitoring, no uptime check, no reader of the backup-freshness file. |
 | **Believed true, standing corrected** | ~~"The profile backend is live."~~ **That claim is UNVERIFIED — not disproven, and no longer claimable.** ⚠️ **An earlier annotation pass on 2026-09-04 wrote "there is NO profile VPS" into ten files; that overstated the case and every one of those annotations has been re-corrected** to the accurate position: **hardware exists, provisioning state unknown.** |
 
@@ -176,7 +205,7 @@ assume a value for one.**
 | Firewall posture | `ufw status` | ❓ UNKNOWN |
 | Actual spec vs the 2 vCPU / 4 GB / 60 GB floor | `nproc` / `free` / `df` | ❓ UNKNOWN |
 | **DB schema version — has migration `004` been applied?** | `schema_migrations` table | ❓ UNKNOWN — **see §8** |
-| **What objects the reused bucket holds** | bucket listing | ❓ UNKNOWN — **see §1** |
+| **What objects the ~~reused~~ OLD bucket holds** 🚨 **2026-09-08: NOT reused — a new bucket is created; this probe concerns the OLD bucket only and no longer gates the new backup path** | old-bucket listing | ❓ UNKNOWN — **see §1** |
 
 ⚠️ **This table is the single most useful artifact in this survey.** The owner's complaint is not that
 the work is hard; it is that nobody can say what state things are in. **Filling this table in IS the
@@ -284,7 +313,7 @@ whether or not `004` is already applied.** The right move is to run it, not to i
 | G2 | **No image prune** on the profile box; storage grows every redeploy | Medium | P4 |
 | G3 | **No monitoring or alerting of any kind.** No OTEL by design (`src/profile-server/Logger.ts:5-8`), no uptime check, and **nothing reads `last-backup.json`**. Cron mails root only with an MTA, which nothing installs | **HIGH** — a backup that stops is invisible while the 14-day prune keeps deleting | P4 |
 | G4 | **Restore never proven against real data.** Runbook `:147-153` records the 2026-07-01 drill: the prod DB was still **empty (0 rows)**, so a non-empty round-trip was never verified — and the drill **predates the default-deny guard**, so its command line no longer works. The runbook's own gate: *"A backup that has never been restored is not a backup."* | **HIGH** | P3 |
-| G5 | **The `age` private key has no recorded home** — and 🔴 **with the bucket reused, this is LIVE again**, not closed. See §1 | **CRITICAL** | P3 + `0222` |
+| G5 | **The `age` private key has no recorded home** — 🔴 **STILL LIVE, not closed.** ~~with the bucket reused~~ 🚨 **CORRECTED 2026-09-08 — the bucket is NOT reused; the old objects sit in a separate, abandonable bucket, which reshapes the disposition question but does NOT close it.** ⚠️ **The NEW key's custody (P3) is entirely unaffected and remains CRITICAL.** See §1 | **CRITICAL** | P3 + `0222` |
 | G6 | **No OS baseline hardening** — no `unattended-upgrades`, no `fail2ban`, no sshd hardening, no non-root deploy user; deploy runs as root by default | Medium | P6 |
 | G7 | **Restart policy diverges.** Compose uses `restart: on-failure` (`setup-profile.sh:405`, `:427`); the game box uses `--restart=always` (`update.sh:64`). `on-failure` does **not** bring containers back after a **Docker daemon restart** | Medium | P6 |
 | G8 | **No graceful shutdown** — `src/profile-server/Server.ts` installs no SIGTERM handler and never closes the pool | Low — mitigated by the credit ledger's idempotency PK | P6 |
@@ -395,7 +424,8 @@ a finding against the fix.
 | Q1 | ✅ **ANSWERED** — spec ruled 2 vCPU / 4 GB / 60 GB NVMe, **conditional on verifying the existing box** (§3) | `0214` |
 | Q2 | ✅ **ANSWERED** — reuse the existing record; Yandex Games permits only one main domain (§3) | `0214` |
 | Q3 | **Who is the custodian of the NEW `age` private identity, where does it live, where is the second copy?** Due **before the first backup runs** | `0218` (P3) |
-| Q3b | 🔴 **RE-OPENED — what happens to the OLD encrypted objects in the reused bucket?** Purge, or keep pending a search for the old key? **Unreadable without it.** See §1 | `0222` |
+| Q3b | 🔴 **STILL OPEN, and RESHAPED 2026-09-08 — what happens to the OLD encrypted objects, and now to the OLD BUCKET itself?** ~~in the reused bucket~~ **Three options: (a) purge the objects · (b) keep pending a search for the old key · (c) 🆕 abandon the whole old bucket.** **Unreadable without the old key.** ⛔ **UNANSWERED — the owner's.** See §1 | `0222` |
+| Q3c | 🔴 **NOT A QUESTION — A STANDING ACTION, NOT DONE: revoke the OLD S3 access key AT THE PROVIDER.** An overwritten local value is still live. **Independent of Q3b's outcome.** | `0222` |
 | Q4 | What is the current game-prod egress IP for `PROFILE_INTERNAL_ALLOW_IPS`? The pinned value is from June | `0217` (P2) |
 | Q5 | ✅ **ANSWERED** — ~2,900 matches/day ⇒ ~6,000 writes/day (§3, with its two caveats) | `0214` |
 | Q6 | Registry / `get.docker.com` / apt / Let's Encrypt reachable from reg.ru Moscow? | `0216` — ✅ **answered by running the spike, which can run today** |

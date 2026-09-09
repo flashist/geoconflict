@@ -30,14 +30,17 @@ is **superseded**.
 | Statement | When | Standing |
 |---|---|---|
 | *"We don't have ANY profile-related VPS yet, we would need to have a full-scale setup for it (whatever is needed)."* | 2026-09-04, earlier | **Recorded, not discarded** |
-| *"We don't need to cancel any billings, the VPS and S3 I created will be reused."* — confirmed on follow-up: *"Both exist — reuse them in place."* | 2026-09-04, later | **Current** |
+| *"We don't need to cancel any billings, the VPS and S3 I created will be reused."* — confirmed on follow-up: *"Both exist — reuse them in place."* | 2026-09-04, later | ~~**Current**~~ 🚨 **SUPERSEDED AS TO THE BUCKET ONLY** — see the row below. **The VPS half stands.** |
+| 🚨 **A BRAND-NEW, CLEAN S3 bucket. NOT the existing one.** Given live in session, relayed through the spawning session. **Supersedes the row above AS TO THE BUCKET ONLY; the VPS is still reused in place.** | **2026-09-08** | 🔴 **CURRENT** |
 
 ⛔ **Do NOT read the first statement as a lie or an error.** Both are recorded, both are dated, and
 the reconciliation that stands is:
 
-> 🔴 **A profile VPS and an S3 bucket PHYSICALLY EXIST and will be REUSED IN PLACE. What is on them —
-> whether the stack is provisioned, whether anything is running, what data or backup objects they
-> hold — is UNKNOWN AND UNVERIFIED.**
+> 🔴 ~~**A profile VPS and an S3 bucket PHYSICALLY EXIST and will be REUSED IN PLACE.**~~
+> 🚨 **CORRECTED 2026-09-08 — THE S3 BUCKET IS NOT REUSED: a BRAND-NEW, CLEAN bucket is created (owner ruling, given live in session, superseding the 2026-09-04 reuse ruling AS TO THE BUCKET ONLY). ✅ The VPS half is UNCHANGED — the box is still reused in place.**
+> 🔴 **The profile VPS PHYSICALLY EXISTS and will be REUSED IN PLACE. What is on it —
+> whether the stack is provisioned, whether anything is running — is UNKNOWN AND UNVERIFIED.** The
+> **OLD** bucket still exists, its contents are still unverified, and it is now **fully separable**.
 
 ⚠️ **That gap is not a contradiction. It is the same uncertainty the owner has voiced all session:**
 *"I think I am completely lost here about what was done and what wasn't."* **Hardware existence and
@@ -50,7 +53,7 @@ that reader.
 |---|---|---|
 | **P1 (`0215`)** | Order a box | **Verify what is on the existing box, wipe / re-provision in place, repoint as needed.** ✅ `setup-profile.sh` is idempotent and safe to re-run — exactly the shape this needs |
 | **P1-spike (`0216`)** | Blocked behind procurement | ✅ **RUNNABLE TODAY** — it needed a box to run from, and there is one |
-| **`0222`** | Decommission old infra | **Cleanup only** — nothing is decommissioned; purge obsolete secrets and decide the fate of **old encrypted objects in the reused bucket** |
+| **`0222`** | Decommission old infra | **Cleanup only** — the **box** is not decommissioned; purge obsolete secrets and decide the fate of the old encrypted objects. 🚨 **RESHAPED 2026-09-08** — ~~in the reused bucket~~ they sit in a **SEPARATE, OLD, now-abandonable bucket**, so a **third option** appeared (abandon the whole old bucket). **UNANSWERED — the owner's** |
 | **P0 (`0214`) spec** | A procurement choice | **Conditional: verify the existing box's spec, resize only if below the floor** |
 | **The `age` key** | "Closed by owner decision" | 🔴 **RE-OPENED — see below** |
 
@@ -157,7 +160,7 @@ This epic is verified by its children and closes when all ten rows above close. 
 5. A restore drill against **non-empty** data, with **currently-documented** commands (P3).
 6. The **new** `age` identity's custodian, location and second copy are **written down** before the
    first backup runs (P3).
-7. 🔴 **The OLD encrypted objects in the reused bucket have an owner-ruled disposition** (`0222`).
+7. 🔴 **The OLD encrypted objects — in a SEPARATE, OLD bucket** (~~reused~~ 🚨 **corrected 2026-09-08**) — **have an owner-ruled disposition** (`0222`), **chosen from THREE options**: purge the objects · keep pending a search · 🆕 abandon the whole old bucket. ⛔ **Still UNANSWERED.**
 8. Log rotation, image prune, an external uptime check and a `last-backup.json` consumer exist (P4).
 9. Something automatically runs all four shell harnesses (P7 / `0201`).
    ⚠️ **Partially satisfied 2026-09-06, and the wording overstates what `0201` delivered.** `npm test`

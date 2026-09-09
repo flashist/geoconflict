@@ -7,6 +7,17 @@
 > task's identity and several files link to it. **The scope is no longer "order a box".** See the
 > reframe below.
 
+> 🚨 **PREMISE CORRECTED 2026-09-08 — THE BUCKET IS NOT REUSED.**
+>
+> **Owner ruling 2026-09-08, given live in session and relayed through the spawning session:**
+> **a BRAND-NEW, CLEAN S3 bucket. NOT the existing one.**
+>
+> This **supersedes the 2026-09-04 reuse ruling AS TO THE BUCKET ONLY.**
+> ✅ **The VPS half of that ruling is UNCHANGED — the box is still reused in place.**
+>
+> ⚠️ Prior text below is **struck, not deleted** — the same supersede-do-not-delete discipline used
+> all week. Where a struck line and a correction disagree, **the correction wins.**
+
 ## Parent / Epic
 [`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
 
@@ -43,8 +54,14 @@ fkit-coder / operator
 ⛔ **Do NOT read the earlier "we don't have ANY profile-related VPS yet" as a lie or an error.** Both
 statements are recorded and dated. The reconciliation that stands:
 
-> 🔴 **A profile VPS and an S3 bucket PHYSICALLY EXIST and are REUSED IN PLACE. What is on them is
-> UNKNOWN AND UNVERIFIED.**
+> 🔴 ~~**A profile VPS and an S3 bucket PHYSICALLY EXIST and are REUSED IN PLACE. What is on them is
+> UNKNOWN AND UNVERIFIED.**~~
+>
+> 🚨 **CORRECTED — owner ruling 2026-09-08, superseding the above AS TO THE BUCKET ONLY:**
+>
+> 🔴 **The profile VPS PHYSICALLY EXISTS and IS REUSED IN PLACE — unchanged. The S3 bucket is NOT
+> reused: a BRAND-NEW, CLEAN bucket is created.** What is on the **box** is still UNKNOWN AND
+> UNVERIFIED. The **old** bucket is now fully separable from the new backup path.
 
 **This task is therefore: verify what is there → wipe / re-provision in place → repoint as needed.**
 ✅ **`setup-profile.sh` is idempotent and safe to re-run, which is exactly the shape this needs.**
@@ -81,7 +98,7 @@ Until then every field is UNKNOWN, and no step below may assume a value for one.
 | B6 | Firewall posture | `ufw status` | ❓ **UNKNOWN** |
 | B7 | **Actual spec vs the 2 vCPU / 4 GB / 60 GB floor** | `nproc` / `free` / `df` | ❓ **UNKNOWN** |
 | B8 | 🆕 **DB schema version — is migration `004_name_change.sql` applied?** | `schema_migrations` table | ❓ **UNKNOWN** — see `0067` note below |
-| B9 | 🆕 **What objects the reused S3 bucket holds** | bucket listing | ❓ **UNKNOWN** — 🔴 see `0222` |
+| B9 | 🆕 ~~**What objects the reused S3 bucket holds**~~ 🚨 **CORRECTED 2026-09-08: the bucket is NOT reused. This probe now concerns the OLD bucket only, which is off the new path** | old-bucket listing | ❓ **UNKNOWN** — 🔴 see `0222`. ⚠️ **No longer gates the new backup path** |
 
 🚨 **This table is the deliverable that answers the owner's actual question.** Record each result in
 the worklog **as a value, dated** — do not summarise it as "looks fine". 🔒 **Values that are secrets
@@ -121,15 +138,30 @@ the decision.**
 `PROFILE_BACKUP_AGE_RECIPIENT` are all **currently non-empty in the local env files and point at the
 old setup.**
 
-⚠️ **The BUCKET is reused; the CREDENTIALS and the `age` KEYPAIR are re-issued.** Those are different
-decisions and conflating them is how a half-migrated setup happens. 🚨 **Do not half-migrate.**
+⚠️ ~~**The BUCKET is reused; the CREDENTIALS and the `age` KEYPAIR are re-issued.** Those are
+different decisions and conflating them is how a half-migrated setup happens.~~
+
+🚨 **CORRECTED 2026-09-08 — owner ruling, live in session, superseding the 2026-09-04 reuse ruling as
+to the bucket only. THE SPLIT IS NOW SIMPLER, NOT SUBTLER:**
+
+| | 2026-09-04 (superseded) | 🔴 **NOW — 2026-09-08** |
+|---|---|---|
+| **VPS / box** | Reused in place | ✅ **Reused in place — UNCHANGED** |
+| **S3 bucket** | ~~Reused~~ | 🚨 **BRAND-NEW, CLEAN bucket. NOT the existing one.** |
+| **S3 credentials** | Re-issued | ✅ **Re-issued — unchanged** |
+| **`age` keypair** | Re-generated | ✅ **Re-generated — unchanged** |
+
+⇒ **All SIX backup values are new**, the bucket included. There is no longer a half-migrated shape to
+avoid on the storage side: **the new backup path shares nothing with the old bucket.**
 ⚠️ `setup-profile.sh:889-908` **fails the deploy CLOSED** on incomplete backup config — **that is the
 guard working**, not a bug.
 
-🔴 **The old encrypted objects already in that bucket are a separate, LIVE owner decision** — they are
+🔴 **The old encrypted objects sit in the OLD bucket, which is no longer on this path** — they remain
 unreadable without an `age` private identity nobody can name. Disposition is
-[`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md). **This task only
-reports what B9 finds; it does not delete anything.**
+[`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md), **whose question
+changed shape on 2026-09-08** (a separable old bucket admits abandoning the whole bucket, not just
+its objects) and is **UNANSWERED and the owner's**. **This task deletes nothing and decides nothing
+about the old bucket.**
 
 ## What to build
 
@@ -171,7 +203,9 @@ schema lacking their tables, and `0067` is already closed, so nothing else is wa
 - Log rotation, prune, uptime check, backup-freshness consumer (P4 / `0219`).
 - Secret persistence on the box (P5 / `0220`).
 - OS hardening, non-root deploy user, restart policy (P6 / `0221`).
-- **Deleting anything from the reused bucket** — that is `0222` and it is an owner decision.
+- **Deleting or abandoning anything in the ~~reused~~ OLD bucket** (🚨 **2026-09-08: it is no longer
+  reused — a new bucket is created, so the old one is fully separable**) — that is `0222` and it is
+  an **UNANSWERED owner decision**.
 
 ## Verification steps
 
@@ -191,8 +225,13 @@ schema lacking their tables, and `0067` is already closed, so nothing else is wa
 9. **`schema_migrations` contains `004_name_change.sql`** after step 7.
 10. **`PROFILE_INTERNAL_TOKEN` was generated explicitly and recorded for P2** — 🚨 **not
     auto-generated by the box.** State plainly that `0182:136-137` was **not** followed, and why.
-11. **All six backup values were newly issued**; state that none was carried over, and that the
-    **bucket** was reused deliberately while the **credentials** were not.
+11. **All six backup values were newly issued**; state that none was carried over.
+    🚨 **CORRECTED 2026-09-08 — DO NOT STATE THE STRUCK CLAIM BELOW. IT IS NOW FALSE, and stating it
+    would record a falsehood as verified fact:**
+    ~~"...and that the **bucket** was reused deliberately while the **credentials** were not."~~
+    **State instead:** a **brand-new, clean S3 bucket** was created (owner ruling 2026-09-08),
+    alongside newly-issued credentials and a newly-generated `age` keypair — while **the VPS was
+    reused in place.** 🔒 **Name no bucket.**
 12. **`/ready` responds** (`src/profile-server/Routes.ts:198-207`).
 13. 🔒 **No value appears anywhere** — worklog, report, commit message or log line.
 
