@@ -346,7 +346,7 @@ offers scoping.
 `.env.profile.secret` in Step 15 — or into your password manager first — **before closing the
 dialog.**
 
-**⛔ DO NOT delete or revoke the OLD access key here.** Revoking it is [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md)'s
+**⛔ DO NOT delete or revoke the OLD access key here.** Revoking it is [`0222`](../../backlog/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md)'s
 job (its brief:151 and brief:200-201 — an overwritten local value is a **live credential** until it
 is revoked at the provider). Doing it here mixes two tasks and loses the record.
 
@@ -406,7 +406,7 @@ openssl rand -hex 32
 ```
 
 **SUCCESS:** a 64-character hex string prints. Paste it into `.env.profile.secret` in Step 15 and
-**also** into your password manager — [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+**also** into your password manager — [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
 needs the identical value on the game server.
 
 **🔒 SECRET.** **🚨 SEND BACK (SB-7):** the fact that it was generated and stored — never the value.
@@ -426,7 +426,7 @@ needs the identical value on the game server.
 > — swallowed exactly as quietly as the 401 in T1, and **one does not reveal the other.**
 >
 > **This is NOT this task's job to fix** —
-> [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) owns the game-server half and
+> [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) owns the game-server half and
 > the allowlist value. It is written here so nobody is surprised later, and so `0217` starts by
 > checking it rather than trusting it.
 
@@ -963,7 +963,7 @@ which **does not rewrite the persisted file** (only the mint branch at `setup-pr
 it). So that file now holds a **stale, superseded** token. It is harmless while `.env.profile.secret`
 carries the real value, but a future deploy run with a **blank** value would silently fall back to it
 (`setup-profile.sh:360-362`) and re-break crediting. Record this in the worklog and flag it to
-[`0220`](../0220-profile-p5-secret-persistence-and-value-parity/brief.md), which owns secret
+[`0220`](../../backlog/0220-profile-p5-secret-persistence-and-value-parity/brief.md), which owns secret
 persistence and value parity.
 
 ---
@@ -1086,7 +1086,7 @@ before the wipe, this is a data-loss incident — tell the owner immediately, do
 
 - **No database rollback.** `migrate.ts` has no down-migrations.
 - **No restore.** The old bucket is deleted and its objects were unreadable anyway (no identity was
-  ever recorded for them). Until [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)
+  ever recorded for them). Until [`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)
   proves a restore against non-empty data, **treat this box as not durably recoverable.**
 
 ---
@@ -1095,12 +1095,12 @@ before the wipe, this is a data-loss incident — tell the owner immediately, do
 
 | Item | Owner |
 |---|---|
-| Wiring the game server to the profile box: `PROFILE_API_URL`, the game-side `PROFILE_INTERNAL_TOKEN`, **and re-verifying the `/internal/` allowlist IP (T8)** | [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) |
-| The restore drill against non-empty data, and closing out `age`-key custody | [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) — this plan only **creates** the key and **records** custody (Steps 4–8) |
-| **Log rotation** — including the ~736 MB of journald the inventory found, and the fact that there is **no** Docker `daemon.json` log rotation on this box; plus image prune, an external uptime check, and a consumer for `last-backup.json` | [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) |
-| Secret persistence and value parity — including the **stale `/opt/profile/.internal_token`** noted at Step 30 | [`0220`](../0220-profile-p5-secret-persistence-and-value-parity/brief.md) |
-| OS baseline hardening, a non-root deploy user, restart policy — including the **`sshd PasswordAuthentication yes`** the inventory found | [`0221`](../0221-profile-p6-os-baseline-hardening/brief.md) |
-| **Revoking the OLD S3 access key at the provider** (still not done — an overwritten local value is a live credential until revoked there, `0222` brief:200-201), deleting `PROFILE_ID_PEPPER` beyond the two files named in Steps 16 and 30, and any decision about the old bucket | [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md) — **UNANSWERED owner decision** |
+| Wiring the game server to the profile box: `PROFILE_API_URL`, the game-side `PROFILE_INTERNAL_TOKEN`, **and re-verifying the `/internal/` allowlist IP (T8)** | [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) |
+| The restore drill against non-empty data, and closing out `age`-key custody | [`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) — this plan only **creates** the key and **records** custody (Steps 4–8) |
+| **Log rotation** — including the ~736 MB of journald the inventory found, and the fact that there is **no** Docker `daemon.json` log rotation on this box; plus image prune, an external uptime check, and a consumer for `last-backup.json` | [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) |
+| Secret persistence and value parity — including the **stale `/opt/profile/.internal_token`** noted at Step 30 | [`0220`](../../backlog/0220-profile-p5-secret-persistence-and-value-parity/brief.md) |
+| OS baseline hardening, a non-root deploy user, restart policy — including the **`sshd PasswordAuthentication yes`** the inventory found | [`0221`](../../backlog/0221-profile-p6-os-baseline-hardening/brief.md) |
+| **Revoking the OLD S3 access key at the provider** (still not done — an overwritten local value is a live credential until revoked there, `0222` brief:200-201), deleting `PROFILE_ID_PEPPER` beyond the two files named in Steps 16 and 30, and any decision about the old bucket | [`0222`](../../backlog/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md) — **UNANSWERED owner decision** |
 | **The pending kernel reboot** the inventory found on the box | Not filed against a task. **Needs a home** — flag to the producer. It is not scheduled by this plan because rebooting mid-deploy would confuse every failure signal above. |
 | Fixing the `example.env.profile:92-93` documentation defect (**T1**) | Already handed to a coder as a separate change. **Record it, do not fix it here** — this task must not carry an unrelated source edit. |
 | Committing anything | Nobody. **Every file this plan touches is gitignored. Do not commit.** |

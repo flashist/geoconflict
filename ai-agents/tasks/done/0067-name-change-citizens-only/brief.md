@@ -40,7 +40,7 @@ one of them has a known fate.
 > finding — it is not a gap to close by inference.
 
 **Two checks on the box settle it**, both carried by
-[`0215`](../../backlog/0215-profile-p1-stand-up-the-box/brief.md) field **B8**:
+[`0215`](../0215-profile-p1-stand-up-the-box/brief.md) field **B8**:
 
 1. Does `schema_migrations` contain `004_name_change.sql`?
 2. Does the running image serve the three routes?

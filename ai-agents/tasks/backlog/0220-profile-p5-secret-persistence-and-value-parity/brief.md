@@ -22,7 +22,7 @@ times under a different name.
 fkit-coder
 
 ## Depends on
-[`0215`](../0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to persist secrets on.
+[`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to persist secrets on.
 
 ## Context
 

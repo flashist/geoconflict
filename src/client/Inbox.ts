@@ -147,9 +147,11 @@ function failedState(): InboxState {
 }
 
 async function fetchInboxState(): Promise<InboxState> {
-  // Launch-flag gate (owner-ruled D5): while the citizenship card is hidden the
-  // inbox must not surface either — one consistent unlaunched surface.
-  if (!flashistConstants.features.CITIZENSHIP_CARD_ENABLED) {
+  // Launch-flag gate (owner-ruled D5) plus the remote kill switch (task 0236):
+  // while the citizenship card is hidden the inbox must not surface either —
+  // one consistent unlaunched surface, for BOTH flags. The shared helper is the
+  // single place the two layers are combined.
+  if (!(await FlashistFacade.instance.isCitizenshipSurfacesEnabled())) {
     return UNAVAILABLE;
   }
   if (!(await FlashistFacade.instance.isYandexAuthorized())) {

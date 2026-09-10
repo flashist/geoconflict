@@ -202,7 +202,7 @@ cannot close until that deploy happens.
    longer answers `503 {"error":"payments_unavailable"}`.
    ⚠️ **Owner-gated — get agreement before running this on the real box.** 🔴 **2026-09-04: the box
    exists, but its state is UNVERIFIED, so this step is not runnable until
-   [`0215`](../../backlog/0215-profile-p1-stand-up-the-box/brief.md) (P1) has inspected and
+   [`0215`](../0215-profile-p1-stand-up-the-box/brief.md) (P1) has inspected and
    re-provisioned it. The owner gate below remains in force for when it is.** It requires a non-empty
    secret, and `/yandex/intent` creates DB rows without checking a signature, so driving it with a
    throwaway value writes junk intents into the production profile DB. Prefer proving this against the

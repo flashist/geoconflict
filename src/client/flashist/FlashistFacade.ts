@@ -582,6 +582,10 @@ export class FlashistFacade {
     // Experiment cohort events fire when the flags actually settle — possibly
     // after the deadline; logExperimentEvents latches only once flags exist.
     void settledPromise.then(() => this.logExperimentEvents());
+    // Sync flag snapshot for renderCitizenBadge(), which cannot await (0236).
+    // Kicked off here, before Bootstrap loads Main.ts, and never awaited — it
+    // must not extend the platform-init deadline.
+    this.primeCitizenshipSurfacesSnapshot();
 
     if (settledResults === null) {
       logDeadlineEvent();
@@ -714,6 +718,11 @@ export class FlashistFacade {
       // checks later in the session work and cohort events fire (the latch in
       // logExperimentEvents dedupes). No-op on the normal path (memo present).
       void this.initExperimentFlags();
+      // Badge snapshot recovery, same pattern: the boot-time prime resolved
+      // against the no-SDK flags above, so re-prime now that the real ones are
+      // in — otherwise the async helper reports enabled while the sync snapshot
+      // the badge reads stays false for the rest of the session.
+      this.primeCitizenshipSurfacesSnapshot();
       // Payments recovery, same pattern: a degraded boot left the catalog
       // status 'idle' (not memoized), so fetch it for real now that the SDK
       // exists. No-op on the normal path (paymentsInitPromise memo present).
@@ -892,6 +901,55 @@ export class FlashistFacade {
       flashistConstants.experiments.CITIZENSHIP_UI_FLAG_NAME,
       flashistConstants.experiments.CITIZENSHIP_UI_ENABLED_VALUE,
     );
+  }
+
+  /**
+   * Layer 1 AND layer 2 — the single combined read behind every citizenship
+   * surface (task 0236). `&&` short-circuits, so while the local launch flag is
+   * false this never reads the remote flag at all.
+   */
+  public async isCitizenshipSurfacesEnabled(): Promise<boolean> {
+    return (
+      flashistConstants.features.CITIZENSHIP_CARD_ENABLED &&
+      (await this.isCitizenshipUiEnabled())
+    );
+  }
+
+  /**
+   * Sync snapshot of the above, for renderCitizenBadge() — which is synchronous
+   * and cannot await. Primed during platform init, and re-primed on late-SDK
+   * recovery from yandexSdkInit().
+   *
+   * DEFAULT FALSE, deliberately (task 0236): a kill switch fails CLOSED.
+   *
+   * On the HAPPY path the pre-resolution window is empty: Bootstrap.ts loads
+   * Main.ts (which pulls in all four badge call sites) only AFTER
+   * initializePlatform() has returned, and the prime is kicked off inside it
+   * once the flags have settled. On the DEADLINE, DEGRADED and early-throw
+   * paths the window is REAL and the snapshot can still be false when the UI
+   * becomes interactive — on a degraded boot that never recovers, for the whole
+   * session. That is the fail-closed default doing its job, not a gap: a late
+   * snapshot is picked up on the next natural re-render, and a degraded boot
+   * that DOES recover re-primes from yandexSdkInit().
+   *
+   * Note this is the OPPOSITE of the card's fail-OPEN carve-out in
+   * CitizenshipCard.ts; both are owner rulings, each implemented where ruled.
+   */
+  private citizenshipSurfacesSnapshot = false;
+
+  public isCitizenshipSurfacesEnabledSync(): boolean {
+    // `=== true` normalizes the type rather than changing behavior: the test
+    // suites build facades via Object.create(FlashistFacade.prototype), which
+    // skips class-field initializers, so the field is `undefined` there and
+    // this keeps the declared `boolean` return honest. (`!undefined` is already
+    // truthy, so the only caller behaves the same either way.)
+    return this.citizenshipSurfacesSnapshot === true;
+  }
+
+  protected primeCitizenshipSurfacesSnapshot(): void {
+    void this.isCitizenshipSurfacesEnabled().then((enabled) => {
+      this.citizenshipSurfacesSnapshot = enabled;
+    });
   }
 
   // PAYMENTS (task 0019). Same memoized-startup-capability pattern as the

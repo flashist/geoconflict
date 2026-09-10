@@ -77,12 +77,26 @@ key?** Disposition is [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-
 everything about the **new** key is [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md).
 **Do not let this slide a second time.**
 
-### 🔴 CURRENT BOX STATE — UNKNOWN PENDING INSPECTION
+### ~~🔴 CURRENT BOX STATE — UNKNOWN PENDING INSPECTION~~ ✅ INSPECTED AND ANSWERED 2026-09-10
 
-The owner can inspect the box directly and has a read-only command set. **Until those results
+> 🔴 **SUPERSEDED 2026-09-10 by [`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md)'s close
+> (agent-closed — not owner-verified).** **The box state is NO LONGER UNKNOWN.** The inspection table
+> **B1–B9 is filled in and dated** in `0215`'s worklog, and **all 13 of its verification items are
+> satisfied** — two with stated limits (the `ufw` **default policy** was not re-checked; RU residency
+> is **single-provider registration evidence, not a physical-site attestation**). 🔴 **The premise
+> changed: NO WIPE HAPPENED** — the box was found **live and healthy** and the **owner ruled ADOPT**;
+> the only destructive act was destroying the Postgres data volume to rotate `POSTGRES_PASSWORD` at
+> `initdb`, owner-ruled, at a re-verified **0 rows**. **Child phases may now read those values from
+> `0215`'s worklog rather than treating them as UNKNOWN.** ⚠️ **One field stays UNKNOWN: B4's
+> historical half** — whether a backup ever completed *before* that task. It is **answered forward**
+> (a backup demonstrably completes now), not backward. 🚨 **And being inspected is not being safe: the
+> restore path has NEVER been tested — this box has NO PROVEN RECOVERY PATH; `0218` owns it and is
+> OPEN.** ⚠️ Original text kept below, struck, not deleted.
+
+~~The owner can inspect the box directly and has a read-only command set. **Until those results
 arrive, every field below is UNKNOWN, and no child phase may assume a value for one.** The fields and
-their commands live in [`0215`](../0215-profile-p1-stand-up-the-box/brief.md); filling that table in
-**is** the answer to the owner's "what was done and what wasn't".
+their commands live in [`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md); filling that table in
+**is** the answer to the owner's "what was done and what wasn't".~~
 
 ### ⚠️ The work is SMALLER than "rebuild" implies
 
@@ -122,15 +136,22 @@ five gaps.** Neither greenfield nor procurement.
 | Phase | Task | Effort | Risk | Depends on |
 |---|---|---|---|---|
 | **P0 — Decisions** | [`0214`](../0214-profile-p0-infrastructure-decisions/brief.md) | ~0 eng | — | — |
-| **P1-spike — RU reachability** | [`0216`](../0216-profile-p1-spike-ru-network-reachability/brief.md) | 1–2 h | **UNKNOWN** | ✅ **none — runnable TODAY** |
-| **P1 — Inspect, wipe, re-provision in place** | [`0215`](../0215-profile-p1-stand-up-the-box/brief.md) | 0.5–1 day / 2–3 if it surprises | Medium-High | P0, P1-spike |
-| **P2 — Wire the game server** | [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) | 2–4 h + deploy window | Medium | P1 |
-| **P3 — Durability proof** | [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) | 0.5 day + owner action | **High** | P1 |
-| **P4 — Operability** | [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) | 1 day | Low tech / **HIGH consequence** | P1 |
+| ~~**P1-spike — RU reachability**~~ 🔴 **NARROWED + RETITLED 2026-09-10 (owner ruling): "Prove the box can still obtain a Let's Encrypt certificate."** — ✅ **Done (agent-closed — not owner-verified) 2026-09-10.** 🔴 **PROVEN: the box CAN complete a full ACME HTTP-01 challenge and obtain a certificate — never verified before today**, because `0215`'s deploy PRESERVED the cert via `--keep-until-expiring` (issuance was **a no-op**, so **no challenge had ever been observed**). **Evidence on the box:** cert valid to **2026-11-20 (70 days)**, ECDSA; `certbot renew --dry-run` with the cron's pre/post nginx hooks → **all simulated renewals succeeded**; nginx **active** and `https://…/health` **200** afterwards. ✅ **Run against LE STAGING — a FULL challenge, ZERO production rate-limit spent**, and **the pre/post nginx hooks were exercised and work**, so **the renewal path is proven END TO END** (same mechanism the twice-daily cron uses from ~2026-10-21). 📌 `Account registered.` = a new LE **staging** account, expected on a first staging run, **no effect on the production account or its limits** — not a finding. 🚨 **RESIDUAL, NOT CLOSED BY THIS: renewal works TODAY, but NOTHING READS THE RENEWAL LOG — that is `0219`, still OPEN.** If renewal breaks before October (firewall, provider, nginx config) it still fails **SILENTLY, twice a day, until the certificate expires and `api.geoconflict.ru` stops serving TLS.** ⇒ 🔴 **THIS PROVED CAPABILITY, NOT MONITORING — "P1-spike Done" does NOT mean the certificate is safe.** 🚨 **Still dropped and NOT restored: intermittency (never measured — a pass on ONE afternoon says nothing about an intermittent network), latency (never recorded), `get.docker.com` (never fetched — live again for a new box or an OS reinstall).** ⚠️ **Marker: the OWNER personally ran every command, guided, and the lead read the raw output — better-evidenced than a typical agent close — but no owner sign-off was taken on the close, and nothing is verified in production use.** | [`0216`](../../done/0216-profile-p1-spike-ru-network-reachability/brief.md) | ~~1–2 h~~ **~15 min** | ~~**UNKNOWN**~~ ✅ **ANSWERED — HTTP-01 works; monitoring gap remains (`0219`)** | ✅ **none — was runnable today, and was run** |
+| **P1 — Inspect, wipe, re-provision in place** — ✅ **Done (agent-closed — not owner-verified) 2026-09-10.** 🔴 **NO WIPE HAPPENED** — the inventory found the box **live and healthy** and the **owner ruled ADOPT**; the only destructive act was destroying the Postgres data volume to rotate `POSTGRES_PASSWORD` at `initdb`, owner-ruled, at a re-verified **0 rows**. **All 13 verification items satisfied** (two with stated limits: the `ufw` **default policy** was not re-checked today, and RU residency is **single-provider registration evidence, not a physical-site attestation**). 🚨 **The restore path has NEVER been tested — this box has NO PROVEN RECOVERY PATH; `0218` owns it and is OPEN.** Full close record in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) | [`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) | 0.5–1 day / 2–3 if it surprises | Medium-High | P0, P1-spike |
+| 🔴 **WORK ORDER 1 of 3** — **P3 — Durability proof** *(owner-ruled 2026-09-10; the restore path is the only claim still resting on faith, and it is cheapest to prove while every table has ZERO rows)* | [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) | 0.5 day + owner action | **High** | P1 |
+| 🔴 **WORK ORDER 2 of 3** — **P4 — Operability** *(owner-ruled 2026-09-10; owns the monitoring gap for BOTH unread signals — the certificate renewal log and `last-backup.json`. Dated fuse: cert `notAfter` 2026-11-20, cron starts attempting ~2026-10-21)* | [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) | 1 day | Low tech / **HIGH consequence** | P1 |
+| 🔴 **WORK ORDER 3 of 3** — **P2 — Wire the game server** *(owner-ruled 2026-09-10; it is the step that ENDS the free window — once real citizen rows exist the restore drill and any Postgres work stop being free. ⛔ **LAST IS NOT DEPRIORITIZED** — deliberate sequencing, rank unchanged)* | [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) | 2–4 h + deploy window | Medium | P1 |
 | **P5 — Secret persistence + value parity** | [`0220`](../0220-profile-p5-secret-persistence-and-value-parity/brief.md) | 0.5–1 day | Medium | P1 |
 | **P6 — OS hardening** | [`0221`](../0221-profile-p6-os-baseline-hardening/brief.md) | 0.5–1 day | Low-Medium | P1 |
 | **P7 — Gate the shell harnesses** — ✅ **Done (agent-closed — not owner-verified) 2026-09-06** | [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) **(existing, Phase 2)** | 2–4 h | Low | ✅ **none — startable today** |
 | **Cleanup — obsolete secrets + old-object disposition** | [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md) | ~0.5 day, mostly owner | Low, but carries the 🔴 `age` decision | — |
+
+🔴 **THE ROW ORDER OF P2 / P3 / P4 IN THIS TABLE NO LONGER FOLLOWS THE P-NUMBERS — THAT IS DELIBERATE AND OWNER-RULED, 2026-09-10, given live in session and relayed through the spawning session.** **The ruled work order is `0218` (P3) → `0219` (P4) → `0217` (P2).** 🚨 **THIS RUNS P2 *AFTER* P3 AND P4. ⛔ DO NOT "FIX" THE TABLE BACK INTO P-NUMBER ORDER.** The P-numbers record the order the phases were **written** in on 2026-09-04; they are **not** the order they are to be **worked** in.
+
+⚠️ **The owner ruled RANK/ORDER, NOT schedule** — ⛔ **no child task's `## Status` changed, no mover skill was invoked, and all three briefs stay under `ai-agents/tasks/backlog/`. SCHEDULED IS NOT STARTED.** The full reasoning is recorded in the Sprint 4 board's work-order addendum ([`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md)); it is summarised in the Phase cells above so a reader of this table alone is not misled.
+
+📌 **`0220` (P5), `0221` (P6) and `0222` (Cleanup) were NOT ruled** — they keep their existing positions and the producer's ranks. ⚠️ **The `Depends on` column is UNCHANGED and still says `P1` for all three** — the ruling set the order they are worked in, it did **not** create or remove a technical dependency between them.
+
 
 **Dependency shape:**
 
@@ -140,8 +161,15 @@ P0 (0214) → P1 (0215) → P2 (0217) → 0062 verified → 0017 / 0012 live tai
               │
               ├── P3 (0218)  ├── P4 (0219)  ├── P5 (0220)  └── P6 (0221)
 
-P1-spike (0216) — ✅ RUNNABLE TODAY, no longer gated behind procurement. Its result can still
-                  change P1's SHAPE (a registry mirror, a DNS-01 rework), not just its pace.
+P1-spike (0216) — ✅ DONE 2026-09-10 (agent-closed — not owner-verified). PROVEN: the box can
+                  complete a full ACME HTTP-01 challenge and obtain a certificate — never
+                  verified before that day. The dry run hit LE STAGING (full challenge, zero
+                  production rate limit) and the pre/post nginx hooks worked, so the renewal
+                  path is proven end to end, not just the challenge. No DNS-01 rework needed.
+                  🚨 RESIDUAL: NOTHING READS THE RENEWAL LOG — that is P4 (0219), OPEN. A
+                  renewal that breaks before October still fails SILENTLY until the cert
+                  expires. THIS PROVED CAPABILITY, NOT MONITORING. Still never measured:
+                  intermittency, latency, get.docker.com.
 P7 (0201)      — ✅ DONE 2026-09-06 (agent-closed — not owner-verified). Three of the four
                   harnesses now run in `npm test`; the fourth is an npm script by owner ruling.
 Cleanup (0222) — owner action. 🔴 Carries the re-opened age-key decision.

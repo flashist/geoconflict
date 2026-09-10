@@ -12,6 +12,8 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       getPaymentsCatalogStatus: jest.fn(),
       getSignedPurchases: jest.fn(),
       consumePurchase: jest.fn(),
+      // Task 0236 kill switch — enabled by default in beforeEach.
+      isCitizenshipSurfacesEnabled: jest.fn(),
     },
   },
 }));
@@ -32,6 +34,8 @@ const getPaymentsCatalogStatus = FlashistFacade.instance
 const getSignedPurchases = FlashistFacade.instance
   .getSignedPurchases as jest.Mock;
 const consumePurchase = FlashistFacade.instance.consumePurchase as jest.Mock;
+const isCitizenshipSurfacesEnabled = FlashistFacade.instance
+  .isCitizenshipSurfacesEnabled as jest.Mock;
 const reconcile = reconcilePurchases as jest.Mock;
 
 async function flushAsync(): Promise<void> {
@@ -52,6 +56,7 @@ describe("PaymentsReconciliation", () => {
     reconciledEvents = 0;
     window.addEventListener(PURCHASES_RECONCILED_EVENT, onReconciled);
     getPaymentsCatalogStatus.mockReturnValue("ready");
+    isCitizenshipSurfacesEnabled.mockResolvedValue(true);
     getSignedPurchases.mockResolvedValue({ signature: "sig.list" });
     reconcile.mockResolvedValue(["tok-1", "tok-2"]);
     consumePurchase.mockResolvedValue(undefined);
@@ -59,6 +64,17 @@ describe("PaymentsReconciliation", () => {
 
   afterEach(() => {
     window.removeEventListener(PURCHASES_RECONCILED_EVENT, onReconciled);
+  });
+
+  it("does not reach the profile server while the kill switch is off (task 0236)", async () => {
+    isCitizenshipSurfacesEnabled.mockResolvedValue(false);
+    schedulePaymentsReconciliation();
+    await flushAsync();
+
+    expect(getSignedPurchases).not.toHaveBeenCalled();
+    expect(reconcile).not.toHaveBeenCalled();
+    expect(consumePurchase).not.toHaveBeenCalled();
+    expect(reconciledEvents).toBe(0);
   });
 
   it("consumes every returned token and fires the reconciled event once", async () => {

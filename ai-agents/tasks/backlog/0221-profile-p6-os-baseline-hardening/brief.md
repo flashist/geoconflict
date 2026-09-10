@@ -22,7 +22,7 @@ internet-facing.
 fkit-coder
 
 ## Depends on
-[`0215`](../0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to harden.
+[`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to harden.
 
 ## Context
 

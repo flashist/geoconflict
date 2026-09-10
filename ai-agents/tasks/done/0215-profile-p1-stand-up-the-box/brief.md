@@ -19,7 +19,7 @@
 > all week. Where a struck line and a correction disagree, **the correction wins.**
 
 ## Parent / Epic
-[`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
+[`0213-profile-backend-clean-slate-rebuild`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)
 
 ## Sprint
 Sprint 4
@@ -31,13 +31,13 @@ P3, P4, P5 and P6 all hang off it.
 ⚠️ **The rank is the producer's**; the owner ruled scheduling, not rank.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder / operator
 
 ## Depends on
-- [`0214`](../0214-profile-p0-infrastructure-decisions/brief.md) (P0) — the spec and hostname
+- [`0214`](../../backlog/0214-profile-p0-infrastructure-decisions/brief.md) (P0) — the spec and hostname
   decisions, both now **settled** and both now **conditional on inspection**.
 - [`0216`](../0216-profile-p1-spike-ru-network-reachability/brief.md) (P1-spike) — ✅ **runnable
   today**; **its result can change this task's scope, not just its schedule.**
@@ -77,7 +77,7 @@ wasn't"* — is answered by **filling in the table below**, not by building anyt
 | `setup-profile.sh` (1,025 lines) | Provisions **and** deploys — swap, Docker, ufw, nginx, TLS, compose, a 120-second health gate with auto-rollback. ✅ **Idempotent** |
 | `build-deploy-profile.sh` (575 lines) | Hardened two-hop deploy driver |
 | `migrations/001`–`004` + `migrate.ts` | ✅ **Idempotent** — `schema_migrations`-tracked; **re-runs are no-ops** |
-| [`0182`](../../done/0182-profile-04i-server-bring-up-runbook/brief.md) | **A complete operator runbook.** ⚠️ **Read its 2026-09-04 annotations — two of its lines are WRONG** |
+| [`0182`](../0182-profile-04i-server-bring-up-runbook/brief.md) | **A complete operator runbook.** ⚠️ **Read its 2026-09-04 annotations — two of its lines are WRONG** |
 
 **Effort 0.5–1 day if nothing surprises, 2–3 days if it does. Risk Medium-High.**
 
@@ -119,7 +119,7 @@ auto-generates and persists it."*
 token the **box** mints, which the **game server** does not hold, is a **401 on every credit call**.
 The client is fail-soft with **no durable queue** (ADR-101) ⇒ **the XP is LOST, not queued**, and
 nothing logs above `debug`. ➡️ **Generate it ONCE and set the SAME value on both sides** — the game
-side is [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2).
+side is [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2).
 
 ⚠️ **Owner ruling 2026-09-04: `PROFILE_INTERNAL_TOKEN` stays deliberately BLANK for the upcoming GAME
 deploy** — citizenship is not ready. That governs the **game** side and does **not** license letting
@@ -158,7 +158,7 @@ guard working**, not a bug.
 
 🔴 **The old encrypted objects sit in the OLD bucket, which is no longer on this path** — they remain
 unreadable without an `age` private identity nobody can name. Disposition is
-[`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md), **whose question
+[`0222`](../../backlog/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md), **whose question
 changed shape on 2026-09-08** (a separable old bucket admits abandoning the whole bucket, not just
 its objects) and is **UNANSWERED and the owner's**. **This task deletes nothing and decides nothing
 about the old bucket.**
@@ -237,7 +237,7 @@ schema lacking their tables, and `0067` is already closed, so nothing else is wa
 
 ## Notes
 
-- **Primary reference:** [`0182`](../../done/0182-profile-04i-server-bring-up-runbook/brief.md).
+- **Primary reference:** [`0182`](../0182-profile-04i-server-bring-up-runbook/brief.md).
   ⚠️ **Read its annotations** — `:136-137` (the token trap) and `:219` (a moved line reference and a
   since-shipped deferral) were both corrected 2026-09-04, plus a top banner.
 - **Blocks:** P2, P3, P4, P5, P6 — and transitively `0062`'s live verification, `0017`'s and

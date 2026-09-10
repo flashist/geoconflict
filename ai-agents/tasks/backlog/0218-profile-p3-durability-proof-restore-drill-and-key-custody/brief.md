@@ -28,7 +28,41 @@ Sprint 4
 **High — and this is the phase with the highest consequence of being skipped.** Every other phase
 degrades a service; this one loses the data.
 
-⚠️ **The rank is the producer's**; the owner ruled scheduling, not rank.
+⚠️ **The `High` label is the producer's.** 🔴 **The POSITION/ORDER is OWNER-RULED — see directly below.**
+
+---
+
+🔴 **WORK ORDER OWNER-RULED 2026-09-10, given live in session and relayed through the spawning
+session: `0218` (P3) → `0219` (P4) → `0217` (P2).**
+
+🚨 **THIS RUNS P2 *AFTER* P3 AND P4 — the epic's own P-number sequence is DELIBERATELY INVERTED.
+⛔ DO NOT "FIX" IT BACK.** The P-numbers record the order the phases were **written** in on
+2026-09-04, not the order they are to be **worked** in.
+
+⚠️ **The owner ruled RANK/ORDER, NOT schedule** — ⛔ **`## Status` below is UNCHANGED, no mover skill
+was invoked, and this brief stays under `ai-agents/tasks/backlog/`. SCHEDULED IS NOT STARTED.**
+⚠️ **The `High` LABEL above is still the producer's** — the owner ruled position, not label.
+
+**The reasoning, recorded because the order is not the obvious one:**
+
+- **`0218` leads** — the restore path is the **only claim in this epic still resting on faith**.
+  Backups **encrypt and upload — proven**; that a backup **RESTORES is UNPROVEN**, and the old
+  bucket's objects are permanently unreadable for exactly that reason. ✅ **Cheapest to prove NOW,
+  while every table has ZERO rows.**
+- **`0219` second** — it owns the monitoring gap for **both** unread signals on that box: the
+  **certificate renewal log** and **`/opt/profile/backups/last-backup.json`**. **Capability is proven
+  for both; nobody is watching either.** **Dated fuse: the certificate's `notAfter` is 2026-11-20 and
+  `setup-profile.sh:983`'s twice-daily `certbot renew` starts attempting from ~2026-10-21.**
+- **`0217` last** — it is the step that **ENDS THE FREE WINDOW**: once the game server is wired and
+  **real citizen rows exist**, the restore drill and any Postgres work **stop being free**.
+  ⛔ **LAST IS NOT DEPRIORITIZED — deliberate sequencing, rank unchanged.**
+
+⚠️ **The `Depends on` relationships are UNCHANGED.** The ruling set the order these are worked in; it
+did **not** create or remove a technical dependency. 🔒 **ADR-035: the repositioning lift was granted
+for THESE MOVES ONLY — not a standing licence, not precedent.**
+
+📌 **`0220` (P5), `0221` (P6) and `0222` (Cleanup) were NOT ruled** — they keep their existing
+positions and the producer's ranks.
 
 ## Status
 🔲 Backlog
@@ -37,7 +71,7 @@ degrades a service; this one loses the data.
 fkit-coder / operator — **plus a required owner action** (key custody).
 
 ## Depends on
-[`0215`](../0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box with the backup path configured
+[`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box with the backup path configured
 against a **brand-new, clean** bucket (🚨 **owner ruling 2026-09-08 — NOT the old one**) and a
 **newly generated** `age` keypair.
 

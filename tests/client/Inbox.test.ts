@@ -6,6 +6,9 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     instance: {
       isYandexAuthorized: jest.fn(),
       getYandexUniqueId: jest.fn(),
+      // Task 0236: the combined layer-1 + layer-2 gate. Defaults to enabled in
+      // beforeEach, matching this suite's CITIZENSHIP_CARD_ENABLED: true below.
+      isCitizenshipSurfacesEnabled: jest.fn(),
     },
   },
   flashist_logEventAnalytics: jest.fn(),
@@ -59,6 +62,26 @@ const getYandexUniqueId = FlashistFacade.instance
   .getYandexUniqueId as jest.Mock;
 const getServerConfig = getServerConfigFromClient as jest.Mock;
 const logEventAnalytics = flashist_logEventAnalytics as jest.Mock;
+const isCitizenshipSurfacesEnabled = FlashistFacade.instance
+  .isCitizenshipSurfacesEnabled as jest.Mock;
+
+// Task 0236. Mirrors the real helper (layer 1 AND layer 2) rather than
+// hard-coding a boolean, so the existing launch-flag case below keeps testing
+// layer 1 for real while the remote kill switch gets its own case.
+let remoteCitizenshipFlagEnabled = true;
+
+/**
+ * Re-installs the gate stub after a jest.clearAllMocks(). Every describe below
+ * clears mocks in its own beforeEach, so this must be called in each of them.
+ */
+function stubCitizenshipGate(): void {
+  remoteCitizenshipFlagEnabled = true;
+  isCitizenshipSurfacesEnabled.mockImplementation(
+    async () =>
+      flashistConstants.features.CITIZENSHIP_CARD_ENABLED &&
+      remoteCitizenshipFlagEnabled,
+  );
+}
 
 const PROFILE_API_BASE = "https://api.example.test";
 
@@ -102,6 +125,7 @@ describe("loadInboxState", () => {
     });
     isYandexAuthorized.mockResolvedValue(true);
     getYandexUniqueId.mockResolvedValue("yandex-123");
+    stubCitizenshipGate();
   });
 
   afterEach(() => {
@@ -110,6 +134,14 @@ describe("loadInboxState", () => {
 
   it("is unavailable and never fetches while the launch flag is off", async () => {
     flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
+    const fetchMock = stubFetch(200, { messages: [message(1)] });
+    await expect(loadInboxState()).resolves.toEqual(UNAVAILABLE);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(isYandexAuthorized).not.toHaveBeenCalled();
+  });
+
+  it("is unavailable and never fetches while the remote kill switch is off (task 0236)", async () => {
+    remoteCitizenshipFlagEnabled = false;
     const fetchMock = stubFetch(200, { messages: [message(1)] });
     await expect(loadInboxState()).resolves.toEqual(UNAVAILABLE);
     expect(fetchMock).not.toHaveBeenCalled();
@@ -256,6 +288,7 @@ describe("markInboxRead vs an in-flight refresh (review R1)", () => {
     });
     isYandexAuthorized.mockResolvedValue(true);
     getYandexUniqueId.mockResolvedValue("yandex-123");
+    stubCitizenshipGate();
   });
 
   afterEach(() => {
@@ -337,6 +370,7 @@ describe("markInboxRead", () => {
     });
     isYandexAuthorized.mockResolvedValue(true);
     getYandexUniqueId.mockResolvedValue("yandex-123");
+    stubCitizenshipGate();
   });
 
   afterEach(() => {

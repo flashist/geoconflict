@@ -9,10 +9,24 @@ jest.mock("../../src/client/Utils", () => ({
   translateText: jest.fn((key: string) => `t:${key}`),
 }));
 
+// Task 0236: the badge now reads the kill switch's SYNC snapshot. Mocked to the
+// sync getter alone so this suite keeps testing the badge, not platform init.
+jest.mock("../../src/client/flashist/FlashistFacade", () => ({
+  FlashistFacade: {
+    instance: {
+      isCitizenshipSurfacesEnabledSync: jest.fn(),
+    },
+  },
+}));
+
 import fs from "fs";
 import path from "path";
 import { render } from "lit";
 import { renderCitizenBadge } from "../../src/client/CitizenBadge";
+import { FlashistFacade } from "../../src/client/flashist/FlashistFacade";
+
+const isCitizenshipSurfacesEnabledSync = FlashistFacade.instance
+  .isCitizenshipSurfacesEnabledSync as jest.Mock;
 
 const LANG_DIR = path.join(__dirname, "../../resources/lang");
 
@@ -51,6 +65,12 @@ describe("citizen_badge localization (task 0068)", () => {
 });
 
 describe("renderCitizenBadge (task 0068)", () => {
+  // The kill switch is ON for the original cases below — they assert what the
+  // badge renders, which is only meaningful when it renders at all (task 0236).
+  beforeEach(() => {
+    isCitizenshipSurfacesEnabledSync.mockReturnValue(true);
+  });
+
   function renderToHtml(): string {
     const host = document.createElement("div");
     render(renderCitizenBadge(), host);
@@ -79,5 +99,30 @@ describe("renderCitizenBadge (task 0068)", () => {
     expect(html).not.toMatch(/[\u{1F1E6}-\u{1F1FF}]/u); // regional-indicator flags
     expect(html).not.toContain("\u{1F3F3}"); // 🏳
     expect(html).not.toContain("\u{1F3F4}"); // 🏴
+  });
+});
+
+describe("renderCitizenBadge kill switch (task 0236)", () => {
+  function renderToHost(): HTMLElement {
+    const host = document.createElement("div");
+    render(renderCitizenBadge(), host);
+    return host;
+  }
+
+  it("renders no badge when the switch is off", () => {
+    isCitizenshipSurfacesEnabledSync.mockReturnValue(false);
+    // Asserted on the element, NOT on innerHTML === "": lit leaves comment
+    // markers behind, so an empty-string assertion would be wrong.
+    expect(renderToHost().querySelector(".citizen-badge")).toBeNull();
+  });
+
+  // The pre-resolution / fail-closed default is NOT tested here: this suite
+  // mocks the facade module wholesale, so it can only observe what the mock was
+  // told to return — it can never see the real `citizenshipSurfacesSnapshot`
+  // field default or run the prime. That coverage lives in
+  // FlashistFacade.test.ts, against a real (bare-prototype) facade.
+  it("renders the badge when the switch is on", () => {
+    isCitizenshipSurfacesEnabledSync.mockReturnValue(true);
+    expect(renderToHost().querySelector(".citizen-badge")).not.toBeNull();
   });
 });

@@ -14,7 +14,7 @@
 > existence and provisioning state are two different facts, and only the first is known.**
 >
 > ✅ **This runbook is still the right procedure and it is NOT deprecated.** It is the primary
-> reference for [`0215`](../../backlog/0215-profile-p1-stand-up-the-box/brief.md) (P1) — which is now
+> reference for [`0215`](../0215-profile-p1-stand-up-the-box/brief.md) (P1) — which is now
 > **inspect → wipe → re-provision IN PLACE**, not a fresh procurement. ✅ **`setup-profile.sh` is
 > idempotent, so re-running it is exactly the right move.** What is stale is every past-tense claim
 > here that a box **is** live — read those as *what this procedure did once*, never as a description
@@ -185,7 +185,7 @@ PROFILE_SSH_KEY=~/.ssh/<your-private-key>
 > ✅ **What to do instead: generate `PROFILE_INTERNAL_TOKEN` ONCE, explicitly, and set the SAME value
 > on BOTH sides** — here on the box, and in the game server's production environment. See
 > [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2), which owns the
-> game-server half, and [`0215`](../../backlog/0215-profile-p1-stand-up-the-box/brief.md) (P1), which
+> game-server half, and [`0215`](../0215-profile-p1-stand-up-the-box/brief.md) (P1), which
 > owns this half.
 >
 > ⚠️ **There is a SECOND silent barrier on the same path**, and one does not reveal the other:

@@ -44,6 +44,20 @@ export function schedulePaymentsReconciliation(): void {
 async function runPaymentsReconciliation(): Promise<void> {
   await flashist_waitGameInitComplete();
 
+  // Kill switch (task 0236): no profile-server POST while the citizenship
+  // surfaces are switched off. Gated here rather than at the FlashistFacade
+  // call site because this is the single choke point in front of the only
+  // profile-server call in this module, so every caller is covered. Past the
+  // init gate, so the flags are settled and this can be a real await.
+  //
+  // Known, owner-accepted consequence: this also suspends CONSUMING purchases
+  // the server already granted. Nothing is lost — an unconsumed purchase
+  // resurfaces in the next session's getPurchases(), which is this module's own
+  // retry — but the moderation-compliance pass above is dormant while off.
+  if (!(await FlashistFacade.instance.isCitizenshipSurfacesEnabled())) {
+    return;
+  }
+
   const facade = FlashistFacade.instance;
   if (facade.getPaymentsCatalogStatus() !== "ready") {
     return;

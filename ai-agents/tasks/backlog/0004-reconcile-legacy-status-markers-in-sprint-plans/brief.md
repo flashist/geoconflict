@@ -107,13 +107,39 @@ run until this task makes at least one `plan-sprint-*.md` readable. Nothing here
 this task. Each was **ruled by the owner on 2026-08-26**; apply them as written, alongside the
 general reconciliation. All four touch files this task already edits.
 
-1. **`0119-nations-balance` cancel date → `2026-04-18`.** The brief
-   (`ai-agents/tasks/cancelled/0119-nations-balance/brief.md`) reads
-   `⛔ Cancelled (2026-04-18) — created too many bugs; cancelled forever, though a similar task might return someday`
-   (date = the git rename into `cancelled/`, `1e857a0`; owner ruled option (C) on 2026-08-25). The
-   sprint-plan cell at `ai-agents/sprints/plan-sprint-4.md:56` still reads `2026-04-21` — that is the
-   date of the plan edit (`e7e1b12`), not the cancellation. **Align the cell's date to `2026-04-18`;
-   keep the owner-supplied reason text exactly as it is.** Do not touch the brief.
+📌 **UPDATED 2026-09-10 — this section now holds EIGHT numbered items, not four, and item 1 is already
+DISCHARGED.** Items **5 through 8 were added on 2026-09-10** and did **not** come from `0003`: **item
+5** was folded in on an **owner ruling given live in session**; **items 6, 7 and 8 are recorded only
+and NOT ruled by anyone** — read each one's own note before treating it as work, and note that **item
+8 records its own weak fit and names a better home.** ⚠️ **Item 1 is ✅ done; it is kept
+as the record, not as remaining work.** ⛔ **The numbering of items 1-4 is deliberately
+unchanged so existing references to "hand-off item N" still resolve.**
+
+1. ✅ **DISCHARGED 2026-09-10 — `0119-nations-balance` cancel date aligned to `2026-04-18`. Nothing
+   is left to do on this item; it is kept here as the record, not as work.**
+
+   **What was done:** the Sprint 4 board cell now reads `⛔ Cancelled (2026-04-18)`. **The
+   owner-supplied reason text was kept exactly as it was**, and **the brief was not touched** — both
+   as this item required. The Task cell's provenance note, which had claimed *"date recovered from
+   plan edit `e7e1b12`"* (a statement that was true of the **old** value and false of the new one),
+   was rewritten to cite the real source.
+
+   ⚠️ **The line reference in the original item was stale.** It named
+   `ai-agents/sprints/plan-sprint-4.md:56`; the row had since moved and was edited at **`:78`**.
+   ⛔ **Do not trust any line number in this brief without re-deriving it** — that board is edited
+   many times a day. Locate rows by their task link (`0119-nations-balance`), never by line.
+
+   **Authority:** executed under an **owner ruling given live in session on 2026-09-10** and relayed
+   through the spawning session, which **matched this task's own standing ruling of 2026-08-26**
+   (itself following the owner's option-(C) ruling of 2026-08-25). It was not a producer decision.
+
+   **The evidence, recorded so it is never re-derived:** commit **`1e857a0` (2026-04-18)** does two
+   things in one commit — it adds the no-ship review
+   (`ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, itself dated **2026-04-18**, whose
+   recommendation is *"Cancel or close the current implementation task/PR as unsuccessful"*) **and**
+   renames the brief from `tasks/backlog/` into `tasks/cancelled/` (a 100 %-similarity rename).
+   Commit **`e7e1b12` (2026-04-21)** only flipped the board cell from `⬜ Backlog` to `⛔ Cancelled`
+   — **the board catching up three days later, not the cancellation.**
 
 2. **Rewrite the `See cancelled-tasks.md` pointers.** `ai-agents/sprints/cancelled-tasks.md` was
    deleted in `6666989`; its content now lives at
@@ -137,6 +163,106 @@ general reconciliation. All four touch files this task already edits.
    done/cancelled briefs' location as drift "until `0003` runs — expected". `0003` has run. Rewrite or
    remove that sentence so the note no longer predicts a state that has passed; leave the rest of
    each note (the `⚠️ Urgent` remark, etc.) for the general reconciliation.
+
+5. 🔴 **A CLASS OF DEFECT, NOT TWO INSTANCES — briefs whose `## Status` carries TWO status-shaped
+   lines.** *(Folded into this task on an **owner ruling given live in session, 2026-09-10**, relayed
+   through the spawning session. The owner ruled it be folded here rather than fixed on the spot or
+   filed as a new task, because this task already owns status-marker reconciliation and sits on the
+   Backlog board. ⛔ **Nothing was fixed at the time of filing** — deliberately, so the pattern is not
+   half-repaired.)*
+
+   **The two known instances:**
+
+   | Task | First line | Second line |
+   |---|---|---|
+   | `0128-legal-vat-investigation` (in `tasks/done/`) | `✅ Done` | `✅ Done — completed 2026-04-21.` |
+   | `0139-start-screen-redesign-investigation` (in `tasks/done/`) | `✅ Done` | `✅ Closed — all decisions made 2026-04-22.` |
+
+   🚨 **`✅ Closed` is NOT a canonical value** — the six canonical values are `🔲 Backlog`,
+   `🔄 In progress`, `🚧 Blocked — <reason>`, `✅ Done`, `⛔ Cancelled (YYYY-MM-DD) — <reason>`
+   and `➡️ Moved`. `✅ Closed` is not among them.
+
+   🔴 **Why it matters: a mover skill cannot tell which line is the value.** A `## Status` section with
+   two status-shaped lines has no single readable value, so any tool that parses it is guessing.
+
+   ✅ **Nothing is live** — both tasks are already closed, so no in-flight work depends on either.
+   ⚠️ **That is why it is filed rather than urgent; it is NOT a reason to drop it.**
+
+   🚨 **TREAT THIS AS A CLASS, NOT A PAIR. If two exist, others may.** ⛔ **Do not "fix the two and
+   move on."** This task's step 1 inventory must **sweep every `## Status` section under
+   `ai-agents/tasks/` for more than one status-shaped line** and report the full count before any are
+   changed. **Two is what one sweep found; it is not established as the total.**
+
+   ⚠️ **Deciding which line survives is a judgement, not a mechanical trim** — the second line in each
+   case carries a **date the first does not**. ⛔ **Do not discard information to make the field
+   parseable.** Recommend a merged canonical value per instance and, where the two lines disagree on
+   anything more than formatting, **put it to the owner rather than choosing.**
+
+   ⛔ **The movers are producer-only (ADR-033) and neither task's status is changing** — this is a
+   notation fix on records that contradict themselves, not a state change.
+
+6. 📌 **RECORDED, NOT ASSIGNED — a stray `</content>` tag at the end of 14 files.** *(Found during the
+   2026-09-10 sweep. ⚠️ **NOT owner-ruled, and NOT ruled by the spawning session either** — it is
+   recorded here so it is not rediscovered from scratch. **Whether it belongs to this task at all is
+   an OPEN QUESTION for the owner**, since this task's scope is the status *vocabulary*, and this is a
+   file-authoring artifact that merely shares the same cause — bulk-authored task briefs.)*
+
+   **What it is:** a literal `</content>` line as the **last line** of the file — an authoring-tool
+   artifact, not content. **It is not markdown, and it renders as visible stray text.**
+
+   **Where (14 files, all under `ai-agents/`):** briefs `0199`, `0213`, `0214`, `0215`, `0216`, `0217`,
+   `0218`, `0219`, `0220`, `0221`, `0222`, `0223`, `0224`, plus the report
+   `knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md`.
+
+   ⛔ **NONE OF THE 14 WAS FIXED, DELIBERATELY.** Fixing one — `0219` was being edited at the time —
+   would have left 13 inconsistent and **hidden the pattern**, which is the failure mode worth avoiding
+   here. ⚠️ **If this is picked up, fix all 14 in one pass or none.**
+
+   ⚠️ **The count `14` is from one grep on 2026-09-10 and will drift** — re-derive it before acting.
+
+7. **RECORDED ONLY, NOT RULED AS WORK — the Backlog board's `## Sprint` fields are decorated, and
+   `dashboard.sh` reports 21 drifted rows because of it.** *(Added 2026-09-10 by a spawned
+   `fkit-producer`, on the **coordinator's** instruction to put it on this pile — ⚠️ **not an owner
+   ruling**. Same standing as item 6: recorded so it is not rediscovered from scratch.)*
+
+   **What it is:** `dashboard.sh`'s drift rule compares a brief's `## Sprint` field against the
+   board's identity, which for [`backlog.md`](../../../sprints/backlog.md) is the bare token
+   `Backlog`. **Any decoration fails the match** — `Backlog — unscheduled`, `Backlog board`,
+   `**Backlog board.**`, `Backlog — unscheduled. Filed on …`, and longer prose forms all report as
+   `drift disagreement`.
+
+   **Scale, measured 2026-09-10:** `bash .claude/skills/fkit-status/dashboard.sh
+   ai-agents/sprints/backlog.md` reports **21 drifted tasks**; two of them are a different shape
+   (`0057`, `0062` — `moved-without-target`), the rest are this one. **The Sprint 4 board is
+   effectively clean by comparison: 1 drifted task (`0230`), same decoration cause.**
+
+   ⚠️ **The fix is one line per brief** — make `## Sprint` the bare token and move any qualifier to
+   prose **below** the field. `0237` and `0238` were filed this way deliberately and report no drift;
+   `0001`, `0202` and `0229` already conform. ⛔ **Fix all of them in one pass or none** — the same
+   reasoning as item 6: a partial pass hides the pattern.
+
+   ⚠️ **The count `21` is from one run on 2026-09-10 and will drift** — re-run the checker before
+   acting. **Whether this belongs to this task at all is an OPEN QUESTION for the owner:** this task's
+   scope is the status *vocabulary*, and this is the `## Sprint` *field*. It lands here because it is
+   the same class of board↔brief reconciliation, not because anyone ruled it in.
+
+8. **RECORDED ONLY, NOT RULED AS WORK — `0236`'s review ledger contradicts itself about R6.** *(Added
+   2026-09-10 by a spawned `fkit-producer`, on the **coordinator's** instruction — ⚠️ **not an owner
+   ruling**. 🔴 **THE WEAKEST FIT OF THE EIGHT, and said so plainly.**)*
+
+   **What it is:** in
+   [`0236/review.md`](../../done/0236-client-kill-switch-for-citizenship-surfaces/review.md), the
+   *"Routed out of 0236"* list still carries **R-A (R6)** as routed, while **the coder's amendment at
+   the top of the same file and the round-2 disposition table both record R6 as FIXED inside `0236`**.
+   ✅ **The disposition table is the correct one.** The stale entry was **flagged in
+   [`0237`'s brief](../0237-close-routed-out-test-residuals-from-0236-citizenship-switch/brief.md)**
+   rather than edited, because a review ledger belongs to the reviewer.
+
+   ⚠️ **Why the fit is weak:** this is neither a status marker nor a `## Sprint` field — it is a
+   *review ledger's* internal consistency. **It lands here only because this is the record-hygiene
+   pile.** 📌 **The alternative disposition, which may well be the better one: leave it to
+   `fkit-reviewer`, whose ledger it is.** ⛔ **Do not fix it from this task without deciding that
+   first.**
 
 ## What to build
 

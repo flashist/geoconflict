@@ -1,4 +1,5 @@
-import { TemplateResult, html } from "lit";
+import { TemplateResult, html, nothing } from "lit";
+import { FlashistFacade } from "./flashist/FlashistFacade";
 import { translateText } from "./Utils";
 
 /**
@@ -22,7 +23,14 @@ const CITIZEN_BADGE_GLYPH = "★";
  * All four surfaces (host lobby, join-private lobby, leaderboard, player panel) are
  * light-DOM Lit components, so the Tailwind utilities below apply verbatim in each.
  */
-export function renderCitizenBadge(): TemplateResult {
+export function renderCitizenBadge(): TemplateResult | typeof nothing {
+  // Kill switch (task 0236) — "kill means kill" (owner ruling, 2026-09-10).
+  // Gated HERE rather than at the four call sites so it cannot drift: this is
+  // the only place the glyph lives. Reads the SYNC snapshot because this
+  // function returns a TemplateResult and cannot await the flag.
+  if (!FlashistFacade.instance.isCitizenshipSurfacesEnabledSync()) {
+    return nothing;
+  }
   return html`<span
     class="citizen-badge inline-flex items-center leading-none text-amber-300"
     role="img"
