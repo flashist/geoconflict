@@ -2941,3 +2941,50 @@ untouched per the append-only constraint. The one `0182/brief.md:184` still in `
 new rule's own **❌ counter-example**.
 
 **Watermark deliberately UNCHANGED at `589249c`** — this corrects vault text and ingests nothing.
+
+## 2026-09-10 — ingest (sync)
+
+- Sync window: `589249c` → HEAD (`00058df`)
+- **Changed files in window: 47. Ingest-worthy sources: 6.** Classification, because a raw count
+  badly overstates the delta here: **32 of the 47 are the vault's own prior output** (`00058df`
+  committed the previous run's pages *and* its sources together, and moved `.wiki-watermark` itself),
+  1 is outside `ai-agents/` (`example.env.profile`), 14 are `ai-agents/` candidates, and Step 3
+  filtering drops 8 of those (6 `backlog/*/brief.md` not done, plus `0215`'s `plan.md`/`worklog.md`).
+- ⚠️ **Trap confirmed and avoided:** the `0216` and `0236` briefs **predate the watermark** and were
+  already ingested; their vault pages merely *look* new because they were created in this commit. Not
+  re-ingested.
+
+**Ingested (6 sources → 6 pages updated, 0 created):**
+
+- `ai-agents/knowledge-base/conventions/file-line-citations.md` → updated [[wiki/systems/agent-conventions]]
+  (convention 10 extended: failure mode 4's second confirmed recurrence, three new named sub-shapes —
+  self-invalidation inside one commit, wrong-FILE vs wrong-line, concurrent uncommitted edits — and
+  the two operative rules)
+- `ai-agents/tasks/done/0182-profile-04i-server-bring-up-runbook/brief.md` → updated
+  [[wiki/tasks/profile-server-bring-up-runbook]] (403 "swallowed quietly" refuted; a **bare `:147-149`**
+  on the page removed in favour of content anchors; the `:175`/`:207` attribution corrected)
+- `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md` → updated
+  [[wiki/systems/project-brief]] (the ADR-005-routed correction the survey explicitly declined to make)
+  and [[wiki/decisions/adr-101-fail-soft-xp-crediting]] (the "silent" wording refuted at source)
+- `ai-agents/tasks/done/0215-profile-p1-stand-up-the-box/brief.md` → updated
+  [[wiki/tasks/postgres-backup-routine]] (the 0-rows drill claim's near-deletion arc; the two 0-rows
+  readings kept apart)
+- `ai-agents/sprints/backlog.md` → updated [[wiki/decisions/sprint-backlog]] (task `0239` filed;
+  ~2,186 bare `:NNN` refs recorded **as a hazard measurement, not a defect count**)
+- `ai-agents/sprints/plan-sprint-4.md` → **no page change.** Its whole delta was citation corrections
+  already captured above; [[wiki/decisions/sprint-4]] already carried the `0218` → `0219` → `0217`
+  order and the not-deployed statement from the prior run. Recorded rather than manufactured.
+
+**Skipped (with reason):** 6 backlog briefs `0004`/`0213`/`0217`/`0218`/`0219`/`0239` — not done, a
+page would be premature (`0239` is recorded as a board row instead); `0215`'s `plan.md` and
+`worklog.md` — in-folder working artifacts; all 32 `wiki-vault/**` paths — the vault's own output.
+
+**Verified against source rather than accepted from summary:** both `ProfileApiClient` WARN sites
+(file unchanged `589249c`→`00058df`); `0182/brief.md:175`/`:207` at `589249c`; their post-sweep
+positions `:185`/`:241` at `00058df`.
+
+⚠️ **One contradiction flagged, not resolved:** `conventions/file-line-citations.md` attributes the
+third citation recurrence to the wiki librarian; the `0239` brief row says the opposite. **Checked:
+the file supports `0239`.** The vault cannot edit that document (ADR-005) — routed to a human.
+
+**Watermark advanced `589249c` → `00058df`.**

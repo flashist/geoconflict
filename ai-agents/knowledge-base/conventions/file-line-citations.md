@@ -1,12 +1,29 @@
 # File:line citations
 
-> **Every document that cites `file:line` states which commit its citations were read against. A
-> citation is re-derived by opening the file — never by shifting the old number arithmetically. Bare
-> `:NNN` with no filename is not allowed.**
+> **A citation names a file and a greppable content anchor — not a line number.** Where a line number
+> is still used (the **committed-`src/` exception**), the document states which commit its citations
+> were read against, the citation is re-derived by opening the file — never by shifting the old
+> number arithmetically — and bare `:NNN` with no filename is not allowed.
 >
+> ⛔ ~~*Superseded 2026-09-10:* "Every document that cites `file:line` states which commit its
+> citations were read against. A citation is re-derived by opening the file…"~~ — line numbers were
+> the **primary** form until the owner's 2026-09-10 amendment demoted them to a named exception. The
+> struck framing and the reasons it changed are kept in
+> **"✅ BINDING — content anchors are the primary form"** below.
+>
+
 > Approved by the owner on 2026-09-07 as a convention, explicitly **not** as an ADR. Written after
 > task `0227` (commit `c910452`) invalidated the citations in four sibling briefs, which took three
 > separate catches to clean up.
+
+📌 **Citation frame for this document, and it applies to this document's own practice of what it
+preaches.** The citations added by the 2026-09-10 correction below — those to
+`ai-agents/tasks/done/0182-profile-04i-server-bring-up-runbook/brief.md` and to
+`ai-agents/tasks/done/0215-profile-p1-stand-up-the-box/worklog.md` — were re-derived by content
+against commit **`00058df`**, and both files are **clean in the working tree at that commit**, so a
+commit frame is sufficient for them (checked, not assumed — that is exactly what the CONCURRENT
+UNCOMMITTED EDITS shape below demands). Citations predating 2026-09-10 in the `0227` section carry
+their own inline frames (`702a8ea`, `c910452`) and were **not** re-verified by that correction.
 
 ## What went wrong — the whole justification
 
@@ -103,20 +120,87 @@ only because the sweep grepped the wider knowledge-base before executing it.
 
 ### The fixer reproduces the defect while fixing it — third recurrence, 2026-09-10
 
-Two agents introduced fresh instances of this exact defect **inside the work of fixing it**:
+🚨 **THIS SECTION CARRIED A FALSE ATTRIBUTION FOR THREE DAYS. Read the correction before the
+example.**
 
-- The **wiki librarian** published corrected citations (`0182:175`, `:207`) in the morning, then
-  content-matched them later the same day and found they did not hold — its own words: *"the same
-  defect I was sent to fix, committed by me, in the fix's own source material."*
-- The **producer running the sweep** added a citation-frame block near the top of `0182`'s brief and
-  thereby **moved every line it had just finished correcting**, including the wiki librarian's — the
-  same self-invalidation shape described above, committed by the person who had just documented it.
+#### ⛔ Superseded — the version below was WRONG. Kept visible, not deleted.
 
-⚠️ **A NEW SHAPE worth its own name: CONCURRENT UNCOMMITTED EDITS.** A citation can be correct at the
-declared commit and wrong in the working tree, because someone else's unpushed edit moved the target.
-Neither agent was careless; both re-derived correctly against what they read. **When several agents
-edit and cite the same file in one session, the commit hash is not a sufficient frame** — say so, and
-re-derive last, after the edits have stopped.
+> ~~Two agents introduced fresh instances of this exact defect **inside the work of fixing it**:~~
+>
+> - ~~The **wiki librarian** published corrected citations (`0182:175`, `:207`) in the morning, then
+>   content-matched them later the same day and found they did not hold — its own words: *"the same
+>   defect I was sent to fix, committed by me, in the fix's own source material."*~~
+
+**Ruled wrong by a producer on 2026-09-10, on evidence, at frame `00058df`. The wiki librarian did
+not reproduce the defect.** Both of its citations were **correct at the commit it declared**:
+
+| Citation, as the wiki librarian published it | What is at that line at its declared frame `589249c` | Verdict |
+|---|---|---|
+| `0182/brief.md:175` | `> ~~*"Optional — leave blank; the box auto-generates and persists it."*~~ **That was true at T4i. It` — the struck trap sentence itself | ✅ **correct** |
+| `0182/brief.md:207` | `#     "Optional — leave blank; the box auto-generates and persists it."` — the same sentence copied inside the `.env.profile.secret` code block | ✅ **correct** |
+
+They stopped holding **only because later, still-uncommitted edits to that file displaced them** — a
+citation-frame block and a set of refuted-silence corrections, both added after the librarian read
+the file. At `00058df` those same two anchors are `0182/brief.md:185` and `0182/brief.md:241`.
+
+⇒ **This is the CONCURRENT UNCOMMITTED EDITS shape named below, not a citing error.** The librarian
+stated the self-blame in good faith, having content-matched against a tree that had moved under it.
+
+📌 **How the falsehood got into standing law, which is a failure mode in its own right.** The
+librarian's good-faith self-blame was relayed to the owner **as fact** by the lead; a producer later
+checked it and refuted it; the refutation reached the **task records and the wiki** — but **never
+reached this convention.** For three days the project's standing law about citations asserted an
+attribution that every other record contradicted. **A correction that lands everywhere except the
+document that governs the behaviour has not landed.** When you refute something, sweep the
+conventions directory too.
+
+#### The real instance, correctly attributed
+
+**The producer running the 2026-09-10 citation sweep** did reproduce the defect, and its two stale
+citations are **still live at `00058df`**:
+
+- It added a citation-frame block near the top of `0182`'s brief, **moving every line it had just
+  finished correcting**, and in the **same commit** (`00058df`) wrote a frame block into
+  `0215`'s worklog claiming *"`0182` numbers here are POST-sweep and will not match a bare `589249c`
+  checkout."*
+- **They are not post-sweep.** `0215-profile-p1-stand-up-the-box/worklog.md:191` and
+  `0215-profile-p1-stand-up-the-box/worklog.md:299` both cite `0182/brief.md:175` and
+  `0182/brief.md:207` — the **pre-sweep** numbers, at `00058df` displaced to `0182/brief.md:185` and
+  `0182/brief.md:241`. The label asserting they had been verified forward is false, and the numbers
+  are stale. **This is a live defect at `00058df`, left for the owner to route — this correction
+  changed only the present convention document.**
+- This is the **SELF-INVALIDATION INSIDE ONE COMMIT** shape, committed by the agent that had just
+  finished documenting it — while stating in writing that it had avoided it.
+
+⚠️ **The lesson is not "be more careful."** It is that a frame block asserting *"verified post-sweep"*
+is a claim like any other and is worth exactly what it was checked against
+([`evidence-before-assertion.md`](evidence-before-assertion.md)). **Writing the reassurance is not
+performing the check.**
+
+#### 🔢 The arithmetic ban, worked from this same incident — the cleanest example we have
+
+The displacement of those two anchors between `589249c` and `00058df` was **not uniform**:
+
+| Anchor (both in `0182/brief.md`) | At `589249c` | At `00058df` | Shift |
+|---|---|---|---|
+| the struck *"leave blank"* sentence | `0182/brief.md:175` | `0182/brief.md:185` | **+10** |
+| its copy inside the code block | `0182/brief.md:207` | `0182/brief.md:241` | **+34** |
+
+**Same file, same two commits, same edit — and the offset differs by 24 lines**, because the edits
+that landed between them were inserted *between* the two anchors, not above both. Anyone who fixed
+`0182/brief.md:175` → `0182/brief.md:185` correctly and then applied that same "+10" to
+`0182/brief.md:207` would
+land on `0182/brief.md:217`, which at `00058df` reads
+`> on BOTH sides** — here on the box, and in the game server's production environment. See` —
+real, plausible, and not the cited sentence. **There is no such thing as a file's offset.**
+
+#### ⚠️ A SHAPE worth its own name: CONCURRENT UNCOMMITTED EDITS
+
+A citation can be correct at the declared commit and wrong in the working tree, because someone
+else's unpushed edit moved the target. **The wiki librarian incident above is the worked example**,
+and nobody was careless in it: the librarian re-derived correctly against what it read, and the tree
+changed afterwards. **When several agents edit and cite the same file in one session, the commit hash
+is not a sufficient frame** — say so, and re-derive last, after the edits have stopped.
 
 📌 Sweep record: the `0215` worklog's drift table and `plan.md` step-31 note, plus the corrected
 banner in
@@ -127,8 +211,10 @@ banner in
 - **Declare the frame.** A document that cites `file:line` names the commit its citations were read
   against — near the top, once, e.g. *"Citations against `c910452`."* A citation with no frame
   cannot be verified, only guessed at.
-- **Re-derive by reading the file. Never shift by arithmetic.** Failure 3 is the proof: a file-level
-  offset is not uniform. An edit inside a function moves its end by a different amount than its
+- **Re-derive by reading the file. Never shift by arithmetic.** The 2026-09-10 `0182` displacement is
+  the cleanest proof — **+10 for one anchor and +34 for another, in the same file across the same two
+  commits** (table above). A file-level offset does not exist. Failure 3 is the earlier and subtler
+  proof of the same thing: an edit inside a function moves its end by a different amount than its
   start, and the line the arithmetic silently drops is as likely as not the one that mattered.
 - **Re-anchor on the code, not on the old number.** "Re-derive by reading" has two readings and only
   one is safe: find where **the thing the sentence describes** now lives — *not* where the old line
@@ -185,6 +271,95 @@ are banned.
 *Not part of the convention, noted as a possibility only:* a script could compare each document's
 declared frame against `git log` for the files it cites and flag the ones whose frame predates the
 last change. Nobody has asked for it and it is not proposed here.
+
+## ✅ BINDING — content anchors are the primary form (amendment, 2026-09-10)
+
+> 🔴 **THIS IS AN AMENDMENT TO STANDING LAW, NOT A CLARIFICATION.** It changes what the
+> owner approved on 2026-09-07. **Authority: owner ruling 2026-09-10, given live in session and
+> relayed through the spawning session.** Proposed by the producer, escalated rather than adopted on
+> the producer's own authority, and **decided by the owner** — which is the only reason it binds.
+
+**A citation names a file and a greppable content anchor. It does NOT carry a line number by
+default.**
+
+```
+✅  `0182/brief.md` — the struck "Optional — leave blank; the box auto-generates" sentence
+✅  `src/profile-server/InternalAuth.ts` — the `timingSafeEqual` call in `internalAuth`
+❌  `0182/brief.md:185`
+```
+
+#### ⛔ What this supersedes — struck, kept visible so you can see what changed
+
+> ~~**Every document that cites `file:line` states which commit its citations were read against. A
+> citation is re-derived by opening the file — never by shifting the old number arithmetically.**~~
+>
+> ~~The primary act of citing is to produce a line number and then keep re-deriving it forward as the
+> file moves.~~
+
+**What changed and why:** re-deriving the number was always the *harder* path, and the 2026-09-10
+incident is what it costs — **two successive sets of numbers, both correctly derived by careful
+agents, both stale within one day**, in a file that moved four times while uncommitted. *A number
+that must be re-derived every few hours is not a citation, it is a treadmill.* **What did not
+change: the ban on bare `:NNN`, the frame requirement, the content-match test, and the arithmetic
+ban all still bind — in full — wherever a line number is still used.**
+
+### The justification — keep this, someone will challenge the rule later
+
+- **The existing rules were already anchor rules wearing a line number's clothes.** *"Re-anchor on
+  the code, not on the old number"* and *"a citation is a claim about content, so check it by content
+  match"* both say the content is the citation and the number is a fragile proxy for it. This
+  amendment stops paying for the proxy.
+- **Four of the five recorded failures are NUMBER failures that an anchor cannot have** — stale
+  range, bare `:NNN`, arithmetic, wrong-from-birth-then-faithfully-re-derived. Only the wrong-*file*
+  failure survives, and a path is required either way.
+- **🚨 The asymmetry is what decides it. Failure mode, not failure rate.** A dead anchor fails
+  **LOUDLY** — `grep` returns nothing, and you know instantly. A stale number fails **SILENTLY** — it
+  lands on real, plausible prose, the reader takes it for the cited thing, and nothing anywhere warns
+  them. That is the whole thesis of *"Why a stale citation is worse than a typo"*, now applied to the
+  citation form itself.
+- **Precedent.** On 2026-09-10 the wiki role established that its own `schema.md` Cross-Reference
+  Rule already required backtick paths without line numbers, and that line-precise citation binds
+  **only** glossary pages (owner ruling 2026-09-03, explicitly not relaxed). It converted the vault
+  and the rule caught a live defect on its first run.
+
+### ⚠️ An anchor MUST be unique in its file — an ambiguous anchor is no better than a wrong number
+
+An anchor that matches three places sends the reader to a coin flip, which is the failure this
+amendment exists to stop. **Check it, at the moment you write it:**
+
+```bash
+grep -c 'the exact anchor text' path/to/file    # must print exactly 1
+```
+
+**Exactly one hit, or it is not an anchor yet.** When the text is not unique:
+
+1. **Lengthen it first** — extend the quoted span until it is unique, or pair it with the enclosing
+   heading (*"under `## 4. Configure the deploy`, the `PROFILE_INTERNAL_TOKEN` line"*). This is the
+   preferred fix and it usually works.
+2. **If it genuinely cannot be made unique, fall back to a framed line number — and say why**, in the
+   citation itself: *"`Foo.ts:412` (frame `00058df`; the anchor text recurs 6× in this file)."* The
+   fallback is legitimate; **using it silently is not**, because the next reader cannot tell a
+   considered fallback from a lapse.
+
+### The exception — where line numbers still earn their place
+
+**Committed source under `src/`**, where the target is one identifier inside a large file and an
+anchor would be ambiguous or expensive to grep. This generalises the glossary ruling, whose reasoning
+is the same: an exact spot in a large **committed** source file, not a churning markdown brief.
+
+**Never for markdown under `ai-agents/`** — briefs, worklogs, plans, reports. That is where **every**
+failure recorded in this document happened.
+
+Under the exception, **every rule in "The rule" above still binds in full**: declared frame, content
+match, no bare `:NNN`, no arithmetic.
+
+### 🚨 Scope — this governs NEW citations. It is NOT a sweep order.
+
+**Existing citations are explicitly OUT OF SCOPE.** There are roughly **2,186** bare refs in the
+repository today. **Nobody is required to retrofit them, and adopting this rule does not schedule
+that work.** Whether to sweep them, and at what cost, is task `0239`'s question, which the owner has
+**deliberately not scheduled**. Do not read this amendment as authorising a mass rewrite; correct an
+old citation when you are already working on the document that carries it, and otherwise leave it.
 
 ## Related
 

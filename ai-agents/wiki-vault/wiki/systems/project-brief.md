@@ -61,7 +61,37 @@ Three things look like dead code or half-finished config and are **deliberate**:
 
 **ADR numbering is a working rule, not just a convention:** `ADR-001`–`ADR-099` are fkit toolkit ADRs; this project's own ADRs start at `ADR-101`. Allocate new project ADRs from 101 up, never from 001. See [[decisions/adr-numbering-two-series]].
 
-### Current focus (2026-08-08; updated 2026-08-23)
+### Current focus (2026-08-08; updated 2026-08-23; ⚠️ **its profile-host status was OVERTAKEN 2026-09-10 — read the box below FIRST**)
+
+> ## 🔴 UPDATED 2026-09-10 — THE UNKNOWN BELOW HAS BEEN ANSWERED. READ THIS BEFORE THE PARAGRAPH.
+>
+> **The 2026-09-04 position that follows — *"provisioning state is UNKNOWN AND UNVERIFIED"*, and its
+> instruction to read every *"the box is live"* phrase as unverified — was correct when written and is
+> now SPENT.** Task `0215` settled it **by inspection**: the box was found **already live and healthy**,
+> the **owner ruled ADOPT rather than wipe**, and it was re-provisioned in place. `/health` **200** and
+> `/ready` **200** over a valid certificate, lead-verified. 📌 *Routed here by the clean-slate survey,
+> which flagged this paragraph and deliberately did not edit it — the vault is `fkit-wiki`'s exclusive
+> write surface (ADR-005).*
+>
+> ⛔ **THIS DOES NOT MAKE THE PROFILE BACKEND "DONE", AND FOUR THINGS MUST NOT BE READ INTO IT:**
+>
+> - 🔴 **THE RESTORE PATH HAS NEVER BEEN TESTED.** *"Backups are working"* means **encrypt-and-upload
+>   ONLY**. Nobody has ever proven one restores, and the old bucket's objects are unreadable, so there
+>   is no historical restore to fall back on either. **Task `0218` owns this and is OPEN.** ⛔ **No page
+>   may imply a proven recovery path.**
+> - 🔴 **THE GAME SERVER IS NOT WIRED TO THE PROFILE BOX** — task `0217` is **OPEN**. No credit or
+>   upsert call path is live.
+> - 🔴 **The profile database holds ZERO ROWS**, and **nothing is deployed to players.**
+> - ⚠️ **`ufw` default-deny was not re-verified**, and RU residency rests on **one** geolocation
+>   provider — registration evidence, not a physical-site attestation.
+>
+> 📌 **Owner-ruled remaining order: `0218` → `0219` → `0217`**, which deliberately runs P2 after P3 and
+> P4. See [[tasks/profile-box-adopt-and-reprovision]], [[tasks/postgres-backup-routine]] and
+> [[decisions/sprint-4]].
+>
+> 📛 **The paragraph below is KEPT UNEDITED as the record of the period when this was unknown**, in
+> keeping with this page's standing practice of keeping superseded positions in the order they were
+> believed. ⛔ **Do not delete it, and do not restore it as current.**
 
 Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic is complete in code and ~~the profile host is live~~ 🔴 **CORRECTED 2026-09-04 — "the profile host is live" is UNVERIFIED and no longer claimable.** ⚠️ **This supersedes an earlier same-day annotation here that read "THERE IS NO PROFILE HOST"; that wording overstated the owner's position and is withdrawn.** Two owner rulings, both given live in session 2026-09-04, **both true and neither discarded**: first *"We don't have ANY profile-related VPS yet, we would need to have a full-scale setup for it (whatever is needed)"*; then, on a direct follow-up, *"We don't need to cancel any billings, the VPS and S3 I created will be reused."* The reconciliation that stands: 🔴 **a profile VPS and an S3 bucket PHYSICALLY EXIST and are REUSED IN PLACE, and what is on them — provisioning state, what runs, what the bucket holds — is UNKNOWN AND UNVERIFIED. Hardware existence and provisioning state are two different facts, and only the first is known.** ⛔ **Do NOT overcorrect this into "the profile backend was never built" — that is as wrong as the claim it replaces.** The **code exists and is sound**, and so does the provisioning machinery: `setup-profile.sh` (~1,025 lines) genuinely provisions a bare box *and* deploys the stack — **idempotent, safe to re-run** — `build-deploy-profile.sh` is a hardened deploy driver, `src/profile-server/` is a complete API. ⚠️ **Read every "the box is live" / "200/TLS verified" / "503s on the real box" phrase anywhere in this repository — including on this page's own linked task pages — as UNVERIFIED: not disproven, and not claimable**, never as an observation of production today. 🔴 **"Clean slate" now means WIPE AND REBUILD ONTO THE EXISTING RESOURCES, not procure new ones** — tracked as tasks **`0213` (epic) through `0222`, plus `0201`**, all scheduled into Sprint 4, with `0215` inspecting the existing box first. The owner's *"I think I am completely lost here about what was done and what wasn't"* is the honest state of the provisioning, and **that uncertainty is itself the fact recorded here**. Full grounding: `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md` (§0 reconciliation, §5 UNKNOWN-state table, §13 correction to the corrections). The same correction was applied outside the vault the same day; this page is the vault's copy. — the degraded-mode UX gate is cleared (0049) and the payments infrastructure is built (0019, agent-closed). But the citizenship chain (**Citizenship Earned → Citizenship Paid**) is now **blocked by `0062`** — production never forwards `PROFILE_INTERNAL_TOKEN`, so no XP is credited and no profile row is created in prod — plus the externally blocked Yandex catalog registration (`0014`) for the paid half; the citizenship card is interim-hidden behind the 0054 default-OFF client flag. ⚠️ **`0062` is still real, but it may not be the whole reason** — a forwarded token only helps if the host is actually serving the stack, and **nobody has verified that it is**. And a consequence worth stating **as inference, not as verified fact**: match-end XP crediting has **almost certainly never worked in production**, since `0062` exists precisely because `PROFILE_INTERNAL_TOKEN` never reached the production game server. Nobody has measured that; do not upgrade it to a measurement. A 2026-08-22 production outage added an outage track (`0055` done → `0057` → `0056`). See [[decisions/sprint-4]] and [[decisions/incident-2026-08-22-public-lobbies-outage]].
 
@@ -88,4 +118,5 @@ Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic 
 - [[decisions/adr-numbering-two-series]] — the ADR number-band ruling this brief states
 - [[tasks/licensing-asset-audit]] — task `0025`, the production asset audit that was this brief's paid-IAP licensing gate; closed 2026-08-31, gate satisfied and demonstrated (H3 residual still open under `0073`)
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which settled this page's biggest standing unknown: the profile box is live and re-provisioned, adopted rather than wiped
+- [[tasks/postgres-backup-routine]] — T8, and the reason "the box is live" still does **not** mean a proven recovery path: the restore has never been tested (`0218`, open)
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, the client-side citizenship kill switch, and the `0238` launch gate that must clear before the citizenship flag is flipped

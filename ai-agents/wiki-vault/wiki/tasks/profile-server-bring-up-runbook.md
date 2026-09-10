@@ -44,9 +44,30 @@ Provide the operator runbook for turning the merged profile deploy machinery int
 >    *"those two lines are a section header and a blank line"* — inherited from `0215`'s worklog.
 >    **Half right.** Content-checked this turn: `0182 brief.md:136` is body prose —
 >    *"rate-limits certificate issuance, so do not run the deploy against a mispointed record."* — and
->    `:137` **is** blank. **Neither is a section header.** ⛔ The earlier claim about `:175`/`:207` is
->    **withdrawn**: those numbers were themselves read against a different frame and do not match the
->    content today.
+>    `:137` **is** blank. **Neither is a section header.** The earlier `:175`/`:207` citation is
+>    **withdrawn as a citation** — it does not match the file today.
+>
+>    🔧 **BUT ITS DIAGNOSIS IS CORRECTED 2026-09-10, AND THE CORRECTION MATTERS BECAUSE THE BLAME WAS
+>    PUT IN THE WRONG PLACE.** This page previously implied those numbers had been *"read against a
+>    different frame"* — i.e. that the wiki got them wrong. ✅ **Checked against the file this run:
+>    they were RIGHT at the frame they declared.** At `589249c`, `0182/brief.md:175` **is** the struck
+>    sentence `~~*"Optional — leave blank; the box auto-generates and persists it."*~~` and `:207`
+>    **is** the same claim inside the `.env.profile.secret` block — **exactly the two sentences the
+>    citation named.** They stopped matching only when the producer's later, **uncommitted** sweep
+>    edits displaced them (post-sweep, at `00058df`, the same two sentences are `0182/brief.md:185`
+>    and `:241`). ⇒ **This is "concurrent uncommitted edits", not an error by the citing agent** — see
+>    [[systems/agent-conventions]], convention 10.
+>
+>    📌 **Incidental confirmation of failure mode 3 (never shift arithmetically):** the displacement
+>    was **+10 lines for one and +34 for the other**. A file-level offset is **not uniform**.
+>
+>    ⚠️ **`ai-agents/knowledge-base/conventions/file-line-citations.md` still records this as the wiki
+>    librarian reproducing the defect** (search it for `The fixer reproduces the defect while fixing
+>    it`), and the `0239` brief row on `sprints/backlog.md` **contradicts it** on exactly this point.
+>    **The file supports the `0239` row.** ⛔ **The vault cannot edit that convention document
+>    (ADR-005); a human should correct the attribution at the source.** The producer's own half of that
+>    section — adding a frame block that moved the lines it had just corrected — is **accurate and
+>    self-reported, and is not in question.**
 >
 >    ✅ **The real targets, content-matched line by line this turn.** 🔴 **Frame: the UNCOMMITTED
 >    ✅ **THE FIX IS TO STOP CITING THIS FILE BY LINE. These anchors are CONTENT, not numbers —
@@ -112,14 +133,28 @@ T4i is an operations artifact, not a code change. ~~The operator bring-up has be
 > (ADR-101), so **the XP is LOST, not queued** — ⚠️ **but it is NOT invisible in the logs, and a claim
 > on this page that it was has been REFUTED and corrected here rather than dropped.** The old wording
 > read *"nothing logs above `debug`"*. **That is FALSE.** A 401 is a non-5xx, non-429 status, so
-> `postWithRetry` **gives up immediately and logs at WARN** — `src/server/ProfileApiClient.ts:265-267`
-> (`profile <path> returned <status>; not retrying`) — and the caller then warns a **second** time at
-> `:147-149` (`credit batch failed after retries; N award(s) dropped`). ⇒ **Two WARN lines per failed
-> batch. The awards are still DROPPED and never queued** — only the *silence* half was wrong, and the
-> **XP-loss half stands in full**. A **second, independent**
-> silent barrier sits on the same path: `PROFILE_INTERNAL_ALLOW_IPS` is pinned to a **June egress IP**,
+> `postWithRetry` **gives up immediately and logs at WARN** — `src/server/ProfileApiClient.ts`, the
+> `` `profile ${path} returned ${response.status}; not retrying` `` warn inside the
+> `if (response.status < 500 && response.status !== 429)` guard — and the caller then warns a
+> **second** time — same file, the
+> `` `credit batch failed after retries; ${valid.length} award(s) dropped` `` warn on the
+> `response === null` branch. ⇒ **Two WARN lines per failed batch. The awards are still DROPPED and
+> never queued** — only the *silence* half was wrong, and the **XP-loss half stands in full**.
+> ✅ **Both anchors re-verified against the source this run; `ProfileApiClient.ts` is unchanged between
+> `589249c` and `00058df`.** 📌 *Cited by content, not by line: this passage previously carried
+> `:265-267` and a **bare `:147-149`** — the exact form convention 10 bans, sitting on this page while
+> it described that very defect. See `schema.md` § Citing source files.*
+> A **second, independent**
+> barrier sits on the same path: `PROFILE_INTERNAL_ALLOW_IPS` is pinned to a **June egress IP**,
 > and nginx enforces `allow …; deny all;` on `/internal/` — a stale value is a **403 on every credit
-> call**, swallowed just as quietly. The brief has been annotated in place (2026-09-04,
+> call**. 🔧 **CORRECTED 2026-09-10: that 403 is NOT "swallowed quietly" either** — a 403 is also a
+> non-5xx, non-429 4xx, so it takes **the same two-WARN path** as the 401. The barrier itself is
+> unchanged and still fully independent of the token barrier.
+> 🔴 **DO NOT READ EITHER CORRECTION AS THE TRAP BEING SMALLER.** The awards are still **dropped, never
+> queued**, and **nothing on that box reads the logs** — no monitoring, no log consumer, no alerting
+> (`0219`, **OPEN**). **A warning nobody reads fails exactly as quietly as no warning at all.** What
+> changed is that there **is** a signal to wire up, which is precisely why `0219` matters.
+> The brief has been annotated in place (2026-09-04,
 > strike-not-delete) by the producer. **`0062`'s D3 — one authenticated call working end to end — is the
 > only check that catches either.**
 
@@ -139,3 +174,5 @@ T4i is an operations artifact, not a code change. ~~The operator bring-up has be
 - [[tasks/postgres-backup-routine]] — T8 encrypted off-box profile DB backup and restore path
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which followed this runbook, adopted the box rather than wiping it, and measured this runbook's drift
 - [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, which proved the TLS renewal step of this runbook end to end against LE staging
+- [[systems/agent-conventions]] — convention 10, the citation rule every 2026-09-10 drift on this page is an instance of, and where the corrected attribution is recorded
+- [[decisions/adr-101-fail-soft-xp-crediting]] — the fail-soft policy behind the dropped-not-queued half of the token trap

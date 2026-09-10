@@ -4,7 +4,15 @@
 > lengths, no IPs, no hostnames, no bucket names, no endpoints, no object keys. Everything below
 > records **presence and correctness**, never contents.
 
-> 📌 **Citation frame.** On 2026-09-10 the **`0182`-runbook citations in this file only** were re-derived by content, against commit `589249c` **plus that same citation sweep** — ⚠️ the sweep ADDED lines to `0182`'s brief, so `0182` numbers here are POST-sweep and will not match a bare `589249c` checkout. ⚠️ **Every OTHER `file:line` in this worklog is unframed and unverified** — re-derive before acting on one. See [`conventions/file-line-citations.md`](../../../knowledge-base/conventions/file-line-citations.md).
+> 🔴 **CITATION FRAME — CORRECTED 2026-09-10 (after this task closed), by the producer, on owner ruling. The previous frame block was FALSE. Read this one.**
+>
+> ⛔ ~~**Citation frame.** On 2026-09-10 the **`0182`-runbook citations in this file only** were re-derived by content, against commit `589249c` **plus that same citation sweep** — ⚠️ the sweep ADDED lines to `0182`'s brief, so `0182` numbers here are POST-sweep and will not match a bare `589249c` checkout.~~
+>
+> 🚨 **That claim was wrong, and the false frame was the real defect — worse than the wrong numbers it covered.** The `0182` numbers written here (`0182/brief.md:175`, `:207`) were the **PRE**-sweep numbers, correct at `589249c` only. The sweep that displaced them landed in the **same commit** (`00058df`) that wrote the reassurance above. **A wrong number sends a reader to the wrong line; a false frame tells them they need not look.** Recorded as the worked example in [`conventions/file-line-citations.md`](../../../knowledge-base/conventions/file-line-citations.md) — *"the fixer reproduces the defect while fixing it"*.
+>
+> ✅ **The `0182` citations in this file are now CONTENT ANCHORS, not line numbers** — per the owner's 2026-09-10 amendment making anchors the primary citation form. They are verified by `grep` against `0182/brief.md` at commit `00058df`, and unlike numbers they do not go stale when that brief moves; if one is ever reworded, `grep` returns nothing and fails loudly.
+>
+> ⚠️ **Every OTHER `file:line` in this worklog is unframed and unverified** — re-derive before acting on one. Not swept: that is task `0239`'s question.
 
 ---
 
@@ -188,9 +196,20 @@ a falsehood.)
 
 ### 🚨 `PROFILE_INTERNAL_TOKEN` — the runbook was deliberately NOT followed
 
-`0182` **brief:175** and **brief:207** say the token may be *"left blank; the box auto-generates and
-persists it"* — **both struck in `0182` itself.** `example.env.profile:92-93` says the same thing and
-is **STILL UNSTRUCK at HEAD**.
+`0182/brief.md` says in **two places** that the token may be *"left blank; the box auto-generates and
+persists it"* — **both struck in `0182` itself.** The two places are the **struck prose sentence**
+(grep `~~*"Optional — leave blank`) and its **copy inside the `.env.profile.secret` code block**
+(grep `#     "Optional — leave blank`). `example.env.profile:92-93` says the same thing and is
+**STILL UNSTRUCK at HEAD**.
+
+> ⛔ ~~`0182` **brief:175** and **brief:207**~~ — **corrected 2026-09-10 by the producer, after this
+> task closed, on owner ruling.** Those numbers were the **pre-sweep** ones, valid only at `589249c`;
+> the same-day sweep displaced them to `:185` and `:241` and the frame block above wrongly declared
+> them already verified forward. Replaced with **content anchors** per the owner's 2026-09-10
+> amendment. ⚠️ Note the anchors are **lengthened on purpose**: the bare sentence *"Optional — leave
+> blank; the box auto-generates and persists it"* matches **twice** in that file, so it is not an
+> anchor — the strikethrough marks and the `#` comment prefix are what make each one unique
+> (`grep -c` returns exactly 1 for each, at `00058df`).
 
 **Neither was followed, and the reason is not stylistic.** `internalAuth` is a `timingSafeEqual` over
 a **shared** secret (`src/profile-server/InternalAuth.ts:14-19`, `:26`). A token the **box** mints,
@@ -296,7 +315,7 @@ suggests.
 
 | Drift | Status |
 |---|---|
-| **The `:136-137` citation is STALE, and it is the most-copied citation in this task.** `0182` brief:136-137 is cited as the token trap by `0215`'s own `brief.md`, by `0218` brief:149 and by the project memory. Those two lines are actually a section header and a blank line. The real text is at **`0182` brief:175 and :207.** | **Confirmed.** Everywhere `:136-137` appears should be **re-derived by content**, not by line number. 📌 **SWEPT AND CLOSED 2026-09-10 (0182 numbers below are POST-sweep)**, with two corrections to the finding as written: **(a)** the *"`0218` brief:149 and the project memory"* half was **wrong** — `0218`'s brief never carried a `:136-137` citation and the auto-memory carries **no line number at all**; the real set was `0213`, `0217`, `0215`'s own `brief.md`, `plan-sprint-4.md` and the 2026-09-04 survey; **(b)** it was **not merely stale — it was wrong from birth**: commit `879b2f4` (2026-09-04) wrote the citation and inserted the correction banner that displaced it **in the same commit**, so it never pointed at the text in any commit where the citing sentence existed. **Failure mode 4** of `ai-agents/knowledge-base/conventions/file-line-citations.md`. |
+| **The `:136-137` citation is STALE, and it is the most-copied citation in this task.** `0182` brief:136-137 is cited as the token trap by `0215`'s own `brief.md`, by `0218` brief:149 and by the project memory. Those two lines are actually a section header and a blank line. The real text is in **two places in `0182/brief.md`** — the struck prose sentence (grep `~~*"Optional — leave blank`) and its copy in the `.env.profile.secret` code block (grep `#     "Optional — leave blank`). ⛔ ~~The real text is at **`0182` brief:175 and :207.**~~ — **superseded 2026-09-10 by the producer, after this task closed, on owner ruling: those were the PRE-sweep numbers (`:185` and `:241` at `00058df`), replaced with content anchors per the owner's 2026-09-10 amendment.** | **Confirmed.** Everywhere `:136-137` appears should be **re-derived by content**, not by line number. 📌 **SWEPT AND CLOSED 2026-09-10** — ⛔ ~~(0182 numbers below are POST-sweep)~~ **that parenthesis was FALSE; they were pre-sweep, and the false reassurance was the worse half of the defect. Corrected 2026-09-10.** With two corrections to the finding as written: **(a)** the *"`0218` brief:149 and the project memory"* half was **wrong** — `0218`'s brief never carried a `:136-137` citation and the auto-memory carries **no line number at all**; the real set was `0213`, `0217`, `0215`'s own `brief.md`, `plan-sprint-4.md` and the 2026-09-04 survey; **(b)** it was **not merely stale — it was wrong from birth**: commit `879b2f4` (2026-09-04) wrote the citation and inserted the correction banner that displaced it **in the same commit**, so it never pointed at the text in any commit where the citing sentence existed. **Failure mode 4** of `ai-agents/knowledge-base/conventions/file-line-citations.md`. |
 | **T11 — the `Restart=always` systemd unit silently undoing a `docker compose down -v`** (`setup-profile.sh:759-776`). | **Confirmed real and load-bearing** — it was defeated by stopping the unit first. **Documented nowhere in `0182`.** |
 | **The stale-`.internal_token` fallback** (`setup-profile.sh:358-368`) — supplying the token via the environment leaves a stale persisted value a later blank-valued deploy would silently re-adopt. | **Confirmed** (residual 1). **Documented nowhere in `0182`.** |
 | `0182` brief:293-297 — *"backups are local + weekly"* | Already struck and superseded in place. **Nothing further in that section was found drifted**, but this was a light check, not an audit. |

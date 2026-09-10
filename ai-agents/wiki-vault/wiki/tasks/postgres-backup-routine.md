@@ -47,6 +47,39 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 > work (`0218` → `0219` → `0217`), for exactly this reason and because a drill is **cheapest now,
 > while every table has zero rows**.
 >
+> ### 🚨 ADDED 2026-09-10 — THE 0-ROWS DRILL CLAIM WAS FLAGGED UNSOURCED, A RETRACTION WAS **RULED BY THE OWNER**, AND IT WAS WRONG
+>
+> **The "the 2026-07-01 drill ran against an empty DB" claim below came within one step of being
+> deleted as fabricated. It was true and properly sourced the whole time.**
+>
+> `0182`'s brief supported that claim with a **bare `:147-153`** written inside `0182` itself — the
+> exact form `conventions/file-line-citations.md` bans. Every later reader, **three of them
+> independently (producer, lead and owner)**, resolved it to `0182`'s *own* brief, where that range is
+> the `## 4. Configure the deploy` header: real, plausible, and completely unrelated. A 2026-09-10
+> sweep then checked every commit of `0182`, found no 0-rows evidence in any of them, and **flagged the
+> claim UNSOURCED. That was escalated, and the owner RULED A RETRACTION on it.**
+>
+> ✅ **The producer searched OUTSIDE the cited file BEFORE executing the retraction, found the real
+> source, refused, and escalated — and the owner then WITHDREW the retraction ruling. Nothing was
+> deleted.** The source is `ai-agents/knowledge-base/profile-backup-restore-runbook.md` — search for
+> `Recorded RTO`; that passage carries *"the prod DB was still **empty** (0 rows) at this point"* and
+> the default-deny half, and is **unchanged in every commit checked from `879b2f4` to `589249c`**. The
+> bare `:147-153` was numerically **right all along**; only its **file** was missing, and the word
+> *"runbook"* in the citing sentences meant the **backup/restore** runbook, not `0182`.
+>
+> ⛔ **THE GATE NEVER WEAKENED FOR ONE MOMENT.** It now rests on **two properly-cited reasons instead
+> of one half-cited one**: the drill ran on an empty DB, **and** it predates the default-deny guard, so
+> its command line no longer works. **The restore path is still unproven and `0218` still owns it.**
+>
+> ⚠️ **Two different 0-rows readings, and they must NOT be conflated.** The **2026-07-01** drill's
+> empty DB is a *2026-07-01* observation. `0215`'s **2026-09-08/09** re-read of all four tables at 0
+> rows is a separate, later observation taken at execution time. Neither substitutes for the other, and
+> **neither is a restore.**
+>
+> 📌 The transferable rule this produced — *"before declaring a claim unsourced, search OUTSIDE the
+> cited file"* — is recorded on [[systems/agent-conventions]] under convention 10. It also drove the
+> filing of task `0239`; see [[decisions/sprint-backlog]].
+>
 > ### ⚠️ B4's historical half stays UNKNOWN
 > `last-backup.json` was never read at inventory, so *"has a backup ever completed before, and when"*
 > was **answered forward, not backward**: a backup demonstrably completes **now**.
@@ -131,3 +164,6 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 - [[decisions/vps-credential-leak-response]]
 - [[systems/architecture-overview]] — profile deploy hardening and the two easily-confused Postgres instances
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which proved this backup path encrypts and uploads, generated the new `age` keypair and the new bucket, and left the restore path unproven
+- [[systems/agent-conventions]] — convention 10, whose wrong-FILE recurrence is the citation defect that nearly deleted this page's 0-rows drill claim
+- [[systems/project-brief]] — the product ground truth whose "profile host" status this page's unproven restore path qualifies
+- [[decisions/sprint-backlog]] — where task `0239`, filed out of that near-deletion, sits on the Backlog board
