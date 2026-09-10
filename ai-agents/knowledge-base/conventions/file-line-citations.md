@@ -34,6 +34,94 @@ modes, all in one afternoon:
    thing the sentence describes.** Now corrected to `Main.ts:712`. Two mechanical passes carried the
    error intact; only a semantic pass caught it.
 
+## 🚨 Confirmed recurrences of failure 4 — the pattern is not rare
+
+**Failure 4 (wrong from birth, then carried forward by careful people) has now been confirmed a
+second time, on a completely different line of work.** It is recorded here because the whole argument
+for this convention is that the failure recurs.
+
+**2026-09-10, the profile-backend line of work.** A citation sweep re-derived every `0182`-runbook
+citation by content and found **four** wrong citations, not one:
+
+| Citation | Cited as | What was actually there | Shape |
+|---|---|---|---|
+| `0182/brief.md:136-137` | the `PROFILE_INTERNAL_TOKEN` *"leave blank"* trap | `## 3. Confirm SSH access to the box` + a blank line | **wrong from birth** |
+| `0182:147-153` | *"the 2026-07-01 restore drill ran against 0 rows"* | `0182`'s `## 4. Configure the deploy` header — **but the claim is correctly sourced elsewhere**, see the row below | **bare ref resolved to the wrong FILE** |
+| `0218 brief:136-137` | *"Record the LOCATION, never the value."* | a blank line + `## Verification steps` | **wrong at its own declared frame** |
+| `0218 brief:193` | *"due before the first backup runs"* | `from crontab content.` | **wrong at its own declared frame** |
+
+**The mechanism, and it is a new sub-shape worth naming: SELF-INVALIDATION INSIDE ONE COMMIT.** The
+`:136-137` citation was **true of the file the author read** (commit `282655c`). But the same author,
+in the **same commit** (`879b2f4`, 2026-09-04), also annotated `0182`'s brief in place — inserting a
+correction banner **above** the cited lines and pushing the text ~40 lines down. The citation was
+therefore already wrong the moment it was committed. **It never pointed at the sentence in any commit
+in which the citing sentence existed.**
+
+⚠️ **This is why "I read it before I wrote it" is not enough.** If you edit a file *and* cite it in
+the same change, **re-derive the citation after your own edit**, not before. Your own edit is a commit
+like any other.
+
+**How it spread, and why nobody caught it.** `:136-137` was copied into five documents over six days.
+Every copy was made by someone careful, and every copy **re-derived the number it was given rather
+than the sentence the number was supposed to support.** Two later readers even *diagnosed* it as
+"stale" — and were themselves wrong about how, reporting propagation sites that never existed
+(`0218`'s brief, the project auto-memory) while missing three that did. **Only opening the file and
+matching the words caught it.**
+
+### A wrong line number sends you to the wrong text. A wrong FILE means you conclude the text never existed.
+
+**This is the sharpest lesson of the day, and it nearly destroyed a true, well-sourced fact.**
+
+`0182`'s brief said the 2026-07-01 restore drill ran against an empty database — *"0 rows — see
+`:147-153` below"*. A **bare `:NNN`, written inside `0182` itself**, so every later reader resolved it
+to `0182/brief.md:147-153`. That range is `0182`'s `## 4. Configure the deploy` header: real,
+plausible, unrelated. One reader propagated it into a sprint board as `0182:147-153`. The 2026-09-10
+sweep then checked every commit of `0182`'s brief, found no 0-rows evidence in any of them, and
+**flagged the claim UNSOURCED** — which was escalated, and **an owner ruling to retract the claim was
+issued on that finding.**
+
+**The claim was never unsourced.** It lives at
+[`../profile-backup-restore-runbook.md:147-153`](../profile-backup-restore-runbook.md) — the
+*backup/restore* runbook, a different document — at **exactly those line numbers**, unchanged in every
+commit from `879b2f4` to `589249c`. The bare `:147-153` was numerically **right all along**. Only its
+file was missing, and the word *"runbook"* in the citing sentences meant a different runbook than
+readers assumed.
+
+⚠️ **The asymmetry is the point.** A wrong line number is survivable — you land on the wrong text and
+may notice. A wrong *file* is not: **"I checked every commit and the evidence isn't there" reads as
+proof of fabrication**, and the next step is deleting a true statement. The retraction was stopped
+only because the sweep grepped the wider knowledge-base before executing it.
+
+**Two rules follow, and they are the operative output of this whole section:**
+
+- ⛔ **Never write a bare `:NNN`. This is the failure it causes**, not a style preference. The ban
+  already existed; this is what it costs when broken.
+- 🚨 **Before declaring a claim unsourced, search for the source outside the cited file.** "Not at the
+  cited location" ≠ "does not exist". A missing-file citation looks identical to a fabrication, and
+  the remedies are opposite: fix the pointer, or delete the claim. **Get that wrong and you delete
+  evidence.**
+
+### The fixer reproduces the defect while fixing it — third recurrence, 2026-09-10
+
+Two agents introduced fresh instances of this exact defect **inside the work of fixing it**:
+
+- The **wiki librarian** published corrected citations (`0182:175`, `:207`) in the morning, then
+  content-matched them later the same day and found they did not hold — its own words: *"the same
+  defect I was sent to fix, committed by me, in the fix's own source material."*
+- The **producer running the sweep** added a citation-frame block near the top of `0182`'s brief and
+  thereby **moved every line it had just finished correcting**, including the wiki librarian's — the
+  same self-invalidation shape described above, committed by the person who had just documented it.
+
+⚠️ **A NEW SHAPE worth its own name: CONCURRENT UNCOMMITTED EDITS.** A citation can be correct at the
+declared commit and wrong in the working tree, because someone else's unpushed edit moved the target.
+Neither agent was careless; both re-derived correctly against what they read. **When several agents
+edit and cite the same file in one session, the commit hash is not a sufficient frame** — say so, and
+re-derive last, after the edits have stopped.
+
+📌 Sweep record: the `0215` worklog's drift table and `plan.md` step-31 note, plus the corrected
+banner in
+[`../reports/2026-09-04-profile-backend-clean-slate-survey.md`](../reports/2026-09-04-profile-backend-clean-slate-survey.md).
+
 ## The rule
 
 - **Declare the frame.** A document that cites `file:line` names the commit its citations were read

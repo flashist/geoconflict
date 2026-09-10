@@ -45,3 +45,4 @@ The XP/progress card now reads server profile state for authorized players. Gues
 - [[decisions/adr-106-flags-suppressed]] — why the card shows the placeholder flag fallback
 - [[tasks/citizenship-name-change]] — task 0067, which attaches the name-change entry point and pending/approved/rejected states to this card
 - [[tasks/analytics-p1-citizenship-funnel]] — task `0021`, the funnel spec this task shipped `UI:Tap:PurchaseCitizenship` against; the spec's sixth event, `UI:Tap:CitizenshipLearnMore`, was dropped as obsolete because this card has no Learn-more surface
+- [[tasks/citizenship-kill-switch-coverage]] — task `0236`, which left this card's fail-open carve-out **unchanged by owner ruling** while gating every other citizenship surface

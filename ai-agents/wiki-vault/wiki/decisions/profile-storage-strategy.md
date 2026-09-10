@@ -47,3 +47,4 @@ The `extra jsonb not null default '{}'` column preserves unknown future fields, 
 - [[tasks/player-profile-store-investigation]]
 - [[decisions/sprint-4]]
 - [[systems/player-profile-store]]
+- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, where all four migrations laying down this schema were applied fresh on a rebuilt Postgres volume (2026-09-10)

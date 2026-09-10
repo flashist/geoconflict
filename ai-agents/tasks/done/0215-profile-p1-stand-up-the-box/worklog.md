@@ -4,6 +4,8 @@
 > lengths, no IPs, no hostnames, no bucket names, no endpoints, no object keys. Everything below
 > records **presence and correctness**, never contents.
 
+> 📌 **Citation frame.** On 2026-09-10 the **`0182`-runbook citations in this file only** were re-derived by content, against commit `589249c` **plus that same citation sweep** — ⚠️ the sweep ADDED lines to `0182`'s brief, so `0182` numbers here are POST-sweep and will not match a bare `589249c` checkout. ⚠️ **Every OTHER `file:line` in this worklog is unframed and unverified** — re-derive before acting on one. See [`conventions/file-line-citations.md`](../../../knowledge-base/conventions/file-line-citations.md).
+
 ---
 
 ## 2026-09-09/10 — ADOPT: the existing profile box was re-provisioned in place
@@ -294,7 +296,7 @@ suggests.
 
 | Drift | Status |
 |---|---|
-| **The `:136-137` citation is STALE, and it is the most-copied citation in this task.** `0182` brief:136-137 is cited as the token trap by `0215`'s own `brief.md`, by `0218` brief:149 and by the project memory. Those two lines are actually a section header and a blank line. The real text is at **`0182` brief:175 and :207.** | **Confirmed.** Everywhere `:136-137` appears should be **re-derived by content**, not by line number. |
+| **The `:136-137` citation is STALE, and it is the most-copied citation in this task.** `0182` brief:136-137 is cited as the token trap by `0215`'s own `brief.md`, by `0218` brief:149 and by the project memory. Those two lines are actually a section header and a blank line. The real text is at **`0182` brief:175 and :207.** | **Confirmed.** Everywhere `:136-137` appears should be **re-derived by content**, not by line number. 📌 **SWEPT AND CLOSED 2026-09-10 (0182 numbers below are POST-sweep)**, with two corrections to the finding as written: **(a)** the *"`0218` brief:149 and the project memory"* half was **wrong** — `0218`'s brief never carried a `:136-137` citation and the auto-memory carries **no line number at all**; the real set was `0213`, `0217`, `0215`'s own `brief.md`, `plan-sprint-4.md` and the 2026-09-04 survey; **(b)** it was **not merely stale — it was wrong from birth**: commit `879b2f4` (2026-09-04) wrote the citation and inserted the correction banner that displaced it **in the same commit**, so it never pointed at the text in any commit where the citing sentence existed. **Failure mode 4** of `ai-agents/knowledge-base/conventions/file-line-citations.md`. |
 | **T11 — the `Restart=always` systemd unit silently undoing a `docker compose down -v`** (`setup-profile.sh:759-776`). | **Confirmed real and load-bearing** — it was defeated by stopping the unit first. **Documented nowhere in `0182`.** |
 | **The stale-`.internal_token` fallback** (`setup-profile.sh:358-368`) — supplying the token via the environment leaves a stale persisted value a later blank-valued deploy would silently re-adopt. | **Confirmed** (residual 1). **Documented nowhere in `0182`.** |
 | `0182` brief:293-297 — *"backups are local + weekly"* | Already struck and superseded in place. **Nothing further in that section was found drifted**, but this was a light check, not an audit. |

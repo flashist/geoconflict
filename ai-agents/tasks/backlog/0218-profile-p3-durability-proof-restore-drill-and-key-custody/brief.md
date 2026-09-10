@@ -124,13 +124,43 @@ note.** A backup that runs before the key's home is written down reproduces the 
 
 ### The restore gate still stands in full — and the 2026-07-01 drill does NOT discharge it
 
-`0182`'s runbook records a restore drill on 2026-07-01. ⚠️ **It does not count, for two independent
-reasons:**
+**`ai-agents/knowledge-base/profile-backup-restore-runbook.md`** records a restore drill on
+2026-07-01. ⚠️ **It does not count, for two independent reasons — both sourced to the same paragraph,
+`profile-backup-restore-runbook.md:147-153` (frame `589249c`, the "Recorded RTO" paragraph; unchanged
+in every commit checked from `879b2f4` to `589249c`):**
 
-1. **The production DB was still EMPTY — 0 rows** (runbook `:147-153`). A round-trip of nothing
-   proves nothing. **A non-empty round-trip has never been verified.**
-2. **The drill predates the default-deny guard**, so **its command line no longer works.** Anyone
-   repeating it from the runbook will hit the guard and may read that as a broken backup.
+> 🚨 **THIS GATE WAS ONE STEP FROM BEING RETRACTED ON 2026-09-10. THE FULL ARC IS RECORDED HERE
+> DELIBERATELY, BECAUSE THE LESSON IS THE CHECK THAT STOPPED IT — NOT THE BOOKKEEPING.**
+>
+> | # | What happened | Standing |
+> |---|---|---|
+> | 1 | This paragraph said *"**`0182`'s** runbook"* and cited a bare **`runbook :147-153`** — **wrong document**. It is the **backup/restore runbook**, not `0182`. | the original defect |
+> | 2 | Readers resolved the bare ref to `0182/brief.md:147-153` — that brief's `## 4. Configure the deploy` header. **Real, plausible, unrelated.** One reader propagated it onto the Sprint 4 board as `0182:147-153`. | the defect spreading |
+> | 3 | A citation sweep checked **every commit of `0182`'s brief**, found no 0-rows evidence in any of them, and **flagged the claim UNSOURCED**. Correct about `0182`; **it stopped one file too early.** | ⛔ **WRONG — withdrawn** |
+> | 4 | **The owner ruled RETRACTION** of the 0-rows claim, on that flag. | ⛔ **WITHDRAWN by the owner 2026-09-10** |
+> | 5 | Before executing, the producer grepped the **wider knowledge-base** and found the real source — `profile-backup-restore-runbook.md:147-153`, at **exactly those numbers**, unchanged in every commit from `879b2f4` to `589249c`. **It refused the retraction and escalated instead of complying.** | ✅ the check that worked |
+> | 6 | The owner **withdrew the retraction ruling.** Nothing was deleted. The pointer was fixed in four documents. | ✅ **CURRENT** |
+>
+> ⇒ 🔴 **THE GATE NEVER WEAKENED. It now stands on TWO properly-cited reasons instead of one
+> half-cited one.** ⛔ **Do not read the withdrawn retraction as the gate having been in doubt** — what
+> was in doubt was a *citation*, and it turned out to be a pointer with a missing filename.
+>
+> 🚨 **The transferable rule, now in
+> [`conventions/file-line-citations.md`](../../../knowledge-base/conventions/file-line-citations.md):
+> BEFORE DECLARING A CLAIM UNSOURCED, SEARCH OUTSIDE THE CITED FILE.** *"Not at the cited location"* is
+> **not** *"does not exist"* — and the two remedies are opposite: fix the pointer, or delete the claim.
+> **A wrong line number sends you to the wrong text; a wrong FILE makes you conclude the text never
+> existed.** Getting that backwards deletes evidence. It nearly did here.
+
+1. **The production DB was still EMPTY — 0 rows**
+   (`profile-backup-restore-runbook.md:149` — *"the prod DB was still **empty** (0 rows) at this
+   point, so schema + decryption + the full pipeline were verified, but a *non-empty* data round-trip
+   was not"*). A round-trip of nothing proves nothing. **A non-empty round-trip has never been
+   verified.**
+2. **The drill predates the default-deny guard**, so **its command line no longer works**
+   (`profile-backup-restore-runbook.md:152-153` — *"the first drill predates the default-deny guard,
+   so its command line differed from what is documented here now"*). Anyone repeating it from the
+   runbook will hit the guard and may read that as a broken backup.
 
 The runbook's own gate, quoted because it is the right standard:
 
@@ -179,9 +209,13 @@ means the data being restored is data this task created.
    next drill does not rediscover it.
 5. **Confirm the nightly cron actually fired** — not that it is installed, that it **ran and produced
    an object**.
-6. **Update `0182`'s known-limitations section** if any of its backup statements are now wrong. ⚠️
-   `0182:219` was corrected on 2026-09-04 already (a moved line reference, and an off-box path it
-   calls "deferred to T8" that has since shipped) — check whether anything else drifted.
+6. **Update `0182`'s known-limitations section** (`0182/brief.md:326` — post-2026-09-10-sweep numbering; see that brief's own citation frame) if any of its
+   backup statements are now wrong. ⚠️ The backup limitation was corrected on 2026-09-04 already —
+   `0182/brief.md:335-339`, where `0182/brief.md:336` reads *"The cited line `setup-profile.sh:688` has **MOVED**"*
+   and `0182/brief.md:337-339` records the off-box path it calls *"deferred to T8"* as **shipped**. Check whether
+   anything else drifted.
+   📌 *Citation corrected 2026-09-10: this read `0182:219`, which is wrong — at `589249c` that line is
+   the section header `## 5. Run the deploy`.*
 
 ### 🚫 Not in this phase
 

@@ -98,15 +98,20 @@ happened on this project once already, on a different box.
 ### G2 — No image prune. Storage grows every redeploy.
 
 The previous image is retained for rollback (correctly), but **nothing ever removes older ones**.
-`0182:224-227` already records this as a known limitation and says to run a prune periodically —
-nothing does. The script logs a disk warning past 60% to a file, and **nothing pages on it**.
+`0182/brief.md:361-364` already records this as a known limitation — that bullet opens *"**Docker
+images are not auto-pruned**"* and says *"Run `docker image prune -f` periodically"* — and nothing
+does. 📌 *Citation corrected 2026-09-10 (post-2026-09-10-sweep numbering; see `0182`'s own citation frame): this read `0182:224-227`, which is the
+`npm run deploy:profile` code block.* The script logs a disk warning past 60% to a file, and **nothing pages on it**.
 
 ### G3 — 🔴 No monitoring or alerting of ANY kind.
 
 - **No OTEL — by design** (`src/profile-server/Logger.ts:5-8`). That is a deliberate choice, not a
   gap to fix by adding OTEL.
 - **No external uptime check.** Container healthchecks and systemd auto-restart exist, but **nothing
-  off-box observes liveness.** `0182:228-230` already asks for one.
+  off-box observes liveness.** `0182/brief.md:365-367` already asks for one — that bullet opens *"**No
+  external monitoring on this box.**"* and ends *"add one external uptime check on
+  `https://api.geoconflict.ru/health`"*. 📌 *Citation corrected 2026-09-10 (post-2026-09-10-sweep numbering; see `0182`'s own citation frame): this read
+  `0182:228-230`, which is the "what the deploy does, in order" prose.*
 - 🚨 **NOTHING reads `last-backup.json`.** The backup path writes a freshness record and **no
   consumer exists.** Cron mails root **only if an MTA is installed**, and **nothing installs one.**
 
@@ -213,7 +218,9 @@ The game box already solves two of these. **Mirror it:**
   [`0034`](../0034-monitoring-alert-bot-phase2/brief.md) — the alert-bot track. **Item 5 of `0034` is
   the `last-backup.json` consumer.** Read both before starting; the right outcome may be that this
   task contributes to `0034` rather than duplicating it.
-- **Related:** `0182:224-230` already recorded the prune and uptime-check gaps as known limitations.
+- **Related:** `0182/brief.md:361-367` (post-2026-09-10-sweep numbering; see `0182`'s own citation frame) already recorded the prune and uptime-check
+  gaps as known limitations — 📌 *corrected 2026-09-10 from `0182:224-230`, which is the deploy-steps
+  block.*
   **They were recorded and then not done** — which is itself the argument for doing them now.
 - **The prod disk-full incident** is the precedent for G1. The mechanism (unrotated container log →
   full disk → truncated assets) is documented in project memory; do not re-derive it.

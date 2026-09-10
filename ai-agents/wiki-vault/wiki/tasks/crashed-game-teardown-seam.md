@@ -92,3 +92,4 @@ The owner ruled **twice on 2026-09-07**. First they **confirmed `Backlog`**, whe
 - [[systems/analytics]] — the `Performance` event category
 - [[decisions/sprint-4]] — the sprint board carrying this task
 - [[decisions/sprint-backlog]] — where `0228`, `0229` and `0226` are tracked
+- [[decisions/codex-second-opinion-mandatory]] — this task's **R3** is the single strongest data point for the Codex second-opinion rule: a `high` Codex-only catch that invalidated its own site-A acceptance claim

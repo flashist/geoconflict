@@ -8,6 +8,14 @@ as such and are not re-litigated here.
 🔒 **No values anywhere in this document.** Variable names, file names, script names and line numbers
 only — never an endpoint, a bucket, a key, a password, or an IP.
 
+> 📌 **Citation frame — read this before following any `file:line` below.** This report was written at
+> commit `879b2f4` (2026-09-04); **its citations were never framed at write time.** On 2026-09-10 the
+> **`0182`-runbook citations only** were re-derived by content against commit `589249c` (trap 1 and
+> the "documents to correct" table). ⚠️ **Every OTHER `file:line` in this report is still unframed and
+> unverified** — treat those as `879b2f4`-era numbers and re-derive before acting on one. Re-derive by
+> opening the file and matching the described content — never by shifting the number. See
+> [`conventions/file-line-citations.md`](../conventions/file-line-citations.md).
+
 ---
 
 ## 0. 🔴 THE REFRAME — read this before anything else, including any earlier version of this document
@@ -234,20 +242,37 @@ These are prominent because each fails **silently** and two sit on the same code
 
 ### Trap 1 — `0182`'s runbook will break `0062` if followed as written
 
-`0182/brief.md:136-137` said of `PROFILE_INTERNAL_TOKEN`: *"Optional — leave blank; the box
+`0182`'s runbook said of `PROFILE_INTERNAL_TOKEN`: *"Optional — leave blank; the box
 auto-generates and persists it."*
+
+> 📌 **CITATION CORRECTED 2026-09-10. This paragraph originally cited `0182/brief.md:136-137`, and
+> that number was WRONG THE DAY IT WAS WRITTEN.** It was true of the runbook at `282655c`, but the
+> same commit that published this survey (`879b2f4`, 2026-09-04) also inserted the correction banner
+> into `0182` **above** those lines — so the citation shipped already pointing elsewhere, and was then
+> copied into four more documents.
+> **Read against `589249c` + the 2026-09-10 citation sweep (that sweep moved `0182`'s lines down):** the struck original sentence is at `0182/brief.md:185` (that line holds
+> `~~*"Optional — leave blank; the box auto-generates and persists it."*~~`); the same sentence is
+> quoted inside the `.env.profile.secret` code block at `0182/brief.md:241`; the correction banner
+> runs `0182/brief.md:182-231`; the corrected value line is `0182/brief.md:248`. At `589249c`,
+> `0182/brief.md:136` is the section header `## 3. Confirm SSH access to the box` and `:137` is blank.
+> ⚠️ **Failure mode 4** of
+> [`conventions/file-line-citations.md`](../conventions/file-line-citations.md) — wrong from birth,
+> then carried forward faithfully. **Re-derive by content, never by shifting the number.**
 
 **That was true at T4i. It is FALSE now.** `internalAuth` is a `timingSafeEqual` over a **shared**
 secret (`src/profile-server/InternalAuth.ts:14-19`, `:26`). A token the box generates for itself,
 which the game server does not hold, produces a **401 on every credit call**. The profile client is
 fail-soft with **no durable queue** (ADR-101), so the XP is **lost, not queued**, and nothing logs
-above `debug`. ➡️ **`0182` has been annotated in place.**
+above `debug`.
+🚨 **CORRECTED 2026-09-10 — the *"nothing logs above `debug`" / "silently swallowed"* half is REFUTED against the source.** A 401 (and a 403) is a non-5xx, non-429 4xx, so `postWithRetry` stops immediately and logs at **WARN — twice per failed batch**: `src/server/ProfileApiClient.ts:265-267` (`` `profile ${path} returned ${response.status}; not retrying` ``, inside the `status < 500 && status !== 429` guard at `src/server/ProfileApiClient.ts:264`) and `src/server/ProfileApiClient.ts:146-149` (`` `credit batch failed after retries; N award(s) dropped …` ``). **Frame `589249c` — `ProfileApiClient.ts` is clean at that commit, so these two numbers are stable.** ⛔ **THE XP-LOSS HALF IS UNTOUCHED AND STANDS IN FULL — the awards are DROPPED, never queued.** 🔴 It still goes unnoticed, because **nothing on that box reads the logs** (`0219`, **OPEN**) — **a warning nobody reads fails as quietly as no warning at all.**
+
+➡️ **`0182` has been annotated in place.**
 
 ### Trap 2 — `PROFILE_INTERNAL_ALLOW_IPS` is pinned to a June egress IP
 
 `example.env.profile:33` carries a game-prod egress IP from June. nginx enforces
 `allow …; deny all;` at `/internal/` (`setup-profile.sh:719-720`). A stale value ⇒ **403 on every
-credit call**, also silently swallowed.
+credit call**, ~~also silently swallowed~~. 🚨 *Corrected 2026-09-10: a 403 is also a non-5xx, non-429 4xx, so it takes the SAME two-WARN path as the 401 (`src/server/ProfileApiClient.ts:265-267`, `:146-149`, frame `589249c`). **Not swallowed — logged and unread** (`0219`, open). The barrier itself is unchanged.*
 
 **Traps 1 and 2 are two independent silent barriers on the same path.** `0062`'s D3 — an actual
 authenticated call working end to end — is the only check that catches either.
@@ -312,7 +337,7 @@ whether or not `004` is already applied.** The right move is to run it, not to i
 | G1 | **No container log rotation on the profile box.** `setup-profile.sh` never writes `daemon.json`, and the compose file declares no `logging:` block ⇒ unbounded `json-file`. `ai-agents/knowledge-base/container-log-retention.md:5-6` says outright *"The profile and telemetry boxes are not covered here."* | **HIGH** — this is the exact class that filled the game prod disk | P4 |
 | G2 | **No image prune** on the profile box; storage grows every redeploy | Medium | P4 |
 | G3 | **No monitoring or alerting of any kind.** No OTEL by design (`src/profile-server/Logger.ts:5-8`), no uptime check, and **nothing reads `last-backup.json`**. Cron mails root only with an MTA, which nothing installs | **HIGH** — a backup that stops is invisible while the 14-day prune keeps deleting | P4 |
-| G4 | **Restore never proven against real data.** Runbook `:147-153` records the 2026-07-01 drill: the prod DB was still **empty (0 rows)**, so a non-empty round-trip was never verified — and the drill **predates the default-deny guard**, so its command line no longer works. The runbook's own gate: *"A backup that has never been restored is not a backup."* | **HIGH** | P3 |
+| G4 | **Restore never proven against real data.** `ai-agents/knowledge-base/profile-backup-restore-runbook.md:147-153` (frame `589249c`, the "Recorded RTO" paragraph) records the 2026-07-01 drill — 📌 *corrected 2026-09-10 from a bare `Runbook :147-153`, which readers resolved to `0182`'s brief, where that range is the `## 4. Configure the deploy` header*: the prod DB was still **empty (0 rows)**, so a non-empty round-trip was never verified — and the drill **predates the default-deny guard**, so its command line no longer works. The runbook's own gate: *"A backup that has never been restored is not a backup."* | **HIGH** | P3 |
 | G5 | **The `age` private key has no recorded home** — 🔴 **STILL LIVE, not closed.** ~~with the bucket reused~~ 🚨 **CORRECTED 2026-09-08 — the bucket is NOT reused; the old objects sit in a separate, abandonable bucket, which reshapes the disposition question but does NOT close it.** ⚠️ **The NEW key's custody (P3) is entirely unaffected and remains CRITICAL.** See §1 | **CRITICAL** | P3 + `0222` |
 | G6 | **No OS baseline hardening** — no `unattended-upgrades`, no `fail2ban`, no sshd hardening, no non-root deploy user; deploy runs as root by default | Medium | P6 |
 | G7 | **Restart policy diverges.** Compose uses `restart: on-failure` (`setup-profile.sh:405`, `:427`); the game box uses `--restart=always` (`update.sh:64`). `on-failure` does **not** bring containers back after a **Docker daemon restart** | Medium | P6 |
@@ -403,7 +428,7 @@ backend is live" is not claimable.**
 | `ai-agents/tasks/backlog/0064-deploy-time-config-parity-guard/brief.md` | `:244` |
 | `ai-agents/tasks/done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md` | `:72`, `:89`, `:169`, `:187` |
 | `ai-agents/knowledge-base/architecture.md` | the topology diagram (the text at `:602-628` is **fine** — it describes what the scripts do) |
-| `ai-agents/tasks/done/0182-…-bring-up-runbook/brief.md` | `:136-137` (**trap 1**), `:219`, plus the top banner |
+| `ai-agents/tasks/done/0182-…-bring-up-runbook/brief.md` | the **trap 1** token guidance, the backup limitation, plus the top banner. 📌 *Line numbers corrected 2026-09-10 (0182 numbers are POST-sweep): this row read `:136-137` and `:219`, both WRONG — at `589249c` `:136` is `## 3. Confirm SSH access to the box` and `:219` is `## 5. Run the deploy`. The token guidance is `0182/brief.md:185` and `0182/brief.md:241`, under the banner at `0182/brief.md:182-231`; the backup-limitation correction is `0182/brief.md:335-339`.* |
 
 ⚠️ **`ai-agents/wiki-vault/wiki/systems/project-brief.md:64` carries the same stale claim and was
 DELIBERATELY NOT EDITED.** That vault is `fkit-wiki`'s exclusive write surface (ADR-005). **Route it

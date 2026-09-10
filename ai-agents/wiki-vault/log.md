@@ -2751,3 +2751,193 @@ scheduled, re-ranked or moved.**
   Task 9a are omitted from that sentence. **Consistent with them being residue rather than live work**
   — so this is plausibly deliberate, not an error — but the prose does not say so, and a reader
   counting rows will not reconcile it. **A producer wording call, not a wiki fix.**
+
+## 2026-09-10 — ingest (sync)
+
+- Sync window: `f7d28eb` → HEAD (`589249c`). Three commits: `cd3d583` (a prior wiki sync's own vault
+  output), `4c981e5`, `589249c`.
+- **Changed files under `ai-agents/`: 42 — of which 9 are `wiki-vault/` (a prior run's OWN OUTPUT) and
+  are excluded by the procedure's pathspec. Real source candidates: 33.**
+- **Of those 33, 13 are ingest-worthy.** Skipped per Step 3: **14** `tasks/backlog/*/brief.md` (not
+  done yet — a page would be premature) and **6** in-folder `plan.md` / `worklog.md` / `review.md`
+  working artifacts. The `0215` backlog→done paths are one renamed pair, counted once.
+- **Pages created: 4. Pages updated: 21** (index and log excluded from the update count).
+
+**Ingested**
+
+- `ai-agents/tasks/done/0215-profile-p1-stand-up-the-box/brief.md` (+ `plan.md`, `worklog.md` read as
+  supporting evidence) → created [[wiki/tasks/profile-box-adopt-and-reprovision]]
+- `ai-agents/tasks/done/0216-profile-p1-spike-ru-network-reachability/brief.md` (+ `worklog.md`) →
+  created [[wiki/tasks/profile-le-certificate-renewal-proof]]
+- `ai-agents/tasks/done/0236-client-kill-switch-for-citizenship-surfaces/brief.md` (+ `worklog.md`,
+  `review.md`) → created [[wiki/tasks/citizenship-kill-switch-coverage]]
+- `ai-agents/knowledge-base/reports/2026-09-10-codex-second-opinion-owner-confirmation.md` → created
+  [[wiki/decisions/codex-second-opinion-mandatory]]
+- `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]] (new 2026-09-08/10 block:
+  ADOPT-not-wipe, the three closes, the `0238` launch gate, the owner-ruled `0218` → `0219` → `0217`
+  work order, the bucket correction)
+- `ai-agents/sprints/backlog.md` → updated [[wiki/decisions/sprint-backlog]] (`0235`, `0237` filed;
+  `0238` promoted out; `0230` unchanged and still deferred)
+- `ai-agents/knowledge-base/PROJECT.md` → updated [[wiki/systems/project-brief]]
+- `ai-agents/knowledge-base/architecture.md` → updated [[wiki/systems/architecture-overview]]
+- `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md` → updated
+  [[wiki/tasks/postgres-backup-routine]] and [[wiki/systems/player-profile-store]] (the 2026-09-08
+  bucket correction, the reshaped `0222` question, the unrevoked old access key)
+- `ai-agents/tasks/done/0182-profile-04i-server-bring-up-runbook/brief.md` → updated
+  [[wiki/tasks/profile-server-bring-up-runbook]] (three confirmed drifts, including the **stale
+  `:136-137` citation**)
+- `ai-agents/tasks/done/0067-name-change-citizens-only/brief.md` → updated
+  [[wiki/tasks/citizenship-name-change]] (**B8 answers it: migration `004` IS applied**)
+- `ai-agents/tasks/done/0013-player-profile-store-impl/brief.md` → updated
+  [[wiki/tasks/profile-backend-db-api]], [[wiki/tasks/player-profile-store-investigation]]
+- `ai-agents/tasks/done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md` → updated
+  [[wiki/tasks/yandex-payments-secret-forwarding]]
+
+**Also updated (cross-links and corrections):** [[wiki/tasks/profile-vps-provisioning]],
+[[wiki/systems/agent-conventions]], [[wiki/decisions/profile-storage-strategy]],
+[[wiki/decisions/profile-deploy-hardening-review-loop]], [[wiki/decisions/adr-101-fail-soft-xp-crediting]],
+[[wiki/tasks/hide-citizenship-card-flag]], [[wiki/tasks/citizen-verified-icon]],
+[[wiki/tasks/citizenship-xp-progress-ui]], [[wiki/tasks/crashed-game-teardown-seam]],
+[[wiki/tasks/orphaned-performance-monitors-lobby-rejoin]], [[wiki/systems/flashist-init]],
+[[wiki/systems/analytics]], `index.md`.
+
+**Skipped (per Step 3)**
+
+- 14 backlog briefs: `0004`, `0213`, `0214`, `0215`(pre-move path), `0216`(pre-move path), `0217`,
+  `0218`, `0219`, `0220`, `0221`, `0222`, `0235`, `0237`, `0238` — **not done; a page would be
+  premature.** Their substance is recorded on the two board pages instead, where it belongs.
+- 6 working artifacts (`plan.md` / `worklog.md` / `review.md`) — read as evidence for the three task
+  pages, **not ingested as sources of their own**.
+- 9 `wiki-vault/` files — this vault's own prior output, not a source.
+
+**Lint (Step 6, scoped to touched pages)**
+
+- 182 distinct wiki-links across the touched set — **all resolve.**
+- Bidirectionality: **6 one-way links found and fixed**, plus 1 missing back-link from
+  [[wiki/decisions/adr-101-fail-soft-xp-crediting]]. Recheck clean in both directions.
+- Secret scan on the new pages: **no IPs, no bucket names, no endpoints, no keys, no connection
+  strings.** Only public hostnames (`api.geoconflict.ru`, `reg.ru`, `docker.com`), which the schema's
+  standing owner ruling of 2026-08-29 permits.
+
+**⚠️ Flagged for human review, not acted on**
+
+1. **Two index lines contradicted their own page bodies and were corrected in passing** —
+   `profile-vps-provisioning` ("NO PROVISIONED HOST EXISTS") and `profile-server-bring-up-runbook`
+   ("THE HOST IT BROUGHT UP NO LONGER STANDS"). Both pages had **already withdrawn** those claims as
+   overstated; the index was never updated. **Recorded because it is a recurring class: an
+   annotation gets superseded on the page and left standing in the catalog.**
+2. 🚨 **`example.env.profile:92-93` is still wrong at `HEAD`** — it tells the operator
+   `PROFILE_INTERNAL_TOKEN` is auto-generated if left blank, which now silently loses XP. **A live
+   documentation defect in `src`-adjacent config, outside the vault. The wiki records it and cannot
+   fix it.**
+3. 🚨 **The `0182 brief:136-137` citation is stale and is copied into at least three other places** —
+   `0215`'s brief, `0218`'s brief, and the project memory. The real text is at `:175`/`:207`. **Those
+   are task files and memory, not vault pages; a producer/owner fix, not a wiki one.**
+4. **`0230` remains DEFERRED, CAUSE UNKNOWN.** Nothing in this window explained, fixed or cancelled
+   it. Recorded so no future run reads its quiet metric as a resolution.
+
+## 2026-09-10 — correction (targeted, no sync)
+
+**Why this is an APPENDED entry and not an edit to the entry above.** The coordinator identified
+`log.md:2788` and `:2833` — both written by *today's* sync entry — as two of four vault copies of a
+stale citation needing correction. 🔒 **`log.md` is APPEND-ONLY**, a hard constraint ruled by the
+owner at `0002`'s plan gate (decision **D3**) and recorded in task `0052`'s brief: *"the sanctioned
+shape is a new appended entry … never an edit to a past one."* **No owner ruling was named lifting it
+for this correction, so the rule wins and the two lines above are LEFT AS WRITTEN.** They are not
+misleading in any case: both **label** `:136-137` as defective rather than using it as a pointer, and
+naming a bad citation is how you describe one. **This entry is the correction of record.**
+
+**The defect.** `0182 brief.md:136-137` was the vault's reference for the `PROFILE_INTERNAL_TOKEN`
+trap. 🚨 **It never pointed at that text at any commit where the citing sentence existed.** Per a
+producer's git archaeology (2026-09-10), commit **`879b2f4`** (2026-09-04) wrote the citation **and,
+in the same commit, inserted a correction banner above the target**, pushing the text down ~40 lines
+— **it shipped already pointing elsewhere.** Mechanism named by the producer: **"self-invalidation
+inside one commit"**, recorded in `ai-agents/knowledge-base/conventions/file-line-citations.md` as a
+confirmed recurrence of **failure mode 4**.
+
+🔴 **FRAME, DECLARED — the four target numbers below were content-matched against the UNCOMMITTED
+WORKING TREE on 2026-09-10.** `ai-agents/tasks/done/0182-profile-04i-server-bring-up-runbook/brief.md`
+shows as ` M` against `HEAD` = `589249c` because a producer edited it today. **These numbers are NOT
+valid against `589249c` and will move again if that file is edited. Re-derive by content.**
+
+| Target | Verified line | What is at it |
+|---|---|---|
+| Struck original sentence | `0182/brief.md:184` | `~~*"Optional — leave blank; the box auto-generates and persists it."*~~` (runs onto `:185`) |
+| Same claim inside the code block | `0182/brief.md:216` | a `#` comment re-quoting it, under a `⚠️ SUPERSEDED 2026-09-04` header at `:215` |
+| Correction banner | `0182/brief.md:181-207` | opens `> 🔴 **STOP — CORRECTION 2026-09-04…`, closes with the survey link at `:207` |
+| Corrected value line | `0182/brief.md:220` | `PROFILE_INTERNAL_TOKEN=<generate-once-set-identically-on-both-sides>` |
+
+**Corrected (2 pages + the index):** [[wiki/tasks/profile-server-bring-up-runbook]] (drift-1 block and
+the TRAP block), [[wiki/tasks/profile-box-adopt-and-reprovision]] (the runbook-drift bullet and the
+token-trap paragraph), `index.md:117`.
+
+**Two claims of my own, withdrawn rather than quietly dropped:**
+
+1. ⛔ **`0182 brief:175` / `:207` — WITHDRAWN.** Today's sync entry gave those as the real targets,
+   inheriting them from `0215`'s worklog. **They do not match the content in the working tree.**
+2. ⛔ **"Those two lines are a section header and a blank line" — HALF WRONG, corrected.**
+   Content-checked: `0182 brief.md:136` is body prose (*"rate-limits certificate issuance, so do not
+   run the deploy against a mispointed record."*) and `:137` **is** blank. **Neither is a section
+   header.** Also inherited from `0215`'s worklog.
+
+**Second correction, unrelated to the citation — the "nothing logs above `debug`" claim is REFUTED.**
+🔴 **Three vault pages carried it; all three fixed.** A 401 is a non-5xx, non-429 status, so
+`postWithRetry` gives up immediately and **logs at WARN** — `src/server/ProfileApiClient.ts:265-267`
+(`profile <path> returned <status>; not retrying`) — and the caller warns **again** at `:147-149`
+(`credit batch failed after retries; N award(s) dropped (idempotent — a later retry is safe)`).
+⇒ **two WARN lines per failed batch.** 🔒 Frame: `src/server/ProfileApiClient.ts` is **clean at
+`HEAD` = `589249c`**; verified by reading the file this turn, not taken on report.
+✅ **THE XP-LOSS HALF STANDS IN FULL AND WAS NOT WEAKENED ANYWHERE** — the awards are **dropped and
+never queued**. Only the *invisible-in-logs* half was wrong. Pages corrected:
+[[wiki/tasks/profile-server-bring-up-runbook]], [[wiki/tasks/profile-box-adopt-and-reprovision]], and
+[[wiki/decisions/config-parity-failure-class]] — **the third was NOT on the coordinator's list and was
+found by scanning the vault for the claim.**
+
+**Outside the write surface — reported, NOT touched:** the same refuted claim sits in
+`0182/brief.md:192` and `:219` (⚠️ the coordinator said "around `:182`"; the verified lines are `:192`
+and `:219`), and per the coordinator also in the owner's `MEMORY.md`. **Neither is the vault's to
+edit.**
+
+**Link check re-run on the touched pages: all links resolve, bidirectionality unchanged.** No sync was
+run; **the watermark is deliberately UNCHANGED at `589249c`** — this entry corrects vault text, it
+ingests nothing.
+
+## 2026-09-10 — correction (second pass): the vault stops citing `0182` by line
+
+**The numbers moved a THIRD time.** The set recorded in the entry above (`:184` / `:216` /
+`:181-207` / `:220`) was correct when written and stale within hours — a producer's later edits
+widened the correction banner and pushed every anchor down. `0182/brief.md` moved **four times on
+2026-09-10 while uncommitted**, and **two successive line-number sets, both correctly derived by
+careful agents, went stale before the vault could write them.**
+
+🔴 **DECISION — the vault now cites `0182` (and files like it) BY CONTENT, not by line.** Recorded as
+a standing rule in `schema.md` § *Citing source files*, so it does not drift back.
+
+**Why this is permitted, checked rather than assumed.** `schema.md`'s two *"every claim cites
+`file:line`"* requirements both sit inside the **Glossary Page** section and one is explicitly under
+*"Rules binding on this page type"* — they govern `wiki/systems/glossary.md` alone. The **general**
+Cross-Reference Rule for every other page type reads *"Link to source files with backtick paths"* —
+**a path, no line number.** ⇒ Content anchors are not a relaxation; they are **closer to the schema's
+general rule than line numbers were.** ✅ **The glossary exception is untouched and stays
+`file:line`**: it cites committed `src/`, not a churning uncommitted brief, and its citation does a
+different job.
+
+**Anchors now used** (each verified to match **exactly once** in a 385-line `0182/brief.md` at the
+moment of writing): `STOP — CORRECTION` · `~~*"Optional — leave blank` · `#     "Optional — leave
+blank` · `PROFILE_INTERNAL_TOKEN=` · `Backups are local + weekly`.
+
+**Changed:** [[wiki/tasks/profile-server-bring-up-runbook]], [[wiki/tasks/profile-box-adopt-and-reprovision]],
+`index.md:117`, `schema.md` (new subsection).
+
+🚨 **A FIFTH STALE CITATION WAS FOUND, ON NOBODY'S LIST.** `0182 brief:293-297`, cited on the runbook
+page for the *"backups are local + weekly"* line, **now lands on a `ps -ef` secret-hygiene code
+block.** Same file, same defect class; missed because attention was on the `:136-137` copies. Found
+by re-running this vault's own citation check rather than only fixing the handed-in list. **Converted
+to a content anchor.**
+
+**Left alone, deliberately:** the `:136-137` mentions that remain on three pages are **labels**
+(*"this citation is defective"*), not pointers — correct usage. `log.md`'s historical entries are
+untouched per the append-only constraint. The one `0182/brief.md:184` still in `schema.md` is the
+new rule's own **❌ counter-example**.
+
+**Watermark deliberately UNCHANGED at `589249c`** — this corrects vault text and ingests nothing.

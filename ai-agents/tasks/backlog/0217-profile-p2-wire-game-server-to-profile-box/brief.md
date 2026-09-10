@@ -61,6 +61,8 @@ a **known** `PROFILE_INTERNAL_TOKEN`.
 
 ## Context
 
+> 📌 **Citation frame.** Every `file:line` here was re-derived by opening the file, against commit `589249c` **plus the 2026-09-10 citation sweep**. ⚠️ That sweep ADDED lines to `0182`'s brief, so `0182` numbers here are POST-sweep — they will not match a bare `589249c` checkout. Re-derive by matching the described content, never by shifting the number. See [`conventions/file-line-citations.md`](../../../knowledge-base/conventions/file-line-citations.md).
+
 ### 🔴 TWO INDEPENDENT SILENT BARRIERS SIT ON THIS EXACT PATH
 
 Both fail **quietly**. Both destroy XP rather than queueing it. **This task is where they are caught
@@ -70,14 +72,28 @@ or where they start.**
 `internalAuth` is a `timingSafeEqual` over a **shared** secret
 (`src/profile-server/InternalAuth.ts:14-19`, `:26`). If the game server's `PROFILE_INTERNAL_TOKEN`
 does not **match** the box's, every credit call gets a **401**. The client is fail-soft with **no
-durable queue** (ADR-101) ⇒ **the XP is LOST, not queued**, and **nothing logs above `debug`**.
-⚠️ `0182/brief.md:136-137` still reads *"leave blank; the box auto-generates"* — annotated 2026-09-04,
-but **anyone reading the runbook cold will do the wrong thing**.
+durable queue** (ADR-101) ⇒ **the XP is LOST, not queued**, and ~~**nothing logs above `debug`**~~.
+🚨 **CORRECTED 2026-09-10 — the *"nothing logs above `debug`" / "silently swallowed"* half is REFUTED against the source.** A 401 (and a 403) is a non-5xx, non-429 4xx, so `postWithRetry` stops immediately and logs at **WARN — twice per failed batch**: `src/server/ProfileApiClient.ts:265-267` (`` `profile ${path} returned ${response.status}; not retrying` ``, inside the `status < 500 && status !== 429` guard at `src/server/ProfileApiClient.ts:264`) and `src/server/ProfileApiClient.ts:146-149` (`` `credit batch failed after retries; N award(s) dropped …` ``). **Frame `589249c` — `ProfileApiClient.ts` is clean at that commit, so these two numbers are stable.** ⛔ **THE XP-LOSS HALF IS UNTOUCHED AND STANDS IN FULL — the awards are DROPPED, never queued.** 🔴 It still goes unnoticed, because **nothing on that box reads the logs** (`0219`, **OPEN**) — **a warning nobody reads fails as quietly as no warning at all.**
+
+⚠️ **The runbook's original *"leave blank; the box auto-generates"* line is now STRUCK and annotated**
+(2026-09-04). **Read against `589249c` + the 2026-09-10 citation sweep (that sweep moved `0182`'s lines down):** the struck sentence is at
+[`0182/brief.md:185`](../0182-profile-04i-server-bring-up-runbook/brief.md) — that line holds
+`~~*"Optional — leave blank; the box auto-generates and persists it."*~~` — and the same sentence is
+quoted inside the `.env.profile.secret` code block at `0182/brief.md:241`; the correction banner runs
+`0182/brief.md:182-231` and the corrected value line is `0182/brief.md:248`.
+📌 **Citation corrected 2026-09-10 — this brief previously cited `0182/brief.md:136-137`, which is
+WRONG:** at `589249c` those two lines are the section header `## 3. Confirm SSH access to the box` and
+a blank line. **Re-derive by content, never by shifting the number** —
+[`conventions/file-line-citations.md`](../../../knowledge-base/conventions/file-line-citations.md).
+🔴 **The LIVE operator trap is now `example.env.profile:92-93`, NOT `0182`** — at `589249c` those lines
+read `# PROFILE_INTERNAL_TOKEN= # service token shared with the game server (T6);` /
+`#   auto-generated on the box if left blank`, **unstruck and uncorrected**. Anyone copying the example
+env file cold will still do the wrong thing.
 
 **Barrier 2 — the IP allow-list.**
 `PROFILE_INTERNAL_ALLOW_IPS` in `example.env.profile:33` is pinned to a **June** game-prod egress IP.
 nginx enforces `allow …; deny all;` at `/internal/` (`setup-profile.sh:719-720`). A stale value ⇒
-**403 on every credit call** — also silently swallowed.
+**403 on every credit call** — ~~also silently swallowed~~. 🚨 *Corrected 2026-09-10: a 403 is also a non-5xx, non-429 4xx, so it takes the SAME two-WARN path as the 401 (`src/server/ProfileApiClient.ts:265-267`, `:146-149`, frame `589249c`). **Not swallowed — logged and unread** (`0219`, open). The barrier itself is unchanged.*
 
 🚨 **A 401 and a 403 are indistinguishable from "working" at the game server, because the client
 never surfaces either.** `0062`'s **D3** — an actual authenticated call succeeding end to end — is

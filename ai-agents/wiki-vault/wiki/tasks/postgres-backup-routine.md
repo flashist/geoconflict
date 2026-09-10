@@ -23,6 +23,59 @@ Replace the same-disk interim profile DB dump with a daily encrypted off-box bac
 
 T8 is complete. The profile store now has an encrypted off-box daily backup path with deploy-time smoke validation, failure markers, retention handling, and restore documentation. The first recorded restore drill verified schema, decryption, and restore flow on an empty production DB; it must be repeated with non-empty real player/entitlement data before or after paid citizenship starts carrying real value.
 
+> # 🔴 UPDATED 2026-09-10 — BACKUPS DEMONSTRABLY RUN. **THE RESTORE PATH HAS STILL NEVER BEEN TESTED.**
+>
+> Task `0215` re-provisioned the box (adopted, not wiped) and the backup path was verified end to end
+> **as far as it goes**:
+>
+> - `last-smokecheck.json` records `exit_status: 0`.
+> - **One encrypted daily object, 19,330 bytes, lead-verified present in the new bucket** via `rclone`.
+> - `/etc/cron.d/profile-backups` header reads **`Mode: offbox`** — the real off-box path, not the
+>   local skeleton. `backup.env` is 0600, `backup.sh` is 0700.
+> - Pre-flight before the deploy: an `rclone` round-trip against the new bucket
+>   (`copyto` → `size --json` → `deletefile`, all three passed) and an `age` recipient round-trip
+>   (`RECIPIENT OK`). `setup-profile.sh:889-908` **fails the deploy CLOSED** on incomplete backup
+>   config — **that guard working is why these pre-flights exist.**
+>
+> ## 🚨 SAY IT PLAINLY: "BACKUPS ARE WORKING" MEANS **ENCRYPT-AND-UPLOAD ONLY**.
+>
+> **Nobody has ever proven one restores.** The old bucket is gone and its objects were unreadable, so
+> **there is no historical restore to fall back on either.** 🔴 **Task `0218` owns this and it is
+> OPEN.** Until it closes, **this box has no proven recovery path** — acceptable at zero rows, and it
+> **must not still be true when the first real citizen row is written.** ⛔ **No page may imply a
+> proven recovery path.** 📌 The owner ruled 2026-09-10 that `0218` **leads** the remaining profile
+> work (`0218` → `0219` → `0217`), for exactly this reason and because a drill is **cheapest now,
+> while every table has zero rows**.
+>
+> ### ⚠️ B4's historical half stays UNKNOWN
+> `last-backup.json` was never read at inventory, so *"has a backup ever completed before, and when"*
+> was **answered forward, not backward**: a backup demonstrably completes **now**.
+>
+> ### 🔴 The `age` key now HAS a recorded home — and a knowingly accepted weakness
+> A **new** keypair was generated 2026-09-09 outside the repo. Custodian: **Mark Dolbyrev**. ✅
+> **Readability was PROVEN, not assumed** — the owner decrypted a test file using the copy retrieved
+> **from storage**, not from the original generated file, and confirmed it against `age-keygen -y`.
+> That satisfies `0218`'s live-readability gate. 🚨 **But the plan asked for an OFFLINE second copy and
+> what exists is a SECOND CLOUD COPY:** neither store is zero-knowledge, and **both may share a
+> phone-number recovery path**, so the two copies **may not be two independent failure modes.** The
+> owner was shown this and chose it deliberately — a knowingly accepted residual. **`0218` should
+> treat "two copies" as weaker than the count suggests.**
+>
+> ### 🔴 STORAGE — the bucket is NOT reused (owner ruling 2026-09-08)
+> A **brand-new, clean bucket** was created, superseding the 2026-09-04 reuse ruling **as to the
+> bucket only**; the VPS half is unchanged. **The owner had already deleted the old bucket.** ⇒ **All
+> six backup values are new** and the new path shares nothing with the old one. `0222`'s question
+> **changed shape and is STILL UNANSWERED and the owner's** — with the old bucket separable, the
+> options are **(a)** purge the objects · **(b)** keep pending a search for the old key · **(c) 🆕**
+> abandon the whole old bucket. 🔴 **Separately and unchanged: the OLD S3 ACCESS KEY MUST BE REVOKED
+> AT THE PROVIDER, and has not been** — an overwritten local value is a live credential until revoked
+> there, required under all three options. ℹ️ The provider console **exposed no versioning or
+> lifecycle setting** for the bucket — recorded as **UNKNOWN, not assumed either way**; a
+> cost/retention risk, not a deploy blocker.
+>
+> **The block below is kept as the record of the period when all of this was unknown. Read it as
+> history — in particular, its "the bucket is REUSED" premise is superseded.**
+>
 > 🔴 **CORRECTED 2026-09-04 — WHETHER ANY BACKUP IS RUNNING IS UNKNOWN.** ⚠️ **This supersedes an
 > earlier same-day annotation here reading "NO BACKUPS ARE RUNNING, BECAUSE THERE IS NO BOX"; that
 > overstated the owner's position and is withdrawn.** Owner rulings, both given live in session
@@ -77,3 +130,4 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 - [[tasks/profile-server-bring-up-runbook]]
 - [[decisions/vps-credential-leak-response]]
 - [[systems/architecture-overview]] — profile deploy hardening and the two easily-confused Postgres instances
+- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which proved this backup path encrypts and uploads, generated the new `age` keypair and the new bucket, and left the restore path unproven

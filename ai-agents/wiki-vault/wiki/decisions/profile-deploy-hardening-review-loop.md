@@ -52,3 +52,4 @@ The restart should preserve the proven properties from the abandoned branch: sec
 - [[tasks/profile-game-server-deploy-env]] — completed T4h game-server deploy-env propagation
 - [[tasks/profile-server-bring-up-runbook]] — completed T4i operator runbook and live host bring-up
 - [[systems/player-profile-store]] — current profile API/Postgres architecture after T4/T5
+- [[decisions/codex-second-opinion-mandatory]] — the 2026-09-10 owner confirmation that every review carries an independent Codex pass, and that an outage is a loud degradation

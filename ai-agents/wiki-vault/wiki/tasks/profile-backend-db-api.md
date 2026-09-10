@@ -37,3 +37,4 @@ The backend still does not by itself solve identity trust or 152-ФЗ compliance
 - [[tasks/profile-server-bring-up-runbook]]
 - [[tasks/profile-match-end-crediting]]
 - [[tasks/personal-data-compliance-investigation]]
+- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, where this slice's migrations `001`–`004` were verified applied on the live box, and `/ready` returned **200** proving the API authenticates to Postgres

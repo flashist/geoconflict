@@ -61,6 +61,49 @@ One binary: `cluster.isPrimary` → master, else worker. Master serves HTTP/API/
 
 ### Profile backend tier
 
+> # 🔴 SUPERSEDED 2026-09-10 — THIS TIER'S HOST IS LIVE AND RE-PROVISIONED. IT WAS **ADOPTED, NOT WIPED**.
+>
+> Task `0215` closed `✅ Done (agent-closed — not owner-verified)`. A read-only inventory found the box
+> **already live and healthy**, and the **owner ruled ADOPT** — re-provision over it, **no wipe**. The
+> only destructive act was destroying the **Postgres data volume** to rotate `POSTGRES_PASSWORD` at
+> `initdb`, owner-ruled, with all four tables re-verified at **0 rows at execution time**.
+>
+> ✅ **Lead-verified independently of the deploy's own banner:** `/health` **200** and `/ready` **200**
+> over a **valid** Let's Encrypt certificate. `/ready` is DB-backed
+> (`src/profile-server/Routes.ts:198-207`), so it proves the API authenticated to Postgres with the
+> **new** password on the **fresh** volume. Migrations `001`–`004` all recorded; the image is
+> `@sha256`-digest-pinned; both compose services healthy; swap active with `vm.swappiness=10`; `ufw`
+> allowing exactly 22/80/443. The Let's Encrypt certificate was **PRESERVED byte-identical** — that is
+> what adopting bought, and it spent **no rate-limit** against the main domain's shared limit. A
+> separate task (`0216`) then proved the box can complete a **full ACME HTTP-01 challenge** against LE
+> **staging**, hooks and all — 🚨 **capability, NOT monitoring: nothing reads the renewal log**
+> (`0219`, open), so a later break fails silently until the certificate expires **2026-11-20**.
+>
+> 🚨 **WHAT IS STILL NOT TRUE, and these are what mislead now:**
+> - **The profile backend is NOT deployed to players, and the game server is NOT wired to it.**
+>   `0217` is open; **no credit or upsert call path is live** and the profile database holds **zero
+>   citizen rows**.
+> - 🔴 **THE RESTORE PATH HAS NEVER BEEN TESTED.** *"Backups are working"* means **ENCRYPT-AND-UPLOAD
+>   ONLY** — one encrypted 19,330-byte object was verified present in the new bucket. **Nobody has
+>   ever proven one restores** (`0218`, open). The old bucket's objects were permanently unreadable
+>   for exactly this reason.
+> - ⚠️ **`ufw` default-deny-incoming was NOT re-verified** post-deploy (plain `ufw status` does not
+>   restate the default policy); it is carried forward from the pre-deploy inventory.
+> - ⚠️ **RU residency was verified 2026-09-10** by IP geolocation — Moscow, ASN REG.RU, reverse DNS in
+>   reg.ru's cloud domain, three corroborating signals — but **only one geolocation provider actually
+>   answered**, and geolocation is **registration/announcement evidence, not a physical-site
+>   attestation.**
+>
+> 🔴 **STORAGE, CORRECTED 2026-09-08 (owner ruling, live in session): the S3 bucket is NOT reused.** A
+> **brand-new, clean bucket** was created; this supersedes the 2026-09-04 reuse ruling **as to the
+> bucket only** — ✅ **the VPS half is unchanged.** The owner had already deleted the old bucket. **All
+> six backup values are new.** 🔴 **The old S3 access key still has to be revoked at the provider and
+> has not been** — an overwritten local value is a live credential until revoked there (`0222`).
+>
+> Full record: [[tasks/profile-box-adopt-and-reprovision]] and
+> [[tasks/profile-le-certificate-renewal-proof]]. **The block below is kept as the record of the
+> period when this was unknown — read it as history, not as current state.**
+>
 > 🔴 **CORRECTED 2026-09-04 — THIS TIER'S HOST EXISTS, BUT WHAT IS RUNNING ON IT IS UNKNOWN.**
 > ⚠️ **This supersedes an earlier same-day annotation here reading "THIS TIER HAS NO RUNNING HOST";
 > that overstated the owner's position and is withdrawn.** Owner rulings, both given live in session
@@ -194,3 +237,5 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 - [[tasks/test-suite-reliability-investigation]] — task `0197`, source of the test-toolchain facts in the build/run/test section and of R2's concrete cost
 - [[tasks/prod-api-env-https-apex]] — task `0063`, whose deploy (`362a2f9`) is the release this survey's post-2026-08-28 deploy notes refer to
 - [[tasks/supertest-profile-server-flake]] — task `0200`, which ran into the same "no CI, one host" ceiling this survey records; its "not a repository defect" verdict rests on refutation, not on a second machine
+- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which turned this survey's biggest UNKNOWN into a verified live host: the profile box was **adopted, not wiped**
+- [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, which proved the box's TLS renewal **capability, not its monitoring**

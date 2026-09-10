@@ -159,6 +159,12 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 
 - ✅ **UPDATED 2026-09-08 — the board-invisible-brief gap flagged by earlier vault runs is now CLOSED for seven briefs.** `0012`, `0015`, `0016`, `0035`, `0036`, `0045` and `0047` each gained a `## Sprint` heading; three of them (`0035`, `0036`, `0045`) are exactly the briefs a prior wiki run flagged as having **no `## Sprint` heading at all** and left unfixed on the correct ground that **editing a brief is the producer's job, not the wiki's**. The producer has now done it. ⚠️ **The values are DERIVED, NOT ASSIGNED, and every one of the seven says so in its own text** — each was read off sources that already agreed (the brief's own `## Priority` line and/or its existing board row), and each is marked **visibility-only**. ⛔ **No task was scheduled, re-ranked or moved by this**, and six of the seven read *"Sprint backlog — no sprint home yet"*; only `0012` derives an actual sprint (`Sprint 4`).
 
+- 📌 **UPDATED 2026-09-10 — two briefs filed onto `backlog.md`, and one row on it flipped to a `➡️ Moved` pointer.**
+  - **`0235` — standardize the npm build/deploy script names on colon namespacing, and make the names say they BUILD, not just deploy.** Filed by a spawned producer on an owner request given live in session. 🔴 **Owner ruling 2026-09-10: do this AFTER `0215` completes, not before** — and `0215` closed the same day, so that dependency is now discharged.
+  - **`0237` — close the three test-quality residuals routed out of `0236`.** `0236`'s round-2 review produced four findings, all **low**; the owner's stopping rule routed three of them out. 🚨 **ROUTED OUT, NOT DROPPED** — each carries its re-raise condition in `0236`'s review ledger. See [[tasks/citizenship-kill-switch-coverage]].
+  - **`0238` — the citizenship kill switch's REMOTE-half launch gate — was filed here and PROMOTED INTO SPRINT 4 later the same day**, on an owner ruling given live in session. Its row here is kept as a `➡️ Moved to Sprint 4 — priority: unranked` pointer, not deleted. ⛔ **It gates flipping `CITIZENSHIP_CARD_ENABLED` to `true`, and neither `0236` nor `0217` discharges it.**
+  - ⚠️ **`0230` is unchanged and still reads DEFERRED, CAUSE UNKNOWN** — it came here off Sprint 4 on 2026-09-07 and nothing since has explained, fixed or cancelled it.
+
 ## Related
 
 - [[tasks/tutorial-abandonment-platform-segmentation]] — task `0212`, the filed-but-unscheduled investigation into why the tutorial's completion rate reads 9.8 %, and the six code-read corrections that say the headline is probably overstated
@@ -216,3 +222,5 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[decisions/adr-105-compact-maps-out-of-rotation]] — the ADR whose exit `0026` (compact-map shore regeneration) is; that brief became board-visible here on 2026-09-08
 - [[tasks/leaderboard-player-count]] — task `0161`, verified 2026-09-08 as **NOT** a duplicate of Task 7 / `0234`
 - [[tasks/singleplayer-leaderboard-reporting-policy]] — task `0210`, likewise verified as a different, narrower question
+- [[tasks/citizenship-kill-switch-coverage]] — task `0236`, whose close filed `0237` onto this board and `0238` through it into Sprint 4
+- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, whose close discharges `0235`'s owner-ruled dependency

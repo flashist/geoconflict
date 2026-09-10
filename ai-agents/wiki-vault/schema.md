@@ -205,6 +205,43 @@ is not settled by this ruling.
 - Always cross-link bidirectionally: if A links to B, B should link back to A
 - Link to source files with backtick paths, not wiki-links: `` `src/core/GameRunner.ts` ``
 
+### Citing source files — CONTENT ANCHORS BY DEFAULT (added 2026-09-10 by the wiki role)
+
+**A vault citation names a file and a greppable anchor. It does NOT carry a line number by default.**
+
+```
+✅  `0182/brief.md` — search for `STOP — CORRECTION`
+✅  `src/profile-server/InternalAuth.ts` — the `timingSafeEqual` call in `internalAuth`
+❌  `0182/brief.md:184`
+```
+
+**Why.** The vault is a **knowledge layer, not a diff.** A line number is a claim about a file's
+*layout*, which changes whenever anyone edits above it; a named anchor is a claim about its
+*content*, which is what the page actually means. On **2026-09-10** the `0182` runbook brief moved
+**four times in one day while uncommitted**, and **two successive sets of line numbers, both
+correctly derived by careful agents, were stale before the vault could write them.** Chasing a third
+set would have been the exact failure
+`ai-agents/knowledge-base/conventions/file-line-citations.md` exists to stop. **A number that must be
+re-derived every few hours is not a citation, it is a treadmill.**
+
+**Three rules:**
+
+1. **Anchor on text that is unique and searchable**, and say what the reader will land on. An anchor
+   that matches three places is not an anchor.
+2. **Verify the anchor by matching it at the moment you write it** — exactly as the line-number rule
+   required. Content anchors drift far more slowly, **but they are not immortal**: if the cited text
+   is reworded, the anchor dies. It fails **loudly** (`grep` returns nothing) rather than **silently**
+   (a number that now points at unrelated prose), and that is the whole gain.
+3. **If a page still needs a line number, it MUST declare the frame it was verified against** — the
+   commit SHA, or explicitly *"the uncommitted working tree, <date>"*. **Never write a bare `:NNN`
+   with no filename**, and **never shift a number arithmetically.**
+
+> ⚠️ **THE GLOSSARY PAGE IS THE EXCEPTION AND IS UNCHANGED.** `wiki/systems/glossary.md`'s
+> *"Evidence or nothing — every term entry cites `file:line`"* is a **binding rule of that page type**
+> (owner ruling, 2026-09-03) and this section does **not** relax it. There, the citation's job is to
+> let a reader confirm a *term-to-identifier* mapping at an exact spot in a large source file, and it
+> cites **committed `src/`**, not a churning uncommitted markdown brief. **Keep `file:line` there.**
+
 ---
 
 ## Index Conventions (`index.md`)

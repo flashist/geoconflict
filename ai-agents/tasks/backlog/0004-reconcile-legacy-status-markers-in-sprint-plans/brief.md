@@ -107,11 +107,12 @@ run until this task makes at least one `plan-sprint-*.md` readable. Nothing here
 this task. Each was **ruled by the owner on 2026-08-26**; apply them as written, alongside the
 general reconciliation. All four touch files this task already edits.
 
-📌 **UPDATED 2026-09-10 — this section now holds EIGHT numbered items, not four, and item 1 is already
-DISCHARGED.** Items **5 through 8 were added on 2026-09-10** and did **not** come from `0003`: **item
-5** was folded in on an **owner ruling given live in session**; **items 6, 7 and 8 are recorded only
+📌 **UPDATED 2026-09-10 — this section now holds NINE numbered items, not four, and item 1 is already
+DISCHARGED.** Items **5 through 9 were added on 2026-09-10** and did **not** come from `0003`: **item
+5** was folded in on an **owner ruling given live in session**; **items 6, 7, 8 and 9 are recorded only
 and NOT ruled by anyone** — read each one's own note before treating it as work, and note that **item
-8 records its own weak fit and names a better home.** ⚠️ **Item 1 is ✅ done; it is kept
+8 records its own weak fit and names a better home, and item 9 is explicitly NOT this task's to fix
+(it is a `fkit-wiki` vault write, ADR-005).** ⚠️ **Item 1 is ✅ done; it is kept
 as the record, not as remaining work.** ⛔ **The numbering of items 1-4 is deliberately
 unchanged so existing references to "hand-off item N" still resolve.**
 
@@ -263,6 +264,26 @@ unchanged so existing references to "hand-off item N" still resolve.**
    pile.** 📌 **The alternative disposition, which may well be the better one: leave it to
    `fkit-reviewer`, whose ledger it is.** ⛔ **Do not fix it from this task without deciding that
    first.**
+
+9. **RECORDED ONLY, NOT RULED AS WORK, AND ⛔ NOT THIS TASK'S TO FIX — wiki `index.md` catalog lines
+   drift from the pages they describe.** *(Added 2026-09-10 by a spawned `fkit-producer`, on the
+   **coordinator's** instruction to record it here — ⚠️ **not an owner ruling**. Same standing as
+   items 6, 7 and 8.)*
+
+   **What it is:** `ai-agents/wiki-vault/index.md` carries a one-line summary per page. Two of those
+   lines **contradicted their own page bodies from 2026-09-04 until 2026-09-10**, when `fkit-wiki`
+   found and fixed them — and flagged it as a **recurring CLASS, not two instances**. It is the same
+   shape as items 5, 7 and 8: **a catalog/board line asserting something the record it points at does
+   not say.**
+
+   🔴 **OWNERSHIP IS NOT AMBIGUOUS: this belongs to `fkit-wiki`, and the fix is a vault write.**
+   ⛔ **`ai-agents/wiki-vault/` is `fkit-wiki`'s exclusive write surface (ADR-005) — this task must
+   never write it**, exactly as item 2 already states. It is recorded here **only** so the class is not
+   rediscovered from scratch, and so the eventual `0004` sweep of *"records that contradict
+   themselves"* knows a parallel sweep exists on the vault side and is somebody else's.
+
+   ⚠️ **Nothing here is a to-do for `0004`.** If the owner wants it tracked as work, the honest home
+   is a `fkit-wiki`-owned task, not this one. 📌 **Recommended disposition: leave it with `fkit-wiki`.**
 
 ## What to build
 

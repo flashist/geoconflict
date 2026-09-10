@@ -21,6 +21,8 @@ fkit-producer (epic) — child phases carry their own owners.
 
 ## Context
 
+> 📌 **Citation frame.** Every `file:line` here was re-derived by opening the file, against commit `589249c` **plus the 2026-09-10 citation sweep**. ⚠️ That sweep ADDED lines to `0182`'s brief, so `0182` numbers here are POST-sweep — they will not match a bare `589249c` checkout. Re-derive by matching the described content, never by shifting the number. See [`conventions/file-line-citations.md`](../../../knowledge-base/conventions/file-line-citations.md).
+
 ### 🔴 THE REFRAME — read this before anything else
 
 **This brief was rewritten on 2026-09-04, the same day it was filed.** Its first version was built on
@@ -115,16 +117,31 @@ five gaps.** Neither greenfield nor procurement.
 
 ### 🔴 THREE TRAPS — read before planning any child phase
 
-1. **`0182`'s runbook will break `0062` if followed as written.** `0182/brief.md:136-137` said
+1. **`0182`'s runbook will break `0062` if followed as written.** The runbook once said
    `PROFILE_INTERNAL_TOKEN` is *"Optional — leave blank; the box auto-generates and persists it."*
-   **True at T4i, FALSE now.** `internalAuth` is a `timingSafeEqual` over a **shared** secret
+   **True at T4i, FALSE now.**
+   📌 **Citation corrected 2026-09-10 — the old `0182/brief.md:136-137` was WRONG** (at `589249c`
+   those two lines are the section header `## 3. Confirm SSH access to the box` and a blank line).
+   **Read against `589249c` + the 2026-09-10 citation sweep (that sweep moved `0182`'s lines down):** the struck original sentence is at
+   [`0182/brief.md:185`](../../done/0182-profile-04i-server-bring-up-runbook/brief.md) — the line holds
+   `~~*"Optional — leave blank; the box auto-generates and persists it."*~~` — and the same sentence is
+   quoted inside the `.env.profile.secret` code block at `0182/brief.md:241`. The correction banner
+   that supersedes both runs `0182/brief.md:182-231`, and the corrected value line is
+   `0182/brief.md:248` (`PROFILE_INTERNAL_TOKEN=<generate-once-set-identically-on-both-sides>`).
+   ⚠️ **Re-derive by content, never by shifting the number** —
+   [`conventions/file-line-citations.md`](../../../knowledge-base/conventions/file-line-citations.md). `internalAuth` is a `timingSafeEqual` over a **shared** secret
    (`src/profile-server/InternalAuth.ts:14-19`, `:26`) ⇒ a box-generated token the game server lacks
    is a **401 on every credit call**. The client is fail-soft with **no durable queue** (ADR-101), so
-   **the XP is LOST, not queued**, and nothing logs above `debug`. ✅ **`0182` annotated in place.**
+   **the XP is LOST, not queued**, and ~~nothing logs above `debug`~~.
+🚨 **CORRECTED 2026-09-10 — the *"nothing logs above `debug`" / "silently swallowed"* half is REFUTED against the source.** A 401 (and a 403) is a non-5xx, non-429 4xx, so `postWithRetry` stops immediately and logs at **WARN — twice per failed batch**: `src/server/ProfileApiClient.ts:265-267` (`` `profile ${path} returned ${response.status}; not retrying` ``, inside the `status < 500 && status !== 429` guard at `src/server/ProfileApiClient.ts:264`) and `src/server/ProfileApiClient.ts:146-149` (`` `credit batch failed after retries; N award(s) dropped …` ``). **Frame `589249c` — `ProfileApiClient.ts` is clean at that commit, so these two numbers are stable.** ⛔ **THE XP-LOSS HALF IS UNTOUCHED AND STANDS IN FULL — the awards are DROPPED, never queued.** 🔴 It still goes unnoticed, because **nothing on that box reads the logs** (`0219`, **OPEN**) — **a warning nobody reads fails as quietly as no warning at all.**
+ ✅ **`0182` annotated in place.**
 2. **`PROFILE_INTERNAL_ALLOW_IPS` is pinned to a June game-prod egress IP**
    (`example.env.profile:33`); nginx does `allow …; deny all;` at `/internal/`
-   (`setup-profile.sh:719-720`). A stale value ⇒ **403 on every credit call**, also silently
-   swallowed. ⚠️ **Traps 1 and 2 are two independent silent barriers on the SAME path.** `0062`'s D3
+   (`setup-profile.sh:719-720`). A stale value ⇒ **403 on every credit call**, ~~also silently
+   swallowed~~. 🚨 *Corrected 2026-09-10: a 403 is also a non-5xx, non-429 4xx, so it takes the SAME
+   two-WARN path as the 401 (`src/server/ProfileApiClient.ts:265-267`, `:146-149`, frame `589249c`).*
+   ⚠️ **Traps 1 and 2 are two independent barriers on the SAME path** — ~~silent~~ **WARN-logged and
+   unread**, which in practice is the same thing until `0219` ships a log consumer. `0062`'s D3
    is the only check that catches either.
 3. **Rotating `POSTGRES_PASSWORD` against an existing data volume breaks auth** — the image applies it
    only at initdb. 🚨 **Under the reframe this trap is MORE likely, not less** — a wipe-and-rebuild

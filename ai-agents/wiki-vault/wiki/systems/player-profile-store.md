@@ -5,6 +5,65 @@
 
 ## Summary
 
+> # 🔴 READ FIRST — UPDATED 2026-09-10. THE BOX IS LIVE. THE BACKEND IS **NOT** REACHING PLAYERS.
+>
+> **Task `0215` closed 2026-09-10** (`✅ Done (agent-closed — not owner-verified)`). A read-only
+> inventory found the box **already live and healthy**, and the **owner ruled ADOPT** — re-provision
+> in place, **NO WIPE**. The only destructive act was destroying the **Postgres data volume** to
+> rotate `POSTGRES_PASSWORD` at `initdb`, owner-ruled, with all four tables re-verified at **0 rows at
+> execution time**. **The banner below is the record of the period when this was unknown — read it as
+> history.**
+>
+> ## ✅ What is now verified (lead-verified, independently of the deploy's own banner)
+>
+> - `/health` → **200**, body `{"status":"ok"}`, over a **valid** Let's Encrypt certificate (no `-k`).
+> - `/ready` → **200**, body `{"status":"ready"}`. It is **DB-backed**, so this proves the API
+>   authenticated to Postgres with the **new** password on the **fresh** volume.
+> - **All four migrations recorded** — `001`–`004`, applied fresh in one pass.
+> - Both compose services healthy; image **`@sha256`-digest-pinned**; swap active with
+>   `vm.swappiness=10`; `ufw` allowing **exactly** 22/80/443; no DB password or env path in any process
+>   argv; the obsolete `.id_pepper` removed.
+> - Every regenerable secret is **new** — `age` keypair (custody **proven** by decrypting a copy
+>   retrieved *from storage*), an explicitly-generated `PROFILE_INTERNAL_TOKEN` recorded for `0217`,
+>   a new scoped S3 key, a new `POSTGRES_PASSWORD`, and `PROFILE_ID_PEPPER` **deleted**.
+> - The Let's Encrypt certificate was **PRESERVED byte-identical** — no rate-limit spent against the
+>   main domain's shared limit. Task `0216` separately proved the box can complete a **full ACME
+>   HTTP-01 challenge** against LE **staging**, hooks and all.
+> - RU residency verified 2026-09-10 by IP geolocation (Moscow, reg.ru, three corroborating signals).
+>
+> ## 🚨 What is STILL NOT TRUE — these are what will mislead you now
+>
+> 1. 🔴 **THE PROFILE BACKEND IS NOT DEPLOYED TO PLAYERS, AND THE GAME SERVER IS NOT WIRED TO IT.**
+>    `0217` is **open**. **No credit or upsert call path is live**, and the profile database holds
+>    **zero citizen rows** — so `client.isCitizen` cannot become `true` anywhere.
+> 2. 🔴 **THE RESTORE PATH HAS NEVER BEEN TESTED.** *"Backups are working"* means **ENCRYPT-AND-UPLOAD
+>    ONLY** — one encrypted 19,330-byte object was verified present in the new bucket. **Nobody has
+>    ever proven one restores** (`0218`, open). **This box has no proven recovery path.**
+> 3. 🔴 **`0216` PROVED CAPABILITY, NOT MONITORING.** **Nothing reads the certificate renewal log**
+>    (`0219`, open), so a break between now and the twice-daily renewal window (~2026-10-21) fails
+>    **silently** until the certificate expires **2026-11-20**.
+> 4. 🔴 **Two silent barriers still sit on the credit path** and neither reveals the other: the
+>    persisted `/opt/profile/.internal_token` now holds a **stale, superseded** value that a
+>    blank-valued future deploy would silently re-adopt (→ 401 on every credit call, XP **lost, not
+>    queued**) — flagged to `0220`; and the `/internal/` nginx allowlist is **still the June game-prod
+>    egress IP** (→ a silent 403 behind that 401) — `0217` owns verifying it.
+> 5. ⚠️ **`ufw` default-deny-incoming was NOT re-verified** post-deploy; it is carried forward from the
+>    pre-deploy inventory. **B4's historical half — has a backup ever completed before? — stays
+>    UNKNOWN**, answered forward rather than backward.
+>
+> 🔴 **STORAGE, CORRECTED 2026-09-08 (owner ruling): the S3 bucket is NOT reused.** A **brand-new,
+> clean bucket** was created; this supersedes the 2026-09-04 reuse ruling **as to the bucket only** —
+> the **VPS half is unchanged**. The owner had already deleted the old bucket. **All six backup values
+> are new.** `0222`'s question **reshaped and is still UNANSWERED and the owner's**, and **the old S3
+> access key still has to be revoked at the provider.**
+>
+> 📌 **Sprint 4 work order for the remaining phases, OWNER-RULED 2026-09-10: `0218` → `0219` → `0217`.**
+> 🚨 **This runs P2 after P3 and P4 — the epic's own P-numbering is deliberately inverted. ⛔ Do not
+> "fix" it back.** Reasoning in [[decisions/sprint-4]].
+>
+> Full records: [[tasks/profile-box-adopt-and-reprovision]],
+> [[tasks/profile-le-certificate-renewal-proof]].
+>
 > 🔴 **READ FIRST — HARDWARE EXISTS; ITS STATE IS UNKNOWN (owner-ruled 2026-09-04).**
 > ⚠️ **This banner SUPERSEDES an earlier same-day annotation on this page that read "THERE IS NO
 > PROFILE HOST". That wording overstated the owner's position and has been withdrawn.** Two owner
@@ -200,3 +259,6 @@ than picking silently.
 - [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the award built to let `creditMatchXp` run in a clientless-leader FFA match. 🔴 **REVERTED 2026-09-04, never deployed — and it was a NO-OP in the case that actually loses the XP**
 - [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, **the replacement**: credit at **elimination or match end**, independent of any winner. **Its ship is ordered behind `0208`**
 - [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, which must be deployed and collecting data **before** `0211` ships, or the pre-fix denominator is destroyed
+- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which adopted and re-provisioned this store's host, regenerated every secret, and left the restore path unproven
+- [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, which proved the host's TLS renewal capability but not its monitoring
+- [[tasks/citizenship-kill-switch-coverage]] — task `0236`, the client-side kill switch for the surfaces this store feeds

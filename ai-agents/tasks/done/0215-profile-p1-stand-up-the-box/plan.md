@@ -232,11 +232,19 @@ its own entry. Decide and write down, per `0218` brief:132-135:
 **SUCCESS:** the entry exists and you can name the vault and the entry.
 
 **🚨 SEND BACK (SB-2):** custodian name, vault name, entry name, second-copy location, date.
-🔒 **Never the value** — `0218` brief:136-137: *"Record the LOCATION, never the value."*
+🔒 **Never the value** — `0218/brief.md:170` (read against `589249c` + the 2026-09-10 sweep; that line holds
+*"🔒 **Record the LOCATION, never the value.**"*).
+📌 *Citation corrected 2026-09-10: this read `0218 brief:136-137`, which was **wrong at this
+document's own declared frame `cd3d583`** — there those lines are a blank line and
+`## Verification steps`.*
 
-**If you cannot decide the custodian right now:** STOP here and tell the lead. `0218` brief:193 says
-this is due **before the first backup runs** — and the first backup runs inside Step 22's deploy
-(**T2**). Proceeding without it recreates the exact defect `0218` exists to fix.
+**If you cannot decide the custodian right now:** STOP here and tell the lead. `0218/brief.md:231`
+says this is due **before the first backup runs**, not at the end of the phase (read against
+`589249c`; the acceptance criterion itself is `0218/brief.md:121`).
+📌 *Citation corrected 2026-09-10: this read `0218 brief:193`, which was **wrong at this document's own
+declared frame `cd3d583`**.*
+⏱️ **And the first backup runs inside Step 22's deploy (T2)** — proceeding without the custody record
+recreates the exact defect `0218` exists to fix.
 
 ---
 
@@ -382,6 +390,19 @@ decision, so stop and ask the lead rather than deleting one now.
 > brief:149 and by the project memory — is STALE at `cd3d583`.** Those two lines now hold
 > `## 3. Confirm SSH access to the box` and a blank line. Re-derived above by content match, per the
 > citation convention. Record this in the worklog (Step 31, item 9); do not propagate `:136-137`.
+>
+> 📌 **SWEPT AND CLOSED 2026-09-10 (0182 numbers below are POST-sweep) — two corrections to the finding above, kept in
+> the open rather than edited away:**
+> **(a)** The *"used by `0218` brief:149 and by the project memory"* half was **wrong**. `0218`'s brief
+> has never carried a `:136-137` citation at any commit checked, and the project auto-memory carries
+> **no line number at all**. The real propagation set was `0213`, `0217`, `0215`'s own `brief.md`,
+> `plan-sprint-4.md` and the 2026-09-04 survey report — all corrected 2026-09-10.
+> **(b)** `:136-137` was **not merely stale — it was wrong in every commit in which the citing
+> sentence existed.** It was true of the runbook at `282655c`, but the same 2026-09-04 commit
+> (`879b2f4`) that wrote the citation also inserted the correction banner above it, so the number
+> shipped already pointing at the wrong lines. **Failure mode 4 of
+> [`conventions/file-line-citations.md`](../../../knowledge-base/conventions/file-line-citations.md)
+> — wrong from birth, then carried faithfully forward.**
 >
 > **What actually happens if you leave it blank** — `setup-profile.sh:358-368`: an env value wins
 > (`:358-359`); **else a persisted `/opt/profile/.internal_token` is reused** (`:360-362`); else a new
@@ -998,6 +1019,9 @@ persistence and value parity.
      memory. At `cd3d583` those two lines are `## 3. Confirm SSH access to the box` and a blank
      line. The text they mean is at `0182` brief:175 and `0182` brief:207. **Everywhere that
      `:136-137` appears should be re-derived by content.**
+     📌 **SWEPT AND CLOSED 2026-09-10 (0182 numbers below are POST-sweep)** — see the corrected note in the T-block above:
+     the *"`0218` brief:149 and the project memory"* half of this finding was itself wrong, and
+     `:136-137` was **wrong from birth**, not merely stale.
    - `0182` brief:293-297's *"backups are local + weekly"* — already struck and superseded in place;
      confirm nothing else in that section drifted.
    - **T11** — the `Restart=always` systemd unit (`setup-profile.sh:759-776`) silently undoing a

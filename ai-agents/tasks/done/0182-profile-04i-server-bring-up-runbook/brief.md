@@ -21,7 +21,8 @@
 > of production today.
 >
 > ⚠️ **Two lines in it are WRONG, not merely stale, and both are annotated in place below:** the
-> `PROFILE_INTERNAL_TOKEN` guidance in §4 (🔴 following it silently destroys player XP) and the backup
+> `PROFILE_INTERNAL_TOKEN` guidance in §4 (🔴 following it destroys player XP — WARN-logged twice, but
+> nothing on the box reads the logs, so it goes unnoticed; *"silently"* was corrected 2026-09-10) and the backup
 > limitation in §8.
 >
 > ⚠️ ~~**The BUCKET is reused; the CREDENTIALS and the `age` KEYPAIR are RE-ISSUED.** Those are
@@ -41,6 +42,15 @@
 > — **read its §0 if you are unsure what was done and what was not.**
 > **This task's `✅ Done` status is CORRECT and deliberate — the work was done; what happened to the
 > box afterwards is a separate, unverified fact. Do not "fix" the status.**
+
+> 📌 **Citation frame — this brief is the most-cited document in the profile line of work, so read
+> this before quoting a line number from it.** Its own `file:line` references to `setup-profile.sh`,
+> `profile-backup.sh` and `src/` were re-read against commit **`589249c`** on 2026-09-10. ⚠️ **The 2026-09-10 sweep ADDED lines to THIS file**, so any `0182:NNN` written elsewhere against a bare `589249c` checkout is now off; other documents cite the POST-sweep numbers.
+> 🚨 **Line numbers INSIDE this brief have shifted repeatedly** — the 2026-09-04 annotations pushed §4
+> down by ~70 lines. **Citations of the form `0182:NNN` written before 2026-09-08 are very likely
+> wrong; several were, and were corrected on 2026-09-10.** Re-derive by opening this file and matching
+> the described content — never by shifting the number. See
+> [`conventions/file-line-citations.md`](../../../knowledge-base/conventions/file-line-citations.md).
 
 ## ID
 0182
@@ -179,8 +189,29 @@ PROFILE_SSH_KEY=~/.ssh/<your-private-key>
 > (`src/profile-server/InternalAuth.ts:14-19`, `:26`). A token the **box** generates for itself, which
 > the **game server** does not hold, produces a **401 on every credit call**.
 >
-> 🚨 **And you will not see it happen.** The profile client is fail-soft with **NO durable queue**
-> (ADR-101), so **the XP is LOST, not queued**, and **nothing logs above `debug`**.
+> 🚨 ~~**And you will not see it happen.**~~ The profile client is fail-soft with **NO durable queue**
+> (ADR-101), so **the XP is LOST, not queued**, and ~~**nothing logs above `debug`**~~.
+>
+> 🚨 **CORRECTED 2026-09-10 — the "you will not see it" / "nothing logs above `debug`" half is
+> REFUTED against the source. 🔴 THE XP-LOSS HALF IS UNTOUCHED AND STANDS IN FULL: the awards are
+> DROPPED, never queued.** Only the *invisibility* claim was wrong.
+> **What actually happens** (frame: commit `589249c`; `src/server/ProfileApiClient.ts` is clean at
+> that commit, so these two numbers are stable — unlike this brief's own):
+> a **401 is a non-5xx, non-429 4xx**, so `postWithRetry` stops immediately and logs at **WARN** —
+> `src/server/ProfileApiClient.ts:265-267`,
+> `` this.log.warn(`profile ${path} returned ${response.status}; not retrying`) ``, inside the
+> `if (response.status < 500 && response.status !== 429)` guard at `src/server/ProfileApiClient.ts:264`.
+> The caller then logs a **second** WARN — `src/server/ProfileApiClient.ts:146-149`,
+> `` this.log.warn(`credit batch failed after retries; N award(s) dropped (idempotent — a later retry is safe)`) ``.
+> ⇒ **Two WARN lines per failed batch, not silence.**
+>
+> ⛔ **DO NOT READ THIS AS THE TRAP BEING SMALLER. IT IS NOT.** The awards are still **dropped, never
+> queued**, and 🔴 **NOTHING ON THAT BOX READS THE LOGS** — no external monitoring, no log consumer,
+> no alerting (`0219`, **OPEN**). **A warning nobody reads fails exactly as quietly as no warning at
+> all.** The practical outcome is unchanged: XP disappears and no human finds out. What changed is
+> that there **is** a signal to wire up — which is precisely why `0219` matters.
+>
+> 📌 Refuted by a coder against the source on 2026-09-10; superseded in place, not deleted.
 >
 > ✅ **What to do instead: generate `PROFILE_INTERNAL_TOKEN` ONCE, explicitly, and set the SAME value
 > on BOTH sides** — here on the box, and in the game server's production environment. See
@@ -191,8 +222,11 @@ PROFILE_SSH_KEY=~/.ssh/<your-private-key>
 > ⚠️ **There is a SECOND silent barrier on the same path**, and one does not reveal the other:
 > `PROFILE_INTERNAL_ALLOW_IPS` (`example.env.profile:33`) is pinned to a **June** game-prod egress IP,
 > and nginx enforces `allow …; deny all;` at `/internal/` (`setup-profile.sh:719-720`). A stale value
-> ⇒ **403 on every credit call**, swallowed just as quietly. **`0062`'s D3 — a real authenticated call
-> succeeding end to end — is the only check that catches either.**
+> ⇒ **403 on every credit call**, ~~swallowed just as quietly~~ — 🚨 **CORRECTED 2026-09-10: a 403 is
+> also a non-5xx, non-429 4xx, so it takes the SAME two-WARN path as the 401 above. It is not
+> swallowed; it is logged and unread.** The barrier itself is unchanged and still independent of the
+> token barrier. **`0062`'s D3 — a real authenticated call succeeding end to end — is the only check
+> that catches either.**
 >
 > 📌 Recorded 2026-09-04 by the producer, from an fkit-architect scope. Full survey:
 > [`2026-09-04-profile-backend-clean-slate-survey.md`](../../../knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md).
@@ -206,8 +240,11 @@ DOCKER_TOKEN=<registry-token>
 # ⚠️ SUPERSEDED 2026-09-04 — the original line read:
 #     "Optional — leave blank; the box auto-generates and persists it."
 # That is FALSE now. This is a SHARED secret. Leaving it blank makes the box mint its own,
-# the game server 401s on every credit call, and the XP is LOST (fail-soft, no queue, no log
-# above debug). Generate it ONCE and set the SAME value here and in the game server's prod env.
+# the game server 401s on every credit call, and the XP is LOST (fail-soft, no queue).
+# CORRECTED 2026-09-10: the old text here said "no log above debug" — REFUTED. Each failed
+# batch logs TWO WARNs (ProfileApiClient.ts:265-267 and :146-149, frame 589249c). The XP is
+# still DROPPED, and nothing on the box READS those logs (0219, open) — so it still goes
+# unnoticed. Generate it ONCE and set the SAME value here and in the game server's prod env.
 PROFILE_INTERNAL_TOKEN=<generate-once-set-identically-on-both-sides>
 ```
 
@@ -301,8 +338,22 @@ These are by-design gaps in the current scripts; flag them, do not fix them here
   exist and **fail CLOSED at deploy** (`setup-profile.sh:889-908`), and a **scripted restore** exists
   at `profile-backup.sh:192-262`.
   ⚠️ **What is still TRUE, and it is the part that matters:** the restore has **never been proven
-  against non-empty data.** The 2026-07-01 drill ran against an **empty** DB (0 rows — see `:147-153`
-  below) **and** predates the default-deny guard, so **its command line no longer works.**
+  against non-empty data.** The 2026-07-01 drill ran against an **empty** DB (0 rows)
+  **and** predates the default-deny guard, so **its command line no longer works.**
+  ✅ **SOURCE RESOLVED 2026-09-10 — and BOTH halves of that sentence are properly sourced.** They come
+  from `ai-agents/knowledge-base/profile-backup-restore-runbook.md:147-153` (frame `589249c`; that
+  range is the **Recorded RTO** paragraph — `:149` holds *"the prod DB was still **empty** (0 rows) at
+  this point"* and `:152-153` holds *"the first drill predates the default-deny guard, so its command
+  line differed from what is documented here now"*). **That passage is unchanged in every commit
+  checked from `879b2f4` to `589249c`.**
+  🚨 **This sentence used to say "see `:147-153` below" — a BARE `:NNN`** (banned by the citation
+  convention), written inside *this* file, so every later reader resolved it **to this brief** instead
+  of to the backup/restore runbook. **In this brief, `:147-153` is the `## 4. Configure the deploy`
+  header and its intro — real, plausible-looking, and completely unrelated.** ⛔ **A 2026-09-10 sweep
+  briefly flagged the claim as UNSOURCED on exactly that mis-resolution. THAT FLAG WAS WRONG and is
+  withdrawn** — the claim is sourced; only the pointer was.
+  ⚠️ Note the 2026-07-01 date is a **different** reading from `0215`'s 2026-09-08/09 one, where all
+  four tables **were** re-read at 0 rows at execution time — do not conflate the two.
   🚨 **The gate stands in full: "A backup that has never been restored is not a backup."** Discharging
   it is [`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)
   (P3), which also fixes the defect that made this urgent — **the previous `age` private key had no

@@ -66,3 +66,4 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - [[decisions/windoworigin-url-join-defect]] — the `windowOrigin` / `rootPathname` rule and the production defect that established it
 - [[decisions/yandex-invite-portal-boundary]] — task `0199`: the unconditional `flashist_isYandexPlatform` flag, and the unmeasured off-portal question it raises
 - [[tasks/citizenship-name-change]] — task 0067, whose UI sits behind the `CITIZENSHIP_CARD_ENABLED` flag and has never been seen in a browser
+- [[tasks/citizenship-kill-switch-coverage]] — task `0236`, whose citizenship-surfaces helper and its **synchronous snapshot** are primed inside `initializePlatform()` and re-primed on late-SDK recovery

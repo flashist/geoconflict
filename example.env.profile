@@ -89,8 +89,11 @@ PROFILE_BACKUP_RETENTION_WEEKLY_DAYS=56
 # POSTGRES_PASSWORD=      # REQUIRED — Postgres password for the profile DB
 # DATABASE_URL=           # optional — defaults to
 #                         #   postgresql://<user>:<password>@postgres:5432/<db>
-# PROFILE_INTERNAL_TOKEN= # service token shared with the game server (T6);
-#                         #   auto-generated on the box if left blank
+# PROFILE_INTERNAL_TOKEN= # REQUIRED — SHARED secret with the game server (T6). Generate
+#                         #   it ONCE (`openssl rand -hex 32`) and set the SAME value here
+#                         #   AND in the game server's env. Blank does NOT work: the box
+#                         #   mints its own (or re-adopts an old persisted one), the game
+#                         #   server 401s on every credit call, and the XP is DROPPED.
 # DOCKER_TOKEN=           # registry token for `docker login` (if the repo is private)
 # PROFILE_BACKUP_S3_ACCESS_KEY=  # S3 access key, scoped to the backup bucket only (T8)
 # PROFILE_BACKUP_S3_SECRET_KEY=  # S3 secret key for the above (T8)

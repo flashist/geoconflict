@@ -95,3 +95,4 @@ The diff **also fixes the *monitor* half of F4** (the `:675-686` await interleav
 - [[systems/analytics]] — the `Performance` event category these orphans inflate
 - [[decisions/sprint-4]] — the sprint board carrying this task
 - [[decisions/sprint-backlog]] — where `0228` and `0229` are tracked
+- [[decisions/codex-second-opinion-mandatory]] — this task's review ledger records a **Codex OUTAGE** (three failed attempts, treated as a second Claude pass), the counter-fact that keeps that record honest

@@ -270,3 +270,4 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, `Announcements:Closed`, and the task-0012 Personal-tab inbox events
 - [[systems/architecture-overview]] — the platform facade that owns the event enum
 - [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, two new event families (multiplayer clientless-leader incidence, Singleplayer award incidence) and the denominator decisions that must reach the reference doc
+- [[tasks/citizenship-kill-switch-coverage]] — task `0236`, which routes every citizenship surface (and the events they emit) through one shared kill-switch helper

@@ -31,6 +31,25 @@
 > is undetermined for the PROFILE-SERVER half.** Grounding:
 > `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md` (§8).
 >
+> ## ✅ ANSWERED 2026-09-10 — MIGRATION `004_name_change.sql` **IS** APPLIED
+>
+> `0215`'s field **B8** read `schema_migrations` on the box and found **all four migrations recorded**:
+> `001_player_profiles.sql`, `002_yandex_payments.sql`, `003_player_messages.sql`, and
+> **`004_name_change.sql`**. They were applied **fresh in one pass** after the Postgres data volume was
+> destroyed to rotate `POSTGRES_PASSWORD` (owner-ruled, all four tables re-verified at **0 rows at
+> execution time**). ⇒ **The schema half of this task is settled: the tables the name-change routes
+> need exist on the live box.** See [[tasks/profile-box-adopt-and-reprovision]].
+>
+> ⚠️ **THE OTHER HALF OF THE ORIGINAL QUESTION WAS NOT CHECKED.** `0215` did **not** verify that *"the
+> running image serves the three routes"* — only that the migration is recorded. **Do not read B8 as
+> answering both.**
+>
+> 🚨 **AND THIS UI HAS STILL NEVER BEEN SEEN.** `CITIZENSHIP_CARD_ENABLED` is still `false`, the game
+> server is **not wired** to the profile box (`0217`, open), and the profile database holds **zero
+> citizen rows** — so no player can reach a name-change flow. Task `0236` additionally routed the
+> citizenship surfaces through a shared kill-switch helper; see
+> [[tasks/citizenship-kill-switch-coverage]].
+>
 > 🚨 **The citizenship card has never been seen in a browser.** `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` is `false`, so the entire UI leg — entry point, pending/approved/rejected states, the cancel control — is proven by unit tests and by nothing else.
 >
 > 🚨 **The operator Telegram notification is unit-proven only** (`jest.mock("undici")`). Proxy reachability from the profile VPS was never exercised and is not locally testable; that verification belongs to task `0033`.
@@ -106,3 +125,5 @@ Green at close, after both fix rounds: `npx tsc --noEmit`, `npm run lint`, prett
 - [[decisions/sprint-4]] — the sprint board carrying this task
 - [[systems/flashist-init]] — the `CITIZENSHIP_CARD_ENABLED` gate and platform signals this UI sits behind
 - [[tasks/yandex-payments-secret-forwarding]] — task `0195`, found during this task's build and split out as its own task; this task's Telegram variables supplied the forwarding pattern it copied
+- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, whose field **B8** settles this page's open question: migration `004_name_change.sql` **is** applied on the live box
+- [[tasks/citizenship-kill-switch-coverage]] — task `0236`, which routed the citizenship surfaces through one shared kill-switch helper

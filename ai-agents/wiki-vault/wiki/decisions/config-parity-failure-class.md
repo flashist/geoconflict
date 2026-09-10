@@ -29,7 +29,15 @@
 > for itself that the game server does not hold (**401 on every credit call** — `internalAuth` is a
 > `timingSafeEqual` over a *shared* secret), and `PROFILE_INTERNAL_ALLOW_IPS` pinned to a **June egress
 > IP** behind nginx's `allow …; deny all;` (**403**). Both are swallowed by the fail-soft, no-durable-queue
-> client (ADR-101), so the XP is **lost, not queued**, and nothing logs above `debug`. Wipe-and-rebuild
+> client (ADR-101), so 🔴 **the XP is LOST, not queued.** ⚠️ **CORRECTED 2026-09-10 — this sentence used
+> to end *"and nothing logs above `debug`"*, and that half is REFUTED.** A 401 (and a 403) is a
+> non-5xx, non-429 status, so `postWithRetry` gives up at once and **logs at WARN** —
+> `src/server/ProfileApiClient.ts:265-267` — with a **second** WARN from the caller at `:147-149`
+> naming the dropped awards (file clean at `HEAD` = `589249c`, content-checked). ⇒ **Two WARN lines
+> per failed batch. The XP-loss half stands in full — the awards are dropped and never queued** — but
+> the failure is **visible to anyone reading the logs**, and the real gap is that **nothing on that
+> box reads them** (`0219`, open). ⚠️ **This weakens the "swallowed" framing, not the data loss.**
+> Wipe-and-rebuild
 > tasks `0213`–`0222` plus `0201`, all Sprint 4 — **onto the existing resources, not new ones**. Grounding:
 > `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md`.
 

@@ -36,3 +36,4 @@ Guest players should not have the citizenship feature silently hidden. The recom
 - [[tasks/profile-backend-db-api]] — completed T5 DB/API implementation
 - [[tasks/yandex-payments-investigation]] — parallel Sprint 4 investigation; both findings gate the safe paid-citizenship path
 - [[decisions/cancelled-tasks]] — cancellation record for T2 guest localStorage and T7 guest migration
+- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which settled the dedicated-host question this investigation raised: the box is live, adopted rather than wiped
