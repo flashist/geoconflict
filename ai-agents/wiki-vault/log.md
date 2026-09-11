@@ -3075,3 +3075,334 @@ the file supports `0239`.** The vault cannot edit that document (ADR-005) — ro
 - 🔒 No secrets written: no key, no value, no bucket name, no endpoint, no hostname and no account
   identifier appears in any page touched by this ingest.
 - Nothing committed or pushed.
+
+## 2026-09-11 — ingest
+
+- Ingested: `ai-agents/tasks/done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md`
+  (its `🔴 CLOSING RECORD`) + `worklog.md` + `ai-agents/knowledge-base/analytics-event-reference.md`
+  → updated [[wiki/tasks/measure-clientless-leader-and-solo-awards]],
+  [[wiki/tasks/credit-participation-xp-elimination-or-match-end]],
+  [[wiki/tasks/singleplayer-leaderboard-reporting-policy]], [[wiki/tasks/teams-bot-team-win-stall]],
+  [[wiki/decisions/adr-110-ai-winner-allowed]], [[wiki/decisions/clientless-leader-win-policy]],
+  [[wiki/decisions/sprint-4]], [[wiki/systems/analytics]], [[wiki/features/ai-players]], `index.md`.
+  **0 pages created, 9 updated + `index.md`.**
+- 🔧 **Rotted link repaired:** `wiki/tasks/measure-clientless-leader-and-solo-awards.md`'s `**Source**`
+  still pointed at `ai-agents/tasks/backlog/0208-…/brief.md`; the folder moved to `done/` on close.
+  ✅ Every other `**Source**` path in `wiki/tasks/` was verified to resolve. **No other rotted
+  reference existed** — the vault cites tasks by bare id in backticks, not by path, exactly as the
+  previous ingest found.
+- `0208` recorded as **✅ Done (agent-closed — not owner-verified), closed 2026-09-11 on an owner
+  ruling** — and ⛔ **explicitly NOT fully verified**: `V16` and `V17` close **untested**, argued from
+  source only, with the owner offered the test and choosing to close. `V18` passed **by observation**.
+- Measurements written with their caveats attached on every page that carries a figure: **the unit is
+  CLIENT-MATCHES and ATTEMPTS**, never matches and never points banked; all rates are **lower bounds**;
+  ⛔ *"52 % of Team matches stalled"* recorded as an **unsupported claim**, with the defensible
+  sentence carried **verbatim**; **`Timer: 0` is expected** and must not be read as *"matches never run
+  out of time"*, with the three uninstrumented termination paths named; 🔴 the **per-match stall rate
+  will never be known** (owner ruling, option B) and the **pre-fix denominator dies when `0211` ships**.
+- Durable knowledge captured beyond the figures: the **forbidden blended-share shortcut**, proved wrong
+  by the cross-tab (~51.5K vs an actual 49.64K; the `Solo` share runs 79.7 % / 93 % / 100 %), and the
+  **`PlacementLost:SoloTutorial` code-derived prediction now confirmed in production data**.
+- Consequences recorded exactly as ruled: `0211`'s **ship gate CLEARED** with its status **unchanged**;
+  `0210`'s incidence figure added with **status, scope and rank unchanged**; ADR-110's re-raise trigger
+  recorded as **an input requiring an architect's read, NOT a conclusion about the ADR**.
+- 🔧 One further correction the data forced: `clientless-leader-win-policy`'s *"a Nation leading public
+  FFA has been OBSERVED ZERO TIMES"* caveat — `Nation` 50 firings, every FFA event in the window
+  public. Narrowed in place: it records who led at the crossing, **not** how the match ended.
+- ⚠️ Flagged, not resolved: **`0205` has not been re-ranked** on the new field figure and no ruling was
+  sought — its status, scope and rank stand as they were.
+- Superseded text is **struck, not deleted**, on every page touched and in `index.md`.
+- 🔒 No secrets written: no dashboard id, no analytics key, no URL, no endpoint — file and symbol names
+  only.
+- Nothing committed or pushed.
+
+## 2026-09-11 — ingest
+
+- Ingested: `ai-agents/tasks/backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md`
+  (its `## Priority` 2026-09-11 re-rank block) and
+  `ai-agents/tasks/backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md`
+  (its `## Status` 2026-09-11 ruling box), plus the two amended sprint boards, →
+  updated [[wiki/tasks/teams-bot-team-win-stall]] and
+  [[wiki/tasks/credit-participation-xp-elimination-or-match-end]].
+- **Two owner rulings of 2026-09-11, given live in the lead session, made two vault premises FALSE.
+  Both are now corrected; the false text is struck, not deleted.**
+- 🔴 **`0205` — THE OWNER RULED THAT IT BE RE-RANKED**, because its rank was explicitly held down by
+  the premise *"production frequency is UNMEASURED"*, which `0208` disproved. The two halves are
+  recorded **separately, with their different authors**: **THAT it be re-ranked is the OWNER'S
+  ruling**; **`Medium` is the PRODUCER'S PROPOSAL, awaiting sign-off**. ⛔ **The rank IN FORCE is still
+  `Low–Medium`** and is written that way everywhere. ⛔ `0205`'s **status, scope, folder and board are
+  UNCHANGED** — `🔲 Backlog`, unscheduled on `backlog.md`.
+  ⚠️ The previous vault line — *"Nobody has re-ranked this task on that figure and no ruling was
+  sought"* — was carried on **five** pages plus `index.md` and the previous ingest's own log entry
+  (2026-09-11, above). Every live instance is struck and corrected; the prior log entry stands as
+  written, per the append-only rule, and is superseded by this one.
+- 🔴 **`0211` — THE OWNER RULED: BUILD IT.** Status recorded as **`🔄 In progress`**, matching
+  `plan-sprint-4.md` and the brief. ⚠️ **The token is recorded with its honest limits, not smoothed
+  over:** it is the **least misleading of a vocabulary with no value for *"scheduled to build, not yet
+  started"***; as of 2026-09-11 **no session owns it, no plan is approved, no code is written**, and
+  `🔲 Backlog` was rejected only because its own definition is *"not picked up"*.
+- 🚨 **The irreversible cost is recorded loudly on every page that carries the ruling:** shipping
+  `0211` **permanently destroys `0208`'s pre-fix denominator** — the whole reason for the
+  `0208`-before-`0211` sequencing. `0208` has been measured and closed, and **the owner is proceeding
+  with that understood.** ⛔ Written as an **accepted cost, never as a gap for someone to close later.**
+- `0211`'s settled rulings carried into the build, marked ⛔ none re-openable: **1 XP** per qualifying
+  match (down from 10) · citizenship threshold divided by **exactly 10** · player-facing copy rescaled
+  in **both `en.json` and `ru.json`** (verification step `4d`) · **survivors in scope, mechanism still
+  open** · **Team mode covered** · **Singleplayer out of scope** · the leaver rule **deliberately
+  reversed** for eliminated players. ⚠️ Also recorded: it lands in `src/core/`, so the project's *"all
+  code changes in `src/core/` MUST be tested"* rule applies in full.
+  🔧 Corrected in passing: the vault still said *"XP holds at 10 flat, a deliberate hold"* on the
+  `0211` page and in `index.md` — **superseded by the owner's own reversal of 2026-09-10**.
+- ⛔ **The 2026-09-11 ruling did NOT re-rank `0211`** — `Medium–High` stands, and it is recorded as
+  **the producer's rank, not the owner's**, wherever it appears.
+- 🚨 **The 52.4 % wording rule enforced on every page touched:** the figure is **never** restated as a
+  stall rate. The defensible sentence is carried **verbatim** — *"in 52 % of measured Team-mode
+  client-matches that reached the win condition, the leader at that moment was the all-bot team, and no
+  winner could be declared at that moment."* — with its three limits (**client-match unit**, **lower
+  bound**, **latched at the first crossing**), and with the honest limit that the measurement **removes
+  *"we have no idea how often"* as a reason to rank low** but does **NOT** establish a per-match rate,
+  which is **permanently unknowable by owner ruling** (option B) and ⛔ **not a gap to close**.
+- The `0205` / `0211` distinction was kept intact throughout: `0205` is the **resolution policy**
+  (*who should win a stalled Team match?*), `0211` is **crediting** (*do those players get their XP?*);
+  `0211` may make part of `0205`'s justification moot **without settling `0205`'s own question**.
+- Back-links kept bidirectional. Neighbour pages corrected where they asserted the now-false premises:
+  [[wiki/tasks/measure-clientless-leader-and-solo-awards]],
+  [[wiki/tasks/winmodal-participation-comment-correction]],
+  [[wiki/decisions/clientless-leader-win-policy]], [[wiki/decisions/sprint-4]],
+  [[wiki/decisions/sprint-backlog]], and `index.md`.
+- 🔒 No secrets written — file, symbol and task names only.
+- Nothing committed or pushed.
+
+## 2026-09-11 — lint
+
+- Issues found: 12
+- Issues fixed: 9
+- Issues flagged for human review: 3
+- **Most significant: a stranded owner ruling of the "1 XP" kind was found — `0205`'s rank sign-off — plus four stale profile-epic premises the 2026-09-11 ingests left behind.**
+
+**Structural checks — ALL CLEAN, nothing to fix.** 184 pages; index ↔ disk exact both ways (no index
+entry without a file, no file missing from the index); **zero** broken `[[wikilinks]]`; **zero**
+orphans; **zero** one-way links before the run and **zero** after it; every required inline metadata
+field present across all four page types (`**Status**:`, `**Key files**:`, `**Source files**:`,
+`**Layer**:`, `**Date**:`, `**Source**:`); every `src/` · `tests/` · `scripts/` · `resources/` path
+cited in backticks resolves to a file that exists. ADR number/slug cross-check clean: vault ADRs
+101–110 each have a same-numbered knowledge-base counterpart (compared numerically, case-insensitively,
+regular files only), every `# ADR-NNN:` heading agrees with its own filename, slug abbreviation is the
+vault's standing style per the 2026-08-23 owner ruling and was **not** flagged, and the separate pass
+over `knowledge-base/decisions/` found **no** two regular files sharing a number.
+
+**FIXED — stranded ruling 1: `0205`'s rank was signed off and the vault said the opposite.**
+Seven vault sites still read *"producer proposes `Medium`, awaiting sign-off; the rank in force is
+still `Low–Medium`"*, one of them instructing readers **not** to cite `Medium`. The owner **signed
+`Medium` off on 2026-09-11**. Corrected, struck-not-deleted, in
+[[wiki/tasks/teams-bot-team-win-stall]] (4 live sites; a fifth kept as labelled history),
+[[wiki/tasks/measure-clientless-leader-and-solo-awards]] (3 live sites; a fourth, framed *"Consumers,
+as they were"*, left as history), [[wiki/tasks/credit-participation-xp-elimination-or-match-end]],
+[[wiki/decisions/sprint-backlog]] (the current-state site only — the 2026-09-03 hold stays as history),
+[[wiki/decisions/clientless-leader-win-policy]], and `index.md`.
+- ⛔ **The three authorship layers are recorded at every site and never flattened:** the **owner ruled
+  THAT** it be re-ranked (its old premise, *"production frequency is UNMEASURED"*, being false) · the
+  **producer proposed the VALUE `Medium`** · the **owner SIGNED `Medium` OFF**. Never *"the owner
+  ranked it `Medium`"*, never *"the producer set it to `Medium`"* — neither is true alone.
+- ⚠️ **Caveats do not weaken with sign-off, and were re-stated rather than dropped:** client-match
+  unit · **lower bound** · latched at the **first crossing** · *"52 % of Team matches stalled"* stays
+  **unsupported** · the per-match rate is **permanently unknowable by owner ruling** and ⛔ not a gap.
+- ⛔ `0205`'s status, scope, folder and board are **unchanged** — `🔲 Backlog`, unscheduled. **Rank only.**
+
+**FIXED — four stale profile-epic premises left behind by the 2026-09-11 ingests.** Each page already
+carried the correction *somewhere*; these specific passages were not reached, and each read as current:
+- [[wiki/systems/player-profile-store]] — a paragraph still calling the `age`-key question *"a live
+  owner decision"* on a **reused** bucket holding **unreadable objects**, tracked in an open `0222`.
+- [[wiki/tasks/profile-server-bring-up-runbook]] — the *Rebuild context* paragraph, same three dead
+  premises; plus its *"the VPS and bucket are reused"* withdrawal, now partly re-instated (✅ the **VPS**
+  half stands, ⛔ the **bucket** half does not).
+- [[wiki/tasks/profile-box-adopt-and-reprovision]] — row **B9** asserting the old bucket's objects
+  *"were, and remain, unreadable"*, which **re-asserts a RETRACTED premise**.
+- Corrected to: the bucket is **BRAND-NEW, not reused** (owner ruling 2026-09-08, superseding the
+  2026-09-04 reuse ruling **as to the bucket only** — ✅ the **VPS is still reused in place**); the old
+  bucket was **EMPTY and always had been**, so its objects **NEVER EXISTED** — a **RETRACTION, not a
+  supersession**; and **`0218` and `0222` are both CLOSED**.
+- ⚠️ **Retraction held to the objects only.** The lost **old** `age` private identity is unchanged, and
+  it was protecting nothing — **luck, not a control.**
+- 🔒 **The old S3 access key is recorded everywhere as CLOSED BY OWNER DECISION 2026-09-11 —
+  DELIBERATELY NOT DONE.** ⛔ Never "revoked", never "resolved", never "no longer live", never
+  outstanding work: never revoked at the provider, scope never established, objection overruled twice.
+
+**FIXED — the `1 XP` ruling's remaining reach.** The 2026-09-10 reversal (`1 XP` per qualifying match;
+citizenship threshold ÷ **EXACTLY 10**; player-facing `en.json` **and** `ru.json` copy rescaled in the
+same change, **verification step `4d`**) had reached `0211`'s own page and `index.md` but **not** four
+pages still stating `10 XP` / `1,000 XP` flat: [[wiki/decisions/sprint-4]] (both the *Context* framing
+and the *Locked Decisions* XP-economy block), [[wiki/systems/project-brief]], and
+[[wiki/tasks/analytics-p0-session-match-count]].
+- ⚠️ **Deliberately NOT rewritten to `1` / `100`.** Verified at this lint that **nothing has shipped**:
+  `src/core/profile/Citizenship.ts` still defines `XP_PER_MATCH = 10` and
+  `CITIZENSHIP_XP_THRESHOLD = 1000`. The figures are **current-in-code and superseded-by-ruling at the
+  same time**, and each site now says exactly that. ⛔ A caveat was **added**, none resolved.
+- ✅ Recorded where it matters that the ÷10 is **exact**, so **time-to-citizenship is UNCHANGED at ~100
+  matches** — which leaves `analytics-p0-session-match-count`'s rationale **unaffected either way**.
+- ✅ [[wiki/tasks/citizenship-xp-progress-ui]] left untouched **on purpose** — it records what `0191`
+  **built**, and `CITIZENSHIP_XP_THRESHOLD = 1000` is still what that code reads.
+
+**FLAGGED, NOT FIXED (3)** — `> **LINT WARNING:**` blockquotes placed in page, nothing rewritten:
+1. [[wiki/decisions/adr-101-fail-soft-xp-crediting]] — body states `10 XP` / `1,000 XP`, and its
+   *Re-raise only if* clause **argues from the size of the loss**. Whether an `accepted` ADR takes a
+   dated clarification in place or needs a **superseding** ADR is a human call
+   ([[wiki/decisions/adr-numbering-two-series]]), and the amount is context here, not the decision.
+2. [[wiki/decisions/adr-103-identity-trust-seam]] — bounds the abuse ceiling at *"10 XP per (game,
+   account)"*. The **mechanism** (the `(game_id, yandex_player_id)` primary key) is unaffected; only the
+   number rides on the ruling, and it moves **downward**. Same ADR-immutability question.
+3. **`0230`'s 2026-09-11 re-observation is in NO source file** — reported to this lint verbally, and
+   the brief carries nothing dated 2026-09-11. ⛔ **Nothing written**: the vault records from sources.
+   The vault's existing wording — **deferred, cause unknown, reopen condition *"if the problem
+   repeats"*** — is **correct and was left exactly as-is**; ⛔ it is recorded as neither fixed nor
+   reopened, which is the ruling.
+
+**Checked and found CORRECT — no edit needed.** `0208`'s figures and every caveat riding on them
+(6.86K client-matches · FFA ~1.6 % · Team ~53.2 % / stall-capable ~52.4 % · overall ~29.1 % · 79.11K
+award **attempts** · 49.64K non-tutorial · `V16`/`V17` **closing UNTESTED** · `Timer: 0` expected ·
+client-match and attempt units · lower bounds) reconcile exactly with the brief, with the units and
+lower-bound language intact. `0218`'s **schedule × data proven SEPARATELY, NEVER TOGETHER**, the
+non-extrapolating RTOs, the never-run weekly copy (`0241`) and the thin backup history are all recorded
+with their caveats. `0240` / `0241` are covered on nine and eight pages respectively.
+
+- 🔒 No secrets written — file, symbol, task and vault-page names only. No hostnames, buckets, keys,
+  URLs or dashboard IDs; the diff was scanned before this entry was appended.
+- Nothing committed or pushed.
+
+## 2026-09-11 — ingest (ADR-111, ADR-101 amendment, ADR-103 mirror correction, `0211` ruling 8)
+
+**Sources, all re-read from disk this run** (nothing carried from earlier in the session):
+- `ai-agents/knowledge-base/decisions/adr-111-xp-economy-rescale-awards-move-up-never-down.md` — **new**
+- `ai-agents/knowledge-base/decisions/adr-101-fail-soft-xp-crediting-no-durable-queue.md` — two dated
+  clarification blocks added today (57 insertions, **zero deletions** — no existing line altered)
+- `ai-agents/knowledge-base/decisions/adr-103-identity-trust-seam-client-asserted-yandex-id.md` —
+  **unchanged, and takes no change**
+- `ai-agents/tasks/backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md` —
+  search for `RULING 8, IN FULL`
+- `src/core/profile/Citizenship.ts` — the `CITIZENSHIP_XP_THRESHOLD` and `XP_PER_MATCH` declarations,
+  **read directly to verify nothing has shipped**
+
+**CREATED (1).** [[wiki/decisions/adr-111-xp-economy-rescale]] — ADR-111, `accepted`, 2026-09-11
+(owner ruling given 2026-09-10). Award `10` → `1`; threshold ÷ **EXACTLY** 10; both ship inside `0211`.
+- 🔴 **The load-bearing part recorded as the standing directional constraint it is, not as a number:**
+  players accept an award moving **UP** far more readily than **DOWN**, so `1` is a **deliberate floor**
+  — ⛔ not to be rounded up, and not to be moved **down** without reopening the ADR.
+- ✅ Time-to-citizenship **deliberately UNCHANGED** (~100 matches either side) — recorded as the
+  *mechanism* by which ADR-101's and ADR-103's reasoning survives, not as a side effect.
+- ⛔ Scaling / tuning recorded as a **deliberate hold, not an omission**.
+- ⚠️ The architect's standing point (`0211` moves the trigger earlier, so dying 30 s in pays the same
+  as playing to the end) recorded as **NOT dismissed** and still open.
+- 🚨 The **free-grants ruling** carried in full as a dated clarification, unsoftened (see below).
+- ⚠️ Slug **abbreviated** per the 2026-08-23 ADR-page-naming ruling; number verified free — the vault
+  held 101–110 only.
+
+**CORRECTED (1) — a WRONG CLAIM THIS VAULT PUT IN PLACE ON 2026-09-11.**
+[[wiki/decisions/adr-101-fail-soft-xp-crediting]] — its `LINT WARNING` block concluded that the `1 XP`
+rescale makes the *Re-raise only if* argument **strengthen**. 🔴 **That was WRONG; the architect ruled
+so today.** It took the **numerator without the denominator**: the award falls 10× **and the threshold
+falls 10×, by design**, so a dropped credit costs **1 % of the way to citizenship before and after**
+(1/100 = 10/1,000), and the remedy the ADR already records — *"Affected players simply need one more
+match"* — is **identical**. XP has **no denominator other than the threshold**; a unit whose only
+denominator moves with it has been **renamed, not revalued**. ⇒ **The correct reading is UNCHANGED.**
+- The whole `LINT WARNING` block was **replaced** by the amendment's substance: all three re-raise
+  triggers **unmoved**, each with its own reason (trigger 1 is **categorical**, trigger 2 counts warn
+  lines not XP, trigger 3 turns on funding and an owner call).
+- ⛔ **The wrong conclusion's exact wording is deliberately NOT reproduced on the page** — a wrong claim
+  quoted verbatim gets re-copied. A **struck** paraphrase carries the correction; the verbatim original
+  stands untouched in this log's 2026-09-11 lint entry, which is its correct home. **Struck, not
+  deleted, in substance.**
+- The *Re-raise only if* bullet's `10 XP` was **given the unit-label gloss** (*"one match's earned
+  progress"*) — ⛔ **the figure itself was NOT rewritten.**
+- 🚩 The **separate, still-open** question recorded and NOT resolved: `0211` moves the crediting
+  **TRIGGER**, which bears on this ADR's *"blast radius is one match, not a backlog"* consequence, its
+  **3-attempt budget sizing**, and its **per-item pre-validation rationale**. **A candidate for a
+  superseding ADR; not settled.** ⛔ Neither ADR-111 nor this amendment may be cited as having answered
+  it. `0211` carries a **pre-committed gate** to decide it when the survivor mechanism is chosen.
+
+**CORRECTED (2) — a figure that existed ONLY in the vault.**
+[[wiki/decisions/adr-103-identity-trust-seam]] — its *Related* section bounded the abuse ceiling at
+*"10 XP per (game, account)"*. 🚨 **That figure is NOT in the canonical ADR at all** — verified today:
+the knowledge-base ADR states its abuse bound **qualitatively** (*"there is nothing to steal, only
+something to gift or to farm"*) and carries **no number**.
+- Rewritten to name the **MECHANISM**: one credit per `(game_id, yandex_player_id)`, enforced by a
+  **database primary key** — i.e. exactly whatever `XP_PER_MATCH` holds (`src/core/profile/Citizenship.ts`,
+  the `XP_PER_MATCH` declaration). **The mechanism does not move; the constant does.**
+- ⛔ **Its lint reasoning corrected too:** the claim that the ruling makes this ADR's risk argument
+  *"stronger, never weaker"* is **struck**. **Farming economics are IDENTICAL** — ~100 forged matches
+  buys citizenship before and after — so **the risk grade is UNCHANGED, NOT lowered.**
+- ⛔ **The canonical ADR-103 takes NO change, and none should be made on the strength of ADR-111** —
+  ADR-111 says so itself.
+
+**UPDATED (5).**
+- [[wiki/tasks/credit-participation-xp-elimination-or-match-end]] — **ruling 8 added** to the settled
+  table plus the full record, and the **pre-committed ADR-101 supersede gate** written in as still
+  open; ruling 1 now points at ADR-111 and names the **floor**.
+- [[wiki/systems/player-profile-store]] — ADR-111 back-link; flagged that the free grants land on the
+  rows **this store holds**, and that **no migration is to be written**.
+- [[wiki/tasks/citizenship-xp-progress-ui]] — ADR-111 back-link, with the reason this page's `1000` is
+  **correct and deliberately not rewritten**: it records what `0191` **built**.
+- [[wiki/decisions/adr-numbering-two-series]] — ADR-111 added to the 101-series list, noting the
+  abbreviated slug and that it demonstrates the clarification-in-place route.
+- `index.md` — ADR-111 catalogued; the ADR-101, ADR-103 and `0211` entries carry the corrections above.
+
+**🔴 STANDING CONSTRAINT HONOURED THROUGHOUT: NOTHING HAS SHIPPED.** `src/core/profile/Citizenship.ts`
+still declares `CITIZENSHIP_XP_THRESHOLD = 1000` and `XP_PER_MATCH = 10` — **read directly from the
+working tree this run.** ⛔ **No live figure anywhere in the vault was rewritten to `1` / `100`.** Every
+page states the rescale as a **dated ruling not yet in code**, so it reads correctly **both before and
+after** `0211` ships.
+
+**FLAGGED, NOT FIXED (1).** The `0211` brief and ADR-111 both cite `brief.md:NNN` / `file.ts:NN` line
+coordinates. The vault's own citation convention (2026-09-10, *content anchors by default*) forbids
+carrying those into vault pages, so **every citation written this run is a content anchor** and the
+source line numbers were deliberately dropped rather than copied. ⚠️ **Reported, not corrected in the
+sources — the vault does not write outside itself.**
+
+- 🔒 No secrets written — file, symbol, constant, task and vault-page names only. No hostnames,
+  buckets, keys, URLs, DSNs or dashboard IDs; the diff was scanned before this entry was appended.
+- Nothing committed or pushed.
+
+## 2026-09-11 — reconciliation record (task `0052`, optional step 7)
+
+**Appended on the owner's instruction. ⛔ APPEND ONLY — no existing entry was opened, read for edit, or
+modified.** This is the *"consider appending one `log.md` entry"* step from `0052`'s *What to build*,
+which that task's completion record left **routed, not dropped**, because the producer may not write
+this vault.
+
+**Task `0052` — *"Wiki vault follow-up: legacy task filenames left stale by the folder migrations"* —
+closed 2026-09-11 as `✅ Done (agent-closed — not owner-verified)`.**
+
+🚨 **The fact worth recording, and the reason this entry exists: NOBODY EVER RAN THIS TASK.** It was
+**completed incidentally** by `fkit-wiki` lint and ingest runs that were rewriting the same pages for
+other reasons. ⛔ **Do not read the close as someone deliberately executing the brief** — it was never
+picked up, planned, or worked.
+
+**Where the work actually landed**, per the producer's `git log -S` trace:
+
+| When | Run | What it swept |
+|---|---|---|
+| 2026-08-25 | lint — *"task-path sweep for `0003`"* | `0003`'s 119 `done/`+`cancelled/` renames across 89 pages |
+| 2026-08-30 / 2026-08-31 | ingest (sync) + lint runs | the bulk of the `0002`-era backlog names — **not attributed to `0052` anywhere** |
+| 2026-09-02 | lint | the last two, both bare *stems* inside prose; recorded then as **0 occurrences remain** |
+
+**The migration this reconciles**, recorded here so the mapping is visible in the log without any past
+entry being touched: `0002` moved 38 backlog briefs, and `0003` moved the `done/` and `cancelled/`
+briefs, from flat `<slug>.md` files into ID-prefixed folders — the current form being
+`ai-agents/tasks/<board>/<NNNN>-<slug>/brief.md`. **Older entries in this log name the pre-migration
+paths, and that is CORRECT: on the date each was written, that path was the real one.**
+
+⚠️ **`log.md` was and remains UNEDITED.** It holds ~60 further occurrences of the legacy filenames, and
+**none of them may ever be rewritten** — a hard constraint ruled at `0002`'s plan gate (decision D3).
+Rewriting a past entry to a path that **did not exist on that date** does not update the record, it
+**falsifies** it. The producer verified the constraint **stronger than the brief asked**: the entire
+commit history of this file was walked, and it shows **zero removed lines in any commit, ever.** This
+entry is an **append**, which is exactly the sanctioned shape.
+
+⚠️ **One soft spot, recorded rather than papered over:** `0052`'s verification criterion 6
+(*"`git diff --stat` touches only the vault"*) is **moot as written** — there was no `0052` run to
+diff. Its substance holds: the vault fixes landed inside `fkit-wiki` commits, and `0051` (the
+knowledge-base side) is still open and untouched.
+
+⛔ **Nothing in the vault needed changing for this** — that the vault is already correct is precisely
+what `0052`'s close established. This entry is the record, and the whole of it.
+
+- 🔒 No secrets. Nothing committed or pushed.

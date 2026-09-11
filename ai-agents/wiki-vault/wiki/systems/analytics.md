@@ -96,6 +96,78 @@ See [[decisions/autospawn-late-join-fix]] for the bug fix these events instrumen
 
 `Match:Loss:OpponentWon` fires when a solo-mode loss screen is shown because an opponent met the win condition before the player. This is distinct from `Player:Eliminated`: the player can still have territory, but the match is over because the opponent won. See [[tasks/solo-win-condition-fix]].
 
+## Win Condition & Leaderboard Award Events (task `0208` — LIVE since build `0.0.141`)
+
+Two event families shipped together in commit `6b30e22` and are **emitting in production**. Full spec:
+`ai-agents/knowledge-base/analytics-event-reference.md` (*Win Condition Events*, *Leaderboard Award
+Events*). Task detail and the production read: [[tasks/measure-clientless-leader-and-solo-awards]].
+
+| Enum key | Event string | Fires |
+|---|---|---|
+| `MATCH_WIN_CONDITION` | `Match:WinCondition:{FfaPublic\|FfaPrivate\|TeamPublic\|TeamPrivate}:{Threshold\|Timer}:<leader>` | Once per **client-match**, the first time the win condition is met. **Value:** integer percent of non-fallout land the leader held. Fires for **every** leader, whether or not a winner is then declared |
+| `MATCH_LEADERBOARD_AWARD` | `Match:Leaderboard:Award:{Participation\|PlacementWon\|PlacementLost}:{Solo\|SoloTutorial}` | A **Singleplayer** match reports points to the platform leaderboard. **Value:** points the attempt carried — 1 participation, 10/5/2 placement |
+
+**Leader leaves are two DISJOINT sets, not a cross-product.** FFA emits `Bot|Nation|AiPlayer|Human`;
+Team emits `BotTeam|NationsTeam|HumanTeam`. ⇒ **21 reachable `Match:WinCondition` ids, not 56** (28
+grammatical, minus the seven `…Public:…:Timer` ids that public lobbies can never produce).
+**5 of 6 `Match:Leaderboard:Award` ids are reachable** — `…:PlacementLost:SoloTutorial` cannot
+currently fire. ⚠️ **Build dashboards from the reachable set** — a panel per grammatical leaf shows
+permanently-empty series, which reads as telemetry loss.
+
+**Emitted at the DECISION POINT, above the clientless guard**, so the counter survives `0205` / `0211`
+removing that guard — it simply changes meaning. **`Match:WinCondition` carries its own denominator**
+(the leader leaf covers every leader), so the clientless rate needs no cross-event join.
+**Singleplayer, missions and tutorials emit no `Match:WinCondition`; multiplayer emits no
+`Match:Leaderboard:Award`** — both deliberate.
+
+### 🔴 Two caveats that travel with every figure these events produce
+
+1. **`Match:WinCondition`'s denominator is CLIENT-MATCHES, not matches.** The server never simulates,
+   so every connected client emits its own copy; the multiplier varies with lobby size and with how
+   many clients stayed. ⛔ **Absolute counts are uninterpretable — read only the ratio** against
+   `Game:Mode:Multiplayer`, which is already per-client-match. A single elected emitter was
+   deliberately **not** used: a clientless leader leads *because* humans died or left, so any election
+   picks the client most likely to be gone. **Read every rate as a LOWER BOUND.**
+2. **`Match:Leaderboard:Award` counts ATTEMPTS, platform failures included.** The event fires after the
+   platform call settles, **whatever it returned, including a rejection**. ⛔ **A rise is not evidence
+   any player's leaderboard score moved.** *(Its denominator IS matches — Singleplayer has one client,
+   and both call sites are latched once per `ClientGameRunner`. ⛔ **Do not copy caveat 1 onto it.**)*
+
+### 📊 The production read — 4–10 September 2026, full days, read 2026-09-11
+
+⚠️ **Provenance: the GameAnalytics dashboard in the owner's browser, read by the lead session — NOT
+reproducible from the repository. Figures as the dashboard rounds them, APPROXIMATE.**
+
+- **`Match:WinCondition`: 6.86K client-matches.** `Threshold` **100 %**; the **timer branch fired zero
+  times** — ⚠️ **expected** (public lobbies hardcode `maxTimerValue` `undefined`, and there were **zero
+  private-lobby events**), and ⛔ **it must NOT be read as "matches never run out of time"**: three
+  termination paths (the 3-hour `maxGameDuration` kill, an all-clients-left stalled match, and a match
+  where no leader survives to cross) **emit nothing and are genuinely unmeasured.**
+  Clientless-in-front: **FFA ~1.6 % · Team ~53.2 %** (of which **~52.4 %** is the stall-capable all-bot
+  team) **· overall ~29.1 %**. `AiPlayer` **89 firings** — these carry a real `clientID` and may
+  legitimately win under ADR-110.
+  ⛔ ***"52 % of Team matches stalled" is NOT a supported claim*** — a firing records who was **first
+  past the post**, not how the match ended. **The defensible sentence, verbatim:** *"in 52 % of
+  measured Team-mode client-matches that reached the win condition, the leader at that moment was the
+  all-bot team, and no winner could be declared at that moment."*
+- **`Match:Leaderboard:Award`: 79.11K award ATTEMPTS** — `Solo` **65.45K** · `SoloTutorial` **13.66K**;
+  by kind `Participation` **62.29K** · `PlacementWon` **14.28K** · `PlacementLost` **2.53K**.
+  **Non-tutorial match count: `Solo` `Participation` 49.64K, ~7.1K/day.**
+- 🔴 **A forbidden shortcut, proved wrong by the cross-tab:** applying the blended **82.7 % `Solo`
+  share** to the 62.29K gives **~51.5K** against an actual **49.64K**, because the share is **not
+  uniform across award kinds** — **79.7 % / 93 % / 100 %**. ⛔ **Do not multiply a blended marginal
+  share into a sub-population unless the share is known to be uniform across it.**
+- ✅ **`PlacementLost` was IDENTICAL in both columns (2.53K)** ⇒ the `SoloTutorial` contribution is
+  **exactly zero**, **confirming in production data** a prediction previously derived **only from
+  reading the code**. ⚠️ **It confirms the zero is real TODAY; it does not make it permanent and does
+  not license deleting the leaf.**
+
+⛔ **`0208` closed `(agent-closed — not owner-verified)` and is NOT fully verified** — `V16` (no
+emission while watching a replay) and `V17` (exactly one event per path per match) **close UNTESTED**,
+argued from source only. 🔴 **The per-match stall rate will NEVER be known** — owner ruling of
+2026-09-11 (option B): no server-side counter, and the pre-fix denominator disappears the moment `0211`
+ships.
+
 ## Join Funnel & Map Preload Events
 
 `UI:ClickMultiplayer` fires in `src/client/PublicLobby.ts` when the player clicks JOIN on a specific public lobby entry, before the `join-lobby` event is dispatched. The handler is debounced, so rapid repeat taps collapse into one event, but distinct later join attempts still emit distinct events. This makes it a valid funnel anchor for public-match join attempts.
@@ -269,5 +341,5 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[systems/flashist-init]] — startup ordering, SDK bootstrap, and experiment-flag initialization
 - [[features/announcements]] — `UI:Tap:AnnouncementsBell`, `Announcements:Opened`, `Announcements:Closed`, and the task-0012 Personal-tab inbox events
 - [[systems/architecture-overview]] — the platform facade that owns the event enum
-- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, two new event families (multiplayer clientless-leader incidence, Singleplayer award incidence) and the denominator decisions that must reach the reference doc
+- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, the two event families above. ✅ **LIVE since `0.0.141` and READ 2026-09-11** — see *Win Condition & Leaderboard Award Events*. ⚠️ **Client-matches and attempts, never matches and never points banked**; ⛔ **closed but NOT fully verified**
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, which routes every citizenship surface (and the events they emit) through one shared kill-switch helper

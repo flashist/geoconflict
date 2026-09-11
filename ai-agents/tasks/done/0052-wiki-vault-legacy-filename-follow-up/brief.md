@@ -10,10 +10,56 @@ Backlog
 Unscheduled
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-wiki
+
+## ✅ Completion record — verified 2026-09-11 by a spawned `fkit-producer`
+
+🚨 **HOW THIS WAS FOUND DONE — the interesting fact for a future reader: NOBODY RAN THIS TASK.** The
+work was **completed incidentally** by `fkit-wiki` lint and ingest runs that were rewriting these pages
+for other reasons. ⛔ **Do not read this close as someone deliberately executing the brief above** —
+they did not. The brief was never picked up, planned, or worked.
+
+**Provenance of the finding.** A `fkit-wiki` lint on **2026-09-11** checked this task incidentally and
+found **zero legacy pointers left in the `wiki/` tree**. ⚠️ **That lint explicitly DECLINED to assert
+completion** — it had checked only `wiki/` against this brief's stated pattern and none of the other
+acceptance criteria. The owner then ruled, live on 2026-09-11, that **the producer verify the full
+acceptance criteria and close it only if genuinely met**. This record is that verification.
+
+**Where the work actually landed** (traced with `git log -S` against the vault pages):
+
+| When | Run | What it swept |
+|---|---|---|
+| 2026-08-25 | lint — *"task-path sweep for `0003`"* (`log.md:997`) | `0003`'s 119 `done/`+`cancelled/` renames across 89 pages. This is what trimmed this brief's scope on 2026-08-26. |
+| 2026-08-30 / 2026-08-31 | ingest (sync) + lint runs, commit `b897811` *"Sprint push and wiki update"* | The bulk of the `0002`-era backlog names — `s4-player-profile-store-impl`, `s4-investigate-null-id-errors`, `mobile-webgl-rendering.md` and the rest — left the vault here. **Not attributed to `0052` anywhere.** |
+| 2026-09-02 | lint (`log.md:1316`, residue list at `:1352`) | The last two, both bare *stems* inside prose about what a code comment says: `wiki/tasks/disable-compact-public-maps.md` and `wiki/tasks/archive-endpoint-failures.md`. That entry recorded **"measured today, 0 occurrences remain"**. |
+
+### Criteria, one by one — what was verified and by what means
+
+| # | Criterion | Verdict | Means |
+|---|---|---|---|
+| — | **Prerequisite: `0003` has landed** | ✅ met | `ai-agents/tasks/done/0003-migrate-done-cancelled-tasks-to-folders/` exists on disk. |
+| 1 | `log.md` unedited (or append-only) | ✅ met, **verified stronger than asked** | Not a working-tree `git diff` — there was no run to diff. Instead the **entire commit history** of `ai-agents/wiki-vault/log.md` was walked (`git show --unified=0` per commit, counting removed lines): **zero removed lines in any commit, ever.** The file has only ever been appended to. |
+| 2 | Zero stale legacy task filenames under `wiki/` | ✅ met | Two independent greps: (a) the 12 named legacy stems from the table below, **as stems**, not just `.md` filenames — 0 hits as task pointers; (b) a **structural** sweep for any `ai-agents/tasks/(backlog\|done\|cancelled)/<name>` **not** matching the `NNNN-` folder form — **0 hits** across the whole vault excluding `log.md`. |
+| 3 | Every path resolves | ✅ met | All **142** distinct `ai-agents/tasks/…` paths cited under `wiki/` were extracted and existence-tested on disk: **all 142 resolve.** No dangling path. |
+| 4 | Nothing missed outside `wiki/` and `log.md` | ✅ met | The same greps over `schema.md`, `index.md` and `sources/`: **no matches.** Separately, seven surviving `s3-`/`s4-`-style names were checked and are **not** stale task pointers — they are `ai-agents/knowledge-base/…` **report and ADR filenames that all exist on disk** (e.g. `s4-licensing-asset-audit-findings.md`, `adr-104-match-archiving-disabled-until-s3-citizen-gated.md`), plus two deliberate historical mentions in `wiki/tasks/disable-compact-public-maps.md` and `wiki/tasks/archive-endpoint-failures.md` that explicitly say the code comment names the **folder**, *not* the pre-`0002` flat filename. Those are correct prose, not residue. |
+| 5 | `/fkit-wiki-lint` clean on broken links / back-links | ✅ met — ⚠️ **read from the record, not re-run** | The **2026-09-11 lint entry** (`log.md:3176`) reports: 184 pages, **zero** broken `[[wikilinks]]`, **zero** orphans, **zero** one-way links before and after, `index.md` ↔ disk exact in both directions. ⚠️ **The producer did NOT re-run the lint** — lint is a vault **write** and belongs to `fkit-wiki` alone. This criterion rests on that recorded run. |
+| 6 | `git diff --stat` touches only the vault | ⚪ **moot as written, met in substance** | ⛔ **Stated honestly: this criterion cannot be checked in its literal form, because no `0052` run exists to diff.** Its substance — that this work must not spill into `knowledge-base/` or source, which is `0051`'s side — **is** satisfied: the vault fixes landed inside `fkit-wiki` lint/ingest commits, and **`0051` is still open and untouched in `ai-agents/tasks/backlog/`**. No knowledge-base or source change was ever made under this task's name, because the task was never run. |
+| 7 | Prose still reads correctly on the formerly-stale pages | ✅ met | All 9 pages from the table below were re-read at their pointer sites. The two flagged as easy to break are both clean: `wiki/decisions/sprint-4.md:209` — the long "Follow-up sources" comma-run — is **entirely `NNNN-slug/brief.md` folder paths**, and `wiki/decisions/profile-storage-strategy.md:8,17` — the sentence that mixed a backlog and a done name — now reads `…/done/0013-player-profile-store-impl/brief.md` and `…/done/0185-profile-05-backend-db-api/brief.md`. |
+
+⚠️ **Criterion 6 is the one soft spot and is recorded as such rather than papered over.** Everything
+else was verified against the working tree on 2026-09-11.
+
+### 📌 Left undone on purpose — routed, not dropped
+
+Step 7 of *What to build* — *"consider appending one `log.md` entry recording that this reconciliation
+happened"* — was **optional** ("consider") and is **NOT done**. ⛔ **The producer may not write
+`ai-agents/wiki-vault/` — it is `fkit-wiki`'s exclusive surface.** If the owner wants the record made
+visible inside the vault, it is a **one-line append** to `ai-agents/wiki-vault/log.md`, routed to
+`fkit-wiki`. **Nothing else in the vault needs changing** — the vault is already correct; that is
+precisely what this close established.
 
 ## Context
 

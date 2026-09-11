@@ -127,7 +127,7 @@ ranking surface while citizenship/monetisation work is building around player st
 | The code path above, step by step | ✅ **Verified by reading the source** |
 | No game-type guard exists anywhere in the client reporting path | ✅ **Verified by grep** |
 | A live Singleplayer loss actually credits 10 points on the real Yandex board | ⚠️ **NOT verified — nobody ran it.** The path says it does. **Reproduce before fixing** |
-| How often non-tutorial Singleplayer ends this way | ⚠️ **Unmeasured** — [[tasks/measure-clientless-leader-and-solo-awards]] Part B is that measurement |
+| How often non-tutorial Singleplayer ends this way | ~~⚠️ **Unmeasured**~~ ✅ **MEASURED 2026-09-11** — see the incidence box below. ⛔ **Attempts, not points banked** |
 
 **Verification keeps the reproduction step even though the ruling is settled** — *reproduce the current
 behaviour first and record what you saw*, because nobody has observed it live and the ruling did not
@@ -136,6 +136,39 @@ step that matters is step 3: **confirm multiplayer is unaffected**, since a loos
 silence the real FFA/Team leaderboard. *(This reason was written as "which is `0206`'s entire point";
 🔴 `0206` was reverted 2026-09-04. **The multiplayer leaderboard matters on its own account** — the
 regression step is unchanged.)*
+
+### ✅ THE INCIDENCE FIGURE NOW EXISTS — read 2026-09-11. ⛔ NOTHING ABOUT THIS TASK CHANGED.
+
+> 🔴 **CAVEAT FIRST, AND IT TRAVELS WITH EVERY FIGURE HERE: THESE ARE AWARD *ATTEMPTS*, PLATFORM
+> FAILURES INCLUDED — NEVER POINTS CONFIRMED BANKED.** The event fires after the platform call settles,
+> **whatever it returned, including a rejection** — exactly what a platform failure looks like from
+> here. ⛔ **A rise is not evidence that any player's leaderboard score moved.**
+
+[[tasks/measure-clientless-leader-and-solo-awards]] Part B was read off the GameAnalytics dashboard on
+**2026-09-11**, window **4–10 September 2026, full days**. ⚠️ **Figures as the dashboard rounds them —
+APPROXIMATE.** ⚠️ **Provenance: the owner's own browser session, read by the lead — not reproducible
+from the repository.**
+
+| | |
+|---|---|
+| **Total award attempts** | **79.11K** — `Solo` **65.45K** · `SoloTutorial` **13.66K** |
+| **By award kind** | `Participation` **62.29K** · `PlacementWon` **14.28K** · `PlacementLost` **2.53K** |
+| 🟢 **THIS TASK'S IN-SCOPE FIGURE** | **`Solo` `Participation` = 49.64K NON-TUTORIAL MATCHES, about 7.1K/day** — participation is awarded once per reporting match, so this count **is** the match count |
+
+⛔ **The other 15.81K `Solo` rows are placement awards riding on those SAME matches — NOT additional
+matches.**
+
+🔴 **A FORBIDDEN SHORTCUT, AND THE MEASUREMENT PROVED IT WRONG.** Applying the blended **82.7 % `Solo`
+share** to the 62.29K combined match count gives **~51.5K** against an actual **49.64K** — an
+overstatement of **~1.9K (~3.7 %)** with every appearance of precision. **The `Solo` share is not
+uniform across award kinds: `Participation` 79.7 % · `PlacementWon` 93 % · `PlacementLost` 100 %.**
+⛔ **Do not repeat that multiplication on another cross-tab.**
+
+⛔ **THIS CHANGES NOTHING ABOUT THIS TASK'S STATUS, SCOPE OR RANK.** The owner's 2026-09-03 ruling was
+**explicitly not conditioned on incidence** — option C was rejected on farmability regardless of how
+rare solo play turned out to be. **The guard is right either way; this is retrospective evidence.**
+⚠️ **`0208` closed `(agent-closed — not owner-verified)` and is NOT fully verified** (`V16`/`V17`
+untested) — ⛔ do not cite it as a clean result.
 
 ### 🔴 `0208` does NOT gate this task
 
@@ -155,7 +188,7 @@ wins and `0208` loses its window** — the owner accepted that trade in advance.
 - [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`. ⚠️ **This task's ruling is about platform LEADERBOARD POINTS; `0211` is about profile XP. ⛔ The two must NOT be read across** — that risk is why `0211`'s Singleplayer scope needed its own ruling
 - [[tasks/win-check-clientless-leader-guard]] — task `0022`, which fixed this same shape for the **tutorial** only
 - [[tasks/placement-semantics-literal-one]] — task `0209`, the sibling on the orthogonal axis (*what the number means* vs *which modes report at all*); the split was owner-confirmed and their pairing is coherent
-- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, whose Part B measures this rate and whose window this task's guard closes
+- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, ✅ **closed 2026-09-11 with Part B READ before this task's guard closed the window: `Solo` `Participation` 49.64K non-tutorial matches over 7 days, ~7.1K/day.** ⚠️ **Attempts, never points banked**, and ⛔ **this task's status, scope and rank are unchanged by it**
 - [[decisions/clientless-leader-win-policy]] — the win policy, and the `placement`/`points` keep-them-apart table
 - [[decisions/adr-110-ai-winner-allowed]] — governs who may WIN, not who receives points; it does **not** pre-answer this
 - [[features/tutorial]] — where the same shape was already fixed, and the reason the tutorial's inclusion here must be a stated decision

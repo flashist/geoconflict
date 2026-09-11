@@ -89,7 +89,7 @@ Fired for first real match starts only. Reconnect handshakes and archived replay
 
 ### Win Condition Events
 
-Spec: `ai-agents/tasks/backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md`.
+Spec: `ai-agents/tasks/done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md`.
 
 | Enum Key              | Event String                                                                                                                                                                                                             | When Fired                                                                                                                                                                                                                                                                              |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -162,7 +162,7 @@ pick the client most likely to be gone and under-count the exact population bein
 
 ### Leaderboard Award Events
 
-Spec: `ai-agents/tasks/backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md`
+Spec: `ai-agents/tasks/done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md`
 (Part B).
 
 | Enum Key                  | Event String                                                                                | When Fired                                                                                                                                                                                    |
@@ -192,6 +192,14 @@ path never runs. Only a human win reaches it. **Build dashboards from the five, 
 sixth's permanent zero as telemetry loss.** ⚠️ The leaf is deliberately kept, not deleted: it becomes
 reachable the moment `0205` / `0211` removes that guard, and the composer is swept across all six on
 purpose so removing the guard needs no analytics change.
+
+✅ **CONFIRMED IN PRODUCTION DATA, 2026-09-11 — this was previously a CODE-DERIVED PREDICTION ONLY.**
+The `0208` award-kind × mode cross-tab (`Match:Leaderboard:Award`, 4–10 Sep 2026, grouped by Event id 04,
+with and without the Event id 05 = `Solo` filter) reads `PlacementLost` as **2.53K in both columns** —
+so the `SoloTutorial` contribution over the full 7-day window is **exactly zero**, independently of the
+code reading above. ⚠️ **This confirms the zero is real TODAY; it does NOT make it permanent and does
+NOT license deleting the leaf** — the paragraph above stands unchanged. ⚠️ **These are award ATTEMPTS,
+platform failures included, never points confirmed banked.**
 
 **Won/lost is decided from the winner tuple's shape, all of it.** `GameImpl.makeWinner()` emits
 `["player", …]`, `["team", …]`, `["opponent", …]`, or nothing at all. **Singleplayer Team mode is

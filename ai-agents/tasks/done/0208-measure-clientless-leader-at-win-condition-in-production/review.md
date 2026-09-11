@@ -1,7 +1,7 @@
 # Review — 0208
 
-Task: `ai-agents/tasks/backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md`
-Plan: `ai-agents/tasks/backlog/0208-measure-clientless-leader-at-win-condition-in-production/plan.md`
+Task: `ai-agents/tasks/done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md`
+Plan: `ai-agents/tasks/done/0208-measure-clientless-leader-at-win-condition-in-production/plan.md`
 Scope: **Part A only**, uncommitted working tree vs `HEAD` (`dev`, `2d1135c`).
 File(s) under review:
 

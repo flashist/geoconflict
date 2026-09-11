@@ -429,3 +429,48 @@ The test count is unchanged because B4 strengthened an existing test instead of 
     acted on**, as instructed. It was explicitly marked not worth another move.
 
 **No open question is being carried forward for the owner.**
+
+---
+
+## 2026-09-11 — `V18` run and passed; task closed on an owner ruling (producer entry)
+
+**`V18` — reload the page mid-Singleplayer match — WAS RUN and PASSED.** Performed by the **lead via
+browser automation**, in a tab **the owner brought to the foreground**.
+
+📌 **Two attempts.** An earlier attempt ran in a **backgrounded tab** and was **abandoned** — the
+browser throttled the game loop, so the match did not tick at full speed. The foreground run is the
+one that counts.
+
+**Conditions:** production site, build **`0.0.141`** (main-menu footer) · **Singleplayer custom game**
+("Своя Игра"), **World** map · ⛔ **NOT the tutorial** — the app auto-launches it on first visit and it
+was **explicitly skipped**, because `SoloTutorial` is a **different leaf** and would have answered a
+**different question** · match genuinely **live and ticking**: ~**36 s** elapsed, nations expanding,
+the player present in the leaderboard as **`Anon551`** with **10.6K troops** and **25.8K gold** ·
+action: a plain **page reload**.
+
+🟢 **Result: the reload returned straight to the MAIN MENU** — no rejoin prompt, no resumed match,
+nothing to continue. ⇒ ✅ **A Singleplayer match cannot be resumed after a reload**, so the fresh
+`ClientGameRunner` a reload builds — which resets `hasReportedParticipation` and `hasProcessedWin` —
+has **no earlier match to double-count against.** ✅ **The no-resume conclusion is now an OBSERVATION,
+not an inference**, and the brief's standing objection (that it rested on reading one call site —
+`saveReconnectSession` skipped when `transport.isLocal`) **is discharged.**
+
+**Two honest details, not glossed:**
+
+1. ⚠️ **The player's area read `0.0 %`** at the moment of reload — troops and gold, but little or no
+   captured territory. ⛔ It does **not** affect what `V18` tests (whether a reconnect session exists);
+   it is recorded because it is what was on screen.
+2. 📌 **Incidental, adjacent, cheap:** **tutorial completion persisted** across the reload (the tutorial
+   did not replay) even though the **match did not**. ⛔ **Not a finding for this task, not something
+   to act on.**
+
+⚠️ **`V16` and `V17` are UNCHANGED — never tested, still argued from source**, and the brief's own
+**step 17** bars reporting `V17` satisfied by reading the code. ⛔ **`V18` passing discharges `V18`
+alone.**
+
+**Status path this day:** `🚧 Blocked` → `🔄 In progress` (the producer's token once `V18` passed and
+no blocker remained) → **`✅ Done (agent-closed — not owner-verified)`** on the **owner's close
+ruling**, given live in session and relayed through the lead. ⛔ **The producer did not choose `✅ Done`
+on its own.** 📌 **Marker rationale:** the closing producer was **spawned, with no owner channel**, so
+ADR-033 §5 requires the marker — even though the owner ruled the close and every measurement was read
+from the owner's own browser session. **Nothing was committed by this skill.**

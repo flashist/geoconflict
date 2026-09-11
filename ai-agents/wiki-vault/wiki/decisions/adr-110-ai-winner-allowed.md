@@ -208,7 +208,30 @@ IPs (`GameServer.ts:1174-1186`), a purely human electorate.
   the strongest argument for allowing it.
   ⚠️ **POINTER CORRECTED 2026-09-04: this trigger originally cited `0206`'s phase-1 measurement —
   which NEVER RAN, because `0206` was reverted. The work now lives in task `0208`.**
-  🔴 **The trigger is therefore still UNFIRED and still LIVE — nobody has measured it.**
+  ~~🔴 **The trigger is therefore still UNFIRED and still LIVE — nobody has measured it.**~~
+  📌 **SPENT 2026-09-11 — struck, not deleted; TRUE WHEN WRITTEN.**
+
+  > ### ✅ 2026-09-11 — THE MEASUREMENT NOW EXISTS. ⛔ THIS IS AN INPUT, NOT A VERDICT ON THIS ADR.
+  >
+  > `0208` was read off the dashboard for **4–10 September 2026** and closed the same day. 🔴 **The
+  > trigger has "fired" ONLY in the sense that the measurement exists.** ⛔ **NOTHING about this ADR has
+  > changed, nothing is superseded, and no conclusion about it may be drawn from these numbers.**
+  > 📌 **Recorded as AN INPUT REQUIRING AN ARCHITECT'S READ.**
+  >
+  > | | Value | ⚠️ |
+  > |---|---|---|
+  > | **`AiPlayer` leader firings** | **89 in 7 days** | The `AiPlayer` leaf *is* this trigger's measurement — these carry a real `clientID` and **may legitimately win under this ADR** |
+  > | **FFA clientless-in-front** | **~1.6 %** | **Rare — and that is the direction that WEAKENS the strongest argument for the `allow` ruling, FOR FFA ONLY** |
+  > | **Team clientless-in-front** | **~53.2 %** | ⛔ **EMPHATICALLY NOT RARE.** Do not generalise the FFA reading across modes |
+  >
+  > 🔴 **UNIT: CLIENT-MATCHES, NOT MATCHES** — one event per client per match, so **absolute counts are
+  > uninterpretable and only ratios are safe**, and those are weighted by lobby size and by how many
+  > clients stayed. **All rates are LOWER BOUNDS.**
+  > ⛔ **`0208` closed `(agent-closed — not owner-verified)` and is NOT fully verified** — its `V16` and
+  > `V17` close untested. ⛔ **Do not cite it as a clean result.**
+  > 🔴 **And the per-match stall rate WILL NEVER BE KNOWN** (owner ruling, option B, 2026-09-11) — so
+  > **no sharper number is coming to settle this trigger.** See
+  > [[tasks/measure-clientless-leader-and-solo-awards]].
   ✅ **And the earlier "permanently unmeasurable" claim is REVERSED:** because `0206` never deployed,
   the pre-fix baseline is measurable again. 🔴 **It is `0211` shipping that would destroy it — which
   is exactly why the owner ordered `0208` deployed and collecting data BEFORE `0211` ships.**
@@ -239,6 +262,6 @@ consequence.
 - [[decisions/sprint-backlog]] — where `0205`, `0207`, `0209` and `0210` sit, unscheduled (`0208` and `0211` have since moved to Sprint 4)
 - [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, which built this ADR's predicate unchanged and was then **REVERTED** — read its STOP box
 - [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which **expires this ADR's T1 argument** by decoupling crediting from the winner; ⛔ **not** an implementation of this ADR
-- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, whose Part A excludes AI players on this ADR's reasoning
+- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, whose Part A excludes AI players on this ADR's reasoning. ✅ **Closed 2026-09-11 with the re-raise trigger's measurement READ** — `AiPlayer` **89 firings in 7 days**, FFA clientless **~1.6 %** vs Team **~53.2 %**. ⛔ **An INPUT REQUIRING AN ARCHITECT'S READ, NOT a conclusion about this ADR**; ⚠️ **client-matches, lower bounds, and `0208` is not fully verified**
 - [[tasks/placement-semantics-literal-one]] — task `0209`, whose accepted `1`-for-a-loser case follows from this ADR
 - [[tasks/singleplayer-leaderboard-reporting-policy]] — task `0210`, which this ADR does **not** pre-answer (it governs who WINS, not who receives points)

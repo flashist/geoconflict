@@ -25,11 +25,124 @@ assert a sprint commitment nobody made. See Notes for the full board-choice reas
 > on `backlog.md`, unscheduled.** The owner also agreed with the producer's **Low–Medium** rank and its
 > reasoning: the defect is **pre-existing**, its **frequency is unmeasured**, and the realistic trigger
 > is **private lobbies with a timer set**.
+> 📌 **RANK SUPERSEDED 2026-09-11 — the rank in force is now `Medium` (producer's value, owner-approved;
+> see `## Priority`).** The *placement* half of this ruling is untouched and still stands: the task
+> stays on `backlog.md`, unscheduled. ⛔ **The re-rank is not a promotion.**
 > **This is a decision, not an oversight.** Recorded here so nobody later reads an unblocked task
 > sitting on the backlog board as a scheduling miss and "fixes" it by promoting it.
 
 ## Priority
-**Low–Medium — unchanged. Producer's rank, not an owner ruling.**
+**`Medium` — in force since 2026-09-11.**
+
+~~**Low–Medium — unchanged. Producer's rank, not an owner ruling.**~~ 📌 **SUPERSEDED 2026-09-11 —
+struck, not deleted; TRUE WHEN WRITTEN, and true for exactly as long as the frequency was unmeasured.
+It no longer is.**
+
+~~⛔ **THE RANK IN FORCE TODAY IS STILL `Low–Medium`.** Nothing below takes effect until the owner
+signs it off. **Do not cite `Medium` as this task's rank until that happens.**~~ ✅ **SPENT
+2026-09-11 — struck, not deleted. THE OWNER SIGNED IT OFF THE SAME DAY.** `Medium` **is** this task's
+rank now, and citing it is correct.
+
+> # ✅ 2026-09-11 — RE-RANKED TO **`Medium`**, OWNER-APPROVED. THIS IS THE RANK IN FORCE.
+>
+> **THREE DISTINCT AUTHORSHIP LAYERS. KEEP THEM SPLIT — do not flatten them into one.**
+>
+> | # | Layer | Whose it is |
+> |---|---|---|
+> | 1 | **THAT this task be re-ranked** — because the premise its old rank rested on (*"production frequency is UNMEASURED"*) is now false | 🔴 **AN OWNER RULING**, given live in the lead session, **2026-09-11** |
+> | 2 | **THAT the value is `Medium`** — the number itself, and the reasoning for it | 🟡 **THE PRODUCER'S PROPOSAL**, made as producer. A judgement, not a ruling |
+> | 3 | **THAT `Medium` is APPROVED and now IN FORCE** | ✅ **THE OWNER'S SIGN-OFF**, given live in the lead session, **2026-09-11** |
+>
+> ⇒ **Read together: the value `Medium` is the PRODUCER'S judgement, and the OWNER ENDORSED it.**
+> ⛔ **Do not restate this as *"the owner ranked it `Medium`"*, and do not restate it as *"the producer
+> set it to `Medium`"* — NEITHER IS TRUE ON ITS OWN.** The owner ordered the re-rank and approved the
+> value; the producer chose the value.
+>
+> 🚨 **THE CAVEATS ON THE FIGURE TRAVEL WITH THE RANK AND ARE NOT WEAKENED BY THE SIGN-OFF.** Read
+> the number section below in full before citing this rank's basis.
+>
+> ## Why the old rank had to be re-opened — the premise is FALSE now, not merely dated
+>
+> This rank was held at `Low–Medium` **three times** (2026-09-02, 2026-09-03, and in the board row),
+> and **every hold cites "production frequency is UNMEASURED"** as the thing capping it.
+> 🔴 **[`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
+> MEASURED IT on 2026-09-11** (window 4–10 Sep 2026), so that premise no longer holds and the rank
+> resting on it cannot stand unexamined.
+>
+> ## 🚨 THE NUMBER, AND THE ONLY SENTENCE IT LICENSES — CARRY THIS VERBATIM
+>
+> > *"in 52 % of measured Team-mode client-matches that reached the win condition, the leader at that
+> > moment was the all-bot team, and no winner could be declared at that moment."*
+>
+> **52.4 % = 1,950 / 3,719** `BotTeam` over Team-mode client-matches reaching the win condition.
+>
+> 🚨 ⛔ **THIS IS NOT A STALL RATE AND MUST NEVER BE RESTATED AS ONE.** *"52 % of Team matches
+> stalled"* is an **UNSUPPORTED CLAIM.** Three reasons, all of them load-bearing:
+> 1. **The unit is CLIENT-MATCHES, not matches** — one event per client per match, so the denominator
+>    is weighted by lobby size.
+> 2. **It is a LOWER BOUND** — tab-closed clients never fire.
+> 3. **The event latches at the FIRST crossing** — it records who was first past the post, **not how
+>    the match ENDED.**
+>
+> ## ⚠️ THE HONEST LIMIT OF WHAT THE MEASUREMENT CHANGES — read this before using it to argue anything
+>
+> ✅ **It removes *"we have no idea how often"* as a reason to rank this low.** That reason is spent.
+>
+> ⛔ **It does NOT establish a per-match stall rate, and NOTHING EVER WILL.** The owner ruled
+> **option B on 2026-09-11** — accept the figure as a **directional lower bound**, build **no
+> server-side counter** — so the per-match rate is **permanently unknowable by ruling.** ⛔ **Do not
+> re-propose measuring it as a gap someone should close.**
+>
+> ⇒ **This rank is therefore set on the strength of the evidence that EXISTS, and that is being said
+> out loud rather than papered over.** The evidence is directional, not a rate.
+>
+> ## 🟡 THE PRODUCER'S RANK, ✅ OWNER-APPROVED: **`Medium`** — up one step from `Low–Medium`
+>
+> 📌 **This section is the producer's reasoning — layer 2 above — and it is preserved unchanged as
+> that.** The owner signed off on its conclusion on 2026-09-11 (layer 3); the argument below remains
+> the producer's, not the owner's.
+>
+> **Why UP:**
+> - The single stated cap on the old rank — unmeasured frequency — **is gone.**
+> - The direction the evidence points is **common, not rare**: a majority of measured Team-mode
+>   client-matches reaching the win condition had the all-bot team in front. Even read only as a
+>   direction, *"rare"* is no longer a defensible description.
+> - 🔴 **It undercuts the OTHER pillar of `Low–Medium` too — "narrow blast radius / private lobbies
+>   with a timer".** `0208`'s figure is **production** data, which is overwhelmingly **public**
+>   lobbies. The 2026-09-03 simulation had already shown the shipped **public** config
+>   (`maxTimerValue: undefined`) can strand on the 95 % territory branch **12/12** at ~7–10 minutes;
+>   production now points the same way. ⚠️ **Flagged explicitly because this is a second premise
+>   weakening, and the owner has NOT been asked to re-rule on it.**
+>
+> **Why NOT higher than `Medium`:**
+> - 🔴 **[`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) IS NOW
+>   SCHEDULED TO BUILD** (owner ruling, 2026-09-11). Once it ships, **the XP is credited regardless of
+>   who wins** — which retires the *"the whole match's XP is lost"* argument that carried much of this
+>   task's weight. What remains is the **UX harm**: a Team match nobody can win, running to the 3-hour
+>   cap with no winner declared. ⛔ **`0211` still does NOT settle this task's own question** — see
+>   *Notes*; the distinction is unchanged.
+> - **No player has ever reported it.** Zero reports on file, across the whole life of the fork.
+> - 🔴 **First-implementation risk is real.** [`0206`](../../done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md)
+>   was **reverted before shipping**, so building this makes it **ADR-110's first implementation**, not
+>   a copy of proven live behaviour.
+> - **Genuine plan-time questions are still open** — (a) tie-breaking, (b-residual) the all-Nations
+>   team, and the `HumansVsNations` scope constraint.
+>
+> **The main tradeoff, stated plainly:** `Medium` **under-ranks this if the unwinnable-match UX harm
+> matters more than the XP loss** — and after `0211` ships, the UX harm is *all* that is left. I rank
+> it below that line because **nobody has ever reported it**, which is the only evidence that exists on
+> the UX half. If the owner weighs an unwinnable main-mode match as worse than silent XP loss, the
+> right answer is `Medium–High`. ✅ **The owner signed off `Medium` with this tradeoff in view on
+> 2026-09-11.**
+>
+> ⛔ **NOTHING ELSE ABOUT THIS TASK CHANGED.** Status is still `🔲 Backlog`, scope is untouched, the
+> folder and board are unchanged, and it is still **unscheduled**. The owner ruled a **re-rank only**,
+> and the sign-off **approved the rank and nothing else** — ⛔ it is **not** a scheduling decision and
+> must not be read as one.
+
+📌 **The three notes below are the rank's HISTORY — 2026-09-02 and 2026-09-03, when `Low–Medium` was
+in force. They are kept because they were true when written. ⛔ THEY ARE NOT THE CURRENT RANK: that is
+`Medium`, owner-approved 2026-09-11, per the block above.**
 
 ✅ **Re-checked 2026-09-02, after the blocker was cleared. The rank stays Low–Medium.** Clearing the
 gate made this task **ready**, not more **important** — those are different axes, and only the first
@@ -63,8 +176,12 @@ held**, not left alone because nobody looked.
 - **Narrow blast radius.** The realistic trigger is **private/custom Team lobbies with a timer set**;
   public Team lobbies ship `maxTimerValue: undefined` (✅ `MapPlaylist.ts:162`) and so are territory-only,
   where the 95% threshold makes it rare.
-- **Frequency is still unmeasured** — no production observation, no player report on file. That is
-  unchanged by the ruling.
+- ~~**Frequency is still unmeasured** — no production observation, no player report on file. That is
+  unchanged by the ruling.~~ 📌 **SPENT 2026-09-11 — struck, not deleted; TRUE WHEN WRITTEN.**
+  🔴 **`0208` MEASURED IT: 52.4 % (1,950 / 3,719) of Team-mode CLIENT-MATCHES that reached the win
+  condition had the all-bot team in front, 4–10 Sep 2026 — a LOWER BOUND, not a stall rate.** ⚠️ **The
+  *"no player report on file"* half of this bullet is UNCHANGED and still true.** See the re-rank block
+  at the top of this section.
 - ~~But it is gated on an owner decision that has not been made, so it cannot be ranked as ready work
   regardless of how it compares to anything else.~~ ✅ **No longer true — the ruling landed.** Struck,
   not deleted.
@@ -248,8 +365,13 @@ resolve into a benign timeout; it resolves into the failure the owner already de
 - **Single map** (`world`). No other map was exercised.
 - **Humans idle by construction** outside the activity sweep — the owner's requested method, and the
   reason the headline numbers are what they are.
-- **Production frequency is STILL UNMEASURED.** No telemetry, no player report. **This is a simulator
-  result, not a field observation.** Nothing here licenses calling it a confirmed live incident.
+- ~~**Production frequency is STILL UNMEASURED.** No telemetry, no player report.~~ 📌 **SPENT
+  2026-09-11 — struck, not deleted; TRUE WHEN WRITTEN.** 🔴 **`0208` measured it: 52.4 % of Team-mode
+  CLIENT-MATCHES reaching the win condition had the all-bot team in front (4–10 Sep 2026, a LOWER
+  BOUND, ⛔ NOT a stall rate).** ⚠️ **The limit on THIS simulation is untouched — it remains a
+  simulator result, not a field observation, and the production number came from a DIFFERENT source
+  (`0208`'s client-side `Match:WinCondition` event), not from this run.** **No player report exists,
+  still.** Nothing here licenses calling this run a confirmed live incident.
 
 ---
 
@@ -674,7 +796,9 @@ question and not a gate.**
   simulation, run at the owner's explicit request, **CONFIRMED the premise** and corrected two claims
   in this brief (see *Empirical findings*). (2) The owner **weighed that evidence and HELD the
   Low–Medium rank** — the passivity dependence supports it rather than undermining it, because busy
-  lobbies are safe. (3) **ADR-110 was accepted** as one policy across Team and FFA.
+  lobbies are safe. 📌 **That hold was RE-OPENED and the rank is now `Medium` (2026-09-11, owner-approved
+  producer value) — the note above is history, not the current rank.** (3) **ADR-110 was accepted** as
+  one policy across Team and FFA.
 - **ADR-110:** `ai-agents/knowledge-base/decisions/adr-110-ai-player-may-be-declared-winner.md` —
   cited here, **not authored or edited by this brief**. It carries a pre-committed revisit trigger; read
   it there rather than trusting this summary.
@@ -693,12 +817,27 @@ question and not a gate.**
   Verification step 8 is **amended into 8a/8b/8c**. 🚩 **It is entangled with the deferred all-Nations
   question — a "Nations may never win" answer would remove the accident and regress this config from
   working to stalling. Settle both as one decision.**
-- 📊 **Production frequency is still unmeasured, and that gap now has a brief of its own:**
-  [`0208-measure-clientless-leader-at-win-condition-in-production`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md),
-  filed 2026-09-03 on an owner ruling (*"File a brief, don't schedule"*) — **unscheduled on the backlog
-  board.** It exists to close the residual this brief carries in three places: **this task's Low–Medium
-  rank rests on "busy lobbies are safe"**, which is a claim about a **never-measured** lobby-activity
-  distribution; **investigation step 2's residual**; and `0206`'s unmeasured-frequency flag.
+- 📊 ~~**Production frequency is still unmeasured, and that gap now has a brief of its own:**~~
+  📌 **SPENT 2026-09-11 — struck, not deleted; TRUE WHEN WRITTEN.** ✅ **MEASURED AND CLOSED:**
+  [`0208-measure-clientless-leader-at-win-condition-in-production`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
+  was filed 2026-09-03 on an owner ruling (*"File a brief, don't schedule"*), ~~**unscheduled on the
+  backlog board**~~ was later **promoted into Sprint 4**, **shipped (build `0.0.141`, 2026-09-05)**,
+  and was **closed 2026-09-11** `✅ Done (agent-closed — not owner-verified)`. ⚠️ **Its close was
+  explicitly NOT a clean one — read `0208`'s closing record before citing it.** It existed to close the
+  residual this brief carries in three places: **this task's Low–Medium rank rests on "busy lobbies are
+  safe"**, which was a claim about a **never-measured** lobby-activity distribution; **investigation
+  step 2's residual**; and `0206`'s unmeasured-frequency flag.
+  🔴 **WHAT IT RETURNED: 52.4 % (1,950 / 3,719) of Team-mode CLIENT-MATCHES that reached the win
+  condition had the all-bot team in front, 4–10 Sep 2026.** ⛔ **A LOWER BOUND at the client-match
+  unit, latched at the FIRST crossing — NOT a per-match stall rate, and *"52 % of Team matches
+  stalled"* is an UNSUPPORTED CLAIM.** 🔴 **The per-match rate will NEVER be known** (owner ruling,
+  option B, 2026-09-11 — no server-side counter).
+  ⇒ ✅ **THIS TASK WAS RE-RANKED ON THAT FIGURE AND THE RE-RANK IS COMPLETE, 2026-09-11 — see the
+  block at the top of `## Priority`.** ~~⚠️ **The proposed `Medium` is the PRODUCER'S and is AWAITING
+  THE OWNER'S SIGN-OFF; `Low–Medium` is what is IN FORCE until then.**~~ **SPENT the same day — struck,
+  not deleted.** **The rank in force is `Medium`.** Three layers, do not flatten them: **THAT it be
+  re-ranked** = owner ruling, 2026-09-11; **THAT the value is `Medium`** = the producer's proposal;
+  **THAT `Medium` is approved and in force** = owner sign-off, 2026-09-11.
   ⚠️ **It does not gate this task and this task does not gate it.** 🚩 **But note the sequencing:** once
   `0205`/`0206` ship, the metric measures *how often the fallback fires*, not *how often we stalled* —
   the original question becomes permanently unanswerable. Recorded there, not resolved.

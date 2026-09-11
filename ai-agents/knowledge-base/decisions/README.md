@@ -33,6 +33,19 @@ The immutability rule above bites **from `accepted` onward**, not from the momen
   instruction that day**, and is left in place deliberately — the owner did not ask for it to be
   unpicked or re-housed. It is **not precedent, and it is the last reversal that will be handled this
   way.** Anyone citing it as licence to reverse an accepted ADR in place is misreading it.
+  🔧 **A SECOND, NARROW CARVE-OUT — CITATION REPAIRS. Owner ruling, 2026-09-11, given live in
+  session. This one IS precedent; cite it.** A **citation-form repair** may be applied in place to an
+  `accepted` ADR, **recorded as a repair** — not as a clarification, and never through a dated
+  clarification block (that is the wrong instrument: it records a decision event where none happened).
+  The carve-out above was **silent** on citation repairs, and the owner ruled that **silence is a gap,
+  not a prohibition**: a repair changes no decision, no option and no consequence — it makes the
+  document point at what it always claimed to point at.
+  ⚠️ **The boundary is narrow and load-bearing: this permits repairing a POINTER ONLY.** Altering a
+  claim, a figure, a decision, a consequence or a verbatim quote is **not** a repair and still requires
+  a **superseding ADR**. Every replacement anchor must be `grep`-verified to exactly one hit before it
+  is written — see [`../conventions/file-line-citations.md`](../conventions/file-line-citations.md).
+  **Worked example:** ADR-111, repaired 2026-09-11 (28 numbered citations → 0 content anchors; four of
+  them wrong from birth), with its repair note at the top of that file.
 - **A new decision is never an edit.** If the choice itself changes, supersede — do not overwrite.
 
 See [`../conventions/README.md`](../conventions/README.md) for how this folder differs from

@@ -8,6 +8,26 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-103-identity-trust-seam-client-asserted-yandex-id.md`
 
+> # 📌 CORRECTION — 2026-09-11. **THE CANONICAL ADR TAKES NO CHANGE. THIS MIRROR DID.**
+>
+> 🚨 **The figure `"10 XP per (game, account)"` IS NOT IN THE CANONICAL ADR AT ALL.** Verified against
+> `ai-agents/knowledge-base/decisions/adr-103-identity-trust-seam-client-asserted-yandex-id.md` on
+> 2026-09-11: it states its abuse bound **qualitatively** — *"there is nothing to steal, only something
+> to gift or to farm"* — and **carries no number**. Nothing in it references `10` or `1,000`.
+> ⇒ **The figure existed only in this vault mirror.** It has been rewritten below to name the
+> **mechanism** instead of a number, so it cannot go stale again when `0211` ships.
+>
+> 🔴 **CORRECTS A 2026-09-11 LINT WARNING THAT WAS WRONG.** ~~That warning said the `1 XP` ruling makes
+> this ADR's risk argument *"stronger, never weaker"*.~~ **Struck.** **The farming economics are
+> IDENTICAL:** the award falls 10× **and the threshold falls 10× with it, by design**, so **~100 forged
+> qualifying matches buys citizenship before and after** the change. ⛔ **THE RISK GRADE IS UNCHANGED —
+> it is NOT lowered, and it is NOT raised.** A smaller award number is not a smaller abuse surface when
+> the threshold moved with it.
+>
+> ⛔ **No amendment to the canonical ADR-103 is required, and none should be made on the strength of
+> ADR-111** — ADR-111 says so itself. See [[decisions/adr-111-xp-economy-rescale]] and
+> [[tasks/credit-participation-xp-elimination-or-match-end]].
+
 ## Context
 
 XP credits and profile rows are keyed by a **Yandex player id**. The game server learns that id from the client's join message, and can also receive it later via an identity-update message when the Yandex SDK was still initializing at join.
@@ -51,4 +71,5 @@ The design rules that make this a seam rather than just a shortcut:
 - [[tasks/citizenship-name-change]] — task 0067: a forged id can submit an offensive name in a citizen's name, mitigated only by the human moderation gate and closing on `0014`
 - [[tasks/citizen-verified-icon]] — task 0068: a forged id can mint a **cosmetic** citizen icon, which gates nothing of value
 - [[decisions/adr-102-privilege-refresher-fails-open]] — the adjacent entitlement-trust seam. **Related shape, different problem — do not merge them:** ADR-103 is *who the player is* (Yandex), ADR-102 is *what the player is entitled to* (upstream OpenFront). Both are unblocked by the same external event, the Yandex IAP secret key.
-- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which routes a **new client-asserted fact** (an elimination claim) into the crediting path. ⚠️ **The architect's decisive point: the identity being credited is itself client-asserted under this ADR, so hardening the elimination claim first would be hardening the STRONGER link.** The abuse ceiling is bounded to **10 XP per (game, account)** by a database primary key
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which routes a **new client-asserted fact** (an elimination claim) into the crediting path. ⚠️ **The architect's decisive point: the identity being credited is itself client-asserted under this ADR, so hardening the elimination claim first would be hardening the STRONGER link.** The abuse ceiling is bounded to **exactly one credit per `(game_id, yandex_player_id)`, enforced by a database primary key** — i.e. **whatever `XP_PER_MATCH` holds** (`src/core/profile/Citizenship.ts` — the `XP_PER_MATCH` declaration), never more. 📌 **Stated as the MECHANISM, not a figure, corrected 2026-09-11:** this page previously wrote *"10 XP per (game, account)"*, ~~a number that appears nowhere in the canonical ADR~~ and that would go stale the day `0211` ships the rescale. The mechanism does not move; the constant does
+- [[decisions/adr-111-xp-economy-rescale]] — the `1 XP` / `100 XP` rescale. ⛔ **This ADR is UNAFFECTED and needs NO amendment**: its bound is qualitative, the farming economics are identical (~100 forged matches either side), and **the risk grade is UNCHANGED, not lowered**

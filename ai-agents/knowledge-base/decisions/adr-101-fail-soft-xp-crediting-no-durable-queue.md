@@ -9,6 +9,20 @@
 
 ## Context
 
+> **📌 Amendment — 2026-09-11 (architect, recording the owner's ruling of 2026-09-10). The figures
+> below are the pre-`0211` economy. THE DECISION IS UNCHANGED.**
+> The owner ruled the award to **`1 XP`** per qualifying match and the citizenship threshold
+> **÷ EXACTLY 10** (→ **`100 XP`**); both ship inside task `0211`.
+> 🔴 **Verified in the code on 2026-09-11: NOTHING HAS SHIPPED.**
+> `src/core/profile/Citizenship.ts:15,18` still declares `CITIZENSHIP_XP_THRESHOLD = 1000` and
+> `XP_PER_MATCH = 10` — so every figure below is an accurate description of the code **as of that
+> date**, and is kept unchanged as history rather than rewritten.
+> Read `10` / `1,000` as *"one match's award"* / *"the threshold"*. The ratio between them —
+> **~100 qualifying matches to citizenship** — is unchanged by the ruling **by design**, and it is
+> that ratio, not either absolute number, that this ADR's reasoning rests on.
+> See the dated note at the end of *Consequences* for what the ruling does and does not do to the
+> **"Re-raise only if"** triggers.
+
 At match end the game server awards 10 XP per qualifying player toward the 1,000 XP earned-citizenship
 threshold. The award is an HTTP write to a **separate service on a separate VPS** — the profile
 backend — over the public internet:
@@ -95,6 +109,49 @@ Two narrower rules fall out of the same principle and are part of this decision:
   Absent one of those three, a review finding of the form "crediting can silently lose XP" or "there
   is no retry queue" is **closeout of this ADR, not a new defect**. Likewise "only 3 retries" and
   "4xx is not retried" are deliberate.
+
+  **📌 Amendment — 2026-09-11 (architect, recording the owner's ruling of 2026-09-10): the `1 XP`
+  rescale moves NONE of the three triggers above. Recorded so it is not re-argued.**
+
+  The ruling cuts the award 10× (`10` → `1`) **and** the threshold 10× (`1,000` → `100`) in the same
+  change, inside task `0211`. 🔴 **Verified in the code on 2026-09-11: neither has shipped**
+  (`src/core/profile/Citizenship.ts:15,18`).
+
+  - **Trigger 1 (paid entitlements) — unchanged.** Its force is *categorical*, not magnitudinal: a
+    purchase is a different **kind** of thing from earned XP at any award size. The phrase
+    *"losing 10 XP"* in that bullet is a **unit label for one match's earned progress**, not a
+    magnitude claim. At `1 XP` the sentence reads *"…categorically different from losing 1 XP"* and
+    is exactly as true.
+  - **Trigger 2 (observed drop volume) — unchanged.** It counts `award(s) dropped` warn lines, not XP.
+  - **Trigger 3 (a funded dead-letter/replay path) — unchanged.** It turns on funding and an owner
+    product call, neither of which the amount touches.
+
+  **The one argument that could have moved them, and why it does not.** The loss per dropped credit
+  falls 10× in absolute XP, which would *strengthen* the case for accepting silent loss.
+  ⛔ **That reading takes the numerator without the denominator.** The threshold falls by the same
+  factor — by design, so that time-to-citizenship is unchanged — so a dropped credit costs **1 % of
+  the way to citizenship before and after**, and the remedy this ADR already records
+  (*"Affected players simply need one more match"*) is **identical**. XP has **no denominator other
+  than the threshold**: it is not priced against money, coins, or any cosmetic. A unit whose only
+  denominator moves with it has been **renamed, not revalued**.
+
+  **Therefore the correct reading is UNCHANGED, not stronger.** ⚠️ Stated explicitly because the
+  2026-09-11 wiki lint reached *"stronger"* in writing — that is the misreading this note exists to
+  stop. **Absolute size would govern only if XP became fungible against something that did NOT
+  rescale with it — which is exactly Trigger 1**, already on the books.
+
+  ⛔ **This amendment changes no decision and no option in this ADR.** It is a **clarification** under
+  the carve-out in `README.md` (*"Immutability starts at `accepted`"*), not a reversal: the choice —
+  fail-soft, 3 bounded retries, no durable queue — is untouched, and every figure in the body is left
+  visible rather than rewritten.
+
+  🚩 **NOT settled by this note — a separate, still-open question.** Task `0211` also moves the
+  crediting **TRIGGER** (credit at elimination, plus a survivor trigger that is still the plan's to
+  choose). That changes **when and how often** this path is called — one batch at match end today
+  versus calls spread through a match — which bears on this ADR's *"blast radius is one match, not a
+  backlog"* consequence, on the sizing of the 3-attempt budget, and on the per-item pre-validation
+  rationale (which assumes a multi-item batch). **That is a candidate for a SUPERSEDING ADR and it is
+  not this one.** It cannot be judged until `0211`'s plan picks the survivor mechanism.
 
 ## Related
 

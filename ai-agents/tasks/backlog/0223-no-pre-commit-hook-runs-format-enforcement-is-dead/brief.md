@@ -170,7 +170,7 @@ This has never worked. It is not local drift.
 | `ai-agents/` (markdown docs) | **521** |
 
 🔴 **`src/client/leaderboard/LeaderboardReporter.ts` is one of the 61** — verified individually. That
-is [`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md)'s Part B, which
+is [`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md)'s Part B, which
 **shipped to production in build `0.0.141` unformatted**. This is the concrete harm: the control the
 repo believes it has would have caught it, and did not exist.
 

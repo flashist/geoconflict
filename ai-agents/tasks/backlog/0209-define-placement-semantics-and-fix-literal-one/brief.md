@@ -184,7 +184,7 @@ processing that review; `0206`'s folder was not touched. See *Open questions* in
 > ✅ **CORRECTED 2026-09-04 — `0211` is SCHEDULED INTO SPRINT 4** (owner ruling, live in session),
 > tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md). **Struck, not deleted — spent,
 > not wrong.** Status `🔲 Backlog`, **not started**; rank **Medium–High, the producer's.** ⛔ **`0211`
-> must not SHIP until [`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
+> must not SHIP until [`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
 > is DEPLOYED AND COLLECTING DATA** — ✅ planning and building in parallel is explicitly allowed;
 > ~~⚠️ neither task is `🚧 Blocked`.~~ 📌 **SWEPT 2026-09-04 by the producer — struck, not deleted;
 > SPENT, NOT WRONG: accurate when written, false once `0208` was built.** ✅ **`0211`'s half stands —

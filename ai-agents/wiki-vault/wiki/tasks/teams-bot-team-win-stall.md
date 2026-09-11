@@ -2,17 +2,88 @@
 
 **Source**: `ai-agents/tasks/backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md`
 **Status**: backlog
-**Sprint/Tag**: Backlog — unscheduled, on `sprints/backlog.md`. Ready work; **nobody is building it**
+**Sprint/Tag**: Backlog — unscheduled, on `sprints/backlog.md`. Ready work; **nobody is building it**. ~~🔴 **RE-RANK RULED 2026-09-11 (owner) — ⛔ the rank IN FORCE is still `Low–Medium`; `Medium` is the PRODUCER'S PROPOSAL, awaiting sign-off.**~~ ✅ **SIGNED OFF THE SAME DAY — struck, not deleted. THE RANK IN FORCE IS `Medium`, since 2026-09-11.** ⛔ **Three authorship layers, never flattened:** the owner **ruled THAT it be re-ranked**; the producer **proposed the VALUE `Medium`**; the owner **SIGNED `Medium` OFF**. ⛔ Never *"the owner ranked it `Medium`"*, never *"the producer set it to `Medium`"* — neither is true alone. ⛔ Status, scope, folder and board **unchanged**
 
 > ✅ **The premise was CONFIRMED by simulation on 2026-09-03.** In Team mode the aggregate Bot team
 > can lead and the match becomes unwinnable — measured, not reasoned.
-> ⚠️ **Production frequency is still UNMEASURED.** This is a **simulator result, not a field
+> ~~⚠️ **Production frequency is still UNMEASURED.** This is a **simulator result, not a field
 > observation**: no telemetry, no player report on file. Nothing here licenses calling it a confirmed
-> live incident.
+> live incident.~~
+> 📌 **UPDATED 2026-09-11 — struck, not deleted; TRUE UNTIL `0208` WAS READ.** ✅ **There is now a field
+> figure, and it is telemetry.** **The ONLY defensible sentence about it — carry it VERBATIM:**
+>
+> > *"in 52 % of measured Team-mode client-matches that reached the win condition, the leader at that
+> > moment was the all-bot team, and no winner could be declared at that moment."*
+>
+> **52.4 % = 1,950 / 3,719**, window 4–10 Sep 2026, from `0208`'s client-side `Match:WinCondition`
+> event. ⛔ ***"52 % of Team matches stalled" is AN UNSUPPORTED CLAIM and must NEVER be written*** —
+> the unit is **client-matches, not matches**, the figure is a **LOWER BOUND** (tab-closed clients
+> never fire), and the event **latches at the FIRST crossing**, recording who was **first past the
+> post, not how the match ENDED**. 🔴 **The per-match stall rate WILL NEVER BE KNOWN** (owner ruling,
+> option B, 2026-09-11 — accept the figure as a directional lower bound, build **no** server-side
+> counter). ⛔ **Do not write the missing per-match rate up as a gap someone should later close.**
+> See [[tasks/measure-clientless-leader-and-solo-awards]].
+>
+> ### ✅ 2026-09-11 — RE-RANKED ON AN OWNER RULING, AND **SIGNED OFF THE SAME DAY. THE RANK IN FORCE IS `Medium`.**
+>
+> 🚨 **READ THIS BEFORE THE "awaiting sign-off" TEXT BELOW IT — that text is SPENT, struck, and kept
+> only as history.** The owner signed `Medium` off on **2026-09-11**, the same day the re-rank was
+> ordered. **`Medium` is this task's rank now, and citing it is correct.**
+>
+> ⛔ **THREE AUTHORSHIP LAYERS. DO NOT FLATTEN THEM INTO ONE SENTENCE:**
+>
+> | # | What | Whose |
+> |---|---|---|
+> | 1 | **THAT this task be re-ranked** — because the premise its old rank rested on (*"production frequency is UNMEASURED"*) is now false | 🔴 **AN OWNER RULING**, 2026-09-11, given live in session |
+> | 2 | **THAT the value is `Medium`** — the number itself and its reasoning | 🟡 **THE PRODUCER'S PROPOSAL.** A judgement, not a ruling |
+> | 3 | **THAT `Medium` is APPROVED and IN FORCE** | ✅ **THE OWNER'S SIGN-OFF**, 2026-09-11 |
+>
+> ⛔ **Never restate this as *"the owner ranked it `Medium`"*, and never as *"the producer set it to
+> `Medium`"* — NEITHER IS TRUE ON ITS OWN.**
+>
+> ⚠️ **THE CAVEATS DO NOT WEAKEN WITH SIGN-OFF.** The 52.4 % is at the **client-match** unit, is a
+> **LOWER BOUND**, and is **latched at the FIRST crossing**; *"52 % of Team matches stalled"* stays
+> **UNSUPPORTED**; and the per-match rate is **permanently unknowable by owner ruling** — ⛔ never a
+> gap for anyone to close. **What the measurement changed is narrow: it removes *"we have no idea how
+> often"* as a reason to rank low. It does NOT establish a stall rate.**
+>
+> ⛔ **Status, scope, folder and board are UNCHANGED — `🔲 Backlog`, unscheduled. RANK ONLY.**
+>
+> #### History, kept — the proposal state, true for part of 2026-09-11
+>
+> ~~⚠️ **Nobody has re-ranked this task on that figure and no ruling was sought: its status, scope and
+> rank are unchanged.**~~ 📌 **STRUCK 2026-09-11 — FALSE NOW. Kept, not deleted; true when written,
+> and true for exactly as long as nobody had asked.** 🔴 **The owner ruled, live in the lead session
+> on 2026-09-11, that this task BE RE-RANKED** — because its rank was explicitly held down by the
+> premise *"production frequency is UNMEASURED"*, and `0208` has disproved that premise.
+>
+> **The two halves have DIFFERENT AUTHORS and must stay split:**
+>
+> | Half | Whose it is |
+> |---|---|
+> | **THAT it be re-ranked** | 🔴 **THE OWNER'S RULING**, 2026-09-11, given live in session |
+> | **WHAT rank is proposed — `Medium`**, up one step | 🟡 **THE PRODUCER'S PROPOSAL ONLY**, awaiting the owner's sign-off. Not ruled, not agreed, not confirmed |
+>
+> ~~⛔ **THE RANK IN FORCE TODAY IS STILL `Low–Medium`.** Do not cite `Medium` as this task's current
+> rank until the owner signs it off.~~ ✅ **SPENT 2026-09-11 — struck, not deleted; TRUE ONLY UNTIL
+> THE OWNER SIGNED OFF THAT SAME DAY.** ⛔ **`Medium` IS the rank in force, and citing it is correct.**
+> The two-half table above is **superseded by the three-layer table at the top of this block** — the
+> sign-off is a third layer, not a re-reading of the second.
+>
+> ⛔ **NOTHING ELSE CHANGED.** Status is still **`🔲 Backlog`**, scope is untouched, and the task folder
+> and board are unchanged — still on `sprints/backlog.md`, **unscheduled**. The owner ruled a
+> **re-rank only**.
+>
+> ⚠️ **The honest limit of what the measurement changes:** ✅ it **removes *"we have no idea how
+> often"* as a reason to rank this low** — that reason is spent. ⛔ It does **NOT** establish a
+> per-match stall rate, and by the same 2026-09-11 ruling nothing ever will.
 >
 > ### 📌 TWO THINGS CHANGED 2026-09-04 — and NEITHER changes this task
 >
-> ⛔ **This task's status, scope and rank are UNCHANGED. The owner has not ruled on them.**
+> ~~⛔ **This task's status, scope and rank are UNCHANGED. The owner has not ruled on them.**~~
+> 📌 **SUPERSEDED-IN-PART 2026-09-11 — struck, not deleted; TRUE OF THE TWO 2026-09-04 CHANGES BELOW,
+> which is all it ever claimed.** 🔴 **The RANK half is no longer true generally: the owner ruled a
+> re-rank on 2026-09-11 — see the box above.** ✅ **Status and scope really are still unchanged.**
 >
 > 1. 🔴 **[[tasks/ffa-clientless-leader-fallback-award]] (`0206`) — this task's FFA twin — WAS
 >    REVERTED. Its behaviour is NOT in the game and was NEVER DEPLOYED.** It is still `done` and still
@@ -44,8 +115,12 @@
 > wins, *"the whole match's XP is lost"* weakens as a reason to resolve the stall. ⛔ **It does NOT
 > settle this task's own question:** a Team match nobody can win still runs to the `maxGameDuration`
 > cap, and **deciding who should win it is still unanswered and still belongs here.**
-> 📌 **Re-read this task's rank and rationale when `0211` is planned** — ⚠️ **a producer/owner call,
-> not a planner's, and nothing about it is pre-judged here.**
+> ~~📌 **Re-read this task's rank and rationale when `0211` is planned**~~ ✅ **THAT MOMENT HAS
+> ARRIVED — struck, not deleted.** 🔴 **`0211` WAS SCHEDULED TO BUILD on an owner ruling, 2026-09-11**
+> (it now reads `🔄 In progress` — ⚠️ **with an honesty caveat, see that page**). The rank was re-read
+> the same day and the owner ruled a **re-rank**; the producer's `Medium` proposal explicitly caps
+> itself **because** `0211` retires the XP-loss argument, leaving only the **UX harm** — a Team match
+> nobody can win, running to the 3-hour cap with no winner declared.
 
 ## Goal
 
@@ -93,7 +168,14 @@ Human team slots **idle by construction** (the owner's requested method) outside
    HIGHER than 40 %.** Do not quote 40 % as a human number.
 
 ⚠️ **Limits, recorded honestly — not footnotes:** single map (`world`), no other exercised; humans idle
-by construction outside the sweep; **production frequency still unmeasured.**
+by construction outside the sweep; ~~**production frequency still unmeasured.**~~ 📌 **SPENT
+2026-09-11 — struck, not deleted.** There is now a field figure, and the only defensible sentence
+about it is: *"in 52 % of measured Team-mode client-matches that reached the win condition, the leader
+at that moment was the all-bot team, and no winner could be declared at that moment."* ⛔ **NOT a
+per-match stall rate; the per-match rate will never be known** (owner ruling, option B). ⚠️ **The limit
+on THIS simulation is untouched** — it is still a simulator result, not a field observation, and the
+production figure came from a **different source** (`0208`'s `Match:WinCondition` event). **No player
+report exists, still.**
 
 ### 🚩 Mechanism correction — right outcome, wrong path
 
@@ -118,7 +200,9 @@ anyway via the stall. It strengthens the case for the chosen policy; it does not
 | **The measure** | 2026-09-02 | **Territory — tile count.** Chosen because the win thresholds are already territory-based and players read territory as the score. ⛔ **Not** because it is the existing `checkWinnerTeam()` ranking — that was explicitly not the argument |
 | **Branch scope** | 2026-09-02 | **BOTH branches — timer AND the 95 % territory threshold**, ruled once for `0205` and `0206` together so the two functions stay on one policy |
 | **Winner predicate** | 2026-09-03 | **ADR-110 accepted, one policy across both modes** — an AI player may win; predicate stays `clientID() !== null` with **no `PlayerType.AiPlayer` exclusion**. See [[decisions/adr-110-ai-winner-allowed]] and read its **expiry** before relying on it |
-| **Priority held** | 2026-09-03 | **Low–Medium, HELD against the empirical evidence.** ⚠️ Not inertia — weighed and held. Owner's reasoning: the passivity dependence **supports** the rank, because busy public lobbies are safe (60 %+ activity → 0/3 stalls), so the realistic trigger stays **private and quiet lobbies** |
+| **Priority held** | 2026-09-03 | **Low–Medium, HELD against the empirical evidence.** ⚠️ Not inertia — weighed and held. Owner's reasoning: the passivity dependence **supports** the rank, because busy public lobbies are safe (60 %+ activity → 0/3 stalls), so the realistic trigger stays **private and quiet lobbies**. 📌 **The "frequency is unmeasured" leg of this hold is SPENT since 2026-09-11** — see the re-rank row below |
+| 🔴 **RE-RANK ORDERED** | **2026-09-11** | **THAT this task be re-ranked — an OWNER RULING**, given live in the lead session, because the rank was held down by the premise *"production frequency is UNMEASURED"* and `0208` disproved it. ⛔ **The owner did NOT set a value.** 🟡 **The producer PROPOSES `Medium`** (up one step) ~~**awaiting sign-off**; ⛔ **the rank IN FORCE is still `Low–Medium`**~~ 📌 **struck — SIGNED OFF the same day, see the row below.** ⛔ Status, scope, folder and board **unchanged** |
+| ✅ **RANK SIGNED OFF — `Medium` IN FORCE** | **2026-09-11** | **THAT `Medium` is APPROVED and IN FORCE — THE OWNER'S SIGN-OFF**, given live in the lead session the same day. ⛔ **Three layers, never flattened:** the **owner ruled THAT it be re-ranked** · the **producer proposed the VALUE `Medium`** · the **owner SIGNED `Medium` OFF.** ⛔ Never *"the owner ranked it `Medium`"*, never *"the producer set it to `Medium`"*. ⚠️ **The caveats do NOT weaken with sign-off** — client-match unit, lower bound, latched at first crossing; *"52 % of Team matches stalled"* stays unsupported; the per-match rate is **permanently unknowable** and ⛔ not a gap to close. **The measurement only removed *"we have no idea how often"* as a reason to rank low.** ⛔ Status, scope, folder and board **unchanged — rank only** |
 | **Board placement** | 2026-09-02 | Stays on `backlog.md`, unscheduled — reviewed after the policy ruling unblocked it and **deliberately left**. Not a scheduling miss; do not "fix" it by promoting it |
 
 ## Outcome
@@ -177,7 +261,7 @@ those skill-file references.
 - [[tasks/winmodal-participation-comment-correction]] — task `0207`, the misleading comment on the same predicate, filed alongside
 - [[tasks/solo-win-condition-fix]] — `0140` / PR #77, whose Singleplayer fix must not be regressed here
 - [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, this task's FFA twin, 🔴 **REVERTED 2026-09-04 and never deployed.** ⚠️ **It did NOT advance this task even while it existed** — `checkWinnerTeam()` was byte-identical and Team mode untouched — and the revert leaves `0205` exactly where it was: `🔲 Backlog`, unscheduled, scope and rank unchanged
-- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which covers **Team mode's XP loss** by owner ruling; ⛔ **separate task, separate question — it does not merge with, replace or gate this one**
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which covers **Team mode's XP loss** by owner ruling; ⛔ **separate task, separate question — it does not merge with, replace or gate this one.** 🔴 **SCHEDULED TO BUILD on an owner ruling 2026-09-11** (`🔄 In progress`, ⚠️ **with an honesty caveat — no session owns it, no plan is approved, no code is written**). Once it ships, the XP is credited regardless of who wins, **retiring the *"the whole match's XP is lost"* argument** and leaving this task's case resting on the **UX harm** alone
 - [[decisions/sprint-backlog]] — the board this task sits on, unscheduled and owner-confirmed there
 - [[decisions/sprint-4]] — where its FFA twin `0206` was scheduled, built and closed on 2026-09-03 (agent-closed — not owner-verified), 🔴 **then REVERTED 2026-09-04 and never deployed**; and where `0208` and `0211` were scheduled the same day. ⚠️ **`0206` did NOT advance this task at any point** — `checkWinnerTeam()` was byte-identical, Team mode untouched, and `0205` stays `🔲 Backlog` and unscheduled
 - [[systems/glossary]] — the team-assignment paths, the Bot team's reality, and the win-condition vocabulary this task turns on
@@ -185,4 +269,4 @@ those skill-file references.
 - [[systems/player-profile-store]] — the match-end XP crediting that the stall silently skips
 - [[features/ai-players]] — Bots, Nations and AI players, the three entities this policy has to tell apart
 - [[features/tutorial]] — the first-place-for-losing bug the both-branches ruling must be re-checked against; **it does not bite here**, because a tutorial is FFA and cannot reach `checkWinnerTeam()`
-- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, whose Part A would measure the production frequency this task's held rank currently assumes
+- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, ~~whose Part A **would** measure the production frequency this task's held rank currently assumes~~ ✅ **closed 2026-09-11 having measured it.** **The defensible sentence, verbatim:** *"in 52 % of measured Team-mode client-matches that reached the win condition, the leader at that moment was the all-bot team, and no winner could be declared at that moment."* (52.4 % = 1,950 / 3,719, 4–10 Sep 2026.) ⛔ ***"52 % of Team matches stalled" is NOT a supported claim*** — client-match unit, a LOWER BOUND, latched at the first crossing, and 🔴 **the per-match stall rate will never be known** (owner ruling, option B). ~~⚠️ **Nobody has re-ranked this task on that figure and no ruling was sought — its status, scope and rank stand as they were**~~ 📌 **FALSE SINCE 2026-09-11 — struck, not deleted.** 🔴 **THE OWNER RULED THAT THIS TASK BE RE-RANKED**, precisely because `0208` disproved the *"unmeasured frequency"* premise its rank rested on. ~~🟡 **The producer proposes `Medium`, awaiting sign-off; ⛔ the rank in force is still `Low–Medium`.**~~ ✅ **SIGNED OFF THE SAME DAY — struck, not deleted: `Medium` IS the rank in force.** ⛔ **Three layers, never flattened:** the owner ruled **THAT** it be re-ranked · the producer proposed the **VALUE `Medium`** · the owner **SIGNED IT OFF**. ⛔ **Status, scope and folder ARE unchanged** — `🔲 Backlog`, unscheduled

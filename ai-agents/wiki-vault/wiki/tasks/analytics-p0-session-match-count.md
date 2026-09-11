@@ -6,7 +6,7 @@
 
 ## Goal
 
-Track how many matches a player starts per session so that the citizenship XP threshold (1,000 XP at 10 XP per qualifying match → 100 matches) is grounded in empirical session depth data, not guesswork. Match count per session cannot be backfilled — each session that fires without this event is a permanent data gap.
+Track how many matches a player starts per session so that the citizenship XP threshold (~~1,000 XP at 10 XP per qualifying match~~ 🔴 **ruled `100 XP` at `1 XP` per match, 2026-09-10 — unshipped, ships inside `0211`; see [[tasks/credit-participation-xp-elimination-or-match-end]]** — ✅ **→ 100 matches EITHER WAY: the ÷10 is exact, so this task's rationale is UNAFFECTED**) is grounded in empirical session depth data, not guesswork. Match count per session cannot be backfilled — each session that fires without this event is a permanent data gap.
 
 ## Key Changes
 

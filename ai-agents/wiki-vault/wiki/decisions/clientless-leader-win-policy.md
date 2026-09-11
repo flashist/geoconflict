@@ -38,8 +38,25 @@
 >
 > **Replacement: [[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`), scheduled into
 > Sprint 4** — it credits participation **independently of any winner**, rather than crowning anyone.
-> ⚠️ **`0211` must not SHIP before [[tasks/measure-clientless-leader-and-solo-awards]] (`0208`) is
-> deployed and collecting data** — planning and building in parallel is explicitly allowed.
+> ~~⚠️ **`0211` must not SHIP before [[tasks/measure-clientless-leader-and-solo-awards]] (`0208`) is
+> deployed and collecting data** — planning and building in parallel is explicitly allowed.~~
+> ✅ **SATISFIED 2026-09-11 — `0208` was deployed, read and closed, and the owner CLEARED `0211`'s ship
+> gate** (option B: take the 52 % as directional, build no further measurement). ~~⚠️ **Cleared is NOT
+> scheduled — `0211` stays `🔲 Backlog` and nobody is building it.**~~ 📌 **SUPERSEDED LATER THE SAME
+> DAY — struck, not deleted.** 🔴 **The owner then ruled BUILD `0211`; it is now `🔄 In progress`** —
+> ⚠️ **a compromise token: no session owns it, no plan is approved, no code is written.**
+> 🔴 **When it ships, `0208`'s pre-fix denominator is gone permanently — knowingly accepted by the
+> owner, ⛔ NOT a gap for anyone to close later.**
+>
+> 🔴 **`0205` WAS ALSO RE-RANKED on an owner ruling, 2026-09-11**, because its rank rested on the
+> *"frequency is unmeasured"* premise that `0208` disproved. ~~🟡 **The producer proposes `Medium`,
+> awaiting sign-off; ⛔ the rank in force is still `Low–Medium`**~~ ✅ **SIGNED OFF THE SAME DAY —
+> struck, not deleted: the rank in force is `Medium`.** ⛔ **Three authorship layers, never flattened:**
+> the owner ruled **THAT** it be re-ranked · the producer proposed the **VALUE `Medium`** · the owner
+> **SIGNED `Medium` OFF** — ⛔ never *"the owner ranked it `Medium`"*, never *"the producer set it to
+> `Medium`"*. Its status, scope and folder are
+> unchanged — **rank only.** ⛔ **The two tasks remain SEPARATE questions** — `0205` is resolution policy, `0211` is
+> crediting.
 >
 > 🔴 **And the loss is not FFA-only.** `checkWinnerTeam()` carries the **same guard shape**, so a
 > bot-team-led Team match loses its XP identically — found during the revert, unnoticed across `0022`,
@@ -208,10 +225,60 @@ not a naming quibble.
   — a bounded-retry drop after the credit was attempted. This defect is **upstream of that client
   entirely**: the credit is never attempted, because `handleWinner` never runs. Do not dismiss one as the
   other.
-- ⚠️ **FFA reachability is UNMEASURED.** Whether a clientless leader actually reaches 80% in a real public FFA
+- ~~⚠️ **FFA reachability is UNMEASURED.** Whether a clientless leader actually reaches 80% in a real public FFA
   lobby is **not established** — the reasoning is structural, with **no production observation and no
-  player report on file**. ~~`0206` is investigation-first for exactly this reason.~~ Do not present it as a
+  player report on file**.~~ ~~`0206` is investigation-first for exactly this reason.~~ Do not present it as a
   confirmed field incident.
+
+  > ### ✅ MEASURED IN PRODUCTION 2026-09-11 — struck above, not deleted; TRUE UNTIL THIS READ
+  >
+  > `0208` read `Match:WinCondition` over **4–10 September 2026, full days**, off the GameAnalytics
+  > dashboard in the owner's browser. ⚠️ **Figures as the dashboard rounds them — APPROXIMATE**, and
+  > **not reproducible from the repository.**
+  >
+  > 🔴 **THE UNIT IS CLIENT-MATCHES, NOT MATCHES — read this before any figure.** One event per
+  > **client** per match, so an N-client lobby contributes N identical rows. ⛔ **Absolute counts are
+  > uninterpretable; only ratios are safe**, and those are weighted by lobby size and by how many
+  > clients stayed. **Every rate below is a LOWER BOUND.**
+  >
+  > | Rate | Value |
+  > |---|---|
+  > | **FFA clientless-in-front** | **~1.6 %** (`Nation` 50 / 3,139) — 🔴 **reachability is now OBSERVED, not merely structural** |
+  > | **Team clientless-in-front** | **~53.2 %** (`BotTeam` + `NationsTeam`) |
+  > | **Team stall-capable** (`BotTeam` only) | **~52.4 %** |
+  > | **Overall** | **~29.1 %** |
+  > | **Branch** | `Threshold` **100 %**; the **timer branch fired ZERO times** |
+  >
+  > ⛔ **53.2 % and 52.4 % are DIFFERENT NUMBERS.** An all-Nations team leading is clientless but is
+  > **not** stall-capable: the Team guard tests only `ColoredTeams.Bot`, so **a leading Nations team IS
+  > declared winner and the match ENDS** — with a winner tuple carrying zero client ids.
+  >
+  > 🔴 **A firing records who was FIRST PAST THE POST, not how the match ENDED** — it is latched at the
+  > first crossing, and a `BotTeam` row where a human team later won still reads `BotTeam`. Three biases
+  > pull **both** ways (client-match weighting and closed tabs under-state; first-crossing latching
+  > over-states) and **the net magnitude is NOT establishable from this event.**
+  >
+  > > ⛔ ***"52 % of Team matches stalled" is NOT a supported claim.*** **The defensible sentence, and
+  > > it travels VERBATIM:** *"in 52 % of measured Team-mode client-matches that reached the win
+  > > condition, the leader at that moment was the all-bot team, and no winner could be declared at that
+  > > moment."*
+  >
+  > ⚠️ **`Timer: 0` is EXPECTED** — public lobbies hardcode `maxTimerValue` `undefined`, and there were
+  > **zero private-lobby events** in the window. ⛔ **It must NOT be read as "matches never run out of
+  > time."** 🔴 **THREE TERMINATION PATHS EMIT NOTHING AND ARE GENUINELY UNMEASURED:** the 3-hour
+  > `maxGameDuration` kill, the ordinary **all-clients-left** end of a stalled match, and **a match
+  > where no leader survives to cross**.
+  >
+  > ⚠️ **FFA's zero `Bot` leaders is an AGGREGATION ARTEFACT, not a population difference** — FFA tests
+  > one individual against 80 %, Team sums all 400 bots into one team against 95 %. ⛔ **`Bot` and
+  > `BotTeam` are not comparable quantities.**
+  >
+  > 🔴 **THE PER-MATCH STALL RATE WILL NEVER BE KNOWN.** Owner ruling of 2026-09-11 (**option B**):
+  > accept the client-side number as a **directional lower bound**, ⛔ **build no server-side counter** —
+  > and **the pre-fix denominator disappears permanently the moment `0211` ships.** **A deliberate,
+  > accepted, irreversible loss.** ⛔ **Do not re-propose it later as a gap someone should close.**
+  > ⚠️ **`0208` closed `(agent-closed — not owner-verified)` and is NOT fully verified** (`V16`/`V17`
+  > untested). See [[tasks/measure-clientless-leader-and-solo-awards]].
   ~~🔴 **CORRECTED 2026-09-03: `0206` SHIPPED WITHOUT ITS PHASE-1 MEASUREMENT**, and the pre-fix
   baseline is now **permanently unmeasurable**.~~
   ✅ **REVERSED 2026-09-04 — the baseline is MEASURABLE AGAIN.** Because `0206` was reverted and never
@@ -224,15 +291,26 @@ not a naming quibble.
   🔴 **AND THE INCIDENT IS NO LONGER PURELY STRUCTURAL — one occurrence was OBSERVED 2026-09-04**: a
   Nation at 100.0 % of the map, the match never ending, no crediting. ⚠️ **One observed match is NOT a
   rate** — frequency is still unmeasured, and that is `0208`'s whole job.
-  ⚠️ **A caveat that must not be dropped: the NATION case has been assumed twice and OBSERVED ZERO
+  ~~⚠️ **A caveat that must not be dropped: the NATION case has been assumed twice and OBSERVED ZERO
   TIMES in a public lobby.** Only a **Bot** was ever seen crossing the threshold. Public FFA runs with
   Nations **enabled**, while the play-test ran with them **off** — so **the untested case is the one
-  production actually has.** Record it as a **hypothesis**, never as established.
+  production actually has.** Record it as a **hypothesis**, never as established.~~
+  🔧 **CORRECTED 2026-09-11 BY MEASUREMENT — struck, not deleted; TRUE WHEN WRITTEN.** `0208`'s Part A
+  read records **`Nation` 50** leader firings over 4–10 Sep 2026, and **every FFA event in that window
+  was `FfaPublic`** (zero private-lobby events). ⇒ ✅ **A Nation leading at the FFA threshold in a
+  PUBLIC lobby is now OBSERVED, not hypothetical.** ⚠️ **Read it narrowly: the event records who was in
+  front at the crossing, NOT how the match ended** — it does not establish that any of those 50 became
+  a stall. ⚠️ **Client-matches, a lower bound**, and `0208` is **not fully verified**.
   📌 **The TEAM half is now measured — in a simulator, and only there (2026-09-03).** `0205`'s premise is
   **confirmed**: bot team on top **12/12** with `setWinner` **0/12**, the guard proven **causal** (same
   board, `gameType: Singleplayer` → `setWinner("Bot")`, 3/3), the 95 % route crossed at ≈ 7–10 minutes on
   the shipped public config. ⚠️ **Production frequency remains UNMEASURED** — no telemetry, no player
-  report; a **simulator result, not a field observation.** ⚠️ And the "active" players were
+  report; a **simulator result, not a field observation.**
+  📌 **UPDATED 2026-09-11 — there IS now a field number, and it is NOT a per-match stall rate:**
+  `0208` measured **~52.4 % of Team-mode CLIENT-MATCHES reaching the win condition had the all-bot team
+  in front at that moment.** ⛔ **That is not "52 % of Team matches stalled"** — see the verbatim
+  sentence in the measurement box above, and 🔴 **the per-match stall rate will never be known.**
+  ⚠️ And the "active" players were
   `FakeHumanExecution` at Medium, which plays **better than a casual human**, so **the real activity
   crossover is probably higher than 40 %** — do not quote 40 % as a human threshold. See
   [[tasks/teams-bot-team-win-stall]].
@@ -312,7 +390,7 @@ cause.**
 - [[decisions/sprint-4]] — the sprint that carried `0022` and `0206`, and that `0208` and `0211` were scheduled onto 2026-09-04
 - [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the FFA award built for this defect and then **REVERTED 2026-09-04 — never deployed**; read its STOP box
 - [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, **the replacement that actually closes this defect**, by decoupling crediting from the winner
-- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, the production measurement of both this defect's incidence and the Singleplayer award rate; **ordered BEFORE `0211`'s ship**
+- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, the production measurement of both this defect's incidence and the Singleplayer award rate. ✅ **Closed 2026-09-11: FFA ~1.6 %, Team stall-capable ~52.4 %, at the CLIENT-MATCH unit and as LOWER BOUNDS**; its ordering before `0211`'s ship is **satisfied and the gate CLEARED**. ⛔ **NOT fully verified** (`V16`/`V17` untested), and 🔴 **the per-match stall rate will never be known**
 - [[tasks/placement-semantics-literal-one]] — task `0209`, which owns the `placement` half of the table above
 - [[tasks/singleplayer-leaderboard-reporting-policy]] — task `0210`, which owns the `points` half
 - [[systems/execution-pipeline]] — the Intent → Execution → `GameUpdate` path `Win` updates travel

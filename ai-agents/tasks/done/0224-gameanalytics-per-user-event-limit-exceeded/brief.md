@@ -377,7 +377,7 @@ entirely, the baseline sits at roughly a third of the limit with no headroom for
 The **`Match`** category **did not move across the spike**: `25.87` (2 Sep) → `31.79` (4 Sep) →
 `26.16` (5 Sep). Normal week-day variance, nothing more.
 
-[`0208`](../../backlog/0208-measure-clientless-leader-at-win-condition-in-production/brief.md)'s
+[`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md)'s
 `Match:WinCondition` and `Match:Leaderboard:Award` instrumentation went live in build **`0.0.141`**
 and is **not the cause of this banner**.
 

@@ -40,6 +40,47 @@ here and is the reason this warning exists: **the metric ALREADY SELF-RESOLVED O
 162.79, with ZERO code written.** ⛔ **"The banner is gone" must NOT be accepted as evidence of
 anything.** The same quiet is what prompted this deferral.
 
+---
+
+### 📅 OBSERVATION — 2026-09-11: the banner was seen again. ⛔ NOT a measured recurrence.
+
+**What was observed:** on **2026-09-11**, the GameAnalytics **"Limit Exceeded: Total number of events
+per active user (per day) has exceeded the limit of 500"** banner was present on the Game **Home**
+view.
+
+⛔ **What was NOT observed — read this before drawing any conclusion.** **No per-user event figure was
+read.** No daily rows were checked. **No comparison to the 3–4 Sep spike was made.** The *banner* was
+seen; **nothing was measured.** ⛔ **Do not let this read as a measured recurrence** — it is not one,
+and nothing here says the 3–4 Sep mechanism returned.
+
+🚨 **Why a banner alone is weak evidence — this warning travels with the observation and must not be
+separated from it.**
+[`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md)'s closing note
+established that **the metric ALREADY SELF-RESOLVED ONCE — 5 Sep at 162.79, with ZERO code written.**
+That is exactly why the banner's **absence** is not acceptance and not evidence. ⚠️ **The same logic
+cuts both ways: a banner sighting is not proof the mechanism returned.** A banner is a threshold
+crossing on a daily average — it says nothing about *which* categories moved, or why.
+
+**Owner's ruling on it, given live 2026-09-11, verbatim:** *"Today the banner appeared again, but I
+will get back to this issue later, no need to do anything about it right now, I think we already have
+a task in backlog about it."*
+
+⛔ **`0230` IS NOT REOPENED.** Its **status is unchanged** (`🔲 Backlog`), its **board assignment is
+unchanged** (the Backlog board, Sprint 4 row kept as the `➡️ Moved` pointer), its folder did not move,
+and **no mover skill was run**. Deliberately deferred; **no action now**.
+
+**Why it is recorded at all, stated plainly:** this task's reopen condition is *"if the problem
+repeats."* Recording this sighting means the **next** one has a **dated predecessor instead of
+nothing**. ⚠️ **The value of this entry is the DATE, not the conclusion** — it draws no conclusion.
+
+⚠️ **Provenance, recorded honestly:** **observed by the lead session on the GameAnalytics dashboard in
+the owner's browser, relayed verbally, and NOT derived from any repository artifact.** A wiki lint the
+same day **correctly refused to record it** — the sighting existed in no source file, and the vault
+records only from sources. **This brief is that source.** Recorded by a spawned `fkit-producer` on the
+owner ruling above, relayed through the spawning session; the producer had **no owner channel**.
+
+---
+
 ⚠️ **EVERYTHING BELOW STAYS LIVE AND UNCHANGED — none of it was answered by the deferral:** 4 Sep hit
 **1,324.33 events/user, 265% of the 500 limit**, and **would STILL breach at ~1,176/user (235%) even
 after `0224`'s ≥5× `Performance` cut**; 3 Sep ran hot at **414.88**; the spike is `Player` (~34×) and
@@ -159,7 +200,7 @@ one day** against a normal ~700K.
 
 ### 🟢 Already settled — do NOT re-open without new evidence
 
-- **[`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md) is EXONERATED.**
+- **[`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) is EXONERATED.**
   The `Match` category did not move across the spike (25.87 → 31.79 → 26.16). The lead's first
   hypothesis — that `0208`'s `WinCheckExecution` latch had failed and was emitting every 10 ticks —
   is **refuted by that table**. A broken latch in `Match` would show as a `Match` spike.

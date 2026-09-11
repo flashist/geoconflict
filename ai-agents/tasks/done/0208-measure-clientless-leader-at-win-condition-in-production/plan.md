@@ -24,7 +24,7 @@
 and `Match:Loss:OpponentWon` themselves. If Solo turns out to be a negligible share of matches,
 Part B is instrumenting a population that barely exists and may be dropped. **Those numbers were not
 in when this plan was approved.** ⚠️ Part B's window still closes when
-[`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)'s guard ships — but
+[`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)'s guard ships — but
 `0210` is unscheduled, so there is time to wait for the figure.
 
 ---
@@ -196,7 +196,7 @@ Rejected, with reasons:
 | `EventBus` event consumed by a client layer | Executions hold no bus handle; `Execution.init(mg, ticks)` receives only `Game`. `WinEvent` is dead code, not a wired hook. |
 
 ✅ **This adds NO new `src/core → src/client` import**, so it adds nothing to
-[`0007`](../0007-investigate-core-to-client-import-coupling/brief.md)'s open problem. That was an
+[`0007`](../../backlog/0007-investigate-core-to-client-import-coupling/brief.md)'s open problem. That was an
 explicit concern in `brief.md` §3.
 
 ## A2 — Where the emission goes
@@ -420,7 +420,7 @@ Match:Leaderboard:Award:<Participation|PlacementWon|PlacementLost>:<Solo|SoloTut
 - 🔴 **`points` — not `placement`.** `placement` never leaves the browser: `reportPlacement()` passes
   only `params.points` to `increaseCurPlayerLeaderboardScore(...)`, and `params.placement` reaches
   nothing but a `console.debug`. Measuring `placement` would measure a value that never reaches the
-  platform. `placement`'s own defect is [`0209`](../0209-define-placement-semantics-and-fix-literal-one/brief.md)
+  platform. `placement`'s own defect is [`0209`](../../backlog/0209-define-placement-semantics-and-fix-literal-one/brief.md)
   and is **not this task**.
 - ⚠️ **Record the points value rather than assuming it.** In Singleplayer there is exactly one
   `PlayerType.Human`, so `myIndex === 0` and it should be **10** every time — **if a value other than
@@ -435,7 +435,7 @@ Emitting **inside `LeaderboardReporter`, at the platform call**, satisfies `brie
 *"instrument where the award ACTUALLY HAPPENS, and only when it happens."* The brief correctly records
 that the reporter has **no game-type awareness**; this plan therefore **threads it in via the params**.
 
-🔴 **That is the same seam [`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)
+🔴 **That is the same seam [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)
 needs for its guard.** Doing it here means `0210` becomes a `return` against fields that **already
 exist**, instead of a second, conflicting threading. The brief asked the two tasks to coordinate the
 choice; **this is that coordination, and it runs in `0210`'s favour.**

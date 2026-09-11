@@ -57,5 +57,6 @@ A number at or above 101 is always this project's; a number below 100 is always 
 - [[decisions/adr-108-active-sprint-pointer]]
 - [[decisions/adr-109-worker-index-placement-contract]]
 - [[decisions/adr-110-ai-winner-allowed]] — drafted and **promoted `proposed` → `accepted` in place on 2026-09-03**, the rule above applied as intended; its number was verified free by a **repo-wide** sweep including `.claude/`, after the invisible-reservation trap that forced `0204` → `0205`
+- [[decisions/adr-111-xp-economy-rescale]] — accepted 2026-09-11 (ruled 2026-09-10). ⚠️ **Vault slug abbreviated** from its knowledge-base counterpart `adr-111-xp-economy-rescale-awards-move-up-never-down.md` — the vault's standing style, not drift. It also demonstrates the **clarification-in-place** route this page describes: it carries a dated 2026-09-11 clarification (the free-grants ruling) and stays `accepted`, and it triggered dated clarifications on ADR-101 **without** superseding it
 - [[systems/agent-conventions]] — the conventions set, and how it differs from ADRs
 - [[systems/project-brief]] — where the two-series rule is stated as a working rule for agents

@@ -8,6 +8,63 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-101-fail-soft-xp-crediting-no-durable-queue.md`
 
+> # 📌 AMENDMENT — 2026-09-11. **THE `1 XP` RESCALE MOVES NOTHING IN THIS ADR.**
+>
+> *(Architect, recording the owner's ruling of 2026-09-10; ingested here from the canonical ADR's two
+> dated clarification blocks. A **clarification** under the `README.md` carve-out *"Immutability starts
+> at `accepted`"* — **not** a reversal. The ADR stays **`accepted`**; no decision, option or figure in
+> the body below is altered.)*
+>
+> 🔴 **CORRECTION — THIS BLOCK REPLACES A 2026-09-11 LINT WARNING THAT WAS WRONG.**
+> ~~That warning concluded that the `1 XP` rescale makes this ADR's *Re-raise only if* argument
+> **strengthen**.~~ **STRUCK — it is WRONG, and the architect ruled so on 2026-09-11.** It **took the
+> numerator without the denominator.** See *"The one argument that could have moved the triggers"*
+> below for why. 📌 **The warning's exact wording is deliberately not reproduced here** — it is a wrong
+> claim, and a wrong claim quoted verbatim gets re-copied. It survives, as written, in the append-only
+> `log.md` entry for that lint run, which is the correct home for it.
+>
+> **The ruling.** Award **`10` → `1` XP** per qualifying match; citizenship threshold **÷ EXACTLY 10**
+> (`1,000` → `100`). Both ship together inside task `0211`. Recorded as
+> [[decisions/adr-111-xp-economy-rescale]].
+>
+> 🔴 **NOTHING HAS SHIPPED.** `src/core/profile/Citizenship.ts` — the `CITIZENSHIP_XP_THRESHOLD` and
+> `XP_PER_MATCH` declarations — still read `1000` and `10`, **verified in the working tree on
+> 2026-09-11**. So every figure in the body below is an accurate description of the code **as of that
+> date**, and is kept unchanged as history rather than rewritten. **Read `10` / `1,000` as
+> *"one match's award"* / *"the threshold"*.**
+>
+> **All three *Re-raise only if* triggers are UNCHANGED, each for its own reason:**
+> 1. **Paid entitlements on the path — unchanged.** Its force is **categorical, not magnitudinal**: a
+>    purchase is a different **kind** of thing from earned XP at any award size. The body's phrase
+>    *"losing 10 XP"* is a **unit label for one match's earned progress**, not a magnitude claim; at
+>    `1 XP` the sentence is exactly as true.
+> 2. **Observed drop volume — unchanged.** It counts `award(s) dropped` warn lines, not XP.
+> 3. **A funded dead-letter / replay path — unchanged.** It turns on funding and an owner product
+>    call; the amount touches neither.
+>
+> **The one argument that could have moved the triggers, and why it does not.** The loss per dropped
+> credit falls 10× in absolute XP, which looks like it *strengthens* the case for accepting silent
+> loss. ⛔ **That reading takes the numerator without the denominator.** The threshold falls by the
+> same factor — **by design, so that time-to-citizenship is unchanged** — so a dropped credit costs
+> **1 % of the way to citizenship before and after** (1/100 = 10/1,000), and the remedy this ADR
+> already records (*"Affected players simply need one more match"*) is **identical**. **XP has no
+> denominator other than the threshold** — it is not priced against money, coins, or any cosmetic. **A
+> unit whose only denominator moves with it has been RENAMED, not REVALUED.**
+> ⇒ 🔴 **THE CORRECT READING IS UNCHANGED — NOT STRONGER, NOT WEAKER.** Absolute size would govern
+> only if XP became fungible against something that did **not** rescale with it — **which is exactly
+> trigger 1**, already on the books.
+>
+> 🚩 **NOT settled by this amendment — a SEPARATE, STILL-OPEN question.** Task `0211` also moves the
+> crediting **TRIGGER** (credit at elimination, plus a survivor trigger the plan has still to choose).
+> That changes **when and how often** this path is called — one batch at match end today versus calls
+> spread through a match — which bears on **three** things in this ADR: its *"blast radius is one
+> match, not a backlog"* consequence, the **sizing of the 3-attempt retry budget**, and the **per-item
+> pre-validation rationale** (which assumes a multi-item batch). **That is a candidate for a
+> SUPERSEDING ADR and it is NOT settled.** It turns on the **trigger**, not the figures, so ⛔ **neither
+> this amendment nor ADR-111 may be cited as having answered it.** It cannot be judged until `0211`'s
+> plan picks the survivor mechanism — and `0211` now carries a **pre-committed gate** to decide it at
+> exactly that moment. See [[tasks/credit-participation-xp-elimination-or-match-end]].
+
 ## Context
 
 At match end the game server awards 10 XP per qualifying player toward the 1,000 XP earned-citizenship threshold. The award is an HTTP write to a **separate service on a separate VPS**, over the public internet.
@@ -44,11 +101,13 @@ Two narrower rules fall out of the same principle and are part of the decision:
   ⚠️ **The "silent" wording in the BOUNDARY bullet below is a DIFFERENT and still-correct claim** — there the credit is **never attempted at all**, so there is genuinely nothing to log. Do not sweep that one.
 - **Blast radius is one match, not a backlog** — nothing accumulates, so an outage cannot cause a thundering-herd write when the backend returns.
 - ⚠️ **BOUNDARY, added 2026-09-03 — this ADR closes out drops INSIDE `ProfileApiClient`, and nothing else.** Task `0022` found a **second, unrelated silent-XP-loss path that this ADR does NOT cover and must not be used to dismiss**: when a clientless leader (a Bot or a Nation) wins FFA, no `winner` message ever reaches the server, so `GameServer.handleWinner` never runs, so **`creditMatchXp` is never called at all**. The credit is not dropped after a bounded retry — **it is never attempted**, upstream of this client entirely. It is a live production defect. ~~Its fix is task `0206` — built and closed 2026-09-03.~~ 🔴 **STRUCK 2026-09-04: `0206` WAS REVERTED AND NEVER DEPLOYED, and it was in any case a NO-OP in the case that loses the XP** — `players()` filters to `isAlive()`, so with every clientful player dead the award found nobody. **MEASURED 2026-09-04: a Nation at 100.0 % of the map, the match never ending, no `handleWinner`, no `creditMatchXp`.** ⇒ **The loss is genuinely LOST, not delayed, and is still open.** **The fix is now [[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`)**, which decouples crediting from the winner entirely. 🔴 **And Team mode has the same defect** — `checkWinnerTeam()` carries the same guard shape. See [[decisions/clientless-leader-win-policy]] and [[tasks/win-check-clientless-leader-guard]].
-- **Re-raise only if:** paid entitlements ever flow through this path (losing a purchase is categorically different from losing 10 XP); the observed drop volume stops being negligible; or a dead-letter/replay path is explicitly funded with the owner's product call. Absent one of those, a review finding of the form *"crediting can silently lose XP"*, *"there is no retry queue"*, *"only 3 retries"*, or *"4xx is not retried"* is **closeout of this ADR, not a new defect**.
+- **Re-raise only if:** paid entitlements ever flow through this path (losing a purchase is categorically different from losing 10 XP — 📌 **`10 XP` here is a UNIT LABEL for *one match's earned progress*, not a magnitude claim**; the argument is categorical, and it reads exactly as true at `1 XP` after `0211`); the observed drop volume stops being negligible; or a dead-letter/replay path is explicitly funded with the owner's product call. Absent one of those, a review finding of the form *"crediting can silently lose XP"*, *"there is no retry queue"*, *"only 3 retries"*, or *"4xx is not retried"* is **closeout of this ADR, not a new defect**.
+  📌 **2026-09-11 — the `1 XP` rescale moves NONE of these three triggers, and the correct reading is UNCHANGED, not stronger.** See the amendment at the top of this page and [[decisions/adr-111-xp-economy-rescale]].
 
 ## Related
 
 - [[decisions/adr-103-identity-trust-seam]] — the identity seam this path depends on
+- [[decisions/adr-111-xp-economy-rescale]] — the `1 XP` / `100 XP` rescale. ⛔ **It moves NONE of this ADR's re-raise triggers** (the ratio, not either absolute number, is what this ADR's reasoning rests on), and it explicitly **does not** settle the separate trigger-timing question above
 - [[systems/player-profile-store]] — the profile/XP backend
 - [[tasks/profile-match-end-crediting]] — the T6 task that shipped this path
 - [[systems/architecture-overview]] — §profile backend, risk R6, open question 4

@@ -115,6 +115,7 @@ There is no direct player-facing intent for AI creation. The server and shared c
 - [[tasks/win-check-clientless-leader-guard]] — task 0022; the win-condition predicate is `clientID() === null`, so it catches **Nations (`PlayerType.FakeHuman`) as well as bots** — public FFA carries both
 - [[decisions/clientless-leader-win-policy]] — what happens when one of these clientless players leads at the win threshold, and why the match's XP is currently lost
 - [[decisions/adr-110-ai-winner-allowed]] — the 2026-09-03 ruling that an AI player may be declared winner, **and the expiry that rides with it**
+- [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, ✅ **closed 2026-09-11**: an AI player was the leader at the win condition **89 times in 7 days** (4–10 Sep 2026, client-matches). ⛔ **An INPUT REQUIRING AN ARCHITECT'S READ on ADR-110's re-raise trigger — NOT a conclusion about that ADR**
 - [[tasks/teams-bot-team-win-stall]] — task `0205`, the Team-mode half of the same predicate
 - [[tasks/winmodal-participation-comment-correction]] — task `0207`, the participation comment that misdescribes this player type
 - [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the FFA award an AI player would have been eligible for. 🔴 **REVERTED 2026-09-04 — never deployed**

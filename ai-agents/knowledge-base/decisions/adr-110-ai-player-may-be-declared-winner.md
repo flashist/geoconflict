@@ -361,7 +361,7 @@ conditions are not re-derived if the revisit trigger ever fires and the decision
 - **Measurement** shows the T3 case is effectively unreachable in production, which would remove the
   strongest argument for allowing it. ⚠️ **Pointer corrected 2026-09-04:** this originally cited
   `0206`'s phase-1 investigation, but `0206` was reverted before that measurement ran. The work now
-  lives in [`0208`](../../tasks/backlog/0208-measure-clientless-leader-at-win-condition-in-production/)
+  lives in [`0208`](../../tasks/done/0208-measure-clientless-leader-at-win-condition-in-production/)
   (unscheduled). **This trigger is therefore still unfired and still live** — nobody has measured it.
 - Match-end XP crediting ever becomes **winner-dependent** — i.e. `selectMatchCredits` gains a bonus
   or gate keyed on who won. T1's entire conclusion is contingent on it not being.

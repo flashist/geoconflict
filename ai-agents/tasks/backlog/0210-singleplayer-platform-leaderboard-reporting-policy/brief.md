@@ -37,10 +37,10 @@ this one's does.**
 
 **Not ranked on incidence, and that has not changed.** Nobody has measured how often non-tutorial
 Singleplayer awards these points.
-~~[`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md) is the measurement
+~~[`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) is the measurement
 task for the multiplayer side of the same question; **it does not cover Singleplayer**, and that gap is
 itself an open question below.~~
-📌 **RULED 2026-09-03 — *"Add it — measure both."* [`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
+📌 **RULED 2026-09-03 — *"Add it — measure both."* [`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
 was widened to cover Singleplayer award incidence too.** See the ruling in the Notes.
 🔴 **This changes nothing here.** The rank was never based on incidence and still is not; `0208`
 **does not gate this task**, and this task's status, scope and owner are unchanged by the widening.
@@ -154,7 +154,111 @@ this too — it is the same surface and the same farmability argument.
 | The code path above, step by step | ✅ **Verified by reading the source, 2026-09-03** |
 | No game-type guard exists anywhere in the client reporting path | ✅ **Verified by grep** |
 | A live Singleplayer loss actually credits 10 points on the real Yandex board | ⚠️ **NOT verified — nobody ran it.** The path says it does. **Reproduce before fixing.** |
-| How often non-tutorial Singleplayer ends this way | ⚠️ **Unmeasured.** `0208` measures the multiplayer side only. |
+| How often non-tutorial Singleplayer ends this way | ~~⚠️ **Unmeasured.** `0208` measures the multiplayer side only.~~ 📌 **SPENT 2026-09-11 — struck, not deleted; TRUE WHEN WRITTEN** (before `0208` was widened to two halves on 2026-09-03 and Part B was read on 2026-09-11). 🟢 **MEASURED — see the box immediately below this table.** |
+
+> ## 🟢 THE INCIDENCE NUMBER — read 2026-09-11, from [`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) Part B
+>
+> 🔴 **CAVEAT FIRST, BECAUSE THE FIGURE IS MEANINGLESS WITHOUT IT: THESE ARE AWARD *ATTEMPTS*, NOT POINTS CONFIRMED BANKED.**
+> The event is emitted **after the platform call has settled, whatever it returned — including when it
+> rejects**, which is exactly what a platform failure looks like from here
+> ([`analytics-event-reference.md:172-175`](../../../knowledge-base/analytics-event-reference.md)).
+> ⛔ **A rise in this number is NOT evidence that any player's leaderboard score moved.**
+>
+> **`Match:Leaderboard:Award`, 4–10 September 2026, full days** — read off the GameAnalytics dashboard
+> in the owner's browser, **as the dashboard rounds them, so APPROXIMATE**:
+>
+> | Mode leaf (Event id 05) | Attempts |
+> |---|---|
+> | **`Solo` — THIS TASK'S IN-SCOPE FIGURE** | **65.45K** — roughly **83 %** of the total, about **9.35K/day** |
+> | `SoloTutorial` — **out of this task's scope** | 13.66K |
+> | **Total** | **79.11K** |
+>
+> **This task's scope is non-tutorial**, and the `SoloTutorial` leaf exists precisely so the tutorial
+> share can be separated
+> ([`analytics-event-reference.md:183-187`](../../../knowledge-base/analytics-event-reference.md)).
+> ⇒ **`65.45K` is the number this task was waiting for.**
+>
+> ⚠️ **79.11K is NOT 79.11K matches.** The event carries three award kinds — `Participation`,
+> `PlacementWon`, `PlacementLost` — and **one match can emit more than one.** ~~**The Event id 04
+> breakdown was NOT captured.** ⛔ **An acknowledged gap in that read, NOT a hole in the
+> instrumentation** — one further dashboard read closes it.~~ 📌 **SPENT 2026-09-11 — struck, not
+> deleted; TRUE WHEN WRITTEN and closed later the same session.**
+>
+> ### ✅ THE AWARD-KIND SPLIT — read 2026-09-11, same session and same window
+>
+> | Award kind | Count |
+> |---|---:|
+> | `Participation` | **62.29K** |
+> | `PlacementWon` | 14.28K |
+> | `PlacementLost` | 2.53K |
+> | **Total** | **79.11K** — reconciles exactly with the figure above |
+>
+> **Participation is awarded once per reporting match**
+> ([`analytics-event-reference.md:170`](../../../knowledge-base/analytics-event-reference.md) — 1 point
+> for participation, 10/5/2 for placement). ⇒ 🟢 **~62.29K Singleplayer matches reported to the
+> platform leaderboard in the 7-day window — roughly 8.9K/day.** ⛔ **The other 16.81K are placement
+> awards riding on those SAME matches, NOT additional matches.** **~27 % of reporting matches reach a
+> placement outcome** (16,810 / 62,290) — ⚠️ **the rest are UNRESOLVED-TO-PLACEMENT, CAUSE NOT
+> ESTABLISHED;** ⛔ **abandonment is an inference the data does not state — do not write it down as
+> abandonment.** **Among matches that do place, ~85 % are wins** (14,280 / 16,810). ⚠️ **All of it is
+> still ATTEMPTS, platform failures included — never points banked.**
+>
+> ### 🟢 THE NON-TUTORIAL MATCH COUNT — the award-kind × mode CROSS-TAB, read 2026-09-11, same session and window
+>
+> 🔴 **CAVEAT FIRST, AND IT APPLIES TO THE 49.64K TOO: THESE ARE AWARD *ATTEMPTS*, PLATFORM FAILURES
+> INCLUDED — NEVER POINTS CONFIRMED BANKED.**
+>
+> `Match:Leaderboard:Award`, **filtered to Event id 05 = `Solo`**, grouped by **Event id 04**, 4–10 Sep
+> 2026 — **as the dashboard rounds them, so APPROXIMATE**:
+>
+> | Award kind | `Solo` (this task's scope) | Combined | ⇒ tutorial share |
+> |---|---:|---:|---:|
+> | `Participation` | **49.64K** | 62.29K | 12.65K |
+> | `PlacementWon` | 13.28K | 14.28K | 1.00K |
+> | `PlacementLost` | **2.53K** | 2.53K | **0** |
+> | **Total** | **65.45K** | **79.11K** | **13.66K** |
+>
+> ⇒ 🟢 **THIS TASK'S NON-TUTORIAL MATCH COUNT IS 49.64K — about 7.1K/day.** Participation is awarded
+> once per reporting match, so the non-tutorial `Participation` count **is** the non-tutorial match
+> count. ⛔ **The other 15.81K `Solo` rows are placement awards on those SAME matches, not additional
+> matches.** ✅ **The `Solo` column reconciles exactly with the 65.45K in the table above.** ⚠️ **The
+> tutorial column sums to 13.65K against the 13.66K read separately — dashboard rounding, not a missing
+> row.**
+>
+> **Also recorded:** tutorials reach a placement outcome **~7.9 %** of the time (1.00K of 12.65K)
+> against **~31.8 %** for non-tutorial `Solo` (15.81K of 49.64K). ⛔ **An OBSERVATION ONLY — no cause is
+> offered and none may be inferred. Nobody has established one.**
+>
+> ### ~~🔴 A BAR ON A TEMPTING DERIVATION — READ THIS BEFORE USING EITHER NUMBER~~ → ✅ **DISCHARGED 2026-09-11 BY MEASUREMENT**
+>
+> ✅ **DISCHARGED 2026-09-11 BY MEASUREMENT — struck, NOT deleted, and the measurement PROVED IT RIGHT.**
+> The forbidden multiplication (82.7 % × 62.29K) gives **~51.5K** against an actual **49.64K** —
+> **overstating by ~1.9K matches (~3.7 %)** with every appearance of precision. 🚨 **The `Solo` share is
+> NOT uniform across award kinds: 79.7 % of `Participation`, 93 % of `PlacementWon`, 100 % of
+> `PlacementLost`.** ⛔ **DO NOT REPEAT THE SHORTCUT ON SOME OTHER CROSS-TAB — a blended share is only
+> safe to multiply into a sub-population when it is known to be uniform across it, and here it
+> demonstrably was not. This is the transferable lesson, not trivia about one number.**
+>
+> ~~**The award-kind split is `Solo` + `SoloTutorial` COMBINED. There is NO award-kind × mode
+> cross-tab.**~~ This task's scope is **non-tutorial**, so:
+>
+> ~~⛔ **DO NOT derive a non-tutorial MATCH count by applying the 82.7 % `Solo` share to the 62.29K.**
+> Tutorials plausibly skew toward participation-without-placement, so the mode share is **unlikely to
+> be uniform across award kinds**, and multiplying would produce **a number that looks precise and is
+> unfounded.** 🚨 **This is recorded as a bar on a derivation, not merely as a missing datum — the
+> whole point is that someone will otherwise do the multiplication.**~~
+>
+> | | |
+> |---|---|
+> | ~~✅ **What this task can defensibly use today**~~ | ~~`Solo` **65.45K award ATTEMPTS** (all kinds), the figure in the table above.~~ 📌 **SPENT — it can now use `Solo` `Participation` **49.64K** non-tutorial MATCHES, ~7.1K/day.** |
+> | ~~⛔ **What it CANNOT**~~ | ~~**A non-tutorial MATCH count.**~~ 📌 **SPENT — it has one.** |
+> | ~~⏳ **What would give it**~~ | ~~**One more dashboard read** — Event id 04 split *with* Event id 05 = `Solo`. ⚠️ **That read DIES when this task's guard ships**, exactly as the Part B read would have.~~ ✅ **THAT READ WAS TAKEN 2026-09-11, before the window closed.** |
+>
+> 🛔 **THIS CHANGES NOTHING HERE — NOT THE STATUS, NOT THE SCOPE, NOT THE RANK.** The owner's
+> 2026-09-03 ruling on this task was **explicitly NOT conditioned on incidence**, and that is
+> unchanged. ⛔ **Do not re-open the decision on the strength of this figure, in either direction.**
+> It is recorded here because the number becomes **permanently unobservable the moment this task's
+> guard ships.**
 
 ## ~~What to Decide~~ → 📌 DECIDED
 
@@ -281,7 +385,7 @@ saw** — nobody has observed it live, and the ruling did not change that.
 - **Related:** [`0022`](../../done/0022-win-check-multiplayer-regression-investigation/brief.md) fixed the
   same shape for the **tutorial** only. **ADR-110** (`ai-agents/knowledge-base/decisions/adr-110-ai-player-may-be-declared-winner.md`)
   governs who may be declared winner; it does **not** speak to who receives leaderboard points, so it
-  does not pre-answer this. [`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
+  does not pre-answer this. [`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
   measures clientless-leader incidence in **multiplayer** ~~only~~ 📌 **and, since the 2026-09-03
   widening, Singleplayer platform-leaderboard award incidence as well** — see the ruling in the Notes.
   ⚠️ **Consumer of this task, not a blocker on it.**
@@ -306,12 +410,12 @@ saw** — nobody has observed it live, and the ruling did not change that.
 
 ### ~~🚩 Open, not ruled~~ → 📌 **RULED 2026-09-03 — `0208`'s measurement scope**
 
-~~**Should [`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md) extend to
+~~**Should [`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) extend to
 Singleplayer incidence, or stay multiplayer-only?**~~
 
 **📌 Owner ruling, 2026-09-03, given live in session: *"Add it — measure both."***
 
-> **[`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md) is widened to
+> **[`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) is widened to
 > measure Singleplayer platform-leaderboard award incidence as well as the multiplayer
 > clientless-leader rate.**
 

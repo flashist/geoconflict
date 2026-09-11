@@ -74,7 +74,13 @@
 >
 > ⚠️ **`0211` may make part of `0205`'s justification moot** — if the XP is credited regardless of who
 > wins, one of `0205`'s reasons to exist weakens. ⛔ **It does NOT settle `0205`'s own question**, and
-> `0205`'s **status, scope and rank are UNCHANGED — the owner has not ruled on them.**
+> ~~`0205`'s **status, scope and rank are UNCHANGED — the owner has not ruled on them.**~~
+> 📌 **CORRECTED 2026-09-11 — struck, not deleted; true when written (2026-09-04).** `0205`'s
+> **status, scope and folder ARE still unchanged**, but its **RANK IS NOT**: the owner ruled it be
+> re-ranked and signed off `Medium` on **2026-09-11**. Three layers, do not flatten: **THAT it be
+> re-ranked** = owner ruling; **THAT the value is `Medium`** = the producer's proposal; **THAT `Medium`
+> is approved and in force** = owner sign-off. ⛔ **`0205` ≠ `0211` is unchanged in both directions** —
+> `0205` is **resolution policy**, `0211` is **crediting**.
 >
 > ## ~~⚠️ Singleplayer is NOT ruled — still open~~ → ✅ RULED: Singleplayer is OUT of scope
 >
@@ -115,27 +121,35 @@
 > one.** Singleplayer already credits zero XP, but **only as a side-effect of architecture** —
 > ✅ producer-verified this turn against the working tree:
 >
-> - `creditMatchXp` exists **only** on the game server, `src/server/GameServer.ts:1253` (plus the
->   profile-server implementation it calls). Singleplayer never reaches it.
+> - `creditMatchXp` exists **only** on the game server, in `src/server/GameServer.ts` at its
+>   `private creditMatchXp(` declaration (plus the profile-server implementation it calls).
+>   Singleplayer never reaches it.
 > - Singleplayer runs against `src/client/LocalServer.ts`. Grepping that whole 362-line file for
 >   `credit|ProfileApi|xp` returns **nothing** — the only hit is the class name `LocalServer`.
-> - `src/client/Transport.ts` sets `isLocal` at `:198` for **Singleplayer *and* archived-game replay**,
->   and `sendMsg` (`:691-694`) hands every client message to `this.localServer.onMessage(msg)` and
->   `return`s — the WebSocket is never touched.
+> - `src/client/Transport.ts` sets `isLocal` at its `this.isLocal =` assignment for **Singleplayer
+>   *and* archived-game replay**, and `sendMsg` (`src/client/Transport.ts`, the
+>   `private sendMsg(msg: ClientMessage)` body) hands every client message to
+>   `this.localServer.onMessage(msg)` and `return`s — the WebSocket is never touched.
 > - ⚠️ **CORRECTION to a plausible-sounding but wrong reading:** the winner message is **not**
->   suppressed in solo. `onSendWinnerEvent` (`:589`) is `if (this.isLocal || socket open)` — `isLocal`
->   **enables** the send. `LocalServer` receives it and stores it (`:226-228`) for the game record.
+>   suppressed in solo. `onSendWinnerEvent` (`src/client/Transport.ts`, the
+>   `private onSendWinnerEvent(` declaration) is `if (this.isLocal || socket open)` — `isLocal`
+>   **enables** the send. `LocalServer` receives it and stores it (`src/client/LocalServer.ts`, the
+>   `if (clientMsg.type === "winner")` branch) for the game record.
 >   **The single reason no XP is credited is that `LocalServer` has no crediting code**, not that the
 >   message is dropped. Anyone reasoning about this must reason about **that one seam**, not a guard.
 > - ⛔ **There is NO guard, NO test, and NO comment anywhere stating this as intent.** ✅ Re-verified
 >   2026-09-04, and stated precisely — ⚠️ **an earlier revision of this brief said `GameServer.ts`
 >   contains "zero occurrences of `GameType`/`gameType`/`Singleplayer`". THAT WAS WRONG; the producer
 >   caught and corrected it.** The accurate facts:
->   - `src/server/GameServer.ts` has **six** `GameType` occurrences (`:7` import, then `:113`, `:194`,
->     `:877`, `:895`, `:933`) — **all of them `GameType.Public` checks**, and **all of them above the
+>   - `src/server/GameServer.ts` has **six** `GameType` occurrences
+>     (`src/server/GameServer.ts:7` import, then `src/server/GameServer.ts:113,194,877,895,933` —
+>     **line numbers deliberately kept, framed at commit `22bbe39`, because the anchor `GameType`
+>     recurs 6× in this file, which is exactly the claim; re-verified by reading the file
+>     2026-09-11**) — **all of them `GameType.Public` checks**, and **all of them above the
 >     crediting path.**
 >   - ⇒ **The precise claim is narrower and is the one that matters: the CREDITING PATH has no
->     game-type check.** `creditMatchXp` (called `:1199`, defined `:1253`) branches on game type
+>     game-type check.** `creditMatchXp` (in `src/server/GameServer.ts` — called at
+>     `this.creditMatchXp(potentialWinner.winner);`, declared at `private creditMatchXp(`) branches on game type
 >     nowhere, and `src/core/profile/MatchQualification.ts` has **zero** `GameType`/`gameType`/
 >     `Singleplayer` occurrences — `selectMatchCredits` takes no game-type parameter.
 >   - ⚠️ **Why the correction matters rather than being pedantry:** `this.gameConfig.gameType` is
@@ -221,7 +235,8 @@
 > into the old rule.**
 >
 > **The rule TODAY** — `src/core/profile/MatchQualification.ts`, ✅ producer-verified this turn against
-> committed `8f6e478` (`qualifiesForMatchXp` at `:43-45`, its doc comment at `:35-42`):
+> committed `8f6e478` (the `export function qualifiesForMatchXp` declaration in
+> `src/core/profile/MatchQualification.ts`, and the doc comment immediately above it):
 >
 > ```
 > return p.hasSpawned && (p.isAliveAtEnd || p.killedAt !== undefined);
@@ -268,8 +283,23 @@
 >    [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) / `-5` / `-6`: highest ID on any board is
 >    **`0210`**.
 > 4. 🔴 **The `.claude/` prose sweep — the one that catches IDs reserved with no brief.**
->    `grep -rnoE '\b0(20|21)[0-9]\b' .claude/` returns exactly **two** hits, both in
->    `.claude/skills/fkit-sprint-ship-loop/SKILL.md`: **`0202`** (`:233`) and **`0204`** (`:194`).
+>    `grep -rnoE '\b0(20|21)[0-9]\b' .claude/` ~~returns exactly **two** hits~~
+>    🔴 **FIGURE CORRECTED 2026-09-11 (owner ruling, given live in session): it now returns **10** hits
+>    — nine `0204` and one `0202`.** ⚠️ **Struck, not deleted: "two" was the count when the sweep was
+>    run and is now spent, not wrong-at-the-time.**
+>    ✅ **THE CONCLUSIONS BELOW ARE UNAFFECTED — the figure moved, the reasoning did not.** All 10 hits
+>    are still in the **same single file**; they are still only `0202` and `0204`; **`0204` is still
+>    reserved**; **`0211` is still not among the hits**; and **max in use anywhere is still `0210`.**
+>    ⚠️ **Why the count changed: UNKNOWN, and I could not tell cheaply.** That file is **gitignored**
+>    (`.gitignore`, its `.claude/skills/fkit-*/` rule) so it has **no git history to diff** — the likeliest
+>    explanation is that the file gained `0204` references after the sweep, but **that is a guess and is
+>    not recorded as fact.** All 10 hits are in
+>    `.claude/skills/fkit-sprint-ship-loop/SKILL.md`: **`0202`**
+>    (`.claude/skills/fkit-sprint-ship-loop/SKILL.md:233`) and **`0204`**
+>    (`.claude/skills/fkit-sprint-ship-loop/SKILL.md:194`) — **line numbers deliberately kept, because
+>    the anchor is the bare token `0204`, which recurs many times in that file. ⚠️ NO COMMIT FRAME IS
+>    POSSIBLE: that file is gitignored (`.gitignore`, its `.claude/skills/fkit-*/` rule) and has no git
+>    history, so it has no state at any commit. Frame is therefore the WORKING TREE, read 2026-09-11.**
 >    ⛔ **`0204` remains reserved and must not be allocated to anything else** — it belongs to the
 >    plan-carry-check hook task, which exists only as prose in that skill file and was never filed as a
 >    brief. **`0211` is not among those hits.**
@@ -294,9 +324,17 @@ this task, and a ruling now has.
 as put and accepted: **the XP loss is measured and live, and the design assessment is already done, so
 it can start immediately.**
 
-⚠️ **Scheduled is NOT started.** The status stays `🔲 Backlog` — **nobody is building this.**
+⚠️ ~~**Scheduled is NOT started.** The status stays `🔲 Backlog` — **nobody is building this.**
 `🔄 In progress` would misreport who is doing what. The status changes when a plan is approved and
-work actually starts.
+work actually starts.~~ 📌 **SPENT 2026-09-11 — struck, not deleted; TRUE WHEN WRITTEN.**
+
+🔴 **2026-09-11 — THE OWNER RULED THE BUILD STARTS, and the status is now `🔄 In progress`.**
+⚠️ **The struck reasoning above was RIGHT and has NOT been reversed on its merits** — it is spent
+because the condition it named (an owner ruling that the work begins) has now happened, not because it
+was wrong. ⚠️ **And its warning still bites:** `🔄 In progress` *does* currently over-state things —
+**no session owns this, no plan is approved, no code is written.** It was chosen as the **least
+misleading of a two-value vocabulary that has no token for *"scheduled to build, not yet started"*.**
+🚨 **Read the token-choice box under `## Status` before citing this value anywhere.**
 
 ⚠️ **THEY RULED SCHEDULING ONLY.** They did **not** rule on the rank — see *Priority*, where the
 producer's `Medium–High` is **held unchanged**. Technical scope is untouched by this ruling *(the
@@ -335,7 +373,7 @@ UNMEASURED** — that is what has capped this rank from the start, and it is unc
 
 ✅ **HELD AGAIN 2026-09-04 UNDER RULING 7 (the `0208`-before-`0211` sequencing) — and this hold is the
 one most likely to be misread.** ⛔ **The owner did NOT rule on this task's rank, and Ruling 7 does not
-make it less important — it makes it LATER.** ⚠️ **[`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
+make it less important — it makes it LATER.** ⚠️ **[`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
 was raised to `High` on the same day while this holds at `Medium–High`; that gap is SEQUENCE, not
 importance.** `0208` outranks this task because **its answer is destroyed by delay and this task's is
 not** — the XP loss this closes is the same loss whether it ships this week or next, whereas the number
@@ -357,7 +395,7 @@ the ordering as a demotion.**
 **Why NOT higher than `Medium–High`:**
 
 - ⚠️ **Production FREQUENCY is still UNMEASURED.** One observed match is not a rate.
-  [`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md) is the task that
+  [`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) is the task that
   would answer it and is itself unscheduled. **Do not present this as a widespread field incident.**
 - ⚠️ **The design is genuinely unresolved** (see *The central design problem*), and an architect
   assessment had **not landed** when this brief was written. A brief whose approach is open should not
@@ -368,18 +406,213 @@ the ordering as a demotion.**
   that a measurement later disproved. **This brief is investigation-first for exactly that reason.**
 
 ## Status
-🔲 Backlog
+🔄 In progress — 🔴 **PICKED UP / SCHEDULED TO BUILD on an owner ruling given live in the lead session, 2026-09-11.** ⚠️ **READ THE TOKEN-CHOICE BOX BELOW BEFORE TRUSTING THIS VALUE: no session owns this yet, no plan is approved, and NOT ONE LINE OF CODE HAS BEEN WRITTEN.** ~~🔲 Backlog~~ 📌 **struck, not deleted; TRUE WHEN WRITTEN and true for exactly as long as nobody had been put on it.**
 
-⚠️ **SCHEDULED INTO SPRINT 4 on 2026-09-04 (owner ruling, live in session) — and the status is
+> # 🔴 2026-09-11 — OWNER RULING: **BUILD `0211`.**
+>
+> The owner ruled, live in the lead session: **schedule `0211` to build.** Its ship gate was cleared
+> earlier the same day, and it had been sitting `🔲 Backlog` with **nobody on it**.
+>
+> ## ⚠️ THE STATUS TOKEN IS A COMPROMISE. HERE IS EXACTLY WHAT IT DOES AND DOES NOT ASSERT.
+>
+> 🔴 **THE VOCABULARY HAS NO TOKEN FOR *"scheduled to build, not yet started"*.** The canonical set
+> ([`task-status-vocabulary.md`](../../../knowledge-base/conventions/task-status-vocabulary.md))
+> offers only `🔲 Backlog` = *"scoped and filed, **not picked up**"* and `🔄 In progress` = *"a session
+> owns it and **work has started**"*. **Today, neither is true.** ⛔ **This is a real gap in the
+> vocabulary and it is being reported, not papered over.**
+>
+> **`🔄 In progress` was chosen as the LEAST MISLEADING of the two. The reasoning, so it can be
+> overruled if the owner disagrees:**
+>
+> | Token | What a board reader would wrongly conclude | How wrong |
+> |---|---|---|
+> | `🔲 Backlog` | *"Not picked up — still available, nobody has committed to it."* | 🔴 **False BY OWNER RULING as of today.** *"Not picked up"* is the vocabulary's own discriminator for this value, and the owner ruled it **picked up**. |
+> | **`🔄 In progress`** ✅ chosen | *"A session owns it and work has started."* | ⚠️ **False by a matter of hours-to-days, and self-correcting** — it becomes true the moment the implementation session opens, and it correctly warns everyone else off picking this up. |
+>
+> 🚨 **SO, PRECISELY, WHAT THIS TOKEN ASSERTS AND WHAT IT DOES NOT:**
+> - ✅ **Asserts:** the owner has ruled that this work starts. It is the live, committed next build.
+> - ⛔ **Does NOT assert:** that a session owns it · that a plan exists or is approved · that any code
+>   is written · that any verification has been run. **All four are NO as of 2026-09-11.**
+>
+> ⚠️ **A NAMED OWNER SESSION MUST STILL SET THIS HONESTLY WHEN IT ACTUALLY BEGINS** — and if the build
+> does **not** in fact begin, this token becomes the exact lie the vocabulary warns about (*"an
+> `In progress` marker left behind on an abandoned task makes the board lie with confidence"*).
+> **Revert it to `🔲 Backlog` if the pickup does not hold.**
+>
+> 📌 **The producer did NOT amend the vocabulary to add a seventh value.** That is a project-wide
+> convention change and it is the owner's call — **it is raised as an open question, not taken.**
+>
+> ## 🚨 THE COST THE OWNER IS KNOWINGLY ACCEPTING — IRREVERSIBLE, AND NOT AN OVERSIGHT
+>
+> 🔴 **SHIPPING THIS TASK PERMANENTLY DESTROYS `0208`'s PART A PRE-FIX DENOMINATOR.**
+>
+> You cannot measure how often matches stalled uncredited once they stop stalling uncredited — and
+> **this task is precisely what stops them stalling uncredited.** **There is no later opportunity and
+> no proxy.** That destruction is the **entire reason** the `0208`-before-`0211` sequencing existed.
+>
+> ✅ **The sequencing has been served: `0208` was measured (4–10 Sep 2026) and CLOSED on 2026-09-11**
+> (`✅ Done (agent-closed — not owner-verified)` — ⚠️ **its close was explicitly not a clean one**).
+> 🔴 **The owner is proceeding WITH THIS UNDERSTOOD.** ⛔ **DO NOT LATER RE-RAISE THE LOST DENOMINATOR
+> AS A GAP SOMEBODY SHOULD HAVE CLOSED. It was weighed and accepted.**
+>
+> ⚠️ **And the number that survives is still only directional:** *"in 52 % of measured Team-mode
+> client-matches that reached the win condition, the leader at that moment was the all-bot team, and no
+> winner could be declared at that moment."* ⛔ ***"52 % of Team matches stalled" remains an
+> UNSUPPORTED CLAIM**, and the per-match stall rate will **NEVER** be known* (owner ruling, option B).
+>
+> ## 📦 WHAT THIS TASK CARRIES INTO THE BUILD — ALL SETTLED RULINGS, ⛔ NONE RE-OPENABLE
+>
+> **Gathered here so the implementer inherits them in ONE place.** ⛔ **Every row below is a settled
+> owner ruling. Do not re-litigate any of them in the plan.** Each is recorded in full elsewhere in
+> this brief — this table is a manifest, not the record.
+>
+> | # | What is settled | ⛔ Not open |
+> |---|---|---|
+> | 1 | **XP per qualifying match: `1 XP`** — down from 10. Owner-ruled 2026-09-10, **reversing their own earlier ruling.** | The amount |
+> | 2 | **Citizenship threshold divided by EXACTLY 10** → `100`, so time-to-citizenship is **UNCHANGED (~100 matches)**. ⛔ *"About 10x"* is **not** the ruling — it is exactly 10 | The divisor |
+> | 3 | 🔴 **PLAYER-FACING COPY MUST BE RESCALED IN BOTH [`en.json`](../../../../resources/lang/en.json) AND [`ru.json`](../../../../resources/lang/ru.json)** — this is **verification step `4d`**, not an optional polish item. **The two files must always be kept in sync** | That it ships with the code |
+> | 4 | **SURVIVORS ARE IN SCOPE** — a player who survives a match that never reaches a normal match end must still be credited. 🚩 **The MECHANISM IS STILL OPEN and is the PLAN'S to choose** (the architect's report is its input). ⛔ **`GameServer.end()` is verified NOT to be that trigger** — it would credit **zero** in every normally-ending match | That survivors are covered |
+> | 5 | **TEAM MODE IS COVERED**, not just FFA | The mode coverage |
+> | 6 | **SINGLEPLAYER IS OUT OF SCOPE** | The exclusion |
+> | 7 | **The leaver rule is DELIBERATELY REVERSED for ELIMINATED players** — this is intentional, not an inconsistency to "fix" | The reversal |
+> | 8 | 🔴 **NO XP MIGRATION. The free citizenship grants are ACCEPTED.** Owner-ruled **2026-09-11**, live in session. Any existing row at **≥ 100 XP becomes a citizen the moment this ships**, on a threshold they never met. ⛔ **NO MIGRATION IS TO BE WRITTEN** — see the full record directly below | That no migration is written, and that the grants are accepted |
+>
+> ### 🔴 RULING 8, IN FULL — NO XP MIGRATION; THE FREE CITIZENSHIP GRANTS ARE ACCEPTED
+>
+> **Owner ruling, given live in the lead session on 2026-09-11.** ⛔ **This is a ruling — not a note,
+> not a risk, not an open question.**
+>
+> **The question, raised by the architect while writing [ADR-111](../../../knowledge-base/decisions/adr-111-xp-economy-rescale-awards-move-up-never-down.md)
+> and not previously recorded anywhere:** when this task ships the rescale (award `10` → `1`, citizenship
+> threshold `1,000` → `100`), any existing player row already at **≥ 100 XP instantly becomes a
+> citizen** — a grant roughly **10× easier than intended**. A player sitting at 500 XP is half-way today
+> and a citizen the moment it lands.
+>
+> **Three options were put to the owner:** a divide-by-10 migration preserving every player's progress
+> exactly; accepting the free grants; or sequencing `0211` to ship **before** `0217` wires anything, so
+> no rows exist to grant. **The owner chose: ACCEPT THE FREE GRANTS.**
+>
+> 🚨 **THE CONSEQUENCE, STATED PLAINLY AND NOT SOFTENED:** players at **≥ 100 XP when `0211` lands
+> become citizens immediately, on a threshold they did not actually meet under the rules in force when
+> they earned it.** ⛔ **The owner ruled this acceptable knowingly.** It is an accepted cost, not a
+> defect, and not a gap to be closed.
+>
+> ⛔ **NO MIGRATION IS TO BE WRITTEN.** A future implementer who notices the discrepancy must **not**
+> "fix" it by adding one — **that would reverse an owner ruling.** If they believe circumstances have
+> changed, they **escalate to the owner**; they do not migrate.
+>
+> **Evidence available today — a dated observation, NOT a standing fact.** On **2026-09-11** the lead
+> read **every profile table on the production box** during task `0218` and found **all zero rows**,
+> observed **twice** (Phase A2, and again at Phase E1). ⚠️ **That is a reading taken on one day, not a
+> guarantee about ship day.** Task `0217` wires the game server and **will start creating rows**, and
+> the owner's own ordering runs `0217` **before** `0211` is likely to ship. **So the population at ship
+> time is unknown, and this ruling accepts whatever it turns out to be.**
+>
+> **Provenance:** question raised by the **architect** while writing **ADR-111**; **ruled by the owner
+> the same day (2026-09-11)**. ADR-111 carries the same ruling as a dated clarification in its
+> *Consequences* section; ADR-111 remains **`accepted`** and its body is unchanged.
+>
+> ## ⚠️ FLAG FOR WHOEVER PLANS THIS — A HARD PROJECT RULE APPLIES IN FULL
+>
+> 🔴 **`0211` lands in `src/core/`, and this project's rule is: *"All code changes in `src/core/` MUST
+> be tested."*** No exemption, no partial. Plan the tests as part of the work, not after it.
+> ⚠️ Two further cost facts the planner should know up front: `npm test` **runs the shell harnesses
+> unconditionally** (~22–25 s, no skip valve by owner ruling), and the `supertest` suites carry a
+> **known ~4–7 % flake** — re-run, and **say that you re-ran**, rather than reading it as a regression.
+>
+> ⛔ **WHAT THIS RULING DID NOT DO:** it did **not** re-rank this task (see *Priority* — `Medium–High`
+> stands, and it is **the producer's rank, not the owner's**), did **not** change its scope, and did
+> **not** move it off Sprint 4.
+
+⚠️ ~~**SCHEDULED INTO SPRINT 4 on 2026-09-04 (owner ruling, live in session) — and the status is
 DELIBERATELY still `🔲 Backlog`.** **Scheduled is not started: nobody is building this.** The owner
 ruled *when this is worked*, not that it has begun. The status changes when a plan is approved and
-work actually starts.
+work actually starts.~~ 📌 **SPENT 2026-09-11 — struck, not deleted; TRUE WHEN WRITTEN, and it was the
+right call for exactly as long as it held.** 🔴 **The condition it named has now been met by ruling:
+the owner has ruled the build STARTS.** See the box above for the token actually chosen and its
+honest limits.
 
 ### 🔴 SEQUENCING CONSTRAINT INSIDE SPRINT 4 — OWNER RULING, 2026-09-04. READ BEFORE SHIPPING.
 
-> ⛔ **THIS TASK MUST NOT SHIP before
-> [`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md) has been
-> DEPLOYED and has GATHERED DATA.**
+> ~~⛔ **THIS TASK MUST NOT SHIP before
+> [`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) has been
+> DEPLOYED and has GATHERED DATA.**~~ ✅ **SATISFIED AND CLEARED 2026-09-11 — see the box
+> immediately below.** 📌 **Struck, not deleted; TRUE WHEN WRITTEN.**
+
+> ## ✅ 2026-09-11 — SHIP GATE **CLEARED** BY OWNER RULING
+>
+> ✅ **CLEARED 2026-09-11 by an owner ruling given live in the lead session.** The owner was put
+> the open decision recorded in [`0208`'s brief](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md)
+> — that the per-match stall rate is not derivable from `Match:WinCondition` at any confidence, and
+> that only a server-side *"ended with no winner"* counter would close it — and **chose to accept
+> `0208` Part A's number as a DIRECTIONAL LOWER BOUND and to BUILD NO SERVER-SIDE COUNTER.**
+>
+> **The owner's accepted wording, verbatim:** *"Take 52% as directional evidence that the Team-mode
+> stall is real and common — which is enough to justify `0211` — and don't build more measurement.
+> `0211` can ship. You never get a precise pre-fix stall rate."*
+>
+> 🚨 **THE COST THE OWNER KNOWINGLY ACCEPTED, in those terms and not softer: the PER-MATCH
+> STALL RATE WILL NEVER BE KNOWN, and the PRE-FIX DENOMINATOR IS GONE THE MOMENT THIS TASK SHIPS.**
+> This is a **permanent, irreversible loss of a measurement, accepted deliberately — not an
+> oversight.** ⛔ **DO NOT RE-PROPOSE IT LATER AS A GAP SOMEONE SHOULD CLOSE.**
+>
+> ⚠️ **THE CAVEAT STILL TRAVELS WITH THE NUMBER WHEREVER THE 52 % GOES.**
+> *"52 % of Team matches stalled"* remains an **UNSUPPORTED CLAIM**. **Accepted-as-directional is
+> NOT accepted-as-a-match-rate.** The defensible sentence stays **verbatim**: *"in 52 % of measured
+> Team-mode client-matches that reached the win condition, the leader at that moment was the all-bot
+> team, and no winner could be declared at that moment."*
+>
+> ⚠️ **CLEARING THE GATE IS NOT SCHEDULING THE WORK.** This task's status stays
+> **`🔲 Backlog`** and ⛔ **NOBODY IS BUILDING IT.** The ruling removed a ship constraint; it
+> did not start the work, assign it, or change its rank.
+>
+> ⛔ **WHAT THIS RULING DOES NOT COVER:** `0208`'s **Part B** (the Singleplayer
+> platform-leaderboard award incidence — still unread, being put to the owner separately), `0208`'s
+> **`V18`** manual mid-match reload play-test (still never run), and `0208`'s own status, which
+> **stays `🚧 Blocked`**. **This ruling clears THIS task's gate; it does not close `0208`.**
+>
+> ⛔ **THE RECORD BELOW IS KEPT, NOT DELETED — struck and answered in place, so the reasoning that
+> made this a live question stays visible.**
+
+> ## ~~📌 2026-09-11 — `0208`'s NUMBER HAS BEEN READ. ⛔ THE GATE IS **NOT** DECLARED CLEARED.~~ 📌 SPENT 2026-09-11 — SUPERSEDED BY THE RULING ABOVE; struck, not deleted; TRUE WHEN WRITTEN.
+>
+> **What is now fact:** `0208` is **deployed** (build `0.0.141`, 2026-09-05) **and its Part A
+> deliverable — the clientless-leader split — was READ on 2026-09-11**, over **4–10 September 2026,
+> full days**, off the GameAnalytics dashboard in the owner's browser. Recorded in full in
+> [`0208`'s brief](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md),
+> `## Status` → *🟢 THE MEASUREMENT*.
+>
+> 🔴 **THE UNIT IS CLIENT-MATCHES, NOT MATCHES — one event per client per match, so absolute counts are
+> uninterpretable and only ratios are safe.** Headline ratios, **all lower bounds**: **Team
+> clientless-in-front 53.2 %**, **Team stall-capable 52.4 %**, **FFA clientless-in-front 1.6 %**,
+> **overall 29.1 %**. **Figures are as the dashboard rounds them — approximate, not exact.**
+>
+> ### ~~⛔ WHY THE PRODUCER IS NOT DECLARING THE GATE CLEARED~~ ✅ ANSWERED 2026-09-11 — THE OWNER DECLARED IT CLEARED
+>
+> ⛔ **The scope question below is CLOSED BY DECISION, not by being answered** — the owner accepted the number as directional and ruled that no further measurement be built. 📌 **Struck, not deleted; TRUE WHEN WRITTEN.**
+>
+> **A live scope question was raised by the coder and is UNANSWERED:** `Match:WinCondition` latches at
+> the **first crossing** and records **who was first past the post, not how the match ENDED**, so
+> *"52 % of Team matches stalled"* **is not a supported claim** and **the net bias magnitude is not
+> establishable from this event.** ⚠️ **The per-match stall rate — which is what this gate exists to
+> protect — is therefore NOT derivable from `0208`'s number at any confidence.** A **server-side
+> "ended with no winner" counter** is the only thing that would produce it.
+>
+> **The defensible sentence, verbatim:** *"in 52 % of measured Team-mode client-matches that reached the
+> win condition, the leader at that moment was the all-bot team, and no winner could be declared at that
+> moment."*
+>
+> | | |
+> |---|---|
+> | ✅ **Satisfied on the letter of the ruling** | `0208` is **deployed** and **has gathered data**, and the deliverable split **has been read**. |
+> | ⛔ **NOT settled** | Whether this number is **the one the owner actually wanted**. It is a **client-match, first-past-the-post lower bound**, not a per-match stall rate. |
+> | 🔴 **Status of the gate** | ~~**READY FOR THE OWNER'S CALL.** ⛔ **NOT cleared by any agent.**~~ ✅ **CLEARED 2026-09-11 BY OWNER RULING** (accept as a directional lower bound; no server-side counter). ⚠️ **Cleared is not scheduled — status stays `🔲 Backlog`, nobody is building it.** |
+>
+> ⚠️ **Nothing here changes this task's status** — it remains `🔲 Backlog`, still not `🚧 Blocked`, and
+> planning and building it are still explicitly allowed. ~~**Only the SHIP waits, and it waits on the
+> owner's ruling now rather than on a dashboard read.**~~ 📌 **SPENT 2026-09-11 — the owner ruled;
+> THE SHIP NO LONGER WAITS.** ⚠️ **And still nothing is scheduled: the status stays
+> `🔲 Backlog` and nobody is building it.**
 
 ⚠️ **"Before" has a precise meaning, and a loose reading satisfies it trivially — read this table, not
 just the line above:**
@@ -436,6 +669,38 @@ fkit-coder — **after** the architect's report (✅ landed, cited above) has be
 owner has reviewed the phase-1 findings and answered the open questions in **both** this brief and the
 report's §11.
 
+> ## 🚩 2026-09-11 — THIS PRECONDITION AND THE "BUILD IT" RULING PULL AGAINST EACH OTHER. FLAGGED, NOT RESOLVED.
+>
+> 🔴 **The owner ruled 2026-09-11 that this task is picked up and the build starts.** ⛔ **They did NOT
+> lift the precondition written directly above, and the producer has NOT lifted it either — that is
+> not a producer's call to make.**
+>
+> **What is actually satisfied, checked 2026-09-11:**
+>
+> | Precondition | State |
+> |---|---|
+> | Architect's report **read** | ⚠️ **Unknown** — a fact about the implementation session, which has not begun |
+> | Owner reviewed the **phase-1 findings** | ⛔ **NO — phase 1 has never been run.** It is part of the work itself (see *Investigation (phase 1)*) |
+> | Open questions in **this brief** answered | ✅ **YES.** All five are ruled or closed by decision — see *🚩 Open questions* |
+> | Open questions in the report's **§11** answered | ⚠️ **MOSTLY, NOT ENTIRELY — two sub-questions have NO recorded answer:** |
+>
+> 🚩 **The two §11 residuals, named so they are not lost:**
+> 1. **§11 q3's second half — a MINIMUM-PARTICIPATION FLOOR** (*"or should there be a minimum-participation
+>    floor, e.g. survived N ticks?"*). ⚠️ **The 2026-09-10 ruling settled the AMOUNT (1 XP); it said
+>    NOTHING about a floor.** The architect's own framing stands and was never dismissed: a player who
+>    dies **30 seconds in** is paid **the same** as one who plays to the end — **true at 10, equally
+>    true at 1.** ⛔ **Nothing in this brief addresses it.**
+> 2. **§11 q4's second half — MEMORY GROWTH**: an **unbounded `turns` array for up to 3 hours** in a
+>    stalled match. The architect's read: *"should not be left indefinitely, independent of the winner
+>    question."* ⚠️ **The 2026-09-10 stall ruling was a HOLD on filing a stall BRIEF; it did not
+>    address the memory cost.** ⛔ **Nothing in this brief addresses it either.**
+>
+> ⚠️ **NEITHER IS A NEW DECISION AN AGENT MAY TAKE, and neither is being presented as blocking.**
+> **The honest position:** the *"build it"* ruling is about **when the work starts**; this
+> precondition is about **what must be answered first**, and the two have not been reconciled by
+> anybody. 🔴 **Put both residuals to the owner at plan time and get an answer before writing code** —
+> a floor, in particular, changes what gets built, not just what it is worth.
+
 ---
 
 ## Context
@@ -479,11 +744,13 @@ assumptions** — but ⛔ **not independently re-measured by the producer**; the
    **No `handleWinner`, no winner vote, no `creditMatchXp`.** `archiveGame` ran with **no `winner`
    attribute and no player stats.**
 4. **Participation XP is genuinely LOST, not delayed.** `creditMatchXp`'s **only** call site is inside
-   `handleWinner` (`src/server/GameServer.ts:1199`). No `handleWinner` ⇒ no crediting, ever.
+   `handleWinner` — the `this.creditMatchXp(potentialWinner.winner);` line in
+   `src/server/GameServer.ts`. No `handleWinner` ⇒ no crediting, ever.
 5. **The stall is real and independent of `0206`.** With every human eliminated, a **Nation reached
    100.0 % of the map and the match still did not end.** Mechanism, ✅ **producer-verified this turn
    against committed `8f6e478`**: `players()` filters to `isAlive()`
-   (`src/core/game/GameImpl.ts:421-423`), so dead players are absent from the sorted list, `find`
+   (`src/core/game/GameImpl.ts`, the `players(): Player[]` method), so dead players are absent from
+   the sorted list, `find`
    returns `undefined`, and the code takes an early `return`. **This predates `0206` (`0022`) and
    survives the revert.**
 
@@ -557,8 +824,8 @@ claim is a **farming surface**: a client that can assert "I was eliminated" can 
 `ProfileApiClient`'s **contract comment** states that the profile server keys on
 **`(game_id, yandex_player_id)`**, which would make a duplicate credit a **no-op**:
 
-> `src/server/ProfileApiClient.ts:32` — *"`(game_id, yandex_player_id)` idempotency key makes retries
-> safe (a duplicate is …)"*
+> `src/server/ProfileApiClient.ts`, the file-header contract comment — *"`(game_id,
+> yandex_player_id)` idempotency key makes retries safe (a duplicate is …)"*
 
 ~~🔴 **MARKED UNVERIFIED — do not build on it as stated.**~~ ✅ What the producer verified: **that
 the contract comment exists and says this.** ⛔ What the producer did **NOT** verify: **that the actual
@@ -602,6 +869,42 @@ a measurement later disproved.** Do not repeat that.
    files are **untouched by owner ruling** and were **accurate for the work they describe** — but they
    record a design built on a **disproved premise.** Read them as history, not as input.
 
+### 🔴 6. REQUIRED — the ADR-101 supersede gate. Owner ruling, 2026-09-11, given live in session.
+
+> **When `0211`'s plan picks the survivor mechanism, re-read ADR-101's "blast radius is one match, not
+> a backlog" consequence and its batch/pre-validation rationale, and decide then whether a superseding
+> ADR ships with this task.**
+
+⛔ **This is a REQUIREMENT of the plan, not a note and not a "consider".** The plan is not complete
+until it states the decision — *superseding ADR ships with `0211`*, or *it does not, and here is why*.
+A plan that picks a survivor mechanism and is silent on this has not done the step.
+
+**Why it cannot be answered earlier — the reason is specific, not procedural.** `0211` **moves the
+crediting trigger**. Today the fail-soft path is called **once per match, as one batch at match end**.
+After `0211` it is called on elimination, plus **whatever the survivor trigger turns out to be** — which
+means calls **spread through a match** rather than one batch at the end. That change in *when and how
+often* the fail-soft path runs bears directly on three parts of ADR-101
+(`ai-agents/knowledge-base/decisions/adr-101-fail-soft-xp-crediting-no-durable-queue.md`):
+
+- the **"blast radius is one match, not a backlog"** consequence,
+- the sizing of the **3-attempt retry budget**,
+- the **per-item pre-validation rationale**, which assumes a **multi-item batch** — a per-player call
+  has no other items to protect.
+
+**The survivor mechanism is open by the owner's own ruling** (Ruling 1 above: *"THIS RULING STATES A
+REQUIREMENT, NOT A MECHANISM. The trigger is the PLAN'S to choose"*). The supersede answer **depends on
+which mechanism is chosen**, so it cannot be settled before the plan picks one. That is why it is a
+pre-committed gate at plan time rather than a decision made now.
+
+⛔ **This is SEPARATE from the ADR-101 clarification applied under the same day's Ruling A.** That
+clarification settles the **figures** — that the 10 XP / 1,000 XP numbers in ADR-101's body are the
+pre-`0211` economy, that the decision itself is unchanged, and that the ~100-matches-to-citizenship
+**ratio** its reasoning rests on is unchanged by design. It **explicitly does NOT settle the trigger
+question**, and must not be cited as having done so.
+
+⚠️ **The architect's own framing, inherited here so the implementer has it:** the clarification's text
+flags this as *"a candidate for a SUPERSEDING ADR and it is not this one."*
+
 ## What to Build
 
 ⛔ **NOTHING until the phase-1 findings are reviewed with the owner.** ✅ **The architect's report has
@@ -623,7 +926,8 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
 **Constraints that hold regardless of the approach:**
 
 - ⛔ **`creditMatchXp` must be decoupled from `handleWinner`.** Its **sole** call site today is
-  `src/server/GameServer.ts:1199`, inside `handleWinner`. ✅ Producer-verified this turn against
+  the `this.creditMatchXp(potentialWinner.winner);` line in `src/server/GameServer.ts`, inside
+  `handleWinner`. ✅ Producer-verified this turn against
   committed `8f6e478`. **Decoupling it is the substance of the work** — a match with no winner must
   still credit.
 - ⛔ **A player must never be credited twice** for one match, across any combination of paths.
@@ -663,7 +967,10 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
   ⚠️ **"Near-free" is the owner's expectation, not a measurement — if the plan finds it is not, say so
   rather than quietly dropping Team mode.** ⛔ **This does NOT merge this task with
   [`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md)**, and ⛔ **do not change
-  `0205`'s status, scope or rank** — the owner has not ruled on them.
+  `0205`'s status, scope or rank** — ~~the owner has not ruled on them.~~ 📌 **AMENDED 2026-09-11:
+  the instruction STANDS, but its reason is now partly spent — the owner HAS ruled on the rank, which
+  is `Medium` since 2026-09-11 (producer's value, owner-approved). Status, scope and folder remain
+  unruled and untouched.**
 - ✅ **SINGLEPLAYER IS OUT OF SCOPE — owner ruling, 2026-09-04.** ~~Singleplayer is UNRULED and is NOT
   covered by either ruling. Do not assume it in or out.~~ **Struck, not deleted.** **FFA and Team
   only.** Reasoning: Singleplayer XP is a separate product question, and bundling it risks reading
@@ -678,7 +985,8 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
   ⛔ **This does NOT widen `0211`. Singleplayer stays out of scope; only the policy changed.**
   🔴 **It changes nothing about today's behaviour — solo already credits zero — but it makes that an
   INTENDED property instead of an accident of architecture** (crediting lives only in
-  `src/server/GameServer.ts:1253`; solo runs on `src/client/LocalServer.ts`, which has no crediting
+  `src/server/GameServer.ts` at its `private creditMatchXp(` declaration; solo runs on
+  `src/client/LocalServer.ts`, which has no crediting
   code — ✅ producer-verified). ⛔ **`0211` moves the crediting trigger, so `0211` is exactly the task
   that could break it. Do not introduce Singleplayer crediting.** ⚠️ **The property is UNENFORCED —
   no guard, no test, no comment** — so a green suite does not prove it survived. See the scope box at
@@ -698,8 +1006,9 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
   🔴 **SECOND, FIRM REQUIREMENT — DIVIDE THE CITIZENSHIP XP THRESHOLD BY EXACTLY 10**, so
   time-to-citizenship is **unchanged**. ⛔ **"Roughly 10x" is not the ruling.**
   📍 **WHERE THEY LIVE — ✅ producer-verified READ-ONLY on 2026-09-10, nothing changed:**
-  `src/core/profile/Citizenship.ts` declares `CITIZENSHIP_XP_THRESHOLD = 1000` (`:15`) and
-  `XP_PER_MATCH = 10` (`:18`). Its own header calls it *"the single source of truth"*, shared by the
+  `src/core/profile/Citizenship.ts` declares `CITIZENSHIP_XP_THRESHOLD = 1000` and
+  `XP_PER_MATCH = 10` — those two declaration lines are the anchors. Its own header calls it
+  *"the single source of truth"*, shared by the
   client and the profile server. ⇒ **1000 → 100, and 10 → 1.**
   ⚠️ **THAT POINTER IS A STARTING POINT, NOT THE SCOPE.** 🚨 **The producer did NOT trace the
   consumers.** **At plan time, find EVERY reader of both constants** — the crediting SQL, the client
@@ -734,7 +1043,8 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
   **flat 1**.
 - 🔴 **THE LEAVER RULE IS DELIBERATELY REVERSED FOR ELIMINATED PLAYERS — owner ruling, 2026-09-04.
   ⛔ DO NOT "FIX" THIS BACK.** Today, `qualifiesForMatchXp` in `src/core/profile/MatchQualification.ts`
-  (`:43-45`, doc comment `:35-42`, ✅ producer-verified against committed `8f6e478`) returns
+  (the `export function qualifiesForMatchXp` declaration and the doc comment immediately above it,
+  ✅ producer-verified against committed `8f6e478`) returns
   `p.hasSpawned && (p.isAliveAtEnd || p.killedAt !== undefined)` — so a player who **spawned then
   vanished without dying** is **deliberately excluded**, as *"the participation-derived half of the
   brief's exclusion of players who voluntarily left mid-game."* **Under this task, a player eliminated
@@ -795,7 +1105,8 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
    ⛔ **A TEST, NOT A RUNTIME GUARD — the owner adopted this reasoning, not just the conclusion, so a
    future coder who finds the test inconvenient can see why a guard was rejected:**
    - **A guard is dead code that reads as protection.** Solo **never reaches** `creditMatchXp`
-     (`src/server/GameServer.ts:1253`) — it runs on `src/client/LocalServer.ts`, which has no crediting
+     (`src/server/GameServer.ts`, its `private creditMatchXp(` declaration) — it runs on
+     `src/client/LocalServer.ts`, which has no crediting
      code at all. A game-type guard added in `GameServer` would sit on a path solo **cannot currently
      take**, so it would never fire, could never be observed failing, and would give a false sense that
      the property is enforced.
@@ -860,7 +1171,7 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
 - **Related, none blocking:**
   - [`0206`](../../done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md) — the reverted
     predecessor. **Read its STOP box, not its design.**
-  - [`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md) — would measure
+  - [`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) — would measure
     how often this happens in production. ✅ **Its Part A decay clock has STOPPED**, because `0206`
     never deployed; scheduling **this** task is what would restart one.
   - [`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md) — the Team-mode form of the
@@ -870,8 +1181,11 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
     policy** question (*who should win a stalled Team match?*); `0211` is **crediting** (*do those
     players get their XP?*). ⚠️ **`0211` may make part of `0205`'s justification moot** — if XP is
     credited regardless of who wins, one of `0205`'s reasons to exist weakens — **but it does NOT
-    settle `0205`'s own question.** ⛔ **`0205`'s status, scope and rank are UNCHANGED and were not
-    touched; the owner has not ruled on them.** ✅ A reciprocal cross-reference was added to `0205`'s
+    settle `0205`'s own question.** ~~⛔ **`0205`'s status, scope and rank are UNCHANGED and were not
+    touched; the owner has not ruled on them.**~~ 📌 **CORRECTED 2026-09-11 — struck, not deleted;
+    true when written (2026-09-04).** Status, scope and folder are **still** unchanged; the **rank is
+    not** — it is **`Medium`** since 2026-09-11, the producer's proposed value approved by the owner
+    after the owner ruled that it be re-ranked. ✅ A reciprocal cross-reference was added to `0205`'s
     Notes and **nothing else in that brief was edited.**
   - [`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) — Singleplayer
     leaderboard policy. ~~⚠️ **Whether Singleplayer should credit participation XP at all is adjacent to
@@ -883,12 +1197,15 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
     the XP half needs no code today. ⛔ **This does not widen `0211` either.**
 - 🔴 **THE XP HALF OF THE 2026-09-04 RULING WAS UNENFORCED — producer recommendation, ✅ NOW ADOPTED BY
   OWNER RULING 2026-09-04. It is a VERIFICATION obligation, still NOT a scope change and NOT a task.**
-  Solo credits no XP purely because `creditMatchXp` (`src/server/GameServer.ts:1253`) is unreachable
+  Solo credits no XP purely because `creditMatchXp` (`src/server/GameServer.ts`, its
+  `private creditMatchXp(` declaration) is unreachable
   from `src/client/LocalServer.ts`, which has no crediting code.
   ⚠️ **CORRECTION, made by the producer against its own earlier text:** an earlier revision of this
   bullet claimed `GameServer.ts` contains *"zero occurrences of `GameType`/`gameType`/`Singleplayer`"*.
   **That was WRONG.** ✅ Re-verified 2026-09-04: `GameServer.ts` has **six** `GameType` occurrences
-  (`:7`, `:113`, `:194`, `:877`, `:895`, `:933`), **all `GameType.Public` checks and all above the
+  (`src/server/GameServer.ts:7,113,194,877,895,933` — **line numbers deliberately kept here, framed
+  at commit `22bbe39`, because the anchor `GameType` recurs 6× in this file, which is exactly the
+  claim; re-verified by reading the file 2026-09-11**), **all `GameType.Public` checks and all above the
   crediting path.** The accurate, narrower claim: **the crediting path itself has no game-type check**,
   and `src/core/profile/MatchQualification.ts` genuinely has zero — `selectMatchCredits` takes no
   game-type argument. **No guard, no test, no comment says the solo property is intended.**
