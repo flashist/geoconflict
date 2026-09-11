@@ -354,9 +354,14 @@ offers scoping.
 `.env.profile.secret` in Step 15 — or into your password manager first — **before closing the
 dialog.**
 
-**⛔ DO NOT delete or revoke the OLD access key here.** Revoking it is [`0222`](../../backlog/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md)'s
+**⛔ DO NOT delete or revoke the OLD access key here.** ~~Revoking it is [`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md)'s
 job (its brief:151 and brief:200-201 — an overwritten local value is a **live credential** until it
-is revoked at the provider). Doing it here mixes two tasks and loses the record.
+is revoked at the provider). Doing it here mixes two tasks and loses the record.~~
+🔒 **UPDATED 2026-09-11 — struck, not deleted: IT IS NOBODY'S JOB. CLOSED BY OWNER DECISION — the
+revocation will DELIBERATELY NOT BE DONE** (owner, verbatim: *"Forget about the old S3 keys, mark this
+task as cancelled."*). ⛔ **The instruction not to touch the key here STILL STANDS** — it is not this
+task's, and it is not outstanding work anywhere. ⚠️ **NOT "resolved": never revoked, scope never
+established, objection overruled twice (2026-09-10, 2026-09-11).** Full record in `0222`'s brief.
 
 **SUCCESS:** you hold a new access key id and secret key.
 
@@ -1110,7 +1115,7 @@ before the wipe, this is a data-loss incident — tell the owner immediately, do
 
 - **No database rollback.** `migrate.ts` has no down-migrations.
 - **No restore.** The old bucket is deleted and its objects were unreadable anyway (no identity was
-  ever recorded for them). Until [`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)
+  ever recorded for them). Until [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)
   proves a restore against non-empty data, **treat this box as not durably recoverable.**
 
 ---
@@ -1120,11 +1125,11 @@ before the wipe, this is a data-loss incident — tell the owner immediately, do
 | Item | Owner |
 |---|---|
 | Wiring the game server to the profile box: `PROFILE_API_URL`, the game-side `PROFILE_INTERNAL_TOKEN`, **and re-verifying the `/internal/` allowlist IP (T8)** | [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) |
-| The restore drill against non-empty data, and closing out `age`-key custody | [`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) — this plan only **creates** the key and **records** custody (Steps 4–8) |
+| The restore drill against non-empty data, and closing out `age`-key custody | [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) — this plan only **creates** the key and **records** custody (Steps 4–8) |
 | **Log rotation** — including the ~736 MB of journald the inventory found, and the fact that there is **no** Docker `daemon.json` log rotation on this box; plus image prune, an external uptime check, and a consumer for `last-backup.json` | [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) |
 | Secret persistence and value parity — including the **stale `/opt/profile/.internal_token`** noted at Step 30 | [`0220`](../../backlog/0220-profile-p5-secret-persistence-and-value-parity/brief.md) |
 | OS baseline hardening, a non-root deploy user, restart policy — including the **`sshd PasswordAuthentication yes`** the inventory found | [`0221`](../../backlog/0221-profile-p6-os-baseline-hardening/brief.md) |
-| **Revoking the OLD S3 access key at the provider** (still not done — an overwritten local value is a live credential until revoked there, `0222` brief:200-201), deleting `PROFILE_ID_PEPPER` beyond the two files named in Steps 16 and 30, and any decision about the old bucket | [`0222`](../../backlog/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md) — **UNANSWERED owner decision** |
+| ~~**Revoking the OLD S3 access key at the provider** (still not done — an overwritten local value is a live credential until revoked there, `0222` brief:200-201), deleting `PROFILE_ID_PEPPER` beyond the two files named in Steps 16 and 30, and any decision about the old bucket~~ 🔒 **STALE — struck, not deleted.** The old bucket decision was **ruled and executed 2026-09-10** (owner deleted it; it was empty), and the **key revocation is CLOSED BY OWNER DECISION 2026-09-11 — DELIBERATELY NOT DONE** (*"Forget about the old S3 keys, mark this task as cancelled."*). ⛔ **Not outstanding work.** ⚠️ **NOT "resolved": never revoked, scope never established, objection overruled twice.** ➡️ **The `PROFILE_ID_PEPPER` purge is still open — it lives in [`0240`](../../backlog/0240-purge-obsolete-profile-env-variables/brief.md).** | [`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md) — ✅ **closed**; ~~UNANSWERED owner decision~~ |
 | **The pending kernel reboot** the inventory found on the box | Not filed against a task. **Needs a home** — flag to the producer. It is not scheduled by this plan because rebooting mid-deploy would confuse every failure signal above. |
 | Fixing the `example.env.profile:92-93` documentation defect (**T1**) | Already handed to a coder as a separate change. **Record it, do not fix it here** — this task must not carry an unrelated source edit. |
 | Committing anything | Nobody. **Every file this plan touches is gitignored. Do not commit.** |

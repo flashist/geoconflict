@@ -78,7 +78,7 @@ filename:
 
 ⇒ 🚨 **VERIFIED, TRUE EVIDENCE WAS ONE STEP FROM BEING DELETED, and the only thing that stopped it was
 one person searching outside the cited file before executing.** The full arc is recorded in
-[`0218`'s brief](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md).
+[`0218`'s brief](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md).
 
 **The asymmetry that makes this the expensive failure mode:** a wrong *line number* sends you to the
 wrong text, and you may notice. A wrong *file* makes you conclude **the text never existed** — which

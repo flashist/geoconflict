@@ -83,10 +83,17 @@ One binary: `cluster.isPrimary` → master, else worker. Master serves HTTP/API/
 > - **The profile backend is NOT deployed to players, and the game server is NOT wired to it.**
 >   `0217` is open; **no credit or upsert call path is live** and the profile database holds **zero
 >   citizen rows**.
-> - 🔴 **THE RESTORE PATH HAS NEVER BEEN TESTED.** *"Backups are working"* means **ENCRYPT-AND-UPLOAD
->   ONLY** — one encrypted 19,330-byte object was verified present in the new bucket. **Nobody has
->   ever proven one restores** (`0218`, open). The old bucket's objects were permanently unreadable
->   for exactly this reason.
+> - ~~🔴 **THE RESTORE PATH HAS NEVER BEEN TESTED.**~~ ✅ **CORRECTED 2026-09-11 — A BACKUP RESTORES.**
+>   Task `0218` proved it **twice** against non-empty data: into a throwaway database, and — a first —
+>   **into the LIVE database in place**. Both `IDENTICAL` on row counts, per-table content digests,
+>   both sequences, schema shape and three behavioural checks. The nightly **schedule fires** too
+>   (three independent signals).
+>   ⛔ **DO NOT RESTATE THIS AS "BACKUPS WORK".** The **SCHEDULE** and the **DATA** are proven
+>   **SEPARATELY, NEVER TOGETHER** — every cron-produced object that has ever existed is a dump of an
+>   **empty** database, and the only non-empty backup was **hand-run**. ⛔ The measured recovery times
+>   are on **76 rows** and **do not extrapolate**. The **weekly-copy path has never run** against this
+>   bucket (`0241`, first attempt Sunday 2026-09-13). ⚠️ **`0218` closed with eight residuals.** See
+>   [[tasks/profile-durability-restore-drill]].
 > - ⚠️ **`ufw` default-deny-incoming was NOT re-verified** post-deploy (plain `ufw status` does not
 >   restate the default policy); it is carried forward from the pre-deploy inventory.
 > - ⚠️ **RU residency was verified 2026-09-10** by IP geolocation — Moscow, ASN REG.RU, reverse DNS in
@@ -97,8 +104,27 @@ One binary: `cluster.isPrimary` → master, else worker. Master serves HTTP/API/
 > 🔴 **STORAGE, CORRECTED 2026-09-08 (owner ruling, live in session): the S3 bucket is NOT reused.** A
 > **brand-new, clean bucket** was created; this supersedes the 2026-09-04 reuse ruling **as to the
 > bucket only** — ✅ **the VPS half is unchanged.** The owner had already deleted the old bucket. **All
-> six backup values are new.** 🔴 **The old S3 access key still has to be revoked at the provider and
-> has not been** — an overwritten local value is a live credential until revoked there (`0222`).
+> six backup values are new.** ~~🔴 **The old S3 access key still has to be revoked at the provider and
+> has not been** — an overwritten local value is a live credential until revoked there (`0222`).~~
+>
+> 🔒 **STANDING CORRECTED 2026-09-11 — struck above, not deleted. ⛔ IT WAS NOT SATISFIED. CLOSED BY
+> OWNER DECISION: the old storage access key will DELIBERATELY NOT be revoked.** Owner, live in the
+> lead session, verbatim: *"Forget about the old S3 keys, mark this task as cancelled."* ⛔ **Not
+> outstanding work, not a task, not to be re-raised.** ⚠️ **There was no open task to cancel** — the
+> revocation was never re-filed as its own brief after `0222` closed, so the ruling is recorded against
+> the residual in `0222`'s brief; **`0222` was already `✅ Done` and stays Done — no task file was moved
+> and no mover skill was invoked.**
+>
+> ⛔ **What that decision does NOT change — do not soften any of this into "revoked", "resolved", "no
+> longer live" or "no longer a risk":** the key was **NEVER revoked at the provider**; **nobody ever
+> established its scope** — **inert** if it was bucket-scoped to the deleted bucket, **reaching the NEW
+> backup bucket** if account-wide; and an objection on exactly that point was put to the owner and
+> **OVERRULED TWICE**, on **2026-09-10** and **2026-09-11**. ⚠️ **A deliberate decision not to act is
+> not the same as the risk not existing.** If an account-wide key on that account is ever found:
+> **check the key's policy at the provider first — nothing in this repository can answer it** — and it
+> is then a **new owner decision**, not a licence to revoke or to re-file. ⛔ **Do NOT move this to
+> `0240`**, which owns the `PROFILE_ID_PEPPER` / obsolete-variable purge **only** and remains open and
+> tracked. Full record: [[tasks/profile-cleanup-obsolete-secrets]].
 >
 > Full record: [[tasks/profile-box-adopt-and-reprovision]] and
 > [[tasks/profile-le-certificate-renewal-proof]]. **The block below is kept as the record of the
@@ -237,5 +263,6 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 - [[tasks/test-suite-reliability-investigation]] — task `0197`, source of the test-toolchain facts in the build/run/test section and of R2's concrete cost
 - [[tasks/prod-api-env-https-apex]] — task `0063`, whose deploy (`362a2f9`) is the release this survey's post-2026-08-28 deploy notes refer to
 - [[tasks/supertest-profile-server-flake]] — task `0200`, which ran into the same "no CI, one host" ceiling this survey records; its "not a repository defect" verdict rests on refutation, not on a second machine
+- [[tasks/profile-durability-restore-drill]] — task `0218`, closed 2026-09-11: **a backup restores**, proven twice against non-empty data (live database included) — ⛔ **and the schedule and the data are proven only SEPARATELY**; the measured recovery times **do not extrapolate**
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which turned this survey's biggest UNKNOWN into a verified live host: the profile box was **adopted, not wiped**
 - [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, which proved the box's TLS renewal **capability, not its monitoring**

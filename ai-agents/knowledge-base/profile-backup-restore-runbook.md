@@ -90,18 +90,38 @@ PROFILE_RESTORE_REMOTE_HOST=restore-target \
 shred -u /root/profile-backup-identity.txt   # remove the transient identity when done
 ```
 
-To restore into the **live** DB after a real loss, point the target URL at the live Postgres
-(`postgresql://profile:…@postgres:5432/profile`) and set `PROFILE_RESTORE_CONFIRM_LIVE=$(date -u +%Y-%m-%d)`
+To restore into the **live** DB after a real loss, set `PROFILE_RESTORE_CONFIRM_LIVE=$(date -u +%Y-%m-%d)`
 to confirm the in-place recovery (default-deny refuses a live-DB target without it) — `pg_restore --clean
 --if-exists` drops and recreates objects. Do this only during a genuine recovery:
+
+> 🔒 **Use the LOCAL SOCKET target — `postgresql://profile@/profile` — NOT a `postgres:5432` URL.**
+> `pg_restore` runs *inside* the postgres container, whose socket accepts `trust` auth, so the socket
+> form needs **no password at all**. A `postgresql://profile:PASSWORD@postgres:5432/profile` URL puts
+> the real `POSTGRES_PASSWORD` into root's shell history (persists on disk), the `backup.sh` argv and
+> the `docker` client argv — all readable via `/proc/*/cmdline`. Rotating it afterwards is expensive:
+> the Postgres image applies `POSTGRES_PASSWORD` only at `initdb`, so rotation means destroying the
+> data volume and redeploying.
+>
+> The default-deny guard **accepts** the empty-host form: it extracts an empty host and takes the
+> `PROFILE_RESTORE_CONFIRM_LIVE` branch, logging `… into '<socket>'`. **Verified end to end on the box
+> 2026-09-11** (task `0218`) — `psql -d 'postgresql://profile@/profile' -tAc "select 1"` returns `1`,
+> and a full in-place restore through this target completed in `real 0m0.435s`.
+>
+> ~~`'postgresql://profile:PASSWORD@postgres:5432/profile'`~~ — struck, not deleted, so nobody
+> reinstates it from memory.
 
 ```bash
 PROFILE_RESTORE_CONFIRM_LIVE=$(date -u +%Y-%m-%d) \
 /opt/profile/backup.sh restore \
   profiles/daily/profile-2026-06-29.dump.age \
   /root/profile-backup-identity.txt \
-  'postgresql://profile:PASSWORD@postgres:5432/profile'
+  'postgresql://profile@/profile'
 ```
+
+⚠️ **Do NOT stop `profile-api` first, even though instinct says to.** The `profile` systemd unit
+carries `Restart=always`, which will fight you (trap T11, `0215`). Expect `/ready` to blip while
+`pg_restore` holds locks; confirm 200 afterwards. Observed 2026-09-11: services stayed healthy
+throughout and the unit never interfered.
 
 ---
 
@@ -110,12 +130,25 @@ PROFILE_RESTORE_CONFIRM_LIVE=$(date -u +%Y-%m-%d) \
 Run this against a **throwaway** Postgres, never prod. Record the wall-clock time as the RTO.
 
 ```bash
+# 0) Confirm the compose network name — do NOT assume it.
+docker inspect -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}' \
+  "$(cd /opt/profile && docker compose ps -q postgres)"
+#    Observed 2026-09-11: `profile_default`.
+
 # 1) Throwaway target on the box (own volume, NOT the prod stack):
-docker run -d --name restore-test --network opt_profile_default \
+docker run -d --name restore-test --network profile_default \
   -e POSTGRES_USER=profile -e POSTGRES_PASSWORD=test -e POSTGRES_DB=profile \
   postgres:16-alpine
-#    (use the same docker network as the profile compose project so the postgres
-#     container can reach `restore-test:5432`; check `docker network ls`.)
+#    (must be the same docker network as the profile compose project so the postgres
+#     container can reach `restore-test:5432`.)
+#    ⛔ This line used to read `--network opt_profile_default`. THAT NETWORK DOES NOT EXIST —
+#    `docker run` fails outright. Compose v2 derives the project name from the directory basename
+#    (/opt/profile -> `profile`), and setup-profile.sh sets no COMPOSE_PROJECT_NAME, passes no -p
+#    and declares no `networks:` block. Corrected 2026-09-11 (task 0218) after it was found by
+#    execution. Verify with step 0 anyway — a future project rename would move it again.
+
+# 1b) Prove the prod container can actually reach the throwaway (this is what step 0 controls):
+cd /opt/profile && docker compose exec -T postgres getent hosts restore-test
 
 # 2) Restore the latest daily object into it.
 #    DEFAULT-DENY: PROFILE_RESTORE_REMOTE_HOST must equal the target host (here: restore-test).
@@ -125,32 +158,79 @@ time PROFILE_RESTORE_REMOTE_HOST=restore-test \
   /root/profile-backup-identity.txt \
   'postgresql://profile:test@restore-test:5432/profile'
 
-# 3) Verify integrity — row counts on the data-critical tables match the source:
+# 3) Verify integrity. ⛔ Two tables and an eyeballed row is NOT enough — there are EIGHT tables,
+#    two bigserial sequences, two partial unique indexes and multibyte text, and a restore can lose
+#    any of them while every visible row looks right. Write ONE verify script and run it against
+#    BOTH databases, then diff the outputs:
+#      - per-table row count AND an md5 content digest (string_agg of row_to_json, ordered);
+#      - `last_value` + `is_called` of player_name_history_id_seq and player_messages_id_seq;
+#      - count of public constraints, and count + digest of public indexes;
+#      - spot checks: a bigint xp above int4 range, a jsonb path, char-vs-byte length on a
+#        Cyrillic display_name, NULL counts, and a body containing ' " — & %.
+#    🔴 Both sessions MUST set `client_encoding=UTF8`, `timezone='UTC'` and `datestyle='ISO, YMD'`.
+#    row_to_json renders timestamptz in the SESSION timezone, so a mismatch makes two identical
+#    databases produce different digests — a false alarm shaped exactly like a real defect.
+#    A worked copy of the script is in task 0218's plan.md (step B3).
 cd /opt/profile
-for t in player_profiles player_match_xp_credits; do
-  echo -n "$t source="; docker compose exec -T postgres psql -U profile -d profile -tAc "select count(*) from $t"
-  echo -n "$t restored="; docker exec -i restore-test psql -U profile -d profile -tAc "select count(*) from $t"
-done
+docker compose exec -T -e PGCLIENTENCODING=UTF8 postgres \
+  psql -U profile -d profile -f - < verify.sql | tee source.txt
+docker exec -i -e PGCLIENTENCODING=UTF8 restore-test \
+  psql -U profile -d profile -f - < verify.sql | tee restored.txt
+diff source.txt restored.txt && echo "IDENTICAL"
 
-# 4) Known-profile round-trip — pick a real yandex_player_id and confirm fields match:
-docker exec -i restore-test psql -U profile -d profile -tAc \
-  "select xp, is_citizen, is_paid_citizen, display_name from player_profiles where yandex_player_id='<KNOWN_ID>'"
+# 4) Three behavioural checks the digests CANNOT make (run on restore-test only):
+#    (a) a second 'pending' name-change for one player must be REJECTED — the ERROR is the pass:
+docker exec -i restore-test psql -U profile -d profile -c \
+  "insert into player_name_history (yandex_player_id,new_display_name,moderation_status)
+   values ('<a player with a pending row>','Probe','pending');"     # expect 23505 on
+                                                                   # player_name_history_one_pending_uq
+#    (b) FK cascade + `on delete set null`, inside a transaction you ROLL BACK.
+#    (c) the sequence hands out a NON-COLLIDING next id (insert ... returning id).
+#        NOTE: (a)'s failed insert CONSUMES a sequence value — sequences are non-transactional —
+#        so (c) legitimately returns max+2, not max+1. That is correct, not an anomaly.
 
 # 5) Tear down + remove the transient identity:
 docker rm -f restore-test
 shred -u /root/profile-backup-identity.txt
+ls -l /root/profile-backup-identity.txt /tmp/profile-restore.* 2>&1 | tail -2   # both must be gone
 ```
 
-**Pass criteria:** counts match for `player_profiles` and `player_match_xp_credits`, and the known
-profile's `xp` / `is_citizen` / `is_paid_citizen` / `display_name` round-trip exactly.
+**Pass criteria:** `diff` reports **no differences** across all eight tables, both sequences and the
+schema-shape lines; check (a) errors with `23505`; check (b)'s cascade counts are all 0 with the
+receipt's `intent_id` null; check (c) returns a non-colliding id. **A lost `setval` is a
+shipping-blocking defect even when every row is present** — the next insert collides.
 
-**Recorded RTO:** First drill 2026-07-01 (off-box, on a Mac): download + `age -d` + `pg_restore`
-into a throwaway `postgres:16-alpine` — **restore ≈ 0.1s, whole drill < 1 min hands-on**. NOTE: the
-prod DB was still **empty** (0 rows) at this point, so schema + decryption + the full pipeline were
-verified, but a *non-empty* data round-trip was not. Re-run once real player/entitlement data exists
-(before/after Paid Citizenship) and update this line with the real-data RTO. Re-run using the **exact
-commands documented above** (with the `PROFILE_RESTORE_REMOTE_HOST=restore-test` override) — the first
-drill predates the default-deny guard, so its command line differed from what is documented here now.
+**Recorded RTO — ✅ SECOND DRILL, 2026-09-11, NON-EMPTY DATA (task `0218`).**
+
+| Drill | Data | Target | Wall clock |
+|---|---|---|---|
+| 2026-07-01 | **empty (0 rows)** | throwaway, off-box on a Mac | ≈ 0.1 s |
+| **2026-09-11** | **76 synthetic rows across 7 tables** | throwaway `restore-test` on the box | **`real 0m0.374s`** |
+| **2026-09-11** | same | **LIVE DB, in-place**, via the socket target | **`real 0m0.435s`** |
+
+🚨 **These numbers are NOT a usable RTO for a real outage.** 76 rows is a ~21 KB dump. The figures
+prove the *path* works and is not pathologically slow; they say nothing about restore time at real
+citizen volume. **Re-measure once real data exists — the number will not extrapolate from here.**
+
+✅ **What the 2026-09-11 drill settled:**
+- A **non-empty** round-trip is now verified — `IDENTICAL` on all eight tables, both sequences and the
+  schema-shape lines, plus the three behavioural checks. The 2026-07-01 gap is closed.
+- The **live in-place** branch (`PROFILE_RESTORE_CONFIRM_LIVE`) was rehearsed for the first time ever,
+  and verified the same way.
+- ~~*"the first drill predates the default-deny guard, so its command line differed from what is
+  documented here now"*~~ — **the documented drill line above ran verbatim and worked**, guard
+  override included. Struck as no longer actionable, kept so the history is legible. ⚠️ The *first*
+  drill's line genuinely did differ; what is wrong is treating that as "the documented line is
+  broken". Task `0218`'s brief overstated it that way; execution refuted it.
+
+⚠️ **Two things the drill did NOT establish, stated so they are not assumed:**
+1. **The weekly-copy path (`profile-backup.sh:171-177`) has never run against the current bucket** —
+   `weekly/` was empty on 2026-09-11. It only triggers on a Sunday, and the current bucket was created
+   after the last one.
+2. **Backup history in the current bucket starts 2026-09-10** and, before the drill, consisted of two
+   objects — one from the deploy smoke check, one from a cron run — **both dumps of an empty
+   database**. Earlier runs went to the old, now-deleted bucket. ⛔ Do not read the nightly log's
+   five-day history as five days of retrievable backups.
 
 ---
 

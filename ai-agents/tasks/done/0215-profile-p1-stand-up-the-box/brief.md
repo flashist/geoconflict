@@ -174,7 +174,7 @@ guard working**, not a bug.
 
 🔴 **The old encrypted objects sit in the OLD bucket, which is no longer on this path** — they remain
 unreadable without an `age` private identity nobody can name. Disposition is
-[`0222`](../../backlog/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md), **whose question
+[`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md), **whose question
 changed shape on 2026-09-08** (a separable old bucket admits abandoning the whole bucket, not just
 its objects) and is **UNANSWERED and the owner's**. **This task deletes nothing and decides nothing
 about the old bucket.**

@@ -83,7 +83,7 @@ untouched.** Suite counts after: **113 suites / 1185 tests, green.**
 **Owner rulings (2026-09-05 / 2026-09-06, all live via `AskUserQuestion` in the `fkit lead` session).**
 Plan approved as Option A. **Q1** — `scripts/test-check-docker-secret-boundary.sh` **IN**, gated on a
 Docker probe. **Q2** — `tests/profile-backup-dryrun.sh` **OUT**, exposed as an npm script instead; its
-real gate is [`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md).
+real gate is [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md).
 **Q3** — the runtime cost accepted **unconditionally**, and a `SKIP_SHELL_HARNESSES` escape hatch
 **explicitly rejected** (a valve would become the default and the gate would rot unrun again — this
 task's own failure mode). Review dispositions: **R1+R2 fixed** (success-marker assertion, closing a
@@ -237,7 +237,7 @@ stayed broken for about two months.
 >
 > ⚠️ **This widens the task's scope: step 6's in-or-out decision now covers FOUR files, not two**, and
 > the two new ones exercise the **backup** path — which is exactly the path
-> [`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) (P3) must prove
+> [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) (P3) must prove
 > works, and whose `age`-key custody defect is the epic's most consequential finding. **Decide each
 > file explicitly and record the reason**, as step 6 already requires.
 >

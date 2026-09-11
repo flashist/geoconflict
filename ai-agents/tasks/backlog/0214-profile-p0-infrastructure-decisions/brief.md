@@ -65,22 +65,50 @@ from the scratch, probably all the keys"* [sic — *"re-du"* = **redo**].
 
 ⚠️ **"probably all the keys" is the owner's own hedge and is reproduced as such.** It is **not** yet
 a settled instruction to rotate every key. Key re-issue and old-credential revocation are already
-scoped — [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) (the
+scoped — [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) (the
 new `age` keypair and its custody) and
-[`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md) (revoke the old
-access key **at the provider**, not merely overwrite it locally). **No new brief is being created
+~~[`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md) (revoke the old
+access key **at the provider**, not merely overwrite it locally).~~
+🚨 **STALE AS TO `0222` — struck, not deleted. THE OLD ACCESS-KEY REVOCATION IS NOT SCOPED ANYWHERE AND
+WILL NOT BE DONE.** 🔒 **STANDING, owner ruling 2026-09-11: CLOSED BY OWNER DECISION — deliberately not
+done** (verbatim: *"Forget about the old S3 keys, mark this task as cancelled."*). ⛔ **Not outstanding
+work; do not re-file it here or anywhere.** ⚠️ **NOT "resolved": the key was never revoked at the
+provider, and NOBODY ESTABLISHED ITS SCOPE — inert if bucket-scoped to the deleted bucket, reaching the
+NEW backup bucket if account-wide. The objection was put to the owner and OVERRULED TWICE (2026-09-10,
+2026-09-11).** Full record in
+[`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
+✅ **The `0218` half above is UNCHANGED** — the new `age` keypair and its custody are still `0218`'s.
+**No new brief is being created
 for this ruling** — see the epic
 [`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md), whose P1–P7 chain already covers
 "wipe, re-provision in place, re-issue".
 
-📌 **The `0222` old-bucket-objects decision is UNAFFECTED and still OPEN.** Redoing the box's keys
+📌 ~~**The `0222` old-bucket-objects decision is UNAFFECTED and still OPEN.** Redoing the box's keys
 says nothing about the fate of the pre-existing encrypted objects — ~~in the reused bucket~~ — whose
-`age` private identity has no recorded home. Do not read this ruling as closing that question.
+`age` private identity has no recorded home. Do not read this ruling as closing that question.~~
+
+✅🚨 **CLOSED AND PARTLY RETRACTED 2026-09-10 — owner ruling, given live in session and relayed
+through the spawning session, verbatim: *"I've already deleted the old bucket, it was empty, we never
+had anything there."***
+**(a) The decision is ANSWERED:** the owner deleted the whole old bucket (the third `0222` option),
+already executed.
+**(b) The PREMISE is RETRACTED, not superseded: there were NO pre-existing encrypted objects.** The
+bucket was empty and always had been, so nothing was ever unreadable and nothing was ever dead weight.
+⚠️ **The lost old `age` key is NOT retracted** — it still has no recorded home; `0218` still owns the
+**new** keypair's custodian, storage location and second copy. **The old key protected nothing — luck,
+not a control.**
+~~🔴 **`0222` is NOT closed by this.** It stays open on **the OLD S3 ACCESS KEY, which must be REVOKED
+AT THE PROVIDER** — overwriting the local value does not revoke it, and deleting the bucket does not
+revoke it.~~
+🚨 **CORRECTED 2026-09-10, LATER THE SAME DAY — struck, not deleted: `0222` IS CLOSED** (agent-closed — not owner-verified), **and it closed with THIS ITEM AS A KNOWINGLY ACCEPTED RESIDUAL.** ⛔ **THE KEY WAS NEVER REVOKED — NOT "resolved", NOT "revoked", NOT "no longer live."** The owner ruled it closed on the reasoning that the deleted bucket makes the credentials useless; **a documented objection — an S3 access key is an ACCOUNT-level credential, and nothing in this repository records its scope — was put to the owner and OVERRULED.** ⚠️ **Whether that reasoning holds is UNSETTLED: correct if the key was bucket-scoped, wrong if it was account-wide, and NOBODY CHECKED.** ⚠️ **If account-wide it can still reach the NEW backup bucket — the very backups this task is about to prove work.** Full record in [`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
+🔒 **STANDING UPDATED 2026-09-11 — CLOSED BY OWNER DECISION: the revocation will DELIBERATELY NOT BE DONE** (owner, verbatim: *"Forget about the old S3 keys, mark this task as cancelled."*). ⛔ **It is NOT an open item and NOT outstanding work — do not pick it up or re-file it.** ⚠️ **Every fact above stands: never revoked, scope never established, objection OVERRULED TWICE (2026-09-10, 2026-09-11).** ⛔ **A decision not to act is not the risk not existing.**
 
 🚨 **CORRECTED 2026-09-08 — THE S3 BUCKET IS NOT REUSED: a BRAND-NEW, CLEAN bucket is created (owner ruling, given live in session, superseding the 2026-09-04 reuse ruling AS TO THE BUCKET ONLY). ✅ The VPS half is UNCHANGED — the box is still reused in place.**
-⇒ **Those objects sit in a SEPARATE, OLD, now-abandonable bucket**, which **RESHAPED** the `0222`
+⇒ ~~**Those objects sit in a SEPARATE, OLD, now-abandonable bucket**, which **RESHAPED** the `0222`
 question on 2026-09-08 into **three** options (purge the objects · keep pending a search · 🆕 abandon
-the whole old bucket). ⛔ **It changed shape; it was NOT answered. It remains the owner's.**
+the whole old bucket). ⛔ **It changed shape; it was NOT answered. It remains the owner's.**~~
+✅ **ANSWERED 2026-09-10 — the third option, the whole old bucket deleted by the owner.**
+🚨 **And "those objects" never existed — the bucket was EMPTY.** See the retraction above.
 
 ---
 
@@ -144,9 +172,16 @@ and note that an SSH timeout is then the VPN, not the box.
 
 ### ⛔ CLOSED, and not to be re-opened
 
-- **"Is the old data recoverable?"** — ⛔ Not a question on this task. ⚠️ **But note it is NOT fully
-  gone:** with the bucket reused, the fate of the **old encrypted objects** is a live decision on
-  [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
+- **"Is the old data recoverable?"** — ⛔ Not a question on this task.
+  ~~⚠️ **But note it is NOT fully gone:** with the bucket reused, the fate of the **old encrypted
+  objects** is a live decision on
+  [`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).~~
+  🚨 **STALE — struck, not deleted. NOTHING ABOUT `0222` IS A LIVE DECISION ANY MORE.** The owner
+  deleted the old bucket on 2026-09-10 and **it was EMPTY — the old encrypted objects never existed**;
+  `0222` is closed. 🔒 **And its one residual — the unrevoked old S3 access key — is CLOSED BY OWNER
+  DECISION as of 2026-09-11, deliberately not done.** ⛔ **Not "resolved": never revoked, scope never
+  established, objection overruled twice.** Full record in
+  [`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
 - **"What should we cancel?"** — ⛔ **Nothing.** Owner: *"We don't need to cancel any billings."*
 
 ## What to build

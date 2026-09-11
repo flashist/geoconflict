@@ -36,9 +36,18 @@
 > 1. 🔴 **THE PROFILE BACKEND IS NOT DEPLOYED TO PLAYERS, AND THE GAME SERVER IS NOT WIRED TO IT.**
 >    `0217` is **open**. **No credit or upsert call path is live**, and the profile database holds
 >    **zero citizen rows** — so `client.isCitizen` cannot become `true` anywhere.
-> 2. 🔴 **THE RESTORE PATH HAS NEVER BEEN TESTED.** *"Backups are working"* means **ENCRYPT-AND-UPLOAD
->    ONLY** — one encrypted 19,330-byte object was verified present in the new bucket. **Nobody has
->    ever proven one restores** (`0218`, open). **This box has no proven recovery path.**
+> 2. ~~🔴 **THE RESTORE PATH HAS NEVER BEEN TESTED.**~~ ✅ **CORRECTED 2026-09-11 — A BACKUP RESTORES.
+>    Proven twice by task `0218`** against non-empty data: into a throwaway database, and — **for the
+>    first time ever** — **into the LIVE database in place**. Both `IDENTICAL` on row counts, content
+>    digests, both sequences, schema shape and three behavioural checks. The nightly **schedule** also
+>    fires, on three independent signals.
+>    ⛔ **DO NOT SHORTEN THIS TO "BACKUPS WORK". The SCHEDULE and the DATA are proven SEPARATELY,
+>    NEVER TOGETHER** — every cron-produced object that has ever existed is a dump of an **empty**
+>    database; the only non-empty backup was **hand-run**. ⛔ The measured RTOs (0.374 s / 0.435 s) are
+>    on **76 rows** and **do not extrapolate**; the **weekly-copy path has never run** (`0241`, first
+>    attempt Sunday 2026-09-13); backup history in this bucket is **thin** — two objects before the
+>    drill, only one cron-produced. ⚠️ **`0218` closed with EIGHT residuals — not a clean sweep.**
+>    Full record: [[tasks/profile-durability-restore-drill]].
 > 3. 🔴 **`0216` PROVED CAPABILITY, NOT MONITORING.** **Nothing reads the certificate renewal log**
 >    (`0219`, open), so a break between now and the twice-daily renewal window (~2026-10-21) fails
 >    **silently** until the certificate expires **2026-11-20**.
@@ -54,15 +63,49 @@
 > 🔴 **STORAGE, CORRECTED 2026-09-08 (owner ruling): the S3 bucket is NOT reused.** A **brand-new,
 > clean bucket** was created; this supersedes the 2026-09-04 reuse ruling **as to the bucket only** —
 > the **VPS half is unchanged**. The owner had already deleted the old bucket. **All six backup values
-> are new.** `0222`'s question **reshaped and is still UNANSWERED and the owner's**, and **the old S3
-> access key still has to be revoked at the provider.**
+> are new.** ~~`0222`'s question **reshaped and is still UNANSWERED and the owner's**, and **the old S3
+> access key still has to be revoked at the provider.**~~
+>
+> ✅ **BOTH CLAUSES CORRECTED — struck above, not deleted.** **(1) `0222`'s question was ANSWERED AND
+> CLOSED 2026-09-10:** the owner abandoned the old bucket entirely and had **already deleted it**, and
+> 🚨 **the premise was RETRACTED — the bucket was EMPTY and always had been, so the "permanently
+> unreadable objects" it was about NEVER EXISTED** (⛔ objects only; the lost old `age` private identity
+> is unchanged). **(2) 🔒 THE REVOCATION IS CLOSED BY OWNER DECISION, 2026-09-11 — ⛔ IT WAS NOT
+> SATISFIED.** Owner, live in the lead session, verbatim: *"Forget about the old S3 keys, mark this task
+> as cancelled."* The revocation will **deliberately not be done**. ⛔ **Not outstanding work, not a
+> task, not to be re-raised.** ⚠️ **There was no open task to cancel** — it was never re-filed as its
+> own brief after `0222` closed, so the ruling is recorded against the residual in `0222`'s brief;
+> **`0222` was already `✅ Done` and stays Done — no task file moved, no mover skill invoked.**
+>
+> ⛔ **What that decision does NOT change — do not soften any of this into "revoked", "resolved", "no
+> longer live" or "no longer a risk":** the key was **NEVER revoked at the provider**; **nobody ever
+> established its scope** — **inert** if it was bucket-scoped to the deleted bucket, **reaching the NEW
+> backup bucket** if account-wide; and an objection on exactly that point was put to the owner and
+> **OVERRULED TWICE**, on **2026-09-10** and **2026-09-11**. ⚠️ **A deliberate decision not to act is
+> not the same as the risk not existing.** If an account-wide key on that account is ever found:
+> **check the key's policy at the provider first — nothing in this repository can answer it** — and it
+> is then a **new owner decision**, not a licence to revoke or to re-file. ⛔ **Do NOT move this to
+> `0240`**, which owns the `PROFILE_ID_PEPPER` / obsolete-variable purge **only** and remains open and
+> tracked. Full record: [[tasks/profile-cleanup-obsolete-secrets]].
 >
 > 📌 **Sprint 4 work order for the remaining phases, OWNER-RULED 2026-09-10: `0218` → `0219` → `0217`.**
 > 🚨 **This runs P2 after P3 and P4 — the epic's own P-numbering is deliberately inverted. ⛔ Do not
 > "fix" it back.** Reasoning in [[decisions/sprint-4]].
+> ✅ **`0218` RAN AND CLOSED 2026-09-11** (`✅ Done (agent-closed — not owner-verified)`, eight
+> residuals). **`0219` is next.**
+>
+> 🚨 **`0219` NOW READS AS FULLY BLOCKED ON ANY DEPENDENCY-AWARE VIEW. IT IS NOT.** On an owner ruling
+> of **2026-09-11**, task **`0241`** (verify the first-ever weekly backup copy) was made a **canonical
+> `Depends on` entry** of `0219` — the producer had deliberately left it as prose, was overruled, and
+> ⛔ **the ruling changed the RECORDED FORM of the dependency and nothing else.** **What `0241`
+> actually gates is ONE HALF OF ONE ITEM:** the **weekly-copy** half of `0219`'s backup-freshness
+> work. ✅ **Container log rotation, image prune, the external uptime check and the DAILY-object half
+> of backup freshness are all startable today.** ⛔ **Do not park the whole task on the strength of a
+> "blocked" badge — that is the exact failure this note exists to prevent.** Practical scale: `0241`
+> becomes actionable **Sunday 2026-09-13** and is a single observation taking minutes.
 >
 > Full records: [[tasks/profile-box-adopt-and-reprovision]],
-> [[tasks/profile-le-certificate-renewal-proof]].
+> [[tasks/profile-le-certificate-renewal-proof]], [[tasks/profile-durability-restore-drill]].
 >
 > 🔴 **READ FIRST — HARDWARE EXISTS; ITS STATE IS UNKNOWN (owner-ruled 2026-09-04).**
 > ⚠️ **This banner SUPERSEDES an earlier same-day annotation on this page that read "THERE IS NO
@@ -109,9 +152,9 @@
 > - ✅ **The box's EXISTENCE is confirmed a second time. That fact is settled.**
 > - 🚨 **Nothing currently ON the box may be assumed working, correct, or trusted.** *"What is on them is UNKNOWN"* was a statement of ignorance; **this makes it a directive** — the installed state is being wiped regardless of what inspection finds.
 > - ⇒ **`0215`'s verification splits, and only half stays load-bearing.** **Hardware / plan facts** — vCPU, RAM, disk, region, IP, provider — ✅ **still gate a resize**; a redo does not change the machine's spec. **Installed / provisioned state** — what runs, what config is present, what secrets sit there — ⚠️ **downgraded to INVENTORY, not a gate.** Record it (the owner's *"I am completely lost about what was done"* still deserves an answer), but **build no decision on it — it is about to be erased.**
-> - ⚠️ **"probably all the keys" is the OWNER'S OWN HEDGE and is reproduced as such.** It is **not** a settled instruction to rotate every key. Key re-issue and old-credential revocation are already scoped: `0218` (the new `age` keypair and its custody) and `0222` (revoke the old access key **at the provider**, not merely overwrite it locally).
+> - ⚠️ **"probably all the keys" is the OWNER'S OWN HEDGE and is reproduced as such.** It is **not** a settled instruction to rotate every key. Key re-issue and old-credential revocation are already scoped: `0218` (the new `age` keypair and its custody) and ~~`0222` (revoke the old access key **at the provider**, not merely overwrite it locally)~~ 🔒 **CORRECTED 2026-09-11 — struck, not deleted: `0222`'s revocation is CLOSED BY OWNER DECISION and will DELIBERATELY NOT be done.** ⛔ **It was NOT satisfied** — the key was **never revoked at the provider** and **nobody ever established its scope**. See [[tasks/profile-cleanup-obsolete-secrets]] and the storage banner at the top of this page.
 > - **No new brief was created for this ruling** — `0213`'s P1–P7 chain already covers *wipe, re-provision in place, re-issue*.
-> - 📌 **The `0222` old-bucket-objects decision is UNAFFECTED and still OPEN.** Redoing the box's keys says nothing about the fate of the pre-existing encrypted objects in the reused bucket, whose `age` private identity has no recorded home.
+> - ~~📌 **The `0222` old-bucket-objects decision is UNAFFECTED and still OPEN.** Redoing the box's keys says nothing about the fate of the pre-existing encrypted objects in the reused bucket, whose `age` private identity has no recorded home.~~ ✅ **CLOSED 2026-09-10 — struck, not deleted.** The owner abandoned and had **already deleted** the old bucket, and 🚨 **the premise was RETRACTED: the bucket was EMPTY and always had been — those objects NEVER EXISTED.** ⛔ **Retraction covers the objects only** — the lost old `age` private identity is unchanged, and that is luck, not a control. See [[tasks/profile-cleanup-obsolete-secrets]].
 >
 > ### 🚩 `PROFILE_INTERNAL_TOKEN` IS DELIBERATELY BLANK IN PRODUCTION — and the local `.env.prod` is not
 >
@@ -149,7 +192,8 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - `PROFILE_API_URL` has to be present in the game-server deploy environment or `/api/env.profileApiUrl` stays empty. T4h is the completed fix for that deploy gap.
 - Profile outages must not stop active matches. T6 keeps match-end crediting fail-soft: after bounded retries, credits may be dropped rather than blocking winner handling or cleanup.
 - The duplicate backup-task conflict is resolved as of 2026-06-29 and canonical T8 is now done. Off-box backup activation is fail-closed: missing or partial `PROFILE_BACKUP_*` config keeps first deploys on local weekly dumps, but an already off-box-configured box refuses a silent downgrade unless `PROFILE_BACKUP_DISABLE_OFFBOX=1` is explicit.
-- The first restore drill used an empty production DB. Restore mechanics were verified, but a non-empty data round-trip should be rerun once real profiles/entitlements exist. 🔴 **2026-09-04: WHETHER ANY BACKUP IS RUNNING IS UNKNOWN.** ⚠️ *(This corrects an earlier same-day annotation here that asserted "NO BACKUPS ARE RUNNING — there is no box to run them on"; the box exists, so that assertion was an overstatement.)* The box and the bucket exist and are reused in place; whether a backup has ever completed, and when, is one of the UNKNOWN fields `0215` must read (`last-backup.json`), as is what objects the bucket holds. The drill's own command line no longer works (it predates the restore path's default-deny guard). The survey also records that **nothing reads the backup-freshness marker and no monitoring or alerting of any kind exists**, so a backup that stops would be invisible while retention keeps pruning. The durability phase (`0218`) owns proving restore against non-empty data, and Q3 — **who holds the new `age` private key, where it lives, and where the second copy is** — must be answered **before the first backup runs**.
+- ✅ **UPDATED 2026-09-11 — READ THIS BEFORE THE HISTORY BELOW IT.** Task `0218` ran the durability drill: **a backup RESTORES against non-empty data — proven twice**, into a throwaway database and **into the live database in place**, both `IDENTICAL` on counts, content digests, both sequences, schema shape and three behavioural checks. The nightly **schedule fires** too, on three independent signals. ⛔ **But the SCHEDULE and the DATA are proven SEPARATELY, NEVER TOGETHER** — every cron-produced object that has ever existed is a dump of an **empty** database, and the only non-empty backup was **hand-run**. ⛔ The RTOs are on **76 rows** and **do not extrapolate**; the **weekly-copy path has never run** (`0241`); backup history in this bucket is **thin** and was **misread once already**. **Nothing still reads the backup-freshness marker** — `0219` owns that and is open. Full record: [[tasks/profile-durability-restore-drill]]. **The original entry is kept below as history.**
+- ~~The first restore drill used an empty production DB. Restore mechanics were verified, but a non-empty data round-trip should be rerun once real profiles/entitlements exist.~~ 🔴 **2026-09-04: WHETHER ANY BACKUP IS RUNNING IS UNKNOWN.** ⚠️ *(This corrects an earlier same-day annotation here that asserted "NO BACKUPS ARE RUNNING — there is no box to run them on"; the box exists, so that assertion was an overstatement.)* The box and the bucket exist and are reused in place; whether a backup has ever completed, and when, is one of the UNKNOWN fields `0215` must read (`last-backup.json`), as is what objects the bucket holds. ~~The drill's own command line no longer works (it predates the restore path's default-deny guard).~~ ⛔ **REFUTED BY EXECUTION 2026-09-11: the CURRENTLY DOCUMENTED drill line ran verbatim and succeeded**, default-deny override included. The narrower true claim — that the *2026-07-01* drill's line differed from what is documented now — was **overstated** into "the documented line is broken". 🔧 **Two REAL runbook defects were found instead:** a **docker network name that does not exist on the box**, and a live-recovery example that **embedded the real database password in a URL**. Both fixed; the password-free local-socket target is now the documented form. The survey also records that **nothing reads the backup-freshness marker and no monitoring or alerting of any kind exists**, so a backup that stops would be invisible while retention keeps pruning. The durability phase (`0218`) owns proving restore against non-empty data, and Q3 — **who holds the new `age` private key, where it lives, and where the second copy is** — must be answered **before the first backup runs**.
 
   🔴 **The `age`-key question is RE-OPENED as a live owner decision (2026-09-04).** ⚠️ *(It had been recorded on this page's first same-day pass as closed by the clean-slate ruling — that was premature and is corrected here rather than quietly dropped.)* **Because the bucket is reused rather than replaced, any pre-existing encrypted objects are still sitting in it.** Those objects were encrypted to an `age` recipient whose private identity **has no recorded home** — every reference in the repo is policy: no vault, no entry, no custodian, no second copy, no readability check — and **when asked on 2026-09-04 what the `age` key was, the owner did not know.** ⇒ **Without that private identity those objects are permanently unreadable**, and they are dead weight in a bucket that is being paid for. The open decision — **purge them, or keep them pending a search for the old key?** — is tracked in **`0222`**. Everything about the **new** key stays with `0218`.
 - 152-ФЗ compliance is unresolved after the hash-based avoidance plan was cancelled. See [[decisions/personal-data-152fz-compliance]].
@@ -190,6 +234,27 @@ the only ones the vault had never mentioned at all.
 - ✅ **Mirror the game box, do not design something new** — `update.sh` already solves rotation and
   prune.
 
+🚨 **`0241` IS A CANONICAL `Depends on` OF `0219` AS OF 2026-09-11 — AND `0219` IS *NOT* FULLY
+BLOCKED.** The owner ruled, live in session, that the gate be **formalised** on the board; the
+producer had deliberately kept it as prose precisely because the canonical form marks the whole row
+unpullable. ⛔ **The ruling changed the RECORDED FORM of the dependency and nothing else** — status,
+priority, sprint and folder are unchanged.
+
+| `0219` item | Gated by `0241`? |
+|---|---|
+| **G1** container log rotation | **No — startable today.** |
+| **G2** image prune | **No — startable today.** |
+| **G3** external uptime check + renewal-log reader | **No — startable today.** |
+| **G4** backup freshness, **DAILY**-object half | **No — startable today.** |
+| **G4** backup freshness, **WEEKLY**-copy half | 🚨 **YES — do not build or ship it until `0241` answers.** |
+
+**Why the gate exists:** the weekly-copy path has **never executed** against the current bucket
+(`0218` observed the weekly prefix empty on 2026-09-11). **A freshness monitor built on a producer
+that does not work manufactures confidence, which is worse than no monitor.** ⚠️ **Practical cost is
+small** — `0241` becomes actionable **Sunday 2026-09-13** and is a single observation taking minutes.
+🚨 **The failure this note exists to prevent is a reader seeing `0219` "blocked", not knowing why, and
+parking the entire task for no reason.**
+
 **`0220` — P5, secret persistence and value parity (`Medium-High`, the producer's rank).**
 🔴 **`0195`'s finding was BROADER than `0195` recorded.** `0195` established that
 `YANDEX_PAYMENTS_SECRET` has no on-box persistence, so a deploy from a machine lacking the value
@@ -221,6 +286,7 @@ than picking silently.
 ## Related
 
 - [[systems/player-infrastructure]] — pre-S4 identity/customization substrate
+- [[tasks/profile-cleanup-obsolete-secrets]] — task `0222`, the cleanup phase; 🔒 carries the standing that the **old** storage access key will **deliberately NOT be revoked** — ⛔ closed by owner decision, **not** revoked and **not** scope-established
 - [[systems/configuration]] — `/api/env` and `PROFILE_API_URL` runtime/deploy configuration
 - [[tasks/profile-schema-contract]]
 - [[tasks/player-profile-store-investigation]]
@@ -259,6 +325,7 @@ than picking silently.
 - [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the award built to let `creditMatchXp` run in a clientless-leader FFA match. 🔴 **REVERTED 2026-09-04, never deployed — and it was a NO-OP in the case that actually loses the XP**
 - [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, **the replacement**: credit at **elimination or match end**, independent of any winner. **Its ship is ordered behind `0208`**
 - [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, which must be deployed and collecting data **before** `0211` ships, or the pre-fix denominator is destroyed
-- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which adopted and re-provisioned this store's host, regenerated every secret, and left the restore path unproven
+- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which adopted and re-provisioned this store's host, regenerated every secret, and left the restore path unproven until `0218`
+- [[tasks/profile-durability-restore-drill]] — task `0218`, closed 2026-09-11: **a backup restores**, proven twice against non-empty data including **into the live database in place** — ⛔ **and the schedule and the data are proven only SEPARATELY**, with eight residuals carried
 - [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, which proved the host's TLS renewal capability but not its monitoring
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, the client-side kill switch for the surfaces this store feeds

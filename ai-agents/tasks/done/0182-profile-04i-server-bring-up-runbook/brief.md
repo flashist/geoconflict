@@ -30,12 +30,12 @@
 > 🚨 **CORRECTED 2026-09-08 — THE S3 BUCKET IS NOT REUSED: a BRAND-NEW, CLEAN bucket is created (owner ruling, given live in session, superseding the 2026-09-04 reuse ruling AS TO THE BUCKET ONLY). ✅ The VPS half is UNCHANGED — the box is still reused in place.**
 > ⇒ **ALL SIX backup values are new, the BUCKET included. The VPS alone is reused.** The new keypair's
 > custodian must be recorded **at creation time**
-> ([`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md), P3).
+> ([`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md), P3).
 > 🔴 **The OLD encrypted objects — in a SEPARATE, OLD, now-abandonable bucket** ~~still in that reused
 > bucket~~ — **are a LIVE, UNANSWERED owner decision, RESHAPED 2026-09-08 into THREE options** (purge
 > the objects · keep pending a search · 🆕 abandon the whole old bucket) — unreadable
 > without an `age` identity nobody can name; disposition is
-> [`0222`](../../backlog/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
+> [`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
 >
 > 📌 Epic: [`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md). Full survey:
 > [`2026-09-04-profile-backend-clean-slate-survey.md`](../../../knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md)
@@ -355,9 +355,33 @@ These are by-design gaps in the current scripts; flag them, do not fix them here
   ⚠️ Note the 2026-07-01 date is a **different** reading from `0215`'s 2026-09-08/09 one, where all
   four tables **were** re-read at 0 rows at execution time — do not conflate the two.
   🚨 **The gate stands in full: "A backup that has never been restored is not a backup."** Discharging
-  it is [`0218`](../../backlog/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)
+  it is [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)
   (P3), which also fixes the defect that made this urgent — **the previous `age` private key had no
   recorded home, and when asked on 2026-09-04 the owner did not know what it was.**
+
+  🚨 **SUPERSEDED 2026-09-11 by task [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) — the paragraph above is now WRONG IN BOTH HALVES. Struck, not deleted.**
+  - ~~"the restore has **never been proven** against non-empty data"~~ ⇒ ✅ **PROVEN 2026-09-11.**
+    A restore was performed against **76 rows across 7 tables** and verified `IDENTICAL` on all
+    eight tables, both `bigserial` sequences, the constraint/index shape and three behavioural
+    checks — **twice**: into a throwaway, and **into the LIVE DB in place** (the first rehearsal of
+    the `PROFILE_RESTORE_CONFIRM_LIVE` branch that has ever happened).
+  - ~~"its command line no longer works"~~ ⇒ ⛔ **REFUTED BY EXECUTION.** The **currently documented**
+    drill line ran **verbatim** and succeeded, default-deny override included. ⚠️ This brief
+    **overstated** the runbook's own narrower claim: the runbook said *the FIRST drill's* line
+    differed from what is documented now — true and unremarkable — not that the documented line is
+    broken.
+  🚨 **Two REAL defects were found instead, neither of them this one, and both are now fixed in
+  `ai-agents/knowledge-base/profile-backup-restore-runbook.md`:**
+  1. the drill named `--network opt_profile_default`, **a network that does not exist** (it is
+     `profile_default`) — anyone following it in a real outage fails at `docker run`;
+  2. the live-recovery example used a `postgresql://profile:PASSWORD@postgres:5432/profile` target,
+     **leaking the real `POSTGRES_PASSWORD`** into shell history and two argv lists. The
+     password-free local-socket target `postgresql://profile@/profile` works and is now documented.
+  ⛔ **What does NOT change:** the durability claim is still **incomplete**. Every cron-produced
+  backup object that has ever existed is a dump of an **EMPTY** database; the only non-empty backup
+  was **hand-run**. **The SCHEDULE and the DATA are proven SEPARATELY, NEVER TOGETHER**, and the
+  measured RTOs (0.374 s / 0.435 s) are on ~21 KB and **do not extrapolate** to real volume. See
+  `0218`'s worklog residuals 1–3.
 - **Docker images are not auto-pruned**, and the previous image is retained for rollback, so
   image storage grows across redeploys. Run `docker image prune -f` periodically (keep current +
   rollback). The script logs a disk warning to `/var/log/disk-warnings.log` once `df /` exceeds

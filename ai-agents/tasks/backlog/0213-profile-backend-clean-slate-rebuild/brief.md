@@ -55,7 +55,7 @@ that reader.
 |---|---|---|
 | **P1 (`0215`)** | Order a box | **Verify what is on the existing box, wipe / re-provision in place, repoint as needed.** ✅ `setup-profile.sh` is idempotent and safe to re-run — exactly the shape this needs |
 | **P1-spike (`0216`)** | Blocked behind procurement | ✅ **RUNNABLE TODAY** — it needed a box to run from, and there is one |
-| **`0222`** | Decommission old infra | **Cleanup only** — the **box** is not decommissioned; purge obsolete secrets and decide the fate of the old encrypted objects. 🚨 **RESHAPED 2026-09-08** — ~~in the reused bucket~~ they sit in a **SEPARATE, OLD, now-abandonable bucket**, so a **third option** appeared (abandon the whole old bucket). **UNANSWERED — the owner's** |
+| **`0222`** | Decommission old infra | **Cleanup only** — the **box** is not decommissioned; purge obsolete secrets and decide the fate of the old encrypted objects. 🚨 **RESHAPED 2026-09-08** — ~~in the reused bucket~~ they sit in a **SEPARATE, OLD, now-abandonable bucket**, so a **third option** appeared (abandon the whole old bucket). ~~**UNANSWERED — the owner's**~~ ✅ **ANSWERED 2026-09-10: the owner deleted the old bucket (third option).** 🚨 **The bucket was EMPTY — there never were any old encrypted objects.** ~~🔴 **`0222` STAYS OPEN on the OLD S3 ACCESS KEY, still to be REVOKED AT THE PROVIDER**~~ 🚨 **STALE — struck, not deleted. `0222` IS CLOSED, and on 2026-09-11 the OWNER RULED THE REVOCATION DELIBERATELY NOT DONE** (*"Forget about the old S3 keys, mark this task as cancelled."*). 🔒 **STANDING: CLOSED BY OWNER DECISION — NOT outstanding work; do not pick it up or re-file it.** ⛔ **NOT "resolved": the key was never revoked and NOBODY ESTABLISHED ITS SCOPE — inert if bucket-scoped, reaching the NEW backup bucket if account-wide. Objection OVERRULED TWICE (2026-09-10, 2026-09-11).** |
 | **P0 (`0214`) spec** | A procurement choice | **Conditional: verify the existing box's spec, resize only if below the floor** |
 | **The `age` key** | "Closed by owner decision" | 🔴 **RE-OPENED — see below** |
 
@@ -65,19 +65,52 @@ that reader.
 grounds that a fresh start abandons the old bucket. THAT WAS PREMATURE. It is corrected here rather
 than quietly dropped.**
 
-**With the bucket reused in place, any pre-existing encrypted backup objects are still in it.**
+~~**With the bucket reused in place, any pre-existing encrypted backup objects are still in it.**~~
+🚨 **FALSE ON BOTH HALVES — struck 2026-09-10.** The bucket was **not** reused (corrected 2026-09-08:
+a brand-new bucket was created), and there were **no pre-existing encrypted backup objects** — the old
+bucket was **empty** and the owner has since deleted it.
 
 - They were encrypted to an `age` recipient whose **private identity has no recorded home** — every
   reference in this repository is policy: **no vault, no entry, no custodian, no second copy, no
   readability check.**
 - **When asked on 2026-09-04 what the `age` key was, the owner did not know.**
-- ⇒ **Without that identity those objects are PERMANENTLY UNREADABLE** — dead weight in a bucket that
-  is being paid for.
+- ⇒ ~~**Without that identity those objects are PERMANENTLY UNREADABLE** — dead weight in a bucket that
+  is being paid for.~~
+  🚨 **RETRACTED 2026-09-10 — THE OLD BUCKET WAS EMPTY. THOSE OBJECTS NEVER EXISTED.** Owner ruling,
+  given live in session and relayed through the spawning session, verbatim: *"I've already deleted the
+  old bucket, it was empty, we never had anything there."* ⛔ **This is a RETRACTION, not a
+  supersession** — the claim was never true, so nothing was ever unreadable and nothing was ever being
+  paid to store. **Struck, not deleted, so the old story cannot be re-derived.**
+  ⚠️ **The two bullets ABOVE STAND. The lost old `age` key is REAL and is NOT retracted** — it still
+  has no recorded home, and the owner still did not know what it was on 2026-09-04. **The key problem
+  is unchanged; what it was guarding was empty. That is luck, not a control.**
 
-🚨 **Live owner decision: purge the old encrypted objects, or keep them pending a search for the old
-key?** Disposition is [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md);
-everything about the **new** key is [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md).
-**Do not let this slide a second time.**
+~~🚨 **Live owner decision: purge the old encrypted objects, or keep them pending a search for the old
+key?**~~ ✅ **ANSWERED AND CLOSED 2026-09-10 — the owner deleted the whole old bucket (option c of the
+three that `0222` carried), on their own initiative.**
+Disposition is [`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md);
+everything about the **new** key is [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)
+and is **untouched by this** — `0218` still owns generating a new keypair and recording custodian,
+storage location and second copy.
+~~🔴 **ONE BUCKET-ADJACENT ITEM STAYS OPEN IN `0222` AND IS *NOT* CLOSED BY THIS: THE OLD S3 ACCESS KEY
+MUST STILL BE REVOKED AT THE PROVIDER.** Overwriting the local value does not revoke it; deleting the
+bucket does not revoke it.~~
+🚨 **CLOSED 2026-09-10 (agent-closed — not owner-verified) AS A KNOWINGLY ACCEPTED RESIDUAL — struck, not
+deleted. ⛔ THE KEY WAS NEVER REVOKED. It is NOT "resolved", NOT "revoked", NOT "no longer live."** The owner
+ruled `0222` done on the reasoning that the deleted bucket makes the credentials useless; **a documented objection
+— an S3 access key is an ACCOUNT-level credential and nothing in this repository records its scope — was put to
+the owner and OVERRULED.** ⚠️ **Whether the reasoning holds is UNSETTLED: correct if the key was bucket-scoped,
+wrong if it was account-wide, and NOBODY CHECKED.** ⚠️ **If account-wide, it can still reach the NEW backup
+bucket.** Full record in
+[`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
+🔒 **STANDING, 2026-09-11 — CLOSED BY OWNER DECISION: THE REVOCATION WILL DELIBERATELY NOT BE DONE.** Owner, verbatim:
+*"Forget about the old S3 keys, mark this task as cancelled."* ⛔ **This is NOT an open item and NOT outstanding work —
+do not pick it up, re-file it, or re-raise it.** ⚠️ **The facts are unchanged: never revoked at the provider, scope
+never established (inert if bucket-scoped, reaching the NEW backup bucket if account-wide), objection OVERRULED TWICE
+— 2026-09-10 and 2026-09-11.** ⛔ **A decision not to act is not the risk not existing.**
+➡️ **The repo-side purge (`PROFILE_ID_PEPPER` + the obsolete-variable sweep) was CARVED OUT to
+[`0240`](../0240-purge-obsolete-profile-env-variables/brief.md)** on the Backlog board, same date, on the owner's
+ruling that it stay tracked.
 
 ### ~~🔴 CURRENT BOX STATE — UNKNOWN PENDING INSPECTION~~ ✅ INSPECTED AND ANSWERED 2026-09-10
 
@@ -155,13 +188,13 @@ five gaps.** Neither greenfield nor procurement.
 | **P0 — Decisions** | [`0214`](../0214-profile-p0-infrastructure-decisions/brief.md) | ~0 eng | — | — |
 | ~~**P1-spike — RU reachability**~~ 🔴 **NARROWED + RETITLED 2026-09-10 (owner ruling): "Prove the box can still obtain a Let's Encrypt certificate."** — ✅ **Done (agent-closed — not owner-verified) 2026-09-10.** 🔴 **PROVEN: the box CAN complete a full ACME HTTP-01 challenge and obtain a certificate — never verified before today**, because `0215`'s deploy PRESERVED the cert via `--keep-until-expiring` (issuance was **a no-op**, so **no challenge had ever been observed**). **Evidence on the box:** cert valid to **2026-11-20 (70 days)**, ECDSA; `certbot renew --dry-run` with the cron's pre/post nginx hooks → **all simulated renewals succeeded**; nginx **active** and `https://…/health` **200** afterwards. ✅ **Run against LE STAGING — a FULL challenge, ZERO production rate-limit spent**, and **the pre/post nginx hooks were exercised and work**, so **the renewal path is proven END TO END** (same mechanism the twice-daily cron uses from ~2026-10-21). 📌 `Account registered.` = a new LE **staging** account, expected on a first staging run, **no effect on the production account or its limits** — not a finding. 🚨 **RESIDUAL, NOT CLOSED BY THIS: renewal works TODAY, but NOTHING READS THE RENEWAL LOG — that is `0219`, still OPEN.** If renewal breaks before October (firewall, provider, nginx config) it still fails **SILENTLY, twice a day, until the certificate expires and `api.geoconflict.ru` stops serving TLS.** ⇒ 🔴 **THIS PROVED CAPABILITY, NOT MONITORING — "P1-spike Done" does NOT mean the certificate is safe.** 🚨 **Still dropped and NOT restored: intermittency (never measured — a pass on ONE afternoon says nothing about an intermittent network), latency (never recorded), `get.docker.com` (never fetched — live again for a new box or an OS reinstall).** ⚠️ **Marker: the OWNER personally ran every command, guided, and the lead read the raw output — better-evidenced than a typical agent close — but no owner sign-off was taken on the close, and nothing is verified in production use.** | [`0216`](../../done/0216-profile-p1-spike-ru-network-reachability/brief.md) | ~~1–2 h~~ **~15 min** | ~~**UNKNOWN**~~ ✅ **ANSWERED — HTTP-01 works; monitoring gap remains (`0219`)** | ✅ **none — was runnable today, and was run** |
 | **P1 — Inspect, wipe, re-provision in place** — ✅ **Done (agent-closed — not owner-verified) 2026-09-10.** 🔴 **NO WIPE HAPPENED** — the inventory found the box **live and healthy** and the **owner ruled ADOPT**; the only destructive act was destroying the Postgres data volume to rotate `POSTGRES_PASSWORD` at `initdb`, owner-ruled, at a re-verified **0 rows**. **All 13 verification items satisfied** (two with stated limits: the `ufw` **default policy** was not re-checked today, and RU residency is **single-provider registration evidence, not a physical-site attestation**). 🚨 **The restore path has NEVER been tested — this box has NO PROVEN RECOVERY PATH; `0218` owns it and is OPEN.** Full close record in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) | [`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) | 0.5–1 day / 2–3 if it surprises | Medium-High | P0, P1-spike |
-| 🔴 **WORK ORDER 1 of 3** — **P3 — Durability proof** *(owner-ruled 2026-09-10; the restore path is the only claim still resting on faith, and it is cheapest to prove while every table has ZERO rows)* | [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) | 0.5 day + owner action | **High** | P1 |
+| 🔴 **WORK ORDER 1 of 3** — **P3 — Durability proof** — ✅ **Done (agent-closed — not owner-verified) 2026-09-11.** 🚨 **CLOSED WITH EIGHT RESIDUALS, NOT A CLEAN SWEEP.** ✅ **PROVEN: a restore against NON-EMPTY data (76 rows / 7 tables), `IDENTICAL` on all eight tables, both sequences, the constraint/index shape and three behavioural checks — TWICE, including the first-ever LIVE in-place rehearsal.** ⛔ **NOT proven: the SCHEDULE and the DATA are proven SEPARATELY, NEVER TOGETHER** — every cron-produced object that has ever existed is a dump of an EMPTY database; the only non-empty backup was HAND-RUN. ⛔ **The RTOs (0.374 s / 0.435 s) are on ~21 KB and DO NOT EXTRAPOLATE.** ⛔ **The WEEKLY-COPY path has NEVER run against this bucket** ➡️ [`0241`](../0241-profile-verify-first-weekly-backup-copy/brief.md), **which GATES `0219`.** ⛔ **D2 (restore from the CRON-produced object) was REMOVED by the owner 2026-09-11 — a KNOWING REVERSAL of their own 2026-09-10 ruling, to fit the drill into one day.** 🔒 **The `age` second-copy residual is CARRIED UNCHANGED from `0215`, no remediation proposed (owner ruling 2026-09-10).** 🔴 **The OWNER personally executed every command on the box** — the agent-closed marker covers the CLOSE, not the evidence *(owner-ruled 2026-09-10; the restore path is the only claim still resting on faith, and it is cheapest to prove while every table has ZERO rows)* | [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) | 0.5 day + owner action | **High** | P1 |
 | 🔴 **WORK ORDER 2 of 3** — **P4 — Operability** *(owner-ruled 2026-09-10; owns the monitoring gap for BOTH unread signals — the certificate renewal log and `last-backup.json`. Dated fuse: cert `notAfter` 2026-11-20, cron starts attempting ~2026-10-21)* | [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) | 1 day | Low tech / **HIGH consequence** | P1 |
 | 🔴 **WORK ORDER 3 of 3** — **P2 — Wire the game server** *(owner-ruled 2026-09-10; it is the step that ENDS the free window — once real citizen rows exist the restore drill and any Postgres work stop being free. ⛔ **LAST IS NOT DEPRIORITIZED** — deliberate sequencing, rank unchanged)* | [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) | 2–4 h + deploy window | Medium | P1 |
 | **P5 — Secret persistence + value parity** | [`0220`](../0220-profile-p5-secret-persistence-and-value-parity/brief.md) | 0.5–1 day | Medium | P1 |
 | **P6 — OS hardening** | [`0221`](../0221-profile-p6-os-baseline-hardening/brief.md) | 0.5–1 day | Low-Medium | P1 |
 | **P7 — Gate the shell harnesses** — ✅ **Done (agent-closed — not owner-verified) 2026-09-06** | [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) **(existing, Phase 2)** | 2–4 h | Low | ✅ **none — startable today** |
-| **Cleanup — obsolete secrets + old-object disposition** | [`0222`](../0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md) | ~0.5 day, mostly owner | Low, but carries the 🔴 `age` decision | — |
+| **Cleanup — obsolete secrets + old-object disposition** — ✅ **Done (agent-closed — not owner-verified) 2026-09-10**, 🔴 **with a KNOWINGLY ACCEPTED RESIDUAL: the old S3 access key was NEVER REVOKED and its scope was never established** (objection raised, owner overruled). 🔒 **STANDING 2026-09-11 — CLOSED BY OWNER DECISION: the revocation is DELIBERATELY NOT DONE, not outstanding work.** ⛔ **Not "resolved" — facts unchanged, objection overruled twice.** ➡️ **Repo-side purge carved out to [`0240`](../0240-purge-obsolete-profile-env-variables/brief.md)** | [`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md) | ~0.5 day, mostly owner | Low, but carries the 🔴 `age` decision | — |
 
 🔴 **THE ROW ORDER OF P2 / P3 / P4 IN THIS TABLE NO LONGER FOLLOWS THE P-NUMBERS — THAT IS DELIBERATE AND OWNER-RULED, 2026-09-10, given live in session and relayed through the spawning session.** **The ruled work order is `0218` (P3) → `0219` (P4) → `0217` (P2).** 🚨 **THIS RUNS P2 *AFTER* P3 AND P4. ⛔ DO NOT "FIX" THE TABLE BACK INTO P-NUMBER ORDER.** The P-numbers record the order the phases were **written** in on 2026-09-04; they are **not** the order they are to be **worked** in.
 
@@ -189,7 +222,14 @@ P1-spike (0216) — ✅ DONE 2026-09-10 (agent-closed — not owner-verified). P
                   intermittency, latency, get.docker.com.
 P7 (0201)      — ✅ DONE 2026-09-06 (agent-closed — not owner-verified). Three of the four
                   harnesses now run in `npm test`; the fourth is an npm script by owner ruling.
-Cleanup (0222) — owner action. 🔴 Carries the re-opened age-key decision.
+Cleanup (0222) — ✅ DONE 2026-09-10 (agent-closed — not owner-verified). Old bucket deleted (it was
+                  EMPTY). 🔴 Closed with a KNOWINGLY ACCEPTED RESIDUAL: the old S3 access key was
+                  NEVER REVOKED, scope never established — objection raised, owner overruled.
+                  🔒 STANDING 2026-09-11: CLOSED BY OWNER DECISION — the revocation is DELIBERATELY
+                  NOT DONE. Not outstanding work; nobody should pick it up. NOT "resolved": the
+                  facts are unchanged and the objection was overruled twice (09-10, 09-11).
+                  Repo-side purge carved out to 0240 (Backlog board).
+                  ⚠️ The age-key decision itself belongs to 0218, which is still OPEN.
 ```
 
 ## Verification steps
@@ -205,7 +245,7 @@ This epic is verified by its children and closes when all ten rows above close. 
 5. A restore drill against **non-empty** data, with **currently-documented** commands (P3).
 6. The **new** `age` identity's custodian, location and second copy are **written down** before the
    first backup runs (P3).
-7. 🔴 **The OLD encrypted objects — in a SEPARATE, OLD bucket** (~~reused~~ 🚨 **corrected 2026-09-08**) — **have an owner-ruled disposition** (`0222`), **chosen from THREE options**: purge the objects · keep pending a search · 🆕 abandon the whole old bucket. ⛔ **Still UNANSWERED.**
+7. ✅ ~~🔴 **The OLD encrypted objects — in a SEPARATE, OLD bucket** (~~reused~~ 🚨 **corrected 2026-09-08**) — **have an owner-ruled disposition** (`0222`), **chosen from THREE options**: purge the objects · keep pending a search · 🆕 abandon the whole old bucket. ⛔ **Still UNANSWERED.**~~ **SATISFIED 2026-09-10 — the owner ruled and executed the third option: the old bucket is DELETED.** 🚨 **And the premise was false — the bucket was EMPTY; there were no old encrypted objects at all** (owner, verbatim: *"I've already deleted the old bucket, it was empty, we never had anything there."*). ⚠️ **This does NOT satisfy item 6** — the *new* `age` identity's custody is still `0218`'s and still unrecorded. ~~🔴 **And it does NOT close `0222`, which stays open on the OLD S3 ACCESS KEY still needing REVOCATION AT THE PROVIDER.**~~ 🚨 **STALE — struck, not deleted. `0222` closed 2026-09-10 with that key as a knowingly accepted residual, and on 2026-09-11 the OWNER RULED THE REVOCATION DELIBERATELY NOT DONE** (*"Forget about the old S3 keys, mark this task as cancelled."*). 🔒 **STANDING: CLOSED BY OWNER DECISION — not outstanding work.** ⛔ **Still NOT "resolved": never revoked, scope never established, objection overruled twice.**
 8. Log rotation, image prune, an external uptime check and a `last-backup.json` consumer exist (P4).
 9. Something automatically runs all four shell harnesses (P7 / `0201`).
    ⚠️ **Partially satisfied 2026-09-06, and the wording overstates what `0201` delivered.** `npm test`

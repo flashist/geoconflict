@@ -31,9 +31,12 @@ was invoked, and this brief stays under `ai-agents/tasks/backlog/`. SCHEDULED IS
 **The reasoning, recorded because the order is not the obvious one:**
 
 - **`0218` leads** — the restore path is the **only claim in this epic still resting on faith**.
-  Backups **encrypt and upload — proven**; that a backup **RESTORES is UNPROVEN**, and the old
-  bucket's objects are permanently unreadable for exactly that reason. ✅ **Cheapest to prove NOW,
-  while every table has ZERO rows.**
+  Backups **encrypt and upload — proven**; that a backup **RESTORES is UNPROVEN**, ~~and the old
+  bucket's objects are permanently unreadable for exactly that reason.~~ 🚨 **THAT SUPPORTING EXAMPLE
+  IS RETRACTED 2026-09-10 — the old bucket was EMPTY; there were no objects** (owner, verbatim:
+  *"I've already deleted the old bucket, it was empty, we never had anything there."*). ⛔ **The
+  CONCLUSION IS UNCHANGED AND `0218` STILL LEADS:** restore is still unproven, and losing the
+  illustration does not make it proven. ✅ **Cheapest to prove NOW, while every table has ZERO rows.**
 - **`0219` second** — it owns the monitoring gap for **both** unread signals on that box: the
   **certificate renewal log** and **`/opt/profile/backups/last-backup.json`**. **Capability is proven
   for both; nobody is watching either.** **Dated fuse: the certificate's `notAfter` is 2026-11-20 and

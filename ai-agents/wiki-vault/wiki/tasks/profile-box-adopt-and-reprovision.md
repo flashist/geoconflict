@@ -128,12 +128,20 @@ physical-site attestation. The stale `Hetzner` comments in `setup.sh` / `update.
 
 ### 🚨 Residuals that survive this close
 
-1. 🔴 **THE RESTORE PATH HAS NEVER BEEN TESTED.** *"Backups are working"* here means
-   **ENCRYPT-AND-UPLOAD ONLY.** An encrypted object is produced and lands — proven. **Nobody has ever
-   proven one restores.** The old bucket is gone and its objects were unreadable, so there is no
-   historical restore to fall back on either. **Task `0218` owns this and it is OPEN.** Until it
-   closes, **this box has no proven recovery path** — acceptable at zero rows, and it must not still
-   be true when the first real citizen row is written.
+1. ~~🔴 **THE RESTORE PATH HAS NEVER BEEN TESTED.**~~ ✅ **DISCHARGED 2026-09-11 BY TASK `0218` —
+   struck, not deleted.** A backup **RESTORES**: proven twice against non-empty data, into a
+   throwaway database **and into the live database in place**, both `IDENTICAL` on counts, content
+   digests, both sequences, schema shape and three behavioural checks.
+   ⛔ **THE REPLACEMENT IS NARROWER THAN "BACKUPS WORK", AND THIS IS THE PART TO CARRY:** the
+   **SCHEDULE** and the **DATA** are proven **SEPARATELY, NEVER TOGETHER** — every cron-produced
+   object that has ever existed is a dump of an **empty** database, and the only non-empty backup was
+   **hand-run**. The measured RTOs are on 76 rows and **do not extrapolate**; the **weekly-copy path
+   has never run** (task `0241`, first attempt Sunday 2026-09-13); and this bucket's backup history is
+   **thin** — two objects before the drill, only one of them cron-produced.
+   Full record: [[tasks/profile-durability-restore-drill]].
+   *(Original text, kept: "*An encrypted object is produced and lands — proven. Nobody has ever proven
+   one restores. The old bucket is gone and its objects were unreadable, so there is no historical
+   restore to fall back on either.*" The last clause is unchanged and still true.)*
 2. 🔴 **`/opt/profile/.internal_token` now holds a STALE, SUPERSEDED token.** The environment value
    wins (`setup-profile.sh:358-359`), so the persisted file was never rewritten. Harmless **only
    while** the secret env file carries the real value. **A future deploy with a BLANK value would
@@ -218,6 +226,10 @@ value.
   nowhere in `0182`.**
 
 ### `age` key custody — the `0218` acceptance gate, partly discharged
+*(📌 **Closed out 2026-09-11:** `0218`'s step 2 — the custodian can read the key — is **discharged by
+this task's evidence**. Its step 1 — custody written down **before** the first backup ran — closed as
+**substance met, NOT a clean pass**: no timestamped artifact pins the intra-day ordering. The
+second-copy weakness below was **CARRIED unchanged and accepted, not closed.**)*
 
 Custodian: **Mark Dolbyrev**. Generated 2026-09-09 outside the repo. Primary copy in a cloud
 messenger's saved messages; second copy in a second cloud messenger. ✅ **Readability was PROVEN, not
@@ -230,6 +242,10 @@ exists is a **SECOND CLOUD COPY**. Neither store is zero-knowledge, and **both m
 phone-number recovery path** — so the two copies may not be two independent failure modes. **The owner
 was shown this and chose it deliberately.** It is a knowingly accepted residual, and `0218` should
 treat "two copies" as weaker than the count suggests.
+
+📌 **`0218` did exactly that and CARRIED it forward UNCHANGED — it is residual 8 of the eight `0218`
+closed with.** 🔴 **Owner ruling 2026-09-10: accepted as-is. ⛔ No remediation is proposed and none is
+recommended.**
 
 ### What was NOT done
 
@@ -245,7 +261,9 @@ spike's subject. `0216` was later **narrowed and closed separately on 2026-09-10
 - [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, the narrowed spike closed the same week; it proved the certificate **capability**, not monitoring
 - [[tasks/profile-server-bring-up-runbook]] — task `0182`, the runbook this task followed and whose drift it confirmed
 - [[tasks/profile-vps-provisioning]] — task `0176`, the provisioning half of `setup-profile.sh` this task re-ran
-- [[tasks/postgres-backup-routine]] — task `0189`, the backup machinery whose **restore path is still unproven**
+- [[tasks/postgres-backup-routine]] — task `0189`, the backup machinery this task configured against a new bucket and key
+- [[tasks/profile-durability-restore-drill]] — task `0218`, which discharged this task's residual 1: **a backup restores** (proven twice, 2026-09-11) — ⛔ but the **schedule** and the **data** remain proven only **separately**, and this task's `age` second-copy weakness was **carried, not closed**
+- [[tasks/profile-cleanup-obsolete-secrets]] — task `0222`, the cleanup after this rebuild; it carries the standing that the **old** access key this task replaced will **deliberately not be revoked** — ⛔ closed by owner decision, **not** revoked and **not** scope-established
 - [[tasks/citizenship-name-change]] — task `0067`, whose open question ("was migration `004` ever applied?") field **B8** settles: yes
 - [[tasks/yandex-payments-secret-forwarding]] — task `0195`, whose on-box verification step was blocked on this task
 - [[systems/player-profile-store]] — the backend this box serves

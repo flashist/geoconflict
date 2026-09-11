@@ -23,7 +23,52 @@ Replace the same-disk interim profile DB dump with a daily encrypted off-box bac
 
 T8 is complete. The profile store now has an encrypted off-box daily backup path with deploy-time smoke validation, failure markers, retention handling, and restore documentation. The first recorded restore drill verified schema, decryption, and restore flow on an empty production DB; it must be repeated with non-empty real player/entitlement data before or after paid citizenship starts carrying real value.
 
-> # 🔴 UPDATED 2026-09-10 — BACKUPS DEMONSTRABLY RUN. **THE RESTORE PATH HAS STILL NEVER BEEN TESTED.**
+> # ✅ CORRECTED 2026-09-11 — **A BACKUP RESTORES. PROVEN, TWICE.** ⛔ AND THAT IS NOT "BACKUPS WORK".
+>
+> **Task `0218` ran the durability drill on 2026-09-11 and closed
+> `✅ Done (agent-closed — not owner-verified)`.** 🔴 **The owner personally executed every command on
+> the box; no agent touched it.** Full record: [[tasks/profile-durability-restore-drill]].
+>
+> ## ✅ What is now PROVEN
+>
+> - **A backup RESTORES against NON-EMPTY data** — **twice**: into a throwaway database, and, **for
+>   the first time ever**, **into the LIVE database in place** via the `PROFILE_RESTORE_CONFIRM_LIVE`
+>   branch. Both **`IDENTICAL`** on row counts, per-table content digests, **both** sequences, the
+>   constraint/index shape and **three behavioural checks**.
+> - **The nightly schedule FIRES** — three independent signals, five consecutive days of scheduler
+>   records (2026-09-07 → 2026-09-11).
+>
+> ## ⛔ What must be said in the SAME breath — do NOT write "backups work" full stop
+>
+> 1. 🔴 **THE SCHEDULE AND THE DATA ARE PROVEN SEPARATELY, NEVER TOGETHER.** **Every cron-produced
+>    backup object that has ever existed is a dump of an EMPTY database.** The only non-empty backup
+>    was **HAND-RUN**. Closing this needs exactly **one** nightly run after real data exists.
+> 2. 🔴 **THE MEASURED RTOs (0.374 s throwaway / 0.435 s live) DO NOT EXTRAPOLATE** — 76 rows,
+>    ~21 KB. ⛔ **Never quote them as the project's recovery time.**
+> 3. 🔴 **THE WEEKLY-COPY PATH HAS NEVER RUN** against the current bucket. First attempt **Sunday
+>    2026-09-13**, tracked as task `0241`.
+> 4. ⚠️ **BACKUP HISTORY IS THIN AND WAS MISREAD ONCE ALREADY** — before the drill the current bucket
+>    held **two** objects and **only ONE was cron-produced**; the other was a deploy smoke check.
+>    Earlier nightly runs went to the **old, now-deleted** bucket. ⛔ **The nightly log's five-day
+>    history is NOT five retrievable backups.**
+> 5. ⚠️ **The `age` second-copy residual is CARRIED, not closed** — see the `age`-key section below.
+>
+> ⛔ **`0218` closed with EIGHT residuals. It is not a clean sweep and this page does not render it as
+> one.**
+>
+> 🔧 **Two real defects in `ai-agents/knowledge-base/profile-backup-restore-runbook.md` were found by
+> executing it, and both are fixed:** it named a **docker network that does not exist on the box**
+> (anyone following it in a real outage fails at `docker run`), and its live-recovery example
+> **embedded the real `POSTGRES_PASSWORD` in a URL**, leaking it into shell history and two argv
+> lists. **The password-free local-socket target is now the documented form.** ⛔ A third claim — that
+> the documented command line no longer works — was **REFUTED BY EXECUTION**; see
+> [[tasks/profile-durability-restore-drill]].
+>
+> **The block below is kept as the record of the period before that drill. Its evidence about
+> encrypt-and-upload is unchanged and still accurate; only its "never been tested" verdict is
+> superseded.**
+>
+> # ~~🔴 UPDATED 2026-09-10 — BACKUPS DEMONSTRABLY RUN. **THE RESTORE PATH HAS STILL NEVER BEEN TESTED.**~~ 🚨 **SUPERSEDED 2026-09-11 — struck, not deleted.**
 >
 > Task `0215` re-provisioned the box (adopted, not wiped) and the backup path was verified end to end
 > **as far as it goes**:
@@ -37,15 +82,18 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 >   (`RECIPIENT OK`). `setup-profile.sh:889-908` **fails the deploy CLOSED** on incomplete backup
 >   config — **that guard working is why these pre-flights exist.**
 >
-> ## 🚨 SAY IT PLAINLY: "BACKUPS ARE WORKING" MEANS **ENCRYPT-AND-UPLOAD ONLY**.
+> ## ~~🚨 SAY IT PLAINLY: "BACKUPS ARE WORKING" MEANS **ENCRYPT-AND-UPLOAD ONLY**.~~ 🚨 **SUPERSEDED 2026-09-11 — struck, not deleted**
 >
-> **Nobody has ever proven one restores.** The old bucket is gone and its objects were unreadable, so
-> **there is no historical restore to fall back on either.** 🔴 **Task `0218` owns this and it is
-> OPEN.** Until it closes, **this box has no proven recovery path** — acceptable at zero rows, and it
-> **must not still be true when the first real citizen row is written.** ⛔ **No page may imply a
-> proven recovery path.** 📌 The owner ruled 2026-09-10 that `0218` **leads** the remaining profile
-> work (`0218` → `0219` → `0217`), for exactly this reason and because a drill is **cheapest now,
-> while every table has zero rows**.
+> ~~**Nobody has ever proven one restores.**~~ ✅ **PROVEN 2026-09-11 by `0218`, twice, against
+> non-empty data — see the corrected banner at the top of this page.** ⚠️ **The replacement is
+> narrower, not broader:** what is proven is that **a backup restores**; ⛔ what is still **not**
+> proven is that a **SCHEDULED** backup captures **REAL DATA**, because the schedule and the data have
+> only ever been proven **separately**.
+>
+> The old bucket is gone, so **there is no historical restore to fall back on** — that half is
+> unchanged. 📌 The owner ruled 2026-09-10 that `0218` **lead** the remaining profile work
+> (`0218` → `0219` → `0217`), for exactly this reason and because a drill was **cheapest while every
+> table held zero rows**. **It led, and it closed 2026-09-11.**
 >
 > ### 🚨 ADDED 2026-09-10 — THE 0-ROWS DRILL CLAIM WAS FLAGGED UNSOURCED, A RETRACTION WAS **RULED BY THE OWNER**, AND IT WAS WRONG
 >
@@ -69,7 +117,15 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 >
 > ⛔ **THE GATE NEVER WEAKENED FOR ONE MOMENT.** It now rests on **two properly-cited reasons instead
 > of one half-cited one**: the drill ran on an empty DB, **and** it predates the default-deny guard, so
-> its command line no longer works. **The restore path is still unproven and `0218` still owns it.**
+> its command line no longer works. ~~**The restore path is still unproven and `0218` still owns it.**~~
+>
+> 🚨 **CORRECTED 2026-09-11 BY EXECUTION — the SECOND of those two reasons was WRONG.** The
+> **currently documented** drill command line ran **verbatim and succeeded**, default-deny override
+> included. The runbook's own claim was narrower and true (*the FIRST drill's* line differed from what
+> is documented now); ⛔ **generalising that into "the documented line is broken" was the error**, and
+> `0218`'s brief carried it. ✅ **The FIRST reason — the 2026-07-01 drill ran on an empty DB — stands
+> untouched, and the gate it supported has now been DISCHARGED rather than weakened:** the non-empty
+> restore was performed 2026-09-11. See [[tasks/profile-durability-restore-drill]].
 >
 > ⚠️ **Two different 0-rows readings, and they must NOT be conflated.** The **2026-07-01** drill's
 > empty DB is a *2026-07-01* observation. `0215`'s **2026-09-08/09** re-read of all four tables at 0
@@ -94,15 +150,45 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 > owner was shown this and chose it deliberately — a knowingly accepted residual. **`0218` should
 > treat "two copies" as weaker than the count suggests.**
 >
+> 📌 **Disposition, 2026-09-11: `0218` CARRIED this residual UNCHANGED and did NOT close it.** 🔴
+> **Owner ruling 2026-09-10: accepted as-is. ⛔ No remediation is proposed and none is recommended.**
+> ⚠️ **Do not read `0218`'s close as having resolved this.**
+>
 > ### 🔴 STORAGE — the bucket is NOT reused (owner ruling 2026-09-08)
 > A **brand-new, clean bucket** was created, superseding the 2026-09-04 reuse ruling **as to the
 > bucket only**; the VPS half is unchanged. **The owner had already deleted the old bucket.** ⇒ **All
-> six backup values are new** and the new path shares nothing with the old one. `0222`'s question
+> six backup values are new** and the new path shares nothing with the old one. ~~`0222`'s question
 > **changed shape and is STILL UNANSWERED and the owner's** — with the old bucket separable, the
 > options are **(a)** purge the objects · **(b)** keep pending a search for the old key · **(c) 🆕**
-> abandon the whole old bucket. 🔴 **Separately and unchanged: the OLD S3 ACCESS KEY MUST BE REVOKED
+> abandon the whole old bucket.~~ ✅ **ANSWERED AND CLOSED 2026-09-10 — struck, not deleted.** Option
+> **(c)** is in effect and the owner had **already executed it**; 🚨 **the premise was RETRACTED — the
+> old bucket was EMPTY and always had been, so the "permanently unreadable objects" the question was
+> about NEVER EXISTED.** ⛔ **Objects only** — the lost old `age` private identity is unchanged, and that
+> is luck, not a control. ~~🔴 **Separately and unchanged: the OLD S3 ACCESS KEY MUST BE REVOKED
 > AT THE PROVIDER, and has not been** — an overwritten local value is a live credential until revoked
-> there, required under all three options. ℹ️ The provider console **exposed no versioning or
+> there, required under all three options.~~
+>
+> 🔒 **STANDING CORRECTED 2026-09-11 — struck above, not deleted. ⛔ IT WAS NOT SATISFIED. CLOSED BY
+> OWNER DECISION: the old storage access key will DELIBERATELY NOT be revoked.** Owner, live in the
+> lead session, verbatim: *"Forget about the old S3 keys, mark this task as cancelled."* ⛔ **Not
+> outstanding work, not a task, not to be re-raised.** ⚠️ **There was no open task to cancel** — the
+> revocation was never re-filed as its own brief after `0222` closed, so the ruling is recorded against
+> the residual in `0222`'s brief; **`0222` was already `✅ Done` and stays Done — no task file was moved
+> and no mover skill was invoked.**
+>
+> ⛔ **What that decision does NOT change — do not soften any of this into "revoked", "resolved", "no
+> longer live" or "no longer a risk":** the key was **NEVER revoked at the provider**; **nobody ever
+> established its scope** — **inert** if it was bucket-scoped to the deleted bucket, **reaching the NEW
+> backup bucket** if account-wide, which would mean an untracked live credential able to list,
+> overwrite or delete the very backups `0218` proved restorable; and an objection on exactly that point
+> was put to the owner and **OVERRULED TWICE**, on **2026-09-10** and **2026-09-11**. ⚠️ **A deliberate
+> decision not to act is not the same as the risk not existing.** If an account-wide key on that
+> account is ever found: **check the key's policy at the provider first — nothing in this repository
+> can answer it** — and it is then a **new owner decision**, not a licence to revoke or to re-file.
+> ⛔ **Do NOT move this to `0240`**, which owns the `PROFILE_ID_PEPPER` / obsolete-variable purge
+> **only** and remains open and tracked. Full record: [[tasks/profile-cleanup-obsolete-secrets]].
+>
+> ℹ️ The provider console **exposed no versioning or
 > lifecycle setting** for the bucket — recorded as **UNKNOWN, not assumed either way**; a
 > cost/retention risk, not a deploy blocker.
 >
@@ -122,6 +208,9 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 > backups are wired to **fail closed at deploy**.
 >
 > 🚨 **Three gaps the rebuild's durability phase (`0218`) owns, recorded 2026-09-04:**
+> *(📌 **Status 2026-09-11:** gap 1 is **DISCHARGED** — see the corrected banner at the top of this
+> page; gap 2 is still **OPEN** and owned by `0219`; gap 3 is **answered with a knowingly accepted
+> weakness** — see the `age`-key section above.)*
 > - **The restore path has never been exercised against non-empty data.** The 2026-07-01 drill ran
 >   against an **empty (0 rows)** production DB, and it **predates the restore path's default-deny
 >   guard**, so **its command line no longer works**. The runbook's own gate stands: *"A backup that has
@@ -148,6 +237,11 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 > > **The open decision: PURGE the old encrypted objects, or KEEP them pending a search for the old
 > > private key?**
 >
+> ⛔ **NOT OPEN — this question is history.** It was **answered and closed 2026-09-10** (old bucket
+> abandoned and already deleted) and 🚨 **its premise was RETRACTED: the bucket was EMPTY — those
+> objects never existed.** See the storage banner above and
+> [[tasks/profile-cleanup-obsolete-secrets]].
+>
 > Disposition is owned by **`0222`** — 📌 renamed to
 > `0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects` and **rescoped from decommissioning
 > to cleanup**, because nothing is being decommissioned: owner, *"We don't need to cancel any
@@ -158,12 +252,14 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 ## Related
 
 - [[decisions/sprint-4]]
+- [[tasks/profile-cleanup-obsolete-secrets]] — task `0222`, the cleanup phase; 🔒 carries the standing that the **old** storage access key will **deliberately NOT be revoked** — ⛔ closed by owner decision, **not** revoked and **not** scope-established
 - [[systems/player-profile-store]]
 - [[tasks/profile-match-end-crediting]]
 - [[tasks/profile-server-bring-up-runbook]]
 - [[decisions/vps-credential-leak-response]]
 - [[systems/architecture-overview]] — profile deploy hardening and the two easily-confused Postgres instances
-- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which proved this backup path encrypts and uploads, generated the new `age` keypair and the new bucket, and left the restore path unproven
+- [[tasks/profile-durability-restore-drill]] — task `0218`, closed 2026-09-11: **a backup restores, proven twice against non-empty data** — ⛔ **and the schedule and the data are still proven only SEPARATELY**
+- [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which proved this backup path encrypts and uploads, generated the new `age` keypair and the new bucket, and left the restore path unproven until `0218`
 - [[systems/agent-conventions]] — convention 10, whose wrong-FILE recurrence is the citation defect that nearly deleted this page's 0-rows drill claim
-- [[systems/project-brief]] — the product ground truth whose "profile host" status this page's unproven restore path qualifies
+- [[systems/project-brief]] — the product ground truth whose "profile host" status this page's backup/restore standing qualifies
 - [[decisions/sprint-backlog]] — where task `0239`, filed out of that near-deletion, sits on the Backlog board

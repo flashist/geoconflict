@@ -101,8 +101,18 @@ dependency order, for the producer to brief.
 not.**
 
 1. **Ranking metric.** What ranks a player? Cumulative XP (already persisted), wins, win-rate,
-   placement points, a season score? ⚠️ Note the interaction: XP is currently credited flat per
-   qualifying match (10 XP), so an XP leaderboard ranks **participation**, not skill.
+   placement points, a season score? ⚠️ Note the interaction: XP is credited flat per
+   qualifying match ~~(10 XP)~~ **(🔴 PENDING: `1 XP` after
+   [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) ships — `10 XP` is what is
+   SHIPPED TODAY)**, so an XP leaderboard ranks **participation**, not skill.
+
+   > 📌 **Figure corrected 2026-09-10, struck not deleted — and it is a NOTE, not an action.** Under the
+   > 2026-09-10 owner ruling, `0211` takes XP per qualifying match from **10 → 1** and divides the citizenship
+   > threshold by exactly **10** (**1,000 → 100**), both shipping inside `0211`. 🚨 **NOTHING HAS SHIPPED
+   > YET — `10 XP` is still the live behaviour.** ⚠️ **The observation itself is UNCHANGED by the rescale:** flat
+   > per-match credit ranks participation rather than skill **at any constant**, so scaling `10` to `1` changes
+   > nothing about question 1. **Only the number is stale, not the argument.**
+   > ⛔ **Do not change any source to match — the constants change inside `0211`.**
 2. **Scope.** Global, seasonal, or per-mode (FFA / Teams / Duos-Trios-Quads)? One board or several?
 3. **Reset cadence.** All-time, or periodic resets? If periodic — what happens to prior standings?
 4. **Render surface.** Where does a player see it? Start screen, a modal, the win screen, or its own

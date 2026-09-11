@@ -1,4 +1,12 @@
-# Task — Citizenship Core: Earned Citizenship (1,000 XP Path)
+# Task — Citizenship Core: Earned Citizenship (~~1,000 XP~~ 100 XP Path)
+
+> 🔴 **PENDING — the `0211` rescale has NOT shipped. Every XP figure in this file is marked.**
+> Shipped behaviour **today** is the **struck** figure everywhere: **10 XP** per qualifying match, a
+> **1,000 XP** citizenship threshold. The corrected figure beside it (**1 XP** per match, **100 XP**
+> threshold) takes effect **only when [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) lands**.
+> ⛔ **[`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) owns the rescale — its scope box, its What to Build, and its verification step `4d`. This task
+> does NOT take that work back, and there is NO separate task for it.** This pass marks figures, nothing more.
+> ⚠️ **Delete these markers, and switch to the corrected figures, the moment `0211` ships — not before.**
 
 ## ID
 0017
@@ -55,7 +63,7 @@ the secret key, or Yandex payments in any form.** Its real dependencies:)*
 
 ## Context
 
-When a player's accumulated XP reaches 1,000, they automatically earn citizenship. This happens server-side at match end, as a side effect of `creditMatchXp()`. No player action is required. The earned path is fully independent of Yandex Payments.
+When a player's accumulated XP reaches ~~1,000~~ **100** (🔴 **PENDING — shipped today is the struck `1,000`; `100` takes effect only when [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) ships, which owns the change**), they automatically earn citizenship. This happens server-side at match end, as a side effect of `creditMatchXp()`. No player action is required. The earned path is fully independent of Yandex Payments.
 
 ---
 
@@ -77,6 +85,11 @@ WHERE
   AND is_citizen = false
 ```
 
+> 🔴 **PENDING — XP figure marked, not corrected in place (a strike cannot render inside a code fence).**
+> ~~`AND xp >= 1000`~~ **→ post-[`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md): `AND xp >= 100`.**
+> The `1000` in the block above is the **currently-shipped** threshold and is **correct today** — struck, not deleted.
+> ⛔ **The constants change inside `0211` and nowhere else** (`src/core/profile/Citizenship.ts`); this task does not make that edit.
+
 This must be in the same transaction as the XP increment to prevent race conditions.
 
 Return a flag indicating whether citizenship was newly granted so the caller can trigger downstream effects.
@@ -88,7 +101,16 @@ When `creditMatchXp()` returns `citizenshipNewlyGranted: true`, send a personal 
 | Field | Value |
 |---|---|
 | Title | "You've earned Geoconflict Citizenship!" / "Вы получили гражданство Geoconflict!" |
-| Body | "You've reached 1,000 XP and earned citizenship. You now have access to citizen benefits." / "Вы набрали 1,000 XP и получили гражданство. Вам теперь доступны привилегии граждан." |
+| Body | "You've reached ~~1,000~~ **100** XP and earned citizenship. You now have access to citizen benefits." / "Вы набрали ~~1,000~~ **100** XP и получили гражданство. Вам теперь доступны привилегии граждан." |
+
+> 🔴 **PENDING — PLAYER-FACING COPY. Shipped today is the struck `1,000` (both languages); `100` takes effect only when
+> [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) ships.**
+> ⚠️ **This table is an illustrative QUOTE of strings whose real home is `resources/lang/en.json` and
+> `resources/lang/ru.json`** — editing this brief changes nothing a player sees.
+> ⛔ **`0211` owns the actual rescale of those files** (its scope box, its **What to Build**, and its verification step
+> **`4d`**). **Do NOT edit the real language files from this task.**
+> 📌 The quotes here write the threshold as `1,000` in both languages. Whatever the live `ru.json` string's actual
+> number formatting is, it is `0211`'s to change, not this brief's.
 
 ### Part C — Client: real-time citizenship notification
 
@@ -105,6 +127,16 @@ Option A is simpler and sufficient for Sprint 4 — profile re-fetch on match re
 ## Localization
 
 Add to both `en.json` and `ru.json`:
+
+> 🔴 **PENDING — read before copying either block below. XP figures marked, not corrected in place (a strike cannot
+> render inside a code fence).**
+> ~~`"You've reached 1,000 XP …"` / `"Вы набрали 1,000 XP …"`~~ **→ post-[`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md): `100 XP` in both languages.**
+> The `1,000` in both blocks is the **currently-shipped** threshold and is **correct today** — struck, not deleted.
+> ⚠️ **Both blocks are illustrative QUOTES of strings whose real home is `resources/lang/en.json` and
+> `resources/lang/ru.json`.** Editing this brief changes nothing a player sees.
+> ⛔ **`0211` owns the actual rescale of those files** — recorded in its scope box, its **What to Build**, and its
+> verification step **`4d`**. **Do NOT edit the real language files from this task, and do not file a separate task
+> for it.**
 
 ```json
 "citizenship_earned": {
@@ -139,12 +171,52 @@ If a `Citizenship:Earned` funnel event is wanted in the future, add it then.
 > none require anything from Yandex. Exception: step 3 (inbox) is deferred behind the `0012` no-op
 > seam — see Dependencies.
 
-1. **Grant at threshold:** manually set a test account to 990 XP in the database. Play one qualifying match (10 XP). Confirm `is_citizen` flips to `true` and `citizenship_earned_at` is set.
+1. **Grant at threshold:** ~~manually set a test account to 990 XP in the database. Play one qualifying match (10 XP).~~ 🚨 **FIGURES CORRECTED 2026-09-10 — struck, not deleted. READ THE PENDING WARNING BELOW BEFORE RUNNING THIS STEP.** **Post-[`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) figures: manually set a test account to **99 XP** in the database. Play one qualifying match (**1 XP**).** Confirm `is_citizen` flips to `true` and `citizenship_earned_at` is set.
+
+   > 🔴🚨 **PENDING — NOTHING HAS SHIPPED YET. THE LIVE NUMBERS ARE STILL THE OLD ONES.**
+   > **If you are running this step TODAY, the shipped behaviour is `10 XP` per qualifying match and a `1,000 XP`
+   > threshold — so use `990 XP` and one match at `10 XP`, the struck figures above.**
+   >
+   > **Why the step was rewritten anyway** (owner ruling 2026-09-10, given live in session and relayed through the
+   > spawning session — *"Now, marked as pending"*): under that same day's ruling, `0211` takes XP per qualifying
+   > match from **10 → 1** and divides the citizenship threshold by exactly **10** (**1,000 → 100**). Both ship
+   > **inside `0211`**. ⛔ **This is an EXECUTABLE test step somebody will follow literally.** Left at `990`, then the
+   > moment `0211` lands the account starts **10x over** a `100` threshold — the grant fires on the pre-existing
+   > balance and **the step passes without testing the threshold at all.** A test that cannot fail is worse than no
+   > test, which is why the numbers were corrected ahead of the change rather than after it.
+   >
+   > ⚠️ **Switch to the corrected figures the moment `0211` ships, and delete this warning then — not before.**
+   > ⛔ **Do NOT change `src/core/profile/Citizenship.ts` or any other source to match: the constants change inside**
+   > **`0211`, and nowhere else.**
+   >
+   > 📌 ~~**Other `1,000` / `10 XP` figures in this brief were deliberately NOT touched by this pass**~~ — they
+   > describe **currently-shipped** behaviour (see step 6 and the Notes). ⚠️ **They are stale for the same reason and
+   > ~~will need the same treatment when `0211` ships.~~**
+   > ✅ **SUPERSEDED 2026-09-11 BY OWNER RULING — struck, not deleted. Those other figures HAVE now been given the same
+   > struck-and-marked treatment**, in the title, Context, the Part A SQL block, the Part B table, both `## Localization`
+   > quote blocks, verification step 6, and the Notes. **The file no longer carries two conventions.**
+   > ✅ **CORRECTED 2026-09-11 BY OWNER RULING — struck, not deleted; the struck clause was right that they are stale,
+   > and is now SPENT on the question of WHO owns them.** 🔴 **OWNERSHIP IS SETTLED: the rescale belongs to
+   > [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md), and it is a REQUIREMENT of that
+   > task** — recorded in its scope box, its **What to Build**, and verification step **`4d`**.
+   > ⛔ **DO NOT FILE A SEPARATE TASK FOR THIS. It is not an open gap.**
+   > 🚨 **The reason it matters, not just where it lives: the inbox copy in this brief's `## Localization` section and
+   > its Part B table is PLAYER-FACING — it ships in `resources/lang/en.json` and `resources/lang/ru.json` and states
+   > the threshold to players in both languages. It goes wrong the day `0211` ships.** ⛔ ~~**The remaining figures in
+   > THIS brief were deliberately NOT corrected — the owner did not rule that, and `0211` owns the rescale.**~~
+   > ⚠️ ~~**So this brief is knowingly left mixed: step 1 carries POST-`0211` figures behind the pending warning above,
+   > while everything else still carries PRE-`0211` figures. Read each figure with its own marker; do not assume one
+   > convention across the file.**~~
+   > ✅ **SUPERSEDED 2026-09-11 BY OWNER RULING — struck, not deleted. The owner has now ruled the sweep, so the
+   > remaining figures ARE marked and the file reads under ONE convention: every XP figure is either struck with its
+   > post-`0211` correction beside it, or plainly current.** 🔴 **The struck clauses stay right about the part that has
+   > not changed: shipped behaviour today is still the STRUCK figure everywhere, and ⛔ `0211` — not this task — still
+   > owns actually doing the rescale, including in `resources/lang/en.json` / `ru.json`.**
 2. **Idempotency:** run the threshold check twice for the same player. Confirm `is_citizen` is not set back to `false` and `citizenship_earned_at` is not overwritten.
 3. **Inbox message:** confirm the citizenship earned inbox message appears in the Personal inbox tab after the grant.
 4. **UI transition:** complete step 1 while the game is open in a browser tab. Return to the start screen after the match. Confirm the citizenship card shows State 3 (ГРАЖДАНИН) without a manual reload.
 5. **Non-qualifying match:** complete a match where the player never spawns. Confirm XP is not credited and the threshold is not triggered.
-6. **Forged citizenship (security, 2026-06-13; updated — no migrate path):** `is_citizen` / `citizenship_earned_at` must be settable ONLY by the server-side `xp >= 1000` check in `creditMatchXp()`. There is **no client→server profile upload** in Sprint 4 — the guest-migration endpoint `POST /v1/profile/migrate` was **cancelled 2026-06-13** (T2/T7 dropped; profile XP is authenticated-only), so the original "forged payload on migrate" test no longer applies. Instead, verify that **no inbound body** can flip these fields: profile creation (`upsertProfile`, first authenticated join) and crediting (`POST /internal/v1/credit`) must ignore any client-supplied `is_citizen`/`citizenship_earned_at`, and the only route to citizenship is accumulated server-credited XP ≥ 1,000.
+6. **Forged citizenship (security, 2026-06-13; updated — no migrate path):** `is_citizen` / `citizenship_earned_at` must be settable ONLY by the server-side ~~`xp >= 1000`~~ **`xp >= 100`** (🔴 **PENDING — shipped today is the struck `xp >= 1000`; use it when running this step now. `100` takes effect only when [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) ships, which owns the change**) check in `creditMatchXp()`. There is **no client→server profile upload** in Sprint 4 — the guest-migration endpoint `POST /v1/profile/migrate` was **cancelled 2026-06-13** (T2/T7 dropped; profile XP is authenticated-only), so the original "forged payload on migrate" test no longer applies. Instead, verify that **no inbound body** can flip these fields: profile creation (`upsertProfile`, first authenticated join) and crediting (`POST /internal/v1/credit`) must ignore any client-supplied `is_citizen`/`citizenship_earned_at`, and the only route to citizenship is accumulated server-credited XP ~~≥ 1,000~~ **≥ 100** (🔴 **PENDING — same marker as above: `≥ 1,000` is shipped today; `≥ 100` lands with [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md)**).
 
 ---
 
@@ -196,4 +268,4 @@ deployed **non-empty**, which waits on citizenship readiness + profile VPS setup
 - **Flip-ON coupling (2026-08-21):** shipping this task must flip `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` to `true` in `src/client/flashist/FlashistFacade.ts` — the citizenship card is hidden behind this client flag (default OFF) until launch; see [`0054-hide-citizenship-card-behind-client-flag`](../../done/0054-hide-citizenship-card-behind-client-flag/brief.md).
 - The earned path ships independently of Yandex Payments. Do not couple these tasks — earned citizenship can go live while the paid path is still awaiting catalog approval.
 - 0 XP is the starting state for all players. There is no retroactive grant for players who already have play history before this system launches — they start accumulating from 0 when the feature ships.
-- **`is_citizen` / `citizenship_earned_at` are server-derived only (2026-06-13).** This `creditMatchXp()` threshold check (`xp >= 1000`) is the sole authority for earned citizenship. These two fields must NEVER be read or persisted from any client-supplied body. *(Updated 2026-06-13: the guest→authenticated upload `POST /v1/profile/migrate` that originally carried this risk was **cancelled** with T2/T7 — Sprint 4 profile XP is authenticated-only, so there is no migration payload.)* The invariant still holds at every write path: `upsertProfile` (first authenticated join) and `creditMatchXp()` must ignore any inbound `is_citizen`/`citizenship_earned_at` and derive them from server-credited `xp`. Per the T1 schema-contract review (2026-06-13), the T1 Zod contract stays a pure never-throw validator; this trust enforcement lives on the **writer side** (T5/T6), not in T1.
+- **`is_citizen` / `citizenship_earned_at` are server-derived only (2026-06-13).** This `creditMatchXp()` threshold check (~~`xp >= 1000`~~ **`xp >= 100`** — 🔴 **PENDING: `1000` is shipped today; `100` lands with [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md), which owns the change**) is the sole authority for earned citizenship. These two fields must NEVER be read or persisted from any client-supplied body. *(Updated 2026-06-13: the guest→authenticated upload `POST /v1/profile/migrate` that originally carried this risk was **cancelled** with T2/T7 — Sprint 4 profile XP is authenticated-only, so there is no migration payload.)* The invariant still holds at every write path: `upsertProfile` (first authenticated join) and `creditMatchXp()` must ignore any inbound `is_citizen`/`citizenship_earned_at` and derive them from server-credited `xp`. Per the T1 schema-contract review (2026-06-13), the T1 Zod contract stays a pure never-throw validator; this trust enforcement lives on the **writer side** (T5/T6), not in T1.

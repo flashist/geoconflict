@@ -77,15 +77,43 @@ HERE RATHER THAN QUIETLY DROPPED.**
 session: a BRAND-NEW, CLEAN bucket. NOT the existing one. Supersedes the 2026-09-04 reuse ruling AS TO
 THE BUCKET ONLY — the VPS is still reused in place.**
 
-**The pre-existing encrypted objects sit in a SEPARATE, OLD bucket that the new backup path never
-touches.**
+~~**The pre-existing encrypted objects sit in a SEPARATE, OLD bucket that the new backup path never
+touches.**~~
+
+🚨 **RETRACTED 2026-09-10 — NOT SUPERSEDED, RETRACTED. THERE WERE NO PRE-EXISTING ENCRYPTED
+OBJECTS.** Owner ruling, given live in session and relayed through the spawning session, verbatim:
+*"I've already deleted the old bucket, it was empty, we never had anything there."* **The old bucket
+was EMPTY, always had been, and has now been deleted.**
+⚠️ **This is a dated survey and the rest of it stands as written on 2026-09-04.** The correction is
+recorded here, rather than in a separate file, because this report is what the briefs were derived
+from — leaving the claim uncorrected here is how it gets re-derived.
 
 - Those objects were encrypted to an `age` recipient whose **private identity has no recorded home** —
   every reference in this repository is policy: **no vault, no entry, no custodian, no second copy,
   no readability check.**
+  ⚠️ **THIS BULLET IS NOT RETRACTED.** The lost old key is real.
 - **When asked on 2026-09-04 what the `age` key was, the owner did not know.**
-- ⇒ **Without that private identity those objects are PERMANENTLY UNREADABLE.** They are dead weight
-  in a bucket that is being paid for.
+  ⚠️ **NOT RETRACTED.**
+- ⇒ ~~**Without that private identity those objects are PERMANENTLY UNREADABLE.** They are dead weight
+  in a bucket that is being paid for.~~
+  🚨 **RETRACTED 2026-09-10 — the bucket was empty, so nothing was ever unreadable and nothing was
+  ever being paid to store.** ⛔ **Do NOT extend this to the key itself: the old `age` identity is still
+  lost, and `0218` still owns generating a NEW keypair and recording custodian, storage location and
+  second copy as an acceptance criterion. The old key protected nothing — that is luck, not a
+  control.**
+~~🔴 **STILL OPEN and NOT closed by any of this: the OLD S3 ACCESS KEY MUST BE REVOKED AT THE PROVIDER**
+(owned by `0222`). Overwriting the local value does not revoke it; deleting the bucket does not revoke
+it.~~
+
+🔒 **STALE AS OF 2026-09-11 — struck, not deleted. CLOSED BY OWNER DECISION: THE REVOCATION WILL
+DELIBERATELY NOT BE DONE.** Owner ruling, given live in the lead session 2026-09-11, verbatim:
+*"Forget about the old S3 keys, mark this task as cancelled."* (`0222` had already closed on
+2026-09-10 carrying this as a knowingly accepted residual.) ⛔ **This is NOT an open item and NOT
+outstanding work — do not pick it up or re-file it.** ⚠️ **And it is NOT "resolved": the key was never
+revoked at the provider, and NOBODY ESTABLISHED ITS SCOPE — inert if bucket-scoped to the deleted
+bucket, reaching the NEW backup bucket if account-wide. The objection was put to the owner and
+OVERRULED TWICE, 2026-09-10 and 2026-09-11.** Full record in
+`ai-agents/tasks/done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md`.
 
 🚨 **This is an owner decision, it is STILL LIVE, and on 2026-09-08 it CHANGED SHAPE:**
 
@@ -101,9 +129,14 @@ Owned by [`0222`](#) (cleanup) for the disposition, and by `0218` (P3) for every
 **new** key. **Do not let this slide a THIRD time** — closed prematurely 2026-09-04, re-opened the
 same day, reshaped 2026-09-08, **never answered.**
 
-🔴 **Separately and unchanged: the OLD S3 ACCESS KEY MUST BE REVOKED AT THE PROVIDER, and has not
+~~🔴 **Separately and unchanged: the OLD S3 ACCESS KEY MUST BE REVOKED AT THE PROVIDER, and has not
 been.** An overwritten local value is a live credential until revoked there. **Independent of what
-happens to the old bucket** — required under all three options above. Owned by `0222`.
+happens to the old bucket** — required under all three options above. Owned by `0222`.~~
+
+🔒 **STALE AS OF 2026-09-11 — struck, not deleted. CLOSED BY OWNER DECISION: DELIBERATELY NOT DONE**
+(owner, verbatim: *"Forget about the old S3 keys, mark this task as cancelled."*). ⛔ **Not an open
+item, not outstanding work.** ⚠️ **Still NOT "resolved": never revoked, scope never established,
+objection OVERRULED TWICE (2026-09-10, 2026-09-11).** See `0222`'s brief.
 
 ---
 
@@ -450,7 +483,7 @@ a finding against the fix.
 | Q2 | ✅ **ANSWERED** — reuse the existing record; Yandex Games permits only one main domain (§3) | `0214` |
 | Q3 | **Who is the custodian of the NEW `age` private identity, where does it live, where is the second copy?** Due **before the first backup runs** | `0218` (P3) |
 | Q3b | 🔴 **STILL OPEN, and RESHAPED 2026-09-08 — what happens to the OLD encrypted objects, and now to the OLD BUCKET itself?** ~~in the reused bucket~~ **Three options: (a) purge the objects · (b) keep pending a search for the old key · (c) 🆕 abandon the whole old bucket.** **Unreadable without the old key.** ⛔ **UNANSWERED — the owner's.** See §1 | `0222` |
-| Q3c | 🔴 **NOT A QUESTION — A STANDING ACTION, NOT DONE: revoke the OLD S3 access key AT THE PROVIDER.** An overwritten local value is still live. **Independent of Q3b's outcome.** | `0222` |
+| Q3c | ~~🔴 **NOT A QUESTION — A STANDING ACTION, NOT DONE: revoke the OLD S3 access key AT THE PROVIDER.** An overwritten local value is still live. **Independent of Q3b's outcome.**~~ 🔒 **CLOSED BY OWNER DECISION 2026-09-11 — DELIBERATELY NOT DONE** (*"Forget about the old S3 keys, mark this task as cancelled."*). ⛔ **No longer a standing action; not outstanding work.** ⚠️ **NOT "resolved": never revoked, scope never established (inert if bucket-scoped, reaching the NEW bucket if account-wide), objection OVERRULED TWICE.** | `0222` (closed) |
 | Q4 | What is the current game-prod egress IP for `PROFILE_INTERNAL_ALLOW_IPS`? The pinned value is from June | `0217` (P2) |
 | Q5 | ✅ **ANSWERED** — ~2,900 matches/day ⇒ ~6,000 writes/day (§3, with its two caveats) | `0214` |
 | Q6 | Registry / `get.docker.com` / apt / Let's Encrypt reachable from reg.ru Moscow? | `0216` — ✅ **answered by running the spike, which can run today** |

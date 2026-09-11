@@ -27,7 +27,7 @@ cancellation.**
 
 📌 **One live consequence, filed elsewhere:** `PROFILE_ID_PEPPER` — the obsolete secret this reverted
 approach introduced — **is still set in the local secret env file.** Cleanup is
-[`0222`](../../backlog/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
+[`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
 
 ## Status
 ⛔ Cancelled (2026-06-28) — superseded: hashing does not remove the 152-ФЗ notification/consent obligation; PR #127 reverted

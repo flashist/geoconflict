@@ -45,6 +45,14 @@
 >   legitimately resurface as the chosen design.
 > - ⇒ **Settled: the REQUIREMENT. Open: the MECHANISM.** Do not collapse those two.
 >
+> 🔴 **RELATED OWNER RULING, 2026-09-10 — THE STALL GETS NO SEPARATE BRIEF, AND THAT IS A DECISION,
+> NOT AN OVERSIGHT.** Given live in session and relayed through the spawning session. 🚨 **This
+> CONFIRMS the existing deliberate non-filing — ⛔ stop reading the missing stall brief as a gap.**
+> **Owner's stated reasoning:** *"fix the stall"* is still a **legitimate candidate mechanism** for the
+> survivor-mechanism choice above, and **filing a brief now could pre-empt it.**
+> 🔴 **REOPEN CONDITION, RECORDED: file the stall brief IF `0211`'s plan picks a mechanism OTHER THAN
+> fixing the stall.** ⚠️ **This changes NOTHING about the requirement/mechanism split above.**
+>
 > ## Ruling 2 — `0211` covers TEAM MODE as well as FFA
 >
 > 🔴 **`checkWinnerTeam()` has the SAME guard shape as `checkWinnerFFA()`** — a bot-team-led
@@ -144,16 +152,68 @@
 > note in **Notes** for the producer's recommendation on that — ⛔ **which is a recommendation to the
 > owner, NOT part of this task's scope.**
 >
-> ## ✅ Ruling 3 — the XP amount stays 10 flat. Decision DEFERRED, not made.
+> ## ~~✅ Ruling 3 — the XP amount stays 10 flat. Decision DEFERRED, not made.~~ 🔴 SUPERSEDED 2026-09-10 — THE AMOUNT IS **1 XP**
 >
-> **Owner's reasoning: do not change two things at once.** Ship the crediting fix with the **existing
-> amount**, see the data, then tune.
+> ~~**Owner's reasoning: do not change two things at once.** Ship the crediting fix with the **existing
+> amount**, see the data, then tune.~~
 >
-> 🔴 **This is a DELIBERATE HOLD, NOT AN OVERSIGHT.** ⚠️ **The architect's point stands and must stay
-> recorded:** moving the trigger earlier **changes what the number means** — under this task, a player
-> who dies **30 seconds in** is paid **the same** as one who plays to the end. **The owner knows this
-> and chose to ship first and tune after data.** ⛔ **Do not "fix" the flat 10 inside this task, and do
-> not let a plan quietly introduce scaling.**
+> ~~🔴 **This is a DELIBERATE HOLD, NOT AN OVERSIGHT.**~~
+>
+> 🔴🔴 **SUPERSEDED 2026-09-10 BY THE OWNER'S OWN LATER RULING. THIS REVERSES THEIR EARLIER DECISION.**
+> Given live in session and relayed through the spawning session.
+> ⛔ **The ruling above is STRUCK, NOT DELETED. It was CORRECT WHEN GIVEN and is now SPENT** — struck-
+> don't-delete, so nobody re-derives "hold at 10" from a half-erased record.
+> ℹ️ **Numbering note:** this ruling is labelled **Ruling 3** here and **(4)** on the
+> [Sprint 4](../../../sprints/plan-sprint-4.md) row. **Same ruling, two numberings — identify it by
+> content**, not by number.
+>
+> **THE NEW RULING — owner, verbatim:**
+> *"My decision is that instead of 10, we should give 1 XP. The logic is: if in the future we would
+> like to change it, the players will be more willingly accepting if we change the amount of given XP
+> in the greater side, rather than in the smaller. If we change it to 1XP, then the amount of XP that
+> is needed to be collected to get citizenship also should be 10x smaller."*
+>
+> 🚨 **RECORD THE REASONING, NOT JUST THE NUMBER.** The reasoning is the justification for the
+> **DIRECTION** of any future change: **players accept an award going UP; they do not accept it going
+> DOWN. Start low so every later move can be upward.** ⛔ **A future planner must not treat `1` as an
+> arbitrary constant and "round it back up" for tidiness.**
+>
+> 🔴 **THE CITIZENSHIP THRESHOLD — OWNER-RULED, FIRM: DIVIDE IT BY EXACTLY 10.** Time-to-citizenship
+> must be **unchanged**. ⛔ **"About 10x" is not the ruling — it is EXACTLY 10x.** ✅ **This is a
+> REQUIREMENT OF `0211`**, not a follow-up and not a nice-to-have.
+> ⚠️ **The current threshold value still has to be LOCATED IN CONFIG AT PLAN TIME.** 🚨 **The producer
+> has NOT touched any config or source and did not go looking — this brief records SCOPE only.**
+>
+> 🔴 **THE PLAYER-FACING COPY IS PART OF THIS REQUIREMENT — OWNER-RULED 2026-09-11, given live in
+> session and relayed through the spawning session.** ✅ **A REQUIREMENT, not a note and not a
+> "consider".** **Every user-visible string that STATES the citizenship XP threshold (or the per-match
+> XP award) must be rescaled in the SAME change**, in **BOTH** `resources/lang/en.json` **and**
+> `resources/lang/ru.json` — which this project's standing rule already requires to be kept in sync.
+> **Owner's reasoning, as put and accepted:** `0211` already carries *divide the threshold by exactly
+> 10*, so **the strings that state that threshold to players belong in the same change — they ship or
+> break together, and splitting them is how one gets forgotten.**
+> ⛔ **NO LINE-NUMBER LIST IS GIVEN ON PURPOSE.** Line numbers drift, and the figures in
+> [`0017`](../0017-citizenship-earned/brief.md) have already been corrected twice this week. **Find
+> the strings by CONTENT/KEY, and SWEEP for the figures at plan time rather than trusting any list.**
+> 📍 **Known starting point, not the scope:** the `citizenship_earned` inbox strings (`inbox_body`,
+> stating *"1,000 XP"* / *"1 000 XP"* in both languages) are drafted in `0017`'s **Localization**
+> section and its **Part B** table. ⚠️ **Sweep both language files for the figures themselves** — any
+> string stating the threshold or the award goes wrong the day `0211` ships.
+> 🚨 **Producer touched NO localisation file and NO source — this records SCOPE only.**
+>
+> 🔴 **SCOPE — OWNER-RULED WHEN THE PRODUCER PUT IT TO THEM: FOLD IT INTO `0211`.** `0211` ships the
+> **new crediting trigger AND the 1 XP amount TOGETHER**.
+> 🚨 **THE COST WAS SHOWN TO THE OWNER BEFORE THEY CHOSE, AND THEY ACCEPTED IT: a post-deploy XP
+> anomaly CANNOT BE ATTRIBUTED between the trigger change and the amount change.** ⛔ **That is an
+> ACCEPTED COST, NOT A DEFECT, and it is NOT to be re-litigated.** The owner was offered and
+> **DECLINED** both alternatives: a separate amount task shipping **before** `0211`, and one shipping
+> **after**.
+>
+> ⚠️ **THE ARCHITECT'S POINT IS NOT DISMISSED BY THIS AND MUST STAY RECORDED:** moving the trigger
+> earlier **changes what the number means** — a player who dies **30 seconds in** is paid **the same**
+> as one who plays to the end. **That was true at 10 and is equally true at 1.**
+> ⛔ **Do not let a plan quietly introduce scaling** — the amount is **flat 1**, and scaling is still
+> out of scope.
 >
 > ## 🔴 Ruling 4 — crediting at elimination DELIBERATELY REVERSES THE LEAVER RULE. This is intended.
 >
@@ -623,11 +683,55 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
   that could break it. Do not introduce Singleplayer crediting.** ⚠️ **The property is UNENFORCED —
   no guard, no test, no comment** — so a green suite does not prove it survived. See the scope box at
   the top and the *unenforced* note in **Notes**.
-- 🔴 **XP AMOUNT: HOLD AT 10 FLAT — owner ruling, 2026-09-04. A deliberate hold, not an oversight.**
+- ~~🔴 **XP AMOUNT: HOLD AT 10 FLAT — owner ruling, 2026-09-04. A deliberate hold, not an oversight.**
   *"Do not change two things at once"* — ship the crediting fix at the existing amount, see the data,
-  then tune. ⚠️ **The architect's point stands and is recorded, not dismissed:** the trigger moving
-  earlier **changes what the number means** — dying 30 seconds in now pays the same as playing to the
-  end. ⛔ **Do not introduce scaling in this task, and do not present the flat 10 as unexamined.**
+  then tune.~~
+  🔴🔴 **SUPERSEDED 2026-09-10 — XP AMOUNT IS **1 FLAT**, AND IT IS **IN SCOPE OF THIS TASK**.**
+  Owner ruling given live in session, **reversing their own 2026-09-04 ruling above** (struck, not
+  deleted — it was correct when given and is now spent).
+  **Verbatim:** *"My decision is that instead of 10, we should give 1 XP. The logic is: if in the
+  future we would like to change it, the players will be more willingly accepting if we change the
+  amount of given XP in the greater side, rather than in the smaller. If we change it to 1XP, then the
+  amount of XP that is needed to be collected to get citizenship also should be 10x smaller."*
+  🚨 **The reasoning is part of the requirement: awards may later move UP, never DOWN. Do not treat
+  `1` as an arbitrary constant.**
+  🔴 **SECOND, FIRM REQUIREMENT — DIVIDE THE CITIZENSHIP XP THRESHOLD BY EXACTLY 10**, so
+  time-to-citizenship is **unchanged**. ⛔ **"Roughly 10x" is not the ruling.**
+  📍 **WHERE THEY LIVE — ✅ producer-verified READ-ONLY on 2026-09-10, nothing changed:**
+  `src/core/profile/Citizenship.ts` declares `CITIZENSHIP_XP_THRESHOLD = 1000` (`:15`) and
+  `XP_PER_MATCH = 10` (`:18`). Its own header calls it *"the single source of truth"*, shared by the
+  client and the profile server. ⇒ **1000 → 100, and 10 → 1.**
+  ⚠️ **THAT POINTER IS A STARTING POINT, NOT THE SCOPE.** 🚨 **The producer did NOT trace the
+  consumers.** **At plan time, find EVERY reader of both constants** — the crediting SQL, the client
+  card, any test fixture or seeded value that hardcodes `10` or `1000` instead of importing them —
+  because a hardcoded copy will silently keep the old economy. ⛔ **The producer changed NO config and
+  NO source; this bullet records SCOPE.**
+  🔴 **THIRD, FIRM REQUIREMENT — ADDED 2026-09-11 BY OWNER RULING (live in session, relayed through
+  the spawning session): RESCALE THE PLAYER-FACING COPY IN THE SAME CHANGE.** ✅ **A REQUIREMENT, not
+  a note and not a "consider".** **Every user-visible string that STATES the citizenship XP threshold
+  (or the per-match award) must be rescaled here**, in **BOTH** `resources/lang/en.json` **and**
+  `resources/lang/ru.json` — the project's standing rule already requires those two to stay in sync.
+  **Owner's reasoning:** this task already carries *divide the threshold by exactly 10*, so **the
+  strings that state that threshold to players belong in the same change — they ship or break
+  together, and splitting them is how one gets forgotten.**
+  ⛔ **NO LINE-NUMBER LIST, DELIBERATELY.** Line numbers drift and
+  [`0017`](../0017-citizenship-earned/brief.md)'s have already been corrected twice this week.
+  **Locate the strings by CONTENT/KEY and SWEEP both language files for the figures at plan time** —
+  do not trust any enumerated list, including this bullet's pointer.
+  📍 **Starting point, NOT the scope:** the `citizenship_earned` inbox copy (`inbox_body`, stating the
+  threshold in both languages) is drafted in `0017`'s **Localization** section and its **Part B**
+  table. ⚠️ **`0017` still carries other pre-rescale figures in its own prose and SQL snippets; those
+  are `0211`'s to correct when it ships — `0017` is NOT being edited to match, by ruling.**
+  🚨 **The producer touched NO localisation file and NO source; this records SCOPE only.**
+  🔴 **BOTH SHIP INSIDE `0211`, TOGETHER WITH THE TRIGGER CHANGE — owner-ruled when the producer put
+  the scope question to them.** 🚨 **ACCEPTED COST, SHOWN TO THE OWNER BEFORE THEY CHOSE: a
+  post-deploy XP anomaly CANNOT be attributed between the trigger change and the amount change.**
+  ⛔ **That is an ACCEPTED COST, NOT A DEFECT — do not re-litigate it, and do not split the task to
+  "make it attributable". The owner declined a separate task both before and after.**
+  ⚠️ **The architect's point stands and is recorded, not dismissed:** the trigger moving earlier
+  **changes what the number means** — dying 30 seconds in now pays the same as playing to the end.
+  **True at 10, equally true at 1.** ⛔ **Do not introduce scaling in this task** — the amount is
+  **flat 1**.
 - 🔴 **THE LEAVER RULE IS DELIBERATELY REVERSED FOR ELIMINATED PLAYERS — owner ruling, 2026-09-04.
   ⛔ DO NOT "FIX" THIS BACK.** Today, `qualifiesForMatchXp` in `src/core/profile/MatchQualification.ts`
   (`:43-45`, doc comment `:35-42`, ✅ producer-verified against committed `8f6e478`) returns
@@ -655,6 +759,19 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
    ✅ **AMENDED 2026-09-04 BY OWNER RULING — struck, not deleted; it was accurate when written.**
    ⚠️ **Singleplayer is STILL OUT OF SCOPE.** ⛔ **What follows is a VERIFICATION obligation, NOT an
    implementation one. It does not widen this task by one line of behaviour.**
+
+4b. 🔴 **ADDED 2026-09-10 BY OWNER RULING — THE AMOUNT CREDITED IS **1 XP**, AND THE CITIZENSHIP XP
+   THRESHOLD IS DIVIDED BY EXACTLY 10.** *(Numbered `4b` so the step numbers below stay stable.)*
+   - **Every crediting path in scope pays `1`, not `10`** — proven by test, not by reading the diff.
+   - 🔴 **The citizenship threshold is EXACTLY one tenth of its previous value**, so
+     **time-to-citizenship is unchanged.** ⛔ **"About a tenth" fails this step.**
+   - ⚠️ **State in the worklog WHERE the threshold lives in config and what it moved from and to.**
+     🚨 **The producer did NOT locate it — finding it is plan-time work, and the brief deliberately
+     does not name a file it has not verified.**
+   - 🚨 **ACCEPTED COST, RECORDED SO IT IS NOT REPORTED AS A DEFECT LATER: because the trigger change
+     and the amount change ship together, a post-deploy XP anomaly CANNOT be attributed between them.**
+     ⛔ **The owner was shown this before choosing and accepted it. Do not re-litigate it and do not
+     split the task.**
 
 4c. 🔴 **ADDED 2026-09-04 BY OWNER RULING — A SINGLEPLAYER / LOCAL MATCH CREDITS ZERO XP. Assert it in
    a regression test.** *(Numbered `4c` so the step numbers below stay stable.)*
@@ -699,7 +816,25 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
    a test** — it is a **deliberate reversal of existing behaviour** and, without a test naming it, a
    later reader will read it as a regression and undo it. ⚠️ **Also assert the case the ruling did
    NOT change: a player who vanishes WITHOUT ever being eliminated.** *(Numbered `4b` rather than
-   renumbered so the step numbers below stay stable.)*
+   renumbered so the step numbers below stay stable.)* ⚠️ **Label collision, pre-existing and left
+   alone: there are TWO steps labelled `4b` in this section** — this one and the XP-amount step above.
+   **Identify them by content, not by label**; renumbering would break the stability the labels exist
+   to protect.
+
+4d. 🔴 **ADDED 2026-09-11 BY OWNER RULING — NO USER-VISIBLE STRING STILL STATES A PRE-RESCALE XP
+   FIGURE.** *(Numbered `4d` so the step numbers below stay stable. It verifies the copy half of the
+   rescale in `4b` above.)*
+   - **Sweep BOTH `resources/lang/en.json` AND `resources/lang/ru.json`** for any string stating the
+     citizenship XP threshold or the per-match XP award. ⛔ **After this change, NONE may state a
+     pre-rescale figure — in either language.**
+   - ⚠️ **Both files, every time.** The project's standing rule is that `en.json` and `ru.json` stay
+     in sync; 🚨 **a figure corrected in one and missed in the other FAILS this step** — it is not a
+     detail to be tidied later. Russian copy may format the number differently (for example a space as
+     the thousands separator), so **sweep for the FIGURE, not for an English-formatted literal.**
+   - ⛔ **Do NOT verify this against a list of line numbers** — line numbers drift. Sweep the files.
+   - ⚠️ **Reading the diff is NOT this step.** The failure mode this step exists to catch is a string
+     that was **never touched at all**, which a diff review cannot see.
+
 5. 🔴 **A player eliminated in a match that later ends is credited EXACTLY ONCE.** This is the
    double-credit case and it is the one most likely to regress silently. **Test it explicitly.**
 6. **The `maxGameDuration` cap path credits** — the observed failing case
@@ -795,6 +930,13 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
 ⚠️ **Two of the four below were RULED on 2026-09-04. Struck, not deleted — the strikes are the record
 that they were open and are now answered.**
 
+🔴 **UPDATED 2026-09-10 — items 3, 4 and 5 moved again.** **Item 4 (XP amount) was REVERSED by the
+owner's own later ruling: the amount is now **1 XP**, not 10, and the tuning question is CLOSED BY
+DECISION rather than by filing a task.** **Items 3 and 5 (the match stall) are RULED as a HOLD — no
+separate brief, deliberately, with a recorded reopen condition.** ⛔ **All prior text struck, not
+deleted.** ✅ **NOTHING IN THIS LIST REMAINS OPEN except the architect's own §11 questions noted at the
+foot.**
+
 1. ~~🚩 **STILL OPEN — Scheduling.** Not ruled. This stays on the unscheduled backlog board and the
    rank is the producer's.~~ ✅ **RULED 2026-09-04 — SCHEDULED INTO SPRINT 4.** The owner **declined**
    the producer's "leave it unscheduled" recommendation; their reasoning: **the XP loss is measured
@@ -834,21 +976,49 @@ that they were open and are now answered.**
    stall so survivors reach a normal match end) was **considered and not chosen as the scope
    decision** — ⛔ **but is NOT forbidden as the plan's mechanism.** See the scope box at the top and
    the constraint in *What to Build*.
-   🚩 **What remains open here: whether the stall gets a task of its own.** ⛔ **No separate stall
+   ~~🚩 **What remains open here: whether the stall gets a task of its own.** ⛔ **No separate stall
    brief has been filed, deliberately** — the owner has not ruled on one, and filing one now could be
-   read as pre-empting the mechanism choice.
+   read as pre-empting the mechanism choice.~~
+   ✅ **RULED 2026-09-10 — HOLD, no brief; see item 5 below for the ruling and its reopen condition.**
 4. ~~🚩 **STILL OPEN — How much XP, and on what basis?** … **undecided** — ⚠️ and Ruling 1 adds the
    same question for SURVIVORS of a match that never ends.~~
-   ✅ **ANSWERED 2026-09-04 — HOLD AT 10 FLAT; the decision is DEFERRED, not made.** Owner's reasoning:
+   ~~✅ **ANSWERED 2026-09-04 — HOLD AT 10 FLAT; the decision is DEFERRED, not made.** Owner's reasoning:
    **do not change two things at once** — ship the crediting fix at the existing amount, see the data,
-   then tune. ⛔ **Record this as a DELIBERATE HOLD, not an oversight.** ⚠️ **The architect's point
-   STANDS and is not dismissed by the hold:** moving the trigger earlier **changes what the number
-   means** — a player who dies **30 seconds in** is paid **the same** as one who plays to the end.
-   🚩 **Genuinely still open: the tuning itself, after data.** No task exists for it and none was
-   filed — the owner has not ruled on one.
-5. 🚩 **STILL OPEN — does the stall get a task of its own?** ⛔ **No separate stall brief has been
+   then tune. ⛔ **Record this as a DELIBERATE HOLD, not an oversight.**~~
+   🔴🔴 **SUPERSEDED 2026-09-10 — THE ANSWER IS NOW **1 XP**, AND THIS REVERSES THE OWNER'S OWN
+   EARLIER RULING.** Given live in session and relayed through the spawning session. ⛔ **The 2026-09-04
+   answer is STRUCK, NOT DELETED — it was CORRECT WHEN GIVEN and is now SPENT.**
+   **Owner, verbatim:** *"My decision is that instead of 10, we should give 1 XP. The logic is: if in
+   the future we would like to change it, the players will be more willingly accepting if we change the
+   amount of given XP in the greater side, rather than in the smaller. If we change it to 1XP, then the
+   amount of XP that is needed to be collected to get citizenship also should be 10x smaller."*
+   🚨 **The REASONING is part of the record, not just the number** — it justifies the **direction** of
+   any future change: **awards may go UP, never DOWN.**
+   🔴 **THRESHOLD: the citizenship XP requirement is divided by EXACTLY 10** so time-to-citizenship is
+   unchanged. **A requirement of `0211`.** ⚠️ **Its current value must be located in config AT PLAN
+   TIME — the producer changed no config or source.**
+   🔴 **SCOPE, owner-ruled: FOLDED INTO `0211`** — trigger and amount ship together. 🚨 **ACCEPTED
+   COST, shown to the owner before they chose: a post-deploy XP anomaly cannot be attributed between
+   the two changes. NOT a defect; NOT to be re-litigated.** Both alternatives (a separate task before,
+   or after) were **declined**.
+   ⚠️ **The architect's point STANDS and is not dismissed:** moving the trigger earlier **changes what
+   the number means** — a player who dies **30 seconds in** is paid **the same** as one who plays to
+   the end. **True at 10; equally true at 1.**
+   ~~🚩 **Genuinely still open: the tuning itself, after data.** No task exists for it and none was
+   filed — the owner has not ruled on one.~~
+   ✅ **CLOSED 2026-09-10 BY DECISION, NOT BY FILING A TASK.** ⛔ **Do not file an XP-amount tuning
+   task and do not report this as an unfiled gap** — the owner decided the amount instead of deferring
+   it to data.
+5. ~~🚩 **STILL OPEN — does the stall get a task of its own?** ⛔ **No separate stall brief has been
    filed, deliberately** — the owner has not ruled on one, and filing it now could be read as
-   pre-empting the survivor mechanism choice (see the considered-but-not-chosen note above).
+   pre-empting the survivor mechanism choice (see the considered-but-not-chosen note above).~~
+   ✅ **RULED 2026-09-10 — HOLD. NO SEPARATE BRIEF IS FILED, AND THIS IS NOW AN OWNER RULING.** Given
+   live in session and relayed through the spawning session. 🚨 **This CONFIRMS the existing deliberate
+   non-filing — ⛔ STOP READING THE ABSENT BRIEF AS AN OVERSIGHT OR A GAP. It is a decision.**
+   **Owner's stated reasoning:** *"fix the stall"* remains a **legitimate candidate mechanism for
+   `0211`'s own survivor-mechanism choice**, and filing a brief now could **pre-empt** that choice.
+   🔴 **REOPEN CONDITION, RECORDED: file the stall brief IF `0211`'s plan picks a mechanism OTHER THAN
+   fixing the stall.**
 
 📎 **Separately, the architect's report carries its OWN open questions for the owner (its §11).** They
 are **not** answered here and **not** duplicated into this list — **the coordinator is putting them to

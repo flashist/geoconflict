@@ -114,12 +114,46 @@ Provide the operator runbook for turning the merged profile deploy machinery int
 > 🔴 **STORAGE, CORRECTED 2026-09-08 (owner ruling):** the S3 bucket is **NOT** reused. A **brand-new,
 > clean bucket** was created — superseding the 2026-09-04 reuse ruling **as to the bucket only**; the
 > **VPS half is unchanged**. The owner had already deleted the old bucket. ⇒ **All six backup values
-> are new.** `0222`'s question **reshaped and is still UNANSWERED**: purge the objects · keep pending a
+> are new.** ~~`0222`'s question **reshaped and is still UNANSWERED**: purge the objects · keep pending a
 > search for the old key · 🆕 abandon the whole old bucket. **The old S3 access key still has to be
-> revoked at the provider and has not been.**
+> revoked at the provider and has not been.**~~
 >
-> 🔴 **What this runbook still cannot get you: a proven recovery path.** *"Backups are working"* means
-> **encrypt-and-upload only** — `0218` is open. See [[tasks/postgres-backup-routine]].
+> ✅🔒 **BOTH CLAUSES CORRECTED — struck above, not deleted.** **(1)** `0222`'s question was **ANSWERED
+> AND CLOSED 2026-09-10** — the owner abandoned the old bucket and had **already deleted it**, and
+> 🚨 **the premise was RETRACTED: the bucket was EMPTY and always had been, so those "permanently
+> unreadable objects" NEVER EXISTED** (⛔ objects only; the lost old `age` private identity is
+> unchanged). **(2) 🔒 STANDING CORRECTED 2026-09-11 — ⛔ THE REVOCATION WAS NOT SATISFIED. CLOSED BY
+> OWNER DECISION: it will DELIBERATELY NOT be done.** Owner, live in the lead session, verbatim:
+> *"Forget about the old S3 keys, mark this task as cancelled."* ⛔ **Not outstanding work, not a task,
+> not to be re-raised.** ⚠️ **There was no open task to cancel** — never re-filed as its own brief after
+> `0222` closed, so the ruling is recorded against the residual in `0222`'s brief; **`0222` was already
+> `✅ Done` and stays Done — no task file was moved and no mover skill was invoked.**
+>
+> ⛔ **What that decision does NOT change — do not soften any of this into "revoked", "resolved", "no
+> longer live" or "no longer a risk":** the key was **NEVER revoked at the provider**; **nobody ever
+> established its scope** — **inert** if it was bucket-scoped to the deleted bucket, **reaching the NEW
+> backup bucket** if account-wide; and an objection on exactly that point was put to the owner and
+> **OVERRULED TWICE**, on **2026-09-10** and **2026-09-11**. ⚠️ **A deliberate decision not to act is
+> not the same as the risk not existing.** If an account-wide key on that account is ever found:
+> **check the key's policy at the provider first — nothing in this repository can answer it** — and it
+> is then a **new owner decision**, not a licence to revoke or to re-file. ⛔ **Do NOT move this to
+> `0240`**, which owns the `PROFILE_ID_PEPPER` / obsolete-variable purge **only** and remains open and
+> tracked. Full record: [[tasks/profile-cleanup-obsolete-secrets]].
+>
+> ~~🔴 **What this runbook still cannot get you: a proven recovery path.** *"Backups are working"*
+> means **encrypt-and-upload only** — `0218` is open.~~
+>
+> ✅ **CORRECTED 2026-09-11 — struck, not deleted. A BACKUP RESTORES.** Task `0218` proved it twice
+> against non-empty data, into a throwaway database **and into the LIVE database in place**, both
+> `IDENTICAL` on counts, content digests, both sequences, schema shape and three behavioural checks.
+> ⛔ **The honest replacement is narrower than "backups work": the SCHEDULE and the DATA are proven
+> SEPARATELY, NEVER TOGETHER** — every cron-produced object that has ever existed is a dump of an
+> **empty** database, and the only non-empty backup was **hand-run**. The recovery times measured are
+> on **76 rows** and **do not extrapolate**; the **weekly-copy path has never run** (`0241`).
+>
+> 📌 **This page's §8 counterpart in `0182`'s own brief was updated the same day by the producer** —
+> the superseded bullet is **struck, not deleted**, there too. See
+> [[tasks/profile-durability-restore-drill]] and [[tasks/postgres-backup-routine]].
 
 T4i is an operations artifact, not a code change. ~~The operator bring-up has been completed: the real reg.ru host is provisioned, DNS points at `api.geoconflict.ru`, and HTTPS `/health` returns 200 over valid TLS.~~ 🔴 **CORRECTED 2026-09-04 — WHETHER THE HOST THIS RUNBOOK BROUGHT UP IS STILL SERVING IS UNVERIFIED.** ⚠️ **This supersedes an earlier same-day annotation here reading "NO LONGER STANDS"; that overstated the owner's position and is withdrawn.** Owner rulings, both live in session 2026-09-04 and **both standing**: *"We don't have ANY profile-related VPS yet, we would need to have a full-scale setup for it (whatever is needed)"*, then, on a direct follow-up, *"We don't need to cancel any billings, the VPS and S3 I created will be reused."* 🔴 **Reconciled: the box physically EXISTS and is REUSED IN PLACE; its provisioning state — what runs on it, what schema version the DB is at — is UNKNOWN AND UNVERIFIED.** The bring-up genuinely ran once. ⛔ **The RUNBOOK ITSELF is not invalidated — it is the asset the rebuild reuses**, and this page is the vault's record of it. T4g deploy hardening, T5 real profile endpoints, T6 match-end crediting, and T8 off-box backups all landed **in the repository**; whether any of them is running today is one of the UNKNOWN fields `0215` must read.
 
@@ -163,6 +197,7 @@ T4i is an operations artifact, not a code change. ~~The operator bring-up has be
 ## Related
 
 - [[decisions/sprint-4]] — parent sprint and current profile-store sequence
+- [[tasks/profile-cleanup-obsolete-secrets]] — task `0222`, the cleanup phase; 🔒 carries the standing that the **old** storage access key will **deliberately NOT be revoked** — ⛔ closed by owner decision, **not** revoked and **not** scope-established
 - [[decisions/profile-deploy-hardening-review-loop]] — T4 slice discipline and residuals
 - [[tasks/profile-vps-provisioning]] — T4d provisioning code and host boundary
 - [[tasks/profile-build-push-digest]] — T4e1 local build/push/digest workflow
@@ -172,6 +207,7 @@ T4i is an operations artifact, not a code change. ~~The operator bring-up has be
 - [[tasks/profile-deploy-hardening]] — T4g deploy argv/concurrency and wrong-host hardening
 - [[tasks/profile-backend-db-api]] — T5 DB/API slice that follows the live host milestone
 - [[tasks/postgres-backup-routine]] — T8 encrypted off-box profile DB backup and restore path
+- [[tasks/profile-durability-restore-drill]] — task `0218`, which superseded this runbook's §8 backup-limitation bullet: **a backup restores** — ⛔ **but the schedule and the data are proven only SEPARATELY**
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which followed this runbook, adopted the box rather than wiping it, and measured this runbook's drift
 - [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, which proved the TLS renewal step of this runbook end to end against LE staging
 - [[systems/agent-conventions]] — convention 10, the citation rule every 2026-09-10 drift on this page is an instance of, and where the corrected attribution is recorded

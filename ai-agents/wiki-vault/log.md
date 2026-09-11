@@ -2988,3 +2988,90 @@ third citation recurrence to the wiki librarian; the `0239` brief row says the o
 the file supports `0239`.** The vault cannot edit that document (ADR-005) — routed to a human.
 
 **Watermark advanced `589249c` → `00058df`.**
+
+## 2026-09-11 — ingest
+
+- Ingested: `ai-agents/tasks/done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/worklog.md`
+  (the drill's evidence packet), the sibling `brief.md` (closing record, seven verification verdicts,
+  eight residuals), and the corrected
+  `ai-agents/knowledge-base/profile-backup-restore-runbook.md` → **created**
+  [[wiki/tasks/profile-durability-restore-drill]].
+- **Purpose of this ingest: correct a now-FALSE claim carried vault-wide.** *"THE RESTORE PATH HAS
+  NEVER BEEN TESTED"* — and its paraphrases (*"backups are encrypt-and-upload only"*, *"restore
+  unproven"*, *"nobody has ever proven one restores"*) — appeared on **seven** pages plus `index.md`
+  and is superseded as of 2026-09-11. Every occurrence was **struck, not deleted**, and replaced with
+  the two-part statement below.
+- ✅ **What replaces it:** a backup **RESTORES** — proven twice against **non-empty** data, into a
+  throwaway database and, for the first time ever, **into the live database in place**; both
+  `IDENTICAL` on row counts, per-table content digests, both sequences, schema shape and three
+  behavioural checks. The nightly **schedule fires**, on three independent signals.
+- ⛔ **What was deliberately NOT written, on the caller's instruction and the worklog's own wording:**
+  no page says *"backups work"* or *"the restore path is proven"* full stop. Every restatement carries
+  that **THE SCHEDULE AND THE DATA ARE PROVEN SEPARATELY, NEVER TOGETHER** (every cron-produced object
+  that has ever existed is a dump of an empty database; the only non-empty backup was hand-run), that
+  the measured RTOs are on 76 rows and **do not extrapolate**, that the **weekly-copy path has never
+  run** (task `0241`, first attempt Sunday 2026-09-13), that backup history is **thin and was misread
+  once already**, that the **`age` second-copy residual is carried, not closed**, and that `0218`
+  closed **`(agent-closed — not owner-verified)` with EIGHT residuals**.
+- Updated: [[wiki/tasks/postgres-backup-routine]], [[wiki/tasks/profile-box-adopt-and-reprovision]],
+  [[wiki/tasks/profile-server-bring-up-runbook]], [[wiki/systems/player-profile-store]],
+  [[wiki/systems/project-brief]], [[wiki/systems/architecture-overview]],
+  [[wiki/decisions/sprint-4]], and `index.md` (three stale entries corrected, one new entry added).
+- Also captured as durable knowledge: **two real defects in the backup/restore runbook, both found
+  only by executing it and both now fixed** — it named a **docker network that does not exist on the
+  box** (anyone following it in a real outage fails at `docker run`), and its live-recovery example
+  **embedded the real database password in a URL**, leaking it into shell history and two argv lists.
+  The **password-free local-socket target is now the documented form.** A third claim — that the
+  documented command line no longer works — was **REFUTED BY EXECUTION**, and `0218`'s own brief had
+  overstated the runbook's narrower claim.
+- Mid-run scope addition from the caller: **`0241` became a canonical `Depends on` of `0219`** (owner
+  ruling 2026-09-11). Recorded on [[wiki/systems/player-profile-store]] (with the per-item gate
+  table), [[wiki/decisions/sprint-4]], [[wiki/systems/project-brief]] and the new `0218` page, in each
+  case **with the nuance and not just the edge**: `0219` now reads as fully blocked on any
+  dependency-aware view and **is not** — `0241` gates only the weekly-copy half of its
+  backup-freshness work; log rotation, image prune, the uptime check and the daily-freshness half stay
+  startable today. The vault carries **no dedicated `0219` or `0241` page**; those were the existing
+  dependency views.
+- Link check: **no rotted `0218` links found.** No vault page ever linked `0218` by path — every
+  reference is the bare task id in backticks — so its `backlog/` → `done/` move on 2026-09-11 broke
+  nothing. All twelve `tasks/backlog/<id>-<slug>` paths elsewhere in the vault were re-resolved and
+  all twelve still exist.
+- 🔒 No secrets written: no bucket name, endpoint, hostname, credential, key material or length
+  thereof appears in any page touched by this ingest. Locations, custodian name and file names only.
+- Nothing committed or pushed.
+
+## 2026-09-11 — ingest
+
+- Ingested: `ai-agents/tasks/done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md`
+  (its `🔴 CLOSED BY OWNER DECISION — THE OLD S3 ACCESS KEY WILL DELIBERATELY NOT BE REVOKED` section)
+  → created [[wiki/tasks/profile-cleanup-obsolete-secrets]]; updated [[wiki/decisions/sprint-4]],
+  [[wiki/systems/architecture-overview]], [[wiki/systems/player-profile-store]],
+  [[wiki/systems/project-brief]], [[wiki/tasks/postgres-backup-routine]],
+  [[wiki/tasks/profile-server-bring-up-runbook]], [[wiki/tasks/profile-durability-restore-drill]],
+  [[wiki/tasks/profile-box-adopt-and-reprovision]] (back-link only) and `index.md`.
+- **A STANDING changed, not a fact.** Owner ruling 2026-09-11, given live in the lead session,
+  verbatim: *"Forget about the old S3 keys, mark this task as cancelled."* The revocation of the old
+  storage access key is **CLOSED BY OWNER DECISION — deliberately not done, not outstanding work, not
+  a task, not to be re-raised.** ⚠️ **There was no open task to cancel**: the revocation was never
+  re-filed as its own brief after `0222` closed on 2026-09-10, so the ruling is recorded against the
+  residual in `0222`'s brief. ⛔ **`0222` was already `✅ Done` and stays Done — no task file moved and
+  no mover skill was invoked, by this ingest or by the ruling.**
+- ⛔ **What the ingest deliberately did NOT write:** nowhere does any page now say the key was revoked,
+  that it is resolved, or that it is no longer a risk. Every touched page keeps, in the same breath as
+  the standing: the key was **never revoked at the provider**; **nobody ever established its scope**
+  (inert if bucket-scoped to the deleted bucket, reaching the **new** backup bucket if account-wide);
+  the objection on that point was **overruled twice** (2026-09-10, 2026-09-11); and **a deliberate
+  decision not to act is not the same as the risk not existing** — a future reader who finds an
+  account-wide key is told to check **the key's policy at the provider** first, because nothing in
+  this repository can answer it.
+- Second stale standing corrected on the same pages: `0222`'s open question is **no longer
+  "UNANSWERED"** — it was answered and closed 2026-09-10 (old bucket abandoned, already deleted), and
+  its premise was **retracted**: the bucket was **empty** and always had been, so the "permanently
+  unreadable objects" it was about never existed. ⛔ Retraction limited to the objects; the lost old
+  `age` private identity is unchanged.
+- ⛔ **No transfer to `0240`.** `0240` owns the `PROFILE_ID_PEPPER` / obsolete-variable purge **only**
+  and remains open and tracked; every touched page says so explicitly.
+- Superseded text is **struck, not deleted**, on all eight pages and in `index.md`.
+- 🔒 No secrets written: no key, no value, no bucket name, no endpoint, no hostname and no account
+  identifier appears in any page touched by this ingest.
+- Nothing committed or pushed.

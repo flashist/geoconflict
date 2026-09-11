@@ -4,7 +4,19 @@
 0230
 
 ## Sprint
-**Backlog board** — [`backlog.md`](../../../sprints/backlog.md).
+Backlog
+
+**The board is the [Backlog board](../../../sprints/backlog.md)** — `Backlog` is the exact token the
+board convention uses, and every other Backlog-board brief writes it the same way.
+
+📎 **Wording normalized 2026-09-10, on an owner ruling given live in session and relayed through the
+spawning session.** This line previously read ~~**Backlog board** — [backlog.md](../../../sprints/backlog.md).~~ —
+struck, not deleted. **It named the same destination and was never wrong**; it simply did not match
+the plan cell's `➡️ Moved to [Backlog board](backlog.md)` as a string, so
+`.claude/skills/fkit-status/dashboard.sh` emitted `drift disagreement 0230` on **every** `/fkit-status`
+run. ⛔ **This is a WORDING change and nothing else** — the status stays `🔲 Backlog`, the folder did
+not move, and the board assignment is unchanged (still the Backlog board, with the Sprint 4 row kept as
+the `➡️ Moved` pointer).
 
 ⬅️ **MOVED OFF SPRINT 4 ONTO THE BACKLOG BOARD ON 2026-09-07, on an owner ruling given live in session
 and relayed through the spawning session.** The owner's words, verbatim: *"We don't have the same

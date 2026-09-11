@@ -51,9 +51,12 @@ was invoked, and this brief stays under `ai-agents/tasks/backlog/`. SCHEDULED IS
 **The reasoning, recorded because the order is not the obvious one:**
 
 - **`0218` leads** — the restore path is the **only claim in this epic still resting on faith**.
-  Backups **encrypt and upload — proven**; that a backup **RESTORES is UNPROVEN**, and the old
-  bucket's objects are permanently unreadable for exactly that reason. ✅ **Cheapest to prove NOW,
-  while every table has ZERO rows.**
+  Backups **encrypt and upload — proven**; that a backup **RESTORES is UNPROVEN**, ~~and the old
+  bucket's objects are permanently unreadable for exactly that reason.~~ 🚨 **THAT SUPPORTING EXAMPLE
+  IS RETRACTED 2026-09-10 — the old bucket was EMPTY; there were no objects** (owner, verbatim:
+  *"I've already deleted the old bucket, it was empty, we never had anything there."*). ⛔ **The
+  CONCLUSION IS UNCHANGED AND `0218` STILL LEADS:** restore is still unproven, and losing the
+  illustration does not make it proven. ✅ **Cheapest to prove NOW, while every table has ZERO rows.**
 - **`0219` second** — it owns the monitoring gap for **both** unread signals on that box: the
   **certificate renewal log** and **`/opt/profile/backups/last-backup.json`**. **Capability is proven
   for both; nobody is watching either.** **Dated fuse: the certificate's `notAfter` is 2026-11-20 and
@@ -76,7 +79,59 @@ positions and the producer's ranks.
 fkit-coder
 
 ## Depends on
-[`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to configure.
+- [`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to configure.
+- [`0241`](../0241-profile-verify-first-weekly-backup-copy/brief.md) — gates the **WEEKLY-COPY HALF OF G4 ONLY**, not the whole task. ⚠️ **READ THE NOTE BELOW BEFORE DEFERRING THIS TASK — the board is stricter than the real constraint.**
+
+🔴 **CANONICALISED 2026-09-11 ON AN OWNER RULING, given live in the lead session and relayed through
+the spawning session.** The producer had deliberately left `0241`'s gate as prose only, because the
+canonical form marks the whole row unpullable and the gate covers only part of one item. **The owner
+was shown that reasoning and ruled: formalise it anyway.** ⛔ **The ruling changed the RECORDED FORM of
+the dependency and NOTHING ELSE — `## Status`, `## Priority`, `## Sprint` and this brief's folder are
+UNCHANGED, and no mover skill was invoked.**
+
+🚨 **THE CONSEQUENCE OF THE CANONICAL FORM, STATED SO NOBODY MISREADS IT: on any dependency-aware view
+— the sprint board, `dashboard.sh`'s sentinel, or any reader that resolves `## Depends on` — `0219`
+NOW READS AS FULLY BLOCKED. IT IS NOT.** ⛔ **Do not defer this whole task on the strength of that
+reading.**
+
+**What `0241` actually gates is ONE half of ONE item:**
+
+| Item | Gated by `0241`? |
+|---|---|
+| **G1** — container log rotation | **No.** Startable today. |
+| **G2** — image prune | **No.** Startable today. |
+| **G3** — external uptime check (and the renewal-log reader) | **No.** Startable today. |
+| **G4** — backup freshness, **DAILY**-object half | **No.** Startable today. |
+| **G4** — backup freshness, **WEEKLY**-copy half | 🚨 **YES. Do not build or ship it until `0241` answers.** |
+
+⚠️ **The practical cost of the gate is SMALL: `0241` becomes actionable on Sunday 2026-09-13 (02:30
+UTC is the first-ever weekly-copy attempt), and it is a single observation taking minutes.** 🚨 **The
+failure this note exists to prevent is a reader seeing `0219` blocked, not knowing why, and parking
+the entire task for no reason.**
+
+🚨 **GATED 2026-09-11 — THE BACKUP-FRESHNESS HALF OF THIS TASK (G4) IS GATED BY
+[`0241`](../0241-profile-verify-first-weekly-backup-copy/brief.md).**
+
+🔴 **`profile-backup.sh:171-177`'s WEEKLY copy has NEVER EXECUTED against the current bucket.** It
+fires only on a Sunday, and the last Sunday predates the bucket;
+[`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) observed
+`weekly/` **EMPTY** on 2026-09-11 (its residual 3). The **first-ever attempt is Sunday 2026-09-13,
+02:30 UTC**, and `0241` exists to watch it.
+
+⛔ **DO NOT BUILD OR SHIP THIS TASK'S WEEKLY-PATH HANDLING UNTIL `0241` HAS ANSWERED.** If the weekly
+path silently fails, this task would build a **freshness monitor for a path that does not work** — and
+a monitor built on a broken producer **manufactures confidence**, which is worse than no monitor.
+
+⚠️ **This is a GATE, not a hard block.** G1 (log rotation), G2 (image prune) and G3 (uptime check),
+and the **daily**-object half of G4, are unaffected and can proceed.
+
+🔴 **Four things `0218` proved that this task's consumer MUST NOT assume** (from its hand-off):
+(a) the `last-backup.json` signal has only ever been observed carrying an **empty-DB** payload;
+(b) a nightly **log line is NOT a retrievable object** — four of five went to a bucket that no longer
+exists; (c) a **manual** `backup.sh` run **overwrites** that day's scheduled object at the same key,
+so freshness-by-object-date can be satisfied by a human rather than by the schedule; (d) the weekly
+path has never run against this bucket. **Observed marker shape:**
+`{schema, started_at, finished_at, exit_status, object_key, size_bytes, error}`.
 
 ## Context
 
@@ -214,6 +269,15 @@ The game box already solves two of these. **Mirror it:**
 ## Notes
 
 - **Effort: ~1 day. Technical risk: Low. Consequence of skipping: HIGH.**
+- 🚨 **GATE:** [`0241`](../0241-profile-verify-first-weekly-backup-copy/brief.md) must answer before
+  this task's **weekly-path** handling is built — see the block under `## Depends on`.
+  🔴 **RESOLVED 2026-09-11 BY OWNER RULING: it IS now a canonical `## Depends on` entry.** ⚠️ *The
+  earlier text here said the canonical form was deliberately withheld and that making it canonical was
+  an owner call. **The owner was asked and ruled: make it canonical.** That question is CLOSED — do not
+  re-open it, and do not "restore" the prose-only form.* 🚨 **The reasoning behind the old form was
+  correct and is NOT discarded: the canonical bullet makes `0219` read FULLY BLOCKED while only the
+  weekly-copy half of G4 actually is. The per-item table under `## Depends on` is the record of what is
+  really gated — read it before deferring this task.**
 - **Related:** [`0033`](../0033-monitoring-alert-bot-phase1/brief.md) and
   [`0034`](../0034-monitoring-alert-bot-phase2/brief.md) — the alert-bot track. **Item 5 of `0034` is
   the `last-backup.json` consumer.** Read both before starting; the right outcome may be that this
