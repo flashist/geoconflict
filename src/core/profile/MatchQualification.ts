@@ -3,10 +3,22 @@
  *
  * The game server is a turn relay and does not run the simulation, so the client
  * sends a compact per-player participation summary (PlayerParticipation, keyed by
- * clientID) with the winner message. These helpers turn that summary plus the
- * server's own per-client state into the exact set of credits to award. Kept here
- * in src/core (pure, no I/O) so the decision is unit-testable in isolation and the
- * client/server share one definition of "qualifies", preventing drift.
+ * clientID). These helpers turn that summary plus the server's own per-client state
+ * into the exact set of credits to award. Kept here in src/core (pure, no I/O) so
+ * the decision is unit-testable in isolation and the client/server share one
+ * definition of "qualifies", preventing drift.
+ *
+ * Task 0211: there are now TWO sources of that summary, and this module is
+ * unchanged by the second one.
+ *   1. The whole-roster array on the winner message, at a normal match end.
+ *   2. A one-entry array the server builds from a single player's `participation`
+ *      self-report, sent MID-MATCH — at that player's elimination, or when the
+ *      simulation reports the win condition met with no declarable winner (a match
+ *      that will never reach a normal end, so there is no later moment to credit).
+ * Everything here therefore evaluates MID-MATCH as well as at an end. Read
+ * `isAliveAtEnd` as "alive at the moment this participation was captured"; it is a
+ * wire field of PlayerParticipationSchema and is deliberately NOT renamed, because
+ * a rename is a cross-version wire change for a cosmetic gain.
  *
  * The *decision and the write are server-authoritative*: PlayerParticipation is an
  * input, but `selectMatchCredits` is only ever run on the server and combines it
@@ -35,10 +47,21 @@ export interface MatchCredit {
 /**
  * Whether a player's participation alone qualifies them for the match XP award,
  * before any server-only gating. A player qualifies when they actually spawned
- * AND either survived to the end or were legitimately eliminated. A player who
- * spawned but then vanished without dying (left / abandoned, no `killedAt`) does
- * NOT qualify — this is the participation-derived half of the brief's exclusion of
- * players who voluntarily left mid-game.
+ * AND either was alive when this participation was captured or was legitimately
+ * eliminated. Satisfiable MID-MATCH: `isAliveAtEnd` is not consulted at all once
+ * `killedAt` is set, and a still-alive spawned player qualifies on the first clause.
+ *
+ * 🔴 READ THIS BEFORE "FIXING" THE LEAVER RULE BACK (task 0211, owner ruling).
+ * This predicate used to be described as the participation-derived half of the
+ * exclusion of players who voluntarily left mid-game. That description is now FALSE
+ * AS WRITTEN, and the predicate is unchanged and correct:
+ *   - A survivor of a stalled match is credited at the stall, which may be an hour
+ *     before they stop playing. If they then close the tab they KEEP the XP. The
+ *     owner was shown exactly this and accepted it knowingly. It is not a defect.
+ *   - The exclusion still holds for a player who vanishes without ANY trigger having
+ *     credited them: no elimination, no stall report, and `killedAt` unset at the
+ *     match end ⇒ `hasSpawned && !isAliveAtEnd && killedAt === undefined` ⇒ false.
+ * So the exclusion narrowed; it was not deleted.
  */
 export function qualifiesForMatchXp(p: PlayerParticipation): boolean {
   return p.hasSpawned && (p.isAliveAtEnd || p.killedAt !== undefined);
@@ -57,7 +80,8 @@ export interface ClientCreditState {
 }
 
 /**
- * Build the exact list of awards for a finished match. Pure: callers supply the
+ * Build the exact list of awards for a batch of participation — a whole roster at a
+ * match end, or a single player mid-match (task 0211). Pure: callers supply the
  * game id, the client-reported participation, the frozen start roster, and a map of
  * server-only client state keyed by clientID. A participation entry is credited only
  * if it is in `eligibleRoster` (a player actually in this match, NOT a post-start

@@ -105,7 +105,7 @@ fixed — **still live, touched by neither `0022` nor `0206`.**
 >
 > 📎 Full record: the STOP box at the top of
 > [`0206`'s brief](../../done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md).
-> Replacement task: [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md),
+> Replacement task: [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md),
 > unscheduled on the Backlog board.
 
 ✅ **Producer-verified 2026-09-03 by reading the full path.** Each step, with evidence:
@@ -402,7 +402,7 @@ saw** — nobody has observed it live, and the ruling did not change that.
   session:** *"Solo matches shouldn't contribute to the leaderboard. Neither should they contribute to
   the XP."* ⇒ **Leaderboard and profile XP now read as ONE coherent policy: solo contributes to
   neither.** The XP half was recorded in
-  [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md), where it closes a
+  [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md), where it closes a
   question that brief had explicitly carried as open.
   ⛔ **NOTHING IN `0210` CHANGES.** Its scope, status and priority are **untouched**, and its own
   2026-09-03 ruling was **not conditioned on this** — it stood on its own reasoning (unranked,

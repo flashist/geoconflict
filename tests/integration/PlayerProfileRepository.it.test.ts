@@ -165,23 +165,29 @@ RUN("PlayerProfileRepository (integration)", () => {
   });
 
   test("citizenship flips at the threshold, earned_at is stamped once, and only the crossing credit reports newly granted", async () => {
+    // ⛔ The literals below are the LIVE economy, deliberately spelled out rather
+    // than read from CITIZENSHIP_XP_THRESHOLD / XP_PER_MATCH: a test that imports
+    // the constant it is pinning cannot catch a wrong constant. They are threshold
+    // 100 / award 1 (ADR-111's ÷10 rescale). ⚠️ This suite runs only under
+    // `npm run test:integration`, so `npm test` CANNOT catch this drift — any
+    // further move of those constants must update these numbers by hand.
     await repo.upsertProfile(P, PID);
 
-    expect(await repo.creditMatchXp("g1", P, 999)).toEqual({
+    expect(await repo.creditMatchXp("g1", P, 99)).toEqual({
       status: "credited",
       citizenshipNewlyGranted: false, // below threshold
     });
     let profile = await repo.getProfile(P);
-    expect(profile?.xp).toBe(999);
+    expect(profile?.xp).toBe(99);
     expect(profile?.is_citizen).toBe(false);
     expect(profile?.citizenship_earned_at).toBeNull();
 
-    expect(await repo.creditMatchXp("g2", P, 10)).toEqual({
+    expect(await repo.creditMatchXp("g2", P, 1)).toEqual({
       status: "credited",
-      citizenshipNewlyGranted: true, // crosses 1000
+      citizenshipNewlyGranted: true, // crosses 100
     });
     profile = await repo.getProfile(P);
-    expect(profile?.xp).toBe(1009);
+    expect(profile?.xp).toBe(100);
     expect(profile?.is_citizen).toBe(true);
     const earnedAt = profile?.citizenship_earned_at;
     expect(earnedAt).not.toBeNull();
@@ -189,17 +195,17 @@ RUN("PlayerProfileRepository (integration)", () => {
     expect(profile?.is_paid_citizen).toBe(false);
     expect(profile?.citizenship_purchased_at).toBeNull();
 
-    expect(await repo.creditMatchXp("g3", P, 10)).toEqual({
+    expect(await repo.creditMatchXp("g3", P, 1)).toEqual({
       status: "credited",
       citizenshipNewlyGranted: false, // already a citizen
     });
     profile = await repo.getProfile(P);
-    expect(profile?.xp).toBe(1019);
+    expect(profile?.xp).toBe(101);
     expect(profile?.is_citizen).toBe(true);
     expect(profile?.citizenship_earned_at).toBe(earnedAt); // not overwritten
 
     // Re-crediting the crossing game is a duplicate, never a second grant.
-    expect(await repo.creditMatchXp("g2", P, 10)).toEqual({
+    expect(await repo.creditMatchXp("g2", P, 1)).toEqual({
       status: "duplicate",
       citizenshipNewlyGranted: false,
     });

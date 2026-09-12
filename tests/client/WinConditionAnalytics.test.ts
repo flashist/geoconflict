@@ -297,6 +297,11 @@ function update(
     leaderKind: "Bot",
     leaderSharePercent: 81,
     isTutorial: false,
+    // Task 0211. The default matches the fixture's clientless Bot leader: the win
+    // condition was met and nobody could be declared. The analytics emitter never
+    // reads this field (it enumerates the four it sends), which is why every
+    // assertion in this file is unchanged by its arrival.
+    winnerDeclarable: false,
     ...overrides,
   };
 }

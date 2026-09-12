@@ -16,6 +16,7 @@ import {
   ClientIntentMessage,
   ClientJoinMessage,
   ClientMessage,
+  ClientParticipationMessage,
   ClientPingMessage,
   ClientSendWinnerMessage,
   ClientUpdateIdentityMessage,
@@ -31,28 +32,28 @@ import { FlashistFacade } from "./flashist/FlashistFacade";
 import { LocalServer } from "./LocalServer";
 
 export class PauseGameEvent implements GameEvent {
-  constructor(public readonly paused: boolean) { }
+  constructor(public readonly paused: boolean) {}
 }
 
 export class SendAllianceRequestIntentEvent implements GameEvent {
   constructor(
     public readonly requestor: PlayerView,
     public readonly recipient: PlayerView,
-  ) { }
+  ) {}
 }
 
 export class SendBreakAllianceIntentEvent implements GameEvent {
   constructor(
     public readonly requestor: PlayerView,
     public readonly recipient: PlayerView,
-  ) { }
+  ) {}
 }
 
 export class SendUpgradeStructureIntentEvent implements GameEvent {
   constructor(
     public readonly unitId: number,
     public readonly unitType: UnitType,
-  ) { }
+  ) {}
 }
 
 export class SendAllianceReplyIntentEvent implements GameEvent {
@@ -61,22 +62,22 @@ export class SendAllianceReplyIntentEvent implements GameEvent {
     public readonly requestor: PlayerView,
     public readonly recipient: PlayerView,
     public readonly accepted: boolean,
-  ) { }
+  ) {}
 }
 
 export class SendAllianceExtensionIntentEvent implements GameEvent {
-  constructor(public readonly recipient: PlayerView) { }
+  constructor(public readonly recipient: PlayerView) {}
 }
 
 export class SendSpawnIntentEvent implements GameEvent {
-  constructor(public readonly tile: TileRef) { }
+  constructor(public readonly tile: TileRef) {}
 }
 
 export class SendAttackIntentEvent implements GameEvent {
   constructor(
     public readonly targetID: PlayerID | null,
     public readonly troops: number,
-  ) { }
+  ) {}
 }
 
 export class SendBoatAttackIntentEvent implements GameEvent {
@@ -85,39 +86,39 @@ export class SendBoatAttackIntentEvent implements GameEvent {
     public readonly dst: TileRef,
     public readonly troops: number,
     public readonly src: TileRef | null = null,
-  ) { }
+  ) {}
 }
 
 export class BuildUnitIntentEvent implements GameEvent {
   constructor(
     public readonly unit: UnitType,
     public readonly tile: TileRef,
-  ) { }
+  ) {}
 }
 
 export class SendTargetPlayerIntentEvent implements GameEvent {
-  constructor(public readonly targetID: PlayerID) { }
+  constructor(public readonly targetID: PlayerID) {}
 }
 
 export class SendEmojiIntentEvent implements GameEvent {
   constructor(
     public readonly recipient: PlayerView | typeof AllPlayers,
     public readonly emoji: number,
-  ) { }
+  ) {}
 }
 
 export class SendDonateGoldIntentEvent implements GameEvent {
   constructor(
     public readonly recipient: PlayerView,
     public readonly gold: Gold | null,
-  ) { }
+  ) {}
 }
 
 export class SendDonateTroopsIntentEvent implements GameEvent {
   constructor(
     public readonly recipient: PlayerView,
     public readonly troops: number | null,
-  ) { }
+  ) {}
 }
 
 export class SendQuickChatEvent implements GameEvent {
@@ -125,30 +126,30 @@ export class SendQuickChatEvent implements GameEvent {
     public readonly recipient: PlayerView,
     public readonly quickChatKey: string,
     public readonly target?: PlayerID,
-  ) { }
+  ) {}
 }
 
 export class SendEmbargoIntentEvent implements GameEvent {
   constructor(
     public readonly target: PlayerView,
     public readonly action: "start" | "stop",
-  ) { }
+  ) {}
 }
 
 export class SendEmbargoAllIntentEvent implements GameEvent {
-  constructor(public readonly action: "start" | "stop") { }
+  constructor(public readonly action: "start" | "stop") {}
 }
 
 export class SendDeleteUnitIntentEvent implements GameEvent {
-  constructor(public readonly unitId: number) { }
+  constructor(public readonly unitId: number) {}
 }
 
 export class CancelAttackIntentEvent implements GameEvent {
-  constructor(public readonly attackID: string) { }
+  constructor(public readonly attackID: string) {}
 }
 
 export class CancelBoatIntentEvent implements GameEvent {
-  constructor(public readonly unitID: number) { }
+  constructor(public readonly unitID: number) {}
 }
 
 export class SendWinnerEvent implements GameEvent {
@@ -157,24 +158,24 @@ export class SendWinnerEvent implements GameEvent {
     public readonly allPlayersStats: AllPlayersStats,
     // Per-player end-of-match participation for server-authoritative XP crediting.
     public readonly playerParticipation: PlayerParticipation[] = [],
-  ) { }
+  ) {}
 }
 export class SendHashEvent implements GameEvent {
   constructor(
     public readonly tick: Tick,
     public readonly hash: number,
-  ) { }
+  ) {}
 }
 
 export class MoveWarshipIntentEvent implements GameEvent {
   constructor(
     public readonly unitId: number,
     public readonly tile: number,
-  ) { }
+  ) {}
 }
 
 export class SendKickPlayerIntentEvent implements GameEvent {
-  constructor(public readonly target: string) { }
+  constructor(public readonly target: string) {}
 }
 
 export class Transport {
@@ -365,7 +366,10 @@ export class Transport {
       if (event.code === 1002) {
         console.log(`ERROR! connection refused: ${event.reason}`);
         document.dispatchEvent(
-          new CustomEvent("reconnect-failed", { bubbles: true, composed: true }),
+          new CustomEvent("reconnect-failed", {
+            bubbles: true,
+            composed: true,
+          }),
         );
       } else if (event.code !== 1000) {
         console.log(`received error code ${event.code}, reconnecting`);
@@ -419,6 +423,37 @@ export class Transport {
     } catch (error) {
       console.warn(`failed to refresh Yandex identity: ${error}`);
     }
+  }
+
+  /**
+   * Task 0211. Report THIS player's participation to the server — at their
+   * elimination, or when the simulation says no winner can ever be declared and they
+   * are still alive. The server credits from it; nothing about the match changes.
+   *
+   * 🔴 Two properties that keep this correct, both easy to break:
+   *
+   * 1. It goes through `sendMsg`, NOT `sendIntent`. An intent enters the
+   *    deterministic turn stream and would be replayed by every client's simulation.
+   *    This is a side-channel report, not a game action.
+   * 2. It returns early when `isLocal`. A Singleplayer or archived-replay match must
+   *    credit ZERO XP to anyone, and `isLocal` is exactly the path solo play takes.
+   *    LocalServer.onMessage happens to ignore unknown message types today (no
+   *    `else`, no `default`, no throw), so nothing would be credited even without
+   *    this guard — but that is an accident of another file, and this is the path a
+   *    moved trigger actually travels. Belt and braces, deliberately.
+   */
+  public sendParticipation(report: {
+    hasSpawned: boolean;
+    isAliveNow: boolean;
+    killedAt?: number;
+  }) {
+    if (this.isLocal) return;
+    this.sendMsg({
+      type: "participation",
+      hasSpawned: report.hasSpawned,
+      isAliveNow: report.isAliveNow,
+      killedAt: report.killedAt,
+    } satisfies ClientParticipationMessage);
   }
 
   leaveGame() {

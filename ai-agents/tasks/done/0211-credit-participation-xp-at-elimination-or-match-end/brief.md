@@ -53,7 +53,7 @@
 > 🔴 **REOPEN CONDITION, RECORDED: file the stall brief IF `0211`'s plan picks a mechanism OTHER THAN
 > fixing the stall.** ⚠️ **This changes NOTHING about the requirement/mechanism split above.**
 >
-> ## ✅ 🔴 THE CONDITION FIRED 2026-09-11 — THE STALL BRIEF IS FILED AS [`0242`](../0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md)
+> ## ✅ 🔴 THE CONDITION FIRED 2026-09-11 — THE STALL BRIEF IS FILED AS [`0242`](../../backlog/0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md)
 >
 > **`0211`'s plan picked Mechanism A** — credit at *"no winner can be declared"* — **which is other
 > than fixing the stall.** The owner ruled, live in the lead session: **file it now, on the Backlog
@@ -63,7 +63,7 @@
 > condition held. ⛔ **Do not record the week the brief did not exist as an oversight.**
 > 🚨 **`0211` credits the XP so players STOP LOSING IT — ⛔ but the match still stalls, still runs to
 > the cap, and still ends only when everyone leaves.** **`0211` fixes the XP LOSS, not the STALL.**
-> ⚠️ **[`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md) is a DIFFERENT question
+> ⚠️ **[`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md) is a DIFFERENT question
 > (Team **resolution policy**) and must NOT absorb `0242` (**the stall itself**, FFA and Team).**
 > 📎 **Full record: Ruling 8 in the nine-rulings section under `## Status`.**
 >
@@ -95,7 +95,7 @@
 >
 > **The owner ruled this task covers both modes.** Reasoning as put and accepted: **the fix lives in
 > the CREDITING path, not the win check**, so covering both is **likely near-free** — and it stops
-> [`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md) being **solved twice or
+> [`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md) being **solved twice or
 > forgotten.**
 >
 > ⛔ **THIS DOES NOT MERGE `0211` AND `0205`. They stay separate tasks with separate questions:**
@@ -123,7 +123,7 @@
 > > **`0211` covers FFA and Team mode. Singleplayer is OUT of this task's scope.**
 >
 > **Owner's reasoning:** Singleplayer XP is a **separate product question**, and bundling it risks
-> exactly the confusion flagged below — ⚠️ **[`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)'s
+> exactly the confusion flagged below — ⚠️ **[`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)'s
 > ruling was about platform LEADERBOARD POINTS, not profile XP, and the two must not be read across.**
 > **That warning is kept because it is the reason this ruling was needed.**
 >
@@ -240,7 +240,7 @@
 > 10*, so **the strings that state that threshold to players belong in the same change — they ship or
 > break together, and splitting them is how one gets forgotten.**
 > ⛔ **NO LINE-NUMBER LIST IS GIVEN ON PURPOSE.** Line numbers drift, and the figures in
-> [`0017`](../0017-citizenship-earned/brief.md) have already been corrected twice this week. **Find
+> [`0017`](../../backlog/0017-citizenship-earned/brief.md) have already been corrected twice this week. **Find
 > the strings by CONTENT/KEY, and SWEEP for the figures at plan time rather than trusting any list.**
 > 📍 **Known starting point, not the scope:** the `citizenship_earned` inbox strings (`inbox_body`,
 > stating *"1,000 XP"* / *"1 000 XP"* in both languages) are drafted in `0017`'s **Localization**
@@ -457,7 +457,51 @@ the ordering as a demotion.**
   that a measurement later disproved. **This brief is investigation-first for exactly that reason.**
 
 ## Status
-🔄 In progress — 🔴 **PICKED UP / SCHEDULED TO BUILD on an owner ruling given live in the lead session, 2026-09-11.** ⚠️ **READ THE TOKEN-CHOICE BOX BELOW BEFORE TRUSTING THIS VALUE: no session owns this yet, no plan is approved, and NOT ONE LINE OF CODE HAS BEEN WRITTEN.** ~~🔲 Backlog~~ 📌 **struck, not deleted; TRUE WHEN WRITTEN and true for exactly as long as nobody had been put on it.**
+✅ Done (agent-closed — not owner-verified) — closed 2026-09-12 by a spawned producer at the end of the sprint ship-loop. 🚨 **CLOSES CARRYING AN OUTSTANDING OWNER-SIDE ACTION AND THREE ACCEPTED RESIDUALS — see [Accepted residuals at close](#accepted-residuals-at-close-2026-09-12--owner-dispositioned-still-open) at the end of this brief before treating this as verified.** ⛔ **There is NO end-to-end proof that crediting works**; the owner declined building the harness and chose a manual live check after deploy. ~~🔄 In progress — 🔴 **A LIVE SESSION OWNS THIS: THE SPRINT SHIP-LOOP TOOK OWNERSHIP 2026-09-12 and is driving the task now.** 🚨 **SAME TOKEN AS 2026-09-11, DIFFERENT AND NOW-TRUE REASON — ⛔ do NOT read the unchanged marker as "nothing happened".** The value was **RESET TO `🔲 Backlog` FIRST**, on an owner ruling given live in session **2026-09-12**, and only then set back to `🔄 In progress` by the ship-loop's **own step 2**. **The reset is the load-bearing part: it made the loop's SELECTION LAWFUL under the loop's own eligibility rule, rather than an override of it.** ⛔ **PLAN STATE: NOT re-approved on this run** — `plan.md` was approved in an **earlier** session; **re-approval is PENDING WITH THE OWNER.** ~~🔄 In progress — 🔴 **PICKED UP / SCHEDULED TO BUILD on an owner ruling given live in the lead session, 2026-09-11.** ⚠️ **READ THE TOKEN-CHOICE BOX BELOW BEFORE TRUSTING THIS VALUE: no session owns this yet, no plan is approved, and NOT ONE LINE OF CODE HAS BEEN WRITTEN.**~~ 📌 **STRUCK 2026-09-12, NOT DELETED — CORRECT WHEN GIVEN, NOW SPENT**, exactly like the other superseded rulings in this brief: the pickup **did not hold**, and this brief's own revert condition fired. ~~🔲 Backlog~~ 📌 **the older struck `🔲 Backlog` is kept as it was: struck, not deleted; TRUE WHEN WRITTEN and true for exactly as long as nobody had been put on it.**~~ 📌 **STRUCK 2026-09-12 AT CLOSE, NOT DELETED** — true while the task was open; the ruling history it records is kept verbatim in the block below.
+
+> # 🔴 2026-09-12 — OWNER RULING: **RESET `0211` TO `🔲 Backlog`** — and then the ship-loop took ownership the same day
+>
+> **Given live in session, 2026-09-12.** ⚠️ **Read this box TOGETHER with the 2026-09-11 box directly
+> below it — that one is SPENT, NOT WRONG.**
+>
+> ## What was put to the owner
+>
+> `0211` had read `🔄 In progress` since the owner ruling of 2026-09-11 that scheduled it to build.
+> **That marker never became true:** no session owned the task, no session approved a plan, and **not one
+> line of code was written.** The marker was a deliberate compromise, because the status vocabulary has
+> no value for *"scheduled, not started"* — and the 2026-09-11 box below states its own revert condition
+> in terms: *"Revert it to `🔲 Backlog` if the pickup does not hold."*
+> 🔴 **It did not hold — the owner paused the work the same day pending a deploy. The condition fired.**
+>
+> 🔴 **What forced the question today:** the owner invoked `/fkit-sprint-ship-loop`, whose **step 1 SKIPS
+> `🔄 In progress` tasks as owned by someone else.** ⇒ **The stale marker would have excluded the very
+> task the owner wants built.**
+>
+> ## The ruling
+>
+> > **Reset `0211` to `🔲 Backlog`.**
+>
+> ⛔ **Two alternatives were shown and DECLINED:** (a) ruling an explicit eligibility carve-out for this
+> task — which would have left **the marker wrong on the board**; (b) leaving it as-is and driving other
+> tasks instead. ✅ **The owner's choice is the one this brief itself prescribes.**
+>
+> ## Then: the sprint ship-loop took ownership, 2026-09-12
+>
+> Per the loop's **own step 2**, a task being driven is marked `🔄 In progress`. **A live session owns
+> `0211` and is driving it now — plan validation is already running.**
+>
+> 🚨 **SO THE END STATE IS `🔄 In progress` AGAIN — BUT FOR A DIFFERENT AND NOW-TRUE REASON.**
+> ⛔ **A reader who sees only the marker will wrongly conclude nothing changed.** What changed is the
+> **provenance, and that is the whole point:** yesterday the token stood for *"scheduled, nobody on it"*;
+> today it stands for *"a live session owns it and is building it."* **The reset is what makes the
+> loop's SELECTION LAWFUL under the loop's own eligibility rule — it is NOT an override of that rule.**
+>
+> ⛔ **PLAN STATE, STATED PRECISELY AND NOT OVERSTATED:** `plan.md` was approved in an **earlier**
+> session. **This run has NOT re-approved it, and re-approval is PENDING WITH THE OWNER.**
+>
+> ⛔ **NOTHING ELSE IN THIS BRIEF CHANGED.** Scope, rank (`Medium–High`, **the producer's**), every
+> settled ruling, and the accepted `0208` pre-fix-denominator cost are **unchanged and untouched** by
+> this ruling.
 
 > # 🔴 2026-09-11 — OWNER RULING: **BUILD `0211`.**
 >
@@ -534,7 +578,7 @@ the ordering as a demotion.**
 > | **13** | 🔴 **A match that hits the 3-hour cap where the win condition was NEVER MET credits nobody. ACCEPTED as a KNOWN UNCOVERED CASE** — not a bug | That it is uncovered and accepted |
 > | **14** | **`migrations/001_player_profiles.sql`'s `xp_awarded … default 10` STAYS.** It is **inert** — every insert supplies the value explicitly | That the applied migration is not edited |
 > | **15** | **The ADR-101 CLARIFICATION is the ARCHITECT'S to write**, and it ships inside `0211`. The coder implements; the architect records the decision | Who writes it |
-> | **16** | 🔴 **THE STALL BRIEF IS FILED** — [`0242`](../0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md), on the **Backlog board**. The 2026-09-10 reopen condition **fired** | That it is filed |
+> | **16** | 🔴 **THE STALL BRIEF IS FILED** — [`0242`](../../backlog/0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md), on the **Backlog board**. The 2026-09-10 reopen condition **fired** | That it is filed |
 > | **17** | **The `## Owner` precondition is DISCHARGED** — the plan IS the phase-1 findings, and the owner's approval of it satisfies the precondition | That it is discharged |
 >
 > 🚨 **ROWS 9–17 WERE ALL RULED ON 2026-09-11, live in the lead session, on `plan.md`.** The full
@@ -612,7 +656,7 @@ the ordering as a demotion.**
 >
 > | | What it was | Why it was not chosen |
 > |---|---|---|
-> | **B — make the match actually end** | Turn the clientless-leader early return into a terminal *"concluded, no winner"* outcome, then credit through the **existing, tested** `winner` → `handleWinner` → `creditMatchXp` path | ⛔ **It requires a product decision nobody has made: WHEN does a stalled match end?** Ending it at first detection **reverses `0022`'s deliberate comeback behaviour**; ending it later needs a new rule that is [`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md)'s territory, which `0211` must not answer. It also puts the fix in the **win check** — the opposite of the owner's stated reason Team coverage should be cheap — and needs **UX copy that does not exist** (`WinModal`'s `winner === undefined` branch is an empty stub). ⚠️ **And it is not a replacement for A: it covers only A's SECOND trigger**, so choosing it means building A's elimination half **as well**. |
+> | **B — make the match actually end** | Turn the clientless-leader early return into a terminal *"concluded, no winner"* outcome, then credit through the **existing, tested** `winner` → `handleWinner` → `creditMatchXp` path | ⛔ **It requires a product decision nobody has made: WHEN does a stalled match end?** Ending it at first detection **reverses `0022`'s deliberate comeback behaviour**; ending it later needs a new rule that is [`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md)'s territory, which `0211` must not answer. It also puts the fix in the **win check** — the opposite of the owner's stated reason Team coverage should be cheap — and needs **UX copy that does not exist** (`WinModal`'s `winner === undefined` branch is an empty stub). ⚠️ **And it is not a replacement for A: it covers only A's SECOND trigger**, so choosing it means building A's elimination half **as well**. |
 > | **C — a server-side participation ledger on the `hash` channel** | Attach a compact `{spawned, alive}` self-summary to the `hash` message every client already sends every 10 ticks; the server keeps a live participation view | ⛔ Touches a **hot path on every client every 10 ticks** and enlarges the desync-detection message. ⛔ **It still does not answer *when* a survivor is credited** — the natural answers require **relaxing the connected-at-match-end gate**, a product rule change. Much larger change for a population whose size is, by the owner's own ruling, **never going to be precisely known.** 📌 **Kept on the table as a natural later increment — Mechanism A does not block it.** |
 >
 > ⚠️ **B's genuine advantages are recorded, not buried:** it credits at a **real end**, so it would not
@@ -735,7 +779,7 @@ the ordering as a demotion.**
 > OTHER THAN fixing the stall.* 🔴 **MECHANISM A IS OTHER THAN FIXING THE STALL.** ⇒ **FIRED.**
 >
 > ✅ **FILED 2026-09-11 as
-> [`0242`](../0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md)**, on the
+> [`0242`](../../backlog/0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md)**, on the
 > **Backlog board** ([`backlog.md`](../../../sprints/backlog.md)) — ⛔ **NOT Sprint 4**, by owner
 > ruling.
 >
@@ -750,7 +794,7 @@ the ordering as a demotion.**
 > `0211` shipped, and do not describe `0211` as a partial stall fix** — it is a complete fix for a
 > *different* defect.
 >
-> ⚠️ **[`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md) IS A DIFFERENT QUESTION
+> ⚠️ **[`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md) IS A DIFFERENT QUESTION
 > AND MUST NOT ABSORB `0242`.** `0205` is a Team-mode **resolution policy** question (*who should win a
 > stalled Team match?*); `0242` is **the stall itself, FFA and Team.** ✅ `0205`'s **status, scope,
 > owner and rank are UNCHANGED** — only a reciprocal cross-reference was added to its Notes, plus a
@@ -782,7 +826,7 @@ the ordering as a demotion.**
 > unreconciled contradiction** — the reconciliation is recorded here, under `## Owner`, and in the
 > plan's §7.5 answer. ⚠️ **Both §11 residuals named under `## Owner` are now also closed**: the
 > **minimum-participation floor** by Ruling 3 above; the **memory-growth residual** is carried by
-> [`0242`](../0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md) as a named,
+> [`0242`](../../backlog/0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md) as a named,
 > **deliberately-unfiled** open question — ⛔ **it is NOT in `0211`'s scope and was NOT folded in.**
 >
 > ---
@@ -837,7 +881,7 @@ the ordering as a demotion.**
 > - **The `4c` Singleplayer test is a UNIT-LEVEL STAND-IN, not a play-through.** It asserts that
 >   `LocalServer.onMessage` handed the new message credits nothing and does not throw, and (per
 >   Ruling 4) that `Transport` in `isLocal` mode emits no participation message at all.
-> - **A real end-to-end proof needs [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s
+> - **A real end-to-end proof needs [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s
 >   wiring plus a live profile backend.** ⛔ **It is NOT available in this task.**
 >
 > ⛔ **DO NOT REPORT ANY OF THIS AS A LATE-DISCOVERED GAP, and do not claim coverage that was not
@@ -999,7 +1043,7 @@ here and are **not** duplicated into this brief's *Open questions*. ~~**Both lis
 📌 **SPENT 2026-09-11 — struck, not deleted; true when written.** ✅ **Both §11 residuals are now
 closed:** the **minimum-participation floor** by Ruling 3 of the nine plan rulings (**no floor** — a
 decision, not a deferral); the **memory-growth residual** by being carried into
-[`0242`](../0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md) as a named,
+[`0242`](../../backlog/0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md) as a named,
 **deliberately-unfiled** open question. ⛔ **Neither is in `0211`'s scope.**
 
 > ## 🔴 ⚠️ THE REPORT STILL PRICES EVERYTHING AT **10 XP**. IT IS **1 XP**. READ THIS BEFORE QUOTING ANY FIGURE FROM IT.
@@ -1088,7 +1132,7 @@ report's §11.
 >    item.**
 > 2. **MEMORY GROWTH (unbounded `turns` for up to 3 h)** → ✅ **CARRIED**, as a named and
 >    **deliberately-unfiled** open question, into
->    [`0242`](../0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md).
+>    [`0242`](../../backlog/0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md).
 >    ⛔ **NOT in `0211`'s scope and NOT folded in.** ⚠️ **Whether it is folded into `0242`, filed as its
 >    own task, or left recorded is STILL THE OWNER'S — nobody has ruled it.**
 
@@ -1425,7 +1469,7 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
   branch turns away. **Full record in the nine-rulings section under `## Status`.**
   ⚠️ **"Near-free" is the owner's expectation, not a measurement — if the plan finds it is not, say so
   rather than quietly dropping Team mode.** ⛔ **This does NOT merge this task with
-  [`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md)**, and ⛔ **do not change
+  [`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md)**, and ⛔ **do not change
   `0205`'s status, scope or rank** — ~~the owner has not ruled on them.~~ 📌 **AMENDED 2026-09-11:
   the instruction STANDS, but its reason is now partly spent — the owner HAS ruled on the rank, which
   is `Medium` since 2026-09-11 (producer's value, owner-approved). Status, scope and folder remain
@@ -1433,7 +1477,7 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
 - ✅ **SINGLEPLAYER IS OUT OF SCOPE — owner ruling, 2026-09-04.** ~~Singleplayer is UNRULED and is NOT
   covered by either ruling. Do not assume it in or out.~~ **Struck, not deleted.** **FFA and Team
   only.** Reasoning: Singleplayer XP is a separate product question, and bundling it risks reading
-  [`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)'s **leaderboard-points**
+  [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)'s **leaderboard-points**
   ruling across onto **profile XP**. ~~⛔ **This is NOT a ruling that Singleplayer awards no XP** — the
   owner declined that stronger option. **Settled: `0211` does not cover it. Still open: whether it
   should credit at all.**~~
@@ -1483,7 +1527,7 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
   strings that state that threshold to players belong in the same change — they ship or break
   together, and splitting them is how one gets forgotten.**
   ⛔ **NO LINE-NUMBER LIST, DELIBERATELY.** Line numbers drift and
-  [`0017`](../0017-citizenship-earned/brief.md)'s have already been corrected twice this week.
+  [`0017`](../../backlog/0017-citizenship-earned/brief.md)'s have already been corrected twice this week.
   **Locate the strings by CONTENT/KEY and SWEEP both language files for the figures at plan time** —
   do not trust any enumerated list, including this bullet's pointer.
   📍 **Starting point, NOT the scope:** the `citizenship_earned` inbox copy (`inbox_body`, stating the
@@ -1541,7 +1585,7 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
 > **Why, structurally:** `getCreditableYandexId` returns **`null` for every client in a local run**, so
 > `creditMatchXp` returns at `credits.length === 0`. ⚠️ **This is the same constraint that stopped
 > `0206` proving anything end-to-end, and it is unchanged.** **A real end-to-end proof needs
-> [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s wiring plus a live profile
+> [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s wiring plus a live profile
 > backend, and neither is available here.**
 >
 > ⇒ **Everything below is proven at UNIT / SERVER-HANDLER level with an INJECTED client carrying a
@@ -1714,7 +1758,7 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
   - [`0208`](../../done/0208-measure-clientless-leader-at-win-condition-in-production/brief.md) — would measure
     how often this happens in production. ✅ **Its Part A decay clock has STOPPED**, because `0206`
     never deployed; scheduling **this** task is what would restart one.
-  - [`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md) — the Team-mode form of the
+  - [`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md) — the Team-mode form of the
     stall. ~~⚠️ **The XP loss is not FFA-specific**; whether this task covers Team mode is an open
     question below.~~ ✅ **RULED 2026-09-04 — Team mode IS covered by this task. Struck, not deleted.**
     ⛔ **The two tasks are NOT merged and answer different questions:** `0205` is a **resolution
@@ -1727,7 +1771,7 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
     not** — it is **`Medium`** since 2026-09-11, the producer's proposed value approved by the owner
     after the owner ruled that it be re-ranked. ✅ A reciprocal cross-reference was added to `0205`'s
     Notes and **nothing else in that brief was edited.**
-  - 🔴 **[`0242`](../0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md) —
+  - 🔴 **[`0242`](../../backlog/0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md) —
     THE STALL ITSELF. FILED 2026-09-11 ON AN OWNER RULING when this brief's recorded reopen condition
     fired** (`0211`'s plan picked Mechanism A, which is other than fixing the stall). **Backlog board;
     rank `Medium`, the producer's.** 🚨 **`0211` credits the XP so players STOP LOSING IT — ⛔ but the
@@ -1736,7 +1780,7 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
     and do not describe `0211` as a partial stall fix.** ⚠️ **`0242` also carries the architect's §11
     q4 memory residual (unbounded `turns` for up to 3 h) as a named, DELIBERATELY-UNFILED open
     question — ⛔ it is NOT in `0211`'s scope and was NOT folded in.**
-  - [`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) — Singleplayer
+  - [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) — Singleplayer
     leaderboard policy. ~~⚠️ **Whether Singleplayer should credit participation XP at all is adjacent to
     `0210`'s ruling and is not settled here.**~~ ✅ **SETTLED 2026-09-04 — struck, not deleted; it was
     accurate when written.** The owner ruled *"Solo matches shouldn't contribute to the leaderboard.
@@ -1820,7 +1864,7 @@ foot.**
    out.~~ ✅ **NOW FULLY RULED 2026-09-04 — SINGLEPLAYER IS OUT OF `0211`'s SCOPE. FFA and Team only.**
    Reasoning: Singleplayer XP is a **separate product question**, and bundling it risks the exact
    confusion flagged here — ⚠️ **the warning is KEPT because it is the reason the ruling was needed:
-   [`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)'s ruling (*report
+   [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)'s ruling (*report
    nothing to the platform leaderboard*) is about LEADERBOARD POINTS, not profile XP, and the two must
    not be read across.** ⛔ **This is a DECISION, not a gap** — ~~**but it is NOT a ruling that
    "Singleplayer awards no XP"; the owner was offered that stronger option and DECLINED it.**
@@ -1851,7 +1895,7 @@ foot.**
    ~~✅ **RULED 2026-09-10 — HOLD, no brief; see item 5 below for the ruling and its reopen
    condition.**~~ 🔴 **SPENT 2026-09-11 — struck, not deleted. THE REOPEN CONDITION FIRED and the
    stall brief IS FILED** as
-   [`0242`](../0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md). **See item
+   [`0242`](../../backlog/0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md). **See item
    5 below.**
 4. ~~🚩 **STILL OPEN — How much XP, and on what basis?** … **undecided** — ⚠️ and Ruling 1 adds the
    same question for SURVIVORS of a match that never ends.~~
@@ -1902,7 +1946,7 @@ foot.**
    determines *no winner can be declared*. 🔴 **That is a mechanism OTHER THAN fixing the stall.**
    **The owner ruled, live in the lead session, 2026-09-11: file it now, on the Backlog board.**
 
-   ✅ **FILED:** [`0242`](../0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md)
+   ✅ **FILED:** [`0242`](../../backlog/0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md)
    — *a match nobody can win runs to the 3-hour cap because the win check turns away a clientless
    leader and never declares a winner*, **FFA and Team**, on
    [`backlog.md`](../../../sprints/backlog.md). ⛔ **NOT Sprint 4.**
@@ -1912,7 +1956,7 @@ foot.**
    🚨 **WHAT `0211` DOES AND DOES NOT DO FOR IT:** `0211` credits the XP, so **players stop losing
    it** — ⛔ **but the match still stalls, still runs to the cap, and still ends only when everyone
    leaves.** **The defect `0211` fixes is the XP LOSS, not the STALL.**
-   ⚠️ **[`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md) is a DIFFERENT question
+   ⚠️ **[`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md) is a DIFFERENT question
    and must not absorb `0242`** — `0205` is Team-mode **resolution policy**; `0242` is **the stall
    itself, FFA and Team.** ✅ `0205`'s status, scope, owner and rank are **unchanged.**
    📎 **Full record: Ruling 8 in the nine-rulings section under `## Status`.**
@@ -1920,3 +1964,82 @@ foot.**
 📎 **Separately, the architect's report carries its OWN open questions for the owner (its §11).** They
 are **not** answered here and **not** duplicated into this list — **the coordinator is putting them to
 the owner directly.** **Both lists need answers.**
+
+---
+
+## Accepted residuals at close (2026-09-12 — owner-dispositioned, still open)
+
+Closed **`✅ Done (agent-closed — not owner-verified)`** via the sprint ship-loop, on review verdict
+**✅ Ready to merge (validation-gated)** (`review.md`, status `closed-out`, converged in one round).
+The owner answered every decision live in session but **did not verify done-ness** — hence the marker.
+Everything below is an **owner-side action or an owner-accepted risk, not a defect.**
+
+### 🚨 1. THE OUTSTANDING OWNER-SIDE ACTION — read this before calling `0211` verified
+
+**There is no end-to-end proof that crediting works, and none was achievable in this task.**
+`getCreditableYandexId()` returns `null` for every client in a local run, and the
+`WinConditionCheck → ClientGameRunner → Transport → server` seam has **no harness in this repo**. All
+crediting evidence is **unit / server-handler level with an injected Yandex id.**
+
+The owner was offered the alternative — **build a harness for that seam first, holding `0211` open** —
+and **declined it**, choosing to ship with a **manual live crediting check after deploy**.
+
+⛔ **Do not record this as "verified".** It is an **accepted evidence floor plus an owner action still
+to run.** This follows [`0042`](../0042-starting-gold-public-modifier/brief.md)'s deferred-tail pattern
+— owner-ruled 2026-09-12, live in session.
+
+### 2. R4 — no latch on zero-credit reports, no WS rate limit (owner-declined)
+
+`handleParticipation()` has **no latch for reports that credit nothing**, and **no WebSocket rate
+limit**. Both fixes were offered with their costs and **declined**.
+⚠️ **Carry the coder's own self-flag:** the **R3 fix slightly WIDENS this amplification** — a retained
+uncredited claim now re-posts **on reconnect** as well as on repeat reports.
+
+### 3. R5 — `spawnedClients` records spawn *intents*, not successful spawns (owner-declined)
+
+Tightening was offered and **declined**. Stands under **ADR-103**'s reasoning.
+
+### 4. R7 — a `maxGameDuration`-capped match whose win condition never fired credits nobody
+
+Verified **non-regressive**: that shape credited **nobody before this change either**, and everyone
+eliminated along the way **now is** credited. Cross-reference
+[`0242`](../../backlog/0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md).
+🔴 **State it plainly: `0211` fixes the XP LOSS, not the STALL.**
+
+---
+
+## Closed by evidence at close (not residuals — recorded so they are not re-opened)
+
+- **R6 — the rescale has no data step: closed ZERO-IMPACT BY MEASUREMENT.** The live profile database
+  was queried at close: `player_profiles` holds **0 rows**, `max(xp)` = **0**. ⚠️ **Point-in-time
+  reading** — it stops being true once
+  [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) wires crediting, but
+  **the rescale ships first.**
+- **R2 — `migrations/001` `xp_awarded default 10`:** a **correct observation**, **owner-ruled out of
+  scope**. **Ruling 14 names that exact fact**, so it was **not ruled blind.** Migration unchanged.
+
+---
+
+## The irreversible cost, knowingly accepted and now spent
+
+Shipping `0211` **destroys [`0208`](../0208-measure-clientless-leader-at-win-condition-in-production/brief.md)'s
+pre-fix denominator — the per-match stall rate will never be known.**
+⛔ **Do NOT write this up as a gap for someone to close later.** It was accepted with eyes open and the
+cost is already spent.
+
+---
+
+## What shipped
+
+- Threshold **1000 → 100**; award **10 → 1**.
+- Copy **rescaled in both `en.json` and `ru.json` in the same change.**
+- **Mechanism A** via a composite `winnerDeclarable`.
+- **FFA and Team**; **Singleplayer suppressed.**
+- The **leaver rule narrowed**: a player eliminated and *then* closing the tab **is paid at the moment
+  of death**.
+
+**Verification at close (run first-hand by the lead, not taken on report):** `npm test` →
+**116 suites / 1232 tests, 0 failing**; `npx tsc --noEmit` clean. The coder additionally ran
+`npm run test:integration` against real Postgres → **5 suites / 70 tests, 0 failing**.
+**The run was NOT degraded:** Codex ran (`codex-cli 0.152.0`, `codex exec --sandbox read-only`, exit 0,
+4 findings) alongside the reviewer's own pass — two independent passes, deduped and verified.

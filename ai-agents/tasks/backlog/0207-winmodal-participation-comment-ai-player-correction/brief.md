@@ -61,7 +61,7 @@ accuracy, not because a wrong claim was found.
 ✅ **The reason this task exists is UNCHANGED and, if anything, stronger.** The comment at
 `WinModal.ts:487-492` is still wrong, the code is still right, and the **reader it protects still
 exists** — the trap now sits in front of whoever plans
-[`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) (the replacement for
+[`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) (the replacement for
 `0206`: credit participation XP at elimination or match end) and
 [`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md). ⚠️ **ADR-110 is untouched by
 the revert** — it is a product policy about the winner predicate, and it still stands; only `0206`'s

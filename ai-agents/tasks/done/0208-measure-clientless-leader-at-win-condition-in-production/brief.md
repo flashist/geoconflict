@@ -15,7 +15,7 @@
 >    *Sequencing* note says Part A's value decays **on deploy** — and `0206` will not deploy. **The
 >    pre-fix multiplayer question — *"how often does the stall happen today?"* — is STILL ANSWERABLE,
 >    and the denominator is still the pre-fix one.** ⚠️ **The urgency has eased; it has not vanished** —
->    the replacement, [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md),
+>    the replacement, [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md),
 >    ~~is unscheduled but real~~ — ✅ **CORRECTED 2026-09-04: `0211` is SCHEDULED INTO SPRINT 4**
 >    (owner ruling, live in session); **struck, not deleted — spent, not wrong** — and it will restart
 >    a clock of its own when it ships. 🔴 **AND THAT CLOCK IS THE REASON THIS TASK IS ORDERED FIRST:**
@@ -156,7 +156,7 @@ depends on this number.**
 
 1. 🔴 **It is ADR-110's RE-RAISE TRIGGER.** The architect corrected that pointer on 2026-09-04 — see
    *ADR-110's re-raise trigger now points here* in the Notes.
-2. **It scopes [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md)** — by
+2. **It scopes [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md)** — by
    answering **whether stalled-match survivors are a real population**, which matters now that
    survivors are in `0211`'s scope.
 3. **It caps [`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md)'s rank**, which has
@@ -642,7 +642,7 @@ full 7-day window, and the data agrees: zero.** 📌 **Record it as a code-deriv
 IN PRODUCTION DATA.**
 ⚠️ **THE EXISTING NOTE STANDS UNCHANGED AND MUST NOT BE DELETED: the leaf is DELIBERATELY KEPT, and it
 becomes reachable the moment [`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md) /
-[`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) removes that guard.**
+[`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) removes that guard.**
 ⛔ **This confirmation does NOT change that** — it confirms the zero is real *today*, not that the zero
 is permanent. **Its zero is not telemetry loss. Build dashboards from the five.**
 
@@ -722,7 +722,7 @@ NOT license deleting the leaf** — see the note immediately below, which is unc
 ⚠️ **Its permanent zero is NOT telemetry loss.** ⛔ **Do not read it as a gap and do not delete the
 leaf** — it is deliberately kept, because it becomes reachable the moment
 [`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md) /
-[`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) removes that guard, and
+[`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) removes that guard, and
 the composer is swept across all six on purpose so removing the guard needs no analytics change.
 **Build dashboards from the five.**
 
@@ -804,7 +804,7 @@ actually wants, and it is NOT DERIVABLE from `Match:WinCondition` at any confide
 > | `Bot` · `Nation` · `BotTeam` · `NationsTeam` | `AiPlayer` · `Human` · `HumanTeam` |
 >
 > That needs the deeper **Group by (Event id 03/04/05)** read, taken over a **FULL DAY**, not a
-> two-hour window. ⛔ **[`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md)
+> two-hour window. ⛔ **[`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md)
 > is blocked on that number** — and merely seeing events arrive does **not** clear its gate.
 
 > # ⛔ BUILT AND REVIEWED IS NOT DONE. DO NOT CLOSE THIS TASK.
@@ -835,7 +835,7 @@ actually wants, and it is NOT DERIVABLE from `Match:WinCondition` at any confide
 > number, not the instrumentation.** Marking it `✅ Done` today would put `Done` on a task whose entire
 > purpose is unfulfilled.
 >
-> **2. ⛔ [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) REMAINS GATED —
+> **2. ⛔ [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) REMAINS GATED —
 > the gate is NOT satisfied.** The owner's 2026-09-04 ruling requires this task **DEPLOYED AND
 > COLLECTING DATA**. ⚠️ **Neither "built" nor "reviewed" nor "merged" satisfies it.** Recording this task
 > as `✅ Done` would make that gate *read* as cleared while `0211`'s pre-fix denominator is still
@@ -958,7 +958,7 @@ work** — it means the next step is the **owner's**, not an agent's.
 order-neutral** — see *Sequencing*.
 
 ~~📌 **Added 2026-09-04: it does not depend on
-[`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) either, and `0211` does
+[`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) either, and `0211` does
 not gate it** — but they are now **in the same sprint**, and the owner's stated reason includes
 **planning them together to avoid two plans reasoning about the same crediting path.** ⚠️ **That is a
 coordination preference, NOT a dependency.** ⏳ **One direction of ordering DOES matter now:** if
@@ -970,7 +970,7 @@ been overtaken by a ruling.** What was recorded above as a *coordination prefere
 
 ### 🔴 SEQUENCING CONSTRAINT INSIDE SPRINT 4 — OWNER RULING, 2026-09-04. `0208` SHIPS BEFORE `0211`.
 
-> ⛔ **[`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) MUST NOT SHIP
+> ⛔ **[`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) MUST NOT SHIP
 > before `0208` has been DEPLOYED and has GATHERED DATA.**
 
 ⚠️ **"Before" has a precise meaning here, and a loose reading satisfies it trivially — so read this
@@ -1078,7 +1078,7 @@ it" is false — there were TWO rulings that day, and the second one did.**
 >    2026-09-04; it previously cited `0206`'s phase-1 investigation, which never ran because `0206`
 >    was reverted). ⚠️ **This consumer can REOPEN AN ACCEPTED ADR** — see the ADR-110 entry in *Notes*.
 >    **It is materially larger than the four below.**
-> 6. **[`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md)** — needs to know
+> 6. **[`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md)** — needs to know
 >    **whether stalled-match survivors are a real population**, now that survivors are in its scope by
 >    the 2026-09-04 owner ruling. ⚠️ **`0211` is scheduled in the same sprint and does NOT gate this
 >    task, nor this task it.**
@@ -1086,7 +1086,7 @@ it" is false — there were TWO rulings that day, and the second one did.**
 | Consumer | What it is currently asserting without production evidence |
 |---|---|
 | [`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md) — ~~**Priority Low–Medium**~~ 📌 **NOW `Medium`, in force 2026-09-11** | The rank was **held by the owner on 2026-09-03** on the reasoning that **busy lobbies are safe** (60 %+ activity → 0/3 stalls) and the realistic trigger is **private and quiet lobbies**. ⚠️ **That is a claim about the real lobby-activity distribution, and the distribution has never been measured.** Real numbers are what would confirm the rank — or overturn it. ✅ **RESOLVED 2026-09-11 — this task's figure overturned the hold and `0205` WAS RE-RANKED to `Medium`.** Three authorship layers, ⛔ not to be flattened: **THAT it be re-ranked** = owner ruling, 2026-09-11; **THAT the value is `Medium`** = the producer's proposal; **THAT `Medium` is approved and in force** = owner sign-off, 2026-09-11. 🚨 **The caveats travel with it and do not weaken:** client-match unit, **lower bound**, latched at the **first crossing**; *"52 % of Team matches stalled"* remains **unsupported**; the per-match rate is **permanently unknowable by owner ruling (option B)** and ⛔ **not a gap to close.** ⛔ `0205`'s status, scope and folder are **unchanged**. |
-| [`0206`](../0206-ffa-timer-expiry-award-to-top-client-player/brief.md) — ~~scheduled in Sprint 4~~ ~~📌 **✅ Done, closed 2026-09-03.** ⚠️ **Closed ≠ deployed — production state not verified this turn**~~ 🔴 **REVERTED 2026-09-04 — BEHAVIOUR NOT IN THE GAME, NEVER DEPLOYED.** Still `✅ Done` and still in `tasks/done/` (**correctly** — the work was done); the **effect** was reverted. **Struck, not deleted.** ⚠️ **`0206` is no longer a consumer waiting on this number — it is a cautionary example of what not having it costs.** | Its brief carries an explicit **unmeasured-frequency flag**: whether a clientless leader actually reaches the **80 %** FFA threshold in a real public lobby is recorded as **UNMEASURED, no production observation, no player report on file**. 🔴 **Updated 2026-09-04: that flag was never discharged, and the task built on top of it was reverted when its premise was measured and failed.** The successor consumer is [`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md). |
+| [`0206`](../0206-ffa-timer-expiry-award-to-top-client-player/brief.md) — ~~scheduled in Sprint 4~~ ~~📌 **✅ Done, closed 2026-09-03.** ⚠️ **Closed ≠ deployed — production state not verified this turn**~~ 🔴 **REVERTED 2026-09-04 — BEHAVIOUR NOT IN THE GAME, NEVER DEPLOYED.** Still `✅ Done` and still in `tasks/done/` (**correctly** — the work was done); the **effect** was reverted. **Struck, not deleted.** ⚠️ **`0206` is no longer a consumer waiting on this number — it is a cautionary example of what not having it costs.** | Its brief carries an explicit **unmeasured-frequency flag**: whether a clientless leader actually reaches the **80 %** FFA threshold in a real public lobby is recorded as **UNMEASURED, no production observation, no player report on file**. 🔴 **Updated 2026-09-04: that flag was never discharged, and the task built on top of it was reverted when its premise was measured and failed.** The successor consumer is [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md). |
 | [`0205`](../../backlog/0205-teams-bot-team-win-stall-resolution-policy/brief.md) **investigation step 2** | Marked ✅ done by simulation, **with the residual left open in the same breath**: *"that was a simulator with idle humans on one map. Production frequency is still unmeasured."* This task is that residual. |
 | 📌 **NEW — [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)** — **ruled, unblocked, unscheduled** | Its own brief records **"How often non-tutorial Singleplayer ends this way → ⚠️ Unmeasured"**, and its rank line says **"Not ranked on incidence."** ⚠️ **It is a consumer, NOT a dependent.** The ruling was explicitly not conditioned on incidence. What a number buys is **retrospective**: how much farming the guard actually removed. |
 
@@ -1347,7 +1347,7 @@ close) and right to refuse to assert the deploy state; **the deploy simply never
 still measures the PRE-FIX question — *"how often does the stall happen today?"* — against the
 pre-fix denominator.** ⚠️ **Neither half is now racing a clock, and that is a change of urgency, not
 of value.** A new clock will start if
-[`0211`](../../backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) — the replacement for
+[`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) — the replacement for
 `0206`, ~~unscheduled~~ — is scheduled and ships. ✅ **CORRECTED 2026-09-04: `0211` IS NOW SCHEDULED
 (Sprint 4, owner ruling); struck, not deleted — spent, not wrong. So the first half of that condition
 is ALREADY MET — only the SHIP is still outstanding.** 🔴 **Which is exactly why the owner ordered the

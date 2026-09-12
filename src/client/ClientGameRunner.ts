@@ -52,6 +52,7 @@ import {
   setActiveMatchStartTime,
   shouldLogMatchSpawnedConfirmedAnalytics,
 } from "./MatchStartAnalytics";
+import { isEliminated } from "./PlayerElimination";
 import { saveReconnectSession } from "./ReconnectSession";
 import {
   logWinConditionCheckAnalytics,
@@ -363,6 +364,14 @@ export class ClientGameRunner {
   private myPlayer: PlayerView | null = null;
   private isActive = false;
   private hasReportedParticipation = false;
+  // Task 0211. ⛔ Distinct from hasReportedParticipation above, which belongs to the
+  // platform-leaderboard reporter and has nothing to do with XP. Merging them would
+  // silently couple two unrelated features. Latched independently of each other: a
+  // stalled-match survivor can later be eliminated, and neither report should
+  // suppress the other. A duplicate is a no-op at the profile server's primary key,
+  // so these latches are efficiency, not the double-credit guard.
+  private hasReportedXpEliminationParticipation = false;
+  private hasReportedXpStallParticipation = false;
   private hasProcessedWin = false;
   private hasReportedWinConditionCheck = false;
   private _autoSpawnSent = false;
@@ -568,6 +577,26 @@ export class ClientGameRunner {
         });
       }
 
+      // Task 0211. The XP participation self-report, at the moment THIS player's
+      // match is over. Reporting is not a UI concern, so it lives here and not in
+      // WinModal (which carries the same elimination predicate for its own reasons —
+      // see isEliminated()). Suppressed for replays; deliberately NOT suppressed on
+      // reconnect, because a duplicate is absorbed by the profile server's primary
+      // key whereas suppressing could lose a real credit. Transport also refuses to
+      // send in local (Singleplayer / replay) mode.
+      if (
+        !this.hasReportedXpEliminationParticipation &&
+        this.lobby.gameRecord === undefined &&
+        isEliminated(this.gameView, this.myPlayer)
+      ) {
+        this.hasReportedXpEliminationParticipation = true;
+        this.transport.sendParticipation({
+          hasSpawned: true,
+          isAliveNow: false,
+          killedAt: this.gameView.ticks(),
+        });
+      }
+
       // Task 0208. The execution already latches this to one update per game;
       // this second, independent latch is belt and braces, and also carries the
       // replay / reconnect suppression the simulation cannot know about.
@@ -584,6 +613,27 @@ export class ClientGameRunner {
             winConditionChecks[0],
             winConditionState,
           );
+        }
+
+        // Task 0211. The survivor's moment. `winnerDeclarable === false` means the
+        // simulation met the win condition and the clientless-leader guard turned
+        // the leader away, so this match will never reach a normal end and there is
+        // no later moment to credit at. Credit the local player now, if they are
+        // still in it. ⛔ Kept out of the analytics `if` above on purpose: that one
+        // suppresses reconnects, and this one must not.
+        if (
+          !this.hasReportedXpStallParticipation &&
+          winConditionChecks[0].winnerDeclarable === false &&
+          this.lobby.gameRecord === undefined &&
+          this.myPlayer !== null &&
+          this.myPlayer.hasSpawned() &&
+          this.myPlayer.isAlive()
+        ) {
+          this.hasReportedXpStallParticipation = true;
+          this.transport.sendParticipation({
+            hasSpawned: true,
+            isAliveNow: true,
+          });
         }
       }
 

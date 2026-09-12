@@ -66,7 +66,7 @@ owner ruling.**
 
 **Why `Medium` and not higher:**
 
-- 🔴 **The sharpest harm is being closed by someone else.** [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md)
+- 🔴 **The sharpest harm is being closed by someone else.** [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md)
   credits the participation XP whether or not a winner is ever declared, so **the silent, whole-match
   XP loss stops** when `0211` ships. ⚠️ **The stall does not stop** — see *What `0211` does and does
   not do*, below — but what remains is **player experience and resource cost**, not lost economy.
@@ -152,7 +152,7 @@ behaviour: it keeps the check alive so a human can still come back and win the m
 
 ### 📌 Correction inherited from `0211`'s plan — do not plan from the older description
 
-⚠️ **[`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md)'s brief describes
+⚠️ **[`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md)'s brief describes
 the FFA stall as: *"`players()` filters to `isAlive()`, so dead players are absent from the sorted
 list, `find` returns `undefined`, and the code takes an early `return`."* 🔴 **That describes
 [`0206`](../../done/0206-ffa-timer-expiry-award-to-top-client-player/brief.md)'s REVERTED code, not the
@@ -162,7 +162,7 @@ game.** **There is no `find` in `checkWinnerFFA()` today** — it sorts `this.mg
 **not what produces the stall.** ✅ **Both halves re-verified in the tree this turn.**
 ⛔ **Anyone planning from that sentence would go looking for code that is not there.**
 
-### 🔴 What [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) DOES and DOES NOT do for this — state it plainly, in both directions
+### 🔴 What [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) DOES and DOES NOT do for this — state it plainly, in both directions
 
 🚨 **This is the single most misreadable thing about this task. Get it exactly right.**
 
@@ -282,7 +282,7 @@ and this project's rule applies in full: *all code changes in `src/core/` MUST b
   **"file the stall brief IF `0211`'s plan picks a mechanism OTHER THAN fixing the stall."**
   **The condition FIRED on 2026-09-11** when `0211`'s plan picked **Mechanism A** (credit at *"no
   winner can be declared"*), and the owner ruled the brief be filed. ✅ **Recorded in
-  [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) as well, on both
+  [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) as well, on both
   sides.**
 
 - 🚩 **A RELATED RESIDUAL THAT IS DELIBERATELY *NOT* FOLDED INTO THIS TASK, AND IS *NOT* FILED
@@ -298,7 +298,7 @@ and this project's rule applies in full: *all code changes in `src/core/` MUST b
   precisely so it cannot be lost.** **Open question, below.**
 
 - **Related, none blocking:**
-  - [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) — credits the XP
+  - [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) — credits the XP
     this stall used to lose. **Read the *What `0211` does and does not do* table above before assuming
     either task covers the other.**
   - [`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md) — the Team-mode

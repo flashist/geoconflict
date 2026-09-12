@@ -15,6 +15,7 @@ import {
 } from "../../Cosmetics";
 import { EmailSubscribeModal } from "../../EmailSubscribeModal";
 import { getUserMe } from "../../jwt";
+import { isEliminated } from "../../PlayerElimination";
 import { SendWinnerEvent } from "../../Transport";
 import { Layer } from "./Layer";
 import {
@@ -353,17 +354,12 @@ export class WinModal extends LitElement implements Layer {
 
   tick() {
     const myPlayer = this.game.myPlayer();
-    if (!this.eliminationTracked && myPlayer && !myPlayer.isAlive() && !this.game.inSpawnPhase() && myPlayer.hasSpawned()) {
+    const eliminated = isEliminated(this.game, myPlayer);
+    if (!this.eliminationTracked && eliminated) {
       this.eliminationTracked = true;
       flashist_logEventAnalytics(flashistConstants.analyticEvents.PLAYER_ELIMINATED, this.game.ticks());
     }
-    if (
-      !this.hasShownDeathModal &&
-      myPlayer &&
-      !myPlayer.isAlive() &&
-      !this.game.inSpawnPhase() &&
-      myPlayer.hasSpawned()
-    ) {
+    if (!this.hasShownDeathModal && eliminated) {
       this.hasShownDeathModal = true;
       clearReconnectSession();
       this._title = translateText("win_modal.died");

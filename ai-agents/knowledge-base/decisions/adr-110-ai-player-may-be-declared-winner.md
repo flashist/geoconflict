@@ -147,7 +147,7 @@ player in the match** — because the only thing standing between a match and `c
 
 > ⏳ **T1 is TRUE AS OF 2026-09-04 and has a scheduled expiry — not struck, but do not cite it forward.**
 > Re-verified this date: `creditMatchXp`'s sole call site is still inside `handleWinner`
-> (`GameServer.ts:1199`), so the premise holds today. **[`0211`](../../tasks/backlog/0211-credit-participation-xp-at-elimination-or-match-end/)
+> (`GameServer.ts:1199`), so the premise holds today. **[`0211`](../../tasks/done/0211-credit-participation-xp-at-elimination-or-match-end/)
 > is specifically designed to remove it** by crediting at elimination and at match end, independent of
 > any winner. Once `0211` ships, "the only thing standing between a match and `creditMatchXp` is that
 > some winner exists" becomes **false**, and T1's argument — that an AI winner is valuable because it
@@ -328,7 +328,7 @@ conditions are not re-derived if the revisit trigger ever fires and the decision
   > never ran; nobody was credited.
   >
   > **The defect this bullet claimed to close is still open and still live.** Closing it is
-  > [`0211`](../../tasks/backlog/0211-credit-participation-xp-at-elimination-or-match-end/), by
+  > [`0211`](../../tasks/done/0211-credit-participation-xp-at-elimination-or-match-end/), by
   > decoupling crediting from the winner entirely. Assessment:
   > [`2026-09-04-elimination-time-xp-crediting-design-assessment.md`](../reports/2026-09-04-elimination-time-xp-crediting-design-assessment.md).
   >
@@ -401,7 +401,7 @@ consequence of this decision, not evidence against it.
   > (Team) is unbuilt and unscheduled. The ADR is a live policy awaiting its first implementation.
   > ⇒ **The revisit trigger is unchanged** — a durable, player-visible winner surface still forces
   > re-examination before it ships (see the box at the top of this file).
-  > ⇒ **Successor task:** [`0211`](../../tasks/backlog/0211-credit-participation-xp-at-elimination-or-match-end/),
+  > ⇒ **Successor task:** [`0211`](../../tasks/done/0211-credit-participation-xp-at-elimination-or-match-end/),
   > which credits participation XP at elimination **or** match end, scoped by owner ruling to cover
   > **survivors of a stalled match as well as eliminated players**, across **FFA and Team**.
   >

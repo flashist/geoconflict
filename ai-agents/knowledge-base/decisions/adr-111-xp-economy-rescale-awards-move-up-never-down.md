@@ -86,7 +86,7 @@ identity buys an abuser).
 
 The owner had previously ruled, **2026-09-04**, that the amount stay **10 flat** — *"do not change two
 things at once"* — recorded as a deliberate hold on
-`ai-agents/tasks/backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md`, under
+`ai-agents/tasks/done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md`, under
 the struck heading *"Ruling 3 — the XP amount stays 10 flat"* and its
 *"DELIBERATE HOLD, NOT AN OVERSIGHT"* line.
 🔴 **The 2026-09-10 ruling reverses that earlier ruling of their own.** The earlier one is struck, not
@@ -126,7 +126,7 @@ here** — and, per part 3, any such tuning is expected to move the number **up*
 ⛔ **Record that as a deliberate hold, not an omission.** `0211`'s own record closes this explicitly:
 *"CLOSED 2026-09-10 BY DECISION, NOT BY FILING A TASK… do not file an XP-amount tuning task and do not
 report this as an unfiled gap"*
-(`ai-agents/tasks/backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md`, the
+(`ai-agents/tasks/done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md`, the
 *"CLOSED 2026-09-10 BY DECISION, NOT BY FILING A TASK"* item).
 
 ## Options considered
@@ -163,7 +163,7 @@ report this as an unfiled gap"*
   dies **30 seconds in** is paid **the same** as one who plays to the end. **That was true at 10 and is
   equally true at 1.** The owner ruled the **amount** separately and deliberately; **that point is not
   settled by this ADR.** It remains open as the minimum-participation-floor question
-  (`ai-agents/tasks/backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md`, the
+  (`ai-agents/tasks/done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md`, the
   *"§11 q3's second half — a MINIMUM-PARTICIPATION FLOOR"* residual; architect's report §11 q3).
 - **Player-facing copy must be rescaled in the same change.** `resources/lang/en.json` and
   `resources/lang/ru.json` both state the threshold to players (in each, the
@@ -263,7 +263,7 @@ number is not a smaller abuse surface when the threshold moved with it.
 
 ### Task `0211` — carries the implementation
 
-`ai-agents/tasks/backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md` ships both
+`ai-agents/tasks/done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md` ships both
 constants, the copy rescale (verification step 4d), and the new crediting trigger. It also carries the
 **pre-committed gate to re-examine ADR-101 when the survivor mechanism is chosen** — that brief's
 heading *"REQUIRED — the ADR-101 supersede gate"*.
@@ -283,7 +283,7 @@ heading *"REQUIRED — the ADR-101 supersede gate"*.
 - `tests/core/profile/Citizenship.test.ts` (`expect(CITIZENSHIP_XP_THRESHOLD).toBe(1000);`,
   `expect(XP_PER_MATCH).toBe(10);`), `tests/client/CitizenshipCard.test.ts`
   (`CITIZENSHIP_XP_THRESHOLD: 1000,`) — the pins
-- `ai-agents/tasks/backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md` — the
+- `ai-agents/tasks/done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md` — the
   ruling and its reversal of the 2026-09-04 hold (the struck
   *"Ruling 3 — the XP amount stays 10 flat"* heading, superseded by
   *"SUPERSEDED 2026-09-10 — THE AMOUNT IS **1 XP**"*), and the closed tuning question (the

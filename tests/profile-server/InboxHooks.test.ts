@@ -48,7 +48,7 @@ function creditClient(row: {
 function freshGrantClient(): MockClient {
   return creditClient({
     inserted: 1,
-    new_xp: 1000,
+    new_xp: 100,
     was_citizen: false,
     earned_at: null,
   });
@@ -90,7 +90,7 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       inboxWith(sendTemplate),
     );
 
-    await expect(repo.creditMatchXp("g1", "yandex-1", 10)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
       status: "credited",
       citizenshipNewlyGranted: true,
     });
@@ -110,7 +110,7 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       makePool(freshGrantClient()),
       inboxWith(sendTemplate),
     );
-    await expect(repo.creditMatchXp("g1", "yandex-1", 10)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
       status: "credited",
       citizenshipNewlyGranted: true,
     });
@@ -127,7 +127,7 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       makePool(freshGrantClient()),
       inboxWith(sendTemplate),
     );
-    await expect(repo.creditMatchXp("g1", "yandex-1", 10)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
       status: "credited",
       citizenshipNewlyGranted: true,
     });
@@ -140,14 +140,14 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       makePool(
         creditClient({
           inserted: 0,
-          new_xp: 1000,
+          new_xp: 100,
           was_citizen: false,
           earned_at: null,
         }),
       ),
       inboxWith(sendTemplate),
     );
-    await expect(repo.creditMatchXp("g1", "yandex-1", 10)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
       status: "duplicate",
       citizenshipNewlyGranted: false,
     });
@@ -160,14 +160,14 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       makePool(
         creditClient({
           inserted: 1,
-          new_xp: 1000,
+          new_xp: 100,
           was_citizen: true,
           earned_at: null,
         }),
       ),
       inboxWith(sendTemplate),
     );
-    await expect(repo.creditMatchXp("g1", "yandex-1", 10)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
       status: "credited",
       citizenshipNewlyGranted: false,
     });
@@ -180,20 +180,20 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       makePool(
         creditClient({
           inserted: 1,
-          new_xp: 990,
+          new_xp: 99,
           was_citizen: false,
           earned_at: null,
         }),
       ),
       inboxWith(sendTemplate),
     );
-    await repo.creditMatchXp("g1", "yandex-1", 10);
+    await repo.creditMatchXp("g1", "yandex-1", 1);
     expect(sendTemplate).not.toHaveBeenCalled();
   });
 
   test("without an inbox the grant still resolves credited", async () => {
     const repo = new PlayerProfileRepository(makePool(freshGrantClient()));
-    await expect(repo.creditMatchXp("g1", "yandex-1", 10)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
       status: "credited",
       citizenshipNewlyGranted: true,
     });

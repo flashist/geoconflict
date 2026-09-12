@@ -124,15 +124,6 @@ export class WinCheckExecution implements Execution {
       this.mg.config().gameConfig().maxTimerValue !== undefined &&
       timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0;
     if (thresholdMet || timerMet) {
-      // Task 0208: instrument here, at the decision point, *above* the guard —
-      // not at the guard's early return. See reportWinConditionCheck().
-      this.reportWinConditionCheck(
-        "Ffa",
-        thresholdMet,
-        FFA_LEADER_KIND[max.type()],
-        leaderSharePercent,
-      );
-
       // FFA and Team share one policy: a clientless leader (a Bot *or* a
       // FakeHuman nation) is never declared the winner outside a non-tutorial
       // singleplayer game. Mirrors GameImpl.makeWinner()'s condition, which
@@ -143,14 +134,32 @@ export class WinCheckExecution implements Execution {
       // Note the guard is about being *clientless*, not about being AI: a
       // PlayerType.AiPlayer carries a real clientID, so it never enters this
       // branch and may legitimately be declared the winner (ADR-110).
-      if (max.clientID() === null) {
-        const gameConfig = this.mg.config().gameConfig();
-        if (
-          gameConfig.gameType !== GameType.Singleplayer ||
-          gameConfig.isTutorial === true
-        ) {
-          return;
-        }
+
+      // Task 0211: the guard's condition is computed ONCE, here, and used for
+      // both the report below and the early return — one definition, so the
+      // published fact can never drift from the behaviour it describes.
+      // ⛔ This is NOT `max.clientID() !== null`: a clientless leader IS declared
+      // the winner in non-tutorial singleplayer, so the singleplayer carve-out is
+      // part of the condition. Behaviour is unchanged by one tick.
+      const gameConfig = this.mg.config().gameConfig();
+      const winnerDeclarable = !(
+        max.clientID() === null &&
+        (gameConfig.gameType !== GameType.Singleplayer ||
+          gameConfig.isTutorial === true)
+      );
+
+      // Task 0208: instrument here, at the decision point, *above* the guard —
+      // not at the guard's early return. See reportWinConditionCheck().
+      this.reportWinConditionCheck(
+        "Ffa",
+        thresholdMet,
+        FFA_LEADER_KIND[max.type()],
+        leaderSharePercent,
+        winnerDeclarable,
+      );
+
+      if (!winnerDeclarable) {
+        return;
       }
       this.mg.setWinner(max, this.mg.stats().stats());
       console.log(`${max.name()} has won the game`);
@@ -188,18 +197,26 @@ export class WinCheckExecution implements Execution {
       this.mg.config().gameConfig().maxTimerValue !== undefined &&
       timeElapsed - this.mg.config().gameConfig().maxTimerValue! * 60 >= 0;
     if (thresholdMet || timerMet) {
+      // Task 0211: as in checkWinnerFFA, the guard's condition is computed once and
+      // used for both the report and the early return.
+      // ⚠️ This guard is NARROWER than the FFA one, and deliberately left that way:
+      // it turns away ColoredTeams.Bot only, so a clientless Nations team IS declared
+      // the winner and does not stall. It also has no tutorial clause.
+      const winnerDeclarable = !(
+        max[0] === ColoredTeams.Bot &&
+        this.mg.config().gameConfig().gameType !== GameType.Singleplayer
+      );
+
       // Task 0208: instrument here, at the decision point, *above* the guard.
       this.reportWinConditionCheck(
         "Team",
         thresholdMet,
         teamLeaderKind(max[0]),
         percentage,
+        winnerDeclarable,
       );
 
-      if (
-        max[0] === ColoredTeams.Bot &&
-        this.mg.config().gameConfig().gameType !== GameType.Singleplayer
-      ) {
+      if (!winnerDeclarable) {
         return;
       }
       this.mg.setWinner(max[0], this.mg.stats().stats());
@@ -223,13 +240,21 @@ export class WinCheckExecution implements Execution {
    * simulating the same match composes the same event. This property is secured
    * BY DESIGN, NOT BY TEST: the tests run a single game instance, so a future
    * edit that makes this payload client-dependent would NOT be caught by them.
-   * Keep it client-free.
+   * Keep it client-free. (The KEY SET is separately pinned by
+   * tests/core/WinCheckDeterminism.test.ts, which does fire on a new field.)
+   *
+   * Task 0211 added `winnerDeclarable`. It is the guard's own predicate — game
+   * state and config only — so the property above still holds. Task 0211 reads it
+   * in the client to credit a stalled match's survivors; the analytics emitter
+   * (src/client/WinConditionAnalytics.ts) enumerates its fields explicitly and
+   * never spreads the update, so this field does not leak into 0208's event.
    */
   private reportWinConditionCheck(
     mode: WinConditionMode,
     thresholdMet: boolean,
     leaderKind: WinConditionLeaderKind,
     leaderSharePercent: number,
+    winnerDeclarable: boolean,
   ): void {
     if (this.mg === null) throw new Error("Not initialized");
     if (this.reportedWinCondition) {
@@ -251,6 +276,7 @@ export class WinCheckExecution implements Execution {
       leaderKind,
       leaderSharePercent: reportedSharePercent(leaderSharePercent),
       isTutorial: gameConfig.isTutorial === true,
+      winnerDeclarable,
     });
   }
 

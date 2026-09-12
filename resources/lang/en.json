@@ -87,7 +87,7 @@
     "templates": {
       "citizenship_earned": {
         "title": "You've earned Geoconflict Citizenship!",
-        "body": "You've reached 1,000 XP and earned citizenship. You now have access to citizen benefits."
+        "body": "You've reached 100 XP and earned citizenship. You now have access to citizen benefits."
       },
       "citizenship_paid": {
         "title": "Welcome, Citizen!",

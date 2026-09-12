@@ -115,7 +115,7 @@ rank now, and citing it is correct.
 >   weakening, and the owner has NOT been asked to re-rule on it.**
 >
 > **Why NOT higher than `Medium`:**
-> - 🔴 **[`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) IS NOW
+> - 🔴 **[`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) IS NOW
 >   SCHEDULED TO BUILD** (owner ruling, 2026-09-11). Once it ships, **the XP is credited regardless of
 >   who wins** — which retires the *"the whole match's XP is lost"* argument that carried much of this
 >   task's weight. What remains is the **UX harm**: a Team match nobody can win, running to the 3-hour
@@ -740,7 +740,7 @@ question and not a gate.**
      flagged as unverified — it is SPENT, NOT CARELESS.**
 
   **Owner ruled 2026-09-04 that the CREDITING fix covers Team mode as well as FFA**, filed as
-  [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) — *credit
+  [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) — *credit
   participation XP at elimination or match end, for eliminated players **and** survivors, in FFA
   **and** Team*. Reasoning as put and accepted: the fix lives in the **crediting path, not the win
   check**, so covering both is likely near-free, and it stops this task **being solved twice or

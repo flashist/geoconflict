@@ -11,11 +11,24 @@
  * 0013-player-profile-store-impl (Part B/E).
  */
 
-/** XP at which a player earns (free) citizenship. */
-export const CITIZENSHIP_XP_THRESHOLD = 1000;
+/**
+ * XP at which a player earns (free) citizenship.
+ *
+ * Rescaled 1,000 → 100 by ADR-111, divided by EXACTLY 10 so the number of
+ * qualifying matches a player must play is unchanged by the rescale.
+ */
+export const CITIZENSHIP_XP_THRESHOLD = 100;
 
-/** Flat XP awarded for a single qualifying match. */
-export const XP_PER_MATCH = 10;
+/**
+ * Flat XP awarded for a single qualifying match.
+ *
+ * ⛔ `1` is a DELIBERATE FLOOR, not an arbitrary constant (ADR-111 part 3):
+ * players accept an award moving UP far more readily than DOWN, so the economy
+ * starts low and every later move is upward. Do not "round it back up" for
+ * tidiness, and do not propose moving it DOWN without the owner reopening
+ * ADR-111. Any change here must move CITIZENSHIP_XP_THRESHOLD with it.
+ */
+export const XP_PER_MATCH = 1;
 
 /**
  * Whether a given lifetime XP total qualifies for earned citizenship.

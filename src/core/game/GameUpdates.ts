@@ -298,6 +298,13 @@ export interface WinConditionCheckUpdate {
   // Integer percent of the non-fallout land held by the leader at the crossing.
   leaderSharePercent: number;
   isTutorial: boolean;
+  // Task 0211. Whether a winner was actually DECLARABLE at this crossing — the
+  // clientless-leader guard's own predicate, published rather than re-derived.
+  // `false` means the win condition was met but nobody could be declared, so this
+  // match will never reach a normal end: the moment a surviving player's match is
+  // effectively over, and the only moment their participation XP can be credited.
+  // Derived purely from game state and config, like every other field here.
+  winnerDeclarable: boolean;
 }
 
 export interface EmbargoUpdate {

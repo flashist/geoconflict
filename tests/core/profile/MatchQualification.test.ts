@@ -52,12 +52,42 @@ describe("qualifiesForMatchXp", () => {
     );
   });
 
-  test("spawned then vanished without dying (left) does not qualify", () => {
+  // Task 0211, owner ruling. The leaver exclusion NARROWED; it was not deleted.
+  // Named explicitly in the titles below so a later reader sees the reversal is
+  // deliberate and does not "fix" it back. See the doc comment on
+  // qualifiesForMatchXp.
+  test("an eliminated player qualifies even though they later left (ruling: paid)", () => {
+    expect(
+      qualifiesForMatchXp(
+        participation("a", { isAliveAtEnd: false, killedAt: 42 }),
+      ),
+    ).toBe(true);
+  });
+
+  test("a vanisher no trigger ever credited still does not qualify (ruling: not paid)", () => {
     expect(
       qualifiesForMatchXp(
         participation("a", { isAliveAtEnd: false, killedAt: undefined }),
       ),
     ).toBe(false);
+  });
+
+  // Task 0211. The predicate is evaluated MID-MATCH now, not only at an end. Both
+  // mid-match shapes must pass with no logic change to this module.
+  test("a just-eliminated player qualifies mid-match", () => {
+    expect(
+      qualifiesForMatchXp(
+        participation("a", { isAliveAtEnd: false, killedAt: 7 }),
+      ),
+    ).toBe(true);
+  });
+
+  test("a still-alive spawned player qualifies mid-match", () => {
+    expect(
+      qualifiesForMatchXp(
+        participation("a", { isAliveAtEnd: true, killedAt: undefined }),
+      ),
+    ).toBe(true);
   });
 
   test("killedAt of 0 (eliminated at tick 0) still qualifies", () => {
@@ -82,9 +112,42 @@ describe("selectMatchCredits", () => {
         gameId: "game-1",
         yandexPlayerId: "yx-a",
         persistentId: "persistent-default",
-        xpAwarded: 10,
+        // ADR-111 / task 0211: the award is 1, asserted by test and not by reading
+        // the diff. Every crediting path resolves through here, so this is the one
+        // place the amount is pinned for all of them.
+        xpAwarded: 1,
       },
     ]);
+  });
+
+  // Task 0211. A one-entry batch is the shape the mid-match self-report produces.
+  // Nothing about this module changes for it — that is the claim, so it is asserted.
+  test("credits a single mid-match entry for a just-eliminated player", () => {
+    const credits = selectMatchCredits(
+      "game-1",
+      [participation("a", { isAliveAtEnd: false, killedAt: 12 })],
+      new Map([["a" as ClientID, state({ yandexPlayerId: "yx-a" })]]),
+      roster("a", "b", "c"),
+    );
+    expect(credits).toEqual([
+      {
+        gameId: "game-1",
+        yandexPlayerId: "yx-a",
+        persistentId: "persistent-default",
+        xpAwarded: 1,
+      },
+    ]);
+  });
+
+  test("credits a single mid-match entry for a still-alive stalled-match survivor", () => {
+    const credits = selectMatchCredits(
+      "game-1",
+      [participation("a", { isAliveAtEnd: true })],
+      new Map([["a" as ClientID, state({ yandexPlayerId: "yx-a" })]]),
+      roster("a", "b", "c"),
+    );
+    expect(credits).toHaveLength(1);
+    expect(credits[0].xpAwarded).toBe(1);
   });
 
   test("excludes players with no server-side client state", () => {

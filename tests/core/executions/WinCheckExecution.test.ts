@@ -271,6 +271,9 @@ describe("WinCheckExecution win-condition instrumentation (task 0208)", () => {
       leaderKind: "Bot",
       leaderSharePercent: expect.any(Number),
       isTutorial: false,
+      // Task 0211. The guard turned this leader away, so no winner can be declared
+      // and this match will never reach a normal end.
+      winnerDeclarable: false,
     });
     // Behaviour is unchanged: the guard still turns the leader away.
     expect(winUpdates).toHaveLength(0);
@@ -290,6 +293,8 @@ describe("WinCheckExecution win-condition instrumentation (task 0208)", () => {
     expect(winConditionUpdates).toHaveLength(1);
     expect(winConditionUpdates[0].leaderKind).toBe("Nation");
     expect(winConditionUpdates[0].branch).toBe("Threshold");
+    // Task 0211: clientless leader, non-singleplayer FFA -> the stall case.
+    expect(winConditionUpdates[0].winnerDeclarable).toBe(false);
     expect(winUpdates).toHaveLength(0);
     expect(execution.isActive()).toBe(true);
   });
@@ -305,6 +310,7 @@ describe("WinCheckExecution win-condition instrumentation (task 0208)", () => {
 
     expect(winConditionUpdates).toHaveLength(1);
     expect(winConditionUpdates[0].leaderKind).toBe("Human");
+    expect(winConditionUpdates[0].winnerDeclarable).toBe(true);
     expect(winUpdates).toHaveLength(1);
     expect(execution.isActive()).toBe(false);
   });
@@ -320,6 +326,7 @@ describe("WinCheckExecution win-condition instrumentation (task 0208)", () => {
 
     expect(winConditionUpdates).toHaveLength(1);
     expect(winConditionUpdates[0].leaderKind).toBe("AiPlayer");
+    expect(winConditionUpdates[0].winnerDeclarable).toBe(true);
     expect(winUpdates).toHaveLength(1);
   });
 
@@ -350,10 +357,17 @@ describe("WinCheckExecution win-condition instrumentation (task 0208)", () => {
     expect(solo.winConditionUpdates[0].isTutorial).toBe(false);
     // Unchanged behaviour: non-tutorial singleplayer still declares the winner.
     expect(solo.winUpdates).toHaveLength(1);
+    // 🔴 Task 0211. THE reason winnerDeclarable is not `max.clientID() !== null`:
+    // this leader IS clientless and a winner IS declared, because the FFA guard
+    // carves out non-tutorial singleplayer. A first-clause-only predicate would
+    // report false here and credit a solo player's participation XP.
+    expect(solo.winConditionUpdates[0].winnerDeclarable).toBe(true);
 
     expect(tutorial.winConditionUpdates[0].isTutorial).toBe(true);
     // Unchanged behaviour: a tutorial still declares nobody.
     expect(tutorial.winUpdates).toHaveLength(0);
+    // The tutorial clause puts this case back inside the guard.
+    expect(tutorial.winConditionUpdates[0].winnerDeclarable).toBe(false);
     expect(tutorial.execution.isActive()).toBe(true);
   });
 
@@ -416,6 +430,7 @@ describe("WinCheckExecution win-condition instrumentation (task 0208)", () => {
     expect(updates[0].mode).toBe("Team");
     expect(updates[0].leaderKind).toBe("BotTeam");
     expect(updates[0].branch).toBe("Threshold");
+    expect(updates[0].winnerDeclarable).toBe(false);
     // Unchanged behaviour: a Bot team is still not declared outside singleplayer.
     expect(mg.setWinner).not.toHaveBeenCalled();
   });
@@ -436,6 +451,12 @@ describe("WinCheckExecution win-condition instrumentation (task 0208)", () => {
     expect(updates[0].mode).toBe("Team");
     expect(updates[0].leaderKind).toBe("NationsTeam");
     expect(updates[0].branch).toBe("Threshold");
+    // 🔴 Task 0211. The Team guard is NARROWER than the FFA one: it turns away
+    // ColoredTeams.Bot only, with no clientless test and no tutorial clause. So an
+    // all-clientless Nations team IS declared the winner and does NOT stall — the
+    // asymmetry the brief described as "the same guard shape". Asserted in both
+    // directions (see the Bot-team case above) so it cannot drift silently.
+    expect(updates[0].winnerDeclarable).toBe(true);
     // Unchanged behaviour: the team guard turns away ColoredTeams.Bot only, so
     // a Nations team is still declared the winner exactly as it was at HEAD.
     expect(mg.setWinner).toHaveBeenCalled();
@@ -451,6 +472,7 @@ describe("WinCheckExecution win-condition instrumentation (task 0208)", () => {
 
     const updates = (mg as any).updates[GameUpdateType.WinConditionCheck];
     expect(updates[0].leaderKind).toBe("HumanTeam");
+    expect(updates[0].winnerDeclarable).toBe(true);
     expect(mg.setWinner).toHaveBeenCalled();
   });
 

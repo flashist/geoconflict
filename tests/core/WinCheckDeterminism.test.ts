@@ -56,6 +56,11 @@ describe("win-condition instrumentation determinism (task 0208)", () => {
   it("carries no identifiers of any kind in the payload", async () => {
     const { winConditionUpdates } = await runGame();
 
+    // ⛔ An EXACT key-set pin, never a subset match. A new field must be added here
+    // deliberately, with the reader asking whether it is client-free. Task 0211
+    // added `winnerDeclarable`: the clientless-leader guard's own predicate, derived
+    // from game state and config only, so it is inert with respect to the hash — as
+    // the two assertions above this one keep proving.
     expect(Object.keys(winConditionUpdates[0]).sort()).toEqual([
       "branch",
       "isTutorial",
@@ -64,6 +69,7 @@ describe("win-condition instrumentation determinism (task 0208)", () => {
       "lobbyType",
       "mode",
       "type",
+      "winnerDeclarable",
     ]);
   });
 });

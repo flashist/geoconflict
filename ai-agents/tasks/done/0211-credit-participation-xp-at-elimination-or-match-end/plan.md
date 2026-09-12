@@ -781,3 +781,127 @@ assuming.**
    **verbatim**.
 5. ⛔ **No commit, no push, no task-file move** unless the owner asks. Closing `0211` routes through
    `@fkit-producer`.
+
+---
+
+# ⛔ APPROVED AMENDMENTS A1–A7 — owner-approved 2026-09-12 at the `/fkit-sprint-ship-loop` plan gate
+
+**Status of this section:** the owner approved **the plan as written above, PLUS the amendments below**,
+via `AskUserQuestion` in a live lead session on 2026-09-12. Everything above this line is unchanged.
+Where an amendment contradicts the text above, **the amendment wins.**
+
+**Validation frame:** re-verified by content against `0488391` (branch `dev`), working tree clean.
+The plan's original frame was `7ff60ea`. **Zero source drift:**
+`git diff --stat 7ff60ea..HEAD -- src/ tests/ resources/ migrations/` returns empty — the intervening
+commits touched only `ai-agents/`, `package.json` and `package-lock.json`.
+
+---
+
+## A1 — 🔴 Phase 4: add `tests/core/WinCheckDeterminism.test.ts` to the test table
+
+This is the only amendment that prevents a surprise red suite. That file's third test asserts the
+payload key set **exactly**:
+
+```ts
+expect(Object.keys(winConditionUpdates[0]).sort()).toEqual([
+  "branch", "isTutorial", "leaderKind", "leaderSharePercent",
+  "lobbyType", "mode", "type",
+]);
+```
+
+Adding `winnerDeclarable` makes this fail. **Add a row to the Phase 4 table:**
+
+> | `tests/core/WinCheckDeterminism.test.ts` | The `"carries no identifiers of any kind in the payload"` whitelist gains `"winnerDeclarable"` (sorts last, after `"type"`). ⛔ **This test going red on the new field is the pin working** — it is the key-set pin, and it must be updated deliberately, never loosened to a subset match. The two determinism assertions above it must stay green untouched: the new field is derived from game state and config only, so it is inert with respect to the hash. |
+
+**And amend the plan's Risks row** *"The `WinConditionCheck` payload stops being client-free ⇒ desync"*:
+the mitigation column currently says the property is *"secured by design, not by test"*. That is true of
+the *two-clients-compose-the-same-event* property — but it **understates existing coverage**: a key-set
+whitelist test does exist and does fire on this change. Replace the mitigation with: *"secured by design
+for the client-freeness property; the key set is additionally pinned by
+`tests/core/WinCheckDeterminism.test.ts`, which this change must update."*
+
+## A2 — ✅ Phase 3's open plan-step is DISCHARGED (checked at validation)
+
+The plan says: *"Plan step, must be checked before writing: confirm `logWinConditionCheckAnalytics`
+enumerates the fields it sends explicitly…"*
+
+**Checked. It enumerates them explicitly** — `src/client/WinConditionAnalytics.ts`, the
+`winConditionAnalyticsEventName` return expression interpolates `update.mode`, `update.lobbyType`,
+`update.branch`, `update.leaderKind`, and `logWinConditionCheckAnalytics` passes
+`update.leaderSharePercent` as the value. **No spread anywhere.** ⇒ `winnerDeclarable` cannot leak into
+`0208`'s Part B event. Replace the plan step with this finding; close the corresponding Risks row
+(*"The new `winnerDeclarable` field leaks into `0208`'s still-open Part B analytics event"*) as
+**verified closed, no action**.
+
+## A3 — ⚠️ `winnerDeclarable` is a COMPOSITE predicate, not `clientID() !== null`
+
+Phase 3 says *"compute the existing clientless-leader guard predicate into a local once"* — correct
+instruction, but state the expressions so nobody implements the simpler, wrong thing:
+
+> **FFA** — `winnerDeclarable === false` ⟺ `max.clientID() === null && (gameConfig.gameType !== GameType.Singleplayer || gameConfig.isTutorial === true)`.
+> **Team** — `winnerDeclarable === false` ⟺ `max[0] === ColoredTeams.Bot && gameConfig.gameType !== GameType.Singleplayer`.
+>
+> ⛔ **`winnerDeclarable = max.clientID() !== null` is WRONG**: in non-tutorial Singleplayer FFA a
+> clientless leader **is** declared the winner. Both guards carry a Singleplayer carve-out; the local
+> must be the guard's whole condition, not its first clause.
+
+**And amend the Phase-4 `WinCheckExecution` row:** its expectation list (*`false` for FFA Bot/Nation and
+Bot team; `true` for Human, AiPlayer, Nations team*) holds **only for a Public/Private lobby**. Add:
+*"plus the Singleplayer and tutorial cases — `winnerDeclarable === true` for a non-tutorial Singleplayer
+clientless FFA leader and for a Singleplayer Bot team; `false` for a tutorial Singleplayer clientless FFA
+leader. The existing file already sets up all three lobby shapes."*
+
+## A4 — 📌 The `WinCheckExecution` test is an EXTENSION, not a new file
+
+Plan Phase 4 lists it as **new**. `tests/core/executions/WinCheckExecution.test.ts` already exists (note
+the directory is **`executions`**, plural), and its
+`describe("WinCheckExecution win-condition instrumentation (task 0208)")` block already covers a
+clientless Bot leader, a clientless FakeHuman nation, a Human, an `AiPlayer`, a Bot team, a clientless
+Nations team, private-vs-public, singleplayer/tutorial, and the once-per-match latch. **The
+`winnerDeclarable` assertions are added to those existing cases.** Cheaper than the plan implies;
+nothing lost.
+
+## A5 — ⚠️ Latch-name collision in `ClientGameRunner`
+
+Plan Phase 2 says to emit *"beside the existing `hasReportedParticipation` / `hasProcessedWin` latches"*.
+The **location** is right, but `private hasReportedParticipation = false;` already exists and belongs to
+the **platform-leaderboard** reporter (`reportParticipation` from `./leaderboard/LeaderboardReporter`) —
+nothing to do with XP. ⛔ **Do not reuse or overload that name.** Add: *"the two new latches must be
+distinctly named (e.g. `hasReportedXpEliminationParticipation` / `hasReportedXpStallParticipation`) —
+`hasReportedParticipation` is taken by the leaderboard reporter and merging them would silently couple
+two unrelated features."* `this.transport` is available on the same class (constructor parameter), and
+`this.transport.isLocal` is already used there, so no new plumbing.
+
+## A6 — ⚠️ The shared elimination predicate has THREE call sites, not two
+
+Plan Phase 2 says the extracted helper is *"used by both `ClientGameRunner` and `WinModal`'s existing
+elimination latch"*. `src/client/graphics/layers/WinModal.ts` carries **two** copies of
+`!isAlive() && !inSpawnPhase() && hasSpawned()` — the `eliminationTracked` analytics latch and the
+`hasShownDeathModal` modal latch. With the new `ClientGameRunner` emission that is **three**. Amend to
+*"three call sites"*; it strengthens the plan's own *"Low, insidious"* drift rationale rather than
+changing it.
+
+## A7 — ✅ The ADR-101 clarification has ALREADY LANDED — the build carries no ADR work
+
+Plan §3.5 says *"I have not written it and will not without the owner's say-so"*; §0.5 row 7 and brief
+Ruling 15 route it to the architect, *"and it ships inside `0211`"*.
+
+**It is written and committed.** `ai-agents/knowledge-base/decisions/adr-101-fail-soft-xp-crediting-no-durable-queue.md`
+carries a **`📌 Clarification — 2026-09-12 (architect)`** block, covering the trigger move, the
+Mechanism A call-volume consequence, the re-raise Trigger 2 baseline calibration, and an explicit
+figures-vs-trigger split table. Amend plan §3.5 and §9 to record it as **discharged externally, before
+the build** — the Build worker writes no ADR text and must not wait on the architect.
+
+---
+
+## Unverified at validation — carried forward, not resolved
+
+- The owner's live approvals of 2026-09-11 (the nine plan rulings, the seventeen-row manifest) — no
+  cross-context marker exists; the owner channel is session-only (ADR-021). Read as recorded and taken
+  as given.
+- `0208`'s Team figures (53.2 % clientless-in-front / 52.4 % stall-capable) — not re-derived. The plan
+  declines to claim them; validation does not claim them either.
+- The architect's `2026-09-04-elimination-time-xp-crediting-design-assessment.md` — not re-read at
+  validation. The plan records reading it in full.
+- **No tests were run at validation.** "The suite is green today" is NOT a claim. A1 predicts one test
+  goes red *when the change lands*, which is the pin working, not a current failure.

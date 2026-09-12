@@ -8,7 +8,9 @@ jest.mock("../../src/client/FlagInput", () => ({
   FLAG_STORAGE_KEY: "flag",
 }));
 jest.mock("../../src/client/PlayerProfileView", () => ({
-  CITIZENSHIP_XP_THRESHOLD: 1000,
+  // ADR-111 / task 0211: rescaled 1,000 -> 100. Every XP figure below moved with
+  // it, so each fixture keeps the citizen/non-citizen state it was written to test.
+  CITIZENSHIP_XP_THRESHOLD: 100,
   loadPlayerProfileView: jest.fn().mockResolvedValue(null),
 }));
 jest.mock("../../src/client/flashist/FlashistFacade", () => ({
@@ -98,7 +100,7 @@ const CITIZENSHIP_PRODUCT = {
 
 const NON_CITIZEN_PROFILE = {
   displayName: "Игрок_7734",
-  xp: 250,
+  xp: 25,
   isCitizen: false,
   // Confirmed by a successful server read — the CTA precondition (review R1).
   isAuthoritative: true,
@@ -336,7 +338,7 @@ describe("CitizenshipCard", () => {
     it("renders name, XP value, and a partial bar without the citizen badge", async () => {
       loadProfile.mockResolvedValue({
         displayName: "Игрок_7734",
-        xp: 250,
+        xp: 25,
         isCitizen: false,
       });
 
@@ -344,14 +346,12 @@ describe("CitizenshipCard", () => {
 
       expect(card.textContent).toContain("Игрок_7734");
       expect(card.textContent).toContain("citizenship_card.xp_label");
-      expect(card.textContent).toContain((250).toLocaleString());
-      expect(card.textContent).toContain((1000).toLocaleString());
+      expect(card.textContent).toContain((25).toLocaleString());
+      expect(card.textContent).toContain((100).toLocaleString());
       expect(card.textContent).not.toContain("citizenship_card.citizen_badge");
       expect(card.textContent).not.toContain("citizenship_card.guest_subtitle");
 
-      const bar = card.querySelector(
-        "#citizenship-xp-bar-fill",
-      ) as HTMLElement;
+      const bar = card.querySelector("#citizenship-xp-bar-fill") as HTMLElement;
       expect(bar).not.toBeNull();
       expect(bar.style.width).toBe("25%");
     });
@@ -359,17 +359,15 @@ describe("CitizenshipCard", () => {
     it("caps the bar at 100% while showing XP past the threshold", async () => {
       loadProfile.mockResolvedValue({
         displayName: "Игрок_7734",
-        xp: 1500,
+        xp: 150,
         isCitizen: false,
       });
 
       const card = await appendCard({ visible: true });
 
-      const bar = card.querySelector(
-        "#citizenship-xp-bar-fill",
-      ) as HTMLElement;
+      const bar = card.querySelector("#citizenship-xp-bar-fill") as HTMLElement;
       expect(bar.style.width).toBe("100%");
-      expect(card.textContent).toContain((1500).toLocaleString());
+      expect(card.textContent).toContain((150).toLocaleString());
     });
   });
 
@@ -377,17 +375,15 @@ describe("CitizenshipCard", () => {
     it("renders the citizen badge and a full bar", async () => {
       loadProfile.mockResolvedValue({
         displayName: "Игрок_7734",
-        xp: 1240,
+        xp: 124,
         isCitizen: true,
       });
 
       const card = await appendCard({ visible: true });
 
       expect(card.textContent).toContain("citizenship_card.citizen_badge");
-      expect(card.textContent).toContain((1240).toLocaleString());
-      const bar = card.querySelector(
-        "#citizenship-xp-bar-fill",
-      ) as HTMLElement;
+      expect(card.textContent).toContain((124).toLocaleString());
+      const bar = card.querySelector("#citizenship-xp-bar-fill") as HTMLElement;
       expect(bar.style.width).toBe("100%");
     });
   });
@@ -523,7 +519,7 @@ describe("CitizenshipCard", () => {
       runPurchase.mockResolvedValue("granted");
       loadProfile.mockResolvedValue({
         displayName: "Игрок_7734",
-        xp: 250,
+        xp: 25,
         isCitizen: true,
       });
 
@@ -632,7 +628,7 @@ describe("CitizenshipCard", () => {
 
       loadProfile.mockResolvedValue({
         displayName: "Игрок_7734",
-        xp: 250,
+        xp: 25,
         isCitizen: true,
       });
       window.dispatchEvent(new CustomEvent(PURCHASES_RECONCILED_EVENT));
@@ -661,7 +657,9 @@ describe("CitizenshipCard", () => {
     const nameSubmit = (card: CitizenshipCard) =>
       card.querySelector<HTMLButtonElement>("#citizenship-name-change-submit");
     const nameWithdraw = (card: CitizenshipCard) =>
-      card.querySelector<HTMLButtonElement>("#citizenship-name-change-withdraw");
+      card.querySelector<HTMLButtonElement>(
+        "#citizenship-name-change-withdraw",
+      );
     const nameRetry = (card: CitizenshipCard) =>
       card.querySelector<HTMLButtonElement>("#citizenship-name-change-retry");
     const nameError = (card: CitizenshipCard) =>

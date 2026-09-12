@@ -8,12 +8,14 @@ import { GameType } from "../core/game/Game";
 import {
   ClientID,
   ClientMessageSchema,
+  ClientParticipationMessage,
   ClientSendWinnerMessage,
   GameConfig,
   GameInfo,
   GameStartInfo,
   GameStartInfoSchema,
   Intent,
+  PlayerParticipation,
   PlayerRecord,
   ServerDesyncSchema,
   ServerErrorMessage,
@@ -82,6 +84,27 @@ export class GameServer {
 
   private kickedClients: Set<ClientID> = new Set();
   private outOfSyncClients: Set<ClientID> = new Set();
+
+  // Task 0211. Server-observed spawns: the clientID of every authenticated `spawn`
+  // intent that passed through this relay. Spawn is the one participation gate the
+  // server can corroborate FIRST-HAND, so a `participation` self-report from a
+  // client that never committed to the match is never paid.
+  private spawnedClients: Set<ClientID> = new Set();
+
+  // Task 0211. The last participation self-report per client, retained so a credit
+  // dropped for a null Yandex id can be re-attempted when a late `update_identity`
+  // resolves it. Moving the trigger mid-match makes that race materially likelier:
+  // a player can now be credited seconds after joining.
+  private participationClaims: Map<ClientID, ClientParticipationMessage> =
+    new Map();
+
+  // Task 0211. Clients we have already issued a credit call for from a self-report.
+  // ⚠️ This is an EFFICIENCY latch — it stops N reports becoming N HTTP round-trips.
+  // It is NOT the double-credit guard: that is the profile server's
+  // `(game_id, yandex_player_id)` primary key, and it must not be described as
+  // anything else. Set only when a call was actually made, so a report dropped for a
+  // null Yandex id stays retryable.
+  private participationCredited: Set<ClientID> = new Set();
 
   public bytesSent: number = 0;
   public bytesReceived: number = 0;
@@ -275,6 +298,13 @@ export class GameServer {
     // Ensure a profile row exists for an authenticated player as early as join, so
     // it is ready before match-end crediting and before the Citizenship UI reads it.
     this.upsertProfileForClient(client);
+    // Task 0211. A reconnect is the OTHER way a Yandex id goes null -> value: the
+    // rejoining socket carries a freshly-resolved id and replaces the allClients
+    // entry, with no `update_identity` message ever sent. Without this, a retained
+    // claim from a null-id report is stranded on an in-place socket reconnect (a
+    // page reload heals itself, because the client replays turns and re-reports).
+    // A no-op unless a retained, uncredited claim exists.
+    this.retryParticipationAfterIdentityRefresh(client);
 
     client.ws.removeAllListeners("message");
     client.ws.on("message", async (message: string) => {
@@ -284,7 +314,9 @@ export class GameServer {
         const parsed = ClientMessageSchema.safeParse(JSON.parse(message));
         if (!parsed.success) {
           const error = z.prettifyError(parsed.error);
-          this.log.error(`Failed to parse client message (clientID: ${client.clientID}): ${error}`);
+          this.log.error(
+            `Failed to parse client message (clientID: ${client.clientID}): ${error}`,
+          );
           client.ws.send(
             JSON.stringify({
               type: "error",
@@ -366,6 +398,10 @@ export class GameServer {
             this.handleWinner(client, clientMsg);
             break;
           }
+          case "participation": {
+            this.handleParticipation(client, clientMsg);
+            break;
+          }
           case "update_identity": {
             // Late Yandex-id resolution for an authorized user who joined while the
             // SDK was still initializing. Apply null→value only (cannot hijack a
@@ -375,6 +411,9 @@ export class GameServer {
                 clientID: client.clientID,
               });
               this.upsertProfileForClient(client);
+              // Task 0211. A mid-match participation report that arrived before the
+              // id resolved was dropped; retry it now that we can credit.
+              this.retryParticipationAfterIdentityRefresh(client);
             }
             break;
           }
@@ -537,13 +576,12 @@ export class GameServer {
       Math.min(capacity, aiConfig.targetTotalByTimeout) * coef,
     );
 
-    const reservedForHumans = aiConfig.humanPriority ? aiConfig.minHumanSlots : 0;
+    const reservedForHumans = aiConfig.humanPriority
+      ? aiConfig.minHumanSlots
+      : 0;
     const maxAiAllowedNow = Math.max(
       0,
-      Math.min(
-        aiConfig.aiPlayersMax,
-        capacity - humans - reservedForHumans,
-      ),
+      Math.min(aiConfig.aiPlayersMax, capacity - humans - reservedForHumans),
     );
 
     const total = humans + this.aiPlayers.length;
@@ -663,8 +701,9 @@ export class GameServer {
       return;
     }
     const aiConfig = this.config.aiPlayersConfig();
-    const ids = Array.from({ length: aiConfig.name.reserve }, (_, i) =>
-      aiConfig.name.start + i,
+    const ids = Array.from(
+      { length: aiConfig.name.reserve },
+      (_, i) => aiConfig.name.start + i,
     );
     const random = new PseudoRandom(simpleHash(this.id));
     this.aiNameOrder = random.shuffleArray(ids);
@@ -695,6 +734,14 @@ export class GameServer {
   }
 
   private addIntent(intent: Intent) {
+    // Task 0211. Note the spawn first-hand. Every client intent that reaches here
+    // has already passed the `intent.clientID !== client.clientID` guard above, so
+    // this set is authenticated: a client cannot record a spawn for anyone else.
+    // The only other caller of addIntent is markClientDisconnected, which never
+    // sends a spawn.
+    if (intent.type === "spawn") {
+      this.spawnedClients.add(intent.clientID);
+    }
     this.intents.push(intent);
   }
 
@@ -1270,14 +1317,36 @@ export class GameServer {
       this.log.warn("no gameStartInfo at match end; XP crediting skipped");
       return;
     }
+    this.creditParticipation(participation);
+  }
+
+  /**
+   * Task 0211. Resolve a participation batch into credits and post them
+   * (fire-and-forget, fail-soft). Shared by BOTH crediting paths: the whole-roster
+   * batch from the winner message, and the one-entry batch built from a single
+   * player's mid-match `participation` self-report.
+   *
+   * ⛔ The game id is read from `this.id` HERE, in the one place, and is deliberately
+   * not a parameter: the profile server's `(game_id, yandex_player_id)` primary key
+   * is what makes a player creditable at most once per match, and it stops working
+   * the moment the two paths disagree about the game id. Making that unexpressible
+   * is cheaper than testing for it — and it is tested anyway.
+   *
+   * Returns the number of credits posted (0 when nothing qualified), so the
+   * self-report path can tell a real credit from one dropped for a null Yandex id.
+   */
+  private creditParticipation(
+    participation: readonly PlayerParticipation[],
+  ): number {
     // Only credit players from the frozen start roster — not every connected client.
     // Client-supplied participation could otherwise name a post-start joiner /
     // spectator (present in allClients but not in this match) to mint them XP.
     const eligibleRoster = new Set(
       this.gameStartInfo.players.map((p) => p.clientID),
     );
-    // Require a live connection at match end. A client that closed its tab is
-    // removed from activeClients immediately (the "close" handler), whereas
+    // Require a live connection at the moment of crediting — match end on the winner
+    // path, the report itself on the self-report path. A client that closed its tab
+    // is removed from activeClients immediately (the "close" handler), whereas
     // isClientDisconnected only flips after the 60s ping timeout — so gate on both
     // to exclude last-second leavers without changing the broadcast disconnect timing.
     const activeClientIDs = new Set(this.activeClients.map((c) => c.clientID));
@@ -1298,9 +1367,95 @@ export class GameServer {
       eligibleRoster,
     );
     if (credits.length === 0) {
-      return;
+      return 0;
     }
     this.log.info(`crediting ${credits.length} player(s) match XP`);
     void this.profileApiClient.creditMatch(credits);
+    return credits.length;
+  }
+
+  /**
+   * Task 0211. A player's own report that THEIR match is over — they were
+   * eliminated, or they survived a match the simulation says can never declare a
+   * winner. Credits that one player, mid-match, through the same resolution the
+   * winner path uses.
+   *
+   * ⚠️ The alive/dead claim itself is NOT corroborated; everything around it is. A
+   * modified client can claim an elimination it did not suffer and collect 1 XP for a
+   * match it spawned into — it cannot collect for anyone else (no clientID on the
+   * wire), cannot collect without a server-observed spawn, and cannot collect twice
+   * (the profile server's primary key). That residual is accepted on ADR-103's
+   * reasoning: the identity being credited is itself client-asserted and unverified,
+   * so hardening this claim would be hardening the stronger link.
+   */
+  private handleParticipation(
+    client: Client,
+    clientMsg: ClientParticipationMessage,
+  ): void {
+    // Guards mirror handleWinner's, in the same order, plus the two this path adds.
+    if (
+      this.outOfSyncClients.has(client.clientID) ||
+      this.kickedClients.has(client.clientID) ||
+      this.participationCredited.has(client.clientID)
+    ) {
+      return;
+    }
+    if (this.gameStartInfo === undefined) {
+      // No frozen roster yet ⇒ nothing to bound crediting by. A report can only
+      // follow a spawn, so this should be unreachable.
+      this.log.warn("participation report before game start; ignored", {
+        clientID: client.clientID,
+      });
+      return;
+    }
+    if (
+      !this.gameStartInfo.players.some((p) => p.clientID === client.clientID)
+    ) {
+      return;
+    }
+    // First-hand: this relay saw the spawn intent itself.
+    if (!this.spawnedClients.has(client.clientID)) {
+      return;
+    }
+    this.participationClaims.set(client.clientID, clientMsg);
+    this.creditFromParticipationClaim(client.clientID, clientMsg);
+  }
+
+  /**
+   * Task 0211. Post the one-entry batch for a retained self-report. Shared by the
+   * report itself and by the late-identity retry, so both build the entry the same
+   * way.
+   */
+  private creditFromParticipationClaim(
+    clientID: ClientID,
+    claim: ClientParticipationMessage,
+  ): void {
+    const credited = this.creditParticipation([
+      {
+        // The AUTHENTICATED socket's clientID, never anything off the wire.
+        clientID,
+        hasSpawned: claim.hasSpawned,
+        isAliveAtEnd: claim.isAliveNow,
+        killedAt: claim.killedAt,
+      },
+    ]);
+    if (credited > 0) {
+      this.participationCredited.add(clientID);
+    }
+  }
+
+  /**
+   * Task 0211. A report that arrived while this client's Yandex id was still null was
+   * dropped (fail-soft) but retained. Now that the id resolved, try once more.
+   */
+  private retryParticipationAfterIdentityRefresh(client: Client): void {
+    if (this.participationCredited.has(client.clientID)) {
+      return;
+    }
+    const claim = this.participationClaims.get(client.clientID);
+    if (claim === undefined) {
+      return;
+    }
+    this.creditFromParticipationClaim(client.clientID, claim);
   }
 }

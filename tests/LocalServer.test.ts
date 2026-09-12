@@ -26,7 +26,13 @@ function makeServer(gameRecord?: unknown) {
     token: "token",
     gameRecord,
   };
-  const server = new LocalServer(lobbyConfig, jest.fn(), jest.fn(), false, new EventBus());
+  const server = new LocalServer(
+    lobbyConfig,
+    jest.fn(),
+    jest.fn(),
+    false,
+    new EventBus(),
+  );
   return server;
 }
 
@@ -65,5 +71,64 @@ describe("LocalServer onMessage hash guard", () => {
       server.onMessage({ type: "hash", turnNumber: 1, hash: 7 });
     }).not.toThrow();
     expect(warnSpy).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Task 0211, verification step 4c. A Singleplayer or archived-replay match must
+ * credit ZERO XP to ANYONE, and 0211 relocates the crediting trigger — the change
+ * most likely to break that property, with nothing in the codebase that would
+ * object. Nothing asserted it before this test existed.
+ *
+ * ⛔ Scope, stated honestly: this is a UNIT-LEVEL STAND-IN, not an end-to-end
+ * Singleplayer play-through. It asserts that LocalServer — the only "server" a solo
+ * match has — does nothing at all with the new message type. There is no local
+ * crediting path for it to reach, because LocalServer has no credit code and no
+ * profile client. Transport's own refusal to send in local mode is covered
+ * separately in tests/client/TransportParticipation.test.ts.
+ */
+describe("LocalServer and the participation message (task 0211)", () => {
+  it("ignores a participation message: no throw, no state, nothing credited", () => {
+    const server = makeServer();
+    const before = JSON.stringify({
+      turns: (server as any).turns,
+      intents: (server as any).intents,
+      winner: (server as any).winner,
+    });
+
+    expect(() => {
+      server.onMessage({
+        type: "participation",
+        hasSpawned: true,
+        isAliveNow: false,
+        killedAt: 42,
+      });
+    }).not.toThrow();
+
+    // LocalServer's onMessage is three bare `if` blocks with no `else` and no
+    // `default`, so an unknown type falls through untouched. Asserted rather than
+    // read off the source, because that shape is exactly what a future `default:`
+    // branch would quietly change.
+    expect(
+      JSON.stringify({
+        turns: (server as any).turns,
+        intents: (server as any).intents,
+        winner: (server as any).winner,
+      }),
+    ).toEqual(before);
+    // Not a game action: it must never enter the deterministic turn stream.
+    expect((server as any).intents).toHaveLength(0);
+  });
+
+  it("ignores a participation message during a replay too", () => {
+    const server = makeServer({ turns: [], gitCommit: "x" });
+    expect(() => {
+      server.onMessage({
+        type: "participation",
+        hasSpawned: true,
+        isAliveNow: true,
+      });
+    }).not.toThrow();
+    expect((server as any).intents).toHaveLength(0);
   });
 });

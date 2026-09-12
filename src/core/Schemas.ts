@@ -90,7 +90,8 @@ export type ClientMessage =
   | ClientJoinMessage
   | ClientLogMessage
   | ClientHashMessage
-  | ClientUpdateIdentityMessage;
+  | ClientUpdateIdentityMessage
+  | ClientParticipationMessage;
 export type ServerMessage =
   | ServerTurnMessage
   | ServerStartGameMessage
@@ -115,6 +116,9 @@ export type ClientLogMessage = z.infer<typeof ClientLogMessageSchema>;
 export type ClientHashMessage = z.infer<typeof ClientHashSchema>;
 export type ClientUpdateIdentityMessage = z.infer<
   typeof ClientUpdateIdentitySchema
+>;
+export type ClientParticipationMessage = z.infer<
+  typeof ClientParticipationSchema
 >;
 
 export type AllPlayersStats = z.infer<typeof AllPlayersStatsSchema>;
@@ -598,6 +602,30 @@ export const ClientUpdateIdentitySchema = z.object({
   yandexPlayerId: z.string().min(1).max(256),
 });
 
+/**
+ * Task 0211. Per-player participation self-report, sent the moment THIS player's
+ * match is over — at the elimination edge, and (for a survivor) at the instant the
+ * simulation reports the win condition met with no declarable winner. It exists
+ * because a match that never reaches a normal end has no other moment to credit at.
+ *
+ * ⛔ Carries NO clientID. The server uses the authenticated socket's
+ * `client.clientID`, mirroring the intent guard (`intent.clientID !== client.clientID`
+ * → rejected), so a client can only ever report ITSELF. A clientID sent anyway is
+ * stripped by this schema and is unreachable server-side.
+ *
+ * This is a REPORT, not a command: the server decides whether it credits, combining
+ * it with server-only signals (frozen roster, kicked, out-of-sync, a server-observed
+ * spawn intent, and the trusted Yandex id). See MatchQualification.selectMatchCredits.
+ */
+export const ClientParticipationSchema = z.object({
+  type: z.literal("participation"),
+  hasSpawned: z.boolean(),
+  isAliveNow: z.boolean(),
+  // Tick at which this player was eliminated, if they were. Distinguishes a
+  // legitimately killed player (qualifies) from one who simply stopped playing.
+  killedAt: z.number().int().nonnegative().optional(),
+});
+
 export const ClientIntentMessageSchema = z.object({
   type: z.literal("intent"),
   intent: IntentSchema,
@@ -631,6 +659,7 @@ export const ClientMessageSchema = z.discriminatedUnion("type", [
   ClientLogMessageSchema,
   ClientHashSchema,
   ClientUpdateIdentitySchema,
+  ClientParticipationSchema,
 ]);
 
 //

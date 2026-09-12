@@ -103,7 +103,7 @@ not.**
 1. **Ranking metric.** What ranks a player? Cumulative XP (already persisted), wins, win-rate,
    placement points, a season score? ⚠️ Note the interaction: XP is credited flat per
    qualifying match ~~(10 XP)~~ **(🔴 PENDING: `1 XP` after
-   [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) ships — `10 XP` is what is
+   [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) ships — `10 XP` is what is
    SHIPPED TODAY)**, so an XP leaderboard ranks **participation**, not skill.
 
    > 📌 **Figure corrected 2026-09-10, struck not deleted — and it is a NOTE, not an action.** Under the
