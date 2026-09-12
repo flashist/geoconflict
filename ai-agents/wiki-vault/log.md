@@ -3406,3 +3406,69 @@ knowledge-base side) is still open and untouched.
 what `0052`'s close established. This entry is the record, and the whole of it.
 
 - 🔒 No secrets. Nothing committed or pushed.
+
+## 2026-09-12 — sync
+
+- **Sync window:** `00058df` → HEAD (`77fbc98`), 17 commits. Watermark advanced to `77fbc98`.
+- **Changed source files detected under `ai-agents/` (excl. vault):** 55 paths; **22 ingest-worthy**
+  after the Step 3 filter (11 done/cancelled briefs · 9 knowledge-base files · 2 sprint boards).
+- 🔴 **WINDOW LARGER THAN THE CALLER DESCRIBED, and the reason matters for future syncs:** the
+  2026-09-11 runs logged above were **`ingest` runs, not `sync` runs**, and **an ingest does not write
+  the watermark.** So the vault already held the ADR-111 / `0218` / `0222` / `0208` / `0052` work while
+  the watermark still read 2026-09-10. ⚠️ **The true un-ingested delta was `bb1674f..HEAD` — the
+  `0211` close and its ripples.** ⛔ **Nothing was lost; the watermark was merely stale.**
+
+### Ingested
+
+- `ai-agents/tasks/done/0211-…/brief.md` → **updated** [[wiki/tasks/credit-participation-xp-elimination-or-match-end]]
+  (source path `backlog/` → `done/`; status → done; close record, what shipped, four residuals)
+- `ai-agents/knowledge-base/decisions/adr-101-…md` → **updated** [[wiki/decisions/adr-101-fail-soft-xp-crediting]]
+  (the 2026-09-12 architect clarification: **supersede gate closed, NO superseding ADR**)
+- `ai-agents/knowledge-base/decisions/adr-111-…md` → **updated** [[wiki/decisions/adr-111-xp-economy-rescale]] (shipped; ruling 8 cost nothing)
+- `ai-agents/knowledge-base/decisions/adr-110-…md` → **updated** [[wiki/decisions/adr-110-ai-winner-allowed]] (**T1's scheduled expiry FIRED**)
+- `ai-agents/sprints/plan-sprint-4.md` → **updated** [[wiki/decisions/sprint-4]] (board re-counted at `77fbc98`)
+- `ai-agents/tasks/done/0208-…/brief.md` → **updated** [[wiki/tasks/measure-clientless-leader-and-solo-awards]] (pre-fix denominator now **spent, not pending**)
+- Ripple-corrected for the same ship: [[wiki/decisions/clientless-leader-win-policy]] ·
+  [[wiki/systems/project-brief]] · [[wiki/systems/player-profile-store]] ·
+  [[wiki/tasks/citizenship-xp-progress-ui]] · [[wiki/tasks/analytics-p0-session-match-count]] ·
+  [[wiki/tasks/winmodal-participation-comment-correction]] · `index.md`
+
+### Skipped
+
+- **All `backlog/*/brief.md`** (Step 3 — a page for unfinished work is premature): `0014`, `0017`,
+  `0205`, `0207`, `0209`, `0210`, `0213`, `0214`, `0217`, `0219`, `0223`, `0230`, `0234`, `0239`,
+  `0240`, `0241`, and the newly filed `0242`, `0248`, `0249`, `0250`.
+- **All in-folder `plan.md` / `worklog.md` / `review.md`** (working artifacts, not sources).
+- **Already covered by the 2026-09-11 ingests:** the `0218`, `0222`, `0215`, `0182`, `0201`, `0206`,
+  `0224`, `0052` and `0187` briefs, the profile runbook, the clean-slate survey, the two conventions
+  files, `decisions/README.md` and `analytics-event-reference.md` — re-checked, no drift found.
+
+### Corrected — the two stale-claim classes the sync was asked to hunt
+
+- 🔴 **THE `0211` PATH ROT WAS REAL AND IS FIXED.** `wiki/tasks/credit-participation-xp-elimination-or-match-end.md`
+  line 3 still pointed at `ai-agents/tasks/backlog/0211-…/brief.md`. **It was the ONLY such pointer in
+  the `wiki/` tree** — a structural sweep for `tasks/backlog/<NNNN>` naming a now-moved folder found
+  nothing else. ⛔ **`log.md`'s six historical occurrences are LEFT UNTOUCHED** — append-only; an entry
+  recording a path that was correct on its date must not be rewritten (the `0002` D3 hard constraint).
+- 🔴 **THE `10 XP` / `1,000 XP` CLAIMS WERE STALE — and more sweepingly than "figures".** The whole
+  vault carried a standing *"NOTHING HAS SHIPPED — the code still reads `1000` / `10`"* annotation.
+  ✅ **Verified against the code, not taken on report:** `src/core/profile/Citizenship.ts` at `77fbc98`
+  declares `CITIZENSHIP_XP_THRESHOLD = 100` and `XP_PER_MATCH = 1`; both language files changed in the
+  same commit; `winnerDeclarable` is now present in `src/`. Every page was struck-and-corrected, never
+  overwritten.
+
+### ⚠️ Flagged for human review — the vault cannot fix these (ADR-005)
+
+1. **`ai-agents/knowledge-base/decisions/adr-101-…md`'s 2026-09-12 clarification contains a dated
+   observation that was overtaken the SAME DAY.** It states *"Verified in the code on 2026-09-12:
+   NOTHING HAS SHIPPED … `winnerDeclarable` appears nowhere in `src/`"* and declares its frame as
+   `bb1674f`. `0211` shipped in `77fbc98` hours later. ⛔ **Its REASONING is unaffected** — it was
+   written to read correctly both before and after — **only the liveness line is spent.** This is a
+   textbook instance of `conventions/file-line-citations.md`'s failure mode 4 (self-invalidation
+   within a day), recorded on the very ADR that discusses it.
+2. **The pre-existing `file-line-citations.md` ↔ `0239` contradiction is UNCHANGED** and still
+   unresolved from the 2026-09-10 sync. Not re-litigated here.
+
+- 🔒 No secrets — scanned the touched pages; the only hit was the *variable name*
+  `PROFILE_INTERNAL_TOKEN=` on a pre-existing line, with no value. Nothing committed or pushed.
+- ⛔ **Closed nothing, moved no task file, edited no brief and no sprint plan** (ADR-033).

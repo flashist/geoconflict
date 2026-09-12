@@ -3,7 +3,30 @@
 **Date**: 2026-09-02
 **Status**: accepted
 
-> # 🔴 THE DEFECT IS STILL OPEN AND STILL LIVE — AND `0206` DID NOT FIX IT
+> # ✅ 2026-09-12 — **THE XP LOSS IS FIXED IN THE REPO BY `0211`. ⛔ IT IS STILL LIVE IN PRODUCTION.**
+>
+> 🔴 **READ BOTH HALVES OR YOU WILL GET THIS WRONG.**
+>
+> - ✅ **FIXED IN THE REPO.** Task [[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`)
+>   shipped and closed **2026-09-12**, crediting participation XP **at elimination OR at match end,
+>   independent of any winner** — **Mechanism A**, via a composite `winnerDeclarable` field now present
+>   in `src/core/execution/WinCheckExecution.ts`, `src/core/game/GameUpdates.ts` and
+>   `src/client/ClientGameRunner.ts`. **FFA and Team both in scope.**
+> - 🚨 **STILL LIVE IN PRODUCTION.** `0211` is **NOT DEPLOYED** — the owner deploys at a later slot.
+>   **Every match played today still loses the XP.** ⛔ **Do not write *"fixed"* without the second
+>   half.** ⚠️ **And `0211` closed with NO end-to-end proof that crediting works** — an owner-side
+>   manual live check after deploy is still outstanding.
+> - ⛔ **`0211` FIXES THE XP LOSS, NOT THE STALL.** A `maxGameDuration`-capped match whose win condition
+>   never fired still credits nobody — **verified non-regressive** (that shape credited nobody before
+>   either). The stall itself is task `0242`, filed 2026-09-11 on the Backlog board.
+> - 🔴 **AND THE MEASUREMENT IS NOW GONE FOREVER.** Shipping `0211` **destroyed `0208`'s pre-fix
+>   denominator** — the per-match stall rate **will never be known**. Owner-ruled, accepted with eyes
+>   open, **cost now spent.** ⛔ **Do NOT re-propose it as a gap for someone to close.**
+>
+> ---
+>
+> ~~# 🔴 THE DEFECT IS STILL OPEN AND STILL LIVE — AND `0206` DID NOT FIX IT~~
+> 📌 **Struck 2026-09-12 as to the REPO, kept as to PRODUCTION — see both halves above.**
 >
 > **When a bot or a Nation leads an FFA match at the win threshold, the whole match's match-end XP is
 > silently lost for every player in it.** Task `0022` shipped a guard that stops the match wedging but
@@ -43,8 +66,9 @@
 > ✅ **SATISFIED 2026-09-11 — `0208` was deployed, read and closed, and the owner CLEARED `0211`'s ship
 > gate** (option B: take the 52 % as directional, build no further measurement). ~~⚠️ **Cleared is NOT
 > scheduled — `0211` stays `🔲 Backlog` and nobody is building it.**~~ 📌 **SUPERSEDED LATER THE SAME
-> DAY — struck, not deleted.** 🔴 **The owner then ruled BUILD `0211`; it is now `🔄 In progress`** —
-> ⚠️ **a compromise token: no session owns it, no plan is approved, no code is written.**
+> DAY — struck, not deleted.** 🔴 **The owner then ruled BUILD `0211`** — ~~it is now `🔄 In progress`,
+> ⚠️ a compromise token: no session owns it, no plan is approved, no code is written~~ 📌 **also
+> struck: ✅ `0211` SHIPPED AND CLOSED 2026-09-12.**
 > 🔴 **When it ships, `0208`'s pre-fix denominator is gone permanently — knowingly accepted by the
 > owner, ⛔ NOT a gap for anyone to close later.**
 >

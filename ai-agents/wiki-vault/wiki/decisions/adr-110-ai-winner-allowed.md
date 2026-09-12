@@ -26,18 +26,26 @@
 > ⚠️ **The revisit trigger is unchanged** — a durable, player-visible winner surface still forces
 > re-examination before it ships (see the expiry box below).
 >
-> ### ⏳ T1 is TRUE TODAY and has a SCHEDULED EXPIRY — not struck, but do not cite it forward
+> ### 🔴 T1 HAS EXPIRED — the scheduled expiry FIRED on 2026-09-12. ⛔ DO NOT CITE T1 FORWARD.
 >
-> Re-verified 2026-09-04: `creditMatchXp`'s sole call site is still inside `handleWinner`
-> (`src/server/GameServer.ts:1199`), so T1's premise holds **today**.
-> **[[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`) is specifically designed to
-> remove it.** Once `0211` ships, *"the only thing standing between a match and `creditMatchXp` is
-> that some winner exists"* becomes **false**, and T1's argument — that an AI winner is valuable
-> because it unblocks everyone's crediting — **loses most of its force.**
+> ✅ **`0211` SHIPPED AND CLOSED 2026-09-12**, and it did exactly what this box predicted:
+> [[tasks/credit-participation-xp-elimination-or-match-end]] decoupled crediting from the winner
+> (**Mechanism A** — credit at elimination **or** at the *"no winner declarable"* moment). ⇒ 🔴 **T1's
+> premise — *"the only thing standing between a match and `creditMatchXp` is that some winner
+> exists"* — IS NOW FALSE**, and T1's argument (that an AI winner is valuable because it unblocks
+> everyone's crediting) **has lost most of its force.**
 >
-> ⛔ **This does NOT fire the re-raise trigger below.** That trigger reads *"crediting ever becomes
-> winner-**dependent**"*; `0211` makes it **less** so, which is the safe direction. **But the reasoning
-> underneath shifts — weigh T1 as EXPIRING, not as settled.**
+> ⛔ **SHIPPED IS NOT DEPLOYED.** `0211` is not in production, so **in the live game T1's premise still
+> describes what happens today.** ⚠️ **Two different frames — do not collapse them:** the *decision
+> record* must now read T1 as expired; the *production behaviour* has not changed yet.
+>
+> ⛔ **THIS STILL DOES NOT FIRE THE RE-RAISE TRIGGER BELOW.** That trigger reads *"crediting ever
+> becomes winner-**dependent**"*; `0211` made it **less** so, which is the safe direction. 🔴 **The ADR
+> is NOT superseded and its decision is UNCHANGED** — only one of its supporting arguments is spent.
+>
+> ~~⏳ **T1 is TRUE TODAY and has a SCHEDULED EXPIRY** — re-verified 2026-09-04: `creditMatchXp`'s sole
+> call site is still inside `handleWinner`, so T1's premise holds today.~~ 📌 **STRUCK 2026-09-12 —
+> TRUE WHEN WRITTEN, AND THE EXPIRY IT SCHEDULED IS THE ONE THAT FIRED.**
 
 ---
 
@@ -261,7 +269,7 @@ consequence.
 - [[decisions/sprint-4]] — where `0206` was scheduled, built and closed (2026-09-03, agent-closed — not owner-verified) and where `0208` and `0211` were scheduled on 2026-09-04
 - [[decisions/sprint-backlog]] — where `0205`, `0207`, `0209` and `0210` sit, unscheduled (`0208` and `0211` have since moved to Sprint 4)
 - [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, which built this ADR's predicate unchanged and was then **REVERTED** — read its STOP box
-- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which **expires this ADR's T1 argument** by decoupling crediting from the winner; ⛔ **not** an implementation of this ADR
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which **EXPIRED this ADR's T1 argument** by decoupling crediting from the winner. ✅ **Shipped and closed 2026-09-12 — the expiry has FIRED, not merely been scheduled**; ⛔ **not** an implementation of this ADR, and ⛔ **it did NOT fire the re-raise trigger**
 - [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, whose Part A excludes AI players on this ADR's reasoning. ✅ **Closed 2026-09-11 with the re-raise trigger's measurement READ** — `AiPlayer` **89 firings in 7 days**, FFA clientless **~1.6 %** vs Team **~53.2 %**. ⛔ **An INPUT REQUIRING AN ARCHITECT'S READ, NOT a conclusion about this ADR**; ⚠️ **client-matches, lower bounds, and `0208` is not fully verified**
 - [[tasks/placement-semantics-literal-one]] — task `0209`, whose accepted `1`-for-a-loser case follows from this ADR
 - [[tasks/singleplayer-leaderboard-reporting-policy]] — task `0210`, which this ADR does **not** pre-answer (it governs who WINS, not who receives points)

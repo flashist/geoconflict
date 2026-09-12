@@ -1,8 +1,47 @@
 # Credit Participation XP at Elimination or Match End (task 0211)
 
-**Source**: `ai-agents/tasks/backlog/0211-credit-participation-xp-at-elimination-or-match-end/brief.md`
-**Status**: in-progress — 🔴 **`🔄 In progress` on `plan-sprint-4.md` and in the brief, on an OWNER RULING of 2026-09-11: BUILD `0211`.** ⚠️ **READ THE TOKEN-CHOICE BOX BELOW BEFORE TRUSTING THIS VALUE — as of 2026-09-11 NO session owns it, NO plan is approved, and NOT ONE LINE OF CODE IS WRITTEN.** ~~backlog~~ 📌 **struck, not deleted; true until the ruling.**
-**Sprint/Tag**: Sprint 4 — scheduled 2026-09-04 by owner ruling; rank `Medium–High` (**the producer's**, held three times that day). ⛔ **The 2026-09-11 ruling did NOT re-rank it** — `Medium–High` still stands, and it is still **the producer's rank, not the owner's**
+**Source**: `ai-agents/tasks/done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md`
+**Status**: done — ✅ **`✅ Done (agent-closed — not owner-verified)`, closed 2026-09-12** by a spawned producer at the end of the sprint ship-loop. 🚨 **CLOSES CARRYING AN OUTSTANDING OWNER-SIDE ACTION AND THREE ACCEPTED RESIDUALS — see *Outcome* below before treating this as verified.** ~~in-progress~~ ~~backlog~~ 📌 **struck, not deleted; each was true when written.**
+**Sprint/Tag**: Sprint 4 — scheduled 2026-09-04 by owner ruling; rank `Medium–High` (**the producer's**, held three times that day). ⛔ **Never re-ranked** — `Medium–High` stood to the close, and it remained **the producer's rank, not the owner's**
+
+> # ✅ 2026-09-12 — **THIS TASK SHIPPED AND CLOSED.** Read this box before anything below it.
+>
+> 🔴 **EVERYTHING BELOW THIS BOX WAS WRITTEN WHILE THE TASK WAS OPEN.** Its planning prose, its open
+> questions and its *"not one line of code is written"* warnings are **kept as the record of how the
+> task was reasoned about** — they are **SPENT, NOT WRONG**. ⛔ **Do not cite any of it forward as the
+> current state.**
+>
+> ## What shipped (verified in the code at `77fbc98`, this sync)
+>
+> - **Threshold `1000` → `100`; award `10` → `1`.** ✅ **CONFIRMED IN CODE, NOT TAKEN ON REPORT** —
+>   `src/core/profile/Citizenship.ts` now declares `CITIZENSHIP_XP_THRESHOLD = 100` and
+>   `XP_PER_MATCH = 1`. 🔴 **This RETIRES the vault-wide *"nothing has shipped / the code still reads
+>   1000 and 10"* annotation that every XP page carried.**
+> - **Player-facing copy rescaled in `en.json` AND `ru.json` in the same change** (ADR-111's
+>   same-change mandate, verification step `4d`) — both files changed in this commit.
+> - **Mechanism A**, via a composite `winnerDeclarable` field — now present in `src/`
+>   (`src/core/game/GameUpdates.ts`, `src/core/execution/WinCheckExecution.ts`,
+>   `src/client/ClientGameRunner.ts`).
+> - **FFA and Team in scope; Singleplayer suppressed.**
+> - **The leaver rule narrowed:** a player eliminated who *then* closes the tab **is paid at the moment
+>   of death**.
+>
+> ## ⛔ SHIPPED IS NOT DEPLOYED, AND SHIPPED IS NOT VERIFIED
+>
+> 🚨 **There is NO end-to-end proof that crediting works, and none was achievable in this task.**
+> `getCreditableYandexId()` returns `null` for every client in a local run, and the
+> `WinConditionCheck → ClientGameRunner → Transport → server` seam **has no harness in this repo**. All
+> crediting evidence is **unit / server-handler level with an injected Yandex id.** The owner was
+> offered the alternative — **build that harness first, holding `0211` open** — and **DECLINED**,
+> choosing a **manual live crediting check after deploy**. ⛔ **Do not record this as verified:** it is
+> an **accepted evidence floor plus an owner action still to run.**
+>
+> **Verification that WAS run** (first-hand by the lead, not taken on report): `npm test` →
+> **116 suites / 1232 tests, 0 failing**; `npx tsc --noEmit` clean; the coder additionally ran
+> `npm run test:integration` against real Postgres → **5 suites / 70 tests, 0 failing**.
+> **The run was NOT degraded** — Codex ran (`codex-cli 0.152.0`, exit 0, 4 findings) alongside the
+> reviewer's own pass; review converged in **one round**, verdict **✅ Ready to merge
+> (validation-gated)**.
 
 > # 🔴 2026-09-11 — OWNER RULING: **BUILD `0211`.** Given live in the lead session.
 >
@@ -253,8 +292,43 @@ architect's. Three facts worth carrying because they *remove work* or *bound the
 
 ## Outcome
 
-🔴 **RULED TO BUILD 2026-09-11 — but NOT started:** ~~**Not started.**~~ no session owns it, no plan is
-approved, no code is written. What is settled:
+✅ **SHIPPED AND CLOSED 2026-09-12** — `✅ Done (agent-closed — not owner-verified)`. The full close
+record is the brief's `## Accepted residuals at close (2026-09-12 — owner-dispositioned, still open)`
+section. Everything in it is an **owner-side action or an owner-accepted risk, NOT a defect.**
+
+### 🚨 Accepted residuals at close — all owner-dispositioned 2026-09-12, all still open
+
+| # | Residual | Disposition |
+|---|---|---|
+| **1** | **No end-to-end proof that crediting works** — no harness exists for the `WinConditionCheck → ClientGameRunner → Transport → server` seam | 🚨 **THE OUTSTANDING OWNER-SIDE ACTION.** Building the harness first was **offered and DECLINED**; the owner chose a **manual live crediting check after deploy**. Follows `0042`'s deferred-tail pattern. ⛔ **Not "verified"** |
+| **2** | **R4 — no latch on zero-credit reports, no WebSocket rate limit** | **Owner-declined**, both fixes offered with costs. ⚠️ **Carry the coder's own self-flag: the R3 fix slightly WIDENS this amplification** — a retained uncredited claim now re-posts **on reconnect** as well as on repeat reports |
+| **3** | **R5 — `spawnedClients` records spawn *intents*, not successful spawns** | **Owner-declined.** Stands under **ADR-103**'s reasoning |
+| **4** | **R7 — a `maxGameDuration`-capped match whose win condition never fired credits nobody** | Verified **NON-REGRESSIVE**: that shape credited **nobody before this change either**, and everyone eliminated along the way **now is** credited. 🔴 **State it plainly: `0211` fixes the XP LOSS, not the STALL** — the stall is task `0242`, filed 2026-09-11 on the Backlog board (`ai-agents/tasks/backlog/0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md`). ⚠️ **No vault page — a backlog brief, deliberately not ingested** |
+
+### ✅ Closed by evidence at close — recorded so they are NOT re-opened
+
+- **R6 — the rescale has no data step: closed ZERO-IMPACT BY MEASUREMENT.** The live profile database
+  was queried at close: `player_profiles` **0 rows**, `max(xp)` **0**. ⚠️ **A POINT-IN-TIME reading** —
+  it stops being true once `0217` wires crediting, **but the rescale shipped first.** ⇒ 🔴 **ADR-111's
+  ruling-8 free-grant risk (rows already ≥ 100 XP becoming citizens instantly) LANDED ON AN EMPTY
+  TABLE and cost nothing.** ⛔ **Still no migration — a future implementer who spots it ESCALATES.**
+- **R2 — `migrations/001` `xp_awarded default 10`:** a **correct observation**, **owner-ruled out of
+  scope**. **Ruling 14 names that exact fact**, so it was **not ruled blind.** Migration unchanged.
+
+### 🔴 The irreversible cost, knowingly accepted and NOW SPENT
+
+Shipping `0211` **destroyed [[tasks/measure-clientless-leader-and-solo-awards]]'s pre-fix
+denominator — the per-match stall rate will NEVER be known.** ⛔ **Do NOT write this up as a gap for
+someone to close later.** It was accepted with eyes open (owner ruling, option B, 2026-09-11) and
+**the cost is now spent, not pending.**
+
+---
+
+### 📛 Superseded — kept, as the record of how this task was reasoned about
+
+🔴 **RULED TO BUILD 2026-09-11 — but NOT started:** ~~**Not started.**~~ ~~no session owns it, no plan is
+approved, no code is written.~~ 📌 **STRUCK 2026-09-12 AT CLOSE — TRUE WHEN WRITTEN, NOW SPENT.**
+What was settled while open:
 
 | Ruling | |
 |---|---|
@@ -324,7 +398,7 @@ hardening the elimination claim first would be hardening the stronger link.**
 - [[tasks/singleplayer-leaderboard-reporting-policy]] — task `0210`, whose **leaderboard-points** ruling must **not** be read across onto profile XP
 - [[decisions/clientless-leader-win-policy]] — the XP-loss defect this task exists to close
 - [[decisions/adr-110-ai-winner-allowed]] — cited, not implemented: this task **expires its T1 argument** by decoupling crediting from the winner, ⛔ **without** firing its re-raise trigger
-- [[decisions/adr-101-fail-soft-xp-crediting]] — the fail-soft crediting path this task extends to a second trigger. ⚠️ **Its 2026-09-11 amendment records that the `1 XP` rescale moves NONE of its re-raise triggers, and explicitly LEAVES OPEN the supersede gate above** — that gate is this task's to close
+- [[decisions/adr-101-fail-soft-xp-crediting]] — the fail-soft crediting path this task extended to a second trigger. ✅ **THE SUPERSEDE GATE IS NOW CLOSED — and the answer is NO SUPERSEDING ADR.** The architect recorded a dated **clarification** on 2026-09-12 (routed there by the owner's ruling 7 of 2026-09-11: *the coder implements, the architect records*): all three of ADR-101's parts survive Mechanism A, **the decision is UNCHANGED**. ⚠️ **Its own re-raise Trigger 2 does NOT move, but its BASELINE does — after this task one outage produces MORE warn lines for the SAME lost XP (one per one-item call, not one per roster batch), so a before/after line-count comparison is NOT like-for-like: count the dropped awards, not the lines**
 - [[decisions/adr-111-xp-economy-rescale]] — ADR-111, which this task implements: award `10` → `1`, threshold ÷ **exactly** 10, both shipping here, plus the copy rescale (verification step `4d`) and **ruling 8** (no migration; free grants accepted). ⚠️ **The architect's standing point is recorded there and NOT dismissed: this task moves the trigger earlier, so dying 30 s in pays the same as playing to the end — true at `10` and equally true at `1`, and still open as the minimum-participation-floor question**
 - [[decisions/adr-103-identity-trust-seam]] — the existing precedent for a client-asserted fact reaching the crediting path
 - [[systems/player-profile-store]] — the XP crediting path, its `(game_id, yandex_player_id)` idempotency key, and `creditMatchXp`'s single call site
@@ -333,5 +407,5 @@ hardening the elimination claim first would be hardening the stronger link.**
 - [[decisions/sprint-backlog]] — the board it was filed on and moved OFF (its row there reads `➡️ Moved`)
 - [[tasks/winmodal-participation-comment-correction]] — task `0207`, 🚩 **a live comment trap aimed at whoever plans THIS task**: `WinModal`'s doc comment claims AI players are skipped from participation; they are not
 - [[features/ai-players]] — the player type ADR-110 allows to win; ⚠️ **this task expires that ADR's T1 argument**, which held that an AI winner is valuable because it unblocks everyone's crediting
-- [[systems/project-brief]] — product ground truth, whose *Citizenship* line states the earned-XP economy; 🔴 **its `1,000 XP` / `10 XP` figures are annotated against this task's 2026-09-10 ruling** (`1 XP`, threshold ÷ exactly 10) and ⚠️ **remain what the CODE does until this task ships**
+- [[systems/project-brief]] — product ground truth, whose *Citizenship* line states the earned-XP economy. ✅ **UPDATED 2026-09-12: the figures are now `100 XP` at `1 XP` per qualifying match, because THIS TASK SHIPPED THEM.** ~~🔴 its `1,000 XP` / `10 XP` figures are annotated against this task's 2026-09-10 ruling and remain what the CODE does until this task ships~~ 📌 **struck — true until 2026-09-12, now spent**
 - [[tasks/analytics-p0-session-match-count]] — the session-depth analytics whose rationale is the citizenship threshold; ✅ **unaffected by the rescale — the ÷10 is exact, so the ~100-match target is unchanged either way**

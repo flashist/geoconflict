@@ -62,9 +62,12 @@ planned**, because that is the reader it protects.~~
 📌 **That window CLOSED 2026-09-03 — `0206` was planned, built and closed before this was done, and it
 did not trip on the comment.** Struck, not deleted.
 📌 **And a NEW window opened 2026-09-04**: `0206` was reverted, and the readers still to protect are
-**`0211`** (~~scheduled into Sprint 4~~ 🔴 **RULED TO BUILD 2026-09-11 — now `🔄 In progress`, so its
-planner is a LIVE reader of that comment**) and **`0205`**. **Nothing gates this task; nobody is
-building it.**
+~~**`0211`**~~ (~~scheduled into Sprint 4~~ ~~🔴 **RULED TO BUILD 2026-09-11 — now `🔄 In progress`, so its
+planner is a LIVE reader of that comment**~~) 📌 **STRUCK 2026-09-12 — `0211` SHIPPED AND CLOSED, so it
+is no longer a reader of this comment.** ⚠️ **Whether `0211`'s implementer tripped on the stale comment
+is NOT established here** — the brief records no such finding, and ⛔ **absence of a report is not
+evidence it was harmless.** 🔴 **`0205` REMAINS A LIVE READER**, and it is still `🔲 Backlog`,
+unscheduled. **Nothing gates this task; nobody is building it.**
 
 ⚠️ **"Harmless today" is verified against today's code and is NOT permanent.** It rests entirely on the
 server's frozen-start-roster gate. **If that gate ever changes, the AI-player entries this function

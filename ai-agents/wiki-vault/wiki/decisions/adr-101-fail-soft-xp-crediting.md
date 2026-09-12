@@ -27,11 +27,15 @@
 > (`1,000` → `100`). Both ship together inside task `0211`. Recorded as
 > [[decisions/adr-111-xp-economy-rescale]].
 >
-> 🔴 **NOTHING HAS SHIPPED.** `src/core/profile/Citizenship.ts` — the `CITIZENSHIP_XP_THRESHOLD` and
+> ~~🔴 **NOTHING HAS SHIPPED.** `src/core/profile/Citizenship.ts` — the `CITIZENSHIP_XP_THRESHOLD` and
 > `XP_PER_MATCH` declarations — still read `1000` and `10`, **verified in the working tree on
-> 2026-09-11**. So every figure in the body below is an accurate description of the code **as of that
-> date**, and is kept unchanged as history rather than rewritten. **Read `10` / `1,000` as
-> *"one match's award"* / *"the threshold"*.**
+> 2026-09-11**.~~ ✅ **STRUCK 2026-09-12 — IT HAS NOW SHIPPED.** `src/core/profile/Citizenship.ts`
+> declares `CITIZENSHIP_XP_THRESHOLD = 100` and `XP_PER_MATCH = 1`, **verified in the code at commit
+> `77fbc98`**, shipped inside task `0211` together with the `en.json` / `ru.json` copy rescale.
+> ⛔ **SHIPPED IS NOT DEPLOYED** — the owner deploys at a later slot. 📌 **The 2026-09-11 wording is
+> struck, not deleted: it was TRUE WHEN WRITTEN.** Every figure in the body below is an accurate
+> description of the code **as of 2026-09-11** and is kept unchanged as history rather than rewritten.
+> **Read `10` / `1,000` as *"one match's award"* / *"the threshold"*.**
 >
 > **All three *Re-raise only if* triggers are UNCHANGED, each for its own reason:**
 > 1. **Paid entitlements on the path — unchanged.** Its force is **categorical, not magnitudinal**: a
@@ -54,16 +58,63 @@
 > only if XP became fungible against something that did **not** rescale with it — **which is exactly
 > trigger 1**, already on the books.
 >
-> 🚩 **NOT settled by this amendment — a SEPARATE, STILL-OPEN question.** Task `0211` also moves the
+> ## ✅ 2026-09-12 — **THE SUPERSEDE GATE FIRED AND IS CLOSED. ⛔ NO SUPERSEDING ADR. THE DECISION IS UNCHANGED.**
+>
+> *(Architect clarification, recorded on the canonical ADR 2026-09-12. Routed there by the owner's
+> **Ruling 7** of 2026-09-11 on `0211`'s plan — **the coder implements, the architect records**. A
+> **CLARIFICATION** under `README.md`'s carve-out, specifically its *"recording that a pre-committed
+> trigger fired"* half. The ADR stays **`accepted`**; nothing in the body below is altered.)*
+>
+> 🔴 **This closes the 🚩 flag immediately below.** `0211`'s plan picked **Mechanism A** — credit at the
+> *"no winner can be declared"* moment — and the architect then re-read all three named parts against
+> it. **All three survive.**
+>
+> **What actually changed in the call pattern.** Crediting was **one multi-item batch at match end**
+> (`handleWinner` → `creditMatchXp` → `ProfileApiClient.creditMatch`). Under Mechanism A the same
+> fail-soft client is **additionally** called **during** a match — once per client on the
+> **elimination** edge, once per surviving client at the **"no winner declarable"** moment — each
+> carrying **one item**. ⛔ **The match-end batch is NOT removed.** Upper bound **N + 1 calls per
+> match**, held there by an in-memory per-client latch. ⚠️ **That latch is an EFFICIENCY measure — the
+> double-credit guard is, and remains, the profile server's `(game_id, yandex_player_id)` primary key.**
+>
+> | Part | Verdict |
+> |---|---|
+> | **1. *"Blast radius is one match, not a backlog"*** | ✅ **HOLDS AS WRITTEN.** The sentence is about **accumulation** — nothing is queued, so an outage cannot cause a thundering-herd write on recovery. Under A nothing is queued either. What shrinks is the blast radius of a **single failed call**: one player's award instead of a whole roster's. ⚠️ **⛔ Do NOT read that as *"an outage now costs less XP"*** — each player is credited **exactly once per match** either way, so **expected XP lost across an outage window is UNCHANGED**; only the *granularity* of the loss changes |
+> | **2. The 3-attempt retry budget** | ✅ **UNCHANGED — and now conservative rather than tight.** The bound exists because the call sat on the **match-cleanup path**, where blocking degrades the game for everyone. The new calls happen **mid-match, off that path**, fire-and-forget ⇒ the pressure that forced the bound is **weaker** there, not stronger. ⛔ **An argument for leaving it alone.** A review finding of the form *"only 3 retries"* remains **closeout of this ADR**. 📌 **One new operational fact, a consequence not a decision:** in-flight credit concurrency rises from ~1 per finishing match to **up to one per live client**, each holding a promise and socket for at most 3 attempts × the 10 s per-attempt ceiling — **bounded** by the latch and roster size; nothing durable, queued or unbounded |
+> | **3. Per-item pre-validation** | ✅ **BEHAVIOUR CORRECT; only the justifying sentence narrows, on the new path only.** ⚠️ **The tempting simplification is WRONG: multi-item batches do NOT disappear.** The match-end batch survives, so the original rationale (*"one malformed player id would cost every other player in the match their XP"*) keeps its **full** force there. On the new **one-item** calls there is no sibling to protect — but the filter still drops an item that would produce an **unretryable 400**, turning a guaranteed failure into a warn and a no-op. **No code change, no behaviour change** |
+>
+> 📌 **A calibration note on re-raise Trigger 2 — THE TRIGGER DOES NOT MOVE; ITS BASELINE DOES.**
+> Trigger 2 counts `credit batch failed after retries; N award(s) dropped` warn lines. After `0211`,
+> **one outage produces MORE of those lines than before for the SAME lost XP** — one line per one-item
+> call instead of one per roster batch. ⚠️ **A before/after comparison of line counts is NOT
+> like-for-like: count the dropped awards (the `N`), not the lines.** Recorded so the empirical trigger
+> is neither tripped by a granularity artefact nor waved away when it fires for real.
+>
+> ⚠️ **ONE DATED-OBSERVATION CAVEAT, flagged because the clarification was overtaken the same day.**
+> The clarification states *"Verified in the code on 2026-09-12: NOTHING HAS SHIPPED … `winnerDeclarable`
+> appears nowhere in `src/`"*, and declares its frame as **`src/` clean at commit `bb1674f`**. 🔴 **That
+> was true at `bb1674f` and is FALSE at `77fbc98`** — `0211` shipped later the same day, and
+> `winnerDeclarable` is now present in `src/core/game/GameUpdates.ts`,
+> `src/core/execution/WinCheckExecution.ts` and `src/client/ClientGameRunner.ts`. ⛔ **The clarification's
+> REASONING is unaffected** — it was written, in its own words, *"to read correctly both before and
+> after `0211` ships"*. **Only its dated liveness observation is spent.** ⛔ **The vault cannot amend the
+> canonical ADR (ADR-005); flagged here for a human.**
+>
+> ---
+>
+> ~~🚩 **NOT settled by this amendment — a SEPARATE, STILL-OPEN question.**~~ ✅ **SETTLED 2026-09-12 by
+> the clarification directly above — kept unstruck-in-substance because it is WHY that clarification
+> exists.** Task `0211` also moves the
 > crediting **TRIGGER** (credit at elimination, plus a survivor trigger the plan has still to choose).
 > That changes **when and how often** this path is called — one batch at match end today versus calls
 > spread through a match — which bears on **three** things in this ADR: its *"blast radius is one
 > match, not a backlog"* consequence, the **sizing of the 3-attempt retry budget**, and the **per-item
-> pre-validation rationale** (which assumes a multi-item batch). **That is a candidate for a
-> SUPERSEDING ADR and it is NOT settled.** It turns on the **trigger**, not the figures, so ⛔ **neither
-> this amendment nor ADR-111 may be cited as having answered it.** It cannot be judged until `0211`'s
-> plan picks the survivor mechanism — and `0211` now carries a **pre-committed gate** to decide it at
-> exactly that moment. See [[tasks/credit-participation-xp-elimination-or-match-end]].
+> pre-validation rationale** (which assumes a multi-item batch). ~~**That is a candidate for a
+> SUPERSEDING ADR and it is NOT settled.**~~ ✅ **ANSWERED 2026-09-12: NO SUPERSEDING ADR — all three
+> parts survive Mechanism A; see the block above.** It turned on the **trigger**, not the figures, so
+> ⛔ **neither the 2026-09-11 amendment nor ADR-111 may be cited as having answered it** — **the
+> 2026-09-12 architect clarification is what answered it.** The **pre-committed gate `0211` carried has
+> now FIRED and is DISCHARGED.** See [[tasks/credit-participation-xp-elimination-or-match-end]].
 
 ## Context
 

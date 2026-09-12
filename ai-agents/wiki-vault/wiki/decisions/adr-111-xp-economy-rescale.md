@@ -13,12 +13,28 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-111-xp-economy-rescale-awards-move-up-never-down.md`
 
-> # 🔴 NOTHING HAS SHIPPED — READ EVERY FIGURE ON THIS PAGE THAT WAY
+> # ✅ SHIPPED 2026-09-12 — THIS ADR NOW DESCRIBES THE CODE
 >
-> **Verified in the working tree on 2026-09-11:** `src/core/profile/Citizenship.ts` still declares
-> `CITIZENSHIP_XP_THRESHOLD = 1000` and `XP_PER_MATCH = 10`. **This ADR is what task `0211` will
-> implement, not a description of the code today.** The page is written to read correctly **both before
-> and after** `0211` ships.
+> **Verified in the code at commit `77fbc98`:** `src/core/profile/Citizenship.ts` declares
+> `CITIZENSHIP_XP_THRESHOLD = 100` and `XP_PER_MATCH = 1`, and the player-facing copy was rescaled in
+> **both `resources/lang/en.json` and `resources/lang/ru.json` in the same change** — this ADR's
+> same-change mandate, met. Shipped inside task
+> [[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`), closed the same day.
+>
+> ⛔ **SHIPPED IS NOT DEPLOYED.** The owner deploys at a later slot; **no player has seen these values.**
+> ⛔ **AND SHIPPED IS NOT VERIFIED END-TO-END** — `0211` closed with **no end-to-end proof that
+> crediting works** and an **outstanding owner-side manual live check**.
+>
+> ✅ **RULING 8'S FREE-GRANT RISK COST NOTHING — BY MEASUREMENT.** The ADR accepted, knowingly, that any
+> row already at ≥ 100 XP would become a citizen instantly on a threshold never met. At close the live
+> profile database was queried: `player_profiles` **0 rows**, `max(xp)` **0** ⇒ **the rescale landed on
+> an empty table.** ⚠️ **A POINT-IN-TIME reading, not a guarantee** — but the ordering the ADR worried
+> about resolved in its favour, because **the rescale shipped BEFORE `0217` wires crediting.**
+> ⛔ **NO MIGRATION WAS WRITTEN AND NONE IS TO BE** — a future implementer who spots it **ESCALATES**.
+>
+> ~~🔴 **NOTHING HAS SHIPPED** — verified in the working tree on 2026-09-11; this ADR is what task
+> `0211` will implement, not a description of the code today.~~ 📌 **STRUCK 2026-09-12 — TRUE WHEN
+> WRITTEN.** The page was written to read correctly **both before and after** `0211` shipped, and does.
 
 ## Context
 
@@ -144,6 +160,12 @@ report this as an unfiled gap."*
 > becomes a citizen** — a grant roughly **10× easier than intended**. A player sitting at 500 XP is
 > half-way today and a citizen the moment it lands.
 >
+> ✅ **RESOLVED 2026-09-12 — IT SHIPPED AND COST NOTHING.** The live profile database was queried at
+> `0211`'s close: `player_profiles` **0 rows**, `max(xp)` **0** ⇒ **no player was granted anything.**
+> ⚠️ **A POINT-IN-TIME reading, NOT a vindication of the risk assessment** — the risk was real and was
+> accepted on its merits; it simply landed on an empty table because **the rescale shipped before
+> `0217` wires crediting.** ⛔ **The no-migration ruling is UNCHANGED and still binding.**
+>
 > **Three options were put to the owner:** a **divide-by-10 migration** preserving every player's
 > progress exactly; **accepting the free grants**; or **resequencing** `0211` to ship *before* `0217`
 > wires anything, so no rows exist to grant. **The owner chose: ACCEPT THE FREE GRANTS.**
@@ -202,14 +224,17 @@ Absent those, a review finding of the form *"1 XP is a trivially small award"*, 
 - [[decisions/adr-101-fail-soft-xp-crediting]] — the fail-soft crediting path; its figures are the
   pre-`0211` economy and its three re-raise triggers are unmoved
 - [[decisions/adr-103-identity-trust-seam]] — the identity seam; unaffected, risk grade unchanged
-- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which carries the
-  implementation: both constants, the copy rescale (verification step `4d`), the new crediting trigger,
-  **ruling 8 (no migration / free grants accepted)**, and the **pre-committed gate** to re-examine
-  ADR-101 when the survivor mechanism is chosen
+- [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which **carried and SHIPPED**
+  the implementation on 2026-09-12: both constants, the copy rescale (verification step `4d`), the new
+  crediting trigger (**Mechanism A**, via a composite `winnerDeclarable`), **ruling 8 (no migration /
+  free grants accepted — which cost NOTHING, the table was empty)**, and the **pre-committed gate** to
+  re-examine ADR-101. ✅ **That gate has FIRED and is DISCHARGED — the answer was NO SUPERSEDING ADR**
 - [[systems/player-profile-store]] — the profile/XP backend that holds the rows the rescale re-reads
 - [[tasks/citizenship-xp-progress-ui]] — task `0191`, the XP-progress UI that renders the threshold.
-  ⚠️ **That page records what `0191` BUILT and still reads `CITIZENSHIP_XP_THRESHOLD = 1000`, which is
-  correct** — it describes shipped code, not this decision
+  ✅ **UPDATED 2026-09-12: the card now displays `100`, and NOT ONE LINE OF `0191`'s CODE CHANGED** — it
+  renders from the shared `CITIZENSHIP_XP_THRESHOLD` constant, and the constant moved. ⚠️ **That page
+  still describes what `0191` BUILT, which is correct and deliberate** — the behaviour changed
+  underneath it, the build did not
 - [[decisions/adr-numbering-two-series]] — why this is 111 and not 011
 - `src/core/profile/Citizenship.ts` — the two constants and `isCitizenFromXp`
 - `src/core/profile/MatchQualification.ts` — where the award is attached

@@ -23,11 +23,14 @@
 >   match.** ⛔ **The brief's own step 17 bars reporting `V17` satisfied by reading the code**, and it
 >   was not tested. 📌 **The owner was OFFERED the chance to test them first and CHOSE TO CLOSE.**
 >   ⛔ **No page may imply this task is fully verified.**
-> - 🔴 **THE PER-MATCH STALL RATE WILL NEVER BE KNOWN**, and **the pre-fix denominator disappears
->   permanently the moment `0211` ships** — owner ruling of 2026-09-11 (**option B**): accept the
+> - 🔴 **THE PER-MATCH STALL RATE WILL NEVER BE KNOWN, AND THE COST IS NOW SPENT — NOT PENDING.**
+>   ~~the pre-fix denominator disappears permanently the moment `0211` ships~~ ✅ **`0211` SHIPPED
+>   2026-09-12. THE DENOMINATOR IS GONE.** 📌 **Struck, not deleted — it was a prediction, and the
+>   prediction came true on schedule.** Owner ruling of 2026-09-11 (**option B**): accept the
 >   client-side number as a **directional lower bound**, ⛔ **build NO server-side counter.**
->   **A deliberate, accepted, irreversible loss of a measurement.** ⛔ **Do not re-propose it later as
->   a gap someone should close.**
+>   **A deliberate, accepted, irreversible loss of a measurement — now actually incurred.**
+>   ⛔ **Do not re-propose it later as a gap someone should close.** ⚠️ **Every figure on this page is
+>   therefore a PERMANENT HISTORICAL RECORD: it can never be re-measured, re-derived or corrected.**
 >
 > **⚠️ Caveats that travel with EVERY figure on this page, permanently:**
 >
@@ -38,10 +41,11 @@
 >    confirmed banked.** ⛔ **A rise is not evidence any player's score moved.**
 > 3. 🔴 ***"52 % of Team matches stalled" is NOT a supported claim.*** See the verbatim sentence below.
 >
-> **📌 Consequences of the close:** `0211`'s **ship gate is CLEARED** (~~⚠️ cleared is **not** scheduled —
-> `0211` stays `🔲 Backlog` and nobody is building it~~ 📌 **SUPERSEDED LATER THE SAME DAY — struck, not
-> deleted.** 🔴 **The owner then ruled BUILD `0211`; it is now `🔄 In progress`** — ⚠️ **with no session
-> owning it, no plan approved and no code written; see [[tasks/credit-participation-xp-elimination-or-match-end]]**) ·
+> **📌 Consequences of the close:** `0211`'s **ship gate was CLEARED** (~~⚠️ cleared is **not** scheduled —
+> `0211` stays `🔲 Backlog` and nobody is building it~~ ~~🔴 **the owner then ruled BUILD `0211`; it is now
+> `🔄 In progress`** — with no session owning it, no plan approved and no code written~~ 📌 **BOTH
+> SUPERSEDED — struck, not deleted; each true when written.** ✅ **`0211` SHIPPED AND CLOSED 2026-09-12**
+> — see [[tasks/credit-participation-xp-elimination-or-match-end]]) ·
 > 🔴 **`0205` WAS RE-RANKED ON AN OWNER RULING the same day, AND SIGNED OFF THE SAME DAY** — ✅ **the
 > rank in force is `Medium`** (~~🟡 producer proposes `Medium`, ⛔ **rank in force still `Low–Medium`**~~
 > struck, not deleted). ⛔ **Three layers:** owner ruled **THAT** · producer proposed the **VALUE** ·
@@ -231,7 +235,12 @@
 > ⚠️ **Scheduled is NOT started** — status stays `backlog`; **nobody is building it.**
 > Its Backlog-board row is kept as `➡️ Moved`, not deleted.
 >
-> ### 🔴 THIS SHIPS BEFORE `0211`
+> ### ~~🔴 THIS SHIPS BEFORE `0211`~~ → ✅ **SATISFIED AND SPENT. Kept, not deleted.**
+>
+> ✅ **The ordering was HONOURED:** this task was deployed (build `0.0.141`, commit `6b30e22`),
+> collected 4–10 Sep 2026, and **closed 2026-09-11** — *then* `0211` shipped **2026-09-12.**
+> 🔴 **So the denominator loss below is the ACCEPTED PRICE PAID ON SCHEDULE, not a violation and not an
+> accident.** ⛔ **The constraint is now historical — do not apply it to any future task.**
 >
 > ⛔ **[[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`) must not SHIP until this
 > task is DEPLOYED AND GATHERING DATA** — ⚠️ **"deployed and collecting", NOT merely merged or built;
@@ -450,11 +459,11 @@ page.
 
 | | |
 |---|---|
-| `0211` | ✅ **Ship gate CLEARED.** ⚠️ **Status UNCHANGED — still `🔲 Backlog`, nobody building it.** Cleared is not scheduled |
+| `0211` | ✅ **Ship gate CLEARED** — and ✅ **SHIPPED AND CLOSED 2026-09-12.** ~~⚠️ Status UNCHANGED — still `🔲 Backlog`, nobody building it; cleared is not scheduled~~ 📌 **struck, not deleted; true when written** |
 | `0210` | ✅ Now has its incidence figure — **49.64K non-tutorial award attempts / matches over 7 days, ~7.1K/day.** ⛔ **Status, scope and rank UNCHANGED** — its ruling was never conditioned on incidence |
 | ADR-110 | 📌 The re-raise trigger's **measurement now exists** (`AiPlayer` 89; FFA 1.6 % vs Team 53.2 %). ⛔ **An INPUT REQUIRING AN ARCHITECT'S READ, NOT a conclusion about the ADR** |
 | `0205` | 📌 Its rank was held down by *unmeasured* frequency; a **directional field figure now exists**. ~~⚠️ **Nobody has re-ranked it and no ruling has been sought — its status, scope and rank stand as they were**~~ 🔴 **FALSE SINCE 2026-09-11 — struck, not deleted. THE OWNER RULED THAT `0205` BE RE-RANKED**, precisely because this measurement disproved that premise. ~~🟡 **Producer proposes `Medium`, awaiting sign-off; ⛔ rank in force still `Low–Medium`.**~~ ✅ **SIGNED OFF THE SAME DAY — struck, not deleted: the rank in force is `Medium`.** ⛔ **Three layers, never flattened:** owner ruled **THAT** it be re-ranked · producer proposed the **VALUE `Medium`** · owner **SIGNED IT OFF**. ⚠️ **Sign-off does NOT weaken this page's caveats** — client-match unit, lower bound, latched at first crossing, per-match rate permanently unknowable. ⛔ **Status, scope and folder unchanged** |
-| `0211` | 🔴 **SCHEDULED TO BUILD on an owner ruling, 2026-09-11** — now `🔄 In progress`, ⚠️ **with no session owning it, no plan approved and no code written.** 🚨 **Shipping it PERMANENTLY DESTROYS this task's Part A pre-fix denominator — knowingly accepted by the owner, ⛔ NOT a gap to close later** |
+| `0211` | ✅ **SHIPPED AND CLOSED 2026-09-12** (`✅ Done — agent-closed, not owner-verified`). ~~🔴 SCHEDULED TO BUILD on an owner ruling, 2026-09-11 — now `🔄 In progress`, with no session owning it, no plan approved and no code written~~ 📌 **struck, not deleted.** 🚨 **It DID permanently destroy this task's Part A pre-fix denominator — knowingly accepted by the owner; the cost is now SPENT, ⛔ NOT a gap to close later** |
 | The per-match stall rate | 🔴 **WILL NEVER BE KNOWN** — owner ruling, option B. ⛔ **Do not re-propose a server-side counter** |
 
 ~~**Not started. Nothing gates it; nobody is building it.**~~
@@ -473,10 +482,12 @@ ruled THAT it be raised; the VALUE is the producer's — see the re-rank box abo
 ### 🚩 The value decays — and Part B decays harder
 
 > ✅ **BOTH SNAPSHOTS WERE TAKEN BEFORE EITHER WINDOW CLOSED (2026-09-11).** Part A's pre-fix
-> denominator was read while `0211` is still unshipped; Part B's rate was read while `0210`'s guard is
-> still unbuilt. 🔴 **Part A's denominator still disappears permanently the moment `0211` ships, and
-> Part B's counter reads zero forever the moment `0210` ships** — the reads below are the only ones
-> there will ever be. The two bullets that follow describe the mechanics and stand as written.
+> denominator was read while `0211` was **still unshipped**; Part B's rate was read while `0210`'s
+> guard is **still unbuilt**. 🔴 **PART A'S WINDOW HAS SINCE CLOSED FOR GOOD: `0211` SHIPPED
+> 2026-09-12**, so that denominator is **gone, not going.** ⚠️ **Part B's window is still open** —
+> its counter reads zero forever only once `0210` ships, and `0210` is **still `🔲 Backlog`,
+> unscheduled.** ⛔ **Do not read the two as having closed together.** The reads below are the only
+> ones there will ever be. The two bullets that follow describe the mechanics and stand as written.
 
 - ✅ **PART A'S CLOCK HAS STOPPED, as of 2026-09-04 — `0206` was REVERTED and NEVER DEPLOYED**, so the
   pre-fix denominator is **intact and still measurable.** 🔴 **The decay is caused by DEPLOY, not by a
@@ -502,8 +513,8 @@ window** — the owner accepted that trade in advance.
 scope or rank moved on account of it:** `0211`'s gate is cleared but it stays `🔲 Backlog`; `0210` is
 unchanged; `0205` has not been re-ranked and no ruling was sought; ADR-110 has an input, not a
 verdict.~~ 📌 **SUPERSEDED LATER THE SAME DAY — struck, not deleted; true when written.** 🔴 **Two
-owner rulings then moved two of them:** `0211` was **ruled to build** (now `🔄 In progress`,
-⚠️ nobody owns it yet) and `0205` was **ruled to be re-ranked — and the value SIGNED OFF the same day** (✅ **rank in force
+owner rulings then moved two of them:** `0211` was **ruled to build** (~~now `🔄 In progress`,
+⚠️ nobody owns it yet~~ 📌 **struck — ✅ it SHIPPED AND CLOSED 2026-09-12**) and `0205` was **ruled to be re-ranked — and the value SIGNED OFF the same day** (✅ **rank in force
 `Medium`**; ~~🟡 producer proposes `Medium`, ⛔ rank in force still `Low–Medium`~~ struck, not deleted.
 ⛔ **Three layers:** owner ruled **THAT** · producer proposed the **VALUE** · owner **SIGNED IT OFF**;
 status/scope/folder unchanged). ✅ **Still true: `0210` is
