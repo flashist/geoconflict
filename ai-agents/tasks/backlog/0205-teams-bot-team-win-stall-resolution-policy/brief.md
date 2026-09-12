@@ -713,11 +713,31 @@ question and not a gate.**
      ruling, that remains accurate as a RECORD OF WHAT WAS DECIDED — but `0206` shipped nothing, so
      the shared predicate now exists in NO live code.** Read `0206`'s **STOP box** before relying on
      anything in it.
-  2. 🔴 **`checkWinnerTeam()` has the SAME guard shape as `checkWinnerFFA()`, so a bot-team-led match
-     STALLS AND LOSES ITS XP identically.** Found independently by the coder performing the `0206`
-     revert; ⚠️ **nobody had connected it before** — across `0022`, `0206` and this brief.
-     *(⛔ Reported-not-re-verified by the producer: `WinCheckExecution.ts` was being edited at the time.
-     **Confirm by symbol at plan time.**)*
+  2. 🔴 ~~**`checkWinnerTeam()` has the SAME guard shape as `checkWinnerFFA()`**~~, so a bot-team-led
+     match **STALLS AND LOSES ITS XP identically.** Found independently by the coder performing the
+     `0206` revert; ⚠️ **nobody had connected it before** — across `0022`, `0206` and this brief.
+     ~~*(⛔ Reported-not-re-verified by the producer: `WinCheckExecution.ts` was being edited at the
+     time. **Confirm by symbol at plan time.**)*~~
+
+     📌 **CORRECTED 2026-09-11 — struck, not deleted; the "confirm at plan time" instruction was
+     followed and the answer came back DIFFERENT.** ✅ **`checkWinnerTeam()` was read by symbol by
+     `0211`'s coder and re-verified by the producer against the working tree (branch `dev`, commit
+     `7ff60ea`).** The two guards are the same **shape** but **NOT the same predicate**:
+
+     | | The guard as it is in the tree today | Who it turns away |
+     |---|---|---|
+     | **`checkWinnerFFA()`** | `if (max.clientID() === null)` → returns unless *(singleplayer **and** not a tutorial)* | **Any clientless leader — `Bot` AND `FakeHuman` (Nation).** Extra `isTutorial` clause. |
+     | **`checkWinnerTeam()`** | `if (max[0] === ColoredTeams.Bot && gameType !== Singleplayer)` → return | **Only the `ColoredTeams.Bot` team.** **No `isTutorial` clause.** |
+
+     ⇒ 🔴 **THE TEAM-MODE STALL POPULATION IS NARROWER THAN THIS NOTE IMPLIED: bot-team-led matches
+     only.** A **`ColoredTeams.Nations`** team leader **IS declared the winner** and does **not**
+     stall. ⚠️ **This bears directly on THIS task's own question** — *who should win a stalled Team
+     match?* — because it narrows which Team matches are actually stalled.
+     ⛔ **It changes NOTHING about this task's status, scope, owner or rank**, and the 2026-09-04
+     owner ruling that `0211` covers Team mode is **unaffected**: `0211`'s chosen mechanism publishes
+     **the guard's own predicate** rather than re-deriving it, so it covers whatever the guard turns
+     away. ⚠️ **The struck text was accurate as a RELAY of what was reported and was correctly
+     flagged as unverified — it is SPENT, NOT CARELESS.**
 
   **Owner ruled 2026-09-04 that the CREDITING fix covers Team mode as well as FFA**, filed as
   [`0211`](../0211-credit-participation-xp-at-elimination-or-match-end/brief.md) — *credit
@@ -739,6 +759,32 @@ question and not a gate.**
   `maxGameDuration` cap, and **deciding who should win it is still unanswered and still belongs
   here.** 📌 **Re-read this task's own rank and rationale when `0211` is planned** — ⚠️ **that is a
   producer/owner call, not a planner's, and nothing about it is being pre-judged here.**
+
+- 🔴 **ADDED 2026-09-11 — CROSS-REFERENCE ONLY. ⛔ NOTHING ELSE IN THIS BRIEF WAS EDITED: status,
+  scope, owner, rank and board are ALL UNCHANGED.** *(The one other edit in this run is the dated
+  correction inside the 2026-09-04 note above, which corrects a claim that note itself flagged as
+  unverified.)*
+
+  **A new task exists for THE STALL ITSELF:**
+  [`0242`](../0242-ffa-and-team-match-stall-runs-to-cap-with-no-winner-declared/brief.md) — *a match
+  nobody can win runs to the 3-hour cap because the win check turns away a clientless leader and never
+  declares a winner*, **FFA and Team.** Filed **2026-09-11 on an owner ruling** given live in the lead
+  session, when a **recorded reopen condition fired**: the stall brief was deliberately withheld on
+  2026-09-10 *pending `0211`'s mechanism choice*, and `0211`'s plan then picked a mechanism **other
+  than fixing the stall.**
+
+  🚨 **THE OWNER RULED, EXPLICITLY, THAT THIS TASK MUST NOT ABSORB THAT ONE:**
+
+  | | Question it answers | Modes |
+  |---|---|---|
+  | **`0205`** *(this task)* | **Resolution policy** — *who **should win** a stalled Team match?* | **Team only** |
+  | **`0242`** | **The stall itself** — *why does a match nobody can win never end, and what should it do instead?* | **FFA and Team** |
+
+  ⛔ **Do not merge them, do not close either as a duplicate of the other, and do not fold this task
+  into `0242`.** ⚠️ **They genuinely overlap** — an answer to *"who wins"* would resolve the Team half
+  of the stall — **which is exactly why the boundary is written down rather than left to be
+  discovered.** `0242`'s own phase 1 records that it must **consume** this task's answer for Team
+  mode, not pre-empt it.
 
 - 🔴 **ADDED 2026-09-04 ON AN OWNER RULING (live in session) — ADR-110'S RISK POSTURE HAS CHANGED FOR
   THIS TASK. RECORDED NOW, TO BE DECIDED WHEN THIS TASK IS PLANNED.**

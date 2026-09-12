@@ -103,11 +103,24 @@
 >    [`plan-index.md`](../../../sprints/plan-index.md) — highest referenced is **`0207`**
 >    (plus `0204`, which is board-visible only as the reservation note on `0205`/`0207`).
 > 3. ⚠️ **`grep -rn` over `.claude/`** — **the check that matters, and the one boards miss.** Hits:
->    `0202` and `0204` in `.claude/skills/fkit-sprint-ship-loop/SKILL.md`, and `0241`–`0247` /
->    `0264` / `0265` in `.claude/skills/fkit-heal/`. ⚠️ **The `024x`/`026x` hits are the fkit
+>    `0202` and `0204` in `.claude/skills/fkit-sprint-ship-loop/SKILL.md`, and ~~`0241`–`0247` /
+>    `0264` / `0265`~~ in `.claude/skills/fkit-heal/`. ⚠️ **The `024x`/`026x` hits are the fkit
 >    toolkit's OWN task numbering inside installed upstream skill files, not this project's board** —
 >    they are recorded here so a future allocator does not re-derive that from scratch, **and so
 >    nobody quietly treats them as free either.** **No hit on `0208`.**
+>
+>    🔧 **STRUCK 2026-09-12 — the range is OVER-BROAD, by owner ruling of 2026-09-11.** Struck, not
+>    deleted: this is the sweep `0208` was actually allocated against. Two corrections to the line
+>    above, both re-verified 2026-09-12:
+>    - **The `fkit-heal` set is `0243`, `0244`, `0245`, `0246`, `0247`, `0264`, `0265`** — number by
+>      number, ⛔ never a range. **`0242` appears nowhere in `.claude/`**; `0241` and `0242` were both
+>      allocated to project tasks on 2026-09-11 and are not renumbered.
+>    - ⚠️ **`0202` is listed above as if reserved; it is not.** `SKILL.md:233` refers to `0202`'s past
+>      *run*, not a future task — and `0202` already holds a project folder
+>      (`0202-shell-harness-absence-assertions-pass-vacuously`). A backward reference is not a
+>      reservation. **`0204` is**, and `0204` alone: nine lines name it as the task that will land the
+>      carry-check hook. Canonical record and the freedom check:
+>      [`task-id-allocation.md`](../../../knowledge-base/conventions/task-id-allocation.md).
 > 4. **Repo-wide** `grep -rn "0208" .` (excluding `.git/`, `node_modules/`) → **two hits, neither a
 >    task ID**: a coordinate substring inside `resources/images/MushroomCloudIconWhite.svg`, and the
 >    line in [`0207`'s own brief](../../backlog/0207-winmodal-participation-comment-ai-player-correction/brief.md)

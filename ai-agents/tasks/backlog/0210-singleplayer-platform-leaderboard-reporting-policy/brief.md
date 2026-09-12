@@ -8,8 +8,15 @@
 > `0210` is free: **zero hits** for `0210` across `ai-agents/`, `.claude/` and `src/`. Highest ID in use
 > anywhere before this pair was **`0208`**.
 > ⛔ **`0204`** (invisibly reserved in `.claude/skills/fkit-sprint-ship-loop/SKILL.md`) and
-> **`0241`–`0247`, `0264`, `0265`** (the fkit toolkit's own numbering under `.claude/skills/fkit-heal/`)
+> ~~**`0241`–`0247`, `0264`, `0265`**~~ (the fkit toolkit's own numbering under `.claude/skills/fkit-heal/`)
 > are **not free** and were not considered. Full reasoning in `0209`'s brief.
+>
+> 🔧 **STRUCK 2026-09-12 — the range is OVER-BROAD, by owner ruling of 2026-09-11.** Struck, not
+> deleted. **`0204` is unaffected and still reserved.** The **actual** upstream-occupied set, number by
+> number: **`0243`, `0244`, `0245`, `0246`, `0247`, `0264`, `0265`**. `0241` and `0242` were both
+> allocated to project tasks on 2026-09-11 — `0242` was never in `.claude/` at all. ⛔ **Do not
+> re-compress the list into a range.** Canonical record and the freedom check:
+> [`task-id-allocation.md`](../../../knowledge-base/conventions/task-id-allocation.md).
 
 ## Sprint
 Backlog — unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md).

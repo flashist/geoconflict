@@ -18,10 +18,20 @@
 > filed as a brief. That reservation is why
 > [`0205`](../0205-teams-bot-team-win-stall-resolution-policy/brief.md) was renumbered `0204` → `0205`.
 >
-> ⛔ **`0241`–`0247`, `0264`, `0265` are also NOT free and were NOT considered.** They appear under
+> ~~⛔ **`0241`–`0247`, `0264`, `0265` are also NOT free and were NOT considered.** They appear under
 > `.claude/skills/fkit-heal/`. They are **the fkit toolkit's own task numbering, not this project's
 > board** — but they are still occupied identifiers in this repo's tree, so they are not available here
-> either.
+> either.~~
+>
+> 🔧 **STRUCK 2026-09-12 — the range above is OVER-BROAD, by owner ruling of 2026-09-11.** Struck, not
+> deleted: the paragraph is what `0209` was allocated against and must stay readable. **`0242` is not
+> in that band in fact, only in its shorthand** — it appears **nowhere** in `.claude/`, and was
+> allocated to a project task on 2026-09-11. `0241` likewise now names a project task. The **actual**
+> upstream-occupied set is, number by number: **`0243`, `0244`, `0245`, `0246`, `0247`, `0264`,
+> `0265`** — plus `0204` on its own separate merits (unchanged; the paragraph above this one still
+> stands). ⛔ **Do not re-compress that list into a range.** The canonical record, and the check that
+> establishes freedom rather than a list to trust, is
+> [`task-id-allocation.md`](../../../knowledge-base/conventions/task-id-allocation.md).
 
 ## Sprint
 Backlog — unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md).

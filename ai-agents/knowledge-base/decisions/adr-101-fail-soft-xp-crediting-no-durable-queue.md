@@ -153,6 +153,108 @@ Two narrower rules fall out of the same principle and are part of this decision:
   rationale (which assumes a multi-item batch). **That is a candidate for a SUPERSEDING ADR and it is
   not this one.** It cannot be judged until `0211`'s plan picks the survivor mechanism.
 
+  **📌 Clarification — 2026-09-12 (architect), answering the 🚩 flag immediately above. Routed here
+  by the owner's Ruling 7 of 2026-09-11 on task `0211`'s plan: the coder implements, the architect
+  records. ⛔ NO SUPERSEDING ADR. THE DECISION IS UNCHANGED.**
+
+  📎 *Citation frame: content anchors, not line numbers (`../conventions/file-line-citations.md`).
+  Code read in the working tree on 2026-09-12, `src/` clean at commit `bb1674f`.*
+
+  🔴 **Verified in the code on 2026-09-12: NOTHING HAS SHIPPED.** `src/core/profile/Citizenship.ts`
+  still declares the pre-`0211` figures; `src/core/Schemas.ts` carries no per-player participation
+  *report* message (only the existing end-of-match `PlayerParticipationSchema`); `winnerDeclarable`
+  appears nowhere in `src/`. **Everything below is a dated observation about a decided-but-unbuilt
+  change**, and is written to read correctly both before and after `0211` ships.
+
+  **What changes.** Today crediting is **one call at match end**: `handleWinner` →
+  `creditMatchXp` → `ProfileApiClient.creditMatch`, a **single multi-item batch per match**. Under
+  **Mechanism A** (owner Ruling 1, 2026-09-11) the same fail-soft client is *additionally* called
+  **during** a match — once per client on the **elimination** edge, and once per surviving client at
+  the **"no winner can be declared"** moment. Each of those new calls carries **one item**.
+  ⛔ **The match-end batch is not removed.** Upper bound per match: **N + 1 calls**, held there by an
+  in-memory per-client latch (an efficiency measure — the double-credit guard is, and remains, the
+  profile server's `(game_id, yandex_player_id)` primary key).
+
+  **The three parts this ADR named, re-read against Mechanism A.**
+
+  **(1) *"Blast radius is one match, not a backlog"* — HOLDS AS WRITTEN.** The sentence is about
+  **accumulation**: nothing is queued, so an outage cannot cause a thundering-herd write when the
+  backend returns. Under A nothing is queued either — each call is fire-and-forget, bounded, then
+  dropped. What shrinks is the blast radius of a **single failed call**: one player's award instead of
+  a whole roster's.
+  ⚠️ **Do NOT read that as "an outage now costs less XP."** Each player is credited **exactly once per
+  match** either way, so the **expected XP lost across an outage window is UNCHANGED** — only the
+  *granularity* of the loss changes. Flagged because this is the same shape of over-reading the
+  2026-09-11 amendment above exists to stop.
+
+  **(2) The 3-attempt retry budget — UNCHANGED, and now conservative rather than tight.** The budget
+  is bounded *because the call sits on the match-cleanup path*, where blocking degrades the game for
+  everyone in that match. The new calls happen **mid-match, off that path**, and are fire-and-forget.
+  The pressure that forced the bound is therefore **weaker** there, not stronger. ⛔ That is an
+  argument for **leaving it alone**, not for changing it. A review finding of the form *"only 3
+  retries"* remains **closeout of this ADR**, unchanged.
+  📌 **One new operational fact — a consequence, not a decision:** concurrency of in-flight credit
+  calls rises from ~1 per finishing match to **up to one per live client**, each holding a promise and
+  socket for at most 3 attempts × the 10 s per-attempt ceiling. It is **bounded** by the per-client
+  latch and the roster size — nothing durable, nothing queued, nothing unbounded.
+
+  **(3) Per-item pre-validation — BEHAVIOUR CORRECT; the rationale narrows on the NEW path only.**
+  ⚠️ **The tempting simplification is wrong: multi-item batches do not disappear.** The match-end
+  batch survives, so the original rationale (*"one malformed player id would cost every other player
+  in the match their XP"*) keeps its **full** force there. On the new **one-item** calls there is no
+  sibling item to protect — but the filter still does the right thing: it drops an item that would
+  produce an **unretryable 400**, turning a guaranteed failure into a warn and a no-op. **No code
+  change, no behaviour change; only the justifying sentence narrows on one path.**
+
+  **📌 A calibration note on re-raise Trigger 2 — the trigger does NOT move; its BASELINE does.**
+  Trigger 2 counts `credit batch failed after retries; N award(s) dropped` warn lines. After `0211`,
+  **one outage produces more of those lines than before for the same lost XP** — one line per one-item
+  call instead of one per roster batch. ⚠️ **A before/after comparison of line counts is not
+  like-for-like: count the dropped awards (the `N`), not the lines.** Written down so the empirical
+  trigger is neither tripped by a granularity artefact nor waved away when it fires for real.
+
+  **What this is, formally.** A **CLARIFICATION** under `README.md`'s carve-out — specifically its
+  *"recording that a pre-committed trigger fired"* half: the 🚩 flag above **is** this ADR's own
+  pre-committed gate, and `0211`'s plan fired it. ⛔ **It is not a reversal.** The decision —
+  **fail-soft, at-least-once, bounded 3-attempt retry, no durable queue** — stands word for word; no
+  rejected option is re-opened; **none of the three re-raise triggers above moves.** *(The separate
+  citation-repair carve-out of 2026-09-11 is **not** used here — nothing in this note repairs a
+  pointer, and no line above it is altered.)*
+
+  🚨 **What WOULD flip this to a SUPERSEDING ADR.** Stated so a future reader revisits on evidence
+  rather than re-deriving the question. Carried from the plan's §3.4, verified here:
+
+  1. **Mid-match credits are given DIFFERENT DURABILITY from match-end credits** — a queue, a
+     dead-letter path, or a different retry budget for one and not the other. That is a change **to
+     the decision**, not to its wording.
+  2. **Crediting becomes high-frequency or per-tick** rather than *at most once per client per match*
+     — e.g. a ledger variant with no latch. The bounded call volume is the premise this whole note
+     rests on; remove it and the note does not survive.
+  3. **Paid entitlements ever flow through this path** — this ADR's own Trigger 1, listed for
+     completeness. It is **not** a new trigger created here.
+
+  Absent one of those, a finding of the form *"crediting now happens mid-match, so this ADR is out of
+  date"* is **closeout of this ADR, not a new defect.**
+
+  📎 **Not this ADR's business, said once so it is not hunted for here:** that a stalled-match survivor
+  credited at the stall moment **keeps the XP if they then close the tab** (owner Ruling 2,
+  2026-09-11, accepted knowingly) is a **qualification-rule** consequence, recorded in `0211`'s brief
+  and in `src/core/profile/MatchQualification.ts`'s comments. It changes nothing about fail-soft
+  delivery.
+
+  **✅ Cross-reference — two questions were raised together, and BOTH are now closed.**
+  [ADR-111](adr-111-xp-economy-rescale-awards-move-up-never-down.md) says this gate *"turns on the
+  **trigger**, not the **figures**"*.
+
+  | Question | Settled by | Outcome |
+  |---|---|---|
+  | The **FIGURES** (award `10` → `1`, threshold `1,000` → `100`) | the **2026-09-11** amendment above | decision unchanged; no trigger moves |
+  | The **TRIGGER** (one batch at match end → calls spread through a match) | **this note** | decision unchanged; no supersede |
+
+  ⛔ **This note does not edit ADR-111, and ADR-111 does not edit this ADR.** Sources: `0211`'s
+  `plan.md` §3 (the coder's gate decision) and its brief's Rulings 1, 2 and 7 (owner, 2026-09-11).
+  The stall itself is filed separately as task `0242`.
+
 ## Related
 
 - `src/server/ProfileApiClient.ts:23-36` — the contract comment this ADR formalizes
