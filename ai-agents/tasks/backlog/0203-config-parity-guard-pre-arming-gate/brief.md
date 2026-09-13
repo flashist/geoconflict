@@ -4,9 +4,22 @@
 0203
 
 ## Sprint
-Backlog — unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md), not on Sprint 4, because
+Sprint 4
+
+⚠️ **The field above is the bare token `Sprint 4` on purpose** — `dashboard.sh`'s drift rule compares
+it against the board's identity, and a decorated value is reported as drift. **Do not decorate it.**
+
+🔴 **PULLED IN 2026-09-12 on an OWNER RULING, given live in session and relayed through the lead
+session** — accepting the producer's "invisible gate" reasoning: this task gates a Sprint 4 task
+(`0064`'s arming), and a gate invisible on the Sprint 4 board is how a gate gets skipped — the same
+reasoning as `0238`. ⚠️ **The owner ruled the BOARD, not the rank** — unranked on Sprint 4 (Priority `—`);
+the `Medium–low` below is still the producer's. Status unchanged. The Backlog-board row now reads
+`➡️ Moved` and is kept, not deleted.
+
+~~Backlog — unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md), not on Sprint 4, because
 no owner ruling scheduled it into a sprint and it cannot start until `0064`'s report-only run has
-happened. See Notes for the board-choice reasoning.
+happened. See Notes for the board-choice reasoning.~~ *(struck 2026-09-12, kept not deleted; the
+"cannot start until `0064`'s report-only run has happened" part is still true.)*
 
 ## Priority
 **Medium–low. Producer's rank, not an owner ruling.**
@@ -292,7 +305,9 @@ invisible, and extending the reverse check naively would produce a *false* dead 
   discovers a real misconfiguration in the tree, that is a new brief — do not let this task grow into
   fixing what it finds. Same rule `0064` carries.
 
-- **Board choice — `backlog.md`, not `plan-sprint-4.md`.** `0064` sits in Sprint 4, but this task is
+- **Board choice — ~~`backlog.md`, not `plan-sprint-4.md`~~. 📌 SUPERSEDED 2026-09-12 — pulled into Sprint 4
+  on an OWNER RULING, given live in session and relayed through the lead session (see `## Sprint`); the
+  original reasoning is kept below as written.** `0064` sits in Sprint 4, but this task is
   not Sprint 4 work: no owner ruling scheduled it, it cannot start until `0064`'s weekend report-only
   run has happened, and Sprint 4's goal is the citizenship/monetization launch. Filing it into the
   active sprint would assert a sprint commitment nobody made. `backlog.md` is by its own charter *"the

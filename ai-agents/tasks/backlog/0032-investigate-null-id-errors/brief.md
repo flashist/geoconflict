@@ -30,6 +30,12 @@ fkit-coder
    (~26.6/min); reliable co-occurrence/pattern analysis needs that noise gone **in
    production**, not just merged.
 
+> ✅ **BOTH SATISFIED 2026-09-12 — OWNER RULING, given live in session and relayed through the lead
+> session:** the owner confirmed `0164` and `0159` are **deployed in production**. ⚠️ **Owner-attested,
+> NOT repo-verified** — a deploy leaves no artifact in git, so this repository cannot confirm it either
+> way. ⇒ **This task is now STARTABLE.** Status marker unchanged (`🔲 Backlog` — startable is not
+> started).
+
 ---
 
 ## Context
@@ -100,7 +106,9 @@ Conditional on findings:
   `## Dependencies (both must be live before triage)` numbered list above (left unedited): (1) source
   maps available in Uptrace — `0164-enable-client-source-maps` (Sprint 4c); and (2) the archive
   telemetry-noise fix deployed in production, not merely merged — `0159-reduce-archive-telemetry-noise`
-  (Sprint 4c). Full prose above; this bullet is the machine-readable form beside it.
+  (Sprint 4c). Full prose above; this bullet is the machine-readable form beside it. ✅ **Both satisfied
+  2026-09-12 per owner attestation (owner ruling, given live in session and relayed through the lead session) —
+  owner-attested, not repo-verified; the task is startable.**
 - The `a.id` minified pattern is a strong hint but not conclusive — `.id` is used on many
   object types. Do not over-scope the guard.
 - If source maps (Task `0164-enable-client-source-maps`) fully resolve the traces, this

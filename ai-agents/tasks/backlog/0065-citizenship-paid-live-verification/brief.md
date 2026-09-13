@@ -26,6 +26,16 @@ profile VPS setup work.** Owner, 2026-09-04, verbatim: *"I probably will keep it
 the citizenship is not fully ready to be deployed yet and we need to do some additional work in terms
 of the profile VPS setup."* Blocker count still **three**; status token unchanged.
 
+📌 **The `0014` condition's reason NARROWED 2026-09-12 — OWNER RULING, given live in session and relayed
+through the lead session — the condition itself is UNCHANGED and still open.** The owner **issued the
+per-game secret key** and **enabled purchases** for the game on 2026-09-12. Still outstanding on `0014`:
+**catalog approval** and **test-purchase login(s)** (not done, per the owner). The `citizenship_ui` flag is
+also not done — that is `0238`'s gate, not this one. ⚠️ **An issued key lands on the box ONLY via a
+profile-box redeploy with `YANDEX_PAYMENTS_SECRET` populated** (`0195`'s forwarding path) — **this brief
+does NOT assert that redeploy happened**, so every `/v1/payments/*` route is still to be presumed **503**
+until it is done and observed. **Issuance alone clears nothing.** Blocker count still **three**; status
+token unchanged.
+
 ## Owner
 fkit-coder
 
@@ -44,7 +54,10 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
 
 - **`0014`** — catalog item `citizenship` registered + purchases enabled + **per-game secret key
   issued** and provisioned on the profile VPS as `YANDEX_PAYMENTS_SECRET` (0600 env file, via
-  `setup-profile.sh`). Never committed, never logged.
+  `setup-profile.sh`). Never committed, never logged. 📌 **2026-09-12 — owner ruling, given live in session and relayed through the lead session:
+  key ISSUED, purchases ENABLED. Still open: catalog approval; test-purchase login(s) (not done, per the
+  owner).** ⚠️ **Issued ≠ provisioned:** it reaches the box only via a profile-box redeploy with the value
+  populated (`0195`'s path) — not asserted to have happened; the 503s are not cleared by issuance alone.
 - **`0062`** — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end (its own
   verifications 2–3). Without it no profile row exists to attach a purchase to.
 - 🚨 **`0195`** — [`0195-forward-yandex-payments-secret-in-profile-deploy`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md).
@@ -53,7 +66,9 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
   Recorded 2026-08-28 so it was not rediscovered mid-checklist: the per-game secret key above reaches the
   box via `build-deploy-profile.sh` → `setup-profile.sh` → `profile.env`, and `build-deploy-profile.sh`
   omitted the variable from its staged-export block — **that omission is what `0195` fixed.** But
-  **`0014` has not issued the key**, so the value is still empty going in, `setup-profile.sh`'s
+  ~~**`0014` has not issued the key**~~ 📌 **struck 2026-09-12 — the key WAS issued that day (owner ruling,
+  given live in session and relayed through the lead session); what is still unrecorded is a profile-box
+  redeploy with the value populated**, so the value is still to be presumed empty going in, `setup-profile.sh`'s
   `${YANDEX_PAYMENTS_SECRET:-}` default still writes it empty on the box, and `Routes.ts`'s
   `paymentsEnabled` middleware **still returns `503 {"error":"payments_unavailable"}` on every
   `/v1/payments/*` request** — correctly, failing closed. **Steps 1–4 below all drive those routes and
@@ -125,8 +140,11 @@ owner-waived, and the follow-up task from step 1 is filed.
   scope done — the UI and flow this checklist drives must exist). ⚠️ **Owner ruling 2026-09-01 —
   forwarding and issuance are each necessary and neither alone is sufficient:** `0195` **shipped
   2026-09-01** and fixed the forwarding gap (`build-deploy-profile.sh` had omitted the variable from
-  its staged-export block), but `0014` has **not** issued the per-game key, so the value still lands
-  empty on the box and every `/v1/payments/*` route still returns 503 — correctly, failing closed.
+  its staged-export block), but ~~`0014` has **not** issued the per-game key~~ 📌 **2026-09-12 — key ISSUED
+  and purchases ENABLED (owner ruling, given live in session and relayed through the lead session); `0014` still
+  open on catalog approval + test-purchase login(s)** — and no profile-box redeploy with the value populated
+  is recorded, so the value is still to be presumed empty on the box and every `/v1/payments/*` route still
+  to be presumed 503 — correctly, failing closed.
   Also required before running: `migrations/002_yandex_payments.sql` applied in prod, and a
   test-purchase Yandex login registered in the dashboard. The full prose for every gate is in the
   `## Dependencies` section above, which stays the human-facing explanation — this bullet is the

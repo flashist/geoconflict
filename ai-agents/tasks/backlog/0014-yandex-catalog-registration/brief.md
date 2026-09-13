@@ -103,7 +103,7 @@ mistake that produces a paid purchase granting nothing.
    2026-09-12, owner-confirmed. ⚠️ **Registered, not approved.**
 2. 🔲 **The item shows "approved" (or the equivalent active status) in the Yandex Games developer
    dashboard.** This is the external gate; it is genuinely outside anyone's control here.
-3. 🔲 **The per-game payments SECRET KEY is collected.** 🚨 **This is a hard `0065` prerequisite and it
+3. ✅ **The per-game payments SECRET KEY is collected** — ✅ **ISSUED 2026-09-12 (owner ruling, given live in session and relayed through the lead session).** ⚠️ **Issued ≠ on the box:** the key lands on the profile box only via a profile-box redeploy with the value populated (`0195` forwards it); this brief does NOT assert the box has it, so the `/v1/payments/*` 503s are not cleared by issuance alone. 🚨 **This is a hard `0065` prerequisite and it
    is NOT the catalog registration.** It becomes the `YANDEX_PAYMENTS_SECRET` environment variable on
    the profile box. **Without it every one of the three `/v1/payments/*` routes returns 503** —
    fail-closed **by design**: `src/profile-server/Server.ts:35` reads
@@ -178,14 +178,29 @@ mistake that produces a paid purchase granting nothing.
 > even were. ⇒ **As of now each of items 1–4 is UNKNOWN in both directions — not done, and not
 > known-not-done** — pending the owner's next session in the Yandex console. **Item 6 (the price) is the
 > only one of these that moved today.**
+>
+> 📌 **UPDATED 2026-09-12, later again — OWNER RULING, given live in session and relayed through the lead
+> session. This supersedes the paragraph above for items 1–4.** The owner reported back: **item 1 (secret
+> key) — ISSUED**; **item 4 (purchases enabled) — ENABLED**. **Items 2 (test-purchase login(s)) and 3
+> (`citizenship_ui` flag) — NOT DONE, per the owner.** Recorded as the owner's report — nothing in this
+> repository can see the Yandex console, so none of it is repo-verifiable. Item 5 (cosmetics item) did not
+> move — still unknown. ⚠️ **Issued ≠ on the box:** the key reaches the profile box only via a profile-box
+> redeploy with `YANDEX_PAYMENTS_SECRET` populated (`0195` forwards it); this brief does NOT assert that
+> redeploy happened, so the `/v1/payments/*` 503s are NOT cleared by issuance alone — see
+> [`0065`](../0065-citizenship-paid-live-verification/brief.md).
 
-1. **Was the per-game payments secret key collected?** (`## Verification` item 3.) Unknown.
-2. **Were test-purchase Yandex login(s) added** under In-App Purchases → Settings? (item 4.) Unknown.
-3. **Is the `citizenship_ui` Yandex experiment flag set?** Unknown. This is the **remote half** of the
+1. **Was the per-game payments secret key collected?** (`## Verification` item 3.) ~~Unknown.~~ ✅ **ISSUED
+   2026-09-12 — owner ruling, given live in session and relayed through the lead session.** ⚠️ Issued, not
+   shown provisioned on the box — see the note above.
+2. **Were test-purchase Yandex login(s) added** under In-App Purchases → Settings? (item 4.) ~~Unknown.~~
+   ⛔ **NOT DONE as of 2026-09-12 — per the owner, same ruling.** Still a hard `0065` prerequisite.
+3. **Is the `citizenship_ui` Yandex experiment flag set?** ~~Unknown.~~ ⛔ **NOT DONE as of 2026-09-12 — per
+   the owner, same ruling.** This is the **remote half** of the
    citizenship kill switch (`src/client/flashist/FlashistFacade.ts:174`) and its validation is
    [`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md), a
    declared launch gate.
-4. **Are purchases enabled for the game at all** in the Yandex Games dashboard? Unknown. A registered,
+4. **Are purchases enabled for the game at all** in the Yandex Games dashboard? ~~Unknown.~~ ✅ **ENABLED
+   2026-09-12 — owner ruling, given live in session and relayed through the lead session.** A registered,
    approved item in a game with purchases switched off sells nothing.
 5. **Was the cosmetics item registered?** Unknown — see the flagged bullet above.
 
