@@ -119,13 +119,15 @@ run_deploy() {  # extra env passed as VAR=VAL ... ; sets RC + populates $WORK lo
     # build-deploy-profile.sh has required ./profile-backup.sh since the T8 backup work; without
     # this fixture every run_deploy aborts at that precondition, before the preflight it tests.
     : > "$RUN/profile-backup.sh"; chmod +x "$RUN/profile-backup.sh"
+    # …and ./profile-checks.sh since task 0219 (same precondition, same reason).
+    : > "$RUN/profile-checks.sh"; chmod +x "$RUN/profile-checks.sh"
     : > "$RUN/Dockerfile.profile"
     printf '#!/bin/bash\nexit 0\n' > "$RUN/scripts/check-docker-secret-boundary.sh"
     chmod +x "$RUN/scripts/check-docker-secret-boundary.sh"
     rm -f "$WORK/docker.argv" "$WORK/ssh.argv" "$WORK/scp.argv" "$WORK/sshpass.argv" \
           "$WORK/sshpass.filemode" "$WORK/scp.called" "$WORK/staged.env"
     # `env -i` + an explicit allow-list — deliberately NOT a list of secrets to clear.
-    # The real deploy script forwards 28 variables from its environment into the staged
+    # The real deploy script forwards every variable in its export block from its environment into the staged
     # secrets file, and the scp stub captures that file to $WORK/staged.env for T10. If
     # this subshell inherited the operator's shell, THEIR real PROFILE_INTERNAL_TOKEN /
     # DATABASE_URL / FEEDBACK_TELEGRAM_TOKEN / PROFILE_BACKUP_S3_* would be written to
@@ -251,6 +253,24 @@ if [ "$got" = "$SECRET_YP" ]; then pass "value round-trips through sourcing (spa
 if grep -rqF "$SECRET_YP" "$WORK"/*.argv 2>/dev/null; then fail "payments secret LEAKED into an argv"; \
   else pass "payments secret never appears in docker/ssh/scp/sshpass argv"; fi
 
+echo "== T11: profile-checks.sh is SCP'd and PROFILE_CHECKS_PING_URL round-trips (task 0219) =="
+# The ping URL is a capability (whoever holds it silences the alert): same T10 standard — the
+# REAL script is driven, and what the staged file actually carries is asserted.
+SECRET_PING='https://ping.example.invalid/0219-fake uuid"$notreal'   # spaces + quote + $
+NEW; echo profile > "$WORK/marker"
+run_deploy PROFILE_CHECKS_PING_URL="$SECRET_PING"
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC (expected 0); see $WORK/out.log"
+grep -q 'profile-checks.sh' "$WORK/scp.argv" 2>/dev/null && pass "profile-checks.sh was SCP'd to the box" \
+  || fail "profile-checks.sh never reached scp"
+n=$(grep -c '^export PROFILE_CHECKS_PING_URL=' "$WORK/staged.env" 2>/dev/null || true); n=${n:-0}
+[ "$n" = "1" ] && pass "exactly one export PROFILE_CHECKS_PING_URL line" \
+  || fail "expected 1 export PROFILE_CHECKS_PING_URL line, got $n"
+got=$( . "$WORK/staged.env" >/dev/null 2>&1; printf '%s' "${PROFILE_CHECKS_PING_URL-}" )
+if [ "$got" = "$SECRET_PING" ]; then pass "ping URL round-trips through sourcing (spaces/quotes/\$ intact)"; \
+  else fail "staged ping URL did not round-trip (got ${#got} chars, expected ${#SECRET_PING})"; fi
+if grep -rqF "$SECRET_PING" "$WORK"/*.argv 2>/dev/null; then fail "ping URL LEAKED into an argv"; \
+  else pass "ping URL never appears in docker/ssh/scp/sshpass argv"; fi
+
 # ── Structural parity checks (setup-* on-box halves + telemetry mirror) ────────
 echo "== Structural: on-box flock/marker + telemetry mirror =="
 P="$REPO_ROOT/setup-profile.sh"
@@ -339,5 +359,316 @@ printf '%s\n' "$SERVER_LEVEL" | grep -qE '^[[:space:]]*access_log[[:space:]]+off
 printf '%s\n' "$SERVER_LEVEL" | grep -qE '^[[:space:]]*error_log /dev/stderr;' \
   && pass "nginx.conf: server-level error_log still goes to stderr" || fail "nginx.conf: server-level error_log was disabled or moved off stderr"
 
+# ── Structural: profile-box operability (task 0219) ───────────────────────────
+# Same character as the 0060 block above: LINTS over setup-profile.sh, value-asserting and
+# awk-scoped, catching the cheap regression (a dropped logging: block, a prune that would eat
+# the rollback image, a lost cron line). The behaviour itself — rotation observed, rollback
+# image surviving a prune, an alert arriving — is provable only on the box (0219 Part B).
+# Same accepted residual: the heredoc extraction is coupled to formatting → a reformat reds
+# this section (false RED, never false green).
+echo "== Structural: profile-box log retention + image prune + checks wiring (0219) =="
+P="$REPO_ROOT/setup-profile.sh"
+B="$REPO_ROOT/build-deploy-profile.sh"
+# The compose file heredoc, and only it.
+COMPOSE_BLOCK=$(awk '/cat > "\$PROFILE_DIR\/docker-compose.yml" << EOF/{b=1; next} b && /^EOF$/{exit} b{print}' "$P")
+[ -n "$COMPOSE_BLOCK" ] && pass "setup-profile.sh: located the docker-compose.yml heredoc" \
+  || fail "setup-profile.sh: no docker-compose.yml heredoc found (the checks below would be vacuous)"
+# Services = 2-space-indented keys under services: (before the top-level volumes: key).
+n_services=$(printf '%s\n' "$COMPOSE_BLOCK" | awk '/^volumes:/{exit} /^  [a-z][a-z0-9-]*:$/{n++} END{print n+0}')
+n_logging=$(printf '%s\n' "$COMPOSE_BLOCK" | grep -cE '^    logging:$' || true)
+n_driver=$(printf '%s\n' "$COMPOSE_BLOCK" | grep -cE '^      driver: json-file$' || true)
+[ "$n_services" -ge 2 ] && [ "$n_logging" = "$n_services" ] \
+  && pass "compose: every service ($n_services) has a logging: block" \
+  || fail "compose: $n_logging logging: block(s) for $n_services service(s) — an unlisted service is back on the unbounded default"
+[ "$n_driver" = "$n_services" ] && pass "compose: every service pins driver: json-file" \
+  || fail "compose: driver: json-file appears $n_driver time(s), expected $n_services"
+# Values, not presence — and the SAME constants as update.sh (owner ruling 0219 Q3: one number
+# project-wide). EXPECTED_MAX_SIZE / EXPECTED_MAX_FILE are defined in the 0060 block above.
+sizes=$(printf '%s\n' "$COMPOSE_BLOCK" | sed -n 's/^        max-size: "\([^"]*\)".*/\1/p')
+files=$(printf '%s\n' "$COMPOSE_BLOCK" | sed -n 's/^        max-file: "\([^"]*\)".*/\1/p')
+[ "$(printf '%s\n' "$sizes" | grep -c .)" = "$n_services" ] && [ "$(printf '%s\n' "$files" | grep -c .)" = "$n_services" ] \
+  && pass "compose: max-size + max-file set on every service" \
+  || fail "compose: max-size/max-file missing on some service (sizes='$sizes' files='$files')"
+printf '%s\n' "$sizes" | grep -vqE '^[0-9]+[kmg]$' \
+  && fail "compose: a max-size value is malformed ('$sizes')" || pass "compose: every max-size is <number><unit>"
+for v in $files; do printf '%s' "$v" | grep -qE '^[0-9]+$' && [ "$v" -ge 2 ] || { fail "compose: max-file '$v' must be an integer >= 2 (1 means no rotation)"; break; }; done
+printf '%s\n' "$sizes" | grep -vqxF "$EXPECTED_MAX_SIZE" \
+  && fail "compose: max-size is '$sizes', expected '$EXPECTED_MAX_SIZE' everywhere — a deliberate re-tune updates EXPECTED_MAX_SIZE here" \
+  || pass "compose: max-size is the expected $EXPECTED_MAX_SIZE on every service"
+printf '%s\n' "$files" | grep -vqxF "$EXPECTED_MAX_FILE" \
+  && fail "compose: max-file is '$files', expected '$EXPECTED_MAX_FILE' everywhere — a deliberate re-tune updates EXPECTED_MAX_FILE here" \
+  || pass "compose: max-file is the expected $EXPECTED_MAX_FILE on every service"
+# Ownership decision: compose owns retention on this box; a host daemon config would be a
+# second, conflicting layer. Comments may NAME the file (that is the decision record) — code may not.
+grep -v '^[[:space:]]*#' "$P" | grep -q 'daemon\.json' \
+  && fail "setup-profile.sh: code references daemon.json — retention has TWO owners on this box" \
+  || pass "setup-profile.sh: no daemon.json in code (compose is the single owner)"
+# Image prune: keep-list (references PREV_PROFILE_IMAGE), ordered AFTER the rollback branch and
+# BEFORE the systemd section, and NEVER the game box's `prune -a` (which removes the rollback image).
+awk '/Rolling back profile-api to the last known-good image/{r=NR} /print_header "PRUNING UNUSED IMAGES"/{p=NR} /print_header "CONFIGURING SYSTEMD AUTO-START"/{s=NR} END{exit !(r>0 && p>r && s>p)}' "$P" \
+  && pass "setup-profile.sh: prune runs after the rollback branch and before systemd" \
+  || fail "setup-profile.sh: prune section missing or mis-ordered vs rollback/systemd"
+PRUNE_BLOCK=$(awk '/print_header "PRUNING UNUSED IMAGES"/{b=1} /print_header "CONFIGURING SYSTEMD AUTO-START"/{exit} b{print}' "$P")
+printf '%s\n' "$PRUNE_BLOCK" | grep -q 'PREV_PROFILE_IMAGE' && printf '%s\n' "$PRUNE_BLOCK" | grep -q '"\$PROFILE_IMAGE"' \
+  && pass "prune: keep-list names PROFILE_IMAGE and PREV_PROFILE_IMAGE" || fail "prune: keep-list does not protect the current/previous image"
+printf '%s\n' "$PRUNE_BLOCK" | grep -q 'docker ps -aq' && pass "prune: keep-list covers every container (docker ps -a)" \
+  || fail "prune: keep-list ignores stopped containers' images"
+grep -v '^[[:space:]]*#' "$P" | grep -q 'docker image prune -a' \
+  && fail "setup-profile.sh: 'docker image prune -a' present — that deletes the rollback image" \
+  || pass "setup-profile.sh: no 'docker image prune -a' (keep-list prune only)"
+# Checker wiring: installed, scheduled in the always-present cron header, carried by the deploy script.
+grep -q 'install -m 700 "\$PROFILE_CHECKS_SRC" "\$PROFILE_DIR/checks.sh"' "$P" && pass "setup-profile.sh: installs checks.sh (0700)" \
+  || fail "setup-profile.sh: checks.sh install line missing"
+CRON_HEADER=$(awk '/^cat > "\$CRON_FILE" << EOF/{b=1; next} b && /^EOF$/{exit} b{print}' "$P")
+printf '%s\n' "$CRON_HEADER" | grep -qE '^0 8 \* \* \* root \$PROFILE_DIR/checks\.sh >> /var/log/profile-checks\.log 2>&1$' \
+  && pass "cron header: daily 08:00 checks.sh line present (both backup modes)" \
+  || fail "cron header: checks.sh line missing or moved out of the always-present block"
+grep -q 'printf .PROFILE_CHECKS_PING_URL=%q' "$P" && pass "setup-profile.sh: checks.env written with %q" \
+  || fail "setup-profile.sh: checks.env not written with %q"
+# certbot.timer (hookless second renewer) is disabled inside the PROFILE_DOMAIN-guarded HTTPS
+# section — after certonly, before the renew cron — and can never fail the deploy (owner ruling,
+# 0219 review R3). Line order: certonly < disable < the hooked renew cron line.
+grep -qE '^\s*systemctl disable --now certbot\.timer .*\|\| true$' "$P" \
+  && pass "setup-profile.sh: certbot.timer disabled (|| true-safe)" \
+  || fail "setup-profile.sh: 'systemctl disable --now certbot.timer … || true' missing"
+L_CERTONLY=$(grep -n 'certbot certonly --standalone' "$P" | head -1 | cut -d: -f1)
+L_TIMER=$(grep -n 'systemctl disable --now certbot.timer' "$P" | head -1 | cut -d: -f1)
+L_RENEWCRON=$(grep -n '^0 0,12 \* \* \* root certbot renew' "$P" | head -1 | cut -d: -f1)
+[ -n "$L_CERTONLY" ] && [ -n "$L_TIMER" ] && [ -n "$L_RENEWCRON" ] \
+  && [ "$L_CERTONLY" -lt "$L_TIMER" ] && [ "$L_TIMER" -lt "$L_RENEWCRON" ] \
+  && pass "setup-profile.sh: certbot.timer disable sits after certonly and before the hooked renew cron" \
+  || fail "setup-profile.sh: certbot.timer disable mis-ordered (certonly=$L_CERTONLY timer=$L_TIMER cron=$L_RENEWCRON)"
+grep -q 'CHECKS_SCRIPT="./profile-checks.sh"' "$B" && grep -q 'REMOTE_CHECKS_SCRIPT' "$B" \
+  && pass "build-deploy-profile.sh: carries profile-checks.sh" || fail "build-deploy-profile.sh: profile-checks.sh not carried"
+
+
+# ── Behavioural + structural: on-box secret persistence + value parity (task 0220) ──
+# 0195 recorded ONE variable with no on-box persistence; the real scope is FOUR (the three
+# Telegram variables were verified by the architect 2026-09-04). The defect is a deploy that
+# SUCCEEDS while silently blanking a value the box had. These tests drive the REAL functions
+# extracted from setup-profile.sh (the tests/profile-backup-redeploy.sh awk+eval pattern —
+# no reimplementation), one variable at a time, and were seen RED against the unfixed script
+# first (negative control, the standard 0195 set with T10). Values below are visibly synthetic
+# and carry spaces/quotes/$; the assertions check that NO value and NO length ever reaches the
+# deploy output — names only.
+P="$REPO_ROOT/setup-profile.sh"
+mode_of() { stat -f '%Lp' "$1" 2>/dev/null || stat -c '%a' "$1" 2>/dev/null; }
+# From `name() {` at column 0 to the first `}` at column 0 — the function has no brace at
+# column 0 inside and no heredoc, so this is exactly the definition.
+eval "$(awk '/^persist_or_reuse_secret\(\) \{/,/^\}/' "$P")"
+eval "$(awk '/^report_config_values\(\) \{/,/^\}/' "$P")"
+# ipv4_re/ipv6_re are the script's own (hoisted to column 0 so the report can reuse them).
+eval "$(grep -E '^ipv[46]_re=' "$P")"
+HAVE_PERSIST=0; HAVE_REPORT=0
+declare -F persist_or_reuse_secret >/dev/null && HAVE_PERSIST=1
+declare -F report_config_values >/dev/null && HAVE_REPORT=1
+[ "$HAVE_PERSIST" = 1 ] && pass "setup-profile.sh: persist_or_reuse_secret() extracted" \
+  || fail "setup-profile.sh: persist_or_reuse_secret() not found (its column-0 anchor changed, or the function is missing)"
+[ "$HAVE_REPORT" = 1 ] && pass "setup-profile.sh: report_config_values() extracted" \
+  || fail "setup-profile.sh: report_config_values() not found (its column-0 anchor changed, or the function is missing)"
+PERSIST_SPECS="YANDEX_PAYMENTS_SECRET:.yandex_payments_secret \
+FEEDBACK_TELEGRAM_TOKEN:.feedback_telegram_token \
+FEEDBACK_TELEGRAM_CHAT_ID:.feedback_telegram_chat_id \
+TELEGRAM_PROXY_URL:.telegram_proxy_url"
+
+echo "== T12: persist_or_reuse_secret — env value persisted 0600, blank redeploy REUSES it, by name (0220) =="
+if [ "$HAVE_PERSIST" = 1 ]; then
+  PDIR=$(mktemp -d)
+  for spec in $PERSIST_SPECS; do
+    name=${spec%%:*}; file="$PDIR/${spec#*:}"
+    val="0220-F@ke $name \"v1\"\$notreal"
+    # Deploy 1: the value arrives from the environment → persisted, and said so by name.
+    printf -v "$name" '%s' "$val"
+    persist_or_reuse_secret "$name" "$file" > "$PDIR/out1.txt"
+    [ -f "$file" ] && pass "$name: persist file written" || fail "$name: persist file not written"
+    [ "$(mode_of "$file")" = "600" ] && pass "$name: persist file is mode 600" || fail "$name: persist file mode is '$(mode_of "$file")', expected 600"
+    printf '%s' "$val" | cmp -s - "$file" && pass "$name: persisted bytes equal the value (spaces/quotes/\$ intact)" \
+      || fail "$name: persisted bytes differ from the value"
+    [ "$(cat "$PDIR/out1.txt")" = "Using $name from environment (persisted to $file)" ] \
+      && pass "$name: deploy-1 output is the exact 'Using … from environment' line" \
+      || fail "$name: deploy-1 output unexpected: $(cat "$PDIR/out1.txt" | grep -vF "$val" | head -1)"
+    # Deploy 2: the deploy supplies NOTHING (the 0195 shape) → the box's value is KEPT, visibly.
+    unset "$name"
+    persist_or_reuse_secret "$name" "$file" > "$PDIR/out2.txt"
+    [ "${!name-}" = "$val" ] && pass "$name: blank redeploy REUSED the persisted value (the defect is closed for this variable)" \
+      || fail "$name: blank redeploy did NOT reuse the persisted value — the 0195 silent-blank shape is still open"
+    [ "$(cat "$PDIR/out2.txt")" = "⚠️  Reusing persisted $name from $file — the deploy supplied no value" ] \
+      && pass "$name: deploy-2 output is the exact 'Reusing persisted' line (name + file, nothing else)" \
+      || fail "$name: deploy-2 output unexpected"
+    if cat "$PDIR/out1.txt" "$PDIR/out2.txt" | grep -qF "$val"; then fail "$name: the VALUE leaked into deploy output"; \
+      else pass "$name: value never appears in deploy output"; fi
+    if cat "$PDIR/out1.txt" "$PDIR/out2.txt" | grep -qE "(^|[^0-9])${#val}([^0-9]|$)"; then fail "$name: the value's LENGTH (${#val}) appears in deploy output"; \
+      else pass "$name: value length never appears in deploy output"; fi
+  done
+  rm -rf "$PDIR"
+else
+  fail "T12 skipped: persist_or_reuse_secret() absent"
+fi
+
+echo "== T13: rotation — a NEW value overwrites the persisted one; the other files are untouched (0220) =="
+if [ "$HAVE_PERSIST" = 1 ]; then
+  PDIR=$(mktemp -d)
+  for spec in $PERSIST_SPECS; do
+    name=${spec%%:*}; file="$PDIR/${spec#*:}"
+    printf -v "$name" '%s' "0220-F@ke $name \"v1\"\$notreal"
+    persist_or_reuse_secret "$name" "$file" > /dev/null
+  done
+  before=$(cksum "$PDIR"/.yandex_payments_secret "$PDIR"/.feedback_telegram_chat_id "$PDIR"/.telegram_proxy_url)
+  ROT='0220-F@ke ROTATED "v2"$notreal'
+  FEEDBACK_TELEGRAM_TOKEN="$ROT"
+  persist_or_reuse_secret FEEDBACK_TELEGRAM_TOKEN "$PDIR/.feedback_telegram_token" > "$PDIR/out.txt"
+  printf '%s' "$ROT" | cmp -s - "$PDIR/.feedback_telegram_token" && pass "rotation: persist file now holds the new value" \
+    || fail "rotation: persist file was NOT overwritten — persistence became a trap"
+  unset FEEDBACK_TELEGRAM_TOKEN
+  persist_or_reuse_secret FEEDBACK_TELEGRAM_TOKEN "$PDIR/.feedback_telegram_token" > /dev/null
+  [ "${FEEDBACK_TELEGRAM_TOKEN-}" = "$ROT" ] && pass "rotation: a following blank deploy reuses the NEW value" \
+    || fail "rotation: a following blank deploy did not reuse the new value"
+  after=$(cksum "$PDIR"/.yandex_payments_secret "$PDIR"/.feedback_telegram_chat_id "$PDIR"/.telegram_proxy_url)
+  [ "$before" = "$after" ] && pass "rotation: the other three persist files are byte-unchanged" \
+    || fail "rotation: rotating one variable touched another's persist file"
+  grep -qF "$ROT" "$PDIR/out.txt" && fail "rotation: the rotated VALUE leaked into deploy output" \
+    || pass "rotation: rotated value never appears in deploy output"
+  rm -rf "$PDIR"
+else
+  fail "T13 skipped: persist_or_reuse_secret() absent"
+fi
+
+echo "== T14: neither supplied nor persisted → written EMPTY, said so; an EMPTY file is not a value (0220) =="
+if [ "$HAVE_PERSIST" = 1 ]; then
+  PDIR=$(mktemp -d)
+  unset YANDEX_PAYMENTS_SECRET
+  persist_or_reuse_secret YANDEX_PAYMENTS_SECRET "$PDIR/.yandex_payments_secret" > "$PDIR/out.txt"
+  [ ! -e "$PDIR/.yandex_payments_secret" ] && pass "neither: no persist file is created" || fail "neither: a persist file appeared"
+  [ -z "${YANDEX_PAYMENTS_SECRET-}" ] && pass "neither: variable stays empty (feature-off semantics unchanged)" || fail "neither: variable is non-empty"
+  [ "$(cat "$PDIR/out.txt")" = "YANDEX_PAYMENTS_SECRET: not supplied and nothing persisted — written EMPTY (feature stays off)" ] \
+    && pass "neither: output says 'written EMPTY' by name" || fail "neither: output unexpected: $(cat "$PDIR/out.txt")"
+  : > "$PDIR/.telegram_proxy_url"   # an empty persist file must count as NOTHING persisted (-s, not -f)
+  unset TELEGRAM_PROXY_URL
+  persist_or_reuse_secret TELEGRAM_PROXY_URL "$PDIR/.telegram_proxy_url" > "$PDIR/out.txt"
+  [ -z "${TELEGRAM_PROXY_URL-}" ] && grep -q 'written EMPTY' "$PDIR/out.txt" \
+    && pass "neither: an EMPTY persist file is treated as nothing persisted (no silent empty reuse)" \
+    || fail "neither: an empty persist file was 'reused' — a silent empty reuse"
+  rm -rf "$PDIR"
+else
+  fail "T14 skipped: persist_or_reuse_secret() absent"
+fi
+
+echo "== T15: value parity report — findings FIRE on bad values, exit stays 0, no value in output (0220) =="
+if [ "$HAVE_REPORT" = 1 ]; then
+  RDIR=$(mktemp -d)
+  # A helper that sets the whole checked surface, then lets each case override.
+  clean_config() {
+    PROFILE_DOMAIN='api.example.invalid'
+    FEEDBACK_TELEGRAM_TOKEN='0220-F@ke tg "token"$notreal'
+    FEEDBACK_TELEGRAM_CHAT_ID='0220-F@ke chat "id"$notreal'
+    TELEGRAM_PROXY_URL='http://proxy.example.invalid:3128'
+    YANDEX_PAYMENTS_SECRET='0220-F@ke yp "key"$notreal'
+    PROFILE_INTERNAL_TOKEN='0220-F@ke internal "tok"$notreal'
+    PROFILE_INTERNAL_TOKEN_SOURCE='environment'
+    PROFILE_CHECKS_PING_URL='https://ping.example.invalid/0220-fake'
+    PROFILE_BACKUP_S3_ENDPOINT='https://s3.example.invalid'
+  }
+  # (i) clean config → zero findings, returns 0.
+  clean_config
+  report_config_values > "$RDIR/clean.txt"; rc=$?
+  [ "$rc" -eq 0 ] && pass "clean: report_config_values returned 0" || fail "clean: returned $rc"
+  n=$(grep -c 'FINDING' "$RDIR/clean.txt" || true)
+  [ "${n:-0}" = "0" ] && pass "clean: zero FINDING lines" || fail "clean: $n FINDING line(s) on a clean config: $(grep FINDING "$RDIR/clean.txt" | head -3)"
+  grep -q '^Value parity: 0 finding(s),' "$RDIR/clean.txt" && pass "clean: summary line reports 0 findings" \
+    || fail "clean: summary line missing or wrong: $(grep 'Value parity' "$RDIR/clean.txt")"
+  grep -qE 'report-only, deploy continues' "$RDIR/clean.txt" && pass "clean: summary says report-only" || fail "clean: summary does not say report-only"
+  # (ii) the 0063 class (scheme + IP literal in PROFILE_DOMAIN) and a proxy-less Telegram pair → both fire, exit still 0.
+  clean_config
+  PROFILE_DOMAIN='http://203.0.113.10'
+  TELEGRAM_PROXY_URL=''
+  report_config_values > "$RDIR/bad.txt"; rc=$?
+  [ "$rc" -eq 0 ] && pass "bad: report_config_values STILL returned 0 (report-only)" || fail "bad: returned $rc — a non-zero here fails a deploy"
+  grep -q 'FINDING.*PROFILE_DOMAIN' "$RDIR/bad.txt" && pass "bad: PROFILE_DOMAIN finding fired (scheme / IP literal)" || fail "bad: no PROFILE_DOMAIN finding"
+  grep -q 'FINDING.*TELEGRAM_PROXY_URL' "$RDIR/bad.txt" && pass "bad: TELEGRAM_PROXY_URL finding fired (empty while token+chat set)" || fail "bad: no TELEGRAM_PROXY_URL finding"
+  grep -q '^Value parity: 2 finding(s),' "$RDIR/bad.txt" && pass "bad: summary counts exactly 2 findings" \
+    || fail "bad: summary line wrong: $(grep 'Value parity' "$RDIR/bad.txt")"
+  # (iv) the 0062 class (empty token with the chat set), a non-https ping URL, a non-https S3
+  #      endpoint, and a token the game server cannot know (source ≠ environment) → each fires.
+  clean_config
+  FEEDBACK_TELEGRAM_TOKEN=''
+  PROFILE_CHECKS_PING_URL='http://ping.example.invalid/0220-fake'
+  PROFILE_BACKUP_S3_ENDPOINT='http://203.0.113.11'
+  PROFILE_INTERNAL_TOKEN_SOURCE='persisted'
+  report_config_values > "$RDIR/bad2.txt"; rc=$?
+  [ "$rc" -eq 0 ] && pass "bad2: report_config_values STILL returned 0" || fail "bad2: returned $rc"
+  grep -q 'FINDING.*FEEDBACK_TELEGRAM_TOKEN' "$RDIR/bad2.txt" && pass "bad2: empty FEEDBACK_TELEGRAM_TOKEN with chat set → finding (half-configured pair)" \
+    || fail "bad2: no finding for the half-configured Telegram pair"
+  grep -q 'FINDING.*PROFILE_CHECKS_PING_URL' "$RDIR/bad2.txt" && pass "bad2: non-https PROFILE_CHECKS_PING_URL → finding" || fail "bad2: no PROFILE_CHECKS_PING_URL finding"
+  grep -q 'FINDING.*PROFILE_BACKUP_S3_ENDPOINT' "$RDIR/bad2.txt" && pass "bad2: non-https / IP-literal PROFILE_BACKUP_S3_ENDPOINT → finding" || fail "bad2: no PROFILE_BACKUP_S3_ENDPOINT finding"
+  grep -q 'FINDING.*PROFILE_INTERNAL_TOKEN' "$RDIR/bad2.txt" && pass "bad2: PROFILE_INTERNAL_TOKEN not from the environment → finding (the 0215 trap, visible)" \
+    || fail "bad2: no PROFILE_INTERNAL_TOKEN source finding"
+  # (v) optional rows are EXPLICIT, with a reason — never silent.
+  clean_config
+  YANDEX_PAYMENTS_SECRET=''; FEEDBACK_TELEGRAM_TOKEN=''; FEEDBACK_TELEGRAM_CHAT_ID=''; TELEGRAM_PROXY_URL=''; PROFILE_CHECKS_PING_URL=''
+  report_config_values > "$RDIR/opt.txt"; rc=$?
+  n=$(grep -c 'FINDING' "$RDIR/opt.txt" || true)
+  [ "$rc" -eq 0 ] && [ "${n:-0}" = "0" ] && pass "optional: all-off Telegram + payments + ping is 0 findings (off by design)" \
+    || fail "optional: rc=$rc findings=$n on an all-off config"
+  grep -q 'OPTIONAL.*YANDEX_PAYMENTS_SECRET.*0014' "$RDIR/opt.txt" && pass "optional: YANDEX_PAYMENTS_SECRET row is explicit and cites 0014" \
+    || fail "optional: YANDEX_PAYMENTS_SECRET optional row missing its reason"
+  grep -q 'OPTIONAL.*FEEDBACK_TELEGRAM_TOKEN' "$RDIR/opt.txt" && pass "optional: Telegram pair row is explicit" || fail "optional: Telegram pair optional row missing"
+  grep -q 'OPTIONAL.*PROFILE_CHECKS_PING_URL' "$RDIR/opt.txt" && pass "optional: PROFILE_CHECKS_PING_URL row is explicit (nobody paged)" || fail "optional: ping URL optional row missing"
+  # (iii) canary: a synthetic secret in EVERY checked variable never appears in any report output.
+  for v in '0220-F@ke tg "token"$notreal' '0220-F@ke chat "id"$notreal' '0220-F@ke yp "key"$notreal' '0220-F@ke internal "tok"$notreal' \
+           'https://ping.example.invalid/0220-fake' 'http://ping.example.invalid/0220-fake' 'http://proxy.example.invalid:3128' \
+           'http://203.0.113.10' 'http://203.0.113.11' 'https://s3.example.invalid'; do
+    if cat "$RDIR"/*.txt | grep -qF "$v"; then fail "canary: a checked VALUE leaked into the value report"; break; fi
+  done
+  cat "$RDIR"/*.txt | grep -qF '0220-F@ke' || pass "canary: no checked value appears in any report output (names + verdicts only)"
+  unset PROFILE_DOMAIN FEEDBACK_TELEGRAM_TOKEN FEEDBACK_TELEGRAM_CHAT_ID TELEGRAM_PROXY_URL YANDEX_PAYMENTS_SECRET \
+        PROFILE_INTERNAL_TOKEN PROFILE_INTERNAL_TOKEN_SOURCE PROFILE_CHECKS_PING_URL PROFILE_BACKUP_S3_ENDPOINT
+  rm -rf "$RDIR"
+else
+  fail "T15 skipped: report_config_values() absent"
+fi
+
+echo "== Structural: POSTGRES_PASSWORD still fails closed; persistence + report wiring in setup-profile.sh (0220) =="
+# POSTGRES_PASSWORD is EXEMPT — required, fails closed — and must NEVER be pulled into persist-or-reuse.
+awk '/Error: POSTGRES_PASSWORD is not set/{e=NR} e && NR==e+1 && /^[[:space:]]*exit 1[[:space:]]*$/{ok=1} END{exit !ok}' "$P" \
+  && pass "setup-profile.sh: POSTGRES_PASSWORD fail-closed block intact (error line followed by exit 1)" \
+  || fail "setup-profile.sh: POSTGRES_PASSWORD fail-closed block missing or no longer exits 1"
+grep -v '^[[:space:]]*#' "$P" | grep -q 'persist_or_reuse_secret POSTGRES_PASSWORD' \
+  && fail "setup-profile.sh: POSTGRES_PASSWORD was pulled into persist-or-reuse — it must fail closed" \
+  || pass "setup-profile.sh: persist_or_reuse_secret is never applied to POSTGRES_PASSWORD"
+# The four calls: present, after the token block, before the profile.env heredoc.
+L_TOKEN=$(grep -n '^PROFILE_TOKEN_FILE=' "$P" | head -1 | cut -d: -f1)
+L_ENV=$(grep -n 'cat > "\$PROFILE_DIR/profile.env" << EOF' "$P" | head -1 | cut -d: -f1)
+for spec in $PERSIST_SPECS; do
+  name=${spec%%:*}; dot=${spec#*:}
+  L_CALL=$(grep -nE "^persist_or_reuse_secret[[:space:]]+$name[[:space:]]+\"\\\$PROFILE_DIR/$dot\"" "$P" | head -1 | cut -d: -f1)
+  [ -n "$L_CALL" ] && [ -n "$L_TOKEN" ] && [ -n "$L_ENV" ] && [ "$L_CALL" -gt "$L_TOKEN" ] && [ "$L_CALL" -lt "$L_ENV" ] \
+    && pass "setup-profile.sh: persist_or_reuse_secret $name → \$PROFILE_DIR/$dot, after the token block and before profile.env" \
+    || fail "setup-profile.sh: persist_or_reuse_secret $name call missing or mis-ordered (call=$L_CALL token=$L_TOKEN env=$L_ENV)"
+done
+# PROFILE_INTERNAL_TOKEN write-through (0215 residual 1): the env branch also persists the value.
+TOKEN_ENV_BRANCH=$(awk '/^if \[ -n "\$\{PROFILE_INTERNAL_TOKEN:-\}" \]; then/{b=1; next} b && /^elif/{exit} b{print}' "$P")
+printf '%s\n' "$TOKEN_ENV_BRANCH" | grep -q '> "\$PROFILE_TOKEN_FILE"' \
+  && pass "setup-profile.sh: an env-supplied PROFILE_INTERNAL_TOKEN is written through to .internal_token" \
+  || fail "setup-profile.sh: env-supplied PROFILE_INTERNAL_TOKEN is NOT written through (a stale persisted token can be re-adopted by a later blank deploy)"
+# profile.env still carries the four keys in column-0 KEY=${KEY:-} form (the parity checker's hop-2 parse).
+ENV_BLOCK=$(awk '/cat > "\$PROFILE_DIR\/profile.env" << EOF/{b=1; next} b && /^EOF$/{exit} b{print}' "$P")
+for spec in $PERSIST_SPECS; do
+  name=${spec%%:*}
+  printf '%s\n' "$ENV_BLOCK" | grep -qxF "$name=\${$name:-}" \
+    && pass "profile.env heredoc: $name=\${$name:-} at column 0" || fail "profile.env heredoc: $name line missing or reshaped"
+done
+# The value report: header after 'Written: profile.env', before the stack starts; the function is called; no exit inside it.
+L_WRITTEN=$(grep -n 'echo "Written: profile.env (0600)"' "$P" | head -1 | cut -d: -f1)
+L_REPORT=$(grep -n 'print_header "CONFIG VALUE PARITY (report-only)"' "$P" | head -1 | cut -d: -f1)
+L_CALLREPORT=$(grep -nE '^report_config_values$' "$P" | head -1 | cut -d: -f1)
+L_START=$(grep -n 'print_header "STARTING PROFILE STACK"' "$P" | head -1 | cut -d: -f1)
+[ -n "$L_WRITTEN" ] && [ -n "$L_REPORT" ] && [ -n "$L_CALLREPORT" ] && [ -n "$L_START" ] \
+  && [ "$L_WRITTEN" -lt "$L_REPORT" ] && [ "$L_REPORT" -lt "$L_CALLREPORT" ] && [ "$L_CALLREPORT" -lt "$L_START" ] \
+  && pass "setup-profile.sh: value report sits after profile.env is written and before the stack starts" \
+  || fail "setup-profile.sh: value report missing or mis-ordered (written=$L_WRITTEN header=$L_REPORT call=$L_CALLREPORT start=$L_START)"
+REPORT_BODY=$(awk '/^report_config_values\(\) \{/,/^\}/' "$P")
+[ -n "$REPORT_BODY" ] && ! printf '%s\n' "$REPORT_BODY" | grep -v '^[[:space:]]*#' | grep -qE '(^|[^A-Za-z_])exit([^A-Za-z_]|$)' \
+  && pass "setup-profile.sh: no exit inside report_config_values() (report-only by construction)" \
+  || fail "setup-profile.sh: report_config_values() is missing or contains an exit — that would fail a deploy"
 echo
 [ "$FAILED" -eq 0 ] && { echo "ALL PASS"; exit 0; } || { echo "SOME FAILED"; exit 1; }

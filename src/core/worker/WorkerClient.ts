@@ -39,6 +39,8 @@ export class WorkerClient {
         this.initReject(new Error(`Worker crashed: ${event.message}`));
         this.initReject = undefined;
       }
+      // Task 0232: after init, an uncaught worker exception used to vanish here.
+      this.gameUpdateCallback?.({ errMsg: `Worker crashed: ${event.message}` });
     });
   }
 
@@ -49,6 +51,12 @@ export class WorkerClient {
       case "game_update":
         if (this.gameUpdateCallback && message.gameUpdate) {
           this.gameUpdateCallback(message.gameUpdate);
+        }
+        break;
+
+      case "game_error":
+        if (this.gameUpdateCallback && message.error) {
+          this.gameUpdateCallback(message.error);
         }
         break;
 

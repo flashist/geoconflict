@@ -73,14 +73,32 @@ for THESE MOVES ONLY — not a standing licence, not precedent.**
 positions and the producer's ranks.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — built + reviewed 2026-09-13 (Part A: code, tests, docs; stateful review round 1 closed out, Codex coverage full); open pending the OWNER-side live tail B2–B10 (dead-man's-switch check + uptime monitors, `npm run deploy:profile`, and the observed-alert drills incl. `systemctl is-enabled certbot.timer` → disabled). Owner ruled 2026-09-13, live in the lead session: hold open, do not close until the alerts have been watched arriving. Driven by `/fkit-sprint-ship-loop`
 
 ## Owner
 fkit-coder
 
 ## Depends on
 - [`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to configure.
-- [`0241`](../0241-profile-verify-first-weekly-backup-copy/brief.md) — gates the **WEEKLY-COPY HALF OF G4 ONLY**, not the whole task. ⚠️ **READ THE NOTE BELOW BEFORE DEFERRING THIS TASK — the board is stricter than the real constraint.**
+- [`0241`](../../done/0241-profile-verify-first-weekly-backup-copy/brief.md) — ✅ **SATISFIED 2026-09-13 (GO — see the note below).** Gated the **WEEKLY-COPY HALF OF G4 ONLY**, not the whole task. ⚠️ **READ THE NOTE BELOW BEFORE DEFERRING THIS TASK — the board is stricter than the real constraint.**
+
+🟢 **SATISFIED 2026-09-13 — `0241` closed `✅ Done (agent-closed — not owner-verified)`; the gate has
+ANSWERED: GO for the weekly half of G4.** The note below is copied **verbatim** from
+[`0241/worklog.md`](../../done/0241-profile-verify-first-weekly-backup-copy/worklog.md) ("Hand-off to
+`0219`"), applied by the producer at close on an owner ruling (2026-09-13, plan Q2):
+
+> **2026-09-13 — gate from `0241`: GO for the weekly half of G4.** The first-ever scheduled weekly copy
+> against the current bucket was **observed**: `profiles/weekly/profile-2026-09-13.dump.age`, **19312
+> bytes**, the same size as that day's daily object and as `last-backup.json`'s `size_bytes` (19312 B
+> each; byte identity **not checked** — no hash or ETag compared), tied to the 02:30:01 UTC CRON record
+> and a `Sunday — copying to …` log line with no `WARNING`. Two facts the
+> freshness monitor **must encode**: (i) **`last-backup.json` carries no weekly signal** — `object_key`
+> and `size_bytes` are the *daily* object's; a weekly-freshness check has to **list the bucket's
+> `weekly/` prefix**, it cannot read the marker; (ii) **a weekly-copy failure is exit 0 by design**
+> (`profile-backup.sh:176`, `|| log "WARNING: …"`) and never touches the marker's `exit_status` — so
+> "backup OK" ≠ "weekly present". Also: the object is a dump of an **empty** database (`0217` not
+> run) and will occupy the weekly slot ~56 days — a small, old weekly object is expected, not stale.
+> `0218` residual 1 (schedule × data never proven together) is **not** closed by `0241`.
 
 🔴 **CANONICALISED 2026-09-11 ON AN OWNER RULING, given live in the lead session and relayed through
 the spawning session.** The producer had deliberately left `0241`'s gate as prose only, because the
@@ -102,7 +120,7 @@ reading.**
 | **G2** — image prune | **No.** Startable today. |
 | **G3** — external uptime check (and the renewal-log reader) | **No.** Startable today. |
 | **G4** — backup freshness, **DAILY**-object half | **No.** Startable today. |
-| **G4** — backup freshness, **WEEKLY**-copy half | 🚨 **YES. Do not build or ship it until `0241` answers.** |
+| **G4** — backup freshness, **WEEKLY**-copy half | 🚨 **YES. Do not build or ship it until `0241` answers.** ✅ **Answered 2026-09-13: GO** — startable; encode the two facts in the note above. |
 
 ⚠️ **The practical cost of the gate is SMALL: `0241` becomes actionable on Sunday 2026-09-13 (02:30
 UTC is the first-ever weekly-copy attempt), and it is a single observation taking minutes.** 🚨 **The
@@ -110,13 +128,15 @@ failure this note exists to prevent is a reader seeing `0219` blocked, not knowi
 the entire task for no reason.**
 
 🚨 **GATED 2026-09-11 — THE BACKUP-FRESHNESS HALF OF THIS TASK (G4) IS GATED BY
-[`0241`](../0241-profile-verify-first-weekly-backup-copy/brief.md).**
+[`0241`](../../done/0241-profile-verify-first-weekly-backup-copy/brief.md).**
 
 🔴 **`profile-backup.sh:171-177`'s WEEKLY copy has NEVER EXECUTED against the current bucket.** It
 fires only on a Sunday, and the last Sunday predates the bucket;
 [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) observed
 `weekly/` **EMPTY** on 2026-09-11 (its residual 3). The **first-ever attempt is Sunday 2026-09-13,
 02:30 UTC**, and `0241` exists to watch it.
+
+➡️ **Superseded 2026-09-13:** that first attempt ran and the weekly object was **observed** — `0241` closed with GO; see the satisfied gate note above. The paragraph above is kept as the record of why the gate existed.
 
 ⛔ **DO NOT BUILD OR SHIP THIS TASK'S WEEKLY-PATH HANDLING UNTIL `0241` HAS ANSWERED.** If the weekly
 path silently fails, this task would build a **freshness monitor for a path that does not work** — and
@@ -269,7 +289,7 @@ The game box already solves two of these. **Mirror it:**
 ## Notes
 
 - **Effort: ~1 day. Technical risk: Low. Consequence of skipping: HIGH.**
-- 🚨 **GATE:** [`0241`](../0241-profile-verify-first-weekly-backup-copy/brief.md) must answer before
+- 🚨 **GATE:** [`0241`](../../done/0241-profile-verify-first-weekly-backup-copy/brief.md) must answer before
   this task's **weekly-path** handling is built — see the block under `## Depends on`.
   🔴 **RESOLVED 2026-09-11 BY OWNER RULING: it IS now a canonical `## Depends on` entry.** ⚠️ *The
   earlier text here said the canonical form was deliberately withheld and that making it canonical was

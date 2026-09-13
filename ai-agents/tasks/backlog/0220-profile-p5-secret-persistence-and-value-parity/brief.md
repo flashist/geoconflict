@@ -16,7 +16,7 @@ times under a different name.
 ⚠️ **The rank is the producer's**; the owner ruled scheduling, not rank.
 
 ## Status
-🔲 Backlog
+🔄 In progress — driven by `/fkit-sprint-ship-loop` from the lead session, 2026-09-13
 
 ## Owner
 fkit-coder

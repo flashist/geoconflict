@@ -128,7 +128,7 @@ credential leak**, **neither of which this brief mentions**.
    of backups".
 3. 🔴 **THE WEEKLY-COPY PATH HAS NEVER RUN** against the current bucket — `weekly/` was empty on
    2026-09-11. First-ever attempt is **Sunday 2026-09-13, 02:30 UTC**, and nobody is watching it.
-   ➡️ **now tracked as [`0241`](../../backlog/0241-profile-verify-first-weekly-backup-copy/brief.md)**,
+   ➡️ **now tracked as [`0241`](../0241-profile-verify-first-weekly-backup-copy/brief.md)**,
    which **gates** `0219`'s consumer work.
 4. ⚠️ **BACKUP HISTORY IS THIN AND MISLEADING.** Before this drill the current bucket held **TWO**
    objects — and **only ONE was cron-produced**; the other was the deploy smoke check. The nightly

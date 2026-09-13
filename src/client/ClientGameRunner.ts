@@ -124,6 +124,11 @@ export function joinLobby(
   startGame(lobbyConfig.gameID, lobbyConfig.gameStartInfo?.config ?? {});
 
   const transport = new Transport(lobbyConfig, eventBus);
+  // Task 0231. The returned closure is Main.gameStop; it must reach stop() so
+  // the worker, the connection-check timer and the bus listeners die with the
+  // game. `left` covers a leave that lands while the game is still being built.
+  let runner: ClientGameRunner | null = null;
+  let left = false;
 
   const onconnect = () => {
     console.log(`Joined game lobby ${lobbyConfig.gameID}`);
@@ -227,6 +232,13 @@ export function joinLobby(
             onGameEnd();
             return;
           }
+          if (left) {
+            // The player left while the game was still being built: the worker
+            // is already initialized, so tear it down instead of starting it.
+            r.stop();
+            return;
+          }
+          runner = r;
           r.start();
         })
         .catch((err) => {
@@ -253,7 +265,13 @@ export function joinLobby(
   transport.connect(onconnect, onmessage);
   return () => {
     console.log("leaving game");
-    transport.leaveGame();
+    left = true;
+    if (runner !== null) {
+      // stop() calls transport.leaveGame() itself.
+      runner.stop();
+    } else {
+      transport.leaveGame();
+    }
   };
 }
 
@@ -386,7 +404,21 @@ export class ClientGameRunner {
   private lastMousePosition: { x: number; y: number } | null = null;
 
   private lastMessageTime: number = 0;
+  private connectionCheckTimeout: ReturnType<typeof setTimeout> | null = null;
   private connectionCheckInterval: NodeJS.Timeout | null = null;
+  // Task 0231. Latched independently of isActive so a runner that was built but
+  // never started (the player left mid-construction) can still be torn down.
+  private isStopped = false;
+
+  // Task 0231. Bound once, so stop() can hand EventBus.off() the same
+  // references start() registered — a fresh .bind(this) would remove nothing.
+  private readonly boundInputEvent = this.inputEvent.bind(this);
+  private readonly boundOnMouseMove = this.onMouseMove.bind(this);
+  private readonly boundAutoUpgradeEvent = this.autoUpgradeEvent.bind(this);
+  private readonly boundDoBoatAttackUnderCursor =
+    this.doBoatAttackUnderCursor.bind(this);
+  private readonly boundDoGroundAttackUnderCursor =
+    this.doGroundAttackUnderCursor.bind(this);
 
   private catchingUp = false;
   private catchUpTarget = 0;
@@ -493,29 +525,30 @@ export class ClientGameRunner {
   }
 
   public start() {
+    // Task 0231. A torn-down runner stays torn down: re-arming its timers,
+    // listeners and transport after stop() would leak all of them.
+    if (this.isStopped) return;
     SoundManager.playBackgroundMusic();
     console.log("starting client game");
 
     this.isActive = true;
     this.lastMessageTime = Date.now();
-    setTimeout(() => {
+    this.connectionCheckTimeout = setTimeout(() => {
+      this.connectionCheckTimeout = null;
+      // Task 0231. A crash before this fires already ran stop(); arming the
+      // interval then would reconnect a torn-down game (0232 §4.5).
+      if (!this.isActive) return;
       this.connectionCheckInterval = setInterval(
         () => this.onConnectionCheck(),
         1000,
       );
     }, 20000);
 
-    this.eventBus.on(MouseUpEvent, this.inputEvent.bind(this));
-    this.eventBus.on(MouseMoveEvent, this.onMouseMove.bind(this));
-    this.eventBus.on(AutoUpgradeEvent, this.autoUpgradeEvent.bind(this));
-    this.eventBus.on(
-      DoBoatAttackEvent,
-      this.doBoatAttackUnderCursor.bind(this),
-    );
-    this.eventBus.on(
-      DoGroundAttackEvent,
-      this.doGroundAttackUnderCursor.bind(this),
-    );
+    this.eventBus.on(MouseUpEvent, this.boundInputEvent);
+    this.eventBus.on(MouseMoveEvent, this.boundOnMouseMove);
+    this.eventBus.on(AutoUpgradeEvent, this.boundAutoUpgradeEvent);
+    this.eventBus.on(DoBoatAttackEvent, this.boundDoBoatAttackUnderCursor);
+    this.eventBus.on(DoGroundAttackEvent, this.boundDoGroundAttackUnderCursor);
 
     this.renderer.initialize();
     this.input.initialize();
@@ -827,19 +860,36 @@ export class ClientGameRunner {
   }
 
   public stop() {
-    SoundManager.stopBackgroundMusic();
-    if (!this.isActive) return;
+    // Task 0231. Idempotent full teardown; every exit route ends here
+    // (Main.gameStop, the crash branch). Behind the latch, so a stale second
+    // call cannot silence the next game's music.
+    if (this.isStopped) return;
+    this.isStopped = true;
+    // Only a started runner played music: a runner torn down before start()
+    // (the player left mid-construction) must not silence a later game's track.
+    if (this.isActive) {
+      SoundManager.stopBackgroundMusic();
+    }
     this.hideCatchUpOverlay();
     this.catchingUp = false;
     this.isActive = false;
-    this.worker.cleanup();
-    this.transport.leaveGame();
+    if (this.connectionCheckTimeout !== null) {
+      clearTimeout(this.connectionCheckTimeout);
+      this.connectionCheckTimeout = null;
+    }
     if (this.connectionCheckInterval) {
       clearInterval(this.connectionCheckInterval);
       this.connectionCheckInterval = null;
     }
-    // Last, and behind the isActive guard above, so it fires exactly once and
-    // only after the runner has torn down its own things.
+    this.eventBus.off(MouseUpEvent, this.boundInputEvent);
+    this.eventBus.off(MouseMoveEvent, this.boundOnMouseMove);
+    this.eventBus.off(AutoUpgradeEvent, this.boundAutoUpgradeEvent);
+    this.eventBus.off(DoBoatAttackEvent, this.boundDoBoatAttackUnderCursor);
+    this.eventBus.off(DoGroundAttackEvent, this.boundDoGroundAttackUnderCursor);
+    this.worker.cleanup();
+    this.transport.leaveGame();
+    // Last, and behind the latch above, so it fires exactly once and only
+    // after the runner has torn down its own things.
     this.onGameEnd();
   }
 
@@ -1151,7 +1201,7 @@ export class ClientGameRunner {
   }
 
   private onConnectionCheck() {
-    if (this.transport.isLocal) {
+    if (!this.isActive || this.transport.isLocal) {
       return;
     }
     const now = Date.now();

@@ -1,8 +1,9 @@
 # Container log retention — where the setting lives
 
-**Written:** 2026-09-01, task `0060`.
-**Scope:** the **game** container (`geoconflict-<deployment>`) only. The profile and telemetry
-boxes are not covered here.
+**Written:** 2026-09-01, task `0060`. **Updated:** 2026-09-13, task `0219` (profile box).
+**Scope:** the **game** container (`geoconflict-<deployment>`) — and, since `0219`, the **profile
+box** (see [Profile box](#profile-box-task-0219) below). The **telemetry box is still not covered**
+by any retention setting in the repo.
 
 ---
 
@@ -89,7 +90,48 @@ diagnostic signal while at this volume it evicts everything that does.
   created by `setup.sh` with no `--log-opt` and still inherit the host default. Worth a follow-up.
 - ❌ **Nothing checks this automatically.** There is no CI in this repo. A grep-level assertion lives
   in `tests/scripts/profile-deploy-hardening.test.sh`, but it only catches a regression **if someone
-  runs it**.
+  runs it** — since task `0201` that means every `npm test` run.
+
+## Profile box (task `0219`)
+
+**Where the setting lives: the `logging:` block of each service in the `docker-compose.yml` heredoc
+that `setup-profile.sh` writes** (both services, `postgres` and `profile-api`). It ships on every
+`npm run deploy:profile`; compose recreates the containers when their config changes, behind the
+existing health gate.
+
+```
+logging:
+  driver: json-file
+  options:
+    max-size: "100m"
+    max-file: "10"
+```
+
+**Same values as `update.sh`, on purpose** (owner ruling, `0219` Q3): one number project-wide, and
+the hardening harness asserts both files against the same `EXPECTED_MAX_SIZE` / `EXPECTED_MAX_FILE`
+constants. Two containers → a 2 GB ceiling on a 58 GB disk (measured 2026-09-13, 26 % used).
+
+**Ownership decision — recorded so nobody adds a second layer:** the **compose file owns
+retention on this box. Do not also write `/etc/docker/daemon.json`.** `setup-profile.sh` never has
+(the harness fails if code references that file). A per-container `logging:` value overrides the
+daemon default anyway, so a `daemon.json` would be a conflicting setting that silently loses.
+
+**Before `0219`** both containers ran on the daemon default: `docker inspect` showed
+`{"Type":"json-file","Config":{}}` — the unbounded `json-file` driver that filled the game
+production disk on 2026-07-15.
+
+⚠️ **A second sink exists and is bounded elsewhere.** The `profile` systemd unit runs
+`docker compose up` in the foreground with `StandardOutput=journal`, so container output is **also**
+streamed into journald. That copy is bounded by journald's defaults (`SystemMaxUse` ≈ 10 % of the
+filesystem, capped at 4 GB); it measured 767 MB on 2026-09-13. Not changed by `0219` — recorded so
+it is not "discovered" later as an unbounded log.
+
+**Image prune (same task, `G2`):** `setup-profile.sh` prunes images at deploy time — after the health
+gate and rollback branch have resolved — with a **keep-list** (every container's image, running or
+stopped, plus the current and previous profile image), then `docker image prune -f` for dangling
+layers. It is deliberately **not** `update.sh`'s `docker image prune -a -f`: on this box that would
+delete the rollback image the health gate rolls back to. Before `0219` the box held nine superseded
+profile images (~1.6 GB each).
 
 ## Other bounded log destinations in the container
 

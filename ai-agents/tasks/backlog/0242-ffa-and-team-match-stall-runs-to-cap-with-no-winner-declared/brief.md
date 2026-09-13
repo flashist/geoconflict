@@ -33,7 +33,7 @@
 > (`.claude/skills/fkit-heal/`), not this project's board.
 > **Two facts about that band, both checked this turn:**
 > - ⚠️ **`0241` was allocated to a project task anyway on 2026-09-11**
->   ([`0241`](../0241-profile-verify-first-weekly-backup-copy/brief.md)) — **the recorded reservation
+>   ([`0241`](../../done/0241-profile-verify-first-weekly-backup-copy/brief.md)) — **the recorded reservation
 >   was crossed.** ~~⛔ **Recorded here as an observation, NOT resolved:** whether the reservation still
 >   stands is a convention question and nobody has ruled on it.~~ ✅ **RULED 2026-09-11: the
 >   reservation as recorded is dropped and replaced by the explicit set. `0241` stays where it is —

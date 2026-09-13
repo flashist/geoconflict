@@ -25,6 +25,9 @@ SETUP_SCRIPT="./setup-profile.sh"
 # setup script below; setup-profile.sh installs it to /opt/profile/backup.sh. Not a parallel
 # pipeline: the existing transport carries it.
 BACKUP_SCRIPT="./profile-backup.sh"
+# The daily operability checker (task 0219). Same transport; setup-profile.sh installs it to
+# /opt/profile/checks.sh and schedules it.
+CHECKS_SCRIPT="./profile-checks.sh"
 
 print_header() {
     echo "======================================================"
@@ -95,6 +98,10 @@ if [ -z "${PROFILE_SERVER_HOST:-}" ]; then
     exit 1
 fi
 
+if [ ! -f "$CHECKS_SCRIPT" ]; then
+    echo "Error: $CHECKS_SCRIPT not found"
+    exit 1
+fi
 if [ ! -f "$BACKUP_SCRIPT" ]; then
     echo "Error: $BACKUP_SCRIPT not found"
     exit 1
@@ -393,6 +400,8 @@ fi
 REMOTE_SCRIPT="/root/setup-profile.sh"
 # setup-profile.sh installs this to /opt/profile/backup.sh (its PROFILE_BACKUP_SRC default).
 REMOTE_BACKUP_SCRIPT="/root/profile-backup.sh"
+# setup-profile.sh installs this to /opt/profile/checks.sh (its PROFILE_CHECKS_SRC default).
+REMOTE_CHECKS_SCRIPT="/root/profile-checks.sh"
 
 print_header "DEPLOYING PROFILE BACKEND TO ${PROFILE_SERVER_HOST}"
 echo "Remote user:   ${REMOTE_USER}"
@@ -487,6 +496,10 @@ echo "Uploaded to ${REMOTE_SCRIPT}"
 chmod +x "$BACKUP_SCRIPT"
 "${SCP_CMD[@]}" "$BACKUP_SCRIPT" "${REMOTE_USER}@${PROFILE_SERVER_HOST}:${REMOTE_BACKUP_SCRIPT}"
 echo "Uploaded to ${REMOTE_BACKUP_SCRIPT}"
+# And the daily operability checker (0219) — same transport.
+chmod +x "$CHECKS_SCRIPT"
+"${SCP_CMD[@]}" "$CHECKS_SCRIPT" "${REMOTE_USER}@${PROFILE_SERVER_HOST}:${REMOTE_CHECKS_SCRIPT}"
+echo "Uploaded to ${REMOTE_CHECKS_SCRIPT}"
 
 # ── Run setup remotely ────────────────────────────────────────────────────────
 
@@ -526,11 +539,13 @@ chmod 600 "$LOCAL_TMPENV"
     # source-then-rm channel as the DB password. Empty is a SUPPORTED state: the
     # payments routes fail closed with 503 and the rest of the profile server is
     # unaffected. The key itself is issued by task 0014 (Yandex catalog registration).
+    # Empty = the box reuses its persisted value (0220); to clear it, rm the persist file on the box.
     printf "export YANDEX_PAYMENTS_SECRET=%q\n" "${YANDEX_PAYMENTS_SECRET:-}"
     # Operator Telegram notifications for pending name-change requests (task 0067).
     # Same bot/chat/proxy as the game server's feedback sends. The token rides the
     # same 0600-staged, source-then-rm channel as the DB password. All three empty
     # is a supported state: name-change requests still work, unnotified.
+    # Empty = the box reuses its persisted value (0220); to clear one, rm its persist file on the box.
     printf "export FEEDBACK_TELEGRAM_TOKEN=%q\n" "${FEEDBACK_TELEGRAM_TOKEN:-}"
     printf "export FEEDBACK_TELEGRAM_CHAT_ID=%q\n" "${FEEDBACK_TELEGRAM_CHAT_ID:-}"
     printf "export TELEGRAM_PROXY_URL=%q\n" "${TELEGRAM_PROXY_URL:-}"
@@ -546,6 +561,11 @@ chmod 600 "$LOCAL_TMPENV"
     printf "export PROFILE_BACKUP_AGE_RECIPIENT=%q\n" "${PROFILE_BACKUP_AGE_RECIPIENT:-}"
     printf "export PROFILE_BACKUP_RETENTION_DAILY_DAYS=%q\n" "${PROFILE_BACKUP_RETENTION_DAILY_DAYS:-14}"
     printf "export PROFILE_BACKUP_RETENTION_WEEKLY_DAYS=%q\n" "${PROFILE_BACKUP_RETENTION_WEEKLY_DAYS:-56}"
+    # Dead-man's-switch ping URL for the daily operability checks (task 0219). A capability
+    # (whoever holds it can silence the alert), so it rides the same 0600-staged,
+    # source-then-rm channel. Empty is a SUPPORTED state: the checks run and log, and
+    # setup-profile.sh warns loudly that nobody is paged.
+    printf "export PROFILE_CHECKS_PING_URL=%q\n" "${PROFILE_CHECKS_PING_URL:-}"
 } > "$LOCAL_TMPENV"
 
 REMOTE_ENV_STAGED=1

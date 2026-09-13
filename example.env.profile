@@ -57,6 +57,11 @@ PROFILE_SSH_KEY=~/.ssh/id_rsa
 # api.telegram.org is BLOCKED from Russian IPs and this VPS is reg.ru/Moscow, so
 # TELEGRAM_PROXY_URL is required in practice, not optional.
 # The bot TOKEN is a secret — put it in .env.profile.secret, not here.
+#
+# PERSISTED ON THE BOX (task 0220): all three are kept in /opt/profile/.feedback_telegram_token,
+# .feedback_telegram_chat_id and .telegram_proxy_url. Blank on a redeploy REUSES the value
+# already on the box (the deploy output says so, by name); a new value overwrites it. To
+# CLEAR one, blanking is not enough — `rm /opt/profile/.<name>` on the box, then redeploy.
 # -----------------------------------------------------------
 FEEDBACK_TELEGRAM_CHAT_ID=
 TELEGRAM_PROXY_URL=
@@ -94,12 +99,26 @@ PROFILE_BACKUP_RETENTION_WEEKLY_DAYS=56
 #                         #   AND in the game server's env. Blank does NOT work: the box
 #                         #   mints its own (or re-adopts an old persisted one), the game
 #                         #   server 401s on every credit call, and the XP is DROPPED.
+#                         #   A value set here is written through to /opt/profile/.internal_token
+#                         #   (0220), so the persisted copy never goes stale.
 # DOCKER_TOKEN=           # registry token for `docker login` (if the repo is private)
 # PROFILE_BACKUP_S3_ACCESS_KEY=  # S3 access key, scoped to the backup bucket only (T8)
 # PROFILE_BACKUP_S3_SECRET_KEY=  # S3 secret key for the above (T8)
 # FEEDBACK_TELEGRAM_TOKEN=       # operator bot token (task 0067) — same bot as the game
-#                                #   server's feedback sends; copy from the game .env.secret
+#                                #   server's feedback sends; copy from the game .env.secret.
+#                                #   Persisted on the box (0220): blank = reuse; to clear,
+#                                #   rm /opt/profile/.feedback_telegram_token there.
 # YANDEX_PAYMENTS_SECRET=        # Yandex per-game payments secret key (HMAC), from the
 #                                #   Yandex Games dashboard once task 0014 registers the
 #                                #   catalog. BLANK IS SUPPORTED: /v1/payments/* fails
 #                                #   closed with 503; everything else keeps working.
+#                                #   Persisted on the box (0220): blank on a redeploy REUSES
+#                                #   the value already there (never a silent overwrite); to
+#                                #   clear it, rm /opt/profile/.yandex_payments_secret there.
+# PROFILE_CHECKS_PING_URL=       # dead-man's-switch ping URL for the daily on-box checks
+#                                #   (task 0219: backup freshness + certbot renewal). Create a
+#                                #   check on a healthchecks.io-style service (period 1 day,
+#                                #   grace 3 h, Telegram + email attached) and paste its ping
+#                                #   URL. It is a capability (anyone holding it can silence the
+#                                #   alert) — keep it here, not in .env.profile. BLANK IS
+#                                #   SUPPORTED but WARNS: the checks run and log, nobody is paged.

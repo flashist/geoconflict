@@ -7,7 +7,7 @@
 Sprint 4
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -21,7 +21,7 @@ spawning session. Authority first: this is an OWNER RULING, not a producer re-ra
 producer precedent for re-ranking anything else.**
 
 **The ruling: this row sits DIRECTLY BELOW
-[`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md), and
+[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md), and
 [`0231`](../0231-orphaned-clientgamerunner-on-normal-leave-lobby/brief.md) moves down one to sit
 below THIS row.** Final order on the Sprint 4 board: **`0227` → `0232` → `0231`.**
 
@@ -59,7 +59,7 @@ holds only the `adr-1XX` series, so a relative link would not resolve.*
 ## Context
 
 **Filed 2026-09-07 on an owner ruling given live in session:** this gets its own brief rather than
-being folded into [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md).
+being folded into [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md).
 
 **Found by Codex** during the `0227` code review; **verified by the reviewer**; and **every line
 reference below was independently re-verified by the producer who filed this brief**, reading
@@ -67,7 +67,7 @@ reference below was independently re-verified by the producer who filed this bri
 time.
 
 📌 **FRAME DECLARATION — every `file:line` in this brief is against commit `c910452`, the commit in
-which [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) landed.**
+which [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) landed.**
 ⚠️ **REFRAMED 2026-09-07 from the original `702a8ea` (pre-`0227`).** `0227` added **+30 / −1** lines to
 `src/client/ClientGameRunner.ts`, shifting every citation in that file **by +26** below the insertion
 point; the **two** affected ranges were **re-derived directly against `c910452`, not arithmetically
@@ -151,7 +151,7 @@ is UNKNOWN and is part of step 1** — do not write "freeze" as settled until it
 
 ### 🔴 This is the root cause behind `0227`'s headline site
 
-[`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) is about a crashed game
+[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) is about a crashed game
 leaving the `PerformanceMonitor` running. Its headline site is the very branch that fact 5 shows can
 never execute. **`0227` built a correct seam that is DORMANT:** `ClientGameRunner.stop()` calls
 `onGameEnd()`, which stops the monitor. **That seam goes live the moment this task fixes the drop.**
@@ -218,11 +218,11 @@ rule applies here **in full** — it is not waived by the change being small.
 
 | Task | What it covers |
 |---|---|
-| [`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md) | `PerformanceMonitor` orphaned on lobby rejoin |
-| [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) | `PerformanceMonitor` survives a crashed/failed game — **its crash site depends on this task to ever fire** |
-| [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md) | stale `gameStop` across three awaits |
+| [`0225`](../0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md) | `PerformanceMonitor` orphaned on lobby rejoin |
+| [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) | `PerformanceMonitor` survives a crashed/failed game — **its crash site depends on this task to ever fire** |
+| [`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md) | stale `gameStop` across three awaits |
 | [`0231`](../0231-orphaned-clientgamerunner-on-normal-leave-lobby/brief.md) | runner + worker + 1 s interval survive a normal leave |
-| [`0233`](../0233-server-error-and-desync-sites-leave-performancemonitor-running/brief.md) | the remaining `showErrorModal` sites that never stop the monitor |
+| [`0233`](../../backlog/0233-server-error-and-desync-sites-leave-performancemonitor-running/brief.md) | the remaining `showErrorModal` sites that never stop the monitor |
 | **`0232` (this task)** | **the worker never tells the main thread a tick faulted at all** |
 
 ---
@@ -314,7 +314,7 @@ existing crash handling — modal, `stop()`, and `0227`'s `onGameEnd` seam — r
 ## Notes
 
 - 🔴 **POSITION — OWNER-RULED 2026-09-07, given live in session:** this row sits **directly below
-  [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md)**, with
+  [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md)**, with
   [`0231`](../0231-orphaned-clientgamerunner-on-normal-leave-lobby/brief.md) moved down one to below
   it — **`0227` → `0232` → `0231`**. The producer had recommended exactly this and the owner adopted
   it; **the reasoning the owner accepted:** this is the root cause behind `0227`'s headline site,
@@ -323,7 +323,7 @@ existing crash handling — modal, `stop()`, and `0227`'s `onGameEnd` seam — r
   the displacement shown to them, and **after being told plainly that both risks are unmeasured and
   the call is a judgement rather than evidence.** ⛔ **Neither risk became measured by being ruled
   on.** See the Priority section above for the full trail.
-- **Depends on:** [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) — 🔴 **it
+- **Depends on:** [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) — 🔴 **it
   lands first; OWNER-RULED 2026-09-07.** It touches `src/client/ClientGameRunner.ts` around the same
   crash branch (merge-conflict risk against work that is uncommitted right now), and step 4 verifies
   **its** seam, which must exist first.

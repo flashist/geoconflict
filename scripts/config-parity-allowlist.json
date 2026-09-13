@@ -42,6 +42,27 @@
       "class": "optional",
       "phase": 2,
       "reason": "Recorded now to land task 0195's hand-off where it asked. INERT in Phase 1 and honestly so: the key is forwarded at both profile hops today, so no Phase 1 rule can fire on it. It becomes live when the Phase 2 non-empty check exists."
+    },
+    {
+      "name": "FEEDBACK_TELEGRAM_TOKEN",
+      "pipeline": "profile",
+      "class": "optional",
+      "phase": 2,
+      "reason": "Operator Telegram bot token (task 0067), optional by design (src/profile-server/Server.ts warns at startup: operator name-change notifications off, requests still work). INERT in Phase 1: forwarded at both profile hops, so no name rule can fire. Its VALUE is checked live by the on-box report in setup-profile.sh (task 0220), not by this name-only checker."
+    },
+    {
+      "name": "FEEDBACK_TELEGRAM_CHAT_ID",
+      "pipeline": "profile",
+      "class": "optional",
+      "phase": 2,
+      "reason": "Operator Telegram chat id (task 0067), optional by design (src/profile-server/Server.ts warns at startup: operator name-change notifications off, requests still work). INERT in Phase 1: forwarded at both profile hops, so no name rule can fire. Its VALUE is checked live by the on-box report in setup-profile.sh (task 0220), not by this name-only checker."
+    },
+    {
+      "name": "TELEGRAM_PROXY_URL",
+      "pipeline": "profile",
+      "class": "optional",
+      "phase": 2,
+      "reason": "Egress proxy for api.telegram.org (blocked from RU IPs), optional only while the token+chat pair is empty (src/profile-server/Server.ts warns at startup: operator name-change notifications off, requests still work). INERT in Phase 1: forwarded at both profile hops, so no name rule can fire. Its VALUE is checked live by the on-box report in setup-profile.sh (task 0220), not by this name-only checker."
     }
   ]
 }

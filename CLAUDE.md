@@ -189,6 +189,7 @@ to them, so `npm test` is now their gate. It follows the existing
 |---|---|---|
 | `tests/scripts/profile-deploy-hardening.test.sh` | **yes**, unconditional | ~16 s. Self-stubs `docker git ssh scp sshpass getent` — needs nothing from the host. Invoked as `bash <path>`: the file is mode 644, **not executable**. |
 | `tests/profile-backup-redeploy.sh` | **yes**, unconditional | ~1 s, bash + coreutils only. |
+| `tests/profile-checks.sh` | **yes**, unconditional | ~5 s (measured 5.0 s under the jest wrapper on this host — most assertions are an `env -i bash` spawn), bash + coreutils only (task `0219`). Drives the real `profile-checks.sh` with stubbed `rclone`/`curl`/`openssl`. |
 | `scripts/test-check-docker-secret-boundary.sh` | **yes**, Docker-probed | ~3 s when the daemon is up. With Docker down the wrapper reports the test **`○ skipped`** and prints a warning — never a green pass. If the daemon dies *between* the probe and the run, the harness self-skips and the wrapper turns that into a **loud failure** naming the cause (jest has no runtime skip) — again never a green pass. |
 | `tests/profile-backup-dryrun.sh` | **no** — run `npm run test:scripts:docker` | It **hard-fails (exit 1)** without Docker *plus* `age`, `age-keygen`, `rclone`, `curl` and `jq`, so it cannot be a reliable `npm test` gate on a developer machine. Faking one would be worse than admitting there isn't one. Its real gate is task **`0218`** (durability/restore drill). |
 
@@ -208,9 +209,11 @@ wrapper is a jest suite, not a `posttest` hook.
 ⚠️ **Two consequences worth knowing before you are surprised by them:**
 
 1. **The hardening harness carries grep-level structural assertions over `nginx.conf`,
-   `setup-profile.sh`, `setup-telemetry.sh`, `build-deploy-telemetry.sh` and `update.sh`.** Editing
-   any of those files can now turn `npm test` red — including for people not touching test code.
-   That is the gate working, not a broken test.
+   `setup-profile.sh`, `setup-telemetry.sh`, `build-deploy-telemetry.sh`, `build-deploy-profile.sh`
+   and `update.sh`.** Editing any of those files can now turn `npm test` red — including for people
+   not touching test code. That is the gate working, not a broken test. Since `0219` this includes
+   `setup-profile.sh`'s compose `logging:` values (must equal `update.sh`'s), its keep-list image
+   prune, and the `checks.sh` cron line.
 2. **`scripts/test-check-docker-secret-boundary.sh` writes a synthesized (fake) secret fixture into
    the repo root** and removes it in its `cleanup()` trap. An interrupted run (Ctrl-C) can leave that
    file behind. It is synthetic, never a real credential — but delete it if you see it.
@@ -222,8 +225,9 @@ change a harness's final summary line, update `tests/scripts/ShellHarnesses.test
 
 ⚠️ **Known residual: the harness list is hardcoded.** A new `.sh` harness that is not added to
 `tests/scripts/ShellHarnesses.test.ts` is still gated by nothing — the very failure `0201` was filed
-to stop, recurring for the next harness. Accepted knowingly by the owner (2026-09-05); today's four
-harnesses are all accounted for. **Add your new harness to that file.**
+to stop, recurring for the next harness. Accepted knowingly by the owner (2026-09-05); today's five
+harnesses are all accounted for (`0219` added `tests/profile-checks.sh` and registered it). **Add
+your new harness to that file.**
 
 The wrapper sets an explicit **180 s** jest timeout per harness and a **150 s** `spawnSync` deadline.
 Both are load-bearing: jest's 5000 ms default would make a normal slow harness fail with

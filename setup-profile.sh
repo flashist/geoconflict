@@ -23,19 +23,26 @@
 #                                @127.0.0.1:5432 — see the stack-write section)
 #   PROFILE_INTERNAL_TOKEN     — service token (reused/persisted/auto-generated)
 #   YANDEX_PAYMENTS_SECRET     — Yandex per-game payments HMAC secret; empty/unset =
-#                                payments endpoints disabled (fail-closed 503, task 0019)
+#                                payments endpoints disabled (fail-closed 503, task 0019).
+#                                Persisted on the box; blank on a redeploy = reuse the
+#                                persisted value (0220)
 #   FEEDBACK_TELEGRAM_TOKEN    — operator bot token, SAME bot as the game server's feedback
 #   FEEDBACK_TELEGRAM_CHAT_ID    sends; used to ping the operator about pending name-change
 #                                requests (task 0067). Unset = requests still work, the
-#                                operator just isn't notified.
+#                                operator just isn't notified. Both persisted on the box;
+#                                blank on a redeploy = reuse the persisted value (0220)
 #   TELEGRAM_PROXY_URL         — egress proxy for api.telegram.org, which is BLOCKED from
-#                                Russian IPs; without it the notification always fails
+#                                Russian IPs; without it the notification always fails.
+#                                Persisted on the box; blank on a redeploy = reuse the
+#                                persisted value (0220)
 #   PROFILE_INTERNAL_ALLOW_IPS — game-server IPs for the dormant nginx /internal/ allowlist
 #   CERTBOT_EMAIL              — Let's Encrypt email (default ruflashist@gmail.com)
 #   DOCKER_USERNAME/DOCKER_TOKEN — optional registry auth for pulling a private PROFILE_IMAGE
 #   PROFILE_SERVER_HOST        — IP/host of this box; used for the connection-info banner
 #                                and the HTTPS DNS pre-check (NAT-bypass match — prefer an
 #                                IP; a hostname is getent-resolved for the gate)
+#   PROFILE_CHECKS_PING_URL    — dead-man's-switch ping URL for the daily operability checks
+#                                (task 0219); empty = checks run + log, nobody is paged (warns)
 #
 # What this script does:
 #   1. Ensures a swapfile exists (low-RAM VPS OOM cushion)
@@ -46,9 +53,11 @@
 #   6. Pulls + starts the stack behind a 120s health-gate with @sha256 rollback
 #   7. Configures host nginx + Let's Encrypt TLS for api.geoconflict.ru, with a
 #      dormant /internal/ IP allowlist (network-shape only; T5 wires the endpoint)
-#   8. Installs the profile systemd unit (auto-start on reboot)
-#   9. Adds the pg_dump backup + maintenance/certbot-renew cron
-#  10. Prints connection info
+#   8. Prunes unused images (keeps current + previous profile image + every container's)
+#   9. Installs the profile systemd unit (auto-start on reboot)
+#  10. Installs the daily operability checker (checks.sh) + adds the pg_dump backup,
+#      checks and maintenance/certbot-renew cron
+#  11. Prints connection info
 
 set -e
 
@@ -90,6 +99,12 @@ PROFILE_BACKUP_RETENTION_DAILY_DAYS="${PROFILE_BACKUP_RETENTION_DAILY_DAYS:-14}"
 PROFILE_BACKUP_RETENTION_WEEKLY_DAYS="${PROFILE_BACKUP_RETENTION_WEEKLY_DAYS:-56}"
 # Source for the backup script SCP'd by build-deploy-profile.sh (installed to backup.sh below).
 PROFILE_BACKUP_SRC="${PROFILE_BACKUP_SRC:-/root/profile-backup.sh}"
+
+# Operability checks (0219). The checker script rides the same deploy path (installed to
+# checks.sh below). PROFILE_CHECKS_PING_URL is the dead-man's-switch ping URL — a capability,
+# treated as a secret; empty is supported but warns loudly (checks run, nobody is paged).
+PROFILE_CHECKS_SRC="${PROFILE_CHECKS_SRC:-/root/profile-checks.sh}"
+PROFILE_CHECKS_PING_URL="${PROFILE_CHECKS_PING_URL:-}"
 
 BACKUP_OFFBOX_ENABLED=0
 if [ -n "$PROFILE_BACKUP_S3_ENDPOINT" ] && [ -n "$PROFILE_BACKUP_S3_BUCKET" ] \
@@ -135,11 +150,12 @@ fi
 # wins, everyone permitted), so a stray `all`/hostname/typo baked into the live config
 # would silently open the boundary. Require every entry to be a literal IPv4/IPv6 address
 # or CIDR; fail closed before touching nginx so the allowlist always stays a restriction.
+# CIDR suffix is 1-32 (v4) / 1-128 (v6): a /0 prefix (0.0.0.0/0, ::/0) matches every
+# client, which is `all` in CIDR form — reject it so the allowlist stays a restriction.
+# Defined here (not inside the `if`) so the value-parity report below can reuse them (0220).
+ipv4_re='^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}(/(3[0-2]|[12][0-9]|[1-9]))?$'
+ipv6_re='^[0-9A-Fa-f:]+:[0-9A-Fa-f:]*(/(12[0-8]|1[01][0-9]|[1-9][0-9]?))?$'
 if [ -n "$PROFILE_INTERNAL_ALLOW_IPS" ]; then
-    # CIDR suffix is 1-32 (v4) / 1-128 (v6): a /0 prefix (0.0.0.0/0, ::/0) matches every
-    # client, which is `all` in CIDR form — reject it so the allowlist stays a restriction.
-    ipv4_re='^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}(/(3[0-2]|[12][0-9]|[1-9]))?$'
-    ipv6_re='^[0-9A-Fa-f:]+:[0-9A-Fa-f:]*(/(12[0-8]|1[01][0-9]|[1-9][0-9]?))?$'
     for entry in ${PROFILE_INTERNAL_ALLOW_IPS//,/ }; do
         if ! [[ "$entry" =~ $ipv4_re ]] && ! [[ "$entry" =~ $ipv6_re ]]; then
             echo "Error: PROFILE_INTERNAL_ALLOW_IPS entry '$entry' is not a valid IPv4/IPv6 address or CIDR."
@@ -356,16 +372,59 @@ chmod 700 "$PROFILE_DIR"
 # (root-only). Idempotent. $PROFILE_DIR already exists (created above).
 PROFILE_TOKEN_FILE="$PROFILE_DIR/.internal_token"
 if [ -n "${PROFILE_INTERNAL_TOKEN:-}" ]; then
-    echo "Using PROFILE_INTERNAL_TOKEN from environment"
+    # Written through (0220, closes 0215 residual 1): the persisted file never goes stale,
+    # so a later blank deploy can only ever re-adopt the token the game server was given.
+    ( umask 077; printf '%s' "$PROFILE_INTERNAL_TOKEN" > "$PROFILE_TOKEN_FILE" )
+    chmod 600 "$PROFILE_TOKEN_FILE"
+    PROFILE_INTERNAL_TOKEN_SOURCE=environment
+    echo "Using PROFILE_INTERNAL_TOKEN from environment (persisted to $PROFILE_TOKEN_FILE)"
 elif [ -f "$PROFILE_TOKEN_FILE" ]; then
     PROFILE_INTERNAL_TOKEN=$(cat "$PROFILE_TOKEN_FILE")
+    PROFILE_INTERNAL_TOKEN_SOURCE=persisted
     echo "Reusing persisted PROFILE_INTERNAL_TOKEN from $PROFILE_TOKEN_FILE"
 else
     PROFILE_INTERNAL_TOKEN=$(openssl rand -hex 32)
     ( umask 077; printf '%s' "$PROFILE_INTERNAL_TOKEN" > "$PROFILE_TOKEN_FILE" )
     chmod 600 "$PROFILE_TOKEN_FILE"
+    PROFILE_INTERNAL_TOKEN_SOURCE=generated
     echo "Generated and persisted PROFILE_INTERNAL_TOKEN to $PROFILE_TOKEN_FILE"
 fi
+
+# ── Persist-or-reuse for the four optional secrets (task 0220) ────────────────
+# 0195 found that YANDEX_PAYMENTS_SECRET had no on-box persistence: a deploy from a machine
+# WITHOUT the value silently overwrote a working value with an empty one, and the deploy
+# still succeeded. The real scope is FOUR variables (the three Telegram ones too). Same
+# shape as the token block above, as one function:
+#   env value set   → wins AND is written through to the persist file (rotation just works)
+#   env empty, file → REUSE the persisted value — and SAY SO by name (a silent reuse is only
+#                     marginally better than a silent overwrite)
+#   neither         → written EMPTY, said so; feature-off semantics unchanged (Server.ts warns)
+# A blank therefore means "reuse", so a value cannot be CLEARED by blanking it: to clear one,
+# `rm` its persist file on the box (named in the output) and redeploy (owner ruling, 0220 Q4).
+# Persist files are raw bytes (printf '%s'), root-only 0600, beside .internal_token. `-s` not
+# `-f`: an empty file counts as nothing persisted, never as a silent empty reuse.
+# POSTGRES_PASSWORD is deliberately NOT here: it is required and fails closed above (the
+# stronger behaviour) — do not "fix" it into this pattern.
+# $1 variable name   $2 persist file (root-only, 0600)
+persist_or_reuse_secret() {
+    local name="$1" file="$2" value
+    value="${!name:-}"
+    if [ -n "$value" ]; then
+        ( umask 077; printf '%s' "$value" > "$file" )
+        chmod 600 "$file"
+        echo "Using $name from environment (persisted to $file)"
+    elif [ -s "$file" ]; then
+        printf -v "$name" '%s' "$(cat "$file")"
+        echo "⚠️  Reusing persisted $name from $file — the deploy supplied no value"
+    else
+        echo "$name: not supplied and nothing persisted — written EMPTY (feature stays off)"
+    fi
+    return 0
+}
+persist_or_reuse_secret YANDEX_PAYMENTS_SECRET    "$PROFILE_DIR/.yandex_payments_secret"
+persist_or_reuse_secret FEEDBACK_TELEGRAM_TOKEN   "$PROFILE_DIR/.feedback_telegram_token"
+persist_or_reuse_secret FEEDBACK_TELEGRAM_CHAT_ID "$PROFILE_DIR/.feedback_telegram_chat_id"
+persist_or_reuse_secret TELEGRAM_PROXY_URL        "$PROFILE_DIR/.telegram_proxy_url"
 
 # The profile API container reaches Postgres by the compose SERVICE NAME over the
 # shared compose network: `postgres:5432`. NOT 127.0.0.1 — inside the API container
@@ -398,6 +457,102 @@ EOF
 chmod 600 "$PROFILE_DIR/profile.env"
 echo "Written: profile.env (0600)"
 
+# ── Config VALUE parity — 0064 Phase 2, profile side, REPORT-ONLY (task 0220) ──
+# 0064's guard compares variable NAMES across the deploy hops; it says nothing about whether a
+# forwarded value is usable. This is the VALUES half for this pipeline: public URLs must be
+# https + hostname (the 0063 class), paired tokens must not be half-set (the 0062 class). It
+# runs ON THE BOX, after persist-or-reuse, because only the box knows the EFFECTIVE value; a
+# local pre-flight would report "empty" for a value the box is about to reuse. Output streams
+# back through the deploy's SSH session. Prints NAMES and VERDICTS only — never a value, never
+# a length. Every test is an `if`; the function returns 0; there is NO exit in here — a
+# finding never fails a deploy (arming is 0064's, after 0203's ten items; not this task).
+# The OPTIONAL reasons here mirror scripts/config-parity-allowlist.json (the box can't read it).
+report_config_values() {
+    local n_ok=0 n_opt=0 n_find=0 host
+    local url_re='^[a-z][a-z0-9+.-]*://[^/[:space:]]+' https_re='^https://[^/[:space:]]+'
+    # PROFILE_DOMAIN — bare hostname: no scheme, no path, not an IP literal.
+    if [ -n "${PROFILE_DOMAIN:-}" ]; then
+        if [[ "$PROFILE_DOMAIN" == *"://"* ]] || [[ "$PROFILE_DOMAIN" == */* ]]; then
+            echo "  FINDING  PROFILE_DOMAIN — must be a bare hostname; it carries a scheme or a path (the 0063 class)"; n_find=$((n_find+1))
+        elif [[ "$PROFILE_DOMAIN" =~ $ipv4_re ]] || [[ "$PROFILE_DOMAIN" =~ $ipv6_re ]]; then
+            echo "  FINDING  PROFILE_DOMAIN — must be a hostname, not an IP literal (the 0063 class)"; n_find=$((n_find+1))
+        else
+            echo "  OK       PROFILE_DOMAIN"; n_ok=$((n_ok+1))
+        fi
+    else
+        echo "  OPTIONAL PROFILE_DOMAIN — empty: no host nginx / TLS is configured (provisioning mode)"; n_opt=$((n_opt+1))
+    fi
+    # FEEDBACK_TELEGRAM_TOKEN + FEEDBACK_TELEGRAM_CHAT_ID — a pair: both, or neither.
+    if [ -n "${FEEDBACK_TELEGRAM_TOKEN:-}" ] && [ -n "${FEEDBACK_TELEGRAM_CHAT_ID:-}" ]; then
+        echo "  OK       FEEDBACK_TELEGRAM_TOKEN + FEEDBACK_TELEGRAM_CHAT_ID"; n_ok=$((n_ok+1))
+    elif [ -z "${FEEDBACK_TELEGRAM_TOKEN:-}" ] && [ -z "${FEEDBACK_TELEGRAM_CHAT_ID:-}" ]; then
+        echo "  OPTIONAL FEEDBACK_TELEGRAM_TOKEN + FEEDBACK_TELEGRAM_CHAT_ID — both empty: operator notifications off by design (0067); name-change requests still work"; n_opt=$((n_opt+1))
+    else
+        echo "  FINDING  FEEDBACK_TELEGRAM_TOKEN + FEEDBACK_TELEGRAM_CHAT_ID — half-configured pair (exactly one is set): notifications are OFF (src/profile-server/Server.ts)"; n_find=$((n_find+1))
+    fi
+    # TELEGRAM_PROXY_URL — scheme://host; REQUIRED once the pair is set (api.telegram.org is
+    # blocked from RU IPs — every send fails without it). http:// is fine: an egress proxy.
+    if [ -n "${TELEGRAM_PROXY_URL:-}" ]; then
+        if [[ "$TELEGRAM_PROXY_URL" =~ $url_re ]]; then
+            echo "  OK       TELEGRAM_PROXY_URL"; n_ok=$((n_ok+1))
+        else
+            echo "  FINDING  TELEGRAM_PROXY_URL — not a scheme://host URL"; n_find=$((n_find+1))
+        fi
+    elif [ -n "${FEEDBACK_TELEGRAM_TOKEN:-}" ] && [ -n "${FEEDBACK_TELEGRAM_CHAT_ID:-}" ]; then
+        echo "  FINDING  TELEGRAM_PROXY_URL — empty while the Telegram pair is set: every notification fails from a Russian IP (src/profile-server/Server.ts)"; n_find=$((n_find+1))
+    else
+        echo "  OPTIONAL TELEGRAM_PROXY_URL — empty, and notifications are off anyway"; n_opt=$((n_opt+1))
+    fi
+    # YANDEX_PAYMENTS_SECRET — non-empty, or explicitly optional.
+    if [ -n "${YANDEX_PAYMENTS_SECRET:-}" ]; then
+        echo "  OK       YANDEX_PAYMENTS_SECRET"; n_ok=$((n_ok+1))
+    else
+        echo "  OPTIONAL YANDEX_PAYMENTS_SECRET — empty: pending task 0014 (catalog registration); /v1/payments/* fails closed with 503 by design"; n_opt=$((n_opt+1))
+    fi
+    # PROFILE_INTERNAL_TOKEN — always non-empty here; what matters is its SOURCE. A token the
+    # box minted or re-adopted is one the game server may not hold → every credit call 401s and
+    # XP is dropped (the 0215 trap). Only 'environment' proves the operator set both sides.
+    if [ -z "${PROFILE_INTERNAL_TOKEN:-}" ]; then
+        echo "  FINDING  PROFILE_INTERNAL_TOKEN — empty (should be impossible here)"; n_find=$((n_find+1))
+    elif [ "${PROFILE_INTERNAL_TOKEN_SOURCE:-unknown}" = "environment" ]; then
+        echo "  OK       PROFILE_INTERNAL_TOKEN (source: environment)"; n_ok=$((n_ok+1))
+    else
+        echo "  FINDING  PROFILE_INTERNAL_TOKEN — source: ${PROFILE_INTERNAL_TOKEN_SOURCE:-unknown}, not the environment: the box-held token must equal the game server's or every credit call 401s and XP is dropped (0215)"; n_find=$((n_find+1))
+    fi
+    # PROFILE_CHECKS_PING_URL — https + hostname when set; empty is supported but nobody is paged.
+    if [ -n "${PROFILE_CHECKS_PING_URL:-}" ]; then
+        host="${PROFILE_CHECKS_PING_URL#*://}"; host="${host%%/*}"; host="${host%%:*}"
+        if ! [[ "$PROFILE_CHECKS_PING_URL" =~ $https_re ]]; then
+            echo "  FINDING  PROFILE_CHECKS_PING_URL — must be an https:// URL (a capability sent in clear otherwise)"; n_find=$((n_find+1))
+        elif [[ "$host" =~ $ipv4_re ]] || [[ "$host" == \[* ]]; then
+            echo "  FINDING  PROFILE_CHECKS_PING_URL — host must be a hostname, not an IP literal (the 0063 class)"; n_find=$((n_find+1))
+        else
+            echo "  OK       PROFILE_CHECKS_PING_URL"; n_ok=$((n_ok+1))
+        fi
+    else
+        echo "  OPTIONAL PROFILE_CHECKS_PING_URL — empty: the daily checks run and log but NOBODY IS PAGED (0219 warns at install)"; n_opt=$((n_opt+1))
+    fi
+    # PROFILE_BACKUP_S3_ENDPOINT — https + hostname when set (S3 credentials travel over it).
+    if [ -n "${PROFILE_BACKUP_S3_ENDPOINT:-}" ]; then
+        host="${PROFILE_BACKUP_S3_ENDPOINT#*://}"; host="${host%%/*}"; host="${host%%:*}"
+        if ! [[ "$PROFILE_BACKUP_S3_ENDPOINT" =~ $https_re ]]; then
+            echo "  FINDING  PROFILE_BACKUP_S3_ENDPOINT — must be an https:// URL (S3 credentials would travel in clear)"; n_find=$((n_find+1))
+        elif [[ "$host" =~ $ipv4_re ]] || [[ "$host" == \[* ]]; then
+            echo "  FINDING  PROFILE_BACKUP_S3_ENDPOINT — host must be a hostname, not an IP literal (the 0063 class)"; n_find=$((n_find+1))
+        else
+            echo "  OK       PROFILE_BACKUP_S3_ENDPOINT"; n_ok=$((n_ok+1))
+        fi
+    else
+        echo "  OPTIONAL PROFILE_BACKUP_S3_ENDPOINT — empty: off-box backup not configured (all PROFILE_BACKUP_* must be set to enable it)"; n_opt=$((n_opt+1))
+    fi
+    # DATABASE_URL / POSTGRES_* are not checked: non-empty is already fail-closed above, and
+    # any other check would have to touch the value.
+    echo "Value parity: $n_find finding(s), $n_opt optional, $n_ok ok — report-only, deploy continues."
+    return 0
+}
+print_header "CONFIG VALUE PARITY (report-only)"
+report_config_values
+
 cat > "$PROFILE_DIR/docker-compose.yml" << EOF
 services:
   postgres:
@@ -421,6 +576,14 @@ services:
       retries: 30
     volumes:
       - postgres_data:/var/lib/postgresql/data/pgdata
+    # Container log retention (task 0219, G1) — same values as the game box's update.sh.
+    # The COMPOSE FILE owns retention on this box; do NOT also write a host-level Docker
+    # daemon config for it — a second layer conflicts, and the per-container value wins anyway.
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "10"
 
   profile-api:
     image: ${PROFILE_IMAGE}
@@ -439,6 +602,12 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    # Same retention as postgres above (0219, G1). Compose owns it — see the note there.
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "10"
 
 volumes:
   postgres_data:
@@ -688,6 +857,13 @@ if [ -n "$PROFILE_DOMAIN" ]; then
         -m "$CERTBOT_EMAIL" \
         -d "$PROFILE_DOMAIN"
 
+    # The certbot package ships certbot.timer, a SECOND renewal path with no nginx hooks: behind
+    # nginx its standalone bind on port 80 can only fail (noise in letsencrypt.log at every due
+    # attempt), and its runs made the 0219 checker's "renewal attempted" read blind to a dead
+    # hooked cron. Owner ruling (0219 review R3, 2026-09-13): the hooked cron below is the ONLY
+    # renewer; disable the timer. Idempotent; never fails the deploy.
+    systemctl disable --now certbot.timer >/dev/null 2>&1 || true
+
     # Build the allow-list directives for the internal endpoints from the
     # configured game-server IPs (comma- or space-separated).
     ALLOW_DIRECTIVES=""
@@ -749,6 +925,46 @@ NGINXEOF
     rm -rf "$NGINX_BAK_DIR"
     echo "✅ nginx running with TLS for $PROFILE_DOMAIN"
 fi
+
+# ── Image prune (0219, G2) ────────────────────────────────────────────────────
+# Images accumulate one per deploy (each is ~1.6 GB) and nothing removed them. Runs HERE —
+# after the health gate and its rollback branch have resolved and after HTTPS — so a prune
+# can never run before a rollback might still need the previous image. A deploy that aborts
+# earlier (health gate, migrations, DNS) never reaches this section: fail-safe.
+#
+# KEEP-LIST, not update.sh's `-a` prune: on the game box `prune -a` removes every image no
+# container uses, which on THIS box is precisely the rollback image (PREV_PROFILE_IMAGE) that
+# the health gate above rolls back to. Keep = the image of every container (running AND
+# stopped) ∪ PREV_PROFILE_IMAGE ∪ PROFILE_IMAGE; remove everything else (a superseded
+# postgres:16-alpine included), then drop dangling layers. Removal is best-effort (`|| true`)
+# — a prune can never fail a deploy that has already proven itself.
+
+print_header "PRUNING UNUSED IMAGES"
+
+PRUNE_KEEP_IDS=""
+for cid in $(docker ps -aq 2>/dev/null || true); do
+    img_id=$(docker inspect --format '{{.Image}}' "$cid" 2>/dev/null || true)
+    [ -n "$img_id" ] && PRUNE_KEEP_IDS="$PRUNE_KEEP_IDS $img_id"
+done
+for ref in "$PROFILE_IMAGE" "$PREV_PROFILE_IMAGE"; do
+    [ -n "$ref" ] || continue
+    img_id=$(docker image inspect --format '{{.Id}}' "$ref" 2>/dev/null || true)
+    [ -n "$img_id" ] && PRUNE_KEEP_IDS="$PRUNE_KEEP_IDS $img_id"
+done
+echo "Keeping (in use by a container, or the current/previous profile image):"
+for img_id in $(printf '%s\n' $PRUNE_KEEP_IDS | sort -u); do echo "  $img_id"; done
+PRUNE_REMOVED=0
+for img_id in $(docker images -q --no-trunc 2>/dev/null | sort -u); do
+    case " $PRUNE_KEEP_IDS " in *" $img_id "*) continue ;; esac
+    if docker image rm -f "$img_id" >/dev/null 2>&1; then
+        echo "  removed $img_id"
+        PRUNE_REMOVED=$((PRUNE_REMOVED + 1))
+    else
+        echo "  could not remove $img_id (still referenced) — left in place"
+    fi
+done
+docker image prune -f >/dev/null 2>&1 || true
+echo "✅ Image prune done: removed $PRUNE_REMOVED image(s); current + previous profile images kept."
 
 # ── systemd service (auto-start on reboot) ────────────────────────────────────
 # Authored alongside the compose file it boots, so `systemctl start profile` is
@@ -919,6 +1135,47 @@ fi
 
 CRON_FILE="/etc/cron.d/profile-backups"
 
+# ── Operability checks (0219, G3/G4) ──────────────────────────────────────────
+# A daily on-box checker (profile-checks.sh, SCP'd here by build-deploy-profile.sh) reads the
+# two signals nobody read before — the certbot renewal log and the backup freshness marker —
+# and reports to an EXTERNAL dead-man's-switch ping (period 1 day): every run pings success or
+# posts its failure reasons to <url>/fail, and a run that never happens (cron gone, box frozen,
+# script broken) becomes a missing-ping alert. The box holds only the ping URL, never a
+# Telegram token; delivery to Telegram/email runs from the service's side, outside RU.
+# Installed unconditionally (so the log and state exist even before alerting is wired) and
+# scheduled in the always-present cron header block below. No candidate/promote dance: it
+# carries no credential that could break the nightly backup.
+print_header "INSTALLING OPERABILITY CHECKS"
+
+if [ -f "$PROFILE_CHECKS_SRC" ]; then
+    install -m 700 "$PROFILE_CHECKS_SRC" "$PROFILE_DIR/checks.sh"
+    echo "Installed: checks.sh (0700)"
+else
+    echo "WARNING: $PROFILE_CHECKS_SRC not found — the deploy path did not ship profile-checks.sh."
+    echo "         The daily cron line is still written; with no checks.sh it logs an error each run"
+    echo "         and never pings, which the dead-man's switch reports. Re-run via build-deploy-profile.sh."
+fi
+# checks.env (0600): the ping URL is a capability (anyone holding it can silence the alert), so
+# it gets the same %q + umask 077 treatment as backup.env and is never inlined in the cron file.
+( umask 077
+  {
+    printf 'PROFILE_CHECKS_PING_URL=%q\n' "$PROFILE_CHECKS_PING_URL"
+    printf 'PROFILE_DOMAIN=%q\n'          "$PROFILE_DOMAIN"
+  } > "$PROFILE_DIR/checks.env"
+)
+chmod 600 "$PROFILE_DIR/checks.env"
+mkdir -p "$PROFILE_DIR/checks-state" && chmod 700 "$PROFILE_DIR/checks-state"
+if [ -n "$PROFILE_CHECKS_PING_URL" ]; then
+    CHECKS_ALERTING="yes"
+    echo "Written: checks.env (0600) — alerting configured (ping URL present)."
+else
+    CHECKS_ALERTING="NO"
+    echo "⚠️  ALERTING NOT CONFIGURED: PROFILE_CHECKS_PING_URL is empty. The daily checks will run"
+    echo "    and log to /var/log/profile-checks.log, but NOBODY IS PAGED — that log is exactly the"
+    echo "    'signal nobody reads' state 0219 exists to end. Set PROFILE_CHECKS_PING_URL in"
+    echo "    .env.profile.secret and redeploy."
+fi
+
 # 7a: fail CLOSED rather than silently downgrade an already-off-box box to same-disk local backups.
 # Runs BEFORE the cron rewrite below (which would otherwise clobber the off-box cron), so on refusal
 # the existing off-box backup.sh / backup.env / cron are left untouched.
@@ -946,6 +1203,11 @@ TZ=UTC
 
 # Disk usage warning — daily at 8:00am. Writes to /var/log/disk-warnings.log when usage > 60%.
 0 8 * * * root USAGE=\$(df / | awk 'NR==2 {print \$5}' | tr -d '\\%'); if [ "\$USAGE" -gt 60 ]; then echo "\$(date) -- disk usage \${USAGE}\\%" >> /var/log/disk-warnings.log; fi
+
+# Daily operability checks (0219) at 08:00 UTC — backup freshness (daily marker + object, weekly
+# object), certbot renewal attempted/errored, certificate days left; pings the dead-man's switch.
+# All logic lives in checks.sh (no % to escape here). Runs in both backup modes.
+0 8 * * * root $PROFILE_DIR/checks.sh >> /var/log/profile-checks.log 2>&1
 EOF
 
 if [ "$BACKUP_MODE" = "offbox" ]; then
@@ -1016,6 +1278,8 @@ if [ "$BACKUP_MODE" = "offbox" ]; then
 else
     echo "Backups: interim weekly LOCAL pg_dump only — set PROFILE_BACKUP_* + redeploy for off-box."
 fi
+echo "Checks: daily 08:00 UTC ($PROFILE_DIR/checks.sh, log /var/log/profile-checks.log); alerting: $CHECKS_ALERTING."
+echo "Logs: container logs capped by compose (json-file, 100m x 10 per container); images pruned to current + previous."
 echo ""
 echo "Game server env vars — add to .env.prod for T6:"
 echo "  PROFILE_API_URL=https://${PROFILE_DOMAIN:-<set-domain>}"

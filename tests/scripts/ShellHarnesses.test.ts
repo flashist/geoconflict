@@ -23,7 +23,7 @@
  * every run. As a jest suite, a single-file run pays nothing.
  *
  * WHICH HARNESSES ARE HERE, AND WHICH IS NOT — see the CLAUDE.md Testing section for the
- * full rationale and the owner's rulings. In short: the three below are in;
+ * full rationale and the owner's rulings. In short: the four below are in;
  * `tests/profile-backup-dryrun.sh` is deliberately OUT (it hard-fails without Docker plus
  * `age`, `age-keygen`, `rclone`, `curl` and `jq`) and is exposed as
  * `npm run test:scripts:docker` instead.
@@ -227,6 +227,19 @@ describe("shell test harnesses", () => {
       expectHarnessToPass({
         relativePath: "tests/profile-backup-redeploy.sh",
         // Printed by the harness's final banner: "==== RESULT: N passed, 0 failed ====".
+        successMarker: /RESULT: \d+ passed, 0 failed/,
+        successMarkerDescription: "`RESULT: N passed, 0 failed`",
+      });
+    },
+    JEST_TIMEOUT_MS,
+  );
+
+  it(
+    "profile operability checks harness passes (tests/profile-checks.sh)",
+    () => {
+      expectHarnessToPass({
+        relativePath: "tests/profile-checks.sh",
+        // Task 0219. Same final banner shape as the backup redeploy harness.
         successMarker: /RESULT: \d+ passed, 0 failed/,
         successMarkerDescription: "`RESULT: N passed, 0 failed`",
       });

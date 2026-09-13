@@ -20,7 +20,7 @@ DB on `api.geoconflict.ru`. Pairs with `ai-agents/tasks/done/0189-postgres-backu
 | Destination | RU-resident S3 (reg.ru Object Storage or fallback), bucket private, key `…/daily/profile-YYYY-MM-DD.dump.age` (+ `…/weekly/` on Sundays) |
 | Schedule | Daily 02:30 box time (cron `/etc/cron.d/profile-backups`) |
 | Retention | 14 daily + ~8 weekly (`PROFILE_BACKUP_RETENTION_*_DAYS`, default 14 / 56) |
-| Health marker | `/opt/profile/backups/last-backup.json` (read by monitoring Phase 2) |
+| Health marker | `/opt/profile/backups/last-backup.json` — read daily (08:00 UTC) by `/opt/profile/checks.sh` (task `0219`, repo `profile-checks.sh`): marker `exit_status` 0 and `finished_at` ≤ 26 h, the **daily object it names really exists** in the bucket, and the **newest `weekly/` object is ≤ 8 days old** (listed from the bucket — the marker carries no weekly signal, and a weekly-copy failure is exit 0 by design). Reports to an external dead-man's-switch ping; a missing run alerts too. |
 | Log | `/var/log/profile-backup.log` |
 
 ---
@@ -224,9 +224,14 @@ citizen volume. **Re-measure once real data exists — the number will not extra
   broken". Task `0218`'s brief overstated it that way; execution refuted it.
 
 ⚠️ **Two things the drill did NOT establish, stated so they are not assumed:**
-1. **The weekly-copy path (`profile-backup.sh:171-177`) has never run against the current bucket** —
-   `weekly/` was empty on 2026-09-11. It only triggers on a Sunday, and the current bucket was created
-   after the last one.
+1. ~~**The weekly-copy path (`profile-backup.sh:171-177`) has never run against the current bucket** —
+   `weekly/` was empty on 2026-09-11.~~ It only triggers on a Sunday, and the current bucket was created
+   after the last one. **2026-09-13 (task `0241`): the weekly path ran on schedule and the object
+   was observed** — `profiles/weekly/profile-2026-09-13.dump.age`, 19312 bytes, the same size as that
+   day's daily object and as `last-backup.json`'s `size_bytes` (19312 B each; byte identity **not
+   checked** — no hash or ETag compared), tied to the 02:30:01 UTC CRON record. Struck, not deleted, so
+   the history stays legible. ⚠️ Still true: the marker carries **no weekly signal** and a weekly-copy
+   failure is **exit 0** (`:176`) — only a bucket listing proves the weekly copy.
 2. **Backup history in the current bucket starts 2026-09-10** and, before the drill, consisted of two
    objects — one from the deploy smoke check, one from a cron run — **both dumps of an empty
    database**. Earlier runs went to the old, now-deleted bucket. ⛔ Do not read the nightly log's

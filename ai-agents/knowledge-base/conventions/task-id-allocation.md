@@ -106,7 +106,7 @@ section replaces. If a number is not on this table, it is not reserved by this t
 
 - **`0241` — a genuine collision, deliberately left standing.** The number names **two different
   things**: the toolkit's own heal-design task (`.claude/skills/fkit-heal/` × 3) *and* this project's
-  [`0241-profile-verify-first-weekly-backup-copy`](../../tasks/backlog/0241-profile-verify-first-weekly-backup-copy/brief.md),
+  [`0241-profile-verify-first-weekly-backup-copy`](../../tasks/done/0241-profile-verify-first-weekly-backup-copy/brief.md),
   allocated 2026-09-11. **The owner explicitly declined to renumber it** (2026-09-11): `0241` is already
   a canonical `Depends on` of `0219`, and re-pointing today's inbound links costs more than the
   ambiguity does. ⚠️ **Read `0241` in context** — in `.claude/` prose it means the toolkit's task; on

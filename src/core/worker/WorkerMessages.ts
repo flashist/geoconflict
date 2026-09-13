@@ -5,7 +5,7 @@ import {
   PlayerProfile,
 } from "../game/Game";
 import { TileRef } from "../game/GameMap";
-import { GameUpdateViewData } from "../game/GameUpdates";
+import { ErrorUpdate, GameUpdateViewData } from "../game/GameUpdates";
 import { ClientID, GameStartInfo, Turn } from "../Schemas";
 
 export type WorkerMessageType =
@@ -14,6 +14,7 @@ export type WorkerMessageType =
   | "initialized"
   | "turn"
   | "game_update"
+  | "game_error"
   | "player_actions"
   | "player_actions_result"
   | "player_profile"
@@ -55,6 +56,13 @@ export interface InitializedMessage extends BaseWorkerMessage {
 export interface GameUpdateMessage extends BaseWorkerMessage {
   type: "game_update";
   gameUpdate: GameUpdateViewData;
+}
+
+// Worker → main thread: a game tick threw (task 0232). Its own type, not a
+// widening of game_update, so the per-tick payload stays narrow.
+export interface GameErrorMessage extends BaseWorkerMessage {
+  type: "game_error";
+  error: ErrorUpdate;
 }
 
 export interface PlayerActionsMessage extends BaseWorkerMessage {
@@ -127,6 +135,7 @@ export type MainThreadMessage =
 export type WorkerMessage =
   | InitializedMessage
   | GameUpdateMessage
+  | GameErrorMessage
   | PlayerActionsResultMessage
   | PlayerProfileResultMessage
   | PlayerBorderTilesResultMessage

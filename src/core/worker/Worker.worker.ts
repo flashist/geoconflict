@@ -18,14 +18,13 @@ let gameRunner: Promise<GameRunner> | null = null;
 const mapLoader = new FetchGameMapLoader(`/maps`, version);
 
 function gameUpdate(gu: GameUpdateViewData | ErrorUpdate) {
-  // skip if ErrorUpdate
-  if (!("updates" in gu)) {
+  if ("updates" in gu) {
+    sendMessage({ type: "game_update", gameUpdate: gu });
     return;
   }
-  sendMessage({
-    type: "game_update",
-    gameUpdate: gu,
-  });
+  // Task 0232: a tick fault used to be dropped here, so the main thread's
+  // crash branch in ClientGameRunner could never run.
+  sendMessage({ type: "game_error", error: gu });
 }
 
 function sendMessage(message: WorkerMessage) {

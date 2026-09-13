@@ -12,7 +12,7 @@ qualifier goes in prose below the field, never in the field.
 
 ⛔ **This is NOT Sprint 4.** 🔴 **Owner ruling 2026-09-11, given live in the lead session and relayed
 through the spawning session: FILE IT AS A TASK.** The owner **declined** two cheaper alternatives —
-*"just check it on Monday"* and *folding it into [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)* — and ruled that it be **tracked**.
+*"just check it on Monday"* and *folding it into [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)* — and ruled that it be **tracked**.
 ⚠️ **The owner ruled that it be TRACKED. The owner did NOT rule where it sits, what it is worth, or
 when it runs.** It is filed on the unranked Backlog board.
 
@@ -33,7 +33,7 @@ No row moved, nothing was renumbered, no closed row was touched. **Bottom-of-boa
 and nothing more** — it is not a ranking statement.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -52,12 +52,12 @@ Sunday**. The current bucket was created on **2026-09-10** (a brand-new bucket, 
 2026-09-08), and **the last Sunday predates it** — so that code path has **never executed against this
 bucket**.
 
-**Observed by [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)
+**Observed by [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)
 on 2026-09-11: the `weekly/` prefix is EMPTY.** That is `0218`'s residual 3.
 
 ### 🔴 Why this is not busywork — it GATES `0219`
 
-[`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (P4)
+[`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (P4)
 builds the **freshness monitor** that reads the backup signals on that box.
 
 🚨 **If the weekly path silently fails, `0219` would build a monitor for a path that does not work** —
@@ -67,7 +67,7 @@ and a monitor built on a broken producer is worse than no monitor, because it ma
 ### ⚠️ Two things the verifier must already know, or they will misread what they find
 
 1. **Sunday's run will capture an EMPTY database.** `0218`'s drill data (76 synthetic rows) was
-   **deliberately removed on 2026-09-11**, and [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+   **deliberately removed on 2026-09-11**, and [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
    — the task that wires the game server and creates real rows — **has not run.** So a weekly object of
    roughly the empty-dump size is **correct and expected**, not a failure. ⛔ **Do not read "small
    object" as "broken backup."**
@@ -125,10 +125,10 @@ what it must not do is **build or ship the freshness monitor's weekly-path handl
 answer exists.**
 
 - **Effort: minutes, plus waiting for Sunday.** The waiting is the whole schedule.
-- **Discovered by [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)**
+- **Discovered by [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)**
   (residual 3), which proved the restore path and the nightly schedule but **never exercised the weekly
   path.**
-- ⚠️ **If [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) lands before this runs,
+- ⚠️ **If [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) lands before this runs,
   the premise in *Context* changes** — the database would no longer be empty, and the expected object
   size changes with it. **Re-read the context before acting; do not assume "empty" still holds.**
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.

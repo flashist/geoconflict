@@ -19,7 +19,7 @@
 Sprint 4
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -32,14 +32,14 @@ spawning session. Authority first: this is an OWNER RULING, not a producer re-ra
 producer precedent for re-ranking anything else.**
 
 **The original ruling: this row sits DIRECTLY BELOW
-[`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md)** on the Sprint 4 board.
+[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md)** on the Sprint 4 board.
 The reasoning the owner accepted: it depends on `0227` landing first, and it is the **accumulating**
 member of the family — `0225`, `0227` and `0228` are each bounded to at most one stale object, and
 this one is not.
 
 🔴 **RE-RULED BY THE OWNER LATER THE SAME DAY (2026-09-07), given live in session and relayed through
 the spawning session. THIS ROW NOW SITS BELOW
-[`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md)**, not directly below `0227`.
+[`0232`](../../done/0232-worker-tick-error-never-reaches-main-thread/brief.md)**, not directly below `0227`.
 Final order on the board: **`0227` → `0232` → `0231`.**
 
 **The owner SUPERSEDED THEIR OWN earlier ruling of the same day, deliberately** — they were shown
@@ -77,7 +77,7 @@ holds only the `adr-1XX` series, so a relative link would not resolve.*
 ## Context
 
 📌 **FRAME DECLARATION — every `file:line` in this brief is against commit `c910452`, the commit in
-which [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) landed.**
+which [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) landed.**
 ⚠️ **REFRAMED 2026-09-07 from the earlier pre-`0227` numbering.** `0227` added **+30 / −1** lines to
 `src/client/ClientGameRunner.ts` and **+26 / −0** to `src/client/Main.ts`, so citations in **both**
 files moved. 🔴 **The shift is NOT a single constant** — `Main.ts` moves by **+8 / +9 / +12 / +26**
@@ -90,7 +90,7 @@ empty). **Every superseded number is preserved in the mapping table at the end o
 reason to distrust it, not to trust the new numbers more.
 
 **Filed 2026-09-07 on an owner ruling given live in session.** The finding came out of the coder who
-planned [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) while reading the
+planned [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) while reading the
 code, and the owner ruled it gets its own brief rather than being folded in.
 
 ### 🔴 REFRAMED 2026-09-08 — what this task is actually about
@@ -101,7 +101,7 @@ dependencies and board position were NOT ruled and are UNCHANGED.**
 
 **What was found.** A semantic re-read at `c910452` (2026-09-08) confirmed that `stop()` still has
 exactly one caller — the crash branch at `ClientGameRunner.ts:525` — and that
-[`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md) has established **that caller
+[`0232`](../../done/0232-worker-tick-error-never-reaches-main-thread/brief.md) has established **that caller
 is unreachable dead code**: `src/core/worker/Worker.worker.ts:20-23` drops the `ErrorUpdate` before it
 is ever posted, so `ClientGameRunner.ts:517`'s `if ("errMsg" in gu)` is never true.
 
@@ -122,6 +122,65 @@ merge, or run in a fixed order, is NOT decided here.** The owner was offered an 
 that question on 2026-09-07 and **chose the reframe instead**; the entanglement is recorded so
 whoever plans either task sees it, and **the decision remains the owner's.**
 
+### 🔬 Observed by 0232 (2026-09-13) — the first OBSERVED evidence on this task
+
+**Added 2026-09-13 by a spawned `fkit-producer` while closing
+[`0232`](../../done/0232-worker-tick-error-never-reaches-main-thread/brief.md), on an owner-approved hand-off
+(0232's plan, step 4.5). Copied VERBATIM from
+[`0232/worklog.md`](../../done/0232-worker-tick-error-never-reaches-main-thread/worklog.md) — its §4.5 and its
+"Observation to hand to 0231" block. Nothing below in the two quotes was edited.** ⚠️ **This block
+changes NOTHING about this task's `## Status`, `## Priority` or board position** — it adds evidence and a
+premise correction, that is all.
+
+🔴 **Premise correction — `0232` HAS LANDED (closed 2026-09-13, `(agent-closed — not owner-verified)`).**
+`stop()` is now **reachable on the crash path** (a game-tick fault, and the post-init worker `error`
+event), browser-verified by 0232. ⛔ **So this brief's premise "`stop()` runs on NO path" — the reframe
+above, fact 1's correction block, and the "there is currently NO path on which `stop()` runs" clause
+further down — must be RE-READ: it is now "`stop()` runs on the crash path ONLY, and still on no normal
+leave."** The original text is kept, not deleted, per this brief's own convention. ⚠️ The uncancellable
+20 s `setTimeout` framing that "comes back the moment `0232` lands" has come back — and it is exactly
+what the observation below exercises.
+
+⚠️ **What this evidence IS and IS NOT.** It is an **observed** run (dev lobby, Playwright, one page
+session, one crash) of the **crash-then-reconnect** interaction. It is **NOT** a measurement of the
+normal-leave accumulation this task is about — step 1's numbers (intervals / workers / `reconnect()`
+calls / listeners after N leaves) are **still unmeasured**. ⛔ No rate or severity may be read off it.
+
+**Verbatim, 0232 worklog §4.5:**
+
+> ### 4.5 Crash before the 20 s connection-check arm — OBSERVED, multiplayer → **handoff to 0231**
+>
+> Temp throw in `GameRunner.executeNextTick` at tick 150 (WinCheck can't fire in multiplayer's
+> spawn phase). Game started at 5882; fault at 15629 (~9.7 s in); modal 15631; worker terminated
+> 15630; "on stop: leaving game" 15630 (socket killed). Then at **26658** (= start + 20 s + ~1 s of
+> interval) `onConnectionCheck` logged "No message from server for 11037 ms, reconnecting", opened a
+> **new WebSocket** (constructor-hooked: 295, 5835, **26658**), and the console showed "Connected to
+> game server!" ×2 and "starting game!" again. From then on the server fed the client turns
+> (1063 posted by t≈77 s) into a **terminated** worker (`postMessage` on a terminated worker is a
+> silent no-op); heartbeats stayed at 0; the crashed client sat in the match as a connected, non-
+> simulating ghost until the page was left. Only one reconnect line appeared, because after the
+> rejoin `lastMessageTime` is refreshed by incoming messages. Not fixed here — `ClientGameRunner.ts`
+> is 0231's file.
+
+**Verbatim, 0232 worklog "Observation to hand to 0231 (step 4.5)":**
+
+> ## Observation to hand to 0231 (step 4.5)
+>
+> > With 0232 landed, `stop()` is reachable on the crash path (tick fault) and on the post-init
+> > worker-error path. If the crash happens **before** the 20 s `setTimeout` in `start()`
+> > (`ClientGameRunner.ts:501-506`, handle never stored) fires, `connectionCheckInterval` is created
+> > **after** `stop()` cleared nothing, `onConnectionCheck` sees `> 5000 ms` of silence, calls
+> > `transport.reconnect()`, and the client **re-joins the match** ("Connected to game server!",
+> > "starting game!") with a terminated worker — turns are posted into the void, no hashes are sent,
+> > and the interval lives until navigation. Observed in a dev-lobby multiplayer game (fault at ~9.7 s,
+> > reconnect at ~20.8 s, new WebSocket confirmed by constructor hook). Singleplayer is unaffected
+> > (`onConnectionCheck` returns on `transport.isLocal`).
+
+📌 Line citations inside the two quotes are 0232's, against the working tree at `fd2c88e` + 0232's
+`src/core/` changes — **not** this brief's `c910452` frame (e.g. 0232 cites the `setTimeout` at
+`ClientGameRunner.ts:501-506`; this brief cites `:491-497`). Re-verify before relying on either.
+
+
 📌 **Everything below this heading is the original brief, corrected in place where a claim went stale
 and marked where it did. Nothing was deleted.**
 
@@ -139,7 +198,7 @@ Facts 1 and 3 changed and carry correction blocks.** ⚠️ **Re-verify them you
 
    > 🔴 **STILL LITERALLY TRUE AT `c910452`, BUT NOW MATERIALLY INCOMPLETE — corrected 2026-09-07.**
    > There is still exactly one caller, and it is still `:525`. ⛔ **But
-   > [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md) established that this
+   > [`0232`](../../done/0232-worker-tick-error-never-reaches-main-thread/brief.md) established that this
    > caller is UNREACHABLE DEAD CODE** — `src/core/worker/Worker.worker.ts:20-23` drops the
    > `ErrorUpdate` before it is posted, so `ClientGameRunner.ts:517`'s `if ("errMsg" in gu)` is never
    > true. 🚨 **The operative fact is therefore STRONGER than this brief originally claimed: `stop()`
@@ -227,7 +286,7 @@ or refute it as part of this task; do not assume it.**
 > 🔴 **ONE CLAUSE ABOVE IS NOW FALSE — corrected 2026-09-07, original kept, not deleted.** It reads
 > *"the one path where `stop()` does run."* ⛔ **At `c910452` the crash path does NOT run** — its
 > branch is unreachable dead code (fact 1's correction block, and
-> [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md)). **There is currently NO
+> [`0232`](../../done/0232-worker-tick-error-never-reaches-main-thread/brief.md)). **There is currently NO
 > path on which `stop()` runs**, so the uncancellable 20 s `setTimeout` cannot be exercised through it
 > today. ⚠️ **The underlying code fact — that the timeout handle is never stored — is UNCHANGED and
 > still needs confirming or refuting.** Only the "the crash path would exercise it" framing is dead,
@@ -235,7 +294,7 @@ or refute it as part of this task; do not assume it.**
 
 ### 🔴 Scope boundary — this must NOT be folded into `0227`
 
-[`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) **explicitly bars** the fix
+[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) **explicitly bars** the fix
 this task needs. Its brief, at `:325-326`: *"⛔ **Do NOT also null or re-drive `Main.gameStop` from the
 runner** unless you can show it is safe."* ⇒ **this needs its own design and its own verification**,
 which is exactly why it is a separate task.
@@ -250,13 +309,13 @@ does not exist yet, and its final shape is `0227`'s to settle.
 | Task | What it covers | Bounded or accumulating? |
 |---|---|---|
 | [`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md) | `PerformanceMonitor` orphaned on lobby rejoin | Bounded |
-| [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) | `PerformanceMonitor` survives a crashed/failed game | Bounded |
-| [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md) | stale `gameStop` across three awaits | Bounded |
+| [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) | `PerformanceMonitor` survives a crashed/failed game | Bounded |
+| [`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md) | stale `gameStop` across three awaits | Bounded |
 | **`0231` (this task)** | **the whole runner + worker + 1 s interval + 5 listeners, on the NORMAL leave path** | **Accumulating — ⚠️ reasoned, not observed** |
 
 ⛔ **This does not explain, address, or close
 [`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md) or
-[`0230`](../0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md).** The 3–4 Sep event
+[`0230`](../../backlog/0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md).** The 3–4 Sep event
 spike was in the once-per-session categories, and nothing here is known to touch them. ⚠️ If `0230`'s
 investigation reaches hypothesis 3 (a client per-session re-entry path), this task is **context worth
 reading — not an answer.**
@@ -340,7 +399,7 @@ interval, worker or event listener outlives the game that created it.
 
 ## Notes
 
-- **Depends on:** [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) — it must land first. It touches
+- **Depends on:** [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) — it must land first. It touches
   **the same two files** (`src/client/ClientGameRunner.ts`, `src/client/Main.ts`) and **the same
   teardown seam**, and it introduces the `onGameEnd` callback this task may build on. ⚠️ Starting
   before `0227` lands means designing against a seam that does not exist yet and taking a near-certain

@@ -151,6 +151,16 @@ export class GameRunner {
     this.turns.push(turn);
   }
 
+  // Task 0232 (review R1): String() itself throws for a null-prototype object
+  // or a throwing toString(); an escape here would re-open the silent freeze.
+  private static describeThrow(error: unknown): string {
+    try {
+      return String(error);
+    } catch {
+      return "non-coercible throw";
+    }
+  }
+
   public executeNextTick() {
     if (this.isExecuting) {
       return;
@@ -170,15 +180,18 @@ export class GameRunner {
     try {
       updates = this.game.executeNextTick();
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Game tick error:", error.message);
-        this.callBack({
-          errMsg: error.message,
-          stack: error.stack,
-        } as ErrorUpdate);
-      } else {
-        console.error("Game tick error:", error);
-      }
+      console.error("Game tick error:", error);
+      // Task 0232: report non-Error throws too — returning silently leaves the
+      // runner latched (isExecuting stays true) with no surface at all.
+      this.callBack({
+        errMsg:
+          error instanceof Error
+            ? error.message
+            : GameRunner.describeThrow(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      // isExecuting is deliberately left true: a faulted simulation must not
+      // keep advancing; the main thread tears the worker down on this update.
       return;
     }
 

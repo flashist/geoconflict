@@ -102,10 +102,10 @@ player typically leaves promptly after the kick modal — which would make the l
 | Task | What it covers | Bounded or accumulating? |
 |---|---|---|
 | [`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md) | monitor orphaned on lobby rejoin | Bounded |
-| [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) | monitor survives a crashed/failed game — ⚠️ **CLOSED 2026-09-07 with its HEADLINE site (the crash path) NOT fixed**: that branch is unreachable dead code, tracked as [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md). The worker-init and `createClientGame`-rejection sites *are* fixed and runtime-verified. | Bounded |
+| [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) | monitor survives a crashed/failed game — ⚠️ **CLOSED 2026-09-07 with its HEADLINE site (the crash path) NOT fixed**: that branch is unreachable dead code, tracked as [`0232`](../../done/0232-worker-tick-error-never-reaches-main-thread/brief.md). The worker-init and `createClientGame`-rejection sites *are* fixed and runtime-verified. | Bounded |
 | [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md) | stale `gameStop` across three awaits | Bounded |
-| [`0231`](../0231-orphaned-clientgamerunner-on-normal-leave-lobby/brief.md) | whole runner + worker + 1 s interval on normal leave | Accumulating — ⚠️ reasoned, not observed |
-| [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md) | worker tick faults never reach the main thread at all | — |
+| [`0231`](../../done/0231-orphaned-clientgamerunner-on-normal-leave-lobby/brief.md) | whole runner + worker + 1 s interval on normal leave | Accumulating — ⚠️ reasoned, not observed |
+| [`0232`](../../done/0232-worker-tick-error-never-reaches-main-thread/brief.md) | worker tick faults never reach the main thread at all | — |
 | **`0233` (this task)** | **the three remaining `showErrorModal` sites that stop nothing** | ⚠️ **Unmeasured — see above** |
 
 **Same family as `0225` / `0227` / `0231`.** ⛔ It does **not** explain or close
@@ -124,7 +124,7 @@ unsettled. **This brief does not decide it.**
 > **`c910452`**: `onGameEnd` is `joinLobby`'s 5th parameter (`ClientGameRunner.ts:116`, `:267`,
 > `:358`, `:400`) and is called from `stop()` at `:793`. ⚠️ **But do NOT upgrade that into "the seam
 > works":** `stop()`'s only caller is the crash branch at `:525`, which
-> [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md) established is **unreachable
+> [`0232`](../../done/0232-worker-tick-error-never-reaches-main-thread/brief.md) established is **unreachable
 > dead code**. **The seam exists, is committed, and has never fired on a real crash.** ✅ **The rest of
 > the question stands, re-verified at `c910452`:** sites 1 and 2 are inside `export class
 > ClientGameRunner` (which begins at `:362`); site 3 is inside `joinLobby` (`:107`), outside the class
@@ -196,8 +196,8 @@ after answering the seam and teardown-depth questions above.
 - **Producer's RANK RECOMMENDATION, put to the owner separately — NOT an owner ruling:** keep the
   **`Medium`** label (it matches the owner's class ruling) and leave the row **where it was
   appended — at the bottom of the Sprint 4 board**. ⚠️ **The board order above it was OWNER-RULED
-  2026-09-07 as `0227` → [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md) →
-  [`0231`](../0231-orphaned-clientgamerunner-on-normal-leave-lobby/brief.md)**, so this row sits
+  2026-09-07 as `0227` → [`0232`](../../done/0232-worker-tick-error-never-reaches-main-thread/brief.md) →
+  [`0231`](../../done/0231-orphaned-clientgamerunner-on-normal-leave-lobby/brief.md)**, so this row sits
   fourth, below all three. **That ruling did not touch this row** — its position remains the
   producer's. Reasoning for leaving it last: it is the
   smallest and least urgent member of the family, its scale is unmeasured, and it depends on `0227`'s
