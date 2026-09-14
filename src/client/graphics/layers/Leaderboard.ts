@@ -138,7 +138,11 @@ export class Leaderboard extends LitElement implements Layer {
         gold: renderNumber(player.gold()),
         troops: renderNumber(troops),
         isMyPlayer: player === myPlayer,
-        isOnSameTeam: player === myPlayer || player.isOnSameTeam(myPlayer!),
+        // Task 0032: myPlayer is null for a spectator or a missed spawn; the old
+        // non-null assertion threw `.data` on null every 10 ticks.
+        isOnSameTeam:
+          player === myPlayer ||
+          (myPlayer !== null && player.isOnSameTeam(myPlayer)),
         isHuman:
           player.type() === PlayerType.Human ||
           player.type() === PlayerType.AiPlayer,

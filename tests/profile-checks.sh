@@ -136,6 +136,7 @@ run_checks() {  # extra VAR=VAL ... ; sets RC, OUT
     PROFILE_CHECKS_LE_LOG="$FIX/le/letsencrypt.log" \
     PROFILE_CHECKS_RENEW_LOG="$FIX/certbot-renew.log" \
     PROFILE_CHECKS_CERT_FILE="$FIX/cert.pem" \
+    PROFILE_CHECKS_REBOOT_REQUIRED_FILE="$FIX/reboot-required" \
     PROFILE_CHECKS_PING_URL="$FAKE_PING_URL" \
     "$@" bash "$SCRIPT" > "$WORK/out.log" 2>&1
   RC=$?
@@ -149,10 +150,10 @@ pinged_fail()    { [ "$(tail -1 "$WORK/curl.urls" 2>/dev/null)" = "$FAKE_PING_UR
 body() { cat "$WORK/curl.body" 2>/dev/null; }
 
 # ══════════════════════════════════════════════════════════════════════════════
-echo "=== C1: healthy box → 7 ok, success ping, exit 0 ==="
+echo "=== C1: healthy box → 8 ok, success ping, exit 0 ==="
 reset_fixture; run_checks
 [ "$RC" -eq 0 ] && ok "exit 0" || no "exit $RC (expected 0):"$'\n'"$OUT"
-grep -q 'RESULT: 7 ok, 0 failed' "$WORK/out.log" && ok "all 7 checks OK" || no "expected 7 ok / 0 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 8 ok, 0 failed' "$WORK/out.log" && ok "all 8 checks OK" || no "expected 8 ok / 0 failed:"$'\n'"$OUT"
 pinged_success && ok "success ping sent to the bare URL" || no "success ping not sent (urls: $(cat "$WORK/curl.urls" 2>/dev/null))"
 [ ! -f "$WORK/curl.body" ] && ok "success ping carries no body" || no "success ping carried a body"
 grep -q -- '--retry 3' "$WORK/curl.argv" && grep -q -- '-m 10' "$WORK/curl.argv" && ok "ping uses a timeout + retries" || no "ping lacks -m 10 / --retry 3"
@@ -209,7 +210,7 @@ echo "=== C9: weekly FAILS while the daily marker AND object are OK ('backup OK'
 reset_fixture; weekly_json 9 > "$WORK/rclone.weekly.json"; run_checks
 [ "$RC" -ne 0 ] && pinged_fail && ok "/fail ping on a weekly-only failure" || no "weekly-only failure did not page"
 body | grep -q 'weekly-backup-object' && ! body | grep -q 'daily-backup' && ok "body names ONLY the weekly check" || no "body: $(body)"
-grep -q 'RESULT: 6 ok, 1 failed' "$WORK/out.log" && ok "6 ok / 1 failed" || no "expected 6 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 7 ok, 1 failed' "$WORK/out.log" && ok "7 ok / 1 failed" || no "expected 7 ok / 1 failed:"$'\n'"$OUT"
 
 echo "=== C10: certbot log mtime 2 days → FAIL; empty log + fresh rotated .1.gz → OK (logrotate window) ==="
 reset_fixture; touch_hours_ago "$FIX/le/letsencrypt.log" 48; run_checks
@@ -247,7 +248,7 @@ echo "=== C13: no ping URL → 'ALERTING NOT CONFIGURED', exit non-zero, no curl
 reset_fixture; run_checks PROFILE_CHECKS_PING_URL=
 [ "$RC" -ne 0 ] && ok "exit non-zero without a URL even though every check passed" || no "exit 0 with no alerting"
 grep -q 'ALERTING NOT CONFIGURED' "$WORK/out.log" && ok "logged ALERTING NOT CONFIGURED" || no "no ALERTING NOT CONFIGURED line"
-grep -q 'RESULT: 7 ok, 0 failed' "$WORK/out.log" && ok "checks still ran and were logged" || no "checks did not run"
+grep -q 'RESULT: 8 ok, 0 failed' "$WORK/out.log" && ok "checks still ran and were logged" || no "checks did not run"
 [ ! -f "$WORK/curl.argv" ] && ok "curl never called" || no "curl was called without a URL"
 
 echo "=== C14: URL comes from checks.env (the on-box shape) when the env is bare ==="
@@ -270,7 +271,7 @@ echo "=== C18: junk threshold overrides → FAIL + default, never a silent OK or
 reset_fixture; write_marker "$FIX/profile/backups/last-backup.json" 0 "$(iso_hours_ago 30)"; run_checks PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS=abc
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -q "thresholds: PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS='abc' is not a non-negative integer — default 26 used" && ok "MAX_BACKUP_AGE_HOURS=abc → FAIL names the variable + default" || no "junk backup-age threshold: rc=$RC body=$(body)"
 body | grep -q 'daily-backup-marker: daily marker age 30h > 26h' && ok "…and the default 26h still catches the 30h-old marker (no silent OK)" || no "default not applied: $(body)"
-grep -q 'RESULT: 6 ok, 2 failed' "$WORK/out.log" && ok "all 7 checks still ran" || no "checks did not all run:"$'\n'"$OUT"
+grep -q 'RESULT: 7 ok, 2 failed' "$WORK/out.log" && ok "all 8 checks still ran" || no "checks did not all run:"$'\n'"$OUT"
 reset_fixture; run_checks PROFILE_CHECKS_CERT_MIN_DAYS=1x
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -q "thresholds: PROFILE_CHECKS_CERT_MIN_DAYS='1x'" && ok "CERT_MIN_DAYS=1x → reaches the /fail ping (no set -u abort)" || no "junk cert threshold aborted before the ping: rc=$RC urls=$(cat "$WORK/curl.urls" 2>/dev/null)"
 grep -q 'openssl x509 -checkend 1728000 -noout -in' "$WORK/openssl.argv" && ok "…and check 6 ran with the default 20d" || no "check 6 did not run with the default: $(cat "$WORK/openssl.argv" 2>/dev/null)"
@@ -278,6 +279,15 @@ reset_fixture; run_checks PROFILE_CHECKS_MAX_WEEKLY_AGE_DAYS=0
 [ "$RC" -ne 0 ] && body | grep -q 'newest weekly copy is 3d old (> 0d' && ! body | grep -q 'thresholds:' && ok "0 is a valid threshold (B9 uses MAX_WEEKLY_AGE_DAYS=0)" || no "0 rejected or ignored: $(body)"
 reset_fixture; run_checks PROFILE_CHECKS_CERT_MIN_DAYS=08
 [ "$RC" -eq 0 ] && grep -q 'openssl x509 -checkend 691200 -noout -in' "$WORK/openssl.argv" && ok "leading zero (08) read as decimal 8, not octal" || no "08 mishandled: rc=$RC argv=$(cat "$WORK/openssl.argv" 2>/dev/null)"
+
+echo "=== C19: /var/run/reboot-required present → FAIL names it (0221: auto-reboot is off, so this is the only signal) ==="
+reset_fixture; : > "$FIX/reboot-required"; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && ok "pending reboot → /fail ping, exit non-zero" || no "pending reboot did not page (rc=$RC)"
+body | grep -q 'reboot-required: reboot required' && ok "body names the pending reboot" || no "body lacks the reboot line: $(body)"
+body | grep -q 'reboot-required' && ! body | grep -q 'daily-backup' && ok "body names ONLY the reboot check (everything else still OK)" || no "body: $(body)"
+grep -q 'RESULT: 7 ok, 1 failed' "$WORK/out.log" && ok "7 ok / 1 failed" || no "expected 7 ok / 1 failed:"$'\n'"$OUT"
+reset_fixture; run_checks
+grep -q 'reboot-required: no pending reboot' "$WORK/out.log" && [ "$RC" -eq 0 ] && ok "no marker file → OK" || no "absent marker wrongly failed (rc=$RC)"
 
 echo "=== C17: secret-leak guard across EVERY run above ==="
 # Log and ping bodies must never carry the access key, secret, bucket, endpoint host or ping URL.

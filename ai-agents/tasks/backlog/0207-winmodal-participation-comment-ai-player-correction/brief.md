@@ -26,7 +26,9 @@
 > part of this check that matters.
 
 ## Sprint
-Backlog — unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md).
+Backlog
+
+Unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md).
 
 **Board chosen honestly:** the owner's ruling was *"File a small brief"* — that authorises the brief, it
 does not schedule a sprint. Filing it on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) would

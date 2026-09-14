@@ -14,7 +14,9 @@
 > references in that skill file are correct and must not be changed.**
 
 ## Sprint
-Backlog — unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md), **not** on Sprint 4,
+Backlog
+
+Unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md), **not** on Sprint 4,
 because no owner ruling scheduled it into a sprint. ~~and **it cannot start at all until the owner
 rules on the resolution policy**~~ — ✅ that second reason is spent: the ruling landed 2026-09-02. The
 first reason stands on its own, so the board choice is unchanged; filing it on Sprint 4 would still

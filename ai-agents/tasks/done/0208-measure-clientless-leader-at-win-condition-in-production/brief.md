@@ -132,7 +132,9 @@
 > edit those skill-file references.**
 
 ## Sprint
-**Sprint 4 — SCHEDULED.** Tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+Sprint 4
+
+**SCHEDULED.** Tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
 
 ~~Backlog — **unscheduled**. Filed on [`backlog.md`](../../../sprints/backlog.md).~~
 

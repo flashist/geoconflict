@@ -43,7 +43,11 @@ PROFILE_SSH_KEY=~/.ssh/id_rsa
 # Optional: SSH login user (default: root)
 # PROFILE_SSH_USER=root
 
-# Deprecated emergency fallback only:
+# Deprecated emergency fallback only — and DEAD since task 0221: setup-profile.sh turns password
+# authentication off on the box (root is key-only), AND refuses to do that on a deploy that came
+# in over this fallback (the operator may not hold the key), so a password-mode deploy aborts at
+# the sshd section and cannot complete a first provision either. To bootstrap a fresh
+# password-only box: ssh-copy-id the deploy key first, then deploy over PROFILE_SSH_KEY.
 # ALLOW_PROFILE_SSH_PASSWORD_FALLBACK=1
 # PROFILE_SSH_PASSWORD=
 

@@ -42,6 +42,7 @@ MARKER="${PROFILE_CHECKS_MARKER_FILE:-$BACKUP_DIR/last-backup.json}"
 SMOKE_MARKER="${PROFILE_CHECKS_SMOKE_MARKER_FILE:-$BACKUP_DIR/last-smokecheck.json}"
 LE_LOG="${PROFILE_CHECKS_LE_LOG:-/var/log/letsencrypt/letsencrypt.log}"
 RENEW_LOG="${PROFILE_CHECKS_RENEW_LOG:-/var/log/certbot-renew.log}"
+REBOOT_REQUIRED_FILE="${PROFILE_CHECKS_REBOOT_REQUIRED_FILE:-/var/run/reboot-required}"
 
 # checks.env (0600, written by setup-profile.sh) carries PROFILE_CHECKS_PING_URL + PROFILE_DOMAIN.
 if [ -f "$CHECKS_ENV_FILE" ]; then
@@ -282,6 +283,19 @@ check_mode() {
   fi
 }
 
+# 8) A pending reboot (task 0221). unattended-upgrades applies security patches with Automatic-Reboot
+#    OFF (owner ruling: one box, so an unattended reboot is an unattended outage), so a patch that
+#    needs a reboot only leaves /var/run/reboot-required behind — and nothing read it. Names only:
+#    the .pkgs list beside it is not reported.
+check_reboot_required() {
+  local name="reboot-required"
+  if [ -e "$REBOOT_REQUIRED_FILE" ]; then
+    fail "$name" "reboot required (unattended-upgrades applied a patch that needs one; automatic reboot is off — schedule it)"
+  else
+    ok "$name" "no pending reboot"
+  fi
+}
+
 # ── Report: log summary, then ping the dead-man's switch ──────────────────────
 # curl's stderr is discarded on purpose: its error text can carry the URL. The service alerts on
 # a MISSING ping, so an undelivered ping is logged, exits non-zero, and still pages.
@@ -316,4 +330,5 @@ check_renewal_attempt
 check_renewal_errors
 check_cert_days
 check_mode
+check_reboot_required
 report

@@ -48,6 +48,9 @@
 #   1. Ensures a swapfile exists (low-RAM VPS OOM cushion)
 #   2. Installs Docker + Docker Compose plugin
 #   3. Applies a ufw firewall (SSH/80/443 only; default-deny incoming)
+#  3b. OS baseline (0221): unattended SECURITY upgrades (no auto-reboot), a fail2ban sshd
+#      jail (fail-closed if not up), and an sshd hardening drop-in (password auth off,
+#      root key-only) gated on the EFFECTIVE config after a reload
 #   4. Creates /opt/profile (0700) + backups/
 #   5. Writes profile.env + docker-compose.yml (postgres + profile-api), both 0600
 #   6. Pulls + starts the stack behind a 120s health-gate with @sha256 rollback
@@ -358,6 +361,253 @@ ufw default allow outgoing
 ufw --force enable
 ufw status verbose
 
+# ── Unattended security upgrades (0221) ───────────────────────────────────────
+# Security pocket ONLY, and NO automatic reboot: this is a single box, so an unattended reboot
+# is an unattended outage (owner ruling, 0221 Q1). A patch that needs a reboot leaves
+# /var/run/reboot-required behind, and the daily checks.sh (0219) reports it instead. Docker is
+# NOT covered (its repo has no -security suite) — a dockerd restart is exactly the G7 scenario
+# the compose restart policy below exists for. `${distro_id}:${distro_codename}-security` is the
+# pocket name on both Ubuntu and Debian. apt reads apt.conf.d lexically and a later file wins,
+# so 52- (after the package's own 50unattended-upgrades) + `#clear` makes OUR list the effective
+# one. Known residual: apt-daily-upgrade can hold the apt lock while a deploy's `apt-get upgrade`
+# runs (that line is harness-anchored and not changed here); such a deploy fails loud under
+# set -e and is simply re-run.
+print_header "CONFIGURING UNATTENDED SECURITY UPGRADES"
+apt-get install -y unattended-upgrades
+cat > /etc/apt/apt.conf.d/20auto-upgrades << 'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
+cat > /etc/apt/apt.conf.d/52geoconflict-unattended-upgrades << 'EOF'
+// Written by setup-profile.sh (task 0221) — change the script and redeploy, not this file.
+// Security pocket only (both Ubuntu and Debian name it <codename>-security).
+#clear Unattended-Upgrade::Allowed-Origins;
+Unattended-Upgrade::Allowed-Origins {
+    "${distro_id}:${distro_codename}-security";
+};
+// Never reboot on its own: one box, so an unattended reboot is an unattended outage.
+// A pending reboot (/var/run/reboot-required) is surfaced by /opt/profile/checks.sh.
+Unattended-Upgrade::Automatic-Reboot "false";
+// Disk hygiene on a small box: old kernels and orphaned dependencies go.
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+EOF
+chmod 644 /etc/apt/apt.conf.d/20auto-upgrades /etc/apt/apt.conf.d/52geoconflict-unattended-upgrades
+if systemctl is-enabled apt-daily-upgrade.timer >/dev/null 2>&1; then
+    echo "apt-daily-upgrade.timer: enabled"
+else
+    echo "⚠️  apt-daily-upgrade.timer is NOT enabled — unattended-upgrades is configured but nothing"
+    echo "    will run it. Check 'systemctl status apt-daily-upgrade.timer'."
+fi
+# Evidence, not a gate (brief verification step 1): the effective origin list, and the dry run
+# resolving the security pocket. Best-effort — a reporting step never fails the deploy.
+echo "Effective Unattended-Upgrade::Allowed-Origins:"
+apt-config dump Unattended-Upgrade::Allowed-Origins 2>/dev/null || true
+echo "unattended-upgrades --dry-run (allowed origins as resolved):"
+# Captured to a file and grepped afterwards, never piped into `head`: --dry-run still DOWNLOADS
+# pending packages, and a reader closing the pipe early SIGPIPEs the dry run mid-download and
+# can truncate the very evidence line this step exists to print (review 0221 R6). The download
+# time on a box with pending updates is a known cost of the evidence, recorded in the worklog.
+UU_DRYRUN_LOG=$(mktemp)
+unattended-upgrades --dry-run --debug > "$UU_DRYRUN_LOG" 2>&1 || true
+grep -iA4 'allowed origins' "$UU_DRYRUN_LOG" || true
+rm -f "$UU_DRYRUN_LOG"
+
+# ── fail2ban on sshd (0221) ───────────────────────────────────────────────────
+# Brute-force throttle on the one exposed auth surface. Policy (owner-approved, 0221 Q3):
+# 5 failures in 10 min → 1 h ban, doubling on repeat up to 1 day. `backend = systemd` reads
+# the journal (Debian 12 ships no auth.log without rsyslog; harmless on Ubuntu) — python3-systemd
+# is what that backend needs, so it is installed explicitly. Only loopback is exempt: no
+# operator-IP exception (that would be a new staged variable + harness allow-list change). The
+# self-ban guard sits on the OTHER side — build-deploy-profile.sh passes -o IdentitiesOnly=yes so
+# a multi-key agent cannot burn 5 attempts on wrong keys. Written to jail.d/*.local (never
+# jail.conf, which the package owns). The distro's default banaction (nftables on Ubuntu 26.04,
+# iptables-multiport upstream) is independent of `ufw --force reset` above — neither firewall
+# reset touches the other's chains; fail2ban is (re)started AFTER ufw so bans in its database are
+# re-applied on top of the fresh ruleset. Fail CLOSED if the jail is not up (like ufw) — a box
+# that silently has no throttle is the state this section exists to end.
+print_header "CONFIGURING FAIL2BAN (sshd jail)"
+apt-get install -y fail2ban python3-systemd
+# Every SSH port the ufw section detected (newline-separated there) → fail2ban's comma list.
+SSH_PORTS_CSV=$(printf '%s\n' $SSH_PORTS | paste -sd, -)
+cat > /etc/fail2ban/jail.d/geoconflict-sshd.local << EOF
+# Written by setup-profile.sh (task 0221) — change the script and redeploy, not this file.
+[DEFAULT]
+backend = systemd
+ignoreip = 127.0.0.1/8 ::1
+
+[sshd]
+enabled = true
+port = ${SSH_PORTS_CSV}
+maxretry = 5
+findtime = 10m
+bantime = 1h
+bantime.increment = true
+bantime.maxtime = 1d
+EOF
+chmod 644 /etc/fail2ban/jail.d/geoconflict-sshd.local
+# Neither start is fatal on its own: under set -e a failing restart would abort BEFORE the
+# gate below and its diagnostic (review 0221 R5). The gate is the single decider.
+systemctl enable --now fail2ban || echo "⚠️  'systemctl enable --now fail2ban' returned non-zero — the jail gate below decides"
+systemctl restart fail2ban || echo "⚠️  'systemctl restart fail2ban' returned non-zero — the jail gate below decides"
+F2B_JAIL_UP=0
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+    if fail2ban-client status sshd >/dev/null 2>&1; then F2B_JAIL_UP=1; break; fi
+    sleep 1
+done
+if [ "$F2B_JAIL_UP" != 1 ]; then
+    echo "Error: the fail2ban sshd jail is not up after install + restart. Refusing to leave the box"
+    echo "       without a brute-force throttle (fail closed, like ufw). See 'journalctl -u fail2ban'"
+    echo "       and 'fail2ban-client -d'. Aborting."
+    exit 1
+fi
+# Jail status into the deploy log (verification step 2's first half). The banned-IP list is
+# not shown — a deploy log gets pasted into task files, and those carry no IPs.
+fail2ban-client status sshd | sed 's/Banned IP list:.*/Banned IP list: (not shown in the deploy log)/'
+echo "✅ fail2ban sshd jail up (ports ${SSH_PORTS_CSV}; 5 fails / 10m → 1h ban, incremental to 1d)"
+
+# ── sshd hardening (0221) ─────────────────────────────────────────────────────
+# Password auth off, root key-only (`prohibit-password`, NOT `no`: root is still the deploy
+# user until the non-root deploy user lands in its own task — owner ruling, 0221 Q8). Ciphers/
+# KEX stay at distro defaults (a custom list is a lock-out vector). A drop-in under
+# sshd_config.d/, never an edit to sshd_config itself. Four lock-out guards, in order:
+#   0. never harden on a deploy that itself came in over the PASSWORD fallback — that operator
+#      may not hold the on-box key. build-deploy-profile.sh stages the auth mode it used as
+#      PROFILE_DEPLOY_SSH_AUTH (key | password); `password` → refuse (review 0221 R1);
+#   1. never disable password auth on a box with NO key in /root/.ssh/authorized_keys. This
+#      checks only that SOME key is there — not that the deploying operator holds it (that is
+#      guard 0's job);
+#   2. `sshd -t` BEFORE the reload — a rejected config is rolled back on the spot, so the NEXT
+#      sshd start can never be blocked by it;
+#   3. reload (this deploy's own session survives; a failed reload rolls back and aborts), then
+#      gate on the EFFECTIVE config — for the global section AND for a root connection
+#      (`sshd -T -C user=root,…`): a Match block overrides the globals and plain `sshd -T` would
+#      not show it. Not in effect → rolled back, sshd reloaded, deploy aborted.
+# Rollback means RESTORE, not delete (review 0221 R3): a drop-in left by an earlier deploy is
+# backed up before the write — OUTSIDE sshd_config.d/, so the backup is never Included — and
+# moved back on any failure, so a redeploy that fails for an unrelated reason (a transient
+# `sshd -T` error, a new file sorting before 00-) never re-opens root password auth. With no
+# earlier drop-in, rollback removes the new one. Either way: state exactly as before.
+# After this lands, ALLOW_PROFILE_SSH_PASSWORD_FALLBACK in build-deploy-profile.sh is dead against
+# this box by design.
+print_header "HARDENING SSHD"
+SSHD_DROPIN=/etc/ssh/sshd_config.d/00-geoconflict-hardening.conf
+SSHD_DROPIN_BACKUP=/etc/ssh/geoconflict-hardening.conf.previous
+# Guard 0: the auth mode THIS deploy used, staged by build-deploy-profile.sh.
+if [ "${PROFILE_DEPLOY_SSH_AUTH:-}" = "password" ]; then
+    echo "Error: this deploy authenticated with the PASSWORD fallback (ALLOW_PROFILE_SSH_PASSWORD_FALLBACK)."
+    echo "       Refusing to disable password authentication: the operator may not hold the key in"
+    echo "       /root/.ssh/authorized_keys and would be locked out when this session ends. Install the"
+    echo "       deploy key (PROFILE_SSH_KEY's public half, e.g. ssh-copy-id) and redeploy over the key"
+    echo "       path. Aborting (fail closed)."
+    exit 1
+fi
+# Guard 1: a key-type prefix, not merely a non-empty file (a comment-only file is no way in).
+if ! grep -qsE '^(ssh-|ecdsa-|sk-)' /root/.ssh/authorized_keys; then
+    echo "Error: /root/.ssh/authorized_keys is missing or holds no key. Refusing to disable password"
+    echo "       authentication — it may be the only way into this box. Install the deploy key"
+    echo "       (PROFILE_SSH_KEY's public half) and re-run. Aborting (fail closed)."
+    exit 1
+fi
+if ! grep -qE '^[[:space:]]*Include[[:space:]]+/etc/ssh/sshd_config\.d/\*\.conf' /etc/ssh/sshd_config; then
+    echo "Error: /etc/ssh/sshd_config does not Include /etc/ssh/sshd_config.d/*.conf — the hardening"
+    echo "       drop-in would be inert. Aborting (fail closed) rather than claim a hardening not in effect."
+    exit 1
+fi
+sshd_reload() {  # Debian/Ubuntu unit is `ssh`, upstream/Fedora `sshd`; stderr is shown only when BOTH fail
+    local errlog
+    errlog=$(mktemp)
+    if { systemctl reload ssh || systemctl reload sshd; } 2>"$errlog"; then
+        rm -f "$errlog"
+        return 0
+    fi
+    cat "$errlog" >&2
+    rm -f "$errlog"
+    return 1
+}
+sshd_rollback() {  # the drop-in exactly as it was before this deploy: restored, or removed if there was none
+    if [ -f "$SSHD_DROPIN_BACKUP" ]; then
+        mv -f "$SSHD_DROPIN_BACKUP" "$SSHD_DROPIN"
+        echo "       sshd rollback: restored the previous $SSHD_DROPIN."
+    else
+        rm -f "$SSHD_DROPIN"
+        echo "       sshd rollback: removed $SSHD_DROPIN (none existed before this deploy)."
+    fi
+}
+mkdir -p /etc/ssh/sshd_config.d
+rm -f "$SSHD_DROPIN_BACKUP"
+if [ -f "$SSHD_DROPIN" ]; then
+    cp -p "$SSHD_DROPIN" "$SSHD_DROPIN_BACKUP"
+fi
+cat > "$SSHD_DROPIN" << 'EOF'
+# Written by setup-profile.sh (task 0221) — change the script and redeploy, not this file.
+# 00- prefix: sshd keeps the FIRST value it reads for a keyword and the Include glob is lexical,
+# so this file wins over a cloud image's 50-cloud-init.conf (PasswordAuthentication yes).
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitEmptyPasswords no
+PubkeyAuthentication yes
+PermitRootLogin prohibit-password
+MaxAuthTries 6
+X11Forwarding no
+LoginGraceTime 30
+# Match blocks OVERRIDE the global section, and cloud images ship them (seen on this box:
+# 99-qemu.conf `Match User root` → PasswordAuthentication yes, PermitRootLogin yes). Among Match
+# blocks the FIRST matching value wins, so the auth keywords are pinned again here, first.
+Match all
+    PasswordAuthentication no
+    KbdInteractiveAuthentication no
+    PermitEmptyPasswords no
+    PermitRootLogin prohibit-password
+EOF
+chmod 644 "$SSHD_DROPIN"
+# Guard 2: never leave a config that blocks the NEXT sshd start.
+if ! sshd -t; then
+    sshd_rollback
+    echo "Error: sshd rejected the hardening drop-in (sshd -t). Rolled back — sshd config is as before. Aborting."
+    exit 1
+fi
+# reload, not restart: this deploy's own SSH session survives. A failed reload (its stderr is
+# printed) rolls back before aborting, so the drop-in never outlives a deploy the gate never
+# judged (review 0221 R4).
+if ! sshd_reload; then
+    sshd_rollback
+    sshd_reload || true
+    echo "Error: sshd reload failed (see above). Rolled back — sshd config is as before. Aborting (fail closed)."
+    exit 1
+fi
+# Guard 3: the EFFECTIVE values — global section and a root connection — must both match.
+sshd_effective() {  # $1 keyword → "<global> <root-effective>"
+    local g r
+    g=$(sshd -T 2>/dev/null | awk -v k="$1" '$1==k{print $2; exit}')
+    r=$(sshd -T -C user=root,host=localhost,addr=127.0.0.1 2>/dev/null | awk -v k="$1" '$1==k{print $2; exit}')
+    echo "${g:-?} ${r:-?}"
+}
+SSHD_GATE_FAILED=0
+for kv in "passwordauthentication no" "kbdinteractiveauthentication no" "permitemptypasswords no" "permitrootlogin prohibit-password"; do
+    key=${kv%% *}; want=${kv#* }
+    got=$(sshd_effective "$key")
+    # OpenSSH ≤ 9.2 (Debian 12) prints prohibit-password as its old name, without-password.
+    got=${got//without-password/prohibit-password}
+    if [ "$got" = "$want $want" ]; then
+        echo "✅ sshd: $key $want (global + root-effective)"
+    else
+        echo "❌ sshd: $key is '$got' (global, root-effective) — expected '$want' for both"
+        SSHD_GATE_FAILED=1
+    fi
+done
+if [ "$SSHD_GATE_FAILED" != 0 ]; then
+    sshd_rollback
+    sshd_reload || true
+    echo "Error: the sshd hardening is NOT in effect — another sshd config still wins. Rolled back"
+    echo "       and sshd reloaded (state as before). Inspect /etc/ssh/sshd_config.d/ and"
+    echo "       'sshd -T -C user=root,host=localhost,addr=127.0.0.1'. Aborting (fail closed)."
+    exit 1
+fi
+rm -f "$SSHD_DROPIN_BACKUP"
+echo "✅ sshd hardened: password auth OFF, root key-only (prohibit-password), drop-in $SSHD_DROPIN."
+echo "   ALLOW_PROFILE_SSH_PASSWORD_FALLBACK (build-deploy-profile.sh) is now dead against this box by design."
+
 # ── Directories ───────────────────────────────────────────────────────────────
 # Root-only: holds the compose env_file + the persisted internal token written just
 # below; backups/ is pre-created as the pg_dump cron's target.
@@ -402,7 +652,9 @@ fi
 # A blank therefore means "reuse", so a value cannot be CLEARED by blanking it: to clear one,
 # `rm` its persist file on the box (named in the output) and redeploy (owner ruling, 0220 Q4).
 # Persist files are raw bytes (printf '%s'), root-only 0600, beside .internal_token. `-s` not
-# `-f`: an empty file counts as nothing persisted, never as a silent empty reuse.
+# `-f`: an empty file counts as nothing persisted, never as a silent empty reuse. A persist file
+# that exists but cannot be READ aborts the deploy (fail closed, like the token block's `$(cat)`
+# under set -e) — it must never fall through to an empty value behind a "Reusing" line.
 # POSTGRES_PASSWORD is deliberately NOT here: it is required and fails closed above (the
 # stronger behaviour) — do not "fix" it into this pattern.
 # $1 variable name   $2 persist file (root-only, 0600)
@@ -414,7 +666,12 @@ persist_or_reuse_secret() {
         chmod 600 "$file"
         echo "Using $name from environment (persisted to $file)"
     elif [ -s "$file" ]; then
-        printf -v "$name" '%s' "$(cat "$file")"
+        value=$(cat "$file") || {
+            echo "Error: $name: persist file $file exists but could not be read. Refusing to"
+            echo "continue with an EMPTY value — fix the file, or rm it to clear the value. Aborting (fail closed)."
+            exit 1
+        }
+        printf -v "$name" '%s' "$value"
         echo "⚠️  Reusing persisted $name from $file — the deploy supplied no value"
     else
         echo "$name: not supplied and nothing persisted — written EMPTY (feature stays off)"
@@ -469,13 +726,18 @@ echo "Written: profile.env (0600)"
 # The OPTIONAL reasons here mirror scripts/config-parity-allowlist.json (the box can't read it).
 report_config_values() {
     local n_ok=0 n_opt=0 n_find=0 host
-    local url_re='^[a-z][a-z0-9+.-]*://[^/[:space:]]+' https_re='^https://[^/[:space:]]+'
-    # PROFILE_DOMAIN — bare hostname: no scheme, no path, not an IP literal.
+    # Both URL regexes are end-anchored: "https://host junk" is not a URL. host_re is the
+    # bare-hostname charset (letters, digits, dots, hyphens) — no port, no whitespace.
+    local url_re='^[a-z][a-z0-9+.-]*://[^/[:space:]]+[^[:space:]]*$' https_re='^https://[^/[:space:]]+[^[:space:]]*$'
+    local host_re='^[A-Za-z0-9.-]+$'
+    # PROFILE_DOMAIN — bare hostname: no scheme, no path, not an IP literal, hostname charset only.
     if [ -n "${PROFILE_DOMAIN:-}" ]; then
         if [[ "$PROFILE_DOMAIN" == *"://"* ]] || [[ "$PROFILE_DOMAIN" == */* ]]; then
             echo "  FINDING  PROFILE_DOMAIN — must be a bare hostname; it carries a scheme or a path (the 0063 class)"; n_find=$((n_find+1))
         elif [[ "$PROFILE_DOMAIN" =~ $ipv4_re ]] || [[ "$PROFILE_DOMAIN" =~ $ipv6_re ]]; then
             echo "  FINDING  PROFILE_DOMAIN — must be a hostname, not an IP literal (the 0063 class)"; n_find=$((n_find+1))
+        elif ! [[ "$PROFILE_DOMAIN" =~ $host_re ]]; then
+            echo "  FINDING  PROFILE_DOMAIN — must be a bare hostname; it carries a port, whitespace or other non-hostname characters"; n_find=$((n_find+1))
         else
             echo "  OK       PROFILE_DOMAIN"; n_ok=$((n_ok+1))
         fi
@@ -521,7 +783,7 @@ report_config_values() {
     fi
     # PROFILE_CHECKS_PING_URL — https + hostname when set; empty is supported but nobody is paged.
     if [ -n "${PROFILE_CHECKS_PING_URL:-}" ]; then
-        host="${PROFILE_CHECKS_PING_URL#*://}"; host="${host%%/*}"; host="${host%%:*}"
+        host="${PROFILE_CHECKS_PING_URL#*://}"; host="${host%%/*}"; host="${host##*@}"; host="${host%%:*}"
         if ! [[ "$PROFILE_CHECKS_PING_URL" =~ $https_re ]]; then
             echo "  FINDING  PROFILE_CHECKS_PING_URL — must be an https:// URL (a capability sent in clear otherwise)"; n_find=$((n_find+1))
         elif [[ "$host" =~ $ipv4_re ]] || [[ "$host" == \[* ]]; then
@@ -534,7 +796,7 @@ report_config_values() {
     fi
     # PROFILE_BACKUP_S3_ENDPOINT — https + hostname when set (S3 credentials travel over it).
     if [ -n "${PROFILE_BACKUP_S3_ENDPOINT:-}" ]; then
-        host="${PROFILE_BACKUP_S3_ENDPOINT#*://}"; host="${host%%/*}"; host="${host%%:*}"
+        host="${PROFILE_BACKUP_S3_ENDPOINT#*://}"; host="${host%%/*}"; host="${host##*@}"; host="${host%%:*}"
         if ! [[ "$PROFILE_BACKUP_S3_ENDPOINT" =~ $https_re ]]; then
             echo "  FINDING  PROFILE_BACKUP_S3_ENDPOINT — must be an https:// URL (S3 credentials would travel in clear)"; n_find=$((n_find+1))
         elif [[ "$host" =~ $ipv4_re ]] || [[ "$host" == \[* ]]; then
@@ -557,7 +819,10 @@ cat > "$PROFILE_DIR/docker-compose.yml" << EOF
 services:
   postgres:
     image: postgres:16-alpine
-    restart: on-failure
+    # unless-stopped (0221, G7): comes back after a Docker DAEMON restart — on-failure did not;
+    # only systemd's reboot path covered it — without fighting a deliberate `docker compose stop`
+    # the way `always` does. Same intent as the game box's --restart=always (update.sh).
+    restart: unless-stopped
     # Conservative memory caps for a low-RAM box (no auto-sizing). The swapfile above
     # is the host-level cushion; these keep Postgres itself bounded (the OOM lesson).
     command: postgres -c shared_buffers=128MB -c work_mem=4MB -c max_connections=25 -c maintenance_work_mem=64MB
@@ -587,7 +852,11 @@ services:
 
   profile-api:
     image: ${PROFILE_IMAGE}
-    restart: on-failure
+    restart: unless-stopped
+    # init: true (0221, G8): PID 1 is a real init that forwards SIGTERM to node and reaps
+    # zombies. Together with Dockerfile.profile's exec-form `node` CMD this is what lets
+    # `docker stop` reach the graceful-shutdown handler (8 s drain < the 10 s stop grace).
+    init: true
     # DATABASE_URL + PROFILE_INTERNAL_TOKEN + PROFILE_PORT come from the 0600 profile.env.
     env_file:
       - ./profile.env
@@ -1286,4 +1555,6 @@ echo "  PROFILE_API_URL=https://${PROFILE_DOMAIN:-<set-domain>}"
 echo "  PROFILE_INTERNAL_TOKEN=<value managed in .env.profile.secret>"
 echo ""
 echo "Firewall: ufw active (SSH/80/443 allowed, everything else denied)."
+echo "OS baseline (0221): unattended SECURITY upgrades (no auto-reboot; checks.sh reports a pending one),"
+echo "fail2ban sshd jail (5/10m → 1h, up to 1d), sshd password auth OFF (root key-only); containers restart unless-stopped."
 echo "======================================================"

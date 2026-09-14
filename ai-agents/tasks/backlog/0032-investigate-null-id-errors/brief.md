@@ -15,7 +15,7 @@ Medium — ~1.8 errors/min. Real client-side state errors. Not urgent relative t
 citizenship/payments track, but cheap to triage once the prerequisites are in place.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — built + reviewed 2026-09-14 (top-2 clusters ≈99 % of the actionable null-id family fixed at the origin: `TerrainMapLoader` cached a built map with mutable tile ownership → second game on the same map in one page started with stale owners; `Leaderboard` dereferenced a legitimately-null `myPlayer`; regression tests fail on HEAD; stateful review round 1 closed out, R2–R4 applied, R1 accepted residual, Codex coverage full; `npm test` 122/1269 green); open pending the OWNER-side step 5 — game deploy via `build-deploy.sh`, then the Uptrace re-query filtered to the new `service.version` — which is itself BLOCKED on `0257` (telemetry cert expired 2026-09-04, ingest dark). Measurements are from build 0.0.140 (last real window); the traced files are byte-unchanged since. Same hold-open posture the owner ruled for `0219`. Driven by `/fkit-sprint-ship-loop`
 
 ## Owner
 fkit-coder

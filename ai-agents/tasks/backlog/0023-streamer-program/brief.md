@@ -4,6 +4,8 @@
 0023
 
 ## Sprint
+Backlog
+
 Unscheduled — parking lot. Return to this when citizenship + name rendering (Task 8) are live.
 
 ## Priority

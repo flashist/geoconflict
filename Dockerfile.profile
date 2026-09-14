@@ -35,4 +35,10 @@ COPY src ./src
 COPY migrations ./migrations
 
 EXPOSE 8080
-CMD ["npm", "run", "start:profile-server"]
+# Exec-form `node`, NOT `npm run start:profile-server`: npm does not forward SIGTERM to its
+# child, so `docker stop` never reached the graceful-shutdown handler (task 0221 probe: with
+# the npm CMD the handler never ran, exit 1/143, with or without --init; with node as PID 1
+# it drained and exited 0). The flags below DUPLICATE package.json's start:profile-server on
+# purpose — keep the two in sync (the deploy harness asserts they match). The compose
+# service also sets `init: true` (setup-profile.sh) so PID 1 forwards signals and reaps.
+CMD ["node", "--loader", "ts-node/esm", "--experimental-specifier-resolution=node", "src/profile-server/Server.ts"]

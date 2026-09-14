@@ -791,6 +791,15 @@ if [ -n "$TELEMETRY_DOMAIN" ]; then
 
     # Stop nginx so certbot --standalone can own port 80 for the HTTP-01 challenge.
     # --keep-until-expiring is a no-op if the cert is still fresh (safe to re-run).
+    #
+    # RENEWAL CONTRACT (for the certbot-renew cron below — mirrors setup-profile.sh):
+    # certbot persists `authenticator = standalone`, which binds port 80 for the
+    # HTTP-01 challenge. nginx permanently owns port 80 below, so `certbot renew`
+    # MUST free it first. The renew cron therefore needs a PRE-hook that stops
+    # nginx and a POST-hook that restarts it, e.g.:
+    #   certbot renew --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx"
+    # A reload-only post-hook (the seed form, 0257) will NOT renew and the cert will
+    # expire. Validate with `certbot renew --dry-run` while nginx is running.
     systemctl stop nginx || true
     certbot certonly --standalone \
         --non-interactive \
@@ -798,6 +807,12 @@ if [ -n "$TELEMETRY_DOMAIN" ]; then
         --keep-until-expiring \
         -m ruflashist@gmail.com \
         -d "$TELEMETRY_DOMAIN"
+
+    # The certbot package ships certbot.timer, a SECOND renewal path with no nginx hooks: behind
+    # nginx its standalone bind on port 80 can only fail (noise in letsencrypt.log at every due
+    # attempt). Same shape as the profile box (0219 review R3 ruling): the hooked cron below is
+    # the ONLY renewer; disable the timer. Idempotent; never fails the deploy.
+    systemctl disable --now certbot.timer >/dev/null 2>&1 || true
 
     cat > /etc/nginx/sites-available/telemetry << NGINXEOF
 server {
@@ -926,8 +941,12 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # as spans_ttl/logs_ttl/events_ttl/metrics_ttl and applies them via this command.
 15 4 * * * root cd $UPTRACE_DIR && docker compose exec -T uptrace /uptrace --config=/etc/uptrace/config.yml retention check >> /var/log/uptrace-retention.log 2>&1
 
-# Certbot renewal — twice daily (Let's Encrypt recommendation)
-0 0,12 * * * root certbot renew --quiet --post-hook "systemctl reload nginx" >> /var/log/certbot-renew.log 2>&1
+# Certbot renewal — twice daily (Let's Encrypt recommendation). FIX vs the seed's reload-only
+# post-hook (0257): the cert is issued with the --standalone authenticator, which binds port 80
+# for the HTTP-01 challenge — but nginx permanently owns port 80, so a reload-only hook could
+# NEVER renew and the cert silently expired. Free port 80 around renewal, exactly as the
+# profile box does: stop nginx (pre-hook), renew, start nginx (post-hook).
+0 0,12 * * * root certbot renew --quiet --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx" >> /var/log/certbot-renew.log 2>&1
 EOF
 
 chmod 644 "$CRON_FILE"

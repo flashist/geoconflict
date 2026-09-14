@@ -198,7 +198,7 @@ and handled by a **decided** per-handler policy — instead of being logged insi
 - **Related, not dependent:**
   [`0231`](../../done/0231-orphaned-clientgamerunner-on-normal-leave-lobby/brief.md) (what the crash path does
   *after* `stop()` — the reconnect-as-ghost observation 0232 handed it) and
-  [`0233`](../0233-server-error-and-desync-sites-leave-performancemonitor-running/brief.md) (the
+  [`0233`](../../done/0233-server-error-and-desync-sites-leave-performancemonitor-running/brief.md) (the
   desync/server-error modal sites — relevant if a `"turn"` throw is routed to the existing desync
   surface instead of a new one).
 - 🚨 **F4 — the crash modal's UX (non-closable, "paste into Discord", may cover the exit button on a

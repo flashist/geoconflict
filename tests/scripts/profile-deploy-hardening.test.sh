@@ -452,7 +452,9 @@ grep -q 'CHECKS_SCRIPT="./profile-checks.sh"' "$B" && grep -q 'REMOTE_CHECKS_SCR
 # and carry spaces/quotes/$; the assertions check that NO value and NO length ever reaches the
 # deploy output — names only.
 P="$REPO_ROOT/setup-profile.sh"
-mode_of() { stat -f '%Lp' "$1" 2>/dev/null || stat -c '%a' "$1" 2>/dev/null; }
+# Portable like the sshpass stub above: GNU `stat -f` is "file-system status" and prints multi-line
+# output to stdout before failing, so branch on the exit status with stdout discarded (review R1).
+mode_of() { if stat -f '%Lp' "$1" >/dev/null 2>&1; then stat -f '%Lp' "$1"; else stat -c '%a' "$1"; fi; }
 # From `name() {` at column 0 to the first `}` at column 0 — the function has no brace at
 # column 0 inside and no heredoc, so this is exactly the definition.
 eval "$(awk '/^persist_or_reuse_secret\(\) \{/,/^\}/' "$P")"
@@ -497,7 +499,10 @@ if [ "$HAVE_PERSIST" = 1 ]; then
       || fail "$name: deploy-2 output unexpected"
     if cat "$PDIR/out1.txt" "$PDIR/out2.txt" | grep -qF "$val"; then fail "$name: the VALUE leaked into deploy output"; \
       else pass "$name: value never appears in deploy output"; fi
-    if cat "$PDIR/out1.txt" "$PDIR/out2.txt" | grep -qE "(^|[^0-9])${#val}([^0-9]|$)"; then fail "$name: the value's LENGTH (${#val}) appears in deploy output"; \
+    # The persist path (a random mktemp suffix, digits included on Linux) is part of the expected
+    # line, never of the assertion — strip it literally before the LENGTH grep (review R6).
+    out12="$(cat "$PDIR/out1.txt" "$PDIR/out2.txt")"; out12="${out12//"$file"/}"
+    if printf '%s\n' "$out12" | grep -qE "(^|[^0-9])${#val}([^0-9]|$)"; then fail "$name: the value's LENGTH (${#val}) appears in deploy output"; \
       else pass "$name: value length never appears in deploy output"; fi
   done
   rm -rf "$PDIR"
@@ -548,6 +553,18 @@ if [ "$HAVE_PERSIST" = 1 ]; then
   [ -z "${TELEGRAM_PROXY_URL-}" ] && grep -q 'written EMPTY' "$PDIR/out.txt" \
     && pass "neither: an EMPTY persist file is treated as nothing persisted (no silent empty reuse)" \
     || fail "neither: an empty persist file was 'reused' — a silent empty reuse"
+  # An UNREADABLE persist file — a directory at its path: passes -s, cat fails, works as root too —
+  # must ABORT the deploy (fail closed, as the token block's $(cat) does under set -e), never fall
+  # through to an empty value with a 'Reusing persisted' claim (review R2). Subshell: it exits.
+  mkdir "$PDIR/.feedback_telegram_chat_id"; : > "$PDIR/.feedback_telegram_chat_id/entry"
+  unset FEEDBACK_TELEGRAM_CHAT_ID
+  ( persist_or_reuse_secret FEEDBACK_TELEGRAM_CHAT_ID "$PDIR/.feedback_telegram_chat_id" ) > "$PDIR/out.txt" 2>&1; rc=$?
+  [ "$rc" -ne 0 ] && pass "unreadable: an unreadable persist file ABORTS the deploy (rc=$rc) — never an empty value" \
+    || fail "unreadable: rc 0 on an unreadable persist file — fell through to an empty value (the silent-blank shape)"
+  grep -q 'Error: FEEDBACK_TELEGRAM_CHAT_ID: persist file' "$PDIR/out.txt" && grep -qF "$PDIR/.feedback_telegram_chat_id" "$PDIR/out.txt" \
+    && pass "unreadable: the error names the variable and the file" || fail "unreadable: error line missing: $(head -2 "$PDIR/out.txt")"
+  grep -q 'Reusing persisted' "$PDIR/out.txt" && fail "unreadable: claimed 'Reusing persisted' on a read failure" \
+    || pass "unreadable: no 'Reusing persisted' claim on a read failure"
   rm -rf "$PDIR"
 else
   fail "T14 skipped: persist_or_reuse_secret() absent"
@@ -613,10 +630,41 @@ if [ "$HAVE_REPORT" = 1 ]; then
     || fail "optional: YANDEX_PAYMENTS_SECRET optional row missing its reason"
   grep -q 'OPTIONAL.*FEEDBACK_TELEGRAM_TOKEN' "$RDIR/opt.txt" && pass "optional: Telegram pair row is explicit" || fail "optional: Telegram pair optional row missing"
   grep -q 'OPTIONAL.*PROFILE_CHECKS_PING_URL' "$RDIR/opt.txt" && pass "optional: PROFILE_CHECKS_PING_URL row is explicit (nobody paged)" || fail "optional: ping URL optional row missing"
+  # (vi) tightened rules (review R3–R5): trailing junk after a URL, userinfo hiding an IP literal,
+  #      and a PROFILE_DOMAIN with a port or whitespace → each fires; exit still 0.
+  clean_config
+  TELEGRAM_PROXY_URL='http://proxy.example.invalid bad'
+  PROFILE_CHECKS_PING_URL='https://ping.example.invalid bad'
+  PROFILE_BACKUP_S3_ENDPOINT='https://user:pw@203.0.113.13/'
+  PROFILE_DOMAIN='api.example.invalid:443'
+  report_config_values > "$RDIR/bad3.txt"; rc=$?
+  [ "$rc" -eq 0 ] && pass "bad3: report_config_values STILL returned 0" || fail "bad3: returned $rc"
+  grep -q 'FINDING.*TELEGRAM_PROXY_URL' "$RDIR/bad3.txt" && pass "bad3: trailing junk after TELEGRAM_PROXY_URL → finding (URL regex is anchored)" \
+    || fail "bad3: 'http://host bad' passed as a URL — url_re is not end-anchored"
+  grep -q 'FINDING.*PROFILE_CHECKS_PING_URL' "$RDIR/bad3.txt" && pass "bad3: trailing junk after PROFILE_CHECKS_PING_URL → finding (https regex is anchored)" \
+    || fail "bad3: 'https://host bad' passed as a URL — https_re is not end-anchored"
+  grep -q 'FINDING.*PROFILE_BACKUP_S3_ENDPOINT.*IP literal' "$RDIR/bad3.txt" && pass "bad3: userinfo@IP-literal S3 endpoint → IP-literal finding (userinfo stripped)" \
+    || fail "bad3: 'https://user:pw@203.0.113.13/' passed — host extraction keeps the userinfo"
+  grep -q 'FINDING.*PROFILE_DOMAIN' "$RDIR/bad3.txt" && pass "bad3: PROFILE_DOMAIN with a port → finding (bare-hostname charset)" \
+    || fail "bad3: 'host:443' passed as a bare hostname"
+  grep -q '^Value parity: 4 finding(s),' "$RDIR/bad3.txt" && pass "bad3: summary counts exactly 4 findings" \
+    || fail "bad3: summary line wrong: $(grep 'Value parity' "$RDIR/bad3.txt")"
+  clean_config
+  PROFILE_DOMAIN='bad host'
+  PROFILE_CHECKS_PING_URL='https://user@203.0.113.12/x'
+  report_config_values > "$RDIR/bad4.txt"; rc=$?
+  [ "$rc" -eq 0 ] && pass "bad4: report_config_values STILL returned 0" || fail "bad4: returned $rc"
+  grep -q 'FINDING.*PROFILE_DOMAIN' "$RDIR/bad4.txt" && pass "bad4: PROFILE_DOMAIN with whitespace → finding" || fail "bad4: 'bad host' passed as a bare hostname"
+  grep -q 'FINDING.*PROFILE_CHECKS_PING_URL.*IP literal' "$RDIR/bad4.txt" && pass "bad4: userinfo@IP-literal ping URL → IP-literal finding" \
+    || fail "bad4: 'https://user@203.0.113.12/x' passed — host extraction keeps the userinfo"
+  grep -q '^Value parity: 2 finding(s),' "$RDIR/bad4.txt" && pass "bad4: summary counts exactly 2 findings" \
+    || fail "bad4: summary line wrong: $(grep 'Value parity' "$RDIR/bad4.txt")"
   # (iii) canary: a synthetic secret in EVERY checked variable never appears in any report output.
   for v in '0220-F@ke tg "token"$notreal' '0220-F@ke chat "id"$notreal' '0220-F@ke yp "key"$notreal' '0220-F@ke internal "tok"$notreal' \
            'https://ping.example.invalid/0220-fake' 'http://ping.example.invalid/0220-fake' 'http://proxy.example.invalid:3128' \
-           'http://203.0.113.10' 'http://203.0.113.11' 'https://s3.example.invalid'; do
+           'http://203.0.113.10' 'http://203.0.113.11' 'https://s3.example.invalid' \
+           'http://proxy.example.invalid bad' 'https://ping.example.invalid bad' 'https://user:pw@203.0.113.13/' \
+           'api.example.invalid:443' 'bad host' 'https://user@203.0.113.12/x'; do
     if cat "$RDIR"/*.txt | grep -qF "$v"; then fail "canary: a checked VALUE leaked into the value report"; break; fi
   done
   cat "$RDIR"/*.txt | grep -qF '0220-F@ke' || pass "canary: no checked value appears in any report output (names + verdicts only)"
@@ -670,5 +718,249 @@ REPORT_BODY=$(awk '/^report_config_values\(\) \{/,/^\}/' "$P")
 [ -n "$REPORT_BODY" ] && ! printf '%s\n' "$REPORT_BODY" | grep -v '^[[:space:]]*#' | grep -qE '(^|[^A-Za-z_])exit([^A-Za-z_]|$)' \
   && pass "setup-profile.sh: no exit inside report_config_values() (report-only by construction)" \
   || fail "setup-profile.sh: report_config_values() is missing or contains an exit — that would fail a deploy"
+
+# ── Structural: OS baseline hardening, restart policy, SIGTERM shape (task 0221) ──
+# Same character as the 0219/0220 blocks: LINTS, awk-scoped to the heredoc or section they
+# assert on, VALUES not presence, false-RED-never-false-green. Seen RED first against the
+# pre-0221 scripts (negative control, recorded in the task worklog). The behaviour itself —
+# a ban observed, password auth refused from a NEW session, both containers back after a
+# daemon restart, a clean SIGTERM drain in the logs — is provable only on the box (0221 Part B).
+echo "== Structural: OS baseline hardening + restart policy + SIGTERM shape (0221) =="
+P="$REPO_ROOT/setup-profile.sh"
+B="$REPO_ROOT/build-deploy-profile.sh"
+D="$REPO_ROOT/Dockerfile.profile"
+C="$REPO_ROOT/profile-checks.sh"
+# G7 — restart policy, inside the compose heredoc only. unless-stopped on EVERY service, and
+# on-failure (the daemon-restart hole) nowhere. n_services comes from the 0219 block above.
+COMPOSE_BLOCK=$(awk '/cat > "\$PROFILE_DIR\/docker-compose.yml" << EOF/{b=1; next} b && /^EOF$/{exit} b{print}' "$P")
+n_unless=$(printf '%s\n' "$COMPOSE_BLOCK" | grep -cE '^    restart: unless-stopped$' || true)
+n_onfail=$(printf '%s\n' "$COMPOSE_BLOCK" | grep -cE '^    restart: on-failure' || true)
+[ "$n_services" -ge 2 ] && [ "$n_unless" = "$n_services" ] \
+  && pass "compose: every service ($n_services) is restart: unless-stopped" \
+  || fail "compose: restart: unless-stopped on $n_unless of $n_services service(s) — an unlisted service does not survive a daemon restart"
+[ "${n_onfail:-0}" = "0" ] && pass "compose: no service is back on restart: on-failure" \
+  || fail "compose: $n_onfail service(s) still restart: on-failure (G7 — dead after a Docker daemon restart)"
+# G8 — init: true under profile-api (and only asserted there: the service block, not the file).
+API_BLOCK=$(printf '%s\n' "$COMPOSE_BLOCK" | awk '/^  profile-api:$/{b=1; next} b && (/^  [a-z]/ || /^volumes:/){exit} b{print}')
+[ -n "$API_BLOCK" ] && printf '%s\n' "$API_BLOCK" | grep -qE '^    init: true$' \
+  && pass "compose: profile-api has init: true (PID 1 forwards SIGTERM to node)" \
+  || fail "compose: profile-api lacks init: true — docker stop would not reach the shutdown handler"
+# Dockerfile.profile: exec-form node CMD, never npm (npm swallows SIGTERM — 0221 probe), and the
+# flags DUPLICATE package.json's start:profile-server on purpose: assert they are identical.
+grep -qE '^CMD \["node", ' "$D" && ! grep -qE '^CMD \["npm"' "$D" \
+  && pass "Dockerfile.profile: CMD is exec-form node (not npm run)" \
+  || fail "Dockerfile.profile: CMD is not exec-form node — SIGTERM would never reach the handler"
+if command -v node >/dev/null 2>&1; then
+  ( cd "$REPO_ROOT" && node -e '
+    const fs = require("fs");
+    const m = fs.readFileSync(process.argv[1], "utf8").match(/^CMD (\[.*\])$/m);
+    const cmd = m ? JSON.parse(m[1]).join(" ") : "";
+    const script = require(process.argv[2]).scripts["start:profile-server"];
+    process.exit(cmd === script ? 0 : 1);' "$D" "$REPO_ROOT/package.json" ) \
+    && pass "Dockerfile.profile: CMD equals package.json start:profile-server (the deliberate duplication is in sync)" \
+    || fail "Dockerfile.profile: CMD and package.json start:profile-server have drifted apart — keep them identical"
+else
+  fail "Dockerfile.profile: node not on PATH — cannot compare CMD with package.json (never a silent pass)"
+fi
+# unattended-upgrades: both apt.conf.d writes, security pocket only, NO automatic reboot (Q1).
+AUTO_BLOCK=$(awk "/^cat > \/etc\/apt\/apt.conf.d\/20auto-upgrades << 'EOF'\$/{b=1; next} b && /^EOF\$/{exit} b{print}" "$P")
+printf '%s\n' "$AUTO_BLOCK" | grep -qx 'APT::Periodic::Unattended-Upgrade "1";' && printf '%s\n' "$AUTO_BLOCK" | grep -qx 'APT::Periodic::Update-Package-Lists "1";' \
+  && pass "setup-profile.sh: 20auto-upgrades enables list update + unattended upgrade" \
+  || fail "setup-profile.sh: 20auto-upgrades heredoc missing or not enabling Unattended-Upgrade/Update-Package-Lists"
+UU_BLOCK=$(awk "/^cat > \/etc\/apt\/apt.conf.d\/52geoconflict-unattended-upgrades << 'EOF'\$/{b=1; next} b && /^EOF\$/{exit} b{print}" "$P")
+[ -n "$UU_BLOCK" ] && pass "setup-profile.sh: located the 52geoconflict-unattended-upgrades heredoc" \
+  || fail "setup-profile.sh: no 52geoconflict-unattended-upgrades heredoc (the checks below would be vacuous)"
+printf '%s\n' "$UU_BLOCK" | grep -qx 'Unattended-Upgrade::Automatic-Reboot "false";' \
+  && pass "unattended-upgrades: Automatic-Reboot is \"false\" (owner ruling 0221 Q1 — one box, no unattended outage)" \
+  || fail "unattended-upgrades: Automatic-Reboot is not \"false\" — a ruled value; change it DELIBERATELY with a ruling"
+printf '%s\n' "$UU_BLOCK" | grep -qx '#clear Unattended-Upgrade::Allowed-Origins;' \
+  && printf '%s\n' "$UU_BLOCK" | grep -qxF '    "${distro_id}:${distro_codename}-security";' \
+  && pass "unattended-upgrades: Allowed-Origins cleared and set to the security pocket only" \
+  || fail "unattended-upgrades: Allowed-Origins is not '#clear + <codename>-security' — updates pocket would auto-apply"
+printf '%s\n' "$UU_BLOCK" | grep -qE '^    "\$\{distro_id\}:\$\{distro_codename\}(-updates|-proposed)?";' \
+  && fail "unattended-upgrades: a non-security pocket is in Allowed-Origins" \
+  || pass "unattended-upgrades: no non-security pocket in Allowed-Origins"
+grep -q 'unattended-upgrades --dry-run --debug' "$P" && pass "setup-profile.sh: dry run printed into the deploy log (verification-1 evidence)" \
+  || fail "setup-profile.sh: no unattended-upgrades --dry-run in the deploy log"
+# R6: the dry run is captured to a file, never piped into a reader that can close early — a
+# SIGPIPE mid-download would truncate the very evidence line the step prints.
+grep -qE 'unattended-upgrades --dry-run --debug > "\$UU_DRYRUN_LOG" 2>&1' "$P" && ! grep -qE 'unattended-upgrades --dry-run[^|]*\|[^|]' "$P" \
+  && pass "setup-profile.sh: dry run captured to a file, not piped (no SIGPIPE mid-download — R6)" \
+  || fail "setup-profile.sh: unattended-upgrades --dry-run is piped, not captured — head/grep closing the pipe SIGPIPEs the dry run (R6)"
+# fail2ban: the jail.d heredoc VALUES (the recorded policy, Q3) + enable + a fail-closed gate.
+JAIL_BLOCK=$(awk '/^cat > \/etc\/fail2ban\/jail.d\/geoconflict-sshd.local << EOF$/{b=1; next} b && /^EOF$/{exit} b{print}' "$P")
+[ -n "$JAIL_BLOCK" ] && pass "setup-profile.sh: located the fail2ban jail.d heredoc" \
+  || fail "setup-profile.sh: no jail.d/geoconflict-sshd.local heredoc (the checks below would be vacuous)"
+for kv in '[sshd]' 'enabled = true' 'backend = systemd' 'maxretry = 5' 'findtime = 10m' 'bantime = 1h' 'bantime.increment = true' 'bantime.maxtime = 1d' 'ignoreip = 127.0.0.1/8 ::1'; do
+  printf '%s\n' "$JAIL_BLOCK" | grep -qxF "$kv" && pass "fail2ban jail: $kv" || fail "fail2ban jail: '$kv' missing or changed — a recorded policy value (0221 Q3)"
+done
+printf '%s\n' "$JAIL_BLOCK" | grep -qx 'port = ${SSH_PORTS_CSV}' && pass "fail2ban jail: port comes from the detected SSH ports (not hardcoded 22)" \
+  || fail "fail2ban jail: port is not \${SSH_PORTS_CSV} — a non-standard SSH port would be unguarded"
+F2B_SECTION=$(awk '/print_header "CONFIGURING FAIL2BAN/{b=1} /print_header "HARDENING SSHD"/{exit} b{print}' "$P")
+printf '%s\n' "$F2B_SECTION" | grep -q 'systemctl enable --now fail2ban' && pass "fail2ban: enabled + started" || fail "fail2ban: no 'systemctl enable --now fail2ban'"
+# The gate, tightly (R7a): the status probe must SET the flag (not be `|| true`d away), and the
+# `exit 1` must sit inside the flag's own `if` block — not merely somewhere in the section.
+printf '%s\n' "$F2B_SECTION" | grep -qE '^[[:space:]]*if fail2ban-client status sshd >/dev/null 2>&1; then F2B_JAIL_UP=1; break; fi$' \
+  && printf '%s\n' "$F2B_SECTION" | awk '/^if \[ "\$F2B_JAIL_UP" != 1 \]; then$/{b=1; next} b && /^fi$/{exit} b && /^[[:space:]]*exit 1$/{ok=1} END{exit !ok}' \
+  && pass "fail2ban: deploy gates on 'fail2ban-client status sshd' → F2B_JAIL_UP, and exits 1 inside that gate (Q6, fail closed)" \
+  || fail "fail2ban: the sshd-jail gate is missing, its probe no longer sets F2B_JAIL_UP, or the exit 1 is not inside the gate's if-block"
+# R5: neither systemd start is fatal on its own under set -e — the gate above must be reachable
+# so its diagnostic is what the operator sees.
+printf '%s\n' "$F2B_SECTION" | grep -qE '^systemctl enable --now fail2ban \|\| ' && printf '%s\n' "$F2B_SECTION" | grep -qE '^systemctl restart fail2ban \|\| ' \
+  && pass "fail2ban: enable/restart are non-fatal so the jail gate (and its diagnostic) is always reached (R5)" \
+  || fail "fail2ban: 'systemctl enable --now/restart fail2ban' is fatal under set -e — a failed restart aborts BEFORE the gate's diagnostic (R5)"
+printf '%s\n' "$F2B_SECTION" | grep -q 'python3-systemd' && pass "fail2ban: python3-systemd installed for backend = systemd" \
+  || fail "fail2ban: backend = systemd without python3-systemd — the jail would not start"
+# sshd: the drop-in's values, the Match-all pin, the guard→test→reload→gate order, and placement.
+SSHD_SECTION=$(awk '/print_header "HARDENING SSHD"/{b=1} /^# ── Directories/{exit} b{print}' "$P")
+[ -n "$SSHD_SECTION" ] && pass "setup-profile.sh: located the HARDENING SSHD section" \
+  || fail "setup-profile.sh: no HARDENING SSHD section (the checks below would be vacuous)"
+grep -q '^SSHD_DROPIN=/etc/ssh/sshd_config.d/00-geoconflict-hardening.conf$' "$P" \
+  && pass "sshd: drop-in path is sshd_config.d/00-… (first value wins; 00- sorts before cloud-init's 50-)" \
+  || fail "sshd: drop-in is not /etc/ssh/sshd_config.d/00-geoconflict-hardening.conf — a later name loses to cloud-init"
+DROPIN=$(awk "/^cat > \"\\\$SSHD_DROPIN\" << 'EOF'\$/{b=1; next} b && /^EOF\$/{exit} b{print}" "$P")
+[ -n "$DROPIN" ] && pass "sshd: located the drop-in heredoc" || fail "sshd: no drop-in heredoc (the checks below would be vacuous)"
+for kv in 'PasswordAuthentication no' 'KbdInteractiveAuthentication no' 'PermitEmptyPasswords no' 'PubkeyAuthentication yes' 'PermitRootLogin prohibit-password' 'X11Forwarding no'; do
+  printf '%s\n' "$DROPIN" | grep -qx "$kv" && pass "sshd drop-in: $kv" || fail "sshd drop-in: '$kv' missing or changed (0221 Q2)"
+done
+printf '%s\n' "$DROPIN" | grep -qx 'PermitRootLogin no' \
+  && fail "sshd drop-in: PermitRootLogin no — root is still the deploy user until the non-root user task lands (Q8 split)" \
+  || pass "sshd drop-in: PermitRootLogin is not 'no' (root stays the deploy user — Q8 split)"
+printf '%s\n' "$DROPIN" | grep -qiE '^(Ciphers|KexAlgorithms|MACs) ' \
+  && fail "sshd drop-in: a custom cipher/KEX/MAC list — a lock-out vector; distro defaults were ruled (Q2)" \
+  || pass "sshd drop-in: ciphers/KEX/MACs left at distro defaults"
+# The Match-all pin: a `Match all` block re-stating the auth keywords, AFTER the globals (so the
+# globals are not swallowed into it), because a lower-precedence Match block overrides globals.
+printf '%s\n' "$DROPIN" | awk '/^Match all$/{m=NR} m && /^[[:space:]]+PasswordAuthentication no$/{p=1} m && /^[[:space:]]+PermitRootLogin prohibit-password$/{r=1} /^PasswordAuthentication no$/{g=NR} END{exit !(m && p && r && g && g<m)}' \
+  && pass "sshd drop-in: 'Match all' block pins PasswordAuthentication no + PermitRootLogin prohibit-password after the globals" \
+  || fail "sshd drop-in: no 'Match all' pin — a Match block in another file (cloud image 99-qemu.conf) would re-open root password auth"
+# Order inside the section, on the CALL sites (the helper definitions sit above them):
+# auth-mode guard (R1) < authorized_keys guard < backup of an existing drop-in (R3) < the write
+# < sshd -t < reload < sshd -T -C gate.
+printf '%s\n' "$SSHD_SECTION" | awk '
+  /^if \[ "\$\{PROFILE_DEPLOY_SSH_AUTH:-\}" = "password" \]; then$/ && !a {a=NR}
+  /authorized_keys/ && !g {g=NR}
+  /^    cp -p "\$SSHD_DROPIN" "\$SSHD_DROPIN_BACKUP"$/ && !k {k=NR}
+  /^cat > "\$SSHD_DROPIN" << .EOF.$/ && !w {w=NR}
+  /^if ! sshd -t; then$/ && !t {t=NR}
+  /^if ! sshd_reload; then$/ && !r {r=NR}
+  /sshd -T -C user=root/ && !e {e=NR}
+  END{exit !(a && g && k && w && t && r && e && a<g && g<k && k<w && w<t && t<r && r<e)}' \
+  && pass "sshd: order is auth-mode guard < authorized_keys guard < backup < write < sshd -t < reload < effective-config gate" \
+  || fail "sshd: auth-mode guard / authorized_keys guard / backup / write / sshd -t / reload / gate missing or mis-ordered"
+printf '%s\n' "$SSHD_SECTION" | grep -q 'systemctl restart ssh' \
+  && fail "sshd: 'systemctl restart ssh' — a restart can drop the deploy's own session; reload only" \
+  || pass "sshd: reload only, never restart"
+# R3: rollback RESTORES a previous drop-in (or removes the new one when there was none) — and every
+# failure path goes through it. The backup lives OUTSIDE sshd_config.d/ so it is never Included.
+grep -qE '^SSHD_DROPIN_BACKUP=/etc/ssh/[^/]+$' "$P" && ! grep -qE '^SSHD_DROPIN_BACKUP=/etc/ssh/sshd_config\.d/' "$P" \
+  && pass "sshd: the drop-in backup path is outside sshd_config.d/ (a backup there would be Included as config)" \
+  || fail "sshd: SSHD_DROPIN_BACKUP missing or inside sshd_config.d/ (R3)"
+ROLLBACK_FN=$(printf '%s\n' "$SSHD_SECTION" | awk '/^sshd_rollback\(\) \{/{b=1} b{print} b && /^\}$/{exit}')
+printf '%s\n' "$ROLLBACK_FN" | grep -qE '^        mv -f "\$SSHD_DROPIN_BACKUP" "\$SSHD_DROPIN"$' \
+  && printf '%s\n' "$ROLLBACK_FN" | grep -qE '^        rm -f "\$SSHD_DROPIN"$' \
+  && printf '%s\n' "$ROLLBACK_FN" | grep -qE '^    if \[ -f "\$SSHD_DROPIN_BACKUP" \]; then$' \
+  && pass "sshd: sshd_rollback() moves the backup back when one exists, removes the new drop-in otherwise (R3)" \
+  || fail "sshd: sshd_rollback() missing, or it does not restore-else-remove (R3)"
+n_rm=$(printf '%s\n' "$SSHD_SECTION" | grep -cE '^[[:space:]]*rm -f "\$SSHD_DROPIN"$' || true)
+[ "${n_rm:-0}" = "1" ] && pass "sshd: the only 'rm -f \$SSHD_DROPIN' is inside sshd_rollback (no failure path deletes a previous drop-in)" \
+  || fail "sshd: $n_rm bare 'rm -f \$SSHD_DROPIN' lines in the section, expected exactly 1 (inside sshd_rollback) — a failure path still DELETES instead of restoring (R3)"
+printf '%s\n' "$SSHD_SECTION" | awk '/^if ! sshd -t; then$/{t=NR} t && NR==t+1 && /^    sshd_rollback$/{ok=1} END{exit !ok}' \
+  && pass "sshd: a rejected drop-in (sshd -t) is rolled back on the spot (never blocks the next sshd start)" \
+  || fail "sshd: sshd -t failure does not roll the drop-in back — the next sshd start could be blocked"
+# R4: a failed reload shows its stderr, rolls back, re-reloads, then aborts — the drop-in never
+# outlives a deploy the gate never judged. No `2>/dev/null` may hide the reload error.
+printf '%s\n' "$SSHD_SECTION" | awk '/^if ! sshd_reload; then$/{b=1; n=0; next} b{n++} b && n==1 && /^    sshd_rollback$/{rb=1} b && n==2 && /^    sshd_reload \|\| true$/{rl=1} b && /^    exit 1$/{ex=1} b && /^fi$/{exit} END{exit !(rb && rl && ex)}' \
+  && pass "sshd: reload failure → rollback, re-reload, abort (R4)" \
+  || fail "sshd: a failed reload does not roll back before aborting (R4)"
+printf '%s\n' "$SSHD_SECTION" | grep -q 'systemctl reload ssh 2>/dev/null' \
+  && fail "sshd: 'systemctl reload ssh 2>/dev/null' hides the real reload error (R4)" \
+  || pass "sshd: the reload's stderr is not hidden (R4)"
+# R7b: the effective-config gate's failure path rolls back (not deletes), reloads, then aborts —
+# scoped to the gate's own if-block.
+printf '%s\n' "$SSHD_SECTION" | awk '/^if \[ "\$SSHD_GATE_FAILED" != 0 \]; then$/{b=1; n=0; next} b{n++} b && n==1 && /^    sshd_rollback$/{rb=1} b && n==2 && /^    sshd_reload \|\| true$/{rl=1} b && /^    exit 1$/{ex=1} b && /^fi$/{exit} END{exit !(rb && rl && ex)}' \
+  && pass "sshd: gate failure → rollback, reload, exit 1 inside the gate's if-block (R7b)" \
+  || fail "sshd: the effective-config gate's failure path does not rollback→reload→exit 1 (R7b)"
+printf '%s\n' "$SSHD_SECTION" | awk '/^if \[ "\$SSHD_GATE_FAILED" != 0 \]; then$/{g=NR} /^rm -f "\$SSHD_DROPIN_BACKUP"$/ && g && NR>g {ok=1} END{exit !ok}' \
+  && pass "sshd: the backup is discarded only after the gate passes (R3)" \
+  || fail "sshd: no 'rm -f \$SSHD_DROPIN_BACKUP' after the gate — a stale backup would be restored by a later failure (R3)"
+# Placement: after `ufw --force enable`, before Directories and before the systemd section.
+awk '/^ufw --force enable$/{u=NR} /print_header "HARDENING SSHD"/{s=NR} /^# ── Directories/{d=NR} /print_header "CONFIGURING SYSTEMD AUTO-START"/{y=NR} END{exit !(u && s && d && y && u<s && s<d && d<y)}' "$P" \
+  && pass "setup-profile.sh: hardening sections sit after ufw enable and before Directories/systemd" \
+  || fail "setup-profile.sh: hardening sections mis-placed vs ufw / Directories / systemd"
+# The flock < apt anchor the 0219 block asserts must still hold (nothing inserted before it).
+awk '/flock -n 9/{f=NR} /apt-get install -y unattended-upgrades/{u=NR} END{exit !(f>0 && f<u)}' "$P" \
+  && pass "setup-profile.sh: unattended-upgrades install is under the deploy lock" || fail "setup-profile.sh: unattended-upgrades install precedes the flock"
+# build-deploy-profile.sh: IdentitiesOnly on BOTH ssh and scp in the key branch (self-ban guard, Q7).
+KEY_BRANCH=$(awk '/^if \[ -n "\$SSH_KEY_PATH" \]; then$/{b=1; next} b && /^elif/{exit} b{print}' "$B")
+n_ido=$(printf '%s\n' "$KEY_BRANCH" | grep -c 'IdentitiesOnly=yes' || true)
+[ "${n_ido:-0}" = "2" ] && pass "build-deploy-profile.sh: -o IdentitiesOnly=yes on both SCP_CMD and SSH_CMD in the key branch" \
+  || fail "build-deploy-profile.sh: IdentitiesOnly=yes appears $n_ido time(s) in the key branch, expected 2 (a multi-key agent can self-ban)"
+# checks.sh (0219's script, one added check per the Q1 ruling): reads the reboot-required marker.
+grep -q 'REBOOT_REQUIRED_FILE="${PROFILE_CHECKS_REBOOT_REQUIRED_FILE:-/var/run/reboot-required}"' "$C" \
+  && grep -q '^check_reboot_required$' "$C" \
+  && pass "profile-checks.sh: reboot-required check present and wired (the only signal with auto-reboot off)" \
+  || fail "profile-checks.sh: no reboot-required check — with Automatic-Reboot off nothing would surface a pending reboot"
+
+echo "== T12: the deploy stages its own SSH auth mode, and the sshd section refuses a password-mode deploy (0221 R1) =="
+# Behavioural, T10-style: the REAL build-deploy-profile.sh is driven in both auth modes and the
+# staged file is asserted; then the sshd section's guard 0 (extracted up to guard 1, so the
+# harness host's /root/.ssh is never consulted) is RUN with each staged value.
+NEW; echo profile > "$WORK/marker"
+run_deploy                                     # fixture = password fallback
+[ "$RC" -eq 0 ] && pass "password-mode deploy exited 0 (stubbed box)" || fail "password-mode deploy exited $RC; see $WORK/out.log"
+n=$(grep -c '^export PROFILE_DEPLOY_SSH_AUTH=' "$WORK/staged.env" 2>/dev/null || true); n=${n:-0}
+got=$( . "$WORK/staged.env" >/dev/null 2>&1; printf '%s' "${PROFILE_DEPLOY_SSH_AUTH-}" )
+[ "$n" = "1" ] && [ "$got" = "password" ] && pass "staged env carries PROFILE_DEPLOY_SSH_AUTH=password exactly once on the sshpass path" \
+  || fail "staged env: expected one PROFILE_DEPLOY_SSH_AUTH=password line, got n=$n value='$got'"
+NEW; echo profile > "$WORK/marker"; : > "$WORK/deploy_key"
+run_deploy PROFILE_SSH_KEY="$WORK/deploy_key" PROFILE_SSH_PASSWORD=
+[ "$RC" -eq 0 ] && pass "key-mode deploy exited 0 (stubbed box)" || fail "key-mode deploy exited $RC; see $WORK/out.log"
+got=$( . "$WORK/staged.env" >/dev/null 2>&1; printf '%s' "${PROFILE_DEPLOY_SSH_AUTH-}" )
+[ "$got" = "key" ] && pass "staged env carries PROFILE_DEPLOY_SSH_AUTH=key on the key path" \
+  || fail "staged env: expected PROFILE_DEPLOY_SSH_AUTH=key, got '$got'"
+grep -q 'IdentitiesOnly=yes' "$WORK/ssh.argv" 2>/dev/null && pass "key-mode ssh argv carries IdentitiesOnly=yes (Q7, driven not grepped)" \
+  || fail "key-mode ssh argv lacks IdentitiesOnly=yes"
+GUARD0=$(awk '/^print_header "HARDENING SSHD"$/{b=1; next} /^# Guard 1:/{exit} b{print}' "$P")
+[ -n "$GUARD0" ] && printf '%s\n' "$GUARD0" | grep -q 'PROFILE_DEPLOY_SSH_AUTH' \
+  && pass "sshd: guard 0 (auth mode) sits FIRST in the section, before the authorized_keys guard" \
+  || fail "sshd: no auth-mode guard before '# Guard 1:' — extraction empty or guard missing (R1)"
+{ echo 'set -e'; echo 'print_header() { :; }'; printf '%s\n' "$GUARD0"; } > "$WORK/guard0.sh"
+if PROFILE_DEPLOY_SSH_AUTH=password bash "$WORK/guard0.sh" > "$WORK/guard0.password.log" 2>&1; then
+  fail "sshd guard 0: a password-mode staged env did NOT make the section refuse (R1 — lock-out path open)"
+else
+  grep -q 'PASSWORD fallback' "$WORK/guard0.password.log" && grep -q 'Refusing to disable password authentication' "$WORK/guard0.password.log" \
+    && pass "sshd guard 0: password-mode staged env → refuses with a clear message (R1)" \
+    || fail "sshd guard 0: refused, but without the expected message; see $WORK/guard0.password.log"
+fi
+PROFILE_DEPLOY_SSH_AUTH=key bash "$WORK/guard0.sh" > "$WORK/guard0.key.log" 2>&1 \
+  && pass "sshd guard 0: key-mode staged env passes through to the next guard" \
+  || fail "sshd guard 0: key-mode staged env was refused; see $WORK/guard0.key.log"
+
+# ── Structural: telemetry box certbot renewal shape (task 0257) ──────────────
+# Mirror of the profile-box certbot block above, over setup-telemetry.sh. The seed cron there was
+# `certbot renew --post-hook "systemctl reload nginx"`: the cert is issued --standalone (binds :80
+# for HTTP-01) but nginx permanently owns :80, so that renew could never succeed and the cert
+# expired 2026-09-04. Owner ruling 2026-09-14: converge on the profile box's pre/post hooks (not
+# --webroot) and disable the hookless certbot.timer the same way. RED against the pre-0257 script
+# (negative control, recorded in the task worklog).
+echo "== Structural: telemetry certbot renewal — hooked cron + certbot.timer disabled (0257) =="
+TS="$REPO_ROOT/setup-telemetry.sh"
+grep -qE '^0 0,12 \* \* \* root certbot renew --quiet --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx" >> /var/log/certbot-renew\.log 2>&1$' "$TS" \
+  && pass "setup-telemetry.sh: renew cron carries the nginx stop pre-hook + start post-hook and keeps the renew log" \
+  || fail "setup-telemetry.sh: hooked renew cron line missing (pre-hook stop / post-hook start / >> /var/log/certbot-renew.log)"
+grep -v '^[[:space:]]*#' "$TS" | grep -q -- '--post-hook "systemctl reload nginx"' \
+  && fail "setup-telemetry.sh: reload-only post-hook still present — that renew can never bind :80 behind nginx" \
+  || pass "setup-telemetry.sh: no reload-only post-hook left (outside comments)"
+grep -qE '^\s*systemctl disable --now certbot\.timer .*\|\| true$' "$TS" \
+  && pass "setup-telemetry.sh: certbot.timer disabled (|| true-safe)" \
+  || fail "setup-telemetry.sh: 'systemctl disable --now certbot.timer … || true' missing"
+TL_CERTONLY=$(grep -n 'certbot certonly --standalone' "$TS" | head -1 | cut -d: -f1)
+TL_TIMER=$(grep -n 'systemctl disable --now certbot.timer' "$TS" | head -1 | cut -d: -f1)
+TL_RENEWCRON=$(grep -n '^0 0,12 \* \* \* root certbot renew' "$TS" | head -1 | cut -d: -f1)
+[ -n "$TL_CERTONLY" ] && [ -n "$TL_TIMER" ] && [ -n "$TL_RENEWCRON" ] \
+  && [ "$TL_CERTONLY" -lt "$TL_TIMER" ] && [ "$TL_TIMER" -lt "$TL_RENEWCRON" ] \
+  && pass "setup-telemetry.sh: certbot.timer disable sits after certonly and before the hooked renew cron" \
+  || fail "setup-telemetry.sh: certbot.timer disable mis-ordered (certonly=$TL_CERTONLY timer=$TL_TIMER cron=$TL_RENEWCRON)"
 echo
 [ "$FAILED" -eq 0 ] && { echo "ALL PASS"; exit 0; } || { echo "SOME FAILED"; exit 1; }

@@ -358,7 +358,9 @@
 > ⇒ **Max in use anywhere is `0210`; `0211` is the next free ID.**
 
 ## Sprint
-**Sprint 4 — SCHEDULED.** Tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+Sprint 4
+
+**SCHEDULED.** Tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
 
 ~~**Backlog — UNSCHEDULED.** Filed on [`backlog.md`](../../../sprints/backlog.md), **not** on any
 sprint plan.~~

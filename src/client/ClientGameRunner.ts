@@ -260,6 +260,17 @@ export function joinLobby(
         false,
         "error_modal.connection_error",
       );
+      // Task 0233. The server closes the socket right after an `error`: a
+      // kick (1000) also refuses a rejoin; a join-message schema failure
+      // (1002 — a client bug or version skew) is treated as terminal here by
+      // choice (review.md R1). This handler only runs while runner === null
+      // (r.start() swaps the transport's onmessage), so
+      // `left` makes a still-building runner stop instead of start (the .then
+      // branch above), leaveGame() ends the ping loop, and onGameEnd() stops
+      // the monitor when onJoin already started one — a no-op otherwise.
+      left = true;
+      transport.leaveGame();
+      onGameEnd();
     }
   };
   transport.connect(onconnect, onmessage);
@@ -779,6 +790,12 @@ export class ClientGameRunner {
           false,
           "error_modal.connection_error",
         );
+        // Task 0233. The server closes the socket right after an `error`: a
+        // kick (1000) also refuses a rejoin; a message-schema failure (1002 —
+        // a client bug or version skew, which HEAD auto-rejoined) is treated
+        // as terminal by choice (review.md R1). Tear down like the crash
+        // branch. stop() is latched; a second error is a no-op.
+        this.stop();
       }
       if (message.type === "turn") {
         if (!this.hasJoined) {

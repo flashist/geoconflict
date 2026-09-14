@@ -136,7 +136,50 @@ no checked value in any report output.
   plan's rule is "`https://` + hostname" — the 0063 class is an IP-literal URL, so a hostname rule that
   accepted `https://203.0.113.10` would not be the rule. Inside the approved rule's intent; obvious
   winner. IPv6-in-brackets is detected by the leading `[` only.
-- Obvious-winner calls beyond the above: **none**. Frontier moves, regressions, out-of-plan fixes: **none**.
+- Obvious-winner calls beyond the above (build step): **none**. Frontier moves, regressions, out-of-plan fixes: **none**.
+
+### Review round 1 (2026-09-13) — fixes applied unattended by the sprint-loop Process-review worker
+Standing approval: ADR-032 declared-approval marker (plan approved by the owner in the lead session
+2026-09-13); discipline per ADR-019. Each entry: which finding, what changed, why it qualified. Ledger:
+`review.md` (Status: closed-out). Negative control: the new harness assertions were run RED against the
+unfixed script first (11 red), then the fixes turned them GREEN.
+- **R1** (harness `mode_of()` not GNU-portable) → branch on `stat -f`'s exit status with stdout
+  discarded, the `:67` prior-art shape. Qualified: verified `CORRECT` in `debian:12` (6-line string
+  before, `600` after) · mechanical, one line · in-plan (§6 harness).
+- **R2** (reuse branch swallowed a `cat` failure → empty value behind a "Reusing" line) →
+  `value=$(cat "$file") || { Error: <name>: persist file <file> … Aborting (fail closed).; exit 1; }`.
+  **Obvious-winner call — the shape.** Two candidates: abort the deploy, or print a FINDING-class line
+  and continue with an empty value. Abort dominates: fail-closed for secrets; it is what the token block
+  the function mirrors already does (`$(cat)` under `set -e`); continue-with-empty would reproduce the
+  silent-blank shape this task exists to close and would make the value report's downstream row read
+  `OPTIONAL` for a value the box actually holds; and the abort lands before `profile.env`/compose are
+  rewritten, so the old stack keeps running and a retry is idempotent. The plan's "always `return 0`"
+  is about not tripping `set -e` on a normal path — every completing path still returns 0; the read-error
+  path is the same deploy-abort the token block has. Qualified: verified `CORRECT` (reproduced: dir at
+  the persist path → rc 0 + "Reusing persisted" before the fix) · localized to the one branch · within
+  the plan's mirror-the-token-block intent. Harness T14 "unreadable" case added.
+- **R3** (`url_re`/`https_re` prefix-only) → end-anchored with `[^[:space:]]*$`. Qualified: verified
+  `CORRECT` (harness red on `http://host bad`) · mechanical · in-plan (§2 report-only rules unchanged in
+  meaning, tightened in matching). T15 (vi) cases added.
+- **R4** (host extraction kept userinfo) → `host="${host##*@}"` between the path strip and the port
+  strip (order matters for `user:pw@host:port`). Qualified: verified `CORRECT` · one parameter expansion
+  ×2 · in-plan (§2 "https + hostname, not an IP literal"). T15 cases added.
+- **R5** (`PROFILE_DOMAIN` accepted `host:443`, `bad host`) → `host_re='^[A-Za-z0-9.-]+$'` as a third
+  `elif` after the IP-literal test. Qualified: verified `CORRECT` · one regex + one branch · in-plan
+  (§2 "bare hostname"). T15 cases added.
+- **R6** (T12 LENGTH grep saw the `mktemp` path) → grep over the output with `$file` removed literally
+  (`${out12//"$file"/}`, bash 3.2 OK). Qualified: verified `CORRECT` (Linux `mktemp -d` suffixes carry
+  digits: `tmp.NgP4RjYW89`) · mechanical · in-plan (§6). Green in `debian:12`.
+- Frontier moves, regressions, review oscillation, out-of-plan fixes this round: **none**. Accepted
+  residual recorded in the ledger on the driver's instruction: ENOSPC partial persist write (four
+  dotfiles + `.internal_token`).
+- Gates re-run after the fixes: `bash -n` both scripts OK · harness `ALL PASS` **160/0** (was 147/0;
+  +13 assertions) on bash 3.2.57 here **and** in `debian:12` (bash 5.2, GNU coreutils) · `npx jest
+  tests/scripts` 2/51 · `npm test` 120 suites / 1253 tests (unchanged) · `npm run lint` rc 0 · no
+  `.ts`/`.json` touched (prettier n/a). Change surface this round: `setup-profile.sh` (persist reuse
+  branch + comment; `report_config_values` regexes, `host_re`, userinfo strip),
+  `tests/scripts/profile-deploy-hardening.test.sh` (`mode_of`, T12 LENGTH scope, T14 unreadable case,
+  T15 (vi) + canary values), `review.md`, this worklog. No commit, no deploy.
 
 ## Residuals / known properties (recorded, not fixed)
 

@@ -19,7 +19,9 @@
 > [`task-id-allocation.md`](../../../knowledge-base/conventions/task-id-allocation.md).
 
 ## Sprint
-Backlog — unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md).
+Backlog
+
+Unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md).
 **Row appended, not inserted** (ADR-035).
 
 ## Priority

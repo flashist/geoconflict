@@ -10,7 +10,9 @@
 >    catches reservations no board can see (`0204` was reserved invisibly inside `.claude/skills/`).
 
 ## Sprint
-Backlog — unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md).
+Backlog
+
+Unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md).
 
 **Board chosen honestly:** the owner asked for the investigation to be *written and filed*, live in
 session on 2026-09-04. That authorises the brief; it does not schedule a sprint. Sprint 4's

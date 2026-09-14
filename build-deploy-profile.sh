@@ -374,9 +374,22 @@ SCP_CMD=(scp -o StrictHostKeyChecking=accept-new)
 SSH_CMD=(ssh -o StrictHostKeyChecking=accept-new)
 
 if [ -n "$SSH_KEY_PATH" ]; then
-    SCP_CMD+=(-i "$SSH_KEY_PATH")
-    SSH_CMD+=(-i "$SSH_KEY_PATH")
+    # IdentitiesOnly (0221): offer ONLY this key. With several keys in the agent ssh tries each
+    # in turn, and every rejected key is a failed auth to sshd — enough of them trips the box's
+    # fail2ban jail (5 in 10 min) and bans the operator. 0215 already met a wrong-key-first case.
+    SCP_CMD+=(-o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
+    SSH_CMD+=(-o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
+    # Staged for setup-profile.sh's sshd section (0221 R1): it refuses to turn password auth
+    # off on a deploy that came in over the password fallback, since that operator may not
+    # hold the on-box key.
+    DEPLOY_SSH_AUTH=key
 elif [ -n "$SSH_PASSWORD" ]; then
+    # ⚠️ Dead against a PROVISIONED profile box since task 0221: setup-profile.sh sets
+    # PasswordAuthentication no there (gated on the effective config), so this branch can only
+    # be refused by the box. And a deploy over this path cannot COMPLETE a first provision
+    # either: setup-profile.sh's sshd section aborts on PROFILE_DEPLOY_SSH_AUTH=password
+    # (0221 R1 — the operator may not hold the key it is about to make mandatory). To bootstrap
+    # a fresh password-only box, ssh-copy-id the deploy key first, then deploy over the key path.
     if ! is_truthy "$ALLOW_PASSWORD_FALLBACK"; then
         echo "Error: Password-based profile deploy is disabled by default."
         echo "Configure PROFILE_SSH_KEY for the standard path."
@@ -395,6 +408,7 @@ elif [ -n "$SSH_PASSWORD" ]; then
     printf '%s\n' "$SSH_PASSWORD" > "$SSH_PASSWORD_FILE"
     SCP_CMD=(sshpass -f "$SSH_PASSWORD_FILE" scp -o StrictHostKeyChecking=accept-new)
     SSH_CMD=(sshpass -f "$SSH_PASSWORD_FILE" ssh -o StrictHostKeyChecking=accept-new)
+    DEPLOY_SSH_AUTH=password
 fi
 
 REMOTE_SCRIPT="/root/setup-profile.sh"
@@ -566,6 +580,11 @@ chmod 600 "$LOCAL_TMPENV"
     # source-then-rm channel. Empty is a SUPPORTED state: the checks run and log, and
     # setup-profile.sh warns loudly that nobody is paged.
     printf "export PROFILE_CHECKS_PING_URL=%q\n" "${PROFILE_CHECKS_PING_URL:-}"
+    # The auth mode THIS deploy used (key | password), set in the branch above (0221 R1).
+    # setup-profile.sh's sshd section refuses to disable password auth on a password-mode
+    # deploy — the operator may not hold the key it is about to make the only way in. Not a
+    # secret; rides this channel because it is the one env path into the remote script.
+    printf "export PROFILE_DEPLOY_SSH_AUTH=%q\n" "$DEPLOY_SSH_AUTH"
 } > "$LOCAL_TMPENV"
 
 REMOTE_ENV_STAGED=1

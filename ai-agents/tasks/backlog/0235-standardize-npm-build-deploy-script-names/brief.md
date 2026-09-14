@@ -4,7 +4,9 @@
 0235
 
 ## Sprint
-Backlog — unscheduled
+Backlog
+
+Unscheduled
 
 ⚠️ **This is an APPEND POSITION, NOT A MERIT RANKING.** The owner has **not** ruled a rank for this
 task. fkit's **ADR-035** bars a producer from inserting a new row above a board's existing/closed

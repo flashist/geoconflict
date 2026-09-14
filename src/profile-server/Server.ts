@@ -20,6 +20,7 @@ import { PaymentsRepository } from "./PaymentsRepository";
 import { PlayerProfileRepository } from "./PlayerProfileRepository";
 import { profileHttpPort } from "./ProfileEndpoints";
 import { createApp } from "./Routes";
+import { createGracefulShutdown } from "./Shutdown";
 
 dotenv.config();
 
@@ -78,5 +79,10 @@ const port = profileHttpPort();
 server.listen(port, () => {
   log.info(`Profile API server listening on port ${port}`);
 });
+// Graceful shutdown (task 0221, G8): SIGTERM/SIGINT → stop accepting, drain in-flight
+// requests, close the pool, exit. Only reachable because Dockerfile.profile runs `node`
+// directly (exec form) and the compose service sets `init: true` — `npm run` swallows
+// the signal.
+createGracefulShutdown({ server, pool, log }).install(process);
 
 export { app, server };

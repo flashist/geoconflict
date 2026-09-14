@@ -34,7 +34,9 @@
 > [`task-id-allocation.md`](../../../knowledge-base/conventions/task-id-allocation.md).
 
 ## Sprint
-Backlog — unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md).
+Backlog
+
+Unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md).
 
 **Board chosen honestly:** the owner's ruling was *"Accept now, brief it alongside"* — that authorises the
 brief, it does not schedule a sprint. Filing it on

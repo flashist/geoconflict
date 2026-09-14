@@ -222,7 +222,7 @@ rule applies here **in full** — it is not waived by the change being small.
 | [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) | `PerformanceMonitor` survives a crashed/failed game — **its crash site depends on this task to ever fire** |
 | [`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md) | stale `gameStop` across three awaits |
 | [`0231`](../0231-orphaned-clientgamerunner-on-normal-leave-lobby/brief.md) | runner + worker + 1 s interval survive a normal leave |
-| [`0233`](../../backlog/0233-server-error-and-desync-sites-leave-performancemonitor-running/brief.md) | the remaining `showErrorModal` sites that never stop the monitor |
+| [`0233`](../0233-server-error-and-desync-sites-leave-performancemonitor-running/brief.md) | the remaining `showErrorModal` sites that never stop the monitor |
 | **`0232` (this task)** | **the worker never tells the main thread a tick faulted at all** |
 
 ---

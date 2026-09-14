@@ -102,7 +102,9 @@
 > earlier the same day. **Do not allocate `0204` to anything else.**
 
 ## Sprint
-**Sprint 4** — scheduled. Tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+Sprint 4
+
+Scheduled. Tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
 
 ~~Backlog — unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md), **not** on Sprint 4.~~
 

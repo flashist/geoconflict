@@ -4,7 +4,9 @@
 0043
 
 ## Sprint
-Backlog (unsprinted) — independent client-side feature, no dependency on the citizenship/payments track. Ships to all players.
+Backlog
+
+Unsprinted — independent client-side feature, no dependency on the citizenship/payments track. Ships to all players.
 
 ## Priority
 Low–Medium — map-readability/polish enhancement. Self-contained, no blockers.

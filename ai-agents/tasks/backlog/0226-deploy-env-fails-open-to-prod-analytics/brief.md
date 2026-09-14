@@ -4,7 +4,7 @@
 0226
 
 ## Sprint
-Backlog board
+Backlog
 
 ✅ **This placement is an OWNER RULING, given live 2026-09-07: this gets its own brief, on the Backlog
 board — NOT Sprint 4.** ⛔ Do not promote it without a further ruling.

@@ -4,7 +4,7 @@
 0223
 
 ## Sprint
-Backlog board
+Backlog
 
 ⚠️ **Deliberately NOT Sprint 4.** The placement reasoning is in *Why this is on the Backlog board*
 below, and it is the producer's call, not an owner ruling — **one edit overrules it.**

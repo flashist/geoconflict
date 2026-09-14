@@ -20,17 +20,20 @@ it against the board's identity; a decorated value is reported as drift. **Do no
 ## Priority
 Medium *(producer's rank)*
 
-📌 **This is the PRODUCER's rank, not the owner's — the owner gave no priority.** ⚠️ **On the board the
-row is APPENDED at the bottom (ADR-035) — append rank, NOT a merit ranking — flagged for owner
-confirmation.** **On merit this belongs directly below
-[`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)**, because it is worthless until
-`0217` wires the game server to the profile box (no credit path exists before that) and because its
-research + decision phase should run **while** `0217` is in flight, so the rule is settled by the time
-the XP path reaches players — the resentment this task exists to prevent happens the first time an
-old-timer sees `0 XP`, which is launch day. **Medium and not High** because it is a goodwill measure,
-not a launch gate — the citizenship launch works without it. **Medium and not Low** because the cost of
-getting it wrong is public (angry long-time players on launch day) and the fix, once shipped, is
-one-time and cannot be re-run.
+📌 **POSITION OWNER-RULED 2026-09-13, given live in the lead session and relayed through it: the row
+sits directly below [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) on the
+Sprint 4 board.** Read the authority before the outcome: this is an **owner ruling** lifting ADR-035's
+append-only constraint for exactly this one row move (the owner cited the `0232`/`0231` precedent of
+2026-09-07); it is **not producer precedent** for placing any other row. The board is label-ranked, so
+the move renumbered nothing and touched no closed row. ⚠️ **The `Medium` LABEL is the producer's, not
+the owner's** — the owner ruled position, not label. The producer keeps `Medium` deliberately although
+the row now sits among `High` rows: the position says *when* (research and decision while `0217` is in
+flight, so the rule is settled before old-timers first see `0 / 100`); the label says *what it is* — a
+goodwill measure, not a launch gate, the citizenship launch works without it. **Medium and not Low**
+because the cost of getting it wrong is public (angry long-time players on launch day) and the grant,
+once shipped, is one-time and cannot be re-run. *(Superseded: the producer first filed this row
+appended at the bottom with a merit note "directly below `0217`"; the owner accepted that merit
+position as the ruling.)*
 
 ## Status
 🔲 Backlog
@@ -41,10 +44,14 @@ fkit-coder
 ⚠️ **`fkit-coder`, with a hard research/decision gate before any build.** Step 1 (investigation) and
 step 2 (the rule) are done and put to the owner **before** any implementation is planned. **The owner
 decides the rule** — rate, cap, one-time-ness, evidence signal, abuse posture, popup copy. The coder
-may consult `fkit-architect` on the recording shape (step 2, question D). **Implementation is NOT
-scoped in this brief** — after the owner rules, the producer files the implementation brief(s) (see
-*Notes* for the expected split). This brief closes when the findings report exists and the owner has
-ruled; it does not close on shipped code.
+may consult `fkit-architect` on the recording shape (step 2, question D). **Implementation IS in this
+brief — step 3 — and starts only on the step-2 owner ruling.** 📌 **OWNER-RULED 2026-09-13, given
+live in the lead session and relayed through it:** research + decision + implementation stay in **one**
+brief; **no separate implementation briefs are filed later.** *(Superseded by that ruling: the
+producer's first filing scoped research + decision only and left implementation to later briefs, on
+the investigation-first rule. The ruling keeps the gate — nothing is built before the owner rules —
+and folds the build in.)* This brief closes when the grant is built, verified and reviewed per the
+ruling; the step-1 report and the recorded ruling are its intermediate deliverables.
 
 ## Context
 
@@ -201,11 +208,40 @@ with these questions answered, each with the producer/coder recommendation marke
 **The owner rules. Record the ruling in the findings report, dated, with the channel.** If the ruling
 is a standing constraint (it likely is — a free-grant policy), recommend the architect record an ADR.
 
-### Step 3 — Implementation: NOT in this brief
+### Step 3 — Implementation (gated: starts only on the step-2 owner ruling)
 
-⛔ **Deliberately not scoped here.** Its shape depends entirely on A–E. After the ruling the producer
-files the implementation brief(s) — expected split in *Notes*. This brief's `## Status` never advances
-past the decision.
+📌 **In this brief by owner ruling, 2026-09-13** (see *Owner*). ⛔ **Not a line of it before the owner
+has ruled on A–F** — the shape below is a work breakdown for the plan, not a design; the coder's
+`/fkit-plan-task` plan, written after the ruling, decides *how*, and that plan goes to the owner for
+approval like any other.
+
+Work breakdown — each unit is built and tested on its own, in this order:
+
+1. **Server — the grant record.** Per ruling D: the idempotent one-per-`yandex_player_id` record
+   (migration if a new table/column is chosen), the write path (extend `creditMatchXp`'s transaction or
+   a sibling), and the citizenship-threshold check firing in the same transaction as today
+   (`GRANT_CITIZENSHIP_SQL`). Constants (rate, cap, minimum tenure) live beside `XP_PER_MATCH` in
+   `src/core/profile/Citizenship.ts`. Unit tests over the repository: first claim credits and is
+   capped; second claim for the same player is a no-op with a `duplicate`-style status; implausible
+   evidence (per ruling C / step 1.5) is rejected.
+2. **Transport — the claim path.** Per ruling on step 1.4: either the wire contract grows a `reason`
+   (`CreditContract.ts`) and the game server relays the claim through `ProfileApiClient`, or an
+   authenticated client → profile-server route. Identity through the one trust funnel
+   (`GameServer.getCreditableYandexId()` or its equivalent on the direct route). Fail-soft per ADR-101,
+   **but** the client must retry on next load until acknowledged — see 3.
+3. **Client — evidence, claim, marker, popup.** Read the ruled signal(s) from `localStorage`; send the
+   claim; set the local "claimed" marker **only after the server acknowledges**; show the popup once, on
+   acknowledgement, keyed under a new `citizenship_tenure_grant` section in **both** `en.json` and
+   `ru.json` in the same change; if the ruling picks the inbox instead, use the `player_messages`
+   template path. Analytics event(s) per ruling F, via `flashistConstants.analyticEvents`, and the
+   reference doc updated. Both HTML templates (`index.html`, `yandex-games_iframe.html`) if a new
+   element is added.
+4. **Kill switch.** The popup and claim sit behind the existing client citizenship gate
+   (`CITIZENSHIP_CARD_ENABLED` / `citizenship_ui`, `0236`) so a broken grant can be switched off with
+   the rest of the surface.
+
+**Go-live constraint, not a build constraint:** the grant cannot reach players before `0217` lands and
+is deployed. Build and test locally against the profile server + Postgres like `0017` did.
 
 ## Verification steps
 
@@ -220,27 +256,46 @@ past the decision.
 5. Step 2 questions A–F are each answered with a recommendation marked, and the owner's ruling on each
    is recorded with date and channel. An unanswered question is recorded as open, not silently defaulted.
 6. Draft popup copy exists in **both** en and ru.
-7. No source file, no `ai-agents/wiki-vault/` file, and no other task's files were changed by this
-   task (`git status` shows only the report).
+7. **Gate proof:** no source file changed before the step-2 ruling is recorded (worklog shows the ruling
+   entry dated before the first source edit). No `ai-agents/wiki-vault/` file and no other task's files
+   changed by this task at any step.
+8. **Idempotency:** with the profile server + Postgres up locally, a claim for a test
+   `yandex_player_id` credits exactly the ruled amount (capped); an identical second claim credits
+   nothing and returns the duplicate status; `player_profiles.xp` equals the sum of match credits plus
+   one grant. Unit tests cover all three.
+9. **Ack-before-marker:** with the profile server stopped, the client's claim fails, the local "claimed"
+   marker is **not** set, no popup shows; on the next load with the server up, the claim succeeds, the
+   marker is set, the popup shows once; a further reload shows nothing.
+10. **Plausibility:** a forged `localStorage` value (timestamp in the future, or before the fork's first
+    deploy, or a count above the cap) yields at most the cap, or a rejection, per ruling C — tested.
+11. **Localization:** every new key exists in both `en.json` and `ru.json`; `npm test` passes, including
+    `tests/core/profile/CitizenshipCopy.test.ts`.
+12. **Guest path:** a session without Yandex auth sends no claim and shows no popup; the same device after
+    Yandex login claims once (if ruling C allows late claims).
+13. **Kill switch:** with the citizenship surface gated off, no claim is sent and no popup shows.
+14. **Not live early:** the grant is documented in the worklog as unreachable in production until `0217`
+    is deployed; nothing here changes `0217`'s scope.
 
 ## Notes
 
 - **Depends on:** nothing
-- **Blocks:** the implementation brief(s) filed after the ruling (not yet filed).
-- ⚠️ **Why "nothing" above, and what the dependency really is.** This brief is research + decision, and
-  both can run now. The **grant itself** (the implementation this brief leads to) depends on
+- **Blocks:** nothing — the implementation is inside this brief (owner ruling 2026-09-13).
+- ⚠️ **Why "nothing" above, and what the dependency really is.** Steps 1–2 can run now, and step 3 can
+  be **built and tested locally** now. What cannot happen is the grant reaching players: that waits on
   [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) landing **and being
-  deployed**; it cannot be live before that. It also sits on
-  [`0017`](../0017-citizenship-earned/brief.md) (the threshold path it feeds) and may depend on
+  deployed** — a go-live gate, not a build blocker. The build also sits on
+  [`0017`](../0017-citizenship-earned/brief.md) (the threshold path it feeds) and may need
   [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) if the client-direct claim
-  route is chosen (step 1.4). Those dependencies go on the implementation brief(s), not here — putting
-  them on this row would show the research as blocked when it is not.
-- **Expected implementation split after the ruling** (producer files these; each independently
-  shippable and testable): (1) **server** — grant record + idempotency + endpoint or wire-contract
-  `reason`, migration if needed, unit tests over the repository; (2) **client** — evidence read,
-  claim call, server-ack-gated "claimed" marker, popup, en+ru strings, analytics event. If the chosen
-  route is client → game server → box, a third small brief for the WS relay in `Worker.ts` /
-  `GameServer.ts` is likely.
+  route is chosen (step 1.4) — if the ruling picks that route and `0250` is not done, set this brief's
+  status to `🚧 Blocked — 0250` at that point rather than building around it. Declaring `0217` as a
+  dependency here would show the research as blocked when it is not.
+- **Owner rulings recorded 2026-09-13** (given live in the lead session, relayed through it): (1)
+  research + decision + implementation in one brief, no later implementation briefs — superseding the
+  producer's research-only filing; (2) board position directly below `0217`, an owner ruling lifting
+  ADR-035's append-only constraint for this one row (precedent cited: `0232`/`0231`, 2026-09-07), not
+  producer precedent; the `Medium` label stays the producer's.
+- **Work breakdown** is in step 3 — an internal breakdown for the coder's plan, **not** a list of
+  briefs to file.
 - **Timing the owner should weigh:** the popup lands best on the day the XP path first shows players a
   number. If the grant ships *after* launch, old-timers will already have seen `0 / 100` once — the
   grant still helps, but the "we remembered you" moment is weaker. This argues for finishing steps 1–2

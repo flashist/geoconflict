@@ -104,6 +104,23 @@ All numbers from 0231's worklog, one browser instrument, same-page repeated game
   `joinLobby`'s handlers and **built a new runner every ~5 s**, each failing the same way. Two of those
   cascade runners stayed unreachable (2 game workers, 1 interval, reconnects 2 → 4). **The in-page leave
   is an unsupported route today, not merely a leaky one.**
+  - 📌 **Observed by [`0032`](../0032-investigate-null-id-errors/brief.md) (2026-09-14) — the cause of
+    this failure is NOT stale renderer state; it is the terrain-map cache, and `0032` has fixed it
+    (uncommitted, undeployed at the time of this note).** `TerrainMapLoader` cached the *built*
+    `GameMapImpl`, whose `state: Uint16Array` carries tile ownership, and handed the same mutable object
+    to every game on a map+size. A second same-page game on that map therefore started with the previous
+    game's ownership still in the tiles while the new `GameView.smallIDToID` was empty →
+    `owner(tile)` → `null` → `paintTerritory` throws on `owner.id()` in `TerritoryLayer.init` — exactly
+    the stack above (`0032/worklog.md`, Step 3, B/D/E). `0032`'s fix makes every `loadTerrainMap` call
+    build **fresh** `GameMapImpl`s from a cached raw source (regression test: tile state written by one
+    game does not leak into the next load). **This likely satisfies acceptance criterion 4 below — when
+    this task runs, confirm it by re-running the three-game cycle; do not re-investigate the
+    `TerritoryLayer` failure.** The listener / canvas / rAF / poll leaks in the other bullets are
+    **untouched** by `0032`. Note also `0032`'s worklog names these in-page routes (hash/Back rejoin,
+    `join-lobby` while `gameStop !== null`, pre-start `leave-lobby`, the 0231-era cascade) as the only
+    reachable second-game routes — the shipped exits are full navigations — which is consistent with
+    this brief's route table. (Recorded by a spawned `fkit-producer` on the ship-loop driver's
+    instruction; not an owner ruling; status and rank unchanged.)
 - **The public-lobby poll is stopped at join and never restarted after a leave.** `publicLobby.stop()`
   runs in `onPrestart` (`Main.ts:750`) and `onJoin` (`Main.ts:771`); `handleLeaveLobby`
   (`Main.ts:949-962`) calls `publicLobby.leaveLobby()` but nothing calls `start()` — only
@@ -132,7 +149,7 @@ window disappears with the route; under option B it needs its own guard.**
   reachable from the closure** — 0229's shape, now observed by 0231 in after-1b c3 under the
   `TerritoryLayer` failure. Not this brief; it stays with 0229.
 - [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md) (stale `gameStop` across awaits) and
-  [`0233`](../0233-server-error-and-desync-sites-leave-performancemonitor-running/brief.md) (the three
+  [`0233`](../../done/0233-server-error-and-desync-sites-leave-performancemonitor-running/brief.md) (the three
   modal sites) touch the same `Main.ts` seams — coordinate line numbers, do not fold them in.
 - [`0232`](../../done/0232-worker-tick-error-never-reaches-main-thread/brief.md) /
   [`0251`](../0251-worker-async-message-handler-throws-never-reach-main-thread/brief.md) — worker error
@@ -183,7 +200,9 @@ interval cleared?).
    after each leave canvases = 1, the rAF loop is not scheduled, bus-listener count returns to the
    pre-join count (Transport's 24 and the renderer's 3 gone), `window` listener count returns to the
    pre-join count, the public-lobby card refreshes on its own, and **the third game starts without the
-   `TerritoryLayer` error**.
+   `TerritoryLayer` error**. *(📌 2026-09-14: the `TerritoryLayer` half of this criterion is likely
+   already met by `0032`'s `TerrainMapLoader` fix — see the note in Context. Confirm by observation,
+   and say plainly whether it was `0032` or this task that made it pass.)*
 5. **R1 (option B only):** tutorial / mission SP, hash-leave inside the build window (drive it with a
    delayed `buildMissionConfigIfNeeded`): Main's UI hide and monitor restart run **zero** extra times
    after the leave.
@@ -216,5 +235,18 @@ interval cleared?).
 - **Open to the owner at plan time** (the coder must put these, not decide them): (1) A or B; (2) is
   Back-button-leaves-the-game a behaviour we want at all inside the Yandex iframe; (3) if B, confirm
   the split above.
+- **Hand-off from [`0032`](../0032-investigate-null-id-errors/brief.md)'s review R1 (2026-09-14) —
+  applies under option B only.** `0032`'s fix means **each game now allocates its own `GameMapImpl`s**
+  (`state` + the `refToX`/`refToY` lookup tables, map + minimap): **≈85–180 MB per build on
+  `Giant_World_Map`, ≈50–130 MB on the 4–6 M-tile maps.** On the shipped full-navigation exits this is
+  identical to today's first-game cost (the page dies with the old copy). **Only on the in-page routes
+  this brief owns does the old copy survive alongside the new one** — and only while the old
+  renderer / `GameView` leak the other bullets describe still holds it. The cheaper shape — share the
+  immutable `refToX`/`refToY`/terrain across builds and allocate **only `state` (≈16 MB on the largest
+  map) per game** — is a `GameMapImpl` constructor change that `0032` accepted as a residual and
+  handed here. **If option B is chosen, fold it into split part B3** (renderer / `GameView` teardown),
+  since the leak and the allocation are the same object's lifetime; under option A it is moot. Not a
+  new dependency; status and rank unchanged. (Recorded by a spawned `fkit-producer`; not an owner
+  ruling.)
 - ⚠️ **No figure for user impact may be written for this task until measured on a shipped route.** The
   only shipped routes that reach any of it are the two pre-start leaves, and they are unmeasured.

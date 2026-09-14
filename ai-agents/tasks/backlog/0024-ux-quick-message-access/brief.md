@@ -4,7 +4,9 @@
 0024
 
 ## Sprint
-Backlog — unscheduled
+Backlog
+
+Unscheduled
 
 > Heading **created 2026-09-02** on an owner ruling given live in session (Ruling B). This brief
 > previously had **no `## Sprint` section at all** — it went `## ID` → `## Priority`, and the "no

@@ -5,6 +5,7 @@ import {
   Nation,
   clearTerrainMapCache,
   genTerrainFromBin,
+  getCachedMap,
   loadTerrainMap,
 } from "../../../src/core/game/TerrainMapLoader";
 
@@ -71,22 +72,54 @@ describe("loadTerrainMap", () => {
     clearTerrainMapCache();
   });
 
-  test("caches completed load — second call returns same object, loader called once", async () => {
+  test("caches completed load — loader called once, but the second call gets fresh maps", async () => {
     const { loader, mapData } = makeMockLoader(W, H);
     const first = await loadTerrainMap(MAP, GameMapSize.Normal, loader);
     const second = await loadTerrainMap(MAP, GameMapSize.Normal, loader);
     expect(mapData.manifest).toHaveBeenCalledTimes(1);
-    expect(first).toBe(second);
+    expect(mapData.mapBin).toHaveBeenCalledTimes(1);
+    expect(second.gameMap).not.toBe(first.gameMap);
+    expect(second.miniGameMap).not.toBe(first.miniGameMap);
+    expect(second.nations).toBe(first.nations);
   });
 
-  test("deduplicates concurrent in-flight loads — loader called once for two parallel calls", async () => {
+  // Task 0032: the cache used to hand the same GameMapImpl to every game on that
+  // map/size, so the previous game's tile ownership leaked into the next game's
+  // GameView (which knows none of those players) and TerritoryLayer threw `.id`
+  // on null at init.
+  test("tile state written by one game does not leak into the next load of the same map (task 0032)", async () => {
+    const { loader, mapData } = makeMockLoader(W, H);
+    const first = await loadTerrainMap(MAP, GameMapSize.Normal, loader);
+    const tile = first.gameMap.ref(1, 1);
+    first.gameMap.setOwnerID(tile, 7);
+    first.gameMap.setFallout(first.gameMap.ref(2, 2), true);
+    expect(first.gameMap.hasOwner(tile)).toBe(true);
+
+    const second = await loadTerrainMap(MAP, GameMapSize.Normal, loader);
+    expect(mapData.manifest).toHaveBeenCalledTimes(1);
+    expect(second.gameMap.hasOwner(tile)).toBe(false);
+    expect(second.gameMap.ownerID(tile)).toBe(0);
+    expect(second.gameMap.numTilesWithFallout()).toBe(0);
+    // The first game's map is untouched by the second load.
+    expect(first.gameMap.ownerID(tile)).toBe(7);
+  });
+
+  test("getCachedMap reports a completed load without building a map", async () => {
+    const { loader } = makeMockLoader(W, H);
+    expect(getCachedMap(MAP, GameMapSize.Normal)).toBeUndefined();
+    await loadTerrainMap(MAP, GameMapSize.Normal, loader);
+    expect(getCachedMap(MAP, GameMapSize.Normal)).toBeDefined();
+    expect(getCachedMap(MAP, GameMapSize.Compact)).toBeUndefined();
+  });
+
+  test("deduplicates concurrent in-flight loads — loader called once, each caller gets its own maps", async () => {
     const { loader, mapData } = makeMockLoader(W, H);
     const [first, second] = await Promise.all([
       loadTerrainMap(MAP, GameMapSize.Normal, loader),
       loadTerrainMap(MAP, GameMapSize.Normal, loader),
     ]);
     expect(mapData.manifest).toHaveBeenCalledTimes(1);
-    expect(first).toBe(second);
+    expect(second.gameMap).not.toBe(first.gameMap);
   });
 
   test("error recovery — failed load is cleared from cache, allowing a successful retry", async () => {
@@ -98,6 +131,25 @@ describe("loadTerrainMap", () => {
     const { loader: successLoader } = makeMockLoader(W, H);
     const result = await loadTerrainMap(MAP, GameMapSize.Normal, successLoader);
     expect(result).toBeDefined();
+  });
+
+  // Task 0032 (review R4): the bin length is checked inside the cached promise,
+  // so a bad asset is never cached and the next call re-fetches.
+  test("error recovery — a short bin rejects, is not cached, and a retry re-fetches", async () => {
+    const { loader: shortLoader, mapData: shortMapData } = makeMockLoader(W, H);
+    shortMapData.mapBin.mockResolvedValue(new Uint8Array(W * H - 1));
+    await expect(
+      loadTerrainMap(MAP, GameMapSize.Normal, shortLoader),
+    ).rejects.toThrow("Invalid data");
+    expect(getCachedMap(MAP, GameMapSize.Normal)).toBeUndefined();
+
+    const { loader: successLoader, mapData: successMapData } = makeMockLoader(
+      W,
+      H,
+    );
+    const result = await loadTerrainMap(MAP, GameMapSize.Normal, successLoader);
+    expect(successMapData.mapBin).toHaveBeenCalledTimes(1);
+    expect(result.gameMap.width()).toBe(W);
   });
 
   test("Normal and Compact sizes are cached independently", async () => {

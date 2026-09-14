@@ -4,7 +4,7 @@
 0228
 
 ## Sprint
-**Backlog board.**
+Backlog
 
 🚨 **THE BOARD IS THE PRODUCER'S CALL, NOT AN OWNER RULING.** The owner ruled, live on 2026-09-07,
 exactly one thing: **this defect ("F4") gets its own task**, because it existed nowhere but inside

@@ -16,7 +16,7 @@ times under a different name.
 ⚠️ **The rank is the producer's**; the owner ruled scheduling, not rank.
 
 ## Status
-🔄 In progress — driven by `/fkit-sprint-ship-loop` from the lead session, 2026-09-13
+🚧 Blocked — built + reviewed 2026-09-13 (persist-or-reuse for the four secrets + on-box report-only value parity + harness T12–T15; stateful review round 1 closed out, R1–R6 applied, Codex coverage full; `npm test` 120/1253 green); open pending the OWNER-side live tail — plan §8 steps 1–3: deploy with the four set (600-root files), then deploy with them BLANK (`Reusing persisted <NAME>` ×4 — THE proof), then one rotation. Same hold-open posture the owner ruled for `0219`. Driven by `/fkit-sprint-ship-loop`
 
 ## Owner
 fkit-coder

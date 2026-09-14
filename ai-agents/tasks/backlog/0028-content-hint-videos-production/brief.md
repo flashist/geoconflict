@@ -4,7 +4,9 @@
 0028
 
 ## Sprint
-Backlog — content production task (Mark), no engineering dependency. Can start any time.
+Backlog
+
+Content production task (Mark), no engineering dependency. Can start any time.
 
 ## Priority
 Medium — feeds the in-game hint display task (`0029-hint-videos-in-game`). Social media versions can be posted independently as they are produced.

@@ -8,22 +8,48 @@ export type TerrainMapData = {
   miniGameMap: GameMap;
 };
 
+// Task 0032: what the cache holds — only the immutable inputs (manifest metadata
+// plus the raw terrain bytes), never a built GameMap. GameMapImpl carries mutable
+// per-game state (tile ownership, fallout), so caching the built map handed the
+// same instance to the next game on that map/size started without a page reload
+// (the in-page rejoin routes: hash change / Back, or a `join-lobby` while a game
+// is still running — the normal exits are full navigations): the previous
+// game's ownership was still in the tiles while the new GameView knew none of
+// those players, `owner(tile)` returned null for an owned tile, and
+// TerritoryLayer threw `.id` on null at init. Every loadTerrainMap call now
+// builds fresh maps from these bytes; only the fetch is deduplicated/cached.
+// The bytes are length-checked before caching, so a bad asset is never cached
+// and the next call re-fetches.
+export type TerrainMapSource = {
+  nations: Nation[];
+  map: { metadata: MapMetadata; bin: Uint8Array };
+  miniMap: { metadata: MapMetadata; bin: Uint8Array };
+};
+
 const getMapTypeSizeKey = (mapType: GameMapType, mapSize: GameMapSize): string => {
   return `${mapType}:${mapSize}`;
 }
 
-const loadingInProgressMapsPromises = new Map<string, Promise<TerrainMapData>>();
-const loadedMaps = new Map<string, TerrainMapData>();
+const loadingInProgressMapsPromises = new Map<
+  string,
+  Promise<TerrainMapSource>
+>();
+const loadedMaps = new Map<string, TerrainMapSource>();
 
 export function clearTerrainMapCache(): void {
   loadedMaps.clear();
   loadingInProgressMapsPromises.clear();
 }
 
-export function getCachedMap(mapType: GameMapType, mapSize: GameMapSize): TerrainMapData | undefined {
+// Callers use this only to check whether a preload has completed; the value is
+// the cached source, deliberately not a built map (see TerrainMapSource).
+export function getCachedMap(
+  mapType: GameMapType,
+  mapSize: GameMapSize,
+): TerrainMapSource | undefined {
   const mapTypeSizeId = getMapTypeSizeKey(mapType, mapSize);
 
-  const result: TerrainMapData | undefined = loadedMaps.get(mapTypeSizeId);
+  const result: TerrainMapSource | undefined = loadedMaps.get(mapTypeSizeId);
   return result;
 }
 
@@ -53,6 +79,32 @@ export async function loadTerrainMap(
   mapSize: GameMapSize,
   terrainMapFileLoader: GameMapLoader,
 ): Promise<TerrainMapData> {
+  const source = await loadTerrainMapSource(
+    mapType,
+    mapSize,
+    terrainMapFileLoader,
+  );
+  return buildTerrainMapData(source);
+}
+
+async function buildTerrainMapData(
+  source: TerrainMapSource,
+): Promise<TerrainMapData> {
+  return {
+    nations: source.nations,
+    gameMap: await genTerrainFromBin(source.map.metadata, source.map.bin),
+    miniGameMap: await genTerrainFromBin(
+      source.miniMap.metadata,
+      source.miniMap.bin,
+    ),
+  };
+}
+
+async function loadTerrainMapSource(
+  mapType: GameMapType,
+  mapSize: GameMapSize,
+  terrainMapFileLoader: GameMapLoader,
+): Promise<TerrainMapSource> {
 
   const mapTypeSizeId = getMapTypeSizeKey(mapType, mapSize);
 
@@ -64,25 +116,26 @@ export async function loadTerrainMap(
     return loadingInProgressSingleMapPromise;
   }
 
-  const loadingSinglePromise = (async (): Promise<TerrainMapData> => {
+  const loadingSinglePromise = (async (): Promise<TerrainMapSource> => {
 
     const mapFiles = terrainMapFileLoader.getMapData(mapType);
     const manifest = await mapFiles.manifest();
 
-    const gameMap =
+    const map =
       mapSize === GameMapSize.Normal
-        ? await genTerrainFromBin(manifest.map, await mapFiles.mapBin())
-        : await genTerrainFromBin(manifest.map4x, await mapFiles.map4xBin());
+        ? { metadata: manifest.map, bin: await mapFiles.mapBin() }
+        : { metadata: manifest.map4x, bin: await mapFiles.map4xBin() };
 
     const miniMap =
       mapSize === GameMapSize.Normal
-        ? await genTerrainFromBin(
-          // It looks like the double condition for the GameMapSize.Normal is reduntant,
-          // because it's already checked just above
-          mapSize === GameMapSize.Normal ? manifest.map4x : manifest.map16x,
-          await mapFiles.map4xBin(),
-        )
-        : await genTerrainFromBin(manifest.map16x, await mapFiles.map16xBin());
+        ? {
+            // It looks like the double condition for the GameMapSize.Normal is reduntant,
+            // because it's already checked just above
+            metadata:
+              mapSize === GameMapSize.Normal ? manifest.map4x : manifest.map16x,
+            bin: await mapFiles.map4xBin(),
+          }
+        : { metadata: manifest.map16x, bin: await mapFiles.map16xBin() };
 
     if (mapSize === GameMapSize.Compact) {
       manifest.nations.forEach((nation) => {
@@ -93,10 +146,15 @@ export async function loadTerrainMap(
       });
     }
 
-    const result = {
+    // Task 0032: validate here, inside the cached promise, so a short/long bin
+    // rejects before anything is cached and the next call re-fetches.
+    assertTerrainBinLength(map.metadata, map.bin);
+    assertTerrainBinLength(miniMap.metadata, miniMap.bin);
+
+    const result: TerrainMapSource = {
       nations: manifest.nations,
-      gameMap: gameMap,
-      miniGameMap: miniMap,
+      map: map,
+      miniMap: miniMap,
     };
     loadedMaps.set(mapTypeSizeId, result);
 
@@ -124,15 +182,19 @@ export async function loadTerrainMap(
   return loadingSinglePromise;
 }
 
-export async function genTerrainFromBin(
-  mapData: MapMetadata,
-  data: Uint8Array,
-): Promise<GameMap> {
+function assertTerrainBinLength(mapData: MapMetadata, data: Uint8Array): void {
   if (data.length !== mapData.width * mapData.height) {
     throw new Error(
       `Invalid data: buffer size ${data.length} incorrect for ${mapData.width}x${mapData.height} terrain plus 4 bytes for dimensions.`,
     );
   }
+}
+
+export async function genTerrainFromBin(
+  mapData: MapMetadata,
+  data: Uint8Array,
+): Promise<GameMap> {
+  assertTerrainBinLength(mapData, data);
 
   return new GameMapImpl(
     mapData.width,

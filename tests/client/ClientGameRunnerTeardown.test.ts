@@ -36,14 +36,30 @@ jest.mock("../../src/client/sound/SoundManager", () => ({
     stopBackgroundMusic: jest.fn(),
   },
 }));
-jest.mock("../../src/client/Transport", () => ({
-  Transport: class {},
-  SendAttackIntentEvent: class {},
-  SendBoatAttackIntentEvent: class {},
-  SendHashEvent: class {},
-  SendSpawnIntentEvent: class {},
-  SendUpgradeStructureIntentEvent: class {},
-}));
+jest.mock("../../src/client/Transport", () => {
+  // Task 0233 (T9): joinLobby builds its own Transport, so the mock records
+  // every instance and gives each the methods the lobby handler reaches.
+  const instances: unknown[] = [];
+  class Transport {
+    isLocal = false;
+    connect = jest.fn();
+    leaveGame = jest.fn();
+    joinGame = jest.fn();
+    reconnect = jest.fn();
+    constructor() {
+      instances.push(this);
+    }
+  }
+  return {
+    __instances: instances,
+    Transport,
+    SendAttackIntentEvent: class {},
+    SendBoatAttackIntentEvent: class {},
+    SendHashEvent: class {},
+    SendSpawnIntentEvent: class {},
+    SendUpgradeStructureIntentEvent: class {},
+  };
+});
 jest.mock("../../src/client/LocalPersistantStats", () => ({
   endGame: jest.fn(),
   startGame: jest.fn(),
@@ -80,7 +96,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   flashistConstants: { analyticEvents: {} },
 }));
 
-import { ClientGameRunner } from "../../src/client/ClientGameRunner";
+import { ClientGameRunner, joinLobby } from "../../src/client/ClientGameRunner";
 import {
   AutoUpgradeEvent,
   DoBoatAttackEvent,
@@ -89,6 +105,7 @@ import {
   MouseUpEvent,
 } from "../../src/client/InputHandler";
 import SoundManager from "../../src/client/sound/SoundManager";
+import * as TransportModule from "../../src/client/Transport";
 import { EventBus } from "../../src/core/EventBus";
 
 const FIVE = [
@@ -242,5 +259,102 @@ describe("ClientGameRunner teardown (task 0231)", () => {
       (call) => call[1] === 1000,
     );
     expect(oneSecondIntervals).toHaveLength(0);
+  });
+});
+
+// Task 0233 — the three showErrorModal sites. showErrorModal returns early
+// when "#error-modal" already exists (before it touches the DOM), so a truthy
+// querySelector stub keeps these tests on the node environment; T1–T6 above
+// run without any document and stay untouched.
+describe("ClientGameRunner server-error sites (task 0233)", () => {
+  const transportInstances = (TransportModule as any).__instances as any[];
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    (globalThis as any).requestAnimationFrame = jest.fn();
+    (globalThis as any).document = { querySelector: () => ({}) };
+    (SoundManager.stopBackgroundMusic as jest.Mock).mockClear();
+  });
+
+  afterEach(() => {
+    delete (globalThis as any).document;
+    jest.useRealTimers();
+  });
+
+  test("T7: site 1 — a mid-game server error is a full, latched stop()", () => {
+    const { runner, bus, worker, transport, onGameEnd } = makeRunner();
+    runner.start();
+    const onmessage = transport.connect.mock.calls[0][1];
+    onmessage({ type: "error", error: "Kicked from game" });
+    expect(worker.cleanup).toHaveBeenCalledTimes(1);
+    expect(transport.leaveGame).toHaveBeenCalledTimes(1);
+    expect(onGameEnd).toHaveBeenCalledTimes(1);
+    for (const eventType of FIVE) {
+      expect(listenerCount(bus, eventType)).toBe(0);
+    }
+    jest.advanceTimersByTime(60_000);
+    expect(transport.reconnect).not.toHaveBeenCalled();
+    // A second error must not tear down twice.
+    onmessage({ type: "error", error: "Kicked from game" });
+    expect(worker.cleanup).toHaveBeenCalledTimes(1);
+    expect(transport.leaveGame).toHaveBeenCalledTimes(1);
+    expect(onGameEnd).toHaveBeenCalledTimes(1);
+  });
+
+  // The pin is the three negatives below. Feeding a later `turn` and asserting
+  // worker.sendTurn would prove nothing: the runner's turn branch has no
+  // stop() guard — a real stopped runner gets no turns only because
+  // killExistingSocket() nulls socket.onmessage, which this mock bypasses.
+  test("T8: site 2 — a desync tears nothing down (no stop, no leave, no onGameEnd)", () => {
+    const { runner, worker, transport, onGameEnd } = makeRunner();
+    runner.start();
+    const onmessage = transport.connect.mock.calls[0][1];
+    onmessage({
+      type: "start",
+      gameStartInfo: { gameID: "game-1", config: {}, players: [] },
+      turns: [],
+    });
+    onmessage({
+      type: "desync",
+      turn: 10,
+      correctHash: 1,
+      clientsWithCorrectHash: 1,
+      totalActiveClients: 2,
+      yourHash: 2,
+    });
+    expect(worker.cleanup).not.toHaveBeenCalled();
+    expect(transport.leaveGame).not.toHaveBeenCalled();
+    expect(onGameEnd).not.toHaveBeenCalled();
+  });
+
+  test("T9: site 3 — a lobby-side error leaves the transport and ends the game", () => {
+    const bus = new EventBus();
+    const onGameEnd = jest.fn();
+    const lobbyConfig: any = {
+      gameID: "game-3",
+      clientID: "client-3",
+      playerName: "Tester",
+      serverConfig: {},
+    };
+    const before = transportInstances.length;
+    const gameStop = joinLobby(
+      bus,
+      lobbyConfig,
+      jest.fn(),
+      jest.fn(),
+      onGameEnd,
+    );
+    expect(transportInstances).toHaveLength(before + 1);
+    const transport = transportInstances[before];
+    const onmessage = transport.connect.mock.calls[0][1];
+    onmessage({ type: "error", error: "Kicked from game" });
+    expect(transport.leaveGame).toHaveBeenCalledTimes(1);
+    expect(onGameEnd).toHaveBeenCalledTimes(1);
+    // Main.gameStop still runs later (leave / next join / beforeunload):
+    // runner is null here, so it takes the leaveGame() branch, which the
+    // real Transport makes idempotent.
+    expect(() => gameStop()).not.toThrow();
+    expect(transport.leaveGame).toHaveBeenCalledTimes(2);
+    expect(onGameEnd).toHaveBeenCalledTimes(1);
   });
 });

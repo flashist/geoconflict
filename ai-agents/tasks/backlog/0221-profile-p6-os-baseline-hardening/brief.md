@@ -16,7 +16,7 @@ internet-facing.
 ⚠️ **The rank is the producer's**; the owner ruled scheduling, not rank.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — built + reviewed 2026-09-13 (restart policy `unless-stopped` + `init: true`; graceful SIGTERM shutdown incl. `Dockerfile.profile` exec-form `node` CMD; unattended-upgrades security-only, auto-reboot off; fail2ban sshd jail; sshd hardening drop-in with `Match all` pin, password-deploy refusal, restore-not-delete rollback; harness 221/0; stateful review round 1 closed out, R1–R7 applied, Codex coverage full; `npm test` 121/1261 green); open pending the OWNER-side live tail B1–B6 (deploy with a first SSH session open; new-session key login + password refusal; fail2ban ban from a throwaway source; daemon restart + reboot → both containers up; `docker compose stop profile-api` exit 0). Non-root deploy user split out by owner ruling. Driven by `/fkit-sprint-ship-loop`
 
 ## Owner
 fkit-coder
@@ -123,6 +123,12 @@ not corrupted data. **Fix it because it is cheap and correct, not because it is 
   stops being low** — say so if anything in a plan touches it.
 - **Related:** `update.sh:64` (the game box's restart policy — the comparison, and the intent to
   match), `setup-profile.sh:405`/`:427` (the divergent values).
+- **Build done 2026-09-13 (Part A + read-only B0); deploy B1–B6 pending on the owner** — see
+  `worklog.md`. Item 4 (non-root deploy user) **explicitly split out** (owner ruling Q8; reason in the
+  worklog) — this task lands `PermitRootLogin prohibit-password`, not `no`. B0 found the box is
+  Ubuntu 26.04 and ships a `Match User root` sshd block that a globals-only drop-in cannot override;
+  the drop-in pins the auth keywords in a `Match all` block and the deploy gates on
+  `sshd -T -C user=root,…`.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
 - 🔒 **No secrets in any artifact** — variable names, file names and ports only.
