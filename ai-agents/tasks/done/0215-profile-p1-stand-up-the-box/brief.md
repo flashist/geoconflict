@@ -37,7 +37,7 @@ P3, P4, P5 and P6 all hang off it.
 fkit-coder / operator
 
 ## Depends on
-- [`0214`](../../backlog/0214-profile-p0-infrastructure-decisions/brief.md) (P0) — the spec and hostname
+- [`0214`](../0214-profile-p0-infrastructure-decisions/brief.md) (P0) — the spec and hostname
   decisions, both now **settled** and both now **conditional on inspection**.
 - [`0216`](../0216-profile-p1-spike-ru-network-reachability/brief.md) (P1-spike) — ✅ **runnable
   today**; **its result can change this task's scope, not just its schedule.**

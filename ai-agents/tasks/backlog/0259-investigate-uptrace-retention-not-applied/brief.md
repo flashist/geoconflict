@@ -4,10 +4,20 @@
 0259
 
 ## Sprint
-Backlog
+Sprint 4
+
+⚠️ **The field above is the bare token `Sprint 4` on purpose** — `dashboard.sh`'s drift rule compares it
+against the `➡️ Moved` row's target on the Backlog board; any decoration breaks the match.
+
+🔴 **PULLED INTO SPRINT 4 on 2026-09-14, on an OWNER RULING given live in the lead session
+(`AskUserQuestion`) and relayed by `fkit-lead`.** Filed on the Backlog board earlier the same day by a
+spawned producer. ⚠️ **The owner ruled the BOARD, NOT the rank** — the rank below stays the producer's.
+The Backlog-board row now reads `➡️ Moved` and is kept, not deleted.
+
+~~Backlog~~ *(struck 2026-09-14, kept not deleted)*
 
 ## Priority
-Unscheduled
+**Medium — producer's rank, NOT owner-ruled** (the owner ruled the board on 2026-09-14, not the rank). ~~Unscheduled~~
 
 **Producer's rank, if pulled into a sprint: Medium.** Not owner-ruled. The 7-day TTL exists to keep a
 59 GB VPS from filling at the previously observed 3–4 GB/day ingest (wiki `systems/telemetry`,
@@ -17,7 +27,7 @@ has been near-zero since 2026-09-04 (`0257`), so the disk is not growing today; 
 moment `0257` lands.
 
 ## Status
-🔲 Backlog
+🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-14
 
 ## Owner
 fkit-coder

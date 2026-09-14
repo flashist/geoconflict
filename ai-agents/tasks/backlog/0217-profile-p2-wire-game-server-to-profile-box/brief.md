@@ -52,6 +52,22 @@ for THESE MOVES ONLY — not a standing licence, not precedent.**
 📌 **`0220` (P5), `0221` (P6) and `0222` (Cleanup) were NOT ruled** — they keep their existing
 positions and the producer's ranks.
 
+📅 **GO-LIVE CONDITION OWNER-RULED 2026-09-14, given live in the lead session (`AskUserQuestion`) and
+relayed by `fkit-lead` during `/fkit-sprint-ship-loop`.** Asked whether the game server is wired to the
+profile box at the regular weekend deploy slot, the owner answered, verbatim:
+*"It depends. If we're ready to do all the planned tasks for full-scale citizenship and profile deploy, then yes. Basically, if everything that is left in the Sprint 4 is done, then yes."*
+
+⇒ **A condition, not a date:**
+- ✅ **Every remaining Sprint 4 task done by the weekend deploy slot** ⇒ this phase runs at that slot —
+  the game server gets a non-empty `PROFILE_INTERNAL_TOKEN` that matches the box's.
+- ⛔ **Anything still open** ⇒ `PROFILE_INTERNAL_TOKEN` **stays blank for that deploy**, exactly as the
+  standing blank-token ruling says, and this phase waits for a later owner-chosen window.
+- 🚩 **The condition's edges were NOT ruled — do not settle them between agents.** Read literally it
+  cannot be met: several open Sprint 4 rows sit **downstream of this very wiring** — `0062`'s
+  verification, the `0017` / `0012` Deferred Live Tails, `0065` — and `0014` waits on Yandex, not on
+  us. Which rows count as *"left"* is the owner's call; put it to the owner before the slot.
+- ⚠️ **`## Status` below is UNCHANGED.** A conditional go-live slot is not a start.
+
 ## Status
 🔲 Backlog
 

@@ -4,7 +4,7 @@
 0214
 
 ## Parent / Epic
-[`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
+[`0213-profile-backend-clean-slate-rebuild`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)
 
 ## Sprint
 Sprint 4
@@ -16,7 +16,7 @@ deliberation.
 ⚠️ **The rank is the producer's**; the owner ruled scheduling, not rank.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 Owner (decisions — mostly made) / fkit-coder (the verification half)
@@ -80,7 +80,7 @@ NEW backup bucket if account-wide. The objection was put to the owner and OVERRU
 ✅ **The `0218` half above is UNCHANGED** — the new `age` keypair and its custody are still `0218`'s.
 **No new brief is being created
 for this ruling** — see the epic
-[`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md), whose P1–P7 chain already covers
+[`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md), whose P1–P7 chain already covers
 "wipe, re-provision in place, re-issue".
 
 📌 ~~**The `0222` old-bucket-objects decision is UNAFFECTED and still OPEN.** Redoing the box's keys
@@ -164,7 +164,14 @@ running.** DNS resolution is not a health check. `0215`'s B1–B9 inspection is.
 IP geolocation, not by a script comment** — the `Hetzner` comments in `setup.sh`/`update.sh` are
 **stale and wrong**.
 
-### 4. Who runs the deploy, and from where — still to confirm
+### ✅ 4. Who runs the deploy, and from where — RULED 2026-09-14
+
+🔴 **OWNER RULING 2026-09-14, given live in the lead session (`AskUserQuestion`) and relayed by
+`fkit-lead` during `/fkit-sprint-ship-loop`: the owner runs the profile deploys personally, from their
+own laptop, with the VPN off or bypassed for the box.** ⚠️ The ruling names the operator and the path;
+it does **not** record a bypass-route method — either VPN-off or a host-specific bypass satisfies it.
+
+~~Still to confirm~~ *(struck 2026-09-14, kept not deleted)*
 
 ⚠️ **A full-tunnel VPN makes the RU box unreachable** (SSH and curl time out). The operator either
 turns the VPN off or adds a host-specific bypass route. **Settle this before a deploy is half-done**,
@@ -214,6 +221,9 @@ this task's worklog and reflected into `0215`'s configuration.
 - **Open questions this task owned — ALL NOW ANSWERED:** ✅ **Q1** spec (ruled, conditional);
   ✅ **Q2** hostname (reuse, with the Yandex reason); ✅ **Q5** write volume (measured, with caveats).
   ✅ **Q7** (what to cancel) is closed — **nothing**.
+- ✅ **SUPERSEDED 2026-09-14 — item 4 is now RULED** (see §4: the owner runs the profile deploys personally,
+  from their own laptop, VPN off or bypassed). With it, **every item this task owned is answered**: spec B7
+  and RU residency were verified under `0215` (2026-09-10). The bullet below is kept as written.
 - 🔴 **"ALL NOW ANSWERED" covers the QUESTIONS, not the four numbered items above it — read the
   distinction.** ⛔ **Item 4 — who runs the deploy, and from where — is STILL NOT CONFIRMED**, and it
   is the **only** outstanding decision on this task. ⚠️ **Do not let the ✅ marks above, or the section

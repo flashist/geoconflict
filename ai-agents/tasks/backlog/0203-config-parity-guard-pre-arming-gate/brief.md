@@ -34,7 +34,7 @@ happened. See Notes for the board-choice reasoning.~~ *(struck 2026-09-12, kept 
 - Rank it above ordinary polish and below anything player-facing or live-money.
 
 ## Status
-🔲 Backlog
+🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-14 · scope this run: the no-decision fixes R12, R1, R15, R16, R18 only · ⚠️ this start PRECEDES `0064`'s weekend report-only production run, which `## Notes` records as a dependency (*"its report-only run must have happened"*; `0064` is still 🔄 In progress) — the driver relayed the start as owner-ruled; whether that dependency was waived knowingly is not recorded
 
 ## Owner
 fkit-coder

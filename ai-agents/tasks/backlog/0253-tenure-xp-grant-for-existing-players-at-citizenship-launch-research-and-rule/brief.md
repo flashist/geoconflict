@@ -36,7 +36,7 @@ appended at the bottom with a merit note "directly below `0217`"; the owner acce
 position as the ruling.)*
 
 ## Status
-🔲 Backlog
+🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-14 · step 1 research only; build gated on the owner's ruling
 
 ## Owner
 fkit-coder
