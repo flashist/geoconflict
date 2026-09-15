@@ -36,7 +36,9 @@ appended at the bottom with a merit note "directly below `0217`"; the owner acce
 position as the ruling.)*
 
 ## Status
-🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-14 · step 1 research only; build gated on the owner's ruling
+🚧 Blocked — rework paused pending the new profile-identity task's design (owner-ruled 2026-09-15)
+
+📌 **STATUS SET 2026-09-15 on an OWNER RULING given live in a design discussion in the lead session and relayed by `fkit-lead`.** The new profile-identity task is [`0266`](../0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md) (Sprint 4). ⚠️ **The code built from the first plan (2026-09-14/15) is UNCOMMITTED in the working tree and will be REWORKED, not reverted yet** — do not delete it and do not ship it as is. *(Superseded status, kept, not deleted: ~~🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-14 · step 1 research only; build gated on the owner's ruling · 📌 **OWNER RULING 2026-09-14, given live in the lead session (`AskUserQuestion`) and relayed by `fkit-lead`: "Numbers first"** — the owner runs the GameAnalytics checks O1–O3 (days-played spread, new players per day, logged-in share; defined in `worklog.md` → *Owner steps*) **before** ruling rate, cap and eligibility. The step-2 ruling waits on those numbers. Status token unchanged~~)*
 
 ## Owner
 fkit-coder
@@ -278,8 +280,11 @@ is deployed. Build and test locally against the profile server + Postgres like `
 
 ## Notes
 
-- **Depends on:** nothing
-- **Blocks:** nothing — the implementation is inside this brief (owner ruling 2026-09-13).
+- **Depends on:** [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) — profile identity **S4** (client login session + Bearer token), the last link of `0270` → `0271` → `0273` (updated 2026-09-15 when epic [`0266`](../0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md) was split into slices on owner rulings relayed by `fkit-lead`)
+- 🚨 **Serialization, same files:** this brief's rework (route + client logic) runs **after `0273`**. [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1) **absorbs** this brief's uncommitted schema + repository code (the grant table moves into migration `006`; the untracked `005` is deleted) — **S1 must never run concurrently with any work on this brief's code.** Rework shape per design §7: claim waits for the login reply and reads `grantChecks.tenure`; caller from `resolveCaller` (token); `tenureGrantLimiter` removed; every checked claim writes a row (`xp_awarded` 0…50).
+- *(Superseded dependency line, kept: ~~Depends on: `0266` — profile identity (owner-ruled 2026-09-15)~~ — `0266` is now the epic; the concrete gate is its slice `0273`.)*
+- **Blocks:** [`0268`](../0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) (removal ~60 days after release) — the implementation itself is inside this brief (owner ruling 2026-09-13).
+- *(Superseded dependency lines, kept: ~~Depends on: nothing~~ · ~~Blocks: nothing~~ — changed 2026-09-15 by the redesign ruling below. The "Why nothing above" bullet that follows is **history**: this brief now has a real build dependency on `0266`.)*
 - ⚠️ **Why "nothing" above, and what the dependency really is.** Steps 1–2 can run now, and step 3 can
   be **built and tested locally** now. What cannot happen is the grant reaching players: that waits on
   [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) landing **and being
@@ -294,6 +299,11 @@ is deployed. Build and test locally against the profile server + Postgres like `
   producer's research-only filing; (2) board position directly below `0217`, an owner ruling lifting
   ADR-035's append-only constraint for this one row (precedent cited: `0232`/`0231`, 2026-09-07), not
   producer precedent; the `Medium` label stays the producer's.
+- **Owner ruling recorded 2026-09-14** (given live in the lead session via `AskUserQuestion`, relayed by
+  `fkit-lead`): **"Numbers first"** — the owner runs GameAnalytics checks **O1–O3** (days-played
+  spread, new players per day, logged-in share; the coder's worklog defines them under *Owner steps*)
+  before ruling step 2's rate, cap and eligibility. Until those numbers are in, step 2 is not ruled
+  and step 3 does not start.
 - **Work breakdown** is in step 3 — an internal breakdown for the coder's plan, **not** a list of
   briefs to file.
 - **Timing the owner should weigh:** the popup lands best on the day the XP path first shows players a
@@ -304,4 +314,42 @@ is deployed. Build and test locally against the profile server + Postgres like `
   plays on a new device) has no evidence and gets nothing; a player who never logged into Yandex has
   evidence but no profile. Both are unfixable client-side; the rule should say so in the popup copy or
   accept them silently.
+- 📌 **REDESIGN — OWNER RULINGS 2026-09-15**, given live in a design discussion in the lead session and
+  relayed by `fkit-lead`. **Read the authority before the outcome: the owner designed this flow; the
+  lead confirmed it back; the producer only records it.** It **supersedes** the parts of the
+  2026-09-14 rulings (ADR-112 Part 1) named under *Removed*. Where this block and anything above
+  disagree, **this block wins**.
+  1. **Login on every load.** Game loads; if the player is logged in to Yandex, the client sends a
+     **login request on every load — NOT behind the citizenship card switch** — to the profile server,
+     which finds or creates the profile (identity = platform + platform id, per `0266`). The id is
+     **trusted for now**.
+  2. **Claim only if the citizenship card is enabled** and the login reply says the tenure check has
+     not happened. The claim carries days played and is **always sent, even if under 3**. The claim
+     **waits for the login reply** (sequential — no race, the profile always exists).
+  3. **Server rule:** days = **max(daysPlayed, distinct `game-records` days)**; **1 XP per day, cap 50,
+     minimum 3**; the server records "checked" **either way**; the check is **final and never repeats**
+     — a 1–2-day player never gets the grant later.
+  4. **Popup** — one-time, only if granted, shows **only XP, no day count**. **Approved copy (owner):**
+     EN *"Thank you for playing Geoconflict! As a thank-you for being with us for so long, we're giving
+     you {xp} free XP. You now have {total} / {threshold} XP."* · RU *"Спасибо, что играете в
+     Geoconflict! В благодарность за то, что вы с нами так давно, мы дарим вам {xp} XP. Теперь у вас
+     {total} / {threshold} XP."*
+  5. **Removed:** the 90-day claim window · the one-claim-per-device rule (the rule is now **1 profile =
+     1 claim, server-enforced**) · all client date checks and the client snapshot · the "≥ 1 credited
+     match" rule · **the per-IP rate limit on the new login and claim routes** — replaced by
+     **monitoring** (e.g. Uptrace) so problems are visible. Owner's reasoning: once the claim logic is
+     removed (`0268`) the fake-id claim attack is impossible. ⚠️ **Accepted, monitored risk:** the lead
+     noted the login route keeps creating profiles for as long as it exists, so without a limit junk
+     profile rows can pile up; the owner accepted that in favour of monitoring.
+  6. **Timing:** XP go-live may slip past this weekend (owner: *"it's ok"*; may even skip the next
+     weekend slot). The game deploy still happens with the XP token blank.
+  - **Consequences recorded:** this brief now **depends on `0266`**; **ADR-112 needs amending**
+    (architect — not done by this filing); the step-3 work breakdown, verification steps 9, 10, 12 and
+    the claim-window/per-device/≥ 1-match text above are **superseded where they conflict** and are to
+    be rewritten in the coder's redesign plan, not deleted here.
+  - **Follow-ups filed the same day:** [`0266`](../0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
+    (Sprint 4, blocks this) · [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md)
+    (Backlog — verify the platform identity) · [`0268`](../0268-remove-tenure-xp-claim-logic-after-60-days/brief.md)
+    (Backlog — remove the claim ~60 days after release) · [`0269`](../0269-startup-crash-when-browser-storage-blocked/brief.md)
+    (Backlog — review R4's pre-existing boot throw, owner: *"Fix comment + file task"*).
 - No wiki writes here; `fkit-wiki` ingests the findings report and the ruling after close.

@@ -12,7 +12,8 @@ import { logInboxSendFailure, type InboxSender } from "./InboxRepository";
 /** A purchase_intents row, camelCased for the route layer. */
 export interface PurchaseIntent {
   id: string;
-  yandexPlayerId: string;
+  /** The internal player id (task 0270) the intent was created for. */
+  playerId: string;
   productId: string;
   usedAt: string | null;
 }
@@ -20,14 +21,14 @@ export interface PurchaseIntent {
 /** A processed_purchases receipt row. */
 export interface ProcessedPurchase {
   purchaseToken: string;
-  yandexPlayerId: string;
+  playerId: string;
   productId: string;
 }
 
 export interface PaidPurchaseGrant {
   purchaseToken: string;
   productId: string;
-  yandexPlayerId: string;
+  playerId: string;
   intentId: string | null;
   rawPayload: string;
 }
@@ -35,24 +36,20 @@ export interface PaidPurchaseGrant {
 /** granted = fresh grant; already_processed = token seen before (idempotent no-op). */
 export type GrantStatus = "granted" | "already_processed";
 
-// A buyer may have no profile row yet (upsert happens at match JOIN, and the
-// citizenship CTA lives on the start screen), so every write path ensures the
-// row first. Never touches xp/citizenship/paid fields — insert-only.
-const ENSURE_PROFILE_SQL = `
-INSERT INTO player_profiles (yandex_player_id)
-VALUES ($1)
-ON CONFLICT (yandex_player_id) DO NOTHING
-`;
-
 // The paid-flag write. Sets is_citizen too (chk_paid_implies_citizen);
 // citizenship_purchased_at is COALESCEd so a re-grant never rewrites history.
+//
+// There is no "ensure profile" step any more (task 0270): a purchase is bound to
+// an intent, the intent references players(id), and the route only creates
+// intents for players that already exist. The grant still checks the row count —
+// see grantPaidPurchase.
 const GRANT_FLAGS_SQL = `
-UPDATE player_profiles
+UPDATE players
 SET is_citizen = true,
     is_paid_citizen = true,
     citizenship_purchased_at = coalesce(citizenship_purchased_at, now()),
     updated_at = now()
-WHERE yandex_player_id = $1
+WHERE id = $1
 `;
 
 export class PaymentsRepository {
@@ -63,21 +60,18 @@ export class PaymentsRepository {
   ) {}
 
   /**
-   * Create a purchase intent for a (client-asserted) player, ensuring the
-   * profile row exists first. Returns the new intent id (the uuid the client
-   * passes to Yandex as developerPayload).
+   * Create a purchase intent for an EXISTING player (the route resolves the
+   * caller find-only and 404s an unknown one; the FK refuses anything else).
+   * Returns the new intent id (the uuid the client passes to Yandex as
+   * developerPayload).
    */
-  async createIntent(
-    yandexPlayerId: string,
-    productId: string,
-  ): Promise<string> {
+  async createIntent(playerId: string, productId: string): Promise<string> {
     return this.inTransaction(async (client) => {
-      await client.query(ENSURE_PROFILE_SQL, [yandexPlayerId]);
       const res = await client.query(
-        `INSERT INTO purchase_intents (yandex_player_id, product_id)
+        `INSERT INTO purchase_intents (player_id, product_id)
          VALUES ($1, $2)
          RETURNING id`,
-        [yandexPlayerId, productId],
+        [playerId, productId],
       );
       return res.rows[0].id as string;
     });
@@ -86,7 +80,7 @@ export class PaymentsRepository {
   /** Read an intent by id (any state). Caller validates the uuid format first. */
   async findIntent(intentId: string): Promise<PurchaseIntent | null> {
     const res = await this.pool.query(
-      `SELECT id, yandex_player_id, product_id, used_at
+      `SELECT id, player_id, product_id, used_at
        FROM purchase_intents WHERE id = $1`,
       [intentId],
     );
@@ -96,7 +90,7 @@ export class PaymentsRepository {
     const row = res.rows[0];
     return {
       id: row.id,
-      yandexPlayerId: row.yandex_player_id,
+      playerId: row.player_id,
       productId: row.product_id,
       usedAt: row.used_at ? (row.used_at as Date).toISOString() : null,
     };
@@ -107,7 +101,7 @@ export class PaymentsRepository {
     purchaseToken: string,
   ): Promise<ProcessedPurchase | null> {
     const res = await this.pool.query(
-      `SELECT purchase_token, yandex_player_id, product_id
+      `SELECT purchase_token, player_id, product_id
        FROM processed_purchases WHERE purchase_token = $1`,
       [purchaseToken],
     );
@@ -117,7 +111,7 @@ export class PaymentsRepository {
     const row = res.rows[0];
     return {
       purchaseToken: row.purchase_token,
-      yandexPlayerId: row.yandex_player_id,
+      playerId: row.player_id,
       productId: row.product_id,
     };
   }
@@ -139,16 +133,15 @@ export class PaymentsRepository {
       );
     }
     const status = await this.inTransaction<GrantStatus>(async (client) => {
-      await client.query(ENSURE_PROFILE_SQL, [grant.yandexPlayerId]);
       const inserted = await client.query(
         `INSERT INTO processed_purchases
-           (purchase_token, yandex_player_id, product_id, intent_id, raw_payload)
+           (purchase_token, player_id, product_id, intent_id, raw_payload)
          VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (purchase_token) DO NOTHING
          RETURNING purchase_token`,
         [
           grant.purchaseToken,
-          grant.yandexPlayerId,
+          grant.playerId,
           grant.productId,
           grant.intentId,
           grant.rawPayload,
@@ -157,7 +150,15 @@ export class PaymentsRepository {
       if (inserted.rows.length === 0) {
         return "already_processed";
       }
-      await client.query(GRANT_FLAGS_SQL, [grant.yandexPlayerId]);
+      const flags = await client.query(GRANT_FLAGS_SQL, [grant.playerId]);
+      if ((flags.rowCount ?? 0) === 0) {
+        // No players row to flag. processed_purchases.player_id has no FK (a
+        // receipt must outlive an erasure), so without this check the receipt
+        // would commit with no entitlement behind it and a retry would read
+        // "already processed". Throwing rolls the whole grant back instead.
+        // Practically unreachable: the intent's FK cascades on erasure.
+        throw new Error("grantPaidPurchase: no player row to grant");
+      }
       if (grant.intentId !== null) {
         await client.query(
           `UPDATE purchase_intents
@@ -199,7 +200,7 @@ export class PaymentsRepository {
     }
     try {
       void this.inbox
-        .sendTemplate(grant.yandexPlayerId, "citizenship_paid")
+        .sendTemplate(grant.playerId, "citizenship_paid")
         .catch((error: unknown) =>
           logInboxSendFailure("citizenship_paid", error),
         );

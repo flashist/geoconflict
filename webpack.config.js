@@ -177,10 +177,11 @@ export default async (env, argv) => {
 
   return {
     entry: "./src/client/Bootstrap.ts",
-    // hidden-source-map: emit full .map files (uploaded to Uptrace at build time
-    // for stack-trace symbolication) but WITHOUT the sourceMappingURL comment, so
-    // browsers never request them and maps stay private (the .map→404 guard in
-    // Master.ts is kept as defense-in-depth; see scripts/upload-sourcemaps.js).
+    // hidden-source-map: emit full .map files but WITHOUT the sourceMappingURL
+    // comment, so browsers never request them and maps stay private. The Dockerfile
+    // deletes them from the image and Master.ts 404s .map as defense-in-depth. They
+    // are not uploaded anywhere: the Uptrace upload was removed in 0260 (Uptrace
+    // 2.0.2 has no upload API), so client stack traces are not symbolicated.
     devtool: isProduction ? "hidden-source-map" : false,
     output: {
       publicPath: "/",

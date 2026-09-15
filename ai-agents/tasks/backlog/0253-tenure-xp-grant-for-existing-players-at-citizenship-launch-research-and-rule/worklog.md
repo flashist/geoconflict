@@ -320,3 +320,223 @@ accepted because the prize is capped, one-per-account, and goodwill is the point
    → **localStorage-only evidence is ACCEPTED as the signal source** (bears on decision A). **Still open:**
    the specific signal choice — `daysPlayed` alone vs max(`daysPlayed`, distinct `game-records` days) — and
    B–G.
+
+### Owner rulings on A–G — 2026-09-14 (`AskUserQuestion` in the lead session, relayed by the `fkit-sprint-ship-loop` coordinator)
+
+**Data the rulings were taken on** — gathered by the lead in GameAnalytics (free tier, real data, last
+7 days, 2026-09-07 → 09-13). Recorded as relayed; not re-queried by the coder.
+
+- **O1** — mean `Player:DaysPlayed` value **per event = 31.02** (session-weighted — heavy players fire more
+  sessions, so this skews high); mean value **per event user (sum over 7 d) = 988.9** (a sum, not a per-user
+  day count). ⚠️ The ≥ 7 / 30 / 50 distribution is **not available** (GameAnalytics PRO only; the owner
+  declined a trial and ruled on this data). **Share of players at the cap therefore remains unknown.**
+- **O2** — `Player:New` unique users/day **1.23K–1.84K (~35 % of daily players)**; owner: the Yandex console
+  shows "pretty much the same numbers" → **local evidence is not being lost at a meaningful rate** (an owner
+  comparison, not a measured ratio).
+- **O3** — unique users/day: `Player:YandexLoggedIn` **1.26–1.55K**, `Player:YandexGuest` **2.1–3.0K**,
+  `Player:YandexUnknown` **0.8–1.2K**, vs `Player:DaysPlayed` users **3.58–4.79K** → **~30–35 % logged in**
+  (buckets overlap — a user can land in more than one per day).
+
+**Rulings:**
+
+| Point | Ruling |
+|---|---|
+| A. Signal | **"Bigger of the two"** — `max(daysPlayed, distinct calendar days in game-records)`. Standing: localStorage-only evidence accepted (earlier input above). |
+| B. Rate / cap | **1 XP per day, max 50.** |
+| C. Eligibility | **"Looser: min 3 days"**; otherwise the recommended set: only pre-launch days count · one grant per account for life · one claim per device · ≥ 1 real credited match required · 90-day claim window · guests can claim once logged in. |
+| D. Storage / route | Own **`player_xp_grants`** table (migration) + **direct profile-server claim route** with synchronous ack. |
+| E. Notice | **One-time modal after server ack**, behind the citizenship kill switch. (Owner asked about the inbox; lead verified it is citizen-only — `GET /v1/messages` 403 `not_citizen` — so the modal was chosen.) |
+| F. Analytics | **Yes** — `Citizenship:TenureGrant:Claimed` / `Rejected:<Reason>` / `ClaimFailed`, plus the analytics reference doc. |
+| G. Process | **Copy findings to the brief's report path** (done 2026-09-14: `ai-agents/knowledge-base/reports/2026-09-14-0253-tenure-xp-grant-findings.md`); **architect writes a short free-XP-grant ADR** (lead spawns it separately). |
+
+**Gate:** the step-2 ruling is now recorded (this entry). Step 3 is at **plan** stage only — no source,
+test or migration file has been changed as of this entry; the plan goes to the owner for approval before
+any edit.
+
+### Step 3 build — 2026-09-15 (`fkit-coder` Build worker, spawned by `fkit-sprint-ship-loop`)
+
+**Authority:** the approved `plan.md` (blob `afe0746515866a26f1912733e1b78ac8d3410836`, matched by
+`git hash-object` before any edit), owner-approved via `AskUserQuestion` in the lead session on
+2026-09-14. Nothing committed. `CITIZENSHIP_CARD_ENABLED` **not** changed (still `false`; ruling 6).
+
+**Change surface**
+- Core: `src/core/profile/Citizenship.ts` (3 constants), new `src/core/profile/TenureGrantContract.ts`.
+- Migration: new `migrations/005_player_xp_grants.sql`.
+- Profile server: `PlayerProfileRepository.ts` (`grantTenureXp`), `Routes.ts`
+  (`POST /v1/profile/tenure-grant`, `TenureGrantRepo`, 5th `createApp` param), `Server.ts` (passes `repo`).
+- Client: new `TenureEvidence.ts`, `TenureGrantClaim.ts`, `TenureGrantModal.ts`; `FlashistFacade.ts`
+  (snapshot before `logDaysPlayedAnalytics()`, 3 enum keys); `CitizenshipCard.ts` (one claim per load);
+  `DaysPlayedAnalytics.ts` (`DAYS_PLAYED_KEY` exported); `Main.ts`; `<tenure-grant-modal>` in **both**
+  `index.html` and `yandex-games_iframe.html`.
+- Copy: `citizenship_tenure_grant` in **both** `en.json` and `ru.json` (approved copy, verbatim).
+- Analytics doc: 3 rows + a unique-users counting note under *Citizenship Events*.
+- Tests: new `TenureGrantContract.test.ts`, `TenureGrantRoutes.test.ts`, `TenureGrant.it.test.ts`,
+  `TenureEvidence.test.ts`, `TenureSnapshotInitOrder.test.ts`, `TenureGrantClaim.test.ts`,
+  `TenureGrantLang.test.ts`, `TenureGrantModal.test.ts`; extended `Citizenship.test.ts`,
+  `PlayerProfileRepository.test.ts`, `CitizenshipCard.test.ts`.
+
+**Checks (this worker, 2026-09-15)**
+- `npm test`: **129 suites / 1436 tests, all passed**, first run — no re-run, no flake seen.
+- `npm run test:integration` (Docker up, `gc-0012-it-pg`): **6 suites / 78 tests passed**;
+  `TenureGrant.it.test.ts` confirmed **executed, not skipped** (8/8) — covers brief verification 8.
+- `npx tsc --noEmit` exit 0 · `npm run lint` exit 0 · `prettier --check` clean on every touched file.
+  `Routes.ts` / `FlashistFacade.ts` / `CitizenshipCard.ts` were prettier-clean at HEAD, so `--write`
+  only touched the new lines.
+
+**Decision log — obvious-winner calls made without asking (each inside the plan's intent)**
+1. **Span clamp rounds UP** (`ceil(span / day) + 1`). The plan said "whole-day span … plus 1". Floor
+   would undercount an honest player whose two local dates sit minutes apart across midnight; ceil never
+   undercounts. Qualifies: decision 5's intent is clamp-to-possible, not penalise honest evidence.
+   Tested ("the clamp never undercounts two calendar days minutes apart").
+2. **`snapshotTakenAt` before the evidence floor → `implausible`.** Plan listed only the future-snapshot
+   and `firstPlayedAt` checks; without this the span goes negative. Qualifies: an impossible timestamp,
+   which decision 5 says to reject.
+3. **Floor = 2025-11-04 00:00 +03:00** (`Date.UTC(2025,10,3,21)`). Plan named the date only; the first
+   commit is 2025-11-04 14:31 +03:00, so local midnight is strictly earlier and rejects nothing honest.
+   Test asserts floor ≤ first-commit time.
+4. **Window edges:** open at exactly `TENURE_WINDOW_OPENS_AT_MS`; closed at exactly opens + 90 days.
+5. **Client local minimum check uses the RAW max**, not the clamped count. Clamping only lowers, so raw
+   < 3 is already final server-side. Keeps the plan's "compute days locally" without guessing a clamp.
+6. **Modal `{days}` = shared `tenureDaysFromEvidence()` on this device.** The approved response schema
+   carries no `days`; the same pure function gives the server's exact figure for `granted`.
+7. **Client hygiene on evidence:** ignores a `firstSeen` later than the snapshot (would be `implausible`
+   forever), clamps day counts to the wire bound 100 000 (would be a 400 retried every load).
+8. **HTTP 400 → `ClaimFailed`, no marker** (plan's failure list did not name 400; same treatment as
+   the other non-answers).
+9. **`duplicate` sets the marker** (value `duplicate`) — implied by the plan's "set the marker first".
+10. **Analytics doc: rows added under *Citizenship Events* only, NOT under *TypeScript Enum*.** Plan said
+    both, but that section reads "That file is the authoritative source — do not maintain a duplicate
+    here." Following the doc's own rule.
+11. **Modal queuing — checked, none built.** No start-screen modal has a queue (each overlays at
+    z-index 9999 via its own `isVisible`); "follows the existing start-screen modals" therefore means
+    none. See residual R1.
+12. **Init-order test is a direct test file** (`TenureSnapshotInitOrder.test.ts`, drives the real
+    `initializeImmediate()` over jsdom storage) instead of editing `FlashistFacade.test.ts` — the plan
+    allowed either.
+13. **Extra small `TenureGrantModal.test.ts`** (show / threshold from constant / CTA closes) — a test
+    addition, not scope.
+14. **Card resolves the Yandex id** (`FlashistFacade.getYandexUniqueId`) and passes it, matching the
+    plan's `maybeClaimTenureGrant(yandexPlayerId)` signature.
+15. **Integration suite pins `Date.now`** into the window (it opens 2026-09-19, after today), pg and
+    supertest keep real timers.
+
+Review fixes applied unattended: **none** (no review has run yet).
+
+**Residuals (for the reviewer / owner to see)**
+- **R1 — no modal queue.** The notice can open over another open modal, or over the match-start screen
+  if a player joins within the claim's ≤ 10 s. Dismissable with one tap; no queuing mechanism exists to
+  follow.
+- **R2 — `duplicate` modal days** are this device's count and can differ from the days the stored grant
+  was based on (claimed on another device). The XP figures are the server's.
+- **R3 — forged-id gift** (ADR-103): anyone knowing a player id can claim that player's grant with made-up
+  evidence — ≤ 50 XP, once, only to an account with a real credited match. Documented at the route;
+  closes with `0250`.
+- **R4 — fixed window vs `0217`.** The window is a constant (2026-09-19 + 90 d). If XP go-live slips,
+  part of the window is spent with no crediting (every claim is a temporary `no_credited_match`). And
+  "pre-launch" ends when a device first runs *this* build, so days played between this build's deploy
+  and XP go-live do **not** count — accepted in the plan (decision 2), restated here.
+- **R5 — temporary rejections and `ClaimFailed` fire once per page load** until resolved; the doc says to
+  read them as unique users.
+
+**Verification 14 — cannot reach players yet.** Nothing in this build can reach a player until `0217`
+(game server → profile box crediting) is deployed **and** `CITIZENSHIP_CARD_ENABLED` is turned on (part
+of XP go-live, not this task). The snapshot itself **is** written on every device from this build's first
+boot, whatever the switch says — by design (decision 2); it is local-only and sends nothing.
+
+**Not verified here — only after the weekend deploy and `0217`:** migration 005 on the real box; a real
+claim from the Yandex iframe to the API subdomain (CORS preflight, rate limiter behind host nginx); real
+evidence on real devices; the ≥ 1 credited-match condition with live crediting; the modal on desktop and
+mobile; the events in GameAnalytics (prod builds only); a grant pushing a real player over 100 and the
+inbox message.
+
+### Review round 1 — coder processing — 2026-09-15 (`fkit-coder` Process-review worker, spawned by `fkit-sprint-ship-loop`)
+
+**Authority:** approved `plan.md` (blob `afe07465…`, unchanged) plus the owner's round-1 dispositions
+(`AskUserQuestion` in the lead session, 2026-09-15, recorded in `review.md` by the reviewer): R1, R2, R5
+FIX; R3 accepted residual; R4 fix the comment only, and the producer files a follow-up task; CR4
+accepted. Nothing committed. `CITIZENSHIP_CARD_ENABLED` still `false`.
+
+**Decision log — fixes applied without per-fix approval (standing approval, ADR-019 / ADR-032 A4)**
+1. **R1 — pre-floor `startTime` / `firstSeen` dropped** (`TenureEvidence.ts`).
+   - Finding: a wrong-clock timestamp becomes a pre-floor `firstPlayedAt`. The server answers a permanent `implausible` and the device claim is burned.
+   - Change: both filters now also require `>= TENURE_EVIDENCE_FLOOR_MS`.
+   - Why it qualified: verified CORRECT, localized, owner-ruled FIX, and an exact mirror of the existing later-than-snapshot drop (build call 7).
+2. **R1 — snapshot `takenAt` ahead of the client clock is clamped to `now`.**
+   - Change: `readTenureEvidence(storage, now = Date.now())`, `takenAt = min(takenAt, now)`.
+   - Why it qualified: this is the "clamp" in the owner's ruling. It only lowers the pre-launch boundary, so it can exclude games but never add any. Obvious winner within the plan's intent: it never makes the grant more generous.
+3. **R1 — a snapshot `takenAt` before the floor → `null`** (claim skipped; nothing is sent and no marker is set).
+   - Why it qualified: no pre-launch boundary can be recovered from such a snapshot. `null` is the existing contract for an unusable snapshot (corrupt JSON already returns `null`), and it is the "drop" in the ruling.
+   - Rejected alternatives:
+     - Clamp to the floor: the span becomes 1 day, which gives a permanent `below_minimum` — the same burn.
+     - Clamp to `now`: this would count post-launch games, which is more generous than the plan allows.
+   - Cost, stated plainly: that device never claims and fires no analytics event. The account can still claim from another device.
+4. **R2 — `daysPlayed` clamped at 0** (`Math.max(0, …)`).
+   - Finding: a negative corrupt count produces a 400 that is retried every load forever.
+   - Why it qualified: verified CORRECT, one line, owner-ruled FIX.
+5. **R4 — comments only.**
+   - `TenureEvidence.ts` header: no longer says "never throws"; it names the default-param exposure.
+   - `TenureGrantClaim.ts` header: same false claim corrected. Its default parameter has the same shape, and `CitizenshipCard` catches the rejection.
+   - Why it qualified: owner ruling "Fix comment". Correcting the second 0253 comment with the identical false claim is within "0253's comment". No startup code was changed.
+6. **R5 — `"tenure-grant-modal"` added to `LangSelector.applyTranslation`'s list.**
+   - Why it qualified: verified CORRECT, one line, owner-ruled FIX. `LangSelector.ts` was prettier-dirty at HEAD, so it was not reformatted.
+7. **Test fixture adjusted:** `TenureGrantClaim.test.ts` `TAKEN_AT` moved from a fixed 2026-09-20 to `Date.now() - 2 days`.
+   - Why: the new ahead-clock clamp would otherwise clamp that future fixture. `TenureEvidence.test.ts` now passes an explicit `NOW`.
+   - This is a fixture change caused by fix 2, not a behavior change.
+
+Obvious-winner calls outside the fixes above: **none**.
+
+**Tests and mutations**
+- RED first: 9 new tests failed before the fixes — R1: 4 unit + 2 claim-level; R2: 1 unit + 1 claim-level; R5: 1. A floor-edge guard test and 2 LangSelector sibling controls passed as controls.
+- Mutations, each restored afterwards:
+  - drop the game floor filter → killed (2)
+  - drop the `firstSeen` floor filter → killed (2)
+  - drop the ahead-clock clamp → killed (1)
+  - drop the pre-floor snapshot `null` → killed (1)
+  - drop the zero clamp → killed (2)
+  - drop the LangSelector entry → killed (1)
+- `npm test`: **130 suites / 1448 tests passed**, first run, no re-run.
+- `npm run test:integration` (Docker up): **6 suites / 78 tests passed**.
+- `tsc --noEmit` exit 0 · `npm run lint` exit 0 · prettier clean on this round's files.
+
+**Residuals from this round**
+- A device whose clock is still more than 1 day ahead of the server **at claim time** still gets a permanent `implausible`. The client cannot know server time.
+- A pre-floor snapshot now skips silently, so it is invisible in analytics.
+- The R4 boot throw when storage is blocked remains, as in `logDaysPlayedAnalytics`. The follow-up task is the producer's; the coder has not verified that it is filed.
+
+### Redesign delta plan requested — 2026-09-15 (`fkit-coder`, PLAN ONLY, spawned by `fkit-sprint-ship-loop`)
+
+The owner ruled a redesign after review round 2 (R6), recorded by the lead: a one-time check with no client
+dates, the server as sole judge of "already given", and the "≥ 1 credited match" rule dropped. The coder
+returned a delta plan with 3 NEEDS-DECISION items to the driver. **No source, test or `plan.md` was changed
+by this unit.** Facts checked for it:
+- `player_profiles.persistent_id` is nullable (`migrations/001_player_profiles.sql`), and `migrateProfile`
+  coerces null to `""`. A claim-time row insert is therefore technically possible.
+- Today the only row creator is the game server's upsert on an authenticated join (`GameServer.ts`
+  `upsertProfileForClient` → `/internal/v1/profile/upsert`), and that is not live until `0217`.
+
+### v1 build parked as a patch and removed from the working tree — 2026-09-15 (`fkit-coder`, spawned by `fkit-lead`)
+
+**Authority:** owner ruling **"Save as patch, remove it"** (`AskUserQuestion` in the lead session,
+2026-09-15, relayed by `fkit-lead`). This was a park-and-revert, not a build. Nothing was committed,
+stashed or reset, and the index was not touched (the staged 0259/0260 renames are still there, as they
+were). The task-folder docs (brief, plan, review, reports) were not edited; this note is the only change
+to this worklog.
+
+- **Patch:** `v1-tenure-grant-old-design.patch` in this folder. Details:
+  - 133 937 bytes, 3 620 lines, 31 file diffs;
+  - SHA-256 `4c1bb815…9b1c04e`;
+  - base `8be434cea50442b289b1dee7877166a9b143682d`.
+  - `v1-tenure-grant-old-design.README.md` sits next to it with the file list, why it was parked, and "do not apply as-is".
+- **Mixed files:** none. Every hunk in the 17 modified tracked files was checked and is 0253's, so each was restored whole with `git checkout -- <file>`. The 14 new files were deleted.
+- **Patch proven complete before removal:**
+  - a scratch `git worktree` at the base passed `git apply --check`, then `git apply`;
+  - all 31 files were byte-identical to the working tree;
+  - the worktree was then removed and pruned.
+- **After removal:**
+  - `git status` lists no 0253 source, test or migration file;
+  - no tenure reference remains under `src/`, `tests/`, `migrations/`, `resources/` or `scripts/`.
+- **Checks after removal:**
+  - `npm test`: **122 suites / 1305 tests passed**, first run, no re-run. Before: 130 / 1448; the 8 removed unit suites account for the drop.
+  - `npx tsc --noEmit` exit 0.
+  - `npm run lint` exit 0.
+  - `npm run test:integration` was **not** run: its only 0253 suite was deleted, and no other integration code changed.

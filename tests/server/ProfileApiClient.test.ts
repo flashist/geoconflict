@@ -42,7 +42,6 @@ function matchCredit(over: Partial<MatchCredit> = {}): MatchCredit {
 function publicProfile(over: Record<string, unknown> = {}) {
   return {
     schema_version: 1,
-    yandex_player_id: "yx-1",
     xp: 0,
     is_citizen: false,
     citizenship_earned_at: null,

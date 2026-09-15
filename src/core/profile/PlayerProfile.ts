@@ -21,7 +21,16 @@ import { NameChangeStateSchema } from "./NameChangeContract";
 export const CURRENT_PROFILE_SCHEMA_VERSION = 1;
 
 /**
- * Strict shape of a CURRENT-version profile. Use this to validate a payload that
+ * Strict shape of a CURRENT-version profile.
+ *
+ * Carries NO identity (task 0270, ADR-113): the profile is keyed server-side by an
+ * internal player id that never reaches a client, and the platform login
+ * (`player_identities`) lives in its own table. The Yandex id and persistent id
+ * fields were removed from this contract; `CURRENT_PROFILE_SCHEMA_VERSION`
+ * deliberately stays 1, because every deployed client parses `z.literal(1)` and
+ * no stored consumer of the removed fields exists.
+ *
+ * Use this to validate a payload that
  * is expected to already be current (e.g. an API request body, or the output of
  * `migrateProfile`). Unknown keys are stripped (default zod behavior) rather than
  * rejected, so a forward-compatible read of a slightly newer payload does not hard
@@ -29,8 +38,6 @@ export const CURRENT_PROFILE_SCHEMA_VERSION = 1;
  */
 export const PlayerProfileSchema = z.object({
   schema_version: z.literal(CURRENT_PROFILE_SCHEMA_VERSION),
-  yandex_player_id: z.string().nullable(),
-  persistent_id: z.string(),
   xp: z.number().int().nonnegative(),
   is_citizen: z.boolean(),
   is_paid_citizen: z.boolean(),
@@ -47,15 +54,15 @@ export type PlayerProfile = z.infer<typeof PlayerProfileSchema>;
  * Public projection of a profile — the shape returned by `GET /v1/profile` and
  * parsed by the client card. Sprint 4's read is unauthenticated, so the fields a
  * caller shouldn't be able to resolve by guessing a (non-secret) yandexPlayerId are
- * omitted: paid state (`is_paid_citizen`, `citizenship_purchased_at`) and the
- * internal `persistent_id`. Derived from `PlayerProfileSchema` so the server return
+ * omitted: paid state (`is_paid_citizen`, `citizenship_purchased_at`). No identity
+ * is on the profile at all, so no player id can leak through it. Derived from
+ * `PlayerProfileSchema` so the server return
  * type and the client parse share ONE source of truth and cannot drift.
  * See `toPublicProfile()` in src/profile-server/Routes.ts.
  */
 export const PublicPlayerProfileSchema = PlayerProfileSchema.omit({
   is_paid_citizen: true,
   citizenship_purchased_at: true,
-  persistent_id: true,
 }).extend({
   /**
    * The player's latest name-change request (task 0067), when they have one.
@@ -93,8 +100,6 @@ const RawProfileSchema = z.object({
   // crafted `-9e15` in a localStorage blob or API body) would otherwise spin the
   // loop ~quadrillions of times and freeze the process. Clamp it to 0 here.
   schema_version: z.number().int().nonnegative().catch(0),
-  yandex_player_id: z.string().nullable().catch(null),
-  persistent_id: z.string().catch(""),
   xp: z.number().int().nonnegative().catch(0),
   is_citizen: z.boolean().catch(false),
   is_paid_citizen: z.boolean().catch(false),
@@ -170,21 +175,17 @@ function upgradeToCurrent(profile: NormalizedProfile): PlayerProfile {
 }
 
 /**
- * Factory for a fresh guest profile (xp 0, no citizenship, no Yandex identity).
- * Reused by the guest localStorage store (T2) and the backend (T5).
+ * Factory for a fresh guest profile (xp 0, no citizenship).
  *
  * `nowIso` is injected (defaulting to the current time) so callers set the
  * timestamp at the call site and tests stay deterministic — `migrateProfile`
  * itself never touches a clock.
  */
 export function createGuestProfile(
-  persistentId: string,
   nowIso: string = new Date().toISOString(),
 ): PlayerProfile {
   return {
     schema_version: CURRENT_PROFILE_SCHEMA_VERSION,
-    yandex_player_id: null,
-    persistent_id: persistentId,
     xp: 0,
     is_citizen: false,
     is_paid_citizen: false,

@@ -66,18 +66,18 @@ const NOTIFY_TRACKING_SWEEP_AT = 256;
 // the error carries, never by the code alone:
 //   * player_name_history_one_pending_uq  → this player already has a pending
 //     request (`pending_exists`), raised by the INSERT.
-//   * player_profiles_display_name_uq     → the name was taken between request
+//   * players_display_name_uq             → the name was taken between request
 //     and approval (`name_taken`), raised by the approve UPDATE.
 const PG_UNIQUE_VIOLATION = "23505";
 
 // Narrowing by statement alone is not enough. It is correct under TODAY's schema
 // (the approve UPDATE touches only display_name, so only the display-name index
-// can fire), but the day player_profiles gains a second unique constraint that
+// can fire), but the day players gains a second unique constraint that
 // violation would be silently mis-reported as `name_taken` and rolled back, with
 // nothing to flag it. Postgres reports the offending INDEX name in the error's
 // `constraint` field, so both catches below check it explicitly and rethrow
 // anything else.
-const DISPLAY_NAME_UNIQUE = "player_profiles_display_name_uq";
+const DISPLAY_NAME_UNIQUE = "players_display_name_uq";
 const ONE_PENDING_UNIQUE = "player_name_history_one_pending_uq";
 
 function isPgError(error: unknown, code: string): boolean {
@@ -96,24 +96,24 @@ function isUniqueViolationOn(error: unknown, constraint: string): boolean {
 }
 
 const CITIZEN_SQL = `
-SELECT is_citizen FROM player_profiles WHERE yandex_player_id = $1
+SELECT is_citizen FROM players WHERE id = $1
 `;
 
 // Advisory only — see the race note on decideNameChange. Excludes the caller's
 // OWN row: re-requesting the name you already hold is not a collision (updating
 // a row to its current value never violates the unique index).
 const NAME_TAKEN_SQL = `
-SELECT 1 FROM player_profiles
-WHERE lower(display_name) = lower($1) AND yandex_player_id <> $2
+SELECT 1 FROM players
+WHERE lower(display_name) = lower($1) AND id <> $2
 LIMIT 1
 `;
 
-// 'pending' is passed EXPLICITLY. migrations/001 defaults moderation_status to
-// 'approved', so an INSERT that omitted it would silently ship an unmoderated
+// 'pending' is passed EXPLICITLY. migrations/006 (like 001 before it) defaults
+// moderation_status to 'approved', so an INSERT that omitted it would silently ship an unmoderated
 // name change. This is the single most dangerous line in the file.
 const INSERT_REQUEST_SQL = `
 INSERT INTO player_name_history
-  (yandex_player_id, new_display_name, moderation_status)
+  (player_id, new_display_name, moderation_status)
 VALUES ($1, $2, 'pending')
 RETURNING id
 `;
@@ -127,26 +127,26 @@ RETURNING id
 // `pending` only, so a decided row can never be erased.
 const CANCEL_SQL = `
 DELETE FROM player_name_history
-WHERE yandex_player_id = $1 AND moderation_status = 'pending'
+WHERE player_id = $1 AND moderation_status = 'pending'
 `;
 
 const SELECT_PENDING_FOR_UPDATE_SQL = `
 SELECT id, new_display_name FROM player_name_history
-WHERE yandex_player_id = $1 AND moderation_status = 'pending'
+WHERE player_id = $1 AND moderation_status = 'pending'
 FOR UPDATE
 `;
 
 // Locks the profile row for the duration of the decision transaction, so two
 // concurrent approvals of the same target name serialize instead of racing.
 const LOCK_PROFILE_SQL = `
-SELECT display_name FROM player_profiles
-WHERE yandex_player_id = $1
+SELECT display_name FROM players
+WHERE id = $1
 FOR UPDATE
 `;
 
 const APPLY_NAME_SQL = `
-UPDATE player_profiles SET display_name = $2, updated_at = now()
-WHERE yandex_player_id = $1
+UPDATE players SET display_name = $2, updated_at = now()
+WHERE id = $1
 `;
 
 const MARK_APPROVED_SQL = `
@@ -166,7 +166,7 @@ WHERE id = $1
 const LATEST_SQL = `
 SELECT new_display_name, moderation_status, decided_at
 FROM player_name_history
-WHERE yandex_player_id = $1
+WHERE player_id = $1
 ORDER BY id DESC
 LIMIT 1
 `;
@@ -206,10 +206,10 @@ export class NameChangeRepository {
    * and can never fail the request (brief step 7).
    */
   async requestNameChange(
-    yandexPlayerId: string,
+    playerId: string,
     requestedName: string,
   ): Promise<RequestOutcome> {
-    if (!(await this.isCitizen(yandexPlayerId))) {
+    if (!(await this.isCitizen(playerId))) {
       return { status: "not_citizen" };
     }
     // TRIM FIRST — this is what ruling (c) actually mirrors. Both client paths
@@ -224,21 +224,18 @@ export class NameChangeRepository {
     if (violation !== null) {
       return { status: "invalid", violation };
     }
-    const taken = await this.pool.query(NAME_TAKEN_SQL, [name, yandexPlayerId]);
+    const taken = await this.pool.query(NAME_TAKEN_SQL, [name, playerId]);
     if ((taken.rowCount ?? 0) > 0) {
       return { status: "name_taken" };
     }
 
     let id: number;
     try {
-      const res = await this.pool.query(INSERT_REQUEST_SQL, [
-        yandexPlayerId,
-        name,
-      ]);
+      const res = await this.pool.query(INSERT_REQUEST_SQL, [playerId, name]);
       id = Number(res.rows[0].id);
     } catch (error) {
       // Only the one-pending partial index can fire here (the display-name index
-      // is on player_profiles, which this statement does not touch) — but it is
+      // is on players, which this statement does not touch) — but it is
       // checked by name anyway, so a future constraint on player_name_history
       // surfaces as a real error instead of a bogus `pending_exists`.
       if (isUniqueViolationOn(error, ONE_PENDING_UNIQUE)) {
@@ -247,7 +244,7 @@ export class NameChangeRepository {
       throw error;
     }
 
-    this.notifyOperator(yandexPlayerId, name);
+    this.notifyOperator(playerId, name);
     return { status: "ok", id };
   }
 
@@ -256,13 +253,13 @@ export class NameChangeRepository {
    * like every other player-facing call. Deleting the row frees the one-pending
    * partial unique index, so a new request immediately succeeds — which is the
    * point: it is what lets a citizen clear a request a griefer parked under
-   * their (non-secret, client-asserted) player id.
+   * their (non-secret, client-asserted) Yandex id.
    */
-  async cancelNameChange(yandexPlayerId: string): Promise<CancelOutcome> {
-    if (!(await this.isCitizen(yandexPlayerId))) {
+  async cancelNameChange(playerId: string): Promise<CancelOutcome> {
+    if (!(await this.isCitizen(playerId))) {
       return { status: "not_citizen" };
     }
-    const res = await this.pool.query(CANCEL_SQL, [yandexPlayerId]);
+    const res = await this.pool.query(CANCEL_SQL, [playerId]);
     return (res.rowCount ?? 0) > 0
       ? { status: "ok" }
       : { status: "no_pending" };
@@ -271,7 +268,7 @@ export class NameChangeRepository {
   /**
    * Operator decision on the player's pending request, in ONE transaction.
    *
-   * Approve: `player_profiles.display_name` is set, the previous value is
+   * Approve: `players.display_name` is set, the previous value is
    * captured into `old_display_name`, and the row is marked approved + stamped.
    * Reject: the row is marked rejected with the reason + stamped, and the live
    * display name is not touched.
@@ -279,7 +276,7 @@ export class NameChangeRepository {
    * ⚠️ THE APPROVE-TIME UNIQUENESS RACE IS REAL AND IS HANDLED HERE. The
    * request-time "is this name taken" check is ADVISORY ONLY: two players can
    * hold pending requests for the same name, and whoever is approved second
-   * hits player_profiles_display_name_uq. That is reported as `name_taken` →
+   * hits players_display_name_uq. That is reported as `name_taken` →
    * HTTP 409, and the transaction rolls back, so the row stays `pending` and the
    * operator can retry it or reject it. Letting this surface as a 500 was the
    * failure mode to avoid.
@@ -297,7 +294,7 @@ export class NameChangeRepository {
    * — exactly PlayerProfileRepository.afterCitizenshipEarned.
    */
   async decideNameChange(
-    yandexPlayerId: string,
+    playerId: string,
     decision: "approve" | "reject",
     reason?: string,
     expectedName?: string,
@@ -308,7 +305,7 @@ export class NameChangeRepository {
     try {
       await client.query("BEGIN");
       const pending = await client.query(SELECT_PENDING_FOR_UPDATE_SQL, [
-        yandexPlayerId,
+        playerId,
       ]);
       if (pending.rows.length === 0) {
         await client.query("ROLLBACK");
@@ -333,7 +330,7 @@ export class NameChangeRepository {
       if (decision === "approve") {
         const outcome = await this.approveInTransaction(
           client,
-          yandexPlayerId,
+          playerId,
           rowId,
           newName,
         );
@@ -354,11 +351,11 @@ export class NameChangeRepository {
     }
 
     if (approvedName !== null) {
-      this.afterNameChangeDecided(yandexPlayerId, "name_change_approved", {
+      this.afterNameChangeDecided(playerId, "name_change_approved", {
         name: approvedName,
       });
     } else if (rejectedName !== null) {
-      this.afterNameChangeDecided(yandexPlayerId, "name_change_rejected", {
+      this.afterNameChangeDecided(playerId, "name_change_rejected", {
         name: rejectedName,
         // The schema refuses a reject without a non-empty reason, so this
         // fallback is unreachable via the route; it exists so a direct
@@ -377,24 +374,24 @@ export class NameChangeRepository {
    */
   private async approveInTransaction(
     client: PoolClient,
-    yandexPlayerId: string,
+    playerId: string,
     rowId: number,
     newName: string,
   ): Promise<DecideOutcome | null> {
-    const profile = await client.query(LOCK_PROFILE_SQL, [yandexPlayerId]);
+    const profile = await client.query(LOCK_PROFILE_SQL, [playerId]);
     const previousName =
       profile.rows.length > 0
         ? ((profile.rows[0].display_name as string | null) ?? null)
         : null;
     try {
-      await client.query(APPLY_NAME_SQL, [yandexPlayerId, newName]);
+      await client.query(APPLY_NAME_SQL, [playerId, newName]);
     } catch (error) {
       if (isUniqueViolationOn(error, DISPLAY_NAME_UNIQUE)) {
         // Someone else was approved onto this name first. Roll back so the
         // request stays PENDING and remains actionable.
         await this.rollbackQuietly(client);
         log.warn(
-          `name change approve rejected: "${newName}" already taken (player ${yandexPlayerId}, request ${rowId})`,
+          `name change approve rejected: "${newName}" already taken (request ${rowId})`,
         );
         return { status: "name_taken" };
       }
@@ -420,10 +417,8 @@ export class NameChangeRepository {
    * unauthenticated and enumerable, and the reason reaches the player through
    * the citizen-gated inbox message instead.
    */
-  async getLatestState(
-    yandexPlayerId: string,
-  ): Promise<NameChangeState | null> {
-    const res = await this.pool.query(LATEST_SQL, [yandexPlayerId]);
+  async getLatestState(playerId: string): Promise<NameChangeState | null> {
+    const res = await this.pool.query(LATEST_SQL, [playerId]);
     if (res.rows.length === 0) {
       return null;
     }
@@ -435,8 +430,8 @@ export class NameChangeRepository {
     };
   }
 
-  private async isCitizen(yandexPlayerId: string): Promise<boolean> {
-    const res = await this.pool.query(CITIZEN_SQL, [yandexPlayerId]);
+  private async isCitizen(playerId: string): Promise<boolean> {
+    const res = await this.pool.query(CITIZEN_SQL, [playerId]);
     return res.rows.length > 0 && Boolean(res.rows[0].is_citizen);
   }
 
@@ -447,7 +442,7 @@ export class NameChangeRepository {
    * committed and must never be misreported as a wire error.
    */
   private afterNameChangeDecided(
-    yandexPlayerId: string,
+    playerId: string,
     templateKey: "name_change_approved" | "name_change_rejected",
     params: Record<string, string>,
   ): void {
@@ -456,7 +451,7 @@ export class NameChangeRepository {
     }
     try {
       void this.inbox
-        .sendTemplate(yandexPlayerId, templateKey, params)
+        .sendTemplate(playerId, templateKey, params)
         .catch((error: unknown) => logInboxSendFailure(templateKey, error));
     } catch (error) {
       logInboxSendFailure(templateKey, error);
@@ -474,9 +469,9 @@ export class NameChangeRepository {
    * `expectedName` — a swapped name gets 409 `name_mismatch`, never a silent
    * apply.
    */
-  private claimNotifySlot(yandexPlayerId: string): boolean {
+  private claimNotifySlot(playerId: string): boolean {
     const now = Date.now();
-    const last = this.lastNotifiedAt.get(yandexPlayerId);
+    const last = this.lastNotifiedAt.get(playerId);
     if (last !== undefined && now - last < OPERATOR_NOTIFY_COOLDOWN_MS) {
       return false;
     }
@@ -487,7 +482,7 @@ export class NameChangeRepository {
         }
       }
     }
-    this.lastNotifiedAt.set(yandexPlayerId, now);
+    this.lastNotifiedAt.set(playerId, now);
     return true;
   }
 
@@ -497,21 +492,22 @@ export class NameChangeRepository {
    * `$PROFILE_INTERNAL_TOKEN` are left as shell variables — no secret is ever
    * put in a Telegram message.
    *
-   * The command is omitted entirely for a player id outside a conservative
-   * charset. Ids are client-asserted (ADR-103), and a crafted one containing a
-   * quote would break the shell quoting of a command an operator pastes into
-   * their own terminal. The notification still names the player, so nothing is
-   * lost but the convenience.
+   * The command carries the INTERNAL `playerId` (task 0270) — the decide route
+   * takes nothing else, and Yandex ids no longer go to Telegram. The charset check
+   * stays as belt and braces: a server-generated uuid always passes it, and a
+   * value that would break the shell quoting of a command an operator pastes
+   * into their own terminal is still never emitted. The notification still names
+   * the player, so nothing is lost but the convenience.
    */
   private decideCommandLines(
-    yandexPlayerId: string,
+    playerId: string,
     requestedName: string,
   ): string[] {
-    if (!/^[A-Za-z0-9_-]+$/.test(yandexPlayerId)) {
+    if (!/^[A-Za-z0-9_-]+$/.test(playerId)) {
       return [];
     }
     const body = JSON.stringify({
-      yandexPlayerId,
+      playerId,
       decision: "approve",
       expectedName: requestedName,
     });
@@ -527,20 +523,20 @@ export class NameChangeRepository {
    * written, and a blocked/unreachable Telegram must never fail it. The bot
    * token is never logged — sendTelegramMessage returns a bare result value.
    */
-  private notifyOperator(yandexPlayerId: string, requestedName: string): void {
+  private notifyOperator(playerId: string, requestedName: string): void {
     const config = this.telegram;
     if (config === undefined) {
       return;
     }
-    if (!this.claimNotifySlot(yandexPlayerId)) {
+    if (!this.claimNotifySlot(playerId)) {
       return;
     }
     const text = [
       "<b>[Name change] Pending request</b>",
-      `<b>Player:</b> ${escapeTelegramHtml(yandexPlayerId)}`,
+      `<b>Player:</b> ${escapeTelegramHtml(playerId)}`,
       `<b>Requested:</b> ${escapeTelegramHtml(requestedName)}`,
       `<b>Time:</b> ${new Date().toISOString()}`,
-      ...this.decideCommandLines(yandexPlayerId, requestedName),
+      ...this.decideCommandLines(playerId, requestedName),
     ].join("\n");
     try {
       void sendTelegramMessage(config, text)

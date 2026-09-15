@@ -42,8 +42,9 @@ if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
       [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: process.env.DEPLOY_ENV ?? "prod",
       // Uptrace only symbolicates stack traces on spans whose resource is tagged
       // as browser JS. We build the resource explicitly (no default SDK detector),
-      // so set it ourselves or source maps never resolve. The uploaded maps are
-      // keyed by service.version (GIT_COMMIT above) — keep them in sync.
+      // so set it ourselves. No source maps reach Uptrace today (upload removed in
+      // 0260), but any future symbolication path needs this tag and would key maps
+      // by service.version (GIT_COMMIT above).
       "telemetry.sdk.language": "webjs",
     });
 

@@ -27,12 +27,31 @@ has been near-zero since 2026-09-04 (`0257`), so the disk is not growing today; 
 moment `0257` lands.
 
 ## Status
-🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-14
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
 
 ## Context
+
+### 📌 OWNER RULING ON THE FINDINGS — 2026-09-14 (added, nothing above or below edited)
+**Given live in the lead session (`AskUserQuestion`), relayed by `fkit-lead`.** Not producer
+precedent. The owner, verbatim:
+*"We will accept the 14 days for now, but we need to create a task and add it to the backlog sprint to
+investigate it more."*
+- ⇒ **The effective ~14-day retention is ACCEPTED for now.** No change to the box, no change to repo
+  retention values under this task.
+- ⇒ **Follow-up filed on the Backlog board:**
+  [`0263`](../../backlog/0263-confirm-uptrace-ce-14-day-retention-hard-cap-or-configurable/brief.md) — confirm
+  whether 2.0.2's ~14 d is a hard edition cap or configurable (tests a search/AI claim that
+  `ch_schema.spans.ttl_delete` lifts it; `fkit-lead` found that key is 1.x config and the 2.0.2 binary
+  calls it deprecated — the licence gate stays **inferred**).
+- ⚠️ **Not ruled:** the findings' "Proposed fix" (option A — repo-honesty edits to the 7 d / 90 d
+  wording and the inert `retention check` cron). It is a **possible follow-up, NOT filed**; `0263`'s
+  verdict should shape it.
+- **Deliverable:** the findings report exists —
+  [`2026-09-14-0259-uptrace-retention-findings.md`](../../../knowledge-base/reports/2026-09-14-0259-uptrace-retention-findings.md).
+  No code was in scope. Closed on this basis by a spawned producer, `(agent-closed — not owner-verified)`.
 
 **Filed 2026-09-14 by a spawned `fkit-producer` on the ship-loop driver's instruction.** **Not an
 owner ruling.** Investigation-first: the cause is unknown and the fix shape depends on it.

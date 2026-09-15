@@ -3,15 +3,22 @@
 // This is where the brief's verification steps are actually PROVEN — the real
 // CHECK constraints, the real partial unique index, the real transaction, and
 // the real post-commit inbox send. Gated by RUN_DB_TESTS; see jest.config.ts.
+// The schema is built once per run by globalSetup.ts; this suite only truncates.
+//
+// Task 0270: the player routes still take the Yandex id (resolved find-only to
+// the internal player id); the operator decide route takes the internal
+// `playerId`. Rows are read back by player_id.
 
-import { readFileSync } from "fs";
-import { join } from "path";
 import { Pool } from "pg";
 import request from "supertest";
 import { InboxRepository } from "../../src/profile-server/InboxRepository";
 import { NameChangeRepository } from "../../src/profile-server/NameChangeRepository";
-import { PlayerProfileRepository } from "../../src/profile-server/PlayerProfileRepository";
 import { createApp } from "../../src/profile-server/Routes";
+import {
+  createYandexPlayer,
+  realProfileRepo,
+  truncateProfileTables,
+} from "./support/db";
 
 const RUN = process.env.RUN_DB_TESTS ? describe : describe.skip;
 const TOKEN = "it-internal-token";
@@ -19,20 +26,20 @@ const TOKEN = "it-internal-token";
 /** Post-commit inbox sends land a tick after the HTTP response — poll, don't sleep. */
 async function waitForMessages(
   pool: Pool,
-  yandexPlayerId: string,
+  playerId: string,
   expected: number,
 ): Promise<Array<{ template_key: string | null; template_params: unknown }>> {
   const deadline = Date.now() + 3_000;
   for (;;) {
     const res = await pool.query(
       `SELECT template_key, template_params FROM player_messages
-       WHERE yandex_player_id = $1 ORDER BY id`,
-      [yandexPlayerId],
+       WHERE player_id = $1 ORDER BY id`,
+      [playerId],
     );
     if (res.rows.length >= expected) return res.rows;
     if (Date.now() > deadline) {
       throw new Error(
-        `expected ${expected} inbox message(s) for ${yandexPlayerId}, saw ${res.rows.length}`,
+        `expected ${expected} inbox message(s), saw ${res.rows.length}`,
       );
     }
     await new Promise((resolve) => setTimeout(resolve, 25));
@@ -44,21 +51,16 @@ RUN("citizen name change over real Postgres (integration)", () => {
   let app: ReturnType<typeof createApp>;
   const ORIGINAL_TOKEN = process.env.PROFILE_INTERNAL_TOKEN;
 
+  // Yandex ids — what the player routes are called with.
   const CITIZEN = "yandex-nc-citizen";
   const OTHER = "yandex-nc-other";
   const PLAIN = "yandex-nc-plain";
+  // Internal player ids — what the operator route and the tables are keyed by.
+  const ids: Record<string, string> = {};
 
-  beforeAll(async () => {
+  beforeAll(() => {
     process.env.PROFILE_INTERNAL_TOKEN = TOKEN;
     pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL });
-    for (const file of [
-      "migrations/001_player_profiles.sql",
-      "migrations/002_yandex_payments.sql",
-      "migrations/003_player_messages.sql",
-      "migrations/004_name_change.sql",
-    ]) {
-      await pool.query(readFileSync(join(process.cwd(), file), "utf8"));
-    }
   });
 
   afterAll(async () => {
@@ -76,24 +78,28 @@ RUN("citizen name change over real Postgres (integration)", () => {
     // No Telegram config — the operator notification is unit-tested with a
     // mocked undici; nothing here should ever touch the network.
     app = createApp(
-      new PlayerProfileRepository(pool, inbox),
+      realProfileRepo(pool, inbox),
       undefined,
       inbox,
       new NameChangeRepository(pool, inbox),
     );
-    await pool.query(
-      `TRUNCATE player_messages, player_match_xp_credits, player_name_history,
-               player_cosmetic_ownership, player_profiles RESTART IDENTITY CASCADE`,
-    );
-    await pool.query(
-      `INSERT INTO player_profiles
-         (yandex_player_id, persistent_id, xp, is_citizen, citizenship_earned_at, display_name)
-       VALUES
-         ($1, 'pid-citizen', 1000, true, now(), null),
-         ($2, 'pid-other',   1000, true, now(), 'Ivan'),
-         ($3, 'pid-plain',   10,   false, null, null)`,
-      [CITIZEN, OTHER, PLAIN],
-    );
+    await truncateProfileTables(pool);
+    for (const [yandexId, xp, citizen, name] of [
+      [CITIZEN, 1000, true, null],
+      [OTHER, 1000, true, "Ivan"],
+      [PLAIN, 10, false, null],
+    ] as const) {
+      const playerId = await createYandexPlayer(pool, yandexId);
+      ids[yandexId] = playerId;
+      await pool.query(
+        `UPDATE players
+         SET xp = $2, is_citizen = $3,
+             citizenship_earned_at = CASE WHEN $3 THEN now() END,
+             display_name = $4
+         WHERE id = $1`,
+        [playerId, xp, citizen, name],
+      );
+    }
   });
 
   const submit = (yandexPlayerId: string, requestedName: string) =>
@@ -101,28 +107,28 @@ RUN("citizen name change over real Postgres (integration)", () => {
       .post("/v1/profile/name-change-request")
       .send({ yandexPlayerId, requestedName });
 
-  const decide = (body: Record<string, unknown>) =>
+  /** Operator decision for the player behind a Yandex id, sent by internal playerId. */
+  const decide = (yandexId: string, body: Record<string, unknown>) =>
     request(app)
       .post("/internal/v1/name-change/decide")
       .set("Authorization", `Bearer ${TOKEN}`)
-      .send(body);
+      .send({ playerId: ids[yandexId], ...body });
 
-  const rows = async (yandexPlayerId: string) =>
+  const rows = async (yandexId: string) =>
     (
       await pool.query(
         `SELECT new_display_name, old_display_name, moderation_status,
                 rejection_reason, decided_at
-         FROM player_name_history WHERE yandex_player_id = $1 ORDER BY id`,
-        [yandexPlayerId],
+         FROM player_name_history WHERE player_id = $1 ORDER BY id`,
+        [ids[yandexId]],
       )
     ).rows;
 
-  const displayName = async (yandexPlayerId: string) =>
+  const displayName = async (yandexId: string) =>
     (
-      await pool.query(
-        "SELECT display_name FROM player_profiles WHERE yandex_player_id = $1",
-        [yandexPlayerId],
-      )
+      await pool.query("SELECT display_name FROM players WHERE id = $1", [
+        ids[yandexId],
+      ])
     ).rows[0].display_name;
 
   // ── Step 1 — non-citizen rejected SERVER-side ────────────────────────────
@@ -131,10 +137,22 @@ RUN("citizen name change over real Postgres (integration)", () => {
     expect(await rows(PLAIN)).toHaveLength(0);
   });
 
-  it("rejects a player with no profile row at all", async () => {
+  it("rejects a player with no profile row at all — and creates none", async () => {
     await submit("no-such-player", "NewName").expect(403, {
       error: "not_citizen",
     });
+    const players = await pool.query("SELECT count(*)::int AS n FROM players");
+    expect(players.rows[0].n).toBe(3);
+  });
+
+  it("the operator route refuses a Yandex id — it takes the internal playerId only", async () => {
+    await submit(CITIZEN, "NewName").expect(200);
+    await request(app)
+      .post("/internal/v1/name-change/decide")
+      .set("Authorization", `Bearer ${TOKEN}`)
+      .send({ yandexPlayerId: CITIZEN, decision: "approve" })
+      .expect(400, { error: "bad_request" });
+    expect((await rows(CITIZEN))[0].moderation_status).toBe("pending");
   });
 
   // ── Step 2 — a valid request lands PENDING and changes nothing yet ───────
@@ -166,7 +184,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
   // ── Step 3 — approve is atomic and notifies ──────────────────────────────
   it("approve applies the name, marks the row, and sends the inbox message", async () => {
     await submit(CITIZEN, "NewName").expect(200);
-    await decide({ yandexPlayerId: CITIZEN, decision: "approve" }).expect(200, {
+    await decide(CITIZEN, { decision: "approve" }).expect(200, {
       status: "ok",
     });
 
@@ -182,21 +200,21 @@ RUN("citizen name change over real Postgres (integration)", () => {
       .expect(200);
     expect(res.body.display_name).toBe("NewName");
 
-    const messages = await waitForMessages(pool, CITIZEN, 1);
+    const messages = await waitForMessages(pool, ids[CITIZEN], 1);
     expect(messages[0].template_key).toBe("name_change_approved");
     expect(messages[0].template_params).toEqual({ name: "NewName" });
   });
 
   it("captures the PREVIOUS display name into old_display_name", async () => {
     await submit(OTHER, "Petr").expect(200);
-    await decide({ yandexPlayerId: OTHER, decision: "approve" }).expect(200);
+    await decide(OTHER, { decision: "approve" }).expect(200);
     const history = await rows(OTHER);
     expect(history[0].old_display_name).toBe("Ivan");
     expect(await displayName(OTHER)).toBe("Petr");
   });
 
   it("404s an approve with no pending request", async () => {
-    await decide({ yandexPlayerId: CITIZEN, decision: "approve" }).expect(404, {
+    await decide(CITIZEN, { decision: "approve" }).expect(404, {
       error: "no_pending",
     });
   });
@@ -204,8 +222,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
   // ── Step 4 — reject with a reason, then a NEW request is allowed ─────────
   it("reject records the reason, leaves the name, and notifies", async () => {
     await submit(CITIZEN, "BadName").expect(200);
-    await decide({
-      yandexPlayerId: CITIZEN,
+    await decide(CITIZEN, {
       decision: "reject",
       reason: "impersonation",
     }).expect(200, { status: "ok" });
@@ -216,7 +233,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
     expect(history[0].decided_at).not.toBeNull();
     expect(await displayName(CITIZEN)).toBeNull();
 
-    const messages = await waitForMessages(pool, CITIZEN, 1);
+    const messages = await waitForMessages(pool, ids[CITIZEN], 1);
     expect(messages[0].template_key).toBe("name_change_rejected");
     expect(messages[0].template_params).toEqual({
       name: "BadName",
@@ -226,8 +243,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
 
   it("the rejection reason is NOT exposed on the public profile", async () => {
     await submit(CITIZEN, "BadName").expect(200);
-    await decide({
-      yandexPlayerId: CITIZEN,
+    await decide(CITIZEN, {
       decision: "reject",
       reason: "secret operator note",
     }).expect(200);
@@ -241,11 +257,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
 
   it("allows a NEW request after a rejection", async () => {
     await submit(CITIZEN, "BadName").expect(200);
-    await decide({
-      yandexPlayerId: CITIZEN,
-      decision: "reject",
-      reason: "nope",
-    }).expect(200);
+    await decide(CITIZEN, { decision: "reject", reason: "nope" }).expect(200);
     await submit(CITIZEN, "BetterName").expect(200, { status: "ok" });
     const history = await rows(CITIZEN);
     expect(history).toHaveLength(2);
@@ -301,9 +313,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
 
     it("NEVER deletes an already-decided row", async () => {
       await submit(CITIZEN, "NameOne").expect(200);
-      await decide({ yandexPlayerId: CITIZEN, decision: "approve" }).expect(
-        200,
-      );
+      await decide(CITIZEN, { decision: "approve" }).expect(200);
       await cancel(CITIZEN).expect(404, { error: "no_pending" });
       // The approved history row survives — the audit trail is intact.
       const history = await rows(CITIZEN);
@@ -326,11 +336,11 @@ RUN("citizen name change over real Postgres (integration)", () => {
     await submit(CITIZEN, "Duplicate").expect(200);
     await submit(OTHER, "Duplicate").expect(200);
 
-    await decide({ yandexPlayerId: CITIZEN, decision: "approve" }).expect(200);
+    await decide(CITIZEN, { decision: "approve" }).expect(200);
     expect(await displayName(CITIZEN)).toBe("Duplicate");
 
-    // The second approve hits player_profiles_display_name_uq.
-    await decide({ yandexPlayerId: OTHER, decision: "approve" }).expect(409, {
+    // The second approve hits players_display_name_uq.
+    await decide(OTHER, { decision: "approve" }).expect(409, {
       error: "name_taken",
     });
     // Rolled back: the row is still actionable, and the name is unchanged.
@@ -340,18 +350,16 @@ RUN("citizen name change over real Postgres (integration)", () => {
     expect(await displayName(OTHER)).toBe("Ivan");
 
     // The operator can still reject it cleanly.
-    await decide({
-      yandexPlayerId: OTHER,
-      decision: "reject",
-      reason: "already taken",
-    }).expect(200);
+    await decide(OTHER, { decision: "reject", reason: "already taken" }).expect(
+      200,
+    );
     expect((await rows(OTHER))[0].moderation_status).toBe("rejected");
   });
 
   it("lets a player re-request the name they already hold", async () => {
     // The taken-check excludes the caller's own row, so this is not a collision.
     await submit(OTHER, "Ivan").expect(200, { status: "ok" });
-    await decide({ yandexPlayerId: OTHER, decision: "approve" }).expect(200);
+    await decide(OTHER, { decision: "approve" }).expect(200);
     expect(await displayName(OTHER)).toBe("Ivan");
   });
 
@@ -371,7 +379,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
 
   it("accepts Cyrillic and bracketed names, as the in-game validator does", async () => {
     await submit(CITIZEN, "Привет123").expect(200);
-    await decide({ yandexPlayerId: CITIZEN, decision: "approve" }).expect(200);
+    await decide(CITIZEN, { decision: "approve" }).expect(200);
     expect(await displayName(CITIZEN)).toBe("Привет123");
   });
 
@@ -388,7 +396,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
   it("stores and applies the TRIMMED name from a padded direct POST", async () => {
     await submit(CITIZEN, "  Padded  ").expect(200);
     expect((await rows(CITIZEN))[0].new_display_name).toBe("Padded");
-    await decide({ yandexPlayerId: CITIZEN, decision: "approve" }).expect(200);
+    await decide(CITIZEN, { decision: "approve" }).expect(200);
     expect(await displayName(CITIZEN)).toBe("Padded");
   });
 
@@ -407,8 +415,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
       await cancel(CITIZEN).expect(200);
       await submit(CITIZEN, "OffensiveName").expect(200);
 
-      const res = await decide({
-        yandexPlayerId: CITIZEN,
+      const res = await decide(CITIZEN, {
         decision: "approve",
         expectedName: "InnocentName",
       }).expect(409);
@@ -430,8 +437,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
       await submit(CITIZEN, "InnocentName").expect(200);
       await cancel(CITIZEN).expect(200);
       await submit(CITIZEN, "SecondName").expect(200);
-      await decide({
-        yandexPlayerId: CITIZEN,
+      await decide(CITIZEN, {
         decision: "approve",
         expectedName: "SecondName",
       }).expect(200, { status: "ok" });
@@ -442,8 +448,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
       await submit(CITIZEN, "InnocentName").expect(200);
       await cancel(CITIZEN).expect(200);
       await submit(CITIZEN, "OffensiveName").expect(200);
-      await decide({
-        yandexPlayerId: CITIZEN,
+      await decide(CITIZEN, {
         decision: "reject",
         reason: "impersonation",
         expectedName: "InnocentName",
@@ -453,17 +458,16 @@ RUN("citizen name change over real Postgres (integration)", () => {
 
     it("is OPTIONAL — an omitted expectedName decides as before", async () => {
       await submit(CITIZEN, "PlainName").expect(200);
-      await decide({ yandexPlayerId: CITIZEN, decision: "approve" }).expect(
-        200,
-        { status: "ok" },
-      );
+      await decide(CITIZEN, { decision: "approve" }).expect(200, {
+        status: "ok",
+      });
       expect(await displayName(CITIZEN)).toBe("PlainName");
     });
   });
 
   it("400s a rejection with no reason — the inbox template requires one", async () => {
     await submit(CITIZEN, "NewName").expect(200);
-    await decide({ yandexPlayerId: CITIZEN, decision: "reject" }).expect(400, {
+    await decide(CITIZEN, { decision: "reject" }).expect(400, {
       error: "bad_request",
     });
     // Still pending — a refused decision must not half-apply.
@@ -474,7 +478,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
     await submit(CITIZEN, "NewName").expect(200);
     await request(app)
       .post("/internal/v1/name-change/decide")
-      .send({ yandexPlayerId: CITIZEN, decision: "approve" })
+      .send({ playerId: ids[CITIZEN], decision: "approve" })
       .expect(401);
     expect((await rows(CITIZEN))[0].moderation_status).toBe("pending");
   });

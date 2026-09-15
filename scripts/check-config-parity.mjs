@@ -20,7 +20,9 @@
 //            build-deploy-profile.sh — a key present at hop 2 but missing at hop 1 is
 //            GUARANTEED to land empty (the `:-` default fires). That is task 0195's
 //            exact defect, caught structurally with no values.
-//   client   src/client/**                →  webpack DefinePlugin
+//   client   src/client/** + src/core/configuration/**  →  webpack DefinePlugin
+//            (core/configuration/** is bundled into BOTH the server and the browser, so
+//            its reads are checked against both channels — owner disposition D2)
 //
 // EXIT CONTRACT — stated precisely, because an overclaim here is the exact kind of
 // false confidence this task exists to stop (review 0064 finding R5).
@@ -69,6 +71,11 @@ const ALLOWLIST_CLASSES = [
   "build-time",
   "optional",
   "dead-config",
+  // Read in a file the browser bundles, but only ever CALLED on the server. The fix for
+  // such a key is this allowlist, never DefinePlugin — substituting a server secret into
+  // the browser bundle would publish it. Enforced: a server-only key that DefinePlugin
+  // substitutes is a REQUIRED finding the allowlist cannot suppress (review 0203 R2).
+  "server-only",
 ];
 
 // Directory → pipeline partition. Verified exhaustive against the tree: the only
@@ -76,29 +83,33 @@ const ALLOWLIST_CLASSES = [
 // A jest drift test asserts src/profile-server/** never imports src/core/configuration/**,
 // so "core counts as game" cannot rot silently.
 //
-// ⚠️⚠️ KNOWN, OWNER-ACKNOWLEDGED GAP — READ THIS BEFORE TRUSTING A GREEN CLIENT LINE.
-// This map sends src/core/** to the GAME pipeline ONLY. But src/core/configuration/**
-// is bundled into the BROWSER too (13 files under src/client/** import it), so a core
-// env read that the browser genuinely needs is checked against the deploy heredoc and
-// NEVER against DefinePlugin. Reproduced during review: deleting the
-// STRIPE_PUBLISHABLE_KEY DefinePlugin entry — read at src/core/configuration/
-// DefaultConfig.ts and reachable from src/client/Main.ts — still prints REQUIRED 0 and
-// exits 0 under --enforce. A broken client supply channel can therefore print green.
+// ONE sub-directory is mapped to TWO pipelines: src/core/configuration/** (see
+// pipelinesFor). It is bundled into the BROWSER as well as the server — many
+// src/client/** files import it — so a read there must be checked against DefinePlugin
+// AND the deploy heredoc. Before this, a broken browser supply channel printed green:
+// deleting the STRIPE_PUBLISHABLE_KEY DefinePlugin entry still gave REQUIRED 0 and
+// `--enforce` exit 0 (review 0064 finding R1, fixed by owner disposition D2 in task 0203).
 //
-// This is FINDING R1 of the 0064 review, severity HIGH. It is deliberately NOT fixed in
-// this pass: the owner ruled (disposition D1, 2026-09-02) that report-only ships first
-// and R1 is fixed BEFORE the guard is ever armed. It misleads only someone who trusts a
-// green client line, and nobody should until then.
-//
-// THE AGREED FIX, for whoever does the pre-arming pass (disposition D2): classify every
-// src/core/configuration/** read against BOTH channels — the deploy heredoc AND
-// DefinePlugin — because the browser genuinely reads them. Do not re-decide this.
+// The scope is exactly configuration/**, not all of src/core/**, because D2 ruled that
+// scope and because configuration/** is where every core environment read lives; the
+// rest of src/core/** stays game-only. Do not replace this with an import-graph walk —
+// that is settled by ruling R2.
 const DIR_PIPELINE = {
   client: "client",
   core: "game",
   server: "game",
   "profile-server": "profile",
 };
+const CORE_CONFIGURATION_PIPELINES = ["game", "client"];
+
+/** Every pipeline a src/-relative file's reads belong to (empty: unpartitioned). */
+function pipelinesFor(segments) {
+  if (segments.length < 2) return [];
+  if (segments[0] === "core" && segments[1] === "configuration")
+    return CORE_CONFIGURATION_PIPELINES;
+  const pipeline = DIR_PIPELINE[segments[0]];
+  return pipeline ? [pipeline] : [];
+}
 
 // ── Patterns ──────────────────────────────────────────────────────────────────
 // NOTE: every pattern below escapes the dot, so the un-escaped member-access spelling
@@ -116,14 +127,28 @@ const ENV_READ_BRACKET_LITERAL =
   /process\s*\??\.\s*env\s*\??\.?\s*\[\s*(["'`])([^"'`]+)\1\s*\]/g;
 const ENV_BRACKET_ANY = /process\s*\??\.\s*env\s*\??\.?\s*\[/g;
 const ENV_ALIAS = /=\s*process\s*\??\.\s*env\b(?!\s*\??\s*[.[])/g;
-const DEFINE_PLUGIN_KEY = /"process\.env\.([A-Za-z_]\w*)"\s*:/g;
+// DefinePlugin keys are read from the object literal passed to the call, never from the
+// file's raw text (review 0064 finding R18) — see parseDefinePlugin.
+const DEFINE_PLUGIN_CALL = /\bDefinePlugin\s*\(/g;
+const DEFINE_PLUGIN_KEY_VALUE = /^process\.env\.([A-Za-z_]\w*)$/;
 const DOCKER_ENV = /^ENV\s+([A-Z_][A-Z0-9_]*)=/;
 const PROFILE_EXPORT = /^\s*printf\s+"export\s+([A-Z_][A-Z0-9_]*)=/;
-// Anchored at column 0 ON PURPOSE — a heredoc assignment only forwards a key when it
-// starts the line. An INDENTED assignment is caught separately and reported as a hard
-// PARSE-FAILURE (see parseHeredocKeys); it must never be silently dropped.
+// The ONLY heredoc line shape this guard reads as a forwarded key: a column-0
+// UPPERCASE= assignment. That is a limit of this parser, NOT of the consumers — Compose
+// `env_file` also forwards `export KEY=`, indented and lowercase keys, and
+// `docker run --env-file` forwards indented and lowercase ones. So every OTHER non-blank,
+// non-comment body line is a key this guard cannot check, and parseHeredocKeys reports it
+// as a hard PARSE-FAILURE, found by inversion rather than by another positive pattern
+// (review 0064 findings R9, R12). It must never be silently dropped.
 const HEREDOC_ASSIGN = /^([A-Z_][A-Z0-9_]*)=/;
+// Used ONLY to word the failure message; it decides nothing about what is detected.
 const HEREDOC_ASSIGN_INDENTED = /^[ \t]+([A-Z_][A-Z0-9_]*)=/;
+// Blank or comment lines: both env-file parsers treat these as nothing.
+const HEREDOC_IGNORABLE = /^\s*(?:#|$)/;
+// The key name of an unconsumed line — taken ONLY when an `=` follows it, so a line that
+// is not an assignment (a bare word, a stray value) contributes a line number and never
+// its text.
+const HEREDOC_LINE_KEY = /^\s*(?:export\s+)?([A-Za-z_]\w*)\s*=/;
 
 // ── Small helpers ─────────────────────────────────────────────────────────────
 function readFileOrNull(file) {
@@ -156,6 +181,268 @@ function walkTypeScript(dir, out = []) {
   return out;
 }
 
+// ── Code / comment / string separation (review 0064 finding R15) ─────────────
+// The read patterns used to run over raw text, so a sentence in a comment could be an
+// "aliased" read (a hard --enforce failure caused by prose) and a name in a comment or a
+// string could count as a consumer (hiding a real dead-config line). maskNonCode blanks
+// everything that is not code before the patterns run. Zero dependencies, on purpose.
+
+// A `/` starts a regex literal after one of these punctuators, after one of these
+// keywords, or at the start of the text; anywhere else it is division. Postfix `++`/`--`
+// and a TypeScript non-null `!` end a value, so they leave that decision unchanged; the
+// `)` that closes an `if`/`while`/`for`/`with` head starts a statement, so a regex may
+// follow it (see scanCode; review 0203 finding R1, both directions).
+//
+// A heuristic, and NOT a guarantee. A misread that leaves an unterminated string, comment
+// or regex is caught loudly (below). A misread that happens to balance is NOT caught, and
+// can blank a real read silently — and the rules above are not a full JavaScript grammar,
+// so an unanticipated placement can still do that.
+const REGEX_AFTER_PUNCTUATOR = new Set("(,=:[!&|?{};+-*%<>~^");
+const REGEX_AFTER_KEYWORD = new Set([
+  "return",
+  "typeof",
+  "instanceof",
+  "in",
+  "new",
+  "delete",
+  "void",
+  "throw",
+  "case",
+  "do",
+  "else",
+  "yield",
+  "await",
+]);
+// The "previous token" recorded after a string, template or regex: a value, so a `/`
+// that follows it is division.
+const AFTER_VALUE = ")";
+// Keywords whose parenthesised head is followed by a statement, not by an operator.
+const CONTROL_HEAD_KEYWORD = new Set(["if", "while", "for", "with"]);
+// The "previous token" recorded after the `)` that closes such a head: a statement starts
+// there, exactly as after `;`, so a `/` that follows starts a regex.
+const AFTER_CONTROL_HEAD = ";";
+
+/** Whether a `/` after this previous token starts a regex literal (else: division). */
+function regexMayFollow(previous) {
+  return (
+    previous === "" ||
+    REGEX_AFTER_PUNCTUATOR.has(previous) ||
+    REGEX_AFTER_KEYWORD.has(previous)
+  );
+}
+
+class MaskFailure extends Error {}
+
+function isWhitespaceCode(code) {
+  return (
+    code === 32 ||
+    (code >= 9 && code <= 13) ||
+    code === 0xa0 ||
+    code === 0xfeff ||
+    code === 0x2028 ||
+    code === 0x2029
+  );
+}
+
+function isWordCode(code) {
+  return (
+    (code >= 48 && code <= 57) || // 0-9
+    (code >= 65 && code <= 90) || // A-Z
+    (code >= 97 && code <= 122) || // a-z
+    code === 95 || // _
+    code === 36 || // $
+    (code > 127 && !isWhitespaceCode(code))
+  );
+}
+
+/**
+ * Separates code from comments, string contents, template-literal text and regex bodies.
+ * Returns { masked, spans, failure }:
+ *   masked   the text at the same length, newlines kept, with every character of a
+ *            comment, a quoted string's contents, a template's text chunks and a regex
+ *            body turned into a space. Quote characters and `${ … }` substitutions stay
+ *            code (with nesting), because real reads live inside substitutions.
+ *   spans    every quoted string and substitution-free template as { start, end, value }:
+ *            start at the opening quote, end one past the closing one.
+ *   failure  null, or why the text could not be separated — text ending inside a
+ *            string, template, comment or regex, or a raw line break inside a quoted
+ *            string or a regex. On failure `masked` is the raw text and `spans` is empty,
+ *            so a caller can fall back to raw scanning. Only a DETECTED failure lands
+ *            here: a regex/division misread that still balances returns failure null
+ *            (see REGEX_AFTER_PUNCTUATOR).
+ */
+function maskNonCode(text) {
+  const n = text.length;
+  const out = text.split("");
+  const spans = [];
+  const blank = (from, to) => {
+    for (let k = from; k < to; k++) if (out[k] !== "\n") out[k] = " ";
+  };
+  const fail = (why, at) => {
+    throw new MaskFailure(`${why} at line ${lineOf(text, at)}`);
+  };
+
+  function scanQuoted(i) {
+    const quote = text[i];
+    let j = i + 1;
+    for (;;) {
+      if (j >= n) fail("unterminated string", i);
+      const ch = text[j];
+      if (ch === "\\") j += 2;
+      else if (ch === "\n") fail("line break inside a string", i);
+      else if (ch === quote) break;
+      else j++;
+    }
+    spans.push({ start: i, end: j + 1, value: text.slice(i + 1, j) });
+    blank(i + 1, j);
+    return j + 1;
+  }
+
+  function scanTemplate(i) {
+    let j = i + 1;
+    let chunk = j;
+    let substituted = false;
+    for (;;) {
+      if (j >= n) fail("unterminated template literal", i);
+      const ch = text[j];
+      if (ch === "\\") j += 2;
+      else if (ch === "`") break;
+      else if (ch === "$" && text[j + 1] === "{") {
+        blank(chunk, j);
+        substituted = true;
+        j = scanCode(j + 2, true) + 1; // scanCode returns the closing brace's index
+        chunk = j;
+      } else j++;
+    }
+    blank(chunk, j);
+    if (!substituted)
+      spans.push({ start: i, end: j + 1, value: text.slice(i + 1, j) });
+    return j + 1;
+  }
+
+  function scanRegex(i) {
+    let j = i + 1;
+    let inClass = false;
+    for (;;) {
+      if (j >= n) fail("unterminated regular expression", i);
+      const ch = text[j];
+      if (ch === "\n") fail("line break inside a regular expression", i);
+      if (ch === "\\") {
+        j += 2;
+        continue;
+      }
+      if (inClass) {
+        if (ch === "]") inClass = false;
+      } else if (ch === "[") inClass = true;
+      else if (ch === "/") break;
+      j++;
+    }
+    blank(i + 1, j);
+    j++;
+    while (j < n && isWordCode(text.charCodeAt(j))) j++; // flags
+    return j;
+  }
+
+  // Code until the end of the text, or — inside a template substitution — until the
+  // brace that closes it, whose index is returned.
+  function scanCode(i, inSubstitution) {
+    let depth = 0;
+    let previous = "";
+    // One entry per open `(`: whether it opens a control head (CONTROL_HEAD_KEYWORD).
+    const parens = [];
+    while (i < n) {
+      const ch = text[i];
+      const code = text.charCodeAt(i);
+      if (isWhitespaceCode(code)) {
+        i++;
+      } else if (ch === "/" && text[i + 1] === "/") {
+        let j = i;
+        while (j < n && text[j] !== "\n") j++;
+        blank(i, j);
+        i = j;
+      } else if (ch === "/" && text[i + 1] === "*") {
+        const end = text.indexOf("*/", i + 2);
+        if (end === -1) fail("unterminated block comment", i);
+        blank(i, end + 2);
+        i = end + 2;
+      } else if (ch === "/") {
+        if (regexMayFollow(previous)) {
+          i = scanRegex(i);
+          previous = AFTER_VALUE;
+        } else {
+          previous = ch;
+          i++;
+        }
+      } else if (ch === "'" || ch === '"') {
+        i = scanQuoted(i);
+        previous = AFTER_VALUE;
+      } else if (ch === "`") {
+        i = scanTemplate(i);
+        previous = AFTER_VALUE;
+      } else if ((ch === "+" || ch === "-") && text[i + 1] === ch) {
+        // `++` / `--` never change what a `/` means. Postfix (`n++ / 2`) follows a value
+        // and ends one, so division stays division; prefix follows an operator, so a regex
+        // stays possible. Leaving `previous` as it is covers both (review 0203 R1).
+        i += 2;
+      } else if (
+        ch === "!" &&
+        text[i + 1] !== "=" &&
+        !regexMayFollow(previous) &&
+        !isWhitespaceCode(text.charCodeAt(i - 1))
+      ) {
+        // A `!` written directly after a value is a TypeScript non-null assertion
+        // (`t! / 4`): it ends the value, so a following `/` is division. A `!` after
+        // whitespace is logical-not, and falls through to the punctuator branch below.
+        i++;
+      } else if (isWordCode(code)) {
+        let j = i;
+        while (j < n && isWordCode(text.charCodeAt(j))) j++;
+        const word = text.slice(i, j);
+        if (previous === ".") {
+          // A member name (`obj.if(…)`) is never a keyword; mark it so it is not read as one.
+          previous = `.${word}`;
+        } else if (word === "await" && previous === "for") {
+          // `for await (…)` is still a `for` head.
+        } else previous = word;
+        i = j;
+      } else {
+        let next = ch;
+        if (ch === "{") depth++;
+        else if (ch === "}") {
+          if (inSubstitution && depth === 0) return i;
+          depth--;
+        } else if (ch === "(") parens.push(CONTROL_HEAD_KEYWORD.has(previous));
+        else if (ch === ")" && parens.pop() === true) next = AFTER_CONTROL_HEAD;
+        previous = next;
+        i++;
+      }
+    }
+    if (inSubstitution) fail("unterminated template substitution", n);
+    return n;
+  }
+
+  try {
+    scanCode(0, false);
+  } catch (error) {
+    if (!(error instanceof MaskFailure)) throw error;
+    return { masked: text, spans: [], failure: error.message };
+  }
+  return { masked: out.join(""), spans, failure: null };
+}
+
+/** From just after a `[`, the name of a string-literal index closed by `]`, else null. */
+function literalIndexName(masked, from, spanAt) {
+  let k = from;
+  while (k < masked.length && isWhitespaceCode(masked.charCodeAt(k))) k++;
+  const span = spanAt.get(k);
+  if (!span) return null;
+  let p = span.end;
+  while (p < masked.length && isWhitespaceCode(masked.charCodeAt(p))) p++;
+  if (masked[p] !== "]") return null;
+  if (!/^[^"'`]+$/.test(span.value) || span.value.includes("${")) return null;
+  return span.value;
+}
+
 // ── Parsers — every one of them fails LOUD ────────────────────────────────────
 // A parser that quietly returns an empty set is the worst outcome available here:
 // forward, it would report every variable as missing; in reverse, it would report
@@ -174,19 +461,28 @@ function parseHeredocKeys(text, openPattern, delimiter, label) {
     };
   }
   const keys = [];
-  const indented = [];
+  const unconsumed = [];
   for (let i = start + 1; i < lines.length; i++) {
     if (lines[i].trim() === delimiter) {
       const body = lines.slice(start, i + 1).join("\n");
-      // An indented assignment is NOT a key this parser can honour, and dropping it
+      // A line this parser did not consume is a key it cannot check, and dropping it
       // silently is the worst outcome available: on the profile.env heredoc it shrinks
       // hop 2 and therefore SILENCES a B2 finding — a false negative in task 0195's
       // exact shape, in the very bug this guard was built to catch. So it fails loud.
-      // (Review 0064 finding R9.)
-      if (indented.length > 0) {
+      // (Review 0064 findings R9, R12.) The message carries line numbers and key names
+      // only — never a line's text, which may hold a value.
+      if (unconsumed.length > 0) {
+        const lineNotes = unconsumed.map(({ line, text }) => {
+          const indented = HEREDOC_ASSIGN_INDENTED.exec(text);
+          if (indented) return `heredoc line ${line} indents '${indented[1]}='`;
+          const named = HEREDOC_LINE_KEY.exec(text);
+          if (named)
+            return `heredoc line ${line} '${named[1]}=' is not a column-0 UPPERCASE= assignment`;
+          return `heredoc line ${line} is not a column-0 UPPERCASE= assignment`;
+        });
         return {
           keys: [],
-          failure: `${label}: heredoc line ${indented[0].line} indents '${indented[0].name}=' — an assignment must start at column 0 to be read as a forwarded key`,
+          failure: `${label}: ${lineNotes.join("; ")} — the guard reads only column-0 UPPERCASE= assignments, so ${unconsumed.length === 1 ? "this key" : "these keys"} cannot be checked`,
           body,
         };
       }
@@ -201,10 +497,8 @@ function parseHeredocKeys(text, openPattern, delimiter, label) {
     }
     const match = HEREDOC_ASSIGN.exec(lines[i]);
     if (match) keys.push(match[1]);
-    else {
-      const indentedMatch = HEREDOC_ASSIGN_INDENTED.exec(lines[i]);
-      if (indentedMatch) indented.push({ name: indentedMatch[1], line: i + 1 });
-    }
+    else if (!HEREDOC_IGNORABLE.test(lines[i]))
+      unconsumed.push({ line: i + 1, text: lines[i] });
   }
   return {
     keys: [],
@@ -236,19 +530,80 @@ function parseDockerEnv(text) {
   return { keys, failure: null };
 }
 
-/** Build-time substitution keys from webpack's DefinePlugin. */
+/**
+ * Build-time substitution keys from webpack's DefinePlugin. Read from the object literal
+ * passed to each `DefinePlugin(` call — not from the file's raw text, where a
+ * commented-out or string-embedded key would count as SUPPLIED and hide a genuinely
+ * missing substitution (review 0064 finding R18). A key position this cannot enumerate
+ * (a computed key, a spread, a non-literal argument) is a PARSE-FAILURE.
+ */
 function parseDefinePlugin(text, label) {
   const keys = [];
-  let match;
-  DEFINE_PLUGIN_KEY.lastIndex = 0;
-  while ((match = DEFINE_PLUGIN_KEY.exec(text)) !== null) keys.push(match[1]);
-  if (keys.length === 0) {
-    return {
-      keys,
-      failure: `${label}: found 0 DefinePlugin substitution keys`,
-    };
+  const failures = [];
+  const scan = maskNonCode(text);
+  if (scan.failure) {
+    failures.push(
+      `${label}: could not separate code from comments/strings (${scan.failure}) — cannot enumerate DefinePlugin keys`,
+    );
+    return { keys, failures };
   }
-  return { keys, failure: null };
+  const code = scan.masked;
+  const spanAt = new Map(scan.spans.map((span) => [span.start, span]));
+  const skipSpace = (k) => {
+    while (k < code.length && isWhitespaceCode(code.charCodeAt(k))) k++;
+    return k;
+  };
+  const cannotEnumerate = (at, what) =>
+    failures.push(
+      `${label}: line ${lineOf(text, at)}: DefinePlugin ${what} — cannot enumerate its keys`,
+    );
+
+  let match;
+  DEFINE_PLUGIN_CALL.lastIndex = 0;
+  while ((match = DEFINE_PLUGIN_CALL.exec(code)) !== null) {
+    const open = skipSpace(match.index + match[0].length);
+    if (code[open] !== "{") {
+      cannotEnumerate(open, "argument is not an object literal");
+      continue;
+    }
+    // Walk to the matching `}`, tracking () [] {} depth. At depth 1, the first code
+    // character after `{` or a `,` is a property key position.
+    let depth = 0;
+    let atKey = false;
+    let closed = false;
+    for (let k = open; k < code.length; k++) {
+      if (isWhitespaceCode(code.charCodeAt(k))) continue;
+      const ch = code[k];
+      if (depth === 1 && atKey) {
+        atKey = false;
+        const span = spanAt.get(k);
+        if (span) {
+          const key = DEFINE_PLUGIN_KEY_VALUE.exec(span.value);
+          if (key && code[skipSpace(span.end)] === ":") keys.push(key[1]);
+          k = span.end - 1;
+          continue;
+        }
+        if (ch === "[") cannotEnumerate(k, "has a computed key");
+        else if (code.startsWith("...", k)) cannotEnumerate(k, "has a spread");
+        // A bare identifier key is not a substitution of the environment; ignore it.
+      }
+      if (ch === "{" || ch === "(" || ch === "[") {
+        depth++;
+        if (depth === 1) atKey = true;
+      } else if (ch === "}" || ch === ")" || ch === "]") {
+        depth--;
+        if (depth === 0) {
+          closed = true;
+          break;
+        }
+      } else if (ch === "," && depth === 1) atKey = true;
+    }
+    if (!closed) cannotEnumerate(open, "object literal is never closed");
+  }
+  if (keys.length === 0) {
+    failures.push(`${label}: found 0 DefinePlugin substitution keys`);
+  }
+  return { keys, failures };
 }
 
 /**
@@ -257,10 +612,14 @@ function parseDefinePlugin(text, label) {
  * a guard that silently cannot see something is the exact failure mode this task
  * exists to prevent.
  */
-function collectEnvReads(srcDir) {
-  const reads = new Map(); // name -> { pipelines:Set, sites:[] }
+function collectEnvReads(srcDir, srcLabel) {
+  // name -> { pipelines:Set, sites:[{ site, pipelines }] }. Each site keeps the
+  // pipelines of the file it is in, so a finding cites only its own pipeline's files
+  // (review 0064 finding R10).
+  const reads = new Map();
   const dynamic = [];
   const unpartitioned = new Set();
+  const failures = [];
 
   for (const file of walkTypeScript(srcDir)) {
     const text = readFileOrNull(file);
@@ -270,33 +629,59 @@ function collectEnvReads(srcDir) {
     // Only a directory maps to a pipeline. A loose top-level file (src/version.ts)
     // has no owning directory, so it is unpartitioned — but that is only worth
     // announcing if it actually reads the environment, which is checked below.
-    const pipeline =
-      segments.length > 1 ? DIR_PIPELINE[segments[0]] : undefined;
+    const pipelines = pipelinesFor(segments);
 
     const record = (name, index) => {
       if (!reads.has(name))
         reads.set(name, { pipelines: new Set(), sites: [] });
       const entry = reads.get(name);
-      if (pipeline) entry.pipelines.add(pipeline);
-      else unpartitioned.add(rel);
-      entry.sites.push(`${rel}:${lineOf(text, index)}`);
+      for (const pipeline of pipelines) entry.pipelines.add(pipeline);
+      if (pipelines.length === 0) unpartitioned.add(rel);
+      entry.sites.push({ site: `${rel}:${lineOf(text, index)}`, pipelines });
     };
+
+    // Scan CODE only (review 0064 finding R15). If the file cannot be separated, say so
+    // loudly and scan its raw text, so a DETECTED tokenizer failure never loses a read.
+    // An undetected misread can still lose one silently — see REGEX_AFTER_PUNCTUATOR.
+    const scan = maskNonCode(text);
+    if (scan.failure) {
+      failures.push(
+        `${path.join(srcLabel, rel)}: could not separate code from comments/strings (${scan.failure}) — scanned as raw text instead`,
+      );
+    }
+    const code = scan.masked;
 
     let match;
     ENV_READ_DOT.lastIndex = 0;
-    while ((match = ENV_READ_DOT.exec(text)) !== null)
+    while ((match = ENV_READ_DOT.exec(code)) !== null)
       record(match[1], match.index);
 
     const literalBracketAt = new Set();
-    ENV_READ_BRACKET_LITERAL.lastIndex = 0;
-    while ((match = ENV_READ_BRACKET_LITERAL.exec(text)) !== null) {
-      literalBracketAt.add(match.index);
-      record(match[2], match.index);
+    if (scan.failure) {
+      ENV_READ_BRACKET_LITERAL.lastIndex = 0;
+      while ((match = ENV_READ_BRACKET_LITERAL.exec(text)) !== null) {
+        literalBracketAt.add(match.index);
+        record(match[2], match.index);
+      }
+    } else {
+      // A literal index counts only when a string span starts right after the `[`.
+      const spanAt = new Map(scan.spans.map((span) => [span.start, span]));
+      ENV_BRACKET_ANY.lastIndex = 0;
+      while ((match = ENV_BRACKET_ANY.exec(code)) !== null) {
+        const name = literalIndexName(
+          code,
+          match.index + match[0].length,
+          spanAt,
+        );
+        if (name === null) continue;
+        literalBracketAt.add(match.index);
+        record(name, match.index);
+      }
     }
 
     // A bracket read whose argument is not a string literal cannot be enumerated.
     ENV_BRACKET_ANY.lastIndex = 0;
-    while ((match = ENV_BRACKET_ANY.exec(text)) !== null) {
+    while ((match = ENV_BRACKET_ANY.exec(code)) !== null) {
       if (!literalBracketAt.has(match.index)) {
         dynamic.push(
           `${rel}:${lineOf(text, match.index)} — computed index into the environment object`,
@@ -306,14 +691,19 @@ function collectEnvReads(srcDir) {
 
     // Aliasing or destructuring the whole object hides every name behind it.
     ENV_ALIAS.lastIndex = 0;
-    while ((match = ENV_ALIAS.exec(text)) !== null) {
+    while ((match = ENV_ALIAS.exec(code)) !== null) {
       dynamic.push(
         `${rel}:${lineOf(text, match.index)} — the environment object is aliased or destructured`,
       );
     }
   }
 
-  return { reads, dynamic, unpartitioned: [...unpartitioned].sort() };
+  return {
+    reads,
+    dynamic,
+    unpartitioned: [...unpartitioned].sort(),
+    failures,
+  };
 }
 
 // ── Allowlist ─────────────────────────────────────────────────────────────────
@@ -396,7 +786,12 @@ function analyse(options) {
   let dynamic = [];
   let unpartitioned = [];
   if (fs.existsSync(srcDir)) {
-    ({ reads, dynamic, unpartitioned } = collectEnvReads(srcDir));
+    let failures;
+    ({ reads, dynamic, unpartitioned, failures } = collectEnvReads(
+      srcDir,
+      options.inputs["src-dir"],
+    ));
+    parseFailures.push(...failures);
     if (reads.size === 0) {
       parseFailures.push(
         `${options.inputs["src-dir"]}: found 0 environment reads`,
@@ -413,7 +808,12 @@ function analyse(options) {
   const readsFor = (pipeline) =>
     [...reads.entries()]
       .filter(([, v]) => v.pipelines.has(pipeline))
-      .map(([name, v]) => ({ name, sites: v.sites }));
+      .map(([name, v]) => ({
+        name,
+        sites: v.sites
+          .filter((s) => s.pipelines.includes(pipeline))
+          .map((s) => s.site),
+      }));
 
   const results = {};
   for (const pipeline of PIPELINES) {
@@ -548,10 +948,7 @@ function analyse(options) {
 
   // ── C. Client / build-time ──────────────────────────────────────────────────
   if (options.pipelines.includes("client")) {
-    // ⚠️ This pipeline's forward check is INCOMPLETE by owner ruling — see the R1 gap
-    // notice on DIR_PIPELINE above. A green REQUIRED line here does NOT mean the
-    // browser's supply channel is sound, because src/core/configuration/** reads that
-    // the browser needs are classified game-only and never reach this check.
+    // Covers src/client/** AND src/core/configuration/** reads (see DIR_PIPELINE).
     const webpackText = load("webpack-config");
     const supplied = new Set();
     if (webpackText !== null) {
@@ -559,20 +956,42 @@ function analyse(options) {
         webpackText,
         options.inputs["webpack-config"],
       );
-      if (defined.failure) parseFailures.push(defined.failure);
+      parseFailures.push(...defined.failures);
       for (const key of defined.keys) supplied.add(key);
     }
     const result = results.client;
     result.checked = webpackText !== null;
-    for (const { name, sites } of readsFor("client")) {
+    const clientReads = readsFor("client");
+
+    // A `server-only` entry records that the browser never needs the key. Substituting it
+    // anyway publishes its value in the browser bundle, so this is a hard finding that
+    // the allowlist entry itself cannot suppress (review 0203 finding R2).
+    for (const name of supplied) {
+      if (allowedFor("client", name)?.class !== "server-only") continue;
+      const sites = clientReads.find((r) => r.name === name)?.sites ?? [];
+      result.required.push({
+        name,
+        detail: `server-only key substituted into the browser bundle by DefinePlugin — remove the substitution; its allowlist entry says the browser never needs it${sites.length > 0 ? ` (${sites.slice(0, 2).join(", ")})` : ""}`,
+      });
+    }
+
+    for (const { name, sites } of clientReads) {
       if (supplied.has(name)) continue;
       const allowed = allowedFor("client", name);
       if (allowed) result.allowed.push({ name, ...allowed });
-      else
+      else {
+        // A core/configuration read may be one the browser bundles but never calls. Say
+        // how to resolve that before someone "fixes" it by publishing a secret.
+        const guardrail = sites.some((site) =>
+          site.startsWith(`core${path.sep}configuration${path.sep}`),
+        )
+          ? " — if the browser never needs it, allowlist it; never substitute a server secret into the browser bundle"
+          : "";
         result.required.push({
           name,
-          detail: `read in the browser bundle but not substituted by DefinePlugin (${sites.slice(0, 2).join(", ")})`,
+          detail: `read in the browser bundle but not substituted by DefinePlugin (${sites.slice(0, 2).join(", ")})${guardrail}`,
         });
+      }
     }
 
     // Reverse: a DefinePlugin substitution that nothing reads is dead build-time config
@@ -615,14 +1034,19 @@ function analyse(options) {
 }
 
 // ── Reporting ─────────────────────────────────────────────────────────────────
-// The R1 gap recorded on DIR_PIPELINE above is invisible to a deploy operator, who
-// sees only this rendered report. Since both call sites moved to --pipeline=all
-// (review 0064 finding R3), every deploy prints an unqualified `client REQUIRED 0`
-// for a forward check R1 proves incomplete. The owner ruled on 2026-09-02 (finding
-// R14) that the caveat must be PRINTED, not left in a source comment and a ledger.
-// DELETE THIS LINE WHEN R1 IS FIXED — a stale caveat is its own kind of false claim.
-const CLIENT_FORWARD_CAVEAT =
-  "the REQUIRED check above is INCOMPLETE — src/core/configuration/** reads are not checked against DefinePlugin";
+/**
+ * Whether --enforce fails this run. The ONE definition, used by both the exit code and the
+ * printed footer, so the output can never tell the reader the opposite of what the process
+ * did (review 0064 finding R16).
+ */
+function failsClosed(result) {
+  return (
+    result.requiredTotal > 0 ||
+    result.parseFailures.length > 0 ||
+    result.dynamicReads.length > 0 ||
+    result.skips.length > 0
+  );
+}
 
 function wrap(names, indent) {
   const lines = [];
@@ -657,8 +1081,6 @@ function render(result, selected) {
     out.push(`REQUIRED  ${data.required.length}`);
     for (const finding of data.required)
       out.push(`          ${finding.name} — ${finding.detail}`);
-    // Client only, on purpose: the game and profile sections are byte-pinned.
-    if (pipeline === "client") out.push(`CAVEAT    ${CLIENT_FORWARD_CAVEAT}`);
     if (data.info.length > 0) {
       // The label comes from the findings themselves: the game and profile pipelines
       // report "forwarded, no consumer found", the client "substituted by DefinePlugin,
@@ -689,7 +1111,7 @@ function render(result, selected) {
 
   if (mode === "report-only") {
     out.push("report-only — exit 0, this cannot fail a deploy");
-  } else if (result.requiredTotal > 0 || result.parseFailures.length > 0) {
+  } else if (failsClosed(result)) {
     out.push("enforce — failing on the findings above");
   } else {
     out.push("enforce — no required findings");
@@ -762,12 +1184,7 @@ function main(argv) {
   }
 
   if (!options.enforce) return 0;
-  const failClosed =
-    result.requiredTotal > 0 ||
-    result.parseFailures.length > 0 ||
-    result.dynamicReads.length > 0 ||
-    result.skips.length > 0;
-  return failClosed ? 1 : 0;
+  return failsClosed(result) ? 1 : 0;
 }
 
 process.exitCode = main(process.argv.slice(2));

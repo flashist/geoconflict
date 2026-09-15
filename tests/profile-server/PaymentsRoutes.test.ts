@@ -13,13 +13,20 @@ import {
 
 const SECRET = "payments-test-secret";
 const INTENT_ID = randomUUID();
+// Task 0270: "yandex-1" is a known identity resolving to this internal id.
+const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
 
 function mockProfileRepo(): ProfileRepo {
   return {
     ping: jest.fn().mockResolvedValue(undefined),
     getProfile: jest.fn().mockResolvedValue(null),
-    upsertProfile: jest.fn(),
     creditMatchXp: jest.fn(),
+    findPlayerByIdentity: jest
+      .fn()
+      .mockImplementation(async (_platform: string, id: string) =>
+        id === "yandex-1" ? PLAYER_ID : null,
+      ),
+    resolveOrCreatePlayer: jest.fn(),
   };
 }
 
@@ -33,8 +40,12 @@ function mockPaymentsRepo(overrides: Partial<PaymentsRepo> = {}): PaymentsRepo {
   };
 }
 
-function appWith(paymentsRepo: PaymentsRepo, secret: string = SECRET) {
-  return createApp(mockProfileRepo(), {
+function appWith(
+  paymentsRepo: PaymentsRepo,
+  secret: string = SECRET,
+  profileRepo: ProfileRepo = mockProfileRepo(),
+) {
+  return createApp(profileRepo, {
     paymentsRepo,
     yandexPaymentsSecret: secret,
   });
@@ -63,7 +74,7 @@ function purchasePayload(
 function openIntent(overrides: Partial<PurchaseIntent> = {}): PurchaseIntent {
   return {
     id: INTENT_ID,
-    yandexPlayerId: "yandex-1",
+    playerId: PLAYER_ID,
     productId: "citizenship",
     usedAt: null,
     ...overrides,
@@ -72,7 +83,7 @@ function openIntent(overrides: Partial<PurchaseIntent> = {}): PurchaseIntent {
 
 const processedReceipt: ProcessedPurchase = {
   purchaseToken: "tok-1",
-  yandexPlayerId: "yandex-1",
+  playerId: PLAYER_ID,
   productId: "citizenship",
 };
 
@@ -135,7 +146,21 @@ describe("payments routes", () => {
         .send({ yandexPlayerId: "yandex-1", productId: "citizenship" });
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ intentId: INTENT_ID });
-      expect(repo.createIntent).toHaveBeenCalledWith("yandex-1", "citizenship");
+      expect(repo.createIntent).toHaveBeenCalledWith(PLAYER_ID, "citizenship");
+    });
+
+    // Task 0270 / design §4: the intent no longer "ensures" a profile. An unknown
+    // identity is a 404, and nothing is created.
+    it("is 404 not_found for an unknown identity and creates nothing", async () => {
+      const repo = mockPaymentsRepo();
+      const profileRepo = mockProfileRepo();
+      const res = await request(appWith(repo, SECRET, profileRepo))
+        .post("/v1/payments/yandex/intent")
+        .send({ yandexPlayerId: "ghost", productId: "citizenship" });
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual({ error: "not_found" });
+      expect(repo.createIntent).not.toHaveBeenCalled();
+      expect(profileRepo.resolveOrCreatePlayer).not.toHaveBeenCalled();
     });
 
     it("is 400 for an unknown product or bad body", async () => {
@@ -173,7 +198,7 @@ describe("payments routes", () => {
         expect.objectContaining<Partial<PaidPurchaseGrant>>({
           purchaseToken: "tok-1",
           productId: "citizenship",
-          yandexPlayerId: "yandex-1",
+          playerId: PLAYER_ID,
           intentId: INTENT_ID,
         }),
       );

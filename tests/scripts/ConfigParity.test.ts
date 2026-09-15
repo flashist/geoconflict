@@ -285,6 +285,223 @@ describe("catches task 0062's shape — a read that is never forwarded", () => {
   });
 });
 
+// ── R1 (task 0203) — src/core/configuration/** is checked against BOTH channels ──
+
+describe("R1 — core configuration reads reach the browser, so DefinePlugin must supply them", () => {
+  // Owner disposition D2: src/core/configuration/** is bundled into the browser as well as
+  // the game server, so its reads are classified against the deploy heredoc AND
+  // DefinePlugin. Scope is exactly configuration/** — the rest of src/core/** stays game-only.
+  const withCoreConfigRead = (definePluginKeys: string[]) => ({
+    "src/core/configuration/Cfg.ts":
+      "const shared = process.env.CORE_SHARED_KEY;\nexport { shared };",
+    "deploy.sh": [
+      "#!/bin/bash",
+      "cat > ${ENV_FILE} << 'EOL'",
+      "GAME_TOKEN=${GAME_TOKEN}",
+      "GAME_HOST=${GAME_HOST}",
+      "CORE_SHARED_KEY=${CORE_SHARED_KEY}",
+      "ENVIRONMENT=${ENV}",
+      "DEAD_ONE=${DEAD_ONE}",
+      "EOL",
+    ].join("\n"),
+    "webpack.config.js": [
+      "new webpack.DefinePlugin({",
+      ...definePluginKeys.map(
+        (k) => `  "process.env.${k}": JSON.stringify("v"),`,
+      ),
+      "});",
+    ].join("\n"),
+  });
+
+  it("a core/configuration read forwarded by the heredoc but absent from DefinePlugin is client REQUIRED", () => {
+    const root = fixture(withCoreConfigRead(["CLIENT_MODE"]));
+    const result = runJson([`--repo-root=${root}`, "--pipeline=all"]);
+    // The game channel is satisfied — the heredoc forwards it …
+    expect(names(result.pipelines.game.required)).toEqual([]);
+    // … and the browser channel is not.
+    expect(names(result.pipelines.client.required)).toEqual([
+      "CORE_SHARED_KEY",
+    ]);
+    const detail = result.pipelines.client.required[0].detail;
+    expect(detail).toContain("core/configuration/Cfg.ts:1");
+    // The guardrail: the fix for a server-only key is the allowlist, never DefinePlugin.
+    expect(detail).toContain(
+      "never substitute a server secret into the browser bundle",
+    );
+
+    // Supplying it through DefinePlugin clears the finding.
+    const supplied = fixture(
+      withCoreConfigRead(["CLIENT_MODE", "CORE_SHARED_KEY"]),
+    );
+    const suppliedResult = runJson([
+      `--repo-root=${supplied}`,
+      "--pipeline=client",
+    ]);
+    expect(suppliedResult.pipelines.client.required).toEqual([]);
+  });
+
+  it("a read elsewhere under src/core/** stays game-only", () => {
+    const root = fixture({
+      "src/core/other/X.ts":
+        "const other = process.env.CORE_OTHER_KEY;\nexport { other };",
+    });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=all"]);
+    expect(names(result.pipelines.game.required)).toEqual(["CORE_OTHER_KEY"]);
+    expect(names(result.pipelines.client.required)).toEqual([]);
+  });
+
+  it("the ledger's reproduction, on real-tree data: dropping STRIPE_PUBLISHABLE_KEY from DefinePlugin fires", () => {
+    // Review 0064 R1: deleting this DefinePlugin entry used to leave `REQUIRED 0` and
+    // `--enforce` exit 0. Every input is the real tree's except the webpack config, which
+    // is the real file with that one entry removed.
+    const real = fs.readFileSync(
+      path.join(REPO_ROOT, "webpack.config.js"),
+      "utf8",
+    );
+    const entry =
+      /\s*"process\.env\.STRIPE_PUBLISHABLE_KEY":\s*JSON\.stringify\([^)]*\),/;
+    expect(real).toMatch(entry);
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "config-parity-r1-"));
+    fixtures.push(dir);
+    const edited = path.join(dir, "webpack.config.js");
+    fs.writeFileSync(edited, real.replace(entry, ""));
+
+    const result = runJson(["--pipeline=all", `--webpack-config=${edited}`]);
+    expect(result.parseFailures).toEqual([]);
+    expect(names(result.pipelines.client.required)).toEqual([
+      "STRIPE_PUBLISHABLE_KEY",
+    ]);
+    expect(
+      run(["--pipeline=all", `--webpack-config=${edited}`, "--enforce"]).status,
+    ).toBe(1);
+  });
+
+  it("R10: a finding cites only its own pipeline's read sites", () => {
+    // Review 0064 R10: `sites` was one array shared across pipelines, so a game finding
+    // cited src/profile-server/InternalAuth.ts first — the wrong pipeline's file.
+    const root = fixture({
+      "src/profile-server/InternalAuth.ts":
+        "const token = process.env.PROFILE_INTERNAL_TOKEN;\nexport { token };",
+      "src/server/ProfileApiClient.ts":
+        "const token = process.env.PROFILE_INTERNAL_TOKEN;\nexport { token };",
+    });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=all"]);
+    const game = result.pipelines.game.required.find(
+      (f) => f.name === "PROFILE_INTERNAL_TOKEN",
+    );
+    expect(game?.detail).toContain("server/ProfileApiClient.ts:1");
+    expect(game?.detail).not.toContain("profile-server/");
+    const profile = result.pipelines.profile.required.find(
+      (f) => f.name === "PROFILE_INTERNAL_TOKEN",
+    );
+    expect(profile?.detail).toContain("profile-server/InternalAuth.ts:1");
+    expect(profile?.detail).not.toMatch(/(^|[^-])server\/ProfileApiClient/);
+  });
+});
+
+// ── R2 (review 0203) — a server-only key must never be substituted into the browser ──
+
+describe("R2 (review 0203) — a server-only key that DefinePlugin substitutes is a hard finding", () => {
+  // A `server-only` allowlist entry records that the browser never needs the key. If
+  // DefinePlugin substitutes it anyway, its value is published in the browser bundle — so
+  // the allowlist must not turn that green.
+  const SERVER_ONLY_DETAIL =
+    "server-only key substituted into the browser bundle";
+  const serverOnlyFixture = (substituted: boolean) =>
+    fixture({
+      "src/core/configuration/Cfg.ts":
+        "const secret = process.env.CORE_SERVER_SECRET;\nexport { secret };",
+      "webpack.config.js": [
+        "new webpack.DefinePlugin({",
+        '  "process.env.CLIENT_MODE": JSON.stringify("dev"),',
+        ...(substituted
+          ? ['  "process.env.CORE_SERVER_SECRET": JSON.stringify("v"),']
+          : []),
+        "});",
+      ].join("\n"),
+      "scripts/config-parity-allowlist.json": JSON.stringify({
+        allow: [
+          ...CLEAN_ALLOWLIST.allow,
+          {
+            name: "CORE_SERVER_SECRET",
+            pipeline: "client",
+            class: "server-only",
+            phase: 1,
+            reason:
+              "Fixture: bundled into the browser, only ever called on the server.",
+          },
+        ],
+      }),
+    });
+
+  it("control: an unsubstituted server-only key is ALLOWED and passes --enforce", () => {
+    const root = serverOnlyFixture(false);
+    const result = runJson([`--repo-root=${root}`, "--pipeline=client"]);
+    expect(result.pipelines.client.required).toEqual([]);
+    expect(names(result.pipelines.client.allowed)).toEqual([
+      "CORE_SERVER_SECRET",
+    ]);
+    expect(
+      run([`--repo-root=${root}`, "--pipeline=client", "--enforce"]).status,
+    ).toBe(0);
+  });
+
+  it("a substituted server-only key is REQUIRED and fails --enforce", () => {
+    const root = serverOnlyFixture(true);
+    const result = runJson([`--repo-root=${root}`, "--pipeline=client"]);
+    expect(names(result.pipelines.client.required)).toEqual([
+      "CORE_SERVER_SECRET",
+    ]);
+    expect(result.pipelines.client.required[0].detail).toContain(
+      SERVER_ONLY_DETAIL,
+    );
+    expect(result.pipelines.client.allowed).toEqual([]);
+    const enforced = run([
+      `--repo-root=${root}`,
+      "--pipeline=client",
+      "--enforce",
+    ]);
+    expect(enforced.status).toBe(1);
+    expect(enforced.stdout).toContain(
+      "enforce — failing on the findings above",
+    );
+  });
+
+  it("the reviewer's reproduction, on real-tree data: substituting STORAGE_SECRET_KEY fires", () => {
+    // Every input is the real tree's except the webpack config, which is the real file
+    // with one DefinePlugin entry added for a key the allowlist marks server-only.
+    const real = fs.readFileSync(
+      path.join(REPO_ROOT, "webpack.config.js"),
+      "utf8",
+    );
+    const anchor = '"process.env.STRIPE_PUBLISHABLE_KEY":';
+    expect(real).toContain(anchor);
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "config-parity-r2-"));
+    fixtures.push(dir);
+    const edited = path.join(dir, "webpack.config.js");
+    fs.writeFileSync(
+      edited,
+      real.replace(
+        anchor,
+        `"process.env.STORAGE_SECRET_KEY": JSON.stringify(process.env.STORAGE_SECRET_KEY),\n      ${anchor}`,
+      ),
+    );
+
+    const result = runJson(["--pipeline=client", `--webpack-config=${edited}`]);
+    expect(result.parseFailures).toEqual([]);
+    expect(names(result.pipelines.client.required)).toEqual([
+      "STORAGE_SECRET_KEY",
+    ]);
+    expect(result.pipelines.client.required[0].detail).toContain(
+      SERVER_ONLY_DETAIL,
+    );
+    expect(
+      run(["--pipeline=client", `--webpack-config=${edited}`, "--enforce"])
+        .status,
+    ).toBe(1);
+  });
+});
+
 // ── Task 0195's shape — the two-hop profile gap ───────────────────────────────
 
 describe("catches task 0195's shape — hop 2 has the key, hop 1 never exports it", () => {
@@ -479,6 +696,78 @@ describe("exit contract (verification step 6)", () => {
   });
 });
 
+// ── R16 (task 0203) — the enforce footer never contradicts the exit code ──────
+
+describe("R16 — the --enforce footer says exactly what the exit code does", () => {
+  const FAILING = "enforce — failing on the findings above";
+  const PASSING = "enforce — no required findings";
+  const dynamicOnly = () =>
+    fixture({
+      "src/server/Dyn.ts":
+        "const key = 'A';\nconst v = process.env[key];\nexport { v };",
+    });
+
+  it("a DYNAMIC-READ-only run exits 1 and says it is failing (the ledger's reproduction)", () => {
+    const result = run([
+      `--repo-root=${dynamicOnly()}`,
+      "--pipeline=game",
+      "--enforce",
+    ]);
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain("DYNAMIC-READ");
+    expect(result.stdout).toContain(FAILING);
+    expect(result.stdout).not.toContain(PASSING);
+  });
+
+  it("a SKIP-only run exits 1 and says it is failing", () => {
+    const root = fixture({ "Dockerfile.profile": null });
+    const result = run([
+      `--repo-root=${root}`,
+      "--pipeline=profile",
+      "--enforce",
+    ]);
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain("SKIP  Dockerfile.profile not found");
+    expect(result.stdout).toContain(FAILING);
+  });
+
+  it("across clean / required / parse / dynamic / skip, exit 1 exactly when the footer says failing", () => {
+    const cases: [string, string, string][] = [
+      ["clean", fixture(), "all"],
+      [
+        "required",
+        fixture({
+          "scripts/config-parity-allowlist.json": JSON.stringify({ allow: [] }),
+        }),
+        "game",
+      ],
+      [
+        "parse",
+        fixture({ "deploy.sh": "#!/bin/bash\necho no heredoc" }),
+        "game",
+      ],
+      ["dynamic", dynamicOnly(), "game"],
+      ["skip", fixture({ "Dockerfile.profile": null }), "profile"],
+    ];
+    for (const [label, root, pipeline] of cases) {
+      const result = run([
+        `--repo-root=${root}`,
+        `--pipeline=${pipeline}`,
+        "--enforce",
+      ]);
+      const footer = result.stdout.trim().split("\n").pop();
+      const expected =
+        label === "clean"
+          ? { status: 0, footer: PASSING }
+          : { status: 1, footer: FAILING };
+      expect({ label, status: result.status, footer }).toEqual({
+        label,
+        ...expected,
+      });
+    }
+  });
+});
+
 // ── Fail-loud parsing ─────────────────────────────────────────────────────────
 
 describe("parsers fail loud rather than comparing an empty set", () => {
@@ -550,6 +839,123 @@ describe("parsers fail loud rather than comparing an empty set", () => {
     expect(result.parseFailures.join("\n")).toContain(
       "indents 'PROFILE_SECRET='",
     );
+  });
+
+  // ── R12 (task 0203): every heredoc line the key parser does not consume fails loud ──
+  // Defined by INVERSION, not by another positive pattern: a body line is either a
+  // column-0 UPPERCASE= assignment (consumed), blank or a comment (ignorable), or
+  // anything else (unconsumed ⇒ PARSE-FAILURE). Both env-file consumers treat every
+  // other non-blank, non-comment line as an assignment, so dropping one is silent loss.
+  const profileHeredoc = (extra: string[]): string =>
+    [
+      "#!/bin/bash",
+      '( umask 077; cat > "$PROFILE_DIR/profile.env" << EOF',
+      "PROFILE_DB_URL=${PROFILE_DB_URL}",
+      "PROFILE_SECRET=${PROFILE_SECRET}",
+      "PROFILE_TUNING=${PROFILE_TUNING}",
+      ...extra,
+      "EOF",
+      ")",
+      'echo "tuning: $PROFILE_TUNING"',
+    ].join("\n");
+  const deployHeredoc = (extra: string[]): string =>
+    [
+      "#!/bin/bash",
+      "cat > ${ENV_FILE} << 'EOL'",
+      "GAME_TOKEN=${GAME_TOKEN}",
+      "ENVIRONMENT=${ENV}",
+      ...extra,
+      "EOL",
+    ].join("\n");
+
+  it("R12: an `export KEY=` profile.env line fails loud instead of silencing task 0195's B2 finding", () => {
+    // The ledger's reproduction: this exact fixture used to print REQUIRED 0 / INFO 0.
+    const root = fixture({
+      "setup-profile.sh": profileHeredoc(["export ORPHAN_KEY=${ORPHAN_KEY}"]),
+    });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=profile"]);
+    const failures = result.parseFailures.join("\n");
+    expect(failures).toContain("'ORPHAN_KEY='");
+    expect(failures).toContain("heredoc line 6");
+
+    // Control: the plain spelling is consumed, so the B2 finding prints as before.
+    const control = fixture({
+      "setup-profile.sh": profileHeredoc(["ORPHAN_KEY=${ORPHAN_KEY}"]),
+    });
+    const controlResult = runJson([
+      `--repo-root=${control}`,
+      "--pipeline=profile",
+    ]);
+    expect(controlResult.parseFailures).toEqual([]);
+    const orphan = controlResult.pipelines.profile.required.find(
+      (f) => f.name === "ORPHAN_KEY",
+    );
+    expect(orphan?.detail).toContain("lands EMPTY");
+  });
+
+  it("R12: an indented `export KEY=` deploy heredoc line fails loud", () => {
+    const root = fixture({
+      "deploy.sh": deployHeredoc(["  export GAME_HOST=${GAME_HOST}"]),
+    });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
+    expect(result.parseFailures.join("\n")).toContain("'GAME_HOST='");
+  });
+
+  it("R12: lowercase and mixed-case keys each fail loud, by name", () => {
+    const root = fixture({
+      "deploy.sh": deployHeredoc(["game_host=${GAME_HOST}", "Game_Host=x"]),
+    });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
+    const failures = result.parseFailures.join("\n");
+    expect(failures).toContain("heredoc line 5 'game_host='");
+    expect(failures).toContain("heredoc line 6 'Game_Host='");
+  });
+
+  it("R12: a bare `KEY` line (docker forwards it from the host) fails loud", () => {
+    const root = fixture({ "deploy.sh": deployHeredoc(["GAME_HOST"]) });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
+    expect(result.parseFailures.join("\n")).toContain("heredoc line 5");
+  });
+
+  it("R12: a vertical-tab-indented key fails loud", () => {
+    const root = fixture({
+      "deploy.sh": deployHeredoc(["\vGAME_HOST=${GAME_HOST}"]),
+    });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
+    expect(result.parseFailures.join("\n")).toContain("'GAME_HOST='");
+  });
+
+  it("R12: blank lines and comments in a heredoc body are NOT failures", () => {
+    // Pins the exemption: both env-file parsers ignore these, so failing on them would
+    // be a false hard PARSE-FAILURE once --enforce is armed.
+    const root = fixture({
+      "deploy.sh": deployHeredoc(["", "# note GAME_X=1", "   # indented note"]),
+    });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
+    expect(result.parseFailures).toEqual([]);
+  });
+
+  it("R12: the failure message never prints a heredoc line's value", () => {
+    // Per-run canaries in three positions: an assignment's value, a lowercase key's
+    // value, and a bare line made only of word characters (a naive "first identifier on
+    // the line" name extractor would print that one whole).
+    const hex = Math.random().toString(16).slice(2);
+    const canary = `canary${hex}x${Date.now()}`;
+    const root = fixture({
+      "setup-profile.sh": profileHeredoc([
+        `export ORPHAN_KEY=${canary}`,
+        `lower_key=${canary}`,
+        canary,
+      ]),
+    });
+    const text = run([`--repo-root=${root}`, "--pipeline=profile"]);
+    const json = run([`--repo-root=${root}`, "--pipeline=profile", "--json"]);
+    // Not vacuous: the failure really was reported.
+    expect(text.stdout).toContain("PARSE-FAILURE");
+    expect(text.stdout).toContain("'ORPHAN_KEY='");
+    expect(text.stdout).not.toContain(canary);
+    expect(json.stdout).not.toContain(canary);
+    expect(text.stderr + json.stderr).not.toContain(canary);
   });
 
   it("PARSE-FAILURE when the profile export block yields nothing", () => {
@@ -635,6 +1041,316 @@ describe("announces its own blind spots instead of printing a green check", () =
     expect(
       run([`--repo-root=${root}`, "--pipeline=game", "--enforce"]).status,
     ).toBe(1);
+  });
+});
+
+// ── R15 (task 0203) — comments and strings are not code ───────────────────────
+
+describe("R15 — the read scanner separates code from comments and strings", () => {
+  const serverFile = (body: string) =>
+    runJson([
+      `--repo-root=${fixture({ "src/server/Scan.ts": body })}`,
+      "--pipeline=game",
+    ]);
+  const TOKENIZER_FAILURE = "could not separate code from comments/strings";
+
+  it("prose in a line comment is not an aliased read (the ledger's reproduction)", () => {
+    const result = serverFile(
+      "export const x = 1;\n// legacy default = process.env, replaced in 2024\n",
+    );
+    expect(result.dynamicReads).toEqual([]);
+    expect(result.parseFailures).toEqual([]);
+  });
+
+  it("a read mentioned only in a comment does not count as a consumer", () => {
+    // The mirror case: a false read would suppress the real dead-config line for DEAD_ONE.
+    const result = serverFile("// process.env.DEAD_ONE\nexport const y = 1;\n");
+    expect(names(result.pipelines.game.info)).toEqual(["DEAD_ONE"]);
+  });
+
+  it("block comments and JSDoc record no read", () => {
+    const result = serverFile(
+      [
+        "/** Reads process.env.GHOST_JSDOC when set. */",
+        "/* const all = process.env; process.env.GHOST_BLOCK */",
+        "export const z = 1;",
+      ].join("\n"),
+    );
+    expect(result.dynamicReads).toEqual([]);
+    expect(names(result.pipelines.game.required)).toEqual([]);
+  });
+
+  it("string contents and template text record no read", () => {
+    const result = serverFile(
+      [
+        'const a = "x = process.env";',
+        "const b = 'process.env.GHOST_SINGLE';",
+        "const c = `process.env.GHOST_TEMPLATE_TEXT`;",
+        "export { a, b, c };",
+      ].join("\n"),
+    );
+    expect(result.dynamicReads).toEqual([]);
+    expect(names(result.pipelines.game.required)).toEqual([]);
+  });
+
+  it("a read inside a template substitution, nested or not, is still code", () => {
+    const result = serverFile(
+      [
+        "const t = `host ${process.env.GAME_TPL} end`;",
+        "const u = `a ${`b ${process.env.GAME_TPL_NESTED} c`} d`;",
+        "export { t, u };",
+      ].join("\n"),
+    );
+    expect(result.parseFailures).toEqual([]);
+    expect(names(result.pipelines.game.required)).toEqual([
+      "GAME_TPL",
+      "GAME_TPL_NESTED",
+    ]);
+  });
+
+  it("a regex containing quote characters does not derail the scan", () => {
+    const result = serverFile(
+      [
+        "const re = /[\"'`]/g;",
+        "const v = process.env.GAME_AFTER_REGEX;",
+        "export { re, v };",
+      ].join("\n"),
+    );
+    expect(result.parseFailures).toEqual([]);
+    expect(names(result.pipelines.game.required)).toEqual(["GAME_AFTER_REGEX"]);
+  });
+
+  it("division is not mistaken for a regex", () => {
+    const result = serverFile(
+      [
+        "const a = 4, arr = [2];",
+        'const h = a / 2; const k = "/";',
+        'const m = (a + 1) / arr[0] / 2; const q = "\'";',
+        "const w = process.env.GAME_AFTER_DIVISION;",
+        "export { h, k, m, q, w };",
+      ].join("\n"),
+    );
+    expect(result.parseFailures).toEqual([]);
+    expect(names(result.pipelines.game.required)).toEqual([
+      "GAME_AFTER_DIVISION",
+    ]);
+  });
+
+  it("a `/` after postfix `++`/`--` or a TypeScript non-null `!` is division — no read is lost", () => {
+    // Review 0203 R1: these used to open a "regex" running to the next `/` on the line,
+    // blanking the read in between with no PARSE-FAILURE — a silent loss.
+    const result = serverFile(
+      [
+        "declare const t: number | null; declare function f(): number | null;",
+        "let n = 1;",
+        "const a = n++ / Number(process.env.GAME_POSTINC) / 3;",
+        "const b = n-- / Number(process.env.GAME_POSTDEC) / 3;",
+        "const c = t! / Number(process.env.GAME_NONNULL) / 4;",
+        "const d = f()! / Number(process.env.GAME_NONNULL_CALL) / 4;",
+        "export { a, b, c, d };",
+      ].join("\n"),
+    );
+    expect(result.parseFailures).toEqual([]);
+    expect(names(result.pipelines.game.required)).toEqual([
+      "GAME_NONNULL",
+      "GAME_NONNULL_CALL",
+      "GAME_POSTDEC",
+      "GAME_POSTINC",
+    ]);
+  });
+
+  it("a logical-not `!` before a real regex still starts a regex", () => {
+    // The guard for the fix above: only a `!` written directly after a value is a
+    // non-null assertion. A `!` after whitespace — here a line break, where TypeScript
+    // never reads a non-null assertion — is logical-not, so the regex after it (one
+    // containing `//`) must not be read as division plus a line comment.
+    const result = serverFile(
+      [
+        "declare const u: string; declare const x: boolean;",
+        "const p = x && !/[\"']/.test(u) && process.env.GAME_AFTER_NOT;",
+        "const y = u",
+        "!/\\/\\//.test(u) && console.log(process.env.GAME_AFTER_NEWLINE_NOT);",
+        "export { p, y };",
+      ].join("\n"),
+    );
+    expect(result.parseFailures).toEqual([]);
+    expect(names(result.pipelines.game.required)).toEqual([
+      "GAME_AFTER_NEWLINE_NOT",
+      "GAME_AFTER_NOT",
+    ]);
+  });
+
+  it("a regex right after the `)` of an if/while/for head is a regex — no read is lost", () => {
+    // Review 0203 R1, reverse case: that `)` ends a statement head, not a value, but was
+    // read as a value, so the regex became division and its `//` a line comment that
+    // blanked the read after it — silently.
+    const result = serverFile(
+      [
+        "declare const u: string; declare const x: boolean; declare const s: string[];",
+        "if (x) /^https?:\\/\\//.test(u) && console.log(process.env.GAME_AFTER_IF);",
+        "while (x) /\\/\\//.test(u) && console.log(process.env.GAME_AFTER_WHILE);",
+        "for (const c of s) /\\/\\//.test(c) && console.log(process.env.GAME_AFTER_FOR);",
+        "async function g() { for await (const c of s) /\\/\\//.test(c) && console.log(process.env.GAME_AFTER_FOR_AWAIT); }",
+        "if (x) !/\\/\\//.test(u) && console.log(process.env.GAME_AFTER_IF_NOT);",
+        "if (x)!/\\/\\//.test(u) && console.log(process.env.GAME_AFTER_IF_UNSPACED_NOT);",
+        "export { g };",
+      ].join("\n"),
+    );
+    expect(result.parseFailures).toEqual([]);
+    expect(names(result.pipelines.game.required)).toEqual([
+      "GAME_AFTER_FOR",
+      "GAME_AFTER_FOR_AWAIT",
+      "GAME_AFTER_IF",
+      "GAME_AFTER_IF_NOT",
+      "GAME_AFTER_IF_UNSPACED_NOT",
+      "GAME_AFTER_WHILE",
+    ]);
+  });
+
+  it("any other `)` — a call, a group, a call inside an if head, a member named if — still ends a value", () => {
+    // The guard for the fix above: only the `)` that closes the head itself is special,
+    // and a member named like a keyword (`obj.if(…)`) opens no head.
+    const result = serverFile(
+      [
+        "declare function f(n: number): number; declare const a: number;",
+        "const r = f(a) / Number(process.env.GAME_CALL_DIVISION) / 2;",
+        "const q = (a + 1) / Number(process.env.GAME_GROUP_DIVISION) / 2;",
+        "if (f(a) / Number(process.env.GAME_IN_HEAD_DIVISION) / 2) {}",
+        "declare const obj: { if(n: number): number };",
+        "const m = obj.if(a) / Number(process.env.GAME_MEMBER_IF_DIVISION) / 2;",
+        "export { r, q, m };",
+      ].join("\n"),
+    );
+    expect(result.parseFailures).toEqual([]);
+    expect(names(result.pipelines.game.required)).toEqual([
+      "GAME_CALL_DIVISION",
+      "GAME_GROUP_DIVISION",
+      "GAME_IN_HEAD_DIVISION",
+      "GAME_MEMBER_IF_DIVISION",
+    ]);
+  });
+
+  it("text it cannot separate is a PARSE-FAILURE, and the file is still scanned raw", () => {
+    const result = serverFile(
+      "const v = process.env.GAME_UNTERMINATED;\nexport { v };\n/* never closed\n",
+    );
+    const failures = result.parseFailures.join("\n");
+    expect(failures).toContain(TOKENIZER_FAILURE);
+    expect(failures).toContain("Scan.ts");
+    // The fallback: a DETECTED tokenizer failure never loses a read. An undetected
+    // regex/division misread still can — see REGEX_AFTER_PUNCTUATOR in the checker.
+    expect(names(result.pipelines.game.required)).toEqual([
+      "GAME_UNTERMINATED",
+    ]);
+  });
+
+  it("a literal bracket read is enumerated, but a bracket inside a string is not", () => {
+    const result = serverFile(
+      [
+        'const v = process.env[ "GAME_BRACKET" ];',
+        "const s = 'process.env[key]';",
+        "export { v, s };",
+      ].join("\n"),
+    );
+    expect(result.dynamicReads).toEqual([]);
+    expect(names(result.pipelines.game.required)).toEqual(["GAME_BRACKET"]);
+  });
+});
+
+// ── R18 (task 0203) — DefinePlugin keys come from the DefinePlugin block only ──
+
+describe("R18 — DefinePlugin keys are read from the DefinePlugin object literal, not the file's text", () => {
+  const clientRun = (webpack: string[], extra: Record<string, string> = {}) =>
+    runJson([
+      `--repo-root=${fixture({ "webpack.config.js": webpack.join("\n"), ...extra })}`,
+      "--pipeline=client",
+    ]);
+
+  it("a commented-out key, inside or outside the block, is not a substitution (the ledger's reproduction)", () => {
+    const result = clientRun([
+      '// legacy: "process.env.OLD_FAKE_KEY": JSON.stringify(x),',
+      "new webpack.DefinePlugin({",
+      '  // legacy: "process.env.OLD_FAKE_KEY_INSIDE": JSON.stringify(x),',
+      '  "process.env.CLIENT_MODE": JSON.stringify("dev"),',
+      "});",
+    ]);
+    expect(result.parseFailures).toEqual([]);
+    expect(names(result.pipelines.client.info)).toEqual([]);
+  });
+
+  it("a commented-out entry does not count as supplying a key the browser reads", () => {
+    // The mirror case, and the worse one: it would hide a genuinely missing substitution.
+    const result = clientRun([
+      "new webpack.DefinePlugin({",
+      '  // "process.env.CLIENT_MODE": JSON.stringify("dev"),',
+      '  "process.env.CLIENT_OTHER": JSON.stringify("x"),',
+      "});",
+    ]);
+    expect(names(result.pipelines.client.required)).toEqual(["CLIENT_MODE"]);
+  });
+
+  it("the key inside a string elsewhere in the file is not a substitution", () => {
+    const result = clientRun([
+      "const note = '\"process.env.CLIENT_MODE\": JSON.stringify(x)';",
+      "new webpack.DefinePlugin({",
+      '  "process.env.CLIENT_OTHER": JSON.stringify("x"),',
+      "});",
+    ]);
+    expect(names(result.pipelines.client.required)).toEqual(["CLIENT_MODE"]);
+  });
+
+  it("the key in a different object literal is not a substitution", () => {
+    const result = clientRun([
+      'const unrelated = { "process.env.CLIENT_MODE": JSON.stringify("dev") };',
+      "new webpack.DefinePlugin({",
+      '  "process.env.CLIENT_OTHER": JSON.stringify("x"),',
+      "});",
+    ]);
+    expect(names(result.pipelines.client.required)).toEqual(["CLIENT_MODE"]);
+  });
+
+  it("single- and double-quoted keys are substitutions", () => {
+    // No backtick case: a template literal cannot be an object key (a SyntaxError), so
+    // webpack could never load such a config (review 0203 R3).
+    const result = clientRun(
+      [
+        "new webpack.DefinePlugin({",
+        "  'process.env.CLIENT_MODE': JSON.stringify(\"dev\"),",
+        '  "process.env.CLIENT_TWO": JSON.stringify("two"),',
+        "  nested: { deep: [1, 2] },",
+        "});",
+      ],
+      {
+        "src/client/Two.ts":
+          "const two = process.env.CLIENT_TWO;\nexport { two };",
+      },
+    );
+    expect(result.parseFailures).toEqual([]);
+    expect(names(result.pipelines.client.required)).toEqual([]);
+    expect(names(result.pipelines.client.info)).toEqual([]);
+  });
+
+  it("a computed key, a spread, or a non-literal argument cannot be enumerated — PARSE-FAILURE", () => {
+    for (const body of [
+      [
+        "new webpack.DefinePlugin({",
+        '  "process.env.CLIENT_MODE": JSON.stringify("dev"),',
+        '  [computed]: JSON.stringify("x"),',
+        "});",
+      ],
+      [
+        "new webpack.DefinePlugin({",
+        '  "process.env.CLIENT_MODE": JSON.stringify("dev"),',
+        "  ...extraDefinitions,",
+        "});",
+      ],
+      ["new webpack.DefinePlugin(definitions);"],
+    ]) {
+      const result = clientRun(body);
+      const failures = result.parseFailures.join("\n");
+      expect(failures).toContain("DefinePlugin");
+      expect(failures).toContain("cannot enumerate");
+    }
   });
 });
 
@@ -815,6 +1531,7 @@ describe("real tree", () => {
         "build-time",
         "optional",
         "dead-config",
+        "server-only",
       ]).toContain(entry.class);
     }
     expect(parsed.allow.length).toBeGreaterThan(0);
@@ -852,35 +1569,16 @@ describe("real tree", () => {
     );
   });
 
-  it("prints the R1 caveat inside the client section, and nowhere else", () => {
-    // Both deploy call sites now run --pipeline=all (review 0064 R3), so every deploy
-    // prints `client REQUIRED 0` — a green line for a forward check R1 proves
-    // incomplete. Owner ruling 2026-09-02 (finding R14): the caveat must be in the
-    // OUTPUT, not only in a source comment and the review ledger.
-    const all = run(["--pipeline=all", "--report-only"]);
-    expect(all.status).toBe(0);
-    const lines = all.stdout.split("\n");
-    const caveatLines = lines.filter((l) => l.startsWith("CAVEAT"));
-    expect(caveatLines).toHaveLength(1);
-
-    const caveat = caveatLines[0];
-    expect(caveat).toContain("INCOMPLETE");
-    expect(caveat).toContain("src/core/configuration/**");
-    expect(caveat).toContain("DefinePlugin");
-
-    // It sits inside the client section: after `pipeline: client`, before its INFO line.
-    const caveatAt = lines.indexOf(caveat);
-    const clientAt = lines.indexOf("pipeline: client");
-    expect(clientAt).toBeGreaterThan(-1);
-    expect(caveatAt).toBeGreaterThan(clientAt);
-    expect(lines[caveatAt + 1]).toMatch(/^INFO {6}\d/);
-
-    // The game and profile sections must not gain a line — they are byte-pinned.
-    expect(run(["--pipeline=game", "--report-only"]).stdout).not.toContain(
-      "CAVEAT",
-    );
-    expect(run(["--pipeline=profile", "--report-only"]).stdout).not.toContain(
-      "CAVEAT",
-    );
+  it("prints no CAVEAT line in any pipeline's output now that R1 is fixed", () => {
+    // Owner ruling 2026-09-02 (R14) printed a caveat under the client section while R1
+    // was open. R1 is fixed (task 0203), and a caveat that outlives its gap is its own
+    // false claim — so it must be gone from every pipeline's output.
+    for (const pipeline of ["all", "game", "profile", "client"]) {
+      const result = run([`--pipeline=${pipeline}`, "--report-only"]);
+      expect(result.status).toBe(0);
+      // Not vacuous: the section really was rendered.
+      expect(result.stdout).toContain("REQUIRED  0");
+      expect(result.stdout).not.toContain("CAVEAT");
+    }
   });
 });

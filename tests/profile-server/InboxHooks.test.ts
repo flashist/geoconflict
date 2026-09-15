@@ -54,11 +54,13 @@ function freshGrantClient(): MockClient {
   });
 }
 
+const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
+
 function grantInput() {
   return {
     purchaseToken: "tok-1",
     productId: "citizenship",
-    yandexPlayerId: "yandex-1",
+    playerId: PLAYER_ID,
     intentId: "11111111-1111-1111-1111-111111111111",
     rawPayload: "{}",
   };
@@ -70,6 +72,9 @@ function paymentsClient(fresh: boolean): MockClient {
     query: jest.fn().mockImplementation(async (sql: string) => {
       if (sql.includes("INSERT INTO processed_purchases") && fresh) {
         return { rows: [{ purchase_token: "tok-1" }] };
+      }
+      if (sql.includes("is_paid_citizen = true")) {
+        return { rows: [], rowCount: 1 };
       }
       return { rows: [] };
     }),
@@ -90,12 +95,12 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       inboxWith(sendTemplate),
     );
 
-    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", PLAYER_ID, 1)).resolves.toEqual({
       status: "credited",
       citizenshipNewlyGranted: true,
     });
     expect(sendTemplate).toHaveBeenCalledTimes(1);
-    expect(sendTemplate).toHaveBeenCalledWith("yandex-1", "citizenship_earned");
+    expect(sendTemplate).toHaveBeenCalledWith(PLAYER_ID, "citizenship_earned");
     // Post-commit: COMMIT was issued before the send.
     const statements = client.query.mock.calls.map((call) => String(call[0]));
     expect(statements).toContain("COMMIT");
@@ -110,7 +115,7 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       makePool(freshGrantClient()),
       inboxWith(sendTemplate),
     );
-    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", PLAYER_ID, 1)).resolves.toEqual({
       status: "credited",
       citizenshipNewlyGranted: true,
     });
@@ -127,7 +132,7 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       makePool(freshGrantClient()),
       inboxWith(sendTemplate),
     );
-    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", PLAYER_ID, 1)).resolves.toEqual({
       status: "credited",
       citizenshipNewlyGranted: true,
     });
@@ -147,7 +152,7 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       ),
       inboxWith(sendTemplate),
     );
-    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", PLAYER_ID, 1)).resolves.toEqual({
       status: "duplicate",
       citizenshipNewlyGranted: false,
     });
@@ -167,7 +172,7 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       ),
       inboxWith(sendTemplate),
     );
-    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", PLAYER_ID, 1)).resolves.toEqual({
       status: "credited",
       citizenshipNewlyGranted: false,
     });
@@ -187,13 +192,13 @@ describe("PlayerProfileRepository.afterCitizenshipEarned", () => {
       ),
       inboxWith(sendTemplate),
     );
-    await repo.creditMatchXp("g1", "yandex-1", 1);
+    await repo.creditMatchXp("g1", PLAYER_ID, 1);
     expect(sendTemplate).not.toHaveBeenCalled();
   });
 
   test("without an inbox the grant still resolves credited", async () => {
     const repo = new PlayerProfileRepository(makePool(freshGrantClient()));
-    await expect(repo.creditMatchXp("g1", "yandex-1", 1)).resolves.toEqual({
+    await expect(repo.creditMatchXp("g1", PLAYER_ID, 1)).resolves.toEqual({
       status: "credited",
       citizenshipNewlyGranted: true,
     });
@@ -210,7 +215,7 @@ describe("PaymentsRepository.afterPaidPurchaseGranted", () => {
     );
     await expect(repo.grantPaidPurchase(grantInput())).resolves.toBe("granted");
     expect(sendTemplate).toHaveBeenCalledTimes(1);
-    expect(sendTemplate).toHaveBeenCalledWith("yandex-1", "citizenship_paid");
+    expect(sendTemplate).toHaveBeenCalledWith(PLAYER_ID, "citizenship_paid");
     const statements = client.query.mock.calls.map((call) => String(call[0]));
     expect(sendTemplate.mock.invocationCallOrder[0]).toBeGreaterThan(
       client.query.mock.invocationCallOrder[statements.indexOf("COMMIT")],

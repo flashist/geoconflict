@@ -6,11 +6,7 @@
 
 import { Pool } from "pg";
 import { CITIZENSHIP_XP_THRESHOLD } from "../core/profile/Citizenship";
-import {
-  CURRENT_PROFILE_SCHEMA_VERSION,
-  PlayerProfile,
-  migrateProfile,
-} from "../core/profile/PlayerProfile";
+import { PlayerProfile, migrateProfile } from "../core/profile/PlayerProfile";
 import { logInboxSendFailure, type InboxSender } from "./InboxRepository";
 
 /** Outcome of crediting a single match for one player. */
@@ -26,16 +22,10 @@ export interface CreditOutcome {
   citizenshipNewlyGranted: boolean;
 }
 
-// Postgres `foreign_key_violation` — a credit referencing a yandex_player_id with
-// no player_profiles row. Means "create the profile first" (T6 orders upsert
-// before credit), so we report it rather than failing the whole batch.
+// Postgres `foreign_key_violation` — a credit referencing a player_id with no
+// players row. The credit route only passes ids it just resolved, so this is the
+// "player erased in between" edge; reported rather than failing the whole batch.
 const PG_FOREIGN_KEY_VIOLATION = "23503";
-
-// Postgres `unique_violation` — here, a `persistent_id` already linked to a
-// DIFFERENT yandex_player_id (the column is UNIQUE). `persistentId` is
-// browser/device-scoped and `yandexPlayerId` is account-scoped, so one device
-// presenting under a second account (account switch / shared browser) collides.
-const PG_UNIQUE_VIOLATION = "23505";
 
 function isPgError(error: unknown, code: string): boolean {
   return (
@@ -45,33 +35,10 @@ function isPgError(error: unknown, code: string): boolean {
   );
 }
 
-/**
- * Thrown by `upsertProfile` when the requested `persistentId` already belongs to a
- * different Yandex account. The route maps this to HTTP 409 (a meaningful signal)
- * instead of an opaque 500. The actual device↔account relink POLICY (transfer vs
- * reject) is a T6 / identity-model decision; T5 only surfaces the conflict cleanly.
- */
-export class PersistentIdConflictError extends Error {
-  constructor(
-    readonly yandexPlayerId: string,
-    readonly persistentId: string,
-  ) {
-    // The raw persistentId is deliberately kept OUT of the message (and thus the
-    // stack), so it never reaches the logs — it's the internal cross-device token
-    // the API also strips. yandexPlayerId stays in for traceability (it's already a
-    // public identifier). persistentId remains a field for programmatic use.
-    super(
-      `persistent_id is already linked to another yandex account ` +
-        `(upsert for "${yandexPlayerId}")`,
-    );
-    this.name = "PersistentIdConflictError";
-  }
-}
-
 // Insert the ledger row idempotently and increment xp in ONE statement. The row
 // lock the UPDATE takes is held to COMMIT, so everything read back here (and the
 // grant decision built on it) is race-free. `inserted` is 1 on a fresh credit, 0
-// when the (game_id, yandex_player_id) row already existed (idempotent no-op —
+// when the (game_id, player_id) row already existed (idempotent no-op —
 // the UPDATE is gated on EXISTS(ins) too). RETURNING carries the post-increment
 // xp plus the citizenship fields this statement does NOT touch — i.e. their
 // locked PRE-grant values — which is what makes "newly granted" detectable
@@ -79,16 +46,16 @@ export class PersistentIdConflictError extends Error {
 // credit's EvalPlanQual recheck).
 const CREDIT_SQL = `
 WITH ins AS (
-  INSERT INTO player_match_xp_credits (game_id, yandex_player_id, xp_awarded)
+  INSERT INTO player_match_xp_credits (game_id, player_id, xp_awarded)
   VALUES ($1, $2, $3)
-  ON CONFLICT (game_id, yandex_player_id) DO NOTHING
+  ON CONFLICT (game_id, player_id) DO NOTHING
   RETURNING xp_awarded
 ),
 upd AS (
-  UPDATE player_profiles p
+  UPDATE players p
   SET xp = p.xp + (SELECT xp_awarded FROM ins),
       updated_at = now()
-  WHERE p.yandex_player_id = $2
+  WHERE p.id = $2
     AND EXISTS (SELECT 1 FROM ins)
   RETURNING p.xp, p.is_citizen, p.citizenship_earned_at
 )
@@ -108,28 +75,13 @@ SELECT
 // and the caller reports citizenshipNewlyGranted only when is_citizen was false.
 // The WHERE re-checks xp/state defensively even though the lock makes it stable.
 const GRANT_CITIZENSHIP_SQL = `
-UPDATE player_profiles
+UPDATE players
 SET is_citizen = true,
     citizenship_earned_at = coalesce(citizenship_earned_at, now()),
     updated_at = now()
-WHERE yandex_player_id = $1
+WHERE id = $1
   AND xp >= $2
   AND (is_citizen = false OR citizenship_earned_at IS NULL)
-`;
-
-// Create on first authenticated join; on conflict, relink persistent_id only when
-// it actually changed. The schema_version guard is the forward-version writeback
-// protection: a stale build (lower CURRENT) never overwrites a row a newer build
-// wrote with a higher schema_version (the WHERE fails → DO UPDATE is skipped). It
-// never touches xp, citizenship, or paid flags.
-const UPSERT_SQL = `
-INSERT INTO player_profiles (yandex_player_id, persistent_id, created_at, updated_at)
-VALUES ($1, $2, now(), now())
-ON CONFLICT (yandex_player_id) DO UPDATE
-  SET persistent_id = EXCLUDED.persistent_id, updated_at = now()
-  WHERE player_profiles.persistent_id IS DISTINCT FROM EXCLUDED.persistent_id
-    AND player_profiles.schema_version <= $3
-RETURNING *
 `;
 
 function toIsoOrNull(value: Date | null): string | null {
@@ -137,17 +89,16 @@ function toIsoOrNull(value: Date | null): string | null {
 }
 
 /**
- * Map a raw `player_profiles` row to the shared `PlayerProfile` contract.
+ * Map a raw `players` row to the shared `PlayerProfile` contract.
  * Coerces bigint (string from pg) → number and timestamptz (Date) → ISO string,
- * drops the `extra` overflow column, and runs `migrateProfile` so a row written by
+ * drops the `extra` overflow column and the internal `id` / `last_login_at` (never
+ * part of the contract — the id must not reach a client), and runs `migrateProfile` so a row written by
  * a NEWER build (higher schema_version) normalizes instead of throwing (which a
  * strict `PlayerProfileSchema.parse` on `z.literal` would do → a 500 on read).
  */
 export function rowToProfile(row: Record<string, unknown>): PlayerProfile {
   return migrateProfile({
     schema_version: row.schema_version,
-    yandex_player_id: row.yandex_player_id,
-    persistent_id: row.persistent_id,
     xp: Number(row.xp),
     is_citizen: row.is_citizen,
     is_paid_citizen: row.is_paid_citizen,
@@ -179,64 +130,23 @@ export class PlayerProfileRepository {
   }
 
   /**
-   * Create a profile (xp 0) on first authenticated join; relink persistent_id if
-   * it changed. Never writes xp/citizenship/paid fields. Returns the live row.
-   */
-  async upsertProfile(
-    yandexPlayerId: string,
-    persistentId: string,
-  ): Promise<PlayerProfile> {
-    let res;
-    try {
-      res = await this.pool.query(UPSERT_SQL, [
-        yandexPlayerId,
-        persistentId,
-        CURRENT_PROFILE_SCHEMA_VERSION,
-      ]);
-    } catch (error) {
-      // The persistent_id UNIQUE index rejected a cross-account collision (the
-      // INSERT path, or the relink DO UPDATE). Surface a typed conflict so the
-      // route returns 409 instead of an opaque 500. Both the fresh-insert and the
-      // relink collide on the same index, so one check covers both.
-      if (isPgError(error, PG_UNIQUE_VIOLATION)) {
-        throw new PersistentIdConflictError(yandexPlayerId, persistentId);
-      }
-      throw error;
-    }
-    if (res.rows.length > 0) {
-      return rowToProfile(res.rows[0]);
-    }
-    // DO UPDATE was skipped (unchanged persistent_id, or a newer-version row): the
-    // row exists but RETURNING yielded nothing, so read it back.
-    const existing = await this.getProfile(yandexPlayerId);
-    if (existing) {
-      return existing;
-    }
-    throw new Error(`upsertProfile: row vanished for ${yandexPlayerId}`);
-  }
-
-  /**
    * Credit a match's XP atomically and idempotently, granting earned citizenship
    * in the same transaction when the new total crosses the threshold (task 0017).
-   * Re-crediting the same (gameId, yandexPlayerId) is a no-op ("duplicate"). A
-   * credit for a player with no profile row yet is reported ("no_profile"), not
+   * Re-crediting the same (gameId, playerId) is a no-op ("duplicate"). A
+   * credit for a player with no players row is reported ("no_profile"), not
    * thrown. `citizenshipNewlyGranted` is true only when THIS credit flipped
    * `is_citizen` false→true.
    */
   async creditMatchXp(
     gameId: string,
-    yandexPlayerId: string,
+    playerId: string,
     xpAwarded: number,
   ): Promise<CreditOutcome> {
     const client = await this.pool.connect();
     let outcome: CreditOutcome;
     try {
       await client.query("BEGIN");
-      const res = await client.query(CREDIT_SQL, [
-        gameId,
-        yandexPlayerId,
-        xpAwarded,
-      ]);
+      const res = await client.query(CREDIT_SQL, [gameId, playerId, xpAwarded]);
       const inserted = Number(res.rows[0].inserted) > 0;
       let citizenshipNewlyGranted = false;
       if (inserted) {
@@ -250,7 +160,7 @@ export class PlayerProfileRepository {
           (!wasCitizen || earnedAt === null)
         ) {
           await client.query(GRANT_CITIZENSHIP_SQL, [
-            yandexPlayerId,
+            playerId,
             CITIZENSHIP_XP_THRESHOLD,
           ]);
           citizenshipNewlyGranted = !wasCitizen;
@@ -282,7 +192,7 @@ export class PlayerProfileRepository {
       // owner-ruled 2026-08-24): the hook never throws by contract, and this
       // call site is guarded too (belt and suspenders).
       try {
-        this.afterCitizenshipEarned(yandexPlayerId);
+        this.afterCitizenshipEarned(playerId);
       } catch (error) {
         logInboxSendFailure("citizenship_earned", error);
       }
@@ -300,13 +210,13 @@ export class PlayerProfileRepository {
    * either way. Only ever reached for a false→true flip (never for a paid
    * citizen crossing the threshold, never for duplicates).
    */
-  private afterCitizenshipEarned(yandexPlayerId: string): void {
+  private afterCitizenshipEarned(playerId: string): void {
     if (this.inbox === undefined) {
       return;
     }
     try {
       void this.inbox
-        .sendTemplate(yandexPlayerId, "citizenship_earned")
+        .sendTemplate(playerId, "citizenship_earned")
         .catch((error: unknown) =>
           logInboxSendFailure("citizenship_earned", error),
         );
@@ -315,12 +225,11 @@ export class PlayerProfileRepository {
     }
   }
 
-  /** Read a profile by Yandex player ID, or null if none exists. */
-  async getProfile(yandexPlayerId: string): Promise<PlayerProfile | null> {
-    const res = await this.pool.query(
-      "SELECT * FROM player_profiles WHERE yandex_player_id = $1",
-      [yandexPlayerId],
-    );
+  /** Read a profile by internal player id, or null if none exists. */
+  async getProfile(playerId: string): Promise<PlayerProfile | null> {
+    const res = await this.pool.query("SELECT * FROM players WHERE id = $1", [
+      playerId,
+    ]);
     if (res.rows.length === 0) {
       return null;
     }

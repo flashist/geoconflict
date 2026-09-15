@@ -23,7 +23,7 @@ const log = logger.child({ comp: "inbox" });
  */
 export interface InboxSender {
   sendTemplate(
-    yandexPlayerId: string,
+    playerId: string,
     templateKey: InboxTemplateKey,
     params?: InboxTemplateParams,
   ): Promise<void>;
@@ -31,7 +31,8 @@ export interface InboxSender {
 
 /** A send is EITHER a template OR literal title+body (chk_message_content). */
 export interface SendMessageInput {
-  yandexPlayerId: string;
+  /** The internal player id (task 0270) — never a platform id. */
+  playerId: string;
   templateKey?: InboxTemplateKey;
   templateParams?: InboxTemplateParams;
   title?: string;
@@ -50,8 +51,8 @@ export type MarkReadOutcome =
   | { status: "not_citizen" }
   | { status: "ok"; updated: number };
 
-// Postgres `foreign_key_violation` — a send for a yandex_player_id with no
-// player_profiles row. Reported as `no_profile`, not thrown (same pattern as
+// Postgres `foreign_key_violation` — a send for a player_id with no players
+// row. Reported as `no_profile`, not thrown (same pattern as
 // creditMatchXp).
 const PG_FOREIGN_KEY_VIOLATION = "23503";
 
@@ -61,36 +62,36 @@ const LIST_LIMIT = 500;
 
 const INSERT_SQL = `
 INSERT INTO player_messages
-  (yandex_player_id, template_key, template_params, title, body)
+  (player_id, template_key, template_params, title, body)
 VALUES ($1, $2, $3::jsonb, $4, $5)
 RETURNING id
 `;
 
 const CITIZEN_SQL = `
-SELECT is_citizen FROM player_profiles WHERE yandex_player_id = $1
+SELECT is_citizen FROM players WHERE id = $1
 `;
 
 const LIST_SQL = `
 SELECT id, template_key, template_params, title, body, sent_at, read_at
 FROM player_messages
-WHERE yandex_player_id = $1
+WHERE player_id = $1
 ORDER BY sent_at DESC, id DESC
 LIMIT ${LIST_LIMIT}
 `;
 
-// Scoped to the caller's OWN yandex_player_id so one player can never mark
+// Scoped to the caller's OWN player_id so one player can never mark
 // another's messages; `read_at IS NULL` keeps it idempotent (a re-run touches
 // nothing and never rewrites the first read timestamp).
 const MARK_ALL_READ_SQL = `
 UPDATE player_messages
 SET read_at = now()
-WHERE yandex_player_id = $1 AND read_at IS NULL
+WHERE player_id = $1 AND read_at IS NULL
 `;
 
 const MARK_IDS_READ_SQL = `
 UPDATE player_messages
 SET read_at = now()
-WHERE yandex_player_id = $1 AND read_at IS NULL AND id = ANY($2::bigint[])
+WHERE player_id = $1 AND read_at IS NULL AND id = ANY($2::bigint[])
 `;
 
 function isPgError(error: unknown, code: string): boolean {
@@ -147,7 +148,7 @@ export class InboxRepository implements InboxSender {
   async sendMessage(input: SendMessageInput): Promise<SendOutcome> {
     try {
       const res = await this.pool.query(INSERT_SQL, [
-        input.yandexPlayerId,
+        input.playerId,
         input.templateKey ?? null,
         JSON.stringify(input.templateParams ?? {}),
         input.title ?? null,
@@ -169,19 +170,18 @@ export class InboxRepository implements InboxSender {
    * DB failures still reject — the seams contain that (they never throw).
    */
   async sendTemplate(
-    yandexPlayerId: string,
+    playerId: string,
     templateKey: InboxTemplateKey,
     params: InboxTemplateParams = {},
   ): Promise<void> {
     const outcome = await this.sendMessage({
-      yandexPlayerId,
+      playerId,
       templateKey,
       templateParams: params,
     });
     if (outcome.status === "no_profile") {
-      log.warn(
-        `inbox send "${templateKey}" skipped: no profile for yandex_player_id=${yandexPlayerId}`,
-      );
+      // No id in the line — neither the player id nor a platform id is logged.
+      log.warn(`inbox send "${templateKey}" skipped: no profile for recipient`);
     }
   }
 
@@ -189,11 +189,11 @@ export class InboxRepository implements InboxSender {
    * A citizen's messages, newest first. Non-citizens AND missing profiles get
    * `not_citizen` — the server-side gate the brief requires on every call.
    */
-  async listMessages(yandexPlayerId: string): Promise<ListOutcome> {
-    if (!(await this.isCitizen(yandexPlayerId))) {
+  async listMessages(playerId: string): Promise<ListOutcome> {
+    if (!(await this.isCitizen(playerId))) {
       return { status: "not_citizen" };
     }
-    const res = await this.pool.query(LIST_SQL, [yandexPlayerId]);
+    const res = await this.pool.query(LIST_SQL, [playerId]);
     return { status: "ok", messages: res.rows.map(rowToMessage) };
   }
 
@@ -202,21 +202,21 @@ export class InboxRepository implements InboxSender {
    * only those still unread. Idempotent. Same citizen gate as the read.
    */
   async markRead(
-    yandexPlayerId: string,
+    playerId: string,
     ids?: readonly number[],
   ): Promise<MarkReadOutcome> {
-    if (!(await this.isCitizen(yandexPlayerId))) {
+    if (!(await this.isCitizen(playerId))) {
       return { status: "not_citizen" };
     }
     const res =
       ids === undefined
-        ? await this.pool.query(MARK_ALL_READ_SQL, [yandexPlayerId])
-        : await this.pool.query(MARK_IDS_READ_SQL, [yandexPlayerId, ids]);
+        ? await this.pool.query(MARK_ALL_READ_SQL, [playerId])
+        : await this.pool.query(MARK_IDS_READ_SQL, [playerId, ids]);
     return { status: "ok", updated: res.rowCount ?? 0 };
   }
 
-  private async isCitizen(yandexPlayerId: string): Promise<boolean> {
-    const res = await this.pool.query(CITIZEN_SQL, [yandexPlayerId]);
+  private async isCitizen(playerId: string): Promise<boolean> {
+    const res = await this.pool.query(CITIZEN_SQL, [playerId]);
     return res.rows.length > 0 && Boolean(res.rows[0].is_citizen);
   }
 }

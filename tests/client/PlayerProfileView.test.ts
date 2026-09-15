@@ -43,7 +43,6 @@ const YANDEX_NAME = "Игрок_7734";
 function publicProfile(overrides: Record<string, unknown> = {}) {
   return {
     schema_version: 1,
-    yandex_player_id: "yandex-123",
     xp: 250,
     is_citizen: false,
     citizenship_earned_at: null,
@@ -168,10 +167,7 @@ describe("loadPlayerProfileView", () => {
 
   it("degrades to the zero-state when name_change is malformed", async () => {
     isYandexAuthorized.mockResolvedValue(true);
-    stubFetch(
-      200,
-      publicProfile({ name_change: { status: "not-a-status" } }),
-    );
+    stubFetch(200, publicProfile({ name_change: { status: "not-a-status" } }));
 
     await expect(loadPlayerProfileView()).resolves.toEqual(ZERO_STATE);
   });
@@ -347,7 +343,6 @@ describe("Citizenship:Earned:XP transition detection", () => {
     stubFetch(
       200,
       publicProfile({
-        yandex_player_id: "yandex-456",
         is_citizen: true,
         citizenship_earned_at: EARNED_AT,
       }),

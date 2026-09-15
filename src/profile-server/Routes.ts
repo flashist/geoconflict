@@ -53,35 +53,44 @@ import type {
   PurchaseIntent,
 } from "./PaymentsRepository";
 import {
-  PersistentIdConflictError,
-  type CreditOutcome,
-} from "./PlayerProfileRepository";
+  PLATFORM_YANDEX_GAMES,
+  type Platform,
+  type ResolveSource,
+  type ResolvedPlayer,
+} from "./PlayerIdentityRepository";
+import type { CreditOutcome } from "./PlayerProfileRepository";
 import { verifySignedPayload, type VerifiedPurchase } from "./YandexSignature";
 
 const log = logger.child({ comp: "routes" });
 
-/** The repository surface the routes depend on (structural — eases mocking). */
+/**
+ * The repository surface the routes depend on (structural — eases mocking).
+ * Server.ts binds it over PlayerProfileRepository + PlayerIdentityRepository.
+ * Everything is keyed by the INTERNAL player id (task 0270, ADR-113) except the
+ * two identity lookups, which are the only way in from a platform id.
+ */
 export interface ProfileRepo {
   ping(): Promise<void>;
-  getProfile(yandexPlayerId: string): Promise<PlayerProfile | null>;
-  upsertProfile(
-    yandexPlayerId: string,
-    persistentId: string,
-  ): Promise<PlayerProfile>;
+  getProfile(playerId: string): Promise<PlayerProfile | null>;
   creditMatchXp(
     gameId: string,
-    yandexPlayerId: string,
+    playerId: string,
     xpAwarded: number,
   ): Promise<CreditOutcome>;
+  findPlayerByIdentity(
+    platform: Platform,
+    platformUserId: string,
+  ): Promise<string | null>;
+  resolveOrCreatePlayer(
+    platform: Platform,
+    platformUserId: string,
+    source: ResolveSource,
+  ): Promise<ResolvedPlayer>;
 }
-
-const ProfileQuerySchema = z.object({
-  yandexPlayerId: z.string().min(1).max(128),
-});
 
 /** The payments-repository surface the routes depend on (structural — eases mocking). */
 export interface PaymentsRepo {
-  createIntent(yandexPlayerId: string, productId: string): Promise<string>;
+  createIntent(playerId: string, productId: string): Promise<string>;
   findIntent(intentId: string): Promise<PurchaseIntent | null>;
   getProcessedPurchase(
     purchaseToken: string,
@@ -97,49 +106,39 @@ export interface PaymentsConfig {
 
 /** The inbox-repository surface the routes depend on (structural — eases mocking). */
 export interface InboxRepo {
-  listMessages(yandexPlayerId: string): Promise<ListOutcome>;
-  markRead(
-    yandexPlayerId: string,
-    ids?: readonly number[],
-  ): Promise<MarkReadOutcome>;
+  listMessages(playerId: string): Promise<ListOutcome>;
+  markRead(playerId: string, ids?: readonly number[]): Promise<MarkReadOutcome>;
   sendMessage(input: SendMessageInput): Promise<SendOutcome>;
 }
 
-const InboxQuerySchema = z.object({
+// The legacy caller shape every player-facing route still accepts (task 0270
+// keeps request shapes): the client-asserted Yandex id, on the query for GET and
+// in the body otherwise.
+const CallerSchema = z.object({
   yandexPlayerId: z.string().min(1).max(128),
 });
 
 /** The name-change-repository surface the routes depend on (structural — eases mocking). */
 export interface NameChangeRepo {
   requestNameChange(
-    yandexPlayerId: string,
+    playerId: string,
     requestedName: string,
   ): Promise<RequestOutcome>;
-  cancelNameChange(yandexPlayerId: string): Promise<CancelOutcome>;
+  cancelNameChange(playerId: string): Promise<CancelOutcome>;
   decideNameChange(
-    yandexPlayerId: string,
+    playerId: string,
     decision: "approve" | "reject",
     reason?: string,
     expectedName?: string,
   ): Promise<DecideOutcome>;
-  getLatestState(yandexPlayerId: string): Promise<NameChangeState | null>;
+  getLatestState(playerId: string): Promise<NameChangeState | null>;
 }
 
-/**
- * The ONE place the player-facing inbox routes learn who is asking (task 0012,
- * owner-ruled D1 2026-08-26). Today it returns the CLIENT-asserted
- * `yandexPlayerId` (query on GET, body otherwise) — the same trust level ADR-103
- * accepted for `/v1/profile` and crediting. Re-raise: when ADR-103 exits (the
- * Yandex secret lands with 0014 and signed-player verification exists), the
- * signature check drops in HERE and nowhere else. The citizen gate stays in
- * SQL regardless (InboxRepository), so a forged id only ever reaches a
- * citizen's low-sensitivity system notices.
- */
-function resolvePlayerId(req: Request): string | null {
-  const source = req.method === "GET" ? req.query : req.body;
-  const parsed = InboxQuerySchema.safeParse(source);
-  return parsed.success ? parsed.data.yandexPlayerId : null;
-}
+/** Who is asking, as far as a player-facing route can tell. */
+type CallerResolution =
+  | { status: "bad_request" }
+  | { status: "unknown" }
+  | { status: "ok"; playerId: string };
 
 // purchase_intents.id is a Postgres uuid; validate the client-supplied
 // developerPayload BEFORE it reaches a query, so a garbage value is a clean 409
@@ -153,7 +152,8 @@ const UUID_RE =
  * fields a caller shouldn't be able to resolve by guessing a (non-secret)
  * yandexPlayerId:
  *  - paid state (`is_paid_citizen`, `citizenship_purchased_at`) — leaking "who paid".
- *  - `persistent_id` — the internal cross-device identity-linkage token.
+ * The profile carries no identity at all (task 0270): neither the internal player
+ * id nor a platform id can reach a client through it (ADR-113 hard rule).
  * TODO(payments): once Yandex-signature auth lands, these can be returned to the
  * verified owner of the profile.
  *
@@ -166,11 +166,9 @@ function toPublicProfile(
   profile: PlayerProfile,
   nameChange?: NameChangeState | null,
 ): PublicPlayerProfile {
-  const { is_paid_citizen, citizenship_purchased_at, persistent_id, ...rest } =
-    profile;
+  const { is_paid_citizen, citizenship_purchased_at, ...rest } = profile;
   void is_paid_citizen;
   void citizenship_purchased_at;
-  void persistent_id;
   // Omit the key entirely (rather than sending null) when there is no request —
   // the field is `.optional()` on the shared schema, not nullable.
   return nameChange ? { ...rest, name_change: nameChange } : rest;
@@ -182,6 +180,30 @@ export function createApp(
   inbox?: InboxRepo,
   nameChange?: NameChangeRepo,
 ): Express {
+  /**
+   * The ONE place every player-facing route learns who is asking (task 0012
+   * owner-ruled D1; task 0270 moved it onto the internal player id). It reads the
+   * CLIENT-asserted `yandexPlayerId` (query on GET, body otherwise) — the trust
+   * level ADR-103 accepted — and maps it to a player FIND-ONLY: a public request
+   * can never create a player. `unknown` lets each route keep the answer it gave
+   * an unknown player before (404 / 403). Re-raise: the login token (S2) and any
+   * signature check drop in HERE and nowhere else.
+   */
+  const resolveCaller = async (req: Request): Promise<CallerResolution> => {
+    const source = req.method === "GET" ? req.query : req.body;
+    const parsed = CallerSchema.safeParse(source);
+    if (!parsed.success) {
+      return { status: "bad_request" };
+    }
+    const playerId = await repo.findPlayerByIdentity(
+      PLATFORM_YANDEX_GAMES,
+      parsed.data.yandexPlayerId,
+    );
+    return playerId === null
+      ? { status: "unknown" }
+      : { status: "ok", playerId };
+  };
+
   const app = express();
   // Exactly one proxy hop (host nginx) — so req.ip is the real client for the
   // rate limiter, not nginx's address.
@@ -240,13 +262,13 @@ export function createApp(
    * `pending_exists`) rather than silently double-writing.
    */
   const readNameChangeState = async (
-    yandexPlayerId: string,
+    playerId: string,
   ): Promise<NameChangeState | undefined> => {
     if (nameChange === undefined) {
       return undefined;
     }
     try {
-      return (await nameChange.getLatestState(yandexPlayerId)) ?? undefined;
+      return (await nameChange.getLatestState(playerId)) ?? undefined;
     } catch (error) {
       log.error(`name-change state lookup failed: ${formatError(error)}`);
       return undefined;
@@ -257,14 +279,17 @@ export function createApp(
     allowPublicCors,
     profileReadLimiter,
     async (req, res) => {
-      const parsed = ProfileQuerySchema.safeParse(req.query);
-      if (!parsed.success) {
-        res.status(400).json({ error: "bad_request" });
-        return;
-      }
       try {
-        const profile = await repo.getProfile(parsed.data.yandexPlayerId);
-        if (!profile) {
+        const caller = await resolveCaller(req);
+        if (caller.status === "bad_request") {
+          res.status(400).json({ error: "bad_request" });
+          return;
+        }
+        const profile =
+          caller.status === "ok"
+            ? await repo.getProfile(caller.playerId)
+            : null;
+        if (caller.status !== "ok" || !profile) {
           res.status(404).json({ error: "not_found" });
           return;
         }
@@ -273,7 +298,7 @@ export function createApp(
           .json(
             toPublicProfile(
               profile,
-              await readNameChangeState(parsed.data.yandexPlayerId),
+              await readNameChangeState(caller.playerId),
             ),
           );
       } catch (error) {
@@ -283,9 +308,11 @@ export function createApp(
     },
   );
 
-  // Internal, service-authenticated profile create/relink. The game server calls
-  // this on a player's first authenticated join so a profile row exists before any
-  // crediting (creditMatchXp returns "no_profile" otherwise). Never sets xp,
+  // Internal, service-authenticated find-or-create. The game server calls this on
+  // a player's first authenticated join so a player exists before any crediting.
+  // The ONLY route that creates a player in S1 (task 0270); S3 replaces it with
+  // /internal/v1/players/resolve. `persistentId` is still required by the wire
+  // schema (the deployed game server sends it) and is ignored. Never sets xp,
   // citizenship, or paid flags. Returns the public projection of the live row.
   app.post("/internal/v1/profile/upsert", internalAuth, async (req, res) => {
     const parsed = ProfileUpsertRequestSchema.safeParse(req.body);
@@ -294,23 +321,13 @@ export function createApp(
       return;
     }
     try {
-      const profile = await repo.upsertProfile(
+      const resolved = await repo.resolveOrCreatePlayer(
+        PLATFORM_YANDEX_GAMES,
         parsed.data.yandexPlayerId,
-        parsed.data.persistentId,
+        "game_server",
       );
-      res.status(200).json(toPublicProfile(profile));
+      res.status(200).json(toPublicProfile(resolved.profile));
     } catch (error) {
-      if (error instanceof PersistentIdConflictError) {
-        // persistentId already linked to another Yandex account. 409 (not 500)
-        // so the caller (T6) can react; the relink/transfer policy is T6's call.
-        // Log only the account (an expected, handled condition — no stack dump,
-        // and never the raw persistentId, which the API also strips).
-        log.warn(
-          `upsert conflict for yandex_player_id=${error.yandexPlayerId}`,
-        );
-        res.status(409).json({ error: "persistent_id_conflict" });
-        return;
-      }
       log.error(
         `POST /internal/v1/profile/upsert failed: ${formatError(error)}`,
       );
@@ -330,13 +347,28 @@ export function createApp(
     const results: CreditResult[] = [];
     for (const item of parsed.data.credits) {
       try {
+        // S1 keeps the Yandex-keyed wire shape (S3 moves it to playerId): map the
+        // id to a player FIND-ONLY. An unknown identity is `no_profile` with no
+        // write — the game server upserts and re-credits on that status.
+        const playerId = await repo.findPlayerByIdentity(
+          PLATFORM_YANDEX_GAMES,
+          item.yandexPlayerId,
+        );
+        if (playerId === null) {
+          results.push({
+            gameId: item.gameId,
+            yandexPlayerId: item.yandexPlayerId,
+            status: "no_profile",
+          });
+          continue;
+        }
         // The wire contract stays status-only: `citizenshipNewlyGranted` has no
         // consumer on the game server (the client detects the grant by re-fetching
         // the profile — task 0017), and the earned-inbox trigger fires inside the
         // repository's post-commit seam, not here.
         const outcome = await repo.creditMatchXp(
           item.gameId,
-          item.yandexPlayerId,
+          playerId,
           item.xpAwarded,
         );
         results.push({
@@ -345,9 +377,8 @@ export function createApp(
           status: outcome.status,
         });
       } catch (error) {
-        log.error(
-          `credit failed for ${item.gameId}/${item.yandexPlayerId}: ${formatError(error)}`,
-        );
+        // No player or platform id in the line (ADR-113 / design §6).
+        log.error(`credit failed for ${item.gameId}: ${formatError(error)}`);
         results.push({
           gameId: item.gameId,
           yandexPlayerId: item.yandexPlayerId,
@@ -402,6 +433,9 @@ export function createApp(
     // client-asserted (same trust level ADR-103 accepted for crediting); the GRANT
     // is bound to the Yandex-signed payload via developerPayload → intent row, so
     // the worst abuse is paying real money to gift citizenship to a chosen id.
+    // The caller is resolved FIND-ONLY (task 0270): an unknown player gets 404
+    // `not_found` instead of a silently created profile (design §4 — accepted
+    // while the card switch is off; the login token makes the player exist).
     app.post("/v1/payments/yandex/intent", async (req, res) => {
       const parsed = PurchaseIntentRequestSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -409,8 +443,13 @@ export function createApp(
         return;
       }
       try {
+        const caller = await resolveCaller(req);
+        if (caller.status !== "ok") {
+          res.status(404).json({ error: "not_found" });
+          return;
+        }
         const intentId = await paymentsRepo.createIntent(
-          parsed.data.yandexPlayerId,
+          caller.playerId,
           parsed.data.productId,
         );
         res.status(200).json({ intentId });
@@ -478,7 +517,7 @@ export function createApp(
         await paymentsRepo.grantPaidPurchase({
           purchaseToken: purchase.purchaseToken,
           productId: purchase.productId,
-          yandexPlayerId: intent.yandexPlayerId,
+          playerId: intent.playerId,
           intentId: intent.id,
           rawPayload: verified.rawPayload,
         });
@@ -546,7 +585,7 @@ export function createApp(
           await paymentsRepo.grantPaidPurchase({
             purchaseToken: purchase.purchaseToken,
             productId: purchase.productId,
-            yandexPlayerId: intent.yandexPlayerId,
+            playerId: intent.playerId,
             intentId: intent.id,
             rawPayload: verified.rawPayload,
           });
@@ -594,13 +633,17 @@ export function createApp(
     // non-citizen and a missing profile (the gate runs in SQL on every call,
     // never on client-side citizenship state).
     app.get("/v1/messages", async (req, res) => {
-      const yandexPlayerId = resolvePlayerId(req);
-      if (yandexPlayerId === null) {
-        res.status(400).json({ error: "bad_request" });
-        return;
-      }
       try {
-        const outcome = await inbox.listMessages(yandexPlayerId);
+        const caller = await resolveCaller(req);
+        if (caller.status === "bad_request") {
+          res.status(400).json({ error: "bad_request" });
+          return;
+        }
+        if (caller.status === "unknown") {
+          res.status(403).json({ error: "not_citizen" });
+          return;
+        }
+        const outcome = await inbox.listMessages(caller.playerId);
         if (outcome.status === "not_citizen") {
           res.status(403).json({ error: "not_citizen" });
           return;
@@ -616,13 +659,21 @@ export function createApp(
     // caller's own id; idempotent, so a re-open is a harmless no-op.
     app.patch("/v1/messages/read", async (req, res) => {
       const parsed = MarkReadRequestSchema.safeParse(req.body);
-      const yandexPlayerId = parsed.success ? resolvePlayerId(req) : null;
-      if (!parsed.success || yandexPlayerId === null) {
+      if (!parsed.success) {
         res.status(400).json({ error: "bad_request" });
         return;
       }
       try {
-        const outcome = await inbox.markRead(yandexPlayerId, parsed.data.ids);
+        const caller = await resolveCaller(req);
+        if (caller.status === "bad_request") {
+          res.status(400).json({ error: "bad_request" });
+          return;
+        }
+        if (caller.status === "unknown") {
+          res.status(403).json({ error: "not_citizen" });
+          return;
+        }
+        const outcome = await inbox.markRead(caller.playerId, parsed.data.ids);
         if (outcome.status === "not_citizen") {
           res.status(403).json({ error: "not_citizen" });
           return;
@@ -642,19 +693,21 @@ export function createApp(
   // admin sends. Two auth layers: nginx `location /internal/` IP allowlist +
   // this bearer token (InternalAuth.ts). Never CORS-enabled.
   //
-  //   Request (JSON) — EITHER a template OR literal content:
-  //     { "yandexPlayerId": "…", "templateKey": "citizenship_earned",
+  //   Request (JSON) — addressed by the INTERNAL playerId (a uuid, task 0270), never
+  //   a Yandex id. An operator holding only a Yandex id looks the player up first
+  //   (player_identities on the box). EITHER a template OR literal content:
+  //     { "playerId": "…", "templateKey": "citizenship_earned",
   //       "templateParams": { "name": "…" } }          // rendered client-side, localised
-  //     { "yandexPlayerId": "…", "title": "…", "body": "…" }   // literal, ≤200 / ≤4000 chars
-  //   Responses: 200 { "id": <message id> } · 400 bad_request (schema / neither
-  //   template nor title+body) · 401 unauthorized · 404 no_profile (no
-  //   player_profiles row — the recipient has never joined authenticated) ·
+  //     { "playerId": "…", "title": "…", "body": "…" }   // literal, ≤200 / ≤4000 chars
+  //   Responses: 200 { "id": <message id> } · 400 bad_request (schema / not a uuid /
+  //   neither template nor title+body) · 401 unauthorized · 404 no_profile (no
+  //   players row for that id) ·
   //   503 inbox_unavailable · 500 internal_error.
   //   Example:
   //     curl -sS -X POST "$PROFILE_API_URL/internal/v1/messages/send" \
   //       -H "Authorization: Bearer $PROFILE_INTERNAL_TOKEN" \
   //       -H "Content-Type: application/json" \
-  //       -d '{"yandexPlayerId":"<id>","title":"Hello","body":"Welcome aboard."}'
+  //       -d '{"playerId":"<player uuid>","title":"Hello","body":"Welcome aboard."}'
   app.post("/internal/v1/messages/send", internalAuth, async (req, res) => {
     if (inbox === undefined) {
       res.status(503).json({ error: "inbox_unavailable" });
@@ -743,8 +796,13 @@ export function createApp(
         return;
       }
       try {
+        const caller = await resolveCaller(req);
+        if (caller.status !== "ok") {
+          res.status(403).json({ error: "not_citizen" });
+          return;
+        }
         const outcome = await nameChange.requestNameChange(
-          parsed.data.yandexPlayerId,
+          caller.playerId,
           parsed.data.requestedName,
         );
         switch (outcome.status) {
@@ -788,9 +846,12 @@ export function createApp(
         return;
       }
       try {
-        const outcome = await nameChange.cancelNameChange(
-          parsed.data.yandexPlayerId,
-        );
+        const caller = await resolveCaller(req);
+        if (caller.status !== "ok") {
+          res.status(403).json({ error: "not_citizen" });
+          return;
+        }
+        const outcome = await nameChange.cancelNameChange(caller.playerId);
         if (outcome.status === "not_citizen") {
           res.status(403).json({ error: "not_citizen" });
           return;
@@ -814,15 +875,16 @@ export function createApp(
   // No moderation UI exists by owner ruling (a); the operator is notified of new
   // pending requests over Telegram and decides with a curl. Never CORS-enabled.
   //
-  //   Request (JSON):
-  //     { "yandexPlayerId": "…", "decision": "approve", "expectedName": "…" }
-  //     { "yandexPlayerId": "…", "decision": "reject", "reason": "…" }  // reason REQUIRED
+  //   Request (JSON) — addressed by the INTERNAL playerId (a uuid, task 0270), which
+  //   is what the Telegram notification carries; Yandex ids no longer go there:
+  //     { "playerId": "…", "decision": "approve", "expectedName": "…" }
+  //     { "playerId": "…", "decision": "reject", "reason": "…" }  // reason REQUIRED
   //   `expectedName` is OPTIONAL but is what the Telegram notification's
   //   ready-to-paste command sends, and it is what makes deciding from that
   //   message safe — see NameChangeContract. Omitting it decides on whatever is
   //   pending right now, which is the pre-existing behavior.
-  //   Responses: 200 { "status": "ok" } · 400 bad_request (schema, or a reject
-  //   with no/blank reason) · 401 unauthorized · 404 no_pending · 409 name_taken
+  //   Responses: 200 { "status": "ok" } · 400 bad_request (schema, not a uuid, or a
+  //   reject with no/blank reason) · 401 unauthorized · 404 no_pending · 409 name_taken
   //   (the name was claimed between request and approval — the request stays
   //   PENDING and can be retried or rejected) · 409 name_mismatch (the pending
   //   name is not the one you passed; nothing was applied, and the response
@@ -832,7 +894,7 @@ export function createApp(
   //     curl -sS -X POST "$PROFILE_API_URL/internal/v1/name-change/decide" \
   //       -H "Authorization: Bearer $PROFILE_INTERNAL_TOKEN" \
   //       -H "Content-Type: application/json" \
-  //       -d '{"yandexPlayerId":"<id>","decision":"approve","expectedName":"<name>"}'
+  //       -d '{"playerId":"<player uuid>","decision":"approve","expectedName":"<name>"}'
   app.post(
     "/internal/v1/name-change/decide",
     internalAuth,
@@ -848,7 +910,7 @@ export function createApp(
       }
       try {
         const outcome = await nameChange.decideNameChange(
-          parsed.data.yandexPlayerId,
+          parsed.data.playerId,
           parsed.data.decision,
           parsed.data.reason,
           parsed.data.expectedName,

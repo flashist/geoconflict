@@ -12,8 +12,6 @@ const EPOCH_ISO = new Date(0).toISOString();
 function validV1Profile(): PlayerProfile {
   return {
     schema_version: 1,
-    yandex_player_id: "yandex-123",
-    persistent_id: "11111111-1111-1111-1111-111111111111",
     xp: 250,
     is_citizen: false,
     is_paid_citizen: false,
@@ -61,12 +59,10 @@ describe("PlayerProfile contract", () => {
     });
 
     test("missing fields receive documented defaults", () => {
-      const result = migrateProfile({ persistent_id: "p" });
+      const result = migrateProfile({});
 
       expect(result).toEqual({
         schema_version: 1,
-        yandex_player_id: null,
-        persistent_id: "p",
         xp: 0,
         is_citizen: false,
         is_paid_citizen: false,
@@ -80,17 +76,14 @@ describe("PlayerProfile contract", () => {
 
     test("bad field types are coerced deterministically", () => {
       const result = migrateProfile({
-        persistent_id: "p",
         xp: -5,
         created_at: "nope",
         is_citizen: "yes",
-        yandex_player_id: 123,
       });
 
       expect(result.xp).toBe(0);
       expect(result.created_at).toBe(EPOCH_ISO);
       expect(result.is_citizen).toBe(false);
-      expect(result.yandex_player_id).toBeNull();
       expect(PlayerProfileSchema.safeParse(result).success).toBe(true);
     });
 
@@ -100,14 +93,16 @@ describe("PlayerProfile contract", () => {
       ["a number", 42],
       ["an array", []],
       ["undefined", undefined],
-    ])("malformed input (%s) yields a valid default profile", (_label, input) => {
-      const result = migrateProfile(input);
-      expect(PlayerProfileSchema.safeParse(result).success).toBe(true);
-      expect(result.schema_version).toBe(1);
-      expect(result.xp).toBe(0);
-      expect(result.persistent_id).toBe("");
-      expect(result.created_at).toBe(EPOCH_ISO);
-    });
+    ])(
+      "malformed input (%s) yields a valid default profile",
+      (_label, input) => {
+        const result = migrateProfile(input);
+        expect(PlayerProfileSchema.safeParse(result).success).toBe(true);
+        expect(result.schema_version).toBe(1);
+        expect(result.xp).toBe(0);
+        expect(result.created_at).toBe(EPOCH_ISO);
+      },
+    );
 
     test("a large-negative schema_version completes immediately (no DoS loop)", () => {
       // Regression: upgradeToCurrent walks versions up one at a time, so an
@@ -115,28 +110,42 @@ describe("PlayerProfile contract", () => {
       // Jest's default 5s timeout fails this test if the clamp ever regresses.
       const result = migrateProfile({
         schema_version: Number.MIN_SAFE_INTEGER,
-        persistent_id: "p",
       });
       expect(result.schema_version).toBe(1);
       expect(PlayerProfileSchema.safeParse(result).success).toBe(true);
     });
 
+    // Task 0270 (ADR-113): identity left the profile. A row or blob that still
+    // carries the retired fields normalizes WITHOUT them — no id can ride along.
+    test("strips retired identity fields from an old payload", () => {
+      const result = migrateProfile({
+        ...validV1Profile(),
+        yandex_player_id: "yandex-123",
+        persistent_id: "11111111-1111-1111-1111-111111111111",
+        id: "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f",
+      });
+      expect(result).not.toHaveProperty("yandex_player_id");
+      expect(result).not.toHaveProperty("persistent_id");
+      expect(result).not.toHaveProperty("id");
+      expect(result).toEqual(validV1Profile());
+    });
+
     test("never throws on malformed input", () => {
       expect(() => migrateProfile(null)).not.toThrow();
       expect(() => migrateProfile(Symbol("x") as unknown)).not.toThrow();
-      expect(() => migrateProfile({ xp: "lots", nested: { a: 1 } })).not.toThrow();
+      expect(() =>
+        migrateProfile({ xp: "lots", nested: { a: 1 } }),
+      ).not.toThrow();
     });
   });
 
   describe("createGuestProfile", () => {
     test("produces a fresh v1 profile with injected timestamps", () => {
       const now = "2026-06-13T09:30:00.000Z";
-      const profile = createGuestProfile("guest-uuid", now);
+      const profile = createGuestProfile(now);
 
       expect(profile).toEqual({
         schema_version: 1,
-        yandex_player_id: null,
-        persistent_id: "guest-uuid",
         xp: 0,
         is_citizen: false,
         is_paid_citizen: false,
@@ -150,13 +159,13 @@ describe("PlayerProfile contract", () => {
     });
 
     test("output round-trips through migrateProfile unchanged", () => {
-      const profile = createGuestProfile("guest-uuid", "2026-06-13T09:30:00.000Z");
+      const profile = createGuestProfile("2026-06-13T09:30:00.000Z");
       expect(migrateProfile(profile)).toEqual(profile);
     });
 
     test("defaults the timestamp to the current time when not injected", () => {
       const before = Date.now();
-      const profile = createGuestProfile("guest-uuid");
+      const profile = createGuestProfile();
       const after = Date.now();
 
       const created = Date.parse(profile.created_at);
@@ -169,14 +178,33 @@ describe("PlayerProfile contract", () => {
 });
 
 describe("PublicPlayerProfileSchema", () => {
-  test("strips the three private fields when parsing a full profile", () => {
+  test("strips the paid fields when parsing a full profile", () => {
     const parsed = PublicPlayerProfileSchema.parse(validV1Profile());
 
     // These are the fields toPublicProfile() intentionally withholds from the
     // unauthenticated GET /v1/profile read.
     expect(parsed).not.toHaveProperty("is_paid_citizen");
     expect(parsed).not.toHaveProperty("citizenship_purchased_at");
+  });
+
+  // Task 0270 (ADR-113 hard rule): the internal id never reaches a client, and the
+  // platform id and persistent_id left the contract.
+  test("the public schema's keys exclude every identity field", () => {
+    const keys = Object.keys(PublicPlayerProfileSchema.shape);
+    expect(keys).not.toContain("yandex_player_id");
+    expect(keys).not.toContain("persistent_id");
+    expect(keys).not.toContain("id");
+    expect(keys).not.toContain("player_id");
+
+    const parsed = PublicPlayerProfileSchema.parse({
+      ...validV1Profile(),
+      yandex_player_id: "yandex-123",
+      persistent_id: "p",
+      id: "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f",
+    });
+    expect(parsed).not.toHaveProperty("yandex_player_id");
     expect(parsed).not.toHaveProperty("persistent_id");
+    expect(parsed).not.toHaveProperty("id");
   });
 
   test("preserves exactly the public fields the card renders from", () => {
@@ -184,7 +212,6 @@ describe("PublicPlayerProfileSchema", () => {
 
     expect(parsed).toEqual({
       schema_version: 1,
-      yandex_player_id: "yandex-123",
       xp: 250,
       is_citizen: false,
       citizenship_earned_at: null,
@@ -195,16 +222,13 @@ describe("PublicPlayerProfileSchema", () => {
   });
 
   test("accepts a projection that already lacks the omitted fields", () => {
-    const {
-      is_paid_citizen,
-      citizenship_purchased_at,
-      persistent_id,
-      ...publicProfile
-    } = validV1Profile();
+    const { is_paid_citizen, citizenship_purchased_at, ...publicProfile } =
+      validV1Profile();
     void is_paid_citizen;
     void citizenship_purchased_at;
-    void persistent_id;
 
-    expect(PublicPlayerProfileSchema.safeParse(publicProfile).success).toBe(true);
+    expect(PublicPlayerProfileSchema.safeParse(publicProfile).success).toBe(
+      true,
+    );
   });
 });

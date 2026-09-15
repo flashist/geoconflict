@@ -3,7 +3,10 @@
     "Allowlist for scripts/check-config-parity.mjs (task 0064). An UNLISTED variable is",
     "REQUIRED — that is the point of the guard, and a test asserts it. Every entry needs a",
     "non-empty reason: an entry without one is the same rot this guard exists to prevent.",
-    "class: runtime-supplied | build-time | optional | dead-config.",
+    "class: runtime-supplied | build-time | optional | dead-config | server-only.",
+    "server-only: read in a file the browser bundles (src/core/configuration/**) but only ever",
+    "called on the server. Allowlist it; NEVER substitute a server secret into the browser bundle.",
+    "Enforced: a server-only key that DefinePlugin substitutes is a REQUIRED finding this file cannot suppress.",
     "phase: 1 entries suppress a finding today; phase 2 entries are recorded but INERT and",
     "never suppress anything, so they cannot mask a Phase 1 gap."
   ],
@@ -63,6 +66,111 @@
       "class": "optional",
       "phase": 2,
       "reason": "Egress proxy for api.telegram.org (blocked from RU IPs), optional only while the token+chat pair is empty (src/profile-server/Server.ts warns at startup: operator name-change notifications off, requests still work). INERT in Phase 1: forwarded at both profile hops, so no name rule can fire. Its VALUE is checked live by the on-box report in setup-profile.sh (task 0220), not by this name-only checker."
+    },
+    {
+      "name": "PUBLIC_HOST",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by publicHost() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: its only callers are src/server/Master.ts, src/server/Archive.ts and src/server/OtelResource.ts. The browser gets the server's resolved value from /api/env (src/server/Master.ts) through src/core/configuration/RuntimeConfig.ts, and reads that, not this key. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "PUBLIC_PROTOCOL",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by publicProtocol() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: its only callers are src/server/Master.ts and publicPort() in the same file, itself called only by src/server/Master.ts. The browser gets the server's resolved value from /api/env (src/server/Master.ts) through src/core/configuration/RuntimeConfig.ts, and reads that, not this key. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "PUBLIC_PORT",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by publicPort() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: its only caller is src/server/Master.ts. The browser gets the server's resolved value from /api/env (src/server/Master.ts) through src/core/configuration/RuntimeConfig.ts, and reads that, not this key. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "DEPLOYMENT_ID",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by deploymentId() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: its only callers are src/server/Master.ts, src/server/Archive.ts and src/server/OtelResource.ts. The browser gets the server's resolved value from /api/env (src/server/Master.ts) through src/core/configuration/RuntimeConfig.ts, and reads that, not this key. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "API_BASE_URL",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by apiBaseUrl() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: its only caller is src/server/Master.ts. The browser gets the server's resolved value from /api/env (src/server/Master.ts) through src/core/configuration/RuntimeConfig.ts, and reads that, not this key. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "OTEL_AUTH_HEADER",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by otelAuthHeader() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: its only callers are src/server/Logger.ts, src/server/OtelTracing.ts and src/server/WorkerMetrics.ts. A server secret: substituting it would publish it in the browser bundle. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "STORAGE_ENDPOINT",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by storageEndpoint() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: it has no caller anywhere outside src/core/configuration/ today, and none under src/client/. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "STORAGE_ACCESS_KEY",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by storageAccessKey() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: it has no caller anywhere outside src/core/configuration/ today, and none under src/client/. A server secret: substituting it would publish it in the browser bundle. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "STORAGE_SECRET_KEY",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by storageSecretKey() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: it has no caller anywhere outside src/core/configuration/ today, and none under src/client/. A server secret: substituting it would publish it in the browser bundle. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "STORAGE_BUCKET",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by storageBucket() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: it has no caller anywhere outside src/core/configuration/ today, and none under src/client/. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "API_KEY",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by apiKey() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: its only callers are src/server/Archive.ts and src/server/Worker.ts. A server secret: substituting it would publish it in the browser bundle. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "ADMIN_TOKEN",
+      "pipeline": "client",
+      "class": "server-only",
+      "phase": 1,
+      "reason": "Read by adminToken() in src/core/configuration/DefaultConfig.ts, which the browser bundles but never calls: its only callers are src/server/Master.ts and src/server/Worker.ts. A server secret: substituting it would publish it in the browser bundle. Must NOT be substituted by DefinePlugin."
+    },
+    {
+      "name": "PROFILE_API_URL",
+      "pipeline": "client",
+      "class": "runtime-supplied",
+      "phase": 1,
+      "reason": "Browser callers (src/client/PaymentsApiClient.ts, src/client/NameChangeRequest.ts, src/client/PlayerProfileView.ts, src/client/Inbox.ts) get profileApiUrl() after src/core/configuration/ConfigLoader.ts loads /api/env (served by src/server/Master.ts) into src/core/configuration/RuntimeConfig.ts, and profileApiUrl() in src/core/configuration/DefaultConfig.ts prefers that value. The env read is only a fallback, reached when the server sends an empty URL (no profile backend); every browser caller wraps the call in try/catch and treats empty or a throw as no backend. A runtime value by design: must NOT be baked in by DefinePlugin."
+    },
+    {
+      "name": "JWT_ISSUER",
+      "pipeline": "client",
+      "class": "runtime-supplied",
+      "phase": 1,
+      "reason": "Browser caller src/client/Matchmaking.ts gets jwtIssuer() after src/core/configuration/ConfigLoader.ts loads /api/env (served by src/server/Master.ts) into src/core/configuration/RuntimeConfig.ts; jwtIssuer() in src/core/configuration/DefaultConfig.ts prefers that value, and the server always sends a non-empty issuer (it falls back to one derived from the audience), so the browser does not reach this env read. Must NOT be baked in by DefinePlugin."
+    },
+    {
+      "name": "JWT_AUDIENCE",
+      "pipeline": "client",
+      "class": "runtime-supplied",
+      "phase": 1,
+      "reason": "Browser caller src/client/jwt.ts gets jwtAudience() after src/core/configuration/ConfigLoader.ts loads /api/env (served by src/server/Master.ts) into src/core/configuration/RuntimeConfig.ts; jwtAudience() in src/core/configuration/ProdConfig.ts, src/core/configuration/PreprodConfig.ts and src/core/configuration/DevConfig.ts prefers that value, and the server always sends a non-empty audience (each has a hardcoded default), so the browser does not reach this env read. Must NOT be baked in by DefinePlugin."
     }
   ]
 }

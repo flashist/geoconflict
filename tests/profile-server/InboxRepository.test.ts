@@ -74,7 +74,7 @@ describe("InboxRepository", () => {
     const repo = new InboxRepository(pool);
     await expect(
       repo.sendMessage({
-        yandexPlayerId: "y1",
+        playerId: "y1",
         templateKey: "citizenship_earned",
       }),
     ).resolves.toEqual({ status: "sent", id: 5 });
@@ -98,11 +98,11 @@ describe("InboxRepository", () => {
       Object.assign(new Error("fk"), { code: "23503" }),
     );
     await expect(
-      repo.sendMessage({ yandexPlayerId: "ghost", title: "T", body: "B" }),
+      repo.sendMessage({ playerId: "ghost", title: "T", body: "B" }),
     ).resolves.toEqual({ status: "no_profile" });
     query.mockRejectedValueOnce(new Error("connection reset"));
     await expect(
-      repo.sendMessage({ yandexPlayerId: "y1", title: "T", body: "B" }),
+      repo.sendMessage({ playerId: "y1", title: "T", body: "B" }),
     ).rejects.toThrow("connection reset");
   });
 
@@ -128,7 +128,7 @@ describe("InboxRepository", () => {
     });
     expect(query).toHaveBeenCalledTimes(2);
     for (const call of query.mock.calls) {
-      expect(String(call[0])).toContain("FROM player_profiles");
+      expect(String(call[0])).toContain("FROM players");
     }
   });
 

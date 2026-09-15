@@ -9,13 +9,21 @@ import {
 } from "../../src/profile-server/Routes";
 
 const TOKEN = "test-internal-token";
+// Task 0270: "y1" is a known Yandex identity resolving to this internal id; the
+// operator send route takes the internal id directly.
+const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
 
 function mockRepo(): ProfileRepo {
   return {
     ping: jest.fn().mockResolvedValue(undefined),
     getProfile: jest.fn().mockResolvedValue(null),
-    upsertProfile: jest.fn(),
     creditMatchXp: jest.fn(),
+    findPlayerByIdentity: jest
+      .fn()
+      .mockImplementation(async (_platform: string, id: string) =>
+        id === "y1" ? PLAYER_ID : null,
+      ),
+    resolveOrCreatePlayer: jest.fn(),
   };
 }
 
@@ -43,8 +51,11 @@ function mockInbox(overrides: Partial<InboxRepo> = {}): InboxRepo {
 }
 
 /** `null` = build the app WITHOUT an inbox repo (an explicit `undefined` would hit the default). */
-function appWith(inbox: InboxRepo | null = mockInbox()) {
-  return createApp(mockRepo(), undefined, inbox ?? undefined);
+function appWith(
+  inbox: InboxRepo | null = mockInbox(),
+  repo: ProfileRepo = mockRepo(),
+) {
+  return createApp(repo, undefined, inbox ?? undefined);
 }
 
 describe("inbox routes", () => {
@@ -72,7 +83,19 @@ describe("inbox routes", () => {
       );
       expect(res.status).toBe(403);
       expect(res.body).toEqual({ error: "not_citizen" });
-      expect(inbox.listMessages).toHaveBeenCalledWith("y1");
+      expect(inbox.listMessages).toHaveBeenCalledWith(PLAYER_ID);
+    });
+
+    test("403 not_citizen for an unknown identity — never reads messages, never creates", async () => {
+      const inbox = mockInbox();
+      const repo = mockRepo();
+      const res = await request(appWith(inbox, repo)).get(
+        "/v1/messages?yandexPlayerId=ghost",
+      );
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({ error: "not_citizen" });
+      expect(inbox.listMessages).not.toHaveBeenCalled();
+      expect(repo.resolveOrCreatePlayer).not.toHaveBeenCalled();
     });
 
     test("200 with the messages exactly as the repo orders them", async () => {
@@ -136,7 +159,7 @@ describe("inbox routes", () => {
         .send({ yandexPlayerId: "y1" });
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ updated: 2 });
-      expect(inbox.markRead).toHaveBeenCalledWith("y1", undefined);
+      expect(inbox.markRead).toHaveBeenCalledWith(PLAYER_ID, undefined);
     });
 
     test("marks only the given ids", async () => {
@@ -148,7 +171,7 @@ describe("inbox routes", () => {
         .send({ yandexPlayerId: "y1", ids: [2] });
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ updated: 1 });
-      expect(inbox.markRead).toHaveBeenCalledWith("y1", [2]);
+      expect(inbox.markRead).toHaveBeenCalledWith(PLAYER_ID, [2]);
     });
 
     test("400 on a malformed body (empty ids / missing player id)", async () => {
@@ -174,6 +197,18 @@ describe("inbox routes", () => {
       expect(res.status).toBe(403);
     });
 
+    test("403 not_citizen for an unknown identity without touching the repo", async () => {
+      const inbox = mockInbox();
+      const repo = mockRepo();
+      const res = await request(appWith(inbox, repo))
+        .patch("/v1/messages/read")
+        .send({ yandexPlayerId: "ghost" });
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({ error: "not_citizen" });
+      expect(inbox.markRead).not.toHaveBeenCalled();
+      expect(repo.resolveOrCreatePlayer).not.toHaveBeenCalled();
+    });
+
     test("500 when the repo throws", async () => {
       const inbox = mockInbox({
         markRead: jest.fn().mockRejectedValue(new Error("db down")),
@@ -190,8 +225,28 @@ describe("inbox routes", () => {
       const inbox = mockInbox();
       const res = await request(appWith(inbox))
         .post("/internal/v1/messages/send")
-        .send({ yandexPlayerId: "y1", title: "T", body: "B" });
+        .send({ playerId: PLAYER_ID, title: "T", body: "B" });
       expect(res.status).toBe(401);
+      expect(inbox.sendMessage).not.toHaveBeenCalled();
+    });
+
+    test("400 when addressed by a Yandex id instead of the internal playerId", async () => {
+      const inbox = mockInbox();
+      const res = await request(appWith(inbox))
+        .post("/internal/v1/messages/send")
+        .set("authorization", `Bearer ${TOKEN}`)
+        .send({ yandexPlayerId: "y1", title: "T", body: "B" });
+      expect(res.status).toBe(400);
+      expect(inbox.sendMessage).not.toHaveBeenCalled();
+    });
+
+    test("400 when playerId is not uuid-shaped (a clean 400, not a pg 22P02 → 500)", async () => {
+      const inbox = mockInbox();
+      const res = await request(appWith(inbox))
+        .post("/internal/v1/messages/send")
+        .set("authorization", `Bearer ${TOKEN}`)
+        .send({ playerId: "not-a-uuid", title: "T", body: "B" });
+      expect(res.status).toBe(400);
       expect(inbox.sendMessage).not.toHaveBeenCalled();
     });
 
@@ -199,7 +254,7 @@ describe("inbox routes", () => {
       const res = await request(appWith())
         .post("/internal/v1/messages/send")
         .set("authorization", `Bearer ${TOKEN}`)
-        .send({ yandexPlayerId: "y1", title: "only a title" });
+        .send({ playerId: PLAYER_ID, title: "only a title" });
       expect(res.status).toBe(400);
     });
 
@@ -209,7 +264,7 @@ describe("inbox routes", () => {
         .post("/internal/v1/messages/send")
         .set("authorization", `Bearer ${TOKEN}`)
         .send({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "citizenship_paid",
           title: "Welcome",
           body: "…",
@@ -224,7 +279,7 @@ describe("inbox routes", () => {
         .post("/internal/v1/messages/send")
         .set("authorization", `Bearer ${TOKEN}`)
         .send({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "name_change_rejected",
           templateParams: { name: "Alpha" },
         });
@@ -239,7 +294,10 @@ describe("inbox routes", () => {
       const res = await request(appWith(inbox))
         .post("/internal/v1/messages/send")
         .set("authorization", `Bearer ${TOKEN}`)
-        .send({ yandexPlayerId: "ghost", templateKey: "citizenship_paid" });
+        .send({
+          playerId: "11111111-2222-3333-4444-555555555555",
+          templateKey: "citizenship_paid",
+        });
       expect(res.status).toBe(404);
       expect(res.body).toEqual({ error: "no_profile" });
     });
@@ -250,14 +308,14 @@ describe("inbox routes", () => {
         .post("/internal/v1/messages/send")
         .set("authorization", `Bearer ${TOKEN}`)
         .send({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "name_change_approved",
           templateParams: { name: "Alpha" },
         });
       expect(template.status).toBe(200);
       expect(template.body).toEqual({ id: 9 });
       expect(inbox.sendMessage).toHaveBeenCalledWith({
-        yandexPlayerId: "y1",
+        playerId: PLAYER_ID,
         templateKey: "name_change_approved",
         templateParams: { name: "Alpha" },
       });
@@ -265,10 +323,10 @@ describe("inbox routes", () => {
       const literal = await request(appWith(inbox))
         .post("/internal/v1/messages/send")
         .set("authorization", `Bearer ${TOKEN}`)
-        .send({ yandexPlayerId: "y1", title: "Hello", body: "Welcome." });
+        .send({ playerId: PLAYER_ID, title: "Hello", body: "Welcome." });
       expect(literal.status).toBe(200);
       expect(inbox.sendMessage).toHaveBeenLastCalledWith({
-        yandexPlayerId: "y1",
+        playerId: PLAYER_ID,
         title: "Hello",
         body: "Welcome.",
       });
@@ -281,7 +339,7 @@ describe("inbox routes", () => {
       const res = await request(appWith(inbox))
         .post("/internal/v1/messages/send")
         .set("authorization", `Bearer ${TOKEN}`)
-        .send({ yandexPlayerId: "y1", title: "T", body: "B" });
+        .send({ playerId: PLAYER_ID, title: "T", body: "B" });
       expect(res.status).toBe(500);
     });
 
@@ -289,7 +347,7 @@ describe("inbox routes", () => {
       const res = await request(appWith(null))
         .post("/internal/v1/messages/send")
         .set("authorization", `Bearer ${TOKEN}`)
-        .send({ yandexPlayerId: "y1", title: "T", body: "B" });
+        .send({ playerId: PLAYER_ID, title: "T", body: "B" });
       expect(res.status).toBe(503);
     });
 
@@ -298,7 +356,7 @@ describe("inbox routes", () => {
         .post("/internal/v1/messages/send")
         .set("authorization", `Bearer ${TOKEN}`)
         .set("Origin", "https://geoconflict.ru")
-        .send({ yandexPlayerId: "y1", title: "T", body: "B" });
+        .send({ playerId: PLAYER_ID, title: "T", body: "B" });
       expect(res.status).toBe(200);
       expect(res.headers["access-control-allow-origin"]).toBeUndefined();
     });

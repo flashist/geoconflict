@@ -456,9 +456,10 @@ WebSocket upgrade at `/` (303).
 - **Init is worker-only and conditional** (`Worker.ts:69-72`) — the **master exports no metrics and no
   traces**, only logs.
 - Browser-side OTEL initializes first thing in the bootstrap (`Bootstrap.ts:16` →
-  `OtelBrowserInit.ts`). Source maps are `hidden-source-map`, uploaded to Uptrace at build time keyed
-  by `GIT_COMMIT` and deleted from the image; the master 404s `.map` requests as defence in depth
-  (`webpack.config.js:180-183`, `Dockerfile:52-56`, `Master.ts:35-41`).
+  `OtelBrowserInit.ts`). Source maps are `hidden-source-map` and deleted from the image; the master
+  404s `.map` requests as defence in depth (`webpack.config.js`, `Dockerfile`, `Master.ts`). **Client
+  stack traces are not symbolicated**: the Uptrace upload was removed by `0260` (Uptrace 2.0.2 has no
+  upload API); revisit task `0264` is on the Backlog board.
 
 ---
 
@@ -683,8 +684,9 @@ Yandex Games serves the game over HTTPS and browsers refuse mixed-content OTLP P
 - Game → profile: `PROFILE_API_URL` is injected at deploy and surfaced to the browser via `/api/env`;
   service calls use `PROFILE_INTERNAL_TOKEN` over the IP-allowlisted `/internal/` route.
 - Game → telemetry: `OTEL_EXPORTER_OTLP_ENDPOINT` / `OTEL_AUTH_HEADER`, also baked as build args so the
-  browser bundle knows where to send traces; `UPTRACE_SOURCEMAP_DSN` + `PUBLIC_ORIGIN` symbolicate
-  client stack traces.
+  browser bundle knows where to send traces. Client stack traces are **not** symbolicated — the
+  source-map upload (and its `UPTRACE_SOURCEMAP_DSN` / `PUBLIC_ORIGIN` inputs) was removed by `0260`;
+  revisit task `0264` is on the Backlog board.
 
 ---
 

@@ -28,6 +28,16 @@ import { z } from "zod";
 const PlayerIdSchema = z.string().min(1).max(128);
 
 /**
+ * The INTERNAL player id (task 0270, ADR-113) — a Postgres uuid. Accepted ONLY by
+ * the service-authenticated decide route, never by a player-facing one, so Yandex
+ * ids stop travelling through operator Telegram messages. Validated as a UUID
+ * shape so a garbage value is a clean 400, not a pg 22P02 surfacing as a 500.
+ */
+const InternalPlayerIdSchema = z
+  .string()
+  .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+
+/**
  * The requested name is bounded generously here (not at MAX_USERNAME_LENGTH) on
  * purpose: an over-long name must reach the rule check and come back as a
  * specific `invalid` outcome the card can explain, not as an opaque 400.
@@ -59,7 +69,7 @@ export const MAX_REJECTION_REASON_LENGTH = 500;
  */
 export const NameChangeDecisionRequestSchema = z
   .object({
-    yandexPlayerId: PlayerIdSchema,
+    playerId: InternalPlayerIdSchema,
     decision: z.enum(["approve", "reject"]),
     reason: z.string().max(MAX_REJECTION_REASON_LENGTH).optional(),
     /**

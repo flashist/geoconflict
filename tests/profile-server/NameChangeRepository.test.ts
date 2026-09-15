@@ -57,6 +57,7 @@ const NO_PROFILE: Handler = () => ({ rows: [], rowCount: 0 });
 const NAME_FREE: Handler = () => ({ rows: [], rowCount: 0 });
 
 const inbox = { sendTemplate: jest.fn() };
+const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
 const TELEGRAM = { token: "t", chatId: "c", proxyUrl: "p" };
 
 beforeEach(() => {
@@ -138,7 +139,8 @@ describe("requestNameChange", () => {
     const repo = new NameChangeRepository(db.pool, inbox);
     await repo.requestNameChange("p1", "Ivan");
     const check = db.sqlFor("lower(display_name)")[0];
-    expect(check.sql).toContain("yandex_player_id <> $2");
+    expect(check.sql).toContain("FROM players");
+    expect(check.sql).toContain("id <> $2");
     expect(check.params).toEqual(["Ivan", "p1"]);
   });
 
@@ -265,6 +267,19 @@ describe("requestNameChange", () => {
       expect(telegramSend).not.toHaveBeenCalled();
     });
 
+    // Task 0270: the notification and its command carry the INTERNAL player id.
+    // Yandex ids stop going to Telegram, and the decide route accepts nothing else.
+    it("names the player by internal playerId in the text AND the command — never a Yandex id", async () => {
+      const db = okPool();
+      const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+      await repo.requestNameChange(PLAYER_ID, "NewName");
+      const text = telegramSend.mock.calls[0][1] as string;
+      expect(text).toContain(`<b>Player:</b> ${PLAYER_ID}`);
+      expect(text).toContain(`"playerId":"${PLAYER_ID}"`);
+      expect(text).not.toContain("yandexPlayerId");
+      expect(text).not.toContain("yandex");
+    });
+
     it("carries a ready-to-paste command binding the decision to the name", async () => {
       const db = okPool();
       // A distinctive placeholder token: the shared TELEGRAM fixture's is the
@@ -286,7 +301,9 @@ describe("requestNameChange", () => {
     it("omits the command for a player id that would break shell quoting", async () => {
       const db = okPool();
       const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
-      // Ids are client-asserted (ADR-103); an operator pastes this into a shell.
+      // Belt and braces: a server-generated uuid always passes the charset
+      // check, but an operator pastes this into a shell, so a value that would
+      // break the quoting is still never emitted.
       await repo.requestNameChange("p'; rm -rf /", "NewName");
       const text = telegramSend.mock.calls[0][1] as string;
       expect(text).not.toContain("curl");
@@ -376,7 +393,7 @@ describe("cancelNameChange (owner amendment 2)", () => {
     });
     const del = db.sqlFor("DELETE FROM player_name_history")[0];
     expect(del.sql).toContain("moderation_status = 'pending'");
-    expect(del.sql).toContain("yandex_player_id = $1");
+    expect(del.sql).toContain("player_id = $1");
     expect(del.params).toEqual(["p1"]);
   });
 
@@ -401,10 +418,10 @@ describe("decideNameChange", () => {
         () => ({ rows: [{ id: 5, new_display_name: "NewName" }] }),
       ],
       [
-        "SELECT display_name FROM player_profiles",
+        "SELECT display_name FROM players",
         () => ({ rows: [{ display_name: "OldName" }] }),
       ],
-      ["UPDATE player_profiles SET display_name", () => ({ rowCount: 1 })],
+      ["UPDATE players SET display_name", () => ({ rowCount: 1 })],
       ["moderation_status = 'approved'", () => ({ rowCount: 1 })],
       ["moderation_status = 'rejected'", () => ({ rowCount: 1 })],
     ]);
@@ -427,9 +444,10 @@ describe("decideNameChange", () => {
     await expect(repo.decideNameChange("p1", "approve")).resolves.toEqual({
       status: "ok",
     });
-    expect(
-      db.sqlFor("UPDATE player_profiles SET display_name")[0].params,
-    ).toEqual(["p1", "NewName"]);
+    expect(db.sqlFor("UPDATE players SET display_name")[0].params).toEqual([
+      "p1",
+      "NewName",
+    ]);
     // old_display_name captured for the history row.
     expect(db.sqlFor("moderation_status = 'approved'")[0].params).toEqual([
       5,
@@ -457,9 +475,7 @@ describe("decideNameChange", () => {
     await expect(
       repo.decideNameChange("p1", "reject", "impersonation"),
     ).resolves.toEqual({ status: "ok" });
-    expect(db.sqlFor("UPDATE player_profiles SET display_name")).toHaveLength(
-      0,
-    );
+    expect(db.sqlFor("UPDATE players SET display_name")).toHaveLength(0);
     expect(db.sqlFor("moderation_status = 'rejected'")[0].params).toEqual([
       5,
       "impersonation",
@@ -485,9 +501,9 @@ describe("decideNameChange", () => {
   it("maps the approve-time uniqueness race to name_taken and leaves the row PENDING", async () => {
     const db = decidePool([
       [
-        "UPDATE player_profiles SET display_name",
+        "UPDATE players SET display_name",
         () => {
-          throw pgError("23505", "player_profiles_display_name_uq");
+          throw pgError("23505", "players_display_name_uq");
         },
       ],
     ]);
@@ -509,9 +525,10 @@ describe("decideNameChange", () => {
       await expect(
         repo.decideNameChange("p1", "approve", undefined, "NewName"),
       ).resolves.toEqual({ status: "ok" });
-      expect(
-        db.sqlFor("UPDATE player_profiles SET display_name")[0].params,
-      ).toEqual(["p1", "NewName"]);
+      expect(db.sqlFor("UPDATE players SET display_name")[0].params).toEqual([
+        "p1",
+        "NewName",
+      ]);
     });
 
     it("refuses a MISMATCH and applies nothing, returning the real pending name", async () => {
@@ -520,9 +537,7 @@ describe("decideNameChange", () => {
       await expect(
         repo.decideNameChange("p1", "approve", undefined, "StaleName"),
       ).resolves.toEqual({ status: "name_mismatch", pendingName: "NewName" });
-      expect(db.sqlFor("UPDATE player_profiles SET display_name")).toHaveLength(
-        0,
-      );
+      expect(db.sqlFor("UPDATE players SET display_name")).toHaveLength(0);
       expect(db.sqlFor("moderation_status = 'approved'")).toHaveLength(0);
       expect(db.seen.some((e) => /ROLLBACK/i.test(e.sql))).toBe(true);
       expect(inbox.sendTemplate).not.toHaveBeenCalled();
@@ -560,22 +575,23 @@ describe("decideNameChange", () => {
       await expect(repo.decideNameChange("p1", "approve")).resolves.toEqual({
         status: "ok",
       });
-      expect(
-        db.sqlFor("UPDATE player_profiles SET display_name")[0].params,
-      ).toEqual(["p1", "NewName"]);
+      expect(db.sqlFor("UPDATE players SET display_name")[0].params).toEqual([
+        "p1",
+        "NewName",
+      ]);
     });
   });
 
   it("rethrows a 23505 from a DIFFERENT constraint instead of calling it name_taken", async () => {
     const db = decidePool([
       [
-        "UPDATE player_profiles SET display_name",
+        "UPDATE players SET display_name",
         () => {
           // Unreachable under today's schema — that UPDATE touches only
-          // display_name. The day player_profiles gains another unique
+          // display_name. The day players gains another unique
           // constraint, mis-reporting it as a 409 would be silent, so the catch
           // is narrowed by index name rather than by which statement raised it.
-          throw pgError("23505", "player_profiles_some_future_uq");
+          throw pgError("23505", "players_some_future_uq");
         },
       ],
     ]);
@@ -587,7 +603,7 @@ describe("decideNameChange", () => {
   it("rethrows a 23505 carrying no constraint name at all", async () => {
     const db = decidePool([
       [
-        "UPDATE player_profiles SET display_name",
+        "UPDATE players SET display_name",
         () => {
           throw pgError("23505");
         },
@@ -617,7 +633,7 @@ describe("decideNameChange", () => {
   it("releases the client on an unexpected failure", async () => {
     const db = decidePool([
       [
-        "UPDATE player_profiles SET display_name",
+        "UPDATE players SET display_name",
         () => {
           throw pgError("08006");
         },

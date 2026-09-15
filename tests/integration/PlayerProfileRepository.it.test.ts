@@ -1,14 +1,11 @@
 // Integration tests for PlayerProfileRepository against a REAL Postgres.
 // Gated by RUN_DB_TESTS so the default `npm test` (no DB) skips them entirely.
-// See jest.integration.config.ts for how to run.
+// The schema is built once per run by globalSetup.ts (reset + real runner); this
+// suite only truncates. Keyed by the internal player id since task 0270.
 
-import { readFileSync } from "fs";
-import { join } from "path";
 import { Pool } from "pg";
-import {
-  PersistentIdConflictError,
-  PlayerProfileRepository,
-} from "../../src/profile-server/PlayerProfileRepository";
+import { PlayerProfileRepository } from "../../src/profile-server/PlayerProfileRepository";
+import { createYandexPlayer, truncateProfileTables } from "./support/db";
 
 const RUN = process.env.RUN_DB_TESTS ? describe : describe.skip;
 
@@ -46,19 +43,13 @@ async function waitForBlockedCreditStatements(
 RUN("PlayerProfileRepository (integration)", () => {
   let pool: Pool;
   let repo: PlayerProfileRepository;
+  // The internal player id, created per test through the identity repository.
+  let P: string;
+  // A syntactically valid player id that no players row carries.
+  const GHOST = "00000000-0000-4000-8000-00000000dead";
 
-  const P = "yandex-int-1";
-  const PID = "11111111-1111-1111-1111-111111111111";
-
-  beforeAll(async () => {
+  beforeAll(() => {
     pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL });
-    // Apply the migration directly (idempotent IF NOT EXISTS statements). cwd is the
-    // repo root under `npm run test:integration`.
-    const sql = readFileSync(
-      join(process.cwd(), "migrations/001_player_profiles.sql"),
-      "utf8",
-    );
-    await pool.query(sql);
     repo = new PlayerProfileRepository(pool);
   });
 
@@ -67,70 +58,29 @@ RUN("PlayerProfileRepository (integration)", () => {
   });
 
   beforeEach(async () => {
-    await pool.query(
-      `TRUNCATE player_match_xp_credits, player_name_history,
-               player_cosmetic_ownership, player_profiles RESTART IDENTITY CASCADE`,
-    );
+    await truncateProfileTables(pool);
+    P = await createYandexPlayer(pool, "yandex-int-1");
   });
 
   test("ping resolves against a live connection", async () => {
     await expect(repo.ping()).resolves.toBeUndefined();
   });
 
-  test("upsertProfile creates a fresh profile at xp 0", async () => {
-    const profile = await repo.upsertProfile(P, PID);
-    expect(profile.xp).toBe(0);
-    expect(profile.is_citizen).toBe(false);
-    expect(profile.is_paid_citizen).toBe(false);
-    expect(profile.yandex_player_id).toBe(P);
-    expect(profile.persistent_id).toBe(PID);
-
-    const read = await repo.getProfile(P);
-    expect(read).not.toBeNull();
-    expect(read?.xp).toBe(0);
+  test("a freshly created player reads back at xp 0 with no citizenship and no identity fields", async () => {
+    const profile = await repo.getProfile(P);
+    expect(profile).not.toBeNull();
+    expect(profile?.xp).toBe(0);
+    expect(profile?.is_citizen).toBe(false);
+    expect(profile?.is_paid_citizen).toBe(false);
+    expect(profile).not.toHaveProperty("id");
+    expect(profile).not.toHaveProperty("yandex_player_id");
   });
 
   test("getProfile returns null when no row exists", async () => {
-    expect(await repo.getProfile("nobody")).toBeNull();
+    expect(await repo.getProfile(GHOST)).toBeNull();
   });
 
-  test("cross-account persistent_id collision throws PersistentIdConflictError", async () => {
-    await repo.upsertProfile(P, PID);
-
-    // Fresh-insert path: a different Yandex account presents the same persistentId.
-    await expect(
-      repo.upsertProfile("yandex-other", PID),
-    ).rejects.toBeInstanceOf(PersistentIdConflictError);
-
-    // Relink path: an existing account tries to adopt a persistentId already
-    // owned by a third account.
-    const PID3 = "55555555-5555-5555-5555-555555555555";
-    await repo.upsertProfile("yandex-3", PID3);
-    await expect(repo.upsertProfile(P, PID3)).rejects.toBeInstanceOf(
-      PersistentIdConflictError,
-    );
-
-    // No partial writes: the original row is intact, no stray rows created.
-    const profile = await repo.getProfile(P);
-    expect(profile?.persistent_id).toBe(PID);
-    expect(await repo.getProfile("yandex-other")).toBeNull();
-  });
-
-  test("upsertProfile relinks persistent_id when it changes, no-ops when same", async () => {
-    await repo.upsertProfile(P, PID);
-    const newPid = "22222222-2222-2222-2222-222222222222";
-
-    const relinked = await repo.upsertProfile(P, newPid);
-    expect(relinked.persistent_id).toBe(newPid);
-
-    // Same persistent_id again: still returns the row (DO UPDATE skipped).
-    const same = await repo.upsertProfile(P, newPid);
-    expect(same.persistent_id).toBe(newPid);
-  });
-
-  test("creditMatchXp is idempotent on (game_id, yandex_player_id)", async () => {
-    await repo.upsertProfile(P, PID);
-
+  test("creditMatchXp is idempotent on (game_id, player_id)", async () => {
     expect(await repo.creditMatchXp("g1", P, 10)).toEqual({
       status: "credited",
       citizenshipNewlyGranted: false,
@@ -145,14 +95,14 @@ RUN("PlayerProfileRepository (integration)", () => {
 
     // Exactly one ledger row.
     const ledger = await pool.query(
-      "SELECT count(*)::int AS n FROM player_match_xp_credits WHERE yandex_player_id = $1",
+      "SELECT count(*)::int AS n FROM player_match_xp_credits WHERE player_id = $1",
       [P],
     );
     expect(ledger.rows[0].n).toBe(1);
   });
 
   test("creditMatchXp on a missing profile reports no_profile and writes nothing", async () => {
-    expect(await repo.creditMatchXp("g1", "ghost", 10)).toEqual({
+    expect(await repo.creditMatchXp("g1", GHOST, 10)).toEqual({
       status: "no_profile",
       citizenshipNewlyGranted: false,
     });
@@ -161,7 +111,7 @@ RUN("PlayerProfileRepository (integration)", () => {
       "SELECT count(*)::int AS n FROM player_match_xp_credits",
     );
     expect(ledger.rows[0].n).toBe(0);
-    expect(await repo.getProfile("ghost")).toBeNull();
+    expect(await repo.getProfile(GHOST)).toBeNull();
   });
 
   test("citizenship flips at the threshold, earned_at is stamped once, and only the crossing credit reports newly granted", async () => {
@@ -171,7 +121,6 @@ RUN("PlayerProfileRepository (integration)", () => {
     // 100 / award 1 (ADR-111's ÷10 rescale). ⚠️ This suite runs only under
     // `npm run test:integration`, so `npm test` CANNOT catch this drift — any
     // further move of those constants must update these numbers by hand.
-    await repo.upsertProfile(P, PID);
 
     expect(await repo.creditMatchXp("g1", P, 99)).toEqual({
       status: "credited",
@@ -212,7 +161,6 @@ RUN("PlayerProfileRepository (integration)", () => {
   });
 
   test("a single large award flips citizenship in one shot", async () => {
-    await repo.upsertProfile(P, PID);
     expect(await repo.creditMatchXp("g1", P, 1500)).toEqual({
       status: "credited",
       citizenshipNewlyGranted: true,
@@ -226,12 +174,11 @@ RUN("PlayerProfileRepository (integration)", () => {
     // Owner-ruled 2026-08-23: keep the pre-0017 stamp-on-crossing behavior for
     // paid citizens; the newly-granted flag (and thus the future inbox message)
     // stays suppressed because is_citizen was already true.
-    await repo.upsertProfile(P, PID);
     await pool.query(
-      `UPDATE player_profiles
+      `UPDATE players
        SET is_citizen = true, is_paid_citizen = true,
            citizenship_purchased_at = now()
-       WHERE yandex_player_id = $1`,
+       WHERE id = $1`,
       [P],
     );
 
@@ -248,11 +195,7 @@ RUN("PlayerProfileRepository (integration)", () => {
   test("a manually seeded row already past the threshold is granted (and reported) on its next credit", async () => {
     // E.g. an operator seeding xp directly (the brief's own verification seeds
     // 990; seeding ≥1000 must not strand the row citizen-less forever).
-    await repo.upsertProfile(P, PID);
-    await pool.query(
-      "UPDATE player_profiles SET xp = 1500 WHERE yandex_player_id = $1",
-      [P],
-    );
+    await pool.query("UPDATE players SET xp = 1500 WHERE id = $1", [P]);
 
     expect(await repo.creditMatchXp("g1", P, 10)).toEqual({
       status: "credited",
@@ -265,8 +208,6 @@ RUN("PlayerProfileRepository (integration)", () => {
   });
 
   test("concurrent identical credits apply exactly once", async () => {
-    await repo.upsertProfile(P, PID);
-
     const [a, b] = await Promise.all([
       repo.creditMatchXp("g1", P, 10),
       repo.creditMatchXp("g1", P, 10),
@@ -293,11 +234,7 @@ RUN("PlayerProfileRepository (integration)", () => {
     // commits second is now guaranteed to hit the EvalPlanQual recheck against
     // the winner's committed grant — the exact interleaving that made the
     // rejected snapshot self-join shape double-report newly-granted.
-    await repo.upsertProfile(P, PID);
-    await pool.query(
-      "UPDATE player_profiles SET xp = 995 WHERE yandex_player_id = $1",
-      [P],
-    );
+    await pool.query("UPDATE players SET xp = 995 WHERE id = $1", [P]);
 
     const holder = await pool.connect();
     let credits: Promise<
@@ -305,10 +242,7 @@ RUN("PlayerProfileRepository (integration)", () => {
     > | null = null;
     try {
       await holder.query("BEGIN");
-      await holder.query(
-        "SELECT 1 FROM player_profiles WHERE yandex_player_id = $1 FOR UPDATE",
-        [P],
-      );
+      await holder.query("SELECT 1 FROM players WHERE id = $1 FOR UPDATE", [P]);
 
       // Both credits block inside CREDIT_SQL (the ledger INSERT's FK check needs
       // a KEY SHARE on the profile row, which the held FOR UPDATE conflicts with).
@@ -346,7 +280,6 @@ RUN("PlayerProfileRepository (integration)", () => {
   });
 
   test("xp reads back as a number, not a bigint string", async () => {
-    await repo.upsertProfile(P, PID);
     await repo.creditMatchXp("g1", P, 10);
     const profile = await repo.getProfile(P);
     expect(typeof profile?.xp).toBe("number");

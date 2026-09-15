@@ -62,10 +62,85 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
   the game server gets a non-empty `PROFILE_INTERNAL_TOKEN` that matches the box's.
 - ⛔ **Anything still open** ⇒ `PROFILE_INTERNAL_TOKEN` **stays blank for that deploy**, exactly as the
   standing blank-token ruling says, and this phase waits for a later owner-chosen window.
-- 🚩 **The condition's edges were NOT ruled — do not settle them between agents.** Read literally it
+- ~~🚩 **The condition's edges were NOT ruled — do not settle them between agents.** Read literally it
   cannot be met: several open Sprint 4 rows sit **downstream of this very wiring** — `0062`'s
   verification, the `0017` / `0012` Deferred Live Tails, `0065` — and `0014` waits on Yandex, not on
-  us. Which rows count as *"left"* is the owner's call; put it to the owner before the slot.
+  us. Which rows count as *"left"* is the owner's call; put it to the owner before the slot.~~
+  *(struck 2026-09-14, kept not deleted — the owner ruled the edges; see the next bullet.)*
+- ✅ **EDGES OWNER-RULED 2026-09-14, given live in the lead session (`AskUserQuestion`) and relayed by
+  `fkit-lead`.** Asked what *"everything left in Sprint 4"* means, the owner answered, verbatim:
+  *"Everything that CAN finish before"*. ⇒ Tasks that can only finish **after** XP is wired, or that
+  **wait on Yandex**, do **not** count. **Every other open Sprint 4 task must be done by the weekend
+  deploy** for `PROFILE_INTERNAL_TOKEN` to be set. Not producer precedent.
+  **Buckets — the producer's sort of the board as read 2026-09-14. The rule is the owner's; the sort
+  is not. Re-read the board before the slot.**
+  - ⛔ **Excluded — can only finish after the wiring:** `0062` (live verification), `0017` and `0012`
+    (Deferred Live Tails), `0065` (also waits on `0014`) — all four named in the question put to the
+    owner. **Derived, not named — ⚠️ PRODUCER INFERENCE, NOT owner-confirmed (still so after the 2026-09-14 `0032`/`0064` ruling below):** `0018` (open pending `0065`), `0020` (needs citizenship tiers
+    live — `0017`/`0018`), `0030` (hard-blocked on `0017`/`0018`), `0213` (the epic; this task is one
+    of its children).
+  - ⛔ **Excluded — waits on Yandex:** `0014`.
+  - ✅ **Counts — must be done by the weekend deploy:** ~~`0203`,~~ *(struck 2026-09-14, kept — owner
+    ruled it off the list; see the `0203` bullet below)* `0253`, `0259`, `0260`
+    (🔄 In progress); `0219`, `0220`, `0221` (🚧 Blocked — owner-side live tails); `0238` (🔲 Backlog —
+    needs a staging or prod build and the Yandex console, not Yandex approval).
+  - ~~🚩 **Not settled by the ruling — owner's call before the slot:** `0032` and `0064`. Neither waits
+    on the wiring or on Yandex, but each one's remaining step **is** the weekend game deploy itself —
+    `0032` step 5 (owner-ruled to wait for that slot), `0064` verification step 8 (the report-only
+    production run); `0064`'s `--enforce` wiring also waits on `0203`. They can finish *at* that
+    deploy, not *before* it.~~
+    *(struck 2026-09-14, kept not deleted — the owner ruled it; see the next bullet.)*
+  - ✅ **`0032` / `0064` OWNER-RULED 2026-09-14, given live in the lead session (`AskUserQuestion`)
+    and relayed by `fkit-lead`.** The owner, verbatim: *"Don't count them"* — their last step **is**
+    the weekend deploy itself, so they cannot gate it. ⇒ **`0032` and `0064` are EXCLUDED** from the
+    go-live list. Not producer precedent. Resolves the producer's earlier flag above.
+  - 📌 **Board update, 2026-09-14:** `0259` in the *Counts* bucket is now **`✅ Done (agent-closed — not
+    owner-verified)`** — findings delivered, owner accepted the ~14-day retention; follow-up
+    [`0263`](../0263-confirm-uptrace-ce-14-day-retention-hard-cap-or-configurable/brief.md) is on the
+    Backlog board, not Sprint 4, so it does not count.
+  - 📌 **Board update, 2026-09-14:** `0260` in the *Counts* bucket is now **`✅ Done (agent-closed — not
+    owner-verified)`** — owner accepted no client symbolication for now and the dead upload was removed;
+    follow-up [`0264`](../0264-revisit-client-source-map-symbolication/brief.md) is on the Backlog
+    board, not Sprint 4, so it does not count.
+  - ✅ **`0203` OWNER-RULED OFF THE GO-LIVE LIST 2026-09-14, given live in the lead session
+    (`AskUserQuestion`) and relayed by `fkit-lead`.** Asked whether `0203` should stay on the *"must be
+    done before XP goes live"* list — its remaining six items only matter once the guard starts
+    blocking deploys (`0064`'s arming), and none makes the weekend deploy safer — the owner answered,
+    verbatim: *"Take it off the list"*. ⇒ **`0203` is EXCLUDED; XP go-live does not wait on it.**
+    `0203` stays open and must be finished **before `0064` wires `--enforce`** instead. Grounding
+    relayed with the question (coder decision pack, 2026-09-14): both deploy call sites run the guard
+    `--report-only || true`, nothing passes `--enforce`, and the real tree shows 0 parse failures / 0
+    dynamic reads / 0 skips. Not producer precedent.
+  - ⚠️ **Risk, flagged not settled:** several counting tasks still need the owner before the slot —
+    ~~`0203`'s current run covers only its no-decision items (R4, R13, R14, R19, R21 each need an owner
+    decision);~~ *(struck 2026-09-14, kept — `0203` no longer counts, see above)* `0253` waits on the owner's O1–O3 numbers, then a ruling, then a build; `0260` is
+    stopped pending owner direction; `0219`/`0220`/`0221` wait on owner-run live tails.
+- 📌 **GO-LIVE LIST UPDATE 2026-09-15 — OWNER RULINGS given live in a design discussion in the lead
+  session and relayed by `fkit-lead` to a spawned `fkit-producer`. Not producer precedent.**
+  - **`0253` now depends on [`0266`](../0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)**
+    (profile identity: internal player id, platform logins, a login endpoint). `0253` is `🚧 Blocked`
+    pending `0266`'s design; its tenure-grant flow was redesigned the same day (see `0253`).
+  - ✅ **`0266` COUNTS** — filed in Sprint 4 with the owner's scheduling *"before XP go-live"*. It
+    neither waits on the wiring nor on Yandex, so under the 2026-09-14 edges ruling it must be done
+    for `PROFILE_INTERNAL_TOKEN` to be set.
+  - 📅 **XP go-live may slip past this weekend** — owner: *"it's ok"*; it may even skip the next weekend
+    slot. **The game deploy still happens, with `PROFILE_INTERNAL_TOKEN` blank** (the standing
+    blank-token ruling applies unchanged).
+  - ⚠️ The *Risk* bullet above (`0253` waits on O1–O3 numbers) is **superseded as to `0253`**: it now
+    waits on `0266`'s design, then a rework of its uncommitted build.
+- 📌 **GO-LIVE LIST UPDATE 2026-09-15 (later) — OWNER RULINGS via `AskUserQuestion` in the lead session,
+  relayed by `fkit-lead` to a spawned `fkit-producer`: design approved with the login token in v1
+  (*"Token now, not later"*), ADR-113 accepted, build *"Split into 4"* (+ monitoring as a 5th slice under
+  *"monitoring before go-live"*), alerts by email. Not producer precedent.**
+  - `0266` is now an **epic**; the counting work is its five slices. ✅ **All five COUNT** — none waits on
+    the wiring or on Yandex: [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1), [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5).
+  - **This task now depends on all five** (see `## Depends on`). Per design §7: **all of S1–S5 land and
+    deploy before `PROFILE_INTERNAL_TOKEN` is set.**
+  - ✅ **`0253` still counts**, but its rework now waits on `0273` (S4), not on `0266`'s design.
+  - ⚠️ The earlier 2026-09-15 bullet (*"`0253` now depends on `0266`"*, *"`0266` COUNTS"*) is superseded
+    as to the gate: read `0266` as the epic of `0270`–`0274`.
+  - 🚩 **Post-go-live items from `0274` (S5), flagged for the owner, not ruled:** arm alert A2 on day 8
+    after go-live; re-baseline alerts A1–A6 after 14 days.
 - ⚠️ **`## Status` below is UNCHANGED.** A conditional go-live slot is not a start.
 
 ## Status
@@ -77,6 +152,7 @@ fkit-coder / operator
 ## Depends on
 [`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box must exist, be healthy, and hold
 a **known** `PROFILE_INTERNAL_TOKEN`.
+Plus, added 2026-09-15 on owner rulings relayed by `fkit-lead`: [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1), [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5) — the five profile-identity slices of epic `0266`; **all five deployed and verified before `PROFILE_INTERNAL_TOKEN` is set** (design §7).
 
 ## Context
 
@@ -188,8 +264,10 @@ whether or not `004` is applied. RUN IT, rather than investigating first.**
 ## What to build
 
 0. **Run the migrations against the profile DB** (`npm run migrate`) — ✅ safe either way, and it
-   closes the `0067` question above without needing to answer it first. **Confirm `004` is present in
-   `schema_migrations` afterwards.**
+   closes the `0067` question above without needing to answer it first. ~~**Confirm `004` is present in
+   `schema_migrations` afterwards.**~~ 📌 **Corrected 2026-09-15 (architect, design §7):** confirm
+   `schema_migrations` lists **`001`–`004` and `006_player_identity.sql`** (S1, `0270`) — and **no
+   `005`** (deleted, never deployed).
 1. **Set `PROFILE_API_URL`** in the game's production env to the profile host.
 2. **Set `PROFILE_INTERNAL_TOKEN`** in the game's production env to **exactly** the value `0215`
    generated for the box. 🚨 **Matching is the whole point.** Not "set", not "non-empty" — **the
@@ -218,8 +296,10 @@ whether or not `004` is applied. RUN IT, rather than investigating first.**
 2. **D2 (container env read) shows a NON-EMPTY token** on this deploy. ⚠️ **`D2` converts inference
    into fact ONLY on a deploy whose source value was non-empty** — that is what makes this deploy
    different from the 2026-08-29 one.
-3. **A profile row is actually created**, and **XP is actually credited**, for a real match in
-   production. ⚠️ `isConfigured()` being true is not the same as `upsertProfile()` and
+3. ~~**A profile row is actually created**, and **XP is actually credited**, for a real match in
+   production.~~ 📌 **Corrected 2026-09-15 (architect, design §7):** for a real match in production,
+   **a `players` row + a `player_identities` row are created, and a `(game_id, player_id)` credit
+   lands** — keyed by the internal player id, not the Yandex id. ⚠️ `isConfigured()` being true is not the same as `upsertProfile()` and
    `creditMatch()` succeeding.
 4. **D4 — the partial-config warning fires when it should and does NOT fire when both variables are
    set.**
@@ -229,7 +309,10 @@ whether or not `004` is applied. RUN IT, rather than investigating first.**
    output. Check `deploy.sh` does not echo the heredoc it writes.
 7. **The allow-list was measured, not assumed** — the worklog states how the current egress IP was
    determined. 🔒 **Record the METHOD, never the address.**
-8. 🆕 **`schema_migrations` contains `004_name_change.sql`** after step 0. ⚠️ **Record whether it was
+8. 🆕 ~~**`schema_migrations` contains `004_name_change.sql`** after step 0.~~ 📌 **Corrected 2026-09-15:**
+   **`schema_migrations` contains `006_player_identity.sql`** (and `001`–`004`) after step 0. The `004`
+   half of the question below was answered read-only by `fkit-lead` on 2026-09-15 (box applied
+   `001`–`004`), recorded in the design report's box facts. ⚠️ **Record whether it was
    ALREADY there or was applied by this task** — that is the answer to the `0067` question, and it is
    worth writing down since nothing else can establish it.
 9. 🆕 **The three name-change routes respond** on the deployed image (`Routes.ts:739`, `:784`, and the

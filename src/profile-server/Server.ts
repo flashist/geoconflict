@@ -17,9 +17,10 @@ import { InboxRepository } from "./InboxRepository";
 import { logger } from "./Logger";
 import { NameChangeRepository } from "./NameChangeRepository";
 import { PaymentsRepository } from "./PaymentsRepository";
+import { PlayerIdentityRepository } from "./PlayerIdentityRepository";
 import { PlayerProfileRepository } from "./PlayerProfileRepository";
 import { profileHttpPort } from "./ProfileEndpoints";
-import { createApp } from "./Routes";
+import { createApp, type ProfileRepo } from "./Routes";
 import { createGracefulShutdown } from "./Shutdown";
 
 dotenv.config();
@@ -30,7 +31,20 @@ const pool = createPool();
 // Personal inbox (task 0012): one repository serves the player routes AND the
 // post-commit citizenship seams in both repositories below.
 const inbox = new InboxRepository(pool);
-const repo = new PlayerProfileRepository(pool, inbox);
+const profiles = new PlayerProfileRepository(pool, inbox);
+// Task 0270: the platform id → internal player id mapping lives in its own
+// repository; the routes see both through one structural ProfileRepo.
+const identities = new PlayerIdentityRepository(pool);
+const repo: ProfileRepo = {
+  ping: () => profiles.ping(),
+  getProfile: (playerId) => profiles.getProfile(playerId),
+  creditMatchXp: (gameId, playerId, xpAwarded) =>
+    profiles.creditMatchXp(gameId, playerId, xpAwarded),
+  findPlayerByIdentity: (platform, platformUserId) =>
+    identities.findPlayerByIdentity(platform, platformUserId),
+  resolveOrCreatePlayer: (platform, platformUserId, source) =>
+    identities.resolveOrCreatePlayer(platform, platformUserId, source),
+};
 // Yandex per-game payments secret (HMAC key). Unset/empty ⇒ the payments routes
 // fail closed with 503 (see Routes.ts). Never logged, never committed.
 const yandexPaymentsSecret = process.env.YANDEX_PAYMENTS_SECRET ?? "";

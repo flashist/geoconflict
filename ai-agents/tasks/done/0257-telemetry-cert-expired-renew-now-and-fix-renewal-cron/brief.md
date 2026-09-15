@@ -126,8 +126,8 @@ edit.
 ### 🚫 Not in scope
 
 - Alerting when renewal fails — [`0258`](../../backlog/0258-telemetry-cert-renewal-failure-signal/brief.md).
-- Retention not being applied — [`0259`](../../backlog/0259-investigate-uptrace-retention-not-applied/brief.md).
-- Source-map symbolication — [`0260`](../../backlog/0260-verify-client-source-map-upload-runs-for-prod-builds/brief.md).
+- Retention not being applied — [`0259`](../0259-investigate-uptrace-retention-not-applied/brief.md).
+- Source-map symbolication — [`0260`](../0260-verify-client-source-map-upload-runs-for-prod-builds/brief.md).
 - Restart policy on the telemetry compose services — `0255`.
 - Any client/server exporter change (durable queueing etc.) — out of scope; data lost is lost.
 
@@ -177,7 +177,7 @@ edit.
 - **Depends on:** nothing.
 - **Blocks:** [`0258`](../../backlog/0258-telemetry-cert-renewal-failure-signal/brief.md) (hard); the
   end-to-end verification in
-  [`0260`](../../backlog/0260-verify-client-source-map-upload-runs-for-prod-builds/brief.md); and `0032`'s
+  [`0260`](../0260-verify-client-source-map-upload-runs-for-prod-builds/brief.md); and `0032`'s
   owner-side Step 5 verification (not `0032`'s build, which is done).
 - **Why four briefs from one finding:** this one restores ingest and stops the recurrence; the other
   three are different failure classes on the same box (nothing watches renewal; retention not applied;

@@ -19,7 +19,8 @@ the `Medium–low` below is still the producer's. Status unchanged. The Backlog-
 ~~Backlog — unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md), not on Sprint 4, because
 no owner ruling scheduled it into a sprint and it cannot start until `0064`'s report-only run has
 happened. See Notes for the board-choice reasoning.~~ *(struck 2026-09-12, kept not deleted; the
-"cannot start until `0064`'s report-only run has happened" part is still true.)*
+"cannot start until `0064`'s report-only run has happened" part is still true.)* 📌 *(2026-09-14: that
+part is now WAIVED by owner ruling — see `## Status` and `## Notes`.)*
 
 ## Priority
 **Medium–low. Producer's rank, not an owner ruling.**
@@ -34,7 +35,7 @@ happened. See Notes for the board-choice reasoning.~~ *(struck 2026-09-12, kept 
 - Rank it above ordinary polish and below anything player-facing or live-money.
 
 ## Status
-🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-14 · scope this run: the no-decision fixes R12, R1, R15, R16, R18 only · ⚠️ this start PRECEDES `0064`'s weekend report-only production run, which `## Notes` records as a dependency (*"its report-only run must have happened"*; `0064` is still 🔄 In progress) — the driver relayed the start as owner-ruled; whether that dependency was waived knowingly is not recorded
+🚧 Blocked — this run (R12, R1+R10 incl. reverse case, R15, R18, R16, plus review fixes R2/R3) built + reviewed 2026-09-14, review round 2 closed out, Codex full, npm test 122/1305; open pending OWNER decisions on the remaining pre-arming items (R4, R13, R14 second half, R19, R21, item 11) and the brief's open questions · earlier: 🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-14 · scope this run: the no-decision fixes R12, R1, R15, R16, R18 only · ⚠️ this start PRECEDES `0064`'s weekend report-only production run, which `## Notes` records as a dependency (*"its report-only run must have happened"*; `0064` is still 🔄 In progress) — the driver relayed the start as owner-ruled; ~~whether that dependency was waived knowingly is not recorded~~ *(struck 2026-09-14, kept not deleted — answered by the ruling that follows)* · 📌 **OWNER RULING 2026-09-14, given live in the lead session (`AskUserQuestion`) and relayed by `fkit-lead`: the ordering dependency on `0064`'s weekend report-only run is WAIVED.** Asked *"0203's brief said it should wait for the guard's (0064) weekend report run. It's already building (it switches nothing on). Is that OK?"*, the owner answered *"Yes, build now"*. ⇒ the weekend report-only run uses the improved checker. Build running on `plan.md`, owner-approved 2026-09-14 (R1 option A — `server-only` / `runtime-supplied` allowlist labels; R10 folded in). Not producer precedent for waiving any other dependency. Status token unchanged
 
 ## Owner
 fkit-coder
@@ -86,6 +87,9 @@ whole reason this brief exists.
 
 Ten items. Each is one line in `0064`'s round-2 pre-arming list; the detail below is the ledger's,
 not a paraphrase.
+
+📌 **2026-09-14: an eleventh item was added — §11, `0203` review R4, on an owner ruling.** "Ten" in the
+title and below is kept as filed; read it as eleven.
 
 Unless stated otherwise the surface is `scripts/check-config-parity.mjs`,
 `scripts/config-parity-allowlist.json` and `tests/scripts/ConfigParity.test.ts`. **No application
@@ -241,6 +245,32 @@ What survives is sharper: **the scanner walks only `src/`, so build-tooling read
 invisible, and extending the reverse check naively would produce a *false* dead call on
 `PUBLIC_ORIGIN`.** No live defect; a real asymmetry to reason about before arming.
 
+📌 **Note added 2026-09-14 by a spawned `fkit-producer` — owner ruling on `0260` review R2 ("Producer
+adds a note"), given live in the lead session and relayed by `fkit-sprint-ship-loop`.** The worked example
+above is **gone since [`0260`](../../done/0260-verify-client-source-map-upload-runs-for-prod-builds/brief.md)**:
+it removed `scripts/upload-sourcemaps.js` and the `PUBLIC_ORIGIN` `ENV` from the `Dockerfile`, so the
+file, the key and both line refs no longer exist. The text above is kept as filed. **The point still
+holds:** the scanner walks only `src/` and is blind to reads under `scripts/` — it just has no live
+example today.
+
+### 11. `0203` review R4 — whole-object uses of `process.env` are silent: no `DYNAMIC-READ`. **Added 2026-09-14.**
+
+📌 **Added by a spawned `fkit-producer` on an owner ruling on `0203`'s own review R4 — *"Add to 0203's
+pre-arming list"* — given live in the lead session and relayed by `fkit-sprint-ship-loop`.** ⚠️ **Not the
+same R4 as item 2** (that is `0064`'s ledger R4). **Not fixed in the run that found it; not an accepted
+residual.** Source: this folder's `review.md`, finding R4.
+
+`ENV_ALIAS` in `scripts/check-config-parity.mjs` (`:129` in the working tree on 2026-09-14; the
+ledger cites `:128`) only matches when `=` comes right before `process.env`. So a whole-object use in
+any other shape is neither enumerated nor announced. **Reproduced:** `const env = (process.env);
+env.ZZ_PAREN` and `Object.keys(process.env)` both give `dynamicReads: []`. By reading the pattern, the
+same holds for passing `process.env` to a function, a spread, and a `return`. **0 live instances**
+(every env read under `src/` was listed; none has this shape). **Pre-existing** — not introduced by
+`0203`. **Not covered by item 9 (R19)**, which is about a read that *is* announced being called dead.
+
+Decide and pin: either these shapes emit `DYNAMIC-READ` (and then follow item 9's ruling), or the
+blind spot is documented as a known limit — with a test either way.
+
 ---
 
 ## Verification steps
@@ -249,6 +279,9 @@ invisible, and extending the reverse check naively would produce a *false* dead 
    reproduction (R1, R12, R13, R15, R16, R18, R19), re-run that exact reproduction and show it now
    behaves correctly. For the decision-only items (R4, R14 second half, R21), record the decision and
    the assertion that pins it.
+   📌 *(added 2026-09-14)* Item 11 (`0203` review R4) also needs an executable proof: re-run the two
+   recorded reproductions (`(process.env)` alias, `Object.keys(process.env)`) and show the ruled
+   behaviour.
 2. **Every new test is mutation-proved falsifiable.** ⚠️ **This is not optional and not a formality —
    it is the standing bar on this code.** Round 1 shipped a vacuous assertion (R2); round 2 found two
    more one-sided ones (R17). Break the behaviour each new test names, watch it go red, revert. Report
@@ -273,8 +306,23 @@ invisible, and extending the reverse check naively would produce a *false* dead 
 
 - **Depends on:** [`0064`](../0064-deploy-time-config-parity-guard/brief.md) — the guard must exist and
   its report-only run must have happened. This task edits the code `0064` built.
+  📌 **Ordering WAIVED 2026-09-14 — OWNER RULING, given live in the lead session (`AskUserQuestion`)
+  and relayed by `fkit-lead`:** *"Yes, build now"*. The line above is kept, not deleted: only its
+  *"report-only run must have happened"* half is waived — the guard exists, and this task still edits
+  `0064`'s code. The weekend report-only run uses the improved checker. Not producer precedent.
 - **Blocks:** `0064`'s remaining arming step (wiring `--enforce`, ruling R3's second half). **Hard
   sequencing: all ten items land first.**
+  📌 *(2026-09-14: this line already states the block the ruling below leans on — kept as written.)*
+- **NOT a gate on XP go-live — OWNER RULING 2026-09-14, given live in the lead session
+  (`AskUserQuestion`) and relayed by `fkit-lead`.** Asked whether this task should stay on `0217`'s
+  *"must be done before XP goes live"* list, the owner answered, verbatim: *"Take it off the list"*.
+  ⇒ `0217`'s weekend go-live does **not** wait on this task. Its remaining items (R4, R13, R14 second
+  half, R19, R21, item 11, and the Open questions below) are gated on **`0064`'s arming step** instead:
+  they must all land **before `--enforce` is wired**, and nowhere earlier. Grounding relayed with the
+  question: both deploy call sites run the guard `--report-only || true` and nothing passes
+  `--enforce`, so none of them makes the weekend deploy safer. A coder **decision pack** (2026-09-14)
+  exists with options and a recommendation for R4 (a/b), R13, R14, R19, R21, item 11 and Q1 — the lead
+  session holds it; it is not reproduced here. `## Status` unchanged. Not producer precedent.
 - **Related:** `0061`, `0062`, `0063`, `0195` — the four instances of the silent-misconfig class the
   guard exists to catch. `0201` (shell-harness gating) touches
   `tests/scripts/profile-deploy-hardening.test.sh`; do not edit that file here.

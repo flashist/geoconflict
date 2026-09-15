@@ -1,0 +1,3620 @@
+diff --git a/ai-agents/knowledge-base/analytics-event-reference.md b/ai-agents/knowledge-base/analytics-event-reference.md
+index 03ceea6..125703d 100644
+--- a/ai-agents/knowledge-base/analytics-event-reference.md
++++ b/ai-agents/knowledge-base/analytics-event-reference.md
+@@ -311,6 +311,16 @@ Part of the citizenship funnel (`ai-agents/tasks/done/0021-analytics-p1-citizens
+ | `PURCHASE_ABANDONED_CITIZENSHIP` | `Purchase:Abandoned:Citizenship` | A started flow ended without a Completed: the player closed the payment frame, the SDK rejected, `purchase()` resolved without a signature, or the server `/complete` call failed (task 0018; spec `0021` §5 — cancel and failure both count as abandoned). Exactly one of Completed/Abandoned per started flow. Known residual (0021-as-written): a real payment whose `/complete` failed logs Abandoned even though next-session reconciliation later lands the grant                                                                                                                                                                                                                                                                                                                                     |
+ | `CITIZENSHIP_SURFACE_SEEN`       | `Citizenship:Seen`               | Once per page load, when the citizenship card on the start screen is rendered and actually visible (after game init completes — not during the Yandex preload curtain, and not while the card is hidden). The whole card is gated by the `citizenship_ui` experiment flag — players in the disabled cohort never see the card and never fire this event (their cohort anchor is `Experiment:citizenship_ui:{value}`). ⚠️ **Known risk — may under-count; see the note under this table**                                                                                                                                                                                                                                                                                                                    |
+ | `CITIZENSHIP_EARNED_XP`          | `Citizenship:Earned:XP`          | Once per account+device, when a re-fetched server profile first shows `citizenship_earned_at` set after a previous observation without it — i.e. the first client observation of the server-side 1,000-XP earned-citizenship grant (task 0017; spec `0021` §6). Fires from `loadPlayerProfileView()` (profile re-fetch on page load / post-match return), never from the local XP display. Keyed on `citizenship_earned_at` (not `is_citizen` — the paid grant sets that too). Known accepted residuals (owner ruling 2026-08-23): under-counts a grant first observed on a fresh device/cleared storage; over-counts a paid citizen later crossing the XP threshold. Gated behind `CITIZENSHIP_CARD_ENABLED` (the only caller is the citizenship card's profile load), so it goes live at the 0017 flip-ON |
++| `CITIZENSHIP_TENURE_GRANT_CLAIMED` | `Citizenship:TenureGrant:Claimed` | The profile server **granted** the one-time tenure XP grant (`POST /v1/profile/tenure-grant` answered 200 `granted`) — never before the server answer (task 0253, ADR-112). **Value:** the XP awarded (1–50). Fires from `maybeClaimTenureGrant()` (`src/client/TenureGrantClaim.ts`), right after the device marker is set and before the thank-you modal opens. At most once per device |
++| `CITIZENSHIP_TENURE_GRANT_REJECTED` | `Citizenship:TenureGrant:Rejected:{BelowMinimum\|Implausible\|WindowNotOpen\|WindowClosed\|NoProfile\|NoCreditedMatch\|Duplicate}` | A tenure-grant claim was refused; the suffix is added at the call site (the `MATCH_LEADERBOARD_AWARD` pattern). `BelowMinimum` fires either from the server's 422 or **locally, with no request**, when the device's raw day count is under 3. `Duplicate` = the server answered 200 `duplicate` on a device with no marker (the ack was lost, or another device claimed first) — the modal still opens. **Permanent** (marker set, never fires again on the device): `BelowMinimum`, `Implausible`, `WindowClosed`, `Duplicate`. **Temporary** (no marker, retried next page load): `WindowNotOpen`, `NoProfile`, `NoCreditedMatch` |
++| `CITIZENSHIP_TENURE_GRANT_CLAIM_FAILED` | `Citizenship:TenureGrant:ClaimFailed` | A tenure-grant claim got no usable server answer — network error, 10 s timeout, 5xx, 429, 400, or a body that does not parse. No marker is set, so it is **retried on the next page load** |
++
++> **Counting the tenure-grant events (task 0253) — use UNIQUE USERS, not event counts.**
++> `Rejected:WindowNotOpen`, `Rejected:NoProfile`, `Rejected:NoCreditedMatch` and `ClaimFailed` are
++> temporary: they fire **once per page load** until they resolve, so a single player can fire them many
++> times. Only `Claimed` and the permanent rejections fire at most once per device. The claim runs only
++> after an authoritative logged-in profile read, so guests and degraded sessions never fire any of them.
++> None of them can fire before `0217` (XP crediting) is deployed **and** the flag below is turned on.
+ 
+ > **⚠️ Not live yet.** Every event in this table is gated behind
+ > `flashistConstants.features.CITIZENSHIP_CARD_ENABLED: false`
+diff --git a/resources/lang/en.json b/resources/lang/en.json
+index e52742c..c48cca1 100644
+--- a/resources/lang/en.json
++++ b/resources/lang/en.json
+@@ -82,6 +82,11 @@
+     "error_not_citizen": "Name changes are available to citizens only.",
+     "error_generic": "Something went wrong. Please try again."
+   },
++  "citizenship_tenure_grant": {
++    "title": "Thanks for being with us!",
++    "body": "You've played Geoconflict on {days} days before citizenship arrived. As a thank-you, we've added {xp} XP to your progress — you now have {total} / {threshold} XP.",
++    "cta": "Great!"
++  },
+   "inbox": {
+     "empty": "No personal messages yet.",
+     "templates": {
+diff --git a/resources/lang/ru.json b/resources/lang/ru.json
+index ce38f46..86d4eeb 100644
+--- a/resources/lang/ru.json
++++ b/resources/lang/ru.json
+@@ -86,6 +86,11 @@
+     "error_not_citizen": "Смена имени доступна только гражданам.",
+     "error_generic": "Что-то пошло не так. Попробуйте ещё раз."
+   },
++  "citizenship_tenure_grant": {
++    "title": "Спасибо, что вы с нами!",
++    "body": "Дней в игре до появления гражданства: {days}. В благодарность мы начислили вам {xp} XP — теперь у вас {total} / {threshold} XP.",
++    "cta": "Отлично!"
++  },
+   "inbox": {
+     "empty": "Личных сообщений пока нет.",
+     "templates": {
+diff --git a/src/client/CitizenshipCard.ts b/src/client/CitizenshipCard.ts
+index 018c5c6..8735543 100644
+--- a/src/client/CitizenshipCard.ts
++++ b/src/client/CitizenshipCard.ts
+@@ -14,6 +14,7 @@ import {
+   flashistConstants,
+ } from "./flashist/FlashistFacade";
+ import { PURCHASES_RECONCILED_EVENT } from "./PaymentsReconciliation";
++import { maybeClaimTenureGrant } from "./TenureGrantClaim";
+ import {
+   CITIZENSHIP_XP_THRESHOLD,
+   PlayerProfileView,
+@@ -136,6 +137,39 @@ export class CitizenshipCard extends LitElement {
+   private async refreshProfile(): Promise<void> {
+     this.profile = await loadPlayerProfileView();
+     this.requestUpdate();
++    this.maybeClaimTenureGrant();
++  }
++
++  // One tenure-grant attempt per page load (task 0253). The profile is
++  // refreshed again after a name change, a purchase, a login and the grant
++  // itself, so without this flag a claim could loop.
++  private tenureGrantAttempted = false;
++
++  /**
++   * Claim the one-time tenure XP grant once an AUTHORITATIVE logged-in profile
++   * is on screen. Only reachable from refreshProfile(), which only runs on the
++   * enabled path — so it sits behind CITIZENSHIP_CARD_ENABLED and the
++   * citizenship_ui gate. A guest who logs in arrives here through
++   * onLoginCtaTap → refreshProfile. Fire-and-forget: the card never waits on it.
++   */
++  private maybeClaimTenureGrant(): void {
++    if (this.tenureGrantAttempted || this.profile?.isAuthoritative !== true) {
++      return;
++    }
++    this.tenureGrantAttempted = true;
++    void (async () => {
++      const yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
++      const result = await maybeClaimTenureGrant(yandexPlayerId);
++      if (
++        (result.status === "granted" || result.status === "duplicate") &&
++        this.isConnected
++      ) {
++        // So the XP bar shows the granted total.
++        await this.refreshProfile();
++      }
++    })().catch((error) => {
++      console.warn("Tenure grant claim failed:", error);
++    });
+   }
+ 
+   public maybeReportSeen(): void {
+diff --git a/src/client/DaysPlayedAnalytics.ts b/src/client/DaysPlayedAnalytics.ts
+index a814bf1..3130d85 100644
+--- a/src/client/DaysPlayedAnalytics.ts
++++ b/src/client/DaysPlayedAnalytics.ts
+@@ -4,7 +4,7 @@ import {
+ } from "./flashist/FlashistFacade";
+ 
+ const LAST_PLAYED_KEY = "geoconflict.player.lastPlayedDate";
+-const DAYS_PLAYED_KEY = "geoconflict.player.daysPlayed";
++export const DAYS_PLAYED_KEY = "geoconflict.player.daysPlayed";
+ 
+ export function localDateString(d = new Date()): string {
+   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+diff --git a/src/client/LangSelector.ts b/src/client/LangSelector.ts
+index 515b82e..28c38ec 100644
+--- a/src/client/LangSelector.ts
++++ b/src/client/LangSelector.ts
+@@ -243,6 +243,7 @@ export class LangSelector extends LitElement {
+       "news-button",
+       "start-screen-tabs",
+       "citizenship-card",
++      "tenure-grant-modal",
+     ];
+ 
+     document.title = this.translateText("main.title") ?? document.title;
+diff --git a/src/client/Main.ts b/src/client/Main.ts
+index 4492e4a..b7e4480 100644
+--- a/src/client/Main.ts
++++ b/src/client/Main.ts
+@@ -17,6 +17,7 @@ import version from "../version";
+ import "./AccountModal";
+ import { startBuildVersionChecker } from "./BuildVersionChecker";
+ import "./CitizenshipCard";
++import "./TenureGrantModal";
+ import "./StaleBuildModal";
+ import { joinLobby } from "./ClientGameRunner";
+ import { fetchCosmetics } from "./Cosmetics";
+diff --git a/src/client/flashist/FlashistFacade.ts b/src/client/flashist/FlashistFacade.ts
+index f68a7a3..d3a2fc8 100644
+--- a/src/client/flashist/FlashistFacade.ts
++++ b/src/client/flashist/FlashistFacade.ts
+@@ -4,6 +4,7 @@ import { setOtelUser } from "../OtelBrowserInit";
+ import { isMobileDevice } from "../Utils";
+ import version from "../../version";
+ import { logDaysPlayedAnalytics } from "../DaysPlayedAnalytics";
++import { snapshotTenureEvidenceOnce } from "../TenureEvidence";
+ import {
+   consumePendingSessionEnd,
+   startSessionMatchTracking,
+@@ -123,6 +124,15 @@ export const flashistConstants = {
+     // 0021 §6. Server write is authoritative; this reports its first observation.
+     CITIZENSHIP_EARNED_XP: "Citizenship:Earned:XP",
+ 
++    // One-time tenure XP grant (task 0253, ADR-112). Claimed fires only after
++    // the SERVER granted (value = XP). Rejected takes a suffix at the call site
++    // — :BelowMinimum|Implausible|WindowNotOpen|WindowClosed|NoProfile|
++    // NoCreditedMatch|Duplicate. ClaimFailed = no server answer (retried).
++    CITIZENSHIP_TENURE_GRANT_CLAIMED: "Citizenship:TenureGrant:Claimed",
++    CITIZENSHIP_TENURE_GRANT_REJECTED: "Citizenship:TenureGrant:Rejected",
++    CITIZENSHIP_TENURE_GRANT_CLAIM_FAILED:
++      "Citizenship:TenureGrant:ClaimFailed",
++
+     // Paid-citizenship purchase funnel (task 0018; spec 0021 §3–5). Started
+     // fires as the Yandex payment frame is opened (last client-controlled
+     // moment); Completed only after the SERVER confirmed the grant (never on
+@@ -473,6 +483,10 @@ export class FlashistFacade {
+       // silently skip if storage is unavailable (e.g. sandboxed iframe)
+     }
+ 
++    // Tenure grant (task 0253): freeze the pre-launch day count BEFORE today is
++    // added below. Local only and deliberately NOT behind the citizenship kill
++    // switch — see TenureEvidence.ts.
++    snapshotTenureEvidenceOnce();
+     logDaysPlayedAnalytics();
+   }
+ 
+diff --git a/src/client/index.html b/src/client/index.html
+index bdc9a45..8752e42 100644
+--- a/src/client/index.html
++++ b/src/client/index.html
+@@ -317,6 +317,7 @@
+   <build-menu></build-menu>
+   <win-modal></win-modal>
+   <game-starting-modal></game-starting-modal>
++  <tenure-grant-modal></tenure-grant-modal>
+   <email-subscribe-modal></email-subscribe-modal>
+   <game-top-bar></game-top-bar>
+   <unit-display></unit-display>
+diff --git a/src/client/yandex-games_iframe.html b/src/client/yandex-games_iframe.html
+index 531c37c..148a058 100644
+--- a/src/client/yandex-games_iframe.html
++++ b/src/client/yandex-games_iframe.html
+@@ -448,6 +448,7 @@
+   <build-menu></build-menu>
+   <win-modal></win-modal>
+   <game-starting-modal></game-starting-modal>
++  <tenure-grant-modal></tenure-grant-modal>
+   <email-subscribe-modal></email-subscribe-modal>
+   <game-top-bar></game-top-bar>
+   <unit-display></unit-display>
+diff --git a/src/core/profile/Citizenship.ts b/src/core/profile/Citizenship.ts
+index 578bccc..f8cf999 100644
+--- a/src/core/profile/Citizenship.ts
++++ b/src/core/profile/Citizenship.ts
+@@ -30,6 +30,20 @@ export const CITIZENSHIP_XP_THRESHOLD = 100;
+  */
+ export const XP_PER_MATCH = 1;
+ 
++/**
++ * The one-time tenure grant for players who played before citizenship launched
++ * (task 0253). XP per pre-launch day played, the cap, and the minimum day count.
++ *
++ * Owner-ruled 2026-09-14 (ruling B/C). The standing free-grant rules — capped,
++ * clamped by the server, recorded once per account, marked claimed only after a
++ * server ack — are ADR-112; the economy they sit inside is ADR-111. The cap is
++ * deliberately half of CITIZENSHIP_XP_THRESHOLD: a grant alone can never make a
++ * player a citizen. The claim rules live in TenureGrantContract.ts.
++ */
++export const TENURE_XP_PER_DAY = 1;
++export const TENURE_XP_CAP = 50;
++export const TENURE_MIN_DAYS = 3;
++
+ /**
+  * Whether a given lifetime XP total qualifies for earned citizenship.
+  * Pure threshold check — the server stamps `citizenship_earned_at` on the first
+diff --git a/src/profile-server/PlayerProfileRepository.ts b/src/profile-server/PlayerProfileRepository.ts
+index 65c0c9b..ce11235 100644
+--- a/src/profile-server/PlayerProfileRepository.ts
++++ b/src/profile-server/PlayerProfileRepository.ts
+@@ -11,6 +11,7 @@ import {
+   PlayerProfile,
+   migrateProfile,
+ } from "../core/profile/PlayerProfile";
++import type { TenureEvidence } from "../core/profile/TenureGrantContract";
+ import { logInboxSendFailure, type InboxSender } from "./InboxRepository";
+ 
+ /** Outcome of crediting a single match for one player. */
+@@ -26,6 +27,26 @@ export interface CreditOutcome {
+   citizenshipNewlyGranted: boolean;
+ }
+ 
++/** Outcome of a tenure-grant claim (task 0253). */
++export type TenureGrantStatus =
++  | "granted"
++  | "duplicate"
++  | "no_profile"
++  | "no_credited_match";
++
++/**
++ * Full result of `grantTenureXp`. `xpAwarded` is the amount THIS call added for
++ * `granted`, and the amount stored by the earlier grant for `duplicate`; `xp`
++ * is the player's total after the call. Both are 0 when there is no grant to
++ * report. `citizenshipNewlyGranted` has `CreditOutcome`'s meaning.
++ */
++export interface TenureGrantOutcome {
++  status: TenureGrantStatus;
++  xpAwarded: number;
++  xp: number;
++  citizenshipNewlyGranted: boolean;
++}
++
+ // Postgres `foreign_key_violation` — a credit referencing a yandex_player_id with
+ // no player_profiles row. Means "create the profile first" (T6 orders upsert
+ // before credit), so we report it rather than failing the whole batch.
+@@ -117,6 +138,47 @@ WHERE yandex_player_id = $1
+   AND (is_citizen = false OR citizenship_earned_at IS NULL)
+ `;
+ 
++// ── Tenure grant (task 0253, ADR-112) ─────────────────────────────────────
++// All four run inside ONE transaction, in this order. The FOR UPDATE lock on the
++// profile row is taken FIRST and held to COMMIT, so two concurrent claims for
++// the same account (two tabs, two devices) serialize on it: the second sees the
++// first's grant row and becomes a duplicate. It also serializes a claim with a
++// concurrent match credit, which takes the same row lock in CREDIT_SQL.
++const LOCK_PROFILE_FOR_GRANT_SQL = `
++SELECT xp, is_citizen, citizenship_earned_at
++FROM player_profiles
++WHERE yandex_player_id = $1
++FOR UPDATE
++`;
++
++// The "at least one real credited match" rule (ruling C).
++const HAS_CREDITED_MATCH_SQL = `
++SELECT EXISTS (
++  SELECT 1 FROM player_match_xp_credits WHERE yandex_player_id = $1
++) AS has_credit
++`;
++
++// The primary key (yandex_player_id, kind) is the once-per-account-for-life
++// rule. No row back ⇒ this account already holds its grant.
++const INSERT_TENURE_GRANT_SQL = `
++INSERT INTO player_xp_grants (yandex_player_id, kind, xp_awarded, evidence)
++VALUES ($1, 'tenure', $2, $3)
++ON CONFLICT (yandex_player_id, kind) DO NOTHING
++RETURNING xp_awarded
++`;
++
++const SELECT_TENURE_GRANT_SQL = `
++SELECT xp_awarded FROM player_xp_grants
++WHERE yandex_player_id = $1 AND kind = 'tenure'
++`;
++
++const ADD_GRANT_XP_SQL = `
++UPDATE player_profiles
++SET xp = xp + $2, updated_at = now()
++WHERE yandex_player_id = $1
++RETURNING xp
++`;
++
+ // Create on first authenticated join; on conflict, relink persistent_id only when
+ // it actually changed. The schema_version guard is the forward-version writeback
+ // protection: a stale build (lower CURRENT) never overwrites a row a newer build
+@@ -290,6 +352,113 @@ export class PlayerProfileRepository {
+     return outcome;
+   }
+ 
++  /**
++   * Record the one-time tenure grant (task 0253) and add its XP, atomically and
++   * at most once per account. The CALLER computes `xpAwarded` from the evidence
++   * with the shared rules (TenureGrantContract.evaluateTenureClaim); this method
++   * trusts it and never recomputes it.
++   *
++   * `no_profile` and `no_credited_match` write nothing. `duplicate` writes
++   * nothing and returns the amount the earlier grant stored. When the grant
++   * lifts the total to the citizenship threshold — possible once a player
++   * already holds 50+ real XP — earned citizenship is granted in the same
++   * transaction and the same post-commit inbox hook as `creditMatchXp` fires.
++   */
++  async grantTenureXp(
++    yandexPlayerId: string,
++    xpAwarded: number,
++    evidence: TenureEvidence,
++  ): Promise<TenureGrantOutcome> {
++    const client = await this.pool.connect();
++    let outcome: TenureGrantOutcome;
++    try {
++      await client.query("BEGIN");
++      const profile = await client.query(LOCK_PROFILE_FOR_GRANT_SQL, [
++        yandexPlayerId,
++      ]);
++      if (profile.rows.length === 0) {
++        await client.query("ROLLBACK");
++        return this.noGrant("no_profile");
++      }
++      const credited = await client.query(HAS_CREDITED_MATCH_SQL, [
++        yandexPlayerId,
++      ]);
++      if (!credited.rows[0]?.has_credit) {
++        await client.query("ROLLBACK");
++        return this.noGrant("no_credited_match");
++      }
++
++      const inserted = await client.query(INSERT_TENURE_GRANT_SQL, [
++        yandexPlayerId,
++        xpAwarded,
++        JSON.stringify(evidence),
++      ]);
++      if (inserted.rows.length === 0) {
++        const stored = await client.query(SELECT_TENURE_GRANT_SQL, [
++          yandexPlayerId,
++        ]);
++        await client.query("COMMIT");
++        return {
++          status: "duplicate",
++          xpAwarded: Number(stored.rows[0]?.xp_awarded ?? 0),
++          xp: Number(profile.rows[0].xp),
++          citizenshipNewlyGranted: false,
++        };
++      }
++
++      const updated = await client.query(ADD_GRANT_XP_SQL, [
++        yandexPlayerId,
++        xpAwarded,
++      ]);
++      const newXp = Number(updated.rows[0].xp);
++      const wasCitizen = Boolean(profile.rows[0].is_citizen);
++      const earnedAt = profile.rows[0].citizenship_earned_at as Date | null;
++      let citizenshipNewlyGranted = false;
++      // Same decision as creditMatchXp, on the row this transaction locked.
++      if (
++        newXp >= CITIZENSHIP_XP_THRESHOLD &&
++        (!wasCitizen || earnedAt === null)
++      ) {
++        await client.query(GRANT_CITIZENSHIP_SQL, [
++          yandexPlayerId,
++          CITIZENSHIP_XP_THRESHOLD,
++        ]);
++        citizenshipNewlyGranted = !wasCitizen;
++      }
++      await client.query("COMMIT");
++      outcome = {
++        status: "granted",
++        xpAwarded,
++        xp: newXp,
++        citizenshipNewlyGranted,
++      };
++    } catch (error) {
++      try {
++        await client.query("ROLLBACK");
++      } catch {
++        // ROLLBACK failed (connection gone) — surface the ORIGINAL error.
++      }
++      throw error;
++    } finally {
++      client.release();
++    }
++    if (outcome.citizenshipNewlyGranted) {
++      // After commit, never throwing — the creditMatchXp contract (0017 R1).
++      try {
++        this.afterCitizenshipEarned(yandexPlayerId);
++      } catch (error) {
++        logInboxSendFailure("citizenship_earned", error);
++      }
++    }
++    return outcome;
++  }
++
++  private noGrant(
++    status: "no_profile" | "no_credited_match",
++  ): TenureGrantOutcome {
++    return { status, xpAwarded: 0, xp: 0, citizenshipNewlyGranted: false };
++  }
++
+   /**
+    * Post-grant hook for EARNED citizenship (task 0012 filled the 0017 seam;
+    * mirrors PaymentsRepository.afterPaidPurchaseGranted). Sends the
+diff --git a/src/profile-server/Routes.ts b/src/profile-server/Routes.ts
+index 806f056..c5cb4cb 100644
+--- a/src/profile-server/Routes.ts
++++ b/src/profile-server/Routes.ts
+@@ -33,6 +33,11 @@ import type {
+   PlayerProfile,
+   PublicPlayerProfile,
+ } from "../core/profile/PlayerProfile";
++import {
++  TenureGrantRequestSchema,
++  evaluateTenureClaim,
++  type TenureEvidence,
++} from "../core/profile/TenureGrantContract";
+ import type {
+   ListOutcome,
+   MarkReadOutcome,
+@@ -55,6 +60,7 @@ import type {
+ import {
+   PersistentIdConflictError,
+   type CreditOutcome,
++  type TenureGrantOutcome,
+ } from "./PlayerProfileRepository";
+ import { verifySignedPayload, type VerifiedPurchase } from "./YandexSignature";
+ 
+@@ -125,6 +131,19 @@ export interface NameChangeRepo {
+   getLatestState(yandexPlayerId: string): Promise<NameChangeState | null>;
+ }
+ 
++/**
++ * The tenure-grant surface the routes depend on (task 0253). Kept SEPARATE from
++ * ProfileRepo on purpose: PlayerProfileRepository implements both, and the many
++ * existing ProfileRepo mocks stay valid without a new method.
++ */
++export interface TenureGrantRepo {
++  grantTenureXp(
++    yandexPlayerId: string,
++    xpAwarded: number,
++    evidence: TenureEvidence,
++  ): Promise<TenureGrantOutcome>;
++}
++
+ /**
+  * The ONE place the player-facing inbox routes learn who is asking (task 0012,
+  * owner-ruled D1 2026-08-26). Today it returns the CLIENT-asserted
+@@ -181,6 +200,7 @@ export function createApp(
+   payments?: PaymentsConfig,
+   inbox?: InboxRepo,
+   nameChange?: NameChangeRepo,
++  tenureGrant?: TenureGrantRepo,
+ ): Express {
+   const app = express();
+   // Exactly one proxy hop (host nginx) — so req.ip is the real client for the
+@@ -882,5 +902,103 @@ export function createApp(
+     },
+   );
+ 
++  // ── Tenure XP grant (task 0253, ADR-112) ───────────────────────────────────
++  // A player-facing JSON POST from the game origin ⇒ preflighted, the
++  // nameChangeCors shape. Scoped to this one path — never /internal/*.
++  const tenureGrantCors: RequestHandler = (req, res, next) => {
++    res.set("Access-Control-Allow-Origin", "*");
++    res.set("Access-Control-Allow-Methods", "POST");
++    res.set("Access-Control-Allow-Headers", "Content-Type");
++    if (req.method === "OPTIONS") {
++      res.status(204).end();
++      return;
++    }
++    next();
++  };
++  // 30/min per IP, for the name-change limiter's reason: Russian mobile carriers
++  // put thousands of players behind one address (CGNAT), and a claim fires at
++  // most once per page load. Abuse is not bounded by this limiter — it is
++  // bounded by the cap and by one grant per account for life.
++  const tenureGrantLimiter = rateLimit({
++    windowMs: 60_000,
++    max: 30,
++    standardHeaders: true,
++    legacyHeaders: false,
++  });
++  const tenureGrantEnabled: RequestHandler = (_req, res, next) => {
++    if (tenureGrant === undefined) {
++      res.status(503).json({ error: "tenure_grant_unavailable" });
++      return;
++    }
++    next();
++  };
++  app.use(
++    "/v1/profile/tenure-grant",
++    tenureGrantCors,
++    tenureGrantLimiter,
++    tenureGrantEnabled,
++  );
++
++  if (tenureGrant !== undefined) {
++    // Claim the one-time tenure grant.
++    //
++    // IDENTITY: the CLIENT-asserted yandexPlayerId, the same trust level as
++    // /v1/profile/name-change-request and /v1/payments/yandex/intent (ADR-103).
++    // ⚠️ Known risk: anyone who knows a player's (non-secret) id can claim that
++    // player's grant with made-up evidence — a GIFT of at most TENURE_XP_CAP,
++    // once, to an account that already has a real credited match. The real
++    // player then gets `duplicate`. A signature check on the id belongs here,
++    // before anything else runs, once signed player verification lands (0250).
++    //
++    // AMOUNT: computed here from the evidence by the shared rules. Any amount a
++    // client sends is ignored — the schema does not even read one.
++    //
++    //   Responses: 200 { status: "granted" | "duplicate", xpAwarded, xp } ·
++    //   400 bad_request · 422 { error: below_minimum | implausible |
++    //   window_not_open | window_closed | no_profile | no_credited_match } ·
++    //   429 · 503 tenure_grant_unavailable · 500 internal_error.
++    app.post("/v1/profile/tenure-grant", async (req, res) => {
++      const parsed = TenureGrantRequestSchema.safeParse(req.body);
++      if (!parsed.success) {
++        res.status(400).json({ error: "bad_request" });
++        return;
++      }
++      const evaluation = evaluateTenureClaim(parsed.data.evidence, Date.now());
++      if (!evaluation.ok) {
++        log.info(`tenure grant rejected: ${evaluation.reason}`);
++        res.status(422).json({ error: evaluation.reason });
++        return;
++      }
++      try {
++        const outcome = await tenureGrant.grantTenureXp(
++          parsed.data.yandexPlayerId,
++          evaluation.xpAwarded,
++          parsed.data.evidence,
++        );
++        // Outcome and amount only — never the evidence values.
++        log.info(
++          `tenure grant ${outcome.status}: xpAwarded=${outcome.xpAwarded}`,
++        );
++        if (
++          outcome.status === "no_profile" ||
++          outcome.status === "no_credited_match"
++        ) {
++          res.status(422).json({ error: outcome.status });
++          return;
++        }
++        res.status(200).json({
++          status: outcome.status,
++          xpAwarded: outcome.xpAwarded,
++          xp: outcome.xp,
++        });
++      } catch (error) {
++        log.error(
++          `POST /v1/profile/tenure-grant failed: ${formatError(error)}`,
++        );
++        res.status(500).json({ error: "internal_error" });
++      }
++    });
++  }
++
+   return app;
+ }
+diff --git a/src/profile-server/Server.ts b/src/profile-server/Server.ts
+index c347a9f..a7f11ef 100644
+--- a/src/profile-server/Server.ts
++++ b/src/profile-server/Server.ts
+@@ -72,6 +72,8 @@ const app = createApp(
+   },
+   inbox,
+   nameChange,
++  // Tenure XP grant (task 0253): the profile repository owns the transaction.
++  repo,
+ );
+ const server = http.createServer(app);
+ 
+diff --git a/tests/client/CitizenshipCard.test.ts b/tests/client/CitizenshipCard.test.ts
+index 4a90a46..80dd2c0 100644
+--- a/tests/client/CitizenshipCard.test.ts
++++ b/tests/client/CitizenshipCard.test.ts
+@@ -39,6 +39,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
+       isCitizenshipUiEnabled: jest.fn().mockResolvedValue(true),
+       getCatalogProduct: jest.fn().mockReturnValue(null),
+       whenPaymentsCatalogSettled: jest.fn(),
++      getYandexUniqueId: jest.fn(),
+     },
+   },
+ }));
+@@ -52,6 +53,9 @@ jest.mock("../../src/client/NameChangeRequest", () => ({
+   submitNameChangeRequest: jest.fn(),
+   cancelNameChangeRequest: jest.fn(),
+ }));
++jest.mock("../../src/client/TenureGrantClaim", () => ({
++  maybeClaimTenureGrant: jest.fn(),
++}));
+ 
+ import {
+   CITIZENSHIP_LOGIN_REQUESTED_EVENT,
+@@ -70,6 +74,7 @@ import {
+ } from "../../src/client/NameChangeRequest";
+ import { PURCHASES_RECONCILED_EVENT } from "../../src/client/PaymentsReconciliation";
+ import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
++import { maybeClaimTenureGrant } from "../../src/client/TenureGrantClaim";
+ 
+ const isYandexDegraded = FlashistFacade.instance.isYandexDegraded as jest.Mock;
+ const logUiTapEvent = FlashistFacade.instance.logUiTapEvent as jest.Mock;
+@@ -86,6 +91,9 @@ const loadProfile = loadPlayerProfileView as jest.Mock;
+ const runPurchase = runCitizenshipPurchase as jest.Mock;
+ const submitNameChange = submitNameChangeRequest as jest.Mock;
+ const cancelNameChange = cancelNameChangeRequest as jest.Mock;
++const claimTenureGrant = maybeClaimTenureGrant as jest.Mock;
++const getYandexUniqueId = FlashistFacade.instance
++  .getYandexUniqueId as jest.Mock;
+ 
+ const CITIZENSHIP_PRODUCT = {
+   id: "citizenship",
+@@ -128,6 +136,8 @@ describe("CitizenshipCard", () => {
+     runPurchase.mockResolvedValue("error");
+     submitNameChange.mockResolvedValue({ status: "ok" });
+     cancelNameChange.mockResolvedValue({ status: "ok" });
++    claimTenureGrant.mockResolvedValue({ status: "skipped" });
++    getYandexUniqueId.mockResolvedValue("yandex-1");
+     resetCitizenshipSeenReportedForTests();
+   });
+ 
+@@ -641,6 +651,139 @@ describe("CitizenshipCard", () => {
+   });
+ 
+   // ── Name change (task 0067, citizens only) ───────────────────────────────
++  describe("tenure grant claim (task 0253)", () => {
++    async function settle(card: CitizenshipCard): Promise<void> {
++      for (let i = 0; i < 4; i++) {
++        await flushMicrotasks();
++        await flushLit(card);
++      }
++    }
++
++    it("kill switch OFF: no claim, no id lookup (verification 13)", async () => {
++      flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
++      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
++
++      const card = await appendCard({ visible: true });
++      await settle(card);
++
++      expect(claimTenureGrant).not.toHaveBeenCalled();
++      expect(getYandexUniqueId).not.toHaveBeenCalled();
++    });
++
++    it("citizenship_ui flag disabled: no claim", async () => {
++      isCitizenshipUiEnabled.mockResolvedValue(false);
++      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
++
++      const card = await appendCard({ visible: true });
++      await settle(card);
++
++      expect(claimTenureGrant).not.toHaveBeenCalled();
++    });
++
++    it("enabled: claims once the authoritative profile has loaded", async () => {
++      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
++
++      const card = await appendCard({ visible: true });
++      await settle(card);
++
++      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
++      expect(claimTenureGrant).toHaveBeenCalledWith("yandex-1");
++    });
++
++    it("a non-authoritative (zero-state) profile never claims", async () => {
++      loadProfile.mockResolvedValue({
++        ...NON_CITIZEN_PROFILE,
++        isAuthoritative: false,
++      });
++
++      const card = await appendCard({ visible: true });
++      await settle(card);
++
++      expect(claimTenureGrant).not.toHaveBeenCalled();
++    });
++
++    it("a guest never claims — until they log in", async () => {
++      const card = await appendCard({ visible: true });
++      await settle(card);
++      expect(claimTenureGrant).not.toHaveBeenCalled();
++
++      openYandexAuthDialog.mockResolvedValue(true);
++      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
++      (
++        card.querySelector("#citizenship-login-button") as HTMLButtonElement
++      ).click();
++      await settle(card);
++
++      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
++    });
++
++    it("granted: re-fetches the profile so the XP bar moves", async () => {
++      loadProfile
++        .mockResolvedValueOnce(NON_CITIZEN_PROFILE)
++        .mockResolvedValue({ ...NON_CITIZEN_PROFILE, xp: 55 });
++      claimTenureGrant.mockResolvedValue({
++        status: "granted",
++        days: 30,
++        xpAwarded: 30,
++        xp: 55,
++      });
++
++      const card = await appendCard({ visible: true });
++      await settle(card);
++
++      expect(loadProfile).toHaveBeenCalledTimes(2);
++      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
++      expect(card.textContent).toContain("55");
++    });
++
++    it("a duplicate re-fetches too; skipped and failed do not", async () => {
++      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
++      claimTenureGrant.mockResolvedValue({
++        status: "duplicate",
++        days: 30,
++        xpAwarded: 30,
++        xp: 55,
++      });
++      const card = await appendCard({ visible: true });
++      await settle(card);
++      expect(loadProfile).toHaveBeenCalledTimes(2);
++
++      document.body.innerHTML = "";
++      loadProfile.mockClear();
++      claimTenureGrant.mockResolvedValue({ status: "failed" });
++      const second = await appendCard({ visible: true });
++      await settle(second);
++      expect(loadProfile).toHaveBeenCalledTimes(1);
++    });
++
++    it("one attempt per page load, however often the profile refreshes", async () => {
++      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
++      claimTenureGrant.mockResolvedValue({ status: "failed" });
++
++      const card = await appendCard({ visible: true });
++      await settle(card);
++      window.dispatchEvent(new Event(PURCHASES_RECONCILED_EVENT));
++      await settle(card);
++      window.dispatchEvent(new Event(PURCHASES_RECONCILED_EVENT));
++      await settle(card);
++
++      expect(loadProfile).toHaveBeenCalledTimes(3);
++      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
++    });
++
++    it("a claim that rejects never breaks the card", async () => {
++      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
++      claimTenureGrant.mockRejectedValue(new Error("boom"));
++      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
++
++      const card = await appendCard({ visible: true });
++      await settle(card);
++
++      expect(card.textContent).toContain("Игрок_7734");
++      expect(warn).toHaveBeenCalled();
++    });
++  });
++
+   describe("name change", () => {
+     const CITIZEN_PROFILE = {
+       displayName: "Игрок_7734",
+diff --git a/tests/core/profile/Citizenship.test.ts b/tests/core/profile/Citizenship.test.ts
+index cf1244d..60500de 100644
+--- a/tests/core/profile/Citizenship.test.ts
++++ b/tests/core/profile/Citizenship.test.ts
+@@ -1,5 +1,8 @@
+ import {
+   CITIZENSHIP_XP_THRESHOLD,
++  TENURE_MIN_DAYS,
++  TENURE_XP_CAP,
++  TENURE_XP_PER_DAY,
+   XP_PER_MATCH,
+   isCitizenFromXp,
+ } from "../../../src/core/profile/Citizenship";
+@@ -17,6 +20,17 @@ describe("Citizenship rules", () => {
+     expect(CITIZENSHIP_XP_THRESHOLD / XP_PER_MATCH).toBe(100);
+   });
+ 
++  // Task 0253 / ADR-112, owner rulings B and C (2026-09-14).
++  test("tenure grant constants are the ruled values", () => {
++    expect(TENURE_XP_PER_DAY).toBe(1);
++    expect(TENURE_XP_CAP).toBe(50);
++    expect(TENURE_MIN_DAYS).toBe(3);
++  });
++
++  test("a tenure grant alone can never reach the citizenship threshold", () => {
++    expect(TENURE_XP_CAP).toBeLessThan(CITIZENSHIP_XP_THRESHOLD);
++  });
++
+   test("isCitizenFromXp flips exactly at the threshold", () => {
+     expect(isCitizenFromXp(0)).toBe(false);
+     expect(isCitizenFromXp(99)).toBe(false);
+diff --git a/tests/profile-server/PlayerProfileRepository.test.ts b/tests/profile-server/PlayerProfileRepository.test.ts
+index f762708..eb4c71a 100644
+--- a/tests/profile-server/PlayerProfileRepository.test.ts
++++ b/tests/profile-server/PlayerProfileRepository.test.ts
+@@ -1,8 +1,13 @@
+-// Pure unit tests for PlayerProfileRepository domain types that need no DB.
+-// (The DB-touching repository behavior is covered in
+-// tests/integration/PlayerProfileRepository.it.test.ts under RUN_DB_TESTS.)
++// Pure unit tests for PlayerProfileRepository that need no DB. Domain types, plus
++// grantTenureXp's branching over a scripted fake Pool (the NameChangeRepository
++// harness). The DB-touching behavior is covered in
++// tests/integration/PlayerProfileRepository.it.test.ts and
++// tests/integration/TenureGrant.it.test.ts under RUN_DB_TESTS.
+ 
+-import { PersistentIdConflictError } from "../../src/profile-server/PlayerProfileRepository";
++import {
++  PersistentIdConflictError,
++  PlayerProfileRepository,
++} from "../../src/profile-server/PlayerProfileRepository";
+ 
+ describe("PersistentIdConflictError", () => {
+   const error = new PersistentIdConflictError("yandex-1", "pid-secret-1");
+@@ -22,3 +27,251 @@ describe("PersistentIdConflictError", () => {
+     expect(error.stack ?? "").not.toContain("pid-secret-1");
+   });
+ });
++
++type Handler = (params: unknown[]) => { rows?: unknown[]; rowCount?: number };
++
++/**
++ * A fake Pool that dispatches on a substring of the SQL. Anything unmatched
++ * throws loudly — a query the test did not anticipate should fail the test.
++ */
++function fakePool(handlers: Array<[string, Handler]>) {
++  const seen: Array<{ sql: string; params: unknown[] }> = [];
++  const query = jest.fn(async (sql: string, params: unknown[] = []) => {
++    seen.push({ sql, params });
++    if (/^\s*(BEGIN|COMMIT|ROLLBACK)\s*$/i.test(sql)) {
++      return { rows: [], rowCount: 0 };
++    }
++    for (const [needle, handler] of handlers) {
++      if (sql.includes(needle)) {
++        const result = handler(params);
++        return { rows: result.rows ?? [], rowCount: result.rowCount ?? 0 };
++      }
++    }
++    throw new Error(`unexpected SQL: ${sql}`);
++  });
++  const client = { query, release: jest.fn() };
++  return {
++    pool: { query, connect: jest.fn(async () => client) } as never,
++    client,
++    seen,
++    sqlFor: (needle: string) => seen.filter((e) => e.sql.includes(needle)),
++    statements: () => seen.map((e) => e.sql.trim().split(/\s+/)[0]),
++  };
++}
++
++describe("grantTenureXp", () => {
++  const EVIDENCE = {
++    daysPlayed: 12,
++    gameRecordDays: 4,
++    firstPlayedAt: 1_770_000_000_000,
++    snapshotTakenAt: 1_780_000_000_000,
++  };
++  const inbox = { sendTemplate: jest.fn() };
++
++  const lockedProfile =
++    (xp: number, isCitizen = false, earnedAt: Date | null = null): Handler =>
++    () => ({
++      rows: [{ xp, is_citizen: isCitizen, citizenship_earned_at: earnedAt }],
++      rowCount: 1,
++    });
++  const hasCredit =
++    (value: boolean): Handler =>
++    () => ({ rows: [{ has_credit: value }], rowCount: 1 });
++  const inserted: Handler = (params) => ({
++    rows: [{ xp_awarded: params[1] }],
++    rowCount: 1,
++  });
++  const addXp =
++    (newXp: number): Handler =>
++    () => ({ rows: [{ xp: newXp }], rowCount: 1 });
++
++  beforeEach(() => {
++    jest.clearAllMocks();
++    inbox.sendTemplate.mockResolvedValue(undefined);
++  });
++
++  it("grants: inserts the ledger row, adds the XP, commits", async () => {
++    const db = fakePool([
++      ["FOR UPDATE", lockedProfile(5)],
++      ["has_credit", hasCredit(true)],
++      ["INSERT INTO player_xp_grants", inserted],
++      ["SET xp = xp +", addXp(17)],
++    ]);
++    const repo = new PlayerProfileRepository(db.pool, inbox as never);
++    await expect(repo.grantTenureXp("p1", 12, EVIDENCE)).resolves.toEqual({
++      status: "granted",
++      xpAwarded: 12,
++      xp: 17,
++      citizenshipNewlyGranted: false,
++    });
++    const insert = db.sqlFor("INSERT INTO player_xp_grants")[0];
++    expect(insert.sql).toContain("'tenure'");
++    expect(insert.params[0]).toBe("p1");
++    expect(insert.params[1]).toBe(12);
++    expect(JSON.parse(insert.params[2] as string)).toEqual(EVIDENCE);
++    expect(db.sqlFor("SET xp = xp +")[0].params).toEqual(["p1", 12]);
++    expect(db.statements()).toEqual([
++      "BEGIN",
++      "SELECT",
++      "SELECT",
++      "INSERT",
++      "UPDATE",
++      "COMMIT",
++    ]);
++    expect(db.sqlFor("is_citizen = true")).toHaveLength(0);
++    expect(inbox.sendTemplate).not.toHaveBeenCalled();
++    expect(db.client.release).toHaveBeenCalledTimes(1);
++  });
++
++  it("takes the profile row lock BEFORE anything else", async () => {
++    const db = fakePool([
++      ["FOR UPDATE", lockedProfile(0)],
++      ["has_credit", hasCredit(true)],
++      ["INSERT INTO player_xp_grants", inserted],
++      ["SET xp = xp +", addXp(3)],
++    ]);
++    await new PlayerProfileRepository(db.pool).grantTenureXp("p1", 3, EVIDENCE);
++    expect(db.seen[1].sql).toContain("FOR UPDATE");
++  });
++
++  it("duplicate: returns the STORED amount and never touches xp", async () => {
++    const db = fakePool([
++      ["FOR UPDATE", lockedProfile(40)],
++      ["has_credit", hasCredit(true)],
++      ["INSERT INTO player_xp_grants", () => ({ rows: [], rowCount: 0 })],
++      [
++        "SELECT xp_awarded FROM player_xp_grants",
++        () => ({ rows: [{ xp_awarded: 30 }], rowCount: 1 }),
++      ],
++    ]);
++    const repo = new PlayerProfileRepository(db.pool, inbox as never);
++    await expect(repo.grantTenureXp("p1", 12, EVIDENCE)).resolves.toEqual({
++      status: "duplicate",
++      xpAwarded: 30,
++      xp: 40,
++      citizenshipNewlyGranted: false,
++    });
++    expect(db.sqlFor("SET xp = xp +")).toHaveLength(0);
++    expect(inbox.sendTemplate).not.toHaveBeenCalled();
++  });
++
++  it("no_profile: writes nothing and rolls back", async () => {
++    const db = fakePool([["FOR UPDATE", () => ({ rows: [], rowCount: 0 })]]);
++    const repo = new PlayerProfileRepository(db.pool);
++    await expect(repo.grantTenureXp("ghost", 12, EVIDENCE)).resolves.toEqual({
++      status: "no_profile",
++      xpAwarded: 0,
++      xp: 0,
++      citizenshipNewlyGranted: false,
++    });
++    expect(db.statements()).toEqual(["BEGIN", "SELECT", "ROLLBACK"]);
++    expect(db.client.release).toHaveBeenCalledTimes(1);
++  });
++
++  it("no_credited_match: writes nothing and rolls back", async () => {
++    const db = fakePool([
++      ["FOR UPDATE", lockedProfile(0)],
++      ["has_credit", hasCredit(false)],
++    ]);
++    const repo = new PlayerProfileRepository(db.pool);
++    await expect(repo.grantTenureXp("p1", 12, EVIDENCE)).resolves.toEqual({
++      status: "no_credited_match",
++      xpAwarded: 0,
++      xp: 0,
++      citizenshipNewlyGranted: false,
++    });
++    expect(db.sqlFor("INSERT INTO player_xp_grants")).toHaveLength(0);
++    expect(db.statements()).toEqual(["BEGIN", "SELECT", "SELECT", "ROLLBACK"]);
++  });
++
++  it("a grant crossing the threshold grants citizenship and fires the inbox hook AFTER commit", async () => {
++    const order: string[] = [];
++    const db = fakePool([
++      ["FOR UPDATE", lockedProfile(60)],
++      ["has_credit", hasCredit(true)],
++      ["INSERT INTO player_xp_grants", inserted],
++      ["SET xp = xp +", addXp(110)],
++      [
++        "is_citizen = true",
++        () => {
++          order.push("grant-citizenship");
++          return { rowCount: 1 };
++        },
++      ],
++    ]);
++    const originalQuery = db.client.query.getMockImplementation()!;
++    db.client.query.mockImplementation(
++      async (sql: string, params: unknown[] = []) => {
++        if (/^\s*COMMIT\s*$/i.test(sql)) order.push("commit");
++        return originalQuery(sql, params);
++      },
++    );
++    inbox.sendTemplate.mockImplementation(async () => {
++      order.push("inbox");
++    });
++    const repo = new PlayerProfileRepository(db.pool, inbox as never);
++    await expect(repo.grantTenureXp("p1", 50, EVIDENCE)).resolves.toEqual({
++      status: "granted",
++      xpAwarded: 50,
++      xp: 110,
++      citizenshipNewlyGranted: true,
++    });
++    expect(db.sqlFor("is_citizen = true")[0].params).toEqual(["p1", 100]);
++    expect(inbox.sendTemplate).toHaveBeenCalledWith("p1", "citizenship_earned");
++    expect(order).toEqual(["grant-citizenship", "commit", "inbox"]);
++  });
++
++  it("a paid citizen crossing the threshold stamps earned_at but reports no new citizenship", async () => {
++    const db = fakePool([
++      ["FOR UPDATE", lockedProfile(60, true, null)],
++      ["has_credit", hasCredit(true)],
++      ["INSERT INTO player_xp_grants", inserted],
++      ["SET xp = xp +", addXp(110)],
++      ["is_citizen = true", () => ({ rowCount: 1 })],
++    ]);
++    const repo = new PlayerProfileRepository(db.pool, inbox as never);
++    const outcome = await repo.grantTenureXp("p1", 50, EVIDENCE);
++    expect(outcome.citizenshipNewlyGranted).toBe(false);
++    expect(db.sqlFor("is_citizen = true")).toHaveLength(1);
++    expect(inbox.sendTemplate).not.toHaveBeenCalled();
++  });
++
++  it("an inbox hook that throws never fails a committed grant", async () => {
++    const db = fakePool([
++      ["FOR UPDATE", lockedProfile(60)],
++      ["has_credit", hasCredit(true)],
++      ["INSERT INTO player_xp_grants", inserted],
++      ["SET xp = xp +", addXp(110)],
++      ["is_citizen = true", () => ({ rowCount: 1 })],
++    ]);
++    inbox.sendTemplate.mockImplementation(() => {
++      throw new Error("inbox down");
++    });
++    const repo = new PlayerProfileRepository(db.pool, inbox as never);
++    await expect(repo.grantTenureXp("p1", 50, EVIDENCE)).resolves.toMatchObject(
++      { status: "granted", citizenshipNewlyGranted: true },
++    );
++  });
++
++  it("a failure mid-transaction rolls back and rethrows", async () => {
++    const db = fakePool([
++      ["FOR UPDATE", lockedProfile(5)],
++      ["has_credit", hasCredit(true)],
++      ["INSERT INTO player_xp_grants", inserted],
++      [
++        "SET xp = xp +",
++        () => {
++          throw new Error("connection lost");
++        },
++      ],
++    ]);
++    const repo = new PlayerProfileRepository(db.pool, inbox as never);
++    await expect(repo.grantTenureXp("p1", 12, EVIDENCE)).rejects.toThrow(
++      "connection lost",
++    );
++    expect(db.statements()).toContain("ROLLBACK");
++    expect(db.statements()).not.toContain("COMMIT");
++    expect(db.client.release).toHaveBeenCalledTimes(1);
++    expect(inbox.sendTemplate).not.toHaveBeenCalled();
++  });
++});
+diff --git a/migrations/005_player_xp_grants.sql b/migrations/005_player_xp_grants.sql
+new file mode 100644
+index 0000000..7b59e4a
+--- /dev/null
++++ b/migrations/005_player_xp_grants.sql
+@@ -0,0 +1,36 @@
++-- 005_player_xp_grants.sql — free XP grants (task 0253, ADR-112).
++--
++-- Free XP (today: the one-time tenure grant for players who played before
++-- citizenship launched) is recorded HERE, never as a synthetic row in
++-- `player_match_xp_credits`: "match credits" keeps meaning matches. ADR-112
++-- makes this the table every future free grant reuses, each under its own
++-- `kind` and its own owner ruling on the numbers.
++--
++-- Invariant, checkable at any time:
++--   player_profiles.xp = Σ player_match_xp_credits.xp_awarded
++--                      + Σ player_xp_grants.xp_awarded
++--
++-- Column semantics:
++--   kind       — which grant. The CHECK lists every kind that exists; a new
++--                grant adds its kind in its own migration.
++--   xp_awarded — computed and capped by the SERVER from the evidence; a
++--                client-sent amount is never stored.
++--   evidence   — the claim as the server validated it, for audit. No
++--                personal data: day counts and timestamps only.
++--
++-- The primary key is the "one grant of each kind per account, for life" rule.
++-- A second claim hits ON CONFLICT DO NOTHING and credits nothing. Deleting a
++-- profile deletes its grants (same as its match credits).
++--
++-- The migrate.ts runner wraps each file in a single transaction, so there is NO
++-- explicit BEGIN/COMMIT here. Every statement is idempotent (IF NOT EXISTS).
++
++create table if not exists player_xp_grants (
++  yandex_player_id text        not null
++    references player_profiles (yandex_player_id) on delete cascade,
++  kind             text        not null check (kind in ('tenure')),
++  xp_awarded       integer     not null check (xp_awarded > 0),
++  evidence         jsonb       not null,
++  granted_at       timestamptz not null default now(),
++  primary key (yandex_player_id, kind)
++);
+diff --git a/src/client/TenureEvidence.ts b/src/client/TenureEvidence.ts
+new file mode 100644
+index 0000000..0582dba
+--- /dev/null
++++ b/src/client/TenureEvidence.ts
+@@ -0,0 +1,192 @@
++// Device-side evidence for the one-time tenure XP grant (task 0253, ADR-112).
++// Pure over StorageLike, like DaysPlayedAnalytics.ts: no network, no UI. Every
++// read and write of a PASSED storage is caught. ⚠️ Not "never throws": the
++// `storage = localStorage` default is evaluated BEFORE the try, so a browser
++// that throws on reading `window.localStorage` itself (storage blocked in a
++// cross-site iframe) throws out of the call — the same pre-existing exposure as
++// logDaysPlayedAnalytics() (review R4, round 1; tracked as a follow-up task).
++//
++// "Pre-launch" = before this device first ran the grant build. The server sees
++// no local dates, and `daysPlayed` carries none, so on that first boot the
++// client freezes a snapshot { daysPlayed, takenAt }. It is written BEFORE
++// logDaysPlayedAnalytics() adds today, and it is written whatever the
++// citizenship kill switch says: it is local only, and gating it would let days
++// played while the switch is off leak into the grant.
++
++import {
++  DAYS_PLAYED_KEY,
++  localDateString,
++  type StorageLike,
++} from "./DaysPlayedAnalytics";
++import {
++  TENURE_EVIDENCE_FLOOR_MS,
++  type TenureEvidence,
++} from "../core/profile/TenureGrantContract";
++
++export const TENURE_SNAPSHOT_KEY = "geoconflict.player.tenureSnapshot";
++
++// Written by FlashistFacade.initializeImmediate() (Player:New) and by
++// LocalPersistantStats.startGame() respectively. Must match those writers.
++const FIRST_SEEN_KEY = "geoconflict.player.firstSeen";
++const GAME_RECORDS_KEY = "game-records";
++
++// The request schema's bound; clamping here keeps an oddly large local counter
++// from turning into a 400 that would be retried on every page load.
++const MAX_DAY_COUNT = 100_000;
++
++interface TenureSnapshot {
++  daysPlayed: number;
++  takenAt: number;
++}
++
++function parseNonNegativeInt(raw: string | null): number | null {
++  if (raw === null) {
++    return null;
++  }
++  const value = parseInt(raw, 10);
++  return Number.isFinite(value) && value >= 0 ? value : null;
++}
++
++function readSnapshot(storage: StorageLike): TenureSnapshot | null {
++  try {
++    const raw = storage.getItem(TENURE_SNAPSHOT_KEY);
++    if (raw === null) {
++      return null;
++    }
++    const parsed = JSON.parse(raw) as Partial<TenureSnapshot> | null;
++    if (
++      typeof parsed?.daysPlayed !== "number" ||
++      typeof parsed.takenAt !== "number" ||
++      !Number.isFinite(parsed.daysPlayed) ||
++      !Number.isFinite(parsed.takenAt)
++    ) {
++      return null;
++    }
++    return { daysPlayed: parsed.daysPlayed, takenAt: parsed.takenAt };
++  } catch {
++    return null;
++  }
++}
++
++/**
++ * Freeze `{ daysPlayed, takenAt }` the first time this build runs on a device.
++ * An existing snapshot is never overwritten — even a corrupt one, so a damaged
++ * value cannot be "refreshed" into a later, larger count.
++ */
++export function snapshotTenureEvidenceOnce(
++  storage: StorageLike = localStorage,
++  now: number = Date.now(),
++): void {
++  try {
++    if (storage.getItem(TENURE_SNAPSHOT_KEY) !== null) {
++      return;
++    }
++    const snapshot: TenureSnapshot = {
++      daysPlayed: parseNonNegativeInt(storage.getItem(DAYS_PLAYED_KEY)) ?? 0,
++      takenAt: now,
++    };
++    storage.setItem(TENURE_SNAPSHOT_KEY, JSON.stringify(snapshot));
++  } catch {
++    // Storage unavailable (sandboxed iframe, private mode) — no evidence.
++  }
++}
++
++/**
++ * The evidence the claim sends, or null when this device has no usable
++ * snapshot. Parses `game-records` — call it at claim time, never at boot.
++ *
++ * Out-of-range dates never reach the server (review R1, round 1). The server
++ * answers them with a permanent `implausible`, which would burn this device's
++ * claim over a wrong clock rather than over made-up evidence:
++ *   - a game or `firstSeen` before TENURE_EVIDENCE_FLOOR_MS is dropped, the
++ *     mirror of dropping one later than the snapshot;
++ *   - a snapshot taken on a clock running AHEAD is clamped down to `now`, which
++ *     only ever excludes more games, never adds any;
++ *   - a snapshot taken on a clock set before the floor has no recoverable
++ *     pre-launch boundary, so it is treated like a corrupt snapshot: null.
++ */
++export function readTenureEvidence(
++  storage: StorageLike = localStorage,
++  now: number = Date.now(),
++): TenureEvidence | null {
++  const snapshot = readSnapshot(storage);
++  if (snapshot === null || snapshot.takenAt < TENURE_EVIDENCE_FLOOR_MS) {
++    return null;
++  }
++  const takenAt = Math.floor(Math.min(snapshot.takenAt, now));
++
++  let earliest: number | null = null;
++  const consider = (timestamp: number): void => {
++    if (earliest === null || timestamp < earliest) {
++      earliest = timestamp;
++    }
++  };
++
++  const dates = new Set<string>();
++  for (const startTime of readGameStartTimes(storage)) {
++    // Only games started before the snapshot are pre-launch play; one before
++    // the floor is a wrong clock (review R1).
++    if (startTime < takenAt && startTime >= TENURE_EVIDENCE_FLOOR_MS) {
++      dates.add(localDateString(new Date(startTime)));
++      consider(startTime);
++    }
++  }
++
++  try {
++    const firstSeen = parseNonNegativeInt(storage.getItem(FIRST_SEEN_KEY));
++    // A firstSeen after the snapshot is not pre-launch evidence (it can only
++    // happen if storage was partly cleared), and one before the floor is a
++    // wrong clock (review R1) — ignore both rather than send a timestamp the
++    // server rejects as implausible.
++    if (
++      firstSeen !== null &&
++      firstSeen <= takenAt &&
++      firstSeen >= TENURE_EVIDENCE_FLOOR_MS
++    ) {
++      consider(firstSeen);
++    }
++  } catch {
++    // Unreadable — no firstSeen.
++  }
++
++  return {
++    // Clamped at BOTH ends: the writer never stores a negative count, but a
++    // corrupt or edited one would fail the wire schema (400) and be retried on
++    // every page load forever (review R2, round 1).
++    daysPlayed: Math.min(
++      Math.max(0, Math.floor(snapshot.daysPlayed)),
++      MAX_DAY_COUNT,
++    ),
++    gameRecordDays: Math.min(dates.size, MAX_DAY_COUNT),
++    firstPlayedAt: earliest,
++    snapshotTakenAt: takenAt,
++  };
++}
++
++/** Every finite `startTime` in `game-records`, across all game types. */
++function readGameStartTimes(storage: StorageLike): number[] {
++  try {
++    const raw = storage.getItem(GAME_RECORDS_KEY);
++    if (raw === null) {
++      return [];
++    }
++    const records = JSON.parse(raw) as unknown;
++    if (typeof records !== "object" || records === null) {
++      return [];
++    }
++    const times: number[] = [];
++    for (const record of Object.values(records as Record<string, unknown>)) {
++      const startTime = (record as { startTime?: unknown } | null)?.startTime;
++      if (
++        typeof startTime === "number" &&
++        Number.isFinite(startTime) &&
++        startTime >= 0
++      ) {
++        times.push(Math.floor(startTime));
++      }
++    }
++    return times;
++  } catch {
++    return [];
++  }
++}
+diff --git a/src/client/TenureGrantClaim.ts b/src/client/TenureGrantClaim.ts
+new file mode 100644
+index 0000000..84f3fed
+--- /dev/null
++++ b/src/client/TenureGrantClaim.ts
+@@ -0,0 +1,211 @@
++// Client → profile-server claim of the one-time tenure XP grant (task 0253,
++// ADR-112). Follows NameChangeRequest.ts / CitizenshipPurchase.ts: the
++// orchestration lives outside the card so its outcome mapping and analytics are
++// unit-testable, and every path inside it resolves to a result value. ⚠️ The
++// `storage = localStorage` default is evaluated before the try, so a browser
++// that throws on reading `window.localStorage` rejects the returned promise —
++// the card catches that (review R4, round 1).
++//
++// ACK BEFORE MARKER (ADR-112, findings 1.6): the device marker is written only
++// after a server ANSWER that settles the claim for good. A network error, a
++// timeout, a 5xx, a 429 or an unreadable body leaves no marker, so the next page
++// load retries. A grant the client marked claimed before the server confirmed
++// would be lost for good — there is no re-run.
++
++import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
++import { TENURE_MIN_DAYS } from "../core/profile/Citizenship";
++import {
++  TenureGrantRejectionSchema,
++  TenureGrantResponseSchema,
++  tenureDaysFromEvidence,
++  type TenureRejectionReason,
++} from "../core/profile/TenureGrantContract";
++import {
++  flashist_logEventAnalytics,
++  flashistConstants,
++} from "./flashist/FlashistFacade";
++import type { StorageLike } from "./DaysPlayedAnalytics";
++import { readTenureEvidence } from "./TenureEvidence";
++import type { TenureGrantModalParams } from "./TenureGrantModal";
++
++export const TENURE_GRANT_MARKER_KEY = "geoconflict.tenureGrant.done";
++
++const TENURE_GRANT_FETCH_TIMEOUT_MS = 10_000;
++
++export type TenureGrantClaimResult =
++  /** Nothing was sent: marker set, guest, no evidence, or no profile API. */
++  | { status: "skipped" }
++  /** The server answered 200 — the modal was opened. */
++  | ({ status: "granted" | "duplicate" } & TenureGrantModalParams)
++  | { status: "rejected"; reason: TenureRejectionReason }
++  /** No usable server answer — retried on the next page load. */
++  | { status: "failed" };
++
++// Settled for good: set the marker. Everything else stays retryable.
++const PERMANENT_REJECTIONS: ReadonlySet<TenureRejectionReason> = new Set([
++  "below_minimum",
++  "implausible",
++  "window_closed",
++]);
++
++const REJECTION_EVENT_SUFFIX: Record<
++  TenureRejectionReason | "duplicate",
++  string
++> = {
++  below_minimum: "BelowMinimum",
++  implausible: "Implausible",
++  window_not_open: "WindowNotOpen",
++  window_closed: "WindowClosed",
++  no_profile: "NoProfile",
++  no_credited_match: "NoCreditedMatch",
++  duplicate: "Duplicate",
++};
++
++function logRejected(reason: TenureRejectionReason | "duplicate"): void {
++  flashist_logEventAnalytics(
++    `${flashistConstants.analyticEvents.CITIZENSHIP_TENURE_GRANT_REJECTED}:${REJECTION_EVENT_SUFFIX[reason]}`,
++  );
++}
++
++function isMarked(storage: StorageLike): boolean {
++  try {
++    return storage.getItem(TENURE_GRANT_MARKER_KEY) !== null;
++  } catch {
++    return false;
++  }
++}
++
++function setMarker(storage: StorageLike, value: string): void {
++  try {
++    storage.setItem(TENURE_GRANT_MARKER_KEY, value);
++  } catch {
++    // Storage unavailable. The snapshot could not have been written either, so
++    // no claim would be attempted on the next load anyway.
++  }
++}
++
++async function resolveApiBase(): Promise<string | null> {
++  try {
++    const base = (await getServerConfigFromClient())
++      .profileApiUrl()
++      .replace(/\/+$/, "");
++    return base.length > 0 ? base : null;
++  } catch {
++    return null;
++  }
++}
++
++/** POST returning {status, json}, or null when no response arrived. */
++async function postClaim(
++  base: string,
++  body: unknown,
++): Promise<{ status: number; json: unknown } | null> {
++  const controller = new AbortController();
++  const timer = setTimeout(
++    () => controller.abort(),
++    TENURE_GRANT_FETCH_TIMEOUT_MS,
++  );
++  try {
++    const response = await fetch(`${base}/v1/profile/tenure-grant`, {
++      method: "POST",
++      headers: { "Content-Type": "application/json" },
++      body: JSON.stringify(body),
++      signal: controller.signal,
++    });
++    const json = await response.json().catch(() => null);
++    return { status: response.status, json };
++  } catch {
++    return null;
++  } finally {
++    clearTimeout(timer);
++  }
++}
++
++function openModal(params: TenureGrantModalParams): void {
++  try {
++    const modal = document.querySelector("tenure-grant-modal") as
++      | (Element & { show?: (params: TenureGrantModalParams) => void })
++      | null;
++    modal?.show?.(params);
++  } catch {
++    // The grant is committed and marked; a notice that fails to open must not
++    // turn it into a reported failure.
++  }
++}
++
++/**
++ * Claim the tenure grant for `yandexPlayerId` at most once per device. The
++ * caller gates it behind the citizenship kill switch and an authoritative
++ * logged-in profile, and calls it at most once per page load.
++ */
++export async function maybeClaimTenureGrant(
++  yandexPlayerId: string | null,
++  storage: StorageLike = localStorage,
++): Promise<TenureGrantClaimResult> {
++  try {
++    if (isMarked(storage) || yandexPlayerId === null) {
++      return { status: "skipped" };
++    }
++    const evidence = readTenureEvidence(storage);
++    if (evidence === null) {
++      return { status: "skipped" };
++    }
++    const base = await resolveApiBase();
++    if (base === null) {
++      return { status: "skipped" };
++    }
++
++    // The server can only clamp the raw count DOWN, so a raw count below the
++    // minimum is already final — and the snapshot is frozen, so it stays final.
++    if (
++      Math.max(evidence.daysPlayed, evidence.gameRecordDays) < TENURE_MIN_DAYS
++    ) {
++      setMarker(storage, "below_minimum");
++      logRejected("below_minimum");
++      return { status: "rejected", reason: "below_minimum" };
++    }
++
++    const response = await postClaim(base, { yandexPlayerId, evidence });
++    if (response?.status === 200) {
++      const parsed = TenureGrantResponseSchema.safeParse(response.json);
++      if (parsed.success) {
++        // Marker FIRST: if the modal or analytics blew up, the grant must
++        // still never be re-claimed from this device.
++        setMarker(storage, parsed.data.status);
++        const params: TenureGrantModalParams = {
++          days: tenureDaysFromEvidence(evidence),
++          xpAwarded: parsed.data.xpAwarded,
++          xp: parsed.data.xp,
++        };
++        if (parsed.data.status === "granted") {
++          flashist_logEventAnalytics(
++            flashistConstants.analyticEvents.CITIZENSHIP_TENURE_GRANT_CLAIMED,
++            parsed.data.xpAwarded,
++          );
++        } else {
++          // Unmarked device + duplicate = the ack was lost, or another device
++          // claimed first. The XP is real either way, so the player is told.
++          logRejected("duplicate");
++        }
++        openModal(params);
++        return { status: parsed.data.status, ...params };
++      }
++    } else if (response?.status === 422) {
++      const parsed = TenureGrantRejectionSchema.safeParse(response.json);
++      if (parsed.success) {
++        const reason = parsed.data.error;
++        if (PERMANENT_REJECTIONS.has(reason)) {
++          setMarker(storage, reason);
++        }
++        logRejected(reason);
++        return { status: "rejected", reason };
++      }
++    }
++  } catch {
++    // Fall through to failed — never throw to the card.
++  }
++  flashist_logEventAnalytics(
++    flashistConstants.analyticEvents.CITIZENSHIP_TENURE_GRANT_CLAIM_FAILED,
++  );
++  return { status: "failed" };
++}
+diff --git a/src/client/TenureGrantModal.ts b/src/client/TenureGrantModal.ts
+new file mode 100644
+index 0000000..8e074a5
+--- /dev/null
++++ b/src/client/TenureGrantModal.ts
+@@ -0,0 +1,129 @@
++import { LitElement, css, html } from "lit";
++import { customElement, state } from "lit/decorators.js";
++import { CITIZENSHIP_XP_THRESHOLD } from "../core/profile/Citizenship";
++import { translateText } from "./Utils";
++
++export interface TenureGrantModalParams {
++  /** Pre-launch days the grant was based on. */
++  days: number;
++  /** XP the grant added. */
++  xpAwarded: number;
++  /** The player's XP total after the grant. */
++  xp: number;
++}
++
++/**
++ * One-time "thank you" notice for the tenure XP grant (task 0253, ADR-112).
++ * Opened by TenureGrantClaim only after the SERVER confirmed the grant, and only
++ * reachable behind the citizenship kill switch. Follows GameStartingModal.
++ */
++@customElement("tenure-grant-modal")
++export class TenureGrantModal extends LitElement {
++  @state()
++  isVisible = false;
++
++  @state()
++  private params: TenureGrantModalParams | null = null;
++
++  static styles = css`
++    .modal-overlay {
++      display: none;
++      position: fixed;
++      inset: 0;
++      background-color: rgba(0, 0, 0, 0.5);
++      z-index: 9999;
++      align-items: center;
++      justify-content: center;
++    }
++
++    .modal-overlay.visible {
++      display: flex;
++      animation: fadeIn 0.3s ease-out;
++    }
++
++    @keyframes fadeIn {
++      from {
++        opacity: 0;
++      }
++      to {
++        opacity: 1;
++      }
++    }
++
++    .modal-box {
++      background-color: rgba(28, 28, 30, 0.95);
++      padding: 24px;
++      border-radius: 12px;
++      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
++      color: white;
++      width: 320px;
++      max-width: 90vw;
++      text-align: center;
++    }
++
++    .modal-box h2 {
++      margin: 0 0 12px;
++      font-size: 20px;
++      font-weight: bold;
++    }
++
++    .modal-box p {
++      margin: 0 0 20px;
++      font-size: 14px;
++      line-height: 1.45;
++      color: rgba(255, 255, 255, 0.85);
++    }
++
++    .modal-box button {
++      width: 100%;
++      padding: 12px;
++      font-size: 16px;
++      font-weight: bold;
++      cursor: pointer;
++      background: #2563eb;
++      color: white;
++      border: none;
++      border-radius: 8px;
++      transition: background-color 0.2s ease;
++    }
++
++    .modal-box button:hover {
++      background: #1d4ed8;
++    }
++  `;
++
++  render() {
++    const params = this.params;
++    return html`
++      <div class="modal-overlay ${this.isVisible ? "visible" : ""}">
++        <div class="modal-box" role="dialog" aria-modal="true">
++          <h2>${translateText("citizenship_tenure_grant.title")}</h2>
++          <p>
++            ${params === null
++              ? ""
++              : translateText("citizenship_tenure_grant.body", {
++                  days: params.days,
++                  xp: params.xpAwarded,
++                  total: params.xp,
++                  threshold: CITIZENSHIP_XP_THRESHOLD,
++                })}
++          </p>
++          <button id="tenure-grant-modal-cta" @click=${this.hide}>
++            ${translateText("citizenship_tenure_grant.cta")}
++          </button>
++        </div>
++      </div>
++    `;
++  }
++
++  show(params: TenureGrantModalParams) {
++    this.params = params;
++    this.isVisible = true;
++    this.requestUpdate();
++  }
++
++  hide() {
++    this.isVisible = false;
++    this.requestUpdate();
++  }
++}
+diff --git a/src/core/profile/TenureGrantContract.ts b/src/core/profile/TenureGrantContract.ts
+new file mode 100644
+index 0000000..34b23f2
+--- /dev/null
++++ b/src/core/profile/TenureGrantContract.ts
+@@ -0,0 +1,169 @@
++import { z } from "zod";
++import {
++  TENURE_MIN_DAYS,
++  TENURE_XP_CAP,
++  TENURE_XP_PER_DAY,
++} from "./Citizenship";
++
++/**
++ * Shared client↔profile-server contract and pure rules for the one-time tenure
++ * XP grant (task 0253): `POST /v1/profile/tenure-grant`. Sibling of
++ * NameChangeContract.ts — the client posts, and the server validates and
++ * evaluates, exactly the shapes and rules defined here. No I/O; the clock is a
++ * parameter.
++ *
++ * The policy is ADR-112: the evidence comes from the player's own device
++ * (localStorage), so the server cannot verify it — it can only bound the harm
++ * of a false claim. It does so by computing the amount ITSELF (a client-sent
++ * amount is never read), clamping the day count to what is physically possible,
++ * capping the result, and recording at most one grant per account.
++ *
++ * "Pre-launch" means before this device first ran the grant build: the client
++ * takes a one-time snapshot of `daysPlayed` on that first boot, and only
++ * `game-records` entries older than the snapshot count (see TenureEvidence.ts).
++ */
++
++const DAY_MS = 24 * 60 * 60 * 1000;
++
++/**
++ * No player can hold evidence older than the fork itself: the first commit is
++ * 2025-11-04 (+03:00). Floored to that day's local midnight, so it is EARLIER
++ * than the commit and never rejects an honest record.
++ */
++export const TENURE_EVIDENCE_FLOOR_MS = Date.UTC(2025, 10, 3, 21, 0, 0);
++
++/**
++ * The claim window opens on the weekend deploy day — 2026-09-19 00:00 Moscow
++ * time (UTC+3), owner ruling 1 at plan approval, 2026-09-14.
++ */
++export const TENURE_WINDOW_OPENS_AT_MS = Date.UTC(2026, 8, 18, 21, 0, 0);
++
++/** The window stays open this many days after it opens (ruling C). */
++export const TENURE_CLAIM_WINDOW_DAYS = 90;
++
++export const TENURE_WINDOW_CLOSES_AT_MS =
++  TENURE_WINDOW_OPENS_AT_MS + TENURE_CLAIM_WINDOW_DAYS * DAY_MS;
++
++/** A snapshot more than this far in the future is a clock the server rejects. */
++const FUTURE_TOLERANCE_MS = DAY_MS;
++
++const MAX_DAY_COUNT = 100_000;
++
++export const TenureEvidenceSchema = z.object({
++  /** `geoconflict.player.daysPlayed` as it was when the snapshot was taken. */
++  daysPlayed: z.number().int().min(0).max(MAX_DAY_COUNT),
++  /** Distinct local calendar days in `game-records` before the snapshot. */
++  gameRecordDays: z.number().int().min(0).max(MAX_DAY_COUNT),
++  /** Earliest known play timestamp (ms), or null when the device has none. */
++  firstPlayedAt: z.number().int().nullable(),
++  /** When this device first ran the grant build (ms). */
++  snapshotTakenAt: z.number().int(),
++});
++export type TenureEvidence = z.infer<typeof TenureEvidenceSchema>;
++
++export const TenureGrantRequestSchema = z.object({
++  yandexPlayerId: z.string().min(1).max(128),
++  evidence: TenureEvidenceSchema,
++});
++export type TenureGrantRequest = z.infer<typeof TenureGrantRequestSchema>;
++
++/**
++ * 200 body. `duplicate` means this account already holds its grant — the stored
++ * amount is returned, and nothing was added.
++ */
++export const TenureGrantResponseSchema = z.object({
++  status: z.enum(["granted", "duplicate"]),
++  xpAwarded: z.number().int(),
++  xp: z.number().int(),
++});
++export type TenureGrantResponse = z.infer<typeof TenureGrantResponseSchema>;
++
++export const TENURE_REJECTION_REASONS = [
++  "below_minimum",
++  "implausible",
++  "window_not_open",
++  "window_closed",
++  "no_profile",
++  "no_credited_match",
++] as const;
++export const TenureRejectionReasonSchema = z.enum(TENURE_REJECTION_REASONS);
++export type TenureRejectionReason = z.infer<typeof TenureRejectionReasonSchema>;
++
++/** 422 body. */
++export const TenureGrantRejectionSchema = z.object({
++  error: TenureRejectionReasonSchema,
++});
++
++export type TenureClaimEvaluation =
++  | { ok: true; days: number; xpAwarded: number }
++  | {
++      ok: false;
++      reason: Extract<
++        TenureRejectionReason,
++        "below_minimum" | "implausible" | "window_not_open" | "window_closed"
++      >;
++    };
++
++/**
++ * The day count the evidence supports: the larger of the two signals (ruling A),
++ * clamped to the number of calendar days that can fit between the earliest
++ * possible play and the snapshot (decision 5).
++ *
++ * The span is rounded UP and then counts both end days, so an honest player can
++ * never be clamped below their real count: two local calendar days can sit
++ * minutes apart across midnight. Clamping can only LOWER the raw count, which is
++ * why a raw count below the minimum is already final (the client relies on it).
++ *
++ * Assumes plausible timestamps — call it after the checks in evaluateTenureClaim.
++ */
++export function tenureDaysFromEvidence(evidence: TenureEvidence): number {
++  const rawDays = Math.max(evidence.daysPlayed, evidence.gameRecordDays);
++  const spanStart = Math.max(
++    TENURE_EVIDENCE_FLOOR_MS,
++    evidence.firstPlayedAt ?? TENURE_EVIDENCE_FLOOR_MS,
++  );
++  const possibleDays =
++    Math.ceil(Math.max(0, evidence.snapshotTakenAt - spanStart) / DAY_MS) + 1;
++  return Math.min(rawDays, possibleDays);
++}
++
++/** XP for a day count: per-day rate, capped. */
++export function tenureXpForDays(days: number): number {
++  return Math.min(days * TENURE_XP_PER_DAY, TENURE_XP_CAP);
++}
++
++/**
++ * Evaluate a claim, in this order: window → timestamps → days → minimum →
++ * amount. Only impossible timestamps are rejected; merely generous day counts
++ * are clamped, then capped (decision 5).
++ */
++export function evaluateTenureClaim(
++  evidence: TenureEvidence,
++  nowMs: number,
++): TenureClaimEvaluation {
++  if (nowMs < TENURE_WINDOW_OPENS_AT_MS) {
++    return { ok: false, reason: "window_not_open" };
++  }
++  if (nowMs >= TENURE_WINDOW_CLOSES_AT_MS) {
++    return { ok: false, reason: "window_closed" };
++  }
++
++  const { firstPlayedAt, snapshotTakenAt } = evidence;
++  if (
++    snapshotTakenAt > nowMs + FUTURE_TOLERANCE_MS ||
++    // A snapshot older than the fork is as impossible as a first play older
++    // than it; without this the span below would go negative.
++    snapshotTakenAt < TENURE_EVIDENCE_FLOOR_MS ||
++    (firstPlayedAt !== null &&
++      (firstPlayedAt < TENURE_EVIDENCE_FLOOR_MS ||
++        firstPlayedAt > snapshotTakenAt))
++  ) {
++    return { ok: false, reason: "implausible" };
++  }
++
++  const days = tenureDaysFromEvidence(evidence);
++  if (days < TENURE_MIN_DAYS) {
++    return { ok: false, reason: "below_minimum" };
++  }
++  return { ok: true, days, xpAwarded: tenureXpForDays(days) };
++}
+diff --git a/tests/client/LangSelectorRerender.test.ts b/tests/client/LangSelectorRerender.test.ts
+new file mode 100644
+index 0000000..1d029db
+--- /dev/null
++++ b/tests/client/LangSelectorRerender.test.ts
+@@ -0,0 +1,33 @@
++/**
++ * @jest-environment jsdom
++ */
++// Review R5 (task 0253, round 1): a language switch must re-render the tenure
++// grant notice, like its sibling start-screen surfaces.
++
++import { LangSelector } from "../../src/client/LangSelector";
++
++describe("LangSelector.applyTranslation re-render list", () => {
++  afterEach(() => {
++    document.body.innerHTML = "";
++    jest.restoreAllMocks();
++  });
++
++  it.each(["tenure-grant-modal", "citizenship-card", "game-starting-modal"])(
++    "re-renders <%s>",
++    (tag) => {
++      jest.spyOn(console, "warn").mockImplementation(() => {});
++      const element = document.createElement(tag);
++      const requestUpdate = jest.fn();
++      Object.assign(element, { requestUpdate });
++      document.body.appendChild(element);
++
++      // Constructor skipped: applyTranslation only needs the prototype.
++      const selector = Object.create(LangSelector.prototype) as {
++        applyTranslation(): void;
++      };
++      selector.applyTranslation();
++
++      expect(requestUpdate).toHaveBeenCalled();
++    },
++  );
++});
+diff --git a/tests/client/TenureEvidence.test.ts b/tests/client/TenureEvidence.test.ts
+new file mode 100644
+index 0000000..457947e
+--- /dev/null
++++ b/tests/client/TenureEvidence.test.ts
+@@ -0,0 +1,291 @@
++/**
++ * @jest-environment jsdom
++ */
++// Device-side tenure evidence (task 0253). The snapshot is the definition of
++// "pre-launch", so its write-once rule and its ordering against the day counter
++// are what these tests pin.
++
++jest.mock("../../src/client/flashist/FlashistFacade", () => ({
++  flashistConstants: {
++    analyticEvents: { PLAYER_DAYS_PLAYED: "Player:DaysPlayed" },
++  },
++  flashist_logEventAnalytics: jest.fn(),
++}));
++
++import {
++  localDateString,
++  logDaysPlayedAnalytics,
++  type StorageLike,
++} from "../../src/client/DaysPlayedAnalytics";
++import {
++  TENURE_SNAPSHOT_KEY,
++  readTenureEvidence,
++  snapshotTenureEvidenceOnce,
++} from "../../src/client/TenureEvidence";
++import { TENURE_EVIDENCE_FLOOR_MS } from "../../src/core/profile/TenureGrantContract";
++
++const DAYS_PLAYED_KEY = "geoconflict.player.daysPlayed";
++const LAST_PLAYED_KEY = "geoconflict.player.lastPlayedDate";
++const FIRST_SEEN_KEY = "geoconflict.player.firstSeen";
++const GAME_RECORDS_KEY = "game-records";
++
++function makeStorage(initial: Record<string, string> = {}): StorageLike & {
++  data: Record<string, string>;
++} {
++  const data = { ...initial };
++  return {
++    data,
++    getItem: (key) => data[key] ?? null,
++    setItem: (key, value) => {
++      data[key] = value;
++    },
++  };
++}
++
++function throwingStorage(): StorageLike {
++  return {
++    getItem: () => {
++      throw new Error("SecurityError");
++    },
++    setItem: () => {
++      throw new Error("SecurityError");
++    },
++  };
++}
++
++/** Local-time timestamp, so date-distinct assertions hold in any TZ. */
++function local(y: number, m: number, d: number, h = 12, min = 0): number {
++  return new Date(y, m - 1, d, h, min).getTime();
++}
++
++const TAKEN_AT = local(2026, 9, 19, 10);
++// The claim-time clock, a day after the snapshot.
++const NOW = TAKEN_AT + 86_400_000;
++
++describe("snapshotTenureEvidenceOnce", () => {
++  it("freezes daysPlayed and the time on first run", () => {
++    const storage = makeStorage({ [DAYS_PLAYED_KEY]: "42" });
++    snapshotTenureEvidenceOnce(storage, TAKEN_AT);
++    expect(JSON.parse(storage.data[TENURE_SNAPSHOT_KEY])).toEqual({
++      daysPlayed: 42,
++      takenAt: TAKEN_AT,
++    });
++  });
++
++  it("is written once and never overwritten", () => {
++    const storage = makeStorage({ [DAYS_PLAYED_KEY]: "42" });
++    snapshotTenureEvidenceOnce(storage, TAKEN_AT);
++    storage.data[DAYS_PLAYED_KEY] = "90";
++    snapshotTenureEvidenceOnce(storage, TAKEN_AT + 86_400_000);
++    expect(JSON.parse(storage.data[TENURE_SNAPSHOT_KEY])).toEqual({
++      daysPlayed: 42,
++      takenAt: TAKEN_AT,
++    });
++  });
++
++  it("never overwrites even a corrupt snapshot", () => {
++    const storage = makeStorage({
++      [DAYS_PLAYED_KEY]: "90",
++      [TENURE_SNAPSHOT_KEY]: "{not json",
++    });
++    snapshotTenureEvidenceOnce(storage, TAKEN_AT);
++    expect(storage.data[TENURE_SNAPSHOT_KEY]).toBe("{not json");
++  });
++
++  it("records 0 days for a brand-new or corrupt counter", () => {
++    const fresh = makeStorage();
++    snapshotTenureEvidenceOnce(fresh, TAKEN_AT);
++    expect(JSON.parse(fresh.data[TENURE_SNAPSHOT_KEY]).daysPlayed).toBe(0);
++
++    const corrupt = makeStorage({ [DAYS_PLAYED_KEY]: "abc" });
++    snapshotTenureEvidenceOnce(corrupt, TAKEN_AT);
++    expect(JSON.parse(corrupt.data[TENURE_SNAPSHOT_KEY]).daysPlayed).toBe(0);
++  });
++
++  it("never throws when storage throws", () => {
++    expect(() =>
++      snapshotTenureEvidenceOnce(throwingStorage(), TAKEN_AT),
++    ).not.toThrow();
++  });
++
++  it("taken before the day increment, today is NOT in the snapshot", () => {
++    // The initializeImmediate order: snapshot, then logDaysPlayedAnalytics.
++    const storage = makeStorage({
++      [DAYS_PLAYED_KEY]: "7",
++      [LAST_PLAYED_KEY]: "2000-01-01",
++    });
++    snapshotTenureEvidenceOnce(storage, TAKEN_AT);
++    logDaysPlayedAnalytics(localDateString(), storage);
++    expect(storage.data[DAYS_PLAYED_KEY]).toBe("8");
++    expect(JSON.parse(storage.data[TENURE_SNAPSHOT_KEY]).daysPlayed).toBe(7);
++  });
++});
++
++describe("readTenureEvidence", () => {
++  const snapshot = (daysPlayed = 10, takenAt = TAKEN_AT) =>
++    JSON.stringify({ daysPlayed, takenAt });
++
++  it("returns null without a snapshot", () => {
++    expect(
++      readTenureEvidence(makeStorage({ [DAYS_PLAYED_KEY]: "10" }), NOW),
++    ).toBe(null);
++  });
++
++  it.each([
++    ["corrupt JSON", "{oops"],
++    ["null", "null"],
++    ["missing takenAt", JSON.stringify({ daysPlayed: 3 })],
++    ["string fields", JSON.stringify({ daysPlayed: "3", takenAt: "1" })],
++  ])("returns null for a %s snapshot", (_label, raw) => {
++    expect(
++      readTenureEvidence(makeStorage({ [TENURE_SNAPSHOT_KEY]: raw }), NOW),
++    ).toBeNull();
++  });
++
++  it("returns null when storage throws", () => {
++    expect(readTenureEvidence(throwingStorage(), NOW)).toBeNull();
++  });
++
++  it("counts distinct LOCAL dates, all game types, only before the snapshot", () => {
++    const storage = makeStorage({
++      [TENURE_SNAPSHOT_KEY]: snapshot(),
++      [GAME_RECORDS_KEY]: JSON.stringify({
++        a: {
++          lobby: { gameType: "Singleplayer" },
++          startTime: local(2026, 3, 1, 9),
++        },
++        b: { lobby: { gameType: "Public" }, startTime: local(2026, 3, 1, 23) },
++        c: {
++          lobby: { gameType: "Private" },
++          startTime: local(2026, 3, 2, 0, 5),
++        },
++        d: { lobby: {}, startTime: local(2026, 5, 20) },
++        // After the snapshot — post-launch play, excluded.
++        e: { lobby: {}, startTime: TAKEN_AT + 1 },
++        // No startTime at all.
++        f: { lobby: {} },
++      }),
++    });
++    expect(readTenureEvidence(storage, NOW)).toEqual({
++      daysPlayed: 10,
++      gameRecordDays: 3,
++      firstPlayedAt: local(2026, 3, 1, 9),
++      snapshotTakenAt: TAKEN_AT,
++    });
++  });
++
++  it("firstPlayedAt is the earlier of firstSeen and the earliest game", () => {
++    const firstSeen = local(2026, 1, 15);
++    const storage = makeStorage({
++      [TENURE_SNAPSHOT_KEY]: snapshot(),
++      [FIRST_SEEN_KEY]: String(firstSeen),
++      [GAME_RECORDS_KEY]: JSON.stringify({
++        a: { startTime: local(2026, 3, 1) },
++      }),
++    });
++    expect(readTenureEvidence(storage, NOW)?.firstPlayedAt).toBe(firstSeen);
++  });
++
++  it("ignores a firstSeen after the snapshot", () => {
++    const storage = makeStorage({
++      [TENURE_SNAPSHOT_KEY]: snapshot(),
++      [FIRST_SEEN_KEY]: String(TAKEN_AT + 1),
++    });
++    expect(readTenureEvidence(storage, NOW)).toEqual({
++      daysPlayed: 10,
++      gameRecordDays: 0,
++      firstPlayedAt: null,
++      snapshotTakenAt: TAKEN_AT,
++    });
++  });
++
++  it("survives corrupt game-records", () => {
++    for (const raw of ["{broken", "42", "null", '"text"']) {
++      const storage = makeStorage({
++        [TENURE_SNAPSHOT_KEY]: snapshot(5),
++        [GAME_RECORDS_KEY]: raw,
++      });
++      expect(readTenureEvidence(storage, NOW)?.gameRecordDays).toBe(0);
++    }
++  });
++
++  // Review R2 (round 1): a corrupt/edited snapshot with a negative counter used
++  // to reach the wire and 400 on every page load, forever.
++  it("clamps a negative counter to 0", () => {
++    const storage = makeStorage({ [TENURE_SNAPSHOT_KEY]: snapshot(-5) });
++    expect(readTenureEvidence(storage, NOW)?.daysPlayed).toBe(0);
++  });
++
++  // Review R1 (round 1): an out-of-range timestamp must never reach the
++  // server, which answers a permanent `implausible` and burns the device's claim.
++  describe("out-of-range dates (review R1)", () => {
++    const PRE_FLOOR = TENURE_EVIDENCE_FLOOR_MS - 86_400_000;
++
++    it("drops a game started before the evidence floor", () => {
++      const storage = makeStorage({
++        [TENURE_SNAPSHOT_KEY]: snapshot(),
++        [GAME_RECORDS_KEY]: JSON.stringify({
++          wrongClock: { startTime: PRE_FLOOR },
++          real: { startTime: local(2026, 3, 1) },
++        }),
++      });
++      expect(readTenureEvidence(storage, NOW)).toEqual({
++        daysPlayed: 10,
++        gameRecordDays: 1,
++        firstPlayedAt: local(2026, 3, 1),
++        snapshotTakenAt: TAKEN_AT,
++      });
++    });
++
++    it("drops a firstSeen before the evidence floor", () => {
++      const storage = makeStorage({
++        [TENURE_SNAPSHOT_KEY]: snapshot(),
++        [FIRST_SEEN_KEY]: String(PRE_FLOOR),
++      });
++      expect(readTenureEvidence(storage, NOW)?.firstPlayedAt).toBeNull();
++    });
++
++    it("keeps a timestamp exactly at the floor", () => {
++      const storage = makeStorage({
++        [TENURE_SNAPSHOT_KEY]: snapshot(),
++        [FIRST_SEEN_KEY]: String(TENURE_EVIDENCE_FLOOR_MS),
++      });
++      expect(readTenureEvidence(storage, NOW)?.firstPlayedAt).toBe(
++        TENURE_EVIDENCE_FLOOR_MS,
++      );
++    });
++
++    it("a snapshot taken on a clock set before the floor is unusable (null)", () => {
++      const storage = makeStorage({
++        [TENURE_SNAPSHOT_KEY]: snapshot(10, PRE_FLOOR),
++      });
++      expect(readTenureEvidence(storage, NOW)).toBeNull();
++    });
++
++    it("a snapshot taken on a clock running ahead is clamped to now", () => {
++      const ahead = NOW + 30 * 86_400_000;
++      const storage = makeStorage({
++        [TENURE_SNAPSHOT_KEY]: snapshot(10, ahead),
++        [FIRST_SEEN_KEY]: String(local(2026, 1, 15)),
++        [GAME_RECORDS_KEY]: JSON.stringify({
++          before: { startTime: local(2026, 3, 1) },
++          // Between now and the bad snapshot time — after the clamp, excluded.
++          between: { startTime: NOW + 86_400_000 },
++        }),
++      });
++      expect(readTenureEvidence(storage, NOW)).toEqual({
++        daysPlayed: 10,
++        gameRecordDays: 1,
++        firstPlayedAt: local(2026, 1, 15),
++        snapshotTakenAt: NOW,
++      });
++    });
++  });
++
++  it("clamps an oversized counter to the wire bound", () => {
++    const storage = makeStorage({
++      [TENURE_SNAPSHOT_KEY]: snapshot(5_000_000),
++    });
++    expect(readTenureEvidence(storage, NOW)?.daysPlayed).toBe(100_000);
++  });
++});
+diff --git a/tests/client/TenureGrantClaim.test.ts b/tests/client/TenureGrantClaim.test.ts
+new file mode 100644
+index 0000000..01c62b0
+--- /dev/null
++++ b/tests/client/TenureGrantClaim.test.ts
+@@ -0,0 +1,433 @@
++/**
++ * @jest-environment jsdom
++ */
++// Client claim of the tenure XP grant (task 0253). Pins ADR-112's ack-before-
++// marker rule: the device marker and the modal follow a server answer, never a
++// failure.
++
++jest.mock("../../src/core/configuration/ConfigLoader", () => ({
++  getServerConfigFromClient: jest.fn(),
++}));
++jest.mock("../../src/client/flashist/FlashistFacade", () => ({
++  flashistConstants: {
++    analyticEvents: {
++      CITIZENSHIP_TENURE_GRANT_CLAIMED: "Citizenship:TenureGrant:Claimed",
++      CITIZENSHIP_TENURE_GRANT_REJECTED: "Citizenship:TenureGrant:Rejected",
++      CITIZENSHIP_TENURE_GRANT_CLAIM_FAILED:
++        "Citizenship:TenureGrant:ClaimFailed",
++      PLAYER_DAYS_PLAYED: "Player:DaysPlayed",
++    },
++  },
++  flashist_logEventAnalytics: jest.fn(),
++}));
++
++import { getServerConfigFromClient } from "../../src/core/configuration/ConfigLoader";
++import type { StorageLike } from "../../src/client/DaysPlayedAnalytics";
++import { flashist_logEventAnalytics } from "../../src/client/flashist/FlashistFacade";
++import {
++  TENURE_GRANT_MARKER_KEY,
++  maybeClaimTenureGrant,
++} from "../../src/client/TenureGrantClaim";
++import { TENURE_SNAPSHOT_KEY } from "../../src/client/TenureEvidence";
++import {
++  TENURE_EVIDENCE_FLOOR_MS,
++  TENURE_WINDOW_OPENS_AT_MS,
++  TenureGrantRequestSchema,
++  evaluateTenureClaim,
++} from "../../src/core/profile/TenureGrantContract";
++
++const getServerConfig = getServerConfigFromClient as jest.Mock;
++const logEvent = flashist_logEventAnalytics as jest.Mock;
++const API_BASE = "https://api.example.test";
++const PLAYER = "yandex-1";
++const DAY_MS = 24 * 60 * 60 * 1000;
++// In the past: the client clamps a snapshot later than its own clock (review R1).
++const TAKEN_AT = Date.now() - 2 * DAY_MS;
++
++function makeStorage(initial: Record<string, string> = {}): StorageLike & {
++  data: Record<string, string>;
++} {
++  const data = { ...initial };
++  return {
++    data,
++    getItem: (key) => data[key] ?? null,
++    setItem: (key, value) => {
++      data[key] = value;
++    },
++  };
++}
++
++/** A device with a snapshot of `daysPlayed` days, first seen long before. */
++function deviceWith(daysPlayed: number, extra: Record<string, string> = {}) {
++  return makeStorage({
++    [TENURE_SNAPSHOT_KEY]: JSON.stringify({ daysPlayed, takenAt: TAKEN_AT }),
++    "geoconflict.player.firstSeen": String(TAKEN_AT - 300 * DAY_MS),
++    ...extra,
++  });
++}
++
++function stubFetch(status: number, body: unknown): jest.Mock {
++  const fetchMock = jest.fn().mockResolvedValue({
++    ok: status >= 200 && status < 300,
++    status,
++    json: async () => body,
++  });
++  global.fetch = fetchMock as unknown as typeof fetch;
++  return fetchMock;
++}
++
++function mountModal(): jest.Mock {
++  const show = jest.fn();
++  const element = document.createElement("tenure-grant-modal");
++  Object.assign(element, { show });
++  document.body.appendChild(element);
++  return show;
++}
++
++describe("maybeClaimTenureGrant", () => {
++  let show: jest.Mock;
++
++  beforeEach(() => {
++    jest.clearAllMocks();
++    document.body.innerHTML = "";
++    show = mountModal();
++    getServerConfig.mockResolvedValue({ profileApiUrl: () => API_BASE });
++  });
++
++  afterEach(() => {
++    delete (global as { fetch?: unknown }).fetch;
++  });
++
++  describe("early stops — no request", () => {
++    it("an existing marker sends nothing", async () => {
++      const fetchMock = stubFetch(200, {});
++      const storage = deviceWith(20, { [TENURE_GRANT_MARKER_KEY]: "granted" });
++      await expect(maybeClaimTenureGrant(PLAYER, storage)).resolves.toEqual({
++        status: "skipped",
++      });
++      expect(fetchMock).not.toHaveBeenCalled();
++      expect(logEvent).not.toHaveBeenCalled();
++    });
++
++    it("a guest (no Yandex id) sends nothing and sees no modal", async () => {
++      const fetchMock = stubFetch(200, {});
++      const storage = deviceWith(20);
++      await expect(maybeClaimTenureGrant(null, storage)).resolves.toEqual({
++        status: "skipped",
++      });
++      expect(fetchMock).not.toHaveBeenCalled();
++      expect(show).not.toHaveBeenCalled();
++      expect(storage.data[TENURE_GRANT_MARKER_KEY]).toBeUndefined();
++    });
++
++    it("no snapshot sends nothing", async () => {
++      const fetchMock = stubFetch(200, {});
++      await expect(
++        maybeClaimTenureGrant(PLAYER, makeStorage()),
++      ).resolves.toEqual({ status: "skipped" });
++      expect(fetchMock).not.toHaveBeenCalled();
++    });
++
++    it("an empty profileApiUrl sends nothing", async () => {
++      getServerConfig.mockResolvedValue({ profileApiUrl: () => "" });
++      const fetchMock = stubFetch(200, {});
++      await expect(
++        maybeClaimTenureGrant(PLAYER, deviceWith(20)),
++      ).resolves.toEqual({ status: "skipped" });
++      expect(fetchMock).not.toHaveBeenCalled();
++    });
++
++    it("below the minimum locally: marker set, BelowMinimum logged, no request", async () => {
++      const fetchMock = stubFetch(200, {});
++      const storage = deviceWith(2);
++      await expect(maybeClaimTenureGrant(PLAYER, storage)).resolves.toEqual({
++        status: "rejected",
++        reason: "below_minimum",
++      });
++      expect(fetchMock).not.toHaveBeenCalled();
++      expect(storage.data[TENURE_GRANT_MARKER_KEY]).toBe("below_minimum");
++      expect(logEvent).toHaveBeenCalledWith(
++        "Citizenship:TenureGrant:Rejected:BelowMinimum",
++      );
++    });
++  });
++
++  describe("server acks", () => {
++    it("granted: posts id + evidence, then marker, Claimed(value) and the modal", async () => {
++      const fetchMock = stubFetch(200, {
++        status: "granted",
++        xpAwarded: 20,
++        xp: 27,
++      });
++      const storage = deviceWith(20);
++      await expect(maybeClaimTenureGrant(PLAYER, storage)).resolves.toEqual({
++        status: "granted",
++        days: 20,
++        xpAwarded: 20,
++        xp: 27,
++      });
++      expect(fetchMock).toHaveBeenCalledWith(
++        `${API_BASE}/v1/profile/tenure-grant`,
++        expect.objectContaining({ method: "POST" }),
++      );
++      const body = JSON.parse(fetchMock.mock.calls[0][1].body);
++      expect(body).toEqual({
++        yandexPlayerId: PLAYER,
++        evidence: {
++          daysPlayed: 20,
++          gameRecordDays: 0,
++          firstPlayedAt: TAKEN_AT - 300 * DAY_MS,
++          snapshotTakenAt: TAKEN_AT,
++        },
++      });
++      expect(body).not.toHaveProperty("xpAwarded");
++      expect(storage.data[TENURE_GRANT_MARKER_KEY]).toBe("granted");
++      expect(logEvent).toHaveBeenCalledWith(
++        "Citizenship:TenureGrant:Claimed",
++        20,
++      );
++      expect(show).toHaveBeenCalledWith({ days: 20, xpAwarded: 20, xp: 27 });
++    });
++
++    it("the marker is written BEFORE the modal opens", async () => {
++      stubFetch(200, { status: "granted", xpAwarded: 5, xp: 5 });
++      const storage = deviceWith(5);
++      let markerAtShow: string | undefined;
++      show.mockImplementation(() => {
++        markerAtShow = storage.data[TENURE_GRANT_MARKER_KEY];
++      });
++      await maybeClaimTenureGrant(PLAYER, storage);
++      expect(markerAtShow).toBe("granted");
++    });
++
++    it("a modal that throws does not turn a grant into a failure", async () => {
++      stubFetch(200, { status: "granted", xpAwarded: 5, xp: 5 });
++      show.mockImplementation(() => {
++        throw new Error("render failed");
++      });
++      const storage = deviceWith(5);
++      await expect(
++        maybeClaimTenureGrant(PLAYER, storage),
++      ).resolves.toMatchObject({ status: "granted" });
++      expect(logEvent).not.toHaveBeenCalledWith(
++        "Citizenship:TenureGrant:ClaimFailed",
++      );
++    });
++
++    it("a lost-ack duplicate on an unmarked device still shows the modal", async () => {
++      stubFetch(200, { status: "duplicate", xpAwarded: 30, xp: 41 });
++      const storage = deviceWith(30);
++      await expect(maybeClaimTenureGrant(PLAYER, storage)).resolves.toEqual({
++        status: "duplicate",
++        days: 30,
++        xpAwarded: 30,
++        xp: 41,
++      });
++      expect(storage.data[TENURE_GRANT_MARKER_KEY]).toBe("duplicate");
++      expect(logEvent).toHaveBeenCalledWith(
++        "Citizenship:TenureGrant:Rejected:Duplicate",
++      );
++      expect(logEvent).not.toHaveBeenCalledWith(
++        "Citizenship:TenureGrant:Claimed",
++        expect.anything(),
++      );
++      expect(show).toHaveBeenCalledWith({ days: 30, xpAwarded: 30, xp: 41 });
++    });
++
++    it("the modal's day count is clamped the way the server clamps it", async () => {
++      stubFetch(200, { status: "granted", xpAwarded: 3, xp: 3 });
++      // Counter says 40, but the device was first seen 2 days before the snapshot.
++      const storage = deviceWith(40, {
++        "geoconflict.player.firstSeen": String(TAKEN_AT - 2 * DAY_MS),
++      });
++      await maybeClaimTenureGrant(PLAYER, storage);
++      expect(show).toHaveBeenCalledWith({ days: 3, xpAwarded: 3, xp: 3 });
++    });
++  });
++
++  // Review R1/R2 (round 1): what the client posts must be something the server
++  // can accept — an out-of-range date or a negative count would come back as a
++  // permanent `implausible` (burning the claim) or a 400 retried forever.
++  describe("posted evidence is always acceptable to the server", () => {
++    const serverNow = Math.max(TENURE_WINDOW_OPENS_AT_MS, TAKEN_AT) + DAY_MS;
++
++    async function postedEvidence(storage: StorageLike) {
++      const fetchMock = stubFetch(200, {
++        status: "granted",
++        xpAwarded: 5,
++        xp: 5,
++      });
++      await maybeClaimTenureGrant(PLAYER, storage);
++      expect(fetchMock).toHaveBeenCalledTimes(1);
++      return JSON.parse(fetchMock.mock.calls[0][1].body);
++    }
++
++    it("a pre-floor firstSeen (wrong clock) is not sent", async () => {
++      const body = await postedEvidence(
++        deviceWith(20, {
++          "geoconflict.player.firstSeen": String(
++            TENURE_EVIDENCE_FLOOR_MS - DAY_MS,
++          ),
++        }),
++      );
++      expect(evaluateTenureClaim(body.evidence, serverNow).ok).toBe(true);
++    });
++
++    it("a pre-floor game record (wrong clock) is not sent", async () => {
++      const body = await postedEvidence(
++        deviceWith(20, {
++          "game-records": JSON.stringify({
++            g: { startTime: TENURE_EVIDENCE_FLOOR_MS - DAY_MS },
++          }),
++        }),
++      );
++      expect(evaluateTenureClaim(body.evidence, serverNow).ok).toBe(true);
++    });
++
++    it("a negative snapshot counter never produces a 400-shaped body", async () => {
++      const day = (n: number) => TAKEN_AT - n * DAY_MS;
++      const body = await postedEvidence(
++        makeStorage({
++          [TENURE_SNAPSHOT_KEY]: JSON.stringify({
++            daysPlayed: -5,
++            takenAt: TAKEN_AT,
++          }),
++          "game-records": JSON.stringify({
++            a: { startTime: day(3) },
++            b: { startTime: day(5) },
++            c: { startTime: day(7) },
++          }),
++        }),
++      );
++      expect(TenureGrantRequestSchema.safeParse(body).success).toBe(true);
++    });
++  });
++
++  describe("server rejections", () => {
++    it.each([
++      ["below_minimum", "BelowMinimum"],
++      ["implausible", "Implausible"],
++      ["window_closed", "WindowClosed"],
++    ])("%s is permanent: marker set, no modal", async (reason, suffix) => {
++      stubFetch(422, { error: reason });
++      const storage = deviceWith(20);
++      await expect(maybeClaimTenureGrant(PLAYER, storage)).resolves.toEqual({
++        status: "rejected",
++        reason,
++      });
++      expect(storage.data[TENURE_GRANT_MARKER_KEY]).toBe(reason);
++      expect(logEvent).toHaveBeenCalledWith(
++        `Citizenship:TenureGrant:Rejected:${suffix}`,
++      );
++      expect(show).not.toHaveBeenCalled();
++    });
++
++    it.each([
++      ["no_profile", "NoProfile"],
++      ["no_credited_match", "NoCreditedMatch"],
++      ["window_not_open", "WindowNotOpen"],
++    ])(
++      "%s is temporary: NO marker, retried next load",
++      async (reason, suffix) => {
++        stubFetch(422, { error: reason });
++        const storage = deviceWith(20);
++        await expect(maybeClaimTenureGrant(PLAYER, storage)).resolves.toEqual({
++          status: "rejected",
++          reason,
++        });
++        expect(storage.data[TENURE_GRANT_MARKER_KEY]).toBeUndefined();
++        expect(logEvent).toHaveBeenCalledWith(
++          `Citizenship:TenureGrant:Rejected:${suffix}`,
++        );
++        expect(show).not.toHaveBeenCalled();
++      },
++    );
++  });
++
++  describe("failures — never a marker (verification 9)", () => {
++    function expectFailedWithoutMarker(
++      storage: ReturnType<typeof deviceWith>,
++    ): void {
++      expect(storage.data[TENURE_GRANT_MARKER_KEY]).toBeUndefined();
++      expect(logEvent).toHaveBeenCalledWith(
++        "Citizenship:TenureGrant:ClaimFailed",
++      );
++      expect(show).not.toHaveBeenCalled();
++    }
++
++    it("a network error", async () => {
++      global.fetch = jest
++        .fn()
++        .mockRejectedValue(new TypeError("Failed to fetch")) as never;
++      const storage = deviceWith(20);
++      await expect(maybeClaimTenureGrant(PLAYER, storage)).resolves.toEqual({
++        status: "failed",
++      });
++      expectFailedWithoutMarker(storage);
++    });
++
++    it("a timeout (aborted fetch)", async () => {
++      jest.useFakeTimers();
++      try {
++        global.fetch = jest.fn(
++          (_url: string, init: RequestInit) =>
++            new Promise((_resolve, reject) => {
++              init.signal?.addEventListener("abort", () =>
++                reject(new DOMException("aborted", "AbortError")),
++              );
++            }),
++        ) as never;
++        const storage = deviceWith(20);
++        const pending = maybeClaimTenureGrant(PLAYER, storage);
++        await jest.advanceTimersByTimeAsync(10_000);
++        await expect(pending).resolves.toEqual({ status: "failed" });
++        expectFailedWithoutMarker(storage);
++      } finally {
++        jest.useRealTimers();
++      }
++    });
++
++    it.each([500, 502, 503, 429, 400])("HTTP %i", async (status) => {
++      stubFetch(status, { error: "whatever" });
++      const storage = deviceWith(20);
++      await expect(maybeClaimTenureGrant(PLAYER, storage)).resolves.toEqual({
++        status: "failed",
++      });
++      expectFailedWithoutMarker(storage);
++    });
++
++    it.each([
++      ["a non-JSON 200", null],
++      [
++        "a 200 with an unknown status",
++        { status: "maybe", xpAwarded: 1, xp: 1 },
++      ],
++      ["a 200 missing fields", { status: "granted" }],
++    ])("%s", async (_label, body) => {
++      stubFetch(200, body);
++      const storage = deviceWith(20);
++      await expect(maybeClaimTenureGrant(PLAYER, storage)).resolves.toEqual({
++        status: "failed",
++      });
++      expectFailedWithoutMarker(storage);
++    });
++
++    it("a 422 with an unknown reason", async () => {
++      stubFetch(422, { error: "brand_new_reason" });
++      const storage = deviceWith(20);
++      await expect(maybeClaimTenureGrant(PLAYER, storage)).resolves.toEqual({
++        status: "failed",
++      });
++      expectFailedWithoutMarker(storage);
++    });
++
++    it("config loading throws", async () => {
++      getServerConfig.mockRejectedValue(new Error("no env"));
++      const fetchMock = stubFetch(200, {});
++      await expect(
++        maybeClaimTenureGrant(PLAYER, deviceWith(20)),
++      ).resolves.toEqual({ status: "skipped" });
++      expect(fetchMock).not.toHaveBeenCalled();
++    });
++  });
++});
+diff --git a/tests/client/TenureGrantLang.test.ts b/tests/client/TenureGrantLang.test.ts
+new file mode 100644
+index 0000000..6938ce5
+--- /dev/null
++++ b/tests/client/TenureGrantLang.test.ts
+@@ -0,0 +1,96 @@
++// Task 0253, verification 11: the tenure-grant modal strings exist in BOTH
++// en.json and ru.json, with the same placeholders, and format cleanly as ICU.
++
++import fs from "fs";
++import IntlMessageFormat from "intl-messageformat";
++import path from "path";
++
++const LANG_DIR = path.join(__dirname, "../../resources/lang");
++
++function load(file: string): Record<string, Record<string, string>> {
++  return JSON.parse(fs.readFileSync(path.join(LANG_DIR, file), "utf-8"));
++}
++
++const SECTION = "citizenship_tenure_grant";
++
++// Kept explicit (not derived from en.json) so deleting a key from BOTH files
++// still fails.
++const REQUIRED_KEYS = ["title", "body", "cta"];
++
++function placeholders(message: string): string[] {
++  return [...message.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
++}
++
++describe("citizenship_tenure_grant localization (task 0253)", () => {
++  const en = load("en.json");
++  const ru = load("ru.json");
++
++  it.each(REQUIRED_KEYS)("both files define %s, non-empty", (key) => {
++    expect(en[SECTION][key]?.length).toBeGreaterThan(0);
++    expect(ru[SECTION][key]?.length).toBeGreaterThan(0);
++  });
++
++  it("en and ru carry exactly the same key set", () => {
++    expect(Object.keys(ru[SECTION]).sort()).toEqual(
++      Object.keys(en[SECTION]).sort(),
++    );
++  });
++
++  it.each(REQUIRED_KEYS)(
++    "%s has the same placeholders in both languages",
++    (key) => {
++      expect(placeholders(ru[SECTION][key])).toEqual(
++        placeholders(en[SECTION][key]),
++      );
++    },
++  );
++
++  it("body substitutes days, xp, total and threshold", () => {
++    expect(placeholders(en[SECTION].body)).toEqual([
++      "days",
++      "threshold",
++      "total",
++      "xp",
++    ]);
++  });
++
++  it("the threshold is a placeholder, never a literal figure", () => {
++    for (const lang of [en, ru]) {
++      expect(lang[SECTION].body).not.toMatch(/\b100\b/);
++    }
++  });
++
++  it("ru is actually translated, not copied from en", () => {
++    for (const key of REQUIRED_KEYS) {
++      expect(ru[SECTION][key]).not.toBe(en[SECTION][key]);
++    }
++  });
++
++  it.each([
++    ["en", "en.json"],
++    ["ru", "ru.json"],
++  ])("%s body formats as ICU with every value substituted", (locale, file) => {
++    const body = load(file)[SECTION].body;
++    const formatted = new IntlMessageFormat(body, locale).format({
++      days: 37,
++      xp: 37,
++      total: 45,
++      threshold: 100,
++    }) as string;
++    expect(formatted).not.toMatch(/[{}]/);
++    expect(formatted).toContain("37");
++    expect(formatted).toContain("45");
++    expect(formatted).toContain("100");
++  });
++
++  it("the ICU apostrophe rule leaves the English contractions intact", () => {
++    const formatted = new IntlMessageFormat(en[SECTION].body, "en").format({
++      days: 5,
++      xp: 5,
++      total: 5,
++      threshold: 100,
++    }) as string;
++    expect(formatted).toContain("You've played Geoconflict on 5 days");
++    expect(formatted).toContain("we've added 5 XP");
++  });
++});
+diff --git a/tests/client/TenureGrantModal.test.ts b/tests/client/TenureGrantModal.test.ts
+new file mode 100644
+index 0000000..69e334e
+--- /dev/null
++++ b/tests/client/TenureGrantModal.test.ts
+@@ -0,0 +1,64 @@
++/**
++ * @jest-environment jsdom
++ */
++// The one-time tenure-grant notice (task 0253).
++jest.mock("../../src/client/Utils", () => ({
++  translateText: jest.fn((key: string, params?: Record<string, unknown>) =>
++    params ? `${key} ${JSON.stringify(params)}` : key,
++  ),
++}));
++
++import { TenureGrantModal } from "../../src/client/TenureGrantModal";
++
++async function mount(): Promise<TenureGrantModal> {
++  const modal = new TenureGrantModal();
++  document.body.appendChild(modal);
++  await modal.updateComplete;
++  return modal;
++}
++
++const overlay = (modal: TenureGrantModal) =>
++  modal.shadowRoot!.querySelector(".modal-overlay")!;
++
++describe("TenureGrantModal", () => {
++  beforeEach(() => {
++    document.body.innerHTML = "";
++  });
++
++  it("is hidden until shown", async () => {
++    const modal = await mount();
++    expect(overlay(modal).classList.contains("visible")).toBe(false);
++  });
++
++  it("shows the grant, with the threshold from the shared constant", async () => {
++    const modal = await mount();
++    modal.show({ days: 37, xpAwarded: 37, xp: 45 });
++    await modal.updateComplete;
++
++    expect(overlay(modal).classList.contains("visible")).toBe(true);
++    const text = modal.shadowRoot!.textContent!;
++    expect(text).toContain("citizenship_tenure_grant.title");
++    expect(text).toContain(
++      `citizenship_tenure_grant.body ${JSON.stringify({
++        days: 37,
++        xp: 37,
++        total: 45,
++        threshold: 100,
++      })}`,
++    );
++    expect(text).toContain("citizenship_tenure_grant.cta");
++  });
++
++  it("the CTA closes it", async () => {
++    const modal = await mount();
++    modal.show({ days: 5, xpAwarded: 5, xp: 5 });
++    await modal.updateComplete;
++
++    (
++      modal.shadowRoot!.querySelector("#tenure-grant-modal-cta") as HTMLElement
++    ).click();
++    await modal.updateComplete;
++
++    expect(overlay(modal).classList.contains("visible")).toBe(false);
++  });
++});
+diff --git a/tests/client/TenureSnapshotInitOrder.test.ts b/tests/client/TenureSnapshotInitOrder.test.ts
+new file mode 100644
+index 0000000..d8eda99
+--- /dev/null
++++ b/tests/client/TenureSnapshotInitOrder.test.ts
+@@ -0,0 +1,57 @@
++/**
++ * @jest-environment jsdom
++ */
++// Task 0253: FlashistFacade.initializeImmediate() must take the tenure snapshot
++// BEFORE logDaysPlayedAnalytics() adds today — otherwise the first post-launch
++// day leaks into "pre-launch". Drives the REAL method over jsdom localStorage.
++
++import { FlashistFacade } from "../../src/client/flashist/FlashistFacade";
++
++const DAYS_PLAYED_KEY = "geoconflict.player.daysPlayed";
++const LAST_PLAYED_KEY = "geoconflict.player.lastPlayedDate";
++const SNAPSHOT_KEY = "geoconflict.player.tenureSnapshot";
++
++describe("initializeImmediate tenure snapshot ordering", () => {
++  beforeEach(() => {
++    localStorage.clear();
++    window.matchMedia = jest.fn().mockReturnValue({
++      matches: false,
++    }) as unknown as typeof window.matchMedia;
++    jest.spyOn(console, "log").mockImplementation(() => {});
++  });
++
++  afterEach(() => {
++    jest.restoreAllMocks();
++  });
++
++  function freshFacade(): FlashistFacade {
++    // Constructor skipped (it runs platform detection); only the field the
++    // method reads is seeded.
++    return Object.assign(Object.create(FlashistFacade.prototype), {
++      yaGamesAvailable: false,
++    }) as FlashistFacade;
++  }
++
++  it("snapshots yesterday's count, then the counter moves on to today", () => {
++    localStorage.setItem(DAYS_PLAYED_KEY, "7");
++    localStorage.setItem(LAST_PLAYED_KEY, "2000-01-01");
++
++    freshFacade().initializeImmediate();
++
++    expect(localStorage.getItem(DAYS_PLAYED_KEY)).toBe("8");
++    expect(JSON.parse(localStorage.getItem(SNAPSHOT_KEY)!).daysPlayed).toBe(7);
++  });
++
++  it("a later boot never moves the snapshot", () => {
++    localStorage.setItem(DAYS_PLAYED_KEY, "7");
++    localStorage.setItem(LAST_PLAYED_KEY, "2000-01-01");
++    freshFacade().initializeImmediate();
++    const first = localStorage.getItem(SNAPSHOT_KEY);
++
++    localStorage.setItem(LAST_PLAYED_KEY, "2000-01-02");
++    freshFacade().initializeImmediate();
++
++    expect(localStorage.getItem(DAYS_PLAYED_KEY)).toBe("9");
++    expect(localStorage.getItem(SNAPSHOT_KEY)).toBe(first);
++  });
++});
+diff --git a/tests/core/profile/TenureGrantContract.test.ts b/tests/core/profile/TenureGrantContract.test.ts
+new file mode 100644
+index 0000000..92744fd
+--- /dev/null
++++ b/tests/core/profile/TenureGrantContract.test.ts
+@@ -0,0 +1,298 @@
++import {
++  TENURE_CLAIM_WINDOW_DAYS,
++  TENURE_EVIDENCE_FLOOR_MS,
++  TENURE_WINDOW_CLOSES_AT_MS,
++  TENURE_WINDOW_OPENS_AT_MS,
++  TenureGrantRejectionSchema,
++  TenureGrantRequestSchema,
++  TenureGrantResponseSchema,
++  evaluateTenureClaim,
++  tenureDaysFromEvidence,
++  tenureXpForDays,
++  type TenureEvidence,
++} from "../../../src/core/profile/TenureGrantContract";
++
++const DAY_MS = 24 * 60 * 60 * 1000;
++// Inside the claim window.
++const NOW = TENURE_WINDOW_OPENS_AT_MS + 10 * DAY_MS;
++// A device that has been around for 300 days before its snapshot.
++const SNAPSHOT = NOW - DAY_MS;
++const FIRST_PLAYED = SNAPSHOT - 300 * DAY_MS;
++
++function evidence(overrides: Partial<TenureEvidence> = {}): TenureEvidence {
++  return {
++    daysPlayed: 10,
++    gameRecordDays: 0,
++    firstPlayedAt: FIRST_PLAYED,
++    snapshotTakenAt: SNAPSHOT,
++    ...overrides,
++  };
++}
++
++describe("tenure grant constants", () => {
++  test("the window opens 2026-09-19 00:00 Moscow time (UTC+3)", () => {
++    expect(new Date(TENURE_WINDOW_OPENS_AT_MS).toISOString()).toBe(
++      "2026-09-18T21:00:00.000Z",
++    );
++  });
++
++  test("the window closes exactly 90 days later", () => {
++    expect(TENURE_CLAIM_WINDOW_DAYS).toBe(90);
++    expect(TENURE_WINDOW_CLOSES_AT_MS - TENURE_WINDOW_OPENS_AT_MS).toBe(
++      90 * DAY_MS,
++    );
++  });
++
++  test("the evidence floor is no later than the fork's first commit", () => {
++    // First commit: 2025-11-04 14:31:02 +03:00.
++    expect(TENURE_EVIDENCE_FLOOR_MS).toBeLessThanOrEqual(
++      Date.parse("2025-11-04T14:31:02+03:00"),
++    );
++    expect(new Date(TENURE_EVIDENCE_FLOOR_MS).toISOString()).toBe(
++      "2025-11-03T21:00:00.000Z",
++    );
++  });
++});
++
++describe("evaluateTenureClaim — days and amount", () => {
++  test("uses the larger of daysPlayed and gameRecordDays", () => {
++    expect(
++      evaluateTenureClaim(evidence({ daysPlayed: 4, gameRecordDays: 9 }), NOW),
++    ).toEqual({ ok: true, days: 9, xpAwarded: 9 });
++    expect(
++      evaluateTenureClaim(evidence({ daysPlayed: 12, gameRecordDays: 5 }), NOW),
++    ).toEqual({ ok: true, days: 12, xpAwarded: 12 });
++  });
++
++  test("minimum is 3 days: 2 is rejected, 3 grants 3 XP", () => {
++    expect(evaluateTenureClaim(evidence({ daysPlayed: 2 }), NOW)).toEqual({
++      ok: false,
++      reason: "below_minimum",
++    });
++    expect(evaluateTenureClaim(evidence({ daysPlayed: 3 }), NOW)).toEqual({
++      ok: true,
++      days: 3,
++      xpAwarded: 3,
++    });
++  });
++
++  test("zero evidence is below the minimum", () => {
++    expect(
++      evaluateTenureClaim(
++        evidence({ daysPlayed: 0, gameRecordDays: 0, firstPlayedAt: null }),
++        NOW,
++      ),
++    ).toEqual({ ok: false, reason: "below_minimum" });
++  });
++
++  test("caps the amount at 50 XP (80 days → 50)", () => {
++    expect(evaluateTenureClaim(evidence({ daysPlayed: 80 }), NOW)).toEqual({
++      ok: true,
++      days: 80,
++      xpAwarded: 50,
++    });
++    expect(tenureXpForDays(50)).toBe(50);
++    expect(tenureXpForDays(51)).toBe(50);
++  });
++
++  test("clamps the day count to the span between first play and snapshot", () => {
++    // First played 4 days (and a bit) before the snapshot → at most 6 calendar
++    // days can be touched, whatever the counter claims.
++    const firstPlayedAt = SNAPSHOT - 4 * DAY_MS - 60_000;
++    expect(
++      evaluateTenureClaim(evidence({ daysPlayed: 500, firstPlayedAt }), NOW),
++    ).toEqual({ ok: true, days: 6, xpAwarded: 6 });
++  });
++
++  test("the clamp never undercounts two calendar days minutes apart", () => {
++    // 23:55 one day, 00:05 the next: 10 minutes, but two local dates.
++    const firstPlayedAt = SNAPSHOT - 10 * 60_000;
++    expect(
++      tenureDaysFromEvidence(evidence({ daysPlayed: 2, firstPlayedAt })),
++    ).toBe(2);
++    // Same instant: one day.
++    expect(
++      tenureDaysFromEvidence(
++        evidence({ daysPlayed: 2, firstPlayedAt: SNAPSHOT }),
++      ),
++    ).toBe(1);
++  });
++
++  test("with no firstPlayedAt, the span starts at the evidence floor", () => {
++    const snapshotTakenAt = TENURE_EVIDENCE_FLOOR_MS + 5 * DAY_MS;
++    expect(
++      tenureDaysFromEvidence(
++        evidence({ daysPlayed: 100, firstPlayedAt: null, snapshotTakenAt }),
++      ),
++    ).toBe(6);
++  });
++
++  test("clamping below the minimum turns into below_minimum", () => {
++    expect(
++      evaluateTenureClaim(
++        evidence({ daysPlayed: 40, firstPlayedAt: SNAPSHOT - 60_000 }),
++        NOW,
++      ),
++    ).toEqual({ ok: false, reason: "below_minimum" });
++  });
++});
++
++describe("evaluateTenureClaim — implausible timestamps", () => {
++  test("a snapshot more than one day in the future", () => {
++    expect(
++      evaluateTenureClaim(evidence({ snapshotTakenAt: NOW + DAY_MS + 1 }), NOW),
++    ).toEqual({ ok: false, reason: "implausible" });
++    // Exactly one day ahead is tolerated (clock skew).
++    expect(
++      evaluateTenureClaim(evidence({ snapshotTakenAt: NOW + DAY_MS }), NOW).ok,
++    ).toBe(true);
++  });
++
++  test("a first play before the evidence floor", () => {
++    expect(
++      evaluateTenureClaim(
++        evidence({ firstPlayedAt: TENURE_EVIDENCE_FLOOR_MS - 1 }),
++        NOW,
++      ),
++    ).toEqual({ ok: false, reason: "implausible" });
++  });
++
++  test("a first play after the snapshot", () => {
++    expect(
++      evaluateTenureClaim(evidence({ firstPlayedAt: SNAPSHOT + 1 }), NOW),
++    ).toEqual({ ok: false, reason: "implausible" });
++  });
++
++  test("a snapshot before the evidence floor", () => {
++    expect(
++      evaluateTenureClaim(
++        evidence({
++          firstPlayedAt: null,
++          snapshotTakenAt: TENURE_EVIDENCE_FLOOR_MS - 1,
++        }),
++        NOW,
++      ),
++    ).toEqual({ ok: false, reason: "implausible" });
++  });
++
++  test("implausible wins over below_minimum (checked first)", () => {
++    expect(
++      evaluateTenureClaim(
++        evidence({ daysPlayed: 0, firstPlayedAt: SNAPSHOT + 1 }),
++        NOW,
++      ),
++    ).toEqual({ ok: false, reason: "implausible" });
++  });
++});
++
++describe("evaluateTenureClaim — the window edges", () => {
++  test("one millisecond before it opens", () => {
++    expect(
++      evaluateTenureClaim(
++        evidence({ snapshotTakenAt: TENURE_WINDOW_OPENS_AT_MS - DAY_MS }),
++        TENURE_WINDOW_OPENS_AT_MS - 1,
++      ),
++    ).toEqual({ ok: false, reason: "window_not_open" });
++  });
++
++  test("the moment it opens", () => {
++    expect(
++      evaluateTenureClaim(
++        evidence({ snapshotTakenAt: TENURE_WINDOW_OPENS_AT_MS - DAY_MS }),
++        TENURE_WINDOW_OPENS_AT_MS,
++      ).ok,
++    ).toBe(true);
++  });
++
++  test("the last millisecond it is open", () => {
++    expect(
++      evaluateTenureClaim(evidence(), TENURE_WINDOW_CLOSES_AT_MS - 1).ok,
++    ).toBe(true);
++  });
++
++  test("the moment it closes", () => {
++    expect(evaluateTenureClaim(evidence(), TENURE_WINDOW_CLOSES_AT_MS)).toEqual(
++      { ok: false, reason: "window_closed" },
++    );
++  });
++
++  test("the window is checked before the evidence", () => {
++    expect(
++      evaluateTenureClaim(
++        evidence({ daysPlayed: 0, firstPlayedAt: SNAPSHOT + 1 }),
++        TENURE_WINDOW_OPENS_AT_MS - 1,
++      ),
++    ).toEqual({ ok: false, reason: "window_not_open" });
++  });
++});
++
++describe("wire schemas", () => {
++  const valid = { yandexPlayerId: "p1", evidence: evidence() };
++
++  test("accepts a well-formed request", () => {
++    expect(TenureGrantRequestSchema.safeParse(valid).success).toBe(true);
++    expect(
++      TenureGrantRequestSchema.safeParse({
++        ...valid,
++        evidence: evidence({ firstPlayedAt: null }),
++      }).success,
++    ).toBe(true);
++  });
++
++  test.each([
++    ["an empty player id", { ...valid, yandexPlayerId: "" }],
++    ["a 129-char player id", { ...valid, yandexPlayerId: "x".repeat(129) }],
++    [
++      "negative daysPlayed",
++      { ...valid, evidence: evidence({ daysPlayed: -1 }) },
++    ],
++    [
++      "daysPlayed above 100000",
++      { ...valid, evidence: evidence({ daysPlayed: 100_001 }) },
++    ],
++    [
++      "a fractional gameRecordDays",
++      { ...valid, evidence: evidence({ gameRecordDays: 1.5 }) },
++    ],
++    [
++      "gameRecordDays above 100000",
++      { ...valid, evidence: evidence({ gameRecordDays: 100_001 }) },
++    ],
++    ["missing evidence", { yandexPlayerId: "p1" }],
++  ])("rejects %s", (_label, body) => {
++    expect(TenureGrantRequestSchema.safeParse(body).success).toBe(false);
++  });
++
++  test("accepts the bounds themselves", () => {
++    expect(
++      TenureGrantRequestSchema.safeParse({
++        yandexPlayerId: "x".repeat(128),
++        evidence: evidence({ daysPlayed: 100_000, gameRecordDays: 0 }),
++      }).success,
++    ).toBe(true);
++  });
++
++  test("response and rejection shapes", () => {
++    expect(
++      TenureGrantResponseSchema.safeParse({
++        status: "granted",
++        xpAwarded: 10,
++        xp: 12,
++      }).success,
++    ).toBe(true);
++    expect(
++      TenureGrantResponseSchema.safeParse({
++        status: "other",
++        xpAwarded: 1,
++        xp: 1,
++      }).success,
++    ).toBe(false);
++    expect(
++      TenureGrantRejectionSchema.safeParse({ error: "no_credited_match" })
++        .success,
++    ).toBe(true);
++    expect(
++      TenureGrantRejectionSchema.safeParse({ error: "nope" }).success,
++    ).toBe(false);
++  });
++});
+diff --git a/tests/integration/TenureGrant.it.test.ts b/tests/integration/TenureGrant.it.test.ts
+new file mode 100644
+index 0000000..4436497
+--- /dev/null
++++ b/tests/integration/TenureGrant.it.test.ts
+@@ -0,0 +1,216 @@
++// Integration test for the tenure XP grant (task 0253): the real migrations, a
++// real PlayerProfileRepository and real Postgres, driven through createApp() via
++// supertest. This is where brief verification 8 is PROVEN — the real primary key,
++// the real FK, the real transaction. Gated by RUN_DB_TESTS; see jest.config.ts.
++// supertest-based, so the known flake family applies (CLAUDE.md).
++
++import { readFileSync } from "fs";
++import { join } from "path";
++import { Pool } from "pg";
++import request from "supertest";
++import {
++  TENURE_WINDOW_OPENS_AT_MS,
++  type TenureEvidence,
++} from "../../src/core/profile/TenureGrantContract";
++import { PlayerProfileRepository } from "../../src/profile-server/PlayerProfileRepository";
++import { createApp } from "../../src/profile-server/Routes";
++
++const RUN = process.env.RUN_DB_TESTS ? describe : describe.skip;
++const DAY_MS = 24 * 60 * 60 * 1000;
++// The window opens after this suite was written — pin the clock inside it.
++const NOW = TENURE_WINDOW_OPENS_AT_MS + 3 * DAY_MS;
++
++RUN("tenure XP grant over real Postgres (integration)", () => {
++  let pool: Pool;
++  let repo: PlayerProfileRepository;
++  let app: ReturnType<typeof createApp>;
++
++  const VETERAN = "yandex-tenure-veteran";
++  const FRESH = "yandex-tenure-fresh";
++
++  const evidence = (
++    overrides: Partial<TenureEvidence> = {},
++  ): TenureEvidence => ({
++    daysPlayed: 80,
++    gameRecordDays: 12,
++    firstPlayedAt: NOW - 200 * DAY_MS,
++    snapshotTakenAt: NOW - DAY_MS,
++    ...overrides,
++  });
++
++  const claim = (yandexPlayerId: string, ev: TenureEvidence = evidence()) =>
++    request(app)
++      .post("/v1/profile/tenure-grant")
++      .send({ yandexPlayerId, evidence: ev });
++
++  const credit = (gameId: string, yandexPlayerId: string) =>
++    repo.creditMatchXp(gameId, yandexPlayerId, 1);
++
++  const profileXp = async (yandexPlayerId: string): Promise<number> =>
++    Number(
++      (
++        await pool.query(
++          "SELECT xp FROM player_profiles WHERE yandex_player_id = $1",
++          [yandexPlayerId],
++        )
++      ).rows[0].xp,
++    );
++
++  beforeAll(async () => {
++    pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL });
++    for (const file of [
++      "migrations/001_player_profiles.sql",
++      "migrations/002_yandex_payments.sql",
++      "migrations/003_player_messages.sql",
++      "migrations/004_name_change.sql",
++      "migrations/005_player_xp_grants.sql",
++    ]) {
++      await pool.query(readFileSync(join(process.cwd(), file), "utf8"));
++    }
++  });
++
++  afterAll(async () => {
++    await pool.end();
++  });
++
++  beforeEach(async () => {
++    // Pin Date.now only — pg and supertest keep their real timers.
++    jest.spyOn(Date, "now").mockReturnValue(NOW);
++    // A fresh app per test: createApp builds the per-IP limiter, and every
++    // request here comes from 127.0.0.1.
++    repo = new PlayerProfileRepository(pool);
++    app = createApp(repo, undefined, undefined, undefined, repo);
++    await pool.query(
++      `TRUNCATE player_xp_grants, player_messages, player_match_xp_credits,
++               player_name_history, player_cosmetic_ownership, player_profiles
++       RESTART IDENTITY CASCADE`,
++    );
++    await pool.query(
++      `INSERT INTO player_profiles (yandex_player_id, persistent_id)
++       VALUES ($1, 'pid-tenure-veteran'), ($2, 'pid-tenure-fresh')`,
++      [VETERAN, FRESH],
++    );
++  });
++
++  afterEach(() => {
++    jest.restoreAllMocks();
++  });
++
++  test("credits exactly the capped amount (80 days → 50 XP)", async () => {
++    await credit("game-1", VETERAN);
++    const res = await claim(VETERAN).expect(200);
++    expect(res.body).toEqual({ status: "granted", xpAwarded: 50, xp: 51 });
++    expect(await profileXp(VETERAN)).toBe(51);
++
++    const grants = await pool.query(
++      "SELECT kind, xp_awarded, evidence FROM player_xp_grants WHERE yandex_player_id = $1",
++      [VETERAN],
++    );
++    expect(grants.rows).toEqual([
++      { kind: "tenure", xp_awarded: 50, evidence: evidence() },
++    ]);
++  });
++
++  test("a second identical claim credits nothing and returns duplicate", async () => {
++    await credit("game-1", VETERAN);
++    await claim(VETERAN).expect(200);
++    const res = await claim(VETERAN).expect(200);
++    expect(res.body).toEqual({ status: "duplicate", xpAwarded: 50, xp: 51 });
++    expect(await profileXp(VETERAN)).toBe(51);
++
++    // Different evidence from another device changes nothing either.
++    const other = await claim(
++      VETERAN,
++      evidence({ daysPlayed: 7, gameRecordDays: 0 }),
++    ).expect(200);
++    expect(other.body).toEqual({ status: "duplicate", xpAwarded: 50, xp: 51 });
++    const count = await pool.query(
++      "SELECT count(*)::int AS n FROM player_xp_grants WHERE yandex_player_id = $1",
++      [VETERAN],
++    );
++    expect(count.rows[0].n).toBe(1);
++  });
++
++  test("xp = Σ match credits + the one grant", async () => {
++    await credit("game-1", VETERAN);
++    await credit("game-2", VETERAN);
++    await claim(VETERAN, evidence({ daysPlayed: 9, gameRecordDays: 4 })).expect(
++      200,
++    );
++    await credit("game-3", VETERAN);
++
++    const sums = await pool.query(
++      `SELECT
++         (SELECT coalesce(sum(xp_awarded), 0) FROM player_match_xp_credits
++            WHERE yandex_player_id = $1)::int AS credits,
++         (SELECT coalesce(sum(xp_awarded), 0) FROM player_xp_grants
++            WHERE yandex_player_id = $1)::int AS grants`,
++      [VETERAN],
++    );
++    expect(sums.rows[0]).toEqual({ credits: 3, grants: 9 });
++    expect(await profileXp(VETERAN)).toBe(12);
++  });
++
++  test("no_credited_match before any credit — and nothing is written", async () => {
++    await claim(FRESH).expect(422, { error: "no_credited_match" });
++    expect(await profileXp(FRESH)).toBe(0);
++    const grants = await pool.query("SELECT 1 FROM player_xp_grants");
++    expect(grants.rowCount).toBe(0);
++
++    // Once a real match is credited, the same claim succeeds.
++    await credit("game-1", FRESH);
++    await claim(FRESH).expect(200);
++  });
++
++  test("no_profile for an account with no profile row", async () => {
++    await claim("yandex-tenure-ghost").expect(422, { error: "no_profile" });
++  });
++
++  test("two concurrent claims for one account grant once", async () => {
++    await credit("game-1", VETERAN);
++    const [a, b] = await Promise.all([
++      repo.grantTenureXp(VETERAN, 50, evidence()),
++      repo.grantTenureXp(VETERAN, 50, evidence()),
++    ]);
++    expect([a.status, b.status].sort()).toEqual(["duplicate", "granted"]);
++    expect(await profileXp(VETERAN)).toBe(51);
++  });
++
++  test("a grant crossing 100 XP grants earned citizenship", async () => {
++    // 60 real XP, then a 50 XP grant.
++    await pool.query(
++      "UPDATE player_profiles SET xp = 59 WHERE yandex_player_id = $1",
++      [VETERAN],
++    );
++    await credit("game-1", VETERAN);
++    const outcome = await repo.grantTenureXp(VETERAN, 50, evidence());
++    expect(outcome).toMatchObject({
++      status: "granted",
++      xp: 110,
++      citizenshipNewlyGranted: true,
++    });
++    const row = await pool.query(
++      "SELECT is_citizen, citizenship_earned_at FROM player_profiles WHERE yandex_player_id = $1",
++      [VETERAN],
++    );
++    expect(row.rows[0].is_citizen).toBe(true);
++    expect(row.rows[0].citizenship_earned_at).not.toBeNull();
++  });
++
++  test("the schema refuses a non-positive amount and an unknown kind", async () => {
++    await expect(
++      pool.query(
++        `INSERT INTO player_xp_grants (yandex_player_id, kind, xp_awarded, evidence)
++         VALUES ($1, 'tenure', 0, '{}')`,
++        [VETERAN],
++      ),
++    ).rejects.toMatchObject({ code: "23514" });
++    await expect(
++      pool.query(
++        `INSERT INTO player_xp_grants (yandex_player_id, kind, xp_awarded, evidence)
++         VALUES ($1, 'bonus', 5, '{}')`,
++        [VETERAN],
++      ),
++    ).rejects.toMatchObject({ code: "23514" });
++  });
++});
+diff --git a/tests/profile-server/TenureGrantRoutes.test.ts b/tests/profile-server/TenureGrantRoutes.test.ts
+new file mode 100644
+index 0000000..cb37b40
+--- /dev/null
++++ b/tests/profile-server/TenureGrantRoutes.test.ts
+@@ -0,0 +1,217 @@
++// Route tests for the tenure XP grant (task 0253) over a mocked TenureGrantRepo —
++// same harness as NameChangeRoutes.test.ts. supertest-based, so this suite is
++// part of the known supertest flake family (see CLAUDE.md, "Known flake").
++
++import request from "supertest";
++import { TENURE_WINDOW_OPENS_AT_MS } from "../../src/core/profile/TenureGrantContract";
++import type { TenureGrantOutcome } from "../../src/profile-server/PlayerProfileRepository";
++import {
++  createApp,
++  type ProfileRepo,
++  type TenureGrantRepo,
++} from "../../src/profile-server/Routes";
++
++const DAY_MS = 24 * 60 * 60 * 1000;
++const PLAYER = "yandex-1";
++const NOW = TENURE_WINDOW_OPENS_AT_MS + 5 * DAY_MS;
++const PATH = "/v1/profile/tenure-grant";
++
++function mockRepo(): ProfileRepo {
++  return {
++    ping: jest.fn().mockResolvedValue(undefined),
++    getProfile: jest.fn().mockResolvedValue(null),
++    upsertProfile: jest.fn(),
++    creditMatchXp: jest.fn(),
++  };
++}
++
++function outcome(overrides: Partial<TenureGrantOutcome>): TenureGrantOutcome {
++  return {
++    status: "granted",
++    xpAwarded: 12,
++    xp: 20,
++    citizenshipNewlyGranted: false,
++    ...overrides,
++  };
++}
++
++function mockTenureGrant(result?: TenureGrantOutcome | Error): TenureGrantRepo {
++  const grantTenureXp = jest.fn();
++  if (result instanceof Error) {
++    grantTenureXp.mockRejectedValue(result);
++  } else {
++    grantTenureXp.mockResolvedValue(result ?? outcome({}));
++  }
++  return { grantTenureXp };
++}
++
++/** `null` = build the app WITHOUT a tenure-grant repo (fail-closed path). */
++function appWith(tenureGrant: TenureGrantRepo | null = mockTenureGrant()) {
++  return createApp(
++    mockRepo(),
++    undefined,
++    undefined,
++    undefined,
++    tenureGrant ?? undefined,
++  );
++}
++
++function evidence(overrides: Record<string, unknown> = {}) {
++  return {
++    daysPlayed: 12,
++    gameRecordDays: 4,
++    firstPlayedAt: NOW - 200 * DAY_MS,
++    snapshotTakenAt: NOW - DAY_MS,
++    ...overrides,
++  };
++}
++
++describe("POST /v1/profile/tenure-grant", () => {
++  beforeEach(() => {
++    jest.spyOn(Date, "now").mockReturnValue(NOW);
++  });
++  afterEach(() => {
++    jest.restoreAllMocks();
++  });
++
++  it("200 granted, with the server-computed amount passed to the repository", async () => {
++    const tenureGrant = mockTenureGrant(outcome({ xpAwarded: 12, xp: 20 }));
++    const body = { yandexPlayerId: PLAYER, evidence: evidence() };
++    await request(appWith(tenureGrant))
++      .post(PATH)
++      .send(body)
++      .expect(200, { status: "granted", xpAwarded: 12, xp: 20 });
++    expect(tenureGrant.grantTenureXp).toHaveBeenCalledWith(
++      PLAYER,
++      12,
++      body.evidence,
++    );
++  });
++
++  it("200 duplicate carries the stored amount", async () => {
++    const tenureGrant = mockTenureGrant(
++      outcome({ status: "duplicate", xpAwarded: 30, xp: 45 }),
++    );
++    await request(appWith(tenureGrant))
++      .post(PATH)
++      .send({ yandexPlayerId: PLAYER, evidence: evidence() })
++      .expect(200, { status: "duplicate", xpAwarded: 30, xp: 45 });
++  });
++
++  it("ignores a client-sent amount — the server computes it", async () => {
++    const tenureGrant = mockTenureGrant();
++    await request(appWith(tenureGrant))
++      .post(PATH)
++      .send({
++        yandexPlayerId: PLAYER,
++        xpAwarded: 999,
++        evidence: { ...evidence({ daysPlayed: 80 }), xpAwarded: 999 },
++      })
++      .expect(200);
++    const call = (tenureGrant.grantTenureXp as jest.Mock).mock.calls[0];
++    expect(call[1]).toBe(50);
++    expect(call[2]).not.toHaveProperty("xpAwarded");
++  });
++
++  it.each([
++    ["below_minimum", evidence({ daysPlayed: 2, gameRecordDays: 1 })],
++    ["implausible", evidence({ snapshotTakenAt: NOW + 2 * DAY_MS })],
++  ])(
++    "422 %s from the rules, without touching the repository",
++    async (reason, ev) => {
++      const tenureGrant = mockTenureGrant();
++      await request(appWith(tenureGrant))
++        .post(PATH)
++        .send({ yandexPlayerId: PLAYER, evidence: ev })
++        .expect(422, { error: reason });
++      expect(tenureGrant.grantTenureXp).not.toHaveBeenCalled();
++    },
++  );
++
++  it("422 window_not_open before the window", async () => {
++    (Date.now as jest.Mock).mockReturnValue(TENURE_WINDOW_OPENS_AT_MS - 1);
++    const tenureGrant = mockTenureGrant();
++    await request(appWith(tenureGrant))
++      .post(PATH)
++      .send({
++        yandexPlayerId: PLAYER,
++        evidence: evidence({
++          firstPlayedAt: TENURE_WINDOW_OPENS_AT_MS - 100 * DAY_MS,
++          snapshotTakenAt: TENURE_WINDOW_OPENS_AT_MS - DAY_MS,
++        }),
++      })
++      .expect(422, { error: "window_not_open" });
++    expect(tenureGrant.grantTenureXp).not.toHaveBeenCalled();
++  });
++
++  it("422 window_closed after the window", async () => {
++    (Date.now as jest.Mock).mockReturnValue(
++      TENURE_WINDOW_OPENS_AT_MS + 90 * DAY_MS,
++    );
++    await request(appWith())
++      .post(PATH)
++      .send({ yandexPlayerId: PLAYER, evidence: evidence() })
++      .expect(422, { error: "window_closed" });
++  });
++
++  it.each(["no_profile", "no_credited_match"] as const)(
++    "422 %s from the repository",
++    async (status) => {
++      await request(
++        appWith(mockTenureGrant(outcome({ status, xpAwarded: 0, xp: 0 }))),
++      )
++        .post(PATH)
++        .send({ yandexPlayerId: PLAYER, evidence: evidence() })
++        .expect(422, { error: status });
++    },
++  );
++
++  it.each([
++    ["no id", { evidence: evidence() }],
++    ["no evidence", { yandexPlayerId: PLAYER }],
++    [
++      "a string day count",
++      { yandexPlayerId: PLAYER, evidence: evidence({ daysPlayed: "12" }) },
++    ],
++    [
++      "a negative day count",
++      { yandexPlayerId: PLAYER, evidence: evidence({ daysPlayed: -1 }) },
++    ],
++  ])("400 on a malformed body (%s)", async (_label, body) => {
++    const tenureGrant = mockTenureGrant();
++    await request(appWith(tenureGrant))
++      .post(PATH)
++      .send(body)
++      .expect(400, { error: "bad_request" });
++    expect(tenureGrant.grantTenureXp).not.toHaveBeenCalled();
++  });
++
++  it("500 when the repository throws", async () => {
++    await request(appWith(mockTenureGrant(new Error("db down"))))
++      .post(PATH)
++      .send({ yandexPlayerId: PLAYER, evidence: evidence() })
++      .expect(500, { error: "internal_error" });
++  });
++
++  it("503 fail-closed without a repository", async () => {
++    await request(appWith(null))
++      .post(PATH)
++      .send({ yandexPlayerId: PLAYER, evidence: evidence() })
++      .expect(503, { error: "tenure_grant_unavailable" });
++  });
++
++  it("OPTIONS preflight → 204 with CORS headers", async () => {
++    const res = await request(appWith()).options(PATH).expect(204);
++    expect(res.headers["access-control-allow-origin"]).toBe("*");
++    expect(res.headers["access-control-allow-methods"]).toBe("POST");
++    expect(res.headers["access-control-allow-headers"]).toBe("Content-Type");
++  });
++
++  it("CORS header is present on errors too, so the browser can read them", async () => {
++    const res = await request(appWith(null))
++      .post(PATH)
++      .send({ yandexPlayerId: PLAYER, evidence: evidence() })
++      .expect(503);
++    expect(res.headers["access-control-allow-origin"]).toBe("*");
++  });
++});

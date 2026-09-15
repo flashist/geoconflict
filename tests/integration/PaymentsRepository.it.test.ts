@@ -1,17 +1,24 @@
 // Integration tests for PaymentsRepository against a REAL Postgres.
 // Gated by RUN_DB_TESTS so the default `npm test` (no DB) skips them entirely.
-// See jest.integration.config.ts for how to run.
+// The schema is built once per run by globalSetup.ts; suites only truncate.
+// Keyed by the internal player id since task 0270.
 //
-// Also carries the brief's verification-7 writer-side regression: upsertProfile
+// Also carries the brief's verification-7 writer-side regression: find-or-create
 // and creditMatchXp must NEVER produce paid state — grantPaidPurchase (reachable
 // only through HMAC-verified /complete or /reconcile) is the sole authority for
 // is_paid_citizen / citizenship_purchased_at.
 
-import { readFileSync } from "fs";
-import { join } from "path";
 import { Pool } from "pg";
 import { PaymentsRepository } from "../../src/profile-server/PaymentsRepository";
+import {
+  PLATFORM_YANDEX_GAMES,
+  PlayerIdentityRepository,
+} from "../../src/profile-server/PlayerIdentityRepository";
 import { PlayerProfileRepository } from "../../src/profile-server/PlayerProfileRepository";
+import { createYandexPlayer, truncateProfileTables } from "./support/db";
+
+// A syntactically valid player id that no players row carries.
+const GHOST = "00000000-0000-4000-8000-00000000dead";
 
 const RUN = process.env.RUN_DB_TESTS ? describe : describe.skip;
 
@@ -20,26 +27,20 @@ RUN("PaymentsRepository (integration)", () => {
   let payments: PaymentsRepository;
   let profiles: PlayerProfileRepository;
 
-  const P = "yandex-pay-1";
+  let P: string;
 
   function grantFor(intentId: string | null, token = "tok-1") {
     return {
       purchaseToken: token,
       productId: "citizenship",
-      yandexPlayerId: P,
+      playerId: P,
       intentId,
       rawPayload: '{"test":true}',
     };
   }
 
-  beforeAll(async () => {
+  beforeAll(() => {
     pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL });
-    for (const file of [
-      "migrations/001_player_profiles.sql",
-      "migrations/002_yandex_payments.sql",
-    ]) {
-      await pool.query(readFileSync(join(process.cwd(), file), "utf8"));
-    }
     payments = new PaymentsRepository(pool);
     profiles = new PlayerProfileRepository(pool);
   });
@@ -49,28 +50,45 @@ RUN("PaymentsRepository (integration)", () => {
   });
 
   beforeEach(async () => {
-    await pool.query(
-      `TRUNCATE processed_purchases, purchase_intents, player_match_xp_credits,
-               player_name_history, player_cosmetic_ownership, player_profiles
-       RESTART IDENTITY CASCADE`,
-    );
+    await truncateProfileTables(pool);
+    P = await createYandexPlayer(pool, "yandex-pay-1");
   });
 
-  test("createIntent works for a buyer with NO profile row yet (ensure-row)", async () => {
+  test("createIntent binds the intent to an existing player", async () => {
     const intentId = await payments.createIntent(P, "citizenship");
     expect(intentId).toMatch(/^[0-9a-f-]{36}$/);
 
     const intent = await payments.findIntent(intentId);
     expect(intent).toEqual({
       id: intentId,
-      yandexPlayerId: P,
+      playerId: P,
       productId: "citizenship",
       usedAt: null,
     });
-    // The ensured profile row exists at xp 0 with no paid state.
     const profile = await profiles.getProfile(P);
     expect(profile?.xp).toBe(0);
     expect(profile?.is_paid_citizen).toBe(false);
+  });
+
+  // Task 0270: no ensure-profile any more. The route resolves the caller
+  // find-only; the foreign key is the last line of defence and creates nothing.
+  test("createIntent for an unknown player id is refused by the FK and creates nothing", async () => {
+    await expect(
+      payments.createIntent(GHOST, "citizenship"),
+    ).rejects.toMatchObject({ code: "23503" });
+    const players = await pool.query("SELECT count(*)::int AS n FROM players");
+    expect(players.rows[0].n).toBe(1); // only P
+    const intents = await pool.query(
+      "SELECT count(*)::int AS n FROM purchase_intents",
+    );
+    expect(intents.rows[0].n).toBe(0);
+  });
+
+  test("a grant with no players row to flag rolls back — no receipt without an entitlement", async () => {
+    await expect(
+      payments.grantPaidPurchase({ ...grantFor(null), playerId: GHOST }),
+    ).rejects.toThrow("no player row");
+    await expect(payments.getProcessedPurchase("tok-1")).resolves.toBeNull();
   });
 
   test("grantPaidPurchase grants, satisfies CHECKs, and marks the intent used", async () => {
@@ -90,7 +108,7 @@ RUN("PaymentsRepository (integration)", () => {
     const receipt = await payments.getProcessedPurchase("tok-1");
     expect(receipt).toEqual({
       purchaseToken: "tok-1",
-      yandexPlayerId: P,
+      playerId: P,
       productId: "citizenship",
     });
   });
@@ -109,8 +127,13 @@ RUN("PaymentsRepository (integration)", () => {
     );
   });
 
-  test("verification 7: upsertProfile and creditMatchXp never produce paid state", async () => {
-    await profiles.upsertProfile(P, "pid-pay-1");
+  test("verification 7: find-or-create and creditMatchXp never produce paid state", async () => {
+    const identities = new PlayerIdentityRepository(pool);
+    await identities.resolveOrCreatePlayer(
+      PLATFORM_YANDEX_GAMES,
+      "yandex-pay-1",
+      "game_server",
+    );
     await profiles.creditMatchXp("game-1", P, 10);
 
     let profile = await profiles.getProfile(P);
@@ -120,7 +143,11 @@ RUN("PaymentsRepository (integration)", () => {
     // …and they never CLEAR paid state a verified purchase already granted.
     const intentId = await payments.createIntent(P, "citizenship");
     await payments.grantPaidPurchase(grantFor(intentId));
-    await profiles.upsertProfile(P, "pid-pay-2");
+    await identities.resolveOrCreatePlayer(
+      PLATFORM_YANDEX_GAMES,
+      "yandex-pay-1",
+      "login",
+    );
     await profiles.creditMatchXp("game-2", P, 10);
 
     profile = await profiles.getProfile(P);
@@ -138,16 +165,10 @@ RUN("paid × earned citizenship compose (task 0018, integration)", () => {
   let payments: PaymentsRepository;
   let profiles: PlayerProfileRepository;
 
-  const P = "yandex-compose-1";
+  let P: string;
 
-  beforeAll(async () => {
+  beforeAll(() => {
     pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL });
-    for (const file of [
-      "migrations/001_player_profiles.sql",
-      "migrations/002_yandex_payments.sql",
-    ]) {
-      await pool.query(readFileSync(join(process.cwd(), file), "utf8"));
-    }
     payments = new PaymentsRepository(pool);
     profiles = new PlayerProfileRepository(pool);
   });
@@ -157,15 +178,11 @@ RUN("paid × earned citizenship compose (task 0018, integration)", () => {
   });
 
   beforeEach(async () => {
-    await pool.query(
-      `TRUNCATE processed_purchases, purchase_intents, player_match_xp_credits,
-               player_name_history, player_cosmetic_ownership, player_profiles
-       RESTART IDENTITY CASCADE`,
-    );
+    await truncateProfileTables(pool);
+    P = await createYandexPlayer(pool, "yandex-compose-1");
   });
 
   test("earned then paid: paid grant adds paid state without touching earned state", async () => {
-    await profiles.upsertProfile(P, "pid-compose-1");
     const credit = await profiles.creditMatchXp("game-c1", P, 1000);
     expect(credit.citizenshipNewlyGranted).toBe(true);
     const earned = await profiles.getProfile(P);
@@ -178,7 +195,7 @@ RUN("paid × earned citizenship compose (task 0018, integration)", () => {
       payments.grantPaidPurchase({
         purchaseToken: "tok-c1",
         productId: "citizenship",
-        yandexPlayerId: P,
+        playerId: P,
         intentId,
         rawPayload: '{"test":true}',
       }),
@@ -200,11 +217,10 @@ RUN("paid × earned citizenship compose (task 0018, integration)", () => {
     await payments.grantPaidPurchase({
       purchaseToken: "tok-c2",
       productId: "citizenship",
-      yandexPlayerId: P,
+      playerId: P,
       intentId,
       rawPayload: '{"test":true}',
     });
-    await profiles.upsertProfile(P, "pid-compose-2");
     const paid = await profiles.getProfile(P);
     expect(paid?.is_citizen).toBe(true);
     expect(paid?.citizenship_earned_at).toBeNull();

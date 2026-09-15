@@ -84,7 +84,7 @@ group** (`_group_id 1419598272647751473`), which is why that group reads 14,187.
 
 - **`0032`'s own owner-side Step 5** (deploy, then re-query for the *fixed* clusters B–E) is `0032`'s
   verification, not this task's. This task's re-measure may run on the same query but reports on A/F/G.
-- **Symbolication** — [`0260`](../0260-verify-client-source-map-upload-runs-for-prod-builds/brief.md).
+- **Symbolication** — [`0260`](../../done/0260-verify-client-source-map-upload-runs-for-prod-builds/brief.md).
   `0032` traced without maps because webpack kept method names; F may not be so lucky. If `0260` has
   landed, use the symbolicated stack; if not, say plainly whether the F trace was possible without it.
 - [`0252`](../0252-in-page-leave-wider-per-game-leak-renderer-transport-lobby-poll/brief.md) owns

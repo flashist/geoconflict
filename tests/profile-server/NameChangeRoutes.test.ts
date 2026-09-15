@@ -9,14 +9,22 @@ import {
 } from "../../src/profile-server/Routes";
 
 const TOKEN = "test-internal-token";
+// The Yandex id the public routes still accept, and the internal id it resolves
+// to (task 0270). The operator decide route takes the internal id only.
 const PLAYER = "yandex-1";
+const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
 
 function mockRepo(profile: Record<string, unknown> | null = null): ProfileRepo {
   return {
     ping: jest.fn().mockResolvedValue(undefined),
     getProfile: jest.fn().mockResolvedValue(profile),
-    upsertProfile: jest.fn(),
     creditMatchXp: jest.fn(),
+    findPlayerByIdentity: jest
+      .fn()
+      .mockImplementation(async (_platform: string, id: string) =>
+        id === PLAYER ? PLAYER_ID : null,
+      ),
+    resolveOrCreatePlayer: jest.fn(),
   };
 }
 
@@ -47,8 +55,6 @@ function appWith(
 
 const PROFILE_ROW = {
   schema_version: 1,
-  yandex_player_id: PLAYER,
-  persistent_id: "pid-1",
   xp: 1000,
   is_citizen: true,
   is_paid_citizen: true,
@@ -87,9 +93,18 @@ describe("name-change routes", () => {
         .send({ yandexPlayerId: PLAYER, requestedName: "NewName" })
         .expect(200, { status: "ok" });
       expect(nameChange.requestNameChange).toHaveBeenCalledWith(
-        PLAYER,
+        PLAYER_ID,
         "NewName",
       );
+    });
+
+    it("403s an unknown identity without reaching the repository (today's answer, no create)", async () => {
+      const nameChange = mockNameChange();
+      await request(appWith(nameChange))
+        .post("/v1/profile/name-change-request")
+        .send({ yandexPlayerId: "ghost", requestedName: "NewName" })
+        .expect(403, { error: "not_citizen" });
+      expect(nameChange.requestNameChange).not.toHaveBeenCalled();
     });
 
     // Brief step 1: a direct POST from a non-citizen must be rejected
@@ -181,7 +196,16 @@ describe("name-change routes", () => {
         .post("/v1/profile/name-change-cancel")
         .send({ yandexPlayerId: PLAYER })
         .expect(200, { status: "ok" });
-      expect(nameChange.cancelNameChange).toHaveBeenCalledWith(PLAYER);
+      expect(nameChange.cancelNameChange).toHaveBeenCalledWith(PLAYER_ID);
+    });
+
+    it("403s an unknown identity without reaching the repository", async () => {
+      const nameChange = mockNameChange();
+      await request(appWith(nameChange))
+        .post("/v1/profile/name-change-cancel")
+        .send({ yandexPlayerId: "ghost" })
+        .expect(403, { error: "not_citizen" });
+      expect(nameChange.cancelNameChange).not.toHaveBeenCalled();
     });
 
     it("400s without a player id", async () => {
@@ -231,7 +255,7 @@ describe("name-change routes", () => {
     it("401s without the internal token — it is NOT player-reachable", async () => {
       await request(appWith())
         .post("/internal/v1/name-change/decide")
-        .send({ yandexPlayerId: PLAYER, decision: "approve" })
+        .send({ playerId: PLAYER_ID, decision: "approve" })
         .expect(401);
     });
 
@@ -240,10 +264,10 @@ describe("name-change routes", () => {
       await request(appWith(nameChange))
         .post("/internal/v1/name-change/decide")
         .set("Authorization", `Bearer ${TOKEN}`)
-        .send({ yandexPlayerId: PLAYER, decision: "approve" })
+        .send({ playerId: PLAYER_ID, decision: "approve" })
         .expect(200, { status: "ok" });
       expect(nameChange.decideNameChange).toHaveBeenCalledWith(
-        PLAYER,
+        PLAYER_ID,
         "approve",
         undefined,
         // expectedName is optional on the wire — omitting it keeps the
@@ -258,13 +282,13 @@ describe("name-change routes", () => {
         .post("/internal/v1/name-change/decide")
         .set("Authorization", `Bearer ${TOKEN}`)
         .send({
-          yandexPlayerId: PLAYER,
+          playerId: PLAYER_ID,
           decision: "approve",
           expectedName: "NewName",
         })
         .expect(200, { status: "ok" });
       expect(nameChange.decideNameChange).toHaveBeenCalledWith(
-        PLAYER,
+        PLAYER_ID,
         "approve",
         undefined,
         "NewName",
@@ -288,7 +312,7 @@ describe("name-change routes", () => {
         .post("/internal/v1/name-change/decide")
         .set("Authorization", `Bearer ${TOKEN}`)
         .send({
-          yandexPlayerId: PLAYER,
+          playerId: PLAYER_ID,
           decision: "approve",
           expectedName: "StaleName",
         })
@@ -301,13 +325,13 @@ describe("name-change routes", () => {
         .post("/internal/v1/name-change/decide")
         .set("Authorization", `Bearer ${TOKEN}`)
         .send({
-          yandexPlayerId: PLAYER,
+          playerId: PLAYER_ID,
           decision: "reject",
           reason: "impersonation",
         })
         .expect(200, { status: "ok" });
       expect(nameChange.decideNameChange).toHaveBeenCalledWith(
-        PLAYER,
+        PLAYER_ID,
         "reject",
         "impersonation",
         undefined,
@@ -319,9 +343,9 @@ describe("name-change routes", () => {
     // already marked rejected. Refuse it up front instead.
     it("400s a rejection with a missing or blank reason", async () => {
       for (const body of [
-        { yandexPlayerId: PLAYER, decision: "reject" },
-        { yandexPlayerId: PLAYER, decision: "reject", reason: "" },
-        { yandexPlayerId: PLAYER, decision: "reject", reason: "   " },
+        { playerId: PLAYER_ID, decision: "reject" },
+        { playerId: PLAYER_ID, decision: "reject", reason: "" },
+        { playerId: PLAYER_ID, decision: "reject", reason: "   " },
       ]) {
         await request(appWith())
           .post("/internal/v1/name-change/decide")
@@ -331,11 +355,26 @@ describe("name-change routes", () => {
       }
     });
 
+    it("400s a decision addressed by a Yandex id instead of the internal playerId", async () => {
+      const nameChange = mockNameChange();
+      await request(appWith(nameChange))
+        .post("/internal/v1/name-change/decide")
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .send({ yandexPlayerId: PLAYER, decision: "approve" })
+        .expect(400, { error: "bad_request" });
+      await request(appWith(nameChange))
+        .post("/internal/v1/name-change/decide")
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .send({ playerId: "not-a-uuid", decision: "approve" })
+        .expect(400, { error: "bad_request" });
+      expect(nameChange.decideNameChange).not.toHaveBeenCalled();
+    });
+
     it("400s an unknown decision verb", async () => {
       await request(appWith())
         .post("/internal/v1/name-change/decide")
         .set("Authorization", `Bearer ${TOKEN}`)
-        .send({ yandexPlayerId: PLAYER, decision: "maybe" })
+        .send({ playerId: PLAYER_ID, decision: "maybe" })
         .expect(400, { error: "bad_request" });
     });
 
@@ -351,7 +390,7 @@ describe("name-change routes", () => {
       )
         .post("/internal/v1/name-change/decide")
         .set("Authorization", `Bearer ${TOKEN}`)
-        .send({ yandexPlayerId: PLAYER, decision: "approve" })
+        .send({ playerId: PLAYER_ID, decision: "approve" })
         .expect(404, { error: "no_pending" });
     });
 
@@ -367,7 +406,7 @@ describe("name-change routes", () => {
       )
         .post("/internal/v1/name-change/decide")
         .set("Authorization", `Bearer ${TOKEN}`)
-        .send({ yandexPlayerId: PLAYER, decision: "approve" })
+        .send({ playerId: PLAYER_ID, decision: "approve" })
         .expect(409, { error: "name_taken" });
     });
 
@@ -375,7 +414,7 @@ describe("name-change routes", () => {
       const res = await request(appWith())
         .post("/internal/v1/name-change/decide")
         .set("Authorization", `Bearer ${TOKEN}`)
-        .send({ yandexPlayerId: PLAYER, decision: "approve" });
+        .send({ playerId: PLAYER_ID, decision: "approve" });
       expect(res.headers["access-control-allow-origin"]).toBeUndefined();
     });
 
@@ -383,7 +422,7 @@ describe("name-change routes", () => {
       await request(appWith(null))
         .post("/internal/v1/name-change/decide")
         .set("Authorization", `Bearer ${TOKEN}`)
-        .send({ yandexPlayerId: PLAYER, decision: "approve" })
+        .send({ playerId: PLAYER_ID, decision: "approve" })
         .expect(503, { error: "name_change_unavailable" });
     });
   });

@@ -1,6 +1,6 @@
 # 0259 — Uptrace retention findings (2026-09-14)
 
-Task: `ai-agents/tasks/backlog/0259-investigate-uptrace-retention-not-applied/brief.md`.
+Task: `ai-agents/tasks/done/0259-investigate-uptrace-retention-not-applied/brief.md`.
 Read-only investigation. Nothing on the box was changed (no restart, no ALTER, no config edit). No
 repo source or config changed. Evidence gathered over SSH with read-only commands and ClickHouse
 `SELECT`s on `system.*`; run 2026-09-14 ~11:37–11:50 UTC.

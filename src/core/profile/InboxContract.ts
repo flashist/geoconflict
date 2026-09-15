@@ -16,7 +16,7 @@ import { z } from "zod";
  * player routes accept the CLIENT-asserted yandexPlayerId — the same trust level
  * `/v1/profile` and the credit path accept today. The citizen gate is enforced
  * server-side on every call; signature verification slots into the server's
- * single `resolvePlayerId` funnel once the Yandex secret exists (blocked on 0014).
+ * single `resolveCaller` funnel once the Yandex secret exists (blocked on 0014).
  *
  * See ai-agents/tasks/backlog/0012-personal-inbox/brief.md.
  */
@@ -76,6 +76,16 @@ export type InboxTemplateParams = z.infer<typeof InboxTemplateParamsSchema>;
 const PlayerIdSchema = z.string().min(1).max(128);
 
 /**
+ * The INTERNAL player id (task 0270, ADR-113) — a Postgres uuid. Accepted ONLY by
+ * the service-authenticated send route, never by a player-facing one. Validated as
+ * a UUID shape here so a garbage value is a clean 400 instead of a pg 22P02 error
+ * surfacing as a 500. Same pattern as the payments route's `UUID_RE`.
+ */
+const InternalPlayerIdSchema = z
+  .string()
+  .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+
+/**
  * One message as returned by GET /v1/messages. `templateKey` is deliberately a
  * plain string on the wire (review R3): the profile server and the client
  * bundle deploy separately, so a key this bundle does not know must degrade to
@@ -112,7 +122,8 @@ export const MarkReadResponseSchema = z.object({
 export type MarkReadResponse = z.infer<typeof MarkReadResponseSchema>;
 
 /**
- * POST /internal/v1/messages/send — a template send XOR a literal send (review
+ * POST /internal/v1/messages/send — addressed by the internal `playerId` (task
+ * 0270), never a Yandex id. A template send XOR a literal send (review
  * R2): a template carries `templateKey` (+ `templateParams`) and NO title/body;
  * a literal carries BOTH title and body and no template fields. The refines
  * mirror `chk_message_content` so a bad body is a clean 400, never a DB CHECK
@@ -121,7 +132,7 @@ export type MarkReadResponse = z.infer<typeof MarkReadResponseSchema>;
  */
 export const SendMessageRequestSchema = z
   .object({
-    yandexPlayerId: PlayerIdSchema,
+    playerId: InternalPlayerIdSchema,
     templateKey: InboxTemplateKeySchema.optional(),
     templateParams: InboxTemplateParamsSchema.optional(),
     title: z.string().min(1).max(200).optional(),

@@ -10,6 +10,9 @@ import {
   missingInboxTemplateParams,
 } from "../../../src/core/profile/InboxContract";
 
+// The internal player id (task 0270) the service-authenticated send is addressed by.
+const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
+
 function templateMessage(overrides: Record<string, unknown> = {}) {
   return {
     id: 7,
@@ -130,17 +133,41 @@ describe("InboxContract", () => {
   });
 
   describe("SendMessageRequestSchema (mirrors chk_message_content)", () => {
-    test("accepts a template send (with and without params)", () => {
+    test("is addressed by a uuid-shaped internal playerId — never a Yandex id (task 0270)", () => {
+      expect(
+        SendMessageRequestSchema.safeParse({
+          playerId: PLAYER_ID,
+          title: "T",
+          body: "B",
+        }).success,
+      ).toBe(true);
       expect(
         SendMessageRequestSchema.safeParse({
           yandexPlayerId: "y1",
+          title: "T",
+          body: "B",
+        }).success,
+      ).toBe(false);
+      expect(
+        SendMessageRequestSchema.safeParse({
+          playerId: "y1",
+          title: "T",
+          body: "B",
+        }).success,
+      ).toBe(false);
+    });
+
+    test("accepts a template send (with and without params)", () => {
+      expect(
+        SendMessageRequestSchema.safeParse({
+          playerId: PLAYER_ID,
           templateKey: "name_change_rejected",
           templateParams: { name: "Alpha", reason: "too short" },
         }).success,
       ).toBe(true);
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "citizenship_paid",
         }).success,
       ).toBe(true);
@@ -149,7 +176,7 @@ describe("InboxContract", () => {
     test("accepts a literal send with both title and body", () => {
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           title: "Hello",
           body: "Welcome aboard.",
         }).success,
@@ -158,14 +185,14 @@ describe("InboxContract", () => {
 
     test("rejects neither-content, title-only, and body-only", () => {
       expect(
-        SendMessageRequestSchema.safeParse({ yandexPlayerId: "y1" }).success,
+        SendMessageRequestSchema.safeParse({ playerId: PLAYER_ID }).success,
       ).toBe(false);
       expect(
-        SendMessageRequestSchema.safeParse({ yandexPlayerId: "y1", title: "T" })
+        SendMessageRequestSchema.safeParse({ playerId: PLAYER_ID, title: "T" })
           .success,
       ).toBe(false);
       expect(
-        SendMessageRequestSchema.safeParse({ yandexPlayerId: "y1", body: "B" })
+        SendMessageRequestSchema.safeParse({ playerId: PLAYER_ID, body: "B" })
           .success,
       ).toBe(false);
     });
@@ -173,20 +200,20 @@ describe("InboxContract", () => {
     test("rejects an unknown template key and oversized literal fields", () => {
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "unknown",
         }).success,
       ).toBe(false);
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           title: "x".repeat(201),
           body: "ok",
         }).success,
       ).toBe(false);
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           title: "ok",
           body: "x".repeat(4_001),
         }).success,
@@ -196,14 +223,14 @@ describe("InboxContract", () => {
     test("rejects non-string / oversized template params", () => {
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "name_change_approved",
           templateParams: { name: 42 },
         }).success,
       ).toBe(false);
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "name_change_approved",
           templateParams: { name: "x".repeat(1_001) },
         }).success,
@@ -213,7 +240,7 @@ describe("InboxContract", () => {
     test("XOR (review R2): a template send must not also carry literal text or vice versa", () => {
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "citizenship_paid",
           title: "Welcome",
           body: "…",
@@ -221,7 +248,7 @@ describe("InboxContract", () => {
       ).toBe(false);
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "citizenship_paid",
           title: "Welcome",
         }).success,
@@ -229,7 +256,7 @@ describe("InboxContract", () => {
       // Literal sends carry no template params either.
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           title: "Hello",
           body: "Welcome.",
           templateParams: { name: "x" },
@@ -258,20 +285,20 @@ describe("InboxContract", () => {
 
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "name_change_rejected",
         }).success,
       ).toBe(false);
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "name_change_approved",
           templateParams: { name: "" },
         }).success,
       ).toBe(false);
       expect(
         SendMessageRequestSchema.safeParse({
-          yandexPlayerId: "y1",
+          playerId: PLAYER_ID,
           templateKey: "name_change_approved",
           templateParams: { name: "Alpha" },
         }).success,

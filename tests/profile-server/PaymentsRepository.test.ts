@@ -23,11 +23,13 @@ function makePool(client: MockClient): {
   return { pool, poolQuery };
 }
 
+const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
+
 function grantInput(overrides: Record<string, unknown> = {}) {
   return {
     purchaseToken: "tok-1",
     productId: "citizenship",
-    yandexPlayerId: "yandex-1",
+    playerId: PLAYER_ID,
     intentId: "11111111-1111-1111-1111-111111111111",
     rawPayload: "{}",
     ...overrides,
@@ -36,7 +38,7 @@ function grantInput(overrides: Record<string, unknown> = {}) {
 
 describe("PaymentsRepository", () => {
   describe("createIntent", () => {
-    it("ensures the profile row, inserts the intent, and commits", async () => {
+    it("inserts the intent for an existing player and commits — no ensure-profile step", async () => {
       const client: MockClient = {
         query: jest.fn().mockImplementation(async (sql: string) => {
           if (sql.includes("RETURNING id")) {
@@ -49,14 +51,17 @@ describe("PaymentsRepository", () => {
       const { pool } = makePool(client);
       const repo = new PaymentsRepository(pool);
 
-      await expect(repo.createIntent("yandex-1", "citizenship")).resolves.toBe(
+      await expect(repo.createIntent(PLAYER_ID, "citizenship")).resolves.toBe(
         "intent-1",
       );
 
       const statements = client.query.mock.calls.map((call) => String(call[0]));
       expect(statements[0]).toBe("BEGIN");
-      expect(statements[1]).toContain("INSERT INTO player_profiles");
-      expect(statements[2]).toContain("INSERT INTO purchase_intents");
+      expect(statements[1]).toContain("INSERT INTO purchase_intents");
+      expect(client.query.mock.calls[1][1]).toEqual([PLAYER_ID, "citizenship"]);
+      expect(
+        statements.some((sql) => sql.includes("INSERT INTO players")),
+      ).toBe(false);
       expect(statements[statements.length - 1]).toBe("COMMIT");
       expect(client.release).toHaveBeenCalled();
     });
@@ -74,9 +79,9 @@ describe("PaymentsRepository", () => {
       const { pool } = makePool(client);
       const repo = new PaymentsRepository(pool);
 
-      await expect(
-        repo.createIntent("yandex-1", "citizenship"),
-      ).rejects.toThrow("boom");
+      await expect(repo.createIntent(PLAYER_ID, "citizenship")).rejects.toThrow(
+        "boom",
+      );
       const statements = client.query.mock.calls.map((call) => String(call[0]));
       expect(statements).toContain("ROLLBACK");
       expect(statements).not.toContain("COMMIT");
@@ -90,6 +95,9 @@ describe("PaymentsRepository", () => {
         query: jest.fn().mockImplementation(async (sql: string) => {
           if (sql.includes("INSERT INTO processed_purchases")) {
             return { rows: [{ purchase_token: "tok-1" }] };
+          }
+          if (sql.includes("is_paid_citizen = true")) {
+            return { rows: [], rowCount: 1 };
           }
           return { rows: [] };
         }),
@@ -111,6 +119,36 @@ describe("PaymentsRepository", () => {
         statements.some((sql) => sql.includes("UPDATE purchase_intents")),
       ).toBe(true);
       expect(statements[statements.length - 1]).toBe("COMMIT");
+    });
+
+    // processed_purchases.player_id has no FK, so without this check a grant for
+    // a vanished player would commit a receipt with no entitlement behind it.
+    it("no players row to flag: throws and rolls back the whole grant (receipt included)", async () => {
+      const client: MockClient = {
+        query: jest.fn().mockImplementation(async (sql: string) => {
+          if (sql.includes("INSERT INTO processed_purchases")) {
+            return { rows: [{ purchase_token: "tok-1" }] };
+          }
+          if (sql.includes("is_paid_citizen = true")) {
+            return { rows: [], rowCount: 0 };
+          }
+          return { rows: [] };
+        }),
+        release: jest.fn(),
+      };
+      const { pool } = makePool(client);
+      const repo = new PaymentsRepository(pool);
+
+      await expect(repo.grantPaidPurchase(grantInput())).rejects.toThrow(
+        "no player row",
+      );
+      const statements = client.query.mock.calls.map((call) => String(call[0]));
+      expect(statements).toContain("ROLLBACK");
+      expect(statements).not.toContain("COMMIT");
+      expect(
+        statements.some((sql) => sql.includes("UPDATE purchase_intents")),
+      ).toBe(false);
+      expect(client.release).toHaveBeenCalled();
     });
 
     it("replayed token: short-circuits to already_processed WITHOUT touching flags", async () => {
@@ -155,6 +193,9 @@ describe("PaymentsRepository", () => {
           if (sql.includes("INSERT INTO processed_purchases")) {
             return { rows: [{ purchase_token: "tok-1" }] };
           }
+          if (sql.includes("is_paid_citizen = true")) {
+            return { rows: [], rowCount: 1 };
+          }
           return { rows: [] };
         }),
         release: jest.fn(),
@@ -178,7 +219,7 @@ describe("PaymentsRepository", () => {
         rows: [
           {
             id: "intent-1",
-            yandex_player_id: "yandex-1",
+            player_id: PLAYER_ID,
             product_id: "citizenship",
             used_at: new Date("2026-08-14T00:00:00.000Z"),
           },
@@ -187,7 +228,7 @@ describe("PaymentsRepository", () => {
       const repo = new PaymentsRepository(pool);
       await expect(repo.findIntent("intent-1")).resolves.toEqual({
         id: "intent-1",
-        yandexPlayerId: "yandex-1",
+        playerId: PLAYER_ID,
         productId: "citizenship",
         usedAt: "2026-08-14T00:00:00.000Z",
       });

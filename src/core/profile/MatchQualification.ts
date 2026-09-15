@@ -89,7 +89,7 @@ export interface ClientCreditState {
  * qualifies, it has a known connected (not kicked, not disconnected) server client,
  * and that client has a non-null Yandex id. Results are deduped by Yandex id so a
  * single account on two connections is credited at most once (the profile server's
- * `(game_id, yandex_player_id)` idempotency key is the ultimate backstop).
+ * `(game_id, player_id)` idempotency key is the ultimate backstop).
  *
  * The roster gate is orthogonal to identity verification (the [C1] seam): it bounds
  * *who* can be credited to the match participants regardless of whether the Yandex id

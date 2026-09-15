@@ -294,8 +294,32 @@ If `TEST_DATABASE_URL` is unset, the run fails immediately with an explicit
 `tests/integration/globalSetup.ts`). That replaces the previous failure mode, where every suite died
 on connection in under a second and the run read like a code regression.
 
-`--runInBand` is baked into the script and is load-bearing: the suites share one database and race
-each other over schema migrations on a cold one.
+`--runInBand` is baked into the script and is load-bearing: the suites share one database and truncate
+its tables between tests, so two suites running at once would wipe each other's rows.
+
+⚠️ **The run is destructive: it DROPS and recreates the `public` schema of `TEST_DATABASE_URL` on every
+run** (task `0270`). `globalSetup` runs `DROP SCHEMA public CASCADE; CREATE SCHEMA public;` and then the
+real migration runner (`src/profile-server/Migrations.ts`) over `migrations/`, once per
+`npm run test:integration`; suites no longer apply migration files themselves. **Never point it at a
+database you care about.** A host guard refuses the run unless the URL is `postgres://` /
+`postgresql://` with host `localhost`, `127.0.0.1` or `::1` (and no `host=` override), with an explicit
+error that does not echo the connection string.
+
+**The test database needs no manual reset** — every run rebuilds it.
+
+**One-time reset for a local _dev_ profile database** (not the test one). Migration `006` is deliberately
+not idempotent and the runner skips by filename, so a local profile database that applied the old,
+never-deployed `005_player_xp_grants.sql` (a stray `player_xp_grants` table) or that holds rows in the
+old tables makes `npm run migrate` fail loudly at `006`. Reset it once, connected to **that** database
+(placeholders — never paste a real connection string anywhere tracked):
+
+```bash
+psql "<your local dev profile DATABASE_URL>" -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
+DATABASE_URL="<same url>" npm run migrate
+```
+
+This wipes that database's profile data. The profile **box** is not reset this way — `006`'s guard
+refuses there if any old table holds a row, and that case is a data migration to re-plan, not a reset.
 
 **There is deliberately no `--forceExit`.** An earlier belief that this suite hangs for ~10 minutes on
 open `pg` handles was investigated in task `0197` and did **not** hold up: every pool is already

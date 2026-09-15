@@ -2,9 +2,10 @@ import { rowToProfile } from "../../src/profile-server/PlayerProfileRepository";
 
 function baseRow(): Record<string, unknown> {
   return {
+    // The internal key and login bookkeeping (task 0270) — never on the contract.
+    id: "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f",
+    last_login_at: new Date("2026-06-24T12:00:00.000Z"),
     schema_version: 1,
-    yandex_player_id: "yandex-1",
-    persistent_id: "pid-1",
     xp: "1000", // pg returns bigint as a string
     is_citizen: true,
     is_paid_citizen: false,
@@ -36,6 +37,17 @@ describe("rowToProfile", () => {
     const profile = rowToProfile(baseRow());
     expect(profile).not.toHaveProperty("extra");
     expect(profile).not.toHaveProperty("future_field");
+  });
+
+  test("never carries the internal player id or login time (ADR-113)", () => {
+    const profile = rowToProfile(baseRow());
+    expect(profile).not.toHaveProperty("id");
+    expect(profile).not.toHaveProperty("last_login_at");
+    expect(profile).not.toHaveProperty("yandex_player_id");
+    expect(profile).not.toHaveProperty("persistent_id");
+    expect(JSON.stringify(profile)).not.toContain(
+      "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f",
+    );
   });
 
   test("a newer schema_version row normalizes instead of throwing", () => {
