@@ -363,3 +363,211 @@ One finding (R14), applied unattended. Plan re-hashed: `0f929fca…` — matched
     disproof.
 
 **Nothing was disputed, nothing needed the owner, and no judgment call was left open.**
+
+---
+
+# Drill — verification step 6 / plan §7.6: RAN AND PASSED (2026-09-17, ~20:06–20:16 UTC)
+
+Recorded by a spawned `fkit-producer` (board-record worker) for `/fkit-sprint-ship-loop`. The drill
+itself was run by the lead session with the owner watching Telegram. **No code, no commit, no task
+move, no status token change** — this task stays `🚧 Blocked`.
+
+⚠️ **Naming, recorded once so the next reader does not hunt:** this step is **verification step 6 =
+`plan.md` §7 step 6 (`plan.md:201`)**, written here as **§7.6**. It has been called **"§8"** in
+several places, including `0277`'s review ledger and its close note. **Same step. There is no §8.**
+
+## Procedure actually used
+
+1. 20 requests to the public read-only `GET /v1/profile` with a deliberately junk Bearer token
+   → **20 × `401`**, each incrementing `session_rejected` with reason `invalid`. **No writes, no rows,
+   no restart.**
+2. That call **created the metric `geoconflict_profile_session_rejected` in Uptrace.** It had not
+   existed before, because the counter had never been incremented.
+3. Throwaway monitor created: `DRILL — delete me — rejected sessions (>0 / 1 min)`, metric
+   `geoconflict_profile_session_rejected`, aggregation `perMin(sum($rejected))`, grouping interval
+   **1 minute**, checking the **last 1 point (1 minute)**, max allowed **0**, attached to the
+   `alerts-to-telegram` channel.
+4. A second burst of **25** requests (20:11:51–20:12:24 UTC) made it fire.
+5. Requests stopped. The alert **closed by itself** — no deletion, no restart: a **genuine recovery**.
+6. Throwaway monitor deleted. **Cleanup verified: 9 monitors remain, the drill rule is gone, A5
+   (monitor id 9) is intact and active.**
+
+## Result — PASS on every check
+
+- Uptrace recorded the alert with `alert.status` = **`closed`**, `alert.type` = **`metric`**,
+  value **25**.
+- **OWNER CONFIRMED, live in the lead session via `AskUserQuestion`: BOTH messages arrived in the
+  Telegram Alerts topic — a 🚨 firing, then a ✅ resolved.** The owner was offered four outcomes (both
+  messages / only the firing / two firings with no ✅ / nothing at all) and selected
+  **"Both — a 🚨 then a ✅"**.
+
+## What this discharges
+
+1. **`0277` residual `1a-ii`** — *"a synthetic test does not exercise a real `alert.name`, a real
+   `alert.status`, or the resolved/recovery form"* — **DISCHARGED.** A real metric alert fired and
+   cleared.
+2. **`0277` residual 2 / this task's D8** — *"`alert.status`'s value vocabulary is UNVERIFIED; a
+   resolved alert may render as still firing"* — **DISCHARGED. The value is `closed`, which
+   `AlertRelay.ts:141` already matched.** ⚠️ **This was CONFIRMED, not designed** — the relay was
+   written to match `closed`/`resolved` without anyone knowing which value Uptrace used. It happened
+   to be right.
+3. **Verification step 6 / §7.6 — PASSES**, by the corrected procedure above.
+
+⛔ **`0277` is already closed** (`ai-agents/tasks/done/0277-uptrace-alert-delivery-to-telegram/`) and
+its `✅ Done (agent-closed — not owner-verified)` marker is a **landed Done that only the owner may
+change**. It was **not touched**: the same evidence was **appended** to that task's `worklog.md`
+(evidence, not status).
+
+## 🚨 A defect in this task's plan, found by running it
+
+`plan.md` §7.6 (`plan.md:201`) specifies the drill fixture as *"temporarily add an always-true rule
+(`process.memory.rss > 1`), wait for the Telegram message, delete the rule."*
+
+**That fixture CANNOT PASS this drill.**
+
+- An always-true rule **never clears**, so it can only ever prove the **🚨** half.
+- **Deleting a monitor is not a recovery event**, so **no ✅ is ever produced.**
+
+Had the drill been run as written it would have gone **green while proving nothing about the recovery
+path** — the exact silent-success failure this epic exists to close.
+
+✅ **The working fixture is the one recorded under *Procedure actually used* above** (junk-Bearer
+requests → a `>0 / 1 min` monitor on `session_rejected` → stop → it self-clears), and it **supersedes
+§7.6's**. ⛔ **`plan.md` is byte-frozen and was NOT edited.** The supersession is recorded here, in
+`brief.md` (owner step 4 and verification step 6) and in the Sprint 4 board addendum — the same
+handling the other superseded plan items on this task got.
+
+## ⚠️ What this PASS does NOT prove — read before treating the drill as finished
+
+- **Amendment A1 is NOT satisfied.** A1 requires the drill to also establish delivery **after an idle
+  period** (the stale-connection defect). **Both bursts in this run were minutes apart on a warm
+  connection.** ⛔ **A PASS on §7.6 is not a discharge of A1.**
+- **`0283`'s daily digest remains the only non-circular proof of *sustained* delivery.** Unchanged by
+  this run.
+- ✅ **CORRECTION, same day — `0277` residual `1a` (*"the message CONTENT is not proven in
+  production"*) is DISCHARGED, not open.** This section first recorded it as **still open**, on the
+  ground that tonight's messages are **different messages** from the synthetic Test-channel press and
+  that the owner had been asked only **which** messages arrived, never how they rendered. That was
+  correct on the evidence then in hand — **and it is why the question was then put to the owner.** Two
+  confirmations close it: (1) the **Test channel** press, earlier on **2026-09-17**, confirmed by owner
+  **screenshot** — `Status:` line present, **no `{{ }}` placeholders**, the link a tappable *open the
+  alert* anchor rather than a bare address, and **no hostname preview card** (which is what validated
+  `disable_web_page_preview`, testable only live); (2) **tonight's real fired-and-cleared pair**,
+  confirmed by the owner answering `AskUserQuestion` live in the lead session (three options offered —
+  clean / something looks off / did not look closely): **"Clean — like the test message."** ⇒ `1a` is
+  discharged **for both message forms**. Full record in
+  [`0277`'s worklog](../../done/0277-uptrace-alert-delivery-to-telegram/worklog.md). ⛔ The original
+  reasoning is kept above rather than deleted: a gap was noticed and then filled.
+
+## Still blocked
+
+Five of the six alert rules (**A1, A2, A3, A4, A6**) do not exist — **A5 alone**. **Owner step 7.7**
+(live switch + cleanup drill) is untouched. Amendment **A1** above is open.
+
+---
+
+# 2026-09-17 — The circular dependency in owner step 3, and the owner's ruling on it
+
+## Headline
+
+**Four of the six alert rules (A1, A2, A3, A6) CANNOT BE BUILT, and the owner ruled they are DEFERRED
+until real login traffic exists.** `0274` will close with a **named gap**, not a full set of six rules.
+**A5 is built** (monitor id 9, active). **A4 is the only other one whose metric exists, and it has not
+been attempted.**
+
+## The circular dependency, in words
+
+It was invisible until someone checked whether the metrics **actually exist** in the Uptrace metric
+picker. Drawn out:
+
+```
+0274 closes  ──needs──▶  six alert rules A1–A6
+      ▲                            │
+      │                   those rules need metrics
+   needs                   that only real player
+      │                      traffic can create
+      └──── game deploy ◀──needs───┘
+```
+
+`0274` cannot close until A1–A6 exist. Four of those rules need metrics that only real player login
+traffic can create. That traffic needs the game server deployed. And **`0274`'s own `plan.md`
+(*Deploy order*) sequences the game deploy AFTER `0274` closes.** So the rules cannot be built, and the
+only thing that would make them buildable is gated behind the very task they are blocking.
+
+## ⛔ The deploy order is NOT the defect — stated plainly so it is not “fixed”
+
+The owner ruled **earlier in this same session** that the game server deploys later, *“when we're ready
+to ship citizenship/profile”*. **That ruling stands.** ⚠️ **The lead had repeatedly and wrongly described
+the game deploy as an *unblocker* for this task — the owner corrected it.** The real constraint is not
+sequencing at all: **four of the rules watch traffic that does not exist.**
+
+## The facts, verified in the LIVE Uptrace metric picker, 2026-09-17
+
+| Rule | Metric it needs | In the picker? | Disposition |
+|---|---|---|---|
+| **A1** — player-creation spike | `players.created` | ❌ absent | **DEFERRED** until real login traffic |
+| **A2** — created ÷ logins ratio | both login counters | ❌ absent | **DEFERRED** — already “create now, arm later” |
+| **A3** — login failures by `outcome` | `login.requests` | ❌ absent | **DEFERRED** until real login traffic |
+| **A4** — p95 login latency | `http.duration` | ✅ present | **Only other buildable one — NOT attempted** |
+| **A5** — DB pool saturation | `db.pool.waiting` | ✅ present | ✅ **BUILT** — monitor id 9, active |
+| **A6** — login request rate | `login.requests` | ❌ absent | **DEFERRED** until real login traffic |
+
+⚠️ **This is not a configuration error to fix; it is the absence of traffic.** A metric appears in
+Uptrace **only once its counter is first incremented** — **proven tonight**, when the first junk-Bearer
+request created `session_rejected` from nothing. The four absent counters have never been incremented
+because **no real player has ever logged in**.
+
+## 🔴 The owner ruling
+
+Given **live in the lead session this turn, via `AskUserQuestion`**. Three options were put:
+
+1. Try a **YAML-paste route** that might bypass the metric picker.
+2. **Defer A1 the way A2 already is.**
+3. Keep `0274` **open until go-live**.
+
+**The owner chose option 2 — “Defer A1 like A2 already is.”** The reasoning stated in the option they
+selected, quoted: *the plan already says A2 is “create now, arm later — day 8 after go-live”; treat A1
+the same, record it as deliberately deferred until traffic exists, and let `0274` close on the rules
+that CAN be built. Honest and unblocks the task, but it means closing `0274` with a named gap rather
+than a full set.*
+
+⛔ **Not producer precedent.**
+
+## ⚠️ Scope of the ruling — what the owner was asked vs what was applied
+
+The owner was asked about **A1**. **`fkit-lead` extended the ruling to A1, A2, A3 and A6** — same cause
+(metric absent for want of traffic), same remedy, and A2 already carried it — and **told the owner so
+explicitly rather than re-asking four times**; the four-rule table above was shown to the owner in that
+same message. **Record the extension as the lead's APPLICATION of the owner's ruling, NOT as a separate
+owner ruling.**
+
+## ⚠️ A4 is not yet known to be buildable either
+
+A4 is the only other rule whose metric is present, but **A4 needs a percentile query, which the
+architect recorded as UNVERIFIED against Uptrace 2.0.2.** It may turn out not to be expressible in this
+version. **That is not yet known** — it has to be attempted.
+
+## 🔭 Follow-up worth filing — NOT filed by this worker
+
+The Uptrace UI offers **“New monitor from YAML”**, a free-text paste box that **bypasses the metric
+picker**. It was **looked at but NOT tested** — testing it is a write. Two things it *might* solve:
+
+- **(a)** defining rules for **metrics that do not exist yet** — which would reopen A1/A2/A3/A6 now;
+- **(b)** the standing risk that **monitors and channels are UI-only state**: `setup-telemetry.sh` seeds
+  **no monitors and no channels**, so a box rebuild or a lost volume **silently deletes every alert
+  rule**. YAML definitions could live in the repo.
+
+⚠️ **Neither (a) nor (b) is verified.** Both are plausible and both are untested.
+
+## Still blocked — corrected list
+
+The token stays **`🚧 Blocked`**, on three live things:
+
+1. **A4 has not been attempted**, and is **not yet known to be buildable** (percentile query,
+   UNVERIFIED against Uptrace 2.0.2).
+2. **Owner step 7.7** — the live switch + cleanup drill — **untouched**.
+3. **Amendment A1** — delivery after an *idle* period — still not satisfied. ⚠️ **A DIFFERENT “A1” from
+   alert rule A1; do not conflate them.**
+
+⛔ **Alert rules A1, A2, A3 and A6 are no longer on the blocker list** — they are **deliberately
+deferred**, not missing by accident.

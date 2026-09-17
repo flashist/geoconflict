@@ -270,6 +270,108 @@ was recorded as `unkeyed` (a dedupe hit is keyed by definition), and the bound t
   set**, so each costs retries rather than the channel — but all three sit outside the handler's
   never-non-2xx guarantee. Noted, not changed.
 
+## 2026-09-17 — first real production call: it worked, and it found a defect no test could
+
+The owner created the webhook channel and the driver pressed **Test channel**. Server side:
+`POST /internal/v1/alerts/webhook → 202`, `User-Agent: Uptrace/1.0`.
+
+**What that proved in production, all of it for the first time:** the nginx allowlist admits the
+telemetry box · the lowercase route is right · the secret matched (a mismatch would have been 200, not 202) · **the schema parsed** — a wire format derived from disassembling a vendor binary, never before
+exposed to real traffic · and the channel stayed `delivering` rather than being disabled.
+
+**The out-of-band alarm also fired for real, unprompted, and was correct.** An earlier bare `curl {}`
+with no secret produced the rejected-secret notice in the Alerts topic — rate-limited, naming the
+variable only, no value. The design working in the field.
+
+### 🚩 The defect: the payload is never templated
+
+The delivered message read, literally: `Value: {{ .value }} (threshold {{ .threshold }}), over {{ .window }}`.
+
+**The sender does not substitute placeholders in the custom payload.** And its own top-level fields
+(`id`, `eventName`, `createdAt`, `alert.{id,url,name,type,state,status,createdAt}`) carry **no measured
+value, no threshold and no window**. ⇒ **Those three are not obtainable by any syntax.**
+
+### The lesson, which is worth more than the fix
+
+**The disassembly was correct; the inference drawn from it was wrong.** The architect read
+`Payload interface{}`, stored _"no copy, no merge, no inspection"_ — and both the architect and I
+recorded that as a statement about _collision safety_. It is also a statement about _templating_:
+**if it is never inspected, it is never substituted.** Neither of us drew the second consequence.
+
+Every test passed because **every test fed the view fixtures directly**, so the mapping was exercised
+but the _source of the data_ never was. R2's round-1 tests closed the wire→view gap and still could not
+catch this, because they too supplied values that production does not.
+
+### The fix (owner-approved)
+
+Drop the unfillable numbers; carry **`alert.url`**, which the sender does supply, so one tap lands on
+the chart:
+
+```
+🚨 Geoconflict · profile · Player creation spike
+Status: firing
+Since: 2026-09-17 16:56 UTC
+→ open the alert          (a link)
+```
+
+- **Every existing rule kept:** no tool names in the rendered text, box role from a module constant,
+  title HTML-escaped, recovery form for a resolved alert.
+- Unsubstituted `{{ … }}` and `PASTE_…` literals are **filtered out** of any display field rather than
+  shown — the exact defect, now unable to return.
+- A **static** display string an operator hardcodes per monitor still renders: that is the one thing
+  verbatim passthrough does preserve.
+- The URL is rendered as an **anchor with fixed link text**, not as a bare URL. ⚠️ **A judgment call
+  for the reviewer:** it keeps the tool's hostname out of what the operator _reads_ (the owner's rule,
+  asked for twice) while the tap still works. A non-`http(s)` or unparseable URL is **omitted**, because
+  `parse_mode: "HTML"` makes Telegram reject a message whose anchor it will not take — which would lose
+  the whole alert, not just the link.
+
+⚠️ **This supersedes plan §1c's message format.** The plan file is byte-frozen at
+`a0815d5d5ee6ffd19c452e77ff4a84123351e9e9` and was **not edited**; the driver amends it.
+
+**Mutations executed against the new tests, all caught:** unsubstituted `{{ }}` rendered → 3 failures ·
+`alert.url` dropped from the mapping → 5 · URL embedded without scheme validation → 3 · bare URL as
+visible text → 4 · static hardcoded threshold dropped → 1 · raw vendor status vocabulary → 3.
+
+### Focused re-review — R13, R14 and the filter nit
+
+Both judgment calls **upheld**; the `0197` attribution confirmed by the reviewer opening the crash
+report itself. Three one-line changes, none reachable from the real sender — all three are "this
+module's premise is _tolerate anything_" defects.
+
+- **R13 — I validated the URL and then threw the validation away.** `usableAlertUrl` parsed with
+  `new URL(...)` but returned the **raw input**, not `parsed.href`. `escapeTelegramHtml` escapes
+  `&` `<` `>` but **not `"`**, and the value lands inside `href="…"` — so one quote breaks out of the
+  attribute, the HTML is malformed, Telegram rejects the message and **the alert is lost**. That is
+  precisely the failure the filter exists to prevent, and precisely the reasoning I gave for it.
+  Fixed by returning `parsed.href` (percent-encodes `"`→`%22`, `` ` ``→`%60`, strips newlines).
+  ⚠️ **All 50 tests stayed green either way** — nothing pinned the distinction. Three now do.
+- **R14 — link previews were not disabled.** A preview card renders the linked **host**, which would
+  undo, in the operator's view, the entire reason the link is an anchor with fixed text rather than a
+  bare URL. Set `disable_web_page_preview: true` in the shared helper. ⚠️ **Deliberately the
+  deprecated field name:** `link_preview_options` is current, but an older Bot API silently _ignores_
+  an unknown field (previews back on), whereas `disable_web_page_preview` is honoured by both. Sending
+  only one avoids any chance of a 400, which on this path would lose the message.
+  ⚠️ **Blast radius, named:** this is `src/core/`, so it applies to **all three** consumers. For the
+  name-change and alert paths it is pure upside; for feedback it additionally stops Telegram fetching
+  a URL a **player** typed. No message in this project wants a preview card.
+- **The filter nit — I loosened the code, not the runbook.** `^PASTE_[A-Z0-9_]*$` was whole-string
+  anchored, so `PASTE_ME HERE` slipped through while the runbook promised a value "still _containing_"
+  one is dropped. **The asymmetry decides it:** a false positive costs a degraded message; a false
+  negative shows the operator a placeholder — the defect that actually shipped. So the pattern is now
+  unanchored and the runbook's wording stands as written.
+
+**Mutations, all caught:** R13 reverted → 3 failures · `PASTE_` re-anchored → 2 · preview re-enabled →
+2 · protocol check removed → 1.
+
+ℹ️ **One mutation count in the record differs from the reviewer's and neither is wrong.** My earlier
+"URL embedded without scheme validation → 3" replaced the whole `usableAlertUrl` call; the reviewer's
+kept the try/catch and removed only the protocol check → **1**. I re-ran the narrower one and
+reproduce their 1 exactly. Caught either way; noted so the numbers are not read as a discrepancy.
+
+**One wording slip of mine, corrected:** the R2 test comment said "see the live-shape block _above_"
+when that block is **below** it.
+
 ## Carry-forward for `0284` (the synthetic-probe follow-up)
 
 🚨 **`0284`'s probe must use `POST`.** Verified during round 1: `HEAD` and `GET` on the webhook path
@@ -345,7 +447,12 @@ template text.
    already-acknowledged alert: the floating `deliver` promise is not drained by graceful shutdown.
    Tracking in-flight deliveries through `Shutdown.ts` is real complexity for a narrow window, and
    deploys are rare and manual. **Recorded, no code change.**
-7. **NEW. Dedupe un-marking (R3's fix) is best-effort — and this is NOT the same residual as 4.**
+7. **NEW (2026-09-17, live call). The message carries no measured number, by design** — because the
+   sender does not provide one and cannot be made to. The operator gets the rule name, the firing /
+   resolved status, the time, and a link to the chart. A static threshold hardcoded per monitor is the
+   only number that can appear. **This is a property of the sender, not a gap in the relay**, and it
+   must not be "fixed" by inventing a templating syntax that does not exist.
+8. **Dedupe un-marking (R3's fix) is best-effort — and this is NOT the same residual as 4.**
    It releases the id when _this process_ sees the delivery fail; a crash between the 202 and the
    failure leaves the id marked. ⚠️ **Same limit, opposite consequence, and that is why they stay
    separate** (reviewer, round 2 — it overruled my merging them, correctly): residual 4 loses
@@ -355,3 +462,85 @@ template text.
 
 No commit, no push, no task-file move, no status set, no wiki write, no sprint/brief/review edit.
 `plan.md` untouched and still `a0815d5d5ee6ffd19c452e77ff4a84123351e9e9`.
+
+---
+
+# 2026-09-17, ~20:06–20:16 UTC — THE REAL ALERT DRILL RAN. RESIDUALS `1a-ii` AND `2` ARE DISCHARGED.
+
+⛔ **This is EVIDENCE APPENDED AFTER CLOSE. It changes NO status.** This task's
+`✅ Done (agent-closed — not owner-verified)` marker is a **landed Done and only the owner may change
+it** — nothing here re-opens the task or alters its status. Appended by a spawned `fkit-producer`
+(board-record worker) for `/fkit-sprint-ship-loop`. **No code, no commit, no task move, no wiki
+write.** The owning task for the drill is
+[`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md).
+
+⚠️ **Naming, so it is not hunted for:** the drill is **`0274`'s verification step 6 = its `plan.md`
+§7 step 6 (`plan.md:201`)**, i.e. **§7.6**. This task's review ledger and close note call it
+**"§8"**. **Same step. There is no §8.**
+
+## What ran
+
+1. 20 requests to the public read-only `GET /v1/profile` with a deliberately junk Bearer token →
+   **20 × `401`**, each incrementing `session_rejected` with reason `invalid`. No writes, no rows, no
+   restart.
+2. That **created the metric `geoconflict_profile_session_rejected` in Uptrace** — it had never
+   existed, because the counter had never been incremented.
+3. Throwaway monitor `DRILL — delete me — rejected sessions (>0 / 1 min)` on that metric —
+   aggregation `perMin(sum($rejected))`, grouping interval 1 minute, checking the **last 1 point
+   (1 minute)**, max allowed 0, attached to the `alerts-to-telegram` channel.
+4. A second burst of **25** requests (20:11:51–20:12:24 UTC) made it fire.
+5. Requests stopped; the alert **closed by itself** — a genuine recovery, not a deletion, not a
+   restart.
+6. Throwaway monitor deleted. **Cleanup verified: 9 monitors remain, the drill rule is gone, A5
+   (monitor id 9) intact and active.**
+
+## Result — PASS on every check
+
+- Uptrace recorded `alert.status` = **`closed`**, `alert.type` = **`metric`**, value **25**.
+- **OWNER CONFIRMED, live in the lead session via `AskUserQuestion`: BOTH messages arrived in the
+  Telegram Alerts topic — a 🚨 firing, then a ✅ resolved.** Four outcomes were offered (both / only
+  the firing / two firings with no ✅ / nothing at all); the owner selected
+  **"Both — a 🚨 then a ✅"**.
+
+## Residuals discharged
+
+- **Residual `1a-ii`** (review ledger) — *"a synthetic **Test channel** press does not exercise a real
+  `alert.name`, a real `alert.status`, or the resolved / recovery form; only the §8 drill on a real
+  firing alert closes those"* — **DISCHARGED.** A real metric alert fired and then cleared, and both
+  forms were delivered and read.
+- **Residual `2` (D8)** — *"`alert.status`'s VOCABULARY IS UNVERIFIED. A RESOLVED ALERT MAY RENDER AS
+  STILL FIRING."* — **DISCHARGED. The value is `closed`, which `AlertRelay.ts:141` already matched.**
+  🚨 **State it plainly: this was CONFIRMED, not designed.** The relay was written to match
+  `closed`/`resolved` **without anyone knowing which value Uptrace actually used** — it happened to be
+  right. The ledger's instruction *"check this in the drill: fire an alert, let it resolve, confirm the
+  ✅ form actually arrives"* is exactly what was done, and it confirmed it.
+
+## Residual `1a` — ALSO DISCHARGED, and the story of how is worth keeping
+
+**Residual `1a`** — *"THE MESSAGE CONTENT IS NOT PROVEN IN PRODUCTION … nobody has yet seen what this
+renders"* — is **DISCHARGED, for BOTH message forms.**
+
+| Form | When | Mechanism | Result |
+| --- | --- | --- | --- |
+| Synthetic **Test channel** press | 2026-09-17, earlier the same day (before tonight's drill) | Owner **screenshot** of the message, reviewed in the lead session | All four content checks pass: `Status:` line present · **no `{{ }}` placeholders** (the defect the *first* press exposed) · the link renders as a tappable ***open the alert*** anchor, not a bare address · **no hostname preview card** beneath it — which is what validated `disable_web_page_preview`, a fix testable only live |
+| **Real** metric alert, fired **and** cleared | 2026-09-17, ~20:06–20:16 UTC (tonight's drill) | Owner answered `AskUserQuestion` live in the lead session — three options offered: clean / something looks off / did not look closely | **"Clean — like the test message"** ⇒ both of tonight's real messages carry a `Status:` line and a tappable *open the alert* link, with **no raw address, no `{{ }}` placeholder and no hostname preview card** |
+
+⚠️ **How this closed, recorded deliberately — it is the more useful half of the entry.** When this
+section was first written it held `1a` **OPEN**, on this ground: tonight's messages are **different
+messages** from the test press — a genuine metric alert, not a synthetic payload — and **the owner had
+been asked only *which* messages arrived, never how they rendered.** That refusal was correct on the
+evidence then in hand, and **it is the reason the question was put to the owner at all.** The lead then
+went back and asked; the answer above is what closed it. ⇒ **A gap was noticed and then filled.** ⛔
+Do not read this as "the residual was open by mistake" — read it as the check working.
+
+## Still open — do not read this as more than it is
+
+- **Residual `3` (the `/internal/` allowlist 403 trap) is untouched** — this drill traversed the path
+  while it was working, which says nothing about a silent 403 later. **`0284` is still the real
+  guard.**
+- **Sustained delivery is NOT proven.** `0274`'s amendment **A1** wants delivery established **after an
+  idle period** (the stale-connection defect from `0061`). **Both bursts here were minutes apart on a
+  warm connection**, so A1 is **not** satisfied, and `0283`'s daily digest remains the only
+  non-circular proof of sustained delivery.
+
+No status changed, no file moved, `plan.md` untouched.

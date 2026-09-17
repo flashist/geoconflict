@@ -7,11 +7,17 @@ File(s) under review: `src/profile-server/AlertRelay.ts` · `src/profile-server/
 `build-deploy-profile.sh` · `example.env.profile` · `tests/profile-server/AlertRoutes.test.ts` ·
 `tests/server/MasterFeedbackRoutes.test.ts` · `tests/scripts/profile-deploy-hardening.test.sh` ·
 `ai-agents/knowledge-base/alert-delivery-runbook.md`
-Status: closed-out
+Status: closed-out — **REVIEW ONLY. ⚠️ NOT VALIDATED IN PRODUCTION — see residual 1a.**
 
-**Verdict (Round 3, final): ✅ Ready to merge (validation-gated).** All twelve findings across three
-rounds are verified fixed — nothing open. The remaining risk is **validation, not code**: the relay has
-never received a real webhook call, so the owner's drill (plan §8) is the gate that stays.
+🚩 **`closed-out` here means "no review finding is open". It does NOT mean the message is known to
+render correctly.** Nobody has yet seen what this produces. Do not read this header as validation.
+
+**Verdict (Round 5, final): ✅ Ready to merge (validation-gated).** All fourteen findings across five
+rounds are verified fixed; R13, R14 and the filter nit all landed and are pinned by tests I re-ran
+myself. The only open item is **validation, not code**: residual **1a**.
+
+**Verdict (Round 4, superseded): ⚠️ Changes requested — 2 low findings (R13, R14).**
+**Verdict (Round 3, superseded): ✅ Ready to merge** — correct then, overtaken by the live call.
 
 **Verdict (Round 2, superseded): ⚠️ Changes requested — 2 low findings, neither behavioural, neither
 blocking. All ten Round 1 findings verified fixed.**
@@ -57,6 +63,139 @@ pre-commit hook is documented inert (CLAUDE.md, task `0223`). 828 unformatted fi
 normal state, not a regression this task caused. The finding is narrow: a claimed-clean gate that is
 not clean **for a file this task authored**. One `prettier --write` on that one file closes it.
 
+### Round 4 — the live call, and what it cost my own Round 1 finding
+
+**Residual 1 is CLOSED — proven in production.** The owner created the channel; the driver pressed
+*Test channel*; the box logged `POST /internal/v1/alerts/webhook → 202` from the sender's user-agent.
+That single call proves, at once: the nginx allowlist admits the monitoring box · the lowercase route
+is right · the secret matched (a mismatch answers 200, not 202) · **the schema parsed** · the channel
+stayed `delivering`. The out-of-band alarm also fired for real on an earlier bare `curl {}` — correctly
+worded, rate-limited, naming the variable only.
+
+**And it exposed a defect no test here could reach.** The delivered message read literally
+`Value: {{ .value }} (threshold {{ .threshold }}), over {{ .window }}`. The sender stores the custom
+payload verbatim and never inspects it — **so it never templates it either**. Its own top-level fields
+carry no value, threshold or window. Plan §1c therefore specified numbers **obtainable by no syntax**.
+
+🔻 **Owned honestly: my own Round 1 R2 mapping tests shared the blind spot.** R2 was precisely the
+finding that *a wrong field mapping would ship unnoticed* — and the tests that closed it entered the
+system **below the layer that was wrong**, feeding view fixtures through the route rather than
+questioning whether the wire could ever carry those fields. Mutation testing proves a mapping is
+*consistent*; it cannot prove the thing being mapped *exists*. **Only live traffic could, and only
+live traffic did.** That is the lesson of this round, and it belongs on the reviewer as much as anyone.
+
+| #   | Round | Sev | file:line | Claim |
+|-----|-------|-----|-----------|-------|
+| R13 | 4     | low | `src/profile-server/AlertRelay.ts` — `usableAlertUrl` | **Validated, then discarded.** The filter parses with `new URL(candidate)` but returns **`candidate`**, the raw input — not `parsed.href`. `escapeTelegramHtml` escapes `&`, `<`, `>` but **not `"`**, and the value is interpolated into `href="…"`. So a `"` in `alert.url` breaks out of the attribute, producing malformed HTML that Telegram rejects ⇒ **the whole alert is lost** — the exact failure `usableAlertUrl` exists to prevent ("degrade, never drop"). Verified empirically. |
+| R14 | 4     | low | `src/core/notifications/TelegramNotifier.ts` — `buildMessageBody` | **Link previews are not disabled.** The body sets `chat_id`, `text`, `parse_mode` and optionally `message_thread_id` — no `disable_web_page_preview` / `link_preview_options`. Telegram generates a preview card for the first link, and that card can show the **vendor's hostname**, which is what the anchor in judgment call 1 exists to keep out of the operator's view. ⚠️ **Unverified** whether Telegram's crawler can actually reach that host — if it cannot, no card is drawn and this is moot. |
+
+**R13's reachability, stated fairly:** the real sender generates its own alert URLs, which will not
+contain quotes, so this is **not reachable in production today**. It is filed because this module's
+whole premise is that the wire format was reverse-engineered and must tolerate anything, and because
+the fix is one word. Verified: returning `parsed.href` percent-encodes `"` → `%22`, `` ` `` → `%60`,
+strips embedded newlines — **and keeps all 50 tests green**, which is also the proof that no test
+currently pins the raw-vs-normalised distinction.
+
+### Rulings on the two judgment calls
+
+**1. Anchor with fixed link text, not a bare URL — UPHELD.** The coder overrode the sketched
+`→ <alert.url>` and was right to. A bare URL puts the tool's hostname into the text the operator
+reads, against the owner's twice-stated "never which tool noticed"; an anchor gives the tap without the
+name. A test pins it with a vendor-named URL, and my own mutation (bare URL as visible text) is caught
+with 4 failures. ⚠️ **One gap, not a reversal:** R14 — the preview card can reintroduce the hostname the
+anchor removed. One field on the send body closes it; the call itself stands.
+
+**2. Omit a non-`http(s)` or unparseable URL entirely — REASONING UPHELD, implementation holed.**
+The reasoning is correct and worth keeping: under `parse_mode: "HTML"` Telegram rejects a message whose
+anchor it will not accept, and since the relay has **already answered 202**, that rejection loses the
+whole alert with no retry. Degrade-never-drop is the right rule. The **scheme** filter is solid —
+`javascript:`, `data:`, `tg://`, unparseable, empty and whitespace all correctly omit, verified across
+17 hostile inputs. **But the filter can be bypassed on content rather than scheme** — see R13. So: right
+rule, right rationale, one word short in the implementation.
+
+### The filters, attacked directly
+
+| Vector | Result |
+|---|---|
+| `{{ .value }}` / `}}` anywhere | ✅ dropped |
+| `PASTE_URL_HERE`, `paste_url_here` (case-insensitive) | ✅ dropped |
+| `PASTE_ME HERE` (space — not a whole-string match) | ⚠️ **not** dropped. `^PASTE_[A-Z0-9_]*$` is anchored, while the runbook says "still **containing** a `PASTE_…` literal". Doc and code differ slightly; the runbook's own template uses the matching form, so this is a nit, not a finding |
+| `javascript:` · `data:` · `tg://` · unparseable · empty · whitespace | ✅ all omitted, message still sends |
+| vendor hostname in visible text | ✅ never — link text is fixed |
+| vendor hostname via Telegram preview card | ❌ **R14** |
+| `"` inside an otherwise-valid `https://` URL | ❌ **R13** — attribute break-out |
+
+### `0197` attribution — CONFIRMED, and both halves of the signature match
+
+This is the one call where a wrong reading would hide a real regression behind a known flake, so I
+checked the crash report rather than the claim. `node-2026-09-17-201351.ips`, timestamped 20:13:51 on
+the run: `signal: SIGSEGV`, `EXC_BAD_ACCESS`, and the faulting thread's stack **starts** at
+`v8::internal::ClearStaleLeftTrimmedPointerVisitor::VisitRootPointers`, inside `InternalFrame::Iterate`
+→ `Isolate::Iterate` → `Heap::IterateRoots` → `MarkCompactCollector::MarkRoots` →
+`MarkLiveObjects` → `CollectGarbage`. CLAUDE.md's rule needs **either** marker; **both** are present.
+
+Corroborating and decisive: the failing run reported **zero assertion failures** (`1816 passed,
+1816 total` with one suite failed) — a crashed worker, not a failing test. The coder correctly did
+**not** attribute it to the supertest flake, which CLAUDE.md explicitly warns against conflating
+(`0068` → `0197`). It led with the bad news, named the signature, re-ran, and said it re-ran. ✅ Correct
+handling; nothing hidden.
+
+### Round 5 — closeout verification
+
+**R13, R14 and the filter nit all landed.** Mutations re-run by me; **all three counts reproduce the
+coder's exactly**: R13 reverted (raw `candidate` instead of `parsed.href`) → **3** · `PASTE_` arm
+re-anchored → **2** · link preview re-enabled → **2**. Baseline 85 green across both suites.
+
+📌 **The earlier count discrepancy is resolved and should not be read as one.** My Round 4 protocol
+mutation gave **1** and the coder had reported **3**; re-run now, its narrow form gives **1** — matching
+mine — and the **3** was a wider mutation replacing the whole `usableAlertUrl` call. Both are recorded.
+
+**Gates, all re-run by me:** `npm test` **137 suites / 1834 tests** · `tsc` 0 · `lint` 0 · harness
+`ALL PASS` · parity REQUIRED 0 ×3 · `plan.md` unmoved. Green first attempt; **no supertest timeout, no
+worker crash, no new `.ips` after the 20:13 one** — nothing to rule out, nothing re-run.
+
+### Ruling — R14's deprecated field name (`disable_web_page_preview`)
+
+**1. The choice: ACCEPT. The stated rationale is wrong for this deployment; the decision survives on
+better grounds, and the comment should say so.**
+
+The comment argues "an older Bot API silently ignores an unknown field". **That case cannot arise
+here.** The endpoint is hardcoded — `TelegramNotifier.ts:192` posts to `https://api.telegram.org`
+— and `TELEGRAM_PROXY_URL` is consumed as an undici **`ProxyAgent`** (`:141-147`, `:199`), i.e. an HTTP
+proxy, **not** an alternate Bot API host. There is no self-hosted `telegram-bot-api` anywhere in this
+project, so the server answering is always Telegram's current one, which supports **both** field names.
+
+The decision is still right, for reasons that actually hold: `disable_web_page_preview` is honoured by
+the current API; it is a **boolean** rather than a nested object, so there is less to get wrong; and if
+Telegram ever removes it the failure mode is **cosmetic** — an unknown field is ignored, the preview
+card returns — **never a lost message**. ⛔ **Do not "modernise" this to `link_preview_options`
+believing it is more correct.** It is a lateral move with a nested-object footgun and no benefit here.
+
+**2. Sending both fields: RISKIER. Agree with not doing it.** Whether Telegram 400s when both are
+present is **unverified**, and that is exactly why one field is right: a 400 on this path loses the
+message, while a preview card is cosmetic. The conservative choice wins **regardless of how the
+uncertainty resolves**, which is the only kind of argument worth making about an unverified API detail.
+This is the same asymmetry the coder used to justify loosening the `PASTE_` filter — applied
+consistently, which is worth noting approvingly.
+
+**3. Blast radius across all three `src/core/` consumers: ACCEPTABLE. No separate finding.** All three
+are operator/notification paths where a preview card is noise. Verified: neither the name-change
+message nor feedback/subscribe contains any anchor, so for them this is a **no-op** — *except* when a
+player pastes a URL into feedback, where Telegram no longer fetches it. That is a small, genuine
+privacy / SSRF-adjacent improvement. 📌 Recorded rather than waved through: it **is** an unrequested
+behaviour change to two paths this task did not set out to touch. It is in the safe direction and one
+line to revert, which is why it is a note and not a finding.
+
+### Note on the filter nit — the loosening is right, with one nuance
+
+`UNSUBSTITUTED` is now `/\{\{|\}\}|PASTE_/i`, unanchored. The asymmetry argument is **correct for
+display values**: a false positive costs a degraded message, a false negative shows the operator a
+placeholder — the defect that actually shipped. ⚠️ **It is slightly weaker for `url`**, because
+`usableAlertUrl` runs the same filter and **residual 7 makes the link the only route to the numbers** —
+so a URL containing `paste_` anywhere would drop the one actionable element. Sender-generated alert URLs
+will not contain it, so this stays a note, not a finding. Flagged so the trade is on file rather than
+rediscovered.
+
 ### 🚨 Regression warning — read before acting on R7
 
 R7 is a **wording** defect. The `boundedCauseCode` guard (`TelegramNotifier.ts:100-116`) and the
@@ -95,6 +234,51 @@ reading the installed undici.
 enclosing `PROFILE_DOMAIN` branch, which is enough to catch this defect. But it **models** that branch
 rather than reading it: moving the render loop out of the branch would still slip past. That is a
 smaller blind spot than the one R11 exposed, not the absence of one.
+
+### 🚩 Post-review, 2026-09-17 — the first REAL production call superseded plan §1c
+
+Not a review finding: found in production after round 2, fixed under owner approval, and recorded here
+so the next reviewer sees it in the ledger rather than only in the worklog.
+
+`POST /internal/v1/alerts/webhook → 202` on the sender's **Test channel** press proved the allowlist,
+the lowercase route, the secret, **the schema** (never before exposed to real traffic) and that the
+channel stayed `delivering`. The out-of-band alarm also fired correctly, unprompted, on an earlier
+unauthenticated call.
+
+**The defect it exposed:** the custom payload is passed through **verbatim and never templated**, so
+`{{ .value }}` was delivered to the operator as those literal characters — and the sender's own
+top-level fields carry no value, threshold or window. **Those three are not obtainable.** The
+disassembly was right (`Payload interface{}`, *"no copy, no merge, no inspection"*); the inference was
+incomplete — *never inspected* also means *never substituted*, and neither the architect nor I drew it.
+Every test passed because every test fed the view fixtures directly, R2's included.
+
+**Fix:** the message now carries `Status:` plus **`alert.url`** as an anchor with fixed link text, and
+filters unsubstituted `{{ … }}` / `PASTE_…` values out of any display field. Static operator-hardcoded
+strings still render. 6 new mutations, all caught. **Plan §1c is superseded; `plan.md` was NOT edited**
+(still `a0815d5d5ee6ffd19c452e77ff4a84123351e9e9`) — the driver amends it.
+
+⚠️ **For the focused re-review:** the anchor-with-fixed-link-text choice is a judgment call. It keeps
+the tool's hostname out of the text the operator *reads* (owner rule, stated twice) while the link
+works; a non-`http(s)` or unparseable URL is omitted, because Telegram rejects a message whose anchor
+it will not take and that would lose the whole alert. New residual 7: **the message carries no measured
+number by design**, because the sender does not provide one.
+
+### Focused re-review — R13, R14, filter nit
+
+| #   | Verdict | Defect / Frontier | Action | Status |
+|-----|---------|-------------------|--------|--------|
+| R13 | CORRECT | Defect | `usableAlertUrl` returned the **raw input** after parsing it; `escapeTelegramHtml` does not escape `"`, and the value sits inside `href="…"` ⇒ attribute break ⇒ malformed HTML ⇒ Telegram rejects ⇒ **alert lost**. Now returns `parsed.href`. 3 tests; **all 50 tests were green either way before them** | ✅ done |
+| R14 | CORRECT | Defect | `disable_web_page_preview: true` in the shared helper — a preview card would render the linked host and undo the anchor's whole purpose. Deprecated field name chosen deliberately (an older Bot API ignores `link_preview_options`; sending both risks a 400 that loses the message). `src/core/` ⇒ applies to all three consumers; for feedback it also stops Telegram fetching a player-supplied URL | ✅ done |
+| nit | CORRECT | Defect | `PASTE_` pattern **unanchored** so `PASTE_ME HERE` is caught, matching the runbook's "still containing". Chose to loosen the code rather than the doc: a false positive costs a degraded message, a false negative shows the operator a placeholder — the defect that shipped | ✅ done |
+
+Mutations: R13 reverted → 3 · `PASTE_` re-anchored → 2 · preview re-enabled → 2 · protocol check
+removed → **1**, reproducing the reviewer's narrower count exactly (my earlier "3" replaced the whole
+call; both catch it — noted so the two numbers are not read as a discrepancy).
+
+⚠️ **Still open and NOT closed by this round: residual 1a — the message CONTENT is unproven in
+production.** Transport is proven; the `Status:` line, the `Threshold:`/`Window:` fallback and a
+tappable link **with no hostname-bearing preview card** need a second live Test-channel press. R14
+had to land before that press or the press could not test it. It has landed.
 
 ⚠️ **`review.md` itself fails `prettier --check`.** Deliberately **not** fixed: `--write` would reformat
 the reviewer's own rows, which the coder must never touch. Flagged for whoever owns this file.
@@ -269,9 +453,43 @@ Codex ran in full on Rounds 1 and 2, including the surfaces these two fixes touc
 
 ## Convergence call
 
-**Round 3 — CLOSED OUT.** Nothing open. Three rounds, twelve findings, all dispositioned; no finding
-was ever re-litigated in either direction, and the one suppressed item stayed pointed at ruling B
-throughout.
+**Round 5 — CLOSED OUT (review). The remaining work is VALIDATION and it is the owner's.**
+
+Five rounds, fourteen findings, all dispositioned. **No finding was ever re-litigated in either
+direction** across the whole review, and the one suppressed item stayed pointed at ruling B throughout.
+Every fix this round was verified by executing a mutation against it, not by reading a claim.
+
+⚠️ **The one thing five rounds of review could not do, stated last because it matters most:** review
+found the defect in the *contract*; **production found the defect in the *premise***. Plan §1c specified
+numbers obtainable by no syntax, and every test passed — including the ones I wrote to catch exactly
+that class — because they all entered below the layer that was wrong. **The second press, and then the
+§8 drill, are the only instruments that reach it.**
+
+**Reviewers, Round 5:** reviewer's own pass only. **Codex deliberately skipped** — three one-line
+changes whose correctness I established by executing mutations against each, plus one API-semantics
+ruling that turned on reading this repo's own call site (the hardcoded endpoint), not on a second
+opinion. Codex ran in full on Rounds 1 and 2.
+
+**Round 4 (superseded) — converged on code; the open item is VALIDATION, not review.** Disposition R13 and R14
+(both one-line, neither reachable from the real sender), then the **second live Test-channel press**
+decides whether this is done. No further review round is warranted: a third reviewer pass over a
+formatter cannot establish what only a real message can.
+
+**Reviewers, Round 4:** reviewer's own pass only. **Codex deliberately skipped.** The surface is one
+file's formatter plus two filters, and I could attack it directly — 17 hostile URL inputs, six executed
+mutations (four of theirs, two of mine), and an empirical HTML-injection probe. That is stronger
+evidence on this surface than a second model reading it. Codex ran in full on Rounds 1 and 2.
+
+**On the R2 test that was updated rather than deleted — checked, and it is not vacuous.** It still
+pins the *exact complete string*, including the new `Status:` line and the anchor, for the case where
+static `value`/`threshold`/`window` **are** supplied — which is the realistic hardcoded-threshold
+monitor. Its comment is accurate about why its fixture shows numbers production does not send.
+📎 One nit: that comment says "see the live-shape block **above**"; the live-shape block is **below**
+it (`describe` at ~575 vs the test at ~555). Wording only. The R2 block also now carries
+`alert.state`/`alert.status` cases set to **different values on purpose**, which properly closes the
+one Round 1 gap that my own mutation `MX-A` had exposed and the first fix had only partly addressed.
+
+**Round 3 (superseded) — CLOSED OUT.** Correct on the evidence then available; reopened by production.
 
 **Round 2 (superseded) — converged. Disposition R11 and R12, then close.**
 
@@ -342,12 +560,37 @@ ruling out, and **nothing was re-run to clear a failure** — every gate was gre
 
 **This task is code-complete and gate-green. It is NOT proven to work.** Everything below is live.
 
-1. 🚨 **THE RELAY HAS NEVER RECEIVED A REAL WEBHOOK CALL.** Every field of the wire format — the
-   string `id`, `alert.status`, the absent `log`, the secret nested under `payload` — was derived from
-   **disassembly of a vendor binary**, not from observed traffic. The tests pin the schema and now pin
-   the field mapping, but they all pin it to the *same assumption*. If that assumption is wrong,
-   everything is green and no alert is ever delivered. **The owner's drill (plan §8) is the only thing
-   that can close this, and nothing else substitutes for it.**
+1. ✅ **CLOSED 2026-09-17 — PROVEN IN PRODUCTION.** *(Was: "the relay has never received a real
+   webhook call.")* A live *Test channel* press reached the box and returned **202**, proving the
+   allowlist, the route, the secret, the schema parse and the channel staying `delivering`. Kept
+   visible rather than deleted, because it is the residual that **paid for itself**: it was right, it
+   was closable only the one way it said, and closing it immediately exposed the defect in (2a) that
+   every green test had missed.
+
+1a. 🚨 **OPEN AT CLOSEOUT — THE MESSAGE CONTENT IS NOT PROVEN IN PRODUCTION.** The transport is; what the
+   operator actually reads is not. **Nobody has yet seen what this renders.** The ledger says
+   `closed-out` because no *review finding* is open — ⛔ **that is not validation, and must never be
+   read as it.** **A second live Test-channel press is the gate, and it has not happened.**
+   On that press, check: the `Status:` line · the `Threshold:`/`Window:` fallback · the link is a
+   tappable anchor reading *open the alert* — **not** a bare URL, and **not** a preview card showing the
+   tool's hostname (R14's fix, applied before the press precisely so it could be judged).
+
+1a-ii. ⚠️ **AND WHAT THAT PRESS STILL CANNOT TEST.** A *Test channel* press sends a synthetic payload.
+   It does **not** exercise: a real **`alert.name`** (so the title path stays unproven against real
+   monitor names) · a real **`alert.status`** value (so **D8's unverified vocabulary — residual 2 — is
+   untouched by it**) · and above all **the resolved / recovery form**, which requires an alert to fire
+   and then clear. ⇒ **Only the §8 drill on a real firing alert closes those.** A green second press is
+   necessary, not sufficient — do not let it retire residual 2.
+
+1b. 🚩 **NEW RESIDUAL 7 — THE MESSAGE CARRIES NO MEASURED NUMBER, BY DESIGN.** This is a **property of
+   the sender, not a gap in the relay.** The custom payload is stored verbatim and never inspected, so
+   it is never templated; the sender's own top-level fields carry no value, threshold or window. **There
+   is no syntax that fills them — `{{ … }}` arrives as literal characters.** The message therefore
+   carries a **link** instead: one tap lands on the chart where the numbers live. ⛔ **Do not "fix" this
+   by inventing a templating syntax; none exists.** The only thing that survives verbatim passthrough is
+   a **static** string hardcoded per monitor, which is why `threshold` / `window` are still read when
+   present. Superseding plan §1c is deliberate and recorded (the plan file is byte-frozen).
+
 2. 🚨 **D8 — `alert.status`'s VOCABULARY IS UNVERIFIED. A RESOLVED ALERT MAY RENDER AS STILL FIRING.**
    The architect confirmed *which field* to read, never its full value set. `AlertRelay.ts:141` matches
    `closed`/`resolved`; anything else renders as firing. That is the safe direction — a recovery shown

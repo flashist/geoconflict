@@ -127,6 +127,9 @@ const AlertWebhookSchema = z.object({
       name: z.string().optional(),
       status: z.string().optional(),
       createdAt: z.string().optional(),
+      // The sender DOES supply this, and since 2026-09-17 it is the only way the
+      // operator can reach the measured numbers at all — see the note on AlertView.
+      url: z.string().optional(),
     })
     .optional(),
 });
@@ -140,7 +143,21 @@ const AlertWebhookSchema = z.object({
  */
 const RESOLVED_STATUSES: ReadonlySet<string> = new Set(["closed", "resolved"]);
 
-/** What the formatter needs, already extracted and independent of the wire shape. */
+/**
+ * What the formatter needs, already extracted and independent of the wire shape.
+ *
+ * 🚩 `value` / `threshold` / `window` are OPTIONAL AND USUALLY ABSENT, and that is a
+ * property of the sender, not a gap here (found by the first real production call,
+ * 2026-09-17). The custom payload is stored verbatim and NEVER INSPECTED — so it is
+ * never TEMPLATED either: `{{ .value }}` arrives as those literal characters. And the
+ * sender's own top-level fields carry no measured value, no threshold and no window.
+ * There is therefore no syntax that fills them. The one thing that does survive
+ * verbatim passthrough is a STATIC string an operator hardcodes per monitor, which is
+ * why these are still read when present.
+ *
+ * ⇒ `url` is what makes the message actionable: one tap lands on the chart.
+ * This supersedes plan §1c's format (the plan file itself is byte-frozen).
+ */
 export interface AlertView {
   title: string;
   resolved: boolean;
@@ -148,6 +165,55 @@ export interface AlertView {
   threshold?: string;
   window?: string;
   since?: string;
+  url?: string;
+}
+
+/**
+ * Template syntax the sender never expanded, and paste-me placeholders an operator
+ * left in the channel config. ⚠️ Showing either to the operator is the exact defect
+ * the first live call exposed — a message reading `Value: {{ .value }}`.
+ */
+// ⚠️ The PASTE_ arm is deliberately UNANCHORED (review nit): anchored, `PASTE_ME HERE`
+// slipped through, while the runbook promises a value "still containing" one is
+// dropped. The asymmetry decides it — a false positive costs a degraded message, a
+// false negative shows the operator a placeholder, which is the defect that shipped.
+const UNSUBSTITUTED = /\{\{|\}\}|PASTE_/i;
+
+/** A display value worth rendering, or undefined. Never throws. */
+function usableDisplayValue(raw: string | undefined): string | undefined {
+  const trimmed = (raw ?? "").trim();
+  if (trimmed.length === 0 || UNSUBSTITUTED.test(trimmed)) {
+    return undefined;
+  }
+  return trimmed;
+}
+
+/**
+ * The alert link, but ONLY if Telegram will accept it. ⚠️ Under `parse_mode: "HTML"`
+ * Telegram REJECTS a message whose anchor it will not take, which would lose the whole
+ * alert rather than just the link — so a non-http(s) or unparseable URL is dropped,
+ * and the message still sends without it. Degrade, never drop.
+ */
+function usableAlertUrl(raw: string | undefined): string | undefined {
+  const candidate = usableDisplayValue(raw);
+  if (candidate === undefined) {
+    return undefined;
+  }
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return undefined;
+    }
+    // ⚠️ `parsed.href`, NOT `candidate` (review R13). Returning the raw input threw the
+    // parse away — and escapeTelegramHtml escapes & < > but NOT `"`, while this value
+    // lands inside href="…". One quote breaks out of the attribute, the HTML is
+    // malformed, Telegram REJECTS the message, and the alert is lost — the exact
+    // failure this filter exists to prevent. `href` percent-encodes `"`→%22 and
+    // `` ` ``→%60 and strips embedded newlines.
+    return parsed.href;
+  } catch {
+    return undefined;
+  }
 }
 
 /** `2026-09-17T14:02:00Z` → `2026-09-17 14:02 UTC`; anything unparseable is kept. */
@@ -175,21 +241,40 @@ export function formatAlertMessage(view: AlertView): string {
     : `🚨 Geoconflict · ${BOX_ROLE} · ${title}`;
   const lines = [heading];
 
-  if (view.value !== undefined && view.value.length > 0) {
+  // Normalised, NOT the sender's own vocabulary: its status values are unverified, and
+  // rendering a raw vendor string would both leak the tool's dialect and risk showing
+  // the operator a word nobody has defined.
+  lines.push(`Status: ${view.resolved ? "resolved" : "firing"}`);
+
+  const value = usableDisplayValue(view.value);
+  const threshold = usableDisplayValue(view.threshold);
+  const window = usableDisplayValue(view.window);
+  const over =
+    window === undefined ? "" : `, over ${escapeTelegramHtml(window)}`;
+  if (value !== undefined) {
     // A number alone is not actionable — the threshold and window are what make it
     // mean anything, so they ride on the same line whenever they exist.
-    const threshold =
-      view.threshold !== undefined && view.threshold.length > 0
-        ? ` (threshold ${escapeTelegramHtml(view.threshold)})`
-        : "";
-    const window =
-      view.window !== undefined && view.window.length > 0
-        ? `, over ${escapeTelegramHtml(view.window)}`
-        : "";
-    lines.push(`Value: ${escapeTelegramHtml(view.value)}${threshold}${window}`);
+    const bound =
+      threshold === undefined
+        ? ""
+        : ` (threshold ${escapeTelegramHtml(threshold)})`;
+    lines.push(`Value: ${escapeTelegramHtml(value)}${bound}${over}`);
+  } else if (threshold !== undefined) {
+    // The realistic case: a static threshold hardcoded per monitor, with no measured
+    // value available to compare it against.
+    lines.push(`Threshold: ${escapeTelegramHtml(threshold)}${over}`);
+  } else if (window !== undefined) {
+    lines.push(`Window: ${escapeTelegramHtml(window)}`);
   }
+
   if (view.since !== undefined && view.since.length > 0) {
     lines.push(`Since: ${formatSince(view.since)}`);
+  }
+  const url = usableAlertUrl(view.url);
+  if (url !== undefined) {
+    // An ANCHOR, not a bare URL: the tool's hostname must not appear in the text the
+    // operator READS (the owner asked for that twice), while the tap still works.
+    lines.push(`→ <a href="${escapeTelegramHtml(url)}">open the alert</a>`);
   }
   return lines.join("\n");
 }
@@ -371,6 +456,7 @@ export function createAlertRelay(
       threshold: data.payload?.threshold,
       window: data.payload?.window,
       since: data.alert?.createdAt ?? data.createdAt,
+      url: data.alert?.url,
     });
     return { kind: "deliver", text, keyed, id };
   }

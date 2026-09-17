@@ -13,7 +13,7 @@ Sprint 4
 High *(producer's rank — NOT owner-ruled)*
 
 ⚠️ Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.
-**On merit this belongs directly below [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md)**,
+**On merit this belongs directly below [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md)**,
 because it guards the exact relay `0277` builds and cannot start before it. Appended at the bottom
 (ADR-035), not inserted — closed rows sit below the merit position.
 
@@ -182,11 +182,15 @@ the plan** — refine the mechanics, keep the shape.
 
 ## Notes
 
-- **Depends on:** [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md) — the relay route must
+- **Depends on:** [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md) — the relay route must
   exist before anything can probe it. **The owner ruled the ordering explicitly (2026-09-17): build
-  this after `0277`.** ⚠️ `0277`'s branch is still decided by its own step-0 proof; if it ships branch
-  A (Uptrace's own notifier, no relay route), **the probe target changes and this brief must be
-  re-scoped, not worked around** — say so rather than inventing a target.
+  this after `0277`.** ✅ **SETTLED 2026-09-17 — `0277` SHIPPED THE WEBHOOK-RELAY BRANCH (branch B),
+  so THIS BRIEF'S PROBE TARGET STANDS. Do not re-scope it.** The relay route exists and is deployed on
+  the profile box; a live *Test channel* press returned **202** and the message arrived. *(Kept for the
+  trail: until that close, `0277`'s branch was still decided by its own step-0 proof, and branch A —
+  Uptrace's own notifier, no relay route — would have changed the probe target and forced a re-scope.
+  Branch A did not ship.)* ⚠️ Recorded 2026-09-17 by a spawned `fkit-producer` closing `0277`; a
+  statement of fact about what shipped, **not** an owner ruling and not a change of this task's scope.
 - **Blocks:** nothing.
 - **Related:**
   - [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md) — ⚠️ **complements, it does

@@ -14,7 +14,7 @@ full, not deleted.)*
 High *(producer's append rank — **NOT owner-ruled**)*
 
 ⚠️ **Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.**
-**On merit this belongs directly above [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md)**,
+**On merit this belongs directly above [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md)**,
 because the same shared notification code underlies both and `0277` inherits the defect if it ships
 first. Appended at the bottom of the open run (ADR-035), not inserted.
 
@@ -22,6 +22,34 @@ first. Appended at the bottom of the open run (ADR-035), not inserted.
 
 ## Status
 🔲 Backlog
+
+### 🔴 OWNER RULING — 2026-09-17: this task CLOSES ON `0273`'s GAME DEPLOY
+
+⛔ **Authority first.** Given **live in the lead session** via `AskUserQuestion` on **2026-09-17** and
+relayed by `fkit-sprint-ship-loop` to a spawned `fkit-producer` that holds no owner channel of its own.
+⛔ **NOT producer precedent — one owner ruling, one task.**
+
+**Where the work actually stands — three facts, none of them "in progress":**
+
+| | |
+|---|---|
+| **The fix** | **SHIPPED IN-TREE**, inside [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md)'s ND-2 scope — `src/core/notifications/TelegramNotifier.ts` plus the two inline copies in `Master.ts`. Not written for this task; written once for all three consumers, as the *"one fix, three consumers"* section above says. |
+| **Deployed?** | **The profile-server side is DEPLOYED AND LIVE, 2026-09-17.** ⚠️ **The `Master.ts` player-feedback half — the half this task is actually about — is UNSHIPPED** until [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s game deploy. That, and only that, is what holds this task open. |
+| **The investigation** | ⚠️ **NEVER RUN.** The cause is a **hypothesis reproduced behaviourally and NEVER CONFIRMED IN CODE** — a module-level `ProxyAgent` handing out a dead pooled socket. Nobody read the failure path and proved it. |
+
+**The ruling:** once `0273`'s game deploy ships the `Master.ts` half and **feedback delivery is
+observed working**, this task **closes** — treating the fix as the deliverable rather than the
+post-mortem. ⛔ **The close record MUST state plainly that the cause was reproduced behaviourally and
+never confirmed in code.** That caveat is a condition of the ruling, not a footnote.
+
+**The owner's stated reasoning, recorded as given:** *honest, and does not hold a task open for a
+post-mortem nobody needs.*
+
+⛔ **NOT CLOSEABLE YET.** `0273`'s game deploy has not happened and nothing has been observed. The
+status token stays **`🔲 Backlog`** deliberately. Do not close this on the strength of the in-tree fix
+alone.
+
+· earlier:
 
 📅 **2026-09-17 — SCHEDULED INTO SPRINT 4, alongside `0277`. OWNER RULING, given live in the lead
 session and relayed by `fkit-sprint-ship-loop` to a spawned `fkit-producer`.** ⚠️ **The status token is
@@ -78,7 +106,7 @@ what was accepted at the time.
    investigation with no known fix"*. Since then the failure has been **reproduced in production**
    (2026-09-17, by our own proxy restart — a clean experiment, not an organic incident) and a
    **likely fix shape** exists. The premise the ruling was built on is gone.
-2. **[`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md)'s alert relay would otherwise
+2. **[`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md)'s alert relay would otherwise
    inherit the same defect**, and the same fix would be **designed twice**.
 
 **What changed and what did not:**
@@ -94,7 +122,7 @@ what was accepted at the time.
 ### 🔗 FIXED TOGETHER WITH `0277` — one fix, three consumers
 
 **Owner ruling, same session, 2026-09-17.** This task and
-[`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md) are worked **together**, not in
+[`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md) are worked **together**, not in
 sequence.
 
 **The reason, stated plainly:** the same shared notification code —
@@ -277,14 +305,14 @@ Produce **findings first**. Only write the fix once the cause is known.
 ## Notes
 
 - **Depends on:** nothing.
-- **Worked together with:** [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md) —
+- **Worked together with:** [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md) —
   **owner ruling 2026-09-17**, recorded in full in the *"FIXED TOGETHER WITH `0277`"* section above.
   The same shared notification code underlies player feedback, the name-change operator notification
   **and** the alert relay, so **one fix covers all three**. ⚠️ This is a **pairing**, not a formal
   dependency in either direction — neither task blocks the other, and the canonical `Depends on` /
   `Blocks` lines are deliberately left saying what they said.
 - **Blocks:** nothing formally. ⚠️ **But since 2026-09-17 it is a recorded DESIGN INPUT to
-  [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md) and
+  [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md) and
   [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md)** — both briefs now
   carry a dated note saying the alert relay must not inherit this fail-silent behaviour. That is a
   constraint recorded against them, not a formal block.

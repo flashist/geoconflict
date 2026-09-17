@@ -80,7 +80,7 @@ only an allow-list entry.** The architect predicted exactly this.
 - **The notification has never been seen to arrive.** Egress reachability is not delivery. The
   close-out routed this verification to `0033`; **`0033`'s brief never picked it up, and no task on
   any board owns it today.** Recorded as an open item on
-  [`0277`](../../backlog/0277-uptrace-alert-delivery-to-telegram/brief.md)'s *Notes* for the owner to
+  [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md)'s *Notes* for the owner to
   place.
 - ⚠️ **The send can still fail silently.** [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md)
   was reproduced in production on 2026-09-17: a **module-level `ProxyAgent`** can hand out a dead

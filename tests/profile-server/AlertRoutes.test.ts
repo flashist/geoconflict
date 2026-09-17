@@ -549,11 +549,194 @@ describe("alert relay — the wire→view field mapping (review R2)", () => {
   });
 
   // The whole mapping at once, so a reader sees the shape the operator receives.
+  // ⚠️ Updated 2026-09-17 for the live-traffic format (Status line + alert link) — the
+  // fixture's value/threshold/window still render here because a fixture supplies them
+  // directly. In REAL traffic they are absent; see the live-shape block below for why.
   it("renders the complete firing message", async () => {
     expect(await deliveredText({})).toBe(
       "🚨 Geoconflict · profile · Player creation spike\n" +
+        "Status: firing\n" +
         "Value: 412 (threshold 300), over 10 min\n" +
-        "Since: 2026-09-17 14:02 UTC",
+        "Since: 2026-09-17 14:02 UTC\n" +
+        '→ <a href="https://example.invalid/alert/1">open the alert</a>',
+    );
+  });
+});
+
+// 🚩 FOUND BY THE FIRST REAL PRODUCTION CALL, 2026-09-17 — not by any test here.
+// The sender stores the custom payload VERBATIM and never inspects it, so it never
+// TEMPLATES it either: a payload value of "{{ .value }}" is delivered as those literal
+// characters. Uptrace's own top-level fields carry no measured value, no threshold and
+// no window, so those three are NOT OBTAINABLE by any syntax. Every test here passed
+// because every test fed fixtures straight in.
+//
+// This supersedes plan §1c's message format (the plan file is byte-frozen; the
+// supersede is recorded in the worklog and the ledger).
+describe("alert message — the live-traffic shape (supersedes plan §1c)", () => {
+  async function deliveredText(over: Record<string, unknown>): Promise<string> {
+    const h = build();
+    await post(h, webhookBody(over));
+    await h.settle();
+    expect(h.alerts).toHaveLength(1);
+    return h.alerts[0].text;
+  }
+
+  // ⚠️ THE DEFECT ITSELF. Mutation killed: rendering a payload display value without
+  // checking it for unsubstituted template syntax — which is exactly what shipped and
+  // what the operator actually received.
+  it.each([
+    ["a template placeholder", "{{ .value }}"],
+    ["a bare opening brace pair", "{{ anything"],
+    ["a paste-me literal", "PASTE_THRESHOLD_HERE"],
+    // ⚠️ The filter was whole-string anchored, so a placeholder with anything after it
+    // slipped through — while the runbook says a value "still CONTAINING" one is
+    // dropped. Mutation killed: re-anchoring the PASTE_ pattern.
+    ["a paste-me literal with trailing text", "PASTE_ME HERE"],
+    ["a paste-me literal with leading text", "see PASTE_ME"],
+  ])("never renders %s to the operator", async (_label, poison) => {
+    const text = await deliveredText({
+      payload: {
+        secret: SECRET,
+        value: poison,
+        threshold: poison,
+        window: poison,
+      },
+    });
+    expect(text).not.toContain("{{");
+    expect(text).not.toContain("}}");
+    expect(text).not.toContain("PASTE_");
+    // It still says something useful rather than degrading to nothing.
+    expect(text).toContain("Player creation spike");
+  });
+
+  // Mutation killed: dropping alert.url, or rendering it only when some other field
+  // happens to be present. The link is now the ONLY way to reach the numbers.
+  it("renders alert.url as a working link", async () => {
+    const text = await deliveredText({});
+    expect(text).toContain('<a href="https://example.invalid/alert/1">');
+  });
+
+  // ⚠️ Mutation killed: emitting the arrow (or an empty anchor) when the URL is absent,
+  // which would show the operator a dangling "→" or a link to nowhere.
+  it("still sends, with no dangling arrow, when alert.url is absent", async () => {
+    const text = await deliveredText({
+      alert: { name: "Player creation spike", status: "open" },
+    });
+    expect(text).toContain("Player creation spike");
+    expect(text).not.toContain("→");
+    expect(text).not.toContain("<a href");
+  });
+
+  // ⚠️ Mutation killed: embedding a non-http(s) URL. parse_mode:"HTML" makes Telegram
+  // REJECT a message whose anchor it will not accept — so a junk URL would lose the
+  // whole alert, not just the link. Degrade, never drop.
+  it.each([
+    ["javascript:", "javascript:alert(1)"],
+    ["not a URL at all", "nonsense"],
+    ["a template placeholder", "{{ .alertUrl }}"],
+  ])(
+    "omits the link rather than risking rejection for %s",
+    async (_label, url) => {
+      const text = await deliveredText({
+        alert: { name: "Player creation spike", status: "open", url },
+      });
+      expect(text).not.toContain("<a href");
+      expect(text).toContain("Player creation spike");
+    },
+  );
+
+  // ⚠️ Review R13. `usableAlertUrl` PARSED the URL and then returned the RAW input,
+  // throwing the parse away. `escapeTelegramHtml` escapes & < > but NOT `"` — and the
+  // value lands inside href="…", so one quote breaks out of the attribute, the HTML is
+  // malformed, Telegram rejects the message, and the ALERT IS LOST. That is the exact
+  // failure this filter exists to prevent.
+  // Mutation killed: returning `candidate` instead of `parsed.href`. ⚠️ All 50 tests
+  // stayed green either way before this case existed — which is why it exists.
+  it.each([
+    [
+      "a double quote",
+      'https://example.invalid/a"onmouseover=x',
+      "a%22onmouseover=x",
+    ],
+    ["a backtick", "https://example.invalid/a`x", "a%60x"],
+  ])(
+    "percent-encodes %s so it cannot break out of href",
+    async (_label, url, encoded) => {
+      const text = await deliveredText({
+        alert: { name: "Player creation spike", status: "open", url },
+      });
+      expect(text).toContain(`<a href="https://example.invalid/${encoded}">`);
+      // The raw character must not survive anywhere in the anchor.
+      expect(text).not.toContain('a"onmouseover');
+      expect(text).not.toContain("a`x");
+    },
+  );
+
+  it("strips an embedded newline from the URL", async () => {
+    const text = await deliveredText({
+      alert: {
+        name: "Player creation spike",
+        status: "open",
+        url: "https://example.invalid/a\nx",
+      },
+    });
+    expect(text).toContain('<a href="https://example.invalid/ax">');
+  });
+
+  it("escapes the URL it embeds", async () => {
+    const text = await deliveredText({
+      alert: {
+        name: "Player creation spike",
+        status: "open",
+        url: "https://example.invalid/a?x=1&y=2",
+      },
+    });
+    expect(text).toContain("x=1&amp;y=2");
+  });
+
+  // The one display field that DOES survive verbatim passthrough: a static string an
+  // operator hardcodes per monitor. Mutation killed: dropping payload display fields
+  // wholesale as part of this fix.
+  it("still renders a STATIC threshold an operator hardcoded", async () => {
+    const text = await deliveredText({
+      payload: { secret: SECRET, threshold: "300", window: "10 min" },
+    });
+    expect(text).toContain("300");
+    expect(text).toContain("10 min");
+  });
+
+  it("names the status explicitly, normalised, not in the sender's vocabulary", async () => {
+    expect(await deliveredText({})).toContain("Status: firing");
+    const resolved = await deliveredText({
+      id: "resolved-1",
+      alert: { name: "Player creation spike", status: "closed" },
+    });
+    expect(resolved).toContain("Status: resolved");
+    expect(resolved).toContain("resolved");
+  });
+
+  // ⚠️ The owner asked twice: what is wrong and where, never which tool noticed. The
+  // vendor's hostname now travels in the link TARGET, so the assertion is about what
+  // the operator SEES. Mutation killed: rendering the bare URL as visible text.
+  it("keeps the tool's name out of the VISIBLE text even when the link carries it", async () => {
+    const text = await deliveredText({
+      alert: {
+        name: "Player creation spike",
+        status: "open",
+        url: "https://uptrace.example.invalid/alert/9",
+      },
+    });
+    const visible = text.replace(/<a href="[^"]*">/g, "").replace(/<\/a>/g, "");
+    expect(visible.toLowerCase()).not.toContain("uptrace");
+    expect(text).toContain("<a href=");
+  });
+
+  it("renders the complete firing message", async () => {
+    expect(await deliveredText({ payload: { secret: SECRET } })).toBe(
+      "🚨 Geoconflict · profile · Player creation spike\n" +
+        "Status: firing\n" +
+        "Since: 2026-09-17 14:02 UTC\n" +
+        '→ <a href="https://example.invalid/alert/1">open the alert</a>',
     );
   });
 });

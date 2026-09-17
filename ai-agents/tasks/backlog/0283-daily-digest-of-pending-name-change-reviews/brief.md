@@ -8,14 +8,22 @@
 > was `0282`.
 
 ## Sprint
-Backlog
+Sprint 4
+
+*(was `Backlog` until 2026-09-17. ⛔ **The promotion is the PRODUCER'S CALL, not an owner ruling** —
+the owner ruled the requirement and the zero-count behaviour, never the board. It discharges the
+standing recommendation recorded on the Backlog row, *"promote to Sprint 4 the moment `0277` ships"*:
+[`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md) closed 2026-09-17 with its
+Telegram topic routing deployed, so the dependency is met. Row **appended** at the bottom of Sprint 4,
+nothing renumbered (ADR-035). ⚠️ Promotion is not a queue position — whether the running ship loop
+picks this up is the lead's and the owner's call.)*
 
 ## Priority
 Unscheduled
 
 ⚠️ **Board placement and rank are the PRODUCER'S CALL, not an owner ruling.** The owner ruled the
 *requirement*; they did not rule where it sits. Filed on the Backlog board because it **cannot be
-built until [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md)'s topic-routing work lands**,
+built until [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md)'s topic-routing work lands**,
 and because it is not a go-live gate for anything in Sprint 4. **Recommendation to the owner: promote
 it to Sprint 4 the moment `0277` ships**, rather than leaving it here — `0061` is the cautionary
 precedent, a genuinely valuable item that sat unscheduled on this board for weeks because nothing
@@ -186,7 +194,7 @@ for an assumption nobody examined.
 
 ## Notes
 
-- **Depends on:** [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md) — the Telegram
+- **Depends on:** [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md) — the Telegram
   topic-routing work, which is what lets a message be addressed to a specific topic from the profile
   box. ⚠️ **Flagged honestly:** as `0277`'s brief reads today it is scoped around *Uptrace alert
   delivery*, and the topic-targeting slice was described to this producer by the lead rather than read

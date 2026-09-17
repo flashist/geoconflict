@@ -46,6 +46,7 @@ describe("sendTelegramMessage", () => {
       chat_id: "-100123",
       text: "hello",
       parse_mode: "HTML",
+      disable_web_page_preview: true,
     });
   });
 
@@ -114,6 +115,18 @@ describe("sendTelegramMessage", () => {
     await sendTelegramMessage(CONFIG, "hi");
     const [, init] = fetchMock.mock.calls[0] as [string, { signal?: unknown }];
     expect(init.signal).toBeDefined();
+  });
+
+  // ⚠️ Review R14. A link in an operator message makes Telegram draw a preview CARD,
+  // and that card can show the linked host — which would undo, in the operator's view,
+  // the whole reason the alert relay renders its link as an anchor with fixed text
+  // rather than as a bare URL. It also stops Telegram fetching a URL a PLAYER typed
+  // into feedback, since this helper is shared by that path too.
+  // Mutation killed: omitting the field, or setting it to false.
+  it("disables the link preview on every message", async () => {
+    await sendTelegramMessage(CONFIG, "see https://example.invalid/x");
+    const [, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+    expect(JSON.parse(init.body).disable_web_page_preview).toBe(true);
   });
 
   // ── Task 0277 step 1: forum topic routing ────────────────────────────────

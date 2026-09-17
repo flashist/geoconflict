@@ -162,6 +162,16 @@ function buildMessageBody(config: TelegramConfig, text: string): string {
     chat_id: config.chatId,
     text,
     parse_mode: "HTML",
+    // ⚠️ No preview CARD for any link in an operator message (task 0277, review R14).
+    // A card renders the linked host, which would undo — in the operator's view — the
+    // reason the alert relay renders its link as an anchor with fixed text instead of
+    // a bare URL. It also stops Telegram fetching a URL a PLAYER typed into feedback,
+    // since this helper is shared by that path.
+    // ⚠️ The DEPRECATED field name on purpose: `link_preview_options` is the current
+    // one, but an older Bot API silently IGNORES an unknown field (⇒ previews back on),
+    // whereas `disable_web_page_preview` is still honoured by both old and new. Sending
+    // only one avoids any chance of a 400, which on this path would lose the message.
+    disable_web_page_preview: true,
   };
   const threadId = config.threadId ?? "";
   if (threadId.length > 0) {

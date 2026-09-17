@@ -19,7 +19,7 @@ gates the S4 game deploy (ruling D2) and XP go-live (`0217`). Appended at the bo
 inserted — closed rows sit below the merit position.
 
 ## Status
-🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop) · **plan approved by the owner 2026-09-17** ([`plan.md`](plan.md) written, 616 lines, build worker running) — ⛔ do not re-plan. **Scope grew by owner ruling ND-2:** this task now also carries the **`0061` connection fix for all three consumers** (alerts, name-change notifications **and** player feedback) — one fix, three consumers — plus Telegram topic routing for the two senders on this box. ⚠️ **Two deploys at different times:** the profile box ships with this task; the `Master.ts` (feedback) half is **written and tested but unshipped** until `0273`'s already-pending game deploy, so feedback keeps dropping messages on a stale socket until then — *fixed in the tree, unshipped*, and must not be recorded as "fixed". 🚩 **Sustained delivery is NOT proven by this task** — an alert about the alert path travels the alert path; the only non-circular proof is [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md)'s owner-ruled daily zero-count beat. Also open: ND-1 (Uptrace's exact webhook body — architect consult in flight; the plan states the safe-degrading fallback). · earlier: 🔲 Backlog
+✅ Done (agent-closed — not owner-verified) — **closed 2026-09-17 by a spawned `fkit-producer` on an OWNER RULING given live in the lead session via `AskUserQuestion` and relayed by `fkit-sprint-ship-loop`.** The owner was offered close-now / hold-for-the-§8-drill / owner-verify-first, was told plainly that two residuals can only be proven by a real alert firing and then clearing, and chose **"close now, agent-closed"** — because the marker states honestly that nothing was verified in production *use*, the close unblocks [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) / [`0283`](../../backlog/0283-daily-digest-of-pending-name-change-reviews/brief.md) / [`0284`](../../backlog/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md), and the residuals stay visible on those follow-ups. ⛔ **Not producer precedent — one owner ruling on one task.** **Gates, re-run 2026-09-17 by a spawned coder AFTER the review closed out** (required because `disable_web_page_preview` landed post-review): `npm test` **137 suites / 1834 tests, all passed**, 55.4 s, first run, no flake hit and nothing re-run for a failure · `npx tsc --noEmit` exit 0, zero diagnostics (no typecheck script exists) · `npm run lint` exit 0 · `npm run check:config-parity` exit 0 — game REQUIRED 0 / INFO 6 / ALLOWED 4, **profile REQUIRED 0 / INFO 0 / ALLOWED 0**, client REQUIRED 0 / INFO 1 / ALLOWED 15, INERT 6. ⚠️ **Two limits of that parity line, stated not glossed:** the check is **report-only and cannot fail a deploy**, and `FEEDBACK_TELEGRAM_TOKEN`, `FEEDBACK_TELEGRAM_CHAT_ID`, `TELEGRAM_PROXY_URL` sit in the **INERT** list — recorded for phase 2, **not enforced today**. Neither is new; neither certifies deploy-time forwarding. The post-review change is exercised: `disable_web_page_preview: true` (`src/core/notifications/TelegramNotifier.ts:174`) is asserted twice in `tests/core/TelegramNotifier.test.ts`. 🎯 **LIVE PRODUCTION EVIDENCE, 2026-09-17, owner-observed.** Owner deployed the profile box; the lead pressed **Test channel**. Box request log: `16:41 curl/8.7.1 → 403` (the lead's own probe, correctly refused by the allowlist) · `16:56 Uptrace/1.0 → 202` (first test, previous build — delivered with literal `{{ }}` placeholders) · `18:53 Uptrace/1.0 → 202` (after the fix, current build). Owner confirmed by screenshot the message that arrived in the Alerts topic (`🚨 Geoconflict · profile · Test message` / `Status: firing` / `Since: 2026-09-17 18:53 UTC` / `→ open the alert`). **Four checks pass:** status line renders · **no `{{ }}` placeholders** (the defect the first press exposed) · the link is a tappable *open the alert*, not a raw address · **no link-preview card exposing a hostname** — the only way `disable_web_page_preview` could ever be tested. ⚠️ **Scope of that proof, exactly:** it proves the **transport, auth, format and rendering of a synthetic test message**. It does **not** prove a real alert. This closes review residual **1a** (message content unproven); it does **not** touch **1a-ii** or **2**. 🚩 **Residuals that survive this close — full list 1–11 in [`review.md`](review.md), do not re-derive.** Loudest: **1a-ii** — a synthetic test exercises no real `alert.name`, no real `alert.status`, and never produces the resolved/recovery form; **2 (D8)** — `alert.status`'s value vocabulary is **UNVERIFIED**, `AlertRelay.ts:141` matches `closed`/`resolved` and anything else renders as **firing**, so a recovered alert may still show a 🚨 (safe direction — noise, not a missed incident — but unproven); **both close only on `0274`'s §8 drill with a real alert that fires and then clears.** Also live: **3** the `/internal/` allowlist-403 trap (owner ruling B — a source-IP miss permanently and silently disables the channel; the real guard is `0284`) · **5** best-effort un-marking, the **unsafe** direction (a crash between the 202 and a delivery failure loses the alert) · **6** no shutdown drain · **8** **`0061` is fixed in the tree but UNSHIPPED** until `0273`'s game deploy — do not read "0061 is fixed" off this task. ⚠️ **No alert rules exist yet** — the Monitors list holds only default "error: Notify on all errors" entries; `0274`'s A1–A6 are uncreated. This task ships a **proven pipeline with nothing feeding it**; that is `0274`'s work, not a gap here. 🚩 Sustained delivery is still **not** proven by this task — only `0283`'s daily zero-count beat is non-circular. · earlier: 🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop) · **plan approved by the owner 2026-09-17** ([`plan.md`](plan.md) written, 616 lines, build worker running) — ⛔ do not re-plan. **Scope grew by owner ruling ND-2:** this task now also carries the **`0061` connection fix for all three consumers** (alerts, name-change notifications **and** player feedback) — one fix, three consumers — plus Telegram topic routing for the two senders on this box. ⚠️ **Two deploys at different times:** the profile box ships with this task; the `Master.ts` (feedback) half is **written and tested but unshipped** until `0273`'s already-pending game deploy, so feedback keeps dropping messages on a stale socket until then — *fixed in the tree, unshipped*, and must not be recorded as "fixed". 🚩 **Sustained delivery is NOT proven by this task** — an alert about the alert path travels the alert path; the only non-circular proof is [`0283`](../../backlog/0283-daily-digest-of-pending-name-change-reviews/brief.md)'s owner-ruled daily zero-count beat. Also open: ND-1 (Uptrace's exact webhook body — architect consult in flight; the plan states the safe-degrading fallback). · earlier: 🔲 Backlog
 ## Owner
 fkit-coder
 
@@ -91,7 +91,7 @@ ruling below.)
 ⛔ **Constraint only. The design is the architect's / coder's — nothing here rules the fix shape.**
 ⛔ **No status change.**
 
-**Source:** [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md), which was
+**Source:** [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md), which was
 **reproduced in production on 2026-09-17** (by our own proxy restart — a clean experiment, not an
 organic failure). Read that brief's *"REPRODUCED IN PRODUCTION"* section for the full evidence.
 
@@ -132,7 +132,7 @@ inherit the fail-silent behaviour. Both branches are affected, differently:
 and relayed by `fkit-sprint-ship-loop` to a spawned `fkit-producer`. ⛔ **Not producer precedent** — a
 producer never promotes a task or overturns a ruling on its own.
 
-**What changed:** [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) is no
+**What changed:** [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) is no
 longer unscheduled. **The owner overturned THEIR OWN 2026-08-23 Backlog ruling** — on the grounds that
 its stated reason (*"an investigation with no known fix"*) no longer holds now that the failure is
 reproduced and a likely fix shape exists, and that **this task's relay would otherwise inherit the same
@@ -167,7 +167,7 @@ lead then verified **read-only from that box**:
 
 **Consequence:** the **name-change operator notification's** silent failure is a **zero-code fix** —
 exactly as the architect predicted. It is recorded here and on
-[`0067`](../../done/0067-name-change-citizens-only/brief.md) (which is Done and whose close-out
+[`0067`](../0067-name-change-citizens-only/brief.md) (which is Done and whose close-out
 flagged proxy reachability as never exercised). ⚠️ **No task on any board owns verifying that
 notification end to end** — see *Notes*.
 
@@ -228,10 +228,10 @@ notification end to end** — see *Notes*.
 ## Notes
 
 - **Depends on:** nothing (the local proof needs only Docker and the owner's throwaway bot)
-- **Blocks:** [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5 — its
+- **Blocks:** [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5 — its
   *"an alert actually arrives"* verification and its alert drill cannot pass until this lands), and
-  therefore transitively [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s
-  **game deploy** (ruling D2) and [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+  therefore transitively [`0273`](../../backlog/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s
+  **game deploy** (ruling D2) and [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
   (XP go-live)
 - **Effort:** ~0.5–1 day of build **plus** the local proof (step 0).
 - ⚠️ **The build branch is not decided yet, and deliberately so.** Step 0 decides it. Do **not** write
@@ -241,7 +241,7 @@ notification end to end** — see *Notes*.
   the shell harness or by nothing. This is a known residual, recorded so it is not mistaken for
   coverage.
 - **Design input (2026-09-17, NOT a block):**
-  [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) — the stale-pooled-
+  [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) — the stale-pooled-
   socket hypothesis above. `0061` stays open and unscheduled; this task does **not** wait on it, but
   must not ship a relay that drops alerts silently.
 - ✅ **RESOLVED 2026-09-17 by an OWNER RULING — was: "Open, unowned".** ~~🚩 **Open, unowned — flagged
@@ -253,12 +253,12 @@ notification end to end** — see *Notes*.
   **The owner ruled exactly that, live in the lead session on 2026-09-17: FOLD IT INTO THE NEXT
   PROFILE-BOX DEPLOY DRILL, file NO separate task.** It is ~5 minutes of live checking on a deploy that
   has to happen anyway. **It is recorded on
-  [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md)'s owner steps**, which
+  [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md)'s owner steps**, which
   own that drill. **What must be proven:** an operator notification for a name-change request
   **actually arrives and is observed** — ⛔ not merely that the send returned `sent`. ⚠️ **The dropped
   handoff is named explicitly on `0274` so it cannot be dropped a second time.** Struck text kept, not
   deleted.
-- **Feeds:** [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md) — a **new
+- **Feeds:** [`0283`](../../backlog/0283-daily-digest-of-pending-name-change-reviews/brief.md) — a **new
   requirement** ruled by the owner on 2026-09-17: a once-per-24-h digest to the **Name Changes topic**
   saying how many players are waiting for a name review. It **depends on this task's topic-routing
   work**. ⚠️ **Flagged honestly:** this brief as written does not yet describe a topic-targeting slice
@@ -268,7 +268,7 @@ notification end to end** — see *Notes*.
 - 🛡️ **The alert-channel death guard is FILED AS A FOLLOW-UP AND IS EXPLICITLY NOT IN THIS TASK'S
   SCOPE — its absence here is deliberate, not an oversight.** Recorded 2026-09-17 so a reviewer does
   not read it as a gap.
-  [`0284`](../0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)
+  [`0284`](../../backlog/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)
   owns it, on an **owner ruling (2026-09-17): file it, build it after `0277`.** **What it guards:** the
   architect disassembled `uptrace/uptrace:2.0.2` and found that a **`401`, `403` or `404` from a
   webhook endpoint calls `NotifChannelGateway.Disable`** — so if branch B's relay sits behind the
