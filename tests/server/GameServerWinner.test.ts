@@ -44,7 +44,7 @@ function fakeConfig(): ServerConfig {
 
 function noopProfileApiClient(): ProfileApiClient {
   return {
-    upsertProfile: jest.fn().mockResolvedValue(undefined),
+    resolvePlayer: jest.fn().mockResolvedValue(null),
     creditMatch: jest.fn().mockResolvedValue(undefined),
   } as unknown as ProfileApiClient;
 }

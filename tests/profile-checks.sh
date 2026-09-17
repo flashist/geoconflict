@@ -72,6 +72,24 @@ case "\$*" in
 esac
 exit 0
 EOF
+# df stub (task 0274, check 9). Prints a `df -P` shaped table whose Capacity column is
+# whatever $WORK/disk.pct says, so a full disk can be simulated without filling one.
+cat > "$BIN/df" <<EOF
+#!/bin/bash
+echo "df \$*" >> "$WORK/df.argv"
+[ -f "$WORK/df.fail" ] && exit 1
+pct="\$(cat "$WORK/disk.pct" 2>/dev/null || echo 42)"
+path=""; for a in "\$@"; do case "\$a" in -*) ;; *) path="\$a" ;; esac; done
+echo "Filesystem 1024-blocks Used Available Capacity Mounted on"
+echo "/dev/vda1 41152736 17283584 21752768 \${pct}% \${path:-/}"
+EOF
+# docker stub (task 0274, check 10). Returns the row count $WORK/players.sql.out holds.
+cat > "$BIN/docker" <<EOF
+#!/bin/bash
+echo "docker \$*" >> "$WORK/docker.argv"
+[ -f "$WORK/docker.fail" ] && { echo "Error: No such container" >&2; exit 1; }
+cat "$WORK/players.sql.out" 2>/dev/null || echo 0
+EOF
 chmod +x "$BIN"/*
 
 # ── Fixture: a healthy box ────────────────────────────────────────────────────
@@ -104,7 +122,10 @@ weekly_json() {  # <days-ago of the newest object> [more days-ago ...]
 }
 reset_fixture() {
   rm -rf "$FIX"; mkdir -p "$FIX/profile/backups" "$FIX/le"
-  rm -f "$WORK"/rclone.* "$WORK"/curl.* "$WORK"/openssl.argv "$WORK/cert.days"
+  rm -f "$WORK"/rclone.* "$WORK"/curl.* "$WORK"/openssl.argv "$WORK/cert.days" \
+        "$WORK"/df.* "$WORK"/docker.* "$WORK/disk.pct" "$WORK/players.sql.out"
+  echo 42 > "$WORK/disk.pct"
+  echo 1000 > "$WORK/players.sql.out"
   # backup.env exactly as setup-profile.sh writes it (the real %q'd shape).
   cat > "$FIX/profile/backup.env" <<EOF
 POSTGRES_USER=profile
@@ -132,6 +153,7 @@ run_checks() {  # extra VAR=VAL ... ; sets RC, OUT
   rm -f "$WORK/curl.urls" "$WORK/curl.body" "$WORK/curl.argv"
   env -i PATH="$BIN:/usr/bin:/bin" HOME="$WORK" \
     PROFILE_DIR="$FIX/profile" \
+    POSTGRES_USER=profile POSTGRES_DB=profile \
     PROFILE_CHECKS_ENV_FILE="$FIX/absent-checks.env" \
     PROFILE_CHECKS_LE_LOG="$FIX/le/letsencrypt.log" \
     PROFILE_CHECKS_RENEW_LOG="$FIX/certbot-renew.log" \
@@ -145,15 +167,22 @@ run_checks() {  # extra VAR=VAL ... ; sets RC, OUT
   [ -f "$WORK/curl.body" ] && { cat "$WORK/curl.body" >> "$WORK/all-bodies.log"; echo >> "$WORK/all-bodies.log"; }
   return 0
 }
+# The growth check stores "<count> <epoch>" and compares against the STORED epoch, not the
+# file's mtime — so ageing the window means rewriting that second field.
+age_players_state() {  # <hours>
+  local f="$FIX/profile/checks-state/players.count" c
+  c="$(awk 'NR==1{print $1}' "$f")"
+  printf '%s %s\n' "$c" "$((NOW_EPOCH - $1 * 3600))" > "$f"
+}
 pinged_success() { [ "$(tail -1 "$WORK/curl.urls" 2>/dev/null)" = "$FAKE_PING_URL" ]; }
 pinged_fail()    { [ "$(tail -1 "$WORK/curl.urls" 2>/dev/null)" = "$FAKE_PING_URL/fail" ]; }
 body() { cat "$WORK/curl.body" 2>/dev/null; }
 
 # ══════════════════════════════════════════════════════════════════════════════
-echo "=== C1: healthy box → 8 ok, success ping, exit 0 ==="
+echo "=== C1: healthy box → 10 ok, success ping, exit 0 ==="
 reset_fixture; run_checks
 [ "$RC" -eq 0 ] && ok "exit 0" || no "exit $RC (expected 0):"$'\n'"$OUT"
-grep -q 'RESULT: 8 ok, 0 failed' "$WORK/out.log" && ok "all 8 checks OK" || no "expected 8 ok / 0 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 10 ok, 0 failed' "$WORK/out.log" && ok "all 10 checks OK" || no "expected 10 ok / 0 failed:"$'\n'"$OUT"
 pinged_success && ok "success ping sent to the bare URL" || no "success ping not sent (urls: $(cat "$WORK/curl.urls" 2>/dev/null))"
 [ ! -f "$WORK/curl.body" ] && ok "success ping carries no body" || no "success ping carried a body"
 grep -q -- '--retry 3' "$WORK/curl.argv" && grep -q -- '-m 10' "$WORK/curl.argv" && ok "ping uses a timeout + retries" || no "ping lacks -m 10 / --retry 3"
@@ -210,7 +239,7 @@ echo "=== C9: weekly FAILS while the daily marker AND object are OK ('backup OK'
 reset_fixture; weekly_json 9 > "$WORK/rclone.weekly.json"; run_checks
 [ "$RC" -ne 0 ] && pinged_fail && ok "/fail ping on a weekly-only failure" || no "weekly-only failure did not page"
 body | grep -q 'weekly-backup-object' && ! body | grep -q 'daily-backup' && ok "body names ONLY the weekly check" || no "body: $(body)"
-grep -q 'RESULT: 7 ok, 1 failed' "$WORK/out.log" && ok "7 ok / 1 failed" || no "expected 7 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 9 ok, 1 failed' "$WORK/out.log" && ok "9 ok / 1 failed" || no "expected 9 ok / 1 failed:"$'\n'"$OUT"
 
 echo "=== C10: certbot log mtime 2 days → FAIL; empty log + fresh rotated .1.gz → OK (logrotate window) ==="
 reset_fixture; touch_hours_ago "$FIX/le/letsencrypt.log" 48; run_checks
@@ -248,7 +277,7 @@ echo "=== C13: no ping URL → 'ALERTING NOT CONFIGURED', exit non-zero, no curl
 reset_fixture; run_checks PROFILE_CHECKS_PING_URL=
 [ "$RC" -ne 0 ] && ok "exit non-zero without a URL even though every check passed" || no "exit 0 with no alerting"
 grep -q 'ALERTING NOT CONFIGURED' "$WORK/out.log" && ok "logged ALERTING NOT CONFIGURED" || no "no ALERTING NOT CONFIGURED line"
-grep -q 'RESULT: 8 ok, 0 failed' "$WORK/out.log" && ok "checks still ran and were logged" || no "checks did not run"
+grep -q 'RESULT: 10 ok, 0 failed' "$WORK/out.log" && ok "checks still ran and were logged" || no "checks did not run"
 [ ! -f "$WORK/curl.argv" ] && ok "curl never called" || no "curl was called without a URL"
 
 echo "=== C14: URL comes from checks.env (the on-box shape) when the env is bare ==="
@@ -271,7 +300,7 @@ echo "=== C18: junk threshold overrides → FAIL + default, never a silent OK or
 reset_fixture; write_marker "$FIX/profile/backups/last-backup.json" 0 "$(iso_hours_ago 30)"; run_checks PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS=abc
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -q "thresholds: PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS='abc' is not a non-negative integer — default 26 used" && ok "MAX_BACKUP_AGE_HOURS=abc → FAIL names the variable + default" || no "junk backup-age threshold: rc=$RC body=$(body)"
 body | grep -q 'daily-backup-marker: daily marker age 30h > 26h' && ok "…and the default 26h still catches the 30h-old marker (no silent OK)" || no "default not applied: $(body)"
-grep -q 'RESULT: 7 ok, 2 failed' "$WORK/out.log" && ok "all 8 checks still ran" || no "checks did not all run:"$'\n'"$OUT"
+grep -q 'RESULT: 9 ok, 2 failed' "$WORK/out.log" && ok "all 10 checks still ran" || no "checks did not all run:"$'\n'"$OUT"
 reset_fixture; run_checks PROFILE_CHECKS_CERT_MIN_DAYS=1x
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -q "thresholds: PROFILE_CHECKS_CERT_MIN_DAYS='1x'" && ok "CERT_MIN_DAYS=1x → reaches the /fail ping (no set -u abort)" || no "junk cert threshold aborted before the ping: rc=$RC urls=$(cat "$WORK/curl.urls" 2>/dev/null)"
 grep -q 'openssl x509 -checkend 1728000 -noout -in' "$WORK/openssl.argv" && ok "…and check 6 ran with the default 20d" || no "check 6 did not run with the default: $(cat "$WORK/openssl.argv" 2>/dev/null)"
@@ -285,9 +314,96 @@ reset_fixture; : > "$FIX/reboot-required"; run_checks
 [ "$RC" -ne 0 ] && pinged_fail && ok "pending reboot → /fail ping, exit non-zero" || no "pending reboot did not page (rc=$RC)"
 body | grep -q 'reboot-required: reboot required' && ok "body names the pending reboot" || no "body lacks the reboot line: $(body)"
 body | grep -q 'reboot-required' && ! body | grep -q 'daily-backup' && ok "body names ONLY the reboot check (everything else still OK)" || no "body: $(body)"
-grep -q 'RESULT: 7 ok, 1 failed' "$WORK/out.log" && ok "7 ok / 1 failed" || no "expected 7 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 9 ok, 1 failed' "$WORK/out.log" && ok "9 ok / 1 failed" || no "expected 9 ok / 1 failed:"$'\n'"$OUT"
 reset_fixture; run_checks
 grep -q 'reboot-required: no pending reboot' "$WORK/out.log" && [ "$RC" -eq 0 ] && ok "no marker file → OK" || no "absent marker wrongly failed (rc=$RC)"
+
+echo "=== C20: disk usage (task 0274, check 9) — the backstop for 'the box filled up' ==="
+# The telemetry box has frozen on a full disk before; this box's runway is ~12–16 days
+# and nothing watched it. The threshold is a > comparison: exactly at the limit is OK.
+reset_fixture; echo 85 > "$WORK/disk.pct"; run_checks
+[ "$RC" -ne 0 ] && body | grep -q 'disk-usage: / is 85% full (> 80%)' && ok "85% → FAIL naming the path and both numbers" || no "85% disk not reported: $(body)"
+reset_fixture; echo 79 > "$WORK/disk.pct"; run_checks
+[ "$RC" -eq 0 ] && grep -q 'disk-usage: / is 79% full' "$WORK/out.log" && ok "79% → OK" || no "79% disk wrongly failed (rc=$RC):"$'\n'"$OUT"
+reset_fixture; echo 80 > "$WORK/disk.pct"; run_checks
+[ "$RC" -eq 0 ] && ok "exactly at the threshold (80%) is OK — the comparison is >, not >=" || no "80% failed; the boundary moved (rc=$RC)"
+reset_fixture; echo 85 > "$WORK/disk.pct"; run_checks PROFILE_CHECKS_DISK_MAX_PCT=90
+[ "$RC" -eq 0 ] && ok "threshold env-overridable (85% ≤ 90% → OK)" || no "disk threshold override ignored (rc=$RC)"
+reset_fixture; echo 85 > "$WORK/disk.pct"; run_checks PROFILE_CHECKS_DISK_MAX_PCT=abc
+[ "$RC" -ne 0 ] && body | grep -q "thresholds: PROFILE_CHECKS_DISK_MAX_PCT='abc' is not a non-negative integer — default 80 used" \
+  && body | grep -q 'disk-usage: / is 85% full (> 80%)' && ok "junk threshold → FAIL + the default 80 still catches 85% (no silent OK)" \
+  || no "junk disk threshold: rc=$RC body=$(body)"
+reset_fixture; : > "$WORK/df.fail"; run_checks
+[ "$RC" -ne 0 ] && body | grep -q 'disk-usage: could not read disk usage' && ok "df failure → FAIL, never a silent OK" || no "df failure swallowed: $(body)"
+reset_fixture; echo 91 > "$WORK/disk.pct"; run_checks PROFILE_CHECKS_DISK_PATHS="/ /var/lib/docker"
+[ "$RC" -ne 0 ] && body | grep -q '/var/lib/docker is 91% full' && ok "every path in PROFILE_CHECKS_DISK_PATHS is checked" || no "second path not checked: $(body)"
+
+echo "=== C21: players growth (task 0274, check 10) — the switch's trigger, on the box ==="
+# A1 pages from Uptrace; this is the backstop for the day Uptrace itself is down. It
+# compares against the PREVIOUS run's count, scaled to 24 h, so a 48-hour gap after a
+# missed cron does not read as double the growth.
+reset_fixture; run_checks
+[ "$RC" -eq 0 ] && grep -q 'players-growth: baseline recorded (1000 players)' "$WORK/out.log" \
+  && ok "first run records a baseline and is OK (nothing to compare against)" || no "first run not a baseline (rc=$RC):"$'\n'"$OUT"
+[ -f "$FIX/profile/checks-state/players.count" ] && ok "baseline persisted in the state dir" || no "no players.count state file"
+# Second run, same fixture (state survives): a huge jump must page.
+echo 26000 > "$WORK/players.sql.out"
+# Age the stored window so it is a real 24 h, not the few seconds since the last run.
+age_players_state 24
+run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q 'players-growth: 25000 new players' && ok "+25000 in 24h → FAIL naming the count" || no "growth not reported: $(body)"
+body | grep -q '20000' && ok "…and names the threshold it crossed" || no "body does not name the threshold: $(body)"
+reset_fixture; run_checks
+echo 6000 > "$WORK/players.sql.out"; age_players_state 24; run_checks
+[ "$RC" -eq 0 ] && grep -q 'players-growth: 5000 new players' "$WORK/out.log" && ok "+5000 in 24h → OK" || no "+5000 wrongly failed (rc=$RC)"
+reset_fixture; run_checks
+echo 700 > "$WORK/players.sql.out"; age_players_state 24; run_checks
+[ "$RC" -eq 0 ] && grep -q 'players-growth' "$WORK/out.log" && grep -q 'went down' "$WORK/out.log" \
+  && ok "a count that went DOWN is OK (the cleanup runbook ran)" || no "a shrinking count failed (rc=$RC):"$'\n'"$OUT"
+# Scaling: +25000 over 48 h is +12500/24h — under the threshold, so NOT a page.
+reset_fixture; run_checks
+echo 26000 > "$WORK/players.sql.out"; age_players_state 48; run_checks
+[ "$RC" -eq 0 ] && ok "+25000 over 48h scales to 12500/24h → OK (a missed cron is not a false page)" || no "48h gap not scaled (rc=$RC):"$'\n'"$OUT"
+# ~12500, not exactly: the script's own clock is a second or two past the harness's, and the
+# scaling is integer division. The point asserted is that the rate is HALVED, not the digit.
+grep -qE '= 12[45][0-9][0-9]/24h' "$WORK/out.log" && ok "…and the log shows the scaled rate (~12500/24h, not 25000)" || no "scaled rate not shown: $OUT"
+reset_fixture; run_checks
+echo 15000 > "$WORK/players.sql.out"; age_players_state 6; run_checks
+[ "$RC" -ne 0 ] && body | grep -q 'players-growth' && ok "+14000 over 6h scales to 56000/24h → FAIL (a short window still pages)" || no "short window not scaled up: rc=$RC $(body)"
+# Review R4: a state file whose epoch is in the FUTURE (clock stepped back, an NTP
+# correction after a wrong-clock first run, a restored state file) must not make the
+# check report ok forever while never advancing the baseline again.
+reset_fixture; run_checks
+age_players_state -5   # prev_epoch 5 hours in the FUTURE
+echo 99000 > "$WORK/players.sql.out"; run_checks
+[ "$RC" -ne 0 ] && body | grep -q 'players-growth: the stored baseline is in the future' \
+  && ok "a future baseline → FAIL naming it (never a silent ok)" || no "future baseline not reported: rc=$RC $(body)"
+# ...and it self-heals: the baseline is rewritten, so the NEXT run works normally.
+prev_epoch_after="$(awk 'NR==1{print $2}' "$FIX/profile/checks-state/players.count")"
+# Compared against a FRESH now: the script's clock is a few seconds past the
+# harness's NOW_EPOCH, so that constant would make this assertion flaky.
+now_fresh="$(date -u +%s)"
+[ -n "$prev_epoch_after" ] && [ "$prev_epoch_after" -le "$now_fresh" ] \
+  && ok "…and the baseline is reset to now, so the stall cannot persist" || no "baseline not reset: '$prev_epoch_after' vs now '$now_fresh'"
+age_players_state 24; echo 99500 > "$WORK/players.sql.out"; run_checks
+[ "$RC" -eq 0 ] && grep -q 'players-growth: 500 new players' "$WORK/out.log" \
+  && ok "the run after a future baseline evaluates growth normally again" || no "did not recover (rc=$RC):"$'\n'"$OUT"
+
+reset_fixture; : > "$WORK/docker.fail"; run_checks
+[ "$RC" -ne 0 ] && body | grep -q 'players-growth: could not count players' && ok "a psql/docker failure → FAIL, never a silent OK" || no "count failure swallowed: $(body)"
+reset_fixture; echo "not a number" > "$WORK/players.sql.out"; run_checks
+[ "$RC" -ne 0 ] && body | grep -q 'players-growth: could not count players' && ok "non-numeric psql output → FAIL" || no "non-numeric count accepted: $(body)"
+# backup.env also carries POSTGRES_* and is sourced with `set -a`, so "missing" means
+# missing from BOTH the env and every sourced file — the shape a box gets if checks.env
+# was written before task 0274 and off-box backups are not configured either.
+reset_fixture; rm "$FIX/profile/backup.env"; run_checks POSTGRES_USER= POSTGRES_DB=
+[ "$RC" -ne 0 ] && body | grep -q 'players-growth: could not count players: POSTGRES_USER/POSTGRES_DB are not set' \
+  && ok "missing POSTGRES_USER/DB → FAIL naming them (they cannot be guessed)" || no "missing POSTGRES_* not reported: $(body)"
+reset_fixture; run_checks
+grep -q 'docker compose' "$WORK/docker.argv" && grep -q 'select count(\*) from players' "$WORK/docker.argv" \
+  && ok "counts through the compose postgres service, not a host psql" || no "unexpected docker argv: $(cat "$WORK/docker.argv" 2>/dev/null)"
+reset_fixture; echo 26000 > "$WORK/players.sql.out"; run_checks
+grep -q 'players-growth' "$WORK/out.log" && ! body 2>/dev/null | grep -q 'yandex' && ok "the growth check reports counts only — no ids" || no "an id reached the growth output"
 
 echo "=== C17: secret-leak guard across EVERY run above ==="
 # Log and ping bodies must never carry the access key, secret, bucket, endpoint host or ping URL.

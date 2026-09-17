@@ -12,9 +12,8 @@
 // pending request" than for "too short". So it reads the error code rather than
 // collapsing every non-200 to null.
 
-import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import type { UsernameRuleViolation } from "../core/validations/usernameRules";
-import { FlashistFacade } from "./flashist/FlashistFacade";
+import { profileFetch } from "./ProfileSession";
 
 const NAME_CHANGE_FETCH_TIMEOUT_MS = 10_000;
 
@@ -37,48 +36,27 @@ export type NameChangeCancelResult =
   | { status: "not_citizen" }
   | { status: "error" };
 
-async function resolveApiBase(): Promise<string | null> {
-  let base: string;
-  try {
-    base = (await getServerConfigFromClient())
-      .profileApiUrl()
-      .replace(/\/+$/, "");
-  } catch {
-    return null;
-  }
-  return base.length > 0 ? base : null;
-}
-
-/** POST returning {ok, body} — or null when the call could not be made at all. */
+/**
+ * POST under the login session's Bearer token (task 0273, S4) returning
+ * {ok, body} — or null when the call could not be made at all (unconfigured API,
+ * no session, transport failure).
+ */
 async function postJson(
   path: string,
   body: unknown,
 ): Promise<{ ok: boolean; json: unknown } | null> {
-  const base = await resolveApiBase();
-  if (base === null) {
+  const result = await profileFetch(path, {
+    method: "POST",
+    body: JSON.stringify(body),
+    timeoutMs: NAME_CHANGE_FETCH_TIMEOUT_MS,
+  });
+  if (result.kind !== "response") {
     return null;
   }
-  const controller = new AbortController();
-  const timer = setTimeout(
-    () => controller.abort(),
-    NAME_CHANGE_FETCH_TIMEOUT_MS,
-  );
-  try {
-    const response = await fetch(`${base}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    // A body is expected on both arms (the error code is the point). A
-    // non-JSON body degrades to `null` json, which maps to a generic error.
-    const json = await response.json().catch(() => null);
-    return { ok: response.ok, json };
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
+  // A body is expected on both arms (the error code is the point). A
+  // non-JSON body degrades to `null` json, which maps to a generic error.
+  const json: unknown = await result.response.json().catch(() => null);
+  return { ok: result.response.ok, json };
 }
 
 /** Read the server's `{ error: "…" }` discriminator, or null if absent. */
@@ -108,19 +86,13 @@ function toViolation(json: unknown): UsernameRuleViolation {
 }
 
 /**
- * Submit a name-change request for the CURRENT Yandex player. Resolves the
- * player id itself (the runCitizenshipPurchase precedent) — the card never
- * handles it.
+ * Submit a name-change request for the CURRENT player. The caller is the login
+ * session (task 0273, S4) — no id is sent and the card never handles one.
  */
 export async function submitNameChangeRequest(
   requestedName: string,
 ): Promise<NameChangeSubmitResult> {
-  const yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
-  if (yandexPlayerId === null) {
-    return { status: "error" };
-  }
   const response = await postJson("/v1/profile/name-change-request", {
-    yandexPlayerId,
     requestedName,
   });
   if (response === null) {
@@ -149,13 +121,7 @@ export async function submitNameChangeRequest(
  * documented in NameChangeContract.
  */
 export async function cancelNameChangeRequest(): Promise<NameChangeCancelResult> {
-  const yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
-  if (yandexPlayerId === null) {
-    return { status: "error" };
-  }
-  const response = await postJson("/v1/profile/name-change-cancel", {
-    yandexPlayerId,
-  });
+  const response = await postJson("/v1/profile/name-change-cancel", {});
   if (response === null) {
     return { status: "error" };
   }

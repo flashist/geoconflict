@@ -22,6 +22,11 @@
 #   DATABASE_URL               — API connection string (default built from POSTGRES_*,
 #                                @127.0.0.1:5432 — see the stack-write section)
 #   PROFILE_INTERNAL_TOKEN     — service token (reused/persisted/auto-generated)
+#   PROFILE_SESSION_SECRET     — login session HMAC key (task 0271). Blank = reuse the key
+#                                persisted on the box, or GENERATE one on the first deploy
+#                                (owner ruling D7). A supplied value rotates it: every live
+#                                session gets 401 and the client silently logs in again.
+#                                Not shared with the game server.
 #   YANDEX_PAYMENTS_SECRET     — Yandex per-game payments HMAC secret; empty/unset =
 #                                payments endpoints disabled (fail-closed 503, task 0019).
 #                                Persisted on the box; blank on a redeploy = reuse the
@@ -43,6 +48,22 @@
 #                                IP; a hostname is getent-resolved for the gate)
 #   PROFILE_CHECKS_PING_URL    — dead-man's-switch ping URL for the daily operability checks
 #                                (task 0219); empty = checks run + log, nobody is paged (warns)
+#   OTEL_EXPORTER_OTLP_ENDPOINT — base URL of the telemetry box's OTLP ingest (task 0274).
+#                                The profile API exports metrics to <endpoint>/v1/metrics every
+#                                15 s. The ONLY telemetry value this box holds (owner ruling
+#                                D4): the ingest path is anonymous — the collector adds the
+#                                project DSN — so NO DSN, project token or auth header belongs
+#                                here. Persisted on the box; blank on a redeploy = reuse the
+#                                persisted value (0220). Empty = NO metrics, so NO alert can
+#                                ever fire (the value report says so).
+#   PROFILE_LOGIN_CREATE_ENABLED — 'false' pauses creating players at POST /v1/login; an
+#                                existing player still logs in, a new platform id gets 503
+#                                creation_paused (task 0274). Blank/unset/anything else =
+#                                ENABLED (owner ruling D3 — fail OPEN, so a typo can never be
+#                                a silent outage). Persisted on the box, so a redeploy during
+#                                an incident does not quietly resume creating players.
+#                                ⚠️ `docker compose restart` does NOT re-read env_file —
+#                                flipping it needs `up -d --force-recreate`.
 #
 # What this script does:
 #   1. Ensures a swapfile exists (low-RAM VPS OOM cushion)
@@ -657,11 +678,26 @@ fi
 # under set -e) — it must never fall through to an empty value behind a "Reusing" line.
 # POSTGRES_PASSWORD is deliberately NOT here: it is required and fails closed above (the
 # stronger behaviour) — do not "fix" it into this pattern.
-# $1 variable name   $2 persist file (root-only, 0600)
+# GENERATE MODE (task 0271, owner ruling D7) — the optional 3rd argument `generate` replaces the
+# "neither" branch: mint `openssl rand -hex 32`, persist it 0600, set the variable, and say so by
+# name. Only for a secret nothing OUTSIDE this box needs to know (PROFILE_SESSION_SECRET). Never
+# for the four optional secrets above: a minted value would turn their feature "on" with a key no
+# one else holds (the harness asserts this). The other branches are unchanged, so a redeploy
+# REUSES the minted key and a supplied value rotates it — but in generate mode a SUPPLIED value
+# shorter than 32 characters (the server's minimum, src/profile-server/SessionToken.ts) is refused
+# BEFORE anything is written and the deploy aborts (review 0271 R2): persisting it would replace a
+# working key with one the server treats as unset. Neither the value nor its length is printed.
+# $1 variable name   $2 persist file (root-only, 0600)   $3 optional: generate
 persist_or_reuse_secret() {
-    local name="$1" file="$2" value
+    local name="$1" file="$2" mode="${3:-}" value
     value="${!name:-}"
     if [ -n "$value" ]; then
+        if [ "$mode" = "generate" ] && [ "${#value}" -lt 32 ]; then
+            echo "Error: $name: the supplied value is shorter than the 32-character minimum. Refusing to"
+            echo "persist it — the key already on the box (if any) is kept unchanged. Supply a longer value,"
+            echo "or leave it blank to reuse the persisted key. Aborting (fail closed)."
+            exit 1
+        fi
         ( umask 077; printf '%s' "$value" > "$file" )
         chmod 600 "$file"
         echo "Using $name from environment (persisted to $file)"
@@ -673,6 +709,15 @@ persist_or_reuse_secret() {
         }
         printf -v "$name" '%s' "$value"
         echo "⚠️  Reusing persisted $name from $file — the deploy supplied no value"
+    elif [ "$mode" = "generate" ]; then
+        value=$(openssl rand -hex 32) && [ -n "$value" ] || {
+            echo "Error: $name: could not generate a value (openssl rand failed). Aborting (fail closed)."
+            exit 1
+        }
+        ( umask 077; printf '%s' "$value" > "$file" )
+        chmod 600 "$file"
+        printf -v "$name" '%s' "$value"
+        echo "Generated and persisted $name to $file"
     else
         echo "$name: not supplied and nothing persisted — written EMPTY (feature stays off)"
     fi
@@ -682,6 +727,30 @@ persist_or_reuse_secret YANDEX_PAYMENTS_SECRET    "$PROFILE_DIR/.yandex_payments
 persist_or_reuse_secret FEEDBACK_TELEGRAM_TOKEN   "$PROFILE_DIR/.feedback_telegram_token"
 persist_or_reuse_secret FEEDBACK_TELEGRAM_CHAT_ID "$PROFILE_DIR/.feedback_telegram_chat_id"
 persist_or_reuse_secret TELEGRAM_PROXY_URL        "$PROFILE_DIR/.telegram_proxy_url"
+# Login session HMAC key (task 0271): box-owned, so it is GENERATED when neither supplied nor
+# persisted — an empty key would 503 every login. Persist-or-reuse keeps sessions alive across
+# redeploys; rotating is deliberate (supply a new value, or rm the file and redeploy).
+persist_or_reuse_secret PROFILE_SESSION_SECRET    "$PROFILE_DIR/.session_secret" generate
+# Monitoring + the creation switch (task 0274). NEITHER is a secret — but both get the SAME
+# persist-or-reuse treatment, and for the same reason 0195/0220 exists: a deploy from a machine
+# that does not carry the value must not silently change the box's behaviour. For the endpoint
+# that would mean turning metrics (and therefore every alert) off; for the switch it would mean
+# a redeploy mid-incident quietly resuming player creation. Never `generate` mode: an endpoint
+# and a boolean cannot be minted. To clear either, rm its persist file on the box and redeploy.
+persist_or_reuse_secret OTEL_EXPORTER_OTLP_ENDPOINT  "$PROFILE_DIR/.otel_endpoint"
+persist_or_reuse_secret PROFILE_LOGIN_CREATE_ENABLED "$PROFILE_DIR/.login_create_enabled"
+# Forum topic routing + the alert webhook secret (task 0277). Same persist-or-reuse
+# treatment, same 0195/0220 reason: a deploy from a machine that does not carry the
+# value must not silently change the box's behaviour — here that would mean alerts
+# and operator notifications quietly moving back to the General topic.
+# 🚨 NEVER `generate` for ANY of the three. A topic id is a property of a chat that
+# already exists and cannot be minted. And a box-minted PROFILE_ALERT_WEBHOOK_TOKEN
+# is the PROFILE_INTERNAL_TOKEN trap (0182) exactly: a secret only this box knows is
+# a secret the alert sender does not, so every alert is dropped — silently, forever.
+# To clear any of them, rm its persist file on the box and redeploy.
+persist_or_reuse_secret TELEGRAM_TOPIC_ALERTS        "$PROFILE_DIR/.telegram_topic_alerts"
+persist_or_reuse_secret TELEGRAM_TOPIC_NAME_CHANGES  "$PROFILE_DIR/.telegram_topic_name_changes"
+persist_or_reuse_secret PROFILE_ALERT_WEBHOOK_TOKEN  "$PROFILE_DIR/.alert_webhook_token"
 
 # The profile API container reaches Postgres by the compose SERVICE NAME over the
 # shared compose network: `postgres:5432`. NOT 127.0.0.1 — inside the API container
@@ -709,6 +778,12 @@ YANDEX_PAYMENTS_SECRET=${YANDEX_PAYMENTS_SECRET:-}
 FEEDBACK_TELEGRAM_TOKEN=${FEEDBACK_TELEGRAM_TOKEN:-}
 FEEDBACK_TELEGRAM_CHAT_ID=${FEEDBACK_TELEGRAM_CHAT_ID:-}
 TELEGRAM_PROXY_URL=${TELEGRAM_PROXY_URL:-}
+PROFILE_SESSION_SECRET=${PROFILE_SESSION_SECRET:-}
+OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+PROFILE_LOGIN_CREATE_ENABLED=${PROFILE_LOGIN_CREATE_ENABLED:-}
+TELEGRAM_TOPIC_ALERTS=${TELEGRAM_TOPIC_ALERTS:-}
+TELEGRAM_TOPIC_NAME_CHANGES=${TELEGRAM_TOPIC_NAME_CHANGES:-}
+PROFILE_ALERT_WEBHOOK_TOKEN=${PROFILE_ALERT_WEBHOOK_TOKEN:-}
 EOF
 )
 chmod 600 "$PROFILE_DIR/profile.env"
@@ -765,6 +840,24 @@ report_config_values() {
     else
         echo "  OPTIONAL TELEGRAM_PROXY_URL — empty, and notifications are off anyway"; n_opt=$((n_opt+1))
     fi
+    # PROFILE_ALERT_WEBHOOK_TOKEN (task 0277, review R8) — reported here rather than left to
+    # persist_or_reuse_secret's generic "feature stays off" line, because for THIS variable
+    # "off" means every alert is silently dropped. That is the one state an operator must not
+    # scroll past during a deploy. Prints presence only, never the value or its length.
+    if [ -n "${PROFILE_ALERT_WEBHOOK_TOKEN:-}" ]; then
+        echo "  OK       PROFILE_ALERT_WEBHOOK_TOKEN"; n_ok=$((n_ok+1))
+    else
+        echo "  FINDING  PROFILE_ALERT_WEBHOOK_TOKEN — empty: the alert webhook relays NOTHING, so monitoring alerts are dropped silently. It must match the value pasted into the sender's webhook payload template (src/profile-server/Server.ts)"; n_find=$((n_find+1))
+    fi
+    # TELEGRAM_TOPIC_* (task 0277) — blank is SUPPORTED and means the General topic, which is
+    # the pre-0277 behaviour. Reported as optional so a blank one is never read as a defect.
+    for topic_var in TELEGRAM_TOPIC_ALERTS TELEGRAM_TOPIC_NAME_CHANGES; do
+        if [ -n "${!topic_var:-}" ]; then
+            echo "  OK       $topic_var"; n_ok=$((n_ok+1))
+        else
+            echo "  OPTIONAL $topic_var — empty: those messages land in the group's General topic (pre-0277 behaviour), not lost"; n_opt=$((n_opt+1))
+        fi
+    done
     # YANDEX_PAYMENTS_SECRET — non-empty, or explicitly optional.
     if [ -n "${YANDEX_PAYMENTS_SECRET:-}" ]; then
         echo "  OK       YANDEX_PAYMENTS_SECRET"; n_ok=$((n_ok+1))
@@ -780,6 +873,16 @@ report_config_values() {
         echo "  OK       PROFILE_INTERNAL_TOKEN (source: environment)"; n_ok=$((n_ok+1))
     else
         echo "  FINDING  PROFILE_INTERNAL_TOKEN — source: ${PROFILE_INTERNAL_TOKEN_SOURCE:-unknown}, not the environment: the box-held token must equal the game server's or every credit call 401s and XP is dropped (0215)"; n_find=$((n_find+1))
+    fi
+    # PROFILE_SESSION_SECRET (0271) — at least 32 characters, or the server treats it as unset and
+    # answers 503 on POST /v1/login and every Bearer request. Empty should be impossible here
+    # (generate mode above). Checks the length only; prints neither the value nor its length.
+    if [ -z "${PROFILE_SESSION_SECRET:-}" ]; then
+        echo "  FINDING  PROFILE_SESSION_SECRET — empty: login + Bearer sessions answer 503 (should be impossible after generate)"; n_find=$((n_find+1))
+    elif [ "${#PROFILE_SESSION_SECRET}" -lt 32 ]; then
+        echo "  FINDING  PROFILE_SESSION_SECRET — shorter than the 32-character minimum: the server treats it as unset, so login + Bearer sessions answer 503 (src/profile-server/SessionToken.ts)"; n_find=$((n_find+1))
+    else
+        echo "  OK       PROFILE_SESSION_SECRET"; n_ok=$((n_ok+1))
     fi
     # PROFILE_CHECKS_PING_URL — https + hostname when set; empty is supported but nobody is paged.
     if [ -n "${PROFILE_CHECKS_PING_URL:-}" ]; then
@@ -807,6 +910,34 @@ report_config_values() {
     else
         echo "  OPTIONAL PROFILE_BACKUP_S3_ENDPOINT — empty: off-box backup not configured (all PROFILE_BACKUP_* must be set to enable it)"; n_opt=$((n_opt+1))
     fi
+    # OTEL_EXPORTER_OTLP_ENDPOINT (0274) — https + hostname when set. http would put the box's
+    # metrics on the wire in clear from a Russian VPS, and an IP literal is the 0063 class. An
+    # empty value is SUPPORTED but never silent: no metrics means no alert can ever fire, which
+    # is the exact "signal nobody reads" state this epic exists to end.
+    if [ -n "${OTEL_EXPORTER_OTLP_ENDPOINT:-}" ]; then
+        host="${OTEL_EXPORTER_OTLP_ENDPOINT#*://}"; host="${host%%/*}"; host="${host##*@}"; host="${host%%:*}"
+        if ! [[ "$OTEL_EXPORTER_OTLP_ENDPOINT" =~ $https_re ]]; then
+            echo "  FINDING  OTEL_EXPORTER_OTLP_ENDPOINT — must be an https:// URL (metrics would travel in clear)"; n_find=$((n_find+1))
+        elif [[ "$host" =~ $ipv4_re ]] || [[ "$host" == \[* ]]; then
+            echo "  FINDING  OTEL_EXPORTER_OTLP_ENDPOINT — host must be a hostname, not an IP literal (the 0063 class)"; n_find=$((n_find+1))
+        else
+            echo "  OK       OTEL_EXPORTER_OTLP_ENDPOINT"; n_ok=$((n_ok+1))
+        fi
+    else
+        echo "  OPTIONAL OTEL_EXPORTER_OTLP_ENDPOINT — empty: the profile API exports NO metrics, so no alert can fire (task 0274)"; n_opt=$((n_opt+1))
+    fi
+    # PROFILE_LOGIN_CREATE_ENABLED (0274, owner ruling D3) — the login-creation switch. Its
+    # state is printed on EVERY deploy: a paused box that nobody remembers pausing looks
+    # exactly like a broken box. An unrecognised value is a FINDING because the server leaves
+    # creation ENABLED (fail open) — i.e. the operator's intent was NOT applied.
+    case "$(printf '%s' "${PROFILE_LOGIN_CREATE_ENABLED:-}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')" in
+        '' | true)
+            echo "  OK       PROFILE_LOGIN_CREATE_ENABLED — login creation ENABLED (normal)"; n_ok=$((n_ok+1)) ;;
+        false)
+            echo "  PAUSED   PROFILE_LOGIN_CREATE_ENABLED — login creation is PAUSED: existing players still log in, a NEW platform id gets 503 creation_paused. Set it to 'true' (or rm ${PROFILE_DIR:-/opt/profile}/.login_create_enabled) and redeploy to resume."; n_ok=$((n_ok+1)) ;;
+        *)
+            echo "  FINDING  PROFILE_LOGIN_CREATE_ENABLED — not 'true' or 'false': the server leaves login creation ENABLED (src/profile-server/LoginCreationSwitch.ts). If you meant to pause, the pause did NOT happen."; n_find=$((n_find+1)) ;;
+    esac
     # DATABASE_URL / POSTGRES_* are not checked: non-empty is already fail-closed above, and
     # any other check would have to touch the value.
     echo "Value parity: $n_find finding(s), $n_opt optional, $n_ok ok — report-only, deploy continues."
@@ -814,6 +945,38 @@ report_config_values() {
 }
 print_header "CONFIG VALUE PARITY (report-only)"
 report_config_values
+
+# ── OTLP ingest reachability probe (task 0274) — REPORT-ONLY ──────────────────
+# The one repeatable proof that this box can actually reach the telemetry box. A
+# correct endpoint that is firewalled, DNS-broken or behind a dead nginx looks
+# exactly like a correct endpoint in the value report above; the OTEL SDK's own
+# export failures are silent by design. Any HTTP status counts as reachable — even a
+# 4xx means something answered, which is what is being tested. Never fails a deploy.
+#
+# ⛔ The endpoint is a HOST: the probe prints a verdict and a status code only, never
+# the URL, and curl's stderr is discarded because its error text can carry the URL.
+if [ -n "${OTEL_EXPORTER_OTLP_ENDPOINT:-}" ] && command -v curl >/dev/null 2>&1; then
+    # ALL trailing slashes, not one: this must build the SAME URL as
+    # metricsExportUrl() in src/profile-server/Telemetry.ts (`/\/+$/`). With `%/`
+    # (one slash) an endpoint ending in "//" made the probe test a different URL than
+    # the app uses — and proving the app's path is the probe's only job (review R8).
+    otlp_probe_base="${OTEL_EXPORTER_OTLP_ENDPOINT}"
+    while [ "${otlp_probe_base%/}" != "$otlp_probe_base" ]; do otlp_probe_base="${otlp_probe_base%/}"; done
+    otlp_probe_url="${otlp_probe_base}/v1/metrics"
+    otlp_probe_code="$(curl -sS -m 5 -o /dev/null -w '%{http_code}' -X POST \
+        -H 'Content-Type: application/json' --data '{}' "$otlp_probe_url" 2>/dev/null || true)"
+    if [ -n "$otlp_probe_code" ] && [ "$otlp_probe_code" != "000" ]; then
+        echo "  OTLP ingest reachable (HTTP $otlp_probe_code) — metrics have a path off this box"
+    else
+        echo "  OTLP ingest UNREACHABLE — the profile API will export nothing, so NO alert can fire."
+        echo "  Check the telemetry box, DNS and the firewall. (The URL is not printed: it is a host.)"
+    fi
+    unset otlp_probe_base otlp_probe_url otlp_probe_code
+elif [ -n "${OTEL_EXPORTER_OTLP_ENDPOINT:-}" ]; then
+    echo "  OTLP ingest probe skipped: curl is not installed on this box"
+else
+    echo "  OTLP ingest probe skipped: OTEL_EXPORTER_OTLP_ENDPOINT is empty (no metrics, no alerts)"
+fi
 
 cat > "$PROFILE_DIR/docker-compose.yml" << EOF
 services:
@@ -1006,11 +1169,12 @@ docker compose ps
 # runner reads DATABASE_URL from the container's env_file. Runs every deploy;
 # already-applied migrations are skipped via the schema_migrations table. Fail LOUD:
 # a migration error aborts the deploy BEFORE nginx/systemd, so a half-migrated schema
-# never goes live. Idempotent, so a re-run after a fix is safe.
+# never goes live. A failed file is rolled back and applied files are skipped, but a
+# re-run is NOT automatically safe: 006's guard refuses once an old table holds a row.
 print_header "APPLYING DB MIGRATIONS"
 if ! docker compose exec -T profile-api npm run migrate; then
     echo "❌ DB migration failed. The stack is healthy but the schema is NOT up to date."
-    echo "   Fix the migration and re-run (migrations are idempotent). Aborting before nginx/systemd."
+    echo "   Read the error before re-running: some migrations (e.g. 006) refuse to run against existing data and need a re-plan, not a retry. Aborting before nginx/systemd."
     exit 1
 fi
 echo "✅ DB migrations applied."
@@ -1161,7 +1325,15 @@ server {
     # Service-to-service endpoints (T5 adds POST /internal/v1/credit). IP-allowlisted
     # to the game-server VPS now as a firewall hook; dormant until then — disallowed
     # IPs get 403 (deny all), allowed IPs get 502 (no upstream yet).
-    location /internal/ {
+    #
+    # Task 0276: a case-INSENSITIVE regex location (~*), not a prefix one. nginx
+    # prefix matching is case-SENSITIVE, so "location /internal/" let
+    # POST /INTERNAL/v1/credit miss this block entirely, fall through to the
+    # catch-all "location /" below, and reach the app past the allowlist. The app
+    # half of the pair is "case sensitive routing" in src/profile-server/Routes.ts:
+    # nginx 403s every variant it normalizes, the app 404s anything that slips past.
+    # ⚠️ proxy_pass in a REGEX location may carry NO URI part — keep it bare.
+    location ~* ^/internal/ {
 ${ALLOW_DIRECTIVES}        deny all;
         proxy_pass http://127.0.0.1:${PROFILE_PORT};
         proxy_set_header Host \$host;
@@ -1430,6 +1602,10 @@ fi
   {
     printf 'PROFILE_CHECKS_PING_URL=%q\n' "$PROFILE_CHECKS_PING_URL"
     printf 'PROFILE_DOMAIN=%q\n'          "$PROFILE_DOMAIN"
+    # Task 0274: the players-growth check counts rows through the postgres container.
+    # Not secrets (backup.env already carries both) — but the checker cannot guess them.
+    printf 'POSTGRES_USER=%q\n'           "$POSTGRES_USER"
+    printf 'POSTGRES_DB=%q\n'             "$POSTGRES_DB"
   } > "$PROFILE_DIR/checks.env"
 )
 chmod 600 "$PROFILE_DIR/checks.env"
@@ -1538,7 +1714,26 @@ else
     echo "at this box) and re-run to configure HTTPS."
 fi
 echo ""
-echo "/internal/ nginx allowlist laid down (dormant): allow ${PROFILE_INTERNAL_ALLOW_IPS:-<none>} + deny all."
+echo "/internal/ nginx allowlist laid down (dormant, case-insensitive ~* since 0276): allow ${PROFILE_INTERNAL_ALLOW_IPS:-<none>} + deny all."
+# ⚠️ Guarded on the RENDERED directives, not on the raw variable (review R4). nginx
+# emits a bare `deny all` whenever the loop above yields ZERO allow lines — a strictly
+# wider condition than "the variable is empty": a whitespace-only or comma-only value
+# is non-empty and still renders nothing. Guarding the variable left exactly that case
+# silent, which is the case an operator is most likely to create by hand.
+#
+# ⚠️ PROFILE_DOMAIN is part of the condition (review R11, the tail of R4's own fix).
+# ALLOW_DIRECTIVES is rendered INSIDE the HTTPS branch above, so with no domain it is
+# simply unset — and warning then would be spurious AND factually wrong: with nginx
+# skipped there is no /internal/ location at all, so nothing is answering 403.
+if [ -n "${PROFILE_DOMAIN:-}" ] && [ -z "${ALLOW_DIRECTIVES:-}" ]; then
+    # 🚨 Task 0277. Zero allow directives renders a bare `deny all`, so /internal/ answers 403
+    # to EVERYONE — including the alert webhook. A 403 makes the alert sender mark its
+    # channel permanently disabled, after which every later alert is dropped at source,
+    # silently, with no retry. That is worse than the outage it would be reporting.
+    echo "🚨 WARNING: PROFILE_INTERNAL_ALLOW_IPS is EMPTY — /internal/ is 'deny all', so EVERY"
+    echo "   internal call (crediting AND the alert webhook) gets 403. A 403 makes the alert"
+    echo "   sender DISABLE its channel permanently and silently. Set it and redeploy."
+fi
 echo "Postgres: reachable on 127.0.0.1:5432 on the box only (never public)."
 echo "Lifecycle: systemd unit 'profile' enabled (auto-start on reboot); backup +"
 echo "maintenance cron active in /etc/cron.d/profile-backups (mode: $BACKUP_MODE)."

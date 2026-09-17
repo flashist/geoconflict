@@ -123,13 +123,20 @@ Design: [`2026-09-15-profile-identity-design.md`](../../../knowledge-base/report
 
 ## Child slices
 
+> ⚠️ **This table is hand-maintained and NOTHING CHECKS IT.** `dashboard.sh` reads sprint plans and the
+> backlog board; it does **not** read epic slice tables, so a stale Status cell here sits behind a
+> **0-drift** result indefinitely. It happened: on 2026-09-17 S3/S4/S5 still read `🔲 Backlog` while all
+> three briefs read `🚧 Blocked — … DEPLOYED 2026-09-17`, and the boards reported clean throughout.
+> **The brief is the source of truth — when a slice's status changes, copy it here by hand, and copy it
+> rather than summarising it.** Synced 2026-09-17.
+
 | Slice | Status | Task | Effort (design §9) | Depends on |
 |---|---|---|---|---|
-| **S1 — Database + re-keying** | 🔲 Backlog | [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) | 2.5–3.5 d | — (first; never concurrent with `0253` code work) |
-| **S2 — Login endpoint + 24 h token** | 🔲 Backlog | [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) | 2–2.5 d | S1 |
-| **S3 — Game server resolve + credit by player id** | 🔲 Backlog | [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) | 1.5–2 d | S1 |
-| **S4 — Client login session + Bearer; legacy fallback removed last** | 🔲 Backlog | [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) | 1.5–2 d | S2 |
-| **S5 — Monitoring + creation switch (+ owner: dashboard, 6 email alerts, drill)** | 🔲 Backlog | [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) | 2–2.5 d + owner UI | S2 |
+| **S1 — Database + re-keying** | ✅ Done (agent-closed — not owner-verified) | [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md) | 2.5–3.5 d | — (first; never concurrent with `0253` code work) |
+| **S2 — Login endpoint + 24 h token** | ✅ Done (agent-closed — not owner-verified) | [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) | 2–2.5 d | S1 |
+| **S3 — Game server resolve + credit by player id** | 🚧 Blocked — **server side DEPLOYED 2026-09-17 (owner-executed). Crediting still cannot be exercised at all.** *(copied from the brief's `## Status`; full status there)* | [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) | 1.5–2 d | S1 |
+| **S4 — Client login session + Bearer; legacy fallback removed last** | 🚧 Blocked — **the legacy-fallback removal (ruling D1) is LIVE AND PROVEN on the box, 2026-09-17. The client is NOT deployed.** *(copied from the brief's `## Status`; full status there)* | [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) | 1.5–2 d | S2 |
+| **S5 — Monitoring + creation switch (+ owner: dashboard, 6 email alerts, drill)** | 🚧 Blocked — 🎯 **DEPLOYED 2026-09-17 AND OWNER STEP 7.3 PASSES. THE LOUDEST RESIDUAL IS DISCHARGED.** *(copied from the brief's `## Status`; full status there)* | [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) | 2–2.5 d + owner UI | S2 |
 
 **Order:** S1 → (S2 ∥ S3) · S2 → (S4 ∥ S5) · S4 → `0253` rework · all five deployed and verified →
 `0217` sets `PROFILE_INTERNAL_TOKEN`. **Total ≈ 9.5–12.5 dev days + ~0.5–1 day review per slice.**
@@ -213,7 +220,7 @@ briefs once the design is approved):
 
 ## Notes
 
-- **Depends on:** [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md), [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) — the epic's five child slices (filed 2026-09-15)
+- **Depends on:** [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md), [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) — the epic's five child slices (filed 2026-09-15)
 - *(Superseded dependency line, kept: ~~Depends on: nothing — the design can start now; the build waits on the owner's design ruling~~ — the design is delivered and ruled.)*
 - **Blocks:** [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md), XP go-live via [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md), [`0268`](../0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) (indirectly, through `0253`)
 - **Related:** [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md) (verify the

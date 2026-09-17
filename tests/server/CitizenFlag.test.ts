@@ -61,12 +61,19 @@ const GAME_CONFIG: GameConfig = {
   instantBuild: false,
 } as GameConfig;
 
-/** A profile client whose upsert result is scripted per test. */
+const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
+
+/** What the resolve route returns for a player with this citizen flag (task 0272). */
+function resolved(isCitizen: boolean) {
+  return { playerId: PLAYER_ID, isCitizen };
+}
+
+/** A profile client whose resolve result is scripted per test. */
 function stubProfileApiClient(
-  upsertProfile: jest.Mock = jest.fn().mockResolvedValue(false),
+  resolvePlayer: jest.Mock = jest.fn().mockResolvedValue(resolved(false)),
 ): ProfileApiClient {
   return {
-    upsertProfile,
+    resolvePlayer,
     creditMatch: jest.fn().mockResolvedValue(undefined),
   } as unknown as ProfileApiClient;
 }
@@ -100,7 +107,7 @@ function makeClient(
   );
 }
 
-/** Let the fire-and-forget upsert promise chain settle. */
+/** Let the fire-and-forget resolve promise chain settle. */
 async function flushMicrotasks(): Promise<void> {
   await Promise.resolve();
   await Promise.resolve();
@@ -127,8 +134,8 @@ describe("citizen flag end-to-end on the game server (0068)", () => {
   });
 
   test("a citizen is broadcast on the frozen start roster AND the lobby poll", async () => {
-    const upsert = jest.fn().mockResolvedValue(true);
-    const server = makeGameServer(stubProfileApiClient(upsert));
+    const resolvePlayer = jest.fn().mockResolvedValue(resolved(true));
+    const server = makeGameServer(stubProfileApiClient(resolvePlayer));
     const ws = new MockWebSocket();
 
     server.addClient(makeClient(ws), 0);
@@ -142,12 +149,12 @@ describe("citizen flag end-to-end on the game server (0068)", () => {
     // The value is server-authored and broadcast, not locally derived: it is in the
     // single frozen object sent to every client.
     expect(broadcastStartInfo(ws).players[0].isCitizen).toBe(true);
-    expect(upsert).toHaveBeenCalledWith("yx-1", "persistent-1");
+    expect(resolvePlayer).toHaveBeenCalledWith("yx-1");
   });
 
   test("a non-citizen shows no flag", async () => {
     const server = makeGameServer(
-      stubProfileApiClient(jest.fn().mockResolvedValue(false)),
+      stubProfileApiClient(jest.fn().mockResolvedValue(resolved(false))),
     );
     const ws = new MockWebSocket();
 
@@ -160,24 +167,26 @@ describe("citizen flag end-to-end on the game server (0068)", () => {
   });
 
   test("a guest is never looked up at all and shows no flag", async () => {
-    const upsert = jest.fn().mockResolvedValue(true);
-    const server = makeGameServer(stubProfileApiClient(upsert));
+    const resolvePlayer = jest.fn().mockResolvedValue(resolved(true));
+    const server = makeGameServer(stubProfileApiClient(resolvePlayer));
     const ws = new MockWebSocket();
 
     server.addClient(makeClient(ws, { yandexPlayerId: null }), 0);
     await flushMicrotasks();
     server.start();
 
-    expect(upsert).not.toHaveBeenCalled();
+    expect(resolvePlayer).not.toHaveBeenCalled();
     expect(server.gameInfo().clients?.[0].isCitizen).toBe(false);
     expect(broadcastStartInfo(ws).players[0].isCitizen).toBe(false);
   });
 
   test("a profile-API outage does not block the join and leaves the flag false", async () => {
-    // Even a REJECTING upsert (contractually impossible, defensively handled) must
+    // Even a REJECTING resolve (contractually impossible, defensively handled) must
     // not break the join path or surface anything to the player.
-    const upsert = jest.fn().mockRejectedValue(new Error("profile api down"));
-    const server = makeGameServer(stubProfileApiClient(upsert));
+    const resolvePlayer = jest
+      .fn()
+      .mockRejectedValue(new Error("profile api down"));
+    const server = makeGameServer(stubProfileApiClient(resolvePlayer));
     const ws = new MockWebSocket();
     const client = makeClient(ws);
 
@@ -190,7 +199,7 @@ describe("citizen flag end-to-end on the game server (0068)", () => {
   });
 
   test("a hung profile API leaves the join complete and the roster frozen without the flag", async () => {
-    // A never-resolving upsert is the "slow API" case: start() must still freeze a
+    // A never-resolving resolve is the "slow API" case: start() must still freeze a
     // roster, just without the icon for that match (accepted residual 1).
     const server = makeGameServer(
       stubProfileApiClient(jest.fn().mockReturnValue(new Promise(() => {}))),
@@ -208,7 +217,7 @@ describe("citizen flag end-to-end on the game server (0068)", () => {
 
   test("a reconnect carries the already-resolved flag across", async () => {
     const server = makeGameServer(
-      stubProfileApiClient(jest.fn().mockResolvedValue(true)),
+      stubProfileApiClient(jest.fn().mockResolvedValue(resolved(true))),
     );
     const wsA = new MockWebSocket();
     const clientA = makeClient(wsA);
@@ -217,7 +226,7 @@ describe("citizen flag end-to-end on the game server (0068)", () => {
     await flushMicrotasks();
     expect(clientA.isCitizen).toBe(true);
 
-    // Same clientID + persistentID = a reconnect. The fresh upsert is still in
+    // Same clientID + persistentID = a reconnect. The fresh resolve is still in
     // flight at this point, so only the carry-over can supply the flag.
     const wsB = new MockWebSocket();
     const clientB = makeClient(wsB);
@@ -227,11 +236,12 @@ describe("citizen flag end-to-end on the game server (0068)", () => {
   });
 
   test("a later lookup failure never clears an already-known citizen flag", async () => {
-    const upsert = jest
+    const resolvePlayer = jest
       .fn()
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(false);
-    const server = makeGameServer(stubProfileApiClient(upsert));
+      .mockResolvedValueOnce(resolved(true))
+      .mockResolvedValueOnce(resolved(false))
+      .mockResolvedValueOnce(null);
+    const server = makeGameServer(stubProfileApiClient(resolvePlayer));
     const ws = new MockWebSocket();
     const client = makeClient(ws);
 
@@ -239,11 +249,19 @@ describe("citizen flag end-to-end on the game server (0068)", () => {
     await flushMicrotasks();
     expect(client.isCitizen).toBe(true);
 
-    // A second upsert (reconnect / late identity refresh) that comes back false —
+    // A second resolve (reconnect / late identity refresh) that comes back false —
     // "false" means "unknown OR not a citizen", so it must not blink the icon off.
     server.addClient(client, 0);
     await flushMicrotasks();
 
     expect(client.isCitizen).toBe(true);
+    expect(resolvePlayer).toHaveBeenCalledTimes(2);
+
+    // A failed (null) resolve must not clear it either.
+    server.addClient(client, 0);
+    await flushMicrotasks();
+
+    expect(client.isCitizen).toBe(true);
+    expect(resolvePlayer).toHaveBeenCalledTimes(3);
   });
 });

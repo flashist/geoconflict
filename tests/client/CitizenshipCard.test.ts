@@ -17,6 +17,8 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   flashistConstants: {
     analyticEvents: {
       CITIZENSHIP_SURFACE_SEEN: "Citizenship:Seen",
+      PROFILE_LOGIN_RESTART_REQUESTED: "Profile:Login:Restart:Requested",
+      PROFILE_LOGIN_RESTART_CANCELLED: "Profile:Login:Restart:Cancelled",
     },
     uiElementIds: {
       citizenshipLoginToEarn: "CitizenshipLoginToEarn",
@@ -55,8 +57,10 @@ jest.mock("../../src/client/NameChangeRequest", () => ({
 
 import {
   CITIZENSHIP_LOGIN_REQUESTED_EVENT,
+  CITIZENSHIP_LOGIN_SUCCEEDED_EVENT,
   CitizenshipCard,
   resetCitizenshipSeenReportedForTests,
+  type CitizenshipLoginSucceededDetail,
 } from "../../src/client/CitizenshipCard";
 import { runCitizenshipPurchase } from "../../src/client/CitizenshipPurchase";
 import {
@@ -275,9 +279,39 @@ describe("CitizenshipCard", () => {
       expect(loginRequests).toHaveLength(1);
     });
 
-    it("transitions to the logged-in state after a successful login", async () => {
+    // Task 0273 (owner ruling D3): a successful mid-load login asks for a FULL
+    // restart rather than only re-reading the profile — the page has no session
+    // token, so the whole start sequence must run again with the player logged in.
+    it("asks for a restart after a successful login, exactly once", async () => {
       const card = await appendCard({ visible: true });
       openYandexAuthDialog.mockResolvedValue(true);
+      const requests: CustomEvent<CitizenshipLoginSucceededDetail>[] = [];
+      document.addEventListener(CITIZENSHIP_LOGIN_SUCCEEDED_EVENT, (event) => {
+        requests.push(event as CustomEvent<CitizenshipLoginSucceededDetail>);
+      });
+
+      (
+        card.querySelector("#citizenship-login-button") as HTMLButtonElement
+      ).click();
+      await flushMicrotasks();
+      await flushLit(card);
+
+      expect(openYandexAuthDialog).toHaveBeenCalledTimes(1);
+      expect(requests).toHaveLength(1);
+      expect(logEventAnalytics).toHaveBeenCalledWith(
+        "Profile:Login:Restart:Requested",
+      );
+      // The card does NOT reload itself and does not re-read on its own.
+      expect(loadProfile).toHaveBeenCalledTimes(1); // the initial load only
+    });
+
+    it("the restart request carries a fallback that transitions the card to logged-in", async () => {
+      const card = await appendCard({ visible: true });
+      openYandexAuthDialog.mockResolvedValue(true);
+      const requests: CustomEvent<CitizenshipLoginSucceededDetail>[] = [];
+      document.addEventListener(CITIZENSHIP_LOGIN_SUCCEEDED_EVENT, (event) => {
+        requests.push(event as CustomEvent<CitizenshipLoginSucceededDetail>);
+      });
       loadProfile.mockResolvedValue({
         displayName: "Игрок_7734",
         xp: 0,
@@ -288,12 +322,37 @@ describe("CitizenshipCard", () => {
         card.querySelector("#citizenship-login-button") as HTMLButtonElement
       ).click();
       await flushMicrotasks();
+
+      // What Main.ts does when the restart is refused (mid-match / already used).
+      requests[0].detail.fallback();
+      await flushMicrotasks();
       await flushLit(card);
 
-      expect(openYandexAuthDialog).toHaveBeenCalledTimes(1);
       expect(card.textContent).toContain("Игрок_7734");
       expect(card.textContent).toContain("citizenship_card.xp_label");
       expect(card.querySelector("#citizenship-login-button")).toBeNull();
+    });
+
+    it("does NOT ask for a restart when the auth dialog is dismissed", async () => {
+      const card = await appendCard({ visible: true });
+      openYandexAuthDialog.mockResolvedValue(false);
+      const requests: Event[] = [];
+      document.addEventListener(CITIZENSHIP_LOGIN_SUCCEEDED_EVENT, (event) => {
+        requests.push(event);
+      });
+
+      (
+        card.querySelector("#citizenship-login-button") as HTMLButtonElement
+      ).click();
+      await flushMicrotasks();
+
+      expect(requests).toHaveLength(0);
+      expect(logEventAnalytics).toHaveBeenCalledWith(
+        "Profile:Login:Restart:Cancelled",
+      );
+      expect(logEventAnalytics).not.toHaveBeenCalledWith(
+        "Profile:Login:Restart:Requested",
+      );
     });
 
     it("ignores re-taps while the auth dialog is open", async () => {

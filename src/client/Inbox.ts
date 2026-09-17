@@ -7,7 +7,6 @@
 // a second concurrent caller could double-fire it. The `/v1/messages` 403 IS
 // the citizen check, so no separate profile fetch is needed here.
 
-import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import {
   INBOX_TEMPLATE_REQUIRED_PARAMS,
   InboxListResponseSchema,
@@ -21,6 +20,7 @@ import {
   flashist_logEventAnalytics,
   flashistConstants,
 } from "./flashist/FlashistFacade";
+import { profileFetch } from "./ProfileSession";
 import { translateText } from "./Utils";
 
 /** Fired on `window` whenever the shared inbox state changes. */
@@ -61,19 +61,15 @@ const UNAVAILABLE: InboxState = Object.freeze({
 // ONE fetch per load instead of racing two.
 let cachedState: InboxState = UNAVAILABLE;
 let inflight: Promise<InboxState> | null = null;
-// Remembered from the last successful load so markInboxRead can PATCH without
-// re-resolving the identity/config.
-let session: { base: string; yandexPlayerId: string } | null = null;
 // Bumped by every successful mark-read (review R1). A refresh whose GET was
 // snapshotted BEFORE a PATCH landed must not put read messages back to unread:
 // `refreshInbox` compares the generation it started at and merges instead.
 let generation = 0;
 
-/** Test seam — reset the cache, single-flight promise, session and generation. */
+/** Test seam — reset the cache, single-flight promise and generation. */
 export function resetInboxForTests(): void {
   cachedState = UNAVAILABLE;
   inflight = null;
-  session = null;
   generation = 0;
 }
 
@@ -157,58 +153,50 @@ async function fetchInboxState(): Promise<InboxState> {
   if (!(await FlashistFacade.instance.isYandexAuthorized())) {
     return UNAVAILABLE;
   }
-  const yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
-  if (yandexPlayerId === null) {
-    return UNAVAILABLE;
-  }
-  // Same degrade path as PlayerProfileView: the config read can throw (no
-  // /api/env), and an empty base (PROFILE_API_URL unset locally) means "no
-  // profile backend" — neither is an inbox failure worth an analytics event.
-  let base: string;
-  try {
-    base = (await getServerConfigFromClient())
-      .profileApiUrl()
-      .replace(/\/+$/, "");
-  } catch {
-    return UNAVAILABLE;
-  }
-  if (!base) {
+  // Kept after the authorization check even though S4 no longer SENDS the id:
+  // an authorized player with no id (a broken SDK player object) would otherwise
+  // reach profileFetch, come back as `no_session` and be reported as a failed
+  // load. This keeps it the same quiet "unavailable" it has always been.
+  if ((await FlashistFacade.instance.getYandexUniqueId()) === null) {
     return UNAVAILABLE;
   }
 
-  const url = `${base}/v1/messages?yandexPlayerId=${encodeURIComponent(
-    yandexPlayerId,
-  )}`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), INBOX_FETCH_TIMEOUT_MS);
-  try {
-    const response = await fetch(url, { signal: controller.signal });
-    if (response.status === 403) {
-      // The server-side citizen gate: not a citizen (or no profile yet).
-      return UNAVAILABLE;
-    }
-    if (!response.ok) {
-      return failedState();
-    }
-    const parsed = InboxListResponseSchema.safeParse(await response.json());
-    if (!parsed.success) {
-      return failedState();
-    }
-    session = { base, yandexPlayerId };
-    // A template key this bundle cannot render (server deployed ahead of the
-    // client — review R3) drops THAT message only; the list survives.
-    return withUnreadCount(
-      parsed.data.messages.filter(
-        (message) =>
-          message.templateKey === null ||
-          isKnownInboxTemplateKey(message.templateKey),
-      ),
-    );
-  } catch {
-    return failedState();
-  } finally {
-    clearTimeout(timer);
+  // Identity now travels as the login session's Bearer token (task 0273, S4).
+  // `unconfigured` (no /api/env, or PROFILE_API_URL unset locally) means "no
+  // profile backend" and is not an inbox failure worth an analytics event.
+  const result = await profileFetch("/v1/messages", {
+    timeoutMs: INBOX_FETCH_TIMEOUT_MS,
+  });
+  if (result.kind === "unconfigured") {
+    return UNAVAILABLE;
   }
+  if (result.kind !== "response") {
+    // `no_session` here means the login FAILED (guests never get this far), which
+    // is a load failure like any other transport failure.
+    return failedState();
+  }
+  const { response } = result;
+  if (response.status === 403) {
+    // The server-side citizen gate: not a citizen (or no profile yet).
+    return UNAVAILABLE;
+  }
+  if (!response.ok) {
+    return failedState();
+  }
+  const body: unknown = await response.json().catch(() => null);
+  const parsed = InboxListResponseSchema.safeParse(body);
+  if (!parsed.success) {
+    return failedState();
+  }
+  // A template key this bundle cannot render (server deployed ahead of the
+  // client — review R3) drops THAT message only; the list survives.
+  return withUnreadCount(
+    parsed.data.messages.filter(
+      (message) =>
+        message.templateKey === null ||
+        isKnownInboxTemplateKey(message.templateKey),
+    ),
+  );
 }
 
 function withUnreadCount(messages: InboxMessage[]): InboxState {
@@ -231,34 +219,23 @@ export async function markInboxRead(ids?: number[]): Promise<boolean> {
   if (inflight !== null) {
     await inflight;
   }
-  if (!cachedState.available || session === null) {
+  if (!cachedState.available) {
     return false;
   }
   if (cachedState.unreadCount === 0) {
     return true;
   }
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), INBOX_FETCH_TIMEOUT_MS);
-  try {
-    const response = await fetch(`${session.base}/v1/messages/read`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        yandexPlayerId: session.yandexPlayerId,
-        ...(ids !== undefined ? { ids } : {}),
-      }),
-      signal: controller.signal,
-    });
-    if (!response.ok) {
-      return false;
-    }
-    if (!MarkReadResponseSchema.safeParse(await response.json()).success) {
-      return false;
-    }
-  } catch {
+  const result = await profileFetch("/v1/messages/read", {
+    method: "PATCH",
+    body: JSON.stringify(ids !== undefined ? { ids } : {}),
+    timeoutMs: INBOX_FETCH_TIMEOUT_MS,
+  });
+  if (result.kind !== "response" || !result.response.ok) {
     return false;
-  } finally {
-    clearTimeout(timer);
+  }
+  const body: unknown = await result.response.json().catch(() => null);
+  if (!MarkReadResponseSchema.safeParse(body).success) {
+    return false;
   }
   generation += 1;
   const readAt = new Date().toISOString();

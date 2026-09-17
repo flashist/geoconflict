@@ -13,6 +13,12 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   flashistConstants: {
     analyticEvents: {
       CITIZENSHIP_EARNED_XP: "Citizenship:Earned:XP",
+      PROFILE_LOGIN_SUCCEEDED: "Profile:Login:Succeeded",
+      PROFILE_LOGIN_CREATED: "Profile:Login:Created",
+      PROFILE_LOGIN_FAILED_TIMEOUT: "Profile:Login:Failed:Timeout",
+      PROFILE_LOGIN_FAILED_UNAVAILABLE: "Profile:Login:Failed:Unavailable",
+      PROFILE_LOGIN_FAILED_ERROR: "Profile:Login:Failed:Error",
+      PROFILE_SESSION_RELOGIN: "Profile:Session:Relogin",
     },
   },
 }));
@@ -27,6 +33,7 @@ import {
   flashist_logEventAnalytics,
 } from "../../src/client/flashist/FlashistFacade";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
+import { EXPECTED_BEARER, primeProfileSession } from "./support/profileSession";
 
 const isYandexAuthorized = FlashistFacade.instance
   .isYandexAuthorized as jest.Mock;
@@ -75,7 +82,7 @@ const ZERO_STATE = {
 };
 
 describe("loadPlayerProfileView", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     localStorage.clear();
     getServerConfig.mockResolvedValue({
@@ -83,6 +90,11 @@ describe("loadPlayerProfileView", () => {
     });
     getYandexUniqueId.mockResolvedValue("yandex-123");
     getCurPlayerName.mockResolvedValue(YANDEX_NAME);
+    // S4: the profile read now goes out with a Bearer token. Individual tests
+    // below override the authorization state after the session is primed.
+    isYandexAuthorized.mockResolvedValue(true);
+    await primeProfileSession();
+    logEventAnalytics.mockClear();
   });
 
   afterEach(() => {
@@ -112,9 +124,13 @@ describe("loadPlayerProfileView", () => {
       isAuthoritative: true,
       nameChange: null,
     });
+    // The Yandex id is gone from the URL; the Bearer token carries the identity.
     expect(fetchMock).toHaveBeenCalledWith(
-      `${PROFILE_API_BASE}/v1/profile?yandexPlayerId=yandex-123`,
-      expect.objectContaining({ signal: expect.anything() }),
+      `${PROFILE_API_BASE}/v1/profile`,
+      expect.objectContaining({
+        signal: expect.anything(),
+        headers: expect.objectContaining({ Authorization: EXPECTED_BEARER }),
+      }),
     );
   });
 
@@ -260,7 +276,7 @@ describe("loadPlayerProfileView", () => {
 describe("Citizenship:Earned:XP transition detection", () => {
   const EARNED_AT = "2026-08-23T10:00:00.000Z";
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     localStorage.clear();
     getServerConfig.mockResolvedValue({
@@ -269,6 +285,8 @@ describe("Citizenship:Earned:XP transition detection", () => {
     getYandexUniqueId.mockResolvedValue("yandex-123");
     getCurPlayerName.mockResolvedValue(YANDEX_NAME);
     isYandexAuthorized.mockResolvedValue(true);
+    await primeProfileSession();
+    logEventAnalytics.mockClear();
   });
 
   afterEach(() => {
@@ -340,6 +358,10 @@ describe("Citizenship:Earned:XP transition detection", () => {
     await loadPlayerProfileView(); // arms yandex-123
 
     getYandexUniqueId.mockResolvedValue("yandex-456");
+    // A different account means a fresh login (the old token is not theirs) —
+    // get it out of the way so the stub below only answers the profile read.
+    await primeProfileSession();
+    logEventAnalytics.mockClear();
     stubFetch(
       200,
       publicProfile({

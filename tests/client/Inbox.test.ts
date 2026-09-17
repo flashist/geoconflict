@@ -16,6 +16,12 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     analyticEvents: {
       INBOX_OPENED: "Inbox:Opened",
       INBOX_LOAD_FAILED: "Inbox:LoadFailed",
+      PROFILE_LOGIN_SUCCEEDED: "Profile:Login:Succeeded",
+      PROFILE_LOGIN_CREATED: "Profile:Login:Created",
+      PROFILE_LOGIN_FAILED_TIMEOUT: "Profile:Login:Failed:Timeout",
+      PROFILE_LOGIN_FAILED_UNAVAILABLE: "Profile:Login:Failed:Unavailable",
+      PROFILE_LOGIN_FAILED_ERROR: "Profile:Login:Failed:Error",
+      PROFILE_SESSION_RELOGIN: "Profile:Session:Relogin",
     },
     features: {
       CITIZENSHIP_CARD_ENABLED: true,
@@ -55,6 +61,11 @@ import {
   renderInboxMessage,
   resetInboxForTests,
 } from "../../src/client/Inbox";
+import {
+  EXPECTED_BEARER,
+  loginResponseBody,
+  primeProfileSession,
+} from "./support/profileSession";
 
 const isYandexAuthorized = FlashistFacade.instance
   .isYandexAuthorized as jest.Mock;
@@ -116,7 +127,7 @@ const UNAVAILABLE = {
 };
 
 describe("loadInboxState", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     resetInboxForTests();
     flashistConstants.features.CITIZENSHIP_CARD_ENABLED = true;
@@ -126,6 +137,13 @@ describe("loadInboxState", () => {
     isYandexAuthorized.mockResolvedValue(true);
     getYandexUniqueId.mockResolvedValue("yandex-123");
     stubCitizenshipGate();
+    // S4: the inbox calls now carry a Bearer token — log in first. The login
+    // itself reads the facade, so forget those calls: the assertions below are
+    // about what the INBOX asked for.
+    await primeProfileSession();
+    logEventAnalytics.mockClear();
+    isYandexAuthorized.mockClear();
+    getYandexUniqueId.mockClear();
   });
 
   afterEach(() => {
@@ -193,9 +211,13 @@ describe("loadInboxState", () => {
     expect(state.unreadCount).toBe(2);
     expect(getInboxState()).toBe(state);
     expect(listener).toHaveBeenCalledTimes(1);
+    // No Yandex id in the URL any more — the Bearer token carries the identity.
     expect(fetchMock).toHaveBeenCalledWith(
-      `${PROFILE_API_BASE}/v1/messages?yandexPlayerId=yandex-123`,
-      expect.objectContaining({ signal: expect.anything() }),
+      `${PROFILE_API_BASE}/v1/messages`,
+      expect.objectContaining({
+        signal: expect.anything(),
+        headers: expect.objectContaining({ Authorization: EXPECTED_BEARER }),
+      }),
     );
     window.removeEventListener(INBOX_STATE_CHANGED_EVENT, listener);
   });
@@ -279,7 +301,7 @@ describe("markInboxRead vs an in-flight refresh (review R1)", () => {
   // let the microtask queue drain before counting fetch calls.
   const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     resetInboxForTests();
     flashistConstants.features.CITIZENSHIP_CARD_ENABLED = true;
@@ -289,6 +311,13 @@ describe("markInboxRead vs an in-flight refresh (review R1)", () => {
     isYandexAuthorized.mockResolvedValue(true);
     getYandexUniqueId.mockResolvedValue("yandex-123");
     stubCitizenshipGate();
+    // S4: the inbox calls now carry a Bearer token — log in first. The login
+    // itself reads the facade, so forget those calls: the assertions below are
+    // about what the INBOX asked for.
+    await primeProfileSession();
+    logEventAnalytics.mockClear();
+    isYandexAuthorized.mockClear();
+    getYandexUniqueId.mockClear();
   });
 
   afterEach(() => {
@@ -311,7 +340,7 @@ describe("markInboxRead vs an in-flight refresh (review R1)", () => {
     await flush();
     // Only the GET has been issued so far — the PATCH waits.
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0][1].method).toBeUndefined();
+    expect(fetchMock.mock.calls[0][1].method).toBe("GET");
 
     get.resolve(response({ messages: [message(1)] })); // stale: still unread
     await refresh;
@@ -361,7 +390,7 @@ describe("markInboxRead vs an in-flight refresh (review R1)", () => {
 });
 
 describe("markInboxRead", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     resetInboxForTests();
     flashistConstants.features.CITIZENSHIP_CARD_ENABLED = true;
@@ -371,6 +400,13 @@ describe("markInboxRead", () => {
     isYandexAuthorized.mockResolvedValue(true);
     getYandexUniqueId.mockResolvedValue("yandex-123");
     stubCitizenshipGate();
+    // S4: the inbox calls now carry a Bearer token — log in first. The login
+    // itself reads the facade, so forget those calls: the assertions below are
+    // about what the INBOX asked for.
+    await primeProfileSession();
+    logEventAnalytics.mockClear();
+    isYandexAuthorized.mockClear();
+    getYandexUniqueId.mockClear();
   });
 
   afterEach(() => {
@@ -401,7 +437,8 @@ describe("markInboxRead", () => {
       `${PROFILE_API_BASE}/v1/messages/read`,
       expect.objectContaining({
         method: "PATCH",
-        body: JSON.stringify({ yandexPlayerId: "yandex-123" }),
+        body: JSON.stringify({}),
+        headers: expect.objectContaining({ Authorization: EXPECTED_BEARER }),
       }),
     );
     const state = getInboxState();
@@ -415,10 +452,7 @@ describe("markInboxRead", () => {
     await loadWith([message(3), message(2), message(1)]);
     const fetchMock = stubFetch(200, { updated: 1 });
     await expect(markInboxRead([2])).resolves.toBe(true);
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
-      yandexPlayerId: "yandex-123",
-      ids: [2],
-    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ ids: [2] });
     const state = getInboxState();
     expect(state.unreadCount).toBe(2);
     expect(state.messages.find((m) => m.id === 2)?.readAt).not.toBeNull();
@@ -443,6 +477,70 @@ describe("markInboxRead", () => {
       .mockRejectedValue(new Error("network down")) as unknown as typeof fetch;
     await expect(markInboxRead()).resolves.toBe(false);
     expect(getInboxState().unreadCount).toBe(1);
+  });
+});
+
+// Task 0273 S4 — the whole refresh path, end to end through a real caller: an
+// expired token is rejected once, ProfileSession re-logs-in, and the retry wins.
+describe("a 401 mid-session re-logs-in and retries (task 0273)", () => {
+  const SECOND_TOKEN = "v1.second-session-payload.second-session-mac";
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    resetInboxForTests();
+    flashistConstants.features.CITIZENSHIP_CARD_ENABLED = true;
+    getServerConfig.mockResolvedValue({
+      profileApiUrl: () => PROFILE_API_BASE,
+    });
+    isYandexAuthorized.mockResolvedValue(true);
+    getYandexUniqueId.mockResolvedValue("yandex-123");
+    stubCitizenshipGate();
+    await primeProfileSession();
+    logEventAnalytics.mockClear();
+  });
+
+  afterEach(() => {
+    delete (global as { fetch?: unknown }).fetch;
+  });
+
+  it("loads the inbox on the retry, with no failure reported to the player", async () => {
+    const calls: { url: string; authorization: string | undefined }[] = [];
+    global.fetch = jest.fn(
+      async (url: string, init: { headers?: Record<string, string> } = {}) => {
+        const authorization = init.headers?.Authorization;
+        calls.push({ url, authorization });
+        if (url.endsWith("/v1/login")) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => loginResponseBody(SECOND_TOKEN),
+          };
+        }
+        return authorization === `Bearer ${SECOND_TOKEN}`
+          ? {
+              ok: true,
+              status: 200,
+              json: async () => ({ messages: [message(1)] }),
+            }
+          : {
+              ok: false,
+              status: 401,
+              json: async () => ({ error: "session_expired" }),
+            };
+      },
+    ) as unknown as typeof fetch;
+
+    const state = await loadInboxState();
+    expect(state.available).toBe(true);
+    expect(state.error).toBe(false);
+    expect(state.messages.map((m) => m.id)).toEqual([1]);
+    expect(calls.map((call) => call.url)).toEqual([
+      `${PROFILE_API_BASE}/v1/messages`,
+      `${PROFILE_API_BASE}/v1/login`,
+      `${PROFILE_API_BASE}/v1/messages`,
+    ]);
+    expect(logEventAnalytics).not.toHaveBeenCalledWith("Inbox:LoadFailed");
+    expect(logEventAnalytics).toHaveBeenCalledWith("Profile:Session:Relogin");
   });
 });
 

@@ -4,7 +4,7 @@
 0270
 
 ## Parent / Epic
-[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
+[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../../backlog/0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
 
 ## Sprint
 Sprint 4
@@ -18,7 +18,7 @@ slices `0217` (XP go-live) now waits on, and `0253`'s rework waits on the chain 
 **appended at the bottom** of the Sprint 4 board (ADR-035 — a new row never inserts mid-board).
 
 ## Status
-🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-15 (plan step) · earlier: 🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -47,7 +47,7 @@ client.
 `src/profile-server/{Routes,PlayerProfileRepository,Server}.ts`) lives in the **same files** this slice
 rewrites. This slice **absorbs the schema and repository re-keying of that code** (the grant table
 moves into `006`; `005` is deleted). `0253`'s own rework (route + client logic) runs only after
-[`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md). Do not start this
+[`0273`](../../backlog/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md). Do not start this
 slice while anyone is editing `0253`'s code.
 
 ## What to build
@@ -107,10 +107,37 @@ Per design §9 S1:
 ## Notes
 
 - **Depends on:** nothing — first slice; must not run concurrently with any work on `0253`'s code (same files)
-- **Blocks:** [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
+- **Blocks:** [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../../backlog/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
 - **Effort (design §9):** 2.5–3.5 days. Strictly first; cannot be split.
 - **Deploys:** profile box only. Safe alone — game server's profile client is a no-op while
   `PROFILE_INTERNAL_TOKEN` is blank, and routes keep their request shapes.
-- **Related:** ADR-113, ADR-112 (amended 2026-09-15), ADR-103, [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md).
+- **Related:** ADR-113, ADR-112 (amended 2026-09-15), ADR-103, [`0253`](../../backlog/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md).
 - 🔒 No secrets, hosts or player ids in any artifact.
 - **Do not invoke the mover skills** — producer-only (ADR-033). No wiki writes.
+
+---
+
+## Closing record — 2026-09-15 (agent-closed — not owner-verified)
+
+Closed by a spawned `fkit-producer` for `/fkit-sprint-ship-loop` (`fkit-lead`). No owner was present at
+the close. Evidence as relayed by the lead; sources are this folder's [`plan.md`](plan.md),
+[`worklog.md`](worklog.md) and [`review.md`](review.md).
+
+- **Plan:** owner-approved via `AskUserQuestion`, 2026-09-15 — **D1** local-only test-DB guard; **D2**
+  backup dry-run deferred ("Later, in 0218" — see the note appended to `0218`).
+- **Built:** migration `006`, find-or-create, repositories re-keyed to `player_id`, runner-based
+  integration harness, CLAUDE.md subsection.
+- **Gates (as reported):** `npm test` 123 suites / 1347 tests; `npm run test:integration` 7 / 94 (run
+  twice, plus reruns); `tsc` and lint clean.
+  ⚠️ One unexplained `NameChange.it.test.ts` failure on the first build run. The reviewer's Postgres-log
+  timing supports the known `supertest` flake — **not proven.**
+- **Review:** round 1 (Codex, full coverage) — **R1 accepted residual** (owner: re-raise if
+  `PROFILE_INTERNAL_TOKEN` is set or the citizenship card is switched on before S3/S4 deploy); **R2
+  fixed**, mutation-proven tests; **R3 carried to [`0272`](../../backlog/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md)**
+  (stale comments). Round 2 closed out: *"Ready to merge (validation-gated)"*.
+- **Deploy:** the owner ran `npm run deploy:profile` (2026-09-15). The lead then verified the box
+  read-only: migrations applied = 001–004 + 006; `players`, `player_identities`, `player_xp_grants` and
+  the re-keyed tables exist, all 0 rows; old `player_profiles` gone; both containers healthy, 0 error
+  log lines; `/ready` 200; `GET /v1/profile` for a synthetic non-existent id → 404 `not_found` (not
+  500) and created no rows.
+- ⛔ **Not verified: real player traffic** — there is none until S2–S4 and go-live (`0217`).

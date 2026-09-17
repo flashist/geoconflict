@@ -22,8 +22,12 @@
  *
  * The *decision and the write are server-authoritative*: PlayerParticipation is an
  * input, but `selectMatchCredits` is only ever run on the server and combines it
- * with server-only signals (kicked / disconnected / the trusted Yandex id and the
- * internal persistentId).
+ * with server-only signals (kicked / disconnected / whether the identity is
+ * creditable, and the internal player id it resolved to).
+ *
+ * Task 0272 (S3, ADR-113): credits are keyed by the internal player id, and the
+ * profile server's idempotency key is `(game_id, player_id)`. This module never
+ * sees a platform id — only the game server's verdict that one is creditable.
  *
  * See ai-agents/tasks/done/0188-profile-06-match-end-crediting/brief.md (T6).
  */
@@ -32,15 +36,12 @@ import { XP_PER_MATCH } from "./Citizenship";
 import { ClientID, PlayerParticipation } from "../Schemas";
 
 /**
- * One resolved match-end award. Carries `persistentId` (internal, never sent to the
- * credit endpoint) so the caller can upsert a missing profile and re-credit as a
- * backstop. The wire payload posted to `/internal/v1/credit` is the CreditItem
- * subset (gameId, yandexPlayerId, xpAwarded) — see CreditContract.ts.
+ * One resolved match-end award — exactly the wire `CreditItem` posted to
+ * `/internal/v1/credit` (see CreditContract.ts).
  */
 export interface MatchCredit {
   gameId: string;
-  yandexPlayerId: string;
-  persistentId: string;
+  playerId: string;
   xpAwarded: number;
 }
 
@@ -69,10 +70,17 @@ export function qualifiesForMatchXp(p: PlayerParticipation): boolean {
 
 /** Server-known per-client signals that gate crediting beyond participation. */
 export interface ClientCreditState {
-  /** The trusted-for-crediting Yandex id, or null if none/unverified. */
-  yandexPlayerId: string | null;
-  /** Internal cross-device key linked to the Yandex id (for profile upsert). */
-  persistentId: string;
+  /**
+   * The internal player id resolved for this client's creditable identity, or null
+   * while no resolve has succeeded yet (task 0272).
+   */
+  playerId: string | null;
+  /**
+   * Whether the game server holds a creditable identity for this client — its
+   * ADR-103 funnel (`getCreditableYandexId`) returned non-null. The id itself never
+   * enters core.
+   */
+  identityKnown: boolean;
   /** Whether the client was kicked from the game. */
   kicked: boolean;
   /** Whether the client was disconnected at match end without returning. */
@@ -80,20 +88,38 @@ export interface ClientCreditState {
 }
 
 /**
+ * The gates every credit decision shares: the entry is in `eligibleRoster` (a player
+ * actually in this match, NOT a post-start joiner / spectator the client-supplied
+ * participation could otherwise name), it qualifies, and it has a known connected
+ * (not kicked, not disconnected) server client. Returns that client's state, or
+ * null when a gate fails.
+ *
+ * The roster gate is orthogonal to identity verification (the [C1] seam): it bounds
+ * *who* can be credited to the match participants regardless of whether the identity
+ * is signed, so it still matters after signed-payload verification lands.
+ */
+function passesCreditGates(
+  p: PlayerParticipation,
+  clientStateById: ReadonlyMap<ClientID, ClientCreditState>,
+  eligibleRoster: ReadonlySet<ClientID>,
+): ClientCreditState | null {
+  if (!eligibleRoster.has(p.clientID)) return null;
+  if (!qualifiesForMatchXp(p)) return null;
+  const state = clientStateById.get(p.clientID);
+  if (state === undefined) return null;
+  if (state.kicked || state.disconnected) return null;
+  return state;
+}
+
+/**
  * Build the exact list of awards for a batch of participation — a whole roster at a
  * match end, or a single player mid-match (task 0211). Pure: callers supply the
  * game id, the client-reported participation, the frozen start roster, and a map of
- * server-only client state keyed by clientID. A participation entry is credited only
- * if it is in `eligibleRoster` (a player actually in this match, NOT a post-start
- * joiner / spectator the client-supplied participation could otherwise name), it
- * qualifies, it has a known connected (not kicked, not disconnected) server client,
- * and that client has a non-null Yandex id. Results are deduped by Yandex id so a
- * single account on two connections is credited at most once (the profile server's
+ * server-only client state keyed by clientID. An entry is credited only if it passes
+ * the shared gates (see `passesCreditGates`), its identity is creditable, and its
+ * player id is already resolved. Results are deduped by player id so one player on
+ * two connections is credited at most once (the profile server's
  * `(game_id, player_id)` idempotency key is the ultimate backstop).
- *
- * The roster gate is orthogonal to identity verification (the [C1] seam): it bounds
- * *who* can be credited to the match participants regardless of whether the Yandex id
- * is signed, so it still matters after signed-payload verification lands.
  */
 export function selectMatchCredits(
   gameId: string,
@@ -104,21 +130,36 @@ export function selectMatchCredits(
   const seen = new Set<string>();
   const credits: MatchCredit[] = [];
   for (const p of participation) {
-    if (!eligibleRoster.has(p.clientID)) continue;
-    if (!qualifiesForMatchXp(p)) continue;
-    const state = clientStateById.get(p.clientID);
-    if (state === undefined) continue;
-    if (state.kicked || state.disconnected) continue;
-    const yandexPlayerId = state.yandexPlayerId;
-    if (yandexPlayerId === null) continue;
-    if (seen.has(yandexPlayerId)) continue;
-    seen.add(yandexPlayerId);
-    credits.push({
-      gameId,
-      yandexPlayerId,
-      persistentId: state.persistentId,
-      xpAwarded: XP_PER_MATCH,
-    });
+    const state = passesCreditGates(p, clientStateById, eligibleRoster);
+    if (state === null) continue;
+    if (!state.identityKnown) continue;
+    const playerId = state.playerId;
+    if (playerId === null) continue;
+    if (seen.has(playerId)) continue;
+    seen.add(playerId);
+    credits.push({ gameId, playerId, xpAwarded: XP_PER_MATCH });
   }
   return credits;
+}
+
+/**
+ * Task 0272. The clients that WOULD be credited but whose player id is not resolved
+ * yet (the resolve at join failed or is still in flight): same gates, a creditable
+ * identity, and a null player id. The game server resolves these and then credits
+ * them through `selectMatchCredits`. Deduped by clientID.
+ */
+export function selectUnresolvedCreditClients(
+  participation: readonly PlayerParticipation[],
+  clientStateById: ReadonlyMap<ClientID, ClientCreditState>,
+  eligibleRoster: ReadonlySet<ClientID>,
+): ClientID[] {
+  const unresolved: ClientID[] = [];
+  for (const p of participation) {
+    const state = passesCreditGates(p, clientStateById, eligibleRoster);
+    if (state === null) continue;
+    if (!state.identityKnown || state.playerId !== null) continue;
+    if (unresolved.includes(p.clientID)) continue;
+    unresolved.push(p.clientID);
+  }
+  return unresolved;
 }

@@ -4,13 +4,30 @@
 0061
 
 ## Sprint
-Backlog
+Sprint 4
+
+*(was `Backlog` until 2026-09-17 — **the owner overturned their own 2026-08-23 ruling**; see
+*"THE 2026-08-23 RULING WAS LIFTED"* immediately below the ruling itself. The August ruling is kept in
+full, not deleted.)*
 
 ## Priority
-Unscheduled — **owner-ruled 2026-08-23 to stay on Backlog.** Not an oversight; see the ruling below.
+High *(producer's append rank — **NOT owner-ruled**)*
+
+⚠️ **Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.**
+**On merit this belongs directly above [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md)**,
+because the same shared notification code underlies both and `0277` inherits the defect if it ships
+first. Appended at the bottom of the open run (ADR-035), not inserted.
+
+*(was `Unscheduled — owner-ruled 2026-08-23 to stay on Backlog` until 2026-09-17.)*
 
 ## Status
 🔲 Backlog
+
+📅 **2026-09-17 — SCHEDULED INTO SPRINT 4, alongside `0277`. OWNER RULING, given live in the lead
+session and relayed by `fkit-sprint-ship-loop` to a spawned `fkit-producer`.** ⚠️ **The status token is
+deliberately UNCHANGED** — `🔲 Backlog` means *scheduled and not started*, which is exactly what this
+is. It does **not** mean unscheduled; the board placement carries that, and the board placement has
+changed. **Nobody has started work on this task.**
 
 ### 🔒 Owner ruling — 2026-08-23: stays on the Backlog board, not promoted to Sprint 4
 
@@ -33,6 +50,68 @@ that was simply forgotten.
 **Re-raise only if:** an incident occurs where missing player reports demonstrably delayed detection;
 or `0062`/`0063` reveal that the same root cause (a config value not reaching production) explains
 this one too, at which point it may collapse into a fix rather than an investigation.
+
+> 🎯 **2026-09-17: a root-cause HYPOTHESIS now exists, reproduced in production — see
+> *"REPRODUCED IN PRODUCTION"* below.** It is **not** confirmed in code and there is **no fix**, so
+> the ruling above still stands and the status is unchanged. It is recorded because it is the
+> re-raise material the ruling asked for, should the owner want it.
+>
+> ⛔ **That last sentence was written earlier on 2026-09-17 and is now SUPERSEDED — the owner DID want
+> it. See the reversal immediately below.** The struck reasoning is kept, not deleted.
+
+### 🔓 THE 2026-08-23 RULING WAS LIFTED — 2026-09-17, BY THE OWNER, ON THEIR OWN RULING
+
+⛔ **Authority first, because this is an unusual act: the ruling above was THE OWNER'S, and the OWNER
+THEMSELVES lifted it.** Given **live in the lead session** on **2026-09-17** and relayed by
+`fkit-sprint-ship-loop` to a spawned `fkit-producer` that holds no owner channel of its own.
+⛔ **This is NOT producer precedent.** A producer never promotes a task, re-ranks a board, or
+overturns a ruling on its own — not on a spawn instruction, and not on this precedent.
+
+⚠️ **The 2026-08-23 ruling above is KEPT IN FULL, deliberately.** It is not deleted, not struck, not
+tidied away. A reader must be able to see a decision that was made, revisited, and changed — including
+the counter-argument the owner weighed and rejected in August, which is still the honest record of
+what was accepted at the time.
+
+**Why the owner lifted it — both reasons, as given:**
+
+1. **The August ruling's own stated reason no longer holds.** It rested on this being *"an
+   investigation with no known fix"*. Since then the failure has been **reproduced in production**
+   (2026-09-17, by our own proxy restart — a clean experiment, not an organic incident) and a
+   **likely fix shape** exists. The premise the ruling was built on is gone.
+2. **[`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md)'s alert relay would otherwise
+   inherit the same defect**, and the same fix would be **designed twice**.
+
+**What changed and what did not:**
+
+| | |
+|---|---|
+| **Sprint** | `Backlog` → **`Sprint 4`** |
+| **Board** | Backlog board row flipped to the canonical `➡️ Moved to [Sprint 4]` marker (**not deleted** — the pointer stays); row **appended** to `plan-sprint-4.md`, nothing renumbered (ADR-035) |
+| **Priority** | `Unscheduled` → **High (producer's append rank, NOT owner-ruled)** |
+| **Status token** | **UNCHANGED — `🔲 Backlog`.** Scheduled is not started. |
+| **Scope** | **UNCHANGED.** Nothing in *"What to build"* or *"Verification steps"* was rewritten by this ruling. |
+
+### 🔗 FIXED TOGETHER WITH `0277` — one fix, three consumers
+
+**Owner ruling, same session, 2026-09-17.** This task and
+[`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md) are worked **together**, not in
+sequence.
+
+**The reason, stated plainly:** the same shared notification code —
+`src/core/notifications/TelegramNotifier.ts`, plus the two inline copies in `Master.ts` — underlies
+**three** things:
+
+1. **player feedback** (this task),
+2. the **name-change operator notification** (`src/profile-server/NameChangeRepository.ts:542`, shipped
+   by [`0067`](../../done/0067-name-change-citizens-only/brief.md)),
+3. the **Uptrace alert relay** (`0277`, branch B calls the shared helper directly).
+
+⇒ **One fix covers all three.** Doing them separately means **designing the same fix twice**, and — the
+part that actually costs something — **shipping alerting that silently drops messages** while the
+second design is still pending. An alert relay that can lose alerts without saying so manufactures
+false confidence; that is the failure alerting exists to prevent.
+
+⚠️ **This relationship is recorded in BOTH briefs.** If you change it here, change it there.
 
 ## Owner
 fkit-coder
@@ -73,6 +152,75 @@ investigation, not a known fix** — do not start by adding proxy support that i
 after `0055` added ~28 lines to that file, the actual Telegram error log is at **`Master.ts:328`** and
 the `fetch` at **`Master.ts:313-320`**. Use the current lines; the incident record is a finished
 output and is not being edited.
+
+### 🎯 2026-09-17 — REPRODUCED IN PRODUCTION, BY ACCIDENT. A root-cause *hypothesis* now exists.
+
+⛔ **Status unchanged — still `🔲 Backlog`, still open.** The mechanism is **reproduced
+behaviourally, not confirmed in code**, and **no fix exists**. The owner's 2026-08-23 Backlog ruling
+above **still stands** and is not re-litigated by this section.
+
+⚠️ **The trigger was self-inflicted — our own proxy restart, not an organic failure.** That is what
+makes it a clean experiment rather than an incident: exactly one variable changed. A future reader
+must not read the 10:30:06 failure as something production did on its own.
+
+**What happened, all owner-observed or lead-measured:**
+
+| Time (UTC) | Event | Evidence |
+|---|---|---|
+| up to 00:03 | feedback arriving normally | owner: *"I am receiving a lot of feedback messages via Telegram … the last one I received was today at 00:03"* |
+| ~10:2x | **the owner restarted `tinyproxy`** on the egress proxy host, to add the profile box to its allow list | owner-run restart → service reported `active` |
+| **10:30:06** | next feedback → **FAILED** | game-server log: `[feedback] telegram delivery failed: TypeError: fetch failed … at async file:///usr/src/app/src/server/Master.ts:265:34` — **and the HTTP layer still answered the player `POST /api/feedback … 200`** |
+| shortly after | next feedback → **SUCCEEDED** | owner: *"A new feedback that I've just sent - worked"* |
+
+**Excluded as a variable:** Telegram forum **Topics were NOT enabled at any point** — the owner
+confirmed this explicitly *after* the failure. The only thing that changed between working and
+failing was the proxy restart.
+
+#### The hypothesis — label it exactly that
+
+`src/server/Master.ts:212-213` constructs **one module-level `ProxyAgent`** at process start and
+reuses it for the life of the process. undici pools keep-alive connections. When the proxy restarts
+— **or a connection simply goes stale via idle / NAT timeout** — the pooled socket is dead but the
+agent still hands it out. The next send fails at the **network layer** with `TypeError: fetch failed`
+— **not** a Telegram API rejection. The failed socket is then discarded, so the *following* request
+opens a fresh one and succeeds.
+
+#### Why it fits — it accounts for every recorded symptom
+
+- **Silent.** `Master.ts` catches, logs, and still answers the player `200`. Matches the 10:30:06 line
+  exactly.
+- **Intermittent with no pattern.** A socket dies on proxy restart or idle timeout, neither of which
+  correlates with anything a reader would look for.
+- ***"Twice in a single boot"*** from the 2026-08-22 incident record — two separate stale sockets in
+  one process lifetime is ordinary for a pooled agent; a config fault would have failed *every* send.
+- **It fired during the outage,** when players most needed the channel — an outage is exactly when
+  network paths get disturbed.
+
+#### Judgement on the prior analysis above — it **COMPLEMENTS**, it does not supersede
+
+The *"does not survive contact with the code"* warning refuted the **incident record's §9**
+hypothesis — *"likely needs `TELEGRAM_PROXY_URL`"*, i.e. *proxy support is missing or not
+forwarded*. **That refutation still holds in full and is not weakened**: the plumbing is present end
+to end, and today's evidence confirms it, since the proxy is demonstrably in the path (restarting it
+is what broke delivery).
+
+Today's finding is about the **lifetime of that plumbing's connection pool**, not its absence. The
+two are consistent, and the earlier analysis is left standing deliberately. What is new is that the
+old §9 diagnosis never explained *intermittency*; this one does.
+
+⚠️ **Step 1 of *What to build* below (log `err.cause`) is still required and still unblocks
+everything.** Today's evidence is behavioural — the nested cause was never logged, so the mechanism
+is inferred from timing, not read off a log line. Confirming it in code is the remaining work.
+
+#### Likely fix shape — ⛔ NOT a ruling; the coder/architect owns the design
+
+**Retry once on a *connection-level* failure** — the dead socket is evicted after the first attempt,
+so a single immediate retry should succeed. Two things a fix must account for:
+
+- `src/core/notifications/TelegramNotifier.ts` has the **same** module-level-agent pattern
+  (`:56-67`, keyed by proxy URL) and **no retry**, so the **shared helper is affected too** — and it
+  is what the profile box uses. See the `0277` / `0274` flag below.
+- `Master.ts`'s two inline copies have **no timeout at all**, unlike the helper's 10 s.
 
 ### What `TypeError: fetch failed` actually tells us
 
@@ -129,11 +277,27 @@ Produce **findings first**. Only write the fix once the cause is known.
 ## Notes
 
 - **Depends on:** nothing.
-- **Blocks:** nothing formally.
+- **Worked together with:** [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md) —
+  **owner ruling 2026-09-17**, recorded in full in the *"FIXED TOGETHER WITH `0277`"* section above.
+  The same shared notification code underlies player feedback, the name-change operator notification
+  **and** the alert relay, so **one fix covers all three**. ⚠️ This is a **pairing**, not a formal
+  dependency in either direction — neither task blocks the other, and the canonical `Depends on` /
+  `Blocks` lines are deliberately left saying what they said.
+- **Blocks:** nothing formally. ⚠️ **But since 2026-09-17 it is a recorded DESIGN INPUT to
+  [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md) and
+  [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md)** — both briefs now
+  carry a dated note saying the alert relay must not inherit this fail-silent behaviour. That is a
+  constraint recorded against them, not a formal block.
 - **Related:** `0062` (same shape — an env var not reaching production; worth checking whether they
   share a root cause in how `.env.prod` is maintained), `0060`, `0063`.
 
-- **Producer note on placement.** Backlog, not Sprint 4. It is genuinely valuable — the feedback
+- ⛔ **Producer note on placement — STALE since 2026-09-17, kept for the record, do NOT act on it.**
+  It argued for Backlog placement and was written before the production reproduction. **The owner
+  overturned their own Backlog ruling on 2026-09-17 and this task is now on Sprint 4** — see the
+  reversal section above. The note is left standing because its closing sentence (*"If the owner wants
+  one more item pulled into the sprint, this is the one I would pick"*) is exactly what happened, and
+  deleting it would erase that.
+- **Producer note on placement.** ~~Backlog, not Sprint 4.~~ It is genuinely valuable — the feedback
   channel is how players tell us the game is broken, and during the current outage-track pause that
   matters more than usual. But it has been broken for some unknown period with nobody noticing, which
   is evidence it is not urgent, and I only argued Sprint 4 for `0060`. **If the owner wants one more

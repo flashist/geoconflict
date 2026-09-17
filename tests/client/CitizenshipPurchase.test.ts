@@ -15,7 +15,6 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   flashist_logEventAnalytics: jest.fn(),
   FlashistFacade: {
     instance: {
-      getYandexUniqueId: jest.fn(),
       purchaseCatalogItem: jest.fn(),
       consumePurchase: jest.fn(),
     },
@@ -36,8 +35,6 @@ import {
   createPurchaseIntent,
 } from "../../src/client/PaymentsApiClient";
 
-const getYandexUniqueId = FlashistFacade.instance
-  .getYandexUniqueId as jest.Mock;
 const purchaseCatalogItem = FlashistFacade.instance
   .purchaseCatalogItem as jest.Mock;
 const consumePurchase = FlashistFacade.instance.consumePurchase as jest.Mock;
@@ -53,7 +50,6 @@ describe("runCitizenshipPurchase", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Happy-path defaults; individual tests break one link at a time.
-    getYandexUniqueId.mockResolvedValue("player-1");
     createIntent.mockResolvedValue("intent-uuid");
     purchaseCatalogItem.mockResolvedValue({ signature: "sig.payload" });
     complete.mockResolvedValue({ success: true, purchaseToken: "tok-1" });
@@ -63,7 +59,7 @@ describe("runCitizenshipPurchase", () => {
   it("happy path: intent → purchase → complete → consume, Started then Completed", async () => {
     await expect(runCitizenshipPurchase()).resolves.toBe("granted");
 
-    expect(createIntent).toHaveBeenCalledWith("player-1", "citizenship");
+    expect(createIntent).toHaveBeenCalledWith("citizenship");
     expect(purchaseCatalogItem).toHaveBeenCalledWith(
       "citizenship",
       "intent-uuid",
@@ -84,17 +80,10 @@ describe("runCitizenshipPurchase", () => {
     );
   });
 
-  it("no Yandex id: error, nothing called, no events", async () => {
-    getYandexUniqueId.mockResolvedValue(null);
-
-    await expect(runCitizenshipPurchase()).resolves.toBe("error");
-
-    expect(createIntent).not.toHaveBeenCalled();
-    expect(purchaseCatalogItem).not.toHaveBeenCalled();
-    expect(loggedEvents()).toEqual([]);
-  });
-
-  it("intent creation fails: error, frame never opened, no Started and no Abandoned", async () => {
+  // Since S4 (task 0273) the flow no longer reads the Yandex id at all — the
+  // identity travels as the Bearer token inside createPurchaseIntent. A guest,
+  // a failed login and a failed /intent all arrive here as a null intent.
+  it("intent creation fails (incl. no session): error, frame never opened, no Started and no Abandoned", async () => {
     createIntent.mockResolvedValue(null);
 
     await expect(runCitizenshipPurchase()).resolves.toBe("error");

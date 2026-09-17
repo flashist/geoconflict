@@ -5,12 +5,36 @@ jest.mock("../../src/core/configuration/ConfigLoader", () => ({
   getServerConfigFromClient: jest.fn(),
 }));
 
+const getYandexUniqueId = jest.fn();
+const isYandexAuthorized = jest.fn();
+jest.mock("../../src/client/flashist/FlashistFacade", () => ({
+  FlashistFacade: {
+    instance: {
+      getYandexUniqueId: (...args: unknown[]) => getYandexUniqueId(...args),
+      isYandexAuthorized: (...args: unknown[]) => isYandexAuthorized(...args),
+    },
+  },
+  flashist_logEventAnalytics: jest.fn(),
+  flashistConstants: {
+    analyticEvents: {
+      PROFILE_LOGIN_SUCCEEDED: "Profile:Login:Succeeded",
+      PROFILE_LOGIN_CREATED: "Profile:Login:Created",
+      PROFILE_LOGIN_FAILED_TIMEOUT: "Profile:Login:Failed:Timeout",
+      PROFILE_LOGIN_FAILED_UNAVAILABLE: "Profile:Login:Failed:Unavailable",
+      PROFILE_LOGIN_FAILED_ERROR: "Profile:Login:Failed:Error",
+      PROFILE_SESSION_RELOGIN: "Profile:Session:Relogin",
+    },
+  },
+}));
+
 import { getServerConfigFromClient } from "../../src/core/configuration/ConfigLoader";
 import {
   completePurchase,
   createPurchaseIntent,
   reconcilePurchases,
 } from "../../src/client/PaymentsApiClient";
+import { resetProfileSessionForTests } from "../../src/client/ProfileSession";
+import { EXPECTED_BEARER, primeProfileSession } from "./support/profileSession";
 
 const getServerConfig = getServerConfigFromClient as jest.Mock;
 
@@ -27,47 +51,68 @@ function stubFetch(status: number, body: unknown): jest.Mock {
 }
 
 describe("PaymentsApiClient", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     getServerConfig.mockResolvedValue({ profileApiUrl: () => API_BASE });
+    getYandexUniqueId.mockResolvedValue("yandex-1");
+    isYandexAuthorized.mockResolvedValue(true);
+    // S4: /intent goes out under a Bearer token; complete/reconcile do not.
+    await primeProfileSession();
   });
 
   afterEach(() => {
     delete (global as { fetch?: unknown }).fetch;
   });
 
-  it("createPurchaseIntent posts the request and returns the intentId", async () => {
+  it("createPurchaseIntent posts only the productId, under a Bearer token", async () => {
     const fetchMock = stubFetch(200, { intentId: "intent-1" });
-    await expect(createPurchaseIntent("yandex-1", "citizenship")).resolves.toBe(
-      "intent-1",
-    );
+    await expect(createPurchaseIntent("citizenship")).resolves.toBe("intent-1");
     expect(fetchMock).toHaveBeenCalledWith(
       `${API_BASE}/v1/payments/yandex/intent`,
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({
-          yandexPlayerId: "yandex-1",
-          productId: "citizenship",
-        }),
+        body: JSON.stringify({ productId: "citizenship" }),
+        headers: expect.objectContaining({ Authorization: EXPECTED_BEARER }),
       }),
     );
+  });
+
+  // Reconciliation must never depend on being logged in: it runs at session
+  // start to recover an interrupted purchase, and the GRANT is bound to the
+  // Yandex-signed payload, not to the caller.
+  it("completePurchase and reconcilePurchases send NO Authorization header", async () => {
+    const fetchMock = stubFetch(200, {
+      success: true,
+      purchaseToken: "tok-1",
+    });
+    await completePurchase("sig.payload");
+    stubFetch(200, { processedTokens: [] });
+    await reconcilePurchases("sig.payload");
+    expect(
+      (fetchMock.mock.calls[0][1].headers as Record<string, string>)
+        .Authorization,
+    ).toBeUndefined();
+  });
+
+  it("createPurchaseIntent resolves null without a session, and never calls out", async () => {
+    resetProfileSessionForTests();
+    isYandexAuthorized.mockResolvedValue(false);
+    const fetchMock = stubFetch(200, { intentId: "intent-1" });
+    await expect(createPurchaseIntent("citizenship")).resolves.toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("is a no-op resolving null when the profile API base is empty", async () => {
     getServerConfig.mockResolvedValue({ profileApiUrl: () => "" });
     const fetchMock = stubFetch(200, { intentId: "intent-1" });
-    await expect(
-      createPurchaseIntent("yandex-1", "citizenship"),
-    ).resolves.toBeNull();
+    await expect(createPurchaseIntent("citizenship")).resolves.toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("resolves null when the config loader itself throws", async () => {
     getServerConfig.mockRejectedValue(new Error("no /api/env"));
     stubFetch(200, { intentId: "intent-1" });
-    await expect(
-      createPurchaseIntent("yandex-1", "citizenship"),
-    ).resolves.toBeNull();
+    await expect(createPurchaseIntent("citizenship")).resolves.toBeNull();
   });
 
   it("completePurchase returns the success payload with the token", async () => {

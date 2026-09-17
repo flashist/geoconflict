@@ -133,6 +133,38 @@ export const flashistConstants = {
     PURCHASE_ABANDONED_CITIZENSHIP: "Purchase:Abandoned:Citizenship",
 
     BUILD_STALE_DETECTED: "Build:StaleDetected",
+
+    // Profile login session (task 0273, S4). One login per logged-in page load,
+    // fired even while the citizenship card is hidden — nothing else is visible,
+    // so these are the only signal that the session path works. Never fired for a
+    // guest or with the profile API unconfigured.
+    PROFILE_LOGIN_SUCCEEDED: "Profile:Login:Succeeded",
+    // Additional to Succeeded, when the server created the player row.
+    PROFILE_LOGIN_CREATED: "Profile:Login:Created",
+    PROFILE_LOGIN_FAILED_TIMEOUT: "Profile:Login:Failed:Timeout",
+    // Any 503: today `session_unavailable`, later S5's `creation_paused`.
+    PROFILE_LOGIN_FAILED_UNAVAILABLE: "Profile:Login:Failed:Unavailable",
+    // Network error, any other non-2xx, or a body that fails the schema.
+    PROFILE_LOGIN_FAILED_ERROR: "Profile:Login:Failed:Error",
+    // A held token was rejected (401) and a fresh login was started for it.
+    PROFILE_SESSION_RELOGIN: "Profile:Session:Relogin",
+
+    // Restart-after-login (task 0273, owner ruling D3). Requested fires when the
+    // auth dialog reported success; exactly one of Performed / Suppressed:* follows.
+    PROFILE_LOGIN_RESTART_REQUESTED: "Profile:Login:Restart:Requested",
+    PROFILE_LOGIN_RESTART_PERFORMED: "Profile:Login:Restart:Performed",
+    // The player closed the dialog / it failed — no reload, card stays guest.
+    PROFILE_LOGIN_RESTART_CANCELLED: "Profile:Login:Restart:Cancelled",
+    PROFILE_LOGIN_RESTART_SUPPRESSED_IN_MATCH:
+      "Profile:Login:Restart:Suppressed:InMatch",
+    PROFILE_LOGIN_RESTART_SUPPRESSED_LATCHED:
+      "Profile:Login:Restart:Suppressed:Latched",
+    // sessionStorage is null or throws, so the once-per-load cap cannot be held
+    // and no reload happens. Owner-approved sixth event (review round 1, R4) —
+    // the approved plan §3.6 named five; without it these two paths leave a
+    // Requested with no outcome at all.
+    PROFILE_LOGIN_RESTART_SUPPRESSED_NO_STORAGE:
+      "Profile:Login:Restart:Suppressed:NoStorage",
   },
 
   uiElementIds: {
@@ -679,6 +711,16 @@ export class FlashistFacade {
   public changeHref(value) {
     // window.location.href = value;
     window.location.href = value;
+  }
+
+  /**
+   * Reload the CURRENT url, query string and hash included (task 0273, S4).
+   * Deliberately not `changeHref(this.rootPathname)`: that drops the query and the
+   * hash, and the Yandex Games iframe url is handed to us by the platform. Same
+   * primitive as Bootstrap.ts's recovery reload and StaleBuildModal's REFRESH.
+   */
+  public reloadApp() {
+    window.location.reload();
   }
 
   public readonly yandexInitPromise: Promise<void>;

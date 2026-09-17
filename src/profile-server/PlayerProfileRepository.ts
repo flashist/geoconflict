@@ -9,6 +9,9 @@ import { CITIZENSHIP_XP_THRESHOLD } from "../core/profile/Citizenship";
 import { PlayerProfile, migrateProfile } from "../core/profile/PlayerProfile";
 import { logInboxSendFailure, type InboxSender } from "./InboxRepository";
 
+/** One-off XP grant kinds — must match the `player_xp_grants.kind` CHECK (migrations/006). */
+export type XpGrantKind = "tenure";
+
 /** Outcome of crediting a single match for one player. */
 export type CreditStatus = "credited" | "duplicate" | "no_profile";
 
@@ -223,6 +226,19 @@ export class PlayerProfileRepository {
     } catch (error) {
       logInboxSendFailure("citizenship_earned", error);
     }
+  }
+
+  /**
+   * Whether a one-off XP grant of `kind` has been recorded for the player (task
+   * 0271, `grantChecks` on POST /v1/login). ANY row counts — a 0-XP row is a final
+   * "checked, nothing granted" (ADR-112, amended). Read-only.
+   */
+  async hasXpGrant(playerId: string, kind: XpGrantKind): Promise<boolean> {
+    const res = await this.pool.query(
+      "SELECT 1 FROM player_xp_grants WHERE player_id = $1 AND kind = $2",
+      [playerId, kind],
+    );
+    return res.rows.length > 0;
   }
 
   /** Read a profile by internal player id, or null if none exists. */

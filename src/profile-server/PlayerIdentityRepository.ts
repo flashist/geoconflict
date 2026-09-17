@@ -2,30 +2,65 @@
 // turns a platform login (today: a Yandex Games id) into the internal player id
 // every other repository is keyed by.
 //
-// Two operations, and the difference matters:
-//   * findPlayerByIdentity  — find-only. Never writes. Every player-facing route
-//     resolves its caller through this, so a request can never create a player.
-//   * resolveOrCreatePlayer — find-or-create. Only the internal (service-auth'd)
-//     upsert route calls it in S1; `/v1/login` and `/internal/v1/players/resolve`
-//     take it over in S2/S3.
+// Three operations, and the difference matters:
+//   * findPlayerByIdentity  — find-only, id only. Never writes.
+//   * resolveExistingPlayer — find-only, id + profile (task 0274). Never INSERTS, and
+//     that is the precise claim: it does UPDATE `last_login_at` on the player and the
+//     identity (throttled in SQL to once an hour). So the switch-off login path is
+//     create-free, NOT write-free — do not read it as read-only.
+//     `POST /v1/login` uses this instead of the find-or-create below whenever the
+//     login-creation switch is OFF, so the switch cannot be defeated by the route.
+//     ⚠️ The refreshed `last_login_at` is load-bearing elsewhere: the junk-cleanup
+//     predicate excludes players who came back, so a flood that keeps re-asserting the
+//     same ids keeps its own rows out of the cleanup (see the cleanup runbook).
+//   * resolveOrCreatePlayer — find-or-create. Only `POST /v1/login` (S2, switch ON)
+//     and the internal (service-auth'd) `POST /internal/v1/players/resolve` (S3)
+//     call it. The internal one ALWAYS creates — the switch never gates a real match.
 //
 // Design: ai-agents/knowledge-base/reports/2026-09-15-profile-identity-design.md §4.
 // ⛔ Never log a platform user id or a player id from here.
 
 import type { Pool, PoolClient } from "pg";
+import type { Platform } from "../core/profile/Platform";
 import type { PlayerProfile } from "../core/profile/PlayerProfile";
+import { logger } from "./Logger";
 import { rowToProfile } from "./PlayerProfileRepository";
 
-/**
- * Platform spellings. Local to the server in S1 — no client sends a platform
- * until S2, whose `LoginContract` can take these over. Must match the
- * `player_identities.platform` CHECK in migrations/006.
- */
-export const PLATFORM_YANDEX_GAMES = "yandex_games";
-export type Platform = typeof PLATFORM_YANDEX_GAMES;
+const log = logger.child({ comp: "identity" });
 
-/** Who asked for the find-or-create. Unused until S5's metrics attribute it. */
+/**
+ * At most one metric-hook warning per this window (a broken hook throws on every
+ * single creation, so an unthrottled warn would be the log flood instead).
+ * The budget is per REPOSITORY INSTANCE, not per module: production builds exactly
+ * one, so the behaviour is identical there, and it keeps the throttle from leaking
+ * between tests — which module-level state does.
+ */
+const HOOK_WARN_INTERVAL_MS = 600_000;
+
+/**
+ * Platform spellings live in src/core/profile/Platform.ts (task 0271), shared with
+ * the login contract. Re-exported here so existing server imports keep working.
+ * Must match the `player_identities.platform` CHECK in migrations/006.
+ */
+export type { Platform };
+export const PLATFORM_YANDEX_GAMES = "yandex_games" satisfies Platform;
+
+/** Who asked for the find-or-create. S5's metrics attribute creations by it. */
 export type ResolveSource = "login" | "game_server";
+
+/**
+ * Post-commit hooks (task 0274, S5). `onPlayerCreated` fires ONCE per player that
+ * this process actually committed — never for a player that was merely found, a
+ * lost identity race (its player row was rolled back) or a retried UUID collision.
+ * Alert A1 pages on this count, so an over-count would page on nothing and an
+ * under-count would hide the creation flood the alert exists for.
+ *
+ * ⛔ It is given the platform and the source, never an id (ADR-113). It is called
+ * inside a try/catch: a metrics failure must never fail the login it is counting.
+ */
+export interface IdentityRepositoryHooks {
+  onPlayerCreated?(platform: Platform, source: ResolveSource): void;
+}
 
 export interface ResolvedPlayer {
   playerId: string;
@@ -98,7 +133,13 @@ type CreateAttempt =
   | { status: "id_collision" };
 
 export class PlayerIdentityRepository {
-  constructor(private readonly pool: Pool) {}
+  /** Epoch ms of the last metric-hook warning; see HOOK_WARN_INTERVAL_MS. */
+  private lastHookWarnAt = 0;
+
+  constructor(
+    private readonly pool: Pool,
+    private readonly hooks: IdentityRepositoryHooks = {},
+  ) {}
 
   /** The internal player id for this login, or null. Never writes. */
   async findPlayerByIdentity(
@@ -131,14 +172,18 @@ export class PlayerIdentityRepository {
     platformUserId: string,
     source: ResolveSource,
   ): Promise<ResolvedPlayer> {
-    void source; // S5 metrics attribute creations by source.
     for (let attempt = 1; attempt <= MAX_RESOLVE_ATTEMPTS; attempt++) {
-      const existing = await this.findExisting(platform, platformUserId);
+      const existing = await this.resolveExistingPlayer(
+        platform,
+        platformUserId,
+      );
       if (existing !== null) {
         return existing;
       }
       const outcome = await this.tryCreate(platform, platformUserId);
       if (outcome.status === "created") {
+        // AFTER the COMMIT inside tryCreate, and only on this branch.
+        this.notifyPlayerCreated(platform, source);
         return outcome.player;
       }
       // lost_race / id_collision: the transaction was rolled back — go again.
@@ -149,7 +194,12 @@ export class PlayerIdentityRepository {
     );
   }
 
-  private async findExisting(
+  /**
+   * The player for this login, profile included, or null. NEVER inserts (task
+   * 0274) — this is what `POST /v1/login` calls while the creation switch is off,
+   * and what find-or-create does on its hit path.
+   */
+  async resolveExistingPlayer(
     platform: Platform,
     platformUserId: string,
   ): Promise<ResolvedPlayer | null> {
@@ -204,6 +254,33 @@ export class PlayerIdentityRepository {
       throw error;
     } finally {
       client.release();
+    }
+  }
+
+  /**
+   * Counting a creation must never be able to fail one. A metrics exporter that
+   * throws here would turn every brand-new player's login into a 500 — the worst
+   * possible way for monitoring to pay for itself.
+   *
+   * But swallowing it SILENTLY is its own failure (review R3): this counter is what
+   * alert A1 — the creation-flood alarm — pages on, so a hook that always throws
+   * would make A1 read zero forever with nothing anywhere saying why. One warn per
+   * HOOK_WARN_INTERVAL_MS, carrying the error's TYPE and nothing else: not the
+   * message, and never a platform id or a player id (ADR-113). Same shape as
+   * Telemetry.ts's export-failure warning, for the same reason.
+   */
+  private notifyPlayerCreated(platform: Platform, source: ResolveSource): void {
+    try {
+      this.hooks.onPlayerCreated?.(platform, source);
+    } catch (error) {
+      const now = Date.now();
+      if (now - this.lastHookWarnAt >= HOOK_WARN_INTERVAL_MS) {
+        this.lastHookWarnAt = now;
+        const name = error instanceof Error ? error.name : typeof error;
+        log.warn(
+          `player-created metric hook threw (${name}) — the creation-flood alert may be under-counting`,
+        );
+      }
     }
   }
 }

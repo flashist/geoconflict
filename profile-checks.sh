@@ -12,6 +12,10 @@
 #     the daily object the marker names must really exist off-box (a log line is not an object,
 #     0218), and the newest object under weekly/ must be recent — the marker carries NO weekly
 #     signal and a weekly-copy failure is exit 0 by design (0241), so "backup OK" ≠ "weekly present".
+#   - disk usage and player-row growth (task 0274): the on-box backstop for the monitoring
+#     that now lives in Uptrace. Uptrace is a single point of failure (out-of-memory freezes,
+#     an expired cert); when it is down, these two are the only things that would still
+#     notice a full disk or a flood of junk player rows.
 #   - the certbot renewal log: an attempt happened recently (certbot appends to letsencrypt.log
 #     on EVERY run, including "not yet due" ones — the cron's own certbot-renew.log stays empty
 #     under --quiet unless something errs), the attempt did not error (certbot-renew.log grew),
@@ -60,6 +64,11 @@ MAX_BACKUP_AGE_HOURS="${PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS:-26}"
 MAX_WEEKLY_AGE_DAYS="${PROFILE_CHECKS_MAX_WEEKLY_AGE_DAYS:-8}"
 MAX_RENEW_ATTEMPT_AGE_HOURS="${PROFILE_CHECKS_MAX_RENEW_ATTEMPT_AGE_HOURS:-13}"
 CERT_MIN_DAYS="${PROFILE_CHECKS_CERT_MIN_DAYS:-20}"
+# Task 0274 (S5). 80% leaves real headroom on a box whose runway is ~12–16 days; 20000 new
+# players in 24 h is far above any organic day and far below what an automated flood does.
+DISK_MAX_PCT="${PROFILE_CHECKS_DISK_MAX_PCT:-80}"
+MAX_PLAYER_GROWTH_24H="${PROFILE_CHECKS_MAX_PLAYER_GROWTH_24H:-20000}"
+DISK_PATHS="${PROFILE_CHECKS_DISK_PATHS:-/}"
 
 # rclone is configured purely via the RCLONE_CONFIG_PROFILES_* vars in backup.env (same as
 # profile-backup.sh); /dev/null silences the "config file not found" notice.
@@ -103,6 +112,8 @@ int_or_default MAX_BACKUP_AGE_HOURS        PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS  
 int_or_default MAX_WEEKLY_AGE_DAYS         PROFILE_CHECKS_MAX_WEEKLY_AGE_DAYS         8
 int_or_default MAX_RENEW_ATTEMPT_AGE_HOURS PROFILE_CHECKS_MAX_RENEW_ATTEMPT_AGE_HOURS 13
 int_or_default CERT_MIN_DAYS               PROFILE_CHECKS_CERT_MIN_DAYS               20
+int_or_default DISK_MAX_PCT                PROFILE_CHECKS_DISK_MAX_PCT                80
+int_or_default MAX_PLAYER_GROWTH_24H       PROFILE_CHECKS_MAX_PLAYER_GROWTH_24H       20000
 
 # ── Mode: is this box off-box-configured at all? ─────────────────────────────
 OFFBOX=0
@@ -296,6 +307,97 @@ check_reboot_required() {
   fi
 }
 
+# 9) Disk usage (task 0274). The telemetry box has frozen on a full disk before, and this
+#    box's backup+image runway is only ~12–16 days. Nothing read `df` until now. Report-only
+#    in the sense that it fixes nothing — but a FAIL here pages, which is the whole point.
+#    A path that cannot be read is a FAIL, never a silent OK.
+check_disk_usage() {
+  local name="disk-usage" path out pct
+  for path in $DISK_PATHS; do
+    if ! out="$(df -P "$path" 2>/dev/null)"; then
+      fail "$name" "could not read disk usage for ${path} (df failed — is the path mounted?)"
+      continue
+    fi
+    # `df -P` guarantees ONE line per filesystem and the capacity in the second-to-last
+    # column, which is exactly why -P (POSIX output) is used rather than plain df.
+    pct="$(printf '%s\n' "$out" | awk 'NR>1 { p=$(NF-1); gsub(/%/,"",p); print p; exit }')"
+    case "$pct" in
+      ''|*[!0-9]*) fail "$name" "could not read disk usage for ${path} (unparseable df output)"; continue ;;
+    esac
+    if [ "$pct" -gt "$DISK_MAX_PCT" ]; then
+      fail "$name" "${path} is ${pct}% full (> ${DISK_MAX_PCT}%) — backups, images and Postgres share this disk"
+    else
+      ok "$name" "${path} is ${pct}% full (limit ${DISK_MAX_PCT}%)"
+    fi
+  done
+}
+
+# 10) Player-row growth (task 0274). The on-box backstop for alert A1: Uptrace is a single
+#     point of failure (out-of-memory freezes, an expired cert), and when it is down NOTHING
+#     would notice a creation flood. Compares against the PREVIOUS run's count, scaled to
+#     24 h so a missed cron (a 48-hour gap) does not read as double the growth.
+#     ⛔ Counts only — never an id, never a name.
+check_players_growth() {
+  local name="players-growth" state="$STATE_DIR/players.count" out count prev_count prev_epoch elapsed delta scaled
+  if [ -z "${POSTGRES_USER:-}" ] || [ -z "${POSTGRES_DB:-}" ]; then
+    fail "$name" "could not count players: POSTGRES_USER/POSTGRES_DB are not set (checks.env is written by setup-profile.sh — redeploy)"
+    return 0
+  fi
+  if ! command -v docker >/dev/null 2>&1; then fail "$name" "could not count players: docker not installed"; return 0; fi
+  # </dev/null so a compose exec can never consume this script's stdin under cron.
+  if ! out="$(docker compose -f "$PROFILE_DIR/docker-compose.yml" exec -T postgres \
+        psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc 'select count(*) from players' </dev/null 2>/dev/null)"; then
+    fail "$name" "could not count players (the psql query failed — is the postgres container up?)"
+    return 0
+  fi
+  count="$(printf '%s' "$out" | tr -d '[:space:]')"
+  case "$count" in
+    ''|*[!0-9]*) fail "$name" "could not count players (the query returned something that is not a number)"; return 0 ;;
+  esac
+  prev_count="$(awk 'NR==1{print $1}' "$state" 2>/dev/null || true)"
+  prev_epoch="$(awk 'NR==1{print $2}' "$state" 2>/dev/null || true)"
+  mkdir -p "$STATE_DIR" 2>/dev/null || true
+  case "$prev_count" in ''|*[!0-9]*) prev_count="" ;; esac
+  case "$prev_epoch" in ''|*[!0-9]*) prev_epoch="" ;; esac
+  if [ -z "$prev_count" ] || [ -z "$prev_epoch" ]; then
+    printf '%s %s\n' "$count" "$NOW" > "$state" 2>/dev/null || log "WARNING: could not persist ${state}"
+    ok "$name" "baseline recorded (${count} players) — growth is compared from the next run"
+    return 0
+  fi
+  elapsed=$(( NOW - prev_epoch ))
+  # A NEGATIVE elapsed means the stored baseline is in the FUTURE: the clock stepped
+  # back, NTP corrected a wrong-clock first run, or a state file was restored from a
+  # backup. Without this guard every later run falls into the "< 3600" branch below,
+  # reports ok, and NEVER advances the baseline — the growth backstop silently
+  # disabled while still printing OK, which is the one failure mode this whole file
+  # exists to prevent. FAIL loudly, and rewrite the baseline so it self-heals on the
+  # next run instead of needing a human to delete the file.
+  if [ "$elapsed" -lt 0 ]; then
+    printf '%s %s\n' "$count" "$NOW" > "$state" 2>/dev/null || log "WARNING: could not persist ${state}"
+    fail "$name" "the stored baseline is in the future by $(( -elapsed ))s (clock stepped back, or a restored state file) — growth could not be evaluated; the baseline has been reset to now and the next run will work"
+    return 0
+  fi
+  if [ "$elapsed" -lt 3600 ]; then
+    # Under an hour the scaling below would multiply noise into a false page — and the
+    # baseline is deliberately NOT advanced, so the next daily run still measures a real
+    # window. This is the hand-run case; cron's window is ~24 h.
+    ok "$name" "${count} players; less than an hour since the last check, so growth was not evaluated"
+    return 0
+  fi
+  delta=$(( count - prev_count ))
+  printf '%s %s\n' "$count" "$NOW" > "$state" 2>/dev/null || log "WARNING: could not persist ${state}"
+  if [ "$delta" -lt 0 ]; then
+    ok "$name" "${count} players; the count went down by $(( -delta )) (a cleanup ran) — nothing to alert on"
+    return 0
+  fi
+  scaled=$(( delta * 86400 / elapsed ))
+  if [ "$scaled" -gt "$MAX_PLAYER_GROWTH_24H" ]; then
+    fail "$name" "${delta} new players in $(( elapsed / 3600 ))h = ${scaled}/24h (> ${MAX_PLAYER_GROWTH_24H}/24h) — check Uptrace, and pause creation with PROFILE_LOGIN_CREATE_ENABLED=false if it is a flood"
+  else
+    ok "$name" "${delta} new players in $(( elapsed / 3600 ))h = ${scaled}/24h (limit ${MAX_PLAYER_GROWTH_24H}/24h), ${count} total"
+  fi
+}
+
 # ── Report: log summary, then ping the dead-man's switch ──────────────────────
 # curl's stderr is discarded on purpose: its error text can carry the URL. The service alerts on
 # a MISSING ping, so an undelivered ping is logged, exits non-zero, and still pages.
@@ -331,4 +433,6 @@ check_renewal_errors
 check_cert_days
 check_mode
 check_reboot_required
+check_disk_usage
+check_players_growth
 report

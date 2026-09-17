@@ -1,6 +1,6 @@
 # Review — 0270
 
-Task: ai-agents/tasks/backlog/0270-profile-identity-s1-database-and-rekeying/brief.md
+Task: ai-agents/tasks/done/0270-profile-identity-s1-database-and-rekeying/brief.md
 File(s) under review: migrations/006_player_identity.sql, src/profile-server/{Migrations,PlayerIdentityRepository,migrate,PlayerProfileRepository,InboxRepository,NameChangeRepository,PaymentsRepository,Routes,Server}.ts, src/core/profile/{PlayerProfile,InboxContract,NameChangeContract,MatchQualification}.ts, tests/integration/** (globalSetup, support/db, Migration006, PlayerIdentityRepository + 5 re-keyed suites), tests/profile-server/** (re-keyed + new PlayerIdentityRepository.test.ts, deleted PlayerProfileRepository.test.ts), tests/core/profile/{PlayerProfile,InboxContract}.test.ts, tests/IntegrationDatabaseGuard.test.ts, fixture keys in tests/client/PlayerProfileView.test.ts + tests/server/ProfileApiClient.test.ts, CLAUDE.md integration subsection
 Status: closed-out
 

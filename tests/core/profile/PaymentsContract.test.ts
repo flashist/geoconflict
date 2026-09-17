@@ -10,36 +10,33 @@ import {
 
 describe("PaymentsContract schemas", () => {
   describe("PurchaseIntentRequestSchema", () => {
-    it("accepts a known product with a bounded player id", () => {
+    // Task 0273 (S4): the caller is the Bearer token; the body is the product only.
+    it("accepts a known product on its own", () => {
+      expect(
+        PurchaseIntentRequestSchema.safeParse({ productId: "citizenship" })
+          .success,
+      ).toBe(true);
+    });
+
+    it("rejects an unknown product id", () => {
+      expect(
+        PurchaseIntentRequestSchema.safeParse({ productId: "mega_tank_skin" })
+          .success,
+      ).toBe(false);
+    });
+
+    // Task 0273 (S4), owner ruling D1: the legacy field is gone from the schema.
+    // zod strips unknown keys, so an old client's body still PARSES — and then the
+    // route 401s it for having no token. What must never happen is the id reaching
+    // the parsed output, where a future route could read it again.
+    it("strips a legacy yandexPlayerId instead of accepting it as a caller", () => {
       const parsed = PurchaseIntentRequestSchema.safeParse({
         yandexPlayerId: "yandex-1",
         productId: "citizenship",
       });
       expect(parsed.success).toBe(true);
-    });
-
-    it("rejects an unknown product id", () => {
-      expect(
-        PurchaseIntentRequestSchema.safeParse({
-          yandexPlayerId: "yandex-1",
-          productId: "mega_tank_skin",
-        }).success,
-      ).toBe(false);
-    });
-
-    it("rejects an empty and an oversized yandexPlayerId", () => {
-      expect(
-        PurchaseIntentRequestSchema.safeParse({
-          yandexPlayerId: "",
-          productId: "citizenship",
-        }).success,
-      ).toBe(false);
-      expect(
-        PurchaseIntentRequestSchema.safeParse({
-          yandexPlayerId: "x".repeat(129),
-          productId: "citizenship",
-        }).success,
-      ).toBe(false);
+      expect(parsed.data).toEqual({ productId: "citizenship" });
+      expect(parsed.data).not.toHaveProperty("yandexPlayerId");
     });
 
     it("keeps citizenship in the sellable-product list", () => {

@@ -28,28 +28,23 @@ function jsonResponse(status: number, body: unknown): Response {
   } as unknown as Response;
 }
 
+const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
+const OTHER_PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e2f";
+
 function matchCredit(over: Partial<MatchCredit> = {}): MatchCredit {
   return {
     gameId: "game-1",
-    yandexPlayerId: "yx-1",
-    persistentId: "p-1",
+    playerId: PLAYER_ID,
     xpAwarded: 10,
     ...over,
   };
 }
 
-/** The shape `POST /internal/v1/profile/upsert` actually returns (toPublicProfile). */
-function publicProfile(over: Record<string, unknown> = {}) {
-  return {
-    schema_version: 1,
-    xp: 0,
-    is_citizen: false,
-    citizenship_earned_at: null,
-    display_name: null,
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-    ...over,
-  };
+/** Every string any mocked log method was called with. */
+function loggedText(child: ReturnType<typeof testLogger>["child"]): string {
+  return [child.info, child.warn, child.error, child.debug]
+    .flatMap((fn) => fn.mock.calls.map((call) => JSON.stringify(call)))
+    .join("\n");
 }
 
 const BASE = "https://api.test";
@@ -85,7 +80,7 @@ describe("ProfileApiClient", () => {
     const fetchMock = jest.fn().mockResolvedValue(
       jsonResponse(200, {
         results: [
-          { gameId: "game-1", yandexPlayerId: "yx-1", status: "credited" },
+          { gameId: "game-1", playerId: PLAYER_ID, status: "credited" },
         ],
       }),
     );
@@ -102,36 +97,32 @@ describe("ProfileApiClient", () => {
     expect(init.headers["Content-Type"]).toBe("application/json");
     // Each attempt is bounded by a per-attempt timeout signal (C3).
     expect(init.signal).toBeInstanceOf(AbortSignal);
-    // persistentId must NOT leak onto the credit wire payload.
+    // Keyed by the internal player id (task 0272) — no platform id on the wire.
     expect(JSON.parse(init.body)).toEqual({
-      credits: [{ gameId: "game-1", yandexPlayerId: "yx-1", xpAwarded: 10 }],
+      credits: [{ gameId: "game-1", playerId: PLAYER_ID, xpAwarded: 10 }],
     });
   });
 
-  test("no_profile result triggers upsert then a re-credit", async () => {
-    let creditCalls = 0;
-    let upsertCalls = 0;
-    const fetchMock = jest.fn(async (url: string) => {
-      if (url.endsWith("/internal/v1/credit")) {
-        creditCalls++;
-        const status = creditCalls === 1 ? "no_profile" : "credited";
-        return jsonResponse(200, {
-          results: [{ gameId: "game-1", yandexPlayerId: "yx-1", status }],
-        });
-      }
-      if (url.endsWith("/internal/v1/profile/upsert")) {
-        upsertCalls++;
-        return jsonResponse(200, { yandexPlayerId: "yx-1", xp: 0 });
-      }
-      throw new Error(`unexpected url ${url}`);
-    });
+  // Task 0272: there is no upsert to backfill with any more. A no_profile after S3
+  // means the player was erased mid-match; it is logged and dropped for this match.
+  test("a no_profile result is warned about and never triggers a second call", async () => {
+    const fetchMock = jest.fn().mockResolvedValue(
+      jsonResponse(200, {
+        results: [
+          { gameId: "game-1", playerId: PLAYER_ID, status: "no_profile" },
+        ],
+      }),
+    );
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    const { client } = newClient();
+    const { client, child } = newClient();
     await client.creditMatch([matchCredit()]);
 
-    expect(creditCalls).toBe(2);
-    expect(upsertCalls).toBe(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(child.warn).toHaveBeenCalledWith(
+      expect.stringContaining("no_profile"),
+    );
+    expect(loggedText(child)).not.toContain(PLAYER_ID);
   });
 
   test("retries on 5xx then succeeds", async () => {
@@ -141,7 +132,7 @@ describe("ProfileApiClient", () => {
       .mockResolvedValueOnce(
         jsonResponse(200, {
           results: [
-            { gameId: "game-1", yandexPlayerId: "yx-1", status: "credited" },
+            { gameId: "game-1", playerId: PLAYER_ID, status: "credited" },
           ],
         }),
       );
@@ -186,7 +177,7 @@ describe("ProfileApiClient", () => {
 
     const { client } = newClient("");
     await client.creditMatch([matchCredit()]);
-    await client.upsertProfile("yx-1", "p-1");
+    await client.resolvePlayer("yx-1");
 
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -202,6 +193,14 @@ describe("ProfileApiClient", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  // Review R1: GameServer warns about a dropped award only when this is true.
+  test("isConfigured is true only with both the URL and the token", () => {
+    expect(newClient().client.isConfigured()).toBe(true);
+    expect(newClient("").client.isConfigured()).toBe(false);
+    delete process.env.PROFILE_INTERNAL_TOKEN;
+    expect(newClient().client.isConfigured()).toBe(false);
+  });
+
   test("empty credit list never calls the network", async () => {
     const fetchMock = jest.fn();
     global.fetch = fetchMock as unknown as typeof fetch;
@@ -212,123 +211,158 @@ describe("ProfileApiClient", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  test("upsertProfile posts the expected body", async () => {
-    const fetchMock = jest
-      .fn()
-      .mockResolvedValue(jsonResponse(200, { yandexPlayerId: "yx-1", xp: 0 }));
-    global.fetch = fetchMock as unknown as typeof fetch;
+  // Task 0272 (S3): resolvePlayer replaces upsertProfile. Fail-soft IS the contract:
+  // every failure path returns null ("not resolved"), never an exception or a delay.
+  describe("resolvePlayer", () => {
+    const SYNTHETIC_ID = "zz0272clientprobe";
 
-    const { client } = newClient();
-    await client.upsertProfile("yx-1", "p-1");
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe(`${BASE}/internal/v1/profile/upsert`);
-    expect(JSON.parse(init.body)).toEqual({
-      yandexPlayerId: "yx-1",
-      persistentId: "p-1",
-    });
-  });
-
-  // Task 0068: upsertProfile now also reports the profile's is_citizen off the
-  // response the endpoint ALREADY returns. The whole point is that every failure
-  // path collapses to `false` ("not a citizen") without ever throwing, because the
-  // caller is on the join path and awaits nothing.
-  describe("upsertProfile citizen flag (0068)", () => {
-    test("returns is_citizen from a well-formed response", async () => {
-      global.fetch = jest
-        .fn()
-        .mockResolvedValue(
-          jsonResponse(200, publicProfile({ is_citizen: true })),
-        ) as unknown as typeof fetch;
-
-      const { client } = newClient();
-      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(true);
-    });
-
-    test("returns false for a non-citizen", async () => {
-      global.fetch = jest
-        .fn()
-        .mockResolvedValue(
-          jsonResponse(200, publicProfile({ is_citizen: false })),
-        ) as unknown as typeof fetch;
-
-      const { client } = newClient();
-      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
-    });
-
-    test("returns false when the profile API is unconfigured (local dev)", async () => {
-      const fetchMock = jest.fn();
-      global.fetch = fetchMock as unknown as typeof fetch;
-
-      const { client } = newClient("");
-      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
-      expect(fetchMock).not.toHaveBeenCalled();
-    });
-
-    test("returns false (never throws) when the network is down", async () => {
-      const fetchMock = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
-      global.fetch = fetchMock as unknown as typeof fetch;
-
-      const { client } = newClient();
-      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
-      expect(fetchMock).toHaveBeenCalledTimes(3);
-    });
-
-    test("returns false after retries are exhausted on 5xx", async () => {
-      const fetchMock = jest.fn().mockResolvedValue(jsonResponse(500, {}));
-      global.fetch = fetchMock as unknown as typeof fetch;
-
-      const { client } = newClient();
-      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
-      expect(fetchMock).toHaveBeenCalledTimes(3);
-    });
-
-    test("returns false immediately on a 409 persistent_id_conflict", async () => {
+    test("posts the platform identity to the resolve route with the bearer token", async () => {
       const fetchMock = jest
         .fn()
         .mockResolvedValue(
-          jsonResponse(409, { error: "persistent_id_conflict" }),
+          jsonResponse(200, { playerId: PLAYER_ID, isCitizen: false }),
         );
       global.fetch = fetchMock as unknown as typeof fetch;
 
       const { client } = newClient();
-      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
-      // 4xx is not retried.
+      await client.resolvePlayer("yx-1");
+
       expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toBe(`${BASE}/internal/v1/players/resolve`);
+      expect(init.method).toBe("POST");
+      expect(init.headers.authorization).toBe("Bearer secret-token");
+      expect(init.signal).toBeInstanceOf(AbortSignal);
+      expect(JSON.parse(init.body)).toEqual({
+        platform: "yandex_games",
+        platformUserId: "yx-1",
+      });
     });
 
-    test("returns false and warns on an unparseable body", async () => {
+    test("returns the parsed { playerId, isCitizen } pair", async () => {
       global.fetch = jest
         .fn()
         .mockResolvedValue(
-          jsonResponse(200, { not: "a profile" }),
-        ) as unknown as typeof fetch;
-
-      const { client, child } = newClient();
-      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
-      expect(child.warn).toHaveBeenCalledWith(
-        expect.stringContaining("upsert response failed validation"),
-      );
-    });
-
-    test("a truthy-but-not-boolean is_citizen is rejected, not coerced", async () => {
-      global.fetch = jest
-        .fn()
-        .mockResolvedValue(
-          jsonResponse(200, publicProfile({ is_citizen: "true" })),
+          jsonResponse(200, { playerId: PLAYER_ID, isCitizen: true }),
         ) as unknown as typeof fetch;
 
       const { client } = newClient();
-      await expect(client.upsertProfile("yx-1", "p-1")).resolves.toBe(false);
+      await expect(client.resolvePlayer("yx-1")).resolves.toEqual({
+        playerId: PLAYER_ID,
+        isCitizen: true,
+      });
+    });
+
+    test("returns null and never fetches when the profile API is unconfigured", async () => {
+      const fetchMock = jest.fn();
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const { client } = newClient("");
+      await expect(client.resolvePlayer("yx-1")).resolves.toBeNull();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    test("returns null immediately on a 4xx, without retrying", async () => {
+      const fetchMock = jest.fn().mockResolvedValue(jsonResponse(400, {}));
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await expect(client.resolvePlayer("yx-1")).resolves.toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    test("retries a 5xx up to the budget, then returns null", async () => {
+      const fetchMock = jest.fn().mockResolvedValue(jsonResponse(500, {}));
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await expect(client.resolvePlayer("yx-1")).resolves.toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    test("returns null (never throws) when the network is down", async () => {
+      const fetchMock = jest.fn().mockRejectedValue(new Error("ECONNREFUSED"));
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await expect(client.resolvePlayer("yx-1")).resolves.toBeNull();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    test.each([
+      ["a profile-shaped body", { xp: 0, is_citizen: true }],
+      ["a non-UUID playerId", { playerId: "yx-1", isCitizen: false }],
+      ["a non-boolean isCitizen", { playerId: PLAYER_ID, isCitizen: "true" }],
+    ])("returns null on an invalid response: %s", async (_label, body) => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue(jsonResponse(200, body)) as unknown as typeof fetch;
+
+      const { client, child } = newClient();
+      await expect(client.resolvePlayer("yx-1")).resolves.toBeNull();
+      expect(child.warn).toHaveBeenCalledWith(
+        expect.stringContaining("resolve response failed validation"),
+      );
+    });
+
+    test("returns null for a json() that throws", async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new Error("bad json");
+        },
+      }) as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await expect(client.resolvePlayer("yx-1")).resolves.toBeNull();
+    });
+
+    test("an over-long (129-char) id is refused before any fetch, logging its length only", async () => {
+      const fetchMock = jest.fn();
+      global.fetch = fetchMock as unknown as typeof fetch;
+      const longId = `${SYNTHETIC_ID}${"x".repeat(129 - SYNTHETIC_ID.length)}`;
+
+      const { client, child } = newClient();
+      await expect(client.resolvePlayer(longId)).resolves.toBeNull();
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(child.warn).toHaveBeenCalledWith(
+        expect.stringContaining("length 129"),
+      );
+      expect(loggedText(child)).not.toContain(SYNTHETIC_ID);
+    });
+
+    test("no log line on any failure path carries the platform id or the player id", async () => {
+      const { client, child } = newClient();
+      const scripted = [
+        jsonResponse(500, {}),
+        jsonResponse(400, {}),
+        jsonResponse(200, { playerId: PLAYER_ID, isCitizen: "no" }),
+      ];
+      for (const response of scripted) {
+        global.fetch = jest
+          .fn()
+          .mockResolvedValue(response) as unknown as typeof fetch;
+        await client.resolvePlayer(SYNTHETIC_ID);
+      }
+      global.fetch = jest
+        .fn()
+        .mockRejectedValue(
+          new Error("ECONNREFUSED"),
+        ) as unknown as typeof fetch;
+      await client.resolvePlayer(SYNTHETIC_ID);
+
+      const text = loggedText(child);
+      expect(text).not.toContain(SYNTHETIC_ID);
+      expect(text).not.toContain(PLAYER_ID);
     });
   });
 
-  test("isolates an over-long yandexPlayerId so it can't poison the batch (P1)", async () => {
+  test("isolates a non-UUID playerId so it can't poison the batch (P1)", async () => {
     const fetchMock = jest.fn().mockResolvedValue(
       jsonResponse(200, {
         results: [
-          { gameId: "game-1", yandexPlayerId: "yx-good", status: "credited" },
+          { gameId: "game-1", playerId: OTHER_PLAYER_ID, status: "credited" },
         ],
       }),
     );
@@ -336,20 +370,21 @@ describe("ProfileApiClient", () => {
 
     const { client, child } = newClient();
     await client.creditMatch([
-      // 200 chars: accepted at the 256-char join boundary, over the 128 credit cap.
-      matchCredit({ yandexPlayerId: "x".repeat(200) }),
-      matchCredit({ yandexPlayerId: "yx-good" }),
+      matchCredit({ playerId: "not-a-uuid-zz0272" }),
+      matchCredit({ playerId: OTHER_PLAYER_ID }),
     ]);
 
     // The bad item is dropped before POST; the valid player is still credited.
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.credits).toEqual([
-      { gameId: "game-1", yandexPlayerId: "yx-good", xpAwarded: 10 },
+      { gameId: "game-1", playerId: OTHER_PLAYER_ID, xpAwarded: 10 },
     ]);
     expect(child.warn).toHaveBeenCalledWith(
       expect.stringContaining("dropping invalid credit item"),
     );
+    expect(loggedText(child)).not.toContain("zz0272");
+    expect(loggedText(child)).not.toContain(OTHER_PLAYER_ID);
   });
 
   test("skips the POST entirely when every item is invalid", async () => {
@@ -357,9 +392,7 @@ describe("ProfileApiClient", () => {
     global.fetch = fetchMock as unknown as typeof fetch;
 
     const { client } = newClient();
-    await client.creditMatch([
-      matchCredit({ yandexPlayerId: "x".repeat(200) }),
-    ]);
+    await client.creditMatch([matchCredit({ playerId: "not-a-uuid" })]);
 
     expect(fetchMock).not.toHaveBeenCalled();
   });

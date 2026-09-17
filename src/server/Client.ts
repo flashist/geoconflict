@@ -12,8 +12,8 @@ export class Client {
 
   /**
    * Server-authored citizen display flag (task 0068). Filled in from the profile
-   * upsert the server already makes at join, and defaulted here rather than passed
-   * in so the construction site needs no change.
+   * resolve the server already makes at join (task 0272), and defaulted here rather
+   * than passed in so the construction site needs no change.
    *
    * DISPLAY ONLY, and deliberately NOT an entitlement gate: it is derived from the
    * UNTRUSTED `yandexPlayerId` below, so nothing of value may ever be gated on it.
@@ -22,6 +22,15 @@ export class Client {
    * citizen" — a lookup failure is indistinguishable from a non-citizen by design.
    */
   public isCitizen: boolean = false;
+
+  /**
+   * The INTERNAL profile player id (task 0272, ADR-113) this client's creditable
+   * identity resolved to; null until a resolve succeeds. Match credits are keyed by
+   * it. SERVER-ONLY: never sent to a client and never logged. Only ever set from a
+   * resolve of THIS client's creditable identity (or carried across a reconnect
+   * presenting that same identity) — see GameServer.resolveProfilePlayer.
+   */
+  public profilePlayerId: string | null = null;
 
   constructor(
     public readonly clientID: ClientID,

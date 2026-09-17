@@ -10,6 +10,7 @@ import {
   type PaymentsRepo,
   type ProfileRepo,
 } from "../../src/profile-server/Routes";
+import { TEST_SESSION_CONFIG, bearerFor } from "./support/sessionToken";
 
 const SECRET = "payments-test-secret";
 const INTENT_ID = randomUUID();
@@ -26,7 +27,9 @@ function mockProfileRepo(): ProfileRepo {
       .mockImplementation(async (_platform: string, id: string) =>
         id === "yandex-1" ? PLAYER_ID : null,
       ),
+    resolveExistingPlayer: jest.fn().mockResolvedValue(null),
     resolveOrCreatePlayer: jest.fn(),
+    hasXpGrant: jest.fn().mockResolvedValue(false),
   };
 }
 
@@ -45,11 +48,17 @@ function appWith(
   secret: string = SECRET,
   profileRepo: ProfileRepo = mockProfileRepo(),
 ) {
-  return createApp(profileRepo, {
-    paymentsRepo,
-    yandexPaymentsSecret: secret,
-  });
+  return createApp(
+    profileRepo,
+    { paymentsRepo, yandexPaymentsSecret: secret },
+    undefined,
+    undefined,
+    TEST_SESSION_CONFIG,
+  );
 }
+
+// Since task 0273 (S4) /intent accepts NOTHING but a Bearer token.
+const CALLER = bearerFor(PLAYER_ID);
 
 /** Real signed payloads (the routes use the real verifier). */
 function sign(payload: unknown): string {
@@ -117,13 +126,14 @@ describe("payments routes", () => {
       expect(preflight.headers["access-control-allow-origin"]).toBe("*");
       expect(preflight.headers["access-control-allow-methods"]).toBe("POST");
       expect(preflight.headers["access-control-allow-headers"]).toBe(
-        "Content-Type",
+        "Content-Type, Authorization",
       );
 
       const post = await request(app)
         .post("/v1/payments/yandex/intent")
         .set("Origin", "https://geoconflict.ru")
-        .send({ yandexPlayerId: "yandex-1", productId: "citizenship" });
+        .set("Authorization", CALLER)
+        .send({ productId: "citizenship" });
       expect(post.headers["access-control-allow-origin"]).toBe("*");
     });
 
@@ -143,31 +153,52 @@ describe("payments routes", () => {
       const repo = mockPaymentsRepo();
       const res = await request(appWith(repo))
         .post("/v1/payments/yandex/intent")
-        .send({ yandexPlayerId: "yandex-1", productId: "citizenship" });
+        .set("Authorization", CALLER)
+        .send({ productId: "citizenship" });
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ intentId: INTENT_ID });
       expect(repo.createIntent).toHaveBeenCalledWith(PLAYER_ID, "citizenship");
     });
 
-    // Task 0270 / design §4: the intent no longer "ensures" a profile. An unknown
-    // identity is a 404, and nothing is created.
-    it("is 404 not_found for an unknown identity and creates nothing", async () => {
+    // Task 0273 (S4), owner ruling D1: the legacy client-asserted id is GONE. It
+    // used to resolve a caller here (404 for an unknown one); now it is ignored.
+    it("is 401 for a legacy yandexPlayerId body and creates nothing", async () => {
       const repo = mockPaymentsRepo();
       const profileRepo = mockProfileRepo();
       const res = await request(appWith(repo, SECRET, profileRepo))
         .post("/v1/payments/yandex/intent")
-        .send({ yandexPlayerId: "ghost", productId: "citizenship" });
+        .send({ yandexPlayerId: "yandex-1", productId: "citizenship" });
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ error: "session_invalid" });
+      expect(repo.createIntent).not.toHaveBeenCalled();
+      expect(profileRepo.findPlayerByIdentity).not.toHaveBeenCalled();
+      expect(profileRepo.resolveOrCreatePlayer).not.toHaveBeenCalled();
+    });
+
+    // Task 0271 residual, unchanged by S4: a valid token whose player row is gone
+    // hits the foreign key and is a clean 404, not a 500.
+    it("is 404 not_found when the token's player no longer exists", async () => {
+      const repo = mockPaymentsRepo({
+        createIntent: jest.fn().mockRejectedValue(
+          Object.assign(new Error("violates foreign key constraint"), {
+            code: "23503",
+          }),
+        ),
+      });
+      const res = await request(appWith(repo))
+        .post("/v1/payments/yandex/intent")
+        .set("Authorization", CALLER)
+        .send({ productId: "citizenship" });
       expect(res.status).toBe(404);
       expect(res.body).toEqual({ error: "not_found" });
-      expect(repo.createIntent).not.toHaveBeenCalled();
-      expect(profileRepo.resolveOrCreatePlayer).not.toHaveBeenCalled();
     });
 
     it("is 400 for an unknown product or bad body", async () => {
       const app = appWith(mockPaymentsRepo());
       const bad = await request(app)
         .post("/v1/payments/yandex/intent")
-        .send({ yandexPlayerId: "yandex-1", productId: "nuke" });
+        .set("Authorization", CALLER)
+        .send({ productId: "nuke" });
       expect(bad.status).toBe(400);
       const empty = await request(app).post("/v1/payments/yandex/intent");
       expect(empty.status).toBe(400);
@@ -179,7 +210,8 @@ describe("payments routes", () => {
       });
       const res = await request(appWith(repo))
         .post("/v1/payments/yandex/intent")
-        .send({ yandexPlayerId: "yandex-1", productId: "citizenship" });
+        .set("Authorization", CALLER)
+        .send({ productId: "citizenship" });
       expect(res.status).toBe(500);
     });
   });

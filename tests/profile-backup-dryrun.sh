@@ -3,8 +3,15 @@
 # tests/profile-backup-dryrun.sh — local dockerized dry-run for profile-backup.sh (T8).
 #
 # Proves the REAL profile-backup.sh end-to-end WITHOUT the VPS:
-#   dump (-Fc) -> age-encrypt -> rclone upload -> verify -> prune -> restore -> row-count
+#   dump (-Fc) -> age-encrypt -> rclone upload -> verify -> prune -> restore -> fingerprint
 #   round-trip, plus a forced-failure case (non-zero exit + failure marker).
+#
+# Schema (task 0275): the source DB is built by the REAL migration runner (`npm run migrate`, the same
+# entry point setup-profile.sh runs on deploy), so it holds every migrations/*.sql file and the
+# schema_migrations bookkeeping exactly as a box DB does (ADR-113). Seeding, fingerprinting, the
+# behavioural checks and cleanup use the SQL files in tests/testdata/profile-restore-drill/ — the very
+# files the owner runs on the box in the runbook's restore drill, so every drill SQL step runs here
+# first.
 #
 # Faithful to production: profile-backup.sh runs on the HOST using host docker/age/rclone
 # against a containerized Postgres + MinIO — the same shape as the box (host tools, Postgres
@@ -12,19 +19,22 @@
 #
 #   ./tests/profile-backup-dryrun.sh
 #
-# Requirements: a running Docker daemon, and `age`, `age-keygen`, `rclone`, `curl`, `jq`.
+# Requirements: a running Docker daemon, and `age`, `age-keygen`, `rclone`, `curl`, `jq`, `node`,
+# plus installed node packages (`npm install` — the migration runner needs ts-node and pg).
+# Host port 55433 must be free (source Postgres, published on loopback for the runner).
 #
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BACKUP_SCRIPT="$REPO_ROOT/profile-backup.sh"
-MIGRATION="$REPO_ROOT/migrations/001_player_profiles.sql"
+MIGRATIONS_DIR="$REPO_ROOT/migrations"
+DRILL_SQL="$REPO_ROOT/tests/testdata/profile-restore-drill"
+SOURCE_PORT=55433
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/profile-backup-dryrun.XXXXXX")"
 PGPASS="dryrun-pw"
 MINIO_KEY="minioadmin"
 MINIO_SECRET="minioadmin"
 BUCKET="profile-backups-test"
-KNOWN_ID="dryrun-yandex-123"
 
 pass=0; fail=0
 ok() { echo "  ✅ $1"; pass=$((pass + 1)); }
@@ -38,12 +48,18 @@ cleanup() {
 }
 trap cleanup EXIT
 
-for t in docker age age-keygen rclone curl jq; do
+for t in docker age age-keygen rclone curl jq node; do
   command -v "$t" >/dev/null 2>&1 || { echo "ERROR: missing required tool: $t"; exit 1; }
 done
 docker info >/dev/null 2>&1 || { echo "ERROR: Docker daemon not running"; exit 1; }
 [ -f "$BACKUP_SCRIPT" ] || { echo "ERROR: $BACKUP_SCRIPT not found"; exit 1; }
-[ -f "$MIGRATION" ] || { echo "ERROR: $MIGRATION not found"; exit 1; }
+[ -d "$MIGRATIONS_DIR" ] || { echo "ERROR: $MIGRATIONS_DIR not found"; exit 1; }
+for f in seed.sql verify.sql behaviour.sql cleanup.sql; do
+  [ -f "$DRILL_SQL/$f" ] || { echo "ERROR: $DRILL_SQL/$f not found"; exit 1; }
+done
+for m in ts-node pg; do
+  [ -d "$REPO_ROOT/node_modules/$m" ] || { echo "ERROR: node_modules/$m missing — run npm install"; exit 1; }
+done
 
 mkdir -p "$WORK/backups"
 
@@ -56,6 +72,8 @@ services:
       POSTGRES_USER: profile
       POSTGRES_PASSWORD: $PGPASS
       POSTGRES_DB: profile
+    ports:
+      - "127.0.0.1:$SOURCE_PORT:5432"
   restore-target:
     image: postgres:16-alpine
     environment:
@@ -84,22 +102,62 @@ wait_for "postgres"       bash -c 'cd "'"$WORK"'" && docker compose exec -T post
 wait_for "restore-target" bash -c 'cd "'"$WORK"'" && docker compose exec -T restore-target pg_isready -U profile -d profile'
 wait_for "minio"          curl -fsS "http://127.0.0.1:59000/minio/health/live"
 
-# ── seed source DB: schema + known rows ──────────────────────────────────────────
-echo "--- seeding source DB ---"
-dc exec -T postgres psql -v ON_ERROR_STOP=1 -U profile -d profile < "$MIGRATION" >/dev/null
-dc exec -T postgres psql -v ON_ERROR_STOP=1 -U profile -d profile >/dev/null <<SQL
-INSERT INTO player_profiles
-  (yandex_player_id, persistent_id, xp, is_citizen, is_paid_citizen, citizenship_earned_at, citizenship_purchased_at, display_name)
-VALUES ('$KNOWN_ID', 'persist-1', 4242, true, true, now(), now(), 'DryRunHero');
-INSERT INTO player_profiles (yandex_player_id, persistent_id, xp) VALUES ('other-1', 'persist-2', 10);
-INSERT INTO player_match_xp_credits (game_id, yandex_player_id, xp_awarded)
-VALUES ('game-1', '$KNOWN_ID', 10), ('game-2', '$KNOWN_ID', 10), ('game-1', 'other-1', 10);
-SQL
+# ── source DB schema: the REAL migration runner (ADR-113) ────────────────────────
+echo "--- building source schema with the real migration runner (npm run migrate) ---"
+# dotenv never overrides an explicit env var, so a developer's .env cannot redirect this.
+( cd "$REPO_ROOT" && DATABASE_URL="postgresql://profile:$PGPASS@127.0.0.1:$SOURCE_PORT/profile" \
+    npm run --silent migrate ) || { echo "ERROR: migration runner failed"; exit 1; }
 
-count() { dc exec -T postgres psql -U profile -d profile -tAc "select count(*) from $1" | tr -d '[:space:]'; }
-SRC_PROFILES="$(count player_profiles)"
-SRC_CREDITS="$(count player_match_xp_credits)"
-echo "  source: player_profiles=$SRC_PROFILES player_match_xp_credits=$SRC_CREDITS"
+psql_src() { dc exec -T -e PGCLIENTENCODING=UTF8 postgres psql -X -U profile -d profile "$@"; }
+psql_dst() { dc exec -T -e PGCLIENTENCODING=UTF8 restore-target psql -X -U profile -d profile "$@"; }
+
+REPO_MIGRATIONS="$(cd "$MIGRATIONS_DIR" && ls -1 *.sql | LC_ALL=C sort | paste -sd, -)"
+SRC_MIGRATIONS="$(psql_src -tAc "select string_agg(filename, ',' order by filename) from schema_migrations")"
+echo "  repo migrations:              $REPO_MIGRATIONS"
+echo "  source schema_migrations:     $SRC_MIGRATIONS"
+[ -n "$SRC_MIGRATIONS" ] && [ "$SRC_MIGRATIONS" = "$REPO_MIGRATIONS" ] \
+  && ok "source schema_migrations equals the repo's migrations/*.sql list" \
+  || no "source schema_migrations differs from migrations/*.sql"
+case ",$SRC_MIGRATIONS," in
+  *,006_player_identity.sql,*) ok "source schema includes 006_player_identity.sql" ;;
+  *) no "source schema is missing 006_player_identity.sql" ;;
+esac
+case ",$SRC_MIGRATIONS," in
+  *,005_*) no "source schema carries a 005 migration (it was never deployed)" ;;
+  *) ok "source schema carries no 005 migration" ;;
+esac
+
+# ── seed source DB: the shared drill seed ────────────────────────────────────────
+echo "--- seeding source DB (tests/testdata/profile-restore-drill/seed.sql) ---"
+psql_src -v ON_ERROR_STOP=1 -f - < "$DRILL_SQL/seed.sql" >/dev/null
+
+# Multibyte text must survive the INSERT itself — a mangled value would round-trip just as faithfully.
+cyrillic_ok() { # <psql function>
+  "$1" -tAc "select count(*) || '|' || bool_and(octet_length(display_name) > length(display_name))
+               from players where id in ('00000275-0000-4000-8000-000000000003','00000275-0000-4000-8000-000000000004')"
+}
+[ "$(cyrillic_ok psql_src)" = "2|true" ] && ok "source Cyrillic names stored multibyte (bytes > chars)" \
+  || no "source Cyrillic names NOT multibyte (got '$(cyrillic_ok psql_src)')"
+
+TABLES="players player_identities player_match_xp_credits player_name_history player_cosmetic_ownership purchase_intents processed_purchases player_messages player_xp_grants schema_migrations"
+# bash 3.2 (macOS /bin/bash) has no associative arrays, so source counts go to a file: "<table> <n>".
+: > "$WORK/source-counts.txt"
+for t in $TABLES; do
+  echo "$t $(psql_src -tAc "select count(*) from $t")" >> "$WORK/source-counts.txt"
+done
+src_count() { awk -v t="$1" '$1 == t { print $2 }' "$WORK/source-counts.txt"; }
+echo "  source counts: $(tr '\n' ' ' < "$WORK/source-counts.txt")"
+
+# Source fingerprint, taken before the backup (the box drill does the same, step B2).
+if psql_src -f - < "$DRILL_SQL/verify.sql" > "$WORK/source.txt" 2>&1; then
+  ok "verify.sql ran on the source"
+else
+  no "verify.sql failed on the source"; cat "$WORK/source.txt"
+fi
+grep -qx 'verify_end: complete' "$WORK/source.txt" && ok "verify.sql ran to its end-of-file sentinel on the source" \
+  || no "verify.sql source output lacks the 'verify_end: complete' sentinel"
+grep -q 'uncovered_tables: none' "$WORK/source.txt" && ok "verify.sql covers every source table (uncovered_tables: none)" \
+  || no "verify.sql does not cover every table: $(grep 'uncovered_tables' "$WORK/source.txt")"
 
 # ── age key + backup.env (MinIO standing in for reg.ru S3) ───────────────────────
 age-keygen -o "$WORK/identity.txt" 2>/dev/null
@@ -156,7 +214,7 @@ OBJ="$( set -a; . "$WORK/backup.env"; set +a; rclone lsf "profiles:$BUCKET/profi
 if ls "$WORK/backups"/.dump.* >/dev/null 2>&1; then no "local temp dump left behind"; else ok "local temp cleaned up"; fi
 
 echo
-echo "=== TEST 2: restore + row-count round-trip ==="
+echo "=== TEST 2: restore + fingerprint round-trip ==="
 FULLKEY="profiles/daily/$OBJ"
 # Default-deny (6a): a legit distinct-remote drill target must be declared via PROFILE_RESTORE_REMOTE_HOST
 # (matching the URL host) to proceed without the dated live-DB confirm. This is the positive/allow path.
@@ -165,19 +223,67 @@ FULLKEY="profiles/daily/$OBJ"
     bash "$BACKUP_SCRIPT" restore "$FULLKEY" "$WORK/identity.txt" \
     "postgresql://profile:$PGPASS@restore-target:5432/profile" )
 
-dcount() { dc exec -T restore-target psql -U profile -d profile -tAc "select count(*) from $1" | tr -d '[:space:]'; }
-DST_PROFILES="$(dcount player_profiles)"
-DST_CREDITS="$(dcount player_match_xp_credits)"
-[ "$SRC_PROFILES" = "$DST_PROFILES" ] && ok "player_profiles count matches ($DST_PROFILES)" \
-  || no "player_profiles mismatch (src=$SRC_PROFILES dst=$DST_PROFILES)"
-[ "$SRC_CREDITS" = "$DST_CREDITS" ] && ok "player_match_xp_credits count matches ($DST_CREDITS)" \
-  || no "player_match_xp_credits mismatch (src=$SRC_CREDITS dst=$DST_CREDITS)"
+for t in $TABLES; do
+  src="$(src_count "$t")"
+  dst="$(psql_dst -tAc "select count(*) from $t")"
+  [ -n "$src" ] && [ "$src" = "$dst" ] && ok "$t count matches ($dst)" \
+    || no "$t count mismatch (src=$src dst=$dst)"
+done
 
-ROW="$(dc exec -T restore-target psql -U profile -d profile -tAc \
-  "select xp||'|'||is_citizen||'|'||is_paid_citizen||'|'||coalesce(display_name,'') from player_profiles where yandex_player_id='$KNOWN_ID'" | tr -d '[:space:]')"
+DST_MIGRATIONS="$(psql_dst -tAc "select string_agg(filename, ',' order by filename) from schema_migrations")"
+echo "  restored schema_migrations:   $DST_MIGRATIONS"
+[ "$DST_MIGRATIONS" = "$SRC_MIGRATIONS" ] && ok "restored schema_migrations equals source" \
+  || no "restored schema_migrations differs (src='$SRC_MIGRATIONS' dst='$DST_MIGRATIONS')"
+
+ROW="$(psql_dst -tAc "select p.xp||'|'||p.is_citizen||'|'||p.is_paid_citizen||'|'||coalesce(p.display_name,'')
+                        from players p join player_identities i on i.player_id = p.id
+                       where i.platform = 'yandex_games' and i.platform_user_id = 'drill0275-yg-01'")"
 # psql renders booleans as true/false (not t/f) when concatenated to text.
-[ "$ROW" = "4242|true|true|DryRunHero" ] && ok "known profile round-trips ($ROW)" \
-  || no "known profile mismatch (got '$ROW')"
+[ "$ROW" = "3000000000|true|true|DrillAlpha" ] && ok "identity drill0275-yg-01's player round-trips ($ROW)" \
+  || no "identity drill0275-yg-01's player mismatch (got '$ROW')"
+
+# No `tr -d '[:space:]'` here — the names contain spaces.
+[ "$(cyrillic_ok psql_dst)" = "2|true" ] && ok "restored Cyrillic names still multibyte (bytes > chars)" \
+  || no "restored Cyrillic names NOT multibyte (got '$(cyrillic_ok psql_dst)')"
+
+if psql_dst -f - < "$DRILL_SQL/verify.sql" > "$WORK/restored.txt" 2>&1; then
+  ok "verify.sql ran on the restored DB"
+else
+  no "verify.sql failed on the restored DB"; cat "$WORK/restored.txt"
+fi
+grep -qx 'verify_end: complete' "$WORK/restored.txt" && ok "verify.sql ran to its end-of-file sentinel on the restored DB" \
+  || no "verify.sql restored output lacks the 'verify_end: complete' sentinel"
+if diff "$WORK/source.txt" "$WORK/restored.txt"; then
+  ok "fingerprint IDENTICAL (10 tables, sequences, constraint/index definitions, spot checks)"
+else
+  no "fingerprint differs between source and restored (diff above)"
+fi
+
+echo
+echo "=== TEST 2b: behavioural checks on the restored DB (behaviour.sql) ==="
+BEHAVIOUR="$(psql_dst -f - < "$DRILL_SQL/behaviour.sql" 2>&1 || true)"
+printf '%s\n' "$BEHAVIOUR" | grep -F '(' | sed 's/^/    /'
+expect_line() { # <label> <exact expected text>
+  printf '%s\n' "$BEHAVIOUR" | grep -qF -- "$2" && ok "$1: $2" || no "$1: expected '$2'"
+}
+expect_line "(a) second pending name change" "(a) rejected: sqlstate=23505 constraint=player_name_history_one_pending_uq"
+expect_line "(a2) duplicate credit"          "(a2) rejected: sqlstate=23505 constraint=player_match_xp_credits_pkey"
+expect_line "(a3) duplicate identity"        "(a3) rejected: sqlstate=23505 constraint=player_identities_pkey"
+expect_line "(b) child rows present first"   "(b) before: identities=1 credits=3 name_history=1 cosmetics=2 intents=1 messages=1 xp_grants=1 receipt_intent_set=true"
+expect_line "(b) cascade"                    "(b) left: identities=0 credits=0 name_history=0 cosmetics=0 intents=0 messages=0 xp_grants=0"
+expect_line "(b) receipt survives, set null" "(b) receipt kept: rows=1 intent_id_null=true"
+expect_line "(b) rollback"                   "(b) rolled back: players=8"
+expect_line "(c) sequence"                   "(c) non-colliding next id: true"
+expect_line "(c) gap after (a)'s used value" "(c) gap=2"
+
+echo
+echo "=== TEST 2c: drill cleanup on the source (cleanup.sql) ==="
+CLEANUP="$(psql_src -f - < "$DRILL_SQL/cleanup.sql" 2>&1)" || no "cleanup.sql failed"
+printf '%s\n' "$CLEANUP" | grep -E '^(drill cleanup counts|schema_migrations):' | sed 's/^/    /'
+printf '%s\n' "$CLEANUP" | grep -qxF "drill cleanup counts: players=0 player_identities=0 player_match_xp_credits=0 player_name_history=0 player_cosmetic_ownership=0 purchase_intents=0 processed_purchases=0 player_messages=0 player_xp_grants=0" \
+  && ok "cleanup returned all 9 data tables to 0 rows" || no "cleanup left rows behind"
+printf '%s\n' "$CLEANUP" | grep -qxF "schema_migrations: $SRC_MIGRATIONS" \
+  && ok "cleanup left schema_migrations unchanged" || no "schema_migrations changed by cleanup"
 
 echo
 echo "=== TEST 3: forced failure (bad S3 secret) -> non-zero + failure marker ==="

@@ -32,7 +32,9 @@ describe("sendTelegramMessage", () => {
   });
 
   it("posts to the bot's sendMessage endpoint with the chat id and HTML mode", async () => {
-    await expect(sendTelegramMessage(CONFIG, "hello")).resolves.toBe("sent");
+    await expect(sendTelegramMessage(CONFIG, "hello")).resolves.toEqual({
+      result: "sent",
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0] as [
       string,
@@ -87,23 +89,25 @@ describe("sendTelegramMessage", () => {
   it("does not call out at all when the token or chat id is blank", async () => {
     await expect(
       sendTelegramMessage({ ...CONFIG, token: "" }, "hi"),
-    ).resolves.toBe("not_configured");
+    ).resolves.toEqual({ result: "not_configured" });
     await expect(
       sendTelegramMessage({ ...CONFIG, chatId: "" }, "hi"),
-    ).resolves.toBe("not_configured");
+    ).resolves.toEqual({ result: "not_configured" });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("reports a non-OK response without throwing", async () => {
+  it("reports a non-OK response without throwing, carrying the status", async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 403 });
-    await expect(sendTelegramMessage(CONFIG, "hi")).resolves.toBe("http_error");
+    await expect(sendTelegramMessage(CONFIG, "hi")).resolves.toEqual({
+      result: "http_error",
+      status: 403,
+    });
   });
 
   it("NEVER throws on a network failure — every caller is best-effort", async () => {
     fetchMock.mockRejectedValue(new Error("ECONNREFUSED"));
-    await expect(sendTelegramMessage(CONFIG, "hi")).resolves.toBe(
-      "network_error",
-    );
+    const outcome = await sendTelegramMessage(CONFIG, "hi");
+    expect(outcome.result).toBe("network_error");
   });
 
   it("passes an abort signal so a blocked host cannot hang the caller", async () => {
@@ -112,14 +116,131 @@ describe("sendTelegramMessage", () => {
     expect(init.signal).toBeDefined();
   });
 
-  it("never returns the token in any result value", async () => {
+  // ── Task 0277 step 1: forum topic routing ────────────────────────────────
+  // The chat is a forum group. `message_thread_id` picks the topic; omitting it
+  // lands the message in General, which is today's behaviour and the ONLY profile-box
+  // Telegram path proven working in production.
+  it("carries message_thread_id when a topic is configured", async () => {
+    await sendTelegramMessage({ ...CONFIG, threadId: "42" }, "hi");
+    const [, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+    expect(JSON.parse(init.body).message_thread_id).toBe("42");
+  });
+
+  // ⚠️ The mutation this exists to catch is `message_thread_id: config.threadId ?? ""`.
+  // Telegram REJECTS an empty thread id, so a present-but-empty key would break every
+  // name-change notification — the one path that only started working today.
+  it.each([
+    ["absent", undefined],
+    ["null", null],
+    ["blank", ""],
+  ])(
+    "omits message_thread_id entirely when the topic is %s",
+    async (_label, threadId) => {
+      await sendTelegramMessage(
+        { ...CONFIG, threadId: threadId as string | null | undefined },
+        "hi",
+      );
+      const [, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+      expect(Object.keys(JSON.parse(init.body))).not.toContain(
+        "message_thread_id",
+      );
+    },
+  );
+
+  // ── Task 0277 step 2: one retry on a connection-level failure (task 0061) ──
+  // The classification is STRUCTURAL, not diagnostic: a Telegram rejection is an HTTP
+  // response, so `fetch` RESOLVES and never reaches the catch. Reaching the catch is
+  // itself the proof that no response arrived.
+  it("retries once when the first attempt fails at the connection level", async () => {
+    fetchMock
+      .mockRejectedValueOnce(new Error("socket hang up"))
+      .mockResolvedValueOnce({ ok: true, status: 200 });
+    await expect(sendTelegramMessage(CONFIG, "hi")).resolves.toEqual({
+      result: "sent_after_retry",
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does NOT retry a Telegram rejection — it already answered", async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 400 });
+    const outcome = await sendTelegramMessage(CONFIG, "hi");
+    expect(outcome.result).toBe("http_error");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives up after exactly two attempts and leaks no token", async () => {
     fetchMock.mockRejectedValue(
-      // An undici error can carry the request URL, and therefore the token.
       new Error("failed to fetch https://api.telegram.org/bottest-token/…"),
     );
-    const result = await sendTelegramMessage(CONFIG, "hi");
-    expect(result).toBe("network_error");
-    expect(JSON.stringify(result)).not.toContain("test-token");
+    const outcome = await sendTelegramMessage(CONFIG, "hi");
+    expect(outcome.result).toBe("network_error");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(outcome)).not.toContain("test-token");
+  });
+
+  // ── Task 0277 step 3: the bounded cause code (task 0061 step 1) ───────────
+  // The module's total discard of the caught error is relaxed by EXACTLY one field,
+  // `error.cause.code`, and only when it matches a symbolic-constant charset. The
+  // error, its message and its stack are still never read and never logged.
+  it("reports the transport cause code when it is a symbolic constant", async () => {
+    const error = new Error("fetch failed");
+    (error as { cause?: unknown }).cause = { code: "ECONNRESET" };
+    fetchMock.mockRejectedValue(error);
+    const outcome = await sendTelegramMessage(CONFIG, "hi");
+    expect(outcome.code).toBe("ECONNRESET");
+  });
+
+  // ⚠️ This test is the ENTIRE justification for relaxing the discard. Without it the
+  // relaxation is an unguarded passthrough of an attacker- or vendor-controlled string
+  // into a log line, which is the exact token leak the module header forbids.
+  it.each([
+    [
+      "a URL carrying the token",
+      "https://api.telegram.org/bottest-token/sendMessage",
+    ],
+    ["the bare token", "test-token"],
+    ["free text", "connect ECONNREFUSED 10.0.0.1:3128"],
+    ["an over-long constant", "A".repeat(64)],
+    ["a lowercase code", "econnreset"],
+  ])('collapses %s to "unknown"', async (_label, code) => {
+    const error = new Error("fetch failed");
+    (error as { cause?: unknown }).cause = { code };
+    fetchMock.mockRejectedValue(error);
+    const outcome = await sendTelegramMessage(CONFIG, "hi");
+    expect(outcome.code).toBe("unknown");
+    expect(JSON.stringify(outcome)).not.toContain("test-token");
+  });
+
+  it.each([
+    ["no cause at all", (e: Error) => e],
+    ["a string cause", (e: Error) => Object.assign(e, { cause: "nope" })],
+    ["a cause with no code", (e: Error) => Object.assign(e, { cause: {} })],
+    [
+      "a non-string code",
+      (e: Error) => Object.assign(e, { cause: { code: 500 } }),
+    ],
+  ])(
+    'reports "unknown" and does not throw for %s',
+    async (_label, decorate) => {
+      fetchMock.mockRejectedValue(decorate(new Error("fetch failed")));
+      const outcome = await sendTelegramMessage(CONFIG, "hi");
+      expect(outcome.result).toBe("network_error");
+      expect(outcome.code).toBe("unknown");
+    },
+  );
+
+  it("never returns the token in any result value", async () => {
+    fetchMock.mockRejectedValue(
+      // A fixture, and deliberately a hostile one: undici puts a whole input URL into
+      // a TypeError message in at least one construction (lib/web/fetch/request.js:136),
+      // and this URL carries the token in its path. ⚠️ No real log has ever been
+      // observed carrying it — that stronger claim was retracted. This pins the
+      // invariant regardless of which undici shape shows up.
+      new Error("failed to fetch https://api.telegram.org/bottest-token/…"),
+    );
+    const outcome = await sendTelegramMessage(CONFIG, "hi");
+    expect(outcome.result).toBe("network_error");
+    expect(JSON.stringify(outcome)).not.toContain("test-token");
   });
 });
 

@@ -29,6 +29,7 @@ import { PseudoRandom } from "../core/PseudoRandom";
 import {
   ClientCreditState,
   selectMatchCredits,
+  selectUnresolvedCreditClients,
 } from "../core/profile/MatchQualification";
 import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
@@ -101,10 +102,18 @@ export class GameServer {
   // Task 0211. Clients we have already issued a credit call for from a self-report.
   // ⚠️ This is an EFFICIENCY latch — it stops N reports becoming N HTTP round-trips.
   // It is NOT the double-credit guard: that is the profile server's
-  // `(game_id, yandex_player_id)` primary key, and it must not be described as
-  // anything else. Set only when a call was actually made, so a report dropped for a
-  // null Yandex id stays retryable.
+  // `(game_id, player_id)` primary key, and it must not be described as anything
+  // else. Set only when a call was actually made or scheduled (task 0272: a
+  // resolve-then-credit counts), so a report dropped for a null Yandex id stays
+  // retryable.
   private participationCredited: Set<ClientID> = new Set();
+
+  // Task 0272. The one in-flight profile resolve per Client OBJECT, so a join, a
+  // late identity and a credit never resolve the same client twice at once. Keyed by
+  // the object, not the clientID: a reconnect's new socket never picks up the old
+  // socket's in-flight result. The entry is removed once settled, so a failed
+  // resolve can be retried.
+  private profileResolves = new WeakMap<Client, Promise<string | null>>();
 
   public bytesSent: number = 0;
   public bytesReceived: number = 0;
@@ -266,8 +275,18 @@ export class GameServer {
       client.lastPing = existing.lastPing;
       client.reportedWinner = existing.reportedWinner;
       // Carry the already-resolved citizen flag across a reconnect so the icon does
-      // not blank out while the fresh upsert below is still in flight (0068).
+      // not blank out while the fresh resolve below is still in flight (0068).
       client.isCitizen = existing.isCitizen;
+      // Task 0272. Carry the resolved player id too — but ONLY when the rejoining
+      // socket presents the very same creditable identity. Carrying it across a
+      // different or missing identity would credit the wrong player.
+      const creditableId = this.getCreditableYandexId(client);
+      if (
+        creditableId !== null &&
+        creditableId === this.getCreditableYandexId(existing)
+      ) {
+        client.profilePlayerId = existing.profilePlayerId;
+      }
 
       this.activeClients = this.activeClients.filter((c) => c !== existing);
     }
@@ -295,9 +314,9 @@ export class GameServer {
 
     this.allClients.set(client.clientID, client);
 
-    // Ensure a profile row exists for an authenticated player as early as join, so
-    // it is ready before match-end crediting and before the Citizenship UI reads it.
-    this.upsertProfileForClient(client);
+    // Resolve an authenticated player's internal profile id as early as join, so it
+    // is ready before match-end crediting and before the Citizenship UI reads it.
+    this.resolveProfileForClient(client);
     // Task 0211. A reconnect is the OTHER way a Yandex id goes null -> value: the
     // rejoining socket carries a freshly-resolved id and replaces the allClients
     // entry, with no `update_identity` message ever sent. Without this, a retained
@@ -405,12 +424,12 @@ export class GameServer {
           case "update_identity": {
             // Late Yandex-id resolution for an authorized user who joined while the
             // SDK was still initializing. Apply null→value only (cannot hijack a
-            // known id), and upsert now that we finally know it.
+            // known id), and resolve the profile player now that we finally know it.
             if (client.setYandexPlayerIdIfUnset(clientMsg.yandexPlayerId)) {
               this.log.info("client Yandex identity resolved post-join", {
                 clientID: client.clientID,
               });
-              this.upsertProfileForClient(client);
+              this.resolveProfileForClient(client);
               // Task 0211. A mid-match participation report that arrived before the
               // id resolved was dropped; retry it now that we can credit.
               this.retryParticipationAfterIdentityRefresh(client);
@@ -1248,13 +1267,13 @@ export class GameServer {
 
   /**
    * IDENTITY-TRUST SEAM (s4-profile-06 / Yandex Payments task). The single place
-   * that decides which Yandex id is trusted enough to credit/upsert. TODAY it
+   * that decides which Yandex id is trusted enough to credit/resolve. TODAY it
    * returns the client-asserted id as-is — an epic-accepted risk for *earned* XP
    * only (the id is a stable store key; paid entitlements are verified separately
    * by the Payments task). Server-side `getPlayer({ signed: true })` verification is
    * blocked until the Yandex secret key is issued (after in-app purchases are
    * enabled). When that lands, verify the signed payload HERE and return only the
-   * verified id (or null) — the upsert / credit / qualification logic downstream
+   * verified id (or null) — the resolve / credit / qualification logic downstream
    * does not change.
    */
   private getCreditableYandexId(client: Client): string | null {
@@ -1262,32 +1281,71 @@ export class GameServer {
   }
 
   /**
-   * Ensure a profile row exists for a player we have a creditable Yandex id for
-   * (fire-and-forget, fail-soft). Called when we first learn the id — at join and on
-   * a late identity refresh.
+   * Task 0272. Resolve this client's creditable identity to its internal profile
+   * player id (fire-and-forget, fail-soft). Called when we first learn the id — at
+   * join (a reconnect included) and on a late identity refresh. Unlike
+   * `resolveProfilePlayer` it resolves even when an id is already known (e.g.
+   * carried across a reconnect), because the response also refreshes the display-only
+   * citizen flag (0068) — but it still shares a resolve that is already in flight.
    *
-   * The upsert response also carries `is_citizen`, so this is where the display-only
-   * citizen flag is learned (0068) — no second request and no second trust seam. The
-   * join path still awaits nothing: a dead or slow profile API cannot delay a join,
-   * it just means the flag is still `false` when `start()` freezes the roster.
+   * The join path awaits nothing: a dead or slow profile API cannot delay a join, it
+   * just means the id and the flag are not there yet when `start()` freezes the
+   * roster.
    */
-  private upsertProfileForClient(client: Client): void {
-    const yandexPlayerId = this.getCreditableYandexId(client);
-    if (yandexPlayerId === null) {
-      return;
+  private resolveProfileForClient(client: Client): void {
+    void this.startProfileResolve(client);
+  }
+
+  /**
+   * Task 0272. The client's internal profile player id: the known one, the result of
+   * a resolve already in flight, or a fresh resolve (the last one failed or never
+   * ran). Resolves to null when there is no creditable identity or the resolve
+   * failed. Never rejects.
+   */
+  private resolveProfilePlayer(client: Client): Promise<string | null> {
+    if (this.getCreditableYandexId(client) === null) {
+      return Promise.resolve(null);
     }
-    void this.profileApiClient
-      .upsertProfile(yandexPlayerId, client.persistentID)
-      .then((isCitizen) => {
-        // Only ever set true. `false` means "not a citizen OR the lookup failed", so
-        // clearing on it would let a transient outage blink a citizen's icon off.
-        if (isCitizen) {
+    if (client.profilePlayerId !== null) {
+      return Promise.resolve(client.profilePlayerId);
+    }
+    return this.startProfileResolve(client);
+  }
+
+  /** Share the in-flight resolve for this client object, or start one. Never rejects. */
+  private startProfileResolve(client: Client): Promise<string | null> {
+    // The ONLY reader of the identity on this path (ADR-103).
+    const creditableId = this.getCreditableYandexId(client);
+    if (creditableId === null) {
+      return Promise.resolve(null);
+    }
+    const inFlight = this.profileResolves.get(client);
+    if (inFlight !== undefined) {
+      return inFlight;
+    }
+    const resolving = this.profileApiClient
+      .resolvePlayer(creditableId)
+      .then((resolved) => {
+        if (resolved === null) {
+          return null;
+        }
+        client.profilePlayerId = resolved.playerId;
+        // Only ever set true. A `false` or a failed resolve means "not a citizen OR
+        // the lookup failed", so clearing on it would let a transient outage blink a
+        // citizen's icon off.
+        if (resolved.isCitizen) {
           client.isCitizen = true;
         }
+        return resolved.playerId;
       })
-      // Belt-and-braces: upsertProfile is contractually non-throwing, but this is on
+      // Belt-and-braces: resolvePlayer is contractually non-throwing, but this is on
       // the join path — a rejection must not become an unhandled rejection here.
-      .catch(() => {});
+      .catch(() => null)
+      .finally(() => {
+        this.profileResolves.delete(client);
+      });
+    this.profileResolves.set(client, resolving);
+    return resolving;
   }
 
   /**
@@ -1327,13 +1385,19 @@ export class GameServer {
    * player's mid-match `participation` self-report.
    *
    * ⛔ The game id is read from `this.id` HERE, in the one place, and is deliberately
-   * not a parameter: the profile server's `(game_id, yandex_player_id)` primary key
-   * is what makes a player creditable at most once per match, and it stops working
-   * the moment the two paths disagree about the game id. Making that unexpressible
-   * is cheaper than testing for it — and it is tested anyway.
+   * not a parameter: the profile server's `(game_id, player_id)` primary key is what
+   * makes a player creditable at most once per match, and it stops working the
+   * moment the two paths disagree about the game id. Making that unexpressible is
+   * cheaper than testing for it — and it is tested anyway.
    *
-   * Returns the number of credits posted (0 when nothing qualified), so the
-   * self-report path can tell a real credit from one dropped for a null Yandex id.
+   * Task 0272: credits are keyed by the internal player id. A qualifying client whose
+   * id is not resolved yet (the join resolve failed or is still in flight) is resolved
+   * first and credited after, off the hot path. The gates are judged on the state
+   * snapshotted HERE, at trigger time: a client that disconnects during the resolve
+   * still gets the credit it qualified for when the report arrived.
+   *
+   * Returns the number of credits posted or scheduled (0 when nothing qualified), so
+   * the self-report path can tell a real credit from one dropped for a null Yandex id.
    */
   private creditParticipation(
     participation: readonly PlayerParticipation[],
@@ -1351,10 +1415,12 @@ export class GameServer {
     // to exclude last-second leavers without changing the broadcast disconnect timing.
     const activeClientIDs = new Set(this.activeClients.map((c) => c.clientID));
     const clientStateById = new Map<ClientID, ClientCreditState>();
+    const clientById = new Map<ClientID, Client>();
     for (const [clientID, client] of this.allClients) {
+      clientById.set(clientID, client);
       clientStateById.set(clientID, {
-        yandexPlayerId: this.getCreditableYandexId(client),
-        persistentId: client.persistentID,
+        playerId: client.profilePlayerId,
+        identityKnown: this.getCreditableYandexId(client) !== null,
         kicked: this.kickedClients.has(clientID),
         disconnected:
           this.isClientDisconnected(clientID) || !activeClientIDs.has(clientID),
@@ -1366,12 +1432,105 @@ export class GameServer {
       clientStateById,
       eligibleRoster,
     );
-    if (credits.length === 0) {
-      return 0;
+    if (credits.length > 0) {
+      this.log.info(`crediting ${credits.length} player(s) match XP`);
+      void this.profileApiClient.creditMatch(credits);
     }
-    this.log.info(`crediting ${credits.length} player(s) match XP`);
-    void this.profileApiClient.creditMatch(credits);
-    return credits.length;
+    const unresolved = selectUnresolvedCreditClients(
+      participation,
+      clientStateById,
+      eligibleRoster,
+    );
+    if (unresolved.length > 0) {
+      void this.resolveThenCredit(
+        unresolved.map((clientID) => ({
+          clientID,
+          // Trigger-time objects: a reconnect during the resolve must not swap in a
+          // different socket's id.
+          client: clientById.get(clientID)!,
+        })),
+        participation,
+        clientStateById,
+        eligibleRoster,
+        new Set(credits.map((credit) => credit.playerId)),
+      );
+    }
+    return credits.length + unresolved.length;
+  }
+
+  /**
+   * Task 0272. Resolve the qualifying clients whose player id was unknown at trigger
+   * time, then credit them — sharing any resolve already in flight (e.g. the join's).
+   * Posts once, and skips a player the synchronous batch already posted. A client
+   * whose resolve fails again is not credited: the same outage class as ADR-101, an
+   * owner-accepted loss (no durable queue). Never throws.
+   */
+  private async resolveThenCredit(
+    unresolved: readonly { clientID: ClientID; client: Client }[],
+    participation: readonly PlayerParticipation[],
+    snapshot: ReadonlyMap<ClientID, ClientCreditState>,
+    eligibleRoster: ReadonlySet<ClientID>,
+    alreadyPosted: ReadonlySet<string>,
+  ): Promise<void> {
+    try {
+      const resolvedIds = await Promise.all(
+        unresolved.map(({ client }) => this.resolveProfilePlayer(client)),
+      );
+      const resolvedStateById = new Map<ClientID, ClientCreditState>();
+      unresolved.forEach(({ clientID }, index) => {
+        resolvedStateById.set(clientID, {
+          ...snapshot.get(clientID)!,
+          playerId: resolvedIds[index],
+        });
+      });
+      const unresolvedIds = new Set(unresolved.map(({ clientID }) => clientID));
+      const credits = selectMatchCredits(
+        this.id,
+        participation.filter((p) => unresolvedIds.has(p.clientID)),
+        resolvedStateById,
+        eligibleRoster,
+      ).filter((credit) => !alreadyPosted.has(credit.playerId));
+      // Review R1 / ADR-101 re-raise trigger 2: an award dropped here must be counted
+      // like any other dropped award, so warn with the count in the same
+      // `N award(s) dropped` wording. Counted per creditable identity, so one account
+      // on two connections is one award. Quiet when the client is not configured:
+      // with PROFILE_INTERNAL_TOKEN blank every resolve is null and nothing is lost.
+      // ⛔ No ids in the line.
+      if (this.profileApiClient.isConfigured()) {
+        const droppedIdentities = new Set<string>();
+        const resolvedIdentities = new Set<string>();
+        unresolved.forEach(({ client }, index) => {
+          const creditableId = this.getCreditableYandexId(client);
+          if (creditableId === null) return;
+          if (resolvedIds[index] === null) {
+            droppedIdentities.add(creditableId);
+          } else {
+            resolvedIdentities.add(creditableId);
+          }
+        });
+        // A sibling connection of the same account that DID resolve was credited.
+        for (const identity of resolvedIdentities) {
+          droppedIdentities.delete(identity);
+        }
+        if (droppedIdentities.size > 0) {
+          this.log.warn(
+            `player resolve failed at credit time; ${droppedIdentities.size} award(s) dropped (no durable retry — ADR-101)`,
+          );
+        }
+      }
+      if (credits.length === 0) {
+        return;
+      }
+      this.log.info(
+        `crediting ${credits.length} player(s) match XP after resolve`,
+      );
+      await this.profileApiClient.creditMatch(credits);
+    } catch (error) {
+      // Defensive: fire-and-forget off the match path — must never reject.
+      this.log.warn(
+        `unexpected error in resolve-then-credit: ${String(error)}`,
+      );
+    }
   }
 
   /**

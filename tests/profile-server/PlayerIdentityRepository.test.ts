@@ -6,6 +6,9 @@
 // tests/integration/PlayerIdentityRepository.it.test.ts.
 
 import type { Pool } from "pg";
+import { Writable } from "stream";
+import winston from "winston";
+import { logger } from "../../src/profile-server/Logger";
 import {
   MAX_RESOLVE_ATTEMPTS,
   PLATFORM_YANDEX_GAMES,
@@ -121,6 +124,46 @@ describe("PlayerIdentityRepository.findPlayerByIdentity", () => {
     for (const sql of db.poolStatements) {
       expect(sql).not.toMatch(/INSERT|UPDATE|DELETE/i);
     }
+  });
+});
+
+// The find-only lookup the login-creation switch needs (task 0274). It is the SAME
+// read resolveOrCreatePlayer does on a hit — profile included, last_login_at touched
+// — minus the create branch. A "find-only" helper that could still insert would make
+// the switch a lie, which is what the last assertion here is for.
+describe("PlayerIdentityRepository.resolveExistingPlayer", () => {
+  it("returns the player and its profile on a hit, and touches last_login_at", async () => {
+    const db = fakePool({ lookups: [[playerRow(WINNER_ID)]] });
+    const repo = new PlayerIdentityRepository(db.pool);
+    const resolved = await repo.resolveExistingPlayer(
+      PLATFORM_YANDEX_GAMES,
+      "y-1",
+    );
+    expect(resolved).toMatchObject({ playerId: WINNER_ID, created: false });
+    expect(resolved?.profile.xp).toBe(0);
+    expect(
+      db.poolStatements.some((sql) => sql.includes("SET last_login_at")),
+    ).toBe(true);
+  });
+
+  it("returns null on a miss and INSERTS NOTHING — no transaction, no player", async () => {
+    const db = fakePool({ lookups: [[]] });
+    const repo = new PlayerIdentityRepository(db.pool);
+    await expect(
+      repo.resolveExistingPlayer(PLATFORM_YANDEX_GAMES, "y-nobody"),
+    ).resolves.toBeNull();
+    expect(db.connect).not.toHaveBeenCalled();
+    for (const sql of db.poolStatements) {
+      expect(sql).not.toMatch(/INSERT INTO/i);
+    }
+  });
+
+  it("never fires the creation callback — it creates nothing to count", async () => {
+    const onPlayerCreated = jest.fn();
+    const db = fakePool({ lookups: [[]] });
+    const repo = new PlayerIdentityRepository(db.pool, { onPlayerCreated });
+    await repo.resolveExistingPlayer(PLATFORM_YANDEX_GAMES, "y-nobody");
+    expect(onPlayerCreated).not.toHaveBeenCalled();
   });
 });
 
@@ -291,6 +334,170 @@ describe("PlayerIdentityRepository.resolveOrCreatePlayer", () => {
     expect(
       db.clientStatements.filter((sql) => sql === "ROLLBACK"),
     ).toHaveLength(3);
+  });
+
+  // ── The S5 creation callback (task 0274) ───────────────────────────────────
+  // Alert A1 pages on creations per 10 minutes. A callback that fires on a path
+  // that did NOT create a player would inflate that count and page on nothing; one
+  // that misses a real creation would hide the exact flood the alert exists for.
+  describe("onPlayerCreated", () => {
+    it("fires exactly once, after COMMIT, with the platform and the source", async () => {
+      const onPlayerCreated = jest.fn();
+      const db = fakePool({ lookups: [[]] });
+      const repo = new PlayerIdentityRepository(db.pool, { onPlayerCreated });
+      await repo.resolveOrCreatePlayer(PLATFORM_YANDEX_GAMES, "y-1", "login");
+      expect(onPlayerCreated).toHaveBeenCalledTimes(1);
+      expect(onPlayerCreated).toHaveBeenCalledWith(
+        PLATFORM_YANDEX_GAMES,
+        "login",
+      );
+    });
+
+    it("passes game_server through — A1 counts BOTH sources", async () => {
+      const onPlayerCreated = jest.fn();
+      const db = fakePool({ lookups: [[]] });
+      const repo = new PlayerIdentityRepository(db.pool, { onPlayerCreated });
+      await repo.resolveOrCreatePlayer(
+        PLATFORM_YANDEX_GAMES,
+        "y-1",
+        "game_server",
+      );
+      expect(onPlayerCreated).toHaveBeenCalledWith(
+        PLATFORM_YANDEX_GAMES,
+        "game_server",
+      );
+    });
+
+    it("never fires for a player that already existed", async () => {
+      const onPlayerCreated = jest.fn();
+      const db = fakePool({ lookups: [[playerRow(WINNER_ID)]] });
+      const repo = new PlayerIdentityRepository(db.pool, { onPlayerCreated });
+      await repo.resolveOrCreatePlayer(PLATFORM_YANDEX_GAMES, "y-1", "login");
+      expect(onPlayerCreated).not.toHaveBeenCalled();
+    });
+
+    it("never fires on a LOST RACE — the player row we inserted was rolled back", async () => {
+      const onPlayerCreated = jest.fn();
+      const db = fakePool({
+        lookups: [[], [playerRow(WINNER_ID)]],
+        identityInserts: ["conflict"],
+      });
+      const repo = new PlayerIdentityRepository(db.pool, { onPlayerCreated });
+      await repo.resolveOrCreatePlayer(PLATFORM_YANDEX_GAMES, "y-1", "login");
+      expect(onPlayerCreated).not.toHaveBeenCalled();
+    });
+
+    it("fires once, not twice, when a UUID collision forced a retry", async () => {
+      const onPlayerCreated = jest.fn();
+      const db = fakePool({
+        lookups: [[], []],
+        playerInserts: [pgError("23505", "players_pkey"), "ok"],
+      });
+      const repo = new PlayerIdentityRepository(db.pool, { onPlayerCreated });
+      await repo.resolveOrCreatePlayer(PLATFORM_YANDEX_GAMES, "y-1", "login");
+      expect(onPlayerCreated).toHaveBeenCalledTimes(1);
+    });
+
+    it("carries no id: the callback sees the platform and the source, nothing else", async () => {
+      const onPlayerCreated = jest.fn();
+      const db = fakePool({ lookups: [[]] });
+      const repo = new PlayerIdentityRepository(db.pool, { onPlayerCreated });
+      await repo.resolveOrCreatePlayer(
+        PLATFORM_YANDEX_GAMES,
+        "secret-yandex-id",
+        "login",
+      );
+      const args = JSON.stringify(onPlayerCreated.mock.calls);
+      expect(args).not.toContain("secret-yandex-id");
+      expect(args).not.toContain(NEW_ID);
+    });
+
+    it("a throwing callback never fails the login it is only counting", async () => {
+      const onPlayerCreated = jest.fn(() => {
+        throw new Error("meter exploded");
+      });
+      const db = fakePool({ lookups: [[]] });
+      const repo = new PlayerIdentityRepository(db.pool, { onPlayerCreated });
+      const resolved = await repo.resolveOrCreatePlayer(
+        PLATFORM_YANDEX_GAMES,
+        "y-1",
+        "login",
+      );
+      expect(resolved).toMatchObject({ playerId: NEW_ID, created: true });
+    });
+
+    // Review R3: swallowing the throw is right, swallowing it SILENTLY is not —
+    // geoconflict.profile.players.created is what alert A1 (the creation-flood
+    // alarm) pages on, so a hook that always throws would make A1 read zero
+    // forever with nothing anywhere saying why.
+    it("a throwing callback is WARNED about, by error type only and with no id", async () => {
+      const chunks: string[] = [];
+      const capture = new winston.transports.Stream({
+        stream: new Writable({
+          write(chunk, _encoding, callback) {
+            chunks.push(String(chunk));
+            callback();
+          },
+        }),
+      });
+      logger.add(capture);
+      try {
+        const db = fakePool({ lookups: [[]] });
+        const repo = new PlayerIdentityRepository(db.pool, {
+          onPlayerCreated: () => {
+            throw new RangeError("meter exploded");
+          },
+        });
+        await repo.resolveOrCreatePlayer(
+          PLATFORM_YANDEX_GAMES,
+          "zz0274-hook-canary",
+          "login",
+        );
+      } finally {
+        logger.remove(capture);
+      }
+      const logged = chunks.join("\n");
+      // The error TYPE, so an operator can tell a broken exporter from a broken hook…
+      expect(logged).toContain("RangeError");
+      // …and nothing else: not the message, not the platform id, not the player id.
+      expect(logged).not.toContain("meter exploded");
+      expect(logged).not.toContain("zz0274-hook-canary");
+      expect(logged).not.toContain(NEW_ID);
+    });
+
+    it("the hook warning is rate-limited — a hook that always throws cannot flood the log", async () => {
+      const chunks: string[] = [];
+      const capture = new winston.transports.Stream({
+        stream: new Writable({
+          write(chunk, _encoding, callback) {
+            chunks.push(String(chunk));
+            callback();
+          },
+        }),
+      });
+      logger.add(capture);
+      try {
+        // ONE repository, five creations — the production shape (the throttle budget
+        // is per instance, so this is what a real broken hook would look like).
+        const db = fakePool({ lookups: [[], [], [], [], []] });
+        const repo = new PlayerIdentityRepository(db.pool, {
+          onPlayerCreated: () => {
+            throw new RangeError("meter exploded");
+          },
+        });
+        for (let i = 0; i < 5; i++) {
+          await repo.resolveOrCreatePlayer(
+            PLATFORM_YANDEX_GAMES,
+            `y-flood-${i}`,
+            "login",
+          );
+        }
+      } finally {
+        logger.remove(capture);
+      }
+      // One line for five failures: the window is 10 minutes.
+      expect(chunks.join("\n").match(/RangeError/g)).toHaveLength(1);
+    });
   });
 
   it("releases the client even when ROLLBACK itself fails", async () => {

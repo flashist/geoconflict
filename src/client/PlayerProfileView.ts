@@ -1,4 +1,3 @@
-import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import type { NameChangeState } from "../core/profile/NameChangeContract";
 import {
   PublicPlayerProfileSchema,
@@ -9,6 +8,7 @@ import {
   flashist_logEventAnalytics,
   flashistConstants,
 } from "./flashist/FlashistFacade";
+import { profileFetch } from "./ProfileSession";
 
 // Re-exported from the shared source of truth so the card keeps importing it from
 // here while the server and client agree on one threshold value.
@@ -54,8 +54,10 @@ const EARNED_AT_STORAGE_KEY_PREFIX = "geoconflict_citizenship_earned_at:";
  * non-200, network error, timeout, malformed body) resolves to the logged-in
  * zero-state, so a logged-in player or citizen is never misrendered as a guest.
  *
- * XP and citizenship are read from the server profile via `GET /v1/profile`; the
- * card itself makes no network calls (it just re-reads this view model).
+ * XP and citizenship are read from the server profile via `GET /v1/profile` under
+ * the login session's Bearer token (task 0273, S4) — the Yandex id no longer
+ * travels in the URL; it is still read here for the local earned-at storage key.
+ * The card itself makes no network calls (it just re-reads this view model).
  */
 export async function loadPlayerProfileView(): Promise<PlayerProfileView | null> {
   const isAuthorized = await FlashistFacade.instance.isYandexAuthorized();
@@ -81,22 +83,10 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
   }
 
   // The profile server is a distinct backend (profileApiUrl), NOT the game API in
-  // jwt.ts. getServerConfigFromClient() fetches /api/env and THROWS on a non-OK
-  // response or missing gameEnv; a throw here would propagate out and misrender an
-  // authorized player as a guest, so degrade to the zero-state instead (matches the
-  // "every authorized failure path → zero-state" contract above).
-  // Empty base (e.g. PROFILE_API_URL unset in local dev) → skip the fetch.
-  let base: string;
-  try {
-    base = (await getServerConfigFromClient()).profileApiUrl().replace(/\/+$/, "");
-  } catch {
-    return zeroState;
-  }
-  if (!base) {
-    return zeroState;
-  }
-
-  const profile = await fetchPublicProfile(base, yandexPlayerId);
+  // jwt.ts. profileFetch owns resolving it and the session: an unconfigured API, a
+  // guest and a failed login all come back as a non-response, which degrades to the
+  // zero-state (the "every authorized failure path → zero-state" contract above).
+  const profile = await fetchPublicProfile();
   if (profile === null) {
     return zeroState;
   }
@@ -156,28 +146,18 @@ function reportEarnedCitizenshipTransition(
 
 /**
  * Fetch and parse the public profile projection. Returns `null` on any failure
- * (404, non-200, network error, timeout, or a body that fails schema validation);
- * the caller maps that to the logged-in zero-state. Never throws to the card.
+ * (no session, unconfigured API, 404, non-200, network error, timeout, or a body
+ * that fails schema validation); the caller maps that to the logged-in
+ * zero-state. Never throws to the card.
  */
-async function fetchPublicProfile(
-  base: string,
-  yandexPlayerId: string,
-): Promise<PublicPlayerProfile | null> {
-  const url = `${base}/v1/profile?yandexPlayerId=${encodeURIComponent(
-    yandexPlayerId,
-  )}`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), PROFILE_FETCH_TIMEOUT_MS);
-  try {
-    const response = await fetch(url, { signal: controller.signal });
-    if (!response.ok) {
-      return null;
-    }
-    const parsed = PublicPlayerProfileSchema.safeParse(await response.json());
-    return parsed.success ? parsed.data : null;
-  } catch {
+async function fetchPublicProfile(): Promise<PublicPlayerProfile | null> {
+  const result = await profileFetch("/v1/profile", {
+    timeoutMs: PROFILE_FETCH_TIMEOUT_MS,
+  });
+  if (result.kind !== "response" || !result.response.ok) {
     return null;
-  } finally {
-    clearTimeout(timer);
   }
+  const body: unknown = await result.response.json().catch(() => null);
+  const parsed = PublicPlayerProfileSchema.safeParse(body);
+  return parsed.success ? parsed.data : null;
 }

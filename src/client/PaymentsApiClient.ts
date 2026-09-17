@@ -12,6 +12,7 @@ import {
   type PaymentProductId,
   type PurchaseCompleteResponse,
 } from "../core/profile/PaymentsContract";
+import { profileFetch } from "./ProfileSession";
 
 const PAYMENTS_FETCH_TIMEOUT_MS = 10_000;
 
@@ -58,16 +59,26 @@ async function postJson(path: string, body: unknown): Promise<unknown | null> {
 
 /**
  * Create a server-side purchase intent; its id becomes the developerPayload of
- * the Yandex purchase. Null on any failure (caller aborts the purchase flow).
+ * the Yandex purchase. The caller is the login session (task 0273, S4) — no id
+ * is sent. Null on any failure, including no session (caller aborts the flow).
+ *
+ * This is the ONLY payments call that carries a Bearer token. `complete` and
+ * `reconcile` must NOT: reconciliation runs at session start to recover an
+ * interrupted purchase and must never depend on being logged in, and the grant
+ * is bound to the Yandex-signed payload rather than to the caller.
  */
 export async function createPurchaseIntent(
-  yandexPlayerId: string,
   productId: PaymentProductId,
 ): Promise<string | null> {
-  const json = await postJson("/v1/payments/yandex/intent", {
-    yandexPlayerId,
-    productId,
+  const result = await profileFetch("/v1/payments/yandex/intent", {
+    method: "POST",
+    body: JSON.stringify({ productId }),
+    timeoutMs: PAYMENTS_FETCH_TIMEOUT_MS,
   });
+  if (result.kind !== "response" || !result.response.ok) {
+    return null;
+  }
+  const json: unknown = await result.response.json().catch(() => null);
   const parsed = PurchaseIntentResponseSchema.safeParse(json);
   return parsed.success ? parsed.data.intentId : null;
 }

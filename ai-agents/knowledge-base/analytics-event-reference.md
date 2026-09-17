@@ -350,6 +350,66 @@ Part of the citizenship funnel (`ai-agents/tasks/done/0021-analytics-p1-citizens
 > considered citizenship and declined is indistinguishable from one who never engaged past the
 > impression. If a Learn-more surface is ever designed, the event returns **with** it — and only then.
 
+### Profile Session Events
+
+The client's login session against the profile backend (task `0273`, S4; ADR-113). One
+`POST /v1/login` per logged-in page load, fired from `src/client/ProfileSession.ts`.
+
+⚠️ **Unlike the citizenship events above, these are NOT gated by
+`CITIZENSHIP_CARD_ENABLED`.** The login runs on every logged-in page load regardless of that
+flag, so these six are the FIRST profile events that will fire for real players — from the S4
+game deploy onward, with the citizenship card still hidden. Nothing about them is
+player-visible.
+
+| Enum Key                           | Event String                       | When Fired                                                                                                                                                                                     |
+| ---------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PROFILE_LOGIN_SUCCEEDED`          | `Profile:Login:Succeeded`          | `POST /v1/login` returned 200 with a token that parsed. Once per page load per account. Never fired for a guest, for a player with no Yandex id, or when `profileApiUrl` is empty / unreadable |
+| `PROFILE_LOGIN_CREATED`            | `Profile:Login:Created`            | **In addition to** Succeeded, when the server reports `created: true` — the login created the player row. The closest thing to a "new profile" counter                                         |
+| `PROFILE_LOGIN_FAILED_TIMEOUT`     | `Profile:Login:Failed:Timeout`     | The login did not answer within 5 s and was aborted                                                                                                                                            |
+| `PROFILE_LOGIN_FAILED_UNAVAILABLE` | `Profile:Login:Failed:Unavailable` | The server answered **503** — today `session_unavailable` (no usable `PROFILE_SESSION_SECRET`), later also S5's `creation_paused`. The client cannot tell them apart and does not try          |
+| `PROFILE_LOGIN_FAILED_ERROR`       | `Profile:Login:Failed:Error`       | Network failure, any other non-2xx, or a 200 body that failed the schema                                                                                                                       |
+| `PROFILE_SESSION_RELOGIN`          | `Profile:Session:Relogin`          | A held token was rejected with 401 (expired past its 24 h TTL, or the box's session secret changed) and a fresh login was started for it. The request is retried once with the new token       |
+
+> **⚠️ A failed login is final for that page load (owner ruling D3, 2026-09-16).** Exactly one
+> `Failed:*` event fires per load: the session latches and never retries, so a second
+> `Failed:*` in the same load is impossible. Read the ratio of `Failed:*` to
+> `Player:YandexLoggedIn` as the share of logged-in loads that got **no profile at all** — not
+> as a retry-adjusted error rate. `Profile:Session:Relogin` is **not** a retry of a failed
+> login; it only ever follows a token that had worked.
+
+### Profile Login Restart Events
+
+The restart after an in-page login (task `0273`, owner ruling D3). The citizenship card's
+guest CTA is the only surface that can open the Yandex auth dialog, and a login that happens
+mid-load leaves the page with no session token — so the page is reloaded and the whole start
+sequence runs again with the player logged in. `src/client/GameRestart.ts`.
+
+⚠️ **Gated by `CITIZENSHIP_CARD_ENABLED: false`** — the login button does not exist anywhere
+today, dev included, so none of these can fire until the `0054` launch flip.
+
+| Enum Key                                      | Event String                                 | When Fired                                                                                                                                                               |
+| --------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PROFILE_LOGIN_RESTART_REQUESTED`             | `Profile:Login:Restart:Requested`            | The player tapped the card's login button and the Yandex auth dialog reported success. Exactly one of the four outcomes below follows                                    |
+| `PROFILE_LOGIN_RESTART_PERFORMED`             | `Profile:Login:Restart:Performed`            | The page is being reloaded (`window.location.reload()`, whole url kept)                                                                                                  |
+| `PROFILE_LOGIN_RESTART_CANCELLED`             | `Profile:Login:Restart:Cancelled`            | The dialog did NOT report success — closed, failed, or no SDK. No reload; the card stays guest. Fires _instead of_ Requested, not after it                               |
+| `PROFILE_LOGIN_RESTART_SUPPRESSED_IN_MATCH`   | `Profile:Login:Restart:Suppressed:InMatch`   | A match was running, so the reload was refused. The card re-reads its profile instead. Expected to be ~0: the match canvas covers the card, so the button is unreachable |
+| `PROFILE_LOGIN_RESTART_SUPPRESSED_LATCHED`    | `Profile:Login:Restart:Suppressed:Latched`   | This page load already restarted once — the sessionStorage latch is set. The card re-reads its profile instead                                                           |
+| `PROFILE_LOGIN_RESTART_SUPPRESSED_NO_STORAGE` | `Profile:Login:Restart:Suppressed:NoStorage` | `sessionStorage` is missing or threw, so the once-per-load cap cannot be enforced and no reload happens. Private mode / iframe storage policy. The card re-reads instead |
+
+> **Reading these:** `Requested` = `Performed` + `Suppressed:InMatch` + `Suppressed:Latched` +
+> `Suppressed:NoStorage`.
+> A rising `Suppressed:Latched` means players are pressing login again on a page that reloaded
+> and still shows them as a guest — i.e. the login is not sticking, which is worth
+> investigating, not a bug in the latch.
+> `Suppressed:NoStorage` is the size of the population that can never get the restart at all;
+> for them the login button behaves exactly as it did before S4 (a profile re-read only).
+
+> ⚠️ **`Suppressed:NoStorage` is a deliberate, owner-approved deviation from the approved plan
+> §3.6, which named five restart events** (owner ruling, 2026-09-16, review round 1 finding R4).
+> Added because `0274` (S5) builds monitoring on these events, and the two storage-less paths
+> otherwise fired a `Requested` with **no** outcome event at all — unexplainable on a dashboard,
+> and hiding exactly the population most likely to be affected.
+
 ### Performance Events
 
 Sampled every 300 seconds during active gameplay via a `setInterval` independent of the render loop

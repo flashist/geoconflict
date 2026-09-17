@@ -50,8 +50,16 @@ was invoked, and this brief stays under `ai-agents/tasks/backlog/`. SCHEDULED IS
   bucket's objects are permanently unreadable for exactly that reason.~~ 🚨 **THAT SUPPORTING EXAMPLE
   IS RETRACTED 2026-09-10 — the old bucket was EMPTY; there were no objects** (owner, verbatim:
   *"I've already deleted the old bucket, it was empty, we never had anything there."*). ⛔ **The
-  CONCLUSION IS UNCHANGED AND `0218` STILL LEADS:** restore is still unproven, and losing the
+  CONCLUSION IS UNCHANGED AND `0218` STILL LEADS:** ~~restore is still unproven~~, and losing the
   illustration does not make it proven. ✅ **Cheapest to prove NOW, while every table has ZERO rows.**
+  ✅🚨 **SUPERSEDED 2026-09-16 — struck, not deleted.** *"Restore is still unproven"* was true when
+  written and is now **false**. This task proved it on the pre-`006` schema (2026-09-11, ✅ criterion 3
+  below), and [`0275`](../0275-profile-backup-restore-reproof-on-006-schema/brief.md) re-proved it on
+  the current `006` schema on **2026-09-16**: `IDENTICAL` across 10 tables, both sequences and the
+  constraint/index **definition** digests, with non-empty data, owner-executed on the box. **The
+  standing 🚨 *"the restore path has never been tested"* is closed by evidence.** ⚠️ **What is NOT
+  closed:** the RTO caveat (residual 2 below) — `0275`'s `real 0m1.252s` is a **24 KB** dump and still
+  does not extrapolate — and residual 1 (schedule × data proven separately).
 - **`0219` second** — it owns the monitoring gap for **both** unread signals on that box: the
   **certificate renewal log** and **`/opt/profile/backups/last-backup.json`**. **Capability is proven
   for both; nobody is watching either.** **Dated fuse: the certificate's `notAfter` is 2026-11-20 and
@@ -272,8 +280,14 @@ in every commit checked from `879b2f4` to `589249c`):**
 1. **The production DB was still EMPTY — 0 rows**
    (`profile-backup-restore-runbook.md:149` — *"the prod DB was still **empty** (0 rows) at this
    point, so schema + decryption + the full pipeline were verified, but a *non-empty* data round-trip
-   was not"*). A round-trip of nothing proves nothing. **A non-empty round-trip has never been
-   verified.**
+   was not"*). A round-trip of nothing proves nothing. ~~**A non-empty round-trip has never been
+   verified.**~~
+   ✅🚨 **SUPERSEDED — struck, not deleted.** True of the 2026-07-01 drill this paragraph describes;
+   **no longer true of the project.** A non-empty round-trip was verified twice by this task on
+   2026-09-11 (pre-`006` schema, 76 rows) and again by
+   [`0275`](../0275-profile-backup-restore-reproof-on-006-schema/brief.md) on **2026-09-16** on the
+   current `006` schema (68 rows / 10 tables) — `IDENTICAL`, owner-executed on the box. **Do not quote
+   this sentence as current.**
 2. **The drill predates the default-deny guard**, so **its command line no longer works**
    (`profile-backup-restore-runbook.md:152-153` — *"the first drill predates the default-deny guard,
    so its command line differed from what is documented here now"*). Anyone repeating it from the
@@ -433,3 +447,42 @@ means the data being restored is data this task created.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
 - 🔒 **No secrets in any artifact** — no values, no lengths, no endpoints, no bucket names.
 </content>
+
+---
+
+## Note — 2026-09-15: the restore proof above is on the pre-`006` schema → re-proven in [`0275`](../0275-profile-backup-restore-reproof-on-006-schema/brief.md)
+
+Appended by a spawned `fkit-producer` at `fkit-lead`'s request. **Status above is unchanged — this note
+does not reopen the task.**
+
+- This task's drill and `tests/profile-backup-dryrun.sh` used migration `001`'s tables. Migration `006`
+  (task [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md), deployed
+  2026-09-15) dropped them and re-keyed every child table to `player_id`, so **the restore proof here
+  does not carry over to the current schema.**
+- **Owner ruling (`AskUserQuestion`, lead session, 2026-09-15): *"New task, before XP go-live"*.** The
+  dry-run update and a re-run of this drill on `006` are task
+  [`0275`](../0275-profile-backup-restore-reproof-on-006-schema/brief.md), which blocks
+  `0217`. This settles where the rebuild runs, which the earlier ruling D2 (*"Later, in 0218"*, given in
+  `0270`'s plan approval) left open because this task was already closed.
+
+### ✅ 2026-09-16 — `0275` IS DONE, AND IT PASSED
+
+Appended by a spawned `fkit-producer` at `0275`'s close. **Status above is unchanged — this note does
+not reopen the task.**
+
+- **`0275` Part B ran on the live box 2026-09-16 and passed: `IDENTICAL`.** 10 tables, both sequences
+  and the constraint- and index-**definition** digests all matched with non-empty data on the `006`
+  schema; all eight behavioural lines printed verbatim; teardown clean. Evidence:
+  [`0275`'s worklog](../0275-profile-backup-restore-reproof-on-006-schema/worklog.md) § *"Part B — the
+  drill on the box (2026-09-16, OWNER-EXECUTED)"*.
+- ⇒ **The standing 🚨 *"NOT proven — THE RESTORE PATH HAS NEVER BEEN TESTED"* is CLOSED BY EVIDENCE**,
+  and the two statements in this brief that carried it are struck and annotated above (lines in
+  *"the reasoning"* and in *"what the runbook already records"*). **Nothing was deleted.**
+- ⚠️ **`0275`'s close carries `(agent-closed — not owner-verified)`** — **and** the owner personally
+  executed every writing command of Part B and reported the output. Both, not one.
+- 🚨 **Residual 2 below SURVIVES.** `0275` measured `real 0m1.252s` on a **24 KB** dump. **It still does
+  not extrapolate to real data volume.** Residual 1 (schedule × data proven separately) also survives.
+- 🔒 **Key custody, new and separate:** three unencrypted copies of the backup `age` identity were found
+  on the operator's machine during the drill. Filed as
+  [`0281`](../../backlog/0281-profile-backup-age-identity-custody-move-to-the-owners-password-manager/brief.md)
+  — **owner-only work.** Distinct from residual 8 below (the second-copy question), which is unchanged.

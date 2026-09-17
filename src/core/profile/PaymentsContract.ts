@@ -6,11 +6,12 @@ import { z } from "zod";
  * of CreditContract.ts. Defined here so the client's `PaymentsApiClient` serializes
  * the exact same schemas the profile server validates — no drift.
  *
- * Trust model (task 0019, ADR-103): `/intent` accepts the CLIENT-asserted
- * yandexPlayerId (same trust level the credit path accepted for now); the paid
- * GRANT itself is bound to the Yandex-HMAC-signed payload via
- * `developerPayload` → intent row → player id, so a forged id can only ever
- * direct an attacker's own real payment at an id he chose himself.
+ * Trust model (task 0019, ADR-103; task 0273 S4): `/intent` identifies its caller by
+ * the login session's Bearer token — `vfy:false`, so still the same trust level the
+ * credit path accepted (anyone can mint a token for an id they assert). The paid
+ * GRANT itself is bound to the Yandex-HMAC-signed payload via `developerPayload` →
+ * intent row → player id, so a forged caller can only ever direct an attacker's own
+ * real payment at an id he chose himself.
  *
  * See ai-agents/tasks/backlog/0019-yandex-payments-impl/brief.md.
  */
@@ -20,9 +21,14 @@ export const PAYMENT_PRODUCT_IDS = ["citizenship"] as const;
 export const PaymentProductIdSchema = z.enum(PAYMENT_PRODUCT_IDS);
 export type PaymentProductId = z.infer<typeof PaymentProductIdSchema>;
 
-/** Create a purchase intent BEFORE the client opens the Yandex payment frame. */
+/**
+ * Create a purchase intent BEFORE the client opens the Yandex payment frame.
+ *
+ * The caller is the Bearer token and nothing else (task 0273, S4 — the legacy
+ * `yandexPlayerId` field is GONE). zod strips unknown keys, so an old client still
+ * sending it parses fine and then gets 401 `session_invalid` for having no token.
+ */
 export const PurchaseIntentRequestSchema = z.object({
-  yandexPlayerId: z.string().min(1).max(128),
   productId: PaymentProductIdSchema,
 });
 export type PurchaseIntentRequest = z.infer<typeof PurchaseIntentRequestSchema>;

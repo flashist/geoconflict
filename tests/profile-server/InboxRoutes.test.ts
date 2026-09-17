@@ -7,6 +7,7 @@ import {
   type InboxRepo,
   type ProfileRepo,
 } from "../../src/profile-server/Routes";
+import { TEST_SESSION_CONFIG, bearerFor } from "./support/sessionToken";
 
 const TOKEN = "test-internal-token";
 // Task 0270: "y1" is a known Yandex identity resolving to this internal id; the
@@ -23,7 +24,9 @@ function mockRepo(): ProfileRepo {
       .mockImplementation(async (_platform: string, id: string) =>
         id === "y1" ? PLAYER_ID : null,
       ),
+    resolveExistingPlayer: jest.fn().mockResolvedValue(null),
     resolveOrCreatePlayer: jest.fn(),
+    hasXpGrant: jest.fn().mockResolvedValue(false),
   };
 }
 
@@ -55,8 +58,17 @@ function appWith(
   inbox: InboxRepo | null = mockInbox(),
   repo: ProfileRepo = mockRepo(),
 ) {
-  return createApp(repo, undefined, inbox ?? undefined);
+  return createApp(
+    repo,
+    undefined,
+    inbox ?? undefined,
+    undefined,
+    TEST_SESSION_CONFIG,
+  );
 }
+
+// Since task 0273 (S4) the Bearer token is the ONLY way to be a caller.
+const CALLER = bearerFor(PLAYER_ID);
 
 describe("inbox routes", () => {
   const ORIGINAL = process.env.PROFILE_INTERNAL_TOKEN;
@@ -68,40 +80,44 @@ describe("inbox routes", () => {
   });
 
   describe("GET /v1/messages", () => {
-    test("400 without yandexPlayerId", async () => {
+    // Task 0271, owner ruling D4: no token is "not logged in".
+    test("401 session_invalid without a token", async () => {
       const res = await request(appWith()).get("/v1/messages");
-      expect(res.status).toBe(400);
-      expect(res.body).toEqual({ error: "bad_request" });
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ error: "session_invalid" });
     });
 
     test("403 not_citizen when the repo gates the caller", async () => {
       const inbox = mockInbox({
         listMessages: jest.fn().mockResolvedValue({ status: "not_citizen" }),
       });
-      const res = await request(appWith(inbox)).get(
-        "/v1/messages?yandexPlayerId=y1",
-      );
+      const res = await request(appWith(inbox))
+        .get("/v1/messages")
+        .set("Authorization", CALLER);
       expect(res.status).toBe(403);
       expect(res.body).toEqual({ error: "not_citizen" });
       expect(inbox.listMessages).toHaveBeenCalledWith(PLAYER_ID);
     });
 
-    test("403 not_citizen for an unknown identity — never reads messages, never creates", async () => {
+    // Task 0273 (S4), owner ruling D1: the legacy client-asserted Yandex id is
+    // GONE. It used to resolve a caller here; now it is simply ignored.
+    test("401 for a legacy yandexPlayerId query — never reads messages, never looks the identity up", async () => {
       const inbox = mockInbox();
       const repo = mockRepo();
       const res = await request(appWith(inbox, repo)).get(
-        "/v1/messages?yandexPlayerId=ghost",
+        "/v1/messages?yandexPlayerId=y1",
       );
-      expect(res.status).toBe(403);
-      expect(res.body).toEqual({ error: "not_citizen" });
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ error: "session_invalid" });
       expect(inbox.listMessages).not.toHaveBeenCalled();
+      expect(repo.findPlayerByIdentity).not.toHaveBeenCalled();
       expect(repo.resolveOrCreatePlayer).not.toHaveBeenCalled();
     });
 
     test("200 with the messages exactly as the repo orders them", async () => {
-      const res = await request(appWith()).get(
-        "/v1/messages?yandexPlayerId=y1",
-      );
+      const res = await request(appWith())
+        .get("/v1/messages")
+        .set("Authorization", CALLER);
       expect(res.status).toBe(200);
       expect(res.body.messages.map((m: { id: number }) => m.id)).toEqual([
         2, 1,
@@ -112,16 +128,17 @@ describe("inbox routes", () => {
       const inbox = mockInbox({
         listMessages: jest.fn().mockRejectedValue(new Error("db down")),
       });
-      const res = await request(appWith(inbox)).get(
-        "/v1/messages?yandexPlayerId=y1",
-      );
+      const res = await request(appWith(inbox))
+        .get("/v1/messages")
+        .set("Authorization", CALLER);
       expect(res.status).toBe(500);
       expect(res.body).toEqual({ error: "internal_error" });
     });
 
     test("carries CORS headers so the game origin can read it", async () => {
       const res = await request(appWith())
-        .get("/v1/messages?yandexPlayerId=y1")
+        .get("/v1/messages")
+        .set("Authorization", CALLER)
         .set("Origin", "https://geoconflict.ru");
       expect(res.headers["access-control-allow-origin"]).toBe("*");
       expect(res.headers["access-control-allow-methods"]).toBe("GET, PATCH");
@@ -135,15 +152,17 @@ describe("inbox routes", () => {
         .set("Access-Control-Request-Method", "PATCH");
       expect(res.status).toBe(204);
       expect(res.headers["access-control-allow-origin"]).toBe("*");
-      expect(res.headers["access-control-allow-headers"]).toBe("Content-Type");
+      expect(res.headers["access-control-allow-headers"]).toBe(
+        "Content-Type, Authorization",
+      );
       expect(inbox.listMessages).not.toHaveBeenCalled();
       expect(inbox.markRead).not.toHaveBeenCalled();
     });
 
     test("503 inbox_unavailable when no inbox repo is wired", async () => {
-      const res = await request(appWith(null)).get(
-        "/v1/messages?yandexPlayerId=y1",
-      );
+      const res = await request(appWith(null))
+        .get("/v1/messages")
+        .set("Authorization", CALLER);
       expect(res.status).toBe(503);
       expect(res.body).toEqual({ error: "inbox_unavailable" });
       // Still readable cross-origin (the browser must see the 503).
@@ -156,7 +175,8 @@ describe("inbox routes", () => {
       const inbox = mockInbox();
       const res = await request(appWith(inbox))
         .patch("/v1/messages/read")
-        .send({ yandexPlayerId: "y1" });
+        .set("Authorization", CALLER)
+        .send({});
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ updated: 2 });
       expect(inbox.markRead).toHaveBeenCalledWith(PLAYER_ID, undefined);
@@ -168,22 +188,25 @@ describe("inbox routes", () => {
       });
       const res = await request(appWith(inbox))
         .patch("/v1/messages/read")
-        .send({ yandexPlayerId: "y1", ids: [2] });
+        .set("Authorization", CALLER)
+        .send({ ids: [2] });
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ updated: 1 });
       expect(inbox.markRead).toHaveBeenCalledWith(PLAYER_ID, [2]);
     });
 
-    test("400 on a malformed body (empty ids / missing player id)", async () => {
+    test("400 on a malformed body (empty ids); 401 with no token (task 0271, D4)", async () => {
       const inbox = mockInbox();
       const empty = await request(appWith(inbox))
         .patch("/v1/messages/read")
-        .send({ yandexPlayerId: "y1", ids: [] });
+        .set("Authorization", CALLER)
+        .send({ ids: [] });
       expect(empty.status).toBe(400);
       const noId = await request(appWith(inbox))
         .patch("/v1/messages/read")
         .send({ ids: [1] });
-      expect(noId.status).toBe(400);
+      expect(noId.status).toBe(401);
+      expect(noId.body).toEqual({ error: "session_invalid" });
       expect(inbox.markRead).not.toHaveBeenCalled();
     });
 
@@ -193,19 +216,22 @@ describe("inbox routes", () => {
       });
       const res = await request(appWith(inbox))
         .patch("/v1/messages/read")
-        .send({ yandexPlayerId: "y1" });
+        .set("Authorization", CALLER)
+        .send({});
       expect(res.status).toBe(403);
     });
 
-    test("403 not_citizen for an unknown identity without touching the repo", async () => {
+    // Task 0273 (S4): a legacy id in the body no longer names a caller.
+    test("401 for a legacy yandexPlayerId body, without touching either repo", async () => {
       const inbox = mockInbox();
       const repo = mockRepo();
       const res = await request(appWith(inbox, repo))
         .patch("/v1/messages/read")
-        .send({ yandexPlayerId: "ghost" });
-      expect(res.status).toBe(403);
-      expect(res.body).toEqual({ error: "not_citizen" });
+        .send({ yandexPlayerId: "y1" });
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ error: "session_invalid" });
       expect(inbox.markRead).not.toHaveBeenCalled();
+      expect(repo.findPlayerByIdentity).not.toHaveBeenCalled();
       expect(repo.resolveOrCreatePlayer).not.toHaveBeenCalled();
     });
 
@@ -215,7 +241,8 @@ describe("inbox routes", () => {
       });
       const res = await request(appWith(inbox))
         .patch("/v1/messages/read")
-        .send({ yandexPlayerId: "y1" });
+        .set("Authorization", CALLER)
+        .send({});
       expect(res.status).toBe(500);
     });
   });

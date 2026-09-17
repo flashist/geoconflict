@@ -55,8 +55,11 @@ export function realProfileRepo(pool: Pool, inbox?: InboxSender): ProfileRepo {
       profiles.creditMatchXp(gameId, playerId, xpAwarded),
     findPlayerByIdentity: (platform, platformUserId) =>
       identities.findPlayerByIdentity(platform, platformUserId),
+    resolveExistingPlayer: (platform, platformUserId) =>
+      identities.resolveExistingPlayer(platform, platformUserId),
     resolveOrCreatePlayer: (platform, platformUserId, source) =>
       identities.resolveOrCreatePlayer(platform, platformUserId, source),
+    hasXpGrant: (playerId, kind) => profiles.hasXpGrant(playerId, kind),
   };
 }
 

@@ -17,7 +17,7 @@ High *(producer's rank — NOT owner-ruled)*
 run as a whole belongs directly below `0217`. Appended at the bottom (ADR-035).
 
 ## Status
-🔲 Backlog
+🚧 Blocked — **server side DEPLOYED 2026-09-17 (owner-executed). Crediting still cannot be exercised at all.** The collapsed profile-box deploy shipped S3's server half; the deploy was clean (config parity 10 OK / 0 findings, migrations `migrations up to date`, both containers healthy) and the lead verified **zero error-level log lines since boot** and **0 players / 0 identities** in the DB. 🚨 **Still waiting on, and nothing here is bookkeeping:** (1) **the game server is NOT deployed** — none of S3's game-side code is running anywhere; (2) **`PROFILE_INTERNAL_TOKEN` is still blank on the game side by owner ruling**, and `internalAuth` is a `timingSafeEqual` on a *shared* secret, so even a deployed game server would take a 401 on every credit call; (3) **[`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)** is what sets that token and the current egress IP. ⇒ **There is no crediting path today and the DB has 0 rows — that is expected, not a fault.** No box probe has touched `/internal/v1/players/resolve` or `/internal/v1/credit` with a valid token, so **S3's end-to-end behaviour has zero production evidence.** Blocked on: the game deploy and `0217`. No code. · earlier: 🚧 Blocked — built + reviewed 2026-09-15 (review rounds 1–2 closed-out, Codex full; npm test 128/1552, integration 9/103 incl. GameServerProfileCredit.it); open pending the profile-box deploy (with S2) and a later game deploy · earlier: 🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-15 (plan step) · earlier: 🔲 Backlog
 
 ## Owner
 fkit-coder
@@ -77,12 +77,31 @@ Per design §9 S3:
 
 ## Notes
 
-- **Depends on:** [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1 — not S2)
+- **Depends on:** [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md) (S1 — not S2)
 - **Blocks:** [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
-- **Can run in parallel with** [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2) — both touch `src/profile-server/Routes.ts` (S3 internal routes only).
+- **Can run in parallel with** [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2) — both touch `src/profile-server/Routes.ts` (S3 internal routes only).
 - **Effort (design §9):** 1.5–2 days.
 - **Deploys:** game deploy (game server) **and** a profile-box deploy for the new internal routes. ⚠️
   Order does not matter while the token is blank; it **does** matter at `0217` — both halves must be
   live before the token is set.
 - 🔒 No secrets, hosts or player ids in any artifact.
 - **Do not invoke the mover skills** — producer-only (ADR-033). No wiki writes.
+
+## Carried from `0270` (S1) — added 2026-09-15 at S1's close
+
+Added by a spawned `fkit-producer` closing [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md),
+at `fkit-lead`'s request. **These are now items of this task.**
+
+1. **`0270` review R3 — stale comments.** They still name `player_profiles` or the
+   `(game_id, yandex_player_id)` key, both gone since migration `006`. Update them to the `006` schema
+   (`players` / `(game_id, player_id)`). Line numbers checked 2026-09-15; they will drift:
+   - `src/core/profile/CreditContract.ts:37`, `:55`
+   - `src/server/ProfileApiClient.ts:32`, `:74`
+   - `src/server/GameServer.ts:104`, `:1330`
+   - `tests/server/GameServerParticipation.test.ts:148`
+2. **`setup-profile.sh:1013` — failure message is no longer true.** On a failed migration it says
+   *"Fix the migration and re-run (migrations are idempotent)"*. Since `006`, that is false: its guard
+   refuses to run once any old table holds a row. Reword it so an operator is not told a re-run is
+   safe. **Producer's choice: kept here on S3** (S3 already needs a profile-box deploy) rather than a
+   separate follow-up task — not owner-ruled. ⚠️ `setup-profile.sh` carries grep-level assertions in
+   `tests/scripts/profile-deploy-hardening.test.sh`; run `npm test` after the edit.

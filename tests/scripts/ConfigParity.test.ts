@@ -1497,14 +1497,17 @@ describe("real tree", () => {
     expect(names(result.pipelines.client.info)).toEqual(["WEBSOCKET_URL"]);
   });
 
-  it("carries the phase-2 entries as inert — 0195's hand-off plus 0220's three Telegram variables", () => {
+  it("carries the phase-2 entries as inert — 0195's hand-off, 0220's Telegram trio, 0274's monitoring pair", () => {
     // Deliberately pinned to the exact list: a phase-2 entry never suppresses anything, so
     // one appearing (or vanishing) here is a change someone must have meant. 0220 added the
-    // three Telegram variables, whose VALUES are checked on the box, not by this checker.
+    // three Telegram variables and 0274 the OTLP endpoint + the login-creation switch —
+    // all of whose VALUES are checked on the box, not by this name-only checker.
     const result = runJson(["--pipeline=all"]);
     expect(names(result.inertAllowlist)).toEqual([
       "FEEDBACK_TELEGRAM_CHAT_ID",
       "FEEDBACK_TELEGRAM_TOKEN",
+      "OTEL_EXPORTER_OTLP_ENDPOINT",
+      "PROFILE_LOGIN_CREATE_ENABLED",
       "TELEGRAM_PROXY_URL",
       "YANDEX_PAYMENTS_SECRET",
     ]);

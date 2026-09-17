@@ -540,9 +540,17 @@ export class NameChangeRepository {
     ].join("\n");
     try {
       void sendTelegramMessage(config, text)
-        .then((result) => {
-          if (result !== "sent") {
-            log.warn(`operator telegram notification not sent: ${result}`);
+        .then((outcome) => {
+          // `sent_after_retry` is a SUCCESS (task 0277): the message arrived on the
+          // second attempt. Treating it as a failure would log a warn for every
+          // message the 0061 retry rescued — the opposite of the signal wanted.
+          if (
+            outcome.result !== "sent" &&
+            outcome.result !== "sent_after_retry"
+          ) {
+            log.warn(
+              `operator telegram notification not sent: ${outcome.result}`,
+            );
           }
         })
         .catch((error: unknown) => {

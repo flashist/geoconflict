@@ -68,6 +68,20 @@
       "reason": "Egress proxy for api.telegram.org (blocked from RU IPs), optional only while the token+chat pair is empty (src/profile-server/Server.ts warns at startup: operator name-change notifications off, requests still work). INERT in Phase 1: forwarded at both profile hops, so no name rule can fire. Its VALUE is checked live by the on-box report in setup-profile.sh (task 0220), not by this name-only checker."
     },
     {
+      "name": "OTEL_EXPORTER_OTLP_ENDPOINT",
+      "pipeline": "profile",
+      "class": "optional",
+      "phase": 2,
+      "reason": "OTLP ingest endpoint for the profile API's metrics (task 0274), optional by design (src/profile-server/Telemetry.ts warns at startup and returns the no-op metrics: the service runs, nothing is exported, and no alert can fire). INERT in Phase 1: forwarded at both profile hops, so no name rule can fire. Its VALUE is checked live by the on-box report in setup-profile.sh, which also probes the endpoint on every deploy - not by this name-only checker."
+    },
+    {
+      "name": "PROFILE_LOGIN_CREATE_ENABLED",
+      "pipeline": "profile",
+      "class": "optional",
+      "phase": 2,
+      "reason": "The login-creation switch (task 0274). Optional by design and fail-OPEN (owner ruling D3): unset, blank or unrecognised leaves creation ENABLED (src/profile-server/LoginCreationSwitch.ts), so an absent value is the normal state and never an outage. INERT in Phase 1: forwarded at both profile hops, so no name rule can fire. Its VALUE is reported on every deploy by setup-profile.sh (an unrecognised value is a FINDING there), not by this name-only checker."
+    },
+    {
       "name": "PUBLIC_HOST",
       "pipeline": "client",
       "class": "server-only",

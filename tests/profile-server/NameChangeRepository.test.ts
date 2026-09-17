@@ -63,7 +63,7 @@ const TELEGRAM = { token: "t", chatId: "c", proxyUrl: "p" };
 beforeEach(() => {
   jest.clearAllMocks();
   inbox.sendTemplate.mockResolvedValue(undefined);
-  telegramSend.mockResolvedValue("sent");
+  telegramSend.mockResolvedValue({ result: "sent" });
 });
 
 describe("requestNameChange", () => {
@@ -245,6 +245,39 @@ describe("requestNameChange", () => {
       expect(config).toEqual(TELEGRAM);
       expect(text).toContain("NewName");
       expect(text).toContain("p1");
+    });
+
+    // ── Task 0277 step 9: forum topic routing ────────────────────────────
+    // ⚠️ This is the ONE profile-box Telegram path proven working in production,
+    // and it only started working today. These two cases exist so the topic work
+    // cannot silently change it.
+    it("passes the configured topic through to the helper", async () => {
+      const db = okPool();
+      const withTopic = { ...TELEGRAM, threadId: "4242" };
+      const repo = new NameChangeRepository(db.pool, inbox, withTopic);
+      await repo.requestNameChange("p1", "NewName");
+      expect(telegramSend.mock.calls[0][0]).toEqual(withTopic);
+    });
+
+    it("passes a config with NO topic through byte-identically", async () => {
+      const db = okPool();
+      const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+      await repo.requestNameChange("p1", "NewName");
+      const config = telegramSend.mock.calls[0][0] as Record<string, unknown>;
+      expect(config).toEqual(TELEGRAM);
+      // Not present-and-empty: the helper omits the key only when it is blank or
+      // absent, and Telegram REJECTS an empty message_thread_id.
+      expect(Object.keys(config)).not.toContain("threadId");
+    });
+
+    // A message the retry rescued is a SUCCESS, not a failure to warn about.
+    it("treats sent_after_retry as delivered", async () => {
+      telegramSend.mockResolvedValue({ result: "sent_after_retry" });
+      const db = okPool();
+      const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+      await expect(
+        repo.requestNameChange("p1", "NewName"),
+      ).resolves.toMatchObject({ status: "ok" });
     });
 
     it("never fails the request when Telegram fails", async () => {

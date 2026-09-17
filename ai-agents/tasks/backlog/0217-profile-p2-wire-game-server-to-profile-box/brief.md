@@ -133,7 +133,7 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
   (*"Token now, not later"*), ADR-113 accepted, build *"Split into 4"* (+ monitoring as a 5th slice under
   *"monitoring before go-live"*), alerts by email. Not producer precedent.**
   - `0266` is now an **epic**; the counting work is its five slices. ✅ **All five COUNT** — none waits on
-    the wiring or on Yandex: [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1), [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5).
+    the wiring or on Yandex: [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md) (S1), [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5).
   - **This task now depends on all five** (see `## Depends on`). Per design §7: **all of S1–S5 land and
     deploy before `PROFILE_INTERNAL_TOKEN` is set.**
   - ✅ **`0253` still counts**, but its rework now waits on `0273` (S4), not on `0266`'s design.
@@ -141,6 +141,20 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
     as to the gate: read `0266` as the epic of `0270`–`0274`.
   - 🚩 **Post-go-live items from `0274` (S5), flagged for the owner, not ruled:** arm alert A2 on day 8
     after go-live; re-baseline alerts A1–A6 after 14 days.
+- 📌 **GO-LIVE LIST UPDATE 2026-09-15 (later still) — OWNER RULING via `AskUserQuestion` in the lead session,
+  relayed by `fkit-lead` to a spawned `fkit-producer`: *"New task, before XP go-live"*. Not producer precedent.**
+  - ✅ **[`0275`](../../done/0275-profile-backup-restore-reproof-on-006-schema/brief.md) COUNTS** — re-prove the
+    backup restore on the `006` schema (update `tests/profile-backup-dryrun.sh`, re-run `0218`'s drill).
+    `0218`'s restore proof was made on the pre-`006` tables; it does not carry over. Needs only `0270`
+    (done), so it does not wait on the wiring or on Yandex.
+  - **This task now depends on `0275`** (see `## Depends on`).
+- 📌 **GO-LIVE LIST UPDATE 2026-09-15 (latest) — OWNER RULING via `AskUserQuestion` in the lead session,
+  relayed by `fkit-lead` to a spawned `fkit-producer`: *"Small fix; lands before real traffic hits the
+  profile server. Built after S3"*. Not producer precedent.**
+  - ✅ **[`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md) COUNTS** — close
+    the case-variant `/internal/` bypass of the nginx IP allowlist (pre-existing, found by the `0271`
+    review; the token still gates the routes). Built after `0272` (S3); does not wait on Yandex.
+  - **This task now depends on `0276`** (see `## Depends on`).
 - ⚠️ **`## Status` below is UNCHANGED.** A conditional go-live slot is not a start.
 
 ## Status
@@ -152,7 +166,9 @@ fkit-coder / operator
 ## Depends on
 [`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box must exist, be healthy, and hold
 a **known** `PROFILE_INTERNAL_TOKEN`.
-Plus, added 2026-09-15 on owner rulings relayed by `fkit-lead`: [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1), [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5) — the five profile-identity slices of epic `0266`; **all five deployed and verified before `PROFILE_INTERNAL_TOKEN` is set** (design §7).
+Plus, added 2026-09-15 on owner rulings relayed by `fkit-lead`: [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md) (S1), [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5) — the five profile-identity slices of epic `0266`; **all five deployed and verified before `PROFILE_INTERNAL_TOKEN` is set** (design §7).
+Plus, added 2026-09-15 (later) on an owner ruling relayed by `fkit-lead`: [`0275`](../../done/0275-profile-backup-restore-reproof-on-006-schema/brief.md) — backup restore re-proven on the `006` schema, **before `PROFILE_INTERNAL_TOKEN` is set**.
+Plus, added 2026-09-15 (latest) on an owner ruling relayed by `fkit-lead`: [`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md) — case-variant `/internal/` paths no longer skip the nginx IP allowlist, **before real traffic reaches the profile box**.
 
 ## Context
 
@@ -172,7 +188,7 @@ durable queue** (ADR-101) ⇒ **the XP is LOST, not queued**, and ~~**nothing lo
 
 ⚠️ **The runbook's original *"leave blank; the box auto-generates"* line is now STRUCK and annotated**
 (2026-09-04). **Read against `589249c` + the 2026-09-10 citation sweep (that sweep moved `0182`'s lines down):** the struck sentence is at
-[`0182/brief.md:185`](../0182-profile-04i-server-bring-up-runbook/brief.md) — that line holds
+[`0182/brief.md:185`](../../done/0182-profile-04i-server-bring-up-runbook/brief.md) — that line holds
 `~~*"Optional — leave blank; the box auto-generates and persists it."*~~` — and the same sentence is
 quoted inside the `.env.profile.secret` code block at `0182/brief.md:241`; the correction banner runs
 `0182/brief.md:182-231` and the corrected value line is `0182/brief.md:248`.
@@ -286,6 +302,21 @@ whether or not `004` is applied. RUN IT, rather than investigating first.**
 - Backups, the restore drill, `age`-key custody (P3 / `0218`).
 - Monitoring and alerting (P4 / `0219`).
 - Arming the config-parity guard — that is `0064` + `0203`, and it is gated on ten items.
+
+### 📌 The `/internal/` boundary now has re-runnable box evidence — inherit it, 2026-09-17
+
+Before wiring the game server, **re-run the probe set `0276` left behind** rather than rediscovering it.
+On the deployed box: **eleven read-only probes from a non-allowed host** (three case variants, four edge
+forms, all four internal routes) → **403 on every one**, **plus one read-only probe from the allowed game
+box** → **401**.
+
+That 401 is the one that matters here. It proves the lowercase internal path from the game box passes the
+nginx allowlist and reaches `internalAuth` — so a 403 seen during this task is **not** the allowlist, and
+a 401 is the token, not the network. That distinction is exactly the "two silent barriers" problem above:
+without this baseline, 401 and 403 are indistinguishable from "working" at the game server. All probes are
+plain `curl`s and change nothing. Recorded in
+[`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)'s closing
+record. ⚠️ Deployed nginx is **1.28.3**.
 
 ## Verification steps
 

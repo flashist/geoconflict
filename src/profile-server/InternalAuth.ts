@@ -11,11 +11,30 @@ import type { NextFunction, Request, Response } from "express";
 
 const BEARER_PREFIX = "Bearer ";
 
-function tokensMatch(provided: string, expected: string): boolean {
-  if (expected.length === 0 || provided.length !== expected.length) {
-    return false; // timingSafeEqual throws on length mismatch — guard first.
+/**
+ * Constant-time shared-secret comparison, fail-CLOSED.
+ *
+ * Exported since task 0277 so a second shared-secret check can reuse THIS
+ * comparison rather than grow a parallel one — ADR-114 counts "one more place a
+ * fail-closed check must be right" as a cost, and reuse removes it instead of
+ * accepting it. Behaviour is unchanged by the export.
+ */
+export function tokensMatch(provided: string, expected: string): boolean {
+  // ⚠️ The guard counts UTF-8 BYTES, not JS string length (review R1). timingSafeEqual
+  // compares Buffers, so the lengths that must match are the buffers' — and the two
+  // disagree for any non-ASCII character. Guarding on string length let a wrong secret
+  // of equal string length but different byte length reach timingSafeEqual, which
+  // THROWS RangeError: a 500 instead of a 401 here, and in the alert relay a 500
+  // instead of the contracted 200 with the out-of-band alarm never firing.
+  const expectedBytes = Buffer.from(expected);
+  const providedBytes = Buffer.from(provided);
+  if (
+    expectedBytes.length === 0 ||
+    providedBytes.length !== expectedBytes.length
+  ) {
+    return false;
   }
-  return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+  return timingSafeEqual(providedBytes, expectedBytes);
 }
 
 export function internalAuth(

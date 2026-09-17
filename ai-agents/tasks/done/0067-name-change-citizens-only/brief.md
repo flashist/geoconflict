@@ -58,6 +58,36 @@ step 0 regardless**, which closes the question without needing to answer it firs
 was built and reviewed; whether its server half reached a box is a **deployment** fact, which is
 exactly what that marker already warns about.
 
+## 🆕 2026-09-17 — the operator-notification egress is FIXED, and it was a zero-code fix
+
+⛔ **NO status change.** This task stays `✅ Done (agent-closed — not owner-verified)`. Recorded here
+because the close-out below explicitly flags *"proxy reachability from the profile VPS was never
+exercised"* as an open residual, and that residual is now **partly** discharged.
+
+**What changed:** the owner added **the profile box's egress IP** to the allow list on **the egress
+proxy host**. The lead then verified, **read-only from that box**:
+
+| Path | Result | Reading |
+|---|---|---|
+| direct to Telegram | `000` | blocked — **expected**; this is why a proxy exists |
+| **through the proxy** | **`302`** | a real answer — the proxy path works |
+| the Bot API path | `404` | a real answer, not a network failure |
+
+**So the operator notification at `src/profile-server/NameChangeRepository.ts:542` needed no code —
+only an allow-list entry.** The architect predicted exactly this.
+
+🚩 **What is STILL not proven, and who owns it — flagged, not ruled:**
+- **The notification has never been seen to arrive.** Egress reachability is not delivery. The
+  close-out routed this verification to `0033`; **`0033`'s brief never picked it up, and no task on
+  any board owns it today.** Recorded as an open item on
+  [`0277`](../../backlog/0277-uptrace-alert-delivery-to-telegram/brief.md)'s *Notes* for the owner to
+  place.
+- ⚠️ **The send can still fail silently.** [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md)
+  was reproduced in production on 2026-09-17: a **module-level `ProxyAgent`** can hand out a dead
+  pooled socket after a proxy restart or idle timeout. `sendTelegramMessage` never throws by
+  contract and this caller discards the result with `void`, so a dropped operator notification
+  would be **invisible**. Hypothesis, not confirmed in code; no fix exists.
+
 ## ⚠️ Close-out — read this before treating the task as shipped (2026-08-28)
 
 **Effective posture: built-awaiting-deploy — the same posture as `0062` and `0063`. Nothing in this

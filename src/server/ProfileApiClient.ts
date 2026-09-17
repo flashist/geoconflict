@@ -7,14 +7,16 @@ import {
   CreditBatchResponseSchema,
   CreditItem,
   CreditItemSchema,
-  ProfileUpsertRequest,
+  PlayerResolveRequest,
+  PlayerResolveRequestSchema,
+  PlayerResolveResponse,
+  PlayerResolveResponseSchema,
 } from "../core/profile/CreditContract";
 import { MatchCredit } from "../core/profile/MatchQualification";
-import { PublicPlayerProfileSchema } from "../core/profile/PlayerProfile";
 import { formatError } from "./Logger";
 
 const CREDIT_PATH = "/internal/v1/credit";
-const UPSERT_PATH = "/internal/v1/profile/upsert";
+const RESOLVE_PATH = "/internal/v1/players/resolve";
 const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_BACKOFF_MS = 250;
 // Per-attempt ceiling so a stalled-but-not-down backend can't hold a socket/promise
@@ -24,14 +26,17 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 /**
  * Game-server → profile-backend HTTP client (the first and only caller of the
  * profile API from the game server; T6). Calls the internal, service-authenticated
- * write endpoints `POST /internal/v1/credit` and `POST /internal/v1/profile/upsert`.
+ * endpoints `POST /internal/v1/players/resolve` and `POST /internal/v1/credit`.
  *
  * CONTRACT: every public method is fully FAIL-SOFT — it never throws and never
  * blocks the caller. A profile-backend outage must never stall, delay, or error a
  * match. Crediting is at-least-once with bounded retries; the profile server's
- * `(game_id, yandex_player_id)` idempotency key makes retries safe (a duplicate is
- * a no-op). There is no durable retry queue — a hard outage past the retry budget
- * drops that match's credit, which is the documented fail-soft tradeoff.
+ * `(game_id, player_id)` idempotency key makes retries safe (a duplicate is a
+ * no-op). There is no durable retry queue — a hard outage past the retry budget
+ * drops that match's credit, which is the documented fail-soft tradeoff (ADR-101).
+ *
+ * ⛔ Never log a platform id or a player id from here (ADR-113) — lengths and
+ * counts only.
  *
  * Instantiate once per worker process (mirrors PrivilegeRefresher) and share it.
  */
@@ -71,55 +76,64 @@ export class ProfileApiClient {
   }
 
   /**
-   * Create-or-relink a profile by Yandex identity so a `player_profiles` row exists
-   * before any crediting (and before the Citizenship UI reads it). Idempotent
-   * server-side. Fire-and-forget; never throws.
+   * Find-or-create the internal player behind a Yandex identity (task 0272) and
+   * return its id plus the display-only `isCitizen` (task 0068) — both come back on
+   * the one response, so there is no second request and no second trust seam.
    *
-   * Returns the upserted profile's `is_citizen` (task 0068) — the endpoint already
-   * responds with the public profile, so reading it here costs no extra request and
-   * opens no new trust seam. FAIL-SOFT IS THE WHOLE CONTRACT: every failure path
-   * (unconfigured, transport error, 4xx incl. the 409 conflict, 5xx after retries,
-   * unparseable body) returns `false`, i.e. "not a citizen" — never an exception and
-   * never a delay. A `false` here means "we do not know", so callers must only ever
-   * turn the flag ON from a `true`, never clear an already-known `true`.
+   * FAIL-SOFT IS THE WHOLE CONTRACT: every failure path (unconfigured, an id the
+   * contract refuses, transport error, 4xx, 5xx after retries, unparseable body)
+   * returns `null` — never an exception and never a delay beyond the retry budget.
+   * `null` means "not resolved": the caller may try again later (the credit path
+   * does), and must never clear an already-known citizen flag on it.
    */
-  public async upsertProfile(
-    yandexPlayerId: string,
-    persistentId: string,
-  ): Promise<boolean> {
+  public async resolvePlayer(
+    platformUserId: string,
+  ): Promise<PlayerResolveResponse | null> {
     if (!this.isConfigured()) {
-      this.logDisabledOnce("upsertProfile");
-      return false;
+      this.logDisabledOnce("resolvePlayer");
+      return null;
     }
     try {
-      const body: ProfileUpsertRequest = { yandexPlayerId, persistentId };
-      const json = await this.postWithRetry(UPSERT_PATH, body);
+      const body: PlayerResolveRequest = {
+        platform: "yandex_games",
+        platformUserId,
+      };
+      // An id accepted at the 256-char join boundary can exceed the 128-char
+      // contract; the server would 400 it anyway, so don't spend a request on it.
+      if (!PlayerResolveRequestSchema.safeParse(body).success) {
+        // Never log the (untrusted) id value — length is enough to diagnose.
+        this.log.warn(
+          `not resolving player: id fails the resolve contract (id length ${platformUserId.length})`,
+        );
+        return null;
+      }
+      const json = await this.postWithRetry(RESOLVE_PATH, body);
       if (json === null) {
         this.log.warn(
-          `profile upsert failed after retries (will retry on next join / credit no_profile)`,
+          `player resolve failed after retries (retried on the next identity event or at credit time)`,
         );
-        return false;
+        return null;
       }
-      const parsed = PublicPlayerProfileSchema.safeParse(json);
+      const parsed = PlayerResolveResponseSchema.safeParse(json);
       if (!parsed.success) {
         this.log.warn(
-          `profile upsert response failed validation: ${z.prettifyError(parsed.error)}`,
+          `player resolve response failed validation: ${z.prettifyError(parsed.error)}`,
         );
-        return false;
+        return null;
       }
-      return parsed.data.is_citizen;
+      return parsed.data;
     } catch (error) {
-      this.log.warn(
-        `unexpected error upserting profile: ${formatError(error)}`,
-      );
-      return false;
+      this.log.warn(`unexpected error resolving player: ${formatError(error)}`);
+      return null;
     }
   }
 
   /**
-   * Award XP for a finished match. Bounded at-least-once retry, fully fail-soft.
-   * On a `no_profile` result (the upsert-at-join did not land — e.g. a race or a
-   * brief outage at join), upserts those players and re-credits them once.
+   * Award XP for a match, keyed by the internal player id. Bounded at-least-once
+   * retry, fully fail-soft. A `no_profile` result (the player was erased since it
+   * was resolved) is warned about and dropped for this match — there is no backfill
+   * (task 0272): the game server resolves before crediting, and the next join
+   * recreates the player.
    */
   public async creditMatch(credits: readonly MatchCredit[]): Promise<void> {
     if (credits.length === 0) return;
@@ -129,20 +143,27 @@ export class ProfileApiClient {
     }
     // Isolate any item that would fail the profile server's per-item contract BEFORE
     // posting. The server rejects the whole `/internal/v1/credit` batch (400, which we
-    // don't retry) if a single item is invalid — e.g. a modified rostered client whose
-    // yandexPlayerId is accepted at the 256-char join boundary but exceeds the credit
-    // contract's 128-char cap. Dropping just that item keeps every other player's XP.
-    const valid = credits.filter((c) => {
-      if (CreditItemSchema.safeParse(toCreditItem(c)).success) return true;
-      // Never log the (untrusted) id value — length is enough to diagnose.
+    // don't retry) if a single item is invalid. Dropping just that item keeps every
+    // other player's XP.
+    const valid: CreditItem[] = [];
+    for (const credit of credits) {
+      const item: CreditItem = {
+        gameId: credit.gameId,
+        playerId: credit.playerId,
+        xpAwarded: credit.xpAwarded,
+      };
+      if (CreditItemSchema.safeParse(item).success) {
+        valid.push(item);
+        continue;
+      }
+      // Never log the id value — the game id is not a player identifier.
       this.log.warn(
-        `dropping invalid credit item (id length ${c.yandexPlayerId.length}) for game ${c.gameId}`,
+        `dropping invalid credit item (player id length ${credit.playerId.length}) for game ${credit.gameId}`,
       );
-      return false;
-    });
+    }
     if (valid.length === 0) return;
     try {
-      const response = await this.sendCredits(valid.map(toCreditItem));
+      const response = await this.sendCredits(valid);
       if (response === null) {
         this.log.warn(
           `credit batch failed after retries; ${valid.length} award(s) dropped (idempotent — a later retry is safe)`,
@@ -150,7 +171,6 @@ export class ProfileApiClient {
         return;
       }
       this.logOutcomes(response);
-      await this.backfillMissingProfiles(valid, response);
     } catch (error) {
       // Defensive: must never throw out of the match-end path.
       this.log.warn(`unexpected error crediting match: ${formatError(error)}`);
@@ -167,13 +187,17 @@ export class ProfileApiClient {
     return process.env.PROFILE_INTERNAL_TOKEN ?? "";
   }
 
-  /** Profile calls are no-ops unless both the URL and the token are present. */
-  private isConfigured(): boolean {
+  /**
+   * Profile calls are no-ops unless both the URL and the token are present. Public so
+   * a caller can tell "not configured" (every call is a silent no-op) apart from "a
+   * configured call failed" when deciding whether a drop is worth a warn (review R1).
+   */
+  public isConfigured(): boolean {
     return this.baseUrl().length > 0 && this.token().length > 0;
   }
 
   private logDisabledOnce(op: string): void {
-    // Per-op so a frequent op (upsert-at-join) can't suppress the log for a
+    // Per-op so a frequent op (resolve-at-join) can't suppress the log for a
     // distinct op (creditMatch) that may never have logged its own miss.
     if (this.disabledLoggedOps.has(op)) return;
     this.disabledLoggedOps.add(op);
@@ -207,30 +231,11 @@ export class ProfileApiClient {
     if (counts.error > 0) {
       this.log.warn(`${counts.error} credit item(s) errored server-side`);
     }
-  }
-
-  private async backfillMissingProfiles(
-    credits: readonly MatchCredit[],
-    response: CreditBatchResponse,
-  ): Promise<void> {
-    const missing = new Set(
-      response.results
-        .filter((r) => r.status === "no_profile")
-        .map((r) => r.yandexPlayerId),
-    );
-    if (missing.size === 0) return;
-    const toRetry = credits.filter((c) => missing.has(c.yandexPlayerId));
-    await Promise.all(
-      toRetry.map((c) => this.upsertProfile(c.yandexPlayerId, c.persistentId)),
-    );
-    const retryResponse = await this.sendCredits(toRetry.map(toCreditItem));
-    if (retryResponse === null) {
+    if (counts.no_profile > 0) {
       this.log.warn(
-        `re-credit after profile upsert failed for ${toRetry.length} player(s) (idempotent — safe to retry later)`,
+        `${counts.no_profile} credit item(s) were no_profile (player erased since it was resolved); dropped for this match`,
       );
-      return;
     }
-    this.logOutcomes(retryResponse);
   }
 
   /**
@@ -281,15 +286,6 @@ export class ProfileApiClient {
     }
     return null;
   }
-}
-
-/** Strip the internal-only `persistentId` to the on-the-wire credit payload. */
-function toCreditItem(c: MatchCredit): CreditItem {
-  return {
-    gameId: c.gameId,
-    yandexPlayerId: c.yandexPlayerId,
-    xpAwarded: c.xpAwarded,
-  };
 }
 
 function delay(ms: number): Promise<void> {

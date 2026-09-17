@@ -563,6 +563,32 @@ chmod 600 "$LOCAL_TMPENV"
     printf "export FEEDBACK_TELEGRAM_TOKEN=%q\n" "${FEEDBACK_TELEGRAM_TOKEN:-}"
     printf "export FEEDBACK_TELEGRAM_CHAT_ID=%q\n" "${FEEDBACK_TELEGRAM_CHAT_ID:-}"
     printf "export TELEGRAM_PROXY_URL=%q\n" "${TELEGRAM_PROXY_URL:-}"
+    # Task 0277. Topic routing + the alert webhook secret. ⛔ TELEGRAM_TOPIC_FEEDBACK
+    # is deliberately NOT here: feedback is sent by the GAME server, so forwarding it
+    # onto this box would be config nothing reads — and a later reader would take its
+    # presence as evidence the feedback-topic move had already shipped.
+    printf "export TELEGRAM_TOPIC_ALERTS=%q\n" "${TELEGRAM_TOPIC_ALERTS:-}"
+    printf "export TELEGRAM_TOPIC_NAME_CHANGES=%q\n" "${TELEGRAM_TOPIC_NAME_CHANGES:-}"
+    printf "export PROFILE_ALERT_WEBHOOK_TOKEN=%q\n" "${PROFILE_ALERT_WEBHOOK_TOKEN:-}"
+    # Login session HMAC key (task 0271). Blank is the NORMAL case: the box reuses its persisted
+    # key, or generates one on the first deploy. A value set here rotates the key — every live
+    # session 401s once and the client silently logs in again. Not shared with the game server.
+    printf "export PROFILE_SESSION_SECRET=%q\n" "${PROFILE_SESSION_SECRET:-}"
+    # Monitoring + the login-creation switch (task 0274, S5).
+    #
+    # OTEL_EXPORTER_OTLP_ENDPOINT is the ONLY telemetry value this box gets (owner
+    # ruling D4): the ingest path is anonymous — the telemetry collector adds the
+    # project DSN itself — so there is NO DSN, project token or auth header here,
+    # and there must never be. It is not a credential, but it IS a host, so it rides
+    # this same 0600-staged, source-then-rm channel and never reaches an argv.
+    # Empty = the box reuses its persisted value (0220 pattern); to clear it, rm
+    # /opt/profile/.otel_endpoint on the box. Empty on a FRESH box means no metrics,
+    # which means no alert can fire — setup-profile.sh says so in its value report.
+    printf "export OTEL_EXPORTER_OTLP_ENDPOINT=%q\n" "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
+    # 'false' pauses creating players at POST /v1/login (the incident lever). Blank is
+    # the normal case and means "reuse whatever the box already has" — which is the
+    # point: a redeploy during an incident must not quietly resume creating players.
+    printf "export PROFILE_LOGIN_CREATE_ENABLED=%q\n" "${PROFILE_LOGIN_CREATE_ENABLED:-}"
     # Off-box backup config (T8). Endpoint/region/bucket/prefix are public; access+secret keys
     # and the age recipient ride the same 0600-staged, source-then-rm channel as the DB password.
     # setup-profile.sh installs the daily encrypted S3 backup only when these are all present.

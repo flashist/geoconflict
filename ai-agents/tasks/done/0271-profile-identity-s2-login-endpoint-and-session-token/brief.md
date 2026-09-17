@@ -4,7 +4,7 @@
 0271
 
 ## Parent / Epic
-[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
+[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../../backlog/0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
 
 ## Sprint
 Sprint 4
@@ -17,7 +17,7 @@ High *(producer's rank — NOT owner-ruled)*
 and S5; the S1–S5 run as a whole belongs directly below `0217`. Appended at the bottom (ADR-035).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -85,11 +85,71 @@ Per design §9 S2:
 8. **On the box after the owner's deploy:** a login returns a token, and a `GET /v1/profile` with that
    Bearer token succeeds.
 
+---
+
+## ✅ CLOSING RECORD — 2026-09-17. Deployed, proven live on the box, closed.
+
+**Closed by a spawned `fkit-producer` for `/fkit-sprint-ship-loop` — no owner channel, which is why the
+status above carries `(agent-closed — not owner-verified)`.** Who did what: the **OWNER personally ran
+the profile-box deploy** and the first login probe; the **lead session ran the remaining live checks**
+under the owner's D1 write approval, then cleaned up. The bookkeeping here is the producer's.
+
+The owner collapsed the two planned profile deploys into one (owner ruling, 2026-09-16) and ran it
+2026-09-17. It shipped S2 together with S3's server side, `0273`'s legacy-fallback removal, `0274`'s
+monitoring and `0276`'s path fix. Deploy output clean; migrations all **skipped** (`migrations up to
+date`), so S1's schema was already in place and S2 needed none.
+
+**Verification steps 1–7** were met at build time and are unchanged: `npm test` **127 suites / 1508
+tests**, `test:integration` **99**, review rounds 1–3 closed-out (Codex full).
+
+### Verification step 8 — both halves now met
+
+*"a login returns a token, and a `GET /v1/profile` with that Bearer token succeeds"*
+
+| Check | Result |
+|---|---|
+| First login, synthetic id | `created=true`, `grantChecks.tenure="pending"`, **token received** |
+| **`GET /v1/profile` with that Bearer token** | **200**, full profile body (`xp`, `is_citizen`, `display_name`, `schema_version`, timestamps) — **acceptance proven** |
+| Token with one character altered | **401** — the signature is genuinely verified, not decorative |
+| `Authorization: bearer …` (lowercase prefix) | **401** — strict `Bearer ` parsing confirmed live. This was **S2 residual R3**, now settled |
+| Second login, same id | **`created=false`** — find-or-create correct, no duplicate profile |
+| Synthetic id in container logs | **0 occurrences** |
+| Any session token in container logs | **0 occurrences** |
+| Error-level log lines since boot | **0** |
+| Cleanup (one transaction) | `DELETE 1` → back to **0 players, 0 identities** |
+
+**Why the second row mattered.** Signing a token and verifying one are separate paths in `SessionToken`,
+and `resolveCaller` is the piece every public route depends on. A token that is issued but not accepted
+would have presented exactly as the box did before this run, and would have surfaced only once the
+client shipped under `0273`. The earlier 401 on an **unauthenticated** `/v1/profile` proved the legacy
+fallback was gone; it said nothing about Bearer acceptance. It does now.
+
+### `plan.md` §10 — remaining checks closed
+
+The two outstanding write-step items are both covered above: **step 3** (login again → `created:false`)
+and **step 5** (`docker logs` grep for the synthetic id → 0 hits). The log grep is the **live proof of
+brief verification step 5** ("no token, Yandex id or player id appears in any log line"), which until now
+rested only on a test asserting over captured log output.
+
+Cleanup ran in the one transaction §10 step 4 specifies; row counts returned to their earlier values. No
+token and no id were written into any artifact — "token received" only, per §10's own rule.
+
+### 📌 Re-runnable box evidence for `0279` and `0217` to inherit — 2026-09-17
+
+Alongside this task's live login checks, the `/internal/` boundary was proven on the box under
+[`0276`](../0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md): **eleven read-only
+probes from a non-allowed host** (three case variants, four edge forms, four internal routes) **and one
+read-only probe from the allowed game box**, the latter returning **401** — proof the allowlist still
+lets the game server reach `internalAuth`. All plain `curl`s, nothing changed, cheap to re-run.
+[`0279`](../../backlog/0279-profile-internal-routes-no-rate-limiter-no-auth-failure-log/brief.md) and
+[`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) should **re-run that set
+rather than rediscover it**.
+
 ## Notes
 
 - **Depends on:** [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1)
-- **Blocks:** [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5), [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
-- **Can run in parallel with** [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3) after S1 — both touch `src/profile-server/Routes.ts` (S2 public routes, S3 internal routes); the driver should expect a merge.
+- **Blocks:** [`0273`](../../backlog/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5), [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
+- **Can run in parallel with** [`0272`](../../backlog/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3) after S1 — both touch `src/profile-server/Routes.ts` (S2 public routes, S3 internal routes); the driver should expect a merge.
 - **Effort (design §9):** 2–2.5 days.
 - **Deploys:** profile box only; safe alone thanks to the legacy fallback.
 - 🔒 No secrets, hosts or player ids in any artifact — variable names only.

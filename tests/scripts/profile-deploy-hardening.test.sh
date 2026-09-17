@@ -271,6 +271,28 @@ if [ "$got" = "$SECRET_PING" ]; then pass "ping URL round-trips through sourcing
 if grep -rqF "$SECRET_PING" "$WORK"/*.argv 2>/dev/null; then fail "ping URL LEAKED into an argv"; \
   else pass "ping URL never appears in docker/ssh/scp/sshpass argv"; fi
 
+echo "== T17: PROFILE_SESSION_SECRET reaches the staged env, %q-quoted, exactly once; blank stays blank (0271) =="
+# Same T10 standard: drive the REAL script and assert what the staged file carries. Blank is a
+# supported value here — it means "the box reuses its persisted key, or generates one".
+SECRET_SS='0271-F@ke session "secret"$notreal with spaces'
+NEW; echo profile > "$WORK/marker"
+run_deploy PROFILE_SESSION_SECRET="$SECRET_SS"
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC (expected 0); see $WORK/out.log"
+n=$(grep -c '^export PROFILE_SESSION_SECRET=' "$WORK/staged.env" 2>/dev/null || true); n=${n:-0}
+[ "$n" = "1" ] && pass "exactly one export PROFILE_SESSION_SECRET line" \
+  || fail "expected 1 export PROFILE_SESSION_SECRET line, got $n"
+got=$( . "$WORK/staged.env" >/dev/null 2>&1; printf '%s' "${PROFILE_SESSION_SECRET-}" )
+if [ "$got" = "$SECRET_SS" ]; then pass "session secret round-trips through sourcing (spaces/quotes/\$ intact)"; \
+  else fail "staged session secret did not round-trip"; fi
+if grep -rqF "$SECRET_SS" "$WORK"/*.argv 2>/dev/null; then fail "session secret LEAKED into an argv"; \
+  else pass "session secret never appears in docker/ssh/scp/sshpass argv"; fi
+NEW; echo profile > "$WORK/marker"
+run_deploy
+n=$(grep -c '^export PROFILE_SESSION_SECRET=' "$WORK/staged.env" 2>/dev/null || true); n=${n:-0}
+got=$( . "$WORK/staged.env" >/dev/null 2>&1; printf '%s' "${PROFILE_SESSION_SECRET-unset}" )
+[ "$n" = "1" ] && [ -z "$got" ] && pass "blank deploy stages exactly one EMPTY PROFILE_SESSION_SECRET (the box reuses or generates)" \
+  || fail "blank deploy: expected one empty export line, got n=$n value-empty=$([ -z "$got" ] && echo yes || echo no)"
+
 # ── Structural parity checks (setup-* on-box halves + telemetry mirror) ────────
 echo "== Structural: on-box flock/marker + telemetry mirror =="
 P="$REPO_ROOT/setup-profile.sh"
@@ -471,7 +493,12 @@ declare -F report_config_values >/dev/null && HAVE_REPORT=1
 PERSIST_SPECS="YANDEX_PAYMENTS_SECRET:.yandex_payments_secret \
 FEEDBACK_TELEGRAM_TOKEN:.feedback_telegram_token \
 FEEDBACK_TELEGRAM_CHAT_ID:.feedback_telegram_chat_id \
-TELEGRAM_PROXY_URL:.telegram_proxy_url"
+TELEGRAM_PROXY_URL:.telegram_proxy_url \
+PROFILE_SESSION_SECRET:.session_secret"
+# The four OPTIONAL secrets (0220): blank + nothing persisted = written EMPTY, feature off.
+# They must NEVER be called in generate mode — a minted value would switch a feature "on" with
+# a key nobody else holds. PROFILE_SESSION_SECRET (0271) is the one generated secret.
+OPTIONAL_SECRET_NAMES="YANDEX_PAYMENTS_SECRET FEEDBACK_TELEGRAM_TOKEN FEEDBACK_TELEGRAM_CHAT_ID TELEGRAM_PROXY_URL"
 
 echo "== T12: persist_or_reuse_secret — env value persisted 0600, blank redeploy REUSES it, by name (0220) =="
 if [ "$HAVE_PERSIST" = 1 ]; then
@@ -584,6 +611,15 @@ if [ "$HAVE_REPORT" = 1 ]; then
     PROFILE_INTERNAL_TOKEN_SOURCE='environment'
     PROFILE_CHECKS_PING_URL='https://ping.example.invalid/0220-fake'
     PROFILE_BACKUP_S3_ENDPOINT='https://s3.example.invalid'
+    PROFILE_SESSION_SECRET='0271-F@ke session "secret"$notreal-0123456789'
+    # Task 0274 (S5): the OTLP endpoint and the login-creation switch.
+    OTEL_EXPORTER_OTLP_ENDPOINT='https://otel-0274.example.invalid'
+    PROFILE_LOGIN_CREATE_ENABLED='true'
+    # Task 0277 (review R8): the alert webhook secret. A fully-configured box HAS one —
+    # without it the relay delivers nothing, so it belongs in the clean surface.
+    # ⛔ The TELEGRAM_TOPIC_* pair is deliberately NOT set here: blank is a supported
+    # state meaning the General topic, so they must read OPTIONAL even on a clean box.
+    PROFILE_ALERT_WEBHOOK_TOKEN='0277-F@ke alert "token"$notreal'
   }
   # (i) clean config → zero findings, returns 0.
   clean_config
@@ -619,6 +655,36 @@ if [ "$HAVE_REPORT" = 1 ]; then
   grep -q 'FINDING.*PROFILE_BACKUP_S3_ENDPOINT' "$RDIR/bad2.txt" && pass "bad2: non-https / IP-literal PROFILE_BACKUP_S3_ENDPOINT → finding" || fail "bad2: no PROFILE_BACKUP_S3_ENDPOINT finding"
   grep -q 'FINDING.*PROFILE_INTERNAL_TOKEN' "$RDIR/bad2.txt" && pass "bad2: PROFILE_INTERNAL_TOKEN not from the environment → finding (the 0215 trap, visible)" \
     || fail "bad2: no PROFILE_INTERNAL_TOKEN source finding"
+  # (iv-b) Task 0277, review R8 — the relay secret. Its empty state means every alert is
+  #        silently DROPPED, so it must not be left to persist_or_reuse_secret's generic
+  #        "feature stays off" line. Behavioural, like everything else in this block: the
+  #        function is RUN, so this cannot pass on a comment.
+  clean_config
+  PROFILE_ALERT_WEBHOOK_TOKEN=''
+  report_config_values > "$RDIR/alert_tok.txt"; rc=$?
+  [ "$rc" -eq 0 ] && pass "alert-token: report_config_values STILL returned 0 (report-only)" \
+    || fail "alert-token: returned $rc"
+  n=$(grep -c 'FINDING' "$RDIR/alert_tok.txt" || true)
+  [ "${n:-0}" = "1" ] && pass "alert-token: an empty PROFILE_ALERT_WEBHOOK_TOKEN is exactly 1 finding" \
+    || fail "alert-token: expected exactly 1 finding, got ${n:-0}: $(grep FINDING "$RDIR/alert_tok.txt" | head -3)"
+  grep -q 'FINDING.*PROFILE_ALERT_WEBHOOK_TOKEN' "$RDIR/alert_tok.txt" \
+    && pass "alert-token: the finding names PROFILE_ALERT_WEBHOOK_TOKEN" \
+    || fail "alert-token: empty relay secret is not reported — an operator would scroll past the one state that means every alert is silently dropped"
+  clean_config
+  grep -q 'OK.*PROFILE_ALERT_WEBHOOK_TOKEN' "$RDIR/clean.txt" \
+    && pass "clean: PROFILE_ALERT_WEBHOOK_TOKEN row reports OK when set" \
+    || fail "clean: no OK row for PROFILE_ALERT_WEBHOOK_TOKEN — the check cannot tell configured from not"
+  grep -qF '0277-F@ke alert' "$RDIR/clean.txt" \
+    && fail "clean: PROFILE_ALERT_WEBHOOK_TOKEN's VALUE is echoed into the deploy output" \
+    || pass "clean: PROFILE_ALERT_WEBHOOK_TOKEN's value is never echoed (presence only)"
+  # Blank topics are SUPPORTED — General, the pre-0277 behaviour — so they must read as
+  # OPTIONAL with a reason, never as a finding and never silently.
+  for v in TELEGRAM_TOPIC_ALERTS TELEGRAM_TOPIC_NAME_CHANGES; do
+    grep -qE "OPTIONAL.*${v}.*General" "$RDIR/clean.txt" \
+      && pass "clean: a blank $v reads as OPTIONAL and says it means the General topic" \
+      || fail "clean: a blank $v has no explicit OPTIONAL row — blank is supported, and silence is what 0220 exists to stop"
+  done
+
   # (v) optional rows are EXPLICIT, with a reason — never silent.
   clean_config
   YANDEX_PAYMENTS_SECRET=''; FEEDBACK_TELEGRAM_TOKEN=''; FEEDBACK_TELEGRAM_CHAT_ID=''; TELEGRAM_PROXY_URL=''; PROFILE_CHECKS_PING_URL=''
@@ -659,20 +725,188 @@ if [ "$HAVE_REPORT" = 1 ]; then
     || fail "bad4: 'https://user@203.0.113.12/x' passed — host extraction keeps the userinfo"
   grep -q '^Value parity: 2 finding(s),' "$RDIR/bad4.txt" && pass "bad4: summary counts exactly 2 findings" \
     || fail "bad4: summary line wrong: $(grep 'Value parity' "$RDIR/bad4.txt")"
+  # (vii) PROFILE_SESSION_SECRET (0271): empty or shorter than 32 characters is a FINDING — the
+  #       server treats both as unset and answers 503 on login and every Bearer request.
+  clean_config
+  PROFILE_SESSION_SECRET=''
+  report_config_values > "$RDIR/sess_empty.txt"; rc=$?
+  [ "$rc" -eq 0 ] && pass "session-empty: report_config_values STILL returned 0" || fail "session-empty: returned $rc"
+  grep -q 'FINDING.*PROFILE_SESSION_SECRET' "$RDIR/sess_empty.txt" && pass "session-empty: empty PROFILE_SESSION_SECRET → finding" \
+    || fail "session-empty: no PROFILE_SESSION_SECRET finding for an empty value"
+  grep -q '^Value parity: 1 finding(s),' "$RDIR/sess_empty.txt" && pass "session-empty: summary counts exactly 1 finding" \
+    || fail "session-empty: summary line wrong: $(grep 'Value parity' "$RDIR/sess_empty.txt")"
+  clean_config
+  PROFILE_SESSION_SECRET='0271-F@ke short "s"$x'
+  report_config_values > "$RDIR/sess_short.txt"; rc=$?
+  [ "$rc" -eq 0 ] && pass "session-short: report_config_values STILL returned 0" || fail "session-short: returned $rc"
+  grep -q 'FINDING.*PROFILE_SESSION_SECRET' "$RDIR/sess_short.txt" && pass "session-short: a <32-character PROFILE_SESSION_SECRET → finding" \
+    || fail "session-short: no PROFILE_SESSION_SECRET finding for a too-short value"
+  grep -q '^Value parity: 1 finding(s),' "$RDIR/sess_short.txt" && pass "session-short: summary counts exactly 1 finding" \
+    || fail "session-short: summary line wrong: $(grep 'Value parity' "$RDIR/sess_short.txt")"
+  grep -q 'OK.*PROFILE_SESSION_SECRET' "$RDIR/clean.txt" && pass "clean: PROFILE_SESSION_SECRET row reports OK" \
+    || fail "clean: no OK row for PROFILE_SESSION_SECRET"
+  # (viii) OTEL_EXPORTER_OTLP_ENDPOINT (0274, owner ruling D4): https + hostname, or an
+  #        EXPLICIT optional row saying no metrics means no alerts. Empty must never be
+  #        silent — a box with no endpoint is a box nothing can page about.
+  grep -q 'OK.*OTEL_EXPORTER_OTLP_ENDPOINT' "$RDIR/clean.txt" && pass "clean: OTEL_EXPORTER_OTLP_ENDPOINT row reports OK" \
+    || fail "clean: no OK row for OTEL_EXPORTER_OTLP_ENDPOINT"
+  grep -q 'PROFILE_LOGIN_CREATE_ENABLED' "$RDIR/clean.txt" && pass "clean: PROFILE_LOGIN_CREATE_ENABLED row is present" \
+    || fail "clean: the login-creation switch has no row at all — its state would be invisible"
+  for bad in 'http://otel-0274.example.invalid' 'https://203.0.113.14' 'https://otel-0274.example.invalid junk' 'otel-0274.example.invalid'; do
+    clean_config
+    OTEL_EXPORTER_OTLP_ENDPOINT="$bad"
+    report_config_values > "$RDIR/otel_bad.txt"; rc=$?
+    [ "$rc" -eq 0 ] || fail "otel-bad: report_config_values returned $rc for '$bad'"
+    grep -q 'FINDING.*OTEL_EXPORTER_OTLP_ENDPOINT' "$RDIR/otel_bad.txt" \
+      && pass "otel-bad: '$bad' → finding" || fail "otel-bad: '$bad' passed as a usable OTLP endpoint"
+    cp "$RDIR/otel_bad.txt" "$RDIR/otel_bad_$(echo "$bad" | tr -c 'a-zA-Z0-9' '_').txt"
+  done
+  clean_config
+  OTEL_EXPORTER_OTLP_ENDPOINT=''
+  report_config_values > "$RDIR/otel_empty.txt"; rc=$?
+  [ "$rc" -eq 0 ] && pass "otel-empty: report_config_values STILL returned 0" || fail "otel-empty: returned $rc"
+  grep -q 'OPTIONAL.*OTEL_EXPORTER_OTLP_ENDPOINT' "$RDIR/otel_empty.txt" \
+    && pass "otel-empty: empty endpoint is an EXPLICIT optional row, not a finding" \
+    || fail "otel-empty: an empty OTLP endpoint produced no OPTIONAL row"
+  grep -qi 'OPTIONAL.*OTEL_EXPORTER_OTLP_ENDPOINT.*alert' "$RDIR/otel_empty.txt" \
+    && pass "otel-empty: the row says what it costs (no metrics ⇒ no alerts)" \
+    || fail "otel-empty: the optional row does not say that no alert can fire"
+  # The switch (owner ruling D3): 'false' is a LOUD, visible state; an unrecognised
+  # value is a FINDING, because the server will leave creation ON despite the operator.
+  clean_config
+  PROFILE_LOGIN_CREATE_ENABLED='false'
+  report_config_values > "$RDIR/switch_off.txt"; rc=$?
+  [ "$rc" -eq 0 ] && pass "switch-off: report_config_values STILL returned 0" || fail "switch-off: returned $rc"
+  grep -q 'PAUSED.*PROFILE_LOGIN_CREATE_ENABLED' "$RDIR/switch_off.txt" \
+    && pass "switch-off: 'false' prints a loud PAUSED row (no new player can be created)" \
+    || fail "switch-off: 'false' did not produce a PAUSED row: $(grep 'LOGIN_CREATE' "$RDIR/switch_off.txt")"
+  n=$(grep -c 'FINDING' "$RDIR/switch_off.txt" || true)
+  [ "${n:-0}" = "0" ] && pass "switch-off: a deliberately paused box is not a FINDING" || fail "switch-off: $n finding(s) on a deliberately paused box"
+  clean_config
+  PROFILE_LOGIN_CREATE_ENABLED='flase'
+  report_config_values > "$RDIR/switch_junk.txt"; rc=$?
+  grep -q 'FINDING.*PROFILE_LOGIN_CREATE_ENABLED' "$RDIR/switch_junk.txt" \
+    && pass "switch-junk: an unrecognised value → finding (the server leaves creation ON — D3)" \
+    || fail "switch-junk: 'flase' passed silently, so a typo would look like a pause"
+  grep -qi 'FINDING.*PROFILE_LOGIN_CREATE_ENABLED.*ENABLED' "$RDIR/switch_junk.txt" \
+    && pass "switch-junk: the finding says creation stays ENABLED" \
+    || fail "switch-junk: the finding does not say what the server will actually do"
   # (iii) canary: a synthetic secret in EVERY checked variable never appears in any report output.
   for v in '0220-F@ke tg "token"$notreal' '0220-F@ke chat "id"$notreal' '0220-F@ke yp "key"$notreal' '0220-F@ke internal "tok"$notreal' \
            'https://ping.example.invalid/0220-fake' 'http://ping.example.invalid/0220-fake' 'http://proxy.example.invalid:3128' \
            'http://203.0.113.10' 'http://203.0.113.11' 'https://s3.example.invalid' \
            'http://proxy.example.invalid bad' 'https://ping.example.invalid bad' 'https://user:pw@203.0.113.13/' \
-           'api.example.invalid:443' 'bad host' 'https://user@203.0.113.12/x'; do
+           'api.example.invalid:443' 'bad host' 'https://user@203.0.113.12/x' \
+           '0271-F@ke session "secret"$notreal-0123456789' '0271-F@ke short "s"$x' \
+           'https://otel-0274.example.invalid'; do
     if cat "$RDIR"/*.txt | grep -qF "$v"; then fail "canary: a checked VALUE leaked into the value report"; break; fi
   done
   cat "$RDIR"/*.txt | grep -qF '0220-F@ke' || pass "canary: no checked value appears in any report output (names + verdicts only)"
+  cat "$RDIR"/*.txt | grep -qF '0271-F@ke' && fail "canary: a PROFILE_SESSION_SECRET value leaked into the value report" \
+    || pass "canary: no PROFILE_SESSION_SECRET value appears in any report output"
   unset PROFILE_DOMAIN FEEDBACK_TELEGRAM_TOKEN FEEDBACK_TELEGRAM_CHAT_ID TELEGRAM_PROXY_URL YANDEX_PAYMENTS_SECRET \
-        PROFILE_INTERNAL_TOKEN PROFILE_INTERNAL_TOKEN_SOURCE PROFILE_CHECKS_PING_URL PROFILE_BACKUP_S3_ENDPOINT
+        PROFILE_INTERNAL_TOKEN PROFILE_INTERNAL_TOKEN_SOURCE PROFILE_CHECKS_PING_URL PROFILE_BACKUP_S3_ENDPOINT \
+        PROFILE_SESSION_SECRET OTEL_EXPORTER_OTLP_ENDPOINT PROFILE_LOGIN_CREATE_ENABLED
   rm -rf "$RDIR"
 else
   fail "T15 skipped: report_config_values() absent"
+fi
+
+echo "== T16: persist_or_reuse_secret generate mode — PROFILE_SESSION_SECRET minted once, 0600, then reused (0271) =="
+# Owner ruling D7: persist-or-reuse with generate-if-absent. A key regenerated on every deploy
+# would only force a silent re-login, but it must be DECIDED, not accidental: the first deploy
+# mints it, every later blank deploy reuses it, and a supplied value rotates it. Driven through
+# the REAL function; no value and no length may reach the output.
+if [ "$HAVE_PERSIST" = 1 ]; then
+  PDIR=$(mktemp -d)
+  file="$PDIR/.session_secret"
+  unset PROFILE_SESSION_SECRET
+  persist_or_reuse_secret PROFILE_SESSION_SECRET "$file" generate > "$PDIR/out1.txt"
+  [ -f "$file" ] && [ "$(mode_of "$file")" = "600" ] && pass "generate: persist file created, mode 600" \
+    || fail "generate: persist file missing or mode '$( [ -f "$file" ] && mode_of "$file")', expected 600"
+  gen=$(cat "$file" 2>/dev/null)
+  printf '%s' "$gen" | grep -qE '^[0-9a-f]{64}$' && pass "generate: persisted value is 64 lowercase hex characters (openssl rand -hex 32)" \
+    || fail "generate: persisted value is not 64 hex characters"
+  [ -n "$gen" ] && [ "${PROFILE_SESSION_SECRET-}" = "$gen" ] && pass "generate: the variable is set to the generated value (reaches the profile.env heredoc)" \
+    || fail "generate: the variable was not set to the generated value"
+  [ "$(cat "$PDIR/out1.txt")" = "Generated and persisted PROFILE_SESSION_SECRET to $file" ] \
+    && pass "generate: output is the exact 'Generated and persisted' line" \
+    || fail "generate: output unexpected: $(grep -vF "${gen:-no-value}" "$PDIR/out1.txt" | head -1)"
+  out1="$(cat "$PDIR/out1.txt")"; out1="${out1//"$file"/}"
+  { [ -n "$gen" ] && printf '%s' "$out1" | grep -qF "$gen"; } && fail "generate: the generated VALUE leaked into deploy output" \
+    || pass "generate: generated value never appears in deploy output"
+  printf '%s\n' "$out1" | grep -qE '(^|[^0-9])64([^0-9]|$)' && fail "generate: the value's LENGTH (64) appears in deploy output" \
+    || pass "generate: value length never appears in deploy output"
+  # The next blank deploy REUSES the key — tokens survive a redeploy.
+  unset PROFILE_SESSION_SECRET
+  persist_or_reuse_secret PROFILE_SESSION_SECRET "$file" generate > "$PDIR/out2.txt"
+  [ -n "$gen" ] && [ "${PROFILE_SESSION_SECRET-}" = "$gen" ] && [ "$(cat "$file")" = "$gen" ] \
+    && pass "generate: a following blank deploy reuses the persisted key (no regeneration)" \
+    || fail "generate: a following blank deploy did NOT reuse the key — every deploy would log everyone out"
+  grep -q '^⚠️  Reusing persisted PROFILE_SESSION_SECRET from ' "$PDIR/out2.txt" && ! grep -q 'Generated' "$PDIR/out2.txt" \
+    && pass "generate: the reuse is said by name, and nothing is generated" || fail "generate: reuse output unexpected: $(cat "$PDIR/out2.txt")"
+  # A supplied value rotates the key (written through).
+  ROT_SS='0271-F@ke rotated "session"$notreal-0123456789'
+  PROFILE_SESSION_SECRET="$ROT_SS"
+  persist_or_reuse_secret PROFILE_SESSION_SECRET "$file" generate > "$PDIR/out3.txt"
+  printf '%s' "$ROT_SS" | cmp -s - "$file" && grep -q '^Using PROFILE_SESSION_SECRET from environment' "$PDIR/out3.txt" \
+    && pass "generate: a supplied value wins and is written through (deliberate rotation)" \
+    || fail "generate: a supplied value did not rotate the persisted key"
+  grep -qF "$ROT_SS" "$PDIR/out3.txt" && fail "generate: the rotated VALUE leaked into deploy output" \
+    || pass "generate: rotated value never appears in deploy output"
+  # A supplied value UNDER 32 characters is REFUSED before anything is written (review 0271 R2):
+  # the server would treat it as unset (503 on login + every Bearer call), so persisting it would
+  # destroy a working key. The deploy aborts; the persisted key survives byte-for-byte; neither the
+  # value nor its length reaches the output.
+  good_ss=$(cat "$file")
+  SHORT_SS='0271-F@ke short "k"$x'
+  PROFILE_SESSION_SECRET="$SHORT_SS"
+  ( persist_or_reuse_secret PROFILE_SESSION_SECRET "$file" generate ) > "$PDIR/out6.txt" 2>&1; rc=$?
+  [ "$rc" -ne 0 ] && pass "short: a supplied value under 32 characters ABORTS the deploy (rc=$rc)" \
+    || fail "short: rc 0 — a too-short supplied PROFILE_SESSION_SECRET was accepted"
+  printf '%s' "$good_ss" | cmp -s - "$file" && pass "short: the persisted key is byte-unchanged (never overwritten by the short value)" \
+    || fail "short: the persisted key was OVERWRITTEN by a too-short value — login + Bearer would 503"
+  grep -q '^Error: PROFILE_SESSION_SECRET: the supplied value is shorter than the 32-character minimum' "$PDIR/out6.txt" \
+    && ! grep -q '^Using PROFILE_SESSION_SECRET' "$PDIR/out6.txt" \
+    && pass "short: the error names the variable and the minimum; no 'Using … from environment' claim" \
+    || fail "short: error line missing or a 'Using' claim printed: $(grep -vF "$SHORT_SS" "$PDIR/out6.txt" | head -2)"
+  out6="$(cat "$PDIR/out6.txt")"; out6="${out6//"$file"/}"
+  printf '%s' "$out6" | grep -qF "$SHORT_SS" && fail "short: the refused VALUE leaked into deploy output" \
+    || pass "short: refused value never appears in deploy output"
+  printf '%s\n' "$out6" | grep -qE "(^|[^0-9])${#SHORT_SS}([^0-9]|$)" && fail "short: the refused value's LENGTH appears in deploy output" \
+    || pass "short: refused value length never appears in deploy output"
+  ( persist_or_reuse_secret PROFILE_SESSION_SECRET "$PDIR/.session_secret_short_new" generate ) > "$PDIR/out7.txt" 2>&1; rc=$?
+  [ "$rc" -ne 0 ] && [ ! -e "$PDIR/.session_secret_short_new" ] \
+    && pass "short: with nothing persisted, a too-short value still aborts and creates no persist file" \
+    || fail "short: nothing persisted + too-short value → rc=$rc, file $( [ -e "$PDIR/.session_secret_short_new" ] && echo created || echo absent)"
+  unset PROFILE_SESSION_SECRET
+  # The four OPTIONAL secrets are untouched by the minimum (no generate mode): a short value is still
+  # written through exactly as 0220 specifies.
+  YANDEX_PAYMENTS_SECRET="$SHORT_SS"
+  persist_or_reuse_secret YANDEX_PAYMENTS_SECRET "$PDIR/.yandex_payments_secret_short" > "$PDIR/out8.txt"
+  printf '%s' "$SHORT_SS" | cmp -s - "$PDIR/.yandex_payments_secret_short" \
+    && [ "$(cat "$PDIR/out8.txt")" = "Using YANDEX_PAYMENTS_SECRET from environment (persisted to $PDIR/.yandex_payments_secret_short)" ] \
+    && pass "short: an optional secret (no generate) with a short value is persisted as before (0220 unchanged)" \
+    || fail "short: the 32-character minimum leaked into the optional secrets' behaviour"
+  unset YANDEX_PAYMENTS_SECRET
+  # An EMPTY persist file is nothing persisted → generate, never an empty reuse.
+  : > "$PDIR/.session_secret_empty"
+  unset PROFILE_SESSION_SECRET
+  persist_or_reuse_secret PROFILE_SESSION_SECRET "$PDIR/.session_secret_empty" generate > "$PDIR/out4.txt"
+  grep -qE '^[0-9a-f]{64}$' "$PDIR/.session_secret_empty" && [ -n "${PROFILE_SESSION_SECRET-}" ] && grep -q '^Generated and persisted' "$PDIR/out4.txt" \
+    && pass "generate: an EMPTY persist file triggers generation (no silent empty reuse)" \
+    || fail "generate: an empty persist file did not trigger generation"
+  # An UNREADABLE persist file aborts — never a fresh key that silently logs everyone out.
+  mkdir "$PDIR/.session_secret_dir"; : > "$PDIR/.session_secret_dir/entry"
+  unset PROFILE_SESSION_SECRET
+  ( persist_or_reuse_secret PROFILE_SESSION_SECRET "$PDIR/.session_secret_dir" generate ) > "$PDIR/out5.txt" 2>&1; rc=$?
+  [ "$rc" -ne 0 ] && ! grep -q 'Generated' "$PDIR/out5.txt" && grep -q 'Error: PROFILE_SESSION_SECRET: persist file' "$PDIR/out5.txt" \
+    && pass "generate: an unreadable persist file ABORTS (rc=$rc), with no generation" \
+    || fail "generate: rc=$rc on an unreadable persist file, or it generated a replacement key: $(head -2 "$PDIR/out5.txt")"
+  unset PROFILE_SESSION_SECRET
+  rm -rf "$PDIR"
+else
+  fail "T16 skipped: persist_or_reuse_secret() absent"
 fi
 
 echo "== Structural: POSTGRES_PASSWORD still fails closed; persistence + report wiring in setup-profile.sh (0220) =="
@@ -692,6 +926,15 @@ for spec in $PERSIST_SPECS; do
   [ -n "$L_CALL" ] && [ -n "$L_TOKEN" ] && [ -n "$L_ENV" ] && [ "$L_CALL" -gt "$L_TOKEN" ] && [ "$L_CALL" -lt "$L_ENV" ] \
     && pass "setup-profile.sh: persist_or_reuse_secret $name → \$PROFILE_DIR/$dot, after the token block and before profile.env" \
     || fail "setup-profile.sh: persist_or_reuse_secret $name call missing or mis-ordered (call=$L_CALL token=$L_TOKEN env=$L_ENV)"
+done
+# Generate mode (0271): exactly the session secret, and never one of the four optional secrets.
+grep -qE '^persist_or_reuse_secret[[:space:]]+PROFILE_SESSION_SECRET[[:space:]]+"\$PROFILE_DIR/\.session_secret"[[:space:]]+generate[[:space:]]*$' "$P" \
+  && pass "setup-profile.sh: PROFILE_SESSION_SECRET is persisted in generate mode (owner ruling D7)" \
+  || fail "setup-profile.sh: PROFILE_SESSION_SECRET is not called with 'generate' — a first deploy would write it EMPTY and 503 every login"
+for name in $OPTIONAL_SECRET_NAMES; do
+  grep -qE "^persist_or_reuse_secret[[:space:]]+$name[[:space:]].*generate" "$P" \
+    && fail "setup-profile.sh: $name is called with 'generate' — an optional secret must stay EMPTY when not supplied" \
+    || pass "setup-profile.sh: $name is never generated (stays EMPTY / feature off when not supplied)"
 done
 # PROFILE_INTERNAL_TOKEN write-through (0215 residual 1): the env branch also persists the value.
 TOKEN_ENV_BRANCH=$(awk '/^if \[ -n "\$\{PROFILE_INTERNAL_TOKEN:-\}" \]; then/{b=1; next} b && /^elif/{exit} b{print}' "$P")
@@ -962,5 +1205,266 @@ TL_RENEWCRON=$(grep -n '^0 0,12 \* \* \* root certbot renew' "$TS" | head -1 | c
   && [ "$TL_CERTONLY" -lt "$TL_TIMER" ] && [ "$TL_TIMER" -lt "$TL_RENEWCRON" ] \
   && pass "setup-telemetry.sh: certbot.timer disable sits after certonly and before the hooked renew cron" \
   || fail "setup-telemetry.sh: certbot.timer disable mis-ordered (certonly=$TL_CERTONLY timer=$TL_TIMER cron=$TL_RENEWCRON)"
+
+# ── Behavioural + structural: monitoring + the creation switch (task 0274, S5) ──
+# Same T10 standard: drive the REAL deploy script and assert what the staged file
+# actually carries. Both values are non-secret, but the endpoint is a HOST, so it
+# rides the same 0600-staged channel and must never reach an argv.
+echo "== T18: OTEL_EXPORTER_OTLP_ENDPOINT + PROFILE_LOGIN_CREATE_ENABLED reach the staged env (0274) =="
+OTEL_EP='https://otel-0274.example.invalid/base with space"$notreal'
+NEW; echo profile > "$WORK/marker"
+run_deploy OTEL_EXPORTER_OTLP_ENDPOINT="$OTEL_EP" PROFILE_LOGIN_CREATE_ENABLED=false
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC (expected 0); see $WORK/out.log"
+for v in OTEL_EXPORTER_OTLP_ENDPOINT PROFILE_LOGIN_CREATE_ENABLED; do
+  n=$(grep -c "^export ${v}=" "$WORK/staged.env" 2>/dev/null || true); n=${n:-0}
+  [ "$n" = "1" ] && pass "exactly one export $v line" || fail "expected 1 export $v line, got $n"
+done
+got=$( . "$WORK/staged.env" >/dev/null 2>&1; printf '%s' "${OTEL_EXPORTER_OTLP_ENDPOINT-}" )
+[ "$got" = "$OTEL_EP" ] && pass "OTLP endpoint round-trips through sourcing (spaces/quotes/\$ intact)" \
+  || fail "staged OTLP endpoint did not round-trip (got ${#got} chars, expected ${#OTEL_EP})"
+got=$( . "$WORK/staged.env" >/dev/null 2>&1; printf '%s' "${PROFILE_LOGIN_CREATE_ENABLED-}" )
+[ "$got" = "false" ] && pass "the switch round-trips as the literal 'false'" || fail "staged switch value is '$got'"
+if grep -rqF "$OTEL_EP" "$WORK"/*.argv 2>/dev/null; then fail "OTLP endpoint LEAKED into an argv"; \
+  else pass "OTLP endpoint never appears in docker/ssh/scp/sshpass argv"; fi
+NEW; echo profile > "$WORK/marker"
+run_deploy
+for v in OTEL_EXPORTER_OTLP_ENDPOINT PROFILE_LOGIN_CREATE_ENABLED; do
+  n=$(grep -c "^export ${v}=" "$WORK/staged.env" 2>/dev/null || true); n=${n:-0}
+  got=$( . "$WORK/staged.env" >/dev/null 2>&1; eval "printf '%s' \"\${$v-unset}\"" )
+  [ "$n" = "1" ] && [ -z "$got" ] && pass "blank deploy stages exactly one EMPTY $v (the box reuses its persisted value)" \
+    || fail "blank deploy: expected one empty export $v line, got n=$n value-empty=$([ -z "$got" ] && echo yes || echo no)"
+done
+
+echo "== Structural: 0274 persistence, profile.env keys, OTLP probe, checks.env POSTGRES_* =="
+# Persist-or-reuse for BOTH: a deploy from a machine that does not carry the value must
+# not silently turn metrics off or the switch back on — that is the 0195/0220 defect,
+# and for the switch it would mean a redeploy mid-incident quietly resumes creating
+# players. NEITHER may be in `generate` mode: an endpoint or a boolean cannot be minted.
+for spec in "OTEL_EXPORTER_OTLP_ENDPOINT:.otel_endpoint" "PROFILE_LOGIN_CREATE_ENABLED:.login_create_enabled"; do
+  name=${spec%%:*}; file=${spec#*:}
+  line=$(grep -E "^persist_or_reuse_secret[[:space:]]+${name}[[:space:]]" "$P" | head -1)
+  [ -n "$line" ] && pass "setup-profile.sh: $name goes through persist_or_reuse_secret" \
+    || fail "setup-profile.sh: no persist_or_reuse_secret line for $name — a blank redeploy would silently drop it"
+  printf '%s\n' "$line" | grep -qF "\$PROFILE_DIR/$file" \
+    && pass "setup-profile.sh: $name persists to $file" || fail "setup-profile.sh: $name persist path is not $file: $line"
+  printf '%s\n' "$line" | grep -qE 'generate[[:space:]]*$' \
+    && fail "setup-profile.sh: $name is in generate mode — a minted value here is meaningless" \
+    || pass "setup-profile.sh: $name is NOT in generate mode"
+done
+
+echo "== Structural: 0277 alert relay + topic routing config =="
+# 🚨 THE ONE THAT MATTERS MOST. PROFILE_ALERT_WEBHOOK_TOKEN must NEVER be in generate
+# mode. A box-minted secret is a value the alert SENDER does not know, so every call
+# fails its secret check and every alert is dropped — silently, forever. This is the
+# PROFILE_INTERNAL_TOKEN trap (0182) exactly, and nothing else in this repository
+# would catch it. The topic ids cannot be minted either: they are properties of a
+# chat that already exists.
+for spec in "TELEGRAM_TOPIC_ALERTS:.telegram_topic_alerts" \
+            "TELEGRAM_TOPIC_NAME_CHANGES:.telegram_topic_name_changes" \
+            "PROFILE_ALERT_WEBHOOK_TOKEN:.alert_webhook_token"; do
+  name=${spec%%:*}; file=${spec#*:}
+  line=$(grep -E "^persist_or_reuse_secret[[:space:]]+${name}[[:space:]]" "$P" | head -1)
+  [ -n "$line" ] && pass "setup-profile.sh: $name goes through persist_or_reuse_secret" \
+    || fail "setup-profile.sh: no persist_or_reuse_secret line for $name — a blank redeploy would silently drop it"
+  printf '%s\n' "$line" | grep -qF "\$PROFILE_DIR/$file" \
+    && pass "setup-profile.sh: $name persists to $file" || fail "setup-profile.sh: $name persist path is not $file: $line"
+  printf '%s\n' "$line" | grep -qE 'generate[[:space:]]*$' \
+    && fail "setup-profile.sh: $name is in GENERATE mode — a box-minted alert secret means every alert 401s/drops forever, silently" \
+    || pass "setup-profile.sh: $name is NOT in generate mode"
+done
+# Dead config guard: feedback is sent by the GAME server, so a feedback topic on THIS
+# pipeline is config that nothing reads — and a later reader would take its presence
+# as evidence the feedback-topic move had already shipped.
+# ⚠️ Comment lines are stripped first: a COMMENT naming the variable is the useful
+# documentation of why it is absent, and asserting on a bare grep would forbid exactly
+# the note that keeps the next reader from re-adding it.
+for spec in "setup-profile.sh:$P" "build-deploy-profile.sh:$B"; do
+  label=${spec%%:*}; path=${spec#*:}
+  grep -v '^[[:space:]]*#' "$path" | grep -q 'TELEGRAM_TOPIC_FEEDBACK' \
+    && fail "$label: TELEGRAM_TOPIC_FEEDBACK is live config on the PROFILE pipeline — feedback is sent by the GAME server, so nothing here reads it, and its presence would read as evidence the feedback-topic move had shipped" \
+    || pass "$label: TELEGRAM_TOPIC_FEEDBACK is not live config (it belongs to the game pipeline)"
+done
+for v in TELEGRAM_TOPIC_ALERTS TELEGRAM_TOPIC_NAME_CHANGES PROFILE_ALERT_WEBHOOK_TOKEN; do
+  grep -qE "^[[:space:]]*printf \"export ${v}=%q" "$B" \
+    && pass "build-deploy-profile.sh: $v is staged to the box" \
+    || fail "build-deploy-profile.sh: $v is never exported — hop 1 drops it and the box sees nothing"
+done
+# ⚠️ A5: an EMPTY allowlist renders as a bare 'deny all', which answers 403 — and a
+# 403 makes the alert sender permanently disable its channel. The deploy already
+# prints the list (0276); this asserts it is LOUD when the list is empty, which is
+# the case that silently breaks alerting.
+ALLOWLIST_ECHO=$(grep -n 'internal/ nginx allowlist laid down' "$P" | head -1)
+[ -n "$ALLOWLIST_ECHO" ] && pass "setup-profile.sh: the deploy prints the /internal/ allowlist" \
+  || fail "setup-profile.sh: the /internal/ allowlist is never printed at deploy"
+# ⚠️ BEHAVIOURAL, not a grep (review R5). The first version of this assertion was a
+# file-wide string grep, and it stayed GREEN with the guard's condition inverted
+# (-z→-n, so the warning could never fire) and with the echo demoted to a comment
+# carrying the same words. That is exactly the "a guard that cannot fail for the
+# reason you built it" shape the plan's own A5 names — inside the standing gate for
+# these scripts. So: EXTRACT the render loop and the warning from the script and RUN
+# them, and assert the warning fires exactly when zero allow directives are rendered.
+ALLOWLIST_RENDER=$(awk '/^    ALLOW_DIRECTIVES=""$/{b=1} b{print} b && /^    fi$/{exit}' "$P")
+ALLOWLIST_WARN=$(awk '/internal\/ nginx allowlist laid down/{b=1} b{print} b && /^fi$/{exit}' "$P")
+[ -n "$ALLOWLIST_RENDER" ] && [ -n "$ALLOWLIST_WARN" ] \
+  && pass "setup-profile.sh: located the allowlist render loop and its warning block" \
+  || fail "setup-profile.sh: could not extract the allowlist render/warning blocks — the checks below would be vacuous"
+# ⚠️ The render loop lives INSIDE setup-profile.sh's `if [ -n "$PROFILE_DOMAIN" ]`
+# branch, so the probe reproduces that enclosing condition — without it the probe is
+# blind to the case where nginx is skipped entirely and ALLOW_DIRECTIVES is never set
+# (review R11, which this probe did NOT catch in its first form).
+# 🚨 Honest limit, stated rather than papered over: this MODELS the enclosing branch,
+# it does not read it. Moving the render loop out of that branch would still slip past.
+{ echo 'if [ -n "${PROFILE_DOMAIN:-}" ]; then'
+  printf '%s\n' "$ALLOWLIST_RENDER"
+  echo 'fi'
+  printf '%s\n' "$ALLOWLIST_WARN"
+  # The rendered directive count, which is what actually decides `deny all`.
+  echo 'printf "RENDERED=%s\n" "$(printf "%s" "${ALLOW_DIRECTIVES:-}" | grep -c "allow " || true)"'
+} > "$WORK/allowlist_probe.sh"
+# domain | value | expected directives | must the warning fire?
+#   A whitespace-only or comma-only value renders ZERO directives — a bare `deny all`,
+#   i.e. 403 for everyone, i.e. the alert channel permanently disabled — so it MUST warn.
+#   With NO domain nginx is never configured, so there is no /internal/ to be denied and
+#   the warning must stay silent however the allowlist looks.
+while IFS='|' read -r domain value want_rendered want_warn; do
+  [ -z "${domain:-}" ] && continue
+  dom=""; [ "$domain" = "yes" ] && dom="api.example.invalid"
+  out=$(PROFILE_DOMAIN="$dom" PROFILE_INTERNAL_ALLOW_IPS="$value" bash "$WORK/allowlist_probe.sh" 2>&1)
+  got_rendered=$(printf '%s\n' "$out" | sed -n 's/^RENDERED=//p')
+  printf '%s\n' "$out" | grep -q 'WARNING: PROFILE_INTERNAL_ALLOW_IPS' && got_warn=yes || got_warn=no
+  label="domain=$domain allowlist=$([ -z "$value" ] && echo "<empty>" || echo "'$value'")"
+  [ "$got_rendered" = "$want_rendered" ] \
+    && pass "allowlist $label renders $want_rendered allow directive(s)" \
+    || fail "allowlist $label rendered $got_rendered allow directive(s), expected $want_rendered"
+  [ "$got_warn" = "$want_warn" ] \
+    && pass "allowlist $label: warning fired=$got_warn (as required)" \
+    || fail "allowlist $label: warning fired=$got_warn, required $want_warn — zero rendered directives means a bare 'deny all', so every internal call (crediting AND the alert webhook) gets 403 and the alert channel is disabled permanently and silently"
+done <<'ALLOWLIST_CASES'
+yes|203.0.113.7|1|no
+yes|203.0.113.7,203.0.113.8|2|no
+yes||0|yes
+yes| |0|yes
+yes|,|0|yes
+yes| , |0|yes
+no|203.0.113.7|0|no
+no||0|no
+ALLOWLIST_CASES
+
+PROFILE_ENV_BLOCK=$(awk '/cat > "\$PROFILE_DIR\/profile\.env" << EOF/{b=1; next} b && /^EOF$/{exit} b{print}' "$P")
+[ -n "$PROFILE_ENV_BLOCK" ] && pass "setup-profile.sh: located the profile.env heredoc" \
+  || fail "setup-profile.sh: no profile.env heredoc found (the checks below would be vacuous)"
+for v in OTEL_EXPORTER_OTLP_ENDPOINT PROFILE_LOGIN_CREATE_ENABLED \
+         TELEGRAM_TOPIC_ALERTS TELEGRAM_TOPIC_NAME_CHANGES PROFILE_ALERT_WEBHOOK_TOKEN; do
+  printf '%s\n' "$PROFILE_ENV_BLOCK" | grep -qE "^${v}=" \
+    && pass "profile.env carries $v (the container can actually read it)" \
+    || fail "profile.env does NOT carry $v — the deploy would forward it to nothing (the 0195 defect)"
+done
+printf '%s\n' "$PROFILE_ENV_BLOCK" | grep -q 'TELEGRAM_TOPIC_FEEDBACK' \
+  && fail "profile.env carries TELEGRAM_TOPIC_FEEDBACK — dead config on this box" \
+  || pass "profile.env does not carry TELEGRAM_TOPIC_FEEDBACK"
+# The report-only OTLP reachability probe: the repeatable box → Uptrace proof. curl's
+# stderr is discarded because its error text can carry the URL, which is a host.
+PROBE_BLOCK=$(awk '/OTLP ingest reachability probe/{b=1} b{print} b && /^fi$/{exit}' "$P")
+printf '%s\n' "$PROBE_BLOCK" | grep -q 'v1/metrics' && printf '%s\n' "$PROBE_BLOCK" | grep -q 'curl' \
+  && pass "setup-profile.sh: an OTLP ingest probe exists (curl … /v1/metrics)" \
+  || fail "setup-profile.sh: no OTLP reachability probe — 'metrics configured' would never be proven"
+printf '%s\n' "$PROBE_BLOCK" | grep -q '2>/dev/null' \
+  && pass "OTLP probe: curl stderr is discarded (its error text can carry the URL)" \
+  || fail "OTLP probe: curl stderr is not discarded — the endpoint could reach the deploy log"
+printf '%s\n' "$PROBE_BLOCK" | grep -qE 'echo .*\$(OTEL_EXPORTER_OTLP_ENDPOINT|endpoint)' \
+  && fail "OTLP probe: the endpoint is echoed into the deploy output" \
+  || pass "OTLP probe: the endpoint is never echoed (verdict only)"
+# Review R8: the probe must build the SAME URL the app exports to. `%/` strips ONE
+# trailing slash; Telemetry.ts's metricsExportUrl strips ALL. Behavioural, not a grep:
+# the probe's URL-building lines are extracted and run against awkward endpoints, and
+# the expected value is computed with the app's own rule.
+PROBE_URL_SNIPPET=$(printf '%s\n' "$PROBE_BLOCK" | sed -n '/otlp_probe_base="\${OTEL_EXPORTER_OTLP_ENDPOINT}"/,/otlp_probe_url=/p')
+if [ -n "$PROBE_URL_SNIPPET" ]; then
+  probe_url_for() {  # <endpoint> — runs the REAL extracted lines
+    ( OTEL_EXPORTER_OTLP_ENDPOINT="$1"
+      eval "$PROBE_URL_SNIPPET"
+      printf '%s' "$otlp_probe_url" )
+  }
+  # The app's rule, independently: strip every trailing slash, then append.
+  app_url_for() { local e="$1"; e="$(printf '%s' "$e" | sed -E 's:/+$::')"; printf '%s/v1/metrics' "$e"; }
+  url_ok=1
+  for ep in 'https://otel.example.invalid' 'https://otel.example.invalid/' 'https://otel.example.invalid//' \
+            'https://otel.example.invalid///' 'https://otel.example.invalid/base' 'https://otel.example.invalid/base//'; do
+    got="$(probe_url_for "$ep")"; want="$(app_url_for "$ep")"
+    [ "$got" = "$want" ] || { fail "OTLP probe URL for '$ep' is '$got', the app would use '$want' — probe and app disagree (R8)"; url_ok=0; }
+  done
+  [ "$url_ok" = 1 ] && pass "OTLP probe builds the same URL as Telemetry.ts for every trailing-slash shape (R8)"
+  grep -q "replace(/\\\\/+\$/" "$REPO_ROOT/src/profile-server/Telemetry.ts" \
+    && pass "Telemetry.ts still strips ALL trailing slashes (the rule the probe mirrors)" \
+    || fail "Telemetry.ts's trailing-slash rule changed — re-check the probe in setup-profile.sh"
+else
+  fail "OTLP probe: could not extract the URL-building lines (their shape changed) — the R8 agreement is untested"
+fi
+# checks.env gains POSTGRES_USER/POSTGRES_DB so the daily checker can count players.
+# Scoped to the checks.env writer ALONE: backup.env also writes POSTGRES_*, and a
+# looser extraction would pass on that block and assert nothing here.
+CHECKS_ENV_BLOCK=$(awk '/^# checks\.env \(0600\)/{b=1} b{print} b && /> "\$PROFILE_DIR\/checks\.env"/{exit}' "$P")
+[ -n "$CHECKS_ENV_BLOCK" ] && pass "setup-profile.sh: located the checks.env writer" \
+  || fail "setup-profile.sh: no checks.env writer found (the checks below would be vacuous)"
+for v in POSTGRES_USER POSTGRES_DB; do
+  printf '%s\n' "$CHECKS_ENV_BLOCK" | grep -q "printf '${v}=%q" \
+    && pass "checks.env carries $v (the players-growth check needs it)" \
+    || fail "checks.env does not carry $v — the growth check would FAIL 'could not count players' every day"
+done
+
+# ── Structural: the nginx /internal/ location is case-INSENSITIVE (task 0276) ──
+# nginx PREFIX locations match case-sensitively, so `location /internal/ {` let
+# `POST /INTERNAL/v1/credit` fall through to the catch-all `location / {` — past the
+# IP allowlist entirely — and Express (case-insensitive by default) then routed it to
+# the internal handler. The app half is `app.set("case sensitive routing", true)` in
+# src/profile-server/Routes.ts, gated by tests/profile-server/InternalPathCase.test.ts.
+# THIS section gates the nginx half, which no test touched at all before now.
+# Same accepted residual as the 0060/0219 blocks: coupled to the heredoc's formatting,
+# so a reformat reds this (false RED, never false green).
+echo "== Structural: nginx /internal/ location is case-insensitive (0276) =="
+P="$REPO_ROOT/setup-profile.sh"
+# Extracted by "a location block whose path mentions /internal/", NOT by the expected
+# header text: a reverted header must FAIL the assertion below, not vanish into an
+# empty extraction that passes green.
+INTERNAL_BLOCK=$(awk '/^[[:space:]]*location [^{]*\/internal\/[^{]*\{/{b=1} b{print} b && /^[[:space:]]*\}[[:space:]]*$/{exit}' "$P")
+[ -n "$INTERNAL_BLOCK" ] && pass "setup-profile.sh: located the /internal/ nginx location block" \
+  || fail "setup-profile.sh: no /internal/ nginx location block found (the checks below would be vacuous)"
+# The header must be the case-insensitive REGEX form. `~*` is what makes /INTERNAL/,
+# /Internal/ and /iNtErNaL/ hit the allowlist instead of the catch-all.
+printf '%s\n' "$INTERNAL_BLOCK" | head -1 | grep -qE '^[[:space:]]*location[[:space:]]+~\*[[:space:]]+\^/internal/[[:space:]]*\{' \
+  && pass "nginx /internal/: header is the case-insensitive regex 'location ~* ^/internal/'" \
+  || fail "nginx /internal/: header is not 'location ~* ^/internal/ {' — a prefix location is CASE-SENSITIVE and case variants bypass the allowlist (0276)"
+# And no case-sensitive prefix location may survive anywhere in the file.
+grep -qE '^[[:space:]]*location[[:space:]]+/internal/[[:space:]]*\{' "$P" \
+  && fail "setup-profile.sh: a case-sensitive 'location /internal/ {' prefix location is still present (0276 regression)" \
+  || pass "setup-profile.sh: no case-sensitive 'location /internal/ {' prefix location remains"
+# The allowlist itself must still be inside the block — a case-insensitive location
+# that allows everyone is strictly worse than what it replaced.
+printf '%s\n' "$INTERNAL_BLOCK" | grep -q '${ALLOW_DIRECTIVES}' \
+  && pass "nginx /internal/: the block still interpolates \${ALLOW_DIRECTIVES}" \
+  || fail "nginx /internal/: \${ALLOW_DIRECTIVES} is gone — the allowlist would allow nobody and deny everyone"
+printf '%s\n' "$INTERNAL_BLOCK" | grep -qE 'deny all;' \
+  && pass "nginx /internal/: the block still ends the allowlist with 'deny all;'" \
+  || fail "nginx /internal/: 'deny all;' is gone — the allowlist allows the whole internet"
+# ORDER is load-bearing: nginx evaluates allow/deny top-down, first match wins. With
+# `deny all;` hoisted above the allows, the block denies EVERYONE — including the game
+# server. That reads as a working allowlist to a file-wide grep, which is why it is
+# checked positionally (same line or an earlier one, both handled).
+printf '%s\n' "$INTERNAL_BLOCK" | awk '
+  { blob = blob $0 "\n" }
+  END {
+    a = index(blob, "${ALLOW_DIRECTIVES}");
+    d = index(blob, "deny all;");
+    exit !(a > 0 && d > 0 && a < d);
+  }' \
+  && pass "nginx /internal/: \${ALLOW_DIRECTIVES} comes BEFORE 'deny all;'" \
+  || fail "nginx /internal/: 'deny all;' precedes the allows — nginx matches first-wins, so this denies the game server too"
+# nginx REFUSES a proxy_pass with a URI part inside a regex location. Ours has none;
+# adding one would make `nginx -t` fail and abort the deploy (setup-profile.sh's ERR
+# trap restores the previous site config, so the API stays up — but the deploy dies).
+printf '%s\n' "$INTERNAL_BLOCK" | grep -qE '^[[:space:]]*proxy_pass[[:space:]]+http://127\.0\.0\.1:\$\{PROFILE_PORT\};[[:space:]]*$' \
+  && pass "nginx /internal/: proxy_pass carries no URI part (legal inside a regex location)" \
+  || fail "nginx /internal/: proxy_pass is not the bare 'http://127.0.0.1:\${PROFILE_PORT};' form — a URI part in a REGEX location makes nginx -t fail and aborts the deploy"
+
 echo
 [ "$FAILED" -eq 0 ] && { echo "ALL PASS"; exit 0; } || { echo "SOME FAILED"; exit 1; }

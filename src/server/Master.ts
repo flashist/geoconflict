@@ -5,9 +5,10 @@ import fs from "fs";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
-import { fetch, ProxyAgent } from "undici";
+import { fetch } from "undici";
 import { z } from "zod";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
+import { sendTelegramMessage } from "../core/notifications/TelegramNotifier";
 import { GameID, GameInfo, ID } from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { loadCosmeticsConfig } from "./CosmeticsConfig";
@@ -68,8 +69,9 @@ const moduleFilename = fileURLToPath(import.meta.url);
 const moduleDir = path.dirname(moduleFilename);
 
 const buildVersion: string =
-  JSON.parse(fs.readFileSync(path.join(moduleDir, "../../package.json"), "utf8"))
-    .version ?? "0.0.0";
+  JSON.parse(
+    fs.readFileSync(path.join(moduleDir, "../../package.json"), "utf8"),
+  ).version ?? "0.0.0";
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -210,7 +212,11 @@ const FEEDBACK_WEBHOOK_URL = process.env.FEEDBACK_WEBHOOK_URL ?? null;
 const FEEDBACK_TELEGRAM_TOKEN = process.env.FEEDBACK_TELEGRAM_TOKEN ?? null;
 const FEEDBACK_TELEGRAM_CHAT_ID = process.env.FEEDBACK_TELEGRAM_CHAT_ID ?? null;
 const TELEGRAM_PROXY_URL = process.env.TELEGRAM_PROXY_URL ?? null;
-const telegramProxyAgent = TELEGRAM_PROXY_URL ? new ProxyAgent(TELEGRAM_PROXY_URL) : undefined;
+// The module-level ProxyAgent that used to live here is GONE (task 0277): the shared
+// helper owns one dispatcher per proxy URL now, so keeping a second one here would
+// have meant two keep-alive socket pools for the same route. Removed only AFTER both
+// call sites were migrated — leaving it while one site still used it would have kept
+// the 0061 defect alive in half the file.
 
 const FeedbackSchema = z.object({
   category: z.enum(["Bug", "Suggestion", "Other"]),
@@ -221,7 +227,12 @@ const FeedbackSchema = z.object({
   matchId: z.string().max(100).optional(),
   screenSource: z.enum(["start", "battle", "staleBuild"]),
   username: z.string().max(100).optional(),
-  deviceInfo: z.record(z.string(), z.union([z.string(), z.number()])).refine(r => Object.keys(r).length > 0, { message: "deviceInfo must not be empty" }).optional(),
+  deviceInfo: z
+    .record(z.string(), z.union([z.string(), z.number()]))
+    .refine((r) => Object.keys(r).length > 0, {
+      message: "deviceInfo must not be empty",
+    })
+    .optional(),
   recentMatchIds: z.array(z.string().max(20)).max(3).optional(),
 });
 
@@ -261,13 +272,27 @@ app.post(
               { name: "Screen", value: d.screenSource, inline: true },
               { name: "Platform", value: d.platform, inline: true },
               { name: "Yandex", value: d.yandexStatus, inline: true },
-              { name: "Username", value: d.username ? esc(d.username) : "n/a", inline: true },
+              {
+                name: "Username",
+                value: d.username ? esc(d.username) : "n/a",
+                inline: true,
+              },
               { name: "Version", value: d.version, inline: true },
               { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
-              { name: "Recent Matches", value: d.recentMatchIds?.map(esc).join(", ") ?? "n/a", inline: false },
+              {
+                name: "Recent Matches",
+                value: d.recentMatchIds?.map(esc).join(", ") ?? "n/a",
+                inline: false,
+              },
               { name: "Time", value: new Date().toISOString(), inline: false },
               ...(d.deviceInfo
-                ? [{ name: "Device Info", value: formatDeviceInfo(d.deviceInfo), inline: false }]
+                ? [
+                    {
+                      name: "Device Info",
+                      value: formatDeviceInfo(d.deviceInfo),
+                      inline: false,
+                    },
+                  ]
                 : []),
             ],
           },
@@ -295,32 +320,46 @@ app.post(
         `<b>Yandex:</b> ${d.yandexStatus}  <b>Username:</b> ${d.username ? esc(d.username) : "n/a"}`,
         `<b>Version:</b> ${esc(d.version)}`,
         `<b>Match:</b> ${d.matchId ? esc(d.matchId) : "n/a"}`,
-        ...(d.recentMatchIds?.length ? [`<b>Recent matches:</b> ${d.recentMatchIds.map(esc).join(", ")}`] : []),
+        ...(d.recentMatchIds?.length
+          ? [`<b>Recent matches:</b> ${d.recentMatchIds.map(esc).join(", ")}`]
+          : []),
         `<b>Time:</b> ${new Date().toISOString()}`,
-        ...(d.deviceInfo ? [`\n<b>Device:</b> ${esc(formatDeviceInfo(d.deviceInfo))}`] : []),
+        ...(d.deviceInfo
+          ? [`\n<b>Device:</b> ${esc(formatDeviceInfo(d.deviceInfo))}`]
+          : []),
       ];
-      const telegramBody = JSON.stringify({
-        chat_id: FEEDBACK_TELEGRAM_CHAT_ID,
-        text: lines.filter(Boolean).join("\n"),
-        parse_mode: "HTML",
-      });
-      try {
-        const telegramResp = await fetch(
-          `https://api.telegram.org/bot${FEEDBACK_TELEGRAM_TOKEN}/sendMessage`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: telegramBody,
-            dispatcher: telegramProxyAgent,
-          },
+      // Task 0277 (ND-2): on the SHARED helper, which bounds each attempt at 10 s
+      // and retries ONCE at the connection level — the task 0061 defect. Worst case
+      // goes from ~300 s unbounded (undici's default, this code had no timeout at
+      // all) to ~20 s bounded, and a single stale pooled socket now costs a retry
+      // instead of the message.
+      const telegramOutcome = await sendTelegramMessage(
+        {
+          token: FEEDBACK_TELEGRAM_TOKEN,
+          chatId: FEEDBACK_TELEGRAM_CHAT_ID,
+          proxyUrl: TELEGRAM_PROXY_URL,
+        },
+        lines.filter(Boolean).join("\n"),
+      );
+      // ⚠️ Both lines preserved, and they are NOT interchangeable: "responded with"
+      // means Telegram answered and refused; "delivery failed" means nothing answered
+      // at all. Task 0061 names that distinction as its useful evidence.
+      if (telegramOutcome.result === "http_error") {
+        log.warn(
+          `[feedback] telegram responded with ${telegramOutcome.status}`,
         );
-        if (!telegramResp.ok) {
-          log.warn(
-            `[feedback] telegram responded with ${telegramResp.status}`,
-          );
-        }
-      } catch (err) {
-        log.error(`[feedback] telegram delivery failed: ${formatError(err)}`);
+      } else if (telegramOutcome.result === "network_error") {
+        // The bounded cause code, NOT formatError(err). ⚠️ This is DEFENCE IN DEPTH,
+        // not the repair of an observed leak: an earlier comment here claimed the old
+        // line "used to write the live token into a log" — that claim was RETRACTED and
+        // is false. Every real fetch failure is `TypeError: fetch failed` with internal
+        // frames only, and formatError returns `stack ?? message`, never `.cause`.
+        // The guard still earns its place: undici DOES interpolate a whole input URL
+        // into a TypeError message elsewhere (lib/web/fetch/request.js:136), so a
+        // formatted error is not structurally safe — it is merely safe today.
+        log.error(
+          `[feedback] telegram delivery failed: ${telegramOutcome.code}`,
+        );
       }
     }
 
@@ -351,34 +390,34 @@ app.post(
       s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
     if (FEEDBACK_TELEGRAM_TOKEN && FEEDBACK_TELEGRAM_CHAT_ID) {
-      const telegramBody = JSON.stringify({
-        chat_id: FEEDBACK_TELEGRAM_CHAT_ID,
-        text: [
+      // Task 0277 (ND-2): same shared helper as /api/feedback. ⚠️ The RESPONSE
+      // contract here is NOT the same as feedback's — subscribe reports the failure
+      // to the caller with a 500 rather than silently succeeding. That difference is
+      // preserved deliberately; unifying the two would change this route silently.
+      const telegramOutcome = await sendTelegramMessage(
+        {
+          token: FEEDBACK_TELEGRAM_TOKEN,
+          chatId: FEEDBACK_TELEGRAM_CHAT_ID,
+          proxyUrl: TELEGRAM_PROXY_URL,
+        },
+        [
           `<b>[Subscription] Email</b>`,
           `<b>Email:</b> ${esc(email)}`,
           `<b>Time:</b> ${new Date().toISOString()}`,
         ].join("\n"),
-        parse_mode: "HTML",
-      });
-      try {
-        const telegramResp = await fetch(
-          `https://api.telegram.org/bot${FEEDBACK_TELEGRAM_TOKEN}/sendMessage`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: telegramBody,
-            dispatcher: telegramProxyAgent,
-          },
+      );
+      if (telegramOutcome.result === "http_error") {
+        log.error(
+          `[subscribe] telegram responded with ${telegramOutcome.status}`,
         );
-        if (!telegramResp.ok) {
-          log.error(
-            `[subscribe] telegram responded with ${telegramResp.status}`,
-          );
-          res.status(500).json({ error: "Delivery failed" });
-          return;
-        }
-      } catch (err) {
-        log.error(`[subscribe] telegram delivery failed: ${formatError(err)}`);
+        res.status(500).json({ error: "Delivery failed" });
+        return;
+      }
+      if (telegramOutcome.result === "network_error") {
+        // The bounded cause code, never the formatted error — see /api/feedback.
+        log.error(
+          `[subscribe] telegram delivery failed: ${telegramOutcome.code}`,
+        );
         res.status(500).json({ error: "Delivery failed" });
         return;
       }
@@ -420,7 +459,9 @@ app.post("/api/kick_player/:gameID/:clientID", async (req, res) => {
 
     res.status(200).send("Player kicked successfully");
   } catch (error) {
-    log.error(`Error kicking player from game ${gameID}: ${formatError(error)}`);
+    log.error(
+      `Error kicking player from game ${gameID}: ${formatError(error)}`,
+    );
     res.status(500).send("Failed to kick player");
   }
 });
@@ -589,7 +630,11 @@ export async function schedulePublicGame(
     noReadyWorkersLogged = false;
     log.info(
       `Ready workers available again ([${readyList.join(", ")}]); public game scheduling resumed`,
-      { readyWorkerIndices: readyList, readyCount: readyList.length, numWorkers },
+      {
+        readyWorkerIndices: readyList,
+        readyCount: readyList.length,
+        numWorkers,
+      },
     );
   }
 
@@ -612,7 +657,10 @@ export async function schedulePublicGame(
   // and never answers, and undici's own default is ~300 s. Cleared on every exit so a
   // healthy create leaves no timer behind.
   const controller = new AbortController();
-  const abortTimer = setTimeout(() => controller.abort(), CREATE_GAME_TIMEOUT_MS);
+  const abortTimer = setTimeout(
+    () => controller.abort(),
+    CREATE_GAME_TIMEOUT_MS,
+  );
 
   // Send request to the worker to start the game
   try {

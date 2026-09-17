@@ -23,6 +23,25 @@ import { translateText } from "./Utils";
 
 export const CITIZENSHIP_LOGIN_REQUESTED_EVENT = "citizenship-login-requested";
 
+/**
+ * Dispatched (bubbling, composed) only after the Yandex auth dialog reported
+ * SUCCESS from a player's own tap on the guest card's login button. `Client` in
+ * Main.ts listens and restarts the page so the whole start sequence re-runs with
+ * the player logged in (task 0273, owner ruling D3). A cancelled dialog does not
+ * dispatch it.
+ */
+export const CITIZENSHIP_LOGIN_SUCCEEDED_EVENT = "citizenship-login-succeeded";
+
+/**
+ * `fallback` is what the card wants done when the restart is REFUSED (mid-match,
+ * or already restarted once this load): re-read the profile, which is exactly
+ * what the card did before this task. Carried on the event so the listener needs
+ * no reference to the card.
+ */
+export interface CitizenshipLoginSucceededDetail {
+  fallback: () => void;
+}
+
 // Citizenship:Seen must fire at most once per page load, no matter how many
 // times the card re-renders or reconnects.
 let citizenshipSeenReported = false;
@@ -178,9 +197,34 @@ export class CitizenshipCard extends LitElement {
         }),
       );
       const authorized = await FlashistFacade.instance.openYandexAuthDialog();
-      if (authorized && this.isConnected) {
-        await this.refreshProfile();
+      if (!authorized) {
+        // Dialog closed, authorization failed, or no SDK — the player is still a
+        // guest and nothing restarts.
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.PROFILE_LOGIN_RESTART_CANCELLED,
+        );
+        return;
       }
+      if (!this.isConnected) {
+        return;
+      }
+      // The login happened mid-page-load, so nothing has a session token: the
+      // boot login either never ran (guest) or ran as a guest. Ask for a full
+      // restart; Main.ts decides whether it is safe, and falls back to a profile
+      // re-read when it is not (mid-match, or already restarted once).
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.PROFILE_LOGIN_RESTART_REQUESTED,
+      );
+      this.dispatchEvent(
+        new CustomEvent<CitizenshipLoginSucceededDetail>(
+          CITIZENSHIP_LOGIN_SUCCEEDED_EVENT,
+          {
+            bubbles: true,
+            composed: true,
+            detail: { fallback: () => void this.refreshProfile() },
+          },
+        ),
+      );
     } finally {
       this.isAuthDialogOpen = false;
     }

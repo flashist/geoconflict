@@ -9,10 +9,23 @@ jest.mock("../../src/core/configuration/ConfigLoader", () => ({
 }));
 
 const getYandexUniqueId = jest.fn();
+const isYandexAuthorized = jest.fn();
 jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   FlashistFacade: {
     instance: {
       getYandexUniqueId: (...args: unknown[]) => getYandexUniqueId(...args),
+      isYandexAuthorized: (...args: unknown[]) => isYandexAuthorized(...args),
+    },
+  },
+  flashist_logEventAnalytics: jest.fn(),
+  flashistConstants: {
+    analyticEvents: {
+      PROFILE_LOGIN_SUCCEEDED: "Profile:Login:Succeeded",
+      PROFILE_LOGIN_CREATED: "Profile:Login:Created",
+      PROFILE_LOGIN_FAILED_TIMEOUT: "Profile:Login:Failed:Timeout",
+      PROFILE_LOGIN_FAILED_UNAVAILABLE: "Profile:Login:Failed:Unavailable",
+      PROFILE_LOGIN_FAILED_ERROR: "Profile:Login:Failed:Error",
+      PROFILE_SESSION_RELOGIN: "Profile:Session:Relogin",
     },
   },
 }));
@@ -22,6 +35,8 @@ import {
   cancelNameChangeRequest,
   submitNameChangeRequest,
 } from "../../src/client/NameChangeRequest";
+import { resetProfileSessionForTests } from "../../src/client/ProfileSession";
+import { EXPECTED_BEARER, primeProfileSession } from "./support/profileSession";
 
 const getServerConfig = getServerConfigFromClient as jest.Mock;
 const API_BASE = "https://api.example.test";
@@ -37,10 +52,13 @@ function stubFetch(status: number, body: unknown): jest.Mock {
 }
 
 describe("NameChangeRequest", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     getServerConfig.mockResolvedValue({ profileApiUrl: () => API_BASE });
     getYandexUniqueId.mockResolvedValue("yandex-1");
+    isYandexAuthorized.mockResolvedValue(true);
+    // S4: both calls now go out with a Bearer token and no id in the body.
+    await primeProfileSession();
   });
 
   afterEach(() => {
@@ -48,7 +66,7 @@ describe("NameChangeRequest", () => {
   });
 
   describe("submitNameChangeRequest", () => {
-    it("posts the id and the requested name, and reports ok", async () => {
+    it("posts only the requested name, under a Bearer token, and reports ok", async () => {
       const fetchMock = stubFetch(200, { status: "ok" });
       await expect(submitNameChangeRequest("NewName")).resolves.toEqual({
         status: "ok",
@@ -57,10 +75,8 @@ describe("NameChangeRequest", () => {
         `${API_BASE}/v1/profile/name-change-request`,
         expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({
-            yandexPlayerId: "yandex-1",
-            requestedName: "NewName",
-          }),
+          body: JSON.stringify({ requestedName: "NewName" }),
+          headers: expect.objectContaining({ Authorization: EXPECTED_BEARER }),
         }),
       );
     });
@@ -127,8 +143,9 @@ describe("NameChangeRequest", () => {
       });
     });
 
-    it("does not call out at all without a Yandex id", async () => {
-      getYandexUniqueId.mockResolvedValue(null);
+    it("does not call out at all without a session (guest, or a failed login)", async () => {
+      resetProfileSessionForTests();
+      isYandexAuthorized.mockResolvedValue(false);
       const fetchMock = stubFetch(200, { status: "ok" });
       await expect(submitNameChangeRequest("NewName")).resolves.toEqual({
         status: "error",
@@ -153,7 +170,7 @@ describe("NameChangeRequest", () => {
   });
 
   describe("cancelNameChangeRequest", () => {
-    it("posts only the caller's id", async () => {
+    it("posts an empty body under a Bearer token", async () => {
       const fetchMock = stubFetch(200, { status: "ok" });
       await expect(cancelNameChangeRequest()).resolves.toEqual({
         status: "ok",
@@ -161,7 +178,8 @@ describe("NameChangeRequest", () => {
       expect(fetchMock).toHaveBeenCalledWith(
         `${API_BASE}/v1/profile/name-change-cancel`,
         expect.objectContaining({
-          body: JSON.stringify({ yandexPlayerId: "yandex-1" }),
+          body: JSON.stringify({}),
+          headers: expect.objectContaining({ Authorization: EXPECTED_BEARER }),
         }),
       );
     });

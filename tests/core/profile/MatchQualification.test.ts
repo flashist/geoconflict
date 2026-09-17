@@ -3,6 +3,7 @@ import {
   ClientCreditState,
   qualifiesForMatchXp,
   selectMatchCredits,
+  selectUnresolvedCreditClients,
 } from "../../../src/core/profile/MatchQualification";
 
 function participation(
@@ -17,10 +18,13 @@ function participation(
   };
 }
 
+const PLAYER_A = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1a";
+const PLAYER_B = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1b";
+
 function state(over: Partial<ClientCreditState> = {}): ClientCreditState {
   return {
-    yandexPlayerId: "yandex-default",
-    persistentId: "persistent-default",
+    playerId: PLAYER_A,
+    identityKnown: true,
     kicked: false,
     disconnected: false,
     ...over,
@@ -100,18 +104,17 @@ describe("qualifiesForMatchXp", () => {
 });
 
 describe("selectMatchCredits", () => {
-  test("credits a qualifying, connected, identified player", () => {
+  test("credits a qualifying, connected, resolved player by playerId", () => {
     const credits = selectMatchCredits(
       "game-1",
       [participation("a")],
-      new Map([["a" as ClientID, state({ yandexPlayerId: "yx-a" })]]),
+      new Map([["a" as ClientID, state({ playerId: PLAYER_A })]]),
       roster("a"),
     );
     expect(credits).toEqual([
       {
         gameId: "game-1",
-        yandexPlayerId: "yx-a",
-        persistentId: "persistent-default",
+        playerId: PLAYER_A,
         // ADR-111 / task 0211: the award is 1, asserted by test and not by reading
         // the diff. Every crediting path resolves through here, so this is the one
         // place the amount is pinned for all of them.
@@ -126,16 +129,11 @@ describe("selectMatchCredits", () => {
     const credits = selectMatchCredits(
       "game-1",
       [participation("a", { isAliveAtEnd: false, killedAt: 12 })],
-      new Map([["a" as ClientID, state({ yandexPlayerId: "yx-a" })]]),
+      new Map([["a" as ClientID, state()]]),
       roster("a", "b", "c"),
     );
     expect(credits).toEqual([
-      {
-        gameId: "game-1",
-        yandexPlayerId: "yx-a",
-        persistentId: "persistent-default",
-        xpAwarded: 1,
-      },
+      { gameId: "game-1", playerId: PLAYER_A, xpAwarded: 1 },
     ]);
   });
 
@@ -143,7 +141,7 @@ describe("selectMatchCredits", () => {
     const credits = selectMatchCredits(
       "game-1",
       [participation("a", { isAliveAtEnd: true })],
-      new Map([["a" as ClientID, state({ yandexPlayerId: "yx-a" })]]),
+      new Map([["a" as ClientID, state()]]),
       roster("a", "b", "c"),
     );
     expect(credits).toHaveLength(1);
@@ -160,31 +158,38 @@ describe("selectMatchCredits", () => {
     expect(credits).toEqual([]);
   });
 
-  test("excludes a connected, qualifying, identified player not in the start roster", () => {
+  test("excludes a connected, qualifying, resolved player not in the start roster", () => {
     const credits = selectMatchCredits(
       "game-1",
       [participation("latejoiner")],
-      new Map([
-        ["latejoiner" as ClientID, state({ yandexPlayerId: "yx-late" })],
-      ]),
+      new Map([["latejoiner" as ClientID, state()]]),
       roster("someoneelse"),
     );
     expect(credits).toEqual([]);
   });
 
-  test("excludes kicked, disconnected, and id-less clients", () => {
+  test("excludes kicked, disconnected, and identity-less clients", () => {
     const credits = selectMatchCredits(
       "game-1",
       [participation("a"), participation("b"), participation("c")],
       new Map([
-        ["a" as ClientID, state({ yandexPlayerId: "yx-a", kicked: true })],
-        [
-          "b" as ClientID,
-          state({ yandexPlayerId: "yx-b", disconnected: true }),
-        ],
-        ["c" as ClientID, state({ yandexPlayerId: null })],
+        ["a" as ClientID, state({ kicked: true })],
+        ["b" as ClientID, state({ playerId: PLAYER_B, disconnected: true })],
+        ["c" as ClientID, state({ identityKnown: false, playerId: null })],
       ]),
       roster("a", "b", "c"),
+    );
+    expect(credits).toEqual([]);
+  });
+
+  // The identity gate is the ADR-103 funnel's verdict. A playerId alone must never
+  // be enough to credit — it is only ever set from a resolve of that verdict.
+  test("excludes a client whose identity is not creditable even if a playerId is present", () => {
+    const credits = selectMatchCredits(
+      "game-1",
+      [participation("a")],
+      new Map([["a" as ClientID, state({ identityKnown: false })]]),
+      roster("a"),
     );
     expect(credits).toEqual([]);
   });
@@ -193,23 +198,111 @@ describe("selectMatchCredits", () => {
     const credits = selectMatchCredits(
       "game-1",
       [participation("a", { hasSpawned: false })],
-      new Map([["a" as ClientID, state({ yandexPlayerId: "yx-a" })]]),
+      new Map([["a" as ClientID, state()]]),
       roster("a"),
     );
     expect(credits).toEqual([]);
   });
 
-  test("dedupes by yandex id (same account on two connections)", () => {
+  test("leaves an identified client with no playerId yet out of the credits", () => {
+    const credits = selectMatchCredits(
+      "game-1",
+      [participation("a")],
+      new Map([["a" as ClientID, state({ playerId: null })]]),
+      roster("a"),
+    );
+    expect(credits).toEqual([]);
+  });
+
+  test("dedupes by playerId (two clientIDs resolving to the same player)", () => {
     const credits = selectMatchCredits(
       "game-1",
       [participation("a"), participation("b")],
       new Map([
-        ["a" as ClientID, state({ yandexPlayerId: "same" })],
-        ["b" as ClientID, state({ yandexPlayerId: "same" })],
+        ["a" as ClientID, state({ playerId: PLAYER_A })],
+        ["b" as ClientID, state({ playerId: PLAYER_A })],
       ]),
       roster("a", "b"),
     );
-    expect(credits).toHaveLength(1);
-    expect(credits[0].yandexPlayerId).toBe("same");
+    expect(credits).toEqual([
+      { gameId: "game-1", playerId: PLAYER_A, xpAwarded: 1 },
+    ]);
+  });
+
+  test("two different players are both credited", () => {
+    const credits = selectMatchCredits(
+      "game-1",
+      [participation("a"), participation("b")],
+      new Map([
+        ["a" as ClientID, state({ playerId: PLAYER_A })],
+        ["b" as ClientID, state({ playerId: PLAYER_B })],
+      ]),
+      roster("a", "b"),
+    );
+    expect(credits.map((c) => c.playerId)).toEqual([PLAYER_A, PLAYER_B]);
+  });
+});
+
+describe("selectUnresolvedCreditClients", () => {
+  test("lists an identified, qualifying client whose playerId is still null", () => {
+    const unresolved = selectUnresolvedCreditClients(
+      [participation("a"), participation("b")],
+      new Map([
+        ["a" as ClientID, state({ playerId: null })],
+        ["b" as ClientID, state({ playerId: PLAYER_B })],
+      ]),
+      roster("a", "b"),
+    );
+    expect(unresolved).toEqual(["a"]);
+  });
+
+  test("a client with no creditable identity is in neither list", () => {
+    const stateById = new Map([
+      ["a" as ClientID, state({ identityKnown: false, playerId: null })],
+    ]);
+    expect(
+      selectUnresolvedCreditClients(
+        [participation("a")],
+        stateById,
+        roster("a"),
+      ),
+    ).toEqual([]);
+    expect(
+      selectMatchCredits(
+        "game-1",
+        [participation("a")],
+        stateById,
+        roster("a"),
+      ),
+    ).toEqual([]);
+  });
+
+  test("roster, qualification, kicked and disconnected gates apply", () => {
+    const unresolved = selectUnresolvedCreditClients(
+      [
+        participation("offroster"),
+        participation("nospawn", { hasSpawned: false }),
+        participation("kicked"),
+        participation("gone"),
+        participation("ghost"),
+      ],
+      new Map([
+        ["offroster" as ClientID, state({ playerId: null })],
+        ["nospawn" as ClientID, state({ playerId: null })],
+        ["kicked" as ClientID, state({ playerId: null, kicked: true })],
+        ["gone" as ClientID, state({ playerId: null, disconnected: true })],
+      ]),
+      roster("nospawn", "kicked", "gone", "ghost"),
+    );
+    expect(unresolved).toEqual([]);
+  });
+
+  test("dedupes a clientID named twice in the participation", () => {
+    const unresolved = selectUnresolvedCreditClients(
+      [participation("a"), participation("a")],
+      new Map([["a" as ClientID, state({ playerId: null })]]),
+      roster("a"),
+    );
+    expect(unresolved).toEqual(["a"]);
   });
 });

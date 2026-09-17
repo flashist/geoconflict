@@ -27,14 +27,11 @@ export type CitizenshipPurchaseResult = "granted" | "error";
 export async function runCitizenshipPurchase(): Promise<CitizenshipPurchaseResult> {
   const facade = FlashistFacade.instance;
 
-  // State 2 is reachable with a null id (the zero-state path in
-  // PlayerProfileView) — without an id no intent can be bound to a player.
-  const yandexPlayerId = await facade.getYandexUniqueId();
-  if (yandexPlayerId === null) {
-    return "error";
-  }
-
-  const intentId = await createPurchaseIntent(yandexPlayerId, "citizenship");
+  // Since S4 (task 0273) the identity is the login session's Bearer token, so
+  // this flow reads no Yandex id: a guest, a failed login and a failed /intent
+  // all arrive as a null intentId, and without an intent nothing can be bound to
+  // a player.
+  const intentId = await createPurchaseIntent("citizenship");
   if (intentId === null) {
     // The payment frame never opened — deliberately no Started/Abandoned.
     return "error";

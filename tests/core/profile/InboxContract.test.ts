@@ -104,31 +104,34 @@ describe("InboxContract", () => {
 
   describe("MarkReadRequestSchema", () => {
     test("accepts mark-all (no ids) and a bounded id list", () => {
-      expect(
-        MarkReadRequestSchema.safeParse({ yandexPlayerId: "y1" }).success,
-      ).toBe(true);
-      expect(
-        MarkReadRequestSchema.safeParse({ yandexPlayerId: "y1", ids: [1, 2] })
-          .success,
-      ).toBe(true);
+      expect(MarkReadRequestSchema.safeParse({}).success).toBe(true);
+      expect(MarkReadRequestSchema.safeParse({ ids: [1, 2] }).success).toBe(
+        true,
+      );
     });
 
-    test("rejects an empty id list, non-positive ids, >500 ids, and a missing player id", () => {
-      expect(
-        MarkReadRequestSchema.safeParse({ yandexPlayerId: "y1", ids: [] })
-          .success,
-      ).toBe(false);
-      expect(
-        MarkReadRequestSchema.safeParse({ yandexPlayerId: "y1", ids: [0] })
-          .success,
-      ).toBe(false);
+    test("rejects an empty id list, non-positive ids and >500 ids", () => {
+      expect(MarkReadRequestSchema.safeParse({ ids: [] }).success).toBe(false);
+      expect(MarkReadRequestSchema.safeParse({ ids: [0] }).success).toBe(false);
       expect(
         MarkReadRequestSchema.safeParse({
-          yandexPlayerId: "y1",
           ids: Array.from({ length: 501 }, (_, i) => i + 1),
         }).success,
       ).toBe(false);
-      expect(MarkReadRequestSchema.safeParse({ ids: [1] }).success).toBe(false);
+    });
+
+    // Task 0273 (S4), owner ruling D1: the legacy field is gone from the schema.
+    // zod strips unknown keys, so an old client's body still PARSES — and then the
+    // route 401s it for having no token. What must never happen is the id reaching
+    // the parsed output, where a future route could read it again.
+    test("strips a legacy yandexPlayerId instead of accepting it as a caller", () => {
+      const parsed = MarkReadRequestSchema.safeParse({
+        yandexPlayerId: "y1",
+        ids: [1],
+      });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data).toEqual({ ids: [1] });
+      expect(parsed.data).not.toHaveProperty("yandexPlayerId");
     });
   });
 

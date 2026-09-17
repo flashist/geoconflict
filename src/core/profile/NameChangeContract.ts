@@ -9,13 +9,17 @@ import { z } from "zod";
  * parses exactly the shapes the profile server validates.
  *
  * Trust model (ADR-103, re-affirmed by the owner at this task's plan gate,
- * amendment 2): the player routes accept the CLIENT-asserted yandexPlayerId, the
- * same trust level `/v1/profile`, the inbox and the credit path accept today. The
- * citizen gate is enforced server-side in SQL on every call.
+ * amendment 2; task 0273 S4): the player routes identify the caller by the login
+ * session's Bearer token. The token is `vfy:false`, so it is still the same trust
+ * level `/v1/profile`, the inbox and the credit path accept today — anyone can mint
+ * one for an id they merely assert. The citizen gate is enforced server-side in SQL
+ * on every call.
  *
  * ⚠️ ACCEPTED RESIDUAL, deliberately NOT solved here: a griefer who knows a
- * citizen's (non-secret) player id can submit an offensive name IN THAT
- * CITIZEN'S NAME. It is mitigated only by the human moderation gate — an
+ * citizen's (non-secret) Yandex id can submit an offensive name IN THAT CITIZEN'S
+ * NAME — since task 0273 they must first mint a session token for that id at
+ * `POST /v1/login`, which anyone can do, so the vector costs one extra call and is
+ * otherwise unchanged. It is mitigated only by the human moderation gate — an
  * operator sees every name before it can apply. It closes when signed-payload
  * player verification lands, which is blocked on the Yandex IAP secret (task
  * 0014). The sibling vector — permanently blocking a citizen by parking a
@@ -24,8 +28,6 @@ import { z } from "zod";
  *
  * See ai-agents/tasks/backlog/0067-name-change-citizens-only/brief.md.
  */
-
-const PlayerIdSchema = z.string().min(1).max(128);
 
 /**
  * The INTERNAL player id (task 0270, ADR-113) — a Postgres uuid. Accepted ONLY by
@@ -43,15 +45,17 @@ const InternalPlayerIdSchema = z
  * specific `invalid` outcome the card can explain, not as an opaque 400.
  */
 export const NameChangeRequestSchema = z.object({
-  yandexPlayerId: PlayerIdSchema,
+  // The caller is the Bearer session alone since task 0273 (S4): the legacy
+  // `yandexPlayerId` field is gone. zod strips it, so an old body parses and 401s.
   requestedName: z.string().min(1).max(128),
 });
 export type NameChangeRequest = z.infer<typeof NameChangeRequestSchema>;
 
-/** Self-service cancel of the caller's OWN pending request (owner amendment 2). */
-export const NameChangeCancelRequestSchema = z.object({
-  yandexPlayerId: PlayerIdSchema,
-});
+/**
+ * Self-service cancel of the caller's OWN pending request (owner amendment 2). The
+ * body carries nothing at all since task 0273 (S4) — the Bearer token is the caller.
+ */
+export const NameChangeCancelRequestSchema = z.object({});
 export type NameChangeCancelRequest = z.infer<
   typeof NameChangeCancelRequestSchema
 >;
@@ -114,8 +118,11 @@ export type NameChangeStatus = z.infer<typeof NameChangeStatusSchema>;
  * The player's most recent name-change request, as carried on the PUBLIC profile
  * projection.
  *
- * `GET /v1/profile` is unauthenticated and enumerable by a non-secret player id,
- * so this deliberately OMITS `rejection_reason`: operator-authored reason text
+ * `GET /v1/profile` needs a login session's Bearer token since task 0273 (S4),
+ * but that token is `vfy:false` — anyone can mint one for a non-secret player id
+ * they merely assert — so the projection is still effectively enumerable by
+ * anyone who knows the id; only the cost of one `POST /v1/login` was added. It
+ * therefore still deliberately OMITS `rejection_reason`: operator-authored text
  * reaches the player through the citizen-gated inbox message, which already has
  * a `{reason}` param for exactly that. The brief only requires the card to show
  * a rejected STATE and allow a retry.

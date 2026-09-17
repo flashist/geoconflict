@@ -17,12 +17,17 @@ import version from "../version";
 import "./AccountModal";
 import { startBuildVersionChecker } from "./BuildVersionChecker";
 import "./CitizenshipCard";
+import {
+  CITIZENSHIP_LOGIN_SUCCEEDED_EVENT,
+  type CitizenshipLoginSucceededDetail,
+} from "./CitizenshipCard";
 import "./StaleBuildModal";
 import { joinLobby } from "./ClientGameRunner";
 import { fetchCosmetics } from "./Cosmetics";
 import "./DarkModeButton";
 import { DarkModeButton } from "./DarkModeButton";
 import { toggleDevMode } from "./DevMode";
+import { requestGameRestart } from "./GameRestart";
 import "./FeedbackModal";
 import { FeedbackModalScreenSource, showFeedbackModal } from "./FeedbackModal";
 import "./FlagInput";
@@ -41,6 +46,7 @@ import { MatchmakingModal } from "./Matchmaking";
 import { logMatchEndAnalytics } from "./MatchStartAnalytics";
 import { NewsModal } from "./NewsModal";
 import { startPerformanceMonitor } from "./PerformanceMonitor";
+import { startProfileSession } from "./ProfileSession";
 import "./PublicLobby";
 import { PublicLobby } from "./PublicLobby";
 import { ReconnectModal } from "./ReconnectModal";
@@ -286,6 +292,21 @@ class Client {
     document.addEventListener("join-lobby", this.handleJoinLobby.bind(this));
     document.addEventListener("leave-lobby", this.handleLeaveLobby.bind(this));
     document.addEventListener("kick-player", this.handleKickPlayer.bind(this));
+    // A mid-load login (the citizenship card's guest CTA) leaves the page with no
+    // session token, so restart it and run the whole start sequence logged in
+    // (task 0273, owner ruling D3). Never out of a live match.
+    document.addEventListener(CITIZENSHIP_LOGIN_SUCCEEDED_EVENT, (event) => {
+      // The requester supplies its own "no restart" behavior (the card re-reads
+      // its profile, which is exactly what it did before this task).
+      const detail = (event as CustomEvent<CitizenshipLoginSucceededDetail>)
+        .detail;
+      requestGameRestart({
+        matchActive: this.gameStop !== null,
+        reload: () => FlashistFacade.instance.reloadApp(),
+        storage: readSessionStorage(),
+        fallback: detail.fallback,
+      });
+    });
 
     const spModal = document.querySelector(
       "single-player-modal",
@@ -1024,6 +1045,11 @@ class Client {
 export async function startClient(): Promise<void> {
   startBuildVersionChecker();
 
+  // Log the player into the profile backend once per page load, fire-and-forget:
+  // it never throws, guests and an unconfigured API make no call, and nothing
+  // downstream waits for it (task 0273, S4).
+  void startProfileSession();
+
   const client = new Client();
   client.initialize();
 
@@ -1071,4 +1097,16 @@ function getPersistentIDFromCookie(): string {
   ].join(";");
 
   return newID;
+}
+
+/**
+ * sessionStorage, or null when it is unavailable (private mode / iframe policy) —
+ * merely TOUCHING the property can throw, so the access itself is guarded.
+ */
+function readSessionStorage(): Pick<Storage, "getItem" | "setItem"> | null {
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
+  }
 }

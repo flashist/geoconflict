@@ -15,6 +15,10 @@ import { InboxRepository } from "../../src/profile-server/InboxRepository";
 import { NameChangeRepository } from "../../src/profile-server/NameChangeRepository";
 import { createApp } from "../../src/profile-server/Routes";
 import {
+  TEST_SESSION_CONFIG,
+  bearerFor,
+} from "../profile-server/support/sessionToken";
+import {
   createYandexPlayer,
   realProfileRepo,
   truncateProfileTables,
@@ -51,12 +55,16 @@ RUN("citizen name change over real Postgres (integration)", () => {
   let app: ReturnType<typeof createApp>;
   const ORIGINAL_TOKEN = process.env.PROFILE_INTERNAL_TOKEN;
 
-  // Yandex ids — what the player routes are called with.
+  // Yandex ids — the ACCOUNTS these players are, used to seed them. Since task
+  // 0273 (S4) no player-facing route ever sees one: the caller is a session token
+  // for the internal player id.
   const CITIZEN = "yandex-nc-citizen";
   const OTHER = "yandex-nc-other";
   const PLAIN = "yandex-nc-plain";
-  // Internal player ids — what the operator route and the tables are keyed by.
+  // Internal player ids — what every route, the tokens and the tables are keyed by.
   const ids: Record<string, string> = {};
+  // A well-formed internal id no player has.
+  const GHOST_PLAYER_ID = "00000000-0000-4000-8000-00000000beef";
 
   beforeAll(() => {
     process.env.PROFILE_INTERNAL_TOKEN = TOKEN;
@@ -82,6 +90,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
       undefined,
       inbox,
       new NameChangeRepository(pool, inbox),
+      TEST_SESSION_CONFIG,
     );
     await truncateProfileTables(pool);
     for (const [yandexId, xp, citizen, name] of [
@@ -102,10 +111,14 @@ RUN("citizen name change over real Postgres (integration)", () => {
     }
   });
 
-  const submit = (yandexPlayerId: string, requestedName: string) =>
+  /** A session token for the player behind a Yandex id — what the S4 client holds. */
+  const callerFor = (yandexId: string) => bearerFor(ids[yandexId]);
+
+  const submit = (yandexId: string, requestedName: string) =>
     request(app)
       .post("/v1/profile/name-change-request")
-      .send({ yandexPlayerId, requestedName });
+      .set("Authorization", callerFor(yandexId))
+      .send({ requestedName });
 
   /** Operator decision for the player behind a Yandex id, sent by internal playerId. */
   const decide = (yandexId: string, body: Record<string, unknown>) =>
@@ -137,12 +150,28 @@ RUN("citizen name change over real Postgres (integration)", () => {
     expect(await rows(PLAIN)).toHaveLength(0);
   });
 
-  it("rejects a player with no profile row at all — and creates none", async () => {
-    await submit("no-such-player", "NewName").expect(403, {
-      error: "not_citizen",
-    });
+  it("rejects a token whose player row does not exist — and creates none", async () => {
+    await request(app)
+      .post("/v1/profile/name-change-request")
+      .set("Authorization", bearerFor(GHOST_PLAYER_ID))
+      .send({ requestedName: "NewName" })
+      .expect(403, { error: "not_citizen" });
     const players = await pool.query("SELECT count(*)::int AS n FROM players");
     expect(players.rows[0].n).toBe(3);
+  });
+
+  // Task 0273 (S4), owner ruling D1: the legacy client-asserted Yandex id is gone
+  // from both player routes. Over real Postgres it writes nothing and looks up nothing.
+  it("401s a legacy yandexPlayerId body on both player routes, writing nothing", async () => {
+    await request(app)
+      .post("/v1/profile/name-change-request")
+      .send({ yandexPlayerId: CITIZEN, requestedName: "NewName" })
+      .expect(401, { error: "session_invalid" });
+    await request(app)
+      .post("/v1/profile/name-change-cancel")
+      .send({ yandexPlayerId: CITIZEN })
+      .expect(401, { error: "session_invalid" });
+    expect(await rows(CITIZEN)).toHaveLength(0);
   });
 
   it("the operator route refuses a Yandex id — it takes the internal playerId only", async () => {
@@ -172,7 +201,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
     await submit(CITIZEN, "NewName").expect(200);
     const res = await request(app)
       .get("/v1/profile")
-      .query({ yandexPlayerId: CITIZEN })
+      .set("Authorization", callerFor(CITIZEN))
       .expect(200);
     expect(res.body.name_change).toEqual({
       status: "pending",
@@ -196,7 +225,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
 
     const res = await request(app)
       .get("/v1/profile")
-      .query({ yandexPlayerId: CITIZEN })
+      .set("Authorization", callerFor(CITIZEN))
       .expect(200);
     expect(res.body.display_name).toBe("NewName");
 
@@ -249,7 +278,7 @@ RUN("citizen name change over real Postgres (integration)", () => {
     }).expect(200);
     const res = await request(app)
       .get("/v1/profile")
-      .query({ yandexPlayerId: CITIZEN })
+      .set("Authorization", callerFor(CITIZEN))
       .expect(200);
     expect(res.body.name_change.status).toBe("rejected");
     expect(JSON.stringify(res.body)).not.toContain("secret operator note");
@@ -289,10 +318,11 @@ RUN("citizen name change over real Postgres (integration)", () => {
 
   // ── Owner amendment 2 — self-service cancel ──────────────────────────────
   describe("cancel (owner amendment 2)", () => {
-    const cancel = (yandexPlayerId: string) =>
+    const cancel = (yandexId: string) =>
       request(app)
         .post("/v1/profile/name-change-cancel")
-        .send({ yandexPlayerId });
+        .set("Authorization", callerFor(yandexId))
+        .send({});
 
     it("withdraws the pending row and frees the one-pending slot", async () => {
       await submit(CITIZEN, "NameOne").expect(200);
@@ -402,10 +432,11 @@ RUN("citizen name change over real Postgres (integration)", () => {
 
   // ── Review R1 — the decision is bound to the name the operator saw ───────
   describe("expectedName binding (review R1, owner ruling A)", () => {
-    const cancel = (yandexPlayerId: string) =>
+    const cancel = (yandexId: string) =>
       request(app)
         .post("/v1/profile/name-change-cancel")
-        .send({ yandexPlayerId });
+        .set("Authorization", callerFor(yandexId))
+        .send({});
 
     it("REFUSES a decision on a name swapped by a request/cancel/re-request cycle", async () => {
       // This is the bypass. Without the binding, the operator holds a message

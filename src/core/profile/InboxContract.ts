@@ -13,7 +13,8 @@ import { z } from "zod";
  * `chk_message_content` CHECK in migrations/003_player_messages.sql.
  *
  * Trust model (ADR-103, owner-ruled 2026-08-26 at the 0012 plan gate): the
- * player routes accept the CLIENT-asserted yandexPlayerId — the same trust level
+ * player routes identify the caller by the login session's Bearer token (task 0273,
+ * S4); it is `vfy:false`, so still the same trust level
  * `/v1/profile` and the credit path accept today. The citizen gate is enforced
  * server-side on every call; signature verification slots into the server's
  * single `resolveCaller` funnel once the Yandex secret exists (blocked on 0014).
@@ -73,15 +74,14 @@ export const InboxTemplateParamsSchema = z.record(
 );
 export type InboxTemplateParams = z.infer<typeof InboxTemplateParamsSchema>;
 
-const PlayerIdSchema = z.string().min(1).max(128);
-
 /**
  * The INTERNAL player id (task 0270, ADR-113) — a Postgres uuid. Accepted ONLY by
- * the service-authenticated send route, never by a player-facing one. Validated as
+ * service-authenticated routes (this send route; the credit and resolve contracts
+ * in CreditContract.ts reuse it — task 0272), never by a player-facing one. Validated as
  * a UUID shape here so a garbage value is a clean 400 instead of a pg 22P02 error
  * surfacing as a 500. Same pattern as the payments route's `UUID_RE`.
  */
-const InternalPlayerIdSchema = z
+export const InternalPlayerIdSchema = z
   .string()
   .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 
@@ -109,9 +109,13 @@ export const InboxListResponseSchema = z.object({
 });
 export type InboxListResponse = z.infer<typeof InboxListResponseSchema>;
 
-/** PATCH /v1/messages/read — absent `ids` means "mark ALL of mine read". */
+/**
+ * PATCH /v1/messages/read — absent `ids` means "mark ALL of mine read". The caller
+ * is the Bearer session and nothing else (task 0273, S4 — the legacy
+ * `yandexPlayerId` field is GONE; zod strips it, so an old body parses and then
+ * 401s for having no token).
+ */
 export const MarkReadRequestSchema = z.object({
-  yandexPlayerId: PlayerIdSchema,
   ids: z.array(z.number().int().positive()).min(1).max(500).optional(),
 });
 export type MarkReadRequest = z.infer<typeof MarkReadRequestSchema>;
