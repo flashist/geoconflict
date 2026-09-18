@@ -332,6 +332,19 @@ print_header "RUNNING SETUP ON REMOTE SERVER"
 # Write secrets to a temp file and copy via SCP.
 # This avoids embedding values inline in the SSH command, which would expose
 # them in ps aux / /proc/<pid>/cmdline on the remote server for the script duration.
+#
+# Task 0284 adds two: TELEMETRY_ALERT_PROBE_URL (the full lowercase alert-webhook URL —
+# a HOST, so it rides this 0600 channel, never an argv) and PROFILE_ALERT_WEBHOOK_TOKEN
+# (the SAME shared secret the profile box holds; the box already carries a copy inside
+# the monitoring stack's own channel config, so this adds no new secret). Both are
+# optional: blank leaves the probe unconfigured, and setup-telemetry.sh then REUSES
+# whatever it already persisted rather than wiping it.
+# 🚨 The token is NEVER generated on the telemetry box. A box-minted token fails every
+# probe and pages daily — 0182/0195's defect in a new place.
+#
+# ⚠️ scripts/check-config-parity.mjs covers game/profile/client only, so it does not see
+# these two. The hardening harness (tests/scripts/profile-deploy-hardening.test.sh) is
+# the only gate that this hop exists — the same residual task 0277 recorded.
 LOCAL_TMPENV=$(mktemp)
 chmod 600 "$LOCAL_TMPENV"
 cat > "$LOCAL_TMPENV" << EOF
@@ -352,6 +365,8 @@ export CLICKHOUSE_DISABLE_METRIC_LOG='${CLICKHOUSE_DISABLE_METRIC_LOG:-1}'
 export TELEMETRY_SWAP_SIZE_GB='${TELEMETRY_SWAP_SIZE_GB:-4}'
 export TELEMETRY_SERVER_HOST='${TELEMETRY_SERVER_HOST}'
 export TELEMETRY_DOMAIN='${TELEMETRY_DOMAIN}'
+export TELEMETRY_ALERT_PROBE_URL='${TELEMETRY_ALERT_PROBE_URL:-}'
+export PROFILE_ALERT_WEBHOOK_TOKEN='${PROFILE_ALERT_WEBHOOK_TOKEN:-}'
 EOF
 REMOTE_ENV="/root/.uptrace-deploy-env-$$"
 "${SCP_CMD[@]}" "$LOCAL_TMPENV" "${REMOTE_USER}@${TELEMETRY_SERVER_HOST}:${REMOTE_ENV}"

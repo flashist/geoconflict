@@ -13,7 +13,7 @@ Sprint 4
 High *(producer's rank — NOT owner-ruled)*
 
 ⚠️ Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.
-**On merit this belongs directly below [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md)**,
+**On merit this belongs directly below [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md)**,
 because it guards the exact relay `0277` builds and cannot start before it. Appended at the bottom
 (ADR-035), not inserted — closed rows sit below the merit position.
 
@@ -31,9 +31,9 @@ ruled the **requirement** and the **ordering**. They did **not** rule which boar
 2. **The failure is unbounded, not one missed message.** A single `403` disables the channel for
    **every future alert**, permanently, with no retry and no log anybody reads.
 3. **The Backlog board has a demonstrated hold-forever failure mode.**
-   [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from
+   [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from
    2026-08-23 until 2026-09-17 because nothing forced a re-look — the same precedent
-   [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md)'s brief names against itself.
+   [`0283`](../../backlog/0283-daily-digest-of-pending-name-change-reviews/brief.md)'s brief names against itself.
 4. **The cost is small enough to fit behind `0277` in the same sprint** — see *Effort*.
 
 **The tradeoff, stated honestly:** this adds a row to a board that already carries 24 open rows, and it
@@ -43,7 +43,114 @@ this row carries forward unstarted. **The alternative placement was the Backlog 
 `0283`: `0283` adds a *beat*; this one closes a *hole that eats every alert*.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+⚠️ **Closed 2026-09-18 by a spawned `fkit-producer`. The marker is agent-closed because a spawned producer
+has no owner channel (ADR-033 §5) — and the record must say plainly what the marker cannot:** the **owner
+personally executed every deploy and every drill step**, and **confirmed the page by screenshot**. That is
+unusually strong evidence for an agent-closed close. ⛔ **The marker is NOT upgraded** — only an owner-present
+producer session may do that — but nothing below was taken on an agent's word.
+
+✅ **THE HARD CLOSE GATE IS DISCHARGED — it was satisfied, not waived.** The owner's ruling of 2026-09-18
+(*the drill is a hard gate; this task must not close before it runs*) stands met: a drill ran, owner-executed,
+and **it passed**. The reviewer's objection the owner accepted — *"a guard not yet known to guard"* — no longer
+holds: the guard has now been watched to fail, page a human, and recover. ⛔ Not precedent — one ruling, one task.
+
+**What was built.** An hourly probe from the telemetry box crosses the same allowlist, location, route and shared
+secret a real alert crosses; the relay stamps a marker **on receipt — after the secret check, before any send**;
+`profile-checks.sh` reads the marker's age on its existing daily run; stale or missing ⇒ FAIL ⇒ the **external
+dead-man's switch**, a path that touches neither Uptrace nor Telegram.
+
+**Review.** Round 1: `fkit-reviewer`'s own pass **plus a Codex adversarial pass — coverage FULL, no degradation.**
+Five findings, all verified CORRECT, **all fixed** — two under standing approval (a non-string `probe` value could
+drop a real alert; the "secret never on a curl argv" harness guard was line-oriented and a planted leak passed it),
+three owner-ruled (enforce the token constraint at deploy time; give the probe a distinguishable reply; fix the
+future-date hole in the pre-existing checks too). **Two further checks fixed on a later owner ruling**, after a full
+sweep of every age computation in `profile-checks.sh`: six found, five now guarded, one already safe, **no seventh**.
+
+**Gates — LEAD-VERIFIED on an independent run, not taken from the worker:** `tsc` clean · `npm test` **137 suites /
+1853 tests, 0 failed** · `tests/profile-checks.sh` **118 passed, 0 failed** · hardening harness **ALL PASS** ·
+`check:config-parity` REQUIRED 0 on all three pipelines. No supertest flake, no `SIGSEGV`, nothing re-run.
+`plan.md` byte-frozen throughout (`d596cf3d78d9bbb4147d28c5b5df7964702a0b53`, 25396 B).
+
+### Deployed and observed, 2026-09-18 — all owner-executed
+
+**Deploy.** The owner ran `npm run deploy:profile` and `npm run deploy:telemetry`. Lead-verified on the boxes:
+both profile containers **healthy**; the alerts bind mount **present** and its directory `drwx------ root root`;
+`check_alert_probe` present in the deployed `checks.sh`; `/health` and `/ready` both **200**. On the telemetry
+box: the probe's env file **0600**, the probe script **0700**, both values present, and the hourly cron line
+installed after the certbot line.
+
+**First probe, owner-run by hand: exit 0.** ⚠️ That exit code is only meaningful **because of review finding
+R3** — before that fix the probe returned 0 for any 2xx, including the relay's deliberate accepted-but-dropped
+reply.
+
+**Marker written, lead-verified 19 s later** — 94 bytes, `-rw-------`, `schema 1`, a `finished_at` timestamp and
+the probe's source key. The marker is stamped **only after the secret check**, so its existence proves the secret
+matched.
+
+**The check flipped to OK**, owner-run: `OK alert-path-probe: the monitoring box reached the alert webhook 0h ago
+(max 3h) — reachability only, NOT proof that a Telegram message arrived` · `RESULT: 11 ok, 0 failed`.
+
+### 🚩 THE CENTRAL ASSUMPTION IS PROVEN — AND NOT BY THE DRILL
+
+This brief and the reviewer both recorded that *"no code and no test can establish"* whether the probe's egress
+address and a real alert's are the same, and assigned the question to the drill. **The nginx access log had
+already recorded both sides.** Lead-read on the box, at the webhook route: the host-cron **probe**
+(`curl/8.5.0`, 200) and **four real monitoring-stack calls** (`Uptrace/1.0`, 202 — including the fired and
+resolved events of the 2026-09-17 alert drill) **all arrive from the same source address.**
+
+⇒ **Host cron and the containerised monitoring stack share one egress.** Recorded as **observed evidence**, and
+**how it was found matters as much as what it says: a read-only log query answered what a destructive drill was
+scheduled to answer.**
+
+### The drill that ran — REDUCED, owner-ruled, and it PASSED
+
+**OWNER RULING 2026-09-18**, live in the lead session via `AskUserQuestion`: offered full drill / **reduced
+drill** / close on the log evidence alone, the owner chose the **reduced drill** — exercise the alarm path, but
+**do NOT deliberately disable the notification channel**. ⛔ Not precedent. The lead reduced it further, and said
+so: editing the allowlist to prove a `deny all` path **already visible in the logs** would itself risk creating
+the silent outage this task exists to prevent.
+
+Owner-executed, in order:
+
+1. Marker moved aside → checks run → **`FAIL alert-path-probe: no alert-path probe marker at all (max 3h)`**,
+   `RESULT: 10 ok, 1 failed`, `ping: /fail delivered with 1 reason(s)`.
+2. **The external dead-man's switch paged the owner by email** — *"New incident started —
+   profile-daily-checks"*, 12:08 MSK (09:08 UTC). **Owner-confirmed by screenshot.**
+3. Marker restored → `11 ok, 0 failed` · `ping: success delivered` → **the incident auto-resolved** (second
+   mail, owner-confirmed).
+
+⇒ **Every hop of the chain now has evidence:** probe → allowlist → route → secret check → marker → daily check →
+dead-man's switch → the owner's inbox.
+
+⚠️ **State exactly what was NOT exercised.** The drill hit the **missing-marker** branch, **not** the
+**stale-marker** branch — both end in the same `fail()` and the same ping, so the alarm path is identical, but
+only one of the two was run. Also **not** exercised: deliberately removing the address from
+`PROFILE_INTERNAL_ALLOW_IPS`, and observing a real alert disable the channel — **that remains
+binary-disassembly evidence, not observation.**
+
+### ⚠️ Residuals that SURVIVE this close — all eight
+
+1. **It catches the CAUSE, not the STATE.** An already-disabled channel reads green. **Filed as `0285`.**
+2. It does **not** check the secret the monitoring stack's own channel config holds — a separate copy from the
+   cron's.
+3. It proves **nothing about Telegram delivery**: the marker is written on receipt, **before** any send.
+   [`0283`](../../backlog/0283-daily-digest-of-pending-name-change-reviews/brief.md) is that half.
+4. It does **not** prove any monitor is attached to the channel.
+5. **It does not discharge [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md)
+   amendment A1** (delivery after an idle period) — and ⚠️ an hourly probe may actively **mask** an idle-path
+   defect on that hop.
+6. Detection latency **~3–27 h, owner-accepted 2026-09-18**.
+7. 🔭 **Open and unruled:** `check_cert_expiry` computes no age of its own, so it has no negative-age branch to
+   guard — but it is **clock-trusting** in a related way: a box clock running *behind* makes a certificate look
+   fresher than it is. Different defect class; surfaced by the coder, **never ruled on**.
+8. `npm run check:config-parity` does **not** reach telemetry variables — the hardening harness is the only
+   guard there.
+
+· earlier: 🚧 Blocked — code complete and reviewed; waiting on the owner's egress drill, which was ruled a **hard
+close gate** (owner, 2026-09-18) and has now been discharged by the reduced drill above · earlier: 🔄 In progress —
+driven from the lead session (`/fkit-sprint-ship-loop`), plan approved by the owner 2026-09-18 · earlier: 🔲 Backlog
 
 ## Owner
 fkit-coder
@@ -101,7 +208,7 @@ question a reader would think to ask. Do not add this check.
 **2. `setup-profile.sh` already prints the allowlist at deploy** (since `0276`). Free, correct, keep
 it — but it guards **nothing between deploys**, and the address can move without a deploy.
 
-**3. 🚨 [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md)'s daily digest does NOT
+**3. 🚨 [`0283`](../../backlog/0283-daily-digest-of-pending-name-change-reviews/brief.md)'s daily digest does NOT
 cover this, and is ACTIVELY MISLEADING about it.**
 The digest is produced on the box that already holds the data and sent **straight through the Telegram
 helper**. It **never touches Uptrace**, **never crosses the `/internal/` allowlist**, and **never
@@ -115,7 +222,7 @@ that digest as covering alert delivery.
 
 **Uptrace persists every notification attempt's response status.** A run of `403`s therefore sits on the
 telemetry box, already written down, **unread**. This is the same shape as
-[`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md): the signal
+[`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md): the signal
 exists, nothing looks at it. Whether reading that store is a cheaper guard than the probe below is
 **not** settled here — the probe was chosen because it exercises the **whole path**, not just Uptrace's
 own opinion of it.
@@ -164,7 +271,13 @@ the plan** — refine the mechanics, keep the shape.
 2. **`profile-checks.sh` reports OK with a fresh marker**, in its normal daily run.
 3. **A stale marker FAILs** — proved by the new `tests/profile-checks.sh` case (fresh / stale /
    missing), and `npm test` green including the shell harnesses.
-4. 🚩 **The guard is seen to FAIL for the real reason, once, on the real boxes.** Temporarily remove the
+4. 🚩 **The guard is seen to FAIL for the real reason, once, on the real boxes.**
+   ⚠️ **WHAT ACTUALLY RAN WAS A REDUCED DRILL — owner-ruled 2026-09-18. Read the Status section above before
+   reading this step as satisfied as written.** The allowlist was **not** edited and the channel was **not**
+   deliberately disabled; the egress question this step existed to answer was settled instead by the nginx access
+   log, which had already recorded the probe and four real monitoring-stack calls arriving from the **same**
+   source address. The step as originally written stands below, unedited, for the trail.
+   Temporarily remove the
    telemetry box's egress address from the allowlist (or point the probe at a route that will `403`),
    confirm the marker stops advancing, and confirm `profile-checks.sh` FAILs and the **dead-man's
    switch pages**. Then restore. ⛔ **This step is the task.** Steps 1–3 prove the plumbing; only this
@@ -182,7 +295,7 @@ the plan** — refine the mechanics, keep the shape.
 
 ## Notes
 
-- **Depends on:** [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md) — the relay route must
+- **Depends on:** [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md) — the relay route must
   exist before anything can probe it. **The owner ruled the ordering explicitly (2026-09-17): build
   this after `0277`.** ✅ **SETTLED 2026-09-17 — `0277` SHIPPED THE WEBHOOK-RELAY BRANCH (branch B),
   so THIS BRIEF'S PROBE TARGET STANDS. Do not re-scope it.** The relay route exists and is deployed on
@@ -193,17 +306,17 @@ the plan** — refine the mechanics, keep the shape.
   statement of fact about what shipped, **not** an owner ruling and not a change of this task's scope.
 - **Blocks:** nothing.
 - **Related:**
-  - [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md) — ⚠️ **complements, it does
+  - [`0283`](../../backlog/0283-daily-digest-of-pending-name-change-reviews/brief.md) — ⚠️ **complements, it does
     not duplicate.** This task proves the alert path is **reachable**; `0283`'s daily beat proves
     **Telegram delivery** is alive. **Neither covers the other half**, and the marker here is written
     **on receipt, before any send** — so this task says nothing about whether a message reached a human.
     Anyone treating one as covering both has re-opened the hole. *(The reverse direction — that `0283`
     is actively misleading about alert delivery — is recorded in `0283`'s own brief.)*
-  - [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) — owns alert rules
+  - [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) — owns alert rules
     A1–A6, which are what dies when the channel is disabled.
-  - [`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)
+  - [`0276`](../0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)
     — added the deploy-time allowlist print referenced in *Context* (2).
-  - [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the
+  - [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the
     "the signal exists and nothing reads it" precedent this repeats, and the source of the
     `profile-checks.sh` + dead-man's-switch shape reused here.
 - **Effort:** small — the architect's estimate is ~10 lines in the relay, ~15 in `checks.sh`, one case

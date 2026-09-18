@@ -36,6 +36,8 @@
 
 import type { RequestHandler } from "express";
 import rateLimit from "express-rate-limit";
+import { mkdirSync, renameSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { z } from "zod";
 import {
   escapeTelegramHtml,
@@ -70,6 +72,66 @@ const BOX_ROLE = "profile";
 
 /** Named in the out-of-band alarm. The NAME only — never any value. */
 export const ALERT_WEBHOOK_SECRET_ENV = "PROFILE_ALERT_WEBHOOK_TOKEN";
+
+// ── The liveness probe (task 0284) ────────────────────────────────────────────
+//
+// The 403 trap above is accepted WITH DOCUMENTATION, and this is the mechanical guard
+// the note promised. A cron on the monitoring box POSTs here hourly over the same
+// public name, through the same nginx allowlist, the same route and the same shared
+// secret a real alert uses. The relay writes a freshness marker and SENDS NOTHING;
+// profile-checks.sh reads the marker's age in its existing daily run and fails to the
+// EXTERNAL dead-man's switch — a path that touches neither the monitoring stack nor
+// Telegram, which is why it works where every rejected alternative did not.
+//
+// 🚩 What it proves and what it does not: the marker is written ON RECEIPT, after the
+// secret check and before any send. So it proves the monitoring box can REACH this
+// route with the right secret. It says nothing about Telegram delivery, nothing about a
+// message reaching a human, and — the hole worth stating out loud — nothing about a
+// channel that is ALREADY disabled. It catches the CAUSE within ~24 h, not the STATE.
+
+/**
+ * Where the marker is written INSIDE the container. setup-profile.sh bind-mounts this
+ * directory from the host so profile-checks.sh can read it; the harness asserts the two
+ * files agree on this string, because nothing else would catch them drifting apart.
+ *
+ * A compiled-in constant plus the `markerPath` test seam below, NOT an environment
+ * variable (owner ruling D1, 2026-09-18): a new `process.env` read here would drag the
+ * config-parity two-hop chain in for a value that never varies.
+ */
+export const ALERT_PROBE_MARKER_PATH =
+  "/var/lib/profile/alerts/last-alert-probe.json";
+
+/** The non-secret discriminator, matched on `payload.probe` (trimmed, lowercased). */
+export const ALERT_PROBE_KEY = "liveness";
+
+/**
+ * The `status` this route answers a PROBE with, and only a probe (review R3 + owner ruling,
+ * 2026-09-18). It must DIFFER from the `accepted` a deliberately DROPPED call also answers
+ * 200 with: a wrong secret and a written marker are otherwise byte-identical on the wire, so
+ * the probe's own exit code and one-line log carry no information at exactly the moment an
+ * operator runs it by hand — bring-up and incident triage.
+ *
+ * ⛔ A FIXED CONSTANT that echoes NOTHING from the request. The monitoring stack persists the
+ * first 100 bytes of every webhook response (task `0277`), so a reflected body would push
+ * request content into its notification history.
+ * ⛔ And the STATUS CODE stays 200 — never 401/403/404, which would disable the channel.
+ *
+ * 🚩 `setup-telemetry.sh`'s probe script greps for this string. The hardening harness asserts
+ * the two files agree, because nothing else would catch them drifting apart.
+ */
+export const ALERT_PROBE_RESPONSE_STATUS = "probe-accepted";
+
+/**
+ * Atomic marker write: a temp file in the same directory, then rename. A TORN write
+ * would leave an unparseable `finished_at`, which the checker reads as a FAIL — the safe
+ * direction, but a false page at 08:00 UTC for no reason.
+ */
+function writeMarkerFileAtomically(path: string, contents: string): void {
+  mkdirSync(dirname(path), { recursive: true });
+  const temp = `${path}.tmp`;
+  writeFileSync(temp, contents, { mode: 0o600 });
+  renameSync(temp, path);
+}
 
 /**
  * Dedupe bound. ⚠️ The TTL is deliberately LONGER than Uptrace's verified retry
@@ -114,6 +176,17 @@ const AlertWebhookSchema = z.object({
   payload: z
     .object({
       secret: z.string().optional(),
+      // Task 0284's liveness probe. The object is NON-strict, so this key changes
+      // nothing for a real alert that does not carry it.
+      //
+      // 🚨 `unknown`, NOT `z.string()` (review R1, 2026-09-18). A typed string here makes
+      // a real alert whose custom payload carries a NON-STRING `probe` (a number, an
+      // object, `true`) fail the WHOLE-body parse → `malformed` → dropped at 200 and never
+      // sent. That is a second door past the fail-toward-delivery rule in `decide()`, and
+      // it is a door this task opened: before the key existed it was stripped as unknown
+      // and the alert was delivered. The value is narrowed with `typeof` at the one place
+      // it is read.
+      probe: z.unknown().optional(),
       title: z.string().optional(),
       value: z.string().optional(),
       threshold: z.string().optional(),
@@ -327,12 +400,19 @@ export interface AlertRelayConfig {
   send?: (config: TelegramConfig, text: string) => Promise<TelegramSendOutcome>;
   /** Test seam only; production uses Date.now. */
   now?: () => number;
+  /** Test seam only; production uses ALERT_PROBE_MARKER_PATH (task 0284). */
+  markerPath?: string;
+  /** Test seam only; production writes the marker atomically (task 0284). */
+  writeMarkerFile?: (path: string, contents: string) => void;
 }
 
 /** What the pre-response phase decided. Nothing here touches the network. */
 type Decision =
   | { kind: "deliver"; text: string; keyed: AlertRelayKeyed; id: string }
-  | { kind: "drop"; reason: AlertRelayResult; keyed: AlertRelayKeyed };
+  | { kind: "drop"; reason: AlertRelayResult; keyed: AlertRelayKeyed }
+  // Task 0284: a liveness probe. Nothing is rendered, nothing is sent, nothing is
+  // dedupe-keyed — the only effect is the marker file.
+  | { kind: "probe" };
 
 export function createAlertRelay(
   config: AlertRelayConfig,
@@ -340,6 +420,8 @@ export function createAlertRelay(
 ): { limiter: RequestHandler; handler: RequestHandler } {
   const send = config.send ?? sendTelegramMessage;
   const now = config.now ?? (() => Date.now());
+  const markerPath = config.markerPath ?? ALERT_PROBE_MARKER_PATH;
+  const writeMarker = config.writeMarkerFile ?? writeMarkerFileAtomically;
   const dedupe = new DedupeCache();
   let lastAlarmAt = 0;
 
@@ -421,6 +503,40 @@ export function createAlertRelay(
   }
 
   /**
+   * The probe marker (task 0284). Shaped for the reader, not for elegance:
+   * `JSON.stringify(…, null, 2)` puts ONE key per line with the key at the line start,
+   * which is exactly what profile-checks.sh's `json_field` sed requires, and
+   * `finished_at` is seconds-precision ISO with a trailing `Z`, which is what its
+   * `iso_to_epoch` parses.
+   *
+   * ⛔ Never the caller's address, never the secret, never anything from the body.
+   *
+   * A write failure is logged and the response is STILL 2xx: the marker going stale is
+   * the signal the checker reads, and a non-2xx here would be read by nobody but curl —
+   * while spending the sender's retry budget if a real alert ever took this branch.
+   */
+  function writeProbeMarker(at: number): void {
+    try {
+      writeMarker(
+        markerPath,
+        `${JSON.stringify(
+          {
+            schema: 1,
+            finished_at: `${new Date(at).toISOString().slice(0, 19)}Z`,
+            source: "alert-webhook-probe",
+          },
+          null,
+          2,
+        )}\n`,
+      );
+    } catch (error) {
+      log.error(
+        `alert relay: could not write the probe marker: ${formatError(error)}`,
+      );
+    }
+  }
+
+  /**
    * Everything decided before the response: parse → secret → dedupe → render.
    * Deliberately synchronous and network-free, so the only thing that can throw here
    * is a genuine internal failure — which is the one case 5xx is correct for.
@@ -439,6 +555,38 @@ export function createAlertRelay(
       // The id is not read before the secret check: an unauthenticated caller must
       // not be able to write into the dedupe map.
       return { kind: "drop", reason: "rejected", keyed: "unkeyed" };
+    }
+    // ── Task 0284's liveness probe, strictly AFTER the secret check ──────────
+    // The marker only ever advances for a caller that holds the secret, which is the
+    // whole reason the guard means anything.
+    //
+    // 🚨 FAIL TOWARD DELIVERY. A body counts as a probe only when it carries the probe
+    // key AND no real alert fields. If someone ever pastes `probe` into the channel's
+    // custom payload, the naive rule ("probe present ⇒ probe") would silently swallow
+    // EVERY REAL ALERT behind a 2xx — worse than the failure this task exists to fix.
+    // So a `probe` key alongside alert fields is delivered as an alert, loudly.
+    // `probe` is typed `unknown` on purpose (see the schema): a non-string value must not
+    // fail the parse, so it is narrowed here and treated as "not a probe".
+    const rawProbe = data.payload?.probe;
+    const probe =
+      typeof rawProbe === "string" ? rawProbe.trim().toLowerCase() : "";
+    const carriesAlert = data.alert !== undefined || data.id !== undefined;
+    if (probe === ALERT_PROBE_KEY && !carriesAlert) {
+      return { kind: "probe" };
+    }
+    // A non-string `probe` can never match, but it still means the key is sitting in the
+    // channel payload — warn about that too rather than losing the signal.
+    const probeKeyPresent =
+      probe.length > 0 ||
+      (rawProbe !== undefined &&
+        rawProbe !== null &&
+        typeof rawProbe !== "string");
+    if (probeKeyPresent) {
+      log.warn(
+        "alert relay: a `probe` key is present in a call that also carries alert " +
+          "fields — relaying it as an ALERT. Remove `probe` from the channel payload; " +
+          "it belongs to the liveness probe cron only.",
+      );
     }
     const id = data.id ?? "";
     // An alert with no usable id is DELIVERED, never dropped — dropping it would
@@ -474,6 +622,18 @@ export function createAlertRelay(
       );
       // The ONE correct 5xx: transient, and worth Uptrace's retry budget.
       res.status(500).json({ status: "error" });
+      return;
+    }
+
+    // Task 0284: a probe. No send, no dedupe entry, no alarm — just the marker.
+    // 200 rather than 202 because nothing was queued; only the probe's curl reads it.
+    // The body is DISTINCT from a drop's (review R3): the probe script exits 0 only on this
+    // string, so "the relay recorded a probe" and "the relay dropped the call at 200" can be
+    // told apart by the operator running it by hand.
+    if (decision.kind === "probe") {
+      writeProbeMarker(at);
+      metrics.alertRelay("probe", "unkeyed");
+      res.status(200).json({ status: ALERT_PROBE_RESPONSE_STATUS });
       return;
     }
 

@@ -18,6 +18,14 @@
 #   CLICKHOUSE_MAX_SERVER_MEMORY_USAGE_RATIO — ClickHouse memory cap ratio (default: 0.6)
 #   CLICKHOUSE_DISABLE_METRIC_LOG — disable ClickHouse system.metric_log diagnostics (default: 1)
 #   TELEMETRY_SWAP_SIZE_GB — swapfile size in GB; 0 disables swap management (default: 4)
+#   TELEMETRY_ALERT_PROBE_URL — full lowercase alert-webhook URL on the profile box; blank
+#                               leaves the alert-path liveness probe off (task 0284)
+#   PROFILE_ALERT_WEBHOOK_TOKEN — the SAME shared secret the profile box holds. 🚨 NEVER
+#                               generated here: a box-minted token fails every probe and
+#                               makes the profile box page daily (0182/0195's defect).
+#                               ⚠️ No " and no \ — it is embedded in a JSON body, and this
+#                               script REFUSES to deploy a token containing either
+#   Both are persist-or-reuse: blank on a redeploy REUSES what is already on the box.
 #
 # What this script does:
 #   1. Ensures a swapfile exists (low-RAM VPS OOM cushion)
@@ -27,7 +35,8 @@
 #   5. Creates a systemd service for auto-start on reboot
 #   6. Adds weekly backup cron jobs for PostgreSQL
 #   7. Adds daily disk usage monitoring
-#   8. Prints connection info and DSN for the game server
+#   8. Writes the alert-path liveness probe + its hourly cron (task 0284)
+#   9. Prints connection info and DSN for the game server
 
 set -e
 
@@ -102,6 +111,34 @@ fi
 if ! [[ "$TELEMETRY_SWAP_SIZE_GB" =~ ^[0-9]+$ ]]; then
     echo "Error: TELEMETRY_SWAP_SIZE_GB must be a non-negative integer (GB). Use 0 to disable swap management."
     exit 1
+fi
+
+# Task 0284, review R2 (owner ruling 2026-09-18: ENFORCE, do not leave it documented).
+# alert-probe.sh embeds this token in a JSON body, so a " or a \ in it emits INVALID JSON:
+# the relay answers `malformed`, no marker is ever written, and the profile box pages EVERY
+# DAY while the relay's own secret is perfectly fine. Checked here, at the top, BEFORE
+# anything on this box is touched — the failure has to surface at deploy time instead of as
+# a mystery daily page weeks later.
+# Both sources are checked: the value this deploy supplies, and an already-persisted one (a
+# box provisioned before this guard existed can be holding a bad token in its persist file).
+# ⛔ The message names the variable only — never the value.
+assert_probe_token_json_safe() {  # $1 value   $2 where it came from
+    case "$1" in
+        *'"'*|*'\'*)
+            echo "Error: PROFILE_ALERT_WEBHOOK_TOKEN ($2) contains a double quote or a backslash."
+            echo "       The alert-path probe embeds it in a JSON body, so those characters produce"
+            echo "       invalid JSON: every probe would be dropped as malformed, no marker would ever"
+            echo "       be written, and the profile box would page every day while alerting itself is"
+            echo "       fine. Use hex or plain alphanumerics only, and keep it identical to the profile"
+            echo "       box's PROFILE_ALERT_WEBHOOK_TOKEN. Aborting before anything is changed."
+            exit 1
+            ;;
+    esac
+}
+if [ -n "${PROFILE_ALERT_WEBHOOK_TOKEN:-}" ]; then
+    assert_probe_token_json_safe "$PROFILE_ALERT_WEBHOOK_TOKEN" "supplied by this deploy"
+elif [ -s "$UPTRACE_DIR/.alert_probe_token" ]; then
+    assert_probe_token_json_safe "$(cat "$UPTRACE_DIR/.alert_probe_token")" "persisted on this box"
 fi
 UPTRACE_RETENTION_NS=$((UPTRACE_RETENTION_DAYS * 86400 * 1000000000))
 UPTRACE_METRICS_RETENTION_NS=$((UPTRACE_METRICS_RETENTION_DAYS * 86400 * 1000000000))
@@ -912,6 +949,147 @@ systemctl daemon-reload
 systemctl enable uptrace
 echo "✅ systemd service 'uptrace' enabled (starts on reboot)"
 
+# ── Alert-path liveness probe (task 0284) ─────────────────────────────────────
+#
+# The profile box's alert webhook is mounted behind an nginx IP allowlist, and that
+# allowlist answers 403 on a source-IP miss. A 403 makes the monitoring stack mark its
+# notification channel DISABLED — permanently, silently, with no retry — so the day THIS
+# box's egress address changes, the first real alert kills alerting and nothing says so.
+#
+# The guard is a probe FROM THIS BOX: an hourly cron POSTs to the same URL, through the
+# same allowlist, with the same shared secret a real alert carries. The relay stamps a
+# marker file and sends NOTHING; the profile box's daily checks.sh fails to its EXTERNAL
+# dead-man's switch when that marker goes stale — a path that touches neither this stack
+# nor Telegram, which is why it catches what everything else here cannot.
+#
+# ⚠️ The origin is the point. A probe from anywhere else proves nothing, because it is
+# this box's address that the allowlist either holds or does not.
+# 🚩 One assumption, stated not buried: the monitoring stack's own egress is SNAT'd to
+# this host's primary address, so a host-run curl leaves from the same address. True for
+# a single-public-address box with default Docker networking — this box's shape — but NOT
+# proved. The task's drill is what verifies it: removing this address from the profile
+# box's allowlist must fail the probe AND disable the channel. If the probe fails while
+# the channel survives, the two egresses differ and this guard is not guarding.
+
+print_header "CONFIGURING THE ALERT-PATH LIVENESS PROBE"
+
+# Persist-or-reuse, mirroring setup-profile.sh's persist_or_reuse_secret:
+#   env value set → wins AND is written through (so rotating just works)
+#   env empty, file present → REUSE, and say so by name
+#   neither → EMPTY, said so; the probe stays off
+# 🚨 There is deliberately NO generate mode. A box-minted token is the PROFILE_INTERNAL_TOKEN
+# trap (0182) and 0195's blank-overwrite defect at once: a secret only this box knows is a
+# secret the relay does not, so every probe fails its secret check and the profile box pages
+# EVERY DAY about a guard that was never wired. To clear either value, rm its persist file
+# here and redeploy.
+persist_or_reuse_probe_value() {  # $1 variable name   $2 persist file (root-only, 0600)
+    local name="$1" file="$2" value
+    value="${!name:-}"
+    if [ -n "$value" ]; then
+        ( umask 077; printf '%s' "$value" > "$file" )
+        chmod 600 "$file"
+        echo "Using $name from environment (persisted to $file)"
+    elif [ -s "$file" ]; then
+        value=$(cat "$file") || {
+            echo "Error: $name: persist file $file exists but could not be read. Refusing to"
+            echo "continue with an EMPTY value — fix the file, or rm it to clear the value. Aborting (fail closed)."
+            exit 1
+        }
+        printf -v "$name" '%s' "$value"
+        echo "⚠️  Reusing persisted $name from $file — the deploy supplied no value"
+    else
+        echo "$name: not supplied and nothing persisted — written EMPTY (the alert-path probe stays OFF)"
+    fi
+    return 0
+}
+persist_or_reuse_probe_value TELEMETRY_ALERT_PROBE_URL   "$UPTRACE_DIR/.alert_probe_url"
+persist_or_reuse_probe_value PROFILE_ALERT_WEBHOOK_TOKEN "$UPTRACE_DIR/.alert_probe_token"
+
+# 0600: the URL is a HOST and the token is a shared secret. %q so a value with spaces or
+# shell metacharacters survives being sourced.
+( umask 077
+  {
+    printf 'ALERT_PROBE_URL=%q\n'    "${TELEMETRY_ALERT_PROBE_URL:-}"
+    printf 'ALERT_PROBE_SECRET=%q\n' "${PROFILE_ALERT_WEBHOOK_TOKEN:-}"
+  } > "$UPTRACE_DIR/alert-probe.env"
+)
+chmod 600 "$UPTRACE_DIR/alert-probe.env"
+echo "Written: alert-probe.env (0600)"
+
+# Quoted heredoc: nothing in the probe script is expanded at write time.
+cat > "$UPTRACE_DIR/alert-probe.sh" << 'PROBEEOF'
+#!/usr/bin/env bash
+#
+# alert-probe.sh — written by setup-telemetry.sh (task 0284). Do NOT edit in place;
+# change setup-telemetry.sh in the repo and redeploy.
+#
+# POSTs a liveness probe to the profile box's alert webhook — the same URL, the same nginx
+# IP allowlist and the same shared secret a REAL alert uses — so the profile box's daily
+# checks can tell whether this box can still reach that route at all. A 403 from that
+# allowlist permanently disables the notification channel, and nothing else would notice.
+#
+# The relay answers 2xx and SENDS NOTHING for a probe: this never produces a Telegram
+# message, and it never touches the notification channel's state.
+#
+# ⛔ Never add `set -x` — it would echo the shared secret into the log.
+set -uo pipefail
+
+DIR="$(cd "$(dirname "$0")" && pwd)"
+LOG="/var/log/uptrace-alert-probe.log"
+# ONE line, TRUNCATING (>, not >>). This box has filled its disk before, and nothing reads
+# the history anyway — the marker on the profile box is the signal.
+say() { echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) alert-probe: $*" > "$LOG"; }
+
+# shellcheck disable=SC1091
+. "$DIR/alert-probe.env"
+
+if [ -z "${ALERT_PROBE_URL:-}" ] || [ -z "${ALERT_PROBE_SECRET:-}" ]; then
+    say "NOT CONFIGURED — ALERT_PROBE_URL and/or ALERT_PROBE_SECRET are empty in alert-probe.env. No probe was sent, so the profile box's daily check will page."
+    exit 1
+fi
+
+# The body goes on STDIN, never in argv: --data '{"secret":…}' would expose the secret in
+# ps / /proc/<pid>/cmdline for the life of the call.
+# ⚠️ The secret is embedded in JSON, so it must contain no " and no \ (hex or alphanumeric
+# only). That is ENFORCED, not merely documented: setup-telemetry.sh refuses to deploy a token
+# containing either character (review R2, owner ruling 2026-09-18).
+# ⛔ curl's stderr is discarded on purpose (same rule as profile-checks.sh): its error text
+# can carry the URL, which is a host.
+probe_rc=0
+probe_body="$(curl -fsS -m 10 --retry 2 -X POST \
+     -H 'Content-Type: application/json' --data-binary @- "$ALERT_PROBE_URL" \
+     2>/dev/null <<JSON
+{"payload":{"secret":"${ALERT_PROBE_SECRET}","probe":"liveness"}}
+JSON
+)" || probe_rc=$?
+
+if [ "$probe_rc" -ne 0 ]; then
+    say "FAILED to reach the alert webhook (curl exit ${probe_rc}). Check the profile box's PROFILE_INTERNAL_ALLOW_IPS against this box's egress address, then re-enable the notification channel by hand — fixing the address does NOT undo a disable."
+    exit 1
+fi
+
+# 🚨 A 2xx is NOT enough — which is exactly why the relay answers a PROBE with its own
+# distinct status string. EVERY dropped call is a deliberate 200 as well (a wrong secret, a
+# malformed body: a 4xx there would permanently disable the notification channel), so an exit
+# code alone cannot tell "the marker was written" from "the call was thrown away". Only the
+# probe's own reply may exit 0.
+# Matched loosely — no quoting or spacing assumptions about the JSON, so a formatting change
+# upstream cannot turn this into a false failure. The string itself is the contract, and the
+# hardening harness asserts it equals ALERT_PROBE_RESPONSE_STATUS in AlertRelay.ts.
+# ⛔ The response body is never echoed into this log: it can in principle come from something
+# other than the relay, and the same rule that discards curl's stderr applies to it.
+case "$probe_body" in
+    *probe-accepted*)
+        say "accepted — the relay recorded the probe and wrote its marker"
+        exit 0
+        ;;
+esac
+say "REACHED the alert webhook, but it did NOT record a probe: the reply was a 2xx WITHOUT the probe status, which is the relay's deliberate 200 on a DROPPED call. The likeliest cause is that ALERT_PROBE_SECRET here does not match the profile box's PROFILE_ALERT_WEBHOOK_TOKEN. No marker was written, so the profile box's daily check will page."
+exit 1
+PROBEEOF
+chmod 700 "$UPTRACE_DIR/alert-probe.sh"
+echo "Written: alert-probe.sh (0700)"
+
 # ── Backup cron jobs ──────────────────────────────────────────────────────────
 
 print_header "SETTING UP BACKUP CRON JOBS"
@@ -947,6 +1125,13 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # NEVER renew and the cert silently expired. Free port 80 around renewal, exactly as the
 # profile box does: stop nginx (pre-hook), renew, start nginx (post-hook).
 0 0,12 * * * root certbot renew --quiet --pre-hook "systemctl stop nginx" --post-hook "systemctl start nginx" >> /var/log/certbot-renew.log 2>&1
+
+# Alert-path liveness probe (task 0284) — hourly at :17, deliberately off the top of the
+# hour so it does not pile onto the jobs above. It writes a ONE-LINE truncating log of its
+# own; the real signal is the marker it makes the profile box stamp, which that box's daily
+# checks.sh reads. Output is discarded here because the script's log and that marker are
+# the record — and because curl's error text can carry a host.
+17 * * * * root $UPTRACE_DIR/alert-probe.sh >/dev/null 2>&1
 EOF
 
 chmod 644 "$CRON_FILE"
@@ -990,6 +1175,19 @@ else
     echo "⚠️  FIREWALL: port 4317 (gRPC) — restrict to game server only; port 4318 (HTTP) — open to all for browser clients:"
     echo "   ufw allow from GAME_SERVER_IP to any port 4317"
     echo "   ufw deny 4317 && ufw allow 4318 && ufw deny 14317 && ufw deny 14318 && ufw enable"
+fi
+echo ""
+# Task 0284. ⛔ Never print the URL — it is a host.
+if [ -n "${TELEMETRY_ALERT_PROBE_URL:-}" ] && [ -n "${PROFILE_ALERT_WEBHOOK_TOKEN:-}" ]; then
+    echo "Alert-path probe: configured (hourly cron → $UPTRACE_DIR/alert-probe.sh)."
+    echo "   Run it once by hand now (exit 0 = accepted), then confirm the profile box's"
+    echo "   checks.sh reports 'alert-path-probe … OK' BEFORE the next 08:00 UTC run —"
+    echo "   otherwise that run pages about a marker that has never been written."
+else
+    echo "⚠️  Alert-path probe: NOT configured — TELEMETRY_ALERT_PROBE_URL and/or"
+    echo "    PROFILE_ALERT_WEBHOOK_TOKEN are empty. The profile box's daily checks will FAIL"
+    echo "    'alert-path-probe' every run, and the 403 channel-disable trap is unguarded."
+    echo "    Set both in .env.telemetry.secret and redeploy."
 fi
 echo ""
 echo "Change the admin password immediately after first login."

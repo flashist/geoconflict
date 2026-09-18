@@ -103,12 +103,16 @@ export type AlertRelayResult =
   | "deduped"
   | "rejected"
   | "failed"
-  | "malformed";
+  | "malformed"
+  // Task 0284's liveness probe: reached the route with the right secret, wrote the
+  // freshness marker, sent nothing. ⚠️ Not a delivered alert — do not add it to any
+  // "alerts sent" sum.
+  | "probe";
 
 /**
  * Whether the call could be dedupe-keyed on its alert-event id. A second dimension
- * rather than a seventh `result` value, so ONE call records both facts and the
- * counter's total still equals the number of webhook calls. 6 × 2 = 12 series.
+ * rather than one more `result` value, so ONE call records both facts and the
+ * counter's total still equals the number of webhook calls. 7 × 2 = 14 series.
  */
 export type AlertRelayKeyed = "keyed" | "unkeyed";
 

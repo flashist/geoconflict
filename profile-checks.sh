@@ -16,6 +16,11 @@
 #     that now lives in Uptrace. Uptrace is a single point of failure (out-of-memory freezes,
 #     an expired cert); when it is down, these two are the only things that would still
 #     notice a full disk or a flood of junk player rows.
+#   - the alert-path probe marker /opt/profile/alerts/last-alert-probe.json (task 0284): an hourly
+#     cron on the MONITORING box posts to the real alert webhook and the relay stamps this file.
+#     A stale marker means that box can no longer reach the route — the failure that permanently
+#     disables the notification channel (403 ⇒ channel disabled, silently, forever). It proves
+#     REACHABILITY only: not Telegram delivery, and not a channel that is already disabled.
 #   - the certbot renewal log: an attempt happened recently (certbot appends to letsencrypt.log
 #     on EVERY run, including "not yet due" ones — the cron's own certbot-renew.log stays empty
 #     under --quiet unless something errs), the attempt did not error (certbot-renew.log grew),
@@ -44,6 +49,9 @@ BACKUP_ENV_FILE="${PROFILE_BACKUP_ENV_FILE:-$PROFILE_DIR/backup.env}"
 STATE_DIR="${PROFILE_CHECKS_STATE_DIR:-$PROFILE_DIR/checks-state}"
 MARKER="${PROFILE_CHECKS_MARKER_FILE:-$BACKUP_DIR/last-backup.json}"
 SMOKE_MARKER="${PROFILE_CHECKS_SMOKE_MARKER_FILE:-$BACKUP_DIR/last-smokecheck.json}"
+# Task 0284: written by the relay INSIDE the profile-api container and visible here only
+# because setup-profile.sh bind-mounts $PROFILE_DIR/alerts into it.
+PROBE_MARKER="${PROFILE_CHECKS_ALERT_PROBE_MARKER_FILE:-$PROFILE_DIR/alerts/last-alert-probe.json}"
 LE_LOG="${PROFILE_CHECKS_LE_LOG:-/var/log/letsencrypt/letsencrypt.log}"
 RENEW_LOG="${PROFILE_CHECKS_RENEW_LOG:-/var/log/certbot-renew.log}"
 REBOOT_REQUIRED_FILE="${PROFILE_CHECKS_REBOOT_REQUIRED_FILE:-/var/run/reboot-required}"
@@ -69,6 +77,12 @@ CERT_MIN_DAYS="${PROFILE_CHECKS_CERT_MIN_DAYS:-20}"
 DISK_MAX_PCT="${PROFILE_CHECKS_DISK_MAX_PCT:-80}"
 MAX_PLAYER_GROWTH_24H="${PROFILE_CHECKS_MAX_PLAYER_GROWTH_24H:-20000}"
 DISK_PATHS="${PROFILE_CHECKS_DISK_PATHS:-/}"
+# Task 0284. The probe cron on the monitoring box runs HOURLY, so 3h tolerates two missed
+# runs before it pages. ⚠️ Detection latency is bounded by THIS daily run, not by the probe
+# interval: ~3h best case, ~27h worst. Owner ruling D2 (2026-09-18) accepts that — the
+# channel disable is permanent either way, so a faster page only shortens how long you were
+# blind; it does not change the repair.
+MAX_ALERT_PROBE_AGE_HOURS="${PROFILE_CHECKS_MAX_ALERT_PROBE_AGE_HOURS:-3}"
 
 # rclone is configured purely via the RCLONE_CONFIG_PROFILES_* vars in backup.env (same as
 # profile-backup.sh); /dev/null silences the "config file not found" notice.
@@ -114,6 +128,7 @@ int_or_default MAX_RENEW_ATTEMPT_AGE_HOURS PROFILE_CHECKS_MAX_RENEW_ATTEMPT_AGE_
 int_or_default CERT_MIN_DAYS               PROFILE_CHECKS_CERT_MIN_DAYS               20
 int_or_default DISK_MAX_PCT                PROFILE_CHECKS_DISK_MAX_PCT                80
 int_or_default MAX_PLAYER_GROWTH_24H       PROFILE_CHECKS_MAX_PLAYER_GROWTH_24H       20000
+int_or_default MAX_ALERT_PROBE_AGE_HOURS   PROFILE_CHECKS_MAX_ALERT_PROBE_AGE_HOURS   3
 
 # ── Mode: is this box off-box-configured at all? ─────────────────────────────
 OFFBOX=0
@@ -144,7 +159,9 @@ check_daily_marker() {
       status="$(json_field "$SMOKE_MARKER" exit_status)"
       finished="$(json_field "$SMOKE_MARKER" finished_at)"
       age_h="$(hours_since "$finished")"
-      if [ "$status" = "0" ] && [ -n "$age_h" ] && [ "$age_h" -le "$MAX_BACKUP_AGE_HOURS" ]; then
+      # `-ge 0` for the same reason as the main path below (review R5): a future-dated smoke
+      # marker must not stand in for a nightly backup that never ran.
+      if [ "$status" = "0" ] && [ -n "$age_h" ] && [ "$age_h" -ge 0 ] && [ "$age_h" -le "$MAX_BACKUP_AGE_HOURS" ]; then
         ACTIVE_MARKER="$SMOKE_MARKER"
         ok "$name" "no nightly marker yet; deploy smoke backup succeeded ${age_h}h ago (first nightly not yet due)"
         return 0
@@ -162,6 +179,13 @@ check_daily_marker() {
     fail "$name" "last nightly backup FAILED (exit_status=${status:-?}, ${age_h:-?}h ago): ${err:-no error text}"
   elif [ -z "$age_h" ]; then
     fail "$name" "finished_at is unparseable ('${finished}')"
+  elif [ "$age_h" -lt 0 ]; then
+    # Review R5 (owner ruling 2026-09-18: fix this one too, not just the probe check). A
+    # future-dated finished_at gives a NEGATIVE age, which `-gt` reads as fresh — so the check
+    # would stay green for as long as the skew lasts, no matter how long ago the last backup
+    # actually ran. Clock skew between the container and this box, or a restored/hand-edited
+    # marker, is how it happens.
+    fail "$name" "the daily marker's finished_at is ${age_h#-}h in the FUTURE ('${finished}') — clock skew or a hand-edited marker. Treat it as no marker at all: a negative age would otherwise read GREEN while no nightly backup was running"
   elif [ "$age_h" -gt "$MAX_BACKUP_AGE_HOURS" ]; then
     fail "$name" "daily marker age ${age_h}h > ${MAX_BACKUP_AGE_HOURS}h — the nightly run was missed"
   else
@@ -214,7 +238,13 @@ check_weekly_object() {
   if [ -z "$newest_epoch" ]; then fail "$name" "could not parse the newest weekly date '${newest_date}'"; return 0; fi
   age_d=$(( (NOW - newest_epoch) / 86400 ))
   count="$(printf '%s' "$out" | grep -o '"Path":' | wc -l | tr -d ' ' || true)"
-  if [ "$age_d" -gt "$MAX_WEEKLY_AGE_DAYS" ]; then
+  if [ "$age_d" -lt 0 ]; then
+    # Review R5 + owner ruling 2026-09-18: the same negative-age guard on EVERY age in this file.
+    # A future-dated source gives a negative age, which `-gt` reads as fresh — green for as long as
+    # the skew lasts. Here the date comes from the object NAME (or its ModTime), so a skewed box
+    # writing the weekly copy is enough; this box's own clock need not be wrong.
+    fail "$name" "the newest weekly copy is dated ${age_d#-}d in the FUTURE ('${newest_date}'; ${count} object(s)) — clock skew on whatever wrote it, or an object named with a future date. Treat it as no weekly copy at all: a negative age would otherwise read GREEN while the Sunday copy was failing"
+  elif [ "$age_d" -gt "$MAX_WEEKLY_AGE_DAYS" ]; then
     fail "$name" "newest weekly copy is ${age_d}d old (> ${MAX_WEEKLY_AGE_DAYS}d; ${count} object(s)) — the Sunday copy is failing (it is exit 0 by design, so the daily marker still says OK)"
   else
     ok "$name" "newest weekly copy ${age_d}d old (${count} object(s) in weekly/)"
@@ -240,7 +270,13 @@ check_renewal_attempt() {
   done
   if [ "$newest" -eq 0 ]; then fail "$name" "no certbot log found (letsencrypt.log*) — has certbot ever run?"; return 0; fi
   age_h=$(( (NOW - newest) / 3600 ))
-  if [ "$age_h" -gt "$MAX_RENEW_ATTEMPT_AGE_HOURS" ]; then
+  if [ "$age_h" -lt 0 ]; then
+    # Review R5 + owner ruling 2026-09-18. The same guard, and the one where it matters most: this
+    # check is what stands between a dead renew cron and a certificate that expires silently — the
+    # failure that already happened once on the telemetry box. A future mtime (clock skew, or a log
+    # restored/copied with its timestamp) would make it report OK while knowing nothing.
+    fail "$name" "the newest certbot log mtime is ${age_h#-}h in the FUTURE — clock skew, or a log file restored or copied with its timestamp. Treat it as no attempt at all: a negative age would otherwise read GREEN while the renew cron was dead, which is how a certificate expires silently"
+  elif [ "$age_h" -gt "$MAX_RENEW_ATTEMPT_AGE_HOURS" ]; then
     fail "$name" "last certbot run ${age_h}h ago (> ${MAX_RENEW_ATTEMPT_AGE_HOURS}h) — the twice-daily hooked renew cron is NOT running"
   else
     ok "$name" "certbot last ran ${age_h}h ago (the hooked renew cron; certbot.timer is disabled by setup-profile.sh)"
@@ -398,6 +434,43 @@ check_players_growth() {
   fi
 }
 
+# 11) The alert path is reachable from the monitoring box (task 0284). THE ONLY check here
+#     that watches the alerting path itself, and the only one that can: a 401/403/404 reply
+#     permanently disables the notification channel, and nginx's /internal/ allowlist answers
+#     403 on a source-IP miss — so the day the monitoring box's egress address changes, the
+#     first real alert kills alerting silently and forever.
+#     An hourly cron ON THAT BOX POSTs a probe to the real webhook, over the real allowlist,
+#     with the real shared secret; the relay writes $PROBE_MARKER and sends nothing. A stale
+#     or missing marker means that box can no longer reach the route.
+#     ⛔ What this does NOT cover, so nobody over-reads a green line: it proves REACHABILITY
+#     only — not Telegram delivery, not that a human saw anything, not the secret the
+#     monitoring stack's own channel config holds, and NOT a channel that is already
+#     disabled. It catches the CAUSE within ~24h, never the STATE.
+#     ⛔ Variable names only in the FAIL text — never a host, an address or a token.
+check_alert_probe() {
+  local name="alert-path-probe" finished age_h
+  if [ ! -f "$PROBE_MARKER" ]; then
+    fail "$name" "no alert-path probe marker at all (max ${MAX_ALERT_PROBE_AGE_HOURS}h) — either the probe cron on the monitoring box has never run, or its calls are not reaching the alert webhook. Check PROFILE_INTERNAL_ALLOW_IPS and the probe cron. A rolled-back profile image predating task 0284 also never writes it. ⚠️ If a real alert hit the same failure the notification channel is now DISABLED and must be re-enabled by hand"
+    return 0
+  fi
+  finished="$(json_field "$PROBE_MARKER" finished_at)"
+  age_h="$(hours_since "$finished")"
+  if [ -z "$age_h" ]; then
+    fail "$name" "the probe marker's finished_at is unparseable ('${finished}') — treat it as no probe at all until the next one lands"
+  elif [ "$age_h" -lt 0 ]; then
+    # Review R5. A future-dated stamp gives a NEGATIVE age, and `-gt` reads that as fresh: the
+    # guard would report green for as long as the skew lasts, however long ago the last probe
+    # actually arrived. The realistic cause is clock skew between the relay's container and
+    # this box — and a guard that goes green on skew is worse than no guard, because it is the
+    # ONLY thing watching the alerting path.
+    fail "$name" "the probe marker's finished_at is ${age_h#-}h in the FUTURE ('${finished}') — clock skew between this box and the relay's container, or a hand-edited marker. Treat it as no probe at all: a negative age would otherwise read GREEN while no probe was arriving"
+  elif [ "$age_h" -gt "$MAX_ALERT_PROBE_AGE_HOURS" ]; then
+    fail "$name" "no probe received for ${age_h}h (> ${MAX_ALERT_PROBE_AGE_HOURS}h) — the monitoring box cannot reach the alert webhook. Check PROFILE_INTERNAL_ALLOW_IPS and the probe cron. ⚠️ If a real alert hit the same failure the notification channel is now DISABLED and must be re-enabled by hand"
+  else
+    ok "$name" "the monitoring box reached the alert webhook ${age_h}h ago (max ${MAX_ALERT_PROBE_AGE_HOURS}h) — reachability only, NOT proof that a Telegram message arrived"
+  fi
+}
+
 # ── Report: log summary, then ping the dead-man's switch ──────────────────────
 # curl's stderr is discarded on purpose: its error text can carry the URL. The service alerts on
 # a MISSING ping, so an undelivered ping is logged, exits non-zero, and still pages.
@@ -435,4 +508,5 @@ check_mode
 check_reboot_required
 check_disk_usage
 check_players_growth
+check_alert_probe
 report

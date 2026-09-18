@@ -81,7 +81,7 @@ This digest is produced on the box that holds the data and sent **straight throu
 helper**: it never touches Uptrace, never crosses the profile box's nginx `/internal/` allowlist, and
 never arrives from the telemetry box's egress address. A `401`/`403`/`404` on Uptrace's webhook channel
 **permanently and silently disables alerting** (verified by disassembly — see
-[`0284`](../0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)),
+[`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)),
 and **this digest would keep arriving daily, confirming "the bot works", while every alert was dead.**
 `0284` is the guard for that path. **The two complement each other and neither is redundant:** `0284`
 proves the alert path is **reachable** (its marker is written on receipt, before any send); this task
@@ -209,7 +209,7 @@ for an assumption nobody examined.
   this one sits beside; [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) —
   its deploy drill now owns proving the per-request notification arrives at all.
 - **Complements (NOT redundant with):**
-  [`0284`](../0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)
+  [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)
   — the alert-path liveness probe. ⚠️ **This digest does NOT cover Uptrace alert delivery** and would
   keep arriving while alerts were permanently dead — see the loud note in *Context*, point 1. `0284`
   covers reachability of the alert path; this task covers Telegram delivery. Neither substitutes for

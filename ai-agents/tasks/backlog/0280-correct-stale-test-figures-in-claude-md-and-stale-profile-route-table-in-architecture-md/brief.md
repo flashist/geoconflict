@@ -43,6 +43,48 @@ a documented 113 as *suites having been added without anyone noticing* — or, w
 future run: a genuinely broken run that has lost suites looks fine against a stale baseline. A cost
 figure whose whole job is to be a baseline is worse than useless once it is wrong.
 
+#### ➕ RE-MEASURED 2026-09-18 — the figures drifted AGAIN, and the target has moved a second time
+
+⚠️ **AUTHORITY, STATED PLAINLY — READ BEFORE TREATING THIS AS SETTLED.** On **2026-09-18** the owner
+ruled live in the lead session (via `AskUserQuestion`, a multi-select, relayed by
+`fkit-sprint-ship-loop` to a spawned `fkit-producer`) that this drift **be FILED as a task** rather
+than left floating in a worklog. **The owner was not told that `0280` already exists and already
+covers it** — item 1 above was filed 2026-09-16 on an earlier owner approval and is the same file, the
+same subsection and the same fix. 🚩 **The producer's call was therefore to record the new evidence
+HERE rather than open a second brief against the same paragraph** (ADR-035 makes a board row
+permanent, so a duplicate row is the least reversible option available). ⛔ **That filing call is the
+PRODUCER'S, NOT an owner ruling, and it is flagged for owner confirmation.** If the owner wants a
+separate ID after all, delete this sub-section and file it — cheap, and nothing else here depends on it.
+
+**Measured on this host (macOS) on 2026-09-18** and reported by the lead session. ⚠️ **The filing
+producer did NOT re-run these** — they are relayed, not independently reproduced by the producer.
+
+| `CLAUDE.md` claims | Measured 2026-09-18 |
+|---|---|
+| 113 suites / 1185 tests | **137 suites / 1853 tests** |
+| `npm test` ~3.1 s → ~22–25 s | **~60–85 s** (three runs: 59.3 s, 70.3 s, 84.6 s) |
+| hardening harness ~16 s | **~50–64 s** |
+| `tests/profile-checks.sh` ~5 s | **~14 s** |
+
+⚠️ **PROVEN PRE-EXISTING — NOT caused by the work in flight on 2026-09-18.** Say this in the corrected
+text, because the obvious reading of a 3× slowdown is that somebody just made the suite slow. A coder
+ran the **`HEAD` copies** of both harnesses and reproduced the slow figures (**11.5 s** and **50.5 s**)
+**before its own changes were applied**. The slowness is in the tree already; this task corrects the
+*record*, it does not fix a regression — **and there is no regression here to hunt.**
+
+🚩 **THE FIGURES ARE NOT A STABLE BENCHMARK, AND THE CORRECTED TEXT MUST NOT PRETEND THEY ARE.** Three
+runs on one host spread **59–85 s**; a coder attributed the spread to **subprocess-wait noise in the
+shell harnesses**. **Write a RANGE, with the host and the date attached** — not a single
+precise-looking number that reads as authoritative and is stale again within a month. ⚠️ This is a
+change of *approach* from item 1's original instruction, which said to record what one run prints: one
+run's number is exactly what has now gone stale twice. **Recommendation, not a ruling** — the plan may
+overturn it, but it must then say why a point figure will survive better than the last two did.
+
+**Why the drift recurred, which is the argument for the range:** item 1's dependency is still unmet —
+[`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) is **still on the backlog
+board**, and more test-adding work has landed since 2026-09-16. Any single number written before the
+in-flight test-adding work settles will be wrong again on the same schedule.
+
 ### Item 2 — `ai-agents/knowledge-base/architecture.md`'s profile-server route table
 
 The route table at `architecture.md:478-489` describes a route set that no longer exists:
@@ -184,6 +226,16 @@ no config change, no new tests **for items 1–3**; item 4 needs the small asser
 - **Depends on:** [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md), [`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)
 - **Why that dependency is real and not bureaucratic:** both add tests. Running this task before they
   land produces a figure that is wrong again immediately — which is the exact failure being corrected.
+- **➕ 2026-09-18 — the dependency rationale above is WEAKENED, not discharged, by the re-measure.** The
+  recommendation recorded under item 1 is now to write a **dated range with the host**, not a point
+  figure. A range survives another test-adding landing in a way a single number does not, so item 1 no
+  longer strictly has to wait for [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md).
+  ⚠️ **Producer's read, NOT an owner ruling, and the dependency line above is deliberately left
+  standing** — the coder's plan decides whether to ship item 1 early or hold. If it ships early, say so
+  in the worklog rather than re-splitting the brief.
+- **➕ 2026-09-18 — an owner ruling that this drift be FILED was relayed on this date** (see the
+  RE-MEASURED sub-section under item 1). It was satisfied **here**, in this existing brief, rather than
+  by a new ID. ⛔ **That routing is the producer's call and is flagged for owner confirmation.**
 - **Why one brief and not two:** the two items are not independently *worth* shipping — both are
   small documentation edits in one sitting, under an hour together, with no build, deploy or test
   surface between them. Splitting would create two briefs whose combined overhead exceeds the work.

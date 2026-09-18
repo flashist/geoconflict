@@ -60,9 +60,92 @@ Two consequences you must hold on to:
 - The evidence does exist and nothing reads it: the monitoring stack stores every attempt's response
   status, so a run of 403s sits there unread. Same shape as `0219`.
 
-**A real guard is a follow-up task**: a scheduled synthetic probe from the monitoring box to this
-route, plus a marker-age check in `profile-checks.sh` that fails to the external dead-man's switch.
-Until it lands, the risk above stands at full size.
+### The guard that DOES catch it — the alert-path liveness probe (task `0284`)
+
+A cron **on the monitoring box** POSTs a probe to this same route every hour: the same URL, the same
+nginx allowlist, the same shared secret, from the same egress address a real alert leaves from. The
+relay checks the secret, writes a freshness marker, and **sends nothing**. `profile-checks.sh` reads
+that marker's age in its existing **daily 08:00 UTC** run and, when it is stale or missing, fails to
+the **external dead-man's switch** — a path that touches neither the monitoring stack nor Telegram,
+which is exactly why it works where everything in the list above does not.
+
+```
+monitoring box host cron (hourly, :17)
+  → POST {"payload":{"secret":…,"probe":"liveness"}} → the real webhook, through the real allowlist
+     → relay: secret check → marker written, NOTHING sent
+        → profile-checks.sh (daily) reads the marker age → stale ⇒ FAIL ⇒ POST $PING_URL/fail
+           → external dead-man's switch pages the operator
+```
+
+| Piece | Where |
+| --- | --- |
+| Probe script + its hourly cron | `setup-telemetry.sh` → `/opt/uptrace/alert-probe.sh`, `/opt/uptrace/alert-probe.env` (both root-only) |
+| Its two deploy variables | `TELEMETRY_ALERT_PROBE_URL`, `PROFILE_ALERT_WEBHOOK_TOKEN` — forwarded by `build-deploy-telemetry.sh`, persist-or-reuse on the box |
+| Marker write | `src/profile-server/AlertRelay.ts` (`ALERT_PROBE_MARKER_PATH`), bind-mounted out by `setup-profile.sh` |
+| The check | `profile-checks.sh` check 11, `alert-path-probe` |
+
+**Detection latency: roughly 3 hours best case, ~27 hours worst**, plus the dead-man's switch's own
+grace. It is bounded by the **daily** read, not the hourly probe — making the probe more frequent
+does not shorten it. Accepted deliberately (owner ruling, 2026-09-18): the disable is permanent either
+way, so faster detection only shortens how long you were blind; it does not change the repair.
+
+#### 🚨 What the probe does NOT prove — read this before trusting a green line
+
+- ⛔ **It cannot see a channel that is ALREADY disabled.** If a transient 403 disabled the channel
+  yesterday and the address is fine today, the probe is green and alerting is still dead. **It catches
+  the CAUSE within ~24 h, not the STATE.** Closing that hole is a **separate follow-up task** (owner
+  ruling, 2026-09-18): it needs the monitoring stack's own channel state, whose 2.0.2 table and column
+  names are unverified. **Until it lands, this hole stands.**
+- ⛔ **It does not check the secret the monitoring stack's channel config holds.** The probe proves the
+  copy **the cron** holds matches the relay. Those are two separate copies; the channel's could be
+  wrong and every alert dropped while the probe stays green.
+- ⛔ **It proves nothing about Telegram delivery** — the marker is written on receipt, before any send —
+  and nothing about a message reaching a human. `0283`'s daily beat is the other half; neither covers
+  the other.
+- ⛔ **It does not prove a monitor is attached to the channel.** A monitor that never ticked the channel
+  delivers nothing, and no probe can see that.
+- ⛔ **It does not discharge `0274` amendment A1** (delivery after an idle period). Different hop — and
+  worth flagging the reverse: an hourly probe keeps NAT/conntrack state on the monitoring→profile hop
+  warm, so it could **mask** an idle-path defect on that hop that a rare real alert would hit.
+- ⚠️ **One assumption, not proved:** the monitoring stack's container egress is SNAT'd to the host's
+  primary address, so a host-run curl leaves from the same address. True for a single-public-address
+  box with default Docker networking — this box's shape. **The drill verifies it**: removing the
+  address from `PROFILE_INTERNAL_ALLOW_IPS` must fail the probe **and** disable the channel. If the
+  probe fails while the channel survives, the two egresses differ and **this guard is not guarding**.
+- ⚠️ **`npm run check:config-parity` does not reach telemetry variables.** The hardening harness
+  (`tests/scripts/profile-deploy-hardening.test.sh`) is the only gate that those two deploy variables
+  are forwarded at all — the same residual `0277` recorded.
+
+#### Three ways it will surprise you
+
+1. 🚩 **A rolled-back profile image predating `0284` never writes the marker.** The daily check then
+   fails with `alert-path-probe`, which *looks* exactly like an allowlist fault. Check the running
+   image before you go hunting for a moved IP. (The FAIL text names this case.)
+2. 🚩 **The shared secret must contain no `"` and no `\`.** It is embedded in the probe's JSON body, so
+   a quote or backslash breaks the request and the probe fails forever while alerting is fine. Keep it
+   hex or plain alphanumeric — which is what it is today. ✅ **This is now enforced, not just
+   documented** (owner ruling, 2026-09-18): `setup-telemetry.sh` aborts the deploy — before it touches
+   anything on the box — if the token holds either character, naming the variable and never the value.
+   It checks the value the deploy supplies **and** one already persisted on the box.
+3. 🚩 **A future-dated marker used to read GREEN.** A clock skew between the relay's container and the
+   profile box gave a *negative* age, which the check read as fresh. It now FAILS and names the skew
+   (same fix applied to the daily-backup marker check, which had the identical hole).
+
+#### When `alert-path-probe` fails
+
+1. Check the running profile image is not a rollback predating `0284` (surprise 1 above).
+2. Check the monitoring box's egress address against `PROFILE_INTERNAL_ALLOW_IPS`; fix and redeploy
+   the profile box if it moved.
+3. Run `/opt/uptrace/alert-probe.sh` by hand on the monitoring box and read its one-line log at
+   `/var/log/uptrace-alert-probe.log`. **Exit 0 means the relay actually recorded the probe**, because
+   the relay answers a probe with its own distinct status string. Any other outcome is a real failure
+   and the log says which: `FAILED to reach …` (curl could not get through — the allowlist case), or
+   `REACHED … but it did NOT record a probe` (it answered the deliberate 200 it uses for a DROPPED
+   call, so the secret this box holds almost certainly differs from the profile box's).
+   ⚠️ A bare 2xx is *not* success on this route — every drop is a 200 as well, by design.
+4. 🚨 **Then re-enable the notification channel in the monitoring UI and confirm alerting is live.**
+   If a real alert hit the same failure, the channel is already disabled. **Fixing the address does
+   not undo the disable** — see the rule above, it is the same rule.
 
 ---
 
@@ -73,6 +156,8 @@ Until it lands, the risk above stands at full size.
 | `PROFILE_ALERT_WEBHOOK_TOKEN` | profile box | Shared secret. 🚨 **Never box-generated.** |
 | `TELEGRAM_TOPIC_ALERTS`       | profile box | Blank ⇒ General                            |
 | `TELEGRAM_TOPIC_NAME_CHANGES` | profile box | Blank ⇒ General                            |
+| `PROFILE_ALERT_WEBHOOK_TOKEN` | monitoring box | The **same** secret, second copy (task `0284`). 🚨 **Never box-generated.** ⚠️ No `"` or `\` — it is embedded in JSON, and `setup-telemetry.sh` refuses to deploy a token containing either. |
+| `TELEMETRY_ALERT_PROBE_URL`   | monitoring box | The full lowercase webhook URL — **copy** the string already in the channel config, do not rebuild it. Blank ⇒ probe off. |
 
 All three are persist-or-reuse: blank on a redeploy **reuses** the value already on the box. To clear
 one, remove its persist file on the box and redeploy.
@@ -103,6 +188,13 @@ message and the notification is **lost**, not mis-filed. Never use `0` or a spac
    `Notification channels` picker** — see *Creating a monitor* below. A channel alone delivers nothing.
 5. Force an alert and confirm it arrives in the Alerts topic. **Use the drill procedure below** — it
    proves the ✅ recovery half too, which a force-and-delete does not.
+6. Task `0284`'s liveness probe, **after** step 3 (it needs the exact channel URL to copy): set
+   `TELEMETRY_ALERT_PROBE_URL` and `PROFILE_ALERT_WEBHOOK_TOKEN` in the gitignored telemetry env
+   files, run `build-deploy-telemetry.sh`, then run `/opt/uptrace/alert-probe.sh` once by hand
+   (exit 0 = the relay recorded it; see *When `alert-path-probe` fails* for what the other outcomes
+   mean) and confirm the profile box's `checks.sh` reports `alert-path-probe … OK`.
+   🚩 **Do this before the next 08:00 UTC run**, or that run pages about a marker nothing has written
+   yet. From the profile box's deploy until the first probe lands, that check FAILS by design.
 
 ⚠️ **Between steps 2 and 3 a fired alert reaches nobody.** That gap is expected, not a defect.
 
@@ -327,8 +419,9 @@ a rule whose **data** returns below threshold on its own. A rule that cannot go 
   A1 stands.
 - ⛔ **It does not prove SUSTAINED delivery.** `0283`'s daily digest remains the only non-circular proof
   of that. Unchanged.
-- ⛔ **It says nothing about the 403 channel-disable trap.** That remains `0284`'s job and **stands at
-  full size**.
+- ⛔ **It says nothing about the 403 channel-disable trap.** `0284`'s liveness probe (above) now guards
+  the **cause** of that trap; the **already-disabled state** is still uncovered and is a separate
+  follow-up.
 
 ### 📝 A naming alias, so nobody hunts for a section that does not exist
 

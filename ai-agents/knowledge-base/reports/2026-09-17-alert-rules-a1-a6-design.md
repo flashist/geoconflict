@@ -608,4 +608,4 @@ wording of every question is kept, so the record shows what was unknown and when
 [alert delivery runbook](../alert-delivery-runbook.md) ·
 [ADR-114](../decisions/adr-114-profile-server-is-the-admin-server-alert-relay-lives-there.md) ·
 [ADR-113](../decisions/adr-113-profile-internal-player-id-and-platform-identities.md) ·
-[`0284` brief](../../tasks/backlog/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)
+[`0284` brief](../../tasks/done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)

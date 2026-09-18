@@ -635,6 +635,11 @@ echo "   ALLOW_PROFILE_SSH_PASSWORD_FALLBACK (build-deploy-profile.sh) is now de
 
 mkdir -p "$BACKUP_DIR"
 chmod 700 "$PROFILE_DIR"
+# alerts/ (task 0284): bind-mounted into profile-api below, so the alert-path liveness
+# probe's marker — written INSIDE the container — is readable by checks.sh on the HOST.
+# ⛔ Deliberately its own directory, NOT backups/: mounting backups/ into the app
+# container would expose every encrypted dump to it.
+mkdir -p "$PROFILE_DIR/alerts" && chmod 700 "$PROFILE_DIR/alerts"
 
 # ── Internal service token + DATABASE_URL ─────────────────────────────────────
 # The service-to-service token (shared with the game server in T6) MUST stay stable
@@ -1034,6 +1039,13 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+    # Task 0284: the alert-path liveness probe's marker. The container path MUST equal
+    # ALERT_PROBE_MARKER_PATH's directory in src/profile-server/AlertRelay.ts — two files
+    # agreeing on one string, which the hardening harness asserts. A bind mount (not a
+    # named volume, not \`docker exec\`) is what makes the file visible to checks.sh on
+    # the host. ⛔ Never mount ./backups here.
+    volumes:
+      - ./alerts:/var/lib/profile/alerts
     # Same retention as postgres above (0219, G1). Compose owns it — see the note there.
     logging:
       driver: json-file
@@ -1047,6 +1059,8 @@ EOF
 
 chmod 600 "$PROFILE_DIR/docker-compose.yml"
 echo "Written: docker-compose.yml (0600)"
+echo "         alerts/ is bind-mounted into profile-api — the alert-path probe marker (task 0284)"
+echo "         is written in the container and read on the host by checks.sh."
 
 # Every `docker compose` command below resolves the project from this directory.
 cd "$PROFILE_DIR"

@@ -120,8 +120,20 @@ weekly_json() {  # <days-ago of the newest object> [more days-ago ...]
   done
   printf ']\n'
 }
+# Task 0284: the shape src/profile-server/AlertRelay.ts writes — one key per line, key at
+# the line start, seconds-precision ISO with a trailing Z. That shape is a contract between
+# a TypeScript writer and this shell reader, and AlertRoutes.test.ts pins the other half.
+write_probe_marker() {  # <file> <finished_at_iso>
+  cat > "$1" <<EOF
+{
+  "schema": 1,
+  "finished_at": "$2",
+  "source": "alert-webhook-probe"
+}
+EOF
+}
 reset_fixture() {
-  rm -rf "$FIX"; mkdir -p "$FIX/profile/backups" "$FIX/le"
+  rm -rf "$FIX"; mkdir -p "$FIX/profile/backups" "$FIX/profile/alerts" "$FIX/le"
   rm -f "$WORK"/rclone.* "$WORK"/curl.* "$WORK"/openssl.argv "$WORK/cert.days" \
         "$WORK"/df.* "$WORK"/docker.* "$WORK/disk.pct" "$WORK/players.sql.out"
   echo 42 > "$WORK/disk.pct"
@@ -146,6 +158,8 @@ EOF
   : > "$FIX/certbot-renew.log"
   echo "-----BEGIN CERTIFICATE-----fake-----END CERTIFICATE-----" > "$FIX/cert.pem"
   echo 68 > "$WORK/cert.days"
+  # Fresh by default (task 0284) — without it EVERY case above would gain a second failure.
+  write_probe_marker "$FIX/profile/alerts/last-alert-probe.json" "$(iso_hours_ago 1)"
 }
 
 # Run the REAL script under env -i (no ambient PROFILE_* from the operator's shell) + stub PATH.
@@ -179,10 +193,10 @@ pinged_fail()    { [ "$(tail -1 "$WORK/curl.urls" 2>/dev/null)" = "$FAKE_PING_UR
 body() { cat "$WORK/curl.body" 2>/dev/null; }
 
 # ══════════════════════════════════════════════════════════════════════════════
-echo "=== C1: healthy box → 10 ok, success ping, exit 0 ==="
+echo "=== C1: healthy box → 11 ok, success ping, exit 0 ==="
 reset_fixture; run_checks
 [ "$RC" -eq 0 ] && ok "exit 0" || no "exit $RC (expected 0):"$'\n'"$OUT"
-grep -q 'RESULT: 10 ok, 0 failed' "$WORK/out.log" && ok "all 10 checks OK" || no "expected 10 ok / 0 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 11 ok, 0 failed' "$WORK/out.log" && ok "all 11 checks OK" || no "expected 11 ok / 0 failed:"$'\n'"$OUT"
 pinged_success && ok "success ping sent to the bare URL" || no "success ping not sent (urls: $(cat "$WORK/curl.urls" 2>/dev/null))"
 [ ! -f "$WORK/curl.body" ] && ok "success ping carries no body" || no "success ping carried a body"
 grep -q -- '--retry 3' "$WORK/curl.argv" && grep -q -- '-m 10' "$WORK/curl.argv" && ok "ping uses a timeout + retries" || no "ping lacks -m 10 / --retry 3"
@@ -192,6 +206,15 @@ reset_fixture; write_marker "$FIX/profile/backups/last-backup.json" 0 "$(iso_hou
 [ "$RC" -ne 0 ] && ok "exit non-zero" || no "exit 0 on a stale marker"
 pinged_fail && ok "/fail ping sent" || no "/fail ping not sent"
 body | grep -q 'daily-backup-marker: daily marker age 30h > 26h' && ok "body names the marker age" || no "body lacks the age: $(body)"
+# Review R5 (owner ruling 2026-09-18: fix the pre-existing backup check too, not only the new
+# probe one). A FUTURE-dated finished_at gives a NEGATIVE age, and `-gt` reads that as fresh —
+# so the check would report green for as long as the clock skew lasts, however long ago the
+# last backup actually ran. Container/host clock skew and a restored marker both produce it.
+reset_fixture; write_marker "$FIX/profile/backups/last-backup.json" 0 "$(iso_hours_ago -50)"; run_checks
+# The digit is loose: the script's clock is a second or two past the harness's NOW_EPOCH and the
+# age is integer-divided, so a +50h stamp reads as 49h or 50h. The SIGN is what is asserted.
+[ "$RC" -ne 0 ] && body | grep -qE "daily-backup-marker: the daily marker's finished_at is (49|50)h in the FUTURE" \
+  && ok "a +50h marker → FAIL naming the skew (a negative age must never read GREEN)" || no "future daily marker not reported: rc=$RC $(body)"
 
 echo "=== C3: marker exit_status=1 → FAIL carries the backup's error text ==="
 reset_fixture; write_marker "$FIX/profile/backups/last-backup.json" 1 "$(iso_hours_ago 5)" "rclone upload failed"; run_checks
@@ -210,6 +233,11 @@ reset_fixture; rm "$FIX/profile/backups/last-backup.json"; run_checks
 reset_fixture; rm "$FIX/profile/backups/last-backup.json"
 write_marker "$FIX/profile/backups/last-smokecheck.json" 0 "$(iso_hours_ago 40)"; run_checks
 [ "$RC" -ne 0 ] && body | grep -q 'last-backup.json is MISSING' && ok "missing marker, STALE smoke (40h) → FAIL" || no "stale smoke marker wrongly satisfied the check: $(body)"
+# Review R5, the same hole on the fresh-box path: a FUTURE-dated smoke marker must not stand in
+# for a nightly backup that never ran.
+reset_fixture; rm "$FIX/profile/backups/last-backup.json"
+write_marker "$FIX/profile/backups/last-smokecheck.json" 0 "$(iso_hours_ago -50)"; run_checks
+[ "$RC" -ne 0 ] && body | grep -q 'last-backup.json is MISSING' && ok "missing marker, FUTURE-dated smoke (+50h) → FAIL (a negative age is not freshness)" || no "future smoke marker wrongly satisfied the check: $(body)"
 
 echo "=== C6: marker says uploaded but the daily object is NOT in the bucket → FAIL (0218 fact b) ==="
 reset_fixture; : > "$WORK/rclone.daily.missing"; run_checks
@@ -232,6 +260,13 @@ reset_fixture; weekly_json 9 16 > "$WORK/rclone.weekly.json"; run_checks
 [ "$RC" -ne 0 ] && body | grep -q 'newest weekly copy is 9d old (> 8d; 2 object(s))' && ok "9-day-old weekly → FAIL with age + count" || no "9d weekly: $(body)"
 reset_fixture; weekly_json 6 13 > "$WORK/rclone.weekly.json"; run_checks
 [ "$RC" -eq 0 ] && grep -q 'weekly-backup-object: newest weekly copy 6d old' "$WORK/out.log" && ok "6-day-old weekly → OK" || no "6d weekly wrongly failed (rc=$RC)"
+# Review R5, extended by owner ruling 2026-09-18 to every age in the file. A weekly object dated in
+# the FUTURE (a skewed clock on whatever wrote it — not necessarily this box) gives a negative age,
+# which `-gt` reads as fresh. The digit is loose for the same reason as the marker cases: the
+# checker's clock runs seconds past the harness's and the age is integer-divided.
+reset_fixture; weekly_json -5 9 > "$WORK/rclone.weekly.json"; run_checks
+[ "$RC" -ne 0 ] && body | grep -qE 'weekly-backup-object: the newest weekly copy is dated [45]d in the FUTURE' \
+  && ok "a weekly copy dated +5d → FAIL naming the skew (a negative age must never read GREEN)" || no "future weekly copy not reported: rc=$RC $(body)"
 reset_fixture; weekly_json 12 > "$WORK/rclone.weekly.json"; : > "$WORK/rclone.weekly.fail"; run_checks
 [ "$RC" -ne 0 ] && body | grep -q 'could not list weekly/' && ok "rclone listing error → FAIL (not silent)" || no "listing error swallowed: $(body)"
 
@@ -239,7 +274,7 @@ echo "=== C9: weekly FAILS while the daily marker AND object are OK ('backup OK'
 reset_fixture; weekly_json 9 > "$WORK/rclone.weekly.json"; run_checks
 [ "$RC" -ne 0 ] && pinged_fail && ok "/fail ping on a weekly-only failure" || no "weekly-only failure did not page"
 body | grep -q 'weekly-backup-object' && ! body | grep -q 'daily-backup' && ok "body names ONLY the weekly check" || no "body: $(body)"
-grep -q 'RESULT: 9 ok, 1 failed' "$WORK/out.log" && ok "9 ok / 1 failed" || no "expected 9 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 10 ok, 1 failed' "$WORK/out.log" && ok "10 ok / 1 failed" || no "expected 10 ok / 1 failed:"$'\n'"$OUT"
 
 echo "=== C10: certbot log mtime 2 days → FAIL; empty log + fresh rotated .1.gz → OK (logrotate window) ==="
 reset_fixture; touch_hours_ago "$FIX/le/letsencrypt.log" 48; run_checks
@@ -250,6 +285,13 @@ reset_fixture; : > "$FIX/le/letsencrypt.log"; echo "rotated" > "$FIX/le/letsencr
 [ "$RC" -ne 0 ] && body | grep -q 'cert-renewal-attempted: last certbot run 4[78]h' && ok "empty live log + STALE .1.gz → FAIL (empty file's mtime is ignored)" || no "empty live log wrongly counted as an attempt: $(body)"
 reset_fixture; rm "$FIX/le/letsencrypt.log"; run_checks
 [ "$RC" -ne 0 ] && body | grep -q 'no certbot log found' && ok "no certbot log at all → FAIL" || no "missing certbot log not reported: $(body)"
+# Review R5, extended by owner ruling 2026-09-18. THE one that matters most: this check is what
+# stands between a dead renew cron and a silently expired certificate. A future mtime must not be
+# read as a recent attempt.
+reset_fixture; touch_hours_ago "$FIX/le/letsencrypt.log" -30; run_checks
+[ "$RC" -ne 0 ] && body | grep -qE 'cert-renewal-attempted: the newest certbot log mtime is (29|30)h in the FUTURE' \
+  && ok "a +30h certbot log mtime → FAIL naming the skew (never 'certbot last ran' on a future file)" || no "future certbot mtime not reported: rc=$RC $(body)"
+body | grep -q 'expires silently' && ok "…and the FAIL says what it costs (a certificate expiring silently)" || no "FAIL omits the consequence: $(body)"
 
 echo "=== C11: certbot-renew.log grows with an error line → FAIL carrying the line; then quiet → OK ==="
 reset_fixture; run_checks
@@ -277,7 +319,7 @@ echo "=== C13: no ping URL → 'ALERTING NOT CONFIGURED', exit non-zero, no curl
 reset_fixture; run_checks PROFILE_CHECKS_PING_URL=
 [ "$RC" -ne 0 ] && ok "exit non-zero without a URL even though every check passed" || no "exit 0 with no alerting"
 grep -q 'ALERTING NOT CONFIGURED' "$WORK/out.log" && ok "logged ALERTING NOT CONFIGURED" || no "no ALERTING NOT CONFIGURED line"
-grep -q 'RESULT: 10 ok, 0 failed' "$WORK/out.log" && ok "checks still ran and were logged" || no "checks did not run"
+grep -q 'RESULT: 11 ok, 0 failed' "$WORK/out.log" && ok "checks still ran and were logged" || no "checks did not run"
 [ ! -f "$WORK/curl.argv" ] && ok "curl never called" || no "curl was called without a URL"
 
 echo "=== C14: URL comes from checks.env (the on-box shape) when the env is bare ==="
@@ -300,7 +342,7 @@ echo "=== C18: junk threshold overrides → FAIL + default, never a silent OK or
 reset_fixture; write_marker "$FIX/profile/backups/last-backup.json" 0 "$(iso_hours_ago 30)"; run_checks PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS=abc
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -q "thresholds: PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS='abc' is not a non-negative integer — default 26 used" && ok "MAX_BACKUP_AGE_HOURS=abc → FAIL names the variable + default" || no "junk backup-age threshold: rc=$RC body=$(body)"
 body | grep -q 'daily-backup-marker: daily marker age 30h > 26h' && ok "…and the default 26h still catches the 30h-old marker (no silent OK)" || no "default not applied: $(body)"
-grep -q 'RESULT: 9 ok, 2 failed' "$WORK/out.log" && ok "all 10 checks still ran" || no "checks did not all run:"$'\n'"$OUT"
+grep -q 'RESULT: 10 ok, 2 failed' "$WORK/out.log" && ok "all 11 checks still ran" || no "checks did not all run:"$'\n'"$OUT"
 reset_fixture; run_checks PROFILE_CHECKS_CERT_MIN_DAYS=1x
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -q "thresholds: PROFILE_CHECKS_CERT_MIN_DAYS='1x'" && ok "CERT_MIN_DAYS=1x → reaches the /fail ping (no set -u abort)" || no "junk cert threshold aborted before the ping: rc=$RC urls=$(cat "$WORK/curl.urls" 2>/dev/null)"
 grep -q 'openssl x509 -checkend 1728000 -noout -in' "$WORK/openssl.argv" && ok "…and check 6 ran with the default 20d" || no "check 6 did not run with the default: $(cat "$WORK/openssl.argv" 2>/dev/null)"
@@ -314,7 +356,7 @@ reset_fixture; : > "$FIX/reboot-required"; run_checks
 [ "$RC" -ne 0 ] && pinged_fail && ok "pending reboot → /fail ping, exit non-zero" || no "pending reboot did not page (rc=$RC)"
 body | grep -q 'reboot-required: reboot required' && ok "body names the pending reboot" || no "body lacks the reboot line: $(body)"
 body | grep -q 'reboot-required' && ! body | grep -q 'daily-backup' && ok "body names ONLY the reboot check (everything else still OK)" || no "body: $(body)"
-grep -q 'RESULT: 9 ok, 1 failed' "$WORK/out.log" && ok "9 ok / 1 failed" || no "expected 9 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 10 ok, 1 failed' "$WORK/out.log" && ok "10 ok / 1 failed" || no "expected 10 ok / 1 failed:"$'\n'"$OUT"
 reset_fixture; run_checks
 grep -q 'reboot-required: no pending reboot' "$WORK/out.log" && [ "$RC" -eq 0 ] && ok "no marker file → OK" || no "absent marker wrongly failed (rc=$RC)"
 
@@ -404,6 +446,64 @@ grep -q 'docker compose' "$WORK/docker.argv" && grep -q 'select count(\*) from p
   && ok "counts through the compose postgres service, not a host psql" || no "unexpected docker argv: $(cat "$WORK/docker.argv" 2>/dev/null)"
 reset_fixture; echo 26000 > "$WORK/players.sql.out"; run_checks
 grep -q 'players-growth' "$WORK/out.log" && ! body 2>/dev/null | grep -q 'yandex' && ok "the growth check reports counts only — no ids" || no "an id reached the growth output"
+
+echo "=== C22: alert-path probe marker (task 0284, check 11) — the ONLY guard over the alerting path ==="
+# The failure it exists for: nginx's /internal/ allowlist answers 403 on a source-IP miss,
+# and a 403 permanently disables the notification channel — silently, forever. Nothing else
+# in this file can see that, because every other signal is produced on this box.
+reset_fixture; run_checks
+[ "$RC" -eq 0 ] && grep -q 'alert-path-probe: the monitoring box reached the alert webhook 1h ago' "$WORK/out.log" \
+  && ok "a fresh probe marker → OK naming the age" || no "fresh probe marker not OK (rc=$RC):"$'\n'"$OUT"
+grep -q 'alert-path-probe.*reachability only' "$WORK/out.log" \
+  && ok "…and the OK line says reachability only, not proof a Telegram message arrived" || no "OK line over-claims: $OUT"
+
+reset_fixture; write_probe_marker "$FIX/profile/alerts/last-alert-probe.json" "$(iso_hours_ago 27)"; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q 'alert-path-probe: no probe received for 27h (> 3h)' \
+  && ok "a 27h-old marker → FAIL naming the age and the threshold" || no "stale probe marker not reported: rc=$RC $(body)"
+body | grep -q 'PROFILE_INTERNAL_ALLOW_IPS' && ok "…and the FAIL names the variable to check" || no "FAIL does not name PROFILE_INTERNAL_ALLOW_IPS: $(body)"
+body | grep -q 'must be re-enabled by hand' \
+  && ok "…and says the channel must be re-enabled by hand (fixing the address does not undo a disable)" || no "FAIL omits the re-enable step: $(body)"
+body | grep -q 'alert-path-probe' && ! body | grep -q 'daily-backup' \
+  && ok "body names ONLY the probe check (everything else still OK)" || no "body: $(body)"
+grep -q 'RESULT: 10 ok, 1 failed' "$WORK/out.log" && ok "10 ok / 1 failed" || no "expected 10 ok / 1 failed:"$'\n'"$OUT"
+
+reset_fixture; rm "$FIX/profile/alerts/last-alert-probe.json"; run_checks
+[ "$RC" -ne 0 ] && body | grep -q 'alert-path-probe: no alert-path probe marker at all' \
+  && ok "no marker at all → FAIL (never run, or never arriving)" || no "missing probe marker not reported: rc=$RC $(body)"
+# A rolled-back profile image predating 0284 writes no marker either, and that reads exactly
+# like an allowlist fault unless the FAIL says so.
+body | grep -q 'rolled-back profile image' && ok "…and the FAIL names the rolled-back-image case too" || no "FAIL omits the rollback case: $(body)"
+
+# Review R5: a FUTURE-dated stamp gives a negative age, which `-gt` reads as fresh. For THIS
+# check that is the worst possible failure — it is the only thing watching the alerting path, so
+# a guard that goes green on clock skew is worse than no guard at all.
+reset_fixture; write_probe_marker "$FIX/profile/alerts/last-alert-probe.json" "$(iso_hours_ago -50)"; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -qE "alert-path-probe: the probe marker's finished_at is (49|50)h in the FUTURE" \
+  && ok "a +50h probe marker → FAIL naming the skew (never a silent OK)" || no "future probe marker not reported: rc=$RC $(body)"
+body | grep -q 'clock skew' && ok "…and the FAIL names clock skew as the cause to look for" || no "FAIL does not name clock skew: $(body)"
+grep -q 'RESULT: 10 ok, 1 failed' "$WORK/out.log" && ok "10 ok / 1 failed" || no "expected 10 ok / 1 failed:"$'\n'"$OUT"
+
+reset_fixture; printf '{\n  "schema": 1,\n  "finished_at": "not-a-date",\n  "source": "alert-webhook-probe"\n}\n' \
+  > "$FIX/profile/alerts/last-alert-probe.json"; run_checks
+[ "$RC" -ne 0 ] && body | grep -q "alert-path-probe: the probe marker's finished_at is unparseable ('not-a-date')" \
+  && ok "an unparseable finished_at → FAIL, never a silent OK (a torn write is the realistic cause)" || no "unparseable marker not reported: rc=$RC $(body)"
+
+reset_fixture; write_probe_marker "$FIX/profile/alerts/last-alert-probe.json" "$(iso_hours_ago 27)"
+run_checks PROFILE_CHECKS_MAX_ALERT_PROBE_AGE_HOURS=48
+[ "$RC" -eq 0 ] && grep -q 'alert-path-probe: the monitoring box reached the alert webhook 27h ago' "$WORK/out.log" \
+  && ok "threshold env-overridable (27h ≤ 48h → OK)" || no "probe threshold override ignored (rc=$RC):"$'\n'"$OUT"
+
+reset_fixture; write_probe_marker "$FIX/profile/alerts/last-alert-probe.json" "$(iso_hours_ago 27)"
+run_checks PROFILE_CHECKS_MAX_ALERT_PROBE_AGE_HOURS=abc
+[ "$RC" -ne 0 ] && body | grep -q "thresholds: PROFILE_CHECKS_MAX_ALERT_PROBE_AGE_HOURS='abc' is not a non-negative integer — default 3 used" \
+  && body | grep -q 'alert-path-probe: no probe received for 27h (> 3h)' \
+  && ok "junk threshold → FAIL + the default 3 still catches the 27h marker (no silent OK)" || no "junk probe threshold: rc=$RC body=$(body)"
+
+reset_fixture; rm "$FIX/profile/alerts/last-alert-probe.json"
+write_probe_marker "$FIX/elsewhere.json" "$(iso_hours_ago 1)"
+run_checks PROFILE_CHECKS_ALERT_PROBE_MARKER_FILE="$FIX/elsewhere.json"
+[ "$RC" -eq 0 ] && grep -q 'alert-path-probe: the monitoring box reached the alert webhook 1h ago' "$WORK/out.log" \
+  && ok "marker path env-overridable (the off-box test seam)" || no "marker path override ignored (rc=$RC):"$'\n'"$OUT"
 
 echo "=== C17: secret-leak guard across EVERY run above ==="
 # Log and ping bodies must never carry the access key, secret, bucket, endpoint host or ping URL.

@@ -11,9 +11,14 @@
 // 2xx = "stop retrying, I own this event"; non-2xx = "try again" (32 attempts,
 // ~26 hours). Assigning a status for any other reason is a bug.
 
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import request from "supertest";
 import type { TelegramConfig } from "../../src/core/notifications/TelegramNotifier";
 import {
+  ALERT_PROBE_KEY,
+  ALERT_PROBE_RESPONSE_STATUS,
   ALERT_WEBHOOK_PATH,
   ALERT_WEBHOOK_SECRET_ENV,
   DedupeCache,
@@ -80,16 +85,34 @@ type Harness = {
   alerts: Sent[];
   alarms: Sent[];
   metricCalls: Array<[string, string]>;
+  /** Task 0284: where this harness's relay writes its probe marker. */
+  markerPath: string;
   settle: () => Promise<void>;
 };
+
+/**
+ * Task 0284. Every harness gets its own throwaway directory, so the REAL atomic write
+ * (temp file + rename) is exercised rather than stubbed — the marker's on-disk SHAPE is
+ * what profile-checks.sh parses, and a stub would not prove it.
+ */
+const markerDirs: string[] = [];
+afterAll(() => {
+  for (const dir of markerDirs) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 function build(
   over: {
     secret?: string;
     now?: () => number;
     sendImpl?: (config: TelegramConfig, text: string) => Promise<unknown>;
+    writeMarkerFile?: (path: string, contents: string) => void;
   } = {},
 ): Harness {
+  const markerDir = mkdtempSync(join(tmpdir(), "alert-probe-"));
+  markerDirs.push(markerDir);
+  const markerPath = join(markerDir, "last-alert-probe.json");
   const sent: Sent[] = [];
   const pending: Array<Promise<unknown>> = [];
   const metricCalls: Array<[string, string]> = [];
@@ -137,6 +160,8 @@ function build(
         telegram: TELEGRAM,
         send: send as never,
         now: over.now,
+        markerPath,
+        writeMarkerFile: over.writeMarkerFile,
       },
     },
   );
@@ -144,6 +169,7 @@ function build(
   return {
     app,
     sent,
+    markerPath,
     get alerts() {
       return sent.filter((s) => !isAlarmText(s.text));
     },
@@ -796,5 +822,258 @@ describe("formatAlertMessage (plan §1c)", () => {
     const text = formatAlertMessage({ title: "Bare", resolved: false });
     expect(text).toContain("Bare");
     expect(text.length).toBeGreaterThan(0);
+  });
+});
+
+// ── Task 0284 — the alert-path liveness probe ────────────────────────────────
+//
+// The guard for the 403 trap this file's header describes: a cron on the monitoring box
+// POSTs here hourly over the real allowlist with the real secret, the relay stamps a
+// marker and sends NOTHING, and profile-checks.sh pages through an EXTERNAL dead-man's
+// switch when that marker goes stale.
+//
+// 🚩 The marker's SHAPE is a contract with a shell script in another language. Nothing
+// but the tests below couples them, so they assert the exact bytes profile-checks.sh's
+// `json_field` sed and `iso_to_epoch` can parse — not merely "a file was written".
+describe("alert relay — the liveness probe (0284)", () => {
+  function probeBody(
+    over: Record<string, unknown> = {},
+    payloadOver: Record<string, unknown> = {},
+  ): Record<string, unknown> {
+    return {
+      payload: { secret: SECRET, probe: ALERT_PROBE_KEY, ...payloadOver },
+      ...over,
+    };
+  }
+
+  /**
+   * profile-checks.sh's `json_field`, transcribed. The shell reads ONE key per line with
+   * the key at the line start; a compact `JSON.stringify` would produce a file this
+   * cannot parse, and the checker would page every day about a probe that is arriving.
+   */
+  const JSON_FIELD_FINISHED_AT =
+    /^[ \t]*"finished_at"[ \t]*:[ \t]*"?([^",}]*)"?/;
+
+  it("answers 2xx, writes the marker, and sends NOTHING", async () => {
+    const h = build();
+    const res = await post(h, probeBody());
+    expect(res.status).toBeGreaterThanOrEqual(200);
+    expect(res.status).toBeLessThan(300);
+    expect([401, 403, 404]).not.toContain(res.status);
+    await h.settle();
+    // The whole point: a probe must never produce a Telegram message, of either kind.
+    expect(h.alerts).toHaveLength(0);
+    expect(h.alarms).toHaveLength(0);
+    expect(h.sent).toHaveLength(0);
+    expect(existsSync(h.markerPath)).toBe(true);
+    expect(h.metricCalls).toContainEqual(["probe", "unkeyed"]);
+  });
+
+  it("writes a marker the shell checker can actually parse", async () => {
+    const at = Date.parse("2026-09-18T09:17:03.456Z");
+    const h = build({ now: () => at });
+    await post(h, probeBody());
+    const raw = readFileSync(h.markerPath, "utf8");
+
+    expect(JSON.parse(raw)).toEqual({
+      schema: 1,
+      finished_at: "2026-09-18T09:17:03Z",
+      source: "alert-webhook-probe",
+    });
+
+    // `json_field` runs its sed line by line and takes `head -1`, so exactly one line
+    // must carry the key — the property a compact stringify would destroy.
+    const matching = raw
+      .split("\n")
+      .filter((line) => JSON_FIELD_FINISHED_AT.test(line));
+    expect(matching).toHaveLength(1);
+    const captured = JSON_FIELD_FINISHED_AT.exec(matching[0])?.[1];
+    // And `iso_to_epoch` needs seconds precision with a trailing Z. Fractional seconds
+    // are tolerated there, but a missing Z is not.
+    expect(captured).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+    expect(Date.parse(captured ?? "")).toBe(Date.parse("2026-09-18T09:17:03Z"));
+
+    // ⛔ Nothing from the request, ever — the secret least of all.
+    expect(raw).not.toContain(SECRET);
+    expect(raw).not.toContain(ALERT_PROBE_KEY);
+  });
+
+  // ⚠️ The mutation that would make the whole guard a lie: writing the marker before the
+  // secret check. Anyone who can reach the route would keep the check green while every
+  // real alert was being dropped for a secret mismatch.
+  it.each([
+    ["a wrong secret", { secret: "not-the-secret", probe: ALERT_PROBE_KEY }],
+    ["no secret at all", { probe: ALERT_PROBE_KEY }],
+  ])("answers 2xx but writes NO marker for %s", async (_label, payload) => {
+    const h = build();
+    const res = await post(h, { payload });
+    expect(res.status).toBeGreaterThanOrEqual(200);
+    expect(res.status).toBeLessThan(300);
+    await h.settle();
+    expect(existsSync(h.markerPath)).toBe(false);
+    expect(h.metricCalls.map(([result]) => result)).toContain("rejected");
+    expect(h.metricCalls.map(([result]) => result)).not.toContain("probe");
+  });
+
+  // 🚨 FAIL TOWARD DELIVERY. If someone pastes `probe` into the monitoring stack's custom
+  // payload, the naive rule would swallow EVERY REAL ALERT behind a 2xx — a worse failure
+  // than the one this task fixes.
+  it("relays a call as an ALERT when `probe` arrives alongside real alert fields", async () => {
+    const h = build();
+    const res = await post(
+      h,
+      webhookBody({
+        payload: { secret: SECRET, probe: ALERT_PROBE_KEY, value: "412" },
+      }),
+    );
+    expect(res.status).toBe(202);
+    await h.settle();
+    expect(h.alerts).toHaveLength(1);
+    expect(h.alerts[0].text).toContain("Player creation spike");
+    expect(existsSync(h.markerPath)).toBe(false);
+    expect(h.metricCalls.map(([result]) => result)).not.toContain("probe");
+  });
+
+  // Same rule, the other half: a top-level `id` with no `alert` object is still an alert.
+  it("relays a call as an ALERT when `probe` arrives with only a top-level id", async () => {
+    const h = build();
+    const res = await post(h, probeBody({ id: "555" }));
+    expect(res.status).toBe(202);
+    await h.settle();
+    expect(h.alerts).toHaveLength(1);
+    expect(existsSync(h.markerPath)).toBe(false);
+  });
+
+  // An unknown probe VALUE is not a probe. Same direction: deliver, never swallow.
+  it("relays a call as an ALERT when the probe key carries an unknown value", async () => {
+    const h = build();
+    const res = await post(h, probeBody({}, { probe: "something-else" }));
+    expect(res.status).toBe(202);
+    await h.settle();
+    expect(h.alerts).toHaveLength(1);
+    expect(existsSync(h.markerPath)).toBe(false);
+  });
+
+  it("accepts the probe key with surrounding whitespace and odd casing", async () => {
+    const h = build();
+    const res = await post(h, probeBody({}, { probe: "  LiVeNeSs \n" }));
+    expect(res.status).toBeLessThan(300);
+    await h.settle();
+    expect(h.sent).toHaveLength(0);
+    expect(existsSync(h.markerPath)).toBe(true);
+  });
+
+  // A probe must not be able to suppress a later real alert: it never touches dedupe.
+  it("creates no dedupe entry — a following real alert still delivers", async () => {
+    const h = build();
+    await post(h, probeBody());
+    const res = await post(h, webhookBody());
+    expect(res.status).toBe(202);
+    await h.settle();
+    expect(h.alerts).toHaveLength(1);
+  });
+
+  // Edge case 13: a run with no writable marker directory (local dev) must log and carry
+  // on. And a non-2xx here would be read by nobody but the probe's own curl.
+  it("still answers 2xx when the marker cannot be written", async () => {
+    const h = build({
+      writeMarkerFile: () => {
+        throw new Error("EACCES: permission denied");
+      },
+    });
+    const res = await post(h, probeBody());
+    expect(res.status).toBeGreaterThanOrEqual(200);
+    expect(res.status).toBeLessThan(300);
+    await h.settle();
+    expect(existsSync(h.markerPath)).toBe(false);
+    expect(h.sent).toHaveLength(0);
+  });
+
+  // The marker advances on every probe — a single stale stamp would page at 08:00 UTC.
+  it("overwrites the marker on each probe rather than appending", async () => {
+    let at = Date.parse("2026-09-18T09:00:00Z");
+    const h = build({ now: () => at });
+    await post(h, probeBody());
+    at = Date.parse("2026-09-18T10:00:00Z");
+    await post(h, probeBody());
+    const raw = readFileSync(h.markerPath, "utf8");
+    expect(JSON.parse(raw).finished_at).toBe("2026-09-18T10:00:00Z");
+    expect(
+      raw.split("\n").filter((l) => l.includes("finished_at")),
+    ).toHaveLength(1);
+  });
+
+  // 🚫 The response body is persisted by the sender, so it stays a fixed constant here too.
+  it("echoes nothing from the probe request in its response", async () => {
+    const h = build();
+    const res = await post(h, probeBody());
+    expect(res.body).toEqual({ status: ALERT_PROBE_RESPONSE_STATUS });
+    // Nothing from the request, and no secret — the sender persists the first 100 bytes.
+    expect(JSON.stringify(res.body)).not.toContain(SECRET);
+    expect(JSON.stringify(res.body)).not.toContain(ALERT_PROBE_KEY);
+  });
+
+  // Review R3 (owner ruling 2026-09-18). The probe's own exit code has to mean something: a
+  // DROPPED call is deliberately a 200 as well, so if the two bodies matched, the operator
+  // running the probe by hand during bring-up could not tell "marker written" from "call
+  // thrown away for a wrong secret". Both halves are asserted here, in one test, because the
+  // property is the DIFFERENCE between them.
+  it("answers a probe with a body distinguishable from a dropped call's", async () => {
+    const h = build();
+    const probeRes = await post(h, probeBody());
+    const droppedRes = await post(h, {
+      payload: { secret: "not-the-secret", probe: ALERT_PROBE_KEY },
+    });
+    await h.settle();
+    // ⛔ Still 200 on both — a 4xx would disable the notification channel.
+    expect(probeRes.status).toBe(200);
+    expect(droppedRes.status).toBe(200);
+    expect(probeRes.body).not.toEqual(droppedRes.body);
+    expect(droppedRes.body).toEqual({ status: "accepted" });
+  });
+
+  // Review R1 (2026-09-18). `probe` was typed `z.string()`, so a REAL alert whose custom
+  // payload carried a non-string `probe` failed the WHOLE-body parse → `malformed` → dropped
+  // at 200 and never sent. At HEAD (before the key existed) the same body was delivered, so
+  // this task itself opened a second door past fail-toward-delivery. Every non-string kind is
+  // covered: a number is the plausible paste, but an object or a boolean must not be a hole.
+  it.each([
+    ["a number", 1],
+    ["a boolean", true],
+    ["an object", { nested: "value" }],
+    ["an array", ["liveness"]],
+    ["null", null],
+  ])(
+    "still DELIVERS a real alert whose payload carries %s as `probe`",
+    async (_label, probeValue) => {
+      const h = build();
+      const res = await post(
+        h,
+        webhookBody({
+          payload: { secret: SECRET, value: "412", probe: probeValue },
+        }),
+      );
+      expect(res.status).toBe(202);
+      await h.settle();
+      expect(h.alerts).toHaveLength(1);
+      expect(h.alerts[0].text).toContain("Player creation spike");
+      // The failure this guards: parsed away as malformed instead of delivered.
+      expect(h.metricCalls.map(([result]) => result)).not.toContain(
+        "malformed",
+      );
+      expect(existsSync(h.markerPath)).toBe(false);
+    },
+  );
+
+  // Same rule for a probe-shaped body: a non-string `probe` is not a probe, and the safe
+  // direction is to deliver it (as an unnamed alert), never to swallow it behind a 2xx.
+  it("treats a probe-shaped body with a non-string `probe` as an alert, not a probe", async () => {
+    const h = build();
+    const res = await post(h, probeBody({}, { probe: 42 }));
+    expect(res.status).toBe(202);
+    await h.settle();
+    expect(h.alerts).toHaveLength(1);
+    expect(h.metricCalls.map(([result]) => result)).not.toContain("malformed");
+    expect(existsSync(h.markerPath)).toBe(false);
   });
 });

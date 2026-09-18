@@ -1466,5 +1466,208 @@ printf '%s\n' "$INTERNAL_BLOCK" | grep -qE '^[[:space:]]*proxy_pass[[:space:]]+h
   && pass "nginx /internal/: proxy_pass carries no URI part (legal inside a regex location)" \
   || fail "nginx /internal/: proxy_pass is not the bare 'http://127.0.0.1:\${PROFILE_PORT};' form — a URI part in a REGEX location makes nginx -t fail and aborts the deploy"
 
+# ── Structural: the alert-path liveness probe (task 0284) ─────────────────────
+# This harness is the ONLY gate over the telemetry scripts — scripts/check-config-parity.mjs
+# covers game/profile/client and never reaches TELEMETRY_*. Same character as the blocks
+# above: grep-level lints, with the same accepted residual (coupled to formatting, so a
+# reformat reds this — false RED, never false green).
+echo "== Structural: alert-path liveness probe — telemetry side + the marker-path coupling (0284) =="
+TS="$REPO_ROOT/setup-telemetry.sh"
+BT="$REPO_ROOT/build-deploy-telemetry.sh"
+P="$REPO_ROOT/setup-profile.sh"
+
+# 1) Both files are written with the right modes. A 0644 env file would leave the shared
+#    secret world-readable on the box.
+grep -qE '^\s*chmod 600 "\$UPTRACE_DIR/alert-probe\.env"$' "$TS" \
+  && pass "setup-telemetry.sh: alert-probe.env is chmod 600" \
+  || fail "setup-telemetry.sh: no 'chmod 600 \$UPTRACE_DIR/alert-probe.env' — the shared secret would be world-readable"
+grep -qE '^\s*chmod 700 "\$UPTRACE_DIR/alert-probe\.sh"$' "$TS" \
+  && pass "setup-telemetry.sh: alert-probe.sh is chmod 700" \
+  || fail "setup-telemetry.sh: no 'chmod 700 \$UPTRACE_DIR/alert-probe.sh'"
+
+# The probe script heredoc, and only it — every assertion below is scoped to it, so a
+# match somewhere else in the file cannot make one pass vacuously.
+PROBE_BLOCK=$(awk '/cat > "\$UPTRACE_DIR\/alert-probe\.sh" << .PROBEEOF.$/{b=1; next} b && /^PROBEEOF$/{exit} b{print}' "$TS")
+[ -n "$PROBE_BLOCK" ] && pass "setup-telemetry.sh: located the alert-probe.sh heredoc" \
+  || fail "setup-telemetry.sh: no alert-probe.sh heredoc found (the checks below would be vacuous)"
+
+# 2) The body goes on stdin, and the secret never reaches an argv. `--data '{"secret":…}'`
+#    would expose it in ps / /proc/<pid>/cmdline for the life of every hourly call.
+printf '%s\n' "$PROBE_BLOCK" | grep -q -- '--data-binary @-' \
+  && pass "probe: the JSON body is fed on stdin (--data-binary @-)" \
+  || fail "probe: no '--data-binary @-' — the body (and the secret in it) would ride an argv"
+#    ⚠️ Review R4: this guard used to grep the block LINE BY LINE while the real curl spans
+#    three backslash-continued lines, so a leak placed on a continuation line passed. Proven
+#    with a planted regression. Continuations are therefore JOINED first: the shell reads that
+#    invocation as ONE command, and so must this check. Comments are stripped before joining —
+#    they may NAME the secret (that is the warning), code may not.
+PROBE_BLOCK_JOINED=$(printf '%s\n' "$PROBE_BLOCK" | grep -v '^[[:space:]]*#' \
+  | awk '{ line = line $0; if (sub(/\\$/, " ", line)) next; print line; line = "" }
+         END { if (line != "") print line }')
+#    Non-vacuity for the join itself: these three fragments live on three separate physical
+#    lines in setup-telemetry.sh, so they can only appear together if the joining worked.
+printf '%s\n' "$PROBE_BLOCK_JOINED" | grep 'curl' | grep -- '--data-binary @-' | grep -q 'ALERT_PROBE_URL' \
+  && pass "probe: the continued curl invocation reads as ONE line (so the argv guard is not line-blind)" \
+  || fail "probe: could not find the whole curl invocation on one joined line — the argv guard below would be vacuous (review R4)"
+printf '%s\n' "$PROBE_BLOCK_JOINED" | grep -qE 'curl[^|]*\$\{?ALERT_PROBE_SECRET' \
+  && fail "probe: ALERT_PROBE_SECRET appears on a curl command line — it must only ever reach stdin" \
+  || pass "probe: ALERT_PROBE_SECRET never appears on a curl argv"
+
+# 3) No `set -x` anywhere in the probe — it would echo the secret into the log. Comments may
+#    NAME it (that is the warning); code may not.
+printf '%s\n' "$PROBE_BLOCK" | grep -v '^[[:space:]]*#' | grep -q 'set -x' \
+  && fail "probe: 'set -x' in the probe script — it would echo the shared secret into the log" \
+  || pass "probe: no 'set -x' in the probe script (outside comments)"
+
+# 4) The cron actually invokes it. Without this the script is written and never runs, and the
+#    profile box pages daily about a guard that was wired but never fired.
+CRON_BLOCK=$(awk '/^CRON_FILE="\/etc\/cron\.d\/uptrace-backups"$/{b=1} b{print} b && /^EOF$/{exit}' "$TS")
+printf '%s\n' "$CRON_BLOCK" | grep -qE '^[0-9*/, ]+ root \$UPTRACE_DIR/alert-probe\.sh' \
+  && pass "setup-telemetry.sh: a cron line runs \$UPTRACE_DIR/alert-probe.sh" \
+  || fail "setup-telemetry.sh: no cron line invoking alert-probe.sh — the probe would never run"
+
+# 5) The hop nothing else can see: build-deploy-telemetry.sh must forward BOTH values into the
+#    0600 staged env. check-config-parity.mjs does not reach telemetry variables at all.
+for v in TELEMETRY_ALERT_PROBE_URL PROFILE_ALERT_WEBHOOK_TOKEN; do
+  grep -qE "^export ${v}='\\\$\{${v}:-\}'$" "$BT" \
+    && pass "build-deploy-telemetry.sh: stages export $v" \
+    || fail "build-deploy-telemetry.sh: no 'export $v' line in the staged env heredoc — the box would never receive it"
+done
+
+# 6) Persist-or-reuse, and NEVER generate. A box-minted token fails every probe and pages
+#    daily — 0182/0195's defect in a new place.
+grep -qE '^persist_or_reuse_probe_value TELEMETRY_ALERT_PROBE_URL' "$TS" \
+  && grep -qE '^persist_or_reuse_probe_value PROFILE_ALERT_WEBHOOK_TOKEN' "$TS" \
+  && pass "setup-telemetry.sh: both probe values are persist-or-reuse" \
+  || fail "setup-telemetry.sh: a probe value is not persist-or-reuse — a blank redeploy would wipe it and page daily"
+grep -nE '^persist_or_reuse_probe_value ' "$TS" | grep -q 'generate' \
+  && fail "setup-telemetry.sh: a probe value is in 'generate' mode — a box-minted token fails EVERY probe" \
+  || pass "setup-telemetry.sh: no probe value is ever generated on the box"
+awk '/^persist_or_reuse_probe_value\(\)/{b=1} b && /^}$/{exit} b{print}' "$TS" | grep -q 'openssl rand' \
+  && fail "setup-telemetry.sh: persist_or_reuse_probe_value can mint a value — it must never generate" \
+  || pass "setup-telemetry.sh: persist_or_reuse_probe_value has no generate branch at all"
+
+# 7) Drift guard: the compose bind mount's CONTAINER path must equal the directory of
+#    ALERT_PROBE_MARKER_PATH in src/profile-server/AlertRelay.ts. Two files in two languages
+#    must agree on one string, and nothing else would catch them diverging — the marker would
+#    simply be written where nobody reads it, and the check would page forever.
+RELAY="$REPO_ROOT/src/profile-server/AlertRelay.ts"
+RELAY_MARKER=$(sed -n 's/^[[:space:]]*"\(\/var\/[^"]*last-alert-probe\.json\)";$/\1/p' "$RELAY" | head -1)
+[ -n "$RELAY_MARKER" ] && pass "AlertRelay.ts: read ALERT_PROBE_MARKER_PATH ($RELAY_MARKER)" \
+  || fail "AlertRelay.ts: could not read ALERT_PROBE_MARKER_PATH (its shape changed — the drift guard is vacuous)"
+RELAY_DIR="${RELAY_MARKER%/*}"
+MOUNT_TARGET=$(sed -n 's/^[[:space:]]*- \.\/alerts:\(\/[^[:space:]]*\)$/\1/p' "$P" | head -1)
+[ -n "$MOUNT_TARGET" ] && pass "setup-profile.sh: compose bind-mounts ./alerts ($MOUNT_TARGET)" \
+  || fail "setup-profile.sh: no './alerts:<container path>' bind mount — a container-written marker is invisible to checks.sh"
+[ -n "$RELAY_DIR" ] && [ "$RELAY_DIR" = "$MOUNT_TARGET" ] \
+  && pass "the bind mount target equals ALERT_PROBE_MARKER_PATH's directory" \
+  || fail "DRIFT: AlertRelay.ts writes into '$RELAY_DIR' but compose mounts '$MOUNT_TARGET' — the marker would be written where nothing reads it"
+# And the checker must look in the same place on the HOST.
+grep -qE '^PROBE_MARKER=.*\$PROFILE_DIR/alerts/last-alert-probe\.json\}"$' "$REPO_ROOT/profile-checks.sh" \
+  && pass "profile-checks.sh: reads \$PROFILE_DIR/alerts/last-alert-probe.json" \
+  || fail "profile-checks.sh: PROBE_MARKER does not default to \$PROFILE_DIR/alerts/last-alert-probe.json"
+
+# 8) Review R2 (owner ruling 2026-09-18 — ENFORCE, not just document): a probe token holding a
+#    " or a \ emits invalid JSON from alert-probe.sh, so every probe is dropped as `malformed`,
+#    no marker is ever written, and the profile box pages EVERY DAY while alerting is fine.
+#    BEHAVIOURAL, not structural: the real function is extracted and run. It only echoes and
+#    exits, so running it has no side effects.
+PROBE_TOKEN_GUARD=$(awk '/^assert_probe_token_json_safe\(\)/{b=1} b{print} b && /^}$/{exit}' "$TS")
+[ -n "$PROBE_TOKEN_GUARD" ] \
+  && pass "setup-telemetry.sh: located assert_probe_token_json_safe (the checks below are not vacuous)" \
+  || fail "setup-telemetry.sh: no assert_probe_token_json_safe — a token with a quote or backslash would deploy and page daily (review R2)"
+for bad in 'ab"cd' 'ab\cd'; do
+  ( eval "$PROBE_TOKEN_GUARD"; assert_probe_token_json_safe "$bad" "harness" ) >/dev/null 2>&1 \
+    && fail "setup-telemetry.sh: a probe token containing a quote/backslash was ACCEPTED — it would break the probe's JSON body forever" \
+    || pass "setup-telemetry.sh: a probe token containing a quote/backslash is rejected (non-zero exit)"
+done
+( eval "$PROBE_TOKEN_GUARD"; assert_probe_token_json_safe "0f3ab9c7d1e5" "harness" ) >/dev/null 2>&1 \
+  && pass "setup-telemetry.sh: an ordinary hex token still passes (the guard is not a blanket refusal)" \
+  || fail "setup-telemetry.sh: assert_probe_token_json_safe rejects a plain hex token — every deploy would abort"
+#    Both sources must be checked: the value this deploy supplies AND one already persisted on
+#    a box provisioned before the guard existed.
+grep -qE '^[[:space:]]*assert_probe_token_json_safe "\$PROFILE_ALERT_WEBHOOK_TOKEN"' "$TS" \
+  && grep -qE '^[[:space:]]*assert_probe_token_json_safe "\$\(cat "\$UPTRACE_DIR/\.alert_probe_token"\)"' "$TS" \
+  && pass "setup-telemetry.sh: the token guard covers both the deploy-supplied and the persisted value" \
+  || fail "setup-telemetry.sh: the token guard misses a source (deploy-supplied or persisted) — a bad token could still reach the probe"
+#    ⛔ And it must never print the token itself.
+printf '%s\n' "$PROBE_TOKEN_GUARD" | grep '^[[:space:]]*echo' | grep -q '\$1' \
+  && fail "setup-telemetry.sh: the token guard echoes the token value — it must name the variable only" \
+  || pass "setup-telemetry.sh: the token guard names the variable only, never the token value"
+
+# 9) Review R3 (owner ruling 2026-09-18): a bare 2xx must NOT exit 0. Every dropped call is a
+#    deliberate 200 too (a 4xx would disable the notification channel), so the probe can only
+#    know a marker was written from the relay's own distinct status string. Drift guard: that
+#    string is defined in AlertRelay.ts and grepped for in the generated probe script.
+RELAY_PROBE_STATUS=$(sed -n 's/^export const ALERT_PROBE_RESPONSE_STATUS = "\([^"]*\)";$/\1/p' "$RELAY" | head -1)
+[ -n "$RELAY_PROBE_STATUS" ] \
+  && pass "AlertRelay.ts: read ALERT_PROBE_RESPONSE_STATUS ($RELAY_PROBE_STATUS)" \
+  || fail "AlertRelay.ts: could not read ALERT_PROBE_RESPONSE_STATUS (its shape changed — the drift guard is vacuous)"
+[ "$RELAY_PROBE_STATUS" != "accepted" ] \
+  && pass "the probe status differs from the 'accepted' a dropped call answers with" \
+  || fail "ALERT_PROBE_RESPONSE_STATUS is 'accepted' — identical to a dropped call, so the probe learns nothing (review R3)"
+printf '%s\n' "$PROBE_BLOCK" | grep -qF "$RELAY_PROBE_STATUS" \
+  && pass "probe: the script matches on the relay's probe status ('$RELAY_PROBE_STATUS')" \
+  || fail "DRIFT: alert-probe.sh does not look for '$RELAY_PROBE_STATUS' — it would exit 0 on a dropped call"
+printf '%s\n' "$PROBE_BLOCK_JOINED" | grep 'curl' | grep -q -- '-o /dev/null' \
+  && fail "probe: curl still discards the response body (-o /dev/null) — it cannot tell a recorded probe from a dropped call (review R3)" \
+  || pass "probe: the response body is captured, not discarded"
+#    ⛔ …and never written into the log: it need not have come from the relay, and the rule that
+#    discards curl's stderr applies to it.
+printf '%s\n' "$PROBE_BLOCK" | grep -v '^[[:space:]]*#' | grep -qE 'say .*\$\{?probe_body' \
+  && fail "probe: the response body is echoed into the log — it can carry content this box should not log" \
+  || pass "probe: the response body is never echoed into the log"
+
+# 10) …and R3 BEHAVIOURALLY. The grep above proves the string is mentioned, not that the exit
+#     logic works, and the fix hinges on capturing curl's `$?` THROUGH a command substitution —
+#     exactly where a silent "any 2xx ⇒ exit 0" regression would hide. So the generated script
+#     is written out and RUN against a stub curl (the extract-and-run idiom of T12).
+PROBE_RUN_DIR=$(mktemp -d)
+printf '%s\n' "$PROBE_BLOCK" > "$PROBE_RUN_DIR/alert-probe.sh"
+printf 'ALERT_PROBE_URL=https://example.invalid/hook\nALERT_PROBE_SECRET=0f3ab9c7notreal\n' \
+  > "$PROBE_RUN_DIR/alert-probe.env"
+mkdir -p "$PROBE_RUN_DIR/bin"
+cat > "$PROBE_RUN_DIR/bin/curl" <<'EOF'
+#!/bin/bash
+cat > /dev/null                        # drain the JSON body from stdin, as the real call sends it
+[ -n "${STUB_CURL_FAIL:-}" ] && exit 22
+printf '%s' "${STUB_CURL_BODY:-}"
+EOF
+chmod +x "$PROBE_RUN_DIR/bin/curl"
+# The real script logs to /var/log; redirect that one line into the temp dir.
+sed "s#^LOG=.*#LOG=\"$PROBE_RUN_DIR/probe.log\"#" "$PROBE_RUN_DIR/alert-probe.sh" > "$PROBE_RUN_DIR/run.sh"
+grep -q "^LOG=\"$PROBE_RUN_DIR/probe.log\"\$" "$PROBE_RUN_DIR/run.sh" \
+  && pass "probe: the extracted script is runnable with its log redirected (the cases below are not vacuous)" \
+  || fail "probe: could not redirect LOG= in the extracted script — the behavioural cases below would be vacuous"
+run_probe() {  # <VAR=VAL> ; sets PRC and PLOG
+  rm -f "$PROBE_RUN_DIR/probe.log"
+  env -i PATH="$PROBE_RUN_DIR/bin:/usr/bin:/bin" "$@" bash "$PROBE_RUN_DIR/run.sh" >/dev/null 2>&1
+  PRC=$?
+  PLOG=$(cat "$PROBE_RUN_DIR/probe.log" 2>/dev/null || true)
+}
+run_probe STUB_CURL_FAIL=1
+{ [ "$PRC" -ne 0 ] && printf '%s' "$PLOG" | grep -q 'FAILED to reach'; } \
+  && pass "probe: a curl failure exits non-zero and names it" \
+  || fail "probe: a curl failure did not exit non-zero (rc=$PRC)"
+run_probe 'STUB_CURL_BODY={"status":"accepted"}'
+{ [ "$PRC" -ne 0 ] && printf '%s' "$PLOG" | grep -q 'did NOT record a probe'; } \
+  && pass "probe: a 2xx carrying the DROPPED-call body exits NON-ZERO (review R3 — this is the case that used to log 'accepted')" \
+  || fail "probe: a dropped call still reads as success (rc=$PRC) — the probe's exit code means nothing"
+run_probe "STUB_CURL_BODY={\"status\":\"$RELAY_PROBE_STATUS\"}"
+{ [ "$PRC" -eq 0 ] && printf '%s' "$PLOG" | grep -q 'recorded the probe'; } \
+  && pass "probe: the relay's probe status exits 0 and says the marker was written" \
+  || fail "probe: the probe status did not exit 0 (rc=$PRC)"
+run_probe "STUB_CURL_BODY={ \"status\" : \"$RELAY_PROBE_STATUS\" }"
+[ "$PRC" -eq 0 ] \
+  && pass "probe: …and tolerates JSON spacing (an upstream formatting change is not a false page)" \
+  || fail "probe: spacing in the JSON reply broke the match (rc=$PRC)"
+#     And the unconfigured path must fail loudly rather than quietly succeed.
+printf 'ALERT_PROBE_URL=\nALERT_PROBE_SECRET=\n' > "$PROBE_RUN_DIR/alert-probe.env"
+run_probe "STUB_CURL_BODY={\"status\":\"$RELAY_PROBE_STATUS\"}"
+{ [ "$PRC" -ne 0 ] && printf '%s' "$PLOG" | grep -q 'NOT CONFIGURED'; } \
+  && pass "probe: an empty URL/secret exits non-zero and says NOT CONFIGURED" \
+  || fail "probe: an unconfigured probe did not fail (rc=$PRC)"
+rm -rf "$PROBE_RUN_DIR"
+
 echo
 [ "$FAILED" -eq 0 ] && { echo "ALL PASS"; exit 0; } || { echo "SOME FAILED"; exit 1; }
