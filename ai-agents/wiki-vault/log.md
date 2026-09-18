@@ -3547,3 +3547,34 @@ all 28 fixed** by adding the reciprocal entry.
   ⚠️ **The alerting sources deliberately exclude hostnames and ids, and the vault pages honour that too.**
 - ⛔ **Closed nothing, moved no task file, edited no brief and no sprint plan** (ADR-033). Nothing committed
   or pushed.
+
+---
+
+## 2026-09-18 — sync (idle — nothing ingested)
+
+- Sync window: `00fe479` → HEAD (`6aa5b1f`)
+- Commits in window: **1** — `6aa5b1f` *"Wiki sync"*
+- Changed source files detected: **0**
+- Ingested: *(nothing — no page created, no page updated, `index.md` untouched)*
+
+**Skipped (with reason):**
+
+- `ai-agents/wiki-vault/**` — the **entire** diff of `6aa5b1f` falls here: 36 files, all of them this
+  vault. The commit is the owner committing the **2026-09-18 sync's own output** (the entry directly
+  above). Step 2 excludes this path and Step 3 skips it: the vault is this procedure's *output*, never
+  a source. Re-ingesting it would feed the wiki its own tail.
+- No uncommitted work under `ai-agents/` outside the vault (`git status --porcelain ai-agents/` empty),
+  so nothing was missed by reading committed history alone.
+
+**Verified independently, not taken on trust from the caller:** watermark read from
+`.wiki-watermark`, `HEAD` from `git rev-parse`, the file list re-derived with the Step 2 command
+including its `':!ai-agents/wiki-vault/'` exclusion, and the unfiltered diff inspected to confirm
+*why* the filtered list is empty. The computed delta agreed with the pre-check in every particular.
+
+**Watermark advanced to `6aa5b1f`** so the next sync resumes past this window instead of re-examining it.
+
+- No lint performed — an idle sync touches no page, so there is no changed-page set to lint. The vault's
+  link health is as the 2026-09-18 ingest left it (199 targets, 0 broken, 28 one-way links fixed).
+- 🔒 **No secrets.** Nothing was written beyond this entry and the watermark SHA.
+- ⛔ **Closed nothing, moved no task file, edited no brief and no sprint plan** (ADR-033). Nothing
+  committed or pushed.
