@@ -132,8 +132,21 @@ write_probe_marker() {  # <file> <finished_at_iso>
 }
 EOF
 }
+# Task 0283: the shape src/profile-server/NameChangeDigest.ts writes — same contract as the
+# probe marker above (one key per line, key at the line start, seconds-precision ISO with a
+# trailing Z), between a TypeScript writer and this shell reader.
+# NameChangeDigest.test.ts pins the other half.
+write_digest_marker() {  # <file> <finished_at_iso>
+  cat > "$1" <<EOF
+{
+  "schema": 1,
+  "finished_at": "$2",
+  "source": "name-change-digest"
+}
+EOF
+}
 reset_fixture() {
-  rm -rf "$FIX"; mkdir -p "$FIX/profile/backups" "$FIX/profile/alerts" "$FIX/le"
+  rm -rf "$FIX"; mkdir -p "$FIX/profile/backups" "$FIX/profile/alerts" "$FIX/profile/digest" "$FIX/le"
   rm -f "$WORK"/rclone.* "$WORK"/curl.* "$WORK"/openssl.argv "$WORK/cert.days" \
         "$WORK"/df.* "$WORK"/docker.* "$WORK/disk.pct" "$WORK/players.sql.out"
   echo 42 > "$WORK/disk.pct"
@@ -160,6 +173,9 @@ EOF
   echo 68 > "$WORK/cert.days"
   # Fresh by default (task 0284) — without it EVERY case above would gain a second failure.
   write_probe_marker "$FIX/profile/alerts/last-alert-probe.json" "$(iso_hours_ago 1)"
+  # Same, for the digest marker (task 0283). 4h is the real steady state: the digest cron runs
+  # at 04:00 UTC and this checker at 08:00 UTC.
+  write_digest_marker "$FIX/profile/digest/last-name-change-digest.json" "$(iso_hours_ago 4)"
 }
 
 # Run the REAL script under env -i (no ambient PROFILE_* from the operator's shell) + stub PATH.
@@ -193,10 +209,10 @@ pinged_fail()    { [ "$(tail -1 "$WORK/curl.urls" 2>/dev/null)" = "$FAKE_PING_UR
 body() { cat "$WORK/curl.body" 2>/dev/null; }
 
 # ══════════════════════════════════════════════════════════════════════════════
-echo "=== C1: healthy box → 11 ok, success ping, exit 0 ==="
+echo "=== C1: healthy box → 12 ok, success ping, exit 0 ==="
 reset_fixture; run_checks
 [ "$RC" -eq 0 ] && ok "exit 0" || no "exit $RC (expected 0):"$'\n'"$OUT"
-grep -q 'RESULT: 11 ok, 0 failed' "$WORK/out.log" && ok "all 11 checks OK" || no "expected 11 ok / 0 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 12 ok, 0 failed' "$WORK/out.log" && ok "all 12 checks OK" || no "expected 12 ok / 0 failed:"$'\n'"$OUT"
 pinged_success && ok "success ping sent to the bare URL" || no "success ping not sent (urls: $(cat "$WORK/curl.urls" 2>/dev/null))"
 [ ! -f "$WORK/curl.body" ] && ok "success ping carries no body" || no "success ping carried a body"
 grep -q -- '--retry 3' "$WORK/curl.argv" && grep -q -- '-m 10' "$WORK/curl.argv" && ok "ping uses a timeout + retries" || no "ping lacks -m 10 / --retry 3"
@@ -274,7 +290,7 @@ echo "=== C9: weekly FAILS while the daily marker AND object are OK ('backup OK'
 reset_fixture; weekly_json 9 > "$WORK/rclone.weekly.json"; run_checks
 [ "$RC" -ne 0 ] && pinged_fail && ok "/fail ping on a weekly-only failure" || no "weekly-only failure did not page"
 body | grep -q 'weekly-backup-object' && ! body | grep -q 'daily-backup' && ok "body names ONLY the weekly check" || no "body: $(body)"
-grep -q 'RESULT: 10 ok, 1 failed' "$WORK/out.log" && ok "10 ok / 1 failed" || no "expected 10 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
 
 echo "=== C10: certbot log mtime 2 days → FAIL; empty log + fresh rotated .1.gz → OK (logrotate window) ==="
 reset_fixture; touch_hours_ago "$FIX/le/letsencrypt.log" 48; run_checks
@@ -319,7 +335,7 @@ echo "=== C13: no ping URL → 'ALERTING NOT CONFIGURED', exit non-zero, no curl
 reset_fixture; run_checks PROFILE_CHECKS_PING_URL=
 [ "$RC" -ne 0 ] && ok "exit non-zero without a URL even though every check passed" || no "exit 0 with no alerting"
 grep -q 'ALERTING NOT CONFIGURED' "$WORK/out.log" && ok "logged ALERTING NOT CONFIGURED" || no "no ALERTING NOT CONFIGURED line"
-grep -q 'RESULT: 11 ok, 0 failed' "$WORK/out.log" && ok "checks still ran and were logged" || no "checks did not run"
+grep -q 'RESULT: 12 ok, 0 failed' "$WORK/out.log" && ok "checks still ran and were logged" || no "checks did not run"
 [ ! -f "$WORK/curl.argv" ] && ok "curl never called" || no "curl was called without a URL"
 
 echo "=== C14: URL comes from checks.env (the on-box shape) when the env is bare ==="
@@ -342,7 +358,7 @@ echo "=== C18: junk threshold overrides → FAIL + default, never a silent OK or
 reset_fixture; write_marker "$FIX/profile/backups/last-backup.json" 0 "$(iso_hours_ago 30)"; run_checks PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS=abc
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -q "thresholds: PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS='abc' is not a non-negative integer — default 26 used" && ok "MAX_BACKUP_AGE_HOURS=abc → FAIL names the variable + default" || no "junk backup-age threshold: rc=$RC body=$(body)"
 body | grep -q 'daily-backup-marker: daily marker age 30h > 26h' && ok "…and the default 26h still catches the 30h-old marker (no silent OK)" || no "default not applied: $(body)"
-grep -q 'RESULT: 10 ok, 2 failed' "$WORK/out.log" && ok "all 11 checks still ran" || no "checks did not all run:"$'\n'"$OUT"
+grep -q 'RESULT: 11 ok, 2 failed' "$WORK/out.log" && ok "all 12 checks still ran" || no "checks did not all run:"$'\n'"$OUT"
 reset_fixture; run_checks PROFILE_CHECKS_CERT_MIN_DAYS=1x
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -q "thresholds: PROFILE_CHECKS_CERT_MIN_DAYS='1x'" && ok "CERT_MIN_DAYS=1x → reaches the /fail ping (no set -u abort)" || no "junk cert threshold aborted before the ping: rc=$RC urls=$(cat "$WORK/curl.urls" 2>/dev/null)"
 grep -q 'openssl x509 -checkend 1728000 -noout -in' "$WORK/openssl.argv" && ok "…and check 6 ran with the default 20d" || no "check 6 did not run with the default: $(cat "$WORK/openssl.argv" 2>/dev/null)"
@@ -356,7 +372,7 @@ reset_fixture; : > "$FIX/reboot-required"; run_checks
 [ "$RC" -ne 0 ] && pinged_fail && ok "pending reboot → /fail ping, exit non-zero" || no "pending reboot did not page (rc=$RC)"
 body | grep -q 'reboot-required: reboot required' && ok "body names the pending reboot" || no "body lacks the reboot line: $(body)"
 body | grep -q 'reboot-required' && ! body | grep -q 'daily-backup' && ok "body names ONLY the reboot check (everything else still OK)" || no "body: $(body)"
-grep -q 'RESULT: 10 ok, 1 failed' "$WORK/out.log" && ok "10 ok / 1 failed" || no "expected 10 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
 reset_fixture; run_checks
 grep -q 'reboot-required: no pending reboot' "$WORK/out.log" && [ "$RC" -eq 0 ] && ok "no marker file → OK" || no "absent marker wrongly failed (rc=$RC)"
 
@@ -465,7 +481,7 @@ body | grep -q 'must be re-enabled by hand' \
   && ok "…and says the channel must be re-enabled by hand (fixing the address does not undo a disable)" || no "FAIL omits the re-enable step: $(body)"
 body | grep -q 'alert-path-probe' && ! body | grep -q 'daily-backup' \
   && ok "body names ONLY the probe check (everything else still OK)" || no "body: $(body)"
-grep -q 'RESULT: 10 ok, 1 failed' "$WORK/out.log" && ok "10 ok / 1 failed" || no "expected 10 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
 
 reset_fixture; rm "$FIX/profile/alerts/last-alert-probe.json"; run_checks
 [ "$RC" -ne 0 ] && body | grep -q 'alert-path-probe: no alert-path probe marker at all' \
@@ -481,7 +497,7 @@ reset_fixture; write_probe_marker "$FIX/profile/alerts/last-alert-probe.json" "$
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -qE "alert-path-probe: the probe marker's finished_at is (49|50)h in the FUTURE" \
   && ok "a +50h probe marker → FAIL naming the skew (never a silent OK)" || no "future probe marker not reported: rc=$RC $(body)"
 body | grep -q 'clock skew' && ok "…and the FAIL names clock skew as the cause to look for" || no "FAIL does not name clock skew: $(body)"
-grep -q 'RESULT: 10 ok, 1 failed' "$WORK/out.log" && ok "10 ok / 1 failed" || no "expected 10 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
 
 reset_fixture; printf '{\n  "schema": 1,\n  "finished_at": "not-a-date",\n  "source": "alert-webhook-probe"\n}\n' \
   > "$FIX/profile/alerts/last-alert-probe.json"; run_checks
@@ -504,6 +520,74 @@ write_probe_marker "$FIX/elsewhere.json" "$(iso_hours_ago 1)"
 run_checks PROFILE_CHECKS_ALERT_PROBE_MARKER_FILE="$FIX/elsewhere.json"
 [ "$RC" -eq 0 ] && grep -q 'alert-path-probe: the monitoring box reached the alert webhook 1h ago' "$WORK/out.log" \
   && ok "marker path env-overridable (the off-box test seam)" || no "marker path override ignored (rc=$RC):"$'\n'"$OUT"
+
+echo "=== C23: name-change digest marker (task 0283, check 12) — the heartbeat's mechanical observer ==="
+# The digest's design makes its ABSENCE the signal. Without this check the only observer of
+# that absence is a human who happens to remember, and a failed send leaves nothing but a line
+# in a cron log nobody reads. The marker is written ONLY on a successful send, so it ages when
+# Telegram delivery stops — which is the one failure check 11 (the alert-path probe) cannot see.
+reset_fixture; run_checks
+[ "$RC" -eq 0 ] && grep -q 'name-change-digest: the daily name-change digest reached Telegram 4h ago' "$WORK/out.log" \
+  && ok "a fresh digest marker → OK naming the age" || no "fresh digest marker not OK (rc=$RC):"$'\n'"$OUT"
+grep -q 'name-change-digest.*NOT proof that the alert path works' "$WORK/out.log" \
+  && ok "…and the OK line refuses to over-claim (Telegram delivery only)" || no "OK line over-claims: $OUT"
+
+reset_fixture; write_digest_marker "$FIX/profile/digest/last-name-change-digest.json" "$(iso_hours_ago 30)"; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q 'name-change-digest: no name-change digest delivered for 30h (> 26h)' \
+  && ok "a 30h-old marker → FAIL naming the age and the threshold" || no "stale digest marker not reported: rc=$RC $(body)"
+body | grep -q 'profile-name-change-digest.log' && ok "…and the FAIL names the log to look in" || no "FAIL does not name the log: $(body)"
+# Review R2 / owner disposition D3. THREE different faults age this marker, and a page that
+# names only the Telegram one sends the operator hunting a delivery fault while Postgres is
+# down — or while Telegram is fine and only the marker write is broken.
+{ body | grep -q 'marker write failed' && body | grep -q 'POSTGRES'; } \
+  && ok "…and names all three causes (Telegram / the marker write / the DB), not just Telegram" \
+  || no "stale FAIL names only the Telegram causes: $(body)"
+body | grep -q 'name-change-digest' && ! body | grep -q 'daily-backup' \
+  && ok "body names ONLY the digest check (everything else still OK)" || no "body: $(body)"
+grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
+
+reset_fixture; rm "$FIX/profile/digest/last-name-change-digest.json"; run_checks
+[ "$RC" -ne 0 ] && body | grep -q 'name-change-digest: no name-change digest marker at all' \
+  && ok "no marker at all → FAIL (never run, or every run failing)" || no "missing digest marker not reported: rc=$RC $(body)"
+# A profile image rolled back to a build predating 0283 writes no marker either, and the cron
+# line then logs 'Missing script' daily — which reads exactly like a broken Telegram path.
+body | grep -q 'rolled back to a build predating' && ok "…and the FAIL names the rolled-back-image case too" || no "FAIL omits the rollback case: $(body)"
+body | grep -q 'FEEDBACK_TELEGRAM_TOKEN' && ok "…and names the VARIABLES to check, never a token or a chat" || no "FAIL does not name the variables: $(body)"
+# Review R2 / owner disposition D3, on the missing-marker path too.
+{ body | grep -q 'marker write failed' && body | grep -q 'POSTGRES'; } \
+  && ok "…and names all three causes (Telegram / the marker write / the DB), not just Telegram" \
+  || no "missing-marker FAIL names only the Telegram causes: $(body)"
+
+# The owner made the negative-age guard mandatory at the plan gate (the 0284 review R5 lesson,
+# applied before it could be re-learned). A future-dated stamp gives a negative age that `-gt`
+# reads as FRESH, so the check would report green for as long as the skew lasted.
+reset_fixture; write_digest_marker "$FIX/profile/digest/last-name-change-digest.json" "$(iso_hours_ago -50)"; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -qE "name-change-digest: the digest marker's finished_at is (49|50)h in the FUTURE" \
+  && ok "a +50h digest marker → FAIL naming the skew (never a silent OK)" || no "future digest marker not reported: rc=$RC $(body)"
+body | grep -q 'clock skew' && ok "…and the FAIL names clock skew as the cause to look for" || no "FAIL does not name clock skew: $(body)"
+grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
+
+reset_fixture; printf '{\n  "schema": 1,\n  "finished_at": "not-a-date",\n  "source": "name-change-digest"\n}\n' \
+  > "$FIX/profile/digest/last-name-change-digest.json"; run_checks
+[ "$RC" -ne 0 ] && body | grep -q "name-change-digest: the digest marker's finished_at is unparseable ('not-a-date')" \
+  && ok "an unparseable finished_at → FAIL, never a silent OK (a torn write is the realistic cause)" || no "unparseable digest marker not reported: rc=$RC $(body)"
+
+reset_fixture; write_digest_marker "$FIX/profile/digest/last-name-change-digest.json" "$(iso_hours_ago 30)"
+run_checks PROFILE_CHECKS_MAX_NAME_CHANGE_DIGEST_AGE_HOURS=48
+[ "$RC" -eq 0 ] && grep -q 'name-change-digest: the daily name-change digest reached Telegram 30h ago' "$WORK/out.log" \
+  && ok "threshold env-overridable (30h ≤ 48h → OK)" || no "digest threshold override ignored (rc=$RC):"$'\n'"$OUT"
+
+reset_fixture; write_digest_marker "$FIX/profile/digest/last-name-change-digest.json" "$(iso_hours_ago 30)"
+run_checks PROFILE_CHECKS_MAX_NAME_CHANGE_DIGEST_AGE_HOURS=abc
+[ "$RC" -ne 0 ] && body | grep -q "thresholds: PROFILE_CHECKS_MAX_NAME_CHANGE_DIGEST_AGE_HOURS='abc' is not a non-negative integer — default 26 used" \
+  && body | grep -q 'name-change-digest: no name-change digest delivered for 30h (> 26h)' \
+  && ok "junk threshold → FAIL + the default 26 still catches the 30h marker (no silent OK)" || no "junk digest threshold: rc=$RC body=$(body)"
+
+reset_fixture; rm "$FIX/profile/digest/last-name-change-digest.json"
+write_digest_marker "$FIX/digest-elsewhere.json" "$(iso_hours_ago 4)"
+run_checks PROFILE_CHECKS_NAME_CHANGE_DIGEST_MARKER_FILE="$FIX/digest-elsewhere.json"
+[ "$RC" -eq 0 ] && grep -q 'name-change-digest: the daily name-change digest reached Telegram 4h ago' "$WORK/out.log" \
+  && ok "marker path env-overridable (the off-box test seam)" || no "digest marker path override ignored (rc=$RC):"$'\n'"$OUT"
 
 echo "=== C17: secret-leak guard across EVERY run above ==="
 # Log and ping bodies must never carry the access key, secret, bucket, endpoint host or ping URL.

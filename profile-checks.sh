@@ -21,6 +21,10 @@
 #     A stale marker means that box can no longer reach the route — the failure that permanently
 #     disables the notification channel (403 ⇒ channel disabled, silently, forever). It proves
 #     REACHABILITY only: not Telegram delivery, and not a channel that is already disabled.
+#   - the name-change digest marker /opt/profile/digest/last-name-change-digest.json (task 0283):
+#     the digest CLI stamps it INSIDE the container only when its daily message actually reached
+#     Telegram. A stale marker means Telegram delivery from this box has stopped — the one thing
+#     check 11 cannot see. The two are complementary and neither substitutes for the other.
 #   - the certbot renewal log: an attempt happened recently (certbot appends to letsencrypt.log
 #     on EVERY run, including "not yet due" ones — the cron's own certbot-renew.log stays empty
 #     under --quiet unless something errs), the attempt did not error (certbot-renew.log grew),
@@ -52,6 +56,10 @@ SMOKE_MARKER="${PROFILE_CHECKS_SMOKE_MARKER_FILE:-$BACKUP_DIR/last-smokecheck.js
 # Task 0284: written by the relay INSIDE the profile-api container and visible here only
 # because setup-profile.sh bind-mounts $PROFILE_DIR/alerts into it.
 PROBE_MARKER="${PROFILE_CHECKS_ALERT_PROBE_MARKER_FILE:-$PROFILE_DIR/alerts/last-alert-probe.json}"
+# Task 0283: written by the digest CLI INSIDE the profile-api container and visible here only
+# because setup-profile.sh bind-mounts $PROFILE_DIR/digest into it. A SIBLING of alerts/ — the
+# two markers are different signals (Telegram delivery vs alert-path reachability).
+DIGEST_MARKER="${PROFILE_CHECKS_NAME_CHANGE_DIGEST_MARKER_FILE:-$PROFILE_DIR/digest/last-name-change-digest.json}"
 LE_LOG="${PROFILE_CHECKS_LE_LOG:-/var/log/letsencrypt/letsencrypt.log}"
 RENEW_LOG="${PROFILE_CHECKS_RENEW_LOG:-/var/log/certbot-renew.log}"
 REBOOT_REQUIRED_FILE="${PROFILE_CHECKS_REBOOT_REQUIRED_FILE:-/var/run/reboot-required}"
@@ -83,6 +91,10 @@ DISK_PATHS="${PROFILE_CHECKS_DISK_PATHS:-/}"
 # channel disable is permanent either way, so a faster page only shortens how long you were
 # blind; it does not change the repair.
 MAX_ALERT_PROBE_AGE_HOURS="${PROFILE_CHECKS_MAX_ALERT_PROBE_AGE_HOURS:-3}"
+# Task 0283. The digest cron runs DAILY at 04:00 UTC and this file runs at 08:00 UTC, so the
+# normal age here is ~4h. 26h is the same "one missed daily run" tolerance the backup marker
+# uses — the first missed digest pages at the next 08:00.
+MAX_NAME_CHANGE_DIGEST_AGE_HOURS="${PROFILE_CHECKS_MAX_NAME_CHANGE_DIGEST_AGE_HOURS:-26}"
 
 # rclone is configured purely via the RCLONE_CONFIG_PROFILES_* vars in backup.env (same as
 # profile-backup.sh); /dev/null silences the "config file not found" notice.
@@ -129,6 +141,7 @@ int_or_default CERT_MIN_DAYS               PROFILE_CHECKS_CERT_MIN_DAYS         
 int_or_default DISK_MAX_PCT                PROFILE_CHECKS_DISK_MAX_PCT                80
 int_or_default MAX_PLAYER_GROWTH_24H       PROFILE_CHECKS_MAX_PLAYER_GROWTH_24H       20000
 int_or_default MAX_ALERT_PROBE_AGE_HOURS   PROFILE_CHECKS_MAX_ALERT_PROBE_AGE_HOURS   3
+int_or_default MAX_NAME_CHANGE_DIGEST_AGE_HOURS PROFILE_CHECKS_MAX_NAME_CHANGE_DIGEST_AGE_HOURS 26
 
 # ── Mode: is this box off-box-configured at all? ─────────────────────────────
 OFFBOX=0
@@ -471,6 +484,41 @@ check_alert_probe() {
   fi
 }
 
+# 12) The daily name-change digest actually ARRIVED in Telegram (task 0283). The digest's own
+#     design makes its ABSENCE the signal — but without this check the only observer of that
+#     absence is a human who happens to remember, and a failed send writes nothing but a line
+#     in a cron log nobody reads (the 0219 shape). This turns the silence into a page, over the
+#     EXTERNAL dead-man's switch — a path that touches neither the monitoring stack nor
+#     Telegram, which is exactly why it still works when the thing it watches has broken.
+#     The marker is written ONLY on a successful send, so it ages when delivery fails.
+#     ⛔ What a green line does NOT mean: it says a Telegram message left this box and was
+#     accepted. It says nothing about Uptrace alert delivery (check 11 owns that, and neither
+#     substitutes for the other), and nothing about any individual per-request notification.
+#     ⛔ Variable names only in the FAIL text — never a host, an address, a topic or a token.
+check_name_change_digest() {
+  local name="name-change-digest" finished age_h
+  if [ ! -f "$DIGEST_MARKER" ]; then
+    fail "$name" "no name-change digest marker at all (max ${MAX_NAME_CHANGE_DIGEST_AGE_HOURS}h) — the digest cron has never run, or every run has failed. ⚠️ READ /var/log/profile-name-change-digest.log BEFORE BLAMING TELEGRAM — three different faults land here: (1) Telegram delivery failed (check FEEDBACK_TELEGRAM_TOKEN / FEEDBACK_TELEGRAM_CHAT_ID / TELEGRAM_PROXY_URL); (2) the message ARRIVED but the marker write failed — the log says 'could not write the freshness marker' and the run still exits 0, so suspect the digest/ mount or the disk, not Telegram; (3) the DB query threw, so nothing was sent at all and this is a POSTGRES fault. A profile image rolled back to a build predating task 0283 also never writes it — the cron line then logs a missing-script error daily"
+    return 0
+  fi
+  finished="$(json_field "$DIGEST_MARKER" finished_at)"
+  age_h="$(hours_since "$finished")"
+  if [ -z "$age_h" ]; then
+    fail "$name" "the digest marker's finished_at is unparseable ('${finished}') — treat it as no digest at all until the next one lands"
+  elif [ "$age_h" -lt 0 ]; then
+    # Review R5's lesson, applied before it could be re-learned (owner ruling at the 0283 plan
+    # gate: the negative-age guard is MANDATORY here). A future-dated stamp gives a NEGATIVE
+    # age, and `-gt` reads that as fresh — so this check would report green for as long as the
+    # clock skew lasted, however long ago the last digest actually arrived. Clock skew between
+    # the container and this box, or a restored/hand-edited marker, is how it happens.
+    fail "$name" "the digest marker's finished_at is ${age_h#-}h in the FUTURE ('${finished}') — clock skew between this box and the digest's container, or a hand-edited marker. Treat it as no digest at all: a negative age would otherwise read GREEN while no digest was arriving"
+  elif [ "$age_h" -gt "$MAX_NAME_CHANGE_DIGEST_AGE_HOURS" ]; then
+    fail "$name" "no name-change digest delivered for ${age_h}h (> ${MAX_NAME_CHANGE_DIGEST_AGE_HOURS}h) — the digest cron is not running, or every run has failed. ⚠️ READ /var/log/profile-name-change-digest.log BEFORE BLAMING TELEGRAM — the same three faults as a missing marker: (1) Telegram delivery from this box has stopped; (2) the message ARRIVED but the marker write failed ('could not write the freshness marker' in the log) — suspect the digest/ mount or the disk, not Telegram; (3) the DB query threw, so nothing was sent at all and this is a POSTGRES fault"
+  else
+    ok "$name" "the daily name-change digest reached Telegram ${age_h}h ago (max ${MAX_NAME_CHANGE_DIGEST_AGE_HOURS}h) — Telegram delivery only, NOT proof that the alert path works"
+  fi
+}
+
 # ── Report: log summary, then ping the dead-man's switch ──────────────────────
 # curl's stderr is discarded on purpose: its error text can carry the URL. The service alerts on
 # a MISSING ping, so an undelivered ping is logged, exits non-zero, and still pages.
@@ -509,4 +557,5 @@ check_reboot_required
 check_disk_usage
 check_players_growth
 check_alert_probe
+check_name_change_digest
 report

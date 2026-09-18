@@ -33,7 +33,7 @@ ruled the **requirement** and the **ordering**. They did **not** rule which boar
 3. **The Backlog board has a demonstrated hold-forever failure mode.**
    [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from
    2026-08-23 until 2026-09-17 because nothing forced a re-look — the same precedent
-   [`0283`](../../backlog/0283-daily-digest-of-pending-name-change-reviews/brief.md)'s brief names against itself.
+   [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md)'s brief names against itself.
 4. **The cost is small enough to fit behind `0277` in the same sprint** — see *Effort*.
 
 **The tradeoff, stated honestly:** this adds a row to a board that already carries 24 open rows, and it
@@ -136,7 +136,7 @@ binary-disassembly evidence, not observation.**
 2. It does **not** check the secret the monitoring stack's own channel config holds — a separate copy from the
    cron's.
 3. It proves **nothing about Telegram delivery**: the marker is written on receipt, **before** any send.
-   [`0283`](../../backlog/0283-daily-digest-of-pending-name-change-reviews/brief.md) is that half.
+   [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md) is that half.
 4. It does **not** prove any monitor is attached to the channel.
 5. **It does not discharge [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md)
    amendment A1** (delivery after an idle period) — and ⚠️ an hourly probe may actively **mask** an idle-path
@@ -208,7 +208,7 @@ question a reader would think to ask. Do not add this check.
 **2. `setup-profile.sh` already prints the allowlist at deploy** (since `0276`). Free, correct, keep
 it — but it guards **nothing between deploys**, and the address can move without a deploy.
 
-**3. 🚨 [`0283`](../../backlog/0283-daily-digest-of-pending-name-change-reviews/brief.md)'s daily digest does NOT
+**3. 🚨 [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md)'s daily digest does NOT
 cover this, and is ACTIVELY MISLEADING about it.**
 The digest is produced on the box that already holds the data and sent **straight through the Telegram
 helper**. It **never touches Uptrace**, **never crosses the `/internal/` allowlist**, and **never
@@ -306,7 +306,7 @@ the plan** — refine the mechanics, keep the shape.
   statement of fact about what shipped, **not** an owner ruling and not a change of this task's scope.
 - **Blocks:** nothing.
 - **Related:**
-  - [`0283`](../../backlog/0283-daily-digest-of-pending-name-change-reviews/brief.md) — ⚠️ **complements, it does
+  - [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md) — ⚠️ **complements, it does
     not duplicate.** This task proves the alert path is **reachable**; `0283`'s daily beat proves
     **Telegram delivery** is alive. **Neither covers the other half**, and the marker here is written
     **on receipt, before any send** — so this task says nothing about whether a message reached a human.

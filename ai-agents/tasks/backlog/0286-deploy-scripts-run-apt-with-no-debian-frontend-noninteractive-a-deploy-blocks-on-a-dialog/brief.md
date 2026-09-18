@@ -24,7 +24,7 @@ precedent — one ruling, one task.
 **Producer's call: Sprint 4, appended, Low.** Reasoning, so the owner can overturn it in one edit:
 
 1. **The cost recurs inside this sprint, not after it.** Sprint 4 is still actively deploying to these boxes —
-   [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md) and
+   [`0283`](../../done/0283-daily-digest-of-pending-name-change-reviews/brief.md) and
    [`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)
    both end in a deploy — so the owner pays this toll again on each one.
 2. **The fix is minutes, not a day.** See *Effort*.
@@ -138,7 +138,7 @@ one does not fix the other, and neither should be described as fixing both.
 - **Related:**
   - [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)
     — the deploy during which this was observed. ⚠️ **Observed during, NOT caused by** — lead-verified.
-  - [`0282`](../0282-setup-profile-unquoted-heredoc-executes-compose-comments-as-root/brief.md) — another
+  - [`0282`](../../done/0282-setup-profile-unquoted-heredoc-executes-compose-comments-as-root/brief.md) — another
     `setup-profile.sh` defect; if both are taken together, one harness run covers both.
   - [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the source of
     the daily-checks and harness shape these scripts are anchored to.

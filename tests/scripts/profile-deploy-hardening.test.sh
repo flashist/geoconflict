@@ -392,9 +392,43 @@ echo "== Structural: profile-box log retention + image prune + checks wiring (02
 P="$REPO_ROOT/setup-profile.sh"
 B="$REPO_ROOT/build-deploy-profile.sh"
 # The compose file heredoc, and only it.
-COMPOSE_BLOCK=$(awk '/cat > "\$PROFILE_DIR\/docker-compose.yml" << EOF/{b=1; next} b && /^EOF$/{exit} b{print}' "$P")
+# The anchor deliberately stops at "<< " and does NOT name the delimiter: the delimiter is
+# quoted ('EOF') since 0282, and an anchor spelling one form would go silently VACUOUS if the
+# other were used. N1 below asserts the quoting explicitly instead.
+COMPOSE_BLOCK=$(awk '/cat > "\$PROFILE_DIR\/docker-compose.yml" << /{b=1; next} b && /^EOF$/{exit} b{print}' "$P")
 [ -n "$COMPOSE_BLOCK" ] && pass "setup-profile.sh: located the docker-compose.yml heredoc" \
   || fail "setup-profile.sh: no docker-compose.yml heredoc found (the checks below would be vacuous)"
+# ── Task 0282: the compose heredoc must not be able to EXECUTE anything ───────────────────
+# The defect: an UNQUOTED delimiter expands the body, so a backtick in a YAML COMMENT became a
+# command substitution that ran AS ROOT at deploy time (one of them was 'docker compose stop').
+# N1 locks the quoting; N2/N3 ban the two substitution syntaxes outright (a rule that had to
+# tell ` from \` would be the brittle one); N4 gates the FIX's own failure mode.
+grep -qF "cat > \"\$PROFILE_DIR/docker-compose.yml\" << 'EOF'" "$P" \
+  && pass "compose heredoc: delimiter is quoted ('EOF') — the body cannot expand (0282)" \
+  || fail "compose heredoc: delimiter is NOT quoted — a backtick or \$( ) in a COMMENT executes as root at deploy time (task 0282)"
+printf '%s\n' "$COMPOSE_BLOCK" | grep -q '`' \
+  && fail "compose heredoc: a backtick appears in the block — use single quotes in comments (0282)" \
+  || pass "compose heredoc: no backticks (0282)"
+printf '%s\n' "$COMPOSE_BLOCK" | grep -qF '$(' \
+  && fail "compose heredoc: a \$( ) command substitution appears in the block (0282)" \
+  || pass "compose heredoc: no \$( ) command substitution (0282)"
+# Every ${NAME} left in the template must have an explicit substitution line after the heredoc.
+# Without this, a newly added placeholder reaches the box unexpanded and Docker interpolates it
+# from the box environment (or to empty) — a silent wrong port/healthcheck.
+for v in $(printf '%s\n' "$COMPOSE_BLOCK" \
+            | grep -oE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' | tr -d '${}' | sort -u); do
+  grep -qF "compose_rendered//'\${$v}'" "$P" \
+    && pass "compose heredoc: \${$v} has an explicit substitution line (0282)" \
+    || fail "compose heredoc: \${$v} is in the template but never substituted — it would reach the box unexpanded (0282)"
+done
+# N5 (review 0282 R2): the UNBRACED $NAME form is banned outright. Only ${NAME} is substituted,
+# but Compose interpolates BOTH — so an unbraced placeholder would reach the box, be replaced
+# with a blank string (an error in ports:, silently wrong in a healthcheck), and be caught by
+# neither N4's braced-only regex nor the old braced-only runtime guard. $$ is Compose's escape
+# for a literal dollar and is legitimate, so the pairs are stripped before the scan.
+printf '%s\n' "$COMPOSE_BLOCK" | sed 's/\$\$//g' | grep -qE '\$[A-Za-z_]' \
+  && fail "compose heredoc: an UNBRACED \$NAME appears in the block — only \${NAME} is substituted, so Compose would interpolate it on the box (0282)" \
+  || pass "compose heredoc: no unbraced \$NAME placeholders (0282)"
 # Services = 2-space-indented keys under services: (before the top-level volumes: key).
 n_services=$(printf '%s\n' "$COMPOSE_BLOCK" | awk '/^volumes:/{exit} /^  [a-z][a-z0-9-]*:$/{n++} END{print n+0}')
 n_logging=$(printf '%s\n' "$COMPOSE_BLOCK" | grep -cE '^    logging:$' || true)
@@ -975,7 +1009,10 @@ D="$REPO_ROOT/Dockerfile.profile"
 C="$REPO_ROOT/profile-checks.sh"
 # G7 — restart policy, inside the compose heredoc only. unless-stopped on EVERY service, and
 # on-failure (the daemon-restart hole) nowhere. n_services comes from the 0219 block above.
-COMPOSE_BLOCK=$(awk '/cat > "\$PROFILE_DIR\/docker-compose.yml" << EOF/{b=1; next} b && /^EOF$/{exit} b{print}' "$P")
+# The anchor deliberately stops at "<< " and does NOT name the delimiter: the delimiter is
+# quoted ('EOF') since 0282, and an anchor spelling one form would go silently VACUOUS if the
+# other were used. N1 below asserts the quoting explicitly instead.
+COMPOSE_BLOCK=$(awk '/cat > "\$PROFILE_DIR\/docker-compose.yml" << /{b=1; next} b && /^EOF$/{exit} b{print}' "$P")
 n_unless=$(printf '%s\n' "$COMPOSE_BLOCK" | grep -cE '^    restart: unless-stopped$' || true)
 n_onfail=$(printf '%s\n' "$COMPOSE_BLOCK" | grep -cE '^    restart: on-failure' || true)
 [ "$n_services" -ge 2 ] && [ "$n_unless" = "$n_services" ] \
@@ -1668,6 +1705,144 @@ run_probe "STUB_CURL_BODY={\"status\":\"$RELAY_PROBE_STATUS\"}"
   && pass "probe: an empty URL/secret exits non-zero and says NOT CONFIGURED" \
   || fail "probe: an unconfigured probe did not fail (rc=$PRC)"
 rm -rf "$PROBE_RUN_DIR"
+
+echo "== Structural: daily name-change digest (task 0283) =="
+# Review R1. setup-profile.sh's executable bit went 755 → 644 in the working tree during this
+# task and nothing noticed: build-deploy-profile.sh runs its own `chmod +x` on the copy before
+# scp, so every deploy kept working while `./setup-profile.sh` run directly failed — and that
+# same chmod re-dirties the tree on every deploy. The filesystem bit is asserted rather than the
+# git index mode on purpose: the index still read 100755 the whole time, so an index check would
+# have missed this exact drift, and `[ -x ]` needs no git and no work tree.
+[ -x "$P" ] \
+  && pass "setup-profile.sh is executable (the bit build-deploy-profile.sh's own chmod +x masks)" \
+  || fail "setup-profile.sh has lost its executable bit — deploys still work (build-deploy-profile.sh chmods the copy) but ./setup-profile.sh does not, and the chmod re-dirties the tree every deploy. Fix: chmod 755 setup-profile.sh"
+# The digest's ONE guarantee is "exactly one message a day". Nothing in the code can enforce
+# that — cron owns the schedule — so the cron line itself is what has to be asserted, and the
+# only way this design can double-send is two cron lines. $CRON_HEADER is extracted above
+# (the always-present block, written in BOTH backup modes).
+DIGEST_CRON=$(printf '%s\n' "$CRON_HEADER" \
+  | grep -E '^0 [0-9]+ \* \* \* root docker compose -f \$PROFILE_DIR/docker-compose\.yml exec -T profile-api npm run digest:name-changes' || true)
+n_digest_cron=$(printf '%s\n' "$DIGEST_CRON" | grep -c . || true)
+[ "$n_digest_cron" = "1" ] \
+  && pass "cron header: EXACTLY ONE name-change digest line (two would double-send every day)" \
+  || fail "cron header: found $n_digest_cron digest cron line(s), expected exactly 1 — 0 means no digest, 2+ means a duplicate message every day (0283)"
+# A daily schedule, not */N. An hour field of */2 turns the heartbeat into a flood and would
+# still match the anchor above if the anchor were looser.
+DIGEST_HOUR=$(printf '%s\n' "$DIGEST_CRON" | awk 'NR==1{print $2}')
+DIGEST_DOM=$(printf '%s\n' "$DIGEST_CRON" | awk 'NR==1{print $3}')
+DIGEST_MON=$(printf '%s\n' "$DIGEST_CRON" | awk 'NR==1{print $4}')
+DIGEST_DOW=$(printf '%s\n' "$DIGEST_CRON" | awk 'NR==1{print $5}')
+{ printf '%s' "$DIGEST_HOUR" | grep -qE '^[0-9]+$'; } \
+  && [ "$DIGEST_DOM" = "*" ] && [ "$DIGEST_MON" = "*" ] && [ "$DIGEST_DOW" = "*" ] \
+  && pass "cron header: the digest runs DAILY at a fixed hour ($DIGEST_HOUR:00 UTC)" \
+  || fail "cron header: the digest schedule is not a fixed daily hour (hour='$DIGEST_HOUR' dom='$DIGEST_DOM' mon='$DIGEST_MON' dow='$DIGEST_DOW') — a */N hour would flood the topic"
+# Review R3: pin the OWNER'S hour, not merely "some fixed hour". The other two rulings on this
+# feature are mechanically pinned (the zero-count grep below, the negative-age guard at the end);
+# without this one, moving the digest to any other hour passes every test. The minute is already
+# pinned to 0 by the anchor above. ⛔ Only the owner changes this number.
+[ "$DIGEST_HOUR" = "4" ] \
+  && pass "cron header: …and the hour is the owner's 04:00 UTC = 07:00 MSK (Moscow is UTC+3 year-round)" \
+  || fail "cron header: the digest hour is '$DIGEST_HOUR', not the owner's 4 (04:00 UTC = 07:00 MSK, ruling at the 0283 plan gate). The hour is an owner decision — do not re-point it here, take it back to the owner"
+# </dev/null so a compose exec can never consume cron's stdin, and a log to look in when it
+# fails (the exit code is the only other signal, and nothing else records it).
+printf '%s\n' "$DIGEST_CRON" | grep -qF '</dev/null' \
+  && pass "cron header: the digest line closes stdin (</dev/null)" \
+  || fail "cron header: the digest line does not redirect </dev/null — a compose exec can consume cron's stdin"
+printf '%s\n' "$DIGEST_CRON" | grep -qE '>> /var/log/[A-Za-z0-9._-]+\.log 2>&1$' \
+  && pass "cron header: the digest line appends stdout+stderr to a log file" \
+  || fail "cron header: the digest line does not append to a /var/log file — a failure would leave no trace at all"
+# Drift guard: the npm script the cron line invokes must exist, and its target file must exist.
+# Two files agreeing on one string, the same shape as the ALERT_PROBE_MARKER_PATH guard above.
+DIGEST_SCRIPT=$(printf '%s\n' "$DIGEST_CRON" | sed -n 's/.*npm run \([A-Za-z0-9:_-]*\).*/\1/p' | head -1)
+DIGEST_SCRIPT_CMD=$(sed -n "s/^[[:space:]]*\"$DIGEST_SCRIPT\": \"\(.*\)\",\{0,1\}$/\1/p" "$REPO_ROOT/package.json" | head -1)
+[ -n "$DIGEST_SCRIPT" ] && [ -n "$DIGEST_SCRIPT_CMD" ] \
+  && pass "package.json declares the '$DIGEST_SCRIPT' script the cron line runs" \
+  || fail "package.json has no '$DIGEST_SCRIPT' script — the cron line would log 'Missing script' daily and send nothing (0283)"
+DIGEST_ENTRY=$(printf '%s\n' "$DIGEST_SCRIPT_CMD" | tr ' ' '\n' | grep -E '^src/.*\.ts$' | head -1)
+[ -n "$DIGEST_ENTRY" ] && [ -f "$REPO_ROOT/$DIGEST_ENTRY" ] \
+  && pass "…and its entry file exists ($DIGEST_ENTRY)" \
+  || fail "the '$DIGEST_SCRIPT' script's entry file is missing or unreadable ('$DIGEST_ENTRY')"
+# The trap: a one-shot CLI that imports Server.ts BINDS A PORT at module load, so on the box it
+# fights the running container for the port. ⚠️ Stakes stated honestly (review R7): this is NOT
+# silent — EADDRINUSE exits non-zero, the marker is withheld, and check 12 pages within 26h. It
+# is asserted statically because the failure would otherwise first appear in production, a day
+# late, wearing the costume of a broken Telegram path.
+#
+# ⚠️ Scanned over the WHOLE comment-stripped file, not over `^import ` lines (review R7). The
+# line-anchored form missed three real shapes: `"./Server.js"` (a legal respelling), a
+# `require()`, and — the one prettier actually produces — a MULTI-LINE import whose
+# `} from "./Routes";` line does not start with `import `. Matching the quoted specifier
+# instead catches all of them, including a bare side-effect import.
+DIGEST_ENTRY_CODE=$(sed -e 's#//.*##' "$REPO_ROOT/$DIGEST_ENTRY" | grep -v '^[[:space:]]*\*')
+printf '%s\n' "$DIGEST_ENTRY_CODE" | grep -qE '["'"'"']\./NameChangeDigest(\.[jt]s)?["'"'"']' \
+  && pass "digest entry: the specifier scan matches this file's own import shape (the checks below are not vacuous)" \
+  || fail "digest entry: the specifier scan cannot even find ./NameChangeDigest in $DIGEST_ENTRY — the import-surface checks below would be vacuous"
+for forbidden in Server Routes Telemetry; do
+  printf '%s\n' "$DIGEST_ENTRY_CODE" | grep -qE "[\"']\./${forbidden}(\.[jt]s)?[\"']" \
+    && fail "digest entry: references ./$forbidden — Server.ts calls listen() at module load, so the cron job would bind a port and be killed by EADDRINUSE (0283)" \
+    || pass "digest entry: does not reference ./$forbidden in any import, re-export or require"
+done
+# The owner's zero-count ruling, made mechanical. A later "optimisation" that skips the empty
+# digest DELETES THE HEARTBEAT — the absence of the daily message is the only signal that
+# Telegram delivery from this box has stopped. Comments are stripped first so the ruling can be
+# written out in prose in the file without tripping its own guard.
+DIGEST_MODULE="$REPO_ROOT/src/profile-server/NameChangeDigest.ts"
+DIGEST_CODE=$(sed -e 's#//.*##' "$DIGEST_MODULE" | grep -v '^[[:space:]]*\*' | grep -v '^[[:space:]]*/\*')
+printf '%s\n' "$DIGEST_CODE" | grep -q 'countPendingNameChanges' \
+  && pass "digest module: comment-stripped source still holds its code (the guard below is not vacuous)" \
+  || fail "digest module: comment stripping ate the code — the zero-count guard below would be vacuous"
+# ⚠️ Every operator must be listed explicitly: the trailing [01] means `<` does NOT also match
+# `<= 1`. `>=` was missing (review R5), so `count >= 1` slipped through. This guard pins SYNTAX
+# and will never be exhaustive — `!count`, a yoda `0 === count` and an env-gated skip all evade
+# it. The real backstop is the jest case "SENDS when the count is zero", which pins BEHAVIOUR.
+printf '%s\n' "$DIGEST_CODE" | grep -qE 'count[[:space:]]*(===|==|!==|!=|<|<=|>|>=)[[:space:]]*[01]' \
+  && fail "digest module: a branch compares the pending count against 0/1 — a 'skip when empty' path REMOVES the heartbeat (owner ruling 2026-09-17, task 0283)" \
+  || pass "digest module: no zero-count branch — the digest sends unconditionally (owner ruling)"
+# Drift guard: the compose bind mount's CONTAINER path must equal the directory of
+# NAME_CHANGE_DIGEST_MARKER_PATH, or the marker is written where nothing reads it and check 12
+# pages forever. Same failure shape as the 0284 probe marker above.
+DIGEST_MARKER_PATH=$(sed -n 's/^[[:space:]]*"\(\/var\/[^"]*last-name-change-digest\.json\)";$/\1/p' "$DIGEST_MODULE" | head -1)
+[ -n "$DIGEST_MARKER_PATH" ] && pass "NameChangeDigest.ts: read NAME_CHANGE_DIGEST_MARKER_PATH ($DIGEST_MARKER_PATH)" \
+  || fail "NameChangeDigest.ts: could not read NAME_CHANGE_DIGEST_MARKER_PATH (its shape changed — the drift guard is vacuous)"
+DIGEST_MARKER_DIR="${DIGEST_MARKER_PATH%/*}"
+DIGEST_MOUNT_TARGET=$(sed -n 's/^[[:space:]]*- \.\/digest:\(\/[^[:space:]]*\)$/\1/p' "$P" | head -1)
+[ -n "$DIGEST_MOUNT_TARGET" ] && pass "setup-profile.sh: compose bind-mounts ./digest ($DIGEST_MOUNT_TARGET)" \
+  || fail "setup-profile.sh: no './digest:<container path>' bind mount — a container-written marker is invisible to checks.sh"
+[ -n "$DIGEST_MARKER_DIR" ] && [ "$DIGEST_MARKER_DIR" = "$DIGEST_MOUNT_TARGET" ] \
+  && pass "the digest bind mount target equals NAME_CHANGE_DIGEST_MARKER_PATH's directory" \
+  || fail "DRIFT: NameChangeDigest.ts writes into '$DIGEST_MARKER_DIR' but compose mounts '$DIGEST_MOUNT_TARGET' — the marker would be written where nothing reads it"
+# ⛔ A sibling of alerts/, never the same directory: two different signals that must not be
+# confusable, and mounting backups/ would expose every encrypted dump to the app container.
+{ [ "$DIGEST_MOUNT_TARGET" != "$MOUNT_TARGET" ] && printf '%s' "$DIGEST_MOUNT_TARGET" | grep -qv 'backups'; } \
+  && pass "the digest marker has its OWN directory (not alerts/, not backups/)" \
+  || fail "the digest bind mount collides with another signal's directory ('$DIGEST_MOUNT_TARGET')"
+grep -q 'mkdir -p "\$PROFILE_DIR/digest" && chmod 700 "\$PROFILE_DIR/digest"' "$P" \
+  && pass "setup-profile.sh: creates digest/ 0700 before the compose file mounts it" \
+  || fail "setup-profile.sh: digest/ is mounted but never created 0700 — Docker would create it root-owned and world-readable"
+# Review R4 / owner disposition, 2026-09-18: the deploy runs the digest ONCE, after the cron file
+# is written, so a deploy landing in the 04:00–08:00 UTC window cannot page for a healthy system.
+# ⛔ Seeded by a REAL send, never by a synthetic marker — the marker asserts that a message
+# ARRIVED. Asserted as an in-script invocation of the same npm script the cron line runs.
+grep -qE "^if docker compose exec -T profile-api npm run $DIGEST_SCRIPT; then$" "$P" \
+  && pass "setup-profile.sh: runs the digest once at deploy time (seeds check 12's marker from a real send)" \
+  || fail "setup-profile.sh: no deploy-time 'npm run $DIGEST_SCRIPT' — a deploy between 04:00 and 08:00 UTC installs check 12 with no marker and pages once for a healthy system (0283 review R4)"
+awk "/npm run $DIGEST_SCRIPT; then/{b=1} b{print} b && /^fi\$/{exit}" "$P" | grep -q 'NOT aborted' \
+  && pass "…and it WARNS rather than aborting the deploy (check 12 already observes the failure)" \
+  || fail "setup-profile.sh: the deploy-time digest does not say it is non-fatal — a Telegram outage must not block a deploy, and the convention here is 'warn where something else already watches'"
+# And check 12 must actually exist, run, and read the same place on the HOST.
+C="$REPO_ROOT/profile-checks.sh"
+grep -qE '^DIGEST_MARKER=.*\$PROFILE_DIR/digest/last-name-change-digest\.json\}"$' "$C" \
+  && pass "profile-checks.sh: reads \$PROFILE_DIR/digest/last-name-change-digest.json" \
+  || fail "profile-checks.sh: DIGEST_MARKER does not default to \$PROFILE_DIR/digest/last-name-change-digest.json"
+grep -qE '^check_name_change_digest\(\) \{' "$C" && grep -qE '^check_name_change_digest$' "$C" \
+  && pass "profile-checks.sh: check 12 is defined AND called (a defined-but-uncalled check watches nothing)" \
+  || fail "profile-checks.sh: check_name_change_digest is not both defined and called"
+# The negative-age guard (owner ruling at the 0283 plan gate; the 0284 review R5 lesson).
+# A future-dated finished_at gives a negative age that -gt reads as FRESH, so the check would
+# stay green for the whole duration of a clock skew — worse than no check at all.
+awk '/^check_name_change_digest\(\) \{/{b=1} b{print} b && /^\}$/{exit}' "$C" | grep -qE '\[ "\$age_h" -lt 0 \]' \
+  && pass "profile-checks.sh: check 12 has the negative-age guard (a future-dated marker must never read GREEN)" \
+  || fail "profile-checks.sh: check 12 has NO negative-age guard — clock skew would hold it green while no digest arrived (0283 owner ruling)"
 
 echo
 [ "$FAILED" -eq 0 ] && { echo "ALL PASS"; exit 0; } || { echo "SOME FAILED"; exit 1; }

@@ -246,7 +246,7 @@ no config change, no new tests **for items 1–3**; item 4 needs the small asser
   reason as items 2 and 3: a wording fix plus one harness assertion is not independently worth a brief, a
   plan and a review. ⚠️ Its authority is a **driver disposition, not an owner ruling**. ⚠️ It shares
   `setup-profile.sh` and the hardening harness with item 3 **and** with
-  [`0282`](../0282-setup-profile-unquoted-heredoc-executes-compose-comments-as-root/brief.md) — soft
+  [`0282`](../../done/0282-setup-profile-unquoted-heredoc-executes-compose-comments-as-root/brief.md) — soft
   sequencing, expect a rebase if `0282` goes first. The H1 above names only items 1 and 2 and is
   deliberately left alone (the folder name is permanent).
 - **On item 3 (added 2026-09-16):** the H1 above names only items 1 and 2 — it **predates** item 3 and

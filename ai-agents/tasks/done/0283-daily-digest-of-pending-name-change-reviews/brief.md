@@ -30,7 +30,7 @@ precedent, a genuinely valuable item that sat unscheduled on this board for week
 forced a re-look.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -70,7 +70,7 @@ Changes topic** stating **how many players are currently waiting for a name revi
 A per-request notification that fails silently leaves **no trace at all** — nobody knows a message was
 owed. A once-a-day message has an expected arrival, so its **absence is observable**. That makes it a
 **partial backstop** for the silent-failure class recorded in
-[`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
+[`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
 ⚠️ **Partial, and the word is load-bearing.** It tells you the path was alive **once in the last 24
 hours**; it does **not** tell you that any individual per-request notification arrived. Do not let this
 task be used as an argument that `0061`'s fix is less necessary — `0061` fixes the send, this only
@@ -111,7 +111,7 @@ analysis.** It is settled; the plan does not get to re-open it.
 **The ruling's rationale, and it is the load-bearing part:** **a message every day doubles as a
 heartbeat.** If the digest stops arriving, that silence is itself the signal. A digest that only sends
 when there is something to report is indistinguishable from a digest whose delivery has broken — which
-is exactly the silent-failure class [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md)
+is exactly the silent-failure class [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md)
 documents, and which this project has now been bitten by **twice**: the feedback channel since August,
 and the name-change notification that could not leave the box at all until today.
 
@@ -203,10 +203,10 @@ for an assumption nobody examined.
   - 🔄 **Update 2026-09-17: the dependency stands and is live.** `0277` is now being planned, and its
     planner has been told to state what `0277` must expose for `0283` **without building it**. So this
     dependency is being honoured in `0277`'s plan, not merely asserted here.
-- **Related:** [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) — the
+- **Related:** [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) — the
   silent-failure class this digest partially backstops, and the task that owns the actual fix;
   [`0067`](../../done/0067-name-change-citizens-only/brief.md) — shipped the per-request notification
-  this one sits beside; [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) —
+  this one sits beside; [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) —
   its deploy drill now owns proving the per-request notification arrives at all.
 - **Complements (NOT redundant with):**
   [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)

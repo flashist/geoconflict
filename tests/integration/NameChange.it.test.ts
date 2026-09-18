@@ -12,6 +12,7 @@
 import { Pool } from "pg";
 import request from "supertest";
 import { InboxRepository } from "../../src/profile-server/InboxRepository";
+import { countPendingNameChanges } from "../../src/profile-server/NameChangeDigest";
 import { NameChangeRepository } from "../../src/profile-server/NameChangeRepository";
 import { createApp } from "../../src/profile-server/Routes";
 import {
@@ -512,5 +513,55 @@ RUN("citizen name change over real Postgres (integration)", () => {
       .send({ playerId: ids[CITIZEN], decision: "approve" })
       .expect(401);
     expect((await rows(CITIZEN))[0].moderation_status).toBe("pending");
+  });
+
+  // Task 0283, brief verification step 1. The digest's whole claim is that ONE number is
+  // the number of players waiting — and that claim rests on the real partial unique index
+  // player_name_history_one_pending_uq, not on anything the query itself does. So it has
+  // to be proven against the real schema: a player with several DECIDED rows and no
+  // pending one must not be counted, and history rows must not be counted as players.
+  describe("pending-review count for the daily digest (task 0283)", () => {
+    /** Insert a history row directly — the decided states the HTTP routes cannot leave. */
+    const history = (playerId: string, name: string, status: string) =>
+      pool.query(
+        `INSERT INTO player_name_history
+           (player_id, old_display_name, new_display_name, moderation_status, decided_at)
+         VALUES ($1, NULL, $2, $3, CASE WHEN $3 = 'pending' THEN NULL ELSE now() END)`,
+        [playerId, name, status],
+      );
+
+    it("counts 0 when nothing is pending", async () => {
+      await expect(countPendingNameChanges(pool)).resolves.toBe(0);
+    });
+
+    it("counts WAITING PLAYERS, not history rows, and ignores decided requests", async () => {
+      // Two players waiting…
+      await submit(CITIZEN, "WaitingOne").expect(200);
+      await submit(OTHER, "WaitingTwo").expect(200);
+      // …one player whose ONLY rows are decided — approved and rejected, several of them.
+      // A count that grouped wrongly, or counted rows, would pick this player up.
+      const settled = await createYandexPlayer(pool, "yandex-nc-settled");
+      await history(settled, "OldOne", "approved");
+      await history(settled, "OldTwo", "rejected");
+      await history(settled, "OldThree", "approved");
+      // …and a player with no history at all.
+      await createYandexPlayer(pool, "yandex-nc-silent");
+
+      const totalRows = await pool.query(
+        `SELECT count(*)::int AS n FROM player_name_history`,
+      );
+      expect(Number(totalRows.rows[0].n)).toBe(5);
+      await expect(countPendingNameChanges(pool)).resolves.toBe(2);
+    });
+
+    it("drops back as requests are decided", async () => {
+      await submit(CITIZEN, "WaitingOne").expect(200);
+      await submit(OTHER, "WaitingTwo").expect(200);
+      await expect(countPendingNameChanges(pool)).resolves.toBe(2);
+      await decide(CITIZEN, { decision: "approve" }).expect(200);
+      await expect(countPendingNameChanges(pool)).resolves.toBe(1);
+      await decide(OTHER, { decision: "reject", reason: "taken" }).expect(200);
+      await expect(countPendingNameChanges(pool)).resolves.toBe(0);
+    });
   });
 });

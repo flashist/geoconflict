@@ -640,6 +640,12 @@ chmod 700 "$PROFILE_DIR"
 # ⛔ Deliberately its own directory, NOT backups/: mounting backups/ into the app
 # container would expose every encrypted dump to it.
 mkdir -p "$PROFILE_DIR/alerts" && chmod 700 "$PROFILE_DIR/alerts"
+# digest/ (task 0283): the same pattern for the daily name-change digest's freshness
+# marker, written INSIDE the container and read on the HOST by checks.sh (check 12).
+# ⛔ Its own directory, a SIBLING of alerts/ — deliberately NOT the same one. Two
+# different signals (Telegram-delivery heartbeat vs alert-path reachability) that must
+# never be confusable. ⛔ And never backups/, for the reason stated just above.
+mkdir -p "$PROFILE_DIR/digest" && chmod 700 "$PROFILE_DIR/digest"
 
 # ── Internal service token + DATABASE_URL ─────────────────────────────────────
 # The service-to-service token (shared with the game server in T6) MUST stay stable
@@ -983,13 +989,19 @@ else
     echo "  OTLP ingest probe skipped: OTEL_EXPORTER_OTLP_ENDPOINT is empty (no metrics, no alerts)"
 fi
 
-cat > "$PROFILE_DIR/docker-compose.yml" << EOF
+# ⛔ The delimiter is QUOTED ('EOF') DELIBERATELY — task 0282. With an unquoted
+# delimiter the shell expands this body, so a backtick in a COMMENT becomes a command
+# substitution that runs AS ROOT at deploy time (one of them was 'docker compose stop').
+# Nothing in this block expands. The four values the file needs are substituted
+# explicitly below. Do not write a backtick in here, even escaped: the hardening
+# harness rejects it.
+cat > "$PROFILE_DIR/docker-compose.yml" << 'EOF'
 services:
   postgres:
     image: postgres:16-alpine
     # unless-stopped (0221, G7): comes back after a Docker DAEMON restart — on-failure did not;
-    # only systemd's reboot path covered it — without fighting a deliberate `docker compose stop`
-    # the way `always` does. Same intent as the game box's --restart=always (update.sh).
+    # only systemd's reboot path covered it — without fighting a deliberate 'docker compose stop'
+    # the way 'always' does. Same intent as the game box's --restart=always (update.sh).
     restart: unless-stopped
     # Conservative memory caps for a low-RAM box (no auto-sizing). The swapfile above
     # is the host-level cushion; these keep Postgres itself bounded (the OOM lesson).
@@ -1022,8 +1034,8 @@ services:
     image: ${PROFILE_IMAGE}
     restart: unless-stopped
     # init: true (0221, G8): PID 1 is a real init that forwards SIGTERM to node and reaps
-    # zombies. Together with Dockerfile.profile's exec-form `node` CMD this is what lets
-    # `docker stop` reach the graceful-shutdown handler (8 s drain < the 10 s stop grace).
+    # zombies. Together with Dockerfile.profile's exec-form 'node' CMD this is what lets
+    # 'docker stop' reach the graceful-shutdown handler (8 s drain < the 10 s stop grace).
     init: true
     # DATABASE_URL + PROFILE_INTERNAL_TOKEN + PROFILE_PORT come from the 0600 profile.env.
     env_file:
@@ -1042,10 +1054,18 @@ services:
     # Task 0284: the alert-path liveness probe's marker. The container path MUST equal
     # ALERT_PROBE_MARKER_PATH's directory in src/profile-server/AlertRelay.ts — two files
     # agreeing on one string, which the hardening harness asserts. A bind mount (not a
-    # named volume, not \`docker exec\`) is what makes the file visible to checks.sh on
+    # named volume, not 'docker exec') is what makes the file visible to checks.sh on
     # the host. ⛔ Never mount ./backups here.
+    # Task 0283: the daily name-change digest's freshness marker. Same contract as
+    # alerts/ above — the container path MUST equal the directory of
+    # NAME_CHANGE_DIGEST_MARKER_PATH in src/profile-server/NameChangeDigest.ts, which the
+    # hardening harness asserts. A SIBLING of alerts/, never the same directory: the two
+    # markers are different signals and must not be confusable.
+    # ⛔ No dollar sign, no backtick and no command substitution may EVER appear in this
+    # heredoc (task 0282) — the delimiter is quoted, and the harness enforces all three.
     volumes:
       - ./alerts:/var/lib/profile/alerts
+      - ./digest:/var/lib/profile/digest
     # Same retention as postgres above (0219, G1). Compose owns it — see the note there.
     logging:
       driver: json-file
@@ -1057,10 +1077,54 @@ volumes:
   postgres_data:
 EOF
 
+# ── Substitute the four intended values (task 0282) ───────────────────────────
+# Bash pattern substitution, not sed, because sed's REPLACEMENT gives & and the chosen
+# delimiter special meaning and PROFILE_IMAGE already contains / : and @.
+# ⚠️ This is NOT injection-proof, and an earlier version of this comment wrongly said it
+# was (review 0282 R1). Bash >= 5.2 turns on `patsub_replacement` by DEFAULT, so an
+# unquoted & in the replacement expands to the matched text. Measured: bash 3.2.57 keeps
+# & literal; bash 5.2.15 and 5.3.9 expand it — and the box runs the 5.x line, so the
+# lenient platform is the one this was first checked on. There is no portable inline fix:
+# quoting the replacement inserts literal " characters on bash 3.2 (also measured).
+# What makes this safe TODAY is not the substitution: it is that all four values are
+# defaulted or hard-validated above (none can contain & or a newline) and that the
+# fail-closed guard below refuses to deploy a file with a placeholder left in it.
+# Known latent, accepted as a residual (0282 R3): the four passes run in sequence over one
+# accumulating string, so an EARLIER value's bytes are re-scanned by later passes. Today's
+# four values cannot trigger it. Adding a fifth value is the moment to revisit this.
+compose_rendered=$(cat "$PROFILE_DIR/docker-compose.yml")
+compose_rendered="${compose_rendered//'${POSTGRES_USER}'/$POSTGRES_USER}"
+compose_rendered="${compose_rendered//'${POSTGRES_DB}'/$POSTGRES_DB}"
+compose_rendered="${compose_rendered//'${PROFILE_IMAGE}'/$PROFILE_IMAGE}"
+compose_rendered="${compose_rendered//'${PROFILE_PORT}'/$PROFILE_PORT}"
+printf '%s\n' "$compose_rendered" > "$PROFILE_DIR/docker-compose.yml"
+# Post-condition: no placeholder may survive, in EITHER form. Compose would interpolate a
+# leftover from the box environment (or to a blank string) and the port/healthcheck would be
+# silently wrong — worse than failing here. The unbraced $NAME form is checked too (review
+# 0282 R2): Compose interpolates it exactly like ${NAME} (measured: it warns "variable is not
+# set. Defaulting to a blank string", which then errors in ports: and is silently wrong in a
+# healthcheck), and only the braced form is substituted above.
+# $$ is Compose's escape for a LITERAL dollar and is never interpolated (measured), so the
+# pairs are removed before the scan — otherwise a legitimate $$HOME in a CMD-SHELL healthcheck
+# would hard-fail a good deploy. A single $ before a letter is left: that one really would be
+# interpolated by Compose, so failing on it is a true positive, not a false alarm.
+compose_dollar_scan=${compose_rendered//'$$'/}
+if printf '%s' "$compose_dollar_scan" | grep -q '\${'; then
+    echo "Error: docker-compose.yml still contains an unsubstituted \${...} placeholder (task 0282)."
+    exit 1
+fi
+if printf '%s' "$compose_dollar_scan" | grep -qE '\$[A-Za-z_]'; then
+    echo "Error: docker-compose.yml contains an unsubstituted \$NAME placeholder (unbraced form; task 0282)."
+    echo "Docker Compose would interpolate it from the box environment or to a blank string."
+    exit 1
+fi
+unset compose_rendered compose_dollar_scan
+
 chmod 600 "$PROFILE_DIR/docker-compose.yml"
 echo "Written: docker-compose.yml (0600)"
 echo "         alerts/ is bind-mounted into profile-api — the alert-path probe marker (task 0284)"
 echo "         is written in the container and read on the host by checks.sh."
+echo "         digest/ likewise — the name-change digest's freshness marker (task 0283)."
 
 # Every `docker compose` command below resolves the project from this directory.
 cd "$PROFILE_DIR"
@@ -1667,6 +1731,16 @@ TZ=UTC
 # object), certbot renewal attempted/errored, certificate days left; pings the dead-man's switch.
 # All logic lives in checks.sh (no % to escape here). Runs in both backup modes.
 0 8 * * * root $PROFILE_DIR/checks.sh >> /var/log/profile-checks.log 2>&1
+
+# Daily name-change digest (0283) at 04:00 UTC (07:00 MSK) — ONE message into the Name Changes
+# topic with the number of players waiting for a name review. It sends EVEN WHEN THE COUNT IS
+# ZERO (owner ruling, 2026-09-17): the daily arrival is the Telegram-delivery heartbeat, so its
+# ABSENCE is the signal. Never add a "skip when empty" condition here or in the CLI.
+# The hour is the owner's (07:00 MSK; Moscow is UTC+3 year-round). It is four hours clear of the
+# 08:00 pile-up above, so a slow checks run can never delay it, and nothing else fires at 0 4.
+# No literal percent sign in this line, so no Vixie escaping is needed. </dev/null so a compose
+# exec can never consume cron's stdin (the footgun profile-checks.sh's check 10 guards against).
+0 4 * * * root docker compose -f $PROFILE_DIR/docker-compose.yml exec -T profile-api npm run digest:name-changes </dev/null >> /var/log/profile-name-change-digest.log 2>&1
 EOF
 
 if [ "$BACKUP_MODE" = "offbox" ]; then
@@ -1707,6 +1781,41 @@ fi
 
 chmod 644 "$CRON_FILE"
 echo "✅ Cron jobs written to $CRON_FILE ($BACKUP_MODE backup mode)"
+
+# ── Seed the name-change digest's freshness marker (0283, review R4) ──────────
+# A deploy landing between 04:00 and 08:00 UTC — 07:00–11:00 MSK, an ordinary working
+# morning — installs check 12 with no marker and no digest slot before that day's 08:00
+# checks run, so the external dead-man's switch would page once for a system that is
+# working perfectly. Running the digest ONCE here (the same idiom as the migration runner
+# above) seeds the marker from a REAL successful send, and proves the whole path — image,
+# npm script, DB, proxy, token, topic, bind mount — at deploy time instead of at 04:00
+# tomorrow.
+#
+# ⛔ Deliberately NOT a synthetic marker written without sending (owner ruling, 2026-09-18):
+# the marker asserts that a message ARRIVED, so stamping one without sending would make
+# check 12 certify a delivery that never happened. The accepted side effect is ONE EXTRA
+# DIGEST MESSAGE PER DEPLOY.
+#
+# It WARNS rather than aborting, and that follows this script's own convention rather than
+# being a fresh judgement call: the deploy fails closed for faults nothing else would ever
+# notice (a bad migration, an unproven backup pipeline), and only warns where another
+# mechanism already observes the failure — exactly as the checks.sh install above does
+# ("the daily cron line is still written … which the dead-man's switch reports"). A failed
+# digest withholds the marker, so check 12 pages within 26h and that page is TRUE. Aborting
+# a deploy on a third-party Telegram outage would be strictly new, stricter behaviour.
+print_header "SEEDING THE NAME-CHANGE DIGEST MARKER"
+if docker compose exec -T profile-api npm run digest:name-changes; then
+    echo "✅ Deploy-time name-change digest sent — check 12's marker is seeded, so a deploy"
+    echo "   in the 04:00–08:00 UTC window cannot produce a false page this morning."
+else
+    echo "⚠️  WARNING: the deploy-time name-change digest FAILED (output above)."
+    echo "   The deploy is NOT aborted: nothing else on this box depends on the digest, and"
+    echo "   the failure is already observed — no marker was written, so checks.sh check 12"
+    echo "   pages through the dead-man's switch within 26h, and that page will be correct."
+    echo "   Check FEEDBACK_TELEGRAM_TOKEN / FEEDBACK_TELEGRAM_CHAT_ID / TELEGRAM_PROXY_URL /"
+    echo "   TELEGRAM_TOPIC_NAME_CHANGES in profile.env — and DATABASE_URL, because a DB fault"
+    echo "   sends nothing at all and looks identical from here."
+fi
 
 # ── Print connection info ─────────────────────────────────────────────────────
 

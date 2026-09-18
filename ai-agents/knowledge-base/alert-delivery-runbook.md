@@ -467,7 +467,12 @@ drill section above. `alert.status` = `closed`, the relay matches it, the ✅ ar
 minutes apart on a warm connection, so the stale-connection defect `0061` describes was never
 exercised. Fire once, wait 30–60 min, fire again — that second firing is the test.
 
-⚠️ **Sustained delivery is unproven until `0283` lands.** The counters here catch an _intermittent_
+⚠️ **Sustained delivery is still unproven — `0283`'s digest is BUILT but NOT YET OBSERVED ARRIVING.**
+The code, the cron line and the marker check are in the tree as of 2026-09-18
+(`ai-agents/knowledge-base/name-change-digest-runbook.md`), but nothing has been deployed and no
+message has been seen. This line flips to *proven from `<date>`* only when the owner has watched a
+real digest land in the Name Changes topic on the real box — not before. The counters here catch an
+_intermittent_
 failure (the next alert gets through carrying the news) and a _sustained_ one **not at all** — a rule
 on "the alert path failed" would travel the alert path. The only non-circular proof is a message that
 sends unconditionally on a schedule, which is `0283`'s daily digest (ruled to send even at zero count

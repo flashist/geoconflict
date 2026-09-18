@@ -220,7 +220,7 @@ the telemetry box**, whose result is reported through **the same marker / dead-m
 - **Blocks:** nothing.
 - **Related:** [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md) (built the relay;
   closed — its `✅ Done` is the owner's and is not this task's to revisit) ·
-  [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md) (the daily digest — the
+  [`0283`](../../done/0283-daily-digest-of-pending-name-change-reviews/brief.md) (the daily digest — the
   *other* half of "is the path alive", and **neither covers the other**).
 - **Effort: UNKNOWN, and deliberately not estimated.** Step 1 is an investigation against an unverified
   schema. 🚩 **Investigation-first:** if step 1's findings materially change the shape, come back to the

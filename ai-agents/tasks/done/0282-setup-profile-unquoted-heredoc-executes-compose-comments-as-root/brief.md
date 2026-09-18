@@ -16,7 +16,7 @@ High *(producer's rank — NOT owner-ruled)*
 ⚠️ Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.
 **On merit this belongs directly below `0276`**, because it is the same file and the same class of
 defect (a deploy-time layer that is weaker than it reads), and because it should land **before** the
-next `setup-profile.sh` run on the box — which [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+next `setup-profile.sh` run on the box — which [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
 mandates in order to update `PROFILE_INTERNAL_ALLOW_IPS`. Appended at the bottom (ADR-035), not
 inserted.
 
@@ -39,7 +39,7 @@ the deploy script before go-live, move this to the Backlog board — that is a r
 brief does not argue against it.** Nothing in Sprint 4 depends on it.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -144,9 +144,9 @@ deploy path that currently only corrupts comments** — not an exploited hole, a
 ## Notes
 
 - **Depends on:** nothing
-- **Blocks:** nothing. ⚠️ **It is not a blocker and must not be reported as one** — [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+- **Blocks:** nothing. ⚠️ **It is not a blocker and must not be reported as one** — [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
   can proceed without it. The Sprint 4 placement is about **riding `0217`'s deploy**, not about gating it.
-- **Sequencing (soft — merge-conflict avoidance, not a dependency):** [`0280`](../0280-correct-stale-test-figures-in-claude-md-and-stale-profile-route-table-in-architecture-md/brief.md)
+- **Sequencing (soft — merge-conflict avoidance, not a dependency):** [`0280`](../../backlog/0280-correct-stale-test-figures-in-claude-md-and-stale-profile-route-table-in-architecture-md/brief.md)
   item 3 also edits `setup-profile.sh` (moving one summary line inside the `PROFILE_DOMAIN` guard) and
   also touches the hardening harness. They are in different parts of the file, but whoever goes second
   should expect a rebase.
@@ -154,9 +154,9 @@ deploy path that currently only corrupts comments** — not an exploited hole, a
   HEAD before Sprint 4 began, and executed on every profile deploy since.
 - **Effort:** small — the edit is small. The **verification** is the work: the before/after diff of the
   generated compose file is what makes this safe, and it is not optional.
-- **Related:** [`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)
+- **Related:** [`0276`](../0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)
   (same file, same class of defect: a deploy-time layer weaker than it reads),
-  [`0254`](../0254-profile-non-root-deploy-user/brief.md) (the deploy runs as root at all — this defect
+  [`0254`](../../backlog/0254-profile-non-root-deploy-user/brief.md) (the deploy runs as root at all — this defect
   is one concrete reason that matters).
 - 🔒 No secrets, hosts, IPs or tokens in any artifact.
 - **Do not invoke the mover skills** — producer-only (ADR-033). No wiki writes.
