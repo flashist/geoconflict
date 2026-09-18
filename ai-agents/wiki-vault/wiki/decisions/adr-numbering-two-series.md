@@ -60,3 +60,4 @@ A number at or above 101 is always this project's; a number below 100 is always 
 - [[decisions/adr-111-xp-economy-rescale]] — accepted 2026-09-11 (ruled 2026-09-10). ⚠️ **Vault slug abbreviated** from its knowledge-base counterpart `adr-111-xp-economy-rescale-awards-move-up-never-down.md` — the vault's standing style, not drift. It also demonstrates the **clarification-in-place** route this page describes: it carries a dated 2026-09-11 clarification (the free-grants ruling) and stays `accepted`, and it triggered dated clarifications on ADR-101 **without** superseding it
 - [[systems/agent-conventions]] — the conventions set, and how it differs from ADRs
 - [[systems/project-brief]] — where the two-series rule is stated as a working rule for agents
+- [[decisions/adr-112-free-xp-grants]] · [[decisions/adr-113-internal-player-id]] · [[decisions/adr-114-admin-server-alert-relay]] — the three project ADRs recorded 2026-09-14 → 2026-09-17

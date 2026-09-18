@@ -263,3 +263,5 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 - [[systems/agent-conventions]] — convention 10, whose wrong-FILE recurrence is the citation defect that nearly deleted this page's 0-rows drill claim
 - [[systems/project-brief]] — the product ground truth whose "profile host" status this page's backup/restore standing qualifies
 - [[decisions/sprint-backlog]] — where task `0239`, filed out of that near-deletion, sits on the Backlog board
+- [[tasks/profile-weekly-backup-copy-verified]] — task `0241`: the first-ever weekly copy of this routine, observed from the scheduled run
+- [[tasks/profile-backup-restore-reproof-006]] — task `0275`: this routine's restore path re-proved `IDENTICAL` on the `006` schema

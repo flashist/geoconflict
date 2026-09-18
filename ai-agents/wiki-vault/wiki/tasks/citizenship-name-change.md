@@ -127,3 +127,5 @@ Green at close, after both fix rounds: `npx tsc --noEmit`, `npm run lint`, prett
 - [[tasks/yandex-payments-secret-forwarding]] — task `0195`, found during this task's build and split out as its own task; this task's Telegram variables supplied the forwarding pattern it copied
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, whose field **B8** settles this page's open question: migration `004_name_change.sql` **is** applied on the live box
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, which routed the citizenship surfaces through one shared kill-switch helper
+- [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`: this feature's operator notification gained Telegram **topic routing** there, and its **fail-silent send defect** was fixed in the same change
+- [[systems/alert-delivery]] — the topic routing and the egress proxy that notification depends on

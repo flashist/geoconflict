@@ -228,6 +228,63 @@ Task 0012 added four events for the citizens-only Personal tab inside the announ
 
 See [[features/announcements]] for the surface these attach to.
 
+## Profile Session Events (task `0273`, S4 — built 2026-09-16)
+
+The client's login session against the profile backend — one `POST /v1/login` per logged-in page load
+(`src/client/ProfileSession.ts`). See [[decisions/adr-113-internal-player-id]] and
+[[tasks/profile-identity-s2-login-and-session-token]].
+
+> ⚠️ **Unlike every citizenship and inbox event above, these are NOT gated by `CITIZENSHIP_CARD_ENABLED`.**
+> The login runs on every logged-in page load regardless of that flag, so **these six are the FIRST
+> profile events that will fire for real players** — from the S4 game deploy onward, **with the
+> citizenship card still hidden**. Nothing about them is player-visible.
+
+| Event | When |
+|---|---|
+| `Profile:Login:Succeeded` | Login returned 200 with a token that parsed. Once per page load per account. **Never** for a guest, for a player with no Yandex id, or when the profile API URL is empty or unreadable |
+| `Profile:Login:Created` | **In addition to** Succeeded, when the server reports `created: true`. The closest thing to a "new profile" counter |
+| `Profile:Login:Failed:Timeout` | The login did not answer within 5 s and was aborted |
+| `Profile:Login:Failed:Unavailable` | The server answered **503** — today `session_unavailable` (no usable session secret), later also S5's `creation_paused`. **The client cannot tell them apart and does not try** |
+| `Profile:Login:Failed:Error` | Network failure, any other non-2xx, or a 200 body that failed the schema |
+| `Profile:Session:Relogin` | A held token was rejected with 401 (expired past its 24 h TTL, or the box's session secret changed) and a fresh login was started. The request is retried once with the new token |
+
+> ⚠️ **A failed login is FINAL for that page load** (owner ruling, 2026-09-16). **Exactly one `Failed:*`
+> event fires per load** — the session latches and never retries, so a second `Failed:*` in one load is
+> impossible. ⇒ **Read `Failed:*` over `Player:YandexLoggedIn` as the share of logged-in loads that got NO
+> PROFILE AT ALL — not as a retry-adjusted error rate.** ⛔ **`Profile:Session:Relogin` is NOT a retry of a
+> failed login**; it only ever follows a token that had worked.
+
+## Profile Login Restart Events (task `0273` — built 2026-09-16)
+
+The restart after an **in-page** login. The citizenship card's guest CTA is the only surface that can open
+the Yandex auth dialog, and a login that happens mid-load leaves the page with no session token — so the
+page is reloaded and the whole start sequence runs again with the player logged in (`GameRestart.ts`).
+
+⚠️ **Gated by `CITIZENSHIP_CARD_ENABLED: false`** — the login button does not exist anywhere today, dev
+included, **so none of these can fire until the `0054` launch flip.**
+
+| Event | When |
+|---|---|
+| `Profile:Login:Restart:Requested` | The player tapped the card's login button and the Yandex dialog reported success. Exactly one of the four outcomes below follows |
+| `Profile:Login:Restart:Performed` | The page is being reloaded (whole URL kept) |
+| `Profile:Login:Restart:Cancelled` | The dialog did **not** report success — closed, failed, or no SDK. No reload. **Fires INSTEAD OF `Requested`, not after it** |
+| `Profile:Login:Restart:Suppressed:InMatch` | A match was running, so the reload was refused. **Expected to be ~0** — the match canvas covers the card, so the button is unreachable |
+| `Profile:Login:Restart:Suppressed:Latched` | This page load already restarted once (a `sessionStorage` latch). The card re-reads its profile instead |
+| `Profile:Login:Restart:Suppressed:NoStorage` | `sessionStorage` is missing or threw, so the once-per-load cap cannot be enforced and no reload happens (private mode / iframe storage policy) |
+
+**Reading these:** `Requested` = `Performed` + the three `Suppressed:*`.
+
+- A rising **`Suppressed:Latched`** means players are pressing login again on a page that reloaded and
+  **still shows them as a guest** — i.e. **the login is not sticking**, which is worth investigating and is
+  **not a bug in the latch**.
+- **`Suppressed:NoStorage` is the size of the population that can never get the restart at all** — for them
+  the login button behaves exactly as it did before S4.
+
+⚠️ **`Suppressed:NoStorage` is a deliberate, owner-approved deviation from the approved plan, which named
+five restart events** (review round 1 finding). Added because S5's monitoring builds on these events, and
+the two storage-less paths otherwise fired a `Requested` with **no outcome event at all** — unexplainable
+on a dashboard, **and hiding exactly the population most likely to be affected**.
+
 ## Monetization Measurement Baseline
 
 The Sprint 4 monetization analytics spec in [[tasks/monetization-analytics-spec]] defines the measurement gate before citizenship and payments decisions should be treated as validated:
@@ -343,3 +400,6 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[systems/architecture-overview]] — the platform facade that owns the event enum
 - [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, the two event families above. ✅ **LIVE since `0.0.141` and READ 2026-09-11** — see *Win Condition & Leaderboard Award Events*. ⚠️ **Client-matches and attempts, never matches and never points banked**; ⛔ **closed but NOT fully verified**
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, which routes every citizenship surface (and the events they emit) through one shared kill-switch helper
+- [[decisions/adr-113-internal-player-id]] — the login endpoint and session token the `Profile:Login:*` families measure
+- [[tasks/profile-identity-s2-login-and-session-token]] — task `0271`, the server side of those events
+- [[systems/player-profile-store]] — the backend the login talks to

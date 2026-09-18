@@ -30,3 +30,4 @@ T4g completed the final profile-deploy hardening slice before the profile box mo
 - [[tasks/profile-game-server-deploy-env]]
 - [[tasks/profile-server-bring-up-runbook]]
 - [[tasks/profile-backend-db-api]]
+- [[tasks/internal-path-case-variant-allowlist-bypass]] — task `0276`, which added seven structural assertions over the `/internal/` nginx block to this harness

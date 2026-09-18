@@ -3,6 +3,38 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> # 📊 THE BACKLOG BOARD RE-COUNTED 2026-09-18 at `HEAD` = `00fe479`
+>
+> **`backlog.md`: 81 rows — 56 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled.**
+> *(Was 48 / 37 open when last counted on 2026-09-08.)* ⚠️ **The `➡️ Moved` rows are kept, not deleted** —
+> a row that left for Sprint 4 still shows here, and **now names its destination explicitly** (the wording
+> changed from a bare `➡️ Moved` to `➡️ Moved to Sprint 4` during this window, which is a **readability fix,
+> not a re-ranking**).
+>
+> **Filed onto this board 2026-09-13 → 2026-09-15** (each with its authority stated, and **several ruled by
+> the owner only as *"file it"* — the board and rank are the producer's**):
+> `0251` async worker message-handler throws never reach the main thread · `0252` in-page leave leaks the
+> renderer, canvas, rAF loop and Transport listeners per game · `0254` a non-root deploy user for the
+> profile box · `0255` telemetry compose restart policy · `0256` a server kick leaves `reconnect-session`
+> in localStorage · `0258` **nothing reads the certbot renewal log** · `0261` the unfixed null-error
+> remainder · `0262` the game box's otel-collector has **never exported host metrics** and its container
+> log is unrotated · `0263` is Uptrace's ~14-day retention a hard edition cap · `0264` revisit client
+> source-map symbolication · `0267` investigate verifying the player's platform identity · `0268` remove
+> the tenure XP claim logic ~60 days after release.
+>
+> ✅ **Closed off this board:** [[tasks/profile-weekly-backup-copy-verified]] (`0241`) — the first-ever
+> weekly backup copy, observed.
+>
+> ➡️ **Pulled INTO Sprint 4 by owner rulings in this window** (authority split, because it differs per
+> row): `0257` (**board AND rank owner-ruled**), `0259` and `0260` (**board only — the rank stays the
+> producer's**), `0061` (**the owner overturned THEIR OWN 2026-08-23 Backlog ruling**, on the grounds that
+> its stated reason — *"an investigation with no known fix"* — no longer held once the failure was
+> reproduced), and `0203`.
+>
+> 🚩 **The hold-forever failure mode this board has is now named in evidence, not just suspected:** `0061`
+> sat here from 2026-08-23 until 2026-09-17 **because nothing forced a re-look**. That precedent is cited
+> by name in two later briefs arguing where they should sit.
+
 ## Context
 
 `ai-agents/sprints/sprint-backlog.md` collects defined work that is worth doing but has no assigned sprint home. These items should not be implemented until they receive a sprint assignment and, where needed, a full task brief.
@@ -234,3 +266,8 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, whose close discharges `0235`'s owner-ruled dependency
 - [[tasks/postgres-backup-routine]] — the near-deletion of a true claim that caused `0239` to be filed onto this board
 - [[decisions/adr-101-fail-soft-xp-crediting]] — the "silent" wording corrected in the same 2026-09-10 pass that produced `0239`
+- [[tasks/profile-weekly-backup-copy-verified]] — task `0241`, filed on this board by owner ruling and now closed
+- [[tasks/telemetry-cert-expired-renewal-cron]] — task `0257`, pulled into Sprint 4 with both board and rank owner-ruled
+- [[tasks/uptrace-retention-not-applied]] — task `0259`, board owner-ruled, rank producer's
+- [[tasks/client-source-map-upload-verification]] — task `0260`, same split; its revisit `0264` was filed back onto this board
+- [[systems/alert-delivery]] — where `0258`'s "nothing reads the renewal log" gap and `0263`'s retention question both point

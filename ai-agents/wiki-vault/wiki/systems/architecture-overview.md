@@ -58,6 +58,13 @@ One binary: `cluster.isPrimary` → master, else worker. Master serves HTTP/API/
 - **Auth is three independent layers**: player identity (a `PersistentId` UUID is accepted anonymously with no cryptography; otherwise EdDSA-only JWT verification), cosmetic entitlements (**fails open** — see [[decisions/adr-102-privilege-refresher-fails-open]]), and an admin/service header key.
 - **Three features are present but switched off**: archiving ([[decisions/adr-104-archiving-disabled]]), matchmaking, and compact maps in the public rotation ([[decisions/adr-105-compact-maps-out-of-rotation]]).
 - **Telemetry init is worker-only** — the master exports no metrics and no traces, only logs. See [[systems/telemetry]].
+- 🔴 **CORRECTED 2026-09-14 — client stack traces are NOT symbolicated, and the source-map upload has been
+  REMOVED.** The architecture doc previously said maps were uploaded to Uptrace at build time keyed by
+  `GIT_COMMIT`. **Uptrace 2.0.2 has no upload endpoint** — every upload was answered `405` — so the upload
+  and its `UPTRACE_SOURCEMAP_DSN` / `PUBLIC_ORIGIN` inputs are gone (task
+  [[tasks/client-source-map-upload-verification]]; revisit is `0264`). ⛔ **Unchanged:** maps are still
+  built as `hidden-source-map`, still deleted from the image, and the master still 404s `.map` requests as
+  defence in depth.
 
 ### Profile backend tier
 
@@ -151,7 +158,15 @@ One binary: `cluster.isPrimary` → master, else worker. Master serves HTTP/API/
 > hostname**. Grounding:
 > `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md`.
 
-A standalone service with its own image, VPS, and Postgres; the game server never touches the database. It uses its **own minimal logger** rather than the game server's, deliberately — so **this tier exports no telemetry**.
+A standalone service with its own image, VPS, and Postgres; the game server never touches the database. It uses its **own minimal logger** rather than the game server's, deliberately.
+
+> 🆕 **Two corrections, 2026-09-18.** **(1)** *"this tier exports no telemetry"* is **no longer true** —
+> the box now emits `geoconflict.profile.*` metrics that the alert rules are written against (see
+> [[systems/alert-delivery]]). **(2)** **This box is the project's ADMIN server** by owner ruling
+> ([[decisions/adr-114-admin-server-alert-relay]]), and the Uptrace→Telegram **alert relay runs on it**.
+> 🚩 **The box may be renamed later — "admin" is the role, "profile" is today's spelling.** Its schema was
+> also **re-keyed to an internal player id** by migration `006`
+> ([[decisions/adr-113-internal-player-id]]).
 
 Five routes: `/health`, `/ready`, an **unauthenticated** `GET /v1/profile` (rate-limited, with CORS applied before the limiter so even a 429 is readable), and two internal endpoints. `toPublicProfile()` strips the paid-citizen fields and the cross-device linkage token from every response precisely *because* the read is unauthenticated.
 
@@ -266,3 +281,7 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 - [[tasks/profile-durability-restore-drill]] — task `0218`, closed 2026-09-11: **a backup restores**, proven twice against non-empty data (live database included) — ⛔ **and the schedule and the data are proven only SEPARATELY**; the measured recovery times **do not extrapolate**
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which turned this survey's biggest UNKNOWN into a verified live host: the profile box was **adopted, not wiped**
 - [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, which proved the box's TLS renewal **capability, not its monitoring**
+- [[systems/alert-delivery]] — how a monitoring alert reaches a human: the relay on the admin box, and the traps that make it fail silently
+- [[decisions/adr-114-admin-server-alert-relay]] — the profile box is the admin server
+- [[decisions/adr-113-internal-player-id]] — the internal player id and login/session reshape of the profile tier
+- [[tasks/client-source-map-upload-verification]] — task `0260`, the source-map correction recorded above

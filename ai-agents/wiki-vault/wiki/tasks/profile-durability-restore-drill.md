@@ -200,3 +200,5 @@ afterwards (low risk — a restore does not touch nginx — but it is **not the 
 - [[systems/project-brief]] — product ground truth; this task retires its "no proven recovery path" qualifier and replaces it with the narrower one
 - [[systems/architecture-overview]] — the profile deploy topology and its ranked risks
 - [[decisions/sprint-4]] — the sprint, and the owner-ruled `0218` → `0219` → `0217` work order this task led
+- [[tasks/profile-backup-restore-reproof-006]] — task `0275`: ✅ **the restore was RE-PROVED `IDENTICAL` on the `006` schema with non-empty data (2026-09-16)**, so this page's *"the restore path has never been tested"* framing is closed by evidence and this task's brief was annotated in place. ⛔ **Residual 2 survives unchanged — `real 0m1.252s` on a 24 KB dump is NOT an RTO**, and ⛔ **residual 1 is still open: a CRON-produced backup of REAL data**
+- [[tasks/profile-weekly-backup-copy-verified]] — task `0241`: ✅ **residual 3 is closed** — the first-ever weekly copy was observed, from the scheduled run, not a hand-run one

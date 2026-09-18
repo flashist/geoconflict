@@ -3472,3 +3472,78 @@ what `0052`'s close established. This entry is the record, and the whole of it.
 - 🔒 No secrets — scanned the touched pages; the only hit was the *variable name*
   `PROFILE_INTERNAL_TOKEN=` on a pre-existing line, with no value. Nothing committed or pushed.
 - ⛔ **Closed nothing, moved no task file, edited no brief and no sprint plan** (ADR-033).
+
+## 2026-09-18 — ingest (sync)
+
+- **Sync window:** `77fbc98` → HEAD (`00fe479`) — **8 commits touching `ai-agents/`**, window verified
+  this run (watermark read, `git rev-parse HEAD`, and `git status` confirming **zero uncommitted changes
+  under `ai-agents/`** — a dirty tree here would have silently hidden two days of work).
+- **Changed source files detected: 168 paths; 37 ingest-worthy after filtering** (backlog briefs and the
+  in-folder `plan.md` / `worklog.md` / `review.md` skipped per the procedure).
+- 🚩 **This sync closed a KNOWN INGEST GAP: the vault held NO page of any kind for the alerting area** —
+  no `0277`, no `0284`, no ADR-114, no relay. A producer had checked and recorded the vault as behind.
+
+**Created (14 pages):**
+
+- Ingested `ai-agents/knowledge-base/alert-delivery-runbook.md` + `reports/2026-09-17-alert-rules-a1-a6-design.md`
+  → created [[wiki/systems/alert-delivery]]
+- Ingested `ai-agents/knowledge-base/decisions/adr-114-…-alert-relay-lives-there.md` → created [[wiki/decisions/adr-114-admin-server-alert-relay]]
+- Ingested `ai-agents/knowledge-base/decisions/adr-113-profile-internal-player-id-and-platform-identities.md` → created [[wiki/decisions/adr-113-internal-player-id]]
+- Ingested `ai-agents/knowledge-base/decisions/adr-112-free-xp-grants-…-once-per-account.md` (+ `reports/2026-09-14-0253-tenure-xp-grant-findings.md`) → created [[wiki/decisions/adr-112-free-xp-grants]]
+- Ingested `ai-agents/tasks/done/0277-…/brief.md` → created [[wiki/tasks/uptrace-alert-delivery-to-telegram]]
+- Ingested `ai-agents/tasks/done/0284-…/brief.md` → created [[wiki/tasks/alert-path-liveness-probe]]
+- Ingested `ai-agents/tasks/done/0270-…/brief.md` → created [[wiki/tasks/profile-identity-s1-database-rekeying]]
+- Ingested `ai-agents/tasks/done/0271-…/brief.md` → created [[wiki/tasks/profile-identity-s2-login-and-session-token]]
+- Ingested `ai-agents/tasks/done/0275-…/brief.md` → created [[wiki/tasks/profile-backup-restore-reproof-006]]
+- Ingested `ai-agents/tasks/done/0276-…/brief.md` → created [[wiki/tasks/internal-path-case-variant-allowlist-bypass]]
+- Ingested `ai-agents/tasks/done/0257-…/brief.md` → created [[wiki/tasks/telemetry-cert-expired-renewal-cron]]
+- Ingested `ai-agents/tasks/done/0259-…/brief.md` + `reports/2026-09-14-0259-uptrace-retention-findings.md` → created [[wiki/tasks/uptrace-retention-not-applied]]
+- Ingested `ai-agents/tasks/done/0260-…/brief.md` → created [[wiki/tasks/client-source-map-upload-verification]]
+- Ingested `ai-agents/tasks/done/0241-…/brief.md` → created [[wiki/tasks/profile-weekly-backup-copy-verified]]
+
+**Updated (20 pages):**
+
+- `ai-agents/knowledge-base/architecture.md` → updated [[wiki/systems/architecture-overview]] (source maps
+  no longer symbolicated; the profile tier is the admin box and **does** export telemetry)
+- Runbook + `0259`/`0260` findings → updated [[wiki/systems/telemetry]] (**three corrections**: retention is
+  a fixed ~14 d cap, symbolication never worked, and the Monitoring-and-Alerting-Gap section is now
+  **partly closed, with four named things it does not close**)
+- `adr-113` + `0270`/`0271`/`0275`/`0276` → updated [[wiki/systems/player-profile-store]]
+- `ai-agents/knowledge-base/analytics-event-reference.md` → updated [[wiki/systems/analytics]] (two new
+  event families: `Profile:Login:*` and `Profile:Login:Restart:*`)
+- `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]] (**board re-counted at
+  `00fe479`: 104 rows, 27 open, 66 agent-closed cells**)
+- `ai-agents/sprints/backlog.md` → updated [[wiki/decisions/sprint-backlog]] (**81 rows**; twelve new rows,
+  five pulled into Sprint 4)
+- `ai-agents/knowledge-base/container-log-retention.md` → updated [[wiki/tasks/container-log-retention]]
+  (the profile box is now covered by `0219`; the telemetry box still is not)
+- Back-link / correction updates: [[wiki/tasks/s4c-enable-client-source-maps]] (refuted),
+  [[wiki/tasks/profile-durability-restore-drill]] (its "never tested" framing closed by `0275`, residual 2
+  unchanged), [[wiki/tasks/profile-le-certificate-renewal-proof]], [[wiki/tasks/postgres-backup-routine]],
+  [[wiki/tasks/profile-backend-db-api]], [[wiki/tasks/profile-deploy-hardening]],
+  [[wiki/tasks/citizenship-name-change]], [[wiki/decisions/adr-101-fail-soft-xp-crediting]],
+  [[wiki/decisions/adr-103-identity-trust-seam]], [[wiki/decisions/adr-111-xp-economy-rescale]],
+  [[wiki/decisions/adr-numbering-two-series]], [[wiki/decisions/profile-storage-strategy]], and `index.md`
+  (14 new catalog entries)
+
+**Skipped (with reason):**
+
+- `ai-agents/tasks/backlog/**` — **`0283`, `0285`, `0286` and ~30 other backlog briefs are NOT DONE**, so a
+  page would be premature (procedure Step 3). Their *existence* is recorded on the two board pages only.
+- Sibling `plan.md` / `worklog.md` / `review.md` — working artifacts, not sources. ⚠️ **Two exceptions,
+  declared:** `0257`'s and `0260`'s briefs carry **no closing record**, so their outcomes were read from the
+  sibling worklogs rather than invented. `0241`'s outcome likewise.
+- `0206`, `0208`, `0211`, `0215`, `0227` briefs — 1–4 line status-marker edits, already covered by existing
+  pages; no page change warranted.
+- `conventions/task-id-allocation.md` — a one-line path fix (`0241` moved `backlog/` → `done/`), already
+  reflected by the new `0241` page.
+
+**Lint on the touched pages:** 199 unique link targets checked, **0 broken**; **28 one-way links found and
+all 28 fixed** by adding the reciprocal entry.
+
+- 🔒 **No secrets.** Scanned every changed vault file: no IP addresses, no chat or topic ids, no tokens, no
+  endpoints, no connection strings. The only host-ish hits are the provider name `reg.ru`, the public
+  vendor name `api.telegram.org` and pre-existing public hostnames covered by the 2026-08-29 owner ruling.
+  ⚠️ **The alerting sources deliberately exclude hostnames and ids, and the vault pages honour that too.**
+- ⛔ **Closed nothing, moved no task file, edited no brief and no sprint plan** (ADR-033). Nothing committed
+  or pushed.

@@ -89,3 +89,6 @@ The trade still holds on its own merits — the response is a precomputed static
 - [[systems/configuration]] — deploy-script and container configuration
 - [[decisions/sprint-4]] — the sprint board carrying this task
 - [[decisions/sprint-backlog]] — where the follow-up `0201` (nothing runs the shell harnesses) is tracked
+- [[systems/player-profile-store]] — 🆕 **the PROFILE box is now covered too (task `0219`, 2026-09-13)**: retention lives in the `logging:` block of each service in the compose file `setup-profile.sh` writes, with **the same values as `update.sh` by owner ruling** — one number project-wide, asserted against shared constants by the hardening harness. ⛔ **The compose file OWNS retention there — do not also write a daemon config**, which would be a conflicting setting that silently loses. ⚠️ **A second sink exists and is bounded elsewhere**: the systemd unit streams container output into journald too, bounded by journald's own defaults. ⛔ **The TELEMETRY box is still covered by no retention setting in the repo**
+- [[systems/alert-delivery]] — the same box's daily checks, and the *"the signal exists and nothing reads it"* pattern this page's follow-ups share
+- [[tasks/uptrace-retention-not-applied]] — task `0259`, the other "retention is not what the repo says" finding, on the telemetry box

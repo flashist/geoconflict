@@ -1,9 +1,42 @@
 # Player Profile Store
 
 **Layer**: server
-**Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`
+**Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
 ## Summary
+
+> # 🆕 UPDATED 2026-09-18 — THIS BOX IS NOW THE PROJECT'S **ADMIN SERVER**, AND ITS SCHEMA WAS RE-KEYED
+>
+> Four things landed between 2026-09-13 and 2026-09-18 that change how this page must be read. **None of
+> them makes the backend reach players** — that is still `0217`.
+>
+> **1. The identity reshape shipped.** [[decisions/adr-113-internal-player-id]]: profiles now have **our
+> own random UUID `player_id`**; platform logins live in `player_identities`; **no public route accepts a
+> player id**; `POST /v1/login` issues a **stateless 24 h HMAC session token**. Migration **`006` dropped
+> every old table** and re-keyed every child table — 🚩 **`006` is deliberately NOT idempotent and carries
+> a guard that refuses if any old table holds a row.** Slices: [[tasks/profile-identity-s1-database-rekeying]]
+> (`0270`, deployed 2026-09-15) and [[tasks/profile-identity-s2-login-and-session-token]] (`0271`, proven
+> live 2026-09-17). ⚠️ **The login route creates a profile for any id asserted, with NO per-IP limit** —
+> owner-accepted, **monitoring instead**. 🔓 **And the token adds no security while identity is
+> client-asserted.**
+>
+> **2. This box is the ADMIN server** — [[decisions/adr-114-admin-server-alert-relay]], owner-ruled. The
+> **Uptrace→Telegram alert relay** runs here, behind the same `/internal/` boundary. 🚩 **The box may be
+> RENAMED later; "admin" is the role, "profile" is only today's spelling.** See [[systems/alert-delivery]].
+>
+> **3. ✅ THE RESTORE PATH IS PROVEN ON THE SCHEMA THE BOX ACTUALLY RUNS** —
+> [[tasks/profile-backup-restore-reproof-006]] (`0275`, `IDENTICAL`, 2026-09-16), and the **first-ever
+> weekly copy was observed** ([[tasks/profile-weekly-backup-copy-verified]], `0241`). ⛔ **Do not read
+> either as an RTO** (a 24 KB dump) and ⛔ **the SCHEDULE and the DATA are still proven SEPARATELY, never
+> together** — every cron-produced object ever written is a dump of an empty database.
+>
+> **4. The `/internal/` allowlist had a hole and it is closed** —
+> [[tasks/internal-path-case-variant-allowlist-bypass]] (`0276`): case-variant paths skipped the nginx
+> allowlist entirely and reached `internalAuth`. ⚠️ **A lost layer, not an open door** — the token always
+> fails closed.
+>
+> ⛔ **What is STILL true: the database holds ZERO real rows, no player has used any of this, and the game
+> server is not wired (`0217`).**
 
 > # 🔴 READ FIRST — UPDATED 2026-09-10. THE BOX IS LIVE. THE BACKEND IS **NOT** REACHING PLAYERS.
 >
@@ -332,3 +365,14 @@ than picking silently.
 - [[tasks/profile-durability-restore-drill]] — task `0218`, closed 2026-09-11: **a backup restores**, proven twice against non-empty data including **into the live database in place** — ⛔ **and the schedule and the data are proven only SEPARATELY**, with eight residuals carried
 - [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, which proved the host's TLS renewal capability but not its monitoring
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, the client-side kill switch for the surfaces this store feeds
+- [[decisions/adr-113-internal-player-id]] — the internal `player_id`, platform identities, the login endpoint and the v1 session token
+- [[decisions/adr-112-free-xp-grants]] — free-XP grant rules; `player_xp_grants` is the marker table `006` creates
+- [[decisions/adr-114-admin-server-alert-relay]] — the ruling that makes this box the project's admin server
+- [[systems/alert-delivery]] — the alert relay that now runs here, and the `/internal/` boundary it inherits
+- [[tasks/profile-identity-s1-database-rekeying]] — task `0270`: migration `006`, the re-keying, the runner-based integration harness
+- [[tasks/profile-identity-s2-login-and-session-token]] — task `0271`: `POST /v1/login` and the Bearer session token, proven live
+- [[tasks/profile-backup-restore-reproof-006]] — task `0275`: restore re-proved `IDENTICAL` on the `006` schema with non-empty data
+- [[tasks/profile-weekly-backup-copy-verified]] — task `0241`: the first-ever weekly copy, observed from the scheduled run
+- [[tasks/internal-path-case-variant-allowlist-bypass]] — task `0276`: case-variant `/internal/` paths bypassed the nginx allowlist
+- [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`: the alert relay now mounted on this box
+- [[tasks/alert-path-liveness-probe]] — task `0284`: the marker and daily check that guard it, both living here

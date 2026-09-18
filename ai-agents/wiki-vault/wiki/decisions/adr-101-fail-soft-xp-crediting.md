@@ -172,3 +172,6 @@ Two narrower rules fall out of the same principle and are part of the decision:
 - [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, built to close that separate upstream loss and 🔴 **REVERTED 2026-09-04 — never deployed**
 - [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which now closes that upstream loss by adding a **second crediting trigger** — ⚠️ **this ADR's fail-soft posture applies to that trigger too**
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, where this ADR's consequence is the reason the internal token was generated explicitly rather than left for the box: a mismatched token means a **401 on every credit call**, and under fail-soft the XP is **lost, not queued**
+- [[decisions/adr-113-internal-player-id]] — re-keys crediting to an internal `player_id`; **this ADR is explicitly UNCHANGED by it**
+- [[decisions/adr-112-free-xp-grants]] — free grants, whose "ack before marker" rule exists because this ADR's fail-soft path loses an unacked credit for good
+- [[decisions/adr-114-admin-server-alert-relay]] — the alert relay; **this ADR is explicitly unchanged by it** (no new route accepts a player id, no trust seam moves)

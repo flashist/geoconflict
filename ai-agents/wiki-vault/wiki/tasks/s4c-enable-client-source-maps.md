@@ -4,6 +4,21 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4c — Production Stabilization
 
+> # 🔴 REFUTED 2026-09-14 — THIS PIPELINE NEVER SYMBOLICATED ANYTHING, AND IT HAS BEEN REMOVED
+>
+> **The deployed Uptrace 2.0.2 has NO source-map upload endpoint.** Every upload this task's script has
+> ever sent — including the ones in builds that shipped to production — was answered **`405 Method Not
+> Allowed`**, byte-identical to the answer for a path that does not exist. **Nothing was ever stored.**
+>
+> ⛔ **The work below was correct and it still failed**, because it failed **quietly by design**: the
+> upload is best-effort (`|| true`), so a rejected upload never failed a build and left only a log line
+> nobody read. ⚠️ **Read that as the lesson, not as a coding error** — "the build was green" was never
+> evidence the upload ran.
+>
+> **Removed by task [[tasks/client-source-map-upload-verification]] (`0260`)**, together with its
+> `UPTRACE_SOURCEMAP_DSN` / `PUBLIC_ORIGIN` inputs. **Revisit is `0264`** (an Uptrace upgrade, or a
+> private map download). **The description below is kept as the record of what was built.**
+
 ## Goal
 
 Make production client errors in Uptrace resolve from minified bundle locations back to original source files, functions, and lines. This was split out from the Sprint 4c null-ID investigation because symbolication unblocks every minified client error cluster, not just the null-id/null-object family.
@@ -29,3 +44,4 @@ This turns the Sprint 4c source-map task from backlog enablement into shipped in
 - [[systems/telemetry]]
 - [[decisions/sprint-4c]]
 - [[decisions/sprint-4]]
+- [[tasks/client-source-map-upload-verification]] — task `0260`, which refuted this pipeline and removed it

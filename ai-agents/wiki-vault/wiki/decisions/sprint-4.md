@@ -3,6 +3,43 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
+> # 📊 BOARD RE-COUNTED 2026-09-18 at `HEAD` = `00fe479`
+>
+> **104 rows — 73 Done · 15 Blocked · 11 Backlog · 1 In progress · 3 Cancelled · 1 Moved; 27 OPEN.**
+> *(Was 84 / 20 open at `77fbc98` on 2026-09-12 — the board grew by 20 rows in six days.)*
+>
+> 🚨 **66 status cells now carry `(agent-closed — not owner-verified)`, against 73 Done rows.** ⛔ **The
+> ratio got WORSE again, not better, as the sprint shipped** — it was 38 on 2026-09-12. `/fkit-status`
+> collapses every `✅` variant to plain `done`, so **the board reads greener than the evidence supports**
+> (known, ADR-033, not a defect).
+>
+> **What closed in this window** (all `(agent-closed — not owner-verified)`, and **several with the owner
+> personally executing every box command** — a distinction the marker cannot carry, so the pages do):
+> [[tasks/telemetry-cert-expired-renewal-cron]] (`0257`) · [[tasks/uptrace-retention-not-applied]]
+> (`0259`) · [[tasks/client-source-map-upload-verification]] (`0260`) ·
+> [[tasks/profile-identity-s1-database-rekeying]] (`0270`) ·
+> [[tasks/profile-identity-s2-login-and-session-token]] (`0271`) ·
+> [[tasks/profile-backup-restore-reproof-006]] (`0275`) ·
+> [[tasks/internal-path-case-variant-allowlist-bypass]] (`0276`) ·
+> [[tasks/uptrace-alert-delivery-to-telegram]] (`0277`) · [[tasks/alert-path-liveness-probe]] (`0284`) ·
+> plus the teardown family `0231` / `0232` / `0233` and `0214` flipping Done.
+>
+> **Three decisions were recorded in the same window:** [[decisions/adr-112-free-xp-grants]] (amended),
+> [[decisions/adr-113-internal-player-id]], [[decisions/adr-114-admin-server-alert-relay]].
+>
+> 🚩 **Two structural facts about this window worth carrying:**
+> - 🔴 **A CIRCULAR DEPENDENCY was found and the owner ruled on it: FOUR of the six alert rules (A1, A2,
+>   A3, A6) are DEFERRED until real login traffic exists.** `0274` cannot close without A1–A6; four of
+>   those rules cannot be built against metrics that have never been incremented, and nothing increments
+>   them until players log in. ⇒ **the rules exist on paper and not in the tool.**
+> - ⚠️ **One profile deploy on 2026-09-17 carried five tasks at once** (`0271`, `0272`'s server side,
+>   `0273`'s legacy-fallback removal, `0274`'s monitoring, `0276`) — the owner collapsed two planned
+>   deploys into one. **Do not read any of those five as independently deployed.**
+>
+> ⛔ **Still true, and this window changed none of it:** **the game server is not wired (`0217`)**, **the
+> profile database holds zero real rows**, **no player has seen any of it**, and the **client half of the
+> identity work is not deployed**.
+
 > **Status corrected 2026-08-08.** This page carried `proposed` while describing a sprint that is live and mostly shipped. Sprint 4 is the **current** sprint. See [[systems/project-brief]].
 >
 > **Chain updated 2026-08-23.** The degraded-mode gate is cleared (0049 done) and the citizenship card is interim-hidden (0054), but the earned/paid citizenship chain is **blocked by `0062`**: the profile backend's code path is complete and its host live, yet production never forwards `PROFILE_INTERNAL_TOKEN`, so no profile row is created and no XP is credited in prod. A 2026-08-22 production outage also added an outage track (`0055` done → `0057` → `0056`). See [[decisions/incident-2026-08-22-public-lobbies-outage]].
@@ -585,3 +622,16 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, **narrowed by owner ruling then closed** 2026-09-10; it proved **capability, not monitoring**
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, closed 2026-09-10 with **no runtime verification**, and the `0238` launch gate it leaves open
 - [[decisions/codex-second-opinion-mandatory]] — the 2026-09-10 review-process record, and the corrected evidence behind it
+- [[systems/alert-delivery]] — the alerting area this sprint built from nothing: the relay, the traps, the probe and the rules
+- [[decisions/adr-114-admin-server-alert-relay]] — the profile box is the admin server; the relay lives there
+- [[decisions/adr-113-internal-player-id]] — the internal player id, platform logins, and the v1 session token
+- [[decisions/adr-112-free-xp-grants]] — free-XP grant rules, amended the same day by ADR-113
+- [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`
+- [[tasks/alert-path-liveness-probe]] — task `0284`
+- [[tasks/profile-identity-s1-database-rekeying]] — task `0270`
+- [[tasks/profile-identity-s2-login-and-session-token]] — task `0271`
+- [[tasks/profile-backup-restore-reproof-006]] — task `0275`
+- [[tasks/internal-path-case-variant-allowlist-bypass]] — task `0276`
+- [[tasks/telemetry-cert-expired-renewal-cron]] — task `0257`
+- [[tasks/uptrace-retention-not-applied]] — task `0259`
+- [[tasks/client-source-map-upload-verification]] — task `0260`
