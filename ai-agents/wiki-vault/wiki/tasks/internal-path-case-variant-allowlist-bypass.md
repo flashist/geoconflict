@@ -92,4 +92,5 @@ nothing, and is cheap to re-run. **Re-run it rather than rediscover it.**
 - [[decisions/adr-114-admin-server-alert-relay]] — cites the case-insensitive allowlist as already-solved
 - [[systems/player-profile-store]] — the box these routes serve
 - [[tasks/profile-deploy-hardening]] — the harness this extends
+- [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`: **the same file and the same class of defect** — a deploy-time layer weaker than it reads; this page's *"same class"* framing is quoted in its brief
 - [[decisions/sprint-4]] — the sprint that owns it

@@ -181,7 +181,9 @@ need to take care of it."*
   blank renders a bare `deny all`.
 - 🚨 **`0283`'s daily digest does NOT cover this, and is ACTIVELY MISLEADING** — it never involves
   Uptrace, never crosses nginx, never arrives from the monitoring box's address. **A daily message
-  visibly arriving is active false reassurance.**
+  visibly arriving is active false reassurance.** 🚨 **UPDATED 2026-09-19 — that reassurance is now REAL
+  and ARRIVING: `0283` is deployed and two digests have been watched land** ([[tasks/name-change-daily-digest]]).
+  ⛔ **A3's discipline is therefore live, not anticipatory.**
 - **A disabled channel IS detectable from our side — and nothing reads the evidence.** Uptrace persists
   every attempt's response status; a run of `403`s sits there. **Same shape as `0219`.**
 - ✅ **The recommendation — a synthetic probe from the telemetry box plus a marker-age check — is what
@@ -232,6 +234,7 @@ that alerting works is not a finding either — it is the error A3 exists to pre
 - [[systems/alert-delivery]] — the mechanics, the traps and the operator procedures
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`, the relay this ADR places
 - [[tasks/alert-path-liveness-probe]] — task `0284`, the guard on this ADR's accepted risk
+- [[tasks/name-change-daily-digest]] — task `0283`, the digest A3 names: ⛔ **citing it as evidence that alerting works is the error A3 exists to prevent** — and since 2026-09-19 it is genuinely arriving
 - [[decisions/adr-103-identity-trust-seam]] · [[decisions/adr-101-fail-soft-xp-crediting]] — both **unchanged** by this decision
 - [[systems/player-profile-store]] — the admin box itself
 - [[decisions/adr-numbering-two-series]]

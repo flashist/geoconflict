@@ -146,6 +146,10 @@ monitoring UI.** Re-enabling is a **separate step** — fixing the address does 
   admin box and sent straight through the Telegram helper: it never touches the monitoring stack, never
   crosses nginx, and never arrives from the monitoring box's address. **You would get a daily "the bot
   works" message while every alert was dead.** ⛔ `0283` arriving is **not** evidence that alerting works.
+  🚨 **UPDATED 2026-09-19 — THIS IS NO LONGER HYPOTHETICAL. The digest is deployed and two real messages
+  have been watched arriving** ([[tasks/name-change-daily-digest]]). The misleading daily reassurance now
+  **physically exists in the owner's Telegram**, so the discipline this bullet asks for is live, not
+  anticipated.
 - ⚠️ **The evidence exists and nothing reads it.** Uptrace persists every delivery attempt's response
   status; a run of `403`s sits on the telemetry box unread. **Same shape as `0219`** — the signal exists,
   nothing looks at it.
@@ -300,7 +304,12 @@ for that deploy; do not discover it at 3 a.m.**
   `0033`'s external heartbeat, **which is not built**.
 - **Sustained delivery.** The counters catch an *intermittent* failure and a *sustained* one **not at
   all** — a rule on "the alert path failed" would travel the alert path. The only non-circular proof is
-  `0283`'s daily digest, unbuilt.
+  `0283`'s daily digest. ✅ **UPDATED 2026-09-19 — that digest is BUILT, DEPLOYED AND OBSERVED DELIVERING**
+  (two real messages, owner-watched; see [[tasks/name-change-daily-digest]]). ~~unbuilt~~ 📌 **struck, true
+  when written.** ⛔ **But read what it covers, exactly: it proves TELEGRAM delivery from this box is alive,
+  and NOTHING about this alert channel** — it never touches the monitoring stack, never crosses the
+  allowlist and never arrives from the monitoring box's address. **A 403 could have permanently disabled
+  alerting while both of those messages arrived perfectly.**
 - **Delivery after an IDLE period** (`0274` amendment A1) — the drill's two bursts were minutes apart on
   a warm connection, so the stale-connection defect was never exercised. ⚠️ And the reverse is worth
   flagging: **an hourly probe keeps that hop warm, so it could MASK an idle-path defect** a rare real
@@ -330,6 +339,8 @@ deploy. **Do not read "0061 is fixed" off `0277`.**
 - [[decisions/adr-114-admin-server-alert-relay]] — the ADR that placed the relay on the admin box
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`, which built and proved the relay
 - [[tasks/alert-path-liveness-probe]] — task `0284`, the guard on the 403 channel-disable trap
+- [[tasks/name-change-daily-digest]] — task `0283`, the *other* half: the only non-circular proof that **Telegram** delivery is alive. ⛔ **Proves nothing about this channel, and is ACTIVELY MISLEADING if read as if it did** — deployed and observed delivering 2026-09-19
+- [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`, the root-command-execution defect in `setup-profile.sh`, the same script that configures this relay
 - [[systems/telemetry]] — the monitoring stack the alerts come from, its retention cap and its certificate
 - [[systems/player-profile-store]] — the admin box this relay runs on
 - [[tasks/telemetry-cert-expired-renewal-cron]] — task `0257`, the other "nothing reads the log" failure on the same box

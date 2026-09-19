@@ -98,13 +98,20 @@ The full list is 1–11 in the task's `review.md` — **do not re-derive it**. T
   errors"* entries. **This task shipped a proven pipeline with nothing feeding it** — that is `0274`'s
   work, not a gap here.
 - 🚩 **Sustained delivery is NOT proven by this task, and cannot be**: an alert about the alert path
-  travels the alert path. The only non-circular proof is `0283`'s daily zero-count beat, **unbuilt**.
+  travels the alert path. The only non-circular proof is `0283`'s daily zero-count beat. ✅ **UPDATED
+  2026-09-19 — that beat is BUILT, DEPLOYED AND OBSERVED DELIVERING**, two real messages watched by the
+  owner, **both reading `Waiting for review: 0`** — so the zero-count ruling is verified in production
+  ([[tasks/name-change-daily-digest]]). ~~**unbuilt**~~ 📌 **struck, true when written.** ⛔ **Nothing about
+  THIS task's residuals changes**: the digest proves Telegram delivery from the admin box and **nothing
+  about the alert channel** — it never travels the allowlist and never leaves from the monitoring box's
+  address, so residual **3** stands untouched.
 
 ## Related
 
 - [[systems/alert-delivery]] — the system this built, its traps and its operator procedures
 - [[decisions/adr-114-admin-server-alert-relay]] — the ADR that placed the relay on the admin box
 - [[tasks/alert-path-liveness-probe]] — task `0284`, which guards this task's accepted 403 risk
+- [[tasks/name-change-daily-digest]] — task `0283`, which this close unblocked; it inherits this task's topic routing and connection fix rather than forking them
 - [[systems/telemetry]] — the monitoring stack the alerts come from
 - [[systems/player-profile-store]] — the admin box the relay runs on
 - [[tasks/citizenship-name-change]] — task `0067`, whose operator notification shares this topic routing

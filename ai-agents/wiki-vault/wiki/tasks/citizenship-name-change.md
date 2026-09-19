@@ -129,3 +129,4 @@ Green at close, after both fix rounds: `npx tsc --noEmit`, `npm run lint`, prett
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, which routed the citizenship surfaces through one shared kill-switch helper
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`: this feature's operator notification gained Telegram **topic routing** there, and its **fail-silent send defect** was fixed in the same change
 - [[systems/alert-delivery]] — the topic routing and the egress proxy that notification depends on
+- [[tasks/name-change-daily-digest]] — task `0283`: a **daily** digest counting this feature's pending `player_name_history` rows, sitting **beside** this task's per-request notification and not replacing it. ✅ Observed delivering to the Name Changes topic 2026-09-19

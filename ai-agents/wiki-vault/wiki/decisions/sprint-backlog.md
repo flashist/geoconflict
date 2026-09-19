@@ -3,10 +3,31 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 THE BACKLOG BOARD RE-COUNTED 2026-09-18 at `HEAD` = `00fe479`
+> # 📊 THE BACKLOG BOARD RE-COUNTED 2026-09-19 at `HEAD` = `ceb5454`
 >
-> **`backlog.md`: 81 rows — 56 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled.**
-> *(Was 48 / 37 open when last counted on 2026-09-08.)* ⚠️ **The `➡️ Moved` rows are kept, not deleted** —
+> **`backlog.md`: 81 rows — 57 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
+> 60 OPEN.**
+>
+> **One row was added this window: `0287`** — *`setup-profile.sh`'s `PROFILE_IMAGE` digest-pin check is not
+> anchored, so a newline-bearing value passes validation and injects arbitrary compose keys.* Split out of
+> [[tasks/setup-profile-heredoc-root-command-execution]]'s review as finding **R4**, on an owner ruling
+> that ruled **only that it gets its own task** — ⛔ **not the board, not the rank, and NOT the severity.**
+> 🔴 **THE TWO REVIEWERS DISAGREE ON SEVERITY AND BOTH VIEWS STAND — Codex `HIGH`, this project's
+> `fkit-reviewer` `LOW`** (operator input to an already-root script sits **inside** the trust boundary).
+> ⛔ **Unresolved on purpose — the owner rules it.** **Pre-existing**, measured identical through `0282`'s
+> old unquoted here-document and its fixed quoted one.
+>
+> ➡️ **One row left for Sprint 4 and is kept here, naming its destination: `0283`** (the daily
+> name-change digest — [[tasks/name-change-daily-digest]]). ⛔ **The PROMOTION is the PRODUCER'S CALL, NOT
+> an owner ruling** — the owner ruled the *requirement* and the *zero-count behaviour*, never the board or
+> the rank. It discharged this row's own standing recommendation, *"promote to Sprint 4 the moment `0277`
+> ships"*, which `0277`'s close on 2026-09-17 satisfied. **It then closed on 2026-09-18 and was observed
+> delivering in production on 2026-09-19.**
+>
+> 🔧 **CORRECTION to the previous count.** The 2026-09-18 entry read **81 rows / 56 `🔲 Backlog`** at
+> `00fe479`. **Re-derived from that exact commit: it was 80 rows / 56 Backlog / 59 open.** The row total
+> was **over by one**; the Backlog figure was right. ⛔ **The 2026-09-19 figures above are the counted ones,
+> not the old total plus one.** *(Was 48 / 37 open when last counted on 2026-09-08.)* ⚠️ **The `➡️ Moved` rows are kept, not deleted** —
 > a row that left for Sprint 4 still shows here, and **now names its destination explicitly** (the wording
 > changed from a bare `➡️ Moved` to `➡️ Moved to Sprint 4` during this window, which is a **readability fix,
 > not a re-ranking**).
@@ -271,3 +292,5 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/uptrace-retention-not-applied]] — task `0259`, board owner-ruled, rank producer's
 - [[tasks/client-source-map-upload-verification]] — task `0260`, same split; its revisit `0264` was filed back onto this board
 - [[systems/alert-delivery]] — where `0258`'s "nothing reads the renewal log" gap and `0263`'s retention question both point
+- [[tasks/name-change-daily-digest]] — task `0283`, filed here and **promoted to Sprint 4 on the producer's call** once `0277` shipped; its row stays as `➡️ Moved to Sprint 4`
+- [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`, whose review split finding **R4** onto this board as `0287` (the unanchored `PROFILE_IMAGE` check, severity **unresolved on purpose**)

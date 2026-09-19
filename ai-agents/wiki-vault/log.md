@@ -3578,3 +3578,98 @@ including its `':!ai-agents/wiki-vault/'` exclusion, and the unfiltered diff ins
 - 🔒 **No secrets.** Nothing was written beyond this entry and the watermark SHA.
 - ⛔ **Closed nothing, moved no task file, edited no brief and no sprint plan** (ADR-033). Nothing
   committed or pushed.
+
+---
+
+## 2026-09-19 — ingest (sync)
+
+- **Sync window:** `6aa5b1f` → HEAD (`ceb5454`), **2 commits** — `ceb5454` *"Sprint push"*, `016df4a`
+  *"Wiki sync"*.
+- **Changed source files detected:** 18 under `ai-agents/` excluding the vault; **8 ingest-worthy** after
+  the Step 3 filter.
+- ⚠️ **NOT an idle sync.** The two preceding invocations were no-ops; this one carried real content —
+  **two tasks (`0282`, `0283`) moved `backlog/` → `done/` inside the window**, so their briefs became
+  ingest-worthy for the first time.
+
+**Ingested:**
+
+- `ai-agents/tasks/done/0282-setup-profile-unquoted-heredoc-executes-compose-comments-as-root/brief.md`
+  → **created** [[wiki/tasks/setup-profile-heredoc-root-command-execution]]
+- `ai-agents/tasks/done/0283-daily-digest-of-pending-name-change-reviews/brief.md` **+**
+  `ai-agents/knowledge-base/name-change-digest-runbook.md` (new file this window) → **created**
+  [[wiki/tasks/name-change-daily-digest]]
+- `ai-agents/sprints/plan-sprint-4.md` → **updated** [[wiki/decisions/sprint-4]] — board re-counted at
+  `ceb5454`: **104 rows — 75 Done · 15 Blocked · 9 Backlog · 1 In progress · 3 Cancelled · 1 Moved;
+  25 OPEN** (was 104 / 27 open at `00fe479`; **no new rows** — `0282` and `0283` flipped Done). Also
+  recorded the three open follow-ups out of this track — `0285`, `0286` (Sprint 4) and `0287` (Backlog)
+  — whose briefs stay unpaged per the backlog rule.
+- `ai-agents/sprints/backlog.md` → **updated** [[wiki/decisions/sprint-backlog]] — **81 rows — 57 Backlog ·
+  16 Moved · 4 Done · 3 Blocked · 1 Cancelled; 60 OPEN**; the one new row is `0287`, and `0283`'s row is
+  now `➡️ Moved to Sprint 4`.
+- `ai-agents/knowledge-base/alert-delivery-runbook.md` → **updated** [[wiki/systems/alert-delivery]],
+  [[wiki/systems/telemetry]], [[wiki/tasks/uptrace-alert-delivery-to-telegram]],
+  [[wiki/tasks/alert-path-liveness-probe]], [[wiki/decisions/adr-114-admin-server-alert-relay]] — the
+  three *"`0283`'s daily beat, **unbuilt**"* claims are struck as true-when-written and replaced with the
+  observed state, and the *"actively misleading"* warnings are marked **live rather than anticipatory**.
+- `ai-agents/tasks/done/0277-.../brief.md` and
+  `ai-agents/tasks/done/0284-.../brief.md` → **read, no content change written.** Word-level diff confirms
+  their only edits this window are **`0283` href repairs** (`../../backlog/0283-…` → `../0283-…`), not new
+  work. Their pages were updated only where the `0283` facts changed a claim they carried.
+- **Back-links:** [[wiki/tasks/profile-deploy-hardening]], [[wiki/tasks/citizenship-name-change]],
+  [[wiki/tasks/internal-path-case-variant-allowlist-bypass]], [[wiki/systems/player-profile-store]] and
+  `index.md` (two new entries + the `alert-delivery` entry corrected).
+
+**Skipped (with reason):**
+
+- `ai-agents/tasks/backlog/{0280,0285,0286,0287}-…/brief.md` — backlog briefs are not paged until done or
+  cancelled (unchanged rule). Their **board rows** were recorded through the two sprint sources instead.
+- `0282`'s and `0283`'s sibling `plan.md` / `review.md` / `worklog.md` — in-folder working artifacts, not
+  sources (ADR-029). ⚠️ **One exception, read as EVIDENCE only and cited as such:** `0283`'s `worklog.md`
+  § *OWNER-OBSERVED LIVE DELIVERY* is the sole source for the 2026-09-19 production observation, and it is
+  **uncommitted** — the vault page declares that frame rather than pretending to a commit.
+
+**🎯 The window's most load-bearing new fact, verified against the source rather than taken from the
+caller:** `0283`'s digest has been **observed delivering in production, 2026-09-19** — two owner-watched
+messages (deploy-time send `2026-09-18 18:33 UTC`; cron `2026-09-19 04:00 UTC`, delivered 07:00 MSK),
+**both reading `Waiting for review: 0`**, in the owner-confirmed **Name Changes** topic. **The first real
+(non-mocked) delivery this feature has ever produced.** Recorded on every page with **all four of its
+limits intact**: ⛔ nothing about Uptrace alert delivery · ⛔ does not discharge `0274` amendment A1 ·
+⏳ the second day's single message and check 12's first run are unobserved · ⛔ no non-zero count has ever
+rendered. ⛔ **And it does NOT upgrade the `(agent-closed — not owner-verified)` marker.**
+
+**Verified independently, not taken on trust from the caller:** watermark read from `.wiki-watermark`,
+`HEAD` from `git rev-parse`, the 18-file list re-derived with the Step 2 command including its
+`':!ai-agents/wiki-vault/'` exclusion, and the 8-file filter applied from Step 3. **The computed delta
+agreed with the pre-check in every particular.**
+
+**Flagged for human review (carried into the report):**
+
+- 🚩 **A known-stale line in a source, deliberately NOT propagated:**
+  `ai-agents/knowledge-base/alert-delivery-runbook.md` still states `0283`'s digest is *"BUILT but NOT YET
+  OBSERVED ARRIVING"*. **That is false as of 2026-09-19.** The owner has been told and chose to leave it
+  for now. The vault ingested the **true** state; ⛔ the runbook is outside the vault and was **not
+  edited** (ADR-005).
+- 🚩 **The same stale claim also sits in `plan-sprint-4.md`'s `0283` row** — *"nothing is deployed and no
+  digest message has ever been sent or observed"*. Recorded on the vault page as **true when written and
+  overtaken**; ⛔ the sprint plan was **not edited**.
+- ✅ **No stale vault link to `tasks/backlog/0282-…` or `tasks/backlog/0283-…` was found — zero, checked
+  repo-path-wise across the whole vault.** The closing producers' concern does not materialise here: the
+  vault cites tasks by **ID in backticks and by `[[wiki/…]]` page link**, never by a `tasks/<board>/` path,
+  so a board move cannot rot a vault link. **Nothing to repair.** The producer's count of *seven* vault
+  files mentioning `0283` is confirmed and all seven are ID-only references.
+- 🔧 **A previous sync's figure corrected:** the 2026-09-18 entry recorded `backlog.md` at **81 rows** as of
+  `00fe479`; re-derived from that exact commit it was **80**. The row total was over by one (the Backlog
+  sub-count was right). Corrected in place on the page with the correction shown.
+- 🔧 **A counting-basis ambiguity made explicit** on [[wiki/decisions/sprint-4]]: the
+  `(agent-closed — not owner-verified)` figure every earlier entry used is a **file-wide** count (**68** at
+  `ceb5454`); counted strictly in the **status cell** it is **55 of 75 Done rows**. Both are correct — the
+  page now says which basis it means.
+
+- **Lint (Step 6, changed pages only):** 14 pages checked, **0 broken wiki-links**; the two new pages'
+  **16 outbound links are all bidirectional** (6 and 10 targets, every one links back). One near-miss
+  fixed: prose containing a doubled square bracket would have rendered as a wiki-link — reworded.
+- 🔒 **No secrets.** Scanned both new pages for connection strings, IPs, project hostnames, bot tokens,
+  chat/topic ids and key material — clean. Variable names, file paths and the cron expression only.
+- ⛔ **Closed nothing, moved no task file, invoked no mover, edited no brief and no sprint plan** (ADR-033).
+  **Nothing committed or pushed.**
+- **Watermark advanced to `ceb5454`.**

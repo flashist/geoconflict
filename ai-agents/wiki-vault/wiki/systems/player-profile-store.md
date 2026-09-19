@@ -376,3 +376,5 @@ than picking silently.
 - [[tasks/internal-path-case-variant-allowlist-bypass]] — task `0276`: case-variant `/internal/` paths bypassed the nginx allowlist
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`: the alert relay now mounted on this box
 - [[tasks/alert-path-liveness-probe]] — task `0284`: the marker and daily check that guard it, both living here
+- [[tasks/name-change-daily-digest]] — task `0283`: a daily cron on this box counts `player_name_history` pending rows and sends one Telegram message; its success-only marker is `profile-checks.sh` **check 12**. ✅ Observed delivering 2026-09-19, both messages reading `Waiting for review: 0` — consistent with this store holding no real data yet
+- [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`: `setup-profile.sh` ran its own compose-file comments as **root** on every deploy of this box; pre-existing, fixed and now gated by the hardening harness

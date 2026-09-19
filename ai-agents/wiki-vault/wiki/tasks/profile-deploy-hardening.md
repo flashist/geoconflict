@@ -31,3 +31,5 @@ T4g completed the final profile-deploy hardening slice before the profile box mo
 - [[tasks/profile-server-bring-up-runbook]]
 - [[tasks/profile-backend-db-api]]
 - [[tasks/internal-path-case-variant-allowlist-bypass]] — task `0276`, which added seven structural assertions over the `/internal/` nginx block to this harness
+- [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`, which added five assertions locking the compose here-document's delimiter **quoted** (8 `0282` assertions green at close), so a future unquoting turns `npm test` red
+- [[tasks/name-change-daily-digest]] — task `0283`, which added assertions for the digest cron line, the deploy-time send and `check_name_change_digest`; ⚠️ **removing the digest without removing them turns `npm test` red — that is the guard, not a broken test**

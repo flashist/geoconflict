@@ -286,3 +286,78 @@ fixed.
    monitoring box's egress address. A 403 could have permanently disabled the alert channel while
    this digest kept arriving daily. `alert-delivery-runbook.md:56-59`'s warning stays exactly as it
    is — shipping this makes it **more** important, not less.
+
+---
+
+## 🎯 OWNER-OBSERVED LIVE DELIVERY — 2026-09-19
+
+**Appended by the `fkit-sprint-ship-loop` driver in the lead session, on the owner's report and on
+their answer to an `AskUserQuestion`.** ⛔ **This does NOT change the close.** The brief and the sprint
+row keep `✅ Done (agent-closed — not owner-verified)`; only the owner may upgrade a landed `✅ Done`
+(`fkit-task-done/SKILL.md:78-82`), and nobody has invoked that. This section is **evidence**, not a
+status change.
+
+**Why it is here at all:** until this, every Telegram send in this task was exercised **only through a
+mocked seam**. These are the first real messages the feature has ever produced. The evidence otherwise
+lived in a screenshot.
+
+### What the owner observed
+
+The owner deployed the profile box on the evening of **2026-09-18** and read the Telegram topic the
+next morning. **Two messages, both rendered correctly:**
+
+| Message | Body timestamp | Delivered (MSK) | What it is |
+|---|---|---|---|
+| 1 | `2026-09-18 18:33 UTC` | 21:34 | the **deploy-time send** (R4) |
+| 2 | `2026-09-19 04:00 UTC` | 07:00 | **cron**, `0 4 * * *` UTC |
+
+Both read exactly:
+
+```
+[Name change] Daily digest
+Waiting for review: 0
+<timestamp> UTC
+```
+
+Arithmetic check, since the whole hour ruling rests on it: `04:00 UTC + 3 = 07:00 MSK`, and the message
+was delivered at **07:00**. Moscow is UTC+3 year-round. **The owner's chosen hour landed to the
+minute.**
+
+### Brief / plan §6 verification steps — what this discharges
+
+| Step | State |
+|---|---|
+| **1** — deploy | ✅ owner-run, 2026-09-18 evening |
+| **2** — a message observed arriving | ✅ **observed** (message 1, the deploy-time send, satisfies it — the deploy *is* a run of the CLI) |
+| **3** — correct room | ✅ **owner confirmed the Name Changes topic**, live via `AskUserQuestion`, 2026-09-19. Not Alerts, not the player-feedback chat. This confirms `TELEGRAM_TOPIC_NAME_CHANGES` routing works end to end. |
+| **4** — the second day's **single** message | ⏳ **NOT yet discharged.** One scheduled firing is not a schedule. The proof is the **2026-09-20** 07:00 MSK message arriving, and arriving **once**. |
+| **5** — a zero-count day sends | ✅ **PROVEN, and it is the most load-bearing line here.** Both messages read `Waiting for review: 0`. The owner's 2026-09-17 ruling — *send even on zero, because the daily arrival is the heartbeat and its absence is the signal* — is now verified in production, not just in a unit test. |
+
+### Two messages inside 24 h is EXPECTED — do not read it as a double-send
+
+Message 1 is the deploy-time seed, message 2 is cron. **One extra digest per deploy** is the documented
+and owner-accepted cost of the R4 fix, which exists to stop a morning deploy producing a false page from
+check 12. The harness still asserts exactly **one** cron line; nothing here contradicts that.
+
+### What these messages do NOT prove — stated so the ✅s above cannot be over-read
+
+1. ⛔ **Nothing about Uptrace alert delivery.** The digest never touches the monitoring stack, never
+   crosses nginx's `/internal/` allowlist, and never arrives from the monitoring box's egress address.
+   A 403 could have permanently disabled the alert channel while these two messages arrived perfectly.
+   `0284`'s probe guards that path; this does not.
+2. ⛔ **Nothing about delivery after an idle period** (`0274` amendment A1). The gap here was ~9.5 h,
+   which is closer to a cold connection than the drill's minutes-apart bursts — but it is **weak
+   evidence toward A1, not the test A1 asks for.** ⚠️ **Do not record A1 as discharged by this.**
+3. ⏳ **`profile-checks.sh` check 12 had not yet run on the box** at the time of the owner's report
+   (~07:38 UTC; the checks cron fires at 08:00 UTC). Its first-ever run should read this marker at
+   roughly 4 h old and pass. **Unobserved as of this entry.**
+4. ⛔ **Nothing about a non-zero count.** Both observed messages reported `0`. The non-zero path is
+   unit-tested but has never rendered a real pending count.
+
+### One stale line left standing, deliberately
+
+`ai-agents/knowledge-base/alert-delivery-runbook.md:470` still reads that this digest is
+*"BUILT but NOT YET OBSERVED ARRIVING"*. **That is now false.** It was put to the owner in the same
+`AskUserQuestion` — they chose to record the observation here and **not** to amend the runbook this
+turn. Recorded so it is tracked rather than forgotten: **the runbook line needs correcting, and it is
+the owner's call when.** ⛔ No secret, host, IP, chat id or topic id appears anywhere in this entry.

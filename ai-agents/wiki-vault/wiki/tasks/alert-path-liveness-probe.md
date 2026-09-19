@@ -64,7 +64,9 @@ harness **ALL PASS** · `check:config-parity` REQUIRED 0 on all three pipelines.
 - 🚨 **`0283`'s daily digest does NOT cover this and is ACTIVELY MISLEADING.** It never touches the
   monitoring stack, never crosses the allowlist, never arrives from the telemetry box's address ⇒ **the
   owner would receive a daily message confirming "the bot works" while alerts were dead.** Worse than no
-  heartbeat at all.
+  heartbeat at all. 🚨 **UPDATED 2026-09-19 — it is no longer a future hazard: `0283` is DEPLOYED and two
+  real digests have been watched arriving** ([[tasks/name-change-daily-digest]]). **The misleading daily
+  reassurance now exists.**
 
 ## Outcome
 
@@ -130,7 +132,10 @@ either alone misleads.**
 2. It does **not** check the secret the monitoring stack's own **channel config** holds — a separate copy
    from the cron's.
 3. It proves **nothing about Telegram delivery** — the marker is written on receipt, **before** any send.
-   `0283` is that half.
+   `0283` is that half. ✅ **UPDATED 2026-09-19 — that half now EXISTS and has been observed delivering**
+   ([[tasks/name-change-daily-digest]]). ⛔ **This residual is NOT discharged by it**: the digest proves
+   Telegram delivery **from the admin box on its own path**, never that a message sent *through this relay*
+   arrives. **The two remain complementary, and neither substitutes for the other.**
 4. It does **not** prove any monitor is attached to the channel.
 5. It does **not** discharge `0274` amendment A1 (delivery after an idle period) — and ⚠️ **an hourly
    probe may actively MASK an idle-path defect on that hop.**
@@ -153,6 +158,7 @@ replacement for a probe that crosses the allowlist.
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`, the relay this probes; it must exist first
 - [[decisions/adr-114-admin-server-alert-relay]] — ruling B, the accepted risk this is the mechanical half of
 - [[tasks/internal-path-case-variant-allowlist-bypass]] — task `0276`, which added the deploy-time allowlist print
+- [[tasks/name-change-daily-digest]] — task `0283`, residual 3's other half: it proves **Telegram** delivery is alive, this proves the **alert path** is reachable. ⚠️ **Neither substitutes for the other, and reading the digest as alerting evidence is the error this task guards against**
 - [[systems/telemetry]] — the monitoring box the probe runs on
 - [[systems/player-profile-store]] — the admin box holding the relay, the marker and the daily checks
 - [[decisions/sprint-4]] — the sprint that owns it

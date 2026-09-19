@@ -188,7 +188,11 @@ Current ClickHouse log, memory, and swap settings:
 >   `0033`'s **external heartbeat, which is still not built** — i.e. **the external layer this section
 >   recommends is STILL MISSING.**
 > - **Sustained delivery is unproven and cannot be proven from inside** — an alert about the alert path
->   travels the alert path. The only non-circular proof is `0283`'s daily beat, unbuilt.
+>   travels the alert path. The only non-circular proof is `0283`'s daily beat. ✅ **UPDATED 2026-09-19 —
+>   that beat is BUILT, DEPLOYED AND OBSERVED DELIVERING** ([[tasks/name-change-daily-digest]]);
+>   ~~unbuilt~~ 📌 **struck, true when written.** ⛔ **It proves TELEGRAM delivery from the admin box and
+>   NOTHING about this alert channel** — it never touches the monitoring stack, never crosses the
+>   allowlist and never leaves from this box's egress address.
 > - 🚨 **A `401`/`403`/`404` reply PERMANENTLY DISABLES the notification channel**, silently. The nginx
 >   allowlist answers 403 on a source-IP miss, so **one address change kills alerting for good**.
 >   Owner-accepted; the probe catches the **cause** within ~24 h, **not an already-disabled state**
@@ -270,6 +274,7 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 - [[decisions/adr-114-admin-server-alert-relay]] — the ADR placing that relay on the admin box rather than here or on the game box
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`, which made delivery possible at all
 - [[tasks/alert-path-liveness-probe]] — task `0284`, the guard on the silent-permanent channel disable
+- [[tasks/name-change-daily-digest]] — task `0283`, the only non-circular proof that **Telegram** delivery is alive. ⛔ **It deliberately touches nothing in this stack**, so it proves nothing about alert delivery — deployed and observed delivering 2026-09-19
 - [[tasks/telemetry-cert-expired-renewal-cron]] — task `0257`: the certificate expired 2026-09-04, ten days of dark client telemetry, and a renewal cron that could never succeed
 - [[tasks/uptrace-retention-not-applied]] — task `0259`: the configured 7 d / 90 d are inert; everything is dropped at ~14 d
 - [[tasks/client-source-map-upload-verification]] — task `0260`: Uptrace 2.0.2 has no upload endpoint, so the symbolication pipeline never worked and was removed

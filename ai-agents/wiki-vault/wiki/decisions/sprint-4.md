@@ -3,15 +3,50 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
-> # 📊 BOARD RE-COUNTED 2026-09-18 at `HEAD` = `00fe479`
+> # 📊 BOARD RE-COUNTED 2026-09-19 at `HEAD` = `ceb5454`
 >
-> **104 rows — 73 Done · 15 Blocked · 11 Backlog · 1 In progress · 3 Cancelled · 1 Moved; 27 OPEN.**
-> *(Was 84 / 20 open at `77fbc98` on 2026-09-12 — the board grew by 20 rows in six days.)*
+> **104 rows — 75 Done · 15 Blocked · 9 Backlog · 1 In progress · 3 Cancelled · 1 Moved; 25 OPEN.**
+> *(Was 104 / 27 open at `00fe479` on 2026-09-18 — **no new rows this window**; two Backlog rows flipped
+> Done: `0282` and `0283`. Was 84 / 20 open at `77fbc98` on 2026-09-12.)*
 >
-> 🚨 **66 status cells now carry `(agent-closed — not owner-verified)`, against 73 Done rows.** ⛔ **The
-> ratio got WORSE again, not better, as the sprint shipped** — it was 38 on 2026-09-12. `/fkit-status`
-> collapses every `✅` variant to plain `done`, so **the board reads greener than the evidence supports**
+> 🚨 **68 `(agent-closed — not owner-verified)` mentions file-wide, against 75 Done rows** — up from 66 at
+> `00fe479`. ⛔ **The ratio got WORSE again, not better, as the sprint shipped** (38 on 2026-09-12).
+> 🔧 **COUNTING BASIS, made explicit 2026-09-19 because two different numbers are both correct:** the
+> figure above is a **file-wide** count, the basis every earlier entry on this page used, and it includes
+> prose mentions. Counted strictly in the **status cell** — the only place the marker governs a row — it
+> is **55 of 75 Done rows**. **Both are true; say which basis you mean.** `/fkit-status` collapses every
+> `✅` variant to plain `done` either way, so **the board reads greener than the evidence supports**
 > (known, ADR-033, not a defect).
+>
+> 📌 **Closed in THIS window (2026-09-18 → 2026-09-19), both `(agent-closed — not owner-verified)`:**
+> [[tasks/setup-profile-heredoc-root-command-execution]] (`0282`) ·
+> [[tasks/name-change-daily-digest]] (`0283`). 🎯 **And `0283` has since been OBSERVED DELIVERING in
+> production, 2026-09-19** — two real Telegram messages, owner-watched. ⛔ **That evidence does NOT
+> upgrade its marker**; only the owner may upgrade a landed `✅ Done`, and nobody invoked that.
+>
+> 🔲 **Three OPEN follow-ups came out of this alerting / deploy-script track. Their briefs are NOT paged
+> (backlog rule — a task is not paged until done or cancelled); their boards and substance are recorded
+> here so they are not invisible:**
+> - **`0285`** — *detect an ALREADY-DISABLED Uptrace notification channel by reading the monitoring
+>   stack's own channel state.* **Sprint 4, `🔲 Backlog`.** This is the hole `0284` cannot close: the
+>   probe catches the **cause**, never an already-disabled **state**. ⚠️ **Owner ruled only that it be
+>   FILED**; board and rank are the producer's. It discharges an older owner ruling (recorded as **D4** in
+>   `0284`'s plan: separate follow-up, not folded in).
+> - **`0286`** — *deploy scripts run `apt` with no `DEBIAN_FRONTEND=noninteractive`, so a deploy blocks
+>   indefinitely on an interactive dialog.* **Sprint 4, `🔲 Backlog`.** 🚩 **Observed live 2026-09-18**
+>   during the owner's telemetry deploy: it stopped **three times** on `debconf` prompts
+>   (`keyboard-configuration` country, `console-setup` encoding, `console-setup` character set) and **the
+>   owner answered each by hand.** ✅ **Pre-existing — lead-verified as NOT caused by `0284`.** ⚠️ Owner
+>   ruled only that it be filed; board and rank are the producer's.
+> - **`0287`** — *`setup-profile.sh`'s `PROFILE_IMAGE` digest-pin check is not anchored, so a
+>   newline-bearing value passes validation and injects arbitrary compose keys.* **Backlog board,
+>   `🔲 Backlog`.** Split out of `0282`'s review as finding **R4**. 🔴 **THE TWO REVIEWERS DISAGREE ON
+>   SEVERITY AND BOTH VIEWS STAND — Codex `HIGH`** (a validation bypass injecting container config) **vs
+>   this project's `fkit-reviewer` `LOW`** (`PROFILE_IMAGE` is operator input to an already-root script,
+>   so it sits **inside** the trust boundary). ⛔ **Unresolved on purpose — the owner rules it.** ⚠️ **The
+>   handover's "one-character anchor fix" belief is WRONG as stated**: the pattern has no `^` either, so a
+>   bare `^` would reject every legitimate `repo/name@sha256:…`. **Pre-existing — measured identical
+>   through `0282`'s old unquoted here-document and its fixed quoted one.**
 >
 > **What closed in this window** (all `(agent-closed — not owner-verified)`, and **several with the owner
 > personally executing every box command** — a distinction the marker cannot carry, so the pages do):
@@ -628,6 +663,8 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[decisions/adr-112-free-xp-grants]] — free-XP grant rules, amended the same day by ADR-113
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`
 - [[tasks/alert-path-liveness-probe]] — task `0284`
+- [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`, closed 2026-09-18: the deploy script ran its own comments as **root**, pre-existing on every profile deploy
+- [[tasks/name-change-daily-digest]] — task `0283`, closed 2026-09-18 and **observed delivering 2026-09-19**: the only non-circular proof that **Telegram** delivery is alive ⛔ **and not evidence about alerting**
 - [[tasks/profile-identity-s1-database-rekeying]] — task `0270`
 - [[tasks/profile-identity-s2-login-and-session-token]] — task `0271`
 - [[tasks/profile-backup-restore-reproof-006]] — task `0275`
