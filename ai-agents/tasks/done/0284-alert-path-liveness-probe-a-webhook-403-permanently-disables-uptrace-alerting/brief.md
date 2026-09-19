@@ -138,7 +138,7 @@ binary-disassembly evidence, not observation.**
 3. It proves **nothing about Telegram delivery**: the marker is written on receipt, **before** any send.
    [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md) is that half.
 4. It does **not** prove any monitor is attached to the channel.
-5. **It does not discharge [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md)
+5. **It does not discharge [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md)
    amendment A1** (delivery after an idle period) — and ⚠️ an hourly probe may actively **mask** an idle-path
    defect on that hop.
 6. Detection latency **~3–27 h, owner-accepted 2026-09-18**.
@@ -312,7 +312,7 @@ the plan** — refine the mechanics, keep the shape.
     **on receipt, before any send** — so this task says nothing about whether a message reached a human.
     Anyone treating one as covering both has re-opened the hole. *(The reverse direction — that `0283`
     is actively misleading about alert delivery — is recorded in `0283`'s own brief.)*
-  - [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) — owns alert rules
+  - [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) — owns alert rules
     A1–A6, which are what dies when the channel is disabled.
   - [`0276`](../0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)
     — added the deploy-time allowlist print referenced in *Context* (2).

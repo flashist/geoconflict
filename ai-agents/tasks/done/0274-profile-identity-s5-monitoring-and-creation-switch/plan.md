@@ -8,7 +8,7 @@
 
 | Ruling | Decision |
 |---|---|
-| **D1** — alert delivery | **Telegram, not email.** Uptrace on the box has **no delivery channel at all** today, so this is a **separate task, [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md)**, which S5 depends on. S5 **defines** the six rules; **`0277` makes them deliverable.** S5's alert drill and its "an alert actually arrives" verification **cannot pass until `0277` lands.** Everything else in S5 is unblocked. |
+| **D1** — alert delivery | **Telegram, not email.** Uptrace on the box has **no delivery channel at all** today, so this is a **separate task, [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md)**, which S5 depends on. S5 **defines** the six rules; **`0277` makes them deliverable.** S5's alert drill and its "an alert actually arrives" verification **cannot pass until `0277` lands.** Everything else in S5 is unblocked. |
 | **D2** — cleanup thresholds | **All recommended guards, no schema change.** Minimum age **6 h**; exclude players who came back after the window; batch size **10 000**; **no `created_source` column** — no migration 007. |
 | **D3** — the creation switch | **Survives a redeploy** via a persist file (`persist_or_reuse_secret`). An **unknown value → ON**, with a loud warning at boot and a **FINDING** in the deploy's value report. |
 | **D4** — what goes on the profile box | **`OTEL_EXPORTER_OTLP_ENDPOINT` only.** **No DSN, no project token, no `OTEL_AUTH_HEADER`** — the ingest path is anonymous; the telemetry collector adds the DSN itself. The endpoint is not a credential but it is a host, so it stays in gitignored env files and never appears in a tracked artifact. |

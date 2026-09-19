@@ -148,7 +148,7 @@ rather than rediscover it**.
 ## Notes
 
 - **Depends on:** [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1)
-- **Blocks:** [`0273`](../../backlog/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5), [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
+- **Blocks:** [`0273`](../../backlog/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5), [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
 - **Can run in parallel with** [`0272`](../../backlog/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3) after S1 — both touch `src/profile-server/Routes.ts` (S2 public routes, S3 internal routes); the driver should expect a merge.
 - **Effort (design §9):** 2–2.5 days.
 - **Deploys:** profile box only; safe alone thanks to the legacy fallback.

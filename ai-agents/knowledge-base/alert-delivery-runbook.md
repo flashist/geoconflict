@@ -467,11 +467,43 @@ drill section above. `alert.status` = `closed`, the relay matches it, the ✅ ar
 minutes apart on a warm connection, so the stale-connection defect `0061` describes was never
 exercised. Fire once, wait 30–60 min, fire again — that second firing is the test.
 
-⚠️ **Sustained delivery is still unproven — `0283`'s digest is BUILT but NOT YET OBSERVED ARRIVING.**
-The code, the cron line and the marker check are in the tree as of 2026-09-18
-(`ai-agents/knowledge-base/name-change-digest-runbook.md`), but nothing has been deployed and no
-message has been seen. This line flips to *proven from `<date>`* only when the owner has watched a
-real digest land in the Name Changes topic on the real box — not before. The counters here catch an
+✅ **Sustained Telegram delivery IS observed, from 2026-09-19 — `0283`'s digest arrived on the real
+box.** The owner deployed the profile box on the evening of **2026-09-18** and read the topic the next
+morning: **two real messages**, the first non-mocked sends this feature has ever produced.
+
+| Message | Body timestamp | Delivered (MSK) | What it is |
+|---|---|---|---|
+| 1 | `2026-09-18 18:33 UTC` | 21:34 | the **deploy-time send** (`setup-profile.sh` runs the digest once at deploy) |
+| 2 | `2026-09-19 04:00 UTC` | 07:00 | **cron**, `0 4 * * *` UTC — the owner's chosen hour, to the minute (Moscow is UTC+3 year-round) |
+
+Both read exactly `Waiting for review: 0`, and **the owner confirmed live that both landed in the Name
+Changes topic** — not Alerts, not the player-feedback chat. So the 2026-09-17 ruling *send even on zero,
+because the daily arrival is the heartbeat and its absence is the signal* is now verified **in
+production**, not only in a unit test. **Two messages inside 24 h is EXPECTED** — deploy-time seed plus
+cron — the documented, owner-accepted cost of that deploy-time send; it is not a double-send.
+Evidence: `ai-agents/tasks/done/0283-daily-digest-of-pending-name-change-reviews/worklog.md`
+§ *OWNER-OBSERVED LIVE DELIVERY — 2026-09-19*. Mechanics:
+`ai-agents/knowledge-base/name-change-digest-runbook.md`.
+
+⛔ **What those two messages do NOT prove — read this before treating the heartbeat as alert coverage:**
+
+1. **Nothing about Uptrace alert delivery.** The digest never touches the monitoring stack, never
+   crosses nginx's `/internal/` allowlist, and never arrives from the monitoring box's egress address.
+   **A 403 could have permanently disabled the alert channel while both of those messages arrived
+   perfectly.** `0284`'s probe guards that path; this does not — see the warning near the top of this
+   document, which observed delivery makes **more** important, not less.
+2. **Delivery after an IDLE period is still unproven** (`0274` amendment A1, above). The gap here was
+   ~9.5 h — closer to a cold connection than the drill's minutes-apart bursts, so it is **weak evidence
+   toward A1, not the test A1 asks for.** ⚠️ **Do not record A1 as discharged by this.**
+3. **The second day's single message is NOT yet observed.** One scheduled firing is not a schedule; the
+   proof is the **2026-09-20** 07:00 MSK message arriving, and arriving **once** (`0283` brief
+   verification step 4, still open).
+4. **`profile-checks.sh` check 12's first-ever run was unobserved** as of the owner's report
+   (~07:38 UTC; that cron fires at 08:00 UTC). **Do not assert it passed.**
+5. **A non-zero count has never been rendered.** Both observed messages reported `0`; the non-zero path
+   is unit-tested only.
+
+The counters here catch an
 _intermittent_
 failure (the next alert gets through carrying the news) and a _sustained_ one **not at all** — a rule
 on "the alert path failed" would travel the alert path. The only non-circular proof is a message that

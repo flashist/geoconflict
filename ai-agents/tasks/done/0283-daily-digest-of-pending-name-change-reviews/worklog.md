@@ -354,10 +354,35 @@ check 12. The harness still asserts exactly **one** cron line; nothing here cont
 4. ⛔ **Nothing about a non-zero count.** Both observed messages reported `0`. The non-zero path is
    unit-tested but has never rendered a real pending count.
 
-### One stale line left standing, deliberately
+### ~~One stale line left standing, deliberately~~ → ✅ RULED AND ROUTED, same day
 
-`ai-agents/knowledge-base/alert-delivery-runbook.md:470` still reads that this digest is
-*"BUILT but NOT YET OBSERVED ARRIVING"*. **That is now false.** It was put to the owner in the same
-`AskUserQuestion` — they chose to record the observation here and **not** to amend the runbook this
-turn. Recorded so it is tracked rather than forgotten: **the runbook line needs correcting, and it is
-the owner's call when.** ⛔ No secret, host, IP, chat id or topic id appears anywhere in this entry.
+`ai-agents/knowledge-base/alert-delivery-runbook.md:470` read that this digest is
+*"BUILT but NOT YET OBSERVED ARRIVING"*. **That became false on 2026-09-19.** It was put to the owner
+in the same `AskUserQuestion` as the record-this-observation question, and they chose to record here
+and **not** to amend the runbook in that turn — so it was logged as tracked-not-forgotten rather than
+either silently left wrong or quietly overridden.
+
+✅ **The owner then asked for it, later the same day** (*"do it"*, live in the lead session,
+2026-09-19). The `fkit-sprint-ship-loop` driver routed the correction to a spawned `fkit-producer`,
+covering **two** stale records, not one:
+
+1. `alert-delivery-runbook.md:470` — the line above;
+2. **`ai-agents/sprints/plan-sprint-4.md`, this task's row** — which carried *"nothing is deployed and
+   no digest message has ever been sent or observed"*. **`fkit-wiki` found that second one** during
+   its 2026-09-19 sync and flagged it rather than editing it (the sprint plan is outside the vault's
+   write surface). It would otherwise have been missed: the owner was only ever shown the runbook line.
+
+⛔ **The close was NOT upgraded by any of this.** The brief and the sprint row keep
+`✅ Done (agent-closed — not owner-verified)`. Correcting a factual claim inside a row's description is
+not the same act as upgrading a landed `✅ Done`, which is **owner-only**
+(`fkit-task-done/SKILL.md:78-82`) and which nobody has performed.
+
+⛔ **`alert-delivery-runbook.md:56-59` is deliberately UNCHANGED** — the warning that this digest cannot
+catch an alert-path failure and is actively misleading if read that way. **Observed delivery makes that
+warning more important, not less.**
+
+📌 **Still open after this correction, so the good news cannot erase it:** verification step 4 (the
+second day's *single* message, due 2026-09-20 07:00 MSK) · check 12's first-ever run, unobserved ·
+a non-zero count, never rendered · `0274` amendment A1, **not** discharged.
+
+⛔ No secret, host, IP, chat id or topic id appears anywhere in this entry.

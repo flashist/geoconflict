@@ -1,6 +1,6 @@
 # Review — 0274
 
-Task: `ai-agents/tasks/backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md`
+Task: `ai-agents/tasks/done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md`
 Plan: `plan.md` (blob `0f929fca6ad238266edd248b18bb725d3e3673c2` — re-hashed at review time, matched)
 File(s) under review: S5 surface only — `src/profile-server/{Telemetry,LoginCreationSwitch,Routes,PlayerIdentityRepository,Server}.ts`,
 `src/core/profile/LoginContract.ts`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`,

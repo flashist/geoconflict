@@ -313,7 +313,7 @@ Produce **findings first**. Only write the fix once the cause is known.
   `Blocks` lines are deliberately left saying what they said.
 - **Blocks:** nothing formally. ⚠️ **But since 2026-09-17 it is a recorded DESIGN INPUT to
   [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md) and
-  [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md)** — both briefs now
+  [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md)** — both briefs now
   carry a dated note saying the alert relay must not inherit this fail-silent behaviour. That is a
   constraint recorded against them, not a formal block.
 - **Related:** `0062` (same shape — an env var not reaching production; worth checking whether they

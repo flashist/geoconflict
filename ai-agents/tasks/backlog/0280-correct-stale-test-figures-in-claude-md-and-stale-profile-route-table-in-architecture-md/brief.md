@@ -81,7 +81,7 @@ run's number is exactly what has now gone stale twice. **Recommendation, not a r
 overturn it, but it must then say why a point figure will survive better than the last two did.
 
 **Why the drift recurred, which is the argument for the range:** item 1's dependency is still unmet —
-[`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) is **still on the backlog
+[`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) is **still on the backlog
 board**, and more test-adding work has landed since 2026-09-16. Any single number written before the
 in-flight test-adding work settles will be wrong again on the same schedule.
 
@@ -223,13 +223,13 @@ no config change, no new tests **for items 1–3**; item 4 needs the small asser
 
 ## Notes
 
-- **Depends on:** [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md), [`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)
+- **Depends on:** [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md), [`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)
 - **Why that dependency is real and not bureaucratic:** both add tests. Running this task before they
   land produces a figure that is wrong again immediately — which is the exact failure being corrected.
 - **➕ 2026-09-18 — the dependency rationale above is WEAKENED, not discharged, by the re-measure.** The
   recommendation recorded under item 1 is now to write a **dated range with the host**, not a point
   figure. A range survives another test-adding landing in a way a single number does not, so item 1 no
-  longer strictly has to wait for [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md).
+  longer strictly has to wait for [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md).
   ⚠️ **Producer's read, NOT an owner ruling, and the dependency line above is deliberately left
   standing** — the coder's plan decides whether to ship item 1 early or hold. If it ships early, say so
   in the worklog rather than re-splitting the brief.

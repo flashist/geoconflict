@@ -206,7 +206,7 @@ for an assumption nobody examined.
 - **Related:** [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) — the
   silent-failure class this digest partially backstops, and the task that owns the actual fix;
   [`0067`](../../done/0067-name-change-citizens-only/brief.md) — shipped the per-request notification
-  this one sits beside; [`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) —
+  this one sits beside; [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) —
   its deploy drill now owns proving the per-request notification arrives at all.
 - **Complements (NOT redundant with):**
   [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)

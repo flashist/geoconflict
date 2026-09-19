@@ -133,7 +133,7 @@ not owner-ruled** — the plan may argue a different shape, but it must cover bo
   (same defect family — `0276` restores the network layer, this restores the rate limit and the log;
   neither is a substitute for the other), [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
   (sets `PROFILE_INTERNAL_TOKEN` on both sides and is the task that first puts real traffic on these
-  routes), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (its
+  routes), [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (its
   `session.rejected` counter does **not** cover `internalAuth` — see Context)
 - **Sequencing (soft — merge-conflict avoidance, not a dependency):** `0274` and `0276` both edit the
   top of `createApp` in `src/profile-server/Routes.ts`. Build this after both land.

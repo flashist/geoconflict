@@ -472,7 +472,7 @@ No commit, no push, no task-file move, no status set, no wiki write, no sprint/b
 it** — nothing here re-opens the task or alters its status. Appended by a spawned `fkit-producer`
 (board-record worker) for `/fkit-sprint-ship-loop`. **No code, no commit, no task move, no wiki
 write.** The owning task for the drill is
-[`0274`](../../backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md).
+[`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md).
 
 ⚠️ **Naming, so it is not hunted for:** the drill is **`0274`'s verification step 6 = its `plan.md`
 §7 step 6 (`plan.md:201`)**, i.e. **§7.6**. This task's review ledger and close note call it

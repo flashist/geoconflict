@@ -460,7 +460,7 @@ a reviewer run. Everything else in this ledger was executed by the reviewer.
 ### 4. Producer follow-through — verified read-only
 
 `0274`'s brief now carries the block at
-`ai-agents/tasks/backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md:54-58`:
+`ai-agents/tasks/done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md:54-58`:
 *"⛔ `reason=legacy_fallback_used` is REMOVED from this metric — do not re-add it"*, citing ruling D1
 and noting `expired` / `invalid` stay. Confirmed present. **Build residual 9 is discharged.**
 

@@ -1,6 +1,6 @@
 # Alert rules A1–A6 — design, and which two to build first (2026-09-17)
 
-Design consult for task [`0274`](../../tasks/backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md),
+Design consult for task [`0274`](../../tasks/done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md),
 spawned by the Sprint 4 ship loop. Delivery is live and proven (`0277`); **the rules themselves do not
 exist** — the Uptrace Monitors list holds only the default `error: Notify on all errors` entries
 (`0277/brief.md:22`).
@@ -603,7 +603,7 @@ wording of every question is kept, so the record shows what was unknown and when
 
 ---
 
-**Related:** [`0274` brief](../../tasks/backlog/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) ·
+**Related:** [`0274` brief](../../tasks/done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) ·
 [`0277` brief](../../tasks/done/0277-uptrace-alert-delivery-to-telegram/brief.md) ·
 [alert delivery runbook](../alert-delivery-runbook.md) ·
 [ADR-114](../decisions/adr-114-profile-server-is-the-admin-server-alert-relay-lives-there.md) ·
