@@ -312,3 +312,70 @@ just above it. Not investigated, not filed.
 
 ⛔ **Step 8 (owner-executed box run) is still the only outstanding gate and is unaffected by this
 round.** Nothing in round 1 is evidence that a real deploy is prompt-free.
+
+---
+
+## R2 RESOLVED — box facts verified read-only, 2026-09-20
+
+> ⚠️ **Written by `fkit-lead` (the driver), not by a coder.** A transparent deviation from "the worklog
+> is the Build worker's": the task is parked pending owner step 8, no worker was running, and the
+> alternative was leaving verified evidence unrecorded until someone re-derived it. **Nothing here is
+> source; nothing here is a review.** Recorded on an owner ruling given live via `AskUserQuestion`
+> (*"Yes — check both boxes"*). ⛔ Not precedent.
+
+**Residual R2 said:** *"box claims are predictions. Distro unrecorded in the repo; `needrestart`
+presence unknown (if installed, the suppressed default may restart services mid-deploy — the G7
+scenario; owner ruled D2 knowing this)."* **Both halves are now established.**
+
+### What was run
+
+Read-only SSH to both boxes. No writes, no deploy, no restart. ⛔ No host, IP, port, token or
+credential appears here or was written anywhere.
+
+### Findings
+
+| | profile box | telemetry box |
+|---|---|---|
+| Distro | **Ubuntu 26.04.1 LTS** | **Ubuntu 24.04.5 LTS** |
+| `needrestart` | **INSTALLED**, 3.11-1ubuntu2 | **INSTALLED**, 3.6-7ubuntu4.5 |
+| apt hook `99needrestart` | present | present |
+| `$nrconf{restart}` set in `/etc/needrestart/`? | **no** — only the commented `#$nrconf{restart} = 'i';`, so the package default `i` (interactive) applies | same |
+| `/etc/default/keyboard` (sha256, first 12) | `9d2d64b5b738` | `9d2d64b5b738` |
+| `/etc/default/console-setup` (sha256, first 12) | `e8601d8158ed` | `8910fde8c8dc` |
+
+⚠️ **The two boxes are NOT on the same Ubuntu release.** Any behavioural claim proven on one is not
+automatically true of the other — which is why the code path below was read on **both**.
+
+### 🎯 The G7 fear is REFUTED — `needrestart` downgrades to LIST, it does not auto-restart
+
+Read from `/usr/sbin/needrestart` on each box (line numbers differ by version; the code is identical):
+
+```perl
+my $debian_noninteractive = (exists($ENV{DEBIAN_FRONTEND}) && $ENV{DEBIAN_FRONTEND} eq 'noninteractive');
+...
+$is_tty = 0 if($opt_r eq 'i' && $debian_noninteractive);
+$opt_r  = 'l' if(!$is_tty && $opt_r eq 'i');
+```
+
+profile box: `:220`, `:270`, `:271` · telemetry box: `:231`, `:281`, `:282`.
+
+With the restart mode at its default `i` and `DEBIAN_FRONTEND=noninteractive` exported, `needrestart`
+forces `$is_tty = 0` and then rewrites the mode to **`l` (list)** — **not `a` (automatic)**. It prints
+which services would need restarting and **restarts nothing**.
+
+⇒ **On these two boxes, at these two versions, the export makes `needrestart` quieter AND safer.** The
+G7 scenario the plan feared — services restarting mid-deploy with nothing printed — **does not occur**;
+the opposite does. The owner ruled D2 accepting that risk, and the risk turns out not to be present.
+
+### ⛔ The limits of this — do not over-read it
+
+- **Version- and config-specific.** It holds for `needrestart` 3.11/3.6 with **no uncommented**
+  `$nrconf{restart}`. A package upgrade, or anyone setting `$nrconf{restart} = 'a'` in
+  `/etc/needrestart/conf.d/`, changes the answer. ⚠️ And `apt-get upgrade -y` — which owner ruling D2
+  **keeps** — is itself capable of upgrading `needrestart`.
+- ⛔ **It says nothing about a real deploy.** Step 8 is **still required and still the owner's**. This
+  removes one predicted hazard; it does not prove a deploy runs prompt-free.
+- ⛔ **It does not touch residual R1** (dpkg conffile prompts), which remains uncovered by design under
+  owner ruling D3.
+- The two `/etc/default/*` digests above are the **"before" half** of step 8's before/after capture,
+  taken early. If they differ after the deploy, the fix altered box state and must be reconsidered.
