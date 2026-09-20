@@ -88,3 +88,4 @@ game box**. `0279` and `0217` should **re-run that set rather than rediscover it
 - [[systems/player-profile-store]] — the backend this adds login to
 - [[systems/analytics]] — the six `Profile:Login:*` events the client fires against this endpoint
 - [[decisions/sprint-4]] — the sprint that owns it
+- [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274` (S5), the monitoring slice that instruments this endpoint; shipped in the SAME single deploy

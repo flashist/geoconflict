@@ -6,9 +6,31 @@
 
 > ✅ **Closed 2026-09-01 by a spawned producer — agent-closed, not owner-verified.**
 >
-> 🚨 **This does NOT mean production is fixed.** The task shipped as **built + Deferred Live Tail** (owner ruling R3, 2026-09-01). Its live-tail items **D1–D3 are unchecked**, gated on **`0014`** (Yandex has not issued the per-game key) **and** the pending profile deploy. **A profile deploy carried out today lands the variable EMPTY, and every `/v1/payments/*` route correctly keeps returning `503 {"error":"payments_unavailable"}`.**
+> 🚨 **This does NOT mean production is fixed.** The task shipped as **built + Deferred Live Tail** (owner ruling R3, 2026-09-01). Its live-tail items **D1–D3 are unchecked**, gated on **`0014`** (Yandex has not issued the per-game key) **and** the pending profile deploy. ~~**A profile deploy carried out today lands the variable EMPTY, and every `/v1/payments/*` route correctly keeps returning `503 {"error":"payments_unavailable"}`.**~~ 🔴 **STRUCK 2026-09-19 — FALSE OF THE BOX AS IT STANDS; see the correction block below.**
 >
 > This is `0062`'s trap arriving on schedule: **a shipped diff is not a fixed production.**
+>
+> 🔴 **CORRECTED 2026-09-19 — THE PAYMENTS ROUTES ARE NOT 503ING, AND THE VALUE ON THE BOX IS NOT
+> EMPTY.** Verified **read-only on the box** by `fkit-lead`, on an owner ruling given the same day.
+> Three observations: a `POST` to a deliberately **non-existent sub-path** under `/v1/payments/` on the
+> box's **loopback** answered **404, not 503** — so the `paymentsEnabled` middleware, which is mounted
+> across the whole prefix ahead of every handler, **passed**; `YANDEX_PAYMENTS_SECRET` is **present in
+> the running container, length 32** (⛔ **length only — the value was never read into any log, file or
+> transcript**); and the startup warning `payments endpoints disabled` appears **0 times** in that
+> container's logs.
+>
+> 🚨 **STATE THE LIMIT OF THIS EVIDENCE EXACTLY. It settles ONE question — "is a non-empty value
+> there" — and NOTHING MORE.** It does **NOT** show the value is *correct*, and **no real purchase was
+> exercised**. ⛔ **A page that now reads "payments work" would be as wrong as the one that read "they
+> 503".**
+>
+> ⚠️ **The value's PROVENANCE IS UNVERIFIED.** Nothing observed shows `0014` issued a per-game key; a
+> 32-character placeholder would present identically. **Do not read this as `0014` shipping.**
+>
+> ⛔ **THE FAIL-CLOSED CODE IS UNTOUCHED AND STILL CORRECT** — an empty secret still 503s the whole
+> prefix, and `verifySignedPayload()` still returns null on an empty secret. What is corrected is only
+> the claim that **this box** carries an empty one. `POSTGRES_PASSWORD`'s required / fail-closed
+> behaviour is likewise unaffected.
 >
 > 🔴 **CORRECTED 2026-09-04 — THIS TASK'S PRODUCTION NARRATIVE IS UNVERIFIED.** ⚠️ **This supersedes an
 > earlier same-day annotation here reading "DESCRIBED A BOX THAT NO LONGER STANDS"; that overstated the
@@ -32,7 +54,7 @@
 
 `build-deploy-profile.sh` stages the profile deploy environment by writing `printf "export <VAR>=%q\n"` lines into a 0600 temp file, SCPing it to the box and sourcing it. **`YANDEX_PAYMENTS_SECRET` was not one of those lines.** Downstream, `setup-profile.sh` writes `YANDEX_PAYMENTS_SECRET=${YANDEX_PAYMENTS_SECRET:-}` into the container's `profile.env` — so the `:-` default fired and the line was written **empty**.
 
-The application then failed closed, exactly as designed: `src/profile-server/Server.ts` reads the variable and logs a startup `warn` when empty, and `src/profile-server/Routes.ts` installs a `paymentsEnabled` middleware that answers **503** on `/yandex/intent`, `/yandex/complete` and `/yandex/reconcile` alike. ~~**True on the real box since `0019` shipped.**~~ 🔴 **CORRECTED 2026-09-04: there is no real box — see the banner above.** True of the deployed configuration since `0019` shipped, on the box that then stood.
+The application then failed closed, exactly as designed: `src/profile-server/Server.ts` reads the variable and logs a startup `warn` when empty, and `src/profile-server/Routes.ts` installs a `paymentsEnabled` middleware that answers **503** on `/yandex/intent`, `/yandex/complete` and `/yandex/reconcile` alike. ~~**True on the real box since `0019` shipped.**~~ 🔴 **CORRECTED 2026-09-04: there is no real box — see the banner above.** True of the deployed configuration since `0019` shipped, on the box that then stood. 🔴 **UPDATED 2026-09-19 — that sentence describes the CODE with an empty variable, which is still exactly right, and it no longer describes THIS box:** a **non-empty** value (length 32, content never read) is present in the running container and the prefix answers **404, not 503**, on a missing sub-path. See the correction block at the top.
 
 A second gap sat in the operator-facing template: `example.env.profile` did not mention the variable anywhere, so an operator doing everything right had no way to learn it is a deploy input. The fix was therefore **two edits, not one**.
 
@@ -54,10 +76,10 @@ Found 2026-08-28 during `0067`'s build, and owner-approved the same day as **its
 ## Outcome
 
 - **The plumbing is fixed in the repository. Production is not fixed.** The value still does not exist to forward, because `0014` has not issued it.
-- ⚠️ **Verification steps 3–5 are the Deferred Live Tail and are unchecked.** They require a real profile deploy *with a value configured*, and the brief's own gate is deliberately sharp: confirm the on-box value is **non-empty, not merely present** — a variable that is forwarded but unset locally still lands empty, **which is this exact bug with the fix applied**. Check the value's *length*, never its content.
+- ⚠️ **Verification steps 3–5 are the Deferred Live Tail and are unchecked.** They require a real profile deploy *with a value configured*, and the brief's own gate is deliberately sharp: confirm the on-box value is **non-empty, not merely present** — a variable that is forwarded but unset locally still lands empty, **which is this exact bug with the fix applied**. Check the value's *length*, never its content. 🔴 **UPDATED 2026-09-19 — that exact check HAS now been made: the on-box value is non-empty, length 32.** ⛔ **That is NOT D1–D3 discharged.** It settles the *presence* half only; the tail still needs the value to be the **right** one and a real signed payload to verify, and **neither was exercised**. ⛔ **Only the producer / owner may mark D1–D3 — the wiki flags, it does not close.**
 - ⚠️ **The end-to-end payments check is owner-gated and was not run.** `/yandex/intent` creates DB rows without checking a signature, so driving it with a throwaway value would write junk intents into the production profile DB. Full end-to-end verification with a *real* signed payload belongs to `0065`, not here.
 - **Fail-closed must keep working.** The point of the task is to make the value *reach* the box, never to weaken the guard that fires when it has not.
-- **`0065`'s gate count did NOT drop.** `0195` is a gate now **satisfied, not removed** — `0065`'s board row still states **three** conditions (`0014`, `0062`, **and** `0195`), owner-ruled, and the routes still 503 today because `0014` has not issued the key.
+- **`0065`'s gate count did NOT drop.** `0195` is a gate now **satisfied, not removed** — `0065`'s board row still states **three** conditions (`0014`, `0062`, **and** `0195`), owner-ruled. ⛔ **The count is owner-ruled and is NOT changed here — the wiki does not edit a board (ADR-033).** 🔴 **But its STATED REASON went stale on 2026-09-19:** ~~the routes still 503 today because `0014` has not issued the key~~ — a non-empty value **is** present on the box and the prefix answers **404, not 503**, on a missing sub-path. 🚩 **FLAGGED FOR THE PRODUCER AND THE OWNER: the three-gate count may still be correct for other reasons** — the value's *correctness* is unproven and no real purchase was exercised — **but this particular rationale can no longer carry it.**
 - 🔒 **This task is *about* a credential.** Only the variable **name** appears in its record — never a value, not even truncated, not even "starts with".
 
 ## Related
@@ -66,7 +88,7 @@ Found 2026-08-28 during `0067`'s build, and owner-approved the same day as **its
 - [[tasks/prod-api-env-https-apex]] — task `0063`, the one instance of the class fixed, deployed and evidenced
 - [[tasks/yandex-payments-implementation]] — task `0019`, which introduced the variable and the fail-closed 503
 - [[tasks/citizenship-name-change]] — task `0067`, during whose build this gap was found and whose Telegram variables supplied the forwarding pattern
-- [[systems/player-profile-store]] — the profile service whose payments routes this gap 503s
+- [[systems/player-profile-store]] — the profile service whose payments routes this gap 503s ~~today~~ (🔴 **2026-09-19: not any more on the box** — a non-empty secret is present; the code's fail-closed 503 is unchanged)
 - [[systems/configuration]] — deploy-environment plumbing and runtime config
 - [[decisions/sprint-4]] — the sprint board carrying the config track
 - [[decisions/sprint-backlog]] — where `0064`, the guard that must land after this, is tracked

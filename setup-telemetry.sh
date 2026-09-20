@@ -40,6 +40,17 @@
 
 set -e
 
+# ── Unattended package operations (task 0286) ─────────────────────────────────
+# A deploy runs with no terminal to answer debconf. Without this, `apt-get upgrade` stopped
+# three times on keyboard-configuration/console-setup prompts (observed 2026-09-18) — and
+# unattended it would WAIT FOREVER holding the apt lock, with set -e never firing.
+# EXPORTED, not prefixed per call, deliberately: get.docker.com's installer below runs
+# apt-get itself, which only an exported variable reaches — and any apt line added later
+# inherits it.
+# ⚠️ NOT a universal muzzle: it suppresses the PROMPT and takes debconf's stored (or default)
+# answer. dpkg's own conffile prompt is NOT governed by it (see 0286's worklog).
+export DEBIAN_FRONTEND=noninteractive
+
 UPTRACE_DIR="/opt/uptrace"
 BACKUP_DIR="$UPTRACE_DIR/backups"
 

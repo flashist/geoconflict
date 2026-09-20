@@ -85,6 +85,23 @@
 
 set -e
 
+# ── Unattended package operations (task 0286) ─────────────────────────────────
+# A deploy runs with no terminal to answer debconf. Without this, `apt-get upgrade` stopped
+# three times on keyboard-configuration/console-setup prompts on the TELEMETRY box
+# (observed 2026-09-18); this box has the same exposure across more apt calls and had
+# simply not been hit. Unattended the prompt would WAIT FOREVER holding the apt lock,
+# with set -e never firing.
+# EXPORTED, not prefixed per call, deliberately: get.docker.com's installer below runs
+# apt-get itself, which only an exported variable reaches — and any apt line added later
+# inherits it.
+# ⚠️ MUST STAY ABOVE the `flock -n 9` block: the earliest apt call in this script is the
+# pre-flock `apt-get install -y util-linux` that installs flock itself. An export moved
+# under the lock would leave that first call uncovered. A harness assertion holds this
+# ordering (tests/scripts/profile-deploy-hardening.test.sh).
+# ⚠️ NOT a universal muzzle: it suppresses the PROMPT and takes debconf's stored (or default)
+# answer. dpkg's own conffile prompt is NOT governed by it (see 0286's worklog).
+export DEBIAN_FRONTEND=noninteractive
+
 PROFILE_DIR="/opt/profile"
 BACKUP_DIR="$PROFILE_DIR/backups"
 

@@ -142,3 +142,4 @@ login"* and *"why not link accounts now"* are **closeout of this ADR, not new fi
 - [[decisions/sprint-4]] — the sprint this decision was ruled inside
 - [[systems/architecture-overview]] — the profile tier this reshapes
 - [[systems/analytics]] — the `Profile:Login:*` event families that measure this login flow
+- [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274` (S5), the monitoring slice this ADR's go-live depends on; closed 2026-09-19 with four of six alert rules deferred

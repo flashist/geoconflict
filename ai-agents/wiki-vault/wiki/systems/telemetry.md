@@ -278,3 +278,4 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 - [[tasks/telemetry-cert-expired-renewal-cron]] — task `0257`: the certificate expired 2026-09-04, ten days of dark client telemetry, and a renewal cron that could never succeed
 - [[tasks/uptrace-retention-not-applied]] — task `0259`: the configured 7 d / 90 d are inert; everything is dropped at ~14 d
 - [[tasks/client-source-map-upload-verification]] — task `0260`: Uptrace 2.0.2 has no upload endpoint, so the symbolication pipeline never worked and was removed
+- [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`: the nine `geoconflict_profile_*` series exported into this stack, the `profile · overview` dashboard, and 🚨 **the fact that `setup-telemetry.sh` seeds NO dashboard, monitor or notification channel — a rebuild of this box deletes all of it and nothing in the repo recreates it**

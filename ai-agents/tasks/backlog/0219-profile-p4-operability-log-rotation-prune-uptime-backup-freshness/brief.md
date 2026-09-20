@@ -72,8 +72,85 @@ for THESE MOVES ONLY — not a standing licence, not precedent.**
 📌 **`0220` (P5), `0221` (P6) and `0222` (Cleanup) were NOT ruled** — they keep their existing
 positions and the producer's ranks.
 
+---
+
+## 🔴 OWNER RULING 2026-09-19 — THIS TASK IS SPLIT: G1/G2 PREPARED, G3/G4 DEFERRED
+
+⛔ **Authority first.** Given **live in the `fkit lead` session via `AskUserQuestion` on 2026-09-19**
+and relayed by `fkit-lead` to a spawned `fkit-producer` that holds **no owner channel of its own**.
+⛔ **NOT producer precedent — one owner ruling, one task.**
+
+**What the owner was shown.** A **direct conflict between two of their own instructions from the same
+day**: *"prepare all the related things to citizenship and profile"* versus *"focus on the tasks that
+related to the core functionality of the features (not monitoring/messaging)"*. This task is
+monitoring **and** operability, so it sits on both sides of that conflict. Three options were put;
+**the owner chose the split.**
+
+**The ruling, as ruled:**
+
+| Item | Disposition |
+|---|---|
+| **G1** — container log rotation | ✅ **COUNTS as core operability — prepared before the weekend deploy slot.** |
+| **G2** — image prune | ✅ **COUNTS as core operability — prepared before the weekend deploy slot.** |
+| **G3** — external uptime check (and the renewal-log reader) | ⛔ **DEFERRED** past the slot. |
+| **G4** — `last-backup.json` freshness reader | ⛔ **DEFERRED** past the slot. |
+
+**Deferred *together with* [`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)
+and [`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md)** —
+the same monitoring bucket. ⛔ **Neither of those two was closed, cancelled or re-ranked by this
+ruling; both stay `🔲 Backlog` exactly where they are.** The ruling scopes **prep work**, not their
+existence.
+
+🚨 **THE COST, PUT TO THE OWNER AND KNOWINGLY ACCEPTED — both halves:**
+
+1. ⛔ **This task does NOT close at the weekend deploy slot.** It stays open with a narrower, accurate
+   reason (see `## Status`). The 2026-09-13 hold-open ruling is unchanged and still binding.
+2. 🚨 **The TLS-certificate fuse stays UNWATCHED.** G3/G4 were the only thing that would have watched
+   it. As described to the owner: the live certificate's `notAfter` is **2026-11-20**, with
+   twice-daily renewal attempts beginning around **2026-10-21**, failing **silently** until TLS stops
+   serving. **Weeks away, not this weekend** — that is why the deferral is affordable, and it is the
+   whole of why.
+
+⚠️ **PROVENANCE OF THOSE TWO CERT FIGURES — read before citing them.** They come from a **previous
+producer's report**, relayed through `fkit-lead`, which did **not** verify them. **Record them as
+reported, not as established.** What *is* repo-verifiable, and was checked on 2026-09-19:
+`setup-profile.sh:1778` installs `0 0,12 * * * root certbot renew --quiet …` ⇒ **the twice-daily
+cadence is real.** ⛔ **The `notAfter` date and the ~2026-10-21 first-real-attempt date are live-box
+facts that nothing in this repository can see** — they rest on the earlier report alone. 📌 *Also
+noted, not fixed: this brief and its Sprint 4 row both cite that cron as `setup-profile.sh:983`. At
+HEAD it is `:1778`. Left uncorrected here because the file is `0286`'s live work surface today.*
+
+### 🚨 What "defer G3/G4" does and does NOT mean — the one thing a reader will get wrong
+
+⛔ **It does NOT mean G3/G4 are unbuilt or get un-built.** **All of G1–G4 is already code + docs in
+the tree** (Part A, 2026-09-13) and **a single `npm run deploy:profile` — hand-off step B4 — lands all
+four**, `checks.sh` and its cron included. What is deferred is the **owner-side external setup and the
+observed-alert drills**, which is where G3/G4's value actually lives.
+
+**So the split maps onto the existing hand-off steps like this:**
+
+| Step | At the slot? |
+|---|---|
+| **B4** — `npm run deploy:profile` (lands G1 rotation + G2 prune, and G3/G4's code) | ✅ **Yes** |
+| **B5** — V1, container logs bounded, rotation observed (**G1**) | ✅ **Yes** |
+| **B6** — V2, prune leaves current + rollback (**G2**) | ✅ **Yes** |
+| **B2** — create the dead-man's-switch check (**G3/G4**) | ⛔ Deferred |
+| **B3** — the two external uptime monitors (**G3**) | ⛔ Deferred |
+| **B7–B10** — the observed-alert drills, incl. `certbot.timer` → `disabled` (**G3/G4**) | ⛔ Deferred |
+
+🚨 **CONSEQUENCE OF THAT MAPPING, STATED LOUDLY BECAUSE THE HAND-OFF ASSUMES THE OPPOSITE ORDER.**
+`worklog.md`'s Part B opens *"Order matters: B2/B3 before B4 so the URL ships with the deploy."* With
+B2 deferred there is **no `PROFILE_CHECKS_PING_URL`**, so the slot's deploy is expected to print
+`alerting: no` instead of the hand-off's predicted `Checks: … alerting: yes`. ⛔ **That is the ruling
+working, not a deploy failure — do not "fix" it by inventing a ping URL.** The on-box `checks.sh` and
+its cron still install and still run; **nothing is listening to them.** That is precisely the accepted
+cost in point 2 above. ⚠️ **B7(d) also rides on B4** — the `certbot.timer` disable is applied by the
+deploy; only its *confirmation* is deferred.
+
+---
+
 ## Status
-🚧 Blocked — built + reviewed 2026-09-13 (Part A: code, tests, docs; stateful review round 1 closed out, Codex coverage full); open pending the OWNER-side live tail B2–B10 (dead-man's-switch check + uptime monitors, `npm run deploy:profile`, and the observed-alert drills incl. `systemctl is-enabled certbot.timer` → disabled). Owner ruled 2026-09-13, live in the lead session: hold open, do not close until the alerts have been watched arriving. Driven by `/fkit-sprint-ship-loop`
+🚧 Blocked — 🔴 **SPLIT 2026-09-19 BY OWNER RULING (block directly above): G1/G2 prepared for the weekend deploy slot, G3/G4 DEFERRED with `0285` and `0289`.** Built + reviewed 2026-09-13 (Part A: code, tests, docs — **all of G1–G4**; stateful review round 1 closed out, Codex coverage full). ⛔ **THIS TASK DOES NOT CLOSE AT THE WEEKEND SLOT.** Narrowed, accurate remainder — **at the slot:** B4 (`npm run deploy:profile`, which lands G1's log rotation and G2's prune), then B5 (V1, rotation observed) and B6 (V2, prune keeps current + rollback). **Deferred past the slot:** B2/B3 (dead-man's-switch check + the two external uptime monitors) and the observed-alert drills B7–B10, incl. `systemctl is-enabled certbot.timer` → `disabled`. ⚠️ Expect the slot's deploy to report `alerting: no` — with B2 deferred there is no ping URL; that is the ruling, not a fault. Owner ruled 2026-09-13, live in the lead session: hold open, do not close until the alerts have been watched arriving — **that ruling stands and is what keeps this open.** Driven by `/fkit-sprint-ship-loop` · earlier: 🚧 Blocked — built + reviewed 2026-09-13 (Part A: code, tests, docs; stateful review round 1 closed out, Codex coverage full); open pending the OWNER-side live tail B2–B10 (dead-man's-switch check + uptime monitors, `npm run deploy:profile`, and the observed-alert drills incl. `systemctl is-enabled certbot.timer` → disabled)
 
 ## Owner
 fkit-coder

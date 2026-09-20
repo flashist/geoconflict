@@ -37,7 +37,68 @@ See the addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) for 
 > relative link this brief previously carried did not resolve.
 
 ## Status
-✅ Done (agent-closed — not owner-verified) — **built + Deferred Live Tail (owner ruling R3, 2026-09-01). This does NOT mean production is fixed:** D1–D3 are unchecked and gated on **`0014`** (the key does not exist yet) **and** the pending profile deploy. **A profile deploy carried out today lands the variable empty and `/v1/payments/*` correctly keeps returning 503.**
+✅ Done (agent-closed — not owner-verified) — **built + Deferred Live Tail (owner ruling R3, 2026-09-01). This does NOT mean payments are proven working:** the worklog's D1–D3 boxes are still unticked ~~and gated on **`0014`** (the key does not exist yet) **and** the pending profile deploy~~. ~~**A profile deploy carried out today lands the variable empty and `/v1/payments/*` correctly keeps returning 503.**~~ 🔴 **Both struck claims are FALSE about this box — see the correction immediately below.**
+
+> 🔴 **CORRECTION 2026-09-20 — THE TWO STRUCK CLAIMS ABOVE WERE FALSE ABOUT THIS BOX. Struck, not deleted.**
+>
+> ⛔ **SCOPE, FIRST: this corrects a FACTUAL CLAIM INSIDE THE STATUS PROSE AND NOTHING ELSE.** The
+> `✅ Done (agent-closed — not owner-verified)` marker is **unchanged** — it is the **owner's alone to
+> change** — the folder was **not moved**, **no mover skill was invoked**, and the defect, the fix and
+> every other section of this brief stand exactly as they were.
+>
+> **AUTHORITY.** An **OWNER ANSWER given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-20**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel of its
+> own**. The owner was shown the recommendation that this file be corrected *because it is the task
+> that FORWARDS the variable, so a payments planner reaches it directly from `0014`* — and ruled:
+> **correct it.** ⛔ **Not producer precedent — one answer, one file.**
+>
+> **WHAT IS NOW ESTABLISHED — two different grades of evidence, kept apart on purpose:**
+>
+> - ✅ **REPO-EXTERNAL BUT DIRECTLY OBSERVED — verified read-only on the profile box by `fkit-lead`,
+>   2026-09-19:** **(i)** a `POST` to a **deliberately non-existent** sub-path under `/v1/payments/`
+>   returned **404, not 503** ⇒ the `paymentsEnabled` middleware, which is mounted across the whole
+>   `/v1/payments` prefix ahead of every handler, **PASSED**; **(ii)** `YANDEX_PAYMENTS_SECRET` is
+>   **present in the running container, length 32**; **(iii)** the startup warning
+>   `payments endpoints disabled` appears **0 times** in that container's logs.
+>   🔒 **The value has never been read into any log, file or transcript — length only.**
+> - 📌 **OWNER-ATTESTED, NOT REPO-VERIFIED — provenance, 2026-09-20**, in substance: *"that's the real
+>   Yandex key, I set it."* ⇒ the per-game key **was issued** and the owner **deployed the profile box
+>   with it populated**. ⚠️ A deploy leaves **no artifact in git**, so nothing in this repository can
+>   confirm it. This carries **exactly the same standing as the 2026-09-12 key-issuance ruling:
+>   recorded as attested, never as repo-established.**
+>
+> ⛔ **THIS DOES NOT MEAN PAYMENTS WORK, AND NOTHING HERE MAY BE READ THAT WAY.** Provenance is not
+> correctness. **No real signed payload and no real purchase has ever been exercised against this
+> box.** Only [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md)'s **step 1** (a
+> first real signed payload returning 200) and **step 3** (a real test purchase) settle correctness —
+> and the owner **confirmed on 2026-09-20** that `0065`'s `0195` condition **stays OPEN on
+> correctness**, blocker count **three**.
+>
+> 📌 **ON D1–D3, STATED EXACTLY.** The 2026-09-19 observation covers **D1** (non-empty on the box) and
+> **D2** (the startup warn is gone) **in substance**, and bears on **D3** only by inference — the
+> middleware passing is not the same as driving `POST /v1/payments/yandex/intent` itself, and D3 stays
+> **owner-gated** for the reason its own text gives. ⛔ **No box was ticked in
+> [`worklog.md`](worklog.md) and none should be by an agent** — that is a verification judgement on a
+> closed task, and it is the owner's.
+>
+> ✅ **ANSWERED — THE OWNER RULED ON THIS, SO IT IS NO LONGER AN OPEN QUESTION.** The question put to
+> the owner was whether **D1/D2** should be ticked given that the 2026-09-19 observation covers them
+> *in substance*. **OWNER RULING, given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-20**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel of its own:
+> **leave D1 and D2 UNTICKED.** The reasoning put to the owner and accepted: **the correction text
+> above already records what was observed**, and **the probe was indirect** — it proved the
+> `paymentsEnabled` middleware passes, **not** that a signed payload works. ⛔ **Not producer
+> precedent.** ⛔ **Nothing was ticked, no `## Status` token changed, and the
+> `✅ Done (agent-closed — not owner-verified)` marker is untouched — it is the owner's alone.**
+> **D3 is unaffected either way and stays owner-gated**, exactly as its own text says.
+>
+> ✅ **WHAT IS DELIBERATELY *NOT* CORRECTED — do not "fix" it.** Every sentence in this brief that
+> describes what the **code does when the variable is unset** is **still true**: the `warn` at startup,
+> the `paymentsEnabled` 503 on `/v1/payments/*`, "fail-closed", and **verification step 6** (which
+> deliberately unsets the variable and expects the 503 back). Only the claim about **this box's
+> current state** was false. The 2026-09-04 correction above is likewise untouched: it corrected a
+> *deduction written in the grammar of a sighting*, and it remains the accurate account of what was
+> known on that date.
 
 ## Owner
 fkit-coder

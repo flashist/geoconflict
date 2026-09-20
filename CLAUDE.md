@@ -209,11 +209,13 @@ wrapper is a jest suite, not a `posttest` hook.
 ⚠️ **Two consequences worth knowing before you are surprised by them:**
 
 1. **The hardening harness carries grep-level structural assertions over `nginx.conf`,
-   `setup-profile.sh`, `setup-telemetry.sh`, `build-deploy-telemetry.sh`, `build-deploy-profile.sh`
-   and `update.sh`.** Editing any of those files can now turn `npm test` red — including for people
-   not touching test code. That is the gate working, not a broken test. Since `0219` this includes
-   `setup-profile.sh`'s compose `logging:` values (must equal `update.sh`'s), its keep-list image
-   prune, and the `checks.sh` cron line.
+   `setup-profile.sh`, `setup-telemetry.sh`, `build-deploy-telemetry.sh`, `build-deploy-profile.sh`,
+   `setup.sh` and `update.sh`.** Editing any of those files can now turn `npm test` red — including
+   for people not touching test code. That is the gate working, not a broken test. Since `0219` this
+   includes `setup-profile.sh`'s compose `logging:` values (must equal `update.sh`'s), its keep-list
+   image prune, and the `checks.sh` cron line. Since `0286` it also includes an ordering assertion
+   per script — `export DEBIAN_FRONTEND=noninteractive` must sit above that script's first `apt`
+   call — which is the only reason `setup.sh` appears in the list at all.
 2. **`scripts/test-check-docker-secret-boundary.sh` writes a synthesized (fake) secret fixture into
    the repo root** and removes it in its `cleanup()` trap. An interrupted run (Ctrl-C) can leave that
    file behind. It is synthetic, never a real credential — but delete it if you see it.

@@ -22,6 +22,30 @@ run as a whole belongs directly below `0217`. Appended at the bottom (ADR-035).
 ## Owner
 fkit-coder
 
+### 🔴 OWNER RULING 2026-09-19 — this task's zero-evidence gap is CROSSED at the weekend slot, not before
+
+⛔ **Authority first.** Given **live in the `fkit lead` session via `AskUserQuestion` on 2026-09-19** and
+relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**.
+⛔ **NOT producer precedent — one owner ruling, one task.**
+
+**The ruling:** `PROFILE_INTERNAL_TOKEN` is set **AT the coming weekend deploy slot**, not one slot
+later. The ruling lives in full in
+[`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s go-live-condition block, which
+is where the condition belongs; it is recorded here because **this task carries the evidence gap the
+ruling crosses.**
+
+⚠️ **RECORDED PLAINLY: THIS WENT AGAINST THE RECOMMENDATION PUT TO THE OWNER**, and **this task's
+`## Status` is the reason it was made.** The advice was to ship with the token blank, prove S3 and S4
+on the live box, and set the token at the following slot — because at this slot **crediting is switched
+on in the same minute that S3's and S4's code executes in production for the very first time, with
+zero prior production evidence.** ✅ **The owner chose this slot anyway; that is their call and it
+stands.** The tradeoff was **stated and knowingly accepted**, not overlooked.
+
+⛔ **NOTHING HERE IS A COMPLETION.** `## Status` above is **UNCHANGED** — S3's end-to-end behaviour
+still has **zero production evidence**, no probe has touched `/internal/v1/players/resolve` or
+`/internal/v1/credit` with a valid token, and **no mover skill was invoked.** The ruling **schedules
+when the first production exercise happens; it does not perform it.**
+
 ## Context
 
 **Filed 2026-09-15 on OWNER RULINGS (`AskUserQuestion`, lead session, relayed by `fkit-lead`):** design

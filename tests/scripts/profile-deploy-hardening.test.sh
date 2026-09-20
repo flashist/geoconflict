@@ -10,10 +10,11 @@
 # The trailing "Structural" sections have since widened this file's scope beyond
 # build-deploy-profile.sh: it is the home for grep-level structural assertions over
 # the deploy-related files that HAVE them — currently setup-profile.sh,
-# setup-telemetry.sh, build-deploy-telemetry.sh, and update.sh + nginx.conf for
-# container log retention (task 0060). It is NOT complete coverage: deploy.sh,
-# build.sh and build-deploy.sh have no assertions here at all. New structural checks
-# belong here rather than in a second harness nothing runs.
+# setup-telemetry.sh, build-deploy-telemetry.sh, setup.sh (unattended-apt ordering
+# only, task 0286), and update.sh + nginx.conf for container log retention
+# (task 0060). It is NOT complete coverage: deploy.sh, build.sh and build-deploy.sh
+# have no assertions here at all. New structural checks belong here rather than in a
+# second harness nothing runs.
 #
 # Run:  bash tests/scripts/profile-deploy-hardening.test.sh
 # Exits non-zero on the first failed assertion.
@@ -298,6 +299,44 @@ echo "== Structural: on-box flock/marker + telemetry mirror =="
 P="$REPO_ROOT/setup-profile.sh"
 awk '/flock -n 9/{f=NR} /apt-get update -y && apt-get upgrade -y/{u=NR} END{exit !(f>0 && f<u)}' "$P" \
   && pass "setup-profile.sh: flock acquired before first apt mutation" || fail "flock not before apt"
+# ── Unattended apt: DEBIAN_FRONTEND exported ABOVE the FIRST apt call (task 0286) ──
+# These are LINTS over ordering, not behavioural tests: a real prompt-free deploy is only
+# observable on the box. What they catch is the cheap regression — the export deleted, or
+# "tidied" to somewhere below the first apt call, which silently reopens the hang.
+# Anchored on `^[[:space:]]*apt` so the prose in each script's own explanatory comment
+# cannot satisfy them.
+#
+# ⚠️ The anchor is DELIBERATELY GENERIC — `apt` or `apt-get`, any subcommand — and both
+# line numbers are FIRST-match (`if(!e)`/`if(!u)`), not last. That is what makes these
+# assert what their name and CLAUDE.md both claim: "above the script's FIRST apt call".
+# An earlier, hard-coded per-script anchor (0286 review round 1, finding R1) asserted only
+# "above THIS named line", and was wrong three ways, each reproduced before this change:
+#   (a) an apt call added ABOVE the export passed GREEN — the named anchor still sat below
+#       the export, so the very hang these exist to prevent reopened silently;
+#   (b) a second, redundant export added below the anchor flipped last-match `e` past `u`
+#       and failed claiming NO export existed when one did;
+#   (c) merely rewording the named apt line set `u=0` and failed with that same wrong text.
+# ⚠️ setup-profile.sh's first apt call is the PRE-FLOCK `apt-get install -y util-linux` —
+# the call that installs flock itself. Anchoring on the post-flock `apt-get upgrade` would
+# pass green with the export moved under the lock, leaving that first call exposed. "First"
+# is the property that matters, which is why the anchor no longer names a line at all.
+# ⚠️ Known limitation of a generic anchor: it matches on TEXT, so an apt line inside a
+# heredoc that merely GENERATES an on-box script would count as this script's first apt
+# call. None of the three files has one today (every match is a real invocation — checked
+# by enumeration). If one is ever added above the export, this fails as a false positive:
+# move the export above it rather than re-narrowing the anchor.
+FRONTEND_ORDER='/^export DEBIAN_FRONTEND=noninteractive$/{if(!e)e=NR} /^[[:space:]]*apt(-get)?[[:space:]]/{if(!u)u=NR} END{exit !(e>0 && u>0 && e<u)}'
+awk "$FRONTEND_ORDER" "$P" \
+  && pass "setup-profile.sh: DEBIAN_FRONTEND exported above its first apt call (the pre-flock util-linux install)" \
+  || fail "setup-profile.sh: 'export DEBIAN_FRONTEND=noninteractive' is missing, or does not precede this script's first apt call (today the pre-flock util-linux install) — an unattended deploy can block on a debconf prompt (task 0286)"
+TEL="$REPO_ROOT/setup-telemetry.sh"
+awk "$FRONTEND_ORDER" "$TEL" \
+  && pass "setup-telemetry.sh: DEBIAN_FRONTEND exported above its first apt call" \
+  || fail "setup-telemetry.sh: 'export DEBIAN_FRONTEND=noninteractive' is missing, or does not precede this script's first apt call — this is the script that actually prompted the owner three times (task 0286)"
+GAME="$REPO_ROOT/setup.sh"
+awk "$FRONTEND_ORDER" "$GAME" \
+  && pass "setup.sh: DEBIAN_FRONTEND exported above its first apt call" \
+  || fail "setup.sh: 'export DEBIAN_FRONTEND=noninteractive' is missing, or does not precede this script's first apt call — and this script's nginx install redirects stdout, so a prompt there hangs printing no prompt (task 0286)"
 grep -q 'echo profile > /etc/geoconflict-deploy-role' "$P" && pass "setup-profile.sh writes role marker" || fail "no profile role marker"
 grep -q 'echo telemetry > /etc/geoconflict-deploy-role' "$REPO_ROOT/setup-telemetry.sh" \
   && pass "setup-telemetry.sh writes role marker" || fail "no telemetry role marker"

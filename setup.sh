@@ -14,6 +14,22 @@ if [ -z "$OTEL_EXPORTER_OTLP_ENDPOINT" ] || [ -z "$OTEL_AUTH_HEADER" ] || [ -z "
     exit 1
 fi
 
+# ── Unattended package operations (task 0286) ─────────────────────────────────
+# A deploy runs with no terminal to answer debconf. Without this, `apt-get upgrade` stopped
+# three times on keyboard-configuration/console-setup prompts on the TELEMETRY box
+# (observed 2026-09-18). Here it is worse to diagnose: this script's
+# `apt-get install -y nginx >/dev/null` redirects STDOUT ONLY, and debconf's readline
+# frontend writes the question on stdout — so a prompt there would hang printing no
+# prompt, holding the apt lock, with set -e never firing. (stderr stays attached, so
+# apt's own warnings would still reach the operator; the question itself would not.)
+# ⚠️ Preventative only — no hang has been observed in THIS script. Nothing re-runs it
+# (one-time manual game-box provisioning; no deploy script invokes it).
+# EXPORTED, not prefixed per call, deliberately: get-docker.sh below runs apt-get itself,
+# which only an exported variable reaches — and any apt line added later inherits it.
+# ⚠️ NOT a universal muzzle: it suppresses the PROMPT and takes debconf's stored (or default)
+# answer. dpkg's own conffile prompt is NOT governed by it (see 0286's worklog).
+export DEBIAN_FRONTEND=noninteractive
+
 echo "🔄 Updating system..."
 apt update && apt upgrade -y
 

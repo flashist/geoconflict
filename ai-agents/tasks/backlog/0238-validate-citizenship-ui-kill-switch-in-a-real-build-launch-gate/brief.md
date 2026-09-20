@@ -47,8 +47,64 @@ spawned producer does not rank the owner's board. The Sprint 4 Priority cell rea
 fkit-coder
 
 ## Depends on
-✅ **NOTHING in this repository.** It needs **a staging or production build and access to the Yandex
-console** — not code, not the profile box.
+
+> 🔴 **CORRECTED 2026-09-20 — THIS SECTION SAID *"NOTHING in this repository"* AND THAT WAS WRONG IN A
+> WAY THAT WOULD HAVE MADE THE WHOLE TEST VACUOUS.** Struck, not deleted, so the error is visible:
+> ~~*"✅ **NOTHING in this repository.** It needs **a staging or production build and access to the
+> Yandex console** — not code, not the profile box."*~~
+>
+> **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-20** — *prep `0238` so that when I run it, it actually tests something* — relayed by
+> `fkit-lead` to a spawned `fkit-producer` with no owner channel of its own. ⛔ **Not producer
+> precedent.** ⛔ **The `## Status` token, the board and the rank are UNCHANGED. This makes the gate
+> testable; it does NOT schedule it.**
+
+**1. 🚨 A ONE-LINE LOCAL BUILD CHANGE IS MANDATORY — without it this task tests NOTHING.** The build
+under test must have
+**`flashistConstants.features.CITIZENSHIP_CARD_ENABLED` flipped to `true`** (`src/client/flashist/FlashistFacade.ts`,
+in the `features` block — find it by name, not by line). **See *"The vacuous-pass trap"* below for
+why.** ⛔ **Staging build only. NEVER committed. NEVER in a production build.** It is a throwaway edit
+in the working tree of the machine that builds the staging image, reverted after.
+
+**2. [`0014`](../0014-yandex-catalog-registration/brief.md)'s console work precedes this.** You cannot
+flip a flag that does not exist, and the **`citizenship_ui` experiment flag must be created in the
+Yandex console** first. `0014`'s open verification item 3 was **NOT DONE** as of the owner's answer of
+**2026-09-12**. ⚠️ **Check its current state before scheduling this** — ⛔ *this task did not edit
+`0014`.*
+
+**3. ✅ ANSWERED 2026-09-20 — A YANDEX GAMES DRAFT / DEV VERSION WILL SERVE THE STAGING BUILD.** The
+question is settled; struck, not deleted, so the record shows what was asked:
+~~*"🚩 UNRESOLVED PRECONDITION, AND ONLY THE OWNER CAN ANSWER IT: is there a Yandex Games draft / dev
+version that can serve the staging build? … ⛔ **Nothing in this repository can establish whether such
+a draft exists** — it is a console fact. **Settle it before the run.**"*~~
+
+**AUTHORITY.** An **OWNER ANSWER given live in the `fkit lead` session via `AskUserQuestion` on
+2026-09-20**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel of its own.
+The owner chose **option A**: a draft / dev version **exists, or they will create one**. ⛔ **Not
+producer precedent.**
+
+**Why it mattered, kept because the reasoning is still live:** experiment flags come from the
+**Yandex SDK**, which serves them to a game **inside the Yandex Games shell**. A staging build sitting
+on our own VPS, opened directly, gets **no flags at all** — and "no flags" is indistinguishable from
+"flag OFF", a **second way this gate can pass for the wrong reason**. The draft is what stops that.
+
+**What the answer does:**
+- ✅ **`0238` is RUNNABLE** on a `./deploy.sh staging` (or `dev`) box served through that draft,
+  **off the production game deploy's critical path** — it does not wait on a prod deploy window.
+- ⛔ **It does NOT make this gate satisfied, started, or scheduled.** `## Status` stays
+  `🔲 Backlog`; board and rank are **unchanged**. A precondition being answered is not the test having
+  run.
+- ⚠️ **OWNER-ATTESTED AND PARTLY PROSPECTIVE — *"exists **or I'll make one**"*.** ⛔ **Do not record a
+  draft as confirmed-existing.** What is recorded is that the **owner has undertaken that a draft will
+  be available**; **whoever runs `0238` confirms it exists before starting.** Verification step **1c**
+  already requires naming the flag's source and is **deliberately left intact** — so this cannot be
+  skipped silently.
+- ⛔ **Option C was REJECTED and is not to be revisited:** running against the **live** Yandex Games
+  version would mean a **production deploy carrying the staging-only local flip** — *shipping the
+  launch to prove the kill switch.*
+
+**4. Still true, and worth keeping:** it needs **no profile box**, **no citizen rows**, and — per the
+finding below — **no production game deploy**.
 
 🔴 **EXPLICITLY INDEPENDENT OF [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
 AND OF CITIZEN ROWS EXISTING.** ⛔ **Do NOT fold this into `0217` as a sub-step.** It is a **different
@@ -92,6 +148,63 @@ flip reaches a real player.
 ⚠️ *Line numbers are anchors at `4c981e5`, not addresses — re-derive by content, per*
 [`conventions/file-line-citations.md`](../../../knowledge-base/conventions/file-line-citations.md).
 
+### ✅ STAGING IS SUFFICIENT — this gate is NOT on the production deploy's critical path
+
+**Added 2026-09-20; every step verified in the tree that day.** This brief argued a *"prod or staging"*
+build is required but never said the useful half — **staging alone is enough**:
+
+- `Dockerfile` runs **`npm run build-prod` unconditionally** — the image build does not read the
+  deploy target.
+- `build-prod` is **`webpack --config webpack.config.js --mode production`** (`package.json`).
+- `webpack.config.js` defines the **browser bundle's** `process.env.GAME_ENV` as
+  `isProduction ? "prod" : "dev"`.
+- `deploy.sh` accepts **`dev | staging | prod`** as its environment argument.
+
+⇒ 🔴 **A `./deploy.sh staging` (or even `dev`) box already serves a bundle whose `GAME_ENV` is
+`"prod"`, so `checkExperimentFlag()`'s dev bypass does NOT fire there.** **No production game deploy
+is needed to discharge this gate**, and it therefore does not have to sit on a production-deploy
+window.
+
+⚠️ *Read this as "which build", not "which environment is safe to break": a staging box is still a
+real deploy — coordinate it like one.*
+
+### 🚨 The vacuous-pass trap — the reason this brief was amended
+
+**`CITIZENSHIP_CARD_ENABLED` is `false` at HEAD, and `&&` short-circuits.** In
+`src/client/flashist/FlashistFacade.ts`:
+
+`isCitizenshipSurfacesEnabled()` returns
+`flashistConstants.features.CITIZENSHIP_CARD_ENABLED && (await this.isCitizenshipUiEnabled())` — and
+its own comment says so: *"while the local launch flag is false this never reads the remote flag at
+all."*
+
+⇒ **On a stock build the `citizenship_ui` flag is NEVER READ.** Consequences, and they are the whole
+point:
+
+| `0238` item | What actually happens on a stock build |
+|---|---|
+| **1 — flag ON ⇒ all three surfaces behave normally** | 🔴 **UNACHIEVABLE.** Layer 1 is `false`, so nothing renders regardless of the console. |
+| **2 — flag OFF ⇒ nothing renders** | 🔴 **PASSES FOR THE WRONG REASON** — nothing renders because of the *local* flag, and the remote half is never exercised. |
+| **3 — propagation delay** | 🔴 **UNMEASURABLE** — there is no observable change to time. |
+
+**This is exactly the trap this brief already names for the ★ badge — it just applies to ALL THREE
+SURFACES, not only the badge.** ⛔ **A run that records "flag OFF, nothing rendered ✅" without the
+local flag flipped is not evidence of anything, and must not close this gate.**
+
+**Where each surface reads the gate** (verified 2026-09-20 — find by symbol, not line):
+
+| Surface | Call | Note |
+|---|---|---|
+| ★ citizen badge | `isCitizenshipSurfacesEnabledSync()` | sync snapshot of the same combined read; **still UNVERIFIED for the separate `isCitizen` reason below** |
+| Inbox (`src/client/Inbox.ts`) | `await …isCitizenshipSurfacesEnabled()` | **becomes observable once layer 1 is flipped** |
+| Payments reconciliation (`src/client/PaymentsReconciliation.ts`) | `await …isCitizenshipSurfacesEnabled()` | observable as **fired vs not fired** — ⚠️ so the profile box's payments state does **not** block this observation |
+| Citizenship card (`src/client/CitizenshipCard.ts`) | checks `CITIZENSHIP_CARD_ENABLED` **first and absolutely**, then `isCitizenshipUiEnabled()` (with the ruled-on degraded-SDK fail-open) | a fourth surface, gated the same way — **also invisible until layer 1 is flipped** |
+
+⚠️ **The ★ badge half stays UNVERIFIED even after the flip**, for the unrelated reason this brief
+already records: `isCitizen` comes from game state and there are **zero citizen rows**, so it cannot
+be `true` in either state. **That limitation is unchanged by this amendment** — the flip fixes the
+*flag* problem, not the *data* problem.
+
 ### 🚨 What goes wrong if this is skipped — the whole reason it is a gate
 
 **The first time anyone discovers the remote kill switch does not work is the moment they need it:
@@ -114,10 +227,24 @@ confirmed platform capability, and do not use it to argue the gate away.
 
 ## What to build
 
-**Nothing. This is a verification task, not an implementation task.** ⛔ **If it starts changing
-source, stop — that is a different task.** The deliverable is **observed evidence, written down.**
+**Nothing to ship. This is a verification task, not an implementation task.** ⛔ **If it starts
+changing source beyond the one throwaway line below, stop — that is a different task.** The
+deliverable is **observed evidence, written down.**
 
-Perform all three, in a **staging or production build** (⛔ **not `npm run dev`**):
+> 🚨 **PRECONDITION — ONE THROWAWAY LINE, AND THE TEST IS MEANINGLESS WITHOUT IT (added 2026-09-20).**
+> In the **staging build's working tree only**, set
+> **`flashistConstants.features.CITIZENSHIP_CARD_ENABLED = true`** in
+> `src/client/flashist/FlashistFacade.ts`, build, deploy to staging, and **revert the line afterwards.**
+> ⛔ **NEVER commit it. NEVER build production with it.** Flipping it in a *production* build **is the
+> citizenship launch** — which is the very thing this gate exists to precede.
+> **Why:** `&&` short-circuits, so with the flag `false` the remote `citizenship_ui` flag is **never
+> read** and all three items below pass or fail for the wrong reason. See *"The vacuous-pass trap"*
+> above.
+> ⚠️ **Record in the worklog that the flip was applied, and that it was reverted** — an unreverted
+> flip on a shared machine is a launch nobody decided to make.
+
+Then perform all three, in a **staging or production build** (⛔ **not `npm run dev`**; **staging is
+sufficient** — see the finding above):
 
 1. **Flag ON.** With the `citizenship_ui` flag on: the **four ★ badge call sites**, the **inbox**, and
    the **payments reconciliation POST** all behave normally.
@@ -143,6 +270,13 @@ evidence the switch hid it** — it did not render because it could not.
 
 1. **The build used is named** — which build, which mode, and evidence it was **not** a dev build
    (e.g. that `GAME_ENV` resolved to `prod`).
+1b. 🚨 **The local-flag flip is recorded** (added 2026-09-20): evidence that
+   `CITIZENSHIP_CARD_ENABLED` was **`true` in the build under test**, and that the change was
+   **reverted and never committed**. ⛔ **Without this, items 1–3 below carry no information and this
+   task does NOT close** — see *"The vacuous-pass trap"*.
+1c. **The flag source is named**: that the build was served **through a Yandex Games draft / dev
+   version** (so the SDK actually delivered flags), or, if it was not, ⛔ **the run is INVALID, not a
+   pass** — "no flags served" looks identical to "flag OFF".
 2. **Both states are recorded for each of the three surfaces**, ON and OFF, with **what was actually
    observed** — not "as expected". Any surface that could not be observed is marked **UNVERIFIED with
    its reason** (see the ★ caveat above).
@@ -161,8 +295,17 @@ evidence the switch hid it** — it did not render because it could not.
 
 ## Notes
 
-- **Depends on:** nothing
-- **Blocks:** the flip of `CITIZENSHIP_CARD_ENABLED` to `true` — i.e. **the citizenship launch**
+- **Depends on:** ~~nothing~~ 🔴 **CORRECTED 2026-09-20 — see the `## Depends on` section above.** In
+  short: a **one-line staging-only flip of `CITIZENSHIP_CARD_ENABLED`** (mandatory, never committed),
+  **`0014`'s Yandex-console work** (the `citizenship_ui` flag must exist), and ~~an **unresolved
+  question for the owner** — whether a Yandex Games draft/dev version exists to serve the staging
+  build~~ ✅ **ANSWERED 2026-09-20 (owner, option A): a draft / dev version exists or will be created
+  — so this gate is RUNNABLE, but ⚠️ the undertaking is prospective, so whoever runs it CONFIRMS the
+  draft first (verification step 1c).** ✅ Still **no profile box, no citizen rows, and no production
+  game deploy**.
+- **Blocks:** the flip of `CITIZENSHIP_CARD_ENABLED` to `true` **in a production build** — i.e. **the
+  citizenship launch**. ⚠️ **Not the same thing as the throwaway staging flip this task requires**;
+  confusing the two is how this gate gets skipped *or* tripped.
 - **Source:** [`0236`'s brief §3](../../done/0236-client-kill-switch-for-citizenship-surfaces/brief.md),
   an **owner ruling of 2026-09-10** made from review finding **R5**. This task exists because the owner
   ruled on 2026-09-10 that the precondition **needs an owner, not a note in three places**.

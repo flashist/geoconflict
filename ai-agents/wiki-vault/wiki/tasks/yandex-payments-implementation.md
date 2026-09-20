@@ -4,6 +4,25 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task 0019 / payments track
 
+> 🔴 **CORRECTED 2026-09-19 — THE PAYMENTS ROUTES ARE NOT 503ING ON THE BOX.** Verified **read-only**
+> by `fkit-lead` on an owner ruling that day: a `POST` to a deliberately **non-existent sub-path** under
+> `/v1/payments/` on the box's **loopback** answered **404, not 503**, so the `paymentsEnabled`
+> middleware — mounted across the whole prefix ahead of every handler — **passed**;
+> `YANDEX_PAYMENTS_SECRET` is **present in the running container, length 32** (⛔ **length only — the
+> value was never read into any log, file or transcript**); and the startup warning
+> `payments endpoints disabled` appears **0 times** in that container's logs.
+>
+> 🚨 **THE LIMIT OF THAT EVIDENCE, STATED EXACTLY: it settles "is a non-empty value there" and NOTHING
+> MORE.** It does **NOT** show the value is *correct*, and **no real purchase was exercised**.
+> ⛔ **Reading this page as "payments work" would be as wrong as the claim it replaces.**
+>
+> ⚠️ **Provenance UNVERIFIED — nothing observed shows `0014` issued a per-game key**; a 32-character
+> placeholder would present identically.
+>
+> ⛔ **The fail-closed CODE below is unchanged and still correct** — an empty secret still 503s the whole
+> prefix and `verifySignedPayload()` still returns null on an empty secret. Only the claim about **this
+> box** is corrected.
+
 ## Goal
 
 Build the full Yandex Games payments infrastructure recommended by [[tasks/yandex-payments-investigation]]: client catalog fetch and purchase helpers in `FlashistFacade`, plus server-side signed purchase verification, idempotent entitlement grants, and startup reconciliation — everything needed for paid citizenship except the visible purchase UI (task 0018) and the Yandex catalog registration (task 0014).
@@ -17,7 +36,7 @@ Build the full Yandex Games payments infrastructure recommended by [[tasks/yande
 - `src/profile-server/YandexSignature.ts` — `verifySignedPayload()`: `<signature>.<json>` split, HMAC-SHA256 with `timingSafeEqual`, fail-closed (null on any failure, never throws; empty secret ⇒ null). Accepts **both** plausible HMAC constructions (over the transmitted base64 string and over the decoded JSON) because Yandex docs don't pin the message down — the first live payload narrows it (checklist step 0). Normalizes flat `IPurchase`, the docs' envelope shape, and array payloads.
 - `src/profile-server/PaymentsRepository.ts` — `createIntent` (ensure-profile-row first: a start-screen buyer may predate the match-join upsert), `grantPaidPurchase` in one transaction (receipt insert `ON CONFLICT DO NOTHING` ⇒ already-processed short-circuit; sets `is_paid_citizen` + `is_citizen`; `citizenship_purchased_at` COALESCEd). A productId guard throws on any non-`citizenship` product before touching the DB (review fix R2). Post-grant inbox hook is a documented no-op seam until task 0012, fired **after** commit so an inbox failure can never roll back a money grant.
 - `src/profile-server/Routes.ts` — `POST /v1/payments/yandex/{intent,complete,reconcile}`; scoped CORS on `/v1/payments/*` only (never `/internal/*`); per-IP limiter 20/min; **fail closed** — missing/empty `YANDEX_PAYMENTS_SECRET` ⇒ 503 `payments_unavailable` on all three. `/complete` checks idempotency before intent state (an interrupted-consume retry must return success, not `intent_used`) and returns `{ success, purchaseToken }` because signed `purchase()` gives the client no plain token. `/reconcile` grants mapped purchases in any intent state (interrupted purchases must land), echoes already-processed tokens, and skips unmapped payloads.
-- `setup-profile.sh` — plumbs `YANDEX_PAYMENTS_SECRET` (env var, empty default = payments disabled fail-closed) into the 0600 `profile.env`. The secret value is never committed or logged; it does not exist yet — issuance is coupled to task 0014.
+- `setup-profile.sh` — plumbs `YANDEX_PAYMENTS_SECRET` (env var, empty default = payments disabled fail-closed) into the 0600 `profile.env`. The secret value is never committed or logged; ~~it does not exist yet — issuance is coupled to task 0014~~ 🔴 **CORRECTED 2026-09-19 — a NON-EMPTY value (length 32, content never read) IS present in the running container on the box.** ⚠️ **Its PROVENANCE is UNVERIFIED: nothing observed shows `0014` issued a per-game key, and a 32-character placeholder would present identically.** ⛔ **Do not read it as `0014` shipping, and do not read it as payments working** — correctness unproven, no real purchase exercised.
 
 **Client:**
 
@@ -48,6 +67,6 @@ All plumbing for paid citizenship is in place and tested (87 suites / 690 tests 
 - [[systems/flashist-init]] — the bounded boot gate `initPayments()` joined
 - [[decisions/sprint-4]] — sprint context; paid citizenship (0018) and catalog registration (0014) remain
 - [[decisions/personal-data-152fz-compliance]] — the erasure-cascade concern behind the receipt-FK fix
-- [[decisions/config-parity-failure-class]] — task `0195`: `YANDEX_PAYMENTS_SECRET` has never reached the profile box, so **every** endpoint this task shipped has answered 503 there since it shipped
-- [[tasks/yandex-payments-secret-forwarding]] — task `0195` itself: the deploy-script fix shipped 2026-09-01, but the key does not exist yet, so these endpoints ~~still answer 503 on the real box~~ 🔴 **CORRECTED 2026-09-04: what these endpoints answer on the box is UNVERIFIED** — owner-ruled; ⚠️ *this withdraws an earlier same-day annotation here reading "there IS no real box"*. **The profile VPS exists and is reused in place; what is running on it is unknown.** With an empty key, wherever the service runs, they correctly 503. ⛔ **The `0195` code fix stands**
+- [[decisions/config-parity-failure-class]] — task `0195`: ~~`YANDEX_PAYMENTS_SECRET` has never reached the profile box, so **every** endpoint this task shipped has answered 503 there since it shipped~~ 🔴 **CORRECTED 2026-09-19 — the variable HAS reached the box** (present in the running container, length 32) **and the prefix no longer 503s**; the middleware passes. ⚠️ **Presence only — correctness unproven, no real purchase exercised, provenance unverified.** ⛔ The fail-closed code is unchanged
+- [[tasks/yandex-payments-secret-forwarding]] — task `0195` itself: the deploy-script fix shipped 2026-09-01, but the key does not exist yet, so these endpoints ~~still answer 503 on the real box~~ 🔴 **CORRECTED 2026-09-04: what these endpoints answer on the box is UNVERIFIED** — owner-ruled; ⚠️ *this withdraws an earlier same-day annotation here reading "there IS no real box"*. **The profile VPS exists and is reused in place; what is running on it is unknown.** With an empty key, wherever the service runs, they correctly 503. ⛔ **The `0195` code fix stands** — 🔴 **AND AS OF 2026-09-19 THE BOX NO LONGER CARRIES AN EMPTY KEY:** verified read-only, a `POST` to a non-existent sub-path under `/v1/payments/` on the loopback answered **404, not 503** (so `paymentsEnabled` passed), the variable is **present, length 32** (content never read), and `payments endpoints disabled` appears **0 times** in the container logs. 🚨 **That settles presence and NOTHING ELSE** — not that the value is *correct*, and no real purchase was exercised. ⚠️ **Provenance unverified — this is NOT evidence `0014` issued the key.**
 - [[tasks/analytics-p1-citizenship-funnel]] — task `0021`, the funnel spec whose purchase-event constants this task registered; none has ever fired

@@ -52,9 +52,19 @@ than left floating in a worklog. **The owner was not told that `0280` already ex
 covers it** — item 1 above was filed 2026-09-16 on an earlier owner approval and is the same file, the
 same subsection and the same fix. 🚩 **The producer's call was therefore to record the new evidence
 HERE rather than open a second brief against the same paragraph** (ADR-035 makes a board row
-permanent, so a duplicate row is the least reversible option available). ⛔ **That filing call is the
+permanent, so a duplicate row is the least reversible option available). ~~⛔ **That filing call is the
 PRODUCER'S, NOT an owner ruling, and it is flagged for owner confirmation.** If the owner wants a
-separate ID after all, delete this sub-section and file it — cheap, and nothing else here depends on it.
+separate ID after all, delete this sub-section and file it — cheap, and nothing else here depends on it.~~
+
+✅ **ANSWERED 2026-09-20 — THE OWNER CONFIRMED `0280` IS THE RIGHT HOME.** Ruling given live in the
+`fkit lead` session via `AskUserQuestion` and relayed by `fkit-lead` to a spawned `fkit-producer` with
+no owner channel. The reasoning put to the owner and accepted: **same file, same subsection, same fix,
+so a second task would be a duplicate — and ADR-035 makes a board row permanent, which makes opening a
+duplicate the least reversible option available.** ⇒ **No second ID. This sub-section stays where it
+is.** ⛔ **Nothing else about `0280` changed on this ruling:** `## Sprint` `Backlog`, `## Priority`
+`Unscheduled`, `## Status` `🔲 Backlog`, the folder and the board are all exactly as they were, no
+mover skill was invoked, and no task was promoted or re-ranked. ⛔ **Not producer precedent — one
+ruling, one task.**
 
 **Measured on this host (macOS) on 2026-09-18** and reported by the lead session. ⚠️ **The filing
 producer did NOT re-run these** — they are relayed, not independently reproduced by the producer.
@@ -79,6 +89,44 @@ precise-looking number that reads as authoritative and is stale again within a m
 change of *approach* from item 1's original instruction, which said to record what one run prints: one
 run's number is exactly what has now gone stale twice. **Recommendation, not a ruling** — the plan may
 overturn it, but it must then say why a point figure will survive better than the last two did.
+
+#### ➕ RE-MEASURED AGAIN 2026-09-20 — a THIRD data point, and the drift is still going
+
+⚠️ **AUTHORITY — READ IT BEFORE READING THE NUMBERS.** The owner ruled live in the `fkit lead` session
+via `AskUserQuestion` on **2026-09-20** (relayed by `fkit-lead` to a spawned `fkit-producer` with no
+owner channel): ***leave this task exactly where it is — do NOT promote it, do NOT re-rank it — but add
+today's numbers so its evidence stays current.*** ⛔ **Nothing about the board, the rank, the `## Status`
+token, the `## Sprint` field or the folder changes. No mover skill was invoked.** ⛔ Not producer
+precedent — one ruling, one task.
+
+**Measured on this host on 2026-09-20 by `fkit-lead`, re-run INDEPENDENTLY of the coder that was
+building at the time** (so these are not a builder reporting on its own work):
+
+| | Measured |
+|---|---|
+| `npm test` | **138 suites / 1870 tests, ~62 s** |
+| a separate `npm test` run the same day | **~78 s** |
+| `npm run lint` | **exit 0** |
+
+**Why this is worth the edit: it is the THIRD data point and it agrees with the recommendation above.**
+
+| Date | Suites / tests | `npm test` wall |
+|---|---|---|
+| what `CLAUDE.md` still claims | 113 / 1185 | ~22–25 s |
+| 2026-09-16 (item 1, as filed) | 134 / 1692 | ~43 s |
+| 2026-09-18 (re-measure) | 137 / 1853 | ~60–85 s (three runs) |
+| **2026-09-20 (today)** | **138 / 1870** | **~62 s, and ~78 s on another run the same day** |
+
+⇒ **Suite and test counts keep climbing, and the wall time still spreads widely WITHIN A SINGLE DAY
+(~62 s vs ~78 s).** That is two separate arguments for the **dated range with the host attached**, and
+against a single precise-looking number: the counts drift, and the timing is not reproducible enough
+for a point figure to mean anything.
+
+⚠️ **AN ACCURACY NOTE, SO NOBODY MISREADS THE WORKING TREE.** `CLAUDE.md` **was modified on 2026-09-20**
+— one line added to its *consequence 1* list by the [`0286`](../0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md)
+coder, under an owner ruling. ⛔ **That edit did NOT touch the cost figures.** **Do not read the file's
+modified state as `0280` having been partly done** — every stale number in the table above is still
+sitting in that file.
 
 **Why the drift recurred, which is the argument for the range:** item 1's dependency is still unmet —
 [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) is **still on the backlog
@@ -233,9 +281,24 @@ no config change, no new tests **for items 1–3**; item 4 needs the small asser
   ⚠️ **Producer's read, NOT an owner ruling, and the dependency line above is deliberately left
   standing** — the coder's plan decides whether to ship item 1 early or hold. If it ships early, say so
   in the worklog rather than re-splitting the brief.
+- **➕ 2026-09-20 — an OWNER RULING that this task STAYS PUT was relayed on this date:** leave it on the
+  Backlog board, `🔲 Backlog`, `Unscheduled` — **do not promote, do not re-rank** — but **add today's
+  measurement** so the evidence stays current. ✅ **Done: the third data point is recorded under item 1.**
+  ⛔ **Status, Sprint, Priority and board are all exactly as they were.** ~~⚠️ It also does **not** answer the
+  2026-09-18 flag below about whether the re-measure should have had its own ID — **that question is still
+  open for the owner.**~~ ✅ **That question was ANSWERED separately on the SAME DATE — see the next bullet.**
 - **➕ 2026-09-18 — an owner ruling that this drift be FILED was relayed on this date** (see the
   RE-MEASURED sub-section under item 1). It was satisfied **here**, in this existing brief, rather than
-  by a new ID. ⛔ **That routing is the producer's call and is flagged for owner confirmation.**
+  by a new ID. ~~⛔ **That routing is the producer's call and is flagged for owner confirmation.**~~
+
+  ✅ **CONFIRMED BY THE OWNER 2026-09-20 — the flag is ANSWERED, not open.** Ruling given live in the
+  `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`.
+  **`0280` is the right home; no second task is opened.** Reasoning accepted: same file, same
+  subsection, same fix ⇒ a second brief would be a duplicate, and ADR-035 makes a board row permanent,
+  so a duplicate is the least reversible option available. ⛔ **Nothing else changed:** `## Sprint`
+  `Backlog`, `## Priority` `Unscheduled`, `## Status` `🔲 Backlog`, the folder and the board stand as
+  they were; no promotion, no re-rank, no mover skill. ⛔ **Not producer precedent — one ruling, one
+  task.**
 - **Why one brief and not two:** the two items are not independently *worth* shipping — both are
   small documentation edits in one sitting, under an hour together, with no build, deploy or test
   surface between them. Splitting would create two briefs whose combined overhead exceeds the work.

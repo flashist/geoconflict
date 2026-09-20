@@ -39,7 +39,9 @@ risk that only materialises if someone automates. **Low** rather than Medium is 
 *real, cheap, and genuinely not urgent* — it should not displace a single existing Sprint 4 row.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — **built + reviewed 2026-09-20; open pending the OWNER-executed plan step 8.** Steps 1–7 complete. Stateful review round 1 closed out, **Codex coverage FULL** (`codex-cli 0.152.0`, read-only sandbox, exit 0) — verdict *Ready to merge (validation-gated)*; findings R1 + R2 applied on owner rulings, R3 left as a residual and routed to the producer to file separately. ⚠️ **No code work remains.** Gates re-run by `fkit-lead` INDEPENDENTLY of both workers: `bash -n` exit 0 · hardening harness `ALL PASS` · `npm test` **138 suites / 1870 tests** · `npm run lint` exit 0 · the three scripts show **+44 / -0** (zero deletions, so no `apt` line was touched — ruling D2 held by construction). 🚨 **Step 8 is the only remaining gate and it is the owner's**: `npm run deploy:telemetry` and `npm run deploy:profile` each running start to finish with **no prompt**, plus a read-only before/after `debconf-show` capture. ⛔ **Nothing verified here is evidence that a real deploy is prompt-free** — every claim about debconf defaults, `needrestart` and the boxes' distro is a PREDICTION until step 8 runs. ⚠️ And it must never be written up as *“the deploy can no longer hang”*: it can no longer hang on a **debconf** prompt; a **dpkg conffile** prompt is NOT covered (residual R1 in the worklog, owner-ruled D3 to record rather than close).
+
+· earlier: 🔄 In progress — driven from the `fkit lead` session by `/fkit-sprint-ship-loop`, started 2026-09-19 (plan step). **Started on an OWNER RULING given live via `AskUserQuestion` and relayed by `fkit-lead`: drive it now, ahead of the three owner-side profile-box live tails, because this is the defect that hangs such a deploy on an invisible dialog.** ⛔ The brief's *raise-do-not-settle* question — whether `apt-get upgrade -y` belongs in a deploy at all — is **NOT settled by that ruling** and goes to the owner at the plan gate.
 
 ## Owner
 fkit-coder

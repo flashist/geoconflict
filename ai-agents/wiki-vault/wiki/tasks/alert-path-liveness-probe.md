@@ -162,3 +162,4 @@ replacement for a probe that crosses the allowlist.
 - [[systems/telemetry]] — the monitoring box the probe runs on
 - [[systems/player-profile-store]] — the admin box holding the relay, the marker and the daily checks
 - [[decisions/sprint-4]] — the sprint that owns it
+- [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, the source of amendment A1 this probe does **not** discharge, and the owner of the one alert rule that exists

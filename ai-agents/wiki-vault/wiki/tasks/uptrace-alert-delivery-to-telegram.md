@@ -116,3 +116,4 @@ The full list is 1–11 in the task's `review.md` — **do not re-derive it**. T
 - [[systems/player-profile-store]] — the admin box the relay runs on
 - [[tasks/citizenship-name-change]] — task `0067`, whose operator notification shares this topic routing
 - [[decisions/sprint-4]] — the sprint that owns it
+- [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, whose planning found this blocker and whose alert rules this delivery channel carries. ⛔ **This task shipped a proven pipeline with nothing feeding it — that is `0274`'s work**

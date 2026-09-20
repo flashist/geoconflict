@@ -55,6 +55,36 @@ fkit-coder
 ⚠️ Plus an **owner step** — the idle wait and the observation of arrival are the owner's, watching
 Telegram. No agent may record an arrival it did not see (`0219` precedent).
 
+### ⛔ DEFERRED past the weekend deploy slot — OWNER RULING 2026-09-19
+
+⛔ **Authority first.** Given **live in the `fkit lead` session via `AskUserQuestion` on 2026-09-19**
+and relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**.
+⛔ **NOT producer precedent — one owner ruling, one task.**
+
+Shown a conflict between their own two instructions of that day — *"prepare all the related things to
+citizenship and profile"* versus *"focus on the tasks that related to the core functionality of the
+features (not monitoring/messaging)"* — the owner **split
+[`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)**: its G1
+(container log rotation) and G2 (image prune) are prepared before the weekend deploy slot, and its
+G3/G4 (external uptime check, `last-backup.json` freshness reader) are **deferred — together with THIS
+task and [`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)**,
+as one monitoring bucket.
+
+⛔ **WHAT THIS RULING DID NOT DO — do not widen it.** It did **not** close this task, **not** cancel it,
+and **not** re-rank it. **`## Status` above is UNCHANGED (`🔲 Backlog`)**, `## Priority` is unchanged,
+this brief stays on the Sprint 4 board where it is, and **no mover skill was invoked.** The ruling
+scopes **prep work before one deploy slot** — it says nothing about this task's merit or existence.
+
+🚨 **The cost the owner was told and accepted:** the TLS-certificate fuse that `0219`'s G3/G4 would have
+been the only thing watching **stays unwatched** — the live certificate's `notAfter` reported as
+**2026-11-20**, twice-daily renewal attempts beginning around **2026-10-21**, failing silently until
+TLS stops serving. ⚠️ **Those two dates are AS REPORTED by an earlier producer, not verified** — no
+source in this repository can see the live certificate.
+
+⚠️ **Nothing about the amendment-A1 question changed.** Deferring *when* the drill is run does not
+weaken *why* it is needed: a real alert firing after an idle period is still unproven, and the defect
+still presents as silence.
+
 ---
 
 ## 🚨 READ FIRST — there are TWO different things called "A1" on `0274`, and they must never be conflated

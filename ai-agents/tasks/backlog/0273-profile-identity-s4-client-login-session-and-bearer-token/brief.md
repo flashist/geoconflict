@@ -33,6 +33,31 @@ earlier: 🔄 In progress, started 2026-09-15 (plan step) · earlier: 🔲 Backl
 ## Owner
 fkit-coder
 
+## 🔴 OWNER RULING 2026-09-19 — this task's zero-evidence gap is CROSSED at the weekend slot, not before
+
+⛔ **Authority first.** Given **live in the `fkit lead` session via `AskUserQuestion` on 2026-09-19** and
+relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**.
+⛔ **NOT producer precedent — one owner ruling, one task.**
+
+**The ruling:** `PROFILE_INTERNAL_TOKEN` is set **AT the coming weekend deploy slot**, not one slot
+later. The ruling lives in full in
+[`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s go-live-condition block, which
+is where the condition belongs; it is recorded here because **this task carries the evidence gap the
+ruling crosses.**
+
+⚠️ **RECORDED PLAINLY: THIS WENT AGAINST THE RECOMMENDATION PUT TO THE OWNER**, and **this task's
+`## Status` is part of the reason it was made.** The advice was to ship with the token blank, prove S3
+and S4 on the live box, and set the token at the following slot — because at this slot **crediting is
+switched on in the same minute that S3's and S4's code executes in production for the very first time,
+with zero prior production evidence.** ✅ **The owner chose this slot anyway; that is their call and it
+stands.** The tradeoff was **stated and knowingly accepted**, not overlooked.
+
+⛔ **NOTHING HERE IS A COMPLETION.** `## Status` above is **UNCHANGED** — the **client is still not
+deployed**, so the login flow, the session store, the Bearer-token call path and the analytics events
+still have **zero production evidence**; residual **AR-2** (the login-button restart) is untouched and
+stays unobservable until `0054`; and **no mover skill was invoked.** The ruling **schedules when the
+first production exercise happens; it does not perform it.**
+
 ## ⬇️ FOUR OWNER RULINGS ON THE S4 PLAN — 2026-09-16
 
 **Given live in the lead session and relayed by `fkit-sprint-ship-loop` to a spawned `fkit-producer`.

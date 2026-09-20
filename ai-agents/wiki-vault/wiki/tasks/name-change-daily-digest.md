@@ -193,3 +193,4 @@ red. **Those are the guards working, not broken tests.**
 - [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`, the other change to this deploy script closed in the same sprint run
 - [[systems/telemetry]] — the monitoring stack this deliberately does **not** touch
 - [[decisions/sprint-4]] — the sprint that owns it
+- [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, whose owner step 5 proved the **per-request** operator notification. ⛔ **A DIFFERENT mechanism from this digest**, and this digest does not discharge its amendment A1

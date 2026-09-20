@@ -243,3 +243,4 @@ that alerting works is not a finding either — it is the error A3 exists to pre
 - [[systems/architecture-overview]] — the tier map this re-labels
 - [[systems/telemetry]] — the monitoring stack whose alerts this routes
 - [[decisions/adr-113-internal-player-id]] — **unchanged** by this decision; its monitoring slice is what the alert rules serve
+- [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, that monitoring slice: the metrics, the one built rule (A5), and the drill that proved this relay end to end

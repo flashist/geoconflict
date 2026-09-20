@@ -77,3 +77,4 @@ owner-verified)`** by a spawned producer with no owner present at the close.
 - [[tasks/profile-backend-db-api]] — the original schema and API this supersedes
 - [[decisions/profile-storage-strategy]] — the storage choices the re-keying inherits
 - [[decisions/sprint-4]] — the sprint that owns it
+- [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274` (S5), the last slice of the same epic: monitoring, alerting and the creation switch

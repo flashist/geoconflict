@@ -155,6 +155,31 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
     the case-variant `/internal/` bypass of the nginx IP allowlist (pre-existing, found by the `0271`
     review; the token still gates the routes). Built after `0272` (S3); does not wait on Yandex.
   - **This task now depends on `0276`** (see `## Depends on`).
+- 🔴 **GO-LIVE TIMING RULED 2026-09-19 — `PROFILE_INTERNAL_TOKEN` IS SET *AT* THE WEEKEND SLOT.
+  OWNER RULING via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned
+  `fkit-producer` holding no owner channel. ⛔ Not producer precedent — one ruling, one task.**
+  - **The question put:** is the token set at **this** weekend slot, or at the slot **after** it?
+    **The owner chose: set it AT this slot.**
+  - ⚠️ **RECORDED PLAINLY: THIS WENT AGAINST THE RECOMMENDATION PUT TO THE OWNER.** They were advised
+    to ship the game with the token **blank**, prove [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3),
+    [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4) and
+    [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) on the live box
+    first, and set the token at the **following** slot.
+  - **The reason they were given, verbatim in substance:** at this slot, **crediting is switched on in
+    the same minute that S3's and S4's code executes in production for the very first time, with zero
+    prior production evidence.** `0272`'s own `## Status` says it outright — *"S3's end-to-end
+    behaviour has zero production evidence"* (no probe has ever touched `/internal/v1/players/resolve`
+    or `/internal/v1/credit` with a valid token); `0273`'s says the **client is not deployed at all**,
+    so the login flow, session store, Bearer call path and analytics events have **zero production
+    evidence**, with residual **AR-2** (the login-button restart) unobservable until `0054`.
+  - ✅ **They chose to set it at this slot anyway. That is their call and it stands.** The tradeoff was
+    **stated and knowingly accepted**, not overlooked — this bullet exists so the record shows that,
+    and so nobody later reads the choice as an oversight.
+  - ⛔ **WHAT THIS RULING DOES NOT DO.** It **schedules a decision; it completes nothing.** No `## Status`
+    token anywhere changed on the strength of it — not this task's, not `0272`'s, not `0273`'s, not
+    `0061`'s — and **no mover skill was invoked.** ⚠️ It also does **not** rule the 2026-09-14 edges
+    condition satisfied: whether *"everything that CAN finish before"* has in fact finished is a
+    **board reading to be redone at the slot**, not a thing this bullet asserts.
 - ⚠️ **`## Status` below is UNCHANGED.** A conditional go-live slot is not a start.
 
 ## Status

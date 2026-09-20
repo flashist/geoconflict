@@ -3673,3 +3673,98 @@ agreed with the pre-check in every particular.**
 - ⛔ **Closed nothing, moved no task file, invoked no mover, edited no brief and no sprint plan** (ADR-033).
   **Nothing committed or pushed.**
 - **Watermark advanced to `ceb5454`.**
+
+## 2026-09-19 — ingest
+
+**Sources (two, named by the caller — `fkit-lead`, on an owner ruling given via `AskUserQuestion`
+2026-09-19/20 and relayed):**
+
+1. `ai-agents/tasks/done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md` — an on-disk
+   file, read in full.
+2. 🚩 **A RELAYED, NON-FILE SOURCE, flagged as such so nobody later mistakes it for a document:** the
+   read-only on-box payments verification performed by `fkit-lead` on 2026-09-19. **It is recorded in no
+   committed report** — this vault entry and the pages below are its only written home. ⚠️ **Treat it as
+   relayed observation, not as a citable artifact.**
+
+**⚠️ Why this was an INGEST and not a `/fkit-wiki-sync`.** Today's work under `ai-agents/` is
+**uncommitted** — roughly two dozen modified briefs plus the sprint plan. `/fkit-wiki-sync` detects
+changed sources with `git log <watermark>..HEAD`, so it would have seen **none** of it while advancing
+`.wiki-watermark` past a commit range that does not contain these changes. ⛔ **The watermark was
+therefore NOT touched and still reads `ceb5454`.** A real sync is still owed once the owner commits.
+A lint was also considered and rejected: its stale-claim check hunts **dead file/function references**,
+which is not the failure here — these were stale claims about the **state of a running box**.
+
+**Correction 1 — the payments routes are NOT failing closed.** Verified read-only on the box: a `POST`
+to a deliberately non-existent sub-path under `/v1/payments/` on the **loopback** answered **404, not
+503**, so the `paymentsEnabled` middleware (mounted across the whole prefix ahead of every handler)
+**passed**; `YANDEX_PAYMENTS_SECRET` is **present in the running container, length 32** (⛔ **length
+only — the value was never read into any log, file or transcript**); and the startup warning
+`payments endpoints disabled` appears **0 times** in that container's logs.
+
+🚨 **The limit of that evidence is stated on every page it was written to: it settles "is a non-empty
+value there" and NOTHING MORE.** Not that the value is *correct*; **no real purchase was exercised**;
+⚠️ **provenance UNVERIFIED — nothing shows `0014` issued a per-game key, and a 32-character placeholder
+would present identically.** ⛔ **No page was made to say "payments work".**
+
+⛔ **Deliberately NOT changed, because a producer checked and they are still true:** `POSTGRES_PASSWORD`
+fails closed by design · `verifySignedPayload()` fails closed on an empty secret · the `paymentsEnabled`
+middleware's own 503-on-empty behaviour.
+
+- Updated [[tasks/yandex-payments-secret-forwarding]] — 6 edits: banner claim struck, full correction
+  block added, the fail-closed paragraph scoped to *code* rather than *this box*, the Deferred-Live-Tail
+  length check marked as now made (⛔ **NOT D1–D3 discharged**), `0065`'s gate rationale marked stale
+  with the count left alone, and one Related line corrected.
+- Updated [[tasks/yandex-payments-implementation]] — 4 edits: a correction banner after the metadata
+  block, the *"the secret does not exist yet"* clause struck, and the two Related lines carrying the
+  503-in-production narrative corrected.
+- Updated [[systems/player-profile-store]] — 4 edits: the payments-endpoint summary, the
+  *"Every payments route returns 503"* gotcha (struck with the full correction), one Related line, and
+  the 2026-09-04 blanket *"UNVERIFIED"* banner amended to record that **this one statement is now
+  actively DISPROVEN, not merely unverified**.
+- Updated [[decisions/sprint-4]] — 3 payments edits: the `0065` row's 503 rationale, the `0195` row's
+  *"a deploy today lands it empty"* clause, and the config-parity-class paragraph.
+- 🚩 **Updated [[decisions/config-parity-failure-class]] — 6 edits. This page was NOT on the caller's
+  list**; the producer's grep missed it and it carried the claim in five places, including the class
+  table row. Also annotated the *"the configuration never arrived"* principle, and flagged the
+  **unexplained provenance** of the on-box value as something someone should establish.
+- Updated `index.md` — 2 edits: the profile *Current state* paragraph and the
+  [[tasks/yandex-payments-secret-forwarding]] catalog line.
+- ⛔ **`log.md` was NOT rewritten.** It is append-only; its historical entries carrying the old claim
+  stay exactly as written, and this entry is the correction of record.
+
+**Correction 2 — `0274` closed; one page said it could not.** [[decisions/sprint-4]]'s circular-dependency
+note asserted *"`0274` cannot close without A1–A6."* `0274` closed **2026-09-19** as
+`✅ Done (agent-closed — not owner-verified)` with A1, A2, A3 and A6 still deferred and that named in the
+close record as an **accepted gap**; its folder now sits under `ai-agents/tasks/done/`. The claim was
+struck and replaced in place. ✅ **Confirmed independently: no vault page carries a now-broken
+`backlog/0274` path** — the folder move broke no link; this was a stale *claim* only.
+
+- 🚩 **Also flagged there, not fixed:** that page's board re-count of 2026-09-19 **does not include
+  `0274`'s close** — it names only `0282` and `0283` as closing in the window, and its `1 In progress`
+  row was `0274`. ⛔ **Not re-counted here: the sprint plan is uncommitted and a re-count belongs to a
+  sync or lint run against a committed tree.**
+
+**Created [[tasks/profile-identity-s5-monitoring-and-creation-switch]]** — task `0274` had **no vault
+page at all**, while S1 and S2 both did, and the board rule is that a task is paged once it is done.
+Built from the brief only. Records: the OTEL metrics module and its *never `src/server/Logger.ts`* rule ·
+`PROFILE_LOGIN_CREATE_ENABLED` and `503 creation_paused` · the junk-cleanup runbook · the
+`profile-checks.sh` growth backstop · the nine live metric series that are the **first and only** evidence
+the `Server.ts` wiring works · the three owner steps discharged 2026-09-19 · the alert drill and the
+**defective plan fixture that cannot pass** · the circular dependency and the owner ruling on it, with the
+lead's four-rule extension recorded as the **lead's application, not a separate ruling** · and all six
+named accepted gaps, including 🚨 **the dashboard, monitors and channels being UI-ONLY state that
+`setup-telemetry.sh` seeds nowhere**. Indexed under Tasks; **ten back-links added** so every link is
+bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
+[[tasks/profile-identity-s2-login-and-session-token]], [[tasks/uptrace-alert-delivery-to-telegram]],
+[[tasks/alert-path-liveness-probe]], [[tasks/name-change-daily-digest]], [[systems/alert-delivery]],
+[[systems/telemetry]], [[systems/player-profile-store]], [[decisions/adr-113-internal-player-id]],
+[[decisions/adr-114-admin-server-alert-relay]]; [[decisions/sprint-4]] links in from the corrected note).
+
+**Totals: 2 sources · 1 page created · 8 pages updated (`index.md` included) · 10 back-links added ·
+23 claim corrections.**
+
+- ⛔ **Closed nothing, moved no task file, invoked no mover, edited no brief and no sprint plan**
+  (ADR-033). **Wrote only inside `ai-agents/wiki-vault/`. Nothing committed or pushed.**
+- ⛔ **`.wiki-watermark` NOT advanced — still `ceb5454`.** Today's sources are uncommitted.
+- 🔒 **No secret, host, IP, DSN, token, chat id, topic id or player id was written.** The payments
+  evidence is recorded as codes, counts and a length throughout.
