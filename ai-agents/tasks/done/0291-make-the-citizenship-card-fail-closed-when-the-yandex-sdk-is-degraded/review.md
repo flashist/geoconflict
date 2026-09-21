@@ -99,3 +99,15 @@ None. Neither reviewer raised the fail-closed tradeoff or the one-test-vs-two qu
 |---|---|---|---|
 | R1 — fix the false test wording, or accept it? | **FIX** | Owner, 2026-09-21 (⛔ not precedent) | In scope; done, verified. |
 | `0238/brief.md:497`'s stale fail-open acceptance line | **LEAVE IT** for whoever next opens `0238` (owner took the reviewer's own recommendation) | Owner, 2026-09-21 | ⛔ **Out of scope for `0291` — ruled, and NOT a residual of this task.** |
+
+---
+
+## ⚠️ Post-close factual correction — appended 2026-09-21, NOT a review round
+
+**Added by a spawned `fkit-producer` on an OWNER RULING given live via `AskUserQuestion`, relayed by `fkit-lead`: *fix it*.** ⛔ Not producer precedent. ⛔ **Nothing above is rewritten** — no finding, no verdict, no ruling, no accepted residual, and not the `Status: closed-out` header. **This note only corrects a factual premise; the row above stands as the ruling that was actually given.**
+
+**The premise was already false when it was written.** Two places above — the *Observations* entry on `0238/brief.md:497` and the ruling row immediately above — describe the card's fail-open carve-out as *still recorded as accepted* in `0238`'s brief and in need of striking. **It had already been struck**, at the **2026-09-21 re-scope of `0238`**, before the question was put to the owner: the bullet beginning *"Known accepted limitation of the thing being validated"* (`0238/brief.md:496` — ⚠️ verify by content, not line number) carries `~~…~~` plus a `🔴 STRUCK 2026-09-21 — the acceptance is WITHDRAWN by owner ruling` note. **Verified against the file 2026-09-21.**
+
+🔎 **Root cause: `fkit-lead` put a stale question to the owner** — about work a producer had already done earlier that day. The owner answered *"leave it"* in good faith, and that answer propagated into the process-review spawn, this ledger, and `0291`'s close record. ⛔ **The owner did not change their mind, and no agent defied a ruling.** The reviewer's observation was made in good faith from the same stale picture.
+
+📌 **Also corrected, for the record:** `0238/brief.md` **was** edited by this close — **hrefs only, four lines** (`:66`, `:74`, `:487`, `:504`: `../0291-` → `../../done/0291-`), after `fkit-lead` lifted its own `0238` fence and authorised that repair. ⛔ Nothing else in `0238` was touched; its `## Status` is still `🔲 Backlog`. **The full corrected record is in `0291`'s `## Status`.**
