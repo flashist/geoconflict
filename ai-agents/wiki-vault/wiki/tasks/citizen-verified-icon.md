@@ -76,3 +76,4 @@ The other seven: no pre-match icon in public quick-play (there is no public-lobb
 - [[decisions/sprint-4]] — the sprint board carrying this task
 - [[tasks/supertest-profile-server-flake]] — task `0200`, the flake this task's `review.md` misrecorded as a `SIGSEGV`; that misrecording is the cost `0200` exists to stop repeating
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, which gated the ★ badge inside `renderCitizenBadge()` on the owner ruling *"kill means kill"*
+- [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`, which brought the **card** into line with this badge's fail-closed behaviour, resolving the *"kill means kill"* / *"keep the fail-open"* tension `0236` had recorded as deliberately unresolved

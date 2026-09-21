@@ -124,8 +124,16 @@ below.
 1. 🚨 **ONE of six alert rules exists — A5 alone.** **A1, A2, A3 and A6 are DELIBERATELY DEFERRED for
    want of login traffic**, and **they have no task of their own**. **A4 is ➡️ moved to `0288`**;
    **idle-period delivery (amendment A1) is ➡️ moved to `0289`** — ⚠️ **that amendment A1 is a DIFFERENT
-   A1 from alert rule A1; do not conflate them.** ⛔ **`0288` and `0289` are Sprint 4 `🔲 Backlog` and are
-   NOT closed by this.**
+   A1 from alert rule A1; do not conflate them.** ~~⛔ **`0288` and `0289` are Sprint 4 `🔲 Backlog` and are
+   NOT closed by this.**~~
+   🔧 **BOARD CORRECTED 2026-09-21 — the two are NOT on the same board, and this page had them both on
+   Sprint 4.** Verified against the board files at `7eebaf3`: **`0288` is on the BACKLOG board**
+   (`backlog.md`, `🔲 Backlog`, rank `—`), while **`0289` is on the SPRINT 4 board** (`plan-sprint-4.md`,
+   `🔲 Backlog`, rank **`High` — the PRODUCER'S rank, not owner-ruled**). ⛔ **Both are still open and
+   NEITHER is closed by this task.** ⚠️ **Why the distinction is worth the correction: they are reached by
+   different status commands, and `0288` sitting on the older board is exactly how an item goes unnoticed.**
+   🔴 **And the sharper gap is unchanged by any of it — A1, A2, A3 and A6 have NO TASK ON EITHER BOARD, so
+   nothing tracks them at all.**
 2. **One planned dashboard panel was NOT built** — the *created ÷ logins* ratio. This Uptrace build's
    chart editor did not expose a two-metric division the way the single-metric panels were built. Panels 1
    and 2 sit adjacent in the same `perMin` unit so the ratio is readable by eye — ⚠️ **that is a

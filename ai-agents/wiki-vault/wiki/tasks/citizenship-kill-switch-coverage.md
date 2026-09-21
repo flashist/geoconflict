@@ -13,9 +13,24 @@
 > exist"*. Forcing an ON state would take **three separate fake local edits**; that would be observing
 > one's own fakes. **Not done, and not presented as verification.**
 >
-> 🔴 **A LAUNCH GATE FOLLOWS FROM THIS AND IS STILL OPEN — task `0238`.** The **remote half** of the
+> ~~🔴 **A LAUNCH GATE FOLLOWS FROM THIS AND IS STILL OPEN — task `0238`.** The **remote half** of the
 > switch must be exercised in a **staging or prod build** before `CITIZENSHIP_CARD_ENABLED` is
-> flipped. ⛔ **Neither this task nor `0217` discharges it.**
+> flipped. ⛔ **Neither this task nor `0217` discharges it.**~~
+>
+> 🔴 **STRUCK 2026-09-21 — THE GATE IS DROPPED. `0238` IS RE-SCOPED AND BLOCKS NOTHING.** **Authority: an
+> OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-21** (verbatim:
+> *"we are overfocused on the enable/disable flags … it should be a boolean thing, that's it"*), relayed
+> by `fkit-lead` to a spawned producer with no owner channel. `0238` is now **"flip the flag at launch,
+> open a fresh session, confirm the surfaces are gone, write it down"** — ⇒ **the launch flip goes ahead
+> and `0238` OBSERVES it** instead of preceding it. ⛔ **Its `## Status` token, its board and its rank are
+> UNCHANGED — this is a re-scope, not a schedule.** **Three things the same ruling struck, struck not
+> deleted:** the gate framing (the owner's own 2026-09-10 ruling), the 2026-09-20 ruling to split `0238`
+> three ways, and the architect's split recommendation.
+>
+> ✅ **ONE SOURCE CHANGE WAS SPLIT OUT AND IT *DOES* PRECEDE THE LAUNCH — [[tasks/citizenship-card-fail-closed-degraded-sdk]]
+> (task `0291`, shipped and closed 2026-09-21).** It removes the degraded-SDK **fail-open carve-out this
+> page recorded as accepted** (see *Key Changes* item 1 below, now superseded). ⚠️ **`0291` is now the
+> ONLY thing preceding the `CITIZENSHIP_CARD_ENABLED` flip; `0238` is not.**
 
 ## Goal
 
@@ -142,6 +157,17 @@ four findings, **all low**; one comment-only fix was taken and **three were rout
    > ⛔ Do not reconcile them, and do not apply one ruling's logic to the other's surface. **Both are
    > the owner's; the inconsistency is the owner's to hold.**
 
+   > 🔴 **SUPERSEDED 2026-09-21 — RULING 1 IS WITHDRAWN AND THE TENSION IS NOW RESOLVED, BY THE OWNER.**
+   > The fail-open carve-out **was removed** by [[tasks/citizenship-card-fail-closed-degraded-sdk]]
+   > (task `0291`): the card now fails **closed** like the other three surfaces, so *"kill means kill"*
+   > applies uniformly. ⛔ **Struck, not deleted — the ruling above was correct while it stood.** 🚩 **WHY
+   > IT WAS WITHDRAWN, and it is the durable lesson: the 2026-09-10 acceptance was made while
+   > `CITIZENSHIP_CARD_ENABLED` was `false` and the code was INERT. Flipping layer 1 at launch would have
+   > made a dead carve-out live** — so the acceptance never covered the situation it was about to meet.
+   > ⚠️ **The accepted cost travels with the withdrawal: degraded-SDK players now lose the card entirely
+   > instead of seeing a "couldn't connect" state — which was the fail-open's whole purpose. The owner was
+   > shown this and accepted it.** ⛔ **Do not restore the fail-open to "fix" the lost error state.**
+
 2. **Yandex flag 100 %-rollout and propagation delay are OWNER-ATTESTED, NOT REPO-VERIFIED.** The
    architect named these as the one unknown that could undermine the whole recommendation; the owner
    states they have tested it on other games and it works. ⛔ **Do not restate that as a confirmed
@@ -179,13 +205,14 @@ exactly why a deploy cannot prove anything until launch flips layer 1.
 
 ## Related
 
-- [[tasks/hide-citizenship-card-flag]] — task `0054`, which created layer 1 (`CITIZENSHIP_CARD_ENABLED`); **flipping that flag is the launch, and `0238` gates the flip**
+- [[tasks/hide-citizenship-card-flag]] — task `0054`, which created layer 1 (`CITIZENSHIP_CARD_ENABLED`); **flipping that flag is the launch** — ~~and `0238` gates the flip~~ 🔴 **struck 2026-09-21: `0238`'s gate is DROPPED and it blocks nothing; the only remaining code precondition is `0291`**
+- [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`, which **removed the degraded-SDK fail-open this page had recorded as an accepted owner ruling**; ⚠️ **now the only thing preceding the launch flip**
 - [[tasks/citizenship-xp-progress-ui]] — the card content this switch hides
 - [[tasks/citizenship-name-change]] — a citizenship surface behind the same launch flag
 - [[tasks/citizen-verified-icon]] — task `0068`, the ★ badge's own feature page
 - [[systems/flashist-init]] — home of `flashistConstants`, `checkExperimentFlag`, and the platform-init gate the snapshot is primed inside
 - [[decisions/codex-second-opinion-mandatory]] — the review rule this task's two rounds were the worked example for
-- [[decisions/sprint-4]] — the sprint that owns the citizenship track, and the `0238` launch gate that follows this task
+- [[decisions/sprint-4]] — the sprint that owns the citizenship track; ~~and the `0238` launch gate that follows this task~~ 🔴 **that gate was DROPPED 2026-09-21 by owner ruling**
 - [[systems/analytics]] — the citizenship surface events this switch suppresses
 - [[systems/player-profile-store]] — the backend that must be wired (`0217`) before any of this can be seen at runtime
 - [[decisions/sprint-backlog]] — where `0237` (the three routed-out test residuals) was filed, and where `0238` was filed before being promoted into Sprint 4

@@ -24,8 +24,28 @@
 > exercised**. ⛔ **A page that now reads "payments work" would be as wrong as the one that read "they
 > 503".**
 >
-> ⚠️ **The value's PROVENANCE IS UNVERIFIED.** Nothing observed shows `0014` issued a per-game key; a
-> 32-character placeholder would present identically. **Do not read this as `0014` shipping.**
+> ~~⚠️ **The value's PROVENANCE IS UNVERIFIED.** Nothing observed shows `0014` issued a per-game key; a
+> 32-character placeholder would present identically. **Do not read this as `0014` shipping.**~~
+> 📌 **STRUCK 2026-09-20 — ANSWERED, not deleted. True when written; the placeholder worry was the right
+> question and it was put to the owner.**
+>
+> ✅ **PROVENANCE ANSWERED 2026-09-20 — OWNER-ATTESTED: the owner set the real Yandex per-game key
+> themselves.** The owner's answer, in substance: *"that's the real Yandex key, I set it."* ⇒ the
+> per-game key **was issued** and the owner **deployed the profile box with it populated**. Authority: an
+> **owner answer given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-20**, relayed to
+> a spawned producer holding no owner channel. 🔒 **Length only, still — the value has never been read
+> into any log, file or transcript.**
+>
+> 🚨 **OWNER-ATTESTED, *NOT* REPO-VERIFIED — the two are different grades of evidence and must stay
+> apart.** **A deploy leaves no artifact in git**, so nothing in this repository can confirm it. This
+> carries **exactly the same standing as the 2026-09-12 key-issuance ruling: recorded as attested, never
+> as repo-established.**
+>
+> ⛔ **IT STILL DOES NOT SHOW THE VALUE IS *CORRECT*, AND IT CLEARS NOTHING.** Provenance makes
+> correctness **more likely**; it does not establish it. **No real signed payload and no real purchase
+> has ever been exercised against this box.** ⛔ **A page saying "payments work" would be as wrong as one
+> saying they 503.** Only `0065`'s **step 1** (a first real signed payload returning 200) and **step 3**
+> (a real test purchase) settle correctness.
 >
 > ⛔ **THE FAIL-CLOSED CODE IS UNTOUCHED AND STILL CORRECT** — an empty secret still 503s the whole
 > prefix, and `verifySignedPayload()` still returns null on an empty secret. What is corrected is only
@@ -75,11 +95,11 @@ Found 2026-08-28 during `0067`'s build, and owner-approved the same day as **its
 
 ## Outcome
 
-- **The plumbing is fixed in the repository. Production is not fixed.** The value still does not exist to forward, because `0014` has not issued it.
-- ⚠️ **Verification steps 3–5 are the Deferred Live Tail and are unchecked.** They require a real profile deploy *with a value configured*, and the brief's own gate is deliberately sharp: confirm the on-box value is **non-empty, not merely present** — a variable that is forwarded but unset locally still lands empty, **which is this exact bug with the fix applied**. Check the value's *length*, never its content. 🔴 **UPDATED 2026-09-19 — that exact check HAS now been made: the on-box value is non-empty, length 32.** ⛔ **That is NOT D1–D3 discharged.** It settles the *presence* half only; the tail still needs the value to be the **right** one and a real signed payload to verify, and **neither was exercised**. ⛔ **Only the producer / owner may mark D1–D3 — the wiki flags, it does not close.**
+- **The plumbing is fixed in the repository.** ~~Production is not fixed. The value still does not exist to forward, because `0014` has not issued it.~~ 🔴 **STRUCK 2026-09-20 — the second half is FALSE: the key WAS issued and the owner deployed the box with it populated (owner-attested, see the correction block above).** ⚠️ **But "production is not fixed" survives for a DIFFERENT reason, and it must not be dropped along with the stale rationale: the value's CORRECTNESS is unproven and no real signed payload or purchase has ever been exercised.** ⛔ **Do not upgrade this bullet to "production is fixed".**
+- ⚠️ **Verification steps 3–5 are the Deferred Live Tail and are unchecked.** They require a real profile deploy *with a value configured*, and the brief's own gate is deliberately sharp: confirm the on-box value is **non-empty, not merely present** — a variable that is forwarded but unset locally still lands empty, **which is this exact bug with the fix applied**. Check the value's *length*, never its content. 🔴 **UPDATED 2026-09-19 — that exact check HAS now been made: the on-box value is non-empty, length 32.** ⛔ **That is NOT D1–D3 discharged.** It settles the *presence* half only; the tail still needs the value to be the **right** one and a real signed payload to verify, and **neither was exercised**. ⛔ **Only the producer / owner may mark D1–D3 — the wiki flags, it does not close.** ✅ **AND THE OWNER HAS NOW RULED ON EXACTLY THAT, 2026-09-20: LEAVE D1 AND D2 UNTICKED.** The question put to the owner was whether the 2026-09-19 observation covers D1 (non-empty on the box) and D2 (the startup warn gone) *in substance* — it does — and the accepted reasoning for leaving them unticked is that **the correction text already records what was observed** and **the probe was INDIRECT: it proved the `paymentsEnabled` middleware passes, not that a signed payload works.** **D3 is unaffected and stays owner-gated.** ⛔ **So no box is ticked, and none should be by an agent.**
 - ⚠️ **The end-to-end payments check is owner-gated and was not run.** `/yandex/intent` creates DB rows without checking a signature, so driving it with a throwaway value would write junk intents into the production profile DB. Full end-to-end verification with a *real* signed payload belongs to `0065`, not here.
 - **Fail-closed must keep working.** The point of the task is to make the value *reach* the box, never to weaken the guard that fires when it has not.
-- **`0065`'s gate count did NOT drop.** `0195` is a gate now **satisfied, not removed** — `0065`'s board row still states **three** conditions (`0014`, `0062`, **and** `0195`), owner-ruled. ⛔ **The count is owner-ruled and is NOT changed here — the wiki does not edit a board (ADR-033).** 🔴 **But its STATED REASON went stale on 2026-09-19:** ~~the routes still 503 today because `0014` has not issued the key~~ — a non-empty value **is** present on the box and the prefix answers **404, not 503**, on a missing sub-path. 🚩 **FLAGGED FOR THE PRODUCER AND THE OWNER: the three-gate count may still be correct for other reasons** — the value's *correctness* is unproven and no real purchase was exercised — **but this particular rationale can no longer carry it.**
+- **`0065`'s gate count did NOT drop.** `0195` is a gate now **satisfied, not removed** — `0065`'s board row still states **three** conditions (`0014`, `0062`, **and** `0195`), owner-ruled. ⛔ **The count is owner-ruled and is NOT changed here — the wiki does not edit a board (ADR-033).** 🔴 **But its STATED REASON went stale on 2026-09-19:** ~~the routes still 503 today because `0014` has not issued the key~~ — a non-empty value **is** present on the box and the prefix answers **404, not 503**, on a missing sub-path. ~~🚩 **FLAGGED FOR THE PRODUCER AND THE OWNER: the three-gate count may still be correct for other reasons** — the value's *correctness* is unproven and no real purchase was exercised — **but this particular rationale can no longer carry it.**~~ ✅ **ANSWERED 2026-09-20 AND THE FLAG IS DISCHARGED — struck, not deleted.** The question went to the owner **with the alternative (clear it, two blockers) explicitly offered**, and the owner **confirmed the conservative reading: *"Stay open on correctness — 3 blockers."*** ⛔ **NOTHING ABOUT THE COUNT CHANGED — it was already three.** ✅ **What changed is its STANDING: three is now an OWNER-CONFIRMED position, not a producer's conservative choice** — a different fact, and the reason it is recorded. ⛔ **Do not re-litigate it.**
 - 🔒 **This task is *about* a credential.** Only the variable **name** appears in its record — never a value, not even truncated, not even "starts with".
 
 ## Related

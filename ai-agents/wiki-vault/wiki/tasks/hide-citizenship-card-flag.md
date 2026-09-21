@@ -32,3 +32,4 @@ The start screen no longer leads with a dead-end card. **Flip-ON coupling:** shi
 - [[tasks/citizenship-name-change]] — task 0067, whose entire UI is behind this flag and has therefore **never been seen in a browser**
 - [[tasks/citizen-verified-icon]] — task 0068, the other Phase 2 citizenship benefit awaiting the same launch
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, which closed the three surfaces this flag did **not** reach; 🚨 **its `0238` launch gate must clear before this flag is flipped to `true`**
+- [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`, ⚠️ **the ONLY remaining code precondition for flipping this flag** (2026-09-21): it made the card fail **closed** under a degraded SDK, withdrawing a 2026-09-10 acceptance that had been granted while this flag was `false` and the carve-out was **inert**

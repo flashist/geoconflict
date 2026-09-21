@@ -283,6 +283,23 @@ get committed.
 | Build second | **A1** — player-creation spike. 🚨 **BLOCKED** — its metric does not exist in the picker yet |
 | Defer | A2, A3, A4, A6 — each for its own reason |
 
+📌 **UPDATED 2026-09-21 — WHERE THE DEFERRED RULES ACTUALLY LIVE NOW, because "deferred" hid two different
+fates.** `0274` closed 2026-09-19 carrying these as named gaps:
+
+- ➡️ **A4 has a task: `0288`** (*p95 of login latency > 750 ms for 10 min*), filed 2026-09-19 to the
+  **Backlog board**, `🔲 Backlog`. See [[decisions/sprint-backlog]].
+- 🔴 **A1, A2, A3 and A6 have NO TASK OF THEIR OWN.** They are deferred **for want of login traffic**, and
+  ⛔ **nothing on any board tracks them** — so they are invisible to every status tool. ⚠️ **This is the
+  gap most likely to be silently forgotten**; it is recorded here because the vault is the only place it
+  currently appears.
+- ➡️ **Delivery after an IDLE period — `0274`'s amendment A1, a DIFFERENT A1 from the alert rule A1 above —
+  has its own task, `0289`**, filed 2026-09-19 to the **Sprint 4 board**, `🔲 Backlog`. 🚨 **Do not conflate
+  the two things called "A1".** ⛔ **And `0283`'s digest does NOT discharge it**: its ~9.5 h gap is weak
+  evidence toward idle delivery, not the test it asks for.
+
+⇒ ⛔ **ONE alert rule exists (A5). That is unchanged by any of the above** — filing a task is not building a
+rule.
+
 Two mechanical facts settle the order: A5 and A1 are **single-series threshold rules** (A2/A3 need a
 ratio, A4 a percentile, and **there is no evidence 2.0.2 can express either**), and **at today's traffic
 every ratio and percentile rule is noise** — one error out of one request is 100 %.

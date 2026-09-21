@@ -3768,3 +3768,53 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - ⛔ **`.wiki-watermark` NOT advanced — still `ceb5454`.** Today's sources are uncommitted.
 - 🔒 **No secret, host, IP, DSN, token, chat id, topic id or player id was written.** The payments
   evidence is recorded as codes, counts and a length throughout.
+
+## 2026-09-21 — ingest (sync)
+
+- **Sync window:** `ceb5454` → HEAD (`7eebaf3`). Watermark verified against `git cat-file`; working tree
+  **clean**, so this was a clean window — nothing ingest-worthy uncommitted.
+- **Changed source files detected under `ai-agents/` (excluding the vault):** 39; **11 ingest-worthy**
+  after the Step-3 filter (independently derived, and it matched the caller's count).
+- **Reconciled against today's earlier targeted ingest, which deliberately did NOT advance the
+  watermark** — so several sources in this window were already partly paged. Found **already current and
+  ingested nothing new for:** `0271`, `0277`, `0283`, `0284` (all four were **link-path fixes only** in
+  this window — `0274`'s folder moved `backlog/` → `done/`, nothing else changed) and
+  `2026-09-17-alert-rules-a1-a6-design.md` (**same, link paths only**).
+- Ingested: `ai-agents/tasks/done/0291-…/brief.md` → **created**
+  [[wiki/tasks/citizenship-card-fail-closed-degraded-sdk]]
+- Ingested: `ai-agents/tasks/done/0195-…/brief.md` → updated [[wiki/tasks/yandex-payments-secret-forwarding]]
+  (payments-secret **provenance answered**, the D1/D2 ruling, the owner-confirmed blocker count)
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]] (board recount at
+  `7eebaf3`, `0291`'s close, **`0238`'s gate dropped**, the provenance answer)
+- Ingested: `ai-agents/sprints/backlog.md` → updated [[wiki/decisions/sprint-backlog]] (recount; the two
+  new rows `0288`, `0290`)
+- Ingested: `ai-agents/knowledge-base/alert-delivery-runbook.md` → updated [[wiki/systems/alert-delivery]]
+  (where the deferred alert rules actually went). ⚠️ **Its 2026-09-19 observed-delivery addendum was
+  ALREADY paged** by the earlier targeted ingest, all five *"what this does not prove"* items included.
+- Propagated (not separate sources): [[wiki/systems/player-profile-store]],
+  [[wiki/tasks/citizenship-kill-switch-coverage]],
+  [[wiki/tasks/profile-identity-s5-monitoring-and-creation-switch]], plus back-links added to
+  [[wiki/tasks/hide-citizenship-card-flag]], [[wiki/tasks/citizenship-xp-progress-ui]],
+  [[wiki/tasks/degraded-mode-ux-treatment]], [[wiki/tasks/citizen-verified-icon]] and
+  [[wiki/systems/flashist-init]]. **13 pages touched, 1 created, 12 updated.**
+- **Skipped, with reason:** 15 `tasks/backlog/*/brief.md` (not done — a page would be premature, and the
+  filter was **deliberately NOT widened** to reach `0065`'s brief; the payments provenance was taken from
+  `plan-sprint-4.md`'s dated addenda instead) · the in-folder `plan.md` / `worklog.md` / `review.md` of
+  `0274`, `0277`, `0283`, `0286`, `0291`, `0273` (working artifacts, not sources).
+- **Two vault errors found and corrected against the board files, not carried forward:**
+  **(1)** [[wiki/tasks/profile-identity-s5-monitoring-and-creation-switch]] placed **`0288` on the Sprint 4
+  board** — it is on the **Backlog** board; `0289` is the Sprint 4 one. **(2)** the `0238` **launch-gate**
+  framing was live on three pages and in `index.md`; it is struck everywhere, struck **not deleted**.
+- 🚩 **Flagged for a human, NOT fixed (ADR-005 — the vault may not edit a brief):** `0291`'s brief
+  **contradicts itself** about the `0238` hand-off. Its `## Status` says `0238` was *not* edited and still
+  records the fail-open as accepted; its `## Notes` says that bullet *is* struck and points to `0291`.
+  **Verified against the file at `7eebaf3`: `## Notes` is right, `## Status` is FALSE** — `0238` was
+  edited in the same commit, its bullet is struck, and it names `0291` four times. **Failure mode 4
+  (self-invalidation inside one commit), arriving with a bare-style `:497` coordinate of exactly the form
+  convention 10 bans.** ⚠️ **The owner's RULING is not in question** — only the brief's description of
+  what was done.
+- ⛔ **Closed nothing, moved no task file, invoked no mover, edited no brief and no sprint plan**
+  (ADR-033). **Wrote only inside `ai-agents/wiki-vault/`. Nothing committed or pushed.**
+- ✅ **`.wiki-watermark` advanced `ceb5454` → `7eebaf3`.**
+- 🔒 **No secret, host, IP, DSN, token, chat id, topic id or player id was written.** The payments secret
+  is recorded as a **length (32)** and a provenance **attestation** only; its value appears nowhere.

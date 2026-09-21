@@ -3,6 +3,77 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
+> # 📊 BOARD RE-COUNTED 2026-09-21 at `HEAD` = `7eebaf3`
+>
+> **106 rows — 77 Done · 14 Blocked · 10 Backlog · 1 In progress · 3 Cancelled · 1 Moved; 25 OPEN.**
+> *(Was 104 / 25 open at `ceb5454` on 2026-09-19. **Open is unchanged at 25** — the board grew by two rows
+> and both changes cancelled out against a flip.)* ⚠️ **Counted by me this run, at this SHA.**
+>
+> 🚨 **96 `(agent-closed — not owner-verified)` mentions file-wide, against 77 Done rows** — up from 68.
+> Counted strictly in the **status cell**, the only place the marker governs a row: **56 of 77 Done rows.**
+> **Both bases are true; say which you mean.** ⛔ **The ratio still gets worse, not better, as the sprint
+> ships.**
+>
+> ⚠️ **I did NOT reconcile every cell-by-cell movement** and am not asserting one. **Three changes I did
+> verify against the diff:**
+>
+> 1. ➕ **`0291` is a NEW ROW and it closed the same day** — see below.
+> 2. ➕ **`0289` is a NEW ROW** (`🔲 Backlog`) — *prove a Telegram alert arrives after an IDLE period*,
+>    `0274`'s amendment A1 given a task of its own, filed 2026-09-19.
+> 3. 🔧 **`0014`'s status cell flipped `🚧 Blocked` → `🔲 Backlog`**: the **external approval gate is VOID**
+>    (owner ruling 2026-09-19), leaving **two owner-side Yandex-console deliverables, neither externally
+>    gated**. ⚠️ **`0014` is NOT done** — it stopped waiting on Yandex, not on itself.
+>
+> ## 🔴 `0291` CLOSED, AND THE `0238` LAUNCH GATE THIS PAGE RECORDED IS **DROPPED**
+>
+> **Authority for both: one OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-21** (verbatim: *"we are overfocused on the enable/disable flags … it should be a boolean thing,
+> that's it"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel. ⛔ **Not
+> producer precedent.**
+>
+> - ✅ **[[tasks/citizenship-card-fail-closed-degraded-sdk]] (`0291`) — filed, built, reviewed and closed
+>   all on 2026-09-21**, `(agent-closed — not owner-verified)`. The citizenship card's degraded-SDK
+>   **fail-open carve-out is removed**; all four citizenship surfaces now fail **closed**. `npm test` **138
+>   suites / 1870 tests** passing, the new check shown **red before / green after**; Codex coverage
+>   **FULL**. 🚩 **LOUDEST RESIDUAL: NO LIVE/BROWSER VERIFICATION — nobody has watched the card fail to
+>   render in a real degraded production session.** ⛔ **It launches NOTHING** —
+>   `CITIZENSHIP_CARD_ENABLED` is still `false`.
+> - 🔴 **`0238` IS RE-SCOPED AND BLOCKS NOTHING NOW.** It falls from a **pre-launch gate** to *"flip the
+>   `citizenship_ui` flag at launch, open a fresh session, confirm the surfaces are gone, write it down"*
+>   ⇒ **the launch flip goes ahead and `0238` OBSERVES it.** ⛔ **Its `## Status` token, board and rank are
+>   UNCHANGED — a re-scope, not a schedule.** **Three things the same ruling struck, struck not deleted:**
+>   the gate framing (the owner's own **2026-09-10** ruling, recorded further down this page), the
+>   **2026-09-20** ruling to split `0238` three ways, and the **architect's** split recommendation.
+> - ⚠️ **`0291` IS NOW THE ONLY THING PRECEDING THE `CITIZENSHIP_CARD_ENABLED` FLIP; `0238` IS NOT.**
+>
+> ## ✅ THE PAYMENTS-SECRET PROVENANCE IS ANSWERED — AND IT CLEARS NOTHING
+>
+> **Owner answer, given live via `AskUserQuestion` on 2026-09-20**, in substance: ***"that's the real
+> Yandex key, I set it."*** ⇒ the per-game key **was issued** and the **owner deployed the profile box
+> with it populated.** This closes the sharp follow-up the vault itself raised — *nobody could say where
+> the length-32 value came from, and a placeholder would present identically.*
+>
+> 🚨 **OWNER-ATTESTED, *NOT* REPO-VERIFIED. A deploy leaves no artifact in git**, so nothing in this
+> repository can confirm it; **same standing as the 2026-09-12 key-issuance ruling — recorded as attested,
+> never as repo-established.** 🔒 **Length only, always — the value has never been read into any log, file
+> or transcript.**
+>
+> ⛔ **IT DOES NOT SHOW THE VALUE IS CORRECT AND IT DISCHARGES NOTHING.** **No real signed payload and no
+> real purchase has ever been exercised.** ⛔ **A page saying *"payments work"* would be as wrong as one
+> saying they *503*.** Only `0065`'s **step 1** (a first real signed payload returning 200) and **step 3**
+> (a real test purchase) settle correctness.
+>
+> ✅ **`0065`'s BLOCKER COUNT STAYS THREE — and its STANDING changed, which is why this is recorded.** The
+> question went to the owner **with the alternative (clear the `0195` condition, two blockers) explicitly
+> offered**, and the owner **confirmed the conservative reading: *"Stay open on correctness — 3
+> blockers."*** ⛔ **The count did not change — it was already three. What changed is that three is now an
+> OWNER-CONFIRMED position rather than a producer's choice.** ⛔ **Do not re-litigate it.**
+>
+> 📌 **Also settled the same day: D1 and D2 in `0195`'s live tail stay UNTICKED, by owner ruling** — the
+> 2026-09-19 probe covers them *in substance*, but it was **indirect** (it proved the `paymentsEnabled`
+> middleware passes, not that a signed payload works). **D3 is unaffected and stays owner-gated.** Full
+> record: [[tasks/yandex-payments-secret-forwarding]].
+
 > # 📊 BOARD RE-COUNTED 2026-09-19 at `HEAD` = `ceb5454`
 >
 > **104 rows — 75 Done · 15 Blocked · 9 Backlog · 1 In progress · 3 Cancelled · 1 Moved; 25 OPEN.**
@@ -267,6 +338,8 @@
 > ⚠️ **`0216` was NARROWED IN PLACE by owner ruling 2026-09-10 before it closed** — from a broad RU-network reachability spike to *"can this box obtain a certificate"* only. The owner ruled the **scope**, not the schedule; no mover skill was invoked at that point and `## Status` was unchanged. Registry and apt reachability were **answered by `0215`'s deploy instead**, apt only **by inference from the deploy succeeding — not separately measured.**
 >
 > 🔴 **NEW ROW, AND IT IS A LAUNCH GATE: `0238`.** The **remote half** of the citizenship kill switch (the `citizenship_ui` Yandex flag) **must be validated in a staging or prod build before `CITIZENSHIP_CARD_ENABLED` is flipped to `true`.** ⛔ **Neither `0236` nor `0217` discharges it.** The reason is structural: `checkExperimentFlag()` returns `true` unconditionally when `GAME_ENV === "dev"`, and the client's `GAME_ENV` comes from the **webpack mode** (`webpack.config.js:334`), **not** from the `cross-env GAME_ENV=dev` in the npm scripts ⇒ **layer 2 is hard-wired ON in every dev build** and no automated test can substitute. **If this validation cannot be performed, the switch is not known to work and must not be relied on as the launch's safety mechanism.** See [[tasks/citizenship-kill-switch-coverage]].
+>
+> 🔴 **SUPERSEDED 2026-09-21 — THE GATE FRAMING ABOVE IS STRUCK BY A LATER OWNER RULING, and the earlier one was the owner's too.** `0238` no longer gates anything; it **observes the launch flip**. ⛔ **Struck, not deleted — and its CODE FINDINGS remain individually true** (the `GAME_ENV`-from-webpack-mode mechanism, the dev-build bypass, the "no automated test substitutes" point). What is withdrawn is the **gating**, not the mechanics. ✅ **One correction of 2026-09-20 to carry forward: a `./deploy.sh staging` box already ships a bundle whose `GAME_ENV === "prod"`, so a PRODUCTION game deploy is NOT required for this check** — `0238`'s brief argued a prod-or-staging build is needed but never said staging suffices. ⚠️ **And a separate 2026-09-20 finding stands regardless of the re-scope: because `CITIZENSHIP_CARD_ENABLED` is `false` and `&&` short-circuits, the remote `citizenship_ui` flag is NEVER READ on a stock build ⇒ the check would have PASSED VACUOUSLY. The flag must be flipped to `true` in the build under test — ⛔ staging only, NEVER committed and NEVER in a prod build.** 🚩 **One precondition remains OPEN and nothing in this repository can settle it: does a Yandex Games draft / dev version exist that can serve such a staging build? Without one the SDK serves NO flags at all and the check cannot run, whatever the build says.** The code change that *does* precede the launch was split out as [[tasks/citizenship-card-fail-closed-degraded-sdk]] (`0291`).
 >
 > # 🔴 SPRINT 4 WORK ORDER FOR THE PROFILE EPIC'S OPEN PHASES — OWNER-RULED 2026-09-10, AND IT INVERTS THE EPIC'S OWN P-NUMBERING
 >
@@ -664,7 +737,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, closed 2026-09-10: the box was **ADOPTED, not wiped**; it left the restore path unproven until `0218`
 - [[tasks/profile-durability-restore-drill]] — task `0218`, closed 2026-09-11 with **eight residuals**: **a backup restores**, proven twice against non-empty data including **into the live database in place** — ⛔ **and the schedule and the data are proven only SEPARATELY**; it also fixed two real runbook defects (a non-existent docker network, and a live-recovery example that leaked the database password)
 - [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, **narrowed by owner ruling then closed** 2026-09-10; it proved **capability, not monitoring**
-- [[tasks/citizenship-kill-switch-coverage]] — task `0236`, closed 2026-09-10 with **no runtime verification**, and the `0238` launch gate it leaves open
+- [[tasks/citizenship-kill-switch-coverage]] — task `0236`, closed 2026-09-10 with **no runtime verification**, and ~~the `0238` launch gate it leaves open~~ 🔴 **that gate was DROPPED 2026-09-21 by owner ruling; its fail-open acceptance was WITHDRAWN and removed by `0291`** — and the `0238` launch gate it leaves open
 - [[decisions/codex-second-opinion-mandatory]] — the 2026-09-10 review-process record, and the corrected evidence behind it
 - [[systems/alert-delivery]] — the alerting area this sprint built from nothing: the relay, the traps, the probe and the rules
 - [[decisions/adr-114-admin-server-alert-relay]] — the profile box is the admin server; the relay lives there
@@ -681,3 +754,4 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/telemetry-cert-expired-renewal-cron]] — task `0257`
 - [[tasks/uptrace-retention-not-applied]] — task `0259`
 - [[tasks/client-source-map-upload-verification]] — task `0260`
+- [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`

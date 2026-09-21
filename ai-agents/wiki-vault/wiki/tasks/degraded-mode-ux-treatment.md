@@ -37,3 +37,4 @@ The citizenship funnel now distinguishes "you're not logged in" from "we couldn'
 - [[tasks/citizenship-xp-progress-ui]] — the citizenship card whose guest state this refines
 - [[decisions/sprint-4]] — the earned/paid citizenship gate this clears
 - [[tasks/hide-citizenship-card-flag]] — the 0054 follow-up hiding the whole card (this state included) until citizenship launches
+- [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`, which **gives up the degraded-mode card state this task built** whenever the `citizenship_ui` flag is off: the card now fails **closed**. ⚠️ **Owner-accepted cost, ruled on 2026-09-21 and not to be re-litigated** — ⛔ **do not restore the fail-open to bring this state back**

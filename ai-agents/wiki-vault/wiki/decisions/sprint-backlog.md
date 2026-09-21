@@ -3,6 +3,29 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> # 📊 THE BACKLOG BOARD RE-COUNTED 2026-09-21 at `HEAD` = `7eebaf3`
+>
+> **`backlog.md`: 83 rows — 59 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
+> 62 OPEN.** *(Was 81 / 60 open at `ceb5454`.)* ⚠️ **Counted by me this run, at this SHA.**
+>
+> **Two rows were added this window, both `🔲 Backlog`, both filed by a spawned `fkit-producer` on owner
+> rulings relayed by `fkit-lead` — and ⛔ neither brief is paged** (the backlog rule: a task is not paged
+> until it is done or cancelled). Their substance is recorded here so they are not invisible:
+>
+> - **`0288`** — *alert rule **A4**: p95 of login latency > 750 ms for 10 min.* Filed **2026-09-19**, one of
+>   the six named monitoring gaps [[tasks/profile-identity-s5-monitoring-and-creation-switch]] (`0274`)
+>   closed carrying. ⚠️ **A4 is the ONE of the six deferred rules that got a task of its own** — A1, A2, A3
+>   and A6 are **deferred for want of login traffic with NO task at all**, and **only A5 exists today.**
+> - **`0290`** — *`setup.sh` calls `apt` where the other two deploy scripts call `apt-get`, and `apt` has no
+>   stable CLI for scripts.* Filed **2026-09-20**. ⚠️ **Related to but NOT the same as `0286`** (Sprint 4),
+>   which is the missing `DEBIAN_FRONTEND=noninteractive` that was **observed blocking a real deploy three
+>   times**; this one is the **command choice itself**. ⛔ **Do not merge them on the strength of both being
+>   about `apt`.**
+>
+> 📌 **Also worth knowing, though it is not a row on this board: `0289`** (*prove a Telegram alert arrives
+> after an idle period* — `0274`'s amendment A1) was filed **2026-09-19 onto the Sprint 4 board**, not here.
+> See [[decisions/sprint-4]].
+
 > # 📊 THE BACKLOG BOARD RE-COUNTED 2026-09-19 at `HEAD` = `ceb5454`
 >
 > **`backlog.md`: 81 rows — 57 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
