@@ -974,8 +974,8 @@ export class FlashistFacade {
    * snapshot is picked up on the next natural re-render, and a degraded boot
    * that DOES recover re-primes from yandexSdkInit().
    *
-   * Note this is the OPPOSITE of the card's fail-OPEN carve-out in
-   * CitizenshipCard.ts; both are owner rulings, each implemented where ruled.
+   * All four citizenship surfaces now fail closed: the card's degraded-mode
+   * fail-OPEN carve-out was withdrawn in task 0291.
    */
   private citizenshipSurfacesSnapshot = false;
 

@@ -152,7 +152,7 @@ describe("CitizenshipCard", () => {
       expect(isCitizenshipUiEnabled).not.toHaveBeenCalled();
     });
 
-    it("stays hidden when off even in degraded mode (beats the 0049 carve-out)", async () => {
+    it("stays hidden when off even in degraded mode", async () => {
       flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
       isYandexDegraded.mockReturnValue(true);
 
@@ -205,19 +205,22 @@ describe("CitizenshipCard", () => {
       expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Seen");
     });
 
-    it("shows the degraded card even when the flag cannot be read (degraded mode)", async () => {
-      // In production degraded mode the flag fetch needs the SDK, so it
-      // resolves false — the degraded state must bypass the gate.
+    it("stays hidden in degraded mode when the flag reads false (task 0291)", async () => {
+      // isYandexDegraded() is `yaGamesAvailable && !yandexSdkPlayerObject`, so
+      // it covers two shapes: the SDK never loaded, where the flag fetch needs
+      // it and so resolves false (genuinely unreadable); and the SDK loaded but
+      // getPlayer() failed, where getFlags() still works and a false flag is a
+      // real switch-off. The card used to bypass the gate for both (fail OPEN);
+      // 0291 withdrew that — degraded mode fails CLOSED either way.
       isCitizenshipUiEnabled.mockResolvedValue(false);
       isYandexDegraded.mockReturnValue(true);
 
       const card = await appendCard({ visible: true });
 
-      expect(card.classList.contains("hidden")).toBe(false);
-      expect(card.textContent).toContain(
-        "citizenship_card.guest_subtitle_degraded",
-      );
-      expect(card.querySelector("#citizenship-login-button")).toBeNull();
+      expect(card.textContent!.trim()).toBe("");
+      expect(card.classList.contains("hidden")).toBe(true);
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+      expect(loadProfile).not.toHaveBeenCalled();
     });
   });
 
