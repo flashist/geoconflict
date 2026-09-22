@@ -321,6 +321,42 @@ down (`0019` decision).
       price, not hardcoded).
 
 ### 3. Real test purchase (through the `0018` UI)
+
+> ## ⛔ STEP 3 IS DELIBERATELY **OUT** OF THE WEEKEND DEPLOY WINDOW — OWNER RULING 2026-09-22
+>
+> **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+> (ADR-021). ⛔ **Not producer precedent.** The owner chose **"Drop `0065` step 3 from the window."**
+>
+> **Their recorded reasoning:** flipping `CITIZENSHIP_CARD_ENABLED` is **a source change plus a second
+> full game deploy**. That is **a decision about launching citizenship, not a verification step**, and
+> **it should not ride in on a deploy slot.**
+>
+> ⛔ **This task's `## Status` was NOT touched and no mover skill was invoked. It stays `🚧 Blocked`.**
+> ⚠️ **The owner's separate 2026-09-22 confirmation that they WILL perform this step still stands** —
+> it is **not withdrawn**, it is **not scheduled in that window**.
+>
+> **WHY IT COULD NOT RUN AS WRITTEN — re-verified in the tree 2026-09-22, not taken on trust:**
+> - `src/client/CitizenshipCard.ts:95` gates the card **absolutely**, first, in `connectedCallback()`:
+>   `if (!flashistConstants.features.CITIZENSHIP_CARD_ENABLED)` → add `hidden`, **return**.
+> - `src/client/flashist/FlashistFacade.ts:216` sets it to a hard **`false`** — a **compile-time
+>   constant**, with the source comment *"no `GAME_ENV` bypass — owner-ruled 2026-08-21."*
+> - `src/client/flashist/FlashistFacade.ts:955` short-circuits on `&&`, so the remote `citizenship_ui`
+>   experiment flag **is never read** while the local flag is false.
+> - A grep of **`src/` and `webpack.config.js`** finds **no env override and no remote override**
+>   anywhere — three mentions of the name in total, all listed above.
+> - ⇒ **The buy button does not exist in a production build**, and making it exist requires editing
+>   source and running `./build-deploy.sh prod` a **second** time.
+>
+> 🚨 **AND THIS BRIEF CONTRADICTS ITSELF — record it, do not route around it.** **Step 6 below says flip
+> the flag *"only after 1–4 pass"*. Step 3 is one of 1–4, and step 3 is the step that needs the flip
+> first.** ⇒ **`0065` cannot satisfy its own ordering as written.** Whoever takes the launch decision
+> must **resolve that circularity**, not work around it.
+>
+> 📌 **Full record:**
+> [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) §
+> *Conflicts* → **C1**.
+
 - [ ] Under the test-purchase login, complete the flow end to end via the real button.
 - [ ] Prod profile shows `is_paid_citizen = true` + `citizenship_purchased_at` set (psql on the box;
       the public `GET /v1/profile` strips paid fields by design).

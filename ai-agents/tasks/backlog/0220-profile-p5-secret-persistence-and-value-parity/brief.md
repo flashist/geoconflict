@@ -16,7 +16,7 @@ times under a different name.
 ⚠️ **The rank is the producer's**; the owner ruled scheduling, not rank.
 
 ## Status
-🚧 Blocked — built + reviewed 2026-09-13 (persist-or-reuse for the four secrets + on-box report-only value parity + harness T12–T15; stateful review round 1 closed out, R1–R6 applied, Codex coverage full; `npm test` 120/1253 green); open pending the OWNER-side live tail — plan §8 steps 1–3: deploy with the four set (600-root files), then deploy with them BLANK (`Reusing persisted <NAME>` ×4 — THE proof), then one rotation. Same hold-open posture the owner ruled for `0219`. Driven by `/fkit-sprint-ship-loop`
+🚧 Blocked — built + reviewed 2026-09-13 (persist-or-reuse for the four secrets + on-box report-only value parity + harness T12–T15; stateful review round 1 closed out, R1–R6 applied, Codex coverage full; `npm test` 120/1253 green); open pending the OWNER-side live tail — plan §8 ~~steps 1–3~~ **steps 1–2 ONLY**: deploy with the four set (600-root files), then deploy with them BLANK (`Reusing persisted <NAME>` ×4 — THE proof)~~, then one rotation~~. 🚩 **CORRECTED 2026-09-22, SAME DAY — the struck clause was accurate when written and was overtaken hours later: §8 STEP 3 (the rotation) WAS REMOVED FROM THIS WINDOW BY OWNER RULING and is DELIBERATELY NOT RUN here; the overwrite proof is carried by [`0294`](../0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md).** ⚠️ **ONE STEP DELIBERATELY DEFERRED — ⛔ NOT "unverified":** steps 1–2 still run in this window, and the rotation path does have local **stubbed** coverage (harness **T13**, `tests/scripts/profile-deploy-hardening.test.sh:613-638`, gated by `npm test`) — ⛔ **that is not live-box evidence and must not be presented as it.** Same hold-open posture the owner ruled for `0219`. Driven by `/fkit-sprint-ship-loop`
 
 ## Owner
 fkit-coder
@@ -104,6 +104,73 @@ ten pre-arming items live in [`0203`](../0203-config-parity-guard-pre-arming-gat
    only; never a value and never a length.**
 3. **A deploy WITH a new value overwrites the persisted one.** ⚠️ Persistence must not become a trap
    where a rotated secret cannot be applied.
+
+   > ## 🚨 STEP 3 IS A KNOWN, DELIBERATE GAP — OWNER RULING 2026-09-22. **SAY SO AT CLOSE.**
+   >
+   > **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+   > 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+   > (ADR-021). ⛔ **Not producer precedent.** Shown that the weekend deploy window's third profile
+   > deploy existed **only** for this step, and that no brief said **which** of the four values to
+   > rotate, the owner chose **"Skip it now, file it separately"** — so that *"`0220` closes with a
+   > recorded, deliberate gap rather than an unnoticed one."*
+   >
+   > ⇒ 📌 **FILED AS [`0294`](../0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md)**
+   > on the **Backlog** board. ⚠️ **The board is the producer's filing default, not an owner ruling.**
+   >
+   > ⛔ **This task's `## Status` was NOT touched and no mover skill was invoked.**
+   >
+   > 🚨 **WHAT THIS MEANS FOR THIS TASK'S CLOSE, stated plainly and NOT to be rounded up.**
+   > `plan.md` §8 says *"Steps 2–3 are the ones that prove the defect is closed."* **Only step 2 runs in
+   > the weekend window.** ⇒ **`0220` cannot claim its verification step 3, and the close must state
+   > that the rotation half has NO LIVE-BOX EVIDENCE.**
+   >
+   > ⚠️ **What IS proven, so nobody overstates the gap either:**
+   > `tests/scripts/profile-deploy-hardening.test.sh:613-638` (**T13 — rotation**) drives the real
+   > `persist_or_reuse_secret()` against **stubs** and asserts the overwrite, the reuse of the **new**
+   > value, the other three files byte-unchanged, and no value leaking into output. It is gated by
+   > `npm test` (task `0201`). ⇒ **Local coverage: yes. Live-box evidence: none.**
+   >
+   > 🚨 **WHY THE STEP EXISTS — record it, because it nearly did not survive.** The owner's **first**
+   > instinct was *"rotate nothing, we don't know why the step exists"*, and they **revised it once
+   > shown the reason.** **The failure this step guards:** if persist-or-reuse always prefers the box's
+   > stored value, then **the day a key leaks and a new one is deployed, the box silently keeps the old
+   > one** — the operator believes a compromised credential was replaced when it was **not**, and
+   > **nothing says otherwise.** ⛔ **Never write this step up as redundant.**
+   >
+   > 📌 **Full record:**
+   > [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) §
+   > *Conflicts* → **C2**, and the **W8** tombstone in its sequence.
+   >
+   > ---
+   >
+   > ## 🚨 RULING G, 2026-09-22 — THIS TASK MAY CLOSE WITH THE GAP RECORDED. **THIS IS THE WORDING.**
+   >
+   > **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+   > 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+   > (ADR-021). ⛔ **Not producer precedent.** Asked whether `0220` may close carrying this gap, the
+   > owner chose **"Yes — record the gap."**
+   >
+   > ⛔ **THIS RULING AUTHORIZES THE WORDING THAT WILL ACCOMPANY A FUTURE CLOSE. IT IS NOT A CLOSE, AND
+   > IT IS NOT PERMISSION TO CLOSE.** ⛔ **No mover was invoked and this task's `## Status` token was
+   > NOT changed — it stays `🚧 Blocked`.** Whoever closes this task later **is bound by the sentence
+   > below.**
+   >
+   > ### ⚠️ THE SENTENCE. Carry it into the close verbatim.
+   >
+   > > **`0220` closes with verification step 3 DELIBERATELY NOT RUN.** The overwrite path — *a deploy
+   > > with a new value replaces the persisted one* — has **NO LIVE-BOX EVIDENCE**, by owner ruling of
+   > > 2026-09-22, not by oversight.
+   > > [`0294`](../0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md)
+   > > is where that evidence would come from, and it has not been run.
+   > > 🚨 **THIS TASK IS THEREFORE NOT FULLY VERIFIED. ⛔ Do not report it as such.** `plan.md` §8 states
+   > > *"Steps 2–3 are the ones that prove the defect is closed"* — **only step 2 ran.** ⚠️ The rotation
+   > > property has **local, stubbed** coverage only
+   > > (`tests/scripts/profile-deploy-hardening.test.sh:613-638`, **T13**, gated by `npm test`); **that
+   > > is not live-box evidence and must not be presented as it.**
+   >
+   > ⛔ **Do not compress, soften, or summarize that sentence at close.** ⚠️ **Its entire purpose is to
+   > stop a later reader concluding `0220` was fully verified** — a `✅ Done` on this task without it
+   > would assert exactly the thing that was never proven.
 4. **`POSTGRES_PASSWORD` still fails closed** — unchanged behaviour, explicitly re-verified.
 5. **The value-parity checks catch a bad value** — a non-`https` public URL and an empty token each
    produce a report entry. **Observe them firing**, do not assert them.
