@@ -162,7 +162,7 @@ payments secret key**. Two facts an estimator needs:
 
 ⛔ **Whether the key has been collected is NOT KNOWN as of 2026-09-12, and this brief asserts NEITHER
 that it has NOR that it has not.** It is recorded as an open item on
-[`0014`](../0014-yandex-catalog-registration/brief.md). **Check `0014` before planning candidate 1; do
+[`0014`](../../done/0014-yandex-catalog-registration/brief.md). **Check `0014` before planning candidate 1; do
 not assume either state.**
 
 ## Scope
@@ -227,7 +227,7 @@ phase 1 chooses, all of these must hold:**
 
 - **Depends on:** nothing on the boards. ⚠️ **But possibly on an external gate:** if phase 1 chooses a
   Yandex-signature design, it needs the per-game secret key, tracked as
-  [`0014`](../0014-yandex-catalog-registration/brief.md) `## Verification` item 3, whose state is
+  [`0014`](../../done/0014-yandex-catalog-registration/brief.md) `## Verification` item 3, whose state is
   **unknown**. ⛔ **Check it; do not assume.**
 - **Blocks:** [`0248-suppress-interstitial-ads-for-paid-citizens`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
   — ⛔ **hard prerequisite.** `0248` is specified on `is_paid_citizen` by owner ruling (2026-09-12,

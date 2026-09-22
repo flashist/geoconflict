@@ -237,7 +237,7 @@ Shape depends entirely on phase 1. The invariants that hold **whatever** phase 1
   - [`0018-citizenship-paid`](../0018-citizenship-paid/brief.md) — paid citizenship, the 99 ₽ path.
   - [`0065-citizenship-paid-live-verification`](../0065-citizenship-paid-live-verification/brief.md) —
     the paid go-live gate.
-  - [`0014-yandex-catalog-registration`](../0014-yandex-catalog-registration/brief.md) — catalog
+  - [`0014-yandex-catalog-registration`](../../done/0014-yandex-catalog-registration/brief.md) — catalog
     registration; product ID fixed at `citizenship`.
   - [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) — the sibling benefit, filed
     in the same pass under the same ruling.

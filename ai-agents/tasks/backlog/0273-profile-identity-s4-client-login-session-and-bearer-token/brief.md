@@ -10,11 +10,65 @@
 Sprint 4
 
 ## Priority
-High *(producer's rank — NOT owner-ruled)*
+🔴 **High — LABEL RATIFIED BY THE OWNER 2026-09-22; value UNCHANGED** *(~~producer's LABEL~~; **POSITION OWNER-RULED 2026-09-22** — a separate ruling, see below)*
 
-⚠️ Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.
+### 🔴 LABEL RATIFIED BY THE OWNER — 2026-09-22 (a SEPARATE ruling from the POSITION ones)
+
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session via
+`AskUserQuestion` on 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no
+owner channel**. Shown that they had ruled **position** on this group twice and the **label** never —
+so the *"NOT owner-ruled"* flag kept firing on the rows they read most often — the owner chose
+**"Ratify as they stand."** Stated reason: **the values already match how they are treating the work —
+core citizenship first — so this only clears the flag.**
+
+⛔ **VALUE UNCHANGED — THIS IS A RATIFICATION, NOT A RE-RANK.** `High` was and remains `High`.
+
+⚠️ **SEPARATE RULINGS, SEPARATE THINGS — a later reader must not read one as having decided the
+other:**
+
+| Ruling | When | What it settled | What it did NOT settle |
+|---|---|---|---|
+| **POSITION** — move the group directly under `0217` | 2026-09-22, earlier | where the row sits on the board | the label |
+| **POSITION** — RULING A, `0266` placed above this slice | 2026-09-22, later the same day | the group's reading order | the label; and no dependency |
+| **LABEL** — *“Ratify as they stand”* | 2026-09-22, this one | the label is now **owner-ruled**, flag cleared | position; **and it moved no value** |
+
+⚠️ **LABEL ONLY.** ⛔ **No `## Status` token was touched, no task file was moved between
+`backlog/`, `done/` and `cancelled/`, and no mover skill was invoked.**
+
+
+~~⚠️ Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.~~
 **On merit this belongs directly below `0272`**, because it follows S2 and gates `0253`'s rework; the
-S1–S5 run as a whole belongs directly below `0217`. Appended at the bottom (ADR-035).
+S1–S5 run as a whole belongs directly below `0217`. ~~Appended at the bottom (ADR-035).~~
+
+---
+
+### 🔴 RANK OWNER-RULED 2026-09-22 — this is no longer an unratified append-rank
+
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session on 2026-09-22**,
+relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**.
+⛔ **Not producer precedent — one ruling, one set of rows.**
+
+The owner was shown that **seven rows on the Sprint 4 board carried producer *append*-ranks the board
+itself flags as *"not a merit ranking, not owner-ruled"*** — several of them, this one included,
+noting *"on merit this belongs below `0217`"* — and ruled:
+
+> **move `0272`, `0273`, `0266` and `0253` directly under `0217`.**
+
+✅ **Applied to `ai-agents/sprints/plan-sprint-4.md` in the order the owner named:**
+`0217` → **`0272`** → **`0273`** → **`0266`** → **`0253`**.
+⇒ **This row's POSITION is now OWNER-RULED.** The struck flag above is kept, not deleted — it is the
+true record of how this row was ranked until today.
+
+⚠️ **RANK ONLY — the limits are the whole ruling.**
+- ⛔ **No `## Status` token was touched, here or on any moved row.** A re-ranked row is not a started row.
+- ⛔ **No task file was moved** between `backlog/`, `done/` or `cancelled/`; **no mover skill was invoked.**
+- ⚠️ **The owner ruled POSITION, not LABEL.** `High` is still the **producer's** label and was **not** ratified.
+- ⛔ This is an **owner ruling lifting ADR-035's append-only constraint** for exactly these four row
+  moves (prior instances: `0253`'s move of 2026-09-13, the `0232`/`0231` precedent of 2026-09-07).
+  The board is label-ranked, so nothing was renumbered; no other row moved and no closed row was touched.
+
+**Placed 2nd of the four moved rows** — and the owner's order matches this brief's own merit note (directly below `0272`).
+
 
 ## Status
 🚧 Blocked — **the legacy-fallback removal (ruling D1) is LIVE AND PROVEN on the box, 2026-09-17. The client is NOT deployed.** The owner ran `GET /v1/profile?yandexPlayerId=…` with **no Bearer token** against the public domain and got **401** — D1's removal is real on the deployed box, not just in tests. 🚨 **That is the server half only.** None of S4's **client** code is deployed, so the login flow, the session store, the Bearer-token call path and the analytics events have **zero production evidence**. ⚠️ **Loudest residual AR-2 is UNCHANGED by this deploy:** the login-button restart has **zero** production evidence and is **unobservable until `0054`** — the deploy moved it not at all. ⚠️ Also note the one-sided proof: a 401 with no token proves the fallback is gone; **nothing has proven a Bearer token is accepted** (see `0271`'s box proof record). ⇒ **Blocked on: the game deploy** (which carries the client), then this task's live check, plan §4.6. Residuals AR-1…AR-9 minus AR-7 still stand. No code. · earlier: 🚧 Blocked — **code complete, review closed out; waiting on deploys, not on work.** Built + reviewed

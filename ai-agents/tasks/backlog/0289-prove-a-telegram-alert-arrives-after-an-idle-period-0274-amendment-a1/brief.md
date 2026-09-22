@@ -7,25 +7,74 @@
 > `ai-agents/tasks/{backlog,done,cancelled}/` and no `## ID` hit. Highest existing ID was `0288`.
 
 ## Sprint
-Sprint 4
+Sprint 5
+
+### ➡️ MOVED FROM SPRINT 4 TO SPRINT 5 ON 2026-09-22 — OWNER RULING
+
+**AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session on 2026-09-22**, relayed by
+`fkit-lead` to a spawned `fkit-producer` with **no owner channel of its own** (ADR-021). ⛔ **Not
+producer precedent.** The owner, verbatim:
+
+> *"Let's skip this type of chekups, I will take care of them after deploy. The only thing we should
+> care about is to make sure the feature is switcheable (e.g. if the flag is not enabled or doesn't
+> exist, the feature is not enabled), and that's it. You can move the tasks connected to checkings to
+> the next sprint, so we do final checkups and figure out what's wrong with them after deploy."*
+
+The owner was then shown a proposed list of four checkup tasks and chose **"Move all four"**:
+[`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md),
+[`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md),
+`0289` and [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
+
+**THE REASON, PLAINLY:** the final checkups happen **after the deploy**, when production can actually
+be observed. ✅ **Consistent with, and not a re-decision of, the 2026-09-19 ruling** that already
+deferred this task together with `0285` and `0219` G3/G4 as one monitoring bucket, and with the
+2026-09-22 ruling that ratified its rank as `Low`.
+
+⛔ **This ruling is a THIRD, SEPARATE thing from the two 2026-09-22 rulings already recorded in this
+file — do not merge them.** Those settled **rank** (`Low`, ratified). This settles **board**. Neither
+decided the other's question.
+
+⛔ **The task FOLDER did not move** — it stays under `ai-agents/tasks/backlog/`. ⛔ **No mover skill was
+invoked** — this is neither a close nor a cancellation. ⛔ **The `## Status` token is UNCHANGED
+(`🔲 Backlog`)**, and so is `## Priority`: a change of board is not a change of state or of rank.
 
 ## Priority
-High *(producer's rank — NOT owner-ruled)*
+🔴 **Low — OWNER-RULED 2026-09-22** *(ratified; was `High`, the producer's unratified append rank)*
 
-⚠️ **Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.**
-**On merit this belongs directly below [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)**,
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session on 2026-09-22**,
+relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**: **"Rank them Low,
+ratified."** Owner's stated reason: **it matches the priority they already set — the
+monitoring/messaging track is deprioritized — and it clears the unratified flag so it stops appearing
+as noise on every status read.** ⛔ **Not producer precedent — one ruling, three rows (`0285`, `0286`,
+`0289`).**
+
+⚠️ **RANK ONLY.** ⛔ **No `## Status` token was touched, no task file was moved between `backlog/`,
+`done/` and `cancelled/`, and no mover skill was invoked.** A ratified rank is not a started task.
+
+⚠️ The ruling is **consistent with the owner's 2026-09-19 ruling recorded below**, which deferred this
+task together with [`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)
+and `0219` G3/G4 as one monitoring bucket.
+
+~~⚠️ **Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.**~~
+✅ **Flag cleared 2026-09-22 by the ruling above.** Kept struck, not deleted — it is the true record of
+how this row was ranked until today. **The merit note still stands:**
+**on merit this belongs directly below [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)**,
 because it verifies the last unproven hop of the same alert path `0284` guards and `0277` built, and it
 cannot run before both of those have landed — which they have. Appended at the bottom (ADR-035), not
 inserted.
 
-### ⚠️ The BOARD and the RANK are the producer's call — read this before treating either as an owner ruling
+### ⚠️ The BOARD is the producer's call — ~~and so is the RANK~~ 🔴 **the RANK is OWNER-RULED as of 2026-09-22 (above)**. Read this before treating the board placement as an owner ruling
 
 **What the owner ruled (2026-09-19, live in the `fkit lead` session via `AskUserQuestion`, relayed to a
 spawned `fkit-producer`):** *file it as its own task.* **That is all.** The owner ruled that amendment A1
-gets **its own task**. They ruled **nothing** about which board it sits on or how it is ranked.
+gets **its own task**. They ruled **nothing** about which board it sits on ~~or how it is ranked~~.
+📌 **Amended 2026-09-22: the RANK is now owner-ruled (`Low`, above); the BOARD placement is still the
+producer's.**
 ⛔ Not producer precedent — one ruling, one task.
 
-**Producer's call: Sprint 4, appended, High.** Reasoning, so the owner can overturn it in one edit:
+**Producer's call: Sprint 4, appended, ~~High~~.** 🔴 **The rank is now `Low` by owner ruling
+(2026-09-22, above) — the owner did overturn it; only the BOARD placement below is still the producer's.**
+The reasoning is kept as the record of how it was ranked at filing time:
 
 1. **Once `0274` closes, nothing else on any board owns this.** Amendment A1 exists today only as prose
    inside `0274`'s brief and `0284`'s (already closed). That is the exact hold-forever shape

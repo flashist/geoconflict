@@ -13,15 +13,33 @@
 Sprint 4
 
 ## Priority
-Low *(producer's rank — NOT owner-ruled)*
+🔴 **Low — OWNER-RULED 2026-09-22** *(ratified; the rank VALUE is UNCHANGED — `Low` was already the
+producer's call and is now the owner's)*
 
-### ⚠️ The BOARD and the RANK are the PRODUCER'S call — read this before treating either as an owner ruling
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session on 2026-09-22**,
+relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**: **"Rank them Low,
+ratified."** Owner's stated reason: **it matches the priority they already set — the
+monitoring/messaging track is deprioritized — and it clears the unratified flag so it stops appearing
+as noise on every status read.** ⛔ **Not producer precedent — one ruling, three rows (`0285`, `0286`,
+`0289`).**
+
+⚠️ **RANK ONLY.** ⛔ **No `## Status` token was touched, no task file was moved between `backlog/`,
+`done/` and `cancelled/`, and no mover skill was invoked.** A ratified rank is not a started task.
+
+⛔ **This row is `🚧 Blocked` and STAYS blocked.** Its `## Status` token and its pending
+**OWNER-executed** plan step 8 were **not** touched by this ruling.
+
+~~⚠️ **Append rank, NOT a merit ranking.**~~ ✅ **Flag cleared 2026-09-22 by the ruling above.**
+
+### ⚠️ The BOARD is the PRODUCER'S call — ~~and so is the RANK~~ 🔴 **the RANK is OWNER-RULED as of 2026-09-22 (above)**. Read this before treating the board placement as an owner ruling
 
 **What the owner ruled (2026-09-18):** that today's interruptions were **worth filing as a task**. **That is
 all.** The owner did **not** rule which board this sits on, and did **not** rule its priority. ⛔ Not producer
-precedent — one ruling, one task.
+precedent — one ruling, one task. 📌 **Amended 2026-09-22: the PRIORITY is now owner-ruled (`Low`, above) — the
+BOARD placement is still the producer's.**
 
-**Producer's call: Sprint 4, appended, Low.** Reasoning, so the owner can overturn it in one edit:
+**Producer's call: Sprint 4, appended, Low** — 🔴 **`Low` since ratified by the owner (2026-09-22).** Reasoning,
+kept as the record of how it was ranked at filing time:
 
 1. **The cost recurs inside this sprint, not after it.** Sprint 4 is still actively deploying to these boxes —
    [`0283`](../../done/0283-daily-digest-of-pending-name-change-reviews/brief.md) and

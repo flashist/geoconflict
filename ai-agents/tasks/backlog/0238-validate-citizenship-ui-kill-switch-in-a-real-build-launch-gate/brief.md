@@ -9,10 +9,40 @@
 0238
 
 ## Sprint
-Sprint 4
+Sprint 5
 
-⚠️ **The field above is the bare token `Sprint 4` on purpose** — `dashboard.sh`'s drift rule compares
+⚠️ **The field above is the bare token `Sprint 5` on purpose** — `dashboard.sh`'s drift rule compares
 it against the board's identity, and a decorated value is reported as drift. **Do not decorate it.**
+
+### ➡️ MOVED FROM SPRINT 4 TO SPRINT 5 ON 2026-09-22 — OWNER RULING
+
+**AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session on 2026-09-22**, relayed by
+`fkit-lead` to a spawned `fkit-producer` with **no owner channel of its own** (ADR-021). ⛔ **Not
+producer precedent.** The owner, verbatim:
+
+> *"Let's skip this type of chekups, I will take care of them after deploy. The only thing we should
+> care about is to make sure the feature is switcheable (e.g. if the flag is not enabled or doesn't
+> exist, the feature is not enabled), and that's it. You can move the tasks connected to checkings to
+> the next sprint, so we do final checkups and figure out what's wrong with them after deploy."*
+
+The owner was then shown a proposed list of four checkup tasks and chose **"Move all four"**: `0238`,
+[`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md),
+[`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
+[`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
+
+**THE REASON, PLAINLY:** the final checkups happen **after the deploy**, when production can actually
+be observed. For this task in particular that is not merely scheduling convenience — per
+`## Depends on` **3a**, there is **no build available today on which this gate can be discharged at
+all**.
+
+**What the owner asked for INSTEAD, and where it is:** the switchability property — *flag not enabled
+or absent ⇒ feature not enabled* — is now recorded as a **source-verified** finding at the end of
+`## Context` (*"THE SWITCHABILITY PROPERTY"*). ⛔ **That finding does NOT discharge this gate**; read
+its ceiling.
+
+⛔ **The task FOLDER did not move** — it stays under `ai-agents/tasks/backlog/`. ⛔ **No mover skill was
+invoked** — this is neither a close nor a cancellation. ⛔ **The `## Status` token is UNCHANGED
+(`🔲 Backlog`)**, and so is `## Priority`: a change of board is not a change of state or of rank.
 
 ## 🔴 RE-SCOPED 2026-09-21 — THE GATE IS DROPPED. VERIFY AT LAUNCH.
 
@@ -141,7 +171,7 @@ in the `features` block — find it by name, not by line). **See *"The vacuous-p
 why.** ⛔ **Staging build only. NEVER committed. NEVER in a production build.** It is a throwaway edit
 in the working tree of the machine that builds the staging image, reverted after.
 
-**2. [`0014`](../0014-yandex-catalog-registration/brief.md)'s console work precedes this.** You cannot
+**2. [`0014`](../../done/0014-yandex-catalog-registration/brief.md)'s console work precedes this.** You cannot
 flip a flag that does not exist, and the **`citizenship_ui` experiment flag must be created in the
 Yandex console** first. `0014`'s open verification item 3 was **NOT DONE** as of the owner's answer of
 **2026-09-12**. ⚠️ **Check its current state before scheduling this** — ⛔ *this task did not edit
@@ -239,6 +269,58 @@ above is satisfied to that extent. ⚠️ **OWNER-ATTESTED, NOT REPO-VERIFIABLE*
 and nothing in this repository can confirm it. ⛔ **Recorded here ONLY as far as it concerns `0238`;
 this task did NOT edit `0014`** — another agent's corrections are live in that file and any `0014`
 update is routed separately.
+
+📌 **`0014` IS NOW CLOSED** — `✅ Done (agent-closed — not owner-verified)`, 2026-09-22, on an owner
+ruling; the brief moved to [`tasks/done/`](../../done/0014-yandex-catalog-registration/brief.md) and
+the link above was re-pointed. ✅ **The owner re-attested the flag that day**, verbatim: *"I already set
+it and verified it being set."* ⚠️ Consistent with the 2026-09-21 attestation recorded here; **still
+owner-attested, still not repo-verifiable.**
+
+---
+
+##### 🚩 CARRIED INTO THIS GATE 2026-09-22 — the flag's NAME and VALUE have never been checked against the code
+
+⛔ **This is an UNVERIFIED CHECK TO PERFORM, not a finding.** It asserts **neither** that the console
+entry is right **nor** that it is wrong. It is recorded **here**, in the gate that will actually run
+the check, because it was found while closing `0014` — and a launch-gate check that lives only in a
+closed task and a board row is a check that will not get run.
+
+**What the code requires — exact strings, no variants** (find by symbol, not line; line numbers read
+2026-09-22):
+
+| Requirement | Where | Value |
+|---|---|---|
+| flag **name** | `src/client/flashist/FlashistFacade.ts:206` — `flashistConstants.experiments.CITIZENSHIP_UI_FLAG_NAME` | `citizenship_ui` |
+| flag **value** | `src/client/flashist/FlashistFacade.ts:207` — `…CITIZENSHIP_UI_ENABLED_VALUE` | `enabled` |
+
+**The comparison is strict and silent.** `checkExperimentFlag()` (`:899-918`) does
+`this.yandexExperimentFlags[name] === value` against a `result` initialised to **`false`** — an exact
+string match on both the key and the value, with **no trimming, no case-folding, and no logging of a
+near-miss.**
+
+🚨 ⛔ **A ONE-CHARACTER MISMATCH MEANS THE KILL SWITCH SILENTLY STAYS OFF AT LAUNCH AND NOTHING WARNS
+ANYONE.** `Citizenship_UI`, `citizenship-ui`, `Enabled`, `enabled ` with a trailing space — every one
+of them reads exactly like *"the owner has not turned the feature on"*, which is the **normal** state,
+so there is no symptom to notice. ⚠️ **This is the same failure class the `0014` brief documents for
+the payments product ID** (*"a typo here is a paid purchase that grants nothing"*).
+
+⚠️ **WHY THE OWNER'S ATTESTATION DOES NOT ALREADY SETTLE THIS — the distinction is the whole point.**
+The owner's reports (2026-09-21 and 2026-09-22) **use the correct strings**, and this brief records
+them faithfully. But a report that repeats the right strings **cannot catch a typo in the console
+entry itself** — the mismatch this warns about is precisely one the person who typed it would read
+back as correct. ⛔ **Nothing has ever compared the console entry character-for-character with the two
+constants above**, and **nothing in this repository can** — it is a console fact.
+
+✅ **HOW TO DISCHARGE IT — it is cheap, and it needs no flip.** Two independent ways, either suffices:
+- **Read it back off the Yandex console** and compare character-for-character with the table above.
+- **Observe the delivered flags in the build under test:** `logExperimentEvents()` (`:875-886`) emits a
+  cohort event per delivered flag as `name` + `String(value)`, so the **name and value as Yandex
+  actually delivers them** are visible without trusting anyone's recollection.
+
+⇒ **Record the result in `worklog.md` either way.** ⛔ **If it is not checked, say so in the closing
+verdict** — an unchecked name/value makes a *"flag OFF ⇒ nothing rendered"* observation
+**indistinguishable from a mismatch**, which is the vacuous-pass trap this brief already warns about,
+arriving by a second route.
 
 **4. Still true, and worth keeping:** it needs **no profile box**, **no citizen rows**, and — per the
 finding below — **no production game deploy**.
@@ -350,7 +432,43 @@ local flag flipped is not evidence of anything, and must not close this gate.**
 | ★ citizen badge | `isCitizenshipSurfacesEnabledSync()` | sync snapshot of the same combined read; **still UNVERIFIED for the separate `isCitizen` reason below** |
 | Inbox (`src/client/Inbox.ts`) | `await …isCitizenshipSurfacesEnabled()` | **becomes observable once layer 1 is flipped** |
 | Payments reconciliation (`src/client/PaymentsReconciliation.ts`) | `await …isCitizenshipSurfacesEnabled()` | observable as **fired vs not fired** — ⚠️ so the profile box's payments state does **not** block this observation |
-| Citizenship card (`src/client/CitizenshipCard.ts`) | checks `CITIZENSHIP_CARD_ENABLED` **first and absolutely**, then `isCitizenshipUiEnabled()` (with the ruled-on degraded-SDK fail-open) | a fourth surface, gated the same way — **also invisible until layer 1 is flipped** |
+| Citizenship card (`src/client/CitizenshipCard.ts`) | checks `CITIZENSHIP_CARD_ENABLED` **first and absolutely**, then `isCitizenshipUiEnabled()` ~~(with the ruled-on degraded-SDK fail-open)~~ 🔴 **(fails CLOSED — the degraded-SDK fail-open carve-out was withdrawn in `0291`; verified in source 2026-09-22)** | a fourth surface, gated the same way — **also invisible until layer 1 is flipped**. ⚠️ **Parenthetical corrected 2026-09-22 — see the block directly below the table; the rest of this row is UNCHANGED and was verified accurate.** |
+
+🔴 **PARENTHETICAL CORRECTED 2026-09-22 — IT WAS A FALSE STATEMENT ABOUT CURRENT SOURCE, NOT A WORDING PREFERENCE.**
+
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session via
+`AskUserQuestion` on 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no
+owner channel**. The owner was shown the evidence below and the consequence, and chose **"Apply the
+proposed fix"**. ⛔ **Not producer precedent — one ruling, one row.**
+
+**What it said:** ~~*"…then `isCitizenshipUiEnabled()` (with the ruled-on degraded-SDK fail-open)"*~~
+**What it says now:** *"…fails CLOSED — the degraded-SDK fail-open carve-out was withdrawn in `0291`."*
+
+🚨 **WHY THIS MATTERED, STATED PLAINLY — it is the reason it was worth an owner ruling.** The struck
+parenthetical told whoever runs this gate to **expect the card to appear with the flag OFF under a
+degraded SDK, and to record that as ruled-on behaviour rather than a failure.** Against today's source
+that outcome is **a genuine failure of the kill switch** — so the row would have **talked the runner
+out of filing the very defect this gate exists to catch.** ⛔ **A launch gate that excuses its own
+failure mode is worse than no gate.**
+
+**Verified in source 2026-09-22 — three independent places, find by symbol, not line:**
+
+| Evidence | Where |
+|---|---|
+| `connectedCallback()` checks `CITIZENSHIP_CARD_ENABLED`, then awaits `isCitizenshipUiEnabled()` and does a plain `if (!enabled) { hide; return; }` — **no degraded carve-out anywhere in the gate** | `src/client/CitizenshipCard.ts:95-106` |
+| `checkExperimentFlag()` initialises `result = false` and sets `true` only on an exact match ⇒ a degraded or absent SDK yields `false`, i.e. **fails closed** | `src/client/flashist/FlashistFacade.ts:899-918` |
+| The facade's own comment: *"All four citizenship surfaces now fail closed: the card's degraded-mode fail-OPEN carve-out was withdrawn in task 0291."* | `src/client/flashist/FlashistFacade.ts`, `citizenshipSurfacesSnapshot` doc block |
+
+📌 **WHAT MADE IT STALE:** [`0291`](../../done/0291-make-the-citizenship-card-fail-closed-when-the-yandex-sdk-is-degraded/brief.md)
+— the source change that withdrew the carve-out. The parenthetical was **true when written** (the
+2026-09-10 owner acceptance of the card/badge inconsistency) and **`0291` is what overtook it**.
+⛔ **It was not wrong at the time; it simply went stale and nobody swept it.**
+
+⛔ **ONLY THE PARENTHETICAL CHANGED.** The rest of the row was checked and is accurate: the card
+**is** a fourth surface, gated the same way, and invisible until layer 1 is flipped.
+⛔ **The struck acceptance in `## Notes` was deliberately NOT touched** — it is already struck and
+correctly superseded, pointing at `0291`, and it records **history**, not current code.
+⛔ **No `## Status` token changed, no mover was invoked, and this task stays `🔲 Backlog`.**
 
 ⚠️ **The ★ badge half stays UNVERIFIED even after the flip**, for the unrelated reason this brief
 already records: `isCitizen` comes from game state and there are **zero citizen rows**, so it cannot
@@ -374,6 +492,70 @@ on the owner's experience with **other games**.
 ⚠️ **THAT IS OWNER-ATTESTED, NOT REPO-VERIFIED, AND IT DOES NOT DISCHARGE THIS TASK.** It makes the
 **mechanism plausible**; it does not make **this project's wiring proven**. ⛔ Do not restate it as a
 confirmed platform capability, and do not use it to argue the gate away.
+
+---
+
+### ✅ THE SWITCHABILITY PROPERTY — **VERIFIED IN SOURCE 2026-09-22, NOT VERIFIED IN PRODUCTION**
+
+**Why this section exists.** In the 2026-09-22 ruling recorded under `## Sprint` above, the owner named
+**one** property as the thing that actually matters before the deploy: *"if the flag is not enabled or
+doesn't exist, the feature is not enabled."* This records that property as a **checked claim with the
+evidence read**, rather than a belief — because it is this task's core question, and the task is now
+running after the deploy, not before it.
+
+**THE PROPERTY TESTED:** *flag **absent**, flag set to a **wrong value**, or the Yandex SDK **never
+loaded** ⇒ **every** citizenship surface is OFF.*
+
+🟢 **VERDICT: THE PROPERTY HOLDS IN SOURCE AT `HEAD` (read 2026-09-22) — for production builds.** Every
+branch below was read, not inferred. Symbols in `src/client/flashist/FlashistFacade.ts` unless stated;
+find by symbol, not by line (line numbers are pointers read 2026-09-22).
+
+| Failure mode | What the code actually does | Result |
+|---|---|---|
+| flag **absent** | `checkExperimentFlag()` (`:899`) opens `let result: boolean = false;` and assigns `true` **only** inside `if (this.yandexExperimentFlags[name] === value)` | `undefined === "enabled"` ⇒ false ⇒ **OFF** |
+| flag set to a **wrong value** | the same **strict `===`** — no trimming, no case-folding, no coercion | **OFF** |
+| **SDK never loaded** | `loadExperimentFlags()` returns early on `!this.yandexGamesSDK` and **deliberately does not memoize**, so `yandexExperimentFlags` stays `undefined`; `checkExperimentFlag()` guards `if (this.yandexExperimentFlags)` before comparing | **OFF** |
+| `getFlags()` **throws or times out** | `fetchExperimentFlags()` races `getFlags()` against `PLATFORM_INIT_DEADLINE_MS`, catches, logs, and leaves `experiments` `undefined` | **OFF** |
+| **snapshot not yet resolved** (sync path) | `private citizenshipSurfacesSnapshot = false;` — the field **initialises to `false`**, and `isCitizenshipSurfacesEnabledSync()` returns `snapshot === true` | **OFF** for the whole pre-resolution window |
+| **combined gate** | `isCitizenshipSurfacesEnabled()` = `flashistConstants.features.CITIZENSHIP_CARD_ENABLED && (await this.isCitizenshipUiEnabled())`, and `CITIZENSHIP_CARD_ENABLED` is **`false`** at `HEAD` (`:216`) | **OFF** on every build today |
+
+**All four consumers read one of those two helpers — not one re-implements the check:**
+
+| Surface | Call site | Gate read | Off-state |
+|---|---|---|---|
+| ★ citizen badge | `src/client/CitizenBadge.ts:31` | `isCitizenshipSurfacesEnabledSync()` | returns `nothing` |
+| citizenship card | `src/client/CitizenshipCard.ts:95`, then `:101` | local `CITIZENSHIP_CARD_ENABLED` (absolute, incl. dev), then `isCitizenshipUiEnabled()` | adds `hidden`, no analytics, no profile load |
+| inbox | `src/client/Inbox.ts:150` | `await isCitizenshipSurfacesEnabled()` | returns `UNAVAILABLE` |
+| payments reconciliation | `src/client/PaymentsReconciliation.ts:57` | `await isCitizenshipSurfacesEnabled()` | early `return` — the POST never fires |
+
+**Flag name and value, code side, confirmed:** `CITIZENSHIP_UI_FLAG_NAME: "citizenship_ui"` (`:206`)
+and `CITIZENSHIP_UI_ENABLED_VALUE: "enabled"` (`:207`).
+
+🚨 ⛔ **THE CEILING — STATE IT EVERY TIME THIS FINDING IS CITED. DO NOT SOFTEN IT.**
+- ✅ **VERIFIED IN SOURCE 2026-09-22.**
+- ⛔ **NOT VERIFIED IN PRODUCTION.** **No deployed build has ever been observed doing this.** Reading
+  the source is not observing the behaviour, and nothing here replaces the at-launch observation that
+  is this task's whole deliverable.
+
+🚨 ⛔ **AND IT HOLDS ON PRODUCTION BUILDS ONLY — IT CANNOT BE TESTED LOCALLY.**
+`checkExperimentFlag()` returns **`true` UNCONDITIONALLY** when `process.env.GAME_ENV === "dev"`
+(`:903-905`), **before any SDK call happens**. `webpack.config.js:335` substitutes that at build time
+as `isProduction ? "prod" : "dev"`, so **every non-production build hard-wires the remote flag ON** —
+including `npm run dev:staging` and `npm run dev:prod`, which only re-point the API. ⇒ **A local "the
+card appeared" reading proves NOTHING about this property**, and a local "it did not appear" proves
+only that the *local* `CITIZENSHIP_CARD_ENABLED` gate is `false`. Same point as `## Depends on` **3c**,
+restated here because this finding is the thing most likely to be misused to spring that trap.
+
+⚠️ **ONE STRUCTURAL DIVERGENCE, RECORDED BECAUSE IT IS REAL EVEN THOUGH IT IS HARMLESS TODAY.**
+`CitizenshipCard.ts` is the **only** surface that does not call the combined helper: it checks the
+local layer itself in `connectedCallback()` and then calls `isCitizenshipUiEnabled()` directly. Net
+behaviour is **identical** right now, so this is **not** a defect and **not** a finding against the
+property. But it is a **second place the two layers are combined**, so a future change made in
+`isCitizenshipSurfacesEnabled()` would not reach the card. ⛔ Not in this task's scope to change.
+
+⚠️ **STILL UNCHECKED, AND NOTHING ABOVE SETTLES IT: the flag's NAME and VALUE as typed into the Yandex
+console.** The **code** side of that comparison is confirmed here; the **console** side is not, and
+cannot be, from this repository. See the 🚩 block in `## Depends on` and verification step **1a**.
 
 ---
 
@@ -434,8 +616,20 @@ evidence the switch hid it** — it did not render because it could not.
 > (the staging flip, the Yandex-draft requirement and the measured propagation delay) are NOT required
 > — the owner dropped them.**
 
+> ℹ️ **ADDED 2026-09-22 — read `## Context` → *"THE SWITCHABILITY PROPERTY"* before running these.**
+> The fail-closed property (*flag absent / wrong value / no SDK ⇒ every surface OFF*) is now
+> **source-verified**, with the evidence written down. ⛔ **It does not satisfy any step below** — it is
+> source, not production — but it tells you **what the correct observation looks like**, and it
+> records why a local run can never produce one.
+
 1. **The build used is named** — which build, which mode, and evidence it was **not** a dev build
    (e.g. that `GAME_ENV` resolved to `prod`).
+1a. 🚩 **The flag's NAME and VALUE are confirmed against the code** (added 2026-09-22): that the console
+   entry is **exactly** `citizenship_ui` / `enabled` — read back off the console, or observed in the
+   delivered cohort events. ⛔ **Never checked to date, and asserted neither way.** ⚠️ **A mismatch is
+   invisible: it reads exactly like the feature being off**, so an unconfirmed name/value makes a
+   *"nothing rendered"* observation worthless. **If it is not checked, say so in the verdict at item 5.**
+   Full record and both discharge methods under *3d* in `## Depends on`.
 1b. 🚨 **The local-flag flip is recorded** (added 2026-09-20): evidence that
    `CITIZENSHIP_CARD_ENABLED` was **`true` in the build under test**, and that the change was
    **reverted and never committed**. ⛔ **Without this, items 1–3 below carry no information and this

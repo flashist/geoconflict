@@ -267,7 +267,7 @@ store-copy condition.
     (mock-buildable scope).
   - [`0065-citizenship-paid-live-verification`](../0065-citizenship-paid-live-verification/brief.md) —
     the paid go-live gate.
-  - [`0014-yandex-catalog-registration`](../0014-yandex-catalog-registration/brief.md) — catalog
+  - [`0014-yandex-catalog-registration`](../../done/0014-yandex-catalog-registration/brief.md) — catalog
     registration; the product ID is fixed at `citizenship`.
   - [`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md) — the
     kill-switch launch gate this task's surface must respect.

@@ -11,16 +11,23 @@ High — the go-live gate for the monetization milestone. Everything buildable w
 (mock scope); this task is what remains once Yandex delivers.
 
 ## Status
-🚧 Blocked — three conditions: ~~Yandex catalog approval~~ **test-purchase Yandex login(s)** +
-per-game secret-key issuance (`0014`),
+🚧 Blocked — ~~three~~ **TWO** conditions: ~~~~Yandex catalog approval~~ **test-purchase Yandex login(s)** +
+per-game secret-key issuance (`0014`),~~ ✅ **the `0014` condition is SATISFIED — corrected 2026-09-22, see Correction 4 below**;
 `0062` (`PROFILE_INTERNAL_TOKEN` not forwarded to prod — no profile row is ever created there), **and
 `0195`** (`YANDEX_PAYMENTS_SECRET` on the profile box — ~~not forwarded; every `/v1/payments/*` route
 returns 503 there~~ **PRESENT and the routes are NOT failing closed, verified on the box 2026-09-19;
 the value's PROVENANCE is owner-attested 2026-09-20 — the owner set the real Yandex key (⚠️
 owner-attested, NOT repo-verified); the condition stays open because the value is still not shown
-CORRECT and no real purchase has been exercised**). All three must clear; none alone unblocks.
-**Blocker count unchanged: THREE — and the owner CONFIRMED that reading on 2026-09-20** (the
-alternative, clearing the `0195` condition down to two blockers, was put to them and declined).
+CORRECT and no real purchase has been exercised**). ~~All three~~ **Both remaining conditions** must clear; none alone unblocks.
+~~**Blocker count unchanged: THREE — and the owner CONFIRMED that reading on 2026-09-20** (the
+alternative, clearing the `0195` condition down to two blockers, was put to them and declined).~~
+📌 **THE THREE-COUNT WAS OWNER-CONFIRMED 2026-09-20 AND IS SUPERSEDED BY A LATER OWNER RULING OF
+2026-09-22** — ⚠️ **read the distinction:** the 2026-09-20 confirmation declined to clear the **`0195`**
+condition, and ⛔ **that still stands untouched — `0195` is open.** What moved on 2026-09-22 is a
+**different** condition, **`0014`**, which the owner then closed outright.
+⇒ **Blocker count: TWO — `0062` and `0195`.**
+🚨 ⛔ **THIS TASK STAYS `🚧 Blocked`.** Its own line says *"none alone unblocks"*, and **both remaining
+conditions are untouched.** ⛔ **No mover skill was invoked on this task.**
 
 ---
 
@@ -38,7 +45,7 @@ mover skill was invoked.**
 The owner ruled on 2026-09-19 that **Yandex no longer approves the in-app**, verbatim: *"The gate
 existed before, but now there are changes in the way Yandex.Games operates, so we don't need to wait
 for their approval anymore."* That ruling was recorded in
-[`0014`](../0014-yandex-catalog-registration/brief.md)'s `## Status` the same day, and `0014` moved
+[`0014`](../../done/0014-yandex-catalog-registration/brief.md)'s `## Status` the same day, and `0014` moved
 `🚧 Blocked` → `🔲 Backlog`. **This brief was deliberately left untouched at that time**, with its
 three stale *"Yandex catalog approval"* citations flagged for the owner. **The owner has now approved
 correcting them** — Status, `## Dependencies`, `## Notes`.
@@ -154,6 +161,53 @@ covers provenance as well as the 503 claim. ⛔ **`ai-agents/wiki-vault/**` is `
 (ADR-005): its payments pages currently record provenance as unverified and need a later pass —
 flagged, never touched.**
 
+#### Correction 4 — 2026-09-22: the `0014` condition is SATISFIED and the blocker count drops to TWO
+
+⛔ **Authority.** An **OWNER RULING given live in the `fkit lead` session on 2026-09-22**, relayed by
+`fkit-lead` to a spawned `fkit-producer` holding **no owner channel of its own.** The owner was asked
+whether this brief's stale `0014` text should be corrected and ruled **"Correct it"**.
+⛔ **Not producer precedent — one ruling, one task.**
+
+**What this brief said, and why it was stale.** The `## Status` line named *"three conditions"* and
+described its `0014` condition as *"test-purchase Yandex login(s) + per-game secret-key issuance"*.
+**Both halves are now attested done:**
+
+| Half of the `0014` condition | State | Date | Standing |
+|---|---|---|---|
+| **Per-game secret key, on the profile box** | ✅ done | 2026-09-20 | owner-attested provenance + three read-only box observations (Correction 3) |
+| **Test-purchase Yandex login(s) added** | ✅ done | 2026-09-22 | ⚠️ **OWNER-ATTESTED, NOT REPO-VERIFIABLE** — the owner **correcting their own 2026-09-12 report**; verbatim: *"ruFlashist - is already added as a test account (it was done in one of our previous sessions)."* |
+
+📌 **[`0014`](../../done/0014-yandex-catalog-registration/brief.md) was itself CLOSED the same day** on
+a separate owner ruling (**"Close it"**), as `✅ Done (agent-closed — not owner-verified)`, and has moved
+to `tasks/done/`. Its remaining deliverable, the `citizenship_ui` experiment flag, was also ruled **set**
+by the owner that day — ⛔ **that flag is `0238`'s gate, never this task's**, and it is named here only so
+nobody re-derives it as an open `0065` blocker.
+
+⇒ ✅ **THE `0014` CONDITION IS SATISFIED. Blocker count: THREE → TWO (`0062` and `0195`).**
+
+🚨 ⛔ **AND THIS TASK STAYS `🚧 Blocked` — do not read a dropped count as movement toward go-live.**
+Its own Status line says *"none alone unblocks"*. `0062` (`PROFILE_INTERNAL_TOKEN` never forwarded to
+prod) and `0195` (the payments secret's **correctness**, not its presence) are **untouched by this
+ruling.** ⛔ **No status token changed and no mover skill was invoked on this task.**
+
+⚠️ **THE SATISFACTION IS OWNER-ATTESTED, NOT REPO-VERIFIED, ON BOTH HALVES.** Nothing in this
+repository can see the Yandex console, and a deploy leaves no artifact in git. ⛔ **Satisfied ≠
+exercised:** a nominated test login makes a test purchase **possible**; **no purchase of any kind has
+ever been made** — that is this brief's **step 3**, still unrun.
+
+---
+
+#### 📌 RECORDED 2026-09-22 — the owner WILL perform step 3, and a claim to the contrary was NEVER TRUE
+
+**From the same session.** The owner confirmed they **will** perform this brief's **step 3 real test
+purchase**, **after the game deploy**, **signed in as the test account**.
+
+🚩 **⛔ A CLAIM CIRCULATING IN THE LEAD SESSION THAT THE OWNER REFUSED TO MAKE TEST PURCHASES WAS A
+LEAD MISATTRIBUTION AND WAS NEVER TRUE.** It **appears nowhere in this repository** (searched). It is
+recorded here — corrected, not merely dropped — **so it is not re-invented** by a later reader who
+half-remembers it. ⛔ **Nothing in this brief ever rested on it**, and step 3 was never waived,
+descoped, or owner-declined.
+
 ## Owner
 fkit-coder
 
@@ -196,6 +250,16 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
   — same standing as the 2026-09-12 issuance ruling; a deploy leaves no artifact in git. ⛔ **The
   dependency is STILL NOT satisfied:** provenance is not correctness, and the test-purchase login(s)
   are still outstanding regardless. Blocker count still **three** — **owner-confirmed** 2026-09-20.
+
+  📌 **SUPERSEDED 2026-09-22 — OWNER RULING ("Correct it"), recorded in full as Correction 4 above
+  `## Owner`.** ✅ **The test-purchase login(s) ARE added** (owner, 2026-09-22 — the owner correcting
+  their own 2026-09-12 report; ⚠️ **owner-attested, NOT repo-verifiable**), which was the last half of
+  this dependency still outstanding. ⇒ ✅ **THE `0014` DEPENDENCY IS SATISFIED**, and
+  [`0014`](../../done/0014-yandex-catalog-registration/brief.md) was closed the same day
+  `✅ Done (agent-closed — not owner-verified)`. **Blocker count: THREE → TWO (`0062`, `0195`).**
+  ⚠️ **Read what did NOT move:** the *"provenance is not correctness"* sentence above is about **`0195`**
+  and is **UNCHANGED and still true** — that condition is open, and the owner's 2026-09-20 refusal to
+  clear it stands. ⛔ **`0065` stays `🚧 Blocked`; no mover was invoked.**
 - **`0062`** — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end (its own
   verifications 2–3). Without it no profile row exists to attach a purchase to.
 - 🚨 **`0195`** — [`0195-forward-yandex-payments-secret-in-profile-deploy`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md).
@@ -288,7 +352,7 @@ owner-waived, and the follow-up task from step 1 is filed.
 
 ## Notes
 
-- **Depends on:** `0014` (~~Yandex catalog approval~~ **test-purchase Yandex login(s)** + per-game secret-key issuance), `0062`
+- **Depends on:** `0014` (~~~~Yandex catalog approval~~ **test-purchase Yandex login(s)** + per-game secret-key issuance~~ — ✅ **SATISFIED 2026-09-22, both halves; `0014` itself is closed. ⛔ Task id KEPT, not removed — the dependency happened, it did not vanish. Blocker count now TWO**), `0062`
   (`PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end — without it no profile row
   exists to attach a purchase to), `0195` (`YANDEX_PAYMENTS_SECRET` on the profile box — ~~without it every `/v1/payments/*` route returns 503 there, so steps 1–4 all fail~~ **present and non-empty as of 2026-09-19, and owner-attested 2026-09-20 as the real Yandex key the owner set (not repo-verified); open on whether the value is CORRECT, which only a real signed payload settles — owner-confirmed open 2026-09-20**), and `0018` (mock
   scope done — the UI and flow this checklist drives must exist). ⚠️ **Owner ruling 2026-09-01 —
@@ -319,7 +383,7 @@ owner-waived, and the follow-up task from step 1 is filed.
   returns 503, correctly failing closed"* is **false as of the box observation above**, and it appears in
   **other documents that were deliberately left unedited.** ⛔ **A reader meeting any of these must treat
   the 503 claim as superseded by this brief.**
-  - **Live, open task briefs** — [`0014`](../0014-yandex-catalog-registration/brief.md) (its verification
+  - **Live, open task briefs** — [`0014`](../../done/0014-yandex-catalog-registration/brief.md) (its verification
     section states all three payments routes return 503 without the key),
     [`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md),
     [`0018`](../0018-citizenship-paid/brief.md), and
@@ -338,7 +402,7 @@ owner-waived, and the follow-up task from step 1 is filed.
   redeploy with the value populated is recorded"*, which Correction 3 shows is false.** ⛔ **Still
   FLAGGED, NOT REWRITTEN — the 2026-09-20 owner answer kept the same conservative scope: correct `0065`
   and its Sprint 4 row, report the rest.** Re-checked by grep on 2026-09-20; what carries it:
-  - **[`0014`](../0014-yandex-catalog-registration/brief.md) — the sharpest case, and the one a planner
+  - **[`0014`](../../done/0014-yandex-catalog-registration/brief.md) — the sharpest case, and the one a planner
     is most likely to open.** Its verification item 3 states *"Issued ≠ on the box"* and that **without
     the key all three `/v1/payments/*` routes return 503**; its item at `:245` says the 503s are *"not
     shown cleared"*; and a note at `:303` says *"no redeploy happened, so the `/v1/payments/*` 503s are

@@ -10,11 +10,65 @@
 Sprint 4
 
 ## Priority
-High *(producer's rank — NOT owner-ruled)*
+🔴 **High — LABEL RATIFIED BY THE OWNER 2026-09-22; value UNCHANGED** *(~~producer's LABEL~~; **POSITION OWNER-RULED 2026-09-22** — a separate ruling, see below)*
 
-⚠️ Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.
+### 🔴 LABEL RATIFIED BY THE OWNER — 2026-09-22 (a SEPARATE ruling from the POSITION ones)
+
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session via
+`AskUserQuestion` on 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no
+owner channel**. Shown that they had ruled **position** on this group twice and the **label** never —
+so the *"NOT owner-ruled"* flag kept firing on the rows they read most often — the owner chose
+**"Ratify as they stand."** Stated reason: **the values already match how they are treating the work —
+core citizenship first — so this only clears the flag.**
+
+⛔ **VALUE UNCHANGED — THIS IS A RATIFICATION, NOT A RE-RANK.** `High` was and remains `High`.
+
+⚠️ **SEPARATE RULINGS, SEPARATE THINGS — a later reader must not read one as having decided the
+other:**
+
+| Ruling | When | What it settled | What it did NOT settle |
+|---|---|---|---|
+| **POSITION** — move the group directly under `0217` | 2026-09-22, earlier | where the row sits on the board | the label |
+| **POSITION** — RULING A, `0266` placed above this slice | 2026-09-22, later the same day | the group's reading order | the label; and no dependency |
+| **LABEL** — *“Ratify as they stand”* | 2026-09-22, this one | the label is now **owner-ruled**, flag cleared | position; **and it moved no value** |
+
+⚠️ **LABEL ONLY.** ⛔ **No `## Status` token was touched, no task file was moved between
+`backlog/`, `done/` and `cancelled/`, and no mover skill was invoked.**
+
+
+~~⚠️ Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.~~
 **On merit this belongs directly below `0271`** (it runs in parallel with S2 after `0270`); the S1–S5
-run as a whole belongs directly below `0217`. Appended at the bottom (ADR-035).
+run as a whole belongs directly below `0217`. ~~Appended at the bottom (ADR-035).~~
+
+---
+
+### 🔴 RANK OWNER-RULED 2026-09-22 — this is no longer an unratified append-rank
+
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session on 2026-09-22**,
+relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**.
+⛔ **Not producer precedent — one ruling, one set of rows.**
+
+The owner was shown that **seven rows on the Sprint 4 board carried producer *append*-ranks the board
+itself flags as *"not a merit ranking, not owner-ruled"*** — several of them, this one included,
+noting *"on merit this belongs below `0217`"* — and ruled:
+
+> **move `0272`, `0273`, `0266` and `0253` directly under `0217`.**
+
+✅ **Applied to `ai-agents/sprints/plan-sprint-4.md` in the order the owner named:**
+`0217` → **`0272`** → **`0273`** → **`0266`** → **`0253`**.
+⇒ **This row's POSITION is now OWNER-RULED.** The struck flag above is kept, not deleted — it is the
+true record of how this row was ranked until today.
+
+⚠️ **RANK ONLY — the limits are the whole ruling.**
+- ⛔ **No `## Status` token was touched, here or on any moved row.** A re-ranked row is not a started row.
+- ⛔ **No task file was moved** between `backlog/`, `done/` or `cancelled/`; **no mover skill was invoked.**
+- ⚠️ **The owner ruled POSITION, not LABEL.** `High` is still the **producer's** label and was **not** ratified.
+- ⛔ This is an **owner ruling lifting ADR-035's append-only constraint** for exactly these four row
+  moves (prior instances: `0253`'s move of 2026-09-13, the `0232`/`0231` precedent of 2026-09-07).
+  The board is label-ranked, so nothing was renumbered; no other row moved and no closed row was touched.
+
+**Placed 1st of the four moved rows, directly under `0217`.**
+
 
 ## Status
 🚧 Blocked — **server side DEPLOYED 2026-09-17 (owner-executed). Crediting still cannot be exercised at all.** The collapsed profile-box deploy shipped S3's server half; the deploy was clean (config parity 10 OK / 0 findings, migrations `migrations up to date`, both containers healthy) and the lead verified **zero error-level log lines since boot** and **0 players / 0 identities** in the DB. 🚨 **Still waiting on, and nothing here is bookkeeping:** (1) **the game server is NOT deployed** — none of S3's game-side code is running anywhere; (2) **`PROFILE_INTERNAL_TOKEN` is still blank on the game side by owner ruling**, and `internalAuth` is a `timingSafeEqual` on a *shared* secret, so even a deployed game server would take a 401 on every credit call; (3) **[`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)** is what sets that token and the current egress IP. ⇒ **There is no crediting path today and the DB has 0 rows — that is expected, not a fault.** No box probe has touched `/internal/v1/players/resolve` or `/internal/v1/credit` with a valid token, so **S3's end-to-end behaviour has zero production evidence.** Blocked on: the game deploy and `0217`. No code. · earlier: 🚧 Blocked — built + reviewed 2026-09-15 (review rounds 1–2 closed-out, Codex full; npm test 128/1552, integration 9/103 incl. GameServerProfileCredit.it); open pending the profile-box deploy (with S2) and a later game deploy · earlier: 🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-15 (plan step) · earlier: 🔲 Backlog

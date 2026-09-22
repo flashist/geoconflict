@@ -20,12 +20,101 @@
 Sprint 4
 
 ## Priority
-High *(producer's rank — NOT owner-ruled)*
+🔴 **High — LABEL RATIFIED BY THE OWNER 2026-09-22; value UNCHANGED** *(~~producer's LABEL~~; **POSITION OWNER-RULED 2026-09-22** — a separate ruling, see below)*
 
-⚠️ Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.
+### 🔴 LABEL RATIFIED BY THE OWNER — 2026-09-22 (a SEPARATE ruling from the POSITION ones)
+
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session via
+`AskUserQuestion` on 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no
+owner channel**. Shown that they had ruled **position** on this group twice and the **label** never —
+so the *"NOT owner-ruled"* flag kept firing on the rows they read most often — the owner chose
+**"Ratify as they stand."** Stated reason: **the values already match how they are treating the work —
+core citizenship first — so this only clears the flag.**
+
+⛔ **VALUE UNCHANGED — THIS IS A RATIFICATION, NOT A RE-RANK.** `High` was and remains `High`.
+
+⚠️ **SEPARATE RULINGS, SEPARATE THINGS — a later reader must not read one as having decided the
+other:**
+
+| Ruling | When | What it settled | What it did NOT settle |
+|---|---|---|---|
+| **POSITION** — move the group directly under `0217` | 2026-09-22, earlier | where the row sits on the board | the label |
+| **POSITION** — RULING A, epic above its own child slices | 2026-09-22, later the same day | the group's reading order | the label; and no dependency |
+| **LABEL** — *“Ratify as they stand”* | 2026-09-22, this one | the label is now **owner-ruled**, flag cleared | position; **and it moved no value** |
+
+⚠️ **LABEL ONLY.** ⛔ **No `## Status` token was touched, no task file was moved between
+`backlog/`, `done/` and `cancelled/`, and no mover skill was invoked.**
+
+
+~~⚠️ Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.~~
+
+---
+
+### 🔴 RANK OWNER-RULED 2026-09-22 — this is no longer an unratified append-rank
+
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session on 2026-09-22**,
+relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**.
+⛔ **Not producer precedent — one ruling, one set of rows.**
+
+The owner was shown that **seven rows on the Sprint 4 board carried producer *append*-ranks the board
+itself flags as *"not a merit ranking, not owner-ruled"*** — several of them, this one included,
+noting *"on merit this belongs below `0217`"* — and ruled:
+
+> **move `0272`, `0273`, `0266` and `0253` directly under `0217`.**
+
+✅ **Applied to `ai-agents/sprints/plan-sprint-4.md` in the order the owner named:**
+`0217` → **`0272`** → **`0273`** → **`0266`** → **`0253`**.
+🔴 **AMENDED BY THE OWNER THE SAME DAY — see RULING A below. The order that stands is
+`0217` → `0266` → `0272` → `0273` → `0253`.** ⚠️ **One ruling, amended the same day — not two
+conflicting records.**
+⇒ **This row's POSITION is now OWNER-RULED.** The struck flag above is kept, not deleted — it is the
+true record of how this row was ranked until today.
+
+⚠️ **RANK ONLY — the limits are the whole ruling.**
+- ⛔ **No `## Status` token was touched, here or on any moved row.** A re-ranked row is not a started row.
+- ⛔ **No task file was moved** between `backlog/`, `done/` or `cancelled/`; **no mover skill was invoked.**
+- ⚠️ **The owner ruled POSITION, not LABEL.** `High` is still the **producer's** label and was **not** ratified.
+- ⛔ This is an **owner ruling lifting ADR-035's append-only constraint** for exactly these four row
+  moves (prior instances: `0253`'s move of 2026-09-13, the `0232`/`0231` precedent of 2026-09-07).
+  The board is label-ranked, so nothing was renumbered; no other row moved and no closed row was touched.
+
+~~**Placed 3rd of the four moved rows.**~~ 📌 **SUPERSEDED THE SAME DAY — see RULING A below.**
+
+### 🔴 RULING A — AMENDED THE SAME DAY (2026-09-22): this EPIC moved ABOVE its own children
+
+⚠️ **AUTHORITY BEFORE FACTS.** A second **OWNER RULING given live in the `fkit lead` session on
+2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**.
+⛔ **Not producer precedent — one ruling, one row.**
+
+The flag below **was raised, was put to the owner, and was answered.** It is kept struck rather than
+deleted — it is the record of how the question reached them, not an open item:
+
+> 🚩 ~~**FLAGGED, NOT "FIXED" — this EPIC now sits BELOW two of its own child slices** (`0272` S3 and
+> `0273` S4). **That is the order the owner named, applied literally.** ⛔ **A producer may not re-sort
+> an owner-named order on tidiness grounds**, so it stands as given. ⚠️ If the owner meant the four
+> merely as a *set* to move rather than a sequence, this parent/child order is the one thing worth their
+> second look — **asked, not assumed.**~~
+
+**The owner chose "Put `0266` above its children."** Stated reason: **it reads correctly to anyone
+scanning the board — epic first, then its slices.**
+
+✅ **Applied to `ai-agents/sprints/plan-sprint-4.md`. The board order that stands is:**
+`0217` → **`0266`** → `0272` → `0273` → `0253`. **This row is now 2nd of the group, directly under
+`0217`.**
+
+⚠️ **THIS IS A READING-ORDER CORRECTION AND IT CHANGES NO DEPENDENCY.**
+⛔ **The slice dependency order in `## Status` is UNCHANGED**:
+`0270` S1 → (`0271` S2 ∥ `0272` S3) → (`0273` S4 ∥ `0274` S5). **Board position is not execution
+order** — nothing about what may start when has changed.
+⛔ **No `## Status` token was touched, no task file was moved, and no mover skill was invoked.**
+⚠️ **The owner ruled POSITION, not LABEL** — the `High` above is still the **producer's**, still
+unratified.
+
 **On merit this belongs directly below `0217`**, because it blocks [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)
-(which sits directly below `0217`) and must be done before XP go-live (`0217`). The row was
-**appended at the bottom** of the Sprint 4 board (ADR-035 — a new row never inserts mid-board).
+(which sits directly below `0217`) and must be done before XP go-live (`0217`). ~~The row was
+**appended at the bottom** of the Sprint 4 board (ADR-035 — a new row never inserts mid-board).~~
+📌 **SUPERSEDED 2026-09-22 — the row is no longer at the bottom; the owner moved it under `0217`, which
+is where this merit note always said it belonged.** ✅ **Merit note and board position now agree.**
 
 ## Status
 🔲 Backlog

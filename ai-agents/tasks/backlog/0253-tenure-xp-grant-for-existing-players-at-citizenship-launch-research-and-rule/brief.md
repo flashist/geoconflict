@@ -18,7 +18,31 @@ Sprint 4
 it against the board's identity; a decorated value is reported as drift. **Do not decorate it.**
 
 ## Priority
-Medium *(producer's rank)*
+🔴 **Medium — LABEL RATIFIED BY THE OWNER 2026-09-22; value UNCHANGED** *(~~producer's LABEL only~~; **POSITION OWNER-RULED twice: 2026-09-13 and again 2026-09-22** — separate rulings, see below)*
+
+### 🔴 LABEL RATIFIED BY THE OWNER — 2026-09-22 (a SEPARATE ruling from the POSITION ones)
+
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session via
+`AskUserQuestion` on 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no
+owner channel**. Shown that they had ruled **position** on this group twice and the **label** never —
+so the *"NOT owner-ruled"* flag kept firing on the rows they read most often — the owner chose
+**"Ratify as they stand."** Stated reason: **the values already match how they are treating the work —
+core citizenship first — so this only clears the flag.**
+
+⛔ **VALUE UNCHANGED — THIS IS A RATIFICATION, NOT A RE-RANK.** `Medium` was and remains `Medium`.
+
+⚠️ **SEPARATE RULINGS, SEPARATE THINGS — a later reader must not read one as having decided the
+other:**
+
+| Ruling | When | What it settled | What it did NOT settle |
+|---|---|---|---|
+| **POSITION** — the row sits directly under `0217` | 2026-09-13 | where the row sits on the board | the label |
+| **POSITION** — re-affirmed by the group move under `0217` | 2026-09-22, earlier | the group's order | the label |
+| **LABEL** — *“Ratify as they stand”* | 2026-09-22, this one | the label is now **owner-ruled**, flag cleared | position; **and it moved no value** |
+
+⚠️ **LABEL ONLY.** ⛔ **No `## Status` token was touched, no task file was moved between
+`backlog/`, `done/` and `cancelled/`, and no mover skill was invoked.**
+
 
 📌 **POSITION OWNER-RULED 2026-09-13, given live in the lead session and relayed through it: the row
 sits directly below [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) on the
@@ -34,6 +58,44 @@ because the cost of getting it wrong is public (angry long-time players on launc
 once shipped, is one-time and cannot be re-run. *(Superseded: the producer first filed this row
 appended at the bottom with a merit note "directly below `0217`"; the owner accepted that merit
 position as the ruling.)*
+
+---
+
+### 🔴 RANK OWNER-RULED 2026-09-22 — this is no longer an unratified append-rank
+
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session on 2026-09-22**,
+relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**.
+⛔ **Not producer precedent — one ruling, one set of rows.**
+
+The owner was shown that **seven rows on the Sprint 4 board carried producer *append*-ranks the board
+itself flags as *"not a merit ranking, not owner-ruled"*** — several of them, this one included,
+noting *"on merit this belongs below `0217`"* — and ruled:
+
+> **move `0272`, `0273`, `0266` and `0253` directly under `0217`.**
+
+✅ **Applied to `ai-agents/sprints/plan-sprint-4.md` in the order the owner named:**
+`0217` → **`0272`** → **`0273`** → **`0266`** → **`0253`**.
+⇒ **This row's POSITION is now OWNER-RULED.** The struck flag above is kept, not deleted — it is the
+true record of how this row was ranked until today.
+
+⚠️ **RANK ONLY — the limits are the whole ruling.**
+- ⛔ **No `## Status` token was touched, here or on any moved row.** A re-ranked row is not a started row.
+- ⛔ **No task file was moved** between `backlog/`, `done/` or `cancelled/`; **no mover skill was invoked.**
+- ⚠️ **The owner ruled POSITION, not LABEL.** `Medium` is still the **producer's** label and was **not** ratified.
+- ⛔ This is an **owner ruling lifting ADR-035's append-only constraint** for exactly these four row
+  moves (prior instances: `0253`'s move of 2026-09-13, the `0232`/`0231` precedent of 2026-09-07).
+  The board is label-ranked, so nothing was renumbered; no other row moved and no closed row was touched.
+
+**Placed 4th of the four moved rows.**
+
+⚠️ **THIS ROW'S 2026-09-13 OWNER-RULED POSITION IS UNDISTURBED — it is still directly below `0217`'s
+run.** What changed is that **three rows now sit between it and `0217`** (`0272`, `0273`, `0266`),
+because the owner moved those three in above it. ⛔ **This is not a demotion** and the 2026-09-13
+ruling was not overridden — it was **extended** by the same owner, on the same merit reasoning, to the
+three tasks that gate this one. ⚠️ **`Medium` is still the producer's LABEL** and was not ratified on
+either date; the reasoning above for keeping it stands unchanged.
+
+
 
 ## Status
 🚧 Blocked — rework paused pending the new profile-identity task's design (owner-ruled 2026-09-15)

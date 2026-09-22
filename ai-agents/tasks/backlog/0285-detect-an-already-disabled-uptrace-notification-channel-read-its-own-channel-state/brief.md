@@ -9,17 +9,54 @@
 > `0284`. `0286` was checked at the same time and is also free — **not** allocated here; see *Notes*.
 
 ## Sprint
-Sprint 4
+Sprint 5
+
+### ➡️ MOVED FROM SPRINT 4 TO SPRINT 5 ON 2026-09-22 — OWNER RULING
+
+**AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session on 2026-09-22**, relayed by
+`fkit-lead` to a spawned `fkit-producer` with **no owner channel of its own** (ADR-021). ⛔ **Not
+producer precedent.** The owner, verbatim:
+
+> *"Let's skip this type of chekups, I will take care of them after deploy. The only thing we should
+> care about is to make sure the feature is switcheable (e.g. if the flag is not enabled or doesn't
+> exist, the feature is not enabled), and that's it. You can move the tasks connected to checkings to
+> the next sprint, so we do final checkups and figure out what's wrong with them after deploy."*
+
+The owner was then shown a proposed list of four checkup tasks and chose **"Move all four"**:
+[`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md), `0285`,
+[`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
+[`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
+
+**THE REASON, PLAINLY:** the final checkups happen **after the deploy**, when production can actually
+be observed. ✅ **Consistent with, and not a re-decision of, the 2026-09-19 ruling** that already
+deferred this task together with `0289` and `0219` G3/G4 as one monitoring bucket, and with the
+2026-09-22 ruling that ratified its rank as `Low`.
+
+⛔ **The task FOLDER did not move** — it stays under `ai-agents/tasks/backlog/`. ⛔ **No mover skill was
+invoked** — this is neither a close nor a cancellation. ⛔ **The `## Status` token is UNCHANGED
+(`🔲 Backlog`)**, and so is `## Priority`: a change of board is not a change of state or of rank.
 
 ## Priority
-Medium *(producer's rank — NOT owner-ruled)*
+🔴 **Low — OWNER-RULED 2026-09-22** *(ratified; was `Medium`, the producer's unratified append rank)*
 
-⚠️ **Append rank, NOT a merit ranking.** Appended at the bottom of the Sprint 4 table, nothing
-inserted and nothing renumbered (ADR-035). **On merit this belongs directly below**
+⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session on 2026-09-22**,
+relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**: **"Rank them Low,
+ratified."** Owner's stated reason: **it matches the priority they already set — the
+monitoring/messaging track is deprioritized — and it clears the unratified flag so it stops appearing
+as noise on every status read.** ⛔ **Not producer precedent — one ruling, three rows (`0285`, `0286`,
+`0289`).**
+
+⚠️ **RANK ONLY.** ⛔ **No `## Status` token was touched, no task file was moved between `backlog/`,
+`done/` and `cancelled/`, and no mover skill was invoked.** A ratified rank is not a started task.
+
+~~⚠️ **Append rank, NOT a merit ranking** — flagged for owner confirmation.~~ ✅ **Flag cleared
+2026-09-22 by the ruling above.** Kept struck, not deleted — it is the true record of how this row was
+ranked until today. **The merit note still stands:** appended at the bottom of the Sprint 4 table,
+nothing inserted and nothing renumbered (ADR-035), and **on merit this belongs directly below**
 [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md),
 whose hole it closes and whose marker path it reuses.
 
-### ⚠️ Board AND rank are the PRODUCER'S CALL — they are NOT owner rulings. Read this before treating either as one.
+### ⚠️ The BOARD is the PRODUCER'S CALL — ~~and so is the rank~~ 🔴 **the RANK is OWNER-RULED as of 2026-09-22 (above)**. Read this before treating the board placement as an owner ruling.
 
 **What the owner ruled (2026-09-18, live in the lead session via `AskUserQuestion`, relayed to a
 spawned `fkit-producer` with no owner channel):** this loose end should **be filed as a task** rather
@@ -32,10 +69,11 @@ it looks: at [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-pe
 plan approval on **2026-09-18**, the owner was offered *fold-it-into-`0284`* / *separate follow-up* /
 *do-not-file-at-all*, and chose **separate follow-up**. That is recorded as **D4** in that plan
 (`plan.md:384-388`). So the owner ruled **that this is separate work**, and, today, **that it be
-filed**. Board and rank remain unruled.
+filed**. ~~Board and rank remain unruled.~~ 📌 **Amended 2026-09-22 — the RANK is now owner-ruled (`Low`, above); the BOARD placement is still the producer's.**
 
-**Producer's call: Sprint 4, appended, rank Medium.** Reasoning, so the owner can overturn it in one
-edit:
+**Producer's call: Sprint 4, appended, ~~rank Medium~~.** 🔴 **The rank is now `Low` by owner ruling
+(2026-09-22, above); only the BOARD placement below is still the producer's.** The reasoning is kept as
+the record of how it was ranked at filing time:
 
 1. **It belongs beside the thing it completes.** `0284` is on this board and ✅ **closed 2026-09-18**
    (· earlier, when this was written: *in flight on this board right now*), and is
@@ -46,7 +84,8 @@ edit:
    [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from
    2026-08-23 to 2026-09-17 because nothing forced a re-look — the same precedent `0283`'s and
    `0284`'s briefs both cite against themselves.
-3. **Why Medium and not High, stated honestly** — three reasons, and each one is a real argument for
+3. **Why Medium and not High, stated honestly** *(superseded 2026-09-22 — the owner ruled `Low`; kept
+   as the record of the producer's reasoning at filing time)* — three reasons, and each one is a real argument for
    ranking it *below* `0284`:
    - **`0284` narrows this hole, it does not leave it untouched.** Once `0284` is live, a *persistent*
      bad address is caught within ~24 h. What survives is the narrower case: a **transient** failure

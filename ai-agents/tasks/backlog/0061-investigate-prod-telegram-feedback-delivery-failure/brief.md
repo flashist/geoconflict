@@ -4,11 +4,40 @@
 0061
 
 ## Sprint
-Sprint 4
+Sprint 5
 
 *(was `Backlog` until 2026-09-17 — **the owner overturned their own 2026-08-23 ruling**; see
 *"THE 2026-08-23 RULING WAS LIFTED"* immediately below the ruling itself. The August ruling is kept in
-full, not deleted.)*
+full, not deleted. Then `Sprint 4` until 2026-09-22 — see the move ruling immediately below.)*
+
+### ➡️ MOVED FROM SPRINT 4 TO SPRINT 5 ON 2026-09-22 — OWNER RULING
+
+**AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session on 2026-09-22**, relayed by
+`fkit-lead` to a spawned `fkit-producer` with **no owner channel of its own** (ADR-021). ⛔ **Not
+producer precedent.** The owner, verbatim:
+
+> *"Let's skip this type of chekups, I will take care of them after deploy. The only thing we should
+> care about is to make sure the feature is switcheable (e.g. if the flag is not enabled or doesn't
+> exist, the feature is not enabled), and that's it. You can move the tasks connected to checkings to
+> the next sprint, so we do final checkups and figure out what's wrong with them after deploy."*
+
+The owner was then shown a proposed list of four checkup tasks and chose **"Move all four"**:
+[`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md),
+[`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md),
+[`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
+`0061`.
+
+**THE REASON, PLAINLY:** the final checkups happen **after the deploy**, when production can actually
+be observed. ✅ **Coherent with this task's own 2026-09-17 close condition and NOT a change to it:**
+the owner already ruled that `0061` **closes on [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s
+game deploy, once feedback delivery is observed working.** Sprint 5 is where that observation now
+lives. ⛔ **The close condition, the fix's shipped-ness, and the never-run investigation are all
+UNCHANGED** — see the 2026-09-17 disposition below.
+
+⛔ **The task FOLDER did not move** — it stays under `ai-agents/tasks/backlog/`. ⛔ **No mover skill was
+invoked** — this is neither a close nor a cancellation. ⛔ **The `## Status` token is UNCHANGED
+(`🔲 Backlog`)**, and so is `## Priority` (still the producer's unratified append rank, still flagged
+for owner confirmation): a change of board is not a change of state or of rank.
 
 ## Priority
 High *(producer's append rank — **NOT owner-ruled**)*
