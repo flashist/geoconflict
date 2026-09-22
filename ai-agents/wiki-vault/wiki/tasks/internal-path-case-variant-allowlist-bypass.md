@@ -94,3 +94,4 @@ nothing, and is cheap to re-run. **Re-run it rather than rediscover it.**
 - [[tasks/profile-deploy-hardening]] — the harness this extends
 - [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`: **the same file and the same class of defect** — a deploy-time layer weaker than it reads; this page's *"same class"* framing is quoted in its brief
 - [[decisions/sprint-4]] — the sprint that owns it
+- [[systems/weekend-deploy-window]] — this task's eleven read-only probes are **re-run at W11**, to establish the baseline that makes a later **403 mean the allowlist and a 401 mean the token**

@@ -3,6 +3,42 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
+> # 🆕 2026-09-22, LATER THE SAME DAY — THIS BOARD'S OPEN WORK NOW HAS A DEPLOY ORDERING
+>
+> 📊 **No row was added, removed or re-statused after `6934226`** — the count block below still stands
+> at `HEAD` = `0d39e4d`. ⚠️ **Verified from the diff, not re-counted**: the only change to
+> `plan-sprint-4.md` in this window is the `0009`/`0030` correction recorded further down, which
+> amends one **moved** row's cell text and **touches no status token.**
+>
+> **What DID land is a new document:** `ai-agents/knowledge-base/weekend-deploy-slot-runbook.md`,
+> written because a `/fkit-status Sprint 4` run found **five tasks each demanding a profile-box deploy
+> in the same window, under different and partly opposing input conditions, and no document ordered
+> them against each other.** Full record: [[systems/weekend-deploy-window]].
+>
+> **What it changes for rows on THIS board:**
+> - **The window is TWO profile deploys + one telemetry deploy + one game deploy** — eleven tasks ride
+>   four commands. `0219`-B4, `0220` §8 step 1, `0221`-B1 and `0286` step 8's profile half all ride
+>   **one** invocation.
+> - ⚠️ **`0220` will close with a KNOWN, DELIBERATE GAP.** Its §8 **step 3** (the live-box rotation
+>   proof) was cut from the window by owner ruling and filed as **`0294`**. 🚨 **Record it as ONE STEP
+>   DEFERRED, NOT as "unverified":** steps 1–2 still run, and `tests/scripts/profile-deploy-hardening.test.sh`
+>   (**T13**) already proves the rotation **against stubs** under `npm test` — ⛔ **stubbed coverage is
+>   explicitly not live-box evidence.** **That gap must be restated at `0220`'s close.**
+> - ⛔ **`0065` step 3 (the real test purchase) is OUT of the window** by owner ruling: the buy button
+>   sits behind `CITIZENSHIP_CARD_ENABLED`, a **compile-time `false` with no env and no remote
+>   override** (re-verified in `src/` 2026-09-22), so making it appear needs **a source change plus a
+>   second game deploy** — *a decision about launching citizenship, not a verification step.*
+>   ⛔ **`0065` stays `🚧 Blocked`; no status token moved and no mover was invoked.** ⚠️ The owner's
+>   confirmation that they **will** perform step 3 stands — it is **not scheduled here**.
+> - ⛔ **`0054` — flipping `CITIZENSHIP_CARD_ENABLED` — is RULED OUT of the window** for the same
+>   reason.
+> - 🚨 **There is deliberately NO rollback or abort procedure — a DECISION, not an omission** (owner:
+>   *"Skip it — I know the boxes"*). **The honest consequence stays attached: W12, the step where
+>   crediting switches on, has ZERO prior production evidence AND no written way back**, and the whole
+>   of the mitigation is a human watching immediately afterwards.
+>
+> ---
+>
 > # 📊 BOARD RE-COUNTED 2026-09-22 at `HEAD` = `6934226`
 >
 > **106 rows — 78 Done · 14 Blocked · 4 Backlog · 1 In progress · 3 Cancelled · 6 Moved; 19 OPEN.**
@@ -884,3 +920,4 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/yandex-catalog-registration]] — task `0014`, **closed 2026-09-22** `(agent-closed — not owner-verified)`; every deliverable owner-attested and not repo-verifiable, and it drops `0065`'s blocker count to two
 - [[decisions/adr-104-archiving-disabled]] — the ADR whose scope `0292` corrects: it darkened the **server** archive leg only
 - [[systems/architecture-overview]] — home of §13 open question 1, whose **conditional** second clause was flattened into the false `0009`-blocks-`0030` dependency settled on this board; ⚠️ the seeding sentence stays in `architecture.md` **by owner choice**
+- [[systems/weekend-deploy-window]] — the ordering for eleven of this board's tasks across four deploy commands, the four rulings that cut work out of it (`0065` step 3, `0220` §8 step 3, the egress-IP measurement, the rollback procedure), and the traps each deploy must not trip

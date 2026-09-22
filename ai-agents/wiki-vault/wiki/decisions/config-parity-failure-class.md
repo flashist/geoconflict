@@ -112,3 +112,4 @@ Three instances, all Sprint 4:
 - [[decisions/sprint-4]] — the sprint board carrying the config track, and `0064`'s `🔄 In progress` row
 - [[tasks/yandex-catalog-registration]] — task `0014`, the upstream fact for `0195`; closed 2026-09-22, and the source of the answered provenance
 - [[decisions/sprint-backlog]] — the Backlog board carrying `0203`, the ten-item pre-arming gate
+- [[systems/weekend-deploy-window]] — `0064`'s guard runs **report-only** at that window's game deploy; ⚠️ **it compares NAMES, so it cannot catch a present-when-it-should-be-blank value** — the token-match pre-check is the only guard there

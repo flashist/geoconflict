@@ -3930,3 +3930,80 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
   `plan-sprint-5.md` were NOT touched — a producer is fixing those concurrently.** ⛔ Closed nothing,
   moved no task file, invoked no mover, edited no brief. Nothing committed or pushed.
 - 🔒 **No secret, host, IP, domain, DSN, token or key written.**
+
+## 2026-09-22 — ingest (sync)
+
+- **Sync window:** `6934226` → HEAD (`0d39e4d`). ⚠️ **Second sync of the day** — an earlier one
+  advanced the watermark `7eebaf3` → `6934226` and then corrected pages within that window; this run
+  covers **only what landed after it** (2 commits).
+- **Changed source files detected under `ai-agents/` (vault excluded): 8. Ingest-worthy after the
+  filter: 4.** ⛔ **Skipped by the filter, correctly: `0065`, `0220`, `0294`, `0295` — all four are
+  `ai-agents/tasks/backlog/*/brief.md`** (a backlog brief is not a source; a page would be premature).
+  **`0294`'s and `0295`'s substance was taken from the BOARDS instead**, which is where it belongs
+  until they close.
+- **Ingested:**
+  - `ai-agents/knowledge-base/weekend-deploy-slot-runbook.md` → **created**
+    [[wiki/systems/weekend-deploy-window]] (new page; the vault had **no entry of any kind** for the
+    deploy window that orders eleven Sprint 4 tasks). Page type: System, per the
+    `alert-delivery-runbook.md` → [[wiki/systems/alert-delivery]] precedent for an operator runbook.
+  - `ai-agents/sprints/backlog.md` → **updated** [[wiki/decisions/sprint-backlog]] — re-counted at
+    `0d39e4d`: **86 rows — 62 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
+    65 OPEN** (was 85 / 64). ⚠️ **Counted by me this run, at this SHA.** One row added: **`0294`**.
+  - `ai-agents/sprints/plan-sprint-5.md` → **updated** [[wiki/decisions/sprint-5]] — **13 rows, was
+    12**, all `🔲 Backlog`. The sixth appended row **`0295`** is ⛔ **a NEW filing, not a move** — not
+    RULING D, not RULING E; no row left Sprint 4 for it.
+  - `ai-agents/sprints/plan-sprint-4.md` → **updated** [[wiki/decisions/sprint-4]]. ⚠️ **Its board
+    delta this window was ALREADY COVERED** by the earlier sync (the `0009`/`0030` resolution and the
+    *"`0009` was NOT edited"* correction were both already on the page — verified, not assumed). **No
+    row was added, removed or re-statused after `6934226`** — established **from the diff, not
+    re-counted**, since the only change is one **moved** row's cell prose. What was added is the
+    window record and the cross-link.
+- **Substance carried deliberately, because each is the kind of thing a summarising pass flattens:**
+  - 🚨 **`PROFILE_INTERNAL_ALLOW_IPS` serves TWO callers** — the game server **and** the monitoring
+    box's alert relay, mounted under `/internal/` **solely** to inherit that allowlist. A source-IP
+    miss answers **403**, which **permanently and silently disables the notification channel**, and the
+    variable has **no on-box persistence** ⇒ **APPEND, NEVER REPLACE.** ✅ **Both halves re-verified in
+    the tree this run**, not taken from the runbook: the empty default in `setup-profile.sh`, and the
+    *"solely to inherit"* wording in `alert-delivery-runbook.md`.
+  - ⚠️ **`0220` §8 step 3 is recorded as ONE STEP DEFERRED, NOT as "unverified"** — steps 1–2 still
+    run, and harness **T13** proves the rotation **against stubs** under `npm test` (✅ presence
+    verified in the tree). ⛔ **Stubbed coverage is explicitly NOT live-box evidence**, and the page
+    says so in both directions: not fully proven, not entirely unproven.
+  - ⛔ **The missing rollback procedure is recorded as a DECISION, not an omission** (owner: *"Skip it
+    — I know the boxes"*), **with the honest consequence kept attached**: the window's one step with
+    zero prior production evidence has **no written way back**.
+  - ⛔ **`0065` step 3 is out of the window** because `CITIZENSHIP_CARD_ENABLED` is a **compile-time
+    `false`**. ✅ **Re-verified in `src/` this run: exactly three mentions across `src/` and
+    `webpack.config.js`, no env override and no remote override**, so the button needs a source change
+    **plus a second game deploy**.
+- **Targeted lint on the changed pages: 0 unresolved wiki-links; back-links added so every link is
+  bidirectional — 10 pages gained one** ([[wiki/systems/alert-delivery]],
+  [[wiki/systems/player-profile-store]], [[wiki/systems/project-operations]],
+  [[wiki/systems/telemetry]], [[wiki/decisions/adr-101-fail-soft-xp-crediting]],
+  [[wiki/decisions/adr-113-internal-player-id]], [[wiki/decisions/config-parity-failure-class]],
+  [[wiki/tasks/alert-path-liveness-probe]],
+  [[wiki/tasks/internal-path-case-variant-allowlist-bypass]],
+  [[wiki/tasks/profile-server-bring-up-runbook]]), plus the three board pages.
+  **[[wiki/index]] updated in four places** — the new Systems entry and the Sprint 4 / 5 / Backlog
+  entries.
+- 🔒 **Secret scan on the new page: clean** — no IP, hostname, domain, URL, token or connection string.
+  **Variable names, file paths, status codes and step letters only**, which is the only form in which
+  the runbook's variables were allowed to appear.
+- 📌 **Citations use CONTENT ANCHORS, not line numbers**, per the schema's 2026-09-10 rule — the
+  caller supplied `alert-delivery-runbook.md:21` and `:39`, and they were converted to greppable
+  anchors after matching the text.
+- ⛔ **Wrote only inside `ai-agents/wiki-vault/`.** ⛔ Closed nothing, moved no task file, invoked no
+  mover, edited no brief and no sprint plan (ADR-033). Nothing committed or pushed.
+- 📌 **Page-type question RULED the same day by `fkit-lead` and recorded ON the page, not just here:**
+  [[wiki/systems/weekend-deploy-window]] is a **System** page deliberately. The *"one-time window, so
+  maybe a Decision page"* objection was **considered and answered** — the durable content is the
+  **sequencing logic**, which the next window inherits, and the rulings live on the boards and in the
+  briefs, which this page **cites rather than is**. ⛔ **Settled; a future lint must not re-type it**
+  — consistency with the `alert-delivery-runbook.md` → [[wiki/systems/alert-delivery]] precedent beats
+  a marginal taxonomy improvement, and re-typing would leave two operator runbooks classified
+  differently for no reader benefit.
+- 📌 **The source runbook's *"four deploys"* title: flagged, deliberately NOT fixed, and the flag is
+  the artifact.** It is **accurate today**; what the page preserves is that it was **wrong when
+  written (five)** and is right only by accident of the W8 cut. ⛔ A silently corrected number would
+  hide that **this count has already drifted once.** The file is outside the vault boundary (ADR-005)
+  regardless.

@@ -3,10 +3,74 @@
 **Date**: 2026-04-16
 **Status**: proposed
 
+> # 🆕 A SIXTH ROW WAS APPENDED LATER ON 2026-09-22 — AND IT IS THE ONLY ONE THAT IS **NOT** A MOVE
+>
+> **The board is 13 rows now, was 12** (counted at `HEAD` = `0d39e4d`; all 13 read `🔲 Backlog`).
+>
+> ⛔ **`0295` is a NEWLY FILED task, not a row moved off Sprint 4.** It is ⛔ **not RULING D** and
+> ⛔ **not RULING E** — **no row left Sprint 4 for it**, and nothing on Sprint 4 reads `➡️ Moved` on its
+> account. ⚠️ **Do not fold it into the move notes below when reading this board's history.**
+>
+> **AUTHORITY.** An **owner ruling given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+> (ADR-021). ⛔ **Not producer precedent.** The owner, verbatim: *"Record as a task, add it to the
+> Sprint 5, not the current Sprint 4."* ⛔ **Sprint 5 explicitly — not Sprint 4, not the Backlog board.**
+> ⚠️ **They ruled the ACTION and the BOARD. They ruled NO rank, NO owner field and NO method.**
+>
+> **`0295` — measure the game-prod egress IP and APPEND it to `PROFILE_INTERNAL_ALLOW_IPS` (`0217`
+> Q4).** `0217` requires the **CURRENT** address and says it *"must be measured, not assumed"*; the
+> pinned value in `example.env.profile` dates from **JUNE**. 🚩 **`fkit-lead` COULD NOT measure it on
+> 2026-09-22 — the prod host is not in any readable env file.**
+>
+> **TWO deliverables, the second as load-bearing as the first:** (1) **MEASURE** the egress IP by a
+> **named, repeatable method**; (2) 🔒 **RECORD THE METHOD — ⛔ NEVER THE ADDRESS.** The address goes
+> only into the gitignored profile env file and onto the box — ⛔ never a brief, worklog, report,
+> knowledge-base page, wiki page or commit.
+>
+> 🚨 **THE TRAP IT CARRIES, and it is the half a summary drops:** `PROFILE_INTERNAL_ALLOW_IPS` is **one
+> comma list serving TWO unrelated callers** — the **game server** (`/internal/v1/players/resolve`,
+> `/internal/v1/credit`) and the **monitoring box**, whose alert relay is mounted under `/internal/`
+> **SOLELY** to inherit this allowlist. **A source-IP miss answers 403, and a 403 PERMANENTLY AND
+> SILENTLY DISABLES the notification channel** — every later alert dropped at source, forever, no
+> retry, nothing tells you; **fixing the address afterwards does not undo it** (re-enable by hand in
+> the monitoring UI). 🚩 **Second half: the variable has NO on-box persistence** — `setup-profile.sh`
+> defaults it to empty and an empty value renders a bare `deny all`, **403 for everyone**; the deploy's
+> loud warning is **the only guard.** ⇒ 🚨 **APPEND. NEVER REPLACE.** See [[systems/alert-delivery]].
+>
+> **COST OF A WRONG ANSWER:** 403 on every credit call, ⚠️ **indistinguishable from "working" at the
+> game server**, and **XP is LOST, not queued.**
+>
+> 🚨 **BEING ON SPRINT 5 DOES *NOT* DEFER THE MEASUREMENT.** A separate owner ruling (**RULING E** in
+> the runbook) split it: **the MEASUREMENT happens at W0 of the weekend window — the OWNER runs it, the
+> day before** — while **the TASK, choosing and RECORDING the method, stays on Sprint 5.** ⛔ **Do not
+> move `0295` off Sprint 5, and do not read *"it's on Sprint 5"* as *"skip it this weekend"*** — that
+> misreading would leave the window's first profile deploy running on a **JUNE-DATED allowlist**.
+>
+> ⚠️ **CONTEXT RECORDED EXPLICITLY AS *NOT* A VERIFIED CURRENT FACT:** a measurement earlier the same
+> day **reportedly matched** the live allowlist, but it was **NOT re-verified** and was **NEVER written
+> into any brief** — which is exactly why this was still an open conflict when the runbook was written.
+> ⛔ **Do not close `0295` by citing it.**
+>
+> **Depends on:** nothing in code — ⚠️ **it needs access the agents do not have.** **Blocks:** `0217`
+> step 3's *"redeploy the profile box"* cannot honestly be called done while the pinned value is
+> June's; ⚠️ **it does NOT block crediting being switched on — it blocks KNOWING whether it will work.**
+> 📌 **If it and `0294` are both run, run them on ONE deploy, not two.** Full ordering:
+> [[systems/weekend-deploy-window]].
+>
+> ⚠️ **Same limits as every row on this board:** Sprint 5 **is not the active sprint** — filing here
+> **schedules** the work, it does not start it. The row is **appended, not inserted**; nothing above it
+> moved and nothing was renumbered (ADR-035), and **append position is not a priority signal.** It does
+> **not** belong to this plan's scope statement (*"Full F2P Loop & Social Features"*) — deliberate, not
+> drift: the owner put it here by name. ⛔ **No mover skill was invoked; no other task's `## Status` or
+> `## Priority` was touched; nothing was committed or pushed.**
+>
+> ---
+>
 > # ➡️ FIVE REAL TASKS WERE MOVED ONTO THIS BOARD ON 2026-09-22
 >
-> **The board is 12 rows now, was 7. Every row still reads `🔲 Backlog` and this board is still NOT the
-> active sprint** — moving work here **schedules** it, it does not start it.
+> **The board was 12 rows after this move, was 7 before it** *(13 as of the `0295` append above)*.
+> **Every row still reads `🔲 Backlog` and this board is still NOT the active sprint** — moving work
+> here **schedules** it, it does not start it.
 >
 > ⚠️ **Two things about this plan that used to be true are no longer true, and they matter when reading
 > the table below:** (1) **not every row is derived from this document's own task sections**, and
@@ -178,3 +242,5 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 - [[systems/alert-delivery]] — the alert path `0285` and `0289` check
 - [[systems/match-logging]] — what a match records today, and what `0030` would make retrievable
 - [[tasks/yandex-catalog-registration]] — task `0014`, which set the remote `citizenship_ui` flag `0238` must observe here
+- [[systems/weekend-deploy-window]] — the deploy window that filed `0295` onto this board, and the **W0** step whose measurement `0295` must record the method for
+- [[decisions/sprint-backlog]] — where `0294`, the window's other removed step, was filed instead

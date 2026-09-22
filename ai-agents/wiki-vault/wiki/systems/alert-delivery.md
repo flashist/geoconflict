@@ -370,3 +370,5 @@ deploy. **Do not read "0061 is fixed" off `0277`.**
 - [[systems/architecture-overview]] — the tier map, corrected to record that the profile box is the admin server and does export telemetry
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, which built the metrics and the single existing alert rule, ran the drill recorded above, and closed with four rules deferred
 - [[decisions/sprint-5]] — where `0285` and `0289`, the two remaining alert-path checks, now sit
+- [[systems/weekend-deploy-window]] — 🚨 the deploy window that writes `PROFILE_INTERNAL_ALLOW_IPS`: **this relay is the list's SECOND caller**, and every profile deploy in that window must carry the **full** list — ⛔ **append, never replace**, or the next alert's 403 disables the channel permanently
+- [[decisions/sprint-backlog]] — where `0294` sits; ⚠️ it is a **profile deploy**, so it carries this same allowlist constraint

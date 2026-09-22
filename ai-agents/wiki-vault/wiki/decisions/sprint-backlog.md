@@ -3,7 +3,59 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 THE BACKLOG BOARD RE-COUNTED 2026-09-22 at `HEAD` = `6934226`
+> # 📊 THE BACKLOG BOARD RE-COUNTED 2026-09-22, LATER THE SAME DAY, at `HEAD` = `0d39e4d`
+>
+> **`backlog.md`: 86 rows — 62 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
+> 65 OPEN.** *(Was 85 / 64 open at `6934226`, the block below.)* ⚠️ **Counted by me this run, at this
+> SHA** — this is the **second** sync of 2026-09-22 and it covers only what landed after the first.
+>
+> **ONE row was added, `🔲 Backlog`, filed 2026-09-22 by a spawned `fkit-producer` with no owner
+> channel (ADR-021) on an owner ruling relayed by `fkit-lead` — and ⛔ it is not paged** (the backlog
+> rule: a task is not paged until it is done or cancelled). Its substance:
+>
+> - **`0294`** — *prove a rotated value overwrites the persisted one on the **LIVE** profile box;
+>   `0220` §8 step 3.* Shown that the weekend deploy window's **third** profile deploy existed **only**
+>   to satisfy `0220`'s verification step 3, and that **no brief said WHICH of the four values to
+>   rotate**, the owner chose **"Skip it now, file it separately"** — so that *"`0220` closes with a
+>   recorded, deliberate gap rather than an unnoticed one."* ⚠️ **The owner ruled the ACTION only** —
+>   the Backlog board is the producer's filing default since the owner named none; **board, rank, owner
+>   field and method are all the producer's call** and overturnable in one edit. ⛔ Not producer
+>   precedent.
+>   🚨 **RECORD THE REASON THE STEP EXISTS — it nearly did not survive.** The owner's **first** instinct
+>   was *"rotate nothing, we don't know why the step exists"*, and they **revised it once shown the
+>   reason.** `0220` verification step 3: *"A deploy WITH a new value overwrites the persisted one.
+>   Persistence must not become a trap where a rotated secret cannot be applied."* **The failure it
+>   guards:** if persist-or-reuse always prefers the box's stored value, then **the day a key leaks and
+>   a new one is deployed, the box silently keeps the old one** — the operator believes a compromised
+>   credential was replaced when it was **not**, and **nothing says otherwise** (no error, no warning,
+>   no failed check). ⛔ **Never write this up as "a redundant third deploy."**
+>   ⚠️ **ONE STEP DEFERRED, NOT "UNVERIFIED" — both halves or the record is wrong.**
+>   ✅ **Already proven, so nobody re-does it:** `tests/scripts/profile-deploy-hardening.test.sh`
+>   (**T13 — rotation**, verified present in the tree 2026-09-22) drives the real
+>   `persist_or_reuse_secret()` and asserts the overwrite, the reuse of the **new** value on a following
+>   blank deploy, the other three persist files **byte-unchanged**, and **no value leaking into deploy
+>   output** — gated by `npm test`. 🚨 **NOT proven and it is the whole task: there is ZERO live-box
+>   evidence — every T13 assertion runs against STUBS.** ⛔ Do not report the property as fully proven,
+>   and ⛔ do not report it as entirely unproven.
+>   🚩 **THE METHOD IS DELIBERATELY UNSETTLED**, because each of the four candidates has a production
+>   consequence: `YANDEX_PAYMENTS_SECRET` would ⛔ **replace the real Yandex key the owner set** (which
+>   `0065`'s open `0195` condition rests on) and break `0065` steps 1–4; `FEEDBACK_TELEGRAM_TOKEN` and
+>   `TELEGRAM_PROXY_URL` are live feedback delivery; `FEEDBACK_TELEGRAM_CHAT_ID` would misroute feedback
+>   to a different room. 📌 **Rotating `TELEGRAM_PROXY_URL` — a URL, not a secret — to a different valid
+>   https value and back was OFFERED AND NOT TAKEN.** ⛔ **It is NOT the chosen method**; it is recorded
+>   because it answers the obvious objection — ✅ **this task needs NO real credential.** **Whoever picks
+>   it up decides, and should put the choice to the owner first.**
+>   ⚠️ **Every window deploy constraint applies**, above all: ⛔ `PROFILE_INTERNAL_ALLOW_IPS` must carry
+>   the **full** list — **APPEND, never replace**. See [[systems/weekend-deploy-window]].
+>   **Blocks nothing today** — ⚠️ **but `0220` cannot honestly claim its verification step 3 until this
+>   runs, and that must be restated at `0220`'s close.**
+>   ⚠️ **Tradeoff accepted knowingly:** this board has a demonstrated hold-forever failure mode.
+>   📌 **Pull it into a sprint the next time a profile deploy is scheduled** — it costs one extra deploy
+>   then, and a whole slot of its own later.
+>
+> ---
+>
+> ### 📊 The previous count, kept as the record — 2026-09-22 at `6934226`
 >
 > **`backlog.md`: 85 rows — 61 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
 > 64 OPEN.** *(Was 83 / 62 open at `7eebaf3`.)* ⚠️ **Counted by me this run, at this SHA.**
@@ -422,3 +474,4 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[systems/match-logging]] — where the still-live archive read is recorded against what a match actually retains
 - [[decisions/sprint-5]] — where `0061` and `0238`'s moved-rows on this board now point, after the 2026-09-22 retarget
 - [[tasks/archive-endpoint-failures]] — task `0159`, whose switch covered the archive writes only; the client read it left ungated is this board's `0292`
+- [[systems/weekend-deploy-window]] — the deploy window that cut its third profile deploy and filed the removed step onto this board as `0294`; ⚠️ pull `0294` in only when a profile deploy is already scheduled

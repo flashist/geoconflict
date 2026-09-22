@@ -65,3 +65,4 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - [[decisions/personal-data-152fz-compliance]] — Russian personal-data notification/consent status and accepted Sprint 4 risk
 - [[systems/agent-conventions]] — the standing rules that govern task status, ownership, and reporting
 - [[decisions/fkit-transfer-blueprint]] — the agent toolkit these operations run on
+- [[systems/weekend-deploy-window]] — how a multi-task deploy slot is ordered: the constraints that fix each step's position, and the four rulings that cut work out of it

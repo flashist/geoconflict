@@ -212,3 +212,4 @@ T4i is an operations artifact, not a code change. ~~The operator bring-up has be
 - [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, which proved the TLS renewal step of this runbook end to end against LE staging
 - [[systems/agent-conventions]] — convention 10, the citation rule every 2026-09-10 drift on this page is an instance of, and where the corrected attribution is recorded
 - [[decisions/adr-101-fail-soft-xp-crediting]] — the fail-soft policy behind the dropped-not-queued half of the token trap
+- [[systems/weekend-deploy-window]] — the ordered slot in which this runbook's profile-box steps are actually executed, and the constraints that fix each one's position

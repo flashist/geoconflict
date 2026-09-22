@@ -163,3 +163,4 @@ replacement for a probe that crosses the allowlist.
 - [[systems/player-profile-store]] — the admin box holding the relay, the marker and the daily checks
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, the source of amendment A1 this probe does **not** discharge, and the owner of the one alert rule that exists
+- [[systems/weekend-deploy-window]] — 🚨 this probe is the **second caller** on `PROFILE_INTERNAL_ALLOW_IPS`; every profile deploy in that window must carry the **full** list — ⛔ **append, never replace**

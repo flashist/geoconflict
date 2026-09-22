@@ -175,3 +175,4 @@ Two narrower rules fall out of the same principle and are part of the decision:
 - [[decisions/adr-113-internal-player-id]] — re-keys crediting to an internal `player_id`; **this ADR is explicitly UNCHANGED by it**
 - [[decisions/adr-112-free-xp-grants]] — free grants, whose "ack before marker" rule exists because this ADR's fail-soft path loses an unacked credit for good
 - [[decisions/adr-114-admin-server-alert-relay]] — the alert relay; **this ADR is explicitly unchanged by it** (no new route accepts a player id, no trust seam moves)
+- [[systems/weekend-deploy-window]] — the deploy window where crediting is switched on; **this ADR is why a wrong allowlist entry or a mismatched token is indistinguishable from "working"** — the credit is dropped, not queued, and nothing surfaces it
