@@ -115,3 +115,4 @@ Found 2026-08-28 during `0067`'s build, and owner-approved the same day as **its
 - [[tasks/dependency-declaration-sweep]] — task `0196`, which used this brief's explicit `Depends on: nothing.` as wording to copy
 - [[tasks/container-log-retention]] — task `0060`, the last item on the same owner-ruled config-track execution order
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which re-provisioned the box this task's on-box verification step was waiting on; ⚠️ **that step is now runnable but has NOT been run**, and it stays owner-gated
+- [[tasks/yandex-catalog-registration]] — task `0014`, the upstream fact for this one: it issued the per-game key, and its close answered the provenance question this page carried

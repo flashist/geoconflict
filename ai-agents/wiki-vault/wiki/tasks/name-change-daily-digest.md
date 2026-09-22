@@ -194,3 +194,4 @@ red. **Those are the guards working, not broken tests.**
 - [[systems/telemetry]] — the monitoring stack this deliberately does **not** touch
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, whose owner step 5 proved the **per-request** operator notification. ⛔ **A DIFFERENT mechanism from this digest**, and this digest does not discharge its amendment A1
+- [[decisions/sprint-backlog]] — the board this task was filed on before its promotion to Sprint 4

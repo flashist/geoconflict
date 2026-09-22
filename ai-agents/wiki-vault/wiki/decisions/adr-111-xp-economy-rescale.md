@@ -245,3 +245,4 @@ Absent those, a review finding of the form *"1 XP is a trivially small award"*, 
   §11 q3, the unresolved participation-floor question
 - [[decisions/adr-113-internal-player-id]] — re-keys the XP ledger to an internal `player_id`
 - [[decisions/adr-112-free-xp-grants]] — free XP grants inside this 1 XP / 100 XP economy; the tenure grant caps at 50 XP
+- [[decisions/sprint-4]] — the sprint board this rescale belongs to

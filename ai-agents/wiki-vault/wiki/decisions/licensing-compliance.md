@@ -119,3 +119,4 @@ See [[tasks/licensing-asset-audit]] and [[tasks/licensing-remediation]].
 - [[systems/project-brief]] — the asset-audit gate before paid IAP ships (**satisfied and demonstrated as of 2026-08-31**)
 - [[decisions/sprint-backlog]] — the board holding `0073`, the task that owns the open H3 residual
 - [[tasks/licensing-remediation]] — the 0066 remediation implementing the 0025 audit's V1/A1/H1 fixes (agent-closed; deployed in `362a2f9`; live checks RAN AND PASSED 2026-08-30 by byte-identity against a nonexistent control, not by 404)
+- [[tasks/yandex-catalog-registration]] — task `0014`, the other pre-launch gate on paid citizenship; closed 2026-09-22, every deliverable owner-attested

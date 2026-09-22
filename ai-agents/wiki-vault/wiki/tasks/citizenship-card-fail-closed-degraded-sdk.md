@@ -93,14 +93,68 @@ does NOT prove the card's new behaviour was observed there** — see the residua
   does NOT stop the server crediting XP** ⇒ ⛔ **it is not a legal or moderation takedown mechanism.**
 - 🔴 **`0291` IS NOW THE ONLY THING PRECEDING THE `CITIZENSHIP_CARD_ENABLED` FLIP — `0238` is not.** The
   same 2026-09-21 ruling **dropped `0238`'s gate**; see [[decisions/sprint-4]].
+  📌 **REINFORCED 2026-09-22 — `0238` MOVED OFF SPRINT 4 ONTO [[decisions/sprint-5]]** on an owner
+  ruling (*"You can move the tasks connected to checkings to the next sprint, so we do final checkups
+  and figure out what's wrong with them after deploy."*). ⇒ **the live/browser observation this task
+  handed onward now lives a board later, after the deploy.** ⛔ **`0238`'s status token, board rank and
+  task folder were not touched by that move, and it still blocks nothing.**
+  ✅ **What the owner said DOES matter was checked: the switchability property** — *flag absent, flag set
+  to a wrong value, or the Yandex SDK never loaded ⇒ every citizenship surface is OFF* — is
+  **VERIFIED IN SOURCE 2026-09-22** and recorded in `0238`'s brief. 🚨 ⛔ **NOT verified in production —
+  no deployed build has been observed doing it — and it holds on PRODUCTION builds only**, because
+  `checkExperimentFlag()` returns `true` **unconditionally** when `GAME_ENV === "dev"`. ⛔ **A local
+  "the card appeared" reading proves nothing.**
 - 📌 **Proportionality was an explicit owner instruction on this line of work**, verbatim: *"it looks
   like we are overfocused on the enable/disable flags … it should be a boolean thing, that's it."*
   ⛔ **That is a standing instruction on SCOPE AND CEREMONY — it was NOT a licence to skip the plan gate
   or the review, and neither was skipped.**
 
-### 🚩 FLAGGED FOR A HUMAN — the brief contradicts itself about `0238`, and the file settles it
+### ✅ RESOLVED 2026-09-22 — the flag below was raised, taken to the owner, and the brief was corrected
 
-`0291`'s brief says **two incompatible things** about the hand-off:
+📌 **The contradiction recorded in this section is FIXED IN THE SOURCE.** On **2026-09-22** a spawned
+`fkit-producer`, on an **owner ruling** given live via `AskUserQuestion` and relayed by `fkit-lead`
+(verbatim: ***"fix it"***), **struck the false `## Status` paragraph as factually wrong** — struck, not
+deleted, so the error stays readable. ⛔ **Not producer precedent.** ⛔ **The owner's original ruling was
+never in question and was not re-opened** — only the record's description of what was done.
+**The section below is KEPT as the true record of what the vault found and flagged.** What the
+correction establishes, with each part's basis named separately — ⚠️ **do not read one as carrying the
+other's strength**:
+
+- **(1) The end state is REPO-VERIFIED.** The fail-open acceptance in `0238`'s brief was **already
+  struck** before the ruling about it was ever sought — struck at the **2026-09-21 re-scope of `0238`**
+  — in the `## Notes` bullet beginning *"Known accepted limitation of the thing being validated"*, which
+  today carries `~~…~~` plus a `🔴 STRUCK 2026-09-21 — the acceptance is WITHDRAWN by owner ruling`
+  note. ⇒ **There was no stale line left to leave.**
+- **(2) The ORDERING is NOT repo-verified, and 🚩 GIT CANNOT ESTABLISH IT.** `0238`'s brief holds **0**
+  `0291` references at `45040b0` and **4** at `HEAD`, every one landing inside the single squashed
+  `Sprint push` commit `7eebaf3` — so the same-day edits cannot be ordered from history. The ordering
+  rests instead on **the re-scoping producer's own hand-back report to `fkit-lead`, delivered BEFORE the
+  owner was asked anything**, which enumerated that edit among its own changes (verbatim: *"Two
+  `## Notes` bullets struck: 'Blocks: the launch flip' (now blocks nothing) and the 2026-09-10 fail-open
+  acceptance (withdrawn, points to `0291`)."*). ⚠️ **ATTESTED BY THE PERFORMING AGENT — agent testimony
+  relayed through a session transcript, NOT a repo artefact and NOT proof.** ✅ Cross-checked against the
+  file and it holds: both named bullets sit inside `## Notes`, both are struck, and there is **exactly
+  one** fail-open-acceptance bullet.
+- **(3) `0238` WAS edited by the `0291` close — hrefs only, four lines** (`../0291-` →
+  `../../done/0291-`), after `fkit-lead` lifted its own `0238` fence and authorised exactly that repair.
+  ⛔ **Nothing else in `0238` was touched — its `## Status` is still `🔲 Backlog`, board and rank
+  unchanged.**
+- 🔎 **ROOT CAUSE, recorded so nobody mis-reads it: `fkit-lead` put a STALE question to the owner** —
+  asking whether to strike a bullet a producer had already struck earlier the same day. The owner
+  answered *"leave it for whoever next opens `0238`"* in good faith, and that answer propagated into the
+  process-review spawn, the review ledger and the close record, all describing a state that no longer
+  existed. ⛔ **The owner did NOT change their mind, and NO agent defied a ruling.**
+
+⚠️ **One thing the correction did NOT fix: the bare-style `:497` citation problem is unchanged in kind.**
+The corrected text still carries line coordinates (`:496`, `:462`, `:481`) — it now says *"verify by
+content, not by line number"* beside them, which is better, but the underlying hazard is the one
+`0239` exists to measure.
+
+---
+
+### 🚩 THE ORIGINAL FLAG, kept as the record — the brief contradicted itself about `0238`
+
+`0291`'s brief said **two incompatible things** about the hand-off:
 
 | Where in `0291`'s brief | What it claims |
 |---|---|
@@ -115,9 +169,10 @@ names `0291` four times.
 
 🚨 **This is failure mode 4 from `ai-agents/knowledge-base/conventions/file-line-citations.md` — a claim
 that was self-invalidated inside the very commit that wrote it**, and it arrived with a **bare-style
-`:497` coordinate** of exactly the form convention 10 bans. ⛔ **The vault cannot fix a brief (ADR-005) —
-a human must.** ⚠️ **The owner's *ruling* is not in question**: they ruled the hand-off be left for
-whoever next opens `0238`. Only the brief's **description of what was done** is wrong.
+`:497` coordinate** of exactly the form convention 10 bans. ~~⛔ **The vault cannot fix a brief (ADR-005) —
+a human must.**~~ ✅ **A human did — 2026-09-22, see the resolution block above.** ⚠️ **The owner's
+*ruling* is not in question**: they ruled the hand-off be left for whoever next opens `0238`. Only the
+brief's **description of what was done** was wrong.
 
 ## Related
 
@@ -137,3 +192,6 @@ whoever next opens `0238`. Only the brief's **description of what was done** is 
   this task's row
 - [[systems/player-profile-store]] — the backend behind the surfaces the switch hides; ⛔ **the switch does
   not stop it crediting XP**
+- [[decisions/sprint-5]] — where `0238`, the launch-time observation this task handed onward, now sits
+- [[tasks/yandex-catalog-registration]] — task `0014`, which set the **remote** half (`citizenship_ui`) of
+  the same kill switch; closed 2026-09-22, and carrying the unresolved flag-name/value residual

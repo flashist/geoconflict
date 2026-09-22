@@ -121,3 +121,4 @@ fixed**.
 - [[tasks/name-change-daily-digest]] — task `0283`, closed alongside it in the same sprint run, and the other change to this deploy script's cron block
 - [[systems/alert-delivery]] — the relay `setup-profile.sh` also configures on this box
 - [[decisions/sprint-4]] — the sprint that owns it
+- [[decisions/sprint-backlog]] — the board this task's review finding R4 was split onto as `0287`

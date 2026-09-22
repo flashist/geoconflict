@@ -197,3 +197,4 @@ conflate the two reasons A4 waited — one is cleared, one is not.**
 - [[decisions/adr-113-internal-player-id]] — the decision this slice implements
 - [[decisions/adr-114-admin-server-alert-relay]] — the relay the alert channel depends on
 - [[decisions/sprint-4]] — the sprint that owns it
+- [[decisions/sprint-backlog]] — the board carrying `0288`, the one of this task's six deferred alert rules that got a task of its own

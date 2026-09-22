@@ -37,3 +37,4 @@ The licensing brief adds a separate non-SDK constraint for monetization scale: G
 - [[tasks/profile-match-end-crediting]] — earned-XP crediting uses the unsigned profile key; paid entitlements still require signed purchase verification
 - [[systems/flashist-init]] — existing client startup hub where payments/catalog caching should be added
 - [[tasks/app-bootstrap-single-entry-point]] — explicit bootstrap gate that de-risks future Yandex SDK integrations such as payments
+- [[tasks/yandex-catalog-registration]] — task `0014`, the catalog registration this investigation's design depends on; closed 2026-09-22

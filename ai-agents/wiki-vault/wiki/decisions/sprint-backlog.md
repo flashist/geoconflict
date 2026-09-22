@@ -3,14 +3,114 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 THE BACKLOG BOARD RE-COUNTED 2026-09-21 at `HEAD` = `7eebaf3`
+> # 📊 THE BACKLOG BOARD RE-COUNTED 2026-09-22 at `HEAD` = `6934226`
+>
+> **`backlog.md`: 85 rows — 61 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
+> 64 OPEN.** *(Was 83 / 62 open at `7eebaf3`.)* ⚠️ **Counted by me this run, at this SHA.**
+>
+> **Two rows were added this window, both `🔲 Backlog`, both filed 2026-09-22 by a spawned
+> `fkit-producer` with no owner channel (ADR-021) on owner rulings relayed by `fkit-lead` — and
+> ⛔ neither brief is paged** (the backlog rule: a task is not paged until it is done or cancelled).
+> Their substance is recorded here so they are not invisible:
+>
+> - **`0292`** — *the client-side archive **read** bypasses `archiveEnabled()`; `0159`/ADR-104 darkened
+>   the **server** leg only.* The owner, shown a finding a spawned `fkit-architect` turned up while
+>   resolving an unrelated `0009`/`0030` contradiction, chose **"File it separately"**.
+>   📌 **That contradiction has since been SETTLED — `0009` does NOT block `0030` and the blocker count
+>   stays TWO** (architect verdict, owner-accepted, 2026-09-22; ⚠️ **accepted, not proven — ~90 %
+>   technical / ~70 % intent**). ⛔ **It has no bearing on `0292`, which was and remains a separate
+>   task.** Full record: [[decisions/sprint-4]].
+>   ⚠️ **THE OWNER RULED ONLY *THAT IT BE FILED SEPARATELY*** — not the board, not the rank, not the
+>   severity; **all three are the producer's call** and overturnable in one edit.
+>   **What it is:** `archiveEnabled()` is a hard `false` with exactly **two** consumers —
+>   `src/server/Archive.ts` (the write) and `src/client/LocalServer.ts`.
+>   **`src/client/JoinPrivateLobbyModal.ts` is not one of them:** its `checkArchivedGame()` fetches the
+>   `/game/<lobbyId>` **read** side of the very endpoint the server stopped POSTing to, **ungated**.
+>   ⚠️ **BENIGN — no user impact, no failure observed:** the 404 is handled as `"not_found"` and the
+>   player sees the ordinary `private_lobby.not_found` message. ⛔ **Not an incident, not a user-facing
+>   bug.** ⚠️ **It fires only for lobby IDs that are NOT currently active** — `checkActiveLobby()`
+>   returns first for a live lobby — so a **producer's own correction to the hand-over**: the framing
+>   *"fires on every private-lobby-ID entry"* was **over-stated**; defect unchanged, volume lower.
+>   ✅ **DESTINATION QUESTION ANSWERED on the LIVE PRODUCTION DEPLOYMENT — IT IS OUR OWN
+>   INFRASTRUCTURE**, measured by `fkit-lead` with a read-only `GET /api/env`: `apiBaseUrl` and
+>   `jwtIssuer` both classified **own infra**, `gameEnv` `prod`, `publicProtocol` `https`.
+>   🔒 **Classification only — no endpoint, host, domain or URL recorded anywhere.** ⇒ **no third-party
+>   traffic and no 152-ФЗ question; severity stays BENIGN.** ⚠️ **Ceiling: one reading, one moment, TWO
+>   fields, PROD ONLY** — dev and preprod unmeasured, and it says **nothing** about identity,
+>   entitlements or matchmaking, so ⛔ **`0009` finding 1 is NOT discharged.**
+>   **Why it is worth a task, neither reason about today:** it is **live outbound traffic ADR-104
+>   intended to stop**, so a reader of that ADR or `0009` would wrongly conclude the path is dark; and
+>   **`0030` must repoint this exact call** — its verification item 2 cannot be satisfied without it.
+>   **Effort:** small — one guard in one client file, ⛔ **reusing `archiveEnabled()`, never a second
+>   flag.** ✅ **Its escape condition — *"if the destination resolves to upstream, re-raise the board"* —
+>   WAS CHECKED AND DID NOT FIRE**, so this board is **confirmed correct on severity grounds**; ⛔ do not
+>   re-open it on that ground. ⚠️ **The other tradeoff is unchanged and accepted knowingly: this board
+>   has a demonstrated hold-forever failure mode**, so a benign task can sit here indefinitely — the
+>   *severity* argument for moving it died, not every argument. See
+>   [[decisions/adr-104-archiving-disabled]] and [[systems/match-logging]].
+> - **`0293`** — *two silent board-record failures: the third `➡️ Moved` row nobody revisits, and
+>   `dashboard.sh`'s greedy move-target parse.* Shown both findings, the owner chose **"File it as a
+>   task"** over three alternatives they were offered and **declined** — *fix it now*, *fold it into
+>   `0050`*, and *leave it* — reasoning that **neither blocks anything today, but both are silent and
+>   both will recur**. ⚠️ **The owner ruled the ACTION and the BOARD; they did NOT rule the rank, the
+>   owner field, or WHICH FIX IS RIGHT** — the fix is deliberately left open.
+>   🟢 **HONEST FRAMING FIRST: NOTHING IS BLOCKED and NO BOARD IS WRONG TODAY.** The two rows that
+>   exposed it were corrected 2026-09-22 and every board verifies clean. **What earns it a task is
+>   recurrence, not damage.** Both findings share one property, which is why they are **one** brief:
+>   each is a record or a parse that goes wrong with **no symptom** — no error, no warning, no failed
+>   check — producing a **confident wrong answer**. ⛔ **Splitting them would bury the second.**
+>   - **FINDING 1 — a sprint→sprint move updates TWO records when there are THREE.** The procedure
+>     updates the sprint plan's Status cell and the brief's `## Sprint`; those agree, so the checker
+>     stays silent on the **sprint** boards. A task originally pulled from **this** board carries a
+>     **third** record here — its moved-row — and **nothing in the procedure revisits it.** It surfaced
+>     by luck: the checker was run against `backlog.md` **specifically**, which `/fkit-status` does
+>     **not** do when reporting an active sprint. **Measured blast radius 2026-09-22, as measured and
+>     NOT larger: 2 of the 5 tasks moved to Sprint 5 that day went stale** — `0061` and `0238`, both
+>     since fixed. ⚠️ **`0285`, `0289` and `0030` were spared ONLY because they have no row on this
+>     board at all**, never having been pulled through it — **verified by grep, not assumed.**
+>     ⛔ **Do not read "3 of 5 were fine" as a low base rate:** the correct reading is *every
+>     Backlog-originated task is exposed, and only those are.*
+>   - **FINDING 2 — `dashboard.sh`'s move-target derivation is GREEDY.** Its leading `.*` matches the
+>     **LAST** marker in a Status cell, so a row recording its own move history in that column reports
+>     the **wrong target with no error** (the trailing `head -1` cannot help — the cell is one line).
+>     🚨 **Reproduced directly, and the result is counter-intuitive, which is the trap:** writing the row
+>     the way a careful author would — canonical marker **leading**, struck history after — parses as the
+>     **STALE** sprint; getting it right requires burying the live marker at the **end** of the cell,
+>     which reads worse. **An author cannot get both a readable row and a correct parse.** Nobody has hit
+>     it only because every live moved row happens to carry exactly one marker — **nothing checks that,
+>     and nothing tells an author it matters.**
+>   - ⚠️ **THE EXISTING MITIGATION IS A WORKAROUND, NOT A FIX:** the 2026-09-22 repair put struck history
+>     in the **Task** column (unparsed) and asserted one marker per row — that **constrains every future
+>     author**, is written down nowhere they would look, and **is enforced by nothing.**
+>   - **What to build is DELIBERATELY UNSETTLED** — three options for finding 1 (the move procedure
+>     checks all boards · the checker spans boards · `/fkit-status` widens what it reads), and **finding
+>     2 is not fixed by any of them.** ⛔ **Whoever picks it up decides, and should put the choice to the
+>     owner first.** 🚨 **IT TOUCHES FKIT'S OWN SKILL FILES, WHICH NO RULING TODAY AUTHORIZED ANYONE TO
+>     EDIT** — get that authorization explicitly before writing code.
+>   - 📌 **Related to `0050` but ⛔ DELIBERATELY NOT MERGED INTO IT** — the owner was offered exactly that
+>     and **declined**: `0050` is about a **field's VALUE** being unparseable (`## Sprint` holding prose);
+>     this is about a **whole record nobody revisits** plus a parser **silently preferring the wrong one
+>     of two valid-looking markers**. ⇒ **Fixing either completely leaves the other untouched.**
+>   - **Effort: not estimated** — it depends entirely on which option is chosen and they differ
+>     substantially; ⛔ **do not quote a figure.**
+>
+> 🔧 **Two existing moved-rows on this board were RETARGETED the same day, Sprint 4 → Sprint 5:** `0061`
+> and `0238`. Both now name **Sprint 5** in their Status cell, with the earlier Sprint 4 promotion
+> **struck, not deleted, because it genuinely happened.** ⚠️ **These are the two stale rows finding 1
+> above is about** — they are the evidence, not a separate change.
+>
+> 📌 **Three rows here were link-path fixes only** (`0248`, `0249`, `0250`): `0014`'s brief moved
+> `backlog/` → `done/`, so their hrefs were repointed. Nothing else changed on them.
+>
+> ---
+>
+> ### 📊 The previous count, kept as the record — 2026-09-21 at `7eebaf3`
 >
 > **`backlog.md`: 83 rows — 59 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
-> 62 OPEN.** *(Was 81 / 60 open at `ceb5454`.)* ⚠️ **Counted by me this run, at this SHA.**
+> 62 OPEN.** *(Was 81 / 60 open at `ceb5454`.)*
 >
-> **Two rows were added this window, both `🔲 Backlog`, both filed by a spawned `fkit-producer` on owner
-> rulings relayed by `fkit-lead` — and ⛔ neither brief is paged** (the backlog rule: a task is not paged
-> until it is done or cancelled). Their substance is recorded here so they are not invisible:
+> **Two rows added in that window**, both `🔲 Backlog`, both filed by a spawned `fkit-producer` on owner
+> rulings relayed by `fkit-lead` — and ⛔ neither brief is paged:
 >
 > - **`0288`** — *alert rule **A4**: p95 of login latency > 750 ms for 10 min.* Filed **2026-09-19**, one of
 >   the six named monitoring gaps [[tasks/profile-identity-s5-monitoring-and-creation-switch]] (`0274`)
@@ -317,3 +417,8 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[systems/alert-delivery]] — where `0258`'s "nothing reads the renewal log" gap and `0263`'s retention question both point
 - [[tasks/name-change-daily-digest]] — task `0283`, filed here and **promoted to Sprint 4 on the producer's call** once `0277` shipped; its row stays as `➡️ Moved to Sprint 4`
 - [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`, whose review split finding **R4** onto this board as `0287` (the unanchored `PROFILE_IMAGE` check, severity **unresolved on purpose**)
+- [[decisions/adr-104-archiving-disabled]] — the ADR task `0292` corrects the reach of: it darkened the **server** archive leg only, and a client **read** is still live
+- [[decisions/archive-archival-strategy]] — the phase split `0292` sits inside; `0030` must repoint that same client read
+- [[systems/match-logging]] — where the still-live archive read is recorded against what a match actually retains
+- [[decisions/sprint-5]] — where `0061` and `0238`'s moved-rows on this board now point, after the 2026-09-22 retarget
+- [[tasks/archive-endpoint-failures]] — task `0159`, whose switch covered the archive writes only; the client read it left ungated is this board's `0292`

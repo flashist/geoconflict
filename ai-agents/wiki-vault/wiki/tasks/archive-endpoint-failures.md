@@ -16,6 +16,7 @@ The archive work was split on 2026-06-01, then the Sprint 4c noise-reduction hal
 - `src/server/Archive.ts` returns before validating or POSTing game records when archival is disabled, so multiplayer and worker-routed singleplayer archive calls no longer hit the non-existent inherited endpoint.
 - `src/client/LocalServer.ts` returns before compressing or uploading singleplayer records when archival is disabled, avoiding the browser `keepalive` body cap and downstream 413 noise.
 - No S3 storage, disk storage, new archive routes, or body-limit changes were introduced.
+- 🔴 **THE TWO BULLETS ABOVE ARE THE WHOLE OF WHAT THIS TASK GATED — corrected 2026-09-22.** `archiveEnabled()` has exactly **two** consumers, `src/server/Archive.ts` and `src/client/LocalServer.ts`, and both are **writes**. The **read** of the same endpoint was never put behind the switch: `src/client/JoinPrivateLobbyModal.ts`'s `checkArchivedGame()` still issues `fetch(\`${getApiBase()}/game/${lobbyId}\`)` in production, ungated. ⚠️ **Benign — no user impact, no failure observed** (the 404 is handled as `"not_found"`), and it fires **only for lobby IDs that are not currently active**. ✅ Destination measured 2026-09-22 as **our own infrastructure**, classification only. Tracked as task **`0292`**; full detail in [[decisions/adr-104-archiving-disabled]].
 - **Out of scope now:** no S3, no disk storage, no new `Master.ts` archive routes, and no body-limit increase just to accept data the server will not store.
 - **Later with citizenship:** implement S3-compatible archive read/write through `DefaultConfig.storageEndpoint()` / `storageBucket()` / `storageAccessKey()` / `storageSecretKey()`, and gate archival to citizen games only.
 - Keep the code shape easy to re-enable for the later S3 implementation, and keep richer archive failure logging available for that future path.
@@ -40,3 +41,4 @@ Production verification is still the delivery gate: after deployment, Uptrace sh
 - [[systems/telemetry]]
 - [[systems/match-logging]]
 - [[decisions/adr-104-archiving-disabled]] — the decision record behind this cleanup
+- [[decisions/sprint-backlog]] — where task `0292`, the client archive read this task did not gate, is filed

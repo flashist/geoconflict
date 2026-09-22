@@ -369,3 +369,4 @@ deploy. **Do not read "0061 is fixed" off `0277`.**
 - [[decisions/sprint-backlog]] — where `0258` (nothing reads the renewal log) and `0263` (the retention cap) sit
 - [[systems/architecture-overview]] — the tier map, corrected to record that the profile box is the admin server and does export telemetry
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, which built the metrics and the single existing alert rule, ran the drill recorded above, and closed with four rules deferred
+- [[decisions/sprint-5]] — where `0285` and `0289`, the two remaining alert-path checks, now sit

@@ -26,6 +26,7 @@ The disk-on-master alternative is rejected. It creates unbounded disk growth on 
 - Match history remains unavailable until the player profile store, citizenship entitlement, and S3 infrastructure exist.
 - The future archival task is mostly infrastructure, but still requires code for S3 read/write, citizen gating, upload limits, and retention.
 - Documentation and task language should avoid re-proposing local disk archive storage unless the storage architecture decision changes.
+- 🔴 **CORRECTED 2026-09-22 — "disable the dead archive calls" was delivered for the WRITES ONLY; the client READ is still live.** `0159` put the server write (`src/server/Archive.ts`) and the singleplayer client write (`src/client/LocalServer.ts`) behind `archiveEnabled()` — a hard `false` with no override. It did **not** gate the **read**: `src/client/JoinPrivateLobbyModal.ts`'s `checkArchivedGame()` still issues `fetch(\`${getApiBase()}/game/${lobbyId}\`)` in production, ungated. ⚠️ **BENIGN — no user impact and no failure observed:** the 404 is handled as `"not_found"` and the player sees the ordinary `private_lobby.not_found` message; ⛔ not an incident, not a user-facing bug. ⚠️ **It fires only for lobby IDs that are NOT currently active** (`checkActiveLobby()` returns first for a live lobby) — an earlier *"fires on every entry"* framing was over-stated. ✅ **The destination is our own infrastructure, not a third party** — measured on the live production deployment 2026-09-22, **classification only, no host recorded**; ⚠️ one reading, two fields, prod only, and it does **not** discharge `0009` finding 1. Tracked as task **`0292`**. ⇒ **Phase 2 below inherits it: this is the only client read there is, so the *"replays / history read back correctly"* verification of `0030` cannot be satisfied without repointing it.** Full detail: [[decisions/adr-104-archiving-disabled]].
 
 ## Related
 
@@ -35,3 +36,5 @@ The disk-on-master alternative is rejected. It creates unbounded disk growth on 
 - [[systems/match-logging]]
 - [[systems/telemetry]]
 - [[decisions/adr-104-archiving-disabled]] — the ADR that formalizes this split
+- [[decisions/sprint-backlog]] — where task `0292`, the ungated client archive read, is filed
+- [[decisions/sprint-5]] — where `0030`, the deferred phase-2 archival task, was scheduled on 2026-09-22

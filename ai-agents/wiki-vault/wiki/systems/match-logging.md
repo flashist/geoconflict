@@ -17,7 +17,7 @@ Source: `ai-agents/knowledge-base/server-match-logging-state.md`
 ### Where Logs Go
 - **stdout** — Winston JSON logger (`src/server/Logger.ts`), always active
 - **OTEL/Uptrace** — active only when `OTEL_EXPORTER_OTLP_ENDPOINT` is set (prod only)
-- **Archive endpoint** — inherited full-game-record POST to `config.jwtIssuer()/game/{gameID}` at match end. Sprint 4c found this route is broken in production, so `archiveEnabled()` is currently `false` and archive writes no-op until S3-backed, citizen-gated archival exists.
+- **Archive endpoint** — inherited full-game-record POST to `config.jwtIssuer()/game/{gameID}` at match end. Sprint 4c found this route is broken in production, so `archiveEnabled()` is currently `false` and archive **writes** no-op until S3-backed, citizen-gated archival exists. 🔴 **WRITES ONLY — corrected 2026-09-22.** The flag has exactly **two** consumers, `src/server/Archive.ts` and `src/client/LocalServer.ts`. The **read** of the same endpoint is **not** behind it and is still live in production — see *Gotchas* below.
 - No local database or file writes
 
 ### What Is Logged (stdout/OTEL)
@@ -59,6 +59,7 @@ For active/in-memory games: `GET /api/game/:id` (`Worker.ts:227`) — only works
 - Structured fields passed as second argument to `log.info()` (e.g. `{ clientID, persistentID }`) may not appear as attributes in Uptrace — only the message string is guaranteed. See [[systems/telemetry]].
 - File-line references in the log events table were re-verified against `src/server/GameServer.ts` on 2026-06-06; the active-game lookup reference was re-verified against `src/server/Worker.ts` on 2026-06-06.
 - Sprint 4c archive investigation found production `Not Found` errors because the geoconflict server does not currently expose the inherited `/game/:gameID` route used by `Archive.ts`; singleplayer archive uploads also hit body-size and browser `keepalive` limits. The accepted and implemented short-term path is to no-op archive writes through `archiveEnabled()`, then defer S3-backed citizen archival until match history has a consumer. See [[tasks/archive-endpoint-failures]] and [[decisions/archive-archival-strategy]].
+- 🔴 **THE ARCHIVE READ IS STILL LIVE — "archiving is off" is true of the WRITES only (corrected 2026-09-22).** `src/client/JoinPrivateLobbyModal.ts`'s `checkArchivedGame()` issues `fetch(\`${getApiBase()}/game/${lobbyId}\`)` with **no `archiveEnabled()` guard**, taking a 404 it handles as `"not_found"`. ⚠️ **Benign: no user impact, no failure observed** — the player just sees the ordinary `private_lobby.not_found` message; ⛔ not an incident and not a user-facing bug. ⚠️ **It fires only for lobby IDs that are NOT currently active** — `checkActiveLobby()` runs first and returns for a live lobby — so a typo, a stale link or a finished game reaches it; an earlier *"fires on every entry"* framing was **over-stated**. ✅ **Destination is our own infrastructure, not a third party**, measured on the live production deployment 2026-09-22 (read-only `GET /api/env`; `apiBaseUrl` and `jwtIssuer` both classified own-infra). 🔒 **Classification only — no host, domain or URL recorded.** ⚠️ **Ceiling: one reading, one moment, two fields, prod only** — dev and preprod unmeasured, and it says nothing about identity, entitlements or matchmaking. Tracked as task **`0292`**; `0030` must repoint this same call before match history can be read back. See [[decisions/adr-104-archiving-disabled]] and [[decisions/sprint-backlog]].
 - 140 returning users reported `null` build version (as of 2026-04-09) — likely sessions before `configureBuild()` was wired, unrelated to logging
 
 ## Related
@@ -69,4 +70,6 @@ For active/in-memory games: `GET /api/game/:id` (`Worker.ts:227`) — only works
 - [[tasks/solo-win-condition-fix]] — solo opponent winners can be archived as explicit opponent winners
 - [[tasks/archive-endpoint-failures]] — Sprint 4c archive telemetry cleanup
 - [[decisions/archive-archival-strategy]] — deferred S3-backed citizen archival decision
-- [[decisions/adr-104-archiving-disabled]] — why no game records are retained today
+- [[decisions/adr-104-archiving-disabled]] — why no game records are retained today, and the client **read** its switch never covered
+- [[decisions/sprint-backlog]] — where task `0292`, the ungated client archive read, is filed
+- [[decisions/sprint-5]] — where `0030`, the archival task that would make match records retrievable, is now scheduled

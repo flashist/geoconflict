@@ -3,7 +3,127 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
-> # 📊 BOARD RE-COUNTED 2026-09-21 at `HEAD` = `7eebaf3`
+> # 📊 BOARD RE-COUNTED 2026-09-22 at `HEAD` = `6934226`
+>
+> **106 rows — 78 Done · 14 Blocked · 4 Backlog · 1 In progress · 3 Cancelled · 6 Moved; 19 OPEN.**
+> *(Was 106 / 25 open at `7eebaf3`. **The row count did not change; SIX rows left the open pool** — five
+> moved to [[decisions/sprint-5]] and one closed.)* ⚠️ **Counted by me this run, at this SHA.**
+>
+> 🚨 **98 `(agent-closed — not owner-verified)` mentions file-wide, against 78 Done rows.** Counted
+> strictly in the **status cell**, the only place the marker governs a row: **56 of 78 Done rows.**
+> **Both bases are true; say which you mean.** ⛔ **The ratio still gets worse as the sprint ships.**
+>
+> **What moved, all on 2026-09-22 and all on owner rulings:**
+> - ✅ **`0014` CLOSED** `✅ Done (agent-closed — not owner-verified)` — see
+>   [[tasks/yandex-catalog-registration]]. ⇒ **`0065`'s blocker count drops THREE → TWO** (`0062`,
+>   `0195`); ⛔ **`0065` stays `🚧 Blocked` and its token did not move.**
+> - ➡️ **FIVE rows moved to [[decisions/sprint-5]]** — `0238`, `0285`, `0289`, `0061` (**RULING D**, the
+>   post-deploy checkups) and `0030` (**RULING E**, a separate ruling for a separate reason). Details
+>   below.
+> - 🔴 **SEVEN Sprint 4 rows re-ranked or ratified** by owner ruling, and the **epic `0266` now sits
+>   above its own child slices.** Details below.
+>
+> ---
+>
+> ## 📌 THE 2026-09-22 RULINGS — FIVE OF THEM, AND THEY SETTLED FIVE DIFFERENT THINGS
+>
+> ⚠️ **Do not merge them. No ruling of the five decided any other's question.** All were given live in
+> the `fkit lead` session and relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner
+> channel** (ADR-021). ⛔ **Not producer precedent.**
+>
+> **The base re-rank (position).** The owner was shown that **seven rows carried producer *append*-ranks
+> this board itself flags as "not a merit ranking, not owner-ruled"** — several noting *"on merit this
+> belongs below `0217`"* — and ruled: **move `0272`, `0273`, `0266` and `0253` directly under `0217`.**
+> Applied in the order named, then amended by RULING A. ⛔ **This is an owner ruling lifting ADR-035's
+> append-only constraint for exactly those moves** — ⛔ **not producer precedent for placing any other
+> row.**
+>
+> | Ruling | What it settled | What it did NOT settle |
+> |---|---|---|
+> | **(base)** | **POSITION** of `0272`, `0273`, `0266`, `0253` under `0217` | their **labels** |
+> | **A** | the epic **`0266` moves ABOVE its own child slices** — *"it reads correctly to anyone scanning the board — epic first, then its slices."* Board order that stands: **`0217` → `0266` → `0272` → `0273` → `0253`** | ⚠️ **a READING-ORDER correction that changes NO DEPENDENCY** — the slice order `0270` S1 → (`0271` S2 ∥ `0272` S3) → (`0273` S4 ∥ `0274` S5) still governs what may start when. **Board position is not execution order.** |
+> | **B** | the **three remaining append-ranks ratified as `Low`**: `0285` (was `Medium` — **lowered**), `0286` (was `Low` — **unchanged, ratified only**), `0289` (was `High` — **lowered**). Stated reason: *the monitoring/messaging track is deprioritized*, and it clears the unratified flag so it stops reading as noise | ⛔ **`0286` is `🚧 Blocked` and STAYS blocked** — its pending **owner-executed** plan step 8 was not touched. **A ratified rank is not a started task.** |
+> | **C** | the **four core LABELS ratified AS THEY STAND** — `0266` `High`, `0272` `High`, `0273` `High`, `0253` `Medium`. ⛔ **Not one value moved and no row moved** — only the Priority cells' wording. Stated reason: *the values already match how they are treating the work — core citizenship first* | ⛔ **`0272`, `0273` and `0253` are `🚧 Blocked` and stay so.** **A ratified label is not a started task.** |
+> | **D** | **BOARD** — four post-deploy checkups moved to Sprint 5: `0238`, `0285`, `0289`, `0061`. Owner, verbatim: *"Let's skip this type of chekups, I will take care of them after deploy. The only thing we should care about is to make sure the feature is switcheable … You can move the tasks connected to checkings to the next sprint, so we do final checkups and figure out what's wrong with them after deploy."* | ⛔ **No task FOLDER moved** (all four briefs stay under `ai-agents/tasks/backlog/`), ⛔ **no mover skill was invoked**, ⛔ **no `## Status` token and no `## Priority` was touched.** 🚩 **Three rows were OFFERED and the owner DECLINED each — they stay on Sprint 4:** `0065` (the go-live close for paid citizenship — **not a checkup**), `0064` (this sprint's only `🔄 In progress` row) and `0203`. ⛔ **Do not move them on RULING D's authority.** |
+> | **E** | **BOARD** — **`0030` moved to Sprint 5**, on a **separate** ruling: *"Move this task and anything that depends on it to the Sprint 5"*. ✅ **"Anything that depends on it" resolved to NOTHING** — swept across `ai-agents/tasks/` and `ai-agents/sprints/` and verified, so **`0030` moved ALONE** | ⛔ **NOT part of RULING D and NOT a checkup.** 🚨 **The blockers did NOT come with it:** `0017` and `0018` **stay on this board**, so `0030` now sits a board *behind* its own prerequisites — **coherent, not drift**; ⛔ do not "fix" it by dragging them forward. ⛔ **Neither hard blocker was discharged or re-sequenced.** |
+>
+> 📐 **One RULING-E fact is measured, not assumed (working tree, 2026-09-22):** `0030`'s blocker 2 —
+> the four S3 config slots are **plumbed end to end** (`src/core/configuration/DefaultConfig.ts`,
+> forwarded by `deploy.sh`) but **EMPTY**, and `archiveEnabled()` is a hard `false` with **no override
+> anywhere** ⇒ **the plumbing is done; only the bucket is missing.** ⚠️ **Ceiling: read from the
+> REPOSITORY, not from a deployed host** — it says nothing about any running server's environment.
+> 🔒 **Key names and emptiness only; no value was read, printed or recorded.**
+>
+> ## ✅ THE `0009` / `0030` CONTRADICTION IS **RESOLVED** — THE BLOCKER COUNT STAYS **TWO**
+>
+> 📌 **Answered 2026-09-22, the same day and BEFORE the commit this page was synced from** — the flag
+> below was raised, investigated and settled; ⛔ **do not reopen it on the strength of the old wording
+> in any other file.**
+>
+> **VERDICT — `0009` does NOT block `0030`.** A spawned `fkit-architect` investigated the one-sided
+> declaration and returned **NO: `0009`'s "Blocks `0030`" claim is STALE; `0030` does not depend on
+> `0009`; the two-blocker count is correct.** **Authority: that verdict ACCEPTED BY THE OWNER** live via
+> `AskUserQuestion` in the `fkit lead` session, relayed to a spawned `fkit-producer` with no owner
+> channel (ADR-021). ⛔ **Not producer precedent.**
+>
+> **Why, recorded so it is not re-derived:**
+> - The claim traces to `ai-agents/knowledge-base/architecture.md` §13 open question 1, phrased
+>   **conditionally** — *"This determines whether R2 and the archive task are blocked on an external
+>   party"* — which got **flattened into "Blocks"**. ⛔ **The determination was never run**; `0009` is
+>   findings-only and unstarted.
+> - `0009`'s own Context says it was parked over *"not knowing where archives were meant to go. Now we
+>   do."* — **destination ambiguity, since discharged**, not a dependency.
+> - `0009` **is** right about **current** code: `src/server/Archive.ts` POSTs to `config.jwtIssuer()`,
+>   the shared root. **But `0030`'s job is to REPLACE that with an S3 write**, so `0030` *removes* the
+>   archive leg from `0009`'s scope rather than waiting on it. 🔄 **The arrow points the other way.**
+> - **The discriminator:** citizen-gating reads `is_citizen` from the **profile server**
+>   (`src/server/GameServer.ts`, via `ProfileApiClient.resolvePlayer`) — **not** from upstream flares /
+>   `PrivilegeChecker`. **Had it keyed off the latter, the dependency would be real.**
+> - **A genuine but NON-BLOCKING coupling, recorded so it is not mistaken for a blocker later:**
+>   `PlayerRecord.cosmetics` (`src/core/Schemas.ts`) is filtered by upstream-supplied entitlements. It
+>   changes what an archived record **contains** — never whether archival can be built, gated or
+>   shipped — and on the Yandex persistent-id path `flares` is `undefined` anyway.
+>
+> ⚠️ **CONFIDENCE, STATED HONESTLY AND NOT ROUNDED UP — the verdict is ACCEPTED, not PROVEN.**
+>
+> | What | Confidence | Why not higher |
+> |---|---|---|
+> | The **technical** verdict (`0030` does not depend on `0009`) | **~90 %** | each step is a read line in the working tree |
+> | The **intent** question (what *"Blocks"* meant to its author) | **~70 %** | ⛔ **code cannot establish what the author meant on 2026-08-09** — the stale-flattening account is the best available reading, not a proof |
+>
+> **What was done to `0009`:** the owner chose *"Downgrade to Related"* — the `## Notes` Blocks line was
+> edited (`0030` struck, replaced with a *Related / touches* note) and its `## Context` bullet 1
+> corrected, struck not deleted. ⛔ **`0009`'s scope, status and priority were NOT changed**, and it
+> still lives on the Backlog board.
+>
+> 🚩 **A LIVE RE-DERIVATION RISK, DELIBERATELY LEFT IN PLACE.** The owner was explicitly offered the
+> chance to correct `ai-agents/knowledge-base/architecture.md` §13 Q1 too and **DECLINED**, so **the
+> conditional sentence that seeded this false dependency still stands there by choice.** ⚠️ **Expect to
+> meet it again, and do not "fix" it** — read it as the conditional it is.
+>
+> ---
+>
+> ### 🚩 The flag as this page first carried it, kept as the record
+>
+> ~~**AN UNRESOLVED CONTRADICTION IS FLAGGED AND NOT SETTLED — THE OWNER'S CALL.** `0009`'s `## Notes`
+> declares it **BLOCKS** `0030`; `0030`'s own hard-blocker list names exactly **two** and **does not name
+> `0009`**. Either `0030` has a **third blocker nobody recorded**, or `0009`'s claim is **stale**.
+> ⚠️ **Not cosmetic:** under the first reading, the *two blockers* answer the owner was given that day was
+> incomplete. ⛔ **No side was picked and neither file was reconciled.**~~
+> ⇒ **The second reading was right: the claim was stale.**
+>
+> ✅ **THE ONE THING THE OWNER SAID DOES MATTER IS NOW A CHECKED CLAIM, NOT A BELIEF.** The
+> switchability property — *flag absent, flag set to a wrong value, or the Yandex SDK never loaded ⇒
+> every citizenship surface is OFF* — is **VERIFIED IN SOURCE 2026-09-22**, every branch read, and
+> recorded in `0238`'s brief. 🚨 ⛔ **NOT VERIFIED IN PRODUCTION — no deployed build has been observed
+> doing it**, so ⛔ **it does NOT discharge the gate**; and it holds on **production builds only**,
+> because `checkExperimentFlag()` returns `true` **unconditionally** when `GAME_ENV === "dev"`, which
+> `webpack.config.js` substitutes at build time for every non-production build. ⛔ **A local "the card
+> appeared" reading proves NOTHING.**
+>
+> ---
+>
+> ### 📊 The previous count, kept as the record — 2026-09-21 at `7eebaf3`
 >
 > **106 rows — 77 Done · 14 Blocked · 10 Backlog · 1 In progress · 3 Cancelled · 1 Moved; 25 OPEN.**
 > *(Was 104 / 25 open at `ceb5454` on 2026-09-19. **Open is unchanged at 25** — the board grew by two rows
@@ -22,7 +142,13 @@
 >    `0274`'s amendment A1 given a task of its own, filed 2026-09-19.
 > 3. 🔧 **`0014`'s status cell flipped `🚧 Blocked` → `🔲 Backlog`**: the **external approval gate is VOID**
 >    (owner ruling 2026-09-19), leaving **two owner-side Yandex-console deliverables, neither externally
->    gated**. ⚠️ **`0014` is NOT done** — it stopped waiting on Yandex, not on itself.
+>    gated**. ~~⚠️ **`0014` is NOT done** — it stopped waiting on Yandex, not on itself.~~
+>    ✅ **SUPERSEDED 2026-09-22 — `0014` IS NOW DONE**, `(agent-closed — not owner-verified)`, on the
+>    owner's verbatim *"Close it"*. Four further owner rulings the same day emptied its deliverables:
+>    the **test-purchase login is ADDED**, the **cosmetics item is DELIBERATELY NOT to be registered**,
+>    the **price unit is 99 YAN, not rubles** (a deliberate margin decision), and the **`citizenship_ui`
+>    experiment flag is SET**. 🚨 **Every one of those is OWNER-ATTESTED and NOT repo-verifiable** —
+>    nothing here can see the Yandex console. See [[tasks/yandex-catalog-registration]].
 >
 > ## 🔴 `0291` CLOSED, AND THE `0238` LAUNCH GATE THIS PAGE RECORDED IS **DROPPED**
 >
@@ -468,7 +594,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 | Degraded-Mode UX — Yandex SDK timeout/failure treatment | done (agent-closed — not owner-verified) | 0049 closed 2026-08-14: `isYandexDegraded()` + distinct card state; case (b) healthy-SDK guest unit-test-only. Clears the earned/paid citizenship gate. See [[tasks/degraded-mode-ux-treatment]] |
 | Citizenship Core — Earned Citizenship | **built + reviewed 2026-08-24 — OPEN** | 0017, re-scoped 2026-08-23 (owner-ruled: don't block on Yandex externals): built and verified against the **local** profile stack (profile server + Postgres via Docker, `RUN_DB_TESTS=1`); review converged Ready-to-merge **on local scope only**. `0062` stays real but gates only the brief's **Deferred Live Tail** (prod XP accrual, live grant, card-flag flip-ON) — ⚠️ **do not close until that tail runs**. Never depended on 0014/Yandex |
 | Citizenship Core — Paid Citizenship | **built + reviewed 2026-08-24 (mock scope) — OPEN** | 0018, re-scoped 2026-08-23 to the **mock-buildable scope only**: purchase flow, grant, reconciliation UI against a mocked SDK catalog on 0019's `PaymentsContract`/`PaymentsApiClient` seam; review converged Ready-to-merge **on that scope only**. Does NOT go live from this task — both former blockers (`0062`, catalog approval `0014`) now gate the split-out live tail `0065`. Stays open pending `0065` |
-| Paid Citizenship — Live Verification & Go-Live Tail | **blocked — THREE conditions: `0014`, `0062` AND `0195`** | 0065, split out of 0018 on 2026-08-23 (owner-ruled, on the 0019 deferred-checklist precedent); absorbs 0019's live checklist: real signed payloads/HMAC confirmation, live catalog fetch, real test purchase, live reconciliation, moderation behavior, 0054 flip-ON at go-live. Neither blocker alone unblocks it; **flip-ON additionally gated on "`0066` DEPLOYED"**. ✅ **That licensing gate is now DEMONSTRATED (2026-08-30)** — `0066` is deployed and its live checks ran and passed. ⚠️ **`0065` IS NOT UNBLOCKED.** Its other blockers stand untouched: `0014`, `0062` (shipped but never exercised — the token is deliberately blank) and `0195`. 🔧 **Updated 2026-09-02 — `0195` shipped 2026-09-01 and the count is STILL THREE, owner-ruled.** Its deploy-script fix is in the repo. ~~but `0014` has not issued the per-game key, so the value lands **empty** on the box and every `/v1/payments/*` route still 503s~~ 🔴 **STRUCK 2026-09-19 — FALSE OF THE BOX:** a **non-empty** value (length 32, content never read) is present in the running container, a `POST` to a non-existent sub-path under `/v1/payments/` on the loopback answers **404, not 503**, and `payments endpoints disabled` is logged **0 times**. 🚨 **That settles presence and NOTHING ELSE — correctness unproven, no real purchase exercised, ⚠️ provenance unverified (NOT evidence `0014` issued the key).** ⛔ **The COUNT is owner-ruled and is NOT changed here (ADR-033) — but its stated reason is stale.** `0065`'s steps 1–4 all drive those routes and still need a *correct* value plus a real signed payload. ⚠️ **`0195` is a gate now SATISFIED, not a gate REMOVED. Do not reduce the count.** `0014` issuing the key is necessary but **not sufficient** |
+| Paid Citizenship — Live Verification & Go-Live Tail | ~~**blocked — THREE conditions: `0014`, `0062` AND `0195`**~~ 🔧 **BLOCKED — TWO conditions as of 2026-09-22: `0062` and `0195`.** `0014` closed that day on an owner ruling (*"Correct it"*, then *"Close it"*), so its condition is **SATISFIED**. ⛔ **The task id is KEPT, not removed — the dependency happened, it did not vanish.** ⛔ **This row stays `🚧 Blocked`, its status token did NOT move, and no mover was invoked on it.** ⚠️ **A dropped count is NOT movement toward go-live.** ⛔ **SATISFIED ≠ EXERCISED — no purchase of any kind has ever been made**; that is step 3, still unrun, and the owner confirmed 2026-09-22 they **will** run it after the game deploy, signed in as the test account. 🚩 **A lead-session claim that the owner refused test purchases was a MISATTRIBUTION and was never true.** ⛔ The 2026-09-20 owner refusal to clear the **`0195`** condition on correctness **stands in full** | 0065, split out of 0018 on 2026-08-23 (owner-ruled, on the 0019 deferred-checklist precedent); absorbs 0019's live checklist: real signed payloads/HMAC confirmation, live catalog fetch, real test purchase, live reconciliation, moderation behavior, 0054 flip-ON at go-live. Neither blocker alone unblocks it; **flip-ON additionally gated on "`0066` DEPLOYED"**. ✅ **That licensing gate is now DEMONSTRATED (2026-08-30)** — `0066` is deployed and its live checks ran and passed. ⚠️ **`0065` IS NOT UNBLOCKED.** Its other blockers stand untouched: `0014`, `0062` (shipped but never exercised — the token is deliberately blank) and `0195`. 🔧 **Updated 2026-09-02 — `0195` shipped 2026-09-01 and the count is STILL THREE, owner-ruled.** Its deploy-script fix is in the repo. ~~but `0014` has not issued the per-game key, so the value lands **empty** on the box and every `/v1/payments/*` route still 503s~~ 🔴 **STRUCK 2026-09-19 — FALSE OF THE BOX:** a **non-empty** value (length 32, content never read) is present in the running container, a `POST` to a non-existent sub-path under `/v1/payments/` on the loopback answers **404, not 503**, and `payments endpoints disabled` is logged **0 times**. 🚨 **That settles presence and NOTHING ELSE — correctness unproven, no real purchase exercised;** ~~⚠️ provenance unverified (NOT evidence `0014` issued the key)~~ ✅ **provenance ANSWERED 2026-09-20 — OWNER-ATTESTED, NOT repo-verified: the owner set the real Yandex per-game key themselves and performed the redeploy.** ⛔ **It settles where the value came from and nothing more.** ⛔ **The COUNT is owner-ruled and is NOT changed here (ADR-033) — but its stated reason is stale.** `0065`'s steps 1–4 all drive those routes and still need a *correct* value plus a real signed payload. ⚠️ **`0195` is a gate now SATISFIED, not a gate REMOVED. Do not reduce the count.** `0014` issuing the key is necessary but **not sufficient** |
 | Hide Citizenship Card Behind Client Flag (default OFF) | done (agent-closed — not owner-verified) | 0054 shipped 2026-08-21: the dead-end degraded card no longer tops the production start screen; flipping the flag ON is the relaunch mechanism bundled into 0017/0018. See [[tasks/hide-citizenship-card-flag]] |
 | `Master.ts` — Parseable Lobbies Body + Worker-Exit Diagnostics | done (agent-closed — not owner-verified) | 0055 closed 2026-08-22 (outage track, unblocked half). **Correction 2026-08-26:** the "unpushed branch" note was stale — `419a116` reached `dev` via PR #133 (`7410bfb`), so `dev` carries it. **Whether prod has it is UNKNOWN, not checked.** First-ever `Master.ts` tests. See [[tasks/master-lobbies-worker-exit-diagnostics]] |
 | Investigation — Routing to Dead/Unready Workers | done (agent-closed — not owner-verified) | 0057, architect-led, promoted from the Backlog board 2026-08-22 (owner-ruled to run **before** 0056). Closed 2026-08-26 on findings reviewed with the owner: separated the self-healing **dead-index** shape from the quorum-independent **wedged-index** shape, and **confirmed 18/20 rather than revising it**. Outcome → briefs 0192/0193 and ADR-109. See [[tasks/worker-routing-dead-worker-investigation]] |
@@ -755,3 +881,6 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/uptrace-retention-not-applied]] — task `0259`
 - [[tasks/client-source-map-upload-verification]] — task `0260`
 - [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`
+- [[tasks/yandex-catalog-registration]] — task `0014`, **closed 2026-09-22** `(agent-closed — not owner-verified)`; every deliverable owner-attested and not repo-verifiable, and it drops `0065`'s blocker count to two
+- [[decisions/adr-104-archiving-disabled]] — the ADR whose scope `0292` corrects: it darkened the **server** archive leg only
+- [[systems/architecture-overview]] — home of §13 open question 1, whose **conditional** second clause was flattened into the false `0009`-blocks-`0030` dependency settled on this board; ⚠️ the seeding sentence stays in `architecture.md` **by owner choice**

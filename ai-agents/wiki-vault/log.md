@@ -3818,3 +3818,115 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - ✅ **`.wiki-watermark` advanced `ceb5454` → `7eebaf3`.**
 - 🔒 **No secret, host, IP, DSN, token, chat id, topic id or player id was written.** The payments secret
   is recorded as a **length (32)** and a provenance **attestation** only; its value appears nowhere.
+
+## 2026-09-22 — ingest (sync)
+
+- **Sync window:** `7eebaf3` → HEAD (`6934226`), **4 commits**. Working tree **clean** at start; the
+  caller's figures were independently re-derived and matched.
+- **Changed source files detected under `ai-agents/` (excluding the vault):** 23; **5 ingest-worthy**
+  after the Step-3 filter (2 done-task briefs + 3 sprint boards). ⚠️ **18 skipped, with reason:** 16
+  `tasks/backlog/*/brief.md` (not done — a page would be premature; this deliberately excludes `0292`
+  and `0293`, whose substance was taken from the **board** instead), and `0291`'s in-folder `review.md`
+  (a working artifact, not a source).
+- Ingested: `ai-agents/tasks/done/0014-yandex-catalog-registration/brief.md` → **created**
+  [[wiki/tasks/yandex-catalog-registration]] — the close, the four 2026-09-22 owner rulings
+  (test-purchase login **added**; cosmetics **deliberately not registered**; price unit **99 YAN, not
+  rubles**, for a stated margin reason; `citizenship_ui` flag **set**), the fixed `citizenship` product
+  id and its typo failure mode, the answered secret provenance, the dissolved list conflict, and the
+  unconfirmed flag name/value residual.
+- Ingested: `ai-agents/tasks/done/0291-…/brief.md` (modified this window) → updated
+  [[wiki/tasks/citizenship-card-fail-closed-degraded-sdk]] — ✅ **the self-contradiction this vault
+  flagged on 2026-09-21 is RESOLVED**: the false `## Status` paragraph was struck on an owner ruling
+  (*"fix it"*). Recorded with each part's basis named separately — **end state repo-verified**,
+  **ordering only AGENT-ATTESTED and git cannot establish it**, `0238` edited **hrefs only**, and the
+  root cause (a stale question put to the owner).
+- Ingested: `ai-agents/sprints/plan-sprint-4.md` → updated [[wiki/decisions/sprint-4]] — board recount
+  at `6934226`, `0014`'s close, `0065` three → two blockers, and the **five separate 2026-09-22 rulings**
+  (base re-rank · A epic-above-children · B three ranks ratified `Low` · C four labels ratified as they
+  stand · D four checkups to Sprint 5 · E `0030` moved separately).
+- Ingested: `ai-agents/sprints/plan-sprint-5.md` → updated [[wiki/decisions/sprint-5]] — five rows moved
+  in (7 → 12), RULING D and RULING E kept apart, the declined three, `0030`'s uncarried blockers and its
+  measured-but-repository-only blocker 2.
+- Ingested: `ai-agents/sprints/backlog.md` → updated [[wiki/decisions/sprint-backlog]] — recount
+  **85 rows / 64 open** (was 83 / 62); the two new rows `0292` and `0293` recorded in substance
+  (**neither brief paged** — backlog rule); `0061`/`0238` moved-rows retargeted Sprint 4 → Sprint 5;
+  `0248`/`0249`/`0250` link-path fixes only.
+- **Targeted lint, three pages named by a spawned `fkit-architect` plus one I added:** the claim that
+  archiving is **fully** disabled was corrected on [[wiki/decisions/adr-104-archiving-disabled]],
+  [[wiki/decisions/archive-archival-strategy]], [[wiki/systems/match-logging]] and
+  [[wiki/tasks/archive-endpoint-failures]] (the `0159` page, where a reader checks what that task turned
+  off). ✅ **Verified in source this run, not taken on trust:** `archiveEnabled()` has exactly **two**
+  consumers (`src/server/Archive.ts`, `src/client/LocalServer.ts`) and
+  `src/client/JoinPrivateLobbyModal.ts`'s `checkArchivedGame()` is **not** one of them. ⚠️ **Both
+  corrections to the finding were carried, neither overstated:** it fires **only for non-active lobby
+  IDs**, and the destination is **our own infrastructure**, measured on the live prod deployment —
+  ⛔ recorded as a **classification**, with the *"one reading, two fields, prod only, `0009` finding 1
+  NOT discharged"* ceiling attached each time.
+- **Second stale-claim flag cleared:** the payments **provenance-unverified** wording was struck on
+  [[wiki/tasks/yandex-payments-implementation]], [[wiki/decisions/config-parity-failure-class]] and
+  [[wiki/decisions/sprint-4]], and the stale *"payments have been silently 503"* sentence on
+  [[wiki/tasks/citizenship-name-change]]. ⛔ **Deliberately NOT upgraded to "payments work"** — every
+  page now says provenance is **owner-attested, not repo-verified**, correctness is **unproven**, and
+  **no real purchase has ever been exercised.**
+- **Back-links: 16 added** across [[wiki/decisions/licensing-compliance]],
+  [[wiki/systems/player-profile-store]], [[wiki/tasks/citizenship-kill-switch-coverage]],
+  [[wiki/tasks/hide-citizenship-card-flag]], [[wiki/tasks/yandex-payments-investigation]],
+  [[wiki/tasks/yandex-payments-secret-forwarding]], [[wiki/decisions/adr-111-xp-economy-rescale]],
+  [[wiki/systems/alert-delivery]], [[wiki/tasks/name-change-daily-digest]],
+  [[wiki/tasks/profile-identity-s5-monitoring-and-creation-switch]],
+  [[wiki/tasks/setup-profile-heredoc-root-command-execution]] and the four pages above. **Every
+  wiki-link on every touched page resolves, and every one is now bidirectional** (checked
+  programmatically). **Four of those one-way links were pre-existing, not created by this run.**
+- **Totals: 5 sources · 1 page created · 22 pages updated (`index.md` included) · 16 back-links added.**
+- ⛔ **Closed nothing, moved no task file, invoked no mover, edited no brief and no sprint plan**
+  (ADR-033). **Wrote only inside `ai-agents/wiki-vault/`. Nothing committed or pushed.**
+- ✅ **`.wiki-watermark` advanced `7eebaf3` → `6934226`.**
+- 🔒 **No secret, host, IP, domain, DSN, token, key or credential was written.** The payments secret
+  appears only as a **length (32)** and an **attestation**; the `/api/env` measurement appears only as a
+  **classification** (*"own infra"*), with the host strings deliberately discarded.
+
+## 2026-09-22 — lint (correction within the same window)
+
+- **Correction, not a new sync.** ⛔ **`.wiki-watermark` NOT advanced — it stays `6934226`.** This
+  corrects pages written by today's sync earlier, inside that same window.
+- **What was wrong, and why the sync could not have known.** Today's sync reported the `0009` / `0030`
+  blocker contradiction as **unresolved, the owner's call**. It had in fact been **settled earlier the
+  same day**, before the synced commit. The resolution lives in `ai-agents/tasks/backlog/0030-…/brief.md`
+  and `…/0009-…/brief.md` — **both under `backlog/`, which the Step-3 filter correctly skips** — and the
+  two sprint plans the sync *did* read still carried the superseded flag. ⇒ **the vault reported
+  faithfully what it was allowed to read.**
+- ✅ **Verified against `0030`'s brief this run, not taken on relay** — search for
+  `RESOLVED 2026-09-22 — THE BLOCKER COUNT STAYS`.
+- **VERDICT RECORDED: `0009` does NOT block `0030`; the blocker count stays TWO.** Spawned
+  `fkit-architect` verdict, **accepted by the owner** live via `AskUserQuestion` (⛔ not producer
+  precedent). The reasoning was recorded in full rather than left to be re-derived: the **conditional**
+  `architecture.md` §13 Q1 sentence flattened into *"Blocks"*, **a determination that was never run**;
+  `0009`'s own parking reason was **destination ambiguity, since discharged**; `0030` **replaces** the
+  archive POST with an S3 write, so **the arrow points the other way**; **the discriminator** is that
+  citizen-gating reads `is_citizen` from the **profile server**, not upstream flares; and the
+  `PlayerRecord.cosmetics` coupling is **real but non-blocking** — it changes what a record *contains*,
+  never whether archival can ship.
+- ⚠️ **Confidence recorded and deliberately NOT rounded up: ~90 % technical, ~70 % on intent** — ⛔ code
+  cannot establish what *"Blocks"* meant to its author on 2026-08-09. **Accepted, not proven.**
+- 🚩 **Recorded as a live re-derivation risk, because it was deliberately not fixed:** the owner was
+  offered the correction to `ai-agents/knowledge-base/architecture.md` §13 Q1 and **DECLINED**, so the
+  seeding conditional still stands there **by choice**.
+- **Pages corrected — 6.** Named by the caller: [[wiki/decisions/sprint-4]] (full record, with the old
+  flag kept **struck, not deleted**), [[wiki/decisions/sprint-5]], [[wiki/decisions/sprint-backlog]]
+  (pointer on the `0292` row — ⛔ noting the resolution has **no bearing on `0292`**, a separate task).
+  **Found by my own sweep, beyond the three named: [[wiki/index]] carried it TWICE** — in both the
+  Sprint 4 and the Sprint 5 entries — **and [[wiki/systems/architecture-overview]]**, which is the
+  vault's home for §13 Q1 and where the re-derivation risk now sits. ⚠️ **That page's `0008` /
+  `PrivilegeRefresher` dependency on `0009` is a DIFFERENT and REAL dependency — deliberately left
+  untouched.**
+- ✅ **A suspicion in `0030`'s brief did NOT pan out, recorded so it is not re-checked:** it flagged
+  `adr-104-archiving-disabled`, `archive-archival-strategy` and `match-logging` as *possibly* carrying
+  the claim. **They do not.** Their only `0009` mention is *"`0009` finding 1 is NOT discharged"* — a
+  **different and accurate** statement about the `0292` destination measurement.
+- **Sweep re-run after the edits: every surviving mention carries the resolution or is struck history;
+  zero live instances.** All wiki-links on the touched pages resolve and are bidirectional (one
+  back-link added: `sprint-4` ↔ `architecture-overview`).
+- ⛔ **Wrote only inside `ai-agents/wiki-vault/`.** ⛔ **`ai-agents/sprints/plan-sprint-4.md` and
+  `plan-sprint-5.md` were NOT touched — a producer is fixing those concurrently.** ⛔ Closed nothing,
+  moved no task file, invoked no mover, edited no brief. Nothing committed or pushed.
+- 🔒 **No secret, host, IP, domain, DSN, token or key written.**

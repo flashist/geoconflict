@@ -389,3 +389,4 @@ than picking silently.
 - [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`: `setup-profile.sh` ran its own compose-file comments as **root** on every deploy of this box; pre-existing, fixed and now gated by the hardening harness
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`: this service's OTEL metrics, the `PROFILE_LOGIN_CREATE_ENABLED` creation switch (`503 creation_paused`), the junk-cleanup runbook, and the `profile-checks.sh` disk / growth backstop
 - [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`: the client kill switch that hides four citizenship surfaces now fails **closed** under a degraded SDK too. ⛔ **It hides UI only and does NOT stop this service crediting XP — not a legal or moderation takedown mechanism**
+- [[tasks/yandex-catalog-registration]] — task `0014`, which issued the per-game payments secret this store's payments routes fail closed without
