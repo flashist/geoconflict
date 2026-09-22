@@ -136,8 +136,13 @@ running it:
   property), [`0195`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md) (the
   forwarding gap `0220` widened), [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md)
   (what gates T13 today).
-- ✅ **BOARD RULED BY THE OWNER 2026-09-22 — RULING F. IT STAYS ON BACKLOG, AND THE OBJECTION WAS
+- ✅ **BOARD RULED BY THE OWNER 2026-09-22 — RUNBOOK-F. IT STAYS ON BACKLOG, AND THE OBJECTION WAS
   ANSWERED, NOT MISSED.**
+
+  > 📛 *Renamed 2026-09-22 from a bare `RULING F`; ⛔ **label change only** — content, authority and
+  > outcome unchanged. A **separate** 2026-09-22 sequence on the sprint plans uses the same bare
+  > letters; cause and full mapping: the namespacing note at the top of
+  > [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md).*
 
   > **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
   > 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**

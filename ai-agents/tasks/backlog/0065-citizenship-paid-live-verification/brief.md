@@ -324,6 +324,13 @@ down (`0019` decision).
 
 > ## ⛔ STEP 3 IS DELIBERATELY **OUT** OF THE WEEKEND DEPLOY WINDOW — OWNER RULING 2026-09-22
 >
+> 📛 **This ruling is `RUNBOOK-A` of the weekend-runbook set** (recorded inside
+> [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) as its
+> ***Conflicts*, C1**). ⚠️ **Label added 2026-09-22 — this brief never carried a bare letter, so nothing
+> here was renamed.** It is written down because a **separate** 2026-09-22 sequence on the sprint plans
+> also runs `RULING A`…`RULING G`, and ⛔ **its `RULING A` is a different ruling** (`0266`'s reading
+> order). Cause and full mapping: the namespacing note at the top of that runbook.
+>
 > **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
 > 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
 > (ADR-021). ⛔ **Not producer precedent.** The owner chose **"Drop `0065` step 3 from the window."**

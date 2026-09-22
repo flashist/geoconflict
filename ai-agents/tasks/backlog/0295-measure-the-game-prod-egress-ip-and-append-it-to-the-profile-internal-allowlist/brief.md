@@ -34,7 +34,15 @@ start it.
 
 > ## 🚨 THE SPRINT-5 PLACEMENT DOES **NOT** MEAN "SKIP IT THIS WEEKEND" — READ THIS BEFORE THE WINDOW
 >
-> **RULING E, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+> 🚨 **THIS BRIEF CITES TWO DIFFERENT RULING SETS. READ THE NAMESPACE, NOT JUST THE LETTER.**
+> **`RUNBOOK-E`** below is the **weekend-runbook** set. The bare **`RULING D`/`RULING E`** cited on the
+> [Sprint 5 board](../../../sprints/plan-sprint-5.md) are the **sprint-plan** set — ⛔ **a different
+> sequence, same letters, same date.** ⚠️ **`RULING E` (sprint set) moved `0030`; it has nothing to do
+> with this task.** Full record and cause: the namespacing note at the top of
+> [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md).
+>
+> **RUNBOOK-E** *(renamed 2026-09-22 from a bare `RULING E`; ⛔ label change only — content, authority
+> and outcome unchanged)*, **an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
 > 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
 > (ADR-021). ⛔ **Not producer precedent.** Put to them that the **board** (Sprint 5, deferred) and the
 > **need** (the weekend window's very first step depends on it) were in tension, the owner chose
@@ -108,7 +116,8 @@ symptom appears.
 1. **MEASURE the current game-prod egress IP** — the address the game production box presents when it
    makes an **outbound** call to the profile box. ⛔ **Measured, not assumed, and not inherited from the
    June pin.**
-   - 🚨 **BY RULING E, THIS HALF HAPPENS AT THE WEEKEND WINDOW'S W0 — the owner runs it, the day
+   - 🚨 **BY RUNBOOK-E** *(the runbook set — ⛔ **not** the sprint plans' `RULING E`, which moved `0030`)*
+     **, THIS HALF HAPPENS AT THE WEEKEND WINDOW'S W0 — the owner runs it, the day
      before the window, whatever this task's sprint says.** ⇒ **If you are picking this task up
      afterwards, the measurement may ALREADY EXIST** — check the runbook's W0.1 and the owner's W0
      record first, and **record what they found and how** rather than re-measuring blind.

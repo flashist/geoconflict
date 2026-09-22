@@ -143,7 +143,12 @@ ten pre-arming items live in [`0203`](../0203-config-parity-guard-pre-arming-gat
    >
    > ---
    >
-   > ## 🚨 RULING G, 2026-09-22 — THIS TASK MAY CLOSE WITH THE GAP RECORDED. **THIS IS THE WORDING.**
+   > ## 🚨 RUNBOOK-G, 2026-09-22 — THIS TASK MAY CLOSE WITH THE GAP RECORDED. **THIS IS THE WORDING.**
+   >
+   > 📛 *Renamed 2026-09-22 from a bare `RULING G`; ⛔ **label change only** — content, authority and
+   > outcome unchanged. A **separate** 2026-09-22 sequence on the sprint plans uses the same bare
+   > letters; cause and full mapping: the namespacing note at the top of
+   > [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md).*
    >
    > **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
    > 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**

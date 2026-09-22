@@ -10,6 +10,95 @@
 > [`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
 > (Sprint 5). ⛔ **No task's `## Status` was touched and no mover skill was invoked.**
 
+> ## 📛 RULING LETTERS IN THIS RUNBOOK ARE NAMESPACED `RUNBOOK-…` — 2026-09-22
+>
+> **Read this before you resolve any bare "Ruling <letter>" you meet in a git history.**
+>
+> **What happened.** On 2026-09-22 **two independent ruling sequences were issued, both lettered A–G,
+> both dated the same day**: one governing the **sprint plans**
+> ([`plan-sprint-4.md`](../sprints/plan-sprint-4.md) / [`plan-sprint-5.md`](../sprints/plan-sprint-5.md)),
+> one governing **this runbook** and the briefs it drives. A document citing *"Ruling E"* therefore meant
+> **one of two different things depending on which file you were standing in** —
+> [`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
+> cites both sets, which is where it actually bit.
+>
+> ⚠️ **CAUSE, recorded so it is not mis-assigned: `fkit-lead` issued both sets, in separate spawns,
+> without a shared namespace.** ⛔ **Not a producer error, and not any one document's error.**
+>
+> **THE FIX, ruled by the owner 2026-09-22 (*"Namespace the runbook's set"*), given live in the
+> `fkit lead` session via `AskUserQuestion` and relayed by `fkit-lead` (ADR-021). ⛔ Not producer
+> precedent.**
+>
+> | Set | Letters | Status |
+> |---|---|---|
+> | **Sprint plans** | bare `RULING A` … `RULING G` | ⛔ **UNCHANGED.** Nothing was renumbered or renamed. |
+> | **This runbook + the briefs it drives** | **`RUNBOOK-A` … `RUNBOOK-G`** | ✅ Renamed 2026-09-22. |
+>
+> ⛔ **A LABEL CHANGE ONLY — not one ruling's content, authority, date or outcome was altered.**
+>
+> **Resolving an OLD bare citation you meet in git history. ✅ ALL SEVEN LETTERS ARE MAPPED — this table
+> carries no hole.** The mapping was supplied authoritatively by **`fkit-lead`, who issued the sequence
+> and is the only holder of it**, on 2026-09-22.
+>
+> | Old bare citation | Now | Recorded in this file as | The ruling |
+> |---|---|---|---|
+> | `Ruling A` *(runbook context)* | **`RUNBOOK-A`** | ***Conflicts*, C1** | `0065` step 3 is **OUT** of this window |
+> | `Ruling B` *(runbook context)* | **`RUNBOOK-B`** | ***Conflicts*, C2** | 🚨 **TWO PARTS — write both.** **(1)** `0220` §8 step 3 (the rotation / **W8**) is **OUT** of this window, **AND (2)** it is **filed separately** ⇒ [`0294`](../tasks/backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md). ⚠️ **Citing it for the removal alone loses WHY `0294` exists** — the owner's point was *"`0220` closes with a recorded, deliberate gap rather than an unnoticed one."* |
+> | `Ruling C` *(runbook context)* | **`RUNBOOK-C`** | ***Gaps*, G1** | **No rollback / abort section will be written** — *"Skip it — I know the boxes."* |
+> | `Ruling D` *(runbook context)* | **`RUNBOOK-D`** | ***Conflicts*, C3** | the egress-IP work becomes a task on **Sprint 5** ⇒ [`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md) |
+> | `Ruling E` *(runbook context)* | **`RUNBOOK-E`** | W0.1, and `0295`'s brief | **measure the egress IP at W0 anyway** — ⛔ Sprint 5 placement is not permission to skip it |
+> | `Ruling F` *(runbook context)* | **`RUNBOOK-F`** | `0294`'s brief | `0294` **stays on the Backlog board** |
+> | `Ruling G` *(runbook context)* | **`RUNBOOK-G`** | `0220`'s brief | `0220` **may close with the gap recorded** — ⛔ authorizes the *wording*, not a close |
+>
+> ⚠️ **`RUNBOOK-B` and `RUNBOOK-C` were never cited by letter in any document** — this runbook recorded
+> them as **C2** and **G1** from the start. They are mapped above for completeness; **cite C2 and G1 when
+> writing new text.**
+>
+> 📌 **This runbook's own section labels — `C1`, `C2`, `C3`, `G1`…`G4` — are section-scoped
+> (*Conflicts*, *Gaps*) and were NEVER part of either A–G sequence.** They are untouched and are still
+> the right way to cite those items from inside this file.
+>
+> ## ✅ FOUR SEQUENCES SHARE LETTERS, NOT TWO. **RULED 2026-09-22 — SETTLED, NOT OUTSTANDING.**
+>
+> ⚠️ **The collision is real and is described here on purpose. What was ruled is that it is ACCEPTED —
+> ⛔ not that it does not exist.** 🚨 **Do not re-open this as a defect to fix.**
+>
+> **The four sequences, all sharing bare letters:**
+>
+> | Sequence | Letters | Where it lives | Outcome |
+> |---|---|---|---|
+> | **2026-09-02** | `Ruling A`…`Ruling D` | [`backlog.md`](../sprints/backlog.md), `0021`/`0024`/`0028` briefs, and [`plan-sprint-4.md`](../sprints/plan-sprint-4.md)'s Backlog-board rows | ⛔ **LEFT AS IS** |
+> | **2026-09-17** | `Ruling A`/`Ruling B` | ADR-114 | ⛔ **LEFT AS IS** |
+> | **2026-09-22 — sprint plans** | `RULING A`…`RULING G` | [`plan-sprint-4.md`](../sprints/plan-sprint-4.md), [`plan-sprint-5.md`](../sprints/plan-sprint-5.md) | ⛔ **LEFT AS IS** |
+> | **2026-09-22 — this runbook** | `RULING A`…`RULING G` | this file + the briefs it drives | ✅ **NAMESPACED → `RUNBOOK-A`…`RUNBOOK-G`** |
+>
+> **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+> (ADR-021). ⛔ **Not producer precedent.** Shown all four sequences, the owner chose
+> **"Leave them, disambiguate by date."**
+>
+> **Their recorded reasoning:** the two older sets are **settled history that nothing new cites**, so
+> renaming them **churns closed files for readability nobody needs.**
+>
+> ## 🚨 THE TEST THAT MAKES THESE TWO DECISIONS COHERENT — read it before you call this inconsistent
+>
+> **One collision was fixed and three were left. That is deliberate, and this is the rule behind it:**
+>
+> ### ⇒ **The test is "IS IT BEING CITED NOW", ⛔ NOT "is it ambiguous in principle."**
+>
+> - **The runbook set was namespaced because a LIVE document cited two meanings of one letter** —
+>   [`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
+>   cites **both** 2026-09-22 sets, and its `RULING E` meant two different rulings depending on which
+>   file you stood in. **That is an active document giving a reader a wrong answer.**
+> - **The older sets have no such problem.** Nothing active cites them; they are closed files describing
+>   decisions already taken. **Ambiguity nobody is reading costs nothing.**
+>
+> ⚠️ **Without this paragraph a later reader sees one collision fixed and three ignored, and reasonably
+> concludes someone lost interest.** ⛔ **They did not. Renaming was scoped to where the ambiguity was
+> actually being read.**
+>
+> ⇒ **Disambiguate the other three by DATE** — every citation above carries one.
+
 Written 2026-09-22 because a `/fkit-status Sprint 4` run found that **five tasks each demand a
 profile-box deploy in the same window, under different and partly opposing input conditions, and no
 document ordered them against each other.** Improvising that window costs the whole thing: a
@@ -187,7 +276,8 @@ wrong now than mid-slot.
 
    > 🚨 **`0295` BEING ON SPRINT 5 DOES *NOT* DEFER THIS STEP. THE MEASUREMENT HAPPENS HERE, AT W0.**
    >
-   > **RULING E, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+   > **RUNBOOK-E** *(renamed 2026-09-22 from a bare `RULING E` — see the namespacing note at the top of
+   > this file; ⛔ label change only)*, **an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
    > 2026-09-22**, relayed by `fkit-lead` (ADR-021). ⛔ **Not producer precedent.** Shown that the
    > board and the need were in tension, the owner chose **"You measure it at W0 anyway."**
    >
@@ -527,6 +617,52 @@ watching is the entire mitigation.
 deploy printed a warning-free line" — a real call, working. It is the only check that catches either
 silent barrier.**
 
+> ## ⏱️ THE WATCH — WHO RUNS IT, HOW LONG, AND WHAT ENDS IT. ✅ DEFINED BY THE OWNER 2026-09-22.
+>
+> **AUTHORITY.** The **owner defined this themselves**, given live in the `fkit lead` session via
+> `AskUserQuestion` on **2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no
+> owner channel** (ADR-021). ⛔ **Not a producer proposal and not a draft they approved — their own
+> definition.** ⛔ **Not producer precedent, and ⛔ NOT licence to invent any other gap's content.**
+>
+> 📌 **This closes gap G3**, which this runbook had refused to author. See *Gaps*, **G3**.
+>
+> **WHY IT MATTERS, stated before the rule:** **W12 has ZERO prior production evidence**, and with
+> `0219`'s **G3/G4 deferred**, ⚠️ **a person watching is the ENTIRE mitigation.** There is no automated
+> watcher and nothing else will tell you.
+>
+> | | The definition |
+> |---|---|
+> | **Watcher** | 🚨 **The OWNER.** They run the window; there is no other candidate, and this runbook says so rather than leaving it to *"someone"*. |
+> | **Duration** | **Until the first credit lands.** ⚠️ **EVENT-BASED, NOT CLOCK-BASED.** |
+> | **Stop condition** | 🚨 **BOTH of the two below — ⛔ NOT either.** |
+>
+> **⚠️ WHY EVENT-BASED, recorded because the alternative was offered and declined:** the owner was shown
+> a **15-minute time-box** and chose this instead. **A time-box can expire having proven nothing** — if
+> no match completed inside it, the clock ran out and the thing under test never happened. **The watch
+> ends when the thing being tested actually happens.**
+>
+> **STOP CONDITION — BOTH, not either:**
+>
+> 1. ✅ **A row appears in the profile database with XP credited.** The **direct** proof the whole chain
+>    worked: game server called, token accepted, write landed.
+> 2. ✅ **ZERO error-level lines in the container log since the deploy.** ⚠️ **This is the half that
+>    catches the SILENT failures.** A **401 on the credit call surfaces here and NOWHERE a player could
+>    ever see it.**
+>
+> ## 🚨 SILENCE IS A **FAILURE**, NOT A PASS.
+>
+> **If no credit lands within the watch, INVESTIGATE BEFORE ENDING THE WINDOW.** ⛔ **Do not record
+> *"nothing observed"* and move on.**
+>
+> **The owner's reason, recorded because it is the whole point:** ⚠️ **silence is exactly what a 401
+> looks like from outside** — the client is **fail-soft**, no error is raised, and **XP is LOST, not
+> queued.** A quiet log and an empty table are indistinguishable from "it worked and nobody played".
+>
+> ⛔ **THIS DEFINES W14 ONLY. W13 IS UNCHANGED.** The owner did **not** select W13's page-load / console
+> check as part of this stop condition, and it does not need to be: **W13 is the fast, seconds-long
+> check that fires on a page load; W14 is the match-level one.** **Two checks, two steps — ⛔ do not
+> merge them.**
+
 - [ ] **`0062`-D3:** observe a production match. The worker log shows
       `match credit results: … credited …` with **credited > 0** (`ProfileApiClient.ts:229`).
 - [ ] **`0217` V3 / `0272`'s live evidence:** for that real match, a **`players` row**, a
@@ -584,6 +720,50 @@ serving. ⚠️ **PROVENANCE: those two dates come from a previous producer's re
 `fkit-lead` and were never verified — record them as reported, not established.** What *is*
 repo-verified is the twice-daily cron itself. **Weeks away, not this weekend — that is the whole of why
 the deferral is affordable.**
+
+> ### ✅ 2026-09-22 — BOTH CERTIFICATES MEASURED LIVE. **TWO BOXES, TWO CERTIFICATES, TWO DIFFERENT DATES.**
+>
+> ⛔ **THIS FUSE IS THE *PROFILE* BOX'S CERTIFICATE. IT IS NOT THE TELEMETRY BOX'S.**
+>
+> 🔴 **THE PROVENANCE LINE ABOVE IS NOW SUPERSEDED — AND THIS IS AN UPGRADE, NOT A CORRECTION. THE FUSE
+> DATE DID NOT CHANGE.** It said the two profile-box dates *"were never verified — record them as
+> reported, not established."* ✅ **They are now established, from a LIVE reading.**
+>
+> **MEASURED 2026-09-22, read-only (`curl -sv` against each box's own domain), by `fkit-lead`.** ⛔ **A
+> live reading, not a repo recollection** — nothing in this repository can see a certificate.
+>
+> | Box | Certificate expires — **live, 2026-09-22** | Repo sources recording the same cert |
+> |---|---|---|
+> | 🔴 **PROFILE box** — ***this fuse*** | **`Nov 20 11:01:42 2026 GMT`** ⇒ **2026-11-20** ✅ **CONFIRMED CORRECT** | `0216/worklog.md:19` (`certbot certificates`, on-box, 2026-09-10) · `0219/worklog.md:100` (2026-09-13) · `0219/brief.md:25`. Cron: `setup-profile.sh` |
+> | **TELEMETRY box** — ⛔ ***a different cert, NOT this fuse*** | **`Dec 13 08:18:40 2026 GMT`** ⇒ **2026-12-13** | `0257/worklog.md:14,26` (renewed by `0257`, issued 2026-09-14) · `0260/worklog.md:27`. Cron: `setup-telemetry.sh` |
+>
+> ⇒ ✅ **`2026-11-20` IS THE PROFILE CERT, IT IS CORRECT, AND IT IS NOT STALE. `~2026-10-21` STANDS
+> UNCHANGED.** ⛔ **No fuse-date correction is owed. Leave both dates exactly as they are.**
+>
+> ### 🚨 THE NEAR-MISS, recorded because it is the useful part for the next reader
+>
+> On **2026-09-22** a rewrite of this fuse from **`2026-11-20` → `2026-12-13`** was **proposed and
+> relayed as a correction**. ⛔ **It was WRONG, and it was REFUSED before it was applied.** The proposal
+> compared a **telemetry-box** measurement against the **profile-box** fuse — **two different boxes, two
+> different certificates**. ⚠️ **Had it been applied, this fuse would now read THREE WEEKS LATER THAN IT
+> IS, and the affordability of `0219`'s G3/G4 deferral rests on this date.** It was then **settled by
+> measuring BOTH boxes live**, which is how the table above exists.
+>
+> ⇒ 🚨 **THE LESSON: never move a date between these two boxes.** They have separate certificates,
+> separate crons (`setup-profile.sh` vs `setup-telemetry.sh`), separate unread renewal logs, and
+> separate expiry dates. **Always name the box before quoting a cert date.**
+>
+> ### ⚠️ ONE BOUNDARY — AN EXPIRY DATE IS NOT A RENEWAL TEST
+>
+> ⛔ **Both certificates being valid TODAY says NOTHING about whether either renewal cron will fire.**
+> A live reading proves the cert on the box right now; it does **not** exercise `certbot renew`, the
+> HTTP-01 challenge, or the port-80 bind. 🚨 **The *"twice-daily renewal attempts from ~2026-10-21,
+> failing SILENTLY until TLS stops serving"* concern is UNTOUCHED by this measurement and stays exactly
+> as written above.**
+>
+> ⚠️ **And the telemetry cert being healthy does NOT watch the profile cert.** Different box, different
+> cron, different unread log. **The profile fuse is still UNWATCHED** — that is what `0219`'s G3/G4
+> deferral bought, and this measurement does not buy it back.
 
 ---
 
@@ -775,11 +955,30 @@ recorded and the address never to be; it does not say what the method is.
 to settle — the task explicitly owns choosing a method and writing it down. See C3. ⚠️ **Still a gap
 until `0295` runs; it has an owner now, not an answer.**
 
-**G3 — Nothing defines the shape of the crediting observation at W13–W14.** The briefs define *what* to
+**G3 — ✅ CLOSED 2026-09-22 — the owner defined the watch themselves.** ⛔ **The entry is kept, not
+deleted**, so a reader sees a gap that got **answered**, and by **whom**.
+
+~~**Nothing defines the shape of the crediting observation at W13–W14.** The briefs define *what* to
 check; none defines **for how long, by whom, or what threshold ends the watch.** With `0219`'s G3/G4
 deferred, **a person is the only watcher** — and the window turns crediting on with zero prior
 production evidence. A "watch for N minutes, then stop" step would be an invention, so it is recorded
-here as a gap instead.
+here as a gap instead.~~
+
+✅ **ANSWERED BY THE OWNER, 2026-09-22**, given live in the `fkit lead` session via `AskUserQuestion` and
+relayed by `fkit-lead` (ADR-021). ⛔ **Their own definition — not a producer draft they approved.** In
+short: **watcher = the owner; duration = until the first credit lands (event-based, ⛔ not clock-based);
+stop = BOTH a credited row in the profile DB AND zero error-level container-log lines since the deploy;
+🚨 silence is a FAILURE, investigate before ending the window.**
+
+📌 **The full wording, and the reasons, are the W14 acceptance criterion above — cite that, not this
+summary.** ⛔ **It defines W14 only; W13 is untouched.**
+
+⚠️ **The underlying risk did NOT go away — it is now owned rather than unowned.** `0219`'s **G3/G4 stay
+deferred**, so **a person is still the only watcher** and **W12 still has zero prior production
+evidence.** ⛔ **This is a defined procedure, not an automated one.**
+
+⛔ **G3 is the ONLY gap that moved.** **G1** (no rollback procedure) stays ruled-and-accepted, **G2**
+stays open-with-an-owner, and **G4** stays open. ⛔ **Do not read this closure as covering any of them.**
 
 **G4 — No brief covers the interaction between multiple same-day profile deploys and the daily backup
 object.** `0219/worklog.md` R9 notes each deploy's smoke backup **overwrites today's daily object**;

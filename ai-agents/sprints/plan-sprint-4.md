@@ -20,7 +20,25 @@
 > defect.
 >
 > ⚠️ **This ruling named which sprint is active. It did NOT rule that any row should move.** Sprint
-> 4's 24 open rows stay exactly where they are.
+> 4's ~~24~~ **19** open rows stay exactly where they are.
+>
+> > 📌 **COUNT CORRECTED 2026-09-22 — `24` → `19`. ⛔ Struck, not deleted: `24` was accurate on
+> > 2026-09-07 when this ruling was recorded.** 🚩 **A producer bookkeeping fix on a lead call — ⛔ NOT
+> > an owner ruling, and ⛔ the ruling's meaning is unchanged**: it still says no row moves *on its
+> > authority*.
+> >
+> > **What changed the number: five rows moved off this board on 2026-09-22**, under two **separate**
+> > owner rulings — **`RULING D`** (four post-deploy checkups → [Sprint 5](plan-sprint-5.md)) and
+> > **`RULING E`** (`0030` → [Sprint 5](plan-sprint-5.md)); ⛔ **`0030` is not a checkup and did not move
+> > on `RULING D`'s authority.** Both are recorded in full below in this preamble. **24 − 5 = 19.**
+> >
+> > ✅ **VERIFIED BY COUNTING THIS BOARD, not taken from a relay** (2026-09-22): open = `🔲 Backlog` **4**
+> > + `🔄 In progress` **1** + `🚧 Blocked` **14** = **19**. Closed/gone = `✅ Done` **78**,
+> > `⛔ Cancelled` **3**, `➡️ Moved` **6** *(the five above, plus `0224`'s earlier move to the
+> > [Backlog board](backlog.md))*.
+> >
+> > ⚠️ **This is a snapshot, and it will go stale the next time a row moves or closes.** ⛔ **Do not
+> > cite it as a live figure** — recount, or ask for `/fkit-status Sprint 4`.
 
 > See [plan-index.md](plan-index.md) for strategic logic, experiments policy, and full priority table.
 

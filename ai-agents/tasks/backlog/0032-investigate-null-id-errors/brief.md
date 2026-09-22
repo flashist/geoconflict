@@ -15,7 +15,49 @@ Medium — ~1.8 errors/min. Real client-side state errors. Not urgent relative t
 citizenship/payments track, but cheap to triage once the prerequisites are in place.
 
 ## Status
-🚧 Blocked — built + reviewed 2026-09-14 (top-2 clusters ≈99 % of the actionable null-id family fixed at the origin: `TerrainMapLoader` cached a built map with mutable tile ownership → second game on the same map in one page started with stale owners; `Leaderboard` dereferenced a legitimately-null `myPlayer`; regression tests fail on HEAD; stateful review round 1 closed out, R2–R4 applied, R1 accepted residual, Codex coverage full; `npm test` 122/1269 green); open pending the OWNER-side step 5 — game deploy via `build-deploy.sh`, then the Uptrace re-query filtered to the new `service.version` — which is itself BLOCKED on `0257` (telemetry cert expired 2026-09-04, ingest dark). Measurements are from build 0.0.140 (last real window); the traced files are byte-unchanged since. Same hold-open posture the owner ruled for `0219`. Driven by `/fkit-sprint-ship-loop` · 📅 **2026-09-14 — OWNER RULING, given live in the lead session and relayed by `fkit-lead`: step 5 (game deploy + Uptrace re-measure) WAITS FOR THE REGULAR WEEKEND DEPLOY SLOT (~6 days out); no earlier game deploy.** The wait covers the GAME server only (the profile box may deploy this week). Status token unchanged. · ✅ **CORRECTION 2026-09-14 — the *"BLOCKED on `0257`"* clause above is STALE:** `0257` closed 2026-09-14 (agent-closed — not owner-verified) and telemetry ingest was measured resumed at that close. **The one remaining gate is the weekend deploy slot** (the owner ruling above). Status token unchanged.
+🚧 Blocked — built + reviewed 2026-09-14 (top-2 clusters ≈99 % of the actionable null-id family fixed at the origin: `TerrainMapLoader` cached a built map with mutable tile ownership → second game on the same map in one page started with stale owners; `Leaderboard` dereferenced a legitimately-null `myPlayer`; regression tests fail on HEAD; stateful review round 1 closed out, R2–R4 applied, R1 accepted residual, Codex coverage full; `npm test` 122/1269 green); open pending the OWNER-side step 5 — game deploy via `build-deploy.sh`, then the Uptrace re-query filtered to the new `service.version` — ~~which is itself BLOCKED on `0257` (telemetry cert expired 2026-09-04, ingest dark)~~ **⛔ STRUCK 2026-09-22 — STALE, SEE CORRECTION 2 BELOW; the cert is LIVE, not expired.** Measurements are from build 0.0.140 (last real window); the traced files are byte-unchanged since. Same hold-open posture the owner ruled for `0219`. Driven by `/fkit-sprint-ship-loop` · 📅 **2026-09-14 — OWNER RULING, given live in the lead session and relayed by `fkit-lead`: step 5 (game deploy + Uptrace re-measure) WAITS FOR THE REGULAR WEEKEND DEPLOY SLOT (~6 days out); no earlier game deploy.** The wait covers the GAME server only (the profile box may deploy this week). Status token unchanged. · ✅ **CORRECTION 2026-09-14 — the *"BLOCKED on `0257`"* clause above is STALE:** `0257` closed 2026-09-14 (agent-closed — not owner-verified) and telemetry ingest was measured resumed at that close. **The one remaining gate is the weekend deploy slot** (the owner ruling above). Status token unchanged. · ✅ **CORRECTION 2 — 2026-09-22: the cert-expiry blocker is GONE, MEASURED.** The telemetry box's certificate is **live**, not expired (see the block below). 🚨 **⛔ THAT IS NOT PROOF INGEST IS ARRIVING** — read the block below before acting on it. **Status token unchanged — this task stays `🚧 Blocked`.**
+
+> ### ✅ CORRECTION 2 — 2026-09-22: the *"telemetry cert expired, ingest dark"* blocker is STALE. **The cert is LIVE.**
+>
+> ⛔ **The `## Status` marker was NOT changed and NO mover was invoked — this task stays `🚧 Blocked`.**
+> ⛔ **`0257` was not edited; it is closed.** Only the stale **reason text** above is corrected, **struck,
+> not deleted.**
+>
+> **WHAT WAS MEASURED, and by whom.** `fkit-lead` measured the **live telemetry box** read-only on
+> **2026-09-22** and reported: the box answers **HTTP 200 over HTTPS** ⇒ the **TLS handshake validates**;
+> the certificate is **Let's Encrypt**, **issued 2026-09-14**, **expires 2026-12-13**.
+> 📌 **Recorded as a lead measurement with its date** — ⛔ this repository cannot see a live certificate.
+>
+> ✅ **INDEPENDENTLY CORROBORATED IN THIS REPO** (checked 2026-09-22, not taken on trust) — two
+> repo sources record the *same* certificate, and both match the lead's figures exactly:
+>
+> | Repo source | What it records |
+> |---|---|
+> | [`0257`](../../done/0257-telemetry-cert-expired-renew-now-and-fix-renewal-cron/worklog.md) § lines 14, 26 | `notBefore=Sep 14 08:18:41 2026 GMT` · `notAfter=Dec 13 08:18:40 2026 GMT`; nginx active on :80/:443 |
+> | [`0260`](../../done/0260-verify-client-source-map-upload-runs-for-prod-builds/worklog.md):27 | strict `curl` (**no `-k`**): `http=200 ssl_verify=0` · `notAfter=Dec 13 08:18:40 2026 GMT` |
+>
+> ⇒ **The `0257` blocker is discharged on the evidence.** `0257` is `✅ Done (agent-closed — not
+> owner-verified)`, and the cert it renewed is still valid.
+>
+> ## 🚨 THE BOUNDARY — READ IT BEFORE YOU UPGRADE THIS INTO GOOD NEWS
+>
+> ⛔ **A VALID CERTIFICATE AND AN HTTP 200 ARE *NOT* PROOF THAT OTEL DATA IS ARRIVING.**
+>
+> - A 200 over valid TLS proves **the box answers and the handshake validates**. That is **transport**.
+> - **Step 5 needs *DATA*** — client spans and logs, ingested, queryable, **filtered to the new
+>   `service.version`**. ⛔ **A handshake is not a datapoint.**
+> - ⚠️ **W15's re-query MAY STILL FIND NOTHING, and that would NOT contradict this measurement.** Ingest
+>   can be dark for reasons that have nothing to do with the cert: the client never exporting, the
+>   collector rejecting, retention, a project/service-name mismatch, or simply **no traffic on the new
+>   version yet** (`0032/worklog.md` already warns the old version's residue keeps appearing until
+>   clients refresh — **filter by version, do not misread it as a failed fix**).
+>
+> ⇒ 🚨 **"Cert valid" ⇒ *the known blocker is gone*. ⛔ It does NOT ⇒ *ingest is live*.** **Ingest is
+> unproven either way until the W15 re-query actually returns rows for the new version.**
+>
+> **WHAT ACTUALLY GATES THIS TASK NOW:** the **weekend deploy slot** (the 2026-09-14 owner ruling above)
+> and then the ≥24 h re-measure at **W15**. ⛔ **`0032` cannot close at the slot** — the deploy is in the
+> window, the measurement is not.
 
 ## Owner
 fkit-coder
