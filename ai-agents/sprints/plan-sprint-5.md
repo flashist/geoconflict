@@ -50,6 +50,12 @@
 > `ai-agents/tasks/backlog/`. **Every row still reads `🔲 Backlog`.** Full authority, the owner's
 > verbatim words, and the limits: the note directly **below the table**, and **RULING D** in
 > [`plan-sprint-4.md`](plan-sprint-4.md)'s `## Status` preamble.
+>
+> 📌 **AMENDED LATER THE SAME DAY, 2026-09-22 — the count is now FIVE, not four.** A **FIFTH** task,
+> [`0030`](../tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md), was moved onto this board
+> from [Sprint 4](plan-sprint-4.md) by a **SEPARATE owner ruling** — **RULING E**, ⛔ **not RULING D**
+> and ⛔ **not a checkup**. The paragraph above is kept as written; read "four" as the RULING D group
+> specifically. **`0030` still reads `🔲 Backlog`** like every other row.
 
 | Status | Priority | Task | Brief |
 |---|---|---|---|
@@ -64,6 +70,7 @@
 | 🔲 Backlog | 🔴 **Low — OWNER-RULED 2026-09-22** *(ratified on the [Sprint 4](plan-sprint-4.md) board earlier the same day; was `Medium`, the producer's unratified append rank. ⚠️ **RANK AND BOARD ARE TWO SEPARATE 2026-09-22 RULINGS — the move did not touch the rank.**)* | **Detect an ALREADY-DISABLED Uptrace notification channel — read the monitoring stack's own channel state** *(**➡️ MOVED IN FROM [SPRINT 4](plan-sprint-4.md) ON 2026-09-22**, RULING D — same owner ruling as `0238` above. **Status meaning carried across honestly and unchanged: `🔲 Backlog` on Sprint 4, `🔲 Backlog` here.** ✅ **Consistent with, and not a re-decision of, the 2026-09-19 ruling** that already deferred this together with `0289` and `0219` G3/G4 as one monitoring bucket. ⛔ **The task folder did NOT move and no mover skill was invoked.** **Merit note, carried over:** on merit this belongs directly below [`0284`](../tasks/done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md) — it closes the hole `0284` leaves open and reuses its marker path.)* | [`0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state`](../tasks/backlog/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md) |
 | 🔲 Backlog | 🔴 **Low — OWNER-RULED 2026-09-22** *(ratified on the [Sprint 4](plan-sprint-4.md) board earlier the same day; was `High`, the producer's unratified append rank. ⚠️ **RANK AND BOARD ARE TWO SEPARATE 2026-09-22 RULINGS.**)* | **Prove a Telegram alert still arrives after an IDLE period — `0274` amendment A1** *(⛔ **NOT alert rule A1** — the brief's own "READ FIRST" section explains the two different things called A1. **➡️ MOVED IN FROM [SPRINT 4](plan-sprint-4.md) ON 2026-09-22**, RULING D — same owner ruling as `0238` above. **Status meaning carried across honestly and unchanged: `🔲 Backlog` on Sprint 4, `🔲 Backlog` here.** ✅ **Consistent with the 2026-09-19 ruling** that deferred this with `0285` and `0219` G3/G4 as one monitoring bucket. ⛔ **The task folder did NOT move and no mover skill was invoked.** **Merit note, carried over:** on merit this belongs directly below `0284` — it verifies the last unproven hop of the alert path `0284` guards and `0277` built.)* | [`0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1`](../tasks/backlog/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) |
 | 🔲 Backlog | High *(producer's append rank — ⚠️ **NOT owner-ruled**, and append rank is not a merit ranking; still flagged for owner confirmation. ⛔ **The 2026-09-22 move ruling did NOT rank this row.**)* | **Investigation: prod Telegram feedback delivery fails with `TypeError: fetch failed`** *(**➡️ MOVED IN FROM [SPRINT 4](plan-sprint-4.md) ON 2026-09-22**, RULING D — same owner ruling as `0238` above. **Status meaning carried across honestly and unchanged: `🔲 Backlog` on Sprint 4, `🔲 Backlog` here.** ✅ **Coherent with this task's own close condition and NOT a change to it:** the owner ruled 2026-09-17 that it **closes on [`0273`](../tasks/backlog/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s GAME DEPLOY, once feedback delivery is observed working** — Sprint 5 is where that observation now lives. ⚠️ **THE FIX IS ALREADY IN THE TREE** (shipped inside [`0277`](../tasks/done/0277-uptrace-alert-delivery-to-telegram/brief.md)'s ND-2 scope); the profile-server half is live since 2026-09-17, the `Master.ts` player-feedback half is **UNSHIPPED** until that deploy. ⚠️ **THE INVESTIGATION WAS NEVER RUN** — the cause is a **hypothesis reproduced behaviourally and never confirmed in code**, and the record must say so at close. ⛔ **The task folder did NOT move and no mover skill was invoked.**)* | [`0061-investigate-prod-telegram-feedback-delivery-failure`](../tasks/backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) |
+| 🔲 Backlog | — *(unranked — the Sprint 4 Priority cell read `—` and no rank was ever ruled; ⚠️ **unranked ≠ low**. ⛔ **The 2026-09-22 move ruling did NOT rank this row.**)* | **S3-Backed Match Archival (Citizen-Gated)** *(**➡️ MOVED IN FROM [SPRINT 4](plan-sprint-4.md) ON 2026-09-22**, on an **OWNER RULING** given live in the `fkit lead` session and relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021) — **RULING E** on the Sprint 4 board. ⛔ **NOT RULING D and NOT a checkup** — a separate ruling, a separate question; it did not move with the four above it. Owner, verbatim: *"Move this task and anything that depends on it to the Sprint 5"*. ✅ **"Anything that depends on it" resolved to NOTHING — swept and verified, so this task moved ALONE.** **Status meaning carried across honestly and unchanged: it was `🔲 Backlog` on Sprint 4 and it is `🔲 Backlog` here.** ⛔ **The task folder did NOT move and no mover skill was invoked.** 🚨 **STILL HARD-BLOCKED, and the blockers did NOT come with it:** (1) the citizenship feature must exist, and (2) an S3 bucket + credentials must be provisioned. ⚠️ **Both citizenship blockers — [`0017`](../tasks/backlog/0017-citizenship-earned/brief.md) and [`0018`](../tasks/backlog/0018-citizenship-paid/brief.md) — REMAIN ON [SPRINT 4](plan-sprint-4.md)**, so this row sits a board *behind* its own prerequisites. **Coherent, not drift** — ⛔ do not "fix" it by dragging them here. 📐 **Blocker 2 is measured, not assumed (working tree, 2026-09-22):** the four config slots are **plumbed end to end** (`DefaultConfig.ts:214-224`, forwarded by `deploy.sh:315-318`) but **empty**, and `archiveEnabled()` is a hard `false` with no override ⇒ **the plumbing is done; only the bucket is missing.** ⚠️ **Ceiling: read from the repository, NOT from a deployed host.** 🚩 **UNRESOLVED, OWNER'S CALL:** [`0009`](../tasks/backlog/0009-self-host-upstream-openfront-api-dependency/brief.md) declares it **BLOCKS** this task, which this task's own two-item blocker list does not name — a third blocker nobody recorded, or a stale claim. **Flagged in the brief, not settled; `0009` was not edited.**)* | [`0030-archive-s3-backed-citizen-gated`](../tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md) |
 
 > ➡️ **FOUR ROWS APPENDED 2026-09-22 — POST-DEPLOY CHECKUPS MOVED OFF [SPRINT 4](plan-sprint-4.md).**
 >
@@ -101,6 +108,38 @@
 > `🔄 In progress` task) and
 > [`0203`](../tasks/backlog/0203-config-parity-guard-pre-arming-gate/brief.md). ⛔ **Do not move them on
 > this ruling's authority.**
+
+> ➡️ **A FIFTH ROW APPENDED 2026-09-22 — `0030` MOVED OFF [SPRINT 4](plan-sprint-4.md).**
+> ⚠️ **A SEPARATE RULING FROM THE FOUR ABOVE — do NOT merge the two.** ⛔ **This is RULING E, not
+> RULING D**, and ⛔ **`0030` is NOT a post-deploy checkup** — it did not move on RULING D's authority
+> or for RULING D's reason.
+>
+> **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session on 2026-09-22**, relayed by
+> `fkit-lead` to a spawned `fkit-producer` holding **no owner channel** (ADR-021). ⛔ **Not producer
+> precedent.** Asked what `0030`'s two hard blockers were, the owner ruled verbatim:
+>
+> > *"Move this task and anything that depends on it to the Sprint 5"*
+>
+> ✅ **"Anything that depends on it" RESOLVED TO NOTHING — swept across `ai-agents/tasks/` and
+> `ai-agents/sprints/` and verified, not assumed. `0030` moved ALONE.** Full working in **RULING E** in
+> [`plan-sprint-4.md`](plan-sprint-4.md)'s `## Status` preamble and in the brief's `## Sprint` section.
+>
+> ⚠️ **SAME LIMITS AS THE FOUR ABOVE, and they are not boilerplate:** this board **is still not the
+> active sprint** — moving work here **schedules** it, it does not start it. The row is **appended, not
+> inserted**; nothing above it moved and nothing was renumbered (ADR-035), and **append position is not
+> a priority signal.** It does **not** belong to this plan's original scope statement (*"Full F2P Loop &
+> Social Features"*), which is deliberate: the owner put it here by name.
+>
+> ⛔ **WHAT DID NOT HAPPEN.** The task folder did not move (the brief is still under
+> `ai-agents/tasks/backlog/`); **no mover skill was invoked**; no `## Status` token and no
+> `## Priority` was touched; **neither hard blocker was discharged or re-sequenced**; nothing under
+> `ai-agents/wiki-vault/` was touched; nothing was committed or pushed.
+>
+> 🚨 **THE BLOCKERS DID NOT COME WITH IT.** `0017` and `0018` **stay on Sprint 4**, so this row sits a
+> board behind its own prerequisites — **coherent, not drift.** ⛔ Do not drag them here to "fix" it.
+>
+> 🚩 **ONE CONTRADICTION IS FLAGGED AND NOT SETTLED — the owner's call:** `0009` declares it **blocks**
+> `0030`, which `0030`'s own blocker list does not name. **`0009` was not edited.**
 
 ---
 

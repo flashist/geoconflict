@@ -25,10 +25,17 @@ depending on permanently.
 That ruling resolves an ambiguity that has been blocking other work, and it has consequences worth
 stating plainly:
 
-- **The archive task is unblocked in principle but still depends on this.** `adr-104` records that
-  match archiving is switched off behind one `archiveEnabled()` flag until S3-backed, citizen-gated
-  archival ships. Part of why that was parked was not knowing where archives were meant to go. Now we
-  do: eventually, your own infrastructure.
+- ~~**The archive task is unblocked in principle but still depends on this.**~~ ⚠️ **CORRECTED
+  2026-09-22 — struck, not deleted.** The *"still depends on this"* half is **wrong** and was
+  downgraded by owner ruling (see `## Notes`): **`0030` does NOT depend on this task.** The rest of
+  the bullet stands: `adr-104` records that match archiving is switched off behind one
+  `archiveEnabled()` flag until S3-backed, citizen-gated archival ships. Part of why that was parked
+  was not knowing where archives were meant to go — and the brief's own words say so: *"Now we do."*
+  That was **destination ambiguity, now discharged**, not a dependency on self-hosting. The arrow in
+  fact points the **other way**: `0030`'s job is to replace `Archive.ts:32`'s `jwtIssuer()` POST with
+  an S3 write, which **removes** the archive leg from this task's scope rather than waiting on it.
+  Direction of the "eventually, your own infrastructure" ruling is unchanged for identity,
+  entitlements and matchmaking.
 - **There may be a live third-party call in production right now.** Nobody has confirmed whether
   anything actually reaches the upstream service at runtime, or whether the configuration is inert.
   ⚠️ **If it is live, it is also a 152-ФЗ question** — the compliance position rests on all
@@ -67,12 +74,61 @@ them is even called would be scoping on a guess. So phase 1 is findings; the bui
    config path and the effective value per environment. **Do not paste secrets or private endpoints
    into the report** — name the variable and describe the target, do not publish it.
 
+   > 📊 **PARTIAL DATA POINT AGAINST THIS ITEM — recorded 2026-09-22. ⛔ FINDING 1 IS *NOT*
+   > DISCHARGED.** Read the ceiling before using it.
+   > **Measured by `fkit-lead`:** a read-only `GET /api/env` against the **live production
+   > deployment** — the route at `src/server/Master.ts:178` that serves the client its runtime config
+   > — classified **`apiBaseUrl` → OWN INFRA (a geoconflict domain)** and **`jwtIssuer` → OWN INFRA (a
+   > geoconflict domain)**, with `gameEnv` `prod` and `publicProtocol` `https`.
+   > 🔒 **CLASSIFICATION ONLY, DELIBERATELY.** No endpoint, hostname, domain or URL from that response
+   > was printed, logged, retained, or written here — host strings were classified by substring
+   > in-process and discarded. ⛔ **Keep it that way when you write the findings report**; this item's
+   > own instruction above says the same thing.
+   > **What it gives you:** one environment (**prod**) and **two fields**, from the live box rather
+   > than the working tree. It **raises the ceiling** on the earlier `.env.prod` classification, which
+   > was read from the tree with the explicit caveat that a deployed box could differ and
+   > `JWT_ISSUER` is resolved at runtime — **that caveat is discharged for these two fields.**
+   > ⚠️ **What it does NOT give you, stated plainly so it is not over-read:** it is **one reading at
+   > one moment**, not continuous proof, and a deployed box's configuration can change. **Dev and
+   > preprod are unmeasured.** And it says **nothing** about the *other* concerns — **identity,
+   > cosmetic entitlements and matchmaking remain entirely open**, which is most of item 2's work.
+   > **Still answer this item properly.** The one place it is already conclusive is the archive
+   > concern's destination — see the note under item 2 and task `0292`.
+
 2. **What calls it at runtime, and does anything reach the network in production?** Trace **four**
    concerns separately — identity, **cosmetic entitlements (`flares`)**, archive, matchmaking —
    because they may have different answers. The entitlements path (`Worker.ts:359-411` →
    `ApiSchemas.ts:53`) was discovered late and is the one with monetization consequences; do not
    fold it into "identity". Distinguish *configured* from *actually called*. Evidence, not inference: if you cannot
    tell from code, say what telemetry or log query would settle it.
+
+   > 📌 **NOTE ON CONCERN 3 (archive) — RETIRED BY `0030`, NOT WAITING ON IT. Added 2026-09-22 by
+   > owner ruling; recorded so a later reader does not investigate something already handled.**
+   > ⛔ **This is a NOTE ONLY. Nothing was re-scoped:** the four concerns are unchanged and
+   > unrenumbered, and this task's `## Status` and `## Priority` are untouched. The archive concern
+   > **stays in this task's findings scope** — still answer it.
+   > What changed is the *conclusion you should expect*, not the work: `0030-archive-s3-backed-citizen-gated`
+   > replaces `src/server/Archive.ts:32`'s `config.jwtIssuer()` POST with an S3 write, so the archive
+   > leg leaves this task's scope **when `0030` ships** rather than being something this task must
+   > self-host. Read the same way at item 4 (*what self-hosting each would require*) and item 6
+   > (*recommended sequence*): the honest answer for archive is likely **"do not self-host it —
+   > `0030` removes it"**, and the remaining self-hosting question is identity, entitlements and
+   > matchmaking. ⚠️ Still verify it rather than copying this note: `0030` has not shipped, and until
+   > it does, `Archive.ts:32` is real code pointing at the shared root — it is simply **inert**,
+   > since `archiveEnabled()` is a hard `false` (`src/core/configuration/DefaultConfig.ts:315`).
+   > ⚠️ **A live CLIENT-side read survives that flag** — see task
+   > [`0292-client-archive-read-bypasses-archive-enabled-flag`](../0292-client-archive-read-bypasses-archive-enabled-flag/brief.md),
+   > filed 2026-09-22. `src/client/JoinPrivateLobbyModal.ts:245` fetches `${getApiBase()}/game/<id>`,
+   > is **not** behind `archiveEnabled()`, and fires today whenever a private-lobby ID is entered that
+   > is **not** a currently-active lobby. **Factor it into concern 3's answer: the archive leg is NOT
+   > fully dark.**
+   > ✅ **Where that read goes IS now established, for prod:** `getApiBase()` (`src/client/jwt.ts:88`)
+   > prefers `runtime.apiBaseUrl` then `runtime.jwtIssuer` (`:93-95`), and **both classify as OWN
+   > INFRA** on the live production deployment (measured 2026-09-22 — see the 📊 data point under item
+   > 1). ⇒ **The archive concern's destination question is ANSWERED: it is our own infrastructure, not
+   > a third party, so there is NO 152-ФЗ question on this path.** ⛔ Do not re-investigate it, and
+   > ⛔ do not generalize it — **identity, entitlements and matchmaking are NOT covered by that
+   > reading**, and dev and preprod are unmeasured.
 
 3. **If anything is live: what data crosses the boundary?** Specifically whether any personal data
    (Yandex IDs, display names) leaves RU-resident infrastructure. **Flag this loudly and immediately
@@ -135,10 +191,29 @@ them from findings, or leave them and say why.
 ## Notes
 
 - **Depends on:** nothing
-- **Blocks:** 0008; the S3-backed citizen-gated archive task
-  (`0030-archive-s3-backed-citizen-gated`, which has its own separate blockers — profile store,
-  citizenship, S3 infra); and any cosmetics monetization work gated by `PrivilegeChecker` (Task 9
-  flags, Task 9a territory patterns)
+- **Blocks:** 0008; and any cosmetics monetization work gated by `PrivilegeChecker` (Task 9 flags,
+  Task 9a territory patterns). ⚠️ **Both of these were re-checked on 2026-09-22 and stand** —
+  `0010` and `0011` both cite this task as the entitlement origin, so the coupling is genuine. Only
+  the archive item was downgraded; see below.
+- **Related / touches (NOT a blocker):** `0030` replaces `Archive.ts:32`'s `jwtIssuer()` POST with an
+  S3 write, removing the archive leg from this task's scope. Not a blocker.
+- ~~**Blocks** ... the S3-backed citizen-gated archive task (`0030-archive-s3-backed-citizen-gated`,
+  which has its own separate blockers — profile store, citizenship, S3 infra)~~ — **struck, not
+  deleted: DOWNGRADED TO "Related" ON 2026-09-22 BY OWNER RULING.** Authority: a spawned
+  `fkit-architect` investigated the contradiction between this line and `0030`'s two-blocker
+  dependency list and returned **NO — this claim is stale; `0030` does not depend on `0009`; `0030`'s
+  two-blocker count is correct.** The owner accepted that verdict and chose *"Downgrade to Related"*
+  the same day. ⛔ **Do not restore this as a Blocks item.** Why it was wrong, so it is not
+  re-derived: the claim traces to `ai-agents/knowledge-base/architecture.md:898-902` §13 open
+  question 1, which is phrased **conditionally** (*"This determines whether R2 and the archive task
+  are blocked on an external party"*) and was flattened into "Blocks"; the determination was never
+  run. The discriminator is that citizen-gating reads `is_citizen` from the **profile server**
+  (`src/server/GameServer.ts:1336-1337` via `ProfileApiClient.resolvePlayer`), **not** from upstream
+  flares / `PrivilegeChecker` — had it keyed off the latter, the dependency would have been real.
+  ⚠️ **Confidence, stated honestly: ~90% on the technical verdict** (each step is a read line),
+  **~70% on intent** — code cannot establish what "Blocks" meant to its author on 2026-08-09.
+  ⛔ **`architecture.md` was NOT corrected** — the owner was offered that and declined; the stale
+  conditional still stands there by choice.
 
 - Authority: owner ruling 2026-08-09 — "to be self-hosted eventually".
 - Related: `adr-104` (archiving disabled behind one flag), `adr-103` (the identity-trust seam and
