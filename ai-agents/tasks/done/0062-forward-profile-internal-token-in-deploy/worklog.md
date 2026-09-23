@@ -42,6 +42,11 @@ Not changed: profile-server code, `update.sh`, `setup-profile.sh`. No 0064 guard
 
 ## Deploy-pending — weekend deploy (NOT yet verified; record results here then)
 
+> 📌 **2026-09-23 — MOVED, owner ruling:** D1–D4 (and the production half of verification step 6) now
+> run and are recorded under task
+> [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
+> as A1–A4. The step text below stays here as the source; record results in `0296`, not here.
+
 - [ ] **D1 — token-match pre-check (owner-required, scripted, verdict-only output).**
   Run from the local repo (adjust profile-VPS SSH alias and `$PROFILE_DIR` — see
   `setup-profile.sh`; token file is `$PROFILE_DIR/.internal_token`):
@@ -121,3 +126,49 @@ App-read env vars absent from the deploy heredoc: `MASTER_INTERNAL_ORIGIN`
 (`ServerEndpoints.ts:6`, has fallback), `STRIPE_PUBLISHABLE_KEY` (`DefaultConfig.ts:77,331`,
 likely dead upstream leftover). Non-issues: `GIT_COMMIT` (image-baked), `HOSTNAME`
 (Docker), `WORKER_ID` (master-set at fork).
+
+## D5 result — 2026-09-23 (local, fkit-coder, owner-approved bounded verification unit)
+
+**Verdict: D5 PASS** (tests + a live local server run). **Step 6, local part: PASS** (code reading +
+unit test; deploy output not re-run). No source changes. D1–D4 not in scope — they run in the weekend
+deploy slot (runbook W12–W14). The D5 checkbox above is left as-is; this entry is the record.
+
+Both variables were unset for every command (`env -u PROFILE_API_URL -u PROFILE_INTERNAL_TOKEN …`;
+the shell itself had 0 `PROFILE_*` variables). `.env` (the only file `dotenv.config()` loads) and
+`.env.dev` carry no `PROFILE_*` keys — names checked, no values read. `.env.prod` was not opened.
+
+**Evidence, from actual runs:**
+
+- `npx jest tests/server/ProfileApiClient.test.ts --verbose` → 27/27 pass, including
+  `is a no-op when PROFILE_API_URL is empty`, `is a no-op when PROFILE_INTERNAL_TOKEN is unset`,
+  `resolvePlayer › returns null and never fetches when the profile API is unconfigured`,
+  `partial-configuration warning at construction (0062) › does not warn when neither is set (local dev)`.
+- `npx jest` over `CitizenFlag`, `GameServerReconnect`, `GameServerProfileResolve`,
+  `GameServerParticipation`, `GameServerWinner` (the suites that inject `ProfileApiClient`) → 5/5
+  suites, 50/50 tests pass.
+- Live: `npm run start:server-dev` (server only). Master + 2 workers came up: `Worker 1 is ready.
+  (2/2 ready)`, `All workers ready`, `Quorum reached (2/2 …)`, public games created. Worker process
+  envs carried no `PROFILE_*` names. `GET /api/env` → `"profileApiUrl":""`, so the unset case is the
+  case that actually ran. Log: 0 `warn`/`error` level lines, 0 `profile-api-client` lines, 0 matches
+  for `error|exception|crash|exited|EADDRINUSE|unhandled`. Stopped cleanly by me; ports 3000–3002 free
+  afterwards.
+
+**Step 6 (the token never appears in a log line) — local part:** the two new warns
+(`ProfileApiClient.ts:68-74`) are fixed text with no `${…}` in them, so they cannot carry a value;
+the unit test `warns once when the token is set but PROFILE_API_URL is empty` asserts the warn text
+does not contain the token value. The debug miss log (`:204-206`) names variables only. The only
+token-bearing string in the file is the `authorization` header (`:258`); the catch-path log (`:280`)
+prints `formatError(error)` = the error's stack/message (`Logger.ts:80-85`), which for a fetch
+transport error does not include request headers (read from code; not proven with a real network
+failure). `deploy.sh` has exactly one token line (`:312`, inside the `cat > ${ENV_FILE} << 'EOL'`
+write at `:299`) and no `set -x`/xtrace — re-grepped today.
+
+**Not verified here:**
+
+- The join-time and match-end profile paths were not reached in the live run (no player joined, no
+  match ended). Their unconfigured no-op is covered by the unit tests above, not by the live run.
+- The debug-level "not configured" line cannot show locally: the logger level is fixed at `info`
+  (`Logger.ts:53`), so it was not observed.
+- Step 6 in deploy output and prod logs → D4, weekend deploy slot.
+- Port 9000 was held by an existing webpack dev server (not started by me, left running), so
+  `npm run dev` (client + server) was not run; server-only run instead.

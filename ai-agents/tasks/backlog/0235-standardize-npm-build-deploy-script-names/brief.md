@@ -272,7 +272,7 @@ that through, not assume.
      scripts.** If Q4 adds a game-deploy script, that is the moment to consider listing the deploy
      commands there.
    - `ai-agents/tasks/backlog/0226-deploy-env-fails-open-to-prod-analytics/brief.md` (2 refs) and
-     `ai-agents/tasks/backlog/0012-personal-inbox/worklog.md` (1 ref) — **open backlog tasks, so
+     `ai-agents/tasks/done/0012-personal-inbox/worklog.md` (1 ref) — **open backlog tasks, so
      live-ish.** Update the command names; do not restructure the briefs.
    - `ai-agents/sprints/backlog.md` (1 ref) — check what it says before editing.
 

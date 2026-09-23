@@ -162,7 +162,7 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
 ## Notes
 
 - **Depends on:** `0065-citizenship-paid-live-verification` — per this brief's Status line the task
-  stays open pending it (live verification and the go-live tail); `0062` and `0014` gate `0065`, not
+  stays open pending it (live verification and the go-live tail); ~~`0062`~~ `0296` (re-pointed 2026-09-23, owner ruling — `0062` closed) and `0014` gate `0065`, not
   this brief. Beyond that live tail,
   nothing blocks the mock build — restated 2026-08-23 by owner ruling in the
   `## Dependencies` section above (left unedited): `0019-yandex-payments-impl` is Done and is the seam
@@ -178,14 +178,16 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
   live**, but they now gate [`0065-citizenship-paid-live-verification`](../0065-citizenship-paid-live-verification/brief.md),
   not this mock build. ⚠️ Unchanged truth from the old note: catalog approval arriving does **not**
   make the feature live on its own — both conditions must clear, and `0065` records both.
-  See [`0062-forward-profile-internal-token-in-deploy`](../0062-forward-profile-internal-token-in-deploy/brief.md).
+  See [`0062-forward-profile-internal-token-in-deploy`](../../done/0062-forward-profile-internal-token-in-deploy/brief.md).
 - **Flip-ON coupling (2026-08-21) — execution moved to `0065`:** the launch must flip
   `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` to `true` in `src/client/flashist/FlashistFacade.ts`
   (card hidden behind this client flag, default OFF, until launch; see
   [`0054-hide-citizenship-card-behind-client-flag`](../../done/0054-hide-citizenship-card-behind-client-flag/brief.md)).
-  **Do NOT flip it in this mock-scope task** — flipping belongs to the live tail (`0065`, or `0017`'s
-  live tail if the earned path launches first).
-- **This mock build does not make paid citizenship live.** Go-live is `0065`'s close-out. The earned
-  path (`0017`) can go live independently.
+  **Do NOT flip it in this mock-scope task** — flipping belongs to the live tail (`0065`~~, or `0017`'s
+  live tail if the earned path launches first~~). 📌 **2026-09-23 (owner ruling): `0065` §6 is the ONLY
+  owner of the flip; it was removed from `0017`, which is closed.**
+- **This mock build does not make paid citizenship live.** Go-live is `0065`'s close-out. ~~The earned
+  path (`0017`) can go live independently.~~ 📌 *Superseded 2026-09-23 (owner ruling, accepted
+  tradeoff): with the flip owned only by `0065` §6, the earned-path launch is tied to `0065`'s steps.*
 - Do not hardcode the price. If the price changes in the Yandex dashboard, the UI must reflect it automatically.
 - The Yandex per-game secret key used for HMAC verification must live in an environment variable — never in git.

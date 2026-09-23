@@ -408,7 +408,7 @@ If in doubt, fewer higher-signal announcements are better than many low-value on
 ## Source References
 
 - `ai-agents/tasks/done/0126-global-announcements/brief.md`
-- `ai-agents/tasks/backlog/0012-personal-inbox/brief.md`
+- `ai-agents/tasks/done/0012-personal-inbox/brief.md`
 - `ai-agents/sprints/done/plan-sprint-2.md`
 - `resources/announcements.json`
 - `resources/announcements.schema.md`

@@ -18,7 +18,7 @@ Sprint 4
 High — the primary citizenship path for most players. Independent of Yandex Payments.
 
 ## Status
-🚧 Blocked — built + reviewed (local scope); open pending the `0062`-gated Deferred Live Tail (prod XP accrual, live grant, `0054` flip-ON)
+✅ Done (agent-closed — not owner-verified)
 
 📌 **Inherited blocker reason corrected 2026-09-04.** `0062`'s `D2` check was run that day against the
 live prod container: `PROFILE_INTERNAL_TOKEN` reads **empty**, but **the owner deliberately blanked it
@@ -50,6 +50,9 @@ the secret key, or Yandex payments in any form.** Its real dependencies:)*
   `tests/integration/**.it.test.ts` suite; `tests/integration/PlayerProfileRepository.it.test.ts` is
   the existing pattern). All code (T5/T6 crediting path, `src/server/PlayerProfileRepository.ts`,
   `ProfileApiClient`) is merged and works locally where the token is set.
+- 📌 **2026-09-23 (owner ruling): `0062` is closed and the Deferred Live Tail moved to
+  [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md) —
+  the bullet below is the historical record.**
 - **`0062` — for the Deferred Live Tail ONLY.** `PROFILE_INTERNAL_TOKEN` is not forwarded to prod, so
   no XP is credited there and the threshold can never fire *in production* until `0062` ships (see
   finding `0062`, verified 2026-08-23, rooted in the 2026-08-22 incident record §9). It does **not**
@@ -214,6 +217,14 @@ If a `Citizenship:Earned` funnel event is wanted in the future, add it then.
    > owns actually doing the rescale, including in `resources/lang/en.json` / `ru.json`.**
 2. **Idempotency:** run the threshold check twice for the same player. Confirm `is_citizen` is not set back to `false` and `citizenship_earned_at` is not overwritten.
 3. **Inbox message:** confirm the citizenship earned inbox message appears in the Personal inbox tab after the grant.
+
+   > 🔴 **WAIVED 2026-09-23 — OWNER RULING** (given live in the `fkit lead` session via `AskUserQuestion`,
+   > relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent). This local browser
+   > check was never run (it waited on `0012`; `0012` was built 2026-08-26 but its browser step was not
+   > run either). The owner **waived** it: the live check **B1/B2** in
+   > [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
+   > (ex-this task's live item 3, ex-`0012` live item 2) covers it. ⚠️ **Accepted tradeoff: nobody sees
+   > the Personal tab in a browser until after launch.**
 4. **UI transition:** complete step 1 while the game is open in a browser tab. Return to the start screen after the match. Confirm the citizenship card shows State 3 (ГРАЖДАНИН) without a manual reload.
 5. **Non-qualifying match:** complete a match where the player never spawns. Confirm XP is not credited and the threshold is not triggered.
 6. **Forged citizenship (security, 2026-06-13; updated — no migrate path):** `is_citizen` / `citizenship_earned_at` must be settable ONLY by the server-side ~~`xp >= 1000`~~ **`xp >= 100`** (🔴 **PENDING — shipped today is the struck `xp >= 1000`; use it when running this step now. `100` takes effect only when [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md) ships, which owns the change**) check in `creditMatchXp()`. There is **no client→server profile upload** in Sprint 4 — the guest-migration endpoint `POST /v1/profile/migrate` was **cancelled 2026-06-13** (T2/T7 dropped; profile XP is authenticated-only), so the original "forged payload on migrate" test no longer applies. Instead, verify that **no inbound body** can flip these fields: profile creation (`upsertProfile`, first authenticated join) and crediting (`POST /internal/v1/credit`) must ignore any client-supplied `is_citizen`/`citizenship_earned_at`, and the only route to citizenship is accumulated server-credited XP ~~≥ 1,000~~ **≥ 100** (🔴 **PENDING — same marker as above: `≥ 1,000` is shipped today; `≥ 100` lands with [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md)**).
@@ -221,6 +232,22 @@ If a `Citizenship:Earned` funnel event is wanted in the future, add it then.
 ---
 
 ## Deferred Live Tail — gated on `0062`; NOT part of the buildable scope
+
+> 🔴 **MOVED OUT 2026-09-23 — OWNER RULING** (given live in the `fkit lead` session via
+> `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent).
+> The owner ruled this task **closes as built + reviewed**, and its production-only checks move to
+> [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
+> (Sprint 5). Mapping: item 1 → `0296` A2–A3 · item 2 → A5 · item 3 → A6 (server-side half, after the
+> weekend deploy slot) + B1 (card State 3, after the flip).
+> 🔴 **Item 4 (the flip) was REMOVED, not moved.** Setting `CITIZENSHIP_CARD_ENABLED` to `true` plus the
+> second game deploy is now owned **only** by
+> [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md) **§6** (owner ruling 2026-09-23; the
+> 2026-09-22 *RUNBOOK-A* ruling already called the flip a launch decision, not a verification step).
+> ⚠️ **Accepted tradeoff, recorded:** the earned-citizenship launch is now tied to `0065`'s steps — the
+> *"Do not couple these tasks"* note in `## Notes` is **superseded** on that point. ⚠️ `0065`'s own
+> ordering problem (its step 3 needs the flip first, its step 6 flips only after 1–4 pass) is **still
+> unsolved** and stays visible in `0065`.
+> The list below is kept as the source text.
 
 The only pieces that genuinely need production. They do not block starting, building, or locally
 verifying anything above. ~~Execute once `0062` has shipped and a deploy has run:~~ **Corrected
@@ -240,9 +267,11 @@ deployed **non-empty**, which waits on citizenship readiness + profile VPS setup
 
 ## Notes
 
-- **Depends on:** `0062-forward-profile-internal-token-in-deploy` gates the `## Deferred Live Tail`
+- **Depends on:** nothing open. *(Corrected 2026-09-23, owner ruling: the `## Deferred Live Tail`
+  that `0062` gated moved to `0296`, and the flip-ON moved to `0065` §6 alone; `0062` is closed. The
+  2026-08-23 text follows, struck.)* ~~`0062-forward-profile-internal-token-in-deploy` gates the `## Deferred Live Tail`
   ONLY (prod XP accrual, live grant, the `0054` flip-ON), and per the Status line this task stays open
-  until that tail runs. Beyond that tail,
+  until that tail runs.~~ Beyond that tail,
   nothing blocks the build — restated 2026-08-23 by owner ruling in the
   `## Dependencies` section above (left unedited), which states explicitly that this task does NOT
   depend on `0014`, Yandex catalog approval, the secret key, or Yandex payments in any form. The
@@ -262,10 +291,14 @@ deployed **non-empty**, which waits on citizenship readiness + profile VPS setup
   (`src/profile-server/InternalAuth.ts:26`). **But it gates the Deferred Live Tail above, not the
   build** — locally the token is set and the whole path works.
   ⚠️ The trap the old note flagged is preserved as the tail's reason for existing: a local pass where
-  the token *is* set proves the feature, **not** that prod works. **This task is not fully done — and
-  must not be closed — until the tail has run.**
+  the token *is* set proves the feature, **not** that prod works. ~~**This task is not fully done — and
+  must not be closed — until the tail has run.**~~ **SUPERSEDED 2026-09-23 by owner ruling: closed as
+  built + reviewed; the tail runs under `0296`. The trap still holds — nothing here is proven in prod.**
   See [`0062-forward-profile-internal-token-in-deploy`](../0062-forward-profile-internal-token-in-deploy/brief.md).
-- **Flip-ON coupling (2026-08-21):** shipping this task must flip `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` to `true` in `src/client/flashist/FlashistFacade.ts` — the citizenship card is hidden behind this client flag (default OFF) until launch; see [`0054-hide-citizenship-card-behind-client-flag`](../../done/0054-hide-citizenship-card-behind-client-flag/brief.md).
-- The earned path ships independently of Yandex Payments. Do not couple these tasks — earned citizenship can go live while the paid path is still awaiting catalog approval.
+- **Flip-ON coupling (2026-08-21) — ⛔ SUPERSEDED 2026-09-23 (owner ruling): the flip is owned ONLY by
+  `0065` §6, not by this task.** Original text kept: shipping this task must flip `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` to `true` in `src/client/flashist/FlashistFacade.ts` — the citizenship card is hidden behind this client flag (default OFF) until launch; see [`0054-hide-citizenship-card-behind-client-flag`](../../done/0054-hide-citizenship-card-behind-client-flag/brief.md).
+- ⚠️ **SUPERSEDED IN PART 2026-09-23 (owner ruling, accepted tradeoff):** with the flip owned only by
+  `0065` §6, the earned-citizenship **launch** is now tied to `0065`'s steps. The sentence below stays
+  true of the build, not of the launch. The earned path ships independently of Yandex Payments. Do not couple these tasks — earned citizenship can go live while the paid path is still awaiting catalog approval.
 - 0 XP is the starting state for all players. There is no retroactive grant for players who already have play history before this system launches — they start accumulating from 0 when the feature ships.
 - **`is_citizen` / `citizenship_earned_at` are server-derived only (2026-06-13).** This `creditMatchXp()` threshold check (~~`xp >= 1000`~~ **`xp >= 100`** — 🔴 **PENDING: `1000` is shipped today; `100` lands with [`0211`](../../done/0211-credit-participation-xp-at-elimination-or-match-end/brief.md), which owns the change**) is the sole authority for earned citizenship. These two fields must NEVER be read or persisted from any client-supplied body. *(Updated 2026-06-13: the guest→authenticated upload `POST /v1/profile/migrate` that originally carried this risk was **cancelled** with T2/T7 — Sprint 4 profile XP is authenticated-only, so there is no migration payload.)* The invariant still holds at every write path: `upsertProfile` (first authenticated join) and `creditMatchXp()` must ignore any inbound `is_citizen`/`citizenship_earned_at` and derive them from server-credited `xp`. Per the T1 schema-contract review (2026-06-13), the T1 Zod contract stays a pure never-throw validator; this trust enforcement lives on the **writer side** (T5/T6), not in T1.

@@ -95,5 +95,8 @@ Add all eight enum keys to `flashistConstants.analyticEvents` and document in `a
   available synchronously at the point ads are shown, either from the player profile store or from a
   cached local flag. The Sprint field adds that this is implemented when citizenship tiers are live.
   Full prose above; this bullet is the machine-readable form beside it.
+  📌 *2026-09-23: `0017` is closed as built + reviewed (owner ruling; its production checks moved to
+  `0296`). The tier is defined in code, but citizenship tiers go live only at the flip owned by `0065`
+  §6 — so "implemented when citizenship tiers are live" now waits on that flip. `0018` is unchanged.*
 - Banner ad frequency is high — if `Ad:Banner:*` fires on every render tick rather than on each unique impression, it will pollute the analytics dashboard. Confirm the instrumentation point corresponds to a new impression show call, not a per-frame check.
 - Before citizenship ships, consider adding a simpler `Ad:Interstitial` and `Ad:Banner` event (no tier dimension) in the same task, as a baseline. This gives us pre-citizenship ad frequency data to compare against.

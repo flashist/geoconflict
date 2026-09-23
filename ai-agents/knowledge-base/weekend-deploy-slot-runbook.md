@@ -1,5 +1,35 @@
 # Weekend deploy-slot runbook — one window, eleven tasks, four deploys
 
+> ## 🚨 THE WINDOW HAS NOT HAPPENED. **THE SLOT SLIPPED — OWNER CONFIRMATION, 2026-09-22.**
+>
+> **AUTHORITY.** An **OWNER CONFIRMATION given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-22**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+> (ADR-021). ⛔ **Not producer precedent.**
+>
+> **WHAT WAS SETTLED.** The 2026-09-14 owner ruling pointed at a weekend slot roughly six days out. The
+> record showed **no slot having been run**, which left two readings — *it slipped*, or *it ran and
+> nothing was written down*. A `/fkit-status` run correctly **declined to settle that from git**.
+> ⇒ ✅ **THE OWNER SETTLED IT: IT SLIPPED. THE WINDOW HAS NOT HAPPENED.**
+>
+> 📌 **Recorded as an OWNER CONFIRMATION, ⛔ NOT as an inference from this repository** — a deploy leaves
+> no artifact in git, so no document here could ever have settled it on its own.
+>
+> ### ⇒ THE CONSEQUENCE, STATED PLAINLY
+>
+> 🚨 **EVERY STEP IN THIS RUNBOOK IS GENUINELY UNDONE — W0 PREP INCLUDED.** ⛔ **Nothing in it has been
+> partially executed, so NO step may be treated as already satisfied.** In particular, do **not** assume
+> that W0.1's egress-IP measurement, W0.2's `0286` "before" capture, or W0.4's first SSH session were
+> ever taken. **Start at W0.**
+>
+> ### ⛔ NO REPLACEMENT DATE — THIS WINDOW IS UNDATED
+>
+> **The owner confirmed the OLD slot slipped. They did NOT name a new one.** ⛔ **Do not write a date
+> into this runbook, do not infer one, and do not describe the window as *"this weekend"*.**
+>
+> ⚠️ **One pre-existing *"not this weekend"* phrase survives in § *What does NOT happen in this window*
+> (the profile-cert fuse being weeks away).** It is a **comparison about the fuse**, ⛔ **not a claim
+> about when this window runs** — do not read it as dating the slot.
+
 > 📌 **AMENDED 2026-09-22, later the same day — four owner rulings landed.** C1, C2, C3 and G1 are
 > **settled** (see those sections). Two steps left the window: **`0065` step 3** (C1) and **`0220` §8
 > step 3 / W8** (C2). ⇒ **The window is now TWO profile deploys + one telemetry deploy + one game
@@ -147,8 +177,8 @@ Given live in the `fkit lead` session on **2026-09-22** via `AskUserQuestion`, r
 | # | Ruling | Reason the owner accepted |
 |---|---|---|
 | **1** | **`0286` step 8 runs FIRST.** | `0219` B4, `0220` §8, `0221` B1 and `0286` itself all need `npm run deploy:profile` to complete, and `0286` is the fix for the defect that hangs exactly that command. Prove it first and the rest of the slot is safe. |
-| **2** | **The game deploy runs in the SAME window** as the profile-box work — `0272`, `0273`, `0032` step 5, `0064` step 8. | Both sides must agree on `PROFILE_INTERNAL_TOKEN`, and `0062`'s D1/D3–D5 need a deployed game server. |
-| **3** | **`0203`'s six pending decisions are deferred until after the deploy.** | Not surfaced here. |
+| **2** | **The game deploy runs in the SAME window** as the profile-box work — `0272`, `0273`, `0032` step 5, `0064` step 8. | Both sides must agree on `PROFILE_INTERNAL_TOKEN`, and `0296`'s A1/A3–A4 (ex-`0062`-D1/D3/D4) need a deployed game server; ex-`0062`-D5 passed locally 2026-09-23. |
+| **3** | **`0203`'s six pending decisions are deferred until after the deploy.** ✅ **RE-CONFIRMED BY THE OWNER 2026-09-22** (live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent). 🚨 **The deferral SURVIVES the slipped slot** — it is *"after the window"*, **not** *"after 2026-09-20"*, so it still holds now that the window is undated. ⛔ **`0203`'s `## Status` marker was NOT touched and no mover was invoked.** | ~~Not surfaced here.~~ ✅ **RECORDED 2026-09-22 — the owner's reasoning, same as before:** the **deploy unblocks eight rows and had a date**; **`0203` unblocks one task's `--enforce` wiring** (`0064`'s) **and has no deadline.** ⇒ the deploy goes first. |
 
 ---
 
@@ -228,6 +258,10 @@ container log rotation; `0221` B5 is a daemon restart and a reboot. Every refere
   daily backup object** (`0219/worklog.md` R9). **TWO** profile deploys in this window means **two**
   overwrites of the same key. Expected, not a fault. *(⚠️ **Was three** until W8 was removed by the
   2026-09-22 C2 ruling.)*
+  🚨 **⇒ W7 THEREFORE ERASES W3's BACKUP, AND WITH IT THE PRE-WINDOW STATE. That is why W0 item 5 takes
+  a MANUAL SNAPSHOT first** — owner ruling 2026-09-22, closing *Gaps*, **G4**. ⛔ **The overwrite
+  behaviour is unchanged; the snapshot works around it.** ⛔ **And it is not a rollback — G1 stays
+  declined.**
 - ⚠️ **`./build-deploy.sh prod` commits, tags and pushes** before it builds (`build-deploy.sh:50-53`,
   then `./deploy.sh prod <tag>` at `:70`). The working tree at that moment is what ships. ⛔ **Only the
   owner runs it.**
@@ -314,6 +348,90 @@ wrong now than mid-slot.
 4. **Open the first SSH session to the profile box and leave it open.** It must survive W3.
    *Source:* `0221` § *What to build* 3 — *"Do not lock yourself out. Verify the new config from a
    second, already-open session before closing the first."*
+5. 🚨 **TAKE A MANUAL SNAPSHOT OF THE CURRENT BACKUP OBJECT — copy it aside under a distinct name,
+   BEFORE anything in this window runs.** ✅ **OWNER RULING 2026-09-22**, given live in the `fkit lead`
+   session via `AskUserQuestion` and relayed by `fkit-lead` (ADR-021). ⛔ **Not producer precedent.**
+   **This closes *Gaps*, G4.**
+
+   > **WHY, as the owner was shown it.** This window runs **TWO** profile deploys (**W3** and **W7**).
+   > Each takes a **smoke backup**, both land on the **same UTC day**, and the backup is a **daily
+   > object keyed by date** — so **W7 OVERWRITES W3's, and the pre-window state is gone.** Normally
+   > that is tolerable because you would roll back instead — but **a rollback procedure was declined
+   > (G1).** Neither fact alone worried the owner; **both in one window did.**
+   >
+   > **Their stated reason for this fix:** one command in prep, it preserves what W7 would erase, and
+   > it **does not reopen G1 or change the deploy sequence.**
+
+   **⛔ THE LIMIT — READ IT BEFORE YOU RELY ON THIS.** 🚨 **This preserves a STARTING POINT. It is NOT
+   a rollback procedure and it does NOT make the window recoverable.** It gives you an encrypted copy
+   of the database as it was before the window; it tells you **nothing** about how to unwind a half-run
+   window, who decides, or how far back to go. ⛔ **G1 stays declined and open.**
+
+   **THE MECHANISM — established from the repo, not invented.** The "copy an object aside" operation
+   already exists and is proven: `profile-backup.sh:174-176` does exactly this every Sunday (a
+   **server-side `rclone copyto`** from the verified daily object to a second key in the same bucket),
+   and task [`0241`](../tasks/done/0241-profile-verify-first-weekly-backup-copy/brief.md) verified that
+   copy live. The snapshot is the same call with a different destination prefix.
+
+   ⚠️ **BUT IT IS NOT A SUBCOMMAND — DO NOT GO LOOKING FOR ONE.** `profile-backup.sh`'s dispatch
+   (`:264-269`) accepts **only** `backup`, `restore` and `help`. There is **no** `snapshot` / `copy`
+   command. This is an `rclone` call run **with the script's own environment loaded**, because rclone
+   is configured *entirely* from `RCLONE_CONFIG_PROFILES_*` in `backup.env` — there is deliberately no
+   `rclone.conf` (`:39-43`).
+
+   **Run as root on the profile box.** Values come from the environment; ⛔ **nothing below is a
+   credential, a bucket name or a key — those stay in the 0600 `backup.env`, which is where they
+   belong.**
+
+   ```bash
+   set -a; . /opt/profile/backup.env; set +a      # same load the script does (load_env)
+   export RCLONE_CONFIG=/dev/null                 # deliberate — profile-backup.sh:43
+   PREFIX="${PROFILE_BACKUP_S3_PREFIX:-profiles}" # default per profile-backup.sh:96
+   DAY="$(date -u +%Y-%m-%d)"                     # keys are UTC-dated — profile-backup.sh:134-136
+   SRC="profiles:${PROFILE_BACKUP_S3_BUCKET}/${PREFIX}/daily/profile-${DAY}.dump.age"
+   DST="profiles:${PROFILE_BACKUP_S3_BUCKET}/${PREFIX}/pre-window/profile-${DAY}.dump.age"
+
+   rclone lsf "profiles:${PROFILE_BACKUP_S3_BUCKET}/${PREFIX}/daily/"   # 0) SEE WHAT ACTUALLY EXISTS
+   rclone size --json "$SRC"      # 1) CONFIRM IT EXISTS and note the byte count
+   rclone copyto "$SRC" "$DST"    # 2) server-side copy — same call shape as the Sunday weekly copy
+   rclone size --json "$DST"      # 3) sizes MUST match before you call this done
+   ```
+
+   *(`rclone size --json` is the repo's own existence/size check — `remote_size()`, `:104-105`. The
+   `profiles:` prefix is the rclone **remote name**, hardcoded in the script; it is not a hostname.)*
+
+   🚨 **TODAY'S OBJECT CAN LEGITIMATELY BE ABSENT, AND THAT IS NOT A FAILURE — HANDLE IT, DO NOT SKIP
+   THE STEP.** The daily object for *today* only exists once **today's nightly cron has already run**.
+   If W0 happens before it fires, `profile-${DAY}` is simply **not there**. ⇒ **That is what step 0's
+   listing is for: snapshot THE NEWEST OBJECT THAT ACTUALLY EXISTS, and set `DAY` to match it.**
+   ⛔ **Do not copy a non-existent key and record a success.**
+
+   > 📌 **A CORRECTION TO THIS RUNBOOK'S OWN EARLIER DRAFT, recorded so the refusal is not re-derived.**
+   > An earlier version of this step avoided `rclone lsf` on the stated grounds that it *"appears
+   > nowhere in this repo"*, and told you to walk the date backwards with `rclone size --json` instead.
+   > ⛔ **THAT GROUND WAS FALSE — it was asserted without a full-repo check.** `rclone lsf` **is**
+   > established here: [`profile-backup-restore-runbook.md`](profile-backup-restore-runbook.md):80
+   > lists this very `daily/` prefix with the same `backup.env` load, and `tests/profile-backup-dryrun.sh`
+   > uses it four times (`:205`, `:316`, `:375`, `:389`). ✅ **Listing is now the instruction**, because
+   > it shows you what is really there instead of guessing dates. ⚠️ **The refusal RULE was right and
+   > still stands — do not put an unproven call in a prep step; this particular call just turned out to
+   > be proven.**
+
+   ⚠️ **FOUR RESIDUALS, RECORDED NOT SOFTENED:**
+   - ⛔ **The snapshot is ENCRYPTED and the box CANNOT decrypt it.** The box holds only the age
+     *recipient* (public) key; the private identity is deliberately off-box (`profile-backup.sh:17-18`).
+     **Without the off-box age identity this file is unreadable** — see
+     [`0281`](../tasks/backlog/0281-profile-backup-age-identity-custody-move-to-the-owners-password-manager/brief.md).
+   - **Nothing ever deletes it.** The prune touches `daily/` and `weekly/` only (`:183-184`), so a third
+     prefix is **not** swept. That is the point — but it means **you must remove it by hand** when the
+     window is done and its state is no longer wanted.
+   - ⚠️ **"Our script does not prune it" is NOT "the bucket keeps it forever."** ⛔ **This repository
+     cannot see a bucket-side lifecycle rule** and does not claim there is none.
+   - 📌 **This confirms G4's premise rather than removing it.** The deploy smoke check overrides only
+     the *marker* file (`last-smokecheck.json`, `:35-36`); **the backup OBJECT still lands on the same
+     daily key.** Two same-day deploys still mean two overwrites of it.
+
+   ⛔ **This step must COMPLETE before W3.** After W3 the pre-window object is already gone.
 
 ---
 
@@ -546,7 +664,7 @@ server is live.
 🚨 *"A 401 and a 403 are indistinguishable from 'working' at the game server, because the client never
 surfaces either"* (`0217` § *Barrier 2*). A dropped credit is **lost, not queued**.
 
-- [ ] **`0062`-D1 — token-match pre-check.** Run the verdict-only script from `0062/worklog.md`
+- [ ] **`0296`-A1 (ex-`0062`-D1) — token-match pre-check.** Run the verdict-only script from `0062/worklog.md`
       § *Deploy-pending*: it prints **only** `MATCH` / `MISMATCH` / `LOCAL-ABSENT` / `REMOTE-ABSENT` —
       never a value, never a hash.
       ⛔ **On `MISMATCH`: fix local `.env.prod` from the VPS-persisted token. NEVER regenerate the VPS
@@ -571,7 +689,7 @@ surfaces either"* (`0217` § *Barrier 2*). A dropped credit is **lost, not queue
 
 One command carries `0272` (S3 game server), `0273` (S4 client), `0032` step 5's build, `0064` step 8's
 observation, and — because `PROFILE_INTERNAL_TOKEN` is now non-blank — `0217` step 4 and the
-`0062` deploy it has been waiting for.
+deploy that `0296` section A (ex-`0062` D1–D4) has been waiting for.
 
 It bumps, commits, tags and pushes (`build-deploy.sh:50-53`), builds, then calls
 `./deploy.sh prod <tag>` (`:70`).
@@ -583,11 +701,11 @@ It bumps, commits, tags and pushes (`build-deploy.sh:50-53`), builds, then calls
 - [ ] ⚠️ **Parity cannot catch the thing you are doing here.** It compares **names**, and
       `PROFILE_INTERNAL_TOKEN` *is* forwarded correctly (`deploy.sh:312`). A present-when-it-should-be-
       blank value is a Phase 2 concern that does not exist yet (`0064` § *What to build* 5).
-      **W11's D1 is the only guard.**
+      **W11's A1 (ex-`0062`-D1) is the only guard.**
 
 ---
 
-### W13 — 🚨 Watch it. Immediately. · `0273`, `0062`-D2/D4
+### W13 — 🚨 Watch it. Immediately. · `0273`, `0296`-A2/A4 (ex-`0062`-D2/D4)
 
 **Constraint that put these first among the post-deploy checks:** they fire on a **page load**, so they
 are observable within seconds — before any match has to finish. And per the live-risk section, a human
@@ -597,13 +715,13 @@ watching is the entire mitigation.
       `POST /v1/login` per logged-in load, and **zero** on a guest load. ⚠️ With the card off there are
       no other profile calls to inspect, so Bearer on the other five callers rests on the client tests
       plus the earlier on-box check — **not on production**.
-- [ ] **`0062`-D2 — the token reaches the container non-empty.**
+- [ ] **`0296`-A2 (ex-`0062`-D2) — the token reaches the container non-empty.**
       `docker exec <container> sh -c 'test -n "$PROFILE_INTERNAL_TOKEN" && echo NONEMPTY || echo EMPTY'`
       🚨 **This is the deploy that finally makes D2 mean something.** D2 was run 2026-09-04 and came back
       **INCONCLUSIVE** because the owner had deliberately blanked the value — *"forwarding an empty value
-      and never forwarding at all are indistinguishable at the container"* (`0062` § *Status*).
+      and never forwarding at all are indistinguishable at the container"* (`0062` § *Status*; now `0296` A2).
       ⛔ **Do not read an empty result as a failure of the fix without checking the source value first.**
-- [ ] **`0062`-D4 — the partial-config warning does NOT fire** with both variables set
+- [ ] **`0296`-A4 (ex-`0062`-D4) — the partial-config warning does NOT fire** with both variables set
       (`ProfileApiClient.ts:69`, `:73`), and no token value appears in any log line or deploy output
       (`0217` verification step 6 — check `deploy.sh` does not echo the heredoc it writes).
 - [ ] **Read the profile-server error log.** The baseline to beat is the one `fkit-lead` established at
@@ -611,7 +729,7 @@ watching is the entire mitigation.
 
 ---
 
-### W14 — `0062`-D3 / `0217` V3 / `0272` live · **the acceptance criterion of the window**
+### W14 — `0296`-A3 (ex-`0062`-D3) / `0217` V3 / `0272` live · **the acceptance criterion of the window**
 
 🚨 **`0217`'s own words: this is the acceptance criterion. Not "the variable is present"; not "the
 deploy printed a warning-free line" — a real call, working. It is the only check that catches either
@@ -663,7 +781,7 @@ silent barrier.**
 > check that fires on a page load; W14 is the match-level one.** **Two checks, two steps — ⛔ do not
 > merge them.**
 
-- [ ] **`0062`-D3:** observe a production match. The worker log shows
+- [ ] **`0296`-A3 (ex-`0062`-D3):** observe a production match. The worker log shows
       `match credit results: … credited …` with **credited > 0** (`ProfileApiClient.ts:229`).
 - [ ] **`0217` V3 / `0272`'s live evidence:** for that real match, a **`players` row**, a
       **`player_identities` row**, and a **`(game_id, player_id)` credit row** — keyed by the internal
@@ -685,8 +803,10 @@ silent barrier.**
       version, do not misread it as a failed fix.** Sanity: `MATCH_PRELOAD_HIT_LOADED` /
       `HIT_NOT_LOADED` unchanged in proportion. *Source:* `0032/worklog.md` § *Step 5 — owner side*.
       ⇒ **The deploy is in this window; the measurement is not.** `0032` cannot close at the slot.
-- [ ] **`0062`-D5** — local-dev unset case still clean: with `PROFILE_API_URL` unset the client no-ops
+- [x] **`0062`-D5** — local-dev unset case still clean: with `PROFILE_API_URL` unset the client no-ops
       and nothing crashes. Covered by test N2; optional `npm run dev` smoke.
+      ✅ **PASSED LOCALLY 2026-09-23** — `0062/worklog.md` § *D5 result — 2026-09-23* (tests + a live
+      server-only run with both variables unset). Not a production check; not moved to `0296`.
 - ⛔ ~~**`0065` step 3 — the real test purchase.**~~ **REMOVED FROM THIS WINDOW by the C1 owner ruling of
   2026-09-22** — *"Drop `0065` step 3 from the window."* The owner's reasoning, recorded: flipping
   `CITIZENSHIP_CARD_ENABLED` is **a source change plus a second full game deploy**, which is **a
@@ -696,6 +816,58 @@ silent barrier.**
   ⚠️ **The owner's 2026-09-22 confirmation that they WILL perform step 3 still stands** — it is not
   withdrawn, it is **not scheduled here**. ⛔ **`0065` stays `🚧 Blocked`; its `## Status` was not
   touched and no mover skill was invoked.**
+- [ ] 🚨 **DELETE THE W0 PRE-WINDOW SNAPSHOT — BY HAND, AND *ONLY ONCE THE OWNER JUDGES THE WINDOW
+      GOOD*.** ✅ **OWNER RULING 2026-09-22** (live in the `fkit lead` session via `AskUserQuestion`,
+      relayed by `fkit-lead`, ADR-021). ⛔ **Not producer precedent.** The owner chose to put the
+      cleanup here rather than anywhere else, reasoning: **ownership stays inside the document that
+      created the object, so it cannot be orphaned.**
+
+      > ## ⛔ THE PRECONDITION IS THE STEP. READ IT BEFORE THE COMMAND.
+      >
+      > 🚨 **THIS IS NOT END-OF-SEQUENCE TIDY-UP, AND IT IS NOT DONE JUST BECAUSE YOU REACHED W15.**
+      > The snapshot is **the ONLY pre-window state that exists** — W7 already overwrote W3's backup
+      > (*Scheduling constraints*; *Gaps*, **G4**), and **there is no rollback procedure (G1)**.
+      > ⛔ **Deleting it while ANYTHING is still unresolved throws away the one thing it was taken for.**
+      >
+      > ⇒ **It is deleted when the OWNER is satisfied the window SUCCEEDED — which may well be AFTER
+      > W15 itself finishes.** ⛔ **If you are not certain, DO NOT DELETE. Leaving it costs storage;
+      > deleting it early costs the only copy.**
+
+      **THE DELETE CALL — established from the repo, not invented.** `rclone deletefile` on a single
+      object is proven on **this** remote: `0215/plan.md:715` prescribes the `copyto` → `size --json`
+      → `deletefile` round-trip, and `0215/worklog.md:170` records **all three passing live against the
+      new bucket using the box's exact configuration**. Run as root on the profile box, same env load
+      as W0 item 5:
+
+      ```bash
+      set -a; . /opt/profile/backup.env; set +a
+      export RCLONE_CONFIG=/dev/null
+      PREFIX="${PROFILE_BACKUP_S3_PREFIX:-profiles}"
+
+      # 1) SEE WHAT IS THERE before deleting anything — never delete a key you have not listed.
+      rclone lsf "profiles:${PROFILE_BACKUP_S3_BUCKET}/${PREFIX}/pre-window/"
+
+      # 2) Delete the ONE object you took at W0 (substitute the exact name listed above).
+      rclone deletefile "profiles:${PROFILE_BACKUP_S3_BUCKET}/${PREFIX}/pre-window/profile-<DAY>.dump.age"
+      ```
+
+      ⚠️ **Success for `deletefile` is SILENCE** (`0215/plan.md:720`). ⛔ **Use `deletefile`, not
+      `delete`** — `delete` in this repo is only ever used with `--min-age` over a **directory**
+      (`profile-backup.sh:183-184`), and pointing it at the wrong path would sweep more than you meant.
+
+      ⚠️ **THREE RESIDUALS CARRIED FORWARD FROM W0 ITEM 5 — they are why this step exists at all:**
+      - ⛔ **The object is ENCRYPTED and the box CANNOT decrypt it.** The private age identity is
+        deliberately off-box (`profile-backup.sh:17-18`); see
+        [`0281`](../tasks/backlog/0281-profile-backup-age-identity-custody-move-to-the-owners-password-manager/brief.md).
+        ⇒ **Before deleting, be sure whoever would need it can actually READ it** — an unreadable
+        snapshot you kept and a deleted one are worth the same.
+      - **Nothing prunes it automatically.** The script's prune covers `daily/` and `weekly/` only
+        (`profile-backup.sh:183-184`), so a third prefix is never swept. **That is why this is a manual
+        step** — with no cleanup here the object accumulates indefinitely.
+      - ⛔ **"Our script does not prune it" is NOT "the bucket keeps it forever."** 🚨 **This repository
+        cannot see a bucket-side lifecycle rule and does not claim there is none.** ⇒ **Do not treat the
+        snapshot as durable archival storage**, and do not assume it is still there later without
+        listing it.
 
 ---
 
@@ -705,7 +877,7 @@ silent barrier.**
 |---|---|
 | `0219` **closes** | ⛔ It does not. G3/G4 deferred; the 2026-09-13 hold-open ruling stands. The slot lands B4/B5/B6 only. |
 | `0219`-B2, `0219`-B3, `0219`-B7…B10 | Deferred with `0285` and `0289`, owner ruling 2026-09-19. |
-| `0203`'s six pending decisions | **Ruling 3** — deferred until after the deploy. |
+| `0203`'s six pending decisions | **Ruling 3** — deferred until after the deploy. ✅ **RE-CONFIRMED BY THE OWNER 2026-09-22**, same reasoning (the deploy unblocks eight rows and had a date; `0203` unblocks one task's `--enforce` wiring and has no deadline). 🚨 **Still deferred even though the slot SLIPPED** — *"after the window"*, not *"after a date"*. Full record: *The three owner rulings that set the spine*, ruling 3. |
 | Arming `--enforce` on the parity guard | `0064`'s, after all ten `0203` items. *"Arming this guard early correctly fails every deploy on known gaps."* |
 | `0221`'s non-root deploy user | Split out by owner ruling Q8. This window lands `PermitRootLogin prohibit-password`, not `no`. |
 | `0054` — flipping `CITIZENSHIP_CARD_ENABLED` | ✅ **RULED OUT 2026-09-22** (C1). It is a source change **plus a second game deploy** — *a decision about launching citizenship, not a verification step*, and it must not ride in on a deploy slot. |
@@ -839,7 +1011,7 @@ the slot**?~~ → **ANSWERED: deferred past the slot.**
 </details>
 
 ⛔ **Do not report `0065` as unblocked by this window regardless.** Its own status: **two** conditions
-remain — `0062` (which W14 addresses) and `0195` (whose value is owner-attested but **not shown
+remain — `0296` (ex-`0062`, re-pointed 2026-09-23; W14 addresses it) and `0195` (whose value is owner-attested but **not shown
 correct**; only a real signed payload settles it). *"None alone unblocks."*
 
 ### ✅ C2 — RULED: `0220` §8 step 3 is **OUT of this window, and gets its own task.**
@@ -977,14 +1149,48 @@ summary.** ⛔ **It defines W14 only; W13 is untouched.**
 deferred**, so **a person is still the only watcher** and **W12 still has zero prior production
 evidence.** ⛔ **This is a defined procedure, not an automated one.**
 
-⛔ **G3 is the ONLY gap that moved.** **G1** (no rollback procedure) stays ruled-and-accepted, **G2**
-stays open-with-an-owner, and **G4** stays open. ⛔ **Do not read this closure as covering any of them.**
+⛔ **G3 was the only gap that moved WHEN THIS PARAGRAPH WAS WRITTEN.** ~~and **G4** stays open.~~
+✅ **SUPERSEDED LATER THE SAME DAY — 2026-09-22: G4 IS NOW CLOSED TOO, by a second owner ruling. See
+G4 below.** **G1** (no rollback procedure) stays **ruled-and-accepted** and **G2** stays
+**open-with-an-owner**. ⛔ **Do not read EITHER closure as covering EITHER of those two.**
 
-**G4 — No brief covers the interaction between multiple same-day profile deploys and the daily backup
+**G4 — ✅ CLOSED 2026-09-22 — the owner ruled a fix: take a manual snapshot at W0.** ⛔ **The entry is
+kept, not deleted**, so a reader sees a gap that got **answered**, and by **whom** — the same treatment
+G3 got.
+
+🚩 **NAME COLLISION, flag it before you read further: this runbook's `G4` is NOT `0219`'s `G4`.** They
+are different items in different documents and the original text below references both in one sentence.
+**This closure is about THIS document's G4 only.**
+
+~~**No brief covers the interaction between multiple same-day profile deploys and the daily backup
 object.** `0219/worklog.md` R9 notes each deploy's smoke backup **overwrites today's daily object**;
 nothing says whether **two** overwrites in one day (⚠️ **was three before W8 was removed**) matter for
 the freshness marker `0219`-G4 will
-eventually read. G4 is deferred, so nothing depends on the answer **today**.
+eventually read. G4 is deferred, so nothing depends on the answer **today**.~~
+
+✅ **ANSWERED BY THE OWNER, 2026-09-22**, given live in the `fkit lead` session via `AskUserQuestion`
+and relayed by `fkit-lead` (ADR-021). ⛔ **Not producer precedent.** Shown that **W7 overwrites W3's
+same-day backup object** *and* that **G1 left no rollback procedure** — neither of which alone worried
+them, but the pair of which did — the owner ruled: **take a manual snapshot at W0, copying the current
+backup object aside under a distinct name, before anything runs.**
+
+📌 **The step, its exact mechanism and its four residuals are W0 item 5 above — cite that, not this
+summary.** The mechanism was **established from the repo, not authored**: it is the same server-side
+`rclone copyto` the script already performs every Sunday (`profile-backup.sh:174-176`), verified live by
+[`0241`](../tasks/done/0241-profile-verify-first-weekly-backup-copy/brief.md).
+
+### ⚠️ WHAT THIS CLOSURE DOES **NOT** COVER — read it before you call the backup question settled
+
+- ⛔ **IT IS NOT A ROLLBACK PROCEDURE.** It preserves a **starting point**, nothing more. **G1 stays
+  declined and open**, and **W12 still has zero prior production evidence and no written way back.**
+- ⛔ **THE SECOND HALF OF THE ORIGINAL GAP IS STILL UNANSWERED.** The struck text asked **two** things:
+  *(a)* is the pre-window state lost to same-day overwrites, and *(b)* do two overwrites in one day
+  **matter for the freshness marker `0219`-G4 will eventually read**. 🚨 **The ruling answers (a). It
+  does NOT answer (b)** — no one has said what a multi-overwrite day does to that marker.
+  **`0219`-G4 remains deferred**, so nothing depends on the answer **today**; ⛔ **but do not record
+  (b) as settled.**
+- 📌 **The overwrite behaviour itself is UNCHANGED.** The snapshot copies an object aside; it does not
+  stop W3's and W7's smoke backups landing on the same daily key.
 
 ---
 
@@ -995,4 +1201,4 @@ eventually read. G4 is deferred, so nothing depends on the answer **today**.
 | `ai-agents/knowledge-base/alert-delivery-runbook.md` | The 403-permanently-disables-the-channel trap, and `PROFILE_INTERNAL_ALLOW_IPS`'s second caller |
 | `ai-agents/knowledge-base/profile-backup-restore-runbook.md` | The backup/restore path a deploy's smoke backup touches |
 | `ai-agents/knowledge-base/container-log-retention.md` | What `0219`-G1 changes, and the `:5-6` disclaimer `0219` corrects |
-| `0219/worklog.md` § *Part B*, `0220/plan.md` §8, `0221/worklog.md` § *Part B*, `0286/plan.md` § *3*, `0062/worklog.md` § *Deploy-pending*, `0273/plan.md` §4.6, `0032/worklog.md` § *Step 5* | The step text every checkbox above is drawn from — **check any line against its source** |
+| `0219/worklog.md` § *Part B*, `0220/plan.md` §8, `0221/worklog.md` § *Part B*, `0286/plan.md` § *3*, `0062/worklog.md` § *Deploy-pending* (now `tasks/done/`; results go to `0296`), `0273/plan.md` §4.6, `0032/worklog.md` § *Step 5* | The step text every checkbox above is drawn from — **check any line against its source** |

@@ -951,7 +951,7 @@ token** — the canonical vocabulary defines it as *"scoped and filed, **not pic
 ([`task-status-vocabulary.md`](../../../knowledge-base/conventions/task-status-vocabulary.md)), and
 this task has plainly been picked up. **`🚧 Blocked` is the token the convention gives for *started,
 cannot proceed*, with a mandatory inline reason** — the same posture and the same token as
-[`0062`](../../backlog/0062-forward-profile-internal-token-in-deploy/brief.md), which is likewise built,
+[`0062`](../0062-forward-profile-internal-token-in-deploy/brief.md), which is likewise built,
 reviewed and awaiting deploy proof. ⚠️ **`🚧 Blocked` here does NOT mean anything is wrong with the
 work** — it means the next step is the **owner's**, not an agent's.
 

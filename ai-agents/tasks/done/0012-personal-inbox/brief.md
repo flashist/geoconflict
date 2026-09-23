@@ -19,7 +19,7 @@ Sprint 4 — buildable now against the local profile stack. Shipping it retires 
 carried by `0017`, `0018`, and `0019`.
 
 ## Status
-🚧 Blocked — built + reviewed (local scope) 2026-08-26; open pending the `0062`-gated Deferred Live Tail
+✅ Done (agent-closed — not owner-verified)
 
 📌 **Inherited blocker reason corrected 2026-09-04.** `0062`'s `D2` check was run that day against the
 live prod container: `PROFILE_INTERNAL_TOKEN` reads **empty**, but **the owner deliberately blanked it
@@ -131,6 +131,15 @@ These are the only triggers in Sprint 4. The `POST /admin/player-message` endpoi
 
 ## Deferred Live Tail — gated on `0062`; NOT part of the buildable scope
 
+> 🔴 **MOVED OUT 2026-09-23 — OWNER RULING** (given live in the `fkit lead` session via
+> `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent).
+> The owner ruled this task **closes as built + reviewed**, and its production-only checks move to
+> [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
+> (Sprint 5). Mapping: item 1 → `0296` A2–A3 (after the weekend deploy slot) · item 2 → B2 · item 3 →
+> B3 (both **after the citizenship flip**, owned by `0065` §6 — the Personal tab is hidden behind
+> `CITIZENSHIP_CARD_ENABLED` until then, so item 3 proves nothing while the flag is off).
+> The list below is kept as the source text.
+
 ~~Execute once `0062` has shipped and a deploy has run:~~ **Corrected 2026-09-04: `0062`'s fix has
 shipped and a deploy HAS run — but with the token deliberately blanked, so prod profile integration is
 still OFF and this tail still cannot run.** Execute once the token is deployed **non-empty**:
@@ -141,12 +150,27 @@ still OFF and this tail still cannot run.** Execute once the token is deployed *
 3. Citizen gating confirmed against prod data (non-citizen sees no Personal tab).
 
 ⚠️ Same trap as `0017`: a local pass where the token *is* set proves the feature, not that prod
-works. The task is not fully done — and must not be closed — until this tail runs.
+works. ~~The task is not fully done — and must not be closed — until this tail runs.~~ **SUPERSEDED
+2026-09-23 by owner ruling: closed as built + reviewed; the tail runs under `0296`. The trap still
+holds — nothing here is proven in prod.**
+
+### 🔴 Local browser check — WAIVED 2026-09-23 (owner ruling)
+
+The browser step of the local loop (`plan.md` §6, last leg — citizen sees the Personal tab and bell
+dot, non-citizen / guest sees no tab, opening the tab clears the dot, reload keeps read state) was
+**never run** (worklog § *NOT run / listed for the owner*). **Owner ruling 2026-09-23**, given live in
+the `fkit lead` session via `AskUserQuestion` and relayed by `fkit-lead` to a spawned `fkit-producer`
+(⛔ not producer precedent): **WAIVED.** The live checks in `0296` cover it — **B2** (ex-live item 2)
+and **B1** (ex-`0017` live item 3). ⚠️ **Accepted tradeoff: nobody sees the Personal tab in a browser
+until after launch.** The client logic is unit-tested (`tests/client/Inbox.test.ts`) and the wire was
+proven by the build's curl loop — neither is a browser observation.
 
 ## Notes
 
-- **Depends on:** `0062-forward-profile-internal-token-in-deploy` gates the `## Deferred Live Tail`
-  section, and per the Status line this task stays open until that tail runs. Beyond that tail,
+- **Depends on:** nothing open. *(Corrected 2026-09-23, owner ruling: the `## Deferred Live Tail` that
+  `0062` gated moved to `0296`; `0062` is closed. The earlier text follows, struck.)*
+  ~~`0062-forward-profile-internal-token-in-deploy` gates the `## Deferred Live Tail`
+  section, and per the Status line this task stays open until that tail runs.~~ Beyond that tail,
   nothing blocks the buildable scope — restated 2026-08-23 by owner ruling in the
   `## Dependencies` section above (left unedited): 8d-A (global announcements) is Done, so the popup
   this tab lives in exists; the player profile store is available locally (profile server plus Postgres

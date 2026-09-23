@@ -8,7 +8,9 @@ Sprint 4
 
 ## Priority
 **High** — this epic is the structural blocker under `0062`, `0017`'s Deferred Live Tail, `0012`'s
-Deferred Live Tail and one of `0065`'s three conditions.
+Deferred Live Tail and one of `0065`'s three conditions. 📌 *2026-09-23 (owner ruling): `0062`, `0017`
+and `0012` are closed and those production checks now live in one task, `0296`; `0065`'s condition
+points there.*
 
 ⚠️ **The rank above is the producer's.** The owner ruled on **scheduling** (all phases into Sprint 4);
 they did not rank this epic.
@@ -206,8 +208,8 @@ five gaps.** Neither greenfield nor procurement.
 **Dependency shape:**
 
 ```
-P0 (0214) → P1 (0215) → P2 (0217) → 0062 verified → 0017 / 0012 live tails
-                                                   + 1 of 0065's 3 conditions
+P0 (0214) → P1 (0215) → P2 (0217) → 0296 section A (ex-0062 D1–D4 + 0017/0012 live tails; 2026-09-23)
+                                                   + 1 of 0065's 2 remaining conditions
               │
               ├── P3 (0218)  ├── P4 (0219)  ├── P5 (0220)  └── P6 (0221)
 
@@ -239,7 +241,7 @@ This epic is verified by its children and closes when all ten rows above close. 
 1. 🔴 **The "current box state" table in `0215` is FILLED IN** — every field has a real value instead
    of `UNKNOWN`. ⚠️ **This is the acceptance criterion that answers the owner's actual complaint.**
 2. `/health` returns **200 over a valid Let's Encrypt cert** (P1).
-3. `0062`'s D3 — a real authenticated profile call succeeding end to end in production (P2). ⚠️ The
+3. `0062`'s D3 *(now `0296` A3 — moved 2026-09-23, owner ruling)* — a real authenticated profile call succeeding end to end in production (P2). ⚠️ The
    only check that catches traps 1 and 2.
 4. **Migration `004` is confirmed applied** — see `0215` / `0217`; ✅ safe to run either way.
 5. A restore drill against **non-empty** data, with **currently-documented** commands (P3).
@@ -263,9 +265,11 @@ This epic is verified by its children and closes when all ten rows above close. 
 - 🔴 **The deploy forget-risk gets NO GUARD TASK — owner-ruled, verbatim: *"Neither — I'll just
   remember."*** They will blank `PROFILE_INTERNAL_TOKEN` by hand at each deploy. ⛔ **This is a
   decision, not an oversight. Do not file a task for it and do not re-recommend one.** The accepted
-  risk is recorded on `0062` and `0217`, where a deployer sees it.
+  risk is recorded on `0062` and `0217`, where a deployer sees it — and, since 2026-09-23, at the top of
+  `0296`, because `0062` is closed.
 - 🔴 **`0062` STAYS IN SPRINT 4** — owner-ruled, **over the producer's recommendation to move it to
-  the Backlog board.** Recorded; **not re-argued.**
+  the Backlog board.** Recorded; **not re-argued.** 📌 **SUPERSEDED 2026-09-23 by a later owner ruling:
+  `0062` was closed and its production checks moved to `0296` (Sprint 5).**
 - **`0195`'s code fix STANDS.** What was corrected is its **production narrative** — *"every payment
   route returns 503 on the real box"* was never verified against a running box. **The fix was right;
   the observation was never made.**

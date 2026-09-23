@@ -190,7 +190,7 @@ server cannot verify a claim; it can only bound the harm of a false one.
   reaches the profile box; the grant cannot be live before `0217` lands **and is deployed**. The
   research + decision here can and should run before that (the machine-readable dependency line is in
   *Notes* and reads `nothing` for exactly this reason).
-- Sits on the earned-citizenship track: [`0017`](../0017-citizenship-earned/brief.md) (threshold →
+- Sits on the earned-citizenship track: [`0017`](../../done/0017-citizenship-earned/brief.md) (threshold →
   citizen), `0211` (done — 1 XP/match), the crediting seam (`ProfileApiClient`, `0062` — token
   forwarding, `0217` — live path).
 - **ADR-111 — compatible, not in conflict.** The ADR's principle is that XP awards move *up*, never
@@ -351,7 +351,7 @@ is deployed. Build and test locally against the profile server + Postgres like `
   be **built and tested locally** now. What cannot happen is the grant reaching players: that waits on
   [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) landing **and being
   deployed** — a go-live gate, not a build blocker. The build also sits on
-  [`0017`](../0017-citizenship-earned/brief.md) (the threshold path it feeds) and may need
+  [`0017`](../../done/0017-citizenship-earned/brief.md) (the threshold path it feeds) and may need
   [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) if the client-direct claim
   route is chosen (step 1.4) — if the ruling picks that route and `0250` is not done, set this brief's
   status to `🚧 Blocked — 0250` at that point rather than building around it. Declaring `0217` as a

@@ -167,7 +167,10 @@ separate bucket. *(The owner has not ruled on this; it is the producer's recomme
 ## Notes
 - **Depends on:** two hard blockers, flattened from the `## Dependencies (hard blockers)` numbered list
   above (left unedited): (1) the citizenship feature must exist, to gate archival to citizen games only
-  — see `0017-citizenship-earned` and `0018-citizenship-paid`; and (2) an S3-compatible bucket plus
+  — see `0017-citizenship-earned` and `0018-citizenship-paid` (📌 *2026-09-23: `0017` closed as built +
+  reviewed, owner ruling — its production checks moved to `0296`; citizenship goes live only at the
+  flip owned by `0065` §6; `0018` still open. Whether blocker (1) needs citizenship built or live is
+  this brief's own wording and was not re-ruled*); and (2) an S3-compatible bucket plus
   credentials must be provisioned into the existing `storageEndpoint` / `storageBucket` /
   `storageAccessKey` / `storageSecretKey` config slots via the deploy config, following the
   post-incident secret-handling rules (variable names only, never values, in git-tracked files). The

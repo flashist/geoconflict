@@ -12,7 +12,7 @@ for users *now*, this blocks `0017`/`0018` from ever working. Cheapest high-valu
 the fix itself is one line.
 
 ## Status
-🚧 Blocked — built + reviewed 2026-08-24 (Ready to merge, validation-gated); **deployed 2026-08-29 in `362a2f9` — INFERRED from commit ancestry, NOT verified**; ~~verification D1–D5 not yet run~~ **D2 WAS RUN 2026-09-04 and returned an EMPTY token — the result is INCONCLUSIVE, neither confirming nor refuting the fix, because the owner deliberately blanked the value before the 2026-08-29 deploy** (correction 2026-09-04); D1 and D3–D5 not yet run. **The blocker is citizenship readiness + outstanding profile VPS setup work — NOT an unrun command.**
+✅ Done (agent-closed — not owner-verified)
 
 ⚠️ **Why the word "inferred" is load-bearing here.** The fix commit `680fb2d` (2026-08-24) **is** an
 ancestor of the production deploy commit `362a2f9` ("DEPLOY prod: bump version to 0.0.140",
@@ -104,7 +104,19 @@ hand.** Recorded 2026-09-04.
 > producer's recommendation to move it to the Backlog board.** The producer's argument was that the
 > task is structurally blocked on profile-VPS work and would sit unworkable in the sprint; **the owner
 > chose to keep it here.** ⛔ **Recorded, not re-argued.** The work that discharges it is
-> [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2).
+> [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2).
+
+> 🔴 **SUPERSEDED 2026-09-23 — OWNER RULING, given live in the `fkit lead` session via
+> `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel.** ⛔ Not
+> producer precedent. The block above (2026-09-04, *"stays in Sprint 4"*) is **kept, not deleted**, and
+> no longer holds. The owner ruled: **close `0062` now** — built + reviewed 2026-08-24, D5 passed
+> locally 2026-09-23 (worklog § *D5 result — 2026-09-23*) — and **move its remaining production checks
+> into a separate after-deploy task** so the tasks that depended on `0062` are no longer blocked.
+> **Moved to [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
+> (Sprint 5):** D1 → A1, D2 → A2, D3 → A3, D4 + the production half of verification step 6 → A4.
+> ⚠️ **None of D1–D4 has been run with a real value — closing this task does NOT mean the fix is
+> proven in production.** The *Deploy-time forget-risk* warning and the 2026-09-04 *NO GUARD WILL BE
+> BUILT* ruling below are **carried forward to the top of `0296`**; both still stand.
 
 *(Marker set by the lead 2026-08-24 per producer recommendation. **Reworded 2026-09-04 on an owner
 ruling given live in session**: the previous wording — `awaiting deploy proof (D1–D3)` — was stale in
@@ -193,7 +205,7 @@ variable. See step 4.
    the right behavior; **silent** fail-soft is not.
 
 4. ~~**Consider a general guard, and recommend rather than build.**~~ **MOVED OUT 2026-08-23 by owner
-   ruling — it is now task [`0064-deploy-time-config-parity-guard`](../0064-deploy-time-config-parity-guard/brief.md).**
+   ruling — it is now task [`0064-deploy-time-config-parity-guard`](../../backlog/0064-deploy-time-config-parity-guard/brief.md).**
    The reasoning moved there in full. **Do not redo the evaluation, and do not build a deploy-time
    guard under this brief.** `0064` is deliberately sequenced to land *after* this task: a guard that
    enforces before this fix ships would correctly fail the deploy and block the fix itself.
@@ -219,6 +231,9 @@ variable. See step 4.
 ## Notes
 
 - **Depends on:** nothing. Ready to start now.
+- 📌 **2026-09-23 (owner ruling): the production checks that remained here moved to
+  [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md);
+  `0065`'s condition on this task now points there. The Blocks line below is the 2026-08-23 record.**
 - **Blocks:** **`0017`** (Earned Citizenship) and **`0018`** (Paid Citizenship) — **verified
   2026-08-23, not speculative.** Both are marked `🚧 Blocked` on this task in `plan-sprint-4.md`.
   Neither can work in production until this ships.

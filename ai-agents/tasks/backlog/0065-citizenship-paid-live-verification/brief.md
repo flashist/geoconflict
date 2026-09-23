@@ -11,21 +11,16 @@ High — the go-live gate for the monetization milestone. Everything buildable w
 (mock scope); this task is what remains once Yandex delivers.
 
 ## Status
-🚧 Blocked — ~~three~~ **TWO** conditions: ~~~~Yandex catalog approval~~ **test-purchase Yandex login(s)** +
-per-game secret-key issuance (`0014`),~~ ✅ **the `0014` condition is SATISFIED — corrected 2026-09-22, see Correction 4 below**;
-`0062` (`PROFILE_INTERNAL_TOKEN` not forwarded to prod — no profile row is ever created there), **and
-`0195`** (`YANDEX_PAYMENTS_SECRET` on the profile box — ~~not forwarded; every `/v1/payments/*` route
-returns 503 there~~ **PRESENT and the routes are NOT failing closed, verified on the box 2026-09-19;
-the value's PROVENANCE is owner-attested 2026-09-20 — the owner set the real Yandex key (⚠️
-owner-attested, NOT repo-verified); the condition stays open because the value is still not shown
-CORRECT and no real purchase has been exercised**). ~~All three~~ **Both remaining conditions** must clear; none alone unblocks.
-~~**Blocker count unchanged: THREE — and the owner CONFIRMED that reading on 2026-09-20** (the
-alternative, clearing the `0195` condition down to two blockers, was put to them and declined).~~
-📌 **THE THREE-COUNT WAS OWNER-CONFIRMED 2026-09-20 AND IS SUPERSEDED BY A LATER OWNER RULING OF
-2026-09-22** — ⚠️ **read the distinction:** the 2026-09-20 confirmation declined to clear the **`0195`**
-condition, and ⛔ **that still stands untouched — `0195` is open.** What moved on 2026-09-22 is a
-**different** condition, **`0014`**, which the owner then closed outright.
-⇒ **Blocker count: TWO — `0062` and `0195`.**
+🚧 Blocked — **TWO conditions; both must clear, none alone unblocks.** (1) **`0296`** A2–A3 —
+`PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end (this was the **`0062`** condition;
+**re-pointed to `0296` on 2026-09-23 by owner ruling** — `0062` itself closed; see Correction 5).
+(2) **`0195`** — `YANDEX_PAYMENTS_SECRET` on the profile box: **present** and the routes are **not**
+failing closed (verified on the box 2026-09-19); its provenance is **owner-attested** 2026-09-20 as the
+real Yandex key (⚠️ NOT repo-verified); **open on CORRECTNESS** — no real signed payload and no real
+purchase yet (owner-confirmed open 2026-09-20).
+*(Count history, so it is not re-derived: **three** conditions until 2026-09-22, when the `0014`
+condition was satisfied — Correction 4; **two** since. The owner's 2026-09-20 confirmation of *three*
+declined to clear `0195` — that still stands. The earlier wordings are kept in Corrections 1–4.)*
 🚨 ⛔ **THIS TASK STAYS `🚧 Blocked`.** Its own line says *"none alone unblocks"*, and **both remaining
 conditions are untouched.** ⛔ **No mover skill was invoked on this task.**
 
@@ -195,6 +190,27 @@ repository can see the Yandex console, and a deploy leaves no artifact in git. �
 exercised:** a nominated test login makes a test purchase **possible**; **no purchase of any kind has
 ever been made** — that is this brief's **step 3**, still unrun.
 
+#### Correction 5 — 2026-09-23: the `0062` condition is RE-POINTED to `0296`, and §6 is the ONLY owner of the flip
+
+⛔ **Authority.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+2026-09-23**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel.**
+⛔ **Not producer precedent.**
+
+1. **`0062` was closed** (built + reviewed; D5 passed locally 2026-09-23) and its production checks
+   moved to [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md).
+   **This task's `0062` condition now points at `0296` A2–A3** — the same substance ("forwarded to
+   prod and verified end to end"), a new home. ⛔ **Nothing cleared: blocker count stays TWO.**
+2. **§6 is the ONLY owner of the citizenship flip** (`CITIZENSHIP_CARD_ENABLED` → `true` plus the
+   second game deploy). The flip was removed from `0017`'s live tail, and §6's *"skip if `0017`'s live
+   tail already flipped it"* clause is dropped. ⚠️ **Accepted tradeoff, recorded:** the
+   earned-citizenship launch is now tied to this task's steps — `0017`'s *"do not couple"* note is
+   superseded on that point.
+3. 🚨 **The ordering problem is STILL UNSOLVED and is deliberately kept visible** (see the step-3 box
+   below): step 6 flips only after 1–4 pass, but step 3 needs the flip first. The owner did not rule
+   on it here. **Whoever takes the launch decision resolves it.**
+
+⛔ **No status token changed and no mover skill was invoked on this task.**
+
 ---
 
 #### 📌 RECORDED 2026-09-22 — the owner WILL perform step 3, and a claim to the contrary was NEVER TRUE
@@ -260,8 +276,10 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
   ⚠️ **Read what did NOT move:** the *"provenance is not correctness"* sentence above is about **`0195`**
   and is **UNCHANGED and still true** — that condition is open, and the owner's 2026-09-20 refusal to
   clear it stands. ⛔ **`0065` stays `🚧 Blocked`; no mover was invoked.**
-- **`0062`** — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end (its own
-  verifications 2–3). Without it no profile row exists to attach a purchase to.
+- **`0296`** (A2–A3) — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end. Without it
+  no profile row exists to attach a purchase to. 📌 *Re-pointed 2026-09-23 by owner ruling (Correction
+  5): this was the `0062` condition ("its own verifications 2–3"); `0062` is closed and those checks
+  now live in `0296`.*
 - 🚨 **`0195`** — [`0195-forward-yandex-payments-secret-in-profile-deploy`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md).
   ✅ **Shipped 2026-09-01** — closed `Done (agent-closed — not owner-verified)`, built with its own live
   verification deferred. ⚠️ **Owner ruling 2026-09-01 — do NOT read that ship as a blocker clearing.**
@@ -385,8 +403,11 @@ down (`0019` decision).
 
 ### 6. Flip-ON (go-live)
 - [ ] Flip `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` to `true` in
-      `src/client/flashist/FlashistFacade.ts` (`0054` coupling) — **only after** 1–4 pass, and skip
-      if `0017`'s live tail already flipped it.
+      `src/client/flashist/FlashistFacade.ts` (`0054` coupling) — **only after** 1–4 pass~~, and skip
+      if `0017`'s live tail already flipped it~~.
+      📌 **2026-09-23 (owner ruling, Correction 5): this step is the ONLY owner of the flip** — for the
+      earned path too; the flip was removed from `0017`. ⚠️ The circularity with step 3 is unsolved
+      (see the step-3 box). Once flipped, `0296` section B becomes runnable.
 
 ## Verification
 
@@ -395,10 +416,13 @@ owner-waived, and the follow-up task from step 1 is filed.
 
 ## Notes
 
-- **Depends on:** `0014` (~~~~Yandex catalog approval~~ **test-purchase Yandex login(s)** + per-game secret-key issuance~~ — ✅ **SATISFIED 2026-09-22, both halves; `0014` itself is closed. ⛔ Task id KEPT, not removed — the dependency happened, it did not vanish. Blocker count now TWO**), `0062`
-  (`PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end — without it no profile row
-  exists to attach a purchase to), `0195` (`YANDEX_PAYMENTS_SECRET` on the profile box — ~~without it every `/v1/payments/*` route returns 503 there, so steps 1–4 all fail~~ **present and non-empty as of 2026-09-19, and owner-attested 2026-09-20 as the real Yandex key the owner set (not repo-verified); open on whether the value is CORRECT, which only a real signed payload settles — owner-confirmed open 2026-09-20**), and `0018` (mock
-  scope done — the UI and flow this checklist drives must exist). ⚠️ **Owner ruling 2026-09-01 —
+- **Depends on:** `0296` (A2–A3 — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end; re-pointed 2026-09-23 from the closed `0062`, owner ruling — Correction 5), `0014` (~~~~Yandex catalog approval~~ **test-purchase Yandex login(s)** + per-game secret-key issuance~~ — ✅ **SATISFIED 2026-09-22, both halves; `0014` itself is closed. ⛔ Task id KEPT, not removed — the dependency happened, it did not vanish. Blocker count now TWO**), `0062`
+  (~~`PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end — without it no profile row
+  exists to attach a purchase to~~ — ✅ **`0062` closed 2026-09-23; this condition now lives in `0296`,
+  first in this list. ⛔ Task id KEPT, not removed — same treatment as `0014`**), `0195` (`YANDEX_PAYMENTS_SECRET` on the profile box — ~~without it every `/v1/payments/*` route returns 503 there, so steps 1–4 all fail~~ **present and non-empty as of 2026-09-19, and owner-attested 2026-09-20 as the real Yandex key the owner set (not repo-verified); open on whether the value is CORRECT, which only a real signed payload settles — owner-confirmed open 2026-09-20**), and `0018` (mock
+  scope done — the UI and flow this checklist drives must exist). 📌 **2026-09-23 (owner ruling,
+  Correction 5): the `0062` condition is re-pointed to `0296` (A2–A3), the task now holding
+  `0062`'s production checks; `0062` is closed. Blocker count TWO: `0296`, `0195`.** ⚠️ **Owner ruling 2026-09-01 —
   forwarding and issuance are each necessary and neither alone is sufficient:** `0195` **shipped
   2026-09-01** and fixed the forwarding gap (`build-deploy-profile.sh` had omitted the variable from
   its staged-export block), but ~~`0014` has **not** issued the per-game key~~ 📌 **2026-09-12 — key ISSUED

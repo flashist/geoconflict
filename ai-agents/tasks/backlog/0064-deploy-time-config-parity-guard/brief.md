@@ -29,9 +29,19 @@ gate building Phase 1. **Phase 1 report-only is startable now.** Two grounds the
 Grounding checked at the ruling: `0063` is deployed and live; `0062`'s line is in the tree at
 `deploy.sh:292`.
 
-🚫 **This task CANNOT be closed this week.** Verification step 8 and the Phase 2 prod-shaped checks
+🚫 ~~**This task CANNOT be closed this week.**~~ ⛔ **STRUCK 2026-09-22 — AN EXPIRING TIME-INDEX ONLY,
+NOT DELETED: it was TRUE when written on 2026-09-02.** ⇒ ✅ **RE-STATED SO IT CANNOT GO STALE: this task
+CANNOT be closed until the deploy window runs.** Verification step 8 and the Phase 2 prod-shaped checks
 stay deploy-gated. Starting it is not the same as being able to finish it — do not read `In progress`
 as a path to `Done` on the current deploy state.
+
+⛔ **THE CONSTRAINT IS UNCHANGED IN FORCE — ONLY ITS DATE IS GONE. 🚨 THIS IS NOT A STATEMENT THAT
+`0064` IS NOW CLOSABLE.** It remains deploy-gated exactly as before, and the window it waits on
+**SLIPPED** — owner confirmation 2026-09-22, relayed by `fkit-lead` (ADR-021): **the window has NOT
+happened and NO replacement date was named.** ⇒ **the gate is if anything further away, not nearer.**
+De-dating ruled by the owner on **2026-09-22**, given live in the `fkit lead` session via
+`AskUserQuestion` and relayed by `fkit-lead`. ⛔ **Not producer precedent.** ⛔ **`## Status` untouched;
+no mover skill invoked.**
 
 📌 **ARMING IS GATED ELSEWHERE — owner ruling 2026-09-02, given live in session.** The pre-arming
 gate is now its own task: **[`0203-config-parity-guard-pre-arming-gate`](../0203-config-parity-guard-pre-arming-gate/brief.md)**.
@@ -200,9 +210,12 @@ which drifts, and which is then the thing lying to us.
 
 ## Notes
 
-- **Depends on:** **`0062` and `0063` must land first** — hard sequencing, not a preference. See the
+- **Depends on:** **~~`0062` and~~ `0063` must land first** — hard sequencing, not a preference. See the
   hazard section: this guard will correctly fail the deploy on their gaps, blocking the very fixes it
-  is waiting for.
+  is waiting for. 📌 **`0062` REMOVED 2026-09-23 (owner ruling, relayed by `fkit-lead`), citing the
+  OWNER RULING OF 2026-09-02 in `## Status`:** `0062` gates only **switching the guard on** (arming),
+  **not building it**. `0062` is now closed; its production checks moved to `0296`. ⛔ This task's own
+  deploy-gated steps (verification step 8, the Phase 2 prod-shaped checks) are **unchanged**.
 - **Blocks:** nothing.
 - **Arming depends on [`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md)** *(added
   2026-09-02, owner-ruled)*. All ten pre-arming items live there and must land before `--enforce` is
@@ -219,7 +232,7 @@ which drifts, and which is then the thing lying to us.
   general guard. That thinking has moved into this brief; `0062`'s implementer should not redo it.
 - **Owner-ruled 2026-08-24 (relayed via the lead session): this task's scope inherits two
   mechanism-level residuals accepted on `0062`'s review** (its ledger,
-  `ai-agents/tasks/backlog/0062-forward-profile-internal-token-in-deploy/review.md`, findings R1/R2
+  `ai-agents/tasks/done/0062-forward-profile-internal-token-in-deploy/review.md`, findings R1/R2
   and the accepted-residuals section): **(R1)** all 8 secrets in `deploy.sh`'s remote-env heredoc are
   forwarded by local expansion into the single ssh argv — transiently visible in local/remote process
   tables (and traced by any `bash -x` invocation of the script); **(R2)** theoretical

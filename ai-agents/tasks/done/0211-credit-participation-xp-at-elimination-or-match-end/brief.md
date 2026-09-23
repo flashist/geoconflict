@@ -240,7 +240,7 @@
 > 10*, so **the strings that state that threshold to players belong in the same change — they ship or
 > break together, and splitting them is how one gets forgotten.**
 > ⛔ **NO LINE-NUMBER LIST IS GIVEN ON PURPOSE.** Line numbers drift, and the figures in
-> [`0017`](../../backlog/0017-citizenship-earned/brief.md) have already been corrected twice this week. **Find
+> [`0017`](../0017-citizenship-earned/brief.md) have already been corrected twice this week. **Find
 > the strings by CONTENT/KEY, and SWEEP for the figures at plan time rather than trusting any list.**
 > 📍 **Known starting point, not the scope:** the `citizenship_earned` inbox strings (`inbox_body`,
 > stating *"1,000 XP"* / *"1 000 XP"* in both languages) are drafted in `0017`'s **Localization**
@@ -1529,7 +1529,7 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
   strings that state that threshold to players belong in the same change — they ship or break
   together, and splitting them is how one gets forgotten.**
   ⛔ **NO LINE-NUMBER LIST, DELIBERATELY.** Line numbers drift and
-  [`0017`](../../backlog/0017-citizenship-earned/brief.md)'s have already been corrected twice this week.
+  [`0017`](../0017-citizenship-earned/brief.md)'s have already been corrected twice this week.
   **Locate the strings by CONTENT/KEY and SWEEP both language files for the figures at plan time** —
   do not trust any enumerated list, including this bullet's pointer.
   📍 **Starting point, NOT the scope:** the `citizenship_earned` inbox copy (`inbox_body`, stating the

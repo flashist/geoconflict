@@ -123,8 +123,15 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
   - ✅ **`0266` COUNTS** — filed in Sprint 4 with the owner's scheduling *"before XP go-live"*. It
     neither waits on the wiring nor on Yandex, so under the 2026-09-14 edges ruling it must be done
     for `PROFILE_INTERNAL_TOKEN` to be set.
-  - 📅 **XP go-live may slip past this weekend** — owner: *"it's ok"*; it may even skip the next weekend
-    slot. **The game deploy still happens, with `PROFILE_INTERNAL_TOKEN` blank** (the standing
+  - 📅 ~~**XP go-live may slip past this weekend** — owner: *"it's ok"*; it may even skip the next weekend
+    slot.~~ ⛔ **STRUCK 2026-09-22 — A STALE CALENDAR INDEX, NOT DELETED. THE 2026-09-15 RULING ITSELF IS
+    UNCHANGED; only its date anchor is gone.** ⇒ ✅ **RE-STATED WITHOUT A CALENDAR INDEX: XP go-live may
+    slip past the deploy window, and may even skip the slot after that one — owner, 2026-09-15, verbatim:
+    *"it's ok"*.** ⚠️ **Why the re-wording was needed: the weekend slot this sentence pointed at
+    SLIPPED — OWNER CONFIRMATION 2026-09-22, relayed by `fkit-lead` (ADR-021): the window has NOT
+    happened, and NO replacement date was named**, so *"this weekend"* and *"the next weekend slot"* no
+    longer denote anything a reader can resolve. ⛔ **Not producer precedent.**
+    **The game deploy still happens, with `PROFILE_INTERNAL_TOKEN` blank** (the standing
     blank-token ruling applies unchanged).
   - ⚠️ The *Risk* bullet above (`0253` waits on O1–O3 numbers) is **superseded as to `0253`**: it now
     waits on `0266`'s design, then a rework of its uncommitted build.
@@ -160,6 +167,17 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
   `fkit-producer` holding no owner channel. ⛔ Not producer precedent — one ruling, one task.**
   - **The question put:** is the token set at **this** weekend slot, or at the slot **after** it?
     **The owner chose: set it AT this slot.**
+    - 🚨 **RESOLVING *"this slot"* AFTER THE SLIP — 2026-09-22.** ⛔ **THE QUESTION AND THE ANSWER ABOVE
+      ARE KEPT VERBATIM AND WERE NOT REWRITTEN** — they are the record of what was actually put to the
+      owner on 2026-09-19. The slot they indexed **SLIPPED**: OWNER CONFIRMATION 2026-09-22, given live
+      in the `fkit lead` session via `AskUserQuestion` and relayed by `fkit-lead` (ADR-021) — **the
+      window has NOT happened, and NO replacement date was named.** ⛔ **Not producer precedent.**
+      ⇒ ✅ **READ *"this slot"* AS *"THE DEPLOY WINDOW, WHENEVER IT RUNS"***, and *"the slot after it"*
+      as the one following that window.
+      🚨 **TWO MISREADINGS THIS NOTE EXISTS TO STOP:** ⛔ the ruling is **NOT void** because the weekend
+      it was given for did not happen; and ⛔ it does **NOT** now mean *"the slot after the one that
+      slipped"* — **that is precisely the option the owner DECLINED**, and the recommendation they
+      overrode. **The ruling stands in full: the token is set AT the window.**
   - ⚠️ **RECORDED PLAINLY: THIS WENT AGAINST THE RECOMMENDATION PUT TO THE OWNER.** They were advised
     to ship the game with the token **blank**, prove [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3),
     [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4) and
@@ -378,8 +396,7 @@ record. ⚠️ Deployed nginx is **1.28.3**.
 
 ## Notes
 
-- **Blocks:** `0062`'s live verification, `0017`'s Deferred Live Tail, `0012`'s Deferred Live Tail,
-  and **one of `0065`'s three conditions**.
+- **Blocks:** `0296` section A (since 2026-09-23 it holds `0062`'s live verification and `0017`'s and `0012`'s Deferred Live Tails — owner ruling; those three tasks are closed), and **one of `0065`'s two remaining conditions** (now pointed at `0296`).
   ⚠️ **This task does NOT unblock `0065`.** `0065` needs `0014` (the per-game key) and the payments
   forwarding as well; those are untouched here. **Do not report `0065` as unblocked.**
 - **Open questions this task owns:** **Q4** — what is the current game-prod egress IP for
@@ -389,7 +406,7 @@ record. ⚠️ Deployed nginx is **1.28.3**.
 - 🔴 **`0062` STAYS IN SPRINT 4** — owner-ruled 2026-09-04, **over the producer's recommendation to
   move it to the Backlog board.** Recorded; **not re-argued.** This task is the work that finally
   discharges it.
-- **Related:** [`0062`](../0062-forward-profile-internal-token-in-deploy/brief.md) — read its `D2`
+- **Related:** [`0062`](../../done/0062-forward-profile-internal-token-in-deploy/brief.md) — read its `D2`
   section before running anything, so an empty reading is not misread as a defect.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.

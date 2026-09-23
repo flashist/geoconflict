@@ -323,6 +323,23 @@ blind spot is documented as a known limit — with a test either way.
   `--enforce`, so none of them makes the weekend deploy safer. A coder **decision pack** (2026-09-14)
   exists with options and a recommendation for R4 (a/b), R13, R14, R19, R21, item 11 and Q1 — the lead
   session holds it; it is not reproduced here. `## Status` unchanged. Not producer precedent.
+- **📌 THE SIX PENDING DECISIONS ARE DEFERRED UNTIL AFTER THE DEPLOY WINDOW — OWNER RE-CONFIRMED
+  2026-09-22.** Given live in the `fkit lead` session via `AskUserQuestion` and relayed by `fkit-lead`
+  to a spawned `fkit-producer` holding **no owner channel** (ADR-021). ⛔ **Not producer precedent.**
+  This restates the deploy window's **ruling 3**
+  ([weekend-deploy-slot runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) §
+  *The three owner rulings that set the spine*) — it is not a second, separate ruling.
+  **The owner's recorded reasoning, same as before:** the **deploy unblocks eight rows and had a
+  date**; **this task unblocks one task's `--enforce` wiring** (`0064`'s) **and has no deadline**.
+  ⇒ the deploy goes first.
+  - 🚨 **THE DEFERRAL SURVIVES THE SLIPPED SLOT.** The owner **also confirmed on 2026-09-22 that the
+    original weekend slot SLIPPED — the window has NOT happened — and named NO replacement date.**
+    ⛔ The deferral is *"after the window"*, **not** *"after a date"*, so it still holds while the
+    window is undated. ⛔ **Do not read the slip as releasing these six decisions early**, and ⛔ **do
+    not write a window date into this brief.**
+  - ⛔ **This bullet changes NOTHING else.** The `## Status` marker was **not** touched, no mover skill
+    was invoked, the six items are unchanged, and the hard sequencing above (all ten items land before
+    `--enforce` is wired) stands exactly as written.
 - **Related:** `0061`, `0062`, `0063`, `0195` — the four instances of the silent-misconfig class the
   guard exists to catch. `0201` (shell-harness gating) touches
   `tests/scripts/profile-deploy-hardening.test.sh`; do not edit that file here.
