@@ -43,6 +43,11 @@ De-dating ruled by the owner on **2026-09-22**, given live in the `fkit lead` se
 `AskUserQuestion` and relayed by `fkit-lead`. ⛔ **Not producer precedent.** ⛔ **`## Status` untouched;
 no mover skill invoked.**
 
+📌 **WINDOW DATED 2026-09-23 — the deploy window is Saturday 2026-09-26** (owner, verbatim: *"This
+Saturday, September 26"*). OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent. The 2026-09-22 *"NO replacement date"* text above is kept, not
+edited — it was true when written. ⛔ **Still NOT closable before the window runs;** verification step 8
+and the Phase 2 prod-shaped checks stay deploy-gated. `## Status` untouched; no mover invoked.
+
 📌 **ARMING IS GATED ELSEWHERE — owner ruling 2026-09-02, given live in session.** The pre-arming
 gate is now its own task: **[`0203-config-parity-guard-pre-arming-gate`](../0203-config-parity-guard-pre-arming-gate/brief.md)**.
 The two-round stateful review CONVERGED in round 2 with the verdict *ship report-only*, and its

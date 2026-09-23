@@ -340,6 +340,7 @@ blind spot is documented as a known limit — with a test either way.
   - ⛔ **This bullet changes NOTHING else.** The `## Status` marker was **not** touched, no mover skill
     was invoked, the six items are unchanged, and the hard sequencing above (all ten items land before
     `--enforce` is wired) stands exactly as written.
+  - 📌 **2026-09-23 — OWNER RE-CONFIRMED RULING 3** (live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`, ADR-021): the decisions wait until after the deploy window (Saturday 2026-09-26). A producer-prepared, **un-ruled** decision list is saved at [`decision-prep-2026-09-23.md`](decision-prep-2026-09-23.md). `## Status` untouched.
 - **Related:** `0061`, `0062`, `0063`, `0195` — the four instances of the silent-misconfig class the
   guard exists to catch. `0201` (shell-harness gating) touches
   `tests/scripts/profile-deploy-hardening.test.sh`; do not edit that file here.

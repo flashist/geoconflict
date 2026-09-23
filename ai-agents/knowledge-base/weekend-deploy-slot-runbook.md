@@ -21,7 +21,11 @@
 > that W0.1's egress-IP measurement, W0.2's `0286` "before" capture, or W0.4's first SSH session were
 > ever taken. **Start at W0.**
 >
-> ### ⛔ NO REPLACEMENT DATE — THIS WINDOW IS UNDATED
+> ### ~~⛔ NO REPLACEMENT DATE — THIS WINDOW IS UNDATED~~ ✅ DATED 2026-09-23: THE WINDOW IS SATURDAY 2026-09-26
+>
+> 📌 **DATED 2026-09-23** (owner, verbatim: *"This Saturday, September 26"*) — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent. ⛔ **The
+> undated text below is kept, not deleted — it was true when written on 2026-09-22 and is superseded only
+> as to the date.** Nothing else in this runbook changed with this note.
 >
 > **The owner confirmed the OLD slot slipped. They did NOT name a new one.** ⛔ **Do not write a date
 > into this runbook, do not infer one, and do not describe the window as *"this weekend"*.**
