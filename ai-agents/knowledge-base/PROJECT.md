@@ -99,9 +99,15 @@ Three separate tracks, two still open:
   music in the prod web root — the one confirmed violation) and **A1** (upstream brand mark as the
   live favicon) **verified in production 2026-08-30**, and **H1** (upstream jwt-audience fallback
   strings in the shipped bundle) **verified in production 2026-08-31**.
-  ⚠️ **This clears the LICENSING gate only — it does NOT mean paid IAP is clear to ship.** `0065`
+  ⚠️ **This clears the LICENSING gate only — it does NOT mean paid IAP is clear to ship.** ~~`0065`
   (paid citizenship go-live) **remains blocked** on `0014`, `0062` and `0195`. Read this bullet as
-  "one of several gates is now open", never as "IAP can ship".
+  "one of several gates is now open", never as "IAP can ship".~~
+  📌 **Superseded 2026-09-23 — owner ruling (`0065` Correction 7):** *"Launch, and leave the test task
+  for the Sprint 5. The test-buy sequence will be run by me (human)"*. `0014` and `0062` are closed;
+  `0065` is now the go-live only, with no task condition, timed by the owner. 🚨 **Accepted tradeoff:
+  paid citizenship goes live to real players before any real purchase has been proven — HMAC
+  construction unconfirmed, secret value unconfirmed, reconciliation unexercised; real players' first
+  purchases may be the first real test.** The test-buy sequence is `0297` (Sprint 5).
   📌 **Open residual:** **H3** — inert commented-out upstream HTML leftovers — is still open, owned by
   task `0073`, audit-rated **low risk / no gate** (commented markup ships no asset, so there is no
   licensing consequence).

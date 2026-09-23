@@ -396,9 +396,13 @@ record. ⚠️ Deployed nginx is **1.28.3**.
 
 ## Notes
 
-- **Blocks:** `0296` section A (since 2026-09-23 it holds `0062`'s live verification and `0017`'s and `0012`'s Deferred Live Tails — owner ruling; those three tasks are closed), and **one of `0065`'s two remaining conditions** (now pointed at `0296`).
-  ⚠️ **This task does NOT unblock `0065`.** `0065` needs `0014` (the per-game key) and the payments
-  forwarding as well; those are untouched here. **Do not report `0065` as unblocked.**
+- **Blocks:** `0296` section A (since 2026-09-23 it holds `0062`'s live verification and `0017`'s and `0012`'s Deferred Live Tails — owner ruling; those three tasks are closed)~~, and **one of `0065`'s two remaining conditions** (now pointed at `0296`)~~. *(📌 2026-09-23, owner ruling: `0296` no longer gates `0065`, so this task no longer feeds a `0065` condition through it.)*
+  ~~⚠️ **This task does NOT unblock `0065`.** `0065` needs `0014` (the per-game key) and the payments
+  forwarding as well; those are untouched here. **Do not report `0065` as unblocked.**~~ 📌 **Superseded
+  2026-09-23:** `0014` is closed, and by owner ruling (`0065` Correction 7) `0065` is now the go-live
+  only, with **no task condition** — `0195` and the test-buy sequence moved to
+  [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). This task never
+  gated `0065` and still does not; what holds `0065` now is the owner's launch timing.
 - **Open questions this task owns:** **Q4** — what is the current game-prod egress IP for
   `PROFILE_INTERNAL_ALLOW_IPS`? · 🆕 **Q9** — was `0067`'s profile-server half ever deployed, i.e. is
   migration `004` applied? ⛔ **Not answerable from the repo**; `0215`'s field B8 or this task's step 0

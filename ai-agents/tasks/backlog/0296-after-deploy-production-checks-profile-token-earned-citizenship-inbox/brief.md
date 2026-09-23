@@ -163,15 +163,19 @@ build with `CITIZENSHIP_CARD_ENABLED = true` is live.
 ## Notes
 
 - **Depends on:** `0217` (P2 — wiring the game server to the profile box; its weekend deploy slot, with `PROFILE_INTERNAL_TOKEN` non-empty, is what section A observes) for section A; `0065` §6 (the citizenship flip, `CITIZENSHIP_CARD_ENABLED` → `true` plus a second game deploy) for section B.
-- **Blocks:** `0065` — its former `0062` condition ("`PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end") now points here (A2–A3).
+- **Blocks:** ~~`0065` — its former `0062` condition ("`PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end") now points here (A2–A3).~~ **Nothing in Sprint 4 — 2026-09-23, owner ruling, verbatim: *"Keep it in Sprint 5, but the task shouldn't block Sprint 4."*** A2–A3 still run **here**, in Sprint 5, but no longer gate `0065` (recorded as `0065` Correction 6). 🚨 **Accepted, owner-ruled tradeoff:** `0065` / paid-citizenship go-live can close without production proof that the token reaches the container and a credit call lands end to end. The **Depends on** line above (section B after `0065` §6) is unchanged.
 - **Related:** `0062`, `0017`, `0012` (closed 2026-09-23, agent-closed — not owner-verified; their
   check text lives in their folders under `ai-agents/tasks/done/`); `0238` (kill-switch check at
   launch); `0211` (the XP rescale that decides A6's figures).
 - **Section A and section B run at different times.** Section A can be fully recorded long before
   section B is runnable. The task closes only when both are done or owner-waived.
-- 📌 **`0065`'s ordering problem is NOT solved here and is kept visible.** `0065` §6 says flip only
+- ~~📌 **`0065`'s ordering problem is NOT solved here and is kept visible.** `0065` §6 says flip only
   after its steps 1–4 pass, but its step 3 (the real test purchase) needs the flip first. Whoever takes
-  the launch decision resolves that — this task does not.
+  the launch decision resolves that — this task does not.~~ ✅ **RESOLVED 2026-09-23 by owner ruling
+  (`0065` Correction 7):** *"Launch, and leave the test task for the Sprint 5. The test-buy sequence
+  will be run by me (human)"*. `0065` is now the go-live (§6) only; its §1–§5 moved to
+  [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). **Section B's
+  dependency on `0065` §6 is unchanged** — it still runs after the flip, as does `0297`.
 - **No secrets in any artifact.** `PROFILE_INTERNAL_TOKEN` is a credential. It must never appear in
   this brief, the worklog, a log line, a commit, or deploy output — presence/absence and verdicts only.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.

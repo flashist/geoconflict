@@ -1,15 +1,21 @@
 # Geoconflict — Sprint 5 — Full F2P Loop & Social Features
 
+> ## 🔲 Backlog — 2026-09-23.
+
 > # ⛔ THIS IS NOT THE ACTIVE SPRINT — it is PRE-SCOPED, not in work
 >
 > **Owner ruling 2026-09-07, verbatim:** *"The active sprint is the Sprint 4!"* →
 > [`plan-sprint-4.md`](plan-sprint-4.md).
 >
 > ⚠️ **This board is legitimately open and nothing here is being archived.** Pre-scoping future
-> sprints is the intended workflow. See
+> sprints is the intended workflow. ~~See
 > [ADR-108](../knowledge-base/decisions/adr-108-owner-set-active-sprint-pointer.md) for why the
 > tooling cannot currently be told which sprint is active; ask for status by name:
-> `/fkit-status Sprint 4`.
+> `/fkit-status Sprint 4`.~~
+>
+> 📌 **SUPERSEDED 2026-09-23 (owner ruling) — the struck sentence above is no longer true.** It is
+> superseded by the line-3 status banners, which the selector reads. Struck, not deleted — it was true
+> when written.
 
 > See [plan-index.md](plan-index.md) for strategic logic, experiments policy, and full priority table.
 
@@ -59,6 +65,7 @@
 
 | Status | Priority | Task | Brief |
 |---|---|---|---|
+| 🔲 Backlog | — 🔴 **POSITION OWNER-RULED 2026-09-23** *(live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel; ⛔ **an owner ruling lifting ADR-035's append-only constraint for this one row — not producer precedent.** ~~Owner: *"top of Sprint 5, directly above `0296`"* — placed **directly above `0296`**; ⚠️ on this board those are two different places, so the literal "top" is an open question.~~ ✅ **CLARIFIED 2026-09-23 (owner ruling, same channel): the VERY TOP of Sprint 5 — row 1, above all 14 others.** The *"directly above `0296`"* wording was the lead's error in the question, not the owner's intent. No numeric rank; nothing renumbered. ~~⚠️ Priority `—` is append rank, NOT a merit ranking — flagged for owner confirmation. **On merit this belongs at the top of this board, directly above `0296`** …~~ — the producer's merit sentence, struck; it wrongly put `0296` at the top.)* | **Paid citizenship — owner-run test-buy sequence (real purchase, HMAC construction, secret value, reconciliation — moved out of `0065`)** *(**🆕 FILED 2026-09-23** by a spawned `fkit-producer` with **no owner channel** (ADR-021), on an **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`**, relayed by `fkit-lead`: *"Launch, and leave the test task for the Sprint 5. The test-buy sequence will be run by me (human)"*. ⛔ **A NEW TASK that RECEIVES checks — not a moved row**: `0065` stays on Sprint 4 as the go-live. **Run by the owner by hand, after `0065` §6 is live.** 🚨 **Accepted, owner-ruled tradeoff: paid citizenship goes live to real players before any real purchase has been proven: HMAC construction unconfirmed, secret value unconfirmed, reconciliation unexercised. Real players' first purchases may be the first real test.** ~~⚠️ §5 (moderation) flagged as possibly moot — open question in the brief.~~ 📌 **§5 narrowed by owner ruling 2026-09-23** to *"does the product ever disappear from `getCatalog()`"*; `## Owner` wording owner-confirmed; `0018` closes on `0065` alone — `0297` does not gate it.)* | [`0297-paid-citizenship-owner-run-test-buy-sequence`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) |
 | 🔲 Backlog | 10 | Leaderboard — Rewards Layer | TBD |
 | 🔲 Backlog | 8a | Nickname Styling System *(depends on Task 8 — verified nickname purchase + centralized name rendering)* | TBD |
 | 🔲 Backlog | 11 | Coin Economy + Rewarded Ads Full Version | TBD |
@@ -73,6 +80,73 @@
 | 🔲 Backlog | — *(unranked — the Sprint 4 Priority cell read `—` and no rank was ever ruled; ⚠️ **unranked ≠ low**. ⛔ **The 2026-09-22 move ruling did NOT rank this row.**)* | **S3-Backed Match Archival (Citizen-Gated)** *(**➡️ MOVED IN FROM [SPRINT 4](plan-sprint-4.md) ON 2026-09-22**, on an **OWNER RULING** given live in the `fkit lead` session and relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021) — **RULING E** on the Sprint 4 board. ⛔ **NOT RULING D and NOT a checkup** — a separate ruling, a separate question; it did not move with the four above it. Owner, verbatim: *"Move this task and anything that depends on it to the Sprint 5"*. ✅ **"Anything that depends on it" resolved to NOTHING — swept and verified, so this task moved ALONE.** **Status meaning carried across honestly and unchanged: it was `🔲 Backlog` on Sprint 4 and it is `🔲 Backlog` here.** ⛔ **The task folder did NOT move and no mover skill was invoked.** 🚨 **STILL HARD-BLOCKED, and the blockers did NOT come with it:** (1) the citizenship feature must exist, and (2) an S3 bucket + credentials must be provisioned. ⚠️ **Both citizenship blockers — [`0017`](../tasks/done/0017-citizenship-earned/brief.md) and [`0018`](../tasks/backlog/0018-citizenship-paid/brief.md) — REMAIN ON [SPRINT 4](plan-sprint-4.md)**, so this row sits a board *behind* its own prerequisites. **Coherent, not drift** — ⛔ do not "fix" it by dragging them here. 📐 **Blocker 2 is measured, not assumed (working tree, 2026-09-22):** the four config slots are **plumbed end to end** (`DefaultConfig.ts:214-224`, forwarded by `deploy.sh:315-318`) but **empty**, and `archiveEnabled()` is a hard `false` with no override ⇒ **the plumbing is done; only the bucket is missing.** ⚠️ **Ceiling: read from the repository, NOT from a deployed host.** ✅ **RESOLVED 2026-09-22, LATER THE SAME DAY — STRUCK, NOT DELETED.** ~~🚩 **UNRESOLVED, OWNER'S CALL:** [`0009`](../tasks/backlog/0009-self-host-upstream-openfront-api-dependency/brief.md) declares it **BLOCKS** this task, which this task's own two-item blocker list does not name — a third blocker nobody recorded, or a stale claim. **Flagged in the brief, not settled; `0009` was not edited.**~~ ⇒ ✅ **VERDICT — `0009`'s "Blocks `0030`" claim is STALE; this task does NOT depend on `0009`; THE BLOCKER COUNT STAYS TWO** (the two above, unchanged). **Authority:** a spawned `fkit-architect` verdict, **accepted by the owner live via `AskUserQuestion`** in the `fkit lead` session on **2026-09-22**, relayed by `fkit-lead` under **ADR-021**. ⛔ **Not producer precedent.** **Why:** the claim traces to `ai-agents/knowledge-base/architecture.md:898-902` §13 Q1, phrased **conditionally** (*"This determines whether…"*) and flattened into "Blocks" — the determination was never run; `0009` **is** right about current code (`src/server/Archive.ts:32` POSTs to `config.jwtIssuer()`) **but this task REPLACES that with an S3 write**, removing the archive leg from `0009`'s scope; and the **discriminator** is that citizen-gating reads `is_citizen` from the **profile server** (`src/server/GameServer.ts:1336-1337`), not from upstream flares. ⚠️ **Confidence, unrounded — accepted, not proven: ~90% technical, ~70% on intent** — code cannot establish what "Blocks" meant to its author on 2026-08-09. 🚨 **DELIBERATELY NOT DONE, a LIVE RE-DERIVATION RISK: the owner was offered the chance to also correct `architecture.md:898-902` and DECLINED** — the conditional sentence that seeded this is still in the source by choice and can be re-read the same wrong way. 📌 **`0009` WAS edited after all** (owner chose *"Downgrade to Related"*; Blocks line struck → *Related / touches*), ⛔ **its scope, `## Status` and `## Priority` were NOT changed.** **Full record:** [`0030`'s brief](../tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md) § *"✅ RESOLVED 2026-09-22"*.)* | [`0030-archive-s3-backed-citizen-gated`](../tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md) |
 | 🔲 Backlog | — *(unranked — ⚠️ **the owner ruled the BOARD, not a rank**; **unranked ≠ low**)* | **Measure the game-prod egress IP and APPEND it to `PROFILE_INTERNAL_ALLOW_IPS` — `0217` Q4** *(**🆕 FILED 2026-09-22 ONTO THIS BOARD** by a spawned `fkit-producer` with **no owner channel** (ADR-021), on an **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`** and relayed by `fkit-lead`. ⛔ **THIS IS A NEW TASK, NOT A MOVE** — it is ⛔ **not RULING D** and ⛔ **not RULING E**; no row left [Sprint 4](plan-sprint-4.md) for it. Owner, verbatim: *"Record as a task, add it to the Sprint 5, not the current Sprint 4."* ⛔ **Sprint 5 explicitly — not Sprint 4, not the Backlog board.** ⚠️ **The owner ruled the ACTION and the BOARD. They did NOT rule the rank, the owner field, or the METHOD.** ⛔ Not producer precedent.)* ⚠️ **THIS BOARD IS STILL NOT THE ACTIVE SPRINT** — filing here **schedules** the work, it does not start it. **Appended, not inserted**; nothing above it moved and nothing was renumbered (ADR-035), and **append position is not a priority signal.** ⚠️ **It does NOT belong to this plan's original scope statement** (*"Full F2P Loop & Social Features"*) — deliberate, not drift: the owner put it here by name. **WHAT IT IS:** [`0217`](../tasks/backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) § *What to build* 3 requires the **CURRENT** game-prod egress address and says it *"must be measured, not assumed"*; the value pinned at `example.env.profile:33` is from **JUNE**. 🚩 **`fkit-lead` COULD NOT MEASURE IT on 2026-09-22 — the prod host is not in any readable env file.** ⚠️ **CONTEXT, RECORDED EXPLICITLY AS *NOT* A VERIFIED CURRENT FACT:** a measurement earlier the same day **reportedly matched** the live allowlist, but it was **NOT re-verified** and was **NEVER written into any brief** — which is exactly why this was still an open conflict (C3) when the weekend runbook was written. ⛔ **Do not close this task by citing it.** **TWO DELIVERABLES, the second as load-bearing as the first:** (1) **MEASURE** the egress IP by a **named, repeatable method**; (2) 🔒 **RECORD THE METHOD — NEVER THE ADDRESS** (`0217` verification step 7) — the address goes only into the gitignored profile env file and onto the box, ⛔ never a brief, worklog, report, knowledge-base page, wiki page or commit. 🚨 **THE TRAP THIS TASK CARRIES, verified in the repo:** `PROFILE_INTERNAL_ALLOW_IPS` is **one comma list serving TWO unrelated callers** — the **game server** (`/internal/v1/players/resolve`, `/internal/v1/credit`) and the **monitoring box**, whose alert relay is mounted under `/internal/` **SOLELY** to inherit this allowlist (`alert-delivery-runbook.md:21`). **A source-IP miss answers 403** (`:39`), and a 403 **PERMANENTLY AND SILENTLY DISABLES the notification channel** — every later alert dropped at source, forever, no retry, nothing tells you; **fixing the address afterwards does not undo it** (re-enable by hand in the monitoring UI). 🚩 **Second half: the variable has NO on-box persistence** — `setup-profile.sh:122` defaults it to empty and an empty value renders a bare `deny all`, **403 for everyone**; the deploy's loud warning is **the only guard**. ⇒ 🚨 **APPEND. NEVER REPLACE.** **COST OF A WRONG ANSWER:** 403 on every credit call, ⚠️ **indistinguishable from "working" at the game server** (*"the client never surfaces either"* — `0217` § *Barrier 2*), and **XP is LOST, not queued.** **Depends on:** nothing in code — ⚠️ **it needs access the agents do not have.** **Blocks:** `0217` step 3's *"redeploy the profile box"* cannot honestly be called done while the pinned value is June's; ⚠️ **it does NOT block crediting being switched on — it blocks KNOWING whether it will work.** **Answers** `0217`'s **Q4** and closes the weekend runbook's **C3** and **G2**. 📌 **If it and [`0294`](../tasks/backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md) are both run, run them on ONE deploy, not two.** | [`0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md) |
 | 🔲 Backlog | — *(unranked — ⚠️ **the owner ruled the BOARD, not a rank**; **unranked ≠ low**. ⚠️ Flagged for owner confirmation — **on merit this belongs directly below `0295`**, because `0295` must be done for the weekend deploy slot to credit at all, and section A here observes that slot.)* | **After-deploy production checks — profile token, earned citizenship, personal inbox (moved out of `0062`, `0017`, `0012`)** *(**🆕 FILED 2026-09-23** by a spawned `fkit-producer` with **no owner channel** (ADR-021), on an **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`**, relayed by `fkit-lead`. ⛔ **A NEW TASK that RECEIVES checks — not a moved row**: `0062`, `0017` and `0012` were **closed** (`✅ Done (agent-closed — not owner-verified)`) on [Sprint 4](plan-sprint-4.md), not moved. **Section A — after the weekend deploy slot** (token deployed non-empty, owner ruling 2026-09-19): ex-`0062` D1–D4 + step 6's production half; ex-`0017` live items 1–2 and item 3's server-side half. **Section B — after the citizenship flip, owned ONLY by `0065` §6**: ex-`0017` item 3's card half; ex-`0012` live items 2–3 (item 3 proves nothing while the flag is off). ⚠️ **Carries `0062`'s deploy-time forget-risk warning and the 2026-09-04 *NO GUARD WILL BE BUILT* ruling at its top.** Appended, not inserted (ADR-035).)* | [`0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox`](../tasks/backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md) |
+
+> 🔴 **`0297` MOVED TO ROW 1 — THE VERY TOP OF THIS BOARD — AN OWNER RULING, 2026-09-23 (a clarification, later still). Read the authority before the outcome.**
+>
+> **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021)**. ⛔ **This is an OWNER RULING lifting ADR-035's
+> append-only constraint for exactly this one row — not producer precedent for placing any other row.**
+> The owner clarified: **`0297` goes to the VERY TOP of Sprint 5 — the first row, above all 14 others.**
+> 📌 **The earlier *"directly above `0296`"* phrasing was the lead's error in wording the question** (it
+> relayed the producer's merit sentence, which itself wrongly implied `0296` was at the top) — **not the
+> owner's intent.**
+>
+> **OUTCOME.** The `0297` row is now the first row of the status table. Every row it passed is open
+> (`🔲 Backlog`) — no closed row was passed — and no rank label was changed or renumbered; the other 14
+> rows keep their order relative to each other. The addendum below (the one-row move) is superseded as to
+> placement, and its open question is answered.
+>
+> ⛔ **WHAT DID NOT HAPPEN.** No status marker changed; no task file moved; nothing was committed or
+> pushed; nothing under `ai-agents/wiki-vault/` was touched.
+
+> 🔴 **`0297` MOVED UP ONE ROW, TO SIT DIRECTLY ABOVE `0296` — AN OWNER-RULED POSITION, 2026-09-23 (later). Read the authority before the outcome.**
+>
+> **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-23**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+> (ADR-021). ⛔ **This is an OWNER RULING lifting ADR-035's append-only constraint for exactly this one
+> row — not producer precedent for placing any other row.** Owner's ruling: *top of Sprint 5, directly
+> above `0296`*.
+>
+> **OUTCOME.** ~~`0297` and `0296` swapped places; `0297` now sits directly above `0296`.~~ *(Superseded — `0297` is now row 1; see the addendum above.)* Both rows are open
+> (`🔲 Backlog`) and adjacent, so no closed row was passed and nothing was renumbered. No numeric rank
+> was given (the cell still reads `—`).
+>
+> ~~⚠️ **OPEN — the ruling's two phrases name different places on this board.** `0296` sits below the
+> seven original plan rows and three later rows, not at the top. The row was placed at the **named
+> neighbour** (the smaller move). If the owner meant the literal top, above every row, that is one more
+> move. **The ambiguity came from the producer's own merit sentence**, which wrongly implied `0296` was at
+> the top.~~ ✅ **Answered 2026-09-23 (owner ruling): the very top — see the addendum above.**
+>
+> **Same ruling set, recorded in the `0297` brief:** its `## Owner` wording is owner-confirmed (no change
+> to `task-owner-vocabulary.md`); §5 is narrowed to *"does the citizenship product ever disappear from
+> `getCatalog()`"*; and `0018` closes on `0065` (the launch) alone — `0297` does not gate it.
+>
+> ⛔ **WHAT DID NOT HAPPEN.** No status marker changed; no other row moved; nothing was committed or pushed;
+> nothing under `ai-agents/wiki-vault/` was touched.
+
+> 🆕 **AN EIGHTH ROW APPENDED 2026-09-23 (later) — `0297`, A NEW TASK, NOT A MOVE.**
+>
+> **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-23**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+> (ADR-021). ⛔ **Not producer precedent.** **Owner, verbatim:** *"Launch, and leave the test task for
+> the Sprint 5. The test-buy sequence will be run by me (human)"*. The owner named **Sprint 5** for it.
+>
+> **What changed elsewhere, by the same ruling:** [`0065`](../tasks/backlog/0065-citizenship-paid-live-verification/brief.md)
+> on [Sprint 4](plan-sprint-4.md) is now **the go-live only** (§6) and no longer waits on its old
+> §1–§4, which resolves runbook C1. Its §1–§5 and `0195`'s open value-correctness condition moved into
+> `0297`. `0195` no longer gates `0065`.
+>
+> 🚨 **Accepted, owner-ruled tradeoff: paid citizenship goes live to real players before any real
+> purchase has been proven: HMAC construction unconfirmed, secret value unconfirmed, reconciliation
+> unexercised. Real players' first purchases may be the first real test.**
+>
+> ⚠️ **SAME LIMITS AS EVERY ROW ON THIS BOARD:** Sprint 5 **is not the active sprint** — if the launch
+> happens while Sprint 4 is active, this task sits on a non-active board. **No rank was ruled.** Appended,
+> not inserted; nothing above it moved and nothing was renumbered (ADR-035). The `## Owner` field reads
+> `fkit-producer` with *"executed by the owner (human)"* — the vocabulary admits no person; flagged in
+> the brief as an open question.
+>
+> ⛔ **WHAT DID NOT HAPPEN.** Nothing under `ai-agents/wiki-vault/` was touched; nothing was committed or
+> pushed; no mover skill was invoked.
 
 > 🆕 **A SEVENTH ROW APPENDED 2026-09-23 — `0296`, A NEW TASK, NOT A MOVE.**
 >

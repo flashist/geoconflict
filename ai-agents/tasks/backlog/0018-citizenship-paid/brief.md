@@ -10,7 +10,7 @@ Sprint 4
 High — the monetization milestone of the sprint.
 
 ## Status
-🚧 Blocked — built + reviewed (mock scope); open pending `0065` (live verification & go-live tail)
+🚧 Blocked — built + reviewed (mock scope); open pending `0065` (~~live verification &~~ go-live ~~tail~~ — 📌 2026-09-23, owner ruling: `0065` is now the go-live only; the live verification moved to [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md), Sprint 5)
 
 *(Re-scoped 2026-08-23 by owner ruling — "maximize work that can proceed without anything real from
 Yandex; don't block on external turnaround." This task is now the **mock-buildable scope only**:
@@ -60,7 +60,9 @@ Players who do not want to grind 1,000 XP can purchase citizenship directly for 
 > `consumePurchase`) — mock at the facade/SDK boundary, never fork the contract. Server-side grant
 > and reconciliation are exercised against the **local** profile stack with a **synthetic secret key**
 > (HMAC verification is deterministic — same technique `0019` shipped with). No real catalog, no real
-> purchase, no real signed payload is required anywhere in this brief; those are `0065`.
+> purchase, no real signed payload is required anywhere in this brief; those are `0065`. *(📌 Since
+> 2026-09-23, owner ruling: those are [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md),
+> run by the owner after go-live.)*
 
 ### Part A — Client: paid CTA in the citizenship card
 
@@ -150,7 +152,9 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
 > **All steps run mocked/local** (owner-ruled 2026-08-23): mocked SDK catalog + fake product data on
 > the client; local profile stack + synthetic secret key on the server. The live equivalents of
 > steps 3 and 4 (real test purchase, real interrupted-purchase reconciliation) are **repeated for
-> real in `0065`** — a mocked pass here does not retire them.
+> real in `0065`** — a mocked pass here does not retire them. *(📌 Since 2026-09-23, owner ruling: in
+> [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §3–§4, run by the owner after
+> go-live.)*
 
 1. **CTA visibility:** with the mocked catalog reporting the `citizenship` product, confirm the "Buy Citizenship" button appears for a non-citizen account. Mock a catalog failure/absence — confirm the button is hidden entirely.
 2. **Price from catalog:** confirm the displayed price is read from the (mocked) catalog response, not hardcoded — change the fake price and see the UI follow.
@@ -162,8 +166,15 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
 ## Notes
 
 - **Depends on:** `0065-citizenship-paid-live-verification` — per this brief's Status line the task
-  stays open pending it (live verification and the go-live tail); ~~`0062`~~ `0296` (re-pointed 2026-09-23, owner ruling — `0062` closed) and `0014` gate `0065`, not
-  this brief. Beyond that live tail,
+  stays open pending it (live verification and the go-live tail); ~~`0062`~~ ~~`0296` (re-pointed 2026-09-23, owner ruling — `0062` closed)~~ and `0014` gate `0065`, not
+  this brief. *(📌 2026-09-23, owner ruling: `0296` no longer gates `0065` — its checks stay in Sprint 5;
+  `0014` is closed; ~~`0065`'s one remaining condition is `0195`.~~)* *(📌 Later 2026-09-23, owner
+  ruling — `0065` Correction 7: `0065` is the go-live only and has NO task condition left; `0195` and
+  the live verification moved to `0297` in Sprint 5. ~~`0297` is NOT named as a dependency of this brief
+  — no ruling says this task waits for it.~~ ✅ **OWNER RULING 2026-09-23** (live in the `fkit lead`
+  session via `AskUserQuestion`, relayed by `fkit-lead`; not producer precedent): **this task closes on
+  `0065` (the launch) alone. `0297` is NOT a dependency. The real-purchase proof lives only in `0297`.**
+  ⛔ Do not re-raise it.)* Beyond that live tail,
   nothing blocks the mock build — restated 2026-08-23 by owner ruling in the
   `## Dependencies` section above (left unedited): `0019-yandex-payments-impl` is Done and is the seam
   to build against; the player profile store is available locally and that is sufficient; `0012`
@@ -178,6 +189,8 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
   live**, but they now gate [`0065-citizenship-paid-live-verification`](../0065-citizenship-paid-live-verification/brief.md),
   not this mock build. ⚠️ Unchanged truth from the old note: catalog approval arriving does **not**
   make the feature live on its own — both conditions must clear, and `0065` records both.
+  📌 *2026-09-23: superseded — `0014` and `0062` are both closed, and by owner ruling (`0065`
+  Correction 7) `0065` now has no task condition; it is the go-live, timed by the owner.*
   See [`0062-forward-profile-internal-token-in-deploy`](../../done/0062-forward-profile-internal-token-in-deploy/brief.md).
 - **Flip-ON coupling (2026-08-21) — execution moved to `0065`:** the launch must flip
   `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` to `true` in `src/client/flashist/FlashistFacade.ts`

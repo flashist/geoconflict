@@ -11,18 +11,33 @@ High — the go-live gate for the monetization milestone. Everything buildable w
 (mock scope); this task is what remains once Yandex delivers.
 
 ## Status
-🚧 Blocked — **TWO conditions; both must clear, none alone unblocks.** (1) **`0296`** A2–A3 —
+🚧 Blocked — **the go-live only (§6: flip + second game deploy); it waits on the owner's launch
+timing, and NO task condition remains.** 📌 **2026-09-23, owner ruling — Correction 7:** *"Launch, and
+leave the test task for the Sprint 5. The test-buy sequence will be run by me (human)"*. §6 no longer
+waits on §1–§4; §1–§5 and the `0195` value-correctness condition moved to
+[`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). 🚨 **Accepted,
+owner-ruled tradeoff: paid citizenship goes live to real players before any real purchase has been
+proven: HMAC construction unconfirmed, secret value unconfirmed, reconciliation unexercised. Real
+players' first purchases may be the first real test.** *(Reason text updated 2026-09-23; the marker is
+unchanged. The earlier reason is kept below, struck where superseded.)*
+~~🚧 Blocked —~~ ~~**TWO conditions; both must clear, none alone unblocks.** (1) **`0296`** A2–A3 —
 `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end (this was the **`0062`** condition;
-**re-pointed to `0296` on 2026-09-23 by owner ruling** — `0062` itself closed; see Correction 5).
+**re-pointed to `0296` on 2026-09-23 by owner ruling** — `0062` itself closed; see Correction 5).~~
+~~📌 **ONE condition since 2026-09-23 — owner ruling, Correction 6: `0296` no longer gates this task.**
 (2) **`0195`** — `YANDEX_PAYMENTS_SECRET` on the profile box: **present** and the routes are **not**
 failing closed (verified on the box 2026-09-19); its provenance is **owner-attested** 2026-09-20 as the
 real Yandex key (⚠️ NOT repo-verified); **open on CORRECTNESS** — no real signed payload and no real
-purchase yet (owner-confirmed open 2026-09-20).
+purchase yet (owner-confirmed open 2026-09-20).~~ 📌 **Superseded later on 2026-09-23 (Correction 7):
+`0195` no longer gates this task. Its correctness question is still open — it moved to `0297` §1.**
 *(Count history, so it is not re-derived: **three** conditions until 2026-09-22, when the `0014`
-condition was satisfied — Correction 4; **two** since. The owner's 2026-09-20 confirmation of *three*
-declined to clear `0195` — that still stands. The earlier wordings are kept in Corrections 1–4.)*
-🚨 ⛔ **THIS TASK STAYS `🚧 Blocked`.** Its own line says *"none alone unblocks"*, and **both remaining
-conditions are untouched.** ⛔ **No mover skill was invoked on this task.**
+condition was satisfied — Correction 4; **two** until 2026-09-23, when the owner ruled `0296` does not
+gate this task — Correction 6; **one** until later on 2026-09-23, when the owner ruled `0195` does not
+gate it either — Correction 7; **zero** since. The owner's 2026-09-20 confirmation of *three* declined
+to clear `0195` — that still stands: `0195` is **not cleared**, it **moved** to `0297`. The earlier
+wordings are kept in Corrections 1–4.)*
+~~🚨 ⛔ **THIS TASK STAYS `🚧 Blocked`** — **its one remaining condition, `0195`, is untouched.**~~
+⛔ **The marker stays `🚧 Blocked`** — what holds it now is the owner's launch timing, not a task.
+⛔ **No mover skill was invoked on this task.**
 
 ---
 
@@ -211,6 +226,71 @@ ever been made** — that is this brief's **step 3**, still unrun.
 
 ⛔ **No status token changed and no mover skill was invoked on this task.**
 
+#### Correction 6 — 2026-09-23: `0296` NO LONGER GATES this task — an accepted, owner-ruled tradeoff
+
+⛔ **Authority.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+2026-09-23**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel.**
+**Owner, verbatim:** *"Keep it in Sprint 5, but the task shouldn't block Sprint 4."* ⛔ **Not producer
+precedent.**
+
+1. **The former `0062` condition — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end,
+   now `0296` A2–A3 — NO LONGER GATES this task.** Blocker count **TWO → ONE (`0195`)**.
+2. **The checks are NOT dropped.** They still run under
+   [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md) in
+   **Sprint 5**, which stays its home.
+3. 🚨 **CONSEQUENCE, stated plainly: this task — and with it paid-citizenship go-live — can now close
+   WITHOUT production proof that the token reaches the container and that a credit call lands end to
+   end.** ⚠️ **This is an ACCEPTED, OWNER-RULED TRADEOFF, not an oversight.** ⛔ Do not re-add the gate
+   and do not re-recommend it. *(Context, not a gate: the same end-to-end check is also
+   [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s own acceptance — verification
+   step 1, D3 — in Sprint 4. `0217` is not a dependency of this task, so it does not gate it either.)*
+4. ⚠️ **What the ruling did NOT change:** the `## Dependencies` bullet below said *"without it no profile
+   row exists to attach a purchase to"*. That was written for `0062` and is **not re-verified** under
+   the later profile-identity model (`0266` slices). If it still holds, **step 3's real test purchase is
+   where it will show** — a purchase with no profile row to attach to. That is a symptom to diagnose
+   then, not a gate restored now.
+5. **`0195` is untouched** — still open on correctness. `0296` section B's dependency on §6 (it runs
+   after the flip) is also untouched; that ordering is still true. *(📌 Item 5's first sentence is
+   superseded by Correction 7 below: `0195` moved to `0297`, still open.)*
+
+⛔ **No status token changed, no task moved, and no mover skill was invoked on this task.**
+
+#### Correction 7 — 2026-09-23: this task is THE GO-LIVE; the test-buy sequence and `0195` move to `0297` (Sprint 5)
+
+⛔ **Authority.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+2026-09-23**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+(ADR-021). ⛔ **Not producer precedent.** **Owner, verbatim:** *"Launch, and leave the test task for the
+Sprint 5. The test-buy sequence will be run by me (human)"*.
+
+**What the owner was shown:** the buy button is off in every production build (the compile-time
+`CITIZENSHIP_CARD_ENABLED = false`, re-verified 2026-09-22 — see the §3 box). The options: test-only
+exposure through the remote `citizenship_ui` switch; *"launch, then test fast"*, with the risk stated
+(real players can buy before a real purchase is proven); a draft build; an architect check. **The owner
+chose to launch and move the testing out.**
+
+1. **This task is now the go-live: §6 only** — flip `CITIZENSHIP_CARD_ENABLED` to `true` plus the
+   second game deploy. ✅ **The §3-vs-§6 ordering problem (runbook C1) is RESOLVED by this ruling:** §6
+   no longer waits on §1–§4.
+2. **§1–§5 moved to [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)**
+   (Sprint 5), **run by the owner by hand**, after §6 is live. They are kept below as the record, marked
+   moved. `0297` flagged one step that did not move cleanly: §5 (moderation), whose premise may be moot
+   since the 2026-09-19 *"no approval any more"* ruling. 📌 *Answered later on 2026-09-23 (owner ruling): §5 narrowed to "does the product ever disappear from `getCatalog()`"; the before-vs-after-moderation comparison dropped.*
+3. **`0195` NO LONGER GATES this task.** Its open condition — is the secret's **value** correct? — can
+   only be proven by a real signed payload, so it moved with the test-buy sequence to `0297` §1.
+   ⛔ **It is not cleared.** The owner's 2026-09-20 refusal to clear it on correctness stands; the
+   question now lives in `0297`.
+4. 🚨 **CONSEQUENCE, stated plainly — an ACCEPTED, OWNER-RULED TRADEOFF: paid citizenship goes live
+   to real players before any real purchase has been proven: HMAC construction unconfirmed, secret
+   value unconfirmed, reconciliation unexercised. Real players' first purchases may be the first real
+   test.** ⛔ Do not re-add `0297` as a gate and do not re-recommend it.
+5. **What still stands:** the `RUNBOOK-A` ruling of 2026-09-22 (the flip is a launch decision and does
+   **not** ride a deploy slot); `0296` section B runs after §6; the `0066` licensing prerequisite for
+   §6 (satisfied 2026-08-30). **Launch timing is the owner's call — nothing here schedules it.**
+6. **Blocker count: ONE → ZERO task conditions.** ⛔ **The `## Status` marker was NOT changed** — only
+   its reason text, to say what holds the task now (the owner's launch timing). No mover was invoked.
+7. **Title and folder name are unchanged** (*"Live Verification & Go-Live Tail"*). The folder name is
+   permanent (ADR-029); renaming the H1 was not part of the ruling.
+
 ---
 
 #### 📌 RECORDED 2026-09-22 — the owner WILL perform step 3, and a claim to the contrary was NEVER TRUE
@@ -276,11 +356,17 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
   ⚠️ **Read what did NOT move:** the *"provenance is not correctness"* sentence above is about **`0195`**
   and is **UNCHANGED and still true** — that condition is open, and the owner's 2026-09-20 refusal to
   clear it stands. ⛔ **`0065` stays `🚧 Blocked`; no mover was invoked.**
-- **`0296`** (A2–A3) — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end. Without it
+- ~~**`0296`** (A2–A3) — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end. Without it
   no profile row exists to attach a purchase to. 📌 *Re-pointed 2026-09-23 by owner ruling (Correction
   5): this was the `0062` condition ("its own verifications 2–3"); `0062` is closed and those checks
-  now live in `0296`.*
+  now live in `0296`.*~~ ⛔ **NO LONGER A DEPENDENCY — 2026-09-23, owner ruling (Correction 6):** *"Keep it
+  in Sprint 5, but the task shouldn't block Sprint 4."* The checks still run under `0296` in Sprint 5.
+  🚨 **Accepted tradeoff:** this task can close without production proof that the token reaches the
+  container and a credit call lands end to end. Struck, not deleted.
 - 🚨 **`0195`** — [`0195-forward-yandex-payments-secret-in-profile-deploy`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md).
+  📌 **2026-09-23 (owner ruling, Correction 7): NO LONGER A DEPENDENCY of this task.** Its open
+  value-correctness question moved to [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)
+  §1 — **not cleared**. The text below is the record up to that ruling.
   ✅ **Shipped 2026-09-01** — closed `Done (agent-closed — not owner-verified)`, built with its own live
   verification deferred. ⚠️ **Owner ruling 2026-09-01 — do NOT read that ship as a blocker clearing.**
   Recorded 2026-08-28 so it was not rediscovered mid-checklist: the per-game secret key above reaches the
@@ -321,24 +407,29 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
 
 ## What to Do
 
+> 📌 **2026-09-23 — owner ruling, Correction 7: §1–§5 below MOVED to
+> [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5, run by the owner by
+> hand after §6 is live). ⛔ Their boxes are NOT this task's to check any more.** They stay here as the
+> record, marked moved, so cross-references still land. **This task's remaining scope is §6 only.**
+
 Execute the live checklist below in the production/draft Yandex iframe context. This is
 verification-driving plus whatever small fixes fall out — any non-trivial defect found becomes its
 own task, not silent scope growth here.
 
-### 1. HMAC-construction confirmation (first real signed payload)
+### 1. HMAC-construction confirmation (first real signed payload) — ➡️ moved to `0297` §1 (2026-09-23)
 `src/profile-server/YandexSignature.ts` deliberately accepts **two** HMAC-SHA256 constructions
 (over the base64 payload string, and over the decoded JSON) because Yandex's docs don't pin one
 down (`0019` decision).
 - [ ] With the first REAL signed payload, confirm `/v1/payments/yandex/complete` returns 200.
 - [ ] Determine which construction matched; file a small follow-up task to drop the other.
 
-### 2. Live catalog fetch
+### 2. Live catalog fetch — ➡️ moved to `0297` §2 (2026-09-23)
 - [ ] Open the game as an authenticated Yandex player. `getPaymentsCatalogStatus()` → `'ready'`;
       `hasCatalogProduct('citizenship')` → `true`.
 - [ ] Displayed price on the Buy CTA comes from the real catalog response (not the mock's fake
       price, not hardcoded).
 
-### 3. Real test purchase (through the `0018` UI)
+### 3. Real test purchase (through the `0018` UI) — ➡️ moved to `0297` §3 (2026-09-23)
 
 > ## ⛔ STEP 3 IS DELIBERATELY **OUT** OF THE WEEKEND DEPLOY WINDOW — OWNER RULING 2026-09-22
 >
@@ -373,10 +464,13 @@ down (`0019` decision).
 > - ⇒ **The buy button does not exist in a production build**, and making it exist requires editing
 >   source and running `./build-deploy.sh prod` a **second** time.
 >
-> 🚨 **AND THIS BRIEF CONTRADICTS ITSELF — record it, do not route around it.** **Step 6 below says flip
+> ~~🚨 **AND THIS BRIEF CONTRADICTS ITSELF — record it, do not route around it.** **Step 6 below says flip
 > the flag *"only after 1–4 pass"*. Step 3 is one of 1–4, and step 3 is the step that needs the flip
 > first.** ⇒ **`0065` cannot satisfy its own ordering as written.** Whoever takes the launch decision
-> must **resolve that circularity**, not work around it.
+> must **resolve that circularity**, not work around it.~~
+> ✅ **RESOLVED 2026-09-23 — owner ruling (Correction 7):** *"Launch, and leave the test task for the
+> Sprint 5. The test-buy sequence will be run by me (human)"*. §6 no longer waits on §1–§4; this step
+> moved to `0297` §3. Struck, not deleted — it was true until the ruling.
 >
 > 📌 **Full record:**
 > [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) §
@@ -390,39 +484,50 @@ down (`0019` decision).
 - [ ] Funnel analytics observed live: `UI:Tap:PurchaseCitizenship`, `Purchase:Started:Citizenship`,
       `Purchase:Completed:Citizenship`.
 
-### 4. Live reconciliation
+### 4. Live reconciliation — ➡️ moved to `0297` §4 (2026-09-23)
 - [ ] Interrupt a purchase after Yandex processes it but before the client posts the signature
       (block `/complete` in devtools or kill the tab). Restart. Confirm `/reconcile` grants,
       the token is consumed, and the card shows State 3.
 - [ ] Second restart: `getSignedPurchases()` goes null once consumed (no network call).
 
-### 5. Catalog moderation behavior
+### 5. Catalog moderation behavior — ➡️ moved to `0297` §5 (2026-09-23; narrowed there by owner ruling the same day to *"does the product ever disappear from `getCatalog()`"*)
 - [ ] Record observed behavior of the catalog item pre- vs post-moderation (test purchases are
       documented to work before moderation completes — confirm) and whether moderation state ever
       hides the product from `getCatalog()`. This is the empirical check the mock could not provide.
 
 ### 6. Flip-ON (go-live)
 - [ ] Flip `flashistConstants.features.CITIZENSHIP_CARD_ENABLED` to `true` in
-      `src/client/flashist/FlashistFacade.ts` (`0054` coupling) — **only after** 1–4 pass~~, and skip
-      if `0017`'s live tail already flipped it~~.
+      `src/client/flashist/FlashistFacade.ts` (`0054` coupling) ~~— **only after** 1–4 pass~~ ~~, and skip
+      if `0017`'s live tail already flipped it~~ — then run the second game deploy.
       📌 **2026-09-23 (owner ruling, Correction 5): this step is the ONLY owner of the flip** — for the
-      earned path too; the flip was removed from `0017`. ⚠️ The circularity with step 3 is unsolved
-      (see the step-3 box). Once flipped, `0296` section B becomes runnable.
+      earned path too; the flip was removed from `0017`. ~~⚠️ The circularity with step 3 is unsolved
+      (see the step-3 box).~~ Once flipped, `0296` section B becomes runnable.
+      📌 **2026-09-23, later (owner ruling, Correction 7): the *"only after 1–4 pass"* clause is
+      STRUCK** — §6 no longer waits on §1–§4, which moved to `0297`; the circularity is resolved. Once
+      flipped, `0297` also becomes runnable. ⚠️ `RUNBOOK-A` still stands: the flip does **not** ride a
+      deploy slot. **Launch timing is the owner's call.** 🚨 Accepted tradeoff: real players can buy
+      from this moment, before any real purchase has been proven.
 
 ## Verification
 
-The checklist above IS the verification. Close only when every box is checked or explicitly
-owner-waived, and the follow-up task from step 1 is filed.
+~~The checklist above IS the verification. Close only when every box is checked or explicitly
+owner-waived, and the follow-up task from step 1 is filed.~~
+
+📌 **Restated 2026-09-23 (owner ruling, Correction 7):** close when **§6 is done** — the flag reads
+`true` in the deployed production build, the second game deploy has run, and the card is visible in
+the live Yandex iframe — or it is explicitly owner-waived. §1–§5 and step 1's follow-up task are
+`0297`'s close condition, not this task's.
 
 ## Notes
 
-- **Depends on:** `0296` (A2–A3 — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end; re-pointed 2026-09-23 from the closed `0062`, owner ruling — Correction 5), `0014` (~~~~Yandex catalog approval~~ **test-purchase Yandex login(s)** + per-game secret-key issuance~~ — ✅ **SATISFIED 2026-09-22, both halves; `0014` itself is closed. ⛔ Task id KEPT, not removed — the dependency happened, it did not vanish. Blocker count now TWO**), `0062`
+- **Depends on:** 📌 **2026-09-23, later (owner ruling, Correction 7): NO task condition remains — `0195` no longer gates this task (its value-correctness question moved to `0297` §1, still open), and `0018`'s mock scope is done. What holds this task is the owner's launch timing, not a task.** Earlier record: ~~`0296` (A2–A3 — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end; re-pointed 2026-09-23 from the closed `0062`, owner ruling — Correction 5)~~ **`0296` REMOVED as a gate 2026-09-23 (owner ruling, Correction 6 — its checks still run in Sprint 5; accepted tradeoff: this task can close without production proof of the token end to end)**, `0014` (~~~~Yandex catalog approval~~ **test-purchase Yandex login(s)** + per-game secret-key issuance~~ — ✅ **SATISFIED 2026-09-22, both halves; `0014` itself is closed. ⛔ Task id KEPT, not removed — the dependency happened, it did not vanish. Blocker count now TWO**), `0062`
   (~~`PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end — without it no profile row
   exists to attach a purchase to~~ — ✅ **`0062` closed 2026-09-23; this condition now lives in `0296`,
   first in this list. ⛔ Task id KEPT, not removed — same treatment as `0014`**), `0195` (`YANDEX_PAYMENTS_SECRET` on the profile box — ~~without it every `/v1/payments/*` route returns 503 there, so steps 1–4 all fail~~ **present and non-empty as of 2026-09-19, and owner-attested 2026-09-20 as the real Yandex key the owner set (not repo-verified); open on whether the value is CORRECT, which only a real signed payload settles — owner-confirmed open 2026-09-20**), and `0018` (mock
   scope done — the UI and flow this checklist drives must exist). 📌 **2026-09-23 (owner ruling,
   Correction 5): the `0062` condition is re-pointed to `0296` (A2–A3), the task now holding
-  `0062`'s production checks; `0062` is closed. Blocker count TWO: `0296`, `0195`.** ⚠️ **Owner ruling 2026-09-01 —
+  `0062`'s production checks; `0062` is closed. ~~Blocker count TWO: `0296`, `0195`.~~** 📌 **2026-09-23
+  (owner ruling, Correction 6): `0296` no longer gates this task. ~~Blocker count ONE: `0195`.~~** 📌 **Later 2026-09-23 (Correction 7): `0195` no longer gates this task either. Blocker count ZERO.** ⚠️ **Owner ruling 2026-09-01 —
   forwarding and issuance are each necessary and neither alone is sufficient:** `0195` **shipped
   2026-09-01** and fixed the forwarding gap (`build-deploy-profile.sh` had omitted the variable from
   its staged-export block), but ~~`0014` has **not** issued the per-game key~~ 📌 **2026-09-12 — key ISSUED

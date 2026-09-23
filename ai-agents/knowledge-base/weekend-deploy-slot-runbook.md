@@ -820,6 +820,10 @@ silent barrier.**
   ⚠️ **The owner's 2026-09-22 confirmation that they WILL perform step 3 still stands** — it is not
   withdrawn, it is **not scheduled here**. ⛔ **`0065` stays `🚧 Blocked`; its `## Status` was not
   touched and no mover skill was invoked.**
+  📌 **2026-09-23 — C1's circularity RESOLVED by owner ruling** (see ***Conflicts*, C1**): step 3 and
+  the rest of the test-buy sequence moved to
+  [`0297`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5, run by
+  the owner after go-live). Still **not in this window** — nothing about the window changed.
 - [ ] 🚨 **DELETE THE W0 PRE-WINDOW SNAPSHOT — BY HAND, AND *ONLY ONCE THE OWNER JUDGES THE WINDOW
       GOOD*.** ✅ **OWNER RULING 2026-09-22** (live in the `fkit lead` session via `AskUserQuestion`,
       relayed by `fkit-lead`, ADR-021). ⛔ **Not producer precedent.** The owner chose to put the
@@ -885,7 +889,7 @@ silent barrier.**
 | Arming `--enforce` on the parity guard | `0064`'s, after all ten `0203` items. *"Arming this guard early correctly fails every deploy on known gaps."* |
 | `0221`'s non-root deploy user | Split out by owner ruling Q8. This window lands `PermitRootLogin prohibit-password`, not `no`. |
 | `0054` — flipping `CITIZENSHIP_CARD_ENABLED` | ✅ **RULED OUT 2026-09-22** (C1). It is a source change **plus a second game deploy** — *a decision about launching citizenship, not a verification step*, and it must not ride in on a deploy slot. |
-| `0065` **step 3** — the real test purchase | ✅ **RULED OUT 2026-09-22** (C1) — it cannot happen without the flip above. ⛔ `0065` stays `🚧 Blocked`. |
+| `0065` **step 3** — the real test purchase | ✅ **RULED OUT 2026-09-22** (C1) — it cannot happen without the flip above. ⛔ `0065` stays `🚧 Blocked`. 📌 *2026-09-23: moved to [`0297`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §3 by owner ruling (C1 addendum); still out of this window.* |
 | `0220` **§8 step 3** — the rotation proof (**W8**) | ✅ **RULED OUT 2026-09-22** (C2) — filed as [`0294`](../tasks/backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md). ⚠️ **`0220` closes with a recorded, deliberate gap** — say so at its close. |
 | A written **abort / rollback procedure** | ✅ **RULED OUT 2026-09-22** (G1) — *"Skip it — I know the boxes."* 🚨 **W12 therefore has zero prior production evidence AND no written way back.** |
 
@@ -971,6 +975,27 @@ flip the flag *"only after 1–4 pass"* — and **step 3 is one of 1–4, and it
 flip first.** ⇒ **`0065` cannot satisfy its own ordering as written.** Whoever takes the flip decision
 must resolve that, not route around it.
 
+> ✅ **C1 ADDENDUM — THE CIRCULARITY IS RESOLVED, 2026-09-23. Read the authority before the outcome.**
+>
+> **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-23**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+> (ADR-021). ⛔ **Not producer precedent.** **Owner, verbatim:** *"Launch, and leave the test task for
+> the Sprint 5. The test-buy sequence will be run by me (human)"*. Shown: the button is off in every
+> prod build; options were test-only exposure via the remote `citizenship_ui` switch, *"launch, then
+> test fast"* (risk stated), a draft build, or an architect check.
+>
+> **OUTCOME.** `0065` is now **the go-live only** (§6: flip + second game deploy); §6 no longer waits
+> on §1–§4. `0065` §1–§5 and `0195`'s open value-correctness condition moved to
+> [`0297`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5), run
+> by the owner by hand after go-live. **`RUNBOOK-A` above still stands** — the flip does **not** ride
+> this or any deploy slot. **Launch timing is the owner's call**; this runbook does not schedule it.
+>
+> 🚨 **Accepted, owner-ruled tradeoff: paid citizenship goes live to real players before any real
+> purchase has been proven: HMAC construction unconfirmed, secret value unconfirmed, reconciliation
+> unexercised. Real players' first purchases may be the first real test.**
+>
+> The circularity paragraph directly above is kept — it was true until this ruling.
+
 ✅ **THE GATE WAS RE-VERIFIED IN THE TREE ON 2026-09-22, independently, twice** (by `fkit-lead` and again
 by the producer writing this line — not taken on trust):
 
@@ -1014,9 +1039,12 @@ the slot**?~~ → **ANSWERED: deferred past the slot.**
 
 </details>
 
-⛔ **Do not report `0065` as unblocked by this window regardless.** Its own status: **two** conditions
+~~⛔ **Do not report `0065` as unblocked by this window regardless.** Its own status: **two** conditions
 remain — `0296` (ex-`0062`, re-pointed 2026-09-23; W14 addresses it) and `0195` (whose value is owner-attested but **not shown
-correct**; only a real signed payload settles it). *"None alone unblocks."*
+correct**; only a real signed payload settles it). *"None alone unblocks."*~~
+📌 **Superseded 2026-09-23 (owner rulings, `0065` Corrections 6 and 7):** `0065` now has **no** task
+condition — `0296` no longer gates it, and `0195` moved to `0297` §1 (still open). It is the go-live,
+timed by the owner, and **this window still does not run it** (`RUNBOOK-A`).
 
 ### ✅ C2 — RULED: `0220` §8 step 3 is **OUT of this window, and gets its own task.**
 
@@ -1059,7 +1087,7 @@ owner's to rule.
 
 | Variable | What rotating it actually does |
 |---|---|
-| `YANDEX_PAYMENTS_SECRET` | ⛔ **Would replace the real Yandex key the owner set**, which `0065`'s open `0195` condition rests on (owner-attested 2026-09-20). Would break `0065` steps 1–4. |
+| `YANDEX_PAYMENTS_SECRET` | ⛔ **Would replace the real Yandex key the owner set**, which ~~`0065`'s~~ the open `0195` condition rests on (owner-attested 2026-09-20). Would break ~~`0065` steps 1–4~~ the test-buy sequence (📌 since 2026-09-23: `0297` §1–§4) — ⚠️ and, after go-live, real players' purchases. |
 | `FEEDBACK_TELEGRAM_TOKEN` | Live player-feedback delivery. |
 | `FEEDBACK_TELEGRAM_CHAT_ID` | Would misroute feedback to a different room. |
 | `TELEGRAM_PROXY_URL` | Live delivery path for the same. |

@@ -1,18 +1,24 @@
 # Geoconflict — Sprint 6 — More Content
 
+> ## 🔲 Backlog — 2026-09-23.
+
 > # ⛔ THIS IS NOT THE ACTIVE SPRINT — it is PRE-SCOPED, not in work
 >
 > **Owner ruling 2026-09-07, verbatim:** *"The active sprint is the Sprint 4!"* →
 > [`plan-sprint-4.md`](plan-sprint-4.md).
 >
-> 🚨 **If a tool told you this board was active, the tool is wrong and this is the known reason.**
+> ~~🚨 **If a tool told you this board was active, the tool is wrong and this is the known reason.**
 > `dashboard.sh select-active` picks the **highest** open sprint identity, and this is it — so an
 > empty-argument `/fkit-status` or `/fkit-sprint-ship-loop` lands here **silently**. Recorded in
 > [ADR-108](../knowledge-base/decisions/adr-108-owner-set-active-sprint-pointer.md); the interim
-> workaround is to ask by name: `/fkit-status Sprint 4`.
+> workaround is to ask by name: `/fkit-status Sprint 4`.~~
 >
 > ⚠️ **This board is legitimately open and nothing here is being archived.** Pre-scoping future
-> sprints is the intended workflow; it is the selector that cannot read owner intent.
+> sprints is the intended workflow~~; it is the selector that cannot read owner intent~~.
+>
+> 📌 **SUPERSEDED 2026-09-23 (owner ruling) — the struck text above is no longer true.** It is
+> superseded by the line-3 status banners, which the selector reads. Struck, not deleted — it was true
+> when written.
 
 > See [plan-index.md](plan-index.md) for strategic logic, experiments policy, and full priority table.
 

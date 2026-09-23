@@ -9,8 +9,9 @@ Sprint 4
 ## Priority
 **High** — this epic is the structural blocker under `0062`, `0017`'s Deferred Live Tail, `0012`'s
 Deferred Live Tail and one of `0065`'s three conditions. 📌 *2026-09-23 (owner ruling): `0062`, `0017`
-and `0012` are closed and those production checks now live in one task, `0296`; `0065`'s condition
-points there.*
+and `0012` are closed and those production checks now live in one task, `0296`; ~~`0065`'s condition
+points there.~~ 📌 **Later the same day (owner ruling): `0296` no longer gates `0065` or any Sprint 4
+work — it stays in Sprint 5.***
 
 ⚠️ **The rank above is the producer's.** The owner ruled on **scheduling** (all phases into Sprint 4);
 they did not rank this epic.
@@ -209,7 +210,8 @@ five gaps.** Neither greenfield nor procurement.
 
 ```
 P0 (0214) → P1 (0215) → P2 (0217) → 0296 section A (ex-0062 D1–D4 + 0017/0012 live tails; 2026-09-23)
-                                                   + 1 of 0065's 2 remaining conditions
+                                                   (2026-09-23 owner ruling: no longer gates 0065 or
+                                                    any Sprint 4 work — 0296 is Sprint 5)
               │
               ├── P3 (0218)  ├── P4 (0219)  ├── P5 (0220)  └── P6 (0221)
 
@@ -243,6 +245,11 @@ This epic is verified by its children and closes when all ten rows above close. 
 2. `/health` returns **200 over a valid Let's Encrypt cert** (P1).
 3. `0062`'s D3 *(now `0296` A3 — moved 2026-09-23, owner ruling)* — a real authenticated profile call succeeding end to end in production (P2). ⚠️ The
    only check that catches traps 1 and 2.
+   📌 **2026-09-23, owner ruling, verbatim: *"Keep it in Sprint 5, but the task shouldn't block
+   Sprint 4."*** ⇒ **`0296` A3 does not gate this epic.** This criterion is met by **P2's own
+   acceptance criterion — [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+   verification step 1 (D3)**, which is the same check and is Sprint 4 work; `0296` A3 is the Sprint 5
+   after-deploy record of it.
 4. **Migration `004` is confirmed applied** — see `0215` / `0217`; ✅ safe to run either way.
 5. A restore drill against **non-empty** data, with **currently-documented** commands (P3).
 6. The **new** `age` identity's custodian, location and second copy are **written down** before the
