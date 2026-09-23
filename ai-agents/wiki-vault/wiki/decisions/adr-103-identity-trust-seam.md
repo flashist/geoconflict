@@ -77,3 +77,4 @@ The design rules that make this a seam rather than just a shortcut:
 - [[decisions/adr-112-free-xp-grants]] — bounds the harm of a false claim rather than fixing the client-asserted identity
 - [[tasks/profile-identity-s2-login-and-session-token]] — task `0271`: 🔓 **the session token adds NO security while identity is client-asserted**
 - [[decisions/adr-114-admin-server-alert-relay]] — the alert relay; **this ADR is explicitly unchanged by it**
+- [[tasks/personal-inbox]] — task `0012`, whose player inbox routes trust the client-asserted id through this seam (residual D1)

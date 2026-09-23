@@ -17,7 +17,7 @@ The feature is intentionally low-ops: there is no backend or admin UI. Announcem
 
 Mount points live in `src/client/index.html` and `src/client/yandex-games_iframe.html` under `#start-screen-announcements-button`. `src/client/Main.ts` hides that container when the match-start flow begins so the bell is only visible on the start screen. The unread indicator is a simple orange dot styled in `src/client/styles.css`.
 
-### Personal inbox (task `0012` — built 2026-08-26, NOT launched)
+### Personal inbox (task `0012` — built 2026-08-26, closed 2026-09-23 agent-closed — NOT launched)
 
 Built on top of this feature rather than beside it: the popup grows a **tab strip** (Global / Personal), rendered **only when the personal inbox is available** — that is, when `GET /v1/messages` succeeded and so the server confirmed the viewer is a citizen. Guests and non-citizens see the popup exactly as before, with no tabs.
 
@@ -44,7 +44,7 @@ There is no core-game intent/execution path for this feature. It is client UI on
 - Announcements require a client deploy because the JSON is bundled into the JavaScript build; editing the file alone does not publish new content.
 - Unread state is ID-based, not text-based. Updating wording inside an existing entry does not create a new unread badge; only a new top entry with a new `id` does.
 - All content localizations currently live in one JSON file. This is acceptable now because only a short recent list of entries is kept, but it may become unwieldy if many languages are added later.
-- **The bell is no longer global-only, but the personal half is not live.** Task `0012` (personal inbox) was **built and reviewed 2026-08-26** and adds a **Personal tab inside this same popup** for citizens — see below. It is **not closed**: the browser leg of its local verification loop was never run, and its live tail is gated on `0062`. Brief: `ai-agents/tasks/backlog/0012-personal-inbox/brief.md`.
+- **The bell is no longer global-only, but the personal half is not live.** Task `0012` (personal inbox) was **built and reviewed 2026-08-26** and adds a **Personal tab inside this same popup** for citizens — see above. ~~It is **not closed**: the browser leg of its local verification loop was never run, and its live tail is gated on `0062`.~~ 🔄 **UPDATED 2026-09-23: `0012` is now CLOSED `(agent-closed — not owner-verified)`** on an owner ruling — **closed as built + reviewed, NOT launched.** The browser leg was **never run and was WAIVED** (⚠️ accepted tradeoff: **nobody sees the Personal tab in a browser until after launch**), and the live tail moved to task `0296` (Sprint 5) — **B2/B3 run only after the `CITIZENSHIP_CARD_ENABLED` flip, owned by `0065` §6.** Full record: [[tasks/personal-inbox]]. Brief: `ai-agents/tasks/done/0012-personal-inbox/brief.md`.
 
 ## Related
 
@@ -55,3 +55,4 @@ There is no core-game intent/execution path for this feature. It is client UI on
 - [[tasks/global-announcements]] — original re-enable task brief and shipped outcome
 - [[systems/player-profile-store]] — the profile service that owns `player_messages` and the inbox routes
 - [[decisions/adr-103-identity-trust-seam]] — the client-asserted-ID trust seam the inbox routes sit behind
+- [[tasks/personal-inbox]] — task `0012`, the Personal-tab task record; closed 2026-09-23, not launched

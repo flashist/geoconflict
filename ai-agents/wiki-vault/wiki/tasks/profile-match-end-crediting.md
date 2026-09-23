@@ -46,6 +46,8 @@ Identity trust remains a known boundary: current earned-XP crediting still uses 
 > two silent barriers** on this path (a self-generated token ⇒ **401**; a stale
 > `PROFILE_INTERNAL_ALLOW_IPS` ⇒ **403**, both invisible under ADR-101's fail-soft, no-queue client).
 > Grounding: `ai-agents/knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md`.
+>
+> 🔄 **UPDATED 2026-09-23 — `0062`'s D3 is now `0296` A3.** `0062` was closed `(agent-closed — not owner-verified)` on an owner ruling, as built + reviewed; its production checks D1–D4 moved to task `0296` (Sprint 5, section A, after the deploy window). ⛔ **Nothing here changed in production** — A3, *a real authenticated credit working end to end*, is still the acceptance criterion and has never run. See [[tasks/forward-profile-internal-token]] and [[systems/weekend-deploy-window]] (W14).
 
 ## Related
 
@@ -61,3 +63,5 @@ Identity trust remains a known boundary: current earned-XP crediting still uses 
 - [[tasks/yandex-payments-investigation]]
 - [[decisions/adr-101-fail-soft-xp-crediting]] — the fail-soft delivery policy this task implemented
 - [[decisions/adr-103-identity-trust-seam]] — the identity seam this task introduced
+- [[tasks/forward-profile-internal-token]] — task `0062`, the missing token that made this path a production no-op; closed 2026-09-23, checks moved to `0296`
+- [[tasks/citizenship-earned]] — task `0017`, the citizenship grant that rides this crediting path

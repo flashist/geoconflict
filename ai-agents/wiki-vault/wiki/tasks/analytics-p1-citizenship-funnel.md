@@ -132,3 +132,4 @@ in that pass.
 - [[tasks/citizenship-xp-progress-ui]] — task 0191, which shipped `UI:Tap:PurchaseCitizenship`
 - [[tasks/yandex-payments-implementation]] — task 0019, which registered the purchase-event constants
 - [[decisions/sprint-4]] — the sprint board this task was made visible on
+- [[tasks/citizenship-earned]] — task `0017`, which owns `Citizenship:Earned:XP` and its accepted mis-counts

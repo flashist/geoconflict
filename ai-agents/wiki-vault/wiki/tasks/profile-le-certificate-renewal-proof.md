@@ -92,6 +92,14 @@ path, not a real renewal observed in production. Hence the marker.
 `0215` — transiently, on the first deploy attempt — which is squarely inside this spike's original
 subject.
 
+🔄 **LATER EVIDENCE, 2026-09-22 — the expiry date is now a LIVE reading, not only an on-box record.**
+`fkit-lead` read the profile box's certificate live and read-only: **expires 2026-11-20**, confirming the
+date this task recorded. ⚠️ **This confirms the date, not the renewal** — a valid certificate today does
+not exercise `certbot renew`, the HTTP challenge or the port-80 bind, and **the fuse is still unwatched.**
+🚨 **Name the box:** a same-day proposal to "correct" this date to **2026-12-13** — the **telemetry** box's
+certificate — was **refused before it was applied**; it would have made the fuse read three weeks late.
+See [[systems/weekend-deploy-window]].
+
 ## Related
 
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which adopted and re-provisioned the box, preserved this certificate byte-identical, and did **not** run this spike
@@ -101,3 +109,4 @@ subject.
 - [[systems/player-profile-store]] — the backend served over the certificate this proves renewable
 - [[systems/architecture-overview]] — the profile-tier section carrying the renewal fuse this task's residual names
 - [[tasks/telemetry-cert-expired-renewal-cron]] — task `0257`: the telemetry box had the failure this page warns about — **its certificate expired, unnoticed, for ten days** — and its fix **mirrors the pre/post-hook pattern proven here**
+- [[systems/weekend-deploy-window]] — the deploy window whose deferral of automated cert watching rests on this date

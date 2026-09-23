@@ -27,3 +27,4 @@ The task brief originated in Sprint 4 planning, but the feature was pulled forwa
 - [[features/announcements]] — live feature behavior and current implementation
 - [[decisions/sprint-4]] — Sprint 4 plan that treated announcements as the dependency for later inbox work
 - [[decisions/sprint-2]] — sprint where the feature was ultimately shipped
+- [[tasks/personal-inbox]] — task `0012`, the 8d-B Personal tab built inside this popup

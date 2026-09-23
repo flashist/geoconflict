@@ -89,6 +89,15 @@ show **each lane resuming**, not just the client one.
 ⚠️ **The LE production rate limit (5 duplicate certificates/week) means a botched `--force-renewal` loop
 can lock renewal out for a week** — every rehearsal used **staging**, exactly as `0216` did.
 
+🔄 **LATER EVIDENCE, 2026-09-22 — the renewed certificate is still valid.** `fkit-lead` measured the
+telemetry box live and read-only: **HTTP 200 over valid TLS**, certificate issued 2026-09-14, **expires
+2026-12-13** — matching this task's own worklog. On that evidence `0032`'s *"blocked on `0257`"* reason
+was struck (`0032` stays blocked on the deploy window). ⚠️ **Two boundaries:** a valid certificate proves
+**transport, not ingested data**; and an expiry date is **not a renewal test** — it does not show the
+renewal cron will fire. 🚨 **Name the box:** `2026-12-13` is **this (telemetry)** certificate;
+`2026-11-20` is the **profile** box's, a different certificate — a same-day proposal to move one date onto
+the other was refused before it was applied. See [[systems/weekend-deploy-window]].
+
 ## Related
 
 - [[systems/telemetry]] — the stack this restored, and where the outage window belongs
@@ -98,3 +107,4 @@ can lock renewal out for a week** — every rehearsal used **staging**, exactly 
 - [[systems/alert-delivery]] — the same box, and the same *"the signal exists and nothing reads it"* shape
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[decisions/sprint-backlog]] — the board it was filed on, then pulled off by an owner ruling that set **both** board and rank
+- [[systems/weekend-deploy-window]] — records both boxes' live cert readings of 2026-09-22 and the refused date swap

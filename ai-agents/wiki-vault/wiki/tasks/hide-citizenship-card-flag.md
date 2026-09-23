@@ -18,7 +18,7 @@ Remove a live production UX defect: after the 0049 degraded-mode treatment shipp
 
 ## Outcome
 
-The start screen no longer leads with a dead-end card. **Flip-ON coupling:** shipping **0017 (Citizenship Earned)** and/or **0018 (Citizenship Paid)** MUST include flipping this flag ON — that is the entire relaunch mechanism. The reciprocal note was added to the 0017/0018 briefs by producer follow-up (commit `e4f01e6`). Agent-closed 2026-08-21, not owner-verified. **Update 2026-08-23/24:** after the local/mock-first re-scope, the flip-ON no longer rides the 0017/0018 *builds* (both built 2026-08-24, card still OFF) — it lives in 0017's `0062`-gated Deferred Live Tail and in `0065`'s go-live step (which is additionally gated on the `0066` licensing remediation being DEPLOYED). See [[decisions/sprint-4]].
+The start screen no longer leads with a dead-end card. **Flip-ON coupling:** shipping **0017 (Citizenship Earned)** and/or **0018 (Citizenship Paid)** MUST include flipping this flag ON — that is the entire relaunch mechanism. The reciprocal note was added to the 0017/0018 briefs by producer follow-up (commit `e4f01e6`). Agent-closed 2026-08-21, not owner-verified. **Update 2026-08-23/24:** after the local/mock-first re-scope, the flip-ON no longer rides the 0017/0018 *builds* (both built 2026-08-24, card still OFF) — it lives in 0017's `0062`-gated Deferred Live Tail and in `0065`'s go-live step (which is additionally gated on the `0066` licensing remediation being DEPLOYED). See [[decisions/sprint-4]]. 🔄 **SUPERSEDED 2026-09-23 (owner ruling): the flip is owned ONLY by `0065` §6.** It was **removed** from `0017`'s live tail when `0017` closed (`agent-closed — not owner-verified`); `0065` §6's *"skip if `0017` flipped it"* clause was dropped. ⚠️ Accepted tradeoff: the earned-citizenship launch is now tied to `0065`'s steps, and `0065`'s own ordering problem (its step 3 needs the flip first, its §6 flips only after steps 1–4 pass) is **still unsolved**. See [[tasks/citizenship-earned]].
 
 ## Related
 
@@ -34,3 +34,6 @@ The start screen no longer leads with a dead-end card. **Flip-ON coupling:** shi
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, which closed the three surfaces this flag did **not** reach; 🚨 **its `0238` launch gate must clear before this flag is flipped to `true`**
 - [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`, ⚠️ **the ONLY remaining code precondition for flipping this flag** (2026-09-21): it made the card fail **closed** under a degraded SDK, withdrawing a 2026-09-10 acceptance that had been granted while this flag was `false` and the carve-out was **inert**
 - [[tasks/yandex-catalog-registration]] — task `0014`, which set the **remote** flag this local flag short-circuits away from ever being read
+- [[tasks/forward-profile-internal-token]] — task `0062`: this flag hides the card but does NOT stop server-side crediting
+- [[tasks/citizenship-earned]] — task `0017`, whose flip-ON coupling here was superseded 2026-09-23 (flip is `0065` §6's alone)
+- [[tasks/personal-inbox]] — task `0012`, whose whole inbox is gated behind this flag (residual D5)

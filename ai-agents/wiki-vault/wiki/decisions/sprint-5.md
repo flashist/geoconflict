@@ -3,6 +3,58 @@
 **Date**: 2026-04-16
 **Status**: proposed
 
+> # 🆕 2026-09-23 — A SEVENTH ROW: `0296`, A NEW TASK THAT **RECEIVES CHECKS** — ⛔ NOT A MOVE
+>
+> **The board is 14 rows now, was 13** (counted at `HEAD` = `b3ee5de`; all 14 read `🔲 Backlog`).
+> Appended, not inserted (ADR-035); nothing above it moved or was renumbered.
+>
+> **AUTHORITY.** An **owner ruling given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-23**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+> (ADR-021). ⛔ **Not producer precedent.** The owner named **Sprint 5** for it. ⚠️ **No rank was ruled**
+> — the row reads *unranked*, flagged for owner confirmation, with the producer's note that **on merit it
+> belongs directly below `0295`** (`0295` must be done for the deploy window to credit at all, and
+> section A observes that window). ⛔ **Unranked ≠ low.**
+>
+> ⛔ **`0296` is NOT a row moved off Sprint 4.** `0062`, `0017` and `0012` were **CLOSED** on
+> [[decisions/sprint-4]] — `✅ Done (agent-closed — not owner-verified)` — and **only their unrun
+> production checks came here.** Closing them does **not** mean any of it works in production.
+> Task records: [[tasks/forward-profile-internal-token]], [[tasks/citizenship-earned]],
+> [[tasks/personal-inbox]].
+>
+> **`0296` — after-deploy production checks: profile token, earned citizenship, personal inbox.**
+> *Nothing is built; it runs and records checks.* A failure found here becomes its **own** task.
+>
+> | Section | Runs when | Checks (and where each came from) |
+> |---|---|---|
+> | **A** | **after the deploy window** in which `PROFILE_INTERNAL_TOKEN` is deployed **non-empty** (owner ruling 2026-09-19) — depends on `0217` | **A1** token-match pre-check, verdict-only (ex-`0062` D1) · **A2** token reaches the container non-empty (ex-`0062` D2) · **A3** a real authenticated credit end to end (ex-`0062` D3; A2–A3 also absorb `0017`'s and `0012`'s live item 1) · **A4** no partial-config warning and no token in any log or deploy output (ex-`0062` D4 + step 6) · **A5** real XP accrual (ex-`0017` item 2) · **A6** live grant, server side (ex-`0017` item 3) |
+> | **B** | **after the citizenship flip**, owned **only** by `0065` §6 | **B1** card State 3 in the live iframe (ex-`0017` item 3) · **B2** the inbox message in the Personal tab, read state across two devices, bell dot clears (ex-`0012` item 2; **also covers the WAIVED local browser checks**) · **B3** a non-citizen sees no Personal tab (ex-`0012` item 3) |
+>
+> **Traps it carries, the ones a summary drops:**
+> - 🚨 **A2 must record BOTH halves** — what the container shows **and** whether the source value was
+>   non-empty at deploy time. *Empty + blank source* is **inconclusive** (what happened 2026-09-04);
+>   *empty + non-empty source* is a **real failure**. An empty reading without the second half is not a
+>   result.
+> - ⚠️ **A6 must seed against the XP figures actually live in production at the time** — the repository
+>   carries the `0211` rescale (100 threshold, 1 XP per match); production, until `0211` deploys, does
+>   not. Seeding against the wrong threshold makes the step pass without testing anything.
+> - ⛔ **B3 proves NOTHING while `CITIZENSHIP_CARD_ENABLED` is off** — the tab is hidden for everyone.
+> - ⛔ **On an A1 `MISMATCH`: fix local `.env.prod` from the box's persisted token — NEVER regenerate
+>   the box's token.**
+> - **The deploy-time forget-risk sits at the top of the brief:** a production deploy with a non-empty
+>   local token turns crediting ON; blanking it is **manual**, `check:config-parity` cannot see values,
+>   and 🔴 **NO GUARD WILL BE BUILT** (owner, 2026-09-04: *"Neither — I'll just remember."*) — ⛔ do not
+>   file or re-recommend one.
+> - **Blocks `0065`** (its former `0062` condition). 📌 **`0065`'s own ordering problem is NOT solved
+>   here** — its step 3 needs the flip, its §6 flips only after 1–4 pass.
+> - **The task closes only when both sections are done or owner-waived** — A can be recorded long before
+>   B is runnable.
+>
+> ⚠️ **This board has no wiki page of its own for `0296`** — it is a backlog task, and the sync
+> procedure does not page backlog briefs. Its substance is recorded **here, from the board and its
+> brief**, until it closes.
+>
+> ---
+>
 > # 🆕 A SIXTH ROW WAS APPENDED LATER ON 2026-09-22 — AND IT IS THE ONLY ONE THAT IS **NOT** A MOVE
 >
 > **The board is 13 rows now, was 12** (counted at `HEAD` = `0d39e4d`; all 13 read `🔲 Backlog`).
@@ -126,6 +178,7 @@
 > (citizenship earned) and `0018` (citizenship paid) — **REMAIN ON SPRINT 4**, so this row sits a board
 > *behind* its own prerequisites. **Coherent, not drift** — ⛔ do not "fix" it by dragging them here.
 > ⛔ **Neither blocker was discharged or re-sequenced.**
+> 🔄 **2026-09-23: `0017` is now CLOSED** (`agent-closed — not owner-verified`, as built + reviewed; production checks → `0296`); **`0018` is still open.** `0030`'s brief records that **whether its blocker 1 (*"citizenship feature must exist"*) means built or live was NOT re-ruled** — and citizenship goes live only at the flip owned by `0065` §6. ⛔ Not resolved here.
 > 📐 **Blocker 2 is now measured, not assumed (working tree, 2026-09-22):** the four S3 config slots are
 > **plumbed end to end** but **EMPTY**, and `archiveEnabled()` is a hard `false` with no override ⇒
 > **the plumbing is done; only the bucket is missing.** ⚠️ **Ceiling: read from the repository, NOT from
@@ -244,3 +297,6 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 - [[tasks/yandex-catalog-registration]] — task `0014`, which set the remote `citizenship_ui` flag `0238` must observe here
 - [[systems/weekend-deploy-window]] — the deploy window that filed `0295` onto this board, and the **W0** step whose measurement `0295` must record the method for
 - [[decisions/sprint-backlog]] — where `0294`, the window's other removed step, was filed instead
+- [[tasks/forward-profile-internal-token]] — task `0062`, whose production checks became `0296` section A
+- [[tasks/citizenship-earned]] — task `0017`, whose live tail became `0296` A2–A3, A5, A6 and B1
+- [[tasks/personal-inbox]] — task `0012`, whose live tail became `0296` A2–A3, B2 and B3

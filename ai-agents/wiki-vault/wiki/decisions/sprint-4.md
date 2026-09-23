@@ -3,6 +3,80 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
+> # 🆕 2026-09-23 — `0062`, `0017` AND `0012` CLOSED; THEIR PRODUCTION CHECKS MOVED TO A NEW SPRINT 5 TASK, `0296`
+>
+> **AUTHORITY.** **Owner rulings given live in the `fkit lead` session via `AskUserQuestion` on
+> 2026-09-23**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
+> (ADR-021). ⛔ **Not producer precedent.** The owner's goal, in substance: *close `0062` and move its
+> production checks into a separate after-deploy task, so the tasks depending on it are no longer
+> blocked* — and *"move their checks too"* for `0017` and `0012`.
+>
+> | Task | Now | What that does NOT mean |
+> |---|---|---|
+> | `0062` — [[tasks/forward-profile-internal-token]] | `✅ Done (agent-closed — not owner-verified)` — built + reviewed 2026-08-24; **D5 passed LOCALLY 2026-09-23** | ⛔ **D1–D4 have never run with a real value.** The fix being live in production is still an **inference**. Supersedes the 2026-09-04 *"stays in Sprint 4"* ruling |
+> | `0017` — [[tasks/citizenship-earned]] | `✅ Done (agent-closed — not owner-verified)` — built + reviewed on the local stack | ⛔ **no production grant has ever happened.** Local verification step 3 (inbox in the browser) **never ran — owner-WAIVED** |
+> | `0012` — [[tasks/personal-inbox]] | `✅ Done (agent-closed — not owner-verified)` — built + reviewed 2026-08-26 | ⛔ **not launched and never seen in a browser.** The browser leg **never ran — owner-WAIVED** |
+>
+> 🚨 **The `(agent-closed — not owner-verified)` marker is LOAD-BEARING on all three: no human verified
+> this work, and nothing here is proven in production.** ⚠️ **Accepted tradeoff from the waivers:
+> nobody sees the Personal tab in a browser until after launch.**
+>
+> **Where the checks went — `0296` on [[decisions/sprint-5]]:** **section A** after the deploy window
+> that sets `PROFILE_INTERNAL_TOKEN` non-empty (ex-`0062` D1–D4 + step 6's production half; ex-`0017`
+> live items 1–2 and item 3's server-side half); **section B** after the citizenship flip (ex-`0017`
+> item 3's card half; ex-`0012` live items 2–3). `0062`'s **deploy-time forget-risk** and the
+> 2026-09-04 ***NO GUARD WILL BE BUILT*** ruling were carried to the top of `0296`; ⛔ no guard task was
+> filed.
+>
+> **Knock-on on THIS board, same rulings:**
+> - 🔴 **The flip (`CITIZENSHIP_CARD_ENABLED` → `true` + a second game deploy) is owned ONLY by `0065`
+>   §6** — removed from `0017`'s tail. ⚠️ Accepted tradeoff: the earned-citizenship **launch** is tied to
+>   `0065`'s steps. 🚨 `0065`'s own ordering problem (step 3 needs the flip; §6 flips only after 1–4
+>   pass) is **still unsolved** and kept visible.
+> - **`0065`**: its `0062` condition now reads **`0296` (A2–A3)** — **still TWO conditions (`0296`,
+>   `0195`), still `🚧 Blocked`.**
+> - **`0064`**: its dependency on `0062` was **removed**, citing the 2026-09-02 ruling (`0062` gates only
+>   *arming* the guard). ⚠️ **Not closable**: its *"cannot close this week"* was struck 2026-09-22 as an
+>   expiring date and re-stated as **"cannot close until the deploy window runs"** — and that window
+>   **SLIPPED** (below).
+> - `0020`, `0030`, `0018`, `0213`, `0217` — dependency prose updated to match. ⚠️ For `0030` (now on
+>   Sprint 5) the brief notes that **whether its blocker (1) needs citizenship *built* or *live* was NOT
+>   re-ruled** — RULING E's *"blockers stay on Sprint 4"* now has `0017` closed and `0018` open.
+>
+> # 📊 BOARD RE-COUNTED 2026-09-23 at `HEAD` = `b3ee5de`
+>
+> **106 rows — 81 Done · 11 Blocked · 4 Backlog · 1 In progress · 3 Cancelled · 6 Moved; 16 OPEN.**
+> *(Was 106 / 19 open at `6934226`. **Row count unchanged; three rows closed** — `0062`, `0017`, `0012`,
+> all `🚧 Blocked` → `✅ Done`.)* ⚠️ **Counted by me this run, at this SHA.** The board's own preamble
+> now also records its earlier *"24 open"* figure corrected to **19** (a producer bookkeeping fix,
+> ⛔ not an owner ruling) — consistent with this page's previous count.
+>
+> 🚨 **104 `agent-closed — not owner-verified` mentions file-wide, against 81 Done rows.** Counted strictly
+> in the **status cell**: **59 of 81 Done rows.** **Both bases are true; say which you mean.** ⛔ **The
+> ratio still gets worse as the sprint ships** — all three of today's closes carry it.
+>
+> ## ⏸️ THE DEPLOY WINDOW SLIPPED — OWNER CONFIRMATION 2026-09-22, NO NEW DATE
+>
+> The runbook now opens with it: **the window has NOT happened; every step, W0 included, is genuinely
+> undone; and no replacement date was named — ⛔ do not write or infer one.** Recorded as an **owner
+> confirmation, not an inference from git** (a deploy leaves no artifact there). Rows here that wait on
+> the window — `0032` step 5, `0064` step 8, `0217`, `0272`, `0273`, `0219`/`0220`/`0221`/`0286` — are
+> **further from closing, not nearer.** `0203`'s six decisions stay deferred *"until after the window"*
+> (owner re-confirmed; the deferral survives the slip). See [[systems/weekend-deploy-window]].
+>
+> ## 🩹 `0032` — THE CERT BLOCKER IS STALE; THE TASK IS STILL BLOCKED (2026-09-22)
+>
+> `0032`'s *"blocked on `0257` — telemetry cert expired, ingest dark"* is **struck**: `fkit-lead`
+> measured the **telemetry** box live and read-only — **HTTP 200 over valid TLS**, certificate issued
+> 2026-09-14, **expires 2026-12-13** — and two repo worklogs record the same certificate.
+> 🚨 **THE BOUNDARY: a valid certificate and a 200 prove TRANSPORT, not DATA.** Step 5 needs ingested,
+> queryable spans filtered to the new `service.version`; **W15's re-query may still find nothing** without
+> contradicting the measurement. ⚠️ **Name the box before quoting a cert date** — `2026-12-13` is the
+> **telemetry** cert; `2026-11-20` is the **profile** cert. ⛔ **`0032` stays `🚧 Blocked`**; what gates it
+> is the deploy window, then a ≥24 h re-measure at W15. See [[tasks/telemetry-cert-expired-renewal-cron]].
+>
+> ---
+>
 > # 🆕 2026-09-22, LATER THE SAME DAY — THIS BOARD'S OPEN WORK NOW HAS A DEPLOY ORDERING
 >
 > 📊 **No row was added, removed or re-statused after `6934226`** — the count block below still stands
@@ -921,3 +995,6 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[decisions/adr-104-archiving-disabled]] — the ADR whose scope `0292` corrects: it darkened the **server** archive leg only
 - [[systems/architecture-overview]] — home of §13 open question 1, whose **conditional** second clause was flattened into the false `0009`-blocks-`0030` dependency settled on this board; ⚠️ the seeding sentence stays in `architecture.md` **by owner choice**
 - [[systems/weekend-deploy-window]] — the ordering for eleven of this board's tasks across four deploy commands, the four rulings that cut work out of it (`0065` step 3, `0220` §8 step 3, the egress-IP measurement, the rollback procedure), and the traps each deploy must not trip
+- [[tasks/forward-profile-internal-token]] — task `0062`, closed 2026-09-23 on an owner ruling
+- [[tasks/citizenship-earned]] — task `0017`, closed 2026-09-23 on an owner ruling
+- [[tasks/personal-inbox]] — task `0012`, closed 2026-09-23 on an owner ruling

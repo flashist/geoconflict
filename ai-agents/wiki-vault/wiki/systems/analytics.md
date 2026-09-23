@@ -403,3 +403,5 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[decisions/adr-113-internal-player-id]] — the login endpoint and session token the `Profile:Login:*` families measure
 - [[tasks/profile-identity-s2-login-and-session-token]] — task `0271`, the server side of those events
 - [[systems/player-profile-store]] — the backend the login talks to
+- [[tasks/personal-inbox]] — task `0012`, which added the four inbox events
+- [[tasks/citizenship-earned]] — task `0017`, which added `Citizenship:Earned:XP`

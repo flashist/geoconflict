@@ -4007,3 +4007,56 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
   written (five)** and is right only by accident of the W8 cut. ⛔ A silently corrected number would
   hide that **this count has already drifted once.** The file is outside the vault boundary (ADR-005)
   regardless.
+
+## 2026-09-23 — ingest (sync)
+
+- **Sync window:** `0d39e4d` → HEAD (`b3ee5de`). 3 commits; `188d8e6` carried only vault output (the
+  previous sync), so the source delta is `04221aa` + `b3ee5de`.
+- **Changed source files detected under `ai-agents/` (vault excluded): 35. Ingest-worthy after the
+  filter: 10.** Skipped by the filter: 15 `tasks/backlog/*/brief.md` (incl. **`0296`**, the new Sprint 5
+  task) and 10 in-folder `plan.md` / `worklog.md` / `review.md` / `.png` working artifacts (moved with
+  their folders). ⚠️ **`0062/worklog.md`'s new *D5 result* section and the three `review.md` files were
+  READ as supporting evidence for the task pages**, not ingested as sources.
+- **Ingested:**
+  - `ai-agents/tasks/done/0062-forward-profile-internal-token-in-deploy/brief.md` → **created**
+    [[wiki/tasks/forward-profile-internal-token]]
+  - `ai-agents/tasks/done/0017-citizenship-earned/brief.md` → **created** [[wiki/tasks/citizenship-earned]]
+  - `ai-agents/tasks/done/0012-personal-inbox/brief.md` → **created** [[wiki/tasks/personal-inbox]]
+  - `ai-agents/sprints/plan-sprint-4.md` → **updated** [[wiki/decisions/sprint-4]] — the three closes,
+    the knock-on re-points, `0032`'s stale cert blocker, the slipped window. **Re-counted at `b3ee5de`:
+    106 rows — 81 Done · 11 Blocked · 4 Backlog · 1 In progress · 3 Cancelled · 6 Moved; 16 OPEN**
+    (was 19). Marker: 104 mentions file-wide; **59 of 81** Done status cells. ⚠️ Counted by me this run.
+  - `ai-agents/sprints/plan-sprint-5.md` → **updated** [[wiki/decisions/sprint-5]] — **14 rows, was 13**,
+    all `🔲 Backlog`; `0296` recorded **from the board and its brief** (sections A/B, traps, depends on
+    `0217` and `0065` §6, blocks `0065`), plus a `0030` blocker-1 note.
+  - `ai-agents/knowledge-base/weekend-deploy-slot-runbook.md` → **updated**
+    [[wiki/systems/weekend-deploy-window]] — window **slipped and undated**; G3 closed (the W14 watch);
+    G4 closed **by half** (W0 snapshot + W15 by-hand delete; freshness-marker half unanswered); both
+    certs measured live + the refused date swap; `RUNBOOK-A`–`G` namespacing and the accepted
+    four-sequence collision; `0062`-D* → `0296`-A*; ruling 3 re-confirmed.
+  - `ai-agents/knowledge-base/announcements-system-guide.md` → **updated** [[wiki/features/announcements]]
+    (source path moved to `done/`; `0012` status).
+  - `ai-agents/sprints/backlog.md` → **checked, no page change** — link-path updates only (`0062`/`0017`
+    → `done/`); counts unchanged.
+  - `ai-agents/tasks/done/0208-…/brief.md`, `ai-agents/tasks/done/0211-…/brief.md` → **checked, no page
+    change** — link-path updates only.
+- **Also updated (stale current-state claims about `0062`/`0017`/`0012`, dated notes, history kept):**
+  [[wiki/decisions/config-parity-failure-class]], [[wiki/systems/player-profile-store]],
+  [[wiki/tasks/profile-match-end-crediting]], [[wiki/tasks/hide-citizenship-card-flag]] (flip now
+  `0065` §6's alone), [[wiki/tasks/yandex-payments-secret-forwarding]] (`0065` conditions now `0296` +
+  `0195`), [[wiki/tasks/telemetry-cert-expired-renewal-cron]] and
+  [[wiki/tasks/profile-le-certificate-renewal-proof]] (live cert readings, name-the-box).
+- **Links fixed:** 1 path still pointing at `backlog/` — `features/announcements` → `0012` now `done/`.
+  **Back-links added on 24 pages**; 3 one-way links found by the targeted lint and fixed
+  (`systems/analytics` ↔ `systems/player-profile-store`, ↔ `tasks/citizenship-earned`;
+  `systems/weekend-deploy-window` ↔ `tasks/citizenship-earned`). **0 unresolved links** on touched pages.
+- **Verified in the tree this run:** the `deploy.sh` forwarding anchor (one match); `0211`'s rescale is
+  **present in the repository** (`CITIZENSHIP_XP_THRESHOLD = 100`, `XP_PER_MATCH = 1`, en.json "100 XP")
+  while `0017`'s brief still says it has not shipped — recorded as *true of production, stale about the
+  repository*, flagged.
+- ⚠️ **NOT done, deliberately: no `wiki/tasks/` page for `0296`.** The sync procedure skips backlog
+  briefs (*"a page would be premature"*), and the prior sync applied that to `0294`/`0295`. The caller
+  asked for one; returned as NEEDS-DECISION rather than overriding the procedure.
+- 🔒 **Secret scan on the diff: clean** — variable names, file paths and verdict words only.
+- ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover,
+  edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.

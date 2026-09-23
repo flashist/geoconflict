@@ -66,3 +66,4 @@ The investigation established a complete causal chain and split the response int
 - [[decisions/config-parity-failure-class]] — where this sweep's `0062`/`0063` findings were joined by a third instance (`0195`) in a **different** deploy pipeline, making it a class rather than a `deploy.sh` bug
 - [[tasks/container-log-retention]] — task `0060` from this sweep's §9, shipped 2026-09-01 into version control and not yet deployed; it refuted this record's "config is not in the repo" premise
 - [[systems/project-brief]] — the current-focus picture this outage and the `0062` blocker reshaped
+- [[tasks/forward-profile-internal-token]] — task `0062`, the §9 token-forwarding loose end; closed 2026-09-23, not proven in production
