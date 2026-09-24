@@ -4,7 +4,7 @@ import {
 } from "./flashist/FlashistFacade";
 
 const LAST_PLAYED_KEY = "geoconflict.player.lastPlayedDate";
-const DAYS_PLAYED_KEY = "geoconflict.player.daysPlayed";
+export const DAYS_PLAYED_KEY = "geoconflict.player.daysPlayed";
 
 export function localDateString(d = new Date()): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

@@ -17,6 +17,7 @@ import version from "../version";
 import "./AccountModal";
 import { startBuildVersionChecker } from "./BuildVersionChecker";
 import "./CitizenshipCard";
+import "./TenureGrantModal";
 import {
   CITIZENSHIP_LOGIN_SUCCEEDED_EVENT,
   type CitizenshipLoginSucceededDetail,

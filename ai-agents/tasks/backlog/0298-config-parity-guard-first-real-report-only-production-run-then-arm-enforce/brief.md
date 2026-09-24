@@ -17,7 +17,7 @@ fkit-coder
 
 ## Context
 
-**Split out of [`0064`](../0064-deploy-time-config-parity-guard/brief.md) on 2026-09-23, on an OWNER
+**Split out of [`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md) on 2026-09-23, on an OWNER
 RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned
 `fkit-producer` with no owner channel (ADR-021).** ⛔ Not producer precedent.
 
@@ -51,7 +51,7 @@ run and been read.
 - **The Saturday 2026-09-26 deploy window** (owner-dated 2026-09-23). Step 8 is observed at runbook W12
   (the game deploy). The profile deploys at W3 and W7 run the same report-only guard, so their output
   counts as evidence too.
-- **[`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md): all of its pre-arming items must land
+- **[`0203`](../../done/0203-config-parity-guard-pre-arming-gate/brief.md): all of its pre-arming items must land
   before `--enforce` is wired.** This is a hard sequence (`0064` Notes, *"Arming depends on `0203`"*).
   `0203` stays in Sprint 4 by owner ruling of 2026-09-23 (Q3 = (b)), and its six pending decisions are
   to be taken **before** the window. That lifts runbook ruling 3 for `0203`. Whatever of `0203` is
@@ -100,7 +100,7 @@ landed.**
    - **R14 (second half) — per-deploy blocking:** each deploy blocks **only on its own settings**: game + browser for `deploy.sh`, profile for `build-deploy-profile.sh`. Other pipelines' findings print loudly but don't block. Shared code (`core/configuration`) is still checked for both.
    - **R4a:** an unmapped new `src/` folder stops the deploy under `--enforce`, and the message names the one-line `DIR_PIPELINE` fix (built in `0203`).
    - ~~R13, item 11, R19 and R21 are **routed to `fkit-architect` for owner approval, not yet ruled**. Arming still waits on them.~~ **Later on 2026-09-23 all four are RULED** (architect's call, owner-approved; recorded in `0203`). Arming still waits on `0203` **building** them.
-   - ✅ **The R4a vs R14 conflict is resolved (2026-09-23; architect's call, owner-approved live via `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent). This task's arming must implement it:** **failures that cannot be traced to a pipeline stop EVERY deploy**: an unmapped `src/` folder, broken allowlist JSON, a missing guard script. **Everything else stops only its own deploy.** ⚠️ **This requires per-pipeline tagging:** `DYNAMIC-READ` and scanner parse failures must carry their file's pipeline(s). Today they are one global list (`scripts/check-config-parity.mjs:686-697`, `:804`, `:1024`). Consuming the tags per deploy is this task's. ~~🚩 **Which task BUILDS the tagging (`0203`'s checker work or this task) was not ruled.**~~ ✅ **Ruled 2026-09-23** (OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent): **[`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md) builds the tagging** (its scope item 12), for every finding that must block per deploy. **This task only consumes the tags when arming.**
+   - ✅ **The R4a vs R14 conflict is resolved (2026-09-23; architect's call, owner-approved live via `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent). This task's arming must implement it:** **failures that cannot be traced to a pipeline stop EVERY deploy**: an unmapped `src/` folder, broken allowlist JSON, a missing guard script. **Everything else stops only its own deploy.** ⚠️ **This requires per-pipeline tagging:** `DYNAMIC-READ` and scanner parse failures must carry their file's pipeline(s). Today they are one global list (`scripts/check-config-parity.mjs:686-697`, `:804`, `:1024`). Consuming the tags per deploy is this task's. ~~🚩 **Which task BUILDS the tagging (`0203`'s checker work or this task) was not ruled.**~~ ✅ **Ruled 2026-09-23** (OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent): **[`0203`](../../done/0203-config-parity-guard-pre-arming-gate/brief.md) builds the tagging** (its scope item 12), for every finding that must block per deploy. **This task only consumes the tags when arming.**
    - 📌 A "dead" (`INFO`) line **cannot** fail a deploy under `--enforce`: `failsClosed` (`:1042-1049`) covers `REQUIRED` / `PARSE-FAILURE` / `DYNAMIC-READ` / `SKIP` only.
 5. If `0064` Phase 2 landed after the window, keep its checks report-only until one further real deploy
    has been read (see Context), or arm Phase 1 only and record which checks are armed.
@@ -125,11 +125,31 @@ landed.**
 
 ## Notes
 
-- **Depends on:** [`0064`](../0064-deploy-time-config-parity-guard/brief.md) (the guard and its `--enforce` flag, built; Phase 2 if it is to be armed) and [`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md) (all pre-arming items land before `--enforce` is wired), plus the 2026-09-26 deploy window for Part A (runbook W12)
+- **Depends on:** [`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md) (the guard and its `--enforce` flag, built; Phase 2 if it is to be armed) and [`0203`](../../done/0203-config-parity-guard-pre-arming-gate/brief.md) (all pre-arming items land before `--enforce` is wired), plus the 2026-09-26 deploy window for Part A (runbook W12)
 - **Blocks:** nothing.
+- ✅ **RECORDED 2026-09-24: [`0203`](../../done/0203-config-parity-guard-pre-arming-gate/brief.md) is DONE, so this task's dependency on it is met.** It was closed
+  `(agent-closed — not owner-verified)` by a spawned `fkit-producer` at the ship-loop close step. `--enforce` is still
+  wired nowhere; arming it is this task's job. Facts to know before arming, from `0203`'s
+  [`worklog.md`](../../done/0203-config-parity-guard-pre-arming-gate/worklog.md) (run 2) and [`review.md`](../../done/0203-config-parity-guard-pre-arming-gate/review.md) (round 3, `closed-out`):
+  - **Findings now carry per-pipeline tags.** `parseFailures`, `dynamicReads` and `skips` are
+    `{ message, pipelines }`. `pipelines` lists `game`/`profile`/`client`, or is `"global"` when a finding
+    cannot be traced to a pipeline. The text output shows the tag as a suffix: `[pipeline: game]`,
+    `[pipelines: game, client]`, `[global]`. That is what lets each call site block only on its own
+    pipeline's findings plus `global` ones (the R4a/R14 ruling).
+  - **Two new fail-closed cases (owner ruling 2026-09-24, Q2 = A, *"Yes, flag it"*; answers `0203` review
+    R6).** An unreadable `.ts` file under `src/` is now a PARSE-FAILURE tagged with **that file's pipelines**.
+    An unreadable directory under `src/` is a PARSE-FAILURE tagged **`"global"`**. Before, both were
+    skipped silently. Under `--enforce` both stop the deploy through the existing `failsClosed`.
+  - **Owner-accepted residual (owner ruling 2026-09-24, Q1 = A, *"Accept as known limit"*; `0203` review
+    R5).** A destructuring pattern written as a call argument, `f({ A } = process.env)`, stays **silent**:
+    it is not reported as a whole-object use. It is documented under the checker's KNOWN LIMITS and pinned
+    by a test. Re-raise only if a live instance appears under `src/`, or a real parser replaces the
+    hand-written classifier.
 - **Split from:** `0064` on 2026-09-23 (owner ruling, rescope Q2 = (a)). `0064` keeps Phase 2 in
   Sprint 4. This task holds step 8 and the arming.
 - **Runbook:** [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md)
   W12 now points here for step 8.
+- 🔐 **RECORDED 2026-09-24 — OWNER RULING 2026-09-23 (`0064` Phase 2 plan amendment 1): a blank `PROFILE_INTERNAL_TOKEN` is now REQUIRED-missing in the prod value check.** Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`; recorded here by a spawned `fkit-producer` at `0064`'s close (ADR-021; ⛔ not producer precedent). Owner, verbatim: *"I don't think we can allow the PROFILE INTERNAL TOKEN to be empty anymore, because this token is a requirement for the profile/citizenship logic to work properly"*. Source: [`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md) ([`plan-phase2.md`](../../done/0064-deploy-time-config-parity-guard/plan-phase2.md), *Owner amendments at approval*, amendment 1). **This supersedes the 2026-09-04 "deliberately blank" ruling FOR THE VALUE CHECK ONLY** (`scripts/check-config-values.mjs`, prod deploys only). Consequences, recorded not ruled: (1) **until `.env.prod` carries the token, every prod deploy prints `REQUIRED PROFILE_INTERNAL_TOKEN — forwarded but EMPTY`** — report-only, exit 0, it cannot fail a deploy; (2) 🚨 **once this task arms `--enforce`, a blank token BLOCKS prod deploys**; (3) `plan-phase2.md` §8 item 7 (*"`0217` go-live must remove the `PROFILE_INTERNAL_TOKEN` entry"*) is **void** — no such allowlist entry was ever shipped, so there is nothing to remove at go-live. ⚠️ **Bearing on this task:** arming Phase 2's checks arms the non-empty rule for `PROFILE_INTERNAL_TOKEN` with it. Confirm `.env.prod` carries the token (presence only — never the value) before `--enforce` is wired, or the first enforced prod deploy fails. The Context bullet above (*"does not catch `PROFILE_INTERNAL_TOKEN` being present when it should be blank"*) stays true; the new check catches the opposite case, a blank one.
+  ✅ **2026-09-24 — the "blank it by hand" rule is RETIRED (owner, verbatim: *"Retire it"*): `PROFILE_INTERNAL_TOKEN` is always set in prod from now on.** See [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.
 - **Do not invoke the mover skills.** They are producer-only (ADR-033). **No wiki writes.**
 - 🔒 **No secrets in any artifact.** Variable names only, never values, hosts or lengths.

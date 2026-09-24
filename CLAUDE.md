@@ -187,20 +187,18 @@ to them, so `npm test` is now their gate. It follows the existing
 
 | Harness | In `npm test`? | Notes |
 |---|---|---|
-| `tests/scripts/profile-deploy-hardening.test.sh` | **yes**, unconditional | ~16 s. Self-stubs `docker git ssh scp sshpass getent` — needs nothing from the host. Invoked as `bash <path>`: the file is mode 644, **not executable**. |
-| `tests/profile-backup-redeploy.sh` | **yes**, unconditional | ~1 s, bash + coreutils only. |
-| `tests/profile-checks.sh` | **yes**, unconditional | ~5 s (measured 5.0 s under the jest wrapper on this host — most assertions are an `env -i bash` spawn), bash + coreutils only (task `0219`). Drives the real `profile-checks.sh` with stubbed `rclone`/`curl`/`openssl`. |
-| `scripts/test-check-docker-secret-boundary.sh` | **yes**, Docker-probed | ~3 s when the daemon is up. With Docker down the wrapper reports the test **`○ skipped`** and prints a warning — never a green pass. If the daemon dies *between* the probe and the run, the harness self-skips and the wrapper turns that into a **loud failure** naming the cause (jest has no runtime skip) — again never a green pass. |
+| `tests/scripts/profile-deploy-hardening.test.sh` | **yes**, unconditional | Self-stubs `docker git ssh scp sshpass getent` — needs nothing from the host. Invoked as `bash <path>`: the file is mode 644, **not executable**. |
+| `tests/profile-backup-redeploy.sh` | **yes**, unconditional | bash + coreutils only. |
+| `tests/profile-checks.sh` | **yes**, unconditional | bash + coreutils only (task `0219`). Drives the real `profile-checks.sh` with stubbed `rclone`/`curl`/`openssl`. |
+| `scripts/test-check-docker-secret-boundary.sh` | **yes**, Docker-probed | With Docker down the wrapper reports the test **`○ skipped`** and prints a warning — never a green pass. If the daemon dies *between* the probe and the run, the harness self-skips and the wrapper turns that into a **loud failure** naming the cause (jest has no runtime skip) — again never a green pass. |
 | `tests/profile-backup-dryrun.sh` | **no** — run `npm run test:scripts:docker` | It **hard-fails (exit 1)** without Docker *plus* `age`, `age-keygen`, `rclone`, `curl` and `jq`, so it cannot be a reliable `npm test` gate on a developer machine. Faking one would be worse than admitting there isn't one. Its real gate is task **`0218`** (durability/restore drill). |
 
-**Cost, measured on this host (macOS, Docker up):** `npm test` goes from **~3.1 s** to **~22–25 s**
-wall (112 suites / 1182 tests → **113 suites / 1185 tests**). A cold jest cache measured the same,
-~23.5 s. **This is unconditional by owner ruling — there is deliberately no `SKIP_SHELL_HARNESSES`
+**This makes `npm test` noticeably slower, and that is unconditional by owner ruling — there is deliberately no `SKIP_SHELL_HARNESSES`
 escape hatch**, because the valve would become the default and the harnesses would rot unrun again,
 which is the exact failure this gate exists to stop.
 
 **`npm run test:coverage` pays the same cost.** It is `jest --coverage` over the same config, so it
-runs all three harnesses too — the same ~20 s, and it also writes the synthetic fixture named in
+runs all three harnesses too, and it also writes the synthetic fixture named in
 consequence 2 below into the repo root.
 
 **Single-file runs stay free.** `npm test -- tests/Attack.test.ts` pays **zero** shell cost — the

@@ -243,6 +243,7 @@ export class LangSelector extends LitElement {
       "news-button",
       "start-screen-tabs",
       "citizenship-card",
+      "tenure-grant-modal",
     ];
 
     document.title = this.translateText("main.title") ?? document.title;

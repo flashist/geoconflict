@@ -7,6 +7,7 @@
 import { Pool } from "pg";
 import { CITIZENSHIP_XP_THRESHOLD } from "../core/profile/Citizenship";
 import { PlayerProfile, migrateProfile } from "../core/profile/PlayerProfile";
+import type { TenureEvidence } from "../core/profile/TenureGrantContract";
 import { logInboxSendFailure, type InboxSender } from "./InboxRepository";
 
 /** One-off XP grant kinds — must match the `player_xp_grants.kind` CHECK (migrations/006). */
@@ -22,6 +23,30 @@ export type CreditStatus = "credited" | "duplicate" | "no_profile";
  */
 export interface CreditOutcome {
   status: CreditStatus;
+  citizenshipNewlyGranted: boolean;
+}
+
+/**
+ * Outcome of `recordTenureCheck` (task 0253). `granted`, `below_minimum` and
+ * `duplicate` are the wire statuses; `not_found` means the caller's player row
+ * is gone (a token outliving its player, e.g. after a restore) — nothing written.
+ */
+export type TenureCheckStatus =
+  | "granted"
+  | "below_minimum"
+  | "duplicate"
+  | "not_found";
+
+/**
+ * Full result of `recordTenureCheck`. `xpAwarded` is what THIS call recorded for
+ * `granted` / `below_minimum`, and what the earlier check stored for
+ * `duplicate`; `xp` is the player's total after the call (0 for `not_found`).
+ * `citizenshipNewlyGranted` has `CreditOutcome`'s meaning.
+ */
+export interface TenureCheckOutcome {
+  status: TenureCheckStatus;
+  xpAwarded: number;
+  xp: number;
   citizenshipNewlyGranted: boolean;
 }
 
@@ -85,6 +110,40 @@ SET is_citizen = true,
 WHERE id = $1
   AND xp >= $2
   AND (is_citizen = false OR citizenship_earned_at IS NULL)
+`;
+
+// ── Tenure check (task 0253, ADR-112 amended) ─────────────────────────────
+// Run inside ONE transaction, in this order. The FOR UPDATE lock on the players
+// row is taken FIRST and held to COMMIT, so two concurrent claims for one player
+// (two tabs) serialize on it: the second sees the first's row and is a
+// duplicate. It also serializes a claim with a concurrent match credit, whose
+// CREDIT_SQL UPDATE takes the same row lock.
+const LOCK_PLAYER_FOR_TENURE_SQL = `
+SELECT xp, is_citizen, citizenship_earned_at
+FROM players
+WHERE id = $1
+FOR UPDATE
+`;
+
+// The (player_id, kind) primary key IS the one-time rule: any row, a 0-XP one
+// included, is a final "checked". No row back ⇒ the player was already checked.
+const INSERT_TENURE_CHECK_SQL = `
+INSERT INTO player_xp_grants (player_id, kind, xp_awarded, evidence)
+VALUES ($1, 'tenure', $2, $3)
+ON CONFLICT (player_id, kind) DO NOTHING
+RETURNING xp_awarded
+`;
+
+const SELECT_TENURE_CHECK_SQL = `
+SELECT xp_awarded FROM player_xp_grants
+WHERE player_id = $1 AND kind = 'tenure'
+`;
+
+const ADD_TENURE_XP_SQL = `
+UPDATE players
+SET xp = xp + $2, updated_at = now()
+WHERE id = $1
+RETURNING xp
 `;
 
 function toIsoOrNull(value: Date | null): string | null {
@@ -194,6 +253,119 @@ export class PlayerProfileRepository {
       // nor misreport a durable grant as a wire error (0017 review residual R1,
       // owner-ruled 2026-08-24): the hook never throws by contract, and this
       // call site is guarded too (belt and suspenders).
+      try {
+        this.afterCitizenshipEarned(playerId);
+      } catch (error) {
+        logInboxSendFailure("citizenship_earned", error);
+      }
+    }
+    return outcome;
+  }
+
+  /**
+   * Record the one-time tenure check (task 0253) and add its XP, atomically and
+   * at most once per player. The CALLER computes `xpAwarded` from the evidence
+   * with the shared rule (TenureGrantContract.tenureGrantForEvidence); this
+   * method trusts it and never recomputes it (accepted residual R3: capped only
+   * at the route — one caller, one kind).
+   *
+   * Every check writes a row, 0 XP included: 0 is `below_minimum` and is final.
+   * `duplicate` writes nothing and reports the amount the earlier check stored.
+   * `not_found` writes nothing. When the grant lifts the total to the
+   * citizenship threshold — only possible once real XP is already 50+ — earned
+   * citizenship is granted in the same transaction and the same post-commit
+   * inbox hook as `creditMatchXp` fires.
+   *
+   * `evidence` is stored as the two counts only — never an id.
+   */
+  async recordTenureCheck(
+    playerId: string,
+    xpAwarded: number,
+    evidence: TenureEvidence,
+  ): Promise<TenureCheckOutcome> {
+    const client = await this.pool.connect();
+    let outcome: TenureCheckOutcome;
+    try {
+      await client.query("BEGIN");
+      const locked = await client.query(LOCK_PLAYER_FOR_TENURE_SQL, [playerId]);
+      if (locked.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return {
+          status: "not_found",
+          xpAwarded: 0,
+          xp: 0,
+          citizenshipNewlyGranted: false,
+        };
+      }
+      const currentXp = Number(locked.rows[0].xp);
+
+      const inserted = await client.query(INSERT_TENURE_CHECK_SQL, [
+        playerId,
+        xpAwarded,
+        JSON.stringify({
+          daysPlayed: evidence.daysPlayed,
+          gameRecordDays: evidence.gameRecordDays,
+        }),
+      ]);
+      if (inserted.rows.length === 0) {
+        const stored = await client.query(SELECT_TENURE_CHECK_SQL, [playerId]);
+        await client.query("COMMIT");
+        return {
+          status: "duplicate",
+          xpAwarded: Number(stored.rows[0]?.xp_awarded ?? 0),
+          xp: currentXp,
+          citizenshipNewlyGranted: false,
+        };
+      }
+
+      if (xpAwarded <= 0) {
+        await client.query("COMMIT");
+        return {
+          status: "below_minimum",
+          xpAwarded: 0,
+          xp: currentXp,
+          citizenshipNewlyGranted: false,
+        };
+      }
+
+      const updated = await client.query(ADD_TENURE_XP_SQL, [
+        playerId,
+        xpAwarded,
+      ]);
+      const newXp = Number(updated.rows[0].xp);
+      const wasCitizen = Boolean(locked.rows[0].is_citizen);
+      const earnedAt = locked.rows[0].citizenship_earned_at as Date | null;
+      let citizenshipNewlyGranted = false;
+      // Same decision as creditMatchXp, on the row this transaction locked.
+      if (
+        newXp >= CITIZENSHIP_XP_THRESHOLD &&
+        (!wasCitizen || earnedAt === null)
+      ) {
+        await client.query(GRANT_CITIZENSHIP_SQL, [
+          playerId,
+          CITIZENSHIP_XP_THRESHOLD,
+        ]);
+        citizenshipNewlyGranted = !wasCitizen;
+      }
+      await client.query("COMMIT");
+      outcome = {
+        status: "granted",
+        xpAwarded,
+        xp: newXp,
+        citizenshipNewlyGranted,
+      };
+    } catch (error) {
+      try {
+        await client.query("ROLLBACK");
+      } catch {
+        // ROLLBACK failed (connection gone) — surface the ORIGINAL error.
+      }
+      throw error;
+    } finally {
+      client.release();
+    }
+    if (outcome.citizenshipNewlyGranted) {
+      // After commit, never throwing — the creditMatchXp contract (0017 R1).
       try {
         this.afterCitizenshipEarned(playerId);
       } catch (error) {

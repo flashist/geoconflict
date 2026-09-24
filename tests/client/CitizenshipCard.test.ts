@@ -54,6 +54,9 @@ jest.mock("../../src/client/NameChangeRequest", () => ({
   submitNameChangeRequest: jest.fn(),
   cancelNameChangeRequest: jest.fn(),
 }));
+jest.mock("../../src/client/TenureGrantClaim", () => ({
+  maybeClaimTenureGrant: jest.fn(),
+}));
 
 import {
   CITIZENSHIP_LOGIN_REQUESTED_EVENT,
@@ -74,6 +77,7 @@ import {
 } from "../../src/client/NameChangeRequest";
 import { PURCHASES_RECONCILED_EVENT } from "../../src/client/PaymentsReconciliation";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
+import { maybeClaimTenureGrant } from "../../src/client/TenureGrantClaim";
 
 const isYandexDegraded = FlashistFacade.instance.isYandexDegraded as jest.Mock;
 const logUiTapEvent = FlashistFacade.instance.logUiTapEvent as jest.Mock;
@@ -90,6 +94,7 @@ const loadProfile = loadPlayerProfileView as jest.Mock;
 const runPurchase = runCitizenshipPurchase as jest.Mock;
 const submitNameChange = submitNameChangeRequest as jest.Mock;
 const cancelNameChange = cancelNameChangeRequest as jest.Mock;
+const claimTenureGrant = maybeClaimTenureGrant as jest.Mock;
 
 const CITIZENSHIP_PRODUCT = {
   id: "citizenship",
@@ -132,6 +137,7 @@ describe("CitizenshipCard", () => {
     runPurchase.mockResolvedValue("error");
     submitNameChange.mockResolvedValue({ status: "ok" });
     cancelNameChange.mockResolvedValue({ status: "ok" });
+    claimTenureGrant.mockResolvedValue({ status: "skipped" });
     resetCitizenshipSeenReportedForTests();
   });
 
@@ -699,6 +705,143 @@ describe("CitizenshipCard", () => {
 
       expect(card.textContent).toContain("citizenship_card.citizen_badge");
       expect(buyButton(card)).toBeNull();
+    });
+  });
+
+  // ── Tenure grant (task 0253; ADR-112 as amended 2026-09-15) ─────────────
+  describe("tenure grant claim (task 0253)", () => {
+    async function settle(card: CitizenshipCard): Promise<void> {
+      for (let i = 0; i < 4; i++) {
+        await flushMicrotasks();
+        await flushLit(card);
+      }
+    }
+
+    /** A stand-in for the real <tenure-grant-modal> in the page. */
+    function appendModal(): jest.Mock {
+      const modal = document.createElement("tenure-grant-modal");
+      const show = jest.fn();
+      Object.assign(modal, { show });
+      document.body.appendChild(modal);
+      return show;
+    }
+
+    it("kill switch OFF: no claim (verification 13)", async () => {
+      flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      expect(claimTenureGrant).not.toHaveBeenCalled();
+    });
+
+    it("citizenship_ui flag disabled: no claim", async () => {
+      isCitizenshipUiEnabled.mockResolvedValue(false);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      expect(claimTenureGrant).not.toHaveBeenCalled();
+    });
+
+    it("enabled: claims once, after the first profile read", async () => {
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
+      expect(claimTenureGrant).toHaveBeenCalledWith();
+      expect(loadProfile.mock.invocationCallOrder[0]).toBeLessThan(
+        claimTenureGrant.mock.invocationCallOrder[0],
+      );
+    });
+
+    it("granted: opens the modal with the XP and refreshes the profile", async () => {
+      const show = appendModal();
+      loadProfile
+        .mockResolvedValueOnce(NON_CITIZEN_PROFILE)
+        .mockResolvedValue({ ...NON_CITIZEN_PROFILE, xp: 55 });
+      claimTenureGrant.mockResolvedValue({
+        status: "granted",
+        xpAwarded: 30,
+        xp: 55,
+      });
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      expect(show).toHaveBeenCalledTimes(1);
+      expect(show).toHaveBeenCalledWith({ xpAwarded: 30, xp: 55 });
+      expect(loadProfile).toHaveBeenCalledTimes(2);
+      expect(card.textContent).toContain("55");
+    });
+
+    it.each([
+      [{ status: "skipped" }],
+      [{ status: "below_minimum" }],
+      [{ status: "duplicate" }],
+      [{ status: "failed" }],
+      [{ status: "granted", xpAwarded: 0, xp: 25 }],
+    ])("%o: no modal and no extra profile read", async (result) => {
+      const show = appendModal();
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      claimTenureGrant.mockResolvedValue(result);
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
+      expect(show).not.toHaveBeenCalled();
+      expect(loadProfile).toHaveBeenCalledTimes(1);
+    });
+
+    it("a granted answer after the card left the page opens nothing", async () => {
+      const show = appendModal();
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      let resolveClaim: (value: unknown) => void = () => {};
+      claimTenureGrant.mockReturnValue(
+        new Promise((resolve) => {
+          resolveClaim = resolve;
+        }),
+      );
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      card.remove();
+      resolveClaim({ status: "granted", xpAwarded: 10, xp: 35 });
+      await flushMicrotasks();
+
+      expect(show).not.toHaveBeenCalled();
+    });
+
+    it("a claim that rejects never breaks the card", async () => {
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      claimTenureGrant.mockRejectedValue(new Error("boom"));
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      expect(card.textContent).toContain("Игрок_7734");
+      expect(warn).toHaveBeenCalledWith(
+        "Tenure grant claim failed:",
+        expect.any(Error),
+      );
+    });
+
+    it("the purchases-reconciled refresh never claims again", async () => {
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      window.dispatchEvent(new Event(PURCHASES_RECONCILED_EVENT));
+      await settle(card);
+
+      expect(loadProfile).toHaveBeenCalledTimes(2);
+      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
     });
   });
 

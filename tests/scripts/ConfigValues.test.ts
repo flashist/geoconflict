@@ -223,6 +223,12 @@ const FIXTURE_CLEAN: Record<string, string> = {
   DEAD_ONE: "x",
 };
 
+// If the library flag in check-config-values.mjs is ever lost, the parity checker's main()
+// runs too. It rejects the value checker's arguments with a usage error on stdout spelled
+// `config-parity guard: …`; had it accepted them, its report header would read
+// `config parity guard`. Match both (review 0064 R22: the header-only check never fired).
+const PARITY_OUTPUT = /config[- ]parity guard/;
+
 // ── A. --list-sources ─────────────────────────────────────────────────────────
 describe("A — --list-sources", () => {
   it("lists exactly the real deploy.sh heredoc's 29 value sources, sorted", () => {
@@ -231,7 +237,7 @@ describe("A — --list-sources", () => {
     expect(result.stdout.trim().split("\n")).toEqual(
       Object.keys(CLEAN_PROD).sort(),
     );
-    expect(result.stdout).not.toContain("config parity guard");
+    expect(result.stdout).not.toMatch(PARITY_OUTPUT);
   });
 
   it("accepts $NAME and ${NAME}; a non-plain right-hand side is excluded, then VALUE-UNKNOWN", () => {
@@ -732,7 +738,8 @@ describe("G — no value ever reaches the output (verification step 7)", () => {
     }
     expect(run.stdout).not.toContain(LEAK_IP);
     expect(run.stderr).not.toContain(LEAK_IP);
-    expect(run.stdout).not.toContain("config parity guard");
+    expect(run.stdout).not.toMatch(PARITY_OUTPUT);
+    expect(run.stderr).not.toMatch(PARITY_OUTPUT);
   }
 
   it("text and JSON, prod and staging: no canary, no IP, but a real report", () => {

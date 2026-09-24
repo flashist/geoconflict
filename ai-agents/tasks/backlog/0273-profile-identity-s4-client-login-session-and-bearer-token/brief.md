@@ -246,7 +246,7 @@ Any user-visible string added goes through `translateText` with `en.json` and `r
 ## Notes
 
 - **Depends on:** [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5 — ruling D2: monitoring live before the S4 game deploy)
-- **Blocks:** [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md) (its rework — route + client logic — starts after this), [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live), [`0278`](../0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md) (the situation-B surface, built on this task's restart path)
+- **Blocks:** [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md) (its rework — route + client logic — starts after this), [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live), [`0278`](../0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md) (the situation-B surface, built on this task's restart path)
 - **Effort (design §9):** 1.5–2 days.
 - ⚠️ **Cannot close inside one deploy — and the shape changed on 2026-09-16 (D1 + D2).** ~~it needs a
   game deploy, a live check, then a profile-box deploy.~~ The order is now **profile-box deploy #1

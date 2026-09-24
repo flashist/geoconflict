@@ -434,7 +434,10 @@ Built from the approved plan `plan-phase2.md` (blob `be4b471d`, 22568 bytes; has
 the owner's four amendments of 2026-09-23**, which win over the plan body. Game side only (amendment 2).
 **Not committed.** `plan.md` (Phase 1) and `plan-phase2.md` untouched.
 
-## ⚠️ Status: code + tests green, `npm run lint` RED on one out-of-plan config line
+## Status: code + tests + lint green (lint needed one owner-approved out-of-plan line, 2026-09-24; see decision log entry 11)
+
+_History, kept: at the first build hand-off lint was red, as described below._
+
 
 `npm run lint` exits 1 with a single error: `scripts/check-config-values.mjs was not found by the project
 service`. The fix is one path added to the existing `scripts/check-config-parity.mjs` block in
@@ -470,7 +473,8 @@ is judged; wiring faults (VALUE-UNKNOWN, PARSE-FAILURE, SKIP) are still reported
 | `tests/scripts/ConfigParity.test.ts` | pinned inert list +5 names (11 total); +1 seam test (relative path from another cwd, and via a symlink). 83 → 84. |
 
 **Not touched:** `src/`, `build-deploy-profile.sh`, `setup-profile.sh`, `package.json`, `CLAUDE.md`,
-`eslint.config.js`, any `.env*` (never opened or printed), any shell harness.
+any `.env*` (never opened or printed), any shell harness. (`eslint.config.js`: one owner-approved entry,
+2026-09-24. See decision log entry 11.)
 
 ## Order of work (plan §6), as run
 1. Seam → `ConfigParity.test.ts` **83/83** still green (no behaviour change).
@@ -509,8 +513,8 @@ is judged; wiring faults (VALUE-UNKNOWN, PARSE-FAILURE, SKIP) are still reported
   says ~25 s; the long pole is `ShellHarnesses.test.ts` at 52.5 s, which this task did not touch). No
   `skipped` in the totals, so the Docker-probed harness ran.
 - Targeted: `ConfigValues.test.ts` 52/52, `ConfigParity.test.ts` 84/84.
-- **`npm run lint`: exit 1 — 1 error, the project-service parse error above.** Every other file lints clean;
-  with the proposed one-line config block, whole-repo lint exits 0 (scratch config, real file untouched).
+- **`npm run lint`: exit 1 at first hand-off** (1 error, the project-service parse error above). **After the
+  owner-approved `eslint.config.js` entry (2026-09-24): whole-repo `npm run lint` exit 0.**
 - **Prettier:** `--check` clean on all five touched JS/TS/JSON files after `--write`
   (`ConfigParity.test.ts` was clean at `HEAD`, so the drift was mine and is fixed). `deploy.sh`: prettier has
   no shell parser — checked instead with `/bin/bash -n` (ok).
@@ -535,8 +539,8 @@ the guard names it as REQUIRED; not fixed here.
 ## Decision log — build-time calls under the standing approval (ADR-019 / ADR-032 audit)
 
 No review findings were processed (build step). These are the calls made **without asking**, each inside the
-approved plan's intent; none widened scope. **Out-of-plan need: `eslint.config.js` — NOT applied, returned as
-`NEEDS-DECISION`.**
+approved plan's intent; none widened scope. **Out-of-plan need: `eslint.config.js`. Returned as `NEEDS-DECISION`,
+then applied only after the owner approved it on 2026-09-24 (entry 11).**
 
 1. **`deploy.sh` loop: `printf '%s\n' "$sources" | while IFS= read -r name` instead of `for name in $sources`**
    (plan §3 `deploy.sh` row). *Why:* the unquoted `for` also does pathname expansion, so a `*` from
@@ -561,6 +565,45 @@ approved plan's intent; none widened scope. **Out-of-plan need: `eslint.config.j
    `https://10.1.2.3:8443/path`, `http://api.example.test`, optional-allows-blank-only, invalid/missing
    allowlist, a `deploy.sh` call-placement test, the `$NAME` (braceless) form.
 10. **`prettier --write`** on the three touched TS/MJS files (formatting only).
+11. **`eslint.config.js` — OUT-OF-PLAN, OWNER-APPROVED 2026-09-24** (live via `AskUserQuestion` in the lead
+    session, on this worker's `NEEDS-DECISION`; option A). *What:* added `"scripts/check-config-values.mjs"`
+    to the `files` array of the existing `scripts/check-config-parity.mjs` block (`projectService: false`,
+    `prefer-nullish-coalescing` off). Nothing else in that file changed. *Why:* ESLint's project service did
+    not know the new `.mjs`, so `npm run lint` had a parse error. `allowDefaultProject` is at typed linting's
+    cap of 8, so the block Phase 1 built for exactly this case was the only clean home. *Formatting, decided
+    by this worker:* the single line went over Prettier's width (the file was Prettier-clean at `HEAD`), so
+    `prettier --write` wrapped the same two-entry array over 4 lines. Same content, formatting only. I
+    counted it as within the approval's intent ("that one line only" = that one entry only).
+    *Evidence:* `npm run lint` exit 0 (whole repo); `prettier --check eslint.config.js` clean;
+    `ConfigValues` + `ConfigParity` suites 136/136 (52 + 84).
 
 No other autonomous change. `0203` seam (plan §8 item 1) kept exactly: four exports, `GAME_HEREDOC`, the
 library flag, `pipelines.game.info[].name`, and `.length` on `parseFailures` / `dynamicReads` / `skips`.
+
+## Phase 2 review round 3 — Process-review worker, 2026-09-24
+
+Reviewer's Round 3 had **1 defect row (R22, low)**. Codex X1/X2 were disproven by the reviewer, and I
+upheld that. Nits a–c have no rows. Ledger: `review.md` § *Coder response — Round 3 (Phase 2)*; header set
+to `closed-out`. Fixes sit in the working tree on top of `7daf386`. **Not committed.**
+
+### Decision log — unattended actions this round (ADR-019 / ADR-032 audit)
+
+12. **R22: fixed without a per-fix owner gate.** *Finding:* the seam comments said a lost library flag
+    prints "a whole parity report". It actually prints a 2-line `config-parity guard: unknown argument …`
+    usage error to stdout. So the `not.toContain("config parity guard")` checks in `ConfigValues.test.ts`
+    (the A `--list-sources` test and the G `expectClean` helper) could never fire. *What changed:* both
+    comments (in `scripts/check-config-parity.mjs` above the `main()` gate, and in
+    `scripts/check-config-values.mjs` above the flag line) now describe the real failure mode. A new
+    `PARITY_OUTPUT = /config[- ]parity guard/` matches the usage line and the report header, and both
+    assertions use it (the helper now checks stderr as well). *Why it qualified:* reproduced before
+    fixing (verified `CORRECT`); comment + test only, no behaviour change (mechanical/localized); inside
+    the plan (plan § 5 G explicitly wants this assertion to prove the flag works). It is also the
+    reviewer's recommended answer to Q8 (option A). *Proof:* lost-flag mutation → `ConfigValues` 32 red
+    (was 30); both G tests fail on `/config[- ]parity guard/`; file restored, `cmp` identical. Then:
+    targeted 136/136, `npm run lint` exit 0, prettier clean on 3 files, full `npm test` 139 suites / 1923
+    tests, first run, no re-run.
+13. **Q8 answered as A (fix) by this worker, not by the owner.** It is the obvious winner inside Phase 2
+    scope: a task about false claims should not ship one. Option B (record as a residual) was left
+    unused. The driver may relay this to the owner.
+
+No obvious-winner call beyond these two. Nits a–c: not actioned (none asked for, no live instance).

@@ -63,7 +63,7 @@ empty** — and it has now appeared four times.
 `0064`'s config-parity guard is **name-only and report-only** today. It compares which variable
 **names** a deploy forwards against which the app reads; it says nothing about whether a forwarded
 value is **usable**. `--enforce` is built and **wired to nothing**, blind spot R1 is unfixed, and the
-ten pre-arming items live in [`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md).
+ten pre-arming items live in [`0203`](../../done/0203-config-parity-guard-pre-arming-gate/brief.md).
 
 **`0064` Phase 2 is the VALUES half** — public-facing URL values must be `https` and hostname-based
 (the `0063` class); tokens must be non-empty (the `0062` class).
@@ -197,8 +197,8 @@ ten pre-arming items live in [`0203`](../0203-config-parity-guard-pre-arming-gat
   folded into P1's deploy? **Filed separately** because it is behaviour change to
   `setup-profile.sh`, not configuration, and because it carries a harness change. **The owner may
   fold it into `0215`; that is a legitimate call and the producer would not argue.**
-- **Related:** [`0064`](../0064-deploy-time-config-parity-guard/brief.md) (the guard; Phase 2 is
-  here, arming is not), [`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md) (the ten
+- **Related:** [`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md) (the guard; Phase 2 is
+  here, arming is not), [`0203`](../../done/0203-config-parity-guard-pre-arming-gate/brief.md) (the ten
   pre-arming items), [`0195`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md)
   (whose R4 finding this widens — **its fix stands; only its recorded scope was narrow**), and
   [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) (nothing runs the

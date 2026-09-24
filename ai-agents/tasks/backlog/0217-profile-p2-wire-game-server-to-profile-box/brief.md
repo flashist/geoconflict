@@ -63,8 +63,9 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
 ⇒ **A condition, not a date:**
 - ✅ **Every remaining Sprint 4 task done by the weekend deploy slot** ⇒ this phase runs at that slot —
   the game server gets a non-empty `PROFILE_INTERNAL_TOKEN` that matches the box's.
-- ⛔ **Anything still open** ⇒ `PROFILE_INTERNAL_TOKEN` **stays blank for that deploy**, exactly as the
-  standing blank-token ruling says, and this phase waits for a later owner-chosen window.
+- ~~⛔ **Anything still open** ⇒ `PROFILE_INTERNAL_TOKEN` **stays blank for that deploy**, exactly as the
+  standing blank-token ruling says, and this phase waits for a later owner-chosen window.~~
+  *(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
 - ~~🚩 **The condition's edges were NOT ruled — do not settle them between agents.** Read literally it
   cannot be met: several open Sprint 4 rows sit **downstream of this very wiring** — `0062`'s
   verification, the `0017` / `0012` Deferred Live Tails, `0065` — and `0014` waits on Yandex, not on
@@ -134,8 +135,8 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
     SLIPPED — OWNER CONFIRMATION 2026-09-22, relayed by `fkit-lead` (ADR-021): the window has NOT
     happened, and NO replacement date was named**, so *"this weekend"* and *"the next weekend slot"* no
     longer denote anything a reader can resolve. ⛔ **Not producer precedent.**
-    **The game deploy still happens, with `PROFILE_INTERNAL_TOKEN` blank** (the standing
-    blank-token ruling applies unchanged).
+    ~~**The game deploy still happens, with `PROFILE_INTERNAL_TOKEN` blank** (the standing
+    blank-token ruling applies unchanged).~~ *(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
   - ⚠️ The *Risk* bullet above (`0253` waits on O1–O3 numbers) is **superseded as to `0253`**: it now
     waits on `0266`'s design, then a rework of its uncommitted build.
 - 📌 **GO-LIVE LIST UPDATE 2026-09-15 (later) — OWNER RULINGS via `AskUserQuestion` in the lead session,
@@ -202,7 +203,7 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
     condition satisfied: whether *"everything that CAN finish before"* has in fact finished is a
     **board reading to be redone at the slot**, not a thing this bullet asserts.
 - 🔴 **2026-09-23 — SPRINT 4 RESCOPE, OWNER RULING (Q1 = (a)), given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Not producer precedent.** The option as put: *"the token is set at the window regardless; `0253` only has to land before `0065`'s flip."*
-  - ⇒ **`PROFILE_INTERNAL_TOKEN` is set at the Saturday 2026-09-26 window, whatever is still open on Sprint 4.** This **supersedes the 2026-09-14 edges rule's inclusion of [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)** in the *"Counts — must be done by the weekend deploy"* bucket above (kept, not edited). `0253`'s deadline is now **before [`0065`](../0065-citizenship-paid-live-verification/brief.md)'s flip**.
+  - ⇒ **`PROFILE_INTERNAL_TOKEN` is set at the Saturday 2026-09-26 window, whatever is still open on Sprint 4.** This **supersedes the 2026-09-14 edges rule's inclusion of [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)** in the *"Counts — must be done by the weekend deploy"* bucket above (kept, not edited). `0253`'s deadline is now **before [`0065`](../0065-citizenship-paid-live-verification/brief.md)'s flip**.
   - The same rescope moved **this task to Sprint 5**: everything left in it is on-box or production work. Sprint 4 now holds only locally buildable work (`0064` Phase 2, `0253`, `0020`, `0203`), and none of it gates this task. The *"everything that CAN finish before"* board reading at the slot is **therefore no longer a condition on setting the token**.
   - ⛔ **What this does NOT change:** this task's `Depends on` list (`0215`, `0270`–`0274`, `0275`, `0276`), `RUNBOOK-E` (measure the egress IP at W0), and the 2026-09-19 ruling that the token is set **at** the window.
 - ⚠️ **`## Status` below is UNCHANGED.** A conditional go-live slot is not a start.
@@ -262,21 +263,25 @@ the **only** check that catches either barrier. **Do not substitute a config rea
 
 ### The owner's blank-token ruling — what it does and does not mean
 
-⚠️ **Owner ruling 2026-09-04:** `PROFILE_INTERNAL_TOKEN` **stays deliberately blank for the upcoming
+~~⚠️ **Owner ruling 2026-09-04:** `PROFILE_INTERNAL_TOKEN` **stays deliberately blank for the upcoming
 game deploy**, because citizenship is not ready. Owner, verbatim: *"I probably will keep it blank
 again, because the citizenship is not fully ready to be deployed yet and we need to do some
-additional work in terms of the profile VPS setup."*
+additional work in terms of the profile VPS setup."*~~
+*(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
 
 **Consequence for this task:** this phase runs at a **deploy window the owner chooses**, with the
 value **deliberately non-empty**. It is not a ride-along on whatever game deploy happens next.
-⚠️ **Deploy-time forget-risk, already recorded on `0062`:** blanking (or un-blanking) the local
+~~⚠️ **Deploy-time forget-risk, already recorded on `0062`:** blanking (or un-blanking) the local
 `.env.prod` value is a **manual step with no automated guard**, and `npm run check:config-parity`
 does **not** catch it — that check compares **names**, and `deploy.sh:312` forwards this one
 correctly. **A populated file at deploy time silently enables profile upsert and XP crediting in
-production.**
+production.**~~
+*(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
 
 > 🔴 **DECIDED — NO GUARD TASK. Owner ruling 2026-09-04, verbatim: *"Neither — I'll just
-> remember."*** They will blank `PROFILE_INTERNAL_TOKEN` by hand at each deploy.
+> remember."*** ~~They will blank `PROFILE_INTERNAL_TOKEN` by hand at each deploy.~~
+> ⛔ **Struck in force 2026-09-24 as far as blanking goes** (owner: *"Retire it"*): the token is always
+> set in prod; this ruling is kept verbatim as history.
 >
 > ⛔ **This is a DECISION, not an oversight. Do not file a task for it, and do not re-recommend one.**
 > Two options were put to the owner (an automated guard, or a deploy checklist item) and **both were
@@ -419,6 +424,8 @@ record. ⚠️ Deployed nginx is **1.28.3**.
   discharges it.
 - **Related:** [`0062`](../../done/0062-forward-profile-internal-token-in-deploy/brief.md) — read its `D2`
   section before running anything, so an empty reading is not misread as a defect.
+- 🔐 **RECORDED 2026-09-24 — OWNER RULING 2026-09-23 (`0064` Phase 2 plan amendment 1): a blank `PROFILE_INTERNAL_TOKEN` is now REQUIRED-missing in the prod value check.** Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`; recorded here by a spawned `fkit-producer` at `0064`'s close (ADR-021; ⛔ not producer precedent). Owner, verbatim: *"I don't think we can allow the PROFILE INTERNAL TOKEN to be empty anymore, because this token is a requirement for the profile/citizenship logic to work properly"*. Source: [`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md) ([`plan-phase2.md`](../../done/0064-deploy-time-config-parity-guard/plan-phase2.md), *Owner amendments at approval*, amendment 1). **This supersedes the 2026-09-04 "deliberately blank" ruling FOR THE VALUE CHECK ONLY** (`scripts/check-config-values.mjs`, prod deploys only). Consequences, recorded not ruled: (1) **until `.env.prod` carries the token, every prod deploy prints `REQUIRED PROFILE_INTERNAL_TOKEN — forwarded but EMPTY`** — report-only, exit 0, it cannot fail a deploy; (2) 🚨 **once [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) arms `--enforce`, a blank token BLOCKS prod deploys**; (3) `plan-phase2.md` §8 item 7 (*"`0217` go-live must remove the `PROFILE_INTERNAL_TOKEN` entry"*) is **void** — no such allowlist entry was ever shipped, so there is nothing to remove at go-live. ⚠️ **Bearing on this task:** ~~the "stays blank for that deploy" fallback above is still a legal deploy today (report-only), but it will print the REQUIRED line; after `0298` arms, it stops being possible without an owner ruling (e.g. an allowlist entry, or not arming that check).~~ *(Struck 2026-09-24 — the fallback itself is now struck: owner ruled "Cross them out" after "Retire it".)*
+  ✅ **2026-09-24 — the "blank it by hand" rule is RETIRED (owner, verbatim: *"Retire it"*): `PROFILE_INTERNAL_TOKEN` is always set in prod from now on.** See [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
 - 🔒 **No secrets in any artifact** — variable names, file names and ports only.

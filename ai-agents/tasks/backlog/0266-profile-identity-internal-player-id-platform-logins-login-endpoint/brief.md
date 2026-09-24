@@ -113,7 +113,7 @@ order** — nothing about what may start when has changed.
 ⚠️ **The owner ruled POSITION, not LABEL** — the `High` above is still the **producer's**, still
 unratified.
 
-**On merit this belongs directly below `0217`**, because it blocks [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)
+**On merit this belongs directly below `0217`**, because it blocks [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)
 (which sits directly below `0217`) and must be done before XP go-live (`0217`). ~~The row was
 **appended at the bottom** of the Sprint 4 board (ADR-035 — a new row never inserts mid-board).~~
 📌 **SUPERSEDED 2026-09-22 — the row is no longer at the bottom; the owner moved it under `0217`, which
@@ -179,7 +179,7 @@ migration assumes it.
 
 ### Dependencies, conflicts, constraints
 
-- **Blocks [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)**
+- **Blocks [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)**
   — its redesigned flow (owner, 2026-09-15) sends a login request first and a tenure claim only after
   the login reply. `0253` is `🚧 Blocked` on this task's design.
 - **Blocks XP go-live** ([`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)) — the
@@ -314,7 +314,7 @@ briefs once the design is approved):
 
 - **Depends on:** [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md), [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md), [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) — the epic's five child slices (filed 2026-09-15)
 - *(Superseded dependency line, kept: ~~Depends on: nothing — the design can start now; the build waits on the owner's design ruling~~ — the design is delivered and ruled.)*
-- **Blocks:** [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md), XP go-live via [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md), [`0268`](../0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) (indirectly, through `0253`)
+- **Blocks:** [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md), XP go-live via [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md), [`0268`](../0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) (indirectly, through `0253`)
 - **Related:** [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md) (verify the
   platform identity — Backlog), [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md),
   ADR-103, ADR-112.

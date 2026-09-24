@@ -82,6 +82,11 @@
     "error_not_citizen": "Name changes are available to citizens only.",
     "error_generic": "Something went wrong. Please try again."
   },
+  "citizenship_tenure_grant": {
+    "title": "Thanks for being with us!",
+    "body": "Thank you for playing Geoconflict! As a thank-you for being with us for so long, we're giving you {xp} free XP. You now have {total} / {threshold} XP.",
+    "cta": "Great!"
+  },
   "inbox": {
     "empty": "No personal messages yet.",
     "templates": {

@@ -38,6 +38,45 @@
 //   --enforce      fails closed: exits 1 on any REQUIRED finding, PARSE-FAILURE,
 //                  DYNAMIC-READ blind spot, or missing input. Built and tested, but
 //                  wired to nothing (owner ruling R3) — no script passes it today.
+//   TAGS           every PARSE-FAILURE, DYNAMIC-READ and SKIP carries the pipelines it
+//                  concerns, or "global" (task 0203 item 12). --enforce still fails on
+//                  ANY such finding, whatever its tag: blocking only the deploys a finding
+//                  concerns is task 0298's job, as is arming --enforce at all.
+//   MISSING GUARD  a missing check-config-parity.mjs cannot be caught by this file. The
+//                  ruling that it stops the deploy (task 0203 R4b) is enforced at the call
+//                  sites' `[ -f … ]` tests in deploy.sh / build-deploy-profile.sh, and
+//                  changing them is task 0298's. These inputs fail closed: a missing
+//                  input file, a src/ file or directory that cannot be read (review 0203
+//                  R6, owner ruling 2026-09-24), a source file whose code cannot be
+//                  separated from its comments/strings, and a computed or spread
+//                  DefinePlugin key.
+//
+// KNOWN LIMITS — documented, not fixed.
+//   - Only src/**/*.ts is scanned (task 0203 R21). A read in build or test tooling
+//     outside src/ is invisible. webpack.config.js's own build-machine reads are
+//     unchecked — :36-43 (DEV_REMOTE_ORIGIN, USE_REMOTE_DEV, PUBLIC_*_DEV), :164
+//     (GIT_COMMIT), :173-175 (API_DOMAIN, API_BASE_URL_DEV), :337 (DEPLOY_ENV), :341
+//     (STRIPE_PUBLISHABLE_KEY), :345 (OTEL_EXPORTER_OTLP_ENDPOINT) — they take a different
+//     path from deploy forwarding. Re-raise this when a file outside src/ first reads a
+//     deploy-forwarded setting. Pinned by a test.
+//   - A bare `process` is not followed (`const { env } = process`, `process["env"]`):
+//     both stay SILENT and record no read. Ruled scope (task 0203 item 11). Pinned.
+//   - A whole-object use through member access (`globalThis.process`, then the object)
+//     is not announced. Deliberate: member access is the ruled exclusion. Pinned
+//     (as `worker.process`).
+//   - A type-annotated target — `const { A }: T =`, `const env: { A: string } =`, a class
+//     field, an annotated parameter default — a chained `x = { A } =`, a non-null
+//     assertion on the object, and a type-only `typeof` mention are each reported as a
+//     whole-object DYNAMIC-READ: a LOUD false positive, never a silent miss. Pinned
+//     (review 0203 R5; the `typeof` case is not pinned).
+//   - A pattern assigned inside a CALL argument (`f({ A } =` the object`)`) records A
+//     as a read and the object passed to f stays SILENT: without a parser it cannot be
+//     told apart from a parameter default. Contrived (TypeScript needs A pre-declared).
+//     Pinned as silent (review 0203 R5). Accepted by the owner, 2026-09-24.
+//
+// R19 — when any DYNAMIC-READ is present the text report adds one NOTE line: a name read
+// only through a blind spot is invisible, so an INFO "no consumer / no reader" line may
+// be wrong. JSON adds no field; a reader can tell from dynamicReads.length.
 //
 // Zero dependencies: Node stdlib only, so it runs from a checkout with no node_modules.
 
@@ -119,6 +158,17 @@ function pipelinesFor(segments) {
   return pipeline ? [pipeline] : [];
 }
 
+/**
+ * A PARSE-FAILURE, DYNAMIC-READ or SKIP entry, tagged with the pipelines it concerns
+ * (task 0203 item 12, owner ruling 2026-09-23): a list in PIPELINES order, or the literal
+ * "global" when the finding cannot be traced to any pipeline. The tag is the ONE record
+ * of which deploys a finding concerns — there is no parallel untagged list to drift.
+ */
+function finding(message, pipelines) {
+  const ordered = PIPELINES.filter((p) => pipelines.includes(p));
+  return { message, pipelines: ordered.length === 0 ? "global" : ordered };
+}
+
 // ── Patterns ──────────────────────────────────────────────────────────────────
 // NOTE: every pattern below escapes the dot, so the un-escaped member-access spelling
 // appears NOWHERE in this file — not in code, not in a comment, not in a message. The
@@ -134,7 +184,31 @@ const ENV_READ_DOT = /process\s*\??\.\s*env\s*\??\.\s*([A-Za-z_]\w*)/g;
 const ENV_READ_BRACKET_LITERAL =
   /process\s*\??\.\s*env\s*\??\.?\s*\[\s*(["'`])([^"'`]+)\1\s*\]/g;
 const ENV_BRACKET_ANY = /process\s*\??\.\s*env\s*\??\.?\s*\[/g;
-const ENV_ALIAS = /=\s*process\s*\??\.\s*env\b(?!\s*\??\s*[.[])/g;
+// Every mention of the environment object (task 0203 item 11, architect's call,
+// owner-approved). Detection is by INVERSION: a mention is a plain dot read or a bracket
+// read (both handled by the patterns above), a written-out destructuring (read by name),
+// or — anything else at all — a DYNAMIC-READ. Nothing is matched positively as an
+// "alias", so an unrecognised shape is announced, not dropped. The known silent shapes
+// are listed under KNOWN LIMITS in the header. See collectEnvReads.
+const ENV_OBJECT = /process\s*\??\.\s*env\b/g;
+// What follows a mention that the patterns above already handle. Sticky: tested at the
+// end of the mention. The bracket shape is exactly ENV_BRACKET_ANY's tail, so a computed
+// index is reported once, as a computed index, never also as a whole-object use.
+const AFTER_ENV_DOT_READ = /\s*\??\.\s*[A-Za-z_]/y;
+const AFTER_ENV_BRACKET = /\s*\??\.?\s*\[/y;
+const PATTERN_KEY = /[A-Za-z_]\w*/y;
+const IDENTIFIER_LIKE = /^[A-Za-z_]\w*$/;
+// A `=` directly preceded by one of these is a comparison or a compound assignment, never
+// the `=` that assigns a destructuring pattern.
+const NOT_PLAIN_ASSIGNMENT = new Set("=!<>+-*/%&|^?");
+// The only tokens a destructuring pattern's `{` may follow. Anything else — above all a
+// `:` (a TypeScript object-type annotation also ends in `}` right before the `=`), or a
+// `=`/`&`/`|` — is not a pattern, so the mention is a whole-object DYNAMIC-READ: loud,
+// never a silent "read" of a type's property names (review 0203 R5).
+const PATTERN_DECLARATION_KEYWORD = new Set(["const", "let", "var"]);
+// The fix every unenumerable DYNAMIC-READ names. Built at runtime ON PURPOSE: the static
+// no-leak test forbids the un-escaped member-access spelling anywhere in this file.
+const REWRITE_AS_PLAIN_READS = `rewrite as plain ${["process", "env", "NAME"].join(".")} reads`;
 // DefinePlugin keys are read from the object literal passed to the call, never from the
 // file's raw text (review 0064 finding R18) — see parseDefinePlugin.
 const DEFINE_PLUGIN_CALL = /\bDefinePlugin\s*\(/g;
@@ -173,16 +247,21 @@ function lineOf(text, index) {
   return line;
 }
 
-function walkTypeScript(dir, out = []) {
+/**
+ * Every .ts file under `dir`. A directory that cannot be listed is pushed onto
+ * `unreadable` rather than dropped, so the caller can fail loud on it (review 0203 R6).
+ */
+function walkTypeScript(dir, out = [], unreadable = []) {
   let entries;
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
   } catch {
+    unreadable.push(dir);
     return out;
   }
   for (const entry of entries) {
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) walkTypeScript(full, out);
+    if (entry.isDirectory()) walkTypeScript(full, out, unreadable);
     else if (entry.name.endsWith(".ts") && !entry.name.endsWith(".d.ts"))
       out.push(full);
   }
@@ -451,6 +530,113 @@ function literalIndexName(masked, from, spanAt) {
   return span.value;
 }
 
+/** The index of the last non-whitespace character at or before `from`, else -1. */
+function previousCodeIndex(code, from) {
+  let k = from;
+  while (k >= 0 && isWhitespaceCode(code.charCodeAt(k))) k--;
+  return k;
+}
+
+/**
+ * When `at` is the `=` that assigns a `{…}` destructuring pattern (`const {…} =`,
+ * `({…} =`, a parameter default `f({…} =`), the pattern's { open, close } brace
+ * indices; otherwise null. Walks back from the `}` depth-aware over () [] {}.
+ */
+function destructuringPatternBefore(code, at) {
+  if (at < 1 || code[at] !== "=" || NOT_PLAIN_ASSIGNMENT.has(code[at - 1]))
+    return null;
+  const close = previousCodeIndex(code, at - 1);
+  if (close < 0 || code[close] !== "}") return null;
+  let depth = 0;
+  for (let k = close; k >= 0; k--) {
+    const ch = code[k];
+    if (ch === "}" || ch === ")" || ch === "]") depth++;
+    else if (ch === "{" || ch === "(" || ch === "[") {
+      depth--;
+      if (depth === 0)
+        return ch === "{" && patternMayOpenAt(code, k)
+          ? { open: k, close }
+          : null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Whether the `{` at `open` can start a destructuring pattern: it follows `const` /
+ * `let` / `var`, a `(` (a parameter list or a parenthesised assignment) or a `,` (a later
+ * parameter or declarator). A `:` before it means a type annotation — see
+ * PATTERN_DECLARATION_KEYWORD.
+ */
+function patternMayOpenAt(code, open) {
+  const k = previousCodeIndex(code, open - 1);
+  if (k < 0) return false;
+  if (code[k] === "(" || code[k] === ",") return true;
+  let j = k;
+  while (j >= 0 && isWordCode(code.charCodeAt(j))) j--;
+  return PATTERN_DECLARATION_KEYWORD.has(code.slice(j + 1, k + 1));
+}
+
+/**
+ * The top-level properties of a destructuring pattern over the environment object.
+ * Returns { keys: [{ name, index }], problems: [{ kind, index }] }:
+ *   `NAME`, `NAME = default`, `NAME: target`, `NAME: target = default`, and a quoted
+ *   identifier-like key followed by `:` are READS of NAME (the target may be a nested
+ *   pattern; it is skipped by depth). A `...rest` element is a "rest" problem; a computed
+ *   `[expr]` key, or anything else this cannot read, is a "key" problem.
+ */
+function destructuredKeys(code, open, close, spanAt) {
+  const keys = [];
+  const problems = [];
+  const property = (start, end) => {
+    let k = start;
+    while (k < end && isWhitespaceCode(code.charCodeAt(k))) k++;
+    if (k >= end) return; // a trailing comma
+    if (code.startsWith("...", k)) {
+      problems.push({ kind: "rest", index: k });
+      return;
+    }
+    let name = null;
+    let after = k;
+    let needsColon = false;
+    const span = spanAt.get(k);
+    if (span && span.end <= end) {
+      if (IDENTIFIER_LIKE.test(span.value)) name = span.value;
+      after = span.end;
+      needsColon = true;
+    } else {
+      PATTERN_KEY.lastIndex = k;
+      const match = PATTERN_KEY.exec(code);
+      if (match) {
+        name = match[0];
+        after = k + name.length;
+      }
+    }
+    let p = after;
+    while (p < end && isWhitespaceCode(code.charCodeAt(p))) p++;
+    const ok =
+      name !== null &&
+      (needsColon
+        ? code[p] === ":"
+        : p >= end || code[p] === "=" || code[p] === ":");
+    if (ok) keys.push({ name, index: k });
+    else problems.push({ kind: "key", index: k });
+  };
+  let depth = 0;
+  let start = open + 1;
+  for (let k = open + 1; k < close; k++) {
+    const ch = code[k];
+    if (ch === "{" || ch === "(" || ch === "[") depth++;
+    else if (ch === "}" || ch === ")" || ch === "]") depth--;
+    else if (ch === "," && depth === 0) {
+      property(start, k);
+      start = k + 1;
+    }
+  }
+  property(start, close);
+  return { keys, problems };
+}
+
 // ── Parsers — every one of them fails LOUD ────────────────────────────────────
 // A parser that quietly returns an empty set is the worst outcome available here:
 // forward, it would report every variable as missing; in reverse, it would report
@@ -488,8 +674,13 @@ export function parseHeredocKeys(text, openPattern, delimiter, label) {
             return `heredoc line ${line} '${named[1]}=' is not a column-0 UPPERCASE= assignment`;
           return `heredoc line ${line} is not a column-0 UPPERCASE= assignment`;
         });
+        // The keys that DID parse are still returned (task 0203 R13, architect's call,
+        // owner-approved): dropping them too would turn one unreadable line into a
+        // REQUIRED line for every forwarded key and silence every B2 and INFO finding.
+        // Callers push the failure AND check these keys. If every line was unconsumed,
+        // this is empty and this one failure is the only one reported.
         return {
-          keys: [],
+          keys,
           failure: `${label}: ${lineNotes.join("; ")} — the guard reads only column-0 UPPERCASE= assignments, so ${unconsumed.length === 1 ? "this key" : "these keys"} cannot be checked`,
           body,
         };
@@ -629,11 +820,34 @@ function collectEnvReads(srcDir, srcLabel) {
   const unpartitioned = new Set();
   const failures = [];
 
-  for (const file of walkTypeScript(srcDir)) {
-    const text = readFileOrNull(file);
-    if (text === null) continue;
+  // A src/ file or directory that cannot be READ fails loud (owner ruling 2026-09-24 on
+  // review 0203 R6): its reads cannot be checked, and skipping it silently would print a
+  // green report over an unseen file. A file carries its own pipelines; a directory is
+  // "global", since whatever it holds is unknown.
+  const unreadableDirs = [];
+  const files = walkTypeScript(srcDir, [], unreadableDirs);
+  for (const dir of unreadableDirs) {
+    failures.push(
+      finding(
+        `${path.join(srcLabel, path.relative(srcDir, dir))}: directory could not be read — the environment reads in it cannot be checked`,
+        [],
+      ),
+    );
+  }
+
+  for (const file of files) {
     const rel = path.relative(srcDir, file);
     const segments = rel.split(path.sep);
+    const text = readFileOrNull(file);
+    if (text === null) {
+      failures.push(
+        finding(
+          `${path.join(srcLabel, rel)}: could not be read — its environment reads cannot be checked`,
+          pipelinesFor(segments),
+        ),
+      );
+      continue;
+    }
     // Only a directory maps to a pipeline. A loose top-level file (src/version.ts)
     // has no owning directory, so it is unpartitioned — but that is only worth
     // announcing if it actually reads the environment, which is checked below.
@@ -647,6 +861,14 @@ function collectEnvReads(srcDir, srcLabel) {
       if (pipelines.length === 0) unpartitioned.add(rel);
       entry.sites.push({ site: `${rel}:${lineOf(text, index)}`, pipelines });
     };
+    // A DYNAMIC-READ: file:line, fixed wording and the fix — never scanned source text.
+    const blindSpot = (index, what) =>
+      dynamic.push(
+        finding(
+          `${rel}:${lineOf(text, index)} — ${what} — ${REWRITE_AS_PLAIN_READS}`,
+          pipelines,
+        ),
+      );
 
     // Scan CODE only (review 0064 finding R15). If the file cannot be separated, say so
     // loudly and scan its raw text, so a DETECTED tokenizer failure never loses a read.
@@ -654,10 +876,15 @@ function collectEnvReads(srcDir, srcLabel) {
     const scan = maskNonCode(text);
     if (scan.failure) {
       failures.push(
-        `${path.join(srcLabel, rel)}: could not separate code from comments/strings (${scan.failure}) — scanned as raw text instead`,
+        finding(
+          `${path.join(srcLabel, rel)}: could not separate code from comments/strings (${scan.failure}) — scanned as raw text instead`,
+          pipelines,
+        ),
       );
     }
     const code = scan.masked;
+    // Empty when the file could not be separated (scan.spans is then empty).
+    const spanAt = new Map(scan.spans.map((span) => [span.start, span]));
 
     let match;
     ENV_READ_DOT.lastIndex = 0;
@@ -673,7 +900,6 @@ function collectEnvReads(srcDir, srcLabel) {
       }
     } else {
       // A literal index counts only when a string span starts right after the `[`.
-      const spanAt = new Map(scan.spans.map((span) => [span.start, span]));
       ENV_BRACKET_ANY.lastIndex = 0;
       while ((match = ENV_BRACKET_ANY.exec(code)) !== null) {
         const name = literalIndexName(
@@ -691,17 +917,66 @@ function collectEnvReads(srcDir, srcLabel) {
     ENV_BRACKET_ANY.lastIndex = 0;
     while ((match = ENV_BRACKET_ANY.exec(code)) !== null) {
       if (!literalBracketAt.has(match.index)) {
-        dynamic.push(
-          `${rel}:${lineOf(text, match.index)} — computed index into the environment object`,
+        blindSpot(
+          match.index,
+          "computed index into the environment object, so the name it reads cannot be listed",
         );
       }
     }
 
-    // Aliasing or destructuring the whole object hides every name behind it.
-    ENV_ALIAS.lastIndex = 0;
-    while ((match = ENV_ALIAS.exec(code)) !== null) {
-      dynamic.push(
-        `${rel}:${lineOf(text, match.index)} — the environment object is aliased or destructured`,
+    // Every OTHER mention of the environment object, found by inversion (task 0203
+    // item 11): a written-out destructuring is a read of each named key; anything else —
+    // an alias (parenthesised or not), Object.keys, a spread, a call argument, a return,
+    // `??`, a test, a type-annotated target — is a DYNAMIC-READ. The known silent shapes
+    // are the ruled exclusions — member access (the `process` of `worker.process` is not
+    // the global one) and a bare `process` (`const { env } = process`, `process["env"]`),
+    // which is not matched at all — plus a pattern assigned inside a call argument (see
+    // KNOWN LIMITS). All three are pinned as silent by tests.
+    ENV_OBJECT.lastIndex = 0;
+    while ((match = ENV_OBJECT.exec(code)) !== null) {
+      const start = match.index;
+      const end = start + match[0].length;
+      // A word character touching either end (`$process`, an `env$x` member) makes it
+      // another identifier. It must be ADJACENT to count: after `return ` or `typeof `,
+      // this is the global process.
+      if (end < code.length && isWordCode(code.charCodeAt(end))) continue;
+      if (start > 0 && isWordCode(code.charCodeAt(start - 1))) continue;
+      const before = previousCodeIndex(code, start - 1);
+      // Member access (`.` or `?.` before it) is excluded — but a spread's `...` is not
+      // member access: spreading the object is a whole-object use.
+      if (
+        before >= 0 &&
+        code[before] === "." &&
+        !code.startsWith("...", before - 2)
+      )
+        continue;
+      AFTER_ENV_DOT_READ.lastIndex = end;
+      if (AFTER_ENV_DOT_READ.test(code)) continue; // recorded by ENV_READ_DOT
+      AFTER_ENV_BRACKET.lastIndex = end;
+      if (AFTER_ENV_BRACKET.test(code)) continue; // handled by the bracket scans above
+
+      const pattern = destructuringPatternBefore(code, before);
+      if (pattern !== null) {
+        const { keys, problems } = destructuredKeys(
+          code,
+          pattern.open,
+          pattern.close,
+          spanAt,
+        );
+        for (const key of keys) record(key.name, key.index);
+        for (const problem of problems) {
+          blindSpot(
+            problem.index,
+            problem.kind === "rest"
+              ? "a destructuring of the environment object has a ...rest element, so the names read through it cannot be listed"
+              : "a destructuring of the environment object has a computed or unreadable key, so the name it reads cannot be listed",
+          );
+        }
+        continue;
+      }
+      blindSpot(
+        start,
+        "the environment object is used whole (aliased, passed, spread or tested), so the names read through it cannot be listed",
       );
     }
   }
@@ -769,19 +1044,23 @@ export function analyse(options) {
   const root = options.repoRoot;
   const resolve = (key) => path.resolve(root, options.inputs[key]);
 
+  // Every entry is a tagged finding (see finding()). The allowlist and src/ inputs are
+  // shared by every pipeline, so their findings are "global" (the R4a/R14 ruling).
   const skips = [];
   const parseFailures = [];
-  const load = (key) => {
+  const load = (key, pipelines) => {
     const file = resolve(key);
     const text = readFileOrNull(file);
-    if (text === null) skips.push(`${options.inputs[key]} not found`);
+    if (text === null)
+      skips.push(finding(`${options.inputs[key]} not found`, pipelines));
     return text;
   };
 
   const allowlistFile = resolve("allowlist");
   const allowlist = loadAllowlist(allowlistFile);
-  if (allowlist.missing) skips.push(`${options.inputs.allowlist} not found`);
-  if (allowlist.failure) parseFailures.push(allowlist.failure);
+  if (allowlist.missing)
+    skips.push(finding(`${options.inputs.allowlist} not found`, []));
+  if (allowlist.failure) parseFailures.push(finding(allowlist.failure, []));
 
   const allowedFor = (pipeline, name) =>
     allowlist.entries.find(
@@ -802,14 +1081,25 @@ export function analyse(options) {
     parseFailures.push(...failures);
     if (reads.size === 0) {
       parseFailures.push(
-        `${options.inputs["src-dir"]}: found 0 environment reads`,
+        finding(`${options.inputs["src-dir"]}: found 0 environment reads`, []),
       );
     }
   } else {
-    skips.push(`${options.inputs["src-dir"]} not found`);
+    skips.push(finding(`${options.inputs["src-dir"]} not found`, []));
   }
+  // R4a (owner ruling): a read no pipeline owns stops an --enforce run, tagged "global"
+  // because no deploy can claim it — and the message names the one-line fix.
   for (const file of unpartitioned) {
-    dynamic.push(`${file} — reads the environment but maps to no pipeline`);
+    const segments = file.split(path.sep);
+    const where = path.join(options.inputs["src-dir"], file);
+    dynamic.push(
+      finding(
+        segments.length < 2
+          ? `${where} — reads the environment but a file directly under ${options.inputs["src-dir"]}/ maps to no pipeline — move it into a mapped folder (see DIR_PIPELINE)`
+          : `${where} — reads the environment but its folder '${segments[0]}' maps to no pipeline — add one line to DIR_PIPELINE in scripts/check-config-parity.mjs: "${segments[0]}": "game" | "profile" | "client"`,
+        [],
+      ),
+    );
   }
 
   const allReadNames = new Set(reads.keys());
@@ -830,8 +1120,8 @@ export function analyse(options) {
 
   // ── A. Game ─────────────────────────────────────────────────────────────────
   if (options.pipelines.includes("game")) {
-    const deployText = load("deploy-sh");
-    const dockerText = load("dockerfile");
+    const deployText = load("deploy-sh", ["game"]);
+    const dockerText = load("dockerfile", ["game"]);
     let forwarded = [];
     let supplied = new Set();
     if (deployText !== null) {
@@ -841,7 +1131,8 @@ export function analyse(options) {
         GAME_HEREDOC.delimiter,
         options.inputs["deploy-sh"],
       );
-      if (heredoc.failure) parseFailures.push(heredoc.failure);
+      if (heredoc.failure)
+        parseFailures.push(finding(heredoc.failure, ["game"]));
       forwarded = heredoc.keys;
       for (const key of forwarded) supplied.add(key);
     }
@@ -877,9 +1168,9 @@ export function analyse(options) {
 
   // ── B. Profile — two hops ───────────────────────────────────────────────────
   if (options.pipelines.includes("profile")) {
-    const setupText = load("setup-profile-sh");
-    const buildText = load("build-deploy-profile-sh");
-    const dockerProfileText = load("dockerfile-profile");
+    const setupText = load("setup-profile-sh", ["profile"]);
+    const buildText = load("build-deploy-profile-sh", ["profile"]);
+    const dockerProfileText = load("dockerfile-profile", ["profile"]);
     let hop2 = [];
     let hop1 = [];
     let hop2Body = "";
@@ -891,7 +1182,8 @@ export function analyse(options) {
         "EOF",
         options.inputs["setup-profile-sh"],
       );
-      if (heredoc.failure) parseFailures.push(heredoc.failure);
+      if (heredoc.failure)
+        parseFailures.push(finding(heredoc.failure, ["profile"]));
       hop2 = heredoc.keys;
       hop2Body = heredoc.body;
       for (const key of hop2) supplied.add(key);
@@ -905,7 +1197,8 @@ export function analyse(options) {
         buildText,
         options.inputs["build-deploy-profile-sh"],
       );
-      if (exports.failure) parseFailures.push(exports.failure);
+      if (exports.failure)
+        parseFailures.push(finding(exports.failure, ["profile"]));
       hop1 = exports.keys;
     }
 
@@ -957,14 +1250,15 @@ export function analyse(options) {
   // ── C. Client / build-time ──────────────────────────────────────────────────
   if (options.pipelines.includes("client")) {
     // Covers src/client/** AND src/core/configuration/** reads (see DIR_PIPELINE).
-    const webpackText = load("webpack-config");
+    const webpackText = load("webpack-config", ["client"]);
     const supplied = new Set();
     if (webpackText !== null) {
       const defined = parseDefinePlugin(
         webpackText,
         options.inputs["webpack-config"],
       );
-      parseFailures.push(...defined.failures);
+      for (const failure of defined.failures)
+        parseFailures.push(finding(failure, ["client"]));
       for (const key of defined.keys) supplied.add(key);
     }
     const result = results.client;
@@ -1077,11 +1371,27 @@ function render(result, selected) {
     `── config parity guard (${mode}) ${"─".repeat(Math.max(0, 40 - mode.length))}`,
   );
 
-  for (const skip of result.skips) out.push(`SKIP  ${skip}`);
+  // Each entry prints its message, then its pipeline tag (task 0203 item 12). The
+  // line-start prefixes are unchanged.
+  const tagged = (entry) => {
+    const tag =
+      entry.pipelines === "global"
+        ? "[global]"
+        : entry.pipelines.length === 1
+          ? `[pipeline: ${entry.pipelines[0]}]`
+          : `[pipelines: ${entry.pipelines.join(", ")}]`;
+    return `${entry.message}  ${tag}`;
+  };
+  for (const skip of result.skips) out.push(`SKIP  ${tagged(skip)}`);
   for (const failure of result.parseFailures)
-    out.push(`PARSE-FAILURE  ${failure}`);
+    out.push(`PARSE-FAILURE  ${tagged(failure)}`);
+  // Each DYNAMIC-READ message carries its own fix text (R4a, item 11).
   for (const blindSpot of result.dynamicReads)
-    out.push(`DYNAMIC-READ  ${blindSpot} — cannot enumerate`);
+    out.push(`DYNAMIC-READ  ${tagged(blindSpot)}`);
+  // R19 (owner ruling): a name read only through a DYNAMIC-READ is invisible, so INFO's
+  // "no consumer / no reader found" lines may be wrong while any DYNAMIC-READ is present.
+  if (result.dynamicReads.length > 0)
+    out.push("NOTE  INFO may include keys read through the DYNAMIC-READ above");
 
   for (const pipeline of selected) {
     const data = result.pipelines[pipeline];
@@ -1197,7 +1507,9 @@ function main(argv) {
 
 // Library mode (task 0064 Phase 2): check-config-values.mjs sets this flag and then
 // imports this file for the exports above, so main() must not run. The seam fails LOUD:
-// if the flag is ever lost, main() runs and prints a whole parity report into the value
-// checker's output — visible, never silent.
+// if the flag is ever lost, main() runs against the VALUE checker's arguments, rejects
+// them, and writes its `config-parity guard: unknown argument …` usage error to stdout —
+// ahead of the value report or into the --list-sources name list. Visible, never silent;
+// tests/scripts/ConfigValues.test.ts asserts that text never appears (review 0064 R22).
 if (!globalThis.CONFIG_PARITY_AS_LIBRARY)
   process.exitCode = main(process.argv.slice(2));

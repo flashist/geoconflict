@@ -1,5 +1,8 @@
 import {
   CITIZENSHIP_XP_THRESHOLD,
+  TENURE_MIN_DAYS,
+  TENURE_XP_CAP,
+  TENURE_XP_PER_DAY,
   XP_PER_MATCH,
   isCitizenFromXp,
 } from "../../../src/core/profile/Citizenship";
@@ -15,6 +18,17 @@ describe("Citizenship rules", () => {
 
   test("the rescale kept the number of qualifying matches unchanged", () => {
     expect(CITIZENSHIP_XP_THRESHOLD / XP_PER_MATCH).toBe(100);
+  });
+
+  // Task 0253 / ADR-112 (amended 2026-09-15): 1 XP per day, cap 50, minimum 3.
+  test("tenure grant constants are the ruled values", () => {
+    expect(TENURE_XP_PER_DAY).toBe(1);
+    expect(TENURE_XP_CAP).toBe(50);
+    expect(TENURE_MIN_DAYS).toBe(3);
+  });
+
+  test("a tenure grant alone can never reach the citizenship threshold", () => {
+    expect(TENURE_XP_CAP).toBeLessThan(CITIZENSHIP_XP_THRESHOLD);
   });
 
   test("isCitizenFromXp flips exactly at the threshold", () => {

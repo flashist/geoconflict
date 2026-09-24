@@ -123,6 +123,16 @@ export const flashistConstants = {
     // 0021 §6. Server write is authoritative; this reports its first observation.
     CITIZENSHIP_EARNED_XP: "Citizenship:Earned:XP",
 
+    // One-time tenure XP grant (task 0253; ADR-112 as amended 2026-09-15).
+    // Claimed fires only after the SERVER granted (value = XP). Rejected takes a
+    // suffix at the call site — :BelowMinimum | :Duplicate. ClaimFailed = no
+    // usable server answer: retried next load if the server wrote nothing; if
+    // the answer was lost after the server committed, never (and no popup).
+    CITIZENSHIP_TENURE_GRANT_CLAIMED: "Citizenship:TenureGrant:Claimed",
+    CITIZENSHIP_TENURE_GRANT_REJECTED: "Citizenship:TenureGrant:Rejected",
+    CITIZENSHIP_TENURE_GRANT_CLAIM_FAILED:
+      "Citizenship:TenureGrant:ClaimFailed",
+
     // Paid-citizenship purchase funnel (task 0018; spec 0021 §3–5). Started
     // fires as the Yandex payment frame is opened (last client-controlled
     // moment); Completed only after the SERVER confirmed the grant (never on
@@ -131,6 +141,11 @@ export const flashistConstants = {
     PURCHASE_STARTED_CITIZENSHIP: "Purchase:Started:Citizenship",
     PURCHASE_COMPLETED_CITIZENSHIP: "Purchase:Completed:Citizenship",
     PURCHASE_ABANDONED_CITIZENSHIP: "Purchase:Abandoned:Citizenship",
+
+    // Ad impressions (task 0020). Fired on a real impression (onClose
+    // wasShown === true), not per attempt; no tier dimension — the tiered
+    // variants are task 0299. No banner events: our code never shows one.
+    AD_INTERSTITIAL: "Ad:Interstitial",
 
     BUILD_STALE_DETECTED: "Build:StaleDetected",
 
@@ -1288,6 +1303,8 @@ export class FlashistFacade {
     }
 
     return new Promise<boolean>((resolve) => {
+      // Guards Ad:Interstitial against the SDK calling onClose twice.
+      let impressionLogged = false;
       try {
         console.log(
           "FlashistFacade | Main | showInterstitial __ showFullscreenAdv __ BEFORE",
@@ -1299,6 +1316,24 @@ export class FlashistFacade {
                 "FlashistFacade | Main | showInterstitial __ showFullscreenAdv __ onClose __ wasShown: ",
                 wasShown,
               );
+              // Count real impressions only: the SDK reports wasShown=false when
+              // it declined (e.g. its own frequency cap). Strict check because
+              // the SDK is untyped.
+              if (wasShown === true && !impressionLogged) {
+                impressionLogged = true;
+                // Analytics must never stop resolve() below — a throw here
+                // would leave every awaiting call site hanging.
+                try {
+                  flashist_logEventAnalytics(
+                    flashistConstants.analyticEvents.AD_INTERSTITIAL,
+                  );
+                } catch (error) {
+                  console.log(
+                    "FlashistFacade | Main | showInterstitial __ Ad:Interstitial logging failed: ",
+                    error,
+                  );
+                }
+              }
               // some action after close
               resolve(wasShown);
             },

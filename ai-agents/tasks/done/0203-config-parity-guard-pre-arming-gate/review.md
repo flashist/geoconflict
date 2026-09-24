@@ -1,11 +1,12 @@
 # Review — 0203
 
-Task: ai-agents/tasks/backlog/0203-config-parity-guard-pre-arming-gate/brief.md
-File(s) under review: scripts/check-config-parity.mjs, scripts/config-parity-allowlist.json, tests/scripts/ConfigParity.test.ts
+Task: ai-agents/tasks/done/0203-config-parity-guard-pre-arming-gate/brief.md
+File(s) under review: scripts/check-config-parity.mjs, tests/scripts/ConfigParity.test.ts (run 2, round 3; run 1 also covered scripts/config-parity-allowlist.json)
 Status: closed-out
+Coverage: both reviewers measured — round 3: Codex (`codex-cli 0.152.0`, exit 0) ran the checker CLI and in-memory `analyse()` edge fixtures; the reviewer ran `ConfigParity` + `ConfigValues` jest (158/158), fixture probes of the classifier, and a HEAD-vs-tree real-tree diff.
 
 > **ID note.** Finding ids in THIS ledger (`R1`, `R2`, …) are 0203-local. Items from task 0064's ledger
-> (`ai-agents/tasks/backlog/0064-deploy-time-config-parity-guard/review.md`) are cited as `0064-R<n>`
+> (`ai-agents/tasks/done/0064-deploy-time-config-parity-guard/review.md`) are cited as `0064-R<n>`
 > (e.g. `0064-R12`), so the two id spaces never collide.
 
 ## Reviewer findings
@@ -90,6 +91,65 @@ list). The round-2 reviewer passes found no new defect of a realistic shape. Rec
 Status set to `closed-out`. The only open item is outside this ledger: the producer's brief edit that
 adds R4 to 0203's pre-arming list.
 
+### Round 3 — run 2 review, 2026-09-24
+
+Scope: working tree vs HEAD for `scripts/check-config-parity.mjs` and `tests/scripts/ConfigParity.test.ts`
+only (run 2: item 12 tagging, R4a, R4b pins, R13, item 11 + R19, R21), against the owner-approved
+`plan-run2.md`. The 0064 library-flag comment edit and the other 0064 R22 files are out of scope.
+Reviewers: fkit-reviewer (own pass) + Codex adversarial pass (`codex exec`, finished, exit 0). Status
+reopened to `in-review` for this run.
+
+| #  | Round | Sev    | Location | Claim |
+|----|-------|--------|----------|-------|
+| R5 | 3     | medium | scripts/check-config-parity.mjs:526-545 (`destructuringPatternBefore`), :897-915; comments :65-67, :181-183, :870-873 | **An object-type annotation turns a whole-object alias into a silent "destructuring" — the reads behind the alias vanish, no DYNAMIC-READ.** The pattern test is only "`}` directly before a plain `=`", and a TypeScript object-type literal also ends in `}`. Its property names are recorded as reads and the `continue` skips the whole-object announcement. Reproduced through `analyse()` on scratch fixtures (`server/X.ts`, game pipeline): `const env: { ZZ_A: string, ZZ_B: string } = <env object>; env.ZZ_C` → reads `ZZ_A`, `ZZ_B`; **`ZZ_C` absent; `dynamicReads` empty; `parseFailures` 0.** The same silent loss happens for a class field (`env: { ZZ_A: string } = …`), a function or arrow parameter default (`(e: { ZZ_A: string } = …) => e.ZZ_G`), and a `;`-separated type literal (`{ ZZ_A: string; ZZ_B: string }` → only `ZZ_A`; this also drops `ZZ_B` from a real annotated pattern `const { ZZ_A, ZZ_B }: {…; …} = …`). A lesser sibling, contrived: an assignment expression whose value is the object (`const env = { ZZ_A } = …`, or `f({ ZZ_A } = …)` in a **call**) records `ZZ_A` and hides the alias/argument. **This contradicts three statements in the diff:** the KNOWN LIMITS line "A TypeScript-annotated pattern … reported as a whole-object DYNAMIC-READ: a LOUD false positive, never a silent miss" (true only for a named type, e.g. `: T`; verified loud), the ENV_OBJECT comment "no unanticipated shape can pass silently", and the loop comment "Nothing can pass silently except the ruled exclusions". This is the false-negative direction that item 11 exists to close. 0 live instances (real-tree text and JSON byte-identical to HEAD; 0 DYNAMIC-READs). Not pinned by any test (the worklog checked only the named-type case). Defect. |
+| R6 | 3     | low    | scripts/check-config-parity.mjs:48-50 (header `MISSING GUARD`); behaviour at :787-788 and `walkTypeScript` :236-241 (pre-existing) | **The new EXIT CONTRACT text says "an unreadable source file" fails closed. It does not: it is silently skipped.** `collectEnvReads` does `if (text === null) continue;`, and `walkTypeScript` returns early on a `readdirSync` error. Reproduced from the CLI: in a scratch `--src-dir`, `server/B.ts` (reads `ZZ_HIDDEN`) set to mode 000, and `server/sub/` (holds a read of `ZZ_HIDDEN_DIR`) set to mode 000 → neither name appears, and there is no PARSE-FAILURE and no SKIP (the exit 1 came from an unrelated fixture REQUIRED). The behaviour predates this diff (HEAD has the same `continue`); **the false claim is new.** It is a claim about the fail-closed surface, the part R4b and 0298's arming depend on. The wording may have meant "a file that cannot be separated" (that one IS loud). It is realistic only on a broken checkout, so low. Whether to fix the wording or the behaviour is the coder's call (plan scope) and may be the owner's. Defect (doc accuracy; pre-existing behaviour). |
+
+**Checked, NOT recorded** (so the coder does not chase them):
+
+- **Codex X1 — an unmapped file whose only environment use is a computed index or a whole-object use gets
+  no R4a `DIR_PIPELINE` message.** CORRECT, as Codex's own in-memory run shows. But it still gives a
+  `[global]` DYNAMIC-READ, so `--enforce` still stops. Its fix text leads to plain reads, and the next run
+  then prints the R4a message. `unpartitioned` fed only from `record()` predates this diff. **Negligible.**
+- **Codex X2 — a type-only mention (`type Env = typeof <env object>`) is a whole-object DYNAMIC-READ.**
+  CORRECT but **loud**: a false stop, never a silent miss. It follows directly from item 11's ruled
+  inversion (anything that is not a dot / bracket / destructuring is announced). → suppressed below.
+- **Tag table:** every push site matches `plan-run2.md` §1. Scanner failure and blind spot → the file's
+  pipelines (`"global"` when unmapped); R4a / 0-reads / allowlist / src-dir → `"global"`; deploy.sh +
+  Dockerfile → game; setup-profile / build-deploy-profile / Dockerfile.profile + exports → profile;
+  webpack + DefinePlugin → client. `core/configuration` → `["game","client"]` (PIPELINES order).
+- **Test migration:** all 19 `.join("\n")` sites were swapped 1:1 for `messages()`. No assertion was
+  dropped. The only wording change is `aliased or destructured` → `the environment object is used whole`,
+  which matches the new message. No `toContain` on an array of objects was found.
+- **0064 seam intact:** exports, signatures and `GAME_HEREDOC` are unchanged. `parseHeredocKeys` /
+  `loadAllowlist` still return string failures. The value checker reads only `.length` and
+  `pipelines.game.info`. `ConfigValues.test.ts` passes, 158/158 across both suites (re-run by the
+  reviewer). With R13, the value checker still returns on `heredoc.failure` before it reads the keys.
+- **Real tree:** `--pipeline=all` text and `--json` are **byte-identical to HEAD's checker**, diffed by
+  the reviewer. There are 0 parse failures, 0 DYNAMIC-READs, 0 skips, and no NOTE line.
+- **Member-access look-back, decision-log items 1–3: sound.** Probed shapes: `return` / `typeof` of the
+  object (announced); a spread with and without whitespace after `...` (announced); `w?.process…`
+  (excluded, as ruled); `this.#process…` (a loud false positive); `process?.env` whole (announced);
+  `Object.assign(<object>, …)` (announced). A multi-line pattern with a comment containing commas is
+  parsed correctly. A generic default `Map<string, number>()` splits at the comma, which makes it a loud
+  "unreadable key", not a silent one. Raw-text fallback: a quoted pattern key becomes loud.
+- **No leak:** new messages carry only `rel:line`, fixed wording, the runtime-built fix text, and (R4a)
+  a folder name. None carries scanned source text or a value.
+- **R21 line references** in `webpack.config.js` (:36-43, :164, :173-175, :337, :341, :345) are
+  correct.
+
+**Re-litigates settled decisions (suppressed):**
+
+- **Codex X2 (type-only `typeof` mention → loud DYNAMIC-READ)** → item 11 + R19 (brief `## Status`,
+  `decision-prep-2026-09-23.md`): detection by inversion, and anything unrecognised is announced. It is
+  loud, not silent, so the ruling's re-raise premise (a silent miss) is not met. **Optional, not a
+  finding:** the coder may add it to KNOWN LIMITS next to the TS-annotation line, if R5's wording fix
+  touches that block anyway.
+
+**Convergence call: NOT converged — act.** R5 is new and real: a silent false negative in the classifier
+built for item 11, and it contradicts the diff's own "never silent" wording. R6 is a small doc/behaviour
+mismatch. Neither re-litigates a settled item. Nothing in either row reopens R4a, R4b, R13, R14, R19,
+R21, item 11's exclusions, item 12 or the `--enforce` wiring.
+
 ## Coder response
 
 Round 1 — 2026-09-14. `fkit-coder` as the Process-review worker of `fkit-sprint-ship-loop`, under
@@ -125,11 +185,60 @@ check → both R2 REQUIRED tests; DefinePlugin double-quote-only → the R3 test
 `)` a head → call/group guard; no member-name mark → call/group guard; no `for await` → control-head
 test. The masked text of all 296 `src/**/*.ts` files is byte-identical before this round vs after.
 
+Round 3 — 2026-09-24. `fkit-coder` as the Process-review worker of `fkit-sprint-ship-loop`, under
+the standing approval of the owner-approved `plan-run2.md`. There are no accepted residuals in this
+ledger. None of the 0064 residuals (R7, R8, R10, R11, the R9 sub-note, R4) and no ADR covers R5 or R6,
+so both are novel. Both were reproduced from the CLI (`--src-dir` scratch fixtures) before any edit.
+Regression check against R1–R4: the R5 fix only narrows what counts as a pattern, toward loud. That
+matches R4's direction and recreates nothing.
+
+| #  | Verdict | Defect / Frontier | Action | Status |
+|----|---------|-------------------|--------|--------|
+| R5 | CORRECT | Defect (medium, my severity: a silent false negative in item 11's classifier, the direction item 11 exists to close; 0 live instances) | `destructuringPatternBefore` accepts a `{…}` only when `patternMayOpenAt`: its `{` follows `const` / `let` / `var`, a `(` or a `,`. A `:` before it (a type annotation), and also `=` / `&` / `|`, means it is not a pattern, so the mention becomes a whole-object DYNAMIC-READ. That covers the annotated alias, the class field, the annotated parameter default, the `;` type literal, an intersection type, and the chained `x = { A } =` sibling. The two "nothing can pass silently" comments and the KNOWN LIMITS lines are corrected. Tests (RED first): the reviewer's repros plus a named type, an intersection type and a non-null assertion, each giving exactly 1 whole-object DYNAMIC-READ and no type name recorded as a read; a `,`-preceded parameter default added to the destructuring test. **Not fixed:** the call-argument sibling `f({ A } = <object>)` still records A, and the object passed stays silent. It cannot be told apart from a parameter default without a parser. It is documented under KNOWN LIMITS and pinned by a test. **Owner ruling 2026-09-24 (Q1 = A, "Accept as known limit", relayed by the lead): accepted, recorded under *Accepted residuals*.** | ✅ done |
+| R6 | CORRECT | Defect (low: doc accuracy; the behaviour is pre-existing) | First the header wording was corrected to match the behaviour. Then, on the **owner ruling of 2026-09-24 (Q2 = A, "Yes, flag it", relayed by the lead)**, the behaviour itself was changed: a `src/` file that cannot be read is a PARSE-FAILURE tagged with its file's pipelines, and a `src/` directory that cannot be read (`walkTypeScript` now collects it instead of returning silently) is a PARSE-FAILURE tagged `"global"`. Under `--enforce` both fail closed. The `MISSING GUARD` text lists them among what fails closed, and the KNOWN LIMITS line was removed. Tests (RED first): a mode-000 file and a mode-000 directory in a scratch fixture. They probe once whether chmod 000 really makes a file unreadable (it does not for root) and are reported **skipped** with a warning if not, never as a green pass. CLI repro: both are now reported (`["game"]` / `global`). | ✅ done |
+
+**Verification (this round).** CLI R5 repros (alias, class field, arrow default, `;` type, named type):
+0 reads recorded, 5 whole-object DYNAMIC-READs (was 5 false reads and 1 DYNAMIC-READ). `npm test`:
+139 suites / 1947 tests passed on the first run, shell harnesses included, no flake, no re-run.
+`ConfigParity.test.ts`: 108. `ConfigValues.test.ts` green and `cmp`-identical to its pre-edit copy.
+`npm run lint` exit 0; prettier clean on both touched files; `bash -n deploy.sh build-deploy-profile.sh`
+ok. Real tree: `--pipeline=all --report-only` text, `--json` and read set are byte-identical to run 2's
+step-0 baseline. `--enforce` is still wired nowhere. Mutations: 4 new ones (every `{` a pattern again;
+no `,`; no `const`/`let`/`var`; no `(`), each red. The build's 21 were re-run against the new checker,
+all red. Each was restored by copy + `cmp`.
+
+**Round 3, continued — after the owner's Q1/Q2 rulings (2026-09-24).** R5 → `✅ done` (residual
+recorded). R6's behaviour change is applied as above. `npm test`: 139 suites / 1949 tests passed on the
+first run; the 2 R6 tests ran, none skipped. `ConfigParity.test.ts`: 110. `npm run lint` exit 0;
+prettier clean; `bash -n` ok. Real tree: text, `--json` and read set are still byte-identical to the
+step-0 baseline. `ConfigValues.test.ts` green and unedited. Mutations: 4 new ones (directory not
+recorded; file skipped silently; directory tagged with a pipeline; file tagged global), each red. The
+full table (M1–M21, N1–N4, Q1–Q4, 29 in all) was re-run against the final checker, all red, each
+restored by copy + `cmp`. Every finding in this ledger is now dispositioned: **Status set to `closed-out`.**
+
+**R4 — resolved update, 2026-09-24 (run 2).** The round-1 R4 row above stays as history.
+
+| #  | Verdict | Defect / Frontier | Action | Status |
+|----|---------|-------------------|--------|--------|
+| R4 | CORRECT | Defect (pre-existing blind spot) | Resolved by run 2's **item 11**, where the owner had routed R4 (0203's pre-arming list). `ENV_ALIAS` was replaced by inversion-based detection: every whole-object use is now a DYNAMIC-READ. Both of R4's repros are pinned in `tests/scripts/ConfigParity.test.ts` by "the two recorded reproductions — a parenthesised alias and Object.keys — are announced": each gives exactly one whole-object DYNAMIC-READ with file:line. The other shapes R4 named (passing to a function, a spread, a `return`) are pinned by "every other whole-object use is announced exactly once". | ✅ done |
+
 
 ## Accepted residuals (shared, do-not-re-litigate)
 
-_None recorded in this ledger yet._ Settled items this round was deduped against live in the 0064
-ledger's *Accepted residuals* (round 1 + round 2 addendum) and in `plan.md`'s approval record:
+- **A destructuring pattern assigned inside a CALL argument stays silent** (review 0203 R5's lesser
+  sibling). What: `f({ A } = <environment object>)` records `A` as a read, and the object passed to
+  `f` is not announced as a whole-object use. It is documented under KNOWN LIMITS in the checker
+  header and pinned as silent by a test. Why (structural): without a real parser, a pattern in a call
+  argument cannot be told apart from a parameter default `function h({ A } = …)`, which is a legitimate
+  read the plan requires. The rejected alternative is a call-vs-parameter check on the token after the
+  enclosing `)`: it is more hand-written parsing with new edge cases, and it still leaves a pattern
+  after a `,` inside an array literal silent, so it only partly helps. The shape is also contrived:
+  TypeScript needs `A` declared beforehand. Accepted by the owner on 2026-09-24 (Q1 = A, "Accept as
+  known limit", relayed by the lead). Re-raise only if: a live instance of this shape appears under
+  `src/`, or a real parser replaces the hand-written classifier.
+
+Settled items that earlier rounds were deduped against live in the 0064 ledger's *Accepted residuals*
+(round 1 + round 2 addendum) and in `plan.md`'s approval record:
 
 - **Suppressed this round as re-litigating settled decisions:**
   - **0064-R13, blast radius now wider.** Any unconsumed heredoc line discards the whole heredoc (false

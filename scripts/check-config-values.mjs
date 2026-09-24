@@ -55,7 +55,9 @@ import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
 // Import the parity checker as a library. The flag stops its main() from running; if
-// the flag is ever lost, its whole report lands in this output — loud, never silent.
+// the flag is ever lost, that main() rejects this checker's arguments and its
+// `config-parity guard: unknown argument …` usage error lands in this output — loud,
+// never silent (review 0064 R22).
 globalThis.CONFIG_PARITY_AS_LIBRARY = true;
 const {
   INPUT_DEFAULTS,

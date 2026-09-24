@@ -111,7 +111,7 @@ Per design §9 S1:
 - **Effort (design §9):** 2.5–3.5 days. Strictly first; cannot be split.
 - **Deploys:** profile box only. Safe alone — game server's profile client is a no-op while
   `PROFILE_INTERNAL_TOKEN` is blank, and routes keep their request shapes.
-- **Related:** ADR-113, ADR-112 (amended 2026-09-15), ADR-103, [`0253`](../../backlog/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md).
+- **Related:** ADR-113, ADR-112 (amended 2026-09-15), ADR-103, [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md).
 - 🔒 No secrets, hosts or player ids in any artifact.
 - **Do not invoke the mover skills** — producer-only (ADR-033). No wiki writes.
 

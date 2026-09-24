@@ -12,7 +12,7 @@ behind the two live defects — and it **must** follow them (see the hazard belo
 independent of all three and can run in parallel with any of them.
 
 ## Status
-🔄 In progress
+✅ Done (agent-closed — not owner-verified)
 
 🔄 **Started 2026-09-02**, driven from the lead session.
 
@@ -47,7 +47,7 @@ no mover skill invoked.**
 Saturday, September 26"*). OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent. The 2026-09-22 *"NO replacement date"* text above is kept, not
 edited — it was true when written. ⛔ **Still NOT closable before the window runs;** verification step 8
 and the Phase 2 prod-shaped checks stay deploy-gated. `## Status` untouched; no mover invoked.
-📌 **2026-09-23, later — SUPERSEDED as to this task by the split below (owner ruling, Sprint 4 rescope Q2 = (a)):** verification step 8 now lives in [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md), and Phase 2 is built and proved **locally** here. So this task no longer waits on the window: it closes when Phase 2 is done. The paragraph above is kept, not edited.
+📌 **2026-09-23, later — SUPERSEDED as to this task by the split below (owner ruling, Sprint 4 rescope Q2 = (a)):** verification step 8 now lives in [`0298`](../../backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md), and Phase 2 is built and proved **locally** here. So this task no longer waits on the window: it closes when Phase 2 is done. The paragraph above is kept, not edited.
 
 📌 **ARMING IS GATED ELSEWHERE — owner ruling 2026-09-02, given live in session.** The pre-arming
 gate is now its own task: **[`0203-config-parity-guard-pre-arming-gate`](../0203-config-parity-guard-pre-arming-gate/brief.md)**.
@@ -73,7 +73,7 @@ keeps only locally buildable work, and a mixed task is split.
   locally. That means verification steps 2 and 3, the non-empty half of step 1, and the enforcing half
   of step 6 shown on fixtures (steps 4, 5 and 7 stay regression checks).
 - **Moved to a new Sprint 5 task,
-  [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md):**
+  [`0298`](../../backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md):**
   verification step 8 (the first real report-only production run, runbook W12) and **arming `--enforce`**
   at both call sites.
 - 🚩 **This supersedes ruling R3's 2026-09-02 wording** in [`plan.md`](plan.md): *"wiring enforcing is a
@@ -251,13 +251,13 @@ which drifts, and which is then the thing lying to us.
   is waiting for. 📌 **`0062` REMOVED 2026-09-23 (owner ruling, relayed by `fkit-lead`), citing the
   OWNER RULING OF 2026-09-02 in `## Status`:** `0062` gates only **switching the guard on** (arming),
   **not building it**. `0062` is now closed; its production checks moved to `0296`. ~~⛔ This task's own
-  deploy-gated steps (verification step 8, the Phase 2 prod-shaped checks) are **unchanged**.~~ 📌 **2026-09-23, later (owner ruling, Sprint 4 rescope Q2 = (a)): verification step 8 moved to [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md). Phase 2 is built and proved locally here, and nothing in this task waits on a deploy any more.**
-- **Blocks:** [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md), for the arming of Phase 2's checks only (Phase 1 can be armed without Phase 2). *(Was "nothing" until the 2026-09-23 split.)*
+  deploy-gated steps (verification step 8, the Phase 2 prod-shaped checks) are **unchanged**.~~ 📌 **2026-09-23, later (owner ruling, Sprint 4 rescope Q2 = (a)): verification step 8 moved to [`0298`](../../backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md). Phase 2 is built and proved locally here, and nothing in this task waits on a deploy any more.**
+- **Blocks:** [`0298`](../../backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md), for the arming of Phase 2's checks only (Phase 1 can be armed without Phase 2). *(Was "nothing" until the 2026-09-23 split.)*
 - ~~**Arming depends on [`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md)** *(added
   2026-09-02, owner-ruled)*. All ten pre-arming items live there and must land before `--enforce` is
   wired here. The report-only run and Phase 2 are unaffected and proceed regardless.~~
-  📌 **2026-09-23 (owner ruling, rescope Q2 = (a)): arming moved to [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md)**, and so did the report-only production run. The `0203` → arming sequence is unchanged and is now `0298`'s. Struck, not deleted.
-- **Split into [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) on 2026-09-23.** This task keeps Phase 2 (Sprint 4). `0298` holds verification step 8 and arming `--enforce` (Sprint 5). See `## Status`.
+  📌 **2026-09-23 (owner ruling, rescope Q2 = (a)): arming moved to [`0298`](../../backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md)**, and so did the report-only production run. The `0203` → arming sequence is unchanged and is now `0298`'s. Struck, not deleted.
+- **Split into [`0298`](../../backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) on 2026-09-23.** This task keeps Phase 2 (Sprint 4). `0298` holds verification step 8 and arming `--enforce` (Sprint 5). See `## Status`.
 - **Related:** `0061`, `0062`, `0063` (the three instances that motivated it), `0060` (independent —
   parallelizable with any of these).
 
@@ -300,7 +300,7 @@ which drifts, and which is then the thing lying to us.
   503 there. ✅ **The DEFECT and the FIX are unaffected** — the staged-export omission was real and
   `0195` fixed it; what was wrong was the phrase presenting a deduction as a sighting.
   ⚠️ **Read every "on the real box" in this brief as "on a box whose state nobody has checked."**
-  Inspection + rebuild: epic [`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md),
+  Inspection + rebuild: epic [`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md),
   phases P0–P7.
   Three consequences for this task:
   **(i)** the class table above should be read as four rows, not three, and this one confirms the

@@ -165,6 +165,46 @@ that it has NOR that it has not.** It is recorded as an open item on
 [`0014`](../../done/0014-yandex-catalog-registration/brief.md). **Check `0014` before planning candidate 1; do
 not assume either state.**
 
+## 🚨 MUST-FIX: paid state LEAKS through the public profile TODAY (owner ruling 2026-09-24)
+
+**Authority:** OWNER RULING *"Must-fix in 0250"*, given 2026-09-24 live in the `fkit lead` session via
+`AskUserQuestion` at the approval of [`0020`](../../done/0020-analytics-p1-ad-impression-tier/brief.md)'s
+`plan-baseline.md`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021);
+⛔ not producer precedent. **This is a hard constraint on this task, not an option.** The owner ruled
+that the leak is fixed **as part of `0250`**, with **`fkit-architect` weighing the options**. **Until it
+is fixed, a player's paid state must not be considered private.**
+
+**The leak.** `toPublicProfile()` removes `is_paid_citizen` and `citizenship_purchased_at`
+(`src/profile-server/Routes.ts`, the function at `:337`). But paid state can be **derived** from what
+it still returns:
+`is_citizen && citizenship_earned_at === null` ⇒ **paid, and not (yet) earned**.
+- Only two code paths set `is_citizen = true`:
+  - the **paid grant**, `GRANT_FLAGS_SQL` (`src/profile-server/PaymentsRepository.ts:46-52`), sets
+    `is_paid_citizen`, not `citizenship_earned_at`;
+  - the **XP crossing**, `GRANT_CITIZENSHIP_SQL` (`src/profile-server/PlayerProfileRepository.ts:105-113`),
+    sets `citizenship_earned_at`.
+- The database checks agree (`migrations/006_player_identity.sql:81,85`: `chk_paid_implies_citizen`,
+  `chk_earned_implies_citizen`).
+- **Who can exploit it:** Bearer tokens are `vfy:false`, so anyone can get one for a player id they merely
+  assert. Anyone asserting **another** player's id can therefore learn that player **paid**.
+- **The same projection is returned by login** (`toPublicProfile(…)` in the login response,
+  `Routes.ts:726`), so fixing `GET /v1/profile` alone is not enough.
+- A paid player who later crosses the XP threshold gets `citizenship_earned_at` stamped, and after that
+  the derivation no longer tells them apart. The leak is real until then.
+- **Evidence:** `0020/plan-baseline.md` § *Investigation findings* Q1 (2026-09-24). The producer
+  re-checked the three code sites read-only on 2026-09-24.
+
+**How it binds this task:** Verification step 2 below (*"…by any route and by any derived field"*)
+already requires this to be closed. This block records that the derived field **exists today** and
+names it. Phase 1's design must say how `is_citizen` and `citizenship_earned_at` stop telling payers
+apart on every route that returns the profile, at least `GET /v1/profile` and the login response.
+Candidates include not exposing one of them to non-owners, or reshaping the projection. **The choice is
+the architect's, and the owner rules.** ⛔ Note the conflict with Verification step 4: the card reads
+`is_citizen` today, so the fix must not break the citizen badge.
+
+**Known consumer that must not build on the leak:** [`0299`](../0299-tiered-ad-impression-analytics/brief.md)
+(tiered ad analytics) is explicitly barred from deriving `PaidCitizen` this way.
+
 ## Scope
 
 ### In scope
@@ -251,6 +291,13 @@ phase 1 chooses, all of these must hold:**
   Phase 2 is unknowable until phase 1 closes — candidate 3 could be small if the SDK cooperates;
   candidate 1 is a multi-day auth change with an external dependency. **An estimate here would be
   fiction.**
+
+- **Stale doc comment, a finding and not a task (2026-09-24, from `0020`'s investigation):**
+  `src/core/profile/PlayerProfile.ts:55` still says *"Sprint 4's read is unauthenticated"*. `GET /v1/profile`
+  now goes through a Bearer session (`resolveCaller`, `Routes.ts:630-653`). This task edits that schema, so
+  fix the comment here. Also recorded in `0299`.
+- **Split-out consumer:** [`0299`](../0299-tiered-ad-impression-analytics/brief.md) depends on this task
+  for its `PaidCitizen` tier.
 
 ## Open questions for the owner
 

@@ -7,30 +7,50 @@
 > opens.*
 >
 > `deploy.sh` forwards whatever value of `PROFILE_INTERNAL_TOKEN` the local shell has — **correctly**
-> (`deploy.sh:312`). So a production deploy run with a **non-empty** local value **turns on profile
-> upsert and match-XP crediting in production**. If that is not what you intend for this deploy, you
-> must blank the value **by hand**.
+> (`deploy.sh:350` — *was cited as `:312`; the line drifted, re-verified against the current file
+> 2026-09-24*). So a production deploy run with a **non-empty** local value **turns on profile
+> upsert and match-XP crediting in production**. ~~If that is not what you intend for this deploy, you
+> must blank the value **by hand**.~~ *(Struck 2026-09-24 — rule retired, see the ruling at the end of
+> this box.)*
 >
-> - **Blanking the value is a MANUAL step with no automated guard.** Nothing in the repo checks it.
+> - ~~**Blanking the value is a MANUAL step with no automated guard.** Nothing in the repo checks it.~~
+>   *(Struck 2026-09-24 — blanking is retired, and a blank value is now checked: see the end of this box.)*
 > - **`npm run check:config-parity` does NOT catch this.** It compares variable **names only**
 >   (`scripts/check-config-parity.mjs` "never opens a `.env` file, never reads the process
 >   environment"). A value being intentionally blank is outside what it can see, by design.
+>   *(Still true of that script. The separate value checker `scripts/check-config-values.mjs`, added by
+>   `0064` Phase 2, **does** see a blank value — see the end of this box.)*
 > - `0054`'s client flag (`CITIZENSHIP_CARD_ENABLED`, default OFF) hides the citizenship **card**, but
 >   it does **not** stop server-side upsert or XP crediting.
 >
-> **Before every prod deploy: decide deliberately whether this value should be blank, and do it by
-> hand.**
+> ~~**Before every prod deploy: decide deliberately whether this value should be blank, and do it by
+> hand.**~~ *(Struck 2026-09-24 — retired by owner ruling; kept visible, not deleted.)*
 >
 > 🔴 **RULED 2026-09-04 — NO GUARD WILL BE BUILT. Owner, verbatim: *"Neither — I'll just
 > remember."*** Two options were put to the owner — an automated guard at deploy time, or a deploy
 > checklist item — and **both were declined.**
 > ⛔ **This is a DECISION, not an oversight. Do NOT file a task for it, and do NOT re-recommend one.**
 > ⚠️ **The risk is ACCEPTED, not removed. The manual step is the control.**
+> ⛔ **STRUCK IN FORCE 2026-09-24, AS FAR AS IT CONCERNS BLANKING THE TOKEN** — the 2026-09-04 ruling
+> above is kept verbatim as history, but its manual blanking control no longer applies: the token is no
+> longer blanked at all (ruling below).
 >
 > 📌 For the **weekend deploy slot** specifically, the owner ruled on **2026-09-19** that crediting is
 > turned **on** — i.e. `PROFILE_INTERNAL_TOKEN` is deployed **non-empty** in that slot
 > ([`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md)). That is
 > what makes section A below runnable at all.
+>
+> ✅ **RULED 2026-09-24 — THE "BLANK IT BY HAND" RULE IS RETIRED.** Owner, verbatim: *"Retire it"*. Given
+> live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned
+> `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent.
+> - **From now on `PROFILE_INTERNAL_TOKEN` is always set in prod.** There is no "blank for this deploy"
+>   option any more.
+> - A blank token is a **REQUIRED** finding in the prod value check (owner ruling 2026-09-23, `0064`
+>   Phase 2 plan amendment 1). The deploy prints `REQUIRED … PROFILE_INTERNAL_TOKEN — forwarded but
+>   EMPTY`. **Report-only today** (`deploy.sh:332`, `run_config_value_guard || true`) — it cannot fail a
+>   deploy yet.
+> - 🚨 **Once [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md)
+>   arms `--enforce`, a blank token BLOCKS prod deploys.**
 
 ## ID
 0296
@@ -179,4 +199,5 @@ build with `CITIZENSHIP_CARD_ENABLED = true` is live.
 - **No secrets in any artifact.** `PROFILE_INTERNAL_TOKEN` is a credential. It must never appear in
   this brief, the worklog, a log line, a commit, or deploy output — presence/absence and verdicts only.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
+- 🔐 **RECORDED 2026-09-24 — OWNER RULING 2026-09-23 (`0064` Phase 2 plan amendment 1): a blank `PROFILE_INTERNAL_TOKEN` is now REQUIRED-missing in the prod value check.** Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`; recorded here by a spawned `fkit-producer` at `0064`'s close (ADR-021; ⛔ not producer precedent). Owner, verbatim: *"I don't think we can allow the PROFILE INTERNAL TOKEN to be empty anymore, because this token is a requirement for the profile/citizenship logic to work properly"*. Source: [`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md) ([`plan-phase2.md`](../../done/0064-deploy-time-config-parity-guard/plan-phase2.md), *Owner amendments at approval*, amendment 1). **This supersedes the 2026-09-04 "deliberately blank" ruling FOR THE VALUE CHECK ONLY** (`scripts/check-config-values.mjs`, prod deploys only). Consequences, recorded not ruled: (1) **until `.env.prod` carries the token, every prod deploy prints `REQUIRED PROFILE_INTERNAL_TOKEN — forwarded but EMPTY`** — report-only, exit 0, it cannot fail a deploy; (2) 🚨 **once [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) arms `--enforce`, a blank token BLOCKS prod deploys**; (3) `plan-phase2.md` §8 item 7 (*"`0217` go-live must remove the `PROFILE_INTERNAL_TOKEN` entry"*) is **void** — no such allowlist entry was ever shipped, so there is nothing to remove at go-live. ⚠️ **Bearing on this task's top box:** its "blank the value by hand" control now **conflicts** with the value check — a hand-blanked prod deploy prints REQUIRED today and, once `0298` arms, is blocked. The top box's claim that `npm run check:config-parity` cannot see values is still true (that script compares names); the **new** `check-config-values.mjs` sees a blank value, not a present-when-it-should-be-blank one. ~~**How the 2026-09-04 "I'll just remember" control and this ruling are reconciled is an OPEN OWNER QUESTION — not settled here.**~~ ✅ **ANSWERED 2026-09-24 — owner, verbatim: *"Retire it"*.** The blank-by-hand rule is retired and the token is always set in prod; recorded in the top box.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.

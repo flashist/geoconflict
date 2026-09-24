@@ -278,3 +278,220 @@ Pre-edit copies of the checker and test file taken into the scratchpad first.
 - Masked text of all 296 `src/**/*.ts` files: byte-identical to the pre-round checker, 0 tokenizer failures.
 - `--enforce` wired nowhere: `deploy.sh`, `build-deploy-profile.sh`, `package.json` contain no `--enforce`.
 - CLI re-run of the reverse-case repro: the key is now reported, `parseFailures: []`.
+
+---
+
+# Run 2 — 2026-09-24 (item 12 tagging, R4a, R4b pins, R13, item 11 + R19, R21)
+
+Build worker under `fkit-sprint-ship-loop`, against the owner-approved `plan-run2.md`
+(blob `7a28202de66356717cfd2b1f01517e69295dd42c`, approved live 2026-09-24, no amendments).
+Built in the main working tree, no branch, per the owner's standing ruling. Nothing committed.
+
+## Change surface
+
+- `scripts/check-config-parity.mjs` — the only source file changed.
+- `tests/scripts/ConfigParity.test.ts` — 83 → 106 tests (the `.join` helper migration plus the new ones).
+- This worklog.
+- **Untouched and byte-identical to their pre-edit copies:** `scripts/check-config-values.mjs`,
+  `tests/scripts/ConfigValues.test.ts`, `eslint.config.js` (their uncommitted 0064 R22 edits are kept),
+  the allowlist, `deploy.sh`, `build-deploy-profile.sh`, the shell harnesses. The 0064 comment-only edit
+  inside the checker (library-flag comment) is kept. No `git stash` was used; pre-edit copies were taken
+  into the session scratchpad.
+
+## Progress (plan order)
+
+0. **Baseline** taken before any edit: `--pipeline=all --report-only` text and `--json`, and the real read
+   set (64 read sites across 40 names; 0 DYNAMIC-READs, 0 tokenizer failures, 0 unpartitioned files).
+   (The plan quoted "55 rows at run 1"; that was a different count. The comparison is against this
+   baseline.)
+1. **Item 12** — `parseFailures` / `dynamicReads` / `skips` are now `{ message, pipelines }`, `pipelines`
+   in game/profile/client order or `"global"`. One `finding()` helper, one source of truth. `render()`
+   prints the tag as a suffix (`[pipeline: game]`, `[pipelines: game, client]`, `[global]`); line
+   prefixes unchanged. `failsClosed` unchanged. `parseHeredocKeys` / `loadAllowlist` still return string
+   failures, so the value checker's seam is unchanged. Test helper `messages()` replaced all 19
+   `.join("\n")` sites.
+2. **R4a** — the unmapped-folder message names the folder and the one-line `DIR_PIPELINE` fix; a loose
+   file directly under `src/` is told to move into a mapped folder; both tagged `"global"`. The rendered
+   ` — cannot enumerate` suffix is gone; each message carries its own fix.
+3. **R4b** — pins only: a scanner parse failure, a computed DefinePlugin key and a spread DefinePlugin
+   key are each the run's only finding and each fails `--enforce` with the failing footer. Header EXIT
+   CONTRACT says the missing-script stop lives at the call sites and is 0298's. No script edited.
+4. **R13** — `parseHeredocKeys`' unconsumed-line path now returns the keys that parsed. Other failure
+   paths unchanged. Value checker needs no change (it returns on `heredoc.failure` before reading keys).
+5. **Item 11 + R19** — `ENV_ALIAS` removed; every mention of the environment object is found and
+   classified by inversion: dot read / bracket read (skipped, handled elsewhere), member access
+   (excluded, ruled), written-out destructuring (each key recorded as a read), anything else (one
+   whole-object DYNAMIC-READ). Rest element and computed/unreadable pattern keys are DYNAMIC-READs.
+   Every blind-spot message ends with the ruled fix text, built at runtime. One `NOTE` line follows the
+   DYNAMIC-READ block when any is present.
+6. **R21** — header KNOWN LIMITS note (webpack.config.js line refs re-verified this run) + pinning test.
+7. **Header** — EXIT CONTRACT (TAGS, MISSING GUARD) and KNOWN LIMITS; PIPELINES block unchanged.
+
+## Decision log — autonomous calls inside the approved plan
+
+1. **Look-back rule for "member access", read against the plan's own test list (item 11).** The plan
+   says "look back over whitespace; a `.` or a word character before `process` means member access".
+   Read literally, a word character after whitespace (`return process…`, `typeof process…`) would be
+   excluded, contradicting the plan's test 2, which requires `return` of the object to be announced.
+   Built: a word character counts only when **adjacent** (`$process`); a `.` counts after whitespace.
+   Qualified as obvious-winner within intent — the plan's tests define the intent, and the literal
+   reading fails them.
+2. **A spread's `...` is not member access (item 11).** First run: `{ ...process-env-object }` gave 0
+   DYNAMIC-READs because the last `.` of `...` looked like member access — a silent miss of a shape the
+   plan lists (test 2 went red, which is how it was found). Fix: a `.` that ends a `...` does not exclude.
+   Verified-CORRECT (test 2 green), mechanical, localized, in-plan.
+3. **Identifier boundary after the object uses `isWordCode`, not only `\b` (item 11).** `\b` treats `$`
+   as a boundary, so a `…env$x` identifier would be matched. Added an adjacent-word-character check
+   (same helper the masker uses). Obvious-winner within intent; no test depends on it.
+4. **Two comments I wrote spelled the forbidden un-escaped member-access text** — the STATIC no-leak test
+   caught it (red). Reworded. Verified-CORRECT, mechanical.
+5. **Header overclaim corrected before hand-off.** I first wrote "KNOWN LIMITS — each is pinned by a
+   test"; the TypeScript-annotation / non-null limit is **not** pinned. Reworded to mark per item which
+   are pinned. The TS/non-null behaviour was checked from the CLI instead (both give a loud whole-object
+   DYNAMIC-READ).
+6. **R4a message paths use the `--src-dir` label** (`src/newdir/X.ts`, "directly under src/"), as the plan
+   spells them; the other DYNAMIC-READ messages keep their existing src-relative form (`server/X.ts:2`).
+   Unchanged from the plan's wording; noted so the mixed forms are not read as an accident.
+
+No fix outside the approved plan. No review round in this run (build step only).
+
+## Mutation table (each: apply to a copy of the final checker, run, confirm red, restore via file copy + `cmp`)
+
+| # | Mutation | Red tests (ConfigParity unless noted) |
+|---|---|---|
+| M1 | tag everything `"global"` | computed-index tags, scanner tags, input-level tags, text render |
+| M2 | drop core/configuration dual tag | computed-index + scanner tag rows, text render (+3 R1/R2 tests) |
+| M3 | unmapped tagged `[]` not `"global"` | computed-index, scanner, input-level, text render, both R4a tests |
+| M4 | allowlist failure tagged with run's pipelines | input-level tags, text render |
+| M5 | text render drops the tag suffix | text render |
+| M6 | R4a: old unmapped message | both R4a tests |
+| M7 | scanner failure not pushed | R4b pin, scanner tags, existing raw-scan test |
+| M8 | computed/spread DefinePlugin key not reported | R4b pin, input-level tags, existing DefinePlugin test |
+| M9 | R13 reverted (`keys: []`) | R13 game, R13 profile |
+| M10 | old `ENV_ALIAS` (only after `=`) | recorded repros, other whole-object shapes, destructuring, R19 repro, rest, canary |
+| M11 | member-access check removed | member-access exclusion |
+| M12 | widened to a bare `process` | pinned limit, member access, real-tree "no blind spot", real-tree no NOTE |
+| M13 | destructuring treated as DYNAMIC-READ | destructuring, R19 repro, rest, canary |
+| M14 | pattern parsed, keys not recorded | destructuring, R19 repro, rest, canary |
+| M15 | rest element accepted silently | rest, fix-text, canary |
+| M16 | NOTE always | NOTE test, real-tree no NOTE |
+| M17 | NOTE never | NOTE test |
+| M18 | NOTE once per pipeline | NOTE test |
+| M19 | inversion does not skip brackets | no-double-count, computed-index tags, 2 literal-bracket tests, **ConfigValues** "incomplete parity analysis … 1 blind spot(s)" |
+| M20 | fix text dropped | fix-text |
+| M21 | walk repo root instead of `--src-dir` | R21 pin (+55 others) |
+
+All 21 red; after each, `cmp` of the restored checker against the final copy passed.
+
+## Verification
+
+- `npm test`: **139 suites / 1945 tests passed**, first run, no re-run; shell harnesses included
+  (`ShellHarnesses.test.ts` PASS, none skipped). Wall ~54 s. No supertest flake, no SIGSEGV.
+- `tests/scripts/ConfigParity.test.ts`: 106 tests, all green. `tests/scripts/ConfigValues.test.ts`: green,
+  **unedited** (`cmp` against its pre-edit copy).
+- `npm run lint`: exit 0. `npx prettier --check` on the 2 touched files: clean.
+- `bash -n deploy.sh build-deploy-profile.sh`: ok (both untouched).
+- Real tree: `--pipeline=all --report-only` text and `--json` **byte-identical** to the step-0 baseline;
+  real read set byte-identical (64 sites / 40 names); 0 DYNAMIC-READs, 0 tokenizer failures; no NOTE line.
+- `--enforce` wired nowhere: `deploy.sh`, `build-deploy-profile.sh`, `package.json` contain no `--enforce`.
+- Static no-leak: 0 un-escaped spellings in the checker (STATIC test green). New canary test: a
+  destructuring default value never reaches text or JSON.
+- CLI re-runs of the recorded reproductions:
+  - item 11: `const env = (…object…)` and `Object.keys(…object…)` → one whole-object DYNAMIC-READ each, file:line.
+  - R19: destructured `API_DOMAIN` → recorded as a read, no DYNAMIC-READ.
+  - R4a: `src/newdir/X.ts` → names `DIR_PIPELINE` and `"newdir"`, `[global]`, `--enforce` exit 1.
+  - R13 on real-tree data (one heredoc key indented in a scratch copy): game — before 21 REQUIRED /
+    INFO 0, after 1 REQUIRED (`GAME_ENV`) / INFO 6. Profile — before 13 REQUIRED / INFO 0, after
+    0 REQUIRED / INFO 0 (the indented key is not read by the profile server).
+  - Documented limits: a TS-annotated pattern and a non-null assertion on the object → loud whole-object
+    DYNAMIC-READ each.
+
+## Residuals, not fixed (out of scope per the plan)
+
+- Per-deploy use of the tags, per-deploy `failsClosed`, the call-site missing-script stop, arming
+  `--enforce`: task 0298.
+- The value checker mirroring R13 (checking the heredoc lines that parsed): unruled, not built.
+- Pre-existing: `ENV_READ_DOT` still counts a member-access `…process.env.NAME` as a read (errs toward
+  counting a read).
+- The TS-annotated-pattern / non-null limit is documented but not pinned by a test.
+
+## Run 2 — process-review round 3 (review.md R5, R6), 2026-09-24
+
+Process-review worker under the standing approval (the `plan-run2.md` blob is unchanged,
+`7a28202…`). Change surface for this round: `scripts/check-config-parity.mjs`,
+`tests/scripts/ConfigParity.test.ts` (106 → 108), `review.md` *Coder response* (round 3 rows), and this
+worklog. Nothing else touched. No stash. No commit.
+
+### Decision log — fixes applied without per-fix owner approval
+
+1. **R5 (answers review.md R5): a type annotation or a chained assignment no longer counts as a
+   destructuring pattern.** What changed: `destructuringPatternBefore` now also requires
+   `patternMayOpenAt`, so the `{` must follow `const`/`let`/`var`, `(` or `,`. Otherwise the mention
+   falls through to the whole-object DYNAMIC-READ. Why it qualified: verified CORRECT (5 CLI repros
+   went from false reads to 0 reads with DYNAMIC-READs), mechanical and localized (one predicate). It
+   is in plan: §5 says anything unparseable becomes a DYNAMIC-READ, failure modes lean loud, and the
+   driver's scoping confirmed that reading. Pinned by the reviewer's repros. 4 mutations red.
+2. **R5: corrected three statements of mine that claimed "nothing can pass silently"** (the ENV_OBJECT
+   comment, the collectEnvReads loop comment, KNOWN LIMITS). They now name the known silent shapes. Why
+   it qualified: verified CORRECT against the repros, doc-only, within §7 (the header).
+3. **R5 sibling NOT fixed, owner-routed (not an autonomous call):** `f({ A } = <object>)` in a CALL
+   argument. Documented under KNOWN LIMITS and pinned by a test as silent, so any change later is
+   visible. Leaving a second silent direction goes against the plan's risk note (member access was to
+   be the only silent one), so the call is the owner's.
+4. **R6 (answers review.md R6): header wording corrected to match behaviour.** What changed: the
+   `MISSING GUARD` clause and a new KNOWN LIMITS line. Why it qualified: verified CORRECT (CLI repro
+   with a mode-000 file and a mode-000 directory: both silently skipped), doc-only, in plan §7. The
+   behaviour is unchanged; making an unreadable file fail closed is outside the plan and owner-routed.
+
+### Verification (this round)
+
+- RED first: the R5 test failed before the fix (the `,` parameter line and the call-argument pin were
+  green before and after, as pins of existing behaviour).
+- `npm test`: 139 suites / 1947 tests passed on the first run, no re-run, shell harnesses PASS.
+- `npm run lint` exit 0; `npx prettier --check` clean on the 2 files; `bash -n deploy.sh build-deploy-profile.sh` ok.
+- Real tree: text, `--json` and read set byte-identical to the run-2 step-0 baseline; 0 DYNAMIC-READs.
+- `ConfigValues.test.ts` green and unedited (`cmp`); `check-config-values.mjs` and `eslint.config.js`
+  also unchanged.
+- Mutations: N1–N4 (below) red. The build's M1–M21 were re-run against this checker, all red. All
+  restored by copy + `cmp`.
+
+| # | Mutation | Red tests |
+|---|---|---|
+| N1 | every `{` before `=` is a pattern again | R5 annotated-target test |
+| N2 | a `,` no longer opens a pattern | written-out destructuring (`H_KEY`) |
+| N3 | `const`/`let`/`var` no longer open a pattern | destructuring, R19 repro, rest, canary |
+| N4 | a `(` no longer opens a pattern | destructuring, call-argument pin |
+
+### Round 3, continued — the owner's rulings on Q1 and Q2 (2026-09-24, live via `AskUserQuestion` in the lead session, relayed)
+
+Decision log:
+
+5. **Q1 = A, "Accept as known limit" (owner ruling, not an autonomous call).** The call-argument
+   pattern `f({ A } = <object>)` stays silent. It is documented under KNOWN LIMITS (now noting the
+   owner's acceptance) and pinned by a test. It is recorded in review.md *Accepted residuals* with
+   What / Why / Re-raise-only-if. R5's row is now `✅ done`.
+6. **Q2 = A, "Yes, flag it" (owner ruling; applied under it).** Answers review.md R6. What changed:
+   `walkTypeScript` records a directory it cannot list in an `unreadable` list instead of returning
+   silently. `collectEnvReads` pushes a PARSE-FAILURE for each such directory (tagged `"global"`) and for
+   each `.ts` file it cannot read (tagged with that file's pipelines, via `pipelinesFor`). `--enforce`
+   fails closed on both through the existing `failsClosed`. The header `MISSING GUARD` clause lists them,
+   and the KNOWN LIMITS line was removed. Why it qualified: the owner explicitly ruled the behaviour;
+   verified CORRECT with a CLI repro (mode-000 file → `["game"]`, mode-000 directory → `global`) and
+   tests. The tests are robust as root: a one-time probe checks that chmod 000 really makes a file
+   unreadable; if not, both tests are `it.skip` with a console warning, never a green pass. Each test
+   restores permissions in `finally` so the fixture can be cleaned up.
+
+Verification: RED first (both R6 tests failed before the change). `npm test` 139 suites / 1949 tests
+passed on the first run, no re-run, R6 tests ran (not skipped), shell harnesses PASS. `npm run lint`
+exit 0. Prettier clean on both files. `bash -n` ok. Real tree: text, `--json` and read set are
+byte-identical to the step-0 baseline. `ConfigValues.test.ts` green and `cmp`-unedited. Mutations:
+
+| # | Mutation | Red tests |
+|---|---|---|
+| Q1 | an unreadable directory is not recorded | unreadable-directory test |
+| Q2 | an unreadable file is skipped silently | unreadable-file test |
+| Q3 | an unreadable directory tagged `["game"]` | unreadable-directory test |
+| Q4 | an unreadable file tagged global | unreadable-file test |
+
+The full table (M1–M21, N1–N4, Q1–Q4) was re-run against the final checker: 29/29 red, each restored
+by copy + `cmp`.

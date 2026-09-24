@@ -14,6 +14,8 @@ import {
   flashistConstants,
 } from "./flashist/FlashistFacade";
 import { PURCHASES_RECONCILED_EVENT } from "./PaymentsReconciliation";
+import { maybeClaimTenureGrant } from "./TenureGrantClaim";
+import type { TenureGrantModal } from "./TenureGrantModal";
 import {
   CITIZENSHIP_XP_THRESHOLD,
   PlayerProfileView,
@@ -125,7 +127,8 @@ export class CitizenshipCard extends LitElement {
         this.requestUpdate();
         await this.updateComplete;
         this.maybeReportSeen();
-        return this.refreshProfile();
+        await this.refreshProfile();
+        this.startTenureClaim();
       })
       .catch((error) => {
         console.warn("Failed to load profile for citizenship card:", error);
@@ -149,6 +152,37 @@ export class CitizenshipCard extends LitElement {
   private async refreshProfile(): Promise<void> {
     this.profile = await loadPlayerProfileView();
     this.requestUpdate();
+  }
+
+  /**
+   * The one-time tenure XP grant (task 0253). Only reachable from the enabled
+   * path of connectedCallback — behind CITIZENSHIP_CARD_ENABLED and the
+   * citizenship_ui flag — after the first profile read. Fire-and-forget: the
+   * card never waits on it. TenureGrantClaim decides everything else (login
+   * outcome, once per load) and never throws.
+   *
+   * The popup opens ONLY on `granted` with XP > 0. The profile is re-read with
+   * refreshProfile(), never a second loadPlayerProfileView() caller, so
+   * `Citizenship:Earned:XP` cannot double-fire.
+   */
+  private startTenureClaim(): void {
+    void (async () => {
+      const result = await maybeClaimTenureGrant();
+      if (
+        result.status !== "granted" ||
+        result.xpAwarded <= 0 ||
+        !this.isConnected
+      ) {
+        return;
+      }
+      document
+        .querySelector<TenureGrantModal>("tenure-grant-modal")
+        ?.show({ xpAwarded: result.xpAwarded, xp: result.xp });
+      // So the XP bar shows the granted total.
+      await this.refreshProfile();
+    })().catch((error) => {
+      console.warn("Tenure grant claim failed:", error);
+    });
   }
 
   public maybeReportSeen(): void {

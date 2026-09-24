@@ -477,6 +477,18 @@ defect was **observed** on 2026-09-18 (three prompts: `keyboard-configuration` c
 adds *"run it from a second terminal while the first SSH session stays open"* — so **one invocation
 produces all four sets of evidence.**
 
+📌 **2026-09-24 — `0253` RIDES THIS COMMAND TOO** (owner ruling 2026-09-24, *"Yes, ship it Saturday"*, live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent). `./build-deploy-profile.sh` builds from the
+working tree, and [`0253`](../tasks/done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)'s
+server code (closed 2026-09-24, uncommitted) sits there. The heading's *"four tasks"* is kept as written; this is the fifth.
+- **The tenure claim route, `POST /v1/profile/tenure-grant`, goes live on the profile box at W3, if the window runs.**
+  It is wired in `src/profile-server/Server.ts`, so it answers at once. It does not wait for the flag.
+- 🚨 **The owner-accepted claim-on-behalf risk (ADR-112, amended) opens at W3, not at `0065`'s flip.**
+  The `CITIZENSHIP_CARD_ENABLED` flag hides only the client popup, not the server route. [`0268`](../tasks/backlog/0268-remove-tenure-xp-claim-logic-after-60-days/brief.md)
+  is the task that closes the risk.
+- **W12's game deploy carries `0253`'s client code.** It stays inert while `CITIZENSHIP_CARD_ENABLED` is `false`.
+- The owner has said he will postpone the release if `dev` is not ready. If the window does not run, none of
+  the above happens on 2026-09-26.
+
 **Run it from a second terminal. W0.4's session stays open.**
 
 Watch for, in one pass:
@@ -711,10 +723,39 @@ It bumps, commits, tags and pushes (`build-deploy.sh:50-53`), builds, then calls
       here would fail a deploy and is out of scope** (`0064` verification step 6). Arming is ~~`0064`'s
       own~~ `0298`'s, after all ten of `0203`'s items. ~~**and `0203` is deferred by ruling 3.**~~ *(2026-09-23: ruling 3 is
       lifted for `0203`, whose decisions are taken before this window. Arming still does **not** happen in it.)*
+- [ ] **The config VALUE guard, report-only** *(added 2026-09-24: `0064` Phase 2, closed that day)*. `deploy.sh:332`
+      runs `run_config_value_guard || true` (the function is at `deploy.sh:82-98`). It prints its own block
+      **after** the parity guard's, headed `── config value guard (report-only) · deploy env: prod`. It checks
+      the **values** this deploy is about to send, not just the names, and it prints names and verdicts only,
+      never a value. Capture this block into `0298`'s worklog too: this is Phase 2's first real run.
+      What its lines mean, in plain terms:
+      - **`REQUIRED N`**: values that break a rule, one name per line after it. **`forwarded but EMPTY`**
+        means the value is blank. The other wording is a format rule: `PUBLIC_PROTOCOL` must be `https`,
+        and `API_BASE_URL`, `JWT_ISSUER` and `PROFILE_API_URL` must be `https` URLs whose host is not a
+        bare IP. Report-only: it does **not** stop the deploy today. Once `0298` arms `--enforce`, any
+        REQUIRED line blocks the deploy.
+      - **`OPTIONAL N`**: blank, but allowed by a recorded decision in `scripts/config-parity-allowlist.json`.
+      - **`OK N`**: values that pass.
+      - **`UNCHECKED N`**: sent to the server, but nothing reads them, so they are not judged.
+      - **`NOT JUDGED N`**: appears **only on a non-prod deploy**, because the value rules apply to prod
+        only. **You should not see it here.** If you do, this deploy is not running as `prod`: stop and check.
+      - `VALUE-UNKNOWN`, `PARSE-FAILURE`, `SKIP`, `NOTE` and `INFO` lines are about the guard itself, not about
+        a config value. `VALUE-UNKNOWN` means a source variable never reached the checker (a wiring fault).
+        Record each one in `0298`.
+      - The last line should read `report-only — exit 0, this cannot fail a deploy`.
+      🚨 **Expected if `.env.prod` lacks the token:** a `REQUIRED` line naming
+      `PROFILE_INTERNAL_TOKEN — forwarded but EMPTY`. **The token should now always be set**: the
+      blank-by-hand rule was **retired** on 2026-09-24 (owner, verbatim: *"Retire it"*; see `0296`'s top
+      box), and this slot needs it set and matching anyway (W11). If you see that line, the token is
+      missing. Treat it as a missed precondition, not as noise.
 - [ ] ⚠️ **Parity cannot catch the thing you are doing here.** It compares **names**, and
-      `PROFILE_INTERNAL_TOKEN` *is* forwarded correctly (`deploy.sh:312`). A present-when-it-should-be-
-      blank value is a Phase 2 concern that does not exist yet (`0064` § *What to build* 5).
-      **W11's A1 (ex-`0062`-D1) is the only guard.**
+      `PROFILE_INTERNAL_TOKEN` *is* forwarded correctly (`deploy.sh:350`; *was cited as `:312`, re-verified
+      2026-09-24*). ~~A present-when-it-should-be-
+      blank value is a Phase 2 concern that does not exist yet (`0064` § *What to build* 5).~~ *(Struck
+      2026-09-24. Phase 2 exists now: the value guard above flags a **blank** token. "Present when it should
+      be blank" no longer arises, because the blank-by-hand rule was retired that day.)*
+      **W11's A1 (ex-`0062`-D1) is the only guard** that the value **matches** the box's. The value guard
+      sees only whether it is blank.
 
 ---
 

@@ -510,6 +510,9 @@ down (`0019` decision).
       flipped, `0297` also becomes runnable. ⚠️ `RUNBOOK-A` still stands: the flip does **not** ride a
       deploy slot. **Launch timing is the owner's call.** 🚨 Accepted tradeoff: real players can buy
       from this moment, before any real purchase has been proven.
+      📌 **2026-09-24 — THE TENURE GRANT MUST BE LIVE BEFORE THIS FLIP** ([`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md), closed 2026-09-24). Deploy fact (owner ruling at `0253` plan approval, 2026-09-24, Q2 — live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent): **the claim route goes onto the profile box with the next profile-box deploy, before this flip. No special hold.** Go-live prerequisites for the tenure path, in order: **(1)** the claim route is on the profile box; **(2)** the client carrying `0253`'s code is deployed; **(3)** then this flip. **It does not depend on `0217`.** ⚠️ The owner-accepted claim-on-behalf risk (ADR-112 as amended) starts **when the route reaches the box**, not at this flip. [`0268`](../0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) closes it.
+      📌 **2026-09-24, later — SCHEDULED: the route rides Saturday 2026-09-26's profile deploy (runbook W3), if the window runs** (owner ruling 2026-09-24, *"Yes, ship it Saturday"*, live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent). The claim-on-behalf risk opens at W3. W12 carries `0253`'s client code, inert while the flag is `false`.
+      🔓 **2026-09-24, for visibility, NOT a gate on this flip:** paid state is **derivable** from the public profile (`is_citizen && citizenship_earned_at === null` ⇒ paid), readable by anyone who asserts another player's id. Owner ruled it a **must-fix in [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md)** (see its 🚨 MUST-FIX block). Until then, paid state is **not** private. No recorded ruling makes this block the flip.
 
 ## Verification
 
@@ -562,7 +565,7 @@ the live Yandex iframe — or it is explicitly owner-waived. §1–§5 and step 
     section states all three payments routes return 503 without the key),
     [`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md),
     [`0018`](../0018-citizenship-paid/brief.md), and
-    [`0064`](../0064-deploy-time-config-parity-guard/brief.md) with its plan/worklog/review.
+    [`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md) with its plan/worklog/review.
     ⚠️ **Not corrected** — the ruling scoped the correction to **this** brief and told the producer to
     report the rest rather than sweep it.
   - **The Sprint 4 board** — `0065`'s own row **was** corrected; **`0195`'s `✅ Done` row was NOT**, because
@@ -585,7 +588,7 @@ the live Yandex iframe — or it is explicitly owner-waived. §1–§5 and step 
     observed not 503ing** — but the *conclusion* `0014` draws (its own gate is not satisfied) **still
     holds**, because the test-purchase login(s) are outstanding independently.
   - **[`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md)** (`:270`) and
-    **[`0064`](../0064-deploy-time-config-parity-guard/brief.md)** (`:244`, `:249`, plus its
+    **[`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md)** (`:244`, `:249`, plus its
     plan/worklog/review) — both already hedge the 503 claim as *never verified against a running box*,
     so they are the mildest cases.
   - **[`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md)** (`:157`) — describes

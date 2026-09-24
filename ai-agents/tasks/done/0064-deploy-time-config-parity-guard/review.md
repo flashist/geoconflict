@@ -1,12 +1,21 @@
 # Review — 0064
 
-Task: `ai-agents/tasks/backlog/0064-deploy-time-config-parity-guard/brief.md`
-Plan: `ai-agents/tasks/backlog/0064-deploy-time-config-parity-guard/plan.md` (rulings R1–R6)
+Task: `ai-agents/tasks/done/0064-deploy-time-config-parity-guard/brief.md`
+Plan: `ai-agents/tasks/done/0064-deploy-time-config-parity-guard/plan.md` (rulings R1–R6)
 File(s) under review: `scripts/check-config-parity.mjs`, `scripts/config-parity-allowlist.json`,
 `tests/scripts/ConfigParity.test.ts`, `deploy.sh:44-55`, `build-deploy-profile.sh:51-64`,
 `package.json:33`, `CLAUDE.md:104`, `eslint.config.js:76-91`
-Status: **round 2 complete — CONVERGED, no round 3. Ship report-only. The pre-arming gate is now
-10 items (was 2) — see *Carried into the pre-arming pass* at the end of this file.**
+**Phase 2 (round 3):** `scripts/check-config-values.mjs` (new), `scripts/check-config-parity.mjs` (seam
+only), `scripts/config-parity-allowlist.json`, `deploy.sh` (`run_config_value_guard` + its call),
+`eslint.config.js` (one entry), `tests/scripts/ConfigValues.test.ts` (new), `tests/scripts/ConfigParity.test.ts`
+Plan (Phase 2): `plan-phase2.md` (its *Owner amendments at approval* win)
+Status: closed-out — **Phase 2, round 3 dispositioned 2026-09-24** (R22 fixed; X1/X2 disproven by the
+reviewer, upheld). Phase 1 (rounds 1–2) converged; its pre-arming list at the end of the Phase 1 sections
+still stands for the `--enforce` arming (`0298`).
+Coverage: both reviewers measured — round 3: codex-cli 0.152.0, exit 0; Codex ran
+`node scripts/check-config-values.mjs --list-sources`, `node` URL-normalisation probes and `/bin/bash`
+env-file `source` probes; the Claude reviewer ran both jest suites (136/136) and 5 mutations in an
+isolated mirror, plus a bash 3.2 `${!name}` injection demo.
 
 Reviewers run (Round 1): fkit-reviewer own pass **+** Codex `gpt-5.5` adversarial pass
 (`codex exec --sandbox read-only`, exit 0, 7 findings). **Both reviewers ran — coverage is not partial.**
@@ -508,3 +517,164 @@ appears anywhere — variable names only.**
 **Out of scope of this file but done in the same session:** `package-lock.json` was reconciled with
 `package.json` (`npm install --package-lock-only --ignore-scripts`) — additive only, unrelated to `0064`.
 Recorded in `worklog.md`.
+
+---
+
+# Reviewer findings — Round 3 (Phase 2: the game value guard)
+
+**Decision: ⚠️ Changes requested — 1 defect (none blocking)**
+
+Coverage: recorded in the header `Coverage:` field (round 3).
+
+**Scope note.** The caller asked for "working tree vs HEAD". The Phase 2 code is **already in `HEAD`**
+(`7daf386`, "Sprint push"); against `HEAD` the working tree holds only the `eslint.config.js` entry
+(plus planning-record edits, ignored). So I reviewed `7daf386^..7daf386` for the six Phase 2 files, plus
+the working-tree `eslint.config.js` diff. Stated, not judged — who committed it is not a review question.
+
+Reviewers run: fkit-reviewer own pass **+** Codex adversarial pass (`codex exec --sandbox read-only`,
+exit 0, 2 findings, both verified below; 1 disproven, 1 falls with it). Codex was primed with the
+Phase 1 residuals and the Phase 2 owner rulings.
+
+## What I ran
+
+| Check | Result |
+|---|---|
+| `npx jest ConfigValues + ConfigParity` | ✅ 136/136 (52 + 84) |
+| `eslint` on the 5 JS/TS files + `eslint.config.js` | ✅ exit 0 |
+| `prettier --check` on the 6 files | ✅ clean |
+| `/bin/bash -n deploy.sh` | ✅ |
+| Mutations, isolated mirror (no tracked file touched) | drop library flag → **30 red**; drop `.trim()` → 2 red; drop dead-key exemption → 17 red; drop `bare-ip` rule → 6 red; drop `deploy.sh` name-regex guard → the injection test red |
+| bash 3.2.57 `${!name}` on `a[$(touch PWNED)]` | ✅ **runs the command** — the regex guard at `deploy.sh:94` is load-bearing, and its test is proven falsifiable |
+| WHATWG URL probes, 18 spellings | ✅ trailing-dot, hex, octal, `%31`, full-width digits, userinfo, IPv4-mapped IPv6, `https:1.2.3.4` all normalise to an IP literal (or fail `startsWith`) → caught. `#@1.2.3.4` correctly treated as a fragment |
+
+## Focus areas — verdicts
+
+- **Values never leak.** ✅ Held. Every output string is fixed wording plus names, line numbers and input
+  paths. `check()` crash prints only `error.name` (`check-config-values.mjs:481-487`); `render()`/`JSON.stringify`
+  run over a result that holds no value; malformed-stream reasons are fixed text. The G canary tests
+  (userinfo + path + query canaries on an IP host, text + JSON, prod + staging, 4 malformed shapes)
+  pass, and a leak mutation would have to route a value into `result`, which they would catch.
+- **`${!name}` + name guard.** ✅ Correct and proven (above). Latent nit only — see *Nits*.
+- **Library-flag seam.** ⚠️ The seam **works and is well guarded** (30 tests red when the flag is lost), but
+  its **stated failure mode is wrong** — **R22**.
+- **stdin parsing.** ✅ `parseStream` (`:199-216`) handles empty, unterminated, odd-count, bad-name and
+  duplicate cases; a valid empty value (`A\0\0`) parses as blank. UTF-8 decode before the `\0` split is safe.
+- **Judges the exact forwarded values.** ✅ The heredoc sits inside a **double-quoted** ssh string
+  (`deploy.sh:336-370`), so each `${SRC}` is expanded **locally** — exactly what `${!name-}` reads. The call
+  sits after every default/override and the test at `ConfigValues.test.ts:903-915` pins that nothing
+  sits between it and the ssh. `update.sh:88` hands the file to the container via `--env-file` (literal),
+  and `DefaultConfig.ts:101-185` `.trim()`s all four format keys — so the trim is correct (see X1).
+- **Test quality.** ✅ Strong overall — every mutation I tried went red. One exception, **R22**.
+
+## New findings — Round 3
+
+| # | Round | Sev | Location | Claim |
+|---|-------|-----|----------|-------|
+| R22 | 3 | low | `scripts/check-config-parity.mjs:1199-1201`, `scripts/check-config-values.mjs:57-58`; `tests/scripts/ConfigValues.test.ts:234`, `:735` | **The library-flag seam's stated failure mode is false, and the two assertions named for it cannot fire.** Both comments say a lost flag makes `main()` "print a whole parity report into the value checker's output". **Reproduced (mutation M1):** it prints no report — the parity `parseArgs` rejects the value checker's own arguments and writes a 2-line usage error to **stdout** (`config-parity guard: unknown argument '--values-stdin'` + `usage: …`). The assertions `not.toContain("config parity guard")` look for the report **header**, which never appears; the usage line spells it **`config-parity guard`** (hyphenated). Under M1 all four G tests and that A assertion stay **green**. **The seam is still well guarded** — 30 other tests go red (the exact `--list-sources` list and every `JSON.parse`) — so this is a false comment plus two non-falsifiable assertions, not a coverage hole. Same shape as R17. Also: in `--list-sources` mode the usage lines land **in the name list**; `deploy.sh:94`'s regex drops them, so the deploy path degrades safely. |
+
+### Disproven — do not chase
+
+- **Codex X1 (medium) — "the guard trims before judging, so a padded `" https "` reports OK although the
+  exact heredoc value is not `https`."** **INCORRECT as a defect.** The four format keys are consumed only by
+  the app, via `docker run --env-file` (`update.sh:88`, literal), and the app `.trim()`s each one
+  (`DefaultConfig.ts:103-108`, `:143-149`, `:157-162`, `:171-176`) before comparing. So the trimmed value **is**
+  the value that takes effect; judging the untrimmed one would report a false finding. Trim-first is also
+  written into the owner-approved plan (`plan-phase2.md` § 2, "after `trim()` (the app trims too)"). Codex's
+  side observation is real but **not Phase 2's**: `update.sh:22-24` `source`s the env file, so any value with
+  whitespace makes that shell try to run a command. `update.sh` reads none of the four keys and has no
+  `set -e`, so that only prints noise. It applies to **every** key, it predates this task, and a
+  "no whitespace" rule is outside the rule list the owner set as final.
+- **Codex X2 (low) — the test pins `" https "` as clean.** Falls with X1: that assertion
+  (`ConfigValues.test.ts:298-301`) pins correct behaviour.
+
+### Nits — recorded, no row, no action asked
+
+- **Local shadowing in `run_config_value_guard`** (`deploy.sh:83`, `:93`). A heredoc source named `checker`,
+  `sources` or `name` would make `${!name-}` read the function's local variable, not the forwarded value
+  (demonstrated under `/bin/bash`). **No live instance:** all 29 sources are uppercase. Uppercase-only in the
+  regex, or `local`-free names, would close it.
+- **"Drain stdin first" comment** (`check-config-values.mjs:470`) is true for every path after argument
+  parsing, but a usage error (exit 2) returns **before** draining, so the writer can take a SIGPIPE.
+  Harmless: no `pipefail`, and `|| true` absorbs it.
+- **`ENV` can be overwritten** by a `.env*` file under `allexport` after the check at `deploy.sh:39`. If it
+  were, `--deploy-env="$ENV"` would get a usage error and judge nothing. That is a gap that existed before
+  (the heredoc forwards the same `ENV`). No live instance known; I did not open any `.env*` file.
+
+### Suppressed — re-litigates settled decisions
+
+- The Phase 2 rulings: game side only · prod-only rules · `PROFILE_INTERNAL_TOKEN` required · the four-key
+  format list (bare-IP `PUBLIC_HOST` knowingly unchecked, `plan-phase2.md` § 8 item 5) · `--enforce`
+  wired to nothing (→ `0298`) · the `eslint.config.js` entry · values on stdin with the ssh argv already
+  carrying them · a value containing a line break is not checked · the check running after the `scp`.
+- Phase 1 residuals **R9-findIndex** and **R12** apply to the value checker too: it reuses
+  `parseHeredocKeys`, and an `export`-prefixed heredoc line is skipped silently by `HEREDOC_LINE`
+  (`check-config-values.mjs:74`, `:174`). Neither re-raise trigger is met: there is still exactly one
+  `<< 'EOL'` and no `export`/lowercase line in the body. **Now worth knowing for the pre-arming pass:
+  R12 would now also hide a value from the value check, not just a key from the parity check.**
+
+## Convergence call
+
+**One low defect (R22), a comment plus two assertions. Nothing touches behaviour, the leak property or the
+deploy path.** Phase 2 does what the amended plan says. Every focus area held under execution. **Nothing
+here blocks the Saturday report-only ride.** R22 costs little to fix (reword two comments; point the two
+assertions at `config-parity guard` / the usage line, or drop them). It is equally defensible to accept it
+as a residual next to R17. **No round 4 is warranted either way.** Another pass on this diff would turn up
+nits, not defects.
+
+## Open question for the owner
+
+**Q8 (R22): fix it or record it?**
+- **A: coder fixes it (my recommendation).** Reword the two seam comments to the real failure mode (a
+  usage error on stdout, caught by the suite's exact-output tests), and make the two
+  `not.toContain` assertions target the text that really appears. Stays inside Phase 2 scope; a task
+  about false claims should not ship one.
+- **B: accept as residual.** Re-raise only if the exact-output tests (`--list-sources` list, JSON parses)
+  are ever weakened, since they are what really guards the seam.
+
+# Coder response — Round 3 (Phase 2)
+
+_(coder-owned — reviewer does not write here. The round-3 **Reviewer findings** section above is untouched.)_
+
+**Processed 2026-09-24** by `fkit-coder`, spawned as the **Process-review worker** of `/fkit-sprint-ship-loop`,
+under the standing approval of the owner-approved Phase 2 plan (`plan-phase2.md`, blob `be4b471d`, re-hashed
+this turn; its 2026-09-23 amendments and the 2026-09-24 `eslint.config.js` approval). No per-fix owner gate: the
+one fix below is verified-`CORRECT`, mechanical, and inside the plan (plan § 5 G: *"the value output never
+contains the parity report header (proves the library flag works)"*, a test that as built could not prove it).
+
+**Loop check (Step 2):** R22 matches no accepted residual. **It is not R17:** R17 is about the two
+*real-tree* absence assertions in `ConfigParity.test.ts`; R22 is about the *seam* assertions in
+`ConfigValues.test.ts`. The two have the same structure, but they are different lines, and R17's re-raise
+condition is untouched. No ADR covers it. **Regression check (Step 3.5):** the fix touches two comments and
+two assertions. It changes no behaviour and no round-1/2 fix (R5's exit-contract wording sits in a
+different comment block and is not edited). No oscillation.
+
+| # | Verdict | Defect / Frontier | Action | Status |
+|----|---------|-------------------|--------|--------|
+| R22 | **CORRECT — reproduced** | Defect (low — agreed after tracing: the seam was already guarded by 30 other tests; the cost was a false comment in a task about false claims, plus two assertions that could never fail) | Both seam comments now describe the real failure mode: `main()` rejects the value checker's arguments and writes a `config-parity guard: unknown argument …` usage error to stdout. The two assertions now match `/config[- ]parity guard/` (the usage line **and** the report header), on stdout, and on stderr too in the G helper. **Mutation-proved:** under the lost flag, **32** tests go red (was 30). The two G tests the reviewer saw stay green now fail on exactly this pattern. | ✅ done |
+| X1 (Codex) | INCORRECT — reviewer's disproof upheld | — | none. `DefaultConfig.ts` `.trim()`s all four format keys before comparing, so the trimmed value is the value that takes effect. Trim-first is written into the approved plan (§ 2). | disproven |
+| X2 (Codex) | INCORRECT — falls with X1 | — | none. The `" https "` → clean assertion pins correct behaviour. | disproven |
+
+**Nits a–c** (local-name shadowing in `run_config_value_guard`, stdin not drained on a usage error, `ENV`
+overwritable by a `.env*` file) have no rows and are **not actioned**. The reviewer asked for nothing, and
+none has a live instance. **Q8 (fix or record R22):** answered **A (fix)** under the standing approval.
+It is the reviewer's own recommendation, and it stays inside Phase 2 scope.
+
+### Verification of this round
+
+- **Reproduced first (M1, scratch copy, no tracked file touched):** with the flag line removed, stdout
+  starts with `config-parity guard: unknown argument '--list-sources'` (or `'--values-stdin'`) + the
+  `usage:` line. No report. Confirms the claim word for word.
+- **Mutation after the fix (the real file, restored byte-identically, checked with `cmp`):** `ConfigValues`
+  **32 failed / 20 passed**. `✕ text and JSON, prod and staging…` and `✕ the malformed-stream and
+  duplicate-name paths…` both fail with `Expected pattern: not /config[- ]parity guard/`.
+- `ConfigValues` + `ConfigParity`: **136/136**. `npm run lint` (whole repo): **exit 0**. `prettier --check`
+  on the 3 touched files: clean. **Full `npm test`: exit 0, 139 suites / 1923 tests**, first run, no
+  flake, no re-run.
+
+### Change surface, this round (working tree on top of `7daf386`; not committed)
+
+- `scripts/check-config-parity.mjs`: the library-mode comment above the `main()` gate. Comment only.
+- `scripts/check-config-values.mjs`: the comment above `globalThis.CONFIG_PARITY_AS_LIBRARY = true`. Comment only.
+- `tests/scripts/ConfigValues.test.ts`: new `PARITY_OUTPUT` constant; the A `--list-sources` assertion and
+  the G `expectClean` helper now use it (plus a stderr check in the helper).
+

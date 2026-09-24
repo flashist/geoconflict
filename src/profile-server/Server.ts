@@ -179,6 +179,8 @@ const app = createApp(
   {
     loginCreateEnabled,
     metrics,
+    // Tenure XP grant (task 0253): the profile repository owns the transaction.
+    tenureGrant: profiles,
     alertRelay: {
       secret: alertWebhookToken,
       telegram: {

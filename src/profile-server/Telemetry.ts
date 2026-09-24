@@ -116,6 +116,21 @@ export type AlertRelayResult =
  */
 export type AlertRelayKeyed = "keyed" | "unkeyed";
 
+/**
+ * One `POST /v1/profile/tenure-grant` request's outcome (task 0253). Bounded:
+ * the three wire statuses, `not_found` (the token's player is gone), and the
+ * refusals before the repository is reached. Never a free-text value.
+ */
+export type TenureClaimOutcome =
+  | "granted"
+  | "below_minimum"
+  | "duplicate"
+  | "not_found"
+  | "bad_request"
+  | "unauthorized"
+  | "unavailable"
+  | "error";
+
 /** What the routes and repositories record. Nothing here ever throws or awaits. */
 export interface ProfileMetrics {
   loginRequest(platform: MetricPlatform, outcome: LoginOutcome): void;
@@ -127,8 +142,8 @@ export interface ProfileMetrics {
     durationMs: number,
   ): void;
   sessionRejected(reason: SessionRejectedReason): void;
-  /** Defined only — task 0253 adds the caller (its route is not in Routes.ts yet). */
-  tenureClaim(outcome: string): void;
+  /** Once per `POST /v1/profile/tenure-grant` request (task 0253). */
+  tenureClaim(outcome: TenureClaimOutcome): void;
   /**
    * One webhook call through the alert relay (task 0277).
    *
@@ -245,7 +260,7 @@ export function createProfileMetrics(
     "geoconflict.profile.tenure.claims",
     {
       description:
-        "Tenure XP grant claims by outcome (task 0253 adds the caller)",
+        "Tenure XP grant claims (POST /v1/profile/tenure-grant), by outcome",
     },
   );
   const alertRelayCalls = meter.createCounter(

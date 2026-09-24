@@ -90,7 +90,7 @@ lead, not re-queried by the architect:
   ratio**) → local evidence is not being lost at a meaningful rate.
 
 Full findings: `ai-agents/knowledge-base/reports/2026-09-14-0253-tenure-xp-grant-findings.md`; draft and
-rulings: `ai-agents/tasks/backlog/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/worklog.md`,
+rulings: `ai-agents/tasks/done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/worklog.md`,
 the *"Owner rulings on A–G — 2026-09-14"* section.
 
 ## Decision
@@ -204,7 +204,7 @@ ledger"* are **closeout of this ADR, not new defects.**
 
 ## Related
 
-- `ai-agents/tasks/backlog/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md`
+- `ai-agents/tasks/done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md`
   and `worklog.md` — research, step-2 draft, owner input and rulings
 - `ai-agents/knowledge-base/reports/2026-09-14-0253-tenure-xp-grant-findings.md` — step-1 findings
 - [ADR-101](adr-101-fail-soft-xp-crediting-no-durable-queue.md),

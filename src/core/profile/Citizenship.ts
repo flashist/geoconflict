@@ -31,6 +31,21 @@ export const CITIZENSHIP_XP_THRESHOLD = 100;
 export const XP_PER_MATCH = 1;
 
 /**
+ * The one-time tenure grant for players who were with us before citizenship
+ * launched (task 0253): XP per day played, the cap, and the minimum day count.
+ *
+ * Owner-ruled; the rules they sit inside are ADR-112 as amended by the
+ * 2026-09-15 redesign — a one-time server-side check, days = the larger of the
+ * two device counts, a claim under the minimum still records a final 0-XP
+ * check. The economy is ADR-111. The cap is deliberately half of
+ * CITIZENSHIP_XP_THRESHOLD: a grant alone can never make a player a citizen.
+ * The amount rule itself lives in TenureGrantContract.ts.
+ */
+export const TENURE_XP_PER_DAY = 1;
+export const TENURE_XP_CAP = 50;
+export const TENURE_MIN_DAYS = 3;
+
+/**
  * Whether a given lifetime XP total qualifies for earned citizenship.
  * Pure threshold check — the server stamps `citizenship_earned_at` on the first
  * crossing; this predicate is the rule both sides agree on.

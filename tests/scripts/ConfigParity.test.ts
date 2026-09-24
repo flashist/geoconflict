@@ -35,11 +35,15 @@ type PipelineResult = {
   allowed: { name: string }[];
   checked: boolean;
 };
+// A PARSE-FAILURE / DYNAMIC-READ / SKIP entry, tagged with the pipelines it concerns
+// (task 0203 item 12): a list in game, profile, client order, or "global" when the
+// finding cannot be traced to a pipeline.
+type TaggedFinding = { message: string; pipelines: string[] | "global" };
 type CheckerResult = {
   pipelines: Record<"game" | "profile" | "client", PipelineResult>;
-  parseFailures: string[];
-  dynamicReads: string[];
-  skips: string[];
+  parseFailures: TaggedFinding[];
+  dynamicReads: TaggedFinding[];
+  skips: TaggedFinding[];
   inertAllowlist: { name: string; phase: number }[];
   requiredTotal: number;
   mode: string;
@@ -68,6 +72,11 @@ function runJson(args: string[]): CheckerResult {
 
 function names(findings: { name: string }[]): string[] {
   return findings.map((f) => f.name).sort();
+}
+
+/** The messages of a tagged list, one per line — what a substring assertion reads. */
+function messages(list: TaggedFinding[]): string {
+  return list.map((f) => f.message).join("\n");
 }
 
 // ── Synthetic fixture repo ────────────────────────────────────────────────────
@@ -612,7 +621,7 @@ describe("allowlist semantics (verification step 5)", () => {
       }),
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-    expect(result.parseFailures.join("\n")).toContain("empty reason");
+    expect(messages(result.parseFailures)).toContain("empty reason");
   });
 
   it("rejects an unknown class and an unknown pipeline", () => {
@@ -634,7 +643,7 @@ describe("allowlist semantics (verification step 5)", () => {
         }),
       });
       const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-      expect(result.parseFailures.join("\n")).toContain(`unknown ${field}`);
+      expect(messages(result.parseFailures)).toContain(`unknown ${field}`);
     }
   });
 });
@@ -774,7 +783,7 @@ describe("parsers fail loud rather than comparing an empty set", () => {
   it("PARSE-FAILURE when the deploy heredoc anchor is gone", () => {
     const root = fixture({ "deploy.sh": "#!/bin/bash\necho no heredoc here" });
     const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-    expect(result.parseFailures.join("\n")).toContain(
+    expect(messages(result.parseFailures)).toContain(
       "heredoc anchor not found",
     );
   });
@@ -786,7 +795,7 @@ describe("parsers fail loud rather than comparing an empty set", () => {
       ),
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-    expect(result.parseFailures.join("\n")).toContain("yielded 0 keys");
+    expect(messages(result.parseFailures)).toContain("yielded 0 keys");
   });
 
   it("PARSE-FAILURE when the heredoc is never closed", () => {
@@ -796,7 +805,7 @@ describe("parsers fail loud rather than comparing an empty set", () => {
       ),
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-    expect(result.parseFailures.join("\n")).toContain("never closed it");
+    expect(messages(result.parseFailures)).toContain("never closed it");
   });
 
   it("PARSE-FAILURE when a deploy heredoc key is indented", () => {
@@ -812,7 +821,7 @@ describe("parsers fail loud rather than comparing an empty set", () => {
       ].join("\n"),
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-    expect(result.parseFailures.join("\n")).toContain("indents 'GAME_HOST='");
+    expect(messages(result.parseFailures)).toContain("indents 'GAME_HOST='");
   });
 
   it("an indented profile.env key fails loud instead of silencing a hop-1 finding", () => {
@@ -836,7 +845,7 @@ describe("parsers fail loud rather than comparing an empty set", () => {
       ].join("\n"),
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=profile"]);
-    expect(result.parseFailures.join("\n")).toContain(
+    expect(messages(result.parseFailures)).toContain(
       "indents 'PROFILE_SECRET='",
     );
   });
@@ -874,7 +883,7 @@ describe("parsers fail loud rather than comparing an empty set", () => {
       "setup-profile.sh": profileHeredoc(["export ORPHAN_KEY=${ORPHAN_KEY}"]),
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=profile"]);
-    const failures = result.parseFailures.join("\n");
+    const failures = messages(result.parseFailures);
     expect(failures).toContain("'ORPHAN_KEY='");
     expect(failures).toContain("heredoc line 6");
 
@@ -898,7 +907,7 @@ describe("parsers fail loud rather than comparing an empty set", () => {
       "deploy.sh": deployHeredoc(["  export GAME_HOST=${GAME_HOST}"]),
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-    expect(result.parseFailures.join("\n")).toContain("'GAME_HOST='");
+    expect(messages(result.parseFailures)).toContain("'GAME_HOST='");
   });
 
   it("R12: lowercase and mixed-case keys each fail loud, by name", () => {
@@ -906,7 +915,7 @@ describe("parsers fail loud rather than comparing an empty set", () => {
       "deploy.sh": deployHeredoc(["game_host=${GAME_HOST}", "Game_Host=x"]),
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-    const failures = result.parseFailures.join("\n");
+    const failures = messages(result.parseFailures);
     expect(failures).toContain("heredoc line 5 'game_host='");
     expect(failures).toContain("heredoc line 6 'Game_Host='");
   });
@@ -914,7 +923,7 @@ describe("parsers fail loud rather than comparing an empty set", () => {
   it("R12: a bare `KEY` line (docker forwards it from the host) fails loud", () => {
     const root = fixture({ "deploy.sh": deployHeredoc(["GAME_HOST"]) });
     const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-    expect(result.parseFailures.join("\n")).toContain("heredoc line 5");
+    expect(messages(result.parseFailures)).toContain("heredoc line 5");
   });
 
   it("R12: a vertical-tab-indented key fails loud", () => {
@@ -922,7 +931,7 @@ describe("parsers fail loud rather than comparing an empty set", () => {
       "deploy.sh": deployHeredoc(["\vGAME_HOST=${GAME_HOST}"]),
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-    expect(result.parseFailures.join("\n")).toContain("'GAME_HOST='");
+    expect(messages(result.parseFailures)).toContain("'GAME_HOST='");
   });
 
   it("R12: blank lines and comments in a heredoc body are NOT failures", () => {
@@ -961,13 +970,13 @@ describe("parsers fail loud rather than comparing an empty set", () => {
   it("PARSE-FAILURE when the profile export block yields nothing", () => {
     const root = fixture({ "build-deploy-profile.sh": "#!/bin/bash\necho hi" });
     const result = runJson([`--repo-root=${root}`, "--pipeline=profile"]);
-    expect(result.parseFailures.join("\n")).toContain("printf");
+    expect(messages(result.parseFailures)).toContain("printf");
   });
 
   it("PARSE-FAILURE when DefinePlugin yields no keys", () => {
     const root = fixture({ "webpack.config.js": "module.exports = {};" });
     const result = runJson([`--repo-root=${root}`, "--pipeline=client"]);
-    expect(result.parseFailures.join("\n")).toContain("DefinePlugin");
+    expect(messages(result.parseFailures)).toContain("DefinePlugin");
   });
 
   it("SKIP, not a crash, when an input file is missing", () => {
@@ -991,7 +1000,7 @@ describe("announces its own blind spots instead of printing a green check", () =
         "const key = 'A';\nconst v = process.env[key];\nexport { v };",
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-    expect(result.dynamicReads.join("\n")).toContain("computed");
+    expect(messages(result.dynamicReads)).toContain("computed");
   });
 
   it("still enumerates a string-literal bracket read", () => {
@@ -1022,7 +1031,10 @@ describe("announces its own blind spots instead of printing a green check", () =
       "src/server/Alias.ts": "const all = process.env;\nexport { all };",
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
-    expect(result.dynamicReads.join("\n")).toContain("aliased or destructured");
+    // Wording updated by task 0203 item 11: a destructuring is now a read, not a blind spot.
+    expect(messages(result.dynamicReads)).toContain(
+      "the environment object is used whole",
+    );
   });
 
   it("DYNAMIC-READ when a src file maps to no pipeline", () => {
@@ -1030,7 +1042,7 @@ describe("announces its own blind spots instead of printing a green check", () =
       "src/stray.ts": "const v = process.env.STRAY_ONE;\nexport { v };",
     });
     const result = runJson([`--repo-root=${root}`, "--pipeline=all"]);
-    expect(result.dynamicReads.join("\n")).toContain("maps to no pipeline");
+    expect(messages(result.dynamicReads)).toContain("maps to no pipeline");
   });
 
   it("--enforce fails closed on a blind spot", () => {
@@ -1234,7 +1246,7 @@ describe("R15 — the read scanner separates code from comments and strings", ()
     const result = serverFile(
       "const v = process.env.GAME_UNTERMINATED;\nexport { v };\n/* never closed\n",
     );
-    const failures = result.parseFailures.join("\n");
+    const failures = messages(result.parseFailures);
     expect(failures).toContain(TOKENIZER_FAILURE);
     expect(failures).toContain("Scan.ts");
     // The fallback: a DETECTED tokenizer failure never loses a read. An undetected
@@ -1347,10 +1359,705 @@ describe("R18 — DefinePlugin keys are read from the DefinePlugin object litera
       ["new webpack.DefinePlugin(definitions);"],
     ]) {
       const result = clientRun(body);
-      const failures = result.parseFailures.join("\n");
+      const failures = messages(result.parseFailures);
       expect(failures).toContain("DefinePlugin");
       expect(failures).toContain("cannot enumerate");
     }
+  });
+});
+
+// ── Item 12 (task 0203) — every finding names the pipelines it concerns ────────
+
+describe("item 12 — each PARSE-FAILURE, DYNAMIC-READ and SKIP is tagged with its pipelines", () => {
+  // Owner ruling 2026-09-23: a finding carries the pipelines it can be traced to, or
+  // "global" when it cannot. Consuming the tags per deploy is task 0298's job; here
+  // --enforce still fails on any finding, whatever its tag.
+  const PLACEMENTS: [string, string[] | "global"][] = [
+    ["src/server/X.ts", ["game"]],
+    ["src/profile-server/X.ts", ["profile"]],
+    ["src/client/X.ts", ["client"]],
+    ["src/core/configuration/X.ts", ["game", "client"]],
+    ["src/core/other/X.ts", ["game"]],
+    ["src/newdir/X.ts", "global"],
+  ];
+  const COMPUTED = "const k = 'A';\nconst v = process.env[k];\nexport { v };";
+
+  it("a computed-index DYNAMIC-READ carries its file's pipelines", () => {
+    for (const [file, expected] of PLACEMENTS) {
+      const root = fixture({ [file]: COMPUTED });
+      const result = runJson([`--repo-root=${root}`, "--pipeline=all"]);
+      expect({
+        file,
+        tags: result.dynamicReads.map((f) => f.pipelines),
+      }).toEqual({ file, tags: [expected] });
+      expect(result.dynamicReads[0].message).toContain("computed index");
+    }
+  });
+
+  it("a scanner PARSE-FAILURE carries its file's pipelines", () => {
+    for (const [file, expected] of PLACEMENTS) {
+      const root = fixture({
+        [file]: "export const x = 1;\n/* never closed\n",
+      });
+      const result = runJson([`--repo-root=${root}`, "--pipeline=all"]);
+      expect({
+        file,
+        tags: result.parseFailures.map((f) => f.pipelines),
+      }).toEqual({ file, tags: [expected] });
+      expect(result.parseFailures[0].message).toContain(
+        "could not separate code from comments/strings",
+      );
+    }
+  });
+
+  it("an input-level finding carries the pipeline that reads that input, or global", () => {
+    const cases: {
+      label: string;
+      overrides: Record<string, string | null>;
+      args?: string[];
+      list: "parseFailures" | "skips";
+      text: string;
+      expected: string[] | "global";
+    }[] = [
+      {
+        label: "deploy.sh heredoc anchor gone",
+        overrides: { "deploy.sh": "#!/bin/bash\necho no heredoc" },
+        list: "parseFailures",
+        text: "deploy.sh: heredoc anchor not found",
+        expected: ["game"],
+      },
+      {
+        label: "missing Dockerfile",
+        overrides: { Dockerfile: null },
+        list: "skips",
+        text: "Dockerfile not found",
+        expected: ["game"],
+      },
+      {
+        label: "profile heredoc failure",
+        overrides: { "setup-profile.sh": "#!/bin/bash\necho no heredoc" },
+        list: "parseFailures",
+        text: "setup-profile.sh: heredoc anchor not found",
+        expected: ["profile"],
+      },
+      {
+        label: "missing Dockerfile.profile",
+        overrides: { "Dockerfile.profile": null },
+        list: "skips",
+        text: "Dockerfile.profile not found",
+        expected: ["profile"],
+      },
+      {
+        label: "DefinePlugin computed key",
+        overrides: {
+          "webpack.config.js": [
+            "new webpack.DefinePlugin({",
+            '  "process.env.CLIENT_MODE": JSON.stringify("dev"),',
+            '  [computed]: JSON.stringify("x"),',
+            "});",
+          ].join("\n"),
+        },
+        list: "parseFailures",
+        text: "has a computed key",
+        expected: ["client"],
+      },
+      {
+        label: "missing webpack.config.js",
+        overrides: { "webpack.config.js": null },
+        list: "skips",
+        text: "webpack.config.js not found",
+        expected: ["client"],
+      },
+      {
+        label: "allowlist invalid JSON",
+        overrides: { "scripts/config-parity-allowlist.json": "{ not json" },
+        list: "parseFailures",
+        text: "allowlist: invalid JSON",
+        expected: "global",
+      },
+      {
+        label: "missing allowlist",
+        overrides: { "scripts/config-parity-allowlist.json": null },
+        list: "skips",
+        text: "config-parity-allowlist.json not found",
+        expected: "global",
+      },
+      {
+        label: "missing src dir",
+        overrides: {},
+        args: ["--src-dir=no-such-src"],
+        list: "skips",
+        text: "no-such-src not found",
+        expected: "global",
+      },
+      {
+        label: "src dir with no environment read",
+        overrides: { "quiet-src/server/Q.ts": "export const q = 1;" },
+        args: ["--src-dir=quiet-src"],
+        list: "parseFailures",
+        text: "quiet-src: found 0 environment reads",
+        expected: "global",
+      },
+    ];
+    for (const { label, overrides, args, list, text, expected } of cases) {
+      const root = fixture(overrides);
+      const result = runJson([
+        `--repo-root=${root}`,
+        "--pipeline=all",
+        ...(args ?? []),
+      ]);
+      const matching = result[list].filter((f) => f.message.includes(text));
+      expect({ label, tags: matching.map((f) => f.pipelines) }).toEqual({
+        label,
+        tags: [expected],
+      });
+    }
+  });
+
+  it("the text report prints each tag after the message", () => {
+    const root = fixture({
+      "src/core/configuration/X.ts": COMPUTED,
+      "Dockerfile.profile": null,
+      "scripts/config-parity-allowlist.json": "{ not json",
+    });
+    const out = run([`--repo-root=${root}`, "--pipeline=all"]).stdout;
+    expect(out).toMatch(
+      /^DYNAMIC-READ {2}core\/configuration\/X\.ts:2 — computed index .* {2}\[pipelines: game, client\]$/m,
+    );
+    expect(out).toMatch(
+      /^SKIP {2}Dockerfile\.profile not found {2}\[pipeline: profile\]$/m,
+    );
+    expect(out).toMatch(
+      /^PARSE-FAILURE {2}allowlist: invalid JSON .* {2}\[global\]$/m,
+    );
+  });
+});
+
+// ── R4a (task 0203) — an unmapped src/ folder stops the deploy and names the fix ──
+
+describe("R4a — a read in a folder DIR_PIPELINE does not map is global, fails --enforce, and names the fix", () => {
+  it("names the folder and the one-line DIR_PIPELINE fix", () => {
+    const root = fixture({
+      "src/newdir/X.ts": "const v = process.env.NEWDIR_ONE;\nexport { v };",
+    });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=all"]);
+    expect(result.dynamicReads).toHaveLength(1);
+    const [finding] = result.dynamicReads;
+    expect(finding.message).toContain("src/newdir/X.ts");
+    expect(finding.message).toContain("maps to no pipeline");
+    expect(finding.message).toContain("add one line to DIR_PIPELINE");
+    expect(finding.message).toContain(
+      '"newdir": "game" | "profile" | "client"',
+    );
+    expect(finding.pipelines).toBe("global");
+    expect(
+      run([`--repo-root=${root}`, "--pipeline=all", "--enforce"]).status,
+    ).toBe(1);
+    expect(
+      run([`--repo-root=${root}`, "--pipeline=all", "--report-only"]).status,
+    ).toBe(0);
+  });
+
+  it("a loose file directly under src/ is told to move into a mapped folder", () => {
+    const root = fixture({
+      "src/stray.ts": "const v = process.env.STRAY_ONE;\nexport { v };",
+    });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=all"]);
+    expect(result.dynamicReads).toHaveLength(1);
+    const [finding] = result.dynamicReads;
+    expect(finding.message).toContain("src/stray.ts");
+    expect(finding.message).toContain("a file directly under src/");
+    expect(finding.message).toContain("move it into a mapped folder");
+    expect(finding.pipelines).toBe("global");
+  });
+});
+
+// ── R4b (task 0203) — the checker's side: a guard that cannot see fails closed ──
+
+describe("R4b — under --enforce, every 'cannot see' input fails closed on its own", () => {
+  // The other half of the ruling — a MISSING guard script stops the deploy — lives at the
+  // call sites (deploy.sh / build-deploy-profile.sh `[ -f … ]`) and is task 0298's change.
+  const FAILING = "enforce — failing on the findings above";
+  const cases: [string, Record<string, string>, string][] = [
+    [
+      "a scanner parse failure",
+      { "src/server/Scan.ts": "export const x = 1;\n/* never closed\n" },
+      "game",
+    ],
+    [
+      "a computed DefinePlugin key",
+      {
+        "webpack.config.js": [
+          "new webpack.DefinePlugin({",
+          '  "process.env.CLIENT_MODE": JSON.stringify("dev"),',
+          '  [computed]: JSON.stringify("x"),',
+          "});",
+        ].join("\n"),
+      },
+      "client",
+    ],
+    [
+      "a spread DefinePlugin key",
+      {
+        "webpack.config.js": [
+          "new webpack.DefinePlugin({",
+          '  "process.env.CLIENT_MODE": JSON.stringify("dev"),',
+          "  ...extraDefinitions,",
+          "});",
+        ].join("\n"),
+      },
+      "client",
+    ],
+  ];
+
+  it("each is the run's only finding, and it exits 1 with the failing footer", () => {
+    for (const [label, overrides, pipeline] of cases) {
+      const root = fixture(overrides);
+      const result = runJson([`--repo-root=${root}`, `--pipeline=${pipeline}`]);
+      // The only problem in the fixture — so the exit below is caused by it alone.
+      expect({
+        label,
+        parse: result.parseFailures.length,
+        required: result.requiredTotal,
+        dynamic: result.dynamicReads.length,
+        skips: result.skips.length,
+      }).toEqual({ label, parse: 1, required: 0, dynamic: 0, skips: 0 });
+      const enforced = run([
+        `--repo-root=${root}`,
+        `--pipeline=${pipeline}`,
+        "--enforce",
+      ]);
+      expect({
+        label,
+        status: enforced.status,
+        footer: enforced.stdout.trim().split("\n").pop(),
+      }).toEqual({ label, status: 1, footer: FAILING });
+    }
+  });
+});
+
+// ── R13 (task 0203) — an unreadable heredoc line fails, but the parsed lines are still checked ──
+
+describe("R13 — a heredoc line the guard cannot read is a PARSE-FAILURE, and the lines it could read are still checked", () => {
+  it("game: an indented key fails loud, and the other keys still count as forwarded", () => {
+    const root = fixture({
+      "deploy.sh": [
+        "#!/bin/bash",
+        "set -e",
+        "cat > ${ENV_FILE} << 'EOL'",
+        "GAME_TOKEN=${GAME_TOKEN}",
+        "    GAME_HOST=${GAME_HOST}",
+        "ENVIRONMENT=${ENV}",
+        "DEAD_ONE=${DEAD_ONE}",
+        "EOL",
+        "echo done",
+      ].join("\n"),
+    });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=game"]);
+    expect(messages(result.parseFailures)).toContain("indents 'GAME_HOST='");
+    // Before R13 every key was dropped: REQUIRED was GAME_HOST + GAME_TOKEN, INFO 0.
+    expect(names(result.pipelines.game.required)).toEqual(["GAME_HOST"]);
+    expect(names(result.pipelines.game.info)).toEqual(["DEAD_ONE"]);
+    // Unchanged from the clean run.
+    const clean = runJson([`--repo-root=${fixture()}`, "--pipeline=game"]);
+    expect(names(clean.pipelines.game.info)).toEqual(["DEAD_ONE"]);
+  });
+
+  it("profile: an indented key fails loud, and a seeded B2 'lands EMPTY' still fires", () => {
+    const setup = (secretLine: string) =>
+      [
+        "#!/bin/bash",
+        '( umask 077; cat > "$PROFILE_DIR/profile.env" << EOF',
+        "PROFILE_DB_URL=${PROFILE_DB_URL}",
+        secretLine,
+        "PROFILE_TUNING=${PROFILE_TUNING}",
+        "ORPHAN_KEY=${ORPHAN_KEY}",
+        "EOF",
+        ")",
+        'echo "tuning: $PROFILE_TUNING"',
+      ].join("\n");
+
+    // Control: no indent. ORPHAN_KEY is in hop 2 but never exported at hop 1.
+    const control = runJson([
+      `--repo-root=${fixture({ "setup-profile.sh": setup("PROFILE_SECRET=${PROFILE_SECRET}") })}`,
+      "--pipeline=profile",
+    ]);
+    expect(control.parseFailures).toEqual([]);
+    expect(names(control.pipelines.profile.required)).toEqual(["ORPHAN_KEY"]);
+    expect(names(control.pipelines.profile.info)).toEqual(["ORPHAN_KEY"]);
+
+    const result = runJson([
+      `--repo-root=${fixture({ "setup-profile.sh": setup("  PROFILE_SECRET=${PROFILE_SECRET}") })}`,
+      "--pipeline=profile",
+    ]);
+    expect(messages(result.parseFailures)).toContain(
+      "indents 'PROFILE_SECRET='",
+    );
+    // Before R13: B1 fired for both reads, B2 was silenced, INFO was 0.
+    expect(names(result.pipelines.profile.required)).toEqual([
+      "ORPHAN_KEY",
+      "PROFILE_SECRET",
+    ]);
+    const detail = (name: string) =>
+      result.pipelines.profile.required.find((f) => f.name === name)?.detail;
+    expect(detail("ORPHAN_KEY")).toContain("lands EMPTY");
+    expect(detail("PROFILE_SECRET")).toContain("absent from profile.env");
+    expect(names(result.pipelines.profile.info)).toEqual(["ORPHAN_KEY"]);
+  });
+});
+
+// ── Item 11 + R19 (task 0203) — every use of the environment object is a read or is announced ──
+
+describe("item 11 + R19 — the environment object is either read by name or announced", () => {
+  const scan = (
+    file: string,
+    body: string,
+    extra: Record<string, string> = {},
+  ) =>
+    runJson([
+      `--repo-root=${fixture({ [file]: body, ...extra })}`,
+      "--pipeline=all",
+    ]);
+  const REWRITE = "rewrite as plain";
+  const WHOLE = "the environment object is used whole";
+
+  it("the two recorded reproductions — a parenthesised alias and Object.keys — are announced", () => {
+    const paren = scan(
+      "src/server/Paren.ts",
+      "const env = (process.env);\nexport const z = env.ZZ_PAREN;",
+    );
+    expect(paren.dynamicReads).toHaveLength(1);
+    expect(paren.dynamicReads[0].message).toContain("server/Paren.ts:1");
+    expect(paren.dynamicReads[0].message).toContain(WHOLE);
+
+    const keys = scan(
+      "src/server/Keys.ts",
+      "export const n = 1;\nexport const all = Object.keys(process.env);",
+    );
+    expect(keys.dynamicReads).toHaveLength(1);
+    expect(keys.dynamicReads[0].message).toContain("server/Keys.ts:2");
+    expect(keys.dynamicReads[0].message).toContain(WHOLE);
+  });
+
+  it("every other whole-object use is announced exactly once", () => {
+    for (const body of [
+      "export const all = { ...process.env };",
+      "declare function f(x: unknown): void;\nf(process.env);",
+      "export function g() {\n  return process.env;\n}",
+      "declare const u: unknown;\nexport const x = u ?? process.env;",
+      "if (process.env) {\n  console.log(1);\n}",
+      "export const all = process.env;",
+    ]) {
+      const result = scan("src/server/Whole.ts", body);
+      expect({ body, count: result.dynamicReads.length }).toEqual({
+        body,
+        count: 1,
+      });
+      expect(result.dynamicReads[0].message).toContain(WHOLE);
+    }
+  });
+
+  it("member access is not the global process — worker.process.env is excluded", () => {
+    const result = scan(
+      "src/server/Member.ts",
+      [
+        "declare const worker: { process: { env: unknown } };",
+        "export const a = worker.process.env;",
+        "export const b = worker?.process.env;",
+      ].join("\n"),
+    );
+    expect(result.dynamicReads).toEqual([]);
+  });
+
+  it('pinned limit: a bare `process` alias or `process["env"]` stays silent and records no read', () => {
+    const result = scan(
+      "src/server/Pinned.ts",
+      [
+        "const { env } = process;",
+        "export const a = env.PINNED_A;",
+        'export const b = process["env"].PINNED_B;',
+      ].join("\n"),
+    );
+    expect(result.dynamicReads).toEqual([]);
+    expect(result.parseFailures).toEqual([]);
+    // Neither name is forwarded, yet neither is REQUIRED: the scanner cannot see them.
+    expect(names(result.pipelines.game.required)).toEqual([]);
+  });
+
+  it("a written-out destructuring is a read of every named key", () => {
+    const result = scan(
+      "src/client/Destructure.ts",
+      [
+        'const { A_KEY, B_KEY: b, C_KEY = "x", "F_KEY": f } = process.env;',
+        "let D_KEY: string | undefined;",
+        "({ D_KEY } = process.env);",
+        "export function h({ E_KEY } = process.env) {",
+        "  return E_KEY;",
+        "}",
+        "export function h2(n: number, { H_KEY } = process.env) {",
+        "  return H_KEY + n;",
+        "}",
+        'const { G_KEY: { length: gLength } = "" } = process.env;',
+        "export { A_KEY, b, C_KEY, f, D_KEY, gLength };",
+      ].join("\n"),
+    );
+    expect(result.dynamicReads).toEqual([]);
+    expect(names(result.pipelines.client.required)).toEqual([
+      "A_KEY",
+      "B_KEY",
+      "C_KEY",
+      "D_KEY",
+      "E_KEY",
+      "F_KEY",
+      "G_KEY",
+      "H_KEY",
+    ]);
+    const detail = (name: string) =>
+      result.pipelines.client.required.find((f) => f.name === name)?.detail;
+    expect(detail("A_KEY")).toContain("client/Destructure.ts:1");
+    expect(detail("D_KEY")).toContain("client/Destructure.ts:3");
+    expect(detail("E_KEY")).toContain("client/Destructure.ts:4");
+  });
+
+  it("R5 (review 0203): an annotated target or a chained assignment is a whole-object DYNAMIC-READ, never a silent pattern", () => {
+    // Review 0203 R5: a TypeScript object-type literal also ends in `}` before the `=`,
+    // so it was parsed as a destructuring pattern — the type's names became reads and
+    // every read through the alias was lost with no DYNAMIC-READ. The reviewer's repros.
+    for (const body of [
+      "const env: { ZZ_A: string, ZZ_B: string } = process.env;\nexport const c = env.ZZ_C;",
+      "export class K {\n  env: { ZZ_A: string } = process.env;\n}",
+      "export const f = (e: { ZZ_A: string } = process.env) => e.ZZ_G;",
+      "const { ZZ_A, ZZ_B }: { ZZ_A: string; ZZ_B: string } = process.env;\nexport { ZZ_A, ZZ_B };",
+      "declare type T = Record<string, string>;\nconst { ZZ_A }: T = process.env;\nexport { ZZ_A };",
+      "declare type U = Record<string, string>;\nexport const e: U & { ZZ_A: string } = process.env;",
+      "export const n = process.env!.ZZ_A;",
+      "let ZZ_A: string | undefined;\nexport const env = { ZZ_A } = process.env;",
+    ]) {
+      const result = scan("src/server/Annotated.ts", body);
+      expect({ body, count: result.dynamicReads.length }).toEqual({
+        body,
+        count: 1,
+      });
+      expect(result.dynamicReads[0].message).toContain(WHOLE);
+      // No type property name is recorded as a read.
+      expect({ body, required: names(result.pipelines.game.required) }).toEqual(
+        { body, required: [] },
+      );
+    }
+  });
+
+  it("pinned limit (review 0203 R5): a pattern assigned inside a CALL argument is read, and the object passed stays silent", () => {
+    // Indistinguishable from a parameter default without a parser. Contrived in real code
+    // (TypeScript needs the names pre-declared). Documented under KNOWN LIMITS.
+    const result = scan(
+      "src/server/CallArg.ts",
+      [
+        "let ZZ_P: string | undefined;",
+        "declare function f(x: unknown): void;",
+        "f({ ZZ_P } = process.env);",
+      ].join("\n"),
+    );
+    expect(result.dynamicReads).toEqual([]);
+    expect(names(result.pipelines.game.required)).toEqual(["ZZ_P"]);
+  });
+
+  it("R19's reproduction: a destructured API_DOMAIN is a read — no blind spot, not 'no reader found'", () => {
+    const result = scan(
+      "src/client/Api.ts",
+      "const { API_DOMAIN } = process.env;\nexport { API_DOMAIN };",
+      {
+        "webpack.config.js": [
+          "new webpack.DefinePlugin({",
+          '  "process.env.CLIENT_MODE": JSON.stringify("dev"),',
+          '  "process.env.API_DOMAIN": JSON.stringify("d"),',
+          "});",
+        ].join("\n"),
+      },
+    );
+    expect(result.dynamicReads).toEqual([]);
+    expect(names(result.pipelines.client.info)).toEqual([]);
+    expect(names(result.pipelines.client.required)).toEqual([]);
+  });
+
+  it("a rest element is announced, and the keys written beside it are still read", () => {
+    const rest = scan(
+      "src/client/Rest.ts",
+      "const { A_KEY, ...rest } = process.env;\nexport { A_KEY, rest };",
+    );
+    expect(names(rest.pipelines.client.required)).toEqual(["A_KEY"]);
+    expect(rest.dynamicReads).toHaveLength(1);
+    expect(rest.dynamicReads[0].message).toContain("...rest");
+
+    const computed = scan(
+      "src/client/ComputedKey.ts",
+      "const k = 'X';\nconst { [k]: v } = process.env;\nexport { v };",
+    );
+    expect(computed.dynamicReads).toHaveLength(1);
+    expect(computed.dynamicReads[0].message).toContain(
+      "computed or unreadable key",
+    );
+  });
+
+  it("R19: one NOTE line follows the DYNAMIC-READ block, and only when there is one", () => {
+    const NOTE =
+      "NOTE  INFO may include keys read through the DYNAMIC-READ above";
+    const dynamic = run([
+      `--repo-root=${fixture({ "src/server/Dyn.ts": "const k = 'A';\nconst v = process.env[k];\nexport { v };" })}`,
+      "--pipeline=all",
+    ]).stdout;
+    expect(dynamic.split("\n").filter((l) => l === NOTE)).toHaveLength(1);
+    const lines = dynamic.split("\n");
+    expect(lines[lines.indexOf(NOTE) - 1]).toMatch(/^DYNAMIC-READ /);
+
+    const clean = run([`--repo-root=${fixture()}`, "--pipeline=all"]).stdout;
+    expect(clean).not.toContain("NOTE");
+  });
+
+  it("a computed index is counted once, not also as a whole-object use", () => {
+    const result = scan(
+      "src/server/Dyn.ts",
+      "const k = 'A';\nconst v = process.env[k];\nexport { v };",
+    );
+    expect(result.dynamicReads).toHaveLength(1);
+  });
+
+  it("every blind-spot message says how to fix it", () => {
+    for (const body of [
+      "const k = 'A';\nexport const v = process.env[k];",
+      "export const all = process.env;",
+      "const { A_KEY, ...rest } = process.env;\nexport { A_KEY, rest };",
+      "const k = 'X';\nconst { [k]: v } = process.env;\nexport { v };",
+    ]) {
+      const result = scan("src/server/Fix.ts", body);
+      expect(result.dynamicReads.length).toBeGreaterThan(0);
+      for (const finding of result.dynamicReads)
+        expect({ body, message: finding.message }).toEqual({
+          body,
+          message: expect.stringContaining(REWRITE),
+        });
+    }
+  });
+
+  it("a destructuring default value never reaches the output", () => {
+    const canary = `canary${Math.random().toString(16).slice(2)}x${Date.now()}`;
+    const root = fixture({
+      "src/client/Canary.ts": `const { C_KEY = "${canary}", ...rest } = process.env;\nexport { C_KEY, rest };`,
+    });
+    const text = run([`--repo-root=${root}`, "--pipeline=all"]);
+    const json = run([`--repo-root=${root}`, "--pipeline=all", "--json"]);
+    // Not vacuous: the read and the blind spot were both reported.
+    expect(text.stdout).toContain("C_KEY");
+    expect(text.stdout).toContain("DYNAMIC-READ");
+    expect(text.stdout + text.stderr).not.toContain(canary);
+    expect(json.stdout + json.stderr).not.toContain(canary);
+  });
+});
+
+// ── R6 (review 0203, owner ruling Q2 = A) — an unreadable src/ file or directory fails closed ──
+
+// chmod 000 makes nothing unreadable for root, so probe once: if it does not work here,
+// these tests are reported SKIPPED (never a green pass) and say why.
+const CAN_MAKE_UNREADABLE = ((): boolean => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "config-parity-probe-"));
+  const file = path.join(dir, "probe.ts");
+  fs.writeFileSync(file, "x");
+  fs.chmodSync(file, 0o000);
+  let unreadable = false;
+  try {
+    fs.readFileSync(file);
+  } catch {
+    unreadable = true;
+  }
+  fs.chmodSync(file, 0o644);
+  fs.rmSync(dir, { recursive: true, force: true });
+  return unreadable;
+})();
+if (!CAN_MAKE_UNREADABLE)
+  console.warn(
+    "ConfigParity R6 tests SKIPPED: chmod 000 does not make a file unreadable here (running as root?)",
+  );
+const itUnreadable = CAN_MAKE_UNREADABLE ? it : it.skip;
+
+describe("R6 — a src/ file or directory the scanner cannot read is a PARSE-FAILURE", () => {
+  // Owner ruling 2026-09-24 (Q2 = A): a file → its own pipelines; a directory → "global".
+  // Before, both were skipped silently: no PARSE-FAILURE, no SKIP (review 0203 R6).
+  const unreadableRun = (
+    target: "src/server/Hidden.ts" | "src/server/sub",
+    check: (root: string) => void,
+  ) => {
+    const root = fixture({
+      "src/server/Hidden.ts": "export const h = process.env.GAME_TOKEN;",
+      "src/server/sub/Deep.ts": "export const d = process.env.GAME_TOKEN;",
+    });
+    const locked = path.join(root, target);
+    fs.chmodSync(locked, 0o000);
+    try {
+      check(root);
+    } finally {
+      // Restore, or afterAll's rmSync cannot clean the fixture up.
+      fs.chmodSync(locked, target.endsWith(".ts") ? 0o644 : 0o755);
+    }
+  };
+
+  itUnreadable(
+    "an unreadable file is a PARSE-FAILURE tagged with its pipelines, and fails --enforce",
+    () => {
+      unreadableRun("src/server/Hidden.ts", (root) => {
+        const result = runJson([`--repo-root=${root}`, "--pipeline=all"]);
+        expect(result.parseFailures).toHaveLength(1);
+        expect(result.parseFailures[0].message).toContain(
+          "src/server/Hidden.ts: could not be read",
+        );
+        expect(result.parseFailures[0].pipelines).toEqual(["game"]);
+        const enforced = run([
+          `--repo-root=${root}`,
+          "--pipeline=all",
+          "--enforce",
+        ]);
+        expect(enforced.status).toBe(1);
+        expect(enforced.stdout.trim().split("\n").pop()).toBe(
+          "enforce — failing on the findings above",
+        );
+      });
+    },
+  );
+
+  itUnreadable(
+    "an unreadable directory is a PARSE-FAILURE tagged global, and fails --enforce",
+    () => {
+      unreadableRun("src/server/sub", (root) => {
+        const result = runJson([`--repo-root=${root}`, "--pipeline=all"]);
+        expect(result.parseFailures).toHaveLength(1);
+        expect(result.parseFailures[0].message).toContain(
+          "src/server/sub: directory could not be read",
+        );
+        expect(result.parseFailures[0].pipelines).toBe("global");
+        expect(
+          run([`--repo-root=${root}`, "--pipeline=all", "--enforce"]).status,
+        ).toBe(1);
+      });
+    },
+  );
+});
+
+// ── R21 (task 0203) — only src/ is scanned; pinned so the limit is visible ──────
+
+describe("R21 — a read outside src/ is invisible (a documented limit)", () => {
+  it("a tools/ file reading a dead key and a new key changes nothing", () => {
+    const root = fixture({
+      "tools/Build.ts": [
+        "const a = process.env.DEAD_ONE;",
+        "const b = process.env.OUTSIDE_ONLY;",
+        "export { a, b };",
+      ].join("\n"),
+    });
+    const result = runJson([`--repo-root=${root}`, "--pipeline=all"]);
+    expect(names(result.pipelines.game.info)).toEqual(["DEAD_ONE"]);
+    for (const pipeline of ["game", "profile", "client"] as const)
+      expect(names(result.pipelines[pipeline].required)).not.toContain(
+        "OUTSIDE_ONLY",
+      );
+    expect(result.dynamicReads).toEqual([]);
   });
 });
 
@@ -1621,5 +2328,11 @@ describe("real tree", () => {
       expect(result.stdout).toContain("REQUIRED  0");
       expect(result.stdout).not.toContain("CAVEAT");
     }
+  });
+
+  it("prints no R19 NOTE line — the real tree has no DYNAMIC-READ", () => {
+    const result = run(["--pipeline=all", "--report-only"]);
+    expect(result.stdout).toContain("REQUIRED  0");
+    expect(result.stdout).not.toContain("NOTE");
   });
 });

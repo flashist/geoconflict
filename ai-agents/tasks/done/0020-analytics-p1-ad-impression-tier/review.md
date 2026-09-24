@@ -1,0 +1,23 @@
+# Review — 0020
+
+Task: ai-agents/tasks/done/0020-analytics-p1-ad-impression-tier/brief.md
+File(s) under review: src/client/flashist/FlashistFacade.ts (the `AD_INTERSTITIAL` enum group + `showInterstitial()` instrumentation only) · ai-agents/knowledge-base/analytics-event-reference.md (the `### Ad Events` section only) · tests/client/InterstitialAnalytics.test.ts (new). Uncommitted working tree vs HEAD `7daf386`.
+Status: closed-out
+Coverage: reasoning-only second opinion — Codex ran (`codex-cli 0.152.0`, exit 0) and reasoned over the diff, but measured nothing: its `npx jest tests/client/InterstitialAnalytics.test.ts` was blocked by the read-only sandbox (EPERM writing the jest haste-map), so it only read the source. The only execution evidence is the reviewer's: targeted suite 12/12, full `npm test` 147/147 suites · 2100/2100 tests, `tsc --noEmit` exit 0, eslint exit 0 on the two touched TS files.
+
+## Reviewer findings
+| #  | Round | Sev | Location | Claim |
+|----|-------|-----|----------|-------|
+| R1 | 1     | low | src/client/flashist/FlashistFacade.ts:1322-1329 (`showInterstitial` `onClose`) | The new `flashist_logEventAnalytics(AD_INTERSTITIAL)` call runs **before** `resolve(wasShown)`. `flashist_logEventAnalytics`'s own catch calls `flashist_logErrorToAnalytics`, which calls `GameAnalytics.addErrorEvent` with no guard (FlashistFacade.ts:308). If both GA calls threw synchronously, the exception would leave `onClose` before `resolve` runs. The Promise executor's try/catch has already returned by then, so it cannot catch it, and the Promise **never settles**, which hangs all six `await showInterstitial()` call sites (e.g. Main.ts:899, mission start). Before this change `onClose` could not throw before resolving. Likelihood is near zero: GA 4.4.7's public `addDesignEvent`/`addErrorEvent` only run `updateConnectionType()` + a queue push synchronously, and validation runs later on the GA thread. So this is latent hardening, not an observed failure. No test covers "analytics throws → still resolves". Direction: resolve before logging, or guard the log call. Raised by both (Codex rated it medium; downgraded on the GA-SDK trace). |
+
+## Coder response
+| #  | Verdict | Defect / Frontier | Action | Status |
+|----|---------|-------------------|--------|--------|
+| R1 | CORRECT | Defect (latent; severity low — verified: `flashist_logErrorToAnalytics` → `GameAnalytics.addErrorEvent` unguarded at FlashistFacade.ts:308; the real SDK calls `onClose` asynchronously, so a throw escapes past the executor's try/catch and `resolve` never runs; needs both GA calls to throw synchronously, which GA 4.4.7 does not do) | Kept the order (log, then `resolve`) and wrapped only the `flashist_logEventAnalytics(AD_INTERSTITIAL)` call in a local try/catch that `console.log`s, so `resolve(wasShown)` always runs and nothing escapes into the SDK callback. Fire-once and strict `=== true` are unchanged. New test "still resolves wasShown when analytics throws (review R1)": both GA calls throw, the fake SDK calls `onClose` async; asserts it resolves `true` and nothing escapes. Mutation: removing the try/catch → red (`unsettled`). Targeted 13/13, full `npm test` 147/147 · 2101/2101, tsc/lint/prettier clean. | ✅ done |
+
+## Accepted residuals (shared, do-not-re-litigate)
+- Baseline only, no tier split — What: one tier-free `Ad:Interstitial` event · Why (structural): no synchronous tier exists at ad time (earned needs `0273` deployed + a profile read cache; paid needs `0250`); owner chose "Yes, baseline only" 2026-09-24 (`plan-baseline.md` § Owner approval) · Re-raise only if: a synchronous tier source lands (that is task `0299`'s scope).
+- Banner events dropped — What: no `Ad:Banner*` · Why (structural): our code never shows a banner (Fuse commented out, `GutterAds` returns in the iframe, no `showBannerAdv`); owner "Drop it" 2026-09-24 · Re-raise only if: code starts calling `showBannerAdv`.
+- Fire only on `onClose(wasShown === true)`, once per show — What: count real impressions, strict boolean, guarded against a double callback · Why (structural): `wasShown` is the SDK's authoritative signal; the tab-close-mid-ad under-count is accepted in the plan (under-count, never over-count) · Re-raise only if: the Yandex SDK changes the `onClose`/`wasShown` contract.
+- No event on error / throw / no-SDK / SDK decline — What: silent on every non-impression path · Why (structural): per the approved plan · Re-raise only if: the owner wants attempt counting.
+- Paid-state leak via the public profile — What: not addressed here · Why (structural): owner ruled it a must-fix in `0250` · Re-raise only if: `0250` is cancelled without it.

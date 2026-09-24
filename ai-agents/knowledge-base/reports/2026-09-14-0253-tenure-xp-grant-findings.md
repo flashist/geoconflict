@@ -1,7 +1,7 @@
 # 0253 — Tenure XP grant for existing players: findings and owner ruling
 
 - **Date:** 2026-09-14
-- **Task:** [`0253`](../../tasks/backlog/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)
+- **Task:** [`0253`](../../tasks/done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)
 - **Author:** fkit-coder (step 1 research, spawned by `fkit-sprint-ship-loop`); owner rulings relayed by the lead.
 - **Source of record:** a copy of the task worklog's step 1 / step 2 sections, taken 2026-09-14 per owner
   ruling G. If the two ever differ, the worklog is the running log and this report is the snapshot at ruling time.

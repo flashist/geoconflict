@@ -183,7 +183,7 @@ describe("createProfileMetrics", () => {
     handle.metrics.loginRequest("unknown", "bad_request");
     handle.metrics.playerCreated("unknown", "login");
     handle.metrics.sessionRejected("invalid");
-    handle.metrics.tenureClaim("skipped");
+    handle.metrics.tenureClaim("below_minimum");
     handle.metrics.alertRelay("malformed", "unkeyed");
     handle.metrics.httpRequest("/v1/profile", "GET", "4xx", 3);
     await handle.refreshPlayersTotal();

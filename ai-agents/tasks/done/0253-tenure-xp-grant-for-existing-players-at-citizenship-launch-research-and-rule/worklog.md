@@ -540,3 +540,203 @@ to this worklog.
   - `npx tsc --noEmit` exit 0.
   - `npm run lint` exit 0.
   - `npm run test:integration` was **not** run: its only 0253 suite was deleted, and no other integration code changed.
+
+### Redesign build — 2026-09-24 (`fkit-coder`, Build worker spawned by `fkit-sprint-ship-loop`)
+
+**Authority:** the approved plan `plan-redesign.md` (blob `c5d46e46…`, 20 723 bytes; checked with
+`git hash-object` / `wc -c` before starting). The owner approved it with D1–D4 in the lead session on
+2026-09-24 via `AskUserQuestion`. The popup title and button reuse the 2026-09-14 strings (owner Q1).
+`plan.md` (v1) and `plan-redesign.md` were not edited. The v1 patch was mined by hand only, never
+`git apply`. Nothing was committed, stashed or reset. The other uncommitted edits (0064/0203 files in
+`scripts/`, `tests/scripts/`, `eslint.config.js`, and the `ai-agents/` planning records) were not
+touched. `CITIZENSHIP_CARD_ENABLED` stays `false`.
+
+**Progress, in plan order**
+1. **Core.** `Citizenship.ts` gets `TENURE_XP_PER_DAY=1 / TENURE_XP_CAP=50 / TENURE_MIN_DAYS=3`. New
+   `TenureGrantContract.ts` holds the evidence, request and response schemas and
+   `tenureGrantForEvidence`. zod strips any client amount or id.
+2. **Repository.** `recordTenureCheck` does this in one transaction: `FOR UPDATE` on `players`, then
+   `INSERT … ON CONFLICT DO NOTHING RETURNING`, then add XP only if above 0, then
+   `GRANT_CITIZENSHIP_SQL`, then COMMIT. The post-commit `afterCitizenshipEarned` call is guarded.
+   It returns `granted | below_minimum | duplicate | not_found`, and stores only the two counts as
+   evidence.
+3. **Route.** `POST /v1/profile/tenure-grant` is one block in `Routes.ts`. Its guards run in this
+   order: `publicCors("POST")`, then the `tenureGrantEnabled` 503, then parse (400), then
+   `resolveCaller` (401/503). It has **no limiter**. It is wired through
+   `AppOptions.tenureGrant` (D3); `Server.ts` passes `profiles`. `tenureClaim` is narrowed to the
+   `TenureClaimOutcome` union (D4) and recorded once per request. The metric description and doc
+   comment are updated, and `Telemetry.test.ts` sends `"below_minimum"` instead of `"skipped"`.
+4. **Client evidence.** New `TenureEvidence.ts`: `readTenureEvidence(storage)` returns null only when
+   a storage read throws (D1). `DAYS_PLAYED_KEY` is now exported.
+5. **Client claim.** New `TenureGrantClaim.ts`: `maybeClaimTenureGrant()`. It runs once per page load
+   and stops early for any of: the 0236 gate is off, the login outcome is `null` or says `done`, or
+   the evidence is `null`. Otherwise it calls `profileFetch` with a body of only `{evidence}` and
+   maps the answer to an event. It never throws and stores nothing on the device.
+6. **Card and modal.** `CitizenshipCard` calls `startTenureClaim()` fire-and-forget after the first
+   `await refreshProfile()`. On `granted` with more than 0 XP and the card still connected, it calls
+   `modal.show({xpAwarded,xp})` and then `refreshProfile()`. The new `TenureGrantModal` follows the
+   GameStartingModal pattern and has no `{days}` parameter. The tag is in **both** HTML templates;
+   `Main.ts` imports the modal and `LangSelector` has the new entry.
+7. **Copy.** `citizenship_tenure_grant.{title,body,cta}` in `en.json` and `ru.json`, verbatim as
+   approved.
+8. **Analytics.** Three enum keys, the reference-doc rows under *Citizenship Events*, and a counting
+   note.
+9. **Tests.**
+   - New suites: `TenureGrantContract`, `TenureGrantRoutes`, `TenureEvidence`, `TenureGrantClaim`,
+     `TenureGrantModal`, `TenureGrantLang`, `LangSelectorRerender`, and the integration suite
+     `TenureGrant.it`.
+   - Extended suites: `Citizenship`, `InboxHooks`, `CitizenshipCard`, `Telemetry`.
+
+**Verification evidence (all run this session)**
+- `npm test`: **146 suites / 2086 tests passed** on the first full run, no re-run needed. It
+  includes `ShellHarnesses` (51.6 s, Docker up, nothing reported skipped).
+- `npm run test:integration` (Docker up, `gc-0012-it-pg` on 5433, `TEST_DATABASE_URL` exported from
+  `.env.test` and never printed): **11 suites / 129 tests passed**, `TenureGrant.it` 8/8. It passed
+  twice: once after Step 3, and again as the final gate. No flake was seen, so no re-run was needed.
+- `npx tsc --noEmit`: exit 0.
+- `npm run lint`: exit 0. The first run caught an unused type import I had added (`TenureClaimOutcome`
+  in `Routes.ts`); I removed it and re-ran.
+- `prettier --check` on the 28 touched files that were clean at HEAD: all clean.
+  - `LangSelector.ts`, `index.html` and `yandex-games_iframe.html` were already prettier-dirty at
+    HEAD and were not reformatted.
+  - For `LangSelector.ts`, the count of prettier-diff lines is unchanged from HEAD.
+  - For the HTML files, it went up by 2 (+1 original line, +1 formatted line). The added tag has the
+    same indentation as its neighbour `<game-starting-modal>` (both moved by prettier's body
+    re-indent).
+- **Mutation proofs — 17 of 17 killed.** Each was run against its target suite and the code was
+  restored afterwards (no `.bak` files left):
+  - cap removed;
+  - minimum rule off;
+  - max changed to `daysPlayed` only;
+  - route passes the client's `daysPlayed` as the amount;
+  - route metric dropped;
+  - repository's 0-XP path reports `granted`;
+  - repository's post-commit hook skipped;
+  - claim ignores `done`;
+  - claim ignores the gate;
+  - claim's once-per-load latch removed;
+  - claim writes a local marker on failure;
+  - D1 reverted (storage throw sends 0/0);
+  - evidence counts entries instead of distinct dates;
+  - card opens the modal on 0 XP;
+  - card never triggers the claim;
+  - LangSelector entry dropped;
+  - modal uses a literal 1000 threshold.
+- **Integration mutation:** `ADD_TENURE_XP_SQL` changed to add `$2 * 0` → 6 of 8 `TenureGrant.it`
+  tests failed, then restored. ⚠️ This single-file run used a direct
+  `RUN_DB_TESTS=1 npx jest -c jest.config.ts --runInBand <file>` invocation, not the npm script. The
+  gate runs above both used `npm run test:integration`.
+- **Not verified:** no end-to-end browser run. There is no Yandex login outside the iframe, so no
+  login and no claim happen locally (as the plan says). The modal was not viewed in a browser, only
+  rendered in jsdom.
+
+**Brief verification map (as the plan rewrote it)**
+- **8:** `TenureGrant.it`.
+- **9:** `TenureGrantClaim` ("ClaimFailed, nothing stored", "retried on the next page load") plus
+  `TenureGrant.it` (login says `done` only after a check).
+- **10:** `TenureGrantContract` and `TenureGrantRoutes` ("forged counts are capped at 50", 400 for
+  out-of-range values) plus the integration test "forged counts".
+- **11:** `TenureGrantLang` plus `npm test`.
+- **12:** `TenureGrantClaim`, "for a guest".
+- **13:** `TenureGrantClaim` "gate off", plus `CitizenshipCard` "kill switch OFF" and
+  "citizenship_ui disabled".
+- **14:** this cannot happen until three things are true: the route is on the profile box (the owner
+  chose the next profile deploy before 0065's flip), the client is deployed, and `0065` flips the card.
+  It is **not** tied to `0217`.
+
+**Decision log** (calls made without asking, each inside the approved plan's intent):
+1. **Invalid-Date guard (Step 4).** A `startTime` that is finite but outside JavaScript's Date range
+   (for example `1e20`) is skipped. Without this, `localDateString` returns `"NaN-NaN-NaN"`, which
+   would count as one fake day. This is an obvious winner inside "every numeric, finite startTime".
+2. **D1 also covers the `localStorage` global itself (Step 5).** `readEvidence()` catches a throw
+   from reading `window.localStorage` (blocked iframe storage) and treats it as `null`: no request and
+   no event. This is D1's own reasoning — an unreadable storage must not burn the check — applied one
+   level up.
+3. **One `unavailable` metric label for both 503s (Step 3).** `session_unavailable` and
+   `tenure_grant_unavailable` both record `unavailable`, because the plan's union has exactly one such
+   member.
+4. **Any throw inside the claim gives `failed` plus `ClaimFailed` (Step 5)**, including a throw before
+   the request is sent. This meets "never throws"; the worst case is one extra analytics event.
+5. **`granted` with 0 XP opens no modal (Step 6)**, per "only on granted with more than 0 XP". The
+   server never sends this combination, but the schema allows it.
+6. **The reference-doc table was re-padded (Step 8).** Prettier widened the Enum Key and Event String
+   columns for the longer new keys. The file was prettier-clean at HEAD and stays clean. The cost is a
+   whitespace-only change to 7 existing lines (header, separator and 5 rows); no content changed.
+7. **`TENURE_MAX_DAY_COUNT` is exported from the contract and reused by the client clamp**, so the
+   client clamp and the schema bound cannot drift apart. A mechanical change.
+8. **Extra card tests, additive:** "a granted answer after the card left the page opens nothing" and
+   "the purchases-reconciled refresh never claims again". **Integration:** the concurrency case
+   repeats over 5 fresh players.
+
+Review-driven autonomous fixes: **none** (no review has run yet).
+
+**Residuals and notes**
+- The plan's own residuals stand unchanged:
+  - a lost ack after commit gets no popup, ever;
+  - the popup can open over another modal or the match-start screen;
+  - claim-on-behalf becomes possible once the route is deployed, and closes with `0268`;
+  - a 0-XP row lets a scripted junk profile survive 0274's cleanup;
+  - corrupt `game-records` loses that signal.
+- **Malformed-JSON bodies are not counted by `tenureClaim`.** `express.json()` rejects them before the
+  route runs, and `profileErrorHandler` answers 400 without calling the route. So "once per request"
+  holds for every request that reaches the route. A malformed-JSON 400 is still counted by
+  `httpRequest` as `unmatched 4xx`.
+- **A `FOR UPDATE` mutation was not tried.** Removing the lock would probably *survive* the concurrency
+  test, because the `(player_id, kind)` primary key alone still gives one row. The lock is there so
+  the XP and citizenship read is consistent with a concurrent match credit; no test isolates that.
+- **Pre-existing, not fixed (outside the plan):** the reference doc's "Not live yet" note cites
+  `FlashistFacade.ts:182` for the kill switch. At HEAD it was already line 216; it is now 225.
+- **Not fixed (producer's edit):** the plan's note that the brief's 2026-09-23 correction is half
+  wrong still applies.
+- **Not run by this worker:** the plan's stateful review by `@fkit-reviewer` is the driver's next
+  step.
+
+### Review round 3 processed — 2026-09-24 (`fkit-coder`, Process-review worker spawned by `fkit-sprint-ship-loop`)
+
+**Authority:** the standing approval of the owner-approved `plan-redesign.md`. I re-checked it this
+turn: blob `c5d46e46…`, 20 723 bytes, unchanged. The method is `fkit-process-stateful-review`,
+steps 0–7, with no per-fix owner gate (ADR-032 amendment / ADR-019 discipline). The ledger is
+`review.md`, round 3.
+
+- **Step 0 / step 2:** I loaded the Accepted residuals and ADR-112 as amended. Neither R7 nor R8
+  matches a settled residual. The reviewer had already suppressed Codex X1 as settled, citing plan §3.
+- **Regression check:** neither fix changes behaviour. R7 changes comments and docs only; R8 adds
+  tests only. Neither recreates anything an earlier finding flagged.
+
+**Decision log — fixes applied without asking.** Each was verified CORRECT, is small and local, and
+is inside the approved plan (§8 analytics doc, §9 tests):
+1. **R7** (the `ClaimFailed` wording; low, doc accuracy).
+   - The cited text said a failure means "server wrote nothing ⇒ retried". That is false for a
+     failure after commit: a timeout, a dropped connection, a gateway error, or a 200 the client
+     could not read.
+   - Changed: the `TenureGrantClaim.ts` header and the `failed` variant's doc comment, the
+     `FlashistFacade.ts` enum comment, and the `analytics-event-reference.md` `ClaimFailed` row.
+     All four now state both cases: before the server records → retried; after commit → no retry
+     and no popup.
+   - Why it qualified: CORRECT, and comment/doc only. It puts the plan's own lost-ack residual in
+     the places that contradicted it.
+2. **R8** (the `recordTenureCheck` error path had no test; low).
+   - Added 2 fake-pool tests in `tests/profile-server/InboxHooks.test.ts`:
+     - a mid-transaction throw → ROLLBACK, no COMMIT, the original error re-thrown, the client
+       released once, no inbox send;
+     - a failing ROLLBACK → the original error still surfaces and the client is released.
+   - Mutation proofs, 4 of 4 killed: ROLLBACK removed; a different error thrown; the ROLLBACK
+     failure no longer swallowed; `release` removed.
+   - Why it qualified: CORRECT, tests only, the pattern the sibling repositories already use, and
+     inside plan §9.
+3. **R6** — no code change. I added its missing Coder-response row as `✅ done (superseded by
+   redesign)`, so the ledger can close out. The reviewer's round-3 re-check already confirms it is
+   moot.
+
+Obvious-winner calls: **none** beyond the above.
+
+**Gates (this round):**
+- `npm test`: **146 suites / 2088 tests passed**, first run (+2 tests from R8).
+- `npx tsc --noEmit`: exit 0.
+- `npm run lint`: exit 0.
+- `prettier --check` on the 4 touched files: clean.
+- `npm run test:integration`: **not re-run**. Repository source is unchanged: the mutations edited
+  it temporarily and each was restored; no `.bak` files remain.
+
+**Ledger:** Coder response rows R6, R7 and R8 written. Header `Status:` set to `closed-out`. No new
+Accepted residual.

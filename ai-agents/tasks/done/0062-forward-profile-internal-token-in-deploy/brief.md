@@ -205,7 +205,7 @@ variable. See step 4.
    the right behavior; **silent** fail-soft is not.
 
 4. ~~**Consider a general guard, and recommend rather than build.**~~ **MOVED OUT 2026-08-23 by owner
-   ruling — it is now task [`0064-deploy-time-config-parity-guard`](../../backlog/0064-deploy-time-config-parity-guard/brief.md).**
+   ruling — it is now task [`0064-deploy-time-config-parity-guard`](../0064-deploy-time-config-parity-guard/brief.md).**
    The reasoning moved there in full. **Do not redo the evaluation, and do not build a deploy-time
    guard under this brief.** `0064` is deliberately sequenced to land *after* this task: a guard that
    enforces before this fix ships would correctly fail the deploy and block the fix itself.

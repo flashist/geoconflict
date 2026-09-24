@@ -132,5 +132,28 @@ not affected by defect 1.
 - Sequence with sec10–sec13 — same area, likely same reviewer.
 - **Add preprod to the scope check** when this is picked up: its config inherits the same silent
   fallback and has not been verified.
+- 📌 **ADDED 2026-09-24 — a sharper form of defect 1, surfaced by `0064` Phase 2's build.** Recorded by a
+  spawned `fkit-producer` with no owner channel (ADR-021). The owner ruled *"File it, Backlog"* on this
+  finding the same day, live in the `fkit lead` session; **it was recorded here instead of in a new brief**,
+  because this brief already owns the fix. ✅ **Owner confirmed 2026-09-24, verbatim: *"Note in 0005 is
+  enough"*** (live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not
+  producer precedent). No separate brief was filed.
+  - **Context's defect 1 is imprecise for the EMPTY case.** `??` falls back only on a **missing** variable.
+    A **blank** `ADMIN_TOKEN` does not become `"dummy-admin-token"` — it becomes `""`
+    (`src/core/configuration/DefaultConfig.ts:233-235`). `deploy.sh:343` always writes `ADMIN_TOKEN=${ADMIN_TOKEN}`
+    into the env file, so a blank local value lands as an empty string, not as a missing one.
+  - **Why it matters (UNVERIFIED — prove it with a test before relying on it):** every compare site is
+    `req.headers[x-admin-key] !== config.adminToken()`. With the token `""`, a request carrying an **empty**
+    `x-admin-key` header may compare equal and pass the admin gate. A request with no header at all
+    (`undefined`) still fails.
+  - **Covered until this ships, report-only:** `0064` Phase 2's value checker (`scripts/check-config-values.mjs`,
+    `deploy.sh:332`) already flags a blank `ADMIN_TOKEN` in a **prod** deploy as
+    `REQUIRED … ADMIN_TOKEN — forwarded but EMPTY`. It was checked by running the checker on 2026-09-24. It
+    warns and does not block until `0298` arms `--enforce`. Dev and staging are not judged.
+  - **What to build item 1 already covers it** ("missing **or empty** … fail closed"). The verification
+    steps should gain an **empty-value** case beside the unset one (step 1/7), plus an empty-header
+    request in step 6.
+  - **Line citations in this brief have drifted.** Compare sites today: `Master.ts:433`, `Worker.ts:206`,
+    `Worker.ts:371`. `DefaultConfig.ts:234` still matches. Re-derive them when this is picked up.
 - **No secrets in any artifact**: never paste a real token value into a brief, worklog, review, or
   commit message.

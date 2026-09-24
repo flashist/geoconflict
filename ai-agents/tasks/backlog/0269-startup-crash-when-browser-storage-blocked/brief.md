@@ -69,6 +69,6 @@ it. **Pre-existing — not caused by `0253`** (the same code is at `HEAD`).
 
 - **Depends on:** nothing
 - **Blocks:** nothing
-- **Source:** [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)
+- **Source:** [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)
   `review.md`, finding R4 and its owner disposition.
 - Client-only; no localization or analytics changes expected.

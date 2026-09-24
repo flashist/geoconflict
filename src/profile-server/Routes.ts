@@ -42,6 +42,12 @@ import type {
   PlayerProfile,
   PublicPlayerProfile,
 } from "../core/profile/PlayerProfile";
+import {
+  TenureGrantRequestSchema,
+  tenureGrantForEvidence,
+  type TenureEvidence,
+  type TenureGrantResponse,
+} from "../core/profile/TenureGrantContract";
 import type {
   ListOutcome,
   MarkReadOutcome,
@@ -71,7 +77,11 @@ import {
   type ResolveSource,
   type ResolvedPlayer,
 } from "./PlayerIdentityRepository";
-import type { CreditOutcome, XpGrantKind } from "./PlayerProfileRepository";
+import type {
+  CreditOutcome,
+  TenureCheckOutcome,
+  XpGrantKind,
+} from "./PlayerProfileRepository";
 import {
   isUsableSessionSecret,
   signSessionToken,
@@ -179,6 +189,24 @@ export interface AppOptions {
   metrics?: ProfileMetrics;
   /** Task 0277. Absent ⇒ the alert webhook route is not mounted at all. */
   alertRelay?: AlertRelayConfig;
+  /**
+   * Task 0253. Absent ⇒ `POST /v1/profile/tenure-grant` answers 503
+   * `tenure_grant_unavailable` (the name-change / inbox fail-closed pattern).
+   * Here rather than on ProfileRepo so the many ProfileRepo mocks stay unchanged.
+   */
+  tenureGrant?: TenureGrantRepo;
+}
+
+/**
+ * The tenure-check surface the tenure-grant route depends on (task 0253;
+ * structural — eases mocking). PlayerProfileRepository implements it.
+ */
+export interface TenureGrantRepo {
+  recordTenureCheck(
+    playerId: string,
+    xpAwarded: number,
+    evidence: TenureEvidence,
+  ): Promise<TenureCheckOutcome>;
 }
 
 const BEARER_PREFIX = "Bearer ";
@@ -418,6 +446,8 @@ export function createApp(
   // Task 0277. Undefined ⇒ no route, which is how every existing test and caller
   // keeps its behaviour unchanged without opting out of anything.
   const alertRelayConfig = options?.alertRelay;
+  // Task 0253. Undefined ⇒ the tenure-grant route fails closed with 503.
+  const tenureGrant = options?.tenureGrant;
 
   /**
    * The ONE place every player-facing route learns who is asking (task 0012
@@ -1322,6 +1352,85 @@ export function createApp(
       }
     },
   );
+
+  // ── Tenure XP grant (task 0253; ADR-112 as amended 2026-09-15) ────────────
+  // ONE block on purpose: task 0268 removes the claim path by deleting it.
+  //
+  // A player-facing JSON POST with a Bearer token from the game origin ⇒
+  // preflighted; publicCors is scoped to this one path, never /internal/*.
+  //
+  // ⛔ NO rate limiter — owner ruling (redesign item 5). The claim fires at most
+  // once per page load until the check lands, and abuse is bounded by the cap
+  // and by the one-row-per-player primary key, not by request rate.
+  //
+  // CALLER: the Bearer session alone (resolveCaller) — the body carries no id.
+  // ⚠️ Accepted risk (ADR-112 amended; closes with 0268): the token is
+  // `vfy:false`, so anyone who can mint one for a player can claim for them.
+  //
+  // AMOUNT: computed HERE from the evidence by the shared rule. zod strips any
+  // amount a client sends. Every checked claim writes a row, 0 XP included.
+  //
+  //   Responses: 200 { status: "granted" | "below_minimum" | "duplicate",
+  //   xpAwarded, xp } · 400 bad_request · 401 session_expired | session_invalid ·
+  //   503 session_unavailable | tenure_grant_unavailable · 404 not_found ·
+  //   500 internal_error.
+  const tenureGrantEnabled: RequestHandler = (_req, res, next) => {
+    if (tenureGrant === undefined) {
+      metrics.tenureClaim("unavailable");
+      res.status(503).json({ error: "tenure_grant_unavailable" });
+      return;
+    }
+    next();
+  };
+  app.use("/v1/profile/tenure-grant", publicCors("POST"), tenureGrantEnabled);
+
+  if (tenureGrant !== undefined) {
+    app.post("/v1/profile/tenure-grant", async (req, res) => {
+      const parsed = TenureGrantRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        metrics.tenureClaim("bad_request");
+        res.status(400).json({ error: "bad_request" });
+        return;
+      }
+      try {
+        const caller = await resolveCaller(req);
+        if (sendCallerFailure(res, caller)) {
+          metrics.tenureClaim(
+            caller.status === "unauthorized" ? "unauthorized" : "unavailable",
+          );
+          return;
+        }
+        const { xpAwarded } = tenureGrantForEvidence(parsed.data.evidence);
+        const outcome = await tenureGrant.recordTenureCheck(
+          caller.playerId,
+          xpAwarded,
+          parsed.data.evidence,
+        );
+        metrics.tenureClaim(outcome.status);
+        // Outcome and amount only — never the player id, the token or the
+        // evidence values.
+        log.info(
+          `tenure grant ${outcome.status}: xpAwarded=${outcome.xpAwarded}`,
+        );
+        if (outcome.status === "not_found") {
+          res.status(404).json({ error: "not_found" });
+          return;
+        }
+        const body: TenureGrantResponse = {
+          status: outcome.status,
+          xpAwarded: outcome.xpAwarded,
+          xp: outcome.xp,
+        };
+        res.status(200).json(body);
+      } catch (error) {
+        metrics.tenureClaim("error");
+        log.error(
+          `POST /v1/profile/tenure-grant failed: ${formatError(error)}`,
+        );
+        res.status(500).json({ error: "internal_error" });
+      }
+    });
+  }
 
   // Registered LAST — see profileErrorHandler.
   app.use(profileErrorHandler);
