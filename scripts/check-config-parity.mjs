@@ -51,7 +51,7 @@ const DEFAULT_REPO_ROOT = path.resolve(HERE, "..");
 // ── Inputs ────────────────────────────────────────────────────────────────────
 // Every input is git-tracked and value-free. Each is overridable by a
 // `--<key>=<path>` flag so tests can point the checker at synthetic fixtures.
-const INPUT_DEFAULTS = {
+export const INPUT_DEFAULTS = {
   "src-dir": "src",
   "deploy-sh": "deploy.sh",
   "update-sh": "update.sh",
@@ -101,6 +101,14 @@ const DIR_PIPELINE = {
   "profile-server": "profile",
 };
 const CORE_CONFIGURATION_PIPELINES = ["game", "client"];
+
+// The game pipeline's forwarding heredoc in deploy.sh: its opening line and delimiter.
+// Exported because the Phase 2 value checker (check-config-values.mjs) reads the SAME
+// heredoc, and two copies of this anchor would drift apart.
+export const GAME_HEREDOC = {
+  anchor: /^\s*cat\s*>.*<<\s*'?EOL'?\s*$/,
+  delimiter: "EOL",
+};
 
 /** Every pipeline a src/-relative file's reads belong to (empty: unpartitioned). */
 function pipelinesFor(segments) {
@@ -450,7 +458,7 @@ function literalIndexName(masked, from, spanAt) {
 // a hard PARSE-FAILURE, never an empty set silently compared.
 
 /** Keys assigned inside a heredoc, located by its opening line and its delimiter. */
-function parseHeredocKeys(text, openPattern, delimiter, label) {
+export function parseHeredocKeys(text, openPattern, delimiter, label) {
   const lines = text.split("\n");
   const start = lines.findIndex((l) => openPattern.test(l));
   if (start === -1) {
@@ -710,7 +718,7 @@ function collectEnvReads(srcDir, srcLabel) {
 // An UNLISTED variable is REQUIRED. That is the brief's step 4 and it is hard.
 // A `phase: 2` entry is recorded but INERT: it must never suppress a Phase 1
 // finding, or it would mask exactly what this guard is for.
-function loadAllowlist(file) {
+export function loadAllowlist(file) {
   const text = readFileOrNull(file);
   if (text === null) return { entries: [], failure: null, missing: true };
   let parsed;
@@ -757,7 +765,7 @@ function isNamedIn(text, name) {
   return new RegExp(`\\b${name}\\b`).test(text);
 }
 
-function analyse(options) {
+export function analyse(options) {
   const root = options.repoRoot;
   const resolve = (key) => path.resolve(root, options.inputs[key]);
 
@@ -829,8 +837,8 @@ function analyse(options) {
     if (deployText !== null) {
       const heredoc = parseHeredocKeys(
         deployText,
-        /^\s*cat\s*>.*<<\s*'?EOL'?\s*$/,
-        "EOL",
+        GAME_HEREDOC.anchor,
+        GAME_HEREDOC.delimiter,
         options.inputs["deploy-sh"],
       );
       if (heredoc.failure) parseFailures.push(heredoc.failure);
@@ -1187,4 +1195,9 @@ function main(argv) {
   return failsClosed(result) ? 1 : 0;
 }
 
-process.exitCode = main(process.argv.slice(2));
+// Library mode (task 0064 Phase 2): check-config-values.mjs sets this flag and then
+// imports this file for the exports above, so main() must not run. The seam fails LOUD:
+// if the flag is ever lost, main() runs and prints a whole parity report into the value
+// checker's output — visible, never silent.
+if (!globalThis.CONFIG_PARITY_AS_LIBRARY)
+  process.exitCode = main(process.argv.slice(2));

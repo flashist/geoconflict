@@ -7,8 +7,11 @@
     "server-only: read in a file the browser bundles (src/core/configuration/**) but only ever",
     "called on the server. Allowlist it; NEVER substitute a server secret into the browser bundle.",
     "Enforced: a server-only key that DefinePlugin substitutes is a REQUIRED finding this file cannot suppress.",
-    "phase: 1 entries suppress a finding today; phase 2 entries are recorded but INERT and",
-    "never suppress anything, so they cannot mask a Phase 1 gap."
+    "phase: 1 entries suppress a finding today. phase 2 entries are VALUE entries: they never",
+    "suppress a name finding, so they cannot mask a Phase 1 gap (the parity guard lists them as INERT).",
+    "On the game pipeline a phase 2 entry must be class optional, and it lets the value checker",
+    "(scripts/check-config-values.mjs) accept that key BLANK on a prod deploy; any other forwarded key",
+    "is required non-empty. Profile values are checked on the box by setup-profile.sh (task 0220), not here."
   ],
   "allow": [
     {
@@ -44,7 +47,7 @@
       "pipeline": "profile",
       "class": "optional",
       "phase": 2,
-      "reason": "Recorded now to land task 0195's hand-off where it asked. INERT in Phase 1 and honestly so: the key is forwarded at both profile hops today, so no Phase 1 rule can fire on it. It becomes live when the Phase 2 non-empty check exists."
+      "reason": "Recorded now to land task 0195's hand-off where it asked. INERT in Phase 1 and honestly so: the key is forwarded at both profile hops today, so no Phase 1 rule can fire on it. Its VALUE is checked live by the on-box report in setup-profile.sh (task 0220), not by this name-only checker."
     },
     {
       "name": "FEEDBACK_TELEGRAM_TOKEN",
@@ -80,6 +83,41 @@
       "class": "optional",
       "phase": 2,
       "reason": "The login-creation switch (task 0274). Optional by design and fail-OPEN (owner ruling D3): unset, blank or unrecognised leaves creation ENABLED (src/profile-server/LoginCreationSwitch.ts), so an absent value is the normal state and never an outage. INERT in Phase 1: forwarded at both profile hops, so no name rule can fire. Its VALUE is reported on every deploy by setup-profile.sh (an unrecognised value is a FINDING there), not by this name-only checker."
+    },
+    {
+      "name": "STORAGE_ENDPOINT",
+      "pipeline": "game",
+      "class": "optional",
+      "phase": 2,
+      "reason": "Read by storageEndpoint() in src/core/configuration/DefaultConfig.ts, which has no caller anywhere outside src/core/configuration/ today, so nothing uses the value and a blank one breaks nothing. Value entry for scripts/check-config-values.mjs: blank allowed on a prod deploy. Remove this entry if a caller appears."
+    },
+    {
+      "name": "STORAGE_ACCESS_KEY",
+      "pipeline": "game",
+      "class": "optional",
+      "phase": 2,
+      "reason": "Read by storageAccessKey() in src/core/configuration/DefaultConfig.ts, which has no caller anywhere outside src/core/configuration/ today, so nothing uses the value and a blank one breaks nothing. Value entry for scripts/check-config-values.mjs: blank allowed on a prod deploy. Remove this entry if a caller appears."
+    },
+    {
+      "name": "STORAGE_SECRET_KEY",
+      "pipeline": "game",
+      "class": "optional",
+      "phase": 2,
+      "reason": "Read by storageSecretKey() in src/core/configuration/DefaultConfig.ts, which has no caller anywhere outside src/core/configuration/ today, so nothing uses the value and a blank one breaks nothing. Value entry for scripts/check-config-values.mjs: blank allowed on a prod deploy. Remove this entry if a caller appears."
+    },
+    {
+      "name": "STORAGE_BUCKET",
+      "pipeline": "game",
+      "class": "optional",
+      "phase": 2,
+      "reason": "Read by storageBucket() in src/core/configuration/DefaultConfig.ts, which has no caller anywhere outside src/core/configuration/ today, so nothing uses the value and a blank one breaks nothing. Value entry for scripts/check-config-values.mjs: blank allowed on a prod deploy. Remove this entry if a caller appears."
+    },
+    {
+      "name": "FEEDBACK_WEBHOOK_URL",
+      "pipeline": "game",
+      "class": "optional",
+      "phase": 2,
+      "reason": "Optional by design: src/server/Master.ts posts player feedback to the webhook only when it is set; Telegram (FEEDBACK_TELEGRAM_TOKEN, deliberately NOT listed here) is the channel in use. Value entry for scripts/check-config-values.mjs: blank allowed on a prod deploy."
     },
     {
       "name": "PUBLIC_HOST",

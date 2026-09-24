@@ -47,6 +47,7 @@ no mover skill invoked.**
 Saturday, September 26"*). OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent. The 2026-09-22 *"NO replacement date"* text above is kept, not
 edited — it was true when written. ⛔ **Still NOT closable before the window runs;** verification step 8
 and the Phase 2 prod-shaped checks stay deploy-gated. `## Status` untouched; no mover invoked.
+📌 **2026-09-23, later — SUPERSEDED as to this task by the split below (owner ruling, Sprint 4 rescope Q2 = (a)):** verification step 8 now lives in [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md), and Phase 2 is built and proved **locally** here. So this task no longer waits on the window: it closes when Phase 2 is done. The paragraph above is kept, not edited.
 
 📌 **ARMING IS GATED ELSEWHERE — owner ruling 2026-09-02, given live in session.** The pre-arming
 gate is now its own task: **[`0203-config-parity-guard-pre-arming-gate`](../0203-config-parity-guard-pre-arming-gate/brief.md)**.
@@ -57,10 +58,39 @@ not 2** (R1, R4, and the eight new round-2 findings R12–R21 — see
 is bigger than this task's remaining scope implies and keeping it here would turn a shippable unit
 into a long-running container.
 
-**What that leaves in this task:** the weekend **report-only** production run (verification step 8),
+~~**What that leaves in this task:** the weekend **report-only** production run (verification step 8),
 this task's own **Phase 2** scope (verification steps 2 and 3), and — **only after `0203` lands** —
 **wiring `--enforce`** at the call sites (ruling R3's second half). ⚠️ **All ten of `0203`'s items land
-before `--enforce` is wired. Hard sequencing.** `0203` does **not** arm the guard; this task does.
+before `--enforce` is wired. Hard sequencing.** `0203` does **not** arm the guard; this task does.~~
+*(Struck 2026-09-23, not deleted. It was true until the split below.)*
+
+✂️ **SPLIT 2026-09-23, OWNER RULINGS (Sprint 4 rescope, Q2 = (a) and Q5).** Given live in the
+`fkit lead` session via `AskUserQuestion` and relayed by `fkit-lead` to a spawned `fkit-producer` with
+no owner channel (ADR-021). ⛔ **Not producer precedent.** The owner's rule for the rescope: Sprint 4
+keeps only locally buildable work, and a mixed task is split.
+
+- **What this task holds now: Phase 2 only (items 5–7), in Sprint 4.** Phase 2 can be built and tested
+  locally. That means verification steps 2 and 3, the non-empty half of step 1, and the enforcing half
+  of step 6 shown on fixtures (steps 4, 5 and 7 stay regression checks).
+- **Moved to a new Sprint 5 task,
+  [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md):**
+  verification step 8 (the first real report-only production run, runbook W12) and **arming `--enforce`**
+  at both call sites.
+- 🚩 **This supersedes ruling R3's 2026-09-02 wording** in [`plan.md`](plan.md): *"wiring enforcing is a
+  follow-up step **within this same task** — not a new task"*. The rest of R3 still stands in `0298`:
+  build first, arm only after a real report-only run has been read.
+  ⚠️ **All of `0203`'s items still land before `--enforce` is wired. Hard sequencing, now owned by
+  `0298`.**
+- ✅ **Q5, the Phase 2 format list, is APPROVED AS PROPOSED:** item 6's list is **exactly**
+  `PUBLIC_PROTOCOL`, `API_BASE_URL`, `JWT_ISSUER`, `PROFILE_API_URL`, which must be `https` and must not
+  be a bare IP, in the prod environment. **Nothing else.** This settles item 6's *"to be confirmed with
+  the owner"*.
+- 🚩 **If Phase 2 lands after the Saturday 2026-09-26 window,** its checks are not in step 8's run, and
+  they need one more report-only real deploy before `0298` enforces them.
+- 🚨 **Sprint 4 closes AT THE DEPLOY** (owner ruling, Q7 = (b)). Whatever of Phase 2 is unfinished then
+  rolls to Sprint 5 via `/fkit-sprint-done`. **Phase 2 work in progress must sit on a branch, out of
+  the working tree, at runbook W12**, because `./build-deploy.sh prod` commits and ships the tree as it
+  stands.
 
 ## Owner
 fkit-coder
@@ -173,6 +203,7 @@ which drifts, and which is then the thing lying to us.
      **prod** environment must be `https` and must not be a bare IP address. **This is exactly
      `0063`** — a value that is present, forwarded, and well-formed as a string, but wrong.
    - Nothing beyond that list without the owner adding it.
+   - ✅ **APPROVED AS PROPOSED 2026-09-23 — OWNER RULING (Sprint 4 rescope, Q5)**, given live in the `fkit lead` session via `AskUserQuestion` and relayed by `fkit-lead`; ⛔ not producer precedent. The list is **exactly** the four URL variables above, which must be `https` with no bare IP. Nothing else.
 
    ⚠️ **Scope judgment, stated so it can be overruled:** the producer scoped Phase 2 to this narrow
    list rather than general value validation. General validation is where this task would balloon and
@@ -219,12 +250,14 @@ which drifts, and which is then the thing lying to us.
   hazard section: this guard will correctly fail the deploy on their gaps, blocking the very fixes it
   is waiting for. 📌 **`0062` REMOVED 2026-09-23 (owner ruling, relayed by `fkit-lead`), citing the
   OWNER RULING OF 2026-09-02 in `## Status`:** `0062` gates only **switching the guard on** (arming),
-  **not building it**. `0062` is now closed; its production checks moved to `0296`. ⛔ This task's own
-  deploy-gated steps (verification step 8, the Phase 2 prod-shaped checks) are **unchanged**.
-- **Blocks:** nothing.
-- **Arming depends on [`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md)** *(added
+  **not building it**. `0062` is now closed; its production checks moved to `0296`. ~~⛔ This task's own
+  deploy-gated steps (verification step 8, the Phase 2 prod-shaped checks) are **unchanged**.~~ 📌 **2026-09-23, later (owner ruling, Sprint 4 rescope Q2 = (a)): verification step 8 moved to [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md). Phase 2 is built and proved locally here, and nothing in this task waits on a deploy any more.**
+- **Blocks:** [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md), for the arming of Phase 2's checks only (Phase 1 can be armed without Phase 2). *(Was "nothing" until the 2026-09-23 split.)*
+- ~~**Arming depends on [`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md)** *(added
   2026-09-02, owner-ruled)*. All ten pre-arming items live there and must land before `--enforce` is
-  wired here. The report-only run and Phase 2 are unaffected and proceed regardless.
+  wired here. The report-only run and Phase 2 are unaffected and proceed regardless.~~
+  📌 **2026-09-23 (owner ruling, rescope Q2 = (a)): arming moved to [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md)**, and so did the report-only production run. The `0203` → arming sequence is unchanged and is now `0298`'s. Struck, not deleted.
+- **Split into [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) on 2026-09-23.** This task keeps Phase 2 (Sprint 4). `0298` holds verification step 8 and arming `--enforce` (Sprint 5). See `## Status`.
 - **Related:** `0061`, `0062`, `0063` (the three instances that motivated it), `0060` (independent —
   parallelizable with any of these).
 

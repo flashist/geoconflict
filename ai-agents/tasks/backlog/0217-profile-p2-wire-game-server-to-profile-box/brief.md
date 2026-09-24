@@ -7,7 +7,10 @@
 [`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
 
 ## Sprint
-Sprint 4
+
+Sprint 5
+
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
 
 ## Priority
 **High** — this is the phase that converts a running box into a working feature. Until it lands, the
@@ -198,6 +201,10 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
     `0061`'s — and **no mover skill was invoked.** ⚠️ It also does **not** rule the 2026-09-14 edges
     condition satisfied: whether *"everything that CAN finish before"* has in fact finished is a
     **board reading to be redone at the slot**, not a thing this bullet asserts.
+- 🔴 **2026-09-23 — SPRINT 4 RESCOPE, OWNER RULING (Q1 = (a)), given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Not producer precedent.** The option as put: *"the token is set at the window regardless; `0253` only has to land before `0065`'s flip."*
+  - ⇒ **`PROFILE_INTERNAL_TOKEN` is set at the Saturday 2026-09-26 window, whatever is still open on Sprint 4.** This **supersedes the 2026-09-14 edges rule's inclusion of [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)** in the *"Counts — must be done by the weekend deploy"* bucket above (kept, not edited). `0253`'s deadline is now **before [`0065`](../0065-citizenship-paid-live-verification/brief.md)'s flip**.
+  - The same rescope moved **this task to Sprint 5**: everything left in it is on-box or production work. Sprint 4 now holds only locally buildable work (`0064` Phase 2, `0253`, `0020`, `0203`), and none of it gates this task. The *"everything that CAN finish before"* board reading at the slot is **therefore no longer a condition on setting the token**.
+  - ⛔ **What this does NOT change:** this task's `Depends on` list (`0215`, `0270`–`0274`, `0275`, `0276`), `RUNBOOK-E` (measure the egress IP at W0), and the 2026-09-19 ruling that the token is set **at** the window.
 - ⚠️ **`## Status` below is UNCHANGED.** A conditional go-live slot is not a start.
 
 ## Status

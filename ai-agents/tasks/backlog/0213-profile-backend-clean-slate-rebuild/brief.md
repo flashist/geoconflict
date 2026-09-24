@@ -4,7 +4,10 @@
 0213
 
 ## Sprint
-Sprint 4
+
+Sprint 5
+
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
 
 ## Priority
 **High** — this epic is the structural blocker under `0062`, `0017`'s Deferred Live Tail, `0012`'s
@@ -248,7 +251,8 @@ This epic is verified by its children and closes when all ten rows above close. 
    📌 **2026-09-23, owner ruling, verbatim: *"Keep it in Sprint 5, but the task shouldn't block
    Sprint 4."*** ⇒ **`0296` A3 does not gate this epic.** This criterion is met by **P2's own
    acceptance criterion — [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
-   verification step 1 (D3)**, which is the same check and is Sprint 4 work; `0296` A3 is the Sprint 5
+   verification step 1 (D3)**, which is the same check and ~~is Sprint 4 work~~ *(📌 corrected 2026-09-23: `0217` moved to
+   **Sprint 5** in the Sprint 4 rescope, an owner ruling; see this brief's `## Sprint`)*; `0296` A3 is the Sprint 5
    after-deploy record of it.
 4. **Migration `004` is confirmed applied** — see `0215` / `0217`; ✅ safe to run either way.
 5. A restore drill against **non-empty** data, with **currently-documented** commands (P3).

@@ -4,9 +4,15 @@
 0032
 
 ## Sprint
-Sprint 4 — In-App Monetization & Citizenship (carried in as a stabilization follow-up).
-This is the triage + fix half of the null-id investigation split (2026-06-03). It is
-scheduled for Sprint 4 because both its prerequisites land at the Sprint 4c→4 boundary:
+
+Sprint 5
+
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+
+*(Earlier value, kept as history — it was true when written:)* ~~Sprint 4 — In-App Monetization & Citizenship (carried in as a stabilization follow-up).~~
+
+This is the triage + fix half of the null-id investigation split (2026-06-03). It was
+*(until 2026-09-23)* scheduled for Sprint 4 because both its prerequisites land at the Sprint 4c→4 boundary:
 source maps (`0164-enable-client-source-maps`) and a deployed archive fix that quiets
 the telemetry stream.
 

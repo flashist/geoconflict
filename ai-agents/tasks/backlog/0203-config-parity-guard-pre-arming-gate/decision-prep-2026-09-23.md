@@ -5,6 +5,14 @@
 >
 > ⛔ **NOT RULED. Nothing in this file is a decision.** Every recommendation below is the producer's.
 >
+> 🔓 **LIFTED LATER ON 2026-09-23 — OWNER RULING (Sprint 4 rescope, Q3 = (b), against the producer's
+> recommendation)**, given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` (ADR-021); ⛔ not
+> producer precedent. **The decisions below are taken NOW, before the Saturday 2026-09-26 window.** `0203` stays in Sprint 4.
+> The consumer of these decisions, `--enforce` wiring, is now
+> [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md), not `0064`. Where this file
+> says *"0064's step"* for arming, read `0298`. The paragraph below is kept, not deleted, because it was true when written. Still
+> **NOT RULED:** every recommendation here remains the producer's until the owner answers.
+>
 > 📌 **The owner KEPT ruling 3 on 2026-09-23** (live in the `fkit lead` session via `AskUserQuestion`,
 > relayed by `fkit-lead`, ADR-021): these decisions are taken **after the deploy window**
 > (Saturday 2026-09-26), not before. See the
@@ -26,6 +34,8 @@ guard block a deploy) is turned on, which is `0064`'s step, after this task land
 
 ## Group A — when is a deploy refused? (owner calls: they set deploy risk tolerance)
 
+> ✅ **RULED 2026-09-23 — option 1 (the recommendation).** OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. The owner chose *"Stop, show the fix"*: under `--enforce`, a new `src/` folder with no `DIR_PIPELINE` map entry **stops the deploy, and the message names the one-line map fix**.
+
 NEEDS-DECISION {
 id: "R4a",
 question: "When a new folder under src/ reads environment settings the guard has no map entry for, should the deploy be refused?",
@@ -38,6 +48,8 @@ recommendation: "Refuse and name the fix. An unmapped folder is exactly an unche
 context: "The owner declined to rule on this at 0064 (disposition D7), so it arrives open. 0 live instances. It becomes a deploy blocker only once --enforce is on."
 }
 
+> ✅ **RULED 2026-09-23 — option 1 (the recommendation): both stop the deploy.** OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. ⚠️ **How the ruling was given, precisely:** the owner first answered *"We're not doing the deploy today. You can fix it"*, delegating to the lead's recommendation. The lead then asked for confirmation (*"a missing guard script STOPS the deploy (my recommendation)?"*) and the owner answered ***"Yes, stop the deploy"***. **The same stop applies to the two newer fail-loud cases from the `0203` build**: a scanner parse failure in any `src/` file, and a computed/spread `DefinePlugin` key. The call-site `-f` change belongs to the `--enforce` wiring, now [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md), and is noted there.
+
 NEEDS-DECISION {
 id: "R4b",
 question: "If the guard script itself is missing at deploy time, should the deploy stop the way it already does when one of the guard's input files is missing?",
@@ -47,8 +59,12 @@ options: [
 "Keep them different (today: a missing input stops, a missing script is silently skipped)"
 ],
 recommendation: "Both stop the deploy. Otherwise the cheapest way to turn off an armed guard is to delete its script, and no one would see it.",
-context: "The missing-script case is decided by the deploy scripts' `-f` check at the call sites (deploy.sh, build-deploy-profile.sh). Changing it is part of 0064's --enforce wiring, not 0203's. Also under R4: the 0203 build added two new ways to block a deploy, a scanner parse failure in any src/ file and a computed/spread DefinePlugin key (plan.md Risks; review ledger). Both are 'fail loud' by design and need the same yes/no."
+context: "The missing-script case is decided by the deploy scripts' `-f` check at the call sites (deploy.sh, build-deploy-profile.sh). Changing it is part of 0064's [⚠️ STALE: read 0298's, since the 2026-09-23 split] --enforce wiring, not 0203's. Also under R4: the 0203 build added two new ways to block a deploy, a scanner parse failure in any src/ file and a computed/spread DefinePlugin key (plan.md Risks; review ledger). Both are 'fail loud' by design and need the same yes/no."
 }
+
+> ✅ **RULED 2026-09-23 — option 2 (the recommendation): "Only its own deploy".** OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Each deploy blocks only on its own settings: game + browser for `deploy.sh`, profile for `build-deploy-profile.sh`. Other pipelines' findings print loudly but don't block. Shared code (`core/configuration`) is still checked for both game and browser. The arming implements this, so it is noted in [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md).
+
+> ✅ **RULED 2026-09-23 — the conflict between R4a and R14 (second half) is resolved, refining both rulings.** architect's call (`fkit-architect`, read-only consult, 2026-09-23), **owner-approved** live via `AskUserQuestion` in the `fkit lead` session on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent. **Failures that cannot be traced to a pipeline stop EVERY deploy**: an unmapped `src/` folder, broken allowlist JSON, a missing guard script. **Everything else stops only its own deploy.** ⇒ `DYNAMIC-READ` and scanner parse failures must be **tagged with their file's pipeline(s)** so they can block per deploy. Today they are one global list (`:686-697`, `:804`, `:1024`). The arming that enforces this is [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md).
 
 NEEDS-DECISION {
 id: "R14-second-half",
@@ -64,17 +80,23 @@ context: "Both deploy scripts now check all pipelines (`--pipeline=all`), which 
 
 ## Group B — how the guard reads the deploy scripts' settings blocks (technical; recommend routing to the architect)
 
+> ✅ **RULED 2026-09-23 — R13: option 2.** architect's call (`fkit-architect`, read-only consult, 2026-09-23), **owner-approved** live via `AskUserQuestion` in the `fkit lead` session on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent. Report the unreadable heredoc line as `PARSE-FAILURE`, **but still check every line that parsed** (`parseHeredocKeys`, `scripts/check-config-parity.mjs:483-487`; callers `:836-837`, `:886-887`). **Option 3 is rejected as unneeded:** since the R12 fix, detection works by inversion (`:136-142`), so the *"legitimate indented UPPERCASE= line"* risk is stale. The other failure cases (anchor not found, never closed, empty block) still return no keys. **Tests:** one game fixture and one profile fixture (`PARSE-FAILURE` + exactly one extra `REQUIRED`, `INFO` unchanged, B2 still fires), proved by mutation. Size: small.
+>
+> ~~🔀 **ROUTED, NOT RULED — 2026-09-23.** OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent: the owner chose *"Architect decides, I approve"* for the four technical items (R13, item 11, R19, R21). `fkit-lead` is consulting `fkit-architect`. **The item stays open until the architect's call AND the owner's yes/no are recorded here.** The recommendation below is still the producer's.~~ *(superseded by the ruling above)*
+
 NEEDS-DECISION {
 id: "R13",
 question: "When one line in a deploy script's settings block can't be read, should the guard throw away the whole block or still check the other lines?",
 options: [
 "Throw away the whole block (today) and pin that with a test — loud, but one bad line produces about 21 false 'required' warnings and hides the real findings",
 "Report the bad line as a failure but still check every line that did parse — same deploy stop under --enforce, far less false noise",
-"Either of the above, plus a way to mark a line that legitimately looks like a setting but isn't — avoids a false hard failure on unusual script text"
+"Either of the above, plus a way to mark a line that legitimately looks like a setting but isn't — avoids a false hard failure on unusual script text [⚠️ STALE 2026-09-23 per the architect: since the R12 fix, detection is by inversion (:136-142), so this risk no longer exists — rejected as unneeded]"
 ],
 recommendation: "Option 2, pinned with a test. Under --enforce the failure already stops the deploy, so throwing away the rest only adds noise. Route to fkit-architect: this is a technical trade-off, not an owner policy call.",
 context: "0203's R12 fix widened this: any unreadable line now fails the whole block (worklog 'Residuals'; plan Risks). The reviewer does NOT want the loud behaviour reverted. The false-failure side (a legitimate indented UPPERCASE= line) is harmless today and a deploy blocker once armed."
 }
+
+> ⏹️ **CLOSED WITHOUT A RULING, 2026-09-23 — moot (option 1, the recommendation),** on the owner's instruction relayed by `fkit-lead`. Local evidence (Docker 28.5.1 / Compose 2.40.0): Compose `env_file` accepts `export`, while `docker run --env-file` rejects it. R12 is already fixed, and the guard now fails loudly and names the key. **The server-side versions were never checked, and the question is closed as moot, not as answered.**
 
 NEEDS-DECISION {
 id: "Open-question-1 (R12 / `export`)",
@@ -89,16 +111,27 @@ context: "The plan (line 30, 50–51) has local evidence only, from Docker 28.5.
 
 ## Group C — settings read in ways the guard can't list (technical; recommend routing to the architect)
 
+> ✅ **RULED 2026-09-23 — item 11 + R19, together**, as two halves of one rule: *"every use of `process.env` is either a listable read or is announced"*. architect's call (`fkit-architect`, read-only consult, 2026-09-23), **owner-approved** live via `AskUserQuestion` in the `fkit lead` session on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent.
+> - **Item 11:** replace `ENV_ALIAS` (`:129`) with detection by inversion. After comments and strings are masked, any `process.env` that is not a plain dot read, a quoted bracket read, or a fully written-out destructuring is a `DYNAMIC-READ`, and the message names the fix (*"rewrite as plain `process.env.NAME` reads"*). Member access (`worker.process.env`) is excluded. **Do NOT widen to a bare `process`**: it would falsely stop on `src/profile-server/Server.ts:203` and `src/client/GoogleAdElement.ts:100`. `const { env } = process` and `process["env"]` stay a documented limit, with a pinning test.
+> - **R19: option 1 plus a lighter option 2.** A written-out destructuring (`{ A, B: b, C = "x" } = process.env`) counts as normal reads and is not announced. `...rest` and computed keys stay `DYNAMIC-READ`. While any `DYNAMIC-READ` is present, print one `INFO` caveat line (*"INFO may include keys read through the DYNAMIC-READ above"*). **This REMOVES a false deploy stop that exists today.**
+> - **Tests:** the two recorded reproductions; the other silent shapes (`Object.keys(process.env)`, `{...process.env}`, `f(process.env)`, `(process.env)`, `return process.env`, `x ?? process.env`, `if (process.env)`); the member-access exclusion; the `const { env } = process` pin; destructured names no longer reported dead; rest/computed still `DYNAMIC-READ`; the caveat only when a `DYNAMIC-READ` is present. Size: medium, shared between the two items.
+>
+> ~~🔀 **ROUTED, NOT RULED — 2026-09-23.** OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent: the owner chose *"Architect decides, I approve"* for the four technical items (R13, item 11, R19, R21). `fkit-lead` is consulting `fkit-architect`. **The item stays open until the architect's call AND the owner's yes/no are recorded here.** The recommendation below is still the producer's.~~ *(superseded by the ruling above)*
+
 NEEDS-DECISION {
 id: "Item 11 (0203 review R4)",
 question: "When code uses the whole settings object in an unusual way (e.g. `Object.keys(process.env)`), should the guard announce it instead of staying silent?",
 options: [
-"Announce it as a 'dynamic read' — no silent blind spot, and under --enforce it fails the deploy per R4's ruling",
+"Announce it as a 'dynamic read' — no silent blind spot, and under --enforce it fails the deploy per R4's ruling [⚠️ STALE 2026-09-23 per the architect: failsClosed already fails on any DYNAMIC-READ (:1046), independent of R4]",
 "Document it as a known limit, with a test that pins the blind spot"
 ],
 recommendation: "Announce it. It matches the checker's 'every parser fails loud' rule, and there are 0 live instances, so it costs nothing today. Route the exact detection rule to fkit-architect.",
 context: "Existing blind spot, not introduced by 0203 (review ledger R4). The owner already ruled on 2026-09-14 that it goes on the pre-arming list. Either way it needs a test."
 }
+
+> ✅ **RULED 2026-09-23 together with item 11**; see the ruling above item 11's block. Option 1 plus a lighter option 2.
+>
+> ~~🔀 **ROUTED, NOT RULED — 2026-09-23.** OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent: the owner chose *"Architect decides, I approve"* for the four technical items (R13, item 11, R19, R21). `fkit-lead` is consulting `fkit-architect`. **The item stays open until the architect's call AND the owner's yes/no are recorded here.** The recommendation below is still the producer's.~~ *(superseded by the ruling above)*
 
 NEEDS-DECISION {
 id: "R19",
@@ -114,6 +147,10 @@ context: "0 live instances. The brief says the line is announced, not silent, bu
 
 ## Group D — what the guard scans (technical; recommend routing to the architect)
 
+> ✅ **RULED 2026-09-23 — R21: option 2.** architect's call (`fkit-architect`, read-only consult, 2026-09-23), **owner-approved** live via `AskUserQuestion` in the `fkit lead` session on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent. **Keep `src/` only**, document it as a known limit, and add a pinning test: a fixture read outside `src/` is not seen, and the mutation points the walk at the repo root. **Re-raise when a file outside `src/` first reads a deploy-forwarded setting.** The limit note must also name `webpack.config.js`'s build-machine reads (`:36-43`, `:164`, `:173-175`, `:337`, `:341`, `:345`) as **unchecked**, because they are a different path from deploy forwarding. Size: small.
+>
+> ~~🔀 **ROUTED, NOT RULED — 2026-09-23.** OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent: the owner chose *"Architect decides, I approve"* for the four technical items (R13, item 11, R19, R21). `fkit-lead` is consulting `fkit-architect`. **The item stays open until the architect's call AND the owner's yes/no are recorded here.** The recommendation below is still the producer's.~~ *(superseded by the ruling above)*
+
 NEEDS-DECISION {
 id: "R21",
 question: "Should the guard also scan build scripts outside src/ (e.g. scripts/) for settings they read?",
@@ -127,6 +164,7 @@ context: "Brief item 10 plus the 2026-09-14 note. The original worked example (`
 
 ## No decision needed
 
+- ⏹️ **CLOSED 2026-09-23 — bookkeeping done:** `brief.md`'s *Open questions* now records it as settled.
 - **Q7 (R14 first half, the brief's open question 2) is already settled; the brief is out of date.**
   Option A (print a caveat) shipped. Then 0203's R1 fix closed the gap and removed the caveat line
   (`worklog.md` line 21; `plan.md` line 29). ⚠️ **Bookkeeping still owed:** `brief.md`'s *Open
@@ -139,4 +177,6 @@ context: "Brief item 10 plus the 2026-09-14 note. The original worked example (`
 - **fkit-architect:** R13, item 11, R19, R21. They are technical, but the owner may still want to
   approve the architect's call.
 - **Close without a ruling:** open question 1 (moot) and Q7 (already answered).
-- **When:** after the deploy window (Saturday 2026-09-26), per ruling 3, which the owner kept on 2026-09-23.
+- ~~**When:** after the deploy window (Saturday 2026-09-26), per ruling 3, which the owner kept on 2026-09-23.~~ Ruling 3 was lifted later on 2026-09-23; the decisions were taken before the window.
+- 📌 **OUTCOME, 2026-09-23:** R4a, R4b and R14 second half are **RULED**. ~~R13, item 11, R19 and R21 are **ROUTED** to `fkit-architect` for owner approval, **not ruled**.~~ **Later on 2026-09-23 R13, item 11, R19 and R21 are RULED too** (architect's call, owner-approved), and the R4a/R14 conflict is resolved. **No pre-arming decision is pending any more.**
+- 📌 **Architect's answers to the open points (2026-09-23):** (1) **A "dead" line can NOT fail a deploy under `--enforce`.** It is `INFO`, and `failsClosed` (`:1042-1049`) covers `REQUIRED` / `PARSE-FAILURE` / `DYNAMIC-READ` / `SKIP` only. (2) **Stale facts in this record, marked, not deleted:** R13 option 3's rationale (also brief §4); item 11 option 1's *"per R4's ruling"*, because `failsClosed` already fails on any `DYNAMIC-READ` (`:1046`); and *"0064's step"*, which should read `0298`. Open question 1 and Q7 are **CLOSED** without a ruling.

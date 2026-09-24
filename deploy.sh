@@ -61,6 +61,42 @@ if [ -f "$(dirname "$0")/scripts/check-config-parity.mjs" ] && command -v node >
     node "$(dirname "$0")/scripts/check-config-parity.mjs" --pipeline=all --report-only || true
 fi
 
+# ── Config value guard (task 0064 Phase 2) ────────────────────────────────────
+# Judges the VALUES this deploy is about to forward: a required key must not be blank,
+# and on prod PUBLIC_PROTOCOL / API_BASE_URL / JWT_ISSUER / PROFILE_API_URL must be https
+# with no bare-IP host. It prints key NAMES only, never a value.
+#
+# Its safety story is DIFFERENT from the parity guard above, on purpose. It must run
+# AFTER the env files are loaded and every default is applied (it is called right before
+# the ssh below), because judging what is really forwarded is the whole point. So values
+# reach it on STDIN as `name NUL value NUL` records written by the printf builtin, not
+# through the environment: most heredoc sources are computed here and never exported.
+# No value lands in any process's argv; the ssh command below already carries them all.
+#
+# The source names come from the checker itself (--list-sources). Each is re-validated
+# as a plain shell name before the indirect ${!name} read, because an indirect read of
+# something like `a[$(cmd)]` would RUN cmd.
+#
+# REPORT-ONLY, and "this cannot fail a deploy" is guaranteed by the `|| true` guards
+# here and at the call site, not by the checker's mode.
+run_config_value_guard() {
+    local checker sources
+    checker="$(dirname "$0")/scripts/check-config-values.mjs"
+    if [ ! -f "$checker" ] || ! command -v node >/dev/null 2>&1; then
+        return 0
+    fi
+    sources=$(node "$checker" --list-sources) || sources=""
+    if [ -z "$sources" ]; then
+        echo "config value guard: skipped — could not list the deploy heredoc's value sources"
+        return 0
+    fi
+    printf '%s\n' "$sources" | while IFS= read -r name; do
+        [[ $name =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
+        printf '%s\0%s\0' "$name" "${!name-}"
+    done | node "$checker" --values-stdin --deploy-env="$ENV" --report-only || true
+    return 0
+}
+
 uppercase_env=$(echo "$ENV" | tr '[:lower:]' '[:upper:]')
 
 lookup_env_value() {
@@ -292,6 +328,8 @@ else
     BASIC_AUTH_PASS=""
     echo "Basic Authentication is disabled"
 fi
+
+run_config_value_guard || true
 
 print_header "EXECUTING UPDATE SCRIPT ON SERVER"
 

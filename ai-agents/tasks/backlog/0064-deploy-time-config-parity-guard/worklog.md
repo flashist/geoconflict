@@ -425,3 +425,142 @@ working tree) — the lockfile simply never carried it. It is the second half of
 reviewer named ("pre-existing `playwright` **+ `engines`** drift"). It changes no version and removes
 nothing, so it does not meet the "stop and report" bar of a churned dependency — but it is beyond the
 three entries that were predicted, so it is called out rather than absorbed.
+
+---
+
+# Phase 2 — 2026-09-23 (Build worker, `fkit-sprint-ship-loop`, Sprint 4)
+
+Built from the approved plan `plan-phase2.md` (blob `be4b471d`, 22568 bytes; hash re-checked at start) **with
+the owner's four amendments of 2026-09-23**, which win over the plan body. Game side only (amendment 2).
+**Not committed.** `plan.md` (Phase 1) and `plan-phase2.md` untouched.
+
+## ⚠️ Status: code + tests green, `npm run lint` RED on one out-of-plan config line
+
+`npm run lint` exits 1 with a single error: `scripts/check-config-values.mjs was not found by the project
+service`. The fix is one path added to the existing `scripts/check-config-parity.mjs` block in
+`eslint.config.js` (`projectService: false`, the escape hatch Phase 1 used because `allowDefaultProject` is at
+its cap of 8). **`eslint.config.js` is not in the plan's file list, so it was NOT edited** — returned to the
+driver as `NEEDS-DECISION`. Proven without touching the file: a scratch flat config that imports the repo's
+config and appends that one block lints the **whole repo** clean (exit 0).
+
+## Owner ruling recorded here (amendment 1)
+
+**Amendment 1 (2026-09-23) supersedes the 2026-09-04 "`PROFILE_INTERNAL_TOKEN` deliberately blank until
+citizenship goes live" ruling — for the value check.** Owner, verbatim: *"I don't think we can allow the
+PROFILE INTERNAL TOKEN to be empty anymore, because this token is a requirement for the profile/citizenship
+logic to work properly"*. So the token has **no** `optional` value entry, and a blank one on a prod deploy
+prints `REQUIRED … PROFILE_INTERNAL_TOKEN — forwarded but EMPTY`. The producer records this in the briefs
+(`0217` / `0296` / `0298`); this worklog does not edit them. Consequence worth knowing: until `.env.prod`
+carries the token, every prod deploy prints that REQUIRED line (report-only, so it cannot fail the deploy);
+once `0298` arms `--enforce`, a blank token would **block** a prod deploy. Plan §8 item 7 ("remove the entry
+at `0217` go-live") is void — there is no entry to remove.
+
+Amendment 3 (non-empty rule is **prod only**, like the format rules) is built: under `dev`/`staging` no value
+is judged; wiring faults (VALUE-UNKNOWN, PARSE-FAILURE, SKIP) are still reported in every env.
+
+## Change surface
+
+| File | Change |
+|---|---|
+| `scripts/check-config-values.mjs` | **new**, 498 lines after prettier (plan said ~280). The value checker: `--list-sources` / `--values-stdin`, stdin `name\0value\0` records, prod-only non-empty + format rules, report-only / `--enforce` / exit 2. No `process.env`, no `.env` path literal. |
+| `scripts/check-config-parity.mjs` | seam only, **no behaviour change**: `export` on `INPUT_DEFAULTS`, `parseHeredocKeys`, `loadAllowlist`, `analyse`; new exported `GAME_HEREDOC` used by `analyse`; last line gated on `globalThis.CONFIG_PARITY_AS_LIBRARY`. |
+| `scripts/config-parity-allowlist.json` | **+5** `game` / `phase: 2` / `optional` entries (`STORAGE_ENDPOINT`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_BUCKET`, `FEEDBACK_WEBHOOK_URL`); `_comment` reworded (phase 2 = value entries); stale `YANDEX_PAYMENTS_SECRET` sentence repointed to `0220`'s on-box report. |
+| `deploy.sh` | `run_config_value_guard()` defined beside the Phase 1 block (closing `}` at column 0); called as `run_config_value_guard \|\| true` on the line before `print_header "EXECUTING UPDATE SCRIPT ON SERVER"`. Heredoc anchor still matches exactly one line. |
+| `tests/scripts/ConfigValues.test.ts` | **new**, 52 tests (sections A–I of plan §5, amended). |
+| `tests/scripts/ConfigParity.test.ts` | pinned inert list +5 names (11 total); +1 seam test (relative path from another cwd, and via a symlink). 83 → 84. |
+
+**Not touched:** `src/`, `build-deploy-profile.sh`, `setup-profile.sh`, `package.json`, `CLAUDE.md`,
+`eslint.config.js`, any `.env*` (never opened or printed), any shell harness.
+
+## Order of work (plan §6), as run
+1. Seam → `ConfigParity.test.ts` **83/83** still green (no behaviour change).
+2. Value checker; smoke: `--list-sources` gives exactly 29 names.
+3. Allowlist entries (JSON re-validated; 30 entries).
+4. `deploy.sh` wiring; confirmed under `/bin/bash` 3.2.57 that `${!name-}`, `[[ =~ ]]` and `printf '%s\0'`
+   work, **and that without the name regex `${!name}` on `a[$(touch PWNED)]` really does run the command**.
+5. Tests A–I, `ConfigParity` edits, mutation proofs, prettier, lint, full `npm test`.
+
+## Mutation proofs — every one turned its suite red; each file restored from a byte copy after
+
+| # | Mutation | Red |
+|---|---|---|
+| M1 | value checker stops setting the library flag | 30/52 (A list-sources, B, …) |
+| M2 | parity `main()` ungated | 30/52 |
+| M3 | parity gate swapped for the rejected argv/`import.meta.url` check | seam test (symlink run goes silent) |
+| M4 | `deploy.sh` name regex removed | H injection test (`PWNED` created) |
+| M5 | `deploy.sh` reads via `printenv` (exported vars only) instead of `${!name-}` | H prod run + H injection |
+| M6 | call moved after the ssh header | H placement test |
+| M7 | no `trim()` | whitespace-only test, `" https "` test |
+| M8 | non-empty/format rules in every env (prod gate removed) | both staging/dev tests (amendment 3) |
+| M9 | `https://` check case-insensitive | `HTTPS://…` case |
+| M10 | IPv6 brackets not stripped before `isIP` | `https://[::1]` case |
+| M11 | **leak**: value appended to the finding detail | B, G canary test, H canary check |
+| M12 | **leak**: malformed-stream message echoes a field | G malformed-paths test |
+| M13 | dead-key exemption kept on an incomplete analysis | E DYNAMIC-READ test |
+| M14 | phase-1 game entries exempt values | 6 tests incl. E phase-1 test |
+| M15 | `--enforce` ignores VALUE-UNKNOWN | 4 F cases |
+| M16 | `${A:-x}` accepted as source `A` | A non-plain-RHS test |
+| M17 | empty required key also gets format findings | D, E optional-blank-only |
+| M18 | shipped allowlist gains a `PROFILE_INTERNAL_TOKEN` optional entry (the pre-amendment plan) | 4 tests incl. C shipped-allowlist, H, I |
+
+## Verification
+
+- **`npm test`: exit 0 — 139 suites / 1923 tests passed, first run, no flake, no re-run.** Wall ~53 s (CLAUDE.md
+  says ~25 s; the long pole is `ShellHarnesses.test.ts` at 52.5 s, which this task did not touch). No
+  `skipped` in the totals, so the Docker-probed harness ran.
+- Targeted: `ConfigValues.test.ts` 52/52, `ConfigParity.test.ts` 84/84.
+- **`npm run lint`: exit 1 — 1 error, the project-service parse error above.** Every other file lints clean;
+  with the proposed one-line config block, whole-repo lint exits 0 (scratch config, real file untouched).
+- **Prettier:** `--check` clean on all five touched JS/TS/JSON files after `--write`
+  (`ConfigParity.test.ts` was clean at `HEAD`, so the drift was mine and is fixed). `deploy.sh`: prettier has
+  no shell parser — checked instead with `/bin/bash -n` (ok).
+
+## Verification steps — status after Phase 2 (plan §7, amended)
+
+| # | Status |
+|---|---|
+| 1 non-empty half | ✅ fixtures (C). Shipped config: a blank `PROFILE_INTERNAL_TOKEN` is **REQUIRED** (amendment 1). |
+| 2 | ✅ fixtures + the real `deploy.sh` function run (B, H) |
+| 3 | ✅ generic and `PROFILE_INTERNAL_TOKEN` (C) |
+| 4 | ✅ prod-shaped fixture (D). **Not proved against the real `.env.prod`** — that is `0298`'s run. Output is not literally silent (OK/OPTIONAL/UNCHECKED count lines). |
+| 5 | ✅ (E) |
+| 6 enforce half | ✅ (F). `--enforce` wired to nothing. |
+| 7 | ✅ (G, H); `set -x` still absent (existing test). |
+| 8 | ➡ `0298` |
+
+Known limits carried from plan §8 item 5, not widened: bare-IP `PUBLIC_HOST` is not checked; a value with a
+line break (R2) is not checked. Observation §8 item 6 (blank `ADMIN_TOKEN` bypasses its `??` default) stands —
+the guard names it as REQUIRED; not fixed here.
+
+## Decision log — build-time calls under the standing approval (ADR-019 / ADR-032 audit)
+
+No review findings were processed (build step). These are the calls made **without asking**, each inside the
+approved plan's intent; none widened scope. **Out-of-plan need: `eslint.config.js` — NOT applied, returned as
+`NEEDS-DECISION`.**
+
+1. **`deploy.sh` loop: `printf '%s\n' "$sources" | while IFS= read -r name` instead of `for name in $sources`**
+   (plan §3 `deploy.sh` row). *Why:* the unquoted `for` also does pathname expansion, so a `*` from
+   `--list-sources` would expand to cwd filenames. Same result for every valid name; strictly narrower.
+   *Qualifies as:* obvious winner within intent (the plan's own injection hardening).
+2. **`NOT JUDGED N` line + `notJudged[]` JSON field under dev/staging** (plan §2 output/JSON). *Why:* amendment
+   3 means non-prod judges nothing; counting those keys as `OK` would claim a check that never ran.
+   *Qualifies as:* obvious winner — implementing amendment 3 honestly.
+3. **`deadKeyExemption {applied, reason}` JSON field** alongside the plan's one printed `NOTE` line (plan §2
+   "prints one line"). *Why:* makes the same fact visible in `--json`. Additive.
+4. **Usage errors go to stderr** (Phase 1 writes them to stdout), and an unknown argument is echoed by flag
+   name only. *Why:* keeps `--list-sources`' "nothing else on stdout" contract; never echoes an argument value.
+5. **An internal crash prints the error's class only, not its message** (plan §2 "never printed"). *Why:* a
+   message could in principle carry a value. Exit mirrors Phase 1 (0 report-only / 1 enforce).
+6. **Format rules also apply to a NON-empty value of an `optional` key.** *Why:* `optional` means "blank
+   allowed" (the plan's own `_comment` wording), not "anything allowed". Zero effect on the shipped config —
+   none of the five entries is a format key. Tested (E).
+7. **On a heredoc PARSE-FAILURE no line is judged** (only PARSE-FAILURE is reported), matching
+   `--list-sources` returning nothing in that case. Extra stdin records naming no heredoc source are ignored.
+8. **stdin is read by async iteration**, not `readFileSync(0)`, which can throw `EAGAIN` on a non-blocking pipe.
+9. **Tests beyond the plan's list** (all inside §5's intent): `HTTPS` protocol case variant, `" https "` trim,
+   `https://10.1.2.3:8443/path`, `http://api.example.test`, optional-allows-blank-only, invalid/missing
+   allowlist, a `deploy.sh` call-placement test, the `$NAME` (braceless) form.
+10. **`prettier --write`** on the three touched TS/MJS files (formatting only).
+
+No other autonomous change. `0203` seam (plan §8 item 1) kept exactly: four exports, `GAME_HEREDOC`, the
+library flag, `pipelines.game.info[].name`, and `.length` on `parseFailures` / `dynamicReads` / `skips`.

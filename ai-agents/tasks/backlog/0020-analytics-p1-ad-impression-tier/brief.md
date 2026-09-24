@@ -4,7 +4,10 @@
 0020
 
 ## Sprint
-Sprint 4 — implement when citizenship tiers are live
+
+Sprint 4
+
+📌 **Re-worded 2026-09-23 — OWNER RULING (Sprint 4 rescope, Q4 = (a))**, given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. **This task STAYS in Sprint 4, investigation first**: (1) how the client learns the **paid** tier — today the public profile strips `is_paid_citizen` (`src/client/PlayerProfileView.ts:116-121`), so this probably needs [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md); (2) whether interstitial suppression for paid citizens exists at all (none was found in `FlashistFacade.showInterstitial()` on 2026-09-23). The tier-free baseline events (`Ad:Interstitial` / `Ad:Banner`, see Notes) can be built now. ~~implement when citizenship tiers are live~~ — **no longer a gate** (struck, not deleted: it was the field's wording from filing until 2026-09-23).
 
 ## Priority
 Medium-high. Paid citizenship removes interstitial ads. Without tracking ad impressions by player tier, we cannot model the net revenue impact of a citizenship conversion — we don't know whether gaining a 99-ruble payment loses more in ad revenue than it gains.
@@ -98,5 +101,6 @@ Add all eight enum keys to `flashistConstants.analyticEvents` and document in `a
   📌 *2026-09-23: `0017` is closed as built + reviewed (owner ruling; its production checks moved to
   `0296`). The tier is defined in code, but citizenship tiers go live only at the flip owned by `0065`
   §6 — so "implemented when citizenship tiers are live" now waits on that flip. `0018` is unchanged.*
+  📌 **Superseded later on 2026-09-23 — OWNER RULING (Sprint 4 rescope, Q4 = (a))**, given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` (ADR-021); ⛔ not producer precedent. **This task no longer waits on the flip.** It stays in Sprint 4, **investigation first**: how the client learns the paid tier, and whether interstitial suppression for paid citizens exists (see `## Sprint`). `0018` (now Sprint 5) is code-complete; its remaining step is the launch, not code, so it is not a build wait here. 🚨 Sprint 4 closes AT THE DEPLOY (Q7 = (b)), and whatever of this task is unfinished then rolls to Sprint 5. Work in progress must sit on a branch, out of the working tree, at runbook W12.
 - Banner ad frequency is high — if `Ad:Banner:*` fires on every render tick rather than on each unique impression, it will pollute the analytics dashboard. Confirm the instrumentation point corresponds to a new impression show call, not a per-frame check.
 - Before citizenship ships, consider adding a simpler `Ad:Interstitial` and `Ad:Banner` event (no tier dimension) in the same task, as a baseline. This gives us pre-citizenship ad frequency data to compare against.

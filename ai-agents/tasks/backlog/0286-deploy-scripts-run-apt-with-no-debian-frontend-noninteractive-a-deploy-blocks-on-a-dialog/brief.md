@@ -10,7 +10,10 @@
 > own ID note; **this brief is the allocation.** Nothing was renumbered (ADR-035).
 
 ## Sprint
-Sprint 4
+
+Sprint 5
+
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
 
 ## Priority
 🔴 **Low — OWNER-RULED 2026-09-22** *(ratified; the rank VALUE is UNCHANGED — `Low` was already the

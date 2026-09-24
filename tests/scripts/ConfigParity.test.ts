@@ -1497,20 +1497,58 @@ describe("real tree", () => {
     expect(names(result.pipelines.client.info)).toEqual(["WEBSOCKET_URL"]);
   });
 
-  it("carries the phase-2 entries as inert — 0195's hand-off, 0220's Telegram trio, 0274's monitoring pair", () => {
-    // Deliberately pinned to the exact list: a phase-2 entry never suppresses anything, so
-    // one appearing (or vanishing) here is a change someone must have meant. 0220 added the
+  it("carries the phase-2 entries as inert — 0195's hand-off, 0220's Telegram trio, 0274's monitoring pair, 0064 Phase 2's game value entries", () => {
+    // Deliberately pinned to the exact list: a phase-2 entry never suppresses a NAME finding,
+    // so one appearing (or vanishing) here is a change someone must have meant. 0220 added the
     // three Telegram variables and 0274 the OTLP endpoint + the login-creation switch —
-    // all of whose VALUES are checked on the box, not by this name-only checker.
+    // all of whose VALUES are checked on the box. 0064 Phase 2 added the five game entries
+    // (FEEDBACK_WEBHOOK_URL, STORAGE_*) that let scripts/check-config-values.mjs accept a
+    // BLANK value; they are inert here like every other phase-2 entry.
     const result = runJson(["--pipeline=all"]);
     expect(names(result.inertAllowlist)).toEqual([
       "FEEDBACK_TELEGRAM_CHAT_ID",
       "FEEDBACK_TELEGRAM_TOKEN",
+      "FEEDBACK_WEBHOOK_URL",
       "OTEL_EXPORTER_OTLP_ENDPOINT",
       "PROFILE_LOGIN_CREATE_ENABLED",
+      "STORAGE_ACCESS_KEY",
+      "STORAGE_BUCKET",
+      "STORAGE_ENDPOINT",
+      "STORAGE_SECRET_KEY",
       "TELEGRAM_PROXY_URL",
       "YANDEX_PAYMENTS_SECRET",
     ]);
+  });
+
+  it("still runs as a program when invoked by relative path from another cwd, or through a symlink", () => {
+    // The library seam (task 0064 Phase 2): check-config-values.mjs sets
+    // CONFIG_PARITY_AS_LIBRARY and imports this file, so main() is gated on that flag.
+    // The gate must never swallow a normal run, however the file is reached.
+    const relative = spawnSync(
+      process.execPath,
+      [
+        path.join("..", "scripts", "check-config-parity.mjs"),
+        "--pipeline=game",
+      ],
+      { encoding: "utf8", cwd: path.join(REPO_ROOT, "tests") },
+    );
+    expect(relative.status).toBe(0);
+    expect(relative.stdout).toContain("config parity guard (report-only)");
+
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "config-parity-link-"));
+    try {
+      const link = path.join(dir, "linked-checker.mjs");
+      fs.symlinkSync(CHECKER, link);
+      const linked = spawnSync(process.execPath, [link, "--pipeline=game"], {
+        encoding: "utf8",
+        cwd: dir,
+      });
+      expect(linked.status).toBe(0);
+      expect(linked.stdout).toContain("config parity guard (report-only)");
+      expect(linked.stdout).toContain("REQUIRED  0");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("the shipped allowlist is well formed", () => {

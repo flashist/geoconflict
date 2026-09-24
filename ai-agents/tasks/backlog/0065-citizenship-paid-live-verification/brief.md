@@ -4,7 +4,10 @@
 0065
 
 ## Sprint
-Sprint 4
+
+Sprint 5
+
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
 
 ## Priority
 High — the go-live gate for the monetization milestone. Everything buildable was split into `0018`
@@ -243,7 +246,7 @@ precedent.**
    end.** ⚠️ **This is an ACCEPTED, OWNER-RULED TRADEOFF, not an oversight.** ⛔ Do not re-add the gate
    and do not re-recommend it. *(Context, not a gate: the same end-to-end check is also
    [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s own acceptance — verification
-   step 1, D3 — in Sprint 4. `0217` is not a dependency of this task, so it does not gate it either.)*
+   step 1, D3 — ~~in Sprint 4~~ in **Sprint 5** since 2026-09-23 (Sprint 4 rescope, owner ruling; this task moved there too). `0217` is not a dependency of this task, so it does not gate it either.)*
 4. ⚠️ **What the ruling did NOT change:** the `## Dependencies` bullet below said *"without it no profile
    row exists to attach a purchase to"*. That was written for `0062` and is **not re-verified** under
    the later profile-identity model (`0266` slices). If it still holds, **step 3's real test purchase is
