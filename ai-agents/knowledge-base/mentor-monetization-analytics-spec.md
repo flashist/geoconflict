@@ -147,6 +147,7 @@ Fire when Yandex payment dialog is triggered:
 - `player_id`: string
 - `product_id`: string (Yandex catalog item ID)
 - `price_rubles`: integer
+  📌 *2026-09-25, note only: the citizenship price is now in **Yan**, not rubles (249 Yan, which the owner changed in the Yandex console on 2026-09-25). The name `price_rubles` is therefore misleading; consider renaming it later. Nothing is renamed here.*
 
 ---
 
@@ -157,6 +158,7 @@ Fire after server verifies signed token and grants entitlement:
 - `player_id`: string
 - `product_id`: string
 - `price_rubles`: integer
+  📌 *2026-09-25, note only: the citizenship price is now in **Yan**, not rubles (249 Yan, which the owner changed in the Yandex console on 2026-09-25). The name `price_rubles` is therefore misleading; consider renaming it later. Nothing is renamed here.*
 - `player_alltime_match_count`: integer (were they close to earned path?)
 
 ---

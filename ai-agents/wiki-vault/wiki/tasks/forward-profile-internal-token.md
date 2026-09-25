@@ -110,6 +110,14 @@ removed**; the manual step is the control.
   stays `🚧 Blocked`.
 - `0064`'s dependency on `0062` was **removed**, citing the 2026-09-02 ruling that `0062` gates only
   switching the guard **on**, not building it. `0064`'s own deploy-gated steps are unchanged.
+- 📌 **Superseded later the same day and on 2026-09-24 (owner rulings):** `0296` **no longer gates
+  `0065`** (*"Keep it in Sprint 5, but the task shouldn't block Sprint 4"*), and `0195`'s condition
+  moved to `0297` — **`0065` now has NO task condition** (the go-live only, timed by the owner). `0064`'s
+  deploy-gated step 8 moved to `0298` and `0064` **closed 2026-09-24** on Phase 2 — see
+  [[tasks/deploy-time-config-parity-guard]]. 🚩 **The "blank the token by hand before a prod release"
+  rule is RETIRED** (owner, 2026-09-23 amendment to `0064`, then *"Retire it"* 2026-09-24): a blank
+  token now prints `REQUIRED` in the value guard. ⚠️ Still **no check that the value MATCHES the box's**
+  other than the runbook's W11 step.
 - `0017` and `0012` closed the same day — see [[tasks/citizenship-earned]] and [[tasks/personal-inbox]].
 
 ## Related
@@ -127,3 +135,4 @@ removed**; the manual step is the control.
 - [[systems/weekend-deploy-window]] — the window whose W11/W13/W14 carry this task's checks, now as `0296` A1–A4
 - [[decisions/sprint-4]] — the board this task closed on
 - [[decisions/sprint-5]] — where `0296`, which received the production checks, was filed
+- [[tasks/deploy-time-config-parity-guard]] — task `0064`, the guard whose acceptance test is this task's defect; closed 2026-09-24, report-only, arming is `0298`'s

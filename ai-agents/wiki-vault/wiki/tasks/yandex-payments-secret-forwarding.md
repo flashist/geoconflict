@@ -6,6 +6,16 @@
 
 > ✅ **Closed 2026-09-01 by a spawned producer — agent-closed, not owner-verified.**
 >
+> 📌 **UPDATED 2026-09-23 — THIS TASK NO LONGER GATES `0065`, AND ITS OPEN QUESTION MOVED, NOT CLOSED.**
+> Owner ruling (`0065` Correction 7), verbatim: *"Launch, and leave the test task for the Sprint 5. The
+> test-buy sequence will be run by me (human)"*. `0065` is now **the go-live only** (§6: flip + second
+> game deploy), with **no task condition**; its §1–§5 and **this task's open value-correctness
+> condition moved to `0297` §1** (Sprint 5, run by the owner after go-live). ⛔ **The correctness
+> question is NOT answered** — HMAC construction unconfirmed, secret value unconfirmed, reconciliation
+> unexercised. 🚨 **Owner-accepted tradeoff: real players' first purchases may be the first real test.**
+> Every *"`0065`'s gate count"* statement below is superseded as to the count. See
+> [[decisions/sprint-5]].
+>
 > 🚨 **This does NOT mean production is fixed.** The task shipped as **built + Deferred Live Tail** (owner ruling R3, 2026-09-01). Its live-tail items **D1–D3 are unchecked**, gated on **`0014`** (Yandex has not issued the per-game key) **and** the pending profile deploy. ~~**A profile deploy carried out today lands the variable EMPTY, and every `/v1/payments/*` route correctly keeps returning `503 {"error":"payments_unavailable"}`.**~~ 🔴 **STRUCK 2026-09-19 — FALSE OF THE BOX AS IT STANDS; see the correction block below.**
 >
 > This is `0062`'s trap arriving on schedule: **a shipped diff is not a fixed production.**
@@ -117,3 +127,5 @@ Found 2026-08-28 during `0067`'s build, and owner-approved the same day as **its
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which re-provisioned the box this task's on-box verification step was waiting on; ⚠️ **that step is now runnable but has NOT been run**, and it stays owner-gated
 - [[tasks/yandex-catalog-registration]] — task `0014`, the upstream fact for this one: it issued the per-game key, and its close answered the provenance question this page carried
 - [[tasks/forward-profile-internal-token]] — task `0062`, the same class on the game pipeline; `0065`'s condition on it now points at `0296`
+- [[tasks/deploy-time-config-parity-guard]] — task `0064`, whose B2 check catches this task's shape
+- [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, whose R12 fix stopped the guard silently dropping this task's shape

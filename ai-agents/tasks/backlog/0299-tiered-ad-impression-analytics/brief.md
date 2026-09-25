@@ -34,7 +34,7 @@ on that baseline alone. This task carries the **tier dimension** it no longer bu
 
 **Why the tiers matter** (from `0020`'s *Priority* and *Context*): without ad impressions by player
 tier, we cannot model what a citizenship conversion costs in ad revenue. That means we cannot tell
-whether a 99-ruble purchase gains more than the ads it removes.
+whether a ~~99-ruble~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25) purchase gains more than the ads it removes.
 
 **What `0020`'s investigation found** (`0020/plan-baseline.md` § *Investigation findings*, 2026-09-24):
 

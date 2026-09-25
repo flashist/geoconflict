@@ -4060,3 +4060,35 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - 🔒 **Secret scan on the diff: clean** — variable names, file paths and verdict words only.
 - ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover,
   edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.
+
+## 2026-09-24 — ingest (sync)
+
+- **Sync window:** `b3ee5de` → HEAD (`6eeceeb`). 5 commits, all titled "Sprint push": `a27316f` (no
+  `ai-agents/` source change), `571ded6`, `16f44e8`, `7daf386`, `6eeceeb`. The working tree was **clean**
+  at sync time, so the window covers all of the 2026-09-23/24 work, including the four closes.
+- **Changed source files detected under `ai-agents/` (vault excluded): 63. Ingest-worthy after the filter:
+  17.** Skipped by the filter: 25 `tasks/backlog/*/brief.md` (incl. new `0297`, `0298`, `0299`) and 21
+  in-folder `plan*.md` / `worklog.md` / `review.md` / `decision-prep-*.md` / `.patch` / `.README.md`
+  working artifacts. ⚠️ The done tasks' `worklog.md` and `review.md` were **read as supporting evidence**
+  for the task pages, not ingested as sources.
+- **Ingested:**
+  - `ai-agents/tasks/done/0064-deploy-time-config-parity-guard/brief.md` → **created** [[wiki/tasks/deploy-time-config-parity-guard]]
+  - `ai-agents/tasks/done/0203-config-parity-guard-pre-arming-gate/brief.md` → **created** [[wiki/tasks/config-parity-guard-pre-arming-gate]]
+  - `ai-agents/tasks/done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md` → **created** [[wiki/tasks/tenure-xp-grant]]
+  - `ai-agents/tasks/done/0020-analytics-p1-ad-impression-tier/brief.md` → **created** [[wiki/tasks/analytics-p1-ad-impression-baseline]]
+  - `ai-agents/sprints/plan-sprint-4.md` → **updated** [[wiki/decisions/sprint-4]] — rescope Q1–Q7, `0065` Correction 7, the four closes. **Re-counted at `6eeceeb`: 106 rows — 85 Done · 18 Moved · 3 Cancelled; 0 OPEN** (was 16). Marker: 63 of 85 Done status cells; 105 file-wide. ⚠️ Counted by me this run.
+  - `ai-agents/sprints/plan-sprint-5.md` → **updated** [[wiki/decisions/sprint-5]] — **28 rows (19 Backlog · 9 Blocked), was 14**: 12 moved in + `0298` + `0297` (row 1).
+  - `ai-agents/sprints/plan-sprint-6.md` → **updated** [[wiki/decisions/sprint-6]] — line-3 banner; stale selector warning struck.
+  - `ai-agents/sprints/backlog.md` → **updated** [[wiki/decisions/sprint-backlog]] — **87 rows, 66 open** (was 86 / 65); `0299` added.
+  - `ai-agents/knowledge-base/weekend-deploy-slot-runbook.md` → **updated** [[wiki/systems/weekend-deploy-window]] — dated Saturday 2026-09-26; value-guard block at W12; ruling 3 lifted for `0203`; `0253` rides W3; W12 working-tree pre-check; W16; C1 resolved.
+  - `ai-agents/knowledge-base/PROJECT.md` → **updated** [[wiki/systems/project-brief]] — `0065` Correction 7 and its accepted tradeoff.
+  - `ai-agents/knowledge-base/analytics-event-reference.md` → **updated** [[wiki/systems/analytics]] — *Ad Events* and *Tenure Grant Events* sections.
+  - `ai-agents/knowledge-base/conventions/sprint-status-vocabulary.md` and `.../durable-citation-anchors.md` → **updated** [[wiki/systems/agent-conventions]] (conventions 11 and 12; count 10 → 12).
+  - `ai-agents/knowledge-base/decisions/adr-112-free-xp-grants-capped-server-clamped-acked-once-per-account.md` → **updated** [[wiki/decisions/adr-112-free-xp-grants]] (source change was two link paths only; page gained the build + risk-timing note from `0253`).
+  - `ai-agents/knowledge-base/reports/2026-09-14-0253-tenure-xp-grant-findings.md` → **checked, no page change** (link path only).
+  - `ai-agents/tasks/done/0062-…/brief.md`, `ai-agents/tasks/done/0270-…/brief.md` → **checked, no page change** (link path only).
+- **Also updated (stale current-state claims, dated notes, history kept):** [[wiki/decisions/config-parity-failure-class]], [[wiki/decisions/adr-108-active-sprint-pointer]] (✅ `select-active` **run read-only this sync** → Sprint 4), [[wiki/tasks/yandex-payments-secret-forwarding]], [[wiki/tasks/forward-profile-internal-token]], [[wiki/tasks/profile-identity-s1-database-rekeying]], [[wiki/tasks/profile-identity-s5-monitoring-and-creation-switch]], [[wiki/tasks/citizenship-earned]], [[wiki/systems/player-profile-store]]. [[wiki/index]]: 4 new Tasks entries, 12 entries annotated, one sub-line under Sprint 4.
+- **Verified in the tree this run:** `git status` clean at start; `0253`'s route, `0020`'s `AD_INTERSTITIAL` and `0064`'s `run_config_value_guard` are all in `HEAD`; `CITIZENSHIP_CARD_ENABLED: false`; no `--enforce` in `deploy.sh` / `build-deploy-profile.sh` / `package.json`; conventions `README.md` catalog lists 10 of 12.
+- **Targeted lint on the 32 touched pages:** 0 broken links; **5 one-way links found and fixed** (2 pre-existing: `container-log-retention`→`player-profile-store`, `project-brief`→`adr-111`; 3 from this run's own edits); back-links added on 25 pages (24 existing + one new page). 0 unresolved index links.
+- 🔒 **Secret scan on the diff and new pages: clean** — no IP, URL, domain, connection string or hex secret.
+- ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.

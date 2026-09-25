@@ -133,3 +133,4 @@ in that pass.
 - [[tasks/yandex-payments-implementation]] — task 0019, which registered the purchase-event constants
 - [[decisions/sprint-4]] — the sprint board this task was made visible on
 - [[tasks/citizenship-earned]] — task `0017`, which owns `Citizenship:Earned:XP` and its accepted mis-counts
+- [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, its P1 sibling

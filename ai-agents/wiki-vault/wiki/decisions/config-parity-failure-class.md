@@ -5,6 +5,27 @@
 
 > This page records a **recurring failure class**, not a single defect. Three instances are confirmed.
 >
+> 🛡️ **UPDATED 2026-09-24 — THE GUARD (`0064`) AND ITS PRE-ARMING GATE (`0203`) ARE BOTH CLOSED — AND
+> THE GUARD STILL CANNOT FAIL A DEPLOY.** Both closed `✅ Done (agent-closed — not owner-verified)` by a
+> spawned `fkit-producer`, no owner present. ⛔ **`--enforce` is wired nowhere, and neither guard has
+> run against a real production deploy.** What now exists, report-only: **names** parity for all three
+> supply pipelines (game heredoc, profile two-hop, browser `DefinePlugin` — the R1 client blind spot
+> this page warned about below is **fixed**: `src/core/configuration/**` is checked against both
+> channels), and a prod-only **value** guard (non-empty required keys; `https`/no-bare-IP for exactly
+> `PUBLIC_PROTOCOL`, `API_BASE_URL`, `JWT_ISSUER`, `PROFILE_API_URL`). The Sprint 4 rescope
+> (2026-09-23, Q2 = (a)) **split the first real report-only run and the arming into `0298`** (Sprint 5).
+> 🚩 **The "deliberately blank `PROFILE_INTERNAL_TOKEN`" state described below is RETIRED** — owner,
+> 2026-09-23: *"I don't think we can allow the PROFILE INTERNAL TOKEN to be empty anymore"*; the
+> blank-by-hand deploy rule was retired 2026-09-24 (*"Retire it"*, recorded in `0296` and the runbook).
+> A blank token now prints `REQUIRED`, and will **block** a prod deploy once `0298` arms. ⚠️ **The value
+> guard sees only whether a value is blank or malformed — not whether it MATCHES the box's.** The
+> sections below are kept as history; where they call `0064` *in progress*, R1 *open*, R4/R12 *undecided*,
+> or `0203` *on the Backlog board*, read this block. Detail: [[tasks/deploy-time-config-parity-guard]],
+> [[tasks/config-parity-guard-pre-arming-gate]]. 📌 **Also 2026-09-23: `0065` no longer carries ANY task
+> condition** — `0296` stopped gating it, and `0195`'s open value-correctness question moved to `0297`
+> §1 (still open). 🚨 Owner-accepted tradeoff: paid citizenship may go live before any real purchase is
+> proven. The `0065`-gate bullets under *Consequences* are superseded as to the count.
+>
 > 🔒 **UPDATED 2026-09-23 — `0062` is CLOSED, and that is ⛔ NOT a production fix.** Closed
 > `✅ Done (agent-closed — not owner-verified)` on an **owner ruling** given live in the `fkit lead`
 > session and relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021) —
@@ -128,3 +149,5 @@ Three instances, all Sprint 4:
 - [[decisions/sprint-backlog]] — the Backlog board carrying `0203`, the ten-item pre-arming gate
 - [[systems/weekend-deploy-window]] — `0064`'s guard runs **report-only** at that window's game deploy; ⚠️ **it compares NAMES, so it cannot catch a present-when-it-should-be-blank value** — the token-match pre-check is the only guard there
 - [[tasks/forward-profile-internal-token]] — task `0062`, this class's sharpest instance; closed 2026-09-23 `(agent-closed — not owner-verified)` with its production checks moved to `0296`
+- [[tasks/deploy-time-config-parity-guard]] — task `0064`, the guard itself — closed 2026-09-24 `(agent-closed — not owner-verified)` on Phase 2; ⛔ `--enforce` wired nowhere, never run against a real deploy
+- [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, the pre-arming items — closed 2026-09-24 `(agent-closed — not owner-verified)`; arming is `0298`'s

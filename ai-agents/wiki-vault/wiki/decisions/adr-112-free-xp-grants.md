@@ -68,6 +68,13 @@ login reply, **never from local storage**, and shows a notice only after the ser
   Accepted in favour of monitoring.
 - **Added re-raise trigger:** `0268` does **not** ship within ~60 days of release — the claim surface
   outlives its reason.
+- 📌 **2026-09-24 — the redesign is BUILT** (task `0253`, closed `(agent-closed — not owner-verified)`;
+  never run in a browser or production) — see [[tasks/tenure-xp-grant]]. The open question on rejection
+  reasons is closed by a fixed list of two (`BelowMinimum`, `Duplicate`). 🚨 **Timing of the accepted
+  claim-on-behalf risk, owner-ruled 2026-09-24:** the route ships with the **next profile-box deploy,
+  before `0065`'s flip** (and rides the 2026-09-26 window's W3 if it runs), and it answers at once — the
+  card flag hides only the popup. ⇒ **the risk starts when the route reaches the box, not at the flip.**
+  The source ADR file changed this sync window only in two link paths (`backlog/` → `done/`).
 
 ## Related
 
@@ -79,3 +86,4 @@ login reply, **never from local storage**, and shows a notice only after the ser
 - [[systems/player-profile-store]] — the store the grant rows live in
 - [[decisions/adr-numbering-two-series]]
 - [[decisions/sprint-4]] — the sprint this decision was ruled inside
+- [[tasks/tenure-xp-grant]] — task `0253`, the research and the build of this rule — closed 2026-09-24, not run in production

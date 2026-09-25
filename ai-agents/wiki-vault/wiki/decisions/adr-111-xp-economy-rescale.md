@@ -247,3 +247,5 @@ Absent those, a review finding of the form *"1 XP is a trivially small award"*, 
 - [[decisions/adr-112-free-xp-grants]] — free XP grants inside this 1 XP / 100 XP economy; the tenure grant caps at 50 XP
 - [[decisions/sprint-4]] — the sprint board this rescale belongs to
 - [[tasks/citizenship-earned]] — task `0017`, the grant whose threshold this ADR rescaled
+- [[tasks/tenure-xp-grant]] — task `0253`, the one-time tenure grant into this economy
+- [[systems/project-brief]] — product ground truth that cites this economy

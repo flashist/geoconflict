@@ -122,7 +122,7 @@ full emoji set"* — the qualifier attaches to the ads, and the emoji clause car
 therefore does not specify a flag**, and an implementer must not choose one.
 
 - **`is_citizen`** (earned **or** paid) — already reaches the client, so no new plumbing. Rewards the
-  1,000-XP grind as well as the 99 ₽.
+  1,000-XP grind as well as the ~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25).
 - **`is_paid_citizen`** — matches the ad benefit, but is blocked on the redaction above.
 
 📌 **Producer's reading, offered as input and not as a decision: `is_citizen` is the better fit here.**
@@ -234,7 +234,7 @@ Shape depends entirely on phase 1. The invariants that hold **whatever** phase 1
 - ⛔ **`PROJECT.md` is NOT edited by this task.** The owner ruled the claim stays, backed by this filed
   work. Do not "tidy" it.
 - **Cross-references for whoever writes the store copy or the paid-citizenship launch plan:**
-  - [`0018-citizenship-paid`](../0018-citizenship-paid/brief.md) — paid citizenship, the 99 ₽ path.
+  - [`0018-citizenship-paid`](../0018-citizenship-paid/brief.md) — paid citizenship, the ~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25) path.
   - [`0065-citizenship-paid-live-verification`](../0065-citizenship-paid-live-verification/brief.md) —
     the paid go-live gate.
   - [`0014-yandex-catalog-registration`](../../done/0014-yandex-catalog-registration/brief.md) — catalog

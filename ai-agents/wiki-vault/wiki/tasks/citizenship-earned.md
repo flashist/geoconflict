@@ -105,7 +105,9 @@ must flip the flag") is superseded** by the same ruling.
 - `is_citizen` / `citizenship_earned_at` are **server-derived only** — no inbound body may set them.
   The guest-migration upload that once carried that risk was cancelled 2026-06-13.
 - **No retroactive grant** — every player starts at 0 XP when the feature ships. (A one-time tenure grant
-  is being researched separately as `0253`.)
+  is being researched separately as `0253`.) *📌 2026-09-24: `0253` is built and closed `(agent-closed —
+  not owner-verified)` — up to 50 XP once per player, server-clamped; never run in production. See
+  [[tasks/tenure-xp-grant]].*
 
 ## Related
 
@@ -123,3 +125,4 @@ must flip the flag") is superseded** by the same ruling.
 - [[decisions/sprint-5]] — where `0296`, which received the production checks, was filed
 - [[systems/analytics]] — where `Citizenship:Earned:XP` is documented
 - [[systems/weekend-deploy-window]] — the deploy window after which `0296` section A (this task's A5–A6) can run
+- [[tasks/tenure-xp-grant]] — task `0253`, the tenure grant that can trigger the earned-citizenship grant

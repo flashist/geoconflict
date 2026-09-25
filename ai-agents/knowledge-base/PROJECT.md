@@ -32,7 +32,7 @@ engagement gains compound into ranking and DAU. In-app purchases via the Yandex 
 planned and partly built, not yet live.
 
 **Citizenship.** The supporter tier and the spine of the monetization layer. Two paths — *earned*
-(1,000 XP at 10 XP per qualifying match) and *paid* (99 ₽). Any purchase grants citizenship.
+(1,000 XP at 10 XP per qualifying match) and *paid* (~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25)). Any purchase grants citizenship.
 Benefits include no interstitial ads for paid citizens, the full emoji set, and further perks
 (name change, verified icon, private lobbies, spectating) planned behind it.
 

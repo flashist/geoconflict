@@ -79,3 +79,4 @@ So the host attribute **flips from the raw IP to the apex domain exactly at the 
 - [[tasks/licensing-asset-audit]] — task `0025`, whose V1/A1 production checks were run against this release
 - [[tasks/yandex-payments-secret-forwarding]] — task `0195`, the next item on the same owner-ruled config-track order; unlike this one it has no production evidence at all
 - [[tasks/forward-profile-internal-token]] — task `0062`, the config-track item sequenced after this one
+- [[tasks/deploy-time-config-parity-guard]] — task `0064`, whose Phase 2 format rule (https, no bare IP) is this task's defect

@@ -3,6 +3,22 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> # 📊 RE-COUNTED 2026-09-24 at `HEAD` = `6eeceeb` — ONE ROW ADDED, `0299`
+>
+> **`backlog.md`: 87 rows — 63 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
+> 66 OPEN** *(was 86 / 65 at `0d39e4d`; unchanged at `b3ee5de`)*. ⚠️ Counted by me this run, by each
+> row's leading status glyph.
+>
+> **`0299` — tiered ad-impression analytics** (`Ad:Interstitial:{Guest,Free,EarnedCitizen,PaidCitizen}`),
+> `🔲 Backlog`, filed 2026-09-24 by a spawned `fkit-producer` on an **owner ruling** (*"New task, close
+> 0020"*), relayed by `fkit-lead` (ADR-021); ⛔ not producer precedent. Split from `0020`, which closed on
+> the tier-free baseline — see [[tasks/analytics-p1-ad-impression-baseline]]. **Waits on `0250`** (paid
+> tier) **and the `0273` client deploy plus a tier cache** (earned tier). The `0203` row (`➡️ Moved` to
+> Sprint 4 since 2026-09-12) is unchanged apart from a link path; `0203` itself **closed 2026-09-24** —
+> see [[tasks/config-parity-guard-pre-arming-gate]].
+>
+> ---
+>
 > # 📊 THE BACKLOG BOARD RE-COUNTED 2026-09-22, LATER THE SAME DAY, at `HEAD` = `0d39e4d`
 >
 > **`backlog.md`: 86 rows — 62 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
@@ -475,3 +491,5 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[decisions/sprint-5]] — where `0061` and `0238`'s moved-rows on this board now point, after the 2026-09-22 retarget
 - [[tasks/archive-endpoint-failures]] — task `0159`, whose switch covered the archive writes only; the client read it left ungated is this board's `0292`
 - [[systems/weekend-deploy-window]] — the deploy window that cut its third profile deploy and filed the removed step onto this board as `0294`; ⚠️ pull `0294` in only when a profile deploy is already scheduled
+- [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, filed on this board 2026-09-02, pulled to Sprint 4 2026-09-12, closed 2026-09-24
+- [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, whose tier events were split to this board as `0299`

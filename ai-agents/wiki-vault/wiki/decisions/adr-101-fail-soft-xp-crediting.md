@@ -178,3 +178,4 @@ Two narrower rules fall out of the same principle and are part of the decision:
 - [[systems/weekend-deploy-window]] — the deploy window where crediting is switched on; **this ADR is why a wrong allowlist entry or a mismatched token is indistinguishable from "working"** — the credit is dropped, not queued, and nothing surfaces it
 - [[tasks/forward-profile-internal-token]] — task `0062`, the silent no-op this ADR's fail-soft shape hid
 - [[tasks/citizenship-earned]] — task `0017`, whose grant is lost along with any dropped credit
+- [[tasks/tenure-xp-grant]] — task `0253`, which keeps the one-time marker on the server for exactly this reason

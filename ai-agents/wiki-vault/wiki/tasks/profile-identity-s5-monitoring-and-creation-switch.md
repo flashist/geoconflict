@@ -84,7 +84,9 @@ below.
   deploys into one. ⛔ **Do not read any of the five as independently deployed.**
 - ⚠️ **Two metrics are absent and both are EXPECTED — record, do not treat as a fault:**
   `tenure_claims` is defined with **no caller** (`0253` unbuilt), and a counter that never counts creates
-  no series; `players_total` is **correctly skipped by the code**, because on the box `players` shows
+  no series *(📌 2026-09-24: `0253` is now built and closed — [[tasks/tenure-xp-grant]] — and records one
+  outcome per request; ⚠️ the route is **not yet on the box**, so the series still does not exist until
+  it is deployed)*; `players_total` is **correctly skipped by the code**, because on the box `players` shows
   `reltuples = -1, analyzed = NEVER` and the code declines to report garbage. It should appear once the
   table is analysed. 🚨 **DO NOT ARM ANY ALERT ON `players_total` UNTIL IT HAS BEEN OBSERVED.**
 - ✅ **A5 is built and active** — `profile · DB pool saturated (>0 waiting, 5 min)`, monitor **id 9**,
@@ -198,3 +200,4 @@ conflate the two reasons A4 waited — one is cleared, one is not.**
 - [[decisions/adr-114-admin-server-alert-relay]] — the relay the alert channel depends on
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[decisions/sprint-backlog]] — the board carrying `0288`, the one of this task's six deferred alert rules that got a task of its own
+- [[tasks/tenure-xp-grant]] — task `0253`, which now feeds the `tenureClaim` metric

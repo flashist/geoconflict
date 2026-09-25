@@ -124,7 +124,7 @@ it.** The two flags are genuinely different and both exist:
 | Flag | Where | Means | Client-visible today? |
 |---|---|---|---|
 | `is_citizen` | `src/core/profile/PlayerProfile.ts:99`; reaches the client as `isCitizen` (`src/core/Schemas.ts:146,470`, `src/core/game/GameView.ts:342`) | Citizen by **either** path — 1,000 XP earned **or** paid (`src/core/profile/Citizenship.ts:15,25`) | **Yes** |
-| `is_paid_citizen` | `src/core/profile/PlayerProfile.ts:100` | Paid the 99 ₽ only | **No — redacted, see above** |
+| `is_paid_citizen` | `src/core/profile/PlayerProfile.ts:100` | Paid the ~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25) only | **No — redacted, see above** |
 
 ~~🚩 **Flagged for the owner rather than decided here, because it is a product call and it changes who
 pays nothing:** … ⛔ **The brief's specification stands at `is_paid_citizen` until the owner says
@@ -148,7 +148,7 @@ must not re-open this to make the task cheaper — the cost was ruled on, not ov
 
 **Advertising is the game's primary revenue today** (`PROJECT.md`, Monetization). This task deliberately
 **removes** ad impressions from the players most likely to keep playing. That is a real, ongoing cost,
-not a rounding error, and it is paid **forever per converted player** while the 99 ₽ is paid **once**.
+not a rounding error, and it is paid **forever per converted player** while the ~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25) is paid **once**.
 
 ⛔ **Do not treat "it converts more buyers" as established. Nobody has measured it here.** The honest
 statement is: the benefit is a **conversion hypothesis**, its cost is an **arithmetic certainty**. The
@@ -168,7 +168,7 @@ Two things must be settled with the owner (consulting `fkit-architect` for the t
    - current interstitial impressions per player per session, and per **retained** player;
    - what share of impressions the six call sites contribute each (the WinModal and lobby-join
      placements are likely not equal, and suppressing all six is a choice, not a given);
-   - the resulting revenue forgone per converted citizen per month, against the one-off 99 ₽.
+   - the resulting revenue forgone per converted citizen per month, against the one-off ~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25).
 
    ⚠️ **If this data does not exist, say so plainly and scope measuring it** — do not estimate it into
    the brief and present the estimate as a finding.
@@ -263,7 +263,7 @@ store-copy condition.
   this bullet. The same condition applies independently to
   [`0249`](../0249-citizen-gated-full-emoji-set/brief.md) for the emoji half.
 - **Cross-references for whoever writes the store copy or the paid-citizenship launch plan:**
-  - [`0018-citizenship-paid`](../0018-citizenship-paid/brief.md) — paid citizenship, the 99 ₽ path
+  - [`0018-citizenship-paid`](../0018-citizenship-paid/brief.md) — paid citizenship, the ~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25) path
     (mock-buildable scope).
   - [`0065-citizenship-paid-live-verification`](../0065-citizenship-paid-live-verification/brief.md) —
     the paid go-live gate.

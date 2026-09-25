@@ -3,6 +3,73 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
+> # 🆕 2026-09-24 — THE BOARD HAS ZERO OPEN ROWS: RESCOPED 2026-09-23, THE LAST FOUR CLOSED 2026-09-24
+>
+> # 📊 BOARD RE-COUNTED 2026-09-24 at `HEAD` = `6eeceeb`
+>
+> **106 rows — 85 Done · 18 Moved · 3 Cancelled; 0 OPEN** *(was 16 open at `b3ee5de`)*. ⚠️ **Counted
+> by me this run, at this SHA, by each row's leading status glyph.** Marker: **63 of 85** Done status
+> cells carry `(agent-closed — not owner-verified)`; **105** mentions file-wide. **Both bases are true;
+> say which you mean.** All four of today's closes carry it.
+>
+> **Line-3 banner now `🔄 In progress — 2026-09-07`**, and the board's *"ask for status BY NAME"* warning
+> is **struck, not deleted — superseded 2026-09-23 by owner ruling**, because the selector reads the
+> banner. ✅ Verified this sync: an empty-argument `select-active` returns this board. See
+> [[decisions/adr-108-active-sprint-pointer]].
+>
+> ## ✂️ THE SPRINT 4 RESCOPE — OWNER RULINGS 2026-09-23 (Q1–Q7)
+>
+> **AUTHORITY.** Owner rulings given live in the `fkit lead` session via `AskUserQuestion`, relayed by
+> `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Not producer precedent.
+> **Owner's goal, in substance:** nothing in Sprint 4 should be blocked by the Saturday release — keep
+> what can still be **built locally**, move every check-after-deploy task to Sprint 5. How-to rulings: a
+> **mixed** task is **split**; the owner starts Sprint 5 himself after the deploy; the rule applies to
+> every open task.
+>
+> - **12 rows `➡️ Moved` to [[decisions/sprint-5]]:** `0018`, `0065`, `0032`, `0213`, `0219`, `0217`,
+>   `0266`, `0272`, `0273`, `0220`, `0221`, `0286`. Status markers carried verbatim; no folder moved; only
+>   each brief's `## Sprint` changed. The `0218` → `0219` → `0217` work order survives.
+> - **Stayed:** `0064` (Phase 2 only), `0253`, `0020`, `0203`.
+> - **Q1 = (a)** `0253` no longer gates the `PROFILE_INTERNAL_TOKEN` set at the window; it must land
+>   before `0065`'s flip. **Q2 = (a)** `0064` split — step 8 + arming `--enforce` became **`0298`**
+>   (Sprint 5), superseding `0064/plan.md` R3's *"within this same task"*. **Q3 = (b), AGAINST the
+>   producer's recommendation:** ruling 3 **lifted** for `0203`; its decisions taken before the window.
+>   **Q4 = (a)** `0020` investigation first. **Q5** `0064` Phase 2's format list approved as proposed.
+>   **Q6 = (a)** RULING A's reading-order group broken up. **Q7 = (b), AGAINST the producer's
+>   recommendation: Sprint 4 closes AT THE DEPLOY** via `/fkit-sprint-done` (runbook W16), rolling any
+>   open row to Sprint 5.
+> - 🚨 **Working-tree risk recorded with it:** `./build-deploy.sh prod` commits and ships the tree as it
+>   stands, so unfinished Sprint 4 work had to sit on a branch at W12 (and before W3/W7). ✅ **Moot as of
+>   this sync:** all four stayed tasks are closed and their code is **committed at `6eeceeb`** (verified
+>   this run; `git status` clean) — so it **will** ship with the window's deploys, which for `0253` is
+>   owner-ruled (*"Yes, ship it Saturday"*).
+>
+> ## 🚀 `0065` IS NOW THE GO-LIVE ONLY — `0297` TAKES THE TEST-BUY (2026-09-23, owner ruling)
+>
+> Owner, verbatim: *"Launch, and leave the test task for the Sprint 5. The test-buy sequence will be
+> run by me (human)"*. `0065` = §6 only (flip + second game deploy), with **no task condition** — `0296`
+> no longer gates it (*"Keep it in Sprint 5, but the task shouldn't block Sprint 4"*) and `0195`'s open
+> question moved to **`0297`** §1. Runbook C1's circularity is **resolved**; `RUNBOOK-A` still stands
+> (the flip does not ride a deploy slot). Follow-ups the same day: `0018` closes on `0065` alone;
+> `0297` §5 narrowed; `0297` placed at **row 1 of Sprint 5**. 🚨 **Accepted, owner-ruled tradeoff: paid
+> citizenship goes live before any real purchase is proven — real players' first purchases may be the
+> first real test.**
+>
+> ## ✅ THE FOUR CLOSES, 2026-09-24 — ALL `(agent-closed — not owner-verified)`, NONE PROVEN IN PRODUCTION
+>
+> | Task | Closed on | What it does NOT mean |
+> |---|---|---|
+> | `0064` — [[tasks/deploy-time-config-parity-guard]] | Phase 2 (value guard) built + reviewed | ⛔ `--enforce` wired nowhere; never run on a real deploy (`0298`) |
+> | `0203` — [[tasks/config-parity-guard-pre-arming-gate]] | every pre-arming item built, incl. per-pipeline tagging | ⛔ it arms nothing — `0298` consumes the tags |
+> | `0253` — [[tasks/tenure-xp-grant]] | the redesign built + reviewed | ⛔ never run in a browser or production; claim-on-behalf opens when the route reaches the box (W3) |
+> | `0020` — [[tasks/analytics-p1-ad-impression-baseline]] | the tier-free `Ad:Interstitial` baseline | ⛔ in-Yandex check **owed**; tiers → `0299`; first full `npm test` had one likely-flake failure |
+>
+> **The window is DATED: Saturday 2026-09-26** (owner, 2026-09-23, *"This Saturday, September 26"*) —
+> the *"slipped, no new date"* block below is superseded as to the date. See
+> [[systems/weekend-deploy-window]].
+>
+> ---
+>
 > # 🆕 2026-09-23 — `0062`, `0017` AND `0012` CLOSED; THEIR PRODUCTION CHECKS MOVED TO A NEW SPRINT 5 TASK, `0296`
 >
 > **AUTHORITY.** **Owner rulings given live in the `fkit lead` session via `AskUserQuestion` on
@@ -998,3 +1065,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/forward-profile-internal-token]] — task `0062`, closed 2026-09-23 on an owner ruling
 - [[tasks/citizenship-earned]] — task `0017`, closed 2026-09-23 on an owner ruling
 - [[tasks/personal-inbox]] — task `0012`, closed 2026-09-23 on an owner ruling
+- [[tasks/deploy-time-config-parity-guard]] — task `0064`, closed 2026-09-24 on Phase 2 only; step 8 + arming split to `0298`
+- [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, closed 2026-09-24; `--enforce` still wired nowhere
+- [[tasks/tenure-xp-grant]] — task `0253`, closed 2026-09-24; never run in a browser or production
+- [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, closed 2026-09-24 on the tier-free baseline; in-Yandex check owed

@@ -312,7 +312,9 @@ EXEMPT and must stay so** — it is required and **fails closed**, which is the 
 is deliberate; ⛔ **do not "fix" it into the persist-or-reuse pattern.** **The dangerous shape is that
 the deploy SUCCEEDS** and the feature stops working silently — the same family as `0062`, `0063` and
 `0195`, **now seen four times.** ⛔ **This task does NOT arm `0064`'s guard** — arming is `0064`'s,
-after all ten of `0203`'s pre-arming items land. **Hard sequencing; do not shortcut it.**
+after all ten of `0203`'s pre-arming items land. **Hard sequencing; do not shortcut it.** *📌 2026-09-24:
+arming moved to `0298` (Sprint 5, split out of `0064` 2026-09-23); `0064` and `0203` are both closed and
+`--enforce` is still wired nowhere — see [[tasks/deploy-time-config-parity-guard]].*
 
 **`0221` — P6, OS baseline hardening (`Medium`, the producer's rank).** `setup-profile.sh` provisions
 swap, Docker, ufw, nginx and TLS but **no OS security baseline**: no `unattended-upgrades`, no
@@ -397,3 +399,5 @@ than picking silently.
 - [[tasks/citizenship-earned]] — task `0017`, the earned-citizenship grant inside the credit transaction
 - [[tasks/personal-inbox]] — task `0012`, the `player_messages` table and inbox routes
 - [[systems/analytics]] — the citizenship and inbox events that fire off this store's data
+- [[tasks/tenure-xp-grant]] — task `0253`, the tenure-grant route and check rows
+- [[tasks/container-log-retention]] — task `0060`, container log retention — the profile box's log-rotation sibling

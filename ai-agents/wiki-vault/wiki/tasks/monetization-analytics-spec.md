@@ -26,3 +26,4 @@ The spec is a planning baseline, not an implementation result. It should be used
 - [[decisions/sprint-4]]
 - [[tasks/analytics-p0-session-match-count]] — ships the per-session match-count input needed for the P0 match-lifecycle baseline
 - [[tasks/analytics-p1-citizenship-funnel]] — task `0021`, the P1 citizenship-funnel half of this spec, closed 2026-09-02; the "high-intent unconverted cohort" signal it names is **not measurable** now that the sixth event is dropped
+- [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, the ad-impression item of this spec — shipped as a tier-free baseline

@@ -698,6 +698,8 @@ mistake that produces a paid purchase granting nothing.
 
    ⇒ ✅ **The price is `99` in Yandex portal currency — 99 YAN. It is NOT 99 rubles.**
 
+   📌 **LATER CHANGE, recorded 2026-09-25, appended and not a rewrite:** the owner changed the catalog price in the Yandex console to **249 Yan** on 2026-09-25 (owner ruling *"Yes, update docs"*, live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`). The 99 YAN settlement above was true until then and is kept as written. Live docs now state 249 Yan.
+
    **Which repo source was right:**
 
    | Source | Said | Verdict |

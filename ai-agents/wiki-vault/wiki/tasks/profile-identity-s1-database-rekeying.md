@@ -17,7 +17,8 @@ in `006` refuses and this becomes a real data migration.**
 ⚠️ **Collision with `0253` — serialize, never run concurrently.** `0253`'s uncommitted first-plan code
 (an untracked `005_player_xp_grants.sql` plus repository and route edits) lived in the **same files** this
 slice rewrites. **This slice absorbed the schema and repository re-keying of that code**; `005` was
-deleted and the grant table moved into `006`.
+deleted and the grant table moved into `006`. *📌 2026-09-24: the collision is spent — `0253` was
+ rebuilt to its redesign on top of this slice's seams and closed; see [[tasks/tenure-xp-grant]].*
 
 ## Key Changes
 
@@ -78,3 +79,4 @@ owner-verified)`** by a spawned producer with no owner present at the close.
 - [[decisions/profile-storage-strategy]] — the storage choices the re-keying inherits
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274` (S5), the last slice of the same epic: monitoring, alerting and the creation switch
+- [[tasks/tenure-xp-grant]] — task `0253`, the tenure grant this task's grant table serves

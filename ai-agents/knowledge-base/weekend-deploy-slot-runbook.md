@@ -272,6 +272,9 @@ container log rotation; `0221` B5 is a daemon restart and a reboot. Every refere
   🚨 **2026-09-23 (Sprint 4 rescope; OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent): Sprint 4 now holds only local work that is still being built:
   `0064` Phase 2, `0253`, `0020`, `0203`.** **Any of it in progress must sit on a BRANCH, out of the working tree, at
   W12**, and before W3/W7, which build from the local tree too. Otherwise it ships. See the W12 checkbox.
+  📌 *2026-09-24: all four are now closed and **committed** (`6eeceeb`, verified by `fkit-lead`: HEAD `6eeceeb`,
+  clean tree). So none of them is in progress, and their code rides the deploys as committed code. The rule
+  still applies to anything new that is in progress.*
 
 ---
 
@@ -479,7 +482,7 @@ produces all four sets of evidence.**
 
 📌 **2026-09-24 — `0253` RIDES THIS COMMAND TOO** (owner ruling 2026-09-24, *"Yes, ship it Saturday"*, live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent). `./build-deploy-profile.sh` builds from the
 working tree, and [`0253`](../tasks/done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)'s
-server code (closed 2026-09-24, uncommitted) sits there. The heading's *"four tasks"* is kept as written; this is the fifth.
+server code (closed 2026-09-24, ~~uncommitted~~ *committed in `6eeceeb`, corrected 2026-09-24, owner-approved record tidy-up*) sits there. The heading's *"four tasks"* is kept as written; this is the fifth.
 - **The tenure claim route, `POST /v1/profile/tenure-grant`, goes live on the profile box at W3, if the window runs.**
   It is wired in `src/profile-server/Server.ts`, so it answers at once. It does not wait for the flag.
 - 🚨 **The owner-accepted claim-on-behalf risk (ADR-112, amended) opens at W3, not at `0065`'s flip.**
@@ -718,6 +721,8 @@ It bumps, commits, tags and pushes (`build-deploy.sh:50-53`), builds, then calls
       `0253` / `0020` / `0203` change must sit **on a branch, out of the working tree**. Check with `git status` first.
       *(Added 2026-09-23 with the Sprint 4 rescope. The profile deploys at W3 and W7 also build from the local tree, so the
       same check applies before them.)*
+      📌 *2026-09-24: `0064`, `0253`, `0020` and `0203` are closed and committed in `6eeceeb`. None of their changes is
+      unfinished any more. The `git status` check still stands for anything new.*
 - [ ] **[`0298`](../tasks/backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) (ex-`0064` step 8) — the parity guard runs clean, report-only.** Capture its full output into `0298`'s worklog (names and verdicts only). `deploy.sh:60-61` invokes
       `check-config-parity.mjs --pipeline=all --report-only || true`. ⛔ **Report-only. A non-zero exit
       here would fail a deploy and is out of scope** (`0064` verification step 6). Arming is ~~`0064`'s

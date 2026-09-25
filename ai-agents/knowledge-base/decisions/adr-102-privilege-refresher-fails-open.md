@@ -36,6 +36,12 @@
 > the narrow reading: **defining a monetization trigger by which code path enforces it fails whenever
 > the first thing sold is enforced somewhere else.** Define it by *what the player paid for*.
 >
+> **Price update (owner, 2026-09-25):** paid citizenship now costs **249 Yan** (the owner's note:
+> 1 Yan ≈ 1 RUB). The owner changed it in the Yandex console on 2026-09-25. The "99₽" figures in this
+> ADR are history, true when it was written. The code reads the price from the Yandex catalog at
+> runtime, so no code depends on it. **This changes nothing decided here**: the trigger fires on *any*
+> paid entitlement, whatever it costs.
+>
 > **History, so the record is not misread.** The behaviour arrived with the upstream fork; nobody on
 > Geoconflict changed it and, until 2026-08-08, nobody had weighed it. An earlier draft wrongly called
 > it a "retained inherited choice" of the owner's; the owner confirmed on 2026-08-08 that they were

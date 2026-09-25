@@ -144,3 +144,4 @@ login"* and *"why not link accounts now"* are **closeout of this ADR, not new fi
 - [[systems/analytics]] — the `Profile:Login:*` event families that measure this login flow
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274` (S5), the monitoring slice this ADR's go-live depends on; closed 2026-09-19 with four of six alert rules deferred
 - [[systems/weekend-deploy-window]] — the window whose **W12** first runs this identity path in production (`0272` server, `0273` client), and whose **W14** first row is its only end-to-end proof
+- [[tasks/tenure-xp-grant]] — task `0253`, the tenure grant keyed on the internal `player_id`

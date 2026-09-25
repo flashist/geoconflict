@@ -5,6 +5,47 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/client/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh`
 
+> # 📅 DATED 2026-09-23: THE WINDOW IS SATURDAY 2026-09-26 — plus the Sprint 4 rescope (updated 2026-09-24)
+>
+> **Owner, verbatim (2026-09-23, live via `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer
+> precedent): *"This Saturday, September 26"*.** The *"undated"* block below is **superseded as to the
+> date only** and kept as history. ⚠️ **It has not happened yet** (today's sync is 2026-09-24), and the
+> owner has said he will **postpone the release if `dev` is not ready** — so read *"at W3"* etc. below as
+> *"if the window runs"*.
+>
+> **What changed in the runbook this sync window:**
+> - **`0064` step 8 is now `0298`'s** (split 2026-09-23, rescope Q2 = (a)). W12 captures **two**
+>   report-only blocks into `0298`'s worklog: the **parity** guard (names) and the **new value guard**
+>   (`0064` Phase 2, closed 2026-09-24), headed `── config value guard (report-only) · deploy env: prod`.
+>   The runbook glosses every line type; the two to know: **`NOT JUDGED` must never appear on a prod
+>   deploy** (it means the deploy is not running as `prod` — stop and check), and a **`REQUIRED …
+>   PROFILE_INTERNAL_TOKEN — forwarded but EMPTY`** line means a **missed precondition**, not noise —
+>   the blank-by-hand rule was **retired** 2026-09-24 (*"Retire it"*). ⚠️ The value guard sees only
+>   blank/malformed; **W11's A1 is still the only check that the token MATCHES the box's.** ⛔ Arming
+>   `--enforce` does **not** happen in this window. See [[tasks/deploy-time-config-parity-guard]].
+> - **Ruling 3 is LIFTED for `0203`** (rescope Q3 = (b), against the producer's recommendation): its
+>   decisions were taken before the window, and `0203` closed 2026-09-24. See
+>   [[tasks/config-parity-guard-pre-arming-gate]].
+> - 🚨 **`0253` rides W3 — a fifth task on the profile deploy** (owner, 2026-09-24, *"Yes, ship it
+>   Saturday"*). **`POST /v1/profile/tenure-grant` goes live on the box at W3** and answers at once — it
+>   does **not** wait for the card flag. ⇒ 🚨 **The owner-accepted claim-on-behalf risk (ADR-112, amended)
+>   opens at W3, not at `0065`'s flip**; `0268` closes it. W12's game deploy carries `0253`'s client code,
+>   inert while `CITIZENSHIP_CARD_ENABLED` is `false`. See [[tasks/tenure-xp-grant]]. 📌 The runbook
+>   describes that server code as *"uncommitted"*; ✅ **as of `6eeceeb` it is committed** (verified this
+>   sync) — which also discharges the new W12 pre-check below for the four Sprint 4 tasks.
+> - **New W12 pre-check:** before `./build-deploy.sh prod` (and before W3/W7), **no unfinished Sprint 4
+>   work may sit in the working tree** — the scripts commit and ship the tree as it stands.
+> - **New W16 — the window's last step:** the producer closes Sprint 4 with `/fkit-sprint-done` (Q7 =
+>   (b)), then the owner starts Sprint 5. 📌 *As counted this sync, Sprint 4 has **zero open rows**, so the
+>   close would roll nothing.*
+> - **C1 RESOLVED (2026-09-23):** `0065` is the go-live only; the test-buy moved to `0297` (Sprint 5), run
+>   by the owner after go-live, **still not in this window**; `RUNBOOK-A` still stands. `0065` has **no
+>   task condition**. 🚨 Accepted tradeoff: real players' first purchases may be the first real test.
+>   The `YANDEX_PAYMENTS_SECRET` "do not overwrite" row now names `0297` §1–§4 **and real players'
+>   purchases after go-live** as what an overwrite would break.
+>
+> ---
+>
 > # ⏸️ THE WINDOW HAS NOT HAPPENED — IT SLIPPED, AND IT IS UNDATED (owner confirmation, 2026-09-22)
 >
 > The 2026-09-14 ruling pointed at a weekend slot about six days out; the record showed no slot run,
@@ -420,3 +461,6 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/profile-le-certificate-renewal-proof]] — task `0216`, the PROFILE box certificate (2026-11-20) this page's fuse is about
 - [[tasks/telemetry-cert-expired-renewal-cron]] — task `0257`, the TELEMETRY box certificate (2026-12-13) — a different box; never move a date between them
 - [[tasks/profile-weekly-backup-copy-verified]] — task `0241`, the live-verified `copyto` the W0 snapshot reuses
+- [[tasks/deploy-time-config-parity-guard]] — task `0064` — the parity and value guards that run report-only at W12
+- [[tasks/config-parity-guard-pre-arming-gate]] — task `0203` — ruling 3, lifted for it 2026-09-23
+- [[tasks/tenure-xp-grant]] — task `0253` — the tenure claim route that rides W3

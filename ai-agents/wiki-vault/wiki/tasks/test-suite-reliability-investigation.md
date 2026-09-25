@@ -102,3 +102,4 @@ Per owner ruling A2, **no segfault mitigation was purchased** — no `--maxWorke
 - [[decisions/windoworigin-url-join-defect]] — task `0198`, which carried the `0197` segfault as an accepted residual
 - [[tasks/supertest-profile-server-flake]] — task `0200`, the split-out flake; its findings corrected the two claims struck above
 - [[decisions/sprint-4]] — the sprint board carrying this task and its `0200` follow-up
+- [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, which ruled out this task's segfault before re-running

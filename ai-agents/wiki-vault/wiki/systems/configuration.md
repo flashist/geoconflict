@@ -41,3 +41,4 @@ Shared runtime and gameplay configuration for Geoconflict. The system selects en
 - [[tasks/prod-api-env-https-apex]] — task `0063`, the `/api/env` protocol/host fix now live in production
 - [[tasks/yandex-payments-secret-forwarding]] — task `0195`, the profile-pipeline instance of the class; deploy script fixed 2026-09-01, production unchanged
 - [[tasks/container-log-retention]] — task `0060`: container log retention is set in `update.sh`'s `docker run` and overrides the host `daemon.json`; ⚠️ its `nginx.conf` half needs an **image rebuild**, not a plain deploy
+- [[tasks/deploy-time-config-parity-guard]] — task `0064`, the deploy-time guard over this plumbing

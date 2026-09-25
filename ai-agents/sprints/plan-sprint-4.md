@@ -53,7 +53,7 @@
 
 ## Sprint 4 Goal
 
-Launch the citizenship system and in-app purchase foundation. Give loyal players a visible long-term goal (1,000 XP, earned at 10 XP per qualifying match — 🔴 **owner-ruled 2026-09-10 to become 100 XP at 1 XP per match; see *XP Economy* below. Not shipped: the live values are still 1,000 / 10**), a direct purchase path (99 rubles), and the first meaningful citizenship benefit (name change). Establish the payment infrastructure and player profile store that all future monetization builds on.
+Launch the citizenship system and in-app purchase foundation. Give loyal players a visible long-term goal (1,000 XP, earned at 10 XP per qualifying match — 🔴 **owner-ruled 2026-09-10 to become 100 XP at 1 XP per match; see *XP Economy* below. Not shipped: the live values are still 1,000 / 10**), a direct purchase path (~~99 rubles~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25)), and the first meaningful citizenship benefit (name change). Establish the payment infrastructure and player profile store that all future monetization builds on.
 
 **Rewarded ads are explicitly deferred** — no reward mechanic exists yet. Rewarded ads ship in Sprint 5 once citizenship benefits give players something worth watching an ad for.
 
@@ -1214,7 +1214,7 @@ First persistent per-player database in the codebase. Findings needed on: databa
 Findings needed on: Yandex payments SDK API, catalog fetch architecture, dashboard setup requirements and approval timeline, purchase-to-server notification approach.
 
 **Action required immediately:** register catalog items in the Yandex Games dashboard as soon as possible — approval can take several days:
-- Citizenship: 99 rubles
+- Citizenship: ~~99 rubles~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25)
 - (Cosmetics at 149–199 rubles — Sprint 5, but register early)
 
 ---
@@ -1307,7 +1307,7 @@ When a player reaches 1,000 XP: flip `isCitizen = true`, send personal inbox mes
 ---
 
 ### Citizenship Core — Paid Citizenship
-Purchase path via Yandex catalog. 99 rubles. On successful purchase: flip `isCitizen = true` and `isPaidCitizen = true`, send personal inbox message. UI only shown if citizenship item exists in Yandex catalog response.
+Purchase path via Yandex catalog. ~~99 rubles~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25). On successful purchase: flip `isCitizen = true` and `isPaidCitizen = true`, send personal inbox message. UI only shown if citizenship item exists in Yandex catalog response.
 
 ---
 
@@ -1462,7 +1462,7 @@ A match awards XP only when all of the following are true:
 
 | Item | Price | Notes |
 |---|---|---|
-| Citizenship | 99 rubles | ~50% to Yandex + taxes |
+| Citizenship | ~~99 rubles~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25) | ~50% to Yandex + taxes |
 | Cosmetics (Sprint 5) | 149–199 rubles | Includes citizenship automatically |
 
 ## Humans vs Nations — Balance Nation Count to Players

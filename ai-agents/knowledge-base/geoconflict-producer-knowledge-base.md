@@ -311,13 +311,13 @@ Launch citizenship system and in-app purchase foundation. Rewarded ads deferred 
 
 **Citizenship flags:** `isCitizen` (earned OR paid), `isPaidCitizen` (paid only)
 
-**Pricing:** citizenship 99 RUB, cosmetics 149–199 RUB (includes citizenship automatically). Yandex takes ~50% + taxes.
+**Pricing:** citizenship ~~99 RUB~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25), cosmetics 149–199 RUB (includes citizenship automatically). Yandex takes ~50% + taxes.
 
 **Player profile store:** server-side (not Yandex cloud saves). DB technology = investigation item. Authorized players only — `ysdk.getPlayer().getMode() !== 'lite'` for guests. Keyed by Yandex player ID.
 
 **Purchase UI:** data-driven from Yandex catalog response. If item absent from catalog → button not shown. Allows soft-launch by enabling items in dashboard without code deploy.
 
-**Action required now:** register Yandex catalog items in dashboard (citizenship 99 RUB, cosmetics 149–199 RUB). Approval takes days.
+**Action required now:** register Yandex catalog items in dashboard (citizenship ~~99 RUB~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25), cosmetics 149–199 RUB). Approval takes days.
 
 ### All Sprint 4 Tasks
 
@@ -330,7 +330,7 @@ Launch citizenship system and in-app purchase foundation. Rewarded ads deferred 
 | Yandex Payments — Catalog Fetch | TBD | After investigation |
 | Citizenship — Match Counter & Progress UI | TBD | After investigation |
 | Citizenship — Earned (50 matches) | TBD | After investigation |
-| Citizenship — Paid (99 RUB) | TBD | After investigation |
+| Citizenship — Paid (~~99 RUB~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25)) | TBD | After investigation |
 | 8d-B Personal Inbox | `0012-personal-inbox` | Needs 8d-A + profile store |
 | Name Change (citizens only) | TBD | After investigation |
 | Citizen Verified Icon | TBD | After investigation |
@@ -357,7 +357,7 @@ Launch citizenship system and in-app purchase foundation. Rewarded ads deferred 
 
 ### Paid Path
 
-- Direct citizenship purchase: 99 RUB
+- Direct citizenship purchase: ~~99 RUB~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25)
 - Any cosmetic purchase (Sprint 5+): 149–199 RUB → grants citizenship automatically
 - Purchase UI only shown when item exists in Yandex catalog response
 
@@ -426,7 +426,7 @@ Fix: when real player joins at `lobby_max`, immediately displace one AI. Game au
 
 ### Sprint 4
 
-- Citizenship (earned: 50 matches, paid: 99 RUB)
+- Citizenship (earned: 50 matches, paid: ~~99 RUB~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25))
 - Yandex in-app purchase infrastructure
 - Name change as first citizenship benefit
 

@@ -3,6 +3,30 @@
 **Date**: 2026-08-24 *(updates: 2026-09-07, 2026-09-08)*
 **Status**: accepted — **re-confirmed in practice 2026-09-07, still unshipped upstream**; **scope widened by an in-place amendment 2026-09-08** from "the active-sprint pointer" to **local patching of `fkit-status` generally**. ⚠️ **Updated in place — NOT superseded, NOT replaced.** The Decision, Options and Consequences are untouched and the earlier wording is kept in full.
 
+> # ✅ UPDATE 2026-09-24 — THE WRONG-BOARD FAILURE IS GONE IN PRACTICE, BY A DIFFERENT MECHANISM THAN THIS ADR DESIGNED
+>
+> **Owner ruling 2026-09-23 (recorded on the boards):** the *"ask by name"* warnings on
+> `plan-sprint-4.md`, `plan-sprint-5.md` and `plan-sprint-6.md` are **struck, not deleted — superseded
+> by the line-3 status banners, which the selector reads.** The boards now carry
+> `> ## 🔄 In progress — 2026-09-07.` (Sprint 4) and `> ## 🔲 Backlog — 2026-09-23.` (Sprints 5 and 6),
+> per the new [[systems/agent-conventions]] convention 11 (`sprint-status-vocabulary.md`).
+>
+> ✅ **Verified by running it this sync (read-only), at `HEAD` = `6eeceeb`:**
+> `dashboard.sh select-active ai-agents/sprints` → `active file="plan-sprint-4.md" identity="Sprint 4"
+> status="In progress"`, `board … reason="lowest-ordered"`. **An empty-argument status run now lands on
+> Sprint 4.**
+>
+> ⚠️ **What this does and does not mean:**
+> - The mechanism is **the status banner** (selection = every `In progress` board, lowest-ordered, or
+>   `⭐ ACTIVE BOARD`), **not** the `.active-sprint` pointer this ADR designed. Whether the pointer is
+>   now moot, and whether this ADR should be marked superseded, is **an owner / architect call — not
+>   made here.** ⛔ The ADR's status line above is **unchanged** by this update.
+> - **The banners are typed by hand** for the two open statuses. A board whose banner is missing or
+>   malformed resolves to `unresolved` and is never picked — so the failure mode is now *"no board"*,
+>   not *"the wrong board"*.
+> - The 2026-09-08 second blind spot (`sprint-backlog.md` unreachable) is **separate** and still
+>   shows: the selector lists `sprint-backlog.md` as a `Backlog`-identity candidate this run.
+>
 > # 🔴 UPDATE 2026-09-07 — THE PREDICTED FAILURE RECURRED, AND THE POINTER IS STILL NOT IMPLEMENTED
 >
 > **Owner ruling, given live in session, verbatim:** *"The active sprint is the Sprint 4!"*

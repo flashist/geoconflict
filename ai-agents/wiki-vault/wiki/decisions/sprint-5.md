@@ -3,6 +3,44 @@
 **Date**: 2026-04-16
 **Status**: proposed
 
+> # 🆕 2026-09-23 (later) — 28 ROWS: TWELVE MOVED IN FROM SPRINT 4, PLUS TWO NEW TASKS `0297` AND `0298`
+>
+> **Re-counted 2026-09-24 at `HEAD` = `6eeceeb`, by each row's leading status glyph: 28 rows — 19
+> `🔲 Backlog` · 9 `🚧 Blocked`; all 28 OPEN** (was 14 at `b3ee5de`). ⚠️ Counted by me this run.
+> **Line-3 banner: `🔲 Backlog — 2026-09-23`** — ⛔ **the sprint is NOT started.** By owner ruling the
+> owner starts it himself **after the deploy**, so during the Saturday 2026-09-26 window the tasks being
+> executed sit on a `🔲 Backlog` board: ask for them with `/fkit-status Sprint 5`. The old *"ask for
+> Sprint 4 by name"* note is struck, superseded by the banners.
+>
+> **AUTHORITY for everything below:** owner rulings given live in the `fkit lead` session via
+> `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner
+> channel (ADR-021). ⛔ Not producer precedent. Full rescope record: [[decisions/sprint-4]].
+>
+> - **Twelve rows appended from Sprint 4 (the rescope):** `0018`, `0065`, `0032`, `0213`, `0219`,
+>   `0217`, `0266`, `0272`, `0273`, `0220`, `0221`, `0286` — each needs a deploy, the live box or
+>   production. **Status, Priority and Task cells copied verbatim**, so any *"above"* / *"addendum
+>   below"* inside them refers to the **Sprint 4** board. Appended, never inserted (ADR-035).
+> - **`0298` — config-parity guard: first real report-only production run, then arm `--enforce`.**
+>   Split out of `0064` (rescope Q2 = (a)). Position owner-confirmed directly below `0286`. ⚠️ **Every
+>   `0203` item lands before `--enforce` is wired** — now satisfied, `0203` closed 2026-09-24. See
+>   [[tasks/deploy-time-config-parity-guard]] and [[tasks/config-parity-guard-pre-arming-gate]].
+> - **`0297` — the paid-citizenship test-buy sequence, run by the owner (human) after go-live.** Takes
+>   `0065` §1–§5 and `0195`'s open value-correctness condition (owner: *"Launch, and leave the test task
+>   for the Sprint 5. The test-buy sequence will be run by me (human)"*). **Placed at ROW 1 — the very
+>   top — by owner ruling lifting ADR-035's append-only rule for this one row**; an intermediate
+>   *"directly above `0296`"* placement was the lead's wording error, not the owner's intent. §5
+>   narrowed to *"does the citizenship product ever disappear from `getCatalog()`"*. Its `## Owner`
+>   (`fkit-producer`, *"executed by the owner (human)"*) is owner-confirmed.
+> - **`0065` is now the go-live only (§6), with NO task condition** — `0296` no longer gates it, and
+>   `0195` moved to `0297`. 🚨 **Accepted, owner-ruled tradeoff: paid citizenship goes live to real
+>   players before any real purchase is proven** (HMAC construction, secret value and reconciliation all
+>   unconfirmed). `0018` closes on `0065` alone; `0297` does **not** gate it.
+> - **`0296` no longer blocks any Sprint 4 task or `0065`** (owner: *"Keep it in Sprint 5, but the task
+>   shouldn't block Sprint 4"*). 🚩 Its top box now records the **blank-by-hand token rule as RETIRED**
+>   (2026-09-24, *"Retire it"*).
+>
+> ---
+>
 > # 🆕 2026-09-23 — A SEVENTH ROW: `0296`, A NEW TASK THAT **RECEIVES CHECKS** — ⛔ NOT A MOVE
 >
 > **The board is 14 rows now, was 13** (counted at `HEAD` = `b3ee5de`; all 14 read `🔲 Backlog`).
@@ -300,3 +338,7 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 - [[tasks/forward-profile-internal-token]] — task `0062`, whose production checks became `0296` section A
 - [[tasks/citizenship-earned]] — task `0017`, whose live tail became `0296` A2–A3, A5, A6 and B1
 - [[tasks/personal-inbox]] — task `0012`, whose live tail became `0296` A2–A3, B2 and B3
+- [[tasks/deploy-time-config-parity-guard]] — task `0064`, split 2026-09-23 — its step 8 and arming are this board's `0298`
+- [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, whose tags and rulings `0298` consumes when arming
+- [[tasks/yandex-payments-secret-forwarding]] — task `0195`, whose open value-correctness question moved to this board's `0297` §1 on 2026-09-23
+- [[systems/project-brief]] — product ground truth — records the 2026-09-23 `0065` go-live-before-proof tradeoff

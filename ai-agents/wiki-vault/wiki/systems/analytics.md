@@ -293,8 +293,42 @@ The Sprint 4 monetization analytics spec in [[tasks/monetization-analytics-spec]
 - **P0 match lifecycle:** measure match start, player spawned, match completed, outcome, duration, spawn status, and all-time match count so the earned citizenship threshold is grounded in actual retention depth.
 - **P1 citizenship funnel:** instrument citizenship surface impressions, CTA clicks, purchase flow start/completion/abandonment, earned citizenship, and high-intent unconverted cohorts. As of 2026-08-24 the funnel events are built (0017/0018 — see the Citizenship Funnel Events section) but fire nowhere in production until the 0054 flag flips ON. 🔧 **Task 0021 closed 2026-09-02 having measured the tree: five of the six spec'd events are shipped, unit-tested and documented, the sixth is dropped as obsolete, and none has ever fired.** The "high-intent unconverted cohort" part of this baseline is the piece the dropped `UI:Tap:CitizenshipLearnMore` would have carried — it is **not measurable** as the funnel now stands. See [[tasks/analytics-p1-citizenship-funnel]].
 - **P1 ad impact:** segment ad impressions by player tier (`guest`, `free`, `earned_citizen`, `paid_citizen`) before making citizens ad-free, so the real revenue tradeoff can be modeled.
+  📌 **2026-09-24 — only the tier-free baseline shipped** (task `0020`, see *Ad Events* below and [[tasks/analytics-p1-ad-impression-baseline]]); the tiered events are `0299` (Backlog). 🚩 **The premise that citizens are ad-free is not true in code yet** — no tier suppresses interstitials today (suppression is `0248`).
 
 Open implementation questions remain around analytics backend constraints, whether guest `persistentID` is stable enough for match-count attribution, which events need server-side authority, and whether old match history should be backfilled.
+
+## Ad Events (task `0020` — built 2026-09-24, not yet verified in Yandex)
+
+One event, **`Ad:Interstitial`** (enum `AD_INTERSTITIAL`), fired from `FlashistFacade.showInterstitial()`
+when the SDK's `onClose` reports `wasShown === true` (strict). **Once per real impression** — not per
+attempt, not on `onError`, not when the SDK is missing or declines (`wasShown=false`, e.g. its own
+frequency cap). It **under-counts** an ad abandoned by closing the tab mid-ad and **never over-counts**.
+No value. Dev/staging builds only log it.
+
+- ⛔ **No tier dimension.** `Ad:Interstitial:{Guest,Free,EarnedCitizen,PaidCitizen}` is task `0299`: the
+  client has no synchronous tier at ad time (earned needs the `0273` client deployed plus a profile read
+  and cache; paid needs `0250`).
+- ⛔ **No banner events — dropped, not deferred** (owner, 2026-09-24): nothing in our code shows a banner,
+  so there is no impression point to hook.
+- 🚩 **Owed: the in-Yandex check** — exactly one event per ad shown, none when the SDK declines. Cannot be
+  run locally. See [[tasks/analytics-p1-ad-impression-baseline]].
+
+## Tenure Grant Events (task `0253` — built 2026-09-24, not yet live)
+
+Three events under *Citizenship Events* in the reference doc, all behind `CITIZENSHIP_CARD_ENABLED`
+**and** the `citizenship_ui` flag (task `0236`'s combined gate), so **none can fire before `0065` flips
+the card**. They fire only after a successful `POST /v1/login` whose reply says the tenure check is
+`pending` — guests, degraded boots and failed logins fire none.
+
+| Event | Meaning |
+|---|---|
+| `Citizenship:TenureGrant:Claimed` | the server **granted** the one-time grant; value = XP awarded (3–50) |
+| `Citizenship:TenureGrant:Rejected:{BelowMinimum\|Duplicate}` | the check was recorded without a grant — fewer than 3 days (a **final** 0-XP check), or already checked (in practice two racing tabs) |
+| `Citizenship:TenureGrant:ClaimFailed` | no usable server answer. ⚠️ **Two cases:** before the server recorded → retried next load; **after commit** (timeout, dropped connection, gateway error, unreadable 200) → **no retry, no popup, and the player may in fact be granted** |
+
+🚨 **Count by UNIQUE USERS, not events.** `ClaimFailed` fires once per page load until the check lands;
+`Claimed` / `Rejected:*` fire at most once per player except when two tabs race. ⛔ **"ClaimFailed, never
+Claimed" does not mean ungranted** — the server's grant table is the truth. See [[tasks/tenure-xp-grant]].
 
 ## Experiment Event Pattern
 
@@ -405,3 +439,5 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[systems/player-profile-store]] — the backend the login talks to
 - [[tasks/personal-inbox]] — task `0012`, which added the four inbox events
 - [[tasks/citizenship-earned]] — task `0017`, which added `Citizenship:Earned:XP`
+- [[tasks/tenure-xp-grant]] — task `0253`, the three `Citizenship:TenureGrant:*` events
+- [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, the `Ad:Interstitial` baseline event

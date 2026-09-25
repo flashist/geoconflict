@@ -1,8 +1,23 @@
 # ADR-108: Active sprint is owner-set via a pointer, derived only as fallback (direction for the next fkit update)
 
-- **Status:** accepted — **re-confirmed in practice 2026-09-07, still unshipped upstream**; **scope widened by amendment 2026-09-08** to cover local patching of `fkit-status` generally (decision unchanged)
+- **Status:** superseded in part by fkit ADR-047 (upstream) — owner-approved 2026-09-24; adopted here 2026-09-23 (owner approved line-3 banners); the 2026-09-08 amendment still stands
 - **Date:** 2026-08-24 *(updates: 2026-09-07, 2026-09-08)*
 - **Deciders:** Owner (rulings 2026-08-24, 2026-09-07, 2026-09-08 — each relayed via a spawning session); fkit-architect (evaluation, and the 2026-09-08 assessment)
+
+> **SUPERSEDED IN PART — 2026-09-23.** fkit ADR-047 (accepted upstream 2026-09-10; lives in fkit's
+> own repo, cited by name, not linked) answers this ADR's question differently: every sprint carries
+> an explicit status in a line-3 banner, "current" means every `🔄 In progress` sprint, and where one
+> board must be chosen it is the lowest-ordered `In progress` sprint, overridden by a `⭐ ACTIVE BOARD`
+> marker in the banner. ADR-047 rejected a separate pointer/index file by name (its option (c)), which
+> trips this ADR's own first re-raise trigger ("a status field instead of a single pointer file"). The
+> owner adopted the banners 2026-09-23; `select-active` now returns Sprint 4 (`reason="lowest-ordered"`).
+> **Owner ruling, 2026-09-24 (given live via AskUserQuestion, relayed through the lead session): fkit
+> ADR-047 is accepted as the superseding ADR under `decisions/README.md`, and no project ADR is
+> written.** **Superseded:** the `.active-sprint` pointer (Decision), the "sprints have no status
+> field" premise (Context), and the "ask for status by name" interim workaround — do not create
+> `.active-sprint`; nothing reads it. **NOT superseded:** the 2026-09-08 amendment — HOLD on local
+> patching of `/fkit-status`, and task `0001` remains the route for the `sprint-backlog.md` blind spot,
+> which ADR-047 does not touch. Body below kept as written; it was true when written.
 
 > ## 🔴 UPDATE 2026-09-07 — the predicted failure recurred, and the pointer is still not implemented
 >

@@ -32,22 +32,31 @@ Features are **excluded** from experiments if:
 > 🔴 **THE ACTIVE SPRINT IS SPRINT 4** — owner ruling given live in session **2026-09-07**, verbatim:
 > *"The active sprint is the Sprint 4!"*
 >
-> 🚨 **The tooling reports Sprint 6 and cannot currently be told otherwise.** `dashboard.sh
+> ~~🚨 **The tooling reports Sprint 6 and cannot currently be told otherwise.** `dashboard.sh
 > select-active` takes the **highest** open sprint identity, and plans 4, 5 and 6 are all
 > legitimately open. **Ask for status by name — `/fkit-status Sprint 4`.** Background and the
-> designed-but-unshipped fix:
+> designed-but-unshipped fix:~~
 > [ADR-108](../knowledge-base/decisions/adr-108-owner-set-active-sprint-pointer.md).
+>
+> 📌 **SUPERSEDED (owner ruling; recorded 2026-09-25) — the struck text above is no longer true.** The line-3
+> status banners (fkit ADR-047, adopted 2026-09-23) replaced it. `dashboard.sh select-active` now reads each
+> board's banner, and only Sprint 4's reads `🔄 In progress`, so it reports **Sprint 4**. Checked 2026-09-25:
+> `active file="plan-sprint-4.md" identity="Sprint 4"`. A plain `/fkit-status` works, and asking by name is no
+> longer needed. The owner ruled ADR-108 *"superseded in part"*; the architect is updating ADR-108 itself.
+> Struck, not deleted: it was true when written. Same treatment as boards 4, 5 and 6 on 2026-09-23.
 
 | File | Sprint | Goal |
 |------|--------|------|
-| [cancelled-tasks.md](cancelled-tasks.md) | — | Documents cancelled/reverted tasks with reasons |
-| [hotfix-post-sprint2.md](hotfix-post-sprint2.md) | Post-Sprint 2 Hotfix | Experiment flag analytics, tutorial skip button, UI tap analytics, mobile hit area bug, win condition bug |
-| [plan-sprint-1.md](plan-sprint-1.md) | Sprint 1 — Stop the Bleeding | Reduce ghost rate and crash-driven abandonment |
-| [plan-sprint-2.md](plan-sprint-2.md) | Sprint 2 — Fix Onboarding | Convert new players into players who complete at least one full match |
-| [plan-sprint-3.md](plan-sprint-3.md) | Sprint 3 — Deepen Retention | Infrastructure quality and UX; mobile performance parked |
+| ~~`cancelled-tasks.md`~~ *(dead link removed: target gone)* | — | ~~Documents cancelled/reverted tasks with reasons~~ ⛔ **File no longer present** (recorded 2026-09-25): it was deleted from `ai-agents/sprints/` in commit `6666989` (2026-04-21) and was not moved anywhere. Cancelled task briefs live under [`../tasks/cancelled/`](../tasks/cancelled/). |
+| [hotfix-post-sprint2.md](done/hotfix-post-sprint2.md) | Post-Sprint 2 Hotfix | Experiment flag analytics, tutorial skip button, UI tap analytics, mobile hit area bug, win condition bug |
+| [plan-sprint-1.md](done/plan-sprint-1.md) | Sprint 1 — Stop the Bleeding | Reduce ghost rate and crash-driven abandonment |
+| [plan-sprint-2.md](done/plan-sprint-2.md) | Sprint 2 — Fix Onboarding | Convert new players into players who complete at least one full match |
+| [plan-sprint-3.md](done/plan-sprint-3.md) | Sprint 3 — Deepen Retention | Infrastructure quality and UX; mobile performance parked |
 | [plan-sprint-4.md](plan-sprint-4.md) | **Sprint 4 — First Monetization Layer** 🔴 **ACTIVE** | Revenue streams, leaderboard, citizen tier |
+| [plan-sprint-4b.md](done/plan-sprint-4b.md) | Sprint 4b — Interim Game Variety Update *(closed; in `done/`)* | Intermission while the citizenship track paused: compact maps, Duos/Trios/Quads modes, weird-setting modifiers in public matchmaking |
+| [plan-sprint-4c.md](done/plan-sprint-4c.md) | Sprint 4c — Production Stabilization *(closed; in `done/`)* | Reduce the top production error families from the 2026-05-07 Uptrace telemetry review |
 | [plan-sprint-5.md](plan-sprint-5.md) | Sprint 5 — Full F2P Loop & Social Features *(pre-scoped, not in work)* | Long-term engagement and monetization systems |
-| [plan-sprint-6.md](plan-sprint-6.md) | Sprint 6 — More Content *(pre-scoped, not in work)* | Additional content; **the board the tooling wrongly reports as active — see the note above** |
+| [plan-sprint-6.md](plan-sprint-6.md) | Sprint 6 — More Content *(pre-scoped, not in work)* | Additional content; ~~**the board the tooling wrongly reports as active — see the note above**~~ *(superseded; see the 📌 note above)* |
 
 ---
 

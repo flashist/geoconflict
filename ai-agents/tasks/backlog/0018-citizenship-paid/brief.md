@@ -1,4 +1,4 @@
-# Task — Citizenship Core: Paid Citizenship (99 Rubles Path)
+# Task — Citizenship Core: Paid Citizenship (~~99 Rubles~~ 249 Yan Path)
 
 ## ID
 0018
@@ -49,7 +49,7 @@ fkit-coder
 
 ## Context
 
-Players who do not want to grind 1,000 XP can purchase citizenship directly for 99 rubles. The purchase path uses the Yandex Payments infrastructure established in `0019-yandex-payments-impl`. The earned path and paid path produce the same citizenship state — `is_citizen = true` — with an additional `is_paid_citizen = true` flag for the paid path.
+Players who do not want to grind 1,000 XP can purchase citizenship directly for ~~99 rubles~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25). The purchase path uses the Yandex Payments infrastructure established in `0019-yandex-payments-impl`. The earned path and paid path produce the same citizenship state — `is_citizen = true` — with an additional `is_paid_citizen = true` flag for the paid path.
 
 ---
 
@@ -73,7 +73,7 @@ In the citizenship card component (`0191-citizenship-xp-progress-ui`), add a "Bu
 
 - Render the button **only when** `FlashistFacade.hasCatalogProduct('citizenship')` returns `true`
 - Do not show a disabled/greyed-out button when the catalog item is absent — hide entirely
-- Button label: "Купить гражданство — 99 ₽" / "Buy Citizenship — 99 ₽" (price from `getCatalogProduct('citizenship').price` — do not hardcode)
+- Button label: "Купить гражданство — ~~99 ₽~~" / "Buy Citizenship — ~~99 ₽~~", showing the catalog price, currently 249 Yan (owner changed it in the Yandex console, 2026-09-25) (price from `getCatalogProduct('citizenship').price` — do not hardcode)
 - Tapping the button fires `UI:Tap:PurchaseCitizenship` analytics event, then initiates the purchase flow
 
 ### Part B — Client: purchase flow
@@ -139,7 +139,7 @@ Russian:
 }
 ```
 
-The price string (e.g. "99 ₽") must come from `getCatalogProduct('citizenship').price` — never hardcoded.
+The price string (e.g. ~~"99 ₽"~~; the catalog price is currently 249 Yan (owner changed it in the Yandex console, 2026-09-25)) must come from `getCatalogProduct('citizenship').price` — never hardcoded.
 
 ---
 

@@ -111,6 +111,9 @@ build and the second game deploy has run). Before that, the buy button does not 
       `hasCatalogProduct('citizenship')` → `true`.
 - [ ] The price shown on the Buy button comes from the real catalog response — not the mock's fake
       price, not hardcoded.
+- [ ] **Expect the Buy button to show 249 Yan**: the catalog price as of 2026-09-25, which the owner changed in the
+      Yandex console (owner ruling 2026-09-25, live in the `fkit lead` session via `AskUserQuestion`, relayed by
+      `fkit-lead`). **If it shows anything else, record exactly what it shows.**
 
 ### §3 — Real test purchase through the `0018` UI (ex-`0065` §3)
 - [ ] Signed in as the test-purchase account, complete the flow end to end with the real button.

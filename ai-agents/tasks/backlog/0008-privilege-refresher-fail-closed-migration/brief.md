@@ -58,7 +58,7 @@ pre-committed rather than left to be noticed later.
 entitlement** — anything a player pays real money for that confers an entitlement, whether or not
 the cosmetics checker is what gates it.
 
-Fires on: **paid citizenship** (99₽), **Task 9** (re-enable flags — `adr-106`, planned paid
+Fires on: **paid citizenship** (~~99₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25)), **Task 9** (re-enable flags — `adr-106`, planned paid
 non-country cosmetic), **Task 9a** (territory patterns). Whichever ships first.
 
 ⚠️ **This wording replaced a narrower one earlier the same day, and the reason matters.** The first

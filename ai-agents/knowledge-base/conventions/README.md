@@ -22,7 +22,7 @@ The three are easy to confuse, and the distinction is the whole point of this fo
 
 ## What's here
 
-Seven conventions ship with the scaffold. They are **yours to amend** — but amend them *here*. A
+Eight conventions ship with the scaffold. They are **yours to amend** — but amend them *here*. A
 convention has exactly one home; a second copy of a rule is how the two drift apart and the project
 stops knowing which one is law.
 
@@ -35,14 +35,16 @@ stops knowing which one is law.
 | [`one-skill-one-output.md`](one-skill-one-output.md) | a skill yields one complete output per subject — arguments select subjects, never output variants |
 | [`priority-is-rank-not-identity.md`](priority-is-rank-not-identity.md) | the board's Priority cell is rank (`P<n>`); a task's identity is its folder-name ID |
 | [`dependency-declaration-form.md`](dependency-declaration-form.md) | the one `- **Depends on:**` form a brief may use — the form `dashboard.sh` parses |
+| [`sprint-status-vocabulary.md`](sprint-status-vocabulary.md) | the only values a sprint board's line-3 banner may carry, and who may set each |
 
-Added by this project, beyond the scaffold's seven:
+Added by this project, beyond the scaffold's eight:
 
 | File | In force over |
 |---|---|
 | [`task-id-allocation.md`](task-id-allocation.md) | how a task's permanent four-digit ID is allocated, and that it is never reused or renumbered |
 | [`task-attribute-cross-reference-sweep.md`](task-attribute-cross-reference-sweep.md) | after a ruling changes a task attribute with an authoritative brief section — sprint, status, rank, owner, dependencies — the prose copies of it in *other* files get swept |
 | [`file-line-citations.md`](file-line-citations.md) | a document citing `file:line` declares its commit frame; citations are re-derived by reading, never shifted arithmetically; no bare `:NNN` |
+| [`durable-citation-anchors.md`](durable-citation-anchors.md) | when a coordinate is safe to cite: line numbers for findings against a revision, names for cross-references into living documents |
 
 ## Naming
 

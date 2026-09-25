@@ -11,6 +11,12 @@ Goal: expand the game with historical and thematic map content. The commercial t
 >
 > ⚠️ **A further prerequisite surfaced 2026-08-09:** cosmetic entitlements (`flares`) currently come from the **upstream OpenFront API**, not Geoconflict's own infrastructure. Selling anything gated by the privilege checker likely requires that to move first — task `0009`. See [[decisions/adr-102-privilege-refresher-fails-open]].
 
+> 📌 **2026-09-23 — this board now carries a line-3 status banner, `🔲 Backlog — 2026-09-23`.** Its old
+> warning (*"`select-active` picks the highest open sprint identity, and this is it"*) is **struck, not
+> deleted, by owner ruling** — superseded by the banners, which the selector reads. Verified this sync:
+> the selector now returns Sprint 4, not this board. Board unchanged otherwise: **5 rows, all
+> `🔲 Backlog`** (counted at `6eeceeb`). See [[decisions/adr-108-active-sprint-pointer]].
+
 Source: `ai-agents/sprints/plan-sprint-6.md`
 
 ## Decision
