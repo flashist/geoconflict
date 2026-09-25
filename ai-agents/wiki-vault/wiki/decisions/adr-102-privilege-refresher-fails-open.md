@@ -7,6 +7,12 @@
 >
 > Project ADR-102 — see [[decisions/adr-numbering-two-series]].
 > Source: `ai-agents/knowledge-base/decisions/adr-102-privilege-refresher-fails-open.md`
+>
+> 📌 **Price update (owner, 2026-09-25), from the source ADR's dated note:** paid citizenship now costs
+> **249 Yan** (the owner's note: 1 Yan ≈ 1 RUB), changed in the Yandex console on 2026-09-25. Any "99₽"
+> figure in this ADR is history. The code reads the price from the Yandex catalog at runtime, so no code
+> depends on it. **This changes nothing decided here** — the trigger fires on *any* paid entitlement,
+> whatever it costs. See [[tasks/yandex-catalog-registration]].
 
 ## Context
 

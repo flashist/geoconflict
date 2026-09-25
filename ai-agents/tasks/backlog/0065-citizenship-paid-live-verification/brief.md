@@ -188,7 +188,7 @@ described its `0014` condition as *"test-purchase Yandex login(s) + per-game sec
 | Half of the `0014` condition | State | Date | Standing |
 |---|---|---|---|
 | **Per-game secret key, on the profile box** | ✅ done | 2026-09-20 | owner-attested provenance + three read-only box observations (Correction 3) |
-| **Test-purchase Yandex login(s) added** | ✅ done | 2026-09-22 | ⚠️ **OWNER-ATTESTED, NOT REPO-VERIFIABLE** — the owner **correcting their own 2026-09-12 report**; verbatim: *"ruFlashist - is already added as a test account (it was done in one of our previous sessions)."* |
+| **Test-purchase Yandex login(s) added** | ✅ done | 2026-09-22 | ⚠️ **OWNER-ATTESTED, NOT REPO-VERIFIABLE** — the owner **correcting their own 2026-09-12 report**; verbatim: *"[the owner's test account] - is already added as a test account (it was done in one of our previous sessions)."* |
 
 📌 **[`0014`](../../done/0014-yandex-catalog-registration/brief.md) was itself CLOSED the same day** on
 a separate owner ruling (**"Close it"**), as `✅ Done (agent-closed — not owner-verified)`, and has moved

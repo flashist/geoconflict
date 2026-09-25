@@ -53,9 +53,9 @@ holding **no owner channel** (ADR-021). ⛔ **Not producer precedent — one rul
 
 | # | Deliverable | Ruling | Kind of change |
 |---|---|---|---|
-| a | **Test-purchase Yandex login** | ✅ **ADDED** — *"ruFlashist - is already added as a test account (it was done in one of our previous sessions)."* | 🚨 the **owner correcting their own 2026-09-12 report**, not a discovery; **no date** is claimed beyond "a previous session" |
+| a | **Test-purchase Yandex login** | ✅ **ADDED** — *"[the owner's test account] - is already added as a test account (it was done in one of our previous sessions)."* | 🚨 the **owner correcting their own 2026-09-12 report**, not a discovery; **no date** is claimed beyond "a previous session" |
 | b | **Cosmetics catalogue item** | ⛔ **DELIBERATELY NOT REGISTERED** — *"We don't need it if it's Sprint 5."* | the **instruction** was overridden; ⛔ **not** "unknown" and **not** outstanding work |
-| c | **Price unit** | ✅ **99 YAN** (Yandex portal currency), **not 99 ₽** | a deliberate **revenue** decision, see below |
+| c | **Price unit** | ✅ **99 YAN** (Yandex portal currency), **not 99 ₽** — 📌 *later change, 2026-09-25: the owner re-priced it to **249 Yan** in the Yandex console; see below* | a deliberate **revenue** decision, see below |
 | d | **`citizenship_ui` experiment flag** | ✅ **SET** — *"I already set it and verified it being set."* | again the **owner correcting their own 2026-09-12 report** |
 
 **On (b) — read the sequence, do not merge it.** The **2026-09-19** ruling voided only the *rationale*
@@ -63,6 +63,14 @@ holding **no owner channel** (ADR-021). ⛔ **Not producer precedent — one rul
 **UNCHANGED**. The **2026-09-22** ruling overrode **the instruction itself**. Both notes are kept; they
 are sequential, not contradictory. ⛔ **This does not cancel cosmetics as future work** — it is
 Sprint 5's to register when Sprint 5 needs it.
+
+> 📌 **LATER CHANGE — 2026-09-25 (recorded in this task's brief, appended, not a rewrite):** the owner
+> changed the catalog price in the Yandex console to **249 Yan** (owner ruling *"Yes, update docs"*,
+> live in the `fkit lead` session, relayed to a spawned `fkit-producer`). The 99 YAN settlement below
+> was true until then and is kept as written. The **unit** decision (Yan, not rubles) stands. The live
+> docs (`PROJECT.md`, the producer knowledge base, the Sprint 4 plan, the Backlog board, ADR-102) now
+> say 249 Yan. ⚠️ **Owner-attested, not repo-verifiable** — the code reads the price from the Yandex
+> catalog at runtime, so nothing in the repo carries it.
 
 **On (c) — the reason, recorded so it is not re-litigated.** Owner, verbatim: *"it's 99YAN - and I
 think we're not doing 99 Rub, because 99 Rub will leave us around 40-49 RUB of revenue (after
@@ -154,3 +162,8 @@ will require its **own** `PAYMENT_PRODUCT_IDS` entry **and** its own grant branc
 - [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`, the remaining code precondition for the launch flip
 - [[decisions/licensing-compliance]] — the other pre-launch gate, already demonstrated
 - [[decisions/sprint-5]] — where `0238`, the task that must observe this `citizenship_ui` flag actually taking effect, now sits
+- [[tasks/analytics-p1-citizenship-funnel]] — task `0021`, whose funnel measures the price point this task set (now 249 Yan)
+- [[systems/project-brief]] — product ground truth carrying the current price (249 Yan since 2026-09-25)
+- [[decisions/adr-102-privilege-refresher-fails-open]] — ADR-102, whose dated note records the 2026-09-25 re-price
+- [[tasks/monetization-analytics-spec]] — the analytics spec whose `price_rubles` field name the re-price made misleading
+- [[decisions/sprint-backlog]] — the Backlog board, whose `0248` row carries the new price

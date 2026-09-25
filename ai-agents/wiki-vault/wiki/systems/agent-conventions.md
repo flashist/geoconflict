@@ -5,7 +5,7 @@
 
 ## Summary
 
-The project's **standing law** for how agents work — the rules in force *right now*, which an agent that contradicts is simply wrong. **Twelve** conventions *(ten until 2026-09-23 — see the note under *Source*)* plus a README that defines the folder's purpose: the scaffold's seven, and **three** added by this project — task-ID allocation, and, both on 2026-09-07, the task-attribute cross-reference sweep and file:line citations.
+The project's **standing law** for how agents work — the rules in force *right now*, which an agent that contradicts is simply wrong. **Twelve** conventions *(ten until 2026-09-23 — see the note under *Source*)* plus a README that defines the folder's purpose: the scaffold's seven, and **three** added by this project — task-ID allocation, and, both on 2026-09-07, the task-attribute cross-reference sweep and file:line citations. *(📌 2026-09-25: now **eight** from the scaffold and **four** from this project, per the `README.md` catalog — `sprint-status-vocabulary.md` and `durable-citation-anchors.md` respectively; see conventions 11 and 12.)*
 
 A convention is **prescriptive and current**, and is **maintained in place**: when it stops being true you *edit* it, you do not append. That is what separates it from the two neighbouring document kinds:
 
@@ -17,7 +17,7 @@ A convention is **prescriptive and current**, and is **maintained in place**: wh
 
 An ADR may *create* a convention; it never *is* one. A report is **never promoted** into a convention — if its conclusion hardens into a rule, the rule is written as its own convention document and the report stays where it is as the evidence.
 
-Source: `ai-agents/knowledge-base/conventions/` (README + **12** conventions, count re-checked 2026-09-24 at `6eeceeb`; was 10 at 2026-09-08). ⚠️ **The two added 2026-09-23 (`sprint-status-vocabulary.md`, `durable-citation-anchors.md`, commit `16f44e8`) are NOT listed in the conventions `README.md` catalog, which still lists ten** — verified this run. The catalog, not the folder, is stale; ⛔ the vault cannot edit it (ADR-005). Flagged for a human. ✅ **The tenth is now COMMITTED, in `5913ac2`, and listed in the conventions `README.md` catalog** — an earlier note here warning it was uncommitted in the working tree (so that `git log` at `c910452` showed only nine) is **spent and removed**.
+Source: `ai-agents/knowledge-base/conventions/` (README + **12** conventions, count re-checked 2026-09-24 at `6eeceeb`; was 10 at 2026-09-08). ~~⚠️ **The two added 2026-09-23 (`sprint-status-vocabulary.md`, `durable-citation-anchors.md`, commit `16f44e8`) are NOT listed in the conventions `README.md` catalog, which still lists ten** — verified this run. The catalog, not the folder, is stale; ⛔ the vault cannot edit it (ADR-005). Flagged for a human.~~ ✅ **RESOLVED 2026-09-25 (commit `2df6bbf`): the catalog now lists all twelve.** It classifies them as **eight shipped with the scaffold** (the original seven plus `sprint-status-vocabulary.md`) and **four added by this project** (task-ID allocation, the cross-reference sweep, file:line citations, and `durable-citation-anchors.md`). ✅ **The tenth is now COMMITTED, in `5913ac2`, and listed in the conventions `README.md` catalog** — an earlier note here warning it was uncommitted in the working tree (so that `git log` at `c910452` showed only nine) is **spent and removed**.
 
 ## Architecture
 

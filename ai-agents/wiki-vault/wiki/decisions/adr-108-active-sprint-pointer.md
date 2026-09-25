@@ -1,8 +1,28 @@
 # ADR-108 — Active sprint is owner-set via a pointer, derived only as fallback
 
 **Date**: 2026-08-24 *(updates: 2026-09-07, 2026-09-08)*
-**Status**: accepted — **re-confirmed in practice 2026-09-07, still unshipped upstream**; **scope widened by an in-place amendment 2026-09-08** from "the active-sprint pointer" to **local patching of `fkit-status` generally**. ⚠️ **Updated in place — NOT superseded, NOT replaced.** The Decision, Options and Consequences are untouched and the earlier wording is kept in full.
+**Status**: superseded in part by **fkit ADR-047** (upstream; owner-accepted as the superseding ADR 2026-09-24) — **the 2026-09-08 amendment still stands**. *(Was: accepted — re-confirmed in practice 2026-09-07, still unshipped upstream; scope widened by an in-place amendment 2026-09-08. The earlier wording below is kept in full.)*
 
+> # 🔁 SUPERSEDED IN PART — owner ruling 2026-09-24, recorded in the source ADR (synced 2026-09-25)
+>
+> **Owner ruling, given live via `AskUserQuestion` and relayed through the lead session: fkit ADR-047
+> is accepted as the superseding ADR, and no project ADR is written.** fkit ADR-047 (accepted upstream
+> 2026-09-10; it lives in fkit's own repo and is cited by name, not linked) answers this ADR's question
+> differently — an explicit line-3 status banner per sprint; "current" = every `🔄 In progress` sprint;
+> where one board must be chosen, the lowest-ordered, overridden by `⭐ ACTIVE BOARD`. It **rejected a
+> separate pointer file by name** (its option (c)), which trips this ADR's own first re-raise trigger
+> (*a status field instead of a single pointer file*). The owner adopted the banners on 2026-09-23.
+>
+> | Superseded | NOT superseded |
+> |---|---|
+> | the `.active-sprint` pointer (Decision) — ⛔ **do not create it; nothing reads it** | **the 2026-09-08 amendment**: HOLD on local patching of `/fkit-status` |
+> | the *"sprints have no status field"* premise (Context) | **task `0001`** remains the route for the `sprint-backlog.md` blind spot, which ADR-047 does not touch |
+> | the *"ask for status by name"* interim workaround | |
+>
+> ✅ This answers the open question the 2026-09-24 update below left to the owner/architect. The source
+> ADR's body is kept as written; so is this page's history below. `plan-index.md`'s stale ADR-108 note
+> was also struck on 2026-09-25 (see [[decisions/product-strategy]]).
+>
 > # ✅ UPDATE 2026-09-24 — THE WRONG-BOARD FAILURE IS GONE IN PRACTICE, BY A DIFFERENT MECHANISM THAN THIS ADR DESIGNED
 >
 > **Owner ruling 2026-09-23 (recorded on the boards):** the *"ask by name"* warnings on
@@ -20,7 +40,8 @@
 > - The mechanism is **the status banner** (selection = every `In progress` board, lowest-ordered, or
 >   `⭐ ACTIVE BOARD`), **not** the `.active-sprint` pointer this ADR designed. Whether the pointer is
 >   now moot, and whether this ADR should be marked superseded, is **an owner / architect call — not
->   made here.** ⛔ The ADR's status line above is **unchanged** by this update.
+>   made here.** ⛔ The ADR's status line above is **unchanged** by this update. *(📌 Answered the same
+>   day by owner ruling — see the block above.)*
 > - **The banners are typed by hand** for the two open statuses. A board whose banner is missing or
 >   malformed resolves to `unresolved` and is never picked — so the failure mode is now *"no board"*,
 >   not *"the wrong board"*.

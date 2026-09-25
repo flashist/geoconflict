@@ -30,9 +30,11 @@
 >   Saturday"*). **`POST /v1/profile/tenure-grant` goes live on the box at W3** and answers at once — it
 >   does **not** wait for the card flag. ⇒ 🚨 **The owner-accepted claim-on-behalf risk (ADR-112, amended)
 >   opens at W3, not at `0065`'s flip**; `0268` closes it. W12's game deploy carries `0253`'s client code,
->   inert while `CITIZENSHIP_CARD_ENABLED` is `false`. See [[tasks/tenure-xp-grant]]. 📌 The runbook
->   describes that server code as *"uncommitted"*; ✅ **as of `6eeceeb` it is committed** (verified this
->   sync) — which also discharges the new W12 pre-check below for the four Sprint 4 tasks.
+>   inert while `CITIZENSHIP_CARD_ENABLED` is `false`. See [[tasks/tenure-xp-grant]]. 📌 ~~The runbook
+>   describes that server code as *"uncommitted"*~~ ✅ **The runbook itself was corrected 2026-09-24
+>   (commit `2df6bbf`): *"committed in `6eeceeb`"*, and 📌 lines under the rescope's working-tree warning and at the W12 pre-check now say all
+>   four Sprint 4 tasks (`0064`, `0253`, `0020`, `0203`) are closed and committed, so none is in
+>   progress. The `git status` check still stands for anything new.**
 > - **New W12 pre-check:** before `./build-deploy.sh prod` (and before W3/W7), **no unfinished Sprint 4
 >   work may sit in the working tree** — the scripts commit and ship the tree as it stands.
 > - **New W16 — the window's last step:** the producer closes Sprint 4 with `/fkit-sprint-done` (Q7 =

@@ -14,7 +14,7 @@
 
 Be the one shared analytics spec for the whole citizenship funnel — surface seen → CTA tapped →
 purchase started → completed/abandoned → XP earned — so conversion, drop-off and the 99-ruble price
-point can be measured rather than guessed. The brief's standing instruction is that each event is
+point *(📌 since 2026-09-25 the price is 249 Yan — see [[tasks/yandex-catalog-registration]])* can be measured rather than guessed. The brief's standing instruction is that each event is
 wired **at the same time** as the UI or server logic that triggers it, never retrofitted.
 
 **That instruction still stands as guidance for `0017` and `0018`. The data-loss argument that used

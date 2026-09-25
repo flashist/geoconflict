@@ -3,6 +3,11 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
+> 📌 **2026-09-25 (`2df6bbf`) — counts unchanged (106 rows, 0 open; re-counted). The citizenship price
+> in the plan's goal, pricing list, paid-citizenship section and revenue table now reads ~~99 rubles~~
+> **249 Yan** (owner changed it in the Yandex console 2026-09-25).** See
+> [[tasks/yandex-catalog-registration]].
+>
 > # 🆕 2026-09-24 — THE BOARD HAS ZERO OPEN ROWS: RESCOPED 2026-09-23, THE LAST FOUR CLOSED 2026-09-24
 >
 > # 📊 BOARD RE-COUNTED 2026-09-24 at `HEAD` = `6eeceeb`
@@ -855,7 +860,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - Win-screen return target remains the only explicitly open product question from the redesign investigation
 
 **Pricing:**
-- Citizenship: **99 rubles** (~50% to Yandex + taxes)
+- Citizenship: ~~**99 rubles**~~ **249 Yan (owner changed it in the Yandex console, 2026-09-25)** (~50% to Yandex + taxes) — *the plan's figure was re-priced 2026-09-25; 99 was true when written (and 0014 had already settled it as 99 **Yan**, not rubles)*
 - Cosmetics (Sprint 5): 149–199 rubles (includes citizenship automatically)
 
 **Earned path is independent of payments** — the XP/progression path can ship before Yandex catalog approval once the player profile store and redesigned UI exist.

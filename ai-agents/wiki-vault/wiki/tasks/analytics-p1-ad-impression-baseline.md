@@ -22,7 +22,7 @@
 ## Goal
 
 As filed: track ad impressions **by player tier** (guest / free / earned citizen / paid citizen), so the
-net revenue effect of a citizenship conversion can be modelled — does a 99-ruble payment lose more in
+net revenue effect of a citizenship conversion can be modelled — does a 99-ruble payment *(the brief's figure; the price is 249 Yan since 2026-09-25)* lose more in
 ad revenue than it earns? Yandex records impressions on its side, but they cannot be joined to our own
 player-behaviour data in GameAnalytics.
 

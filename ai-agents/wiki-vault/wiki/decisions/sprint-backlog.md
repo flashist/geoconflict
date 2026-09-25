@@ -3,6 +3,12 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 📌 **2026-09-25 (`2df6bbf`) — counts unchanged (87 rows, 66 open; re-counted).** One cell edit: the
+> `0248` row (suppress interstitials for paid citizens) now reads ~~99 ₽~~ **249 Yan** (owner changed
+> the price in the Yandex console 2026-09-25). See [[tasks/yandex-catalog-registration]].
+>
+> ---
+>
 > # 📊 RE-COUNTED 2026-09-24 at `HEAD` = `6eeceeb` — ONE ROW ADDED, `0299`
 >
 > **`backlog.md`: 87 rows — 63 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;

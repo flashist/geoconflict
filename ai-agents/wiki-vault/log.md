@@ -4092,3 +4092,30 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - **Targeted lint on the 32 touched pages:** 0 broken links; **5 one-way links found and fixed** (2 pre-existing: `container-log-retention`→`player-profile-store`, `project-brief`→`adr-111`; 3 from this run's own edits); back-links added on 25 pages (24 existing + one new page). 0 unresolved index links.
 - 🔒 **Secret scan on the diff and new pages: clean** — no IP, URL, domain, connection string or hex secret.
 - ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.
+
+## 2026-09-25 — ingest (sync)
+
+- **Sync window:** `6eeceeb` → HEAD (`2df6bbf`). 1 commit, "Sprint push"; tree clean at sync time. It also
+  carries the previous sync's vault edits, now committed.
+- **Changed source files detected under `ai-agents/` (vault excluded): 17. Ingest-worthy after the filter:
+  11.** Skipped: 6 `tasks/backlog/*/brief.md` (`0008`, `0018`, `0248`, `0249`, `0297`, `0299` — price wording).
+- **Ingested:**
+  - `ai-agents/knowledge-base/decisions/adr-108-owner-set-active-sprint-pointer.md` → **updated** [[wiki/decisions/adr-108-active-sprint-pointer]] — Status now *superseded in part by fkit ADR-047*; superseded / not-superseded table; the 2026-09-08 amendment stands.
+  - `ai-agents/knowledge-base/decisions/adr-102-privilege-refresher-fails-open.md` → **updated** [[wiki/decisions/adr-102-privilege-refresher-fails-open]] — 249 Yan price note; decision unchanged.
+  - `ai-agents/tasks/done/0014-yandex-catalog-registration/brief.md` → **updated** [[wiki/tasks/yandex-catalog-registration]] — the 2026-09-25 re-price, 99 YAN kept as history.
+  - `ai-agents/knowledge-base/PROJECT.md` → **updated** [[wiki/systems/project-brief]] — paid path 249 Yan.
+  - `ai-agents/sprints/plan-sprint-4.md` → **updated** [[wiki/decisions/sprint-4]] — price only; **re-counted, unchanged: 106 rows, 0 open.**
+  - `ai-agents/sprints/backlog.md` → **updated** [[wiki/decisions/sprint-backlog]] — `0248` row price only; **re-counted, unchanged: 87 rows, 66 open.**
+  - `ai-agents/sprints/plan-index.md` → **updated** [[wiki/decisions/product-strategy]] — stale ADR-108 note struck; links into `done/`; Sprint 4b/4c rows; `cancelled-tasks.md` recorded as deleted 2026-04-21.
+  - `ai-agents/knowledge-base/conventions/README.md` → **updated** [[wiki/systems/agent-conventions]] — catalog now lists 12 (8 scaffold + 4 project); the previous sync's flag **resolved**.
+  - `ai-agents/knowledge-base/weekend-deploy-slot-runbook.md` → **updated** [[wiki/systems/weekend-deploy-window]] — the "uncommitted" wording is corrected at source; the previous sync's flag **resolved**.
+  - `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md` → **updated** [[wiki/tasks/monetization-analytics-spec]] — `price_rubles` naming note (nothing renamed).
+  - `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md` → **checked, no page change** — price only, and neither page sourcing it ([[wiki/systems/project-operations]], [[wiki/systems/producer-workflow]]) states the price.
+- **Also updated:** [[wiki/tasks/analytics-p1-citizenship-funnel]], [[wiki/tasks/analytics-p1-ad-impression-baseline]] (the old 99-ruble figure annotated). [[wiki/index]]: 5 entries annotated.
+- **Targeted lint on 12 touched pages:** 0 broken links; 5 one-way links (all from this run's edits, all to [[wiki/tasks/yandex-catalog-registration]]) found and fixed. 0 unresolved index links.
+- 🔒 **Secret scan on the diff: clean.**
+- ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.
+
+## 2026-09-25 — manual redaction (not a sync)
+
+- On an owner ruling (live via `AskUserQuestion` in the lead session, relayed): removed the owner's Yandex test-account username from the vault — **1 occurrence**, in [[wiki/tasks/yandex-catalog-registration]] (a quoted owner statement), replaced with *"[the owner's test account]"* (removed, not struck). Vault-wide grep afterwards: 0 occurrences. Watermark not moved. Nothing committed.

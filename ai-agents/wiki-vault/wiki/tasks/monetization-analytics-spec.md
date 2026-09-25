@@ -20,6 +20,8 @@ Define the pre-monetization analytics baseline and Sprint 4 launch-funnel tracki
 
 The spec is a planning baseline, not an implementation result. It should be used to create the P0/P1 backlog tasks and to keep Sprint 4 monetization decisions gated on measured identity, match-depth, purchase, and ad-impact data.
 
+📌 **2026-09-25 — naming note in the source, nothing renamed:** the spec's purchase-started and purchase-completed payloads carry a `price_rubles` integer, but the citizenship price is now **249 Yan** (owner, Yandex console, 2026-09-25), so the field name is misleading; the spec suggests renaming it later. ⚠️ Whether any **built** event uses a field of that name was **not checked** in this sync — the note is about the spec only. See [[tasks/yandex-catalog-registration]].
+
 ## Related
 
 - [[systems/analytics]]

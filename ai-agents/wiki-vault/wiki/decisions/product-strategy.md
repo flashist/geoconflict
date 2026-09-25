@@ -12,6 +12,16 @@ Geoconflict's primary revenue is ad impressions. The strategic sequence is:
 
 Source: `ai-agents/sprints/plan-index.md`
 
+> 📌 **2026-09-25 — `plan-index.md` housekeeping (synced from commit `2df6bbf`):**
+> - Its *"the tooling reports Sprint 6 and cannot currently be told otherwise"* note is **struck, not
+>   deleted — superseded** by the line-3 status banners (fkit ADR-047, adopted 2026-09-23); the plan
+>   records `select-active` returning **Sprint 4** on 2026-09-25. See [[decisions/adr-108-active-sprint-pointer]].
+> - Broken links fixed: the Sprint 1–3 and post-Sprint-2 hotfix plans now point into `sprints/done/`;
+>   rows added for **Sprint 4b** and **Sprint 4c** (both closed, in `done/`).
+> - ⚠️ **`sprints/cancelled-tasks.md` no longer exists** — deleted in commit `6666989` (2026-04-21), not
+>   moved; its row now says so and points at `ai-agents/tasks/cancelled/`. [[decisions/cancelled-tasks]]
+>   is built from the cancelled briefs themselves, not from that file.
+
 ## Decision
 
 **Retention before monetization.** Sprint order follows this logic:

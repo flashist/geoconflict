@@ -372,7 +372,7 @@ mistake that produces a paid purchase granting nothing.
 
    **The owner's words, verbatim:**
 
-   > *"ruFlashist - is already added as a test account (it was done in one of our previous sessions)."*
+   > *"[the owner's test account] - is already added as a test account (it was done in one of our previous sessions)."*
 
    🚨 **READ WHAT KIND OF CHANGE THIS IS.** The 2026-09-12 entries saying this was **NOT DONE** were
    themselves **the owner's own report**, recorded faithfully at the time. Nothing in this repository
@@ -556,7 +556,7 @@ mistake that produces a paid purchase granting nothing.
    2026-09-22.** Still a hard `0065` prerequisite.
 
    📌 **CORRECTED 2026-09-22 on an OWNER RULING** given live in the `fkit lead` session, relayed by
-   `fkit-lead`. Verbatim: *"ruFlashist - is already added as a test account (it was done in one of our
+   `fkit-lead`. Verbatim: *"[the owner's test account] - is already added as a test account (it was done in one of our
    previous sessions)."* ⚠️ **This is the owner CORRECTING THEIR OWN 2026-09-12 REPORT**, not a
    discovery by this project — full reasoning under `## Verification` item 4.
    ⚠️ **OWNER-ATTESTED, NOT REPO-VERIFIABLE** — nothing here can see the Yandex console, and no date is
