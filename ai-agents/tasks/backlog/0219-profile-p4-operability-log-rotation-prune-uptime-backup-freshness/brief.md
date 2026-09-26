@@ -150,6 +150,10 @@ its cron still install and still run; **nothing is listening to them.** That is 
 cost in point 2 above. ⚠️ **B7(d) also rides on B4** — the `certbot.timer` disable is applied by the
 deploy; only its *confirmation* is deferred.
 
+~~📌 **OWNER RULING 2026-09-25 — `PROFILE_CHECKS_PING_URL` is BLANKED for the 2026-09-26 window; re-enabling alerting is OWED HERE after it.** Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Correction to the block above: the variable was in fact **non-empty** in `.env.profile.secret` (architect consult 2026-09-25, count only, no value read); the owner blanks it before W3 and keeps the value privately. **Owed after the window:** restore the value + re-run the profile deploy/setup so `alerting: yes`, **plus** the deferred B2 (create the check). Record: the runbook's [W0 item 6 / W3 note](../../../knowledge-base/weekend-deploy-slot-runbook.md).~~
+
+📌 **SUPERSEDED LATER ON 2026-09-25 — OWNER RULING: KEEP `PROFILE_CHECKS_PING_URL`, do NOT blank it.** Given live in the `fkit lead` session via `AskUserQuestion` (owner chose *"Keep it — don't blank"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. **Evidence:** Better Stack heartbeat `profile-daily-checks` emailed the owner a *"Reported failure"* at 2026-09-25 08:00 UTC (response `reboot-required`) ⇒ **alerting is ALREADY live on the box**, and **B2's "create the check" looks done in fact** (owner-side, unrecorded until now — not verified here beyond that email). Nothing is owed on the blanking any more. 🚩 **Out of date, for the producer to reconcile at the next pass:** the B2 row above (*"⛔ Deferred"*), the *Consequence of that mapping* block (*"no `PROFILE_CHECKS_PING_URL`"*, expect `alerting: no`), and the `## Status` line (*"with B2 deferred there is no ping URL"*). ⛔ `## Status` was NOT edited by this note. Record: the runbook's [W0 item 6 / W3 / W10 notes](../../../knowledge-base/weekend-deploy-slot-runbook.md).
+
 ---
 
 ## Status

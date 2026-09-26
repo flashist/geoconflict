@@ -443,6 +443,10 @@ wrong now than mid-slot.
 
    ⛔ **This step must COMPLETE before W3.** After W3 the pre-window object is already gone.
 
+6. ~~📌 **OWNER RULING 2026-09-25 — blank `PROFILE_CHECKS_PING_URL` in the gitignored `.env.profile.secret` before W3.** Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. The variable is currently **non-empty** (architect consult 2026-09-25, checked by count only, no value read), which the W3 note below had wrongly assumed away. Save the old value somewhere private first — ⛔ **never paste it into any tracked file.** Re-enabling alerting afterwards is owed on [`0219`](../tasks/backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md).~~
+
+   📌 **SUPERSEDED LATER ON 2026-09-25 — OWNER RULING: KEEP `PROFILE_CHECKS_PING_URL`, do NOT blank it.** Given live in the `fkit lead` session via `AskUserQuestion` (owner chose *"Keep it — don't blank"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. **Why:** at 2026-09-25 08:00 UTC the owner received a Better Stack email — heartbeat `profile-daily-checks`, cause *"Reported failure"*, response `reboot-required`. ⇒ **alerting is ALREADY live on the box** (the URL is set there, not only locally) and the check already exists; blanking before W3 would have switched working monitoring OFF. ⇒ **There is no W0 item 6 action any more.**
+
 ---
 
 ### W1 — `0286`'s local gates are already green; do not re-run them to feel safe
@@ -509,11 +513,17 @@ Watch for, in one pass:
 🚩 **EXPECT `alerting: no`, NOT the hand-off's predicted `alerting: yes`.** `0219`-B2 is deferred by the
 2026-09-19 split ruling, so there is no `PROFILE_CHECKS_PING_URL`. ⛔ **That is the ruling working, not
 a deploy failure — do not "fix" it by inventing a ping URL** (`0219` § *Consequence of that mapping*).
+📌 *Correction 2026-09-25 (owner ruling, see W0 item 6): the paragraph above is out of date — a ping URL IS set and alerting is live on the box. Kept as written; the expectation now is the ✅ line below.*
+
+~~📌 **2026-09-25 — `alerting: no` holds only BECAUSE of W0 item 6's blanking (owner ruling 2026-09-25).** The file did hold a ping URL, so unblanked W3 prints `alerting: yes` (`setup-profile.sh:1708-1709`) and a pre-W10 daily check failing on `reboot-required` could post to the ping service's `/fail` (`profile-checks.sh:527-540`). ⛔ **If W3 prints `alerting: yes`, the blanking was missed — stop, blank it, and re-run before continuing.**~~
+
+✅ **EXPECT `alerting: yes`** — OWNER RULING 2026-09-25, later the same day: **keep** `PROFILE_CHECKS_PING_URL` (live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent). Reason and evidence: W0 item 6. ⚠️ An **open `reboot-required` incident** on Better Stack's `profile-daily-checks` heartbeat is **expected until W10's reboot** — not a W3 fault.
 
 ✅ **One worry that cancels itself, so nobody chases it:** `0221/worklog.md` records *"First `checks.sh`
 run after B1 pages on `reboot-required` … until B5's reboot."* With `0219`-B2 deferred there is no ping
 URL, so **nothing can page.** The on-box checker still installs and still runs; nothing is listening.
 That is precisely the cost the owner accepted.
+📌 *Correction 2026-09-25 (owner ruling, see W0 item 6): this worry does NOT cancel itself — alerting is live, and the page already fired (Better Stack `profile-daily-checks`, 2026-09-25 08:00 UTC, `reboot-required`). The open incident is expected until W10. Kept as written.*
 
 ---
 
@@ -668,6 +678,9 @@ does not touch HTTPS.
 - [ ] **`0221`-B5:** record `systemctl is-active profile`; `systemctl restart docker` → `docker compose
       ps` shows **both up**. Then **`reboot`** → both up; `reboot-required` gone; the next `checks.sh`
       run green on that check.
+- [ ] 📌 *Added 2026-09-25 (owner ruling: keep the ping URL — see W0 item 6):* after the reboot, the
+      **next daily check (08:00 UTC)** should send an OK ping and Better Stack's `profile-daily-checks`
+      incident should **close**. If it is still open after that, check `profile-checks.sh`'s output on the box.
 
 *Source:* `0221/worklog.md` Part B — B5, B6.
 
@@ -753,6 +766,7 @@ It bumps, commits, tags and pushes (`build-deploy.sh:50-53`), builds, then calls
       blank-by-hand rule was **retired** on 2026-09-24 (owner, verbatim: *"Retire it"*; see `0296`'s top
       box), and this slot needs it set and matching anyway (W11). If you see that line, the token is
       missing. Treat it as a missed precondition, not as noise.
+      📌 *2026-09-25 (lead's finding from a dry run, not an owner ruling):* also expect `REQUIRED OTEL_AUTH_HEADER — forwarded but EMPTY`; harmless, not needed by design; handled by [`0298`](../tasks/backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md).
 - [ ] ⚠️ **Parity cannot catch the thing you are doing here.** It compares **names**, and
       `PROFILE_INTERNAL_TOKEN` *is* forwarded correctly (`deploy.sh:350`; *was cited as `:312`, re-verified
       2026-09-24*). ~~A present-when-it-should-be-
