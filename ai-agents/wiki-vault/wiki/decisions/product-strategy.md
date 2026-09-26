@@ -12,10 +12,18 @@ Geoconflict's primary revenue is ad impressions. The strategic sequence is:
 
 Source: `ai-agents/sprints/plan-index.md`
 
-> 🆕 **2026-09-26 — `plan-index.md` (synced from `2177ea6`): THE ACTIVE SPRINT IS SPRINT 5, and it is now
-> the citizenship launch.** Owner rulings given live in the `fkit lead` session on 2026-09-26:
+> 🆕 **2026-09-26, later — `plan-index.md` (synced from `899df29`): NO SPRINT IS ACTIVE.** Sprint 5 was
+> closed that day by `/fkit-sprint-done` *(agent-closed — not owner-verified)*; its line-3 banner reads
+> `✅ Done — 2026-09-26` and the board now lives at `ai-agents/sprints/done/plan-sprint-5.md`. Sprint 6 is
+> pre-scoped and **not started** (owner ruling; its banner stays `🔲 Backlog`). The source records
+> `dashboard.sh select-active` reporting `active none` on 2026-09-26. The plan's *"THE ACTIVE SPRINT IS
+> SPRINT 5"* note is **struck, kept as history** — the block directly below was true until the close. See
+> [[decisions/sprint-5]] and [[decisions/sprint-6]].
+>
+> 🆕 **2026-09-26 — `plan-index.md` (synced from `2177ea6`): ~~THE ACTIVE SPRINT IS SPRINT 5~~ *(true until
+> Sprint 5 closed later that day)*, and it is now the citizenship launch.** Owner rulings given live in the `fkit lead` session on 2026-09-26:
 > - The *"THE ACTIVE SPRINT IS SPRINT 4"* note (2026-09-07) is **struck, kept as history**; Sprint 4 is
->   closed in `done/`. **Sprint 5 is active since 2026-09-26** and carries only the profile/citizenship
+>   closed in `done/`. ~~**Sprint 5 is active since 2026-09-26**~~ *(closed later that day)* Sprint 5 carries only the profile/citizenship
 >   launch — which **shipped the same day** (release `0.0.154`, see [[tasks/citizenship-go-live]]).
 > - **Renames:** Sprint 5 → **Citizenship Launch** (the producer's wording; the owner ruled *that* it is
 >   renamed); Sprint 6 → **Full F2P Loop & Social Features**, Sprint 5's former title (*More Content*
@@ -42,8 +50,8 @@ Source: `ai-agents/sprints/plan-index.md`
 - **Sprint 4** — In-App Monetization & Citizenship (citizenship, Yandex payments, player profile store) — **the current sprint as of 2026-08-08**
 - **Sprint 4b** — Interim Game Variety Update (compact maps, Duos/Trios/Quads, weird-setting modifiers while Sprint 4 core work is paused)
 - **Sprint 4c** — Production Stabilization (top Uptrace error families before Mark's May 15 travel pause)
-- **Sprint 5** — ~~Full F2P Loop (coin economy, clans, cosmetics, social features)~~ **Citizenship Launch** *(renamed and re-scoped 2026-09-26, owner ruling; active since that day — its F2P / social items moved to Sprint 6)*
-- **Sprint 6** — ~~More Content~~ **Full F2P Loop & Social Features** *(renamed 2026-09-26)* — historical multiplayer maps, paid campaign map packs, and since 2026-09-26 the F2P / social items (coin economy, clans, cosmetics, social features)
+- **Sprint 5** — ~~Full F2P Loop (coin economy, clans, cosmetics, social features)~~ **Citizenship Launch** *(renamed and re-scoped 2026-09-26, owner ruling; ~~active since that day~~ started and ✅ **closed the same day** (agent-closed — not owner-verified) — its F2P / social items moved to Sprint 6)*
+- **Sprint 6** — ~~More Content~~ **Full F2P Loop & Social Features** *(renamed 2026-09-26; pre-scoped, **not started** — no sprint is active as of 2026-09-26)* — historical multiplayer maps, paid campaign map packs, and since 2026-09-26 the F2P / social items (coin economy, clans, cosmetics, social features)
 
 ## Experiments Policy
 
@@ -83,7 +91,7 @@ Mobile deep optimization remains parked — desktop is the core audience. Revisi
 - [[decisions/sprint-4b]] — interim public-match variety during the Sprint 4 pause
 - [[decisions/sprint-4c]] — production stabilization during the same pause
 - [[decisions/sprint-backlog]] — no-sprint backlog for defined work that needs a sprint home
-- [[decisions/sprint-5]] — ~~full F2P loop~~ the citizenship launch (**active since 2026-09-26**)
+- [[decisions/sprint-5]] — ~~full F2P loop~~ the citizenship launch (~~**active since 2026-09-26**~~ started and closed 2026-09-26, agent-closed — not owner-verified)
 - [[decisions/sprint-6]] — content expansion after payments/cosmetics infrastructure exists; since 2026-09-26 also the full F2P loop and social features
 - [[decisions/cancelled-tasks]] — work cancelled with reasons
 - [[systems/analytics]] — analytics infrastructure built in Sprint 1

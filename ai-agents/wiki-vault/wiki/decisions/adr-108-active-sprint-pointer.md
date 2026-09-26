@@ -3,6 +3,13 @@
 **Date**: 2026-08-24 *(updates: 2026-09-07, 2026-09-08)*
 **Status**: superseded in part by **fkit ADR-047** (upstream; owner-accepted as the superseding ADR 2026-09-24) — **the 2026-09-08 amendment still stands**. *(Was: accepted — re-confirmed in practice 2026-09-07, still unshipped upstream; scope widened by an in-place amendment 2026-09-08. The earlier wording below is kept in full.)*
 
+> 📌 **2026-09-26 — path note (synced from `899df29`).** Sprint 5 was closed on 2026-09-26 by
+> `/fkit-sprint-done` *(agent-closed — not owner-verified)* and its board moved to
+> **`ai-agents/sprints/done/plan-sprint-5.md`**; the source ADR's link was repointed there (link path only —
+> the ADR's text is unchanged). The bare `plan-sprint-5.md` mentions below are history and name that same
+> file. **No sprint is active** after the close: Sprint 6 stays `🔲 Backlog`, not started, and the boards
+> record `dashboard.sh select-active` reporting `active none`. See [[decisions/sprint-5]].
+>
 > # 🔁 SUPERSEDED IN PART — owner ruling 2026-09-24, recorded in the source ADR (synced 2026-09-25)
 >
 > **Owner ruling, given live via `AskUserQuestion` and relayed through the lead session: fkit ADR-047
@@ -145,7 +152,7 @@ The pointer is a **dotfile** so the existing `*.md` candidate scan never sees it
 - [[systems/agent-conventions]] — the project's standing law on task and sprint vocabularies, and where the "ask by name" interim workaround lives in practice; also carries the two board-level status exceptions the dashboard still does not render
 - [[decisions/sprint-backlog]] — the two unsprinted boards, and where task `0001` — **the owner's chosen route, ruled 2026-09-08** — is tracked
 - [[decisions/sprint-4]] — the board that was silently skipped in the reproduced failure
-- [[decisions/sprint-5]] — pre-scoped open plan, part of the condition that triggers it
+- [[decisions/sprint-5]] — ~~pre-scoped open plan, part of the condition that triggers it~~ was a pre-scoped open plan (part of the condition that triggered it); started and ✅ closed 2026-09-26 (agent-closed — not owner-verified), board now in `sprints/done/`
 - [[decisions/sprint-6]] — the plan `select-active` wrongly returned
 - [[decisions/adr-numbering-two-series]] — the ADR number bands
 

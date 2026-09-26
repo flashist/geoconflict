@@ -148,7 +148,7 @@
 > - **New W16 — the window's last step:** the producer closes Sprint 4 with `/fkit-sprint-done` (Q7 =
 >   (b)), then the owner starts Sprint 5. 📌 *As counted this sync, Sprint 4 has **zero open rows**, so the
 >   close would roll nothing.*
-> - **C1 RESOLVED (2026-09-23):** `0065` is the go-live only; the test-buy moved to `0297` (Sprint 5), run
+> - **C1 RESOLVED (2026-09-23):** `0065` is the go-live only; the test-buy moved to `0297` (~~Sprint 5~~ **Sprint 6** since 2026-09-26), run
 >   by the owner after go-live, **still not in this window**; `RUNBOOK-A` still stands. `0065` has **no
 >   task condition**. 🚨 Accepted tradeoff: real players' first purchases may be the first real test.
 >   The `YANDEX_PAYMENTS_SECRET` "do not overwrite" row now names `0297` §1–§4 **and real players'

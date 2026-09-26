@@ -3,12 +3,32 @@
 **Date**: 2026-04-17
 **Status**: proposed
 
+> # 🆕 2026-09-26 (latest, `899df29`) — 37 ROWS: `0297` APPENDED LAST; SPRINT 5 CLOSED; NO SPRINT IS ACTIVE
+>
+> **Re-counted at `HEAD` = `899df29`, by each row's leading status glyph: 37 rows — 33 `🔲 Backlog` · 4
+> `🚧 Blocked`; all 37 OPEN** (was 36). ⚠️ Counted by me this run. **Line-3 banner still
+> `🔲 Backlog — 2026-09-23` — ⛔ not started** (owner ruling). [[decisions/sprint-5]] was closed the same day
+> by `/fkit-sprint-done` *(agent-closed — not owner-verified)*, so **no sprint is active**; the source records
+> `dashboard.sh select-active` reporting `active none` on 2026-09-26.
+>
+> - **`0297` (paid citizenship — owner-run test-buy sequence) appended as the LAST row, rank 34** (this
+>   board's highest rank was 33). Owner, verbatim (typed in the `fkit lead` session, relayed by `fkit-lead`
+>   to a spawned `fkit-producer`, ADR-021/037; ⛔ not producer precedent): *"Move it to the bottom of
+>   Sprint 6"*. Status `🔲 Backlog` and Task cell copied verbatim. ⛔ Supersedes the 2026-09-23 ruling that
+>   pinned `0297` to the top of Sprint 5. It sits here as a **watch item** — §4 (a real player's successful
+>   `/reconcile`) is still open. Appended, never inserted (ADR-035); no other row moved or re-ranked.
+> - The *"The active sprint is Sprint 5"* sentence in the block below was true until Sprint 5 closed —
+>   struck at source, kept here as history.
+>
+> ---
+>
 > # 🆕 2026-09-26 — 36 ROWS: SPRINT 5'S NON-LAUNCH WORK MOVED IN, 17 NEW BRIEFS FILED, FOUR RE-RANKS
 >
 > **Re-counted at `HEAD` = `2177ea6`, by each row's leading status glyph: 36 rows — 32 `🔲 Backlog` · 4
 > `🚧 Blocked` (`0032`, `0219`, `0221`, `0286`); all 36 OPEN** (was 5 rows). ⚠️ Counted by me this run.
-> **Line-3 banner still `🔲 Backlog — 2026-09-23`** — ⛔ **not started.** The active sprint is
-> [[decisions/sprint-5]] (the citizenship launch).
+> **Line-3 banner still `🔲 Backlog — 2026-09-23`** — ⛔ **not started.** ~~The active sprint is
+> [[decisions/sprint-5]] (the citizenship launch).~~ *(true until Sprint 5 closed later that day — no sprint is
+> active since)*
 >
 > **AUTHORITY for everything below:** owner rulings and requests given live in the `fkit lead` session on
 > 2026-09-26, relayed by `fkit-lead` to spawned `fkit-producer`s with no owner channel (ADR-021). ⛔ Not

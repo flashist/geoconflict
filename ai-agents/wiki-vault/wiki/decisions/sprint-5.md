@@ -1,9 +1,38 @@
 # Sprint 5 — Citizenship Launch *(renamed 2026-09-26; was ~~Full F2P Loop & Social Features~~)*
 
 **Date**: 2026-04-16
-**Status**: accepted *(🔄 in progress since 2026-09-26 — was `proposed` while pre-scoped)*
+**Status**: accepted *(✅ **closed 2026-09-26** by `/fkit-sprint-done`, agent-closed — not owner-verified; ~~🔄 in progress since 2026-09-26~~; was `proposed` while pre-scoped)*
 
-> # 🆕 2026-09-26 (later) — SPRINT 5 IS THE ACTIVE SPRINT, IS NOW THE CITIZENSHIP LAUNCH, AND THE LAUNCH SHIPPED
+> # 🆕 2026-09-26 (latest, `899df29`) — SPRINT 5 IS CLOSED; NO SPRINT IS ACTIVE
+>
+> **Line-3 banner: `✅ Done — 2026-09-26. Closed by /fkit-sprint-done (agent-closed — not owner-verified).`**
+> The board moved to **`ai-agents/sprints/done/plan-sprint-5.md`**. ⚠️ **Agent-closed, not owner-verified.**
+> No sprint is active: [[decisions/sprint-6]] is pre-scoped and **not started** (its banner stays
+> `🔲 Backlog`); the source records `dashboard.sh select-active` reporting `active none` on 2026-09-26.
+>
+> **Re-counted at `HEAD` = `899df29`, by each row's leading status glyph: 28 rows — 11 `✅ Done` · 17
+> `➡️ Moved` (to [[decisions/sprint-6]]); 0 OPEN** (was 1 open — `0297` — at `2177ea6`). ⚠️ Counted by me
+> this run.
+>
+> **`0297` moved to the BOTTOM of Sprint 6** (rank 34, status `🔲 Backlog` copied verbatim). **AUTHORITY:**
+> an owner ruling — the owner's own typed message in the `fkit lead` session, not an `AskUserQuestion`
+> answer — relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent.
+> Verbatim: *"Move it to the bottom of Sprint 6"*. `fkit-lead` had offered: keep Sprint 5 open until `0297`
+> finishes, or move it. ⛔ **This SUPERSEDES the 2026-09-23 owner ruling that pinned `0297` to row 1 of this
+> board** (kept below as history). `0297` stays a **watch item**: §4 (a real player's successful
+> `/reconcile`) is still open; the source records a read-only check around 16:xx UTC on 2026-09-26 showing
+> 2 `/complete` 200s and **0** `/reconcile` calls.
+>
+> ⚠️ **The move and the close were separate steps.** When `0297` moved, the source says the owner did
+> **not** rule on closing the sprint and the board stayed `🔄 In progress` with no open rows. The close
+> came after that, through `/fkit-sprint-done`. The board's close record names only `/fkit-sprint-done` and
+> the agent-closed marker.
+>
+> The *"ACTIVE SPRINT"* block directly below was true until this close — kept as history, not deleted.
+>
+> ---
+>
+> # 🆕 2026-09-26 (later) — ~~SPRINT 5 IS THE ACTIVE SPRINT~~ *(true until the close later that day)*, IS NOW THE CITIZENSHIP LAUNCH, AND THE LAUNCH SHIPPED
 >
 > **Re-counted at `HEAD` = `2177ea6`, by each row's leading status glyph: 28 rows — 11 `✅ Done` · 16
 > `➡️ Moved` (to [[decisions/sprint-6]]) · 1 `🔲 Backlog`; 1 OPEN — `0297`** (was 21 open at `8f1f76b`).
@@ -38,7 +67,7 @@
 > | `0238` — [[tasks/citizenship-kill-switch-launch-check]] | the remote flag flipped off and on in production | badge, inbox and reconciliation POST **unverified** in the off state; one session |
 > | `0296` — [[tasks/after-deploy-production-checks]] | A1–A6 and B1–B3 all pass | ⚠️ B2's bell-dot **clearing** not observed |
 >
-> **Still open here (1):** `0297` — the owner-run test-buy sequence. The first real purchases already
+> ~~**Still open here (1):**~~ *(0 open since `0297` moved to Sprint 6 later that day)* `0297` — the owner-run test-buy sequence. The first real purchases already
 > settled the secret-value question; still open in it: live reconciliation (§4, owner decision pending),
 > funnel analytics seen live, and which HMAC construction matched (backlog follow-ups `0309` → `0310`).
 >
@@ -337,7 +366,7 @@ Goal: long-term engagement and monetization systems. Only start once retention m
 
 Sprint 4b now sits between Sprint 4 and Sprint 5 as a short interim public-match variety update; it does not replace the citizenship/payment prerequisites that Sprint 5 depends on.
 
-Source: `ai-agents/sprints/plan-sprint-5.md`
+Source: `ai-agents/sprints/done/plan-sprint-5.md` *(moved from ~~`ai-agents/sprints/plan-sprint-5.md`~~ when the sprint closed, 2026-09-26)*
 
 ## Decision
 
@@ -387,7 +416,7 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 - [[decisions/product-strategy]] — sprint ordering
 - [[decisions/sprint-4]] — previous sprint, provides citizenship infrastructure this sprint builds on
 - [[decisions/sprint-4b]] — interim variety sprint between Sprint 4 and Sprint 5
-- [[decisions/sprint-6]] — next planned sprint; ~~focused on map content after monetization foundations~~ since 2026-09-26 it carries this board's 16 non-launch rows and this sprint's former title
+- [[decisions/sprint-6]] — next planned sprint; ~~focused on map content after monetization foundations~~ since 2026-09-26 it carries this board's 16 non-launch rows, this sprint's former title, and (later that day) `0297` as its last row
 - [[systems/clans]] — Existing clan tag + team assignment implementation (foundation for Task 12)
 - [[tasks/investigate-clans-system]] — Investigation findings: what is implemented, what is broken, and recommended next steps for Task 12
 - [[decisions/adr-105-compact-maps-out-of-rotation]] — the map-regeneration fix scheduled here is that ADR's expected exit

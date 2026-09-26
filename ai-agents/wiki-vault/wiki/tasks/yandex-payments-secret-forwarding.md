@@ -15,7 +15,7 @@
 > Owner ruling (`0065` Correction 7), verbatim: *"Launch, and leave the test task for the Sprint 5. The
 > test-buy sequence will be run by me (human)"*. `0065` is now **the go-live only** (§6: flip + second
 > game deploy), with **no task condition**; its §1–§5 and **this task's open value-correctness
-> condition moved to `0297` §1** (Sprint 5, run by the owner after go-live). ⛔ **The correctness
+> condition moved to `0297` §1** (~~Sprint 5~~ **Sprint 6** since 2026-09-26, owner ruling — run by the owner after go-live). ⛔ **The correctness
 > question is NOT answered** — HMAC construction unconfirmed, secret value unconfirmed, reconciliation
 > unexercised. 🚨 **Owner-accepted tradeoff: real players' first purchases may be the first real test.**
 > Every *"`0065`'s gate count"* statement below is superseded as to the count. See

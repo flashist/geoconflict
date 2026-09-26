@@ -3,6 +3,33 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> # 📊 RE-COUNTED 2026-09-26 (latest) at `HEAD` = `899df29` — `0026` AND `0029` MOVED FROM `sprint-backlog.md` TO `backlog.md`
+>
+> **`backlog.md`: 95 rows — 69 `🔲 Backlog` · 18 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
+> 72 OPEN** *(was 93 / 70)*. **`sprint-backlog.md`: still 25 rows — 21 `⬜ No sprint` · 2 `⏸ Parked` · 2
+> `➡️ Moved`** *(was 23 `⬜ No sprint` · 2 `⏸ Parked`)*. ⚠️ Counted by me this run, by each row's leading
+> status glyph. The source's own sentence now reads *"all 25, of which 21 are still open here"* — it counts
+> the 21 `⬜ No sprint` rows as open and does not say how it treats the 2 `⏸ Parked` rows (the vault's
+> 2026-09-08 count called all 25 open). Recorded, not resolved.
+>
+> - **`0026` (fix compact-map shore generation) and `0029` (in-game hint display on match-start and win
+>   screens) moved to `backlog.md`**, appended at the bottom (ADR-035). **AUTHORITY:** two owner rulings
+>   given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-26, relayed by `fkit-lead` to a
+>   spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Verbatim: *"Move those tasks to the
+>   backlog task"* (read as `backlog.md`) and *"Use '🔲 Backlog'"*.
+> - ⚠️ **They land as `🔲 Backlog`, NOT `⬜ No sprint`** — a **narrow exception for these two tasks only** to
+>   the 2026-09-08 *"carry the markers across verbatim, never flatten"* ruling, so the rows show in
+>   `/fkit-status Backlog`. **That ruling still stands for the rest of `0001`'s bulk move**, and `0001`'s
+>   brief records that these two already moved.
+> - The old rows on `sprint-backlog.md` are kept as `➡️ Moved to Backlog` pointers (original text kept);
+>   their `## Items` sections are kept as history with a moved note. Status, priority and dependencies
+>   unchanged. `0026` still depends on nothing and is the prerequisite for returning compact maps to
+>   public matchmaking ([[decisions/adr-105-compact-maps-out-of-rotation]]); `0029` still waits on `0028`.
+> - Other changes this window are link paths only (`plan-sprint-5.md` → `done/`, Sprint 5 closed —
+>   [[decisions/sprint-5]]).
+>
+> ---
+>
 > # 📊 RE-COUNTED 2026-09-26 (later) at `HEAD` = `2177ea6` — FIVE ROWS ADDED, TWO MOVED TO SPRINT 6
 >
 > **`backlog.md`: 93 rows — 67 `🔲 Backlog` · 18 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
@@ -315,7 +342,7 @@
 >
 > **(1) ✅ Its two non-canonical status values were RATIFIED, then WIDENED the same day.** `⬜ No sprint` and `⏸ Parked` are no longer drift — they are **board-level exceptions to the canonical vocabulary**, first ratified as valid on `sprint-backlog.md` **alone** and then, **later the same day, widened to `backlog.md` as well.** 🚨 **The source records the widening as a DELIBERATE RE-SCOPING of a same-day ruling, not as what was always meant**, and keeps the narrow wording struck rather than deleted. **Why:** task `0001` retires `sprint-backlog.md`, and under the narrow wording those rows could only reach `backlog.md` by being **flattened to `🔲 Backlog`** — destroying the distinction just ruled worth keeping. Full treatment on [[systems/agent-conventions]]. ⚠️ **Neither value is rendered by `/fkit-status`**, and ratifying them did not change that.
 >
-> **(2) ➕ Two rows appended (`0026`, `0029`) — SUPERSEDING a recorded 2026-08-14 reconciliation decision that deliberately did NOT add them.** `0026` (fix compact-map shore generation in the Go map generator) and `0029` (in-game hint display on match-start and win screens) were **board-invisible**: each had a brief but appeared in **no sprint file's table at all**, so nothing rendered them and no status run could see them — the same class as `0022`, `0020`, `0024` and `0028`. ⛔ **The 2026-08-14 note is KEPT on `plan-sprint-5.md` as the record of *why* they were parked — superseded rather than deleted.** Both briefs declare `Sprint 5` in their own `## Sprint` field, but that plan carries **no brief-linked rows** and its scope statement excludes both, so this board — *"defined and worth doing but not assigned to any currently planned sprint"* — is the accurate home; the same handling `0027` got for Sprint 6. ⚠️ **Neither was added to the Sprint 5 plan**, and **status, priority and dependencies are untouched — this is visibility only.** Their briefs' `Low` / `Medium` ranks do **not** appear here; this board has no Priority column and the rank lives in the brief. **Rows were appended, not inserted** (ADR-035), which places them below the two `⏸ Parked` rows — position-by-append, **not** a grouping judgement. See [[decisions/adr-105-compact-maps-out-of-rotation]].
+> **(2) ➕ Two rows appended (`0026`, `0029`) — SUPERSEDING a recorded 2026-08-14 reconciliation decision that deliberately did NOT add them.** `0026` (fix compact-map shore generation in the Go map generator) and `0029` (in-game hint display on match-start and win screens) were **board-invisible**: each had a brief but appeared in **no sprint file's table at all**, so nothing rendered them and no status run could see them — the same class as `0022`, `0020`, `0024` and `0028`. ⛔ **The 2026-08-14 note is KEPT on `plan-sprint-5.md` *(since 2026-09-26 at `sprints/done/plan-sprint-5.md` — Sprint 5 closed)* as the record of *why* they were parked — superseded rather than deleted.** Both briefs declare `Sprint 5` in their own `## Sprint` field, but that plan carries **no brief-linked rows** and its scope statement excludes both, so this board — *"defined and worth doing but not assigned to any currently planned sprint"* — is the accurate home; the same handling `0027` got for Sprint 6. ⚠️ **Neither was added to the Sprint 5 plan**, and **status, priority and dependencies are untouched — this is visibility only.** Their briefs' `Low` / `Medium` ranks do **not** appear here; this board has no Priority column and the rank lives in the brief. **Rows were appended, not inserted** (ADR-035), which places them below the two `⏸ Parked` rows — position-by-append, **not** a grouping judgement. See [[decisions/adr-105-compact-maps-out-of-rotation]].
 >
 > **(3) 📝 Task 7 (Leaderboard: Core System) was BRIEFED as `0234` — as an INVESTIGATION, and that is deliberate.** It was **the one unbriefed row on this board with a known downstream dependency** (Sprint 5's Leaderboard Rewards row depends on it), which is why only it was briefed. 🚨 **This is emphatically NOT an implementation brief, and it carries an explicit instruction not to write implementation briefs off it.** The reason: **the entire source material is two lines in `plan-index.md` plus this board's own Items section**, and **six decisions that change what gets built are unmade** — ranking metric, scope, reset cadence, render surface, backing store, and anti-cheat posture. ⚠️ **The `1–2 weeks` effort figure is the estimate for the WHOLE IMPLEMENTATION, not the investigation; it predates every open question and is unvalidated.** ⛔ **Status and priority unchanged — briefing schedules nothing.** ✅ **Verified not a duplicate** of `0161` (done — a human player count in a "Players Only" label) or `0210` (a policy decision about the existing **Yandex platform** leaderboard); both were read and the verdict recorded so it is not re-derived. See [[tasks/leaderboard-player-count]] and [[tasks/singleplayer-leaderboard-reporting-policy]].
 >

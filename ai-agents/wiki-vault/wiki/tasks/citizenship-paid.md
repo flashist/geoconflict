@@ -14,8 +14,8 @@
 >   State 3 without a reload (relayed evidence — the lead's read-only box checks plus the owner's
 >   screenshots; the producer observed none of it).
 > - ⛔ **Closing this task waives nothing.** By owner ruling of 2026-09-23 this task closes on
->   [[tasks/citizenship-go-live]] (`0065`) alone; **the real-purchase proof lives only in `0297`** (Sprint 5,
->   run by the owner). Still open there: **live reconciliation** (an interrupted purchase — not run),
+>   [[tasks/citizenship-go-live]] (`0065`) alone; **the real-purchase proof lives only in `0297`** (~~Sprint 5~~
+>   **Sprint 6** since 2026-09-26 — moved to the bottom of that board by owner ruling; run by the owner). Still open there: **live reconciliation** (an interrupted purchase — not run),
 >   **the funnel analytics seen live** (not yet checked), and **which HMAC construction matched** (filed
 >   as backlog tasks `0309` → `0310`).
 
