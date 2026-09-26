@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task `0276`
 
+> 📌 **2026-09-26 — probe set re-run after the weekend deploys (runbook W11):** **11/11 → 403** from a
+> non-allowed host; **401** from the game box ⇒ the fix held across both profile deploys, and a 403 is the
+> allowlist while a 401 is the token. See [[tasks/game-prod-egress-ip-allowlist]].
+
 ## Goal
 
 **Restore the network layer on the profile box's internal routes.**
@@ -95,3 +99,5 @@ nothing, and is cheap to re-run. **Re-run it rather than rediscover it.**
 - [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`: **the same file and the same class of defect** — a deploy-time layer weaker than it reads; this page's *"same class"* framing is quoted in its brief
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[systems/weekend-deploy-window]] — this task's eleven read-only probes are **re-run at W11**, to establish the baseline that makes a later **403 mean the allowlist and a 401 mean the token**
+- [[tasks/game-prod-egress-ip-allowlist]] — task `0295`, whose verification re-ran this task's probes on 2026-09-26
+- [[tasks/profile-p2-wire-game-server]] — task `0217`, which depended on this fix before the token was set

@@ -75,6 +75,12 @@ login reply, **never from local storage**, and shows a notice only after the ser
   before `0065`'s flip** (and rides the 2026-09-26 window's W3 if it runs), and it answers at once — the
   card flag hides only the popup. ⇒ **the risk starts when the route reaches the box, not at the flip.**
   The source ADR file changed this sync window only in two link paths (`backlog/` → `done/`).
+- 🚨 **2026-09-26 — THE RISK IS OPEN.** The weekend window ran, and at **W3** the profile deploy put
+  `POST /v1/profile/tenure-grant` live on the box — the lead saw it answer **400** on an empty body.
+  ⇒ **the claim-on-behalf risk is OPEN from 2026-09-26**, and the re-raise clock above (`0268` within
+  ~60 days) is now running. Logins are landing in production (41 players at the window), so the
+  "known Yandex id" precondition is no longer hypothetical. The client popup stays hidden while the
+  citizenship card is off; the route does not care. See [[systems/weekend-deploy-window]].
 
 ## Related
 
@@ -87,3 +93,5 @@ login reply, **never from local storage**, and shows a notice only after the ser
 - [[decisions/adr-numbering-two-series]]
 - [[decisions/sprint-4]] — the sprint this decision was ruled inside
 - [[tasks/tenure-xp-grant]] — task `0253`, the research and the build of this rule — closed 2026-09-24, not run in production
+- [[tasks/profile-identity-epic]] — epic `0266`, the identity work this ADR was amended for ("account" = internal id)
+- [[systems/weekend-deploy-window]] — W3, 2026-09-26: the tenure-grant route went live and the claim-on-behalf risk opened

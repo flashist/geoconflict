@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 · task `0062` · config-parity track (`0063` → `0062` → `0195` → `0064` → `0060`)
 
+> 📌 **UPDATE 2026-09-26 — the production checks RAN, as `0296` A1–A4, in the weekend window.** A1
+> token-match **`MATCH`** (W11); A2 **`NONEMPTY`** in the container with a non-empty source (W13); A3 a
+> real authenticated credit end to end — **13 credit rows** (W14); A4 no partial-config warning with both
+> values set and no token string in the game logs — ⚠️ "fires when it should" is shown by tests only.
+> ⇒ **the token now demonstrably reaches production.** Recorded under `0217`'s close — see
+> [[tasks/profile-p2-wire-game-server]]. The block below is kept as written.
+>
 > 🚨 **READ THIS FIRST — CLOSED IS NOT PROVEN IN PRODUCTION.**
 > Closed **2026-09-23** on an **owner ruling** given live in the `fkit lead` session via
 > `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
@@ -136,3 +143,4 @@ removed**; the manual step is the control.
 - [[decisions/sprint-4]] — the board this task closed on
 - [[decisions/sprint-5]] — where `0296`, which received the production checks, was filed
 - [[tasks/deploy-time-config-parity-guard]] — task `0064`, the guard whose acceptance test is this task's defect; closed 2026-09-24, report-only, arming is `0298`'s
+- [[tasks/profile-p2-wire-game-server]] — task `0217`, whose window ran this task's checks as `0296` A1–A4 on 2026-09-26

@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 · task `0064` · config-parity track (`0063` → `0062` → `0195` → `0064` → `0060`)
 
+> 📌 **2026-09-26 — the first real production run happened (report-only, `0298` Part A, runbook W12).**
+> `./build-deploy.sh prod` (release `0.0.152`): the **names** guard reported **REQUIRED 0** on game,
+> profile and client; the prod **value** guard reported **REQUIRED 1** — the expected
+> `OTEL_AUTH_HEADER — forwarded but EMPTY` (harmless by design, handled by `0298`); last line
+> `report-only — exit 0`. On the profile side, `0220`'s on-box value parity reported **0 findings / 13
+> ok** at W3. ⛔ **Still not armed** — `--enforce` is `0298` Part B. See [[systems/weekend-deploy-window]].
+>
 > 🚨 **READ THIS FIRST — CLOSED IS NOT ARMED, AND NOT PROVEN IN PRODUCTION.**
 > Closed **2026-09-24** by a spawned `fkit-producer` at the close step of `/fkit-sprint-ship-loop`
 > (fkit-lead driver), **no owner present** (ADR-033 §5) ⇒ the marker
@@ -90,3 +97,4 @@ this same task — not a new task"*) was **superseded 2026-09-23** by the split 
 - [[decisions/sprint-4]] — the board it closed on
 - [[decisions/sprint-5]] — the board carrying `0298`
 - [[systems/player-profile-store]] — the profile API whose deploy pipeline the guard's B1/B2 checks cover
+- [[tasks/profile-secret-persistence-value-parity]] — task `0220`, the profile box's on-box value parity (0 findings at W3)

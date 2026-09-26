@@ -9,6 +9,16 @@ The product ground truth for Geoconflict — what the game is, who it is for, ho
 
 Source: `ai-agents/knowledge-base/PROJECT.md`
 
+> 📌 **2026-09-26 sync.** (1) **`PROJECT.md` itself now agrees with this page on the earned path:** its
+> line was corrected on 2026-09-25 from ~~1,000 XP at 10 XP per qualifying match~~ to **100 XP at 1 XP
+> per qualifying match, per ADR-111** (struck, not deleted, in the source). Before that fix the source
+> still carried the old figure while this page carried the rescale. (2) **The *"SHIPPED IS NOT DEPLOYED"*
+> caveat on the Citizenship bullet below is now half-history:** release `0.0.152` (2026-09-26) put the
+> rescale and XP crediting into production — the window recorded **1 XP per credit** on real matches.
+> **Players still cannot see XP**: the citizenship card stays off until `0065`'s flip. (3) **The
+> *"THE GAME SERVER IS NOT WIRED"* and *"ZERO ROWS"* bullets further down are history** — see
+> [[tasks/profile-p2-wire-game-server]] and [[systems/player-profile-store]].
+
 ## Architecture
 
 ### What the product is

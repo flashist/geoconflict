@@ -88,7 +88,8 @@ The full list is 1–11 in the task's `review.md` — **do not re-derive it**. T
   failure **loses the alert**.
 - **6** — no shutdown drain.
 - **8** — ⛔ **`0061` is fixed in the tree but UNSHIPPED** until the game deploy. **Do not read "0061 is
-  fixed" off this task.**
+  fixed" off this task.** 📌 *2026-09-26: shipped with release `0.0.152`; `0061` closed agent-closed on
+  two live sends — "works now", cause still unconfirmed. See [[tasks/feedback-telegram-delivery-failure]].*
 - ⚠️ **`npm run check:config-parity` does not reach telemetry variables** — the shell harness is the only
   guard those two deploy variables have.
 
@@ -117,3 +118,4 @@ The full list is 1–11 in the task's `review.md` — **do not re-derive it**. T
 - [[tasks/citizenship-name-change]] — task `0067`, whose operator notification shares this topic routing
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, whose planning found this blocker and whose alert rules this delivery channel carries. ⛔ **This task shipped a proven pipeline with nothing feeding it — that is `0274`'s work**
+- [[tasks/feedback-telegram-delivery-failure]] — task `0061`, whose connection fix this task carried (ND-2)

@@ -131,3 +131,4 @@ Green at close, after both fix rounds: `npx tsc --noEmit`, `npm run lint`, prett
 - [[systems/alert-delivery]] — the topic routing and the egress proxy that notification depends on
 - [[tasks/name-change-daily-digest]] — task `0283`: a **daily** digest counting this feature's pending `player_name_history` rows, sitting **beside** this task's per-request notification and not replacing it. ✅ Observed delivering to the Name Changes topic 2026-09-19
 - [[tasks/personal-inbox]] — task `0012`, whose send mechanism the deferred name-change inbox triggers use
+- [[tasks/profile-p2-wire-game-server]] — task `0217`, which answered Q9 on 2026-09-26: migration `004` was already deployed before then; the name-change routes answer (not 404)

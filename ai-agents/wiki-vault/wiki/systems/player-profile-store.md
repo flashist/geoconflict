@@ -5,6 +5,36 @@
 
 ## Summary
 
+> # 🆕 UPDATED 2026-09-26 — THE GAME SERVER IS WIRED. REAL LOGINS AND REAL XP CREDITS ARE LANDING.
+>
+> The weekend deploy window ran on **2026-09-26** (release **`0.0.152`**; owner-executed, read by
+> `fkit-lead`). ⇒ **The "STILL true" line at the end of the 2026-09-18 block below, and item 1 of the
+> 2026-09-10 banner, are now history** (kept as written).
+>
+> - **XP crediting is live in production.** `PROFILE_INTERNAL_TOKEN` is set on the game side and
+>   **equal** to the box's; `player_match_xp_credits` held **13 rows, 5 games, 13 XP** (1 XP per credit,
+>   [[decisions/adr-111-xp-economy-rescale]]), **9 players** with XP > 0, **0** error-level profile
+>   lines. See [[tasks/profile-p2-wire-game-server]] (`0217`) and
+>   [[tasks/profile-identity-s3-game-server-resolve-and-credit]] (`0272`).
+> - **Logins are landing.** **41 players / 41 identities** (0 before); the owner saw exactly one
+>   `POST /v1/login` per logged-in load and none for guests. See
+>   [[tasks/profile-identity-s4-client-login-session]] (`0273`). The identity epic is closed —
+>   [[tasks/profile-identity-epic]].
+> - 🚨 **The tenure-grant route is live on the box since W3** ⇒ **the ADR-112 claim-on-behalf risk is
+>   OPEN from 2026-09-26**; `0268` closes it. See [[tasks/tenure-xp-grant]].
+> - **Four secrets now persist on the box** — a deploy without them reuses the stored values and says
+>   so; the rotation half has **no live-box evidence** (`0294`). See
+>   [[tasks/profile-secret-persistence-value-parity]].
+> - ⚠️ **Still NOT true:** players cannot **see** any of it — the citizenship card is still off
+>   (`CITIZENSHIP_CARD_ENABLED: false`; the flip is `0065`). Every close above is **agent-closed — not
+>   owner-verified**.
+> - 👁️ **Watch items from the window:** **F-B** — two `players/resolve` calls stalled past the 10 s
+>   timeout (retried, succeeded; no cause known); `credit batch failed after retries` in the game log means
+>   **lost XP** and must stay 0. **F-C** — an image prune plus a compose re-pull **upgraded Postgres to
+>   16.15 unplanned** (data intact; filed on `0219`, no fix decided). **F-A** — the profile image build is
+>   fragile (`canvas` prebuild download; no Python in the base image). See
+>   [[systems/weekend-deploy-window]].
+>
 > # 🆕 UPDATED 2026-09-18 — THIS BOX IS NOW THE PROJECT'S **ADMIN SERVER**, AND ITS SCHEMA WAS RE-KEYED
 >
 > Four things landed between 2026-09-13 and 2026-09-18 that change how this page must be read. **None of
@@ -401,3 +431,9 @@ than picking silently.
 - [[systems/analytics]] — the citizenship and inbox events that fire off this store's data
 - [[tasks/tenure-xp-grant]] — task `0253`, the tenure-grant route and check rows
 - [[tasks/container-log-retention]] — task `0060`, container log retention — the profile box's log-rotation sibling
+- [[tasks/profile-p2-wire-game-server]] — task `0217`: the game server wired to this box; real credits landed 2026-09-26
+- [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — task `0272`: `/internal/v1/players/resolve` and credit by `playerId`
+- [[tasks/profile-identity-s4-client-login-session]] — task `0273`: the client login session and Bearer calls; legacy fallback removed
+- [[tasks/profile-identity-epic]] — epic `0266`, the identity reshape of this store, closed 2026-09-26
+- [[tasks/profile-secret-persistence-value-parity]] — task `0220`: persist-or-reuse for four secrets in this box's env file
+- [[tasks/game-prod-egress-ip-allowlist]] — task `0295`: the game server's egress address in this box's `/internal/` allowlist

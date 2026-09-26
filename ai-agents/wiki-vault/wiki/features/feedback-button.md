@@ -72,6 +72,7 @@ Submissions land in a simple list view: category, free text, attached context, t
 - Device info collection is error-proof: each API call is individually wrapped; any failure is caught silently and that field is omitted. A submission with zero device fields is acceptable — text always goes through.
 - Sprint 3 added match ID attachment via existing `localStorage['game-records']` — no new localStorage writes needed
 - The in-match modal depends on `InputHandler` suppressing global hotkeys while text fields are focused, including shadow-DOM focus inside `FeedbackModal`; see [[tasks/feedback-modal-space-key]].
+- ⚠️ **Delivery can fail while the player is told "sent" (as of 2026-09-26).** `/api/feedback` answers `200` whatever happens to the Telegram send, so the modal's existing error path (`feedback_modal.error`) never runs for a delivery failure, and `Feedback:Submitted` fires on any 200. Production failures (`TypeError: fetch failed`, twice in one boot, and during the 2026-08-22 outage) were traced to a **hypothesis** — a stale pooled proxy socket — **never confirmed in code**. The shared helper now **retries once on a network-level failure** (not on a Telegram refusal) and logs a bounded cause code (`[feedback] telegram delivery failed: <CODE>`); it reached players with release `0.0.152` on 2026-09-26, after which two owner test sends arrived. That shows it works **now**, not that the stale-socket case is fixed. See [[tasks/feedback-telegram-delivery-failure]]. What the player *should* see on a failure is an open owner decision, filed as backlog task `0300` — see [[decisions/sprint-backlog]].
 
 ## Related
 
@@ -82,3 +83,5 @@ Submissions land in a simple list view: category, free text, attached context, t
 - [[tasks/email-subscribe-modal]] — separate opt-in modal that reuses the same Telegram delivery path
 - [[tasks/feedback-modal-space-key]] — Sprint 4 fix for Space and gameplay hotkeys while typing in the modal
 - [[tasks/feedback-remove-contact-field]] — Sprint 4 removal of the optional contact field (152-ФЗ data minimization)
+- [[tasks/feedback-telegram-delivery-failure]] — task `0061`, the production delivery-failure investigation and its retry fix
+- [[decisions/sprint-backlog]] — backlog task `0300`: what the player should see when delivery fails

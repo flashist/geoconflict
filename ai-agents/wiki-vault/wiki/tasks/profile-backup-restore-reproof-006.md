@@ -90,3 +90,4 @@ task, `0281` (move the backup `age` identity into the owner's password manager).
 - [[decisions/profile-storage-strategy]] — the storage shape the digests compare
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[tasks/profile-weekly-backup-copy-verified]] — task `0241`: the weekly-copy half, proven separately
+- [[tasks/profile-p2-wire-game-server]] — task `0217`, which required this re-proof before `PROFILE_INTERNAL_TOKEN` was set

@@ -4,6 +4,10 @@
 **Status**: done — ✅ **`✅ Done (agent-closed — not owner-verified)`, closed 2026-09-12** by a spawned producer at the end of the sprint ship-loop. 🚨 **CLOSES CARRYING AN OUTSTANDING OWNER-SIDE ACTION AND THREE ACCEPTED RESIDUALS — see *Outcome* below before treating this as verified.** ~~in-progress~~ ~~backlog~~ 📌 **struck, not deleted; each was true when written.**
 **Sprint/Tag**: Sprint 4 — scheduled 2026-09-04 by owner ruling; rank `Medium–High` (**the producer's**, held three times that day). ⛔ **Never re-ranked** — `Medium–High` stood to the close, and it remained **the producer's rank, not the owner's**
 
+> 📌 **2026-09-26 — now DEPLOYED and crediting real matches.** Release `0.0.152` and `0217`'s wiring put
+> this path into production: the weekend window recorded **13 credit rows over 5 games at 1 XP each**.
+> The *"SHIPPED IS NOT DEPLOYED"* warning further down is history. See [[tasks/profile-p2-wire-game-server]].
+>
 > # ✅ 2026-09-12 — **THIS TASK SHIPPED AND CLOSED.** Read this box before anything below it.
 >
 > 🔴 **EVERYTHING BELOW THIS BOX WAS WRITTEN WHILE THE TASK WAS OPEN.** Its planning prose, its open
@@ -410,3 +414,4 @@ hardening the elimination claim first would be hardening the stronger link.**
 - [[systems/project-brief]] — product ground truth, whose *Citizenship* line states the earned-XP economy. ✅ **UPDATED 2026-09-12: the figures are now `100 XP` at `1 XP` per qualifying match, because THIS TASK SHIPPED THEM.** ~~🔴 its `1,000 XP` / `10 XP` figures are annotated against this task's 2026-09-10 ruling and remain what the CODE does until this task ships~~ 📌 **struck — true until 2026-09-12, now spent**
 - [[tasks/analytics-p0-session-match-count]] — the session-depth analytics whose rationale is the citizenship threshold; ✅ **unaffected by the rescale — the ÷10 is exact, so the ~100-match target is unchanged either way**
 - [[tasks/citizenship-earned]] — task `0017`, whose threshold figures this task's rescale owns
+- [[tasks/profile-p2-wire-game-server]] — task `0217`, whose 2026-09-26 go-live put this crediting into production

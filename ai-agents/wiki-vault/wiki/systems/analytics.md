@@ -441,3 +441,4 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/citizenship-earned]] — task `0017`, which added `Citizenship:Earned:XP`
 - [[tasks/tenure-xp-grant]] — task `0253`, the three `Citizenship:TenureGrant:*` events
 - [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, the `Ad:Interstitial` baseline event
+- [[tasks/profile-identity-s4-client-login-session]] — task `0273`, which added the client login events; client deployed 2026-09-26

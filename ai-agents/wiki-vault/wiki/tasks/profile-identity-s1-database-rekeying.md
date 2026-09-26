@@ -80,3 +80,6 @@ owner-verified)`** by a spawned producer with no owner present at the close.
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274` (S5), the last slice of the same epic: monitoring, alerting and the creation switch
 - [[tasks/tenure-xp-grant]] — task `0253`, the tenure grant this task's grant table serves
+- [[tasks/profile-identity-epic]] — epic `0266`, the parent; closed 2026-09-26 once all five slices were done
+- [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — S3, task `0272`, closed 2026-09-26
+- [[tasks/profile-identity-s4-client-login-session]] — S4, task `0273`, closed 2026-09-26

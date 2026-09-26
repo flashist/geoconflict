@@ -3,6 +3,28 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> # 📊 RE-COUNTED 2026-09-26 at `HEAD` = `8f1f76b` — ONE ROW ADDED, `0300`
+>
+> **`backlog.md`: 88 rows — 64 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
+> 67 OPEN** *(was 87 / 66)*. ⚠️ Counted by me this run, by each row's leading status glyph. Every other
+> change to the board in this window is a link path (Sprint 4's plan moved to `sprints/done/`).
+>
+> **`0300` — feedback delivery fails, but the player is still told "sent": decide what they should see,
+> then build it.** `🔲 Backlog`, filed 2026-09-26 by a spawned `fkit-producer` on an **owner ruling**
+> (*"File a backlog brief"*), relayed by `fkit-lead` (ADR-021); ⛔ not producer precedent. The owner ruled
+> **that it be filed, on this board** — **not** the player-facing behaviour, the rank or the owner. It
+> comes from `0061`'s residual 4 ([[tasks/feedback-telegram-delivery-failure]]). **An owner decision comes
+> first** — A report the failure (the client's error path already exists and never runs, because the
+> server always answers 200) / B keep a local copy / C a server-side durable queue / D accept the loss and
+> keep the log — plus what "delivered" means when both the webhook and Telegram are configured. Three
+> framing corrections in the brief: an `http_error` from Telegram gets **no** retry (lost after one
+> attempt); the webhook leg is silent too; and the `Feedback:Submitted` analytics event over-counts
+> feedback that actually arrived. Producer's read: **Low** (rare since the retry shipped, and every
+> failure is logged) — not owner-ruled. Not paged (backlog briefs are not paged); see
+> [[features/feedback-button]].
+>
+> ---
+>
 > 📌 **2026-09-25 (`2df6bbf`) — counts unchanged (87 rows, 66 open; re-counted).** One cell edit: the
 > `0248` row (suppress interstitials for paid citizens) now reads ~~99 ₽~~ **249 Yan** (owner changed
 > the price in the Yandex console 2026-09-25). See [[tasks/yandex-catalog-registration]].
@@ -499,3 +521,6 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[systems/weekend-deploy-window]] — the deploy window that cut its third profile deploy and filed the removed step onto this board as `0294`; ⚠️ pull `0294` in only when a profile deploy is already scheduled
 - [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, filed on this board 2026-09-02, pulled to Sprint 4 2026-09-12, closed 2026-09-24
 - [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, whose tier events were split to this board as `0299`
+- [[tasks/feedback-telegram-delivery-failure]] — task `0061`, whose residual 4 (the silent-failure product decision) was filed on this board as `0300`
+- [[features/feedback-button]] — the feature `0300` would change
+- [[tasks/profile-secret-persistence-value-parity]] — task `0220`, whose deliberately-unrun verification step 3 is this board's `0294`

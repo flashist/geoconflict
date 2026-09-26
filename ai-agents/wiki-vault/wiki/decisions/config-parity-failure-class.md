@@ -5,6 +5,13 @@
 
 > This page records a **recurring failure class**, not a single defect. Three instances are confirmed.
 >
+> 📌 **2026-09-26 — the guards ran against a real production deploy for the first time** (report-only,
+> W12): names **REQUIRED 0**; value **REQUIRED 1** (the expected `OTEL_AUTH_HEADER` line). And the
+> class's two live instances on the profile path are now **observed closed in production**: the token
+> reaches the game container non-empty and matching (`0062` → `0296` A1–A2), and four profile secrets no
+> longer blank on a deploy that lacks them (`0220` — ⚠️ the rotation half is unproven live, `0294`). See
+> [[tasks/profile-secret-persistence-value-parity]] and [[systems/weekend-deploy-window]].
+>
 > 🛡️ **UPDATED 2026-09-24 — THE GUARD (`0064`) AND ITS PRE-ARMING GATE (`0203`) ARE BOTH CLOSED — AND
 > THE GUARD STILL CANNOT FAIL A DEPLOY.** Both closed `✅ Done (agent-closed — not owner-verified)` by a
 > spawned `fkit-producer`, no owner present. ⛔ **`--enforce` is wired nowhere, and neither guard has
@@ -151,3 +158,5 @@ Three instances, all Sprint 4:
 - [[tasks/forward-profile-internal-token]] — task `0062`, this class's sharpest instance; closed 2026-09-23 `(agent-closed — not owner-verified)` with its production checks moved to `0296`
 - [[tasks/deploy-time-config-parity-guard]] — task `0064`, the guard itself — closed 2026-09-24 `(agent-closed — not owner-verified)` on Phase 2; ⛔ `--enforce` wired nowhere, never run against a real deploy
 - [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, the pre-arming items — closed 2026-09-24 `(agent-closed — not owner-verified)`; arming is `0298`'s
+- [[tasks/profile-secret-persistence-value-parity]] — task `0220`, the fourth-instance fix: persist-or-reuse for four profile secrets
+- [[systems/weekend-deploy-window]] — where the guards first ran against a real production deploy (W12)

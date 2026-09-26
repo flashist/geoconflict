@@ -4,6 +4,11 @@
 **Status**: accepted
 
 > Project ADR-113 — see [[decisions/adr-numbering-two-series]].
+>
+> 📌 **2026-09-26 — fully implemented and in production.** All five slices and the epic (`0266`) are
+> closed `(agent-closed — not owner-verified)`; the game deploy of 2026-09-26 (release `0.0.152`) put the
+> client login and the game-server resolve/credit path live — **41 players / 41 identities** and the first
+> real `(game_id, player_id)` credits at the window. See [[tasks/profile-identity-epic]].
 > Source: `ai-agents/knowledge-base/decisions/adr-113-profile-internal-player-id-and-platform-identities.md`
 > Design: `ai-agents/knowledge-base/reports/2026-09-15-profile-identity-design.md` (task `0266`)
 >
@@ -145,3 +150,6 @@ login"* and *"why not link accounts now"* are **closeout of this ADR, not new fi
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274` (S5), the monitoring slice this ADR's go-live depends on; closed 2026-09-19 with four of six alert rules deferred
 - [[systems/weekend-deploy-window]] — the window whose **W12** first runs this identity path in production (`0272` server, `0273` client), and whose **W14** first row is its only end-to-end proof
 - [[tasks/tenure-xp-grant]] — task `0253`, the tenure grant keyed on the internal `player_id`
+- [[tasks/profile-identity-epic]] — epic `0266`, which delivered this decision; closed 2026-09-26
+- [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — S3, task `0272`: resolve at join, credit by `playerId`
+- [[tasks/profile-identity-s4-client-login-session]] — S4, task `0273`: the client login session and Bearer calls

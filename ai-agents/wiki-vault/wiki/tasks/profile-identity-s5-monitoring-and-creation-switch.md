@@ -201,3 +201,6 @@ conflate the two reasons A4 waited — one is cleared, one is not.**
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[decisions/sprint-backlog]] — the board carrying `0288`, the one of this task's six deferred alert rules that got a task of its own
 - [[tasks/tenure-xp-grant]] — task `0253`, which now feeds the `tenureClaim` metric
+- [[tasks/profile-identity-epic]] — epic `0266`, the parent; closed 2026-09-26 once all five slices were done
+- [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — S3, task `0272`, closed 2026-09-26
+- [[tasks/profile-identity-s4-client-login-session]] — S4, task `0273`, closed 2026-09-26

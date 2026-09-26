@@ -4,6 +4,10 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T6
 
+> 📌 **2026-09-26 — this path is LIVE in production.** Re-keyed to `(game_id, player_id)` by S3 and switched
+> on by `0217`: the first real credits landed in the weekend window (13 rows, 5 games, 13 XP). See
+> [[tasks/profile-p2-wire-game-server]] and [[tasks/profile-identity-s3-game-server-resolve-and-credit]].
+
 ## Goal
 
 Award server-authoritative profile XP at match end for qualifying authenticated players without making gameplay cleanup depend on the profile API.
@@ -65,3 +69,5 @@ Identity trust remains a known boundary: current earned-XP crediting still uses 
 - [[decisions/adr-103-identity-trust-seam]] — the identity seam this task introduced
 - [[tasks/forward-profile-internal-token]] — task `0062`, the missing token that made this path a production no-op; closed 2026-09-23, checks moved to `0296`
 - [[tasks/citizenship-earned]] — task `0017`, the citizenship grant that rides this crediting path
+- [[tasks/profile-p2-wire-game-server]] — task `0217`, which switched this path on in production (2026-09-26)
+- [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — task `0272`, which re-keyed this path to `playerId`

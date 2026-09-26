@@ -5,6 +5,85 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/client/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh`
 
+> # ✅ 2026-09-26 — THE WINDOW RAN (W0–W14; W14's acceptance criterion MET). W15 is still running.
+>
+> **Provenance:** every step was **executed by the OWNER on the boxes on 2026-09-26**; output pasted into
+> the `fkit lead` session and read and checked by `fkit-lead` (some read-only checks the lead ran itself
+> from a non-allowed host); recorded in the runbook by a spawned `fkit-producer` (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling. ⛔ **Everything below this block was written BEFORE the window** — read
+> it as the plan and its reasoning, not as what happened. Ground truth: the runbook's appended section
+> *"2026-09-26 — THE WINDOW RAN"* (the runbook's checkboxes are left as written).
+>
+> **What happened, step by step (verdicts and counts only):**
+>
+> | Step | Result |
+> |---|---|
+> | **W0.1** | Egress measured from the game box (method only, see [[tasks/game-prod-egress-ip-allowlist]]); IPv4-only; the address was **already** in the allowlist ⇒ nothing edited (2 entries, count only) |
+> | **W0.2** | `0286` "before" captured on both boxes — the telemetry box's distro recorded for the first time anywhere |
+> | **W0.4 / W0.5** | SSH session held through W3/W4 ✅; pre-window snapshot copied, sizes match ✅ (still encrypted, the box cannot decrypt it, and nothing deletes it automatically — remove by hand at W15) |
+> | **W2** | Telemetry deploy, **no prompt**; the "after" capture byte-identical to "before" ⇒ the noninteractive fix changed no box state ✅ |
+> | **W3** | 🚩 First attempt **failed locally at image build** (finding **F-A**); re-run succeeded. No debconf prompt; value parity **0 findings / 13 ok**; prune removed **2** images (not the ~9 predicted); daily checks installed; security-only unattended upgrades; fail2ban up; sshd hardened; migrations `001`–`004` + `006` already applied, no `005`; `alerting: yes` (as expected since the 2026-09-25 ruling, below). 🚨 **The `0253` tenure-grant route is LIVE** ⇒ **the ADR-112 claim-on-behalf risk is OPEN from W3, 2026-09-26**; `0268` closes it ([[tasks/tenure-xp-grant]]) |
+> | **W4** | New key session works; the **5** persist files `600 root`; password login refused ✅ |
+> | **W5** | Rollback profile image survived ✅; **container log rotation observed** ✅ (cleanup of an unneeded test image owed — removal not confirmed); ⚠️ the in-use postgres image was **untagged** — see F-C |
+> | **W6** | `0217` Q9 answered — `004` was **already** deployed before 2026-09-26; name-change routes not 404 ✅ |
+> | **W7** | `0220` step 2: `Reusing persisted <NAME>` ×4 ✅; ⛔ step 3 (rotation) not run, by the C2 ruling → `0294` |
+> | **W9** | fail2ban ban observed and explicitly unbanned ✅ (expiry seen only on a real attacker's ban); unattended-upgrades real-run evidence ⚠️ partial |
+> | **W10** | Graceful stop: clean drain log + exit 0 ✅, but ⚠️ no in-flight request observed completing; daemon restart: containers came back **recreated by the systemd unit**, not restarted ⇒ ⚠️ outcome shown, mechanism not; reboot → `/ready` back in ~20 s ✅; manual daily check **12 ok / 0 failed** ✅. 🚨 **Unplanned Postgres minor upgrade — F-C** |
+> | **W11** | Token-match A1 **`MATCH`**; `0276` probes **11/11 → 403** from a non-allowed host, **401** from the game box ✅ |
+> | **W12** | `./build-deploy.sh prod` → release **`0.0.152`**; parity guard **REQUIRED 0** on game / profile / client; value guard **REQUIRED 1** = the expected `OTEL_AUTH_HEADER` line (`0298`), last line `report-only — exit 0` ✅. 🚩 Previous game image deleted — F-D |
+> | **W13** | Token `NONEMPTY` in the container; 0 partial-config warnings; 0 token strings in logs; 0 profile error lines; **41 players / 41 identities** (0 before); owner's browser check: **one** `POST /v1/login` per logged-in load, **zero** for guests ✅ |
+> | **W14** | ✅ **ACCEPTANCE CRITERION MET — both halves of the owner's stop condition:** `player_match_xp_credits` **13 rows, 5 games, 13 XP** (1 XP per credit); **9 players** with XP > 0; 0 profile error lines. See F-B |
+> | **W16** | Sprint 4 closed by `/fkit-sprint-done` (0 open rows ⇒ nothing rolled to Sprint 5). ⛔ Sprint 5 **not started** — the owner starts it himself |
+>
+> **Findings — recorded, ⛔ no fix decided for any:**
+> - **F-A — the profile image build is fragile.** `canvas`'s prebuilt-binary download can time out, and
+>   its `node-gyp` fallback needs Python, which `node:24-slim` lacks — a network blip fails the build.
+>   Failed locally, before anything reached the box. 🚩 **No owning task.**
+> - **F-B — two slow `resolve` calls under real login traffic** (watch item, not a failure): two
+>   `players/resolve … (attempt 1/3): TimeoutError` warnings ~10 min apart, each a stall past the **10 s**
+>   per-attempt timeout; a retry succeeded both times. ⛔ **No cause known, none asserted.** One resource
+>   snapshot a few minutes later showed no starvation (rules out a sustained squeeze, not a brief one).
+> - **F-C — prune + compose re-pull caused an UNPLANNED Postgres minor upgrade.** The running DB used an
+>   untagged older image; W3's prune kept it by ID but **deleted the tagged `postgres:16-alpine`**; W10's
+>   daemon restart made the systemd unit's compose-up **re-pull the tag and recreate the DB container** on
+>   **PostgreSQL 16.15**. **Data intact** (`schema_migrations` count 5, `/ready` OK). Filed on `0219` as a
+>   finding only; candidate directions (keep-list by tag/reference, or pin compose by digest) **not
+>   decided**.
+> - **F-D — the game deploy deleted the previous game image** from the game box. A rollback now needs a
+>   re-pull from the registry. ⚠️ Matters because **G1 (no rollback procedure) stays declined.** 🚩 **No
+>   owning task.**
+> - **F-E — misleading deploy-log wording:** `PROFILE_LOGIN_CREATE_ENABLED … written EMPTY (feature stays
+>   off)` while parity said `login creation ENABLED (normal)`; in code blank ⇒ **enabled**. Wording, not
+>   behaviour. 🚩 **No owning task.**
+>
+> **Still owed from the window:** `0286`'s worklog note (not written); **W15** — `0032` step 5's Uptrace
+> re-measure (≥ 24 h after W12, so not before about 2026-09-27 09:00 UTC) and the two F-B counts
+> (`failed after retries` **must stay 0** — above 0 can mean lost XP); deleting the pre-window snapshot
+> once the owner judges the window good; the leftover `postgres:16` image (removal not confirmed); the
+> Better Stack `profile-daily-checks` incident closing (not confirmed in its UI); `0294` (live rotation
+> proof); `0296`-A6, all of section B, and `0298` Part B.
+>
+> **Tasks this window let close (all agent-closed — not owner-verified):** `0217`
+> ([[tasks/profile-p2-wire-game-server]]), `0272`
+> ([[tasks/profile-identity-s3-game-server-resolve-and-credit]]), `0273`
+> ([[tasks/profile-identity-s4-client-login-session]]), `0220`
+> ([[tasks/profile-secret-persistence-value-parity]] — ⚠️ **with step 3 deliberately not run**), `0295`,
+> `0061` ([[tasks/feedback-telegram-delivery-failure]]) and epic `0266` ([[tasks/profile-identity-epic]]).
+>
+> ---
+>
+> # 📌 2026-09-25 — OWNER REVERSED THE SAME DAY: **KEEP** `PROFILE_CHECKS_PING_URL`
+>
+> A first 2026-09-25 ruling said to blank the ping URL before W3 (W0 item 6). **Later that day the owner
+> reversed it** (*"Keep it — don't blank"*): at 08:00 UTC a Better Stack email for the
+> `profile-daily-checks` heartbeat had reported *"Reported failure"* with `reboot-required` ⇒ **alerting
+> was already live on the box**, and blanking would have switched working monitoring off. ⇒ W0 item 6
+> has no action; W3 expected `alerting: yes`; the open `reboot-required` incident was expected until
+> W10's reboot. ⇒ **The *"Expect `alerting: no`"* bullet under *Scheduling and hygiene* below is
+> superseded** (kept as written).
+>
+> ---
+>
 > # 📅 DATED 2026-09-23: THE WINDOW IS SATURDAY 2026-09-26 — plus the Sprint 4 rescope (updated 2026-09-24)
 >
 > **Owner, verbatim (2026-09-23, live via `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer
@@ -228,6 +307,11 @@ at all — a live residual under owner ruling D3.
 
 ### 🚨 W12 has zero prior production evidence AND no written way back
 
+> 📌 **2026-09-26: the first half is now history — W12 ran and W13/W14 produced the evidence** (real
+> logins and real credits; see the top of this page). **The second half still holds and got worse:**
+> G1 stays declined, and finding **F-D** — the deploy's cleanup deleted the previous game image — means
+> a rollback now also needs a re-pull from the registry.
+
 Both halves, together, or the record is wrong:
 
 - `0272`: the game server is **not deployed** — *"S3's end-to-end behaviour has zero production
@@ -303,7 +387,9 @@ as written**; whoever takes the flip decision must resolve that, not route aroun
   **Always write `0219-B5` / `0221-B5`.**
 - 🚩 **Expect `alerting: no` at W3, not the hand-off's predicted `alerting: yes`** — `0219`-B2 is
   deferred, so there is no ping URL. ⛔ **That is the ruling working, not a deploy failure; do not
-  "fix" it by inventing a ping URL.**
+  "fix" it by inventing a ping URL.** 📌 *Superseded 2026-09-25 (owner reversal, see the top of this
+  page): a ping URL **was** set on the box and alerting was already live; W3 printed `alerting: yes` on
+  2026-09-26, as then expected. Kept as written.*
 - ⚠️ **W8's number is left deliberately VACANT rather than renumbered**, so W9–W15 keep the identities
   any worklog already refers to (ADR-035 — appended, never renumbered).
 
@@ -465,4 +551,12 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/profile-weekly-backup-copy-verified]] — task `0241`, the live-verified `copyto` the W0 snapshot reuses
 - [[tasks/deploy-time-config-parity-guard]] — task `0064` — the parity and value guards that run report-only at W12
 - [[tasks/config-parity-guard-pre-arming-gate]] — task `0203` — ruling 3, lifted for it 2026-09-23
-- [[tasks/tenure-xp-grant]] — task `0253` — the tenure claim route that rides W3
+- [[tasks/tenure-xp-grant]] — task `0253` — the tenure claim route that rides W3 (live from W3, 2026-09-26)
+- [[tasks/profile-p2-wire-game-server]] — task `0217` — the XP go-live whose acceptance criterion W14 met
+- [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — task `0272` — the game-server resolve/credit path W12 shipped; watch item F-B
+- [[tasks/profile-identity-s4-client-login-session]] — task `0273` — the client login W12 shipped and W13 checked
+- [[tasks/profile-identity-epic]] — epic `0266`, closed once W12 put its last slices live
+- [[tasks/profile-secret-persistence-value-parity]] — task `0220` — W3/W7's persist-or-reuse proof (step 3 cut to `0294`)
+- [[tasks/game-prod-egress-ip-allowlist]] — task `0295` — W0.1's egress measurement (method only)
+- [[tasks/feedback-telegram-delivery-failure]] — task `0061` — closed on W12's game deploy
+- [[decisions/adr-112-free-xp-grants]] — the claim-on-behalf risk that opened at W3, 2026-09-26, when the tenure-grant route went live

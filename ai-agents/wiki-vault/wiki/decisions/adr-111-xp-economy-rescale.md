@@ -249,3 +249,4 @@ Absent those, a review finding of the form *"1 XP is a trivially small award"*, 
 - [[tasks/citizenship-earned]] — task `0017`, the grant whose threshold this ADR rescaled
 - [[tasks/tenure-xp-grant]] — task `0253`, the one-time tenure grant into this economy
 - [[systems/project-brief]] — product ground truth that cites this economy
+- [[tasks/profile-p2-wire-game-server]] — task `0217`, whose 2026-09-26 go-live recorded 1 XP per real credit in production

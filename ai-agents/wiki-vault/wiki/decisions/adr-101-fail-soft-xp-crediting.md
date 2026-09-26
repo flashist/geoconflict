@@ -179,3 +179,5 @@ Two narrower rules fall out of the same principle and are part of the decision:
 - [[tasks/forward-profile-internal-token]] — task `0062`, the silent no-op this ADR's fail-soft shape hid
 - [[tasks/citizenship-earned]] — task `0017`, whose grant is lost along with any dropped credit
 - [[tasks/tenure-xp-grant]] — task `0253`, which keeps the one-time marker on the server for exactly this reason
+- [[tasks/profile-p2-wire-game-server]] — task `0217`, XP go-live 2026-09-26: the two silent barriers (401/403) this ADR makes indistinguishable from "working", and the real credits that proved neither fired
+- [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — task `0272`, which keeps resolve and credit fail-soft and non-blocking; watch item F-B (`failed after retries` = lost XP)

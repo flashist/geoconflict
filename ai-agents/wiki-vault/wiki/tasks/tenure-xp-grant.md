@@ -9,6 +9,11 @@
 > **no owner present** (ADR-033 §5) ⇒ **`(agent-closed — not owner-verified)`**.
 > - ⛔ **No login and no claim has happened anywhere real.** There is no Yandex login outside the
 >   iframe, so the flow cannot run locally; the modal was rendered in jsdom only.
+> - 📌 **UPDATE 2026-09-26 — the route IS on the box.** The weekend window ran; runbook **W3** deployed
+>   it, and `POST /v1/profile/tenure-grant` answered **400** on an empty body (lead's read-only check).
+>   ⇒ 🚨 **the claim-on-behalf risk is OPEN from 2026-09-26**; `0268` closes it. W12's game deploy
+>   (release `0.0.152`) carried the client code, inert while `CITIZENSHIP_CARD_ENABLED` is `false`. ⛔ **No
+>   real claim has been observed** — the "never run in production" line above still holds for the flow.
 > - 🚨 **The claim-on-behalf risk opens when the ROUTE reaches the profile box, not at the citizenship
 >   flip.** `POST /v1/profile/tenure-grant` is wired in `src/profile-server/Server.ts` and answers as
 >   soon as it is deployed; `CITIZENSHIP_CARD_ENABLED` hides only the client popup. Owner rulings
@@ -71,3 +76,5 @@ task no longer gates the `PROFILE_INTERNAL_TOKEN` set at the window; its binding
 - [[systems/analytics]] — the three tenure-grant events
 - [[systems/weekend-deploy-window]] — W3 carries the route; W12 carries the inert client code
 - [[decisions/sprint-4]] — the board it closed on
+- [[tasks/profile-identity-s4-client-login-session]] — task `0273`, the client login session whose `grantChecks` the claim reads
+- [[tasks/profile-identity-epic]] — epic `0266`, whose login reply this task's redesign waited on

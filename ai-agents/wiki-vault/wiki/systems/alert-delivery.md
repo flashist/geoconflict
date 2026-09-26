@@ -351,6 +351,14 @@ confirmed in code.**
 three consumers** — but ⛔ **the feedback half is written and tested and UNSHIPPED** until the game
 deploy. **Do not read "0061 is fixed" off `0277`.**
 
+📌 **2026-09-26 — the feedback half SHIPPED** with the game deploy (release `0.0.152`), and `0061` closed
+`(agent-closed — not owner-verified)` after two owner test sends arrived. ⚠️ Still **"works now", not
+"fixed for good"**: a freshly restarted process has no stale sockets, so the retry has not been seen
+covering the stale-socket case, and the cause is still **not confirmed in code**. For the alert path
+itself, `0295`'s close found **no end-to-end alert delivery observed after that deploy** — reachability
+only; idle-period delivery is still `0289`'s. See [[tasks/feedback-telegram-delivery-failure]] and
+[[tasks/game-prod-egress-ip-allowlist]].
+
 ## Related
 
 - [[decisions/adr-114-admin-server-alert-relay]] — the ADR that placed the relay on the admin box
@@ -372,3 +380,5 @@ deploy. **Do not read "0061 is fixed" off `0277`.**
 - [[decisions/sprint-5]] — where `0285` and `0289`, the two remaining alert-path checks, now sit
 - [[systems/weekend-deploy-window]] — 🚨 the deploy window that writes `PROFILE_INTERNAL_ALLOW_IPS`: **this relay is the list's SECOND caller**, and every profile deploy in that window must carry the **full** list — ⛔ **append, never replace**, or the next alert's 403 disables the channel permanently
 - [[decisions/sprint-backlog]] — where `0294` sits; ⚠️ it is a **profile deploy**, so it carries this same allowlist constraint
+- [[tasks/feedback-telegram-delivery-failure]] — task `0061`, the player-feedback consumer of the same fix; closed 2026-09-26
+- [[tasks/game-prod-egress-ip-allowlist]] — task `0295`, which kept this relay's allowlist entry and closed step 5 on indirect evidence

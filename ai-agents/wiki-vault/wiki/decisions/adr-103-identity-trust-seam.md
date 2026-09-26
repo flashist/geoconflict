@@ -78,3 +78,5 @@ The design rules that make this a seam rather than just a shortcut:
 - [[tasks/profile-identity-s2-login-and-session-token]] — task `0271`: 🔓 **the session token adds NO security while identity is client-asserted**
 - [[decisions/adr-114-admin-server-alert-relay]] — the alert relay; **this ADR is explicitly unchanged by it**
 - [[tasks/personal-inbox]] — task `0012`, whose player inbox routes trust the client-asserted id through this seam (residual D1)
+- [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — task `0272`: `getCreditableYandexId` stays the only reader of the Yandex id on the game server
+- [[tasks/profile-identity-epic]] — epic `0266`, which kept trusting the client-asserted id while moving everything else onto the internal id

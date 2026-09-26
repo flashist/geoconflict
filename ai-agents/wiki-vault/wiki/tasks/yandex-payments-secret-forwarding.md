@@ -129,3 +129,4 @@ Found 2026-08-28 during `0067`'s build, and owner-approved the same day as **its
 - [[tasks/forward-profile-internal-token]] — task `0062`, the same class on the game pipeline; `0065`'s condition on it now points at `0296`
 - [[tasks/deploy-time-config-parity-guard]] — task `0064`, whose B2 check catches this task's shape
 - [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, whose R12 fix stopped the guard silently dropping this task's shape
+- [[tasks/profile-secret-persistence-value-parity]] — task `0220`, which widened this task's persistence finding from one variable to four and fixed all four

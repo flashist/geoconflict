@@ -90,3 +90,6 @@ game box**. `0279` and `0217` should **re-run that set rather than rediscover it
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274` (S5), the monitoring slice that instruments this endpoint; shipped in the SAME single deploy
 - [[tasks/tenure-xp-grant]] — task `0253`, whose claim waits on the login reply's tenure check
+- [[tasks/profile-identity-epic]] — epic `0266`, the parent; closed 2026-09-26 once all five slices were done
+- [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — S3, task `0272`, closed 2026-09-26
+- [[tasks/profile-identity-s4-client-login-session]] — S4, task `0273`, closed 2026-09-26

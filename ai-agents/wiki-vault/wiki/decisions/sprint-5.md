@@ -3,6 +3,34 @@
 **Date**: 2026-04-16
 **Status**: proposed
 
+> # 🆕 2026-09-26 — SEVEN ROWS CLOSED AFTER THE WEEKEND WINDOW; ⛔ THE SPRINT IS STILL NOT STARTED
+>
+> **Re-counted at `HEAD` = `8f1f76b`, by each row's leading status glyph: 28 rows — 7 `✅ Done` · 15
+> `🔲 Backlog` · 6 `🚧 Blocked`; 21 OPEN** (was 28 open — 19 Backlog · 9 Blocked — at `6eeceeb`).
+> ⚠️ Counted by me this run. **Line-3 banner unchanged: `🔲 Backlog — 2026-09-23`** — the owner starts
+> Sprint 5 himself; nothing has started it. [[decisions/sprint-4]] closed the same day with 0 open rows,
+> so **no row rolled in**. ⇒ **No sprint is active right now.**
+>
+> **The seven closes, all `(agent-closed — not owner-verified)`, all by spawned producers on owner
+> rulings relayed by `fkit-lead` (ADR-021, ADR-033 §5)** — status cells rewritten at close, each keeping
+> its earlier value in the brief's history chain:
+>
+> | Task | Closed on | Carries |
+> |---|---|---|
+> | `0217` — [[tasks/profile-p2-wire-game-server]] | V1/V3 met at W14 — real credits landed | step 4 half (test-only); watch item **F-B** |
+> | `0272` — [[tasks/profile-identity-s3-game-server-resolve-and-credit]] | live proof = `0217`'s V1/V3 | **F-B** |
+> | `0273` — [[tasks/profile-identity-s4-client-login-session]] | owner's browser check: 1 login per logged-in load, 0 for guests | Bearer on other callers test-only; **AR-2** until the card flip; one observation each |
+> | `0220` — [[tasks/profile-secret-persistence-value-parity]] | §8 steps 1–2 live | 🚩 **step 3 deliberately NOT run** (`0294`); **F-E** wording finding |
+> | `0266` — [[tasks/profile-identity-epic]] | all five slices closed (*"Close it"*) | the slices' residuals, not discharged |
+> | `0295` — [[tasks/game-prod-egress-ip-allowlist]] | *"on today's evidence"* — address already listed | step 5 on **indirect** evidence only |
+> | `0061` — [[tasks/feedback-telegram-delivery-failure]] | two live feedback sends arrived | cause **never confirmed in code**; "works now", not "fixed"; follow-up `0300` on the Backlog board |
+>
+> **Still open here (21):** `0297` (row 1), `0238`, `0285`, `0289`, `0030`, `0296`, `0018`, `0065`,
+> `0032`, `0213`, `0219`, `0221`, `0286`, `0298`, and the seven original feature rows (TBD briefs). Full
+> window record: [[systems/weekend-deploy-window]].
+>
+> ---
+>
 > # 🆕 2026-09-23 (later) — 28 ROWS: TWELVE MOVED IN FROM SPRINT 4, PLUS TWO NEW TASKS `0297` AND `0298`
 >
 > **Re-counted 2026-09-24 at `HEAD` = `6eeceeb`, by each row's leading status glyph: 28 rows — 19
@@ -342,3 +370,10 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 - [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, whose tags and rulings `0298` consumes when arming
 - [[tasks/yandex-payments-secret-forwarding]] — task `0195`, whose open value-correctness question moved to this board's `0297` §1 on 2026-09-23
 - [[systems/project-brief]] — product ground truth — records the 2026-09-23 `0065` go-live-before-proof tradeoff
+- [[tasks/profile-p2-wire-game-server]] — task `0217`, moved in from Sprint 4 and closed here 2026-09-26 (XP go-live)
+- [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — task `0272` (S3), moved in and closed here 2026-09-26
+- [[tasks/profile-identity-s4-client-login-session]] — task `0273` (S4), moved in and closed here 2026-09-26
+- [[tasks/profile-identity-epic]] — epic `0266`, moved in and closed here 2026-09-26
+- [[tasks/profile-secret-persistence-value-parity]] — task `0220`, moved in and closed here 2026-09-26 with step 3 deliberately not run
+- [[tasks/game-prod-egress-ip-allowlist]] — task `0295`, filed on this board 2026-09-22 and closed here 2026-09-26
+- [[tasks/feedback-telegram-delivery-failure]] — task `0061`, moved here 2026-09-22 and closed 2026-09-26
