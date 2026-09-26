@@ -80,14 +80,14 @@ egress IP — the owner ruled, verbatim:
 board. They did NOT rule the rank, the owner field, or the method.** ⛔ **Not producer precedent.**
 
 ⚠️ **Sprint 5 is NOT the active sprint** — see the banner at the top of
-[`plan-sprint-5.md`](../../../sprints/plan-sprint-5.md). Putting this here **schedules** it; it does not
+[`plan-sprint-5.md`](../../../sprints/done/plan-sprint-5.md). Putting this here **schedules** it; it does not
 start it.
 
 > ## 🚨 THE SPRINT-5 PLACEMENT DOES **NOT** MEAN "SKIP IT THIS WEEKEND" — READ THIS BEFORE THE WINDOW
 >
 > 🚨 **THIS BRIEF CITES TWO DIFFERENT RULING SETS. READ THE NAMESPACE, NOT JUST THE LETTER.**
 > **`RUNBOOK-E`** below is the **weekend-runbook** set. The bare **`RULING D`/`RULING E`** cited on the
-> [Sprint 5 board](../../../sprints/plan-sprint-5.md) are the **sprint-plan** set — ⛔ **a different
+> [Sprint 5 board](../../../sprints/done/plan-sprint-5.md) are the **sprint-plan** set — ⛔ **a different
 > sequence, same letters, same date.** ⚠️ **`RULING E` (sprint set) moved `0030`; it has nothing to do
 > with this task.** Full record and cause: the namespacing note at the top of
 > [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md).

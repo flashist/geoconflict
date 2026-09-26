@@ -55,7 +55,7 @@
 >
 > **What happened.** On 2026-09-22 **two independent ruling sequences were issued, both lettered A–G,
 > both dated the same day**: one governing the **sprint plans**
-> ([`plan-sprint-4.md`](../sprints/done/plan-sprint-4.md) / [`plan-sprint-5.md`](../sprints/plan-sprint-5.md)),
+> ([`plan-sprint-4.md`](../sprints/done/plan-sprint-4.md) / [`plan-sprint-5.md`](../sprints/done/plan-sprint-5.md)),
 > one governing **this runbook** and the briefs it drives. A document citing *"Ruling E"* therefore meant
 > **one of two different things depending on which file you were standing in** —
 > [`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
@@ -108,7 +108,7 @@
 > |---|---|---|---|
 > | **2026-09-02** | `Ruling A`…`Ruling D` | [`backlog.md`](../sprints/backlog.md), `0021`/`0024`/`0028` briefs, and [`plan-sprint-4.md`](../sprints/done/plan-sprint-4.md)'s Backlog-board rows | ⛔ **LEFT AS IS** |
 > | **2026-09-17** | `Ruling A`/`Ruling B` | ADR-114 | ⛔ **LEFT AS IS** |
-> | **2026-09-22 — sprint plans** | `RULING A`…`RULING G` | [`plan-sprint-4.md`](../sprints/done/plan-sprint-4.md), [`plan-sprint-5.md`](../sprints/plan-sprint-5.md) | ⛔ **LEFT AS IS** |
+> | **2026-09-22 — sprint plans** | `RULING A`…`RULING G` | [`plan-sprint-4.md`](../sprints/done/plan-sprint-4.md), [`plan-sprint-5.md`](../sprints/done/plan-sprint-5.md) | ⛔ **LEFT AS IS** |
 > | **2026-09-22 — this runbook** | `RULING A`…`RULING G` | this file + the briefs it drives | ✅ **NAMESPACED → `RUNBOOK-A`…`RUNBOOK-G`** |
 >
 > **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
@@ -223,7 +223,7 @@ The observation steps are placed immediately after the deploy for exactly this r
 
 📌 **That work is now a task:
 [`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
-on [Sprint 5](../sprints/plan-sprint-5.md)** (C3 ruling, 2026-09-22), and **the whole of this trap is
+on [Sprint 5](../sprints/done/plan-sprint-5.md)** (C3 ruling, 2026-09-22), and **the whole of this trap is
 carried into that brief.** ⚠️ **The measurement is still UNDONE** — read on.
 
 🚨 **That variable is a comma list serving TWO unrelated callers, and it is NOT persist-or-reuse.**
@@ -320,7 +320,7 @@ wrong now than mid-slot.
    *Source:* `0217` § *What to build* 3 — *"The current egress IP must be measured, not assumed"*; the
    pinned value is from June. *Record the METHOD, never the address* (`0217` verification step 7).
    ✅ **THIS NOW HAS AN OWNER: [`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
-   on [Sprint 5](../sprints/plan-sprint-5.md)**, by the C3 owner ruling of 2026-09-22 — *"Record as a
+   on [Sprint 5](../sprints/done/plan-sprint-5.md)**, by the C3 owner ruling of 2026-09-22 — *"Record as a
    task, add it to the Sprint 5, not the current Sprint 4."*
 
    > 🚨 **`0295` BEING ON SPRINT 5 DOES *NOT* DEFER THIS STEP. THE MEASUREMENT HAPPENS HERE, AT W0.**
@@ -1196,7 +1196,7 @@ the owner's.**
 > Sprint 4."*
 
 ⇒ 📌 **FILED AS [`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)**
-on **[Sprint 5](../sprints/plan-sprint-5.md)**. ⛔ **Sprint 5 explicitly — not Sprint 4, not the Backlog
+on **[Sprint 5](../sprints/done/plan-sprint-5.md)**. ⛔ **Sprint 5 explicitly — not Sprint 4, not the Backlog
 board.** ⚠️ **Sprint 5 is not the active sprint: this SCHEDULES the work, it does not start it.**
 
 **Two things `0295` carries, both load-bearing:**

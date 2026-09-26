@@ -83,7 +83,7 @@ projection is exactly the kind of question this investigation answers rather tha
 
 **Dependency, and why this is not idle.** Sprint 5's `Leaderboard — Rewards Layer` row cannot be built
 until this is live. That row is currently `🔲 Backlog` with brief `TBD` on
-[`plan-sprint-5.md`](../../../sprints/plan-sprint-5.md), so nothing is blocked *today* — but Sprint 5
+[`plan-sprint-5.md`](../../../sprints/done/plan-sprint-5.md), so nothing is blocked *today* — but Sprint 5
 cannot start this line of work without it.
 
 ⚠️ **Conflict to surface, not to plan around.** `plan-index.md` puts Task 7 in the **Sprint 4** column,

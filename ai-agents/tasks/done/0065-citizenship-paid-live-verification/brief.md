@@ -321,7 +321,7 @@ answered, verbatim:
 > *"As soon as possible, it's ok for me if some of the re-measures happen after it."*
 
 The owner's goal the same day, verbatim: *"make another release today/tomorrow to finally ship the
-profile/citizenship feature to users"*. By the same ruling set, [Sprint 5](../../../sprints/plan-sprint-5.md)
+profile/citizenship feature to users"*. By the same ruling set, [Sprint 5](../../../sprints/done/plan-sprint-5.md)
 now carries only this launch (this task, `0018`, and the launch-day checks `0238`, `0296`, `0297`) and was
 started (`🔄 In progress — 2026-09-26`); everything else moved to Sprint 6.
 

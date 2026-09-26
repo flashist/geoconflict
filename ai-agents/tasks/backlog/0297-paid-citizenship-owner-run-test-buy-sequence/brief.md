@@ -19,10 +19,19 @@
 0297
 
 ## Sprint
-Sprint 5
+Sprint 6
+
+~~Sprint 5~~
+
+📌 **Moved from Sprint 5 to Sprint 6 on 2026-09-26** — OWNER RULING given 2026-09-26, the owner's own typed message live in the `fkit lead` session (not an `AskUserQuestion` answer), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move it to the bottom of Sprint 6"*. Now the **last row, rank 34** of [Sprint 6](../../../sprints/plan-sprint-6.md), as a watch item. ⛔ **Supersedes the 2026-09-23 ruling that pinned this task to the top of Sprint 5** (see `## Priority`). The owner did not rule on closing Sprint 5. `## Status` unchanged. *(Earlier value of this field: `Sprint 5`.)*
+
+- 📌 **§4 (watching real players for a successful `/reconcile`) is still open.**
+- 📌 A read-only check at about 16:xx UTC on 2026-09-26 still showed **2 `/complete` 200s and 0 `/reconcile` calls**.
 
 ## Priority
-— *(no numeric rank)* — 🔴 **POSITION OWNER-RULED 2026-09-23:** an **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel** (ADR-021). Owner's ruling: *top of Sprint
+**34** — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md): the **last row**, by OWNER RULING given 2026-09-26, the owner's own typed message live in the `fkit lead` session (not an `AskUserQuestion` answer), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent (*"Move it to the bottom of Sprint 6"*). ⛔ An append position, not a merit re-rank. **Supersedes the Sprint 5 row-1 position below.** *Earlier values, kept below:*
+
+⛔ **SUPERSEDED 2026-09-26 — history only (the Sprint 5 position):** — *(no numeric rank)* — 🔴 **POSITION OWNER-RULED 2026-09-23:** an **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel** (ADR-021). Owner's ruling: *top of Sprint
 5, directly above `0296`*. ⛔ **An owner ruling lifting ADR-035's append-only constraint for this one
 row — not producer precedent.** ~~On the board the row now sits **directly above `0296`**. ⚠️ Those two
 phrases name different rows on the Sprint 5 board (`0296` is not at the top), so the literal "top"
