@@ -4,13 +4,13 @@
 0220
 
 ## Parent / Epic
-[`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
+[`0213-profile-backend-clean-slate-rebuild`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)
 
 ## Sprint
 
 Sprint 5
 
-📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ## Priority
 **Medium-High** — it closes a silent-overwrite class that has already bitten this project three
@@ -19,13 +19,35 @@ times under a different name.
 ⚠️ **The rank is the producer's**; the owner ruled scheduling, not rank.
 
 ## Status
-🚧 Blocked — built + reviewed 2026-09-13 (persist-or-reuse for the four secrets + on-box report-only value parity + harness T12–T15; stateful review round 1 closed out, R1–R6 applied, Codex coverage full; `npm test` 120/1253 green); open pending the OWNER-side live tail — plan §8 ~~steps 1–3~~ **steps 1–2 ONLY**: deploy with the four set (600-root files), then deploy with them BLANK (`Reusing persisted <NAME>` ×4 — THE proof)~~, then one rotation~~. 🚩 **CORRECTED 2026-09-22, SAME DAY — the struck clause was accurate when written and was overtaken hours later: §8 STEP 3 (the rotation) WAS REMOVED FROM THIS WINDOW BY OWNER RULING and is DELIBERATELY NOT RUN here; the overwrite proof is carried by [`0294`](../0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md).** ⚠️ **ONE STEP DELIBERATELY DEFERRED — ⛔ NOT "unverified":** steps 1–2 still run in this window, and the rotation path does have local **stubbed** coverage (harness **T13**, `tests/scripts/profile-deploy-hardening.test.sh:613-638`, gated by `npm test`) — ⛔ **that is not live-box evidence and must not be presented as it.** Same hold-open posture the owner ruled for `0219`. Driven by `/fkit-sprint-ship-loop`
+✅ Done (agent-closed — not owner-verified) — **closed 2026-09-26 by a spawned `fkit-producer` on an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`** (*"Which tasks should the producer close now?"* — the owner selected all four: `0273`, `0217`, `0272`, `0220`, with the residuals below shown to them when choosing). No owner channel in this spawn (ADR-021, ADR-033 §5) ⇒ **no human verified this close.** 🚩 **CLOSES WITH A STATED GAP.** §8 steps 1–2 ✅ live on 2026-09-26 (W3: the four set, persisted `600 root`; W7: deployed with the four blank → `Reusing persisted <NAME>` ×4). **§8 step 3 — a rotated value overwrites the persisted one, live — was NOT run in this window, by the C2 ruling;** it is carried by [`0294`](../../backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md) (🔲 Backlog). Rotation is proven **against stubs only** (harness **T13** in `tests/scripts/profile-deploy-hardening.test.sh`). **RUNBOOK-G sentence, carried verbatim as that ruling requires:** **`0220` closes with verification step 3 DELIBERATELY NOT RUN.** The overwrite path — *a deploy with a new value replaces the persisted one* — has **NO LIVE-BOX EVIDENCE**, by owner ruling of 2026-09-22, not by oversight. [`0294`](../../backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md) is where that evidence would come from, and it has not been run. 🚨 **THIS TASK IS THEREFORE NOT FULLY VERIFIED. ⛔ Do not report it as such.** `plan.md` §8 states *"Steps 2–3 are the ones that prove the defect is closed"* — **only step 2 ran.** ⚠️ The rotation property has **local, stubbed** coverage only (`tests/scripts/profile-deploy-hardening.test.sh:613-638`, **T13**, gated by `npm test`); **that is not live-box evidence and must not be presented as it.** 📝 Also noted — **F-E:** the deploy log's `PROFILE_LOGIN_CREATE_ENABLED … written EMPTY (feature stays off)` wording is misleading (in code, blank ⇒ **enabled**; the parity line said `login creation ENABLED (normal)`) — a **wording** defect in the deploy output, not a behaviour defect; **no owner or task yet**. · earlier: 🚧 Blocked — built + reviewed 2026-09-13 (persist-or-reuse for the four secrets + on-box report-only value parity + harness T12–T15; stateful review round 1 closed out, R1–R6 applied, Codex coverage full; `npm test` 120/1253 green); open pending the OWNER-side live tail — plan §8 ~~steps 1–3~~ **steps 1–2 ONLY**: deploy with the four set (600-root files), then deploy with them BLANK (`Reusing persisted <NAME>` ×4 — THE proof)~~, then one rotation~~. 🚩 **CORRECTED 2026-09-22, SAME DAY — the struck clause was accurate when written and was overtaken hours later: §8 STEP 3 (the rotation) WAS REMOVED FROM THIS WINDOW BY OWNER RULING and is DELIBERATELY NOT RUN here; the overwrite proof is carried by [`0294`](../../backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md).** ⚠️ **ONE STEP DELIBERATELY DEFERRED — ⛔ NOT "unverified":** steps 1–2 still run in this window, and the rotation path does have local **stubbed** coverage (harness **T13**, `tests/scripts/profile-deploy-hardening.test.sh:613-638`, gated by `npm test`) — ⛔ **that is not live-box evidence and must not be presented as it.** Same hold-open posture the owner ruled for `0219`. Driven by `/fkit-sprint-ship-loop`
+
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> | Verification step | Verdict |
+> |---|---|
+> | §8 step 1 (W3) — four **set** | ✅ `Using … from environment` for the four (and `PROFILE_INTERNAL_TOKEN`); value parity **0 findings / 13 ok**; W4 saw the four persist files `600 root`. |
+> | 1 — deploy WITHOUT the values keeps them, per variable | ✅ **W7:** the four hidden locally for one deploy (commented out, backed up, restored straight after — **(lead)** verified all four set again, backups gone). On box `grep -c '^NAME=.\+$' profile.env` → **1 each**; container `not set` warnings → **0**. |
+> | 2 — output names what was reused | ✅ `Reusing persisted <NAME>` ×4: `YANDEX_PAYMENTS_SECRET`, `FEEDBACK_TELEGRAM_TOKEN`, `FEEDBACK_TELEGRAM_CHAT_ID`, `TELEGRAM_PROXY_URL`. Names only. |
+> | 3 — a new value overwrites the persisted one | ⛔ **NOT RUN — by the C2 ruling.** The RUNBOOK-G sentence under verification step 3 below binds any close, verbatim. `0294` carries it. |
+> | 6 — parity exits zero | ✅ both deploys completed; nothing failed on parity. |
+> | 4, 5, 7, 8 | Not window steps; see `## Status` (built + reviewed 2026-09-13). Not re-assessed here. |
+>
+> 🚩 **Adjacent finding (W3), no owner yet:** the log printed
+> `PROFILE_LOGIN_CREATE_ENABLED: not supplied and nothing persisted — written EMPTY (feature stays off)`
+> while the parity line said `login creation ENABLED (normal)`. In code, blank ⇒ **enabled**. A **wording**
+> defect in the deploy output, not a behaviour defect.
 
 ## Owner
 fkit-coder
 
 ## Depends on
-[`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to persist secrets on.
+[`0215`](../0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to persist secrets on.
 
 ## Context
 
@@ -63,7 +85,7 @@ empty** — and it has now appeared four times.
 `0064`'s config-parity guard is **name-only and report-only** today. It compares which variable
 **names** a deploy forwards against which the app reads; it says nothing about whether a forwarded
 value is **usable**. `--enforce` is built and **wired to nothing**, blind spot R1 is unfixed, and the
-ten pre-arming items live in [`0203`](../../done/0203-config-parity-guard-pre-arming-gate/brief.md).
+ten pre-arming items live in [`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md).
 
 **`0064` Phase 2 is the VALUES half** — public-facing URL values must be `https` and hostname-based
 (the `0063` class); tokens must be non-empty (the `0062` class).
@@ -88,7 +110,7 @@ ten pre-arming items live in [`0203`](../../done/0203-config-parity-guard-pre-ar
 4. **Extend the deploy harness** (`tests/scripts/profile-deploy-hardening.test.sh`) to cover the new
    persistence behaviour. 🚨 **This harness is the only local proof that is not diff-reading — and
    diff-reading is how this class hid three times.** ⚠️ It only helps if something runs it; that is
-   [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) (P7), which is
+   [`0201`](../0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) (P7), which is
    startable today and independent of this task.
 
 ### 🚫 Not in this phase
@@ -117,7 +139,7 @@ ten pre-arming items live in [`0203`](../../done/0203-config-parity-guard-pre-ar
    > rotate, the owner chose **"Skip it now, file it separately"** — so that *"`0220` closes with a
    > recorded, deliberate gap rather than an unnoticed one."*
    >
-   > ⇒ 📌 **FILED AS [`0294`](../0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md)**
+   > ⇒ 📌 **FILED AS [`0294`](../../backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md)**
    > on the **Backlog** board. ⚠️ **The board is the producer's filing default, not an owner ruling.**
    >
    > ⛔ **This task's `## Status` was NOT touched and no mover skill was invoked.**
@@ -168,7 +190,7 @@ ten pre-arming items live in [`0203`](../../done/0203-config-parity-guard-pre-ar
    > > **`0220` closes with verification step 3 DELIBERATELY NOT RUN.** The overwrite path — *a deploy
    > > with a new value replaces the persisted one* — has **NO LIVE-BOX EVIDENCE**, by owner ruling of
    > > 2026-09-22, not by oversight.
-   > > [`0294`](../0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md)
+   > > [`0294`](../../backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md)
    > > is where that evidence would come from, and it has not been run.
    > > 🚨 **THIS TASK IS THEREFORE NOT FULLY VERIFIED. ⛔ Do not report it as such.** `plan.md` §8 states
    > > *"Steps 2–3 are the ones that prove the defect is closed"* — **only step 2 ran.** ⚠️ The rotation
@@ -197,11 +219,11 @@ ten pre-arming items live in [`0203`](../../done/0203-config-parity-guard-pre-ar
   folded into P1's deploy? **Filed separately** because it is behaviour change to
   `setup-profile.sh`, not configuration, and because it carries a harness change. **The owner may
   fold it into `0215`; that is a legitimate call and the producer would not argue.**
-- **Related:** [`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md) (the guard; Phase 2 is
-  here, arming is not), [`0203`](../../done/0203-config-parity-guard-pre-arming-gate/brief.md) (the ten
-  pre-arming items), [`0195`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md)
+- **Related:** [`0064`](../0064-deploy-time-config-parity-guard/brief.md) (the guard; Phase 2 is
+  here, arming is not), [`0203`](../0203-config-parity-guard-pre-arming-gate/brief.md) (the ten
+  pre-arming items), [`0195`](../0195-forward-yandex-payments-secret-in-profile-deploy/brief.md)
   (whose R4 finding this widens — **its fix stands; only its recorded scope was narrow**), and
-  [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) (nothing runs the
+  [`0201`](../0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md) (nothing runs the
   harness this task extends).
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.

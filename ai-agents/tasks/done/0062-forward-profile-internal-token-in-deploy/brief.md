@@ -104,7 +104,7 @@ hand.** Recorded 2026-09-04.
 > producer's recommendation to move it to the Backlog board.** The producer's argument was that the
 > task is structurally blocked on profile-VPS work and would sit unworkable in the sprint; **the owner
 > chose to keep it here.** ⛔ **Recorded, not re-argued.** The work that discharges it is
-> [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2).
+> [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2).
 
 > 🔴 **SUPERSEDED 2026-09-23 — OWNER RULING, given live in the `fkit lead` session via
 > `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel.** ⛔ Not

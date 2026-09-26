@@ -10,7 +10,7 @@
 
 Sprint 5
 
-📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ## Priority
 **High.** ⚠️ **Technically this is easy work. By CONSEQUENCE it is the "outage nobody noticed for
@@ -158,6 +158,40 @@ deploy; only its *confirmation* is deferred.
 
 ## Status
 🚧 Blocked — 🔴 **SPLIT 2026-09-19 BY OWNER RULING (block directly above): G1/G2 prepared for the weekend deploy slot, G3/G4 DEFERRED with `0285` and `0289`.** Built + reviewed 2026-09-13 (Part A: code, tests, docs — **all of G1–G4**; stateful review round 1 closed out, Codex coverage full). ⛔ **THIS TASK DOES NOT CLOSE AT THE WEEKEND SLOT.** Narrowed, accurate remainder — **at the slot:** B4 (`npm run deploy:profile`, which lands G1's log rotation and G2's prune), then B5 (V1, rotation observed) and B6 (V2, prune keeps current + rollback). **Deferred past the slot:** B2/B3 (dead-man's-switch check + the two external uptime monitors) and the observed-alert drills B7–B10, incl. `systemctl is-enabled certbot.timer` → `disabled`. ⚠️ Expect the slot's deploy to report `alerting: no` — with B2 deferred there is no ping URL; that is the ruling, not a fault. Owner ruled 2026-09-13, live in the lead session: hold open, do not close until the alerts have been watched arriving — **that ruling stands and is what keeps this open.** Driven by `/fkit-sprint-ship-loop` · earlier: 🚧 Blocked — built + reviewed 2026-09-13 (Part A: code, tests, docs; stateful review round 1 closed out, Codex coverage full); open pending the OWNER-side live tail B2–B10 (dead-man's-switch check + uptime monitors, `npm run deploy:profile`, and the observed-alert drills incl. `systemctl is-enabled certbot.timer` → disabled)
+
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> ⛔ **This task still does NOT close** — the 2026-09-13 hold-open ruling and the G3/G4 deferral stand.
+>
+> - **B4 (W3):** `PRUNING` kept current + previous + postgres-in-use and **removed 2** images (not the
+>   predicted ~9); `checks.sh` installed, cron set, smoke backup OK; `alerting: yes` (expected since the
+>   2026-09-25 keep-the-ping-URL ruling).
+> - **B6 (W5) → V2 ⚠️ partial.** Previous profile image `e411d315…` inspects OK ⇒ **rollback image
+>   survived** ✅. But the **in-use postgres image `3c5c8892…` was untagged (`<none>`)** and so absent from
+>   `docker images` — which led to the finding below ❌.
+> - **B5 (W5) → V1 ✅.** Both containers `json-file`, `max-size 100m` / `max-file 10` (config) **and**
+>   rotation **observed** on a throwaway container (1m / 2 files → `-json.log.1` at ~1,000,031 bytes),
+>   then removed. ⚠️ Side effect (lead's instruction error): an unneeded `postgres:16` image (642 MB) was
+>   pulled; owner told to `docker rmi postgres:16` — **removal not confirmed.**
+> - **W10:** manual `checks.sh` after the reboot → **12 ok, 0 failed**, `ping: success delivered`. This
+>   should close Better Stack's `profile-daily-checks` `reboot-required` incident — **not confirmed in the
+>   UI.**
+>
+> 🚨 **FINDING (W5 → W10) — the prune plus a compose re-pull caused an UNPLANNED Postgres minor
+> upgrade.** The running DB container used an **untagged, older** image `3c5c8892…`. W3's prune kept that
+> **by ID** and **deleted the tagged `postgres:16-alpine`**. After W10's `systemctl restart docker`, the
+> `profile` systemd unit's compose-up **re-pulled the tag** and **recreated** the DB container on
+> `721873c3…` = `postgres:16-alpine`, **PostgreSQL 16.15** — the very image ID the prune had removed.
+> **Data intact** (`schema_migrations` count 5; `/ready` OK). ⇒ bears on **V2** (*"leaves current +
+> rollback intact"*): the prune kept the app's rollback image but removed the tag the compose file names.
+> Candidate directions — **⛔ NOT decided**: keep the prune's keep-list **by tag/reference**, or **pin
+> compose by digest**. Owner/architect call.
 
 ## Owner
 fkit-coder

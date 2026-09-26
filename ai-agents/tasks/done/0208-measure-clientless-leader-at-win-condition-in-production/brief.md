@@ -54,7 +54,7 @@
 >
 > 🚨 **THE COST THE OWNER KNOWINGLY ACCEPTED, in those terms and not softer: the PER-MATCH STALL RATE WILL NEVER BE KNOWN, and the PRE-FIX DENOMINATOR IS GONE THE MOMENT `0211` SHIPS.** This is a **permanent, irreversible loss of a measurement, accepted deliberately — not an oversight.** ⛔ **DO NOT RE-PROPOSE IT LATER AS A GAP SOMEONE SHOULD CLOSE.**
 >
-> 📎 Full record: the `0206` row on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) and the STOP
+> 📎 Full record: the `0206` row on [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md) and the STOP
 > box at the top of
 > [`0206`'s brief](../0206-ffa-timer-expiry-award-to-top-client-player/brief.md).
 > ⚠️ **This box was added by the producer; the rest of this brief below is UNEDITED by it** except for
@@ -99,7 +99,7 @@
 > 1. **Task folders.** `ai-agents/tasks/{backlog,done,cancelled}/` — highest ID in use is **`0207`**.
 > 2. **All boards.** [`backlog.md`](../../../sprints/backlog.md),
 >    [`sprint-backlog.md`](../../../sprints/sprint-backlog.md),
->    [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) / `-5` / `-6`,
+>    [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md) / `-5` / `-6`,
 >    [`plan-index.md`](../../../sprints/plan-index.md) — highest referenced is **`0207`**
 >    (plus `0204`, which is board-visible only as the reservation note on `0205`/`0207`).
 > 3. ⚠️ **`grep -rn` over `.claude/`** — **the check that matters, and the one boards miss.** Hits:
@@ -134,13 +134,13 @@
 ## Sprint
 Sprint 4
 
-**SCHEDULED.** Tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+**SCHEDULED.** Tracked on [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ~~Backlog — **unscheduled**. Filed on [`backlog.md`](../../../sprints/backlog.md).~~
 
 ~~**Board chosen honestly, and it is the owner's explicit instruction, not an inference:** the ruling
 was *"File a brief, don't schedule."* Filing it on
-[`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) would assert a sprint commitment the owner
+[`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md) would assert a sprint commitment the owner
 deliberately withheld. Same board reasoning as `0203`, `0205` and `0207`.~~
 **Row appended, not inserted** (ADR-035) — at filing on `backlog.md`, and again on `plan-sprint-4.md`
 at the 2026-09-04 promotion, for the same reason.
@@ -1055,7 +1055,7 @@ reader finding this sitting unscheduled must not treat it as a scheduling miss, 
 
 ✅ **CORRECTED 2026-09-04 — THIS TASK IS NO LONGER UNSCHEDULED.** `0208` was **SCHEDULED INTO SPRINT 4**
 by owner ruling given live in session, 2026-09-04; tracked on
-[`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md), with its
+[`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md), with its
 [`backlog.md`](../../../sprints/backlog.md) row kept as `➡️ Moved`. **Struck, not deleted — the struck
 paragraph was accurate for exactly as long as nothing scheduled this task, and is spent, not wrong.**
 ⚠️ **Status is still `🔲 Backlog` — scheduled is NOT started, nobody is building it.** ~~**Rank is
@@ -1594,7 +1594,7 @@ single most likely way this task gets ruined.** The guard is `0210`. **Measure, 
   through. `0208` remains unscheduled alongside them.~~ ⛔ **The widening is NOT a scheduling signal.**
 
   ✅ **CORRECTED 2026-09-04 — `0208` IS SCHEDULED INTO SPRINT 4.** Owner ruling given live in session,
-  2026-09-04, tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md); this task's row on
+  2026-09-04, tracked on [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md); this task's row on
   [`backlog.md`](../../../sprints/backlog.md) is kept as `➡️ Moved`. **Struck, not deleted** — the
   struck text was true on 2026-09-03, the date it names, and is **spent, not wrong.**
   - ⚠️ **Status is still `🔲 Backlog` — NOT STARTED. Scheduled is not started; nobody is building it.**

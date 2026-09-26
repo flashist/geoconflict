@@ -20,7 +20,7 @@
 
 Sprint 5
 
-📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ## Priority
 🔴 **High — LABEL RATIFIED BY THE OWNER 2026-09-22; value UNCHANGED** *(~~producer's LABEL~~; **POSITION OWNER-RULED 2026-09-22** — a separate ruling, see below)*
@@ -120,7 +120,7 @@ unratified.
 is where this merit note always said it belonged.** ✅ **Merit note and board position now agree.**
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified) — **closed 2026-09-26 by a spawned `fkit-producer` on an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`** (*"Epic 0266 (profile identity): all 5 slices S1–S5 are now Done. Close the epic?"* → **"Close it"**)**; no owner channel in the spawn (ADR-021, ADR-033 §5).** Close criterion (*Verification steps*, 2026-09-15: all five child slices closed) met — checked from the record at close: `0270`–`0274` all sit in `tasks/done/` and each brief's `## Status` reads `✅ Done (agent-closed — not owner-verified)`. ⚠️ **The epic closes with the slices' residuals, which are carried in their own close notes, not repeated or discharged here** — notably **`0273`**: Bearer on the other profile callers proven by client tests only while the citizenship card is off (AR-2 unobservable until the card flip); **`0272` / `0217`**: watch item **F-B** (resolve timeouts; W15 — `failed after retries` must stay 0) kept in the runbook; **`0274`**: closed with named monitoring gaps (one of six alert rules exists). Every slice close is agent-closed, so nothing in this epic is owner-verified.
 
 ## Owner
 fkit-producer (epic) — child slices carry their own owners.
@@ -147,7 +147,7 @@ go-live.**
 - A **login endpoint** — find-or-create by platform + platformId — is called **on every game load by a
   logged-in player** (not behind the citizenship card switch).
 - The platform id is **trusted for now** (no signature check) — verifying it is
-  [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md), on the Backlog board.
+  [`0267`](../../backlog/0267-investigate-verifying-platform-player-identity/brief.md), on the Backlog board.
 - **No per-IP rate limit on the new login route** — replaced by **monitoring** (e.g. Uptrace) so
   problems are visible. ⚠️ **Accepted, monitored risk (owner, 2026-09-15):** the lead noted that a login
   route that creates profiles on demand, with no limit, can be used to create junk profile rows without
@@ -182,7 +182,7 @@ migration assumes it.
 - **Blocks [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)**
   — its redesigned flow (owner, 2026-09-15) sends a login request first and a tenure claim only after
   the login reply. `0253` is `🚧 Blocked` on this task's design.
-- **Blocks XP go-live** ([`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)) — the
+- **Blocks XP go-live** ([`0217`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md)) — the
   owner wants the identity model in place before crediting writes real rows.
 - **ADR-103** (client-asserted Yandex id, one trust funnel) — this task **keeps trusting the id** but
   changes what the funnel resolves to (internal id). The design must say how ADR-103 reads afterwards
@@ -220,14 +220,14 @@ Design: [`2026-09-15-profile-identity-design.md`](../../../knowledge-base/report
 > **0-drift** result indefinitely. It happened: on 2026-09-17 S3/S4/S5 still read `🔲 Backlog` while all
 > three briefs read `🚧 Blocked — … DEPLOYED 2026-09-17`, and the boards reported clean throughout.
 > **The brief is the source of truth — when a slice's status changes, copy it here by hand, and copy it
-> rather than summarising it.** Synced 2026-09-17.
+> rather than summarising it.** Synced 2026-09-17; S3 + S4 rows synced 2026-09-26 at their close.
 
 | Slice | Status | Task | Effort (design §9) | Depends on |
 |---|---|---|---|---|
 | **S1 — Database + re-keying** | ✅ Done (agent-closed — not owner-verified) | [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md) | 2.5–3.5 d | — (first; never concurrent with `0253` code work) |
 | **S2 — Login endpoint + 24 h token** | ✅ Done (agent-closed — not owner-verified) | [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) | 2–2.5 d | S1 |
-| **S3 — Game server resolve + credit by player id** | 🚧 Blocked — **server side DEPLOYED 2026-09-17 (owner-executed). Crediting still cannot be exercised at all.** *(copied from the brief's `## Status`; full status there)* | [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) | 1.5–2 d | S1 |
-| **S4 — Client login session + Bearer; legacy fallback removed last** | 🚧 Blocked — **the legacy-fallback removal (ruling D1) is LIVE AND PROVEN on the box, 2026-09-17. The client is NOT deployed.** *(copied from the brief's `## Status`; full status there)* | [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) | 1.5–2 d | S2 |
+| **S3 — Game server resolve + credit by player id** | ✅ Done (agent-closed — not owner-verified) — **closed 2026-09-26 by a spawned `fkit-producer` on an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`; no owner channel in the spawn (ADR-021, ADR-033 §5).** Live proof is `0217`'s V1/V3, met 2026-09-26. ⚠️ Residual: the same watch item **F-B** (W15 — `failed after retries` must stay 0), kept in the runbook. *(copied from the brief's `## Status`; full status there)* | [`0272`](../../done/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) | 1.5–2 d | S1 |
+| **S4 — Client login session + Bearer; legacy fallback removed last** | ✅ Done (agent-closed — not owner-verified) — **closed 2026-09-26 by a spawned `fkit-producer` on an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`; no owner channel in the spawn (ADR-021, ADR-033 §5).** Close condition met: plan §4.6 step 4 live check, owner-run 2026-09-26 — 1 `POST /v1/login` per logged-in load, 0 for guests. ⚠️ Residuals: Bearer on the other profile callers proven by client tests only (card off); **AR-2** unobservable until the card flip (`0054` / `0065`); one load of each kind observed, not a sample. *(copied from the brief's `## Status`; full status there)* | [`0273`](../../done/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) | 1.5–2 d | S2 |
 | **S5 — Monitoring + creation switch (+ owner: dashboard, 6 email alerts, drill)** | ✅ Done (agent-closed — not owner-verified) — **closed 2026-09-19 on an OWNER RULING relayed to a spawned `fkit-producer`; the owner chose "Close it now" knowing a spawned producer writes the agent-closed marker.** Owner steps **7.7** (creation-switch drill), **5 / amendment A3** (per-request name-change operator notification) and **4** (Uptrace dashboard, nine panels) all discharged 2026-09-19. 🔴 **CLOSED WITH NAMED GAPS — NOT "monitoring is done":** one of six alert rules exists (A5); A1/A2/A3/A6 deferred for want of login traffic with **no task of their own**; A4 ➡️ `0288`, idle-period delivery ➡️ `0289`; the *created ÷ logins* panel was **not built**; two board observations unexplained; `session_rejected` in the metric picker **unchecked**; 🚨 dashboard/monitors/channels are **UI-only state that no repo script recreates**. *(copied from the brief's `## Status`; full status there)* | [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) | 2–2.5 d + owner UI | S2 |
 
 **Order:** S1 → (S2 ∥ S3) · S2 → (S4 ∥ S5) · S4 → `0253` rework · all five deployed and verified →
@@ -312,11 +312,11 @@ briefs once the design is approved):
 
 ## Notes
 
-- **Depends on:** [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md), [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md), [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) — the epic's five child slices (filed 2026-09-15)
+- **Depends on:** [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md), [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md), [`0272`](../../done/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md), [`0273`](../../done/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md), [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) — the epic's five child slices (filed 2026-09-15)
 - *(Superseded dependency line, kept: ~~Depends on: nothing — the design can start now; the build waits on the owner's design ruling~~ — the design is delivered and ruled.)*
-- **Blocks:** [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md), XP go-live via [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md), [`0268`](../0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) (indirectly, through `0253`)
-- **Related:** [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md) (verify the
-  platform identity — Backlog), [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md),
+- **Blocks:** [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md), XP go-live via [`0217`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md), [`0268`](../../backlog/0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) (indirectly, through `0253`)
+- **Related:** [`0267`](../../backlog/0267-investigate-verifying-platform-player-identity/brief.md) (verify the
+  platform identity — Backlog), [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md),
   ADR-103, ADR-112.
 - ✅ **~~Split recommendation — flagged for owner confirmation, not ruled.~~ RULED 2026-09-15: "Split into 4"** (+ monitoring as a 5th slice) — filed as `0270`–`0274`. History below kept: The build's four units are
   independently testable, and units 1→2→3→4 ship in order. The producer recommends that once the

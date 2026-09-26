@@ -25,7 +25,7 @@ producer precedent.** The owner, verbatim:
 The owner was then shown a proposed list of four checkup tasks and chose **"Move all four"**:
 [`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md), `0285`,
 [`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
-[`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
+[`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
 
 **THE REASON, PLAINLY:** the final checkups happen **after the deploy**, when production can actually
 be observed. ✅ **Consistent with, and not a re-decision of, the 2026-09-19 ruling** that already
@@ -81,7 +81,7 @@ the record of how it was ranked at filing time:
    board would let Sprint 4 close with the alerting path nominally guarded and a named,
    already-written-down hole left open with nothing forcing a re-look.
 2. **The Backlog board has a demonstrated hold-forever failure mode.**
-   [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from
+   [`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from
    2026-08-23 to 2026-09-17 because nothing forced a re-look — the same precedent `0283`'s and
    `0284`'s briefs both cite against themselves.
 3. **Why Medium and not High, stated honestly** *(superseded 2026-09-22 — the owner ruled `Low`; kept

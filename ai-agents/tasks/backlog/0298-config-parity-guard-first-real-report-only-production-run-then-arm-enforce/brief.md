@@ -12,6 +12,34 @@ Sprint 5
 ## Status
 🔲 Backlog
 
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> **Part A — the first real run, W12** (`./build-deploy.sh prod` → 0.0.152). Names and verdicts only, as
+> relayed:
+> - **Parity guard:** REQUIRED **0** on game / profile / client. Game INFO 6 (`DOCKER_TOKEN`,
+>   `OTEL_USERNAME`, `OTEL_PASSWORD`, `OTEL_ENDPOINT`, `BASIC_AUTH_USER`, `BASIC_AUTH_PASS`), ALLOWED 4.
+>   Client INFO 1 (`WEBSOCKET_URL`), ALLOWED 15, INERT 11. ⇒ **`0064`'s zero-required-violations prediction
+>   HELD** for the parity guard.
+> - **Value guard (prod):** REQUIRED **1** = `OTEL_AUTH_HEADER — forwarded but EMPTY` (the expected one —
+>   the 2026-09-25 note above); OPTIONAL 5 (`STORAGE_ENDPOINT`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`,
+>   `STORAGE_BUCKET`, `FEEDBACK_WEBHOOK_URL`); OK 18; UNCHECKED 6; last line `report-only — exit 0`.
+> - No `PROFILE_INTERNAL_TOKEN=` string in the deploy log.
+>
+> | Verification step | Verdict |
+> |---|---|
+> | 1 — worklog holds W12 (and W3/W7) output, no values | ⚠️ **partial.** W12 relayed (above). **W3/W7's guard output was not relayed**, and this folder has no worklog yet. |
+> | 2 — every REQUIRED / PARSE-FAILURE / DYNAMIC-READ line explained | ⚠️ **partial.** The one REQUIRED line is explained. **No PARSE-FAILURE / DYNAMIC-READ / VALUE-UNKNOWN line was mentioned either way** — confirm from the captured log. ⚠️ Whether each of the 7 INFO lines is **understood** is not yet recorded (Part A step 2). |
+> | 3–7 | Part B — not started. |
+>
+> 🚨 **Before arming:** `OTEL_AUTH_HEADER` needs a decision (e.g. an OPTIONAL entry), or `--enforce`
+> blocks every prod deploy.
+
 ## Owner
 fkit-coder
 

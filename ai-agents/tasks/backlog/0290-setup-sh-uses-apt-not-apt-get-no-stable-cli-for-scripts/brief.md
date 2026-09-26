@@ -54,7 +54,7 @@ one task.**
    **Low** — is still open pending an owner-executed box run.
 
 **The tradeoff, stated honestly.** The Backlog board has a **demonstrated hold-forever failure mode**:
-[`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from
+[`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from
 2026-08-23 to 2026-09-17 because nothing forced a re-look. This row may well do the same. **Accepted
 knowingly** — a latent scripting-contract issue in a script nothing automatically runs is the exact
 shape of work that *should* wait, and the alternative (a Sprint 4 row) spends attention the owner has

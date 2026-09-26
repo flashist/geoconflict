@@ -100,7 +100,7 @@ The `/internal/` boundary now has a concrete box-side evidence set: **eleven rea
 non-allowed host** (three case variants, four edge forms, four internal routes) **and one read-only probe
 from the allowed game box**. All are plain `curl`s, none changes anything on either box, and the whole
 set is cheap to re-run. [`0279`](../../backlog/0279-profile-internal-routes-no-rate-limiter-no-auth-failure-log/brief.md)
-(rate limiter / auth-failure logging) and [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+(rate limiter / auth-failure logging) and [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
 (XP go-live) should **re-run this set rather than rediscover it**.
 
 ---

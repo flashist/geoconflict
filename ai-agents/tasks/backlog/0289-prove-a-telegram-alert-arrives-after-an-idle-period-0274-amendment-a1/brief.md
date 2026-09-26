@@ -23,7 +23,7 @@ producer precedent.** The owner, verbatim:
 The owner was then shown a proposed list of four checkup tasks and chose **"Move all four"**:
 [`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md),
 [`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md),
-`0289` and [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
+`0289` and [`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
 
 **THE REASON, PLAINLY:** the final checkups happen **after the deploy**, when production can actually
 be observed. ✅ **Consistent with, and not a re-decision of, the 2026-09-19 ruling** that already
@@ -78,7 +78,7 @@ The reasoning is kept as the record of how it was ranked at filing time:
 
 1. **Once `0274` closes, nothing else on any board owns this.** Amendment A1 exists today only as prose
    inside `0274`'s brief and `0284`'s (already closed). That is the exact hold-forever shape
-   [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) demonstrated — it sat
+   [`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) demonstrated — it sat
    on the Backlog board from 2026-08-23 to 2026-09-17 because nothing forced a re-look. **Filing it is
    the owner's ruling; keeping it visible is why this row is on the sprint board.**
 2. **It is the release's own premise.** `0274` exists on the ruling *monitoring before go-live*. An alert
@@ -340,7 +340,7 @@ worklog must not round it up into one.**
     A1, which is a different thing — see the table at the top.**
   - [`0283`](../../done/0283-daily-digest-of-pending-name-change-reviews/brief.md) — the closest
     near-miss; **complements, does not cover.**
-  - [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) — the source of the
+  - [`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) — the source of the
     stale-connection hypothesis, **reproduced behaviourally in production 2026-09-17, NOT confirmed in
     code.**
   - [`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)

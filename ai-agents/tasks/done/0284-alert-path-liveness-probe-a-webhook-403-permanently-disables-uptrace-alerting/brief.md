@@ -31,7 +31,7 @@ ruled the **requirement** and the **ordering**. They did **not** rule which boar
 2. **The failure is unbounded, not one missed message.** A single `403` disables the channel for
    **every future alert**, permanently, with no retry and no log anybody reads.
 3. **The Backlog board has a demonstrated hold-forever failure mode.**
-   [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from
+   [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from
    2026-08-23 until 2026-09-17 because nothing forced a re-look — the same precedent
    [`0283`](../0283-daily-digest-of-pending-name-change-reviews/brief.md)'s brief names against itself.
 4. **The cost is small enough to fit behind `0277` in the same sprint** — see *Effort*.

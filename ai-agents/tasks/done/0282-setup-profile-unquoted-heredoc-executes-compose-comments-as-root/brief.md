@@ -16,7 +16,7 @@ High *(producer's rank — NOT owner-ruled)*
 ⚠️ Priority High is append rank, NOT a merit ranking — flagged for owner confirmation.
 **On merit this belongs directly below `0276`**, because it is the same file and the same class of
 defect (a deploy-time layer that is weaker than it reads), and because it should land **before** the
-next `setup-profile.sh` run on the box — which [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+next `setup-profile.sh` run on the box — which [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
 mandates in order to update `PROFILE_INTERNAL_ALLOW_IPS`. Appended at the bottom (ADR-035), not
 inserted.
 
@@ -144,7 +144,7 @@ deploy path that currently only corrupts comments** — not an exploited hole, a
 ## Notes
 
 - **Depends on:** nothing
-- **Blocks:** nothing. ⚠️ **It is not a blocker and must not be reported as one** — [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+- **Blocks:** nothing. ⚠️ **It is not a blocker and must not be reported as one** — [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
   can proceed without it. The Sprint 4 placement is about **riding `0217`'s deploy**, not about gating it.
 - **Sequencing (soft — merge-conflict avoidance, not a dependency):** [`0280`](../../backlog/0280-correct-stale-test-figures-in-claude-md-and-stale-profile-route-table-in-architecture-md/brief.md)
   item 3 also edits `setup-profile.sh` (moving one summary line inside the `PROFILE_DOMAIN` guard) and

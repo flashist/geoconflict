@@ -39,7 +39,7 @@ courtesy.
 Nothing.
 
 ⚠️ **Sequencing note, not a dependency:**
-[`0220`](../0220-profile-p5-secret-persistence-and-value-parity/brief.md) (P5 — secret persistence
+[`0220`](../../done/0220-profile-p5-secret-persistence-and-value-parity/brief.md) (P5 — secret persistence
 and value parity) touches the same env files. If both run, run them in either order but **re-read the
 files between them** — this task deletes variables and `0220` reconciles values, and each invalidates
 the other's snapshot.
@@ -182,7 +182,7 @@ Still set in the **local secret env file**, left over from the Yandex-ID hashing
 - **Related:** [`0016`](../0016-secret-management-beyond-env-files/brief.md),
   [`0045`](../0045-vps-registry-credential-hygiene/brief.md),
   [`0047`](../0047-deploy-transport-secret-hygiene/brief.md),
-  [`0220`](../0220-profile-p5-secret-persistence-and-value-parity/brief.md). **This task subsumes none
+  [`0220`](../../done/0220-profile-p5-secret-persistence-and-value-parity/brief.md). **This task subsumes none
   of them.**
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.

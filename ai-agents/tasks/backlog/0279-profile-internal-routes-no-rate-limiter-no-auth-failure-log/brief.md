@@ -131,7 +131,7 @@ not owner-ruled** — the plan may argue a different shape, but it must cover bo
 - **Depends on:** nothing
 - **Related:** [`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)
   (same defect family — `0276` restores the network layer, this restores the rate limit and the log;
-  neither is a substitute for the other), [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+  neither is a substitute for the other), [`0217`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
   (sets `PROFILE_INTERNAL_TOKEN` on both sides and is the task that first puts real traffic on these
   routes), [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (its
   `session.rejected` counter does **not** cover `internalAuth` — see Context)

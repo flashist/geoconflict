@@ -1,6 +1,6 @@
 # Review — 0273
 
-Task: `ai-agents/tasks/backlog/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md`
+Task: `ai-agents/tasks/done/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md`
 Plan under review: `plan.md` (owner-approved, blob `b161e4bb476f910cad3884cda93b14c65c3017e9`)
 File(s) under review: the S4 surface only — `src/client/ProfileSession.ts`, `src/client/GameRestart.ts`,
 `src/client/{PlayerProfileView,Inbox,NameChangeRequest,PaymentsApiClient,CitizenshipPurchase,CitizenshipCard,Main}.ts`,

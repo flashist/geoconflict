@@ -22,14 +22,14 @@ producer precedent.** The owner, verbatim:
 > the next sprint, so we do final checkups and figure out what's wrong with them after deploy."*
 
 The owner was then shown a proposed list of four checkup tasks and chose **"Move all four"**:
-[`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md),
-[`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md),
-[`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
+[`0238`](../../backlog/0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md),
+[`0285`](../../backlog/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md),
+[`0289`](../../backlog/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
 `0061`.
 
 **THE REASON, PLAINLY:** the final checkups happen **after the deploy**, when production can actually
 be observed. ✅ **Coherent with this task's own 2026-09-17 close condition and NOT a change to it:**
-the owner already ruled that `0061` **closes on [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s
+the owner already ruled that `0061` **closes on [`0273`](../../done/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s
 game deploy, once feedback delivery is observed working.** Sprint 5 is where that observation now
 lives. ⛔ **The close condition, the fix's shipped-ness, and the never-run investigation are all
 UNCHANGED** — see the 2026-09-17 disposition below.
@@ -50,7 +50,7 @@ first. Appended at the bottom of the open run (ADR-035), not inserted.
 *(was `Unscheduled — owner-ruled 2026-08-23 to stay on Backlog` until 2026-09-17.)*
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified) — **closed 2026-09-26 by a spawned `fkit-producer` on the owner's 2026-09-17 close condition below (*"closes on `0273`'s game deploy, once feedback delivery is observed working"*); the check was chosen by the owner live in the `fkit lead` session via `AskUserQuestion` (*"I'll send a test feedback"*) and relayed by `fkit-lead`; no owner channel in the spawn (ADR-021, ADR-033 §5).** ⛔ Not producer precedent. **Close condition met:** `0273`'s game deploy ran 2026-09-26 (version 0.0.152, W12 of the weekend runbook) and shipped the `Master.ts` half; the owner then sent **2 feedback messages from the live game's Feedback button — both arrived in the Telegram feedback chat almost immediately** (owner-run, reported live in that session). ⛔ **Required caveat, stated plainly: the cause was reproduced behaviourally and NEVER confirmed in code.** The stale-pooled-socket mechanism remains a hypothesis; the fix (retry-once on a connection-level failure + a bounded `err.cause` code, shipped via `0277` ND-2) is the deliverable, not a post-mortem. 🚩 **Residuals — do not read this close as more than it proves:** **(1) "works now", not "fixed for good"** — two successful sends on one day, straight after a fresh deploy (fresh process, fresh sockets), show delivery works *now*; they cannot show the past intermittent failure is gone, because that failure needed a stale or dead pooled socket, which a just-restarted process does not have. The retry is *expected* to cover it; nothing has observed it doing so in production. **(2) "diagnosable" is in-tree, not observed** — What-to-build step 1 shipped as a bounded cause code (`[feedback] telegram delivery failed: <CODE>`), unit-tested, but Verification step 1 (trigger a real failure in prod and see the cause) was **never run**. **(3) Verification step 5** (boot-scoped zero-failure log count) **never run**; steps **3, 4, 6** (webhook path, stdout fallback, no token in logs) are covered by unit tests only (`tests/server/MasterFeedbackRoutes.test.ts`, `tests/core/TelegramNotifier.test.ts`), not observed in prod. **(4) What-to-build step 4 — the silent-failure product decision — was never put to the owner:** if both attempts fail, the player is still answered `200` and their feedback is lost; only a log line records it. Worth a follow-up brief if the owner wants it. **(5)** Sustained delivery after an idle period is `0289`'s question, not this task's. · earlier: 🔲 Backlog
 
 ### 🔴 OWNER RULING — 2026-09-17: this task CLOSES ON `0273`'s GAME DEPLOY
 
@@ -63,7 +63,7 @@ relayed by `fkit-sprint-ship-loop` to a spawned `fkit-producer` that holds no ow
 | | |
 |---|---|
 | **The fix** | **SHIPPED IN-TREE**, inside [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md)'s ND-2 scope — `src/core/notifications/TelegramNotifier.ts` plus the two inline copies in `Master.ts`. Not written for this task; written once for all three consumers, as the *"one fix, three consumers"* section above says. |
-| **Deployed?** | **The profile-server side is DEPLOYED AND LIVE, 2026-09-17.** ⚠️ **The `Master.ts` player-feedback half — the half this task is actually about — is UNSHIPPED** until [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s game deploy. That, and only that, is what holds this task open. |
+| **Deployed?** | **The profile-server side is DEPLOYED AND LIVE, 2026-09-17.** ⚠️ **The `Master.ts` player-feedback half — the half this task is actually about — is UNSHIPPED** until [`0273`](../../done/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s game deploy. That, and only that, is what holds this task open. |
 | **The investigation** | ⚠️ **NEVER RUN.** The cause is a **hypothesis reproduced behaviourally and NEVER CONFIRMED IN CODE** — a module-level `ProxyAgent` handing out a dead pooled socket. Nobody read the failure path and proved it. |
 
 **The ruling:** once `0273`'s game deploy ships the `Master.ts` half and **feedback delivery is

@@ -28,7 +28,7 @@ producer precedent.** The owner, verbatim:
 The owner was then shown a proposed list of four checkup tasks and chose **"Move all four"**: `0238`,
 [`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md),
 [`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
-[`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
+[`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
 
 **THE REASON, PLAINLY:** the final checkups happen **after the deploy**, when production can actually
 be observed. For this task in particular that is not merely scheduling convenience — per
@@ -131,7 +131,7 @@ citizenship launch.*
 Sprint 4 Priority cell is `—`, and a spawned producer does not rank the owner's board.
 
 🔒 **ADR-035: the row was APPENDED at the bottom of
-[`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md)** — no row moved, nothing was renumbered, and
+[`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md)** — no row moved, nothing was renumbered, and
 no closed row was touched. **Bottom-of-board means *"added last"*, and nothing more.** The original
 [`backlog.md`](../../../sprints/backlog.md) row is **kept, not deleted**, and now reads
 `➡️ Moved to [Sprint 4](plan-sprint-4.md) — priority: unranked`.
@@ -325,7 +325,7 @@ arriving by a second route.
 **4. Still true, and worth keeping:** it needs **no profile box**, **no citizen rows**, and — per the
 finding below — **no production game deploy**.
 
-🔴 **EXPLICITLY INDEPENDENT OF [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+🔴 **EXPLICITLY INDEPENDENT OF [`0217`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
 AND OF CITIZEN ROWS EXISTING.** ⛔ **Do NOT fold this into `0217` as a sub-step.** It is a **different
 blocker with a different cause**: `0217` is about the game server being wired to the profile box;
 this is about **a dev-build bypass that makes the remote flag untestable locally**. The coder who

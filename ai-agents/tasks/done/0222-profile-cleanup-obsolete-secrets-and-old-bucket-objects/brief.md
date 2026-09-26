@@ -412,7 +412,7 @@ the top of this brief. Read it before relying on anything in this paragraph.**
    ruled and executed by the owner. Recorded in this brief, in
    [`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md), in
    [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) and on the
-   [Sprint 4](../../../sprints/plan-sprint-4.md) rows. **Which of the three: (c).** No paraphrase.
+   [Sprint 4](../../../sprints/done/plan-sprint-4.md) rows. **Which of the three: (c).** No paraphrase.
 2. ✅ **SATISFIED 2026-09-10 — the bucket is gone. Count: ZERO objects (it was empty).** 🔒 No object
    names, no keys, no bucket names in the record.
    ⚠️ **HONEST DEVIATION, recorded not hidden: it did NOT happen after `0218` proved the new backup

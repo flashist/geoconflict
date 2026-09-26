@@ -28,7 +28,7 @@ subsystem wholesale — without a profile row there is no purchase to attach.
 note.** That board is unranked (every Priority cell reads `—`), so row order encodes no rank there,
 and moving the row would insert above four `✅ Done` rows — barred by fkit's **ADR-035** (*a mid-board
 insertion is not the owner-ruled re-rank exception*).
-See the addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) for the full note.
+See the addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md) for the full note.
 
 > 📎 **ADR-035 is cited by name, not linked, on purpose** (link corrected 2026-08-28 under explicit
 > owner authorization, scoped to this link alone — nothing else in this brief was touched). It is one of
@@ -165,7 +165,7 @@ introduced the variable and the fail-closed behavior.
 > 2026-09-04 that **the same is true of `FEEDBACK_TELEGRAM_TOKEN`, `FEEDBACK_TELEGRAM_CHAT_ID` and
 > `TELEGRAM_PROXY_URL`** (`setup-profile.sh:392-395` do not follow the persist-or-reuse pattern at
 > `setup-profile.sh:357-368`). `POSTGRES_PASSWORD` is **exempt** — required, fails closed. The widened
-> scope is [`0220`](../../backlog/0220-profile-p5-secret-persistence-and-value-parity/brief.md) (P5).
+> scope is [`0220`](../0220-profile-p5-secret-persistence-and-value-parity/brief.md) (P5).
 > **This is a widening of the FINDING, never a defect in the FIX.**
 
 ### There is a second gap, in the operator-facing template

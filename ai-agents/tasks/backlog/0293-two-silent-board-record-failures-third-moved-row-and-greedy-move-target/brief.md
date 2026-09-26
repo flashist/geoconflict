@@ -197,7 +197,7 @@ explicitly before writing code for this.**
 
   ⇒ **Fixing `0050` completely would leave both findings here untouched, and vice versa.**
 - **Related:** the rows that exposed finding 1 —
-  [`0061-investigate-prod-telegram-feedback-delivery-failure`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md)
+  [`0061-investigate-prod-telegram-feedback-delivery-failure`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md)
   and
   [`0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md).
   ⛔ **Both were already corrected on 2026-09-22 and need nothing.** They are cited as **evidence**,

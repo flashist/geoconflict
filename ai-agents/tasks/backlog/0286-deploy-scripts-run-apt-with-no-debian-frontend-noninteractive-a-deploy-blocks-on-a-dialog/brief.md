@@ -13,7 +13,7 @@
 
 Sprint 5
 
-📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ## Priority
 🔴 **Low — OWNER-RULED 2026-09-22** *(ratified; the rank VALUE is UNCHANGED — `Low` was already the
@@ -50,7 +50,7 @@ kept as the record of how it was ranked at filing time:
    both end in a deploy — so the owner pays this toll again on each one.
 2. **The fix is minutes, not a day.** See *Effort*.
 3. **The Backlog board has a demonstrated hold-forever failure mode** —
-   [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from 2026-08-23 to
+   [`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) sat there from 2026-08-23 to
    2026-09-17 because nothing forced a re-look.
 
 **The tradeoff, stated honestly.** This adds a row to a board that already carries **24+ open rows**, for a
@@ -63,6 +63,29 @@ risk that only materialises if someone automates. **Low** rather than Medium is 
 🚧 Blocked — **built + reviewed 2026-09-20; open pending the OWNER-executed plan step 8.** Steps 1–7 complete. Stateful review round 1 closed out, **Codex coverage FULL** (`codex-cli 0.152.0`, read-only sandbox, exit 0) — verdict *Ready to merge (validation-gated)*; findings R1 + R2 applied on owner rulings, R3 left as a residual and routed to the producer to file separately. ⚠️ **No code work remains.** Gates re-run by `fkit-lead` INDEPENDENTLY of both workers: `bash -n` exit 0 · hardening harness `ALL PASS` · `npm test` **138 suites / 1870 tests** · `npm run lint` exit 0 · the three scripts show **+44 / -0** (zero deletions, so no `apt` line was touched — ruling D2 held by construction). 🚨 **Step 8 is the only remaining gate and it is the owner's**: `npm run deploy:telemetry` and `npm run deploy:profile` each running start to finish with **no prompt**, plus a read-only before/after `debconf-show` capture. ⛔ **Nothing verified here is evidence that a real deploy is prompt-free** — every claim about debconf defaults, `needrestart` and the boxes' distro is a PREDICTION until step 8 runs. ⚠️ And it must never be written up as *“the deploy can no longer hang”*: it can no longer hang on a **debconf** prompt; a **dpkg conffile** prompt is NOT covered (residual R1 in the worklog, owner-ruled D3 to record rather than close).
 
 · earlier: 🔄 In progress — driven from the `fkit lead` session by `/fkit-sprint-ship-loop`, started 2026-09-19 (plan step). **Started on an OWNER RULING given live via `AskUserQuestion` and relayed by `fkit-lead`: drive it now, ahead of the three owner-side profile-box live tails, because this is the defect that hangs such a deploy on an invisible dialog.** ⛔ The brief's *raise-do-not-settle* question — whether `apt-get upgrade -y` belongs in a deploy at all — is **NOT settled by that ruling** and goes to the owner at the plan gate.
+
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> **Plan step 8 ran.** Before (W0.2): profile box Ubuntu **26.04.1 LTS**, `console-setup`
+> `CODESET="Uni2"`, `needrestart` **3.11-1ubuntu2**; telemetry box Ubuntu **24.04.5 LTS** (first time this
+> box's distro is recorded anywhere), `CODESET="guess"`, `needrestart` **3.6-7ubuntu4.5**.
+>
+> | Verification step | Verdict |
+> |---|---|
+> | 1 — telemetry deploy, no prompt | ✅ W2: completed; **owner reported no prompt**. "After" capture **byte-identical** to "before" (**(lead)** compared all 34 debconf lines order-insensitively + both `/etc/default` files + `needrestart` + `os-release`) ⇒ the prediction held: the fix changed **no box state** on the box where the defect was seen. |
+> | 2 — profile deploy, no prompt | ✅ W3: **no debconf/whiptail prompt** in the full log (lead read it). ⚠️ No profile-box "after" capture was reported. ⚠️ W3's **first** attempt failed **locally** at image build (`canvas` download timeout → `node-gyp` needs Python, absent in `node:24-slim`) — **unrelated to this task**, nothing reached the box. |
+> | 3–5 | Local; green before the window (W1). Not re-run. |
+>
+> ⚠️ **Still true, not softened:** a clean run proves no **debconf** prompt. A **dpkg conffile** prompt is
+> still not covered (residual R1, ruling D3).
+> 🚩 **Still owed:** the worklog note — date + package names (runbook W2; *What to build* 4). **Not written
+> by this note.**
 
 ## Owner
 fkit-coder

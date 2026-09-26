@@ -20,7 +20,7 @@ fkit-coder
 **FILED 2026-09-22** by a spawned `fkit-producer` with **no owner channel of its own** (ADR-021), on an
 **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`** and relayed by `fkit-lead`.
 Shown that the weekend deploy slot's third profile deploy existed **only** to satisfy
-[`0220`](../0220-profile-p5-secret-persistence-and-value-parity/brief.md)'s verification step 3, and
+[`0220`](../../done/0220-profile-p5-secret-persistence-and-value-parity/brief.md)'s verification step 3, and
 that no brief said **which** of the four values to rotate, the owner chose **"Skip it now, file it
 separately"**, reasoning that `0220` should close with *"a recorded, deliberate gap rather than an
 unnoticed one."*
@@ -106,7 +106,7 @@ running it:
   persistence** (`setup-profile.sh:122` defaults it to empty) and an empty value renders a bare
   `deny all` — **403 for everyone**. A 403 to the monitoring box **permanently and silently disables the
   alert channel** (`alert-delivery-runbook.md`). ⇒ **APPEND, never replace.** See
-  [`0295`](../0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md).
+  [`0295`](../../done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md).
 - ⛔ **No profile deploy between 02:00 and 03:15 UTC**, and none overlapping a backup/restore drill.
 - ⚠️ **A profile deploy recreates BOTH containers (postgres included) and overwrites today's daily
   backup object.** Expected, not a fault.
@@ -129,10 +129,10 @@ running it:
 - **Effort:** small — one deploy plus one observation, **if** the method question is settled first.
   ⚠️ **The decision is the expensive part, not the deploy.**
 - **Depends on:** nothing technically. It rides the same `npm run deploy:profile` path
-  [`0220`](../0220-profile-p5-secret-persistence-and-value-parity/brief.md) already shipped.
+  [`0220`](../../done/0220-profile-p5-secret-persistence-and-value-parity/brief.md) already shipped.
 - **Blocks:** nothing today. ⚠️ **But `0220` cannot honestly claim its verification step 3 until this
   runs** — the gap is recorded in `0220`'s brief and must be restated at its close.
-- **Related:** [`0220`](../0220-profile-p5-secret-persistence-and-value-parity/brief.md) (the parent
+- **Related:** [`0220`](../../done/0220-profile-p5-secret-persistence-and-value-parity/brief.md) (the parent
   property), [`0195`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md) (the
   forwarding gap `0220` widened), [`0201`](../../done/0201-gate-the-shell-test-harnesses-so-they-cannot-rot-unrun/brief.md)
   (what gates T13 today).

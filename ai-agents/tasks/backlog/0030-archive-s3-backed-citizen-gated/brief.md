@@ -29,7 +29,7 @@ moved alone.** What the four `0030` mentions actually are:
 |---|---|---|
 | [`0186-personal-data-compliance-investigation`](../../done/0186-personal-data-compliance-investigation/brief.md) | a dependency (retention/deletion) | ⛔ **No — `✅ Done`** |
 | [`0048-compliance-152fz-notification-consent`](../0048-compliance-152fz-notification-consent/brief.md) | *"named only as a PII surface to resolve, **not as a prerequisite**"* — its own words; its `Depends on:` bullet reads **"no task"** | Live, but **not a dependent**. Backlog board, not Sprint 4 |
-| [`0217-profile-p2-wire-game-server-to-profile-box`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) | an **exclusion**-list entry on the XP go-live condition (*"`0030` (hard-blocked on `0017`/`0018`)"*) | Live, but **not a dependent** — it was already excluded, so this move changes nothing there |
+| [`0217-profile-p2-wire-game-server-to-profile-box`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md) | an **exclusion**-list entry on the XP go-live condition (*"`0030` (hard-blocked on `0017`/`0018`)"*) | Live, but **not a dependent** — it was already excluded, so this move changes nothing there |
 | [`0050-reconcile-sprint-field-values`](../0050-reconcile-sprint-field-values/brief.md) | a worked **example** of `## Sprint`-field truncation | Live, but **not a dependent**. Backlog board |
 
 The only `Depends on:` line naming `0030` anywhere is **this brief's own**.

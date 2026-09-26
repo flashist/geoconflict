@@ -190,7 +190,7 @@ drill") against the `006` schema, **using the runbook commands as updated in Par
 ## Notes
 
 - **Depends on:** [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1 — the `006` schema, done and deployed 2026-09-15)
-- **Blocks:** [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
+- **Blocks:** [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
 - **Order inside the task:** Part A before Part B — the drill uses the runbook as corrected in Part A.
 - **Timing:** Part B before `0273` (S4) is deployed — see *Context*. Can run in parallel with `0271`,
   `0272`, `0274`.

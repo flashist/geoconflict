@@ -4,7 +4,7 @@
 0271
 
 ## Parent / Epic
-[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../../backlog/0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
+[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../../done/0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
 
 ## Sprint
 Sprint 4
@@ -142,14 +142,14 @@ probes from a non-allowed host** (three case variants, four edge forms, four int
 read-only probe from the allowed game box**, the latter returning **401** — proof the allowlist still
 lets the game server reach `internalAuth`. All plain `curl`s, nothing changed, cheap to re-run.
 [`0279`](../../backlog/0279-profile-internal-routes-no-rate-limiter-no-auth-failure-log/brief.md) and
-[`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) should **re-run that set
+[`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) should **re-run that set
 rather than rediscover it**.
 
 ## Notes
 
 - **Depends on:** [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1)
-- **Blocks:** [`0273`](../../backlog/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5), [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
-- **Can run in parallel with** [`0272`](../../backlog/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3) after S1 — both touch `src/profile-server/Routes.ts` (S2 public routes, S3 internal routes); the driver should expect a merge.
+- **Blocks:** [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5), [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
+- **Can run in parallel with** [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3) after S1 — both touch `src/profile-server/Routes.ts` (S2 public routes, S3 internal routes); the driver should expect a merge.
 - **Effort (design §9):** 2–2.5 days.
 - **Deploys:** profile box only; safe alone thanks to the legacy fallback.
 - 🔒 No secrets, hosts or player ids in any artifact — variable names only.

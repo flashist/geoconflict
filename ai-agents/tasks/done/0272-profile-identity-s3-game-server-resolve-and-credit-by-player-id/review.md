@@ -1,6 +1,6 @@
 # Review — 0272
 
-Task: ai-agents/tasks/backlog/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md
+Task: ai-agents/tasks/done/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md
 File(s) under review: src/core/profile/{CreditContract,InboxContract,MatchQualification}.ts · src/profile-server/{Routes (S3 internal-route hunks),PlayerIdentityRepository}.ts · src/server/{ProfileApiClient,Client,GameServer}.ts · setup-profile.sh (migration-failure message + comment) · tests/core/profile/{CreditContract,MatchQualification}.test.ts · tests/server/{ProfileApiClient,GameServerParticipation,GameServerProfileResolve,CitizenFlag,GameServerReconnect,GameServerWinner}.test.ts · tests/profile-server/Routes.test.ts · tests/integration/{Routes.it,GameServerProfileCredit.it}.test.ts
 Status: closed-out
 

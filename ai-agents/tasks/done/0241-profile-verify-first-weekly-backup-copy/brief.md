@@ -67,7 +67,7 @@ and a monitor built on a broken producer is worse than no monitor, because it ma
 ### ⚠️ Two things the verifier must already know, or they will misread what they find
 
 1. **Sunday's run will capture an EMPTY database.** `0218`'s drill data (76 synthetic rows) was
-   **deliberately removed on 2026-09-11**, and [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+   **deliberately removed on 2026-09-11**, and [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
    — the task that wires the game server and creates real rows — **has not run.** So a weekly object of
    roughly the empty-dump size is **correct and expected**, not a failure. ⛔ **Do not read "small
    object" as "broken backup."**
@@ -128,7 +128,7 @@ answer exists.**
 - **Discovered by [`0218`](../0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md)**
   (residual 3), which proved the restore path and the nightly schedule but **never exercised the weekly
   path.**
-- ⚠️ **If [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) lands before this runs,
+- ⚠️ **If [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) lands before this runs,
   the premise in *Context* changes** — the database would no longer be empty, and the expected object
   size changes with it. **Re-read the context before acting; do not assume "empty" still holds.**
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.

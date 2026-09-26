@@ -135,7 +135,7 @@ nothing logs above `debug`.
 🚨 **CORRECTED 2026-09-10 — the *"nothing logs above `debug`" / "silently swallowed"* half is REFUTED against the source.** A 401 (and a 403) is a non-5xx, non-429 4xx, so `postWithRetry` stops immediately and logs at **WARN — twice per failed batch**: `src/server/ProfileApiClient.ts:265-267` (`` `profile ${path} returned ${response.status}; not retrying` ``, inside the `status < 500 && status !== 429` guard at `src/server/ProfileApiClient.ts:264`) and `src/server/ProfileApiClient.ts:146-149` (`` `credit batch failed after retries; N award(s) dropped …` ``). **Frame `589249c` — `ProfileApiClient.ts` is clean at that commit, so these two numbers are stable.** ⛔ **THE XP-LOSS HALF IS UNTOUCHED AND STANDS IN FULL — the awards are DROPPED, never queued.** 🔴 It still goes unnoticed, because **nothing on that box reads the logs** (`0219`, **OPEN**) — **a warning nobody reads fails as quietly as no warning at all.**
 
 ➡️ **Generate it ONCE and set the SAME value on both sides** — the game
-side is [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2).
+side is [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2).
 
 ⚠️ **Owner ruling 2026-09-04: `PROFILE_INTERNAL_TOKEN` stays deliberately BLANK for the upcoming GAME
 deploy** — citizenship is not ready. That governs the **game** side and does **not** license letting

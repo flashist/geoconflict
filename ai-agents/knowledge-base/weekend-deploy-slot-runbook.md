@@ -1,5 +1,10 @@
 # Weekend deploy-slot runbook — one window, eleven tasks, four deploys
 
+> ## ✅ 2026-09-26 — THE WINDOW RAN (W0–W14; W14's acceptance criterion MET). Results: § *2026-09-26 — THE WINDOW RAN* at the end of this file.
+>
+> Owner-executed, output read by `fkit-lead`, recorded by a spawned `fkit-producer` (ADR-021). ⛔ **The
+> banner directly below was true when written and is superseded, not deleted.** W15 is still running.
+
 > ## 🚨 THE WINDOW HAS NOT HAPPENED. **THE SLOT SLIPPED — OWNER CONFIRMATION, 2026-09-22.**
 >
 > **AUTHORITY.** An **OWNER CONFIRMATION given live in the `fkit lead` session via `AskUserQuestion` on
@@ -41,7 +46,7 @@
 > by accident of the cut, not by edit.** Two new tasks carry the removed work:
 > [`0294`](../tasks/backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md)
 > (Backlog) and
-> [`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
+> [`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
 > (Sprint 5). ⛔ **No task's `## Status` was touched and no mover skill was invoked.**
 
 > ## 📛 RULING LETTERS IN THIS RUNBOOK ARE NAMESPACED `RUNBOOK-…` — 2026-09-22
@@ -50,10 +55,10 @@
 >
 > **What happened.** On 2026-09-22 **two independent ruling sequences were issued, both lettered A–G,
 > both dated the same day**: one governing the **sprint plans**
-> ([`plan-sprint-4.md`](../sprints/plan-sprint-4.md) / [`plan-sprint-5.md`](../sprints/plan-sprint-5.md)),
+> ([`plan-sprint-4.md`](../sprints/done/plan-sprint-4.md) / [`plan-sprint-5.md`](../sprints/plan-sprint-5.md)),
 > one governing **this runbook** and the briefs it drives. A document citing *"Ruling E"* therefore meant
 > **one of two different things depending on which file you were standing in** —
-> [`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
+> [`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
 > cites both sets, which is where it actually bit.
 >
 > ⚠️ **CAUSE, recorded so it is not mis-assigned: `fkit-lead` issued both sets, in separate spawns,
@@ -79,7 +84,7 @@
 > | `Ruling A` *(runbook context)* | **`RUNBOOK-A`** | ***Conflicts*, C1** | `0065` step 3 is **OUT** of this window |
 > | `Ruling B` *(runbook context)* | **`RUNBOOK-B`** | ***Conflicts*, C2** | 🚨 **TWO PARTS — write both.** **(1)** `0220` §8 step 3 (the rotation / **W8**) is **OUT** of this window, **AND (2)** it is **filed separately** ⇒ [`0294`](../tasks/backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md). ⚠️ **Citing it for the removal alone loses WHY `0294` exists** — the owner's point was *"`0220` closes with a recorded, deliberate gap rather than an unnoticed one."* |
 > | `Ruling C` *(runbook context)* | **`RUNBOOK-C`** | ***Gaps*, G1** | **No rollback / abort section will be written** — *"Skip it — I know the boxes."* |
-> | `Ruling D` *(runbook context)* | **`RUNBOOK-D`** | ***Conflicts*, C3** | the egress-IP work becomes a task on **Sprint 5** ⇒ [`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md) |
+> | `Ruling D` *(runbook context)* | **`RUNBOOK-D`** | ***Conflicts*, C3** | the egress-IP work becomes a task on **Sprint 5** ⇒ [`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md) |
 > | `Ruling E` *(runbook context)* | **`RUNBOOK-E`** | W0.1, and `0295`'s brief | **measure the egress IP at W0 anyway** — ⛔ Sprint 5 placement is not permission to skip it |
 > | `Ruling F` *(runbook context)* | **`RUNBOOK-F`** | `0294`'s brief | `0294` **stays on the Backlog board** |
 > | `Ruling G` *(runbook context)* | **`RUNBOOK-G`** | `0220`'s brief | `0220` **may close with the gap recorded** — ⛔ authorizes the *wording*, not a close |
@@ -101,9 +106,9 @@
 >
 > | Sequence | Letters | Where it lives | Outcome |
 > |---|---|---|---|
-> | **2026-09-02** | `Ruling A`…`Ruling D` | [`backlog.md`](../sprints/backlog.md), `0021`/`0024`/`0028` briefs, and [`plan-sprint-4.md`](../sprints/plan-sprint-4.md)'s Backlog-board rows | ⛔ **LEFT AS IS** |
+> | **2026-09-02** | `Ruling A`…`Ruling D` | [`backlog.md`](../sprints/backlog.md), `0021`/`0024`/`0028` briefs, and [`plan-sprint-4.md`](../sprints/done/plan-sprint-4.md)'s Backlog-board rows | ⛔ **LEFT AS IS** |
 > | **2026-09-17** | `Ruling A`/`Ruling B` | ADR-114 | ⛔ **LEFT AS IS** |
-> | **2026-09-22 — sprint plans** | `RULING A`…`RULING G` | [`plan-sprint-4.md`](../sprints/plan-sprint-4.md), [`plan-sprint-5.md`](../sprints/plan-sprint-5.md) | ⛔ **LEFT AS IS** |
+> | **2026-09-22 — sprint plans** | `RULING A`…`RULING G` | [`plan-sprint-4.md`](../sprints/done/plan-sprint-4.md), [`plan-sprint-5.md`](../sprints/plan-sprint-5.md) | ⛔ **LEFT AS IS** |
 > | **2026-09-22 — this runbook** | `RULING A`…`RULING G` | this file + the briefs it drives | ✅ **NAMESPACED → `RUNBOOK-A`…`RUNBOOK-G`** |
 >
 > **AUTHORITY.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
@@ -121,7 +126,7 @@
 > ### ⇒ **The test is "IS IT BEING CITED NOW", ⛔ NOT "is it ambiguous in principle."**
 >
 > - **The runbook set was namespaced because a LIVE document cited two meanings of one letter** —
->   [`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
+>   [`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
 >   cites **both** 2026-09-22 sets, and its `RULING E` meant two different rulings depending on which
 >   file you stood in. **That is an active document giving a reader a wrong answer.**
 > - **The older sets have no such problem.** Nothing active cites them; they are closed files describing
@@ -217,7 +222,7 @@ The observation steps are placed immediately after the deploy for exactly this r
 `0217` step 3 tells you to **update `PROFILE_INTERNAL_ALLOW_IPS` to the current game-prod egress IP.**
 
 📌 **That work is now a task:
-[`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
+[`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
 on [Sprint 5](../sprints/plan-sprint-5.md)** (C3 ruling, 2026-09-22), and **the whole of this trap is
 carried into that brief.** ⚠️ **The measurement is still UNDONE** — read on.
 
@@ -314,7 +319,7 @@ wrong now than mid-slot.
    gitignored profile env file — *appending*, per the allowlist trap above.
    *Source:* `0217` § *What to build* 3 — *"The current egress IP must be measured, not assumed"*; the
    pinned value is from June. *Record the METHOD, never the address* (`0217` verification step 7).
-   ✅ **THIS NOW HAS AN OWNER: [`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
+   ✅ **THIS NOW HAS AN OWNER: [`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)
    on [Sprint 5](../sprints/plan-sprint-5.md)**, by the C3 owner ruling of 2026-09-22 — *"Record as a
    task, add it to the Sprint 5, not the current Sprint 4."*
 
@@ -1147,7 +1152,7 @@ one edit.
 W8 tombstone in the sequence above.
 
 ⛔ **`0220`'s `## Status` was NOT touched and no mover skill was invoked.** The gap is recorded in
-[`0220`'s brief](../tasks/backlog/0220-profile-p5-secret-persistence-and-value-parity/brief.md).
+[`0220`'s brief](../tasks/done/0220-profile-p5-secret-persistence-and-value-parity/brief.md).
 
 🚨 **RECORD THE REASON THE STEP EXISTS — this is the whole point of the follow-up task, and it nearly
 did not survive.** The owner's **first** instinct was *"rotate nothing, we don't know why the step
@@ -1190,7 +1195,7 @@ the owner's.**
 > **The owner's words, verbatim:** *"Record as a task, add it to the Sprint 5, not the current
 > Sprint 4."*
 
-⇒ 📌 **FILED AS [`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)**
+⇒ 📌 **FILED AS [`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)**
 on **[Sprint 5](../sprints/plan-sprint-5.md)**. ⛔ **Sprint 5 explicitly — not Sprint 4, not the Backlog
 board.** ⚠️ **Sprint 5 is not the active sprint: this SCHEDULES the work, it does not start it.**
 
@@ -1242,7 +1247,7 @@ who decides. The sequence has **one hard natural abort point (W2/W3, on a prompt
 
 **G2 — No brief defines HOW to measure the game-prod egress IP.** `0217` requires the *method* to be
 recorded and the address never to be; it does not say what the method is.
-✅ **NOW OWNED:** this is [`0295`](../tasks/backlog/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)'s
+✅ **NOW OWNED:** this is [`0295`](../tasks/done/0295-measure-the-game-prod-egress-ip-and-append-it-to-the-profile-internal-allowlist/brief.md)'s
 to settle — the task explicitly owns choosing a method and writing it down. See C3. ⚠️ **Still a gap
 until `0295` runs; it has an owner now, not an answer.**
 
@@ -1321,3 +1326,94 @@ summary.** The mechanism was **established from the repo, not authored**: it is 
 | `ai-agents/knowledge-base/profile-backup-restore-runbook.md` | The backup/restore path a deploy's smoke backup touches |
 | `ai-agents/knowledge-base/container-log-retention.md` | What `0219`-G1 changes, and the `:5-6` disclaimer `0219` corrects |
 | `0219/worklog.md` § *Part B*, `0220/plan.md` §8, `0221/worklog.md` § *Part B*, `0286/plan.md` § *3*, `0062/worklog.md` § *Deploy-pending* (now `tasks/done/`; results go to `0296`), `0273/plan.md` §4.6, `0032/worklog.md` § *Step 5* | The step text every checkbox above is drawn from — **check any line against its source** |
+
+---
+
+## 📌 2026-09-26 — THE WINDOW RAN. RESULTS, W0–W14, plus the W16 Sprint 4 close (appended; nothing above renumbered, ADR-035)
+
+**AUTHORITY / PROVENANCE.** Every step below was **executed by the OWNER on the boxes on 2026-09-26**, with
+the output pasted into the `fkit lead` session and **read and checked by `fkit-lead`**. Rows marked
+**(lead)** are read-only checks `fkit-lead` ran itself from a **non-allowed** host. Recorded by a spawned
+`fkit-producer` with **no owner channel** (ADR-021). ⛔ **The producer observed none of it** — this is
+relayed evidence, not an owner ruling and not producer precedent. ⛔ **No task's `## Status` was changed
+by this section and no task mover was invoked.** The checkboxes in the sequence above are **left as
+written**; this section is the record of what happened.
+
+🔒 **Names, verdicts, counts and times only.** No address, hostname, token, bucket name or value.
+
+| Step | Task / step | What happened | Verdict |
+|---|---|---|---|
+| **W0.1** | `0295` · `0217` Q4 / V7 | Game-prod egress measured **from the game box itself**: `curl -4 -s https://api.ipify.org`; IPv6 probe `curl -6 https://api64.ipify.org` returned nothing ⇒ **IPv4-only egress**. The address was **ALREADY in** `PROFILE_INTERNAL_ALLOW_IPS`, so the list was **not touched** (2 entries, count only). 📌 The variable lives in the gitignored **`.env.profile`**, not `.env.profile.secret`. | ✅ measured; no edit needed |
+| **W0.2** | `0286` step 8 "before" | Profile box: Ubuntu **26.04.1 LTS**, `console-setup` `CODESET="Uni2"`, `needrestart` **3.11-1ubuntu2**. Telemetry box: Ubuntu **24.04.5 LTS** (📌 **first time this box's distro is recorded anywhere** — closes the W0.2 note above), `CODESET="guess"`, `needrestart` **3.6-7ubuntu4.5**. | ✅ captured before any deploy |
+| **W0.3** | `0220` × `0217` collision | Verified in the tree 2026-09-22 (above); nothing new. | ✅ (pre-window) |
+| **W0.4** | `0221` lock-out guard | First SSH session opened and **held** through W3/W4. | ✅ |
+| **W0.5** | G4 snapshot | Newest daily object `profile-2026-09-26.dump.age` copied to `pre-window/`; sizes match (**22248** bytes both). ⚠️ Residuals unchanged: encrypted, box cannot decrypt, **nothing deletes it** — remove by hand (W15). | ✅ |
+| **W0.6** | — | No action (owner ruling 2026-09-25: keep the ping URL). | — |
+| **W2** | `0286` V1 | `npm run deploy:telemetry` completed; **owner reported no prompt**. "After" capture **byte-identical** to "before" — `fkit-lead` compared all **34** debconf lines order-insensitively, plus the two `/etc/default` files, `needrestart` and `os-release`. ⇒ the prediction held: the noninteractive fix **changed no box state** on the box where the defect was observed. | ✅ |
+| **W3** | `0286` V2 · `0219`-B4 · `0220` §8 step 1 · `0221`-B1 · `0253` route | 🚩 **First attempt failed LOCALLY at image build**: the `canvas` prebuilt-binary download timed out, the `node-gyp` fallback needs Python, and `node:24-slim` has none. **Nothing reached the box.** The re-run succeeded. From the full log (lead read it): **no debconf/whiptail prompt**; `Using … from environment` for `PROFILE_INTERNAL_TOKEN` + the four `0220` secrets; value parity **0 findings / 13 ok**; `PRUNING` kept current + previous + postgres-in-use, **removed 2** images (not the predicted ~9); `checks.sh` installed, cron set, smoke backup OK; unattended-upgrades Allowed-Origins **security-only**; fail2ban `sshd` jail up; four `✅ sshd:` lines (password auth off, root `prohibit-password`); `profile-api` recreated + healthy; migrations **001–004 and 006 "already applied", no 005**; `alerting: yes` (as expected since the 2026-09-25 ruling). **(lead)** `/health` 200, `/ready` 200, `POST /v1/profile/tenure-grant` → **400** on an empty body ⇒ **the `0253` route is live** ⇒ 🚨 **the ADR-112 claim-on-behalf risk is OPEN from W3, 2026-09-26** (`0268` closes it). | ✅ (with the build-fragility finding F-A below) |
+| **W4** | `0221`-B2 / V3 | New key session works; the **5** persist files are `600 root` (`.internal_token`, `.yandex_payments_secret`, `.feedback_telegram_token`, `.feedback_telegram_chat_id`, `.telegram_proxy_url`); password login refused `Permission denied (publickey)`. | ✅ |
+| **W5** | `0219`-B6 / V2 | Previous profile image `e411d315…` → `docker image inspect` OK ⇒ **rollback image survived**. ⚠️ The **in-use** postgres image `3c5c8892…` was **untagged (`<none>`)**, so it did not show in `docker images`. See F-C. | ⚠️ partial — rollback image ✅, postgres handling ❌ (F-C) |
+| **W5** | `0219`-B5 / V1 | Both containers `json-file`, `max-size 100m` / `max-file 10`. Rotation **observed** with a throwaway container (1m / 2 files → `-json.log.1` appeared at ~1,000,031 bytes); container removed. ⚠️ **Side effect (lead's instruction error):** the test pulled an unneeded `postgres:16` image (642 MB). Owner told to `docker rmi postgres:16` — **removal not confirmed.** | ✅ (cleanup owed) |
+| **W6** | `0217` V8 / Q9 · V9 | W3's migrate output shows **001–004 and 006 already applied, no 005** ⇒ **`0217` Q9 ANSWERED: `004` was ALREADY deployed before 2026-09-26.** Name-change routes not-404: **(lead)** `name-change-request` → 400, `name-change-cancel` → 401 (a made-up control route → 404); owner on-box, loopback, internal `decide` route → 401. | ✅ |
+| **W7** | `0220` §8 step 2 / V1–V2 | The four secrets hidden locally for one deploy (lines commented out, backups kept, restored straight after — **(lead)** verified all 4 set again and the backups gone). Log: `Reusing persisted <NAME>` ×4 (`YANDEX_PAYMENTS_SECRET`, `FEEDBACK_TELEGRAM_TOKEN`, `FEEDBACK_TELEGRAM_CHAT_ID`, `TELEGRAM_PROXY_URL`); on box `grep -c '^NAME=.\+$' profile.env` → **1 each**; container `not set` warnings → **0**. ⛔ **Step 3 (rotation) NOT run** — C2 ruling → `0294`. | ✅ step 2 · ⛔ step 3 deliberately not run |
+| **W9** | `0221`-B3 / V2 | 6 failed auths (non-existent user, throwaway key) **from the game box** → `Total failed 6`, `Currently banned 1`, `Ban` line at **08:39:45 UTC**; then **explicit unban** (`unbanip` → 1), **not** the 1 h expiry. Also seen: a **real internet attacker** banned at 07:34 UTC before W3 (default config), kept across both deploys, **expired after 1 h**. | ✅ ban observed · expiry seen only on the real attacker's ban |
+| **W9** | `0221`-B4 / V1 | Evidence = the dry-run allowed-origins line (security-only) from W3/W7. A real scheduled run is only **indirectly** evidenced (the 2026-09-25 `reboot-required` alert implies an applied upgrade). A real-run log grep was offered, **not run**. | ⚠️ partial |
+| **W10** | `0221`-B6 / V6 | `docker compose stop profile-api` in **0.4 s**; logs `SIGTERM received — draining (deadline 8000ms)`, `http server closed — in-flight requests drained`, `pg pool closed`; exit code **0**; restarted. ⚠️ The `/ready` loop showed only `000` — the stop finished before its first request, so **no in-flight request was observed completing**; the drain log + exit code are the evidence. | ⚠️ partial (clean exit ✅, in-flight completion not shown) |
+| **W10** | `0221`-B5 / V5 | `systemctl is-active profile` → active. `systemctl restart docker` → both containers Up (healthy) **but CREATED ~19 s earlier** ⇒ **recreated by the systemd `profile` unit**, not restarted by `unless-stopped` ⇒ "survives a daemon restart" is shown in **outcome, not mechanism**. Reboot → **(lead)** `/ready` 502 → 200 in ~20 s; both Up; `no reboot pending`; manual `checks.sh` → **12 ok, 0 failed**, `ping: success delivered` (should close Better Stack's `profile-daily-checks` incident — **not confirmed in the UI**). | ⚠️ daemon-restart half partial · reboot half ✅ |
+| **W10** | `0219` — **finding** | 🚨 **Unplanned Postgres minor upgrade.** See F-C. | ❌ finding filed on `0219` |
+| **W11** | `0296`-A1 · `0276` baseline · `0217` steps 1–2 | A1 verdict script → **`MATCH`**. **(lead)** from a non-allowed host: **11/11 → 403** (`/INTERNAL`, `/Internal`, `/iNtErNaL`, `/%49NTERNAL`, `//internal`, `/./internal`, trailing slash, and all four internal routes). Owner from the game box: `POST /internal/v1/credit` → **401** ⇒ a later 403 is the allowlist, a 401 the token. **(lead)** verdicts only: game-side `PROFILE_API_URL` set (https, profile domain); `PROFILE_INTERNAL_TOKEN` set and **equal** to the profile side's. | ✅ |
+| **W12** | `0298` Part A · carries `0272`/`0273`/`0032` | `./build-deploy.sh prod` → version **0.0.152**, commit `e646362`, tag `0.0.152`, image tag `20260926-114942`; tree clean first (HEAD `f67c2dd`). **Parity guard:** REQUIRED **0** on game / profile / client; game INFO 6 (`DOCKER_TOKEN`, `OTEL_USERNAME`, `OTEL_PASSWORD`, `OTEL_ENDPOINT`, `BASIC_AUTH_USER`, `BASIC_AUTH_PASS`), ALLOWED 4; client INFO 1 (`WEBSOCKET_URL`), ALLOWED 15, INERT 11. **Value guard (prod):** REQUIRED **1** = `OTEL_AUTH_HEADER — forwarded but EMPTY` (the expected one, `0298`'s 2026-09-25 note); OPTIONAL 5 (`STORAGE_ENDPOINT`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_BUCKET`, `FEEDBACK_WEBHOOK_URL`); OK 18; UNCHECKED 6; last line `report-only — exit 0`. No `PROFILE_INTERNAL_TOKEN=` string in the deploy log. 🚩 See F-D (rollback image deleted). | ✅ ran clean, report-only |
+| **W13** | `0296`-A2/A4 · `0273` | In container: **`NONEMPTY`** (source non-empty, per W11). Partial-config warning count **0**; token string in game logs **0** (checked via `grep -f`, value never printed); profile-api error-level lines since boot **0**. Profile DB: **41 players, 41 `player_identities`** (0 before) ⇒ real players' logins are landing. ~~⚠️ **The browser check — exactly one `POST /v1/login` per logged-in load, zero for guests — was NOT done.**~~ ✅ **Browser check DONE later the same day** (owner-run, owner-reported): Chrome DevTools → Network, filter `login`, live game — logged-in load → **exactly one** `POST /v1/login` (200); guest load (incognito, not logged in to Yandex) → **zero**. ⚠️ Unchanged: with the card off, Bearer on the other profile callers rests on client tests, not production. | ✅ A2/A4 · ✅ `0273` browser check |
+| **W14** | `0296`-A3 · `0217` V1/V3 · `0272` live | ✅ **ACCEPTANCE CRITERION MET — BOTH halves of the owner's stop condition.** `player_match_xp_credits`: **13 rows, 5 distinct games, 13 XP** (1 XP per credit — the ADR-111 rule); **9 players with xp > 0**; profile error lines **0**. Game log: repeated `match credit results: 1 credited, 0 duplicate, 0 no_profile, 0 error` (09:01–09:17 UTC); no error-level profile lines. ⚠️ See F-B (resolve timeouts). | ✅ |
+| **W16** | Close Sprint 4 · Sprint 4 rescope Q7 | `/fkit-sprint-done` run on Sprint 4 by a spawned `fkit-producer` on 2026-09-26, after W12–W14. Banner: `✅ Done — 2026-09-26 … (agent-closed — not owner-verified)`; board moved to `sprints/done/`. **0 open rows at close** — every row was already `✅`/`⛔`/`➡️`, so **nothing rolled to Sprint 5** by the close itself. ⛔ **Sprint 5's line-3 banner NOT touched** — the owner starts it himself (the 2026-09-23 ruling). | ✅ close half · 🔲 Sprint 5 start is the owner's |
+
+### Findings from the window — recorded, ⛔ no fix decided
+
+- **F-A — profile image build is fragile (W3).** `canvas`'s prebuilt-binary download can time out, and its
+  `node-gyp` fallback needs Python, which `node:24-slim` lacks — so a network blip fails the build. Failed
+  **locally**, before anything reached the box. 🚩 **No task owns this yet** — for whoever owns
+  `Dockerfile.profile`.
+- **F-B — two slow `resolve` calls under real login traffic (W14).** 2 × `warn`
+  `profile /internal/v1/players/resolve request failed (attempt 1/3): TimeoutError` at **09:06:32** and
+  **09:16:34 UTC**. The per-attempt timeout is **10 s** (`src/server/ProfileApiClient.ts:24`), so `resolve`
+  stalled **> 10 s twice in ~15 min**. A later attempt succeeded both times (no "failed after retries" line).
+  **Not a failure — a latency signal.** ⛔ **No cause is known and none is asserted.** *(The lead cited a
+  runbook label "F3" for this watch; no such label exists in this file — recorded here instead.)*
+  📌 **Resource check, owner on the profile box at 09:21 UTC:** load **0.33 / 0.19 / 0.12**; memory
+  **3910 MB total, 2963 MB available**, swap **0 used**; `profile-api` **0.40 % CPU / 491 MiB**; postgres
+  **0.00 % / 56 MiB** ⇒ **NOT resource starvation at that moment.** ⚠️ One snapshot, ~5 min after the second
+  stall — it rules out a sustained squeeze, not a brief one. Cause still unknown.
+  👁️ **Watch at W15 — two counts in the GAME container log:** (1) `players/resolve request failed` — slow,
+  retried; (2) `failed after retries` — **must stay 0**. Per the code (read 2026-09-26): the credit-batch
+  form `credit batch failed after retries; N award(s) dropped` (`src/server/ProfileApiClient.ts:169`) means
+  **lost XP**; the resolve form `player resolve failed after retries` (`:113`) is retried on the next
+  identity event or at credit time. **Either above 0 is to be reported.**
+- **F-C — prune + compose re-pull caused an unplanned Postgres minor upgrade (W5 → W10). Filed on `0219`.**
+  The running DB container used an **untagged, older** image `3c5c8892…`. W3's prune kept that **by ID** and
+  **deleted the tagged `postgres:16-alpine`**. After W10's `systemctl restart docker`, the `profile` unit's
+  compose-up **re-pulled the tag** and **recreated** the DB container on `721873c3…` = `postgres:16-alpine`,
+  **PostgreSQL 16.15** — the same image ID the prune had removed. **Data intact** (`schema_migrations` count
+  5; `/ready` OK). Candidate directions, **not decided**: keep the prune's keep-list **by tag/reference**, or
+  **pin compose by digest**.
+- **F-D — the game deploy deleted the previous game image from the game box (W12).** Cleanup removed
+  `20260912-124115`. A rollback now needs a re-pull from the registry (`./deploy.sh prod 20260912-124115`).
+  ⚠️ Matters because **G1 (no rollback procedure) stays declined.**
+- **F-E — misleading log wording in the W3 deploy.** `PROFILE_LOGIN_CREATE_ENABLED: not supplied and nothing
+  persisted — written EMPTY (feature stays off)` while the parity line says `login creation ENABLED
+  (normal)`. In code, blank ⇒ **enabled**. **A wording defect, not a behaviour defect.** 🚩 No task owns it yet.
+
+### Still owed from this window
+
+- `0286` — the worklog note (date + package names), W2's third checkbox. **Not written.**
+- ~~`0273` — the browser check (W13 first checkbox).~~ ✅ done 2026-09-26, owner-run (see the W13 row).
+- **W15 `0032` step 5** — the Uptrace re-measure, **≥ 24 h after W12** ⇒ not before about **2026-09-27
+  09:00 UTC**, filtered to the new version.
+- **W15 — the two F-B counts** in the game container log: `players/resolve request failed` (slow,
+  retried) and `failed after retries` (must stay **0** — above 0 can mean lost XP).
+- **F-A, F-D, F-E have no owning task.** F-C is filed on `0219` only as a finding. ⛔ No fix decided for any.
+- The **`pre-window/` snapshot** — delete by hand only once the owner judges the window good (W15).
+- **`postgres:16` leftover** on the profile box — removal not confirmed.
+- **Better Stack** `profile-daily-checks` `reboot-required` incident — should have closed after W10's ping;
+  **not confirmed.**
+- `0294` — the live rotation proof (Backlog; C2).
+- ⚠️ `0296`-A6 and all of section B, `0298` Part B — not window work; still open.

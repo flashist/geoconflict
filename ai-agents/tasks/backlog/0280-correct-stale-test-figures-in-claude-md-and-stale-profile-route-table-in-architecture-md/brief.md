@@ -137,10 +137,10 @@ in-flight test-adding work settles will be wrong again on the same schedule.
 
 The route table at `architecture.md:478-489` describes a route set that no longer exists:
 
-- it still lists **`POST /internal/v1/profile/upsert`**, which [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md)
+- it still lists **`POST /internal/v1/profile/upsert`**, which [`0272`](../../done/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md)
   (S3) **removed** and replaced with `POST /internal/v1/players/resolve`;
 - it still documents **`?yandexPlayerId=` query authentication** on the player-facing routes
-  (`/v1/profile`, `/v1/messages`, `/v1/messages/read`), with `Auth: none`. [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s
+  (`/v1/profile`, `/v1/messages`, `/v1/messages/read`), with `Auth: none`. [`0273`](../../done/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s
   **ruling D1** removed the legacy fallback: **every player-facing route is now Bearer-only.**
 
 An agent planning against this table would build a caller for routes that return `401` or `404`.
@@ -318,8 +318,8 @@ no config change, no new tests **for items 1–3**; item 4 needs the small asser
   rather than in its own brief for the same reason as item 2 — a one-line move is not independently
   worth a brief, a plan and a review. ⚠️ Its authority is a **driver disposition, not an owner ruling**.
 - **Effort:** under an hour.
-- **Related:** [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md)
-  and [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) — the two
+- **Related:** [`0272`](../../done/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md)
+  and [`0273`](../../done/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) — the two
   tasks whose landings caused item 2's drift.
 - 🔒 No secrets, hosts, IPs or tokens in any artifact.
 - **Do not invoke the mover skills** — producer-only (ADR-033). No wiki writes.

@@ -26,7 +26,7 @@ fkit-coder
 
 **Filed 2026-09-16 by a spawned `fkit-producer` on an OWNER RULING given live in the lead session and
 relayed by `fkit-sprint-ship-loop`.** It is the consequence of ruling **D3** on
-[`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4) — the ruling
+[`0273`](../../done/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4) — the ruling
 that there is **no on-demand retry** after a failed boot login, and that the guest card's login button
 instead restarts the game from scratch.
 
@@ -84,7 +84,7 @@ task is what makes it reachable in situation B.
 
 ## Notes
 
-- **Depends on:** [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)
+- **Depends on:** [`0273`](../../done/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)
   (S4 — it builds the session and the guarded restart path this surface triggers),
   [`0054`](../../done/0054-hide-citizenship-card-behind-client-flag/brief.md) (the citizenship-card
   launch — **owner-ruled sequencing**, see below)

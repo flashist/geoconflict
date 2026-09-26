@@ -4,13 +4,13 @@
 0217
 
 ## Parent / Epic
-[`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
+[`0213-profile-backend-clean-slate-rebuild`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)
 
 ## Sprint
 
 Sprint 5
 
-📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ## Priority
 **High** — this is the phase that converts a running box into a working feature. Until it lands, the
@@ -65,7 +65,7 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
   the game server gets a non-empty `PROFILE_INTERNAL_TOKEN` that matches the box's.
 - ~~⛔ **Anything still open** ⇒ `PROFILE_INTERNAL_TOKEN` **stays blank for that deploy**, exactly as the
   standing blank-token ruling says, and this phase waits for a later owner-chosen window.~~
-  *(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
+  *(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
 - ~~🚩 **The condition's edges were NOT ruled — do not settle them between agents.** Read literally it
   cannot be met: several open Sprint 4 rows sit **downstream of this very wiring** — `0062`'s
   verification, the `0017` / `0012` Deferred Live Tails, `0065` — and `0014` waits on Yandex, not on
@@ -100,11 +100,11 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
     go-live list. Not producer precedent. Resolves the producer's earlier flag above.
   - 📌 **Board update, 2026-09-14:** `0259` in the *Counts* bucket is now **`✅ Done (agent-closed — not
     owner-verified)`** — findings delivered, owner accepted the ~14-day retention; follow-up
-    [`0263`](../0263-confirm-uptrace-ce-14-day-retention-hard-cap-or-configurable/brief.md) is on the
+    [`0263`](../../backlog/0263-confirm-uptrace-ce-14-day-retention-hard-cap-or-configurable/brief.md) is on the
     Backlog board, not Sprint 4, so it does not count.
   - 📌 **Board update, 2026-09-14:** `0260` in the *Counts* bucket is now **`✅ Done (agent-closed — not
     owner-verified)`** — owner accepted no client symbolication for now and the dead upload was removed;
-    follow-up [`0264`](../0264-revisit-client-source-map-symbolication/brief.md) is on the Backlog
+    follow-up [`0264`](../../backlog/0264-revisit-client-source-map-symbolication/brief.md) is on the Backlog
     board, not Sprint 4, so it does not count.
   - ✅ **`0203` OWNER-RULED OFF THE GO-LIVE LIST 2026-09-14, given live in the lead session
     (`AskUserQuestion`) and relayed by `fkit-lead`.** Asked whether `0203` should stay on the *"must be
@@ -121,7 +121,7 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
     stopped pending owner direction; `0219`/`0220`/`0221` wait on owner-run live tails.
 - 📌 **GO-LIVE LIST UPDATE 2026-09-15 — OWNER RULINGS given live in a design discussion in the lead
   session and relayed by `fkit-lead` to a spawned `fkit-producer`. Not producer precedent.**
-  - **`0253` now depends on [`0266`](../0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)**
+  - **`0253` now depends on [`0266`](../../done/0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)**
     (profile identity: internal player id, platform logins, a login endpoint). `0253` is `🚧 Blocked`
     pending `0266`'s design; its tenure-grant flow was redesigned the same day (see `0253`).
   - ✅ **`0266` COUNTS** — filed in Sprint 4 with the owner's scheduling *"before XP go-live"*. It
@@ -136,7 +136,7 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
     happened, and NO replacement date was named**, so *"this weekend"* and *"the next weekend slot"* no
     longer denote anything a reader can resolve. ⛔ **Not producer precedent.**
     ~~**The game deploy still happens, with `PROFILE_INTERNAL_TOKEN` blank** (the standing
-    blank-token ruling applies unchanged).~~ *(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
+    blank-token ruling applies unchanged).~~ *(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
   - ⚠️ The *Risk* bullet above (`0253` waits on O1–O3 numbers) is **superseded as to `0253`**: it now
     waits on `0266`'s design, then a rework of its uncommitted build.
 - 📌 **GO-LIVE LIST UPDATE 2026-09-15 (later) — OWNER RULINGS via `AskUserQuestion` in the lead session,
@@ -144,7 +144,7 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
   (*"Token now, not later"*), ADR-113 accepted, build *"Split into 4"* (+ monitoring as a 5th slice under
   *"monitoring before go-live"*), alerts by email. Not producer precedent.**
   - `0266` is now an **epic**; the counting work is its five slices. ✅ **All five COUNT** — none waits on
-    the wiring or on Yandex: [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md) (S1), [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5).
+    the wiring or on Yandex: [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1), [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5).
   - **This task now depends on all five** (see `## Depends on`). Per design §7: **all of S1–S5 land and
     deploy before `PROFILE_INTERNAL_TOKEN` is set.**
   - ✅ **`0253` still counts**, but its rework now waits on `0273` (S4), not on `0266`'s design.
@@ -154,7 +154,7 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
     after go-live; re-baseline alerts A1–A6 after 14 days.
 - 📌 **GO-LIVE LIST UPDATE 2026-09-15 (later still) — OWNER RULING via `AskUserQuestion` in the lead session,
   relayed by `fkit-lead` to a spawned `fkit-producer`: *"New task, before XP go-live"*. Not producer precedent.**
-  - ✅ **[`0275`](../../done/0275-profile-backup-restore-reproof-on-006-schema/brief.md) COUNTS** — re-prove the
+  - ✅ **[`0275`](../0275-profile-backup-restore-reproof-on-006-schema/brief.md) COUNTS** — re-prove the
     backup restore on the `006` schema (update `tests/profile-backup-dryrun.sh`, re-run `0218`'s drill).
     `0218`'s restore proof was made on the pre-`006` tables; it does not carry over. Needs only `0270`
     (done), so it does not wait on the wiring or on Yandex.
@@ -162,7 +162,7 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
 - 📌 **GO-LIVE LIST UPDATE 2026-09-15 (latest) — OWNER RULING via `AskUserQuestion` in the lead session,
   relayed by `fkit-lead` to a spawned `fkit-producer`: *"Small fix; lands before real traffic hits the
   profile server. Built after S3"*. Not producer precedent.**
-  - ✅ **[`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md) COUNTS** — close
+  - ✅ **[`0276`](../0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md) COUNTS** — close
     the case-variant `/internal/` bypass of the nginx IP allowlist (pre-existing, found by the `0271`
     review; the token still gates the routes). Built after `0272` (S3); does not wait on Yandex.
   - **This task now depends on `0276`** (see `## Depends on`).
@@ -203,23 +203,56 @@ profile box at the regular weekend deploy slot, the owner answered, verbatim:
     condition satisfied: whether *"everything that CAN finish before"* has in fact finished is a
     **board reading to be redone at the slot**, not a thing this bullet asserts.
 - 🔴 **2026-09-23 — SPRINT 4 RESCOPE, OWNER RULING (Q1 = (a)), given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Not producer precedent.** The option as put: *"the token is set at the window regardless; `0253` only has to land before `0065`'s flip."*
-  - ⇒ **`PROFILE_INTERNAL_TOKEN` is set at the Saturday 2026-09-26 window, whatever is still open on Sprint 4.** This **supersedes the 2026-09-14 edges rule's inclusion of [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)** in the *"Counts — must be done by the weekend deploy"* bucket above (kept, not edited). `0253`'s deadline is now **before [`0065`](../0065-citizenship-paid-live-verification/brief.md)'s flip**.
+  - ⇒ **`PROFILE_INTERNAL_TOKEN` is set at the Saturday 2026-09-26 window, whatever is still open on Sprint 4.** This **supersedes the 2026-09-14 edges rule's inclusion of [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)** in the *"Counts — must be done by the weekend deploy"* bucket above (kept, not edited). `0253`'s deadline is now **before [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md)'s flip**.
   - The same rescope moved **this task to Sprint 5**: everything left in it is on-box or production work. Sprint 4 now holds only locally buildable work (`0064` Phase 2, `0253`, `0020`, `0203`), and none of it gates this task. The *"everything that CAN finish before"* board reading at the slot is **therefore no longer a condition on setting the token**.
   - ⛔ **What this does NOT change:** this task's `Depends on` list (`0215`, `0270`–`0274`, `0275`, `0276`), `RUNBOOK-E` (measure the egress IP at W0), and the 2026-09-19 ruling that the token is set **at** the window.
 - ⚠️ **`## Status` below is UNCHANGED.** A conditional go-live slot is not a start.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified) — **closed 2026-09-26 by a spawned `fkit-producer` on an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`** (*"Which tasks should the producer close now?"* — the owner selected all four: `0273`, `0217`, `0272`, `0220`, with the residuals below shown to them when choosing). No owner channel in this spawn (ADR-021, ADR-033 §5) ⇒ **no human verified this close.** ✅ **Acceptance criterion (V1/V3) met 2026-09-26** — real match credits landed: `player_match_xp_credits` 13 rows / 5 games / 13 XP; 41 players / 41 `player_identities` (see the 2026-09-26 deploy-window block below). ⚠️ **Residuals shown to the owner:** (1) **verification step 4 is HALF** — the partial-config warning was observed **not** firing with both values set; that it **fires when it should** is shown **by tests only**, not in production; (2) **watch item F-B** — two > 10 s `players/resolve` timeouts (09:06:32 and 09:16:34 UTC; a retry succeeded both times; **no cause known**). **W15** counts `players/resolve request failed` and `failed after retries` in the game container log — **the latter must stay 0** (its credit-batch form drops awards = lost XP). That watch item **stays in the runbook**. · earlier: 🔲 Backlog
+
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> ✅ **THE ACCEPTANCE CRITERION (V1) IS MET — W14.**
+>
+> | Verification step | Verdict |
+> |---|---|
+> | **1 — D3, a real call end to end** | ✅ `player_match_xp_credits` **13 rows, 5 games, 13 XP** (1 XP/credit, ADR-111); **9 players xp > 0**; game log `match credit results: 1 credited, 0 duplicate, 0 no_profile, 0 error` repeatedly (09:01–09:17 UTC); **0** error-level profile lines on either side. |
+> | 2 — D2 non-empty | ✅ W13 `NONEMPTY`; source non-empty at deploy time (W11 **(lead)**: set, and equal to the profile side's; A1 `MATCH`). |
+> | 3 — `players` + `player_identities` + `(game_id, player_id)` credit | ✅ **41 / 41** (0 before) and the 13 credit rows above. |
+> | 4 — D4 warning | ⚠️ **half.** Does **not** fire with both set (count 0) ✅. "Fires when it should" was **not** observed in prod — test coverage only. |
+> | 5 — D5 unset case | ✅ passed locally 2026-09-23 (`0062` worklog). |
+> | 6 — token never printed | ✅ token string in game logs **0** (`grep -f`, value never printed); no `PROFILE_INTERNAL_TOKEN=` in the deploy log. ⚠️ The deploy log was reported checked for that assignment string, not for the bare value. |
+> | 7 — allow-list measured, method recorded | ✅ W0.1 — method in `0295`'s note; the address was already listed, so step 3 needed **no edit** and its "redeploy" rode W3/W7 with the list unchanged. |
+> | 8 — `schema_migrations` | ✅ W3: **001–004 and 006 "already applied", no 005.** ⇒ **Q9 ANSWERED: `004` was ALREADY deployed before 2026-09-26** (`0067`'s profile-server half had been deployed). |
+> | 9 — name-change routes not 404 | ✅ **(lead)** `name-change-request` → 400, `name-change-cancel` → 401 (made-up control → 404); owner on-box, loopback, internal `decide` → 401. |
+> | 10 — no values | ✅ |
+>
+> Steps 1–2 (W11), step 4 (W12, version 0.0.152) and step 5 (→ `0296` A1/A3/A4) all ran.
+> ⚠️ **Watch item (not a failure):** 2 × `warn` `…/players/resolve request failed (attempt 1/3): TimeoutError`
+> (09:06:32, 09:16:34 UTC). Per-attempt timeout is 10 s (`src/server/ProfileApiClient.ts:24`), so resolve
+> stalled > 10 s twice in ~15 min; a retry succeeded both times. **No cause known — none asserted.**
+> 📌 Owner's resource check on the profile box at 09:21 UTC: load 0.33/0.19/0.12, 2963 of 3910 MB
+> available, swap 0 used, `profile-api` 0.40 % CPU / 491 MiB, postgres 0.00 % / 56 MiB ⇒ **not resource
+> starvation at that moment** (one snapshot). 👁️ **W15:** count `players/resolve request failed` and
+> `failed after retries` in the game container log — the second **must stay 0** (its credit-batch form,
+> `ProfileApiClient.ts:169`, drops awards = lost XP).
 
 ## Owner
 fkit-coder / operator
 
 ## Depends on
-[`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box must exist, be healthy, and hold
+[`0215`](../0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box must exist, be healthy, and hold
 a **known** `PROFILE_INTERNAL_TOKEN`.
-Plus, added 2026-09-15 on owner rulings relayed by `fkit-lead`: [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md) (S1), [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5) — the five profile-identity slices of epic `0266`; **all five deployed and verified before `PROFILE_INTERNAL_TOKEN` is set** (design §7).
-Plus, added 2026-09-15 (later) on an owner ruling relayed by `fkit-lead`: [`0275`](../../done/0275-profile-backup-restore-reproof-on-006-schema/brief.md) — backup restore re-proven on the `006` schema, **before `PROFILE_INTERNAL_TOKEN` is set**.
-Plus, added 2026-09-15 (latest) on an owner ruling relayed by `fkit-lead`: [`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md) — case-variant `/internal/` paths no longer skip the nginx IP allowlist, **before real traffic reaches the profile box**.
+Plus, added 2026-09-15 on owner rulings relayed by `fkit-lead`: [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1), [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0272`](../0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (S3), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (S4), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5) — the five profile-identity slices of epic `0266`; **all five deployed and verified before `PROFILE_INTERNAL_TOKEN` is set** (design §7).
+Plus, added 2026-09-15 (later) on an owner ruling relayed by `fkit-lead`: [`0275`](../0275-profile-backup-restore-reproof-on-006-schema/brief.md) — backup restore re-proven on the `006` schema, **before `PROFILE_INTERNAL_TOKEN` is set**.
+Plus, added 2026-09-15 (latest) on an owner ruling relayed by `fkit-lead`: [`0276`](../0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md) — case-variant `/internal/` paths no longer skip the nginx IP allowlist, **before real traffic reaches the profile box**.
 
 ## Context
 
@@ -239,7 +272,7 @@ durable queue** (ADR-101) ⇒ **the XP is LOST, not queued**, and ~~**nothing lo
 
 ⚠️ **The runbook's original *"leave blank; the box auto-generates"* line is now STRUCK and annotated**
 (2026-09-04). **Read against `589249c` + the 2026-09-10 citation sweep (that sweep moved `0182`'s lines down):** the struck sentence is at
-[`0182/brief.md:185`](../../done/0182-profile-04i-server-bring-up-runbook/brief.md) — that line holds
+[`0182/brief.md:185`](../0182-profile-04i-server-bring-up-runbook/brief.md) — that line holds
 `~~*"Optional — leave blank; the box auto-generates and persists it."*~~` — and the same sentence is
 quoted inside the `.env.profile.secret` code block at `0182/brief.md:241`; the correction banner runs
 `0182/brief.md:182-231` and the corrected value line is `0182/brief.md:248`.
@@ -267,7 +300,7 @@ the **only** check that catches either barrier. **Do not substitute a config rea
 game deploy**, because citizenship is not ready. Owner, verbatim: *"I probably will keep it blank
 again, because the citizenship is not fully ready to be deployed yet and we need to do some
 additional work in terms of the profile VPS setup."*~~
-*(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
+*(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
 
 **Consequence for this task:** this phase runs at a **deploy window the owner chooses**, with the
 value **deliberately non-empty**. It is not a ride-along on whatever game deploy happens next.
@@ -276,7 +309,7 @@ value **deliberately non-empty**. It is not a ride-along on whatever game deploy
 does **not** catch it — that check compares **names**, and `deploy.sh:312` forwards this one
 correctly. **A populated file at deploy time silently enables profile upsert and XP crediting in
 production.**~~
-*(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
+*(Struck 2026-09-24, kept not deleted — superseded by the owner's 2026-09-24 ruling *"Retire it"*: `PROFILE_INTERNAL_TOKEN` is always set in prod, so blanking it for a deploy is no longer an option. See [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.)*
 
 > 🔴 **DECIDED — NO GUARD TASK. Owner ruling 2026-09-04, verbatim: *"Neither — I'll just
 > remember."*** ~~They will blank `PROFILE_INTERNAL_TOKEN` by hand at each deploy.~~
@@ -370,7 +403,7 @@ nginx allowlist and reaches `internalAuth` — so a 403 seen during this task is
 a 401 is the token, not the network. That distinction is exactly the "two silent barriers" problem above:
 without this baseline, 401 and 403 are indistinguishable from "working" at the game server. All probes are
 plain `curl`s and change nothing. Recorded in
-[`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)'s closing
+[`0276`](../0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)'s closing
 record. ⚠️ Deployed nginx is **1.28.3**.
 
 ## Verification steps
@@ -413,7 +446,7 @@ record. ⚠️ Deployed nginx is **1.28.3**.
   forwarding as well; those are untouched here. **Do not report `0065` as unblocked.**~~ 📌 **Superseded
   2026-09-23:** `0014` is closed, and by owner ruling (`0065` Correction 7) `0065` is now the go-live
   only, with **no task condition** — `0195` and the test-buy sequence moved to
-  [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). This task never
+  [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). This task never
   gated `0065` and still does not; what holds `0065` now is the owner's launch timing.
 - **Open questions this task owns:** **Q4** — what is the current game-prod egress IP for
   `PROFILE_INTERNAL_ALLOW_IPS`? · 🆕 **Q9** — was `0067`'s profile-server half ever deployed, i.e. is
@@ -422,10 +455,10 @@ record. ⚠️ Deployed nginx is **1.28.3**.
 - 🔴 **`0062` STAYS IN SPRINT 4** — owner-ruled 2026-09-04, **over the producer's recommendation to
   move it to the Backlog board.** Recorded; **not re-argued.** This task is the work that finally
   discharges it.
-- **Related:** [`0062`](../../done/0062-forward-profile-internal-token-in-deploy/brief.md) — read its `D2`
+- **Related:** [`0062`](../0062-forward-profile-internal-token-in-deploy/brief.md) — read its `D2`
   section before running anything, so an empty reading is not misread as a defect.
-- 🔐 **RECORDED 2026-09-24 — OWNER RULING 2026-09-23 (`0064` Phase 2 plan amendment 1): a blank `PROFILE_INTERNAL_TOKEN` is now REQUIRED-missing in the prod value check.** Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`; recorded here by a spawned `fkit-producer` at `0064`'s close (ADR-021; ⛔ not producer precedent). Owner, verbatim: *"I don't think we can allow the PROFILE INTERNAL TOKEN to be empty anymore, because this token is a requirement for the profile/citizenship logic to work properly"*. Source: [`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md) ([`plan-phase2.md`](../../done/0064-deploy-time-config-parity-guard/plan-phase2.md), *Owner amendments at approval*, amendment 1). **This supersedes the 2026-09-04 "deliberately blank" ruling FOR THE VALUE CHECK ONLY** (`scripts/check-config-values.mjs`, prod deploys only). Consequences, recorded not ruled: (1) **until `.env.prod` carries the token, every prod deploy prints `REQUIRED PROFILE_INTERNAL_TOKEN — forwarded but EMPTY`** — report-only, exit 0, it cannot fail a deploy; (2) 🚨 **once [`0298`](../0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) arms `--enforce`, a blank token BLOCKS prod deploys**; (3) `plan-phase2.md` §8 item 7 (*"`0217` go-live must remove the `PROFILE_INTERNAL_TOKEN` entry"*) is **void** — no such allowlist entry was ever shipped, so there is nothing to remove at go-live. ⚠️ **Bearing on this task:** ~~the "stays blank for that deploy" fallback above is still a legal deploy today (report-only), but it will print the REQUIRED line; after `0298` arms, it stops being possible without an owner ruling (e.g. an allowlist entry, or not arming that check).~~ *(Struck 2026-09-24 — the fallback itself is now struck: owner ruled "Cross them out" after "Retire it".)*
-  ✅ **2026-09-24 — the "blank it by hand" rule is RETIRED (owner, verbatim: *"Retire it"*): `PROFILE_INTERNAL_TOKEN` is always set in prod from now on.** See [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.
+- 🔐 **RECORDED 2026-09-24 — OWNER RULING 2026-09-23 (`0064` Phase 2 plan amendment 1): a blank `PROFILE_INTERNAL_TOKEN` is now REQUIRED-missing in the prod value check.** Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`; recorded here by a spawned `fkit-producer` at `0064`'s close (ADR-021; ⛔ not producer precedent). Owner, verbatim: *"I don't think we can allow the PROFILE INTERNAL TOKEN to be empty anymore, because this token is a requirement for the profile/citizenship logic to work properly"*. Source: [`0064`](../0064-deploy-time-config-parity-guard/brief.md) ([`plan-phase2.md`](../0064-deploy-time-config-parity-guard/plan-phase2.md), *Owner amendments at approval*, amendment 1). **This supersedes the 2026-09-04 "deliberately blank" ruling FOR THE VALUE CHECK ONLY** (`scripts/check-config-values.mjs`, prod deploys only). Consequences, recorded not ruled: (1) **until `.env.prod` carries the token, every prod deploy prints `REQUIRED PROFILE_INTERNAL_TOKEN — forwarded but EMPTY`** — report-only, exit 0, it cannot fail a deploy; (2) 🚨 **once [`0298`](../../backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) arms `--enforce`, a blank token BLOCKS prod deploys**; (3) `plan-phase2.md` §8 item 7 (*"`0217` go-live must remove the `PROFILE_INTERNAL_TOKEN` entry"*) is **void** — no such allowlist entry was ever shipped, so there is nothing to remove at go-live. ⚠️ **Bearing on this task:** ~~the "stays blank for that deploy" fallback above is still a legal deploy today (report-only), but it will print the REQUIRED line; after `0298` arms, it stops being possible without an owner ruling (e.g. an allowlist entry, or not arming that check).~~ *(Struck 2026-09-24 — the fallback itself is now struck: owner ruled "Cross them out" after "Retire it".)*
+  ✅ **2026-09-24 — the "blank it by hand" rule is RETIRED (owner, verbatim: *"Retire it"*): `PROFILE_INTERNAL_TOKEN` is always set in prod from now on.** See [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)'s top box.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
 - 🔒 **No secrets in any artifact** — variable names, file names and ports only.

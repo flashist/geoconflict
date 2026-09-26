@@ -28,7 +28,7 @@ High. Without this funnel, we cannot measure conversion, identify where players 
 > **Started 2026-09-02** on an owner ruling given live in session (Ruling C) — ruled `High` and
 > time-critical, with a coder planning it in parallel. The task was **board-invisible until the same
 > day**: it appeared in no sprint file, and a row was appended to
-> [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) in the same pass.
+> [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md) in the same pass.
 >
 > ~~⚠️ **Part of the intended instrumentation moment has already passed.** The banner above says each
 > event must be wired *at the same time* as the UI or server logic that triggers it, because live data

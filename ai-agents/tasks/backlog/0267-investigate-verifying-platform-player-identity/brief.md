@@ -78,7 +78,7 @@ investigate the options.** Two were named by the owner as examples:
 
 - **Depends on:** nothing — can run any time; its recommendation lands on the login endpoint from `0266`, so reading `0266`'s approved design first is advised, not required.
 - **Blocks:** nothing
-- **Related:** [`0266`](../0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md),
+- **Related:** [`0266`](../../done/0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md),
   [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md), `0014`, ADR-103, ADR-112,
   [`0268`](../0268-remove-tenure-xp-claim-logic-after-60-days/brief.md).
 - No secrets in the report — never paste the secret key or a real player id.

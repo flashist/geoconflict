@@ -52,7 +52,7 @@ Features are **excluded** from experiments if:
 | [plan-sprint-1.md](done/plan-sprint-1.md) | Sprint 1 — Stop the Bleeding | Reduce ghost rate and crash-driven abandonment |
 | [plan-sprint-2.md](done/plan-sprint-2.md) | Sprint 2 — Fix Onboarding | Convert new players into players who complete at least one full match |
 | [plan-sprint-3.md](done/plan-sprint-3.md) | Sprint 3 — Deepen Retention | Infrastructure quality and UX; mobile performance parked |
-| [plan-sprint-4.md](plan-sprint-4.md) | **Sprint 4 — First Monetization Layer** 🔴 **ACTIVE** | Revenue streams, leaderboard, citizen tier |
+| [plan-sprint-4.md](done/plan-sprint-4.md) | **Sprint 4 — First Monetization Layer** 🔴 **ACTIVE** | Revenue streams, leaderboard, citizen tier |
 | [plan-sprint-4b.md](done/plan-sprint-4b.md) | Sprint 4b — Interim Game Variety Update *(closed; in `done/`)* | Intermission while the citizenship track paused: compact maps, Duos/Trios/Quads modes, weird-setting modifiers in public matchmaking |
 | [plan-sprint-4c.md](done/plan-sprint-4c.md) | Sprint 4c — Production Stabilization *(closed; in `done/`)* | Reduce the top production error families from the 2026-05-07 Uptrace telemetry review |
 | [plan-sprint-5.md](plan-sprint-5.md) | Sprint 5 — Full F2P Loop & Social Features *(pre-scoped, not in work)* | Long-term engagement and monetization systems |

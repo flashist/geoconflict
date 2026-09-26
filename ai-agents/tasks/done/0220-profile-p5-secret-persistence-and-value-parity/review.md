@@ -1,6 +1,6 @@
 # Review — 0220
 
-Task: ai-agents/tasks/backlog/0220-profile-p5-secret-persistence-and-value-parity/brief.md
+Task: ai-agents/tasks/done/0220-profile-p5-secret-persistence-and-value-parity/brief.md
 File(s) under review: setup-profile.sh (0220 hunks only) · build-deploy-profile.sh (two comment lines) · example.env.profile · scripts/config-parity-allowlist.json · tests/scripts/ConfigParity.test.ts · tests/scripts/profile-deploy-hardening.test.sh (T12–T15 + the "(0220)" structural block)
 Status: closed-out
 

@@ -4,7 +4,7 @@
 0274
 
 ## Parent / Epic
-[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../../backlog/0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
+[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../../done/0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
 
 ## Sprint
 Sprint 4
@@ -51,7 +51,7 @@ Per design §9 S5:
    process CPU/memory. ⛔ **Never** a platform user id, player id or token in an attribute or log line.
 
    > ⛔ **`reason=legacy_fallback_used` is REMOVED from this metric — do not re-add it.** Ruling **D1**
-   > on [`0273`](../../backlog/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)
+   > on [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)
    > (owner, 2026-09-16) deletes `resolveCaller`'s legacy branch in the **same change set** this metric
    > would have measured it in, so the reason can never be emitted. `expired` and `invalid` stay.
 2. **Deploy wiring** — OTLP endpoint + Uptrace DSN as a **secret** in the 0600 env file via
@@ -166,7 +166,7 @@ Per design §9 S5:
    bar: **a second alert after an idle period**, **or** an explicit **connection-failure test**.
    ⛔ **The SHAPE is deliberately NOT designed here — that is the architect's / coder's call**, and it
    belongs with [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md), which owns the relay.
-   **Source:** [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md), and the
+   **Source:** [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md), and the
    design-input section at the end of this brief.
 
 5. **Name-change operator notification — verify it ACTUALLY ARRIVES, on this same deploy.**
@@ -233,7 +233,7 @@ Per design §9 S5:
 ## Notes
 
 - **Depends on:** [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2 — the metrics hook into login), [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md) (alert delivery — **without it the six rules A1–A6 fire into nothing and verification 6 / the drill cannot pass**)
-- **Blocks:** [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live), [`0273`](../../backlog/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (its **game deploy** — owner ruling D2, 2026-09-16: S5 monitoring live **before** the S4 game deploy)
+- **Blocks:** [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live), [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (its **game deploy** — owner ruling D2, 2026-09-16: S5 monitoring live **before** the S4 game deploy)
 - **Can run in parallel with** `0272` (S3) and `0273` (S4).
 - **Effort (design §9):** 2–2.5 days + owner UI time.
 - 🚩 **Two post-go-live steps this slice cannot finish — flagged for the owner, not ruled:** arming A2
@@ -257,7 +257,7 @@ Per design §9 S5:
 
 ⛔ **Constraint only — no design here, no status change, no new dependency.** The owning task is
 [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md), whose brief carries the full note;
-the source is [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md),
+the source is [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md),
 **reproduced in production 2026-09-17** (by our own proxy restart — a clean experiment, not an
 organic failure).
 

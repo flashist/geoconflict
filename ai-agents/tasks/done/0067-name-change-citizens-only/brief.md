@@ -51,7 +51,7 @@ one of them has a known fate.
 ⚠️ **This task is already closed, so nothing else is watching for it.**
 
 ✅ **Mitigation is cheap and already built** — `migrate.ts` is idempotent, so
-[`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2) **runs it as
+[`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2) **runs it as
 step 0 regardless**, which closes the question without needing to answer it first.
 
 ⛔ **This changes NO status.** This task stays `✅ Done (agent-closed — not owner-verified)` — the work
@@ -82,7 +82,7 @@ only an allow-list entry.** The architect predicted exactly this.
   any board owns it today.** Recorded as an open item on
   [`0277`](../0277-uptrace-alert-delivery-to-telegram/brief.md)'s *Notes* for the owner to
   place.
-- ⚠️ **The send can still fail silently.** [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md)
+- ⚠️ **The send can still fail silently.** [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md)
   was reproduced in production on 2026-09-17: a **module-level `ProxyAgent`** can hand out a dead
   pooled socket after a proxy restart or idle timeout. `sendTelegramMessage` never throws by
   contract and this caller discards the result with `void`, so a dropped operator notification

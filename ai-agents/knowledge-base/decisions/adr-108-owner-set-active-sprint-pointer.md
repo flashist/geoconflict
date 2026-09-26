@@ -39,7 +39,7 @@
 >
 > **What was done instead, 2026-09-07** — the ruling is recorded where humans and agents read, since
 > no field the resolver reads can carry it:
-> [`plan-sprint-4.md`](../../sprints/plan-sprint-4.md) (marked active),
+> [`plan-sprint-4.md`](../../sprints/done/plan-sprint-4.md) (marked active),
 > [`plan-sprint-5.md`](../../sprints/plan-sprint-5.md) and
 > [`plan-sprint-6.md`](../../sprints/plan-sprint-6.md) (each marked *not* active, with sprint 6
 > naming itself as the board the tooling wrongly returns), and

@@ -10,7 +10,58 @@ Sprint 5
 — *(unranked — the owner ruled the BOARD, not a rank; ⚠️ **unranked ≠ low**)*
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> **W0.1 — measured (owner, from the game box itself).** Method: `curl -4 -s https://api.ipify.org` (an
+> external "what is my IP" echo, IPv4). IPv6 probe `curl -6 https://api64.ipify.org` returned nothing ⇒
+> the box's egress is **IPv4-only**. 🔒 **Method only — the address is recorded nowhere.**
+> **Result: the address was ALREADY in `PROFILE_INTERNAL_ALLOW_IPS`** ⇒ nothing appended, list untouched
+> (**2 entries** before and after — count only; file last modified 09-17). 📌 **Where it lives:** the
+> gitignored **`.env.profile`** — not `.env.profile.secret`.
+>
+> | Verification step | Verdict |
+> |---|---|
+> | 1 — method written down, repeatable | ✅ the command above. ⚠️ It relies on a third-party echo service. |
+> | 2 — no address in any tracked artifact | ✅ this note holds none |
+> | 3 — monitoring entry kept (APPENDED, not replaced) | ✅ nothing was edited; count 2 → 2. ⚠️ Which entry is the monitoring box's was not checked by name (count-only, by design). |
+> | 4 — `0276` probe set after the deploy | ✅ W11: **(lead)** 11/11 → 403 from a non-allowed host; owner from the game box → **401** |
+> | 5 — alert channel still works after the deploy | ❌ **not evidenced.** The only delivery seen in the window was Better Stack's heartbeat ping (W10) — a **different channel**. The alert relay under `/internal/` was not checked. |
+
+## Close note — 2026-09-26
+
+**Closed by a spawned `fkit-producer` (no owner channel, ADR-021) on an OWNER RULING given live in the
+`fkit lead` session via `AskUserQuestion` on 2026-09-26: close "on today's evidence".** Hence
+`(agent-closed — not owner-verified)`. The results table above is left as recorded; this note is what
+changed.
+
+**Verification step 5** (*"the alert channel still works after the deploy — confirm delivery rather than
+config"*) **closed on INDIRECT evidence only:**
+
+1. **The allowlist was NOT changed in this window** — the game egress IP was already present (count
+   2 → 2), so the 403-disables-the-channel risk step 5 guards against never arose.
+2. **`checks.sh`, 2026-09-26 08:46 UTC:** `alert-path-probe: the monitoring box reached the alert webhook
+   0h ago` — the monitoring box still passes the allowlist. ⚠️ **Reachability only**, by the check's own
+   wording.
+3. **Same run:** `name-change-digest: … reached Telegram 0h ago` — the profile box's Telegram sending path
+   works. ⚠️ A **different topic**, not the alert path.
+4. **The owner reports NO message in the Telegram Alerts topic since 2026-09-17** (the recovery drill) —
+   consistent with nothing alerting. ⛔ **NOT proof of end-to-end delivery.**
+
+🚩 **Residual, stated plainly: no end-to-end alert delivery was observed after the deploy.** The reusable
+proof is the drill in
+[`alert-delivery-runbook.md`](../../../knowledge-base/alert-delivery-runbook.md) § *The working drill
+procedure*. **`0274` amendment A1 remains open and separate** — this close does not discharge it.
+
+**Method recorded (never the address):** `curl -4 -s https://api.ipify.org` run on the game box; the IPv6
+probe `curl -6 https://api64.ipify.org` returned nothing. 🔒 The address appears in no tracked artifact.
 
 ## Owner
 fkit-coder
@@ -20,7 +71,7 @@ fkit-coder
 **FILED 2026-09-22** by a spawned `fkit-producer` with **no owner channel of its own** (ADR-021), on an
 **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`** and relayed by `fkit-lead`.
 Shown that the weekend deploy slot's very first step depended on an **unanswered** open question —
-[`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s **Q4**, the current game-prod
+[`0217`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s **Q4**, the current game-prod
 egress IP — the owner ruled, verbatim:
 
 > *"Record as a task, add it to the Sprint 5, not the current Sprint 4."*
@@ -158,14 +209,14 @@ symptom appears.
   figure until the method is chosen.
 - **Depends on:** nothing in code. ⚠️ **It needs access the agents do not have** — `fkit-lead` could not
   read the prod host from any env file, so this likely needs the owner or a session with box access.
-- **Blocks:** [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) step 3's
+- **Blocks:** [`0217`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md) step 3's
   *"redeploy the profile box"* cannot honestly be called done while the pinned value is the June one.
   ⚠️ **It does not block crediting from being switched on** — it blocks knowing whether it will work.
 - **Answers:** `0217`'s **Q4**, and closes the weekend runbook's **C3** and **G2**.
 - **Related:** [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)
   (the 403-disables-the-channel finding),
   [`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md) (the
-  probe set reused in verification step 4), [`0294`](../0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md)
+  probe set reused in verification step 4), [`0294`](../../backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md)
   (another deferred profile-deploy proof — ⚠️ **if both are run, run them on ONE deploy, not two**).
 - 📌 **Sprint placement is the OWNER's, recorded verbatim above.** ⛔ Do not move it to the Backlog board
   or back to Sprint 4 without a new ruling.

@@ -83,7 +83,7 @@ proxy; the very next feedback failed with that exact error **while the player st
 the following one succeeded. **Topics were not enabled at the time**, so Topics is excluded as a variable.
 
 This is the **likely root cause** of the standing `0061` investigation
-(`ai-agents/tasks/backlog/0061-investigate-prod-telegram-feedback-delivery-failure/`), and is recorded
+(`ai-agents/tasks/done/0061-investigate-prod-telegram-feedback-delivery-failure/`), and is recorded
 there — and here — as a **hypothesis reproduced behaviourally, not yet confirmed in code**. It is
 **unverified** as the mechanism.
 

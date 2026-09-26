@@ -12,7 +12,7 @@
 >    (`25d5cc370207fd39e0c3bcaa69873b8fc6c60e68`), **not** a task ID.
 > 3. All boards scanned: [`backlog.md`](../../../sprints/backlog.md),
 >    [`sprint-backlog.md`](../../../sprints/sprint-backlog.md),
->    [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) / `-5` / `-6`.
+>    [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md) / `-5` / `-6`.
 > 4. All task folders scanned: `ai-agents/tasks/{backlog,done,cancelled}/`. **Highest ID in use
 >    anywhere is `0206`.**
 >
@@ -31,7 +31,7 @@ Backlog
 Unscheduled. Filed on [`backlog.md`](../../../sprints/backlog.md).
 
 **Board chosen honestly:** the owner's ruling was *"File a small brief"* — that authorises the brief, it
-does not schedule a sprint. Filing it on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) would
+does not schedule a sprint. Filing it on [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md) would
 assert a commitment nobody made. Same reasoning as `0203` and `0205`.
 **Row appended, not inserted** (ADR-035).
 

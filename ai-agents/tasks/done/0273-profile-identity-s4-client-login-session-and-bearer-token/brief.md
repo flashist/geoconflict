@@ -4,13 +4,13 @@
 0273
 
 ## Parent / Epic
-[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
+[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../../done/0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
 
 ## Sprint
 
 Sprint 5
 
-📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ## Priority
 🔴 **High — LABEL RATIFIED BY THE OWNER 2026-09-22; value UNCHANGED** *(~~producer's LABEL~~; **POSITION OWNER-RULED 2026-09-22** — a separate ruling, see below)*
@@ -74,7 +74,7 @@ true record of how this row was ranked until today.
 
 
 ## Status
-🚧 Blocked — **the legacy-fallback removal (ruling D1) is LIVE AND PROVEN on the box, 2026-09-17. The client is NOT deployed.** The owner ran `GET /v1/profile?yandexPlayerId=…` with **no Bearer token** against the public domain and got **401** — D1's removal is real on the deployed box, not just in tests. 🚨 **That is the server half only.** None of S4's **client** code is deployed, so the login flow, the session store, the Bearer-token call path and the analytics events have **zero production evidence**. ⚠️ **Loudest residual AR-2 is UNCHANGED by this deploy:** the login-button restart has **zero** production evidence and is **unobservable until `0054`** — the deploy moved it not at all. ⚠️ Also note the one-sided proof: a 401 with no token proves the fallback is gone; **nothing has proven a Bearer token is accepted** (see `0271`'s box proof record). ⇒ **Blocked on: the game deploy** (which carries the client), then this task's live check, plan §4.6. Residuals AR-1…AR-9 minus AR-7 still stand. No code. · earlier: 🚧 Blocked — **code complete, review closed out; waiting on deploys, not on work.** Built + reviewed
+✅ Done (agent-closed — not owner-verified) — **closed 2026-09-26 by a spawned `fkit-producer` on an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`** (*"Which tasks should the producer close now?"* — the owner selected all four: `0273`, `0217`, `0272`, `0220`, with the residuals below shown to them when choosing). No owner channel in this spawn (ADR-021, ADR-033 §5) ⇒ **no human verified this close.** ✅ **Close condition met:** plan §4.6 step 4 live check, owner-run 2026-09-26 on the live game — exactly **one** `POST /v1/login` (200) per logged-in load, **zero** on a guest load (see the 2026-09-26 deploy-window block below). ⚠️ **Residuals shown to the owner:** (1) Bearer acceptance on the **other** profile callers is proven by **client tests only** — the citizenship card is off, so production makes no other profile calls to inspect; (2) **AR-2** (login-button restart) stays **unobservable until the card flip** (`0054` / `0065`); (3) **one** logged-in load and **one** guest load were observed — a single observation of each, **not a sample**. The other accepted residuals (AR-1…AR-9 minus AR-7) stand as recorded in `review.md` — not re-assessed at close. · earlier: 🚧 Blocked — **the legacy-fallback removal (ruling D1) is LIVE AND PROVEN on the box, 2026-09-17. The client is NOT deployed.** The owner ran `GET /v1/profile?yandexPlayerId=…` with **no Bearer token** against the public domain and got **401** — D1's removal is real on the deployed box, not just in tests. 🚨 **That is the server half only.** None of S4's **client** code is deployed, so the login flow, the session store, the Bearer-token call path and the analytics events have **zero production evidence**. ⚠️ **Loudest residual AR-2 is UNCHANGED by this deploy:** the login-button restart has **zero** production evidence and is **unobservable until `0054`** — the deploy moved it not at all. ⚠️ Also note the one-sided proof: a 401 with no token proves the fallback is gone; **nothing has proven a Bearer token is accepted** (see `0271`'s box proof record). ⇒ **Blocked on: the game deploy** (which carries the client), then this task's live check, plan §4.6. Residuals AR-1…AR-9 minus AR-7 still stand. No code. · earlier: 🚧 Blocked — **code complete, review closed out; waiting on deploys, not on work.** Built + reviewed
 2026-09-16 (3 rounds, `Status: closed-out`, no confirmed defect open; mutation sweep 15/15; gates
 `npm test` 130 suites / 1605 tests, `test:integration` 9/104 ⚠️ coder-reported only, `tsc` 0, `lint` 0).
 **Blocked on, in order:** profile-box deploy 1 (S2 + S3 + the legacy-fallback removal) → `0275` Part B →
@@ -86,6 +86,32 @@ evidence and is unobservable until `0054`. Also open: the `0274`-gating alert-de
 unbuilt. · earlier: 🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop) ·
 **plan approved by the owner 2026-09-16** ([`plan.md`](plan.md) written, build worker running) ·
 earlier: 🔄 In progress, started 2026-09-15 (plan step) · earlier: 🔲 Backlog
+
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> - **The client is DEPLOYED** (W12, 0.0.152).
+> - **Real logins are landing:** profile DB went **0 → 41 players / 41 `player_identities`** (W13).
+> - ~~❌ **THE CLOSE CONDITION IS STILL OPEN.** The browser check (owner step 4, plan §4.6 step 4) — exactly
+>   **one** `POST /v1/login` per logged-in load, **zero** on a guest load — was **NOT done**. The rows
+>   prove logins **arrive**; they do **not** prove the one-per-load count (verification step 2) or zero for
+>   guests (step 1, prod half).~~ *(Struck, not deleted — true when first recorded; superseded later the
+>   same day, below.)*
+> - ✅ **THE BROWSER CHECK IS DONE — plan §4.6 step 4, the close condition ("This task closes after step
+>   4's live check").** Owner-run and owner-reported in the `fkit lead` session, 2026-09-26: Chrome
+>   DevTools → Network, filter `login`, on the **live** Yandex game.
+>   - Logged-in load → **exactly one** `POST /v1/login`, status **200** ⇒ **verification step 2 ✅** (prod).
+>   - Guest load (incognito, not logged in to Yandex) → **zero** `/v1/login` calls ⇒ **verification step 1
+>     ✅** (prod half; the client-test half was green at build).
+>   - ⚠️ One logged-in load and one guest load were reported — a single observation of each, not a sample.
+> - ⚠️ **Unchanged:** with the card off there are no other profile calls to inspect, so Bearer acceptance on
+>   the other callers still rests on client tests, not production. **AR-2** (login-button restart) is still
+>   unobservable until `0054`.
 
 ## Owner
 fkit-coder
@@ -137,7 +163,7 @@ Read the authority before the outcome — these are OWNER rulings, not producer 
 ⚠️ **Consequence of D3 that this task does NOT cover — situation B:** a player who **is** logged into
 Yandex but whose boot login failed sees the logged-in zero-state card (0 XP) with no login button and
 no retry, for the whole page load. Ruled **out of this task** and filed as
-[`0278`](../0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md), sequenced with
+[`0278`](../../backlog/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md), sequenced with
 the citizenship-card launch (`0054`).
 
 ## ⬇️ ADDENDUM — the D1 deploy-risk caveat is CLOSED (2026-09-16)
@@ -245,14 +271,14 @@ Any user-visible string added goes through `translateText` with `en.json` and `r
 
 ## Notes
 
-- **Depends on:** [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5 — ruling D2: monitoring live before the S4 game deploy)
-- **Blocks:** [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md) (its rework — route + client logic — starts after this), [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live), [`0278`](../0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md) (the situation-B surface, built on this task's restart path)
+- **Depends on:** [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5 — ruling D2: monitoring live before the S4 game deploy)
+- **Blocks:** [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md) (its rework — route + client logic — starts after this), [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live), [`0278`](../../backlog/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md) (the situation-B surface, built on this task's restart path)
 - **Effort (design §9):** 1.5–2 days.
 - ⚠️ **Cannot close inside one deploy — and the shape changed on 2026-09-16 (D1 + D2).** ~~it needs a
   game deploy, a live check, then a profile-box deploy.~~ The order is now **profile-box deploy #1
   (S2 + S3 + the fallback removal) → profile-box deploy #2 (S5 monitoring) → the game deploy → the live
   check.** On the weekend-slot cadence this may still be the longest calendar item in the epic.
-- **Related:** [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) —
+- **Related:** [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) —
   `vfy:false` tokens never unlock paid state.
 - 🔒 No secrets, hosts or player ids in any artifact.
 - **Do not invoke the mover skills** — producer-only (ADR-033). No wiki writes.

@@ -7,7 +7,7 @@
 
 Sprint 5
 
-📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 *(Earlier value, kept as history — it was true when written:)* ~~Sprint 4 — In-App Monetization & Citizenship (carried in as a stabilization follow-up).~~
 
@@ -64,6 +64,21 @@ citizenship/payments track, but cheap to triage once the prerequisites are in pl
 > **WHAT ACTUALLY GATES THIS TASK NOW:** the **weekend deploy slot** (the 2026-09-14 owner ruling above)
 > and then the ≥24 h re-measure at **W15**. ⛔ **`0032` cannot close at the slot** — the deploy is in the
 > window, the measurement is not.
+
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> - **The game deploy ran (W12):** version **0.0.152**, commit `e646362`, image tag `20260926-114942`.
+>   It carries this task's fix.
+> - **Step 5 — the re-measure — is still owed (W15).** ≥ 24 h after W12 ⇒ **not before about 2026-09-27
+>   09:00 UTC**. Filter Uptrace to the **new** version (0.0.152 per the deploy output — ⚠️ confirm the exact
+>   `service.version` value in Uptrace first). ⛔ **The cert-valid ≠ ingest-live boundary above still
+>   holds** — an empty result is not yet evidence either way.
 
 ## Owner
 fkit-coder

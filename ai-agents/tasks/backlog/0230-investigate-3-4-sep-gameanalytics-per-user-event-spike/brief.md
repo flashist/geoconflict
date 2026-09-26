@@ -25,7 +25,7 @@ problem today, move the task into the backlog sprint, we will get back to it if 
 ⚠️ **THIS IS A BOARD REASSIGNMENT AND NOTHING ELSE.** The status below stays `🔲 Backlog`, this folder
 stays exactly where it is in `ai-agents/tasks/backlog/` (nothing moved on disk — only
 `/fkit-task-done` / `/fkit-task-cancelled` move folders, and **neither was run**), and nobody has
-started it. The [Sprint 4](../../../sprints/plan-sprint-4.md) row is **kept as a pointer**, flipped to
+started it. The [Sprint 4](../../../sprints/done/plan-sprint-4.md) row is **kept as a pointer**, flipped to
 `➡️ Moved to Backlog board` — **not deleted, and NOT flipped to Done or Cancelled** (the `0201` /
 `0227` precedent).
 

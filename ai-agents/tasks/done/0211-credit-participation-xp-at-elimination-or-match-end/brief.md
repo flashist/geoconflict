@@ -211,7 +211,7 @@
 > ⛔ **The ruling above is STRUCK, NOT DELETED. It was CORRECT WHEN GIVEN and is now SPENT** — struck-
 > don't-delete, so nobody re-derives "hold at 10" from a half-erased record.
 > ℹ️ **Numbering note:** this ruling is labelled **Ruling 3** here and **(4)** on the
-> [Sprint 4](../../../sprints/plan-sprint-4.md) row. **Same ruling, two numberings — identify it by
+> [Sprint 4](../../../sprints/done/plan-sprint-4.md) row. **Same ruling, two numberings — identify it by
 > content**, not by number.
 >
 > **THE NEW RULING — owner, verbatim:**
@@ -331,7 +331,7 @@
 > 2. **Task folders** — `ai-agents/tasks/{backlog,done,cancelled}/`: highest ID in use is **`0210`**.
 > 3. **All boards** — [`backlog.md`](../../../sprints/backlog.md),
 >    [`sprint-backlog.md`](../../../sprints/sprint-backlog.md),
->    [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md) / `-5` / `-6`: highest ID on any board is
+>    [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md) / `-5` / `-6`: highest ID on any board is
 >    **`0210`**.
 > 4. 🔴 **The `.claude/` prose sweep — the one that catches IDs reserved with no brief.**
 >    `grep -rnoE '\b0(20|21)[0-9]\b' .claude/` ~~returns exactly **two** hits~~
@@ -360,7 +360,7 @@
 ## Sprint
 Sprint 4
 
-**SCHEDULED.** Tracked on [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+**SCHEDULED.** Tracked on [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ~~**Backlog — UNSCHEDULED.** Filed on [`backlog.md`](../../../sprints/backlog.md), **not** on any
 sprint plan.~~
@@ -883,7 +883,7 @@ the ordering as a demotion.**
 > - **The `4c` Singleplayer test is a UNIT-LEVEL STAND-IN, not a play-through.** It asserts that
 >   `LocalServer.onMessage` handed the new message credits nothing and does not throw, and (per
 >   Ruling 4) that `Transport` in `isLocal` mode emits no participation message at all.
-> - **A real end-to-end proof needs [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s
+> - **A real end-to-end proof needs [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s
 >   wiring plus a live profile backend.** ⛔ **It is NOT available in this task.**
 >
 > ⛔ **DO NOT REPORT ANY OF THIS AS A LATE-DISCOVERED GAP, and do not claim coverage that was not
@@ -1587,7 +1587,7 @@ does NOT satisfy this task**, and must not be presented as doing so. Owner's rea
 > **Why, structurally:** `getCreditableYandexId` returns **`null` for every client in a local run**, so
 > `creditMatchXp` returns at `credits.length === 0`. ⚠️ **This is the same constraint that stopped
 > `0206` proving anything end-to-end, and it is unchanged.** **A real end-to-end proof needs
-> [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s wiring plus a live profile
+> [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s wiring plus a live profile
 > backend, and neither is available here.**
 >
 > ⇒ **Everything below is proven at UNIT / SERVER-HANDLER level with an INJECTED client carrying a
@@ -2015,7 +2015,7 @@ eliminated along the way **now is** credited. Cross-reference
 - **R6 — the rescale has no data step: closed ZERO-IMPACT BY MEASUREMENT.** The live profile database
   was queried at close: `player_profiles` holds **0 rows**, `max(xp)` = **0**. ⚠️ **Point-in-time
   reading** — it stops being true once
-  [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) wires crediting, but
+  [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) wires crediting, but
   **the rescale ships first.**
 - **R2 — `migrations/001` `xp_awarded default 10`:** a **correct observation**, **owner-ruled out of
   scope**. **Ruling 14 names that exact fact**, so it was **not ruled blind.** Migration unchanged.

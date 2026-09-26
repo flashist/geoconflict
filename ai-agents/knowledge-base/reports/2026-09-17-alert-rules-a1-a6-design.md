@@ -333,7 +333,7 @@ of a normal day is a projection, not an observation.
 (`players.reltuples = -1, analyzed = NEVER`), and `0274/brief.md:20` says in terms: do not arm any alert
 on it until it has been seen.
 
-**What a false positive looks like — and one is scheduled.** 🚨 **The day [`0217`](../../tasks/backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+**What a false positive looks like — and one is scheduled.** 🚨 **The day [`0217`](../../tasks/done/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
 wires the game server, every active player gets created at once.** `players.created` counts **both**
 sources (`Telemetry.ts:351-353`; `source = login | game_server`), and the design deliberately specifies
 "creations (both sources)" — so the first hours of XP go-live are a legitimate burst that looks exactly

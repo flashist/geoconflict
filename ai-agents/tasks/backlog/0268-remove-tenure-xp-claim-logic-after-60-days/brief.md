@@ -19,6 +19,19 @@ Producer's rank when that date arrives: **Medium** — not owner-ruled; it close
 ## Status
 🔲 Backlog
 
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> 🚨 **THE CLAIM-ON-BEHALF RISK IS OPEN AS OF 2026-09-26 (W3).** **(lead)** `POST /v1/profile/tenure-grant`
+> → **400** on an empty body ⇒ the route is **live** on the profile box. ⇒ For verification step 1: the
+> date the route reached the box is **2026-09-26**. The ~60-day clock still runs from when **players get
+> the popup** (`0065`'s flip) — **not yet**; the card flag is still off.
+
 ## Owner
 fkit-coder
 
@@ -68,7 +81,7 @@ the tenure check has not happened; the server decides once and never repeats).
 
 - **Depends on:** [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md) — shipped and live to players, plus ~60 days
 - **Blocks:** nothing
-- **Related:** [`0266`](../0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
+- **Related:** [`0266`](../../done/0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
   (login reply shape), [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md), ADR-112.
 - 📌 **RECORDED 2026-09-24 — the claim-on-behalf risk starts when the claim ROUTE reaches the profile box, not at
   the flip.** Deploy fact (owner ruling at `0253` plan approval, 2026-09-24, Q2 — live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent): [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md)'s claim route goes onto the profile box **with the next

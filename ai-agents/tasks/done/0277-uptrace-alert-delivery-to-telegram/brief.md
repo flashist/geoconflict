@@ -91,7 +91,7 @@ ruling below.)
 ⛔ **Constraint only. The design is the architect's / coder's — nothing here rules the fix shape.**
 ⛔ **No status change.**
 
-**Source:** [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md), which was
+**Source:** [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md), which was
 **reproduced in production on 2026-09-17** (by our own proxy restart — a clean experiment, not an
 organic failure). Read that brief's *"REPRODUCED IN PRODUCTION"* section for the full evidence.
 
@@ -132,7 +132,7 @@ inherit the fail-silent behaviour. Both branches are affected, differently:
 and relayed by `fkit-sprint-ship-loop` to a spawned `fkit-producer`. ⛔ **Not producer precedent** — a
 producer never promotes a task or overturns a ruling on its own.
 
-**What changed:** [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) is no
+**What changed:** [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) is no
 longer unscheduled. **The owner overturned THEIR OWN 2026-08-23 Backlog ruling** — on the grounds that
 its stated reason (*"an investigation with no known fix"*) no longer holds now that the failure is
 reproduced and a likely fix shape exists, and that **this task's relay would otherwise inherit the same
@@ -230,8 +230,8 @@ notification end to end** — see *Notes*.
 - **Depends on:** nothing (the local proof needs only Docker and the owner's throwaway bot)
 - **Blocks:** [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5 — its
   *"an alert actually arrives"* verification and its alert drill cannot pass until this lands), and
-  therefore transitively [`0273`](../../backlog/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s
-  **game deploy** (ruling D2) and [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+  therefore transitively [`0273`](../0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md)'s
+  **game deploy** (ruling D2) and [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
   (XP go-live)
 - **Effort:** ~0.5–1 day of build **plus** the local proof (step 0).
 - ⚠️ **The build branch is not decided yet, and deliberately so.** Step 0 decides it. Do **not** write
@@ -241,7 +241,7 @@ notification end to end** — see *Notes*.
   the shell harness or by nothing. This is a known residual, recorded so it is not mistaken for
   coverage.
 - **Design input (2026-09-17, NOT a block):**
-  [`0061`](../../backlog/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) — the stale-pooled-
+  [`0061`](../0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) — the stale-pooled-
   socket hypothesis above. `0061` stays open and unscheduled; this task does **not** wait on it, but
   must not ship a relay that drops alerts silently.
 - ✅ **RESOLVED 2026-09-17 by an OWNER RULING — was: "Open, unowned".** ~~🚩 **Open, unowned — flagged

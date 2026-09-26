@@ -215,7 +215,7 @@ PROFILE_SSH_KEY=~/.ssh/<your-private-key>
 >
 > ✅ **What to do instead: generate `PROFILE_INTERNAL_TOKEN` ONCE, explicitly, and set the SAME value
 > on BOTH sides** — here on the box, and in the game server's production environment. See
-> [`0217`](../../backlog/0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2), which owns the
+> [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (P2), which owns the
 > game-server half, and [`0215`](../0215-profile-p1-stand-up-the-box/brief.md) (P1), which
 > owns this half.
 >

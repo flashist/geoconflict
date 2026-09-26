@@ -10,7 +10,7 @@
 
 Sprint 5
 
-📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ## Priority
 **Medium** — no player-facing symptom, but this box will hold personal data and it is
@@ -20,6 +20,24 @@ internet-facing.
 
 ## Status
 🚧 Blocked — built + reviewed 2026-09-13 (restart policy `unless-stopped` + `init: true`; graceful SIGTERM shutdown incl. `Dockerfile.profile` exec-form `node` CMD; unattended-upgrades security-only, auto-reboot off; fail2ban sshd jail; sshd hardening drop-in with `Match all` pin, password-deploy refusal, restore-not-delete rollback; harness 221/0; stateful review round 1 closed out, R1–R7 applied, Codex coverage full; `npm test` 121/1261 green); open pending the OWNER-side live tail B1–B6 (deploy with a first SSH session open; new-session key login + password refusal; fail2ban ban from a throwaway source; daemon restart + reboot → both containers up; `docker compose stop profile-api` exit 0). Non-root deploy user split out by owner ruling. Driven by `/fkit-sprint-ship-loop`
+
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> | Step | Verdict |
+> |---|---|
+> | **B1** (W3) | ✅ Allowed-Origins **security-only** (`o=Ubuntu,a=resolute-security`); fail2ban `sshd` jail up; four `✅ sshd:` lines (password auth off, root `prohibit-password`); `profile-api` recreated + healthy; no prompt. |
+> | **B2** (W4) → **V3** | ✅ New key session works; password login refused `Permission denied (publickey)`; the 5 persist files `600 root`. |
+> | **B3** (W9) → **V2** | ✅ **ban observed:** 6 failed auths (non-existent user, throwaway key) **from the game box** → `Total failed 6`, `Currently banned 1`, `Ban` at 08:39:45 UTC; then an **explicit unban** (`unbanip` → 1), **not** the 1 h expiry. ⚠️ **Expiry** was seen only on a **real internet attacker** banned at 07:34 UTC before W3 (default config), kept across both deploys, **expired after 1 h**. |
+> | **B4** (W9) → **V1** | ⚠️ **partial.** Evidence = the dry-run allowed-origins line (security-only) from W3/W7. A real scheduled run is only **indirectly** evidenced (the 2026-09-25 `reboot-required` alert implies an applied upgrade). A real-run log grep was offered, **not run**. |
+> | **B6** (W10) → **V6** | ⚠️ **partial.** `docker compose stop profile-api` in 0.4 s; `SIGTERM received — draining (deadline 8000ms)`, `http server closed — in-flight requests drained`, `pg pool closed`; exit code **0**; restarted. But the `/ready` loop showed only `000` — the stop beat its first request — so **no in-flight request was seen completing.** |
+> | **B5** (W10) → **V5** | ⚠️ **daemon-restart half partial; reboot half ✅.** `systemctl is-active profile` → active. After `systemctl restart docker` both were Up (healthy) **but CREATED ~19 s earlier** ⇒ **recreated by the systemd `profile` unit**, not restarted by `unless-stopped` ⇒ shown in **outcome, not mechanism**. Reboot: **(lead)** `/ready` 502 → 200 in ~20 s; both Up; `no reboot pending`; manual `checks.sh` 12 ok / 0 failed. |
+> | V4 | Split out (owner ruling Q8). |
 
 ## Owner
 fkit-coder

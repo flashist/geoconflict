@@ -23,7 +23,7 @@ severity is settled bakes in the higher reading by default. The trigger is also 
 needs an operator to hand the deploy script a `PROFILE_IMAGE` containing newlines, which no build path
 in this repo produces. Nothing today sets such a value.
 
-**Against, and it is a real argument:** [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)
+**Against, and it is a real argument:** [`0217`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md)
 mandates another `setup-profile.sh` run on the profile box before XP go-live. A fix here would **ride
 that already-mandatory redeploy at zero marginal deploy cost**, exactly as
 [`0282`](../../done/0282-setup-profile-unquoted-heredoc-executes-compose-comments-as-root/brief.md)
@@ -160,7 +160,7 @@ layer weaker than it looks.
   [`ai-agents/tasks/done/0282-setup-profile-unquoted-heredoc-executes-compose-comments-as-root/review.md`](../../done/0282-setup-profile-unquoted-heredoc-executes-compose-comments-as-root/review.md)
   — the reviewer row, the disposition row, and the reproduction on both bash versions.
 - **Depends on:** nothing. `0282` shipped; this does not need it, and it does not undo it.
-- **Blocks:** nothing. ⚠️ **It does not gate [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)**
+- **Blocks:** nothing. ⚠️ **It does not gate [`0217`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md)**
   and must not be reported as a blocker.
 - **Sequencing (soft — merge-conflict avoidance, not a dependency):** touches `setup-profile.sh` and
   the same hardening harness as

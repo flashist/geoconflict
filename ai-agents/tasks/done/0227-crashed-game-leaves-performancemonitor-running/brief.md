@@ -6,7 +6,7 @@
 ## Sprint
 Sprint 4
 
-[`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+[`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ➡️ **PROMOTED FROM THE BACKLOG BOARD INTO SPRINT 4 ON 2026-09-07, on an owner ruling given live in
 session.** The [Backlog board](../../../sprints/backlog.md) row is **kept as a pointer**, flipped to

@@ -4,13 +4,13 @@
 0272
 
 ## Parent / Epic
-[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
+[`0266-profile-identity-internal-player-id-platform-logins-login-endpoint`](../../done/0266-profile-identity-internal-player-id-platform-logins-login-endpoint/brief.md)
 
 ## Sprint
 
 Sprint 5
 
-📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/plan-sprint-4.md).
+📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ## Priority
 🔴 **High — LABEL RATIFIED BY THE OWNER 2026-09-22; value UNCHANGED** *(~~producer's LABEL~~; **POSITION OWNER-RULED 2026-09-22** — a separate ruling, see below)*
@@ -74,7 +74,36 @@ true record of how this row was ranked until today.
 
 
 ## Status
-🚧 Blocked — **server side DEPLOYED 2026-09-17 (owner-executed). Crediting still cannot be exercised at all.** The collapsed profile-box deploy shipped S3's server half; the deploy was clean (config parity 10 OK / 0 findings, migrations `migrations up to date`, both containers healthy) and the lead verified **zero error-level log lines since boot** and **0 players / 0 identities** in the DB. 🚨 **Still waiting on, and nothing here is bookkeeping:** (1) **the game server is NOT deployed** — none of S3's game-side code is running anywhere; (2) **`PROFILE_INTERNAL_TOKEN` is still blank on the game side by owner ruling**, and `internalAuth` is a `timingSafeEqual` on a *shared* secret, so even a deployed game server would take a 401 on every credit call; (3) **[`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)** is what sets that token and the current egress IP. ⇒ **There is no crediting path today and the DB has 0 rows — that is expected, not a fault.** No box probe has touched `/internal/v1/players/resolve` or `/internal/v1/credit` with a valid token, so **S3's end-to-end behaviour has zero production evidence.** Blocked on: the game deploy and `0217`. No code. · earlier: 🚧 Blocked — built + reviewed 2026-09-15 (review rounds 1–2 closed-out, Codex full; npm test 128/1552, integration 9/103 incl. GameServerProfileCredit.it); open pending the profile-box deploy (with S2) and a later game deploy · earlier: 🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-15 (plan step) · earlier: 🔲 Backlog
+✅ Done (agent-closed — not owner-verified) — **closed 2026-09-26 by a spawned `fkit-producer` on an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`** (*"Which tasks should the producer close now?"* — the owner selected all four: `0273`, `0217`, `0272`, `0220`, with the residuals below shown to them when choosing). No owner channel in this spawn (ADR-021, ADR-033 §5) ⇒ **no human verified this close.** ✅ This task's verification steps 1–8 are local and were green at build; **its live proof is [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)'s V1/V3, met 2026-09-26** (resolve + credit in production with a valid token — see the 2026-09-26 deploy-window block below). ⚠️ **Residual shown to the owner — the same watch item F-B as `0217`:** two > 10 s `players/resolve` timeouts (retried, succeeded; **no cause known**); **W15** counts `players/resolve request failed` and `failed after retries` — **the latter must stay 0**. It stays in the runbook. · earlier: 🚧 Blocked — **server side DEPLOYED 2026-09-17 (owner-executed). Crediting still cannot be exercised at all.** The collapsed profile-box deploy shipped S3's server half; the deploy was clean (config parity 10 OK / 0 findings, migrations `migrations up to date`, both containers healthy) and the lead verified **zero error-level log lines since boot** and **0 players / 0 identities** in the DB. 🚨 **Still waiting on, and nothing here is bookkeeping:** (1) **the game server is NOT deployed** — none of S3's game-side code is running anywhere; (2) **`PROFILE_INTERNAL_TOKEN` is still blank on the game side by owner ruling**, and `internalAuth` is a `timingSafeEqual` on a *shared* secret, so even a deployed game server would take a 401 on every credit call; (3) **[`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md)** is what sets that token and the current egress IP. ⇒ **There is no crediting path today and the DB has 0 rows — that is expected, not a fault.** No box probe has touched `/internal/v1/players/resolve` or `/internal/v1/credit` with a valid token, so **S3's end-to-end behaviour has zero production evidence.** Blocked on: the game deploy and `0217`. No code. · earlier: 🚧 Blocked — built + reviewed 2026-09-15 (review rounds 1–2 closed-out, Codex full; npm test 128/1552, integration 9/103 incl. GameServerProfileCredit.it); open pending the profile-box deploy (with S2) and a later game deploy · earlier: 🔄 In progress — driven from the lead session (/fkit-sprint-ship-loop), started 2026-09-15 (plan step) · earlier: 🔲 Backlog
+
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> **S3's zero-production-evidence gap is CROSSED.** All three blockers in `## Status` are gone:
+> (1) the game server is deployed (W12, 0.0.152); (2) `PROFILE_INTERNAL_TOKEN` is set on the game side and
+> **equal** to the box's (W11, **(lead)**; A1 `MATCH`); (3) `0217`'s acceptance criterion is met (W14).
+>
+> - **Resolve + credit in production, with a valid token:** **41 players / 41 identities** (0 before);
+>   `player_match_xp_credits` **13 rows, 5 games, 13 XP**; worker log `match credit results: 1 credited,
+>   0 duplicate, 0 no_profile, 0 error` repeatedly (09:01–09:17 UTC); **0** error-level profile lines.
+> - This task's verification steps 1–8 are local and were green at build (see `## Status`). Its live
+>   proof is `0217`'s V1/V3 — ✅ met.
+> - ⚠️ **Watch item, not a failure:** 2 × `warn` `…/players/resolve request failed (attempt 1/3):
+>   TimeoutError` at 09:06:32 and 09:16:34 UTC. Per-attempt timeout is **10 s**
+>   (`src/server/ProfileApiClient.ts:24`), so resolve stalled > 10 s twice in ~15 min, under new login
+>   traffic; a retry succeeded both times (no "failed after retries" line).
+>   ⛔ **No cause known — none asserted.** Owner's resource check on the profile box at 09:21 UTC: load
+>   0.33/0.19/0.12, 2963 of 3910 MB available, swap 0 used, `profile-api` 0.40 % CPU / 491 MiB, postgres
+>   0.00 % / 56 MiB ⇒ **not resource starvation at that moment** (one snapshot).
+> - 👁️ **W15 watch:** count `players/resolve request failed` (slow, retried) and `failed after retries`
+>   (**must stay 0**) in the game container log. Per the code: `player resolve failed after retries`
+>   (`ProfileApiClient.ts:113`) is retried at the next identity event or at credit time;
+>   `credit batch failed after retries; N award(s) dropped` (`:169`) is **lost XP**.
 
 ## Owner
 fkit-coder
@@ -158,9 +187,9 @@ Per design §9 S3:
 
 ## Notes
 
-- **Depends on:** [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md) (S1 — not S2)
+- **Depends on:** [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md) (S1 — not S2)
 - **Blocks:** [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live)
-- **Can run in parallel with** [`0271`](../../done/0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2) — both touch `src/profile-server/Routes.ts` (S3 internal routes only).
+- **Can run in parallel with** [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2) — both touch `src/profile-server/Routes.ts` (S3 internal routes only).
 - **Effort (design §9):** 1.5–2 days.
 - **Deploys:** game deploy (game server) **and** a profile-box deploy for the new internal routes. ⚠️
   Order does not matter while the token is blank; it **does** matter at `0217` — both halves must be
@@ -170,7 +199,7 @@ Per design §9 S3:
 
 ## Carried from `0270` (S1) — added 2026-09-15 at S1's close
 
-Added by a spawned `fkit-producer` closing [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md),
+Added by a spawned `fkit-producer` closing [`0270`](../0270-profile-identity-s1-database-and-rekeying/brief.md),
 at `fkit-lead`'s request. **These are now items of this task.**
 
 1. **`0270` review R3 — stale comments.** They still name `player_profiles` or the

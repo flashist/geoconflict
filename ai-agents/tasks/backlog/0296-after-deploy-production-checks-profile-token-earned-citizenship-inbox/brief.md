@@ -67,6 +67,32 @@ all, and section A of this task is the observation of that slot.
 ## Status
 🔲 Backlog
 
+> ### 📌 2026-09-26 deploy window — results
+>
+> **PROVENANCE.** Executed by the **OWNER on the boxes on 2026-09-26**; output pasted into the `fkit lead`
+> session and read/checked by `fkit-lead` (**(lead)** = a read-only check `fkit-lead` ran itself from a
+> non-allowed host). Recorded by a spawned `fkit-producer` with no owner channel (ADR-021). ⛔ Relayed
+> evidence — not an owner ruling, not producer precedent. ⛔ **`## Status` NOT changed; no mover invoked.**
+> Full table: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *2026-09-26 — THE WINDOW RAN*.
+>
+> | Check | Verdict |
+> |---|---|
+> | **A1** token match (W11) | ✅ `MATCH` |
+> | **A2** non-empty in container (W13) | ✅ **both halves:** container `NONEMPTY`; source value non-empty at deploy time (**(lead)** W11: set, and equal to the profile side's). |
+> | **A3** end to end (W14) | ✅ `credited` > 0 in the worker log (`1 credited, 0 duplicate, 0 no_profile, 0 error`, repeated 09:01–09:17 UTC); 13 credit rows / 5 games in the profile DB. |
+> | **A4** no warning, no leak (W13) | ✅ partial-config warning count **0**; token string in game logs **0** (`grep -f`, value never printed); no `PROFILE_INTERNAL_TOKEN=` in the deploy log. |
+> | **A5** real XP accrual | ✅ **9 players with xp > 0** (0 before), from real players' matches; psql on the box. |
+> | **A6** seeded live grant | ❌ **not run.** 📌 For seeding: the live award observed is **1 XP per credit**. |
+> | **B1–B3** | Not run — they follow `0065` §6's flip. |
+>
+> ⚠️ **Verification step 1 asks for this evidence in `worklog.md`.** This folder has **no worklog** yet;
+> this note is the record until one exists.
+>
+> ⚠️ **A3 carries a watch item:** 2 × `players/resolve request failed (attempt 1/3): TimeoutError`
+> (09:06:32, 09:16:34 UTC), both recovered on retry; cause unknown, not resource starvation at a 09:21 UTC
+> check (details: `0217`/`0272` notes, runbook F-B). 👁️ **At W15, `failed after retries` in the game
+> container log must still be 0** — its credit-batch form drops awards.
+
 ## Owner
 fkit-coder
 

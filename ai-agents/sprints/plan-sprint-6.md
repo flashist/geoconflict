@@ -5,7 +5,7 @@
 > # ⛔ THIS IS NOT THE ACTIVE SPRINT — it is PRE-SCOPED, not in work
 >
 > **Owner ruling 2026-09-07, verbatim:** *"The active sprint is the Sprint 4!"* →
-> [`plan-sprint-4.md`](plan-sprint-4.md).
+> [`plan-sprint-4.md`](done/plan-sprint-4.md).
 >
 > ~~🚨 **If a tool told you this board was active, the tool is wrong and this is the known reason.**
 > `dashboard.sh select-active` picks the **highest** open sprint identity, and this is it — so an
