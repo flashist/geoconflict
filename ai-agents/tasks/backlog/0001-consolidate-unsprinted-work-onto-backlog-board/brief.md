@@ -77,8 +77,22 @@ fkit-producer
 >
 > ## Row count this task must move — measured 2026-09-08, supersedes "~23 entries" at line 23
 >
-> `sprint-backlog.md` now carries **25 rows** (23 `⬜ No sprint` + 2 `⏸ Parked`), not ~23 — two rows
-> (`0026`, `0029`) were appended 2026-09-08 under a separate owner ruling.
+> ~~`sprint-backlog.md` now carries **25 rows** (23 `⬜ No sprint` + 2 `⏸ Parked`), not ~23 — two rows
+> (`0026`, `0029`) were appended 2026-09-08 under a separate owner ruling.~~
+> *(2026-09-08 count — superseded 2026-09-26, see the update directly below. Kept, not deleted.)*
+>
+> 🔴 **UPDATE 2026-09-26 — `0026` and `0029` have ALREADY MOVED to `backlog.md`. Do not move them
+> again.** Two **owner rulings**, given live in the `fkit lead` session via `AskUserQuestion` and
+> relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037): *"Move those tasks to the backlog
+> task"*, then *"Use '🔲 Backlog'"*. Their rows on `backlog.md` read **`🔲 Backlog`, not `⬜ No
+> sprint`** — a **narrow exception for these two tasks only** to the 2026-09-08 "carry the markers
+> across verbatim, never flatten" ruling (step 2 below). ⚠️ **That ruling still stands for every other
+> row this task moves.** Their old rows on `sprint-backlog.md` stay as `➡️ Moved to [Backlog]`
+> pointers — **skip them**; they are not open rows. ⛔ Not producer precedent.
+>
+> **New count — open rows this task still has to handle: 23** (21 `⬜ No sprint` + 2 `⏸ Parked`), out
+> of 25 rows on the board (the other 2 are the `➡️ Moved` pointers above). Of the 23, Task 9 / Task 9a
+> are merged-then-dropped per step 2b, not moved — so **21 rows actually move**.
 >
 > **Of the 8 rows carrying no brief, 6 are live work and 2 are residue:**
 >
@@ -93,7 +107,9 @@ fkit-producer
 > | **Task 9 — Re-enable Flags** | **⛔ RESIDUE** | Duplicated by open brief [`0010-re-enable-flags-paid-non-country-cosmetic`](../0010-re-enable-flags-paid-non-country-cosmetic/brief.md), **whose title literally reads "(Task 9)"**, tracked on `backlog.md:29` with a live `🚧 Blocked` status and dated reasons. |
 > | **Task 9a — Re-enable Territory Patterns** | **⛔ RESIDUE** | Duplicated by open brief [`0011-re-enable-territory-patterns`](../0011-re-enable-territory-patterns/brief.md), **title "(Task 9a)"**, tracked on `backlog.md:30`, live `🚧 Blocked`. |
 >
-> ⇒ **True unique blind spot: 23 rows, not 25 and not 17.** The two residue rows are duplicates of
+> ⇒ ~~**True unique blind spot: 23 rows, not 25 and not 17.**~~ **True unique blind spot: 21 rows
+> as of 2026-09-26** (23 still to move, less the Task 9 / 9a residue; the 2026-09-08 figure was 23,
+> before `0026`/`0029` moved — see the update above). The two residue rows are duplicates of
 > work already visible on `backlog.md`.
 >
 > 🚨 **Consolidating Task 9 / Task 9a as new rows would CREATE duplicates of `0010` / `0011`.** Line

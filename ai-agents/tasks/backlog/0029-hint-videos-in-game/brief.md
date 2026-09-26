@@ -4,7 +4,9 @@
 0029
 
 ## Sprint
-Sprint 5 — Backlog
+Backlog
+
+~~Sprint 5 — Backlog~~ — superseded 2026-09-26. **Owner ruling**, given live in the `fkit lead` session via `AskUserQuestion` and relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037): *"Move those tasks to the backlog task"* — this task now sits on the Backlog board, [`backlog.md`](../../../sprints/backlog.md), as `🔲 Backlog` (a second same-day ruling, *"Use '🔲 Backlog'"*). It is **not** Sprint 5 work: [`plan-sprint-5.md`](../../../sprints/plan-sprint-5.md) excludes it from scope. Its earlier row on [`sprint-backlog.md`](../../../sprints/sprint-backlog.md) is kept as a `➡️ Moved` pointer. The first line above is the parseable value the status tool reads; status, priority and dependencies are unchanged.
 
 ## Priority
 Medium — depends on `0028-content-hint-videos-production` having produced at least 3–4 clean hint assets before engineering begins.
