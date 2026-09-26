@@ -3,6 +3,10 @@
 **Date**: 2026-09-14 (recorded) · **amended 2026-09-15** (tenure-grant redesign)
 **Status**: accepted
 
+> 🆕 **2026-09-26, later — the tenure popup went live with the citizenship flip** (release `0.0.154`,
+> [[tasks/citizenship-go-live]]); **`0268`'s ~60-day removal clock started 2026-09-26.** The re-raise
+> trigger below (*`0268` does not ship within ~60 days*) now has a concrete start date.
+
 > Project ADR-112 — see [[decisions/adr-numbering-two-series]].
 > Source: `ai-agents/knowledge-base/decisions/adr-112-free-xp-grants-capped-server-clamped-acked-once-per-account.md`
 > Findings: `ai-agents/knowledge-base/reports/2026-09-14-0253-tenure-xp-grant-findings.md` (task `0253`)

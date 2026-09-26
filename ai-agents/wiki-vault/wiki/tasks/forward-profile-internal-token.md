@@ -4,6 +4,12 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 · task `0062` · config-parity track (`0063` → `0062` → `0195` → `0064` → `0060`)
 
+> 🆕 **2026-09-26 — PROVEN IN PRODUCTION.** `0296` ran this task's moved checks and closed
+> ([[tasks/after-deploy-production-checks]]): **A1** `MATCH`, **A2** `NONEMPTY` with a non-empty source
+> value (both halves), **A3** credits landing end to end, **A4** no partial-config warning and the token in
+> no log or deploy output. The *"none of D1–D4 has been run with a real value"* caveats below are the
+> pre-deploy record.
+
 > 📌 **UPDATE 2026-09-26 — the production checks RAN, as `0296` A1–A4, in the weekend window.** A1
 > token-match **`MATCH`** (W11); A2 **`NONEMPTY`** in the container with a non-empty source (W13); A3 a
 > real authenticated credit end to end — **13 credit rows** (W14); A4 no partial-config warning with both
@@ -144,3 +150,4 @@ removed**; the manual step is the control.
 - [[decisions/sprint-5]] — where `0296`, which received the production checks, was filed
 - [[tasks/deploy-time-config-parity-guard]] — task `0064`, the guard whose acceptance test is this task's defect; closed 2026-09-24, report-only, arming is `0298`'s
 - [[tasks/profile-p2-wire-game-server]] — task `0217`, whose window ran this task's checks as `0296` A1–A4 on 2026-09-26
+- [[tasks/citizenship-go-live]] — task `0065`, the citizenship go-live — `CITIZENSHIP_CARD_ENABLED` flipped, live in release `0.0.154` on 2026-09-26

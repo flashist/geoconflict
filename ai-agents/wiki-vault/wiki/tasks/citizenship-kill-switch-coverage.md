@@ -4,6 +4,15 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task `0236` / citizenship launch safety
 
+> 🆕 **2026-09-26 — the switch has now been exercised in production, partly.** Layer 1
+> (`CITIZENSHIP_CARD_ENABLED`) is **`true`** since the launch (`3386b90`, release `0.0.154`,
+> [[tasks/citizenship-go-live]]). Layer 2 (the remote `citizenship_ui` flag) was flipped off and back on by
+> the owner in the live build: **the card and buy button disappeared and came back** on the next page load
+> ([[tasks/citizenship-kill-switch-launch-check]]). ⚠️ **The ★ badge, the inbox and the
+> payments-reconciliation POST — the surfaces this task routed through the shared helper — were NOT
+> separately checked in the off state; in production they remain UNVERIFIED.** The *"no runtime
+> verification"* banner below stays true for them.
+
 > # 🚨 NO RUNTIME VERIFICATION EXISTS FOR THIS TASK, AND NONE WAS FAKED
 >
 > **The evidence is unit tests plus code reading. Reasoned from code, NOT observed.** Three separate

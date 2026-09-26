@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task 0021 / analytics P1 — the shared citizenship funnel spec
 
+> 🆕 **2026-09-26 — the gate this page describes is OPEN:** `CITIZENSHIP_CARD_ENABLED` is `true` since
+> release `0.0.154` ([[tasks/citizenship-go-live]]). One real `Citizenship:Earned:XP` fired (the owner's
+> account, `0296` A6). ⚠️ The paid funnel events have **not** been checked live yet (owed in `0297`).
+
 > 🔧 **This task's founding premise was DISPROVED by the task itself (2026-09-02), and that correction
 > is the page's main content.** The brief had warned, in a read-this-first banner, that *"shipping
 > citizenship without this instrumentation means the first weeks of live data are lost and cannot be
@@ -134,3 +138,4 @@ in that pass.
 - [[decisions/sprint-4]] — the sprint board this task was made visible on
 - [[tasks/citizenship-earned]] — task `0017`, which owns `Citizenship:Earned:XP` and its accepted mis-counts
 - [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, its P1 sibling
+- [[tasks/citizenship-paid]] — task `0018`, the paid-citizenship buy flow — closed 2026-09-26 after the first real purchases returned 200

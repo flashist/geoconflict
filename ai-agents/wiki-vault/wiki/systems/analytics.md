@@ -3,6 +3,13 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 🆕 **2026-09-26 — the citizenship and inbox events CAN NOW FIRE in production.** `CITIZENSHIP_CARD_ENABLED`
+> is `true` since release `0.0.154` ([[tasks/citizenship-go-live]]); the *"zero citizenship events have ever
+> fired"* and *"gated by `false`"* statements below are the pre-launch record. What is known: **one real
+> `Citizenship:Earned:XP`** was sent from the owner's own account during `0296` A6
+> ([[tasks/after-deploy-production-checks]]). ⚠️ **The paid funnel (`UI:Tap:PurchaseCitizenship`,
+> `Purchase:Started` / `Completed:Citizenship`) has NOT yet been checked live** — owed in `0297`.
+
 ## Summary
 
 GameAnalytics-based player behaviour tracking. Used for A/B experiment evaluation, funnel analysis, session retention, tutorial completion rates, mode-segmented match funnels, public-lobby join/start diagnostics, and bootstrap/degraded-mode measurement. **Not** for server observability — that's Uptrace. See [[systems/telemetry]] for server-side instrumentation.
@@ -442,3 +449,4 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/tenure-xp-grant]] — task `0253`, the three `Citizenship:TenureGrant:*` events
 - [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, the `Ad:Interstitial` baseline event
 - [[tasks/profile-identity-s4-client-login-session]] — task `0273`, which added the client login events; client deployed 2026-09-26
+- [[tasks/citizenship-paid]] — task `0018`, the paid-citizenship buy flow — closed 2026-09-26 after the first real purchases returned 200

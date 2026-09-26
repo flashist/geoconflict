@@ -5,6 +5,35 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/client/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh`
 
+> # 🆕 2026-09-26, later — SECOND GAME DEPLOY: CITIZENSHIP WENT LIVE (release `0.0.154`)
+>
+> **Provenance:** owner-run; the owner's screenshots and words relayed by `fkit-lead` to a spawned
+> `fkit-producer` (ADR-021), appended to the runbook as *"Second game deploy (citizenship go-live,
+> `0065` §6)"*. ⛔ Relayed evidence, not an owner ruling. **Not a W-step** — the flip is a launch
+> decision, not a slot item (`RUNBOOK-A`); recorded with the window because it is the same day's game box
+> and it changes W15.
+>
+> | Attempt | Release | Result |
+> |---|---|---|
+> | 1 | `0.0.153` (commit `917e571`) | Built and pushed; **failed** at the SSH *"EXECUTING UPDATE SCRIPT ON SERVER"* step with *"Permission denied"*, seconds after the copy step **succeeded with the same credentials**. The update script never ran ⇒ **`0.0.153` was NEVER served.** ❌ **F-F** |
+> | 2 | `0.0.154` (commit `5b3e6ec`) | Full re-run; **live about 14:38 Moscow**. Container up on the new image, assets `?v=0.0.154`, players connecting; in the live iframe the citizenship card (XP 51 / 100), buy button 249 YAN, tenure popup, console flag `citizenship_ui` = `enabled`. ✅ |
+>
+> - **Content:** between `0.0.152` and `0.0.154` the only change under `src/` / `resources/` is the flip
+>   `3386b90`; `0.0.153` and `0.0.154` differ only in the version bump.
+> - **F-F — SSH refused the update-script step right after the copy step succeeded.** ⛔ **Cause unknown —
+>   none asserted.** One full re-run succeeded. 🚩 **No task owns it.** Side effect: a failed attempt still
+>   bumps the version and pushes a tag and image, so **version numbers can skip**.
+> - **Rollback pair:** previous live = `0.0.152`. ⚠️ Whether its image survived on the game box was **not
+>   checked** — F-D (the game deploy deletes the previous image).
+> - **Changes to what is still owed:** **W15's `0032` re-measure must filter to `service.version`
+>   `0.0.152` AND `0.0.154`** (both carry the fix; `0.0.153` never served) — still confirm the exact values
+>   in Uptrace first; the ≥ 24 h clock still runs from W12. **`0268`'s ~60-day tenure-claim clock started
+>   2026-09-26.**
+> - **Now done, removed from the list below:** `0296`-A6 and all of section B — passed the same day
+>   ([[tasks/after-deploy-production-checks]]). Go-live and closes: [[tasks/citizenship-go-live]].
+>
+> ---
+>
 > # ✅ 2026-09-26 — THE WINDOW RAN (W0–W14; W14's acceptance criterion MET). W15 is still running.
 >
 > **Provenance:** every step was **executed by the OWNER on the boxes on 2026-09-26**; output pasted into
@@ -61,7 +90,7 @@
 > (`failed after retries` **must stay 0** — above 0 can mean lost XP); deleting the pre-window snapshot
 > once the owner judges the window good; the leftover `postgres:16` image (removal not confirmed); the
 > Better Stack `profile-daily-checks` incident closing (not confirmed in its UI); `0294` (live rotation
-> proof); `0296`-A6, all of section B, and `0298` Part B.
+> proof); ~~`0296`-A6, all of section B,~~ *(done 2026-09-26, see the block above)* and `0298` Part B.
 >
 > **Tasks this window let close (all agent-closed — not owner-verified):** `0217`
 > ([[tasks/profile-p2-wire-game-server]]), `0272`
@@ -560,3 +589,7 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/game-prod-egress-ip-allowlist]] — task `0295` — W0.1's egress measurement (method only)
 - [[tasks/feedback-telegram-delivery-failure]] — task `0061` — closed on W12's game deploy
 - [[decisions/adr-112-free-xp-grants]] — the claim-on-behalf risk that opened at W3, 2026-09-26, when the tenure-grant route went live
+- [[tasks/citizenship-go-live]] — task `0065`, the second game deploy of 2026-09-26 (release `0.0.154`) and finding F-F
+- [[tasks/after-deploy-production-checks]] — task `0296`, whose A1–A4 rode W11/W13/W14 and which closed the same day
+- [[tasks/citizenship-kill-switch-launch-check]] — task `0238`, the kill switch flipped in the `0.0.154` build
+- [[decisions/sprint-6]] — where `0286`, `0298` and the other deploy-coupled leftovers now wait, by owner ruling

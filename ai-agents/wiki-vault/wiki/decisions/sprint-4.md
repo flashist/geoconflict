@@ -3,6 +3,13 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
+> 📌 **2026-09-26 (later, `2177ea6`) — no row, count or status changed on this closed board; re-counted:
+> 106 rows — 85 Done · 18 Moved · 3 Cancelled; 0 open.** What changed: (1) link paths — `0018`, `0065`,
+> `0238` and `0296` closed and moved to `tasks/done/`; (2) **the eight rows that sent `0030`, `0032`,
+> `0213`, `0219`, `0221`, `0285`, `0286` and `0289` to Sprint 5 now point at [[decisions/sprint-6]]**,
+> each with a note naming the Sprint 5 hop (owner ruling 2026-09-26 — Sprint 5 became the citizenship
+> launch only). The launch this board prepared **shipped 2026-09-26** — see [[tasks/citizenship-go-live]].
+>
 > # ✅ SPRINT 4 IS CLOSED — 2026-09-26 (agent-closed — not owner-verified)
 >
 > **`/fkit-sprint-done` ran on this board on 2026-09-26** (a spawned `fkit-producer`, after the weekend
@@ -1089,3 +1096,7 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, closed 2026-09-24; `--enforce` still wired nowhere
 - [[tasks/tenure-xp-grant]] — task `0253`, closed 2026-09-24; never run in a browser or production
 - [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, closed 2026-09-24 on the tier-free baseline; in-Yandex check owed
+- [[tasks/citizenship-go-live]] — task `0065`, the go-live close for this board's citizenship work; left this board 2026-09-23, shipped and closed on Sprint 5 2026-09-26
+- [[tasks/citizenship-paid]] — task `0018`, the paid-citizenship buy flow built on this board; closed on Sprint 5 2026-09-26
+- [[tasks/citizenship-kill-switch-launch-check]] — task `0238`, carried here as a launch gate until 2026-09-22; closed on Sprint 5 2026-09-26
+- [[tasks/after-deploy-production-checks]] — task `0296`, the production checks of this board's `0062`/`0017`/`0012`; closed on Sprint 5 2026-09-26

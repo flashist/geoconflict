@@ -3,6 +3,11 @@
 **Layer**: shared
 **Key files**: `ai-agents/knowledge-base/PROJECT.md`, `ai-agents/knowledge-base/architecture.md`
 
+> 🆕 **2026-09-26 — CITIZENSHIP IS LIVE** (earned and paid), release `0.0.154` ([[tasks/citizenship-go-live]]).
+> The owner-ruled tradeoff (*launch before any real purchase is proven*) went live, and the first real
+> purchases the same day succeeded ([[tasks/citizenship-paid]]); the remaining proof items are in `0297`.
+> Statements below that the card is still off are the pre-launch record.
+
 ## Summary
 
 The product ground truth for Geoconflict — what the game is, who it is for, how it earns, and the constraints every agent works inside. Written 2026-08-08 as the prose project brief that replaced an earlier placeholder. Where any other wiki page disagrees with this one on a *product* fact, this page's source wins; for *technical* facts the authority is [[systems/architecture-overview]].

@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task 0019 / payments track
 
+> 🆕 **2026-09-26 — THE FIRST REAL SIGNED PAYLOADS PASSED IN PRODUCTION.** After the citizenship launch
+> ([[tasks/citizenship-go-live]]), a real player purchase and the owner's test purchase both returned
+> **200** from the complete route, with the grant, the processed-purchase row and the used intent on the
+> box ([[tasks/citizenship-paid]]). ⇒ **The secret value is correct.** ⚠️ **Which of the two HMAC
+> constructions matched is still unknown** — backlog tasks `0309` (record it) → `0310` (drop the other).
+> ⚠️ **Live reconciliation is still unexercised** (`0297` §4).
+
 > 🔴 **CORRECTED 2026-09-19 — THE PAYMENTS ROUTES ARE NOT 503ING ON THE BOX.** Verified **read-only**
 > by `fkit-lead` on an owner ruling that day: a `POST` to a deliberately **non-existent sub-path** under
 > `/v1/payments/` on the box's **loopback** answered **404, not 503**, so the `paymentsEnabled`

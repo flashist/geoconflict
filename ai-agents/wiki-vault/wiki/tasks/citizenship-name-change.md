@@ -4,6 +4,17 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4 — Phase 2 citizenship benefits — task `0067`
 
+> 🆕 **2026-09-26 — the card is live (release `0.0.154`, [[tasks/citizenship-go-live]]) and this UI has now
+> been SEEN:** after earning citizenship the owner's card showed *"Сменить имя"* and the name-change form
+> opened (not submitted in that check — [[tasks/after-deploy-production-checks]] B1). The owner's live
+> name-change test on `0.0.154` the same day produced **seven Sprint 6 briefs** — `0312` a working operator
+> approve/reject command, `0313` a new request after a decision must reach the operator, `0314` sticky
+> rejected state / no way to clear a name, `0315` the digest lists pending names, `0316` the approve message
+> must not promise the name is active everywhere, `0317` investigate showing the approved name in matches,
+> `0318` investigate the card vanishing after a match — plus `0307` (name-path security review) and `0308`
+> (a name loses its space). See [[decisions/sprint-6]]. *"Never seen in a browser"* below is the pre-launch
+> record.
+
 > ✅ Done (agent-closed 2026-08-28 — **not owner-verified**). Closed by a producer spawned by the sprint ship-loop; **no human has checked this work**.
 >
 > 🚨 **NOTHING in this task is verified in production.** Every figure below is local-stack, unit or integration evidence.

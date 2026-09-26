@@ -4,6 +4,11 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4 — config-parity track (`0063` → `0062` → `0195` → `0064` → `0060`)
 
+> 🆕 **2026-09-26 — the open value-correctness question is SETTLED.** Two real purchases returned 200 from
+> the complete route in production release `0.0.154` ⇒ the `YANDEX_PAYMENTS_SECRET` value on the box is
+> the right one ([[tasks/citizenship-go-live]], [[tasks/citizenship-paid]]). ⚠️ Which HMAC construction it
+> matched is still unknown (backlog `0309` → `0310`).
+
 > ✅ **Closed 2026-09-01 by a spawned producer — agent-closed, not owner-verified.**
 >
 > 📌 **UPDATED 2026-09-23 — THIS TASK NO LONGER GATES `0065`, AND ITS OPEN QUESTION MOVED, NOT CLOSED.**

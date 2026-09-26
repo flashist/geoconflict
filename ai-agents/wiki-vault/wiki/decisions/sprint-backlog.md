@@ -3,6 +3,32 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> # 📊 RE-COUNTED 2026-09-26 (later) at `HEAD` = `2177ea6` — FIVE ROWS ADDED, TWO MOVED TO SPRINT 6
+>
+> **`backlog.md`: 93 rows — 67 `🔲 Backlog` · 18 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
+> 70 OPEN** *(was 88 / 67)*. ⚠️ Counted by me this run, by each row's leading status glyph.
+>
+> - **Moved to [[decisions/sprint-6]] by owner ruling:** `0248` (ad-free for paid citizens — now rank 10
+>   there, placed *"BEFORE the citizenship popup"*) and `0250` (authenticated profile read — rank 9, pulled
+>   in above `0248`, which is hard-blocked on it). Both rows stay here as `➡️ Moved` pointers (ADR-035).
+> - **Five new rows, all `🔲 Backlog`, all filed 2026-09-26 by spawned `fkit-producer`s** (ADR-021; not
+>   paged — backlog briefs are not paged):
+>   - **`0304` — EPIC: keep logged-in players' settings and progress on our server, not on the device.**
+>     The owner placed it **here, not the next sprint**: *"rather a big task and we need to be careful
+>     about … databases and migrations"*. Trigger: `0296`'s second-device check — the Tutorial was offered
+>     again and the announcements bell dot lit on a phone signed in to the same account
+>     ([[tasks/after-deploy-production-checks]]). The game uses **no** Yandex cloud save (checked).
+>     Children **`0305`** (list and classify every piece of per-player state kept on the device — read-only
+>     plus owner rulings) → **`0306`** (design the server-side store — table, migration, API, first-login
+>     merge, rollout; design only, with `fkit-architect`). Implementation children are filed only after
+>     `0306`'s design is owner-reviewed.
+>   - **`0309` — record which of the two Yandex HMAC constructions a real purchase matches** (log a label on
+>     success, read it after the next real purchase) → **`0310` — drop the unused construction** (depends on
+>     `0309`). Both are `0297` §1 follow-ups: the first real purchases proved the secret value, not which
+>     construction matched ([[tasks/citizenship-go-live]]).
+>
+> ---
+>
 > # 📊 RE-COUNTED 2026-09-26 at `HEAD` = `8f1f76b` — ONE ROW ADDED, `0300`
 >
 > **`backlog.md`: 88 rows — 64 `🔲 Backlog` · 16 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
@@ -524,3 +550,5 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/feedback-telegram-delivery-failure]] — task `0061`, whose residual 4 (the silent-failure product decision) was filed on this board as `0300`
 - [[features/feedback-button]] — the feature `0300` would change
 - [[tasks/profile-secret-persistence-value-parity]] — task `0220`, whose deliberately-unrun verification step 3 is this board's `0294`
+- [[tasks/after-deploy-production-checks]] — task `0296`, whose second-device check triggered this board's epic `0304`
+- [[tasks/citizenship-go-live]] — task `0065`, whose first real purchases left the HMAC-construction question this board's `0309` → `0310` answer

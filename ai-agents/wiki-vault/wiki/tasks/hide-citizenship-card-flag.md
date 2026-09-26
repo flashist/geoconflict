@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task 0054 / interim citizenship-launch gate
 
+> 🆕 **2026-09-26 — THE FLAG IS FLIPPED: `CITIZENSHIP_CARD_ENABLED: true`** (commit `3386b90`, verified in
+> `HEAD` this sync), shipped in production release `0.0.154` by [[tasks/citizenship-go-live]] (`0065` §6).
+> Everything below that says *default OFF* / *card hidden* is the pre-launch record. The constant is kept;
+> **setting it back to `false` is the code-level rollback**, and the remote `citizenship_ui` flag is the
+> runtime kill switch — proven in production for the card and buy button
+> ([[tasks/citizenship-kill-switch-launch-check]]).
+
 ## Goal
 
 Remove a live production UX defect: after the 0049 degraded-mode treatment shipped, the top element of every player's start screen was a dead-end citizenship card in its "Не удалось подключиться" state — citizenship has not launched (0017/0018 are backlog) and the profile backend integration is off in production, so the card could only disappoint. Owner ruling 2026-08-21: hide the whole card behind a **client config flag, default OFF**, and ship immediately. Relaunch at citizenship launch is a one-line flip. Rejected alternatives: hard-hide in code; show-only-when-backend-up.
@@ -37,3 +44,4 @@ The start screen no longer leads with a dead-end card. **Flip-ON coupling:** shi
 - [[tasks/forward-profile-internal-token]] — task `0062`: this flag hides the card but does NOT stop server-side crediting
 - [[tasks/citizenship-earned]] — task `0017`, whose flip-ON coupling here was superseded 2026-09-23 (flip is `0065` §6's alone)
 - [[tasks/personal-inbox]] — task `0012`, whose whole inbox is gated behind this flag (residual D5)
+- [[tasks/citizenship-paid]] — task `0018`, the paid-citizenship buy flow — closed 2026-09-26 after the first real purchases returned 200

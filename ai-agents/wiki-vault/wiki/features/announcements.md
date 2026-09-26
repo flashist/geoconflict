@@ -3,6 +3,13 @@
 **Status**: active
 **Source files**: `ai-agents/knowledge-base/announcements-system-guide.md`, `ai-agents/tasks/done/0126-global-announcements/brief.md`, `src/client/Announcements.ts`, `src/client/components/NewsButton.ts`, `src/client/NewsModal.ts`, `resources/announcements.json`
 
+> 🆕 **2026-09-26 — the Personal tab is LIVE** (release `0.0.154`, the citizenship launch —
+> [[tasks/citizenship-go-live]]), and was seen in the live iframe with read state persisting across two
+> devices ([[tasks/after-deploy-production-checks]]). ⚠️ The general-announcements unread dot is still
+> **per device** (last-seen id in local storage), so a second device lights it again — expected today, and
+> the reason for backlog epic `0304`. The dot clearing after the Personal tab is opened was **not
+> observed**.
+
 ## Summary
 
 An in-game announcements bell on the start screen gives Geoconflict a lightweight communication channel for player-facing updates. Players see a compact bell with an unread badge when there is something new, and tapping it opens a popup with the latest announcements in reverse chronological order.

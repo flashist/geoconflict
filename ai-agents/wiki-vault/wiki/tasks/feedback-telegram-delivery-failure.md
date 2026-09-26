@@ -89,3 +89,4 @@ immediately** (owner-run, reported live).
 - [[systems/weekend-deploy-window]] — the 2026-09-26 window that shipped the `Master.ts` half
 - [[decisions/sprint-5]] — the board that tracked its close
 - [[decisions/sprint-backlog]] — where the follow-up `0300` was filed
+- [[tasks/citizenship-kill-switch-launch-check]] — task `0238`, the remote `citizenship_ui` kill switch flipped off and on in production, 2026-09-26

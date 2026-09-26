@@ -4,6 +4,14 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 · task `0012` · 8d-B, built on the 8d-A global announcements popup
 
+> 🆕 **2026-09-26 — THE PERSONAL TAB IS LAUNCHED AND WAS SEEN IN A BROWSER.** Release `0.0.154`
+> ([[tasks/citizenship-go-live]]); `0296` section B ([[tasks/after-deploy-production-checks]]): **B2** the
+> citizenship message showed as new in the Personal tab, and **read state persisted to a second device**;
+> **B3** a non-citizen saw **no** Personal tab (one account). ⚠️ **Not observed: the bell dot CLEARING
+> after the tab is opened.** ⚠️ After a **paid** purchase the bell dot appeared only after a reload —
+> tracked in Sprint 6 task `0303` ([[tasks/citizenship-paid]]). A second device also lit the bell because
+> the general-announcements "last seen" id is kept per device — the trigger for backlog epic `0304`.
+
 > 🚨 **READ THIS FIRST — CLOSED AS BUILT + REVIEWED; NOT LAUNCHED, AND NEVER SEEN IN A BROWSER.**
 > Closed **2026-09-23** on an **owner ruling** given live in the `fkit lead` session via
 > `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**

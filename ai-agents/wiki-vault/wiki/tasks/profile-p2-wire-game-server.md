@@ -96,3 +96,4 @@ awards, which is **lost XP**. The watch stays in the runbook. See [[systems/week
 - [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, the crediting rule these real credits follow
 - [[tasks/profile-backup-restore-reproof-006]] — task `0275`, a precondition before the token was set
 - [[decisions/adr-111-xp-economy-rescale]] — the 1 XP per credit recorded at W14
+- [[tasks/after-deploy-production-checks]] — task `0296`, the production checks moved out of `0062`/`0017`/`0012` — all passed 2026-09-26

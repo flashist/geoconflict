@@ -4,6 +4,11 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4 — citizenship launch preconditions; split out of `0238`
 
+> 🆕 **2026-09-26 — the flip this task preceded has happened** (`CITIZENSHIP_CARD_ENABLED: true`, release
+> `0.0.154`, [[tasks/citizenship-go-live]]). The remote kill switch was proven in production for the card
+> ([[tasks/citizenship-kill-switch-launch-check]]) — ⚠️ **but on a normal session. Nobody has yet observed
+> the card failing closed in a real DEGRADED production session**; this page's loudest residual stands.
+
 > ✅ **Closed 2026-09-21 by a spawned `fkit-producer` with NO owner channel (ADR-021, ADR-033 §5) ⇒
 > `✅ Done (agent-closed — not owner-verified)`. No human has verified this work.**
 >

@@ -4,6 +4,14 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 · task `0017` · citizenship core, earned path (independent of Yandex Payments)
 
+> 🆕 **2026-09-26 — THE EARNED PATH IS LIVE AND PROVEN ON ONE ACCOUNT.** The flip shipped in release
+> `0.0.154` ([[tasks/citizenship-go-live]]), and `0296` ran this task's moved checks
+> ([[tasks/after-deploy-production-checks]]): **A5** real XP accrual (9 players with XP > 0); **A6** a
+> seeded account one award below the live threshold of 100 earned citizenship on a real match — earned
+> timestamp at the same instant as the credit, one inbox message; **B1** the card showed State 3
+> (ГРАЖДАНИН) **without a reload**. One real `Citizenship:Earned:XP` event came from the owner's own
+> account. The seed row stays as an audit record (game id starts `seed-`).
+
 > 🚨 **READ THIS FIRST — CLOSED AS BUILT + REVIEWED, NOT AS LIVE.**
 > Closed **2026-09-23** on an **owner ruling** given live in the `fkit lead` session via
 > `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel**
@@ -126,3 +134,4 @@ must flip the flag") is superseded** by the same ruling.
 - [[systems/analytics]] — where `Citizenship:Earned:XP` is documented
 - [[systems/weekend-deploy-window]] — the deploy window after which `0296` section A (this task's A5–A6) can run
 - [[tasks/tenure-xp-grant]] — task `0253`, the tenure grant that can trigger the earned-citizenship grant
+- [[tasks/citizenship-paid]] — task `0018`, the paid-citizenship buy flow — closed 2026-09-26 after the first real purchases returned 200

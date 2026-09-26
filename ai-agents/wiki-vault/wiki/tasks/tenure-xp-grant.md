@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 · task `0253` · rank and label owner-ruled (Medium)
 
+> 🆕 **2026-09-26, later — the popup is LIVE** (release `0.0.154`, the citizenship flip —
+> [[tasks/citizenship-go-live]]): the owner saw it grant 50 XP in the live iframe. **104 tenure grants** were
+> recorded by about 12:00 UTC the same day ([[tasks/after-deploy-production-checks]]). ⏱️ **`0268`'s ~60-day
+> clock started 2026-09-26** — the date the players got the popup.
+
 > 🚨 **READ THIS FIRST — BUILT AND REVIEWED LOCALLY; NEVER RUN IN A BROWSER OR IN PRODUCTION.**
 > Closed **2026-09-24** by a spawned `fkit-producer` at the close step of `/fkit-sprint-ship-loop`,
 > **no owner present** (ADR-033 §5) ⇒ **`(agent-closed — not owner-verified)`**.

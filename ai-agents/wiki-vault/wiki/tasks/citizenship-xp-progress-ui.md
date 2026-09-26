@@ -4,6 +4,12 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Citizenship Core
 
+> 🆕 **2026-09-26 — the card HAS been seen in a browser:** in the live Yandex iframe on release `0.0.154`,
+> XP bar **51 / 100** with the buy button, and later State 3 at 100 / 100 without a reload
+> ([[tasks/citizenship-go-live]], [[tasks/after-deploy-production-checks]]). The *"never seen"* claims below
+> are the pre-launch record. ⚠️ Sprint 6 `0318` investigates the card vanishing after a match on a shaky
+> connection.
+
 ## Goal
 
 Turn the start-screen citizenship card from a shell into a live XP/progress surface for Yandex-authorized players while preserving the guest login prompt.
@@ -49,3 +55,4 @@ The XP/progress card now reads server profile state for authorized players. Gues
 - [[decisions/adr-111-xp-economy-rescale]] — the `1 XP` / `100 XP` rescale. ✅ **SHIPPED 2026-09-12 inside `0211`** — ~~which *will* change the threshold this card displays~~ 📌 **struck: it HAS changed it.** ⚠️ **This page still records what `0191` BUILT, deliberately — but its earlier reason has EXPIRED**: ~~*"that code still reads `CITIZENSHIP_XP_THRESHOLD = 1000`, verified 2026-09-11 — nothing has shipped"*~~ 🔴 **STRUCK — the constant is now `100` (verified at `77fbc98`).** The card is unchanged **because it renders from the shared constant**, not because the value is still 1000. The rescale also mandated the **player-facing copy in both `en.json` and `ru.json`** move in the same change (`0211` verification step `4d`) — ✅ **both files did change in that commit.** ⛔ **Shipped, NOT deployed**
 - [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`, which **removed this card's degraded-SDK fail-open carve-out** (2026-09-21, owner ruling) so the card now fails **closed** like the other three surfaces; ⚠️ **accepted cost: a degraded-SDK player now sees nothing rather than a "couldn't connect" state**
 - [[tasks/citizenship-earned]] — task `0017`, the grant that moves this card to State 3
+- [[tasks/citizenship-paid]] — task `0018`, the paid-citizenship buy flow — closed 2026-09-26 after the first real purchases returned 200

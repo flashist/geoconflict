@@ -3,6 +3,16 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 🆕 **2026-09-26, later — CITIZENSHIP IS LIVE** (`CITIZENSHIP_CARD_ENABLED: true`, release `0.0.154`,
+> [[tasks/citizenship-go-live]]). The store now holds real citizens: the **first paid purchases** (a real
+> player's and the owner's test, both 200; `is_paid_citizen` set, processed-purchase row, intent marked
+> used — [[tasks/citizenship-paid]]) and the **first earned citizen** (a seeded owner account, one real
+> match — [[tasks/after-deploy-production-checks]]; its seed ledger row, game id starting `seed-`, stays
+> as an audit record and must be excluded from match counts). A snapshot about 14:47 UTC: 105 purchase
+> intents / 97 players, 2 used; 3 citizens (2 paid, 1 earned). 104 tenure grants by about 12:00 UTC.
+> ⚠️ Live reconciliation is still unexercised (`0297`); paid state is still derivable from the public
+> profile until `0250`. Claims below that the card is off are the pre-launch record.
+
 ## Summary
 
 > # 🆕 UPDATED 2026-09-26 — THE GAME SERVER IS WIRED. REAL LOGINS AND REAL XP CREDITS ARE LANDING.

@@ -250,3 +250,4 @@ Absent those, a review finding of the form *"1 XP is a trivially small award"*, 
 - [[tasks/tenure-xp-grant]] — task `0253`, the one-time tenure grant into this economy
 - [[systems/project-brief]] — product ground truth that cites this economy
 - [[tasks/profile-p2-wire-game-server]] — task `0217`, whose 2026-09-26 go-live recorded 1 XP per real credit in production
+- [[tasks/after-deploy-production-checks]] — task `0296`, the production checks moved out of `0062`/`0017`/`0012` — all passed 2026-09-26

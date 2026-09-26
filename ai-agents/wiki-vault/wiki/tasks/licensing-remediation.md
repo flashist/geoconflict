@@ -118,3 +118,4 @@ Accepted residuals (owner-ruled):
   production-deploy evidence this page now cites
 - [[tasks/private-lobby-start-url]] — task `0198`, whose fix relies on the same `app.get("*")` SPA
   catch-all that makes "expect a 404" the wrong test here
+- [[tasks/citizenship-go-live]] — task `0065`, the citizenship go-live — `CITIZENSHIP_CARD_ENABLED` flipped, live in release `0.0.154` on 2026-09-26

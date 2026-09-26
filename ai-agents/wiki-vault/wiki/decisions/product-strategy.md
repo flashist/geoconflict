@@ -12,6 +12,17 @@ Geoconflict's primary revenue is ad impressions. The strategic sequence is:
 
 Source: `ai-agents/sprints/plan-index.md`
 
+> 🆕 **2026-09-26 — `plan-index.md` (synced from `2177ea6`): THE ACTIVE SPRINT IS SPRINT 5, and it is now
+> the citizenship launch.** Owner rulings given live in the `fkit lead` session on 2026-09-26:
+> - The *"THE ACTIVE SPRINT IS SPRINT 4"* note (2026-09-07) is **struck, kept as history**; Sprint 4 is
+>   closed in `done/`. **Sprint 5 is active since 2026-09-26** and carries only the profile/citizenship
+>   launch — which **shipped the same day** (release `0.0.154`, see [[tasks/citizenship-go-live]]).
+> - **Renames:** Sprint 5 → **Citizenship Launch** (the producer's wording; the owner ruled *that* it is
+>   renamed); Sprint 6 → **Full F2P Loop & Social Features**, Sprint 5's former title (*More Content*
+>   struck). The map goal stays on Sprint 6.
+> - **The seven F2P / social items** in the priority table (Tasks 10, 8a, 11, 12, 14, 13, 15) now read
+>   sprint ~~5~~ **6**. See [[decisions/sprint-5]] and [[decisions/sprint-6]].
+>
 > 📌 **2026-09-25 — `plan-index.md` housekeeping (synced from commit `2df6bbf`):**
 > - Its *"the tooling reports Sprint 6 and cannot currently be told otherwise"* note is **struck, not
 >   deleted — superseded** by the line-3 status banners (fkit ADR-047, adopted 2026-09-23); the plan
@@ -31,8 +42,8 @@ Source: `ai-agents/sprints/plan-index.md`
 - **Sprint 4** — In-App Monetization & Citizenship (citizenship, Yandex payments, player profile store) — **the current sprint as of 2026-08-08**
 - **Sprint 4b** — Interim Game Variety Update (compact maps, Duos/Trios/Quads, weird-setting modifiers while Sprint 4 core work is paused)
 - **Sprint 4c** — Production Stabilization (top Uptrace error families before Mark's May 15 travel pause)
-- **Sprint 5** — Full F2P Loop (coin economy, clans, cosmetics, social features)
-- **Sprint 6** — More Content (historical multiplayer maps, paid campaign map packs)
+- **Sprint 5** — ~~Full F2P Loop (coin economy, clans, cosmetics, social features)~~ **Citizenship Launch** *(renamed and re-scoped 2026-09-26, owner ruling; active since that day — its F2P / social items moved to Sprint 6)*
+- **Sprint 6** — ~~More Content~~ **Full F2P Loop & Social Features** *(renamed 2026-09-26)* — historical multiplayer maps, paid campaign map packs, and since 2026-09-26 the F2P / social items (coin economy, clans, cosmetics, social features)
 
 ## Experiments Policy
 
@@ -68,15 +79,16 @@ Mobile deep optimization remains parked — desktop is the core audience. Revisi
 - [[decisions/sprint-1]] — stop the bleeding
 - [[decisions/sprint-2]] — fix onboarding
 - [[decisions/sprint-3]] — deepen retention (done)
-- [[decisions/sprint-4]] — first monetization layer (**current**)
+- [[decisions/sprint-4]] — first monetization layer (~~**current**~~ closed 2026-09-26)
 - [[decisions/sprint-4b]] — interim public-match variety during the Sprint 4 pause
 - [[decisions/sprint-4c]] — production stabilization during the same pause
 - [[decisions/sprint-backlog]] — no-sprint backlog for defined work that needs a sprint home
-- [[decisions/sprint-5]] — full F2P loop
-- [[decisions/sprint-6]] — content expansion after payments/cosmetics infrastructure exists
+- [[decisions/sprint-5]] — ~~full F2P loop~~ the citizenship launch (**active since 2026-09-26**)
+- [[decisions/sprint-6]] — content expansion after payments/cosmetics infrastructure exists; since 2026-09-26 also the full F2P loop and social features
 - [[decisions/cancelled-tasks]] — work cancelled with reasons
 - [[systems/analytics]] — analytics infrastructure built in Sprint 1
 - [[systems/producer-workflow]] — producer prioritization and decision-boundary rules derived from this strategy
 - [[systems/project-operations]] — operational handbook for team roles, release workflow, and roadmap constraints
 - [[decisions/licensing-compliance]] — AGPL/source access and asset-license constraints that affect monetization strategy
 - [[tasks/mobile-quick-wins]] — Task 3 mobile optimizations; Task 5 gate conditions documented here
+- [[tasks/citizenship-go-live]] — task `0065`, the 2026-09-26 citizenship launch that Sprint 5 was re-scoped around

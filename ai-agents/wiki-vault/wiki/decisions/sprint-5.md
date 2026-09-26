@@ -1,9 +1,50 @@
-# Sprint 5 — Full F2P Loop & Social Features
+# Sprint 5 — Citizenship Launch *(renamed 2026-09-26; was ~~Full F2P Loop & Social Features~~)*
 
 **Date**: 2026-04-16
-**Status**: proposed
+**Status**: accepted *(🔄 in progress since 2026-09-26 — was `proposed` while pre-scoped)*
 
-> # 🆕 2026-09-26 — SEVEN ROWS CLOSED AFTER THE WEEKEND WINDOW; ⛔ THE SPRINT IS STILL NOT STARTED
+> # 🆕 2026-09-26 (later) — SPRINT 5 IS THE ACTIVE SPRINT, IS NOW THE CITIZENSHIP LAUNCH, AND THE LAUNCH SHIPPED
+>
+> **Re-counted at `HEAD` = `2177ea6`, by each row's leading status glyph: 28 rows — 11 `✅ Done` · 16
+> `➡️ Moved` (to [[decisions/sprint-6]]) · 1 `🔲 Backlog`; 1 OPEN — `0297`** (was 21 open at `8f1f76b`).
+> ⚠️ Counted by me this run. **Line-3 banner: `🔄 In progress — 2026-09-26`** — the sprint is started, and
+> `dashboard.sh select-active` reads it.
+>
+> **AUTHORITY:** owner rulings given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-26,
+> relayed by `fkit-lead` to spawned `fkit-producer`s with no owner channel (ADR-021). ⛔ Not producer
+> precedent. The owner's goal, verbatim: *"make another release today/tomorrow to finally ship the
+> profile/citizenship feature to users ... move everything from the Sprint 5, that is not related to that
+> goal, to the next sprint (Sprint 6)."*
+>
+> - **16 rows moved to Sprint 6** (*"Append to Sprint 6 (Recommended)"*), appended there at ranks 3–18
+>   in this board's order: the seven brief-less plan items (Tasks 10, 8a, 11, 12, 14, 13, 15) and
+>   `0285`, `0289`, `0030`, `0032`, `0213`, `0219`, `0221`, `0286`, `0298`. Each row here now reads
+>   `➡️ Moved to Sprint 6 — priority M`; nothing deleted or renumbered (ADR-035). The seven brief-less
+>   items keep their prose on this board (the *Decision* table below is that prose, kept as history).
+> - **The launch-day checks stayed** (*"Yes, keep them"*): `0238`, `0296`, `0297`.
+> - **Started** (*"Yes, after the move"*) — the line-3 banner is the carrier.
+> - **Renamed** (*"Rename it, but use the current name for the Sprint 6"*): the H1 now reads
+>   **Citizenship Launch**. ⚠️ **Those words are the producer's, not the owner's** — the owner ruled *that*
+>   it is renamed; open to correction. The old title moved to Sprint 6. Sprint identity is unchanged.
+> - **Launch timing:** *"As soon as possible, it's ok for me if some of the re-measures happen after it."*
+>
+> **✅ THE LAUNCH SHIPPED — release `0.0.154`, 2026-09-26, about 14:38 Moscow.** Four closes the same
+> day, all `(agent-closed — not owner-verified)` on owner rulings:
+>
+> | Task | Closed on | Carries |
+> |---|---|---|
+> | `0065` — [[tasks/citizenship-go-live]] | the flip (`3386b90`) + second game deploy + card seen in the live iframe | ⚠️ `0.0.153` never served (SSH failure, **F-F**, cause unknown); rollback image not checked (F-D) |
+> | `0018` — [[tasks/citizenship-paid]] | closes on `0065` alone (owner ruling 2026-09-23) | first real purchases returned 200; the proof items stay in `0297` |
+> | `0238` — [[tasks/citizenship-kill-switch-launch-check]] | the remote flag flipped off and on in production | badge, inbox and reconciliation POST **unverified** in the off state; one session |
+> | `0296` — [[tasks/after-deploy-production-checks]] | A1–A6 and B1–B3 all pass | ⚠️ B2's bell-dot **clearing** not observed |
+>
+> **Still open here (1):** `0297` — the owner-run test-buy sequence. The first real purchases already
+> settled the secret-value question; still open in it: live reconciliation (§4, owner decision pending),
+> funnel analytics seen live, and which HMAC construction matched (backlog follow-ups `0309` → `0310`).
+>
+> ---
+>
+> # 🆕 2026-09-26 — SEVEN ROWS CLOSED AFTER THE WEEKEND WINDOW; ⛔ THE SPRINT IS STILL NOT STARTED *(superseded later the same day — see the block above)*
 >
 > **Re-counted at `HEAD` = `8f1f76b`, by each row's leading status glyph: 28 rows — 7 `✅ Done` · 15
 > `🔲 Backlog` · 6 `🚧 Blocked`; 21 OPEN** (was 28 open — 19 Backlog · 9 Blocked — at `6eeceeb`).
@@ -346,7 +387,7 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 - [[decisions/product-strategy]] — sprint ordering
 - [[decisions/sprint-4]] — previous sprint, provides citizenship infrastructure this sprint builds on
 - [[decisions/sprint-4b]] — interim variety sprint between Sprint 4 and Sprint 5
-- [[decisions/sprint-6]] — next planned sprint, focused on map content after monetization foundations
+- [[decisions/sprint-6]] — next planned sprint; ~~focused on map content after monetization foundations~~ since 2026-09-26 it carries this board's 16 non-launch rows and this sprint's former title
 - [[systems/clans]] — Existing clan tag + team assignment implementation (foundation for Task 12)
 - [[tasks/investigate-clans-system]] — Investigation findings: what is implemented, what is broken, and recommended next steps for Task 12
 - [[decisions/adr-105-compact-maps-out-of-rotation]] — the map-regeneration fix scheduled here is that ADR's expected exit
@@ -377,3 +418,7 @@ Source: `ai-agents/sprints/plan-sprint-5.md`
 - [[tasks/profile-secret-persistence-value-parity]] — task `0220`, moved in and closed here 2026-09-26 with step 3 deliberately not run
 - [[tasks/game-prod-egress-ip-allowlist]] — task `0295`, filed on this board 2026-09-22 and closed here 2026-09-26
 - [[tasks/feedback-telegram-delivery-failure]] — task `0061`, moved here 2026-09-22 and closed 2026-09-26
+- [[tasks/citizenship-go-live]] — task `0065`, the go-live, closed here 2026-09-26 (release `0.0.154`)
+- [[tasks/citizenship-paid]] — task `0018`, the buy flow, closed here 2026-09-26 on `0065`
+- [[tasks/citizenship-kill-switch-launch-check]] — task `0238`, the kill switch flipped in production, closed here 2026-09-26
+- [[tasks/after-deploy-production-checks]] — task `0296`, the production checks of `0062`/`0017`/`0012`, closed here 2026-09-26

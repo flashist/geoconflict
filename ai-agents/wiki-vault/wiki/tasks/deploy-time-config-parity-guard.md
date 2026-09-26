@@ -98,3 +98,4 @@ this same task — not a new task"*) was **superseded 2026-09-23** by the split 
 - [[decisions/sprint-5]] — the board carrying `0298`
 - [[systems/player-profile-store]] — the profile API whose deploy pipeline the guard's B1/B2 checks cover
 - [[tasks/profile-secret-persistence-value-parity]] — task `0220`, the profile box's on-box value parity (0 findings at W3)
+- [[tasks/after-deploy-production-checks]] — task `0296`, the production checks moved out of `0062`/`0017`/`0012` — all passed 2026-09-26

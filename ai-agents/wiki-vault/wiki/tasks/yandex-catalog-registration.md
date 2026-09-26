@@ -4,6 +4,13 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4 · task `0014` · type: **non-technical** (manual work in the Yandex Games dashboard, not engineering)
 
+> 🆕 **2026-09-26 — two residuals on this page are now answered by the launch.** (1) **The console flag's
+> NAME and VALUE are confirmed in effect**: flipping `citizenship_ui` off hid the card and setting it back
+> to `enabled` restored it in the live `0.0.154` build ([[tasks/citizenship-kill-switch-launch-check]]).
+> (2) **The first real purchases went through** — a real player's and the owner's test purchase both
+> returned 200 ([[tasks/citizenship-go-live]], [[tasks/citizenship-paid]]). The live price label is
+> **per account from Yandex**: the test account saw *"249 RUB"*, the main account *"249 YAN"*.
+
 > 🚨 **READ THIS FIRST — WHAT "NOT OWNER-VERIFIED" MEANS HERE IS NOT CLERICAL.**
 > **Every single deliverable this task tracked is OWNER-ATTESTED AND NOT REPO-VERIFIABLE.** Nothing in
 > this repository can see the Yandex console, and it never could. The close rests on the owner's word
