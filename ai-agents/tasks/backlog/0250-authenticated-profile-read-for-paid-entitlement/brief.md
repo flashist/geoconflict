@@ -22,10 +22,30 @@
 >    for a claim on the number.
 
 ## Sprint
-Backlog
+Sprint 6
 
-⚠️ **The field above is the bare token `Backlog` on purpose** — `dashboard.sh`'s drift rule compares it
-against the board's identity, and a decorated value is reported as drift. **Do not decorate it.**
+⚠️ **The field above is the bare token `Sprint 6` (was `Backlog` until 2026-09-26) on purpose** —
+`dashboard.sh`'s drift rule compares it against the board's identity, and a decorated value is reported
+as drift. **Do not decorate it.**
+
+📌 **MOVED FROM THE BACKLOG BOARD INTO SPRINT 6 ON 2026-09-26 — OWNER RULING** given live in the
+`fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no
+owner channel (ADR-021; the relay named the ruling, ADR-037 §3); ⛔ not producer precedent. Asked
+*"Pull 0250 … into Sprint 6, directly above ad-free (0248)?"*, the owner chose, verbatim: **"Yes, above
+0248 (Recommended)"**.
+- **Why it was asked:** earlier that day the owner moved
+  [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (ad-free for paid citizens) into
+  Sprint 6 above the citizenship explainer popup
+  ([`0301`](../0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)). `0248` cannot be built
+  without this task, so both waited on it.
+- **Effect:** rank **4** on [Sprint 6](../../../sprints/plan-sprint-6.md), directly above `0248`; the
+  [Backlog board](../../../sprints/backlog.md) row reads `➡️ Moved`. Full record: the second *RE-RANK
+  2026-09-26* addendum on the Sprint 6 board.
+- ⛔ **What the ruling did NOT change:** phase 1 is still a design decision (`fkit-architect` on the
+  shape, the owner on the privacy posture), the MUST-FIX section below still binds, and open questions 1–2
+  are still open.
+
+*History, kept as written — the board part was true until 2026-09-26:*
 
 🔴 **BACKLOG BOARD BY OWNER RULING, 2026-09-12, given live in session — ⛔ NOT Sprint 4.** The owner
 ruled **that this be filed**, and filed **rather than scheduled**. Their reasoning as put to them and
@@ -35,7 +55,15 @@ ONCE rather than absorbed into either.** ⛔ **They did NOT rule what it is wort
 — see *Priority*, where the rank is the **producer's**.
 
 ## Priority
-Unscheduled *(Backlog board is unranked by design)*
+9
+
+📌 **Shifted 4 → 9 later on 2026-09-26** by a third OWNER RULING (R2/R3, live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): five appended name-change rows (`0312`, `0313`, `0315`, `0314`, `0317`) were placed above it. Still directly above `0248`; order relative to `0248`, `0301` and `0303` unchanged. ⛔ Not a merit re-rank of this task. See the *RE-RANK 2026-09-26, THIRD* addendum on the Sprint 6 board. *Earlier value, kept:* ~~4~~ —
+
+**Board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), OWNER-RULED 2026-09-26** (see *Sprint*:
+*"Yes, above 0248"*). It arrived at append rank 25 and was moved to 4 under that ruling.
+~~Unscheduled *(Backlog board is unranked by design)*~~ — true until 2026-09-26.
+
+*History, kept as written:*
 
 📌 **Producer's rank: Medium.** ⛔ **This is the PRODUCER's rank, not the owner's** — the owner ruled
 that the task be filed, not what it is worth. Medium and not High because the two things it unblocks
@@ -311,3 +339,7 @@ phase 1 chooses, all of these must hold:**
    and giving it to earned citizens removes the main reason to pay.
 3. **Is the per-game payments secret key collected?** Unknown — `0014` open item 1. **It decides whether
    candidate 1 is plannable at all today.**
+   📌 *Noted 2026-09-26 by the producer — a pointer, not a ruling:* this **looks answered.**
+   [`0014`](../../done/0014-yandex-catalog-registration/brief.md) item 3 records the key issued 2026-09-12,
+   and [`0065`](../../done/0065-citizenship-paid-live-verification/brief.md) records `YANDEX_PAYMENTS_SECRET`
+   present in the running `profile-api` container since 2026-09-20. Confirm at plan time; do not assume.

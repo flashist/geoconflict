@@ -32,6 +32,23 @@ Producer's rank when that date arrives: **Medium** — not owner-ruled; it close
 > date the route reached the box is **2026-09-26**. The ~60-day clock still runs from when **players get
 > the popup** (`0065`'s flip) — **not yet**; the card flag is still off.
 
+> ### ⏱️ 2026-09-26, later — THE ~60-DAY CLOCK STARTED: players got the tenure popup on **2026-09-26**, game version **0.0.154**
+>
+> **FACT, relayed:** `0065` §6 went live in production on **2026-09-26 at about 14:38 Moscow time**, game
+> version **0.0.154** (the only source change since 0.0.152 is `3386b90`, `CITIZENSHIP_CARD_ENABLED`
+> → `true`). The owner's screenshot inside the live Yandex Games iframe shows the tenure popup
+> (*"Спасибо, что вы с нами! … мы дарим вам 50 XP. Теперь у вас 51 / 100 XP."*), footer 0.0.154; the
+> Yandex console flag `citizenship_ui` = `enabled`. **PROVENANCE:** owner's screenshots + words in the
+> `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel
+> (ADR-021). ⛔ Relayed evidence — not an owner ruling, not producer precedent. ⚠️ The observation is the
+> owner's own account; no other player's popup is observed. ⛔ **`## Status` NOT changed; no mover invoked.**
+>
+> - **Release date (What-to-build step 1 / Verification step 1): 2026-09-26.**
+> - **Removal window, computed (not chosen):** 30 days ⇒ **2026-10-26**; ~60 days ⇒ **2026-11-25**.
+>   ⛔ **The chosen removal date is the owner's** — not set by this note (Verification step 1 still wants it).
+> - The claim-on-behalf risk has been open since W3 the same morning (block above) — unchanged.
+> - ⚠️ **Still nothing reminds anyone of the date** (Notes, last bullet).
+
 ## Owner
 fkit-coder
 
@@ -58,6 +75,9 @@ the tenure check has not happened; the server decides once and never repeats).
    session via `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent. Its go-live is `0065` §6's
    order: route on the box, client deployed, then the flip.)*), write the date
    here; the removal date is that + ~60 days (owner: 30–60 acceptable).
+   📅 **Written 2026-09-26: release date = 2026-09-26** (game 0.0.154, `0065` §6 live ~14:38 Moscow time;
+   evidence in the ⏱️ block under `## Status`). Removal window **2026-10-26 (30 d) – 2026-11-25 (~60 d)**;
+   **chosen removal date: _owner's call — not yet set_.**
 2. **Client:** remove the tenure claim request, the one-time popup and its strings (`en.json` **and**
    `ru.json` in the same change), and the tenure analytics events (update
    `analytics-event-reference.md` — mark them retired, do not silently delete history).

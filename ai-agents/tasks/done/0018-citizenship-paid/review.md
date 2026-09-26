@@ -1,6 +1,6 @@
 # Review — 0018-citizenship-paid
 
-Task: ai-agents/tasks/backlog/0018-citizenship-paid/brief.md
+Task: ai-agents/tasks/done/0018-citizenship-paid/brief.md
 File(s) under review: uncommitted working-tree diff vs HEAD (7b58655) — src/client/CitizenshipPurchase.ts (new), src/client/CitizenshipCard.ts, src/client/flashist/FlashistFacade.ts, src/client/PaymentsReconciliation.ts, src/profile-server/PaymentsRepository.ts (comment-only), resources/lang/en.json + ru.json, ai-agents/knowledge-base/analytics-event-reference.md, tests (CitizenshipPurchase.test.ts + PaymentsReconciliation.test.ts new; CitizenshipCard/FlashistFacade test additions; 2 compose it-tests in PaymentsRepository.it.test.ts)
 Status: closed-out
 

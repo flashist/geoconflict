@@ -1,6 +1,6 @@
 # Review — 0065
 
-Task: ai-agents/tasks/backlog/0065-citizenship-paid-live-verification/brief.md
+Task: ai-agents/tasks/done/0065-citizenship-paid-live-verification/brief.md
 File(s) under review: commit 3386b90 vs 68b8434 — src/client/flashist/FlashistFacade.ts, tests/client/CitizenshipCard.test.ts, ai-agents/tasks/backlog/0065-citizenship-paid-live-verification/worklog.md
 Status: in-review
 Coverage: reasoning-only second opinion — codex-cli 0.152.0, exit 0, usable pass ("no significant issues found"); Codex ran only source-text inspection (rg, nl, git diff/show/status) and ran no tests; the only execution evidence is the Claude reviewer's (8 citizenship client suites, 179/179 tests green on 3386b90)

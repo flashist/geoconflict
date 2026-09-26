@@ -51,7 +51,7 @@ the secret key, or Yandex payments in any form.** Its real dependencies:)*
   the existing pattern). All code (T5/T6 crediting path, `src/server/PlayerProfileRepository.ts`,
   `ProfileApiClient`) is merged and works locally where the token is set.
 - 📌 **2026-09-23 (owner ruling): `0062` is closed and the Deferred Live Tail moved to
-  [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md) —
+  [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md) —
   the bullet below is the historical record.**
 - **`0062` — for the Deferred Live Tail ONLY.** `PROFILE_INTERNAL_TOKEN` is not forwarded to prod, so
   no XP is credited there and the threshold can never fire *in production* until `0062` ships (see
@@ -222,7 +222,7 @@ If a `Citizenship:Earned` funnel event is wanted in the future, add it then.
    > relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent). This local browser
    > check was never run (it waited on `0012`; `0012` was built 2026-08-26 but its browser step was not
    > run either). The owner **waived** it: the live check **B1/B2** in
-   > [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
+   > [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
    > (ex-this task's live item 3, ex-`0012` live item 2) covers it. ⚠️ **Accepted tradeoff: nobody sees
    > the Personal tab in a browser until after launch.**
 4. **UI transition:** complete step 1 while the game is open in a browser tab. Return to the start screen after the match. Confirm the citizenship card shows State 3 (ГРАЖДАНИН) without a manual reload.
@@ -236,12 +236,12 @@ If a `Citizenship:Earned` funnel event is wanted in the future, add it then.
 > 🔴 **MOVED OUT 2026-09-23 — OWNER RULING** (given live in the `fkit lead` session via
 > `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent).
 > The owner ruled this task **closes as built + reviewed**, and its production-only checks move to
-> [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
+> [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
 > (Sprint 5). Mapping: item 1 → `0296` A2–A3 · item 2 → A5 · item 3 → A6 (server-side half, after the
 > weekend deploy slot) + B1 (card State 3, after the flip).
 > 🔴 **Item 4 (the flip) was REMOVED, not moved.** Setting `CITIZENSHIP_CARD_ENABLED` to `true` plus the
 > second game deploy is now owned **only** by
-> [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md) **§6** (owner ruling 2026-09-23; the
+> [`0065`](../0065-citizenship-paid-live-verification/brief.md) **§6** (owner ruling 2026-09-23; the
 > 2026-09-22 *RUNBOOK-A* ruling already called the flip a launch decision, not a verification step).
 > ⚠️ **Accepted tradeoff, recorded:** the earned-citizenship launch is now tied to `0065`'s steps — the
 > *"Do not couple these tasks"* note in `## Notes` is **superseded** on that point. ⚠️ `0065`'s own

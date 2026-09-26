@@ -70,7 +70,7 @@ consequence, which is why the weekend runbook refused to pick one silently:
 
 | Variable | What rotating it actually does |
 |---|---|
-| `YANDEX_PAYMENTS_SECRET` | ⛔ **Would replace the real Yandex key the owner set**, which ~~[`0065`](../0065-citizenship-paid-live-verification/brief.md)'s~~ the open `0195` condition rests on (owner-attested 2026-09-20). Would break ~~`0065` steps 1–4~~ the test-buy sequence. *(📌 2026-09-23, owner ruling: that condition and those steps moved to [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1–§4; `0065` is the go-live. ⚠️ After go-live a wrong value would also break **real players'** purchases.)* |
+| `YANDEX_PAYMENTS_SECRET` | ⛔ **Would replace the real Yandex key the owner set**, which ~~[`0065`](../../done/0065-citizenship-paid-live-verification/brief.md)'s~~ the open `0195` condition rests on (owner-attested 2026-09-20). Would break ~~`0065` steps 1–4~~ the test-buy sequence. *(📌 2026-09-23, owner ruling: that condition and those steps moved to [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1–§4; `0065` is the go-live. ⚠️ After go-live a wrong value would also break **real players'** purchases.)* |
 | `FEEDBACK_TELEGRAM_TOKEN` | Live player-feedback delivery. |
 | `FEEDBACK_TELEGRAM_CHAT_ID` | Would misroute feedback to a different room. |
 | `TELEGRAM_PROXY_URL` | Live delivery path for the same. |

@@ -13,7 +13,11 @@ Sprint 5
 High — the monetization milestone of the sprint.
 
 ## Status
-🚧 Blocked — built + reviewed (mock scope); open pending `0065` (~~live verification &~~ go-live ~~tail~~ — 📌 2026-09-23, owner ruling: `0065` is now the go-live only; the live verification moved to [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md), Sprint 5)
+✅ Done (agent-closed — not owner-verified)
+
+*(The status text below is the pre-close value, kept as history — superseded by the marker above on 2026-09-26; see `worklog.md` § *Close*. Same form as the `0014` / `0017` closes.)*
+
+🚧 Blocked — built + reviewed (mock scope); open pending `0065` (~~live verification &~~ go-live ~~tail~~ — 📌 2026-09-23, owner ruling: `0065` is now the go-live only; the live verification moved to [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md), Sprint 5)
 
 *(Re-scoped 2026-08-23 by owner ruling — "maximize work that can proceed without anything real from
 Yandex; don't block on external turnaround." This task is now the **mock-buildable scope only**:
@@ -21,7 +25,7 @@ client purchase flow, entitlement grant, and reconciliation UI built against a *
 with fake product data**, verified by tests + local runs. Everything that genuinely needs Yandex
 (real signed payloads / secret key, catalog moderation behavior, HMAC-construction confirmation) or
 prod config (`0062`) is **split out into
-[`0065-citizenship-paid-live-verification`](../0065-citizenship-paid-live-verification/brief.md)**,
+[`0065-citizenship-paid-live-verification`](../../done/0065-citizenship-paid-live-verification/brief.md)**,
 which stays blocked on `0014` + `0062`. Neither of the two former blockers gates THIS brief anymore.)*
 
 ## Owner
@@ -64,7 +68,7 @@ Players who do not want to grind 1,000 XP can purchase citizenship directly for 
 > and reconciliation are exercised against the **local** profile stack with a **synthetic secret key**
 > (HMAC verification is deterministic — same technique `0019` shipped with). No real catalog, no real
 > purchase, no real signed payload is required anywhere in this brief; those are `0065`. *(📌 Since
-> 2026-09-23, owner ruling: those are [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md),
+> 2026-09-23, owner ruling: those are [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md),
 > run by the owner after go-live.)*
 
 ### Part A — Client: paid CTA in the citizenship card
@@ -156,7 +160,7 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
 > the client; local profile stack + synthetic secret key on the server. The live equivalents of
 > steps 3 and 4 (real test purchase, real interrupted-purchase reconciliation) are **repeated for
 > real in `0065`** — a mocked pass here does not retire them. *(📌 Since 2026-09-23, owner ruling: in
-> [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §3–§4, run by the owner after
+> [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §3–§4, run by the owner after
 > go-live.)*
 
 1. **CTA visibility:** with the mocked catalog reporting the `citizenship` product, confirm the "Buy Citizenship" button appears for a non-citizen account. Mock a catalog failure/absence — confirm the button is hidden entirely.
@@ -189,7 +193,7 @@ Add to `ai-agents/knowledge-base/analytics-event-reference.md`:
   former blockers — `0062` (no profile row is ever created in prod: `ProfileApiClient.isConfigured()`
   false → `upsertProfile()` no-ops at `GameServer.ts:1217`; profile server fails closed on the empty
   token) and Yandex catalog approval (`0014`) — are both real and both **still stand for going
-  live**, but they now gate [`0065-citizenship-paid-live-verification`](../0065-citizenship-paid-live-verification/brief.md),
+  live**, but they now gate [`0065-citizenship-paid-live-verification`](../../done/0065-citizenship-paid-live-verification/brief.md),
   not this mock build. ⚠️ Unchanged truth from the old note: catalog approval arriving does **not**
   make the feature live on its own — both conditions must clear, and `0065` records both.
   📌 *2026-09-23: superseded — `0014` and `0062` are both closed, and by owner ruling (`0065`

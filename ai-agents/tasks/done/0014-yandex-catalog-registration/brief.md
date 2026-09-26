@@ -28,8 +28,8 @@ is kept as the historical record of how this task was ranked while it was open.
 ⚠️ **The `Urgent` LABEL IS UNCHANGED, and the producer did NOT re-rank it.** It still blocks the paid
 citizenship launch — just for a different reason: **the two remaining console deliverables (~~a
 test-purchase login~~ ✅ done 2026-09-22, and the `citizenship_ui` flag) are prerequisites of
-[`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md) and of
-[`0238`](../../backlog/0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md)
+[`0065`](../0065-citizenship-paid-live-verification/brief.md) and of
+[`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md)
 respectively**, and both are minutes of console work that nothing else is waiting on. ⚠️ **Rank is the
 owner's; this note records that the justification moved, not that the rank did.**
 
@@ -56,7 +56,7 @@ said of every console fact in it from the start. ⛔ **Do not summarise this clo
 4 ✅** — and `## Status`'s deliverables table **empty**. The two lists agree; see the resolved-conflict
 block below for *how* they came to agree, because the distinction matters.
 
-⛔ **THIS CLOSE DOES NOT UNBLOCK [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md).**
+⛔ **THIS CLOSE DOES NOT UNBLOCK [`0065`](../0065-citizenship-paid-live-verification/brief.md).**
 It satisfies `0065`'s **`0014` condition only**. `0062` and `0195` are untouched, so `0065` stays
 `🚧 Blocked` — on **TWO** conditions now, not three. ⛔ **No mover was invoked on `0065`.**
 
@@ -101,7 +101,7 @@ recorded as such.
 
 - ⛔ **The owner did NOT say this task is finished, and this brief does not record that.** Two of the
   deliverables this brief tracks are untouched by the ruling — see the list directly below.
-- ⛔ **It is not a ruling on [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md)'s dependency
+- ⛔ **It is not a ruling on [`0065`](../0065-citizenship-paid-live-verification/brief.md)'s dependency
   set.** `0065` is unedited and its blocker count is unchanged. See `## Notes` → **Blocks**.
 - ⛔ **Not producer precedent.** One ruling, one task.
 
@@ -274,7 +274,7 @@ and is `0065` step 2's job, not this task's.
 
 > **REWRITTEN 2026-09-12 on an OWNER RULING given live in session.** The superseded text is struck, not
 > deleted, immediately below. **Two deliverables were missing entirely** — without them this task could
-> have closed while [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md) stayed blocked **on
+> have closed while [`0065`](../0065-citizenship-paid-live-verification/brief.md) stayed blocked **on
 > this very task**.
 
 ~~- Catalog items appear in the Yandex Games developer dashboard with status "approved" (or equivalent
@@ -318,7 +318,7 @@ mistake that produces a paid purchase granting nothing.
    ⚠️ **AUTHORITY BEFORE FACTS.** Corrected on an **OWNER RULING given live in the `fkit lead` session
    via `AskUserQuestion` on 2026-09-20**, relayed by `fkit-lead` to a spawned `fkit-producer` with no
    owner channel. The owner was asked whether this brief should be corrected alongside
-   [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md) and ruled **correct it**.
+   [`0065`](../0065-citizenship-paid-live-verification/brief.md) and ruled **correct it**.
    ⛔ **Not producer precedent — one ruling, one task.**
 
    **What is now established:**
@@ -391,11 +391,11 @@ mistake that produces a paid purchase granting nothing.
 
    ⛔ **What this does NOT establish:** that a test purchase has ever been *exercised*. A nominated
    login makes one **possible**; it does not make one **done**. Exercising it is
-   [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md)'s job, not this task's.
+   [`0065`](../0065-citizenship-paid-live-verification/brief.md)'s job, not this task's.
 
 > 🚨 **THE REASON ITEMS 3 AND 4 ARE HERE AT ALL.** As this brief previously stood, `0014` could be
 > closed the moment the catalog item was approved — **with no secret key and no test login** — while
-> [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md) remained blocked citing `0014` as one
+> [`0065`](../0065-citizenship-paid-live-verification/brief.md) remained blocked citing `0014` as one
 > of its three conditions. `0065`'s own status line already names *"Yandex catalog approval **+
 > per-game secret-key issuance** (`0014`)"*, so the dependency was recorded **there** and missing
 > **here**. ⛔ **A task whose closure would not actually unblock its dependent is a false close.**
@@ -421,7 +421,7 @@ mistake that produces a paid purchase granting nothing.
   2026-09-12, because the owner actually registered it that day. ⚠️ **Same correction, same reason:
   the fact caught up with the claim; the claim was not evidenced when it was written.**
 
-- **Blocks:** [`0065-citizenship-paid-live-verification`](../../backlog/0065-citizenship-paid-live-verification/brief.md)
+- **Blocks:** [`0065-citizenship-paid-live-verification`](../0065-citizenship-paid-live-verification/brief.md)
   — one of its three conditions. ~~⚠️ **It needs items 2, 3 and 4 of `## Verification`, not item 1
   alone.**~~
 
@@ -500,7 +500,7 @@ mistake that produces a paid purchase granting nothing.
 
 > **Recorded 2026-09-12.** These were put to the owner and **no answer has been received**. ⛔ **Nothing
 > below may be written up as done, as not-done, or as "presumably".** Each one is a real gate on
-> [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md) or on the launch.
+> [`0065`](../0065-citizenship-paid-live-verification/brief.md) or on the launch.
 >
 > 📌 **STATUS OF ITEMS 1–4, updated 2026-09-12 later the same day.** They were put to the owner again in
 > session. The owner replied **"I guess none"** and **asked to be walked through the steps**; the
@@ -520,7 +520,7 @@ mistake that produces a paid purchase granting nothing.
 > move — still unknown. ~~⚠️ **Issued ≠ on the box:** the key reaches the profile box only via a profile-box
 > redeploy with `YANDEX_PAYMENTS_SECRET` populated (`0195` forwards it); this brief does NOT assert that
 > redeploy happened, so the `/v1/payments/*` 503s are NOT cleared by issuance alone — see
-> [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md).~~
+> [`0065`](../0065-citizenship-paid-live-verification/brief.md).~~
 >
 > 📌 **CORRECTED 2026-09-20 on an OWNER RULING** (live in the `fkit lead` session via `AskUserQuestion`,
 > relayed by `fkit-lead`). ✅ **The secret IS on the box** — evidence table under `## Verification` item 3.
@@ -567,7 +567,7 @@ mistake that produces a paid purchase granting nothing.
    the owner, same ruling.**~~ ~~⛔ **STILL NOT DONE — the 2026-09-22 rulings did not touch it.**~~
    ✅ **YES — SET, per the owner, 2026-09-22.** This is the **remote half** of the
    citizenship kill switch (`src/client/flashist/FlashistFacade.ts:174`) and its validation is
-   [`0238`](../../backlog/0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md), a
+   [`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md), a
    declared launch gate.
 
    ~~🚨 **AS OF 2026-09-22 THIS IS THE ONLY REMAINING DELIVERABLE THIS BRIEF TRACKS AS OPEN — and it is
@@ -613,7 +613,7 @@ mistake that produces a paid purchase granting nothing.
    - `&&` **short-circuits**, so **the remote flag is never read on any build — production included.**
      (The code's own comment at `:950-952` says exactly this.)
 
-   ⇒ **Observing the flag take effect is [`0238`](../../backlog/0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md)'s
+   ⇒ **Observing the flag take effect is [`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md)'s
    job at launch, not `0014`'s.** ⛔ **Do not read "set" as "working".**
 
    ##### 🚩 FLAGGED RESIDUAL — the flag's NAME and VALUE were never confirmed against the code
@@ -630,7 +630,7 @@ mistake that produces a paid purchase granting nothing.
    anyone** — the same failure class this brief already documents for the product ID (see *The product
    ID is not yours to choose*). ⚠️ **Nothing in this repository can read the console**, so this brief
    asserts **neither** that the entered name/value are right **nor** that they are wrong.
-   ⇒ **Flagged for [`0238`](../../backlog/0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md)
+   ⇒ **Flagged for [`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md)
    to check.** ⛔ **`0238` was NOT edited by this ruling.**
 4. **Are purchases enabled for the game at all** in the Yandex Games dashboard? ~~Unknown.~~ ✅ **ENABLED
    2026-09-12 — owner ruling, given live in session and relayed through the lead session.** A registered,
@@ -679,7 +679,7 @@ mistake that produces a paid purchase granting nothing.
    or depends on the price. `src/core/profile/PaymentsContract.ts` fixes the **product ID** only, and
    `src/profile-server/PaymentsRepository.ts`'s grant branches key on that ID, never on an amount.
    ⇒ **This is a RECORD-ACCURACY fix.** ⛔ **Nobody should treat it as blocking a build, a deploy, or
-   [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md).** ⚠️ **This paragraph is UNCHANGED by
+   [`0065`](../0065-citizenship-paid-live-verification/brief.md).** ⚠️ **This paragraph is UNCHANGED by
    the 2026-09-22 ruling and remains true** — settling the unit corrected the record; it touched no code.
 
    ---

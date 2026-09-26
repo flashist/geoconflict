@@ -44,7 +44,7 @@ Not changed: profile-server code, `update.sh`, `setup-profile.sh`. No 0064 guard
 
 > 📌 **2026-09-23 — MOVED, owner ruling:** D1–D4 (and the production half of verification step 6) now
 > run and are recorded under task
-> [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
+> [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
 > as A1–A4. The step text below stays here as the source; record results in `0296`, not here.
 
 - [ ] **D1 — token-match pre-check (owner-required, scripted, verdict-only output).**

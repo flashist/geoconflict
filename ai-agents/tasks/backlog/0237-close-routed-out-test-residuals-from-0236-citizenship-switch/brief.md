@@ -203,7 +203,7 @@ real wait or a polling loop.
   residuals **R7 / R8 / R9**, routed out by the owner's round-2 stopping rule, with their re-raise
   conditions recorded in
   [`0236/review.md`](../../done/0236-client-kill-switch-for-citizenship-surfaces/review.md).
-- 🚨 **THE LAUNCH GATE NOW HAS ITS OWN TASK — [`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md).**
+- 🚨 **THE LAUNCH GATE NOW HAS ITS OWN TASK — [`0238`](../../done/0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md).**
   Filed 2026-09-10 on an **owner ruling**: the precondition needed an owner, not a note in three
   places. Before anyone flips `CITIZENSHIP_CARD_ENABLED` to `true`, **layer 2 (the `citizenship_ui`
   Yandex experiment flag) must be validated in a staging or prod build** — flag ON, flag OFF, and the

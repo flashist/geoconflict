@@ -19,7 +19,15 @@ source maps (`0164-enable-client-source-maps`) and a deployed archive fix that q
 the telemetry stream.
 
 ## Priority
-**13** — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), set 2026-09-26 by the same owner ruling (append in Sprint 5's order, ranks continuing after Sprint 6's highest). ⚠️ An append position, **not** a merit re-rank. *Earlier value, kept below as history — it was true on the Sprint 5 / Sprint 4 boards, and any owner-ruled label in it still stands as a merit label:*
+**28** — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down two more later on 2026-09-26 by a fourth OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner moved `0311` + `0316` up to 14–15 — see the *RE-RANK 2026-09-26, FOURTH* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
+
+~~**26**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down six more later on 2026-09-26 by a third OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner moved six appended name-change / purchase-state rows (`0312`–`0315`, `0317`, `0318`) up the board — see the *RE-RANK 2026-09-26, THIRD* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
+
+~~**20**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down one more later on 2026-09-26 by a second OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021): the owner moved `0250` into Sprint 6 at rank 4 — see the second *RE-RANK 2026-09-26* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
+
+~~**19**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down six on 2026-09-26 because an OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021) put six rows above it — see the *RE-RANK 2026-09-26* addendum on that board. Order among the other rows unchanged; ⛔ not a merit re-rank of this task. *Earlier value, kept below:*
+
+~~**13**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), set 2026-09-26 by the same owner ruling (append in Sprint 5's order, ranks continuing after Sprint 6's highest). ⚠️ An append position, **not** a merit re-rank. *Earlier value, kept below as history — it was true on the Sprint 5 / Sprint 4 boards, and any owner-ruled label in it still stands as a merit label:*
 
 Medium — ~1.8 errors/min. Real client-side state errors. Not urgent relative to the
 citizenship/payments track, but cheap to triage once the prerequisites are in place.
@@ -83,6 +91,9 @@ citizenship/payments track, but cheap to triage once the prerequisites are in pl
 >   09:00 UTC**. Filter Uptrace to the **new** version (0.0.152 per the deploy output — ⚠️ confirm the exact
 >   `service.version` value in Uptrace first). ⛔ **The cert-valid ≠ ingest-live boundary above still
 >   holds** — an empty result is not yet evidence either way.
+> - 📌 **2026-09-26, later — version filter is now 0.0.152 + 0.0.154.** A second game deploy (citizenship
+>   go-live) put **0.0.154** live (~14:38 Moscow); it carries this fix too. **0.0.153 was never served**
+>   (its deploy failed at SSH). Relayed by `fkit-lead`; runbook § *Second game deploy*.
 
 ## Owner
 fkit-coder

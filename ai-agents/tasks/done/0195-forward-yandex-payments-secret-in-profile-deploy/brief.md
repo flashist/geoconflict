@@ -69,7 +69,7 @@ See the addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md)
 >
 > ⛔ **THIS DOES NOT MEAN PAYMENTS WORK, AND NOTHING HERE MAY BE READ THAT WAY.** Provenance is not
 > correctness. **No real signed payload and no real purchase has ever been exercised against this
-> box.** Only [`0065`](../../backlog/0065-citizenship-paid-live-verification/brief.md)'s **step 1** (a
+> box.** Only [`0065`](../0065-citizenship-paid-live-verification/brief.md)'s **step 1** (a
 > first real signed payload returning 200) and **step 3** (a real test purchase) settle correctness —
 > and the owner **confirmed on 2026-09-20** that `0065`'s `0195` condition **stays OPEN on
 > correctness**, blocker count **three**.

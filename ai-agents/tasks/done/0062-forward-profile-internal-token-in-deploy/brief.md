@@ -112,7 +112,7 @@ hand.** Recorded 2026-09-04.
 > no longer holds. The owner ruled: **close `0062` now** — built + reviewed 2026-08-24, D5 passed
 > locally 2026-09-23 (worklog § *D5 result — 2026-09-23*) — and **move its remaining production checks
 > into a separate after-deploy task** so the tasks that depended on `0062` are no longer blocked.
-> **Moved to [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
+> **Moved to [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
 > (Sprint 5):** D1 → A1, D2 → A2, D3 → A3, D4 + the production half of verification step 6 → A4.
 > ⚠️ **None of D1–D4 has been run with a real value — closing this task does NOT mean the fix is
 > proven in production.** The *Deploy-time forget-risk* warning and the 2026-09-04 *NO GUARD WILL BE
@@ -232,7 +232,7 @@ variable. See step 4.
 
 - **Depends on:** nothing. Ready to start now.
 - 📌 **2026-09-23 (owner ruling): the production checks that remained here moved to
-  [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md);
+  [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md);
   `0065`'s condition on this task now points there. The Blocks line below is the 2026-08-23 record.**
 - **Blocks:** **`0017`** (Earned Citizenship) and **`0018`** (Paid Citizenship) — **verified
   2026-08-23, not speculative.** Both are marked `🚧 Blocked` on this task in `plan-sprint-4.md`.

@@ -134,7 +134,7 @@ These are the only triggers in Sprint 4. The `POST /admin/player-message` endpoi
 > 🔴 **MOVED OUT 2026-09-23 — OWNER RULING** (given live in the `fkit lead` session via
 > `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent).
 > The owner ruled this task **closes as built + reviewed**, and its production-only checks move to
-> [`0296`](../../backlog/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
+> [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
 > (Sprint 5). Mapping: item 1 → `0296` A2–A3 (after the weekend deploy slot) · item 2 → B2 · item 3 →
 > B3 (both **after the citizenship flip**, owned by `0065` §6 — the Personal tab is hidden behind
 > `CITIZENSHIP_CARD_ENABLED` until then, so item 3 proves nothing while the flag is off).

@@ -11,7 +11,7 @@
 >
 > ⚠️ **This is an ACCEPTED, OWNER-RULED TRADEOFF, not an oversight.** The owner was shown the risk
 > before choosing (*"real players can buy before a real purchase is proven"*). ⛔ **Do not re-add this
-> task as a gate on [`0065`](../0065-citizenship-paid-live-verification/brief.md), and do not
+> task as a gate on [`0065`](../../done/0065-citizenship-paid-live-verification/brief.md), and do not
 > re-recommend it.** It is recorded here, loudly, so a reader of this brief knows what state production
 > is in while this task is open.
 
@@ -49,7 +49,7 @@ confirmed this form on 2026-09-23** — no change to `task-owner-vocabulary.md`.
 
 ## Context
 
-**Where this came from.** [`0065`](../0065-citizenship-paid-live-verification/brief.md) (Sprint 4)
+**Where this came from.** [`0065`](../../done/0065-citizenship-paid-live-verification/brief.md) (Sprint 4)
 carried both the live checks for paid citizenship (its §1–§5) and the go-live itself (§6: flip
 `CITIZENSHIP_CARD_ENABLED` to `true` and run a second game deploy). That brief could not satisfy its own
 ordering: §6 flipped *"only after 1–4 pass"*, but §3 (the real test purchase) needs the flip first,
@@ -131,6 +131,15 @@ build and the second game deploy has run). Before that, the buy button does not 
       consumed, and the card shows State 3.
 - [ ] Second restart: `getSignedPurchases()` returns nothing once consumed (no network call).
 
+> 📌 **§4 — OWNER RULING 2026-09-26** (live in the `fkit lead` session via `AskUserQuestion`, relayed by
+> `fkit-lead` to a spawned `fkit-producer`, ADR-021; not producer precedent): **"Watch real players
+> (Recommended)"** — prove reconciliation from a real player's successful `/reconcile` call instead of a
+> hand test first. **§4 stays open.** Evidence: a `POST /v1/payments/yandex/reconcile` → 200 in the profile
+> box's host nginx access log, cross-checked with a matching `processed_purchases` row and a player who
+> became `is_paid_citizen` at that time. Zero seen as of ~14:50 UTC that day. If none appear in ~2 weeks
+> (suggested, not ruled), fall back to the owner-run hand test above. ⚠️ Nobody is scheduled to run the
+> log check. Detail: `worklog.md`.
+
 ### §5 — Does the product ever disappear from `getCatalog()`? (ex-`0065` §5, NARROWED by owner ruling 2026-09-23)
 - [ ] ~~Record how the catalog item behaves before vs after moderation (test purchases are documented to
       work before moderation completes — confirm), and~~ Record whether the `citizenship` product ever
@@ -167,12 +176,12 @@ The checklist above **is** the verification. This task closes only when:
 - **Blocks:** nothing. ⛔ In particular it does **not** block `0065` — owner ruling 2026-09-23 (`0065`
   Correction 7) — and it does **not** block `0018`: owner ruling 2026-09-23, *`0018` closes on `0065`
   (the launch) alone*. **The real-purchase proof lives only here.**
-- **Related:** [`0065`](../0065-citizenship-paid-live-verification/brief.md) (the go-live; the source of
-  §1–§5); [`0018`](../0018-citizenship-paid/brief.md) (the UI and flow driven here, built and verified
+- **Related:** [`0065`](../../done/0065-citizenship-paid-live-verification/brief.md) (the go-live; the source of
+  §1–§5); [`0018`](../../done/0018-citizenship-paid/brief.md) (the UI and flow driven here, built and verified
   mocked); [`0195`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md) (its
   open value-correctness condition is §1 here); `0019`'s
   [`live-verification-checklist.md`](../../done/0019-yandex-payments-impl/live-verification-checklist.md)
-  (superseded by `0065` and now by this task — not edited); [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
+  (superseded by `0065` and now by this task — not edited); [`0296`](../../done/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md)
   (section B runs after the same flip); [`0294`](../0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md)
   (rotating `YANDEX_PAYMENTS_SECRET` would invalidate §1 — and, after launch, real players' purchases).
 - **Why `## Owner` reads `fkit-producer` and not "the owner".** The coordinator asked for the owner

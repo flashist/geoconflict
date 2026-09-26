@@ -64,7 +64,15 @@ holds; only its **board** is superseded. Note the consequence plainly: both hard
 board *behind* its prerequisites, which is coherent, not drift.
 
 ## Priority
-**12** — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), set 2026-09-26 by the same owner ruling (append in Sprint 5's order, ranks continuing after Sprint 6's highest). ⚠️ An append position, **not** a merit re-rank. *Earlier value, kept below as history — it was true on the Sprint 5 / Sprint 4 boards, and any owner-ruled label in it still stands as a merit label:*
+**27** — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down two more later on 2026-09-26 by a fourth OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner moved `0311` + `0316` up to 14–15 — see the *RE-RANK 2026-09-26, FOURTH* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
+
+~~**25**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down six more later on 2026-09-26 by a third OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner moved six appended name-change / purchase-state rows (`0312`–`0315`, `0317`, `0318`) up the board — see the *RE-RANK 2026-09-26, THIRD* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
+
+~~**19**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down one more later on 2026-09-26 by a second OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021): the owner moved `0250` into Sprint 6 at rank 4 — see the second *RE-RANK 2026-09-26* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
+
+~~**18**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down six on 2026-09-26 because an OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021) put six rows above it — see the *RE-RANK 2026-09-26* addendum on that board. Order among the other rows unchanged; ⛔ not a merit re-rank of this task. *Earlier value, kept below:*
+
+~~**12**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), set 2026-09-26 by the same owner ruling (append in Sprint 5's order, ranks continuing after Sprint 6's highest). ⚠️ An append position, **not** a merit re-rank. *Earlier value, kept below as history — it was true on the Sprint 5 / Sprint 4 boards, and any owner-ruled label in it still stands as a merit label:*
 
 Low within Sprint 4 — no live consumer until citizenship ships. This is the "build it
 properly" half of the archive task split; the noise it would otherwise generate is

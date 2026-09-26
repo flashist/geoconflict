@@ -18,20 +18,51 @@
 >    ADR refers to `0248`.
 
 ## Sprint
-Backlog
+Sprint 6
 
-⚠️ **The field above is the bare token `Backlog` on purpose** — `dashboard.sh`'s drift rule compares it
-against the board's identity, and a decorated value is reported as drift. **Do not decorate it.**
+⚠️ **The field above is the bare token `Sprint 6` (was `Backlog` until 2026-09-26) on purpose** —
+`dashboard.sh`'s drift rule compares it against the board's identity, and a decorated value is reported
+as drift. **Do not decorate it.**
+
+📌 **MOVED FROM THE BACKLOG BOARD INTO SPRINT 6 ON 2026-09-26 — OWNER RULING** given live in the
+`fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no
+owner channel (ADR-021; the relay named the ruling, ADR-037 §3); ⛔ not producer precedent. Asked what to
+do about the explainer popup (`0301`) having no ad-free benefit to list, the owner said, verbatim:
+*"Add the "ad-free" for the paid citizenship status task, add it to the Sprint 6, and place it BEFORE the
+citizenship popup, because it will add something else we could tell about in the citizenship/"*.
+- **Effect:** rank **4** on [Sprint 6](../../../sprints/plan-sprint-6.md), directly above `0301`; the
+  [Backlog board](../../../sprints/backlog.md) row reads `➡️ Moved`. Full record: the *RE-RANK
+  2026-09-26* addendum on the Sprint 6 board.
+- ⛔ **What the ruling did NOT change:** the paid-only gate (`is_paid_citizen`, ruled 2026-09-12), the
+  hard prerequisite [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) (still on
+  the Backlog board — whether it joins Sprint 6 is an **open owner question**) 📌 *answered later the same
+day: `0250` is now in Sprint 6, directly above this task*, and Step 1's decision gate
+  (revenue framing; all six placements or a subset). **A rank is not readiness: this task still cannot
+  be built until `0250` ships.**
+
+*History, kept as written — it was true until 2026-09-26:*
 
 🔴 **BACKLOG BOARD BY OWNER RULING, 2026-09-12, given live in session and relayed through the spawning
-session — ⛔ NOT Sprint 4.** The owner ruled **that this be filed**, and that it be filed **rather than
+session — ⛔ NOT Sprint 4.** *(Board superseded 2026-09-26 by the ruling above; the rest of this paragraph
+still holds for 2026-09-12.)* The owner ruled **that this be filed**, and that it be filed **rather than
 scheduled**. ⛔ **They did NOT rule what it is worth or when it is worked** — see *Priority*, where the
 rank is the **producer's**.
 
 ## Priority
-Unscheduled *(Backlog board is unranked by design)*
+10
 
-📌 **Producer's rank: Medium.** ⛔ **This is the PRODUCER's rank, not the owner's** — the owner ruled that
+📌 **Shifted 5 → 10 later on 2026-09-26** by a third OWNER RULING (R2/R3, live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): five appended name-change rows were placed above it. Still directly below `0250` and above `0301`. ⛔ Not a merit re-rank of this task. See the *RE-RANK 2026-09-26, THIRD* addendum on the Sprint 6 board. *Earlier value, kept:* ~~5~~ —
+
+📌 **Shifted 4 → 5 later on 2026-09-26** by a second OWNER RULING (relayed the same way): the owner moved
+[`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) into Sprint 6 **directly above
+this task** (*"Yes, above 0248 (Recommended)"*). Position relative to `0301` unchanged. *Earlier value,
+kept:* ~~4~~ —
+
+**Board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), OWNER-RULED 2026-09-26** (same ruling as
+*Sprint* above: *"place it BEFORE the citizenship popup"*). It arrived at append rank 24 and was moved to
+4 under that ruling. ~~Unscheduled *(Backlog board is unranked by design)*~~ — true until 2026-09-26.
+
+*History, kept as written:* 📌 **Producer's rank: Medium.** ⛔ **This is the PRODUCER's rank, not the owner's** — the owner ruled that
 the task be filed, not what it is worth. Medium and not High because: the owner explicitly recorded that
 **this does not have to ship before launch**, and the work is **not ready to plan** (see *The blocker*
 below). Medium and not Low because it is the single benefit a paying player will notice **every session**,
@@ -223,7 +254,7 @@ store-copy condition.
    ⚠️ **The remote `citizenship_ui` half cannot be exercised in `npm run dev`** — `checkExperimentFlag()`
    returns `true` unconditionally when the bundle's `GAME_ENV` is `dev`, and that value comes from the
    **webpack mode** (`webpack.config.js:334`), not from the npm script's `cross-env`. That is
-   [`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md)'s subject.
+   [`0238`](../../done/0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md)'s subject.
    **Record the remote half as unverified here rather than claiming it.**
 6. **Unit tests** covering the gate's true/false/unknown branches. Client-side, so `src/core/`'s
    mandatory-test rule does not bite — ⚠️ **but if the implementation touches `src/core/`, it does**
@@ -256,20 +287,27 @@ store-copy condition.
   ⛔ **What did NOT change:** step 1's *revenue framing* (the ad-impression numbers) and the
   all-six-placements-or-a-subset question stay here and are **not** `0250`'s. `0250` carries the
   entitlement seam only.
-- **Blocks:** nothing.
+- **Blocks:** ~~nothing.~~ 📌 **Updated 2026-09-26 (owner ruling — see *Sprint*):**
+  [`0301`](../0301-citizenship-explainer-popup-and-purchase-funnel/brief.md), the citizenship explainer
+  popup, which now ranks below this task so it can list ad-free. ⚠️ Through this task, `0301` also waits on
+  `0250`.
+- 📌 **Stale fact, corrected 2026-09-26 (not an owner ruling — a code read):** *Step 2* says
+  `CITIZENSHIP_CARD_ENABLED` is *"currently `false`"*. Since the go-live commit `3386b90` it is **`true`**
+  (`src/client/flashist/FlashistFacade.ts:232`). Line numbers in this brief date from 2026-09-12 and have
+  moved; re-find them before planning.
 - 🚨 **STORE-COPY CONDITION — recorded on the owner's ruling, 2026-09-12, and it is the reason the
   `PROJECT.md` claim was allowed to stand:** **the Yandex Games store description must NOT promise
   ad-free play for citizens until this task ships.** ⛔ Whoever writes or edits the store copy must read
   this bullet. The same condition applies independently to
   [`0249`](../0249-citizen-gated-full-emoji-set/brief.md) for the emoji half.
 - **Cross-references for whoever writes the store copy or the paid-citizenship launch plan:**
-  - [`0018-citizenship-paid`](../0018-citizenship-paid/brief.md) — paid citizenship, the ~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25) path
+  - [`0018-citizenship-paid`](../../done/0018-citizenship-paid/brief.md) — paid citizenship, the ~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25) path
     (mock-buildable scope).
-  - [`0065-citizenship-paid-live-verification`](../0065-citizenship-paid-live-verification/brief.md) —
+  - [`0065-citizenship-paid-live-verification`](../../done/0065-citizenship-paid-live-verification/brief.md) —
     the paid go-live gate.
   - [`0014-yandex-catalog-registration`](../../done/0014-yandex-catalog-registration/brief.md) — catalog
     registration; the product ID is fixed at `citizenship`.
-  - [`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md) — the
+  - [`0238`](../../done/0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md) — the
     kill-switch launch gate this task's surface must respect.
 - ⛔ **`PROJECT.md` is NOT edited by this task.** The owner ruled the claim stays, backed by this filed
   work. Do not "tidy" it.

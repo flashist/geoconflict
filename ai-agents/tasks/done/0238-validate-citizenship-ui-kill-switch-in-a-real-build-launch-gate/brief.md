@@ -26,8 +26,8 @@ producer precedent.** The owner, verbatim:
 > the next sprint, so we do final checkups and figure out what's wrong with them after deploy."*
 
 The owner was then shown a proposed list of four checkup tasks and chose **"Move all four"**: `0238`,
-[`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md),
-[`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
+[`0285`](../../backlog/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md),
+[`0289`](../../backlog/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
 [`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
 
 **THE REASON, PLAINLY:** the final checkups happen **after the deploy**, when production can actually
@@ -146,7 +146,7 @@ spawned producer does not rank the owner's board. The Sprint 4 Priority cell rea
 ⚠️ **Unranked ≠ low. See the gate banner above.**
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -683,7 +683,7 @@ evidence the switch hid it** — it did not render because it could not.
   an **owner ruling of 2026-09-10** made from review finding **R5**. This task exists because the owner
   ruled on 2026-09-10 that the precondition **needs an owner, not a note in three places**.
 - **Related, and NOT a substitute:**
-  [`0237`](../0237-close-routed-out-test-residuals-from-0236-citizenship-switch/brief.md) closes
+  [`0237`](../../backlog/0237-close-routed-out-test-residuals-from-0236-citizenship-switch/brief.md) closes
   `0236`'s routed-out **test-quality** residuals. ⛔ **`0237` does not discharge this gate**, and
   neither does any unit test — the gate is about a **real console flip**, which no test can stand in
   for.

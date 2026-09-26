@@ -1059,7 +1059,7 @@ re-derived.
 ⚠️ **This does not defer `0065`'s step 3 forever** — it says the flip is its own decision, taken on its
 own merits, not a line item inside a deploy window.
 
-📌 **Recorded in [`0065`'s brief](../tasks/backlog/0065-citizenship-paid-live-verification/brief.md)**
+📌 **Recorded in [`0065`'s brief](../tasks/done/0065-citizenship-paid-live-verification/brief.md)**
 under its step 3, so a reader of the brief alone learns the same thing.
 
 🚨 **THE CIRCULARITY, recorded so nobody tries to "just do it" anyway.** `0065`'s **own step 6** says
@@ -1417,3 +1417,36 @@ written**; this section is the record of what happened.
   **not confirmed.**
 - `0294` — the live rotation proof (Backlog; C2).
 - ⚠️ `0296`-A6 and all of section B, `0298` Part B — not window work; still open.
+
+## 📌 2026-09-26, later — Second game deploy (citizenship go-live, `0065` §6) (appended; ADR-035)
+
+**PROVENANCE.** Owner-run on 2026-09-26; owner's screenshots and words in the `fkit lead` session, relayed
+by `fkit-lead` to a spawned `fkit-producer` with **no owner channel** (ADR-021). ⛔ Relayed evidence — not an
+owner ruling, not producer precedent. ⛔ No `## Status` changed, no mover invoked. Not a W-step of the
+sequence above: the flip is a launch decision, not a slot item (`RUNBOOK-A`); recorded here because it is
+the same day's game box and it changes W15.
+
+| Attempt | Version · commit · image tag | What happened | Verdict |
+|---|---|---|---|
+| 1 | **0.0.153** · `917e571` · `20260926-142458` | Built and pushed. Failed at SSH *"EXECUTING UPDATE SCRIPT ON SERVER"*: `Permission denied (publickey,password)`, right after the scp copy step **succeeded with the same credentials**. Update script never ran ⇒ **0.0.153 was NEVER served.** | ❌ see F-F |
+| 2 | **0.0.154** · `5b3e6ec` · `20260926-143311` | Full `build-deploy.sh` re-run; succeeded ~**14:38 Moscow**. Owner check ~14:40: container Up on `20260926-143311`, assets `?v=0.0.154`, players connecting. In the live Yandex iframe: citizenship card (XP 51 / 100), buy button 249 YAN, tenure popup; footer 0.0.154; console flag `citizenship_ui` = `enabled`. | ✅ live |
+
+- **Content:** `0.0.152..0.0.154` changes only the `3386b90` flip under `src/`/`resources/`; 0.0.153 and
+  0.0.154 differ only in the version bump (git, checked this turn).
+- **Rollback pair:** previous live = **0.0.152**, image tag `20260926-114942`. ⚠️ Whether it survived on the
+  game box was **not checked** — see F-D (the game deploy deletes the previous image).
+
+### Finding
+
+- **F-F — SSH refused the update-script step after the copy step succeeded (0.0.153 attempt).** Same
+  credentials, seconds apart: scp OK, then `Permission denied (publickey,password)`. ⛔ **Cause unknown — none
+  asserted.** One full re-run succeeded. 🚩 **No task owns it.** ⚠️ Side effect: a failed attempt still
+  bumps the version and pushes a tag + image, so version numbers can skip (0.0.153 exists in git and the
+  registry but was never served).
+
+### Changes to what is still owed
+
+- **W15 `0032` step 5:** filter Uptrace to **`service.version` 0.0.152 and 0.0.154** (both carry the fix;
+  **0.0.153 was never served**). ⚠️ Still confirm the exact `service.version` values in Uptrace first. The
+  ≥ 24 h clock still runs from W12 (0.0.152).
+- **`0268`:** the ~60-day tenure-claim clock started **2026-09-26** (players got the popup on 0.0.154).

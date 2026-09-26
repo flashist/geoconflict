@@ -14,11 +14,15 @@ High — the go-live gate for the monetization milestone. Everything buildable w
 (mock scope); this task is what remains once Yandex delivers.
 
 ## Status
+✅ Done (agent-closed — not owner-verified)
+
+*(The status text below is the pre-close value, kept as history — superseded by the marker above on 2026-09-26; see `worklog.md` § *Close*. Same form as the `0014` / `0017` closes.)*
+
 🚧 Blocked — **the go-live only (§6: flip + second game deploy); it waits on the owner's launch
 timing, and NO task condition remains.** 📌 **2026-09-23, owner ruling — Correction 7:** *"Launch, and
 leave the test task for the Sprint 5. The test-buy sequence will be run by me (human)"*. §6 no longer
 waits on §1–§4; §1–§5 and the `0195` value-correctness condition moved to
-[`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). 🚨 **Accepted,
+[`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). 🚨 **Accepted,
 owner-ruled tradeoff: paid citizenship goes live to real players before any real purchase has been
 proven: HMAC construction unconfirmed, secret value unconfirmed, reconciliation unexercised. Real
 players' first purchases may be the first real test.** *(Reason text updated 2026-09-23; the marker is
@@ -215,7 +219,7 @@ ever been made** — that is this brief's **step 3**, still unrun.
 ⛔ **Not producer precedent.**
 
 1. **`0062` was closed** (built + reviewed; D5 passed locally 2026-09-23) and its production checks
-   moved to [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md).
+   moved to [`0296`](../../done/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md).
    **This task's `0062` condition now points at `0296` A2–A3** — the same substance ("forwarded to
    prod and verified end to end"), a new home. ⛔ **Nothing cleared: blocker count stays TWO.**
 2. **§6 is the ONLY owner of the citizenship flip** (`CITIZENSHIP_CARD_ENABLED` → `true` plus the
@@ -239,7 +243,7 @@ precedent.**
 1. **The former `0062` condition — `PROFILE_INTERNAL_TOKEN` forwarded to prod and verified end to end,
    now `0296` A2–A3 — NO LONGER GATES this task.** Blocker count **TWO → ONE (`0195`)**.
 2. **The checks are NOT dropped.** They still run under
-   [`0296`](../0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md) in
+   [`0296`](../../done/0296-after-deploy-production-checks-profile-token-earned-citizenship-inbox/brief.md) in
    **Sprint 5**, which stays its home.
 3. 🚨 **CONSEQUENCE, stated plainly: this task — and with it paid-citizenship go-live — can now close
    WITHOUT production proof that the token reaches the container and that a credit call lands end to
@@ -274,7 +278,7 @@ chose to launch and move the testing out.**
 1. **This task is now the go-live: §6 only** — flip `CITIZENSHIP_CARD_ENABLED` to `true` plus the
    second game deploy. ✅ **The §3-vs-§6 ordering problem (runbook C1) is RESOLVED by this ruling:** §6
    no longer waits on §1–§4.
-2. **§1–§5 moved to [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)**
+2. **§1–§5 moved to [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)**
    (Sprint 5), **run by the owner by hand**, after §6 is live. They are kept below as the record, marked
    moved. `0297` flagged one step that did not move cleanly: §5 (moderation), whose premise may be moot
    since the 2026-09-19 *"no approval any more"* ruling. 📌 *Answered later on 2026-09-23 (owner ruling): §5 narrowed to "does the product ever disappear from `getCatalog()`"; the before-vs-after-moderation comparison dropped.*
@@ -328,6 +332,38 @@ started (`🔄 In progress — 2026-09-26`); everything else moved to Sprint 6.
 - **What it does NOT change:** ⛔ **`## Status` is unchanged** (the marker stays `🚧 Blocked`; §6 is not
   yet executed). ⛔ Nothing in *What to Do* §6 changed, and the `0066` licensing prerequisite and
   `RUNBOOK-A` (the flip is a launch decision, not a deploy-slot item) still stand. No mover was invoked.
+
+#### ✅ RECORDED 2026-09-26, later — §6 IS DONE IN PRODUCTION; the close condition is OWNER-OBSERVED
+
+⛔ **Provenance.** The **owner's screenshots and words** in the `fkit lead` session on 2026-09-26
+(*"The deploy is complete"*), relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner
+channel** (ADR-021). ⛔ Relayed evidence — **not** an owner ruling, not producer precedent. The producer
+observed none of it.
+
+- **The flip:** commit `3386b90` (`CITIZENSHIP_CARD_ENABLED` → `true`), reviewed clean (`review.md`).
+  Between tags `0.0.152` and `0.0.154` it is the **only** change under `src/` or `resources/` (checked by
+  git diff this turn).
+- **The second game deploy:** ran **2026-09-26, about 14:38 Moscow time**, game version **0.0.154**, image
+  tag `20260926-143311`. Owner check on the game box (~14:40): container **Up** on that image, assets
+  served with `?v=0.0.154`, players connecting.
+- 🚩 **0.0.153 NEVER WENT LIVE.** Built and pushed (commit `917e571`, tag `0.0.153`, image tag
+  `20260926-142458`), but the deploy failed at the SSH update-script step with *"Permission denied"*
+  right after the copy step had succeeded with the same credentials. **Cause unknown.** The owner re-ran
+  the full `build-deploy.sh`, which bumped to 0.0.154 and succeeded. 0.0.153 and 0.0.154 differ only
+  in the version bump.
+- **Owner-observed in the live Yandex Games iframe:** the citizenship card with XP bar **51 / 100**; the buy
+  button **"Купить гражданство — 249 YAN"**; the tenure popup (*"Спасибо, что вы с нами! … мы дарим вам
+  50 XP. Теперь у вас 51 / 100 XP."*); footer **0.0.154**. Yandex console flag `citizenship_ui` =
+  **`enabled`** (earlier owner screenshot).
+- ⇒ **All three parts of the close condition (*Verification*, restated 2026-09-23) are observed by the
+  owner:** flag `true` in the deployed build · second game deploy run · card visible in the live iframe.
+- **Rollback pair:** previous live = **0.0.152** (image tag `20260926-114942`). ⚠️ Whether that image is
+  still on the game box was **not checked** — the 0.0.152 deploy deleted *its* predecessor (runbook F-D).
+- 🚨 **The accepted tradeoff is now live:** real players can buy before any real purchase has been
+  proven (`0297` holds the proof).
+- ⛔ **`## Status` NOT changed and no mover invoked** — the close is routed separately by the lead. The
+  ⏱️ ~60-day clock for [`0268`](../../backlog/0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) starts today.
+  Deploy detail: `worklog.md` § *Deploy*; window record: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *Second game deploy*.
 
 ## Owner
 fkit-coder
@@ -390,7 +426,7 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
   container and a credit call lands end to end. Struck, not deleted.
 - 🚨 **`0195`** — [`0195-forward-yandex-payments-secret-in-profile-deploy`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md).
   📌 **2026-09-23 (owner ruling, Correction 7): NO LONGER A DEPENDENCY of this task.** Its open
-  value-correctness question moved to [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)
+  value-correctness question moved to [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)
   §1 — **not cleared**. The text below is the record up to that ruling.
   ✅ **Shipped 2026-09-01** — closed `Done (agent-closed — not owner-verified)`, built with its own live
   verification deferred. ⚠️ **Owner ruling 2026-09-01 — do NOT read that ship as a blocker clearing.**
@@ -433,7 +469,7 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
 ## What to Do
 
 > 📌 **2026-09-23 — owner ruling, Correction 7: §1–§5 below MOVED to
-> [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5, run by the owner by
+> [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5, run by the owner by
 > hand after §6 is live). ⛔ Their boxes are NOT this task's to check any more.** They stay here as the
 > record, marked moved, so cross-references still land. **This task's remaining scope is §6 only.**
 
@@ -532,9 +568,9 @@ down (`0019` decision).
       flipped, `0297` also becomes runnable. ⚠️ `RUNBOOK-A` still stands: the flip does **not** ride a
       deploy slot. **Launch timing is the owner's call.** 🚨 Accepted tradeoff: real players can buy
       from this moment, before any real purchase has been proven.
-      📌 **2026-09-24 — THE TENURE GRANT MUST BE LIVE BEFORE THIS FLIP** ([`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md), closed 2026-09-24). Deploy fact (owner ruling at `0253` plan approval, 2026-09-24, Q2 — live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent): **the claim route goes onto the profile box with the next profile-box deploy, before this flip. No special hold.** Go-live prerequisites for the tenure path, in order: **(1)** the claim route is on the profile box; **(2)** the client carrying `0253`'s code is deployed; **(3)** then this flip. **It does not depend on `0217`.** ⚠️ The owner-accepted claim-on-behalf risk (ADR-112 as amended) starts **when the route reaches the box**, not at this flip. [`0268`](../0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) closes it.
+      📌 **2026-09-24 — THE TENURE GRANT MUST BE LIVE BEFORE THIS FLIP** ([`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md), closed 2026-09-24). Deploy fact (owner ruling at `0253` plan approval, 2026-09-24, Q2 — live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent): **the claim route goes onto the profile box with the next profile-box deploy, before this flip. No special hold.** Go-live prerequisites for the tenure path, in order: **(1)** the claim route is on the profile box; **(2)** the client carrying `0253`'s code is deployed; **(3)** then this flip. **It does not depend on `0217`.** ⚠️ The owner-accepted claim-on-behalf risk (ADR-112 as amended) starts **when the route reaches the box**, not at this flip. [`0268`](../../backlog/0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) closes it.
       📌 **2026-09-24, later — SCHEDULED: the route rides Saturday 2026-09-26's profile deploy (runbook W3), if the window runs** (owner ruling 2026-09-24, *"Yes, ship it Saturday"*, live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent). The claim-on-behalf risk opens at W3. W12 carries `0253`'s client code, inert while the flag is `false`.
-      🔓 **2026-09-24, for visibility, NOT a gate on this flip:** paid state is **derivable** from the public profile (`is_citizen && citizenship_earned_at === null` ⇒ paid), readable by anyone who asserts another player's id. Owner ruled it a **must-fix in [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md)** (see its 🚨 MUST-FIX block). Until then, paid state is **not** private. No recorded ruling makes this block the flip.
+      🔓 **2026-09-24, for visibility, NOT a gate on this flip:** paid state is **derivable** from the public profile (`is_citizen && citizenship_earned_at === null` ⇒ paid), readable by anyone who asserts another player's id. Owner ruled it a **must-fix in [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md)** (see its 🚨 MUST-FIX block). Until then, paid state is **not** private. No recorded ruling makes this block the flip.
 
 ## Verification
 
@@ -545,6 +581,9 @@ owner-waived, and the follow-up task from step 1 is filed.~~
 `true` in the deployed production build, the second game deploy has run, and the card is visible in
 the live Yandex iframe — or it is explicitly owner-waived. §1–§5 and step 1's follow-up task are
 `0297`'s close condition, not this task's.
+
+✅ **2026-09-26 — all three observed by the owner** (game 0.0.154; evidence in the *§6 IS DONE IN
+PRODUCTION* block under `## Status`). ⛔ Not closed here — the close is routed separately.
 
 ## Notes
 
@@ -585,7 +624,7 @@ the live Yandex iframe — or it is explicitly owner-waived. §1–§5 and step 
   the 503 claim as superseded by this brief.**
   - **Live, open task briefs** — [`0014`](../../done/0014-yandex-catalog-registration/brief.md) (its verification
     section states all three payments routes return 503 without the key),
-    [`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md),
+    [`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md),
     [`0018`](../0018-citizenship-paid/brief.md), and
     [`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md) with its plan/worklog/review.
     ⚠️ **Not corrected** — the ruling scoped the correction to **this** brief and told the producer to
@@ -609,11 +648,11 @@ the live Yandex iframe — or it is explicitly owner-waived. §1–§5 and step 
     NOT cleared by issuance alone."* ⚠️ **The redeploy DID happen (owner-attested) and the routes were
     observed not 503ing** — but the *conclusion* `0014` draws (its own gate is not satisfied) **still
     holds**, because the test-purchase login(s) are outstanding independently.
-  - **[`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md)** (`:270`) and
+  - **[`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)** (`:270`) and
     **[`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md)** (`:244`, `:249`, plus its
     plan/worklog/review) — both already hedge the 503 claim as *never verified against a running box*,
     so they are the mildest cases.
-  - **[`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md)** (`:157`) — describes
+  - **[`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md)** (`:157`) — describes
     the 503 as the behaviour when the variable is **unset**, which is a true statement about the code
     and is **not** stale. Listed only so a reader does not "fix" it.
   - **Closed (`done/`) folders and the `✅ Done` `0195` row** — unchanged reasoning: finished outputs and

@@ -193,7 +193,7 @@ Shape depends entirely on phase 1. The invariants that hold **whatever** phase 1
    returns `true` unconditionally when the bundle's `GAME_ENV` is `dev`, and that comes from the webpack
    mode at `webpack.config.js:334`, not the npm script's `cross-env`). **Record it as unverified rather
    than claiming it** — that is
-   [`0238`](../0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md)'s subject.
+   [`0238`](../../done/0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md)'s subject.
 7. **Tests for every `src/core/` change** — mandatory per CLAUDE.md, not discretionary.
 8. **Analytics events fire** for locked-emoji impression and lock-tap.
 9. **Both `en.json` and `ru.json`** carry every new string.
@@ -234,8 +234,8 @@ Shape depends entirely on phase 1. The invariants that hold **whatever** phase 1
 - ⛔ **`PROJECT.md` is NOT edited by this task.** The owner ruled the claim stays, backed by this filed
   work. Do not "tidy" it.
 - **Cross-references for whoever writes the store copy or the paid-citizenship launch plan:**
-  - [`0018-citizenship-paid`](../0018-citizenship-paid/brief.md) — paid citizenship, the ~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25) path.
-  - [`0065-citizenship-paid-live-verification`](../0065-citizenship-paid-live-verification/brief.md) —
+  - [`0018-citizenship-paid`](../../done/0018-citizenship-paid/brief.md) — paid citizenship, the ~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25) path.
+  - [`0065-citizenship-paid-live-verification`](../../done/0065-citizenship-paid-live-verification/brief.md) —
     the paid go-live gate.
   - [`0014-yandex-catalog-registration`](../../done/0014-yandex-catalog-registration/brief.md) — catalog
     registration; product ID fixed at `citizenship`.
