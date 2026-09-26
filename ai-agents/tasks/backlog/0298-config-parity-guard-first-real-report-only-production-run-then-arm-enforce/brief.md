@@ -4,9 +4,15 @@
 0298
 
 ## Sprint
-Sprint 5
+Sprint 6
+
+📌 **Moved from Sprint 5 to Sprint 6 on 2026-09-26** — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` (*"Append to Sprint 6 (Recommended)"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. [Sprint 5](../../../sprints/plan-sprint-5.md) now carries only the profile/citizenship launch, and this task is not needed for it. Now rank 18 on [Sprint 6](../../../sprints/plan-sprint-6.md). `## Status` unchanged. *(Earlier value of this field: `Sprint 5`.)*
+
+📌 **2026-09-26, later — deploy-coupled steps WAIT for Sprint 6.** OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-26, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Owner, verbatim: *"All wait for Sprint 6 (Recommended)"*. Effect: none of this task's deploy-coupled steps ride along with the profile/citizenship launch release; they run in Sprint 6. Record: the 2026-09-26 follow-up addendum on [Sprint 6](../../../sprints/plan-sprint-6.md).
 
 ## Priority
+**18** — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), set 2026-09-26 by the same owner ruling (append in Sprint 5's order, ranks continuing after Sprint 6's highest). ⚠️ An append position, **not** a merit re-rank. *Earlier value, kept below as history — it was true on the Sprint 5 / Sprint 4 boards, and any owner-ruled label in it still stands as a merit label:*
+
 — ✅ **POSITION OWNER-CONFIRMED 2026-09-23** — given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. The owner said: keep it where it is on Sprint 5, **directly below `0286`**. **This is a ratification, not a re-rank. The value and position are unchanged.** *(Superseded flag, kept: ~~append rank on the Sprint 5 board. ⚠️ Priority is append rank, NOT a merit ranking — flagged for owner confirmation. On merit this belongs directly below `0286`, because its first half (verification step 8) is observed in the same deploy window as the other window tasks moved from Sprint 4 on 2026-09-23, and `0286` is the last of those rows.~~)*
 
 ## Status

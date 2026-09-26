@@ -4,9 +4,11 @@
 0030
 
 ## Sprint
-Sprint 5
+Sprint 6
 
-⚠️ **The field above is the bare token `Sprint 5` on purpose** — `dashboard.sh`'s drift rule compares
+📌 **Moved from Sprint 5 to Sprint 6 on 2026-09-26** — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` (*"Append to Sprint 6 (Recommended)"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. [Sprint 5](../../../sprints/plan-sprint-5.md) now carries only the profile/citizenship launch, and this task is not needed for it. Now rank 12 on [Sprint 6](../../../sprints/plan-sprint-6.md). `## Status` unchanged. *(Earlier value of this field: `Sprint 5`.)*
+
+⚠️ **The field above is the bare token `Sprint 6` (was `Sprint 5` until 2026-09-26) on purpose** — `dashboard.sh`'s drift rule compares
 it against the board's identity, and a decorated value is reported as drift. **Do not decorate it.**
 📌 Side-effect worth knowing: the **old** multi-line value of this field is the exact truncation
 example cited by [`0050-reconcile-sprint-field-values`](../0050-reconcile-sprint-field-values/brief.md)
@@ -62,6 +64,8 @@ holds; only its **board** is superseded. Note the consequence plainly: both hard
 board *behind* its prerequisites, which is coherent, not drift.
 
 ## Priority
+**12** — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), set 2026-09-26 by the same owner ruling (append in Sprint 5's order, ranks continuing after Sprint 6's highest). ⚠️ An append position, **not** a merit re-rank. *Earlier value, kept below as history — it was true on the Sprint 5 / Sprint 4 boards, and any owner-ruled label in it still stands as a merit label:*
+
 Low within Sprint 4 — no live consumer until citizenship ships. This is the "build it
 properly" half of the archive task split; the noise it would otherwise generate is
 silenced now by the Sprint 4c task `0159-reduce-archive-telemetry-noise`.

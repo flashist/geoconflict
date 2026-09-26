@@ -7,7 +7,9 @@
 > `ai-agents/tasks/{backlog,done,cancelled}/` and no `## ID` hit. Highest existing ID was `0288`.
 
 ## Sprint
-Sprint 5
+Sprint 6
+
+📌 **Moved from Sprint 5 to Sprint 6 on 2026-09-26** — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` (*"Append to Sprint 6 (Recommended)"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. [Sprint 5](../../../sprints/plan-sprint-5.md) now carries only the profile/citizenship launch, and this task is not needed for it. Now rank 11 on [Sprint 6](../../../sprints/plan-sprint-6.md). `## Status` unchanged. *(Earlier value of this field: `Sprint 5`.)*
 
 ### ➡️ MOVED FROM SPRINT 4 TO SPRINT 5 ON 2026-09-22 — OWNER RULING
 
@@ -39,6 +41,8 @@ invoked** — this is neither a close nor a cancellation. ⛔ **The `## Status` 
 (`🔲 Backlog`)**, and so is `## Priority`: a change of board is not a change of state or of rank.
 
 ## Priority
+**11** — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), set 2026-09-26 by the same owner ruling (append in Sprint 5's order, ranks continuing after Sprint 6's highest). ⚠️ An append position, **not** a merit re-rank. *Earlier value, kept below as history — it was true on the Sprint 5 / Sprint 4 boards, and any owner-ruled label in it still stands as a merit label:*
+
 🔴 **Low — OWNER-RULED 2026-09-22** *(ratified; was `High`, the producer's unratified append rank)*
 
 ⚠️ **AUTHORITY BEFORE FACTS.** **OWNER RULING given live in the `fkit lead` session on 2026-09-22**,

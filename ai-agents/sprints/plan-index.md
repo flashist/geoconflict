@@ -29,8 +29,12 @@ Features are **excluded** from experiments if:
 
 ## Sprint Files
 
-> 🔴 **THE ACTIVE SPRINT IS SPRINT 4** — owner ruling given live in session **2026-09-07**, verbatim:
-> *"The active sprint is the Sprint 4!"*
+> 🔄 **THE ACTIVE SPRINT IS SPRINT 5 — started 2026-09-26** (owner ruling, live via `AskUserQuestion`, relayed
+> to a spawned `fkit-producer`): it now carries only the profile/citizenship launch; its other rows moved to
+> Sprint 6 the same day. Sprint 4 is closed (`done/`).
+>
+> ~~🔴 **THE ACTIVE SPRINT IS SPRINT 4** — owner ruling given live in session **2026-09-07**, verbatim:
+> *"The active sprint is the Sprint 4!"*~~ *(history — superseded 2026-09-26)*
 >
 > ~~🚨 **The tooling reports Sprint 6 and cannot currently be told otherwise.** `dashboard.sh
 > select-active` takes the **highest** open sprint identity, and plans 4, 5 and 6 are all
@@ -52,11 +56,11 @@ Features are **excluded** from experiments if:
 | [plan-sprint-1.md](done/plan-sprint-1.md) | Sprint 1 — Stop the Bleeding | Reduce ghost rate and crash-driven abandonment |
 | [plan-sprint-2.md](done/plan-sprint-2.md) | Sprint 2 — Fix Onboarding | Convert new players into players who complete at least one full match |
 | [plan-sprint-3.md](done/plan-sprint-3.md) | Sprint 3 — Deepen Retention | Infrastructure quality and UX; mobile performance parked |
-| [plan-sprint-4.md](done/plan-sprint-4.md) | **Sprint 4 — First Monetization Layer** 🔴 **ACTIVE** | Revenue streams, leaderboard, citizen tier |
+| [plan-sprint-4.md](done/plan-sprint-4.md) | Sprint 4 — First Monetization Layer *(closed; in `done/`)* ~~🔴 **ACTIVE**~~ | Revenue streams, leaderboard, citizen tier |
 | [plan-sprint-4b.md](done/plan-sprint-4b.md) | Sprint 4b — Interim Game Variety Update *(closed; in `done/`)* | Intermission while the citizenship track paused: compact maps, Duos/Trios/Quads modes, weird-setting modifiers in public matchmaking |
 | [plan-sprint-4c.md](done/plan-sprint-4c.md) | Sprint 4c — Production Stabilization *(closed; in `done/`)* | Reduce the top production error families from the 2026-05-07 Uptrace telemetry review |
-| [plan-sprint-5.md](plan-sprint-5.md) | Sprint 5 — Full F2P Loop & Social Features *(pre-scoped, not in work)* | Long-term engagement and monetization systems |
-| [plan-sprint-6.md](plan-sprint-6.md) | Sprint 6 — More Content *(pre-scoped, not in work)* | Additional content; ~~**the board the tooling wrongly reports as active — see the note above**~~ *(superseded; see the 📌 note above)* |
+| [plan-sprint-5.md](plan-sprint-5.md) | **Sprint 5 — Citizenship Launch** ~~Full F2P Loop & Social Features~~ *(renamed 2026-09-26, owner ruling)* 🔄 **ACTIVE since 2026-09-26** ~~*(pre-scoped, not in work)*~~ | ~~Long-term engagement and monetization systems~~ Now the profile/citizenship launch only (owner ruling 2026-09-26); the F2P / social items moved to Sprint 6 |
+| [plan-sprint-6.md](plan-sprint-6.md) | Sprint 6 — Full F2P Loop & Social Features ~~More Content~~ *(renamed 2026-09-26, owner ruling — takes Sprint 5's former title)* *(pre-scoped, not in work)* | Additional content; ~~**the board the tooling wrongly reports as active — see the note above**~~ *(superseded; see the 📌 note above)*; since 2026-09-26 also the 16 rows moved out of Sprint 5 (owner ruling) |
 
 ---
 
@@ -104,10 +108,10 @@ Features are **excluded** from experiments if:
 | 8d (B) | Announcements — personal citizen inbox | 2–3 days | ❌ Excluded | Citizen-only; server-side; triggered by admin actions (nickname review, citizenship grant) | 4 |
 | 9 | Re-enable flags | 1 week | ✅ Test | Identity feature, drives Yandex login, upsell surface | 4 |
 | 9a | Re-enable territory patterns | 1 week | ✅ Test | High-visibility cosmetic; upsell surface | 4 |
-| 10 | Leaderboard — rewards layer | 3–5 days | ✅ Test | Competitive motivation, social proof, long-term prestige | 5 |
-| 8a | Nickname styling system | 1–2 weeks | ✅ Test | ARPU upsell for nickname buyers, social visibility | 5 |
-| 11 | Coin economy + rewarded ads full version | 3–4 weeks | ❌ Excluded | Core F2P engagement loop | 5 |
-| 12 | Clans | 3–4 weeks | ✅ Test | Long-term retention, social monetization | 5 |
-| 14 | Map voting for verified players | 1–2 weeks | ✅ Test | Verified tier participation mechanic | 5 |
-| 13 | Replay access as premium feature | 3–5 days | ❌ Excluded | ARPU increase, needs tier system from Task 11 first | 5 |
-| 15 | Custom uploaded flags & patterns — paid citizens only | 2–3 weeks | ❌ Excluded | Unique in-match appearance; requires moderation infrastructure; V1 flags only | 5 |
+| 10 | Leaderboard — rewards layer | 3–5 days | ✅ Test | Competitive motivation, social proof, long-term prestige | ~~5~~ 6 *(moved 2026-09-26, owner ruling)* |
+| 8a | Nickname styling system | 1–2 weeks | ✅ Test | ARPU upsell for nickname buyers, social visibility | ~~5~~ 6 *(moved 2026-09-26, owner ruling)* |
+| 11 | Coin economy + rewarded ads full version | 3–4 weeks | ❌ Excluded | Core F2P engagement loop | ~~5~~ 6 *(moved 2026-09-26, owner ruling)* |
+| 12 | Clans | 3–4 weeks | ✅ Test | Long-term retention, social monetization | ~~5~~ 6 *(moved 2026-09-26, owner ruling)* |
+| 14 | Map voting for verified players | 1–2 weeks | ✅ Test | Verified tier participation mechanic | ~~5~~ 6 *(moved 2026-09-26, owner ruling)* |
+| 13 | Replay access as premium feature | 3–5 days | ❌ Excluded | ARPU increase, needs tier system from Task 11 first | ~~5~~ 6 *(moved 2026-09-26, owner ruling)* |
+| 15 | Custom uploaded flags & patterns — paid citizens only | 2–3 weeks | ❌ Excluded | Unique in-match appearance; requires moderation infrastructure; V1 flags only | ~~5~~ 6 *(moved 2026-09-26, owner ruling)* |

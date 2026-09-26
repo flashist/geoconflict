@@ -307,6 +307,28 @@ recorded here — corrected, not merely dropped — **so it is not re-invented**
 half-remembers it. ⛔ **Nothing in this brief ever rested on it**, and step 3 was never waived,
 descoped, or owner-declined.
 
+#### 📌 RECORDED 2026-09-26 — owner ruling on go-live TIMING: *as soon as possible*
+
+⛔ **Authority.** An **OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on
+2026-09-26**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel** (ADR-021).
+⛔ **Not producer precedent.** Asked *"When should the citizenship go-live deploy happen?"*, the owner
+answered, verbatim:
+
+> *"As soon as possible, it's ok for me if some of the re-measures happen after it."*
+
+The owner's goal the same day, verbatim: *"make another release today/tomorrow to finally ship the
+profile/citizenship feature to users"*. By the same ruling set, [Sprint 5](../../../sprints/plan-sprint-5.md)
+now carries only this launch (this task, `0018`, and the launch-day checks `0238`, `0296`, `0297`) and was
+started (`🔄 In progress — 2026-09-26`); everything else moved to Sprint 6.
+
+- **What this settles:** the launch timing that Correction 7 left as *"the owner's call"* — the owner has
+  now called it: as soon as possible (a release today or tomorrow).
+- **What it accepts:** some re-measures may land **after** the go-live rather than before it. ⚠️ The ruling
+  does **not** name which re-measures; read it as *"re-measures are not a go-live gate"*, not as a list.
+- **What it does NOT change:** ⛔ **`## Status` is unchanged** (the marker stays `🚧 Blocked`; §6 is not
+  yet executed). ⛔ Nothing in *What to Do* §6 changed, and the `0066` licensing prerequisite and
+  `RUNBOOK-A` (the flip is a launch decision, not a deploy-slot item) still stand. No mover was invoked.
+
 ## Owner
 fkit-coder
 
