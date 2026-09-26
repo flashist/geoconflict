@@ -29,9 +29,17 @@ Features are **excluded** from experiments if:
 
 ## Sprint Files
 
-> 🔄 **THE ACTIVE SPRINT IS SPRINT 5 — started 2026-09-26** (owner ruling, live via `AskUserQuestion`, relayed
+> 📌 **2026-09-26, later — NO SPRINT IS ACTIVE.** Sprint 5 was closed that day by `/fkit-sprint-done`
+> *(agent-closed — not owner-verified)*: its line-3 banner reads `✅ Done — 2026-09-26` and the board now lives
+> in [`done/plan-sprint-5.md`](done/plan-sprint-5.md). [Sprint 6](plan-sprint-6.md) is pre-scoped and **not
+> started** (owner ruling; its banner stays `🔲 Backlog`). Checked 2026-09-26: `dashboard.sh select-active`
+> reports `active none`. *(Correction recorded 2026-09-26 at the owner's request, relayed by `fkit-lead` to a
+> spawned `fkit-producer`.)*
+>
+> ~~🔄 **THE ACTIVE SPRINT IS SPRINT 5 — started 2026-09-26** (owner ruling, live via `AskUserQuestion`, relayed
 > to a spawned `fkit-producer`): it now carries only the profile/citizenship launch; its other rows moved to
-> Sprint 6 the same day. Sprint 4 is closed (`done/`).
+> Sprint 6 the same day.~~ Sprint 4 is closed (`done/`). *(Struck 2026-09-26, not deleted — true until Sprint 5
+> closed the same day.)*
 >
 > ~~🔴 **THE ACTIVE SPRINT IS SPRINT 4** — owner ruling given live in session **2026-09-07**, verbatim:
 > *"The active sprint is the Sprint 4!"*~~ *(history — superseded 2026-09-26)*
@@ -59,7 +67,7 @@ Features are **excluded** from experiments if:
 | [plan-sprint-4.md](done/plan-sprint-4.md) | Sprint 4 — First Monetization Layer *(closed; in `done/`)* ~~🔴 **ACTIVE**~~ | Revenue streams, leaderboard, citizen tier |
 | [plan-sprint-4b.md](done/plan-sprint-4b.md) | Sprint 4b — Interim Game Variety Update *(closed; in `done/`)* | Intermission while the citizenship track paused: compact maps, Duos/Trios/Quads modes, weird-setting modifiers in public matchmaking |
 | [plan-sprint-4c.md](done/plan-sprint-4c.md) | Sprint 4c — Production Stabilization *(closed; in `done/`)* | Reduce the top production error families from the 2026-05-07 Uptrace telemetry review |
-| [plan-sprint-5.md](done/plan-sprint-5.md) | **Sprint 5 — Citizenship Launch** ~~Full F2P Loop & Social Features~~ *(renamed 2026-09-26, owner ruling)* 🔄 **ACTIVE since 2026-09-26** ~~*(pre-scoped, not in work)*~~ | ~~Long-term engagement and monetization systems~~ Now the profile/citizenship launch only (owner ruling 2026-09-26); the F2P / social items moved to Sprint 6 |
+| [plan-sprint-5.md](done/plan-sprint-5.md) | **Sprint 5 — Citizenship Launch** ~~Full F2P Loop & Social Features~~ *(renamed 2026-09-26, owner ruling)* ~~🔄 **ACTIVE since 2026-09-26**~~ ✅ **Done 2026-09-26** *(closed by `/fkit-sprint-done`, agent-closed — not owner-verified; in `done/`)* ~~*(pre-scoped, not in work)*~~ | ~~Long-term engagement and monetization systems~~ Now the profile/citizenship launch only (owner ruling 2026-09-26); the F2P / social items moved to Sprint 6 |
 | [plan-sprint-6.md](plan-sprint-6.md) | Sprint 6 — Full F2P Loop & Social Features ~~More Content~~ *(renamed 2026-09-26, owner ruling — takes Sprint 5's former title)* *(pre-scoped, not in work)* | Additional content; ~~**the board the tooling wrongly reports as active — see the note above**~~ *(superseded; see the 📌 note above)*; since 2026-09-26 also the 16 rows moved out of Sprint 5 (owner ruling) |
 
 ---

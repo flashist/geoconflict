@@ -2,7 +2,13 @@
 
 > ## ✅ Done — 2026-09-26. Closed by /fkit-sprint-done (agent-closed — not owner-verified).
 
-> # 🔄 THIS IS THE ACTIVE SPRINT — started 2026-09-26: the profile/citizenship LAUNCH
+> # ~~🔄 THIS IS THE ACTIVE SPRINT~~ — started 2026-09-26: the profile/citizenship LAUNCH
+>
+> 📌 **2026-09-26, later — CLOSED; NO LONGER THE ACTIVE SPRINT.** This board was closed that day by
+> `/fkit-sprint-done` *(agent-closed — not owner-verified)* — the line-3 banner above is the carrier. No
+> sprint is active; [Sprint 6](../plan-sprint-6.md) is pre-scoped and not started. The struck heading and
+> sentence on this callout were true until the close — struck, not deleted. *(Correction recorded
+> 2026-09-26 at the owner's request, relayed by `fkit-lead` to a spawned `fkit-producer`; rows untouched.)*
 >
 > 📌 **2026-09-26 — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-26, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent:** *"Yes, after the move (Recommended)"* — start Sprint 5 once the rows
 > not needed for the launch had moved to [Sprint 6](../plan-sprint-6.md). [Sprint 4](../done/plan-sprint-4.md)
@@ -14,7 +20,8 @@
 > ~~**Owner ruling 2026-09-07, verbatim:** *"The active sprint is the Sprint 4!"* →
 > [`plan-sprint-4.md`](../done/plan-sprint-4.md).~~ *(history — Sprint 4 is closed; superseded 2026-09-26)*
 >
-> ⚠️ **This board is legitimately open and nothing here is being archived.** Pre-scoping future
+> ⚠️ ~~**This board is legitimately open and nothing here is being archived.**~~ *(struck 2026-09-26 — the board
+> closed and was archived that day)* Pre-scoping future
 > sprints is the intended workflow. ~~See
 > [ADR-108](../../knowledge-base/decisions/adr-108-owner-set-active-sprint-pointer.md) for why the
 > tooling cannot currently be told which sprint is active; ask for status by name:
@@ -35,7 +42,10 @@
 📌 **2026-09-26 — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-26, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent: this sprint is now the profile/citizenship LAUNCH.** Owner, verbatim:
 *"make another release today/tomorrow to finally ship the profile/citizenship feature to users ... move
 everything from the Sprint 5, that is not related to that goal, to the next sprint (Sprint 6)."* What stays
-open here is that launch: `0065` (the go-live), `0018`, and the launch-day checks `0238`, `0296`, `0297`.
+open here is that launch: `0065` (the go-live), `0018`, and the launch-day checks `0238`, `0296`~~, `0297`~~.
+*(Correction 2026-09-26: `0297` moved to [Sprint 6](../plan-sprint-6.md) that day on an owner ruling — see the
+`0297` addendum below the table. The other four closed `✅ Done` on 2026-09-26, and the board itself closed the
+same day, so nothing stays open here. Struck, not deleted.)*
 Every F2P / social item the goal line above names moved to [Sprint 6](../plan-sprint-6.md). The goal line ~~and
 the H1 title are~~ **is** kept as the record of the original scope. *(Struck 2026-09-26: the H1 was renamed the same day — see the next note. The old title is still visible there, struck.)*
 

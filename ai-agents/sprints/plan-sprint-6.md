@@ -7,8 +7,15 @@
 > ~~**Owner ruling 2026-09-07, verbatim:** *"The active sprint is the Sprint 4!"* →
 > [`plan-sprint-4.md`](done/plan-sprint-4.md).~~ *(history — Sprint 4 is closed)*
 >
-> 📌 **2026-09-26 — the active sprint is [Sprint 5](done/plan-sprint-5.md)**, started that day on an owner ruling
-> (its line-3 banner reads `🔄 In progress`). This board stays `🔲 Backlog`.
+> ~~📌 **2026-09-26 — the active sprint is [Sprint 5](done/plan-sprint-5.md)**, started that day on an owner ruling
+> (its line-3 banner reads `🔄 In progress`).~~ This board stays `🔲 Backlog`. *(Struck 2026-09-26, not
+> deleted — true until Sprint 5 closed the same day.)*
+>
+> 📌 **2026-09-26, later — NO SPRINT IS ACTIVE.** [Sprint 5](done/plan-sprint-5.md) was closed that day by
+> `/fkit-sprint-done` *(agent-closed — not owner-verified)*; its line-3 banner reads `✅ Done — 2026-09-26`.
+> This board is still pre-scoped and **not started** (owner ruling) — it stays `🔲 Backlog`. Checked
+> 2026-09-26: `dashboard.sh select-active` reports `active none`. *(Correction recorded 2026-09-26 at the
+> owner's request, relayed by `fkit-lead` to a spawned `fkit-producer`.)*
 >
 > ~~🚨 **If a tool told you this board was active, the tool is wrong and this is the known reason.**
 > `dashboard.sh select-active` picks the **highest** open sprint identity, and this is it — so an
