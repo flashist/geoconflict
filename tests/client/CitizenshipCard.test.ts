@@ -180,14 +180,15 @@ describe("CitizenshipCard", () => {
       expect(isCitizenshipUiEnabled).not.toHaveBeenCalled();
     });
 
-    it("ships with the real flag defaulted OFF", () => {
-      // Guards against an accidental flipped-ON commit: reads the real module,
-      // bypassing this file's mock. Flipping this constant to true IS the
-      // citizenship relaunch (0017/0018) — at which point this test flips too.
+    it("ships with the real flag ON (citizenship launched — 0065 §6)", () => {
+      // Guards against an accidental revert to OFF: reads the real module,
+      // bypassing this file's mock. Citizenship launched in 0065 §6 (owner
+      // ruling 2026-09-26); turning the constant back to false is the
+      // code-level rollback, at which point this test flips too.
       const realConstants = jest.requireActual<
         typeof import("../../src/client/flashist/FlashistFacade")
       >("../../src/client/flashist/FlashistFacade").flashistConstants;
-      expect(realConstants.features.CITIZENSHIP_CARD_ENABLED).toBe(false);
+      expect(realConstants.features.CITIZENSHIP_CARD_ENABLED).toBe(true);
     });
   });
 
